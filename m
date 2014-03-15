@@ -1,202 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:56658 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757627AbaCSJup (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Mar 2014 05:50:45 -0400
-Received: from minime.bse ([77.20.176.42]) by mail.gmx.com (mrgmx103) with
- ESMTPSA (Nemesis) id 0LjquD-1Wx43e3c09-00bwTc for
- <linux-media@vger.kernel.org>; Wed, 19 Mar 2014 10:50:44 +0100
-From: =?UTF-8?q?Daniel=20Gl=C3=B6ckner?= <daniel-gl@gmx.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v3] bttv: Add support for PCI-8604PW
-Date: Wed, 19 Mar 2014 10:50:41 +0100
-Message-Id: <1395222641-19060-1-git-send-email-daniel-gl@gmx.net>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4194 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754911AbaCOMMh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Mar 2014 08:12:37 -0400
+Message-ID: <532443AB.9080105@xs4all.nl>
+Date: Sat, 15 Mar 2014 13:12:27 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: linux-sparse@vger.kernel.org
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: sparse: ARRAY_SIZE and sparse array initialization
+References: <532442E2.7050206@xs4all.nl>
+In-Reply-To: <532442E2.7050206@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for the PCI-8604PW card equipped with four 878A.
-It is unknown who the manufacturer of this card is and no drivers were
-available during development of the patch. According to images found
-online, the card is originally sold with Linux DVR software.
+For the record: all these tests were done with a 3.14-rc5 kernel and sparse
+compiled from the git tree as of today (version v0.5.0). The gcc version is 4.8.2.
 
-A CPLD on the card prevents the 878A from requesting access to the
-bus until an initialization sequence has been issued via GPIOs. The
-implemented sequence uses the minimum number of GPIOs needed to
-successfully unlock bus access. As there are many more GPIOs connected
-to the CPLD, it is very likely that some of the others have an influence
-on the bus arbitration scheduling. This should be investigated further
-in case of performance issues.
+Regards,
 
-The tested card contains an EEPROM on one of the 878A, but it is
-completely empty (i.e. contains only 0xff), so it is not possible
-to detect the card.
+	Hans
 
-Signed-off-by: Daniel Glöckner <daniel-gl@gmx.net>
-Tested-by: Robert Longbottom <rongblor@googlemail.com>
----
- drivers/media/pci/bt8xx/bttv-cards.c | 110 +++++++++++++++++++++++++++++++++++
- drivers/media/pci/bt8xx/bttv.h       |   1 +
- 2 files changed, 111 insertions(+)
-
-diff --git a/drivers/media/pci/bt8xx/bttv-cards.c b/drivers/media/pci/bt8xx/bttv-cards.c
-index 6662b49..7df34b4 100644
---- a/drivers/media/pci/bt8xx/bttv-cards.c
-+++ b/drivers/media/pci/bt8xx/bttv-cards.c
-@@ -52,6 +52,7 @@ static void osprey_eeprom(struct bttv *btv, const u8 ee[256]);
- static void modtec_eeprom(struct bttv *btv);
- static void init_PXC200(struct bttv *btv);
- static void init_RTV24(struct bttv *btv);
-+static void init_PCI8604PW(struct bttv *btv);
- 
- static void rv605_muxsel(struct bttv *btv, unsigned int input);
- static void eagle_muxsel(struct bttv *btv, unsigned int input);
-@@ -2856,6 +2857,22 @@ struct tvcard bttv_tvcards[] = {
- 		.tuner_addr	= ADDR_UNSET,
- 	},
- 
-+	/* ---- card 0xa5---------------------------------- */
-+	[BTTV_BOARD_PCI_8604PW] = {
-+		/* PCI-8604PW with special unlock sequence */
-+		.name           = "PCI-8604PW",
-+		.video_inputs   = 2,
-+		/* .audio_inputs= 0, */
-+		.svhs           = NO_SVHS,
-+		/* The second input is available on CN4, if populated.
-+		 * The other 5x2 header (CN2?) connects to the same inputs
-+		 * as the on-board BNCs */
-+		.muxsel         = MUXSEL(2, 3),
-+		.tuner_type     = TUNER_ABSENT,
-+		.no_msp34xx	= 1,
-+		.no_tda7432	= 1,
-+		.pll            = PLL_35,
-+	},
- };
- 
- static const unsigned int bttv_num_tvcards = ARRAY_SIZE(bttv_tvcards);
-@@ -3290,6 +3307,9 @@ void bttv_init_card1(struct bttv *btv)
- 	case BTTV_BOARD_ADLINK_RTV24:
- 		init_RTV24( btv );
- 		break;
-+	case BTTV_BOARD_PCI_8604PW:
-+		init_PCI8604PW(btv);
-+		break;
- 
- 	}
- 	if (!bttv_tvcards[btv->c.type].has_dvb)
-@@ -4170,6 +4190,96 @@ init_RTV24 (struct bttv *btv)
- 
- 
- /* ----------------------------------------------------------------------- */
-+/*
-+ *  The PCI-8604PW contains a CPLD, probably an ispMACH 4A, that filters
-+ *  the PCI REQ signals comming from the four BT878 chips. After power
-+ *  up, the CPLD does not forward requests to the bus, which prevents
-+ *  the BT878 from fetching RISC instructions from memory. While the
-+ *  CPLD is connected to most of the GPIOs of PCI device 0xD, only
-+ *  five appear to play a role in unlocking the REQ signal. The following
-+ *  sequence has been determined by trial and error without access to the
-+ *  original driver.
-+ *
-+ *  Eight GPIOs of device 0xC are provided on connector CN4 (4 in, 4 out).
-+ *  Devices 0xE and 0xF do not appear to have anything connected to their
-+ *  GPIOs.
-+ *
-+ *  The correct GPIO_OUT_EN value might have some more bits set. It should
-+ *  be possible to derive it from a boundary scan of the CPLD. Its JTAG
-+ *  pins are routed to test points.
-+ *
-+ */
-+/* ----------------------------------------------------------------------- */
-+static void
-+init_PCI8604PW(struct bttv *btv)
-+{
-+	int state;
-+
-+	if ((PCI_SLOT(btv->c.pci->devfn) & ~3) != 0xC) {
-+		pr_warn("This is not a PCI-8604PW\n");
-+		return;
-+	}
-+
-+	if (PCI_SLOT(btv->c.pci->devfn) != 0xD)
-+		return;
-+
-+	btwrite(0x080002, BT848_GPIO_OUT_EN);
-+
-+	state = (btread(BT848_GPIO_DATA) >> 21) & 7;
-+
-+	for (;;) {
-+		switch (state) {
-+		case 1:
-+		case 5:
-+		case 6:
-+		case 4:
-+			pr_debug("PCI-8604PW in state %i, toggling pin\n",
-+				 state);
-+			btwrite(0x080000, BT848_GPIO_DATA);
-+			msleep(1);
-+			btwrite(0x000000, BT848_GPIO_DATA);
-+			msleep(1);
-+			break;
-+		case 7:
-+			pr_info("PCI-8604PW unlocked\n");
-+			return;
-+		case 0:
-+			/* FIXME: If we are in state 7 and toggle GPIO[19] one
-+			   more time, the CPLD goes into state 0, where PCI bus
-+			   mastering is inhibited again. We have not managed to
-+			   get out of that state. */
-+
-+			pr_err("PCI-8604PW locked until reset\n");
-+			return;
-+		default:
-+			pr_err("PCI-8604PW in unknown state %i\n", state);
-+			return;
-+		}
-+
-+		state = (state << 4) | ((btread(BT848_GPIO_DATA) >> 21) & 7);
-+
-+		switch (state) {
-+		case 0x15:
-+		case 0x56:
-+		case 0x64:
-+		case 0x47:
-+		/* The transition from state 7 to state 0 is, as explained
-+		   above, valid but undesired and with this code impossible
-+		   as we exit as soon as we are in state 7.
-+		case 0x70: */
-+			break;
-+		default:
-+			pr_err("PCI-8604PW invalid transition %i -> %i\n",
-+			       state >> 4, state & 7);
-+			return;
-+		}
-+		state &= 7;
-+	}
-+}
-+
-+
-+
-+/* ----------------------------------------------------------------------- */
- /* Miro Pro radio stuff -- the tea5757 is connected to some GPIO ports     */
- /*
-  * Copyright (c) 1999 Csaba Halasz <qgehali@uni-miskolc.hu>
-diff --git a/drivers/media/pci/bt8xx/bttv.h b/drivers/media/pci/bt8xx/bttv.h
-index df578ef..c0a4c93 100644
---- a/drivers/media/pci/bt8xx/bttv.h
-+++ b/drivers/media/pci/bt8xx/bttv.h
-@@ -188,6 +188,7 @@
- #define BTTV_BOARD_ADLINK_MPG24            0xa2
- #define BTTV_BOARD_BT848_CAP_14            0xa3
- #define BTTV_BOARD_CYBERVISION_CV06        0xa4
-+#define BTTV_BOARD_PCI_8604PW              0xa5
- 
- /* more card-specific defines */
- #define PT2254_L_CHANNEL 0x10
--- 
-1.8.3.4
+On 03/15/2014 01:09 PM, Hans Verkuil wrote:
+> Hmm, interesting. Twice 'sparse' in the same subject line with different meanings :-)
+> 
+> This is another sparse error I get with drivers/media/v4l2-core/v4l2-ioctl.c:
+> 
+> drivers/media/v4l2-core/v4l2-ioctl.c:424:9: error: cannot size expression
+> 
+> (there are more of those in drivers/media, all with the same cause).
+> 
+> This sparse (the tool) error occurs because of sparse (C language) array initialization
+> in combination with ARRAY_SIZE:
+> 
+> static const char *v4l2_memory_names[] = {
+>         [V4L2_MEMORY_MMAP]    = "mmap",
+>         [V4L2_MEMORY_USERPTR] = "userptr",
+>         [V4L2_MEMORY_OVERLAY] = "overlay",
+>         [V4L2_MEMORY_DMABUF] = "dmabuf",
+> };
+> 
+> #define prt_names(a, arr) (((unsigned)(a)) < ARRAY_SIZE(arr) ? arr[a] : "unknown")
+> 
+> static void v4l_print_requestbuffers(const void *arg, bool write_only)
+> {
+>         const struct v4l2_requestbuffers *p = arg;
+> 
+>         pr_cont("count=%d, type=%s, memory=%s\n",
+>                 p->count,
+>                 prt_names(p->type, v4l2_type_names),
+>                 prt_names(p->memory, v4l2_memory_names));
+> }
+> 
+> I could change v4l2_memory_names to:
+> 
+> static const char *v4l2_memory_names[V4L2_MEMORY_DMABUF + 1] = {
+> 
+> and the error goes away.
+> 
+> I'm actually not sure if this is a sparse bug or a feature.
+> 
+> If it is a feature then the error message is definitely wrong, since the size is
+> perfectly well defined. As an aside: the error message is pretty vague IMHO.
+> 
+> Regards,
+> 
+> 	Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
