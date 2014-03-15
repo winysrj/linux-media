@@ -1,55 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:52937 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752597AbaCZJxc (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1528 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756544AbaCONIY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Mar 2014 05:53:32 -0400
-Message-ID: <5332A35E.3000504@cisco.com>
-Date: Wed, 26 Mar 2014 10:52:30 +0100
-From: Hans Verkuil <hansverk@cisco.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH] adv7611: Set HPD GPIO direction to output
-References: <1395800929-17036-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1395800929-17036-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Sat, 15 Mar 2014 09:08:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, pawel@osciak.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH for v3.15 3/4] v4l2-common.h: remove __user annotation in struct v4l2_edid
+Date: Sat, 15 Mar 2014 14:08:02 +0100
+Message-Id: <1394888883-46850-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1394888883-46850-1-git-send-email-hverkuil@xs4all.nl>
+References: <1394888883-46850-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Stupid question perhaps, but why is gpiod_set_value_cansleep() removed?
-Does setting the output direction force the value to 0 as well?
+The edid array is copied to kernelspace by the v4l2 core, so drivers
+shouldn't see the __user annotation. This conforms to other structs like
+v4l2_ext_controls where the data pointed to is copied to from user to
+kernelspace.
 
-Regards,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/v4l2-common.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-	Hans
+diff --git a/include/uapi/linux/v4l2-common.h b/include/uapi/linux/v4l2-common.h
+index 270db89..e9011cd 100644
+--- a/include/uapi/linux/v4l2-common.h
++++ b/include/uapi/linux/v4l2-common.h
+@@ -73,7 +73,7 @@ struct v4l2_edid {
+ 	__u32 start_block;
+ 	__u32 blocks;
+ 	__u32 reserved[5];
+-	__u8 __user *edid;
++	__u8  *edid;
+ };
+ 
+ #endif /* __V4L2_COMMON__ */
+-- 
+1.9.0
 
-On 03/26/14 03:28, Laurent Pinchart wrote:
-> The HPD GPIO is used as an output but its direction is never set. Fix
-> it.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/i2c/adv7604.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> This patch applies on top of the ADV7611 support series queued for v3.16.
-> 
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index 51f14ab..b38ebb9 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -2845,7 +2845,7 @@ static int adv7604_probe(struct i2c_client *client,
->  		if (IS_ERR(state->hpd_gpio[i]))
->  			continue;
->  
-> -		gpiod_set_value_cansleep(state->hpd_gpio[i], 0);
-> +		gpiod_direction_output(state->hpd_gpio[i], 0);
->  
->  		v4l_info(client, "Handling HPD %u GPIO\n", i);
->  	}
-> 
