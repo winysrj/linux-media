@@ -1,165 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:17746 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754481AbaCKNio (ORCPT
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:64261 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751322AbaCPLwi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 09:38:44 -0400
-Message-id: <531F11DD.5040300@samsung.com>
-Date: Tue, 11 Mar 2014 14:38:37 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
-	mark.rutland@arm.com, galak@codeaurora.org,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	a.hajda@samsung.com
-Subject: Re: [PATCH v6 03/10] Documentation: devicetree: Update Samsung FIMC DT
- binding
-References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
- <1394122819-9582-4-git-send-email-s.nawrocki@samsung.com>
- <1608087.RUCeTiNcRR@avalon>
-In-reply-to: <1608087.RUCeTiNcRR@avalon>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Sun, 16 Mar 2014 07:52:38 -0400
+Received: by mail-wg0-f46.google.com with SMTP id b13so3600188wgh.17
+        for <linux-media@vger.kernel.org>; Sun, 16 Mar 2014 04:52:37 -0700 (PDT)
+From: James Hogan <james@albanarts.com>
+To: Antti =?ISO-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v2 9/9] rc: nuvoton-cir: Add support for writing wakeup samples via sysfs filter callback
+Date: Sun, 16 Mar 2014 11:52:21 +0000
+Message-ID: <2076172.6KyOpsnAqT@radagast>
+In-Reply-To: <CAKv9HNZN6hWgYnWmD3zgEABjNMxzMsAoaCT4Mgb7EKF4r5zjdg@mail.gmail.com>
+References: <1394838259-14260-1-git-send-email-james@albanarts.com> <1394838259-14260-10-git-send-email-james@albanarts.com> <CAKv9HNZN6hWgYnWmD3zgEABjNMxzMsAoaCT4Mgb7EKF4r5zjdg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="nextPart2323710.yqxCSamatO"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
 
-Thanks for your review.
+--nextPart2323710.yqxCSamatO
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 
-On 11/03/14 13:30, Laurent Pinchart wrote:
-[...]
->> ---
->>  .../devicetree/bindings/media/samsung-fimc.txt     |   34 ++++++++++++-----
->>  1 file changed, 26 insertions(+), 8 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> b/Documentation/devicetree/bindings/media/samsung-fimc.txt index
->> 96312f6..dbd4020 100644
->> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> @@ -32,6 +32,21 @@ way around.
->>
->>  The 'camera' node must include at least one 'fimc' child node.
->>
->> +Optional properties:
->> +
->> +- #clock-cells: from the common clock bindings
->> (../clock/clock-bindings.txt),
->> +  must be 1. A clock provider is associated with the 'camera' node and it
->> should
->> +  be referenced by external sensors that use clocks provided by the SoC on
->> +  CAM_*_CLKOUT pins. The clock specifier cell stores an index of a clock.
->> +  The indices are 0, 1 for CAM_A_CLKOUT, CAM_B_CLKOUT clocks respectively.
->> +
->> +- clock-output-names: from the common clock bindings, should contain names
->> of
->> +  clocks registered by the camera subsystem corresponding to CAM_A_CLKOUT,
->> +  CAM_B_CLKOUT output clocks respectively.
-> 
-> Wouldn't it be better to document the "cam_mclk_a" and "cam_mclk_b" names 
-> explicitly ? Or do you expect different names to be used in different DT files 
-> ? And as they correspond to the CAM_A_CLKOUT and CAM_B_CLKOUT pins, shouldn't 
-> they be named "cam_a_clkout" and "cam_b_clkout" ?
+On Sunday 16 March 2014 10:39:39 Antti Sepp=E4l=E4 wrote:
+> > +static int nvt_write_wakeup_codes(struct rc_dev *dev,
+> > +                                 const u8 *wakeup_sample_buf, int =
+count)
+> > +{
+> > +       int i =3D 0;
+> > +       u8 reg, reg_learn_mode;
+> > +       unsigned long flags;
+> > +       struct nvt_dev *nvt =3D dev->priv;
+> > +
+> > +       nvt_dbg_wake("writing wakeup samples");
+> > +
+> > +       reg =3D nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRCON);
+> > +       reg_learn_mode =3D reg & ~CIR_WAKE_IRCON_MODE0;
+> > +       reg_learn_mode |=3D CIR_WAKE_IRCON_MODE1;
+> > +
+> > +       /* Lock the learn area to prevent racing with wake-isr */
+> > +       spin_lock_irqsave(&nvt->nvt_lock, flags);
+> > +
+> > +       /* Enable fifo writes */
+> > +       nvt_cir_wake_reg_write(nvt, reg_learn_mode, CIR_WAKE_IRCON)=
+;
+> > +
+> > +       /* Clear cir wake rx fifo */
+> > +       nvt_clear_cir_wake_fifo(nvt);
+> > +
+> > +       if (count > WAKE_FIFO_LEN) {
+> > +               nvt_dbg_wake("HW FIFO too small for all wake sample=
+s");
+> > +               count =3D WAKE_FIFO_LEN;
+> > +       }
+>=20
+> Now that the encoders support partial encoding the above check agains=
+t
+> WAKE_FIFO_LEN never triggers and can be removed.
 
-Basically I could use fixed names for these clocks, I just wanted to keep
-a possibility to override them in dts to avoid any possible clock name
-collisions, rather than keep a list of different names per SoC in the driver. 
-Right now fixed names could also be used for all SoCs I'm aware of, 
-nevertheless I would prefer to keep the clock-output-names property.
-"cam_a_clkout", "cam_b_clkout" may be indeed better names, I'll change
-that.
+Yep, good point
 
->> +Note: #clock-cells and clock-output-names are mandatory properties if
->> external
->> +image sensor devices reference 'camera' device node as a clock provider.
->> +
-> 
-> What's the reason not to make them always mandatory ? Backward compatibility 
-> only ? If so wouldn't it make sense to document the properties as mandatory 
-> from now on, and treating them as optional in the driver for backward 
-> compatibility ?
+Thanks
+James
+--nextPart2323710.yqxCSamatO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
 
-Yes, it's for backwards compatibility only. It may be a good idea to just 
-document them as required, since this is how the device is expected to be 
-described in DT from now. I'll just make these a required properties, 
-the driver already handles them as optional.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
->>  'fimc' device nodes
->>  -------------------
->>
->> @@ -97,8 +112,8 @@ Image sensor nodes
->>  The sensor device nodes should be added to their control bus controller
->> (e.g. I2C0) nodes and linked to a port node in the csis or the
->> parallel-ports node, using the common video interfaces bindings, defined in
->> video-interfaces.txt.
->> -The implementation of this bindings requires clock-frequency property to be
->> -present in the sensor device nodes.
->> +An optional clock-frequency property needs to be present in the sensor
->> device
->> +nodes. Default value when this property is not present is 24 MHz.
-> 
-> This bothers me. Having the FIMC driver read the clock-frequence property from 
-> the sensor DT nodes feels like a layering violation. Shouldn't the sensor 
-> drivers call clk_set_rate() explicitly instead ?
+iQIcBAABAgAGBQJTJZB8AAoJEGwLaZPeOHZ6W6AQAIEpfE85+KO6yT8xQO9RGG67
+8/iysTeeLXPQyXRrymjdCfQNO5lme9Dn/TZcFVy8w/k0dV56Zmb26QwS69dcnVyF
+4a/FyhbbWGFX03Z+bW6o1mrJ/eJUA1snLST8p1GaeKyIZRhTQUHFw72JaD0kjEwf
+HYv93d5SFpgXJK/NxHWqP/uxzEqulCn4VRdPemQFHuponeGoyxfsqDpezpT242WS
+PmGGwWfmKsBSG/KSE59m7RAd3xjCxdbWQn/5HeevbUEKJVZcZQO8jYkMbr61+kVd
+RYgnNEQBWQNo5K9NUqouWHg2zyoQmttoFLva7Cwvn9FHsHON49ckiTvnSyZaZHTC
+pW5wR4QSej5PEXpFo5v+XdDt4BaIqKIPGpg2WTjh42XGGhQOSSP7UE5CE5JLhewg
+tHzRQO55UswKMVwSmrdim+O2bxclVIRoyatnnLCAPog436kQWid5YFooPCQAJsmV
+xNTdP67Da8xnkZbZtGd7c94XD7xQxk/NNbD3RB6yGSJejkfUReK+nJRpVZq49070
+unf4SBO9T374Hef3T/eY2Vq8atduAnBcPm+p/UiKrswX8VYimTU0qDnvMJba8Loz
+x7JNmiO77zyNqOZSQ1WrPnLUpWLNlp8gR1ki75PrLCTyuFQ1vz68PReMuWOYFTTs
+sU/MQAvOIvltEwXrCbJk
+=nW18
+-----END PGP SIGNATURE-----
 
-It is supposed to do so, after this whole patch series. So the camera
-controller driver will not need such properties. What do you think about
-removing this sentence altogether ?
+--nextPart2323710.yqxCSamatO--
 
->>  Example:
->>
->> @@ -114,7 +129,7 @@ Example:
->>  			vddio-supply = <...>;
->>
->>  			clock-frequency = <24000000>;
->> -			clocks = <...>;
->> +			clocks = <&camera 1>;
->>  			clock-names = "mclk";
->>
->>  			port {
->> @@ -135,7 +150,7 @@ Example:
->>  			vddio-supply = <...>;
->>
->>  			clock-frequency = <24000000>;
->> -			clocks = <...>;
->> +			clocks = <&camera 0>;
->>  			clock-names = "mclk";
->>
->>  			port {
->> @@ -149,12 +164,15 @@ Example:
->>
->>  	camera {
->>  		compatible = "samsung,fimc", "simple-bus";
->> -		#address-cells = <1>;
->> -		#size-cells = <1>;
->> -		status = "okay";
->> -
->> +		clocks = <&clock 132>, <&clock 133>;
->> +		clock-names = "sclk_cam0", "sclk_cam1";
-> 
-> The documentation mentions that clock-names must contain "sclk_cam0", 
-> "sclk_cam1", "pxl_async0", "pxl_async1". Are the last two optional ? If so I 
-> think you should clarify the description of the clock-names property. This can 
-> be done in a separate patch.
-
-"pxl_async0", "pxl_async1" are mandatory, I'll add them also into
-this example dts.
-
->> +		#clock-cells = <1>;
->> +		clock-output-names = "cam_mclk_a", "cam_mclk_b";
->>  		pinctrl-names = "default";
->>  		pinctrl-0 = <&cam_port_a_clk_active>;
->> +		status = "okay";
->> +		#address-cells = <1>;
->> +		#size-cells = <1>;
->>
->>  		/* parallel camera ports */
->>  		parallel-ports {
-
---
-Regards,
-Sylwester
