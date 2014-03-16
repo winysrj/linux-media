@@ -1,166 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52742 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753189AbaCKM3E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 08:29:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
-	mark.rutland@arm.com, galak@codeaurora.org,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	a.hajda@samsung.com
-Subject: Re: [PATCH v6 03/10] Documentation: devicetree: Update Samsung FIMC DT binding
-Date: Tue, 11 Mar 2014 13:30:39 +0100
-Message-ID: <1608087.RUCeTiNcRR@avalon>
-In-Reply-To: <1394122819-9582-4-git-send-email-s.nawrocki@samsung.com>
-References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com> <1394122819-9582-4-git-send-email-s.nawrocki@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:51041 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752468AbaCPV6x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Mar 2014 17:58:53 -0400
+Received: from dyn3-82-128-190-236.psoas.suomi.net ([82.128.190.236] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1WPJ52-00024r-FQ
+	for linux-media@vger.kernel.org; Sun, 16 Mar 2014 23:58:52 +0200
+Message-ID: <53261E9B.2070801@iki.fi>
+Date: Sun, 16 Mar 2014 23:58:51 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] SDR / E4000 V4L2 dependency fix
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+The following changes since commit ed97a6fe5308e5982d118a25f0697b791af5ec50:
 
-Thank you for the patch.
+   [media] af9033: Don't export functions for the hardware filter 
+(2014-03-14 20:26:59 -0300)
 
-On Thursday 06 March 2014 17:20:12 Sylwester Nawrocki wrote:
-> This patch documents following updates of the Exynos4 SoC camera subsystem
-> devicetree binding:
-> 
->  - addition of #clock-cells property to 'camera' node - the #clock-cells
->    property is needed when the sensor sub-devices use clock provided by
->    the camera host interface,
->  - addition of an optional clock-output-names property,
->  - change of the clock-frequency at image sensor node from mandatory to
->    an optional property - the sensor devices can now control their clock
->    themselves and there should be no need to require this property by the
->    camera host device binding, a default frequency value can often be used.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
-> Changes since v5:
->  - none.
-> 
-> Changes since v4:
->  - dropped a requirement of specific order of values in clocks/
->    clock-names properties (Mark) and reference to clock-names in
->    clock-output-names property description (Mark).
-> ---
->  .../devicetree/bindings/media/samsung-fimc.txt     |   34 ++++++++++++-----
->  1 file changed, 26 insertions(+), 8 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> b/Documentation/devicetree/bindings/media/samsung-fimc.txt index
-> 96312f6..dbd4020 100644
-> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> @@ -32,6 +32,21 @@ way around.
-> 
->  The 'camera' node must include at least one 'fimc' child node.
-> 
-> +Optional properties:
-> +
-> +- #clock-cells: from the common clock bindings
-> (../clock/clock-bindings.txt),
-> +  must be 1. A clock provider is associated with the 'camera' node and it
-> should
-> +  be referenced by external sensors that use clocks provided by the SoC on
-> +  CAM_*_CLKOUT pins. The clock specifier cell stores an index of a clock.
-> +  The indices are 0, 1 for CAM_A_CLKOUT, CAM_B_CLKOUT clocks respectively.
-> +
-> +- clock-output-names: from the common clock bindings, should contain names
-> of
-> +  clocks registered by the camera subsystem corresponding to CAM_A_CLKOUT,
-> +  CAM_B_CLKOUT output clocks respectively.
+are available in the git repository at:
 
-Wouldn't it be better to document the "cam_mclk_a" and "cam_mclk_b" names 
-explicitly ? Or do you expect different names to be used in different DT files 
-? And as they correspond to the CAM_A_CLKOUT and CAM_B_CLKOUT pins, shouldn't 
-they be named "cam_a_clkout" and "cam_b_clkout" ?
+   git://linuxtv.org/anttip/media_tree.git sdr_review_v8
 
-> +
-> +Note: #clock-cells and clock-output-names are mandatory properties if
-> external
-> +image sensor devices reference 'camera' device node as a clock provider.
-> +
+for you to fetch changes up to 50a30af2cbf149ee0354edd04be93aaef2335e32:
 
-What's the reason not to make them always mandatory ? Backward compatibility 
-only ? If so wouldn't it make sense to document the properties as mandatory 
-from now on, and treating them as optional in the driver for backward 
-compatibility ?
+   e4000: make VIDEO_V4L2 dependency optional (2014-03-16 23:22:51 +0200)
 
->  'fimc' device nodes
->  -------------------
-> 
-> @@ -97,8 +112,8 @@ Image sensor nodes
->  The sensor device nodes should be added to their control bus controller
-> (e.g. I2C0) nodes and linked to a port node in the csis or the
-> parallel-ports node, using the common video interfaces bindings, defined in
-> video-interfaces.txt.
-> -The implementation of this bindings requires clock-frequency property to be
-> -present in the sensor device nodes.
-> +An optional clock-frequency property needs to be present in the sensor
-> device
-> +nodes. Default value when this property is not present is 24 MHz.
+----------------------------------------------------------------
+Antti Palosaari (1):
+       e4000: make VIDEO_V4L2 dependency optional
 
-This bothers me. Having the FIMC driver read the clock-frequence property from 
-the sensor DT nodes feels like a layering violation. Shouldn't the sensor 
-drivers call clk_set_rate() explicitly instead ?
-
->  Example:
-> 
-> @@ -114,7 +129,7 @@ Example:
->  			vddio-supply = <...>;
-> 
->  			clock-frequency = <24000000>;
-> -			clocks = <...>;
-> +			clocks = <&camera 1>;
->  			clock-names = "mclk";
-> 
->  			port {
-> @@ -135,7 +150,7 @@ Example:
->  			vddio-supply = <...>;
-> 
->  			clock-frequency = <24000000>;
-> -			clocks = <...>;
-> +			clocks = <&camera 0>;
->  			clock-names = "mclk";
-> 
->  			port {
-> @@ -149,12 +164,15 @@ Example:
-> 
->  	camera {
->  		compatible = "samsung,fimc", "simple-bus";
-> -		#address-cells = <1>;
-> -		#size-cells = <1>;
-> -		status = "okay";
-> -
-> +		clocks = <&clock 132>, <&clock 133>;
-> +		clock-names = "sclk_cam0", "sclk_cam1";
-
-The documentation mentions that clock-names must contain "sclk_cam0", 
-"sclk_cam1", "pxl_async0", "pxl_async1". Are the last two optional ? If so I 
-think you should clarify the description of the clock-names property. This can 
-be done in a separate patch.
-
-> +		#clock-cells = <1>;
-> +		clock-output-names = "cam_mclk_a", "cam_mclk_b";
->  		pinctrl-names = "default";
->  		pinctrl-0 = <&cam_port_a_clk_active>;
-> +		status = "okay";
-> +		#address-cells = <1>;
-> +		#size-cells = <1>;
-> 
->  		/* parallel camera ports */
->  		parallel-ports {
+  drivers/media/tuners/Kconfig | 2 +-
+  drivers/media/tuners/e4000.c | 6 ++++++
+  2 files changed, 7 insertions(+), 1 deletion(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
