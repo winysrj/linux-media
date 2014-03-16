@@ -1,183 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43391 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751490AbaCGLup (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Mar 2014 06:50:45 -0500
-Message-ID: <5319B26B.8050900@ti.com>
-Date: Fri, 7 Mar 2014 17:20:03 +0530
-From: Archit Taneja <archit@ti.com>
+Received: from mail-qa0-f47.google.com ([209.85.216.47]:61325 "EHLO
+	mail-qa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750837AbaCPIWD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Mar 2014 04:22:03 -0400
+Received: by mail-qa0-f47.google.com with SMTP id w5so4210572qac.34
+        for <linux-media@vger.kernel.org>; Sun, 16 Mar 2014 01:22:02 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <k.debski@samsung.com>, <linux-media@vger.kernel.org>,
-	<linux-omap@vger.kernel.org>
-Subject: Re: [PATCH v2 7/7] v4l: ti-vpe: Add selection API in VPE driver
-References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393922965-15967-1-git-send-email-archit@ti.com> <1393922965-15967-8-git-send-email-archit@ti.com> <53159F7D.8020707@xs4all.nl> <5315B822.7010005@ti.com> <5315BA83.5080500@xs4all.nl>
-In-Reply-To: <5315BA83.5080500@xs4all.nl>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1394838259-14260-1-git-send-email-james@albanarts.com>
+References: <1394838259-14260-1-git-send-email-james@albanarts.com>
+Date: Sun, 16 Mar 2014 10:22:02 +0200
+Message-ID: <CAKv9HNav3DYRcX8B_N5db012-ShoGVc7rbLW1oWV-rgcwDaGmg@mail.gmail.com>
+Subject: Re: [PATCH v2 0/9] rc: Add IR encode based wakeup filtering
+From: =?ISO-8859-1?Q?Antti_Sepp=E4l=E4?= <a.seppala@gmail.com>
+To: James Hogan <james@albanarts.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	Jarod Wilson <jarod@redhat.com>,
+	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Tuesday 04 March 2014 05:05 PM, Hans Verkuil wrote:
-> On 03/04/14 12:25, Archit Taneja wrote:
->> I had a minor question about the selection API:
->>
->> Are the V4L2_SET_TGT_CROP/COMPOSE_DEFAULT and the corresponding
->> 'BOUNDS' targets supposed to be used with VIDIOC_S_SELECTION? If so,
->> what's the expect behaviour?
+On 15 March 2014 01:04, James Hogan <james@albanarts.com> wrote:
+> A recent discussion about proposed interfaces for setting up the
+> hardware wakeup filter lead to the conclusion that it could help to have
+> the generic capability to encode and modulate scancodes into raw IR
+> events so that drivers for hardware with a low level wake filter (on the
+> level of pulse/space durations) can still easily implement the higher
+> level scancode interface that is proposed.
 >
-> No, those are read only in practice. So only used with G_SELECTION, never
-> with S_SELECTION.
+> I posted an RFC patchset showing how this could work, and Antti Seppälä
+> posted additional patches to support rc5-sz and nuvoton-cir. This
+> patchset improves the original RFC patches and combines & updates
+> Antti's patches.
+>
+> I'm happy these patches are a good start at tackling the problem, as
+> long as Antti is happy with them and they work for him of course.
+>
+> Future work could include:
+>  - Encoders for more protocols.
+>  - Carrier signal events (no use unless a driver makes use of it).
+>
+> Patch 1 adds the new encode API.
+> Patches 2-3 adds some modulation helpers.
+> Patches 4-6 adds some raw encode implementations.
+> Patch 7 adds some rc-core support for encode based wakeup filtering.
+> Patch 8 adds debug loopback of encoded scancode when filter set.
+> Patch 9 (untested) adds encode based wakeup filtering to nuvoton-cir.
+>
 
-<snip>
+Hi James.
 
-I tried the v4l2-compliance thing. It's awesome! And a bit annoying too 
-when it comes to fixing little things needed for compliance :). But it's 
-required, and I hope to fix these eventually.
+This is looking very good. I've reviewed the series and have only
+minor comments to some of the patches which I'll post individually
+shortly.
 
-After a few small fixes in the driver, I get the results as below. I am 
-debugging the cause of try_fmt and s_fmt failures. I'm not sure why the 
-streaming test fails with MMAP, the logs of my driver show that a 
-successful mem2mem transaction happened.
+I've also tested the nuvoton with actual hardware with rc-5-sz and nec
+encoders and both generate wakeup samples correctly and can wake the
+system.
 
-I tried this on the 'vb2-part1' branch as you suggested.
+While doing my tests I also noticed that there is a small bug in the
+wakeup_protocols handling where one can enable multiple protocols with
+the + -notation. E.g. echo "+nec +rc-5" >
+/sys/class/rc/rc0/wakeup_protocols shouldn't probably succeed.
 
-Do you think I can go ahead with posting the v3 patch set for 3.15, and 
-work on fixing the compliance issue for the -rc fixes?
-
-Thanks,
-Archit
-
-# ./utils/v4l2-compliance/v4l2-compliance  -v --streaming=10
-root@localhost:~/source_trees/v4l-utils# Driver Info:
-         Driver name   : vpe
-         Card type     : vpe
-         Bus info      : platform:vpe
-         Driver version: 3.14.0
-         Capabilities  : 0x84004000
-                 Video Memory-to-Memory Multiplanar
-                 Streaming
-                 Device Capabilities
-         Device Caps   : 0x04004000
-                 Video Memory-to-Memory Multiplanar
-                 Streaming
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-         test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-         test second video open: OK
-         test VIDIOC_QUERYCAP: OK
-         test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-         test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-         test VIDIOC_G/S_TUNER: OK (Not Supported)
-         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-         test VIDIOC_ENUMAUDIO: OK (Not Supported)
-         test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-         test VIDIOC_G/S_AUDIO: OK (Not Supported)
-         Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-         Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Control ioctls:
-                 info: checking v4l2_queryctrl of control 'User 
-Controls' (0x00980001)
-                 info: checking v4l2_queryctrl of control 'Buffers Per 
-Transaction' (0x00981950)
-                 info: checking v4l2_queryctrl of control 'Buffers Per 
-Transaction' (0x08000000)
-         test VIDIOC_QUERYCTRL/MENU: OK
-                 info: checking control 'User Controls' (0x00980001)
-                 info: checking control 'Buffers Per Transaction' 
-(0x00981950)
-         test VIDIOC_G/S_CTRL: OK
-                 info: checking extended control 'User Controls' 
-(0x00980001)
-                 info: checking extended control 'Buffers Per 
-Transaction' (0x00981950)
-         test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-                 info: checking control event 'User Controls' (0x00980001)
-                 info: checking control event 'Buffers Per Transaction' 
-(0x00981950)
-         test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-         test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-         Standard Controls: 1 Private Controls: 1
-
-Input/Output configuration ioctls:
-         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-
-Format ioctls:
-                 info: found 8 formats for buftype 9
-                 info: found 4 formats for buftype 10
-         test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-         test VIDIOC_G/S_PARM: OK (Not Supported)
-         test VIDIOC_G_FBUF: OK (Not Supported)
-         test VIDIOC_G_FMT: OK
-                 fail: v4l2-test-formats.cpp(614): Video Capture 
-Multiplanar: TRY_FMT(G_FMT) != G_FMT
-         test VIDIOC_TRY_FMT: FAIL
-                 warn: v4l2-test-formats.cpp(834): S_FMT cannot handle 
-an invalid pixelformat.
-                 warn: v4l2-test-formats.cpp(835): This may or may not 
-be a problem. For more information see:
-                 warn: v4l2-test-formats.cpp(836): 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-                 fail: v4l2-test-formats.cpp(420): pix_mp.reserved not 
-zeroed
-                 fail: v4l2-test-formats.cpp(851): Video Capture 
-Multiplanar is valid, but no S_FMT was implemented
-         test VIDIOC_S_FMT: FAIL
-         test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-Codec ioctls:
-         test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-         test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-         test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-Buffer ioctls:
-                 info: test buftype Video Capture Multiplanar
-                 warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS 
-not supported
-                 info: test buftype Video Output Multiplanar
-                 warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS 
-not supported
-         test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-         test VIDIOC_EXPBUF: OK (Not Supported)
-         test read/write: OK (Not Supported)
-             Video Capture Multiplanar (polling):
-                 Buffer: 0 Sequence: 0 Field: Top Timestamp: 113.178208s
-                 fail: v4l2-test-buffers.cpp(222): buf.field != 
-cur_fmt.fmt.pix.field
-                 fail: v4l2-test-buffers.cpp(630): checkQueryBuf(node, 
-buf, bufs.type, bufs.memory, buf.index, Dequeued, last_seq)
-                 fail: v4l2-test-buffers.cpp(1038): captureBufs(node, 
-bufs, m2m_bufs, frame_count, true)
-         test MMAP: FAIL
-         test USERPTR: OK (Not Supported)
-         test DMABUF: Cannot test, specify --expbuf-device
-
-Total: 40, Succeeded: 37, Failed: 3, Warnings: 5
-
-[1]+  Exit 1                  ./utils/v4l2-compliance/v4l2-compliance -v 
---streaming=10
-
-
-
+-Antti
