@@ -1,80 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:43835 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752526AbaCFQVc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 11:21:32 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
-	mark.rutland@arm.com, galak@codeaurora.org,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v6 01/10] Documentation: dt: Add binding documentation for
- S5K6A3 image sensor
-Date: Thu, 06 Mar 2014 17:20:10 +0100
-Message-id: <1394122819-9582-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
-References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2223 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932991AbaCQNMN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Mar 2014 09:12:13 -0400
+Message-ID: <5326F49B.2050203@xs4all.nl>
+Date: Mon, 17 Mar 2014 14:11:55 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: laurent.pinchart@ideasonboard.com, pawel@osciak.com
+Subject: Re: [REVIEWv3 PATCH for v3.15 0/5] v4l2 core sparse error/warning
+ fixes
+References: <1395060863-42211-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1395060863-42211-1-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds binding documentation for the Samsung S5K6A3(YX)
-raw image sensor.
+On 03/17/2014 01:54 PM, Hans Verkuil wrote:
+> These five patches fix sparse errors and warnings coming from the v4l2
+> core. There are more, but those seem to be problems with sparse itself (see
+> my posts from Saturday on that topic).
+> 
+> Please take a good look at patch 3/5 in particular: that fixes sparse
+> errors introduced by my vb2 changes, and required some rework to get it
+> accepted by sparse without errors or warnings.
+> 
+> The rework required the introduction of more type-specific call_*op macros,
+> but on the other hand the fail_op macros could be dropped. Sort of one
+> step backwards, one step forwards.
+> 
+> If someone can think of a smarter solution for this, then please let me
+> know.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> Changes since v1:
+> 
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
----
-Changes since v5:
-  - none.
+Forgot to mention:
 
-Changes since v2:
- - rephrased 'clocks' and 'clock-names' properties' description;
----
- .../devicetree/bindings/media/samsung-s5k6a3.txt   |   33 ++++++++++++++++++++
- 1 file changed, 33 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+- in patch 1/5 moved v4l2_subdev_notify from v4l2-subdev.h to v4l2-device.h
+  and made it a static inline function as per Laurent's suggestion.
 
-diff --git a/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
-new file mode 100644
-index 0000000..cce01e8
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
-@@ -0,0 +1,33 @@
-+Samsung S5K6A3(YX) raw image sensor
-+---------------------------------
-+
-+S5K6A3(YX) is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
-+and CCI (I2C compatible) control bus.
-+
-+Required properties:
-+
-+- compatible	: "samsung,s5k6a3";
-+- reg		: I2C slave address of the sensor;
-+- svdda-supply	: core voltage supply;
-+- svddio-supply	: I/O voltage supply;
-+- afvdd-supply	: AF (actuator) voltage supply;
-+- gpios		: specifier of a GPIO connected to the RESET pin;
-+- clocks	: should contain list of phandle and clock specifier pairs
-+		  according to common clock bindings for the clocks described
-+		  in the clock-names property;
-+- clock-names	: should contain "extclk" entry for the sensor's EXTCLK clock;
-+
-+Optional properties:
-+
-+- clock-frequency : the frequency at which the "extclk" clock should be
-+		    configured to operate, in Hz; if this property is not
-+		    specified default 24 MHz value will be used.
-+
-+The common video interfaces bindings (see video-interfaces.txt) should be
-+used to specify link to the image data receiver. The S5K6A3(YX) device
-+node should contain one 'port' child node with an 'endpoint' subnode.
-+
-+Following properties are valid for the endpoint node:
-+
-+- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
-+  video-interfaces.txt.  The sensor supports only one data lane.
--- 
-1.7.9.5
+> - added patch 2/5: the call_ptr_memop function checks for IS_ERR_OR_NULL
+>   to see if a pointer is valid or not. The __qbuf_dmabuf code only used
+>   IS_ERR. Made this consistent with both call_ptr_memop and the other
+>   pointer checks elsewhere in the vb2 core code.
+> 
+> - fixed a small typo in a comment that Pawel remarked upon.
+> 
+> - Rewrote patch 5/5: Laurent wanted to keep the __user annotation with the
+>   user_ptr. The reason I hadn't done that was that I couldn't make it work,
+>   but I had an idea that moving the __user annotation before the '**' might
+>   do the trick, and that helped indeed.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
