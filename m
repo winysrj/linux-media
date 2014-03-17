@@ -1,330 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:61167 "EHLO mga03.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:48038 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755811AbaCEBcd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Mar 2014 20:32:33 -0500
-Date: Wed, 05 Mar 2014 09:32:26 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, kbuild-all@01.org
-Subject: [linuxtv-media:master 463/499]
- drivers/media/dvb-frontends/drx39xyj/drxj.c:20670:34: sparse: cast to
- restricted __be16
-Message-ID: <53167eaa.jU7XftocOOJCIWPu%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	id S1751382AbaCQTtp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Mar 2014 15:49:45 -0400
+From: Jan Kara <jack@suse.cz>
+To: linux-mm@kvack.org
+Cc: linux-media@vger.kernel.org, Jan Kara <jack@suse.cz>
+Subject: [PATCH 7/9] media: vb2: Remove unused functions
+Date: Mon, 17 Mar 2014 20:49:34 +0100
+Message-Id: <1395085776-8626-8-git-send-email-jack@suse.cz>
+In-Reply-To: <1395085776-8626-1-git-send-email-jack@suse.cz>
+References: <1395085776-8626-1-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   59432be1c7fbf2a4f608850855ff649bee0f7b3b
-commit: b240eacdd536bac23c9d48dfc3d527ed6870ddad [463/499] [media] drx-j: get rid of drx_driver.c
-reproduce: make C=1 CF=-D__CHECK_ENDIAN__
+Conversion to the use of pinned pfns made some functions unused. Remove
+them. Also there's no need to lock mmap_sem in __buf_prepare() anymore.
 
-
-sparse warnings: (new ones prefixed by >>)
-
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:21196:1: sparse: no newline at end of file
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:611:6: sparse: symbol 'drx_dap_drxj_module_name' was not declared. Should it be static?
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:612:6: sparse: symbol 'drx_dap_drxj_version_text' was not declared. Should it be static?
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:614:20: sparse: symbol 'drx_dap_drxj_version' was not declared. Should it be static?
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:998:21: sparse: symbol 'drxj_default_aud_data_g' was not declared. Should it be static?
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:16591:68: sparse: dubious: x & !y
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:16609:68: sparse: dubious: x & !y
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:16628:68: sparse: dubious: x & !y
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20670:34: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20670:34: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20670:34: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20670:34: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20697:29: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20697:29: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20697:29: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20697:29: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20715:34: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20715:34: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20715:34: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20715:34: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20715:34: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20715:34: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20717:34: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20717:34: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20717:34: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20717:34: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20719:35: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20719:35: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20719:35: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20719:35: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20721:33: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20721:33: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20721:33: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20721:33: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20735:35: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20735:35: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20735:35: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20735:35: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20743:47: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20743:47: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20743:47: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20743:47: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20743:47: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20743:47: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20745:46: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20745:46: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20745:46: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20745:46: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20745:46: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20745:46: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20747:51: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20747:51: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20747:51: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20747:51: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20747:51: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20747:51: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20831:25: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20831:25: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20831:25: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20831:25: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20833:25: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20833:25: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20833:25: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20833:25: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20866:34: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20866:34: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20866:34: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20866:34: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20866:34: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20866:34: sparse: cast to restricted __be32
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20868:34: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20868:34: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20868:34: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20868:34: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20870:35: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20870:35: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20870:35: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20870:35: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20872:33: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20872:33: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20872:33: sparse: cast to restricted __be16
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:20872:33: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:13921:27: sparse: cast truncates bits from constant value (ffff00ff becomes ff)
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:13941:24: sparse: cast truncates bits from constant value (ffff3fff becomes 3fff)
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:14991:31: sparse: cast truncates bits from constant value (ffff00ff becomes ff)
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:15041:26: sparse: cast truncates bits from constant value (ffff0000 becomes 0)
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:15118:33: sparse: cast truncates bits from constant value (ffff7fff becomes 7fff)
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:15717:26: sparse: cast truncates bits from constant value (ffff7fff becomes 7fff)
-
-vim +20670 drivers/media/dvb-frontends/drx39xyj/drxj.c
-
- 20664		u16 i = 0;
- 20665		u16 j = 0;
- 20666		u32 crc_word = 0;
- 20667		u32 carry = 0;
- 20668	
- 20669		while (i < nr_words) {
- 20670			crc_word |= (u32)be16_to_cpu(*(u32 *)(block_data));
- 20671			for (j = 0; j < 16; j++) {
- 20672				crc_word <<= 1;
- 20673				if (carry != 0)
- 20674					crc_word ^= 0x80050000UL;
- 20675				carry = crc_word & 0x80000000UL;
- 20676			}
- 20677			i++;
- 20678			block_data += (sizeof(u16));
- 20679		}
- 20680		return (u16)(crc_word >> 16);
- 20681	}
- 20682	
- 20683	/**
- 20684	 * drx_check_firmware - checks if the loaded firmware is valid
- 20685	 *
- 20686	 * @demod:	demod structure
- 20687	 * @mc_data:	pointer to the start of the firmware
- 20688	 * @size:	firmware size
- 20689	 */
- 20690	static int drx_check_firmware(struct drx_demod_instance *demod, u8 *mc_data,
- 20691				  unsigned size)
- 20692	{
- 20693		struct drxu_code_block_hdr block_hdr;
- 20694		int i;
- 20695		unsigned count = 2 * sizeof(u16);
- 20696		u32 mc_dev_type, mc_version, mc_base_version;
- 20697		u16 mc_nr_of_blks = be16_to_cpu(*(u32 *)(mc_data + sizeof(u16)));
- 20698	
- 20699		/*
- 20700		 * Scan microcode blocks first for version info
- 20701		 * and firmware check
- 20702		 */
- 20703	
- 20704		/* Clear version block */
- 20705		DRX_ATTR_MCRECORD(demod).aux_type = 0;
- 20706		DRX_ATTR_MCRECORD(demod).mc_dev_type = 0;
- 20707		DRX_ATTR_MCRECORD(demod).mc_version = 0;
- 20708		DRX_ATTR_MCRECORD(demod).mc_base_version = 0;
- 20709	
- 20710		for (i = 0; i < mc_nr_of_blks; i++) {
- 20711			if (count + 3 * sizeof(u16) + sizeof(u32) > size)
- 20712				goto eof;
- 20713	
- 20714			/* Process block header */
- 20715			block_hdr.addr = be32_to_cpu(*(u32 *)(mc_data + count));
- 20716			count += sizeof(u32);
- 20717			block_hdr.size = be16_to_cpu(*(u32 *)(mc_data + count));
- 20718			count += sizeof(u16);
- 20719			block_hdr.flags = be16_to_cpu(*(u32 *)(mc_data + count));
- 20720			count += sizeof(u16);
- 20721			block_hdr.CRC = be16_to_cpu(*(u32 *)(mc_data + count));
- 20722			count += sizeof(u16);
- 20723	
- 20724			pr_debug("%u: addr %u, size %u, flags 0x%04x, CRC 0x%04x\n",
- 20725				count, block_hdr.addr, block_hdr.size, block_hdr.flags,
- 20726				block_hdr.CRC);
- 20727	
- 20728			if (block_hdr.flags & 0x8) {
- 20729				u8 *auxblk = ((void *)mc_data) + block_hdr.addr;
- 20730				u16 auxtype;
- 20731	
- 20732				if (block_hdr.addr + sizeof(u16) > size)
- 20733					goto eof;
- 20734	
- 20735				auxtype = be16_to_cpu(*(u32 *)(auxblk));
- 20736	
- 20737				/* Aux block. Check type */
- 20738				if (DRX_ISMCVERTYPE(auxtype)) {
- 20739					if (block_hdr.addr + 2 * sizeof(u16) + 2 * sizeof (u32) > size)
- 20740						goto eof;
- 20741	
- 20742					auxblk += sizeof(u16);
- 20743					mc_dev_type = be32_to_cpu(*(u32 *)(auxblk));
- 20744					auxblk += sizeof(u32);
- 20745					mc_version = be32_to_cpu(*(u32 *)(auxblk));
- 20746					auxblk += sizeof(u32);
- 20747					mc_base_version = be32_to_cpu(*(u32 *)(auxblk));
- 20748	
- 20749					DRX_ATTR_MCRECORD(demod).aux_type = auxtype;
- 20750					DRX_ATTR_MCRECORD(demod).mc_dev_type = mc_dev_type;
- 20751					DRX_ATTR_MCRECORD(demod).mc_version = mc_version;
- 20752					DRX_ATTR_MCRECORD(demod).mc_base_version = mc_base_version;
- 20753	
- 20754					pr_info("Firmware dev %x, ver %x, base ver %x\n",
- 20755						mc_dev_type, mc_version, mc_base_version);
- 20756	
- 20757				}
- 20758			} else if (count + block_hdr.size * sizeof(u16) > size)
- 20759				goto eof;
- 20760	
- 20761			count += block_hdr.size * sizeof(u16);
- 20762		}
- 20763		return 0;
- 20764	eof:
- 20765		pr_err("Firmware is truncated at pos %u/%u\n", count, size);
- 20766		return -EINVAL;
- 20767	}
- 20768	
- 20769	/**
- 20770	 * drx_ctrl_u_code - Handle microcode upload or verify.
- 20771	 * @dev_addr: Address of device.
- 20772	 * @mc_info:  Pointer to information about microcode data.
- 20773	 * @action:  Either UCODE_UPLOAD or UCODE_VERIFY
- 20774	 *
- 20775	 * This function returns:
- 20776	 *	0:
- 20777	 *		- In case of UCODE_UPLOAD: code is successfully uploaded.
- 20778	 *               - In case of UCODE_VERIFY: image on device is equal to
- 20779	 *		  image provided to this control function.
- 20780	 *	-EIO:
- 20781	 *		- In case of UCODE_UPLOAD: I2C error.
- 20782	 *		- In case of UCODE_VERIFY: I2C error or image on device
- 20783	 *		  is not equal to image provided to this control function.
- 20784	 * 	-EINVAL:
- 20785	 *		- Invalid arguments.
- 20786	 *		- Provided image is corrupt
- 20787	 */
- 20788	static int drx_ctrl_u_code(struct drx_demod_instance *demod,
- 20789			       struct drxu_code_info *mc_info,
- 20790			       enum drxu_code_action action)
- 20791	{
- 20792		struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
- 20793		int rc;
- 20794		u16 i = 0;
- 20795		u16 mc_nr_of_blks = 0;
- 20796		u16 mc_magic_word = 0;
- 20797		const u8 *mc_data_init = NULL;
- 20798		u8 *mc_data = NULL;
- 20799		unsigned size;
- 20800		char *mc_file = mc_info->mc_file;
- 20801	
- 20802		/* Check arguments */
- 20803		if (!mc_info || !mc_file)
- 20804			return -EINVAL;
- 20805	
- 20806		if (!demod->firmware) {
- 20807			const struct firmware *fw = NULL;
- 20808	
- 20809			rc = request_firmware(&fw, mc_file, demod->i2c->dev.parent);
- 20810			if (rc < 0) {
- 20811				pr_err("Couldn't read firmware %s\n", mc_file);
- 20812				return -ENOENT;
- 20813			}
- 20814			demod->firmware = fw;
- 20815	
- 20816			if (demod->firmware->size < 2 * sizeof(u16)) {
- 20817				rc = -EINVAL;
- 20818				pr_err("Firmware is too short!\n");
- 20819				goto release;
- 20820			}
- 20821	
- 20822			pr_info("Firmware %s, size %zu\n",
- 20823				mc_file, demod->firmware->size);
- 20824		}
- 20825	
- 20826		mc_data_init = demod->firmware->data;
- 20827		size = demod->firmware->size;
- 20828	
- 20829		mc_data = (void *)mc_data_init;
- 20830		/* Check data */
- 20831		mc_magic_word = be16_to_cpu(*(u32 *)(mc_data));
- 20832		mc_data += sizeof(u16);
- 20833		mc_nr_of_blks = be16_to_cpu(*(u32 *)(mc_data));
- 20834		mc_data += sizeof(u16);
- 20835	
- 20836		if ((mc_magic_word != DRX_UCODE_MAGIC_WORD) || (mc_nr_of_blks == 0)) {
- 20837			rc = -EINVAL;
- 20838			pr_err("Firmware magic word doesn't match\n");
- 20839			goto release;
- 20840		}
- 20841	
- 20842		if (action == UCODE_UPLOAD) {
- 20843			rc = drx_check_firmware(demod, (u8 *)mc_data_init, size);
- 20844			if (rc)
- 20845				goto release;
- 20846	
- 20847			/* After scanning, validate the microcode.
- 20848			   It is also valid if no validation control exists.
- 20849			 */
- 20850			rc = drx_ctrl(demod, DRX_CTRL_VALIDATE_UCODE, NULL);
- 20851			if (rc != 0 && rc != -ENOTSUPP) {
- 20852				pr_err("Validate ucode not supported\n");
- 20853				return rc;
- 20854			}
- 20855			pr_info("Uploading firmware %s\n", mc_file);
- 20856		} else if (action == UCODE_VERIFY) {
- 20857			pr_info("Verifying if firmware upload was ok.\n");
- 20858		}
- 20859	
- 20860		/* Process microcode blocks */
- 20861		for (i = 0; i < mc_nr_of_blks; i++) {
- 20862			struct drxu_code_block_hdr block_hdr;
- 20863			u16 mc_block_nr_bytes = 0;
- 20864	
- 20865			/* Process block header */
- 20866			block_hdr.addr = be32_to_cpu(*(u32 *)(mc_data));
- 20867			mc_data += sizeof(u32);
- 20868			block_hdr.size = be16_to_cpu(*(u32 *)(mc_data));
- 20869			mc_data += sizeof(u16);
- 20870			block_hdr.flags = be16_to_cpu(*(u32 *)(mc_data));
- 20871			mc_data += sizeof(u16);
-
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+ drivers/media/v4l2-core/videobuf2-core.c   |   8 +-
+ drivers/media/v4l2-core/videobuf2-memops.c | 114 -----------------------------
+ include/media/videobuf2-memops.h           |   7 --
+ 3 files changed, 2 insertions(+), 127 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 7cec08542fb5..b77dfb3076e8 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1355,7 +1355,6 @@ static void vb2_put_user_pfns(struct v4l2_buffer *buf,
+ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+-	struct rw_semaphore *mmap_sem = NULL;
+ 	struct pinned_pfns *tmp_store;
+ 	struct pinned_pfns **ppfns = NULL;
+ 	int ret;
+@@ -1374,8 +1373,8 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		break;
+ 	case V4L2_MEMORY_USERPTR:
+ 		/*
+-		 * In case of user pointer buffers vb2 allocators need to get
+-		 * direct access to userspace pages. This requires getting
++		 * In case of user pointer buffers vb2_get_user_pfns() needs to
++		 * get direct access to userspace pages. This requires getting
+ 		 * the mmap semaphore for read access in the current process
+ 		 * structure. The same semaphore is taken before calling mmap
+ 		 * operation, while both qbuf/prepare_buf and mmap are called
+@@ -1385,10 +1384,8 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		 * the videobuf2 core releases the driver's lock, takes
+ 		 * mmap_sem and then takes the driver's lock again.
+ 		 */
+-		mmap_sem = &current->mm->mmap_sem;
+ 		call_qop(q, wait_prepare, q);
+ 		ppfns = vb2_get_user_pfns(b, &tmp_store);
+-		down_read(mmap_sem);
+ 		call_qop(q, wait_finish, q);
+ 
+ 		if (!IS_ERR(ppfns)) {
+@@ -1396,7 +1393,6 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 			vb2_put_user_pfns(b, ppfns, &tmp_store);
+ 		} else
+ 			ret = PTR_ERR(ppfns);
+-		up_read(mmap_sem);
+ 		break;
+ 	case V4L2_MEMORY_DMABUF:
+ 		ret = __qbuf_dmabuf(vb, b);
+diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
+index 81c1ad8b2cf1..9b44e9af69ba 100644
+--- a/drivers/media/v4l2-core/videobuf2-memops.c
++++ b/drivers/media/v4l2-core/videobuf2-memops.c
+@@ -23,120 +23,6 @@
+ #include <media/videobuf2-memops.h>
+ 
+ /**
+- * vb2_get_vma() - acquire and lock the virtual memory area
+- * @vma:	given virtual memory area
+- *
+- * This function attempts to acquire an area mapped in the userspace for
+- * the duration of a hardware operation. The area is "locked" by performing
+- * the same set of operation that are done when process calls fork() and
+- * memory areas are duplicated.
+- *
+- * Returns a copy of a virtual memory region on success or NULL.
+- */
+-struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma)
+-{
+-	struct vm_area_struct *vma_copy;
+-
+-	vma_copy = kmalloc(sizeof(*vma_copy), GFP_KERNEL);
+-	if (vma_copy == NULL)
+-		return NULL;
+-
+-	if (vma->vm_ops && vma->vm_ops->open)
+-		vma->vm_ops->open(vma);
+-
+-	if (vma->vm_file)
+-		get_file(vma->vm_file);
+-
+-	memcpy(vma_copy, vma, sizeof(*vma));
+-
+-	vma_copy->vm_mm = NULL;
+-	vma_copy->vm_next = NULL;
+-	vma_copy->vm_prev = NULL;
+-
+-	return vma_copy;
+-}
+-EXPORT_SYMBOL_GPL(vb2_get_vma);
+-
+-/**
+- * vb2_put_userptr() - release a userspace virtual memory area
+- * @vma:	virtual memory region associated with the area to be released
+- *
+- * This function releases the previously acquired memory area after a hardware
+- * operation.
+- */
+-void vb2_put_vma(struct vm_area_struct *vma)
+-{
+-	if (!vma)
+-		return;
+-
+-	if (vma->vm_ops && vma->vm_ops->close)
+-		vma->vm_ops->close(vma);
+-
+-	if (vma->vm_file)
+-		fput(vma->vm_file);
+-
+-	kfree(vma);
+-}
+-EXPORT_SYMBOL_GPL(vb2_put_vma);
+-
+-/**
+- * vb2_get_contig_userptr() - lock physically contiguous userspace mapped memory
+- * @vaddr:	starting virtual address of the area to be verified
+- * @size:	size of the area
+- * @res_paddr:	will return physical address for the given vaddr
+- * @res_vma:	will return locked copy of struct vm_area for the given area
+- *
+- * This function will go through memory area of size @size mapped at @vaddr and
+- * verify that the underlying physical pages are contiguous. If they are
+- * contiguous the virtual memory area is locked and a @res_vma is filled with
+- * the copy and @res_pa set to the physical address of the buffer.
+- *
+- * Returns 0 on success.
+- */
+-int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+-			   struct vm_area_struct **res_vma, dma_addr_t *res_pa)
+-{
+-	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma;
+-	unsigned long offset, start, end;
+-	unsigned long this_pfn, prev_pfn;
+-	dma_addr_t pa = 0;
+-
+-	start = vaddr;
+-	offset = start & ~PAGE_MASK;
+-	end = start + size;
+-
+-	vma = find_vma(mm, start);
+-
+-	if (vma == NULL || vma->vm_end < end)
+-		return -EFAULT;
+-
+-	for (prev_pfn = 0; start < end; start += PAGE_SIZE) {
+-		int ret = follow_pfn(vma, start, &this_pfn);
+-		if (ret)
+-			return ret;
+-
+-		if (prev_pfn == 0)
+-			pa = this_pfn << PAGE_SHIFT;
+-		else if (this_pfn != prev_pfn + 1)
+-			return -EFAULT;
+-
+-		prev_pfn = this_pfn;
+-	}
+-
+-	/*
+-	 * Memory is contigous, lock vma and return to the caller
+-	 */
+-	*res_vma = vb2_get_vma(vma);
+-	if (*res_vma == NULL)
+-		return -ENOMEM;
+-
+-	*res_pa = pa + offset;
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
+-
+-/**
+  * vb2_common_vm_open() - increase refcount of the vma
+  * @vma:	virtual memory region for the mapping
+  *
+diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
+index f05444ca8c0c..efab6dc53b52 100644
+--- a/include/media/videobuf2-memops.h
++++ b/include/media/videobuf2-memops.h
+@@ -30,11 +30,4 @@ struct vb2_vmarea_handler {
+ 
+ extern const struct vm_operations_struct vb2_common_vm_ops;
+ 
+-int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+-			   struct vm_area_struct **res_vma, dma_addr_t *res_pa);
+-
+-struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
+-void vb2_put_vma(struct vm_area_struct *vma);
+-
+-
+ #endif
+-- 
+1.8.1.4
+
