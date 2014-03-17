@@ -1,37 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50497 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751572AbaCCHVm (ORCPT
+Received: from mail-qa0-f52.google.com ([209.85.216.52]:59416 "EHLO
+	mail-qa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754554AbaCQQey (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Mar 2014 02:21:42 -0500
-Date: Mon, 3 Mar 2014 09:21:08 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv3 PATCH 15/17] vb2: call buf_finish after the state
- check.
-Message-ID: <20140303072108.GR15635@valkosipuli.retiisi.org.uk>
-References: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
- <1393609335-12081-16-git-send-email-hverkuil@xs4all.nl>
+	Mon, 17 Mar 2014 12:34:54 -0400
+Received: by mail-qa0-f52.google.com with SMTP id m5so5486727qaj.25
+        for <linux-media@vger.kernel.org>; Mon, 17 Mar 2014 09:34:53 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1393609335-12081-16-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <8310082.IFEfXeL82D@radagast>
+References: <1394838259-14260-1-git-send-email-james@albanarts.com>
+	<3611058.9Umk0NSF20@radagast>
+	<CAKv9HNZipt2RWn1mf_X8Rt+udb-jmDLMDJThRJjYUmkovyCTzA@mail.gmail.com>
+	<8310082.IFEfXeL82D@radagast>
+Date: Mon, 17 Mar 2014 18:34:53 +0200
+Message-ID: <CAKv9HNZBziVQLVoBpooq+enR2dsw1Skx1qZ4VAD6EqEtZRAN7g@mail.gmail.com>
+Subject: Re: [PATCH v2 6/9] rc: ir-rc5-sz-decoder: Add ir encoding support
+From: =?ISO-8859-1?Q?Antti_Sepp=E4l=E4?= <a.seppala@gmail.com>
+To: James Hogan <james@albanarts.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 28, 2014 at 06:42:13PM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Don't call buf_finish unless we know that the buffer is in a valid state.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+On 16 March 2014 23:18, James Hogan <james@albanarts.com> wrote:
+> Fair enough. So changing the minimum rc5-sz masks to 0x3fff sounds reasonable
+> to allow toggle to be controlled.
+>
+> Just to clarify though, so you mean that the remote uses toggle=1 first (and
+> in repeat codes) unless you press it a second time (new keypress) within a
+> short amount of time?
+> I.e. like this?
+> Press   message toggle=1
+>                 repeat toggle=1
+>                 repeat toggle=1
+> unpress
+> Press   message toggle=!last_toggle only if within X ms, 1 otherwise
+>
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Actually studying this a little closer it seems that it indeed behaves
+like a "toggle":
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Press   message toggle=1
+                repeat toggle=1
+                repeat toggle=1
+unpress
+Press   message toggle=!last_toggle, always
+
+So the toggle is inverted between presses and its value is kept during
+repeat. It however seems to behave a little bit sporadically here
+tending to set the toggle bit on more often than off.
+
+Anyway I think that allowing the toggle bit to be set in the scancode
+does not really hurt. I guess most of the time people will use the
+scancodes without the toggle bit.
+
+Br,
+-Antti
