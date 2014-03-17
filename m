@@ -1,62 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4089 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754296AbaCKMEN (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1451 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756653AbaCQNVo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 08:04:13 -0400
-Message-ID: <531EFB86.6070603@xs4all.nl>
-Date: Tue, 11 Mar 2014 13:03:18 +0100
+	Mon, 17 Mar 2014 09:21:44 -0400
+Message-ID: <5326F6D3.8010307@xs4all.nl>
+Date: Mon, 17 Mar 2014 14:21:23 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Archit Taneja <archit@ti.com>
-CC: k.debski@samsung.com, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH v3 04/14] v4l: ti-vpe: Allow DMABUF buffer type support
-References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-5-git-send-email-archit@ti.com>
-In-Reply-To: <1394526833-24805-5-git-send-email-archit@ti.com>
+To: Hans de Goede <hdegoede@redhat.com>,
+	Ismael Luceno <ismael.luceno@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] gspca_gl860: Clean up idxdata structs
+References: <1394826203-26622-1-git-send-email-ismael.luceno@gmail.com> <53242699.3080308@redhat.com>
+In-Reply-To: <53242699.3080308@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/11/14 09:33, Archit Taneja wrote:
-> For OMAP and DRA7x, we generally allocate video and graphics buffers through
-> omapdrm since the corresponding omap-gem driver provides DMM-Tiler backed
-> contiguous buffers. omapdrm is a dma-buf exporter. These buffers are used by
-> other drivers in the video pipeline.
+On 03/15/2014 11:08 AM, Hans de Goede wrote:
+> Hi,
 > 
-> Add VB2_DMABUF flag to the io_modes of the vb2 output and capture queues. This
-> allows the driver to import dma shared buffers.
+> Some better commit msg would be nice, otherwise this patch is:
 > 
-> Signed-off-by: Archit Taneja <archit@ti.com>
+> Acked-by: Hans de Goede <hdegoede@redhat.com>
+> 
+> Hans Verkuil has mailed me that he would like to pick this up through
+> his tree. Hans V. , I say go for it :)
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+I noticed that these sparse warnings suddenly disappeared after switching to
+sparse-0.5.0. It turns out to be a sparse bug:
 
-> ---
->  drivers/media/platform/ti-vpe/vpe.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+commit 0edb7edecdd571c2663eb12acac1b27b9acac657
+Author: Ramsay Jones <ramsay@ramsay1.demon.co.uk>
+Date:   Thu May 16 20:41:24 2013 +0100
+
+    char.c: Fix parsing of escapes
+    
+    When parsing a string or character constant, the parse_escape()
+    function returns a pointer to the character at which to resume
+    parsing. However, in the case of an hex or octal escape, it was
+    returning a one-past-the-end pointer. Thus, a string like:
+    
+        char str[3] = "\x61\x62\x63";
+    
+    was being parsed as:
+    
+        '\x61', 'x', '6', '2', '\x63'
+    
+    which, in turn, provokes an 'too long initializer' warning.
+    
+    Also, fix an off-by-one error in get_char_constant() when setting
+    the 'end' pointer for a TOKEN_CHAR or TOKEN_WIDE_CHAR. Despite the
+    name, the string->length of the token is actually the size of the
+    allocated memory (ie len+1), so we need to compensate by using
+    'token->string->length - 1'.
+
+That said, I think it is really ugly to use a string like that and I still
+would like to apply this patch, although for 3.16, not 3.15 as was my
+original intention.
+
+Hans, do you agree with that approach? Or do you prefer to keep it as is?
+
+Regards,
+
+	Hans
+
 > 
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> index 0363df6..0e7573a 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -1770,7 +1770,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
->  
->  	memset(src_vq, 0, sizeof(*src_vq));
->  	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-> -	src_vq->io_modes = VB2_MMAP;
-> +	src_vq->io_modes = VB2_MMAP | VB2_DMABUF;
->  	src_vq->drv_priv = ctx;
->  	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
->  	src_vq->ops = &vpe_qops;
-> @@ -1783,7 +1783,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
->  
->  	memset(dst_vq, 0, sizeof(*dst_vq));
->  	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-> -	dst_vq->io_modes = VB2_MMAP;
-> +	dst_vq->io_modes = VB2_MMAP | VB2_DMABUF;
->  	dst_vq->drv_priv = ctx;
->  	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
->  	dst_vq->ops = &vpe_qops;
+> Regards,
 > 
+> Hans
+> 
+> 
+> On 03/14/2014 08:43 PM, Ismael Luceno wrote:
+>> Signed-off-by: Ismael Luceno <ismael.luceno@gmail.com>
+>> ---
+>>   drivers/media/usb/gspca/gl860/gl860-mi2020.c | 464 ++++++++++++++++-----------
+>>   1 file changed, 268 insertions(+), 196 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/gspca/gl860/gl860-mi2020.c b/drivers/media/usb/gspca/gl860/gl860-mi2020.c
+>> index 2edda6b..a785828 100644
+>> --- a/drivers/media/usb/gspca/gl860/gl860-mi2020.c
+>> +++ b/drivers/media/usb/gspca/gl860/gl860-mi2020.c
+>> @@ -35,32 +35,34 @@ static u8 dat_hvflip5[] = {0x8c, 0xa1, 0x03};
+>>   static u8 dat_hvflip6[] = {0x90, 0x00, 0x06};
+>>
+>>   static struct idxdata tbl_middle_hvflip_low[] = {
+>> -	{0x33, "\x90\x00\x06"},
+>> -	{6, "\xff\xff\xff"},
+>> -	{0x33, "\x90\x00\x06"},
+>> -	{6, "\xff\xff\xff"},
+>> -	{0x33, "\x90\x00\x06"},
+>> -	{6, "\xff\xff\xff"},
+>> -	{0x33, "\x90\x00\x06"},
+>> -	{6, "\xff\xff\xff"},
+>> +	{0x33, {0x90, 0x00, 0x06}},
+>> +	{6, {0xff, 0xff, 0xff}},
+>> +	{0x33, {0x90, 0x00, 0x06}},
+>> +	{6, {0xff, 0xff, 0xff}},
+>> +	{0x33, {0x90, 0x00, 0x06}},
+>> +	{6, {0xff, 0xff, 0xff}},
+>> +	{0x33, {0x90, 0x00, 0x06}},
+>> +	{6, {0xff, 0xff, 0xff}},
+>>   };
+
+<snip>
 
