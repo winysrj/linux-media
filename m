@@ -1,52 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50441 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753184AbaCJL7w (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:46133 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933245AbaCQNlN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 07:59:52 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 04/15] drx-j: don't use mc_info before checking if its not NULL
-Date: Mon, 10 Mar 2014 08:58:56 -0300
-Message-Id: <1394452747-5426-5-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1394452747-5426-1-git-send-email-m.chehab@samsung.com>
-References: <1394452747-5426-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Mon, 17 Mar 2014 09:41:13 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N2L00EM020N8J80@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 17 Mar 2014 13:41:11 +0000 (GMT)
+Message-id: <5326FB75.1050605@samsung.com>
+Date: Mon, 17 Mar 2014 14:41:09 +0100
+From: Andrzej Hajda <a.hajda@samsung.com>
+MIME-version: 1.0
+To: Denis Carikli <denis@eukrea.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Cc: devel@driverdev.osuosl.org, Russell King <linux@arm.linux.org.uk>,
+	=?ISO-8859-1?Q?Eric_B=E9nard?= <eric@eukrea.com>,
+	David Airlie <airlied@linux.ie>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH 07/12] drm: drm_display_mode: add signal polarity flags
+References: <1394731053-6118-1-git-send-email-denis@eukrea.com>
+ <1394731053-6118-7-git-send-email-denis@eukrea.com>
+In-reply-to: <1394731053-6118-7-git-send-email-denis@eukrea.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-smatch warning:
-	drivers/media/dvb-frontends/drx39xyj/drxj.c:20803 drx_ctrl_u_code() warn: variable dereferenced before check 'mc_info' (see line 20800)
+Hi Denis,
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/drx39xyj/drxj.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Thanks for the patch.
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 1e6dab7e5892..a8fd53b612ae 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -20208,12 +20208,14 @@ static int drx_ctrl_u_code(struct drx_demod_instance *demod,
- 	const u8 *mc_data_init = NULL;
- 	u8 *mc_data = NULL;
- 	unsigned size;
--	char *mc_file = mc_info->mc_file;
-+	char *mc_file;
- 
- 	/* Check arguments */
--	if (!mc_info || !mc_file)
-+	if (!mc_info || !mc_info->mc_file)
- 		return -EINVAL;
- 
-+	mc_file = mc_info->mc_file;
-+
- 	if (!demod->firmware) {
- 		const struct firmware *fw = NULL;
- 
--- 
-1.8.5.3
+On 03/13/2014 06:17 PM, Denis Carikli wrote:
+> We need a way to pass signal polarity informations
+>   between DRM panels, and the display drivers.
+> 
+> To do that, a pol_flags field was added to drm_display_mode.
+> 
+> Signed-off-by: Denis Carikli <denis@eukrea.com>
+> ---
+> ChangeLog v10->v11:
+> - Since the imx-drm won't be able to retrive its regulators
+>   from the device tree when using display-timings nodes,
+>   and that I was told that the drm simple-panel driver 
+>   already supported that, I then, instead, added what was
+>   lacking to make the eukrea displays work with the
+>   drm-simple-panel driver.
+> 
+>   That required a way to get back the display polarity
+>   informations from the imx-drm driver without affecting
+>   userspace.
+> ---
+>  include/drm/drm_crtc.h |    8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/include/drm/drm_crtc.h b/include/drm/drm_crtc.h
+> index f764654..61a4fe1 100644
+> --- a/include/drm/drm_crtc.h
+> +++ b/include/drm/drm_crtc.h
+> @@ -131,6 +131,13 @@ enum drm_mode_status {
+>  
+>  #define DRM_MODE_FLAG_3D_MAX	DRM_MODE_FLAG_3D_SIDE_BY_SIDE_HALF
+>  
+> +#define DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE	BIT(1)
+> +#define DRM_MODE_FLAG_POL_PIXDATA_POSEDGE	BIT(2)
+> +#define DRM_MODE_FLAG_POL_PIXDATA_PRESERVE	BIT(3)
+> +#define DRM_MODE_FLAG_POL_DE_NEGEDGE		BIT(4)
+> +#define DRM_MODE_FLAG_POL_DE_POSEDGE		BIT(5)
+> +#define DRM_MODE_FLAG_POL_DE_PRESERVE		BIT(6)
+
+Could you add some description to these flags.
+What are *_PRESERVE flags for?
+Are those flags 1:1 compatible with respective 'videomode:flags'?
+I guess DE flags should be rather DRM_MODE_FLAG_POL_DE_(LOW|HIGH), am I
+right?
+
+Regards
+Andrzej
+
+
+> +
+>  struct drm_display_mode {
+>  	/* Header */
+>  	struct list_head head;
+> @@ -183,6 +190,7 @@ struct drm_display_mode {
+>  	int vrefresh;		/* in Hz */
+>  	int hsync;		/* in kHz */
+>  	enum hdmi_picture_aspect picture_aspect_ratio;
+> +	unsigned int pol_flags;
+>  };
+>  
+>  static inline bool drm_mode_is_stereo(const struct drm_display_mode *mode)
+> 
 
