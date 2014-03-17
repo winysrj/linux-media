@@ -1,30 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2982 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753783AbaCEWZG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 17:25:06 -0500
-Message-ID: <5317A434.8060407@xs4all.nl>
-Date: Wed, 05 Mar 2014 23:24:52 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:36313 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754780AbaCQAAp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Mar 2014 20:00:45 -0400
+Received: by mail-ee0-f51.google.com with SMTP id c13so3520859eek.38
+        for <linux-media@vger.kernel.org>; Sun, 16 Mar 2014 17:00:44 -0700 (PDT)
+Received: from iMac-di-Apple.local (host15-26-dynamic.36-79-r.retail.telecomitalia.it. [79.36.26.15])
+        by mx.google.com with ESMTPSA id x45sm23318918eeu.23.2014.03.16.17.00.42
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Sun, 16 Mar 2014 17:00:43 -0700 (PDT)
+Message-ID: <53263B2A.3050209@gmail.com>
+Date: Mon, 17 Mar 2014 01:00:42 +0100
+From: Carlo De Stefani <charlie.ds.rome@gmail.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Please change v4l2_format_sdr to v4l2_sdr_format
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Subject: Pinnacle PCTV SAT CI (Tw.VT-1030a). no dst no frontend
+References: <532639ED.5080206@gmail.com>
+In-Reply-To: <532639ED.5080206@gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------080702060201050902030403"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti,
+This is a multi-part message in MIME format.
+--------------080702060201050902030403
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-While adding sdr support for v4l2-compliance I noticed that the sdr field
-of v4l2_format has type struct v4l2_format_sdr. Can you change that to
-v4l2_sdr_format to be consistent with the others? (pix/vbi/sliced_vbi_format).
+Hi, I'm quite newbie.
+This is my trouble:
 
-It's unexpected and it can still be changed.
+Into Ubuntu 12.04 LTS, NOT working Pinnacle PCTV SAT CI (cloning Twinhan 
+VP-1030A).
+No frontend in /dev/dvb/adapter0 only dmux, dvr, net.
 
-Sorry I missed that earlier.
+In attach my logs and "dst options" used in /etc/modules. Also added:
 
-Regards,
+options dvb_core dvb_shutdown_timeout=0
+options bttv i2c_hw=1 card=0x71
 
-	Hans
+in etc/modprobe.d/options
+
+Then I found it: http://www.spinics.net/lists/linux-dvb/msg09054.html, 
+but 'til now not modified the BIOS...: next step.
+
+Can you help me?
+
+Bye
+Carlo
+
+
+--------------080702060201050902030403
+Content-Type: text/plain; charset=UTF-8; x-mac-type="0"; x-mac-creator="0";
+ name="Log per Pinnacle"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="Log per Pinnacle"
+
+WyAgICA2LjczMzgyN10gbHA6IGRyaXZlciBsb2FkZWQgYnV0IG5vIGRldmljZXMgZm91bmQK
+WyAgICA2LjkwOTQ2OV0gdHZlZXByb206IG1vZHVsZSB2ZXJpZmljYXRpb24gZmFpbGVkOiBz
+aWduYXR1cmUgYW5kL29yIHJlcXVpcmVkIGtleSBtaXNzaW5nIC0gdGFpbnRpbmcga2VybmVs
+ClsgICAgNi45NTYzNzVdIFdBUk5JTkc6IFlvdSBhcmUgdXNpbmcgYW4gZXhwZXJpbWVudGFs
+IHZlcnNpb24gb2YgdGhlIG1lZGlhIHN0YWNrLgpbICAgIDYuOTU2Mzc1XSAJQXMgdGhlIGRy
+aXZlciBpcyBiYWNrcG9ydGVkIHRvIGFuIG9sZGVyIGtlcm5lbCwgaXQgZG9lc24ndCBvZmZl
+cgpbICAgIDYuOTU2Mzc1XSAJZW5vdWdoIHF1YWxpdHkgZm9yIGl0cyB1c2FnZSBpbiBwcm9k
+dWN0aW9uLgpbICAgIDYuOTU2Mzc1XSAJVXNlIGl0IHdpdGggY2FyZS4KWyAgICA2Ljk1NjM3
+NV0gTGF0ZXN0IGdpdCBwYXRjaGVzIChuZWVkZWQgaWYgeW91IHJlcG9ydCBhIGJ1ZyB0byBs
+aW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcpOgpbICAgIDYuOTU2Mzc1XSAJOGVhNTQ4OGE5
+MTliYmQ0OTk0MTU4NGY3NzNmZDY2NjIzMTkyZmZjMCBbbWVkaWFdIG1lZGlhOiByYy1jb3Jl
+OiB1c2UgVVx4ZmZmZmZmYmFhdVx4ZmZmZmZmY2NceGZmZmZmZmUwXHhmZmZmZmY4OVx4ZmZm
+ZmZmZTVTUFx4ZmZmZmZmYjggcFx4ZmZmZmZmY2NceGZmZmZmZmUwXHhmZmZmZmZlOAxceGZm
+ZmZmZmI0XHhmZmZmZmZjZVx4ZmZmZmZmZTBceGZmZmZmZjg1XHhmZmZmZmZjMFx4ZmZmZmZm
+ODlceGZmZmZmZmMzdFx4MGVceGZmZmZmZmM3XHgwNCQMaFx4ZmZmZmZmY2NceGZmZmZmZmUw
+XHhmZmZmZmZlOFx4ZmZmZmZmZjZceDAyXHhmZmZmZmZmNFx4ZmZmZmZmZTBceGZmZmZmZmVi
+JVx4ZmZmZmZmYmEodVx4ZmZmZmZmY2NceGZmZmZmZmUwXHhmZmZmZmZiOEhkXHhmZmZmZmZj
+Y1x4ZmZmZmZmZTBceGZmZmZmZmU4XHhmZmZmZmZmOTdceGZmZmZmZmUzXHhmZmZmZmZlMFx4
+ZmZmZmZmYjhceGZmZmZmZjgwcFx4ZmZmZmZmY2NceGZmZmZmZmUwXHhmZmZmZmZlOD9ceGZm
+ZmZmZmFkWSBpbiByY19tYXBfZ2V0KCkgbW9kdWxlIGxvYWQKWyAgICA2Ljk1NjM3NV0gCThh
+YzQzMzk1Njc3YWYwOGIwM2IzYzU4MTlmOTY4ZGIxNTZhMTgwZDUgW21lZGlhXSBEb2NCb29r
+IG1lZGlhOiBmaXggYnJva2VuIEZJRUxEX0FMVEVSTkFURSBkZXNjcmlwdGlvbgpbICAgIDYu
+OTU2Mzc1XSAJMjJhNDM3Y2Q2MzM2MTkzZDhmZmViNDIxN2U5NzUzZmI5MmM3Yzg3MCBbbWVk
+aWFdIERvY0Jvb2sgbWVkaWE6IGNsYXJpZnkgdjRsMl9idWZmZXIvcGxhbmUgZmllbGRzClsg
+ICAgNy4wMjIzMzBdIEVYVDQtZnMgKHNkYTMpOiByZS1tb3VudGVkLiBPcHRzOiBlcnJvcnM9
+cmVtb3VudC1ybwpbICAgIDcuMDc0MjYzXSBtZWRpYTogTGludXggbWVkaWEgaW50ZXJmYWNl
+OiB2MC4xMApbICAgIDcuMTI3MzY1XSBMaW51eCB2aWRlbyBjYXB0dXJlIGludGVyZmFjZTog
+djIuMDAKWyAgICA3LjEyNzM3NF0gV0FSTklORzogWW91IGFyZSB1c2luZyBhbiBleHBlcmlt
+ZW50YWwgdmVyc2lvbiBvZiB0aGUgbWVkaWEgc3RhY2suClsgICAgNy4xMjczNzRdIAlBcyB0
+aGUgZHJpdmVyIGlzIGJhY2twb3J0ZWQgdG8gYW4gb2xkZXIga2VybmVsLCBpdCBkb2Vzbid0
+IG9mZmVyClsgICAgNy4xMjczNzRdIAllbm91Z2ggcXVhbGl0eSBmb3IgaXRzIHVzYWdlIGlu
+IHByb2R1Y3Rpb24uClsgICAgNy4xMjczNzRdIAlVc2UgaXQgd2l0aCBjYXJlLgpbICAgIDcu
+MTI3Mzc0XSBMYXRlc3QgZ2l0IHBhdGNoZXMgKG5lZWRlZCBpZiB5b3UgcmVwb3J0IGEgYnVn
+IHRvIGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZyk6ClsgICAgNy4xMjczNzRdIAk4ZWE1
+NDg4YTkxOWJiZDQ5OTQxNTg0Zjc3M2ZkNjY2MjMxOTJmZmMwIFttZWRpYV0gbWVkaWE6IHJj
+LWNvcmU6IHVzZSAgaW4gcmNfbWFwX2dldCgpIG1vZHVsZSBsb2FkClsgICAgNy4xMjczNzRd
+IAk4YWM0MzM5NTY3N2FmMDhiMDNiM2M1ODE5Zjk2OGRiMTU2YTE4MGQ1IFttZWRpYV0gRG9j
+Qm9vayBtZWRpYTogZml4IGJyb2tlbiBGSUVMRF9BTFRFUk5BVEUgZGVzY3JpcHRpb24KWyAg
+ICA3LjEyNzM3NF0gCTIyYTQzN2NkNjMzNjE5M2Q4ZmZlYjQyMTdlOTc1M2ZiOTJjN2M4NzAg
+W21lZGlhXSBEb2NCb29rIG1lZGlhOiBjbGFyaWZ5IHY0bDJfYnVmZmVyL3BsYW5lIGZpZWxk
+cwpbICAgIDcuMTcyNzUwXSBidHR2OiBkcml2ZXIgdmVyc2lvbiAwLjkuMTkgbG9hZGVkClsg
+ICAgNy4xNzI3NjFdIGJ0dHY6IHVzaW5nIDggYnVmZmVycyB3aXRoIDIwODBrICg1MjAgcGFn
+ZXMpIGVhY2ggZm9yIGNhcHR1cmUKWyAgICA3LjE3MjkzN10gYnR0djogQnQ4eHggY2FyZCBm
+b3VuZCAoMCkKWyAgICA3LjE3MzM3MF0gYnR0djogMDogQnQ4NzggKHJldiAxNykgYXQgMDAw
+MDowMDowYS4wLCBpcnE6IDE4LCBsYXRlbmN5OiAzMiwgbW1pbzogMHhmYzAwODAwMApbICAg
+IDcuMTczNDAzXSBidHR2OiAwOiBkZXRlY3RlZDogUGlubmFjbGUgUENUViBTQVQgQ0kgW2Nh
+cmQ9MTEzXSwgUENJIHN1YnN5c3RlbSBJRCBpcyAxMWJkOjAwMjYKWyAgICA3LjE3MzQxMV0g
+YnR0djogMDogdXNpbmc6IFR3aW5oYW4gRFNUICsgY2xvbmVzIFtjYXJkPTExMyxpbnNtb2Qg
+b3B0aW9uXQpbICAgIDcuMTczNzU0XSBidHR2OiAwOiB0dW5lciBhYnNlbnQKWyAgICA3LjE3
+Mzg4M10gYnR0djogMDogYWRkIHN1YmRldmljZSAiZHZiMCIKWyAgICA3LjE5MjUwM10gYnQ4
+Nzg6IEFVRElPIGRyaXZlciB2ZXJzaW9uIDAuMC4wIGxvYWRlZApbICAgIDcuMTkyNTQ5XSBi
+dDg3ODogQnQ4NzggQVVESU8gZnVuY3Rpb24gZm91bmQgKDApLgpbICAgIDcuMTkyODA0XSBi
+dDg3OF9wcm9iZTogY2FyZCBpZD1bMHgyNjExYmRdLFsgUGlubmFjbGUgUENUViBTQVQgQ0kg
+XSBoYXMgRFZCIGZ1bmN0aW9ucy4KWyAgICA3LjE5MjgxNl0gYnQ4NzgoMCk6IEJ0ODc4IChy
+ZXYgMTcpIGF0IDAwOjBhLjEsIGlycTogMTgsIGxhdGVuY3k6IDMyLCBtZW1vcnk6IDB4ZmMw
+MDkwMDAKWyAgICA3LjI3Njg5M10gV0FSTklORzogWW91IGFyZSB1c2luZyBhbiBleHBlcmlt
+ZW50YWwgdmVyc2lvbiBvZiB0aGUgbWVkaWEgc3RhY2suClsgICAgNy4yNzY4OTNdIAlBcyB0
+aGUgZHJpdmVyIGlzIGJhY2twb3J0ZWQgdG8gYW4gb2xkZXIga2VybmVsLCBpdCBkb2Vzbid0
+IG9mZmVyClsgICAgNy4yNzY4OTNdIAllbm91Z2ggcXVhbGl0eSBmb3IgaXRzIHVzYWdlIGlu
+IHByb2R1Y3Rpb24uClsgICAgNy4yNzY4OTNdIAlVc2UgaXQgd2l0aCBjYXJlLgpbICAgIDcu
+Mjc2ODkzXSBMYXRlc3QgZ2l0IHBhdGNoZXMgKG5lZWRlZCBpZiB5b3UgcmVwb3J0IGEgYnVn
+IHRvIGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZyk6ClsgICAgNy4yNzY4OTNdIAk4ZWE1
+NDg4YTkxOWJiZDQ5OTQxNTg0Zjc3M2ZkNjY2MjMxOTJmZmMwIFttZWRpYV0gbWVkaWE6IHJj
+LWNvcmU6IHVzZSAgaW4gcmNfbWFwX2dldCgpIG1vZHVsZSBsb2FkClsgICAgNy4yNzY4OTNd
+IAk4YWM0MzM5NTY3N2FmMDhiMDNiM2M1ODE5Zjk2OGRiMTU2YTE4MGQ1IFttZWRpYV0gRG9j
+Qm9vayBtZWRpYTogZml4IGJyb2tlbiBGSUVMRF9BTFRFUk5BVEUgZGVzY3JpcHRpb24KWyAg
+ICA3LjI3Njg5M10gCTIyYTQzN2NkNjMzNjE5M2Q4ZmZlYjQyMTdlOTc1M2ZiOTJjN2M4NzAg
+W21lZGlhXSBEb2NCb29rIG1lZGlhOiBjbGFyaWZ5IHY0bDJfYnVmZmVyL3BsYW5lIGZpZWxk
+cwpbICAgIDcuMjk3OTcyXSBEVkI6IHJlZ2lzdGVyaW5nIG5ldyBhZGFwdGVyIChidHR2MCkK
+WyAgICA3LjYyODA0OF0gZHN0KDApIGRzdF9wcm9iZTogdW5rbm93biBkZXZpY2UuClsgICAg
+Ny42MjgwNzddIGR2Yl9idDh4eDogZnJvbnRlbmRfaW5pdDogQ291bGQgbm90IGZpbmQgYSBU
+d2luaGFuIERTVApbICAgIDcuNjI4MDkwXSBkdmJfYnQ4eHg6IEEgZnJvbnRlbmQgZHJpdmVy
+IHdhcyBub3QgZm91bmQgZm9yIGRldmljZSBbMTA5ZTowODc4XSBzdWJzeXN0ZW0gWzExYmQ6
+MDAyNl0KWyAgICA3LjY4NTQ3MV0gc2hwY2hwOiBTdGFuZGFyZCBIb3QgUGx1ZyBQQ0kgQ29u
+dHJvbGxlciBEcml2ZXIgdmVyc2lvbjogMC40ClsgICAgNy43MjIzNTVdIHBhcnBvcnRfcGMg
+MDA6MDk6IHJlcG9ydGVkIGJ5IFBsdWcgYW5kIFBsYXkgQUNQSQpbICAgIDcuNzIyNDE0XSBw
+YXJwb3J0MDogUEMtc3R5bGUgYXQgMHgzNzgsIGlycSA3IFtQQ1NQUCxUUklTVEFURV0KWyAg
+ICA3Ljc0NzcyNl0gY3g4OFswXTogc3Vic3lzdGVtOiAxNDYyOjg2MDYsIGJvYXJkOiBNU0kg
+VFYtQG55d2hlcmUgTWFzdGVyIFtjYXJkPTcsYXV0b2RldGVjdGVkXSwgZnJvbnRlbmQocyk6
+IDAKCg==
+--------------080702060201050902030403
+Content-Type: text/plain; charset=UTF-8; x-mac-type="0"; x-mac-creator="0";
+ name="Firmware"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="Firmware"
+
+RFNUTUNJCgpvcgoKRFNULTAzMAoKb3IKCmRzdAoK
+--------------080702060201050902030403
+Content-Type: text/plain; charset=UTF-8; x-mac-type="0"; x-mac-creator="0";
+ name="Output lspci"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="Output lspci"
+
+MDA6MGEuMCBNdWx0aW1lZGlhIHZpZGVvIGNvbnRyb2xsZXI6IEJyb29rdHJlZSBDb3Jwb3Jh
+dGlvbiBCdDg3OCBWaWRlbyBDYXB0dXJlIChyZXYgMTEpCjAwOjBhLjEgTXVsdGltZWRpYSBj
+b250cm9sbGVyOiBCcm9va3RyZWUgQ29ycG9yYXRpb24gQnQ4NzggQXVkaW8gQ2FwdHVyZSAo
+cmV2IDExKQoK
+--------------080702060201050902030403--
