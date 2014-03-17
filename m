@@ -1,200 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41801 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750956AbaCGHeJ (ORCPT
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:61950 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756326AbaCQFzx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Mar 2014 02:34:09 -0500
-Date: Fri, 7 Mar 2014 09:34:03 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH/RFC v2 1/5] Split media_device creation and opening
-Message-ID: <20140307073402.GS15635@valkosipuli.retiisi.org.uk>
-References: <1394040741-22503-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1394040741-22503-2-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 17 Mar 2014 01:55:53 -0400
+Received: by mail-pa0-f54.google.com with SMTP id lf10so5291735pab.13
+        for <linux-media@vger.kernel.org>; Sun, 16 Mar 2014 22:55:53 -0700 (PDT)
+Received: from [192.168.33.51] ([121.5.20.50])
+        by mx.google.com with ESMTPSA id aj7sm66547862pad.29.2014.03.16.22.55.51
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Sun, 16 Mar 2014 22:55:52 -0700 (PDT)
+Message-ID: <53268DF3.8040503@gmail.com>
+Date: Mon, 17 Mar 2014 13:53:55 +0800
+From: Leslie Zhai <xiangzhai83@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1394040741-22503-2-git-send-email-laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: Fwd: Fail to set resolution for the Vimicro USB Camera (Altair)
+References: <53268D33.8040504@gmail.com>
+In-Reply-To: <53268D33.8040504@gmail.com>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi uvc && v4l developers,
 
-Thanks for the set.
+My Vimicro USB Camera (Altair) driver info shown as below:
 
-On Wed, Mar 05, 2014 at 06:32:17PM +0100, Laurent Pinchart wrote:
+Driver Info (using libv4l2):
+        Driver name   : uvcvideo
+        Card type     : Vimicro USB Camera (Altair)
+        Bus info      : usb-0000:00:1d.2-1
+        Driver version: 3.12.7
+        Capabilities  : 0x85000001
+                Video Capture
+                Read/Write
+                Streaming
+                Device Capabilities
+        Device Caps   : 0x05000001
+                Video Capture
+                Read/Write
+                Streaming
+Priority: 2
+Video input : 0 (Camera 1: ok)
+Format Video Capture:
+        Width/Height  : 320/240
+        Pixel Format  : 'YUYV'
+        Field         : None
+        Bytes per Line: 640
+        Size Image    : 153600
+        Colorspace    : SRGB
+Crop Capability Video Capture:
+        Bounds      : Left 0, Top 0, Width 320, Height 240
+        Default     : Left 0, Top 0, Width 320, Height 240
+        Pixel Aspect: 1/1
+Streaming Parameters Video Capture:
+        Capabilities     : timeperframe
+        Frames per second: 5.000 (5/1)
+        Read buffers     : 0
 ...
-> diff --git a/src/main.c b/src/main.c
-> index 4a27c8c..8b48fde 100644
-> --- a/src/main.c
-> +++ b/src/main.c
-> diff --git a/src/mediactl.c b/src/mediactl.c
-> index 57cf86b..c71d4e1 100644
-> --- a/src/mediactl.c
-> +++ b/src/mediactl.c
-> @@ -101,6 +101,42 @@ struct media_entity *media_get_entity_by_id(struct media_device *media,
->  	return NULL;
->  }
->  
-> +/* -----------------------------------------------------------------------------
-> + * Open/close
-> + */
-> +
-> +static int media_device_open(struct media_device *media)
-> +{
-> +	int ret;
-> +
-> +	if (media->fd != -1)
-> +		return 0;
-> +
-> +	media_dbg(media, "Opening media device %s\n", media->devnode);
-> +
-> +	media->fd = open(media->devnode, O_RDWR);
-> +	if (media->fd < 0) {
-> +		ret = -errno;
-> +		media_dbg(media, "%s: Can't open media device %s\n",
-> +			  __func__, media->devnode);
-> +		return ret;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static void media_device_close(struct media_device *media)
-> +{
-> +	if (media->fd != -1) {
-> +		close(media->fd);
-> +		media->fd = -1;
-> +	}
-> +}
-> +
-> +/* -----------------------------------------------------------------------------
-> + * Link setup
-> + */
-> +
->  int media_setup_link(struct media_device *media,
->  		     struct media_pad *source,
->  		     struct media_pad *sink,
-> @@ -111,6 +147,10 @@ int media_setup_link(struct media_device *media,
->  	unsigned int i;
->  	int ret;
->  
-> +	ret = media_device_open(media);
-> +	if (ret < 0)
-> +		goto done;
-> +
->  	for (i = 0; i < source->entity->num_links; i++) {
->  		link = &source->entity->links[i];
->  
-> @@ -123,7 +163,8 @@ int media_setup_link(struct media_device *media,
->  
->  	if (i == source->entity->num_links) {
->  		media_dbg(media, "%s: Link not found\n", __func__);
-> -		return -ENOENT;
-> +		ret = -ENOENT;
 
-Please use errno before further function calls, i.e. reverse the order of
-the print and ret assignment.
+I use v4l2-ctl -d /dev/video1 --set-fmt-video=width=640,height=480
+but the camera Format Video Capture Width/Height is still 320/240
+Also I tried to use libv4l2 API to VIDIOC_S_FMT, but failed
+https://github.com/xiangzhai/laserkbd/blob/master/laser_kbd_neo/src/port/linux/powervideocap_linux.cpp#L130
 
-> +		goto done;
->  	}
->  
->  	/* source pad */
-> @@ -142,12 +183,18 @@ int media_setup_link(struct media_device *media,
->  	if (ret == -1) {
->  		media_dbg(media, "%s: Unable to setup link (%s)\n",
->  			  __func__, strerror(errno));
-> -		return -errno;
-> +		ret = -errno;
+And I use v4l2-ctl -d /dev/video1 --list-formats-ext
+there is NO 640x480 resolution! But my friend use Windows 7 can set
+resolution to 640x480
 
-Same here.
+ioctl: VIDIOC_ENUM_FMT
+        Index       : 0
+        Type        : Video Capture
+        Pixel Format: 'YUYV'
+        Name        : YUV 4:2:2 (YUYV)
+                Size: Discrete 320x240
+                        Interval: Discrete 0.200s (5.000 fps)
+                Size: Discrete 160x120
+                        Interval: Discrete 0.050s (20.000 fps)
 
-> +		goto done;
->  	}
->  
->  	link->flags = ulink.flags;
->  	link->twin->flags = ulink.flags;
-> -	return 0;
-> +
-> +	ret = 0;
-> +
-> +done:
-> +	media_device_close(media);
-> +	return ret;
->  }
->  
->  int media_reset_links(struct media_device *media)
-> @@ -425,6 +472,58 @@ static int media_enum_entities(struct media_device *media)
->  	return ret;
->  }
->  
-> +int media_device_enumerate(struct media_device *media)
-> +{
-> +	int ret;
-> +
-> +	if (media->entities)
-> +		return 0;
-> +
-> +	ret = media_device_open(media);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = ioctl(media->fd, MEDIA_IOC_DEVICE_INFO, &media->info);
-> +	if (ret < 0) {
-> +		media_dbg(media, "%s: Unable to retrieve media device "
-> +			  "information for device %s (%s)\n", __func__,
+Please someone give me some advice, thanks a lot!
 
-Splitting strings is not recommended since this breaks grepping them. But
-perhaps this is so small project it doesn't make a big difference. I
-wouldn't still.
+Regards,
 
-> +			  media->devnode, strerror(errno));
-> +		ret = -errno;
+Leslie Zhai
 
-And here.
 
-> +		goto done;
-> +	}
-> +
-> +	media_dbg(media, "Enumerating entities\n");
-> +
-> +	ret = media_enum_entities(media);
-> +	if (ret < 0) {
-> +		media_dbg(media,
-> +			  "%s: Unable to enumerate entities for device %s (%s)\n",
-> +			  __func__, media->devnode, strerror(-ret));
-> +		goto done;
-> +	}
-> +
-> +	media_dbg(media, "Found %u entities\n", media->entities_count);
-> +	media_dbg(media, "Enumerating pads and links\n");
-> +
-> +	ret = media_enum_links(media);
-> +	if (ret < 0) {
-> +		media_dbg(media,
-> +			  "%s: Unable to enumerate pads and linksfor device %s\n",
-> +			  __func__, media->devnode);
-> +		goto done;
-> +	}
-> +
-> +	ret = 0;
-> +
-> +done:
-> +	media_device_close(media);
-> +	return ret;
-> +}
-> +
-> +/* -----------------------------------------------------------------------------
-> + * Create/destroy
-> + */
-> +
->  static void media_debug_default(void *ptr, ...)
->  {
->  }
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
