@@ -1,493 +1,598 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:40179 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752112AbaC1P3q (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1892 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753178AbaCQK6Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Mar 2014 11:29:46 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v2 6/8] media: Add registration helpers for V4L2 flash
- sub-devices
-Date: Fri, 28 Mar 2014 16:29:03 +0100
-Message-id: <1396020545-15727-7-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1396020545-15727-1-git-send-email-j.anaszewski@samsung.com>
-References: <1396020545-15727-1-git-send-email-j.anaszewski@samsung.com>
+	Mon, 17 Mar 2014 06:58:25 -0400
+Message-ID: <5326D540.7080805@xs4all.nl>
+Date: Mon, 17 Mar 2014 11:58:08 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Pawel Osciak <pawel@osciak.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [REVIEWv2 PATCH for v3.15 2/4] videobuf2-core: fix sparse errors.
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds helper functions for registering/unregistering
-LED class flash devices as V4L2 subdevs. The functions should
-be called from the LED subsystem device driver. In case the
-Multimedia Framework support is disabled in the kernel config
-the functions' empty versions will be used.
+(Fixed typo pointed out by Pawel, but more importantly made an additional change to
+__qbuf_dmabuf. See last paragraph in the commit log)
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Sparse generated a bunch of errors like this:
+
+drivers/media/v4l2-core/videobuf2-core.c:2045:25: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:136:17: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:151:17: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:168:25: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:183:17: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:185:9: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:385:25: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:1115:17: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:1268:33: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:1270:25: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:1315:17: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:1324:25: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:1396:25: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:1457:17: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:1482:17: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:1484:9: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:1523:17: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:1525:17: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:1815:17: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:1828:17: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:1914:25: error: incompatible types in conditional expression (different base types)
+drivers/media/v4l2-core/videobuf2-core.c:1944:9: error: incompatible types in conditional expression (different base types)
+
+These are caused by the call*op defines which do something like this:
+
+        (ops->op) ? ops->op(args) : 0
+
+which is OK as long as op is not a void function, because in that case one part
+of the conditional expression returns void, the other an integer. Hence the sparse
+errors.
+
+I've replaced this by introducing three variants of the call_ macros:
+call_*op for int returns, call_void_*op for void returns and call_ptr_*op for
+pointer returns.
+
+That's the bad news. The good news is that the fail_*op macros could be removed
+since the call_*op macros now have enough information to determine if the op
+succeeded or not and can increment the op counter only on success. This at least
+makes it more robust w.r.t. future changes.
+
+I made one other change: in __qbuf_dmabuf the result of the memop call
+attach_dmabuf() is checked by IS_ERR() instead of IS_ERR_OR_NULL(). Since the
+call_ptr_memop macro checks for IS_ERR_OR_NULL and since a NULL pointer makes no
+sense anyway, I've changed the IS_ERR to IS_ERR_OR_NULL to remain consistent,
+both with the call_ptr_memop macro, but also with all other cases where a pointer
+is checked.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/Kconfig      |   10 ++
- drivers/media/v4l2-core/Makefile     |    2 +
- drivers/media/v4l2-core/v4l2-flash.c |  302 ++++++++++++++++++++++++++++++++++
- include/media/v4l2-flash.h           |  104 ++++++++++++
- 4 files changed, 418 insertions(+)
- create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
- create mode 100644 include/media/v4l2-flash.h
+ drivers/media/v4l2-core/videobuf2-core.c | 215 +++++++++++++++++++------------
+ 1 file changed, 132 insertions(+), 83 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
-index 2189bfb..07b53e5 100644
---- a/drivers/media/v4l2-core/Kconfig
-+++ b/drivers/media/v4l2-core/Kconfig
-@@ -35,6 +35,16 @@ config V4L2_MEM2MEM_DEV
-         tristate
-         depends on VIDEOBUF2_CORE
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index f9059bb..fb1ee86 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -36,58 +36,133 @@ module_param(debug, int, 0644);
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
  
-+# Used by LED subsystem flash drivers
-+config V4L2_FLASH
-+	tristate "Enable support for V4L2 Flash sub-devices"
-+	depends on LEDS_CLASS_FLASH
-+	---help---
-+	  Say Y here to enable support for V4L2 Flash sub-devices, which allow
-+	  to control LED class devices with V4L2 API.
-+
-+	  When in doubt, say N.
-+
- # Used by drivers that need Videobuf modules
- config VIDEOBUF_GEN
- 	tristate
-diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index c6ae7ba..8e37ab4 100644
---- a/drivers/media/v4l2-core/Makefile
-+++ b/drivers/media/v4l2-core/Makefile
-@@ -22,6 +22,8 @@ obj-$(CONFIG_VIDEO_TUNER) += tuner.o
+ /*
+- * If advanced debugging is on, then count how often each op is called,
+- * which can either be per-buffer or per-queue.
++ * If advanced debugging is on, then count how often each op is called
++ * successfully, which can either be per-buffer or per-queue.
+  *
+- * If the op failed then the 'fail_' variant is called to decrease the
+- * counter. That makes it easy to check that the 'init' and 'cleanup'
++ * This makes it easy to check that the 'init' and 'cleanup'
+  * (and variations thereof) stay balanced.
+  */
  
- obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
++#define log_memop(vb, op)						\
++	dprintk(2, "call_memop(%p, %d, %s)%s\n",			\
++		(vb)->vb2_queue, (vb)->v4l2_buf.index, #op,		\
++		(vb)->vb2_queue->mem_ops->op ? "" : " (nop)")
++
+ #define call_memop(vb, op, args...)					\
+ ({									\
+ 	struct vb2_queue *_q = (vb)->vb2_queue;				\
+-	dprintk(2, "call_memop(%p, %d, %s)%s\n",			\
+-		_q, (vb)->v4l2_buf.index, #op,				\
+-		_q->mem_ops->op ? "" : " (nop)");			\
++	int err;							\
++									\
++	log_memop(vb, op);						\
++	err = _q->mem_ops->op ? _q->mem_ops->op(args) : 0;		\
++	if (!err)							\
++		(vb)->cnt_mem_ ## op++;					\
++	err;								\
++})
++
++#define call_ptr_memop(vb, op, args...)					\
++({									\
++	struct vb2_queue *_q = (vb)->vb2_queue;				\
++	void *ptr;							\
++									\
++	log_memop(vb, op);						\
++	ptr = _q->mem_ops->op ? _q->mem_ops->op(args) : NULL;		\
++	if (!IS_ERR_OR_NULL(ptr))					\
++		(vb)->cnt_mem_ ## op++;					\
++	ptr;								\
++})
++
++#define call_void_memop(vb, op, args...)				\
++({									\
++	struct vb2_queue *_q = (vb)->vb2_queue;				\
++									\
++	log_memop(vb, op);						\
++	if (_q->mem_ops->op)						\
++		_q->mem_ops->op(args);					\
+ 	(vb)->cnt_mem_ ## op++;						\
+-	_q->mem_ops->op ? _q->mem_ops->op(args) : 0;			\
+ })
+-#define fail_memop(vb, op) ((vb)->cnt_mem_ ## op--)
++
++#define log_qop(q, op)							\
++	dprintk(2, "call_qop(%p, %s)%s\n", q, #op,			\
++		(q)->ops->op ? "" : " (nop)")
  
-+obj-$(CONFIG_V4L2_FLASH) += v4l2-flash.o
+ #define call_qop(q, op, args...)					\
+ ({									\
+-	dprintk(2, "call_qop(%p, %s)%s\n", q, #op,			\
+-		(q)->ops->op ? "" : " (nop)");				\
++	int err;							\
++									\
++	log_qop(q, op);							\
++	err = (q)->ops->op ? (q)->ops->op(args) : 0;			\
++	if (!err)							\
++		(q)->cnt_ ## op++;					\
++	err;								\
++})
 +
- obj-$(CONFIG_VIDEOBUF_GEN) += videobuf-core.o
- obj-$(CONFIG_VIDEOBUF_DMA_SG) += videobuf-dma-sg.o
- obj-$(CONFIG_VIDEOBUF_DMA_CONTIG) += videobuf-dma-contig.o
-diff --git a/drivers/media/v4l2-core/v4l2-flash.c b/drivers/media/v4l2-core/v4l2-flash.c
-new file mode 100644
-index 0000000..81370f9
---- /dev/null
-+++ b/drivers/media/v4l2-core/v4l2-flash.c
-@@ -0,0 +1,302 @@
-+/*
-+ * V4L2 flash LED subdevice registration helpers.
-+ *
-+ *	Copyright (C) 2014 Samsung Electronics Co., Ltd
-+ *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation."
-+ */
++#define call_void_qop(q, op, args...)					\
++({									\
++	log_qop(q, op);							\
++	if ((q)->ops->op)						\
++		(q)->ops->op(args);					\
+ 	(q)->cnt_ ## op++;						\
+-	(q)->ops->op ? (q)->ops->op(args) : 0;				\
+ })
+-#define fail_qop(q, op) ((q)->cnt_ ## op--)
 +
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-dev.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-event.h>
-+#include <media/v4l2-flash.h>
-+#include <media/v4l2-ioctl.h>
++#define log_vb_qop(vb, op, args...)					\
++	dprintk(2, "call_vb_qop(%p, %d, %s)%s\n",			\
++		(vb)->vb2_queue, (vb)->v4l2_buf.index, #op,		\
++		(vb)->vb2_queue->ops->op ? "" : " (nop)")
+ 
+ #define call_vb_qop(vb, op, args...)					\
+ ({									\
+-	struct vb2_queue *_q = (vb)->vb2_queue;				\
+-	dprintk(2, "call_vb_qop(%p, %d, %s)%s\n",			\
+-		_q, (vb)->v4l2_buf.index, #op,				\
+-		_q->ops->op ? "" : " (nop)");				\
++	int err;							\
++									\
++	log_vb_qop(vb, op);						\
++	err = (vb)->vb2_queue->ops->op ?				\
++		(vb)->vb2_queue->ops->op(args) : 0;			\
++	if (!err)							\
++		(vb)->cnt_ ## op++;					\
++	err;								\
++})
 +
-+static int v4l2_flash_g_volatile_ctrl(struct v4l2_ctrl *c)
++#define call_void_vb_qop(vb, op, args...)				\
++({									\
++	log_vb_qop(vb, op);						\
++	if ((vb)->vb2_queue->ops->op)					\
++		(vb)->vb2_queue->ops->op(args);				\
+ 	(vb)->cnt_ ## op++;						\
+-	_q->ops->op ? _q->ops->op(args) : 0;				\
+ })
+-#define fail_vb_qop(vb, op) ((vb)->cnt_ ## op--)
+ 
+ #else
+ 
+ #define call_memop(vb, op, args...)					\
+-	((vb)->vb2_queue->mem_ops->op ? (vb)->vb2_queue->mem_ops->op(args) : 0)
+-#define fail_memop(vb, op)
++	((vb)->vb2_queue->mem_ops->op ?					\
++		(vb)->vb2_queue->mem_ops->op(args) : 0)
 +
-+{
-+	struct v4l2_flash *flash = v4l2_ctrl_to_v4l2_flash(c);
-+	struct led_classdev *led_cdev = flash->led_cdev;
-+	unsigned int fault;
-+	int ret;
++#define call_ptr_memop(vb, op, args...)					\
++	((vb)->vb2_queue->mem_ops->op ?					\
++		(vb)->vb2_queue->mem_ops->op(args) : NULL)
 +
-+	switch (c->id) {
-+	case V4L2_CID_FLASH_TORCH_INTENSITY:
-+		ret = led_update_brightness(led_cdev);
-+		if (ret < 0)
-+			return ret;
-+		c->val = led_cdev->brightness;
-+		return 0;
-+	case V4L2_CID_FLASH_INTENSITY:
-+		ret = led_update_flash_brightness(led_cdev);
-+		if (ret < 0)
-+			return ret;
-+		c->val = led_cdev->flash->brightness;
-+		return 0;
-+	case V4L2_CID_FLASH_STROBE_STATUS:
-+		ret = led_get_flash_strobe(led_cdev);
-+		if (ret < 0)
-+			return ret;
-+		c->val = !!ret;
-+		return 0;
-+	case V4L2_CID_FLASH_FAULT:
-+		/* led faults map directly to V4L2 flash faults */
-+		ret = led_get_flash_fault(led_cdev, &fault);
-+		if (!ret)
-+			c->val = fault;
-+		return ret;
-+	default:
-+		return -EINVAL;
-+	}
-+}
++#define call_void_memop(vb, op, args...)				\
++	do {								\
++		if ((vb)->vb2_queue->mem_ops->op)			\
++			(vb)->vb2_queue->mem_ops->op(args);		\
++	} while (0)
+ 
+ #define call_qop(q, op, args...)					\
+ 	((q)->ops->op ? (q)->ops->op(args) : 0)
+-#define fail_qop(q, op)
 +
-+static int v4l2_flash_s_ctrl(struct v4l2_ctrl *c)
-+{
-+	struct v4l2_flash *flash = v4l2_ctrl_to_v4l2_flash(c);
-+	struct led_classdev *led_cdev = flash->led_cdev;
-+	bool hw_trig;
-+	int ret;
++#define call_void_qop(q, op, args...)					\
++	do {								\
++		if ((q)->ops->op)					\
++			(q)->ops->op(args);				\
++	} while (0)
+ 
+ #define call_vb_qop(vb, op, args...)					\
+ 	((vb)->vb2_queue->ops->op ? (vb)->vb2_queue->ops->op(args) : 0)
+-#define fail_vb_qop(vb, op)
 +
-+	switch (c->id) {
-+	case V4L2_CID_FLASH_LED_MODE:
-+		switch (c->val) {
-+		case V4L2_FLASH_LED_MODE_NONE:
-+			led_set_brightness(led_cdev, 0);
-+			ret = led_set_flash_strobe(led_cdev, false);
-+
-+			mutex_lock(&led_cdev->led_lock);
-+			led_sysfs_unlock(led_cdev);
-+			mutex_unlock(&led_cdev->led_lock);
-+			return ret;
-+		case V4L2_FLASH_LED_MODE_FLASH:
-+			mutex_lock(&led_cdev->led_lock);
-+			led_sysfs_lock(led_cdev);
-+			mutex_unlock(&led_cdev->led_lock);
-+
-+			/* Turn off torch LED */
-+			led_set_brightness(led_cdev, 0);
-+			hw_trig = (flash->ctrl.source->val ==
-+					V4L2_FLASH_STROBE_SOURCE_EXTERNAL);
-+			return led_set_hw_triggered(led_cdev, hw_trig);
-+		case V4L2_FLASH_LED_MODE_TORCH:
-+			mutex_lock(&led_cdev->led_lock);
-+			led_sysfs_lock(led_cdev);
-+			mutex_unlock(&led_cdev->led_lock);
-+
-+			/* Stop flash strobing */
-+			ret = led_set_flash_strobe(led_cdev, false);
-+			if (ret)
-+				return ret;
-+			/* torch is always triggered by software */
-+			ret = led_set_hw_triggered(led_cdev, false);
-+			if (ret)
-+				return ret;
-+
-+			led_set_brightness(led_cdev, flash->torch_intensity);
-+			return ret;
-+		}
-+		break;
-+	case V4L2_CID_FLASH_STROBE_SOURCE:
-+		return led_set_hw_triggered(led_cdev,
-+				c->val == V4L2_FLASH_STROBE_SOURCE_EXTERNAL);
-+	case V4L2_CID_FLASH_STROBE:
-+		if (flash->ctrl.led_mode->val != V4L2_FLASH_LED_MODE_FLASH ||
-+		   flash->ctrl.source->val != V4L2_FLASH_STROBE_SOURCE_SOFTWARE)
-+			return -EINVAL;
-+		return led_set_flash_strobe(led_cdev, true);
-+	case V4L2_CID_FLASH_STROBE_STOP:
-+		return led_set_flash_strobe(led_cdev, false);
-+	case V4L2_CID_FLASH_TIMEOUT:
-+		return led_set_flash_timeout(led_cdev,
-+						(unsigned long *) &c->val);
-+	case V4L2_CID_FLASH_INTENSITY:
-+		return led_set_flash_brightness(led_cdev, c->val);
-+	case V4L2_CID_FLASH_TORCH_INTENSITY:
-+		flash->torch_intensity = c->val;
-+		if (flash->ctrl.led_mode->val == V4L2_FLASH_LED_MODE_TORCH)
-+			led_set_brightness(led_cdev, flash->torch_intensity);
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static const struct v4l2_ctrl_ops v4l2_flash_ctrl_ops = {
-+	.g_volatile_ctrl = v4l2_flash_g_volatile_ctrl,
-+	.s_ctrl = v4l2_flash_s_ctrl,
-+};
-+
-+static int v4l2_flash_init_controls(struct v4l2_flash *flash,
-+				struct v4l2_flash_ctrl_config *config)
-+
-+{
-+	unsigned int mask;
-+	struct v4l2_ctrl *ctrl;
-+	struct v4l2_ctrl_config *ctrl_cfg;
-+	bool has_flash = config->flags & V4L2_FLASH_CFG_LED_FLASH;
-+	bool has_torch = config->flags & V4L2_FLASH_CFG_LED_TORCH;
-+	int ret, max, num_ctrls;
-+
-+	if (!has_flash && !has_torch)
-+		return -EINVAL;
-+
-+	num_ctrls = has_flash ? 8 : 2;
-+	if (config->flags & V4L2_FLASH_CFG_FAULTS_MASK)
-+		++num_ctrls;
-+
-+	v4l2_ctrl_handler_init(&flash->hdl, num_ctrls);
-+
-+	mask = 1 << V4L2_FLASH_LED_MODE_NONE;
-+	if (has_flash)
-+		mask |= 1 << V4L2_FLASH_LED_MODE_FLASH;
-+	if (has_torch)
-+		mask |= 1 << V4L2_FLASH_LED_MODE_TORCH;
-+
-+	/* Configure TORCH_INTENSITY ctrl */
-+	ctrl_cfg = &config->torch_intensity;
-+	ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-+				 V4L2_CID_FLASH_TORCH_INTENSITY,
-+				 ctrl_cfg->min, ctrl_cfg->max,
-+				 ctrl_cfg->step, ctrl_cfg->def);
-+	if (ctrl)
-+		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
-+
-+	if (has_flash) {
-+		/* Configure FLASH_LED_MODE ctrl */
-+		flash->ctrl.led_mode = v4l2_ctrl_new_std_menu(&flash->hdl,
-+				&v4l2_flash_ctrl_ops, V4L2_CID_FLASH_LED_MODE,
-+				V4L2_FLASH_LED_MODE_TORCH, ~mask,
-+				V4L2_FLASH_LED_MODE_NONE);
-+
-+		/* Configure FLASH_STROBE_SOURCE ctrl */
-+		mask = 1 << V4L2_FLASH_STROBE_SOURCE_SOFTWARE;
-+
-+		if (config->flags & V4L2_FLASH_CFG_STROBE_SOURCE_EXTERNAL) {
-+			mask |= 1 << V4L2_FLASH_STROBE_SOURCE_EXTERNAL;
-+			max = V4L2_FLASH_STROBE_SOURCE_EXTERNAL;
-+		} else {
-+			max = V4L2_FLASH_STROBE_SOURCE_SOFTWARE;
-+		}
-+
-+		flash->ctrl.source = v4l2_ctrl_new_std_menu(&flash->hdl,
-+					&v4l2_flash_ctrl_ops,
-+					V4L2_CID_FLASH_STROBE_SOURCE,
-+					max,
-+					~mask,
-+					V4L2_FLASH_STROBE_SOURCE_SOFTWARE);
-+
-+		/* Configure FLASH_STROBE ctrl */
-+		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-+					  V4L2_CID_FLASH_STROBE, 0, 1, 1, 0);
-+
-+		/* Configure FLASH_STROBE_STOP ctrl */
-+		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-+					  V4L2_CID_FLASH_STROBE_STOP,
-+					  0, 1, 1, 0);
-+
-+		/* Configure FLASH_STROBE_STATUS ctrl */
-+		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-+					 V4L2_CID_FLASH_STROBE_STATUS,
-+					 0, 1, 1, 1);
-+		if (ctrl)
-+			ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE |
-+				       V4L2_CTRL_FLAG_READ_ONLY;
-+
-+		/* Configure FLASH_TIMEOUT ctrl */
-+		ctrl_cfg = &config->flash_timeout;
-+		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-+					 V4L2_CID_FLASH_TIMEOUT, ctrl_cfg->min,
-+					 ctrl_cfg->max, ctrl_cfg->step,
-+					 ctrl_cfg->def);
-+
-+		/* Configure FLASH_INTENSITY ctrl */
-+		ctrl_cfg = &config->flash_intensity;
-+		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-+					 V4L2_CID_FLASH_INTENSITY,
-+					 ctrl_cfg->min, ctrl_cfg->max,
-+					 ctrl_cfg->step, ctrl_cfg->def);
-+		if (ctrl)
-+			ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
-+
-+		if (config->flags & V4L2_FLASH_CFG_FAULTS_MASK) {
-+			/* Configure FLASH_FAULT ctrl */
-+			ctrl = v4l2_ctrl_new_std(&flash->hdl,
-+						 &v4l2_flash_ctrl_ops,
-+						 V4L2_CID_FLASH_FAULT, 0,
-+						 config->flags &
-+						 V4L2_FLASH_CFG_FAULTS_MASK,
-+						 0, 0);
-+			if (ctrl)
-+				ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE |
-+					       V4L2_CTRL_FLAG_READ_ONLY;
-+		}
-+	}
-+
-+	if (flash->hdl.error) {
-+		ret = flash->hdl.error;
-+		goto error_free;
-+	}
-+
-+	ret = v4l2_ctrl_handler_setup(&flash->hdl);
-+	if (ret < 0)
-+		goto error_free;
-+
-+	flash->subdev.ctrl_handler = &flash->hdl;
-+
-+	return 0;
-+
-+error_free:
-+	v4l2_ctrl_handler_free(&flash->hdl);
-+	return ret;
-+}
-+
-+static struct v4l2_subdev_ops v4l2_flash_subdev_ops = {
-+};
-+
-+int v4l2_flash_init(struct led_classdev *led_cdev, struct v4l2_flash *flash,
-+				struct v4l2_flash_ctrl_config *config)
-+{
-+	struct v4l2_subdev *sd = &flash->subdev;
-+	int ret;
-+
-+	flash->led_cdev = led_cdev;
-+	sd->dev = led_cdev->dev->parent;
-+	v4l2_subdev_init(sd, &v4l2_flash_subdev_ops);
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	snprintf(sd->name, sizeof(sd->name), led_cdev->name);
-+
-+	ret = v4l2_flash_init_controls(flash, config);
-+	if (ret < 0)
-+		goto err_init_controls;
-+
-+	ret = media_entity_init(&sd->entity, 0, NULL, 0);
-+	if (ret < 0)
-+		goto err_init_entity;
-+
-+	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
-+
-+	ret = v4l2_async_register_subdev(sd);
-+	if (ret < 0)
-+		goto err_init_entity;
-+
-+	return 0;
-+
-+err_init_entity:
-+	media_entity_cleanup(&sd->entity);
-+err_init_controls:
-+	v4l2_ctrl_handler_free(sd->ctrl_handler);
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_flash_init);
-+
-+void v4l2_flash_release(struct v4l2_flash *flash)
-+{
-+	v4l2_ctrl_handler_free(flash->subdev.ctrl_handler);
-+	v4l2_async_unregister_subdev(&flash->subdev);
-+	media_entity_cleanup(&flash->subdev.entity);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_flash_release);
-diff --git a/include/media/v4l2-flash.h b/include/media/v4l2-flash.h
-new file mode 100644
-index 0000000..457ed15
---- /dev/null
-+++ b/include/media/v4l2-flash.h
-@@ -0,0 +1,104 @@
-+/*
-+ * V4L2 flash LED subdevice registration helpers.
-+ *
-+ *	Copyright (C) 2014 Samsung Electronics Co., Ltd
-+ *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation."
-+ */
-+
-+#ifndef _V4L2_FLASH_H
-+#define _V4L2_FLASH_H
-+
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-dev.h>
-+#include <media/v4l2-event.h>
-+#include <linux/leds_flash.h>
-+#include <media/v4l2-ioctl.h>
-+#include <linux/leds.h>
-+
-+/*
-+ * Supported led fault and mode bits -
-+ * must be kept in synch with V4L2_FLASH_FAULT bits
-+ */
-+#define V4L2_FLASH_CFG_FAULT_OVER_VOLTAGE	(1 << 0)
-+#define V4L2_FLASH_CFG_FAULT_TIMEOUT		(1 << 1)
-+#define V4L2_FLASH_CFG_FAULT_OVER_TEMPERATURE	(1 << 2)
-+#define V4L2_FLASH_CFG_FAULT_SHORT_CIRCUIT	(1 << 3)
-+#define V4L2_FLASH_CFG_FAULT_OVER_CURRENT	(1 << 4)
-+#define V4L2_FLASH_CFG_FAULT_UNDER_VOLTAGE	(1 << 6)
-+#define V4L2_FLASH_CFG_FAULT_INPUT_VOLTAGE	(1 << 7)
-+#define V4L2_FLASH_CFG_FAULT_LED_OVER_TEMPERATURE (1 << 8)
-+#define V4L2_FLASH_CFG_FAULTS_MASK		0x1ff
-+#define V4L2_FLASH_CFG_LED_FLASH		(1 << 9)
-+#define V4L2_FLASH_CFG_LED_TORCH		(1 << 10)
-+#define V4L2_FLASH_CFG_STROBE_SOURCE_EXTERNAL	(1 << 11)
-+
-+/* Flash control config data initializer */
-+
-+struct v4l2_flash {
-+	struct led_classdev *led_cdev;
-+	struct v4l2_subdev subdev;
-+	struct v4l2_ctrl_handler hdl;
-+
-+	struct {
-+		struct v4l2_ctrl *source;
-+		struct v4l2_ctrl *led_mode;
-+	} ctrl;
-+
-+	unsigned int torch_intensity;
-+};
-+
-+struct v4l2_flash_ctrl_config {
-+	struct v4l2_ctrl_config flash_timeout;
-+	struct v4l2_ctrl_config flash_intensity;
-+	struct v4l2_ctrl_config torch_intensity;
-+	unsigned int flags;
-+};
-+
-+static inline struct v4l2_flash *v4l2_subdev_to_flash(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct v4l2_flash, subdev);
-+}
-+
-+static inline struct v4l2_flash *v4l2_ctrl_to_v4l2_flash(struct v4l2_ctrl *c)
-+{
-+	return container_of(c->handler, struct v4l2_flash, hdl);
-+}
-+
-+#ifdef CONFIG_V4L2_FLASH
-+/**
-+ * v4l2_flash_init - initialize V4L2 flash led sub-device
-+ * @led_cdev: the LED to create subdev upon
-+ * @flash: a structure representing V4L2 flash led device
-+ * @config: initial data for the flash led subdev controls
-+ *
-+ * Create V4L2 subdev wrapping given LED subsystem device.
-+ */
-+int v4l2_flash_init(struct led_classdev *led_cdev, struct v4l2_flash *flash,
-+				struct v4l2_flash_ctrl_config *config);
-+
-+/**
-+ * v4l2_flash_release - release V4L2 flash led sub-device
-+ * @flash: a structure representing V4L2 flash led device
-+ *
-+ * Release V4L2 flash led subdev.
-+ */
-+void v4l2_flash_release(struct v4l2_flash *flash);
-+#else
-+static inline int v4l2_flash_init(struct led_classdev *led_cdev,
-+				  struct v4l2_flash *flash,
-+				  struct v4l2_flash_ctrl_config *config)
-+{
-+	return 0;
-+}
-+
-+static inline void v4l2_flash_release(struct v4l2_flash *flash)
-+{
-+}
-+#endif /* CONFIG_V4L2_FLASH */
-+
-+#endif /* _V4L2_FLASH_H */
++#define call_void_vb_qop(vb, op, args...)				\
++	do {								\
++		if ((vb)->vb2_queue->ops->op)				\
++			(vb)->vb2_queue->ops->op(args);			\
++	} while (0)
+ 
+ #endif
+ 
+@@ -118,7 +193,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 	for (plane = 0; plane < vb->num_planes; ++plane) {
+ 		unsigned long size = PAGE_ALIGN(q->plane_sizes[plane]);
+ 
+-		mem_priv = call_memop(vb, alloc, q->alloc_ctx[plane],
++		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
+ 				      size, q->gfp_flags);
+ 		if (IS_ERR_OR_NULL(mem_priv))
+ 			goto free;
+@@ -130,10 +205,9 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 
+ 	return 0;
+ free:
+-	fail_memop(vb, alloc);
+ 	/* Free already allocated memory if one of the allocations failed */
+ 	for (; plane > 0; --plane) {
+-		call_memop(vb, put, vb->planes[plane - 1].mem_priv);
++		call_void_memop(vb, put, vb->planes[plane - 1].mem_priv);
+ 		vb->planes[plane - 1].mem_priv = NULL;
+ 	}
+ 
+@@ -148,7 +222,7 @@ static void __vb2_buf_mem_free(struct vb2_buffer *vb)
+ 	unsigned int plane;
+ 
+ 	for (plane = 0; plane < vb->num_planes; ++plane) {
+-		call_memop(vb, put, vb->planes[plane].mem_priv);
++		call_void_memop(vb, put, vb->planes[plane].mem_priv);
+ 		vb->planes[plane].mem_priv = NULL;
+ 		dprintk(3, "Freed plane %d of buffer %d\n", plane,
+ 			vb->v4l2_buf.index);
+@@ -165,7 +239,7 @@ static void __vb2_buf_userptr_put(struct vb2_buffer *vb)
+ 
+ 	for (plane = 0; plane < vb->num_planes; ++plane) {
+ 		if (vb->planes[plane].mem_priv)
+-			call_memop(vb, put_userptr, vb->planes[plane].mem_priv);
++			call_void_memop(vb, put_userptr, vb->planes[plane].mem_priv);
+ 		vb->planes[plane].mem_priv = NULL;
+ 	}
+ }
+@@ -180,9 +254,9 @@ static void __vb2_plane_dmabuf_put(struct vb2_buffer *vb, struct vb2_plane *p)
+ 		return;
+ 
+ 	if (p->dbuf_mapped)
+-		call_memop(vb, unmap_dmabuf, p->mem_priv);
++		call_void_memop(vb, unmap_dmabuf, p->mem_priv);
+ 
+-	call_memop(vb, detach_dmabuf, p->mem_priv);
++	call_void_memop(vb, detach_dmabuf, p->mem_priv);
+ 	dma_buf_put(p->dbuf);
+ 	memset(p, 0, sizeof(*p));
+ }
+@@ -305,7 +379,6 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
+ 			if (ret) {
+ 				dprintk(1, "Buffer %d %p initialization"
+ 					" failed\n", buffer, vb);
+-				fail_vb_qop(vb, buf_init);
+ 				__vb2_buf_mem_free(vb);
+ 				kfree(vb);
+ 				break;
+@@ -382,7 +455,7 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
+ 		struct vb2_buffer *vb = q->bufs[buffer];
+ 
+ 		if (vb && vb->planes[0].mem_priv)
+-			call_vb_qop(vb, buf_cleanup, vb);
++			call_void_vb_qop(vb, buf_cleanup, vb);
+ 	}
+ 
+ 	/* Release video buffer memory */
+@@ -837,10 +910,8 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 	 */
+ 	ret = call_qop(q, queue_setup, q, NULL, &num_buffers, &num_planes,
+ 		       q->plane_sizes, q->alloc_ctx);
+-	if (ret) {
+-		fail_qop(q, queue_setup);
++	if (ret)
+ 		return ret;
+-	}
+ 
+ 	/* Finally, allocate buffers and video memory */
+ 	allocated_buffers = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes);
+@@ -864,8 +935,6 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 
+ 		ret = call_qop(q, queue_setup, q, NULL, &num_buffers,
+ 			       &num_planes, q->plane_sizes, q->alloc_ctx);
+-		if (ret)
+-			fail_qop(q, queue_setup);
+ 
+ 		if (!ret && allocated_buffers < num_buffers)
+ 			ret = -ENOMEM;
+@@ -950,10 +1019,8 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
+ 	 */
+ 	ret = call_qop(q, queue_setup, q, &create->format, &num_buffers,
+ 		       &num_planes, q->plane_sizes, q->alloc_ctx);
+-	if (ret) {
+-		fail_qop(q, queue_setup);
++	if (ret)
+ 		return ret;
+-	}
+ 
+ 	/* Finally, allocate buffers and video memory */
+ 	allocated_buffers = __vb2_queue_alloc(q, create->memory, num_buffers,
+@@ -975,8 +1042,6 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
+ 		 */
+ 		ret = call_qop(q, queue_setup, q, &create->format, &num_buffers,
+ 			       &num_planes, q->plane_sizes, q->alloc_ctx);
+-		if (ret)
+-			fail_qop(q, queue_setup);
+ 
+ 		if (!ret && allocated_buffers < num_buffers)
+ 			ret = -ENOMEM;
+@@ -1038,7 +1103,7 @@ void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no)
+ 	if (plane_no > vb->num_planes || !vb->planes[plane_no].mem_priv)
+ 		return NULL;
+ 
+-	return call_memop(vb, vaddr, vb->planes[plane_no].mem_priv);
++	return call_ptr_memop(vb, vaddr, vb->planes[plane_no].mem_priv);
+ 
+ }
+ EXPORT_SYMBOL_GPL(vb2_plane_vaddr);
+@@ -1059,7 +1124,7 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no)
+ 	if (plane_no > vb->num_planes || !vb->planes[plane_no].mem_priv)
+ 		return NULL;
+ 
+-	return call_memop(vb, cookie, vb->planes[plane_no].mem_priv);
++	return call_ptr_memop(vb, cookie, vb->planes[plane_no].mem_priv);
+ }
+ EXPORT_SYMBOL_GPL(vb2_plane_cookie);
+ 
+@@ -1112,7 +1177,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 
+ 	/* sync buffers */
+ 	for (plane = 0; plane < vb->num_planes; ++plane)
+-		call_memop(vb, finish, vb->planes[plane].mem_priv);
++		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+ 
+ 	/* Add the buffer to the done buffers list */
+ 	spin_lock_irqsave(&q->done_lock, flags);
+@@ -1265,22 +1330,21 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		if (vb->planes[plane].mem_priv) {
+ 			if (!reacquired) {
+ 				reacquired = true;
+-				call_vb_qop(vb, buf_cleanup, vb);
++				call_void_vb_qop(vb, buf_cleanup, vb);
+ 			}
+-			call_memop(vb, put_userptr, vb->planes[plane].mem_priv);
++			call_void_memop(vb, put_userptr, vb->planes[plane].mem_priv);
+ 		}
+ 
+ 		vb->planes[plane].mem_priv = NULL;
+ 		memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
+ 
+ 		/* Acquire each plane's memory */
+-		mem_priv = call_memop(vb, get_userptr, q->alloc_ctx[plane],
++		mem_priv = call_ptr_memop(vb, get_userptr, q->alloc_ctx[plane],
+ 				      planes[plane].m.userptr,
+ 				      planes[plane].length, write);
+ 		if (IS_ERR_OR_NULL(mem_priv)) {
+ 			dprintk(1, "qbuf: failed acquiring userspace "
+ 						"memory for plane %d\n", plane);
+-			fail_memop(vb, get_userptr);
+ 			ret = mem_priv ? PTR_ERR(mem_priv) : -EINVAL;
+ 			goto err;
+ 		}
+@@ -1303,7 +1367,6 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		ret = call_vb_qop(vb, buf_init, vb);
+ 		if (ret) {
+ 			dprintk(1, "qbuf: buffer initialization failed\n");
+-			fail_vb_qop(vb, buf_init);
+ 			goto err;
+ 		}
+ 	}
+@@ -1311,8 +1374,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	ret = call_vb_qop(vb, buf_prepare, vb);
+ 	if (ret) {
+ 		dprintk(1, "qbuf: buffer preparation failed\n");
+-		fail_vb_qop(vb, buf_prepare);
+-		call_vb_qop(vb, buf_cleanup, vb);
++		call_void_vb_qop(vb, buf_cleanup, vb);
+ 		goto err;
+ 	}
+ 
+@@ -1321,7 +1383,7 @@ err:
+ 	/* In case of errors, release planes that were already acquired */
+ 	for (plane = 0; plane < vb->num_planes; ++plane) {
+ 		if (vb->planes[plane].mem_priv)
+-			call_memop(vb, put_userptr, vb->planes[plane].mem_priv);
++			call_void_memop(vb, put_userptr, vb->planes[plane].mem_priv);
+ 		vb->planes[plane].mem_priv = NULL;
+ 		vb->v4l2_planes[plane].m.userptr = 0;
+ 		vb->v4l2_planes[plane].length = 0;
+@@ -1335,13 +1397,8 @@ err:
+  */
+ static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ {
+-	int ret;
+-
+ 	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
+-	ret = call_vb_qop(vb, buf_prepare, vb);
+-	if (ret)
+-		fail_vb_qop(vb, buf_prepare);
+-	return ret;
++	return call_vb_qop(vb, buf_prepare, vb);
+ }
+ 
+ /**
+@@ -1393,7 +1450,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 
+ 		if (!reacquired) {
+ 			reacquired = true;
+-			call_vb_qop(vb, buf_cleanup, vb);
++			call_void_vb_qop(vb, buf_cleanup, vb);
+ 		}
+ 
+ 		/* Release previously acquired memory if present */
+@@ -1401,12 +1458,11 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
+ 
+ 		/* Acquire each plane's memory */
+-		mem_priv = call_memop(vb, attach_dmabuf, q->alloc_ctx[plane],
++		mem_priv = call_ptr_memop(vb, attach_dmabuf, q->alloc_ctx[plane],
+ 			dbuf, planes[plane].length, write);
+-		if (IS_ERR(mem_priv)) {
++		if (IS_ERR_OR_NULL(mem_priv)) {
+ 			dprintk(1, "qbuf: failed to attach dmabuf\n");
+-			fail_memop(vb, attach_dmabuf);
+-			ret = PTR_ERR(mem_priv);
++			ret = mem_priv ? PTR_ERR(mem_priv) : -EINVAL;
+ 			dma_buf_put(dbuf);
+ 			goto err;
+ 		}
+@@ -1424,7 +1480,6 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		if (ret) {
+ 			dprintk(1, "qbuf: failed to map dmabuf for plane %d\n",
+ 				plane);
+-			fail_memop(vb, map_dmabuf);
+ 			goto err;
+ 		}
+ 		vb->planes[plane].dbuf_mapped = 1;
+@@ -1445,7 +1500,6 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		ret = call_vb_qop(vb, buf_init, vb);
+ 		if (ret) {
+ 			dprintk(1, "qbuf: buffer initialization failed\n");
+-			fail_vb_qop(vb, buf_init);
+ 			goto err;
+ 		}
+ 	}
+@@ -1453,8 +1507,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	ret = call_vb_qop(vb, buf_prepare, vb);
+ 	if (ret) {
+ 		dprintk(1, "qbuf: buffer preparation failed\n");
+-		fail_vb_qop(vb, buf_prepare);
+-		call_vb_qop(vb, buf_cleanup, vb);
++		call_void_vb_qop(vb, buf_cleanup, vb);
+ 		goto err;
+ 	}
+ 
+@@ -1479,9 +1532,9 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ 
+ 	/* sync buffers */
+ 	for (plane = 0; plane < vb->num_planes; ++plane)
+-		call_memop(vb, prepare, vb->planes[plane].mem_priv);
++		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
+ 
+-	call_vb_qop(vb, buf_queue, vb);
++	call_void_vb_qop(vb, buf_queue, vb);
+ }
+ 
+ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+@@ -1520,9 +1573,9 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		 * mmap_sem and then takes the driver's lock again.
+ 		 */
+ 		mmap_sem = &current->mm->mmap_sem;
+-		call_qop(q, wait_prepare, q);
++		call_void_qop(q, wait_prepare, q);
+ 		down_read(mmap_sem);
+-		call_qop(q, wait_finish, q);
++		call_void_qop(q, wait_finish, q);
+ 
+ 		ret = __qbuf_userptr(vb, b);
+ 
+@@ -1647,7 +1700,6 @@ static int vb2_start_streaming(struct vb2_queue *q)
+ 	if (!ret)
+ 		return 0;
+ 
+-	fail_qop(q, start_streaming);
+ 	dprintk(1, "qbuf: driver refused to start streaming\n");
+ 	if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
+ 		unsigned i;
+@@ -1812,7 +1864,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+ 		 * become ready or for streamoff. Driver's lock is released to
+ 		 * allow streamoff or qbuf to be called while waiting.
+ 		 */
+-		call_qop(q, wait_prepare, q);
++		call_void_qop(q, wait_prepare, q);
+ 
+ 		/*
+ 		 * All locks have been released, it is safe to sleep now.
+@@ -1825,7 +1877,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+ 		 * We need to reevaluate both conditions again after reacquiring
+ 		 * the locks or return an error if one occurred.
+ 		 */
+-		call_qop(q, wait_finish, q);
++		call_void_qop(q, wait_finish, q);
+ 		if (ret) {
+ 			dprintk(1, "Sleep was interrupted\n");
+ 			return ret;
+@@ -1911,7 +1963,7 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+ 		for (i = 0; i < vb->num_planes; ++i) {
+ 			if (!vb->planes[i].dbuf_mapped)
+ 				continue;
+-			call_memop(vb, unmap_dmabuf, vb->planes[i].mem_priv);
++			call_void_memop(vb, unmap_dmabuf, vb->planes[i].mem_priv);
+ 			vb->planes[i].dbuf_mapped = 0;
+ 		}
+ }
+@@ -1941,7 +1993,7 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
+ 		return -EINVAL;
+ 	}
+ 
+-	call_vb_qop(vb, buf_finish, vb);
++	call_void_vb_qop(vb, buf_finish, vb);
+ 
+ 	/* Fill buffer information for the userspace */
+ 	__fill_v4l2_buffer(vb, b);
+@@ -2042,7 +2094,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 
+ 		if (vb->state != VB2_BUF_STATE_DEQUEUED) {
+ 			vb->state = VB2_BUF_STATE_PREPARED;
+-			call_vb_qop(vb, buf_finish, vb);
++			call_void_vb_qop(vb, buf_finish, vb);
+ 		}
+ 		__vb2_dqbuf(vb);
+ 	}
+@@ -2244,11 +2296,10 @@ int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
+ 
+ 	vb_plane = &vb->planes[eb->plane];
+ 
+-	dbuf = call_memop(vb, get_dmabuf, vb_plane->mem_priv, eb->flags & O_ACCMODE);
++	dbuf = call_ptr_memop(vb, get_dmabuf, vb_plane->mem_priv, eb->flags & O_ACCMODE);
+ 	if (IS_ERR_OR_NULL(dbuf)) {
+ 		dprintk(1, "Failed to export buffer %d, plane %d\n",
+ 			eb->index, eb->plane);
+-		fail_memop(vb, get_dmabuf);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -2341,10 +2392,8 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
+ 	}
+ 
+ 	ret = call_memop(vb, mmap, vb->planes[plane].mem_priv, vma);
+-	if (ret) {
+-		fail_memop(vb, mmap);
++	if (ret)
+ 		return ret;
+-	}
+ 
+ 	dprintk(3, "Buffer %d, plane %d successfully mapped\n", buffer, plane);
+ 	return 0;
 -- 
-1.7.9.5
+1.9.0
 
