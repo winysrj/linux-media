@@ -1,40 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:51894 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751103AbaCHFaS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 00:30:18 -0500
-Received: by mail-wg0-f49.google.com with SMTP id a1so1835358wgh.32
-        for <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 21:30:17 -0800 (PST)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v6 2/8] Documentation: of: Document graph bindings
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-In-Reply-To: <1394011242-16783-3-git-send-email-p.zabel@pengutronix.de>
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de> < 1394011242-16783-3-git-send-email-p.zabel@pengutronix.de>
-Date: Fri, 07 Mar 2014 18:27:17 +0000
-Message-Id: <20140307182717.67596C40B43@trevor.secretlab.ca>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38975 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932672AbaCQLnH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Mar 2014 07:43:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEW PATCH for v3.15 1/4] v4l2-subdev.h: fix sparse error with v4l2_subdev_notify
+Date: Mon, 17 Mar 2014 12:44:51 +0100
+Message-ID: <2510988.dElkAvpb7d@avalon>
+In-Reply-To: <1394888883-46850-2-git-send-email-hverkuil@xs4all.nl>
+References: <1394888883-46850-1-git-send-email-hverkuil@xs4all.nl> <1394888883-46850-2-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed,  5 Mar 2014 10:20:36 +0100, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> The device tree graph bindings as used by V4L2 and documented in
-> Documentation/device-tree/bindings/media/video-interfaces.txt contain
-> generic parts that are not media specific but could be useful for any
-> subsystem with data flow between multiple devices. This document
-> describes the generic bindings.
+Hi Hans,
+
+Thank you for the patch.
+
+On Saturday 15 March 2014 14:08:00 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> The notify function is a void function, yet the v4l2_subdev_notify
+> define uses it in a ? : construction, which causes sparse warnings.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  include/media/v4l2-subdev.h | 8 +++++---
+>  1 file changed, 5 insertions(+), 3 deletions(-)
+> 
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 28f4d8c..0fbf669 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -692,9 +692,11 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
+>  		(sd)->ops->o->f((sd) , ##args) : -ENOIOCTLCMD))
+> 
+>  /* Send a notification to v4l2_device. */
+> -#define v4l2_subdev_notify(sd, notification, arg)			   \
+> -	((!(sd) || !(sd)->v4l2_dev || !(sd)->v4l2_dev->notify) ? -ENODEV : \
+> -	 (sd)->v4l2_dev->notify((sd), (notification), (arg)))
+> +#define v4l2_subdev_notify(sd, notification, arg)				\
+> +	do {									\
+> +		if ((sd) && (sd)->v4l2_dev && (sd)->v4l2_dev->notify)		\
+> +			(sd)->v4l2_dev->notify((sd), (notification), (arg));	\
+> +	} while (0)
 
-See my comments on the previous version. My concerns are the handling of
-the optional 'ports' node and the usage of reverse links.
+The construct would prevent using v4l2_subdev_notify() as an expression. What 
+about turning the macro into an inline function instead ?
 
-g.
+>  #define v4l2_subdev_has_op(sd, o, f) \
+>  	((sd)->ops->o && (sd)->ops->o->f)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
