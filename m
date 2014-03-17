@@ -1,89 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:39038 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754046AbaCXTdO (ORCPT
+Received: from mail.karo-electronics.de ([81.173.242.67]:49418 "EHLO
+	mail.karo-electronics.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933452AbaCQPSB convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Mar 2014 15:33:14 -0400
-Received: by mail-ee0-f48.google.com with SMTP id b57so4800195eek.7
-        for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 12:33:13 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 17/19] em28xx: remove field tda9887_conf from struct em28xx
-Date: Mon, 24 Mar 2014 20:33:23 +0100
-Message-Id: <1395689605-2705-18-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
+	Mon, 17 Mar 2014 11:18:01 -0400
+Date: Mon, 17 Mar 2014 16:14:36 +0100
+From: Lothar =?UTF-8?B?V2HDn21hbm4=?= <LW@KARO-electronics.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Andrzej Hajda <a.hajda@samsung.com>, devel@driverdev.osuosl.org,
+	Russell King <linux@arm.linux.org.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	David Airlie <airlied@linux.ie>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	dri-devel@lists.freedesktop.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Denis Carikli <denis@eukrea.com>,
+	Eric =?UTF-8?B?QsOpbmFyZA==?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 07/12] drm: drm_display_mode: add signal polarity flags
+Message-ID: <20140317161436.06169b33@ipc1.ka-ro>
+In-Reply-To: <2166863.3Fn4k2rvaz@avalon>
+References: <1394731053-6118-1-git-send-email-denis@eukrea.com>
+	<1394731053-6118-7-git-send-email-denis@eukrea.com>
+	<5326FB75.1050605@samsung.com>
+	<2166863.3Fn4k2rvaz@avalon>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The tda9887 configuration is already stored in the board data, and it is used
-only one time by the v4l2 sub-module at tuner setup.
+Hi,
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c | 3 ---
- drivers/media/usb/em28xx/em28xx-video.c | 6 +++---
- drivers/media/usb/em28xx/em28xx.h       | 1 -
- 3 files changed, 3 insertions(+), 7 deletions(-)
+Laurent Pinchart wrote:
+> Hello,
+> 
+> On Monday 17 March 2014 14:41:09 Andrzej Hajda wrote:
+> > On 03/13/2014 06:17 PM, Denis Carikli wrote:
+> > > We need a way to pass signal polarity informations
+> > > between DRM panels, and the display drivers.
+> > > 
+> > > To do that, a pol_flags field was added to drm_display_mode.
+> > > 
+> > > Signed-off-by: Denis Carikli <denis@eukrea.com>
+> > > ---
+> > > ChangeLog v10->v11:
+> > > - Since the imx-drm won't be able to retrive its regulators
+> > > 
+> > >   from the device tree when using display-timings nodes,
+> > >   and that I was told that the drm simple-panel driver
+> > >   already supported that, I then, instead, added what was
+> > >   lacking to make the eukrea displays work with the
+> > >   drm-simple-panel driver.
+> > >   
+> > >   That required a way to get back the display polarity
+> > >   informations from the imx-drm driver without affecting
+> > >   userspace.
+> > > 
+> > > ---
+> > > 
+> > >  include/drm/drm_crtc.h |    8 ++++++++
+> > >  1 file changed, 8 insertions(+)
+> > > 
+> > > diff --git a/include/drm/drm_crtc.h b/include/drm/drm_crtc.h
+> > > index f764654..61a4fe1 100644
+> > > --- a/include/drm/drm_crtc.h
+> > > +++ b/include/drm/drm_crtc.h
+> > > @@ -131,6 +131,13 @@ enum drm_mode_status {
+> > > 
+> > >  #define DRM_MODE_FLAG_3D_MAX	DRM_MODE_FLAG_3D_SIDE_BY_SIDE_HALF
+> > > 
+> > > +#define DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE	BIT(1)
+> > > +#define DRM_MODE_FLAG_POL_PIXDATA_POSEDGE	BIT(2)
+> > > +#define DRM_MODE_FLAG_POL_PIXDATA_PRESERVE	BIT(3)
+> > > +#define DRM_MODE_FLAG_POL_DE_NEGEDGE		BIT(4)
+> > > +#define DRM_MODE_FLAG_POL_DE_POSEDGE		BIT(5)
+> > > +#define DRM_MODE_FLAG_POL_DE_PRESERVE		BIT(6)
+> > 
+> > Could you add some description to these flags.
+> > What are *_PRESERVE flags for?
+> > Are those flags 1:1 compatible with respective 'videomode:flags'?
+> > I guess DE flags should be rather DRM_MODE_FLAG_POL_DE_(LOW|HIGH), am I
+> > right?
+> 
+> Possibly nitpicking, I wouldn't call the clock edge on which data signals are 
+> generated/sampled "data polarity". This is clock polarity information.
+> 
+> Have you seen cases where pixel data and DE are geenrated or need to be 
+> sampled on different edges ?
+> 
+DE is not a clock signal, but an 'Enable' signal whose value (high or
+low) defines the window in which the pixel data is valid.
+The flag defines whether data is valid during the HIGH or LOW period of
+DE.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 64ea25a..b81946f 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2719,9 +2719,6 @@ static void em28xx_card_setup(struct em28xx *dev)
- 	if (em28xx_boards[dev->model].tuner_addr)
- 		dev->tuner_addr = em28xx_boards[dev->model].tuner_addr;
- 
--	if (em28xx_boards[dev->model].tda9887_conf)
--		dev->tda9887_conf = em28xx_boards[dev->model].tda9887_conf;
--
- 	/* request some modules */
- 	switch (dev->model) {
- 	case EM2820_BOARD_HAUPPAUGE_WINTV_USB_2:
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 35bf2b9..8c0082c 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -2254,11 +2254,11 @@ static void em28xx_tuner_setup(struct em28xx *dev)
- 				     0, tuner, s_type_addr, &tun_setup);
- 	}
- 
--	if (dev->tda9887_conf) {
-+	if (dev->board.tda9887_conf) {
- 		struct v4l2_priv_tun_config tda9887_cfg;
- 
- 		tda9887_cfg.tuner = TUNER_TDA9887;
--		tda9887_cfg.priv = &dev->tda9887_conf;
-+		tda9887_cfg.priv = &dev->board.tda9887_conf;
- 
- 		v4l2_device_call_all(v4l2_dev,
- 				     0, tuner, s_config, &tda9887_cfg);
-@@ -2364,7 +2364,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 	/* Initialize tuner and camera */
- 
- 	if (dev->board.tuner_type != TUNER_ABSENT) {
--		int has_demod = (dev->tda9887_conf & TDA9887_PRESENT);
-+		int has_demod = (dev->board.tda9887_conf & TDA9887_PRESENT);
- 
- 		if (dev->board.radio.type)
- 			v4l2_i2c_new_subdev(&v4l2->v4l2_dev,
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 8a0ed93..917cb25 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -633,7 +633,6 @@ struct em28xx {
- 
- 	int tuner_type;		/* type of the tuner */
- 	int tuner_addr;		/* tuner address */
--	int tda9887_conf;
- 
- 	/* i2c i/o */
- 	struct i2c_adapter i2c_adap[NUM_I2C_BUSES];
+
+Lothar Waßmann
 -- 
-1.8.4.5
+___________________________________________________________
 
+Ka-Ro electronics GmbH | Pascalstraße 22 | D - 52076 Aachen
+Phone: +49 2408 1402-0 | Fax: +49 2408 1402-10
+Geschäftsführer: Matthias Kaussen
+Handelsregistereintrag: Amtsgericht Aachen, HRB 4996
+
+www.karo-electronics.de | info@karo-electronics.de
+___________________________________________________________
