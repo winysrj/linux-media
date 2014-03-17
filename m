@@ -1,61 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:19404 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751991AbaCSLza (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1548 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932296AbaCQDex (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Mar 2014 07:55:30 -0400
-Message-id: <532985A9.8050101@samsung.com>
-Date: Wed, 19 Mar 2014 12:55:21 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Shaik Ameer Basha <shaik.ameer@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	m.chehab@samsung.com, b.zolnierkie@samsung.com, t.figa@samsung.com,
-	k.debski@samsung.com, arun.kk@samsung.com
-Subject: Re: [PATCH v6 1/4] [media] exynos-scaler: Add DT bindings for SCALER
- driver
-References: <1395213196-25972-1-git-send-email-shaik.ameer@samsung.com>
- <1395213196-25972-2-git-send-email-shaik.ameer@samsung.com>
- <4637278.9G3gGkQ5GA@avalon>
-In-reply-to: <4637278.9G3gGkQ5GA@avalon>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Sun, 16 Mar 2014 23:34:53 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2H3YnCF084578
+	for <linux-media@vger.kernel.org>; Mon, 17 Mar 2014 04:34:51 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 8637A2A188A
+	for <linux-media@vger.kernel.org>; Mon, 17 Mar 2014 04:34:40 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140317033440.8637A2A188A@tschai.lan>
+Date: Mon, 17 Mar 2014 04:34:40 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 19/03/14 12:31, Laurent Pinchart wrote:
->> +++ b/Documentation/devicetree/bindings/media/exynos5-scaler.txt
->> > @@ -0,0 +1,24 @@
->> > +* Samsung Exynos5 SCALER device
->> > +
->> > +SCALER is used for scaling, blending, color fill and color space
->> > +conversion on EXYNOS[5420/5410] SoCs.
->> > +
->> > +Required properties:
->> > +- compatible: should be "samsung,exynos5420-scaler" or
->> > +			"samsung,exynos5410-scaler"
->> > +- reg: should contain SCALER physical address location and length
->> > +- interrupts: should contain SCALER interrupt specifier
->> > +- clocks: should contain the SCALER clock phandle and specifier pair for
->> > +		each clock listed in clock-names property, according to
->> > +		the common clock bindings
->> > +- clock-names: should contain exactly one entry
->> > +		- "scaler" - IP bus clock
->
-> I'm not too familiar with the Exynos platform, but wouldn't it make sense to 
-> use a common name across IP cores for interface and function clocks ?
+Results of the daily build of media_tree:
 
-Certainly it would, I proposed that when the exynos clock controller
-driver was posted, quite long time ago. Unfortunately it wasn't followed
-up. One of serious reasons was that there are common drivers for
-multiple Samsung platforms (also the ones not reworked to support dt) and
-thus changing the clock names would be problematic - driver would still
-need to handle multiple clock names.
-But for this driver a common name like "gate" could be better IMHO.
+date:		Mon Mar 17 04:00:15 CET 2014
+git branch:	test
+git hash:	ed97a6fe5308e5982d118a25f0697b791af5ec50
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0
+host hardware:	x86_64
+host os:	3.13-5.slh.4-amd64
 
-Regards,
-Sylwester
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
