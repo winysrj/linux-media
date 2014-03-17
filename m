@@ -1,55 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f175.google.com ([209.85.215.175]:57878 "EHLO
-	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753440AbaCJOlH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 10:41:07 -0400
-Received: by mail-ea0-f175.google.com with SMTP id d10so3702667eaj.6
-        for <linux-media@vger.kernel.org>; Mon, 10 Mar 2014 07:41:05 -0700 (PDT)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-In-Reply-To: <531D916C.2010903@ti.com>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com> < 20140217181451.7EB7FC4044D@trevor.secretlab.ca> <20140218070624.GP17250@ pengutronix.de> <20140218162627.32BA4C40517@trevor.secretlab.ca> < 1393263389.3091.82.camel@pizza.hi.pengutronix.de> <20140226110114. CF2C7C40A89@trevor.secretlab.ca> <1393426129.3248.64.camel@paszta.hi. pengutronix.de> <20140307170550.1DFB2C40A0D@trevor.secretlab.ca> <531AF1E8. 50606@ti.com> <20140308114115.BB08EC40612@trevor.secretlab.ca> <531D916C. 2010903@ti.com>
-Date: Mon, 10 Mar 2014 14:41:02 +0000
-Message-Id: <20140310144102.58C13C405FA@trevor.secretlab.ca>
+Received: from mx1.redhat.com ([209.132.183.28]:41924 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750764AbaCQTVM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Mar 2014 15:21:12 -0400
+Message-ID: <53274B1A.3080906@redhat.com>
+Date: Mon, 17 Mar 2014 20:20:58 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Ismael Luceno <ismael.luceno@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] gspca_gl860: Clean up idxdata structs
+References: <1394826203-26622-1-git-send-email-ismael.luceno@gmail.com> <53242699.3080308@redhat.com> <5326F6D3.8010307@xs4all.nl>
+In-Reply-To: <5326F6D3.8010307@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 10 Mar 2014 12:18:20 +0200, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On 08/03/14 13:41, Grant Likely wrote:
-> 
-> >> Ok. If we go for single directional link, the question is then: which
-> >> way? And is the direction different for display and camera, which are
-> >> kind of reflections of each other?
-> > 
-> > In general I would recommend choosing whichever device you would
-> > sensibly think of as a master. In the camera case I would choose the
-> > camera controller node instead of the camera itself, and in the display
-> > case I would choose the display controller instead of the panel. The
-> > binding author needs to choose what she things makes the most sense, but
-> > drivers can still use if it it turns out to be 'backwards'
-> 
-> I would perhaps choose the same approach, but at the same time I think
-> it's all but clear. The display controller doesn't control the panel any
-> more than a DMA controller controls, say, the display controller.
+Hi,
 
-In a sense it doesn't actually matter. You sensibly want to choose the
-most likely direction that drivers would go looking for a device it
-depends on, but it can be matched up at runtime regardless of the
-direction chosen by the binding.
+On 03/17/2014 02:21 PM, Hans Verkuil wrote:
+> On 03/15/2014 11:08 AM, Hans de Goede wrote:
+>> Hi,
+>>
+>> Some better commit msg would be nice, otherwise this patch is:
+>>
+>> Acked-by: Hans de Goede <hdegoede@redhat.com>
+>>
+>> Hans Verkuil has mailed me that he would like to pick this up through
+>> his tree. Hans V. , I say go for it :)
+> 
+> I noticed that these sparse warnings suddenly disappeared after switching to
+> sparse-0.5.0. It turns out to be a sparse bug:
+> 
+> commit 0edb7edecdd571c2663eb12acac1b27b9acac657
+> Author: Ramsay Jones <ramsay@ramsay1.demon.co.uk>
+> Date:   Thu May 16 20:41:24 2013 +0100
+> 
+>     char.c: Fix parsing of escapes
+>     
+>     When parsing a string or character constant, the parse_escape()
+>     function returns a pointer to the character at which to resume
+>     parsing. However, in the case of an hex or octal escape, it was
+>     returning a one-past-the-end pointer. Thus, a string like:
+>     
+>         char str[3] = "\x61\x62\x63";
+>     
+>     was being parsed as:
+>     
+>         '\x61', 'x', '6', '2', '\x63'
+>     
+>     which, in turn, provokes an 'too long initializer' warning.
+>     
+>     Also, fix an off-by-one error in get_char_constant() when setting
+>     the 'end' pointer for a TOKEN_CHAR or TOKEN_WIDE_CHAR. Despite the
+>     name, the string->length of the token is actually the size of the
+>     allocated memory (ie len+1), so we need to compensate by using
+>     'token->string->length - 1'.
+> 
+> That said, I think it is really ugly to use a string like that and I still
+> would like to apply this patch, although for 3.16, not 3.15 as was my
+> original intention.
+> 
+> Hans, do you agree with that approach? Or do you prefer to keep it as is?
 
-g.
+I agree that using strings for this is ugly, and I would still like to see
+this patch go in. I've no preference for putting it in 3.15 or 3.16 .
+
+Regards,
+
+Hans
