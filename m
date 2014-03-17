@@ -1,195 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49871 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752513AbaCZQK5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Mar 2014 12:10:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	m.chehab@samsung.com, nicolas.ferre@atmel.com,
-	linux-arm-kernel@lists.infradead.org, grant.likely@linaro.org,
-	galak@codeaurora.org, rob@landley.net, mark.rutland@arm.com,
-	robh+dt@kernel.org, ijc+devicetree@hellion.org.uk,
-	pawel.moll@arm.com, devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 3/3] [media] atmel-isi: add primary DT support
-Date: Wed, 26 Mar 2014 17:12:52 +0100
-Message-ID: <2440751.oL6GATsqvn@avalon>
-In-Reply-To: <1395744320-15025-1-git-send-email-josh.wu@atmel.com>
-References: <1395744087-5753-1-git-send-email-josh.wu@atmel.com> <1395744320-15025-1-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from cantor2.suse.de ([195.135.220.15]:48036 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751340AbaCQTtp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Mar 2014 15:49:45 -0400
+From: Jan Kara <jack@suse.cz>
+To: linux-mm@kvack.org
+Cc: linux-media@vger.kernel.org, Jan Kara <jack@suse.cz>
+Subject: [PATCH 5/9] media: vb2: Convert vb2_vmalloc_get_userptr() to use pfns vector
+Date: Mon, 17 Mar 2014 20:49:32 +0100
+Message-Id: <1395085776-8626-6-git-send-email-jack@suse.cz>
+In-Reply-To: <1395085776-8626-1-git-send-email-jack@suse.cz>
+References: <1395085776-8626-1-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
+Convert vb2_vmalloc_get_userptr() to use passed vector of pfns. When we
+are doing that there's no need to allocate page array and some code can
+be simplified.
 
-Thank you for the patch.
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ drivers/media/v4l2-core/videobuf2-vmalloc.c | 86 +++++++++++------------------
+ 1 file changed, 33 insertions(+), 53 deletions(-)
 
-On Tuesday 25 March 2014 18:45:20 Josh Wu wrote:
-> This patch add the DT support for Atmel ISI driver.
-> It use the same v4l2 DT interface that defined in video-interfaces.txt.
-> 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> Cc: devicetree@vger.kernel.org
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
-> v1 --> v2:
->  refine the binding document.
->  add port node description.
->  removed the optional property.
-> 
->  .../devicetree/bindings/media/atmel-isi.txt        |   50 +++++++++++++++++
->  drivers/media/platform/soc_camera/atmel-isi.c      |   31 +++++++++++-
->  2 files changed, 79 insertions(+), 2 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/media/atmel-isi.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/atmel-isi.txt
-> b/Documentation/devicetree/bindings/media/atmel-isi.txt new file mode
-> 100644
-> index 0000000..11c98ee
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/atmel-isi.txt
-> @@ -0,0 +1,50 @@
-> +Atmel Image Sensor Interface (ISI) SoC Camera Subsystem
-> +----------------------------------------------
-> +
-> +Required properties:
-> +- compatible: must be "atmel,at91sam9g45-isi"
-> +- reg: physical base address and length of the registers set for the
-> device;
-> +- interrupts: should contain IRQ line for the ISI;
-> +- clocks: list of clock specifiers, corresponding to entries in
-> +          the clock-names property;
-> +- clock-names: must contain "isi_clk", which is the isi peripherial clock.
-> +
-> +ISI supports a single port node with parallel bus. It should contain one
-> +'port' child node with child 'endpoint' node. Please refer to the bindings
-> +defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +Example:
-> +	isi: isi@f0034000 {
-> +		compatible = "atmel,at91sam9g45-isi";
-> +		reg = <0xf0034000 0x4000>;
-> +		interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
-> +
-> +		clocks = <&isi_clk>;
-> +		clock-names = "isi_clk";
-> +
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&pinctrl_isi>;
-> +
-> +		port {
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +
-> +			isi_0: endpoint {
-> +				remote-endpoint = <&ov2640_0>;
-> +			};
-> +		};
-> +	};
-> +
-> +	i2c1: i2c@f0018000 {
-> +		ov2640: camera@0x30 {
-> +			compatible = "omnivision,ov2640";
-> +			reg = <0x30>;
-> +
-> +			port {
-> +				ov2640_0: endpoint {
-> +					remote-endpoint = <&isi_0>;
-> +					bus-width = <8>;
-> +				};
-> +			};
-> +		};
-> +	};
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
-> b/drivers/media/platform/soc_camera/atmel-isi.c index f4add0a..d6a1f7b
-> 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -19,6 +19,7 @@
->  #include <linux/interrupt.h>
->  #include <linux/kernel.h>
->  #include <linux/module.h>
-> +#include <linux/of.h>
->  #include <linux/platform_device.h>
->  #include <linux/slab.h>
-> 
-> @@ -33,6 +34,7 @@
->  #define VID_LIMIT_BYTES			(16 * 1024 * 1024)
->  #define MIN_FRAME_RATE			15
->  #define FRAME_INTERVAL_MILLI_SEC	(1000 / MIN_FRAME_RATE)
-> +#define ISI_DEFAULT_MCLK_FREQ		25000000
-> 
->  /* Frame buffer descriptor */
->  struct fbd {
-> @@ -885,6 +887,20 @@ static int atmel_isi_remove(struct platform_device
-> *pdev) return 0;
->  }
-> 
-> +static int atmel_isi_probe_dt(struct atmel_isi *isi,
-> +			struct platform_device *pdev)
-> +{
-> +	struct device_node *node = pdev->dev.of_node;
-> +
-> +	/* Default settings for ISI */
-> +	isi->pdata.full_mode = 1;
-> +	isi->pdata.mck_hz = ISI_DEFAULT_MCLK_FREQ;
-> +	isi->pdata.frate = ISI_CFG1_FRATE_CAPTURE_ALL;
-> +	isi->pdata.data_width_flags = ISI_DATAWIDTH_8 | ISI_DATAWIDTH_10;
-> +
-> +	return 0;
-> +}
-> +
->  static int atmel_isi_probe(struct platform_device *pdev)
->  {
->  	unsigned int irq;
-> @@ -896,7 +912,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
-> struct isi_platform_data *pdata;
-> 
->  	pdata = dev->platform_data;
-> -	if (!pdata || !pdata->data_width_flags) {
-> +	if ((!pdata || !pdata->data_width_flags) && !pdev->dev.of_node) {
->  		dev_err(&pdev->dev,
->  			"No config available for Atmel ISI\n");
->  		return -EINVAL;
-> @@ -912,7 +928,11 @@ static int atmel_isi_probe(struct platform_device
-> *pdev) if (IS_ERR(isi->pclk))
->  		return PTR_ERR(isi->pclk);
-> 
-> -	memcpy(&isi->pdata, pdata, sizeof(struct isi_platform_data));
-> +	if (pdata)
-> +		memcpy(&isi->pdata, pdata, sizeof(struct isi_platform_data));
-> +	else	/* dt probe */
-> +		atmel_isi_probe_dt(isi, pdev);
-> +
->  	isi->active = NULL;
->  	spin_lock_init(&isi->lock);
->  	INIT_LIST_HEAD(&isi->video_buffer_list);
-> @@ -1014,11 +1034,18 @@ err_alloc_ctx:
->  	return ret;
->  }
-> 
-> +static const struct of_device_id atmel_isi_of_match[] = {
-> +	{ .compatible = "atmel,at91sam9g45-isi" },
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(of, atmel_isi_of_match);
-> +
->  static struct platform_driver atmel_isi_driver = {
->  	.remove		= atmel_isi_remove,
->  	.driver		= {
->  		.name = "atmel_isi",
->  		.owner = THIS_MODULE,
-> +		.of_match_table = atmel_isi_of_match,
->  	},
->  };
-
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index ab38e054d1a0..3b4e53bd97d7 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -23,11 +23,9 @@
+ 
+ struct vb2_vmalloc_buf {
+ 	void				*vaddr;
+-	struct page			**pages;
+-	struct vm_area_struct		*vma;
++	struct pinned_pfns		*pfns;
+ 	int				write;
+ 	unsigned long			size;
+-	unsigned int			n_pages;
+ 	atomic_t			refcount;
+ 	struct vb2_vmarea_handler	handler;
+ 	struct dma_buf			*dbuf;
+@@ -74,10 +72,8 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, struct pinned_pfns **ppfn,
+ 				     int write)
+ {
+ 	struct vb2_vmalloc_buf *buf;
+-	unsigned long first, last;
+-	int n_pages, offset;
+-	struct vm_area_struct *vma;
+-	dma_addr_t physp;
++	struct pinned_pfns *pfns = *ppfn;
++	int n_pages, offset, i;
+ 
+ 	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+ 	if (!buf)
+@@ -87,49 +83,32 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, struct pinned_pfns **ppfn,
+ 	offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+ 
+-
+-	vma = find_vma(current->mm, vaddr);
+-	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
+-		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
+-			goto fail_pages_array_alloc;
+-		buf->vma = vma;
+-		buf->vaddr = ioremap_nocache(physp, size);
+-		if (!buf->vaddr)
+-			goto fail_pages_array_alloc;
++	n_pages = pfns_vector_count(pfns);
++	if (pfns_vector_to_pages(pfns) < 0) {
++		unsigned long *nums = pfns_vector_pfns(pfns);
++
++		/*
++		 * We cannot get page pointers for these pfns. Check memory is
++ 		 * physically contiguous and use direct mapping.
++		 */
++		for (i = 1; i < n_pages; i++)
++			if (nums[i-1] + 1 != nums[i])
++				goto out_buf;
++		buf->vaddr = ioremap_nocache(nums[0] << PAGE_SHIFT, size);
+ 	} else {
+-		first = vaddr >> PAGE_SHIFT;
+-		last  = (vaddr + size - 1) >> PAGE_SHIFT;
+-		buf->n_pages = last - first + 1;
+-		buf->pages = kzalloc(buf->n_pages * sizeof(struct page *),
+-				     GFP_KERNEL);
+-		if (!buf->pages)
+-			goto fail_pages_array_alloc;
+-
+-		/* current->mm->mmap_sem is taken by videobuf2 core */
+-		n_pages = get_user_pages(current, current->mm,
+-					 vaddr & PAGE_MASK, buf->n_pages,
+-					 write, 1, /* force */
+-					 buf->pages, NULL);
+-		if (n_pages != buf->n_pages)
+-			goto fail_get_user_pages;
+-
+-		buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1,
++		buf->vaddr = vm_map_ram(pfns_vector_pages(pfns), n_pages, -1,
+ 					PAGE_KERNEL);
+-		if (!buf->vaddr)
+-			goto fail_get_user_pages;
+ 	}
+ 
++	if (!buf->vaddr)
++		goto out_buf;
++	buf->pfns = pfns;
++	/* Clear the pointer so that the vector isn't freed by the caller */
++	*ppfn = NULL;
+ 	buf->vaddr += offset;
+ 	return buf;
+ 
+-fail_get_user_pages:
+-	pr_debug("get_user_pages requested/got: %d/%d]\n", n_pages,
+-		 buf->n_pages);
+-	while (--n_pages >= 0)
+-		put_page(buf->pages[n_pages]);
+-	kfree(buf->pages);
+-
+-fail_pages_array_alloc:
++out_buf:
+ 	kfree(buf);
+ 
+ 	return NULL;
+@@ -140,21 +119,22 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+ 	struct vb2_vmalloc_buf *buf = buf_priv;
+ 	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
+ 	unsigned int i;
++	struct page **pages;
++	unsigned int n_pages;
+ 
+-	if (buf->pages) {
++	if (buf->pfns->is_pages) {
++		n_pages = pfns_vector_count(buf->pfns);
++		pages = pfns_vector_pages(buf->pfns);
+ 		if (vaddr)
+-			vm_unmap_ram((void *)vaddr, buf->n_pages);
+-		for (i = 0; i < buf->n_pages; ++i) {
+-			if (buf->write)
+-				set_page_dirty_lock(buf->pages[i]);
+-			put_page(buf->pages[i]);
+-		}
+-		kfree(buf->pages);
++			vm_unmap_ram((void *)vaddr, n_pages);
++		if (buf->write)
++			for (i = 0; i < n_pages; i++)
++				set_page_dirty_lock(pages[i]);
+ 	} else {
+-		if (buf->vma)
+-			vb2_put_vma(buf->vma);
+ 		iounmap(buf->vaddr);
+ 	}
++	put_vaddr_pfns(buf->pfns);
++	pfns_vector_destroy(buf->pfns);
+ 	kfree(buf);
+ }
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.1.4
 
