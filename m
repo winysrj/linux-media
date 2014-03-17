@@ -1,81 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f172.google.com ([209.85.128.172]:44972 "EHLO
-	mail-ve0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752640AbaCaRSA (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39554 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752989AbaCQNZZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Mar 2014 13:18:00 -0400
+	Mon, 17 Mar 2014 09:25:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: Re: [REVIEWv2 PATCH for v3.15 2/4] videobuf2-core: fix sparse errors.
+Date: Mon, 17 Mar 2014 14:27:03 +0100
+Message-ID: <6139306.NdSWdZMQQM@avalon>
+In-Reply-To: <5326EEE7.70707@xs4all.nl>
+References: <5326D540.7080805@xs4all.nl> <6449458.ttdRkGWNIv@avalon> <5326EEE7.70707@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <53391E67.2000306@xs4all.nl>
-References: <53242AC7.9080301@xs4all.nl>
-	<53391E67.2000306@xs4all.nl>
-Date: Mon, 31 Mar 2014 10:17:59 -0700
-Message-ID: <CA+55aFzs_O780hEowt9vg69-Kxfwzn5j1eL2F2Tzw4C56koeRg@mail.gmail.com>
-Subject: Re: sparse and anonymous unions
-From: Linus Torvalds <torvalds@linux-foundation.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>, Chris Li <sparse@chrisli.org>
-Cc: Sparse Mailing-list <linux-sparse@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=047d7bb04396b4185c04f5ea3b3f
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---047d7bb04396b4185c04f5ea3b3f
-Content-Type: text/plain; charset=UTF-8
+Hi Hans,
 
-On Mon, Mar 31, 2014 at 12:51 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> Here is a simple test case for this problem:
->
-> ====== anon-union.c ======
-> struct s {
->         union {
->                 int val;
->         };
-> };
->
-> static struct s foo = { .val = 5, };
+On Monday 17 March 2014 13:47:35 Hans Verkuil wrote:
+> On 03/17/2014 01:41 PM, Laurent Pinchart wrote:
+> > On Monday 17 March 2014 13:32:44 Hans Verkuil wrote:
+> >> On 03/17/2014 01:26 PM, Laurent Pinchart wrote:
+> >>> On Monday 17 March 2014 11:58:08 Hans Verkuil wrote:
+> >>>> (Fixed typo pointed out by Pawel, but more importantly made an
+> >>>> additional change to __qbuf_dmabuf. See last paragraph in the commit
+> >>>> log)
+> >>> 
+> >>> [snip]
+> >>> 
+> >>>> I made one other change: in __qbuf_dmabuf the result of the memop call
+> >>>> attach_dmabuf() is checked by IS_ERR() instead of IS_ERR_OR_NULL().
+> >>>> Since the call_ptr_memop macro checks for IS_ERR_OR_NULL and since a
+> >>>> NULL pointer makes no sense anyway, I've changed the IS_ERR to
+> >>>> IS_ERR_OR_NULL to remain consistent, both with the call_ptr_memop
+> >>>> macro, but also with all other cases where a pointer is checked.
+> >>> 
+> >>> Could you please split this to a separate patch ?
+> >>> 
+> >>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>> ---
+> >>>> 
+> >>>>  drivers/media/v4l2-core/videobuf2-core.c | 215 +++++++++++++----------
+> >>>>  1 file changed, 132 insertions(+), 83 deletions(-)
+> >>>> 
+> >>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> >>>> b/drivers/media/v4l2-core/videobuf2-core.c index f9059bb..fb1ee86
+> >>>> 100644
+> >>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> >>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> >>> 
+> >>> [snip]
+> >>> 
+> >>>> @@ -1401,12 +1458,11 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb,
+> >>>> const struct v4l2_buffer *b) memset(&vb->v4l2_planes[plane], 0,
+> >>>> sizeof(struct v4l2_plane));
+> >>>> 
+> >>>>  		/* Acquire each plane's memory */
+> >>>> 
+> >>>> -		mem_priv = call_memop(vb, attach_dmabuf, q->alloc_ctx[plane],
+> >>>> +		mem_priv = call_ptr_memop(vb, attach_dmabuf, q->alloc_ctx[plane],
+> >>>> 
+> >>>>  			dbuf, planes[plane].length, write);
+> >>>> 
+> >>>> -		if (IS_ERR(mem_priv)) {
+> >>>> +		if (IS_ERR_OR_NULL(mem_priv)) {
+> >>>> 
+> >>>>  			dprintk(1, "qbuf: failed to attach dmabuf\n");
+> >>>> 
+> >>>> -			fail_memop(vb, attach_dmabuf);
+> >>>> -			ret = PTR_ERR(mem_priv);
+> >>>> +			ret = mem_priv ? PTR_ERR(mem_priv) : -EINVAL;
+> >>> 
+> >>> That gets confusing. Wouldn't it be better to switch the other memop
+> >>> calls that return pointers to return an ERR_PTR() in error cases instead
+> >>> of NULL ?
+> >> 
+> >> I don't see why it is confusing as long as everyone sticks to the same
+> >> scheme.
+> > 
+> > Because that would be mixing two schemes. For one thing, the -EINVAL error
+> > code above is arbitrary. The construct is also confusing, and it would be
+> > easy to write
+> > 
+> > 	if (IS_ERR_OR_NULL(foo)) {
+> > 		...
+> > 		ret = PTR_ERR(foo);
+> > 		...
+> > 
+> > which would return success even though an error occurs. That error will be
+> > more difficult to debug than accepting a NULL pointer by mistake, which
+> > would result in an oops pretty soon.
+> 
+> I don't want an oops, I want an error. It all goes through videobuf2-core,
+> so this should be handled there.
 
-Ok, this fixes the warning, but we seem to still mess up the actual
-initializer. It looks like some later phase gets the offset wrong, so
-when we lay things out in memory, we'll put things at offset zero
-(which is right for your test-case, but not if there was something
-before that anonymous union).
+A NULL pointer returned by a memop is a bug in the videobuf2 memop 
+implementation. It's in my opinion a problem that will be caught during 
+development. We of course want to make sure it will be caught.
 
-Regardless, that only matters for real code generation, not for using
-sparse as a semantic checker, so this patch is correct and is an
-improvement.
+> >> I actually prefer this way, since it is more robust as it will catch
+> >> cases where the memop unintentionally returned NULL. If I would just
+> >> check for IS_ERR, then that would be missed. Especially in a core piece
+> >> of code like this I'd like to err on the robust side.
+> > 
+> > You can always add a WARN_ON(mem_priv == NULL) if you really want to catch
+> > that.
+> > 
+> >>>>  			dma_buf_put(dbuf);
+> >>>>  			goto err;
+> >>>>  		
+> >>>>  		}
+> 
+> I'm not going to make such relatively large changes for 3.15. If you want to
+> make a patch for 3.16, that's fine.
 
-Chris, mind applying this one too? It removes more lines than it adds
-while fixing things, by removing the helper function that isn't good
-at anoymous unions, and using another one that does this all right..
+Isn't Mauro's tree closed for v3.15 anyway ?
 
-                  Linus
+> At the moment I am only concerned with fixing the sparse errors that were
+> introduced.
 
---047d7bb04396b4185c04f5ea3b3f
-Content-Type: text/plain; charset=US-ASCII; name="patch.diff"
-Content-Disposition: attachment; filename="patch.diff"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_htg0pfhk0
+-- 
+Regards,
 
-IGV2YWx1YXRlLmMgfCAxNCArKy0tLS0tLS0tLS0tLQogMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0
-aW9ucygrKSwgMTIgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZXZhbHVhdGUuYyBiL2V2YWx1
-YXRlLmMKaW5kZXggOGE1M2IzZTg4NGUwLi41YWRmYzFlM2ZmMjYgMTAwNjQ0Ci0tLSBhL2V2YWx1
-YXRlLmMKKysrIGIvZXZhbHVhdGUuYwpAQCAtMjE3MSwxNyArMjE3MSw2IEBAIHN0YXRpYyBpbnQg
-ZXZhbHVhdGVfYXJndW1lbnRzKHN0cnVjdCBzeW1ib2wgKmYsIHN0cnVjdCBzeW1ib2wgKmZuLCBz
-dHJ1Y3QgZXhwcmVzCiAJcmV0dXJuIDE7CiB9CiAKLXN0YXRpYyBzdHJ1Y3Qgc3ltYm9sICpmaW5k
-X3N0cnVjdF9pZGVudChzdHJ1Y3Qgc3ltYm9sICpjdHlwZSwgc3RydWN0IGlkZW50ICppZGVudCkK
-LXsKLQlzdHJ1Y3Qgc3ltYm9sICpzeW07Ci0KLQlGT1JfRUFDSF9QVFIoY3R5cGUtPnN5bWJvbF9s
-aXN0LCBzeW0pIHsKLQkJaWYgKHN5bS0+aWRlbnQgPT0gaWRlbnQpCi0JCQlyZXR1cm4gc3ltOwot
-CX0gRU5EX0ZPUl9FQUNIX1BUUihzeW0pOwotCXJldHVybiBOVUxMOwotfQotCiBzdGF0aWMgdm9p
-ZCBjb252ZXJ0X2luZGV4KHN0cnVjdCBleHByZXNzaW9uICplKQogewogCXN0cnVjdCBleHByZXNz
-aW9uICpjaGlsZCA9IGUtPmlkeF9leHByZXNzaW9uOwpAQCAtMjI5MCwxMSArMjI3OSwxMiBAQCBz
-dGF0aWMgc3RydWN0IGV4cHJlc3Npb24gKmNoZWNrX2Rlc2lnbmF0b3JzKHN0cnVjdCBleHByZXNz
-aW9uICplLAogCQkJfQogCQkJZSA9IGUtPmlkeF9leHByZXNzaW9uOwogCQl9IGVsc2UgaWYgKGUt
-PnR5cGUgPT0gRVhQUl9JREVOVElGSUVSKSB7CisJCQlpbnQgb2Zmc2V0ID0gMDsKIAkJCWlmIChj
-dHlwZS0+dHlwZSAhPSBTWU1fU1RSVUNUICYmIGN0eXBlLT50eXBlICE9IFNZTV9VTklPTikgewog
-CQkJCWVyciA9ICJmaWVsZCBuYW1lIG5vdCBpbiBzdHJ1Y3Qgb3IgdW5pb24iOwogCQkJCWJyZWFr
-OwogCQkJfQotCQkJY3R5cGUgPSBmaW5kX3N0cnVjdF9pZGVudChjdHlwZSwgZS0+ZXhwcl9pZGVu
-dCk7CisJCQljdHlwZSA9IGZpbmRfaWRlbnRpZmllcihlLT5leHByX2lkZW50LCBjdHlwZS0+c3lt
-Ym9sX2xpc3QsICZvZmZzZXQpOwogCQkJaWYgKCFjdHlwZSkgewogCQkJCWVyciA9ICJ1bmtub3du
-IGZpZWxkIG5hbWUgaW4iOwogCQkJCWJyZWFrOwo=
---047d7bb04396b4185c04f5ea3b3f--
+Laurent Pinchart
+
