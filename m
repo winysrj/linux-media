@@ -1,88 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46250 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753025AbaCAQPT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Mar 2014 11:15:19 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
-Subject: [yavta PATCH 6/9] Timestamp source for output buffers
-Date: Sat,  1 Mar 2014 18:18:07 +0200
-Message-Id: <1393690690-5004-7-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi>
-References: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi>
+Received: from cantor2.suse.de ([195.135.220.15]:48025 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751227AbaCQTtn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Mar 2014 15:49:43 -0400
+From: Jan Kara <jack@suse.cz>
+To: linux-mm@kvack.org
+Cc: linux-media@vger.kernel.org, Jan Kara <jack@suse.cz>
+Subject: [RFC] Helper to abstract vma handling in media layer
+Date: Mon, 17 Mar 2014 20:49:27 +0100
+Message-Id: <1395085776-8626-1-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- yavta.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+  Hello,
 
-diff --git a/yavta.c b/yavta.c
-index a9b192a..71c1477 100644
---- a/yavta.c
-+++ b/yavta.c
-@@ -73,6 +73,7 @@ struct device
- 	unsigned int height;
- 	unsigned int bytesperline;
- 	unsigned int imagesize;
-+	uint32_t buffer_output_flags;
- 
- 	void *pattern;
- 	unsigned int patternsize;
-@@ -611,6 +612,7 @@ static int video_queue_buffer(struct device *dev, int index, enum buffer_fill_mo
- 		buf.m.userptr = (unsigned long)dev->buffers[index].mem;
- 
- 	if (dev->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-+		buf.flags = dev->buffer_output_flags;
- 		buf.bytesused = dev->patternsize;
- 		memcpy(dev->buffers[buf.index].mem, dev->pattern, dev->patternsize);
- 	} else {
-@@ -1255,6 +1257,7 @@ static void usage(const char *argv0)
- 	printf("    --no-query			Don't query capabilities on open\n");
- 	printf("    --offset			User pointer buffer offset from page start\n");
- 	printf("    --requeue-last		Requeue the last buffers before streamoff\n");
-+	printf("    --timestamp-source		Set timestamp source on output buffers [eof, soe]\n");
- 	printf("    --skip n			Skip the first n frames\n");
- 	printf("    --sleep-forever		Sleep forever after configuring the device\n");
- 	printf("    --stride value		Line stride in bytes\n");
-@@ -1269,6 +1272,7 @@ static void usage(const char *argv0)
- #define OPT_REQUEUE_LAST	262
- #define OPT_STRIDE		263
- #define OPT_FD			264
-+#define OPT_TSTAMP_SRC		265
- 
- static struct option opts[] = {
- 	{"capture", 2, 0, 'c'},
-@@ -1298,7 +1302,8 @@ static struct option opts[] = {
- 	{"sleep-forever", 0, 0, OPT_SLEEP_FOREVER},
- 	{"stride", 1, 0, OPT_STRIDE},
- 	{"time-per-frame", 1, 0, 't'},
--	{"userptr", 0, 0, 'u'},
-+	{"timestamp-source", 1, 0, OPT_TSTAMP_SRC},
-+	{"userptr", 1, 0, 'u'},
- 	{0, 0, 0, 0}
- };
- 
-@@ -1487,6 +1492,17 @@ int main(int argc, char *argv[])
- 		case OPT_STRIDE:
- 			stride = atoi(optarg);
- 			break;
-+		case OPT_TSTAMP_SRC:
-+			if (!strcmp(optarg, "eof")) {
-+				dev.buffer_output_flags |= V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
-+			} else if (!strcmp(optarg, "soe")) {
-+				dev.buffer_output_flags |= V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
-+			} else {
-+				printf("Invalid timestamp source %s\n", optarg);
-+				return 1;
-+			}
-+			printf("Using %s timestamp source\n", optarg);
-+			break;
- 		case OPT_USERPTR_OFFSET:
- 			userptr_offset = atoi(optarg);
- 			break;
--- 
-1.7.10.4
+  The following patch series is my first stab at abstracting vma handling
+from the various media drivers. After this patch set drivers have to know
+much less details about vmas, their types, and locking. My motivation for
+the series is that I want to change get_user_pages() locking and I want
+to handle subtle locking details in as few places as possible.
 
+The core of the series is the new helper get_vaddr_pfns() which is given a
+virtual address and it fills in PFNs into provided array. If PFNs correspond to
+normal pages it also grabs references to these pages. The difference from
+get_user_pages() is that this function can also deal with pfnmap, mixed, and io
+mappings which is what the media drivers need.
+
+The patches are just compile tested (since I don't have any of the hardware
+I'm afraid I won't be able to do any more testing anyway) so please handle
+with care. I'm grateful for any comments.
+
+								Honza
