@@ -1,152 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f176.google.com ([74.125.82.176]:54833 "EHLO
-	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755097AbaCNXHA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Mar 2014 19:07:00 -0400
-Received: by mail-we0-f176.google.com with SMTP id x48so2644167wes.21
-        for <linux-media@vger.kernel.org>; Fri, 14 Mar 2014 16:06:59 -0700 (PDT)
-From: James Hogan <james@albanarts.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-Cc: linux-media@vger.kernel.org, James Hogan <james@albanarts.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v2 4/9] rc: ir-nec-decoder: Add encode capability
-Date: Fri, 14 Mar 2014 23:04:14 +0000
-Message-Id: <1394838259-14260-5-git-send-email-james@albanarts.com>
-In-Reply-To: <1394838259-14260-1-git-send-email-james@albanarts.com>
-References: <1394838259-14260-1-git-send-email-james@albanarts.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from cantor2.suse.de ([195.135.220.15]:48028 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751238AbaCQTto (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Mar 2014 15:49:44 -0400
+From: Jan Kara <jack@suse.cz>
+To: linux-mm@kvack.org
+Cc: linux-media@vger.kernel.org, Jan Kara <jack@suse.cz>
+Subject: [PATCH 3/9] media: vb2: Teach vb2_queue_or_prepare_buf() to get pfns for user buffers
+Date: Mon, 17 Mar 2014 20:49:30 +0100
+Message-Id: <1395085776-8626-4-git-send-email-jack@suse.cz>
+In-Reply-To: <1395085776-8626-1-git-send-email-jack@suse.cz>
+References: <1395085776-8626-1-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the capability to encode NEC scancodes as raw events. The
-scancode_to_raw is pretty much taken from the img-ir NEC filter()
-callback, and modulation uses the pulse distance helper added in a
-previous commit.
+Teach vb2_queue_or_prepare_buf() to get pfns underlying these buffers
+and propagate them down to get_userptr callback. Thus each buffer
+mapping method doesn't have to get pfns independently. Also this will
+remove the knowledge about mmap_sem locking from videobuf2 core.
 
-Signed-off-by: James Hogan <james@albanarts.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Antti Seppälä <a.seppala@gmail.com>
-Cc: David Härdeman <david@hardeman.nu>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
-Changes in v2:
- - Update kerneldoc return values to reflect new API with -ENOBUFS
-   return value when buffer is full and only a partial message was
-   encoded.
----
- drivers/media/rc/ir-nec-decoder.c | 93 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 93 insertions(+)
+ drivers/media/v4l2-core/videobuf2-core.c       | 121 ++++++++++++++++++++++++-
+ drivers/media/v4l2-core/videobuf2-dma-contig.c |   5 +-
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     |   5 +-
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    |   5 +-
+ include/media/videobuf2-core.h                 |   4 +-
+ 5 files changed, 128 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
-index 9de1791..813fa6b 100644
---- a/drivers/media/rc/ir-nec-decoder.c
-+++ b/drivers/media/rc/ir-nec-decoder.c
-@@ -203,9 +203,102 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	return -EINVAL;
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index a127925c9d61..7cec08542fb5 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1033,7 +1033,8 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ /**
+  * __qbuf_userptr() - handle qbuf of a USERPTR buffer
+  */
+-static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
++static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b,
++			  struct pinned_pfns **ppfns)
+ {
+ 	struct v4l2_plane planes[VIDEO_MAX_PLANES];
+ 	struct vb2_queue *q = vb->vb2_queue;
+@@ -1075,7 +1076,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 
+ 		/* Acquire each plane's memory */
+ 		mem_priv = call_memop(q, get_userptr, q->alloc_ctx[plane],
+-				      planes[plane].m.userptr,
++				      &ppfns[plane], planes[plane].m.userptr,
+ 				      planes[plane].length, write);
+ 		if (IS_ERR_OR_NULL(mem_priv)) {
+ 			dprintk(1, "qbuf: failed acquiring userspace "
+@@ -1247,10 +1248,116 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ 	q->ops->buf_queue(vb);
  }
  
-+/**
-+ * ir_nec_scancode_to_raw() - encode an NEC scancode ready for modulation.
-+ * @in:		scancode filter describing a single NEC scancode.
-+ * @raw:	raw data to be modulated.
-+ */
-+static int ir_nec_scancode_to_raw(const struct rc_scancode_filter *in,
-+				  u32 *raw)
++static struct pinned_pfns *vb2_create_one_pfnvec(struct v4l2_buffer *buf,
++				unsigned long vaddr,
++				unsigned int length)
 +{
-+	unsigned int addr, addr_inv, data, data_inv;
++	int ret;
++	unsigned long first, last;
++	unsigned long nr;
++	struct pinned_pfns *pfns;
 +
-+	data = in->data & 0xff;
++	first = vaddr >> PAGE_SHIFT;
++	last = (vaddr + length - 1) >> PAGE_SHIFT;
++	nr = last - first + 1;
++	pfns = pfns_vector_create(nr);
++	if (!pfns)
++		return ERR_PTR(-ENOMEM);
++	ret = get_vaddr_pfns(vaddr, nr, !V4L2_TYPE_IS_OUTPUT(buf->type), 1,
++			     pfns);
++	if (ret < 0)
++		goto out_destroy;
++	/* We accept only complete set of PFNs */
++	if (ret != nr) {
++		ret = -EFAULT;
++		goto out_release;
++	}
++	return pfns;
++out_release:
++	put_vaddr_pfns(pfns);
++out_destroy:
++	pfns_vector_destroy(pfns);
++	return ERR_PTR(ret);
++}
 +
-+	if ((in->data | in->mask) & 0xff000000) {
-+		/* 32-bit NEC (used by Apple and TiVo remotes) */
-+		/* scan encoding: aaAAddDD */
-+		if (in->mask != 0xffffffff)
-+			return -EINVAL;
-+		addr_inv   = (in->data >> 24) & 0xff;
-+		addr       = (in->data >> 16) & 0xff;
-+		data_inv   = (in->data >>  8) & 0xff;
-+	} else if ((in->data | in->mask) & 0x00ff0000) {
-+		/* Extended NEC */
-+		/* scan encoding AAaaDD */
-+		if (in->mask != 0x00ffffff)
-+			return -EINVAL;
-+		addr       = (in->data >> 16) & 0xff;
-+		addr_inv   = (in->data >>  8) & 0xff;
-+		data_inv   = data ^ 0xff;
++/* Create PFN vecs for all provided user buffers. */
++static struct pinned_pfns **vb2_get_user_pfns(struct v4l2_buffer *buf,
++			    		      struct pinned_pfns **tmp_store)
++{
++	struct pinned_pfns **ppfns;
++	int count = 0;
++	int i;
++	struct pinned_pfns *ret;
++
++	if (V4L2_TYPE_IS_MULTIPLANAR(buf->type)) {
++		if (buf->length == 0)
++			return NULL;
++
++		count = buf->length;
++
++		ppfns = kzalloc(sizeof(struct pinned_pfns *) * count,
++				GFP_KERNEL);
++		if (!ppfns)
++			return ERR_PTR(-ENOMEM);
++
++		for (i = 0; i < count; i++) {
++			ret = vb2_create_one_pfnvec(buf,
++					buf->m.planes[i].m.userptr,
++					buf->m.planes[i].length);
++			if (IS_ERR(ret))
++				goto out_release;
++			ppfns[i] = ret;
++		}
 +	} else {
-+		/* Normal NEC */
-+		/* scan encoding: AADD */
-+		if (in->mask != 0x0000ffff)
-+			return -EINVAL;
-+		addr       = (in->data >>  8) & 0xff;
-+		addr_inv   = addr ^ 0xff;
-+		data_inv   = data ^ 0xff;
++		count = 1;
++
++		/* Save one kmalloc for the simple case */
++		ppfns = tmp_store;
++		ppfns[0] = vb2_create_one_pfnvec(buf, buf->m.userptr,
++						 buf->length);
++		if (IS_ERR(ppfns[0]))
++			return ppfns[0];
 +	}
 +
-+	/* raw encoding: ddDDaaAA */
-+	*raw = data_inv << 24 |
-+	       data     << 16 |
-+	       addr_inv <<  8 |
-+	       addr;
-+	return 0;
++	return ppfns;
++out_release:
++	for (i = 0; i < count && ppfns[i]; i++) {
++		put_vaddr_pfns(ppfns[i]);
++		pfns_vector_destroy(ppfns[i]);
++	}
++	kfree(ppfns);
++	return ret;
 +}
 +
-+static struct ir_raw_timings_pd ir_nec_timings = {
-+	.header_pulse	= NEC_HEADER_PULSE,
-+	.header_space	= NEC_HEADER_SPACE,
-+	.bit_pulse	= NEC_BIT_PULSE,
-+	.bit_space[0]	= NEC_BIT_0_SPACE,
-+	.bit_space[1]	= NEC_BIT_1_SPACE,
-+	.trailer_pulse	= NEC_TRAILER_PULSE,
-+	.trailer_space	= NEC_TRAILER_SPACE,
-+	.msb_first	= 0,
-+};
-+
-+/**
-+ * ir_nec_encode() - Encode a scancode as a stream of raw events
-+ *
-+ * @protocols:	allowed protocols
-+ * @scancode:	scancode filter describing scancode (helps distinguish between
-+ *		protocol subtypes when scancode is ambiguous)
-+ * @events:	array of raw ir events to write into
-+ * @max:	maximum size of @events
-+ *
-+ * Returns:	The number of events written.
-+ *		-ENOBUFS if there isn't enough space in the array to fit the
-+ *		encoding. In this case all @max events will have been written.
-+ *		-EINVAL if the scancode is ambiguous or invalid.
-+ */
-+static int ir_nec_encode(u64 protocols,
-+			 const struct rc_scancode_filter *scancode,
-+			 struct ir_raw_event *events, unsigned int max)
++/* Release PFN vecs the call did not consume */
++static void vb2_put_user_pfns(struct v4l2_buffer *buf,
++			      struct pinned_pfns **ppfns,
++			      struct pinned_pfns **tmp_store)
 +{
-+	struct ir_raw_event *e = events;
-+	int ret;
-+	u32 raw;
++	int i;
++	int count;
 +
-+	/* Convert a NEC scancode to raw NEC data */
-+	ret = ir_nec_scancode_to_raw(scancode, &raw);
-+	if (ret < 0)
-+		return ret;
++	if (V4L2_TYPE_IS_MULTIPLANAR(buf->type))
++		count = buf->length;
++	else
++		count = 1;
 +
-+	/* Modulate the raw data using a pulse distance modulation */
-+	ret = ir_raw_gen_pd(&e, max, &ir_nec_timings, NEC_NBITS, raw);
-+	if (ret < 0)
-+		return ret;
++	for (i = 0; i < count; i++)
++		if (ppfns[i]) {
++			put_vaddr_pfns(ppfns[i]);
++			pfns_vector_destroy(ppfns[i]);
++		}
 +
-+	return e - events;
++	if (ppfns != tmp_store)
++		kfree(ppfns);
 +}
 +
- static struct ir_raw_handler nec_handler = {
- 	.protocols	= RC_BIT_NEC,
- 	.decode		= ir_nec_decode,
-+	.encode		= ir_nec_encode,
- };
+ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+-	struct rw_semaphore *mmap_sem;
++	struct rw_semaphore *mmap_sem = NULL;
++	struct pinned_pfns *tmp_store;
++	struct pinned_pfns **ppfns = NULL;
+ 	int ret;
  
- static int __init ir_nec_decode_init(void)
+ 	ret = __verify_length(vb, b);
+@@ -1280,11 +1387,15 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		 */
+ 		mmap_sem = &current->mm->mmap_sem;
+ 		call_qop(q, wait_prepare, q);
++		ppfns = vb2_get_user_pfns(b, &tmp_store);
+ 		down_read(mmap_sem);
+ 		call_qop(q, wait_finish, q);
+ 
+-		ret = __qbuf_userptr(vb, b);
+-
++		if (!IS_ERR(ppfns)) {
++			ret = __qbuf_userptr(vb, b, ppfns);
++			vb2_put_user_pfns(b, ppfns, &tmp_store);
++		} else
++			ret = PTR_ERR(ppfns);
+ 		up_read(mmap_sem);
+ 		break;
+ 	case V4L2_MEMORY_DMABUF:
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 33d3871d1e13..c6378d943b89 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -547,8 +547,9 @@ static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn
+ }
+ #endif
+ 
+-static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+-	unsigned long size, int write)
++static void *vb2_dc_get_userptr(void *alloc_ctx, struct pinned_pfns **ppfn,
++				unsigned long vaddr, unsigned long size,
++				int write)
+ {
+ 	struct vb2_dc_conf *conf = alloc_ctx;
+ 	struct vb2_dc_buf *buf;
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index c779f210d2c6..ef0b3f765d8e 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -161,8 +161,9 @@ static inline int vma_is_io(struct vm_area_struct *vma)
+ 	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
+ }
+ 
+-static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+-				    unsigned long size, int write)
++static void *vb2_dma_sg_get_userptr(void *alloc_ctx, struct pinned_pfns **ppfn,
++				    unsigned long vaddr, unsigned long size,
++				    int write)
+ {
+ 	struct vb2_dma_sg_buf *buf;
+ 	unsigned long first, last;
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index 313d9771b2bc..ab38e054d1a0 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -69,8 +69,9 @@ static void vb2_vmalloc_put(void *buf_priv)
+ 	}
+ }
+ 
+-static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+-				     unsigned long size, int write)
++static void *vb2_vmalloc_get_userptr(void *alloc_ctx, struct pinned_pfns **ppfn,
++				     unsigned long vaddr, unsigned long size,
++				     int write)
+ {
+ 	struct vb2_vmalloc_buf *buf;
+ 	unsigned long first, last;
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index bef53ce555d2..98c508cae09d 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -85,7 +85,9 @@ struct vb2_mem_ops {
+ 	void		(*put)(void *buf_priv);
+ 	struct dma_buf *(*get_dmabuf)(void *buf_priv, unsigned long flags);
+ 
+-	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
++	void		*(*get_userptr)(void *alloc_ctx,
++					struct pinned_pfns **pfns,
++					unsigned long vaddr,
+ 					unsigned long size, int write);
+ 	void		(*put_userptr)(void *buf_priv);
+ 
 -- 
-1.8.3.2
+1.8.1.4
 
