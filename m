@@ -1,338 +1,507 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f181.google.com ([209.85.215.181]:57653 "EHLO
-	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752256AbaCGRDv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 12:03:51 -0500
-Received: by mail-ea0-f181.google.com with SMTP id k10so2427994eaj.26
-        for <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 09:03:50 -0800 (PST)
-Message-ID: <5319FC34.5000602@googlemail.com>
-Date: Fri, 07 Mar 2014 18:04:52 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v3] em28xx: Only deallocate struct em28xx after finishing
- all extensions
-References: <52FBB6BC.7030102@googlemail.com> <1394029372-5322-1-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1394029372-5322-1-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46906 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755128AbaCRNAD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Mar 2014 09:00:03 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v4 36/48] adv7604: Make output format configurable through pad format operations
+Date: Tue, 18 Mar 2014 14:01:44 +0100
+Message-Id: <1395147704-4803-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Replace the dummy video format operations by pad format operations that
+configure the output format.
 
-Am 05.03.2014 15:22, schrieb Mauro Carvalho Chehab:
-> We can't free struct em28xx while one of the extensions is still
-> using it.
->
-> So, add a kref() to control it, freeing it only after the
-> extensions fini calls.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-audio.c |  7 ++++++-
->  drivers/media/usb/em28xx/em28xx-cards.c | 31 ++++++++++++++++++++++++-------
->  drivers/media/usb/em28xx/em28xx-dvb.c   |  6 +++++-
->  drivers/media/usb/em28xx/em28xx-input.c |  8 +++++++-
->  drivers/media/usb/em28xx/em28xx-video.c | 15 ++++++++-------
->  drivers/media/usb/em28xx/em28xx.h       |  8 ++++++--
->  6 files changed, 56 insertions(+), 19 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-> index 0f5b6f3e7a3f..f75c0a5494d6 100644
-> --- a/drivers/media/usb/em28xx/em28xx-audio.c
-> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
-> @@ -301,6 +301,7 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
->  			goto err;
->  	}
->  
-> +	kref_get(&dev->ref);
->  	dev->adev.users++;
->  	mutex_unlock(&dev->lock);
->  
-> @@ -341,6 +342,7 @@ static int snd_em28xx_pcm_close(struct snd_pcm_substream *substream)
->  		substream->runtime->dma_area = NULL;
->  	}
->  	mutex_unlock(&dev->lock);
-> +	kref_put(&dev->ref, em28xx_free_device);
->  
->  	return 0;
->  }
-> @@ -895,6 +897,8 @@ static int em28xx_audio_init(struct em28xx *dev)
->  
->  	em28xx_info("Binding audio extension\n");
->  
-> +	kref_get(&dev->ref);
-> +
->  	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2006 Markus "
->  			 "Rechberger\n");
->  	printk(KERN_INFO
-> @@ -967,7 +971,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
->  	if (dev == NULL)
->  		return 0;
->  
-> -	if (dev->has_alsa_audio != 1) {
-> +	if (!dev->has_alsa_audio) {
->  		/* This device does not support the extension (in this case
->  		   the device is expecting the snd-usb-audio module or
->  		   doesn't have analog audio support at all) */
-> @@ -986,6 +990,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
->  		dev->adev.sndcard = NULL;
->  	}
->  
-> +	kref_put(&dev->ref, em28xx_free_device);
->  	return 0;
->  }
->  
-> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-> index 2fb300e882f0..512448b757c9 100644
-> --- a/drivers/media/usb/em28xx/em28xx-cards.c
-> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
-> @@ -2939,7 +2939,7 @@ static void flush_request_modules(struct em28xx *dev)
->   * unregisters the v4l2,i2c and usb devices
->   * called when the device gets disconnected or at module unload
->  */
-> -void em28xx_release_resources(struct em28xx *dev)
-> +static void em28xx_release_resources(struct em28xx *dev)
->  {
->  	/*FIXME: I2C IR should be disconnected */
->  
-> @@ -2956,7 +2956,26 @@ void em28xx_release_resources(struct em28xx *dev)
->  
->  	mutex_unlock(&dev->lock);
->  };
-> -EXPORT_SYMBOL_GPL(em28xx_release_resources);
-> +
-> +/**
-> + * em28xx_free_defice() - Free em28xx device
-> + *
-> + * @ref: struct kref for em28xx device
-> + *
-> + * This is called when all extensions and em28xx core unregisters a device
-> + */
-> +void em28xx_free_device(struct kref *ref)
-> +{
-> +	struct em28xx *dev = kref_to_dev(ref);
-> +
-> +	em28xx_info("Freeing device\n");
-> +
-> +	if (!dev->disconnected)
-> +		em28xx_release_resources(dev);
-Hmm... good catch !
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/adv7604.c | 280 ++++++++++++++++++++++++++++++++++++++++----
+ include/media/adv7604.h     |  56 ++++-----
+ 2 files changed, 275 insertions(+), 61 deletions(-)
 
-> +
-> +	kfree(dev->alt_max_pkt_size_isoc);
-> +	kfree(dev);
-> +}
->  
->  /*
->   * em28xx_init_dev()
-> @@ -3409,6 +3428,8 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->  			    dev->dvb_xfer_bulk ? "bulk" : "isoc");
->  	}
->  
-> +	kref_init(&dev->ref);
-> +
->  	request_modules(dev);
->  
->  	/* Should be the last thing to do, to avoid newer udev's to
-> @@ -3453,11 +3474,7 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
->  	em28xx_close_extension(dev);
->  
->  	em28xx_release_resources(dev);
-> -
-> -	if (!dev->users) {
-> -		kfree(dev->alt_max_pkt_size_isoc);
-> -		kfree(dev);
-> -	}
-> +	kref_put(&dev->ref, em28xx_free_device);
->  }
->  
->  static int em28xx_usb_suspend(struct usb_interface *interface,
-> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-> index d4986bdfbdc3..6dbc71ba2820 100644
-> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
-> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-> @@ -1043,7 +1043,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
->  	em28xx_info("Binding DVB extension\n");
->  
->  	dvb = kzalloc(sizeof(struct em28xx_dvb), GFP_KERNEL);
-> -
->  	if (dvb == NULL) {
->  		em28xx_info("em28xx_dvb: memory allocation failed\n");
->  		return -ENOMEM;
-> @@ -1521,6 +1520,9 @@ static int em28xx_dvb_init(struct em28xx *dev)
->  	dvb->adapter.mfe_shared = mfe_shared;
->  
->  	em28xx_info("DVB extension successfully initialized\n");
-> +
-> +	kref_get(&dev->ref);
-> +
+Changes since v3:
 
-The fini() functions are always called, even if an error occured in init().
-So (in opposition to the open()/close() functions) kref_get() needs to
-be called at the beginning of the init() methods.
+- Shift op_ch_sel in adv7604_op_ch_sel()
 
-"dev->is_audio_only" and "!dev->board.has_dvb" is checked in both
-functions (init+fini), so the right place here is one line before or after
-
-    em28xx_info("Binding DVB extension\n");
-
-
-Everything else looks good.
-
-Regards,
-Frank
-
->  ret:
->  	em28xx_set_mode(dev, EM28XX_SUSPEND);
->  	mutex_unlock(&dev->lock);
-> @@ -1579,6 +1581,8 @@ static int em28xx_dvb_fini(struct em28xx *dev)
->  		dev->dvb = NULL;
->  	}
->  
-> +	kref_put(&dev->ref, em28xx_free_device);
-> +
->  	return 0;
->  }
->  
-> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-> index 47a2c1dcccbf..2a9bf667f208 100644
-> --- a/drivers/media/usb/em28xx/em28xx-input.c
-> +++ b/drivers/media/usb/em28xx/em28xx-input.c
-> @@ -676,6 +676,8 @@ static int em28xx_ir_init(struct em28xx *dev)
->  		return 0;
->  	}
->  
-> +	kref_get(&dev->ref);
-> +
->  	if (dev->board.buttons)
->  		em28xx_init_buttons(dev);
->  
-> @@ -816,7 +818,7 @@ static int em28xx_ir_fini(struct em28xx *dev)
->  
->  	/* skip detach on non attached boards */
->  	if (!ir)
-> -		return 0;
-> +		goto ref_put;
->  
->  	if (ir->rc)
->  		rc_unregister_device(ir->rc);
-> @@ -824,6 +826,10 @@ static int em28xx_ir_fini(struct em28xx *dev)
->  	/* done */
->  	kfree(ir);
->  	dev->ir = NULL;
-> +
-> +ref_put:
-> +	kref_put(&dev->ref, em28xx_free_device);
-> +
->  	return 0;
->  }
->  
-> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> index 19af6b3e9e2b..32aa55f033fc 100644
-> --- a/drivers/media/usb/em28xx/em28xx-video.c
-> +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> @@ -1837,7 +1837,6 @@ static int em28xx_v4l2_open(struct file *filp)
->  			video_device_node_name(vdev), v4l2_type_names[fh_type],
->  			dev->users);
->  
-> -
->  	if (mutex_lock_interruptible(&dev->lock))
->  		return -ERESTARTSYS;
->  	fh = kzalloc(sizeof(struct em28xx_fh), GFP_KERNEL);
-> @@ -1869,6 +1868,7 @@ static int em28xx_v4l2_open(struct file *filp)
->  		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_radio);
->  	}
->  
-> +	kref_get(&dev->ref);
->  	dev->users++;
->  
->  	mutex_unlock(&dev->lock);
-> @@ -1926,9 +1926,8 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
->  		dev->clk = NULL;
->  	}
->  
-> -	if (dev->users)
-> -		em28xx_warn("Device is open ! Memory deallocation is deferred on last close.\n");
->  	mutex_unlock(&dev->lock);
-> +	kref_put(&dev->ref, em28xx_free_device);
->  
->  	return 0;
->  }
-> @@ -1976,11 +1975,9 @@ static int em28xx_v4l2_close(struct file *filp)
->  	mutex_lock(&dev->lock);
->  
->  	if (dev->users == 1) {
-> -		/* free the remaining resources if device is disconnected */
-> -		if (dev->disconnected) {
-> -			kfree(dev->alt_max_pkt_size_isoc);
-> +		/* No sense to try to write to the device */
-> +		if (dev->disconnected)
->  			goto exit;
-> -		}
->  
->  		/* Save some power by putting tuner to sleep */
->  		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
-> @@ -2001,6 +1998,8 @@ static int em28xx_v4l2_close(struct file *filp)
->  exit:
->  	dev->users--;
->  	mutex_unlock(&dev->lock);
-> +	kref_put(&dev->ref, em28xx_free_device);
-> +
->  	return 0;
->  }
->  
-> @@ -2515,6 +2514,8 @@ static int em28xx_v4l2_init(struct em28xx *dev)
->  
->  	em28xx_info("V4L2 extension successfully initialized\n");
->  
-> +	kref_get(&dev->ref);
-> +
->  	mutex_unlock(&dev->lock);
->  	return 0;
->  
-> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-> index 9e44f5bfc48b..2051fc9fb932 100644
-> --- a/drivers/media/usb/em28xx/em28xx.h
-> +++ b/drivers/media/usb/em28xx/em28xx.h
-> @@ -32,6 +32,7 @@
->  #include <linux/workqueue.h>
->  #include <linux/i2c.h>
->  #include <linux/mutex.h>
-> +#include <linux/kref.h>
->  #include <linux/videodev2.h>
->  
->  #include <media/videobuf2-vmalloc.h>
-> @@ -536,9 +537,10 @@ struct em28xx_i2c_bus {
->  	enum em28xx_i2c_algo_type algo_type;
->  };
->  
-> -
->  /* main device struct */
->  struct em28xx {
-> +	struct kref ref;
-> +
->  	/* generic device properties */
->  	char name[30];		/* name (including minor) of the device */
->  	int model;		/* index in the device_data struct */
-> @@ -710,6 +712,8 @@ struct em28xx {
->  	struct em28xx_dvb *dvb;
->  };
->  
-> +#define kref_to_dev(d) container_of(d, struct em28xx, ref)
-> +
->  struct em28xx_ops {
->  	struct list_head next;
->  	char *name;
-> @@ -771,7 +775,7 @@ extern struct em28xx_board em28xx_boards[];
->  extern struct usb_device_id em28xx_id_table[];
->  int em28xx_tuner_callback(void *ptr, int component, int command, int arg);
->  void em28xx_setup_xc3028(struct em28xx *dev, struct xc2028_ctrl *ctl);
-> -void em28xx_release_resources(struct em28xx *dev);
-> +void em28xx_free_device(struct kref *ref);
->  
->  /* Provided by em28xx-camera.c */
->  int em28xx_detect_sensor(struct em28xx *dev);
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 79fb34d..59f7bf0 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -53,6 +53,28 @@ MODULE_LICENSE("GPL");
+ /* ADV7604 system clock frequency */
+ #define ADV7604_fsc (28636360)
+ 
++#define ADV7604_RGB_OUT					(1 << 1)
++
++#define ADV7604_OP_FORMAT_SEL_8BIT			(0 << 0)
++#define ADV7604_OP_FORMAT_SEL_10BIT			(1 << 0)
++#define ADV7604_OP_FORMAT_SEL_12BIT			(2 << 0)
++
++#define ADV7604_OP_MODE_SEL_SDR_422			(0 << 5)
++#define ADV7604_OP_MODE_SEL_DDR_422			(1 << 5)
++#define ADV7604_OP_MODE_SEL_SDR_444			(2 << 5)
++#define ADV7604_OP_MODE_SEL_DDR_444			(3 << 5)
++#define ADV7604_OP_MODE_SEL_SDR_422_2X			(4 << 5)
++#define ADV7604_OP_MODE_SEL_ADI_CM			(5 << 5)
++
++#define ADV7604_OP_CH_SEL_GBR				(0 << 5)
++#define ADV7604_OP_CH_SEL_GRB				(1 << 5)
++#define ADV7604_OP_CH_SEL_BGR				(2 << 5)
++#define ADV7604_OP_CH_SEL_RGB				(3 << 5)
++#define ADV7604_OP_CH_SEL_BRG				(4 << 5)
++#define ADV7604_OP_CH_SEL_RBG				(5 << 5)
++
++#define ADV7604_OP_SWAP_CB_CR				(1 << 0)
++
+ enum adv7604_type {
+ 	ADV7604,
+ 	ADV7611,
+@@ -63,6 +85,14 @@ struct adv7604_reg_seq {
+ 	u8 val;
+ };
+ 
++struct adv7604_format_info {
++	enum v4l2_mbus_pixelcode code;
++	u8 op_ch_sel;
++	bool rgb_out;
++	bool swap_cb_cr;
++	u8 op_format_sel;
++};
++
+ struct adv7604_chip_info {
+ 	enum adv7604_type type;
+ 
+@@ -78,6 +108,9 @@ struct adv7604_chip_info {
+ 	unsigned int tdms_lock_mask;
+ 	unsigned int fmt_change_digital_mask;
+ 
++	const struct adv7604_format_info *formats;
++	unsigned int nformats;
++
+ 	void (*set_termination)(struct v4l2_subdev *sd, bool enable);
+ 	void (*setup_irqs)(struct v4l2_subdev *sd);
+ 	unsigned int (*read_hdmi_pixelclock)(struct v4l2_subdev *sd);
+@@ -101,12 +134,18 @@ struct adv7604_chip_info {
+ struct adv7604_state {
+ 	const struct adv7604_chip_info *info;
+ 	struct adv7604_platform_data pdata;
++
+ 	struct v4l2_subdev sd;
+ 	struct media_pad pads[ADV7604_PAD_MAX];
+ 	unsigned int source_pad;
++
+ 	struct v4l2_ctrl_handler hdl;
++
+ 	enum adv7604_pad selected_input;
++
+ 	struct v4l2_dv_timings timings;
++	const struct adv7604_format_info *format;
++
+ 	struct {
+ 		u8 edid[256];
+ 		u32 present;
+@@ -771,6 +810,93 @@ static void adv7604_write_reg_seq(struct v4l2_subdev *sd,
+ 		adv7604_write_reg(sd, reg_seq[i].reg, reg_seq[i].val);
+ }
+ 
++/* -----------------------------------------------------------------------------
++ * Format helpers
++ */
++
++static const struct adv7604_format_info adv7604_formats[] = {
++	{ V4L2_MBUS_FMT_RGB888_1X24, ADV7604_OP_CH_SEL_RGB, true, false,
++	  ADV7604_OP_MODE_SEL_SDR_444 | ADV7604_OP_FORMAT_SEL_8BIT },
++	{ V4L2_MBUS_FMT_YUYV8_2X8, ADV7604_OP_CH_SEL_RGB, false, false,
++	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_8BIT },
++	{ V4L2_MBUS_FMT_YVYU8_2X8, ADV7604_OP_CH_SEL_RGB, false, true,
++	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_8BIT },
++	{ V4L2_MBUS_FMT_YUYV10_2X10, ADV7604_OP_CH_SEL_RGB, false, false,
++	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_10BIT },
++	{ V4L2_MBUS_FMT_YVYU10_2X10, ADV7604_OP_CH_SEL_RGB, false, true,
++	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_10BIT },
++	{ V4L2_MBUS_FMT_YUYV12_2X12, ADV7604_OP_CH_SEL_RGB, false, false,
++	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_12BIT },
++	{ V4L2_MBUS_FMT_YVYU12_2X12, ADV7604_OP_CH_SEL_RGB, false, true,
++	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_12BIT },
++	{ V4L2_MBUS_FMT_UYVY8_1X16, ADV7604_OP_CH_SEL_RBG, false, false,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_8BIT },
++	{ V4L2_MBUS_FMT_VYUY8_1X16, ADV7604_OP_CH_SEL_RBG, false, true,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_8BIT },
++	{ V4L2_MBUS_FMT_YUYV8_1X16, ADV7604_OP_CH_SEL_RGB, false, false,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_8BIT },
++	{ V4L2_MBUS_FMT_YVYU8_1X16, ADV7604_OP_CH_SEL_RGB, false, true,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_8BIT },
++	{ V4L2_MBUS_FMT_UYVY10_1X20, ADV7604_OP_CH_SEL_RBG, false, false,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_10BIT },
++	{ V4L2_MBUS_FMT_VYUY10_1X20, ADV7604_OP_CH_SEL_RBG, false, true,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_10BIT },
++	{ V4L2_MBUS_FMT_YUYV10_1X20, ADV7604_OP_CH_SEL_RGB, false, false,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_10BIT },
++	{ V4L2_MBUS_FMT_YVYU10_1X20, ADV7604_OP_CH_SEL_RGB, false, true,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_10BIT },
++	{ V4L2_MBUS_FMT_UYVY12_1X24, ADV7604_OP_CH_SEL_RBG, false, false,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_12BIT },
++	{ V4L2_MBUS_FMT_VYUY12_1X24, ADV7604_OP_CH_SEL_RBG, false, true,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_12BIT },
++	{ V4L2_MBUS_FMT_YUYV12_1X24, ADV7604_OP_CH_SEL_RGB, false, false,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_12BIT },
++	{ V4L2_MBUS_FMT_YVYU12_1X24, ADV7604_OP_CH_SEL_RGB, false, true,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_12BIT },
++};
++
++static const struct adv7604_format_info adv7611_formats[] = {
++	{ V4L2_MBUS_FMT_RGB888_1X24, ADV7604_OP_CH_SEL_RGB, true, false,
++	  ADV7604_OP_MODE_SEL_SDR_444 | ADV7604_OP_FORMAT_SEL_8BIT },
++	{ V4L2_MBUS_FMT_YUYV8_2X8, ADV7604_OP_CH_SEL_RGB, false, false,
++	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_8BIT },
++	{ V4L2_MBUS_FMT_YVYU8_2X8, ADV7604_OP_CH_SEL_RGB, false, true,
++	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_8BIT },
++	{ V4L2_MBUS_FMT_YUYV12_2X12, ADV7604_OP_CH_SEL_RGB, false, false,
++	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_12BIT },
++	{ V4L2_MBUS_FMT_YVYU12_2X12, ADV7604_OP_CH_SEL_RGB, false, true,
++	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_12BIT },
++	{ V4L2_MBUS_FMT_UYVY8_1X16, ADV7604_OP_CH_SEL_RBG, false, false,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_8BIT },
++	{ V4L2_MBUS_FMT_VYUY8_1X16, ADV7604_OP_CH_SEL_RBG, false, true,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_8BIT },
++	{ V4L2_MBUS_FMT_YUYV8_1X16, ADV7604_OP_CH_SEL_RGB, false, false,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_8BIT },
++	{ V4L2_MBUS_FMT_YVYU8_1X16, ADV7604_OP_CH_SEL_RGB, false, true,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_8BIT },
++	{ V4L2_MBUS_FMT_UYVY12_1X24, ADV7604_OP_CH_SEL_RBG, false, false,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_12BIT },
++	{ V4L2_MBUS_FMT_VYUY12_1X24, ADV7604_OP_CH_SEL_RBG, false, true,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_12BIT },
++	{ V4L2_MBUS_FMT_YUYV12_1X24, ADV7604_OP_CH_SEL_RGB, false, false,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_12BIT },
++	{ V4L2_MBUS_FMT_YVYU12_1X24, ADV7604_OP_CH_SEL_RGB, false, true,
++	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_12BIT },
++};
++
++static const struct adv7604_format_info *
++adv7604_format_info(struct adv7604_state *state, enum v4l2_mbus_pixelcode code)
++{
++	unsigned int i;
++
++	for (i = 0; i < state->info->nformats; ++i) {
++		if (state->info->formats[i].code == code)
++			return &state->info->formats[i];
++	}
++
++	return NULL;
++}
++
+ /* ----------------------------------------------------------------------- */
+ 
+ static inline bool is_analog_input(struct v4l2_subdev *sd)
+@@ -1720,29 +1846,132 @@ static int adv7604_s_routing(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
+-static int adv7604_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
+-			     enum v4l2_mbus_pixelcode *code)
++static int adv7604_enum_mbus_code(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_fh *fh,
++				  struct v4l2_subdev_mbus_code_enum *code)
+ {
+-	if (index)
++	struct adv7604_state *state = to_state(sd);
++
++	if (code->index >= state->info->nformats)
+ 		return -EINVAL;
+-	/* Good enough for now */
+-	*code = V4L2_MBUS_FMT_FIXED;
++
++	code->code = state->info->formats[code->index].code;
++
+ 	return 0;
+ }
+ 
+-static int adv7604_g_mbus_fmt(struct v4l2_subdev *sd,
+-		struct v4l2_mbus_framefmt *fmt)
++static void adv7604_fill_format(struct adv7604_state *state,
++				struct v4l2_mbus_framefmt *format)
+ {
+-	struct adv7604_state *state = to_state(sd);
++	memset(format, 0, sizeof(*format));
+ 
+-	fmt->width = state->timings.bt.width;
+-	fmt->height = state->timings.bt.height;
+-	fmt->code = V4L2_MBUS_FMT_FIXED;
+-	fmt->field = V4L2_FIELD_NONE;
+-	if (state->timings.bt.standards & V4L2_DV_BT_STD_CEA861) {
+-		fmt->colorspace = (state->timings.bt.height <= 576) ?
++	format->width = state->timings.bt.width;
++	format->height = state->timings.bt.height;
++	format->field = V4L2_FIELD_NONE;
++
++	if (state->timings.bt.standards & V4L2_DV_BT_STD_CEA861)
++		format->colorspace = (state->timings.bt.height <= 576) ?
+ 			V4L2_COLORSPACE_SMPTE170M : V4L2_COLORSPACE_REC709;
++}
++
++/*
++ * Compute the op_ch_sel value required to obtain on the bus the component order
++ * corresponding to the selected format taking into account bus reordering
++ * applied by the board at the output of the device.
++ *
++ * The following table gives the op_ch_value from the format component order
++ * (expressed as op_ch_sel value in column) and the bus reordering (expressed as
++ * adv7604_bus_order value in row).
++ *
++ *           |	GBR(0)	GRB(1)	BGR(2)	RGB(3)	BRG(4)	RBG(5)
++ * ----------+-------------------------------------------------
++ * RGB (NOP) |	GBR	GRB	BGR	RGB	BRG	RBG
++ * GRB (1-2) |	BGR	RGB	GBR	GRB	RBG	BRG
++ * RBG (2-3) |	GRB	GBR	BRG	RBG	BGR	RGB
++ * BGR (1-3) |	RBG	BRG	RGB	BGR	GRB	GBR
++ * BRG (ROR) |	BRG	RBG	GRB	GBR	RGB	BGR
++ * GBR (ROL) |	RGB	BGR	RBG	BRG	GBR	GRB
++ */
++static unsigned int adv7604_op_ch_sel(struct adv7604_state *state)
++{
++#define _SEL(a,b,c,d,e,f)	{ \
++	ADV7604_OP_CH_SEL_##a, ADV7604_OP_CH_SEL_##b, ADV7604_OP_CH_SEL_##c, \
++	ADV7604_OP_CH_SEL_##d, ADV7604_OP_CH_SEL_##e, ADV7604_OP_CH_SEL_##f }
++#define _BUS(x)			[ADV7604_BUS_ORDER_##x]
++
++	static const unsigned int op_ch_sel[6][6] = {
++		_BUS(RGB) /* NOP */ = _SEL(GBR, GRB, BGR, RGB, BRG, RBG),
++		_BUS(GRB) /* 1-2 */ = _SEL(BGR, RGB, GBR, GRB, RBG, BRG),
++		_BUS(RBG) /* 2-3 */ = _SEL(GRB, GBR, BRG, RBG, BGR, RGB),
++		_BUS(BGR) /* 1-3 */ = _SEL(RBG, BRG, RGB, BGR, GRB, GBR),
++		_BUS(BRG) /* ROR */ = _SEL(BRG, RBG, GRB, GBR, RGB, BGR),
++		_BUS(GBR) /* ROL */ = _SEL(RGB, BGR, RBG, BRG, GBR, GRB),
++	};
++
++	return op_ch_sel[state->pdata.bus_order][state->format->op_ch_sel >> 5];
++}
++
++static void adv7604_setup_format(struct adv7604_state *state)
++{
++	struct v4l2_subdev *sd = &state->sd;
++
++	io_write_and_or(sd, 0x02, 0xfd,
++			state->format->rgb_out ? ADV7604_RGB_OUT : 0);
++	io_write(sd, 0x03, state->format->op_format_sel |
++		 state->pdata.op_format_mode_sel);
++	io_write_and_or(sd, 0x04, 0x1f, adv7604_op_ch_sel(state));
++	io_write_and_or(sd, 0x05, 0xfe,
++			state->format->swap_cb_cr ? ADV7604_OP_SWAP_CB_CR : 0);
++}
++
++static int adv7604_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++			      struct v4l2_subdev_format *format)
++{
++	struct adv7604_state *state = to_state(sd);
++
++	if (format->pad != state->source_pad)
++		return -EINVAL;
++
++	adv7604_fill_format(state, &format->format);
++
++	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
++		struct v4l2_mbus_framefmt *fmt;
++
++		fmt = v4l2_subdev_get_try_format(fh, format->pad);
++		format->format.code = fmt->code;
++	} else {
++		format->format.code = state->format->code;
+ 	}
++
++	return 0;
++}
++
++static int adv7604_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++			      struct v4l2_subdev_format *format)
++{
++	struct adv7604_state *state = to_state(sd);
++	const struct adv7604_format_info *info;
++
++	if (format->pad != state->source_pad)
++		return -EINVAL;
++
++	info = adv7604_format_info(state, format->format.code);
++	if (info == NULL)
++		info = adv7604_format_info(state, V4L2_MBUS_FMT_YUYV8_2X8);
++
++	adv7604_fill_format(state, &format->format);
++	format->format.code = info->code;
++
++	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
++		struct v4l2_mbus_framefmt *fmt;
++
++		fmt = v4l2_subdev_get_try_format(fh, format->pad);
++		fmt->code = format->format.code;
++	} else {
++		state->format = info;
++		adv7604_setup_format(state);
++	}
++
+ 	return 0;
+ }
+ 
+@@ -2189,13 +2418,12 @@ static const struct v4l2_subdev_video_ops adv7604_video_ops = {
+ 	.query_dv_timings = adv7604_query_dv_timings,
+ 	.enum_dv_timings = adv7604_enum_dv_timings,
+ 	.dv_timings_cap = adv7604_dv_timings_cap,
+-	.enum_mbus_fmt = adv7604_enum_mbus_fmt,
+-	.g_mbus_fmt = adv7604_g_mbus_fmt,
+-	.try_mbus_fmt = adv7604_g_mbus_fmt,
+-	.s_mbus_fmt = adv7604_g_mbus_fmt,
+ };
+ 
+ static const struct v4l2_subdev_pad_ops adv7604_pad_ops = {
++	.enum_mbus_code = adv7604_enum_mbus_code,
++	.get_fmt = adv7604_get_format,
++	.set_fmt = adv7604_set_format,
+ 	.get_edid = adv7604_get_edid,
+ 	.set_edid = adv7604_set_edid,
+ };
+@@ -2264,14 +2492,11 @@ static int adv7604_core_init(struct v4l2_subdev *sd)
+ 	io_write_and_or(sd, 0x02, 0xf0,
+ 			pdata->alt_gamma << 3 |
+ 			pdata->op_656_range << 2 |
+-			pdata->rgb_out << 1 |
+ 			pdata->alt_data_sat << 0);
+-	io_write(sd, 0x03, pdata->op_format_sel);
+-	io_write_and_or(sd, 0x04, 0x1f, pdata->op_ch_sel << 5);
+-	io_write_and_or(sd, 0x05, 0xf0, pdata->blank_data << 3 |
+-					pdata->insert_av_codes << 2 |
+-					pdata->replicate_av_codes << 1 |
+-					pdata->invert_cbcr << 0);
++	io_write_and_or(sd, 0x05, 0xf1, pdata->blank_data << 3 |
++			pdata->insert_av_codes << 2 |
++			pdata->replicate_av_codes << 1);
++	adv7604_setup_format(state);
+ 
+ 	cp_write(sd, 0x69, 0x30);   /* Enable CP CSC */
+ 
+@@ -2439,6 +2664,8 @@ static const struct adv7604_chip_info adv7604_chip_info[] = {
+ 		.tdms_lock_mask = 0xe0,
+ 		.cable_det_mask = 0x1e,
+ 		.fmt_change_digital_mask = 0xc1,
++		.formats = adv7604_formats,
++		.nformats = ARRAY_SIZE(adv7604_formats),
+ 		.set_termination = adv7604_set_termination,
+ 		.setup_irqs = adv7604_setup_irqs,
+ 		.read_hdmi_pixelclock = adv7604_read_hdmi_pixelclock,
+@@ -2470,6 +2697,8 @@ static const struct adv7604_chip_info adv7604_chip_info[] = {
+ 		.tdms_lock_mask = 0x43,
+ 		.cable_det_mask = 0x01,
+ 		.fmt_change_digital_mask = 0x03,
++		.formats = adv7611_formats,
++		.nformats = ARRAY_SIZE(adv7611_formats),
+ 		.set_termination = adv7611_set_termination,
+ 		.setup_irqs = adv7611_setup_irqs,
+ 		.read_hdmi_pixelclock = adv7611_read_hdmi_pixelclock,
+@@ -2525,6 +2754,7 @@ static int adv7604_probe(struct i2c_client *client,
+ 	}
+ 	state->pdata = *pdata;
+ 	state->timings = cea640x480;
++	state->format = adv7604_format_info(state, V4L2_MBUS_FMT_YUYV8_2X8);
+ 
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &adv7604_ops);
+diff --git a/include/media/adv7604.h b/include/media/adv7604.h
+index 6186771..d8b2cb8 100644
+--- a/include/media/adv7604.h
++++ b/include/media/adv7604.h
+@@ -32,14 +32,18 @@ enum adv7604_ain_sel {
+ 	ADV7604_AIN9_4_5_6_SYNC_2_1 = 4,
+ };
+ 
+-/* Bus rotation and reordering (IO register 0x04, [7:5]) */
+-enum adv7604_op_ch_sel {
+-	ADV7604_OP_CH_SEL_GBR = 0,
+-	ADV7604_OP_CH_SEL_GRB = 1,
+-	ADV7604_OP_CH_SEL_BGR = 2,
+-	ADV7604_OP_CH_SEL_RGB = 3,
+-	ADV7604_OP_CH_SEL_BRG = 4,
+-	ADV7604_OP_CH_SEL_RBG = 5,
++/*
++ * Bus rotation and reordering. This is used to specify component reordering on
++ * the board and describes the components order on the bus when the ADV7604
++ * outputs RGB.
++ */
++enum adv7604_bus_order {
++	ADV7604_BUS_ORDER_RGB,		/* No operation	*/
++	ADV7604_BUS_ORDER_GRB,		/* Swap 1-2	*/
++	ADV7604_BUS_ORDER_RBG,		/* Swap 2-3	*/
++	ADV7604_BUS_ORDER_BGR,		/* Swap 1-3	*/
++	ADV7604_BUS_ORDER_BRG,		/* Rotate right	*/
++	ADV7604_BUS_ORDER_GBR,		/* Rotate left	*/
+ };
+ 
+ /* Input Color Space (IO register 0x02, [7:4]) */
+@@ -55,29 +59,11 @@ enum adv7604_inp_color_space {
+ 	ADV7604_INP_COLOR_SPACE_AUTO = 0xf,
+ };
+ 
+-/* Select output format (IO register 0x03, [7:0]) */
+-enum adv7604_op_format_sel {
+-	ADV7604_OP_FORMAT_SEL_SDR_ITU656_8 = 0x00,
+-	ADV7604_OP_FORMAT_SEL_SDR_ITU656_10 = 0x01,
+-	ADV7604_OP_FORMAT_SEL_SDR_ITU656_12_MODE0 = 0x02,
+-	ADV7604_OP_FORMAT_SEL_SDR_ITU656_12_MODE1 = 0x06,
+-	ADV7604_OP_FORMAT_SEL_SDR_ITU656_12_MODE2 = 0x0a,
+-	ADV7604_OP_FORMAT_SEL_DDR_422_8 = 0x20,
+-	ADV7604_OP_FORMAT_SEL_DDR_422_10 = 0x21,
+-	ADV7604_OP_FORMAT_SEL_DDR_422_12_MODE0 = 0x22,
+-	ADV7604_OP_FORMAT_SEL_DDR_422_12_MODE1 = 0x23,
+-	ADV7604_OP_FORMAT_SEL_DDR_422_12_MODE2 = 0x24,
+-	ADV7604_OP_FORMAT_SEL_SDR_444_24 = 0x40,
+-	ADV7604_OP_FORMAT_SEL_SDR_444_30 = 0x41,
+-	ADV7604_OP_FORMAT_SEL_SDR_444_36_MODE0 = 0x42,
+-	ADV7604_OP_FORMAT_SEL_DDR_444_24 = 0x60,
+-	ADV7604_OP_FORMAT_SEL_DDR_444_30 = 0x61,
+-	ADV7604_OP_FORMAT_SEL_DDR_444_36 = 0x62,
+-	ADV7604_OP_FORMAT_SEL_SDR_ITU656_16 = 0x80,
+-	ADV7604_OP_FORMAT_SEL_SDR_ITU656_20 = 0x81,
+-	ADV7604_OP_FORMAT_SEL_SDR_ITU656_24_MODE0 = 0x82,
+-	ADV7604_OP_FORMAT_SEL_SDR_ITU656_24_MODE1 = 0x86,
+-	ADV7604_OP_FORMAT_SEL_SDR_ITU656_24_MODE2 = 0x8a,
++/* Select output format (IO register 0x03, [4:2]) */
++enum adv7604_op_format_mode_sel {
++	ADV7604_OP_FORMAT_MODE0 = 0x00,
++	ADV7604_OP_FORMAT_MODE1 = 0x04,
++	ADV7604_OP_FORMAT_MODE2 = 0x08,
+ };
+ 
+ enum adv7604_drive_strength {
+@@ -105,10 +91,10 @@ struct adv7604_platform_data {
+ 	enum adv7604_ain_sel ain_sel;
+ 
+ 	/* Bus rotation and reordering */
+-	enum adv7604_op_ch_sel op_ch_sel;
++	enum adv7604_bus_order bus_order;
+ 
+-	/* Select output format */
+-	enum adv7604_op_format_sel op_format_sel;
++	/* Select output format mode */
++	enum adv7604_op_format_mode_sel op_format_mode_sel;
+ 
+ 	/* Configuration of the INT1 pin */
+ 	enum adv7604_int1_config int1_config;
+@@ -116,14 +102,12 @@ struct adv7604_platform_data {
+ 	/* IO register 0x02 */
+ 	unsigned alt_gamma:1;
+ 	unsigned op_656_range:1;
+-	unsigned rgb_out:1;
+ 	unsigned alt_data_sat:1;
+ 
+ 	/* IO register 0x05 */
+ 	unsigned blank_data:1;
+ 	unsigned insert_av_codes:1;
+ 	unsigned replicate_av_codes:1;
+-	unsigned invert_cbcr:1;
+ 
+ 	/* IO register 0x06 */
+ 	unsigned inv_vs_pol:1;
+-- 
+1.8.3.2
 
