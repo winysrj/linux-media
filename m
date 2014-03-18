@@ -1,177 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:53747 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753813AbaCEJVD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 04:21:03 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v6 2/8] Documentation: of: Document graph bindings
-Date: Wed,  5 Mar 2014 10:20:36 +0100
-Message-Id: <1394011242-16783-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mout.gmx.net ([212.227.15.15]:63166 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753800AbaCRKkU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Mar 2014 06:40:20 -0400
+Received: from minime.bse ([77.20.176.42]) by mail.gmx.com (mrgmx102) with
+ ESMTPSA (Nemesis) id 0LrIPo-1X6wWM0bkq-0139kR for
+ <linux-media@vger.kernel.org>; Tue, 18 Mar 2014 11:40:18 +0100
+From: =?UTF-8?q?Daniel=20Gl=C3=B6ckner?= <daniel-gl@gmx.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v2] bttv: Add support for PCI-8604PW
+Date: Tue, 18 Mar 2014 11:40:16 +0100
+Message-Id: <1395139216-13564-1-git-send-email-daniel-gl@gmx.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The device tree graph bindings as used by V4L2 and documented in
-Documentation/device-tree/bindings/media/video-interfaces.txt contain
-generic parts that are not media specific but could be useful for any
-subsystem with data flow between multiple devices. This document
-describes the generic bindings.
+This patch adds support for the PCI-8604PW card equipped with four 878A.
+It is unknown who the manufacturer of this card is and no drivers were
+available during development of the patch. According to images found
+online, the card is originally sold with Linux DVR software.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+A CPLD on the card prevents the 878A from requesting access to the
+bus until an initialization sequence has been issued via GPIOs. The
+implemented sequence uses the minimum number of GPIOs needed to
+successfully unlock bus access. As there are many more GPIOs connected
+to the CPLD, it is very likely that some of the others have an influence
+on the bus arbitration scheduling. This should be investigated further
+in case of performance issues.
+
+The tested card contains an EEPROM on one of the 878A, but it is
+completely empty (i.e. contains only 0xff), so it is not possible
+to detect the card.
+
+Signed-off-by: Daniel Glöckner <daniel-gl@gmx.net>
+Tested-by: Robert Longbottom <rongblor@googlemail.com>
 ---
-Changes since v5:
- - Fixed spelling errors and a wrong device node name in the link section
- Documentation/devicetree/bindings/graph.txt | 129 ++++++++++++++++++++++++++++
- 1 file changed, 129 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/graph.txt
+ drivers/media/pci/bt8xx/bttv-cards.c | 102 +++++++++++++++++++++++++++++++++++
+ drivers/media/pci/bt8xx/bttv.h       |   1 +
+ 2 files changed, 103 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/graph.txt b/Documentation/devicetree/bindings/graph.txt
-new file mode 100644
-index 0000000..1a69c07
---- /dev/null
-+++ b/Documentation/devicetree/bindings/graph.txt
-@@ -0,0 +1,129 @@
-+Common bindings for device graphs
+diff --git a/drivers/media/pci/bt8xx/bttv-cards.c b/drivers/media/pci/bt8xx/bttv-cards.c
+index 6662b49..9f6a7fb 100644
+--- a/drivers/media/pci/bt8xx/bttv-cards.c
++++ b/drivers/media/pci/bt8xx/bttv-cards.c
+@@ -52,6 +52,7 @@ static void osprey_eeprom(struct bttv *btv, const u8 ee[256]);
+ static void modtec_eeprom(struct bttv *btv);
+ static void init_PXC200(struct bttv *btv);
+ static void init_RTV24(struct bttv *btv);
++static void init_PCI8604PW(struct bttv *btv);
+ 
+ static void rv605_muxsel(struct bttv *btv, unsigned int input);
+ static void eagle_muxsel(struct bttv *btv, unsigned int input);
+@@ -2856,6 +2857,22 @@ struct tvcard bttv_tvcards[] = {
+ 		.tuner_addr	= ADDR_UNSET,
+ 	},
+ 
++	/* ---- card 0xa5---------------------------------- */
++	[BTTV_BOARD_PCI_8604PW] = {
++		/* PCI-8604PW with special unlock sequence */
++		.name           = "PCI-8604PW",
++		.video_inputs   = 2,
++		/* .audio_inputs= 0, */
++		.svhs           = NO_SVHS,
++		/* The second input is available on CN4, if populated.
++		 * The other 5x2 header (CN2?) connects to the same inputs
++		 * as the on-board BNCs */
++		.muxsel         = MUXSEL(2, 3),
++		.tuner_type     = TUNER_ABSENT,
++		.no_msp34xx	= 1,
++		.no_tda7432	= 1,
++		.pll            = PLL_35,
++	},
+ };
+ 
+ static const unsigned int bttv_num_tvcards = ARRAY_SIZE(bttv_tvcards);
+@@ -3290,6 +3307,9 @@ void bttv_init_card1(struct bttv *btv)
+ 	case BTTV_BOARD_ADLINK_RTV24:
+ 		init_RTV24( btv );
+ 		break;
++	case BTTV_BOARD_PCI_8604PW:
++		init_PCI8604PW(btv);
++		break;
+ 
+ 	}
+ 	if (!bttv_tvcards[btv->c.type].has_dvb)
+@@ -4170,6 +4190,88 @@ init_RTV24 (struct bttv *btv)
+ 
+ 
+ /* ----------------------------------------------------------------------- */
++/*
++ *  The PCI-8604PW contains a CPLD, probably an ispMACH 4A, that filters
++ *  the PCI REQ signals comming from the four BT878 chips. After power
++ *  up, the CPLD does not forward requests to the bus, which prevents
++ *  the BT878 from fetching RISC instructions from memory. While the
++ *  CPLD is connected to most of the GPIOs of PCI device 0xD, only
++ *  five appear to play a role in unlocking the REQ signal. The following
++ *  sequence has been determined by trial and error without access to the
++ *  original driver.
++ *
++ *  Eight GPIOs of device 0xC are provided on connector CN4 (4 in, 4 out).
++ *  Devices 0xE and 0xF do not appear to have anything connected to their
++ *  GPIOs.
++ *
++ *  The correct GPIO_OUT_EN value might have some more bits set. It should
++ *  be possible to derive it from a boundary scan of the CPLD. Its JTAG
++ *  pins are routed to test points.
++ *
++ */
++/* ----------------------------------------------------------------------- */
++static void
++init_PCI8604PW(struct bttv *btv)
++{
++	int state;
 +
-+General concept
-+---------------
++	if ((PCI_SLOT(btv->c.pci->devfn) & ~3) != 0xC) {
++		pr_warn("This is not a PCI-8604PW\n");
++		return;
++	}
 +
-+The hierarchical organisation of the device tree is well suited to describe
-+control flow to devices, but there can be more complex connections between
-+devices that work together to form a logical compound device, following an
-+arbitrarily complex graph.
-+There already is a simple directed graph between devices tree nodes using
-+phandle properties pointing to other nodes to describe connections that
-+can not be inferred from device tree parent-child relationships. The device
-+tree graph bindings described herein abstract more complex devices that can
-+have multiple specifiable ports, each of which can be linked to one or more
-+ports of other devices.
++	if (PCI_SLOT(btv->c.pci->devfn) != 0xD)
++		return;
 +
-+These common bindings do not contain any information about the direction or
-+type of the connections, they just map their existence. Specific properties
-+may be described by specialized bindings depending on the type of connection.
++	btwrite(0x080002, BT848_GPIO_OUT_EN);
 +
-+To see how this binding applies to video pipelines, for example, see
-+Documentation/device-tree/bindings/media/video-interfaces.txt.
-+Here the ports describe data interfaces, and the links between them are
-+the connecting data buses. A single port with multiple connections can
-+correspond to multiple devices being connected to the same physical bus.
++	state = (btread(BT848_GPIO_DATA) >> 21) & 7;
 +
-+Organisation of ports and endpoints
-+-----------------------------------
++	for (;;) {
++		switch (state) {
++		case 1:
++		case 5:
++		case 6:
++		case 4:
++			pr_debug("PCI-8604PW in state %i, toggling pin\n",
++				 state);
++			btwrite(0x080000, BT848_GPIO_DATA);
++			msleep(1);
++			btwrite(0x000000, BT848_GPIO_DATA);
++			msleep(1);
++			break;
++		case 7:
++			pr_info("PCI-8604PW unlocked\n");
++			return;
++		case 0: /* FIXME: Is there any way to get out of this state? */
++			pr_err("PCI-8604PW locked until reset\n");
++			return;
++		default:
++			pr_err("PCI-8604PW in unknown state %i\n", state);
++			return;
++		}
 +
-+Ports are described by child 'port' nodes contained in the device node.
-+Each port node contains an 'endpoint' subnode for each remote device port
-+connected to this port. If a single port is connected to more than one
-+remote device, an 'endpoint' child node must be provided for each link.
-+If more than one port is present in a device node or there is more than one
-+endpoint at a port, or a port node needs to be associated with a selected
-+hardware interface, a common scheme using '#address-cells', '#size-cells'
-+and 'reg' properties is used number the nodes.
++		state = (state << 4) | ((btread(BT848_GPIO_DATA) >> 21) & 7);
 +
-+device {
-+        ...
-+        #address-cells = <1>;
-+        #size-cells = <0>;
-+
-+        port@0 {
-+	        #address-cells = <1>;
-+	        #size-cells = <0>;
-+		reg = <0>;
-+
-+                endpoint@0 {
-+			reg = <0>;
-+			...
-+		};
-+                endpoint@1 {
-+			reg = <1>;
-+			...
-+		};
-+        };
-+
-+        port@1 {
-+		reg = <1>;
-+
-+		endpoint { ... };
-+	};
-+};
-+
-+All 'port' nodes can be grouped under an optional 'ports' node, which
-+allows to specify #address-cells, #size-cells properties for the 'port'
-+nodes independently from any other child device nodes a device might
-+have.
-+
-+device {
-+        ...
-+        ports {
-+                #address-cells = <1>;
-+                #size-cells = <0>;
-+
-+                port@0 {
-+                        ...
-+                        endpoint@0 { ... };
-+                        endpoint@1 { ... };
-+                };
-+
-+                port@1 { ... };
-+        };
-+};
-+
-+Links between endpoints
-+-----------------------
-+
-+Each endpoint should contain a 'remote-endpoint' phandle property that points
-+to the corresponding endpoint in the port of the remote device. In turn, the
-+remote endpoint should contain a 'remote-endpoint' property. If it has one,
-+it must not point to another than the local endpoint. Two endpoints with their
-+'remote-endpoint' phandles pointing at each other form a link between the
-+containing ports.
-+
-+device-1 {
-+        port {
-+                device_1_output: endpoint {
-+                        remote-endpoint = <&device_2_input>;
-+                };
-+        };
-+};
-+
-+device-2 {
-+        port {
-+                device_2_input: endpoint {
-+                        remote-endpoint = <&device_1_output>;
-+                };
-+        };
-+};
++		switch (state) {
++		case 0x15:
++		case 0x56:
++		case 0x64:
++		case 0x47:
++/*		case 0x70:   Happens when toggling once more, but we don't. */
++			break;
++		default:
++			pr_err("PCI-8604PW invalid transition %i -> %i\n",
++			       state >> 4, state & 7);
++			return;
++		}
++		state &= 7;
++	}
++}
 +
 +
-+Required properties
-+-------------------
 +
-+If there is more than one 'port' or more than one 'endpoint' node or 'reg'
-+property is present in port and/or endpoint nodes the following properties
-+are required in a relevant parent node:
-+
-+ - #address-cells : number of cells required to define port/endpoint
-+                    identifier, should be 1.
-+ - #size-cells    : should be zero.
-+
-+Optional endpoint properties
-+----------------------------
-+
-+- remote-endpoint: phandle to an 'endpoint' subnode of a remote device node.
-+
++/* ----------------------------------------------------------------------- */
+ /* Miro Pro radio stuff -- the tea5757 is connected to some GPIO ports     */
+ /*
+  * Copyright (c) 1999 Csaba Halasz <qgehali@uni-miskolc.hu>
+diff --git a/drivers/media/pci/bt8xx/bttv.h b/drivers/media/pci/bt8xx/bttv.h
+index df578ef..c0a4c93 100644
+--- a/drivers/media/pci/bt8xx/bttv.h
++++ b/drivers/media/pci/bt8xx/bttv.h
+@@ -188,6 +188,7 @@
+ #define BTTV_BOARD_ADLINK_MPG24            0xa2
+ #define BTTV_BOARD_BT848_CAP_14            0xa3
+ #define BTTV_BOARD_CYBERVISION_CV06        0xa4
++#define BTTV_BOARD_PCI_8604PW              0xa5
+ 
+ /* more card-specific defines */
+ #define PT2254_L_CHANNEL 0x10
 -- 
-1.9.0.rc3
+1.8.3.4
 
