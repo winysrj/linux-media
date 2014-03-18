@@ -1,60 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f178.google.com ([209.85.216.178]:56216 "EHLO
-	mail-qc0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751222AbaC3GKo (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4172 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750791AbaCRDex (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Mar 2014 02:10:44 -0400
-MIME-Version: 1.0
-In-Reply-To: <533553E6.3060508@xs4all.nl>
-References: <532442E2.7050206@xs4all.nl>
-	<532443AB.9080105@xs4all.nl>
-	<533553E6.3060508@xs4all.nl>
-Date: Sat, 29 Mar 2014 23:10:43 -0700
-Message-ID: <CANeU7Qksj-tq0fjsZya1otX75sV4JOsAdXHr5Kxu-WyvYrksSw@mail.gmail.com>
-Subject: Re: sparse: ARRAY_SIZE and sparse array initialization
-From: Christopher Li <sparse@chrisli.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux-Sparse <linux-sparse@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 17 Mar 2014 23:34:53 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2I3YnqX053738
+	for <linux-media@vger.kernel.org>; Tue, 18 Mar 2014 04:34:51 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 27D942A188B
+	for <linux-media@vger.kernel.org>; Tue, 18 Mar 2014 04:34:39 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140318033439.27D942A188B@tschai.lan>
+Date: Tue, 18 Mar 2014 04:34:39 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 28, 2014 at 3:50 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Is there any chance that the three issues I reported will be fixed? If not,
-> then I'll work around it in the kernel code.
->
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Most likely it is a sparse issue. Can you generate a minimal stand alone
-test case that expose this bug? I try to simplify it as following, but
-it does not
-reproduce the error.
+Results of the daily build of media_tree:
 
+date:		Tue Mar 18 04:00:15 CET 2014
+git branch:	test
+git hash:	ed97a6fe5308e5982d118a25f0697b791af5ec50
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0
+host hardware:	x86_64
+host os:	3.13-5.slh.4-amd64
 
-#define ARRAY_SIZE(x) (sizeof(x)/sizeof(x[0]))
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0
+sparse: ERRORS
 
-static const char *v4l2_type_names[] = {
-        [1]    = "mmap",
-        [9] = "userptr",
-        [2] = "overlay",
-        [3] = "dmabuf",
-};
+Detailed results are available here:
 
-#define prt_names(a, arr) (((unsigned)(a)) < ARRAY_SIZE(arr) ? arr[a]
-: "unknown")
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
+Full logs are available here:
 
-extern void prt(const char *name);
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-static void v4l_print_requestbuffers(const void *arg, int write_only)
-{
-        const struct v4l2_requestbuffers *p = arg;
+The Media Infrastructure API from this daily build is here:
 
-        prt(prt_names(3, v4l2_type_names));
-}
-
-
-If you have the test case, you are welcome to submit a patch to
-add the test case.
-
-Chris
+http://www.xs4all.nl/~hverkuil/spec/media.html
