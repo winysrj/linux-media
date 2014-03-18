@@ -1,170 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:21445 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751284AbaCBPl2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Mar 2014 10:41:28 -0500
-Date: Sun, 02 Mar 2014 12:41:16 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Shuah Khan <shuah.kh@samsung.com>, shuahkhan@gmail.com,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Patrick Dickey <pdickeybeta@gmail.com>
-Subject: Re: [PATCH 0/3] media/drx39xyj: fix DJH_DEBUG path null pointer
- dereferences, and compile errors.
-Message-id: <20140302124116.4b2e1004@samsung.com>
-In-reply-to: <20140301075742.626e457c@samsung.com>
-References: <cover.1393621530.git.shuah.kh@samsung.com>
- <CAGoCfiyZr2eCCW3ZmAE4_YUZw++NC3o-VY84M+n38tzfLdfBiQ@mail.gmail.com>
- <20140301075742.626e457c@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46913 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753572AbaCRNA6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Mar 2014 09:00:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH v3 36/48] adv7604: Make output format configurable through pad format operations
+Date: Tue, 18 Mar 2014 14:02:43 +0100
+Message-ID: <2557122.W7Piv8LSLZ@avalon>
+In-Reply-To: <532812B0.6000109@xs4all.nl>
+References: <1394493359-14115-37-git-send-email-laurent.pinchart@ideasonboard.com> <1394550634-25242-1-git-send-email-laurent.pinchart@ideasonboard.com> <532812B0.6000109@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 01 Mar 2014 07:57:42 -0300
-Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
+Hi Hans,
 
-> Hi Devin,
+On Tuesday 18 March 2014 10:32:32 Hans Verkuil wrote:
+> Hi Laurent,
 > 
-> Em Fri, 28 Feb 2014 19:13:16 -0500
-> Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+> I've tested it and I thought I was going crazy. Everything was fine after
+> applying this patch, but as soon as I applied the next patch (37/48) the
+> colors were wrong. But that patch had nothing whatsoever to do with the
+> bus ordering. You managed to make a small but crucial bug and it was pure
+> bad luck that it ever worked.
 > 
-> > Seems kind of strange that I wasn't on the CC for this, since I was the
-> > original author of all that code (in fact, DJH are my initials).
+> See details below:
+> 
+> On 03/11/14 16:10, Laurent Pinchart wrote:
+> > Replace the dummy video format operations by pad format operations that
+> > configure the output format.
 > > 
-> > Mauro, did you strip off my authorship when you pulled the patches from my
-> > tree?
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/i2c/adv7604.c | 280 +++++++++++++++++++++++++++++++++++----
+> >  include/media/adv7604.h     |  56 ++++-----
+> >  2 files changed, 275 insertions(+), 61 deletions(-)
+> > 
+> > diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> > index 851b350..5aa7c29 100644
+> > --- a/drivers/media/i2c/adv7604.c
+> > +++ b/drivers/media/i2c/adv7604.c
+> > @@ -53,6 +53,28 @@ MODULE_LICENSE("GPL");
+> > 
+> >  /* ADV7604 system clock frequency */
+> >  #define ADV7604_fsc (28636360)
+> > 
+> > +#define ADV7604_RGB_OUT					(1 << 1)
+> > +
+> > +#define ADV7604_OP_FORMAT_SEL_8BIT			(0 << 0)
+> > +#define ADV7604_OP_FORMAT_SEL_10BIT			(1 << 0)
+> > +#define ADV7604_OP_FORMAT_SEL_12BIT			(2 << 0)
+> > +
+> > +#define ADV7604_OP_MODE_SEL_SDR_422			(0 << 5)
+> > +#define ADV7604_OP_MODE_SEL_DDR_422			(1 << 5)
+> > +#define ADV7604_OP_MODE_SEL_SDR_444			(2 << 5)
+> > +#define ADV7604_OP_MODE_SEL_DDR_444			(3 << 5)
+> > +#define ADV7604_OP_MODE_SEL_SDR_422_2X			(4 << 5)
+> > +#define ADV7604_OP_MODE_SEL_ADI_CM			(5 << 5)
+> > +
+> > +#define ADV7604_OP_CH_SEL_GBR				(0 << 5)
+> > +#define ADV7604_OP_CH_SEL_GRB				(1 << 5)
+> > +#define ADV7604_OP_CH_SEL_BGR				(2 << 5)
+> > +#define ADV7604_OP_CH_SEL_RGB				(3 << 5)
+> > +#define ADV7604_OP_CH_SEL_BRG				(4 << 5)
+> > +#define ADV7604_OP_CH_SEL_RBG				(5 << 5)
 > 
-> Thanks for warning me about that!
+> Note that these values are shifted 5 bits to the left...
+
+[snip]
+
+> > +struct adv7604_format_info {
+> > +	enum v4l2_mbus_pixelcode code;
+> > +	u8 op_ch_sel;
+> > +	bool rgb_out;
+> > +	bool swap_cb_cr;
+> > +	u8 op_format_sel;
+> > +};
+
+[snip]
+
+> > +static const struct adv7604_format_info adv7604_formats[] = {
+> > +	{ V4L2_MBUS_FMT_RGB888_1X24, ADV7604_OP_CH_SEL_RGB, true, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_444 | ADV7604_OP_FORMAT_SEL_8BIT },
+> > +	{ V4L2_MBUS_FMT_YUYV8_2X8, ADV7604_OP_CH_SEL_RGB, false, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_8BIT },
+> > +	{ V4L2_MBUS_FMT_YVYU8_2X8, ADV7604_OP_CH_SEL_RGB, false, true,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_8BIT },
+> > +	{ V4L2_MBUS_FMT_YUYV10_2X10, ADV7604_OP_CH_SEL_RGB, false, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_10BIT },
+> > +	{ V4L2_MBUS_FMT_YVYU10_2X10, ADV7604_OP_CH_SEL_RGB, false, true,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_10BIT },
+> > +	{ V4L2_MBUS_FMT_YUYV12_2X12, ADV7604_OP_CH_SEL_RGB, false, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_12BIT },
+> > +	{ V4L2_MBUS_FMT_YVYU12_2X12, ADV7604_OP_CH_SEL_RGB, false, true,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_12BIT },
+> > +	{ V4L2_MBUS_FMT_UYVY8_1X16, ADV7604_OP_CH_SEL_RBG, false, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_8BIT },
+> > +	{ V4L2_MBUS_FMT_VYUY8_1X16, ADV7604_OP_CH_SEL_RBG, false, true,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_8BIT },
+> > +	{ V4L2_MBUS_FMT_YUYV8_1X16, ADV7604_OP_CH_SEL_RGB, false, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_8BIT },
+> > +	{ V4L2_MBUS_FMT_YVYU8_1X16, ADV7604_OP_CH_SEL_RGB, false, true,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_8BIT },
+> > +	{ V4L2_MBUS_FMT_UYVY10_1X20, ADV7604_OP_CH_SEL_RBG, false, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_10BIT },
+> > +	{ V4L2_MBUS_FMT_VYUY10_1X20, ADV7604_OP_CH_SEL_RBG, false, true,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_10BIT },
+> > +	{ V4L2_MBUS_FMT_YUYV10_1X20, ADV7604_OP_CH_SEL_RGB, false, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_10BIT },
+> > +	{ V4L2_MBUS_FMT_YVYU10_1X20, ADV7604_OP_CH_SEL_RGB, false, true,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_10BIT },
+> > +	{ V4L2_MBUS_FMT_UYVY12_1X24, ADV7604_OP_CH_SEL_RBG, false, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_12BIT },
+> > +	{ V4L2_MBUS_FMT_VYUY12_1X24, ADV7604_OP_CH_SEL_RBG, false, true,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_12BIT },
+> > +	{ V4L2_MBUS_FMT_YUYV12_1X24, ADV7604_OP_CH_SEL_RGB, false, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_12BIT },
+> > +	{ V4L2_MBUS_FMT_YVYU12_1X24, ADV7604_OP_CH_SEL_RGB, false, true,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_12BIT },
+> > +};
+> > +
+> > +static const struct adv7604_format_info adv7611_formats[] = {
+> > +	{ V4L2_MBUS_FMT_RGB888_1X24, ADV7604_OP_CH_SEL_RGB, true, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_444 | ADV7604_OP_FORMAT_SEL_8BIT },
+> > +	{ V4L2_MBUS_FMT_YUYV8_2X8, ADV7604_OP_CH_SEL_RGB, false, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_8BIT },
+> > +	{ V4L2_MBUS_FMT_YVYU8_2X8, ADV7604_OP_CH_SEL_RGB, false, true,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_8BIT },
+> > +	{ V4L2_MBUS_FMT_YUYV12_2X12, ADV7604_OP_CH_SEL_RGB, false, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_12BIT },
+> > +	{ V4L2_MBUS_FMT_YVYU12_2X12, ADV7604_OP_CH_SEL_RGB, false, true,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422 | ADV7604_OP_FORMAT_SEL_12BIT },
+> > +	{ V4L2_MBUS_FMT_UYVY8_1X16, ADV7604_OP_CH_SEL_RBG, false, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_8BIT },
+> > +	{ V4L2_MBUS_FMT_VYUY8_1X16, ADV7604_OP_CH_SEL_RBG, false, true,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_8BIT },
+> > +	{ V4L2_MBUS_FMT_YUYV8_1X16, ADV7604_OP_CH_SEL_RGB, false, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_8BIT },
+> > +	{ V4L2_MBUS_FMT_YVYU8_1X16, ADV7604_OP_CH_SEL_RGB, false, true,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_8BIT },
+> > +	{ V4L2_MBUS_FMT_UYVY12_1X24, ADV7604_OP_CH_SEL_RBG, false, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_12BIT },
+> > +	{ V4L2_MBUS_FMT_VYUY12_1X24, ADV7604_OP_CH_SEL_RBG, false, true,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_12BIT },
+> > +	{ V4L2_MBUS_FMT_YUYV12_1X24, ADV7604_OP_CH_SEL_RGB, false, false,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_12BIT },
+> > +	{ V4L2_MBUS_FMT_YVYU12_1X24, ADV7604_OP_CH_SEL_RGB, false, true,
+> > +	  ADV7604_OP_MODE_SEL_SDR_422_2X | ADV7604_OP_FORMAT_SEL_12BIT },
+> > +};
+
+[snip]
+
+> > +/*
+> > + * Compute the op_ch_sel value required to obtain on the bus the
+> > component order
+> > + * corresponding to the selected format taking into account bus
+> > reordering
+> > + * applied by the board at the output of the device.
+> > + *
+> > + * The following table gives the op_ch_value from the format component
+> > order
+> > + * (expressed as op_ch_sel value in column) and the bus reordering
+> > (expressed as
+> > + * adv7604_bus_order value in row).
+> > + *
+> > + *           |	GBR(0)	GRB(1)	BGR(2)	RGB(3)	BRG(4)	RBG(5)
+> > + * ----------+-------------------------------------------------
+> > + * RGB (NOP) |	GBR	GRB	BGR	RGB	BRG	RBG
+> > + * GRB (1-2) |	BGR	RGB	GBR	GRB	RBG	BRG
+> > + * RBG (2-3) |	GRB	GBR	BRG	RBG	BGR	RGB
+> > + * BGR (1-3) |	RBG	BRG	RGB	BGR	GRB	GBR
+> > + * BRG (ROR) |	BRG	RBG	GRB	GBR	RGB	BGR
+> > + * GBR (ROL) |	RGB	BGR	RBG	BRG	GBR	GRB
+> > + */
+> > +static unsigned int adv7604_op_ch_sel(struct adv7604_state *state)
+> > +{
+> > +#define _SEL(a,b,c,d,e,f)	{ \
+> > +	ADV7604_OP_CH_SEL_##a, ADV7604_OP_CH_SEL_##b, ADV7604_OP_CH_SEL_##c, 
+\
+> > +	ADV7604_OP_CH_SEL_##d, ADV7604_OP_CH_SEL_##e, ADV7604_OP_CH_SEL_##f }
+> > +#define _BUS(x)			[ADV7604_BUS_ORDER_##x]
+> > +
+> > +	static const unsigned int op_ch_sel[6][6] = {
+> > +		_BUS(RGB) /* NOP */ = _SEL(GBR, GRB, BGR, RGB, BRG, RBG),
+> > +		_BUS(GRB) /* 1-2 */ = _SEL(BGR, RGB, GBR, GRB, RBG, BRG),
+> > +		_BUS(RBG) /* 2-3 */ = _SEL(GRB, GBR, BRG, RBG, BGR, RGB),
+> > +		_BUS(BGR) /* 1-3 */ = _SEL(RBG, BRG, RGB, BGR, GRB, GBR),
+> > +		_BUS(BRG) /* ROR */ = _SEL(BRG, RBG, GRB, GBR, RGB, BGR),
+> > +		_BUS(GBR) /* ROL */ = _SEL(RGB, BGR, RBG, BRG, GBR, GRB),
+> > +	};
+> > +
+> > +	return op_ch_sel[state->pdata.bus_order][state->format->op_ch_sel];
 > 
-> Not sure what happened there. The original branch were added back in 2012,
-> with the sole reason to provide a way for Patrick Dickey to catch a few
-> patches I made on that time with some CodingStyle fixes:
-> 	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/drx-j
+> But you don't shift state->format->op_ch_sel back 5 bits to the right, so
+> you end up with a random memory value. It should be:
 > 
-> There, your name was there as an extra weird "Committer" tag on those changesets:
-> 	http://git.linuxtv.org/mchehab/experimental.git/commit/24d5ed7b19cc19f807264d7d4d56ab48e5cab230
-> 	http://git.linuxtv.org/mchehab/experimental.git/commit/0440897f72b9cf82b8f576fae292b0567ad88239
+> 	return op_ch_sel[state->pdata.bus_order][state->format->op_ch_sel >> 5];
 > 
-> The second one also contained a "Tag: tip" on it. So, I suspect that
-> something wrong happened when I imported it (either from your tree or
-> from some email sent by you or by Patrick). Probably, some broken
-> hg-import scripting.
-> 
-> Anyway, I rebased my tree, fixing those issues, at:
-> 	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/drx-j-v3
-> 
-> I also added a credit at the first patch for Patrick's fixes that
-> I suspect it was merged somehow there, based on the comments he
-> posted at the mailing list when he sent his 25-patches series:
-> 	https://lwn.net/Articles/467301/
-> 
-> Please let me know if you find any other issues on it. Anyway, I'll post
-> the patches from my experimental branch at the ML before merging them
-> upstream, in order to get a proper review.
-> 
-> Before that happen, however, I need to fix a serious bug that is
-> preventing to watch TV with this frontend, that it is there since the
-> first patch.
-> 
-> To be sure that this is a driver issue, I tested the driver on
-> another OS using the original PCTV driver, and it worked.
-> 
-> However, since the first working version of this driver, it
-> is randomly losing MPEG TS packets.
-> 
-> The bug is intermittent: every time it sets up VSB reception, it loses
-> different MPEG TS tables. Sometimes, not a single TS packet is received,
-> but, most of the time, it gets ~ 1/10 of the expected number of packets.
+> After correcting this everything worked fine for me.
 
-Partially found and fixed it with this patch:
-	http://git.linuxtv.org/mchehab/experimental.git/commitdiff/5cc6dca273e51494c17df5e488aaf223732edb38
+Good catch ! Thank you. I've fixed that and submitted v4.
 
-After that, it properly receives data at the right rate (~19Mbps) as
-generated by DTA-2111.
+In addition to this patch, I'm only missing your Acked-by or Reviewed-by tag 
+for patch 47/48 ("adv7604: Add LLC polarity configuration"). Could you please 
+provide that ? I'll then send a pull request to Mauro for the whole series.
 
-However, there are still some weird things happening there... While
-the bit rate is ~ 19 Mbps, and adding a printk just before calling
-dvb_dmx_swfilter() to print the rate is showing the right bitrate
-(The signal generator shows it as 19.392.659 bps):
-
-[86213.084891] em28xx_dvb_urb_data_copy: 19428.672 kbps
-[86214.087737] em28xx_dvb_urb_data_copy: 19431.680 kbps
-[86215.090586] em28xx_dvb_urb_data_copy: 19431.680 kbps
-[86216.093433] em28xx_dvb_urb_data_copy: 19431.680 kbps
-[86217.096280] em28xx_dvb_urb_data_copy: 19431.680 kbps
-[86218.099126] em28xx_dvb_urb_data_copy: 19431.680 kbps
-[86219.101971] em28xx_dvb_urb_data_copy: 19431.680 kbps
-[86220.104814] em28xx_dvb_urb_data_copy: 19431.680 kbps
-[86221.107659] em28xx_dvb_urb_data_copy: 19431.680 kbps
-[86222.110519] em28xx_dvb_urb_data_copy: 19430.176 kbps
-[86223.113351] em28xx_dvb_urb_data_copy: 19431.680 kbps
-[86224.116200] em28xx_dvb_urb_data_copy: 19431.680 kbps
-[86225.119047] em28xx_dvb_urb_data_copy: 19431.680 kbps
-
-Using dvbv5-zap on monitor mode only shows about 6.3 Mbps:
-
- PID          FREQ         SPEED       TOTAL
-05b6      1.33 p/s      2.0 Kbps        2 KB
-06a5      4.57 p/s      6.7 Kbps       10 KB
-07cf      4.40 p/s      6.5 Kbps        9 KB
-0a93   1200.38 p/s   1763.1 Kbps     2651 KB
-0f75      2.66 p/s      3.9 Kbps        5 KB
-1743      5.49 p/s      8.1 Kbps       12 KB
-18c4   1205.04 p/s   1769.9 Kbps     2661 KB
-197a      4.65 p/s      6.8 Kbps       10 KB
-1c15      4.99 p/s      7.3 Kbps       11 KB
-1c68   1286.40 p/s   1889.4 Kbps     2841 KB
-1d4b      4.32 p/s      6.3 Kbps        9 KB
-1fb2      4.07 p/s      6.0 Kbps        8 KB
-1fff      2.33 p/s      3.4 Kbps        5 KB
-TOT    4319.15 p/s   6343.7 Kbps     9541 KB
-
-
-Lock   (0x1f) Signal= 71.00% C/N= 0.42% UCB= 273 postBER= 0
-
-It seems that most of the packets are without the 0x47 sync byte there.
-
-In order to compare with another frontend, this is what it is seen
-with WinTV Aero-A (model 72251, rev D3F0):
-
-
- PID          FREQ         SPEED       TOTAL
-0000     15.87 p/s     23.3 Kbps       29 KB
-0010      6.39 p/s      9.4 Kbps       11 KB
-0011  11754.82 p/s  17264.9 Kbps    21617 KB
-0014    312.27 p/s    458.6 Kbps      574 KB
-0015    156.03 p/s    229.2 Kbps      286 KB
-001f      1.70 p/s      2.5 Kbps        3 KB
-0200    430.07 p/s    631.7 Kbps      790 KB
-0630      6.39 p/s      9.4 Kbps       11 KB
-1053      7.19 p/s     10.6 Kbps       13 KB
-1054      2.40 p/s      3.5 Kbps        4 KB
-1055      2.40 p/s      3.5 Kbps        4 KB
-1056      1.70 p/s      2.5 Kbps        3 KB
-112d      4.79 p/s      7.0 Kbps        8 KB
-112e      1.60 p/s      2.3 Kbps        2 KB
-112f      1.60 p/s      2.3 Kbps        2 KB
-1ffb     14.97 p/s     22.0 Kbps       27 KB
-1fff    159.43 p/s    234.2 Kbps      293 KB
-TOT   12880.50 p/s  18918.2 Kbps    23688 KB
-
-
-Lock   (0x1f) Signal= 71.43% C/N= 0.38% UCB= 250 postBER= 0
-
-The net result is that it is impossible to watch TV with PCTV 80e,
-as most of the MPEG TS packages got discarded, but it works fine with
-WinTV Aero.
-
-
-So, there's something causing packet corruption there at drx-j.
-
-No sure yet how to fix it.
-
-Regards,
 -- 
+Regards,
 
-Cheers,
-Mauro
+Laurent Pinchart
+
