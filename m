@@ -1,140 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39070 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932767AbaCQL5o (ORCPT
+Received: from mail.karo-electronics.de ([81.173.242.67]:49705 "EHLO
+	mail.karo-electronics.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753424AbaCRNGB convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 07:57:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH for v3.15 4/4] v4l2-ioctl.c: fix sparse __user-related warnings
-Date: Mon, 17 Mar 2014 12:59:26 +0100
-Message-ID: <3524766.R6CgnfibSM@avalon>
-In-Reply-To: <1394888883-46850-5-git-send-email-hverkuil@xs4all.nl>
-References: <1394888883-46850-1-git-send-email-hverkuil@xs4all.nl> <1394888883-46850-5-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 18 Mar 2014 09:06:01 -0400
+Date: Tue, 18 Mar 2014 14:05:14 +0100
+From: Lothar =?UTF-8?B?V2HDn21hbm4=?= <LW@KARO-electronics.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Andrzej Hajda <a.hajda@samsung.com>, devel@driverdev.osuosl.org,
+	Russell King <linux@arm.linux.org.uk>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	David Airlie <airlied@linux.ie>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	dri-devel@lists.freedesktop.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Denis Carikli <denis@eukrea.com>,
+	Eric =?UTF-8?B?QsOpbmFyZA==?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 07/12] drm: drm_display_mode: add signal polarity flags
+Message-ID: <20140318140514.451822b5@ipc1.ka-ro>
+In-Reply-To: <1434295.j7EcSL7GQo@avalon>
+References: <1394731053-6118-1-git-send-email-denis@eukrea.com>
+	<2777667.XJdaUSpRsD@avalon>
+	<20140318085030.66db84b7@ipc1.ka-ro>
+	<1434295.j7EcSL7GQo@avalon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi,
 
-Thank you for the patch.
+Laurent Pinchart wrote:
+> Hi Lothar,
+> 
+> On Tuesday 18 March 2014 08:50:30 Lothar Waßmann wrote:
+> > Laurent Pinchart wrote:
+> > > On Monday 17 March 2014 16:14:36 Lothar Waßmann wrote:
+> > > > Laurent Pinchart wrote:
+> > > > > On Monday 17 March 2014 14:41:09 Andrzej Hajda wrote:
+> > > > > > On 03/13/2014 06:17 PM, Denis Carikli wrote:
+> > > > > > > We need a way to pass signal polarity informations
+> > > > > > > between DRM panels, and the display drivers.
+> > > > > > > 
+> > > > > > > To do that, a pol_flags field was added to drm_display_mode.
+> > > > > > > 
+> > > > > > > Signed-off-by: Denis Carikli <denis@eukrea.com>
+> > > > > > > ---
+> > > > > > > ChangeLog v10->v11:
+> > > > > > > - Since the imx-drm won't be able to retrive its regulators
+> > > > > > > 
+> > > > > > >   from the device tree when using display-timings nodes,
+> > > > > > >   and that I was told that the drm simple-panel driver
+> > > > > > >   already supported that, I then, instead, added what was
+> > > > > > >   lacking to make the eukrea displays work with the
+> > > > > > >   drm-simple-panel driver.
+> > > > > > >   
+> > > > > > >   That required a way to get back the display polarity
+> > > > > > >   informations from the imx-drm driver without affecting
+> > > > > > >   userspace.
+> > > > > > > 
+> > > > > > > ---
+> > > > > > > 
+> > > > > > >  include/drm/drm_crtc.h |    8 ++++++++
+> > > > > > >  1 file changed, 8 insertions(+)
+> > > > > > > 
+> > > > > > > diff --git a/include/drm/drm_crtc.h b/include/drm/drm_crtc.h
+> > > > > > > index f764654..61a4fe1 100644
+> > > > > > > --- a/include/drm/drm_crtc.h
+> > > > > > > +++ b/include/drm/drm_crtc.h
+> > > > > > > @@ -131,6 +131,13 @@ enum drm_mode_status {
+> > > > > > > 
+> > > > > > >  #define DRM_MODE_FLAG_3D_MAX	DRM_MODE_FLAG_3D_SIDE_BY_SIDE_HALF
+> > > > > > > 
+> > > > > > > +#define DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE	BIT(1)
+> > > > > > > +#define DRM_MODE_FLAG_POL_PIXDATA_POSEDGE	BIT(2)
+> > > > > > > +#define DRM_MODE_FLAG_POL_PIXDATA_PRESERVE	BIT(3)
+> > > > > > > +#define DRM_MODE_FLAG_POL_DE_NEGEDGE		BIT(4)
+> > > > > > > +#define DRM_MODE_FLAG_POL_DE_POSEDGE		BIT(5)
+> > > > > > > +#define DRM_MODE_FLAG_POL_DE_PRESERVE		BIT(6)
+> > > > > > 
+> > > > > > Could you add some description to these flags.
+> > > > > > What are *_PRESERVE flags for?
+> > > > > > Are those flags 1:1 compatible with respective 'videomode:flags'?
+> > > > > > I guess DE flags should be rather DRM_MODE_FLAG_POL_DE_(LOW|HIGH),
+> > > > > > am I right?
+> > > > > 
+> > > > > Possibly nitpicking, I wouldn't call the clock edge on which data
+> > > > > signals are generated/sampled "data polarity". This is clock polarity
+> > > > > information.
+> > > > > 
+> > > > > Have you seen cases where pixel data and DE are geenrated or need to
+> > > > > be sampled on different edges ?
+> > > > 
+> > > > DE is not a clock signal, but an 'Enable' signal whose value (high or
+> > > > low) defines the window in which the pixel data is valid.
+> > > > The flag defines whether data is valid during the HIGH or LOW period of
+> > > > DE.
+> > > 
+> > > The DRM_MODE_FLAG_POL_DE_(LOW|HIGH) do, by my impression of the proposed
+> > > new DRM_MODE_FLAG_POL_DE_*EDGE flags is that they define sampling clock
+> > > edges, not active levels.
+> > 
+> > The current naming of the flags gives the impression that they describe
+> > the sampling edges of a clock signal. But the DE signal in fact is not
+> > a clock signal but a level sensitive gating signal.
+> 
+> That's not my point. I *know* that DE is a data gating signal with a polarity 
+> already defined by the DRM_MODE_FLAG_POL_DE_(LOW|HIGH) flags. Like all other 
+> signals it gets generated on a clock edge and is sampled on a clock edge. The 
+> DRM_MODE_FLAG_POL_DE_*EDGE flags proposed above describe seem to describe just 
+>
+The important word here is 'seem'.
 
-On Saturday 15 March 2014 14:08:03 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Drop the use of __user in the user_ptr variable since the v4l2 structs are
-> actually defined without __user, instead cast to a __user pointer only
-> there where it is really needed: in the copy_to/from_user calls.
-> 
-> Also remove unnecessary casts in check_array_args and replace a wrong
-> cast (void *) with the correct one (void **).
-> 
-> This fixes these sparse warnings:
-> 
-> drivers/media/v4l2-core/v4l2-ioctl.c:2284:35: warning: incorrect type in
-> assignment (different address spaces)
-> drivers/media/v4l2-core/v4l2-ioctl.c:2301:35: warning: incorrect type in
-> assignment (different address spaces)
-> drivers/media/v4l2-core/v4l2-ioctl.c:2319:35: warning: incorrect type in
-> assignment (different address spaces)
-> drivers/media/v4l2-core/v4l2-ioctl.c:2386:57: warning: incorrect type in
-> argument 4 (different address spaces)
-> drivers/media/v4l2-core/v4l2-ioctl.c:2420:29: warning: incorrect type in
-> assignment (different address spaces)
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 20 ++++++++++----------
->  1 file changed, 10 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
-> b/drivers/media/v4l2-core/v4l2-ioctl.c index d9113cc..3e0cf4f 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -2260,7 +2260,7 @@ done:
->  }
-> 
->  static int check_array_args(unsigned int cmd, void *parg, size_t
-> *array_size,
-> -			    void * __user *user_ptr, void ***kernel_ptr)
-> +			    void **user_ptr, void ***kernel_ptr)
->  {
->  	int ret = 0;
-> 
-> @@ -2276,8 +2276,8 @@ static int check_array_args(unsigned int cmd, void
-> *parg, size_t *array_size, ret = -EINVAL;
->  				break;
->  			}
-> -			*user_ptr = (void __user *)buf->m.planes;
-> -			*kernel_ptr = (void *)&buf->m.planes;
-> +			*user_ptr = buf->m.planes;
-> +			*kernel_ptr = (void **)&buf->m.planes;
->  			*array_size = sizeof(struct v4l2_plane) * buf->length;
->  			ret = 1;
->  		}
-> @@ -2293,8 +2293,8 @@ static int check_array_args(unsigned int cmd, void
-> *parg, size_t *array_size, ret = -EINVAL;
->  				break;
->  			}
-> -			*user_ptr = (void __user *)edid->edid;
-> -			*kernel_ptr = (void *)&edid->edid;
-> +			*user_ptr = edid->edid;
-> +			*kernel_ptr = (void **)&edid->edid;
->  			*array_size = edid->blocks * 128;
->  			ret = 1;
->  		}
-> @@ -2311,8 +2311,8 @@ static int check_array_args(unsigned int cmd, void
-> *parg, size_t *array_size, ret = -EINVAL;
->  				break;
->  			}
-> -			*user_ptr = (void __user *)ctrls->controls;
-> -			*kernel_ptr = (void *)&ctrls->controls;
-> +			*user_ptr = ctrls->controls;
-> +			*kernel_ptr = (void **)&ctrls->controls;
->  			*array_size = sizeof(struct v4l2_ext_control)
->  				    * ctrls->count;
->  			ret = 1;
-> @@ -2334,7 +2334,7 @@ video_usercopy(struct file *file, unsigned int cmd,
-> unsigned long arg, long	err  = -EINVAL;
->  	bool	has_array_args;
->  	size_t  array_size = 0;
-> -	void __user *user_ptr = NULL;
-> +	void	*user_ptr = NULL;
->  	void	**kernel_ptr = NULL;
-> 
->  	/*  Copy arguments into temp kernel buffer  */
-> @@ -2395,7 +2395,7 @@ video_usercopy(struct file *file, unsigned int cmd,
-> unsigned long arg, if (NULL == mbuf)
->  			goto out_array_args;
->  		err = -EFAULT;
-> -		if (copy_from_user(mbuf, user_ptr, array_size))
-> +		if (copy_from_user(mbuf, (void __user *)user_ptr, array_size))
->  			goto out_array_args;
->  		*kernel_ptr = mbuf;
->  	}
-> @@ -2413,7 +2413,7 @@ video_usercopy(struct file *file, unsigned int cmd,
-> unsigned long arg,
-> 
->  	if (has_array_args) {
->  		*kernel_ptr = user_ptr;
-> -		if (copy_to_user(user_ptr, mbuf, array_size))
-> +		if (copy_to_user((void __user *)user_ptr, mbuf, array_size))
 
-Moving the __user annotation to copy_from_user/copy_to_user defeats the whole 
-point of the annotation. user_ptr is really a user pointer here, and I believe 
-it should be treated as such. I'd rather fix the sparse warnings where they 
-really occur.
-
->  			err = -EFAULT;
->  		goto out_array_args;
->  	}
-
+Lothar Waßann
 -- 
-Regards,
+___________________________________________________________
 
-Laurent Pinchart
+Ka-Ro electronics GmbH | Pascalstraße 22 | D - 52076 Aachen
+Phone: +49 2408 1402-0 | Fax: +49 2408 1402-10
+Geschäftsführer: Matthias Kaussen
+Handelsregistereintrag: Amtsgericht Aachen, HRB 4996
 
+www.karo-electronics.de | info@karo-electronics.de
+___________________________________________________________
