@@ -1,46 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:23406 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751304AbaC1Ofq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Mar 2014 10:35:46 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id D3D4B20305
-	for <linux-media@vger.kernel.org>; Fri, 28 Mar 2014 16:35:43 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/3] smiapp: Use I2C adapter ID and address in the sub-device name
-Date: Fri, 28 Mar 2014 16:35:11 +0200
-Message-Id: <1396017313-3990-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1396017313-3990-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1396017313-3990-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:20986 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753189AbaCRLI1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Mar 2014 07:08:27 -0400
+Message-id: <53282904.6080004@samsung.com>
+Date: Tue, 18 Mar 2014 12:07:48 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, mark.rutland@arm.com,
+	linux-samsung-soc@vger.kernel.org, a.hajda@samsung.com,
+	kyungmin.park@samsung.com, robh+dt@kernel.org,
+	galak@codeaurora.org, kgene.kim@samsung.com,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH v6 05/10] V4L: s5c73m3: Add device tree support
+References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
+ <1394122819-9582-6-git-send-email-s.nawrocki@samsung.com>
+ <201403181105.47922.arnd@arndb.de>
+In-reply-to: <201403181105.47922.arnd@arndb.de>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sub-device names should be unique. Should two identical sensors be
-present in the same media device they would be indistinguishable. The names
-will change e.g. from "vs6555 pixel array" to "vs6555 1-0010 pixel array".
+On 18/03/14 11:05, Arnd Bergmann wrote:
+> On Thursday 06 March 2014, Sylwester Nawrocki wrote:
+>> This patch adds the V4L2 asynchronous subdev registration and
+>> device tree support. Common clock API is used to control the
+>> sensor master clock from within the subdev.
+>>
+>> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> 
+> This driver is in linux-next now, but
+> 
+>> +	node_ep = v4l2_of_get_next_endpoint(node, NULL);
+>> +	if (!node_ep) {
+>> +		dev_warn(dev, "no endpoint defined for node: %s\n",
+>> +						node->full_name);
+>> +		return 0;
+>>  	}
+> 
+> This function is not defined here, leading to build errors.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+*sigh* it seems this [1] patch series ended up somehow in -next,
+but it shouldn't. Mauro, could you please remove the 'exynos'
+branch from media-next tree ? This should fix the problem.
+Even though I have been trying to merge this patch to mainline
+for ages, I'm ready to resign from it for now, not to add to
+the mess we are already seeing [2].
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 8741cae..69c11ec 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2543,8 +2543,9 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 		}
- 
- 		snprintf(this->sd.name,
--			 sizeof(this->sd.name), "%s %s",
--			 sensor->minfo.name, _this->name);
-+			 sizeof(this->sd.name), "%s %d-%4.4x %s",
-+			 sensor->minfo.name, i2c_adapter_id(client->adapter),
-+			 client->addr, _this->name);
- 
- 		this->sink_fmt.width =
- 			sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
--- 
-1.8.3.2
 
+[1] https://lkml.org/lkml/2014/3/6/352
+[2] https://lkml.org/lkml/2014/3/17/547
+
+Thanks,
+Sylwester
