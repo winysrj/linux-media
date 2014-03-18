@@ -1,103 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44276 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751156AbaCHMUX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 07:20:23 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 2/2] em28xx-dvb: remove one level of identation at fini callback
-Date: Sat,  8 Mar 2014 09:19:37 -0300
-Message-Id: <1394281177-5920-2-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1394281177-5920-1-git-send-email-m.chehab@samsung.com>
-References: <1394281177-5920-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from nm45.bullet.mail.ne1.yahoo.com ([98.138.120.52]:41468 "HELO
+	nm45.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754601AbaCRJ1u convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Mar 2014 05:27:50 -0400
+References: <1395099887.87256.YahooMailNeo@web120305.mail.ne1.yahoo.com> <CALuNSF76RLkVRfBCr10N4U1i4U1BCrd5A5uqB6aqZ_9kVd_UFQ@mail.gmail.com>
+Message-ID: <1395134694.52130.YahooMailNeo@web120303.mail.ne1.yahoo.com>
+Date: Tue, 18 Mar 2014 02:24:54 -0700 (PDT)
+From: Chris Rankin <rankincj@yahoo.com>
+Reply-To: Chris Rankin <rankincj@yahoo.com>
+Subject: Re: Updated DVB-T tables - where to send them?
+To: Simon Liddicott <simon@liddicott.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <CALuNSF76RLkVRfBCr10N4U1i4U1BCrd5A5uqB6aqZ_9kVd_UFQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simplify the logic a little by removing one level of identation.
-Also, it only makes sense to print something if the .fini callback
-is actually doing something.
+Hi,
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/em28xx/em28xx-dvb.c | 48 +++++++++++++++++++----------------
- 1 file changed, 26 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index cacdca3a3412..6638394b3457 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -1543,6 +1543,9 @@ static inline void prevent_sleep(struct dvb_frontend_ops *ops)
- 
- static int em28xx_dvb_fini(struct em28xx *dev)
- {
-+	struct em28xx_dvb *dvb;
-+	struct i2c_client *client;
-+
- 	if (dev->is_audio_only) {
- 		/* Shouldn't initialize IR for this interface */
- 		return 0;
-@@ -1553,35 +1556,36 @@ static int em28xx_dvb_fini(struct em28xx *dev)
- 		return 0;
- 	}
- 
--	em28xx_info("Closing DVB extension");
-+	if (!dev->dvb)
-+		return 0;
- 
--	if (dev->dvb) {
--		struct em28xx_dvb *dvb = dev->dvb;
--		struct i2c_client *client = dvb->i2c_client_tuner;
-+	em28xx_info("Closing DVB extension");
- 
--		em28xx_uninit_usb_xfer(dev, EM28XX_DIGITAL_MODE);
-+	dvb = dev->dvb;
-+	client = dvb->i2c_client_tuner;
- 
--		if (dev->disconnected) {
--			/* We cannot tell the device to sleep
--			 * once it has been unplugged. */
--			if (dvb->fe[0])
--				prevent_sleep(&dvb->fe[0]->ops);
--			if (dvb->fe[1])
--				prevent_sleep(&dvb->fe[1]->ops);
--		}
-+	em28xx_uninit_usb_xfer(dev, EM28XX_DIGITAL_MODE);
- 
--		/* remove I2C tuner */
--		if (client) {
--			module_put(client->dev.driver->owner);
--			i2c_unregister_device(client);
--		}
-+	if (dev->disconnected) {
-+		/* We cannot tell the device to sleep
-+		 * once it has been unplugged. */
-+		if (dvb->fe[0])
-+			prevent_sleep(&dvb->fe[0]->ops);
-+		if (dvb->fe[1])
-+			prevent_sleep(&dvb->fe[1]->ops);
-+	}
- 
--		em28xx_unregister_dvb(dvb);
--		kfree(dvb);
--		dev->dvb = NULL;
--		kref_put(&dev->ref, em28xx_free_device);
-+	/* remove I2C tuner */
-+	if (client) {
-+		module_put(client->dev.driver->owner);
-+		i2c_unregister_device(client);
- 	}
- 
-+	em28xx_unregister_dvb(dvb);
-+	kfree(dvb);
-+	dev->dvb = NULL;
-+	kref_put(&dev->ref, em28xx_free_device);
-+
- 	return 0;
- }
- 
--- 
-1.8.5.3
+Fedora 20 is using a new dvb-scan-tables package:
 
+* Mon Jan 13 2014 Till Maas <opensource@till.name> - 0-4.20130713gitd913405
+
+Unfortunately, it's still full of files dating from 2012! I will raise a bug in their bugzilla for them to ignore completely and then close when Fedora 22 is released.
+
+Cheers,
+Chris
+
+
+On Tuesday, 18 March 2014, 9:07, Simon Liddicott <simon@liddicott.com> wrote:
+
+> I submitted updates for the whole of the UK in September. 
+> Check Crystal Palace here: <http://git.linuxtv.org/dtv-scan-tables.git/blob_plain/HEAD:/dvb-t/uk-CrystalPalace>
+> 
+> You will probably find your distro hasn't updated.
+> 
+> I did a pull request into this github repo <https://github.com/oliv3r/dtv-scan-tables> 
+> 
+> Si.
+
+
+
+On 17 March 2014 23:44, Chris Rankin <rankincj@yahoo.com> wrote:
+
+
+>
+>Hi,
+>
+>The DVB-T initial tuning information for Crystal Palace in the UK is completely obsolete - despite my two attempts to submit an updated version over the YEARS. Where is the best place to send this information, please?
+>
+>Thanks,
+>Chris
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
