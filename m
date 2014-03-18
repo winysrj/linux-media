@@ -1,82 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3468 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750761AbaC1LFr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Mar 2014 07:05:47 -0400
-Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2SB5iEJ022650
-	for <linux-media@vger.kernel.org>; Fri, 28 Mar 2014 12:05:46 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6574F2A03F2
-	for <linux-media@vger.kernel.org>; Fri, 28 Mar 2014 12:05:43 +0100 (CET)
-Message-ID: <53355787.10700@xs4all.nl>
-Date: Fri, 28 Mar 2014 12:05:43 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46397 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753019AbaCRG17 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Mar 2014 02:27:59 -0400
+Message-ID: <5327E74A.8030705@ti.com>
+Date: Tue, 18 Mar 2014 08:27:22 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.16] Various fixes
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Robert Schwebel <r.schwebel@pengutronix.de>,
+	Grant Likely <grant.likely@linaro.org>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Rob Herring <robh+dt@kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>
+Subject: Re: [GIT PULL] Move device tree graph parsing helpers to drivers/of
+References: <1394126000.3622.66.camel@paszta.hi.pengutronix.de> <5321CB04.6090700@samsung.com> <20140314070505.GV1629@pengutronix.de> <5247436.pV9jXGKXCJ@avalon>
+In-Reply-To: <5247436.pV9jXGKXCJ@avalon>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="HuPr66pmeGGMMPoRd6Wom8fe3jAgko9Fm"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 8432164ddf7bfe40748ac49995356ab4dfda43b7:
+--HuPr66pmeGGMMPoRd6Wom8fe3jAgko9Fm
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-  [media] Sensoray 2255 uses videobuf2 (2014-03-24 17:23:43 -0300)
+On 18/03/14 01:30, Laurent Pinchart wrote:
 
-are available in the git repository at:
+> I agree with you. I know that DT bindings review takes too much time, s=
+lows=20
+> development down and is just generally painful. I'm trying to reply to =
+this e-
+> mail thread as fast as possible, but I'm also busy with other tasks :-/=
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.16a
+>=20
+> The lack of formal consensus comes partly from the fact that people are=
+ busy=20
+> and that the mail thread is growing big. There's still two open questio=
+ns from=20
+> my view of the whole discussion:
+>=20
+> - Do we really want to drop bidirectional links ? Grant has been pretty=
+ vocal=20
+> about that, but there has been several replies with arguments for=20
+> bidirectional links, and no reply from him afterwards. Even though that=
+=20
+> wouldn't be the preferred solution for everybody, there doesn't seem to=
+ be a=20
+> strong disagreement about dropping bidirectional links, as long as we c=
+an come=20
+> up with a reasonable implementation.
+>=20
+> - If we drop bidirectional links, what link direction do we use ? There=
+ has=20
+> been several proposals (including "north", which I think isn't future-p=
+roof as=20
+> it assumes an earth-centric model) and no real agreement, although ther=
+e seems=20
+> to be a consensus among several developers that the core OF graph bindi=
+ngs=20
+> could leave that to be specified by subsystem bindings. We would still =
+have to=20
+> agree on a direction for the display subsystem of course.
+>=20
+> If my above explanation isn't too far from the reality the next step co=
+uld be=20
+> to send a new version of the DT bindings proposal as a ping.
 
-for you to fetch changes up to ea8abd9566c81b496c49cdf2f91165231ded5a2c:
+I agree with the above.
 
-  v4l2-pci-skeleton: fix typo while retrieving the skel_buffer (2014-03-28 11:57:40 +0100)
+However, I also think we should just go forward with the bidirectional
+links for now. The bindings for bidir links are already in the mainline
+kernel, so they can't be seen as broken.
 
-----------------------------------------------------------------
-Daniel Glöckner (1):
-      bttv: Add support for PCI-8604PW
+When we have an agreement about the direction, and we've got common
+parsing code, it's trivial to convert the existing links to single
+direction links, and the old dts files with bidir links continue to work
+fine.
 
-Hans Verkuil (4):
-      v4l2-subdev.h: fix sparse error with v4l2_subdev_notify
-      videobuf2-core: fix sparse errors.
-      v4l2-common.h: remove __user annotation in struct v4l2_edid
-      v4l2-ioctl.c: fix sparse __user-related warnings
+This is what I'm planning to do with OMAP display subsystem, as I
+_really_ want to get the DT support merged for 3.15. The current mix of
+pdata + DT that we have for OMAP display is an unmaintainable mess.
 
-Ismael Luceno (1):
-      gspca_gl860: Clean up idxdata structs
+So unless I get a nack from someone (I've pinged Grant twice about
+this), or someone explains why it's a bad idea, I'll push the OMAP
+display bindings [1] for 3.15 with bidir bindings, and change them to
+single-dir later.
 
-Lad, Prabhakar (3):
-      media: davinci: vpbe: use v4l2_fh for priority handling
-      media: davinci: vpfe: use v4l2_fh for priority handling
-      v4l2-pci-skeleton: fix typo while retrieving the skel_buffer
+Note that I did remove the abbreviated endpoint format that I had there
+earlier, so now the bindings are fully compatible with the v4l2 bindings.=
 
-Martin Bugge (2):
-      adv7842: update RGB quantization range on HDMI/DVI-D mode irq.
-      adv7842: Disable access to EDID DDC lines before chip power up.
 
-Mike Sampson (1):
-      next-20140324 drivers/staging/media/sn9c102/sn9c102_hv7131r.c fix style warnings flagged by checkpatch.pl.
+ Tomi
 
-ileana@telecom-paristech.fr (1):
-      staging: omap24xx: fix coding style
+[1] http://article.gmane.org/gmane.linux.drivers.devicetree/63885
 
- Documentation/video4linux/v4l2-pci-skeleton.c   |   2 +-
- drivers/media/i2c/adv7842.c                     |  10 +-
- drivers/media/pci/bt8xx/bttv-cards.c            | 110 ++++++++++++++++++
- drivers/media/pci/bt8xx/bttv.h                  |   1 +
- drivers/media/platform/davinci/vpbe_display.c   |  39 ++-----
- drivers/media/platform/davinci/vpfe_capture.c   |  13 +--
- drivers/media/usb/gspca/gl860/gl860-mi2020.c    | 464 ++++++++++++++++++++++++++++++++++++++++++++--------------------------------
- drivers/media/v4l2-core/v4l2-ioctl.c            |  10 +-
- drivers/media/v4l2-core/videobuf2-core.c        | 211 +++++++++++++++++++++--------------
- drivers/staging/media/omap24xx/tcm825x.h        |   4 +-
- drivers/staging/media/sn9c102/sn9c102_hv7131r.c |  23 ++--
- include/media/davinci/vpbe_display.h            |   6 +-
- include/media/davinci/vpfe_capture.h            |   6 +-
- include/media/v4l2-device.h                     |   8 ++
- include/media/v4l2-subdev.h                     |   5 -
- include/uapi/linux/v4l2-common.h                |   2 +-
- 16 files changed, 562 insertions(+), 352 deletions(-)
+
+
+--HuPr66pmeGGMMPoRd6Wom8fe3jAgko9Fm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJTJ+dLAAoJEPo9qoy8lh711zsP/RpStdfq4S+pzU/vDxItiGos
+y1i+9WQMNBWXRHhx8ZYYnF8NaDsLoIxGfcInMeH9jSxkkvcqnfcZP5teSKdZrhQF
+HxyiL4KZF2Fv4K2dDOKzTKttSFLKI6eDxsfO3uKibU2jBx3/tRpZoS6ha2ZoU0Bq
+pxjLXbhVzIGkTzPjByy5eTmaMretDAzmSNnRZOhrN2eBINnLnPOfG/7cd3NfgeZv
+N6J8H2TVtPAyT5RBwuqgqu9Nn8iVGt6H/JmvobKblBF+4Jmf1CGGOWGnI/gL8kjd
+iQ9vVJyb2hKYaNFDmwtXuHX6I7nJnVAzhjZ42fvCgbMIR48Yc4VE5KiQ7QONQB7n
+ff6zaPRdeTgQJ01+3yKmD/X2MO+TPfKQbDOKKVZfXSbNdVP4vYldzFKs503pmh1d
+oYndnQkEigTdZlxo9X9u2asc8KOquSyiTc0UvcN4F6zRNH7Od/uc+8BRO+ASK5s0
+Mq2Vo78+JPGbmHygsHoxPpwUxJCywOLTWxZoOkic4bV5LyLhJXfmpTgj2+MoXtI/
+HyhUc4Z7a4sRTspkGf8kFqonJCo6k0x1M4CnxBiZ2l3pck0chYKe5MhCzkYaIm/m
+sg2ec0WO18NKVZGABCBOoUozIbcASc0KWPpDmcdVDePQW2bxgN+ihPxC1OpiKWj+
+UXqlJN6TtZ2tDVNQBVb5
+=NAN+
+-----END PGP SIGNATURE-----
+
+--HuPr66pmeGGMMPoRd6Wom8fe3jAgko9Fm--
