@@ -1,131 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:41828 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750990AbaCEF2m (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Mar 2014 00:28:42 -0500
-Date: Wed, 05 Mar 2014 13:28:39 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, kbuild-all@01.org
-Subject: [linuxtv-media:master 485/499]
- drivers/media/dvb-frontends/drx39xyj/drxj.c:1672:65: sparse: Using plain
- integer as NULL pointer
-Message-ID: <5316b607.tZvy2dEGJe9LO2S/%fengguang.wu@intel.com>
+Received: from eusmtp01.atmel.com ([212.144.249.242]:48580 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757883AbaCSJSG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Mar 2014 05:18:06 -0400
+Message-ID: <53296094.3060209@atmel.com>
+Date: Wed, 19 Mar 2014 17:17:08 +0800
+From: Josh Wu <josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+CC: <g.liakhovetski@gmx.de>, <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] [media] ov2640: add support for async device registration
+References: <1394791952-12941-1-git-send-email-josh.wu@atmel.com> <532371F4.9050509@gmail.com>
+In-Reply-To: <532371F4.9050509@gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   59432be1c7fbf2a4f608850855ff649bee0f7b3b
-commit: 9e4c509d7444e067d39d3ac96a3398721bca4f01 [485/499] [media] drx-j: Use single master mode
-reproduce: make C=1 CF=-D__CHECK_ENDIAN__
+Hi, Sylwester
 
+Thanks for your review.
 
-sparse warnings: (new ones prefixed by >>)
+On 3/15/2014 5:17 AM, Sylwester Nawrocki wrote:
+> Hi Josh,
+>
+> On 03/14/2014 11:12 AM, Josh Wu wrote:
+>> +    clk = v4l2_clk_get(&client->dev, "mclk");
+>> +    if (IS_ERR(clk))
+>> +        return -EPROBE_DEFER;
+>
+> You should instead make it:
+>
+>         return PTR_ERR(clk);
+>
+> But you will need this patch for that to work:
+> http://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/commit/drivers/clk/clk.c?id=a34cd4666f3da84228a82f70c94b8d9b692034ea 
+>
+>
+> With this patch there is no need to overwrite any returned error
+> value with EPROBE_DEFER.
 
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:1672:65: sparse: Using plain integer as NULL pointer
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:1672:71: sparse: Using plain integer as NULL pointer
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:1674:52: sparse: Using plain integer as NULL pointer
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:1674:58: sparse: Using plain integer as NULL pointer
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:905:21: sparse: symbol 'drxj_default_aud_data_g' was not declared. Should it be static?
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20248:25: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20248:25: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20248:25: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20248:25: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20250:25: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20250:25: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20250:25: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20250:25: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20274:34: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20274:34: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20274:34: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20274:34: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20274:34: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20274:34: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20276:34: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20276:34: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20276:34: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20276:34: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20278:35: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20278:35: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20278:35: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20278:35: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20280:33: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20280:33: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20280:33: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20280:33: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20087:34: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20087:34: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20087:34: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20087:34: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20114:29: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20114:29: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20114:29: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20114:29: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20132:34: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20132:34: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20132:34: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20132:34: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20132:34: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20132:34: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20134:34: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20134:34: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20134:34: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20134:34: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20136:35: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20136:35: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20136:35: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20136:35: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20138:33: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20138:33: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20138:33: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20138:33: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20152:35: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20152:35: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20152:35: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20152:35: sparse: cast to restricted __be16
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20160:47: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20160:47: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20160:47: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20160:47: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20160:47: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20160:47: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20162:46: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20162:46: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20162:46: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20162:46: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20162:46: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20162:46: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20164:51: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20164:51: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20164:51: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20164:51: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20164:51: sparse: cast to restricted __be32
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:20164:51: sparse: cast to restricted __be32
+Thanks for the information. I will use this in v2 version.
 
-vim +1672 drivers/media/dvb-frontends/drx39xyj/drxj.c
+Best Regards,
+Josh Wu
 
-73b3fc3d Mauro Carvalho Chehab 2014-01-27  1666  
-73b3fc3d Mauro Carvalho Chehab 2014-01-27  1667  #if DRXDAP_SINGLE_MASTER
-73b3fc3d Mauro Carvalho Chehab 2014-01-27  1668  		/*
-73b3fc3d Mauro Carvalho Chehab 2014-01-27  1669  		 * In single master mode, split the read and write actions.
-73b3fc3d Mauro Carvalho Chehab 2014-01-27  1670  		 * No special action is needed for write chunks here.
-73b3fc3d Mauro Carvalho Chehab 2014-01-27  1671  		 */
-73b3fc3d Mauro Carvalho Chehab 2014-01-27 @1672  		rc = drxbsp_i2c_write_read(dev_addr, bufx, buf, 0, 0, 0);
-73b3fc3d Mauro Carvalho Chehab 2014-01-27  1673  		if (rc == 0)
-73b3fc3d Mauro Carvalho Chehab 2014-01-27 @1674  			rc = drxbsp_i2c_write_read(0, 0, 0, dev_addr, todo, data);
-73b3fc3d Mauro Carvalho Chehab 2014-01-27  1675  #else
-73b3fc3d Mauro Carvalho Chehab 2014-01-27  1676  		/* In multi master mode, do everything in one RW action */
-73b3fc3d Mauro Carvalho Chehab 2014-01-27  1677  		rc = drxbsp_i2c_write_read(dev_addr, bufx, buf, dev_addr, todo,
+>
+>> @@ -1097,23 +1106,26 @@ static int ov2640_probe(struct i2c_client 
+>> *client,
+>>       v4l2_ctrl_new_std(&priv->hdl,&ov2640_ctrl_ops,
+>>               V4L2_CID_HFLIP, 0, 1, 1, 0);
+>>       priv->subdev.ctrl_handler =&priv->hdl;
+>> -    if (priv->hdl.error)
+>> -        return priv->hdl.error;
+>> -
+>> -    priv->clk = v4l2_clk_get(&client->dev, "mclk");
+>> -    if (IS_ERR(priv->clk)) {
+>> -        ret = PTR_ERR(priv->clk);
+>> -        goto eclkget;
+>
+> -- 
+> Regards,
+> Sylwester
 
-:::::: The code at line 1672 was first introduced by commit
-:::::: 73b3fc3d74de4ccba5775476d685e062b7774e64 [media] drx-j: get rid of drx_dap_fasi.c
-
-:::::: TO: Mauro Carvalho Chehab <m.chehab@samsung.com>
-:::::: CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
-
----
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
