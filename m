@@ -1,142 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:38759 "EHLO
-	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754955AbaCTMnH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Mar 2014 08:43:07 -0400
-Message-ID: <532AE253.2010803@williammanley.net>
-Date: Thu, 20 Mar 2014 12:42:59 +0000
-From: William Manley <will@williammanley.net>
+Received: from mout.gmx.net ([212.227.15.15]:56658 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757627AbaCSJup (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Mar 2014 05:50:45 -0400
+Received: from minime.bse ([77.20.176.42]) by mail.gmx.com (mrgmx103) with
+ ESMTPSA (Nemesis) id 0LjquD-1Wx43e3c09-00bwTc for
+ <linux-media@vger.kernel.org>; Wed, 19 Mar 2014 10:50:44 +0100
+From: =?UTF-8?q?Daniel=20Gl=C3=B6ckner?= <daniel-gl@gmx.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v3] bttv: Add support for PCI-8604PW
+Date: Wed, 19 Mar 2014 10:50:41 +0100
+Message-Id: <1395222641-19060-1-git-send-email-daniel-gl@gmx.net>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: William Manley <will@williammanley.net>,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v2] uvcvideo: Work around buggy Logitech C920 firmware
-References: <1394647711-25291-1-git-send-email-will@williammanley.net> <1394714328-29969-1-git-send-email-will@williammanley.net>
-In-Reply-To: <1394714328-29969-1-git-send-email-will@williammanley.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prod...
+This patch adds support for the PCI-8604PW card equipped with four 878A.
+It is unknown who the manufacturer of this card is and no drivers were
+available during development of the patch. According to images found
+online, the card is originally sold with Linux DVR software.
 
-Is this acceptable to go in?
+A CPLD on the card prevents the 878A from requesting access to the
+bus until an initialization sequence has been issued via GPIOs. The
+implemented sequence uses the minimum number of GPIOs needed to
+successfully unlock bus access. As there are many more GPIOs connected
+to the CPLD, it is very likely that some of the others have an influence
+on the bus arbitration scheduling. This should be investigated further
+in case of performance issues.
 
-Thanks
+The tested card contains an EEPROM on one of the 878A, but it is
+completely empty (i.e. contains only 0xff), so it is not possible
+to detect the card.
 
-Will
+Signed-off-by: Daniel Glöckner <daniel-gl@gmx.net>
+Tested-by: Robert Longbottom <rongblor@googlemail.com>
+---
+ drivers/media/pci/bt8xx/bttv-cards.c | 110 +++++++++++++++++++++++++++++++++++
+ drivers/media/pci/bt8xx/bttv.h       |   1 +
+ 2 files changed, 111 insertions(+)
 
-On 13/03/14 12:38, William Manley wrote:
-> The uvcvideo webcam driver exposes the v4l2 control "Exposure (Absolute)"
-> which allows the user to control the exposure time of the webcam,
-> essentially controlling the brightness of the received image.  By default
-> the webcam automatically adjusts the exposure time automatically but the
-> if you set the control "Exposure, Auto"="Manual Mode" the user can fix
-> the exposure time.
-> 
-> Unfortunately it seems that the Logitech C920 has a firmware bug where
-> it will forget that it's in manual mode temporarily during initialisation.
-> This means that the camera doesn't respect the exposure time that the user
-> requested if they request it before starting to stream video.  They end up
-> with a video stream which is either too bright or too dark and must reset
-> the controls after video starts streaming.
-> 
-> This patch introduces the quirk UVC_QUIRK_RESTORE_CTRLS_ON_INIT which
-> causes the cached controls to be re-uploaded to the camera immediately
-> after initialising the camera.  This quirk is applied to the C920 to work
-> around this camera bug.
-> 
-> Changes since patch v1:
->  * Introduce quirk so workaround is only applied to the C920.
-> 
-> Signed-off-by: William Manley <will@williammanley.net>
-> ---
->  drivers/media/usb/uvc/uvc_ctrl.c   |  2 +-
->  drivers/media/usb/uvc/uvc_driver.c | 11 ++++++++++-
->  drivers/media/usb/uvc/uvc_video.c  |  6 ++++++
->  drivers/media/usb/uvc/uvcvideo.h   |  3 ++-
->  4 files changed, 19 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
-> index a2f4501..f72d7eb 100644
-> --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
-> @@ -1795,7 +1795,7 @@ done:
->   * - Handle restore order (Auto-Exposure Mode should be restored before
->   *   Exposure Time).
->   */
-> -int uvc_ctrl_resume_device(struct uvc_device *dev)
-> +int uvc_ctrl_restore_values(struct uvc_device *dev)
->  {
->  	struct uvc_control *ctrl;
->  	struct uvc_entity *entity;
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-> index c3bb250..d3a9c3b 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -1981,7 +1981,7 @@ static int __uvc_resume(struct usb_interface *intf, int reset)
->  		int ret = 0;
->  
->  		if (reset) {
-> -			ret = uvc_ctrl_resume_device(dev);
-> +			ret = uvc_ctrl_restore_values(dev);
->  			if (ret < 0)
->  				return ret;
->  		}
-> @@ -2156,6 +2156,15 @@ static struct usb_device_id uvc_ids[] = {
->  	  .bInterfaceClass	= USB_CLASS_VENDOR_SPEC,
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0 },
-> +	/* Logitech HD Pro Webcam C920 */
-> +	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> +				| USB_DEVICE_ID_MATCH_INT_INFO,
-> +	  .idVendor		= 0x046d,
-> +	  .idProduct		= 0x082d,
-> +	  .bInterfaceClass	= USB_CLASS_VIDEO,
-> +	  .bInterfaceSubClass	= 1,
-> +	  .bInterfaceProtocol	= 0,
-> +	  .driver_info		= UVC_QUIRK_RESTORE_CTRLS_ON_INIT },
->  	/* Chicony CNF7129 (Asus EEE 100HE) */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-> index 3394c34..85ff6b8 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -1660,6 +1660,12 @@ static int uvc_init_video(struct uvc_streaming *stream, gfp_t gfp_flags)
->  		}
->  	}
->  
-> +	/* The Logitech C920 temporarily forgets that it should not be
-> +	   adjusting Exposure Absolute during init so restore controls to
-> +	   stored values. */
-> +	if (stream->dev->quirks & UVC_QUIRK_RESTORE_CTRLS_ON_INIT)
-> +		uvc_ctrl_restore_values(stream->dev);
-> +
->  	return 0;
->  }
->  
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-> index 9e35982..0f54376 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -137,6 +137,7 @@
->  #define UVC_QUIRK_FIX_BANDWIDTH		0x00000080
->  #define UVC_QUIRK_PROBE_DEF		0x00000100
->  #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
-> +#define UVC_QUIRK_RESTORE_CTRLS_ON_INIT	0x00000400
->  
->  /* Format flags */
->  #define UVC_FMT_FLAG_COMPRESSED		0x00000001
-> @@ -676,7 +677,7 @@ extern int uvc_ctrl_add_mapping(struct uvc_video_chain *chain,
->  		const struct uvc_control_mapping *mapping);
->  extern int uvc_ctrl_init_device(struct uvc_device *dev);
->  extern void uvc_ctrl_cleanup_device(struct uvc_device *dev);
-> -extern int uvc_ctrl_resume_device(struct uvc_device *dev);
-> +extern int uvc_ctrl_restore_values(struct uvc_device *dev);
->  
->  extern int uvc_ctrl_begin(struct uvc_video_chain *chain);
->  extern int __uvc_ctrl_commit(struct uvc_fh *handle, int rollback,
-> 
+diff --git a/drivers/media/pci/bt8xx/bttv-cards.c b/drivers/media/pci/bt8xx/bttv-cards.c
+index 6662b49..7df34b4 100644
+--- a/drivers/media/pci/bt8xx/bttv-cards.c
++++ b/drivers/media/pci/bt8xx/bttv-cards.c
+@@ -52,6 +52,7 @@ static void osprey_eeprom(struct bttv *btv, const u8 ee[256]);
+ static void modtec_eeprom(struct bttv *btv);
+ static void init_PXC200(struct bttv *btv);
+ static void init_RTV24(struct bttv *btv);
++static void init_PCI8604PW(struct bttv *btv);
+ 
+ static void rv605_muxsel(struct bttv *btv, unsigned int input);
+ static void eagle_muxsel(struct bttv *btv, unsigned int input);
+@@ -2856,6 +2857,22 @@ struct tvcard bttv_tvcards[] = {
+ 		.tuner_addr	= ADDR_UNSET,
+ 	},
+ 
++	/* ---- card 0xa5---------------------------------- */
++	[BTTV_BOARD_PCI_8604PW] = {
++		/* PCI-8604PW with special unlock sequence */
++		.name           = "PCI-8604PW",
++		.video_inputs   = 2,
++		/* .audio_inputs= 0, */
++		.svhs           = NO_SVHS,
++		/* The second input is available on CN4, if populated.
++		 * The other 5x2 header (CN2?) connects to the same inputs
++		 * as the on-board BNCs */
++		.muxsel         = MUXSEL(2, 3),
++		.tuner_type     = TUNER_ABSENT,
++		.no_msp34xx	= 1,
++		.no_tda7432	= 1,
++		.pll            = PLL_35,
++	},
+ };
+ 
+ static const unsigned int bttv_num_tvcards = ARRAY_SIZE(bttv_tvcards);
+@@ -3290,6 +3307,9 @@ void bttv_init_card1(struct bttv *btv)
+ 	case BTTV_BOARD_ADLINK_RTV24:
+ 		init_RTV24( btv );
+ 		break;
++	case BTTV_BOARD_PCI_8604PW:
++		init_PCI8604PW(btv);
++		break;
+ 
+ 	}
+ 	if (!bttv_tvcards[btv->c.type].has_dvb)
+@@ -4170,6 +4190,96 @@ init_RTV24 (struct bttv *btv)
+ 
+ 
+ /* ----------------------------------------------------------------------- */
++/*
++ *  The PCI-8604PW contains a CPLD, probably an ispMACH 4A, that filters
++ *  the PCI REQ signals comming from the four BT878 chips. After power
++ *  up, the CPLD does not forward requests to the bus, which prevents
++ *  the BT878 from fetching RISC instructions from memory. While the
++ *  CPLD is connected to most of the GPIOs of PCI device 0xD, only
++ *  five appear to play a role in unlocking the REQ signal. The following
++ *  sequence has been determined by trial and error without access to the
++ *  original driver.
++ *
++ *  Eight GPIOs of device 0xC are provided on connector CN4 (4 in, 4 out).
++ *  Devices 0xE and 0xF do not appear to have anything connected to their
++ *  GPIOs.
++ *
++ *  The correct GPIO_OUT_EN value might have some more bits set. It should
++ *  be possible to derive it from a boundary scan of the CPLD. Its JTAG
++ *  pins are routed to test points.
++ *
++ */
++/* ----------------------------------------------------------------------- */
++static void
++init_PCI8604PW(struct bttv *btv)
++{
++	int state;
++
++	if ((PCI_SLOT(btv->c.pci->devfn) & ~3) != 0xC) {
++		pr_warn("This is not a PCI-8604PW\n");
++		return;
++	}
++
++	if (PCI_SLOT(btv->c.pci->devfn) != 0xD)
++		return;
++
++	btwrite(0x080002, BT848_GPIO_OUT_EN);
++
++	state = (btread(BT848_GPIO_DATA) >> 21) & 7;
++
++	for (;;) {
++		switch (state) {
++		case 1:
++		case 5:
++		case 6:
++		case 4:
++			pr_debug("PCI-8604PW in state %i, toggling pin\n",
++				 state);
++			btwrite(0x080000, BT848_GPIO_DATA);
++			msleep(1);
++			btwrite(0x000000, BT848_GPIO_DATA);
++			msleep(1);
++			break;
++		case 7:
++			pr_info("PCI-8604PW unlocked\n");
++			return;
++		case 0:
++			/* FIXME: If we are in state 7 and toggle GPIO[19] one
++			   more time, the CPLD goes into state 0, where PCI bus
++			   mastering is inhibited again. We have not managed to
++			   get out of that state. */
++
++			pr_err("PCI-8604PW locked until reset\n");
++			return;
++		default:
++			pr_err("PCI-8604PW in unknown state %i\n", state);
++			return;
++		}
++
++		state = (state << 4) | ((btread(BT848_GPIO_DATA) >> 21) & 7);
++
++		switch (state) {
++		case 0x15:
++		case 0x56:
++		case 0x64:
++		case 0x47:
++		/* The transition from state 7 to state 0 is, as explained
++		   above, valid but undesired and with this code impossible
++		   as we exit as soon as we are in state 7.
++		case 0x70: */
++			break;
++		default:
++			pr_err("PCI-8604PW invalid transition %i -> %i\n",
++			       state >> 4, state & 7);
++			return;
++		}
++		state &= 7;
++	}
++}
++
++
++
++/* ----------------------------------------------------------------------- */
+ /* Miro Pro radio stuff -- the tea5757 is connected to some GPIO ports     */
+ /*
+  * Copyright (c) 1999 Csaba Halasz <qgehali@uni-miskolc.hu>
+diff --git a/drivers/media/pci/bt8xx/bttv.h b/drivers/media/pci/bt8xx/bttv.h
+index df578ef..c0a4c93 100644
+--- a/drivers/media/pci/bt8xx/bttv.h
++++ b/drivers/media/pci/bt8xx/bttv.h
+@@ -188,6 +188,7 @@
+ #define BTTV_BOARD_ADLINK_MPG24            0xa2
+ #define BTTV_BOARD_BT848_CAP_14            0xa3
+ #define BTTV_BOARD_CYBERVISION_CV06        0xa4
++#define BTTV_BOARD_PCI_8604PW              0xa5
+ 
+ /* more card-specific defines */
+ #define PT2254_L_CHANNEL 0x10
+-- 
+1.8.3.4
 
