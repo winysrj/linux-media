@@ -1,126 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:56687 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754527AbaCLQb0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Mar 2014 12:31:26 -0400
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Denis Carikli <denis@eukrea.com>
-Subject: [PATCH v10][ 02/10] imx-drm: Add RGB666 support for parallel display.
-Date: Wed, 12 Mar 2014 17:30:59 +0100
-Message-Id: <1394641867-15629-2-git-send-email-denis@eukrea.com>
-In-Reply-To: <1394641867-15629-1-git-send-email-denis@eukrea.com>
-References: <1394641867-15629-1-git-send-email-denis@eukrea.com>
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:20464 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751761AbaCSTCd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Mar 2014 15:02:33 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N2P0003V688P070@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 19 Mar 2014 15:02:32 -0400 (EDT)
+Date: Wed, 19 Mar 2014 16:02:27 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: LMML <linux-media@vger.kernel.org>, media-workshop@linuxtv.org
+Subject: [ANNOUNCE] media mini-summit on May, 2 in San Jose
+Message-id: <20140319160227.27a37e90@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-ChangeLog v8->v9:
-- Rebased.
-- Added Philipp Zabel's ack.
-- Shortened the patch title.
+As discussed on our IRC #v4l channels, most of the core developers will be
+in San Jose - CA - USA for the Embedded Linux Conference.
 
-ChangeLog v8->v9:
-- Removed the Cc. They are now set in git-send-email directly.
-- Rebased.
+There are several subjects that we've been discussing those days that
+require a face to face meeting.
 
-ChangeLog v7->v8:
-- Shrinked even more the Cc list.
+So, We'll be doing a media mini-summit on May, 2 (Friday) at Marriott San
+Jose. Eventually, we may also schedule some BoFs during the week, if needed.
 
-ChangeLog v6->v7:
-- Shrinked even more the Cc list.
+In order to properly organize the event, I need the name of the
+developers interested on joining us, plus the themes proposed for
+discussions.
 
-ChangeLog v5->v6:
-- Remove people not concerned by this patch from the Cc list.
+As usual, we'll be using the media-workshop@linuxtv.org ML for specific
+discussions about that, so the ones interested on participate are
+requested to subscribe it.
 
-ChangeLog v3->v5:
-- Use the correct RGB order.
-
-ChangeLog v2->v3:
-- Added some interested people in the Cc list.
-- Removed the commit message long desciption that was just a copy of the short
-  description.
-- Rebased the patch.
-- Fixed a copy-paste error in the ipu_dc_map_clear parameter.
----
- .../bindings/staging/imx-drm/fsl-imx-drm.txt       |    3 ++-
- drivers/staging/imx-drm/ipu-v3/ipu-dc.c            |    9 +++++++++
- drivers/staging/imx-drm/parallel-display.c         |    2 ++
- 3 files changed, 13 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt b/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
-index 3be5ce7..83137ef 100644
---- a/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
-+++ b/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
-@@ -60,7 +60,8 @@ Required properties:
- - compatible: Should be "fsl,imx-parallel-display"
- Optional properties:
- - interface_pix_fmt: How this display is connected to the
--  display interface. Currently supported types: "rgb24", "rgb565", "bgr666"
-+  display interface. Currently supported types: "rgb24", "rgb565", "bgr666",
-+  "rgb666"
- - edid: verbatim EDID data block describing attached display.
- - ddc: phandle describing the i2c bus handling the display data
-   channel
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
-index d5de8bb..6f9abe8 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
-@@ -92,6 +92,7 @@ enum ipu_dc_map {
- 	IPU_DC_MAP_GBR24, /* TVEv2 */
- 	IPU_DC_MAP_BGR666,
- 	IPU_DC_MAP_BGR24,
-+	IPU_DC_MAP_RGB666,
- };
- 
- struct ipu_dc {
-@@ -155,6 +156,8 @@ static int ipu_pixfmt_to_map(u32 fmt)
- 		return IPU_DC_MAP_BGR666;
- 	case V4L2_PIX_FMT_BGR24:
- 		return IPU_DC_MAP_BGR24;
-+	case V4L2_PIX_FMT_RGB666:
-+		return IPU_DC_MAP_RGB666;
- 	default:
- 		return -EINVAL;
- 	}
-@@ -404,6 +407,12 @@ int ipu_dc_init(struct ipu_soc *ipu, struct device *dev,
- 	ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 1, 15, 0xff); /* green */
- 	ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 0, 23, 0xff); /* blue */
- 
-+	/* rgb666 */
-+	ipu_dc_map_clear(priv, IPU_DC_MAP_RGB666);
-+	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 0, 5, 0xfc); /* blue */
-+	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 1, 11, 0xfc); /* green */
-+	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 2, 17, 0xfc); /* red */
-+
- 	return 0;
- }
- 
-diff --git a/drivers/staging/imx-drm/parallel-display.c b/drivers/staging/imx-drm/parallel-display.c
-index c60b6c6..01b7ce5 100644
---- a/drivers/staging/imx-drm/parallel-display.c
-+++ b/drivers/staging/imx-drm/parallel-display.c
-@@ -219,6 +219,8 @@ static int imx_pd_bind(struct device *dev, struct device *master, void *data)
- 			imxpd->interface_pix_fmt = V4L2_PIX_FMT_RGB565;
- 		else if (!strcmp(fmt, "bgr666"))
- 			imxpd->interface_pix_fmt = V4L2_PIX_FMT_BGR666;
-+		else if (!strcmp(fmt, "rgb666"))
-+			imxpd->interface_pix_fmt = V4L2_PIX_FMT_RGB666;
- 	}
- 
- 	panel_node = of_parse_phandle(np, "fsl,panel", 0);
--- 
-1.7.9.5
-
+Thanks!
+Mauro
