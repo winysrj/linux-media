@@ -1,51 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:22822 "EHLO mga02.intel.com"
+Received: from dan.rpsys.net ([93.97.175.187]:57477 "EHLO dan.rpsys.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754390AbaCKKsz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 06:48:55 -0400
-Date: Tue, 11 Mar 2014 18:48:53 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, kbuild-all@01.org
-Subject: [linuxtv-media:master 499/499]
- drivers/media/dvb-frontends/drx39xyj/drx39xxj.h:22:0: error: unterminated
- #ifndef
-Message-ID: <531eea15.KJn7IlN6hvOVHxI/%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	id S1752083AbaCTPgL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Mar 2014 11:36:11 -0400
+Message-ID: <1395329301.27611.4.camel@ted>
+Subject: Re: [PATCH/RFC 1/8] leds: Add sysfs and kernel internal API for
+ flash LEDs
+From: Richard Purdie <richard.purdie@linuxfoundation.org>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	s.nawrocki@samsung.com, a.hajda@samsung.com,
+	kyungmin.park@samsung.com, Bryan Wu <cooloney@gmail.com>
+Date: Thu, 20 Mar 2014 15:28:21 +0000
+In-Reply-To: <1395327070-20215-2-git-send-email-j.anaszewski@samsung.com>
+References: <1395327070-20215-1-git-send-email-j.anaszewski@samsung.com>
+	 <1395327070-20215-2-git-send-email-j.anaszewski@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   164e5cfb7d37e4826a8337029716f4885657d859
-commit: 164e5cfb7d37e4826a8337029716f4885657d859 [499/499] [media] drx39xxj.h: Fix undefined reference to attach function
-config: make ARCH=m68k allmodconfig
+On Thu, 2014-03-20 at 15:51 +0100, Jacek Anaszewski wrote:
+> Some LED devices support two operation modes - torch and
+> flash. This patch provides support for flash LED devices
+> in the LED subsystem by introducing new sysfs attributes
+> and kernel internal interface. The attributes being
+> introduced are: flash_mode, flash_timeout, max_flash_timeout,
+> flash_fault and hw_triggered.
+> The modifications aim to be compatible with V4L2 framework
+> requirements related to the flash devices management. The
+> design assumes that V4L2 driver can take of the LED class
+> device control and communicate with it through the kernel
+> internal interface. The LED sysfs interface is made
+> unavailable then.
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> ---
+>  drivers/leds/led-class.c    |  216 +++++++++++++++++++++++++++++++++++++++++--
+>  drivers/leds/led-core.c     |  124 +++++++++++++++++++++++--
+>  drivers/leds/led-triggers.c |   17 +++-
+>  drivers/leds/leds.h         |    9 ++
+>  include/linux/leds.h        |  136 +++++++++++++++++++++++++++
+>  5 files changed, 486 insertions(+), 16 deletions(-)
 
-All error/warnings:
+It seems rather sad to have to insert that amount of code into the core
+LED files for something which only a small number of LEDs actually use.
+This will increase the footprint of the core LED code significantly.
 
-   In file included from drivers/media/usb/em28xx/em28xx-dvb.c:44:0:
->> drivers/media/dvb-frontends/drx39xyj/drx39xxj.h:22:0: error: unterminated #ifndef
+Is it not possible to add this as a module/extension to the LED core
+rather than completely entangling them?
 
-vim +22 drivers/media/dvb-frontends/drx39xyj/drx39xxj.h
+Cheers,
 
-38b2df95 Devin Heitmueller 2012-08-13  16   *
-38b2df95 Devin Heitmueller 2012-08-13  17   *  You should have received a copy of the GNU General Public License
-38b2df95 Devin Heitmueller 2012-08-13  18   *  along with this program; if not, write to the Free Software
-38b2df95 Devin Heitmueller 2012-08-13  19   *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
-38b2df95 Devin Heitmueller 2012-08-13  20   */
-38b2df95 Devin Heitmueller 2012-08-13  21  
-38b2df95 Devin Heitmueller 2012-08-13 @22  #ifndef DRX39XXJ_H
-38b2df95 Devin Heitmueller 2012-08-13  23  #define DRX39XXJ_H
-38b2df95 Devin Heitmueller 2012-08-13  24  
-38b2df95 Devin Heitmueller 2012-08-13  25  #include <linux/dvb/frontend.h>
+Richard
 
-:::::: The code at line 22 was first introduced by commit
-:::::: 38b2df95c53be4bd5421d933ca0dabbcb82741d0 [media] drx-j: add a driver for Trident drx-j frontend
-
-:::::: TO: Devin Heitmueller <dheitmueller@kernellabs.com>
-:::::: CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
-
----
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
