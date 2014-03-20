@@ -1,112 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48871 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35458 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751296AbaCGALH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 19:11:07 -0500
+	with ESMTP id S1759669AbaCTSss (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Mar 2014 14:48:48 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Cc: Grant Likely <grant.likely@linaro.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
 	Rob Herring <robh+dt@kernel.org>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
 	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v6 4/8] of: Reduce indentation in of_graph_get_next_endpoint
-Date: Fri, 07 Mar 2014 01:12:37 +0100
-Message-ID: <31687163.hgTkcLrn0Z@avalon>
-In-Reply-To: <1394011242-16783-5-git-send-email-p.zabel@pengutronix.de>
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de> <1394011242-16783-5-git-send-email-p.zabel@pengutronix.de>
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
+Date: Thu, 20 Mar 2014 19:50:35 +0100
+Message-ID: <13435143.OQHHLITVrH@avalon>
+In-Reply-To: <20140320181820.GY7528@n2100.arm.linux.org.uk>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> <2161777.L3ZZmhyfM4@avalon> <20140320181820.GY7528@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Hi Russell,
 
-Thank you for the patch.
+On Thursday 20 March 2014 18:18:20 Russell King - ARM Linux wrote:
+> On Thu, Mar 20, 2014 at 07:16:29PM +0100, Laurent Pinchart wrote:
+> > On Thursday 20 March 2014 17:54:31 Grant Likely wrote:
+> > > On Wed, 12 Mar 2014 10:25:56 +0000, Russell King - ARM Linux wrote:
 
-I've submitted a fix for the of_graph_get_next_endpoint() function, but it 
-hasn't been applied yet due to the patch series that contained it needing more 
-work.
+[snip]
 
-The patch is available at https://patchwork.linuxtv.org/patch/21946/. I can 
-rebase it on top of this series, but I still wanted to let you know about it 
-in case you would like to integrate it.
+> > > > I believe trying to do this according to the flow of data is just
+> > > > wrong. You should always describe things from the primary device for
+> > > > the CPU towards the peripheral devices and never the opposite
+> > > > direction.
+> > > 
+> > > Agreed.
+> > 
+> > Absolutely not agreed. The whole concept of CPU towards peripherals only
+> > makes sense for very simple devices and breaks as soon as the hardware
+> > gets more complex. There's no such thing as CPU towards peripherals when
+> > peripherals communicate directly.
+> > 
+> > Please consider use cases more complex than just a display controller and
+> > an encoder, and you'll realize how messy not being able to parse the
+> > whole graph at once will become. Let's try to improve things, not to make
+> > sure to prevent support for future devices.
+> 
+> That's odd, I did.
+> 
+> Please draw some (ascii) diagrams of the situations you're saying this
+> won't work for, because at the moment all I'm seeing is some vague
+> hand-waving rather than anything factual that I can relate to.  Help
+> us to actually _see_ the problem you have with this approach so we can
+> understand it.
 
-On Wednesday 05 March 2014 10:20:38 Philipp Zabel wrote:
-> A 'return endpoint;' at the end of the (!prev) case allows to
-> reduce the indentation level of the (prev) case.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/of/base.c | 42 ++++++++++++++++++++++--------------------
->  1 file changed, 22 insertions(+), 20 deletions(-)
-> 
-> diff --git a/drivers/of/base.c b/drivers/of/base.c
-> index b5e690b..a8e47d3 100644
-> --- a/drivers/of/base.c
-> +++ b/drivers/of/base.c
-> @@ -2026,32 +2026,34 @@ struct device_node *of_graph_get_next_endpoint(const
-> struct device_node *parent, pr_err("%s(): no endpoint nodes specified for
-> %s\n",
->  			       __func__, parent->full_name);
->  		of_node_put(node);
-> -	} else {
-> -		port = of_get_parent(prev);
-> -		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
-> -			      __func__, prev->full_name))
-> -			return NULL;
-> 
-> -		/* Avoid dropping prev node refcount to 0. */
-> -		of_node_get(prev);
-> -		endpoint = of_get_next_child(port, prev);
-> -		if (endpoint) {
-> -			of_node_put(port);
-> -			return endpoint;
-> -		}
-> +		return endpoint;
-> +	}
-> 
-> -		/* No more endpoints under this port, try the next one. */
-> -		do {
-> -			port = of_get_next_child(parent, port);
-> -			if (!port)
-> -				return NULL;
-> -		} while (of_node_cmp(port->name, "port"));
-> +	port = of_get_parent(prev);
-> +	if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
-> +		      __func__, prev->full_name))
-> +		return NULL;
-> 
-> -		/* Pick up the first endpoint in this port. */
-> -		endpoint = of_get_next_child(port, NULL);
-> +	/* Avoid dropping prev node refcount to 0. */
-> +	of_node_get(prev);
-> +	endpoint = of_get_next_child(port, prev);
-> +	if (endpoint) {
->  		of_node_put(port);
-> +		return endpoint;
->  	}
-> 
-> +	/* No more endpoints under this port, try the next one. */
-> +	do {
-> +		port = of_get_next_child(parent, port);
-> +		if (!port)
-> +			return NULL;
-> +	} while (of_node_cmp(port->name, "port"));
-> +
-> +	/* Pick up the first endpoint in this port. */
-> +	endpoint = of_get_next_child(port, NULL);
-> +	of_node_put(port);
-> +
->  	return endpoint;
->  }
->  EXPORT_SYMBOL(of_graph_get_next_endpoint);
+Working on it. Given my drawing skills this will take a bit of time.
 
 -- 
 Regards,
