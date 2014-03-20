@@ -1,324 +1,353 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:45342 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751045AbaCHS2I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 13:28:08 -0500
-Received: by mail-ea0-f180.google.com with SMTP id m10so2918272eaj.11
-        for <linux-media@vger.kernel.org>; Sat, 08 Mar 2014 10:28:06 -0800 (PST)
-Message-ID: <531B6176.6070802@googlemail.com>
-Date: Sat, 08 Mar 2014 19:29:10 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v4 1/2] em28xx: Only deallocate struct em28xx after finishing
- all extensions
-References: <1394281177-5920-1-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1394281177-5920-1-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:63028 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759286AbaCTRxZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Mar 2014 13:53:25 -0400
+Received: by mail-ee0-f46.google.com with SMTP id t10so933699eei.5
+        for <linux-media@vger.kernel.org>; Thu, 20 Mar 2014 10:53:24 -0700 (PDT)
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+In-Reply-To: <2089551.u6VYBAmlhv@avalon>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < 20140310145815.17595C405FA@trevor.secretlab.ca> <1394550420.3772.29.camel@ paszta.hi.pengutronix.de> <2089551.u6VYBAmlhv@avalon>
+Date: Thu, 20 Mar 2014 17:53:20 +0000
+Message-Id: <20140320175320.1A9DBC4067A@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, 11 Mar 2014 16:21:49 +0100, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+> Hi Philipp,
+> 
+> On Tuesday 11 March 2014 16:07:00 Philipp Zabel wrote:
+> > Am Montag, den 10.03.2014, 14:58 +0000 schrieb Grant Likely:
+> > > On Mon, 10 Mar 2014 14:52:53 +0100, Laurent Pinchart wrote:
+> 
+> [snip]
+> 
+> > > > In theory unidirectional links in DT are indeed enough. However, let's
+> > > > not forget the following.
+> > > > 
+> > > > - There's no such thing as single start points for graphs. Sure, in some
+> > > > simple cases the graph will have a single start point, but that's not a
+> > > > generic rule. For instance the camera graphs
+> > > > http://ideasonboard.org/media/omap3isp.ps and
+> > > > http://ideasonboard.org/media/eyecam.ps have two camera sensors, and
+> > > > thus two starting points from a data flow point of view. And if you
+> > > > want a better understanding of how complex media graphs can become,
+> > > > have a look at http://ideasonboard.org/media/vsp1.0.pdf (that's a real
+> > > > world example, albeit all connections are internal to the SoC in that
+> > > > particular case, and don't need to be described in DT).
+> > > > 
+> > > > - There's also no such thing as a master device that can just point to
+> > > > slave devices. Once again simple cases exist where that model could
+> > > > work, but real world examples exist of complex pipelines with dozens of
+> > > > elements all implemented by a separate IP core and handled by separate
+> > > > drivers, forming a graph with long chains and branches. We thus need
+> > > > real graph bindings.
+> > > > 
+> > > > - Finally, having no backlinks in DT would make the software
+> > > > implementation very complex. We need to be able to walk the graph in a
+> > > > generic way without having any of the IP core drivers loaded, and
+> > > > without any specific starting point. We would thus need to parse the
+> > > > complete DT tree, looking at all nodes and trying to find out whether
+> > > > they're part of the graph we're trying to walk. The complexity of the
+> > > > operation would be at best quadratic to the number of nodes in the whole
+> > > > DT and to the number of nodes in the graph.
+> > > 
+> > > Not really. To being with, you cannot determine any meaning of a node
+> > > across the tree (aside from it being an endpoint) without also
+> > > understanding the binding that the node is a part of. That means you
+> > > need to have something matching against the compatible string on both
+> > > ends of the linkage. For instance:
+> > > 
+> > > panel {
+> > > 	compatible = "acme,lvds-panel";
+> > > 	lvds-port: port {
+> > > 	};
+> > > };
+> > > 
+> > > display-controller {
+> > > 	compatible = "encom,video";
+> > > 	port {
+> > > 		remote-endpoint = <&lvds-port>;
+> > > 	};
+> > > };
+> > > 
+> > > In the above example, the encom,video driver has absolutely zero
+> > > information about what the acme,lvds-panel binding actually implements.
+> > > There needs to be both a driver for the "acme,lvds-panel" binding and
+> > > one for the "encom,video" binding (even if the acme,lvds-panel binding
+> > > is very thin and defers the functionality to the video controller).
+> > > 
+> > > What you want here is the drivers to register each side of the
+> > > connection. That could be modeled with something like the following
+> > > (pseudocode):
+> > > 
+> > > struct of_endpoint {
+> > > 
+> > > 	struct list_head list;
+> > > 	struct device_node *ep_node;
+> > > 	void *context;
+> > > 	void (*cb)(struct of_endpoint *ep, void *data);
+> > > 
+> > > }
+> > > 
+> > > int of_register_port(struct device *node, void (*cb)(struct of_endpoint
+> > > *ep, void *data), void *data) {
+> > > 
+> > > 	struct of_endpoint *ep = kzalloc(sizeof(*ep), GFP_KERNEL);
+> > > 	
+> > > 	ep->ep_node = node;
+> > > 	ep->data = data;
+> > > 	ep->callback = cb;
+> > > 	
+> > > 	/* store the endpoint to a list */
+> > > 	/* check if the endpoint has a remote-endpoint link */
+> > > 		/* If so, then link the two together and call the
+> > > 		 * callbacks */
+> > > }
+> > > 
+> > > That's neither expensive or complicated.
+> > > 
+> > > Originally I suggested walking the whole tree multiple times, but as
+> > > mentioned that doesn't scale, and as I thought about the above it isn't
+> > > even a valid thing to do. Everything has to be driven by drivers, so
+> > > even if the backlinks are there, nothing can be done with the link until
+> > > the other side goes through enumeration independently.
+> > 
+> > I have implemented your suggestion as follows. Basically, this allows
+> > either endpoint to contain the remote-endpoint link, as long as all
+> > drivers register their endpoints in the probe function and return
+> > -EPROBE_DEFER from their component framework bind callback until all
+> > their endpoints are connected.
+> 
+> Beside bringing the whole graph down when a single component can't be probed 
+> (either because the corresponding hardware devices is missing, broken, or the 
+> driver isn't loaded),
 
-Am 08.03.2014 13:19, schrieb Mauro Carvalho Chehab:
-> We can't free struct em28xx while one of the extensions is still
-> using it.
->
-> So, add a kref() to control it, freeing it only after the
-> extensions fini calls.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-audio.c |  7 ++++++-
->  drivers/media/usb/em28xx/em28xx-cards.c | 32 +++++++++++++++++++++++++-------
->  drivers/media/usb/em28xx/em28xx-dvb.c   |  5 ++++-
->  drivers/media/usb/em28xx/em28xx-input.c |  8 +++++++-
->  drivers/media/usb/em28xx/em28xx-video.c | 15 ++++++++-------
->  drivers/media/usb/em28xx/em28xx.h       |  8 ++++++--
->  6 files changed, 56 insertions(+), 19 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-> index 0f5b6f3e7a3f..f75c0a5494d6 100644
-> --- a/drivers/media/usb/em28xx/em28xx-audio.c
-> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
-> @@ -301,6 +301,7 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
->  			goto err;
->  	}
->  
-> +	kref_get(&dev->ref);
->  	dev->adev.users++;
->  	mutex_unlock(&dev->lock);
->  
-> @@ -341,6 +342,7 @@ static int snd_em28xx_pcm_close(struct snd_pcm_substream *substream)
->  		substream->runtime->dma_area = NULL;
->  	}
->  	mutex_unlock(&dev->lock);
-> +	kref_put(&dev->ref, em28xx_free_device);
->  
->  	return 0;
->  }
-> @@ -895,6 +897,8 @@ static int em28xx_audio_init(struct em28xx *dev)
->  
->  	em28xx_info("Binding audio extension\n");
->  
-> +	kref_get(&dev->ref);
-> +
->  	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2006 Markus "
->  			 "Rechberger\n");
->  	printk(KERN_INFO
-> @@ -967,7 +971,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
->  	if (dev == NULL)
->  		return 0;
->  
-> -	if (dev->has_alsa_audio != 1) {
-> +	if (!dev->has_alsa_audio) {
->  		/* This device does not support the extension (in this case
->  		   the device is expecting the snd-usb-audio module or
->  		   doesn't have analog audio support at all) */
-> @@ -986,6 +990,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
->  		dev->adev.sndcard = NULL;
->  	}
->  
-> +	kref_put(&dev->ref, em28xx_free_device);
->  	return 0;
->  }
->  
-> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-> index 2fb300e882f0..015e3731a1c0 100644
-> --- a/drivers/media/usb/em28xx/em28xx-cards.c
-> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
-> @@ -2939,7 +2939,7 @@ static void flush_request_modules(struct em28xx *dev)
->   * unregisters the v4l2,i2c and usb devices
->   * called when the device gets disconnected or at module unload
->  */
-> -void em28xx_release_resources(struct em28xx *dev)
-> +static void em28xx_release_resources(struct em28xx *dev)
->  {
->  	/*FIXME: I2C IR should be disconnected */
->  
-> @@ -2956,7 +2956,27 @@ void em28xx_release_resources(struct em28xx *dev)
->  
->  	mutex_unlock(&dev->lock);
->  };
-> -EXPORT_SYMBOL_GPL(em28xx_release_resources);
-> +
-> +/**
-> + * em28xx_free_defice() - Free em28xx device
-Small typo. ;-)
+I don't think that follows. It creates a list of all port connections as
+drivers 'announce' that the device is available. Any master driver can
+query the list and determine what links are important. If something is
+missing, then with Phillip's approach the master driver can choose to
+ignore it.
 
-Reviewed-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> that's adding even one more level of complexity with an 
+> additional callback. I'm afraid I can't accept it as-is, the result is just 
+> too complex for device drivers and not flexible enough.
 
-> + *
-> + * @ref: struct kref for em28xx device
-> + *
-> + * This is called when all extensions and em28xx core unregisters a device
-> + */
-> +void em28xx_free_device(struct kref *ref)
-> +{
-> +	struct em28xx *dev = kref_to_dev(ref);
-> +
-> +	em28xx_info("Freeing device\n");
-> +
-> +	if (!dev->disconnected)
-> +		em28xx_release_resources(dev);
-> +
-> +	kfree(dev->alt_max_pkt_size_isoc);
-> +	kfree(dev);
-> +}
-> +EXPORT_SYMBOL_GPL(em28xx_free_device);
->  
->  /*
->   * em28xx_init_dev()
-> @@ -3409,6 +3429,8 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->  			    dev->dvb_xfer_bulk ? "bulk" : "isoc");
->  	}
->  
-> +	kref_init(&dev->ref);
-> +
->  	request_modules(dev);
->  
->  	/* Should be the last thing to do, to avoid newer udev's to
-> @@ -3453,11 +3475,7 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
->  	em28xx_close_extension(dev);
->  
->  	em28xx_release_resources(dev);
-> -
-> -	if (!dev->users) {
-> -		kfree(dev->alt_max_pkt_size_isoc);
-> -		kfree(dev);
-> -	}
-> +	kref_put(&dev->ref, em28xx_free_device);
->  }
->  
->  static int em28xx_usb_suspend(struct usb_interface *interface,
-> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-> index d4986bdfbdc3..cacdca3a3412 100644
-> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
-> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-> @@ -1043,7 +1043,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
->  	em28xx_info("Binding DVB extension\n");
->  
->  	dvb = kzalloc(sizeof(struct em28xx_dvb), GFP_KERNEL);
-> -
->  	if (dvb == NULL) {
->  		em28xx_info("em28xx_dvb: memory allocation failed\n");
->  		return -ENOMEM;
-> @@ -1521,6 +1520,9 @@ static int em28xx_dvb_init(struct em28xx *dev)
->  	dvb->adapter.mfe_shared = mfe_shared;
->  
->  	em28xx_info("DVB extension successfully initialized\n");
-> +
-> +	kref_get(&dev->ref);
-> +
->  ret:
->  	em28xx_set_mode(dev, EM28XX_SUSPEND);
->  	mutex_unlock(&dev->lock);
-> @@ -1577,6 +1579,7 @@ static int em28xx_dvb_fini(struct em28xx *dev)
->  		em28xx_unregister_dvb(dvb);
->  		kfree(dvb);
->  		dev->dvb = NULL;
-> +		kref_put(&dev->ref, em28xx_free_device);
->  	}
->  
->  	return 0;
-> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-> index 47a2c1dcccbf..2a9bf667f208 100644
-> --- a/drivers/media/usb/em28xx/em28xx-input.c
-> +++ b/drivers/media/usb/em28xx/em28xx-input.c
-> @@ -676,6 +676,8 @@ static int em28xx_ir_init(struct em28xx *dev)
->  		return 0;
->  	}
->  
-> +	kref_get(&dev->ref);
-> +
->  	if (dev->board.buttons)
->  		em28xx_init_buttons(dev);
->  
-> @@ -816,7 +818,7 @@ static int em28xx_ir_fini(struct em28xx *dev)
->  
->  	/* skip detach on non attached boards */
->  	if (!ir)
-> -		return 0;
-> +		goto ref_put;
->  
->  	if (ir->rc)
->  		rc_unregister_device(ir->rc);
-> @@ -824,6 +826,10 @@ static int em28xx_ir_fini(struct em28xx *dev)
->  	/* done */
->  	kfree(ir);
->  	dev->ir = NULL;
-> +
-> +ref_put:
-> +	kref_put(&dev->ref, em28xx_free_device);
-> +
->  	return 0;
->  }
->  
-> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> index 19af6b3e9e2b..32aa55f033fc 100644
-> --- a/drivers/media/usb/em28xx/em28xx-video.c
-> +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> @@ -1837,7 +1837,6 @@ static int em28xx_v4l2_open(struct file *filp)
->  			video_device_node_name(vdev), v4l2_type_names[fh_type],
->  			dev->users);
->  
-> -
->  	if (mutex_lock_interruptible(&dev->lock))
->  		return -ERESTARTSYS;
->  	fh = kzalloc(sizeof(struct em28xx_fh), GFP_KERNEL);
-> @@ -1869,6 +1868,7 @@ static int em28xx_v4l2_open(struct file *filp)
->  		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_radio);
->  	}
->  
-> +	kref_get(&dev->ref);
->  	dev->users++;
->  
->  	mutex_unlock(&dev->lock);
-> @@ -1926,9 +1926,8 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
->  		dev->clk = NULL;
->  	}
->  
-> -	if (dev->users)
-> -		em28xx_warn("Device is open ! Memory deallocation is deferred on last close.\n");
->  	mutex_unlock(&dev->lock);
-> +	kref_put(&dev->ref, em28xx_free_device);
->  
->  	return 0;
->  }
-> @@ -1976,11 +1975,9 @@ static int em28xx_v4l2_close(struct file *filp)
->  	mutex_lock(&dev->lock);
->  
->  	if (dev->users == 1) {
-> -		/* free the remaining resources if device is disconnected */
-> -		if (dev->disconnected) {
-> -			kfree(dev->alt_max_pkt_size_isoc);
-> +		/* No sense to try to write to the device */
-> +		if (dev->disconnected)
->  			goto exit;
-> -		}
->  
->  		/* Save some power by putting tuner to sleep */
->  		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
-> @@ -2001,6 +1998,8 @@ static int em28xx_v4l2_close(struct file *filp)
->  exit:
->  	dev->users--;
->  	mutex_unlock(&dev->lock);
-> +	kref_put(&dev->ref, em28xx_free_device);
-> +
->  	return 0;
->  }
->  
-> @@ -2515,6 +2514,8 @@ static int em28xx_v4l2_init(struct em28xx *dev)
->  
->  	em28xx_info("V4L2 extension successfully initialized\n");
->  
-> +	kref_get(&dev->ref);
-> +
->  	mutex_unlock(&dev->lock);
->  	return 0;
->  
-> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-> index 9e44f5bfc48b..2051fc9fb932 100644
-> --- a/drivers/media/usb/em28xx/em28xx.h
-> +++ b/drivers/media/usb/em28xx/em28xx.h
-> @@ -32,6 +32,7 @@
->  #include <linux/workqueue.h>
->  #include <linux/i2c.h>
->  #include <linux/mutex.h>
-> +#include <linux/kref.h>
->  #include <linux/videodev2.h>
->  
->  #include <media/videobuf2-vmalloc.h>
-> @@ -536,9 +537,10 @@ struct em28xx_i2c_bus {
->  	enum em28xx_i2c_algo_type algo_type;
->  };
->  
-> -
->  /* main device struct */
->  struct em28xx {
-> +	struct kref ref;
-> +
->  	/* generic device properties */
->  	char name[30];		/* name (including minor) of the device */
->  	int model;		/* index in the device_data struct */
-> @@ -710,6 +712,8 @@ struct em28xx {
->  	struct em28xx_dvb *dvb;
->  };
->  
-> +#define kref_to_dev(d) container_of(d, struct em28xx, ref)
-> +
->  struct em28xx_ops {
->  	struct list_head next;
->  	char *name;
-> @@ -771,7 +775,7 @@ extern struct em28xx_board em28xx_boards[];
->  extern struct usb_device_id em28xx_id_table[];
->  int em28xx_tuner_callback(void *ptr, int component, int command, int arg);
->  void em28xx_setup_xc3028(struct em28xx *dev, struct xc2028_ctrl *ctl);
-> -void em28xx_release_resources(struct em28xx *dev);
-> +void em28xx_free_device(struct kref *ref);
->  
->  /* Provided by em28xx-camera.c */
->  int em28xx_detect_sensor(struct em28xx *dev);
+How is it not flexible enough? It seems to be more flexible to me
+because each driver gets to determine the meaning of each link and
+whether or not it is important.
+
+The interface could be modifed though to be simpler for drivers by
+eliminating the callback and adding a notifier for linkage additions or
+removals. Then only code that actually cares about links needs to handle
+events.
+
+> I want to keep the ability to walk the graph without requiring all components 
+> to be probed by their respective driver. What happened to your suggestion of 
+> parsing the whole DT once at boot time ?
+> 
+> > From fdda1fb2bd133200d4620adcbb28697cb360e1cb Mon Sep 17 00:00:00 2001
+> > From: Philipp Zabel <p.zabel@pengutronix.de>
+> > Date: Tue, 11 Mar 2014 15:56:18 +0100
+> > Subject: [PATCH] of: Implement of_graph_register_endpoint
+> > 
+> > This patch adds a function that lets drivers register their endpoints in a
+> > global list. Newly registered endpoints are compared against known endpoints
+> > to check if a connection should be made. If so, the driver is notified via
+> > a simple callback.
+> > 
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > ---
+> >  drivers/of/base.c        | 69 ++++++++++++++++++++++++++++++++++++++++++---
+> >  include/linux/of_graph.h | 20 +++++++++++++-
+> >  2 files changed, 84 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/drivers/of/base.c b/drivers/of/base.c
+> > index ebb001a..77ae54a 100644
+> > --- a/drivers/of/base.c
+> > +++ b/drivers/of/base.c
+> > @@ -29,6 +29,7 @@
+> >  #include "of_private.h"
+> > 
+> >  LIST_HEAD(aliases_lookup);
+> > +LIST_HEAD(endpoint_list);
+> > 
+> >  struct device_node *of_allnodes;
+> >  EXPORT_SYMBOL(of_allnodes);
+> > @@ -2002,6 +2003,7 @@ int of_graph_parse_endpoint(const struct device_node
+> > *node, memset(endpoint, 0, sizeof(*endpoint));
+> > 
+> >  	endpoint->local_node = node;
+> > +	endpoint->remote_node = of_parse_phandle(node, "remote-endpoint", 0);
+> >  	/*
+> >  	 * It doesn't matter whether the two calls below succeed.
+> >  	 * If they don't then the default value 0 is used.
+> > @@ -2126,6 +2128,19 @@ struct device_node *of_graph_get_next_endpoint(const
+> > struct device_node *parent, }
+> >  EXPORT_SYMBOL(of_graph_get_next_endpoint);
+> > 
+> > +static struct of_endpoint *__of_graph_lookup_endpoint(
+> > +				const struct device_node *node)
+> > +{
+> > +	struct of_endpoint *ep;
+> > +
+> > +	list_for_each_entry(ep, &endpoint_list, list) {
+> > +		if (ep->local_node == node)
+> > +			return ep;
+> > +	}
+> > +
+> > +	return NULL;
+> > +}
+> > +
+> >  /**
+> >   * of_graph_get_remote_port_parent() - get remote port's parent node
+> >   * @node: pointer to a local endpoint device_node
+> > @@ -2136,11 +2151,15 @@ EXPORT_SYMBOL(of_graph_get_next_endpoint);
+> >  struct device_node *of_graph_get_remote_port_parent(
+> >  			       const struct device_node *node)
+> >  {
+> > +	struct of_endpoint *ep;
+> >  	struct device_node *np;
+> >  	unsigned int depth;
+> > 
+> >  	/* Get remote endpoint node. */
+> > -	np = of_parse_phandle(node, "remote-endpoint", 0);
+> > +	ep = __of_graph_lookup_endpoint(node);
+> > +	if (!ep || !ep->remote_node)
+> > +		return NULL;
+> > +	np = ep->remote_node;
+> > 
+> >  	/* Walk 3 levels up only if there is 'ports' node */
+> >  	for (depth = 3; depth && np; depth--) {
+> > @@ -2163,13 +2182,14 @@ EXPORT_SYMBOL(of_graph_get_remote_port_parent);
+> >   */
+> >  struct device_node *of_graph_get_remote_port(const struct device_node
+> > *node) {
+> > +	struct of_endpoint *ep;
+> >  	struct device_node *np;
+> > 
+> >  	/* Get remote endpoint node. */
+> > -	np = of_parse_phandle(node, "remote-endpoint", 0);
+> > -	if (!np)
+> > +	ep = __of_graph_lookup_endpoint(node);
+> > +	if (!ep || !ep->remote_node)
+> >  		return NULL;
+> > -	np = of_get_next_parent(np);
+> > +	np = of_get_next_parent(ep->remote_node);
+> >  	if (of_node_cmp(np->name, "port")) {
+> >  		of_node_put(np);
+> >  		return NULL;
+> > @@ -2177,3 +2197,44 @@ struct device_node *of_graph_get_remote_port(const
+> > struct device_node *node) return np;
+> >  }
+> >  EXPORT_SYMBOL(of_graph_get_remote_port);
+> > +
+> > +int of_graph_register_endpoint(const struct device_node *node,
+> > +		void (*cb)(struct of_endpoint *ep, void *data), void *data)
+> > +{
+> > +	struct of_endpoint *remote_ep, *ep = kmalloc(sizeof(*ep), GFP_KERNEL);
+> > +	if (!ep)
+> > +		return -ENOMEM;
+> > +
+> > +	of_graph_parse_endpoint(node, ep);
+> > +	ep->callback = cb;
+> > +	ep->data = data;
+> > +
+> > +	list_add(&ep->list, &endpoint_list);
+> > +
+> > +	list_for_each_entry(remote_ep, &endpoint_list, list) {
+> > +		struct of_endpoint *from, *to;
+> > +		if (ep->remote_node) {
+> > +			from = ep;
+> > +			to = remote_ep;
+> > +		} else {
+> > +			from = remote_ep;
+> > +			to = ep;
+> > +		}
+> > +		if (from->remote_node &&
+> > +		    from->remote_node == to->local_node) {
+> > +			WARN_ON(to->remote_node &&
+> > +				to->remote_node != from->local_node);
+> > +			to->remote_node = from->local_node;
+> > +			to->remote_ep = from;
+> > +			from->remote_ep = to;
+> > +			if (from->callback)
+> > +				from->callback(from, from->data);
+> > +			if (to->callback)
+> > +				to->callback(to, to->data);
+> > +			return 0;
+> > +		}
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +EXPORT_SYMBOL(of_graph_register_endpoint);
+> > diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
+> > index 3a3c5a9..f00ac4e 100644
+> > --- a/include/linux/of_graph.h
+> > +++ b/include/linux/of_graph.h
+> > @@ -23,7 +23,14 @@
+> >  struct of_endpoint {
+> >  	unsigned int port;
+> >  	unsigned int id;
+> > -	const struct device_node *local_node;
+> > +	struct device_node *local_node;
+> > +	struct device_node *remote_node;
+> > +	struct of_endpoint *remote_ep;
+> > +
+> > +	/* Internal use only */
+> > +	struct list_head list;
+> > +	void (*callback)(struct of_endpoint *ep, void *data);
+> > +	void *data;
+> >  };
+> > 
+> >  #ifdef CONFIG_OF
+> > @@ -35,6 +42,10 @@ struct device_node *of_graph_get_next_endpoint(const
+> > struct device_node *parent, struct device_node
+> > *of_graph_get_remote_port_parent(
+> >  					const struct device_node *node);
+> >  struct device_node *of_graph_get_remote_port(const struct device_node
+> > *node); +
+> > +int of_graph_register_endpoint(const struct device_node *ep_node,
+> > +				void (*cb)(struct of_endpoint *ep, void *data),
+> > +				void *data);
+> >  #else
+> > 
+> >  static inline int of_graph_parse_endpoint(const struct device_node *node,
+> > @@ -68,6 +79,13 @@ static inline struct device_node
+> > *of_graph_get_remote_port( return NULL;
+> >  }
+> > 
+> > +static inline int of_graph_register_endpoint(const struct device_node
+> > *ep_node, +				void (*cb)(struct of_endpoint *ep, void *data),
+> > +				void *data);
+> > +{
+> > +	return -ENOSYS;
+> > +}
+> > +
+> >  #endif /* CONFIG_OF */
+> > 
+> >  #endif /* __LINUX_OF_GRAPH_H */
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
 
