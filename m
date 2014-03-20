@@ -1,721 +1,487 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52296 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753294AbaCNAOt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 20:14:49 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 14/17] e4000: rename some variables
-Date: Fri, 14 Mar 2014 02:14:28 +0200
-Message-Id: <1394756071-22410-15-git-send-email-crope@iki.fi>
-In-Reply-To: <1394756071-22410-1-git-send-email-crope@iki.fi>
-References: <1394756071-22410-1-git-send-email-crope@iki.fi>
+Received: from mailout3.samsung.com ([203.254.224.33]:44288 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964848AbaCTOvq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Mar 2014 10:51:46 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: s.nawrocki@samsung.com, a.hajda@samsung.com,
+	kyungmin.park@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC 4/8] media: Add registration helpers for V4L2 flash
+ sub-devices
+Date: Thu, 20 Mar 2014 15:51:06 +0100
+Message-id: <1395327070-20215-5-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1395327070-20215-1-git-send-email-j.anaszewski@samsung.com>
+References: <1395327070-20215-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename some variables.
-Change error status checks from (ret < 0) to (ret).
-No actual functionality changes.
+This patch adds helper functions for registering/unregistering
+LED class flash devices as V4L2 subdevs. The functions should
+be called from the LED subsystem device driver. In case the
+Multimedia Framework support is disabled in the kernel config
+the functions' empty versions will be used.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/tuners/e4000.c      | 332 +++++++++++++++++++-------------------
- drivers/media/tuners/e4000_priv.h |   2 +-
- 2 files changed, 167 insertions(+), 167 deletions(-)
+ drivers/media/v4l2-core/Makefile     |    2 +-
+ drivers/media/v4l2-core/v4l2-flash.c |  320 ++++++++++++++++++++++++++++++++++
+ include/media/v4l2-flash.h           |  102 +++++++++++
+ 3 files changed, 423 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
+ create mode 100644 include/media/v4l2-flash.h
 
-diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-index f382b90..3b52550 100644
---- a/drivers/media/tuners/e4000.c
-+++ b/drivers/media/tuners/e4000.c
-@@ -23,110 +23,110 @@
- 
- static int e4000_init(struct dvb_frontend *fe)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000 *s = fe->tuner_priv;
- 	int ret;
- 
--	dev_dbg(&priv->client->dev, "%s:\n", __func__);
-+	dev_dbg(&s->client->dev, "%s:\n", __func__);
- 
- 	/* dummy I2C to ensure I2C wakes up */
--	ret = regmap_write(priv->regmap, 0x02, 0x40);
-+	ret = regmap_write(s->regmap, 0x02, 0x40);
- 
- 	/* reset */
--	ret = regmap_write(priv->regmap, 0x00, 0x01);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x00, 0x01);
-+	if (ret)
- 		goto err;
- 
- 	/* disable output clock */
--	ret = regmap_write(priv->regmap, 0x06, 0x00);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x06, 0x00);
-+	if (ret)
- 		goto err;
- 
--	ret = regmap_write(priv->regmap, 0x7a, 0x96);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x7a, 0x96);
-+	if (ret)
- 		goto err;
- 
- 	/* configure gains */
--	ret = regmap_bulk_write(priv->regmap, 0x7e, "\x01\xfe", 2);
--	if (ret < 0)
-+	ret = regmap_bulk_write(s->regmap, 0x7e, "\x01\xfe", 2);
-+	if (ret)
- 		goto err;
- 
--	ret = regmap_write(priv->regmap, 0x82, 0x00);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x82, 0x00);
-+	if (ret)
- 		goto err;
- 
--	ret = regmap_write(priv->regmap, 0x24, 0x05);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x24, 0x05);
-+	if (ret)
- 		goto err;
- 
--	ret = regmap_bulk_write(priv->regmap, 0x87, "\x20\x01", 2);
--	if (ret < 0)
-+	ret = regmap_bulk_write(s->regmap, 0x87, "\x20\x01", 2);
-+	if (ret)
- 		goto err;
- 
--	ret = regmap_bulk_write(priv->regmap, 0x9f, "\x7f\x07", 2);
--	if (ret < 0)
-+	ret = regmap_bulk_write(s->regmap, 0x9f, "\x7f\x07", 2);
-+	if (ret)
- 		goto err;
- 
- 	/* DC offset control */
--	ret = regmap_write(priv->regmap, 0x2d, 0x1f);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x2d, 0x1f);
-+	if (ret)
- 		goto err;
- 
--	ret = regmap_bulk_write(priv->regmap, 0x70, "\x01\x01", 2);
--	if (ret < 0)
-+	ret = regmap_bulk_write(s->regmap, 0x70, "\x01\x01", 2);
-+	if (ret)
- 		goto err;
- 
- 	/* gain control */
--	ret = regmap_write(priv->regmap, 0x1a, 0x17);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x1a, 0x17);
-+	if (ret)
- 		goto err;
- 
--	ret = regmap_write(priv->regmap, 0x1f, 0x1a);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x1f, 0x1a);
-+	if (ret)
- 		goto err;
- 
--	priv->active = true;
-+	s->active = true;
- err:
- 	if (ret)
--		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
- 
- 	return ret;
- }
- 
- static int e4000_sleep(struct dvb_frontend *fe)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000 *s = fe->tuner_priv;
- 	int ret;
- 
--	dev_dbg(&priv->client->dev, "%s:\n", __func__);
-+	dev_dbg(&s->client->dev, "%s:\n", __func__);
- 
--	priv->active = false;
-+	s->active = false;
- 
--	ret = regmap_write(priv->regmap, 0x00, 0x00);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x00, 0x00);
-+	if (ret)
- 		goto err;
- err:
- 	if (ret)
--		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
- 
- 	return ret;
- }
- 
- static int e4000_set_params(struct dvb_frontend *fe)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000 *s = fe->tuner_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret, i, sigma_delta;
- 	u64 f_vco;
- 	u8 buf[5], i_data[4], q_data[4];
- 
--	dev_dbg(&priv->client->dev,
-+	dev_dbg(&s->client->dev,
- 			"%s: delivery_system=%d frequency=%u bandwidth_hz=%u\n",
- 			__func__, c->delivery_system, c->frequency,
- 			c->bandwidth_hz);
- 
- 	/* gain control manual */
--	ret = regmap_write(priv->regmap, 0x1a, 0x00);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x1a, 0x00);
-+	if (ret)
- 		goto err;
- 
- 	/* PLL */
-@@ -141,19 +141,19 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 	}
- 
- 	f_vco = 1ull * c->frequency * e4000_pll_lut[i].mul;
--	sigma_delta = div_u64(0x10000ULL * (f_vco % priv->clock), priv->clock);
--	buf[0] = div_u64(f_vco, priv->clock);
-+	sigma_delta = div_u64(0x10000ULL * (f_vco % s->clock), s->clock);
-+	buf[0] = div_u64(f_vco, s->clock);
- 	buf[1] = (sigma_delta >> 0) & 0xff;
- 	buf[2] = (sigma_delta >> 8) & 0xff;
- 	buf[3] = 0x00;
- 	buf[4] = e4000_pll_lut[i].div;
- 
--	dev_dbg(&priv->client->dev,
-+	dev_dbg(&s->client->dev,
- 			"%s: f_vco=%llu pll div=%d sigma_delta=%04x\n",
- 			__func__, f_vco, buf[0], sigma_delta);
- 
--	ret = regmap_bulk_write(priv->regmap, 0x09, buf, 5);
--	if (ret < 0)
-+	ret = regmap_bulk_write(s->regmap, 0x09, buf, 5);
-+	if (ret)
- 		goto err;
- 
- 	/* LNA filter (RF filter) */
-@@ -167,8 +167,8 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 		goto err;
- 	}
- 
--	ret = regmap_write(priv->regmap, 0x10, e400_lna_filter_lut[i].val);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x10, e400_lna_filter_lut[i].val);
-+	if (ret)
- 		goto err;
- 
- 	/* IF filters */
-@@ -185,8 +185,8 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 	buf[0] = e4000_if_filter_lut[i].reg11_val;
- 	buf[1] = e4000_if_filter_lut[i].reg12_val;
- 
--	ret = regmap_bulk_write(priv->regmap, 0x11, buf, 2);
--	if (ret < 0)
-+	ret = regmap_bulk_write(s->regmap, 0x11, buf, 2);
-+	if (ret)
- 		goto err;
- 
- 	/* frequency band */
-@@ -200,34 +200,34 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 		goto err;
- 	}
- 
--	ret = regmap_write(priv->regmap, 0x07, e4000_band_lut[i].reg07_val);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x07, e4000_band_lut[i].reg07_val);
-+	if (ret)
- 		goto err;
- 
--	ret = regmap_write(priv->regmap, 0x78, e4000_band_lut[i].reg78_val);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x78, e4000_band_lut[i].reg78_val);
-+	if (ret)
- 		goto err;
- 
- 	/* DC offset */
- 	for (i = 0; i < 4; i++) {
- 		if (i == 0)
--			ret = regmap_bulk_write(priv->regmap, 0x15, "\x00\x7e\x24", 3);
-+			ret = regmap_bulk_write(s->regmap, 0x15, "\x00\x7e\x24", 3);
- 		else if (i == 1)
--			ret = regmap_bulk_write(priv->regmap, 0x15, "\x00\x7f", 2);
-+			ret = regmap_bulk_write(s->regmap, 0x15, "\x00\x7f", 2);
- 		else if (i == 2)
--			ret = regmap_bulk_write(priv->regmap, 0x15, "\x01", 1);
-+			ret = regmap_bulk_write(s->regmap, 0x15, "\x01", 1);
- 		else
--			ret = regmap_bulk_write(priv->regmap, 0x16, "\x7e", 1);
-+			ret = regmap_bulk_write(s->regmap, 0x16, "\x7e", 1);
- 
--		if (ret < 0)
-+		if (ret)
- 			goto err;
- 
--		ret = regmap_write(priv->regmap, 0x29, 0x01);
--		if (ret < 0)
-+		ret = regmap_write(s->regmap, 0x29, 0x01);
-+		if (ret)
- 			goto err;
- 
--		ret = regmap_bulk_read(priv->regmap, 0x2a, buf, 3);
--		if (ret < 0)
-+		ret = regmap_bulk_read(s->regmap, 0x2a, buf, 3);
-+		if (ret)
- 			goto err;
- 
- 		i_data[i] = (((buf[2] >> 0) & 0x3) << 6) | (buf[0] & 0x3f);
-@@ -237,30 +237,30 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 	swap(q_data[2], q_data[3]);
- 	swap(i_data[2], i_data[3]);
- 
--	ret = regmap_bulk_write(priv->regmap, 0x50, q_data, 4);
--	if (ret < 0)
-+	ret = regmap_bulk_write(s->regmap, 0x50, q_data, 4);
-+	if (ret)
- 		goto err;
- 
--	ret = regmap_bulk_write(priv->regmap, 0x60, i_data, 4);
--	if (ret < 0)
-+	ret = regmap_bulk_write(s->regmap, 0x60, i_data, 4);
-+	if (ret)
- 		goto err;
- 
- 	/* gain control auto */
--	ret = regmap_write(priv->regmap, 0x1a, 0x17);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x1a, 0x17);
-+	if (ret)
- 		goto err;
- err:
- 	if (ret)
--		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
- 
- 	return ret;
- }
- 
- static int e4000_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000 *s = fe->tuner_priv;
- 
--	dev_dbg(&priv->client->dev, "%s:\n", __func__);
-+	dev_dbg(&s->client->dev, "%s:\n", __func__);
- 
- 	*frequency = 0; /* Zero-IF */
- 
-@@ -269,143 +269,143 @@ static int e4000_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- 
- static int e4000_set_lna_gain(struct dvb_frontend *fe)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000 *s = fe->tuner_priv;
- 	int ret;
- 	u8 u8tmp;
- 
--	dev_dbg(&priv->client->dev, "%s: lna auto=%d->%d val=%d->%d\n",
--			__func__, priv->lna_gain_auto->cur.val,
--			priv->lna_gain_auto->val, priv->lna_gain->cur.val,
--			priv->lna_gain->val);
-+	dev_dbg(&s->client->dev, "%s: lna auto=%d->%d val=%d->%d\n",
-+			__func__, s->lna_gain_auto->cur.val,
-+			s->lna_gain_auto->val, s->lna_gain->cur.val,
-+			s->lna_gain->val);
- 
--	if (priv->lna_gain_auto->val && priv->if_gain_auto->cur.val)
-+	if (s->lna_gain_auto->val && s->if_gain_auto->cur.val)
- 		u8tmp = 0x17;
--	else if (priv->lna_gain_auto->val)
-+	else if (s->lna_gain_auto->val)
- 		u8tmp = 0x19;
--	else if (priv->if_gain_auto->cur.val)
-+	else if (s->if_gain_auto->cur.val)
- 		u8tmp = 0x16;
- 	else
- 		u8tmp = 0x10;
- 
--	ret = regmap_write(priv->regmap, 0x1a, u8tmp);
-+	ret = regmap_write(s->regmap, 0x1a, u8tmp);
- 	if (ret)
- 		goto err;
- 
--	if (priv->lna_gain_auto->val == false) {
--		ret = regmap_write(priv->regmap, 0x14, priv->lna_gain->val);
-+	if (s->lna_gain_auto->val == false) {
-+		ret = regmap_write(s->regmap, 0x14, s->lna_gain->val);
- 		if (ret)
- 			goto err;
- 	}
- err:
- 	if (ret)
--		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
- 
- 	return ret;
- }
- 
- static int e4000_set_mixer_gain(struct dvb_frontend *fe)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000 *s = fe->tuner_priv;
- 	int ret;
- 	u8 u8tmp;
- 
--	dev_dbg(&priv->client->dev, "%s: mixer auto=%d->%d val=%d->%d\n",
--			__func__, priv->mixer_gain_auto->cur.val,
--			priv->mixer_gain_auto->val, priv->mixer_gain->cur.val,
--			priv->mixer_gain->val);
-+	dev_dbg(&s->client->dev, "%s: mixer auto=%d->%d val=%d->%d\n",
-+			__func__, s->mixer_gain_auto->cur.val,
-+			s->mixer_gain_auto->val, s->mixer_gain->cur.val,
-+			s->mixer_gain->val);
- 
--	if (priv->mixer_gain_auto->val)
-+	if (s->mixer_gain_auto->val)
- 		u8tmp = 0x15;
- 	else
- 		u8tmp = 0x14;
- 
--	ret = regmap_write(priv->regmap, 0x20, u8tmp);
-+	ret = regmap_write(s->regmap, 0x20, u8tmp);
- 	if (ret)
- 		goto err;
- 
--	if (priv->mixer_gain_auto->val == false) {
--		ret = regmap_write(priv->regmap, 0x15, priv->mixer_gain->val);
-+	if (s->mixer_gain_auto->val == false) {
-+		ret = regmap_write(s->regmap, 0x15, s->mixer_gain->val);
- 		if (ret)
- 			goto err;
- 	}
- err:
- 	if (ret)
--		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
- 
- 	return ret;
- }
- 
- static int e4000_set_if_gain(struct dvb_frontend *fe)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000 *s = fe->tuner_priv;
- 	int ret;
- 	u8 buf[2];
- 	u8 u8tmp;
- 
--	dev_dbg(&priv->client->dev, "%s: if auto=%d->%d val=%d->%d\n",
--			__func__, priv->if_gain_auto->cur.val,
--			priv->if_gain_auto->val, priv->if_gain->cur.val,
--			priv->if_gain->val);
-+	dev_dbg(&s->client->dev, "%s: if auto=%d->%d val=%d->%d\n",
-+			__func__, s->if_gain_auto->cur.val,
-+			s->if_gain_auto->val, s->if_gain->cur.val,
-+			s->if_gain->val);
- 
--	if (priv->if_gain_auto->val && priv->lna_gain_auto->cur.val)
-+	if (s->if_gain_auto->val && s->lna_gain_auto->cur.val)
- 		u8tmp = 0x17;
--	else if (priv->lna_gain_auto->cur.val)
-+	else if (s->lna_gain_auto->cur.val)
- 		u8tmp = 0x19;
--	else if (priv->if_gain_auto->val)
-+	else if (s->if_gain_auto->val)
- 		u8tmp = 0x16;
- 	else
- 		u8tmp = 0x10;
- 
--	ret = regmap_write(priv->regmap, 0x1a, u8tmp);
-+	ret = regmap_write(s->regmap, 0x1a, u8tmp);
- 	if (ret)
- 		goto err;
- 
--	if (priv->if_gain_auto->val == false) {
--		buf[0] = e4000_if_gain_lut[priv->if_gain->val].reg16_val;
--		buf[1] = e4000_if_gain_lut[priv->if_gain->val].reg17_val;
--		ret = regmap_bulk_write(priv->regmap, 0x16, buf, 2);
-+	if (s->if_gain_auto->val == false) {
-+		buf[0] = e4000_if_gain_lut[s->if_gain->val].reg16_val;
-+		buf[1] = e4000_if_gain_lut[s->if_gain->val].reg17_val;
-+		ret = regmap_bulk_write(s->regmap, 0x16, buf, 2);
- 		if (ret)
- 			goto err;
- 	}
- err:
- 	if (ret)
--		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
- 
- 	return ret;
- }
- 
- static int e4000_pll_lock(struct dvb_frontend *fe)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000 *s = fe->tuner_priv;
- 	int ret;
- 	unsigned int utmp;
- 
--	ret = regmap_read(priv->regmap, 0x07, &utmp);
--	if (ret < 0)
-+	ret = regmap_read(s->regmap, 0x07, &utmp);
-+	if (ret)
- 		goto err;
- 
--	priv->pll_lock->val = (utmp & 0x01);
-+	s->pll_lock->val = (utmp & 0x01);
- err:
- 	if (ret)
--		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
- 
- 	return ret;
- }
- 
- static int e4000_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct e4000_priv *priv = container_of(ctrl->handler, struct e4000_priv, hdl);
-+	struct e4000 *s = container_of(ctrl->handler, struct e4000, hdl);
- 	int ret;
- 
--	if (priv->active == false)
-+	if (s->active == false)
- 		return 0;
- 
- 	switch (ctrl->id) {
- 	case  V4L2_CID_RF_TUNER_PLL_LOCK:
--		ret = e4000_pll_lock(priv->fe);
-+		ret = e4000_pll_lock(s->fe);
- 		break;
- 	default:
--		dev_dbg(&priv->client->dev, "%s: unknown ctrl: id=%d name=%s\n",
-+		dev_dbg(&s->client->dev, "%s: unknown ctrl: id=%d name=%s\n",
- 				__func__, ctrl->id, ctrl->name);
- 		ret = -EINVAL;
- 	}
-@@ -415,34 +415,34 @@ static int e4000_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- 
- static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct e4000_priv *priv = container_of(ctrl->handler, struct e4000_priv, hdl);
--	struct dvb_frontend *fe = priv->fe;
-+	struct e4000 *s = container_of(ctrl->handler, struct e4000, hdl);
-+	struct dvb_frontend *fe = s->fe;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
- 
--	if (priv->active == false)
-+	if (s->active == false)
- 		return 0;
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_RF_TUNER_BANDWIDTH_AUTO:
- 	case V4L2_CID_RF_TUNER_BANDWIDTH:
--		c->bandwidth_hz = priv->bandwidth->val;
--		ret = e4000_set_params(priv->fe);
-+		c->bandwidth_hz = s->bandwidth->val;
-+		ret = e4000_set_params(s->fe);
- 		break;
- 	case  V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:
- 	case  V4L2_CID_RF_TUNER_LNA_GAIN:
--		ret = e4000_set_lna_gain(priv->fe);
-+		ret = e4000_set_lna_gain(s->fe);
- 		break;
- 	case  V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:
- 	case  V4L2_CID_RF_TUNER_MIXER_GAIN:
--		ret = e4000_set_mixer_gain(priv->fe);
-+		ret = e4000_set_mixer_gain(s->fe);
- 		break;
- 	case  V4L2_CID_RF_TUNER_IF_GAIN_AUTO:
- 	case  V4L2_CID_RF_TUNER_IF_GAIN:
--		ret = e4000_set_if_gain(priv->fe);
-+		ret = e4000_set_if_gain(s->fe);
- 		break;
- 	default:
--		dev_dbg(&priv->client->dev, "%s: unknown ctrl: id=%d name=%s\n",
-+		dev_dbg(&s->client->dev, "%s: unknown ctrl: id=%d name=%s\n",
- 				__func__, ctrl->id, ctrl->name);
- 		ret = -EINVAL;
- 	}
-@@ -478,7 +478,7 @@ static int e4000_probe(struct i2c_client *client,
- {
- 	struct e4000_config *cfg = client->dev.platform_data;
- 	struct dvb_frontend *fe = cfg->fe;
--	struct e4000_priv *priv;
-+	struct e4000 *s;
- 	int ret;
- 	unsigned int utmp;
- 	static const struct regmap_config regmap_config = {
-@@ -487,28 +487,28 @@ static int e4000_probe(struct i2c_client *client,
- 		.max_register = 0xff,
- 	};
- 
--	priv = kzalloc(sizeof(struct e4000_priv), GFP_KERNEL);
--	if (!priv) {
-+	s = kzalloc(sizeof(struct e4000), GFP_KERNEL);
-+	if (!s) {
- 		ret = -ENOMEM;
- 		dev_err(&client->dev, "%s: kzalloc() failed\n", KBUILD_MODNAME);
- 		goto err;
- 	}
- 
--	priv->clock = cfg->clock;
--	priv->client = client;
--	priv->fe = cfg->fe;
--	priv->regmap = devm_regmap_init_i2c(client, &regmap_config);
--	if (IS_ERR(priv->regmap)) {
--		ret = PTR_ERR(priv->regmap);
-+	s->clock = cfg->clock;
-+	s->client = client;
-+	s->fe = cfg->fe;
-+	s->regmap = devm_regmap_init_i2c(client, &regmap_config);
-+	if (IS_ERR(s->regmap)) {
-+		ret = PTR_ERR(s->regmap);
- 		goto err;
- 	}
- 
- 	/* check if the tuner is there */
--	ret = regmap_read(priv->regmap, 0x02, &utmp);
--	if (ret < 0)
-+	ret = regmap_read(s->regmap, 0x02, &utmp);
-+	if (ret)
- 		goto err;
- 
--	dev_dbg(&priv->client->dev, "%s: chip id=%02x\n", __func__, utmp);
-+	dev_dbg(&s->client->dev, "%s: chip id=%02x\n", __func__, utmp);
- 
- 	if (utmp != 0x40) {
- 		ret = -ENODEV;
-@@ -516,59 +516,59 @@ static int e4000_probe(struct i2c_client *client,
- 	}
- 
- 	/* put sleep as chip seems to be in normal mode by default */
--	ret = regmap_write(priv->regmap, 0x00, 0x00);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x00, 0x00);
-+	if (ret)
- 		goto err;
- 
- 	/* Register controls */
--	v4l2_ctrl_handler_init(&priv->hdl, 9);
--	priv->bandwidth_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	v4l2_ctrl_handler_init(&s->hdl, 9);
-+	s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_BANDWIDTH_AUTO, 0, 1, 1, 1);
--	priv->bandwidth = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	s->bandwidth = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_BANDWIDTH, 4300000, 11000000, 100000, 4300000);
--	v4l2_ctrl_auto_cluster(2, &priv->bandwidth_auto, 0, false);
--	priv->lna_gain_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
-+	s->lna_gain_auto = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_LNA_GAIN_AUTO, 0, 1, 1, 1);
--	priv->lna_gain = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	s->lna_gain = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_LNA_GAIN, 0, 15, 1, 10);
--	v4l2_ctrl_auto_cluster(2, &priv->lna_gain_auto, 0, false);
--	priv->mixer_gain_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	v4l2_ctrl_auto_cluster(2, &s->lna_gain_auto, 0, false);
-+	s->mixer_gain_auto = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO, 0, 1, 1, 1);
--	priv->mixer_gain = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	s->mixer_gain = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_MIXER_GAIN, 0, 1, 1, 1);
--	v4l2_ctrl_auto_cluster(2, &priv->mixer_gain_auto, 0, false);
--	priv->if_gain_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	v4l2_ctrl_auto_cluster(2, &s->mixer_gain_auto, 0, false);
-+	s->if_gain_auto = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_IF_GAIN_AUTO, 0, 1, 1, 1);
--	priv->if_gain = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	s->if_gain = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_IF_GAIN, 0, 54, 1, 0);
--	v4l2_ctrl_auto_cluster(2, &priv->if_gain_auto, 0, false);
--	priv->pll_lock = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	v4l2_ctrl_auto_cluster(2, &s->if_gain_auto, 0, false);
-+	s->pll_lock = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_PLL_LOCK,  0, 1, 1, 0);
--	if (priv->hdl.error) {
--		ret = priv->hdl.error;
--		dev_err(&priv->client->dev, "Could not initialize controls\n");
--		v4l2_ctrl_handler_free(&priv->hdl);
-+	if (s->hdl.error) {
-+		ret = s->hdl.error;
-+		dev_err(&s->client->dev, "Could not initialize controls\n");
-+		v4l2_ctrl_handler_free(&s->hdl);
- 		goto err;
- 	}
- 
--	priv->sd.ctrl_handler = &priv->hdl;
-+	s->sd.ctrl_handler = &s->hdl;
- 
--	dev_info(&priv->client->dev,
-+	dev_info(&s->client->dev,
- 			"%s: Elonics E4000 successfully identified\n",
- 			KBUILD_MODNAME);
- 
--	fe->tuner_priv = priv;
-+	fe->tuner_priv = s;
- 	memcpy(&fe->ops.tuner_ops, &e4000_tuner_ops,
- 			sizeof(struct dvb_tuner_ops));
- 
--	v4l2_set_subdevdata(&priv->sd, client);
--	i2c_set_clientdata(client, &priv->sd);
-+	v4l2_set_subdevdata(&s->sd, client);
-+	i2c_set_clientdata(client, &s->sd);
- 
- 	return 0;
- err:
- 	if (ret) {
- 		dev_dbg(&client->dev, "%s: failed=%d\n", __func__, ret);
--		kfree(priv);
-+		kfree(s);
- 	}
- 
- 	return ret;
-@@ -577,15 +577,15 @@ err:
- static int e4000_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
--	struct e4000_priv *priv = container_of(sd, struct e4000_priv, sd);
--	struct dvb_frontend *fe = priv->fe;
-+	struct e4000 *s = container_of(sd, struct e4000, sd);
-+	struct dvb_frontend *fe = s->fe;
- 
- 	dev_dbg(&client->dev, "%s:\n", __func__);
- 
--	v4l2_ctrl_handler_free(&priv->hdl);
-+	v4l2_ctrl_handler_free(&s->hdl);
- 	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
- 	fe->tuner_priv = NULL;
--	kfree(priv);
-+	kfree(s);
- 
- 	return 0;
- }
-diff --git a/drivers/media/tuners/e4000_priv.h b/drivers/media/tuners/e4000_priv.h
-index e772b00..cb00704 100644
---- a/drivers/media/tuners/e4000_priv.h
-+++ b/drivers/media/tuners/e4000_priv.h
-@@ -26,7 +26,7 @@
- #include <media/v4l2-subdev.h>
- #include <linux/regmap.h>
- 
--struct e4000_priv {
-+struct e4000 {
- 	struct i2c_client *client;
- 	struct regmap *regmap;
- 	u32 clock;
+diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+index c6ae7ba..63e8f03 100644
+--- a/drivers/media/v4l2-core/Makefile
++++ b/drivers/media/v4l2-core/Makefile
+@@ -6,7 +6,7 @@ tuner-objs	:=	tuner-core.o
+ 
+ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+ 			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o \
+-			v4l2-async.o
++			v4l2-async.o v4l2-flash.o
+ ifeq ($(CONFIG_COMPAT),y)
+   videodev-objs += v4l2-compat-ioctl32.o
+ endif
+diff --git a/drivers/media/v4l2-core/v4l2-flash.c b/drivers/media/v4l2-core/v4l2-flash.c
+new file mode 100644
+index 0000000..6be0ba9
+--- /dev/null
++++ b/drivers/media/v4l2-core/v4l2-flash.c
+@@ -0,0 +1,320 @@
++/*
++ * V4L2 flash LED subdevice registration helpers.
++ *
++ *	Copyright (C) 2014 Samsung Electronics Co., Ltd
++ *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation."
++ */
++
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-event.h>
++#include <media/v4l2-flash.h>
++#include <media/v4l2-dev.h>
++
++static int v4l2_flash_g_volatile_ctrl(struct v4l2_ctrl *c)
++
++{
++	struct v4l2_flash *flash = ctrl_to_flash(c);
++	struct led_classdev *led_cdev = flash->led_cdev;
++	unsigned int fault;
++	int ret;
++
++	switch (c->id) {
++	case V4L2_CID_FLASH_STROBE_STATUS:
++		ret = led_update_brightness(led_cdev);
++		if (ret < 0)
++			return ret;
++		c->val = !!ret;
++		return 0;
++	case V4L2_CID_FLASH_FAULT:
++		/* led faults map directly to V4L2 flash faults */
++		ret = led_get_flash_fault(led_cdev, &fault);
++		if (!ret)
++			c->val = fault;
++		return ret;
++	default:
++		return -EINVAL;
++	}
++}
++
++static int v4l2_flash_set_intensity(struct v4l2_flash *flash,
++				    unsigned int intensity)
++{
++	struct led_classdev *led_cdev = flash->led_cdev;
++	unsigned int fault;
++	int ret;
++
++	ret = led_get_flash_fault(led_cdev, &fault);
++	if (ret < 0 || fault)
++		return -EINVAL;
++
++	led_set_brightness(led_cdev, intensity);
++
++	return ret;
++}
++
++static int v4l2_flash_s_ctrl(struct v4l2_ctrl *c)
++{
++	struct v4l2_flash *flash = ctrl_to_flash(c);
++	struct led_classdev *led_cdev = flash->led_cdev;
++	int ret = 0;
++
++	switch (c->id) {
++	case V4L2_CID_FLASH_LED_MODE:
++		switch (c->val) {
++		case V4L2_FLASH_LED_MODE_NONE:
++			/* clear flash mode on releae */
++			ret = led_set_flash_mode(led_cdev, false);
++			if (ret < 0)
++				return ret;
++			mutex_lock(&led_cdev->led_lock);
++			led_sysfs_unlock(led_cdev);
++			mutex_unlock(&led_cdev->led_lock);
++			break;
++		case V4L2_FLASH_LED_MODE_FLASH:
++			mutex_lock(&led_cdev->led_lock);
++			led_sysfs_lock(led_cdev);
++			mutex_unlock(&led_cdev->led_lock);
++
++			ret = led_set_flash_mode(led_cdev, true);
++			if (ret < 0)
++				return ret;
++			if (flash->ctrl.source->val ==
++					V4L2_FLASH_STROBE_SOURCE_EXTERNAL) {
++				ret = led_set_hw_triggered(led_cdev, true);
++				if (ret < 0)
++					return ret;
++				ret = v4l2_flash_set_intensity(flash,
++						       flash->flash_intensity);
++			} else {
++				ret = led_set_hw_triggered(led_cdev, false);
++				if (ret < 0)
++					return ret;
++			}
++			break;
++		case V4L2_FLASH_LED_MODE_TORCH:
++			mutex_lock(&led_cdev->led_lock);
++			led_sysfs_lock(led_cdev);
++			mutex_unlock(&led_cdev->led_lock);
++
++			ret = led_set_flash_mode(led_cdev, false);
++			if (ret < 0)
++				return ret;
++			/* torch is always triggered by software */
++			ret = led_set_hw_triggered(led_cdev, false);
++			if (ret)
++				return -EINVAL;
++			ret = v4l2_flash_set_intensity(flash,
++						       flash->torch_intensity);
++			break;
++		}
++		break;
++	case V4L2_CID_FLASH_STROBE_SOURCE:
++		ret = led_set_hw_triggered(led_cdev,
++				c->val == V4L2_FLASH_STROBE_SOURCE_EXTERNAL);
++		break;
++	case V4L2_CID_FLASH_STROBE:
++		if (flash->ctrl.led_mode->val != V4L2_FLASH_LED_MODE_FLASH ||
++		   flash->ctrl.source->val != V4L2_FLASH_STROBE_SOURCE_SOFTWARE)
++			return -EINVAL;
++		led_set_flash_timeout(led_cdev, flash->flash_timeout);
++		ret = v4l2_flash_set_intensity(flash,
++						flash->flash_intensity);
++		break;
++	case V4L2_CID_FLASH_STROBE_STOP:
++		led_set_brightness(led_cdev, 0);
++		break;
++	case V4L2_CID_FLASH_TIMEOUT:
++		flash->flash_timeout = c->val;
++		break;
++	case V4L2_CID_FLASH_INTENSITY:
++		flash->flash_intensity = c->val;
++		break;
++	case V4L2_CID_FLASH_TORCH_INTENSITY:
++		flash->torch_intensity = c->val;
++		if (flash->ctrl.led_mode->val == V4L2_FLASH_LED_MODE_TORCH)
++			ret = v4l2_flash_set_intensity(flash,
++						       flash->torch_intensity);
++		break;
++	}
++
++	return ret;
++}
++
++static const struct v4l2_ctrl_ops v4l2_flash_ctrl_ops = {
++	.g_volatile_ctrl = v4l2_flash_g_volatile_ctrl,
++	.s_ctrl = v4l2_flash_s_ctrl,
++};
++
++static int v4l2_flash_init_controls(struct v4l2_flash *flash,
++				struct v4l2_flash_ctrl_config *config)
++
++{
++	unsigned int mask;
++	struct v4l2_ctrl *ctrl;
++	struct v4l2_ctrl_config *ctrl_cfg;
++	bool has_flash = config->flags & V4L2_FLASH_CFG_LED_FLASH;
++	bool has_torch = config->flags & V4L2_FLASH_CFG_LED_TORCH;
++	int ret, num_ctrls;
++
++	if (!has_flash && !has_torch)
++		return -EINVAL;
++
++	num_ctrls = has_flash ? 8 : 2;
++	if (config->flags & V4L2_FLASH_CFG_FAULTS_MASK)
++		++num_ctrls;
++
++	v4l2_ctrl_handler_init(&flash->hdl, num_ctrls);
++
++	mask = 1 << V4L2_FLASH_LED_MODE_NONE;
++	if (has_flash)
++		mask |= 1 << V4L2_FLASH_LED_MODE_FLASH;
++	if (has_torch)
++		mask |= 1 << V4L2_FLASH_LED_MODE_TORCH;
++
++	/* Configure TORCH_INTENSITY ctrl */
++	ctrl_cfg = &config->torch_intensity;
++	ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
++				 V4L2_CID_FLASH_TORCH_INTENSITY,
++				 ctrl_cfg->min, ctrl_cfg->max,
++				 ctrl_cfg->step, ctrl_cfg->def);
++
++	if (has_flash) {
++		/* Configure FLASH_LED_MODE ctrl */
++		flash->ctrl.led_mode = v4l2_ctrl_new_std_menu(&flash->hdl,
++				&v4l2_flash_ctrl_ops, V4L2_CID_FLASH_LED_MODE,
++				V4L2_FLASH_LED_MODE_TORCH, ~mask,
++				V4L2_FLASH_LED_MODE_NONE);
++
++		/* Configure FLASH_STROBE_SOURCE ctrl */
++		mask = 1 << V4L2_FLASH_STROBE_SOURCE_SOFTWARE |
++		       1 << V4L2_FLASH_STROBE_SOURCE_EXTERNAL;
++
++		flash->ctrl.source = v4l2_ctrl_new_std_menu(&flash->hdl,
++					&v4l2_flash_ctrl_ops,
++					V4L2_CID_FLASH_STROBE_SOURCE,
++					V4L2_FLASH_STROBE_SOURCE_EXTERNAL,
++					~mask,
++					V4L2_FLASH_STROBE_SOURCE_SOFTWARE);
++
++		/* Configure FLASH_STROBE ctrl */
++		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
++					  V4L2_CID_FLASH_STROBE, 0, 1, 1, 0);
++		if (ctrl)
++			ctrl->type = V4L2_CTRL_TYPE_BUTTON;
++
++		/* Configure FLASH_STROBE_STOP ctrl */
++		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
++					  V4L2_CID_FLASH_STROBE_STOP,
++					  0, 1, 1, 0);
++		if (ctrl)
++			ctrl->type = V4L2_CTRL_TYPE_BUTTON;
++
++		/* Configure FLASH_STROBE_STATUS ctrl */
++		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
++					 V4L2_CID_FLASH_STROBE_STATUS,
++					 0, 1, 1, 1);
++		if (ctrl)
++			ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE |
++				       V4L2_CTRL_FLAG_READ_ONLY;
++
++		/* Configure FLASH_TIMEOUT ctrl */
++		ctrl_cfg = &config->flash_timeout;
++		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
++					 V4L2_CID_FLASH_TIMEOUT, ctrl_cfg->min,
++					 ctrl_cfg->max, ctrl_cfg->step,
++					 ctrl_cfg->def);
++
++		/* Configure FLASH_INTENSITY ctrl */
++		ctrl_cfg = &config->flash_intensity;
++		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
++					 V4L2_CID_FLASH_INTENSITY,
++					 ctrl_cfg->min, ctrl_cfg->max,
++					 ctrl_cfg->step, ctrl_cfg->def);
++
++		if (config->flags & V4L2_FLASH_CFG_FAULTS_MASK) {
++			/* Configure FLASH_FAULT ctrl */
++			ctrl = v4l2_ctrl_new_std(&flash->hdl,
++						 &v4l2_flash_ctrl_ops,
++						 V4L2_CID_FLASH_FAULT, 0,
++						 config->flags &
++						 V4L2_FLASH_CFG_FAULTS_MASK,
++						 0, 0);
++			if (ctrl) {
++				ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE |
++					       V4L2_CTRL_FLAG_READ_ONLY;
++				ctrl->type = V4L2_CTRL_TYPE_BITMASK;
++			}
++		}
++	}
++
++	if (flash->hdl.error) {
++		ret = flash->hdl.error;
++		goto error_free;
++	}
++
++	ret = v4l2_ctrl_handler_setup(&flash->hdl);
++	if (ret < 0)
++		goto error_free;
++
++	flash->subdev.ctrl_handler = &flash->hdl;
++
++	return 0;
++
++error_free:
++	v4l2_ctrl_handler_free(&flash->hdl);
++	return ret;
++}
++
++/* v4l2_subdev_init requires this structure */
++static struct v4l2_subdev_ops v4l2_flash_subdev_ops = {
++};
++
++int v4l2_flash_init(struct led_classdev *led_cdev, struct v4l2_flash *flash,
++				struct v4l2_flash_ctrl_config *config)
++{
++	struct v4l2_subdev *sd = &flash->subdev;
++	int ret;
++
++	flash->led_cdev = led_cdev;
++	sd->dev = led_cdev->dev->parent;
++	v4l2_subdev_init(sd, &v4l2_flash_subdev_ops);
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	snprintf(sd->name, sizeof(sd->name), led_cdev->name);
++
++	ret = v4l2_flash_init_controls(flash, config);
++	if (ret < 0)
++		goto err_init_controls;
++
++	ret = media_entity_init(&sd->entity, 0, NULL, 0);
++	if (ret < 0)
++		goto err_init_entity;
++
++	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
++
++	ret = v4l2_async_register_subdev(sd);
++	if (ret < 0)
++		goto err_init_entity;
++
++	return 0;
++
++err_init_entity:
++	media_entity_cleanup(&sd->entity);
++err_init_controls:
++	v4l2_ctrl_handler_free(sd->ctrl_handler);
++	return -EINVAL;
++}
++EXPORT_SYMBOL_GPL(v4l2_flash_init);
++
++void v4l2_flash_release(struct v4l2_flash *flash)
++{
++	media_entity_cleanup(&flash->subdev.entity);
++	v4l2_ctrl_handler_free(flash->subdev.ctrl_handler);
++	v4l2_async_unregister_subdev(&flash->subdev);
++}
++EXPORT_SYMBOL_GPL(v4l2_flash_release);
+diff --git a/include/media/v4l2-flash.h b/include/media/v4l2-flash.h
+new file mode 100644
+index 0000000..138edae
+--- /dev/null
++++ b/include/media/v4l2-flash.h
+@@ -0,0 +1,102 @@
++/*
++ * V4L2 flash LED subdevice registration helpers.
++ *
++ *	Copyright (C) 2014 Samsung Electronics Co., Ltd
++ *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation."
++ */
++
++#ifndef _V4L2_FLASH_H
++#define _V4L2_FLASH_H
++
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-event.h>
++#include <media/v4l2-dev.h>
++#include <linux/leds.h>
++
++/*
++ * Supported led fault and mode bits -
++ * must be kept in synch with V4L2_FLASH_FAULT bits
++ */
++#define V4L2_FLASH_CFG_FAULT_OVER_VOLTAGE	(1 << 0)
++#define V4L2_FLASH_CFG_FAULT_TIMEOUT		(1 << 1)
++#define V4L2_FLASH_CFG_FAULT_OVER_TEMPERATURE	(1 << 2)
++#define V4L2_FLASH_CFG_FAULT_SHORT_CIRCUIT	(1 << 3)
++#define V4L2_FLASH_CFG_FAULT_OVER_CURRENT	(1 << 4)
++#define V4L2_FLASH_CFG_FAULT_INDICATOR		(1 << 5)
++#define V4L2_FLASH_CFG_FAULTS_MASK		0x3f
++#define V4L2_FLASH_CFG_LED_FLASH		(1 << 6)
++#define V4L2_FLASH_CFG_LED_TORCH		(1 << 7)
++
++/* Flash control config data initializer */
++
++struct v4l2_flash {
++	struct led_classdev *led_cdev;
++	struct v4l2_subdev subdev;
++	struct v4l2_ctrl_handler hdl;
++
++	struct {
++		struct v4l2_ctrl *source;
++		struct v4l2_ctrl *led_mode;
++	} ctrl;
++
++	unsigned int flash_intensity;
++	unsigned int torch_intensity;
++	unsigned int flash_timeout;
++};
++
++struct v4l2_flash_ctrl_config {
++	struct v4l2_ctrl_config flash_timeout;
++	struct v4l2_ctrl_config flash_intensity;
++	struct v4l2_ctrl_config torch_intensity;
++	unsigned int flags;
++};
++
++static inline struct v4l2_flash *subdev_to_flash(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct v4l2_flash, subdev);
++}
++
++static inline struct v4l2_flash *ctrl_to_flash(struct v4l2_ctrl *c)
++{
++	return container_of(c->handler, struct v4l2_flash, hdl);
++}
++
++#ifdef CONFIG_VIDEO_V4L2
++/**
++ * v4l2_flash_init - initialize V4L2 flash led sub-device
++ * @led_cdev: the LED to create subdev upon
++ * @flash: a structure representing V4L2 flash led device
++ * @config: initial data for the flash led subdev controls
++ *
++ * Create V4L2 subdev wrapping given LED subsystem device.
++ */
++int v4l2_flash_init(struct led_classdev *led_cdev, struct v4l2_flash *flash,
++				struct v4l2_flash_ctrl_config *config);
++
++/**
++ * v4l2_flash_release - release V4L2 flash led sub-device
++ * @flash: a structure representing V4L2 flash led device
++ *
++ * Release V4L2 flash led subdev.
++ */
++void v4l2_flash_release(struct v4l2_flash *flash);
++#else
++static inline int v4l2_flash_init(struct led_classdev *led_cdev,
++				  struct v4l2_flash *flash,
++				  struct v4l2_flash_ctrl_config *config)
++{
++	return 0;
++}
++
++static inline void v4l2_flash_release(struct v4l2_flash *flash)
++{
++}
++#endif
++
++#endif
 -- 
-1.8.5.3
+1.7.9.5
 
