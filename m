@@ -1,72 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4565 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932951AbaCQMyo (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36930 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759997AbaCTXYZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 08:54:44 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, pawel@osciak.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH for v3.15 1/5] v4l2-subdev.h: fix sparse error with v4l2_subdev_notify
-Date: Mon, 17 Mar 2014 13:54:19 +0100
-Message-Id: <1395060863-42211-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1395060863-42211-1-git-send-email-hverkuil@xs4all.nl>
-References: <1395060863-42211-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 20 Mar 2014 19:24:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Grant Likely <grant.likely@linaro.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
+Date: Fri, 21 Mar 2014 00:26:12 +0100
+Message-ID: <2220569.iDU3Tk3vCh@avalon>
+In-Reply-To: <20140320231250.8F0E0C412EA@trevor.secretlab.ca>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> <20140320153804.35d5b835@samsung.com> <20140320231250.8F0E0C412EA@trevor.secretlab.ca>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Grant,
 
-The notify function is a void function, yet the v4l2_subdev_notify
-define uses it in a ? : construction, which causes sparse warnings.
+On Thursday 20 March 2014 23:12:50 Grant Likely wrote:
+> On Thu, 20 Mar 2014 19:52:53 +0100, Laurent Pinchart wrote:
+> > On Thursday 20 March 2014 18:48:16 Grant Likely wrote:
+> > > On Thu, 20 Mar 2014 15:38:04 -0300, Mauro Carvalho Chehab wrote:
+> > > > Em Thu, 20 Mar 2014 17:54:31 +0000 Grant Likely escreveu:
+> > > > > On Wed, 12 Mar 2014 10:25:56 +0000, Russell King - ARM Linux wrote:
 
-Replace the define by a static inline function and move it to
-v4l2-device.h, which is where it belongs since it needs to know the
-v4l2_device struct. This wasn't a problem when it was a define, but
-as a static inline function this no longer compiles in v4l2-subdev.h.
+[snip]
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/v4l2-device.h | 8 ++++++++
- include/media/v4l2-subdev.h | 5 -----
- 2 files changed, 8 insertions(+), 5 deletions(-)
+> > > > > > I believe trying to do this according to the flow of data is just
+> > > > > > wrong. You should always describe things from the primary device
+> > > > > > for the CPU towards the peripheral devices and never the opposite
+> > > > > > direction.
+> > > > > 
+> > > > > Agreed.
+> > > > 
+> > > > I don't agree, as what's the primary device is relative.
+> > > > 
+> > > > Actually, in the case of a media data flow, the CPU is generally not
+> > > > the primary device.
+> > > > 
+> > > > Even on general purpose computers, if the full data flow is taken into
+> > > > the account, the CPU is a mere device that will just be used to copy
+> > > > data either to GPU and speakers or to disk, eventually doing format
+> > > > conversions, when the hardware is cheap and don't provide format
+> > > > converters.
+> > > > 
+> > > > On more complex devices, like the ones we want to solve with the
+> > > > media controller, like an embedded hardware like a TV or a STB, the
+> > > > CPU is just an ancillary component that could even hang without
+> > > > stopping TV reception, as the data flow can be fully done inside the
+> > > > chipset.
+> > > 
+> > > We're talking about wiring up device drivers here, not data flow. Yes, I
+> > > completely understand that data flow is often not even remotely
+> > > cpu-centric. However, device drivers are, and the kernel needs to know
+> > > the dependency graph for choosing what devices depend on other devices.
+> > 
+> > Then we might not be talking about the same thing. I'm talking about DT
+> > bindings to represent the topology of the device, not how drivers are
+> > wired together.
+> 
+> Possibly. I'm certainly confused now. You brought up the component helpers
+> in drivers/base/component.c, so I thought working out dependencies is part
+> of the purpose of this binding. Everything I've heard so far has given me
+> the impression that the graph binding is tied up with knowing when all of
+> the devices exist.
 
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index c9b1593..ffb69da 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -120,6 +120,14 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd);
- int __must_check
- v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev);
- 
-+/* Send a notification to v4l2_device. */
-+static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
-+				      unsigned int notification, void *arg)
-+{
-+	if (sd && sd->v4l2_dev && sd->v4l2_dev->notify)
-+		sd->v4l2_dev->notify(sd, notification, arg);
-+}
-+
- /* Iterate over all subdevs. */
- #define v4l2_device_for_each_subdev(sd, v4l2_dev)			\
- 	list_for_each_entry(sd, &(v4l2_dev)->subdevs, list)
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 28f4d8c..ee1cb2d 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -691,11 +691,6 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
- 	(!(sd) ? -ENODEV : (((sd)->ops->o && (sd)->ops->o->f) ?	\
- 		(sd)->ops->o->f((sd) , ##args) : -ENOIOCTLCMD))
- 
--/* Send a notification to v4l2_device. */
--#define v4l2_subdev_notify(sd, notification, arg)			   \
--	((!(sd) || !(sd)->v4l2_dev || !(sd)->v4l2_dev->notify) ? -ENODEV : \
--	 (sd)->v4l2_dev->notify((sd), (notification), (arg)))
--
- #define v4l2_subdev_has_op(sd, o, f) \
- 	((sd)->ops->o && (sd)->ops->o->f)
- 
+The two are related, you're of course right about that.
+
+We're not really moving forward here. Part of our disagreement comes in my 
+opinion from having different requirements and different views of the problem, 
+caused by experiences with different kind of devices. This is much easier to 
+solve by sitting around the same table than discussing on mailing lists. I 
+would propose a meeting at the ELC but that's still a bit far away and would 
+delay progress by more than one month, which is probably not acceptable.
+
+I can reply to the e-mail where I've drawn one use case I have to deal with to 
+detail my needs if that can help.
+
+Alternatively the UK isn't that far away and I could jump in a train if you 
+can provide tea for the discussion :-)
+
+> How device drivers get connected together may not strictly be a property
+> of hardware, but it absolutely is informed by hardware topology.
+
 -- 
-1.9.0
+Regards,
+
+Laurent Pinchart
 
