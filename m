@@ -1,120 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49834 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754103AbaCCLLb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 06:11:31 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 35/79] [media] drx-j: remove drxj_options.h
-Date: Mon,  3 Mar 2014 07:06:29 -0300
-Message-Id: <1393841233-24840-36-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:38759 "EHLO
+	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754955AbaCTMnH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Mar 2014 08:43:07 -0400
+Message-ID: <532AE253.2010803@williammanley.net>
+Date: Thu, 20 Mar 2014 12:42:59 +0000
+From: William Manley <will@williammanley.net>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: William Manley <will@williammanley.net>,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v2] uvcvideo: Work around buggy Logitech C920 firmware
+References: <1394647711-25291-1-git-send-email-will@williammanley.net> <1394714328-29969-1-git-send-email-will@williammanley.net>
+In-Reply-To: <1394714328-29969-1-git-send-email-will@williammanley.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This file is empty (actually, all commented there). So, remove it.
+Prod...
 
-We should latter remove those macros too, or convert them into
-a struct to allow dynamically enable the options during device
-probing time.
+Is this acceptable to go in?
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/drx39xyj/drxj.c        |  4 --
- .../media/dvb-frontends/drx39xyj/drxj_options.h    | 65 ----------------------
- 2 files changed, 69 deletions(-)
- delete mode 100644 drivers/media/dvb-frontends/drx39xyj/drxj_options.h
+Thanks
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 668ac1a07959..c04745202c49 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -40,10 +40,6 @@ INCLUDE FILES
- #include "drxj.h"
- #include "drxj_map.h"
- 
--#ifdef DRXJ_OPTIONS_H
--#include "drxj_options.h"
--#endif
--
- /*============================================================================*/
- /*=== DEFINES ================================================================*/
- /*============================================================================*/
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj_options.h b/drivers/media/dvb-frontends/drx39xyj/drxj_options.h
-deleted file mode 100644
-index f3902868eaad..000000000000
---- a/drivers/media/dvb-frontends/drx39xyj/drxj_options.h
-+++ /dev/null
-@@ -1,65 +0,0 @@
--/*
--  Copyright (c), 2004-2005,2007-2010 Trident Microsystems, Inc.
--  All rights reserved.
--
--  Redistribution and use in source and binary forms, with or without
--  modification, are permitted provided that the following conditions are met:
--
--  * Redistributions of source code must retain the above copyright notice,
--    this list of conditions and the following disclaimer.
--  * Redistributions in binary form must reproduce the above copyright notice,
--    this list of conditions and the following disclaimer in the documentation
--	and/or other materials provided with the distribution.
--  * Neither the name of Trident Microsystems nor Hauppauge Computer Works
--    nor the names of its contributors may be used to endorse or promote
--	products derived from this software without specific prior written
--	permission.
--
--  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
--  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
--  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
--  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
--  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
--  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
--  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
--  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
--  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
--  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
--  POSSIBILITY OF SUCH DAMAGE.
--*/
--
--/**
--* \file $Id: drxj_options.h,v 1.5 2009/10/05 21:32:49 dingtao Exp $
--*
--* \brief DRXJ optional settings
--*
--* \author Tao Ding
--*/
--
--/* Note: Please add preprocessor DRXJ_OPTIONS_H for drxj.c to include this file */
--#ifndef __DRXJ_OPTIONS_H__
--#define __DRXJ_OPTIONS_H__
--
--#ifdef __cplusplus
--extern "C" {
--#endif
--
--/* #define DRXJ_DIGITAL_ONLY     */
--/* #define DRXJ_VSB_ONLY         */
--/* #define DRXJ_SIGNAL_ACCUM_ERR */
--/* #define MPEG_SERIAL_OUTPUT_PIN_DRIVE_STRENGTH   0x03  */
--/* #define MPEG_PARALLEL_OUTPUT_PIN_DRIVE_STRENGTH 0x04  */
--/* #define MPEG_OUTPUT_CLK_DRIVE_STRENGTH    0x05  */
--/* #define OOB_CRX_DRIVE_STRENGTH            0x04  */
--/* #define OOB_DRX_DRIVE_STRENGTH            0x05  */
--/* #define DRXJ_QAM_MAX_WAITTIME             1000  */
--/* #define DRXJ_QAM_FEC_LOCK_WAITTIME        200   */
--/* #define DRXJ_QAM_DEMOD_LOCK_EXT_WAITTIME  250   */
--
--/*-------------------------------------------------------------------------
--THE END
---------------------------------------------------------------------------*/
--#ifdef __cplusplus
--}
--#endif
--#endif				/* __DRXJ_OPTIONS_H__ */
--- 
-1.8.5.3
+Will
+
+On 13/03/14 12:38, William Manley wrote:
+> The uvcvideo webcam driver exposes the v4l2 control "Exposure (Absolute)"
+> which allows the user to control the exposure time of the webcam,
+> essentially controlling the brightness of the received image.  By default
+> the webcam automatically adjusts the exposure time automatically but the
+> if you set the control "Exposure, Auto"="Manual Mode" the user can fix
+> the exposure time.
+> 
+> Unfortunately it seems that the Logitech C920 has a firmware bug where
+> it will forget that it's in manual mode temporarily during initialisation.
+> This means that the camera doesn't respect the exposure time that the user
+> requested if they request it before starting to stream video.  They end up
+> with a video stream which is either too bright or too dark and must reset
+> the controls after video starts streaming.
+> 
+> This patch introduces the quirk UVC_QUIRK_RESTORE_CTRLS_ON_INIT which
+> causes the cached controls to be re-uploaded to the camera immediately
+> after initialising the camera.  This quirk is applied to the C920 to work
+> around this camera bug.
+> 
+> Changes since patch v1:
+>  * Introduce quirk so workaround is only applied to the C920.
+> 
+> Signed-off-by: William Manley <will@williammanley.net>
+> ---
+>  drivers/media/usb/uvc/uvc_ctrl.c   |  2 +-
+>  drivers/media/usb/uvc/uvc_driver.c | 11 ++++++++++-
+>  drivers/media/usb/uvc/uvc_video.c  |  6 ++++++
+>  drivers/media/usb/uvc/uvcvideo.h   |  3 ++-
+>  4 files changed, 19 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+> index a2f4501..f72d7eb 100644
+> --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> @@ -1795,7 +1795,7 @@ done:
+>   * - Handle restore order (Auto-Exposure Mode should be restored before
+>   *   Exposure Time).
+>   */
+> -int uvc_ctrl_resume_device(struct uvc_device *dev)
+> +int uvc_ctrl_restore_values(struct uvc_device *dev)
+>  {
+>  	struct uvc_control *ctrl;
+>  	struct uvc_entity *entity;
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+> index c3bb250..d3a9c3b 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -1981,7 +1981,7 @@ static int __uvc_resume(struct usb_interface *intf, int reset)
+>  		int ret = 0;
+>  
+>  		if (reset) {
+> -			ret = uvc_ctrl_resume_device(dev);
+> +			ret = uvc_ctrl_restore_values(dev);
+>  			if (ret < 0)
+>  				return ret;
+>  		}
+> @@ -2156,6 +2156,15 @@ static struct usb_device_id uvc_ids[] = {
+>  	  .bInterfaceClass	= USB_CLASS_VENDOR_SPEC,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0 },
+> +	/* Logitech HD Pro Webcam C920 */
+> +	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> +				| USB_DEVICE_ID_MATCH_INT_INFO,
+> +	  .idVendor		= 0x046d,
+> +	  .idProduct		= 0x082d,
+> +	  .bInterfaceClass	= USB_CLASS_VIDEO,
+> +	  .bInterfaceSubClass	= 1,
+> +	  .bInterfaceProtocol	= 0,
+> +	  .driver_info		= UVC_QUIRK_RESTORE_CTRLS_ON_INIT },
+>  	/* Chicony CNF7129 (Asus EEE 100HE) */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+>  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+> index 3394c34..85ff6b8 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -1660,6 +1660,12 @@ static int uvc_init_video(struct uvc_streaming *stream, gfp_t gfp_flags)
+>  		}
+>  	}
+>  
+> +	/* The Logitech C920 temporarily forgets that it should not be
+> +	   adjusting Exposure Absolute during init so restore controls to
+> +	   stored values. */
+> +	if (stream->dev->quirks & UVC_QUIRK_RESTORE_CTRLS_ON_INIT)
+> +		uvc_ctrl_restore_values(stream->dev);
+> +
+>  	return 0;
+>  }
+>  
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+> index 9e35982..0f54376 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -137,6 +137,7 @@
+>  #define UVC_QUIRK_FIX_BANDWIDTH		0x00000080
+>  #define UVC_QUIRK_PROBE_DEF		0x00000100
+>  #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
+> +#define UVC_QUIRK_RESTORE_CTRLS_ON_INIT	0x00000400
+>  
+>  /* Format flags */
+>  #define UVC_FMT_FLAG_COMPRESSED		0x00000001
+> @@ -676,7 +677,7 @@ extern int uvc_ctrl_add_mapping(struct uvc_video_chain *chain,
+>  		const struct uvc_control_mapping *mapping);
+>  extern int uvc_ctrl_init_device(struct uvc_device *dev);
+>  extern void uvc_ctrl_cleanup_device(struct uvc_device *dev);
+> -extern int uvc_ctrl_resume_device(struct uvc_device *dev);
+> +extern int uvc_ctrl_restore_values(struct uvc_device *dev);
+>  
+>  extern int uvc_ctrl_begin(struct uvc_video_chain *chain);
+>  extern int __uvc_ctrl_commit(struct uvc_fh *handle, int rollback,
+> 
 
