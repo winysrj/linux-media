@@ -1,68 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Gaia.Eases.nl ([46.182.217.96]:60483 "EHLO Gaia.Eases.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751775AbaC2WN5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Mar 2014 18:13:57 -0400
-Received: from [192.168.20.100] (D978A948.cm-3-1c.dynamic.ziggo.nl [217.120.169.72])
-	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
-	(No client certificate requested)
-	by Gaia.Eases.nl (Postfix) with ESMTPSA id CE8F86668
-	for <linux-media@vger.kernel.org>; Sat, 29 Mar 2014 22:56:04 +0100 (CET)
-Message-ID: <53374174.4000909@podiumbv.nl>
-Date: Sat, 29 Mar 2014 22:56:04 +0100
-From: "Podium B.V." <mailinglist@podiumbv.nl>
-Reply-To: mailinglist@podiumbv.nl
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:33044 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1758342AbaCTSSq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Mar 2014 14:18:46 -0400
+Date: Thu, 20 Mar 2014 18:18:20 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from
+	drivers/media/v4l2-core to drivers/of
+Message-ID: <20140320181820.GY7528@n2100.arm.linux.org.uk>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> <20140312102556.GC21483@n2100.arm.linux.org.uk> <20140320175432.0559CC4067A@trevor.secretlab.ca> <2161777.L3ZZmhyfM4@avalon>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: FireDTV / w_scan / no data from NIT(actual)
-References: <533731B9.7030805@PodiumBV.com>
-In-Reply-To: <533731B9.7030805@PodiumBV.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2161777.L3ZZmhyfM4@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Steve,
+On Thu, Mar 20, 2014 at 07:16:29PM +0100, Laurent Pinchart wrote:
+> On Thursday 20 March 2014 17:54:31 Grant Likely wrote:
+> > On Wed, 12 Mar 2014 10:25:56 +0000, Russell King - ARM Linux wrote:
+> > > On Mon, Mar 10, 2014 at 02:52:53PM +0100, Laurent Pinchart wrote:
+> > > > In theory unidirectional links in DT are indeed enough. However, let's
+> > > > not forget the following.
+> > > > 
+> > > > - There's no such thing as single start points for graphs. Sure, in some
+> > > > simple cases the graph will have a single start point, but that's not a
+> > > > generic rule. For instance the camera graphs
+> > > > http://ideasonboard.org/media/omap3isp.ps and
+> > > > http://ideasonboard.org/media/eyecam.ps have two camera sensors, and
+> > > > thus two starting points from a data flow point of view.
+> > > 
+> > > I think we need to stop thinking of a graph linked in terms of data
+> > > flow - that's really not useful.
+> > > 
+> > > Consider a display subsystem.  The CRTC is the primary interface for
+> > > the CPU - this is the "most interesting" interface, it's the interface
+> > > which provides access to the picture to be displayed for the CPU.  Other
+> > > interfaces are secondary to that purpose - reading the I2C DDC bus for
+> > > the display information is all secondary to the primary purpose of
+> > > displaying a picture.
+> > > 
+> > > For a capture subsystem, the primary interface for the CPU is the frame
+> > > grabber (whether it be an already encoded frame or not.)  The sensor
+> > > devices are all secondary to that.
+> > > 
+> > > So, the primary software interface in each case is where the data for
+> > > the primary purpose is transferred.  This is the point at which these
+> > > graphs should commence since this is where we would normally start
+> > > enumeration of the secondary interfaces.
+> > > 
+> > > V4L2 even provides interfaces for this: you open the capture device,
+> > > which then allows you to enumerate the capture device's inputs, and
+> > > this in turn allows you to enumerate their properties.  You don't open
+> > > a particular sensor and work back up the tree.
+> > > 
+> > > I believe trying to do this according to the flow of data is just wrong.
+> > > You should always describe things from the primary device for the CPU
+> > > towards the peripheral devices and never the opposite direction.
+> > 
+> > Agreed.
+> 
+> Absolutely not agreed. The whole concept of CPU towards peripherals only makes 
+> sense for very simple devices and breaks as soon as the hardware gets more 
+> complex. There's no such thing as CPU towards peripherals when peripherals 
+> communicate directly.
+> 
+> Please consider use cases more complex than just a display controller and an 
+> encoder, and you'll realize how messy not being able to parse the whole graph 
+> at once will become. Let's try to improve things, not to make sure to prevent 
+> support for future devices.
 
-I am already using the "-F" and the "-t 3" option...
-So a longer time waiting is not possible.
+That's odd, I did.
 
-     -F       use long filter timeout
-     -t N   tuning timeout
-                   1 = fastest [default]
-                   2 = medium
-                   3 = slowest
+Please draw some (ascii) diagrams of the situations you're saying this
+won't work for, because at the moment all I'm seeing is some vague
+hand-waving rather than anything factual that I can relate to.  Help
+us to actually _see_ the problem you have with this approach so we can
+understand it.
 
-And there are "NIT(actual) table" on the frequencies.
-My result should be very much like: http://www.dtvmonitor.com/nl/ziggo-noord
-
-But I also search more what my problem could be and I discovered that
-most examples say:
-
-     using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-
-and i only get:
-
-     using '/dev/dvb/adapter0/frontend0'
-
-But I guess demuxing is necessary to get the "NIT(actual) table", isn't it ?
-
-
-
-
-
-
-On 29-03-14 14:44, Steven Toth wrote:
- >> Only is goes already wrong with the init scan.... I only get: "Info: 
-no data
- >> from NIT(actual)"
- > I suspect either their isn't a NIT(actual) table on your frequency, or
- > the tool isn't waiting long enough for the NIT table to arrive.
- >
- > - Steve
-
-
-
-
-
-
+-- 
+FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
+improving, and getting towards what was expected from it.
