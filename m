@@ -1,72 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752966AbaCJXOk (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:29194 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933542AbaCTOv7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 19:14:40 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 12/48] ths8200: Add pad-level DV timings operations
-Date: Tue, 11 Mar 2014 00:15:23 +0100
-Message-Id: <1394493359-14115-13-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 20 Mar 2014 10:51:59 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: s.nawrocki@samsung.com, a.hajda@samsung.com,
+	kyungmin.park@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>
+Subject: [PATCH/RFC 7/8] DT: Add documentation for the mfd Maxim max77693 flash
+ cell
+Date: Thu, 20 Mar 2014 15:51:09 +0100
+Message-id: <1395327070-20215-8-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1395327070-20215-1-git-send-email-j.anaszewski@samsung.com>
+References: <1395327070-20215-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings and dv_timings_cap operations are deprecated.
-Implement the pad-level version of those operations to prepare for the
-removal of the video version.
+This patch adds device tree binding documentation for
+the flash cell of the Maxim max77693 multifunctional device.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
 ---
- drivers/media/i2c/ths8200.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ Documentation/devicetree/bindings/mfd/max77693.txt |   47 ++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-diff --git a/drivers/media/i2c/ths8200.c b/drivers/media/i2c/ths8200.c
-index f72561e..c4ec8b2 100644
---- a/drivers/media/i2c/ths8200.c
-+++ b/drivers/media/i2c/ths8200.c
-@@ -410,6 +410,9 @@ static int ths8200_g_dv_timings(struct v4l2_subdev *sd,
- static int ths8200_enum_dv_timings(struct v4l2_subdev *sd,
- 				   struct v4l2_enum_dv_timings *timings)
- {
-+	if (timings->pad != 0)
-+		return -EINVAL;
-+
- 	return v4l2_enum_dv_timings_cap(timings, &ths8200_timings_cap,
- 			NULL, NULL);
- }
-@@ -417,6 +420,9 @@ static int ths8200_enum_dv_timings(struct v4l2_subdev *sd,
- static int ths8200_dv_timings_cap(struct v4l2_subdev *sd,
- 				  struct v4l2_dv_timings_cap *cap)
- {
-+	if (cap->pad != 0)
-+		return -EINVAL;
-+
- 	*cap = ths8200_timings_cap;
- 	return 0;
- }
-@@ -430,10 +436,16 @@ static const struct v4l2_subdev_video_ops ths8200_video_ops = {
- 	.dv_timings_cap = ths8200_dv_timings_cap,
- };
+diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
+index 11921cc..9e1aa97 100644
+--- a/Documentation/devicetree/bindings/mfd/max77693.txt
++++ b/Documentation/devicetree/bindings/mfd/max77693.txt
+@@ -27,6 +27,43 @@ Optional properties:
  
-+static const struct v4l2_subdev_pad_ops ths8200_pad_ops = {
-+	.enum_dv_timings = ths8200_enum_dv_timings,
-+	.dv_timings_cap = ths8200_dv_timings_cap,
-+};
-+
- /* V4L2 top level operation handlers */
- static const struct v4l2_subdev_ops ths8200_ops = {
- 	.core  = &ths8200_core_ops,
- 	.video = &ths8200_video_ops,
-+	.pad = &ths8200_pad_ops,
- };
+ 	[*] refer Documentation/devicetree/bindings/regulator/regulator.txt
  
- static int ths8200_probe(struct i2c_client *client,
++Optional node:
++- led-flash : the LED submodule device node
++
++Required properties of "led-flash" node:
++- compatible : must be "maxim,max77693-led"
++
++Optional properties of "led-flash" node:
++- maxim,iout : Array of four intensities in microampheres of the current
++	in order: flash1, flash2, torch1, torch2.
++	Range:
++		flash - 15625 - 1000000,
++		torch - 15625 - 250000.
++- maxim,trigger : Array of flags indicating which trigger can activate given led
++	in order: flash1, flash2, torch1, torch2.
++	Possible flag values (can be combined):
++		1 - FLASH pin of the chip,
++		2 - TORCH pin of the chip,
++		4 - software via I2C command.
++- maxim,trigger-type : Array of trigger types in order: flash, torch.
++	Possible trigger types:
++		0 - Rising edge of the signal triggers the flash/torch,
++		1 - Signal level controls duration of the flash/torch.
++- maxim,timeout : Array of timeouts in microseconds after which leds are
++	turned off in order: flash, torch.
++	Range:
++		flash: 62500 - 1000000,
++		torch: 0 (no timeout) - 15728000.
++- maxim,boost-mode : Array of the flash boost modes in order: flash1, flash2.
++	Possible values:
++		0 - no boost,
++		1 - adaptive mode,
++		2 - fixed mode.
++- maxim,boost-vout : Output voltage of the boost module in millivolts.
++- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
++	if chip estimates that system voltage could drop below this level due
++	to flash power consumption.
++
+ Example:
+ 	max77693@66 {
+ 		compatible = "maxim,max77693";
+@@ -52,4 +89,14 @@ Example:
+ 					regulator-boot-on;
+ 			};
+ 		};
++		led_flash: led-flash {
++			compatible = "maxim,max77693-led";
++			maxim,iout = <625000 625000 250000 250000>;
++			maxim,trigger = <5 5 6 0>;
++			maxim,trigger-type = <0 1>;
++			maxim,timeout = <500000 0>;
++			maxim,boost-mode = <1 1>;
++			maxim,boost-vout = <5000>;
++			maxim,vsys-min = <2400>;
++		};
+ 	};
 -- 
-1.8.3.2
+1.7.9.5
 
