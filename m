@@ -1,62 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1881 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756848AbaCDKn1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 05:43:27 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv4 PATCH 15/18] vb2: fix streamoff handling if streamon wasn't called.
-Date: Tue,  4 Mar 2014 11:42:23 +0100
-Message-Id: <1393929746-39437-16-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:34064 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756777AbaCTRXH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Mar 2014 13:23:07 -0400
+Received: by mail-ee0-f53.google.com with SMTP id b57so914174eek.26
+        for <linux-media@vger.kernel.org>; Thu, 20 Mar 2014 10:23:06 -0700 (PDT)
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+In-Reply-To: <1883687.VdfitvQEN3@avalon>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < 139468148.3QhLg3QYq1@avalon> <531F08A8.300@ti.com> <1883687.VdfitvQEN3@ avalon>
+Date: Thu, 20 Mar 2014 17:23:02 +0000
+Message-Id: <20140320172302.CD320C4067A@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue, 11 Mar 2014 14:16:37 +0100, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+> On Tuesday 11 March 2014 14:59:20 Tomi Valkeinen wrote:
+> > So depending on the use case, the endpoints would point to opposite
+> > direction from the encoder's point of view.
+> > 
+> > And if I gathered Grant's opinion correctly (correct me if I'm wrong),
+> > he thinks things should be explicit, i.e. the bindings for, say, an
+> > encoder should state that the encoder's output endpoint _must_ contain a
+> > remote-endpoint property, whereas the encoder's input endpoint _must
+> > not_ contain a remote-endpoint property.
+> 
+> Actually my understand was that DT links would have the same direction as the 
+> data flow. There would be no ambiguity in that case as the direction of the 
+> data flow is known. What happens for bidirectional data flows still need to be 
+> discussed though. And if we want to use the of-graph bindings to describe 
+> graphs without a data flow, a decision will need to be taken there too.
 
-If you request buffers, then queue buffers and then call STREAMOFF
-those buffers are not returned to their dequeued state because streamoff
-will just return if q->streaming was 0.
+On further thinking, I would say linkage direction should be in the
+direction that would be considered the dependency order... I'm going to
+soften my position though. I think the generic pattern should still
+recommend unidirection links in direction of device dependency, but
+I'm okay with allowing the bidirection option if the helper functions
+are modified to validate the target endpoint. I think it needs to test
+for the following:
+- Make sure the endpoint either:
+  - does not have a backlink, or
+  - the backlink points back to the origin node
+- If the target is an endpoint node, then make sure the parent doesn't
+  have a link of any kind
+- If the target is a port node, make sure it doesn't have any endpoint
+  children nodes at all.
 
-This means that afterwards you can never QBUF that same buffer again unless
-you do STREAMON, REQBUFS or close the filehandle first.
+g.
 
-It is clear that if you do STREAMOFF even if no STREAMON was called before,
-you still want to have all buffers returned to their proper dequeued state.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index e750769..3c00e22 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2069,14 +2069,14 @@ static int vb2_internal_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
- 		return -EINVAL;
- 	}
- 
--	if (!q->streaming) {
--		dprintk(3, "streamoff successful: not streaming\n");
--		return 0;
--	}
--
- 	/*
- 	 * Cancel will pause streaming and remove all buffers from the driver
- 	 * and videobuf, effectively returning control over them to userspace.
-+	 *
-+	 * Note that we do this even if q->streaming == 0: if you prepare or
-+	 * queue buffers, and then call streamoff without ever having called
-+	 * streamon, you would still expect those buffers to be returned to
-+	 * their normal dequeued state.
- 	 */
- 	__vb2_queue_cancel(q);
- 
--- 
-1.9.0
 
