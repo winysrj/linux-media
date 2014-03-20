@@ -1,79 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42730 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750977AbaCQX23 (ORCPT
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:42879 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759160AbaCTWdI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 19:28:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Robert Schwebel <r.schwebel@pengutronix.de>
-Cc: Grant Likely <grant.likely@linaro.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Thu, 20 Mar 2014 18:33:08 -0400
+Received: by mail-ee0-f49.google.com with SMTP id c41so1198733eek.8
+        for <linux-media@vger.kernel.org>; Thu, 20 Mar 2014 15:33:06 -0700 (PDT)
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core to drivers/of
+To: Philipp Zabel <philipp.zabel@gmail.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
 	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Greg KH <gregkh@linuxfoundation.org>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
 	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [GIT PULL] Move device tree graph parsing helpers to drivers/of
-Date: Tue, 18 Mar 2014 00:30:13 +0100
-Message-ID: <5247436.pV9jXGKXCJ@avalon>
-In-Reply-To: <20140314070505.GV1629@pengutronix.de>
-References: <1394126000.3622.66.camel@paszta.hi.pengutronix.de> <5321CB04.6090700@samsung.com> <20140314070505.GV1629@pengutronix.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+In-Reply-To: <CA+gwMcfgKre8S4KHPvTVuAuz672aehGrN1UfFpwKAueTAcrMZQ@mail.gmail.com>
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> < 1393428297.3248.92.camel@paszta.hi.pengutronix.de> <20140307171804. EF245C40A32@trevor.secretlab.ca> < CA+gwMcfgKre8S4KHPvTVuAuz672aehGrN1UfFpwKAueTAcrMZQ@mail.gmail.com>
+Date: Thu, 20 Mar 2014 22:33:02 +0000
+Message-Id: <20140320223302.490D6C412EA@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robert,
-
-On Friday 14 March 2014 08:05:05 Robert Schwebel wrote:
-> On Thu, Mar 13, 2014 at 04:13:08PM +0100, Sylwester Nawrocki wrote:
-> > My experience and feelings are similar, I started to treat mainline
-> > kernel much less seriously after similar DT related blocking issues.
+On Sat, 8 Mar 2014 13:07:23 +0100, Philipp Zabel <philipp.zabel@gmail.com> wrote:
+> Hi Grant,
 > 
-> So how do we proceed now? Philipp implemented any of the suggested variants
-> now; nevertheless, there doesn't seem to be a consensus.
+> On Fri, Mar 7, 2014 at 6:18 PM, Grant Likely <grant.likely@linaro.org> wrote:
+> > On Wed, 26 Feb 2014 16:24:57 +0100, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> >> The 'ports' node is optional. It is only needed if the parent node has
+> >> its own #address-cells and #size-cells properties. If the ports are
+> >> direct children of the device node, there might be other nodes than
+> >> ports:
+> >>
+> >>       device {
+> >>               #address-cells = <1>;
+> >>               #size-cells = <0>;
+> >>
+> >>               port@0 {
+> >>                       endpoint { ... };
+> >>               };
+> >>               port@1 {
+> >>                       endpoint { ... };
+> >>               };
+> >>
+> >>               some-other-child { ... };
+> >>       };
+> >>
+> >>       device {
+> >>               #address-cells = <x>;
+> >>               #size-cells = <y>;
+> >>
+> >>               ports {
+> >>                       #address-cells = <1>;
+> >>                       #size-cells = <0>;
+> >>
+> >>                       port@0 {
+> >>                               endpoint { ... };
+> >>                       };
+> >>                       port@1 {
+> >>                               endpoint { ... };
+> >>                       };
+> >>               };
+> >>
+> >>               some-other-child { ... };
+> >>       };
+> >
+> > From a pattern perspective I have no problem with that.... From an
+> > individual driver binding perspective that is just dumb! It's fine for
+> > the ports node to be optional, but an individual driver using the
+> > binding should be explicit about which it will accept. Please use either
+> > a flag or a separate wrapper so that the driver can select the
+> > behaviour.
 > 
-> However, we really need a decision of the oftree maintainers. I think we are
-> fine with almost any of the available variants, as long as there is a
-> decision.
+> If the generic binding exists in both forms, most drivers should be
+> able to cope with both. Maybe it should be mentioned in the bindings
+> that the short form without ports node should be used where possible
+> (i.e. for devices that don't already have #address,size-cells != 1,0).
+
+I would rephrase that: (ie. for devices that have other child nodes that
+aren't ports.) It isn't about the #address/size-cells values. It is
+about how the driver interprets child nodes.
+
 > 
-> It would be great if we could soon continue to address the technical issues
-> with the IPU, instead of turning around oftree bindings. There is really
-> enough complexity left :-)
+> Having a separate wrapper to enforce the ports node for devices that
+> need it might be useful.
 
-I agree with you. I know that DT bindings review takes too much time, slows 
-development down and is just generally painful. I'm trying to reply to this e-
-mail thread as fast as possible, but I'm also busy with other tasks :-/
+Or the other way around. Make the core function only handle an explicit
+location and use a v4l2 wrapper to preserve the current behaviour. That
+will encourage stricter usage.
 
-The lack of formal consensus comes partly from the fact that people are busy 
-and that the mail thread is growing big. There's still two open questions from 
-my view of the whole discussion:
+> >> The helper should find the two endpoints in both cases.
+> >> Tomi suggests an even more compact form for devices with just one port:
+> >>
+> >>       device {
+> >>               endpoint { ... };
+> >>
+> >>               some-other-child { ... };
+> >>       };
+> >
+> > That's fine. In that case the driver would specifically require the
+> > endpoint to be that one node.... although the above looks a little weird
+> > to me. I would recommend that if there are other non-port child nodes
+> > then the ports should still be encapsulated by a ports node.  The device
+> > binding should not be ambiguous about which nodes are ports.
+> 
+> Sylwester suggested as an alternative, if I understood correctly, to
+> drop the endpoint node and instead keep the port:
+> 
+>     device-a {
+>         implicit_output_ep: port {
+>             remote-endpoint = <&explicit_input_ep>;
+>         };
+>     };
+> 
+>     device-b {
+>         port {
+>             explicit_input_ep: endpoint {
+>                 remote-endpoint = <&implicit_output_ep>;
+>             };
+>         };
+>     };
+> 
+> This would have the advantage to reduce verbosity for devices with multiple
+> ports that are only connected via one endport each, and you'd always have
+> the connected ports in the device tree as 'port' nodes.
 
-- Do we really want to drop bidirectional links ? Grant has been pretty vocal 
-about that, but there has been several replies with arguments for 
-bidirectional links, and no reply from him afterwards. Even though that 
-wouldn't be the preferred solution for everybody, there doesn't seem to be a 
-strong disagreement about dropping bidirectional links, as long as we can come 
-up with a reasonable implementation.
+It sounds like that is a closer description of the hardware, so I agree.
 
-- If we drop bidirectional links, what link direction do we use ? There has 
-been several proposals (including "north", which I think isn't future-proof as 
-it assumes an earth-centric model) and no real agreement, although there seems 
-to be a consensus among several developers that the core OF graph bindings 
-could leave that to be specified by subsystem bindings. We would still have to 
-agree on a direction for the display subsystem of course.
+> 
+> >> > It seems that this function is merely a helper to get all grandchildren
+> >> > of a node (with some very minor constraints). That could be generalized
+> >> > and simplified. If the function takes the "ports" node as an argument
+> >> > instead of the parent, then there is a greater likelyhood that other
+> >> > code can make use of it...
+> >> >
+> >> > Thinking further. I think the semantics of this whole feature basically
+> >> > boil down to this:
+> >> >
+> >> > #define for_each_grandchild_of_node(parent, child, grandchild) \
+> >> >     for_each_child_of_node(parent, child) \
+> >> >             for_each_child_of_node(child, grandchild)
+> >> >
+> >> > Correct? Or in this specific case:
+> >> >
+> >> >     parent = of_get_child_by_name(np, "ports")
+> >> >     for_each_grandchild_of_node(parent, child, grandchild) {
+> >> >             ...
+> >> >     }
+> >>
+> >> Hmm, that would indeed be a bit more generic, but it doesn't handle the
+> >> optional 'ports' subnode and doesn't allow for other child nodes in the
+> >> device node.
+> >
+> > See above. The no-ports-node version could be the
+> > for_each_grandchild_of_node() block, and the yes-ports-node version
+> > could be a wrapper around that.
+> 
+> For the yes-ports-node version I see no problem, but without the ports node,
+> for_each_grandchild_of_node would also collect the children of non-port
+> child nodes.
+> The port and endpoint nodes in this binding are identified by their name,
+> so maybe adding of_get_next_child_by_name() /
+> for_each_named_child_of_node() could be helpful here.
 
-If my above explanation isn't too far from the reality the next step could be 
-to send a new version of the DT bindings proposal as a ping.
+Generally I would avoid mixing child nodes of different purposes. If you
+are in that situation, the recommendation should be to use a ports node.
+If there are any current users for which that doesn't work, only then
+would I do the child_by_name approach.
 
--- 
-Regards,
-
-Laurent Pinchart
+g.
 
