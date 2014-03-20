@@ -1,137 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3191 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753782AbaCKU3p (ORCPT
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:55295 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759537AbaCTXM6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 16:29:45 -0400
-Message-ID: <531F7229.9070306@xs4all.nl>
-Date: Tue, 11 Mar 2014 21:29:29 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv3 PATCH 05/35] videodev2.h: add struct v4l2_query_ext_ctrl
- and VIDIOC_QUERY_EXT_CTRL.
-References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl> <1392631070-41868-6-git-send-email-hverkuil@xs4all.nl> <20140311164221.13537163@samsung.com>
-In-Reply-To: <20140311164221.13537163@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Thu, 20 Mar 2014 19:12:58 -0400
+Received: by mail-ee0-f53.google.com with SMTP id b57so1205147eek.26
+        for <linux-media@vger.kernel.org>; Thu, 20 Mar 2014 16:12:57 -0700 (PDT)
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+In-Reply-To: <12151803.GHyzFUphWh@avalon>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < 20140320153804.35d5b835@samsung.com> <20140320184816.7AB02C4067A@trevor. secretlab.ca> <12151803.GHyzFUphWh@avalon>
+Date: Thu, 20 Mar 2014 23:12:50 +0000
+Message-Id: <20140320231250.8F0E0C412EA@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/11/2014 08:42 PM, Mauro Carvalho Chehab wrote:
-> Em Mon, 17 Feb 2014 10:57:20 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Thu, 20 Mar 2014 19:52:53 +0100, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+> On Thursday 20 March 2014 18:48:16 Grant Likely wrote:
+> > On Thu, 20 Mar 2014 15:38:04 -0300, Mauro Carvalho Chehab wrote:
+> > > Em Thu, 20 Mar 2014 17:54:31 +0000 Grant Likely escreveu:
+> > > > On Wed, 12 Mar 2014 10:25:56 +0000, Russell King - ARM Linux wrote:
+> > > > > On Mon, Mar 10, 2014 at 02:52:53PM +0100, Laurent Pinchart wrote:
+> > > > > > In theory unidirectional links in DT are indeed enough. However,
+> > > > > > let's not forget the following.
+> > > > > > 
+> > > > > > - There's no such thing as single start points for graphs. Sure, in
+> > > > > > some simple cases the graph will have a single start point, but
+> > > > > > that's not a generic rule. For instance the camera graphs
+> > > > > > http://ideasonboard.org/media/omap3isp.ps and
+> > > > > > http://ideasonboard.org/media/eyecam.ps have two camera sensors, and
+> > > > > > thus two starting points from a data flow point of view.
+> > > > > 
+> > > > > I think we need to stop thinking of a graph linked in terms of data
+> > > > > flow - that's really not useful.
+> > > > > 
+> > > > > Consider a display subsystem.  The CRTC is the primary interface for
+> > > > > the CPU - this is the "most interesting" interface, it's the interface
+> > > > > which provides access to the picture to be displayed for the CPU. 
+> > > > > Other interfaces are secondary to that purpose - reading the I2C DDC
+> > > > > bus for the display information is all secondary to the primary
+> > > > > purpose of displaying a picture.
+> > > > > 
+> > > > > For a capture subsystem, the primary interface for the CPU is the
+> > > > > frame grabber (whether it be an already encoded frame or not.)  The
+> > > > > sensor devices are all secondary to that.
+> > > > > 
+> > > > > So, the primary software interface in each case is where the data for
+> > > > > the primary purpose is transferred.  This is the point at which these
+> > > > > graphs should commence since this is where we would normally start
+> > > > > enumeration of the secondary interfaces.
+> > > > > 
+> > > > > V4L2 even provides interfaces for this: you open the capture device,
+> > > > > which then allows you to enumerate the capture device's inputs, and
+> > > > > this in turn allows you to enumerate their properties.  You don't open
+> > > > > a particular sensor and work back up the tree.
+> > > > > 
+> > > > > I believe trying to do this according to the flow of data is just
+> > > > > wrong. You should always describe things from the primary device for
+> > > > > the CPU towards the peripheral devices and never the opposite
+> > > > > direction.
+> > > > 
+> > > > Agreed.
+> > > 
+> > > I don't agree, as what's the primary device is relative.
+> > > 
+> > > Actually, in the case of a media data flow, the CPU is generally not
+> > > the primary device.
+> > > 
+> > > Even on general purpose computers, if the full data flow is taken into
+> > > the account, the CPU is a mere device that will just be used to copy
+> > > data either to GPU and speakers or to disk, eventually doing format
+> > > conversions, when the hardware is cheap and don't provide format
+> > > converters.
+> > > 
+> > > On more complex devices, like the ones we want to solve with the
+> > > media controller, like an embedded hardware like a TV or a STB, the CPU
+> > > is just an ancillary component that could even hang without stopping
+> > > TV reception, as the data flow can be fully done inside the chipset.
+> > 
+> > We're talking about wiring up device drivers here, not data flow. Yes, I
+> > completely understand that data flow is often not even remotely
+> > cpu-centric. However, device drivers are, and the kernel needs to know
+> > the dependency graph for choosing what devices depend on other devices.
 > 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Add a new struct and ioctl to extend the amount of information you can
->> get for a control.
->>
->> It gives back a unit string, the range is now a s64 type, and the matrix
->> and element size can be reported through cols/rows/elem_size.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  include/uapi/linux/videodev2.h | 31 +++++++++++++++++++++++++++++++
->>  1 file changed, 31 insertions(+)
->>
->> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
->> index 4d7782a..858a6f3 100644
->> --- a/include/uapi/linux/videodev2.h
->> +++ b/include/uapi/linux/videodev2.h
->> @@ -1272,6 +1272,35 @@ struct v4l2_queryctrl {
->>  	__u32		     reserved[2];
->>  };
->>  
->> +/*  Used in the VIDIOC_QUERY_EXT_CTRL ioctl for querying extended controls */
->> +struct v4l2_query_ext_ctrl {
->> +	__u32		     id;
->> +	__u32		     type;
->> +	char		     name[32];
->> +	char		     unit[32];
->> +	union {
->> +		__s64 val;
->> +		__u32 reserved[4];
-> 
-> Why to reserve 16 bytes here? for anything bigger than 64
-> bits, we could use a pointer.
-> 
-> Same applies to the other unions.
+> Then we might not be talking about the same thing. I'm talking about DT 
+> bindings to represent the topology of the device, not how drivers are wired 
+> together.
 
-The idea was to allow space for min/max/step/def values for compound types
-if applicable. But that may have been overengineering.
+Possibly. I'm certainly confused now. You brought up the component
+helpers in drivers/base/component.c, so I thought working out
+dependencies is part of the purpose of this binding. Everything I've
+heard so far has given me the impression that the graph binding is tied
+up with knowing when all of the devices exist.
 
-> 
->> +	} min;
->> +	union {
->> +		__s64 val;
->> +		__u32 reserved[4];
->> +	} max;
->> +	union {
->> +		__u64 val;
->> +		__u32 reserved[4];
->> +	} step;
->> +	union {
->> +		__s64 val;
->> +		__u32 reserved[4];
->> +	} def;
-> 
-> Please call it default. It is ok to simplify names inside a driver,
-> but better to not do it at the API.
+How device drivers get connected together may not strictly be a property
+of hardware, but it absolutely is informed by hardware topology.
 
-default_value, then. 'default' is a keyword. I should probably rename min and max
-to minimum and maximum to stay in sync with v4l2_queryctrl.
+g.
 
-> 
->> +	__u32                flags;
-> 
->> +	__u32                cols;
->> +	__u32                rows;
->> +	__u32                elem_size;
-> 
-> The three above seem to be too specific for an array.
-> 
-> I would put those on a separate struct and add here an union,
-> like:
-> 
-> 	union {
-> 		struct v4l2_array arr;
-> 		__u32 reserved[8];
-> 	}
-
-I have to sleep on this. I'm not sure this helps in any way.
-
-> 
->> +	__u32		     reserved[17];
-> 
-> This also seems too much. Why 17?
-
-It aligned the struct up to some nice number. Also, experience tells me that
-whenever I limit the number of reserved fields it bites me later.
-
-> 
->> +};
-> 
->> +
->>  /*  Used in the VIDIOC_QUERYMENU ioctl for querying menu items */
->>  struct v4l2_querymenu {
->>  	__u32		id;
->> @@ -1965,6 +1994,8 @@ struct v4l2_create_buffers {
->>     Never use these in applications! */
->>  #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
->>  
->> +#define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
->> +
->>  /* Reminder: when adding new ioctls please add support for them to
->>     drivers/media/video/v4l2-compat-ioctl32.c as well! */
->>  
-> 
-> 
-
-Regards,
-
-	Hans
