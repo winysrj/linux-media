@@ -1,153 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f171.google.com ([209.85.215.171]:55725 "EHLO
-	mail-ea0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756446AbaCDIOR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 03:14:17 -0500
-Received: by mail-ea0-f171.google.com with SMTP id n15so159293ead.2
-        for <linux-media@vger.kernel.org>; Tue, 04 Mar 2014 00:14:16 -0800 (PST)
-Date: Tue, 4 Mar 2014 09:14:11 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>, Ian Lister <ian.lister@intel.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-arch@vger.kernel.org, Colin Cross <ccross@google.com>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"Clark, Rob" <robdclark@gmail.com>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 4/6] android: convert sync to fence api, v4
-Message-ID: <20140304081411.GK17001@phenom.ffwll.local>
-References: <20140217155056.20337.25254.stgit@patser>
- <20140217155640.20337.13331.stgit@patser>
- <CAKMK7uESOhk_i8ui1pVknA=6s8oQsBOCTULYszxe5fodcBwTGw@mail.gmail.com>
- <531585CE.9020509@canonical.com>
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:33105 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754341AbaCTSnf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Mar 2014 14:43:35 -0400
+Date: Thu, 20 Mar 2014 18:43:16 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from
+	drivers/media/v4l2-core to drivers/of
+Message-ID: <20140320184316.GB7528@n2100.arm.linux.org.uk>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> <20140226110114.CF2C7C40A89@trevor.secretlab.ca> <531D916C.2010903@ti.com> <5427810.BUKJ3iUXnO@avalon> <20140312102556.GC21483@n2100.arm.linux.org.uk> <20140320175432.0559CC4067A@trevor.secretlab.ca> <20140320153804.35d5b835@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <531585CE.9020509@canonical.com>
+In-Reply-To: <20140320153804.35d5b835@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 04, 2014 at 08:50:38AM +0100, Maarten Lankhorst wrote:
-> op 03-03-14 22:11, Daniel Vetter schreef:
-> >On Mon, Feb 17, 2014 at 04:57:19PM +0100, Maarten Lankhorst wrote:
-> >>Android syncpoints can be mapped to a timeline. This removes the need
-> >>to maintain a separate api for synchronization. I've left the android
-> >>trace events in place, but the core fence events should already be
-> >>sufficient for debugging.
-> >>
-> >>v2:
-> >>- Call fence_remove_callback in sync_fence_free if not all fences have fired.
-> >>v3:
-> >>- Merge Colin Cross' bugfixes, and the android fence merge optimization.
-> >>v4:
-> >>- Merge with the upstream fixes.
-> >>
-> >>Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-> >>---
-> >Snipped everything but headers - Ian Lister from our android team is
-> >signed up to have a more in-depth look at proper integration with android
-> >syncpoints. Adding him to cc.
-> >
-> >>diff --git a/drivers/staging/android/sync.h b/drivers/staging/android/sync.h
-> >>index 62e2255b1c1e..6036dbdc8e6f 100644
-> >>--- a/drivers/staging/android/sync.h
-> >>+++ b/drivers/staging/android/sync.h
-> >>@@ -21,6 +21,7 @@
-> >>  #include <linux/list.h>
-> >>  #include <linux/spinlock.h>
-> >>  #include <linux/wait.h>
-> >>+#include <linux/fence.h>
-> >>
-> >>  struct sync_timeline;
-> >>  struct sync_pt;
-> >>@@ -40,8 +41,6 @@ struct sync_fence;
-> >>   * -1 if a will signal before b
-> >>   * @free_pt: called before sync_pt is freed
-> >>   * @release_obj: called before sync_timeline is freed
-> >>- * @print_obj: deprecated
-> >>- * @print_pt: deprecated
-> >>   * @fill_driver_data: write implementation specific driver data to data.
-> >>   *  should return an error if there is not enough room
-> >>   *  as specified by size.  This information is returned
-> >>@@ -67,13 +66,6 @@ struct sync_timeline_ops {
-> >>   /* optional */
-> >>   void (*release_obj)(struct sync_timeline *sync_timeline);
-> >>
-> >>- /* deprecated */
-> >>- void (*print_obj)(struct seq_file *s,
-> >>-  struct sync_timeline *sync_timeline);
-> >>-
-> >>- /* deprecated */
-> >>- void (*print_pt)(struct seq_file *s, struct sync_pt *sync_pt);
-> >>-
-> >>   /* optional */
-> >>   int (*fill_driver_data)(struct sync_pt *syncpt, void *data, int size);
-> >>
-> >>@@ -104,42 +96,48 @@ struct sync_timeline {
-> >>
-> >>   /* protected by child_list_lock */
-> >>   bool destroyed;
-> >>+ int context, value;
-> >>
-> >>   struct list_head child_list_head;
-> >>   spinlock_t child_list_lock;
-> >>
-> >>   struct list_head active_list_head;
-> >>- spinlock_t active_list_lock;
-> >>
-> >>+#ifdef CONFIG_DEBUG_FS
-> >>   struct list_head sync_timeline_list;
-> >>+#endif
-> >>  };
-> >>
-> >>  /**
-> >>   * struct sync_pt - sync point
-> >>- * @parent: sync_timeline to which this sync_pt belongs
-> >>+ * @fence: base fence class
-> >>   * @child_list: membership in sync_timeline.child_list_head
-> >>   * @active_list: membership in sync_timeline.active_list_head
-> >>+<<<<<<< current
-> >>   * @signaled_list: membership in temporary signaled_list on stack
-> >>   * @fence: sync_fence to which the sync_pt belongs
-> >>   * @pt_list: membership in sync_fence.pt_list_head
-> >>   * @status: 1: signaled, 0:active, <0: error
-> >>   * @timestamp: time which sync_pt status transitioned from active to
-> >>   *  signaled or error.
-> >>+=======
-> >>+>>>>>>> patched
-> >Conflict markers ...
-> Oops.
-> >>   */
-> >>  struct sync_pt {
-> >>- struct sync_timeline *parent;
-> >>- struct list_head child_list;
-> >>+ struct fence base;
-> >Hm, embedding feels wrong, since that still means that I'll need to
-> >implement two kinds of fences in i915 - one using the seqno fence to make
-> >dma-buf sync work, and one to implmenent sync_pt to make the android folks
-> >happy.
-> >
-> >If I can dream I think we should have a pointer to an underlying fence
-> >here, i.e. a struct sync_pt would just be a userspace interface wrapper to
-> >do explicit syncing using native fences, instead of implicit syncing like
-> >with dma-bufs. But this is all drive-by comments from a very cursory
-> >high-level look. I might be full of myself again ;-)
-> >-Daniel
-> >
-> No, the idea is that because android syncpoint is simply another type of
-> dma-fence, that if you deal with normal fences then android can
-> automatically be handled too. The userspace fence api android exposes
-> could be very easily made to work for dma-fence, just pass a dma-fence
-> to sync_fence_create.
-> So exposing dma-fence would probably work for android too.
+On Thu, Mar 20, 2014 at 03:38:04PM -0300, Mauro Carvalho Chehab wrote:
+> Em Thu, 20 Mar 2014 17:54:31 +0000
+> Grant Likely <grant.likely@linaro.org> escreveu:
+> 
+> > On Wed, 12 Mar 2014 10:25:56 +0000, Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
+> > > On Mon, Mar 10, 2014 at 02:52:53PM +0100, Laurent Pinchart wrote:
+> > > > In theory unidirectional links in DT are indeed enough. However, let's not 
+> > > > forget the following.
+> > > > 
+> > > > - There's no such thing as single start points for graphs. Sure, in some 
+> > > > simple cases the graph will have a single start point, but that's not a 
+> > > > generic rule. For instance the camera graphs 
+> > > > http://ideasonboard.org/media/omap3isp.ps and 
+> > > > http://ideasonboard.org/media/eyecam.ps have two camera sensors, and thus two 
+> > > > starting points from a data flow point of view.
+> > > 
+> > > I think we need to stop thinking of a graph linked in terms of data
+> > > flow - that's really not useful.
+> > > 
+> > > Consider a display subsystem.  The CRTC is the primary interface for
+> > > the CPU - this is the "most interesting" interface, it's the interface
+> > > which provides access to the picture to be displayed for the CPU.  Other
+> > > interfaces are secondary to that purpose - reading the I2C DDC bus for
+> > > the display information is all secondary to the primary purpose of
+> > > displaying a picture.
+> > > 
+> > > For a capture subsystem, the primary interface for the CPU is the frame
+> > > grabber (whether it be an already encoded frame or not.)  The sensor
+> > > devices are all secondary to that.
+> > > 
+> > > So, the primary software interface in each case is where the data for
+> > > the primary purpose is transferred.  This is the point at which these
+> > > graphs should commence since this is where we would normally start
+> > > enumeration of the secondary interfaces.
+> > > 
+> > > V4L2 even provides interfaces for this: you open the capture device,
+> > > which then allows you to enumerate the capture device's inputs, and
+> > > this in turn allows you to enumerate their properties.  You don't open
+> > > a particular sensor and work back up the tree.
+> > > 
+> > > I believe trying to do this according to the flow of data is just wrong.
+> > > You should always describe things from the primary device for the CPU
+> > > towards the peripheral devices and never the opposite direction.
+> > 
+> > Agreed.
+> 
+> I don't agree, as what's the primary device is relative. 
+> 
+> Actually, in the case of a media data flow, the CPU is generally not
+> the primary device.
+> 
+> Even on general purpose computers, if the full data flow is taken into
+> the account, the CPU is a mere device that will just be used to copy
+> data either to GPU and speakers or to disk, eventually doing format
+> conversions, when the hardware is cheap and don't provide format
+> converters.
+> 
+> On more complex devices, like the ones we want to solve with the
+> media controller, like an embedded hardware like a TV or a STB, the CPU
+> is just an ancillary component that could even hang without stopping 
+> TV reception, as the data flow can be fully done inside the chipset.
 
-Hm, then why do we still have struct sync_pt around? Since it's just the
-internal bit, with the userspace facing object being struct sync_fence,
-I'd opt to shuffle any useful features into the core struct fence.
--Daniel
+The CPU is the _controlling_ component - it's the component that has to
+configure the peripherals so they all talk to each other in the right
+way.  Therefore, the view of it needs to be CPU centric.
+
+If we were providing a DT description for consumption by some other
+device in the system, then the view should be as seen from that device
+instead.
+
+Think about this.  Would you describe a system starting at, say, the
+system keyboard, and branching all the way through just becuase that's
+how you interact with it, or would you describe it from the CPUs point
+of view because that's what has to be in control of the system.
+
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
+improving, and getting towards what was expected from it.
