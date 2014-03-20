@@ -1,59 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60458 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753821AbaCMLpS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 07:45:18 -0400
-From: Archit Taneja <archit@ti.com>
-To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 04/14] v4l: ti-vpe: Allow DMABUF buffer type support
-Date: Thu, 13 Mar 2014 17:14:06 +0530
-Message-ID: <1394711056-10878-5-git-send-email-archit@ti.com>
-In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
-References: <1394526833-24805-1-git-send-email-archit@ti.com>
- <1394711056-10878-1-git-send-email-archit@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-ee0-f48.google.com ([74.125.83.48]:59554 "EHLO
+	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754731AbaCTRyh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Mar 2014 13:54:37 -0400
+Received: by mail-ee0-f48.google.com with SMTP id b57so948607eek.35
+        for <linux-media@vger.kernel.org>; Thu, 20 Mar 2014 10:54:36 -0700 (PDT)
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+In-Reply-To: <20140312102556.GC21483@n2100.arm.linux.org.uk>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < 20140226110114.CF2C7C40A89@trevor.secretlab.ca> <531D916C.2010903@ti.com> < 5427810.BUKJ3iUXnO@avalon> <20140312102556.GC21483@n2100.arm.linux.org.uk>
+Date: Thu, 20 Mar 2014 17:54:31 +0000
+Message-Id: <20140320175432.0559CC4067A@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For OMAP and DRA7x, we generally allocate video and graphics buffers through
-omapdrm since the corresponding omap-gem driver provides DMM-Tiler backed
-contiguous buffers. omapdrm is a dma-buf exporter. These buffers are used by
-other drivers in the video pipeline.
+On Wed, 12 Mar 2014 10:25:56 +0000, Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
+> On Mon, Mar 10, 2014 at 02:52:53PM +0100, Laurent Pinchart wrote:
+> > In theory unidirectional links in DT are indeed enough. However, let's not 
+> > forget the following.
+> > 
+> > - There's no such thing as single start points for graphs. Sure, in some 
+> > simple cases the graph will have a single start point, but that's not a 
+> > generic rule. For instance the camera graphs 
+> > http://ideasonboard.org/media/omap3isp.ps and 
+> > http://ideasonboard.org/media/eyecam.ps have two camera sensors, and thus two 
+> > starting points from a data flow point of view.
+> 
+> I think we need to stop thinking of a graph linked in terms of data
+> flow - that's really not useful.
+> 
+> Consider a display subsystem.  The CRTC is the primary interface for
+> the CPU - this is the "most interesting" interface, it's the interface
+> which provides access to the picture to be displayed for the CPU.  Other
+> interfaces are secondary to that purpose - reading the I2C DDC bus for
+> the display information is all secondary to the primary purpose of
+> displaying a picture.
+> 
+> For a capture subsystem, the primary interface for the CPU is the frame
+> grabber (whether it be an already encoded frame or not.)  The sensor
+> devices are all secondary to that.
+> 
+> So, the primary software interface in each case is where the data for
+> the primary purpose is transferred.  This is the point at which these
+> graphs should commence since this is where we would normally start
+> enumeration of the secondary interfaces.
+> 
+> V4L2 even provides interfaces for this: you open the capture device,
+> which then allows you to enumerate the capture device's inputs, and
+> this in turn allows you to enumerate their properties.  You don't open
+> a particular sensor and work back up the tree.
+> 
+> I believe trying to do this according to the flow of data is just wrong.
+> You should always describe things from the primary device for the CPU
+> towards the peripheral devices and never the opposite direction.
 
-Add VB2_DMABUF flag to the io_modes of the vb2 output and capture queues. This
-allows the driver to import dma shared buffers.
+Agreed.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/media/platform/ti-vpe/vpe.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 0363df6..0e7573a 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1770,7 +1770,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 
- 	memset(src_vq, 0, sizeof(*src_vq));
- 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
--	src_vq->io_modes = VB2_MMAP;
-+	src_vq->io_modes = VB2_MMAP | VB2_DMABUF;
- 	src_vq->drv_priv = ctx;
- 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	src_vq->ops = &vpe_qops;
-@@ -1783,7 +1783,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 
- 	memset(dst_vq, 0, sizeof(*dst_vq));
- 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
--	dst_vq->io_modes = VB2_MMAP;
-+	dst_vq->io_modes = VB2_MMAP | VB2_DMABUF;
- 	dst_vq->drv_priv = ctx;
- 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	dst_vq->ops = &vpe_qops;
--- 
-1.8.3.2
-
+g.
