@@ -1,259 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42480 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753821AbaCMLpY (ORCPT
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:53271 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759588AbaCTSsW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 07:45:24 -0400
-From: Archit Taneja <archit@ti.com>
-To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 06/14] v4l: ti-vpe: Fix some params in VPE data descriptors
-Date: Thu, 13 Mar 2014 17:14:08 +0530
-Message-ID: <1394711056-10878-7-git-send-email-archit@ti.com>
-In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
-References: <1394526833-24805-1-git-send-email-archit@ti.com>
- <1394711056-10878-1-git-send-email-archit@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Thu, 20 Mar 2014 14:48:22 -0400
+Received: by mail-ee0-f43.google.com with SMTP id e53so1007093eek.30
+        for <linux-media@vger.kernel.org>; Thu, 20 Mar 2014 11:48:21 -0700 (PDT)
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+In-Reply-To: <20140320153804.35d5b835@samsung.com>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < 20140226110114.CF2C7C40A89@trevor.secretlab.ca> <531D916C.2010903@ti.com> < 5427810.BUKJ3iUXnO@avalon> <20140312102556.GC21483@n2100.arm.linux.org.uk> <20140320175432.0559CC4067A@trevor.secretlab.ca> <20140320153804.35d5b835@ samsung.com>
+Date: Thu, 20 Mar 2014 18:48:16 +0000
+Message-Id: <20140320184816.7AB02C4067A@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some parameters of the VPE descriptors were understood incorrectly. They are now
-fixed. The fixes are explained as follows:
+On Thu, 20 Mar 2014 15:38:04 -0300, Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
+> Em Thu, 20 Mar 2014 17:54:31 +0000
+> Grant Likely <grant.likely@linaro.org> escreveu:
+> 
+> > On Wed, 12 Mar 2014 10:25:56 +0000, Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
+> > > On Mon, Mar 10, 2014 at 02:52:53PM +0100, Laurent Pinchart wrote:
+> > > > In theory unidirectional links in DT are indeed enough. However, let's not 
+> > > > forget the following.
+> > > > 
+> > > > - There's no such thing as single start points for graphs. Sure, in some 
+> > > > simple cases the graph will have a single start point, but that's not a 
+> > > > generic rule. For instance the camera graphs 
+> > > > http://ideasonboard.org/media/omap3isp.ps and 
+> > > > http://ideasonboard.org/media/eyecam.ps have two camera sensors, and thus two 
+> > > > starting points from a data flow point of view.
+> > > 
+> > > I think we need to stop thinking of a graph linked in terms of data
+> > > flow - that's really not useful.
+> > > 
+> > > Consider a display subsystem.  The CRTC is the primary interface for
+> > > the CPU - this is the "most interesting" interface, it's the interface
+> > > which provides access to the picture to be displayed for the CPU.  Other
+> > > interfaces are secondary to that purpose - reading the I2C DDC bus for
+> > > the display information is all secondary to the primary purpose of
+> > > displaying a picture.
+> > > 
+> > > For a capture subsystem, the primary interface for the CPU is the frame
+> > > grabber (whether it be an already encoded frame or not.)  The sensor
+> > > devices are all secondary to that.
+> > > 
+> > > So, the primary software interface in each case is where the data for
+> > > the primary purpose is transferred.  This is the point at which these
+> > > graphs should commence since this is where we would normally start
+> > > enumeration of the secondary interfaces.
+> > > 
+> > > V4L2 even provides interfaces for this: you open the capture device,
+> > > which then allows you to enumerate the capture device's inputs, and
+> > > this in turn allows you to enumerate their properties.  You don't open
+> > > a particular sensor and work back up the tree.
+> > > 
+> > > I believe trying to do this according to the flow of data is just wrong.
+> > > You should always describe things from the primary device for the CPU
+> > > towards the peripheral devices and never the opposite direction.
+> > 
+> > Agreed.
+> 
+> I don't agree, as what's the primary device is relative. 
+> 
+> Actually, in the case of a media data flow, the CPU is generally not
+> the primary device.
+> 
+> Even on general purpose computers, if the full data flow is taken into
+> the account, the CPU is a mere device that will just be used to copy
+> data either to GPU and speakers or to disk, eventually doing format
+> conversions, when the hardware is cheap and don't provide format
+> converters.
+> 
+> On more complex devices, like the ones we want to solve with the
+> media controller, like an embedded hardware like a TV or a STB, the CPU
+> is just an ancillary component that could even hang without stopping 
+> TV reception, as the data flow can be fully done inside the chipset.
 
-- When adding an inbound data descriptor to the VPDMA descriptor list, we intend
-  to use c_rect as the cropped region fetched by VPDMA. Therefore, c_rect->width
-  shouldn't be used to calculate the line stride, the original image width
-  should be used for that. We add a 'width' argument which gives the buffer
-  width in memory.
+We're talking about wiring up device drivers here, not data flow. Yes, I
+completely understand that data flow is often not even remotely
+cpu-centric. However, device drivers are, and the kernel needs to know
+the dependency graph for choosing what devices depend on other devices.
 
-- frame_width and frame_height describe the complete width and height of the
-  client to which the channel is connected. If there are multiple channels
-  fetching data and providing to the same client, the above 2 arguments should
-  be the width and height of the region covered by all the channels. In the case
-  where there is only one channel providing pixel data to the client
-  (like in VPE), frame_width and frame_height should be the cropped width and
-  cropped height respectively. The calculation of these params is done in the
-  vpe driver now.
-
-- start_h and start_v is also used in the case of multiple channels to describe
-  where each channel should start filling pixel data. We don't use this in VPE,
-  and pass 0s to the vpdma_add_in_dtd() helper.
-
-- Some minor changes are made to the vpdma_add_out_dtd() helper. The c_rect
-  param is used for specifying the 'composition' target, and 'width'  is added
-  to calculate the line stride.
-
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/media/platform/ti-vpe/vpdma.c | 60 +++++++++++++++++++++++++++--------
- drivers/media/platform/ti-vpe/vpdma.h | 10 +++---
- drivers/media/platform/ti-vpe/vpe.c   | 18 +++++++----
- 3 files changed, 64 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index 73dd38e..a51a013 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -614,8 +614,17 @@ static void dump_dtd(struct vpdma_dtd *dtd)
- /*
-  * append an outbound data transfer descriptor to the given descriptor list,
-  * this sets up a 'client to memory' VPDMA transfer for the given VPDMA channel
-+ *
-+ * @list: vpdma desc list to which we add this decriptor
-+ * @width: width of the image in pixels in memory
-+ * @c_rect: compose params of output image
-+ * @fmt: vpdma data format of the buffer
-+ * dma_addr: dma address as seen by VPDMA
-+ * chan: VPDMA channel
-+ * flags: VPDMA flags to configure some descriptor fileds
-  */
--void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
-+void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
-+		const struct v4l2_rect *c_rect,
- 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
- 		enum vpdma_channel chan, u32 flags)
- {
-@@ -623,6 +632,7 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
- 	int field = 0;
- 	int notify = 1;
- 	int channel, next_chan;
-+	struct v4l2_rect rect = *c_rect;
- 	int depth = fmt->depth;
- 	int stride;
- 	struct vpdma_dtd *dtd;
-@@ -630,11 +640,15 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
- 	channel = next_chan = chan_info[chan].num;
- 
- 	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
--			fmt->data_type == DATA_TYPE_C420)
-+			fmt->data_type == DATA_TYPE_C420) {
-+		rect.height >>= 1;
-+		rect.top >>= 1;
- 		depth = 8;
-+	}
- 
--	stride = ALIGN((depth * c_rect->width) >> 3, VPDMA_STRIDE_ALIGN);
--	dma_addr += (c_rect->left * depth) >> 3;
-+	stride = ALIGN((depth * width) >> 3, VPDMA_STRIDE_ALIGN);
-+
-+	dma_addr += rect.top * stride + (rect.left * depth >> 3);
- 
- 	dtd = list->next;
- 	WARN_ON((void *)(dtd + 1) > (list->buf.addr + list->buf.size));
-@@ -664,31 +678,48 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
- /*
-  * append an inbound data transfer descriptor to the given descriptor list,
-  * this sets up a 'memory to client' VPDMA transfer for the given VPDMA channel
-+ *
-+ * @list: vpdma desc list to which we add this decriptor
-+ * @width: width of the image in pixels in memory(not the cropped width)
-+ * @c_rect: crop params of input image
-+ * @fmt: vpdma data format of the buffer
-+ * dma_addr: dma address as seen by VPDMA
-+ * chan: VPDMA channel
-+ * field: top or bottom field info of the input image
-+ * flags: VPDMA flags to configure some descriptor fileds
-+ * frame_width/height: the complete width/height of the image presented to the
-+ *			client (this makes sense when multiple channels are
-+ *			connected to the same client, forming a larger frame)
-+ * start_h, start_v: position where the given channel starts providing pixel
-+ *			data to the client (makes sense when multiple channels
-+ *			contribute to the client)
-  */
--void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
--		int frame_height, struct v4l2_rect *c_rect,
-+void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
-+		const struct v4l2_rect *c_rect,
- 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
--		enum vpdma_channel chan, int field, u32 flags)
-+		enum vpdma_channel chan, int field, u32 flags, int frame_width,
-+		int frame_height, int start_h, int start_v)
- {
- 	int priority = 0;
- 	int notify = 1;
- 	int depth = fmt->depth;
- 	int channel, next_chan;
-+	struct v4l2_rect rect = *c_rect;
- 	int stride;
--	int height = c_rect->height;
- 	struct vpdma_dtd *dtd;
- 
- 	channel = next_chan = chan_info[chan].num;
- 
- 	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
- 			fmt->data_type == DATA_TYPE_C420) {
--		height >>= 1;
--		frame_height >>= 1;
-+		rect.height >>= 1;
-+		rect.top >>= 1;
- 		depth = 8;
- 	}
- 
--	stride = ALIGN((depth * c_rect->width) >> 3, VPDMA_STRIDE_ALIGN);
--	dma_addr += (c_rect->left * depth) >> 3;
-+	stride = ALIGN((depth * width) >> 3, VPDMA_STRIDE_ALIGN);
-+
-+	dma_addr += rect.top * stride + (rect.left * depth >> 3);
- 
- 	dtd = list->next;
- 	WARN_ON((void *)(dtd + 1) > (list->buf.addr + list->buf.size));
-@@ -701,13 +732,14 @@ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
- 					!!(flags & VPDMA_DATA_ODD_LINE_SKIP),
- 					stride);
- 
--	dtd->xfer_length_height = dtd_xfer_length_height(c_rect->width, height);
-+	dtd->xfer_length_height = dtd_xfer_length_height(rect.width,
-+					rect.height);
- 	dtd->start_addr = (u32) dma_addr;
- 	dtd->pkt_ctl = dtd_pkt_ctl(!!(flags & VPDMA_DATA_MODE_TILED),
- 				DTD_DIR_IN, channel, priority, next_chan);
- 	dtd->frame_width_height = dtd_frame_width_height(frame_width,
- 					frame_height);
--	dtd->start_h_v = dtd_start_h_v(c_rect->left, c_rect->top);
-+	dtd->start_h_v = dtd_start_h_v(start_h, start_v);
- 	dtd->client_attr0 = 0;
- 	dtd->client_attr1 = 0;
- 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
-index bf5f8bb..2bd8fb0 100644
---- a/drivers/media/platform/ti-vpe/vpdma.h
-+++ b/drivers/media/platform/ti-vpe/vpdma.h
-@@ -186,13 +186,15 @@ void vpdma_add_cfd_adb(struct vpdma_desc_list *list, int client,
- 		struct vpdma_buf *adb);
- void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
- 		enum vpdma_channel chan);
--void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
-+void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
-+		const struct v4l2_rect *c_rect,
- 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
- 		enum vpdma_channel chan, u32 flags);
--void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
--		int frame_height, struct v4l2_rect *c_rect,
-+void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
-+		const struct v4l2_rect *c_rect,
- 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
--		enum vpdma_channel chan, int field, u32 flags);
-+		enum vpdma_channel chan, int field, u32 flags, int frame_width,
-+		int frame_height, int start_h, int start_v);
- 
- /* vpdma list interrupt management */
- void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index dbdc338..ece9b96 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -986,7 +986,6 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
- 	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_DST];
- 	const struct vpe_port_data *p_data = &port_data[port];
- 	struct vb2_buffer *vb = ctx->dst_vb;
--	struct v4l2_rect *c_rect = &q_data->c_rect;
- 	struct vpe_fmt *fmt = q_data->fmt;
- 	const struct vpdma_data_format *vpdma_fmt;
- 	int mv_buf_selector = !ctx->src_mv_buf_selector;
-@@ -1015,8 +1014,8 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
- 	if (q_data->flags & Q_DATA_MODE_TILED)
- 		flags |= VPDMA_DATA_MODE_TILED;
- 
--	vpdma_add_out_dtd(&ctx->desc_list, c_rect, vpdma_fmt, dma_addr,
--		p_data->channel, flags);
-+	vpdma_add_out_dtd(&ctx->desc_list, q_data->width, &q_data->c_rect,
-+		vpdma_fmt, dma_addr, p_data->channel, flags);
- }
- 
- static void add_in_dtd(struct vpe_ctx *ctx, int port)
-@@ -1024,11 +1023,11 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
- 	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_SRC];
- 	const struct vpe_port_data *p_data = &port_data[port];
- 	struct vb2_buffer *vb = ctx->src_vbs[p_data->vb_index];
--	struct v4l2_rect *c_rect = &q_data->c_rect;
- 	struct vpe_fmt *fmt = q_data->fmt;
- 	const struct vpdma_data_format *vpdma_fmt;
- 	int mv_buf_selector = ctx->src_mv_buf_selector;
- 	int field = vb->v4l2_buf.field == V4L2_FIELD_BOTTOM;
-+	int frame_width, frame_height;
- 	dma_addr_t dma_addr;
- 	u32 flags = 0;
- 
-@@ -1055,8 +1054,15 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
- 	if (q_data->flags & Q_DATA_MODE_TILED)
- 		flags |= VPDMA_DATA_MODE_TILED;
- 
--	vpdma_add_in_dtd(&ctx->desc_list, q_data->width, q_data->height,
--		c_rect, vpdma_fmt, dma_addr, p_data->channel, field, flags);
-+	frame_width = q_data->c_rect.width;
-+	frame_height = q_data->c_rect.height;
-+
-+	if (p_data->vb_part && fmt->fourcc == V4L2_PIX_FMT_NV12)
-+		frame_height /= 2;
-+
-+	vpdma_add_in_dtd(&ctx->desc_list, q_data->width, &q_data->c_rect,
-+		vpdma_fmt, dma_addr, p_data->channel, field, flags, frame_width,
-+		frame_height, 0, 0);
- }
- 
- /*
--- 
-1.8.3.2
+g.
 
