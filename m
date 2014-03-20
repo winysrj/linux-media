@@ -1,122 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50908 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753027AbaCJOKg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 10:10:36 -0400
-Message-ID: <531DC7BF.50100@ti.com>
-Date: Mon, 10 Mar 2014 16:10:07 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34127 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758756AbaCTOex (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Mar 2014 10:34:53 -0400
+Received: from avalon.localnet (121.146-246-81.adsl-dyn.isp.belgacom.be [81.246.146.121])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id BC01335A46
+	for <linux-media@vger.kernel.org>; Thu, 20 Mar 2014 15:33:29 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.16]
+Date: Thu, 20 Mar 2014 15:36:40 +0100
+Message-ID: <1705609.TZWuxThU0g@avalon>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Grant Likely <grant.likely@linaro.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core
- to drivers/of
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> <20140226110114.CF2C7C40A89@trevor.secretlab.ca> <531D916C.2010903@ti.com> <5427810.BUKJ3iUXnO@avalon>
-In-Reply-To: <5427810.BUKJ3iUXnO@avalon>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="M2wNuVGDBvCVlBeVkdB37i56mjMNe1vNL"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---M2wNuVGDBvCVlBeVkdB37i56mjMNe1vNL
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Mauro,
 
-On 10/03/14 15:52, Laurent Pinchart wrote:
+The following changes since commit ed97a6fe5308e5982d118a25f0697b791af5ec50:
 
-> In theory unidirectional links in DT are indeed enough. However, let's =
-not=20
-> forget the following.
->=20
-> - There's no such thing as single start points for graphs. Sure, in som=
-e=20
-> simple cases the graph will have a single start point, but that's not a=
-=20
-> generic rule. For instance the camera graphs=20
-> http://ideasonboard.org/media/omap3isp.ps and=20
-> http://ideasonboard.org/media/eyecam.ps have two camera sensors, and th=
-us two=20
-> starting points from a data flow point of view. And if you want a bette=
-r=20
-> understanding of how complex media graphs can become, have a look at=20
-> http://ideasonboard.org/media/vsp1.0.pdf (that's a real world example, =
-albeit=20
-> all connections are internal to the SoC in that particular case, and do=
-n't=20
-> need to be described in DT).
->=20
-> - There's also no such thing as a master device that can just point to =
-slave=20
-> devices. Once again simple cases exist where that model could work, but=
- real=20
-> world examples exist of complex pipelines with dozens of elements all=20
-> implemented by a separate IP core and handled by separate drivers, form=
-ing a=20
-> graph with long chains and branches. We thus need real graph bindings.
->=20
-> - Finally, having no backlinks in DT would make the software implementa=
-tion=20
-> very complex. We need to be able to walk the graph in a generic way wit=
-hout=20
-> having any of the IP core drivers loaded, and without any specific star=
-ting=20
-> point. We would thus need to parse the complete DT tree, looking at all=
- nodes=20
-> and trying to find out whether they're part of the graph we're trying t=
-o walk.=20
-> The complexity of the operation would be at best quadratic to the numbe=
-r of=20
-> nodes in the whole DT and to the number of nodes in the graph.
+  [media] af9033: Don't export functions for the hardware filter (2014-03-14 
+20:26:59 -0300)
 
-I did use plural when I said "to give the start points...".
+are available in the git repository at:
 
-If you have a list of starting points in the DT, a "graph helper" or
-something could create a runtime representation of the graph at some
-early phase during the boot, which would include backlinks. The
-individual drivers could use that runtime graph, instead of the DT graph.=
+  git://linuxtv.org/pinchartl/media.git adv7611
 
+for you to fetch changes up to 240801bf4f2ca98bd41b45a186330797048529af:
 
-But it still sounds considerably more complex than double-links in DT.
+  adv7604: Add endpoint properties to DT bindings (2014-03-20 15:33:50 +0100)
 
- Tomi
+----------------------------------------------------------------
+Lars-Peter Clausen (4):
+      adv7604: Add missing include to linux/types.h
+      adv7604: Add support for asynchronous probing
+      adv7604: Don't put info string arrays on the stack
+      adv7604: Add adv7611 support
 
+Laurent Pinchart (43):
+      v4l: Add UYVY10_2X10 and VYUY10_2X10 media bus pixel codes
+      v4l: Add UYVY10_1X20 and VYUY10_1X20 media bus pixel codes
+      v4l: Add 12-bit YUV 4:2:0 media bus pixel codes
+      v4l: Add 12-bit YUV 4:2:2 media bus pixel codes
+      v4l: Add pad-level DV timings subdev operations
+      ad9389b: Add pad-level DV timings operations
+      adv7511: Add pad-level DV timings operations
+      adv7842: Add pad-level DV timings operations
+      s5p-tv: hdmi: Add pad-level DV timings operations
+      s5p-tv: hdmiphy: Add pad-level DV timings operations
+      ths8200: Add pad-level DV timings operations
+      tvp7002: Add pad-level DV timings operations
+      media: bfin_capture: Switch to pad-level DV operations
+      media: davinci: vpif: Switch to pad-level DV operations
+      media: staging: davinci: vpfe: Switch to pad-level DV operations
+      s5p-tv: mixer: Switch to pad-level DV operations
+      ad9389b: Remove deprecated video-level DV timings operations
+      adv7511: Remove deprecated video-level DV timings operations
+      adv7842: Remove deprecated video-level DV timings operations
+      s5p-tv: hdmi: Remove deprecated video-level DV timings operations
+      s5p-tv: hdmiphy: Remove deprecated video-level DV timings operation
+      ths8200: Remove deprecated video-level DV timings operations
+      tvp7002: Remove deprecated video-level DV timings operations
+      v4l: Improve readability by not wrapping ioctl number #define's
+      v4l: Add support for DV timings ioctls on subdev nodes
+      v4l: Validate fields in the core code for subdev EDID ioctls
+      adv7604: Add 16-bit read functions for CP and HDMI
+      adv7604: Cache register contents when reading multiple bits
+      adv7604: Remove subdev control handlers
+      adv7604: Add sink pads
+      adv7604: Make output format configurable through pad format operations
+      adv7604: Add pad-level DV timings support
+      adv7604: Remove deprecated video-level DV timings operations
+      v4l: subdev: Remove deprecated video-level DV timings operations
+      adv7604: Inline the to_sd function
+      adv7604: Store I2C addresses and clients in arrays
+      adv7604: Replace *_and_or() functions with *_clr_set()
+      adv7604: Sort headers alphabetically
+      adv7604: Support hot-plug detect control through a GPIO
+      adv7604: Specify the default input through platform data
+      adv7604: Add DT support
+      adv7604: Add LLC polarity configuration
+      adv7604: Add endpoint properties to DT bindings
 
+ Documentation/DocBook/media/v4l/subdev-formats.xml      |  760 ++++++++++++
+ .../DocBook/media/v4l/vidioc-dv-timings-cap.xml         |   27 +-
+ .../DocBook/media/v4l/vidioc-enum-dv-timings.xml        |   30 +-
+ Documentation/devicetree/bindings/media/i2c/adv7604.txt |   69 ++
+ drivers/media/i2c/ad9389b.c                             |   64 +-
+ drivers/media/i2c/adv7511.c                             |   66 +-
+ drivers/media/i2c/adv7604.c                             | 1478 +++++++++-----
+ drivers/media/i2c/adv7842.c                             |   14 +-
+ drivers/media/i2c/ths8200.c                             |   10 +
+ drivers/media/i2c/tvp7002.c                             |    5 +-
+ drivers/media/platform/blackfin/bfin_capture.c          |    4 +-
+ drivers/media/platform/davinci/vpif_capture.c           |    4 +-
+ drivers/media/platform/davinci/vpif_display.c           |    4 +-
+ drivers/media/platform/s5p-tv/hdmi_drv.c                |   14 +-
+ drivers/media/platform/s5p-tv/hdmiphy_drv.c             |    9 +-
+ drivers/media/platform/s5p-tv/mixer_video.c             |    8 +-
+ drivers/media/v4l2-core/v4l2-subdev.c                   |   51 +-
+ drivers/staging/media/davinci_vpfe/vpfe_video.c         |    4 +-
+ include/media/adv7604.h                                 |  124 +-
+ include/media/v4l2-subdev.h                             |    8 +-
+ include/uapi/linux/v4l2-mediabus.h                      |   14 +-
+ include/uapi/linux/v4l2-subdev.h                        |   40 +-
+ include/uapi/linux/videodev2.h                          |   10 +-
+ 23 files changed, 2197 insertions(+), 620 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7604.txt
 
---M2wNuVGDBvCVlBeVkdB37i56mjMNe1vNL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+-- 
+Regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+Laurent Pinchart
 
-iQIcBAEBAgAGBQJTHce/AAoJEPo9qoy8lh71PewP/20a1dCxgwJ6+ws7rkV8pBu9
-TeH1KvOa6r1JuEE/O1yAH9CslEs4uoABx9RgCAVxLVIRfTs0usqr9T+PBYYos6kN
-k6h8a+36/1+Vx4tAdh6OGwWZJQbrcxiNKZG0Hf/6+oY+ROeMbWScy9SNpuJMoD1o
-ycLUYr5uTJSIPCqHjo+qbfI+twotTgbwsqJlCaWcDO2RYj+TV1UlSf6x1Fbfqk/s
-rB1JI2GsU4/PY7FUxbRQOpAact9wk5T5PaFfCwEc5VOKze3VIlZSMPL0D796SeYI
-/xQhaYG3JRhfqearUtAUaTCDO8/VIY0IkN5oJ6LouBgfHR5WehpoDXRej7buqMYe
-HbYomhoFyUPLWjqkMjcSEZw/Cf9tW02pcG0gIylVdjB0SzGuX28t7HiBbYiQH4LT
-6N1o8Qb7bVejlB9VPRKxmxF2lGm76Fy0uHjbiF/ZKydVuh/tLCQzuGTQfB+QpM+d
-sOOir+0LwwEYqjF9BcFn3YqM5mvIFSJZ+uva4xFBT7J6rOpTZku8zrg5wkEO+1Hc
-+HLfI838Pocm9/VY8Kszi0hmxDlWhbaugmxPaEUZIKzOMAEWZu8H9VER7c201cDy
-41FmMm1nrlpmQWnMIIScvi6emaLMe1jQCprCmUYYvgsAvaDihoXas0VDpMwTLdyf
-Payt9FU7J7N845aIhw5k
-=IH95
------END PGP SIGNATURE-----
-
---M2wNuVGDBvCVlBeVkdB37i56mjMNe1vNL--
