@@ -1,73 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f53.google.com ([209.85.219.53]:45187 "EHLO
-	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752277AbaCJQN1 (ORCPT
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:49392 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753154AbaCUOdK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 12:13:27 -0400
-Received: by mail-oa0-f53.google.com with SMTP id j17so7000496oag.26
-        for <linux-media@vger.kernel.org>; Mon, 10 Mar 2014 09:13:27 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <531D67EC.4030202@xs4all.nl>
-References: <CABMudhTQDPTy9x1nZw1XCcyLb8ETn4dtMW2+=Am_0KOBf-v7wA@mail.gmail.com>
-	<531D67EC.4030202@xs4all.nl>
-Date: Mon, 10 Mar 2014 09:13:27 -0700
-Message-ID: <CABMudhR_e7pftOs8JL-3Wibe=dT-Y1vDzPxsLewAz0q7TSaedg@mail.gmail.com>
-Subject: Re: Question about set format call check for vb2_is_busy
-From: m silverstri <michael.j.silverstri@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 21 Mar 2014 10:33:10 -0400
+Received: by mail-ee0-f49.google.com with SMTP id c41so1868542eek.36
+        for <linux-media@vger.kernel.org>; Fri, 21 Mar 2014 07:33:10 -0700 (PDT)
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+In-Reply-To: <532C2D94.4020705@ti.com>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < 139468148.3QhLg3QYq1@avalon> <531F08A8.300@ti.com> <1883687.VdfitvQEN3@ samsung.com> <avalon@samsung.com> <20140320172302.CD320C4067A@trevor. secretlab.ca> <532C1808.6090409@samsung.com> <20140321114735.3E132C4052A@ trevor.secretlab.ca> <532C2D94.4020705@ti.com>
+Date: Fri, 21 Mar 2014 14:33:04 +0000
+Message-Id: <20140321143304.D62ADC405B0@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 10, 2014 at 12:21 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 03/10/2014 08:02 AM, m silverstri wrote:
->> Hi,
->>
->> I am studying v4l2 m2m driver example. I want to know why the set
->> format function in the example fails when it is called again after
->> user application req_buf? In set format function checks for
->> vb2_is_busy(vq) and that function returns true after user space app
->> calls req_buf.
->>
->> For example in here:
->> http://stuff.mit.edu/afs/sipb/contrib/linux/drivers/media/platform/mem2mem_testdev.c
->>
->> static int vidioc_s_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
->> {
->> //...
->> // Check for vb2_is_busy() here:
->> if (vb2_is_busy(vq)) {
->> v4l2_err(&ctx->dev->v4l2_dev, "%s queue busy\n", __func__);
->> return -EBUSY;
->> }
->> //...
->> }
->>
->> Why the driver prevents user space application change format after it
->> request buffers?
->
-> When you request the buffers they will be allocated based on the current format.
-> Changing the format later will mean a change in buffer size, but once the buffers
-> are allocated that is locked in place. It's generally a bad idea to, say, increase
-> the image size and then watch how DMA overwrites your memory :-)
->
-> This is not strictly speaking a v4l limitation, but a limitation of almost all
-> hardware. It is possible to allow format changes after reqbufs is called, but
-> that generally requires that the buffers all have the maximum possible size
-> which wastes a lot of memory. And in addition you would have to have some sort
-> of metadata as part of the captured frame so you know the actual size of the
-> image stored in the buffer.
->
-> None of the drivers in the kernel support this, BTW.
->
-> Regards,
->
->         Hans
+On Fri, 21 Mar 2014 14:16:20 +0200, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On 21/03/14 13:47, Grant Likely wrote:
+> 
+> > I'm firm on the opinion that the checking must also happen at runtime.
+> > The biggest part of my objection has been how easy it would be to get a
+> > linkage out of sync, and dtc is not necessarily the last tool to touch
+> > the dtb before the kernel gets booted. I want the kernel to flat out
+> > reject any linkage that is improperly formed.
+> 
+> Isn't it trivial to verify it with the current v4l2 bindings? And
+> endpoint must have a 'remote-endpoint' property, and the endpoint on the
+> other end must have similar property, pointing in the first endpoint.
+> Anything else is an error.
+> 
+> I agree that it's easier to write bad links in the dts with
+> double-linking than with single-linking, but it's still trivial to
+> verify it in the kernel.
 
-Hans,
+Right, which is exactly what I'm asking for.
 
-Thank you.
+g.
 
-Regards,
-Mike
