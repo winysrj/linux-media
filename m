@@ -1,82 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41034 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760893AbaCUMmX (ORCPT
+Received: from qmta13.emeryville.ca.mail.comcast.net ([76.96.27.243]:37441
+	"EHLO qmta13.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750868AbaCUVFF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 08:42:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Grant Likely <grant.likely@linaro.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
-Date: Fri, 21 Mar 2014 13:44:12 +0100
-Message-ID: <38763187.gEm4XVJAeX@avalon>
-In-Reply-To: <20140321081537.472B2C4085E@trevor.secretlab.ca>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> <20140320153804.35d5b835@samsung.com> <20140321081537.472B2C4085E@trevor.secretlab.ca>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 21 Mar 2014 17:05:05 -0400
+From: Shuah Khan <shuah.kh@samsung.com>
+To: m.chehab@samsung.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, shuahkhan@gmail.com
+Subject: [PATCH] media: em28xx-video - change em28xx_scaler_set() to use em28xx_reg_len()
+Date: Fri, 21 Mar 2014 15:04:50 -0600
+Message-Id: <1395435890-15100-1-git-send-email-shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Grant,
+Change em28xx_scaler_set() to use em28xx_reg_len() to get register
+lengths for EM28XX_R30_HSCALELOW and EM28XX_R32_VSCALELOW registers,
+instead of hard-coding the length. Moved em28xx_reg_len() definition
+for it to be visible to em28xx_scaler_set().
 
-On Friday 21 March 2014 08:15:34 Grant Likely wrote:
-> On Fri, 21 Mar 2014 00:26:12 +0100, Laurent Pinchart wrote:
-> > On Thursday 20 March 2014 23:12:50 Grant Likely wrote:
-> > > On Thu, 20 Mar 2014 19:52:53 +0100, Laurent Pinchart wrote:
-> > > > Then we might not be talking about the same thing. I'm talking about
-> > > > DT bindings to represent the topology of the device, not how drivers
-> > > > are wired together.
-> > > 
-> > > Possibly. I'm certainly confused now. You brought up the component
-> > > helpers in drivers/base/component.c, so I thought working out
-> > > dependencies is part of the purpose of this binding. Everything I've
-> > > heard so far has given me the impression that the graph binding is tied
-> > > up with knowing when all of the devices exist.
-> > 
-> > The two are related, you're of course right about that.
-> > 
-> > We're not really moving forward here. Part of our disagreement comes in my
-> > opinion from having different requirements and different views of the
-> > problem, caused by experiences with different kind of devices. This is
-> > much easier to solve by sitting around the same table than discussing on
-> > mailing lists. I would propose a meeting at the ELC but that's still a
-> > bit far away and would delay progress by more than one month, which is
-> > probably not acceptable.
-> > 
-> > I can reply to the e-mail where I've drawn one use case I have to deal
-> > with to detail my needs if that can help.
-> > 
-> > Alternatively the UK isn't that far away and I could jump in a train if
-> > you can provide tea for the discussion :-)
-> 
-> I'm game for that, but it is a long train ride. I'm up in Aberdeen which
-> is 8 hours from London by train. Also, I'm travelling next week to
-> California (Collaboration summit), so it will have to be in 2 weeks
-> time.
-> 
-> Why don't we instead try a Google Hangout or a phone call today.
-> Anywhere between 11:30 and 14:00 GMT would work for me. I'd offer to
-> provide the tea, but I haven't quite perfected transporter technology
-> yet.
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c |   29 ++++++++++++++++-------------
+ 1 file changed, 16 insertions(+), 13 deletions(-)
 
-That would work for me, but not today I'm afraid. Will you already be in 
-California on Monday ?
-
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 19af6b3..f8a91de 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -272,6 +272,18 @@ static void em28xx_capture_area_set(struct em28xx *dev, u8 hstart, u8 vstart,
+ 	}
+ }
+ 
++static int em28xx_reg_len(int reg)
++{
++	switch (reg) {
++	case EM28XX_R40_AC97LSB:
++	case EM28XX_R30_HSCALELOW:
++	case EM28XX_R32_VSCALELOW:
++		return 2;
++	default:
++		return 1;
++	}
++}
++
+ static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
+ {
+ 	u8 mode;
+@@ -284,11 +296,13 @@ static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
+ 
+ 		buf[0] = h;
+ 		buf[1] = h >> 8;
+-		em28xx_write_regs(dev, EM28XX_R30_HSCALELOW, (char *)buf, 2);
++		em28xx_write_regs(dev, EM28XX_R30_HSCALELOW, (char *)buf,
++				  em28xx_reg_len(EM28XX_R30_HSCALELOW));
+ 
+ 		buf[0] = v;
+ 		buf[1] = v >> 8;
+-		em28xx_write_regs(dev, EM28XX_R32_VSCALELOW, (char *)buf, 2);
++		em28xx_write_regs(dev, EM28XX_R32_VSCALELOW, (char *)buf,
++				  em28xx_reg_len(EM28XX_R32_VSCALELOW));
+ 		/* it seems that both H and V scalers must be active
+ 		   to work correctly */
+ 		mode = (h || v) ? 0x30 : 0x00;
+@@ -1583,17 +1597,6 @@ static int vidioc_g_chip_info(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int em28xx_reg_len(int reg)
+-{
+-	switch (reg) {
+-	case EM28XX_R40_AC97LSB:
+-	case EM28XX_R30_HSCALELOW:
+-	case EM28XX_R32_VSCALELOW:
+-		return 2;
+-	default:
+-		return 1;
+-	}
+-}
+ 
+ static int vidioc_g_register(struct file *file, void *priv,
+ 			     struct v4l2_dbg_register *reg)
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
