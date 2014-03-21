@@ -1,38 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46251 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753026AbaCAQPT (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:35248 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932996AbaCUMQl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Mar 2014 11:15:19 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
-Subject: [yavta PATCH 8/9] Support copy timestamps
-Date: Sat,  1 Mar 2014 18:18:09 +0200
-Message-Id: <1393690690-5004-9-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi>
-References: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi>
+	Fri, 21 Mar 2014 08:16:41 -0400
+Message-ID: <532C2D94.4020705@ti.com>
+Date: Fri, 21 Mar 2014 14:16:20 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+MIME-Version: 1.0
+To: Grant Likely <grant.likely@linaro.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core
+ to drivers/of
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < 139468148.3QhLg3QYq1@avalon> <531F08A8.300@ti.com> <1883687.VdfitvQEN3@ samsung.com> <avalon@samsung.com> <20140320172302.CD320C4067A@trevor. secretlab.ca> <532C1808.6090409@samsung.com> <20140321114735.3E132C4052A@trevor.secretlab.ca>
+In-Reply-To: <20140321114735.3E132C4052A@trevor.secretlab.ca>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="9LlUb069OlpdAjBJaW3weLxU5bDgBtkGp"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- yavta.c |    3 +++
- 1 file changed, 3 insertions(+)
+--9LlUb069OlpdAjBJaW3weLxU5bDgBtkGp
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/yavta.c b/yavta.c
-index 224405d..5171024 100644
---- a/yavta.c
-+++ b/yavta.c
-@@ -454,6 +454,9 @@ static void get_ts_flags(uint32_t flags, const char **ts_type, const char **ts_s
- 	case V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC:
- 		*ts_type = "monotonic";
- 		break;
-+	case V4L2_BUF_FLAG_TIMESTAMP_COPY:
-+		*ts_type = "copy";
-+		break;
- 	default:
- 		*ts_type = "invalid";
- 	}
--- 
-1.7.10.4
+On 21/03/14 13:47, Grant Likely wrote:
 
+> I'm firm on the opinion that the checking must also happen at runtime.
+> The biggest part of my objection has been how easy it would be to get a=
+
+> linkage out of sync, and dtc is not necessarily the last tool to touch
+> the dtb before the kernel gets booted. I want the kernel to flat out
+> reject any linkage that is improperly formed.
+
+Isn't it trivial to verify it with the current v4l2 bindings? And
+endpoint must have a 'remote-endpoint' property, and the endpoint on the
+other end must have similar property, pointing in the first endpoint.
+Anything else is an error.
+
+I agree that it's easier to write bad links in the dts with
+double-linking than with single-linking, but it's still trivial to
+verify it in the kernel.
+
+ Tomi
+
+
+
+--9LlUb069OlpdAjBJaW3weLxU5bDgBtkGp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJTLC2UAAoJEPo9qoy8lh718O4P/R4CiDBud/awWEW/w8LmG6P/
+CxswSoraEyr7O2Mbwlq+Dl3jY7B6LK4I6+1TN10ooV4dEQeUbApNg/qin+6mjlum
+GiaQwZuvZ1dT9qAKF3MYkRJa6csRqIwvSgRDF6EH6f5ur5IY8t9hv+Ll/ZsQbkL5
+bsIVgrfcuBgPQiV6+QB+CgzW4xKBbe/6hniiub2y+Yf3gDlTFO4eU07Q26R6kvbM
+89DBo3deSomyRKg2+BKj+xauxz8rysf4Pcog7EZHvR83iegqiqAaw2k5p1DNjhpm
+nGo7rnOoELT9+WeqQ3gcIK5E2FLhag9Iahuzi/6SPEI+kwb7iHc3ENE3qgOtpHVp
+aeqelBgQFX+rDFdM1U8v1HdP71wQ0pHSKQxFSpUE/F+ZoEfxOVQ3cBjm69+jVXAl
+BVbczCSQ/9aMr6KPwJtwDskQqL6LqP/PnMg62T7tBwka0W6pK7zUX9VgmOwQ1ruP
+0M6DGNGzv+kRTO7j8XD1WuHE0aPVHQHLl3ZwZta0tJc1h0tMWR8TbgtavIqqQkwC
+dSKOzEKkEL0Ik0iqthQuZuPtK06hBRKRIpDIUMuB8j/N30F2PlL7xreImvslqgQs
+oi7eHLzTIxnDLDlWVFa/IzRg30I8aA/37iYIS0Ywn0LrgJV88y84CoXrlSDUsPkR
+xaP2jFwuooy8Y4ud8JrS
+=m22+
+-----END PGP SIGNATURE-----
+
+--9LlUb069OlpdAjBJaW3weLxU5bDgBtkGp--
