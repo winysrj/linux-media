@@ -1,41 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0159.hostedemail.com ([216.40.44.159]:39117 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754846AbaCFBAl (ORCPT
+Received: from mail-qa0-f53.google.com ([209.85.216.53]:62139 "EHLO
+	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752813AbaCURiC convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Mar 2014 20:00:41 -0500
-Message-ID: <1394067637.12070.36.camel@joe-AO722>
-Subject: Re: [PATCH v2] [media] v4l: omap4iss: Add DEBUG compiler flag
-From: Joe Perches <joe@perches.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Paul Bolle <pebolle@tiscali.nl>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Date: Wed, 05 Mar 2014 17:00:37 -0800
-In-Reply-To: <2136780.FIdBGb725A@avalon>
-References: <1391958577.25424.22.camel@x220> <3099833.ZhlQFyxhbo@avalon>
-	 <1394065683.12070.32.camel@joe-AO722> <2136780.FIdBGb725A@avalon>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 21 Mar 2014 13:38:02 -0400
+Received: by mail-qa0-f53.google.com with SMTP id w8so2697147qac.26
+        for <linux-media@vger.kernel.org>; Fri, 21 Mar 2014 10:38:00 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <532C75F8.2030405@googlemail.com>
+References: <532C75F8.2030405@googlemail.com>
+Date: Fri, 21 Mar 2014 13:38:00 -0400
+Message-ID: <CAGoCfizciqjEZ0QTtvSitAUYORjDFFM1br2xF3drnVSTUwzXdg@mail.gmail.com>
+Subject: Re: xc2038/3028 firmware
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2014-03-06 at 01:48 +0100, Laurent Pinchart wrote:
-> Would you recommend to drop driver-specific Kconfig options related to 
-> debugging and use CONFIG_DYNAMIC_DEBUG instead ?
+Hi Frank,
 
-For development, sure, if there's sufficient memory.
+I specifically asked for and received permission from
+Xceive/CrestaTech to make the xc5000 firmware freely redistributable.
+They were unwilling to entertain that though for the xc2028/3028 as
+they considered it a long deprecated product.
 
-For embedded systems with limited memory, using
-dynamic_debug isn't always possible or effective.
+In order to include firmware blobs in linux-firmware, there needs to
+be an actual license legally permitting redistribution - we don't have
+that for the 2028/3028.
 
-Also, there are sometimes reasons to have debugging
-messages always enabled or emitted.
+In general CrestaTech have been extremely cooperative with the Linux
+community, especially in recent years.  However in this case they just
+couldn't justify the effort to do the paperwork for a chip that they
+stopped shipping years ago.
 
-For those cases, either adding #define DEBUG or using
-printk(KERN_DEBUG would be fine.
+Devin
+
+On Fri, Mar 21, 2014 at 1:25 PM, Frank Schäfer
+<fschaefer.oss@googlemail.com> wrote:
+> Hi,
+>
+> are there any reasons why the xc2028/3028 firmware files are not
+> included in the linux-firmware tree ?
+> The xc5000 firmware is already there, so it seems Xceive|has nothing
+> against| redistribution of their firmware... ?!
+>
+> Regards,
+> Frank
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
