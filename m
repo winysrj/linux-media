@@ -1,118 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:61395 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751363AbaCVLDq (ORCPT
+Received: from mail-we0-f175.google.com ([74.125.82.175]:33024 "EHLO
+	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760373AbaCUJgS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Mar 2014 07:03:46 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Lad Prabhakar <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>
-Subject: [PATCH RESEND for v3.15 3/3] media: davinci: vpbe_display: fix releasing of active buffers
-Date: Sat, 22 Mar 2014 16:33:09 +0530
-Message-Id: <1395486189-16713-4-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1395486189-16713-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1395486189-16713-1-git-send-email-prabhakar.csengg@gmail.com>
+	Fri, 21 Mar 2014 05:36:18 -0400
+Received: by mail-we0-f175.google.com with SMTP id q58so1413748wes.34
+        for <linux-media@vger.kernel.org>; Fri, 21 Mar 2014 02:36:16 -0700 (PDT)
+Date: Fri, 21 Mar 2014 09:36:11 +0000
+From: Lee Jones <lee.jones@linaro.org>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	s.nawrocki@samsung.com, a.hajda@samsung.com,
+	kyungmin.park@samsung.com, Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	SangYoung Son <hello.son@smasung.com>,
+	Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH/RFC 6/8] leds: Add support for max77693 mfd flash cell
+Message-ID: <20140321093611.GD15213@lee--X1>
+References: <1395327070-20215-1-git-send-email-j.anaszewski@samsung.com>
+ <1395327070-20215-7-git-send-email-j.anaszewski@samsung.com>
+ <20140320153443.GD8207@lee--X1>
+ <532BF6E3.10003@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <532BF6E3.10003@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> >>This patch adds led-flash support to Maxim max77693 chipset.
+> >>Device can be exposed to user space through LED subsystem
+> >>sysfs interface or through V4L2 subdevice when the support
+> >>for Multimedia Framework is enabled. Device supports up to
+> >>two leds which can work in flash and torch mode. Leds can
+> >>be triggered externally or by software.
+> >>
+> >>Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>Cc: Bryan Wu <cooloney@gmail.com>
+> >>Cc: Richard Purdie <rpurdie@rpsys.net>
+> >>Cc: SangYoung Son <hello.son@smasung.com>
+> >>Cc: Samuel Ortiz <sameo@linux.intel.com>
+> >>Cc: Lee Jones <lee.jones@linaro.org>
+> >>---
+> >>  drivers/leds/Kconfig         |    9 +
+> >>  drivers/leds/Makefile        |    1 +
+> >>  drivers/leds/leds-max77693.c |  768 ++++++++++++++++++++++++++++++++++++++++++
+> >>  drivers/mfd/max77693.c       |   21 +-
+> >>  include/linux/mfd/max77693.h |   32 ++
+> >>  5 files changed, 825 insertions(+), 6 deletions(-)
+> >>  create mode 100644 drivers/leds/leds-max77693.c
+> >
+> >[...]
+> >>-static const struct mfd_cell max77693_devs[] = {
+> >>-	{ .name = "max77693-pmic", },
+> >>-	{ .name = "max77693-charger", },
+> >>-	{ .name = "max77693-flash", },
+> >>-	{ .name = "max77693-muic", },
+> >>-	{ .name = "max77693-haptic", },
+> >>+enum mfd_devs_idx {
+> >>+	IDX_PMIC,
+> >>+	IDX_CHARGER,
+> >>+	IDX_LED,
+> >>+	IDX_MUIC,
+> >>+	IDX_HAPTIC,
+> >>+};
+> >>+
+> >>+static struct mfd_cell max77693_devs[] = {
+> >>+	[IDX_PMIC]      = { .name = "max77693-pmic", },
+> >>+	[IDX_CHARGER]   = { .name = "max77693-charger", },
+> >>+	[IDX_LED]       = { .name = "max77693-led",
+> >>+			    .of_compatible = "maxim,max77693-led"},
+> >>+	[IDX_MUIC]      = { .name = "max77693-muic", },
+> >>+	[IDX_HAPTIC]    = { .name = "max77693-haptic", },
+> >>  };
+> >
+> >What is the purpose of this change?
+> >
+> Introducing mfd_devs_idx itself is a cosmetic change, which
+> actually could be avoided. Initialization of the of_compatible field
+> is required for the led driver to get matched properly. And as I've
+> just realized also max77693-flash name should be preserved.
+> I will fix this in the next version of the patch.
 
-from commit-id: b3379c6201bb3555298cdbf0aa004af260f2a6a4
-"vb2: only call start_streaming if sufficient buffers are queued"
-the vb2 framework warns on (WARN_ON()) if all the active buffers
-are not released when streaming is stopped, initially the vb2 silently
-released the buffer internally if the buffer was not released by
-the driver.
-This patch fixes following issue:
+I'm happy with the addition of any .of_compatible strings, however
+please leave out the IDXs in your next version(s).
 
-WARNING: CPU: 0 PID: 2049 at drivers/media/v4l2-core/videobuf2-core.c:2011 __vb2_queue_cancel+0x1a0/0x218()
-Modules linked in:
-CPU: 0 PID: 2049 Comm: vpbe_display Tainted: G        W    3.14.0-rc5-00414-ged97a6f #89
-[<c000e3f0>] (unwind_backtrace) from [<c000c618>] (show_stack+0x10/0x14)
-[<c000c618>] (show_stack) from [<c001adb0>] (warn_slowpath_common+0x68/0x88)
-[<c001adb0>] (warn_slowpath_common) from [<c001adec>] (warn_slowpath_null+0x1c/0x24)
-[<c001adec>] (warn_slowpath_null) from [<c0252e0c>] (__vb2_queue_cancel+0x1a0/0x218)
-[<c0252e0c>] (__vb2_queue_cancel) from [<c02533a4>] (vb2_queue_release+0x14/0x24)
-[<c02533a4>] (vb2_queue_release) from [<c025a65c>] (vpbe_display_release+0x60/0x230)
-[<c025a65c>] (vpbe_display_release) from [<c023fe5c>] (v4l2_release+0x34/0x74)
-[<c023fe5c>] (v4l2_release) from [<c00b4a00>] (__fput+0x80/0x224)
-[<c00b4a00>] (__fput) from [<c00341e8>] (task_work_run+0xa0/0xd0)
-[<c00341e8>] (task_work_run) from [<c001cc28>] (do_exit+0x244/0x918)
-[<c001cc28>] (do_exit) from [<c001d344>] (do_group_exit+0x48/0xdc)
-[<c001d344>] (do_group_exit) from [<c0029894>] (get_signal_to_deliver+0x2a0/0x5bc)
-[<c0029894>] (get_signal_to_deliver) from [<c000b888>] (do_signal+0x78/0x3a0)
-[<c000b888>] (do_signal) from [<c000bc54>] (do_work_pending+0xa4/0xb4)
-[<c000bc54>] (do_work_pending) from [<c00096dc>] (work_pending+0xc/0x20)
----[ end trace 5faa75e8c2f8a6a1 ]---
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 2049 at drivers/media/v4l2-core/videobuf2-core.c:1095 vb2_buffer_done+0x1e0/0x224()
-Modules linked in:
-CPU: 0 PID: 2049 Comm: vpbe_display Tainted: G        W    3.14.0-rc5-00414-ged97a6f #89
-[<c000e3f0>] (unwind_backtrace) from [<c000c618>] (show_stack+0x10/0x14)
-[<c000c618>] (show_stack) from [<c001adb0>] (warn_slowpath_common+0x68/0x88)
-[<c001adb0>] (warn_slowpath_common) from [<c001adec>] (warn_slowpath_null+0x1c/0x24)
-[<c001adec>] (warn_slowpath_null) from [<c0252c28>] (vb2_buffer_done+0x1e0/0x224)
-[<c0252c28>] (vb2_buffer_done) from [<c0252e3c>] (__vb2_queue_cancel+0x1d0/0x218)
-[<c0252e3c>] (__vb2_queue_cancel) from [<c02533a4>] (vb2_queue_release+0x14/0x24)
-[<c02533a4>] (vb2_queue_release) from [<c025a65c>] (vpbe_display_release+0x60/0x230)
-[<c025a65c>] (vpbe_display_release) from [<c023fe5c>] (v4l2_release+0x34/0x74)
-[<c023fe5c>] (v4l2_release) from [<c00b4a00>] (__fput+0x80/0x224)
-[<c00b4a00>] (__fput) from [<c00341e8>] (task_work_run+0xa0/0xd0)
-[<c00341e8>] (task_work_run) from [<c001cc28>] (do_exit+0x244/0x918)
-[<c001cc28>] (do_exit) from [<c001d344>] (do_group_exit+0x48/0xdc)
-[<c001d344>] (do_group_exit) from [<c0029894>] (get_signal_to_deliver+0x2a0/0x5bc)
-[<c0029894>] (get_signal_to_deliver) from [<c000b888>] (do_signal+0x78/0x3a0)
-[<c000b888>] (do_signal) from [<c000bc54>] (do_work_pending+0xa4/0xb4)
-[<c000bc54>] (do_work_pending) from [<c00096dc>] (work_pending+0xc/0x20)
----[ end trace 5faa75e8c2f8a6a2 ]---
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpbe_display.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 92077ba..a9ad949 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -372,18 +372,32 @@ static int vpbe_stop_streaming(struct vb2_queue *vq)
- {
- 	struct vpbe_fh *fh = vb2_get_drv_priv(vq);
- 	struct vpbe_layer *layer = fh->layer;
-+	struct vpbe_display *disp = fh->disp_dev;
-+	unsigned long flags;
- 
- 	if (!vb2_is_streaming(vq))
- 		return 0;
- 
- 	/* release all active buffers */
-+	spin_lock_irqsave(&disp->dma_queue_lock, flags);
-+	if (layer->cur_frm == layer->next_frm) {
-+		vb2_buffer_done(&layer->cur_frm->vb, VB2_BUF_STATE_ERROR);
-+	} else {
-+		if (layer->cur_frm != NULL)
-+			vb2_buffer_done(&layer->cur_frm->vb,
-+					VB2_BUF_STATE_ERROR);
-+		if (layer->next_frm != NULL)
-+			vb2_buffer_done(&layer->next_frm->vb,
-+					VB2_BUF_STATE_ERROR);
-+	}
-+
- 	while (!list_empty(&layer->dma_queue)) {
- 		layer->next_frm = list_entry(layer->dma_queue.next,
- 						struct vpbe_disp_buffer, list);
- 		list_del(&layer->next_frm->list);
- 		vb2_buffer_done(&layer->next_frm->vb, VB2_BUF_STATE_ERROR);
- 	}
--
-+	spin_unlock_irqrestore(&disp->dma_queue_lock, flags);
- 	return 0;
- }
- 
 -- 
-1.7.9.5
-
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
