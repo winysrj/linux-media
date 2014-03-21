@@ -1,64 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f42.google.com ([74.125.83.42]:57751 "EHLO
-	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751599AbaCTQDb (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41544 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751482AbaCUOLz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Mar 2014 12:03:31 -0400
-Received: by mail-ee0-f42.google.com with SMTP id d17so829015eek.15
-        for <linux-media@vger.kernel.org>; Thu, 20 Mar 2014 09:03:30 -0700 (PDT)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [GIT PULL] Move device tree graph parsing helpers to drivers/of
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Greg KH <gregkh@linuxfoundation.org>,
+	Fri, 21 Mar 2014 10:11:55 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Rob Herring <robh+dt@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Kyungmin Park <kyungmin.park@samsung.com>,
 	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
 	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-In-Reply-To: <20140313113527.GM21483@n2100.arm.linux.org.uk>
-References: <1394126000.3622.66.camel@paszta.hi.pengutronix.de> < 20140307182330.75168C40AE3@trevor.secretlab.ca> <20140310102630.3cb1bcd7@ samsung.com> <20140310143758.3734FC405FA@trevor.secretlab.ca> <1394708896. 3577.21.camel@paszta.hi.pengutronix.de> <20140313113527.GM21483@n2100.arm. linux.org.uk>
-Date: Thu, 20 Mar 2014 16:03:26 +0000
-Message-Id: <20140320160326.DF57CC4067A@trevor.secretlab.ca>
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core to drivers/of
+Date: Fri, 21 Mar 2014 15:13:38 +0100
+Message-ID: <1755937.SSGT2MZJMC@avalon>
+In-Reply-To: <532C408D.4070002@ti.com>
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> <2848953.vVjghJyYNE@avalon> <532C408D.4070002@ti.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="nextPart1481097.JvJTheO4j4"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 13 Mar 2014 11:35:28 +0000, Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
-> On Thu, Mar 13, 2014 at 12:08:16PM +0100, Philipp Zabel wrote:
-> > I'm not sure if maybe I misunderstood or missed a mail, but I haven't
-> > seen a proposal to resolve the situation without rewinds. Given that
-> > Mauro already reverted the media tree and applied conflicting changes,
-> > that's probably not going to happen?
-> 
-> Grant and myself have exchanged emails in private on this discussing what
-> should happen - essentially Grant's position is that he's happy to leave
-> this stuff queued provided a resolution to his concerns are forthcoming.
-> 
-> However, what I find incredibly unfair is that we're taking the rap for
-> these bad bindings.  From what I can see, these bad bindings were merged
-> into the V4L2 code with _zero_ review by DT maintainers.  It's quite
-> clear that DT maintainers would have objected to them had they seen them,
-> but they didn't.  And the lack of documentation of the bindings which
-> has been something that's been insisted on is also disgusting.
 
-When a binding is limited to a single driver, review isn't critical.
-When it is local to a single subsystem the bar is a little higher. Yes,
-it should have had more review, but the surface area is still minimal.
-By turning the binding into a generic pattern that all subsystems are
-welcome to use the bar becomes higher still. It is not unreasonable for
-a binding a new round of review when it is being adapted to become more
-generic.
+--nextPart1481097.JvJTheO4j4
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
 
-V4L2 can and should continue to use what it has. It certainly is not
-okay to break existing platforms. All of my issues are directed toward
-new users.
+Hi Tomi,
 
-Despite my concerns, I do want this series to get merged in the next
-merge window.
+On Friday 21 March 2014 15:37:17 Tomi Valkeinen wrote:
+> On 21/03/14 00:32, Laurent Pinchart wrote:
+> > The OF graph bindings documentation could just specify the ports no=
+de as
+> > optional and mandate individual device bindings to specify it as ma=
+ndatory
+> > or forbidden (possibly with a default behaviour to avoid making all=
 
-g.
+> > device bindings too verbose).
+>=20
+> Isn't it so that if the device has one port, it can always do without=
+
+> 'ports', but if it has multiple ports, it always has to use 'ports' s=
+o
+> that #address-cells and #size-cells can be defined?
+
+You can put the #address-cells and #size-cells property in the device n=
+ode=20
+directly without requiring a ports subnode.
+
+> If so, there's nothing left for the individual device bindings to dec=
+ide.
+
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
+
+--nextPart1481097.JvJTheO4j4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQEcBAABAgAGBQJTLEkYAAoJEIkPb2GL7hl1O/EIAI7GZa+/PoYcUZH7msuy322R
+9u/uWub9R4lPngV/kPiPygxV7UbWRlvv3XvhrZxrQ8m8j0U080ukVZB2JJ6ewksD
+pdYr2BwKcO6JsOeCe9WiAfxxj8urJjv2dRM6lTFleR0tamgJqzIS9RcApIR+FWuz
+DEr29k92DVQ2+EIQj/tdlFQHazaH5r9Nh1IyIYDo4KwUWXVUManVIRl3ioE+D9MZ
+4+D6VNwsuaWGrw34L3Cfy7mfe2MOH1LQIvgpXP0/IXyUfK4LHgAh02I0QlsXbEnQ
+3/P11+fNSs9PiLfzaGKtP+Bklkr6ZnO0BqUZ0UWVHp01bKtAtDOb2Z9KIW15CtE=
+=NnJ/
+-----END PGP SIGNATURE-----
+
+--nextPart1481097.JvJTheO4j4--
 
