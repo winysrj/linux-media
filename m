@@ -1,125 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:53698 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752619AbaCFQV6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 11:21:58 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
-	mark.rutland@arm.com, galak@codeaurora.org,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v6 03/10] Documentation: devicetree: Update Samsung FIMC DT
- binding
-Date: Thu, 06 Mar 2014 17:20:12 +0100
-Message-id: <1394122819-9582-4-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
-References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41641 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751322AbaCUO2c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Mar 2014 10:28:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core to drivers/of
+Date: Fri, 21 Mar 2014 15:30:20 +0100
+Message-ID: <1658201.GilyGRJEEa@avalon>
+In-Reply-To: <532C4B3C.4030406@ti.com>
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> <1755937.SSGT2MZJMC@avalon> <532C4B3C.4030406@ti.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="nextPart1422452.LVKZ4jzxXA"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch documents following updates of the Exynos4 SoC camera subsystem
-devicetree binding:
 
- - addition of #clock-cells property to 'camera' node - the #clock-cells
-   property is needed when the sensor sub-devices use clock provided by
-   the camera host interface,
- - addition of an optional clock-output-names property,
- - change of the clock-frequency at image sensor node from mandatory to
-   an optional property - the sensor devices can now control their clock
-   themselves and there should be no need to require this property by the
-   camera host device binding, a default frequency value can often be used.
+--nextPart1422452.LVKZ4jzxXA
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
----
-Changes since v5:
- - none.
+Hi Tomi,
 
-Changes since v4:
- - dropped a requirement of specific order of values in clocks/
-   clock-names properties (Mark) and reference to clock-names in
-   clock-output-names property description (Mark).
----
- .../devicetree/bindings/media/samsung-fimc.txt     |   34 +++++++++++++++-----
- 1 file changed, 26 insertions(+), 8 deletions(-)
+On Friday 21 March 2014 16:22:52 Tomi Valkeinen wrote:
+> On 21/03/14 16:13, Laurent Pinchart wrote:
+> > On Friday 21 March 2014 15:37:17 Tomi Valkeinen wrote:
+> >> On 21/03/14 00:32, Laurent Pinchart wrote:
+> >>> The OF graph bindings documentation could just specify the ports =
+node as
+> >>> optional and mandate individual device bindings to specify it as
+> >>> mandatory or forbidden (possibly with a default behaviour to avoi=
+d
+> >>> making all device bindings too verbose).
+> >>=20
+> >> Isn't it so that if the device has one port, it can always do with=
+out
+> >> 'ports', but if it has multiple ports, it always has to use 'ports=
+' so
+> >> that #address-cells and #size-cells can be defined?
+> >=20
+> > You can put the #address-cells and #size-cells property in the devi=
+ce node
+> > directly without requiring a ports subnode.
+>=20
+> Ah, right. So 'ports' is only needed when the device node has other c=
+hildren
+> nodes than the ports and those nodes need different #address-cells an=
+d
+> #size-cells than the ports.
 
-diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-index 96312f6..dbd4020 100644
---- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
-+++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-@@ -32,6 +32,21 @@ way around.
- 
- The 'camera' node must include at least one 'fimc' child node.
- 
-+Optional properties:
-+
-+- #clock-cells: from the common clock bindings (../clock/clock-bindings.txt),
-+  must be 1. A clock provider is associated with the 'camera' node and it should
-+  be referenced by external sensors that use clocks provided by the SoC on
-+  CAM_*_CLKOUT pins. The clock specifier cell stores an index of a clock.
-+  The indices are 0, 1 for CAM_A_CLKOUT, CAM_B_CLKOUT clocks respectively.
-+
-+- clock-output-names: from the common clock bindings, should contain names of
-+  clocks registered by the camera subsystem corresponding to CAM_A_CLKOUT,
-+  CAM_B_CLKOUT output clocks respectively.
-+
-+Note: #clock-cells and clock-output-names are mandatory properties if external
-+image sensor devices reference 'camera' device node as a clock provider.
-+
- 'fimc' device nodes
- -------------------
- 
-@@ -97,8 +112,8 @@ Image sensor nodes
- The sensor device nodes should be added to their control bus controller (e.g.
- I2C0) nodes and linked to a port node in the csis or the parallel-ports node,
- using the common video interfaces bindings, defined in video-interfaces.txt.
--The implementation of this bindings requires clock-frequency property to be
--present in the sensor device nodes.
-+An optional clock-frequency property needs to be present in the sensor device
-+nodes. Default value when this property is not present is 24 MHz.
- 
- Example:
- 
-@@ -114,7 +129,7 @@ Example:
- 			vddio-supply = <...>;
- 
- 			clock-frequency = <24000000>;
--			clocks = <...>;
-+			clocks = <&camera 1>;
- 			clock-names = "mclk";
- 
- 			port {
-@@ -135,7 +150,7 @@ Example:
- 			vddio-supply = <...>;
- 
- 			clock-frequency = <24000000>;
--			clocks = <...>;
-+			clocks = <&camera 0>;
- 			clock-names = "mclk";
- 
- 			port {
-@@ -149,12 +164,15 @@ Example:
- 
- 	camera {
- 		compatible = "samsung,fimc", "simple-bus";
--		#address-cells = <1>;
--		#size-cells = <1>;
--		status = "okay";
--
-+		clocks = <&clock 132>, <&clock 133>;
-+		clock-names = "sclk_cam0", "sclk_cam1";
-+		#clock-cells = <1>;
-+		clock-output-names = "cam_mclk_a", "cam_mclk_b";
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&cam_port_a_clk_active>;
-+		status = "okay";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
- 
- 		/* parallel camera ports */
- 		parallel-ports {
--- 
-1.7.9.5
+I would rephrase that as the ports node being required only in that cas=
+e. It=20
+can also be useful to cleanly group ports together when the device node=
+ has=20
+other unrelated children, even though no technical requirement exist (y=
+et ?)=20
+in that case.
+
+> In that case it sounds fine to leave it for the driver bindings to de=
+cide.
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
+
+--nextPart1422452.LVKZ4jzxXA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQEcBAABAgAGBQJTLEz8AAoJEIkPb2GL7hl1VvAIAKrdmomDTdcBJr1NaaefFaQK
+2pA7MWuE/RRkUmMe2HjAfqqapyEW1sMJ9A0R5NUy3JC/7xmu+rEtm6VyBja5v6kZ
+O8bd3mFpER6KPWS8GZPQJ2QT3cnTOQKpuybZRDmIFPMGhfnqq9nfW69U4QjlbfKs
+VFghO8k3I+fUzEql8meii6GRwtSdMWWPsyncf94a8Wj93mY+tNhtibfpeFoxhmU/
+UiKm1+xYcRxJ5gWuG567BMlGACsYaI9uSv/WWDmLZHW0CMJ2J2NWMSYSvxBNFtlm
++aVRGBHVVMAPfj8zI8LKelHqtz/ieJpDxuyNHWuXE3LJiAhWUPhvW2dkhBCGlWo=
+=Qk0J
+-----END PGP SIGNATURE-----
+
+--nextPart1422452.LVKZ4jzxXA--
 
