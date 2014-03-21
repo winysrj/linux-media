@@ -1,58 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:63053 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752182AbaCWGhy (ORCPT
+Received: from smtpfb1-g21.free.fr ([212.27.42.9]:60641 "EHLO
+	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964951AbaCULCw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Mar 2014 02:37:54 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Lad Prabhakar <prabhakar.csengg@gmail.com>,
-	devel@driverdev.osuosl.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 2/2] staging: media: davinci: vpfe: release buffers in case start_streaming call back fails
-Date: Sun, 23 Mar 2014 12:07:25 +0530
-Message-Id: <1395556645-1207-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1395556645-1207-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1395556645-1207-1-git-send-email-prabhakar.csengg@gmail.com>
+	Fri, 21 Mar 2014 07:02:52 -0400
+Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
+	by smtpfb1-g21.free.fr (Postfix) with ESMTP id 791C777D4AC
+	for <linux-media@vger.kernel.org>; Fri, 21 Mar 2014 12:02:49 +0100 (CET)
+Message-Id: <911da5ce15cdb37cf899e629b0edc31f44ce5205.1395397665.git.moinejf@free.fr>
+In-Reply-To: <cover.1395397665.git.moinejf@free.fr>
+References: <cover.1395397665.git.moinejf@free.fr>
+From: Jean-Francois Moine <moinejf@free.fr>
+Date: Fri, 21 Mar 2014 09:52:29 +0100
+Subject: [PATCH RFC v2 6/6] ARM: AM33XX: dts: Change the tda998x description
+To: Russell King <rmk+kernel@arm.linux.org.uk>,
+	Rob Clark <robdclark@gmail.com>,
+	dri-devel@lists.freedesktop.org
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+The tda998x being moved from a 'slave encoder' to a normal DRM
+encoder/connector and the tilcdc_slave glue being removed, the
+declaration of the HDMI transmitter description must be changed in
+the associated DTs.
 
-this patch releases the buffer bu calling vb2_buffer_done(),
-with state marked as VB2_BUF_STATE_QUEUED if start_streaming()
-call back fails.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
 ---
- drivers/staging/media/davinci_vpfe/vpfe_video.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/am335x-base0033.dts  | 28 +++++++++++++++++++---------
+ arch/arm/boot/dts/am335x-boneblack.dts | 21 ++++++++++++++++-----
+ 2 files changed, 35 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index c86ab84..9337d92 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -1218,8 +1218,16 @@ static int vpfe_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	video->state = VPFE_VIDEO_BUFFER_QUEUED;
+diff --git a/arch/arm/boot/dts/am335x-base0033.dts b/arch/arm/boot/dts/am335x-base0033.dts
+index 72a9b3f..05f2b8f 100644
+--- a/arch/arm/boot/dts/am335x-base0033.dts
++++ b/arch/arm/boot/dts/am335x-base0033.dts
+@@ -14,15 +14,6 @@
+ 	model = "IGEP COM AM335x on AQUILA Expansion";
+ 	compatible = "isee,am335x-base0033", "isee,am335x-igep0033", "ti,am33xx";
  
- 	ret = vpfe_start_capture(video);
--	if (ret)
-+	if (ret) {
-+		struct vpfe_cap_buffer *buf, *tmp;
+-	hdmi {
+-		compatible = "ti,tilcdc,slave";
+-		i2c = <&i2c0>;
+-		pinctrl-names = "default", "off";
+-		pinctrl-0 = <&nxp_hdmi_pins>;
+-		pinctrl-1 = <&nxp_hdmi_off_pins>;
+-		status = "okay";
+-	};
+-
+ 	leds_base {
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&leds_base_pins>;
+@@ -85,6 +76,11 @@
+ 
+ &lcdc {
+ 	status = "okay";
++	port {
++		lcd_0: endpoint@0 {
++			remote-endpoint = <&hdmi_0>;
++		};
++	};
+ };
+ 
+ &i2c0 {
+@@ -92,4 +88,18 @@
+ 		compatible = "at,24c256";
+ 		reg = <0x50>;
+ 	};
++	hdmi: hdmi-encoder {
++		compatible = "nxp,tda19988";
++		reg = <0x70>;
 +
-+		vb2_buffer_done(&video->cur_frm->vb, VB2_BUF_STATE_QUEUED);
-+		list_for_each_entry_safe(buf, tmp, &video->dma_queue, list) {
-+			list_del(&buf->list);
-+			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+		}
- 		goto unlock_out;
-+	}
++		pinctrl-names = "default", "off";
++		pinctrl-0 = <&nxp_hdmi_pins>;
++		pinctrl-1 = <&nxp_hdmi_off_pins>;
++
++		port {
++			hdmi_0: endpoint@0 {
++				remote-endpoint = <&lcd_0>;
++			};
++		};
++	};
+ };
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index 6b71ad9..b94d8bd 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -64,15 +64,26 @@
  
- 	mutex_unlock(&video->lock);
+ &lcdc {
+ 	status = "okay";
++	port {
++		lcd_0: endpoint@0 {
++			remote-endpoint = <&hdmi_0>;
++		};
++	};
+ };
  
+-/ {
+-	hdmi {
+-		compatible = "ti,tilcdc,slave";
+-		i2c = <&i2c0>;
++&i2c0 {
++	hdmi: hdmi-encoder {
++		compatible = "nxp,tda19988";
++		reg = <0x70>;
++
+ 		pinctrl-names = "default", "off";
+ 		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
+ 		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
+-		status = "okay";
++
++		port {
++			hdmi_0: endpoint@0 {
++				remote-endpoint = <&lcd_0>;
++			};
++		};
+ 	};
+ };
 -- 
-1.7.9.5
+1.9.1
 
