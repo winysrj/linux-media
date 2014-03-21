@@ -1,66 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:49990 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751204AbaC2F2I (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:58375 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752094AbaCUOKN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Mar 2014 01:28:08 -0400
-Received: by mail-lb0-f178.google.com with SMTP id s7so4321508lbd.37
-        for <linux-media@vger.kernel.org>; Fri, 28 Mar 2014 22:28:05 -0700 (PDT)
-Message-ID: <533659E2.4010001@t-25.ru>
-Date: Sat, 29 Mar 2014 09:28:02 +0400
-From: Anton Leontiev <bunder@t-25.ru>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] uvcvideo: Fix marking buffer erroneous in case
- of FID toggling
-References: <1395722457-28080-1-git-send-email-bunder@t-25.ru> <1462972.4R5jTG4a0F@avalon> <5334F348.6070308@t-25.ru> <1459346.J1YUbuH55p@avalon>
-In-Reply-To: <1459346.J1YUbuH55p@avalon>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Fri, 21 Mar 2014 10:10:13 -0400
+Message-id: <532C4841.9090508@samsung.com>
+Date: Fri, 21 Mar 2014 15:10:09 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from
+ drivers/media/v4l2-core to drivers/of
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de>
+ <3632624.gNVi6QOfGx@avalon> <20140320222347.CAB6DC412EA@trevor.secretlab.ca>
+ <2848953.vVjghJyYNE@avalon> <532C408D.4070002@ti.com>
+In-reply-to: <532C408D.4070002@ti.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-28.03.2014 20:12, Laurent Pinchart пишет:
->>>> + * Set error flag for incomplete buffer.
->>>> + */
->>>> +static void uvc_buffer_check_bytesused(const struct uvc_streaming *const
->>>> stream,
+On 21/03/14 14:37, Tomi Valkeinen wrote:
+> On 21/03/14 00:32, Laurent Pinchart wrote:
 > 
-> No need for the second const keyword here.
+>> > The OF graph bindings documentation could just specify the ports node as 
+>> > optional and mandate individual device bindings to specify it as mandatory or 
+>> > forbidden (possibly with a default behaviour to avoid making all device 
+>> > bindings too verbose).
+>
+> Isn't it so that if the device has one port, it can always do without
+> 'ports', but if it has multiple ports, it always has to use 'ports' so
+> that #address-cells and #size-cells can be defined?
 > 
-> I would have used "uvc_video_" as a prefix, to be in sync with the surrounding 
-> functions. What would you think of uvc_video_validate_buffer() ?
-> 
->>>> +	struct uvc_buffer *const buf)
-> 
-> And no need for const at all here.
-> 
->>>> +{
->>>> +	if (buf->length != buf->bytesused &&
->>>> +			!(stream->cur_format->flags & UVC_FMT_FLAG_COMPRESSED))
-> 
-> The indentation is wrong here, the ! on the second line should be aligned to 
-> the first 'buf' of the first line.
-> 
-> If you agree with these changes I can perform them while applying, there's no 
-> need to resubmit the patch.
-> 
+> If so, there's nothing left for the individual device bindings to decide.
 
-Thank you for reviewing my first patch to Linux kernel. I completely
-agree with your changes.
+Wouldn't it make the bindings even more verbose ? Letting the individual
+device bindings to decide sounds more sensible to me.
 
-Just want to ask why there is no need for the second 'const' after
-pointer character '*'? I thought it marks pointer itself as constant for
-type-checking opposite to first 'const', which marks memory it points to
-as constant for type-checking. I understand that the function is simple
-enough to verify it by hand but it's better to add more information for
-automatic checking.
-
-Is there any guidelines on 'const' keyword usage in Linux kernel code?
-
-Regards,
-
--- 
-Anton Leontiev
+--
+Thanks,
+Sylwester
