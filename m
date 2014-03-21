@@ -1,49 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:38440 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753816AbaCZVKz (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:36371 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753842AbaCUI2C (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Mar 2014 17:10:55 -0400
-Received: by mail-wg0-f42.google.com with SMTP id y10so1704101wgg.13
-        for <linux-media@vger.kernel.org>; Wed, 26 Mar 2014 14:10:54 -0700 (PDT)
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, James Hogan <james.hogan@imgtec.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-Subject: [PATCH 0/3] rc: Misc fixes for v3.15
-Date: Wed, 26 Mar 2014 21:08:30 +0000
-Message-Id: <1395868113-17950-1-git-send-email-james.hogan@imgtec.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Fri, 21 Mar 2014 04:28:02 -0400
+Message-id: <532BF80F.1080602@samsung.com>
+Date: Fri, 21 Mar 2014 09:27:59 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Richard Purdie <richard.purdie@linuxfoundation.org>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	s.nawrocki@samsung.com, a.hajda@samsung.com,
+	kyungmin.park@samsung.com, Bryan Wu <cooloney@gmail.com>
+Subject: Re: [PATCH/RFC 1/8] leds: Add sysfs and kernel internal API for flash
+ LEDs
+References: <1395327070-20215-1-git-send-email-j.anaszewski@samsung.com>
+ <1395327070-20215-2-git-send-email-j.anaszewski@samsung.com>
+ <1395329301.27611.4.camel@ted>
+In-reply-to: <1395329301.27611.4.camel@ted>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A few misc fixes for v3.15, all relating to my previous patches.
+On 03/20/2014 04:28 PM, Richard Purdie wrote:
+> On Thu, 2014-03-20 at 15:51 +0100, Jacek Anaszewski wrote:
+>> Some LED devices support two operation modes - torch and
+>> flash. This patch provides support for flash LED devices
+>> in the LED subsystem by introducing new sysfs attributes
+>> and kernel internal interface. The attributes being
+>> introduced are: flash_mode, flash_timeout, max_flash_timeout,
+>> flash_fault and hw_triggered.
+>> The modifications aim to be compatible with V4L2 framework
+>> requirements related to the flash devices management. The
+>> design assumes that V4L2 driver can take of the LED class
+>> device control and communicate with it through the kernel
+>> internal interface. The LED sysfs interface is made
+>> unavailable then.
+>>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Bryan Wu <cooloney@gmail.com>
+>> Cc: Richard Purdie <rpurdie@rpsys.net>
+>> ---
+>>   drivers/leds/led-class.c    |  216 +++++++++++++++++++++++++++++++++++++++++--
+>>   drivers/leds/led-core.c     |  124 +++++++++++++++++++++++--
+>>   drivers/leds/led-triggers.c |   17 +++-
+>>   drivers/leds/leds.h         |    9 ++
+>>   include/linux/leds.h        |  136 +++++++++++++++++++++++++++
+>>   5 files changed, 486 insertions(+), 16 deletions(-)
+>
+> It seems rather sad to have to insert that amount of code into the core
+> LED files for something which only a small number of LEDs actually use.
+> This will increase the footprint of the core LED code significantly.
+>
+> Is it not possible to add this as a module/extension to the LED core
+> rather than completely entangling them?
 
-James Hogan (3):
-  rc-main: Revert generic scancode filtering support
-  rc-main: Limit to a single wakeup protocol group
-  rc: img-ir: Expand copyright headers with GPL notices
+OK, I'll try to decouple it.
 
- drivers/media/rc/img-ir/img-ir-core.c  |  5 +++++
- drivers/media/rc/img-ir/img-ir-hw.c    |  5 +++++
- drivers/media/rc/img-ir/img-ir-hw.h    |  5 +++++
- drivers/media/rc/img-ir/img-ir-jvc.c   |  5 +++++
- drivers/media/rc/img-ir/img-ir-nec.c   |  5 +++++
- drivers/media/rc/img-ir/img-ir-raw.c   |  5 +++++
- drivers/media/rc/img-ir/img-ir-raw.h   |  5 +++++
- drivers/media/rc/img-ir/img-ir-sanyo.c |  5 +++++
- drivers/media/rc/img-ir/img-ir-sharp.c |  5 +++++
- drivers/media/rc/img-ir/img-ir-sony.c  |  5 +++++
- drivers/media/rc/img-ir/img-ir.h       |  5 +++++
- drivers/media/rc/rc-main.c             | 39 ++++++++++++++++++----------------
- 12 files changed, 76 insertions(+), 18 deletions(-)
-
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: David Härdeman <david@hardeman.nu>
-Cc: Antti Seppälä <a.seppala@gmail.com>
--- 
-1.8.3.2
+Thanks,
+Jacek Anaszewski
 
