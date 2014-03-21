@@ -1,69 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:57447 "EHLO smtp4-g21.free.fr"
+Received: from comal.ext.ti.com ([198.47.26.152]:59143 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755040AbaCLQbh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Mar 2014 12:31:37 -0400
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Denis Carikli <denis@eukrea.com>
-Subject: [PATCH v10][ 04/10] imx-drm: Match ipu_di_signal_cfg's clk_pol with its description.
-Date: Wed, 12 Mar 2014 17:31:01 +0100
-Message-Id: <1394641867-15629-4-git-send-email-denis@eukrea.com>
-In-Reply-To: <1394641867-15629-1-git-send-email-denis@eukrea.com>
-References: <1394641867-15629-1-git-send-email-denis@eukrea.com>
+	id S1753545AbaCUIVT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Mar 2014 04:21:19 -0400
+Message-ID: <532BF663.602@ti.com>
+Date: Fri, 21 Mar 2014 10:20:51 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core
+ to drivers/of
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> <20140320153804.35d5b835@samsung.com> <20140320184316.GB7528@n2100.arm.linux.org.uk> <4700752.xAVjk21KIL@avalon>
+In-Reply-To: <4700752.xAVjk21KIL@avalon>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="GQjohDmXS004Jp4GEJC7p5QfgVXm1Awk6"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-According to the datasheet, setting the di0_polarity_disp_clk
-field in the GENERAL di register sets the output clock polarity
-to active high.
+--GQjohDmXS004Jp4GEJC7p5QfgVXm1Awk6
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
----
-ChangeLog v9->v10:
-- New patch that is now needed by the
-  "staging: imx-drm: Use de-active and pixelclk-active" patch.
----
- drivers/staging/imx-drm/ipu-v3/ipu-di.c |    2 +-
- drivers/staging/imx-drm/ipuv3-crtc.c    |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+On 20/03/14 20:49, Laurent Pinchart wrote:
 
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-di.c b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-index 82a9eba..849b3e1 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-@@ -595,7 +595,7 @@ int ipu_di_init_sync_panel(struct ipu_di *di, struct ipu_di_signal_cfg *sig)
- 		}
- 	}
- 
--	if (!sig->clk_pol)
-+	if (sig->clk_pol)
- 		di_gen |= DI_GEN_POLARITY_DISP_CLK;
- 
- 	ipu_di_write(di, di_gen, DI_GENERAL);
-diff --git a/drivers/staging/imx-drm/ipuv3-crtc.c b/drivers/staging/imx-drm/ipuv3-crtc.c
-index a8d0178..db6bd64 100644
---- a/drivers/staging/imx-drm/ipuv3-crtc.c
-+++ b/drivers/staging/imx-drm/ipuv3-crtc.c
-@@ -158,7 +158,7 @@ static int ipu_crtc_mode_set(struct drm_crtc *crtc,
- 		sig_cfg.Vsync_pol = 1;
- 
- 	sig_cfg.enable_pol = 1;
--	sig_cfg.clk_pol = 1;
-+	sig_cfg.clk_pol = 0;
- 	sig_cfg.width = mode->hdisplay;
- 	sig_cfg.height = mode->vdisplay;
- 	sig_cfg.pixel_fmt = out_pixel_fmt;
--- 
-1.7.9.5
+>> The CPU is the _controlling_ component - it's the component that has t=
+o
+>> configure the peripherals so they all talk to each other in the right
+>> way.  Therefore, the view of it needs to be CPU centric.
+>>
+>> If we were providing a DT description for consumption by some other
+>> device in the system, then the view should be as seen from that device=
 
+>> instead.
+>>
+>> Think about this.  Would you describe a system starting at, say, the
+>> system keyboard, and branching all the way through just becuase that's=
+
+>> how you interact with it, or would you describe it from the CPUs point=
+
+>> of view because that's what has to be in control of the system.
+>=20
+> DT has been designed to represent a control-based view of the system. I=
+t does=20
+> so pretty well using its tree-based model. However, it doesn't have a n=
+ative=20
+> way to represent a flow-based graph, hence the OF graph solution we're =
+
+> discussing. The whole point of this proposal is to represent the topolo=
+gy of=20
+> the media device, not how each entity is controlled.
+
+I agree with Laurent here. I think this is an important point to keep in
+mind. We already describe the control graph in the DT via the
+parent-child relationships. There's no point in describing the same
+thing again with the graph links being discussed.
+
+ Tomi
+
+
+
+--GQjohDmXS004Jp4GEJC7p5QfgVXm1Awk6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJTK/ZoAAoJEPo9qoy8lh71OQEP/3ts3WNl27wegIsy9M/GghOL
+ch51JW7ebSxMfdSlJwbzrbQ5+m2+zYpuQch+r2z5KwZ1EzNAX5qE/qJbcut4owoF
+RxRaRN+gfmiC87lU8/fXzc6xZ/+aNhHmizlEAhHTQOSRPG/jyoi6j9wOUO50NGWI
+Dtd9KIZDJ6u2oEFMJQkwccL/6Y4Q0GaEWL4kDAN2IUAPO68N6ldkebEnA5g/MzDI
+REGXoRxPBn0P2B4gAitYilrKoy3Q+g/dygSWUX36RM7A1fVLC/HQiXOeeba4cpls
+eKXOYYC2JSOaDikqjvdLnrDxs/dacWh5YoGicz0LSKxA25j8MQCMwThn1iJHmT8H
+IY2+X9egdjLglodXMHlG5Nj9NhcZgQJjuSENZL62/A/Si3ePWPIZrySW722LItc0
+E22b9NS9gkwbmoSOCvTdu16GbfFJYGNSYV/Fl+f93FdH5Cj52DRLlRLdUFzj8DNk
+LBiIU51EHtJoXikwxwIENgPWCesLjXnq36dZNvrT3xFVCs+1G2bLs3eh8AHM6lQB
+FCmtBdSQynxmX4SGnB4lFS2EEakDOjIHF1HgoI6NS8o3JQXaHdQdx0LxzkLulEIo
+POdL78iH6SOMnk8v96LTptYAfEFmUimTwutiRJs/vN3TjYRGA6JLXAARlPae9V5X
+5D21h1E0X8r86x5q6iIS
+=R99w
+-----END PGP SIGNATURE-----
+
+--GQjohDmXS004Jp4GEJC7p5QfgVXm1Awk6--
