@@ -1,96 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1632 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756066AbaCONsP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Mar 2014 09:48:15 -0400
-Message-ID: <532459E8.9060903@xs4all.nl>
-Date: Sat, 15 Mar 2014 14:47:20 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from comal.ext.ti.com ([198.47.26.152]:45361 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752673AbaCUOXT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Mar 2014 10:23:19 -0400
+Message-ID: <532C4B3C.4030406@ti.com>
+Date: Fri, 21 Mar 2014 16:22:52 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Fengguang Wu <fengguang.wu@intel.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [RFC PATCH 1/3] dvbdev: add a dvb_dettach() macro
-References: <1394890994-29185-1-git-send-email-m.chehab@samsung.com> <1394890994-29185-2-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1394890994-29185-2-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Grant Likely <grant.likely@linaro.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core
+ to drivers/of
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> <2848953.vVjghJyYNE@avalon> <532C408D.4070002@ti.com> <1755937.SSGT2MZJMC@avalon>
+In-Reply-To: <1755937.SSGT2MZJMC@avalon>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="TpKimeAtlT82Mp8Dp6nm0aT5FTdRosD2V"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+--TpKimeAtlT82Mp8Dp6nm0aT5FTdRosD2V
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On 03/15/2014 02:43 PM, Mauro Carvalho Chehab wrote:
-> The dvb_attach() was unbalanced, as there was no dvb_dettach. Ok,
-> on current cases, the dettach is done by dvbdev, but that are some
-> future corner cases where we may need to do this before registering
-> the frontend.
-> 
-> So, add a dvb_dettach() and use it at dvb_frontend.c.
+On 21/03/14 16:13, Laurent Pinchart wrote:
+> Hi Tomi,
+>=20
+> On Friday 21 March 2014 15:37:17 Tomi Valkeinen wrote:
+>> On 21/03/14 00:32, Laurent Pinchart wrote:
+>>> The OF graph bindings documentation could just specify the ports node=
+ as
+>>> optional and mandate individual device bindings to specify it as mand=
+atory
+>>> or forbidden (possibly with a default behaviour to avoid making all
+>>> device bindings too verbose).
+>>
+>> Isn't it so that if the device has one port, it can always do without
+>> 'ports', but if it has multiple ports, it always has to use 'ports' so=
 
-Typo: it's spelled 'detach', one 't'.
+>> that #address-cells and #size-cells can be defined?
+>=20
+> You can put the #address-cells and #size-cells property in the device n=
+ode=20
+> directly without requiring a ports subnode.
 
-Regards,
+Ah, right. So 'ports' is only needed when the device node has other
+children nodes than the ports and those nodes need different
+#address-cells and #size-cells than the ports.
 
-	Hans
+In that case it sounds fine to leave it for the driver bindings to decide=
+=2E
 
-> 
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/dvb-core/dvb_frontend.c | 8 ++++----
->  drivers/media/dvb-core/dvbdev.h       | 4 ++++
->  2 files changed, 8 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-> index 6ce435ac866f..24cf4fbf92a8 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb-core/dvb_frontend.c
-> @@ -2666,20 +2666,20 @@ void dvb_frontend_detach(struct dvb_frontend* fe)
->  
->  	if (fe->ops.release_sec) {
->  		fe->ops.release_sec(fe);
-> -		symbol_put_addr(fe->ops.release_sec);
-> +		dvb_dettach(fe->ops.release_sec);
->  	}
->  	if (fe->ops.tuner_ops.release) {
->  		fe->ops.tuner_ops.release(fe);
-> -		symbol_put_addr(fe->ops.tuner_ops.release);
-> +		dvb_dettach(fe->ops.tuner_ops.release);
->  	}
->  	if (fe->ops.analog_ops.release) {
->  		fe->ops.analog_ops.release(fe);
-> -		symbol_put_addr(fe->ops.analog_ops.release);
-> +		dvb_dettach(fe->ops.analog_ops.release);
->  	}
->  	ptr = (void*)fe->ops.release;
->  	if (ptr) {
->  		fe->ops.release(fe);
-> -		symbol_put_addr(ptr);
-> +		dvb_dettach(ptr);
->  	}
->  }
->  #else
-> diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-> index 93a9470d3f0c..49904efc476c 100644
-> --- a/drivers/media/dvb-core/dvbdev.h
-> +++ b/drivers/media/dvb-core/dvbdev.h
-> @@ -136,11 +136,15 @@ extern int dvb_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
->  	__r; \
->  })
->  
-> +#define dvb_dettach(FUNC)	symbol_put_addr(FUNC)
-> +
->  #else
->  #define dvb_attach(FUNCTION, ARGS...) ({ \
->  	FUNCTION(ARGS); \
->  })
->  
-> +#define dvb_dettach(FUNC)	{}
-> +
->  #endif
->  
->  #endif /* #ifndef _DVBDEV_H_ */
-> 
+ Tomi
 
+
+
+--TpKimeAtlT82Mp8Dp6nm0aT5FTdRosD2V
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJTLEs8AAoJEPo9qoy8lh71GcwP/0kBttUEuj1RVh9tRFqGc3h3
+HiU40Qo60ze7+tEaPrNlcQg4RCWU5UgmVplxgqmArXM4NjCFhuwDXt0saxO7igmk
+KaC7o6Quguve2NvhWKSj0UUmZGHQ5fTZtRn53jFI4xRLwhctAkLFM2iVGR3MGmgn
+O9LeY7gZ3yo4Z7jwYUX0TpZIaPEWMGFk/xeH7/0p6AWysjd0jYxRPUTRXMdCYVjE
+gi+/TBx+xhFmJ7t0fh44UVmeYAAySs7j9RbS9ZWH43tEqyA8KXTeH9ZXXtUBcGXE
+AQIqubLUtyGBDmh0jpyIR8TC5mWcHFzcMugmP0Gybj9DAG5ZAGGEvKnjnJAb9Doe
+AHeBY86Vi4QK5qngsJCIhXjgsj+8oIqVLLbqgx0yXPqS196XdiXttC1tP90FGZf4
+5P0QIqgiZhiQHoTi/lbGT225bY3KhPbeIY5g+6eEQNdadX2TGcqxhVWIV3B4QBlb
+q7/k6YDv0YX9wN2VDgFSUUVz5SzBaXyO4cwhWp0JNGhe9zDDfaMrfN55GYivE3A/
+ZajvfVXGvPEEYPEH4bMZTTu2ziMNafRVhiTsAbAiJgNKOYyVhmf5d3BI8iKS9SeY
+3c8lkTuwK1LB/ca0WtTZKDrWIu0jZXuz37NKOSTM+0HGDgbPjxrDwYIsMe7NTYyQ
++E318fWANuKomR4MFuEG
+=Nnlz
+-----END PGP SIGNATURE-----
+
+--TpKimeAtlT82Mp8Dp6nm0aT5FTdRosD2V--
