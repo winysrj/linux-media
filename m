@@ -1,150 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:43853 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753232AbaCFQVu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 11:21:50 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
-	mark.rutland@arm.com, galak@codeaurora.org,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v6 02/10] Documentation: dt: Add binding documentation for
- S5C73M3 camera
-Date: Thu, 06 Mar 2014 17:20:11 +0100
-Message-id: <1394122819-9582-3-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
-References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-ee0-f47.google.com ([74.125.83.47]:50786 "EHLO
+	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755604AbaCULrm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Mar 2014 07:47:42 -0400
+Received: by mail-ee0-f47.google.com with SMTP id b15so1718587eek.34
+        for <linux-media@vger.kernel.org>; Fri, 21 Mar 2014 04:47:41 -0700 (PDT)
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
+To: Andrzej Hajda <a.hajda@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+In-Reply-To: <532C1808.6090409@samsung.com>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < 139468148.3QhLg3QYq1@avalon> <531F08A8.300@ti.com> <1883687.VdfitvQEN3@ samsung.com> <avalon@samsung.com> <20140320172302.CD320C4067A@trevor. secretlab.ca> <532C1808.6090409@samsung.com>
+Date: Fri, 21 Mar 2014 11:47:35 +0000
+Message-Id: <20140321114735.3E132C4052A@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds DT binding documentation for Samsung S5C73M3 camera sensor
-with an embedded ISP.
+On Fri, 21 Mar 2014 11:44:24 +0100, Andrzej Hajda <a.hajda@samsung.com> wrote:
+> On 03/20/2014 06:23 PM, Grant Likely wrote:
+> > On Tue, 11 Mar 2014 14:16:37 +0100, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+> >> On Tuesday 11 March 2014 14:59:20 Tomi Valkeinen wrote:
+> >>> So depending on the use case, the endpoints would point to opposite
+> >>> direction from the encoder's point of view.
+> >>>
+> >>> And if I gathered Grant's opinion correctly (correct me if I'm wrong),
+> >>> he thinks things should be explicit, i.e. the bindings for, say, an
+> >>> encoder should state that the encoder's output endpoint _must_ contain a
+> >>> remote-endpoint property, whereas the encoder's input endpoint _must
+> >>> not_ contain a remote-endpoint property.
+> >>
+> >> Actually my understand was that DT links would have the same direction as the 
+> >> data flow. There would be no ambiguity in that case as the direction of the 
+> >> data flow is known. What happens for bidirectional data flows still need to be 
+> >> discussed though. And if we want to use the of-graph bindings to describe 
+> >> graphs without a data flow, a decision will need to be taken there too.
+> > 
+> > On further thinking, I would say linkage direction should be in the
+> > direction that would be considered the dependency order... I'm going to
+> > soften my position though. I think the generic pattern should still
+> > recommend unidirection links in direction of device dependency, but
+> 
+> I am not sure what you mean by 'device dependency' but I am sure it will
+> not be difficult to present problematic cases, maybe circular
+> dependencies, two-way dependencies, etc.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
----
-Changes since v5:
- - none.
+My understanding has been that the link data would be used determine
+when the controller driver can be brought up and active. Certainly both
+sides of a link need to be 'live' before the link can be used. The
+kernel must have a way to resolve the question of "who starts first?",
+whether it be the situation of the consumer starts before the producer,
+or the situation of two components need to start before the controller
+driver can start. That is the dependency chain I'm talking about.
 
-Changes since v4:
- - added missing unit-address at the example SPI device node;
+> The only problem of unidirectional links from programming point of view
+> is that destination port/interface should be exposed using some
+> framework and driver of source link should grab it using the same
+> framework, using port/endpoint node for identification. In case of
+> bi-directional links the same process should happen but DT do not
+> dictates who should expose and who grabs.
+> 
+> So from programming point of view it should be easy to handle
+> unidirectional links regardless of the direction. So I guess the best
+> is to use data flow direction as it seems to be the most natural.
 
-Changes since v3:
- - DT binding documentation separated into this patch;
+right.
 
-Changes since v2:
- - rephrased 'clocks' and 'clock-names' properties' description;
----
- .../devicetree/bindings/media/samsung-s5c73m3.txt  |   97 ++++++++++++++++++++
- 1 file changed, 97 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
+> 
+> 
+> > I'm okay with allowing the bidirection option if the helper functions
+> > are modified to validate the target endpoint. I think it needs to test
+> > for the following:
+> > - Make sure the endpoint either:
+> >   - does not have a backlink, or
+> >   - the backlink points back to the origin node
+> > - If the target is an endpoint node, then make sure the parent doesn't
+> >   have a link of any kind
+> > - If the target is a port node, make sure it doesn't have any endpoint
+> >   children nodes at all.
+> 
+> I think link validation can be done at dts compile time.
 
-diff --git a/Documentation/devicetree/bindings/media/samsung-s5c73m3.txt b/Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
-new file mode 100644
-index 0000000..2c85c45
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
-@@ -0,0 +1,97 @@
-+Samsung S5C73M3 8Mp camera ISP
-+------------------------------
-+
-+The S5C73M3 camera ISP supports MIPI CSI-2 and parallel (ITU-R BT.656) video
-+data busses. The I2C bus is the main control bus and additionally the SPI bus
-+is used, mostly for transferring the firmware to and from the device. Two
-+slave device nodes corresponding to these control bus interfaces are required
-+and should be placed under respective bus controller nodes.
-+
-+I2C slave device node
-+---------------------
-+
-+Required properties:
-+
-+- compatible	    : "samsung,s5c73m3";
-+- reg		    : I2C slave address of the sensor;
-+- vdd-int-supply    : digital power supply (1.2V);
-+- vdda-supply	    : analog power supply (1.2V);
-+- vdd-reg-supply    : regulator input power supply (2.8V);
-+- vddio-host-supply : host I/O power supply (1.8V to 2.8V);
-+- vddio-cis-supply  : CIS I/O power supply (1.2V to 1.8V);
-+- vdd-af-supply     : lens power supply (2.8V);
-+- xshutdown-gpios   : specifier of GPIO connected to the XSHUTDOWN pin;
-+- standby-gpios     : specifier of GPIO connected to the STANDBY pin;
-+- clocks	    : should contain list of phandle and clock specifier pairs
-+		      according to common clock bindings for the clocks described
-+		      in the clock-names property;
-+- clock-names	    : should contain "cis_extclk" entry for the CIS_EXTCLK clock;
-+
-+Optional properties:
-+
-+- clock-frequency   : the frequency at which the "cis_extclk" clock should be
-+		      configured to operate, in Hz; if this property is not
-+		      specified default 24 MHz value will be used.
-+
-+The common video interfaces bindings (see video-interfaces.txt) should be used
-+to specify link from the S5C73M3 to an external image data receiver. The S5C73M3
-+device node should contain one 'port' child node with an 'endpoint' subnode for
-+this purpose. The data link from a raw image sensor to the S5C73M3 can be
-+similarly specified, but it is optional since the S5C73M3 ISP and a raw image
-+sensor are usually inseparable and form a hybrid module.
-+
-+Following properties are valid for the endpoint node(s):
-+
-+endpoint subnode
-+----------------
-+
-+- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
-+  video-interfaces.txt. This sensor doesn't support data lane remapping
-+  and physical lane indexes in subsequent elements of the array should
-+  be only consecutive ascending values.
-+
-+SPI device node
-+---------------
-+
-+Required properties:
-+
-+- compatible	    : "samsung,s5c73m3";
-+
-+For more details see description of the SPI busses bindings
-+(../spi/spi-bus.txt) and bindings of a specific bus controller.
-+
-+Example:
-+
-+i2c@138A000000 {
-+	...
-+	s5c73m3@3c {
-+		compatible = "samsung,s5c73m3";
-+		reg = <0x3c>;
-+		vdd-int-supply = <&buck9_reg>;
-+		vdda-supply = <&ldo17_reg>;
-+		vdd-reg-supply = <&cam_io_reg>;
-+		vddio-host-supply = <&ldo18_reg>;
-+		vddio-cis-supply = <&ldo9_reg>;
-+		vdd-af-supply = <&cam_af_reg>;
-+		clock-frequency = <24000000>;
-+		clocks = <&clk 0>;
-+		clock-names = "cis_extclk";
-+		reset-gpios = <&gpf1 3 1>;
-+		standby-gpios = <&gpm0 1 1>;
-+		port {
-+			s5c73m3_ep: endpoint {
-+				remote-endpoint = <&csis0_ep>;
-+				data-lanes = <1 2 3 4>;
-+			};
-+		};
-+	};
-+};
-+
-+spi@1392000 {
-+	...
-+	s5c73m3_spi: s5c73m3@0 {
-+		compatible = "samsung,s5c73m3";
-+		reg = <0>;
-+		...
-+	};
-+};
--- 
-1.7.9.5
+I'm firm on the opinion that the checking must also happen at runtime.
+The biggest part of my objection has been how easy it would be to get a
+linkage out of sync, and dtc is not necessarily the last tool to touch
+the dtb before the kernel gets booted. I want the kernel to flat out
+reject any linkage that is improperly formed.
+
+g.
+
+> 
+> Regards
+> Andrzej
+> 
+> > 
+> > g.
+> > 
+> > 
+> 
 
