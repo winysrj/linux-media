@@ -1,213 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:62889 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754033AbaCXTdK (ORCPT
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:38677 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751314AbaCVLDh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Mar 2014 15:33:10 -0400
-Received: by mail-ee0-f52.google.com with SMTP id e49so4826908eek.11
-        for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 12:33:09 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 14/19] em28xx: move capture state tracking fields from struct em28xx to struct v4l2
-Date: Mon, 24 Mar 2014 20:33:20 +0100
-Message-Id: <1395689605-2705-15-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Sat, 22 Mar 2014 07:03:37 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Lad Prabhakar <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>
+Subject: [PATCH RESEND for v3.15 1/3] media: davinci: vpif_capture: fix releasing of active buffers
+Date: Sat, 22 Mar 2014 16:33:07 +0530
+Message-Id: <1395486189-16713-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1395486189-16713-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1395486189-16713-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-video.c | 44 +++++++++++++++++----------------
- drivers/media/usb/em28xx/em28xx.h       | 13 +++++-----
- 2 files changed, 29 insertions(+), 28 deletions(-)
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 640c0b0..496dcef 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -434,7 +434,7 @@ static inline void finish_buffer(struct em28xx *dev,
- {
- 	em28xx_isocdbg("[%p/%d] wakeup\n", buf, buf->top_field);
+from commit-id: b3379c6201bb3555298cdbf0aa004af260f2a6a4
+"vb2: only call start_streaming if sufficient buffers are queued"
+the vb2 framework warns on (WARN_ON()) if all the active buffers
+are not released when streaming is stopped, initially the vb2 silently
+released the buffer internally if the buffer was not released by
+the driver.
+Also this patch moves the disabling of interrupts from relase() callback
+to stop_streaming() callback as which needs to be done ideally.
+
+This patch fixes following issue:
+
+WARNING: CPU: 0 PID: 2049 at drivers/media/v4l2-core/videobuf2-core.c:2011 __vb2_queue_cancel+0x1a0/0x218()
+Modules linked in:
+CPU: 0 PID: 2049 Comm: vpif_capture Tainted: G        W    3.14.0-rc5-00414-ged97a6f #89
+[<c000e3f0>] (unwind_backtrace) from [<c000c618>] (show_stack+0x10/0x14)
+[<c000c618>] (show_stack) from [<c001adb0>] (warn_slowpath_common+0x68/0x88)
+[<c001adb0>] (warn_slowpath_common) from [<c001adec>] (warn_slowpath_null+0x1c/0x24)
+[<c001adec>] (warn_slowpath_null) from [<c0252e0c>] (__vb2_queue_cancel+0x1a0/0x218)
+[<c0252e0c>] (__vb2_queue_cancel) from [<c02533a4>] (vb2_queue_release+0x14/0x24)
+[<c02533a4>] (vb2_queue_release) from [<c025a65c>] (vpif_release+0x60/0x230)
+[<c025a65c>] (vpif_release) from [<c023fe5c>] (v4l2_release+0x34/0x74)
+[<c023fe5c>] (v4l2_release) from [<c00b4a00>] (__fput+0x80/0x224)
+[<c00b4a00>] (__fput) from [<c00341e8>] (task_work_run+0xa0/0xd0)
+[<c00341e8>] (task_work_run) from [<c001cc28>] (do_exit+0x244/0x918)
+[<c001cc28>] (do_exit) from [<c001d344>] (do_group_exit+0x48/0xdc)
+[<c001d344>] (do_group_exit) from [<c0029894>] (get_signal_to_deliver+0x2a0/0x5bc)
+[<c0029894>] (get_signal_to_deliver) from [<c000b888>] (do_signal+0x78/0x3a0)
+[<c000b888>] (do_signal) from [<c000bc54>] (do_work_pending+0xa4/0xb4)
+[<c000bc54>] (do_work_pending) from [<c00096dc>] (work_pending+0xc/0x20)
+---[ end trace 5faa75e8c2f8a6a1 ]---
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 2049 at drivers/media/v4l2-core/videobuf2-core.c:1095 vb2_buffer_done+0x1e0/0x224()
+Modules linked in:
+CPU: 0 PID: 2049 Comm: vpif_capture Tainted: G        W    3.14.0-rc5-00414-ged97a6f #89
+[<c000e3f0>] (unwind_backtrace) from [<c000c618>] (show_stack+0x10/0x14)
+[<c000c618>] (show_stack) from [<c001adb0>] (warn_slowpath_common+0x68/0x88)
+[<c001adb0>] (warn_slowpath_common) from [<c001adec>] (warn_slowpath_null+0x1c/0x24)
+[<c001adec>] (warn_slowpath_null) from [<c0252c28>] (vb2_buffer_done+0x1e0/0x224)
+[<c0252c28>] (vb2_buffer_done) from [<c0252e3c>] (__vb2_queue_cancel+0x1d0/0x218)
+[<c0252e3c>] (__vb2_queue_cancel) from [<c02533a4>] (vb2_queue_release+0x14/0x24)
+[<c02533a4>] (vb2_queue_release) from [<c025a65c>] (vpif_release+0x60/0x230)
+[<c025a65c>] (vpif_release) from [<c023fe5c>] (v4l2_release+0x34/0x74)
+[<c023fe5c>] (v4l2_release) from [<c00b4a00>] (__fput+0x80/0x224)
+[<c00b4a00>] (__fput) from [<c00341e8>] (task_work_run+0xa0/0xd0)
+[<c00341e8>] (task_work_run) from [<c001cc28>] (do_exit+0x244/0x918)
+[<c001cc28>] (do_exit) from [<c001d344>] (do_group_exit+0x48/0xdc)
+[<c001d344>] (do_group_exit) from [<c0029894>] (get_signal_to_deliver+0x2a0/0x5bc)
+[<c0029894>] (get_signal_to_deliver) from [<c000b888>] (do_signal+0x78/0x3a0)
+[<c000b888>] (do_signal) from [<c000bc54>] (do_work_pending+0xa4/0xb4)
+[<c000bc54>] (do_work_pending) from [<c00096dc>] (work_pending+0xc/0x20)
+---[ end trace 5faa75e8c2f8a6a2 ]---
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c |   34 +++++++++++++++++--------
+ 1 file changed, 23 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 756da78..8dea0b8 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -358,8 +358,31 @@ static int vpif_stop_streaming(struct vb2_queue *vq)
  
--	buf->vb.v4l2_buf.sequence = dev->field_count++;
-+	buf->vb.v4l2_buf.sequence = dev->v4l2->field_count++;
- 	buf->vb.v4l2_buf.field = V4L2_FIELD_INTERLACED;
- 	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
+ 	common = &ch->common[VPIF_VIDEO_INDEX];
  
-@@ -616,13 +616,13 @@ finish_field_prepare_next(struct em28xx *dev,
- {
- 	struct em28xx_v4l2 *v4l2 = dev->v4l2;
- 
--	if (v4l2->progressive || dev->top_field) { /* Brand new frame */
-+	if (v4l2->progressive || v4l2->top_field) { /* Brand new frame */
- 		if (buf != NULL)
- 			finish_buffer(dev, buf);
- 		buf = get_next_buf(dev, dma_q);
- 	}
- 	if (buf != NULL) {
--		buf->top_field = dev->top_field;
-+		buf->top_field = v4l2->top_field;
- 		buf->pos = 0;
- 	}
- 
-@@ -656,17 +656,17 @@ static inline void process_frame_data_em28xx(struct em28xx *dev,
- 			data_len -= 4;
- 		} else if (data_pkt[0] == 0x33 && data_pkt[1] == 0x95) {
- 			/* Field start (VBI mode) */
--			dev->capture_type = 0;
--			dev->vbi_read = 0;
-+			v4l2->capture_type = 0;
-+			v4l2->vbi_read = 0;
- 			em28xx_isocdbg("VBI START HEADER !!!\n");
--			dev->top_field = !(data_pkt[2] & 1);
-+			v4l2->top_field = !(data_pkt[2] & 1);
- 			data_pkt += 4;
- 			data_len -= 4;
- 		} else if (data_pkt[0] == 0x22 && data_pkt[1] == 0x5a) {
- 			/* Field start (VBI disabled) */
--			dev->capture_type = 2;
-+			v4l2->capture_type = 2;
- 			em28xx_isocdbg("VIDEO START HEADER !!!\n");
--			dev->top_field = !(data_pkt[2] & 1);
-+			v4l2->top_field = !(data_pkt[2] & 1);
- 			data_pkt += 4;
- 			data_len -= 4;
- 		}
-@@ -674,37 +674,37 @@ static inline void process_frame_data_em28xx(struct em28xx *dev,
- 	/* NOTE: With bulk transfers, intermediate data packets
- 	 * have no continuation header */
- 
--	if (dev->capture_type == 0) {
-+	if (v4l2->capture_type == 0) {
- 		vbi_buf = finish_field_prepare_next(dev, vbi_buf, vbi_dma_q);
- 		dev->usb_ctl.vbi_buf = vbi_buf;
--		dev->capture_type = 1;
-+		v4l2->capture_type = 1;
- 	}
- 
--	if (dev->capture_type == 1) {
-+	if (v4l2->capture_type == 1) {
- 		int vbi_size = v4l2->vbi_width * v4l2->vbi_height;
--		int vbi_data_len = ((dev->vbi_read + data_len) > vbi_size) ?
--				   (vbi_size - dev->vbi_read) : data_len;
-+		int vbi_data_len = ((v4l2->vbi_read + data_len) > vbi_size) ?
-+				   (vbi_size - v4l2->vbi_read) : data_len;
- 
- 		/* Copy VBI data */
- 		if (vbi_buf != NULL)
- 			em28xx_copy_vbi(dev, vbi_buf, data_pkt, vbi_data_len);
--		dev->vbi_read += vbi_data_len;
-+		v4l2->vbi_read += vbi_data_len;
- 
- 		if (vbi_data_len < data_len) {
- 			/* Continue with copying video data */
--			dev->capture_type = 2;
-+			v4l2->capture_type = 2;
- 			data_pkt += vbi_data_len;
- 			data_len -= vbi_data_len;
- 		}
- 	}
- 
--	if (dev->capture_type == 2) {
-+	if (v4l2->capture_type == 2) {
- 		buf = finish_field_prepare_next(dev, buf, dma_q);
- 		dev->usb_ctl.vid_buf = buf;
--		dev->capture_type = 3;
-+		v4l2->capture_type = 3;
- 	}
- 
--	if (dev->capture_type == 3 && buf != NULL && data_len > 0)
-+	if (v4l2->capture_type == 3 && buf != NULL && data_len > 0)
- 		em28xx_copy_video(dev, buf, data_pkt, data_len);
- }
- 
-@@ -717,6 +717,7 @@ static inline void process_frame_data_em25xx(struct em28xx *dev,
- {
- 	struct em28xx_buffer    *buf = dev->usb_ctl.vid_buf;
- 	struct em28xx_dmaqueue  *dmaq = &dev->vidq;
-+	struct em28xx_v4l2      *v4l2 = dev->v4l2;
- 	bool frame_end = 0;
- 
- 	/* Check for header */
-@@ -725,7 +726,7 @@ static inline void process_frame_data_em25xx(struct em28xx *dev,
- 	if (data_len >= 2) {	/* em25xx header is only 2 bytes long */
- 		if ((data_pkt[0] == EM25XX_FRMDATAHDR_BYTE1) &&
- 		    ((data_pkt[1] & ~EM25XX_FRMDATAHDR_BYTE2_MASK) == 0x00)) {
--			dev->top_field = !(data_pkt[1] &
-+			v4l2->top_field = !(data_pkt[1] &
- 					   EM25XX_FRMDATAHDR_BYTE2_FRAME_ID);
- 			frame_end = data_pkt[1] &
- 				    EM25XX_FRMDATAHDR_BYTE2_FRAME_END;
-@@ -921,6 +922,7 @@ buffer_prepare(struct vb2_buffer *vb)
- int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct em28xx *dev = vb2_get_drv_priv(vq);
-+	struct em28xx_v4l2 *v4l2 = dev->v4l2;
- 	struct v4l2_frequency f;
- 	int rc = 0;
- 
-@@ -943,7 +945,7 @@ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
- 		*/
- 		em28xx_wake_i2c(dev);
- 
--		dev->capture_type = -1;
-+		v4l2->capture_type = -1;
- 		rc = em28xx_init_usb_xfer(dev, EM28XX_ANALOG_MODE,
- 					  dev->analog_xfer_bulk,
- 					  EM28XX_NUM_BUFS,
-@@ -966,7 +968,7 @@ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
- 			f.type = V4L2_TUNER_RADIO;
- 		else
- 			f.type = V4L2_TUNER_ANALOG_TV;
--		v4l2_device_call_all(&dev->v4l2->v4l2_dev,
-+		v4l2_device_call_all(&v4l2->v4l2_dev,
- 				     0, tuner, s_frequency, &f);
- 	}
- 
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index f447108..91bb624 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -538,6 +538,12 @@ struct em28xx_v4l2 {
- 	unsigned vscale;	/* vertical scale factor (see datasheet) */
- 	unsigned int vbi_width;
- 	unsigned int vbi_height; /* lines per field */
++	/* Disable channel as per its device type and channel id */
++	if (VPIF_CHANNEL0_VIDEO == ch->channel_id) {
++		enable_channel0(0);
++		channel0_intr_enable(0);
++	}
++	if ((VPIF_CHANNEL1_VIDEO == ch->channel_id) ||
++		(2 == common->started)) {
++		enable_channel1(0);
++		channel1_intr_enable(0);
++	}
++	common->started = 0;
 +
-+	/* Capture state tracking */
-+	int capture_type;
-+	bool top_field;
-+	int vbi_read;
-+	unsigned int field_count;
- };
- 
- struct em28xx_audio {
-@@ -648,11 +654,6 @@ struct em28xx {
- 	unsigned long i2c_hash;	/* i2c devicelist hash -
- 				   for boards with generic ID */
- 
--	/* capture state tracking */
--	int capture_type;
--	unsigned char top_field:1;
--	int vbi_read;
--
- 	struct work_struct         request_module_wk;
- 
- 	/* locks */
-@@ -672,8 +673,6 @@ struct em28xx {
- 	struct em28xx_usb_ctl usb_ctl;
- 	spinlock_t slock;
- 
--	unsigned int field_count;
--
- 	/* usb transfer */
- 	struct usb_device *udev;	/* the usb device */
- 	u8 ifnum;		/* number of the assigned usb interface */
+ 	/* release all active buffers */
+ 	spin_lock_irqsave(&common->irqlock, flags);
++	if (common->cur_frm == common->next_frm) {
++		vb2_buffer_done(&common->cur_frm->vb, VB2_BUF_STATE_ERROR);
++	} else {
++		if (common->cur_frm != NULL)
++			vb2_buffer_done(&common->cur_frm->vb,
++					VB2_BUF_STATE_ERROR);
++		if (common->next_frm != NULL)
++			vb2_buffer_done(&common->next_frm->vb,
++					VB2_BUF_STATE_ERROR);
++	}
++
+ 	while (!list_empty(&common->dma_queue)) {
+ 		common->next_frm = list_entry(common->dma_queue.next,
+ 						struct vpif_cap_buffer, list);
+@@ -933,17 +956,6 @@ static int vpif_release(struct file *filep)
+ 	if (fh->io_allowed[VPIF_VIDEO_INDEX]) {
+ 		/* Reset io_usrs member of channel object */
+ 		common->io_usrs = 0;
+-		/* Disable channel as per its device type and channel id */
+-		if (VPIF_CHANNEL0_VIDEO == ch->channel_id) {
+-			enable_channel0(0);
+-			channel0_intr_enable(0);
+-		}
+-		if ((VPIF_CHANNEL1_VIDEO == ch->channel_id) ||
+-		    (2 == common->started)) {
+-			enable_channel1(0);
+-			channel1_intr_enable(0);
+-		}
+-		common->started = 0;
+ 		/* Free buffers allocated */
+ 		vb2_queue_release(&common->buffer_queue);
+ 		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
 -- 
-1.8.4.5
+1.7.9.5
 
