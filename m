@@ -1,75 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f51.google.com ([209.85.213.51]:65238 "EHLO
-	mail-yh0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752093AbaCCEWj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Mar 2014 23:22:39 -0500
-Received: by mail-yh0-f51.google.com with SMTP id f10so2652666yha.24
-        for <linux-media@vger.kernel.org>; Sun, 02 Mar 2014 20:22:39 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1393609335-12081-4-git-send-email-hverkuil@xs4all.nl>
-References: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl> <1393609335-12081-4-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Mon, 3 Mar 2014 13:21:59 +0900
-Message-ID: <CAMm-=zB+p144muiPfRcsNJBfiatd7s34j9V9jv+fkk1BQGxbvg@mail.gmail.com>
-Subject: Re: [REVIEWv3 PATCH 03/17] vb2: fix PREPARE_BUF regression
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:22154 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750831AbaCVWDb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Mar 2014 18:03:31 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-15; format=flowed
+Message-id: <532E08AF.5030008@samsung.com>
+Date: Sat, 22 Mar 2014 16:03:27 -0600
+From: Shuah Khan <shuah.kh@samsung.com>
+Reply-to: shuah.kh@samsung.com
+To: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	shuahkhan@gmail.com
+Subject: Re: [PATCH] media: em28xx-video - change em28xx_scaler_set() to use
+ em28xx_reg_len()
+References: <1395435890-15100-1-git-send-email-shuah.kh@samsung.com>
+ <532D82C9.6010401@googlemail.com> <532DAAD0.6060209@samsung.com>
+ <532DCB06.9040601@googlemail.com>
+In-reply-to: <532DCB06.9040601@googlemail.com>
+Content-transfer-encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Mar 1, 2014 at 2:42 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Fix an incorrect test in vb2_internal_qbuf() where only DEQUEUED buffers
-> are allowed. But PREPARED buffers are also OK.
+On 03/22/2014 11:40 AM, Frank Schäfer wrote:
 >
-> Introduced by commit 4138111a27859dcc56a5592c804dd16bb12a23d1
-> ("vb2: simplify qbuf/prepare_buf by removing callback").
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> I'm more concerned about the fact that readers of the code could think
+> that this is a write with a variable length, while the length is
+> actually always the same.
 
-Acked-by: Pawel Osciak <pawel@osciak.com>
+Fair enough.
 
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 8 ++------
->  1 file changed, 2 insertions(+), 6 deletions(-)
 >
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index f1a2857c..909f367 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1420,11 +1420,6 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->                 return ret;
->
->         vb = q->bufs[b->index];
-> -       if (vb->state != VB2_BUF_STATE_DEQUEUED) {
-> -               dprintk(1, "%s(): invalid buffer state %d\n", __func__,
-> -                       vb->state);
-> -               return -EINVAL;
-> -       }
->
->         switch (vb->state) {
->         case VB2_BUF_STATE_DEQUEUED:
-> @@ -1438,7 +1433,8 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->                 dprintk(1, "qbuf: buffer still being prepared\n");
->                 return -EINVAL;
->         default:
-> -               dprintk(1, "qbuf: buffer already in use\n");
-> +               dprintk(1, "%s(): invalid buffer state %d\n", __func__,
-> +                       vb->state);
->                 return -EINVAL;
->         }
->
-> --
-> 1.9.rc1
->
+> em28xx_reg_len() is a somewhat dirty hack for vidioc_[g,s]_register
+> debugging ioctls only.
 
+I didn't realize that. In that case, it doesn't make sense to propagate 
+the change to non-debug code. This patch can be dropped. I thought 
+em28xx_reg_len() is good example of finding register length for these 
+registers.
+
+> Btw, what happens when you try to compile the code with this patch
+> applied and CONFIG_VIDEO_ADV_DEBUG disabled ? ;-)
+
+CONFIG_VIDEO_ADV_DEBUG is disabled in my config.
+
+-- Shuah
 
 
 -- 
-Best regards,
-Pawel Osciak
+Shuah Khan
+Senior Linux Kernel Developer - Open Source Group
+Samsung Research America(Silicon Valley)
+shuah.kh@samsung.com | (970) 672-0658
