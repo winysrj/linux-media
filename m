@@ -1,54 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:53745 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753753AbaCEJVD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 04:21:03 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>,
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:49867 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750779AbaCVHau (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Mar 2014 03:30:50 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v6 3/8] of: Warn if of_graph_get_next_endpoint is called with the root node
-Date: Wed,  5 Mar 2014 10:20:37 +0100
-Message-Id: <1394011242-16783-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
+	Lad Prabhakar <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH for v3.15 0/3] Davinci: media: fix releasing of active buffers 
+Date: Sat, 22 Mar 2014 13:00:36 +0530
+Message-Id: <1395473439-18643-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If of_graph_get_next_endpoint is given a parentless node instead of an
-endpoint node, it is clearly a bug.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v5:
- - Added parentless previous endpoint's full name to warning
----
- drivers/of/base.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+This patch series fixes the releasing of active buffers in davinci
+drivers which are migrated to vb2.
 
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index b2f223f..b5e690b 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -2028,8 +2028,8 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 		of_node_put(node);
- 	} else {
- 		port = of_get_parent(prev);
--		if (!port)
--			/* Hm, has someone given us the root node ?... */
-+		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
-+			      __func__, prev->full_name))
- 			return NULL;
- 
- 		/* Avoid dropping prev node refcount to 0. */
+Hi Hans,
+This patches are just fixes to v3.15, more patches coming soon
+for vpif using v4l helpers for v3.16.
+
+Lad, Prabhakar (3):
+  media: davinci: vpif_capture: fix releasing of active buffers
+  media: davinci: vpif_display: fix releasing of active buffers
+  media: davinci: vpbe_display: fix releasing of active buffers
+
+ drivers/media/platform/davinci/vpbe_display.c |   16 ++++++++++-
+ drivers/media/platform/davinci/vpif_capture.c |   34 ++++++++++++++++--------
+ drivers/media/platform/davinci/vpif_display.c |   35 ++++++++++++++++---------
+ 3 files changed, 61 insertions(+), 24 deletions(-)
+
 -- 
-1.9.0.rc3
+1.7.9.5
 
