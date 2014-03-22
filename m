@@ -1,171 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-3.cisco.com ([173.38.203.53]:18627 "EHLO
-	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752325AbaCKL3k (ORCPT
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:61395 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751363AbaCVLDq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 07:29:40 -0400
-Message-ID: <531EF37F.6000206@cisco.com>
-Date: Tue, 11 Mar 2014 12:29:03 +0100
-From: Hans Verkuil <hansverk@cisco.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Sat, 22 Mar 2014 07:03:46 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Lad Prabhakar <prabhakar.csengg@gmail.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH 36/47] adv7604: Make output format configurable through
- pad format operations
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <1662851.xYrCTEPdFE@avalon> <531ED1BC.3020904@xs4all.nl> <5198476.Eg6VVVrCH7@avalon>
-In-Reply-To: <5198476.Eg6VVVrCH7@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>
+Subject: [PATCH RESEND for v3.15 3/3] media: davinci: vpbe_display: fix releasing of active buffers
+Date: Sat, 22 Mar 2014 16:33:09 +0530
+Message-Id: <1395486189-16713-4-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1395486189-16713-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1395486189-16713-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-On 03/11/14 12:16, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Tuesday 11 March 2014 10:05:00 Hans Verkuil wrote:
->> On 03/10/14 23:43, Laurent Pinchart wrote:
->>> On Wednesday 12 February 2014 16:01:17 Hans Verkuil wrote:
->>>> On 02/05/14 17:42, Laurent Pinchart wrote:
->>>>> Replace the dummy video format operations by pad format operations that
->>>>> configure the output format.
->>>>>
->>>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>>> ---
->>>>>
->>>>>  drivers/media/i2c/adv7604.c | 243 ++++++++++++++++++++++++++++++++-----
->>>>>  include/media/adv7604.h     |  47 ++-------
->>>>>  2 files changed, 225 insertions(+), 65 deletions(-)
->>>>
->>>> <snip>
->>>>
->>>>> diff --git a/include/media/adv7604.h b/include/media/adv7604.h
->>>>> index 22811d3..2cc8e16 100644
->>>>> --- a/include/media/adv7604.h
->>>>> +++ b/include/media/adv7604.h
->>>>> @@ -32,16 +32,6 @@ enum adv7604_ain_sel {
->>>>>  	ADV7604_AIN9_4_5_6_SYNC_2_1 = 4,
->>>>>  };
->>>>>
->>>>> -/* Bus rotation and reordering (IO register 0x04, [7:5]) */
->>>>> -enum adv7604_op_ch_sel {
->>>>> -	ADV7604_OP_CH_SEL_GBR = 0,
->>>>> -	ADV7604_OP_CH_SEL_GRB = 1,
->>>>> -	ADV7604_OP_CH_SEL_BGR = 2,
->>>>> -	ADV7604_OP_CH_SEL_RGB = 3,
->>>>> -	ADV7604_OP_CH_SEL_BRG = 4,
->>>>> -	ADV7604_OP_CH_SEL_RBG = 5,
->>>>> -};
->>>>> -
->>>>>  /* Input Color Space (IO register 0x02, [7:4]) */
->>>>>  enum adv7604_inp_color_space {
->>>>>  	ADV7604_INP_COLOR_SPACE_LIM_RGB = 0,
->>>>> @@ -55,29 +45,11 @@ enum adv7604_inp_color_space {
-> 
-> [snip]
-> 
->>>>> @@ -104,11 +76,8 @@ struct adv7604_platform_data {
->>>>>
->>>>>  	/* Analog input muxing mode */
->>>>>  	enum adv7604_ain_sel ain_sel;
->>>>>
->>>>> -	/* Bus rotation and reordering */
->>>>> -	enum adv7604_op_ch_sel op_ch_sel;
->>>>
->>>> I would keep this as part of the platform_data. This is typically used if
->>>> things are wired up in a non-standard way and so is specific to the
->>>> hardware. It is not something that will change from format to format.
->>>
->>> Right, some level of configuration is needed to account for non-standard
->>> wiring. However I'm not sure where that should be handled.
->>>
->>> With exotic wiring the format at the receiver will be different than the
->>> format output by the ADV7604. From a pure ADV7604 point of view, the
->>> output format doesn't depend on the wiring. I wonder whether this
->>> shouldn't be a link property instead of being a subdev property. There's
->>> of course the question of where to store that link property if it's not
->>> part of either subdev.
->>>
->>> Even if we decide that the wiring is a property of the source subdev, I
->>> don't think we should duplicate bus reordering code in all subdev
->>> drivers. This should thus be handled by the v4l2 core (either directly or
->>> as helper functions).
->>
->> There are two reasons why you might want to use op_ch_sel: one is to
->> implement weird formats like RBG. Something like that would have to be
->> controlled through mbus and pixel fourcc codes and not by hardcoding this
->> register.
-> 
-> Agreed. This patch only adds a subset of the possible output formats. More 
-> formats can be added later as needed.
-> 
->> The other is to compensate for a wiring problem: we have a card where two
->> channels were accidentally swapped. You can either redo the board or just
->> set this register. In this case this register is IMHO a property of this
->> subdev. It needs to know about it, because if it ever needs to output RBG
->> in the future then it needs to compensate for reordering for wiring
->> issues.
->>
->> So you set this field if you have to compensate for wiring errors, making
->> this part of the DT/platform_data. You do not set this field when you
->> want to support special formats, that is done in the driver itself through
->> fourcc codes (or could be done as this isn't implemented at the moment).
-> 
-> I agree with the use case, but I'm not sure whether that's the best way to 
-> support it. Let's say the system is design for RGB, but the G and B channels 
-> have been swapped by mistake on the board. To make it work, the ADV7604 would 
-> need to output RBG, and the bridge would receive RGB. Data reordering would 
-> thus happen on the link.
-> 
-> There's two ways to expose this to userspace. One of them would be to make the 
-> real formats visible to applications. We would need to extend the link API to 
-> show that reordering occurs. Userspace would need to explicitly configure the 
-> adv7604 driver with RBG at its source pad and the bridge driver with RGB at 
-> its sink pad. This has the advantage of correctly modeling the hardware, and 
-> not pushing workarounds for board-level issues to individual drivers.
-> 
-> Another solution would be to hide the wiring problem from userspace and handle 
-> it inside the adv7604 driver. Note that, depending on the hardware 
-> configuration, it could be the bridge driver that need to implement 
-> reordering. Userspace would configure both ends of the link to RGB and 
-> wouldn't be aware of the problem.  This has the advantage of hiding the 
-> problem in the kernel. However, it would require implementing the same 
-> workaround in potentially many drivers.
-> 
-> If we decide to go for the second solution I would like to make it a bit more 
-> generic than just keeping the op_ch_sel field in platform data. I think we 
-> should instead have a generic representation of the reordering in platform 
-> data, and implement a V4L2 core function that would translate the format on 
-> the link to the format required at the device. For instance, still assuming G 
-> and B are swapped, userspace would configure the ADV7604 output to 
-> V4L2_MBUS_FMT_RGB888_1X24, the adv7604 driver would pass 
-> V4L2_MBUS_FMT_RGB888_1X24 along with the reordering information to a V4L2 core 
-> function which would return V4L2_MBUS_FMT_RBG888_1X24, and the driver would 
-> then configure the device to output RBG instead of RGB.
-> 
-> This leaves three open questions :
-> 
-> - Should the workaround be visible to userspace ?
+from commit-id: b3379c6201bb3555298cdbf0aa004af260f2a6a4
+"vb2: only call start_streaming if sufficient buffers are queued"
+the vb2 framework warns on (WARN_ON()) if all the active buffers
+are not released when streaming is stopped, initially the vb2 silently
+released the buffer internally if the buffer was not released by
+the driver.
+This patch fixes following issue:
 
-Absolutely not. Userspace really, really does not want to care about this.
-It would also lead to a crazy proliferation of different fourccs, one for
-each 'reordering' combination of channels.
+WARNING: CPU: 0 PID: 2049 at drivers/media/v4l2-core/videobuf2-core.c:2011 __vb2_queue_cancel+0x1a0/0x218()
+Modules linked in:
+CPU: 0 PID: 2049 Comm: vpbe_display Tainted: G        W    3.14.0-rc5-00414-ged97a6f #89
+[<c000e3f0>] (unwind_backtrace) from [<c000c618>] (show_stack+0x10/0x14)
+[<c000c618>] (show_stack) from [<c001adb0>] (warn_slowpath_common+0x68/0x88)
+[<c001adb0>] (warn_slowpath_common) from [<c001adec>] (warn_slowpath_null+0x1c/0x24)
+[<c001adec>] (warn_slowpath_null) from [<c0252e0c>] (__vb2_queue_cancel+0x1a0/0x218)
+[<c0252e0c>] (__vb2_queue_cancel) from [<c02533a4>] (vb2_queue_release+0x14/0x24)
+[<c02533a4>] (vb2_queue_release) from [<c025a65c>] (vpbe_display_release+0x60/0x230)
+[<c025a65c>] (vpbe_display_release) from [<c023fe5c>] (v4l2_release+0x34/0x74)
+[<c023fe5c>] (v4l2_release) from [<c00b4a00>] (__fput+0x80/0x224)
+[<c00b4a00>] (__fput) from [<c00341e8>] (task_work_run+0xa0/0xd0)
+[<c00341e8>] (task_work_run) from [<c001cc28>] (do_exit+0x244/0x918)
+[<c001cc28>] (do_exit) from [<c001d344>] (do_group_exit+0x48/0xdc)
+[<c001d344>] (do_group_exit) from [<c0029894>] (get_signal_to_deliver+0x2a0/0x5bc)
+[<c0029894>] (get_signal_to_deliver) from [<c000b888>] (do_signal+0x78/0x3a0)
+[<c000b888>] (do_signal) from [<c000bc54>] (do_work_pending+0xa4/0xb4)
+[<c000bc54>] (do_work_pending) from [<c00096dc>] (work_pending+0xc/0x20)
+---[ end trace 5faa75e8c2f8a6a1 ]---
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 2049 at drivers/media/v4l2-core/videobuf2-core.c:1095 vb2_buffer_done+0x1e0/0x224()
+Modules linked in:
+CPU: 0 PID: 2049 Comm: vpbe_display Tainted: G        W    3.14.0-rc5-00414-ged97a6f #89
+[<c000e3f0>] (unwind_backtrace) from [<c000c618>] (show_stack+0x10/0x14)
+[<c000c618>] (show_stack) from [<c001adb0>] (warn_slowpath_common+0x68/0x88)
+[<c001adb0>] (warn_slowpath_common) from [<c001adec>] (warn_slowpath_null+0x1c/0x24)
+[<c001adec>] (warn_slowpath_null) from [<c0252c28>] (vb2_buffer_done+0x1e0/0x224)
+[<c0252c28>] (vb2_buffer_done) from [<c0252e3c>] (__vb2_queue_cancel+0x1d0/0x218)
+[<c0252e3c>] (__vb2_queue_cancel) from [<c02533a4>] (vb2_queue_release+0x14/0x24)
+[<c02533a4>] (vb2_queue_release) from [<c025a65c>] (vpbe_display_release+0x60/0x230)
+[<c025a65c>] (vpbe_display_release) from [<c023fe5c>] (v4l2_release+0x34/0x74)
+[<c023fe5c>] (v4l2_release) from [<c00b4a00>] (__fput+0x80/0x224)
+[<c00b4a00>] (__fput) from [<c00341e8>] (task_work_run+0xa0/0xd0)
+[<c00341e8>] (task_work_run) from [<c001cc28>] (do_exit+0x244/0x918)
+[<c001cc28>] (do_exit) from [<c001d344>] (do_group_exit+0x48/0xdc)
+[<c001d344>] (do_group_exit) from [<c0029894>] (get_signal_to_deliver+0x2a0/0x5bc)
+[<c0029894>] (get_signal_to_deliver) from [<c000b888>] (do_signal+0x78/0x3a0)
+[<c000b888>] (do_signal) from [<c000bc54>] (do_work_pending+0xa4/0xb4)
+[<c000bc54>] (do_work_pending) from [<c00096dc>] (work_pending+0xc/0x20)
+---[ end trace 5faa75e8c2f8a6a2 ]---
 
-> - If not, how should reordering be expressed in platform data (and DT) ?
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpbe_display.c |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-It could be a more generic reordering define (i.e. less ADV specific).
-Proposals are welcome.
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 92077ba..a9ad949 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -372,18 +372,32 @@ static int vpbe_stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct vpbe_fh *fh = vb2_get_drv_priv(vq);
+ 	struct vpbe_layer *layer = fh->layer;
++	struct vpbe_display *disp = fh->disp_dev;
++	unsigned long flags;
+ 
+ 	if (!vb2_is_streaming(vq))
+ 		return 0;
+ 
+ 	/* release all active buffers */
++	spin_lock_irqsave(&disp->dma_queue_lock, flags);
++	if (layer->cur_frm == layer->next_frm) {
++		vb2_buffer_done(&layer->cur_frm->vb, VB2_BUF_STATE_ERROR);
++	} else {
++		if (layer->cur_frm != NULL)
++			vb2_buffer_done(&layer->cur_frm->vb,
++					VB2_BUF_STATE_ERROR);
++		if (layer->next_frm != NULL)
++			vb2_buffer_done(&layer->next_frm->vb,
++					VB2_BUF_STATE_ERROR);
++	}
++
+ 	while (!list_empty(&layer->dma_queue)) {
+ 		layer->next_frm = list_entry(layer->dma_queue.next,
+ 						struct vpbe_disp_buffer, list);
+ 		list_del(&layer->next_frm->list);
+ 		vb2_buffer_done(&layer->next_frm->vb, VB2_BUF_STATE_ERROR);
+ 	}
+-
++	spin_unlock_irqrestore(&disp->dma_queue_lock, flags);
+ 	return 0;
+ }
+ 
+-- 
+1.7.9.5
 
-> - Does this need to be part of this patch set or can it be implemented later ?
-
-Yes. I need it :-)
-
-But it doesn't have to be in the DT, keeping it as platform_data for now is
-perfectly fine with me, nor do I mind changing it in the future.
-
-Regards,
-
-	Hans
