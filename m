@@ -1,219 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dan.rpsys.net ([93.97.175.187]:64848 "EHLO dan.rpsys.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753256AbaCaKQw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Mar 2014 06:16:52 -0400
-Message-ID: <1396260981.14790.65.camel@ted>
-Subject: Re: [PATCH/RFC v2 1/8] leds: Add sysfs and kernel internal API for
- flash LEDs
-From: Richard Purdie <richard.purdie@linuxfoundation.org>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com, Bryan Wu <cooloney@gmail.com>
-Date: Mon, 31 Mar 2014 11:16:21 +0100
-In-Reply-To: <1396020545-15727-2-git-send-email-j.anaszewski@samsung.com>
-References: <1396020545-15727-1-git-send-email-j.anaszewski@samsung.com>
-	 <1396020545-15727-2-git-send-email-j.anaszewski@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:35164 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750841AbaCVLkC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Mar 2014 07:40:02 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Lad Prabhakar <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>
+Subject: [PATCH] media: davinci: vpfe: use v4l2_fh for priority handling
+Date: Sat, 22 Mar 2014 17:09:24 +0530
+Message-Id: <1395488364-29856-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2014-03-28 at 16:28 +0100, Jacek Anaszewski wrote:
-> Some LED devices support two operation modes - torch and
-> flash. This patch provides support for flash LED devices
-> in the LED subsystem by introducing new sysfs attributes
-> and kernel internal interface. The attributes being
-> introduced are: flash_brightness, flash_strobe, flash_timeout,
-> max_flash_timeout, max_flash_brightness, flash_fault and
-> hw_triggered. All the flash related features are placed
-> in a separate module.
-> The modifications aim to be compatible with V4L2 framework
-> requirements related to the flash devices management. The
-> design assumes that V4L2 sub-device can take of the LED class
-> device control and communicate with it through the kernel
-> internal interface. The LED sysfs interface is made
-> unavailable then.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> ---
->  drivers/leds/Kconfig        |    8 +
->  drivers/leds/Makefile       |    1 +
->  drivers/leds/led-class.c    |   56 +++++--
->  drivers/leds/led-flash.c    |  375 +++++++++++++++++++++++++++++++++++++++++++
->  drivers/leds/led-triggers.c |   16 +-
->  drivers/leds/leds.h         |    3 +
->  include/linux/leds.h        |   24 ++-
->  include/linux/leds_flash.h  |  189 ++++++++++++++++++++++
->  8 files changed, 658 insertions(+), 14 deletions(-)
->  create mode 100644 drivers/leds/led-flash.c
->  create mode 100644 include/linux/leds_flash.h
-> 
-> diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-> index 2062682..1e1c81f 100644
-> --- a/drivers/leds/Kconfig
-> +++ b/drivers/leds/Kconfig
-> @@ -19,6 +19,14 @@ config LEDS_CLASS
->  	  This option enables the led sysfs class in /sys/class/leds.  You'll
->  	  need this to do anything useful with LEDs.  If unsure, say N.
->  
-> +config LEDS_CLASS_FLASH
-> +	tristate "Flash LEDs Support"
-> +	depends on LEDS_CLASS
-> +	help
-> +	  This option enables support for flash LED devices. Say Y if you
-> +	  want to use flash specific features of a LED device, if they
-> +	  are supported.
-> +
->  comment "LED drivers"
->  
->  config LEDS_88PM860X
-> diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
-> index 3cd76db..8861b86 100644
-> --- a/drivers/leds/Makefile
-> +++ b/drivers/leds/Makefile
-> @@ -2,6 +2,7 @@
->  # LED Core
->  obj-$(CONFIG_NEW_LEDS)			+= led-core.o
->  obj-$(CONFIG_LEDS_CLASS)		+= led-class.o
-> +obj-$(CONFIG_LEDS_CLASS_FLASH)		+= led-flash.o
->  obj-$(CONFIG_LEDS_TRIGGERS)		+= led-triggers.o
->  
->  # LED Platform Drivers
-> diff --git a/drivers/leds/led-class.c b/drivers/leds/led-class.c
-> index f37d63c..5bac140 100644
-> --- a/drivers/leds/led-class.c
-> +++ b/drivers/leds/led-class.c
-> @@ -9,16 +9,18 @@
->   * published by the Free Software Foundation.
->   */
->  
-> -#include <linux/module.h>
-> -#include <linux/kernel.h>
-> +#include <linux/ctype.h>
-> +#include <linux/device.h>
-> +#include <linux/err.h>
->  #include <linux/init.h>
-> +#include <linux/kernel.h>
->  #include <linux/list.h>
-> +#include <linux/module.h>
-> +#include <linux/slab.h>
->  #include <linux/spinlock.h>
-> -#include <linux/device.h>
->  #include <linux/timer.h>
-> -#include <linux/err.h>
-> -#include <linux/ctype.h>
->  #include <linux/leds.h>
-> +#include <linux/leds_flash.h>
->  #include "leds.h"
->  
->  static struct class *leds_class;
-> @@ -45,28 +47,38 @@ static ssize_t brightness_store(struct device *dev,
->  {
->  	struct led_classdev *led_cdev = dev_get_drvdata(dev);
->  	unsigned long state;
-> -	ssize_t ret = -EINVAL;
-> +	ssize_t ret;
-> +
-> +	mutex_lock(&led_cdev->led_lock);
-> +
-> +	if (led_sysfs_is_locked(led_cdev)) {
-> +		ret = -EBUSY;
-> +		goto unlock;
-> +	}
->  
->  	ret = kstrtoul(buf, 10, &state);
->  	if (ret)
-> -		return ret;
-> +		goto unlock;
->  
->  	if (state == LED_OFF)
->  		led_trigger_remove(led_cdev);
->  	__led_set_brightness(led_cdev, state);
-> +	ret = size;
->  
-> -	return size;
-> +unlock:
-> +	mutex_unlock(&led_cdev->led_lock);
-> +	return ret;
->  }
->  static DEVICE_ATTR_RW(brightness);
->  
-> -static ssize_t led_max_brightness_show(struct device *dev,
-> +static ssize_t max_brightness_show(struct device *dev,
->  		struct device_attribute *attr, char *buf)
->  {
->  	struct led_classdev *led_cdev = dev_get_drvdata(dev);
->  
->  	return sprintf(buf, "%u\n", led_cdev->max_brightness);
->  }
-> -static DEVICE_ATTR(max_brightness, 0444, led_max_brightness_show, NULL);
-> +static DEVICE_ATTR_RO(max_brightness);
->  
->  #ifdef CONFIG_LEDS_TRIGGERS
->  static DEVICE_ATTR(trigger, 0644, led_trigger_show, led_trigger_store);
-> @@ -173,7 +185,15 @@ EXPORT_SYMBOL_GPL(led_classdev_suspend);
->   */
->  void led_classdev_resume(struct led_classdev *led_cdev)
->  {
-> +	struct led_flash *flash = led_cdev->flash;
-> +
->  	led_cdev->brightness_set(led_cdev, led_cdev->brightness);
-> +	if (flash) {
-> +		call_flash_op(brightness_set, led_cdev,
-> +				flash->brightness);
-> +		call_flash_op(timeout_set, led_cdev,
-> +				&flash->timeout);
-> +	}
->  	led_cdev->flags &= ~LED_SUSPENDED;
->  }
->  EXPORT_SYMBOL_GPL(led_classdev_resume);
-> @@ -210,14 +230,24 @@ static const struct dev_pm_ops leds_class_dev_pm_ops = {
->   */
->  int led_classdev_register(struct device *parent, struct led_classdev *led_cdev)
->  {
-> +	int ret;
-> +
->  	led_cdev->dev = device_create(leds_class, parent, 0, led_cdev,
->  				      "%s", led_cdev->name);
->  	if (IS_ERR(led_cdev->dev))
->  		return PTR_ERR(led_cdev->dev);
->  
-> +	ret = led_classdev_init_flash(led_cdev);
-> +	if (ret < 0) {
-> +		dev_dbg(parent,
-> +			"Flash LED initialization failed for the %s\n device", led_cdev->name);
-> +		goto error_flash_init;
-> +	}
-> +
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Thanks for moving things to the separate file, I think it is cleaner.
-The trouble is that because of the above call to
-led_classdev_init_flash(), you can't have the led core loaded without
-the flash module too. There are a few other calls which also give the
-same end result.
+This patch migrates the vpfe driver to use v4l2_fh for
+priority handling.
 
-I guess what I'm wondering is whether this can work the other way
-around, the flash class wraps around the led core and extends it for
-those devices with flash capable LEDs? There may be some internals need
-accessing from led-core but it would mean you can have one module loaded
-without the other. This would mean a new registration function for flash
-capable LED devices but in reality that shouldn't be much of an issue?
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpfe_capture.c |   13 ++++++-------
+ include/media/davinci/vpfe_capture.h          |    6 ++----
+ 2 files changed, 8 insertions(+), 11 deletions(-)
 
-I appreciate this may seem like a small issue since RAM is cheap and who
-cares about the kernel size, but these small pieces all mount up. I wish
-more people thought about how to make the kernel modules work more
-effectively...
-
-Cheers,
-
-Richard
-
-
+diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+index 944a5ec..28ebf0e 100644
+--- a/drivers/media/platform/davinci/vpfe_capture.c
++++ b/drivers/media/platform/davinci/vpfe_capture.c
+@@ -498,6 +498,7 @@ unlock:
+ static int vpfe_open(struct file *file)
+ {
+ 	struct vpfe_device *vpfe_dev = video_drvdata(file);
++	struct video_device *vdev = video_devdata(file);
+ 	struct vpfe_fh *fh;
+ 
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_open\n");
+@@ -517,6 +518,7 @@ static int vpfe_open(struct file *file)
+ 	/* store pointer to fh in private_data member of file */
+ 	file->private_data = fh;
+ 	fh->vpfe_dev = vpfe_dev;
++	v4l2_fh_init(&fh->fh, vdev);
+ 	mutex_lock(&vpfe_dev->lock);
+ 	/* If decoder is not initialized. initialize it */
+ 	if (!vpfe_dev->initialized) {
+@@ -529,9 +531,7 @@ static int vpfe_open(struct file *file)
+ 	vpfe_dev->usrs++;
+ 	/* Set io_allowed member to false */
+ 	fh->io_allowed = 0;
+-	/* Initialize priority of this instance to default priority */
+-	fh->prio = V4L2_PRIORITY_UNSET;
+-	v4l2_prio_open(&vpfe_dev->prio, &fh->prio);
++	v4l2_fh_add(&fh->fh);
+ 	mutex_unlock(&vpfe_dev->lock);
+ 	return 0;
+ }
+@@ -739,8 +739,8 @@ static int vpfe_release(struct file *file)
+ 
+ 	/* Decrement device usrs counter */
+ 	vpfe_dev->usrs--;
+-	/* Close the priority */
+-	v4l2_prio_close(&vpfe_dev->prio, fh->prio);
++	v4l2_fh_del(&fh->fh);
++	v4l2_fh_exit(&fh->fh);
+ 	/* If this is the last file handle */
+ 	if (!vpfe_dev->usrs) {
+ 		vpfe_dev->initialized = 0;
+@@ -1909,14 +1909,13 @@ static int vpfe_probe(struct platform_device *pdev)
+ 	/* Initialize field of the device objects */
+ 	vpfe_dev->numbuffers = config_params.numbuffers;
+ 
+-	/* Initialize prio member of device object */
+-	v4l2_prio_init(&vpfe_dev->prio);
+ 	/* register video device */
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
+ 		"trying to register vpfe device.\n");
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
+ 		"video_dev=%x\n", (int)&vpfe_dev->video_dev);
+ 	vpfe_dev->fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	set_bit(V4L2_FL_USE_FH_PRIO, &vpfe_dev->video_dev->flags);
+ 	ret = video_register_device(vpfe_dev->video_dev,
+ 				    VFL_TYPE_GRABBER, -1);
+ 
+diff --git a/include/media/davinci/vpfe_capture.h b/include/media/davinci/vpfe_capture.h
+index cc973ed..288772e 100644
+--- a/include/media/davinci/vpfe_capture.h
++++ b/include/media/davinci/vpfe_capture.h
+@@ -26,6 +26,7 @@
+ #include <linux/videodev2.h>
+ #include <linux/clk.h>
+ #include <linux/i2c.h>
++#include <media/v4l2-fh.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-device.h>
+ #include <media/videobuf-dma-contig.h>
+@@ -110,8 +111,6 @@ struct vpfe_device {
+ 	struct v4l2_device v4l2_dev;
+ 	/* parent device */
+ 	struct device *pdev;
+-	/* Used to keep track of state of the priority */
+-	struct v4l2_prio_state prio;
+ 	/* number of open instances of the channel */
+ 	u32 usrs;
+ 	/* Indicates id of the field which is being displayed */
+@@ -174,11 +173,10 @@ struct vpfe_device {
+ 
+ /* File handle structure */
+ struct vpfe_fh {
++	struct v4l2_fh fh;
+ 	struct vpfe_device *vpfe_dev;
+ 	/* Indicates whether this file handle is doing IO */
+ 	u8 io_allowed;
+-	/* Used to keep track priority of this instance */
+-	enum v4l2_priority prio;
+ };
+ 
+ struct vpfe_config_params {
+-- 
+1.7.9.5
 
