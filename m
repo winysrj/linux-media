@@ -1,72 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f175.google.com ([209.85.128.175]:51543 "EHLO
-	mail-ve0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751276AbaCFSJA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 13:09:00 -0500
+Received: from mail-ee0-f50.google.com ([74.125.83.50]:60874 "EHLO
+	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750738AbaCVNAf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Mar 2014 09:00:35 -0400
+Received: by mail-ee0-f50.google.com with SMTP id c13so2700888eek.37
+        for <linux-media@vger.kernel.org>; Sat, 22 Mar 2014 06:00:34 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 3/5] em28xx: remove some unused fields from struct em28xx
+Date: Sat, 22 Mar 2014 14:01:01 +0100
+Message-Id: <1395493263-2158-3-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1395493263-2158-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1395493263-2158-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <1394122819-9582-2-git-send-email-s.nawrocki@samsung.com>
-References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
-	<1394122819-9582-2-git-send-email-s.nawrocki@samsung.com>
-Date: Thu, 6 Mar 2014 19:08:59 +0100
-Message-ID: <CA+gwMcc7sLp0N5oyCYf-121AzS8KsRdNsvY3DJ7p3z=yVLrBdw@mail.gmail.com>
-Subject: Re: [PATCH v6 01/10] Documentation: dt: Add binding documentation for
- S5K6A3 image sensor
-From: Philipp Zabel <philipp.zabel@gmail.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	Mark Rutland <mark.rutland@arm.com>,
-	linux-samsung-soc@vger.kernel.org, a.hajda@samsung.com,
-	kyungmin.park@samsung.com, Rob Herring <robh+dt@kernel.org>,
-	Kumar Gala <galak@codeaurora.org>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx.h | 4 ----
+ 1 file changed, 4 deletions(-)
 
-On Thu, Mar 6, 2014 at 5:20 PM, Sylwester Nawrocki
-<s.nawrocki@samsung.com> wrote:
-> This patch adds binding documentation for the Samsung S5K6A3(YX)
-> raw image sensor.
->
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Acked-by: Mark Rutland <mark.rutland@arm.com>
-> ---
-> Changes since v5:
->   - none.
->
-> Changes since v2:
->  - rephrased 'clocks' and 'clock-names' properties' description;
-> ---
->  .../devicetree/bindings/media/samsung-s5k6a3.txt   |   33 ++++++++++++++++++++
->  1 file changed, 33 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
->
-> diff --git a/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
-> new file mode 100644
-> index 0000000..cce01e8
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
-> @@ -0,0 +1,33 @@
-> +Samsung S5K6A3(YX) raw image sensor
-> +---------------------------------
-> +
-> +S5K6A3(YX) is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
-> +and CCI (I2C compatible) control bus.
-> +
-> +Required properties:
-> +
-> +- compatible   : "samsung,s5k6a3";
-> +- reg          : I2C slave address of the sensor;
-> +- svdda-supply : core voltage supply;
-> +- svddio-supply        : I/O voltage supply;
-> +- afvdd-supply : AF (actuator) voltage supply;
-> +- gpios                : specifier of a GPIO connected to the RESET pin;
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 2051fc9..e95f4eb 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -618,7 +618,6 @@ struct em28xx {
+ 	unsigned hscale;	/* horizontal scale factor (see datasheet) */
+ 	unsigned vscale;	/* vertical scale factor (see datasheet) */
+ 	int interlaced;		/* 1=interlace fileds, 0=just top fileds */
+-	unsigned int video_bytesread;	/* Number of bytes read */
+ 
+ 	unsigned long hash;	/* eeprom hash - for boards with generic ID */
+ 	unsigned long i2c_hash;	/* i2c devicelist hash -
+@@ -638,8 +637,6 @@ struct em28xx {
+ 	/* locks */
+ 	struct mutex lock;
+ 	struct mutex ctrl_urb_lock;	/* protects urb_buf */
+-	/* spinlock_t queue_lock; */
+-	struct list_head inqueue, outqueue;
+ 	struct video_device *vbi_dev;
+ 	struct video_device *radio_dev;
+ 
+@@ -663,7 +660,6 @@ struct em28xx {
+ 	spinlock_t slock;
+ 
+ 	unsigned int field_count;
+-	unsigned int vbi_field_count;
+ 
+ 	/* usb transfer */
+ 	struct usb_device *udev;	/* the usb device */
+-- 
+1.8.4.5
 
-Please use 'reset-gpios' for GPIOs connected to reset pins.
-
-regards
-Philipp
