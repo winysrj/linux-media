@@ -1,72 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:37534 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760131AbaCTW0g (ORCPT
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:11794 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750952AbaCVPW7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Mar 2014 18:26:36 -0400
-Received: by mail-ee0-f48.google.com with SMTP id b57so1181271eek.35
-        for <linux-media@vger.kernel.org>; Thu, 20 Mar 2014 15:26:34 -0700 (PDT)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core to drivers/of
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-In-Reply-To: <531D5D0E.8000605@ti.com>
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> < 1393340304-19005-2-git-send-email-p.zabel@pengutronix.de> <20140226113729. A9D5AC40A89@trevor.secretlab.ca> <1393428297.3248.92.camel@paszta.hi. pengutronix.de> <20140307171804.EF245C40A32@trevor.secretlab.ca> <531AF4ED. 5020608@ti.com> <20140308122321.9D433C40612@trevor.secretlab.ca> <531D5D0E. 8000605@ti.com>
-Date: Thu, 20 Mar 2014 22:26:31 +0000
-Message-Id: <20140320222631.2F0BBC412EA@trevor.secretlab.ca>
+	Sat, 22 Mar 2014 11:22:59 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-15; format=flowed
+Message-id: <532DAAD0.6060209@samsung.com>
+Date: Sat, 22 Mar 2014 09:22:56 -0600
+From: Shuah Khan <shuah.kh@samsung.com>
+Reply-to: shuah.kh@samsung.com
+To: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	shuahkhan@gmail.com, Shuah Khan <shuah.kh@samsung.com>
+Subject: Re: [PATCH] media: em28xx-video - change em28xx_scaler_set() to use
+ em28xx_reg_len()
+References: <1395435890-15100-1-git-send-email-shuah.kh@samsung.com>
+ <532D82C9.6010401@googlemail.com>
+In-reply-to: <532D82C9.6010401@googlemail.com>
+Content-transfer-encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 10 Mar 2014 08:34:54 +0200, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On 08/03/14 14:23, Grant Likely wrote:
-> 
-> >>> That's fine. In that case the driver would specifically require the
-> >>> endpoint to be that one node.... although the above looks a little weird
-> >>
-> >> The driver can't require that. It's up to the board designer to decide
-> >> how many endpoints are used. A driver may say that it has a single input
-> >> port. But the number of endpoints for that port is up to the use case.
-> > 
-> > Come now, when you're writing a driver you know if it will ever be
-> > possible to have more than one port. If that is the case then the
-> > binding should be specifically laid out for that. If there will never be
-> > multiple ports and the binding is unambiguous, then, and only then,
-> > should the shortcut be used, and only the shortcut should be accepted.
-> 
-> I was talking about endpoints, not ports. There's no unclarity about the
-> number of ports, that comes directly from the hardware for that specific
-> component. The number of endpoints, however, come from the board
-> hardware. The driver writer cannot know that.
+On 03/22/2014 06:32 AM, Frank Schäfer wrote:
+>
+> Am 21.03.2014 22:04, schrieb Shuah Khan:
+>> Change em28xx_scaler_set() to use em28xx_reg_len() to get register
+>> lengths for EM28XX_R30_HSCALELOW and EM28XX_R32_VSCALELOW registers,
+>> instead of hard-coding the length. Moved em28xx_reg_len() definition
+>> for it to be visible to em28xx_scaler_set().
+>>
+>> Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+>> ---
+>>   drivers/media/usb/em28xx/em28xx-video.c |   29 ++++++++++++++++-------------
+>>   1 file changed, 16 insertions(+), 13 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+>> index 19af6b3..f8a91de 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-video.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+>> @@ -272,6 +272,18 @@ static void em28xx_capture_area_set(struct em28xx *dev, u8 hstart, u8 vstart,
+>>   	}
+>>   }
+>>
+>> +static int em28xx_reg_len(int reg)
+>> +{
+>> +	switch (reg) {
+>> +	case EM28XX_R40_AC97LSB:
+>> +	case EM28XX_R30_HSCALELOW:
+>> +	case EM28XX_R32_VSCALELOW:
+>> +		return 2;
+>> +	default:
+>> +		return 1;
+>> +	}
+>> +}
+>> +
+>>   static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
+>>   {
+>>   	u8 mode;
+>> @@ -284,11 +296,13 @@ static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
+>>
+>>   		buf[0] = h;
+>>   		buf[1] = h >> 8;
+>> -		em28xx_write_regs(dev, EM28XX_R30_HSCALELOW, (char *)buf, 2);
+>> +		em28xx_write_regs(dev, EM28XX_R30_HSCALELOW, (char *)buf,
+>> +				  em28xx_reg_len(EM28XX_R30_HSCALELOW));
+>>
+>>   		buf[0] = v;
+>>   		buf[1] = v >> 8;
+>> -		em28xx_write_regs(dev, EM28XX_R32_VSCALELOW, (char *)buf, 2);
+>> +		em28xx_write_regs(dev, EM28XX_R32_VSCALELOW, (char *)buf,
+>> +				  em28xx_reg_len(EM28XX_R32_VSCALELOW));
+> Hmm... registers 0x30 and 0x32 are always 2 bytes long.
+> So this change would needlessly complicate the code.
+>
 
-Okay, I understand now.
+The reason I made the change is that em28xx_reg_len() is handling these 
+two registers and I thought it would be good to make it consistent with 
+other writes to these registers and not hard-code the length.
 
-g.
+I think it would help with maintenance later by avoiding hard-coding the 
+length and use the existing routine that returns the length for these 
+registers.
 
-> > Just to be clear, I have no problem with having the option in the
-> > pattern, but the driver needs to be specific about what layout it
-> > expects.
-> 
-> If we forget the shortened endpoint format, I think it can be quite
-> specific.
-> 
-> A device has either one port, in which case it should require the
-> 'ports' node to be omitted, or the device has more than one port, in
-> which case it should require 'ports' node.
-> 
-> Note that the original v4l2 binding doc says that 'ports' is always
-> optional.
+You are correct that it does add a function call in the code path. So if 
+you think the trade-off isn't worth it, I am not going to argue with it :)
 
-The original v4l2 behaviour doesn't need to change. In fact it should
-not change if it will cause real-world breakage.
+-- Shuah
 
-g.
+-- 
+Shuah Khan
+Senior Linux Kernel Developer - Open Source Group
+Samsung Research America(Silicon Valley)
+shuah.kh@samsung.com | (970) 672-0658
