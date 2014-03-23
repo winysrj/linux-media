@@ -1,67 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f170.google.com ([209.85.220.170]:65522 "EHLO
-	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752203AbaCKHV7 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55962 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752131AbaCWPat (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 03:21:59 -0400
-Received: by mail-vc0-f170.google.com with SMTP id hu8so8163681vcb.15
-        for <linux-media@vger.kernel.org>; Tue, 11 Mar 2014 00:21:58 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1394493359-14115-40-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1394493359-14115-40-git-send-email-laurent.pinchart@ideasonboard.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 11 Mar 2014 12:51:38 +0530
-Message-ID: <CA+V-a8u0Ez+ZP3zoM42VjCSMJtAw4imcx-3E-tUXhE5Kmi=Zng@mail.gmail.com>
-Subject: Re: [PATCH v2 39/48] v4l: subdev: Remove deprecated video-level DV
- timings operations
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 23 Mar 2014 11:30:49 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Fengguang Wu <fengguang.wu@intel.com>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+	Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+Subject: [PATCH 2/2] usb: gadget: uvc: Set the vb2 queue timestamp flags
+Date: Sun, 23 Mar 2014 16:32:34 +0100
+Message-Id: <1395588754-20587-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1395588754-20587-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <20140323001018.GA11963@localhost>
+ <1395588754-20587-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 11, 2014 at 4:45 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> The video enum_dv_timings and dv_timings_cap operations are deprecated
-> and unused. Remove them.
->
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+The vb2 queue timestamp_flags field must be set by drivers, as enforced
+by a WARN_ON in vb2_queue_init. The UVC gadget driver failed to do so.
+This resulted in the following warning.
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+[    2.104371] g_webcam gadget: uvc_function_bind
+[    2.105567] ------------[ cut here ]------------
+[    2.105567] ------------[ cut here ]------------
+[    2.106779] WARNING: CPU: 0 PID: 1 at drivers/media/v4l2-core/videobuf2-core.c:2207 vb2_queue_init+0xa3/0x113()
 
-Regards,
---Prabhakar lad
+Fix it.
 
-> ---
->  include/media/v4l2-subdev.h | 4 ----
->  1 file changed, 4 deletions(-)
->
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 2b5ec32..ab2b59d 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -330,12 +330,8 @@ struct v4l2_subdev_video_ops {
->                         struct v4l2_dv_timings *timings);
->         int (*g_dv_timings)(struct v4l2_subdev *sd,
->                         struct v4l2_dv_timings *timings);
-> -       int (*enum_dv_timings)(struct v4l2_subdev *sd,
-> -                       struct v4l2_enum_dv_timings *timings);
->         int (*query_dv_timings)(struct v4l2_subdev *sd,
->                         struct v4l2_dv_timings *timings);
-> -       int (*dv_timings_cap)(struct v4l2_subdev *sd,
-> -                       struct v4l2_dv_timings_cap *cap);
->         int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned int index,
->                              enum v4l2_mbus_pixelcode *code);
->         int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
-> --
-> 1.8.3.2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/usb/gadget/uvc_queue.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/usb/gadget/uvc_queue.c b/drivers/usb/gadget/uvc_queue.c
+index d4561ba..4611e9c 100644
+--- a/drivers/usb/gadget/uvc_queue.c
++++ b/drivers/usb/gadget/uvc_queue.c
+@@ -136,6 +136,8 @@ static int uvc_queue_init(struct uvc_video_queue *queue,
+ 	queue->queue.buf_struct_size = sizeof(struct uvc_buffer);
+ 	queue->queue.ops = &uvc_queue_qops;
+ 	queue->queue.mem_ops = &vb2_vmalloc_memops;
++	queue->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
++				     | V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
+ 	ret = vb2_queue_init(&queue->queue);
+ 	if (ret)
+ 		return ret;
+-- 
+1.8.3.2
+
