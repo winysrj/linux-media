@@ -1,37 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:20992 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752547AbaCANwd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Mar 2014 08:52:33 -0500
-Date: Sat, 1 Mar 2014 16:51:36 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [patch] [media] av7110_hw: fix a sanity check in av7110_fw_cmd()
-Message-ID: <20140301135136.GA23929@elgon.mountain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from smtp2-g21.free.fr ([212.27.42.2]:49414 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752335AbaCWSDF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Mar 2014 14:03:05 -0400
+From: Jean-Francois Moine <moinejf@free.fr>
+Date: Sun, 23 Mar 2014 18:35:49 +0100
+Subject: [PATCH v3] drm/i2c: tda998x: Deprecate "nxp,tda998x" in favour of
+ "nxp,tda9989"
+To: devicetree@vger.kernel.org,
+	Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: dri-devel@lists.freedesktop.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Message-Id: <20140323180246.1C3E54B0143@smtp2-g21.free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ARRAY_SIZE(buf) (8 elements) was intended instead of sizeof(buf) (16
-bytes).  But this is just a sanity check and the callers always pass
-valid values so this doesn't cause a problem.
+The tda998x driver accepts only 3 chips from the TDA998x family.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+To avoid confusion with the other TDA998x chips, this patch changes
+the driver compatible string to "nxp,tda9989".
 
-diff --git a/drivers/media/pci/ttpci/av7110_hw.c b/drivers/media/pci/ttpci/av7110_hw.c
-index 6299d5dadb82..300bd3c94738 100644
---- a/drivers/media/pci/ttpci/av7110_hw.c
-+++ b/drivers/media/pci/ttpci/av7110_hw.c
-@@ -501,7 +501,7 @@ int av7110_fw_cmd(struct av7110 *av7110, int type, int com, int num, ...)
+As the previous compatible string is not actually used in any DT,
+no compatibility is offered.
+
+Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
+---
+v3:
+  - fix the I2C ID (the OF compatible is not used for such drivers)
+  - define only one compatible (Sebastian Hesselbarth)
+  - change the subject (Sebastian Hesselbarth)
+v2:
+  - change the subject to drm/i2c
+This patch applies after
+	drm/i2c: tda998x: Fix lack of required reg in DT documentation
+---
+ Documentation/devicetree/bindings/drm/i2c/tda998x.txt | 4 ++--
+ drivers/gpu/drm/i2c/tda998x_drv.c                     | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/drm/i2c/tda998x.txt b/Documentation/devicetree/bindings/drm/i2c/tda998x.txt
+index e9e4bce..9b41c7e 100644
+--- a/Documentation/devicetree/bindings/drm/i2c/tda998x.txt
++++ b/Documentation/devicetree/bindings/drm/i2c/tda998x.txt
+@@ -1,7 +1,7 @@
+ Device-Tree bindings for the NXP TDA998x HDMI transmitter
  
- //	dprintk(4, "%p\n", av7110);
+ Required properties;
+-  - compatible: must be "nxp,tda998x"
++  - compatible: must be "nxp,tda9989"
  
--	if (2 + num > sizeof(buf)) {
-+	if (2 + num > ARRAY_SIZE(buf)) {
- 		printk(KERN_WARNING
- 		       "%s: %s len=%d is too big!\n",
- 		       KBUILD_MODNAME, __func__, num);
+   - reg: I2C address
+ 
+@@ -20,7 +20,7 @@ Optional properties:
+ Example:
+ 
+ 	tda998x: hdmi-encoder {
+-		compatible = "nxp,tda998x";
++		compatible = "nxp,tda9989";
+ 		reg = <0x70>;
+ 		interrupt-parent = <&gpio0>;
+ 		interrupts = <27 2>;		/* falling edge */
+diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
+index 48af5ca..249ef84 100644
+--- a/drivers/gpu/drm/i2c/tda998x_drv.c
++++ b/drivers/gpu/drm/i2c/tda998x_drv.c
+@@ -1367,14 +1367,14 @@ fail:
+ 
+ #ifdef CONFIG_OF
+ static const struct of_device_id tda998x_dt_ids[] = {
+-	{ .compatible = "nxp,tda998x", },
++	{ .compatible = "nxp,tda9989", },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(of, tda998x_dt_ids);
+ #endif
+ 
+ static struct i2c_device_id tda998x_ids[] = {
+-	{ "tda998x", 0 },
++	{ "tda9989", 0 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, tda998x_ids);
+-- 
+1.9.1
+
