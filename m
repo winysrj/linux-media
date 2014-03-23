@@ -1,100 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59143 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753545AbaCUIVT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 04:21:19 -0400
-Message-ID: <532BF663.602@ti.com>
-Date: Fri, 21 Mar 2014 10:20:51 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core
- to drivers/of
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> <20140320153804.35d5b835@samsung.com> <20140320184316.GB7528@n2100.arm.linux.org.uk> <4700752.xAVjk21KIL@avalon>
-In-Reply-To: <4700752.xAVjk21KIL@avalon>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="GQjohDmXS004Jp4GEJC7p5QfgVXm1Awk6"
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4906 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750798AbaCWDe1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Mar 2014 23:34:27 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2N3YONP066886
+	for <linux-media@vger.kernel.org>; Sun, 23 Mar 2014 04:34:26 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id E26CD2A188B
+	for <linux-media@vger.kernel.org>; Sun, 23 Mar 2014 04:34:17 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140323033417.E26CD2A188B@tschai.lan>
+Date: Sun, 23 Mar 2014 04:34:17 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---GQjohDmXS004Jp4GEJC7p5QfgVXm1Awk6
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 20/03/14 20:49, Laurent Pinchart wrote:
+Results of the daily build of media_tree:
 
->> The CPU is the _controlling_ component - it's the component that has t=
-o
->> configure the peripherals so they all talk to each other in the right
->> way.  Therefore, the view of it needs to be CPU centric.
->>
->> If we were providing a DT description for consumption by some other
->> device in the system, then the view should be as seen from that device=
+date:		Sun Mar 23 04:00:13 CET 2014
+git branch:	test
+git hash:	ed97a6fe5308e5982d118a25f0697b791af5ec50
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0
+host hardware:	x86_64
+host os:	3.13-5.slh.4-amd64
 
->> instead.
->>
->> Think about this.  Would you describe a system starting at, say, the
->> system keyboard, and branching all the way through just becuase that's=
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0
+sparse: ERRORS
 
->> how you interact with it, or would you describe it from the CPUs point=
+Detailed results are available here:
 
->> of view because that's what has to be in control of the system.
->=20
-> DT has been designed to represent a control-based view of the system. I=
-t does=20
-> so pretty well using its tree-based model. However, it doesn't have a n=
-ative=20
-> way to represent a flow-based graph, hence the OF graph solution we're =
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-> discussing. The whole point of this proposal is to represent the topolo=
-gy of=20
-> the media device, not how each entity is controlled.
+Full logs are available here:
 
-I agree with Laurent here. I think this is an important point to keep in
-mind. We already describe the control graph in the DT via the
-parent-child relationships. There's no point in describing the same
-thing again with the graph links being discussed.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
- Tomi
+The Media Infrastructure API from this daily build is here:
 
-
-
---GQjohDmXS004Jp4GEJC7p5QfgVXm1Awk6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTK/ZoAAoJEPo9qoy8lh71OQEP/3ts3WNl27wegIsy9M/GghOL
-ch51JW7ebSxMfdSlJwbzrbQ5+m2+zYpuQch+r2z5KwZ1EzNAX5qE/qJbcut4owoF
-RxRaRN+gfmiC87lU8/fXzc6xZ/+aNhHmizlEAhHTQOSRPG/jyoi6j9wOUO50NGWI
-Dtd9KIZDJ6u2oEFMJQkwccL/6Y4Q0GaEWL4kDAN2IUAPO68N6ldkebEnA5g/MzDI
-REGXoRxPBn0P2B4gAitYilrKoy3Q+g/dygSWUX36RM7A1fVLC/HQiXOeeba4cpls
-eKXOYYC2JSOaDikqjvdLnrDxs/dacWh5YoGicz0LSKxA25j8MQCMwThn1iJHmT8H
-IY2+X9egdjLglodXMHlG5Nj9NhcZgQJjuSENZL62/A/Si3ePWPIZrySW722LItc0
-E22b9NS9gkwbmoSOCvTdu16GbfFJYGNSYV/Fl+f93FdH5Cj52DRLlRLdUFzj8DNk
-LBiIU51EHtJoXikwxwIENgPWCesLjXnq36dZNvrT3xFVCs+1G2bLs3eh8AHM6lQB
-FCmtBdSQynxmX4SGnB4lFS2EEakDOjIHF1HgoI6NS8o3JQXaHdQdx0LxzkLulEIo
-POdL78iH6SOMnk8v96LTptYAfEFmUimTwutiRJs/vN3TjYRGA6JLXAARlPae9V5X
-5D21h1E0X8r86x5q6iIS
-=R99w
------END PGP SIGNATURE-----
-
---GQjohDmXS004Jp4GEJC7p5QfgVXm1Awk6--
+http://www.xs4all.nl/~hverkuil/spec/media.html
