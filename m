@@ -1,50 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f170.google.com ([209.85.214.170]:54621 "EHLO
-	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755388AbaCRXSk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Mar 2014 19:18:40 -0400
-Received: by mail-ob0-f170.google.com with SMTP id uz6so7588980obc.1
-        for <linux-media@vger.kernel.org>; Tue, 18 Mar 2014 16:18:39 -0700 (PDT)
+Received: from smtp.gentoo.org ([140.211.166.183]:57154 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751229AbaCWUrp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Mar 2014 16:47:45 -0400
+Message-ID: <532F486C.9030307@gentoo.org>
+Date: Sun, 23 Mar 2014 21:47:40 +0100
+From: Matthias Schwarzott <zzam@gentoo.org>
 MIME-Version: 1.0
-Date: Tue, 18 Mar 2014 16:18:39 -0700
-Message-ID: <CABMudhQzWS7P6uSq=tQQY85JLkj+qdZEg+AbCSwVYFevp6gy-w@mail.gmail.com>
-Subject: How can I feed more data to a stream after I stream on?
-From: m silverstri <michael.j.silverstri@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 2/3] si2165: Add first driver version
+References: <1386918133-21628-1-git-send-email-zzam@gentoo.org> <1386918133-21628-3-git-send-email-zzam@gentoo.org> <52BA6B27.2040401@iki.fi> <532DBAC5.5040407@iki.fi>
+In-Reply-To: <532DBAC5.5040407@iki.fi>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am using v4l2 m2m framework to develop a resize driver. I have an
-image , pass it to the driver and it generated a resize output image.
+On 22.03.2014 17:31, Antti Palosaari wrote:
+> Moi Matthias
+> 
+Hi Antti,
 
-My v4l2 sequence is
-1. qbuf OUTPUT, CAPTURE
-2. stream on OUTPUT, CAPTURE
-3. dqbuf OUTPUT, CAPTURE
-4. stream off OUTPUT, CAPTURE
+> So what is status of your work?
+> 
+The current status is:
+I compared parts of my code to si2161 documentation.
+I extracted firmware to an extra file.
+I disassembled parts of the windows driver to verify some assumptions.
 
-this works if i have a full frame of image before i start streaming.
+So the calculations should be almost correct for dvb-t.
+But for dvb-c I need some more knowledge or more disassembling to know
+how to calculate some register values.
 
-But what I only have partial buffers when I start streaming, how can I
-qbuf more buffer after I 'stream on' OUTPUT,
+e.g. What is the equivalence to this dvb-t value: DVB_rate = BW * 8/7
+I guess it should depend on the symbol rate of the dvb-c channel.
 
-I try this, but this fail
-1. qbuf OUTPUT, CAPTURE (I qbuf only partial OUTPUT)
-2. stream on OUTPUT, CAPTURE
+I hope I manage to send out the current state as patches the next days.
 
-// do this in a loop:
-3. dqbuf OUTPUT (I want to queue more OUTPUT as they become available)
-4. qbuf OUTPUT
+Regards
+Matthias
 
-// now I am done, I want to dqbuf my output
-5. dqbuf CAPTURE
-6. stream off OUTPUT, CAPTURE
-
-I try to do dqbuf/qbuf OUTPUT in step #3, #4 above, but it just stuck
-in dqbuf OUTPUT.
-
-How can I queue more of my input data after I stream on?
-
-Thank you.
