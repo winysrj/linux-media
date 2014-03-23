@@ -1,67 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f171.google.com ([209.85.128.171]:40330 "EHLO
-	mail-ve0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750852AbaCKHQo (ORCPT
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:12503 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751240AbaCWO6Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 03:16:44 -0400
-Received: by mail-ve0-f171.google.com with SMTP id cz12so8359621veb.30
-        for <linux-media@vger.kernel.org>; Tue, 11 Mar 2014 00:16:44 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1394493359-14115-17-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1394493359-14115-17-git-send-email-laurent.pinchart@ideasonboard.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 11 Mar 2014 12:46:24 +0530
-Message-ID: <CA+V-a8vZsNzogCu03dm-VM9SAq+h8bfqTYYXBSWPj6TEcSp3Uw@mail.gmail.com>
-Subject: Re: [PATCH v2 16/48] media: staging: davinci: vpfe: Switch to
- pad-level DV operations
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 23 Mar 2014 10:58:24 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N2W00LHB9LBIG60@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 23 Mar 2014 10:58:23 -0400 (EDT)
+Date: Sun, 23 Mar 2014 11:58:18 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Olliver Schinagl <oliver+list@schinagl.nl>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: DTV-Scan-tables tarballs not generated properly
+Message-id: <20140323115818.572d5bdb@samsung.com>
+In-reply-to: <532EB3F5.9090607@schinagl.nl>
+References: <532EB3F5.9090607@schinagl.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Em Sun, 23 Mar 2014 11:14:13 +0100
+Olliver Schinagl <oliver+list@schinagl.nl> escreveu:
 
-Thanks for the patch.
+> Hey Mauro,
+> 
+> Hope everything is well.
+> 
+> People have noticed that the tarballs for the dtv-scan-tables aren't 
+> being generated properly. The 'LATEST' appears to be correct, but there 
+> is only one dated one, no new ones. If you have a few minutes, can you 
+> see what's going on?
 
-On Tue, Mar 11, 2014 at 4:45 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> The video-level enum_dv_timings and dv_timings_cap operations are
-> deprecated in favor of the pad-level versions. All subdev drivers
-> implement the pad-level versions, switch to them.
->
-> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Fixed. Basically, the logic that were getting the date were after
+the command that was moving to the repository. So, it was returning an
+empty date. So, the file was always named as:
+	dtv-scan-tables-.tar.gz
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+As dtv-scan-tables-LATEST.tar.gz is actually a link to the produced
+file, it was working.
+
+Now, it was properly generated, based on git last commit:
+	dtv-scan-tables-2014-03-09-177b522.tar.bz2
+
+The name there matches the latest changeset:
+	http://git.linuxtv.org/dtv-scan-tables.git/commit/177b522e4c815d034cfda5d1a084ad074bc373b6
+
+As usual, the produced files are at:
+	http://linuxtv.org/downloads/dtv-scan-tables/
+
+Please check it again the day after you add some new commit(s) there,
+for us to be sure that everything is working ok. Ah, you should never
+rebase the tree, as otherwise the script may fail.
+
+> Secondly, I guess we are way past the year marker, how do you feel the 
+> dtv-scan-tables are handled? I hope it is all satisfactory still?
+
+Yes. I would add a few things on a TODO list:
+
+1) Work with major distros for them to have a package for dtv-scan-tables;
+
+2) Convert the files to the libdvbv5 format. On libdvbv5 format, all
+properties of a DVB channel/transponder are properly represented, as
+it uses the same definitions as found at DVBv5 API.
+
+I dunno if you are aware, but the current format is not compatible
+with some standards (like ISDB-T). Ok, there are tables there for
+ISDB-T, but that relies on the frontend to be able to auto-discover
+the properties, because the only thing that it is right there is
+the channel frequency.
+
+Even for DVB-T2/S2, there's a new property that is needed to tune
+a channel with is not represented with the current format
+(DTV_STREAM_ID). Thankfully, afaikt, there aren't many broadcasters
+using it.
+
+Of course, in order to preserve backward compat, we should still have
+the same format at /usr/share/dvb.
+
+So, my suggestion is to convert the files there to libdvbv5, and
+store them at /usr/share/dvbv5. Then, add a Makefile that will
+use dvb-format-convert to generate the current contents, and store
+them at /usr/share/dvb.
 
 Regards,
---Prabhakar lad
-
-> ---
->  drivers/staging/media/davinci_vpfe/vpfe_video.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> index 1f3b0f9..a1655a8 100644
-> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> @@ -987,8 +987,10 @@ vpfe_enum_dv_timings(struct file *file, void *fh,
->         struct vpfe_device *vpfe_dev = video->vpfe_dev;
->         struct v4l2_subdev *subdev = video->current_ext_subdev->subdev;
->
-> +       timings->pad = 0;
-> +
->         v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_enum_dv_timings\n");
-> -       return v4l2_subdev_call(subdev, video, enum_dv_timings, timings);
-> +       return v4l2_subdev_call(subdev, pad, enum_dv_timings, timings);
->  }
->
->  /*
-> --
-> 1.8.3.2
->
+Mauro
