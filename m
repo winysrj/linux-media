@@ -1,88 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:45514 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754936AbaCDUzZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Mar 2014 15:55:25 -0500
-Date: Wed, 05 Mar 2014 04:55:21 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, kbuild-all@01.org
-Subject: [linuxtv-media:master 428/499]
- drivers/media/dvb-frontends/drx39xyj/drxj.c:1039:16: sparse: symbol
- 'drxj_default_aud_data_g' was not declared. Should it be static?
-Message-ID: <53163db9.R+8n3ktQRv5O10lw%fengguang.wu@intel.com>
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:38968 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754083AbaCXTdR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Mar 2014 15:33:17 -0400
+Received: by mail-ee0-f43.google.com with SMTP id e53so4831132eek.2
+        for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 12:33:16 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 19/19] em28xx: move fields wq_trigger and streaming_started from struct em28xx to struct em28xx_audio
+Date: Mon, 24 Mar 2014 20:33:25 +0100
+Message-Id: <1395689605-2705-20-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="=_53163db9.hhZx5fFgp4FUaQBlNYEEe4LNdAjoEkNjQJrT6XjJB5xxAk6X"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
-
---=_53163db9.hhZx5fFgp4FUaQBlNYEEe4LNdAjoEkNjQJrT6XjJB5xxAk6X
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-tree:   git://linuxtv.org/media_tree.git master
-head:   59432be1c7fbf2a4f608850855ff649bee0f7b3b
-commit: 57afe2f0bb0cca758701679f141c9fa92a034415 [428/499] [media] drx-j: Don't use CamelCase
-reproduce: make C=1 CF=-D__CHECK_ENDIAN__
-
-
-sparse warnings: (new ones prefixed by >>)
-
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:651:6: sparse: symbol 'drx_dap_drxj_module_name' was not declared. Should it be static?
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:652:6: sparse: symbol 'drx_dap_drxj_version_text' was not declared. Should it be static?
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:654:15: sparse: symbol 'drx_dap_drxj_version' was not declared. Should it be static?
->> drivers/media/dvb-frontends/drx39xyj/drxj.c:1039:16: sparse: symbol 'drxj_default_aud_data_g' was not declared. Should it be static?
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:4208:1: sparse: symbol 'tuner_i2c_write_read' was not declared. Should it be static?
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:10234:27: sparse: cast truncates bits from constant value (ffff00ff becomes ff)
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:10251:24: sparse: cast truncates bits from constant value (ffff3fff becomes 3fff)
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:11125:31: sparse: cast truncates bits from constant value (ffff00ff becomes ff)
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:11167:26: sparse: cast truncates bits from constant value (ffff0000 becomes 0)
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:11233:33: sparse: cast truncates bits from constant value (ffff7fff becomes 7fff)
-   drivers/media/dvb-frontends/drx39xyj/drxj.c:11777:26: sparse: cast truncates bits from constant value (ffff7fff becomes 7fff)
-
-Please consider folding the attached diff :-)
-
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+ drivers/media/usb/em28xx/em28xx-audio.c | 39 ++++++++++++++++++---------------
+ drivers/media/usb/em28xx/em28xx.h       |  8 +++----
+ 2 files changed, 25 insertions(+), 22 deletions(-)
 
---=_53163db9.hhZx5fFgp4FUaQBlNYEEe4LNdAjoEkNjQJrT6XjJB5xxAk6X
-Content-Type: text/x-diff;
- charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="make-it-static-57afe2f0bb0cca758701679f141c9fa92a034415.diff"
-
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: [PATCH linuxtv-media] drx-j: drxj_default_aud_data_g can be static
-TO: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-CC: linux-media@vger.kernel.org 
-CC: linux-kernel@vger.kernel.org 
-
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
----
- drxj.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 3a63520..b7a2b84 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -1036,7 +1036,7 @@ drx_demod_instance_t drxj_default_demod_g = {
- * This structure is DRXK specific.
- *
- */
--drx_aud_data_t drxj_default_aud_data_g = {
-+static drx_aud_data_t drxj_default_aud_data_g = {
- 	false,			/* audio_is_active */
- 	DRX_AUD_STANDARD_AUTO,	/* audio_standard  */
+diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+index c1937ea..e5ed5b9 100644
+--- a/drivers/media/usb/em28xx/em28xx-audio.c
++++ b/drivers/media/usb/em28xx/em28xx-audio.c
+@@ -92,7 +92,7 @@ static void em28xx_audio_isocirq(struct urb *urb)
  
+ 	if (dev->disconnected) {
+ 		dprintk("device disconnected while streaming. URB status=%d.\n", urb->status);
+-		atomic_set(&dev->stream_started, 0);
++		atomic_set(&dev->adev.stream_started, 0);
+ 		return;
+ 	}
+ 
+@@ -109,7 +109,7 @@ static void em28xx_audio_isocirq(struct urb *urb)
+ 		break;
+ 	}
+ 
+-	if (atomic_read(&dev->stream_started) == 0)
++	if (atomic_read(&dev->adev.stream_started) == 0)
+ 		return;
+ 
+ 	if (dev->adev.capture_pcm_substream) {
+@@ -185,7 +185,7 @@ static int em28xx_init_audio_isoc(struct em28xx *dev)
+ 			em28xx_errdev("submit of audio urb failed (error=%i)\n",
+ 				      errCode);
+ 			em28xx_deinit_isoc_audio(dev);
+-			atomic_set(&dev->stream_started, 0);
++			atomic_set(&dev->adev.stream_started, 0);
+ 			return errCode;
+ 		}
+ 
+@@ -332,9 +332,9 @@ static int snd_em28xx_pcm_close(struct snd_pcm_substream *substream)
+ 	dev->mute = 1;
+ 	mutex_lock(&dev->lock);
+ 	dev->adev.users--;
+-	if (atomic_read(&dev->stream_started) > 0) {
+-		atomic_set(&dev->stream_started, 0);
+-		schedule_work(&dev->wq_trigger);
++	if (atomic_read(&dev->adev.stream_started) > 0) {
++		atomic_set(&dev->adev.stream_started, 0);
++		schedule_work(&dev->adev.wq_trigger);
+ 	}
+ 
+ 	em28xx_audio_analog_set(dev);
+@@ -381,12 +381,13 @@ static int snd_em28xx_hw_capture_params(struct snd_pcm_substream *substream,
+ static int snd_em28xx_hw_capture_free(struct snd_pcm_substream *substream)
+ {
+ 	struct em28xx *dev = snd_pcm_substream_chip(substream);
++	struct em28xx_audio *adev = &dev->adev;
+ 
+ 	dprintk("Stop capture, if needed\n");
+ 
+-	if (atomic_read(&dev->stream_started) > 0) {
+-		atomic_set(&dev->stream_started, 0);
+-		schedule_work(&dev->wq_trigger);
++	if (atomic_read(&adev->stream_started) > 0) {
++		atomic_set(&adev->stream_started, 0);
++		schedule_work(&adev->wq_trigger);
+ 	}
+ 
+ 	return 0;
+@@ -407,9 +408,11 @@ static int snd_em28xx_prepare(struct snd_pcm_substream *substream)
+ 
+ static void audio_trigger(struct work_struct *work)
+ {
+-	struct em28xx *dev = container_of(work, struct em28xx, wq_trigger);
++	struct em28xx_audio *adev =
++			    container_of(work, struct em28xx_audio, wq_trigger);
++	struct em28xx *dev = container_of(adev, struct em28xx, adev);
+ 
+-	if (atomic_read(&dev->stream_started)) {
++	if (atomic_read(&adev->stream_started)) {
+ 		dprintk("starting capture");
+ 		em28xx_init_audio_isoc(dev);
+ 	} else {
+@@ -431,17 +434,17 @@ static int snd_em28xx_capture_trigger(struct snd_pcm_substream *substream,
+ 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE: /* fall through */
+ 	case SNDRV_PCM_TRIGGER_RESUME: /* fall through */
+ 	case SNDRV_PCM_TRIGGER_START:
+-		atomic_set(&dev->stream_started, 1);
++		atomic_set(&dev->adev.stream_started, 1);
+ 		break;
+ 	case SNDRV_PCM_TRIGGER_PAUSE_PUSH: /* fall through */
+ 	case SNDRV_PCM_TRIGGER_SUSPEND: /* fall through */
+ 	case SNDRV_PCM_TRIGGER_STOP:
+-		atomic_set(&dev->stream_started, 0);
++		atomic_set(&dev->adev.stream_started, 0);
+ 		break;
+ 	default:
+ 		retval = -EINVAL;
+ 	}
+-	schedule_work(&dev->wq_trigger);
++	schedule_work(&dev->adev.wq_trigger);
+ 	return retval;
+ }
+ 
+@@ -929,7 +932,7 @@ static int em28xx_audio_init(struct em28xx *dev)
+ 	strcpy(card->shortname, "Em28xx Audio");
+ 	strcpy(card->longname, "Empia Em28xx Audio");
+ 
+-	INIT_WORK(&dev->wq_trigger, audio_trigger);
++	INIT_WORK(&adev->wq_trigger, audio_trigger);
+ 
+ 	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
+ 		em28xx_cvol_new(card, dev, "Video", AC97_VIDEO);
+@@ -984,7 +987,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
+ 
+ 	if (dev->adev.sndcard) {
+ 		snd_card_disconnect(dev->adev.sndcard);
+-		flush_work(&dev->wq_trigger);
++		flush_work(&dev->adev.wq_trigger);
+ 
+ 		em28xx_audio_free_urb(dev);
+ 
+@@ -1006,7 +1009,7 @@ static int em28xx_audio_suspend(struct em28xx *dev)
+ 
+ 	em28xx_info("Suspending audio extension");
+ 	em28xx_deinit_isoc_audio(dev);
+-	atomic_set(&dev->stream_started, 0);
++	atomic_set(&dev->adev.stream_started, 0);
+ 	return 0;
+ }
+ 
+@@ -1020,7 +1023,7 @@ static int em28xx_audio_resume(struct em28xx *dev)
+ 
+ 	em28xx_info("Resuming audio extension");
+ 	/* Nothing to do other than schedule_work() ?? */
+-	schedule_work(&dev->wq_trigger);
++	schedule_work(&dev->adev.wq_trigger);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 3a3fe16..c1102ba 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -567,6 +567,10 @@ struct em28xx_audio {
+ 
+ 	int users;
+ 	spinlock_t slock;
++
++	/* Controls streaming */
++	struct work_struct wq_trigger;	/* trigger to start/stop audio */
++	atomic_t       stream_started;	/* stream should be running if true */
+ };
+ 
+ struct em28xx;
+@@ -618,10 +622,6 @@ struct em28xx {
+ 
+ 	enum em28xx_sensor em28xx_sensor;	/* camera specific */
+ 
+-	/* Controls audio streaming */
+-	struct work_struct wq_trigger;	/* Trigger to start/stop audio for alsa module */
+-	atomic_t       stream_started;	/* stream should be running if true */
+-
+ 	/* Some older em28xx chips needs a waiting time after writing */
+ 	unsigned int wait_after_write;
+ 
+-- 
+1.8.4.5
 
---=_53163db9.hhZx5fFgp4FUaQBlNYEEe4LNdAjoEkNjQJrT6XjJB5xxAk6X--
