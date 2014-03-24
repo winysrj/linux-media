@@ -1,46 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42488 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754170AbaCMLpd (ORCPT
+Received: from mail-bk0-f43.google.com ([209.85.214.43]:57383 "EHLO
+	mail-bk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750921AbaCXVcl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 07:45:33 -0400
-From: Archit Taneja <archit@ti.com>
-To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 09/14] v4l: ti-vpe: report correct capabilities in querycap
-Date: Thu, 13 Mar 2014 17:14:11 +0530
-Message-ID: <1394711056-10878-10-git-send-email-archit@ti.com>
-In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
-References: <1394526833-24805-1-git-send-email-archit@ti.com>
- <1394711056-10878-1-git-send-email-archit@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Mon, 24 Mar 2014 17:32:41 -0400
+Received: by mail-bk0-f43.google.com with SMTP id v15so464bkz.2
+        for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 14:32:40 -0700 (PDT)
+Received: from [192.168.1.100] (94.196.240.196.threembb.co.uk. [94.196.240.196])
+        by mx.google.com with ESMTPSA id oa10sm15970465bkb.14.2014.03.24.14.32.25
+        for <linux-media@vger.kernel.org>
+        (version=SSLv3 cipher=RC4-SHA bits=128/128);
+        Mon, 24 Mar 2014 14:32:38 -0700 (PDT)
+Message-ID: <1395696718.2999.2.camel@canaries64-MCP7A>
+Subject: [PATCH] m88rs2000: fix sparse static warnings.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Mon, 24 Mar 2014 21:31:58 +0000
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-querycap currently returns V4L2_CAP_VIDEO_M2M as a capability, this should be
-V4L2_CAP_VIDEO_M2M_MPLANE instead, as the driver supports multiplanar formats.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Archit Taneja <archit@ti.com>
+warnings
+m88rs2000.c:300:16: warning: symbol 'm88rs2000_setup' was not declared. Should it be static?
+m88rs2000.c:318:16: warning: symbol 'm88rs2000_shutdown' was not declared. Should it be static?
+m88rs2000.c:328:16: warning: symbol 'fe_reset' was not declared. Should it be static?
+m88rs2000.c:366:16: warning: symbol 'fe_trigger' was not declared. Should it be static?
+
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
 ---
- drivers/media/platform/ti-vpe/vpe.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/dvb-frontends/m88rs2000.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index f3f1c10..c066eb8 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1347,7 +1347,7 @@ static int vpe_querycap(struct file *file, void *priv,
- 	strncpy(cap->driver, VPE_MODULE_NAME, sizeof(cap->driver) - 1);
- 	strncpy(cap->card, VPE_MODULE_NAME, sizeof(cap->card) - 1);
- 	strlcpy(cap->bus_info, VPE_MODULE_NAME, sizeof(cap->bus_info));
--	cap->device_caps  = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
-+	cap->device_caps  = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
- }
+diff --git a/drivers/media/dvb-frontends/m88rs2000.c b/drivers/media/dvb-frontends/m88rs2000.c
+index 32cffca..d63bc9c 100644
+--- a/drivers/media/dvb-frontends/m88rs2000.c
++++ b/drivers/media/dvb-frontends/m88rs2000.c
+@@ -297,7 +297,7 @@ struct inittab {
+ 	u8 val;
+ };
+ 
+-struct inittab m88rs2000_setup[] = {
++static struct inittab m88rs2000_setup[] = {
+ 	{DEMOD_WRITE, 0x9a, 0x30},
+ 	{DEMOD_WRITE, 0x00, 0x01},
+ 	{WRITE_DELAY, 0x19, 0x00},
+@@ -315,7 +315,7 @@ struct inittab m88rs2000_setup[] = {
+ 	{0xff, 0xaa, 0xff}
+ };
+ 
+-struct inittab m88rs2000_shutdown[] = {
++static struct inittab m88rs2000_shutdown[] = {
+ 	{DEMOD_WRITE, 0x9a, 0x30},
+ 	{DEMOD_WRITE, 0xb0, 0x00},
+ 	{DEMOD_WRITE, 0xf1, 0x89},
+@@ -325,7 +325,7 @@ struct inittab m88rs2000_shutdown[] = {
+ 	{0xff, 0xaa, 0xff}
+ };
+ 
+-struct inittab fe_reset[] = {
++static struct inittab fe_reset[] = {
+ 	{DEMOD_WRITE, 0x00, 0x01},
+ 	{DEMOD_WRITE, 0x20, 0x81},
+ 	{DEMOD_WRITE, 0x21, 0x80},
+@@ -363,7 +363,7 @@ struct inittab fe_reset[] = {
+ 	{0xff, 0xaa, 0xff}
+ };
+ 
+-struct inittab fe_trigger[] = {
++static struct inittab fe_trigger[] = {
+ 	{DEMOD_WRITE, 0x97, 0x04},
+ 	{DEMOD_WRITE, 0x99, 0x77},
+ 	{DEMOD_WRITE, 0x9b, 0x64},
 -- 
-1.8.3.2
+1.9.1
 
