@@ -1,239 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:58490 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754935AbaCLQbz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Mar 2014 12:31:55 -0400
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Denis Carikli <denis@eukrea.com>
-Subject: [PATCH v10][ 07/10] imx-drm: Prepare imx-drm for extra display-timings retrival.
-Date: Wed, 12 Mar 2014 17:31:04 +0100
-Message-Id: <1394641867-15629-7-git-send-email-denis@eukrea.com>
-In-Reply-To: <1394641867-15629-1-git-send-email-denis@eukrea.com>
-References: <1394641867-15629-1-git-send-email-denis@eukrea.com>
+Received: from forward3h.mail.yandex.net ([84.201.187.148]:57406 "EHLO
+	forward3h.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753037AbaCXNUA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Mar 2014 09:20:00 -0400
+Received: from web11h.yandex.ru (web11h.yandex.ru [84.201.186.40])
+	by forward3h.mail.yandex.net (Yandex) with ESMTP id A20FA1360811
+	for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 17:09:42 +0400 (MSK)
+From: Evgeny Sagatov <sagatov@ya.ru>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <217251395654843@web16j.yandex.ru>
+References: <217251395654843@web16j.yandex.ru>
+Subject: Re: EM2860 + SAA7113 + STAC9752 no have sound
+MIME-Version: 1.0
+Message-Id: <543241395666581@web11h.yandex.ru>
+Date: Mon, 24 Mar 2014 17:09:41 +0400
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=koi8-r
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The hardware behaviour was kept.
+This is operate great if before connect devices I execute:
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
----
-ChangeLog v9->v10:
-- New patch that was splitted out of
-  "staging: imx-drm: Use de-active and pixelclk-active
- display-timings."
-- The IMXDRM_MODE_FLAG_ are now using the BIT macros.
-- The SET_CLK_POL and SET_DE_POL masks were removed.
-  The code was updated accordingly.
----
- drivers/staging/imx-drm/imx-drm-core.c      |   10 ++++++++++
- drivers/staging/imx-drm/imx-drm.h           |    6 ++++++
- drivers/staging/imx-drm/imx-hdmi.c          |    3 +++
- drivers/staging/imx-drm/imx-ldb.c           |    3 +++
- drivers/staging/imx-drm/imx-tve.c           |    3 +++
- drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h |    6 ++++--
- drivers/staging/imx-drm/ipu-v3/ipu-di.c     |    7 ++++++-
- drivers/staging/imx-drm/ipuv3-crtc.c        |   12 ++++++++++--
- drivers/staging/imx-drm/parallel-display.c  |    2 ++
- 9 files changed, 47 insertions(+), 5 deletions(-)
+sudo rmmod em28xx_rc
+sudo rmmod em28xx
+sudo modprobe em28xx card=2,2,2,2
 
-diff --git a/drivers/staging/imx-drm/imx-drm-core.c b/drivers/staging/imx-drm/imx-drm-core.c
-index 4144a75..6a71cd9 100644
---- a/drivers/staging/imx-drm/imx-drm-core.c
-+++ b/drivers/staging/imx-drm/imx-drm-core.c
-@@ -492,6 +492,16 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
- }
- EXPORT_SYMBOL_GPL(imx_drm_encoder_parse_of);
- 
-+void imx_drm_set_default_timing_flags(struct drm_display_mode *mode)
-+{
-+	mode->private_flags &= ~IMXDRM_MODE_FLAG_DE_LOW;
-+	mode->private_flags &= ~IMXDRM_MODE_FLAG_PIXDATA_POSEDGE;
-+
-+	mode->private_flags |= IMXDRM_MODE_FLAG_DE_HIGH;
-+	mode->private_flags |= IMXDRM_MODE_FLAG_PIXDATA_NEGEDGE;
-+}
-+EXPORT_SYMBOL_GPL(imx_drm_set_default_timing_flags);
-+
- /*
-  * @node: device tree node containing encoder input ports
-  * @encoder: drm_encoder
-diff --git a/drivers/staging/imx-drm/imx-drm.h b/drivers/staging/imx-drm/imx-drm.h
-index a322bac..ae07d9d 100644
---- a/drivers/staging/imx-drm/imx-drm.h
-+++ b/drivers/staging/imx-drm/imx-drm.h
-@@ -1,6 +1,11 @@
- #ifndef _IMX_DRM_H_
- #define _IMX_DRM_H_
- 
-+#define IMXDRM_MODE_FLAG_DE_HIGH		BIT(0)
-+#define IMXDRM_MODE_FLAG_DE_LOW			BIT(1)
-+#define IMXDRM_MODE_FLAG_PIXDATA_POSEDGE	BIT(2)
-+#define IMXDRM_MODE_FLAG_PIXDATA_NEGEDGE	BIT(3)
-+
- struct device_node;
- struct drm_crtc;
- struct drm_connector;
-@@ -49,6 +54,7 @@ int imx_drm_encoder_get_mux_id(struct device_node *node,
- 		struct drm_encoder *encoder);
- int imx_drm_encoder_parse_of(struct drm_device *drm,
- 	struct drm_encoder *encoder, struct device_node *np);
-+void imx_drm_set_default_timing_flags(struct drm_display_mode *mode);
- 
- int imx_drm_connector_mode_valid(struct drm_connector *connector,
- 	struct drm_display_mode *mode);
-diff --git a/drivers/staging/imx-drm/imx-hdmi.c b/drivers/staging/imx-drm/imx-hdmi.c
-index 4540a9aa..0b215cc 100644
---- a/drivers/staging/imx-drm/imx-hdmi.c
-+++ b/drivers/staging/imx-drm/imx-hdmi.c
-@@ -1431,6 +1431,9 @@ static bool imx_hdmi_encoder_mode_fixup(struct drm_encoder *encoder,
- 			const struct drm_display_mode *mode,
- 			struct drm_display_mode *adjusted_mode)
- {
-+	drm_mode_copy(adjusted_mode, mode);
-+	imx_drm_set_default_timing_flags(ajusted_mode);
-+
- 	return true;
- }
- 
-diff --git a/drivers/staging/imx-drm/imx-ldb.c b/drivers/staging/imx-drm/imx-ldb.c
-index e6d7bc7..9845a6b 100644
---- a/drivers/staging/imx-drm/imx-ldb.c
-+++ b/drivers/staging/imx-drm/imx-ldb.c
-@@ -108,6 +108,9 @@ static int imx_ldb_connector_get_modes(struct drm_connector *connector)
- 		mode = drm_mode_create(connector->dev);
- 		if (!mode)
- 			return -EINVAL;
-+
-+		imx_drm_set_default_timing_flags(&imx_ldb_ch->mode);
-+
- 		drm_mode_copy(mode, &imx_ldb_ch->mode);
- 		mode->type |= DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED;
- 		drm_mode_probed_add(connector, mode);
-diff --git a/drivers/staging/imx-drm/imx-tve.c b/drivers/staging/imx-drm/imx-tve.c
-index 575533f..605013c 100644
---- a/drivers/staging/imx-drm/imx-tve.c
-+++ b/drivers/staging/imx-drm/imx-tve.c
-@@ -294,6 +294,9 @@ static bool imx_tve_encoder_mode_fixup(struct drm_encoder *encoder,
- 				       const struct drm_display_mode *mode,
- 				       struct drm_display_mode *adjusted_mode)
- {
-+	drm_mode_copy(adjusted_mode, mode);
-+	imx_drm_set_default_timing_flags(adjusted_mode);
-+
- 	return true;
- }
- 
-diff --git a/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h b/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
-index b95cba1..3abeea3 100644
---- a/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
-+++ b/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
-@@ -29,9 +29,11 @@ enum ipuv3_type {
- 
- #define CLK_POL_ACTIVE_LOW	0
- #define CLK_POL_ACTIVE_HIGH	1
-+#define CLK_POL_PRESERVE	2
- 
- #define ENABLE_POL_NEGEDGE	0
- #define ENABLE_POL_POSEDGE	1
-+#define ENABLE_POL_PRESERVE	2
- 
- /*
-  * Bitfield of Display Interface signal polarities.
-@@ -43,10 +45,10 @@ struct ipu_di_signal_cfg {
- 	unsigned clksel_en:1;
- 	unsigned clkidle_en:1;
- 	unsigned data_pol:1;	/* true = inverted */
--	unsigned clk_pol:1;
--	unsigned enable_pol:1;
- 	unsigned Hsync_pol:1;	/* true = active high */
- 	unsigned Vsync_pol:1;
-+	u8 clk_pol;
-+	u8 enable_pol;
- 
- 	u16 width;
- 	u16 height;
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-di.c b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-index 53646aa..791080b 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-@@ -597,6 +597,8 @@ int ipu_di_init_sync_panel(struct ipu_di *di, struct ipu_di_signal_cfg *sig)
- 
- 	if (sig->clk_pol == CLK_POL_ACTIVE_HIGH)
- 		di_gen |= DI_GEN_POLARITY_DISP_CLK;
-+	else if (sig->clk_pol == CLK_POL_ACTIVE_LOW)
-+		di_gen &= ~DI_GEN_POLARITY_DISP_CLK;
- 
- 	ipu_di_write(di, di_gen, DI_GENERAL);
- 
-@@ -604,10 +606,13 @@ int ipu_di_init_sync_panel(struct ipu_di *di, struct ipu_di_signal_cfg *sig)
- 		     DI_SYNC_AS_GEN);
- 
- 	reg = ipu_di_read(di, DI_POL);
--	reg &= ~(DI_POL_DRDY_DATA_POLARITY | DI_POL_DRDY_POLARITY_15);
-+	reg &= ~(DI_POL_DRDY_DATA_POLARITY);
- 
- 	if (sig->enable_pol == ENABLE_POL_POSEDGE)
- 		reg |= DI_POL_DRDY_POLARITY_15;
-+	else if (sig->enable_pol == ENABLE_POL_NEGEDGE)
-+		reg &= ~DI_POL_DRDY_POLARITY_15;
-+
- 	if (sig->data_pol)
- 		reg |= DI_POL_DRDY_DATA_POLARITY;
- 
-diff --git a/drivers/staging/imx-drm/ipuv3-crtc.c b/drivers/staging/imx-drm/ipuv3-crtc.c
-index 8cfeb47..c935f38 100644
---- a/drivers/staging/imx-drm/ipuv3-crtc.c
-+++ b/drivers/staging/imx-drm/ipuv3-crtc.c
-@@ -157,8 +157,16 @@ static int ipu_crtc_mode_set(struct drm_crtc *crtc,
- 	if (mode->flags & DRM_MODE_FLAG_PVSYNC)
- 		sig_cfg.Vsync_pol = 1;
- 
--	sig_cfg.enable_pol = ENABLE_POL_POSEDGE;
--	sig_cfg.clk_pol = CLK_POL_ACTIVE_LOW;
-+	if (mode->private_flags & IMXDRM_MODE_FLAG_DE_HIGH)
-+		sig_cfg.enable_pol = ENABLE_POL_POSEDGE;
-+	else if (mode->private_flags & IMXDRM_MODE_FLAG_DE_LOW)
-+		sig_cfg.enable_pol = ENABLE_POL_NEGEDGE;
-+
-+	if (mode->private_flags & IMXDRM_MODE_FLAG_PIXDATA_POSEDGE)
-+		sig_cfg.clk_pol = CLK_POL_ACTIVE_HIGH;
-+	else if (mode->private_flags & IMXDRM_MODE_FLAG_PIXDATA_NEGEDGE)
-+		sig_cfg.clk_pol = CLK_POL_ACTIVE_LOW;
-+
- 	sig_cfg.width = mode->hdisplay;
- 	sig_cfg.height = mode->vdisplay;
- 	sig_cfg.pixel_fmt = out_pixel_fmt;
-diff --git a/drivers/staging/imx-drm/parallel-display.c b/drivers/staging/imx-drm/parallel-display.c
-index 01b7ce5..871a737 100644
---- a/drivers/staging/imx-drm/parallel-display.c
-+++ b/drivers/staging/imx-drm/parallel-display.c
-@@ -73,6 +73,7 @@ static int imx_pd_connector_get_modes(struct drm_connector *connector)
- 		if (!mode)
- 			return -EINVAL;
- 		drm_mode_copy(mode, &imxpd->mode);
-+		imx_drm_set_default_timing_flags(mode);
- 		mode->type |= DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED,
- 		drm_mode_probed_add(connector, mode);
- 		num_modes++;
-@@ -84,6 +85,7 @@ static int imx_pd_connector_get_modes(struct drm_connector *connector)
- 			return -EINVAL;
- 		of_get_drm_display_mode(np, &imxpd->mode, OF_USE_NATIVE_MODE);
- 		drm_mode_copy(mode, &imxpd->mode);
-+		imx_drm_set_default_timing_flags(mode);
- 		mode->type |= DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED,
- 		drm_mode_probed_add(connector, mode);
- 		num_modes++;
--- 
-1.7.9.5
-
+24.03.2014, 13:54, "Evgeny Sagatov" <sagatov@ya.ru>:
+> Hi!
+>
+> I have the EasyCap device with EM2860 + SAA7113 + STAC9752 chips.
+> Video from composite and from S-Video operate great.
+> But I not have the sound. I do not see any errors in my logs.
+> I tried VLC and gstreamer for open alsa device with any rates and options.
+>
+> I work on Ubuntu 12.04 and tried 3.2, 3.11 and 3.13 kernels.
+>
+> Mar 24 13:47:38 ip4tv-st2 kernel: [ 1125.942116] usb 3-2: new high-speed USB device number 4 using xhci_hcd
+> Mar 24 13:47:38 ip4tv-st2 kernel: [ 1125.958937] em28xx: New device @ 480 Mbps (eb1a:2861, interface 0, class 0)
+> Mar 24 13:47:38 ip4tv-st2 kernel: [ 1125.958984] em28xx #0: chip ID is em2860
+> Mar 24 13:47:38 ip4tv-st2 mtp-probe: checking bus 3, device 4: "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-2"
+> Mar 24 13:47:38 ip4tv-st2 kernel: [ 1126.050300] em28xx #0: board has no eeprom
+> Mar 24 13:47:38 ip4tv-st2 kernel: [ 1126.117043] em28xx #0: found i2c device @ 0x4a [saa7113h]
+> Mar 24 13:47:38 ip4tv-st2 kernel: [ 1126.132110] em28xx #0: Your board has no unique USB ID.
+> Mar 24 13:47:38 ip4tv-st2 kernel: [ 1126.132117] em28xx #0: A hint were successfully done, based on i2c devicelist hash.
+> Mar 24 13:47:38 ip4tv-st2 kernel: [ 1126.132120] em28xx #0: This method is not 100% failproof.
+> Mar 24 13:47:38 ip4tv-st2 kernel: [ 1126.132123] em28xx #0: If the board were missdetected, please email this log to:
+> Mar 24 13:47:38 ip4tv-st2 kernel: [ 1126.132126] em28xx #0: ššššV4L Mailing List š<linux-media@vger.kernel.org>
+> Mar 24 13:47:38 ip4tv-st2 kernel: [ 1126.132129] em28xx #0: Board detected as EM2860/SAA711X Reference Design
+> Mar 24 13:47:39 ip4tv-st2 kernel: [ 1126.209810] em28xx #0: Identified as EM2860/SAA711X Reference Design (card=19)
+> Mar 24 13:47:39 ip4tv-st2 kernel: [ 1126.209816] em28xx #0: Registering snapshot button...
+> Mar 24 13:47:39 ip4tv-st2 kernel: [ 1126.209934] input: em28xx snapshot button as /devices/pci0000:00/0000:00:14.0/usb3/3-2/input/input13
+> Mar 24 13:47:39 ip4tv-st2 kernel: [ 1126.569889] em28xx #0: Config register raw data: 0x10
+> Mar 24 13:47:39 ip4tv-st2 kernel: [ 1126.593471] em28xx #0: AC97 vendor ID = 0x83847652
+> Mar 24 13:47:39 ip4tv-st2 kernel: [ 1126.605474] em28xx #0: AC97 features = 0x6a90
+> Mar 24 13:47:39 ip4tv-st2 kernel: [ 1126.605480] em28xx #0: Sigmatel audio processor detected(stac 9752)
+> Mar 24 13:47:39 ip4tv-st2 kernel: [ 1127.016889] em28xx #0: v4l2 driver version 0.1.3
+> Mar 24 13:47:40 ip4tv-st2 mtp-probe: bus: 3, device: 4 was not an MTP device
+> Mar 24 13:47:40 ip4tv-st2 kernel: [ 1127.944248] em28xx #0: V4L2 video device registered as video1
+> Mar 24 13:47:40 ip4tv-st2 kernel: [ 1127.944256] em28xx #0: V4L2 VBI device registered as vbi0
+> Mar 24 13:47:40 ip4tv-st2 kernel: [ 1127.944377] em28xx audio device (eb1a:2861): interface 1, class 1
+>
+> š0 [PCH ššššššššššš]: HDA-Intel - HDA Intel PCH
+> ššššššššššššššššššššššHDA Intel PCH at 0xf7e10000 irq 45
+> š1 [U0xeb1a0x2861 š]: USB-Audio - USB Device 0xeb1a:0x2861
+> ššššššššššššššššššššššUSB Device 0xeb1a:0x2861 at usb-0000:00:14.0-2, high speed
+>
+> šš1: ššššššš: sequencer
+> šš2: [ 1- 0]: digital audio capture
+> šš3: [ 1] šš: control
+> šš4: [ 0- 3]: digital audio playback
+> šš5: [ 0- 0]: digital audio playback
+> šš6: [ 0- 0]: digital audio capture
+> šš7: [ 0- 3]: hardware dependent
+> šš8: [ 0- 0]: hardware dependent
+> šš9: [ 0] šš: control
+> š33: ššššššš: timer
+>
+> /: šBus 04.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 5000M
+> /: šBus 03.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
+> šššš|__ Port 1: Dev 2, If 0, Class=HID, Driver=usbhid, 1.5M
+> šššš|__ Port 2: Dev 4, If 0, Class=vend., Driver=em28xx, 480M
+> šššš|__ Port 2: Dev 4, If 1, Class=audio, Driver=snd-usb-audio, 480M
+> šššš|__ Port 2: Dev 4, If 2, Class=audio, Driver=snd-usb-audio, 480M
+> /: šBus 02.Port 1: Dev 1, Class=root_hub, Driver=ehci_hcd/2p, 480M
+> šššš|__ Port 1: Dev 2, If 0, Class=hub, Driver=hub/6p, 480M
+> /: šBus 01.Port 1: Dev 1, Class=root_hub, Driver=ehci_hcd/2p, 480M
+> šššš|__ Port 1: Dev 2, If 0, Class=hub, Driver=hub/6p, 480M
+> šššššššš|__ Port 1: Dev 3, If 0, Class='bInterfaceClass 0xe0 not yet handled', Driver=btusb, 12M
+> šššššššš|__ Port 1: Dev 3, If 1, Class='bInterfaceClass 0xe0 not yet handled', Driver=btusb, 12M
+> šššššššš|__ Port 3: Dev 4, If 0, Class='bInterfaceClass 0x0e not yet handled', Driver=uvcvideo, 480M
+> šššššššš|__ Port 3: Dev 4, If 1, Class='bInterfaceClass 0x0e not yet handled', Driver=uvcvideo, 480M
+>
+> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+> Bus 001 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
+> Bus 002 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
+> Bus 003 Device 002: ID 0458:003a KYE Systems Corp. (Mouse Systems) NetScroll+ Mini Traveler / Genius NetScroll 120
+> Bus 003 Device 004: ID eb1a:2861 eMPIA Technology, Inc.
+> Bus 001 Device 003: ID 8087:07da Intel Corp.
+> Bus 001 Device 004: ID 04f2:b33e Chicony Electronics Co., Ltd
+>
+> --
+> Sincerely, Evgeny Sagatov
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at šhttp://vger.kernel.org/majordomo-info.html
