@@ -1,157 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:55665 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752685AbaCKQBG (ORCPT
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:57978 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753861AbaCXTcu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 12:01:06 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, robh+dt@kernel.org,
-	mark.rutland@arm.com, galak@codeaurora.org,
-	kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v7 3/10] Documentation: devicetree: Update Samsung FIMC DT
- binding
-Date: Tue, 11 Mar 2014 17:00:35 +0100
-Message-id: <1394553635-12134-1-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <24917002.Y0kBkkQHhZ@avalon>
-References: <24917002.Y0kBkkQHhZ@avalon>
+	Mon, 24 Mar 2014 15:32:50 -0400
+Received: by mail-ee0-f54.google.com with SMTP id d49so4852226eek.13
+        for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 12:32:49 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 01/19] em28xx: move sub-module data structs to a common place in the main struct
+Date: Mon, 24 Mar 2014 20:33:07 +0100
+Message-Id: <1395689605-2705-2-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch documents following updates of the Exynos4 SoC camera subsystem
-devicetree binding:
-
- - addition of #clock-cells and clock-output-names properties to 'camera'
-   node - these are now needed so the image sensor sub-devices can reference
-   clocks provided by the camera host interface,
- - dropped a note about required clock-frequency properties at the
-   image sensor nodes; the sensor devices can now control their clock
-   explicitly through the clk API and there is no need to require this
-   property in the camera host interface binding.
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
-Resending only single patch which changed.
+ drivers/media/usb/em28xx/em28xx.h | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-Changes since v6:
- - #clock-cells, clock-output-names documented as mandatory properties;
- - renamed "cam_mclk_{a,b}" to "cam_{a,b}_clkout in the example dts,
-   this now matches changes in exynos4.dtsi further in the patch series;
- - marked "samsung,camclk-out" property as deprecated.
-
-Changes since v5:
- - none.
-
-Changes since v4:
- - dropped a requirement of specific order of values in clocks/
-   clock-names properties (Mark) and reference to clock-names in
-   clock-output-names property description (Mark).
----
- .../devicetree/bindings/media/samsung-fimc.txt     |   46 +++++++++++++-------
- 1 file changed, 31 insertions(+), 15 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-index 96312f6..1908a5f 100644
---- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
-+++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-@@ -15,11 +15,21 @@ Common 'camera' node
-
- Required properties:
-
--- compatible	: must be "samsung,fimc", "simple-bus"
--- clocks	: list of clock specifiers, corresponding to entries in
--		  the clock-names property;
--- clock-names	: must contain "sclk_cam0", "sclk_cam1", "pxl_async0",
--		  "pxl_async1" entries, matching entries in the clocks property.
-+- compatible: must be "samsung,fimc", "simple-bus"
-+- clocks: list of clock specifiers, corresponding to entries in
-+  the clock-names property;
-+- clock-names : must contain "sclk_cam0", "sclk_cam1", "pxl_async0",
-+  "pxl_async1" entries, matching entries in the clocks property.
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 4beb1fa..9a3c496 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -541,6 +541,11 @@ struct em28xx_i2c_bus {
+ struct em28xx {
+ 	struct kref ref;
+ 
++	/* Sub-module data */
++	struct em28xx_dvb *dvb;
++	struct em28xx_audio adev;
++	struct em28xx_IR *ir;
 +
-+- #clock-cells: from the common clock bindings (../clock/clock-bindings.txt),
-+  must be 1. A clock provider is associated with the 'camera' node and it should
-+  be referenced by external sensors that use clocks provided by the SoC on
-+  CAM_*_CLKOUT pins. The clock specifier cell stores an index of a clock.
-+  The indices are 0, 1 for CAM_A_CLKOUT, CAM_B_CLKOUT clocks respectively.
-+
-+- clock-output-names: from the common clock bindings, should contain names of
-+  clocks registered by the camera subsystem corresponding to CAM_A_CLKOUT,
-+  CAM_B_CLKOUT output clocks respectively.
-
- The pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt must be used
- to define a required pinctrl state named "default" and optional pinctrl states:
-@@ -32,6 +42,7 @@ way around.
-
- The 'camera' node must include at least one 'fimc' child node.
-
-+
- 'fimc' device nodes
- -------------------
-
-@@ -88,8 +99,8 @@ port nodes specifies data input - 0, 1 indicates input A, B respectively.
-
- Optional properties
-
--- samsung,camclk-out : specifies clock output for remote sensor,
--		       0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
-+- samsung,camclk-out (deprecated) : specifies clock output for remote sensor,
-+  0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
-
- Image sensor nodes
- ------------------
-@@ -97,8 +108,8 @@ Image sensor nodes
- The sensor device nodes should be added to their control bus controller (e.g.
- I2C0) nodes and linked to a port node in the csis or the parallel-ports node,
- using the common video interfaces bindings, defined in video-interfaces.txt.
--The implementation of this bindings requires clock-frequency property to be
--present in the sensor device nodes.
-+An optional clock-frequency property needs to be present in the sensor device
-+nodes. Default value when this property is not present is 24 MHz.
-
- Example:
-
-@@ -114,7 +125,7 @@ Example:
- 			vddio-supply = <...>;
-
- 			clock-frequency = <24000000>;
--			clocks = <...>;
-+			clocks = <&camera 1>;
- 			clock-names = "mclk";
-
- 			port {
-@@ -135,7 +146,7 @@ Example:
- 			vddio-supply = <...>;
-
- 			clock-frequency = <24000000>;
--			clocks = <...>;
-+			clocks = <&camera 0>;
- 			clock-names = "mclk";
-
- 			port {
-@@ -149,12 +160,17 @@ Example:
-
- 	camera {
- 		compatible = "samsung,fimc", "simple-bus";
--		#address-cells = <1>;
--		#size-cells = <1>;
--		status = "okay";
+ 	/* generic device properties */
+ 	char name[30];		/* name (including minor) of the device */
+ 	int model;		/* index in the device_data struct */
+@@ -576,8 +581,6 @@ struct em28xx {
+ 
+ 	struct em28xx_fmt *format;
+ 
+-	struct em28xx_IR *ir;
 -
-+		clocks = <&clock 132>, <&clock 133>, <&clock 351>,
-+			 <&clock 352>;
-+		clock-names = "sclk_cam0", "sclk_cam1", "pxl_async0",
-+			      "pxl_async1";
-+		#clock-cells = <1>;
-+		clock-output-names = "cam_a_clkout", "cam_b_clkout";
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&cam_port_a_clk_active>;
-+		status = "okay";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-
- 		/* parallel camera ports */
- 		parallel-ports {
---
-1.7.9.5
+ 	/* Some older em28xx chips needs a waiting time after writing */
+ 	unsigned int wait_after_write;
+ 
+@@ -623,8 +626,6 @@ struct em28xx {
+ 	unsigned long i2c_hash;	/* i2c devicelist hash -
+ 				   for boards with generic ID */
+ 
+-	struct em28xx_audio adev;
+-
+ 	/* capture state tracking */
+ 	int capture_type;
+ 	unsigned char top_field:1;
+@@ -704,8 +705,6 @@ struct em28xx {
+ 	/* Snapshot button input device */
+ 	char snapshot_button_path[30];	/* path of the input dev */
+ 	struct input_dev *sbutton_input_dev;
+-
+-	struct em28xx_dvb *dvb;
+ };
+ 
+ #define kref_to_dev(d) container_of(d, struct em28xx, ref)
+-- 
+1.8.4.5
 
