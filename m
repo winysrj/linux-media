@@ -1,70 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from omr-m02.mx.aol.com ([64.12.143.76]:50144 "EHLO
-	omr-m02.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754984AbaCLGiU (ORCPT
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:59396 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753942AbaCXT7D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Mar 2014 02:38:20 -0400
-Received: from mtaout-mba01.mx.aol.com (mtaout-mba01.mx.aol.com [172.26.133.109])
-	by omr-m02.mx.aol.com (Outbound Mail Relay) with ESMTP id 8805F7020B3CD
-	for <linux-media@vger.kernel.org>; Wed, 12 Mar 2014 02:38:19 -0400 (EDT)
-Received: from [192.168.10.62] (p17087-ipngn5502marunouchi.tokyo.ocn.ne.jp [153.160.16.87])
-	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
-	(No client certificate requested)
-	by mtaout-mba01.mx.aol.com (MUA/Third Party Client Interface) with ESMTPSA id E1DF43800008C
-	for <linux-media@vger.kernel.org>; Wed, 12 Mar 2014 02:38:18 -0400 (EDT)
-Message-ID: <532000D7.7020209@aim.com>
-Date: Wed, 12 Mar 2014 15:38:15 +0900
-From: Sat <sattnag@aim.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [git:media_tree/master] [media] Siano: smsusb - Add a device
- id for PX-S1UD
-References: <E1WNONv-0000Nm-Ua@www.linuxtv.org>
-In-Reply-To: <E1WNONv-0000Nm-Ua@www.linuxtv.org>
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
+	Mon, 24 Mar 2014 15:59:03 -0400
+Date: Mon, 24 Mar 2014 16:58:56 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	kbuild-all@01.org
+Subject: Re: cx23885-dvb.c:undefined reference to `tda18271_attach'
+Message-id: <20140324165856.738bd750@samsung.com>
+In-reply-to: <CA+MoWDrGGE4X9aX0=_iaacXUar17fb1B+CR5VcsPAwLFFiPCCA@mail.gmail.com>
+References: <532c2aaa.lXHUJ9RIRCRIxqPO%fengguang.wu@intel.com>
+ <20140321130917.GA8667@localhost>
+ <CA+MoWDrGGE4X9aX0=_iaacXUar17fb1B+CR5VcsPAwLFFiPCCA@mail.gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thank you for the update, Mauro.
-I didn't know how to check the status, now I get it :-)
+Hi Peter,
 
-Thanks,
-Satoshi
+Em Mon, 24 Mar 2014 16:34:17 +0100
+Peter Senna Tschudin <peter.senna@gmail.com> escreveu:
 
-(2014/03/12 0:12), Mauro Carvalho Chehab wrote:
-> This is an automatic generated email to let you know that the following patch were queued at the
-> http://git.linuxtv.org/media_tree.git tree:
+> Hi,
 > 
-> Subject: [media] Siano: smsusb - Add a device id for PX-S1UD
-> Author:  Satoshi Nagahama <sattnag@aim.com>
-> Date:    Mon Feb 10 06:45:29 2014 -0300
+> I'm being blamed for some bugs for more than one year, and this
+> weekend I was able to reproduce the error for the first time. I have
+> the impression that the issue is related to Kconfig because when
+> compiling the Kernel for x86(not x86_64), and
+> when:
+> CONFIG_VIDEO_CX23885=y
 > 
-> Add a device id to support for PX-S1UD (PLEX ISDB-T usb dongle) which
-> has sms2270.
+> and
 > 
-> Signed-off-by: Satoshi Nagahama <sattnag@aim.com>
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> CONFIG_MEDIA_TUNER_TDA18271=m
 > 
->   drivers/media/usb/siano/smsusb.c |    2 ++
->   1 files changed, 2 insertions(+), 0 deletions(-)
-> 
-> ---
-> 
-> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=f61e2268a06c3ea7354a1f4b3d878bedb8b776b1
-> 
-> diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
-> index 05bd91a..1836a41 100644
-> --- a/drivers/media/usb/siano/smsusb.c
-> +++ b/drivers/media/usb/siano/smsusb.c
-> @@ -653,6 +653,8 @@ static const struct usb_device_id smsusb_id_table[] = {
->   		.driver_info = SMS1XXX_BOARD_ZTE_DVB_DATA_CARD },
->   	{ USB_DEVICE(0x19D2, 0x0078),
->   		.driver_info = SMS1XXX_BOARD_ONDA_MDTV_DATA_CARD },
-> +	{ USB_DEVICE(0x3275, 0x0080),
-> +		.driver_info = SMS1XXX_BOARD_SIANO_RIO },
->   	{ } /* Terminating entry */
->   	};
->   
-> 
+> the build fails as the tuner code was compiled as a module when it
+> should have been compiled as part of the Kernel. 
 
+No. It is valid to have those I2C drivers compiled as module while
+the main driver is compiled builtin.
+
+The trick is to use dvb_attach() macro. This macro is very bad
+named. It should be named as something like:
+	request_module_and_execute_symbol()
+In order to express what it really does.
+
+> On the Kconfig file
+> drivers/media/pci/cx23885/Kconfig:
+> config VIDEO_CX23885
+>         tristate "Conexant cx23885 (2388x successor) support"
+>         ...
+>         select MEDIA_TUNER_TDA18271 if MEDIA_SUBDRV_AUTOSELECT
+> 
+> which I think is the problem. Can I just remove this 'if
+> MEDIA_SUBDRV_AUTOSELECT'? Or what is the correct way of telling
+> Kconfig to set CONFIG_MEDIA_TUNER_TDA18271 based on the value of
+> CONFIG_VIDEO_CX23885?
+
+You shouldn't be doing any of this. In this specific setup,
+we have:
+
+# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
+CONFIG_MEDIA_TUNER_TDA18271=m
+CONFIG_VIDEO_CX23885=y
+
+With should be a valid configuration. 
+
+I'll try to reproduce and fix this one locally and send a fix for it
+latter.
+
+> There are at least 6 similar cases which I'm willing to send patches.
+> 
+> Thank you,
+> 
+> Peter
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+
+Regards,
+Mauro
