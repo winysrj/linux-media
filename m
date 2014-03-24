@@ -1,209 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52841 "EHLO arroyo.ext.ti.com"
+Received: from hardeman.nu ([95.142.160.32]:37190 "EHLO hardeman.nu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756536AbaCDIuc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Mar 2014 03:50:32 -0500
-From: Archit Taneja <archit@ti.com>
-To: <k.debski@samsung.com>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<hverkuil@xs4all.nl>, Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 7/7] v4l: ti-vpe: Add selection API in VPE driver
-Date: Tue, 4 Mar 2014 14:19:25 +0530
-Message-ID: <1393922965-15967-8-git-send-email-archit@ti.com>
-In-Reply-To: <1393922965-15967-1-git-send-email-archit@ti.com>
-References: <1393832008-22174-1-git-send-email-archit@ti.com>
- <1393922965-15967-1-git-send-email-archit@ti.com>
+	id S1751105AbaCXX5L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Mar 2014 19:57:11 -0400
+Date: Tue, 25 Mar 2014 00:51:46 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	Antti =?iso-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>
+Subject: Re: [PATCH 1/5] rc-main: add generic scancode filtering
+Message-ID: <20140324235146.GA25627@hardeman.nu>
+References: <1393629426-31341-1-git-send-email-james.hogan@imgtec.com>
+ <1393629426-31341-2-git-send-email-james.hogan@imgtec.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1393629426-31341-2-git-send-email-james.hogan@imgtec.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add selection ioctl ops. For VPE, cropping makes sense only for the input to
-VPE(or V4L2_BUF_TYPE_VIDEO_OUTPUT/MPLANE buffers) and composing makes sense
-only for the output of VPE(or V4L2_BUF_TYPE_VIDEO_CAPTURE/MPLANE buffers).
+On Fri, Feb 28, 2014 at 11:17:02PM +0000, James Hogan wrote:
+>Add generic scancode filtering of RC input events, and fall back to
+>permitting any RC_FILTER_NORMAL scancode filter to be set if no s_filter
+>callback exists. This allows raw IR decoder events to be filtered, and
+>potentially allows hardware decoders to set looser filters and rely on
+>generic code to filter out the corner cases.
 
-For the CAPTURE type, V4L2_SEL_TGT_COMPOSE results in VPE writing the output
-in a rectangle within the capture buffer. For the OUTPUT type, V4L2_SEL_TGT_CROP
-results in selecting a rectangle region within the source buffer.
+Hi James,
 
-Setting the crop/compose rectangles should successfully result in
-re-configuration of registers which are affected when either source or
-destination dimensions change, set_srcdst_params() is called for this purpose.
+What's the purpose of providing the sw scancode filtering in the case where
+there's no hardware filtering support at all?
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/media/platform/ti-vpe/vpe.c | 142 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 142 insertions(+)
+(sorry that I'm replying so late...busy schedule :))
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 03a6846..b938590 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -410,8 +410,10 @@ static struct vpe_q_data *get_q_data(struct vpe_ctx *ctx,
- {
- 	switch (type) {
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
- 		return &ctx->q_data[Q_DATA_SRC];
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 		return &ctx->q_data[Q_DATA_DST];
- 	default:
- 		BUG();
-@@ -1585,6 +1587,143 @@ static int vpe_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	return set_srcdst_params(ctx);
- }
- 
-+static int __vpe_try_selection(struct vpe_ctx *ctx, struct v4l2_selection *s)
-+{
-+	struct vpe_q_data *q_data;
-+
-+	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
-+	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
-+		return -EINVAL;
-+
-+	q_data = get_q_data(ctx, s->type);
-+	if (!q_data)
-+		return -EINVAL;
-+
-+	switch (s->target) {
-+	case V4L2_SEL_TGT_COMPOSE:
-+	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-+	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-+		/*
-+		 * COMPOSE target is only valid for capture buffer type, for
-+		 * output buffer type, assign existing crop parameters to the
-+		 * selection rectangle
-+		 */
-+		if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-+			break;
-+		} else {
-+			s->r = q_data->c_rect;
-+			return 0;
-+		}
-+
-+	case V4L2_SEL_TGT_CROP:
-+	case V4L2_SEL_TGT_CROP_DEFAULT:
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+		/*
-+		 * CROP target is only valid for output buffer type, for capture
-+		 * buffer type, assign existing compose parameters to the
-+		 * selection rectangle
-+		 */
-+		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-+			break;
-+		} else {
-+			s->r = q_data->c_rect;
-+			return 0;
-+		}
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (s->r.top < 0 || s->r.left < 0) {
-+		vpe_err(ctx->dev, "negative values for top and left\n");
-+		s->r.top = s->r.left = 0;
-+	}
-+
-+	v4l_bound_align_image(&s->r.width, MIN_W, q_data->width, 1,
-+		&s->r.height, MIN_H, q_data->height, H_ALIGN, S_ALIGN);
-+
-+	/* adjust left/top if cropping rectangle is out of bounds */
-+	if (s->r.left + s->r.width > q_data->width)
-+		s->r.left = q_data->width - s->r.width;
-+	if (s->r.top + s->r.height > q_data->height)
-+		s->r.top = q_data->height - s->r.height;
-+
-+	return 0;
-+}
-+
-+static int vpe_g_selection(struct file *file, void *fh,
-+		struct v4l2_selection *s)
-+{
-+	struct vpe_ctx *ctx = file2ctx(file);
-+	struct vpe_q_data *q_data;
-+
-+	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
-+	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
-+		return -EINVAL;
-+
-+	q_data = get_q_data(ctx, s->type);
-+	if (!q_data)
-+		return -EINVAL;
-+
-+	switch (s->target) {
-+	/* return width and height from S_FMT of the respective buffer type */
-+	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-+	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+	case V4L2_SEL_TGT_CROP_DEFAULT:
-+		s->r.left = 0;
-+		s->r.top = 0;
-+		s->r.width = q_data->width;
-+		s->r.height = q_data->height;
-+		return 0;
-+
-+	/*
-+	 * CROP target holds for the output buffer type, and COMPOSE target
-+	 * holds for the capture buffer type. We still return the c_rect params
-+	 * for both the target types.
-+	 */
-+	case V4L2_SEL_TGT_COMPOSE:
-+	case V4L2_SEL_TGT_CROP:
-+		s->r.left = q_data->c_rect.left;
-+		s->r.top = q_data->c_rect.top;
-+		s->r.width = q_data->c_rect.width;
-+		s->r.height = q_data->c_rect.height;
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+
-+static int vpe_s_selection(struct file *file, void *fh,
-+		struct v4l2_selection *s)
-+{
-+	struct vpe_ctx *ctx = file2ctx(file);
-+	struct vpe_q_data *q_data;
-+	struct v4l2_selection sel = *s;
-+	int ret;
-+
-+	ret = __vpe_try_selection(ctx, &sel);
-+	if (ret)
-+		return ret;
-+
-+	q_data = get_q_data(ctx, sel.type);
-+	if (!q_data)
-+		return -EINVAL;
-+
-+	if ((q_data->c_rect.left == sel.r.left) &&
-+			(q_data->c_rect.top == sel.r.top) &&
-+			(q_data->c_rect.width == sel.r.width) &&
-+			(q_data->c_rect.height == sel.r.height)) {
-+		vpe_dbg(ctx->dev,
-+			"requested crop/compose values are already set\n");
-+		return 0;
-+	}
-+
-+	q_data->c_rect = sel.r;
-+
-+	return set_srcdst_params(ctx);
-+}
-+
- static int vpe_reqbufs(struct file *file, void *priv,
- 		       struct v4l2_requestbuffers *reqbufs)
- {
-@@ -1672,6 +1811,9 @@ static const struct v4l2_ioctl_ops vpe_ioctl_ops = {
- 	.vidioc_try_fmt_vid_out_mplane	= vpe_try_fmt,
- 	.vidioc_s_fmt_vid_out_mplane	= vpe_s_fmt,
- 
-+	.vidioc_g_selection		= vpe_g_selection,
-+	.vidioc_s_selection		= vpe_s_selection,
-+
- 	.vidioc_reqbufs		= vpe_reqbufs,
- 	.vidioc_querybuf	= vpe_querybuf,
- 
+>
+>Signed-off-by: James Hogan <james.hogan@imgtec.com>
+>Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>Cc: Antti Seppälä <a.seppala@gmail.com>
+>Cc: linux-media@vger.kernel.org
+>---
+> drivers/media/rc/rc-main.c | 20 +++++++++++++-------
+> 1 file changed, 13 insertions(+), 7 deletions(-)
+>
+>diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+>index 6448128..0a4f680 100644
+>--- a/drivers/media/rc/rc-main.c
+>+++ b/drivers/media/rc/rc-main.c
+>@@ -633,6 +633,7 @@ EXPORT_SYMBOL_GPL(rc_repeat);
+> static void ir_do_keydown(struct rc_dev *dev, int scancode,
+> 			  u32 keycode, u8 toggle)
+> {
+>+	struct rc_scancode_filter *filter;
+> 	bool new_event = !dev->keypressed ||
+> 			 dev->last_scancode != scancode ||
+> 			 dev->last_toggle != toggle;
+>@@ -640,6 +641,11 @@ static void ir_do_keydown(struct rc_dev *dev, int scancode,
+> 	if (new_event && dev->keypressed)
+> 		ir_do_keyup(dev, false);
+> 
+>+	/* Generic scancode filtering */
+>+	filter = &dev->scancode_filters[RC_FILTER_NORMAL];
+>+	if (filter->mask && ((scancode ^ filter->data) & filter->mask))
+>+		return;
+>+
+> 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
+> 
+> 	if (new_event && keycode != KEY_RESERVED) {
+>@@ -1019,9 +1025,7 @@ static ssize_t show_filter(struct device *device,
+> 		return -EINVAL;
+> 
+> 	mutex_lock(&dev->lock);
+>-	if (!dev->s_filter)
+>-		val = 0;
+>-	else if (fattr->mask)
+>+	if (fattr->mask)
+> 		val = dev->scancode_filters[fattr->type].mask;
+> 	else
+> 		val = dev->scancode_filters[fattr->type].data;
+>@@ -1069,7 +1073,7 @@ static ssize_t store_filter(struct device *device,
+> 		return ret;
+> 
+> 	/* Scancode filter not supported (but still accept 0) */
+>-	if (!dev->s_filter)
+>+	if (!dev->s_filter && fattr->type != RC_FILTER_NORMAL)
+> 		return val ? -EINVAL : count;
+> 
+> 	mutex_lock(&dev->lock);
+>@@ -1081,9 +1085,11 @@ static ssize_t store_filter(struct device *device,
+> 		local_filter.mask = val;
+> 	else
+> 		local_filter.data = val;
+>-	ret = dev->s_filter(dev, fattr->type, &local_filter);
+>-	if (ret < 0)
+>-		goto unlock;
+>+	if (dev->s_filter) {
+>+		ret = dev->s_filter(dev, fattr->type, &local_filter);
+>+		if (ret < 0)
+>+			goto unlock;
+>+	}
+> 
+> 	/* Success, commit the new filter */
+> 	*filter = local_filter;
+>-- 
+>1.8.3.2
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
 -- 
-1.8.3.2
-
+David Härdeman
