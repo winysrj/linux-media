@@ -1,49 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2448 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752465AbaCGKh6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 05:37:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH for v3.14 3/3] saa7134: fix WARN_ON during resume.
-Date: Fri,  7 Mar 2014 11:37:49 +0100
-Message-Id: <1394188669-22260-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1394188669-22260-1-git-send-email-hverkuil@xs4all.nl>
-References: <1394188669-22260-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:58965 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753887AbaCXTOy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Mar 2014 15:14:54 -0400
+Message-ID: <53308428.2090003@iki.fi>
+Date: Mon, 24 Mar 2014 21:14:48 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Jim Davis <jim.epost@gmail.com>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next <linux-next@vger.kernel.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	"m.chehab" <m.chehab@samsung.com>, linux-media@vger.kernel.org
+Subject: Re: randconfig build error with next-20140324, in drivers/media/tuners/e4000.c
+References: <CA+r1ZhjFY3eBZwcfjQZqBO4iPNMZLUnky0+_5gc=FtdEbGLByg@mail.gmail.com>
+In-Reply-To: <CA+r1ZhjFY3eBZwcfjQZqBO4iPNMZLUnky0+_5gc=FtdEbGLByg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Already fixed
+https://patchwork.linuxtv.org/patch/23115/
 
-Do not attempt to reload the tuner modules when resuming after a suspend.
-This triggers a WARN_ON in kernel/kmod.c:148 __request_module.
+On 24.03.2014 20:38, Jim Davis wrote:
+> Building with the attached random configuration file,
+>
+> warning: (DVB_USB_RTL28XXU) selects MEDIA_TUNER_E4000 which has unmet
+> direct dependencies ((MEDIA_ANALOG_TV_SUPPORT ||
+> MEDIA_DIGITAL_TV_SUPPORT || MEDIA_RADIO_SUPPORT) && MEDIA_SUPPORT &&
+> I2C && VIDEO_V4L2)
+> warning: (BRIDGE_NF_EBTABLES) selects NETFILTER_XTABLES which has
+> unmet direct dependencies (NET && INET && NETFILTER)
+> warning: (AHCI_XGENE) selects PHY_XGENE which has unmet direct
+> dependencies (HAS_IOMEM && OF && (ARM64 || COMPILE_TEST))
+>
+> drivers/built-in.o: In function `e4000_remove':
+> e4000.c:(.text+0x30570f): undefined reference to `v4l2_ctrl_handler_free'
+> drivers/built-in.o: In function `e4000_probe':
+> e4000.c:(.text+0x306085): undefined reference to `v4l2_ctrl_handler_init_class'
+> e4000.c:(.text+0x3060ae): undefined reference to `v4l2_ctrl_new_std'
+> e4000.c:(.text+0x3060e1): undefined reference to `v4l2_ctrl_new_std'
+> e4000.c:(.text+0x3060fd): undefined reference to `v4l2_ctrl_auto_cluster'
+> e4000.c:(.text+0x306126): undefined reference to `v4l2_ctrl_new_std'
+> e4000.c:(.text+0x306156): undefined reference to `v4l2_ctrl_new_std'
+> e4000.c:(.text+0x306172): undefined reference to `v4l2_ctrl_auto_cluster'
+> e4000.c:(.text+0x30619b): undefined reference to `v4l2_ctrl_new_std'
+> e4000.c:(.text+0x3061cb): undefined reference to `v4l2_ctrl_new_std'
+> e4000.c:(.text+0x3061e7): undefined reference to `v4l2_ctrl_auto_cluster'
+> e4000.c:(.text+0x306210): undefined reference to `v4l2_ctrl_new_std'
+> e4000.c:(.text+0x306240): undefined reference to `v4l2_ctrl_new_std'
+> e4000.c:(.text+0x30625c): undefined reference to `v4l2_ctrl_auto_cluster'
+> e4000.c:(.text+0x306285): undefined reference to `v4l2_ctrl_new_std'
+> e4000.c:(.text+0x3062a0): undefined reference to `v4l2_ctrl_handler_free'
+> make: *** [vmlinux] Error 1
+>
 
-This fixes https://bugzilla.kernel.org/show_bug.cgi?id=69581.
 
-This has always been wrong, but it was never noticed until the WARN_ON
-was added in 3.9.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/saa7134/saa7134-cards.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
-index d45e7f6..e87a734 100644
---- a/drivers/media/pci/saa7134/saa7134-cards.c
-+++ b/drivers/media/pci/saa7134/saa7134-cards.c
-@@ -8045,8 +8045,8 @@ int saa7134_board_init2(struct saa7134_dev *dev)
- 		break;
- 	} /* switch() */
- 
--	/* initialize tuner */
--	if (TUNER_ABSENT != dev->tuner_type) {
-+	/* initialize tuner (don't do this when resuming) */
-+	if (!dev->insuspend && TUNER_ABSENT != dev->tuner_type) {
- 		int has_demod = (dev->tda9887_conf & TDA9887_PRESENT);
- 
- 		/* Note: radio tuner address is always filled in,
 -- 
-1.9.0
-
+http://palosaari.fi/
