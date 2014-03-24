@@ -1,39 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0196.hostedemail.com ([216.40.44.196]:51735 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752886AbaCFDZv (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39364 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753055AbaCXNdt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Mar 2014 22:25:51 -0500
-Message-ID: <1394076347.12070.41.camel@joe-AO722>
-Subject: Re: [PATCH v2] [media] v4l: omap4iss: Add DEBUG compiler flag
-From: Joe Perches <joe@perches.com>
+	Mon, 24 Mar 2014 09:33:49 -0400
+Date: Mon, 24 Mar 2014 15:33:15 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Paul Bolle <pebolle@tiscali.nl>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Date: Wed, 05 Mar 2014 19:25:47 -0800
-In-Reply-To: <18589524.VtEDRg43uX@avalon>
-References: <1391958577.25424.22.camel@x220> <3032500.9J1uSX3lel@avalon>
-	 <1394069742.12070.39.camel@joe-AO722> <18589524.VtEDRg43uX@avalon>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH] Documentation: media: Remove double 'struct'
+Message-ID: <20140324133315.GF2847@valkosipuli.retiisi.org.uk>
+References: <1395665293-4498-1-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1395665293-4498-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2014-03-06 at 02:52 +0100, Laurent Pinchart wrote:
+On Mon, Mar 24, 2014 at 01:48:13PM +0100, Laurent Pinchart wrote:
+> The XML entities for media structures start with the 'struct' word.
+> Remove duplicate 'struct' from the entity users.
+> 
+> Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Hi again Laurent
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-> I've thought about that, but it would require iss.h to be included before all 
-> other headers. I've also thought about creating an iss-debug.h header to be 
-> included first just to #define DEBUG, but decided to go for handling the OMAP4 
-> ISS debug option in the Makefile instead. If that's ugly and discouraged as 
-> reported by Mauro I can try to come up with something else.
-
-Unless debugging logging statements are in system level static inlines,
-adding #define DEBUG to iss.h should otherwise produce the same output
-as -DDEBUG in a Makefile.
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
