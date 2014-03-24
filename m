@@ -1,127 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:45113 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753796AbaCMRSE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 13:18:04 -0400
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	Denis Carikli <denis@eukrea.com>
-Subject: =?UTF-8?q?=5BPATCH=20v11=5D=5B=2003/12=5D=20imx-drm=3A=20Correct=20BGR666=20and=20the=20board=27s=20dts=20that=20use=20them=2E?=
-Date: Thu, 13 Mar 2014 18:17:24 +0100
-Message-Id: <1394731053-6118-3-git-send-email-denis@eukrea.com>
-In-Reply-To: <1394731053-6118-1-git-send-email-denis@eukrea.com>
-References: <1394731053-6118-1-git-send-email-denis@eukrea.com>
+Received: from d594e42d.dsl.concepts.nl ([213.148.228.45]:34568 "EHLO
+	his10.thuis.hoogenraad.info" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753107AbaCXSRd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Mar 2014 14:17:33 -0400
+Message-ID: <533074B2.4000007@hoogenraad.net>
+Date: Mon, 24 Mar 2014 19:08:50 +0100
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+CC: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: How to build I2C_MUX in media_build as rtl28xxu depends on it ?
+References: <1394756071-22410-1-git-send-email-crope@iki.fi> <1394756071-22410-12-git-send-email-crope@iki.fi>
+In-Reply-To: <1394756071-22410-12-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current BGR666 is not consistent with the other color mapings like BGR24.
-BGR666 should be in the same byte order than BGR24.
+After recent changes, I cannot build  rtl28xxu on systems with linux
+2.6.32 or 3.2.0.
+rtl28xxu is one of the few drivers depending on  I2C_MUX.
+Kconfig.kern lists I2C_MUX (correctly) as not in the kernel of the system.
+I don't know if it is possible to load a new module for that.
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-ChangeLog v9->v10:
-- Rebased.
-- Added Philipp Zabel's Ack.
-- Included Lothar Waßmann's suggestion about imx-ldb.c.
-- Shortened the patch title
+Who can help me with this ?
 
-ChangeLog v8->v9:
-- Removed the Cc. They are now set in git-send-email directly.
+Antti Palosaari wrote:
+> We need depend on I2C_MUX as rtl2832 demod used requires it.
+>
+> All error/warnings:
+> warning: (DVB_USB_RTL28XXU) selects DVB_RTL2832 which has unmet direct dependencies (MEDIA_SUPPORT && DVB_CORE && I2C && I2C_MUX)
+> ERROR: "i2c_add_mux_adapter" [drivers/media/dvb-frontends/rtl2832.ko] undefined!
+> ERROR: "i2c_del_mux_adapter" [drivers/media/dvb-frontends/rtl2832.ko] undefined!
+>
+> Reported-by: kbuild test robot <fengguang.wu@intel.com>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  drivers/media/usb/dvb-usb-v2/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
+> index bfb7378..037e519 100644
+> --- a/drivers/media/usb/dvb-usb-v2/Kconfig
+> +++ b/drivers/media/usb/dvb-usb-v2/Kconfig
+> @@ -126,7 +126,7 @@ config DVB_USB_MXL111SF
+>  
+>  config DVB_USB_RTL28XXU
+>  	tristate "Realtek RTL28xxU DVB USB support"
+> -	depends on DVB_USB_V2
+> +	depends on DVB_USB_V2 && I2C_MUX
+>  	select DVB_RTL2830
+>  	select DVB_RTL2832
+>  	select MEDIA_TUNER_QT1010 if MEDIA_SUBDRV_AUTOSELECT
 
-ChangeLog v7->v8:
-- Shrinked even more the Cc list.
 
-ChangeLog v6->v7:
-- Shrinked even more the Cc list.
-
-ChangeLog v5->v6:
-- Remove people not concerned by this patch from the Cc list.
-- Added a better explanation of the change.
-
-ChangeLog v5:
-- New patch.
----
- arch/arm/boot/dts/imx51-apf51dev.dts    |    2 +-
- arch/arm/boot/dts/imx53-m53evk.dts      |    2 +-
- drivers/staging/imx-drm/imx-ldb.c       |    4 ++--
- drivers/staging/imx-drm/ipu-v3/ipu-dc.c |    4 ++--
- 4 files changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/boot/dts/imx51-apf51dev.dts b/arch/arm/boot/dts/imx51-apf51dev.dts
-index c5a9a24..7b3851d 100644
---- a/arch/arm/boot/dts/imx51-apf51dev.dts
-+++ b/arch/arm/boot/dts/imx51-apf51dev.dts
-@@ -18,7 +18,7 @@
- 
- 	display@di1 {
- 		compatible = "fsl,imx-parallel-display";
--		interface-pix-fmt = "bgr666";
-+		interface-pix-fmt = "rgb666";
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&pinctrl_ipu_disp1>;
- 
-diff --git a/arch/arm/boot/dts/imx53-m53evk.dts b/arch/arm/boot/dts/imx53-m53evk.dts
-index f6d3ac3..4646ea9 100644
---- a/arch/arm/boot/dts/imx53-m53evk.dts
-+++ b/arch/arm/boot/dts/imx53-m53evk.dts
-@@ -23,7 +23,7 @@
- 	soc {
- 		display1: display@di1 {
- 			compatible = "fsl,imx-parallel-display";
--			interface-pix-fmt = "bgr666";
-+			interface-pix-fmt = "rgb666";
- 			pinctrl-names = "default";
- 			pinctrl-0 = <&pinctrl_ipu_disp1>;
- 
-diff --git a/drivers/staging/imx-drm/imx-ldb.c b/drivers/staging/imx-drm/imx-ldb.c
-index 33d2b883..e6d7bc7 100644
---- a/drivers/staging/imx-drm/imx-ldb.c
-+++ b/drivers/staging/imx-drm/imx-ldb.c
-@@ -185,11 +185,11 @@ static void imx_ldb_encoder_prepare(struct drm_encoder *encoder)
- 	switch (imx_ldb_ch->chno) {
- 	case 0:
- 		pixel_fmt = (ldb->ldb_ctrl & LDB_DATA_WIDTH_CH0_24) ?
--			V4L2_PIX_FMT_RGB24 : V4L2_PIX_FMT_BGR666;
-+			V4L2_PIX_FMT_RGB24 : V4L2_PIX_FMT_RGB666;
- 		break;
- 	case 1:
- 		pixel_fmt = (ldb->ldb_ctrl & LDB_DATA_WIDTH_CH1_24) ?
--			V4L2_PIX_FMT_RGB24 : V4L2_PIX_FMT_BGR666;
-+			V4L2_PIX_FMT_RGB24 : V4L2_PIX_FMT_RGB666;
- 		break;
- 	default:
- 		dev_err(ldb->dev, "unable to config di%d panel format\n",
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
-index 6f9abe8..154d293 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
-@@ -397,9 +397,9 @@ int ipu_dc_init(struct ipu_soc *ipu, struct device *dev,
- 
- 	/* bgr666 */
- 	ipu_dc_map_clear(priv, IPU_DC_MAP_BGR666);
--	ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 0, 5, 0xfc); /* blue */
-+	ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 0, 17, 0xfc); /* blue */
- 	ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 1, 11, 0xfc); /* green */
--	ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 2, 17, 0xfc); /* red */
-+	ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 2, 5, 0xfc); /* red */
- 
- 	/* bgr24 */
- 	ipu_dc_map_clear(priv, IPU_DC_MAP_BGR24);
 -- 
-1.7.9.5
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
 
