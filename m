@@ -1,73 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46428 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750762AbaCAQ4K (ORCPT
+Received: from mail-ee0-f50.google.com ([74.125.83.50]:63766 "EHLO
+	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754024AbaCXTdD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Mar 2014 11:56:10 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com
-Subject: [PATH v6.1 06/10] v4l: Handle buffer timestamp flags correctly
-Date: Sat,  1 Mar 2014 18:59:25 +0200
-Message-Id: <1393693166-9624-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <5311EE75.1000305@xs4all.nl>
-References: <5311EE75.1000305@xs4all.nl>
+	Mon, 24 Mar 2014 15:33:03 -0400
+Received: by mail-ee0-f50.google.com with SMTP id c13so4788058eek.37
+        for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 12:33:02 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 09/19] em28xx: move vinmode and vinctrl data from struct em28xx to struct v4l2
+Date: Mon, 24 Mar 2014 20:33:15 +0100
+Message-Id: <1395689605-2705-10-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For COPY timestamps, buffer timestamp source flags will traverse the queue
-untouched.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
-changes since v6:
-- Clean up changes to __fill_v4l2_buffer().
-- Drop timestamp source flags for non-OUTPUT buffers in __fill_vb2_buffer().
-- Comments fixed accordingly.
+ drivers/media/usb/em28xx/em28xx-camera.c | 16 ++++++++--------
+ drivers/media/usb/em28xx/em28xx-video.c  | 10 +++++-----
+ drivers/media/usb/em28xx/em28xx.h        |  6 +++---
+ 3 files changed, 16 insertions(+), 16 deletions(-)
 
- drivers/media/v4l2-core/videobuf2-core.c |   21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 42a8568..79eb9ba 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -488,7 +488,16 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
- 	 * Clear any buffer state related flags.
+diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
+index c2672b4..3a88867 100644
+--- a/drivers/media/usb/em28xx/em28xx-camera.c
++++ b/drivers/media/usb/em28xx/em28xx-camera.c
+@@ -372,8 +372,8 @@ int em28xx_init_camera(struct em28xx *dev)
+ 			break;
+ 		}
+ 		/* probably means GRGB 16 bit bayer */
+-		dev->vinmode = 0x0d;
+-		dev->vinctl = 0x00;
++		v4l2->vinmode = 0x0d;
++		v4l2->vinctl = 0x00;
+ 
+ 		break;
+ 	}
+@@ -384,8 +384,8 @@ int em28xx_init_camera(struct em28xx *dev)
+ 		em28xx_initialize_mt9m001(dev);
+ 
+ 		/* probably means BGGR 16 bit bayer */
+-		dev->vinmode = 0x0c;
+-		dev->vinctl = 0x00;
++		v4l2->vinmode = 0x0c;
++		v4l2->vinctl = 0x00;
+ 
+ 		break;
+ 	case EM28XX_MT9M111:
+@@ -396,8 +396,8 @@ int em28xx_init_camera(struct em28xx *dev)
+ 		em28xx_write_reg(dev, EM28XX_R0F_XCLK, dev->board.xclk);
+ 		em28xx_initialize_mt9m111(dev);
+ 
+-		dev->vinmode = 0x0a;
+-		dev->vinctl = 0x00;
++		v4l2->vinmode = 0x0a;
++		v4l2->vinctl = 0x00;
+ 
+ 		break;
+ 	case EM28XX_OV2640:
+@@ -438,8 +438,8 @@ int em28xx_init_camera(struct em28xx *dev)
+ 		/* NOTE: for UXGA=1600x1200 switch to 12MHz */
+ 		dev->board.xclk = EM28XX_XCLK_FREQUENCY_24MHZ;
+ 		em28xx_write_reg(dev, EM28XX_R0F_XCLK, dev->board.xclk);
+-		dev->vinmode = 0x08;
+-		dev->vinctl = 0x00;
++		v4l2->vinmode = 0x08;
++		v4l2->vinctl = 0x00;
+ 
+ 		break;
+ 	}
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index ecc4411..0676aa4 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -236,11 +236,11 @@ static int em28xx_set_outfmt(struct em28xx *dev)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = em28xx_write_reg(dev, EM28XX_R10_VINMODE, dev->vinmode);
++	ret = em28xx_write_reg(dev, EM28XX_R10_VINMODE, v4l2->vinmode);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	vinctrl = dev->vinctl;
++	vinctrl = v4l2->vinctl;
+ 	if (em28xx_vbi_supported(dev) == 1) {
+ 		vinctrl |= EM28XX_VINCTRL_VBI_RAW;
+ 		em28xx_write_reg(dev, EM28XX_R34_VBI_START_H, 0x00);
+@@ -2316,9 +2316,9 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 	/*
+ 	 * Default format, used for tvp5150 or saa711x output formats
  	 */
- 	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
--	b->flags |= q->timestamp_flags;
-+	b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK;
-+	if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
-+	    V4L2_BUF_FLAG_TIMESTAMP_COPY) {
-+		/*
-+		 * For non-COPY timestamps, drop timestamp source bits
-+		 * and obtain the timestamp source from the queue.
-+		 */
-+		b->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+		b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	}
+-	dev->vinmode = 0x10;
+-	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
+-		       EM28XX_VINCTRL_CCIR656_ENABLE;
++	v4l2->vinmode = 0x10;
++	v4l2->vinctl  = EM28XX_VINCTRL_INTERLACED |
++			EM28XX_VINCTRL_CCIR656_ENABLE;
  
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_QUEUED:
-@@ -1031,6 +1040,16 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 	/* request some modules */
  
- 	/* Zero flags that the vb2 core handles */
- 	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
-+	if ((vb->vb2_queue->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
-+	    V4L2_BUF_FLAG_TIMESTAMP_COPY || !V4L2_TYPE_IS_OUTPUT(b->type)) {
-+		/*
-+		 * Non-COPY timestamps and non-OUTPUT queues will get
-+		 * their timestamp and timestamp source flags from the
-+		 * queue.
-+		 */
-+		vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	}
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index e029136..7ca0ff98 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -515,6 +515,9 @@ struct em28xx_v4l2 {
+ 	struct mutex vb_queue_lock;
+ 	struct mutex vb_vbi_queue_lock;
+ 
++	u8 vinmode;
++	u8 vinctl;
 +
- 	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
- 		/*
- 		 * For output buffers mask out the timecode flag:
+ 	/* Frame properties */
+ 	int width;		/* current frame width */
+ 	int height;		/* current frame height */
+@@ -597,9 +600,6 @@ struct em28xx {
+ 	/* Progressive (non-interlaced) mode */
+ 	int progressive;
+ 
+-	/* Vinmode/Vinctl used at the driver */
+-	int vinmode, vinctl;
+-
+ 	/* Controls audio streaming */
+ 	struct work_struct wq_trigger;	/* Trigger to start/stop audio for alsa module */
+ 	atomic_t       stream_started;	/* stream should be running if true */
 -- 
-1.7.10.4
+1.8.4.5
 
