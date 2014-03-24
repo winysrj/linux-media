@@ -1,81 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:59941 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752811AbaCJNEq (ORCPT
+Received: from mail-ee0-f52.google.com ([74.125.83.52]:34953 "EHLO
+	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754021AbaCXTc5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 09:04:46 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N28009KZ1NX8460@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 10 Mar 2014 09:04:45 -0400 (EDT)
-Date: Mon, 10 Mar 2014 10:04:40 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 00/15] drx-j: Cleanups, fixes and support for DVBv5 stats
-Message-id: <20140310100440.7d5d757a@samsung.com>
-In-reply-to: <1394452747-5426-1-git-send-email-m.chehab@samsung.com>
-References: <1394452747-5426-1-git-send-email-m.chehab@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Mon, 24 Mar 2014 15:32:57 -0400
+Received: by mail-ee0-f52.google.com with SMTP id e49so4826711eek.11
+        for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 12:32:56 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 05/19] em28xx: move struct v4l2_clk *clk from struct em28xx to struct v4l2
+Date: Mon, 24 Mar 2014 20:33:11 +0100
+Message-Id: <1395689605-2705-6-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 10 Mar 2014 08:58:52 -0300
-Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-camera.c | 11 ++++++-----
+ drivers/media/usb/em28xx/em28xx-video.c  |  6 +++---
+ drivers/media/usb/em28xx/em28xx.h        |  2 +-
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
-> This patch series is meant to:
-> 1) fix some reported issues (sparse, smatch);
-> 
-> 2) Fix one compilation issue with em28xx when drx-j is not selected;
-> 
-> 3) Get rid of unused code. It is always possible to restore the code
->    from git history. Removing the unused code helps to better understand
->    what's actually there.
-> 
-> 4) Add support for DVBv5 stats.
-> 
-> On my tests here with an AWGN noise generator, the CNR measure made by
-> drx-j was close enough to the SNR injected (with a difference of about
-> 1 dB).
-> 
-> Mauro Carvalho Chehab (15):
->   drx-j: Don't use 0 as NULL
->   drx-j: Fix dubious usage of "&" instead of "&&"
->   drx39xxj.h: Fix undefined reference to attach function
->   drx-j: don't use mc_info before checking if its not NULL
->   drx-j: get rid of dead code
-
-This patch seems to be rejected by vger... likely too big.
-Well the patch is here:
-	http://git.linuxtv.org/mchehab/experimental.git/commitdiff/49bac5876df20f74238bfccf3ef9cbaefcaa2ca9
-
-For anyone wanting to test, all patches are at:
-	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/drx-j-v3
-
->   drx-j: remove external symbols
->   drx-j: Fix usage of drxj_close()
->   drx-j: propagate returned error from request_firmware()
->   drx-j: get rid of some unused vars
->   drx-j: Don't use "state" for DVB lock state
->   drx-j: re-add get_sig_strength()
->   drx-j: Prepare to use DVBv5 stats
->   drx-j: properly handle bit counts on stats
->   drx-j: Fix detection of no signal
->   drx-j: enable DVBv5 stats
-> 
->  drivers/media/dvb-frontends/drx39xyj/drx39xxj.h   |     6 +
->  drivers/media/dvb-frontends/drx39xyj/drx_driver.h |    24 -
->  drivers/media/dvb-frontends/drx39xyj/drxj.c       | 11146 +++-----------------
->  drivers/media/dvb-frontends/drx39xyj/drxj.h       |    30 -
->  4 files changed, 1343 insertions(+), 9863 deletions(-)
-> 
-
-
+diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
+index daebef3..c2672b4 100644
+--- a/drivers/media/usb/em28xx/em28xx-camera.c
++++ b/drivers/media/usb/em28xx/em28xx-camera.c
+@@ -330,13 +330,14 @@ int em28xx_init_camera(struct em28xx *dev)
+ 	char clk_name[V4L2_SUBDEV_NAME_SIZE];
+ 	struct i2c_client *client = &dev->i2c_client[dev->def_i2c_bus];
+ 	struct i2c_adapter *adap = &dev->i2c_adap[dev->def_i2c_bus];
++	struct em28xx_v4l2 *v4l2 = dev->v4l2;
+ 	int ret = 0;
+ 
+ 	v4l2_clk_name_i2c(clk_name, sizeof(clk_name),
+ 			  i2c_adapter_id(adap), client->addr);
+-	dev->clk = v4l2_clk_register_fixed(clk_name, "mclk", -EINVAL);
+-	if (IS_ERR(dev->clk))
+-		return PTR_ERR(dev->clk);
++	v4l2->clk = v4l2_clk_register_fixed(clk_name, "mclk", -EINVAL);
++	if (IS_ERR(v4l2->clk))
++		return PTR_ERR(v4l2->clk);
+ 
+ 	switch (dev->em28xx_sensor) {
+ 	case EM28XX_MT9V011:
+@@ -448,8 +449,8 @@ int em28xx_init_camera(struct em28xx *dev)
+ 	}
+ 
+ 	if (ret < 0) {
+-		v4l2_clk_unregister_fixed(dev->clk);
+-		dev->clk = NULL;
++		v4l2_clk_unregister_fixed(v4l2->clk);
++		v4l2->clk = NULL;
+ 	}
+ 
+ 	return ret;
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 22acb0f..4fb0053 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1974,9 +1974,9 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
+ 	v4l2_ctrl_handler_free(&v4l2->ctrl_handler);
+ 	v4l2_device_unregister(&v4l2->v4l2_dev);
+ 
+-	if (dev->clk) {
+-		v4l2_clk_unregister_fixed(dev->clk);
+-		dev->clk = NULL;
++	if (v4l2->clk) {
++		v4l2_clk_unregister_fixed(v4l2->clk);
++		v4l2->clk = NULL;
+ 	}
+ 
+ 	kref_put(&v4l2->ref, em28xx_free_v4l2);
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 910c2d8..a4d26bf 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -503,6 +503,7 @@ struct em28xx_v4l2 {
+ 
+ 	struct v4l2_device v4l2_dev;
+ 	struct v4l2_ctrl_handler ctrl_handler;
++	struct v4l2_clk *clk;
+ };
+ 
+ struct em28xx_audio {
+@@ -568,7 +569,6 @@ struct em28xx {
+ 	unsigned int has_alsa_audio:1;
+ 	unsigned int is_audio_only:1;
+ 
+-	struct v4l2_clk *clk;
+ 	struct em28xx_board board;
+ 
+ 	/* Webcam specific fields */
 -- 
+1.8.4.5
 
-Regards,
-Mauro
