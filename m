@@ -1,58 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f41.google.com ([74.125.83.41]:62788 "EHLO
-	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751978AbaCBNtM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Mar 2014 08:49:12 -0500
-Message-ID: <531336D4.6030104@gmail.com>
-Date: Sun, 02 Mar 2014 14:49:08 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Paul Bolle <pebolle@tiscali.nl>
-CC: Rob Landley <rob@landley.net>,
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:32789 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753107AbaCXRvu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Mar 2014 13:51:50 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Richard Weinberger <richard@nod.at>,
-	linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] s5p-fimc: Remove reference to outdated macro
-References: <1392199729.23759.20.camel@x220>
-In-Reply-To: <1392199729.23759.20.camel@x220>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Lad Prabhakar <prabhakar.csengg@gmail.com>,
+	LDOC <linux-doc@vger.kernel.org>, Rob Landley <rob@landley.net>
+Subject: [PATCH] v4l2-pci-skeleton: fix typo while retrieving the skel_buffer
+Date: Mon, 24 Mar 2014 23:21:29 +0530
+Message-Id: <1395683489-25986-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/12/2014 11:08 AM, Paul Bolle wrote:
-> The Kconfig symbol S5P_SETUP_MIPIPHY was removed in v3.13. Remove a
-> reference to its macro from a list of Kconfig options.
->
-> Signed-off-by: Paul Bolle<pebolle@tiscali.nl>
-> ---
-> See commit e66f233dc7f7 ("ARM: Samsung: Remove the MIPI PHY setup
-> code"). Should one or more options be added to replace
-> S5P_SETUP_MIPIPHY? I couldn't say. It's safe to remove this one anyway.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Thanks, patch applied.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ Documentation/video4linux/v4l2-pci-skeleton.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-There has been also a related patch posted for the MIPI CSIS/DSIM PHY
-driver: http://www.spinics.net/lists/linux-samsung-soc/msg26773.html
+diff --git a/Documentation/video4linux/v4l2-pci-skeleton.c b/Documentation/video4linux/v4l2-pci-skeleton.c
+index 3a1c0d2..61a56f4 100644
+--- a/Documentation/video4linux/v4l2-pci-skeleton.c
++++ b/Documentation/video4linux/v4l2-pci-skeleton.c
+@@ -87,7 +87,7 @@ struct skel_buffer {
+ 
+ static inline struct skel_buffer *to_skel_buffer(struct vb2_buffer *vb2)
+ {
+-	return container_of(vb2, struct skel_buffer, vb);
++	return container_of(vb2, struct skel_buffer, vb2);
+ }
+ 
+ static const struct pci_device_id skeleton_pci_tbl[] = {
+-- 
+1.7.9.5
 
->   Documentation/video4linux/fimc.txt | 5 ++---
->   1 file changed, 2 insertions(+), 3 deletions(-)
->
-> diff --git a/Documentation/video4linux/fimc.txt b/Documentation/video4linux/fimc.txt
-> index e51f1b5..7d6e160 100644
-> --- a/Documentation/video4linux/fimc.txt
-> +++ b/Documentation/video4linux/fimc.txt
-> @@ -151,9 +151,8 @@ CONFIG_S5P_DEV_FIMC1  \
->   CONFIG_S5P_DEV_FIMC2  |    optional
->   CONFIG_S5P_DEV_FIMC3  |
->   CONFIG_S5P_SETUP_FIMC /
-> -CONFIG_S5P_SETUP_MIPIPHY \
-> -CONFIG_S5P_DEV_CSIS0     | optional for MIPI-CSI interface
-> -CONFIG_S5P_DEV_CSIS1     /
-> +CONFIG_S5P_DEV_CSIS0  \    optional for MIPI-CSI interface
-> +CONFIG_S5P_DEV_CSIS1  /
-
---
-Regards,
-Sylwester
