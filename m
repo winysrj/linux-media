@@ -1,102 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4663 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756899AbaCDLbi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 06:31:38 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 3/4] adv*: replace the deprecated v4l2_subdev_edid by v4l2_edid.
-Date: Tue,  4 Mar 2014 12:30:58 +0100
-Message-Id: <98f54133b7ad000cefb0c108050abb2df2898cfc.1393932339.git.hans.verkuil@cisco.com>
-In-Reply-To: <1393932659-13817-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393932659-13817-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <831d0a3dd5002830548c8bbbfbd1d74a7db471d7.1393932339.git.hans.verkuil@cisco.com>
-References: <831d0a3dd5002830548c8bbbfbd1d74a7db471d7.1393932339.git.hans.verkuil@cisco.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:60011 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750998AbaCXJVv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Mar 2014 05:21:51 -0400
+Message-ID: <532FF92A.9090504@schinagl.nl>
+Date: Mon, 24 Mar 2014 10:21:46 +0100
+From: Olliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: DTV-Scan-tables tarballs not generated properly
+References: <532EB3F5.9090607@schinagl.nl> <20140323115818.572d5bdb@samsung.com>
+In-Reply-To: <20140323115818.572d5bdb@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 03/23/2014 03:58 PM, Mauro Carvalho Chehab wrote:
+> Em Sun, 23 Mar 2014 11:14:13 +0100
+> Olliver Schinagl <oliver+list@schinagl.nl> escreveu:
+>
+>> Hey Mauro,
+>>
+>> Hope everything is well.
+>>
+>> People have noticed that the tarballs for the dtv-scan-tables aren't
+>> being generated properly. The 'LATEST' appears to be correct, but there
+>> is only one dated one, no new ones. If you have a few minutes, can you
+>> see what's going on?
+>
+> Fixed. Basically, the logic that were getting the date were after
+> the command that was moving to the repository. So, it was returning an
+> empty date. So, the file was always named as:
+> 	dtv-scan-tables-.tar.gz
+>
+> As dtv-scan-tables-LATEST.tar.gz is actually a link to the produced
+> file, it was working.
+>
+> Now, it was properly generated, based on git last commit:
+> 	dtv-scan-tables-2014-03-09-177b522.tar.bz2
+>
+> The name there matches the latest changeset:
+> 	http://git.linuxtv.org/dtv-scan-tables.git/commit/177b522e4c815d034cfda5d1a084ad074bc373b6
+>
+> As usual, the produced files are at:
+> 	http://linuxtv.org/downloads/dtv-scan-tables/
+>
+> Please check it again the day after you add some new commit(s) there,
+> for us to be sure that everything is working ok. Ah, you should never
+> rebase the tree, as otherwise the script may fail.
+But will 'work' again a commit later? Just wondering how badly it would 
+break ;)
+>
+>> Secondly, I guess we are way past the year marker, how do you feel the
+>> dtv-scan-tables are handled? I hope it is all satisfactory still?
+>
+> Yes. I would add a few things on a TODO list:
+>
+> 1) Work with major distros for them to have a package for dtv-scan-tables;
+I know that debian and fedora allready package them. So that's a good 
+thing, I'll see what I can do with regards to other major distro's 
+(gentoo, arch come to mind)
+>
+> 2) Convert the files to the libdvbv5 format. On libdvbv5 format, all
+> properties of a DVB channel/transponder are properly represented, as
+> it uses the same definitions as found at DVBv5 API.
+>
+> I dunno if you are aware, but the current format is not compatible
+> with some standards (like ISDB-T). Ok, there are tables there for
+> ISDB-T, but that relies on the frontend to be able to auto-discover
+> the properties, because the only thing that it is right there is
+> the channel frequency.
+>
+> Even for DVB-T2/S2, there's a new property that is needed to tune
+> a channel with is not represented with the current format
+> (DTV_STREAM_ID). Thankfully, afaikt, there aren't many broadcasters
+> using it.
+>
+> Of course, in order to preserve backward compat, we should still have
+> the same format at /usr/share/dvb.
+>
+> So, my suggestion is to convert the files there to libdvbv5, and
+> store them at /usr/share/dvbv5. Then, add a Makefile that will
+> use dvb-format-convert to generate the current contents, and store
+> them at /usr/share/dvb.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/ad9389b.c | 2 +-
- drivers/media/i2c/adv7511.c | 2 +-
- drivers/media/i2c/adv7604.c | 4 ++--
- drivers/media/i2c/adv7842.c | 4 ++--
- 4 files changed, 6 insertions(+), 6 deletions(-)
+I'll put this on my todo list for this year.
 
-diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
-index 83225d6..1b7ecfd 100644
---- a/drivers/media/i2c/ad9389b.c
-+++ b/drivers/media/i2c/ad9389b.c
-@@ -573,7 +573,7 @@ static const struct v4l2_subdev_core_ops ad9389b_core_ops = {
- 
- /* ------------------------------ PAD OPS ------------------------------ */
- 
--static int ad9389b_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
-+static int ad9389b_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- {
- 	struct ad9389b_state *state = get_ad9389b_state(sd);
- 
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index ee61894..942ca4b 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -597,7 +597,7 @@ static int adv7511_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	return 0;
- }
- 
--static int adv7511_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
-+static int adv7511_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- {
- 	struct adv7511_state *state = get_adv7511_state(sd);
- 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 71c8570..98cc540 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1658,7 +1658,7 @@ static int adv7604_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	return 0;
- }
- 
--static int adv7604_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
-+static int adv7604_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- {
- 	struct adv7604_state *state = to_state(sd);
- 	u8 *data = NULL;
-@@ -1728,7 +1728,7 @@ static int get_edid_spa_location(const u8 *edid)
- 	return -1;
- }
- 
--static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
-+static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- {
- 	struct adv7604_state *state = to_state(sd);
- 	int spa_loc;
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index e04fe3f..4d1e07e 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -2014,7 +2014,7 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	return 0;
- }
- 
--static int adv7842_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
-+static int adv7842_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- {
- 	struct adv7842_state *state = to_state(sd);
- 	u8 *data = NULL;
-@@ -2054,7 +2054,7 @@ static int adv7842_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 	return 0;
- }
- 
--static int adv7842_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *e)
-+static int adv7842_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *e)
- {
- 	struct adv7842_state *state = to_state(sd);
- 	int err = 0;
--- 
-1.8.4.rc3
+Thanks Mauro!
+
+Olliver
+>
+> Regards,
+> Mauro
+>
 
