@@ -1,139 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46998 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756931AbaCDLhD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 06:37:03 -0500
-Message-ID: <1393932989.3917.62.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v5 5/7] [media] of: move common endpoint parsing to
- drivers/of
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Grant Likely <grant.likely@linaro.org>,
+Received: from mga09.intel.com ([134.134.136.24]:19696 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751131AbaCXXPU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Mar 2014 19:15:20 -0400
+Date: Tue, 25 Mar 2014 07:15:17 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Date: Tue, 04 Mar 2014 12:36:29 +0100
-In-Reply-To: <531595AB.4000001@ti.com>
-References: <1393522540-22887-1-git-send-email-p.zabel@pengutronix.de>
-	 <1393522540-22887-6-git-send-email-p.zabel@pengutronix.de>
-	 <531595AB.4000001@ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+	kbuild-all@01.org
+Subject: [linuxtv-media:master 453/499] WARNING: Comparing jiffies is
+ almost always wrong; prefer time_after, time_before and friends
+Message-ID: <5330bc85.WjS9lWyITuNDeI8X%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomi,
+tree:   git://linuxtv.org/media_tree.git master
+head:   8432164ddf7bfe40748ac49995356ab4dfda43b7
+commit: 3d0c8fa3c5a0f9ffc4c3e8b4625ddeb875aee50b [453/499] [media] msi3101: convert to SDR API
 
-Am Dienstag, den 04.03.2014, 10:58 +0200 schrieb Tomi Valkeinen:
-[...]
-> > +int of_graph_parse_endpoint(const struct device_node *node,
-> > +			    struct of_endpoint *endpoint)
-> > +{
-> > +	struct device_node *port_node = of_get_parent(node);
-> 
-> Can port_node be NULL? Probably only if something is quite wrong, but
-> maybe it's safer to return error in that case.
+scripts/checkpatch.pl 0001-media-msi3101-convert-to-SDR-API.patch
+# many are suggestions rather than must-fix
 
-both of_property_read_u32 and of_node_put can handle port_node == NULL.
-I'll add a WARN_ONCE here as for of_graph_get_next_endpoint and continue
-on.
+WARNING: line over 80 characters
+#369: drivers/staging/media/msi3101/sdr-msi3101.c:55:
++#define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
 
-> > +	memset(endpoint, 0, sizeof(*endpoint));
-> > +
-> > +	endpoint->local_node = node;
-> > +	/*
-> > +	 * It doesn't matter whether the two calls below succeed.
-> > +	 * If they don't then the default value 0 is used.
-> > +	 */
-> > +	of_property_read_u32(port_node, "reg", &endpoint->port);
-> > +	of_property_read_u32(node, "reg", &endpoint->id);
-> 
-> If the endpoint does not have 'port' as parent (i.e. the shortened
-> format), the above will return the 'reg' of the device node (with
-> 'device node' I mean the main node, with 'compatible' property).
+WARNING: line over 80 characters
+#370: drivers/staging/media/msi3101/sdr-msi3101.c:56:
++#define V4L2_PIX_FMT_SDR_S12    v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
 
-Yes, a check for the port_node name is in order.
+WARNING: line over 80 characters
+#371: drivers/staging/media/msi3101/sdr-msi3101.c:57:
++#define V4L2_PIX_FMT_SDR_S14    v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
 
-> And generally speaking, if struct of_endpoint is needed, maybe it would
-> be better to return the struct of_endpoint when iterating the ports and
-> endpoints. That way there's no need to do parsing "afterwards", trying
-> to figure out if there's a parent port node, but the information is
-> already at hand.
+WARNING: line over 80 characters
+#372: drivers/staging/media/msi3101/sdr-msi3101.c:58:
++#define V4L2_PIX_FMT_SDR_MSI2500_384 v4l2_fourcc('M', '3', '8', '4') /* Mirics MSi2500 format 384 */
 
-I'd like to keep the iteration separate from parsing so we can
-eventually introduce a for_each_endpoint_of_node helper macro around
-of_graph_get_next_endpoint.
+WARNING: Unnecessary space before function pointer arguments
+#450: drivers/staging/media/msi3101/sdr-msi3101.c:151:
++	int (*convert_stream) (struct msi3101_state *s, u8 *dst, u8 *src,
 
-[...]
-> A few thoughts about the iteration, and the API in general.
-> 
-> In the omapdss version I separated iterating ports and endpoints, for
-> the two reasons:
-> 
-> 1) I think there are cases where you may want to have properties in the
-> port node, for things that are common for all the port's endpoints.
->
-> 2) if there are multiple ports, I think the driver code is cleaner if
-> you first take the port, decide what port that is and maybe call a
-> sub-function, and then iterate the endpoints for that port only.
+WARNING: line over 80 characters
+#553: drivers/staging/media/msi3101/sdr-msi3101.c:212:
++		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
 
-It depends a bit on whether you are actually iterating over individual
-ports, or if you are just walking the whole endpoint graph to find
-remote devices that have to be added to the component master's waiting
-list, for example.
+WARNING: Comparing jiffies is almost always wrong; prefer time_after, time_before and friends
+#588: drivers/staging/media/msi3101/sdr-msi3101.c:235:
++	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
 
-> Both of those are possible with the API in the series, but not very cleanly.
->
-> Also, if you just want to iterate the endpoints, it's easy to implement
-> a helper using the separate port and endpoint iterations.
+WARNING: line over 80 characters
+#590: drivers/staging/media/msi3101/sdr-msi3101.c:237:
++		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
 
-I started out to move an existing (albeit lightly used) API to a common
-place so others can use it and improve upon it, too. I'm happy to pile
-on fixes directly in this series, but could we separate the improvement
-step from the move, for the bigger modifications?
+WARNING: Missing a blank line after declarations
+#592: drivers/staging/media/msi3101/sdr-msi3101.c:239:
++		unsigned int samples = sample_num[i_max - 1] - s->sample;
++		s->jiffies_next = jiffies_now;
 
-I had no immediate use for the port iteration, so I have taken no steps
-to add a function for this. I see no problem to add this later when
-somebody needs it, or even rewrite of_graph_get_next_endpoint to use it
-if it is feasible. Iterating over endpoints on a given port needs no
-helper, as you can just use for_each_child_of_node.
+WARNING: Comparing jiffies is almost always wrong; prefer time_after, time_before and friends
+#798: drivers/staging/media/msi3101/sdr-msi3101.c:387:
++	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
 
-> Then, about the get_remote functions: I think there should be only one
-> function for that purpose, one that returns the device node that
-> contains the remote endpoint.
-> 
-> My reasoning is that the ports and endpoints, and their contents, should
-> be private to the device. So the only use to get the remote is to get
-> the actual device, to see if it's been probed, or maybe get some video
-> API for that device.
+WARNING: line over 80 characters
+#801: drivers/staging/media/msi3101/sdr-msi3101.c:389:
++		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
 
-of_graph_get_remote_port currently is used in the exynos4-is/fimc-is.c
-v4l2 driver to get the mipi-csi channel id from the remote port, and
-I've started using it in imx-drm-core.c for two cases:
-- given an endpoint on the encoder, find the remote port connected to
-  it, get the associated drm_crtc, to obtain its the drm_crtc_mask
-  for encoder->possible_crtcs.
-- given an encoder and a connected drm_crtc, walk all endpoints to find
-  the remote port associated with the drm_crtc, and then use the local
-  endpoint parent port to determine multiplexer settings.
+WARNING: Comparing jiffies is almost always wrong; prefer time_after, time_before and friends
+#884: drivers/staging/media/msi3101/sdr-msi3101.c:452:
++	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
 
-> If the driver model used has some kind of master-driver, which goes
-> through all the display entities, I think the above is still valid. When
-> the master-driver follows the remote-link, it still needs to first get
-> the main device node, as the ports and endpoints make no sense without
-> the context of the main device node.
+WARNING: line over 80 characters
+#887: drivers/staging/media/msi3101/sdr-msi3101.c:454:
++		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
 
-I'm not sure about this. I might just need the remote port node
-associated with a remote drm_crtc or drm_encoder structure to find out
-which local endpoint I should look at to retrieve configuration.
+WARNING: line over 80 characters
+#933: drivers/staging/media/msi3101/sdr-msi3101.c:492:
++		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
 
-regards
-Philipp
+WARNING: Comparing jiffies is almost always wrong; prefer time_after, time_before and friends
+#958: drivers/staging/media/msi3101/sdr-msi3101.c:515:
++	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
 
+WARNING: line over 80 characters
+#960: drivers/staging/media/msi3101/sdr-msi3101.c:517:
++		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
+
+WARNING: Missing a blank line after declarations
+#962: drivers/staging/media/msi3101/sdr-msi3101.c:519:
++		unsigned int samples = sample_num[i_max - 1] - s->sample;
++		s->jiffies_next = jiffies_now;
+
+ERROR: space required after that ';' (ctx:VxV)
+#987: drivers/staging/media/msi3101/sdr-msi3101.c:539:
++	struct {signed int x:14;} se;
+ 	                       ^
+
+WARNING: Missing a blank line after declarations
+#1245: drivers/staging/media/msi3101/sdr-msi3101.c:1073:
++	u32 reg;
++	dev_dbg(&s->udev->dev, "%s: lna=%d mixer=%d if=%d\n", __func__,
+
+WARNING: Missing a blank line after declarations
+#1447: drivers/staging/media/msi3101/sdr-msi3101.c:1380:
++	int i;
++	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
+
+WARNING: Missing a blank line after declarations
+#1473: drivers/staging/media/msi3101/sdr-msi3101.c:1404:
++	int i;
++	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
+
+WARNING: Missing a blank line after declarations
+#1528: drivers/staging/media/msi3101/sdr-msi3101.c:1455:
++	int ret  = 0;
++	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d\n",
+
+WARNING: Missing a blank line after declarations
+#1548: drivers/staging/media/msi3101/sdr-msi3101.c:1473:
++	int ret, band;
++	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d frequency=%u\n",
+
+WARNING: line over 80 characters
+#1559: drivers/staging/media/msi3101/sdr-msi3101.c:1484:
++		#define BAND_RF_0 ((bands_rf[0].rangehigh + bands_rf[1].rangelow) / 2)
+
+---
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
