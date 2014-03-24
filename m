@@ -1,77 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45718 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752630AbaCANOA (ORCPT
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:48587 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753826AbaCXTdP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Mar 2014 08:14:00 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, k.debski@samsung.com,
-	laurent.pinchart@ideasonboard.com
-Subject: [PATH v6 08/10] exynos-gsc, m2m-deinterlace, mx2_emmaprp: Copy v4l2_buffer data from src to dst
-Date: Sat,  1 Mar 2014 15:17:05 +0200
-Message-Id: <1393679828-25878-9-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1393679828-25878-1-git-send-email-sakari.ailus@iki.fi>
-References: <1393679828-25878-1-git-send-email-sakari.ailus@iki.fi>
+	Mon, 24 Mar 2014 15:33:15 -0400
+Received: by mail-ee0-f53.google.com with SMTP id b57so4798060eek.26
+        for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 12:33:14 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 18/19] em28xx: remove field tuner_addr from struct em28xx
+Date: Mon, 24 Mar 2014 20:33:24 +0100
+Message-Id: <1395689605-2705-19-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The timestamp and timecode fields were copied from destination to source,
-not the other way around as they should. Fix it.
+The tuner address is only used by the v4l submodule and at tuner setup and
+can be obtained from the board data directly (if specified).
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/platform/exynos-gsc/gsc-m2m.c |    4 ++--
- drivers/media/platform/m2m-deinterlace.c    |    4 ++--
- drivers/media/platform/mx2_emmaprp.c        |    4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/media/usb/em28xx/em28xx-cards.c |  2 --
+ drivers/media/usb/em28xx/em28xx-video.c | 17 ++++++++---------
+ drivers/media/usb/em28xx/em28xx.h       |  1 -
+ 3 files changed, 8 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index 6741025..3a842ee 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -88,8 +88,8 @@ void gsc_m2m_job_finish(struct gsc_ctx *ctx, int vb_state)
- 	dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index b81946f..e552375 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2716,8 +2716,6 @@ static void em28xx_card_setup(struct em28xx *dev)
+ 		    dev->board.name, dev->model);
  
- 	if (src_vb && dst_vb) {
--		src_vb->v4l2_buf.timestamp = dst_vb->v4l2_buf.timestamp;
--		src_vb->v4l2_buf.timecode = dst_vb->v4l2_buf.timecode;
-+		dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
-+		dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
+ 	dev->tuner_type = em28xx_boards[dev->model].tuner_type;
+-	if (em28xx_boards[dev->model].tuner_addr)
+-		dev->tuner_addr = em28xx_boards[dev->model].tuner_addr;
  
- 		v4l2_m2m_buf_done(src_vb, vb_state);
- 		v4l2_m2m_buf_done(dst_vb, vb_state);
-diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
-index f3a9e24..3416131 100644
---- a/drivers/media/platform/m2m-deinterlace.c
-+++ b/drivers/media/platform/m2m-deinterlace.c
-@@ -207,8 +207,8 @@ static void dma_callback(void *data)
- 	src_vb = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
- 	dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
+ 	/* request some modules */
+ 	switch (dev->model) {
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 8c0082c..254a7ff 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -2223,16 +2223,13 @@ static struct video_device *em28xx_vdev_init(struct em28xx *dev,
+ 	return vfd;
+ }
  
--	src_vb->v4l2_buf.timestamp = dst_vb->v4l2_buf.timestamp;
--	src_vb->v4l2_buf.timecode = dst_vb->v4l2_buf.timecode;
-+	dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
-+	dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
+-static void em28xx_tuner_setup(struct em28xx *dev)
++static void em28xx_tuner_setup(struct em28xx *dev, unsigned short tuner_addr)
+ {
+ 	struct em28xx_v4l2      *v4l2 = dev->v4l2;
+ 	struct v4l2_device      *v4l2_dev = &v4l2->v4l2_dev;
+ 	struct tuner_setup      tun_setup;
+ 	struct v4l2_frequency   f;
  
- 	v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
- 	v4l2_m2m_buf_done(dst_vb, VB2_BUF_STATE_DONE);
-diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
-index af3e106..6debb02 100644
---- a/drivers/media/platform/mx2_emmaprp.c
-+++ b/drivers/media/platform/mx2_emmaprp.c
-@@ -377,8 +377,8 @@ static irqreturn_t emmaprp_irq(int irq_emma, void *data)
- 			src_vb = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
- 			dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
+-	if (dev->tuner_type == TUNER_ABSENT)
+-		return;
+-
+ 	memset(&tun_setup, 0, sizeof(tun_setup));
  
--			src_vb->v4l2_buf.timestamp = dst_vb->v4l2_buf.timestamp;
--			src_vb->v4l2_buf.timecode = dst_vb->v4l2_buf.timecode;
-+			dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
-+			dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
+ 	tun_setup.mode_mask = T_ANALOG_TV | T_RADIO;
+@@ -2248,7 +2245,7 @@ static void em28xx_tuner_setup(struct em28xx *dev)
  
- 			spin_lock_irqsave(&pcdev->irqlock, flags);
- 			v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
+ 	if ((dev->tuner_type != TUNER_ABSENT) && (dev->tuner_type)) {
+ 		tun_setup.type   = dev->tuner_type;
+-		tun_setup.addr   = dev->tuner_addr;
++		tun_setup.addr   = tuner_addr;
+ 
+ 		v4l2_device_call_all(v4l2_dev,
+ 				     0, tuner, s_type_addr, &tun_setup);
+@@ -2364,6 +2361,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 	/* Initialize tuner and camera */
+ 
+ 	if (dev->board.tuner_type != TUNER_ABSENT) {
++		unsigned short tuner_addr = dev->board.tuner_addr;
+ 		int has_demod = (dev->board.tda9887_conf & TDA9887_PRESENT);
+ 
+ 		if (dev->board.radio.type)
+@@ -2375,7 +2373,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 			v4l2_i2c_new_subdev(&v4l2->v4l2_dev,
+ 				&dev->i2c_adap[dev->def_i2c_bus], "tuner",
+ 				0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
+-		if (dev->tuner_addr == 0) {
++		if (tuner_addr == 0) {
+ 			enum v4l2_i2c_tuner_type type =
+ 				has_demod ? ADDRS_TV_WITH_DEMOD : ADDRS_TV;
+ 			struct v4l2_subdev *sd;
+@@ -2385,15 +2383,16 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 				0, v4l2_i2c_tuner_addrs(type));
+ 
+ 			if (sd)
+-				dev->tuner_addr = v4l2_i2c_subdev_addr(sd);
++				tuner_addr = v4l2_i2c_subdev_addr(sd);
+ 		} else {
+ 			v4l2_i2c_new_subdev(&v4l2->v4l2_dev,
+ 					    &dev->i2c_adap[dev->def_i2c_bus],
+-					    "tuner", dev->tuner_addr, NULL);
++					    "tuner", tuner_addr, NULL);
+ 		}
++
++		em28xx_tuner_setup(dev, tuner_addr);
+ 	}
+ 
+-	em28xx_tuner_setup(dev);
+ 	if (dev->em28xx_sensor != EM28XX_NOSENSOR)
+ 		em28xx_init_camera(dev);
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 917cb25..3a3fe16 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -632,7 +632,6 @@ struct em28xx {
+ 	struct em28xx_audio_mode audio_mode;
+ 
+ 	int tuner_type;		/* type of the tuner */
+-	int tuner_addr;		/* tuner address */
+ 
+ 	/* i2c i/o */
+ 	struct i2c_adapter i2c_adap[NUM_I2C_BUSES];
 -- 
-1.7.10.4
+1.8.4.5
 
