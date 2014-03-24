@@ -1,202 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3284 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752092AbaCGM7f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 07:59:35 -0500
-Message-ID: <5319C2A7.6090805@xs4all.nl>
-Date: Fri, 07 Mar 2014 13:59:19 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:55805 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754036AbaCXTdG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Mar 2014 15:33:06 -0400
+Received: by mail-ee0-f46.google.com with SMTP id t10so4761665eei.5
+        for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 12:33:05 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 12/19] em28xx: move progressive/interlaced fields from struct em28xx to struct v4l2
+Date: Mon, 24 Mar 2014 20:33:18 +0100
+Message-Id: <1395689605-2705-13-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Archit Taneja <archit@ti.com>
-CC: k.debski@samsung.com, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH v2 7/7] v4l: ti-vpe: Add selection API in VPE driver
-References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393922965-15967-1-git-send-email-archit@ti.com> <1393922965-15967-8-git-send-email-archit@ti.com> <53159F7D.8020707@xs4all.nl> <5315B822.7010005@ti.com> <5315BA83.5080500@xs4all.nl> <5319B26B.8050900@ti.com>
-In-Reply-To: <5319B26B.8050900@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/07/2014 12:50 PM, Archit Taneja wrote:
-> Hi Hans,
-> 
-> On Tuesday 04 March 2014 05:05 PM, Hans Verkuil wrote:
->> On 03/04/14 12:25, Archit Taneja wrote:
->>> I had a minor question about the selection API:
->>>
->>> Are the V4L2_SET_TGT_CROP/COMPOSE_DEFAULT and the corresponding
->>> 'BOUNDS' targets supposed to be used with VIDIOC_S_SELECTION? If so,
->>> what's the expect behaviour?
->>
->> No, those are read only in practice. So only used with G_SELECTION, never
->> with S_SELECTION.
-> 
-> <snip>
-> 
-> I tried the v4l2-compliance thing. It's awesome! And a bit annoying too 
-> when it comes to fixing little things needed for compliance :). But it's 
-> required, and I hope to fix these eventually.
-> 
-> After a few small fixes in the driver, I get the results as below. I am 
-> debugging the cause of try_fmt and s_fmt failures. I'm not sure why the 
-> streaming test fails with MMAP, the logs of my driver show that a 
-> successful mem2mem transaction happened.
-> 
-> I tried this on the 'vb2-part1' branch as you suggested.
-> 
-> Do you think I can go ahead with posting the v3 patch set for 3.15, and 
-> work on fixing the compliance issue for the -rc fixes?
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c |  2 --
+ drivers/media/usb/em28xx/em28xx-video.c | 27 +++++++++++++++++----------
+ drivers/media/usb/em28xx/em28xx.h       | 10 +++++-----
+ 3 files changed, 22 insertions(+), 17 deletions(-)
 
-It's fine to upstream this in staging, but while not all compliance errors
-are fixed it can't go to drivers/media. I'm tightening the screws on that
-since v4l2-compliance is getting to be such a powerful tool for ensuring
-the driver complies.
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index a21cce1..64ea25a 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2682,8 +2682,6 @@ static void em28xx_card_setup(struct em28xx *dev)
+ 	if (dev->board.is_webcam) {
+ 		if (em28xx_detect_sensor(dev) < 0)
+ 			dev->board.is_webcam = 0;
+-		else
+-			dev->progressive = 1;
+ 	}
+ 
+ 	switch (dev->model) {
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index c316147..abb4e8e 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -447,9 +447,10 @@ static void em28xx_copy_video(struct em28xx *dev,
+ 			      unsigned char *usb_buf,
+ 			      unsigned long len)
+ {
++	struct em28xx_v4l2 *v4l2 = dev->v4l2;
+ 	void *fieldstart, *startwrite, *startread;
+ 	int  linesdone, currlinedone, offset, lencopy, remain;
+-	int bytesperline = dev->v4l2->width << 1;
++	int bytesperline = v4l2->width << 1;
+ 
+ 	if (buf->pos + len > buf->length)
+ 		len = buf->length - buf->pos;
+@@ -457,7 +458,7 @@ static void em28xx_copy_video(struct em28xx *dev,
+ 	startread = usb_buf;
+ 	remain = len;
+ 
+-	if (dev->progressive || buf->top_field)
++	if (v4l2->progressive || buf->top_field)
+ 		fieldstart = buf->vb_buf;
+ 	else /* interlaced mode, even nr. of lines */
+ 		fieldstart = buf->vb_buf + bytesperline;
+@@ -465,7 +466,7 @@ static void em28xx_copy_video(struct em28xx *dev,
+ 	linesdone = buf->pos / bytesperline;
+ 	currlinedone = buf->pos % bytesperline;
+ 
+-	if (dev->progressive)
++	if (v4l2->progressive)
+ 		offset = linesdone * bytesperline + currlinedone;
+ 	else
+ 		offset = linesdone * bytesperline * 2 + currlinedone;
+@@ -489,7 +490,7 @@ static void em28xx_copy_video(struct em28xx *dev,
+ 	remain -= lencopy;
+ 
+ 	while (remain > 0) {
+-		if (dev->progressive)
++		if (v4l2->progressive)
+ 			startwrite += lencopy;
+ 		else
+ 			startwrite += lencopy + bytesperline;
+@@ -611,7 +612,9 @@ finish_field_prepare_next(struct em28xx *dev,
+ 			  struct em28xx_buffer *buf,
+ 			  struct em28xx_dmaqueue *dma_q)
+ {
+-	if (dev->progressive || dev->top_field) { /* Brand new frame */
++	struct em28xx_v4l2 *v4l2 = dev->v4l2;
++
++	if (v4l2->progressive || dev->top_field) { /* Brand new frame */
+ 		if (buf != NULL)
+ 			finish_buffer(dev, buf);
+ 		buf = get_next_buf(dev, dma_q);
+@@ -1234,10 +1237,10 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+ 	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 
+ 	/* FIXME: TOP? NONE? BOTTOM? ALTENATE? */
+-	if (dev->progressive)
++	if (v4l2->progressive)
+ 		f->fmt.pix.field = V4L2_FIELD_NONE;
+ 	else
+-		f->fmt.pix.field = dev->interlaced ?
++		f->fmt.pix.field = v4l2->interlaced_fieldmode ?
+ 			   V4L2_FIELD_INTERLACED : V4L2_FIELD_TOP;
+ 	return 0;
+ }
+@@ -1258,6 +1261,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ {
+ 	struct em28xx_fh      *fh    = priv;
+ 	struct em28xx         *dev   = fh->dev;
++	struct em28xx_v4l2    *v4l2  = dev->v4l2;
+ 	unsigned int          width  = f->fmt.pix.width;
+ 	unsigned int          height = f->fmt.pix.height;
+ 	unsigned int          maxw   = norm_maxw(dev);
+@@ -1299,10 +1303,10 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 	f->fmt.pix.bytesperline = (width * fmt->depth + 7) >> 3;
+ 	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline * height;
+ 	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+-	if (dev->progressive)
++	if (v4l2->progressive)
+ 		f->fmt.pix.field = V4L2_FIELD_NONE;
+ 	else
+-		f->fmt.pix.field = dev->interlaced ?
++		f->fmt.pix.field = v4l2->interlaced_fieldmode ?
+ 			   V4L2_FIELD_INTERLACED : V4L2_FIELD_TOP;
+ 	f->fmt.pix.priv = 0;
+ 
+@@ -2316,6 +2320,9 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 	v4l2_ctrl_handler_init(hdl, 8);
+ 	v4l2->v4l2_dev.ctrl_handler = hdl;
+ 
++	if (dev->board.is_webcam)
++		v4l2->progressive = 1;
++
+ 	/*
+ 	 * Default format, used for tvp5150 or saa711x output formats
+ 	 */
+@@ -2430,7 +2437,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 	/* set default norm */
+ 	v4l2->norm = V4L2_STD_PAL;
+ 	v4l2_device_call_all(&v4l2->v4l2_dev, 0, core, s_std, v4l2->norm);
+-	dev->interlaced = EM28XX_INTERLACED_DEFAULT;
++	v4l2->interlaced_fieldmode = EM28XX_INTERLACED_DEFAULT;
+ 
+ 	/* Analog specific initialization */
+ 	v4l2->format = &format[0];
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index dd93a37..1491879 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -521,6 +521,11 @@ struct em28xx_v4l2 {
+ 	struct em28xx_fmt *format;
+ 	v4l2_std_id norm;	/* selected tv norm */
+ 
++	/* Progressive/interlaced mode */
++	bool progressive;
++	int interlaced_fieldmode; /* 1=interlaced fields, 0=just top fields */
++	/* FIXME: everything else than interlaced_fieldmode=1 doesn't work */
++
+ 	/* Frame properties */
+ 	int width;		/* current frame width */
+ 	int height;		/* current frame height */
+@@ -600,9 +605,6 @@ struct em28xx {
+ 	int sensor_xres, sensor_yres;
+ 	int sensor_xtal;
+ 
+-	/* Progressive (non-interlaced) mode */
+-	int progressive;
+-
+ 	/* Controls audio streaming */
+ 	struct work_struct wq_trigger;	/* Trigger to start/stop audio for alsa module */
+ 	atomic_t       stream_started;	/* stream should be running if true */
+@@ -640,8 +642,6 @@ struct em28xx {
+ 	int mute;
+ 	int volume;
+ 
+-	int interlaced;		/* 1=interlace fileds, 0=just top fileds */
+-
+ 	unsigned long hash;	/* eeprom hash - for boards with generic ID */
+ 	unsigned long i2c_hash;	/* i2c devicelist hash -
+ 				   for boards with generic ID */
+-- 
+1.8.4.5
 
-> 
-> Thanks,
-> Archit
-> 
-> # ./utils/v4l2-compliance/v4l2-compliance  -v --streaming=10
-> root@localhost:~/source_trees/v4l-utils# Driver Info:
->          Driver name   : vpe
->          Card type     : vpe
->          Bus info      : platform:vpe
->          Driver version: 3.14.0
->          Capabilities  : 0x84004000
->                  Video Memory-to-Memory Multiplanar
->                  Streaming
->                  Device Capabilities
->          Device Caps   : 0x04004000
->                  Video Memory-to-Memory Multiplanar
->                  Streaming
-> 
-> Compliance test for device /dev/video0 (not using libv4l2):
-> 
-> Required ioctls:
->          test VIDIOC_QUERYCAP: OK
-> 
-> Allow for multiple opens:
->          test second video open: OK
->          test VIDIOC_QUERYCAP: OK
->          test VIDIOC_G/S_PRIORITY: OK
-> 
-> Debug ioctls:
->          test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
->          test VIDIOC_LOG_STATUS: OK (Not Supported)
-> 
-> Input ioctls:
->          test VIDIOC_G/S_TUNER: OK (Not Supported)
->          test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->          test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
->          test VIDIOC_ENUMAUDIO: OK (Not Supported)
->          test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
->          test VIDIOC_G/S_AUDIO: OK (Not Supported)
->          Inputs: 0 Audio Inputs: 0 Tuners: 0
-> 
-> Output ioctls:
->          test VIDIOC_G/S_MODULATOR: OK (Not Supported)
->          test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->          test VIDIOC_ENUMAUDOUT: OK (Not Supported)
->          test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
->          test VIDIOC_G/S_AUDOUT: OK (Not Supported)
->          Outputs: 0 Audio Outputs: 0 Modulators: 0
-> 
-> Control ioctls:
->                  info: checking v4l2_queryctrl of control 'User 
-> Controls' (0x00980001)
->                  info: checking v4l2_queryctrl of control 'Buffers Per 
-> Transaction' (0x00981950)
->                  info: checking v4l2_queryctrl of control 'Buffers Per 
-> Transaction' (0x08000000)
->          test VIDIOC_QUERYCTRL/MENU: OK
->                  info: checking control 'User Controls' (0x00980001)
->                  info: checking control 'Buffers Per Transaction' 
-> (0x00981950)
->          test VIDIOC_G/S_CTRL: OK
->                  info: checking extended control 'User Controls' 
-> (0x00980001)
->                  info: checking extended control 'Buffers Per 
-> Transaction' (0x00981950)
->          test VIDIOC_G/S/TRY_EXT_CTRLS: OK
->                  info: checking control event 'User Controls' (0x00980001)
->                  info: checking control event 'Buffers Per Transaction' 
-> (0x00981950)
->          test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
->          test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
->          Standard Controls: 1 Private Controls: 1
-> 
-> Input/Output configuration ioctls:
->          test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
->          test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
->          test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-> 
-> Format ioctls:
->                  info: found 8 formats for buftype 9
->                  info: found 4 formats for buftype 10
->          test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
->          test VIDIOC_G/S_PARM: OK (Not Supported)
->          test VIDIOC_G_FBUF: OK (Not Supported)
->          test VIDIOC_G_FMT: OK
->                  fail: v4l2-test-formats.cpp(614): Video Capture 
-> Multiplanar: TRY_FMT(G_FMT) != G_FMT
->          test VIDIOC_TRY_FMT: FAIL
->                  warn: v4l2-test-formats.cpp(834): S_FMT cannot handle 
-> an invalid pixelformat.
->                  warn: v4l2-test-formats.cpp(835): This may or may not 
-> be a problem. For more information see:
->                  warn: v4l2-test-formats.cpp(836): 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
->                  fail: v4l2-test-formats.cpp(420): pix_mp.reserved not 
-> zeroed
-
-This is easy enough to fix.
-
->                  fail: v4l2-test-formats.cpp(851): Video Capture 
-> Multiplanar is valid, but no S_FMT was implemented
-
-For the FMT things: run with -T: that gives nice traces. You can also
-set the debug flag: echo 2 >/sys/class/video4linux/video0/debug to see all
-ioctls in more detail.
-
->          test VIDIOC_S_FMT: FAIL
->          test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-> 
-> Codec ioctls:
->          test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->          test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->          test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-> 
-> Buffer ioctls:
->                  info: test buftype Video Capture Multiplanar
->                  warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS 
-> not supported
->                  info: test buftype Video Output Multiplanar
->                  warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS 
-> not supported
->          test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->          test VIDIOC_EXPBUF: OK (Not Supported)
->          test read/write: OK (Not Supported)
->              Video Capture Multiplanar (polling):
->                  Buffer: 0 Sequence: 0 Field: Top Timestamp: 113.178208s
->                  fail: v4l2-test-buffers.cpp(222): buf.field != 
-> cur_fmt.fmt.pix.field
-
-Definitely needs to be fixed, you probably just don't set the field at all.
-
->                  fail: v4l2-test-buffers.cpp(630): checkQueryBuf(node, 
-> buf, bufs.type, bufs.memory, buf.index, Dequeued, last_seq)
->                  fail: v4l2-test-buffers.cpp(1038): captureBufs(node, 
-> bufs, m2m_bufs, frame_count, true)
->          test MMAP: FAIL
->          test USERPTR: OK (Not Supported)
->          test DMABUF: Cannot test, specify --expbuf-device
-> 
-> Total: 40, Succeeded: 37, Failed: 3, Warnings: 5
-> 
-> [1]+  Exit 1                  ./utils/v4l2-compliance/v4l2-compliance -v 
-> --streaming=10
-
-Regards,
-
-	Hans
