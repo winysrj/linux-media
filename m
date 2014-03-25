@@ -1,113 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2719 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754391AbaCODe2 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41140 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752548AbaCYMQa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Mar 2014 23:34:28 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2F3YOFl008473
-	for <linux-media@vger.kernel.org>; Sat, 15 Mar 2014 04:34:26 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id A4E912A1889
-	for <linux-media@vger.kernel.org>; Sat, 15 Mar 2014 04:34:17 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140315033417.A4E912A1889@tschai.lan>
-Date: Sat, 15 Mar 2014 04:34:17 +0100 (CET)
+	Tue, 25 Mar 2014 08:16:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH 4/6] v4l: vsp1: Add DT support
+Date: Tue, 25 Mar 2014 13:18:22 +0100
+Message-ID: <4172444.b80tq3sQnW@avalon>
+In-Reply-To: <4542787.8JEGs6DclK@avalon>
+References: <1394047444-30077-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <4542787.8JEGs6DclK@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hello,
 
-Results of the daily build of media_tree:
+Gentle ping. I'll send a pull request in a week if I don't receive any comment 
+on the DT bindings in the meantime.
 
-date:		Sat Mar 15 04:00:17 CET 2014
-git branch:	test
-git hash:	ed97a6fe5308e5982d118a25f0697b791af5ec50
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.13-5.slh.4-amd64
+On Wednesday 05 March 2014 20:30:27 Laurent Pinchart wrote:
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> ---
+>  .../devicetree/bindings/media/renesas,vsp1.txt     | 51 +++++++++++++++++++
+>  drivers/media/platform/vsp1/vsp1_drv.c             | 52 +++++++++++++++----
+>  2 files changed, 95 insertions(+), 8 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/renesas,vsp1.txt
+> 
+> (With the DT mailing list CC'ed this time, sorry about that)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/renesas,vsp1.txt
+> b/Documentation/devicetree/bindings/media/renesas,vsp1.txt new file mode
+> 100644
+> index 0000000..3b828d4
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
+> @@ -0,0 +1,51 @@
+> +* Renesas VSP1 Video Processing Engine
+> +
+> +The VSP1 is a video processing engine that supports up-/down-scaling, alpha
+> +blending, color space conversion and various other image processing
+> features.
+> +It can be found in the Renesas R-Car second generation SoCs.
+> +
+> +Required properties:
+> +
+> +  - compatible: Must contain "renesas,vsp1"
+> +
+> +  - reg: Base address and length of the registers block for the VSP1.
+> +  - interrupt-parent, interrupts: Specifier for the VSP1 interrupt.
+> +
+> +  - clocks: A list of phandle + clock-specifier pairs for the main VSP1
+> clock
+> +    and the optional auxiliary RT clock if needed. VSP1 instances that need
+> an
+> +    auxiliary RT clock must specify the clock-names property.
+> +
+> +  - renesas,#rpf: Number of Read Pixel Formatter (RPF) modules in the VSP1.
+> +  - renesas,#uds: Number of Up Down Scaler (UDS) modules in the VSP1.
+> +  - renesas,#wpf: Number of Write Pixel Formatter (WPF) modules in the
+> VSP1.
+> +
+> +
+> +Optional properties:
+> +
+> +  - clock-names: When the VSP1 requires an auxiliary RT clock this property
+> +    must be present and must contain "", "rt".
+> +
+> +  - renesas,has-lif: Boolean, indicates that the LCD Interface (LIF) module
+> is
+> +    available.
+> +  - renesas,has-lut: Boolean, indicates that the Look Up Table (LUT) module
+> is
+> +    available.
+> +  - renesas,has-sru: Boolean, indicates that the Super Resolution Unit
+> (SRU)
+> +    module is available.
+> +
+> +
+> +Example: R8A7790 (R-Car H2) VSP1-S node
+> +
+> +	vsp1@fe928000 {
+> +		compatible = "renesas,vsp1";
+> +		reg = <0 0xfe928000 0 0x8000>;
+> +		interrupts = <0 267 IRQ_TYPE_LEVEL_HIGH>;
+> +		clocks = <&mstp1_clks R8A7790_CLK_VSP1_SY>,
+> +			 <&mstp1_clks R8A7790_CLK_VSP1_RT>;
+> +		clock-names = "", "rt";
+> +
+> +		renesas,has-lut;
+> +		renesas,has-sru;
+> +		renesas,#rpf = <5>;
+> +		renesas,#uds = <3>;
+> +		renesas,#wpf = <4>;
+> +	};
+> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c
+> b/drivers/media/platform/vsp1/vsp1_drv.c index 5f774cc..b75ca84 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drv.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
+> @@ -16,6 +16,7 @@
+>  #include <linux/device.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/module.h>
+> +#include <linux/of.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/videodev2.h>
+> 
+> @@ -458,34 +459,59 @@ static const struct dev_pm_ops vsp1_pm_ops = {
+>   * Platform Driver
+>   */
+> 
+> -static struct vsp1_platform_data *
+> -vsp1_get_platform_data(struct platform_device *pdev)
+> +static int vsp1_validate_platform_data(struct platform_device *pdev,
+> +				       struct vsp1_platform_data *pdata)
+>  {
+> -	struct vsp1_platform_data *pdata = pdev->dev.platform_data;
+> -
+>  	if (pdata == NULL) {
+>  		dev_err(&pdev->dev, "missing platform data\n");
+> -		return NULL;
+> +		return -EINVAL;
+>  	}
+> 
+>  	if (pdata->rpf_count <= 0 || pdata->rpf_count > VPS1_MAX_RPF) {
+>  		dev_err(&pdev->dev, "invalid number of RPF (%u)\n",
+>  			pdata->rpf_count);
+> -		return NULL;
+> +		return -EINVAL;
+>  	}
+> 
+>  	if (pdata->uds_count <= 0 || pdata->uds_count > VPS1_MAX_UDS) {
+>  		dev_err(&pdev->dev, "invalid number of UDS (%u)\n",
+>  			pdata->uds_count);
+> -		return NULL;
+> +		return -EINVAL;
+>  	}
+> 
+>  	if (pdata->wpf_count <= 0 || pdata->wpf_count > VPS1_MAX_WPF) {
+>  		dev_err(&pdev->dev, "invalid number of WPF (%u)\n",
+>  			pdata->wpf_count);
+> -		return NULL;
+> +		return -EINVAL;
+>  	}
+> 
+> +	return 0;
+> +}
+> +
+> +static struct vsp1_platform_data *
+> +vsp1_get_platform_data(struct platform_device *pdev)
+> +{
+> +	struct device_node *np = pdev->dev.of_node;
+> +	struct vsp1_platform_data *pdata;
+> +
+> +	if (!IS_ENABLED(CONFIG_OF) || np == NULL)
+> +		return pdev->dev.platform_data;
+> +
+> +	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+> +	if (pdata == NULL)
+> +		return NULL;
+> +
+> +	if (of_property_read_bool(np, "renesas,has-lif"))
+> +		pdata->features |= VSP1_HAS_LIF;
+> +	if (of_property_read_bool(np, "renesas,has-lut"))
+> +		pdata->features |= VSP1_HAS_LUT;
+> +	if (of_property_read_bool(np, "renesas,has-sru"))
+> +		pdata->features |= VSP1_HAS_SRU;
+> +
+> +	of_property_read_u32(np, "renesas,#rpf", &pdata->rpf_count);
+> +	of_property_read_u32(np, "renesas,#uds", &pdata->uds_count);
+> +	of_property_read_u32(np, "renesas,#wpf", &pdata->wpf_count);
+> +
+>  	return pdata;
+>  }
+> 
+> @@ -508,6 +534,10 @@ static int vsp1_probe(struct platform_device *pdev)
+>  	if (vsp1->pdata == NULL)
+>  		return -ENODEV;
+> 
+> +	ret = vsp1_validate_platform_data(pdev, vsp1->pdata);
+> +	if (ret < 0)
+> +		return ret;
+> +
+>  	/* I/O, IRQ and clock resources */
+>  	io = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	vsp1->mmio = devm_ioremap_resource(&pdev->dev, io);
+> @@ -557,6 +587,11 @@ static int vsp1_remove(struct platform_device *pdev)
+>  	return 0;
+>  }
+> 
+> +static const struct of_device_id vsp1_of_match[] = {
+> +	{ .compatible = "renesas,vsp1" },
+> +	{ },
+> +};
+> +
+>  static struct platform_driver vsp1_platform_driver = {
+>  	.probe		= vsp1_probe,
+>  	.remove		= vsp1_remove,
+> @@ -564,6 +599,7 @@ static struct platform_driver vsp1_platform_driver = {
+>  		.owner	= THIS_MODULE,
+>  		.name	= "vsp1",
+>  		.pm	= &vsp1_pm_ops,
+> +		.of_match_table = of_match_ptr(vsp1_of_match),
+>  	},
+>  };
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+-- 
+Regards,
 
-Detailed results are available here:
+Laurent Pinchart
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
