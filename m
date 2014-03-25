@@ -1,208 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:38947 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753985AbaCMWIj (ORCPT
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:38454 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752998AbaCYJqY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 18:08:39 -0400
-Received: from compute3.internal (compute3.nyi.mail.srv.osa [10.202.2.43])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 5F87120AD0
-	for <linux-media@vger.kernel.org>; Thu, 13 Mar 2014 18:08:38 -0400 (EDT)
-Message-ID: <53222C64.90901@williammanley.net>
-Date: Thu, 13 Mar 2014 22:08:36 +0000
-From: William Manley <will@williammanley.net>
+	Tue, 25 Mar 2014 05:46:24 -0400
+Received: by mail-wg0-f42.google.com with SMTP id y10so137640wgg.25
+        for <linux-media@vger.kernel.org>; Tue, 25 Mar 2014 02:46:23 -0700 (PDT)
+From: James Hogan <james.hogan@imgtec.com>
+To: David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	Antti =?ISO-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>
+Subject: Re: [PATCH 1/5] rc-main: add generic scancode filtering
+Date: Tue, 25 Mar 2014 09:12:11 +0000
+Message-ID: <10422443.FIKnYVGtAm@radagast>
+In-Reply-To: <20140324235146.GA25627@hardeman.nu>
+References: <1393629426-31341-1-git-send-email-james.hogan@imgtec.com> <1393629426-31341-2-git-send-email-james.hogan@imgtec.com> <20140324235146.GA25627@hardeman.nu>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] uvcvideo: Work around buggy Logitech C920 firmware
-References: <1394647711-25291-1-git-send-email-will@williammanley.net> <1854099.LO0jorujWf@avalon> <1394707700.15658.93976573.78252B46@webmail.messagingengine.com> <1832254.8GCCJyof1H@avalon>
-In-Reply-To: <1832254.8GCCJyof1H@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; boundary="nextPart1714853.PnQ5JmDmLT"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13/03/14 17:03, Laurent Pinchart wrote:
-> On Thursday 13 March 2014 10:48:20 Will Manley wrote:
->> On Thu, 13 Mar 2014, at 10:23, Laurent Pinchart wrote:
->>> On Wednesday 12 March 2014 18:08:31 William Manley wrote:
->>>> The uvcvideo webcam driver exposes the v4l2 control "Exposure
->>>> (Absolute)" which allows the user to control the exposure time of the
->>>> webcam, essentially controlling the brightness of the received image. 
->>>> By default the webcam automatically adjusts the exposure time
->>>> automatically but the if you set the control "Exposure, Auto"="Manual
->>>> Mode" the user can fix the exposure time.
->>>>
->>>> Unfortunately it seems that the Logitech C920 has a firmware bug where
->>>> it will forget that it's in manual mode temporarily during
->>>> initialisation. This means that the camera doesn't respect the exposure
->>>> time that the user requested if they request it before starting to
->>>> stream video. They end up with a video stream which is either too bright
->>>> or too dark and must reset the controls after video starts streaming.
->>>
->>> I would like to get a better understanding of the problem first. As I
->>> don't have a C920, could you please perform two tests for me ?
->>>
->>> I would first like to know what the camera reports as its exposure time
->>> after starting the stream. If you get the exposure time at that point (by
->>> sending a GET_CUR request, bypassing the driver cache), do you get the
->>> value you had previously set (which, from your explanation, would be
->>> incorrect, as the exposure time has changed based on your findings), or a
->>> different value ? Does the camera change the exposure priority control
->>> autonomously as well, or just the exposure time ?
->>
->> It's a bit of a strange behaviour. I'd already tried littering the code with
->> (uncached) GET_CUR requests. It seems that the value changes sometime during
->> the call to usb_set_interface in uvc_init_video.
-> 
-> I'll assume this means that the camera reports the updated exposure time in 
-> response to the GET_CUR request.
 
-That's right
+--nextPart1714853.PnQ5JmDmLT
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 
-> Does the value of other controls (such as the 
-> exposure priority control for instance) change as well ?
+On Tuesday 25 March 2014 00:51:46 David H=E4rdeman wrote:
+> On Fri, Feb 28, 2014 at 11:17:02PM +0000, James Hogan wrote:
+> >Add generic scancode filtering of RC input events, and fall back to
+> >permitting any RC_FILTER_NORMAL scancode filter to be set if no s_fi=
+lter
+> >callback exists. This allows raw IR decoder events to be filtered, a=
+nd
+> >potentially allows hardware decoders to set looser filters and rely =
+on
+> >generic code to filter out the corner cases.
+>=20
+> Hi James,
+>=20
+> What's the purpose of providing the sw scancode filtering in the case=
+ where
+> there's no hardware filtering support at all?
 
-No, I've not seen any of the other controls change.
+Consistency is probably the main reason, but I'll admit it's not perfec=
+tly=20
+consistent between generic/hardware filtering (mostly thanks to NEC sca=
+ncode=20
+complexities), and I have no particular objection to dropping it if tha=
+t isn't=20
+considered a good enough reason.
 
->> Strangely enough though calling uvc_ctrl_restore_values immediately after
->> uvc_init_video has no effect. It must be put after the usb_submit_urb loop
->> to fix the problem.
->>
->>> Then, I would like to know whether the camera sends a control update
->>> event when you start the stream, or if it just changes the exposure time
->>> without notifying the driver.
->>
->> Wireshark tells me that it is sending a control update event, but it seems
->> like uvcvideo ignores it. I had to add the flag UVC_CTRL_FLAG_AUTO_UPDATE to
->> the uvc_control_info entry for "Exposure (Auto)" for the new value to be
->> properly reported to userspace.
-> 
-> Could you send me the USB trace ?
+Here's the original discussion:
+On Monday 10 February 2014 21:45:30 Antti Sepp=E4l=E4 wrote:
+> On 10 February 2014 11:58, James Hogan <james.hogan@imgtec.com> wrote=
+:
+> > On Saturday 08 February 2014 13:30:01 Antti Sepp=E4l=E4 wrote:
+> > > Also adding the scancode filter to it would
+> > > demonstrate its usage.
+> >=20
+> > To actually add filtering support to loopback would require either:=
 
-I've uploaded 3 traces: one with no patch (kernel 3.12) one with my
-"PATCH v2" applied and one with no patch but caching of gets disabled.
-You can get them here:
+> > * raw-decoder/rc-core level scancode filtering for raw ir drivers
+> > * OR loopback driver to encode like nuvoton and fuzzy match the IR
+> > signals.
+>=20
+> Rc-core level scancode filtering shouldn't be too hard to do right? I=
+f
+> such would exist then it would provide a software fallback to other r=
+c
+> devices where hardware filtering isn't available. I'd love to see the=
 
-    http://williammanley.net/C920-no-patch.pcapng
-    http://williammanley.net/C920-with-patch.pcapng
-    http://williammanley.net/C920-no-caching.pcapng
+> sysfs filter and filter_mask files to have an effect on my nuvoton to=
+o
 
-The process to generate them was:
 
-    sudo dumpcap -i usbmon1 -w /tmp/C920-no-patch2.pcapng &
+> (sorry that I'm replying so late...busy schedule :))
 
-    # Plug USB cable in here
+No problem :)
 
-    v4l2-ctl -d
-/dev/v4l/by-id/usb-046d_HD_Pro_Webcam_C920_C833389F-video-index1
+Cheers
+James
 
--cexposure_auto=1,exposure_auto_priority=0,exposure_absolute=152,white_balance_temperature_auto=0
+> >Signed-off-by: James Hogan <james.hogan@imgtec.com>
+> >Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> >Cc: Antti Sepp=E4l=E4 <a.seppala@gmail.com>
+> >Cc: linux-media@vger.kernel.org
+> >---
+> >
+> > drivers/media/rc/rc-main.c | 20 +++++++++++++-------
+> > 1 file changed, 13 insertions(+), 7 deletions(-)
+> >
+> >diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c=
 
-    ./streamon
+> >index 6448128..0a4f680 100644
+> >--- a/drivers/media/rc/rc-main.c
+> >+++ b/drivers/media/rc/rc-main.c
+> >@@ -633,6 +633,7 @@ EXPORT_SYMBOL_GPL(rc_repeat);
+> >
+> > static void ir_do_keydown(struct rc_dev *dev, int scancode,
+> >=20
+> > =09=09=09  u32 keycode, u8 toggle)
+> >=20
+> > {
+> >
+> >+=09struct rc_scancode_filter *filter;
+> >
+> > =09bool new_event =3D !dev->keypressed ||
+> > =09
+> > =09=09=09 dev->last_scancode !=3D scancode ||
+> > =09=09=09 dev->last_toggle !=3D toggle;
+> >
+> >@@ -640,6 +641,11 @@ static void ir_do_keydown(struct rc_dev *dev, i=
+nt
+> >scancode,>
+> > =09if (new_event && dev->keypressed)
+> > =09
+> > =09=09ir_do_keyup(dev, false);
+> >
+> >+=09/* Generic scancode filtering */
+> >+=09filter =3D &dev->scancode_filters[RC_FILTER_NORMAL];
+> >+=09if (filter->mask && ((scancode ^ filter->data) & filter->mask))
+> >+=09=09return;
+> >+
+> >
+> > =09input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
+> > =09
+> > =09if (new_event && keycode !=3D KEY_RESERVED) {
+> >
+> >@@ -1019,9 +1025,7 @@ static ssize_t show_filter(struct device *devi=
+ce,
+> >
+> > =09=09return -EINVAL;
+> > =09
+> > =09mutex_lock(&dev->lock);
+> >
+> >-=09if (!dev->s_filter)
+> >-=09=09val =3D 0;
+> >-=09else if (fattr->mask)
+> >+=09if (fattr->mask)
+> >
+> > =09=09val =3D dev->scancode_filters[fattr->type].mask;
+> > =09
+> > =09else
+> > =09
+> > =09=09val =3D dev->scancode_filters[fattr->type].data;
+> >
+> >@@ -1069,7 +1073,7 @@ static ssize_t store_filter(struct device *dev=
+ice,
+> >
+> > =09=09return ret;
+> > =09
+> > =09/* Scancode filter not supported (but still accept 0) */
+> >
+> >-=09if (!dev->s_filter)
+> >+=09if (!dev->s_filter && fattr->type !=3D RC_FILTER_NORMAL)
+> >
+> > =09=09return val ? -EINVAL : count;
+> > =09
+> > =09mutex_lock(&dev->lock);
+> >
+> >@@ -1081,9 +1085,11 @@ static ssize_t store_filter(struct device *de=
+vice,
+> >
+> > =09=09local_filter.mask =3D val;
+> > =09
+> > =09else
+> > =09
+> > =09=09local_filter.data =3D val;
+> >
+> >-=09ret =3D dev->s_filter(dev, fattr->type, &local_filter);
+> >-=09if (ret < 0)
+> >-=09=09goto unlock;
+> >+=09if (dev->s_filter) {
+> >+=09=09ret =3D dev->s_filter(dev, fattr->type, &local_filter);
+> >+=09=09if (ret < 0)
+> >+=09=09=09goto unlock;
+> >+=09}
+> >
+> > =09/* Success, commit the new filter */
+> > =09*filter =3D local_filter;
 
-The relevant output seems to be (here from C920-no-patch.pcapng):
+--nextPart1714853.PnQ5JmDmLT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
 
-> 10446 23.095874000 21:14:16.313257000         host -> 32.0         USB 64 SET INTERFACE Request
-> 10447 23.109379000 21:14:16.326762000         32.3 -> host         USBVIDEO 70 URB_INTERRUPT in
-> 10448 23.109389000 21:14:16.326772000         host -> 32.3         USB 64 URB_INTERRUPT in
-> 10449 23.189448000 21:14:16.406831000         32.3 -> host         USBVIDEO 73 URB_INTERRUPT in
-> 10450 23.189486000 21:14:16.406869000         host -> 32.3         USB 64 URB_INTERRUPT in
-> 10451 23.243314000 21:14:16.460697000         32.0 -> host         USB 64 SET INTERFACE Response
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-Taking a closer look at packet 10449:
+iQIcBAABAgAGBQJTMUhzAAoJEKHZs+irPybfkWAP/jqMAYwM8gwbaWbhmMrt8wI8
+P5VQu66yRk22EPjb4twFi98/5XAM90XKwRW7WOeB31zFB5NiTGru/ojMaXjhf1GA
+9hQKbFFngfIYdbQQxTYCVj1trLInxZE2CmFkX3PsVUxaQAs+WWzOl2+eQXJ3stFL
+d0Zw7WD2iAOQNnV0wXQGw38wPLcZk11R81txj2XlxsTpy7ctQsYdrYYJT5wIvTQG
+pkjTAOX1qqQkj5+zaac131CfSYF2cpF1ySIGEzsMqCb7S23ifcnx46aGTv0vuMbR
+j+CtXau3G9BwPHQxwqTZ/0Sd9hvm9S+SxPpprVzyr9J56Tqn/nDv3KCOiUWTYc8W
+4JCJetgFNBG7cQEti2e+Y2QmoPuQ/HnawzRX1Q6RL66McjQe0Tj2aet4A95FHGvz
+wpvRqb2JGRRxCD0lB0xwHi2rWWWXuKt1YbXn/p4MU47/dL41OJroHkJk07iEdf2f
+Dag6pnywBdZqGAHfw/QkpfxlX/is+KR6L1TtBA3QwCrB6DJFOarAmbkdFkdVSzq6
+6jsgGise0k7VUar8KYnGwmf5apClIdU9KJLdQLIOjkeBPBZZI0LBs1UALMfFVnQr
+U3k3nOCJEQTS9U7cg7Iio68ajlEtTN3oXLT/sQPj0p9PzBvJH+xmq1Wp23GhHtXZ
+2q816EnZrZB65CSh7vCy
+=JOaK
+-----END PGP SIGNATURE-----
 
-> Frame 10449: 73 bytes on wire (584 bits), 73 bytes captured (584 bits) on interface 0
->     Interface id: 0
->     Encapsulation type: USB packets with Linux header and padding (115)
->     Arrival Time: Mar 13, 2014 21:14:16.406831000 GMT
->     [Time shift for this packet: 0.000000000 seconds]
->     Epoch Time: 1394745256.406831000 seconds
->     [Time delta from previous captured frame: 0.080059000 seconds]
->     [Time delta from previous displayed frame: 0.080059000 seconds]
->     [Time since reference or first frame: 23.189448000 seconds]
->     Frame Number: 10449
->     Frame Length: 73 bytes (584 bits)
->     Capture Length: 73 bytes (584 bits)
->     [Frame is marked: False]
->     [Frame is ignored: False]
->     [Protocols in frame: usb:usbvideo]
-> USB URB
->     URB id: 0xffff88081bf95240
->     URB type: URB_COMPLETE ('C')
->     URB transfer type: URB_INTERRUPT (0x01)
->     Endpoint: 0x83, Direction: IN
->         1... .... = Direction: IN (1)
->         .000 0011 = Endpoint value: 3
->     Device: 32
->     URB bus id: 1
->     Device setup request: not relevant ('-')
->     Data: present (0)
->     URB sec: 1394745256
->     URB usec: 406831
->     URB status: Success (0)
->     URB length [bytes]: 9
->     Data length [bytes]: 9
->     [Request in: 10448]
->     [Time from request: 0.080059000 seconds]
->     [bInterfaceClass: Video (0x0e)]
-> .... 0001 = Status Type: VideoControl Interface (0x01)
-> Originator: 1
-> Event: Control Change (0x00)
-> Control Selector: Exposure Time (Absolute) (0x04)
-> Change Type: Value (0x00)
-> Current value: 333 (0x0000014d)
+--nextPart1714853.PnQ5JmDmLT--
 
-This is the notification of the change of the value.  As you can see it
-happens between "SET INTERFACE Request" and "SET INTERFACE Response".
-
-The sources for "streamon" look like:
-
-     #include <linux/videodev2.h>
-     #include <stdio.h>
-     #include <stdlib.h>
-     #include <fcntl.h>
-     #include <errno.h>
-     #include <string.h>
-     #include <unistd.h>
-     #include <sys/ioctl.h>
-
-     #define DEVICE
-"/dev/v4l/by-id/usb-046d_HD_Pro_Webcam_C920_C833389F-video-index1"
-
-     int main()
-     {
-             int fd, type;
-
-             fd = open(DEVICE, O_RDWR | O_CLOEXEC);
-             if (fd < 0) {
-                     perror("Failed to open " DEVICE "\n");
-                     return 1;
-             }
-
-             struct v4l2_requestbuffers reqbuf = {
-                     .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-                     .memory = V4L2_MEMORY_MMAP,
-                     .count = 1,
-             };
-
-             if (-1 == ioctl (fd, VIDIOC_REQBUFS, &reqbuf)) {
-                     perror("VIDIOC_REQBUFS");
-                     return 1;
-             }
-
-             type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-             if (ioctl (fd, VIDIOC_STREAMON, &type) != 0) {
-                     perror("VIDIOC_STREAMON");
-                     return 1;
-             }
-
-             printf("VIDIOC_STREAMON\n");
-
-             usleep(100000);
-
-             return 0;
-     }
-
-Thanks
-
-Will
