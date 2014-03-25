@@ -1,53 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1886 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756777AbaCDKnk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 05:43:40 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv4 PATCH 16/18] vb2: call buf_finish after the state check.
-Date: Tue,  4 Mar 2014 11:42:24 +0100
-Message-Id: <1393929746-39437-17-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
+Received: from out5-smtp.messagingengine.com ([66.111.4.29]:48457 "EHLO
+	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751865AbaCYXDE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Mar 2014 19:03:04 -0400
+Message-ID: <53320B25.40907@williammanley.net>
+Date: Tue, 25 Mar 2014 23:03:01 +0000
+From: William Manley <will@williammanley.net>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] uvcvideo: Work around buggy Logitech C920 firmware
+References: <1394647711-25291-1-git-send-email-will@williammanley.net> <1394714328-29969-1-git-send-email-will@williammanley.net> <533209A1.5090806@williammanley.net> <3163919.oZbdpQdqrg@avalon>
+In-Reply-To: <3163919.oZbdpQdqrg@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 25/03/14 23:03, Laurent Pinchart wrote:
+> Hi William,
+> 
+> On Tuesday 25 March 2014 22:56:33 William Manley wrote:
+>> On 13/03/14 12:38, William Manley wrote:
+>>> The uvcvideo webcam driver exposes the v4l2 control "Exposure (Absolute)"
+>>> which allows the user to control the exposure time of the webcam,
+>>> essentially controlling the brightness of the received image.  By default
+>>> the webcam automatically adjusts the exposure time automatically but the
+>>> if you set the control "Exposure, Auto"="Manual Mode" the user can fix
+>>> the exposure time.
+>>>
+>>> Unfortunately it seems that the Logitech C920 has a firmware bug where
+>>> it will forget that it's in manual mode temporarily during initialisation.
+>>> This means that the camera doesn't respect the exposure time that the user
+>>> requested if they request it before starting to stream video.  They end up
+>>> with a video stream which is either too bright or too dark and must reset
+>>> the controls after video starts streaming.
+>>>
+>>> This patch introduces the quirk UVC_QUIRK_RESTORE_CTRLS_ON_INIT which
+>>> causes the cached controls to be re-uploaded to the camera immediately
+>>> after initialising the camera.  This quirk is applied to the C920 to work
+>>> around this camera bug.
+>>>
+>>> Changes since patch v1:
+>>>  * Introduce quirk so workaround is only applied to the C920.
+>>>
+>>> Signed-off-by: William Manley <will@williammanley.net>
+>>
+>> Bump?
+> 
+> Sorry, I haven't had the time to handle your patch yet. I'll try to do so on 
+> Thursday or Friday.
 
-Don't call buf_finish unless we know that the buffer is in a valid state.
+Thanks.  Apologies for the nagging, just making sure that it hasn't been
+forgotten about :)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thanks
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 3c00e22..54cea42 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1878,8 +1878,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
- 	if (ret < 0)
- 		return ret;
- 
--	call_vb_qop(vb, buf_finish, vb);
--
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DONE:
- 		dprintk(3, "dqbuf: Returning done buffer\n");
-@@ -1892,6 +1890,8 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
- 		return -EINVAL;
- 	}
- 
-+	call_vb_qop(vb, buf_finish, vb);
-+
- 	/* Fill buffer information for the userspace */
- 	__fill_v4l2_buffer(vb, b);
- 	/* Remove from videobuf queue */
--- 
-1.9.0
-
+Will
