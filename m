@@ -1,73 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41924 "EHLO mx1.redhat.com"
+Received: from hardeman.nu ([95.142.160.32]:37262 "EHLO hardeman.nu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750764AbaCQTVM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 15:21:12 -0400
-Message-ID: <53274B1A.3080906@redhat.com>
-Date: Mon, 17 Mar 2014 20:20:58 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1751682AbaCYXVd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Mar 2014 19:21:33 -0400
+Date: Wed, 26 Mar 2014 00:21:30 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	Antti =?iso-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>
+Subject: Re: [PATCH 1/5] rc-main: add generic scancode filtering
+Message-ID: <20140325232130.GA2515@hardeman.nu>
+References: <1393629426-31341-1-git-send-email-james.hogan@imgtec.com>
+ <1393629426-31341-2-git-send-email-james.hogan@imgtec.com>
+ <20140324235146.GA25627@hardeman.nu>
+ <10422443.FIKnYVGtAm@radagast>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Ismael Luceno <ismael.luceno@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] gspca_gl860: Clean up idxdata structs
-References: <1394826203-26622-1-git-send-email-ismael.luceno@gmail.com> <53242699.3080308@redhat.com> <5326F6D3.8010307@xs4all.nl>
-In-Reply-To: <5326F6D3.8010307@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <10422443.FIKnYVGtAm@radagast>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tue, Mar 25, 2014 at 09:12:11AM +0000, James Hogan wrote:
+>On Tuesday 25 March 2014 00:51:46 David Härdeman wrote:
+>> On Fri, Feb 28, 2014 at 11:17:02PM +0000, James Hogan wrote:
+>> >Add generic scancode filtering of RC input events, and fall back to
+>> >permitting any RC_FILTER_NORMAL scancode filter to be set if no s_filter
+>> >callback exists. This allows raw IR decoder events to be filtered, and
+>> >potentially allows hardware decoders to set looser filters and rely on
+>> >generic code to filter out the corner cases.
+>> 
+>> Hi James,
+>> 
+>> What's the purpose of providing the sw scancode filtering in the case where
+>> there's no hardware filtering support at all?
+>
+>Consistency is probably the main reason, but I'll admit it's not perfectly 
+>consistent between generic/hardware filtering (mostly thanks to NEC scancode 
+>complexities), and I have no particular objection to dropping it if that isn't 
+>considered a good enough reason.
 
-On 03/17/2014 02:21 PM, Hans Verkuil wrote:
-> On 03/15/2014 11:08 AM, Hans de Goede wrote:
->> Hi,
->>
->> Some better commit msg would be nice, otherwise this patch is:
->>
->> Acked-by: Hans de Goede <hdegoede@redhat.com>
->>
->> Hans Verkuil has mailed me that he would like to pick this up through
->> his tree. Hans V. , I say go for it :)
-> 
-> I noticed that these sparse warnings suddenly disappeared after switching to
-> sparse-0.5.0. It turns out to be a sparse bug:
-> 
-> commit 0edb7edecdd571c2663eb12acac1b27b9acac657
-> Author: Ramsay Jones <ramsay@ramsay1.demon.co.uk>
-> Date:   Thu May 16 20:41:24 2013 +0100
-> 
->     char.c: Fix parsing of escapes
->     
->     When parsing a string or character constant, the parse_escape()
->     function returns a pointer to the character at which to resume
->     parsing. However, in the case of an hex or octal escape, it was
->     returning a one-past-the-end pointer. Thus, a string like:
->     
->         char str[3] = "\x61\x62\x63";
->     
->     was being parsed as:
->     
->         '\x61', 'x', '6', '2', '\x63'
->     
->     which, in turn, provokes an 'too long initializer' warning.
->     
->     Also, fix an off-by-one error in get_char_constant() when setting
->     the 'end' pointer for a TOKEN_CHAR or TOKEN_WIDE_CHAR. Despite the
->     name, the string->length of the token is actually the size of the
->     allocated memory (ie len+1), so we need to compensate by using
->     'token->string->length - 1'.
-> 
-> That said, I think it is really ugly to use a string like that and I still
-> would like to apply this patch, although for 3.16, not 3.15 as was my
-> original intention.
-> 
-> Hans, do you agree with that approach? Or do you prefer to keep it as is?
+I'm kind of sceptical...and given how difficult it is to remove
+functionality that is in a released kernel...I think that particular
+part (i.e. the software filtering) should be removed until it has had
+further discussion...
 
-I agree that using strings for this is ugly, and I would still like to see
-this patch go in. I've no preference for putting it in 3.15 or 3.16 .
+>Here's the original discussion:
+>On Monday 10 February 2014 21:45:30 Antti Seppälä wrote:
+>> On 10 February 2014 11:58, James Hogan <james.hogan@imgtec.com> wrote:
+>> > On Saturday 08 February 2014 13:30:01 Antti Seppälä wrote:
+>> > > Also adding the scancode filter to it would
+>> > > demonstrate its usage.
+>> > 
+>> > To actually add filtering support to loopback would require either:
+>> > * raw-decoder/rc-core level scancode filtering for raw ir drivers
+>> > * OR loopback driver to encode like nuvoton and fuzzy match the IR
+>> > signals.
+>> 
+>> Rc-core level scancode filtering shouldn't be too hard to do right? If
+>> such would exist then it would provide a software fallback to other rc
+>> devices where hardware filtering isn't available. I'd love to see the
+>> sysfs filter and filter_mask files to have an effect on my nuvoton too
 
-Regards,
+I don't understand. What's the purpose of a "software fallback" for
+scancode filtering? Antti?
 
-Hans
+-- 
+David Härdeman
