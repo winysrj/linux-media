@@ -1,218 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35678 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754030AbaCTT0I (ORCPT
+Received: from nasmtp02.atmel.com ([204.2.163.16]:17942 "EHLO
+	SJOEDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751697AbaCYKsX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Mar 2014 15:26:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Grant Likely <grant.likely@linaro.org>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
-Date: Thu, 20 Mar 2014 20:27:55 +0100
-Message-ID: <22904541.tzCZUcGtJB@avalon>
-In-Reply-To: <20140320181820.GY7528@n2100.arm.linux.org.uk>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> <2161777.L3ZZmhyfM4@avalon> <20140320181820.GY7528@n2100.arm.linux.org.uk>
+	Tue, 25 Mar 2014 06:48:23 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: <g.liakhovetski@gmx.de>
+CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>,
+	<nicolas.ferre@atmel.com>, <linux-arm-kernel@lists.infradead.org>,
+	<laurent.pinchart@ideasonboard.com>, <josh.wu@atmel.com>
+Subject: [PATCH v2 2/3] [media] atmel-isi: convert the pdata from pointer to structure
+Date: Tue, 25 Mar 2014 18:41:27 +0800
+Message-ID: <1395744087-5753-3-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1395744087-5753-1-git-send-email-josh.wu@atmel.com>
+References: <1395744087-5753-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Russell,
+Now the platform data is initialized by allocation of isi
+structure. In the future, we use pdata to store the dt parameters.
 
-On Thursday 20 March 2014 18:18:20 Russell King - ARM Linux wrote:
-> On Thu, Mar 20, 2014 at 07:16:29PM +0100, Laurent Pinchart wrote:
-> > On Thursday 20 March 2014 17:54:31 Grant Likely wrote:
-> > > On Wed, 12 Mar 2014 10:25:56 +0000, Russell King - ARM Linux wrote:
-> > > > On Mon, Mar 10, 2014 at 02:52:53PM +0100, Laurent Pinchart wrote:
-> > > > > In theory unidirectional links in DT are indeed enough. However,
-> > > > > let's not forget the following.
-> > > > > 
-> > > > > - There's no such thing as single start points for graphs. Sure, in
-> > > > > some simple cases the graph will have a single start point, but
-> > > > > that's not a generic rule. For instance the camera graphs
-> > > > > http://ideasonboard.org/media/omap3isp.ps and
-> > > > > http://ideasonboard.org/media/eyecam.ps have two camera sensors, and
-> > > > > thus two starting points from a data flow point of view.
-> > > > 
-> > > > I think we need to stop thinking of a graph linked in terms of data
-> > > > flow - that's really not useful.
-> > > > 
-> > > > Consider a display subsystem.  The CRTC is the primary interface for
-> > > > the CPU - this is the "most interesting" interface, it's the interface
-> > > > which provides access to the picture to be displayed for the CPU. 
-> > > > Other interfaces are secondary to that purpose - reading the I2C DDC
-> > > > bus for the display information is all secondary to the primary
-> > > > purpose of displaying a picture.
-> > > > 
-> > > > For a capture subsystem, the primary interface for the CPU is the
-> > > > frame grabber (whether it be an already encoded frame or not.)  The
-> > > > sensor devices are all secondary to that.
-> > > > 
-> > > > So, the primary software interface in each case is where the data for
-> > > > the primary purpose is transferred.  This is the point at which these
-> > > > graphs should commence since this is where we would normally start
-> > > > enumeration of the secondary interfaces.
-> > > > 
-> > > > V4L2 even provides interfaces for this: you open the capture device,
-> > > > which then allows you to enumerate the capture device's inputs, and
-> > > > this in turn allows you to enumerate their properties.  You don't open
-> > > > a particular sensor and work back up the tree.
-> > > > 
-> > > > I believe trying to do this according to the flow of data is just
-> > > > wrong. You should always describe things from the primary device for
-> > > > the CPU towards the peripheral devices and never the opposite
-> > > > direction.
-> > > 
-> > > Agreed.
-> > 
-> > Absolutely not agreed. The whole concept of CPU towards peripherals only
-> > makes sense for very simple devices and breaks as soon as the hardware
-> > gets more complex. There's no such thing as CPU towards peripherals when
-> > peripherals communicate directly.
-> > 
-> > Please consider use cases more complex than just a display controller and
-> > an encoder, and you'll realize how messy not being able to parse the
-> > whole graph at once will become. Let's try to improve things, not to make
-> > sure to prevent support for future devices.
-> 
-> That's odd, I did.
-> 
-> Please draw some (ascii) diagrams of the situations you're saying this
-> won't work for, because at the moment all I'm seeing is some vague
-> hand-waving rather than anything factual that I can relate to.  Help
-> us to actually _see_ the problem you have with this approach so we can
-> understand it.
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+v1 --> v2:
+ no change.
 
-I've broken the diagram into pieces as it won't fit in 80 columns. Ports named 
-by a capital letter enclosed in parentheses are connected together. 
+ drivers/media/platform/soc_camera/atmel-isi.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-Let's start with the on-board input paths, with an HDMI input connector and a 
-camera sensor.
-
- ,-----------.      ,----------.
- | HDMI      |      | ADV7611  |
- | Connector | ---> | HDMI     | ---> (A)
- |           |      | Decoder  |
- `-----------'      `----------'
-
- ,-----------.
- | AR0331    |
- | Camera    | ---> (B)
- | Sensor    |
- `-----------'
-
-We then get to the SoC.
-
-      |
-      |    ,-----------.      ,------------.
-      |    | BT.656    |      | Test       |
-(A) -[0]-> | Decoder   | ---> | Pattern    | ---> (C)
-      |    |           |      | Generator  |
-      |    `-----------'      `------------'
-      |
-      |    ,-----------.      ,------------.      ,------------.
-      |    | CSI-2     |      |            |      | Test       |
-(B) -[1]-> | Receiver  | ---> | Processing | ---> | Pattern    |  ---> (D)
-      |    |           |  `   |            |      | Generator  |
-      |    `-----------'  |   `------------'      `------------'
-      |                   |   ,------------.
-      |                   |   |            |      ,-----.
-      | --SOC--           `-> | Statistics | ---> | DMA |
-      |                       |            |      `-----'
-      |                       `------------'
-
-The blocks named Processing is made of
-
-      ,------------.      ,------------.      ,-------------.
-      | Faulty     |      | Bayer      |      | White       |
- ---> | Pixels     | ---> | to RGB     | ---> | Balance     | ---.
-      | Correction |      | Conversion |      | Correction  |    |
-      `------------'      `------------'      `-------------'    |
-                                                                 |
- ,---------------------------------------------------------------'
- |
- |    ,------------.      ,------------.      ,-------------.
- |    | Gamma      |      | RGB to YUV |      | Image       |
- `--> | Correction | ---> | Conversion | ---> | Enhancement | --->
-      |            |      |            |      |             |
-      `------------'      `------------'      `-------------'
-
-The two flows then go through a crossbar switch.
-
-                                ,--------.
-                                |        |      ,-----.
-           ,-----------.     -> | Scaler | ---> | DMA |
-           |           |   ,'   |        |      `-----'
-           |     ,----[2] -     `--------'
- (C) ---> [0]---'      |
-           |   `,-----[3] ----> (E)
- (D) ---> [1]--'       |
-           |    `-----[4] -
-           |           |   `--> (F)
-           `-----------'
-
-One of the video streams went to memory through DMA. The second one enters the 
-compositor through a scaler, with two additional streams coming from memory.
-
-                  ,------------.       ,--------------.
-     ,-----.      | RGB to YUV |       |              |
-     | DMA | ---> | Conversion | ---> [0]             |
-     `-----'      |            |       |              |
-                  `------------'       |              |
-                  ,--------.           |              |
-     ,-----.      |        |           |  Compositor  |
-     | DMA | ---> | Scaler | -------> [1]            [3] ---> (G)
-     `-----'      |        |           |              |
-                  `--------'           |              |
-                  ,--------.           |              |
-                  |        |           |              |
-     (E) -------> | Scaler | -------> [2]             |
-                  |        |           |              |
-                  `--------'           `--------------'
-
-The remaining video capture stream and the video display stream exit the SoC 
-and are output to HDMI connectors through HDMI encoders.
-
-          |
-          |    ,---------.      ,-----------.
-          |    | ADV7511 |      | HDMI      |
-    (G) -[2]-> | HDMI    | ---> | Output    |
-          |    | Encoder |      | Connector |
-          |    `---------'      `-----------'
-          |
-          |    ,---------.      ,-----------.
-          |    | ADV7511 |      | HDMI      |
-    (F) -[3]-> | HDMI    | ---> | Output    |
-          |    | Encoder |      | Connector |
-  --SOC-- |    `---------'      `-----------'
-          |
-
-Every block in this diagram (including the DMA engines) corresponds to a 
-device instance and has a device node in the device tree.
-
-Note how the same RGB to YUV conversion and scaler blocks are used in both 
-capture and display pipelines, how the capture and display pipelines are 
-merged at the hardware level, and how the same HDMI encoder is used for one 
-video output that comes from the display device (G) and one video output that 
-comes straight from the capture device (F).
-
-I wish this was an example I made up instead of real hardware I need to 
-support.
-
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 9d977c5..f4add0a 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -84,7 +84,7 @@ struct atmel_isi {
+ 	struct clk			*mck;
+ 	unsigned int			irq;
+ 
+-	struct isi_platform_data	*pdata;
++	struct isi_platform_data	pdata;
+ 	u16				width_flags;	/* max 12 bits */
+ 
+ 	struct list_head		video_buffer_list;
+@@ -350,7 +350,7 @@ static void start_dma(struct atmel_isi *isi, struct frame_buffer *buffer)
+ 
+ 	cfg1 &= ~ISI_CFG1_FRATE_DIV_MASK;
+ 	/* Enable linked list */
+-	cfg1 |= isi->pdata->frate | ISI_CFG1_DISCR;
++	cfg1 |= isi->pdata.frate | ISI_CFG1_DISCR;
+ 
+ 	/* Enable codec path and ISI */
+ 	ctrl = ISI_CTRL_CDC | ISI_CTRL_EN;
+@@ -797,7 +797,7 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
+ 	/* Make choises, based on platform preferences */
+ 	if ((common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH) &&
+ 	    (common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)) {
+-		if (isi->pdata->hsync_act_low)
++		if (isi->pdata.hsync_act_low)
+ 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_HIGH;
+ 		else
+ 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_LOW;
+@@ -805,7 +805,7 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
+ 
+ 	if ((common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH) &&
+ 	    (common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)) {
+-		if (isi->pdata->vsync_act_low)
++		if (isi->pdata.vsync_act_low)
+ 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_HIGH;
+ 		else
+ 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_LOW;
+@@ -813,7 +813,7 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
+ 
+ 	if ((common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING) &&
+ 	    (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)) {
+-		if (isi->pdata->pclk_act_falling)
++		if (isi->pdata.pclk_act_falling)
+ 			common_flags &= ~V4L2_MBUS_PCLK_SAMPLE_RISING;
+ 		else
+ 			common_flags &= ~V4L2_MBUS_PCLK_SAMPLE_FALLING;
+@@ -835,9 +835,9 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
+ 	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
+ 		cfg1 |= ISI_CFG1_PIXCLK_POL_ACTIVE_FALLING;
+ 
+-	if (isi->pdata->has_emb_sync)
++	if (isi->pdata.has_emb_sync)
+ 		cfg1 |= ISI_CFG1_EMB_SYNC;
+-	if (isi->pdata->full_mode)
++	if (isi->pdata.full_mode)
+ 		cfg1 |= ISI_CFG1_FULL_MODE;
+ 
+ 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+@@ -912,7 +912,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	if (IS_ERR(isi->pclk))
+ 		return PTR_ERR(isi->pclk);
+ 
+-	isi->pdata = pdata;
++	memcpy(&isi->pdata, pdata, sizeof(struct isi_platform_data));
+ 	isi->active = NULL;
+ 	spin_lock_init(&isi->lock);
+ 	INIT_LIST_HEAD(&isi->video_buffer_list);
+@@ -928,7 +928,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 		/* Set ISI_MCK's frequency, it should be faster than pixel
+ 		 * clock.
+ 		 */
+-		ret = clk_set_rate(isi->mck, pdata->mck_hz);
++		ret = clk_set_rate(isi->mck, isi->pdata.mck_hz);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+@@ -962,9 +962,9 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 		goto err_ioremap;
+ 	}
+ 
+-	if (pdata->data_width_flags & ISI_DATAWIDTH_8)
++	if (isi->pdata.data_width_flags & ISI_DATAWIDTH_8)
+ 		isi->width_flags = 1 << 7;
+-	if (pdata->data_width_flags & ISI_DATAWIDTH_10)
++	if (isi->pdata.data_width_flags & ISI_DATAWIDTH_10)
+ 		isi->width_flags |= 1 << 9;
+ 
+ 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
 -- 
-Regards,
+1.7.9.5
 
-Laurent Pinchart
