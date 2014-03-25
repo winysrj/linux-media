@@ -1,53 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48717 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750713AbaCKIey (ORCPT
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:64232 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751040AbaCYElM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 04:34:54 -0400
-From: Archit Taneja <archit@ti.com>
-To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 03/14] v4l: ti-vpe: Use video_device_release_empty
-Date: Tue, 11 Mar 2014 14:03:42 +0530
-Message-ID: <1394526833-24805-4-git-send-email-archit@ti.com>
-In-Reply-To: <1394526833-24805-1-git-send-email-archit@ti.com>
-References: <1393922965-15967-1-git-send-email-archit@ti.com>
- <1394526833-24805-1-git-send-email-archit@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Tue, 25 Mar 2014 00:41:12 -0400
+Received: by mail-lb0-f179.google.com with SMTP id p9so4330356lbv.38
+        for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 21:41:10 -0700 (PDT)
+From: Anton Leontiev <bunder@t-25.ru>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Anton Leontiev <bunder@t-25.ru>
+Subject: [PATCH] [media] uvcvideo: Fix marking buffer erroneous in case of FID toggling
+Date: Tue, 25 Mar 2014 08:40:57 +0400
+Message-Id: <1395722457-28080-1-git-send-email-bunder@t-25.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video_device struct is currently embedded in the driver data struct vpe_dev.
-A vpe_dev instance is allocated by the driver, and the memory for the vfd is a
-part of this struct.
+Set error bit for incomplete buffers when end of buffer is detected by
+FID toggling (for example when last transaction with EOF is lost).
+This prevents passing incomplete buffers to the userspace.
 
-The v4l2 core, however, manages the removal of the vfd region, through the
-video_device's .release() op, which currently is the helper
-video_device_release. This causes memory corruption, and leads to issues when
-we try to re-insert the vpe module.
-
-Use the video_device_release_empty helper function instead
-
-Signed-off-by: Archit Taneja <archit@ti.com>
+Signed-off-by: Anton Leontiev <bunder@t-25.ru>
 ---
- drivers/media/platform/ti-vpe/vpe.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/uvc/uvc_video.c | 21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index f1eae67..0363df6 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -2000,7 +2000,7 @@ static struct video_device vpe_videodev = {
- 	.fops		= &vpe_fops,
- 	.ioctl_ops	= &vpe_ioctl_ops,
- 	.minor		= -1,
--	.release	= video_device_release,
-+	.release	= video_device_release_empty,
- 	.vfl_dir	= VFL_DIR_M2M,
- };
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 8d52baf..57c9a4b 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1133,6 +1133,17 @@ static int uvc_video_encode_data(struct uvc_streaming *stream,
+  */
  
+ /*
++ * Set error flag for incomplete buffer.
++ */
++static void uvc_buffer_check_bytesused(const struct uvc_streaming *const stream,
++	struct uvc_buffer *const buf)
++{
++	if (buf->length != buf->bytesused &&
++			!(stream->cur_format->flags & UVC_FMT_FLAG_COMPRESSED))
++		buf->error = 1;
++}
++
++/*
+  * Completion handler for video URBs.
+  */
+ static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
+@@ -1156,9 +1167,11 @@ static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
+ 		do {
+ 			ret = uvc_video_decode_start(stream, buf, mem,
+ 				urb->iso_frame_desc[i].actual_length);
+-			if (ret == -EAGAIN)
++			if (ret == -EAGAIN) {
++				uvc_buffer_check_bytesused(stream, buf);
+ 				buf = uvc_queue_next_buffer(&stream->queue,
+ 							    buf);
++			}
+ 		} while (ret == -EAGAIN);
+ 
+ 		if (ret < 0)
+@@ -1173,11 +1186,7 @@ static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
+ 			urb->iso_frame_desc[i].actual_length);
+ 
+ 		if (buf->state == UVC_BUF_STATE_READY) {
+-			if (buf->length != buf->bytesused &&
+-			    !(stream->cur_format->flags &
+-			      UVC_FMT_FLAG_COMPRESSED))
+-				buf->error = 1;
+-
++			uvc_buffer_check_bytesused(stream, buf);
+ 			buf = uvc_queue_next_buffer(&stream->queue, buf);
+ 		}
+ 	}
 -- 
-1.8.3.2
+1.9.1
 
