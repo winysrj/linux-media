@@ -1,38 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4571 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752926AbaCGKVa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 05:21:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, laurent.pinchart@ideasonboard.com
-Subject: [REVIEWv1 PATCH 0/5] Add G/S_EDID support for video nodes
-Date: Fri,  7 Mar 2014 11:21:14 +0100
-Message-Id: <1394187679-7345-1-git-send-email-hverkuil@xs4all.nl>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:34258 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754472AbaCYUxh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Mar 2014 16:53:37 -0400
+Message-ID: <1395780812.11851.20.camel@nicolas-tpx230>
+Subject: [PATCH 5/5] s5p-fimc: Reuse calculated sizes
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: s.nawrocki@samsung.com
+Date: Tue, 25 Mar 2014 16:53:32 -0400
+In-Reply-To: <1395780301.11851.14.camel@nicolas-tpx230>
+References: <1395780301.11851.14.camel@nicolas-tpx230>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-kbFo81h4lGojY32n7j5k"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently the VIDIOC_SUBDEV_G/S_EDID and struct v4l2_subdev_edid are subdev
-APIs. However, that's in reality quite annoying since for simple video
-pipelines there is no need to create v4l-subdev device nodes for anything
-else except for setting or getting EDIDs.
 
-What happens in practice is that v4l2 bridge drivers add explicit support
-for VIDIOC_SUBDEV_G/S_EDID themselves, just to avoid having to create
-subdev device nodes just for this.
+--=-kbFo81h4lGojY32n7j5k
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-So this patch series makes the ioctls available as regular ioctls as
-well. In that case the pad field is interpreted as the input or output
-index as returned by ENUMINPUT/OUTPUT.
+This formula did not take into account the required tiled alignement for
+NV12MT format. As this was already computed an stored in payload array
+initially, reuse that value.
 
-Changes since RFCv1:
+Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+---
+ drivers/media/platform/exynos4-is/fimc-m2m.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-- Split off the compat32 fix (I'll queue this for 3.14)
-- Interpret pad as an input or output index when used with a video node.
-- S_EDID is now enabled for rx devices instead of tx.
-- Fix a one tab too many.
+diff --git a/drivers/media/platform/exynos4-is/fimc-m2m.c b/drivers/media/p=
+latform/exynos4-is/fimc-m2m.c
+index 07b8f97..c648e5f 100644
+--- a/drivers/media/platform/exynos4-is/fimc-m2m.c
++++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
+@@ -197,7 +197,7 @@ static int fimc_queue_setup(struct vb2_queue *vq, const=
+ struct v4l2_format *fmt,
+=20
+ 	*num_planes =3D f->fmt->memplanes;
+ 	for (i =3D 0; i < f->fmt->memplanes; i++) {
+-		sizes[i] =3D (f->f_width * f->f_height * f->fmt->depth[i]) / 8;
++		sizes[i] =3D f->payload[i];
+ 		allocators[i] =3D ctx->fimc_dev->alloc_ctx;
+ 	}
+ 	return 0;
+--=20
+1.8.5.3
 
-Regards,
 
-        Hans
+
+--=-kbFo81h4lGojY32n7j5k
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iEYEABECAAYFAlMx7MwACgkQcVMCLawGqBxU5QCgvQYK4obP6wGOH5kmvk2OWkDY
+GW4An0WSzmw0OLRychsNdIKDJ5zev/k0
+=KZXx
+-----END PGP SIGNATURE-----
+
+--=-kbFo81h4lGojY32n7j5k--
 
