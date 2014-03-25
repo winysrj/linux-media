@@ -1,69 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:47612 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753358AbaCGRlP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 12:41:15 -0500
-Message-ID: <1394214054.16309.45.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v6 4/8] of: Reduce indentation in
- of_graph_get_next_endpoint
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Grant Likely <grant.likely@linaro.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Date: Fri, 07 Mar 2014 18:40:54 +0100
-In-Reply-To: <31687163.hgTkcLrn0Z@avalon>
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
-	 <1394011242-16783-5-git-send-email-p.zabel@pengutronix.de>
-	 <31687163.hgTkcLrn0Z@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4738 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751141AbaCYDen (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Mar 2014 23:34:43 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2P3YeAA072017
+	for <linux-media@vger.kernel.org>; Tue, 25 Mar 2014 04:34:42 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 599272A188D
+	for <linux-media@vger.kernel.org>; Tue, 25 Mar 2014 04:34:31 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140325033431.599272A188D@tschai.lan>
+Date: Tue, 25 Mar 2014 04:34:31 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Am Freitag, den 07.03.2014, 01:12 +0100 schrieb Laurent Pinchart:
-> Hi Philipp,
-> 
-> Thank you for the patch.
-> 
-> I've submitted a fix for the of_graph_get_next_endpoint() function, but it 
-> hasn't been applied yet due to the patch series that contained it needing more 
-> work.
->
-> The patch is available at https://patchwork.linuxtv.org/patch/21946/. I can 
-> rebase it on top of this series, but I still wanted to let you know about it 
-> in case you would like to integrate it.
+Results of the daily build of media_tree:
 
-Thank you for the pointer. A pity about the timing, this will mostly
-revert my indentation patch. I'd be glad if you could rebase on top of
-the merged series.
+date:		Tue Mar 25 04:00:19 CET 2014
+git branch:	test
+git hash:	8432164ddf7bfe40748ac49995356ab4dfda43b7
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0
+host hardware:	x86_64
+host os:	3.13-5.slh.4-amd64
 
-While we look at of_graph_get_next_endpoint(), could you explain the
-reason behind the extra reference count increase on the prev node:
-	/*
-	 * Avoid dropping prev node refcount to 0 when getting the next
-	 * child below.
-	 */
-	of_node_get(prev);
-This unfortunately makes using the function in for_each style macros a
-hassle. If that part wasn't there and all users that want to keep using
-prev after the call were expected to increase refcount themselves,
-we could have a
-#define of_graph_for_each_endpoint(parent, endpoint) \
-	for (endpoint = of_graph_get_next_endpoint(parent, NULL); \
-	     endpoint != NULL; \
-	     endpoint = of_graph_get_next_endpoint(parent, endpoint))
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0
+sparse: ERRORS
 
-regards
-Philipp
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
