@@ -1,50 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f45.google.com ([74.125.83.45]:52655 "EHLO
-	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752078AbaCKNmD (ORCPT
+Received: from out5-smtp.messagingengine.com ([66.111.4.29]:40660 "EHLO
+	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751865AbaCYXC6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 09:42:03 -0400
-Received: by mail-ee0-f45.google.com with SMTP id d17so3739270eek.32
-        for <linux-media@vger.kernel.org>; Tue, 11 Mar 2014 06:42:01 -0700 (PDT)
-From: Gianluca Gennari <gennarone@gmail.com>
-To: linux-media@vger.kernel.org, m.chehab@samsung.com
-Cc: dheitmueller@kernellabs.com, Gianluca Gennari <gennarone@gmail.com>
-Subject: [PATCH] drx39xyj: fix 64 bit division on 32 bit arch
-Date: Tue, 11 Mar 2014 14:41:47 +0100
-Message-Id: <1394545307-624-1-git-send-email-gennarone@gmail.com>
+	Tue, 25 Mar 2014 19:02:58 -0400
+Message-ID: <533209A1.5090806@williammanley.net>
+Date: Tue, 25 Mar 2014 22:56:33 +0000
+From: William Manley <will@williammanley.net>
+MIME-Version: 1.0
+To: laurent.pinchart@ideasonboard.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] uvcvideo: Work around buggy Logitech C920 firmware
+References: <1394647711-25291-1-git-send-email-will@williammanley.net> <1394714328-29969-1-git-send-email-will@williammanley.net>
+In-Reply-To: <1394714328-29969-1-git-send-email-will@williammanley.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix this linker warning:
-WARNING: "__divdi3" [media_build/v4l/drx39xyj.ko] undefined!
+On 13/03/14 12:38, William Manley wrote:
+> The uvcvideo webcam driver exposes the v4l2 control "Exposure (Absolute)"
+> which allows the user to control the exposure time of the webcam,
+> essentially controlling the brightness of the received image.  By default
+> the webcam automatically adjusts the exposure time automatically but the
+> if you set the control "Exposure, Auto"="Manual Mode" the user can fix
+> the exposure time.
+> 
+> Unfortunately it seems that the Logitech C920 has a firmware bug where
+> it will forget that it's in manual mode temporarily during initialisation.
+> This means that the camera doesn't respect the exposure time that the user
+> requested if they request it before starting to stream video.  They end up
+> with a video stream which is either too bright or too dark and must reset
+> the controls after video starts streaming.
+> 
+> This patch introduces the quirk UVC_QUIRK_RESTORE_CTRLS_ON_INIT which
+> causes the cached controls to be re-uploaded to the camera immediately
+> after initialising the camera.  This quirk is applied to the C920 to work
+> around this camera bug.
+> 
+> Changes since patch v1:
+>  * Introduce quirk so workaround is only applied to the C920.
+> 
+> Signed-off-by: William Manley <will@williammanley.net>
 
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
----
- drivers/media/dvb-frontends/drx39xyj/drxj.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 2352327..0dec073 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -12002,13 +12002,16 @@ static int drx39xxj_read_signal_strength(struct dvb_frontend *fe,
- static int drx39xxj_read_snr(struct dvb_frontend *fe, u16 *snr)
- {
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-+	u64 tmp64;
- 
- 	if (p->cnr.stat[0].scale == FE_SCALE_NOT_AVAILABLE) {
- 		*snr = 0;
- 		return 0;
- 	}
- 
--	*snr = p->cnr.stat[0].svalue / 10;
-+	tmp64 = p->cnr.stat[0].svalue;
-+	do_div(tmp64, 10);
-+	*snr = tmp64;
- 	return 0;
- }
- 
--- 
-1.9.0
+Bump?
 
