@@ -1,207 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:36025 "EHLO mga14.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:35925 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753010AbaCDQPc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Mar 2014 11:15:32 -0500
-Message-ID: <5315FC4E.10508@linux.intel.com>
-Date: Tue, 04 Mar 2014 17:16:14 +0100
-From: Mark Ryan <mark.d.ryan@linux.intel.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "Ryan, Mark D" <mark.d.ryan@intel.com>,
-	"Sharp, Sarah A" <sarah.a.sharp@intel.com>,
+	id S1753786AbaCYQ5d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Mar 2014 12:57:33 -0400
+Date: Wed, 26 Mar 2014 00:57:29 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Dell XPS 12 USB camera bulk mode issues
-References: <20140225214956.GC4035@xanatos> <4186365.nC1W9O3BqU@avalon> <53105820.9070007@linux.intel.com> <10724598.APfayxWd2e@avalon>
-In-Reply-To: <10724598.APfayxWd2e@avalon>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	Michal Simek <monstr@monstr.eu>, kbuild-all@01.org
+Subject: [microblaze:master-next-test 22/78]
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1090:14: sparse: incompatible types for 'case' statement
+Message-ID: <5331b579.AvxEgo2JAf0UaoIZ%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-Thanks again for your reply.
-
-On 03/04/2014 12:11 PM, Laurent Pinchart wrote:
-> Hi Mark,
->
-> On Friday 28 February 2014 10:34:24 Mark Ryan wrote:
->> On 02/26/2014 04:40 PM, Laurent Pinchart wrote:
->>
->> [ ... ]
->>
->>> With the information I've given you, could you try to log more information
->>> in the driver to try and find what goes wrong ? You could for instance
->>> log the content of each header at the beginning of the
->>> uvc_video_decode_start() function.
->>
->> So maybe I have something here.  I ran guvcview and set the format to
->> MJPEG running at a high resolution.  I'm using the kernel 3.11.0-17 that
->> comes with Ubuntu 13.10.  In the usbmon logs I see the following.
->>
->> [...]
->>
->>
->> SETUP Host-to-device Class request to Interface
->> bRequest: SET CUR (01)
->> wValue: 0200
->> wIndex: INTF 1 ENTITY 0 (0001)
->> wLength: 001a
->>
->> 26 data bytes
->>
->> bmHint                         0x01
->> bFormatIndex                      2
->> bFrameIndex                      10
->> dwFrameInterval              333333
->> wKeyFrameRate                     0
->> wPFrameRate                       0
->> wCompQuality                      0
->> wCompWindowSize                   0
->> wDelay                           32
->> dwMaxVideoFrameSize         1843200
->> dwMaxPayloadTransferSize      34816
->>
->> Note the dwMaxPayloadTransferSize of 34816
->>
->> [...]
->>
->> Now I have my first payload
->>
->> 16384 data bytes
->>
->> 0c8d863e 8c007d67    .†>Œ.}g
->> 8e00b304 ffd8ffdb    Ž.³.ÿØÿÛ
->> 00430003 02020202    .C......
->> 02030202 02030303    ........
->>
->> 16384 data bytes
->>
->> fbf5aeff 00c25e12    ûõ®ÿ.Â^.
->> 5d1244d5 353b2437    ].DÕ5;$7
->> f92d06e6 24c28475    ù-.æ$Â„u
->> c740c6b3 8bbb29ad    Ç@Æ³‹»)­
->>
->> 16384 data bytes
->>
->> f1a3cc60 b8200c52    ñ£Ì`¸ .R
->> 0108eac3 1cd4610e    ..êÃ.Ôa.
->> ece45032 40c477a8    ìäP2@Äw¨
->> e4f35b81 d05001fc    äó[ÐP.ü
->>
->> 16384 data bytes
->>
->> fb3528d1 bc4fcc56    û5(Ñ¼OÌV
->> fe2d9522 1d04b1e7    þ-•"..±ç
->> 3fa1a9e5 2b9867f6    ?¡©å+˜gö
->> 778e2dd0 7d9b57b5    wŽ-Ð}›Wµ
->>
->> 16384 data bytes
->>
->> c016baf6 99732c9a    À.ºö™s,š
->> 9db39b7b e6b995a4    ³›{æ¹•¤
->> 65751f78 649eb5ed    eu.xdžµí
->> 9e2dfdb1 355fd9fa    ž-ý±5_Ùú
->>
->> 16384 data bytes
->>
->> a73d4053 8fad795c    §=@S­y\
->> c9088170 ec1c1e54    É.pì..T
->> 9ce6a59a d89f5742    œæ¥šØŸWB
->> 82cf3297 26d95b18    ‚Ï2—&Ù[.
->>
->> 16384 data bytes
->>
->> b4d3b21b d4a53595    ´Ó².Ô¥5•
->> 99cac904 2e1bb346    ™ÊÉ...³F
->> 09fe555e 4d2b4b95    .þU^M+K•
->> be6b488a 0e91b0ca    ¾kHŠ.‘°Ê
->>
->> 16384 data bytes
->>
->> 3adb9dbc 6323ad21    :Û¼c#­!
->> 8aa85b9d b934d31e    Š¨[¹4Ó.
->> 465885f6 a00ad25c    FX…ö .Ò\
->> 04fdd44b be43d08a    .ýÔK¾CÐŠ
->>
->> 16384 data bytes
->>
->> 14f1cf4c 0ae43589    .ñÏL.ä5‰
->> 0acdbd0b c8afedc2    .Í½.È¯íÂ
->> f15d4339 8bfb5b2b    ñ]C9‹û[+
->> df39e42d 14ecb849    ß9ä-.ì¸I
->>
->> 10466 data bytes
->>
->> 7fffd1fc af99e466    ÿÑü¯™äf
->> c39cd475 cab500a2    ÃœÔuÊµ.¢
->> ad8ae147 d295ec0c    ­ŠáGÒ•ì.
->> bd639196 3cfa0ad5    ½c‘–<ú.Õ
->>
->> 14 data bytes
->>
->> 0c8f863e 8c000fd7    .†>Œ..×
->> 9300cb04 ffd9        “.Ë.ÿÙ
->>
->> The problem seems to be that the payload sent by the camera is much larger
->> than dwMaxPayloadTransferSize. For this reason the driver assumes that it
->> has found the end of the frame after processing the third URB. This test is
->> performed at the bottom of uvc_video_decode_bulk. It then expects URB 4 to
->> be the start of a new frame, which it isn't, and so it gets out of sync. If
->> I understand correctly, dwMaxPayloadTransferSize is set by the camera, so
->> perhaps the camera is at fault here.
->
-> Yes, I believe the camera violates the spec.
->
->> Interestingly, I checked some wireshark logs I took while using the camera
->> with the Dell XPS12 booted into Windows and I see the exact same thing. The
->> dwMaxPayloadTransferSize is set to 34816, but the payloads were much larger,
->> around 140kb.
->
-> What bulk URB size did Windows use ?
->
->> As the camera works fine on Windows, I'm guessing Windows is not relying on
->> the dwMaxPayloadTransferSize to detect the end of a payload. Perhaps it just
->> uses the FID. Does this sound plausible? If so, I might see if I can
->> replicate this behaviour locally, to see if it solves the issue.
->
-> I don't think it uses the FID, as that requires the presence of a header,
-> which is only present at the beginning of payloads, and thus require the
-> driver to be able to detect the payload in the first place.
->
-> With the three USB traces I've received so far for your camera it seems that
-> we could detect the end of a payload by a short URBs. Maybe that's what
-> Windows does. This would however probably break if the MJPEG data size +
-> header size happens to be a multiple of 16kB.
->
-> Have you looked at the YUYV capture traces ? What's the data pattern there ? I
-> would expect the last 14 bytes transfer not to be present for YUYV. Does the
-> camera use a single payload in that case as well ?
->
-
-I have, and the behaviour seems to differ depending on the frameIndex. 
-I haven't tested all of the resolutions yet, but here are the two main 
-patterns I see for YVUV.
-
-- For some resolutions, each frame is split up into multiple payloads, 
-each of which are equal in size to the dwMaxPayloadTransferSize, apart 
-perhaps from the last.  Each payload consists of a single URB ( I hope 
-this is the correct terminology ) and has a header.  The total size of 
-the payload equals the dwMaxPayloadFrameSize + (Number of URBs * 12).
-
-- For other resolutions, there is a single payload per frame.  The 
-payload itself is split over multiple URBs.  The payload is not 
-terminated by a URB containing just a header, i.e., a URB of 14 bytes, 
-as you guessed.  The size of the entire payload is equal to the 
-dwMaxPayloadFrameSize + 12 and is lower than the dwMaxPayloadTransferSize.
-
-I'm going to carry on investigating and will report back here once I 
-have a complete picture of the camera's behaviour.
+tree:   git://git.monstr.eu/linux-2.6-microblaze master-next-test
+head:   4b7d2ed82a743f8f3f7fe09904e154e7b3f5d5e8
+commit: f71a8a643dfe0bfc514b3223a440f0f4e4b9f39d [22/78] v4l2: add VIDIOC_G/S_EDID support to the v4l2 core
+reproduce: make C=1 CF=-D__CHECK_ENDIAN__
 
 
+sparse warnings: (new ones prefixed by >>)
 
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:335:26: sparse: incorrect type in argument 1 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:335:26:    expected void [noderef] <asn:1>*to
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:335:26:    got struct v4l2_plane *up
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:335:30: sparse: incorrect type in argument 2 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:335:30:    expected void const [noderef] <asn:1>*from
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:335:30:    got struct v4l2_plane32 *up32
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:336:31: sparse: incorrect type in argument 1 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:336:31:    expected void [noderef] <asn:1>*to
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:336:31:    got unsigned int *<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:336:49: sparse: incorrect type in argument 2 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:336:49:    expected void const [noderef] <asn:1>*from
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:336:49:    got unsigned int *<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:341:21: sparse: incorrect type in argument 1 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:341:21:    expected void const volatile [noderef] <asn:1>*<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:341:21:    got signed int *<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:344:21: sparse: incorrect type in argument 1 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:344:21:    expected void const volatile [noderef] <asn:1>*<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:344:21:    got unsigned long *<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:347:35: sparse: incorrect type in argument 1 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:347:35:    expected void [noderef] <asn:1>*to
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:347:35:    got signed int *<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:347:46: sparse: incorrect type in argument 2 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:347:46:    expected void const [noderef] <asn:1>*from
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:347:46:    got signed int *<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:350:35: sparse: incorrect type in argument 1 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:350:35:    expected void [noderef] <asn:1>*to
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:350:35:    got unsigned int *<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:350:54: sparse: incorrect type in argument 2 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:350:54:    expected void const [noderef] <asn:1>*from
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:350:54:    got unsigned int *<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:361:26: sparse: incorrect type in argument 1 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:361:26:    expected void [noderef] <asn:1>*to
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:361:26:    got struct v4l2_plane32 *up32
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:361:32: sparse: incorrect type in argument 2 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:361:32:    expected void const [noderef] <asn:1>*from
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:361:32:    got struct v4l2_plane *up
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:362:31: sparse: incorrect type in argument 1 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:362:31:    expected void [noderef] <asn:1>*to
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:362:31:    got unsigned int *<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:362:51: sparse: incorrect type in argument 2 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:362:51:    expected void const [noderef] <asn:1>*from
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:362:51:    got unsigned int *<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:369:35: sparse: incorrect type in argument 1 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:369:35:    expected void [noderef] <asn:1>*to
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:369:35:    got unsigned int *<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:369:56: sparse: incorrect type in argument 2 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:369:56:    expected void const [noderef] <asn:1>*from
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:369:56:    got unsigned int *<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:374:35: sparse: incorrect type in argument 1 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:374:35:    expected void [noderef] <asn:1>*to
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:374:35:    got signed int *<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:374:48: sparse: incorrect type in argument 2 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:374:48:    expected void const [noderef] <asn:1>*from
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:374:48:    got signed int *<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:428:30: sparse: incorrect type in assignment (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:428:30:    expected struct v4l2_plane *planes
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:428:30:    got struct v4l2_plane [noderef] <asn:1>*[assigned] uplane
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:431:48: sparse: incorrect type in argument 1 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:431:48:    expected struct v4l2_plane *up
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:431:48:    got struct v4l2_plane [noderef] <asn:1>*[assigned] uplane
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:431:56: sparse: incorrect type in argument 2 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:431:56:    expected struct v4l2_plane32 *up32
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:431:56:    got struct v4l2_plane32 [noderef] <asn:1>*[assigned] uplane32
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:499:24: sparse: incorrect type in assignment (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:499:24:    expected struct v4l2_plane [noderef] <asn:1>*uplane
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:499:24:    got struct v4l2_plane *planes
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:505:48: sparse: incorrect type in argument 1 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:505:48:    expected struct v4l2_plane *up
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:505:48:    got struct v4l2_plane [noderef] <asn:1>*uplane
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:505:56: sparse: incorrect type in argument 2 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:505:56:    expected struct v4l2_plane32 *up32
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:505:56:    got struct v4l2_plane32 [noderef] <asn:1>*[assigned] uplane32
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:553:18: sparse: incorrect type in assignment (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:553:18:    expected void *base
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:553:18:    got void [noderef] <asn:1>*
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:659:22: sparse: incorrect type in assignment (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:659:22:    expected struct v4l2_ext_control *controls
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:659:22:    got struct v4l2_ext_control [noderef] <asn:1>*[assigned] kcontrols
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:669:29: sparse: incorrect type in assignment (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:669:29:    expected char *__pu_val
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:669:29:    got void [noderef] <asn:1>*[assigned] s
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:681:55: sparse: incorrect type in initializer (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:681:55:    expected struct v4l2_ext_control [noderef] <asn:1>*kcontrols
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:681:55:    got struct v4l2_ext_control *controls
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:775:30: sparse: incorrect type in argument 1 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:775:30:    expected void [noderef] <asn:1>*to
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:775:30:    got unsigned int *<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:775:44: sparse: incorrect type in argument 2 (different address spaces)
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:775:44:    expected void const *from
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:775:44:    got unsigned int [noderef] <asn:1>*<noident>
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1090:14: sparse: undefined identifier 'VIDIOC_SUBDEV_G_EDID32'
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1091:14: sparse: undefined identifier 'VIDIOC_SUBDEV_S_EDID32'
+>> drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1090:14: sparse: incompatible types for 'case' statement
+>> drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1091:14: sparse: incompatible types for 'case' statement
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1090:14: sparse: Expected constant expression in case statement
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1091:14: sparse: Expected constant expression in case statement
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c: In function 'v4l2_compat_ioctl32':
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1090:7: error: 'VIDIOC_SUBDEV_G_EDID32' undeclared (first use in this function)
+     case VIDIOC_SUBDEV_G_EDID32:
+          ^
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1090:7: note: each undeclared identifier is reported only once for each function it appears in
+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1091:7: error: 'VIDIOC_SUBDEV_S_EDID32' undeclared (first use in this function)
+     case VIDIOC_SUBDEV_S_EDID32:
+          ^
 
+vim +/case +1090 drivers/media/v4l2-core/v4l2-compat-ioctl32.c
 
+2150158b drivers/media/video/v4l2-compat-ioctl32.c     Guennadi Liakhovetski 2011-09-28  1084  	case VIDIOC_CREATE_BUFS32:
+2150158b drivers/media/video/v4l2-compat-ioctl32.c     Guennadi Liakhovetski 2011-09-28  1085  	case VIDIOC_PREPARE_BUF32:
+5d7758ee drivers/media/video/v4l2-compat-ioctl32.c     Hans Verkuil          2012-05-15  1086  	case VIDIOC_ENUM_DV_TIMINGS:
+5d7758ee drivers/media/video/v4l2-compat-ioctl32.c     Hans Verkuil          2012-05-15  1087  	case VIDIOC_QUERY_DV_TIMINGS:
+5d7758ee drivers/media/video/v4l2-compat-ioctl32.c     Hans Verkuil          2012-05-15  1088  	case VIDIOC_DV_TIMINGS_CAP:
+82b655bf drivers/media/video/v4l2-compat-ioctl32.c     Hans Verkuil          2012-07-05  1089  	case VIDIOC_ENUM_FREQ_BANDS:
+ed45ce2c drivers/media/v4l2-core/v4l2-compat-ioctl32.c Hans Verkuil          2012-08-10 @1090  	case VIDIOC_SUBDEV_G_EDID32:
+ed45ce2c drivers/media/v4l2-core/v4l2-compat-ioctl32.c Hans Verkuil          2012-08-10 @1091  	case VIDIOC_SUBDEV_S_EDID32:
+0d0fbf81 drivers/media/video/compat_ioctl32.c          Arnd Bergmann         2006-01-09  1092  		ret = do_video_ioctl(file, cmd, arg);
+0d0fbf81 drivers/media/video/compat_ioctl32.c          Arnd Bergmann         2006-01-09  1093  		break;
+0d0fbf81 drivers/media/video/compat_ioctl32.c          Arnd Bergmann         2006-01-09  1094  
 
+:::::: The code at line 1090 was first introduced by commit
+:::::: ed45ce2cc0b31cb442685934b627916f83d1d7c6 [media] v4l2-subdev: add support for the new edid ioctls
+
+:::::: TO: Hans Verkuil <hans.verkuil@cisco.com>
+:::::: CC: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+---
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
