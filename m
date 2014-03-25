@@ -1,65 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41966 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755512AbaCFBuf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 20:50:35 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Joe Perches <joe@perches.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Paul Bolle <pebolle@tiscali.nl>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] [media] v4l: omap4iss: Add DEBUG compiler flag
-Date: Thu, 06 Mar 2014 02:52:03 +0100
-Message-ID: <18589524.VtEDRg43uX@avalon>
-In-Reply-To: <1394069742.12070.39.camel@joe-AO722>
-References: <1391958577.25424.22.camel@x220> <3032500.9J1uSX3lel@avalon> <1394069742.12070.39.camel@joe-AO722>
+Received: from hardeman.nu ([95.142.160.32]:37192 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750816AbaCYAPf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Mar 2014 20:15:35 -0400
+Date: Tue, 25 Mar 2014 01:15:32 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: James Hogan <james@albanarts.com>
+Cc: Antti =?iso-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v2 0/9] rc: Add IR encode based wakeup filtering
+Message-ID: <20140325001532.GB25627@hardeman.nu>
+References: <1394838259-14260-1-git-send-email-james@albanarts.com>
+ <2300906.aKyjnYIEg7@radagast>
+ <CAKv9HNbwftG5-mz6uLKH68AuHOK-PgDB4AZa0qHEWCXKL_+q+A@mail.gmail.com>
+ <1894298.cUReo31JQU@radagast>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1894298.cUReo31JQU@radagast>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Joe,
-
-On Wednesday 05 March 2014 17:35:42 Joe Perches wrote:
-> On Thu, 2014-03-06 at 02:27 +0100, Laurent Pinchart wrote:
-> > On Wednesday 05 March 2014 17:00:37 Joe Perches wrote:
-> > > On Thu, 2014-03-06 at 01:48 +0100, Laurent Pinchart wrote:
-> > > > Would you recommend to drop driver-specific Kconfig options related to
-> > > > debugging and use CONFIG_DYNAMIC_DEBUG instead ?
-> > > 
-> > > For development, sure, if there's sufficient memory.
-> > > For embedded systems with limited memory, using dynamic_debug isn't
-> > > always possible or effective.
-> > > Also, there are sometimes reasons to have debugging messages always
-> > > enabled or emitted.
-> > > For those cases, either adding #define DEBUG or using printk(KERN_DEBUG
-> > > would be fine.
-> > 
-> > My goal here is to offer an easy way for users to enable debugging without
-> > requiring changes to the source code.
-> 
-> Dynamic debugging works, but various distributions don't
-> have it enabled.
-> 
-> > The driver includes various dev_dbg() messages, I don't want to ask people
-> > reporting problems to turn them into printk() calls :-) Even adding
-> > #define DEBUG at the beginning of the source files is likely too error
-> > prone for users without much programming experience.
+On Mon, Mar 17, 2014 at 10:34:25PM +0000, James Hogan wrote:
+>It's ambiguous the other way too (which is probably a strong point against 
+>having actual protocol bits for each NEC variant, since they only differ in 
+>how the scancode is constructed). E.g. the Tivo keymap is 32-bit NEC, but has 
+>extended NEC scancodes where the bytes of the command are complements (i.e. 
+>the extended NEC command checksum passes). This makes it hard to filter on at 
+>the scancode level (the drivers will probably get it right for the hardware 
+>filters, but the software filter will likely get it wrong in those corner 
+>cases since it knows nothing of NEC).
 >
-> I think your best bet is to add #define DEBUG to a common
-> header file like iss.h or omap4iss.h
+>There's multiple ways the NEC scancode formats could be improved 
+>(incompatibly!) to reduce the problems, but none are perfect.
+>
+>E.g. one possibility is to scrap the NEC and extended NEC scancodes and just 
+>use 32-bit NEC scancodes format throughout:
 
-I've thought about that, but it would require iss.h to be included before all 
-other headers. I've also thought about creating an iss-debug.h header to be 
-included first just to #define DEBUG, but decided to go for handling the OMAP4 
-ISS debug option in the Makefile instead. If that's ugly and discouraged as 
-reported by Mauro I can try to come up with something else.
+YES!
+
+All the "knowledge" of "original" NEC (16 bit), "extended" NEC, etc that
+have multiplied over both drivers and in various parts of rc-core is a
+big mistake IMHO. The only sane way of handling NEC is to always treat
+it as a 32 bit scancode (and only in cases where e.g. the hardware
+returns or expects a 16 bit value should the scancode be converted
+to/from the canonical 32 bit format). There is absolutely no advantages
+in trying to parse or "understand" the NEC format unless it absolutely
+cannot be avoided.
+
+I haven't had the time to really review your patches in depth, but
+whatever you do, please try to keep any knowledge of NEC 16/24/32 bit
+distinction out of any functionality you add.
+
+I had a suggested patch before which would also make the keymap handling
+32-bit centric...essentially by redefining the set/get keymap ioctls a
+bit (with backwards compatibility that guesses if the scancode is
+16/24/32 bit based). It's been on my todo list for a long time to dust it
+off...(yeah...I know)...
+ 
+>0x[16-bit-address][16-bit-command]
+>
+>which encodes scancodes for extended NEC like this:
+>0x[16-bit-address][~8-bit-command][8-bit-command]
+>
+>and normal NEC like this:
+>0x[~8-bit-address][8-bit-address][~8-bit-command][8-bit-command]
+>
+>Thanks
+>James
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+David Härdeman
