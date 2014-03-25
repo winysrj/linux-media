@@ -1,217 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41140 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752548AbaCYMQa (ORCPT
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:58697 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751448AbaCYK4f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Mar 2014 08:16:30 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH 4/6] v4l: vsp1: Add DT support
-Date: Tue, 25 Mar 2014 13:18:22 +0100
-Message-ID: <4172444.b80tq3sQnW@avalon>
-In-Reply-To: <4542787.8JEGs6DclK@avalon>
-References: <1394047444-30077-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <4542787.8JEGs6DclK@avalon>
+	Tue, 25 Mar 2014 06:56:35 -0400
+Received: by mail-ee0-f49.google.com with SMTP id c41so279280eek.22
+        for <linux-media@vger.kernel.org>; Tue, 25 Mar 2014 03:56:34 -0700 (PDT)
+Date: Tue, 25 Mar 2014 11:56:29 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Seung-Woo Kim <sw0312.kim@samsung.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Bin Wang <binw@marvell.com>,
+	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: add meta data attachment
+Message-ID: <20140325105629.GY26878@phenom.ffwll.local>
+References: <1395378261-17408-1-git-send-email-binw@marvell.com>
+ <CAO_48GFPTn26szh8ffVuohGC_FZ+hdR=9V_YnS82t_UZ9nNMJw@mail.gmail.com>
+ <477F20668A386D41ADCC57781B1F70430F53F33F7D@SC-VEXCH1.marvell.com>
+ <CAKMK7uFNw=7zeMOyscx6J7K7oZVoG8XkNhgdjmeJUKEusPzNDg@mail.gmail.com>
+ <53314A9E.908@samsung.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <53314A9E.908@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Tue, Mar 25, 2014 at 06:21:34PM +0900, Seung-Woo Kim wrote:
+> Hi all,
+> 
+> On 2014년 03월 24일 16:35, Daniel Vetter wrote:
+> > Hi all,
+> >
+> > Adding piles more people.
+> >
+> > For the first case of caching the iommu mapping there's different
+> > answers, depening upon the exact case:
+> >
+> > 1) You need to fix your userspace to not constantly re-establish the sharing.
+> >
+> > 2) We need to add streaming dma support for real to dma-bufs so that
+> > the mapping can be kept while we transfer ownership around. Thus far
+> > no one really needed this though since usually you don't actually do
+> > cpu access.
+> >
+> > 3) You need opportunistic caching of imported/exported buffer objects
+> > and their mappings. For this you need a) subsystem import/export
+> > support which guarantees you to hand out the same dma-buf/native
+> > object again upon re-export or re-import (drm has it) b) some
+> > opportunistic caching of buffer objects (pretty much are real gpu drm
+> > drivers have it). No need of any metadata scheme, and given how much
+> > fun I've had implemented this for drm I don't you can make your
+> > metadata scheme work in a sane or correct way wrt lifetimes.
+> >
+> > For caching the iommu mapping if the iommu is the same for multiple devices:
+> >
+> > 1) We need some way to figure out which iommu serves which devices.
+> >
+> > 2) The exporter needs to consult this and might just hand out the same
+> > sg mapping out again if it wants to.
+> >
+> > No need for importers to do fancy stuff, or attach any
+> > importer-visible metadata to dma-bufs. Of course duplicating this code
+> > all over the place is a but uncool, so I expect that eventually we'll
+> > have a generic exporter implementation, at least for non-swappable
+> > buffers. drm/gem is a bit special here ...
+> >
+> > In general I don't like the idea of arbitrary metadata at all, sounds
+> > prone to abuse with crazy lifetime/refcounting rules for the objects
+> > involved. Also I think for a lot of your examples (like debugging) it
+> > would be much better if we have a standardized piece of metadata so
+> > that all drivers/platforms can use the same tooling.
+> >
+> > And it feels like I'm writing such a mail every few months ...
+> 
+> I posted concept about importer priv of dma-buf, and it seems that this
+> patch is partly from similar requirement - iommu map/unmap.
+> 
+> And at that time, Daniel agreed at least the issue, that unnecessary
+> map/unmap can repeatedly called, is also in the drm gem.
+> http://lists.freedesktop.org/archives/dri-devel/2013-June/039469.html
+> 
+> So I agree about the necessary of some data of dma-buf for general
+> importer even though the data can be shared between different subsystems.
 
-Gentle ping. I'll send a pull request in a week if I don't receive any comment 
-on the DT bindings in the meantime.
-
-On Wednesday 05 March 2014 20:30:27 Laurent Pinchart wrote:
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  .../devicetree/bindings/media/renesas,vsp1.txt     | 51 +++++++++++++++++++
->  drivers/media/platform/vsp1/vsp1_drv.c             | 52 +++++++++++++++----
->  2 files changed, 95 insertions(+), 8 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/media/renesas,vsp1.txt
-> 
-> (With the DT mailing list CC'ed this time, sorry about that)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/renesas,vsp1.txt
-> b/Documentation/devicetree/bindings/media/renesas,vsp1.txt new file mode
-> 100644
-> index 0000000..3b828d4
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
-> @@ -0,0 +1,51 @@
-> +* Renesas VSP1 Video Processing Engine
-> +
-> +The VSP1 is a video processing engine that supports up-/down-scaling, alpha
-> +blending, color space conversion and various other image processing
-> features.
-> +It can be found in the Renesas R-Car second generation SoCs.
-> +
-> +Required properties:
-> +
-> +  - compatible: Must contain "renesas,vsp1"
-> +
-> +  - reg: Base address and length of the registers block for the VSP1.
-> +  - interrupt-parent, interrupts: Specifier for the VSP1 interrupt.
-> +
-> +  - clocks: A list of phandle + clock-specifier pairs for the main VSP1
-> clock
-> +    and the optional auxiliary RT clock if needed. VSP1 instances that need
-> an
-> +    auxiliary RT clock must specify the clock-names property.
-> +
-> +  - renesas,#rpf: Number of Read Pixel Formatter (RPF) modules in the VSP1.
-> +  - renesas,#uds: Number of Up Down Scaler (UDS) modules in the VSP1.
-> +  - renesas,#wpf: Number of Write Pixel Formatter (WPF) modules in the
-> VSP1.
-> +
-> +
-> +Optional properties:
-> +
-> +  - clock-names: When the VSP1 requires an auxiliary RT clock this property
-> +    must be present and must contain "", "rt".
-> +
-> +  - renesas,has-lif: Boolean, indicates that the LCD Interface (LIF) module
-> is
-> +    available.
-> +  - renesas,has-lut: Boolean, indicates that the Look Up Table (LUT) module
-> is
-> +    available.
-> +  - renesas,has-sru: Boolean, indicates that the Super Resolution Unit
-> (SRU)
-> +    module is available.
-> +
-> +
-> +Example: R8A7790 (R-Car H2) VSP1-S node
-> +
-> +	vsp1@fe928000 {
-> +		compatible = "renesas,vsp1";
-> +		reg = <0 0xfe928000 0 0x8000>;
-> +		interrupts = <0 267 IRQ_TYPE_LEVEL_HIGH>;
-> +		clocks = <&mstp1_clks R8A7790_CLK_VSP1_SY>,
-> +			 <&mstp1_clks R8A7790_CLK_VSP1_RT>;
-> +		clock-names = "", "rt";
-> +
-> +		renesas,has-lut;
-> +		renesas,has-sru;
-> +		renesas,#rpf = <5>;
-> +		renesas,#uds = <3>;
-> +		renesas,#wpf = <4>;
-> +	};
-> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c
-> b/drivers/media/platform/vsp1/vsp1_drv.c index 5f774cc..b75ca84 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drv.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
-> @@ -16,6 +16,7 @@
->  #include <linux/device.h>
->  #include <linux/interrupt.h>
->  #include <linux/module.h>
-> +#include <linux/of.h>
->  #include <linux/platform_device.h>
->  #include <linux/videodev2.h>
-> 
-> @@ -458,34 +459,59 @@ static const struct dev_pm_ops vsp1_pm_ops = {
->   * Platform Driver
->   */
-> 
-> -static struct vsp1_platform_data *
-> -vsp1_get_platform_data(struct platform_device *pdev)
-> +static int vsp1_validate_platform_data(struct platform_device *pdev,
-> +				       struct vsp1_platform_data *pdata)
->  {
-> -	struct vsp1_platform_data *pdata = pdev->dev.platform_data;
-> -
->  	if (pdata == NULL) {
->  		dev_err(&pdev->dev, "missing platform data\n");
-> -		return NULL;
-> +		return -EINVAL;
->  	}
-> 
->  	if (pdata->rpf_count <= 0 || pdata->rpf_count > VPS1_MAX_RPF) {
->  		dev_err(&pdev->dev, "invalid number of RPF (%u)\n",
->  			pdata->rpf_count);
-> -		return NULL;
-> +		return -EINVAL;
->  	}
-> 
->  	if (pdata->uds_count <= 0 || pdata->uds_count > VPS1_MAX_UDS) {
->  		dev_err(&pdev->dev, "invalid number of UDS (%u)\n",
->  			pdata->uds_count);
-> -		return NULL;
-> +		return -EINVAL;
->  	}
-> 
->  	if (pdata->wpf_count <= 0 || pdata->wpf_count > VPS1_MAX_WPF) {
->  		dev_err(&pdev->dev, "invalid number of WPF (%u)\n",
->  			pdata->wpf_count);
-> -		return NULL;
-> +		return -EINVAL;
->  	}
-> 
-> +	return 0;
-> +}
-> +
-> +static struct vsp1_platform_data *
-> +vsp1_get_platform_data(struct platform_device *pdev)
-> +{
-> +	struct device_node *np = pdev->dev.of_node;
-> +	struct vsp1_platform_data *pdata;
-> +
-> +	if (!IS_ENABLED(CONFIG_OF) || np == NULL)
-> +		return pdev->dev.platform_data;
-> +
-> +	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-> +	if (pdata == NULL)
-> +		return NULL;
-> +
-> +	if (of_property_read_bool(np, "renesas,has-lif"))
-> +		pdata->features |= VSP1_HAS_LIF;
-> +	if (of_property_read_bool(np, "renesas,has-lut"))
-> +		pdata->features |= VSP1_HAS_LUT;
-> +	if (of_property_read_bool(np, "renesas,has-sru"))
-> +		pdata->features |= VSP1_HAS_SRU;
-> +
-> +	of_property_read_u32(np, "renesas,#rpf", &pdata->rpf_count);
-> +	of_property_read_u32(np, "renesas,#uds", &pdata->uds_count);
-> +	of_property_read_u32(np, "renesas,#wpf", &pdata->wpf_count);
-> +
->  	return pdata;
->  }
-> 
-> @@ -508,6 +534,10 @@ static int vsp1_probe(struct platform_device *pdev)
->  	if (vsp1->pdata == NULL)
->  		return -ENODEV;
-> 
-> +	ret = vsp1_validate_platform_data(pdev, vsp1->pdata);
-> +	if (ret < 0)
-> +		return ret;
-> +
->  	/* I/O, IRQ and clock resources */
->  	io = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	vsp1->mmio = devm_ioremap_resource(&pdev->dev, io);
-> @@ -557,6 +587,11 @@ static int vsp1_remove(struct platform_device *pdev)
->  	return 0;
->  }
-> 
-> +static const struct of_device_id vsp1_of_match[] = {
-> +	{ .compatible = "renesas,vsp1" },
-> +	{ },
-> +};
-> +
->  static struct platform_driver vsp1_platform_driver = {
->  	.probe		= vsp1_probe,
->  	.remove		= vsp1_remove,
-> @@ -564,6 +599,7 @@ static struct platform_driver vsp1_platform_driver = {
->  		.owner	= THIS_MODULE,
->  		.name	= "vsp1",
->  		.pm	= &vsp1_pm_ops,
-> +		.of_match_table = of_match_ptr(vsp1_of_match),
->  	},
->  };
-
+Oh right, I guess someone has to implement this eventually ;-)
+-Daniel
 -- 
-Regards,
-
-Laurent Pinchart
-
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
