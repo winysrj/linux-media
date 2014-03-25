@@ -1,81 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43290 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760597AbaCUNhw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 09:37:52 -0400
-Message-ID: <532C408D.4070002@ti.com>
-Date: Fri, 21 Mar 2014 15:37:17 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:56058 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753721AbaCYSUa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Mar 2014 14:20:30 -0400
+Received: by mail-ee0-f44.google.com with SMTP id e49so768266eek.31
+        for <linux-media@vger.kernel.org>; Tue, 25 Mar 2014 11:20:28 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 01/11] libdvbv5: support info info log via dvb_loginfo
+Date: Tue, 25 Mar 2014 19:19:51 +0100
+Message-Id: <1395771601-3509-1-git-send-email-neolynx@gmail.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Grant Likely <grant.likely@linaro.org>
-CC: Philipp Zabel <p.zabel@pengutronix.de>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core
- to drivers/of
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> <3632624.gNVi6QOfGx@avalon> <20140320222347.CAB6DC412EA@trevor.secretlab.ca> <2848953.vVjghJyYNE@avalon>
-In-Reply-To: <2848953.vVjghJyYNE@avalon>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="G261urBc241986SSMdbrsee8OkqQINdFH"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---G261urBc241986SSMdbrsee8OkqQINdFH
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+dvb_loginfo log support without setting output color.
 
-On 21/03/14 00:32, Laurent Pinchart wrote:
+Signed-off-by: André Roth <neolynx@gmail.com>
+---
+ lib/include/dvb-log.h  |  3 +++
+ lib/libdvbv5/dvb-log.c | 26 +++++++++++++-------------
+ 2 files changed, 16 insertions(+), 13 deletions(-)
 
-> The OF graph bindings documentation could just specify the ports node a=
-s=20
-> optional and mandate individual device bindings to specify it as mandat=
-ory or=20
-> forbidden (possibly with a default behaviour to avoid making all device=
-=20
-> bindings too verbose).
+diff --git a/lib/include/dvb-log.h b/lib/include/dvb-log.h
+index a72adce..755167a 100644
+--- a/lib/include/dvb-log.h
++++ b/lib/include/dvb-log.h
+@@ -38,6 +38,9 @@ typedef void (*dvb_logfunc)(int level, const char *fmt, ...) __attribute__ (( fo
+ #define dvb_logwarn(fmt, arg...) do {\
+ 	parms->logfunc(LOG_WARNING, fmt, ##arg); \
+ } while (0)
++#define dvb_loginfo(fmt, arg...) do {\
++	parms->logfunc(LOG_NOTICE, fmt, ##arg); \
++} while (0)
+ 
+ 
+ #define dvb_perror(msg) do {\
+diff --git a/lib/libdvbv5/dvb-log.c b/lib/libdvbv5/dvb-log.c
+index 87d92f2..8bb34ca 100644
+--- a/lib/libdvbv5/dvb-log.c
++++ b/lib/libdvbv5/dvb-log.c
+@@ -30,15 +30,15 @@ static const struct loglevel {
+ 	const char *color;
+ 	int fd;
+ } loglevels[9] = {
+-	{"EMERG   ", "\033[31m", STDERR_FILENO },
+-	{"ALERT   ", "\033[31m", STDERR_FILENO },
+-	{"CRITICAL", "\033[31m", STDERR_FILENO },
+-	{"ERROR   ", "\033[31m", STDERR_FILENO },
+-	{"WARNING ", "\033[33m", STDOUT_FILENO },
+-	{"NOTICE  ", "\033[36m", STDOUT_FILENO },
+-	{"INFO    ", "\033[36m", STDOUT_FILENO },
+-	{"DEBUG   ", "\033[32m", STDOUT_FILENO },
+-	{"",         "\033[0m",  STDOUT_FILENO },
++	{"EMERG    ", "\033[31m", STDERR_FILENO },
++	{"ALERT    ", "\033[31m", STDERR_FILENO },
++	{"CRITICAL ", "\033[31m", STDERR_FILENO },
++	{"ERROR    ", "\033[31m", STDERR_FILENO },
++	{"WARNING  ", "\033[33m", STDOUT_FILENO },
++	{"",          "\033[36m", STDOUT_FILENO }, /* NOTICE */
++	{"",          NULL,       STDOUT_FILENO }, /* INFO */
++	{"DEBUG    ", "\033[32m", STDOUT_FILENO },
++	{"",          "\033[0m",  STDOUT_FILENO }, /* reset*/
+ };
+ #define LOG_COLOROFF 8
+ 
+@@ -49,14 +49,14 @@ void dvb_default_log(int level, const char *fmt, ...)
+ 	va_list ap;
+ 	va_start(ap, fmt);
+ 	FILE *out = stdout;
+-	if(STDERR_FILENO == loglevels[level].fd)
++	if (STDERR_FILENO == loglevels[level].fd)
+ 		out = stderr;
+-	if(isatty(loglevels[level].fd))
++	if (loglevels[level].color && isatty(loglevels[level].fd))
+ 		fputs(loglevels[level].color, out);
+-	fprintf(out, "%s ", loglevels[level].name);
++	fprintf(out, "%s", loglevels[level].name);
+ 	vfprintf(out, fmt, ap);
+ 	fprintf(out, "\n");
+-	if(isatty(loglevels[level].fd))
++	if(loglevels[level].color && isatty(loglevels[level].fd))
+ 		fputs(loglevels[LOG_COLOROFF].color, out);
+ 	va_end(ap);
+ }
+-- 
+1.8.3.2
 
-Isn't it so that if the device has one port, it can always do without
-'ports', but if it has multiple ports, it always has to use 'ports' so
-that #address-cells and #size-cells can be defined?
-
-If so, there's nothing left for the individual device bindings to decide.=
-
-
- Tomi
-
-
-
---G261urBc241986SSMdbrsee8OkqQINdFH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTLECNAAoJEPo9qoy8lh71PigQAKz1zNAFp441Mj2R8m1wNZlv
-CEbmHLRAMyuNykNlVDVfIyPRVtVrv41+IGFknHUdvQl4h8GtKs4z8voyEQlnohN3
-BOVIdMtUwGgO+bsk+YQiLOUoKtmi32g3t4gzx2OT9vZo3aWncaP3PbbuzGTTOS50
-p37br2P+1hOe2lcVYOPMcUq+C31x5gbGJGLN63QqwF4Nz0ZZKq5l7A3a6AMsdRFv
-K72llCJouxRQF5nOmiaSyCJgEUsVeYtzy3UY1TaqMrA6d2xEb0hH3f0EwPuSDRmo
-dVzFLN806uDdKbdO9iJs2pZOkQoppmsEATCnCS+JtIYvcXOIxUDUJ82ie3Y5ku55
-2ovqyKQHKOR9QKMDqfK1i7+MyxwAk0RJYgIEq8nudcjyaFsOVgFOqp9PHy+hZTjL
-S4unO8/xULDHkMgewEzBsQbjr1MaEazWRpzQBe3GRxppkCaT7LmwrhIrFKHgiUo+
-DxDp8pmHUcvyO2z+gMWCb/Nt3xZizyCoeD8gEkY2/Y4IqDsdkOFlyxA3yQXvTIMv
-AM8CBCrUliaFyQtM+sp1C6aQUpUUYdmqYnmrmqXuMkNyYM+BjBlfYw0U1ggiBcmY
-+HFypZAX8vKx8MsmvvB8hYpMExyMdWMC7ba4osVOFi7a3J1rDlGBJCYwj0nH8Vhf
-J2YuELr2WaRtOhT/azuB
-=4DEJ
------END PGP SIGNATURE-----
-
---G261urBc241986SSMdbrsee8OkqQINdFH--
