@@ -1,121 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40538 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751843AbaCLMhw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Mar 2014 08:37:52 -0400
-Message-ID: <5320551C.4090106@iki.fi>
-Date: Wed, 12 Mar 2014 14:37:48 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ee0-f50.google.com ([74.125.83.50]:60417 "EHLO
+	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754252AbaCYSUg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Mar 2014 14:20:36 -0400
+Received: by mail-ee0-f50.google.com with SMTP id c13so787901eek.9
+        for <linux-media@vger.kernel.org>; Tue, 25 Mar 2014 11:20:34 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 04/11] libdvbv5: fix EIT parsing
+Date: Tue, 25 Mar 2014 19:19:54 +0100
+Message-Id: <1395771601-3509-4-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1395771601-3509-1-git-send-email-neolynx@gmail.com>
+References: <1395771601-3509-1-git-send-email-neolynx@gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: LMML <linux-media@vger.kernel.org>
-Subject: Re: [REVIEW PATCH 11/13] DocBook: document RF tuner bandwidth controls
-References: <1393460528-11684-1-git-send-email-crope@iki.fi> <1393460528-11684-12-git-send-email-crope@iki.fi> <20140305154922.508c48d7@samsung.com> <531D8D78.800@iki.fi> <20140312080233.3823dd80@samsung.com> <5320527B.9040707@iki.fi>
-In-Reply-To: <5320527B.9040707@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12.03.2014 14:26, Antti Palosaari wrote:
-> On 12.03.2014 13:02, Mauro Carvalho Chehab wrote:
->> Em Mon, 10 Mar 2014 12:01:28 +0200
->> Antti Palosaari <crope@iki.fi> escreveu:
->>
->>> On 05.03.2014 20:49, Mauro Carvalho Chehab wrote:
->>>> Em Thu, 27 Feb 2014 02:22:06 +0200
->>>> Antti Palosaari <crope@iki.fi> escreveu:
->>>>
->>>>> Add documentation for RF tuner bandwidth controls. These controls are
->>>>> used to set filters on tuner signal path.
->>>>>
->>>>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
->>>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
->>>>> ---
->>>>>    Documentation/DocBook/media/v4l/controls.xml | 19
->>>>> +++++++++++++++++++
->>>>>    1 file changed, 19 insertions(+)
->>>>>
->>>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
->>>>> b/Documentation/DocBook/media/v4l/controls.xml
->>>>> index 6c9dbf6..5550fea 100644
->>>>> --- a/Documentation/DocBook/media/v4l/controls.xml
->>>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
->>>>> @@ -5007,6 +5007,25 @@ descriptor. Calling &VIDIOC-QUERYCTRL; for
->>>>> this control will return a
->>>>>    description of this control class.</entry>
->>>>>                </row>
->>>>>                <row>
->>>>> +              <entry
->>>>> spanname="id"><constant>V4L2_CID_RF_TUNER_BANDWIDTH_AUTO</constant>&nbsp;</entry>
->>>>>
->>>>> +              <entry>boolean</entry>
->>>>> +            </row>
->>>>> +            <row>
->>>>> +              <entry spanname="descr">Enables/disables tuner radio
->>>>> channel
->>>>> +bandwidth configuration. In automatic mode bandwidth configuration
->>>>> is performed
->>>>> +by the driver.</entry>
->>>>> +            </row>
->>>>> +            <row>
->>>>> +              <entry
->>>>> spanname="id"><constant>V4L2_CID_RF_TUNER_BANDWIDTH</constant>&nbsp;</entry>
->>>>>
->>>>> +              <entry>integer</entry>
->>>>> +            </row>
->>>>> +            <row>
->>>>> +              <entry spanname="descr">Filter(s) on tuner signal
->>>>> path are used to
->>>>> +filter signal according to receiving party needs. Driver
->>>>> configures filters to
->>>>> +fulfill desired bandwidth requirement. Used when
->>>>> V4L2_CID_RF_TUNER_BANDWIDTH_AUTO is not
->>>>> +set. The range and step are driver-specific.</entry>
->>>>
->>>> Huh? If this is enable/disable, why "the range and step are
->>>> driver-specific"?
->>>
->>> Because there is two controls grouped. That is situation of having
->>> AUTO/MANUAL.
->>> V4L2_CID_RF_TUNER_BANDWIDTH_AUTO
->>> V4L2_CID_RF_TUNER_BANDWIDTH
->>>
->>> V4L2_CID_RF_TUNER_BANDWIDTH is valid only when
->>> V4L2_CID_RF_TUNER_BANDWIDTH_AUTO == false.
->>>
->>
->> Sorry, but I'm not understanding what you're arguing.
->>
->> Yeah, it is clear at the patch that there are two controls, and that
->> V4L2_CID_RF_TUNER_BANDWIDTH is valid only when AUTO is disabled, but
->> this doesn't answer my question:
->>
->> Why V4L2_CID_RF_TUNER_BANDWIDTH's range and step are driver-specific?
->>
->
-> Hmmm. That control is used to configure RF filters. Filters set
-> bandwidth of radio channel. There is usually quite limited set of
-> available analog filters inside RF tuner. If you look for example
-> FC0012/FC0013 possible filters are 6/7/8 MHz. E4000 has something 4-11
-> MHz. If you look those very old 1st gen silicon tuners like QT1010 /
-> MT2060, there is no integrated filters at all - but there is external
-> saw filter which is usually 8MHz at 36.125 MHz IF.
->
-> Did you remember there is same parameter already in DVB API (struct
-> dtv_frontend_properties bandwidth_hz)? That is control is currently used
-> to set r820t, fc0012, fc10013 .bandwidth_hz value, e4000 implements it
-> correctly as own control.
->
-> I am quite astonished we have that big gap with our views.
+the dvb_table_eit_event now contains the service_id,
+indicating where the events belong to.
 
-Here is picture from GNU Radio UHD source (it is the original Ettus HW 
-GNU Radio was done AFAIK). Bandwidth is last control.
+Signed-off-by: André Roth <neolynx@gmail.com>
+---
+ lib/include/descriptors/eit.h  |  3 ++-
+ lib/libdvbv5/descriptors/eit.c | 35 ++++++++++++++++++++++++++---------
+ 2 files changed, 28 insertions(+), 10 deletions(-)
 
-http://lists.gnu.org/archive/html/discuss-gnuradio/2010-12/pngqfPrwUmgsB.png
-
-regards
-Antti
-
+diff --git a/lib/include/descriptors/eit.h b/lib/include/descriptors/eit.h
+index 9a1a637..e0ecee3 100644
+--- a/lib/include/descriptors/eit.h
++++ b/lib/include/descriptors/eit.h
+@@ -40,7 +40,7 @@
+ struct dvb_table_eit_event {
+ 	uint16_t event_id;
+ 	union {
+-		uint16_t bitfield;
++		uint16_t bitfield1; /* first 2 bytes are MJD, they need to be bswapped */
+ 		uint8_t dvbstart[5];
+ 	} __attribute__((packed));
+ 	uint8_t dvbduration[3];
+@@ -56,6 +56,7 @@ struct dvb_table_eit_event {
+ 	struct dvb_table_eit_event *next;
+ 	struct tm start;
+ 	uint32_t duration;
++	uint16_t service_id;
+ } __attribute__((packed));
+ 
+ struct dvb_table_eit {
+diff --git a/lib/libdvbv5/descriptors/eit.c b/lib/libdvbv5/descriptors/eit.c
+index 64a8897..123dc91 100644
+--- a/lib/libdvbv5/descriptors/eit.c
++++ b/lib/libdvbv5/descriptors/eit.c
+@@ -29,6 +29,11 @@ void dvb_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize
+ 	struct dvb_table_eit_event **head;
+ 
+ 	if (*table_length > 0) {
++		memcpy(eit, p, sizeof(struct dvb_table_eit) - sizeof(eit->event));
++
++		bswap16(eit->transport_id);
++		bswap16(eit->network_id);
++
+ 		/* find end of curent list */
+ 		head = &eit->event;
+ 		while (*head != NULL)
+@@ -48,18 +53,30 @@ void dvb_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize
+ 	struct dvb_table_eit_event *last = NULL;
+ 	while ((uint8_t *) p < buf + buflen - 4) {
+ 		struct dvb_table_eit_event *event = (struct dvb_table_eit_event *) malloc(sizeof(struct dvb_table_eit_event));
+-		memcpy(event, p, sizeof(struct dvb_table_eit_event) - sizeof(event->descriptor) - sizeof(event->next) - sizeof(event->start) - sizeof(event->duration));
+-		p += sizeof(struct dvb_table_eit_event) - sizeof(event->descriptor) - sizeof(event->next) - sizeof(event->start) - sizeof(event->duration);
++		memcpy(event, p, sizeof(struct dvb_table_eit_event) -
++				 sizeof(event->descriptor) -
++				 sizeof(event->next) -
++				 sizeof(event->start) -
++				 sizeof(event->duration) -
++				 sizeof(event->service_id));
++		p += sizeof(struct dvb_table_eit_event) -
++		     sizeof(event->descriptor) -
++		     sizeof(event->next) -
++		     sizeof(event->start) -
++		     sizeof(event->duration) -
++		     sizeof(event->service_id);
+ 
+ 		bswap16(event->event_id);
+-		bswap16(event->bitfield);
++		bswap16(event->bitfield1);
+ 		bswap16(event->bitfield2);
+ 		event->descriptor = NULL;
+ 		event->next = NULL;
+ 		dvb_time(event->dvbstart, &event->start);
+-		event->duration = bcd(event->dvbduration[0]) * 3600 +
+-				  bcd(event->dvbduration[1]) * 60 +
+-				  bcd(event->dvbduration[2]);
++		event->duration = bcd((uint32_t) event->dvbduration[0]) * 3600 +
++				  bcd((uint32_t) event->dvbduration[1]) * 60 +
++				  bcd((uint32_t) event->dvbduration[2]);
++
++		event->service_id = eit->header.id;
+ 
+ 		if(!*head)
+ 			*head = event;
+@@ -102,6 +119,7 @@ void dvb_table_eit_print(struct dvb_v5_fe_parms *parms, struct dvb_table_eit *ei
+ 		char start[255];
+ 		strftime(start, sizeof(start), "%F %T", &event->start);
+ 		dvb_log("|- %7d", event->event_id);
++		dvb_log("|   Service               %d", event->service_id);
+ 		dvb_log("|   Start                 %s UTC", start);
+ 		dvb_log("|   Duration              %dh %dm %ds", event->duration / 3600, (event->duration % 3600) / 60, event->duration % 60);
+ 		dvb_log("|   free CA mode          %d", event->free_CA_mode);
+@@ -137,9 +155,8 @@ void dvb_time(const uint8_t data[5], struct tm *tm)
+   tm->tm_mday  = day;
+   tm->tm_mon   = month - 1;
+   tm->tm_year  = year;
+-  tm->tm_isdst = -1;
+-  tm->tm_wday  = 0;
+-  tm->tm_yday  = 0;
++  tm->tm_isdst = 1; /* dst in effect, do not adjust */
++  mktime( tm );
+ }
+ 
+ 
 -- 
-http://palosaari.fi/
+1.8.3.2
+
