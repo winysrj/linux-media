@@ -1,48 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1585 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932895AbaCQMyl (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1663 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751512AbaCZIuY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 08:54:41 -0400
+	Wed, 26 Mar 2014 04:50:24 -0400
+Message-ID: <5332948E.4040506@xs4all.nl>
+Date: Wed, 26 Mar 2014 09:49:18 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, pawel@osciak.com
-Subject: [REVIEWv3 PATCH for v3.15 0/5] v4l2 core sparse error/warning fixes
-Date: Mon, 17 Mar 2014 13:54:18 +0100
-Message-Id: <1395060863-42211-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Tom <Bassai_Dai@gmx.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: why frameformat instead pixelformat?
+References: <loom.20140324T174253-993@post.gmane.org>
+In-Reply-To: <loom.20140324T174253-993@post.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These five patches fix sparse errors and warnings coming from the v4l2
-core. There are more, but those seem to be problems with sparse itself (see
-my posts from Saturday on that topic).
+On 03/24/14 17:52, Tom wrote:
+> Hello,
+> 
+> while reading into the media-api issue I found out that for configuring the 
+> entity pads a frameformat is used.
+> 
+> For that I found the negotiation rfc of that topic, but I don't really get 
+> the relevance of a frameformat.
+> 
+> http://www.spinics.net/lists/linux-media/msg10006.html
+> 
+> Can anyone explain why the media-api uses the frameformat instead of the 
+> pixelformat and what the main differences are?
 
-Please take a good look at patch 3/5 in particular: that fixes sparse
-errors introduced by my vb2 changes, and required some rework to get it
-accepted by sparse without errors or warnings.
+The pixelformat describes the image format in memory, the mbus_framefmt
+describes the image data as it is transferred over a hardware bus.
 
-The rework required the introduction of more type-specific call_*op macros,
-but on the other hand the fail_op macros could be dropped. Sort of one
-step backwards, one step forwards.
-
-If someone can think of a smarter solution for this, then please let me
-know.
+It's as simple as that. While the two are related (i.e. to get a certain
+pixelformat you probably need to set up a specific mbus_framefmt), the
+details of this relationship are board or even use-case dependent.
 
 Regards,
 
 	Hans
-
-Changes since v1:
-
-- added patch 2/5: the call_ptr_memop function checks for IS_ERR_OR_NULL
-  to see if a pointer is valid or not. The __qbuf_dmabuf code only used
-  IS_ERR. Made this consistent with both call_ptr_memop and the other
-  pointer checks elsewhere in the vb2 core code.
-
-- fixed a small typo in a comment that Pawel remarked upon.
-
-- Rewrote patch 5/5: Laurent wanted to keep the __user annotation with the
-  user_ptr. The reason I hadn't done that was that I couldn't make it work,
-  but I had an idea that moving the __user annotation before the '**' might
-  do the trick, and that helped indeed.
-
