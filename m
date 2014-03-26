@@ -1,102 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753390AbaCJXOw (ORCPT
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:53702 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755829AbaCZVLD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 19:14:52 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 38/48] adv7604: Remove deprecated video-level DV timings operations
-Date: Tue, 11 Mar 2014 00:15:49 +0100
-Message-Id: <1394493359-14115-39-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 26 Mar 2014 17:11:03 -0400
+Received: by mail-wi0-f175.google.com with SMTP id cc10so5177662wib.8
+        for <linux-media@vger.kernel.org>; Wed, 26 Mar 2014 14:11:01 -0700 (PDT)
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, James Hogan <james.hogan@imgtec.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Subject: [PATCH 3/3] rc: img-ir: Expand copyright headers with GPL notices
+Date: Wed, 26 Mar 2014 21:08:33 +0000
+Message-Id: <1395868113-17950-4-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1395868113-17950-1-git-send-email-james.hogan@imgtec.com>
+References: <1395868113-17950-1-git-send-email-james.hogan@imgtec.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings and dv_timings_cap operations are deprecated
-and unused. Remove them.
+Add the basic GPLv2+ license notice to the copyright headers at the top
+of all the source files in the img-ir driver.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reported-by: David Härdeman <david@hardeman.nu>
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: David Härdeman <david@hardeman.nu>
 ---
- drivers/media/i2c/adv7604.c | 35 +++++++++--------------------------
- 1 file changed, 9 insertions(+), 26 deletions(-)
+ drivers/media/rc/img-ir/img-ir-core.c  | 5 +++++
+ drivers/media/rc/img-ir/img-ir-hw.c    | 5 +++++
+ drivers/media/rc/img-ir/img-ir-hw.h    | 5 +++++
+ drivers/media/rc/img-ir/img-ir-jvc.c   | 5 +++++
+ drivers/media/rc/img-ir/img-ir-nec.c   | 5 +++++
+ drivers/media/rc/img-ir/img-ir-raw.c   | 5 +++++
+ drivers/media/rc/img-ir/img-ir-raw.h   | 5 +++++
+ drivers/media/rc/img-ir/img-ir-sanyo.c | 5 +++++
+ drivers/media/rc/img-ir/img-ir-sharp.c | 5 +++++
+ drivers/media/rc/img-ir/img-ir-sony.c  | 5 +++++
+ drivers/media/rc/img-ir/img-ir.h       | 5 +++++
+ 11 files changed, 55 insertions(+)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index a96c339..d4d085c 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1527,16 +1527,20 @@ static int adv7604_enum_dv_timings(struct v4l2_subdev *sd,
- 	return 0;
- }
+diff --git a/drivers/media/rc/img-ir/img-ir-core.c b/drivers/media/rc/img-ir/img-ir-core.c
+index 6b78348..a0cac2f 100644
+--- a/drivers/media/rc/img-ir/img-ir-core.c
++++ b/drivers/media/rc/img-ir/img-ir-core.c
+@@ -3,6 +3,11 @@
+  *
+  * Copyright 2010-2014 Imagination Technologies Ltd.
+  *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
+  * This contains core img-ir code for setting up the driver. The two interfaces
+  * (raw and hardware decode) are handled separately.
+  */
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
+index 579a52b..23b47c7 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.c
++++ b/drivers/media/rc/img-ir/img-ir-hw.c
+@@ -3,6 +3,11 @@
+  *
+  * Copyright 2010-2014 Imagination Technologies Ltd.
+  *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
+  * This ties into the input subsystem using the RC-core. Protocol support is
+  * provided in separate modules which provide the parameters and scancode
+  * translation functions to set up the hardware decoder and interpret the
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.h b/drivers/media/rc/img-ir/img-ir-hw.h
+index 6c9a94a..450f17d 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.h
++++ b/drivers/media/rc/img-ir/img-ir-hw.h
+@@ -2,6 +2,11 @@
+  * ImgTec IR Hardware Decoder found in PowerDown Controller.
+  *
+  * Copyright 2010-2014 Imagination Technologies Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
+  */
  
--static int __adv7604_dv_timings_cap(struct v4l2_subdev *sd,
--			struct v4l2_dv_timings_cap *cap,
--			unsigned int pad)
-+static int adv7604_dv_timings_cap(struct v4l2_subdev *sd,
-+			struct v4l2_dv_timings_cap *cap)
- {
-+	struct adv7604_state *state = to_state(sd);
-+
-+	if (cap->pad >= state->source_pad)
-+		return -EINVAL;
-+
- 	cap->type = V4L2_DV_BT_656_1120;
- 	cap->bt.max_width = 1920;
- 	cap->bt.max_height = 1200;
- 	cap->bt.min_pixelclock = 25000000;
+ #ifndef _IMG_IR_HW_H_
+diff --git a/drivers/media/rc/img-ir/img-ir-jvc.c b/drivers/media/rc/img-ir/img-ir-jvc.c
+index 10209d2..85ee90f 100644
+--- a/drivers/media/rc/img-ir/img-ir-jvc.c
++++ b/drivers/media/rc/img-ir/img-ir-jvc.c
+@@ -2,6 +2,11 @@
+  * ImgTec IR Decoder setup for JVC protocol.
+  *
+  * Copyright 2012-2014 Imagination Technologies Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
+  */
  
--	switch (pad) {
-+	switch (cap->pad) {
- 	case ADV7604_PAD_HDMI_PORT_A:
- 	case ADV7604_PAD_HDMI_PORT_B:
- 	case ADV7604_PAD_HDMI_PORT_C:
-@@ -1557,25 +1561,6 @@ static int __adv7604_dv_timings_cap(struct v4l2_subdev *sd,
- 	return 0;
- }
+ #include "img-ir-hw.h"
+diff --git a/drivers/media/rc/img-ir/img-ir-nec.c b/drivers/media/rc/img-ir/img-ir-nec.c
+index e7a731b..cff3212 100644
+--- a/drivers/media/rc/img-ir/img-ir-nec.c
++++ b/drivers/media/rc/img-ir/img-ir-nec.c
+@@ -2,6 +2,11 @@
+  * ImgTec IR Decoder setup for NEC protocol.
+  *
+  * Copyright 2010-2014 Imagination Technologies Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
+  */
  
--static int adv7604_dv_timings_cap(struct v4l2_subdev *sd,
--			struct v4l2_dv_timings_cap *cap)
--{
--	struct adv7604_state *state = to_state(sd);
--
--	return __adv7604_dv_timings_cap(sd, cap, state->selected_input);
--}
--
--static int adv7604_pad_dv_timings_cap(struct v4l2_subdev *sd,
--			struct v4l2_dv_timings_cap *cap)
--{
--	struct adv7604_state *state = to_state(sd);
--
--	if (cap->pad >= state->source_pad)
--		return -EINVAL;
--
--	return __adv7604_dv_timings_cap(sd, cap, cap->pad);
--}
--
- /* Fill the optional fields .standards and .flags in struct v4l2_dv_timings
-    if the format is listed in adv7604_timings[] */
- static void adv7604_fill_optional_dv_timings_fields(struct v4l2_subdev *sd,
-@@ -2416,8 +2401,6 @@ static const struct v4l2_subdev_video_ops adv7604_video_ops = {
- 	.s_dv_timings = adv7604_s_dv_timings,
- 	.g_dv_timings = adv7604_g_dv_timings,
- 	.query_dv_timings = adv7604_query_dv_timings,
--	.enum_dv_timings = adv7604_enum_dv_timings,
--	.dv_timings_cap = adv7604_dv_timings_cap,
- };
+ #include "img-ir-hw.h"
+diff --git a/drivers/media/rc/img-ir/img-ir-raw.c b/drivers/media/rc/img-ir/img-ir-raw.c
+index cfb01d9..33f37ed 100644
+--- a/drivers/media/rc/img-ir/img-ir-raw.c
++++ b/drivers/media/rc/img-ir/img-ir-raw.c
+@@ -3,6 +3,11 @@
+  *
+  * Copyright 2010-2014 Imagination Technologies Ltd.
+  *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
+  * This ties into the input subsystem using the RC-core in raw mode. Raw IR
+  * signal edges are reported and decoded by generic software decoders.
+  */
+diff --git a/drivers/media/rc/img-ir/img-ir-raw.h b/drivers/media/rc/img-ir/img-ir-raw.h
+index 9802ffd..4c9b767 100644
+--- a/drivers/media/rc/img-ir/img-ir-raw.h
++++ b/drivers/media/rc/img-ir/img-ir-raw.h
+@@ -2,6 +2,11 @@
+  * ImgTec IR Raw Decoder found in PowerDown Controller.
+  *
+  * Copyright 2010-2014 Imagination Technologies Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
+  */
  
- static const struct v4l2_subdev_pad_ops adv7604_pad_ops = {
-@@ -2426,7 +2409,7 @@ static const struct v4l2_subdev_pad_ops adv7604_pad_ops = {
- 	.set_fmt = adv7604_set_format,
- 	.get_edid = adv7604_get_edid,
- 	.set_edid = adv7604_set_edid,
--	.dv_timings_cap = adv7604_pad_dv_timings_cap,
-+	.dv_timings_cap = adv7604_dv_timings_cap,
- 	.enum_dv_timings = adv7604_enum_dv_timings,
- };
+ #ifndef _IMG_IR_RAW_H_
+diff --git a/drivers/media/rc/img-ir/img-ir-sanyo.c b/drivers/media/rc/img-ir/img-ir-sanyo.c
+index c2c763e..6755c94 100644
+--- a/drivers/media/rc/img-ir/img-ir-sanyo.c
++++ b/drivers/media/rc/img-ir/img-ir-sanyo.c
+@@ -3,6 +3,11 @@
+  *
+  * Copyright 2012-2014 Imagination Technologies Ltd.
+  *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
+  * From ir-sanyo-decoder.c:
+  *
+  * This protocol uses the NEC protocol timings. However, data is formatted as:
+diff --git a/drivers/media/rc/img-ir/img-ir-sharp.c b/drivers/media/rc/img-ir/img-ir-sharp.c
+index 3397cc5..5867be0 100644
+--- a/drivers/media/rc/img-ir/img-ir-sharp.c
++++ b/drivers/media/rc/img-ir/img-ir-sharp.c
+@@ -2,6 +2,11 @@
+  * ImgTec IR Decoder setup for Sharp protocol.
+  *
+  * Copyright 2012-2014 Imagination Technologies Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
+  */
  
+ #include "img-ir-hw.h"
+diff --git a/drivers/media/rc/img-ir/img-ir-sony.c b/drivers/media/rc/img-ir/img-ir-sony.c
+index 993409a..b9029ae 100644
+--- a/drivers/media/rc/img-ir/img-ir-sony.c
++++ b/drivers/media/rc/img-ir/img-ir-sony.c
+@@ -2,6 +2,11 @@
+  * ImgTec IR Decoder setup for Sony (SIRC) protocol.
+  *
+  * Copyright 2012-2014 Imagination Technologies Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
+  */
+ 
+ #include "img-ir-hw.h"
+diff --git a/drivers/media/rc/img-ir/img-ir.h b/drivers/media/rc/img-ir/img-ir.h
+index afb1893..2ddf560 100644
+--- a/drivers/media/rc/img-ir/img-ir.h
++++ b/drivers/media/rc/img-ir/img-ir.h
+@@ -2,6 +2,11 @@
+  * ImgTec IR Decoder found in PowerDown Controller.
+  *
+  * Copyright 2010-2014 Imagination Technologies Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
+  */
+ 
+ #ifndef _IMG_IR_H_
 -- 
 1.8.3.2
 
