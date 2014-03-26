@@ -1,58 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50446 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751975AbaCJL7w (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:39623 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750929AbaCZEmZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 07:59:52 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 07/15] drx-j: Fix usage of drxj_close()
-Date: Mon, 10 Mar 2014 08:58:59 -0300
-Message-Id: <1394452747-5426-8-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1394452747-5426-1-git-send-email-m.chehab@samsung.com>
-References: <1394452747-5426-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Wed, 26 Mar 2014 00:42:25 -0400
+Received: by mail-ob0-f174.google.com with SMTP id wo20so1808536obc.19
+        for <linux-media@vger.kernel.org>; Tue, 25 Mar 2014 21:42:24 -0700 (PDT)
+MIME-Version: 1.0
+Date: Tue, 25 Mar 2014 21:42:24 -0700
+Message-ID: <CABMudhRSRQk2+HZNXo+Af=3Ob9h-n-CCA4y=7fXF2gKKAhr0HA@mail.gmail.com>
+Subject: Question about 'flush' operation in v4l2 m2m driver framework
+From: m silverstri <michael.j.silverstri@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This function is currently not used. However, it was meant to
-be called at device release. So, add it there.
+Hi,
 
-While here, remove the bad check, as reported by Dan, as
-smatch warning:
-	drivers/media/dvb-frontends/drx39xyj/drxj.c:20041 drxj_close() warn: variable dereferenced before check 'demod' (see line 20036)
+I read this email thread regarding 'flush operation'in v4l2 m2m driver
+framework:
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/drx39xyj/drxj.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+http://www.spinics.net/lists/linux-media/msg42944.html
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 828d0527f38d..c5205d5c997e 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -11510,8 +11510,7 @@ static int drxj_close(struct drx_demod_instance *demod)
- 	int rc;
- 	enum drx_power_mode power_mode = DRX_POWER_UP;
- 
--	if ((demod == NULL) ||
--	    (demod->my_common_attr == NULL) ||
-+	if ((demod->my_common_attr == NULL) ||
- 	    (demod->my_ext_attr == NULL) ||
- 	    (demod->my_i2c_dev_addr == NULL) ||
- 	    (!demod->my_common_attr->is_opened)) {
-@@ -12218,6 +12217,8 @@ static void drx39xxj_release(struct dvb_frontend *fe)
- 	struct drx39xxj_state *state = fe->demodulator_priv;
- 	struct drx_demod_instance *demod = state->demod;
- 
-+	drxj_close(demod);
-+
- 	kfree(demod->my_ext_attr);
- 	kfree(demod->my_common_attr);
- 	kfree(demod->my_i2c_dev_addr);
--- 
-1.8.5.3
+To implement a 'flush' operation, I should implement support for
+'V4L2_DEC_CMD_STOP' command. Is my understanding correct?/
 
+But my currently just implement 'stream_on/stream_off' function
+callback, do I need to switch that to   V4L2_DEC_CMD_START' command?
+
+If not, I find it weird that my driver implemention has support for
+V4L2_DEC_CMD_STOP not V4L2_DEC_CMD_START (and user need to call
+stream_on to start, stream_off to stop and V4L2_DEC_CMD_STOP for
+'flush'
+
+Thank you.
