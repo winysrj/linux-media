@@ -1,45 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49395 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754149AbaCCKH7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:07:59 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50335 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750911AbaCZRkC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Mar 2014 13:40:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Anton Leontiev <bunder@t-25.ru>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 79/79] [media] drx-j: set it to serial mode by default
-Date: Mon,  3 Mar 2014 07:07:13 -0300
-Message-Id: <1393841233-24840-80-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] uvcvideo: Fix marking buffer erroneous in case of FID toggling
+Date: Wed, 26 Mar 2014 18:41:58 +0100
+Message-ID: <1462972.4R5jTG4a0F@avalon>
+In-Reply-To: <1395722457-28080-1-git-send-email-bunder@t-25.ru>
+References: <1395722457-28080-1-git-send-email-bunder@t-25.ru>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, there's just one device using this frontend: PCTV 80e,
-and it works on serial mode.
+Hi Anton,
 
-Change the default here to serial mode. If we add more devices,
-then this option should be set via config structure.
+Thank you for the patch.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/drx39xyj/drxj.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Tuesday 25 March 2014 08:40:57 Anton Leontiev wrote:
+> Set error bit for incomplete buffers when end of buffer is detected by
+> FID toggling (for example when last transaction with EOF is lost).
+> This prevents passing incomplete buffers to the userspace.
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 8437fd5b8c91..a99040b741c6 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -833,7 +833,7 @@ struct drx_common_attr drxj_default_comm_attr_g = {
- 	 /* MPEG output configuration */
- 	 true,			/* If true, enable MPEG ouput    */
- 	 false,			/* If true, insert RS byte       */
--	 true,			/* If true, parallel out otherwise serial */
-+	 false,			/* If true, parallel out otherwise serial */
- 	 false,			/* If true, invert DATA signals  */
- 	 false,			/* If true, invert ERR signal    */
- 	 false,			/* If true, invert STR signals   */
+But this would also breaks buggy webcams that toggle the FID bit but don't set 
+the EOF bit. Support for this was added before the driver got merged in the 
+mainline kernel, and the SVN log is a bit terse I'm afraid:
+
+V 104
+- Check both EOF and FID bits to detect end of frames.
+- Updated disclaimer and general status comment.
+
+I don't remember which webcam(s) exhibit this behaviour.
+
+Your patch would also mark valid buffers as erroneous when the list EOF bit is 
+in a packet of its own with no data.
+
+As the uvcvideo driver already marks buffers smaller than the expected image 
+size as erroneous, missing EOF packets that contain data should already result 
+in buffers with the error bit set. Are you concerned about compressed formats 
+only ? While this patch would correctly detect the missing EOF packet in that 
+case, any other missing packet would still result in a corrupt image, so I'm 
+not sure if this would be worth it.
+
+> Signed-off-by: Anton Leontiev <bunder@t-25.ru>
+> ---
+>  drivers/media/usb/uvc/uvc_video.c | 21 +++++++++++++++------
+>  1 file changed, 15 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index 8d52baf..57c9a4b 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -1133,6 +1133,17 @@ static int uvc_video_encode_data(struct uvc_streaming
+> *stream, */
+> 
+>  /*
+> + * Set error flag for incomplete buffer.
+> + */
+> +static void uvc_buffer_check_bytesused(const struct uvc_streaming *const
+> stream,
+> +	struct uvc_buffer *const buf)
+> +{
+> +	if (buf->length != buf->bytesused &&
+> +			!(stream->cur_format->flags & UVC_FMT_FLAG_COMPRESSED))
+> +		buf->error = 1;
+> +}
+> +
+> +/*
+>   * Completion handler for video URBs.
+>   */
+>  static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming
+> *stream, @@ -1156,9 +1167,11 @@ static void uvc_video_decode_isoc(struct
+> urb *urb, struct uvc_streaming *stream, do {
+>  			ret = uvc_video_decode_start(stream, buf, mem,
+>  				urb->iso_frame_desc[i].actual_length);
+> -			if (ret == -EAGAIN)
+> +			if (ret == -EAGAIN) {
+> +				uvc_buffer_check_bytesused(stream, buf);
+>  				buf = uvc_queue_next_buffer(&stream->queue,
+>  							    buf);
+> +			}
+>  		} while (ret == -EAGAIN);
+> 
+>  		if (ret < 0)
+> @@ -1173,11 +1186,7 @@ static void uvc_video_decode_isoc(struct urb *urb,
+> struct uvc_streaming *stream, urb->iso_frame_desc[i].actual_length);
+> 
+>  		if (buf->state == UVC_BUF_STATE_READY) {
+> -			if (buf->length != buf->bytesused &&
+> -			    !(stream->cur_format->flags &
+> -			      UVC_FMT_FLAG_COMPRESSED))
+> -				buf->error = 1;
+> -
+> +			uvc_buffer_check_bytesused(stream, buf);
+>  			buf = uvc_queue_next_buffer(&stream->queue, buf);
+>  		}
+>  	}
+
 -- 
-1.8.5.3
+Regards,
+
+Laurent Pinchart
 
