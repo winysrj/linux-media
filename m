@@ -1,44 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2857 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751425AbaC2MhK (ORCPT
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:55179 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755829AbaCZVLA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Mar 2014 08:37:10 -0400
-Message-ID: <5336BE52.8030204@xs4all.nl>
-Date: Sat, 29 Mar 2014 13:36:34 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 26 Mar 2014 17:11:00 -0400
+Received: by mail-wi0-f173.google.com with SMTP id f8so5188807wiw.0
+        for <linux-media@vger.kernel.org>; Wed, 26 Mar 2014 14:10:59 -0700 (PDT)
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, James Hogan <james.hogan@imgtec.com>,
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+Subject: [PATCH 2/3] rc-main: Limit to a single wakeup protocol group
+Date: Wed, 26 Mar 2014 21:08:32 +0000
+Message-Id: <1395868113-17950-3-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1395868113-17950-1-git-send-email-james.hogan@imgtec.com>
+References: <1395868113-17950-1-git-send-email-james.hogan@imgtec.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH for v3.15] Fix patch merge mistake
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 37571b163c15831cd0a213151c21387363dbf15b ("em28xx-dvb: fix PCTV 461e
-tuner I2C binding") was merged incorrectly and one chunk ended up in the
-wrong function causing a compile error.
+Limit the enabled wakeup protocols to be within a protocol group, as
+defined by the proto_names array. For example this prevents the
+selection of both rc-5 and nec, while allowing rc-5 alone (which
+encompasses both normal rc-5 and rc-5x).
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+It doesn't usually make sense to enable more than one wakeup protocol
+since only a single protocol can usually be used for wakeup at a time,
+and doing so with encode based wakeup will result in an arbitrary
+protocol being used if multiple are possible.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 71e1fca..f599b18 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -1603,7 +1603,6 @@ static int em28xx_dvb_suspend(struct em28xx *dev)
- 	em28xx_info("Suspending DVB extension");
- 	if (dev->dvb) {
- 		struct em28xx_dvb *dvb = dev->dvb;
--		struct i2c_client *client = dvb->i2c_client_tuner;
+Reported-by: Antti Seppälä <a.seppala@gmail.com>
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Antti Seppälä <a.seppala@gmail.com>
+---
+Sorry it took a little while to get around to submitting this.
+---
+ drivers/media/rc/rc-main.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index e067fee..79d1060 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -979,6 +979,19 @@ static ssize_t store_protocols(struct device *device,
+ 		goto out;
+ 	}
  
- 		if (dvb->fe[0]) {
- 			ret = dvb_frontend_suspend(dvb->fe[0]);
-@@ -1631,6 +1630,7 @@ static int em28xx_dvb_resume(struct em28xx *dev)
- 	em28xx_info("Resuming DVB extension");
- 	if (dev->dvb) {
- 		struct em28xx_dvb *dvb = dev->dvb;
-+		struct i2c_client *client = dvb->i2c_client_tuner;
- 
- 		if (dvb->fe[0]) {
- 			ret = dvb_frontend_resume(dvb->fe[0]);
++	if (fattr->type == RC_FILTER_WAKEUP) {
++		/* A proto_names entry must cover enabled wakeup protocols */
++		for (i = 0; i < ARRAY_SIZE(proto_names); i++)
++			if (type & proto_names[i].type &&
++			    !(type & ~proto_names[i].type))
++				break;
++		if (i == ARRAY_SIZE(proto_names)) {
++			IR_dprintk(1, "Multiple distinct wakeup protocols\n");
++			ret = -EINVAL;
++			goto out;
++		}
++	}
++
+ 	change_protocol = (fattr->type == RC_FILTER_NORMAL)
+ 		? dev->change_protocol : dev->change_wakeup_protocol;
+ 	if (change_protocol) {
+-- 
+1.8.3.2
+
