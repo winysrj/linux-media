@@ -1,71 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:53634 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751415AbaCFQUq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 11:20:46 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
-	mark.rutland@arm.com, galak@codeaurora.org,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v6 00/10] Add device tree support for Exynos4 camera interface
-Date: Thu, 06 Mar 2014 17:20:09 +0100
-Message-id: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:34937 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755274AbaCZWso (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Mar 2014 18:48:44 -0400
+Message-ID: <1395874119.32312.28.camel@nicolas-tpx230>
+Subject: [PATCH 3/5] s5p-fimc: Roundup imagesize to row size for tiled
+ formats
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: s.nawrocki@samsung.com
+Date: Wed, 26 Mar 2014 18:48:39 -0400
+In-Reply-To: <1395873527.32312.27.camel@nicolas-tpx230>
+References: <1395780301.11851.14.camel@nicolas-tpx230>
+	 <1395780682.11851.18.camel@nicolas-tpx230>
+	 <1395873527.32312.27.camel@nicolas-tpx230>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-m0Coo0PWvE54DioDesex"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series adds devicetree support for the front and rear camera of
-the Exynos4412 SoC Trats2 board. It converts related drivers to use
-the v4l2-async API. The SoC output clocks are provided to external image
-image sensors through the common clock API.
 
-This iteration includes three small fixes, detailed description can
-be found in patches 7/10, 8/10.
+--=-m0Coo0PWvE54DioDesex
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-I'd like to ask for a DT binding maintainer review/Ack of patch 3/10.
-I'm  going to push this series to the media tree on beginning of next
-week.
+For tiled format, we need to allocated a multiple of the row size. A
+good example is for 1280x720, wich get adjusted to 1280x736. In tiles,
+this mean Y plane is 20x23 and UV plane 20x12. Because of the rounding,
+the previous code would only have enough space to fit half of the last
+row.
 
-Thanks,
-Sylwester
+Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+---
+ drivers/media/platform/exynos4-is/fimc-core.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-Sylwester Nawrocki (10):
-  Documentation: dt: Add binding documentation for S5K6A3 image sensor
-  Documentation: dt: Add binding documentation for S5C73M3 camera
-  Documentation: devicetree: Update Samsung FIMC DT binding
-  V4L: Add driver for s5k6a3 image sensor
-  V4L: s5c73m3: Add device tree support
-  exynos4-is: Use external s5k6a3 sensor driver
-  exynos4-is: Add clock provider for the SCLK_CAM clock outputs
-  exynos4-is: Add support for asynchronous subdevices registration
-  ARM: dts: Add rear camera nodes for Exynos4412 TRATS2 board
-  ARM: dts: exynos4: Update camera clk provider and s5k6a3 sensor node
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/=
+platform/exynos4-is/fimc-core.c
+index 2e70fab..7ea15ef 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.c
++++ b/drivers/media/platform/exynos4-is/fimc-core.c
+@@ -736,6 +736,7 @@ void fimc_adjust_mplane_format(struct fimc_fmt *fmt, u3=
+2 width, u32 height,
+ 	for (i =3D 0; i < pix->num_planes; ++i) {
+ 		struct v4l2_plane_pix_format *plane_fmt =3D &pix->plane_fmt[i];
+ 		u32 bpl =3D plane_fmt->bytesperline;
++		u32 sizeimage;
+=20
+ 		if (fmt->colplanes > 1 && (bpl =3D=3D 0 || bpl < pix->width))
+ 			bpl =3D pix->width; /* Planar */
+@@ -755,8 +756,16 @@ void fimc_adjust_mplane_format(struct fimc_fmt *fmt, u=
+32 width, u32 height,
+ 			bytesperline /=3D 2;
+=20
+ 		plane_fmt->bytesperline =3D bytesperline;
+-		plane_fmt->sizeimage =3D max((pix->width * pix->height *
+-				   fmt->depth[i]) / 8, plane_fmt->sizeimage);
++		sizeimage =3D pix->width * pix->height * fmt->depth[i] / 8;
++
++		/* Ensure full last row for tiled formats */
++		if (tiled_fmt(fmt)) {
++			/* 64 * 32 * plane_fmt->bytesperline / 64 */
++			u32 row_size =3D plane_fmt->bytesperline * 32;
++			sizeimage =3D roundup(sizeimage, row_size);
++		}
++
++		plane_fmt->sizeimage =3D max(sizeimage, plane_fmt->sizeimage);
+ 	}
+ }
+=20
+--=20
+1.8.5.3
 
- .../devicetree/bindings/media/samsung-fimc.txt     |   34 +-
- .../devicetree/bindings/media/samsung-s5c73m3.txt  |   97 +++++
- .../devicetree/bindings/media/samsung-s5k6a3.txt   |   33 ++
- arch/arm/boot/dts/exynos4.dtsi                     |    6 +-
- arch/arm/boot/dts/exynos4412-trats2.dts            |   86 ++++-
- drivers/media/i2c/Kconfig                          |    8 +
- drivers/media/i2c/Makefile                         |    1 +
- drivers/media/i2c/s5c73m3/s5c73m3-core.c           |  207 ++++++++---
- drivers/media/i2c/s5c73m3/s5c73m3-spi.c            |    6 +
- drivers/media/i2c/s5c73m3/s5c73m3.h                |    4 +
- drivers/media/i2c/s5k6a3.c                         |  389 ++++++++++++++++++++
- drivers/media/platform/exynos4-is/fimc-is-regs.c   |    2 +-
- drivers/media/platform/exynos4-is/fimc-is-sensor.c |  285 +-------------
- drivers/media/platform/exynos4-is/fimc-is-sensor.h |   49 +--
- drivers/media/platform/exynos4-is/fimc-is.c        |   97 ++---
- drivers/media/platform/exynos4-is/fimc-is.h        |    4 +-
- drivers/media/platform/exynos4-is/media-dev.c      |  340 ++++++++++++-----
- drivers/media/platform/exynos4-is/media-dev.h      |   32 +-
- 18 files changed, 1136 insertions(+), 544 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
- create mode 100644 drivers/media/i2c/s5k6a3.c
+--=-m0Coo0PWvE54DioDesex
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
---
-1.7.9.5
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iEYEABECAAYFAlMzWUcACgkQcVMCLawGqBzF3gCgu+1EBK4g5FQQ9Gvspgcb3iSY
+uOgAoJ0bcgyE9MiFhWkaq8UAn98dhnib
+=wZjb
+-----END PGP SIGNATURE-----
+
+--=-m0Coo0PWvE54DioDesex--
 
