@@ -1,136 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f170.google.com ([209.85.192.170]:35175 "EHLO
-	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750978AbaCVHaz (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3910 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751394AbaCZDel (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Mar 2014 03:30:55 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Lad Prabhakar <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH for v3.15 1/3] media: davinci: vpif_capture: fix releasing of active buffers
-Date: Sat, 22 Mar 2014 13:00:37 +0530
-Message-Id: <1395473439-18643-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1395473439-18643-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1395473439-18643-1-git-send-email-prabhakar.csengg@gmail.com>
+	Tue, 25 Mar 2014 23:34:41 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2Q3Ybao055944
+	for <linux-media@vger.kernel.org>; Wed, 26 Mar 2014 04:34:39 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 596B52A188D
+	for <linux-media@vger.kernel.org>; Wed, 26 Mar 2014 04:34:27 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140326033427.596B52A188D@tschai.lan>
+Date: Wed, 26 Mar 2014 04:34:27 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-from commit-id: b3379c6201bb3555298cdbf0aa004af260f2a6a4
-"vb2: only call start_streaming if sufficient buffers are queued"
-the vb2 framework warns on (WARN_ON()) if all the active buffers
-are not released when streaming is stopped, initially the vb2 silently
-released the buffer internally if the buffer was not released by
-the driver.
-Also this patch moves the disabling of interrupts from relase() callback
-to stop_streaming() callback as which needs to be done ideally.
+Results of the daily build of media_tree:
 
-This patch fixes following issue:
+date:		Wed Mar 26 04:00:16 CET 2014
+git branch:	test
+git hash:	8432164ddf7bfe40748ac49995356ab4dfda43b7
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0
+host hardware:	x86_64
+host os:	3.13-5.slh.4-amd64
 
-WARNING: CPU: 0 PID: 2049 at drivers/media/v4l2-core/videobuf2-core.c:2011 __vb2_queue_cancel+0x1a0/0x218()
-Modules linked in:
-CPU: 0 PID: 2049 Comm: vpif_capture Tainted: G        W    3.14.0-rc5-00414-ged97a6f #89
-[<c000e3f0>] (unwind_backtrace) from [<c000c618>] (show_stack+0x10/0x14)
-[<c000c618>] (show_stack) from [<c001adb0>] (warn_slowpath_common+0x68/0x88)
-[<c001adb0>] (warn_slowpath_common) from [<c001adec>] (warn_slowpath_null+0x1c/0x24)
-[<c001adec>] (warn_slowpath_null) from [<c0252e0c>] (__vb2_queue_cancel+0x1a0/0x218)
-[<c0252e0c>] (__vb2_queue_cancel) from [<c02533a4>] (vb2_queue_release+0x14/0x24)
-[<c02533a4>] (vb2_queue_release) from [<c025a65c>] (vpif_release+0x60/0x230)
-[<c025a65c>] (vpif_release) from [<c023fe5c>] (v4l2_release+0x34/0x74)
-[<c023fe5c>] (v4l2_release) from [<c00b4a00>] (__fput+0x80/0x224)
-[<c00b4a00>] (__fput) from [<c00341e8>] (task_work_run+0xa0/0xd0)
-[<c00341e8>] (task_work_run) from [<c001cc28>] (do_exit+0x244/0x918)
-[<c001cc28>] (do_exit) from [<c001d344>] (do_group_exit+0x48/0xdc)
-[<c001d344>] (do_group_exit) from [<c0029894>] (get_signal_to_deliver+0x2a0/0x5bc)
-[<c0029894>] (get_signal_to_deliver) from [<c000b888>] (do_signal+0x78/0x3a0)
-[<c000b888>] (do_signal) from [<c000bc54>] (do_work_pending+0xa4/0xb4)
-[<c000bc54>] (do_work_pending) from [<c00096dc>] (work_pending+0xc/0x20)
----[ end trace 5faa75e8c2f8a6a1 ]---
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 2049 at drivers/media/v4l2-core/videobuf2-core.c:1095 vb2_buffer_done+0x1e0/0x224()
-Modules linked in:
-CPU: 0 PID: 2049 Comm: vpif_capture Tainted: G        W    3.14.0-rc5-00414-ged97a6f #89
-[<c000e3f0>] (unwind_backtrace) from [<c000c618>] (show_stack+0x10/0x14)
-[<c000c618>] (show_stack) from [<c001adb0>] (warn_slowpath_common+0x68/0x88)
-[<c001adb0>] (warn_slowpath_common) from [<c001adec>] (warn_slowpath_null+0x1c/0x24)
-[<c001adec>] (warn_slowpath_null) from [<c0252c28>] (vb2_buffer_done+0x1e0/0x224)
-[<c0252c28>] (vb2_buffer_done) from [<c0252e3c>] (__vb2_queue_cancel+0x1d0/0x218)
-[<c0252e3c>] (__vb2_queue_cancel) from [<c02533a4>] (vb2_queue_release+0x14/0x24)
-[<c02533a4>] (vb2_queue_release) from [<c025a65c>] (vpif_release+0x60/0x230)
-[<c025a65c>] (vpif_release) from [<c023fe5c>] (v4l2_release+0x34/0x74)
-[<c023fe5c>] (v4l2_release) from [<c00b4a00>] (__fput+0x80/0x224)
-[<c00b4a00>] (__fput) from [<c00341e8>] (task_work_run+0xa0/0xd0)
-[<c00341e8>] (task_work_run) from [<c001cc28>] (do_exit+0x244/0x918)
-[<c001cc28>] (do_exit) from [<c001d344>] (do_group_exit+0x48/0xdc)
-[<c001d344>] (do_group_exit) from [<c0029894>] (get_signal_to_deliver+0x2a0/0x5bc)
-[<c0029894>] (get_signal_to_deliver) from [<c000b888>] (do_signal+0x78/0x3a0)
-[<c000b888>] (do_signal) from [<c000bc54>] (do_work_pending+0xa4/0xb4)
-[<c000bc54>] (do_work_pending) from [<c00096dc>] (work_pending+0xc/0x20)
----[ end trace 5faa75e8c2f8a6a2 ]---
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0
+sparse: ERRORS
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif_capture.c |   34 +++++++++++++++++--------
- 1 file changed, 23 insertions(+), 11 deletions(-)
+Detailed results are available here:
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 756da78..8dea0b8 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -358,8 +358,31 @@ static int vpif_stop_streaming(struct vb2_queue *vq)
- 
- 	common = &ch->common[VPIF_VIDEO_INDEX];
- 
-+	/* Disable channel as per its device type and channel id */
-+	if (VPIF_CHANNEL0_VIDEO == ch->channel_id) {
-+		enable_channel0(0);
-+		channel0_intr_enable(0);
-+	}
-+	if ((VPIF_CHANNEL1_VIDEO == ch->channel_id) ||
-+		(2 == common->started)) {
-+		enable_channel1(0);
-+		channel1_intr_enable(0);
-+	}
-+	common->started = 0;
-+
- 	/* release all active buffers */
- 	spin_lock_irqsave(&common->irqlock, flags);
-+	if (common->cur_frm == common->next_frm) {
-+		vb2_buffer_done(&common->cur_frm->vb, VB2_BUF_STATE_ERROR);
-+	} else {
-+		if (common->cur_frm != NULL)
-+			vb2_buffer_done(&common->cur_frm->vb,
-+					VB2_BUF_STATE_ERROR);
-+		if (common->next_frm != NULL)
-+			vb2_buffer_done(&common->next_frm->vb,
-+					VB2_BUF_STATE_ERROR);
-+	}
-+
- 	while (!list_empty(&common->dma_queue)) {
- 		common->next_frm = list_entry(common->dma_queue.next,
- 						struct vpif_cap_buffer, list);
-@@ -933,17 +956,6 @@ static int vpif_release(struct file *filep)
- 	if (fh->io_allowed[VPIF_VIDEO_INDEX]) {
- 		/* Reset io_usrs member of channel object */
- 		common->io_usrs = 0;
--		/* Disable channel as per its device type and channel id */
--		if (VPIF_CHANNEL0_VIDEO == ch->channel_id) {
--			enable_channel0(0);
--			channel0_intr_enable(0);
--		}
--		if ((VPIF_CHANNEL1_VIDEO == ch->channel_id) ||
--		    (2 == common->started)) {
--			enable_channel1(0);
--			channel1_intr_enable(0);
--		}
--		common->started = 0;
- 		/* Free buffers allocated */
- 		vb2_queue_release(&common->buffer_queue);
- 		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
--- 
-1.7.9.5
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
