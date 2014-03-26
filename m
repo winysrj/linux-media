@@ -1,58 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:52619 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752595AbaCGMUl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 07:20:41 -0500
-Date: Fri, 07 Mar 2014 09:20:31 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-	Grant Likely <grant.likely@linaro.org>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Rob Herring <robh+dt@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [GIT PULL] Move device tree graph parsing helpers to drivers/of
-Message-id: <20140307092031.68cd985d@samsung.com>
-In-reply-to: <20140307115517.GI21483@n2100.arm.linux.org.uk>
-References: <1394126000.3622.66.camel@paszta.hi.pengutronix.de>
- <20140307115517.GI21483@n2100.arm.linux.org.uk>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45397 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751314AbaCZC07 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Mar 2014 22:26:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH] adv7611: Set HPD GPIO direction to output
+Date: Wed, 26 Mar 2014 03:28:49 +0100
+Message-Id: <1395800929-17036-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 07 Mar 2014 11:55:17 +0000
-Russell King - ARM Linux <linux@arm.linux.org.uk> escreveu:
+The HPD GPIO is used as an output but its direction is never set. Fix
+it.
 
-> On Thu, Mar 06, 2014 at 06:13:20PM +0100, Philipp Zabel wrote:
-> > Hi Mauro, Russell,
-> > 
-> > I have temporarily removed the simplified bindings at Sylwester's
-> > request and updated the branch with the acks. The following changes
-> > since commit 0414855fdc4a40da05221fc6062cccbc0c30f169:
-> > 
-> >   Linux 3.14-rc5 (2014-03-02 18:56:16 -0800)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.pengutronix.de/git/pza/linux.git topic/of-graph
-> 
-> Okay, this has all gone wrong.  Mauro has applied your changes as patches,
-> and I've pulled this set of changes.  So we're going to be all set for
-> merge conflicts....... just fscking great.
-> 
-> I really don't know why I bother trying to do the right thing sometimes.
-> 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/adv7604.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I just reverted my tree to the previous state before applying the patches
-and did a git pull instead, in order to avoid merge conflicts when the
-imx-drm patches arrive via staging tree.
+This patch applies on top of the ADV7611 support series queued for v3.16.
 
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 51f14ab..b38ebb9 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2845,7 +2845,7 @@ static int adv7604_probe(struct i2c_client *client,
+ 		if (IS_ERR(state->hpd_gpio[i]))
+ 			continue;
+ 
+-		gpiod_set_value_cansleep(state->hpd_gpio[i], 0);
++		gpiod_direction_output(state->hpd_gpio[i], 0);
+ 
+ 		v4l_info(client, "Handling HPD %u GPIO\n", i);
+ 	}
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
+
