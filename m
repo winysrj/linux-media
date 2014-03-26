@@ -1,103 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:61156 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752299AbaB1X3w (ORCPT
+Received: from canardo.mork.no ([148.122.252.1]:59060 "EHLO canardo.mork.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751054AbaCZGiX convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 18:29:52 -0500
-Received: by mail-wi0-f179.google.com with SMTP id bs8so1216601wib.6
-        for <linux-media@vger.kernel.org>; Fri, 28 Feb 2014 15:29:51 -0800 (PST)
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: James Hogan <james.hogan@imgtec.com>
-Subject: [PATCH v4 05/10] rc: img-ir: add to build
-Date: Fri, 28 Feb 2014 23:28:55 +0000
-Message-Id: <1393630140-31765-6-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
-References: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
+	Wed, 26 Mar 2014 02:38:23 -0400
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+To: =?utf-8?Q?Andr=C3=A9?= Roth <neolynx@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH 11/11] libdvbv5: fix PMT parser
+References: <1395771601-3509-1-git-send-email-neolynx@gmail.com>
+	<1395771601-3509-11-git-send-email-neolynx@gmail.com>
+	<87vbv2c87u.fsf@nemi.mork.no>
+	<20140325222222.0fd23199@neutrino.exnihilo>
+Date: Wed, 26 Mar 2014 07:38:15 +0100
+In-Reply-To: <20140325222222.0fd23199@neutrino.exnihilo> (=?utf-8?Q?=22And?=
+ =?utf-8?Q?r=C3=A9?= Roth"'s
+	message of "Tue, 25 Mar 2014 22:22:22 +0100")
+Message-ID: <87r45pcvmw.fsf@nemi.mork.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add ImgTec IR decoder driver to the build system.
+André Roth <neolynx@gmail.com> writes:
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/rc/Kconfig         |  2 ++
- drivers/media/rc/Makefile        |  1 +
- drivers/media/rc/img-ir/Kconfig  | 26 ++++++++++++++++++++++++++
- drivers/media/rc/img-ir/Makefile |  6 ++++++
- 4 files changed, 35 insertions(+)
- create mode 100644 drivers/media/rc/img-ir/Kconfig
- create mode 100644 drivers/media/rc/img-ir/Makefile
+> On Tue, 25 Mar 2014 21:51:49 +0100
+> Bjørn Mork <bjorn@mork.no> wrote:
+>
+>> > - * Copyright (c) 2011-2012 - Mauro Carvalho Chehab
+>> > - * Copyright (c) 2012 - Andre Roth <neolynx@gmail.com>
+>> > + * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
+>> >   *
+>> >   * This program is free software; you can redistribute it and/or
+>> >   * modify it under the terms of the GNU General Public License
+>> 
+>> This copyright change looked strange to me.  Accidental deletion?
+>
+> Hi Bjørn,
+>
+> thanks for pointing this out.
+> originally I was adding mauro to my dvb files as the "owner" of dvb in
+> v4l. mauro then stated on some files that this was not his code and as
+> the PMT is originally my code, I corrected this here.
+>
+> @mauro: please correct me if I'm wrong...
 
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 3b25887..8fbd377 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -309,6 +309,8 @@ config IR_RX51
- 	   The driver uses omap DM timers for generating the carrier
- 	   wave and pulses.
- 
-+source "drivers/media/rc/img-ir/Kconfig"
-+
- config RC_LOOPBACK
- 	tristate "Remote Control Loopback Driver"
- 	depends on RC_CORE
-diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-index 36dafed..f8b54ff 100644
---- a/drivers/media/rc/Makefile
-+++ b/drivers/media/rc/Makefile
-@@ -32,3 +32,4 @@ obj-$(CONFIG_IR_GPIO_CIR) += gpio-ir-recv.o
- obj-$(CONFIG_IR_IGUANA) += iguanair.o
- obj-$(CONFIG_IR_TTUSBIR) += ttusbir.o
- obj-$(CONFIG_RC_ST) += st_rc.o
-+obj-$(CONFIG_IR_IMG) += img-ir/
-diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
-new file mode 100644
-index 0000000..60eaba6
---- /dev/null
-+++ b/drivers/media/rc/img-ir/Kconfig
-@@ -0,0 +1,26 @@
-+config IR_IMG
-+	tristate "ImgTec IR Decoder"
-+	depends on RC_CORE
-+	select IR_IMG_HW if !IR_IMG_RAW
-+	help
-+	   Say Y or M here if you want to use the ImgTec infrared decoder
-+	   functionality found in SoCs such as TZ1090.
-+
-+config IR_IMG_RAW
-+	bool "Raw decoder"
-+	depends on IR_IMG
-+	help
-+	   Say Y here to enable the raw mode driver which passes raw IR signal
-+	   changes to the IR raw decoders for software decoding. This is much
-+	   less reliable (due to lack of timestamps) and consumes more
-+	   processing power than using hardware decode, but can be useful for
-+	   testing, debug, and to make more protocols available.
-+
-+config IR_IMG_HW
-+	bool "Hardware decoder"
-+	depends on IR_IMG
-+	help
-+	   Say Y here to enable the hardware decode driver which decodes the IR
-+	   signals in hardware. This is more reliable, consumes less processing
-+	   power since only a single interrupt is received for each scancode,
-+	   and allows an IR scancode to be used as a wake event.
-diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
-new file mode 100644
-index 0000000..4ef86ed
---- /dev/null
-+++ b/drivers/media/rc/img-ir/Makefile
-@@ -0,0 +1,6 @@
-+img-ir-y			:= img-ir-core.o
-+img-ir-$(CONFIG_IR_IMG_RAW)	+= img-ir-raw.o
-+img-ir-$(CONFIG_IR_IMG_HW)	+= img-ir-hw.o
-+img-ir-objs			:= $(img-ir-y)
-+
-+obj-$(CONFIG_IR_IMG)		+= img-ir.o
--- 
-1.8.3.2
+Correcting the copyright is of course fine, but I think it would be good
+to document that in the patch description so people like me don't end up
+asking unnecessary questions :-)
 
+> I'm a bit confused about the copyright year and author. Is this still
+> needed in the age of git ? What is the policy for them ?
+
+IANAL.  But looking at this from a practical point of view, I believe
+that this info is useful whether it is required or not.  Reading the
+copyright owner(s) out of a git log can be a lot of work, and it isn't
+necessariliy correct either - your copyright can be assigned to
+e.g. your employer or to the FSF.  It's also difficult to judge who of
+many contributors have made changes big enough to make them copyright
+owners.  Some changes can be small in code size but still major, while
+other changes can touch almost every line but still only be a minor
+editorial fixup.
+
+And why is it useful who owns a copyright and when the copyrighted work
+was produced? If relicensing your code ever becomes a question, then we
+need to know who to contact.  You might think that relicensing isn't
+going to happen.  But there are real world examples where code has ended
+up beeing linked to libraries with a GPL conflicting license, and
+therefore needed an exception. The classical example is linking with
+openssl.
+
+And the year is useful because copyright expires some years (depending
+on country of origin, but typical 50) after the authors death.  You
+write code that will live forever, right? :-)
+
+
+Bjørn
