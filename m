@@ -1,106 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1360 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754189AbaCJVVY (ORCPT
+Received: from [217.156.133.130] ([217.156.133.130]:55847 "EHLO
+	imgpgp01.kl.imgtec.org" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751054AbaCZKCt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 17:21:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 02/11] vb2: fix handling of data_offset and v4l2_plane.reserved[]
-Date: Mon, 10 Mar 2014 22:20:49 +0100
-Message-Id: <1394486458-9836-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
-References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 26 Mar 2014 06:02:49 -0400
+Message-ID: <53329DD2.3080105@imgtec.com>
+Date: Wed, 26 Mar 2014 09:28:50 +0000
+From: James Hogan <james.hogan@imgtec.com>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+CC: <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v4 00/10] media: rc: ImgTec IR decoder driver
+References: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com> <20140325235314.GB2515@hardeman.nu>
+In-Reply-To: <20140325235314.GB2515@hardeman.nu>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="lbqpEWUcqG694h7F28cCdQiuokDjh0xbK"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+--lbqpEWUcqG694h7F28cCdQiuokDjh0xbK
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-The videobuf2-core did not zero the reserved array of v4l2_plane as it
-should.
+On 25/03/14 23:53, David H=E4rdeman wrote:
+> On Fri, Feb 28, 2014 at 11:28:50PM +0000, James Hogan wrote:
+>> Add a driver for the ImgTec Infrared decoder block. Two separate rc
+>> input devices are exposed depending on kernel configuration. One uses
+>> the hardware decoder which is set up with timings for a specific
+>> protocol and supports mask/value filtering and wake events. The other
+>> uses raw edge interrupts and the generic software protocol decoders to=
 
-More serious is the fact that data_offset was not handled correctly:
+>> allow multiple protocols to be supported, including those not supporte=
+d
+>> by the hardware decoder.
+>=20
+> One thing I just noticed...your copyright headers throughout the driver=
 
-- for capture devices it was never zeroed, which meant that it was
-  uninitialized. Unless the driver sets it it was a completely random
-  number.
+> seems a bit...sparse? :)
 
-- __qbuf_dmabuf had a completely incorrect length check that included
-  data_offset.
+True, I can add the basic:
 
-- in the single-planar case data_offset was never correctly set to 0.
-  The single-planar API doesn't support data_offset, so setting it
-  to 0 is the right thing to do.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
 
-All these issues were found with v4l2-compliance.
+to each of the files if you think it's necessary.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+Cheers
+James
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index f9059bb..1a09442 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1141,6 +1141,12 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 	unsigned int plane;
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
-+		for (plane = 0; plane < vb->num_planes; ++plane) {
-+			memset(v4l2_planes[plane].reserved, 0,
-+			       sizeof(v4l2_planes[plane].reserved));
-+			v4l2_planes[plane].data_offset = 0;
-+		}
-+
- 		/* Fill in driver-provided information for OUTPUT types */
- 		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
- 			/*
-@@ -1169,8 +1175,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 					b->m.planes[plane].m.fd;
- 				v4l2_planes[plane].length =
- 					b->m.planes[plane].length;
--				v4l2_planes[plane].data_offset =
--					b->m.planes[plane].data_offset;
- 			}
- 		}
- 	} else {
-@@ -1180,10 +1184,10 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 		 * In videobuf we use our internal V4l2_planes struct for
- 		 * single-planar buffers as well, for simplicity.
- 		 */
--		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-+		if (V4L2_TYPE_IS_OUTPUT(b->type))
- 			v4l2_planes[0].bytesused = b->bytesused;
--			v4l2_planes[0].data_offset = 0;
--		}
-+		/* Single-planar buffers never use data_offset */
-+		v4l2_planes[0].data_offset = 0;
- 
- 		if (b->memory == V4L2_MEMORY_USERPTR) {
- 			v4l2_planes[0].m.userptr = b->m.userptr;
-@@ -1193,9 +1197,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 		if (b->memory == V4L2_MEMORY_DMABUF) {
- 			v4l2_planes[0].m.fd = b->m.fd;
- 			v4l2_planes[0].length = b->length;
--			v4l2_planes[0].data_offset = 0;
- 		}
--
- 	}
- 
- 	/* Zero flags that the vb2 core handles */
-@@ -1374,8 +1376,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		if (planes[plane].length == 0)
- 			planes[plane].length = dbuf->size;
- 
--		if (planes[plane].length < planes[plane].data_offset +
--		    q->plane_sizes[plane]) {
-+		if (planes[plane].length < q->plane_sizes[plane]) {
- 			dprintk(1, "qbuf: invalid dmabuf length for plane %d\n",
- 				plane);
- 			ret = -EINVAL;
--- 
-1.9.0
 
+--lbqpEWUcqG694h7F28cCdQiuokDjh0xbK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.13 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTMp3YAAoJEGwLaZPeOHZ65I8P/RaaT8RVewmeq/3JsPBEVO+z
+dM+j7ndPTNzVDu3eqBMl/2EYvnQjLVQHlRDV22IkBf7cFX+xzLPrjIK3HHIK4WOv
+rPqmMAGNojZXPk2LRD50JKlT7klNi91leXQXlzjCWEualnpXimYXHSI+Xscx/Yq1
+V4VoZWidJO16E/+0tH5gTGAGGYBBO1o5bpKaK2oIqL3V9sE3eUtB8o1Frd44zrN3
+Dx1BevEibGCTbuDzAGNH+jQfKTLGKJLnqnTmKJOCPgryKKHnW5+wEKaHcR967GoV
+/ikwbcxgazdII6aNbksihlVMokKalIwPHVmOtqtyHEcwzz79luTVSQX9w6F+6yK7
+cnbXwy0+Dtr3+aru2n9PDW1Q62bZhZ1LR184VxQGT7vW+nB5Rqv2ztTPK7zgstGR
+aP6AA+UgXOih+6b6QC2Ogg26otNsyzKxg7furK4lexVSvasFpHICd6UQjNhDZXHy
+U6d/1pwTzaY/VZktlomhtzapTVCKtyeCKPBVBCmJyCF5ejysdrRG/FLfQOGe8TyJ
++6eUOAhw7YBYSHSWKb8QRkHcZHYuaJJOK3ZSXZs0Pr4dxTEtQIplR7aktWD+yzpz
+PCbPfx49geDxpjFXoFFxjnwYzaNMTJIO4LZiuM1ARw9nVSEF1nhfyf5yrknNBuiZ
+D+3Ussu3vz8S8Y3AWN+H
+=MO0l
+-----END PGP SIGNATURE-----
+
+--lbqpEWUcqG694h7F28cCdQiuokDjh0xbK--
