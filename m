@@ -1,61 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:61943 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751857AbaC3QWA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Mar 2014 12:22:00 -0400
-Received: by mail-ee0-f44.google.com with SMTP id e49so5785487eek.17
-        for <linux-media@vger.kernel.org>; Sun, 30 Mar 2014 09:21:59 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 7/8] libdvbv5: fix lost ressource in atsc_eit
-Date: Sun, 30 Mar 2014 18:21:17 +0200
-Message-Id: <1396196478-996-7-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1396196478-996-1-git-send-email-neolynx@gmail.com>
-References: <1396196478-996-1-git-send-email-neolynx@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:59032 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756523AbaCZWdP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Mar 2014 18:33:15 -0400
+Message-ID: <533355AA.3090305@iki.fi>
+Date: Thu, 27 Mar 2014 00:33:14 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: LMML <linux-media@vger.kernel.org>
+CC: Jan Vcelak <jv@fcelda.cz>
+Subject: [GIT PULL v3.15] rtl28xxu remove duplicate USB ID
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-if the title of the EIT event is longer than the available data,
-make sure the allocated buffer is not lost
+The following changes since commit 8432164ddf7bfe40748ac49995356ab4dfda43b7:
 
-Signed-off-by: André Roth <neolynx@gmail.com>
----
- lib/libdvbv5/descriptors/atsc_eit.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+   [media] Sensoray 2255 uses videobuf2 (2014-03-24 17:23:43 -0300)
 
-diff --git a/lib/libdvbv5/descriptors/atsc_eit.c b/lib/libdvbv5/descriptors/atsc_eit.c
-index 92764df..9e1397d 100644
---- a/lib/libdvbv5/descriptors/atsc_eit.c
-+++ b/lib/libdvbv5/descriptors/atsc_eit.c
-@@ -74,6 +74,11 @@ ssize_t atsc_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
-                 atsc_time(event->start_time, &event->start);
- 		event->source_id = eit->header.id;
- 
-+		if(!*head)
-+			*head = event;
-+		if(last)
-+			last->next = event;
-+
- 		size = event->title_length - 1;
- 		if (p + size > endbuf) {
- 			dvb_logerr("%s: short read %zd/%zd bytes", __func__,
-@@ -83,11 +88,6 @@ ssize_t atsc_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
-                 /* TODO: parse title */
-                 p += size;
- 
--		if(!*head)
--			*head = event;
--		if(last)
--			last->next = event;
--
- 		/* get the descriptors for each program */
- 		size = sizeof(union atsc_table_eit_desc_length);
- 		if (p + size > endbuf) {
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git rtl28xxu_id
+
+for you to fetch changes up to d412fb2a4c2effe3b3426330dfd1ee099b6b596f:
+
+   rtl28xxu: remove duplicate ID 0458:707f Genius TVGo DVB-T03 
+(2014-03-27 00:20:30 +0200)
+
+----------------------------------------------------------------
+Antti Palosaari (1):
+       rtl28xxu: remove duplicate ID 0458:707f Genius TVGo DVB-T03
+
+  drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 --
+  1 file changed, 2 deletions(-)
+
+
 -- 
-1.8.3.2
-
+http://palosaari.fi/
