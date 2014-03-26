@@ -1,56 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f173.google.com ([74.125.82.173]:60763 "EHLO
-	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752697AbaCHFa2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 00:30:28 -0500
-Received: by mail-we0-f173.google.com with SMTP id w61so6116248wes.32
-        for <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 21:30:27 -0800 (PST)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v6 0/8] Move device tree graph parsing helpers to drivers/of
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-In-Reply-To: <20140306155018.GD21483@n2100.arm.linux.org.uk>
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de> < 20140306152414.GC21483@n2100.arm.linux.org.uk> <1394120379.3622.37.camel@ paszta.hi.pengutronix.de> <20140306155018.GD21483@n2100.arm.linux.org.uk>
-Date: Fri, 07 Mar 2014 18:49:34 +0000
-Message-Id: <20140307184934.5F6D2C40D2A@trevor.secretlab.ca>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:34923 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756389AbaCZWiv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Mar 2014 18:38:51 -0400
+Message-ID: <1395873527.32312.27.camel@nicolas-tpx230>
+Subject: Re: [PATCH 3/5] s5p-fimc: Align imagesize to row size for tiled
+ formats
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: s.nawrocki@samsung.com
+Date: Wed, 26 Mar 2014 18:38:47 -0400
+In-Reply-To: <1395780682.11851.18.camel@nicolas-tpx230>
+References: <1395780301.11851.14.camel@nicolas-tpx230>
+	 <1395780682.11851.18.camel@nicolas-tpx230>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-QNZ2go3qOmjjJlj7RitX"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 6 Mar 2014 15:50:18 +0000, Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
-> On Thu, Mar 06, 2014 at 04:39:39PM +0100, Philipp Zabel wrote:
-> > Am Donnerstag, den 06.03.2014, 15:24 +0000 schrieb Russell King - ARM
-> > Linux:
-> > > On Wed, Mar 05, 2014 at 10:20:34AM +0100, Philipp Zabel wrote:
-> > > > this version of the OF graph helper move series further addresses a few of
-> > > > Tomi's and Sylwester's comments.
-> > > 
-> > > Philipp,
-> > > 
-> > > You mention in your other cover for imx-drm bits that this is available
-> > > via:
-> > > 
-> > > 	git://git.pengutronix.de/git/pza/linux.git topic/of-graph
-> > > 
-> > > What is this tree based upon?
-> > 
-> > It is based on v3.14-rc5.
-> 
-> Great.  As everyone seems happy, can you both send me and Mauro a pull
-> request for this please?  Once Mauro says it's in his tree, I'll pull
-> it in for imx-drm stuff.
-> 
-> Thanks.
 
-I'm really not. There are still unresolved issues.
+--=-QNZ2go3qOmjjJlj7RitX
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-g.
+Le mardi 25 mars 2014 =C3=A0 16:51 -0400, Nicolas Dufresne a =C3=A9crit :
+> For tiled format, we need to allocated a multiple of the row size. A
+> good example is for 1280x720, wich get adjusted to 1280x736. In tiles,
+> this mean Y plane is 20x23 and UV plane 20x12. Because of the rounding,
+> the previous code would only have enough space to fit half of the last
+> row.
+>=20
+> Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+> ---
+>  drivers/media/platform/exynos4-is/fimc-core.c | 13 +++++++++++--
+>  1 file changed, 11 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/medi=
+a/platform/exynos4-is/fimc-core.c
+> index 2e70fab..0e94412 100644
+> --- a/drivers/media/platform/exynos4-is/fimc-core.c
+> +++ b/drivers/media/platform/exynos4-is/fimc-core.c
+> @@ -736,6 +736,7 @@ void fimc_adjust_mplane_format(struct fimc_fmt *fmt, =
+u32 width, u32 height,
+>  	for (i =3D 0; i < pix->num_planes; ++i) {
+>  		struct v4l2_plane_pix_format *plane_fmt =3D &pix->plane_fmt[i];
+>  		u32 bpl =3D plane_fmt->bytesperline;
+> +		u32 sizeimage;
+> =20
+>  		if (fmt->colplanes > 1 && (bpl =3D=3D 0 || bpl < pix->width))
+>  			bpl =3D pix->width; /* Planar */
+> @@ -755,8 +756,16 @@ void fimc_adjust_mplane_format(struct fimc_fmt *fmt,=
+ u32 width, u32 height,
+>  			bytesperline /=3D 2;
+> =20
+>  		plane_fmt->bytesperline =3D bytesperline;
+> -		plane_fmt->sizeimage =3D max((pix->width * pix->height *
+> -				   fmt->depth[i]) / 8, plane_fmt->sizeimage);
+> +		sizeimage =3D pix->width * pix->height * fmt->depth[i] / 8;
+> +
+> +		/* Ensure full last row for tiled formats */
+> +		if (tiled_fmt(fmt)) {
+> +			/* 64 * 32 * plane_fmt->bytesperline / 64 */
+> +			u32 row_size =3D plane_fmt->bytesperline * 32;
+> +			sizeimage =3D ALIGN(sizeimage, row_size);
+
+I made a mistake here, and it seems I've badly tested it too (was
+setting the size from the test application). ALIGN won't work as
+row_size is not a power of two. Sorry for that, will send an update.
+roundup(sizeimage, row_size) would be the way to go. Will resubmit.
+
+> +		}
+> +
+> +		plane_fmt->sizeimage =3D max(sizeimage, plane_fmt->sizeimage);
+>  	}
+>  }
+> =20
+
+
+--=-QNZ2go3qOmjjJlj7RitX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iEYEABECAAYFAlMzVvcACgkQcVMCLawGqBza1gCeP+BctxFwTxRm6W+1//cN/+Hv
+Du4AoKuV78IVfsfFzDxiGEfyojUKth1z
+=5bKH
+-----END PGP SIGNATURE-----
+
+--=-QNZ2go3qOmjjJlj7RitX--
 
