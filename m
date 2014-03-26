@@ -1,56 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:21126 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753162AbaCLK6F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Mar 2014 06:58:05 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N2B004G7L4SS790@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 12 Mar 2014 06:58:04 -0400 (EDT)
-Date: Wed, 12 Mar 2014 07:57:59 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: James Hogan <james.hogan@imgtec.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 10/10] rc: img-ir: add Sanyo decoder module
-Message-id: <20140312075759.71eceec7@samsung.com>
-In-reply-to: <1393630140-31765-11-git-send-email-james.hogan@imgtec.com>
-References: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
- <1393630140-31765-11-git-send-email-james.hogan@imgtec.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from hermes.domdv.de ([193.102.202.1]:2944 "EHLO hermes.domdv.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753544AbaCZUjX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Mar 2014 16:39:23 -0400
+Message-ID: <1395865977.23074.62.camel@host028-server-9.lan.domdv.de>
+Subject: [PATCH 3/3] TBS USB drivers (DVB-S/S2) - enable driver lock led code
+From: Andreas Steinmetz <ast@domdv.de>
+To: linux-media@vger.kernel.org
+Date: Wed, 26 Mar 2014 21:32:57 +0100
+Content-Type: multipart/mixed; boundary="=-PZ2Bpi8hRF84F6DjJmnw"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi James,
 
-Em Fri, 28 Feb 2014 23:29:00 +0000
-James Hogan <james.hogan@imgtec.com> escreveu:
+--=-PZ2Bpi8hRF84F6DjJmnw
+Content-Type: text/plain; charset="ansi_x3.4-1968"
+Content-Transfer-Encoding: 7bit
 
-> Add an img-ir module for decoding the Sanyo infrared protocol.
+[Please CC me on replies, I'm not subscribed]
 
-After applying this series, some new warnings are popping up,
-when compiled with W=1:
+The lock led code being enabled is based on GPLv2 code taken from:
 
-drivers/media/rc/img-ir/img-ir-hw.c: In function 'img_ir_free_timing':
-drivers/media/rc/img-ir/img-ir-hw.c:228:23: warning: variable 'maxlen' set but not used [-Wunused-but-set-variable]
-  unsigned int minlen, maxlen, ft_min;
-                       ^
-drivers/media/rc/img-ir/img-ir-hw.c:228:15: warning: variable 'minlen' set but not used [-Wunused-but-set-variable]
-  unsigned int minlen, maxlen, ft_min;
-               ^
-drivers/media/rc/img-ir/img-ir-jvc.c:76:3: warning: initialized field overwritten [-Woverride-init]
-   },
-   ^
-drivers/media/rc/img-ir/img-ir-jvc.c:76:3: warning: (near initialization for 'img_ir_jvc.timings.s00') [-Woverride-init]
-drivers/media/rc/img-ir/img-ir-jvc.c:81:3: warning: initialized field overwritten [-Woverride-init]
-   },
-   ^
-drivers/media/rc/img-ir/img-ir-jvc.c:81:3: warning: (near initialization for 'img_ir_jvc.timings.s01') [-Woverride-init]
+https://bitbucket.org/CrazyCat/linux-tbs-drivers/
 
-Please fix.
+Just having to look at a device to get a visual lock notification by a
+led is a nice feature.
+-- 
+Andreas Steinmetz                       SPAMmers use robotrap@domdv.de
 
-Regards,
-Mauro
+--=-PZ2Bpi8hRF84F6DjJmnw
+Content-Disposition: attachment; filename="enable-tbs-lockled.patch"
+Content-Type: text/x-patch; name="enable-tbs-lockled.patch"; charset="ansi_x3.4-1968"
+Content-Transfer-Encoding: 7bit
+
+Signed-off-by: Andreas Steinmetz <ast@domdv.de>
+
+diff -rNup v4l-dvb.orig/drivers/media/usb/dvb-usb/tbs-usb.c v4l-dvb/drivers/media/usb/dvb-usb/tbs-usb.c
+--- v4l-dvb.orig/drivers/media/usb/dvb-usb/tbs-usb.c	2014-03-26 19:29:25.981009433 +0100
++++ v4l-dvb/drivers/media/usb/dvb-usb/tbs-usb.c	2014-03-26 19:34:39.864065854 +0100
+@@ -348,8 +348,6 @@ static int tbsusb_set_voltage(struct dvb
+ 			voltage == SEC_VOLTAGE_18 ? command_18v : command_13v);
+ }
+ 
+-#ifdef TBS_LOCKLED
+-
+ static void tbsusb_led_ctrl(struct dvb_frontend *fe, int onoff)
+ {
+ 	static u8 led_off[2] = {0x05, 0x00};
+@@ -358,8 +356,6 @@ static void tbsusb_led_ctrl(struct dvb_f
+ 	tbsusb_set_pin(fe, onoff ? led_on : led_off);
+ }
+ 
+-#endif
+-
+ static int tbsusb_i2c_transfer(struct i2c_adapter *adap,
+ 					struct i2c_msg msg[], int num)
+ {
+@@ -766,9 +762,7 @@ static const struct stv090x_config stv09
+ 	.tuner_set_bandwidth    = stb6100_set_bandwidth,
+ 	.tuner_get_bandwidth    = stb6100_get_bandwidth,
+ 
+-#ifdef TBS_LOCKLED
+ 	.set_lock_led		= tbsusb_led_ctrl,
+-#endif
+ };
+ 
+ static const struct stv090x_config stv0900_config = {
+@@ -790,9 +784,7 @@ static const struct stv090x_config stv09
+ 	.tuner_set_bandwidth    = stb6100_set_bandwidth,
+ 	.tuner_get_bandwidth    = stb6100_get_bandwidth,
+ 
+-#ifdef TBS_LOCKLED
+ 	.set_lock_led		= tbsusb_led_ctrl,
+-#endif
+ };
+ 
+ static const struct tda10071_config tda10071_config = {
+@@ -803,24 +795,18 @@ static const struct tda10071_config tda1
+ 	.spec_inv       = 0,
+ 	.xtal           = 40444000, /* 40.444 MHz */
+ 	.pll_multiplier = 20,
+-#ifdef TBS_LOCKLED
+ 	.set_lock_led   = tbsusb_led_ctrl,
+-#endif
+ };
+ 
+ static const struct cx24116_config cx24116_config = {
+ 	.demod_address   = 0x55,
+ 	.mpg_clk_pos_pol = 0x01,
+-#ifdef TBS_LOCKLED
+ 	.set_lock_led    = tbsusb_led_ctrl,
+-#endif
+ };
+ 
+ static const struct stv0288_config stv0288_config = {
+ 	.demod_address = 0x68,
+-#ifdef TBS_LOCKLED
+ 	.set_lock_led  = tbsusb_led_ctrl,
+-#endif
+ };
+ 
+ static int tbsusb_frontend_attach(struct dvb_usb_adapter *d)
+
+--=-PZ2Bpi8hRF84F6DjJmnw--
+
