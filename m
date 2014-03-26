@@ -1,177 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f49.google.com ([74.125.83.49]:42879 "EHLO
-	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759160AbaCTWdI (ORCPT
+Received: from mail-qa0-f54.google.com ([209.85.216.54]:57041 "EHLO
+	mail-qa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751916AbaCZHIu convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Mar 2014 18:33:08 -0400
-Received: by mail-ee0-f49.google.com with SMTP id c41so1198733eek.8
-        for <linux-media@vger.kernel.org>; Thu, 20 Mar 2014 15:33:06 -0700 (PDT)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core to drivers/of
-To: Philipp Zabel <philipp.zabel@gmail.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Wed, 26 Mar 2014 03:08:50 -0400
+Received: by mail-qa0-f54.google.com with SMTP id w8so1769669qac.41
+        for <linux-media@vger.kernel.org>; Wed, 26 Mar 2014 00:08:49 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20140325232130.GA2515@hardeman.nu>
+References: <1393629426-31341-1-git-send-email-james.hogan@imgtec.com>
+	<1393629426-31341-2-git-send-email-james.hogan@imgtec.com>
+	<20140324235146.GA25627@hardeman.nu>
+	<10422443.FIKnYVGtAm@radagast>
+	<20140325232130.GA2515@hardeman.nu>
+Date: Wed, 26 Mar 2014 09:08:49 +0200
+Message-ID: <CAKv9HNaRT4WdcDiuFODM7Jpg02phxRyEDDJ5CgbL0W3BjnYBGw@mail.gmail.com>
+Subject: Re: [PATCH 1/5] rc-main: add generic scancode filtering
+From: =?ISO-8859-1?Q?Antti_Sepp=E4l=E4?= <a.seppala@gmail.com>
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Cc: James Hogan <james.hogan@imgtec.com>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-In-Reply-To: <CA+gwMcfgKre8S4KHPvTVuAuz672aehGrN1UfFpwKAueTAcrMZQ@mail.gmail.com>
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> < 1393428297.3248.92.camel@paszta.hi.pengutronix.de> <20140307171804. EF245C40A32@trevor.secretlab.ca> < CA+gwMcfgKre8S4KHPvTVuAuz672aehGrN1UfFpwKAueTAcrMZQ@mail.gmail.com>
-Date: Thu, 20 Mar 2014 22:33:02 +0000
-Message-Id: <20140320223302.490D6C412EA@trevor.secretlab.ca>
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 8 Mar 2014 13:07:23 +0100, Philipp Zabel <philipp.zabel@gmail.com> wrote:
-> Hi Grant,
-> 
-> On Fri, Mar 7, 2014 at 6:18 PM, Grant Likely <grant.likely@linaro.org> wrote:
-> > On Wed, 26 Feb 2014 16:24:57 +0100, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> >> The 'ports' node is optional. It is only needed if the parent node has
-> >> its own #address-cells and #size-cells properties. If the ports are
-> >> direct children of the device node, there might be other nodes than
-> >> ports:
-> >>
-> >>       device {
-> >>               #address-cells = <1>;
-> >>               #size-cells = <0>;
-> >>
-> >>               port@0 {
-> >>                       endpoint { ... };
-> >>               };
-> >>               port@1 {
-> >>                       endpoint { ... };
-> >>               };
-> >>
-> >>               some-other-child { ... };
-> >>       };
-> >>
-> >>       device {
-> >>               #address-cells = <x>;
-> >>               #size-cells = <y>;
-> >>
-> >>               ports {
-> >>                       #address-cells = <1>;
-> >>                       #size-cells = <0>;
-> >>
-> >>                       port@0 {
-> >>                               endpoint { ... };
-> >>                       };
-> >>                       port@1 {
-> >>                               endpoint { ... };
-> >>                       };
-> >>               };
-> >>
-> >>               some-other-child { ... };
-> >>       };
-> >
-> > From a pattern perspective I have no problem with that.... From an
-> > individual driver binding perspective that is just dumb! It's fine for
-> > the ports node to be optional, but an individual driver using the
-> > binding should be explicit about which it will accept. Please use either
-> > a flag or a separate wrapper so that the driver can select the
-> > behaviour.
-> 
-> If the generic binding exists in both forms, most drivers should be
-> able to cope with both. Maybe it should be mentioned in the bindings
-> that the short form without ports node should be used where possible
-> (i.e. for devices that don't already have #address,size-cells != 1,0).
+On 26 March 2014 01:21, David Härdeman <david@hardeman.nu> wrote:
+> On Tue, Mar 25, 2014 at 09:12:11AM +0000, James Hogan wrote:
+>>On Tuesday 25 March 2014 00:51:46 David Härdeman wrote:
+>>> On Fri, Feb 28, 2014 at 11:17:02PM +0000, James Hogan wrote:
+>>> >Add generic scancode filtering of RC input events, and fall back to
+>>> >permitting any RC_FILTER_NORMAL scancode filter to be set if no s_filter
+>>> >callback exists. This allows raw IR decoder events to be filtered, and
+>>> >potentially allows hardware decoders to set looser filters and rely on
+>>> >generic code to filter out the corner cases.
+>>>
+>>> Hi James,
+>>>
+>>> What's the purpose of providing the sw scancode filtering in the case where
+>>> there's no hardware filtering support at all?
+>>
+>>Consistency is probably the main reason, but I'll admit it's not perfectly
+>>consistent between generic/hardware filtering (mostly thanks to NEC scancode
+>>complexities), and I have no particular objection to dropping it if that isn't
+>>considered a good enough reason.
+>
+> I'm kind of sceptical...and given how difficult it is to remove
+> functionality that is in a released kernel...I think that particular
+> part (i.e. the software filtering) should be removed until it has had
+> further discussion...
+>
+>>Here's the original discussion:
+>>On Monday 10 February 2014 21:45:30 Antti Seppälä wrote:
+>>> On 10 February 2014 11:58, James Hogan <james.hogan@imgtec.com> wrote:
+>>> > On Saturday 08 February 2014 13:30:01 Antti Seppälä wrote:
+>>> > > Also adding the scancode filter to it would
+>>> > > demonstrate its usage.
+>>> >
+>>> > To actually add filtering support to loopback would require either:
+>>> > * raw-decoder/rc-core level scancode filtering for raw ir drivers
+>>> > * OR loopback driver to encode like nuvoton and fuzzy match the IR
+>>> > signals.
+>>>
+>>> Rc-core level scancode filtering shouldn't be too hard to do right? If
+>>> such would exist then it would provide a software fallback to other rc
+>>> devices where hardware filtering isn't available. I'd love to see the
+>>> sysfs filter and filter_mask files to have an effect on my nuvoton too
+>
+> I don't understand. What's the purpose of a "software fallback" for
+> scancode filtering? Antti?
+>
 
-I would rephrase that: (ie. for devices that have other child nodes that
-aren't ports.) It isn't about the #address/size-cells values. It is
-about how the driver interprets child nodes.
+Well since the ImgTec patches will create a new sysfs interface for
+the HW scancode filtering I figured that it would be nice for it to
+also function on devices which lack the hardware filtering
+capabilities. Especially since it's only three lines of code. :)
 
-> 
-> Having a separate wrapper to enforce the ports node for devices that
-> need it might be useful.
+Therefore I suggested the software fallback. At the time I had no clue
+that there might be added complexities with nec scancodes.
 
-Or the other way around. Make the core function only handle an explicit
-location and use a v4l2 wrapper to preserve the current behaviour. That
-will encourage stricter usage.
+So like James said it exists mainly for api consistency reasons.
 
-> >> The helper should find the two endpoints in both cases.
-> >> Tomi suggests an even more compact form for devices with just one port:
-> >>
-> >>       device {
-> >>               endpoint { ... };
-> >>
-> >>               some-other-child { ... };
-> >>       };
-> >
-> > That's fine. In that case the driver would specifically require the
-> > endpoint to be that one node.... although the above looks a little weird
-> > to me. I would recommend that if there are other non-port child nodes
-> > then the ports should still be encapsulated by a ports node.  The device
-> > binding should not be ambiguous about which nodes are ports.
-> 
-> Sylwester suggested as an alternative, if I understood correctly, to
-> drop the endpoint node and instead keep the port:
-> 
->     device-a {
->         implicit_output_ep: port {
->             remote-endpoint = <&explicit_input_ep>;
->         };
->     };
-> 
->     device-b {
->         port {
->             explicit_input_ep: endpoint {
->                 remote-endpoint = <&implicit_output_ep>;
->             };
->         };
->     };
-> 
-> This would have the advantage to reduce verbosity for devices with multiple
-> ports that are only connected via one endport each, and you'd always have
-> the connected ports in the device tree as 'port' nodes.
-
-It sounds like that is a closer description of the hardware, so I agree.
-
-> 
-> >> > It seems that this function is merely a helper to get all grandchildren
-> >> > of a node (with some very minor constraints). That could be generalized
-> >> > and simplified. If the function takes the "ports" node as an argument
-> >> > instead of the parent, then there is a greater likelyhood that other
-> >> > code can make use of it...
-> >> >
-> >> > Thinking further. I think the semantics of this whole feature basically
-> >> > boil down to this:
-> >> >
-> >> > #define for_each_grandchild_of_node(parent, child, grandchild) \
-> >> >     for_each_child_of_node(parent, child) \
-> >> >             for_each_child_of_node(child, grandchild)
-> >> >
-> >> > Correct? Or in this specific case:
-> >> >
-> >> >     parent = of_get_child_by_name(np, "ports")
-> >> >     for_each_grandchild_of_node(parent, child, grandchild) {
-> >> >             ...
-> >> >     }
-> >>
-> >> Hmm, that would indeed be a bit more generic, but it doesn't handle the
-> >> optional 'ports' subnode and doesn't allow for other child nodes in the
-> >> device node.
-> >
-> > See above. The no-ports-node version could be the
-> > for_each_grandchild_of_node() block, and the yes-ports-node version
-> > could be a wrapper around that.
-> 
-> For the yes-ports-node version I see no problem, but without the ports node,
-> for_each_grandchild_of_node would also collect the children of non-port
-> child nodes.
-> The port and endpoint nodes in this binding are identified by their name,
-> so maybe adding of_get_next_child_by_name() /
-> for_each_named_child_of_node() could be helpful here.
-
-Generally I would avoid mixing child nodes of different purposes. If you
-are in that situation, the recommendation should be to use a ports node.
-If there are any current users for which that doesn't work, only then
-would I do the child_by_name approach.
-
-g.
-
+-Antti
