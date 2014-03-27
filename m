@@ -1,92 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40858 "EHLO arroyo.ext.ti.com"
+Received: from hardeman.nu ([95.142.160.32]:37581 "EHLO hardeman.nu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752075AbaCGNXF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Mar 2014 08:23:05 -0500
-Message-ID: <5319C813.5030508@ti.com>
-Date: Fri, 7 Mar 2014 18:52:27 +0530
-From: Archit Taneja <archit@ti.com>
+	id S1755170AbaC0VAj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Mar 2014 17:00:39 -0400
+Subject: [PATCH] rc-core: do not change 32bit NEC scancode format for now
+To: james.hogan@imgtec.com, linux-media@vger.kernel.org
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: m.chehab@samsung.com
+Date: Thu, 27 Mar 2014 22:00:37 +0100
+Message-ID: <20140327210037.20406.93136.stgit@zeus.muc.hardeman.nu>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <k.debski@samsung.com>, <linux-media@vger.kernel.org>,
-	<linux-omap@vger.kernel.org>
-Subject: Re: [PATCH v2 7/7] v4l: ti-vpe: Add selection API in VPE driver
-References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393922965-15967-1-git-send-email-archit@ti.com> <1393922965-15967-8-git-send-email-archit@ti.com> <53159F7D.8020707@xs4all.nl> <5315B822.7010005@ti.com> <5315BA83.5080500@xs4all.nl> <5319B26B.8050900@ti.com> <5319C2A7.6090805@xs4all.nl>
-In-Reply-To: <5319C2A7.6090805@xs4all.nl>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This reverts 18bc17448147e93f31cc9b1a83be49f1224657b2
 
-On Friday 07 March 2014 06:29 PM, Hans Verkuil wrote:
->>
->> Do you think I can go ahead with posting the v3 patch set for 3.15, and
->> work on fixing the compliance issue for the -rc fixes?
->
-> It's fine to upstream this in staging, but while not all compliance errors
-> are fixed it can't go to drivers/media. I'm tightening the screws on that
-> since v4l2-compliance is getting to be such a powerful tool for ensuring
-> the driver complies.
->
+The patch ignores the fact that NEC32 scancodes are generated not only in the
+NEC raw decoder but also directly in some drivers. Whichever approach is chosen
+it should be consistent across drivers and this patch needs more discussion.
 
-But the vpe driver is already in drivers/media. How do I push these 
-patches if the vpe drivers is not in staging?
+Furthermore, I'm convinced that we have to stop playing games trying to
+decipher the "meaning" of NEC scancodes (what's the customer/vendor/address,
+which byte is the MSB, etc).
 
-<snip>
+I'll post separate proposals to that effect later.
 
->> Multiplanar: TRY_FMT(G_FMT) != G_FMT
->>           test VIDIOC_TRY_FMT: FAIL
->>                   warn: v4l2-test-formats.cpp(834): S_FMT cannot handle
->> an invalid pixelformat.
->>                   warn: v4l2-test-formats.cpp(835): This may or may not
->> be a problem. For more information see:
->>                   warn: v4l2-test-formats.cpp(836):
->> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
->>                   fail: v4l2-test-formats.cpp(420): pix_mp.reserved not
->> zeroed
->
-> This is easy enough to fix.
->
->>                   fail: v4l2-test-formats.cpp(851): Video Capture
->> Multiplanar is valid, but no S_FMT was implemented
->
-> For the FMT things: run with -T: that gives nice traces. You can also
-> set the debug flag: echo 2 >/sys/class/video4linux/video0/debug to see all
-> ioctls in more detail.
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/ir-nec-decoder.c  |    5 --
+ drivers/media/rc/keymaps/rc-tivo.c |   86 ++++++++++++++++++------------------
+ 2 files changed, 44 insertions(+), 47 deletions(-)
 
-Thanks for the tip, will try this.
-
->
->>           test VIDIOC_S_FMT: FAIL
->>           test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
->>
->> Codec ioctls:
->>           test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->>           test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->>           test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
->>
->> Buffer ioctls:
->>                   info: test buftype Video Capture Multiplanar
->>                   warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
->> not supported
->>                   info: test buftype Video Output Multiplanar
->>                   warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
->> not supported
->>           test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->>           test VIDIOC_EXPBUF: OK (Not Supported)
->>           test read/write: OK (Not Supported)
->>               Video Capture Multiplanar (polling):
->>                   Buffer: 0 Sequence: 0 Field: Top Timestamp: 113.178208s
->>                   fail: v4l2-test-buffers.cpp(222): buf.field !=
->> cur_fmt.fmt.pix.field
->
-> Definitely needs to be fixed, you probably just don't set the field at all.
-
-The VPE output is always progressive. But yes, I should still set the 
-field parameter to something.
-
-Thanks,
-Archit
+diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
+index 735a509..c4333d5 100644
+--- a/drivers/media/rc/ir-nec-decoder.c
++++ b/drivers/media/rc/ir-nec-decoder.c
+@@ -172,10 +172,7 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 		if (send_32bits) {
+ 			/* NEC transport, but modified protocol, used by at
+ 			 * least Apple and TiVo remotes */
+-			scancode = not_address << 24 |
+-				   address     << 16 |
+-				   not_command <<  8 |
+-				   command;
++			scancode = data->bits;
+ 			IR_dprintk(1, "NEC (modified) scancode 0x%08x\n", scancode);
+ 		} else if ((address ^ not_address) != 0xff) {
+ 			/* Extended NEC */
+diff --git a/drivers/media/rc/keymaps/rc-tivo.c b/drivers/media/rc/keymaps/rc-tivo.c
+index 5cc1b45..454e062 100644
+--- a/drivers/media/rc/keymaps/rc-tivo.c
++++ b/drivers/media/rc/keymaps/rc-tivo.c
+@@ -15,62 +15,62 @@
+  * Initial mapping is for the TiVo remote included in the Nero LiquidTV bundle,
+  * which also ships with a TiVo-branded IR transceiver, supported by the mceusb
+  * driver. Note that the remote uses an NEC-ish protocol, but instead of having
+- * a command/not_command pair, it has a vendor ID of 0x3085, but some keys, the
++ * a command/not_command pair, it has a vendor ID of 0xa10c, but some keys, the
+  * NEC extended checksums do pass, so the table presently has the intended
+  * values and the checksum-passed versions for those keys.
+  */
+ static struct rc_map_table tivo[] = {
+-	{ 0x3085f009, KEY_MEDIA },	/* TiVo Button */
+-	{ 0x3085e010, KEY_POWER2 },	/* TV Power */
+-	{ 0x3085e011, KEY_TV },		/* Live TV/Swap */
+-	{ 0x3085c034, KEY_VIDEO_NEXT },	/* TV Input */
+-	{ 0x3085e013, KEY_INFO },
+-	{ 0x3085a05f, KEY_CYCLEWINDOWS }, /* Window */
++	{ 0xa10c900f, KEY_MEDIA },	/* TiVo Button */
++	{ 0xa10c0807, KEY_POWER2 },	/* TV Power */
++	{ 0xa10c8807, KEY_TV },		/* Live TV/Swap */
++	{ 0xa10c2c03, KEY_VIDEO_NEXT },	/* TV Input */
++	{ 0xa10cc807, KEY_INFO },
++	{ 0xa10cfa05, KEY_CYCLEWINDOWS }, /* Window */
+ 	{ 0x0085305f, KEY_CYCLEWINDOWS },
+-	{ 0x3085c036, KEY_EPG },	/* Guide */
++	{ 0xa10c6c03, KEY_EPG },	/* Guide */
+ 
+-	{ 0x3085e014, KEY_UP },
+-	{ 0x3085e016, KEY_DOWN },
+-	{ 0x3085e017, KEY_LEFT },
+-	{ 0x3085e015, KEY_RIGHT },
++	{ 0xa10c2807, KEY_UP },
++	{ 0xa10c6807, KEY_DOWN },
++	{ 0xa10ce807, KEY_LEFT },
++	{ 0xa10ca807, KEY_RIGHT },
+ 
+-	{ 0x3085e018, KEY_SCROLLDOWN },	/* Red Thumbs Down */
+-	{ 0x3085e019, KEY_SELECT },
+-	{ 0x3085e01a, KEY_SCROLLUP },	/* Green Thumbs Up */
++	{ 0xa10c1807, KEY_SCROLLDOWN },	/* Red Thumbs Down */
++	{ 0xa10c9807, KEY_SELECT },
++	{ 0xa10c5807, KEY_SCROLLUP },	/* Green Thumbs Up */
+ 
+-	{ 0x3085e01c, KEY_VOLUMEUP },
+-	{ 0x3085e01d, KEY_VOLUMEDOWN },
+-	{ 0x3085e01b, KEY_MUTE },
+-	{ 0x3085d020, KEY_RECORD },
+-	{ 0x3085e01e, KEY_CHANNELUP },
+-	{ 0x3085e01f, KEY_CHANNELDOWN },
++	{ 0xa10c3807, KEY_VOLUMEUP },
++	{ 0xa10cb807, KEY_VOLUMEDOWN },
++	{ 0xa10cd807, KEY_MUTE },
++	{ 0xa10c040b, KEY_RECORD },
++	{ 0xa10c7807, KEY_CHANNELUP },
++	{ 0xa10cf807, KEY_CHANNELDOWN },
+ 	{ 0x0085301f, KEY_CHANNELDOWN },
+ 
+-	{ 0x3085d021, KEY_PLAY },
+-	{ 0x3085d023, KEY_PAUSE },
+-	{ 0x3085d025, KEY_SLOW },
+-	{ 0x3085d022, KEY_REWIND },
+-	{ 0x3085d024, KEY_FASTFORWARD },
+-	{ 0x3085d026, KEY_PREVIOUS },
+-	{ 0x3085d027, KEY_NEXT },	/* ->| */
++	{ 0xa10c840b, KEY_PLAY },
++	{ 0xa10cc40b, KEY_PAUSE },
++	{ 0xa10ca40b, KEY_SLOW },
++	{ 0xa10c440b, KEY_REWIND },
++	{ 0xa10c240b, KEY_FASTFORWARD },
++	{ 0xa10c640b, KEY_PREVIOUS },
++	{ 0xa10ce40b, KEY_NEXT },	/* ->| */
+ 
+-	{ 0x3085b044, KEY_ZOOM },	/* Aspect */
+-	{ 0x3085b048, KEY_STOP },
+-	{ 0x3085b04a, KEY_DVD },	/* DVD Menu */
++	{ 0xa10c220d, KEY_ZOOM },	/* Aspect */
++	{ 0xa10c120d, KEY_STOP },
++	{ 0xa10c520d, KEY_DVD },	/* DVD Menu */
+ 
+-	{ 0x3085d028, KEY_NUMERIC_1 },
+-	{ 0x3085d029, KEY_NUMERIC_2 },
+-	{ 0x3085d02a, KEY_NUMERIC_3 },
+-	{ 0x3085d02b, KEY_NUMERIC_4 },
+-	{ 0x3085d02c, KEY_NUMERIC_5 },
+-	{ 0x3085d02d, KEY_NUMERIC_6 },
+-	{ 0x3085d02e, KEY_NUMERIC_7 },
+-	{ 0x3085d02f, KEY_NUMERIC_8 },
++	{ 0xa10c140b, KEY_NUMERIC_1 },
++	{ 0xa10c940b, KEY_NUMERIC_2 },
++	{ 0xa10c540b, KEY_NUMERIC_3 },
++	{ 0xa10cd40b, KEY_NUMERIC_4 },
++	{ 0xa10c340b, KEY_NUMERIC_5 },
++	{ 0xa10cb40b, KEY_NUMERIC_6 },
++	{ 0xa10c740b, KEY_NUMERIC_7 },
++	{ 0xa10cf40b, KEY_NUMERIC_8 },
+ 	{ 0x0085302f, KEY_NUMERIC_8 },
+-	{ 0x3085c030, KEY_NUMERIC_9 },
+-	{ 0x3085c031, KEY_NUMERIC_0 },
+-	{ 0x3085c033, KEY_ENTER },
+-	{ 0x3085c032, KEY_CLEAR },
++	{ 0xa10c0c03, KEY_NUMERIC_9 },
++	{ 0xa10c8c03, KEY_NUMERIC_0 },
++	{ 0xa10ccc03, KEY_ENTER },
++	{ 0xa10c4c03, KEY_CLEAR },
+ };
+ 
+ static struct rc_map_list tivo_map = {
 
