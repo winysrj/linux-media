@@ -1,66 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:52341 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755592AbaCETvR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 14:51:17 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N1Z00EGCB6MV860@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 05 Mar 2014 14:51:58 -0500 (EST)
-Date: Wed, 05 Mar 2014 16:51:12 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from hardeman.nu ([95.142.160.32]:37592 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756917AbaC0Vkn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Mar 2014 17:40:43 -0400
+Date: Thu, 27 Mar 2014 22:40:41 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: pboettcher@kernellabs.com
 Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v3.15] DocBook build fix
-Message-id: <20140305165112.2d32f6cd@samsung.com>
-In-reply-to: <20140302154024.GM15635@valkosipuli.retiisi.org.uk>
-References: <20140302154024.GM15635@valkosipuli.retiisi.org.uk>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Subject: Re: dib0700 NEC scancode question
+Message-ID: <20140327214041.GA21302@hardeman.nu>
+References: <20140327120728.GA13748@hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20140327120728.GA13748@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-Em Sun, 2 Mar 2014 17:40:24 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-
-> Hi Mauro,
-> 
-> Here's a trivial fix for the DocBook build. Please pull.
-> 
-> The following changes since commit a06b429df49bb50ec1e671123a45147a1d1a6186:
-> 
->   [media] au0828: rework GPIO management for HVR-950q (2014-02-28 15:21:31 -0300)
-> 
-> are available in the git repository at:
-> 
->   ssh://linuxtv.org/git/sailus/media_tree.git v4l2-doc-fix
-> 
-> for you to fetch changes up to 8a7beb0cc41415f50c13bedc4dc13a4a49895839:
-> 
->   v4l: Trivial documentation fix (2014-03-02 17:23:36 +0200)
-> 
-> ----------------------------------------------------------------
-> Sakari Ailus (1):
->       v4l: Trivial documentation fix
-
-Thanks for the patch. Unfortunately, I ended by writing the very same
-fix before applying from this tree, as I noticed the DocBook compilation
-breakage while merging some other docbook patch.
-
-Regards,
-Mauro
-
-> 
->  Documentation/DocBook/media/v4l/controls.xml |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-
+On Thu, Mar 27, 2014 at 01:07:28PM +0100, David Härdeman wrote:
+>Hi Patrick,
+>
+>a quick question regarding the dib0700 driver:
+>
+>in ./media/usb/dvb-usb/dib0700_core.c the RC RX packet is defined as:
+...
+>The NEC protocol transmits in the order:
+...
+>Does the dib0700 fw really reorder the bytes, or could the order of
+>not_system and system in struct dib0700_rc_response have been
+>accidentally reversed?
+...
+>Which, if the order *is* reversed, would mean that the scancode that
+>gets defined is in reality:
+>
+>	keycode = poll_reply->system     << 16 |
+>		  poll_reply->not_system << 8  |
+>		  poll_reply->data;
+>
+>Which is the same as the order used in drivers/media/rc/ir-nec-decoder.c.
+>
+>(An order which I'm considering trying to correct, which is why I'm
+s/correct/make sure it's consistent/
 
 -- 
-
-Cheers,
-Mauro
+David Härdeman
