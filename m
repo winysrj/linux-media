@@ -1,64 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4767 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751646AbaCFHfR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 02:35:17 -0500
-Message-ID: <5318252B.2080802@xs4all.nl>
-Date: Thu, 06 Mar 2014 08:35:07 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from moutng.kundenserver.de ([212.227.126.187]:60466 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757310AbaC0VeK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Mar 2014 17:34:10 -0400
+Date: Thu, 27 Mar 2014 22:34:07 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] V4L2: fix VIDIOC_CREATE_BUFS in 64- / 32-bit compatibility
+ mode
+Message-ID: <Pine.LNX.4.64.1403272206410.18471@axis700.grange>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, marbugge@cisco.com
-Subject: Re: [RFCv1 PATCH 0/4] add G/S_EDID support for video nodes
-References: <1393932659-13817-1-git-send-email-hverkuil@xs4all.nl> <2313806.6Mf9nE69NY@avalon>
-In-Reply-To: <2313806.6Mf9nE69NY@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/06/2014 02:45 AM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thank you for the patches.
-> 
-> On Tuesday 04 March 2014 12:30:55 Hans Verkuil wrote:
->> Currently the VIDIOC_SUBDEV_G/S_EDID and struct v4l2_subdev_edid are subdev
->> APIs. However, that's in reality quite annoying since for simple video
->> pipelines there is no need to create v4l-subdev device nodes for anything
->> else except for setting or getting EDIDs.
->>
->> What happens in practice is that v4l2 bridge drivers add explicit support
->> for VIDIOC_SUBDEV_G/S_EDID themselves, just to avoid having to create
->> subdev device nodes just for this.
->>
->> So this patch series makes the ioctls available as regular ioctls as
->> well. In that case the pad field should be set to 0 and the bridge driver
->> will fill in the right pad value internally depending on the current
->> input or output and pass it along to the actual subdev driver.
-> 
-> Would it make sense to allow usage of the pad field on video nodes as well ?
+It turns out, that 64-bit compilations sometimes align structs within 
+other structs on 32-bit boundaries, but in other cases alignment is done 
+on 64-bit boundaries, adding padding if necessary. This is done, for 
+example when the embedded struct contains a pointer. This is the case with 
+struct v4l2_window, which is embedded into struct v4l2_format, and that 
+one is embedded into struct v4l2_create_buffers. Unlike some other 
+structs, used as a part of the kernel ABI as ioctl() arguments, that are 
+packed, these structs aren't packed. This isn't a problem per se, but it 
+turns out, that the ioctl-compat code for VIDIOC_CREATE_BUFS contains a 
+bug, that triggers in such 64-bit builds. That code wrongly assumes, that 
+in struct v4l2_create_buffers, struct v4l2_format immediately follows the 
+__u32 memory field, which in fact isn't the case. This bug wasn't visible 
+until now, because until recently hardly any applications used this 
+ioctl() and mostly embedded 32-bit only drivers implemented it. This is 
+changing now with addition of this ioctl() to some USB drivers, e.g. UVC. 
+This patch fixes the bug by copying parts of struct v4l2_create_buffers 
+separately.
 
-No, really not. The video node driver has full control over which inputs/outputs
-map to which pads. None of that is (or should be) visible from userspace.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-What should probably change is that rather than requiring userspace to set pad
-to 0, I just say that it is ignored. The bridge driver will fill in the pad
-before handing it over to the relevant subdev. Requiring apps to set it to 0
-(which is a valid pad number anyway, so that doesn't really help with possible
-future use of the field) will require the driver to set it to 0 as well after
-having called the subdev. Which is annoying and will be forgotten anyway.
+It's probably too late for 3.14, but maybe after pushing it into 3.15 we 
+have to send it to stable.
 
-I also need to mention in the docbook that if it is called for a pad, an input
-or an output that does not support EDIDs these ioctls will return -EINVAL.
-
-I'll post a REVIEWv1 series soon.
-
-Regards,
-
-	Hans
-
-> 
-> Apart from that and minor issues with patch 2/4 this series looks good to me.
-> 
-
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 04b2daf..28f87d7 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -213,8 +213,9 @@ static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user
+ static int get_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
+ {
+ 	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_create_buffers32)) ||
+-	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32, format.fmt)))
+-			return -EFAULT;
++	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32, format)) ||
++	    get_user(kp->format.type, &up->format.type))
++		return -EFAULT;
+ 	return __get_v4l2_format32(&kp->format, &up->format);
+ }
+ 
