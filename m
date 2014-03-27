@@ -1,71 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f47.google.com ([209.85.216.47]:61325 "EHLO
-	mail-qa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750837AbaCPIWD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Mar 2014 04:22:03 -0400
-Received: by mail-qa0-f47.google.com with SMTP id w5so4210572qac.34
-        for <linux-media@vger.kernel.org>; Sun, 16 Mar 2014 01:22:02 -0700 (PDT)
+Received: from hardeman.nu ([95.142.160.32]:37598 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755469AbaC0XoB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Mar 2014 19:44:01 -0400
+Date: Fri, 28 Mar 2014 00:43:57 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: dib0700 NEC scancode question
+Message-ID: <20140327234357.GA22491@hardeman.nu>
+References: <20140327120728.GA13748@hardeman.nu>
+ <20140327214041.GA21302@hardeman.nu>
+ <1464013.AGHbqAynQ4@lappi3>
 MIME-Version: 1.0
-In-Reply-To: <1394838259-14260-1-git-send-email-james@albanarts.com>
-References: <1394838259-14260-1-git-send-email-james@albanarts.com>
-Date: Sun, 16 Mar 2014 10:22:02 +0200
-Message-ID: <CAKv9HNav3DYRcX8B_N5db012-ShoGVc7rbLW1oWV-rgcwDaGmg@mail.gmail.com>
-Subject: Re: [PATCH v2 0/9] rc: Add IR encode based wakeup filtering
-From: =?ISO-8859-1?Q?Antti_Sepp=E4l=E4?= <a.seppala@gmail.com>
-To: James Hogan <james@albanarts.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	Jarod Wilson <jarod@redhat.com>,
-	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1464013.AGHbqAynQ4@lappi3>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15 March 2014 01:04, James Hogan <james@albanarts.com> wrote:
-> A recent discussion about proposed interfaces for setting up the
-> hardware wakeup filter lead to the conclusion that it could help to have
-> the generic capability to encode and modulate scancodes into raw IR
-> events so that drivers for hardware with a low level wake filter (on the
-> level of pulse/space durations) can still easily implement the higher
-> level scancode interface that is proposed.
+On Thu, Mar 27, 2014 at 11:13:35PM +0100, Patrick Boettcher wrote:
+>Hi David,
 >
-> I posted an RFC patchset showing how this could work, and Antti Seppälä
-> posted additional patches to support rc5-sz and nuvoton-cir. This
-> patchset improves the original RFC patches and combines & updates
-> Antti's patches.
+>On Thursday 27 March 2014 22:40:41 David Härdeman wrote:
+>> On Thu, Mar 27, 2014 at 01:07:28PM +0100, David Härdeman wrote:
+>> >Hi Patrick,
+>> >
+>> >a quick question regarding the dib0700 driver:
+>> 
+>> >in ./media/usb/dvb-usb/dib0700_core.c the RC RX packet is defined as:
+>> ...
+>> 
+>> >The NEC protocol transmits in the order:
+>> ...
+>> 
+>> >Does the dib0700 fw really reorder the bytes, or could the order of
+>> >not_system and system in struct dib0700_rc_response have been
+>> >accidentally reversed?
 >
-> I'm happy these patches are a good start at tackling the problem, as
-> long as Antti is happy with them and they work for him of course.
+>It feels like a hundred years I haven't work on that. I'm not sure whether 
+>this knowledge can still be retrieved as of today or not. I would lie if I 
+>told you that I look the archives... and I can't want to do that (lying and 
+>looking).
 >
-> Future work could include:
->  - Encoders for more protocols.
->  - Carrier signal events (no use unless a driver makes use of it).
->
-> Patch 1 adds the new encode API.
-> Patches 2-3 adds some modulation helpers.
-> Patches 4-6 adds some raw encode implementations.
-> Patch 7 adds some rc-core support for encode based wakeup filtering.
-> Patch 8 adds debug loopback of encoded scancode when filter set.
-> Patch 9 (untested) adds encode based wakeup filtering to nuvoton-cir.
->
+>However, I realize that your assumption might not be totally far-fetched. If 
+>you can find another IR-receiver just check whether the same remote control 
+>delivers swapped bytes or not (if I understood it correctly, that's your real 
+>question). Then you have you answer, haven't you? 
 
-Hi James.
+If I had the hardware, yes :)
 
-This is looking very good. I've reviewed the series and have only
-minor comments to some of the patches which I'll post individually
-shortly.
+I don't, I just want to refactor some parts of the IR handling code
+across several drivers, which is why I came across this...I guess there
+are others who do have the hardware who will complain loudly if I try
+changing it and my assumptions turn out to be incorrect though...
 
-I've also tested the nuvoton with actual hardware with rc-5-sz and nec
-encoders and both generate wakeup samples correctly and can wake the
-system.
-
-While doing my tests I also noticed that there is a small bug in the
-wakeup_protocols handling where one can enable multiple protocols with
-the + -notation. E.g. echo "+nec +rc-5" >
-/sys/class/rc/rc0/wakeup_protocols shouldn't probably succeed.
-
--Antti
+-- 
+David Härdeman
