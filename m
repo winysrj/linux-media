@@ -1,83 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:18913 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752148AbaCMN5e (ORCPT
+Received: from smtp01.mail.pcextreme.nl ([109.72.87.137]:51613 "EHLO
+	smtp01.mail.pcextreme.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753351AbaC0TeY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 09:57:34 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N2D00HZVO3WSF70@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 13 Mar 2014 09:57:32 -0400 (EDT)
-Date: Thu, 13 Mar 2014 10:57:27 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [REVIEW PATCH 02/16] e4000: implement controls via v4l2 control
- framework
-Message-id: <20140313105727.43c3d689@samsung.com>
-In-reply-to: <1393461025-11857-3-git-send-email-crope@iki.fi>
-References: <1393461025-11857-1-git-send-email-crope@iki.fi>
- <1393461025-11857-3-git-send-email-crope@iki.fi>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Thu, 27 Mar 2014 15:34:24 -0400
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Thu, 27 Mar 2014 20:28:30 +0100
+From: Beralt Meppelink <beralt@beralt.nl>
+To: <linux-media@vger.kernel.org>
+Cc: <fschaefer.oss@googlemail.com>
+Subject: em28xx: too many ISO URB's queued
+Message-ID: <cb2fb87211e8df1267cb96e91589c9d2@beralt.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 27 Feb 2014 02:30:11 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+Recent changes in the em28xx module introduced a bug which I'm 
+encountering with my PCTV 510e DVB-C stick. It seems that starting a 
+stream increases the queue in the host controller up to the point to 
+which it would overflow (at least for ehci).
 
-> Implement gain and bandwidth controls using v4l2 control framework.
-> Pointer to control handler is provided by exported symbol.
-> 
-> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/tuners/e4000.c      | 210 +++++++++++++++++++++++++++++++++++++-
->  drivers/media/tuners/e4000.h      |  14 +++
->  drivers/media/tuners/e4000_priv.h |  75 ++++++++++++++
->  3 files changed, 298 insertions(+), 1 deletion(-)
+I'v done some preliminary work to trace the issue, and produced the 
+following trace:
 
-...
-> diff --git a/drivers/media/tuners/e4000.h b/drivers/media/tuners/e4000.h
-> index e74b8b2..989f2ea 100644
-> --- a/drivers/media/tuners/e4000.h
-> +++ b/drivers/media/tuners/e4000.h
-> @@ -40,4 +40,18 @@ struct e4000_config {
->  	u32 clock;
->  };
->  
-> +#if IS_ENABLED(CONFIG_MEDIA_TUNER_E4000)
-> +extern struct v4l2_ctrl_handler *e4000_get_ctrl_handler(
-> +		struct dvb_frontend *fe
-> +);
-> +#else
-> +static inline struct v4l2_ctrl_handler *e4000_get_ctrl_handler(
-> +		struct dvb_frontend *fe
-> +)
-> +{
-> +	pr_warn("%s: driver disabled by Kconfig\n", __func__);
-> +	return NULL;
-> +}
-> +#endif
-> +
->  #endif
+kernel: em2884 #0/2-dvb: Using 5 buffers each with 64 x 940 bytes
+kernel: em2884 #0 em28xx_init_usb_xfer :em28xx: called 
+em28xx_init_usb_xfer in mode 2
+kernel: ehci-pci 0000:00:1d.0: request ffff8800ccc59000 would overflow 
+(8136+63 >= 8192)
+kernel: submit of urb 0 failed (error=-27)
+kernel: em2884 #0 em28xx_uninit_usb_xfer :em28xx: called 
+em28xx_uninit_usb_xfer in mode 2
 
-There are two things to be noticed here:
+This is with a 3.13 kernel, but I can reproduce the same issue when 
+using a backport of the git tree using media_build. Unfortunately my USB 
+knowledge is limited, so it would be great if someone could point me in 
+the right direction. I filed a bug report too [1].
 
-1) Please don't add any EXPORT_SYMBOL() on a pure I2C module. You
-should, instead, use the subdev calls, in order to callback a
-function provided by the module;
-
-2) As you're now using request_module(), you don't need to use
-#if IS_ENABLED() anymore. It is up to the module to register
-itself as a V4L2 subdevice. The caller module should use the
-subdevice interface to run the callbacks.
-
-If you don't to that, you'll have several issues with the
-building system.
-
-Regards,
-Mauro
+[1] https://bugzilla.kernel.org/show_bug.cgi?id=72891
