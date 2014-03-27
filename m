@@ -1,116 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3716 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751195AbaCaIFd (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2318 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751658AbaC0Deq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Mar 2014 04:05:33 -0400
-Message-ID: <533921C3.80802@xs4all.nl>
-Date: Mon, 31 Mar 2014 10:05:23 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: linux-sparse@vger.kernel.org
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: sparse and anonymous unions
-References: <53242AC7.9080301@xs4all.nl> <53391E67.2000306@xs4all.nl>
-In-Reply-To: <53391E67.2000306@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 26 Mar 2014 23:34:46 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2R3YgE2098778
+	for <linux-media@vger.kernel.org>; Thu, 27 Mar 2014 04:34:44 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 4D6622A188D
+	for <linux-media@vger.kernel.org>; Thu, 27 Mar 2014 04:34:31 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140327033431.4D6622A188D@tschai.lan>
+Date: Thu, 27 Mar 2014 04:34:31 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/31/2014 09:51 AM, Hans Verkuil wrote:
-> On 03/15/2014 11:26 AM, Hans Verkuil wrote:
->> Hi!
->>
->> I'm trying to cut down the list of sparse warnings and errors I get when
->> compiling drivers/media. Most of them are obviously our problem, but there
->> is one that seems to be a sparse bug:
->>
->> drivers/media/v4l2-core/v4l2-dv-timings.c:30:9: error: unknown field name in initializer
->>
->> This uses the v4l2_dv_timings type which is defined here:
->>
->> include/uapi/linux/videodev2.h
->>
->> and which has an anonymous union:
->>
->> struct v4l2_dv_timings {
->>         __u32 type;
->>         union {
->>                 struct v4l2_bt_timings  bt;
->>                 __u32   reserved[32];
->>         };
->> } __attribute__ ((packed));
->>
->> The macro used in the source above comes from this header:
->>
->> include/uapi/linux/v4l2-dv-timings.h
->>
->> and is defined as follows:
->>
->> #if __GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 6))
->> /* Sadly gcc versions older than 4.6 have a bug in how they initialize
->>    anonymous unions where they require additional curly brackets.
->>    This violates the C1x standard. This workaround adds the curly brackets
->>    if needed. */
->> #define V4L2_INIT_BT_TIMINGS(_width, args...) \
->>         { .bt = { _width , ## args } }
->> #else
->> #define V4L2_INIT_BT_TIMINGS(_width, args...) \
->>         .bt = { _width , ## args }
->> #endif
->>
->> /* CEA-861-E timings (i.e. standard HDTV timings) */
->>         
->> #define V4L2_DV_BT_CEA_640X480P59_94 { \
->>         .type = V4L2_DV_BT_656_1120, \
->>         V4L2_INIT_BT_TIMINGS(640, 480, 0, 0, \
->>                 25175000, 16, 96, 48, 10, 2, 33, 0, 0, 0, \
->>                 V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CEA861, 0) \
->> }
->>
->> The problem is that it seems that sparse follows the old pre-4.6 rules for
->> initializing anonymous unions instead of what is actually in the C standard.
->>
->> If I add ' || defined(__CHECKER__)' to the #if above it will pass without
->> generating sparse errors.
->>
->> Is this something that can be fixed in sparse, or am I forced to add the
->> 'defined(__CHECKER__)' to the #if condition?
-> 
-> Here is a simple test case for this problem:
-> 
-> ====== anon-union.c ======
-> struct s {
->         union {
->                 int val;
->         };
-> };
-> 
-> static struct s foo = { .val = 5, };
-> /*
->  * check-name: duplicate extern array
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Oops: that should be:
+Results of the daily build of media_tree:
 
-check-name: test anonymous union initializer
+date:		Thu Mar 27 04:00:17 CET 2014
+git branch:	test
+git hash:	8432164ddf7bfe40748ac49995356ab4dfda43b7
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0
+host hardware:	x86_64
+host os:	3.13-5.slh.4-amd64
 
->  *
->  * check-error-start
->  * check-error-end
->  */
-> ====== anon-union.c ======
-> 
-> Running sparse gives:
-> 
-> anon-union.c:7:26: error: unknown field name in initializer
-> 
-> Regards,
-> 
-> 	Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-sparse" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
