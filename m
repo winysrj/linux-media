@@ -1,153 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f54.google.com ([74.125.83.54]:55213 "EHLO
-	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752735AbaCJO6U (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:39728 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751228AbaC1QDn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 10:58:20 -0400
-Received: by mail-ee0-f54.google.com with SMTP id d49so3176419eek.13
-        for <linux-media@vger.kernel.org>; Mon, 10 Mar 2014 07:58:19 -0700 (PDT)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-In-Reply-To: <5427810.BUKJ3iUXnO@avalon>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < 20140226110114.CF2C7C40A89@trevor.secretlab.ca> <531D916C.2010903@ti.com> < 5427810.BUKJ3iUXnO@avalon>
-Date: Mon, 10 Mar 2014 14:58:15 +0000
-Message-Id: <20140310145815.17595C405FA@trevor.secretlab.ca>
+	Fri, 28 Mar 2014 12:03:43 -0400
+Date: Fri, 28 Mar 2014 11:01:31 -0500
+From: Felipe Balbi <balbi@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: <linux-media@vger.kernel.org>, <linux-usb@vger.kernel.org>,
+	Fengguang Wu <fengguang.wu@intel.com>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+	Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+Subject: Re: [PATCH v2 1/3] usb: gadget: uvc: Switch to monotonic clock for
+ buffer timestamps
+Message-ID: <20140328160131.GI17820@saruman.home>
+Reply-To: <balbi@ti.com>
+References: <1396022568-6794-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1396022568-6794-2-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="3U8TY7m7wOx7RL1F"
+Content-Disposition: inline
+In-Reply-To: <1396022568-6794-2-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 10 Mar 2014 14:52:53 +0100, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
-> On Monday 10 March 2014 12:18:20 Tomi Valkeinen wrote:
-> > On 08/03/14 13:41, Grant Likely wrote:
-> > >> Ok. If we go for single directional link, the question is then: which
-> > >> way? And is the direction different for display and camera, which are
-> > >> kind of reflections of each other?
-> > > 
-> > > In general I would recommend choosing whichever device you would
-> > > sensibly think of as a master. In the camera case I would choose the
-> > > camera controller node instead of the camera itself, and in the display
-> > > case I would choose the display controller instead of the panel. The
-> > > binding author needs to choose what she things makes the most sense, but
-> > > drivers can still use if it it turns out to be 'backwards'
-> > 
-> > I would perhaps choose the same approach, but at the same time I think
-> > it's all but clear. The display controller doesn't control the panel any
-> > more than a DMA controller controls, say, the display controller.
-> > 
-> > In fact, in earlier versions of OMAP DSS DT support I had a simpler port
-> > description, and in that I had the panel as the master (i.e. link from
-> > panel to dispc) because the panel driver uses the display controller's
-> > features to provide the panel device a data stream.
-> > 
-> > And even with the current OMAP DSS DT version, which uses the v4l2 style
-> > ports/endpoints, the driver model is still the same, and only links
-> > towards upstream are used.
-> > 
-> > So one reason I'm happy with the dual-linking is that I can easily
-> > follow the links from the downstream entities to upstream entities, and
-> > other people, who have different driver model, can easily do the opposite.
-> > 
-> > But I agree that single-linking is enough and this can be handled at
-> > runtime, even if it makes the code more complex. And perhaps requires
-> > extra data in the dts, to give the start points for the graph.
-> 
-> In theory unidirectional links in DT are indeed enough. However, let's not 
-> forget the following.
-> 
-> - There's no such thing as single start points for graphs. Sure, in some 
-> simple cases the graph will have a single start point, but that's not a 
-> generic rule. For instance the camera graphs 
-> http://ideasonboard.org/media/omap3isp.ps and 
-> http://ideasonboard.org/media/eyecam.ps have two camera sensors, and thus two 
-> starting points from a data flow point of view. And if you want a better 
-> understanding of how complex media graphs can become, have a look at 
-> http://ideasonboard.org/media/vsp1.0.pdf (that's a real world example, albeit 
-> all connections are internal to the SoC in that particular case, and don't 
-> need to be described in DT).
-> 
-> - There's also no such thing as a master device that can just point to slave 
-> devices. Once again simple cases exist where that model could work, but real 
-> world examples exist of complex pipelines with dozens of elements all 
-> implemented by a separate IP core and handled by separate drivers, forming a 
-> graph with long chains and branches. We thus need real graph bindings.
-> 
-> - Finally, having no backlinks in DT would make the software implementation 
-> very complex. We need to be able to walk the graph in a generic way without 
-> having any of the IP core drivers loaded, and without any specific starting 
-> point. We would thus need to parse the complete DT tree, looking at all nodes 
-> and trying to find out whether they're part of the graph we're trying to walk. 
-> The complexity of the operation would be at best quadratic to the number of 
-> nodes in the whole DT and to the number of nodes in the graph.
+--3U8TY7m7wOx7RL1F
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Not really. To being with, you cannot determine any meaning of a node
-across the tree (aside from it being an endpoint) without also
-understanding the binding that the node is a part of. That means you
-need to have something matching against the compatible string on both
-ends of the linkage. For instance:
+On Fri, Mar 28, 2014 at 05:02:46PM +0100, Laurent Pinchart wrote:
+> The wall time clock isn't useful for applications as it can jump around
+> due to time adjustement. Switch to the monotonic clock.
+>=20
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-panel {
-	compatible = "acme,lvds-panel";
-	lvds-port: port {
-	};
-};
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-display-controller {
-	compatible = "encom,video";
-	port {
-		remote-endpoint = <&lvds-port>;
-	};
-};
+> ---
+>  drivers/usb/gadget/uvc_queue.c | 9 ++-------
+>  1 file changed, 2 insertions(+), 7 deletions(-)
+>=20
+> Changes since v1:
+>=20
+> - Replace ktime_get_ts() with v4l2_get_timestamp()
+>=20
+> diff --git a/drivers/usb/gadget/uvc_queue.c b/drivers/usb/gadget/uvc_queu=
+e.c
+> index 0bb5d50..9ac4ffe1 100644
+> --- a/drivers/usb/gadget/uvc_queue.c
+> +++ b/drivers/usb/gadget/uvc_queue.c
+> @@ -20,6 +20,7 @@
+>  #include <linux/vmalloc.h>
+>  #include <linux/wait.h>
+> =20
+> +#include <media/v4l2-common.h>
+>  #include <media/videobuf2-vmalloc.h>
+> =20
+>  #include "uvc.h"
+> @@ -379,14 +380,8 @@ static struct uvc_buffer *uvc_queue_next_buffer(stru=
+ct uvc_video_queue *queue,
+>  	else
+>  		nextbuf =3D NULL;
+> =20
+> -	/*
+> -	 * FIXME: with videobuf2, the sequence number or timestamp fields
+> -	 * are valid only for video capture devices and the UVC gadget usually
+> -	 * is a video output device. Keeping these until the specs are clear on
+> -	 * this aspect.
+> -	 */
+>  	buf->buf.v4l2_buf.sequence =3D queue->sequence++;
+> -	do_gettimeofday(&buf->buf.v4l2_buf.timestamp);
+> +	v4l2_get_timestamp(&buf->buf.v4l2_buf.timestamp);
+> =20
+>  	vb2_set_plane_payload(&buf->buf, 0, buf->bytesused);
+>  	vb2_buffer_done(&buf->buf, VB2_BUF_STATE_DONE);
+> --=20
+> 1.8.3.2
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-In the above example, the encom,video driver has absolutely zero
-information about what the acme,lvds-panel binding actually implements.
-There needs to be both a driver for the "acme,lvds-panel" binding and
-one for the "encom,video" binding (even if the acme,lvds-panel binding
-is very thin and defers the functionality to the video controller).
+--=20
+balbi
 
-What you want here is the drivers to register each side of the
-connection. That could be modeled with something like the following
-(pseudocode):
+--3U8TY7m7wOx7RL1F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-struct of_endpoint {
-	struct list_head list;
-	struct device_node *ep_node;
-	void *context;
-	void (*cb)(struct of_endpoint *ep, void *data);
-}
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-int of_register_port(struct device *node, void (*cb)(struct of_endpoint *ep, void *data), void *data)
-{
-	struct of_endpoint *ep = kzalloc(sizeof(*ep), GFP_KERNEL);
+iQIcBAEBAgAGBQJTNZzbAAoJEIaOsuA1yqREinIQALQ5V+Q4kr+LEVP776QKvat6
+DG5GbAk7JKwDxX2O+THqRfzq1UZZoRIWWhXhGE12eGjjyinADNxrFkw7aQNyFbu5
+BHYqrqeSLE8qRi5T3TK5SOPiF/+hu49/JvZkasVDkDNu8NOsp2jOhLnnWaqKzmdg
+JnrwNeKHBMWBmPbg8MNu5RbWHCanT7YfJUuAn021cv0ZrLWfH7s5621dQ9uQkkCC
+PX51SgyuQ8bZGtZ70ZHX6wfxRaDR7Q/cPWmBrUCQbnx34C4aUr5L+k10+kKXgl9y
+wTzSpIlt302aAYir/qId6WeDzh/Q+0VKl8ICcMvHpmqtkRAA0vOMjKKohSBav8cs
+nJLkqGppmvdf4SzvRwFfXyVPsETaAlDcOaxSB5iXrA2WkcNotn9mOcobaaBOdihx
+8/6tzw20sZc2yGy9DKNGHuFi1NhDN+ORwIFn8NRktzWnbE1E0lOGLTg3m24SHZky
+0z5Jgs6bOXHVEezVDoC95SRspU0EDsGnNSz8QtLUFSgNQfzD58jbpQAalKjvmgr9
+ezUT4M620j4vQci3g5WdLVY3ccQJGhCpD2/yOd0N74TPaWn51HL1AYA8P1lu9uoC
+RH7/NeMNFaVgHj6tCwzoUUW9CTRELCANJCMn/puels+CcW+39Jx+xj+x6IuywrAn
+TBG2lk5yyjfTDkhSaAw0
+=8Ibd
+-----END PGP SIGNATURE-----
 
-	ep->ep_node = node;
-	ep->data = data;
-	ep->callback = cb;
-
-	/* store the endpoint to a list */
-	/* check if the endpoint has a remote-endpoint link */
-		/* If so, then link the two together and call the
-		 * callbacks */
-}
-
-That's neither expensive or complicated.
-
-Originally I suggested walking the whole tree multiple times, but as
-mentioned that doesn't scale, and as I thought about the above it isn't
-even a valid thing to do. Everything has to be driven by drivers, so
-even if the backlinks are there, nothing can be done with the link until
-the other side goes through enumeration independently.
-
-g.
+--3U8TY7m7wOx7RL1F--
