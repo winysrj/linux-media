@@ -1,83 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41799 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755739AbaCNJv7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Mar 2014 05:51:59 -0400
-Message-ID: <5322D117.9060008@ti.com>
-Date: Fri, 14 Mar 2014 15:21:19 +0530
-From: Archit Taneja <archit@ti.com>
-MIME-Version: 1.0
-To: Kamil Debski <k.debski@samsung.com>, <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH v3 02/14] v4l: ti-vpe: register video device only when
- firmware is loaded
-References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-3-git-send-email-archit@ti.com> <000001cf3eb2$39817540$ac845fc0$%debski@samsung.com> <53219FE0.8010604@ti.com> <000901cf3ec8$aea34270$0be9c750$%debski@samsung.com>
-In-Reply-To: <000901cf3ec8$aea34270$0be9c750$%debski@samsung.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:40182 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752267AbaC1P3t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Mar 2014 11:29:49 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: s.nawrocki@samsung.com, a.hajda@samsung.com,
+	kyungmin.park@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v2 7/8] media: exynos4-is: Add support for v4l2-flash
+ subdevs
+Date: Fri, 28 Mar 2014 16:29:04 +0100
+Message-id: <1396020545-15727-8-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1396020545-15727-1-git-send-email-j.anaszewski@samsung.com>
+References: <1396020545-15727-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This patch adds suppport for external v4l2-flash devices.
+The support includes parsing camera-flash DT property
+and asynchronous subdevice registration.
 
-On Thursday 13 March 2014 07:59 PM, Kamil Debski wrote:
-> Hi,
->
->> From: Archit Taneja [mailto:archit@ti.com]
->> Sent: Thursday, March 13, 2014 1:09 PM
->>
->> Hi Kamil,
->>
->> On Thursday 13 March 2014 05:18 PM, Kamil Debski wrote:
->>> Hi Archit,
->>>
->>>> From: Archit Taneja [mailto:archit@ti.com]
->>>> Sent: Tuesday, March 11, 2014 9:34 AM
->>>>
->>>> vpe fops(vpe_open in particular) should be called only when VPDMA
->>>> firmware is loaded. File operations on the video device are possible
->>>> the moment it is registered.
->>>>
->>>> Currently, we register the video device for VPE at driver probe,
->>>> after calling a vpdma helper to initialize VPDMA and load firmware.
->>>> This function is non-blocking(it calls request_firmware_nowait()),
->>>> and doesn't ensure that the firmware is actually loaded when it
->> returns.
->>>>
->>>> We remove the device registration from vpe probe, and move it to a
->>>> callback provided by the vpe driver to the vpdma library, through
->>>> vpdma_create().
->>>>
->>>> The ready field in vpdma_data is no longer needed since we always
->>>> have firmware loaded before the device is registered.
->>>>
->>>> A minor problem with this approach is that if the
->>>> video_register_device fails(which doesn't really happen), the vpe
->>>> platform device would be registered.
->>>> however, there won't be any v4l2 device corresponding to it.
->>>
->>> Could you explain to me one thing. request_firmware cannot be used in
->>> probe, thus you are using request_firmware_nowait. Why cannot the
->>> firmware be loaded on open with a regular request_firmware that is
->>> waiting?
->>
->> I totally agree with you here. Placing the firmware in open() would
->> probably make more sense.
->>
->> The reason I didn't place it in open() is because I didn't want to
->> release firmware in a corresponding close(), and be in a situation
->> where the firmware is loaded multiple times in the driver's lifetime.
->
-> Would it be possible to load firmware in open and release it in remove?
-> I know that this would disturb the symmetry between open-release and
-> probe-remove. But this could work.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/media-dev.c |   34 ++++++++++++++++++++++---
+ drivers/media/platform/exynos4-is/media-dev.h |   14 +++++++++-
+ 2 files changed, 43 insertions(+), 5 deletions(-)
 
-That might work.
-
-Currently, the driver doesn't do any clock management, it just enables 
-the clocks in probe, and disables them in remove. I need to check how 
-the firmware is dependent on clocks. We could make a better decision 
-about where to release the firmware with that information.
-
-Archit
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index e62211a..3d750891 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -28,6 +28,7 @@
+ #include <linux/types.h>
+ #include <linux/slab.h>
+ #include <media/v4l2-async.h>
++#include <media/v4l2-flash.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-of.h>
+ #include <media/media-device.h>
+@@ -400,7 +401,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+ 				   struct device_node *port,
+ 				   unsigned int index)
+ {
+-	struct device_node *rem, *ep, *np;
++	struct device_node *rem, *ep, *np, *fn;
+ 	struct fimc_source_info *pd;
+ 	struct v4l2_of_endpoint endpoint;
+ 	u32 val;
+@@ -440,6 +441,14 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+ 		return -EINVAL;
+ 	}
+ 
++	fn = of_parse_phandle(rem, "camera-flash", 0);
++	if (fn) {
++		fmd->flash[fmd->num_flashes].asd.match_type =
++							V4L2_ASYNC_MATCH_OF;
++		fmd->flash[fmd->num_flashes].asd.match.of.node = fn;
++		fmd->num_flashes++;
++	}
++
+ 	if (fimc_input_is_parallel(endpoint.base.port)) {
+ 		if (endpoint.bus_type == V4L2_MBUS_PARALLEL)
+ 			pd->sensor_bus_type = FIMC_BUS_TYPE_ITU_601;
+@@ -1531,6 +1540,15 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
+ 	struct fimc_sensor_info *si = NULL;
+ 	int i;
+ 
++	/* Register flash subdev if detected any */
++	for (i = 0; i < ARRAY_SIZE(fmd->flash); i++) {
++		if (fmd->flash[i].asd.match.of.node == subdev->dev->of_node) {
++			fmd->flash[i].v4l2_flash = v4l2_subdev_to_flash(subdev);
++			fmd->num_flashes++;
++			return 0;
++		}
++	}
++
+ 	/* Find platform data for this sensor subdev */
+ 	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++)
+ 		if (fmd->sensor[i].asd.match.of.node == subdev->dev->of_node)
+@@ -1578,7 +1596,7 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	struct v4l2_device *v4l2_dev;
+ 	struct fimc_md *fmd;
+-	int ret;
++	int i, ret;
+ 
+ 	fmd = devm_kzalloc(dev, sizeof(*fmd), GFP_KERNEL);
+ 	if (!fmd)
+@@ -1646,6 +1664,12 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 			mutex_unlock(&fmd->media_dev.graph_mutex);
+ 			goto err_m_ent;
+ 		}
++
++		if (dev->of_node) {
++			for (i = 0; i < fmd->num_flashes; ++i)
++				fmd->async_subdevs[fmd->num_sensors + i] =
++						&fmd->flash[i].asd;
++		}
+ 	}
+ 
+ 	mutex_unlock(&fmd->media_dev.graph_mutex);
+@@ -1664,12 +1688,14 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 		goto err_attr;
+ 	}
+ 
+-	if (fmd->num_sensors > 0) {
++	if (fmd->num_sensors > 0 || fmd->num_flashes > 0) {
+ 		fmd->subdev_notifier.subdevs = fmd->async_subdevs;
+-		fmd->subdev_notifier.num_subdevs = fmd->num_sensors;
++		fmd->subdev_notifier.num_subdevs = fmd->num_sensors +
++							fmd->num_flashes;
+ 		fmd->subdev_notifier.bound = subdev_notifier_bound;
+ 		fmd->subdev_notifier.complete = subdev_notifier_complete;
+ 		fmd->num_sensors = 0;
++		fmd->num_flashes = 0;
+ 
+ 		ret = v4l2_async_notifier_register(&fmd->v4l2_dev,
+ 						&fmd->subdev_notifier);
+diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
+index ee1e251..9af9de8 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.h
++++ b/drivers/media/platform/exynos4-is/media-dev.h
+@@ -18,6 +18,7 @@
+ #include <media/media-device.h>
+ #include <media/media-entity.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-flash.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/s5p_fimc.h>
+ 
+@@ -33,6 +34,8 @@
+ #define PINCTRL_STATE_IDLE	"idle"
+ 
+ #define FIMC_MAX_SENSORS	4
++#define FIMC_MAX_FLASHES	1
++#define FIMC_MAX_ASYNC_SUBDEVS	(FIMC_MAX_SENSORS + FIMC_MAX_FLASHES)
+ #define FIMC_MAX_CAMCLKS	2
+ #define DEFAULT_SENSOR_CLK_FREQ	24000000U
+ 
+@@ -93,6 +96,11 @@ struct fimc_sensor_info {
+ 	struct fimc_dev *host;
+ };
+ 
++struct fimc_flash_info {
++	struct v4l2_flash *v4l2_flash;
++	struct v4l2_async_subdev asd;
++};
++
+ struct cam_clk {
+ 	struct clk_hw hw;
+ 	struct fimc_md *fmd;
+@@ -104,6 +112,8 @@ struct cam_clk {
+  * @csis: MIPI CSIS subdevs data
+  * @sensor: array of registered sensor subdevs
+  * @num_sensors: actual number of registered sensors
++ * @flash: array of registered flash subdevs
++ * @num_flashes: actual number of registered flashes
+  * @camclk: external sensor clock information
+  * @fimc: array of registered fimc devices
+  * @fimc_is: fimc-is data structure
+@@ -123,6 +133,8 @@ struct fimc_md {
+ 	struct fimc_csis_info csis[CSIS_MAX_ENTITIES];
+ 	struct fimc_sensor_info sensor[FIMC_MAX_SENSORS];
+ 	int num_sensors;
++	struct fimc_flash_info flash[FIMC_MAX_FLASHES];
++	int num_flashes;
+ 	struct fimc_camclk_info camclk[FIMC_MAX_CAMCLKS];
+ 	struct clk *wbclk[FIMC_MAX_WBCLKS];
+ 	struct fimc_lite *fimc_lite[FIMC_LITE_MAX_DEVS];
+@@ -149,7 +161,7 @@ struct fimc_md {
+ 	} clk_provider;
+ 
+ 	struct v4l2_async_notifier subdev_notifier;
+-	struct v4l2_async_subdev *async_subdevs[FIMC_MAX_SENSORS];
++	struct v4l2_async_subdev *async_subdevs[FIMC_MAX_ASYNC_SUBDEVS];
+ 
+ 	bool user_subdev_api;
+ 	spinlock_t slock;
+-- 
+1.7.9.5
 
