@@ -1,64 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4429 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751664AbaC1Ivq (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:40155 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751071AbaC1P32 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Mar 2014 04:51:46 -0400
-Message-ID: <5335380F.9070809@xs4all.nl>
-Date: Fri, 28 Mar 2014 09:51:27 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-CC: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Fengguang Wu <fengguang.wu@intel.com>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-	Roland Scheidegger <rscheidegger_lists@hispeed.ch>
-Subject: Re: [PATCH 2/2] usb: gadget: uvc: Set the vb2 queue timestamp flags
-References: <20140323001018.GA11963@localhost> <1395588754-20587-1-git-send-email-laurent.pinchart@ideasonboard.com> <1395588754-20587-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1395588754-20587-3-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Fri, 28 Mar 2014 11:29:28 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: s.nawrocki@samsung.com, a.hajda@samsung.com,
+	kyungmin.park@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: [PATCH/RFC v2 2/8] leds: Improve and export led_update_brightness
+ function
+Date: Fri, 28 Mar 2014 16:28:59 +0100
+Message-id: <1396020545-15727-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1396020545-15727-1-git-send-email-j.anaszewski@samsung.com>
+References: <1396020545-15727-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/23/2014 04:32 PM, Laurent Pinchart wrote:
-> The vb2 queue timestamp_flags field must be set by drivers, as enforced
-> by a WARN_ON in vb2_queue_init. The UVC gadget driver failed to do so.
-> This resulted in the following warning.
-> 
-> [    2.104371] g_webcam gadget: uvc_function_bind
-> [    2.105567] ------------[ cut here ]------------
-> [    2.105567] ------------[ cut here ]------------
-> [    2.106779] WARNING: CPU: 0 PID: 1 at drivers/media/v4l2-core/videobuf2-core.c:2207 vb2_queue_init+0xa3/0x113()
-> 
-> Fix it.
-> 
-> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+led_update_brightness helper function used to be exploited
+only locally in the led-class.c module, where its result was
+being passed to the brightness_show sysfs callback. With the
+introduction of v4l2-flash subdevice the same functionality
+became required for reading current brightness from a LED
+device. This patch adds checking brightness_get callback
+error code and adds the function to the LED subsystem
+public API.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ drivers/leds/led-class.c |    6 ------
+ drivers/leds/led-core.c  |   17 +++++++++++++++++
+ include/linux/leds.h     |   10 ++++++++++
+ 3 files changed, 27 insertions(+), 6 deletions(-)
 
-Regards,
-
-	Hans
-
-> ---
->  drivers/usb/gadget/uvc_queue.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/usb/gadget/uvc_queue.c b/drivers/usb/gadget/uvc_queue.c
-> index d4561ba..4611e9c 100644
-> --- a/drivers/usb/gadget/uvc_queue.c
-> +++ b/drivers/usb/gadget/uvc_queue.c
-> @@ -136,6 +136,8 @@ static int uvc_queue_init(struct uvc_video_queue *queue,
->  	queue->queue.buf_struct_size = sizeof(struct uvc_buffer);
->  	queue->queue.ops = &uvc_queue_qops;
->  	queue->queue.mem_ops = &vb2_vmalloc_memops;
-> +	queue->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
-> +				     | V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
->  	ret = vb2_queue_init(&queue->queue);
->  	if (ret)
->  		return ret;
-> 
+diff --git a/drivers/leds/led-class.c b/drivers/leds/led-class.c
+index 5bac140..efe6812 100644
+--- a/drivers/leds/led-class.c
++++ b/drivers/leds/led-class.c
+@@ -25,12 +25,6 @@
+ 
+ static struct class *leds_class;
+ 
+-static void led_update_brightness(struct led_classdev *led_cdev)
+-{
+-	if (led_cdev->brightness_get)
+-		led_cdev->brightness = led_cdev->brightness_get(led_cdev);
+-}
+-
+ static ssize_t brightness_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+diff --git a/drivers/leds/led-core.c b/drivers/leds/led-core.c
+index 71b40d3..41f2a6a 100644
+--- a/drivers/leds/led-core.c
++++ b/drivers/leds/led-core.c
+@@ -126,3 +126,20 @@ void led_set_brightness(struct led_classdev *led_cdev,
+ 	__led_set_brightness(led_cdev, brightness);
+ }
+ EXPORT_SYMBOL(led_set_brightness);
++
++int led_update_brightness(struct led_classdev *led_cdev)
++{
++	int ret;
++
++	if (led_cdev->brightness_get == NULL)
++		return -EINVAL;
++
++	ret = led_cdev->brightness_get(led_cdev);
++	if (ret >= 0) {
++		led_cdev->brightness = ret;
++		return 0;
++	}
++
++	return ret;
++}
++EXPORT_SYMBOL(led_update_brightness);
+diff --git a/include/linux/leds.h b/include/linux/leds.h
+index 596555a..c02dd7b 100644
+--- a/include/linux/leds.h
++++ b/include/linux/leds.h
+@@ -148,6 +148,16 @@ extern void led_blink_set_oneshot(struct led_classdev *led_cdev,
+  */
+ extern void led_set_brightness(struct led_classdev *led_cdev,
+ 			       enum led_brightness brightness);
++/**
++ * led_update_brightness - update LED brightness
++ * @led_cdev: the LED to query
++ *
++ * Get an LED's current brightness and update led_cdev->brightness
++ * member with the obtained value.
++ *
++ * Returns: 0 on success or negative error value on failure
++ */
++extern int led_update_brightness(struct led_classdev *led_cdev);
+ 
+ /**
+  * led_sysfs_is_locked
+-- 
+1.7.9.5
 
