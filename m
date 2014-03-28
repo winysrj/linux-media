@@ -1,106 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:29194 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933542AbaCTOv7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Mar 2014 10:51:59 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: [PATCH/RFC 7/8] DT: Add documentation for the mfd Maxim max77693 flash
- cell
-Date: Thu, 20 Mar 2014 15:51:09 +0100
-Message-id: <1395327070-20215-8-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1395327070-20215-1-git-send-email-j.anaszewski@samsung.com>
-References: <1395327070-20215-1-git-send-email-j.anaszewski@samsung.com>
+Received: from hardeman.nu ([95.142.160.32]:37604 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752499AbaC1Aiu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Mar 2014 20:38:50 -0400
+Date: Fri, 28 Mar 2014 01:38:47 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: tvboxspy@gmail.com
+Cc: linux-media@vger.kernel.org
+Subject: lmedm04 NEC scancode question
+Message-ID: <20140328003847.GA23351@hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds device tree binding documentation for
-the flash cell of the Maxim max77693 multifunctional device.
+Hi Malcolm,
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
----
- Documentation/devicetree/bindings/mfd/max77693.txt |   47 ++++++++++++++++++++
- 1 file changed, 47 insertions(+)
+I'm trying to make sure that the extended NEC parsing is consistent
+across drivers and I have a question regarding
+drivers/media/usb/dvb-usb-v2/lmedm04.c
 
-diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-index 11921cc..9e1aa97 100644
---- a/Documentation/devicetree/bindings/mfd/max77693.txt
-+++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-@@ -27,6 +27,43 @@ Optional properties:
- 
- 	[*] refer Documentation/devicetree/bindings/regulator/regulator.txt
- 
-+Optional node:
-+- led-flash : the LED submodule device node
-+
-+Required properties of "led-flash" node:
-+- compatible : must be "maxim,max77693-led"
-+
-+Optional properties of "led-flash" node:
-+- maxim,iout : Array of four intensities in microampheres of the current
-+	in order: flash1, flash2, torch1, torch2.
-+	Range:
-+		flash - 15625 - 1000000,
-+		torch - 15625 - 250000.
-+- maxim,trigger : Array of flags indicating which trigger can activate given led
-+	in order: flash1, flash2, torch1, torch2.
-+	Possible flag values (can be combined):
-+		1 - FLASH pin of the chip,
-+		2 - TORCH pin of the chip,
-+		4 - software via I2C command.
-+- maxim,trigger-type : Array of trigger types in order: flash, torch.
-+	Possible trigger types:
-+		0 - Rising edge of the signal triggers the flash/torch,
-+		1 - Signal level controls duration of the flash/torch.
-+- maxim,timeout : Array of timeouts in microseconds after which leds are
-+	turned off in order: flash, torch.
-+	Range:
-+		flash: 62500 - 1000000,
-+		torch: 0 (no timeout) - 15728000.
-+- maxim,boost-mode : Array of the flash boost modes in order: flash1, flash2.
-+	Possible values:
-+		0 - no boost,
-+		1 - adaptive mode,
-+		2 - fixed mode.
-+- maxim,boost-vout : Output voltage of the boost module in millivolts.
-+- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
-+	if chip estimates that system voltage could drop below this level due
-+	to flash power consumption.
-+
- Example:
- 	max77693@66 {
- 		compatible = "maxim,max77693";
-@@ -52,4 +89,14 @@ Example:
- 					regulator-boot-on;
- 			};
- 		};
-+		led_flash: led-flash {
-+			compatible = "maxim,max77693-led";
-+			maxim,iout = <625000 625000 250000 250000>;
-+			maxim,trigger = <5 5 6 0>;
-+			maxim,trigger-type = <0 1>;
-+			maxim,timeout = <500000 0>;
-+			maxim,boost-mode = <1 1>;
-+			maxim,boost-vout = <5000>;
-+			maxim,vsys-min = <2400>;
-+		};
- 	};
+In commit 616a4b83 you changed the scancode from something like this:
+
+	ibuf[2] << 24 | ibuf[3] << 16 | ibuf[4] << 8 | ibuf[5]
+
+into:
+
+	if ((ibuf[4] + ibuf[5]) == 0xff) {
+		key = ibuf[5];
+		key += (ibuf[3] > 0)
+			? (ibuf[3] ^ 0xff) << 8 : 0;
+		key += (ibuf[2] ^ 0xff) << 16;
+
+which can be written as:
+
+	(ibuf[2] ^ 0xff) << 16 |
+	(ibuf[3] > 0) ? (ibuf[3] ^ 0xff) << 8 : 0 |
+	ibuf[5]
+
+At the same time the keymap was changed from (one example from each
+type):
+
+	0xef12ba45 = KEY_0
+	0xff40ea15 = KEY_0
+	0xff00e31c = KEY_0
+
+into:
+
+	0x10ed45   = KEY_0 (0x10ed = ~0xef12; 0x45 = ~0xba)
+	0xbf15     = KEY_0 (0xbf = 0x00bf = ~0xff40; 0x15 = ~0xea)
+	0x1c       = KEY_0 (0x1c = 0x001c; this is a NEC16 coding?)
+
+I am assuming (given the ^ 0xff) that the hardware sends inverted bytes?
+And that the reason ibuf[5] does not need ^ 0xff is that it already is
+the inverted command (i.e. ibuf[5] == ~ibuf[4]).
+
+To put it differently:
+
+        ibuf[2] = ~addr         = not_addr;
+        ibuf[3] = ~not_addr     = addr;
+        ibuf[4] = ~cmd          = not_cmd;
+        ibuf[5] = ~not_cmd      = cmd;
+
+And the scancode can then be understood as:
+
+	addr << 16 | not_addr << 8 | cmd
+
+Except for when addr = 0x00 in which case the scancode is simply NEC16:
+
+	0x00 << 8 | cmd
+
+Is my interpretation correct?
+
 -- 
-1.7.9.5
-
+David Härdeman
