@@ -1,107 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.domdv.de ([193.102.202.1]:2944 "EHLO hermes.domdv.de"
+Received: from mga02.intel.com ([134.134.136.20]:23406 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753544AbaCZUjX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Mar 2014 16:39:23 -0400
-Message-ID: <1395865977.23074.62.camel@host028-server-9.lan.domdv.de>
-Subject: [PATCH 3/3] TBS USB drivers (DVB-S/S2) - enable driver lock led code
-From: Andreas Steinmetz <ast@domdv.de>
+	id S1751304AbaC1Ofq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Mar 2014 10:35:46 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id D3D4B20305
+	for <linux-media@vger.kernel.org>; Fri, 28 Mar 2014 16:35:43 +0200 (EET)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Date: Wed, 26 Mar 2014 21:32:57 +0100
-Content-Type: multipart/mixed; boundary="=-PZ2Bpi8hRF84F6DjJmnw"
-Mime-Version: 1.0
+Subject: [PATCH 1/3] smiapp: Use I2C adapter ID and address in the sub-device name
+Date: Fri, 28 Mar 2014 16:35:11 +0200
+Message-Id: <1396017313-3990-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1396017313-3990-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1396017313-3990-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The sub-device names should be unique. Should two identical sensors be
+present in the same media device they would be indistinguishable. The names
+will change e.g. from "vs6555 pixel array" to "vs6555 1-0010 pixel array".
 
---=-PZ2Bpi8hRF84F6DjJmnw
-Content-Type: text/plain; charset="ansi_x3.4-1968"
-Content-Transfer-Encoding: 7bit
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-[Please CC me on replies, I'm not subscribed]
-
-The lock led code being enabled is based on GPLv2 code taken from:
-
-https://bitbucket.org/CrazyCat/linux-tbs-drivers/
-
-Just having to look at a device to get a visual lock notification by a
-led is a nice feature.
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 8741cae..69c11ec 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2543,8 +2543,9 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
+ 		}
+ 
+ 		snprintf(this->sd.name,
+-			 sizeof(this->sd.name), "%s %s",
+-			 sensor->minfo.name, _this->name);
++			 sizeof(this->sd.name), "%s %d-%4.4x %s",
++			 sensor->minfo.name, i2c_adapter_id(client->adapter),
++			 client->addr, _this->name);
+ 
+ 		this->sink_fmt.width =
+ 			sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
 -- 
-Andreas Steinmetz                       SPAMmers use robotrap@domdv.de
-
---=-PZ2Bpi8hRF84F6DjJmnw
-Content-Disposition: attachment; filename="enable-tbs-lockled.patch"
-Content-Type: text/x-patch; name="enable-tbs-lockled.patch"; charset="ansi_x3.4-1968"
-Content-Transfer-Encoding: 7bit
-
-Signed-off-by: Andreas Steinmetz <ast@domdv.de>
-
-diff -rNup v4l-dvb.orig/drivers/media/usb/dvb-usb/tbs-usb.c v4l-dvb/drivers/media/usb/dvb-usb/tbs-usb.c
---- v4l-dvb.orig/drivers/media/usb/dvb-usb/tbs-usb.c	2014-03-26 19:29:25.981009433 +0100
-+++ v4l-dvb/drivers/media/usb/dvb-usb/tbs-usb.c	2014-03-26 19:34:39.864065854 +0100
-@@ -348,8 +348,6 @@ static int tbsusb_set_voltage(struct dvb
- 			voltage == SEC_VOLTAGE_18 ? command_18v : command_13v);
- }
- 
--#ifdef TBS_LOCKLED
--
- static void tbsusb_led_ctrl(struct dvb_frontend *fe, int onoff)
- {
- 	static u8 led_off[2] = {0x05, 0x00};
-@@ -358,8 +356,6 @@ static void tbsusb_led_ctrl(struct dvb_f
- 	tbsusb_set_pin(fe, onoff ? led_on : led_off);
- }
- 
--#endif
--
- static int tbsusb_i2c_transfer(struct i2c_adapter *adap,
- 					struct i2c_msg msg[], int num)
- {
-@@ -766,9 +762,7 @@ static const struct stv090x_config stv09
- 	.tuner_set_bandwidth    = stb6100_set_bandwidth,
- 	.tuner_get_bandwidth    = stb6100_get_bandwidth,
- 
--#ifdef TBS_LOCKLED
- 	.set_lock_led		= tbsusb_led_ctrl,
--#endif
- };
- 
- static const struct stv090x_config stv0900_config = {
-@@ -790,9 +784,7 @@ static const struct stv090x_config stv09
- 	.tuner_set_bandwidth    = stb6100_set_bandwidth,
- 	.tuner_get_bandwidth    = stb6100_get_bandwidth,
- 
--#ifdef TBS_LOCKLED
- 	.set_lock_led		= tbsusb_led_ctrl,
--#endif
- };
- 
- static const struct tda10071_config tda10071_config = {
-@@ -803,24 +795,18 @@ static const struct tda10071_config tda1
- 	.spec_inv       = 0,
- 	.xtal           = 40444000, /* 40.444 MHz */
- 	.pll_multiplier = 20,
--#ifdef TBS_LOCKLED
- 	.set_lock_led   = tbsusb_led_ctrl,
--#endif
- };
- 
- static const struct cx24116_config cx24116_config = {
- 	.demod_address   = 0x55,
- 	.mpg_clk_pos_pol = 0x01,
--#ifdef TBS_LOCKLED
- 	.set_lock_led    = tbsusb_led_ctrl,
--#endif
- };
- 
- static const struct stv0288_config stv0288_config = {
- 	.demod_address = 0x68,
--#ifdef TBS_LOCKLED
- 	.set_lock_led  = tbsusb_led_ctrl,
--#endif
- };
- 
- static int tbsusb_frontend_attach(struct dvb_usb_adapter *d)
-
---=-PZ2Bpi8hRF84F6DjJmnw--
+1.8.3.2
 
