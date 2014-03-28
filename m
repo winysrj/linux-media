@@ -1,75 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41293 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756690AbaCDKEm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 05:04:42 -0500
-Message-ID: <1393927459.3917.2.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v5 6/7] of: Implement simplified graph binding for
- single port devices
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Grant Likely <grant.likely@linaro.org>,
+Received: from mga02.intel.com ([134.134.136.20]:58835 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751125AbaC1WPC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Mar 2014 18:15:02 -0400
+Date: Sat, 29 Mar 2014 06:14:35 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Date: Tue, 04 Mar 2014 11:04:19 +0100
-In-Reply-To: <53159791.5080205@ti.com>
-References: <1393522540-22887-1-git-send-email-p.zabel@pengutronix.de>
-	 <1393522540-22887-7-git-send-email-p.zabel@pengutronix.de>
-	 <53159791.5080205@ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+	kbuild-all@01.org
+Subject: [linuxtv-media:master 498/499]
+ drivers/media/usb/em28xx/em28xx-dvb.c:1644:7: error: 'client' undeclared
+Message-ID: <5335f44b.JyrHAUc9hHNV9Qeg%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Dienstag, den 04.03.2014, 11:06 +0200 schrieb Tomi Valkeinen:
-> On 27/02/14 19:35, Philipp Zabel wrote:
-> > For simple devices with only one port, it can be made implicit.
-> > The endpoint node can be a direct child of the device node.
-> 
-> <snip>
-> 
-> > @@ -2105,9 +2112,11 @@ struct device_node *of_graph_get_remote_port_parent(
-> >  	/* Get remote endpoint node. */
-> >  	np = of_parse_phandle(node, "remote-endpoint", 0);
-> >  
-> > -	/* Walk 3 levels up only if there is 'ports' node. */
-> > +	/* Walk 3 levels up only if there is 'ports' node */
-> >  	for (depth = 3; depth && np; depth--) {
-> >  		np = of_get_next_parent(np);
-> > +		if (depth == 3 && of_node_cmp(np->name, "port"))
-> > +			break;
-> >  		if (depth == 2 && of_node_cmp(np->name, "ports"))
-> >  			break;
-> >  	}
-> 
-> This function becomes a bit funny. Would it be clearer just to do
-> something like:
-> 
-> 	np = of_parse_phandle(node, "remote-endpoint", 0);
-> 
-> 	np = of_get_next_parent(np);
-> 	if (of_node_cmp(np->name, "port") != 0)
-> 		return np;
-> 
-> 	np = of_get_next_parent(np);
-> 	if (of_node_cmp(np->name, "ports") != 0)
-> 		return np;
-> 
-> 	np = of_get_next_parent(np);
-> 	return np;
+tree:   git://linuxtv.org/media_tree.git master
+head:   3ec40dcfb413214b2874aec858870502b61c2202
+commit: 37571b163c15831cd0a213151c21387363dbf15b [498/499] [media] em28xx-dvb: fix PCTV 461e tuner I2C binding
+config: make ARCH=powerpc allmodconfig
 
-I'm not sure if this was initially crafted to reduce the number of
-function calls, but rolled out it certainly is easier to read. I'll
-change this as you suggest.
+All error/warnings:
 
-thanks
-Philipp
+   drivers/media/usb/em28xx/em28xx-dvb.c: In function 'em28xx_dvb_suspend':
+   drivers/media/usb/em28xx/em28xx-dvb.c:1605:22: warning: unused variable 'client' [-Wunused-variable]
+      struct i2c_client *client = dvb->i2c_client_tuner;
+                         ^
+   drivers/media/usb/em28xx/em28xx-dvb.c: In function 'em28xx_dvb_resume':
+>> drivers/media/usb/em28xx/em28xx-dvb.c:1644:7: error: 'client' undeclared (first use in this function)
+      if (client) {
+          ^
+   drivers/media/usb/em28xx/em28xx-dvb.c:1644:7: note: each undeclared identifier is reported only once for each function it appears in
 
+vim +/client +1644 drivers/media/usb/em28xx/em28xx-dvb.c
+
+  1599		if (!dev->board.has_dvb)
+  1600			return 0;
+  1601	
+  1602		em28xx_info("Suspending DVB extension");
+  1603		if (dev->dvb) {
+  1604			struct em28xx_dvb *dvb = dev->dvb;
+> 1605			struct i2c_client *client = dvb->i2c_client_tuner;
+  1606	
+  1607			if (dvb->fe[0]) {
+  1608				ret = dvb_frontend_suspend(dvb->fe[0]);
+  1609				em28xx_info("fe0 suspend %d", ret);
+  1610			}
+  1611			if (dvb->fe[1]) {
+  1612				dvb_frontend_suspend(dvb->fe[1]);
+  1613				em28xx_info("fe1 suspend %d", ret);
+  1614			}
+  1615		}
+  1616	
+  1617		return 0;
+  1618	}
+  1619	
+  1620	static int em28xx_dvb_resume(struct em28xx *dev)
+  1621	{
+  1622		int ret = 0;
+  1623	
+  1624		if (dev->is_audio_only)
+  1625			return 0;
+  1626	
+  1627		if (!dev->board.has_dvb)
+  1628			return 0;
+  1629	
+  1630		em28xx_info("Resuming DVB extension");
+  1631		if (dev->dvb) {
+  1632			struct em28xx_dvb *dvb = dev->dvb;
+  1633	
+  1634			if (dvb->fe[0]) {
+  1635				ret = dvb_frontend_resume(dvb->fe[0]);
+  1636				em28xx_info("fe0 resume %d", ret);
+  1637			}
+  1638	
+  1639			if (dvb->fe[1]) {
+  1640				ret = dvb_frontend_resume(dvb->fe[1]);
+  1641				em28xx_info("fe1 resume %d", ret);
+  1642			}
+  1643			/* remove I2C tuner */
+> 1644			if (client) {
+  1645				module_put(client->dev.driver->owner);
+  1646				i2c_unregister_device(client);
+  1647			}
+
+---
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
