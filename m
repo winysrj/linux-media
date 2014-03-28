@@ -1,60 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:49138 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754547AbaCMRTF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 13:19:05 -0400
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	Denis Carikli <denis@eukrea.com>
-Subject: [PATCH 12/12] ARM: imx_v6_v7_defconfig: Add more drm drivers.
-Date: Thu, 13 Mar 2014 18:17:33 +0100
-Message-Id: <1394731053-6118-12-git-send-email-denis@eukrea.com>
-In-Reply-To: <1394731053-6118-1-git-send-email-denis@eukrea.com>
-References: <1394731053-6118-1-git-send-email-denis@eukrea.com>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2668 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751887AbaC1QL3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Mar 2014 12:11:29 -0400
+Message-ID: <53359F1A.6000700@xs4all.nl>
+Date: Fri, 28 Mar 2014 17:11:06 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+CC: linux-usb@vger.kernel.org, Fengguang Wu <fengguang.wu@intel.com>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+	Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+Subject: Re: [PATCH v2 1/3] usb: gadget: uvc: Switch to monotonic clock for
+ buffer timestamps
+References: <1396022568-6794-1-git-send-email-laurent.pinchart@ideasonboard.com> <1396022568-6794-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1396022568-6794-2-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DRM_PANEL_SIMPLE is needed by the eukrea
-mbimxsd51's displays.
+On 03/28/2014 05:02 PM, Laurent Pinchart wrote:
+> The wall time clock isn't useful for applications as it can jump around
+> due to time adjustement. Switch to the monotonic clock.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
----
-- New patch, splitting it would be overkill.
----
- arch/arm/configs/imx_v6_v7_defconfig |    2 ++
- 1 file changed, 2 insertions(+)
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
-index 09e9743..0316926 100644
---- a/arch/arm/configs/imx_v6_v7_defconfig
-+++ b/arch/arm/configs/imx_v6_v7_defconfig
-@@ -183,6 +183,7 @@ CONFIG_V4L_MEM2MEM_DRIVERS=y
- CONFIG_VIDEO_CODA=y
- CONFIG_SOC_CAMERA_OV2640=y
- CONFIG_DRM=y
-+CONFIG_DRM_PANEL_SIMPLE=y
- CONFIG_BACKLIGHT_LCD_SUPPORT=y
- CONFIG_LCD_CLASS_DEVICE=y
- CONFIG_LCD_L4F00242T03=y
-@@ -245,6 +246,7 @@ CONFIG_DRM_IMX_TVE=y
- CONFIG_DRM_IMX_LDB=y
- CONFIG_DRM_IMX_IPUV3_CORE=y
- CONFIG_DRM_IMX_IPUV3=y
-+CONFIG_DRM_IMX_HDMI=y
- CONFIG_COMMON_CLK_DEBUG=y
- # CONFIG_IOMMU_SUPPORT is not set
- CONFIG_PWM=y
--- 
-1.7.9.5
+Regards,
+
+	Hans
+
+> ---
+>  drivers/usb/gadget/uvc_queue.c | 9 ++-------
+>  1 file changed, 2 insertions(+), 7 deletions(-)
+> 
+> Changes since v1:
+> 
+> - Replace ktime_get_ts() with v4l2_get_timestamp()
+> 
+> diff --git a/drivers/usb/gadget/uvc_queue.c b/drivers/usb/gadget/uvc_queue.c
+> index 0bb5d50..9ac4ffe1 100644
+> --- a/drivers/usb/gadget/uvc_queue.c
+> +++ b/drivers/usb/gadget/uvc_queue.c
+> @@ -20,6 +20,7 @@
+>  #include <linux/vmalloc.h>
+>  #include <linux/wait.h>
+>  
+> +#include <media/v4l2-common.h>
+>  #include <media/videobuf2-vmalloc.h>
+>  
+>  #include "uvc.h"
+> @@ -379,14 +380,8 @@ static struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
+>  	else
+>  		nextbuf = NULL;
+>  
+> -	/*
+> -	 * FIXME: with videobuf2, the sequence number or timestamp fields
+> -	 * are valid only for video capture devices and the UVC gadget usually
+> -	 * is a video output device. Keeping these until the specs are clear on
+> -	 * this aspect.
+> -	 */
+>  	buf->buf.v4l2_buf.sequence = queue->sequence++;
+> -	do_gettimeofday(&buf->buf.v4l2_buf.timestamp);
+> +	v4l2_get_timestamp(&buf->buf.v4l2_buf.timestamp);
+>  
+>  	vb2_set_plane_payload(&buf->buf, 0, buf->bytesused);
+>  	vb2_buffer_done(&buf->buf, VB2_BUF_STATE_DONE);
+> 
 
