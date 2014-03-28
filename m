@@ -1,114 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:55295 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759537AbaCTXM6 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36291 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751417AbaC1Q3S (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Mar 2014 19:12:58 -0400
-Received: by mail-ee0-f53.google.com with SMTP id b57so1205147eek.26
-        for <linux-media@vger.kernel.org>; Thu, 20 Mar 2014 16:12:57 -0700 (PDT)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-In-Reply-To: <12151803.GHyzFUphWh@avalon>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < 20140320153804.35d5b835@samsung.com> <20140320184816.7AB02C4067A@trevor. secretlab.ca> <12151803.GHyzFUphWh@avalon>
-Date: Thu, 20 Mar 2014 23:12:50 +0000
-Message-Id: <20140320231250.8F0E0C412EA@trevor.secretlab.ca>
+	Fri, 28 Mar 2014 12:29:18 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] V4L2: fix VIDIOC_CREATE_BUFS in 64- / 32-bit compatibility mode
+Date: Fri, 28 Mar 2014 17:31:16 +0100
+Message-ID: <22889282.D1rkAPVGhe@avalon>
+In-Reply-To: <Pine.LNX.4.64.1403272206410.18471@axis700.grange>
+References: <Pine.LNX.4.64.1403272206410.18471@axis700.grange>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 20 Mar 2014 19:52:53 +0100, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
-> On Thursday 20 March 2014 18:48:16 Grant Likely wrote:
-> > On Thu, 20 Mar 2014 15:38:04 -0300, Mauro Carvalho Chehab wrote:
-> > > Em Thu, 20 Mar 2014 17:54:31 +0000 Grant Likely escreveu:
-> > > > On Wed, 12 Mar 2014 10:25:56 +0000, Russell King - ARM Linux wrote:
-> > > > > On Mon, Mar 10, 2014 at 02:52:53PM +0100, Laurent Pinchart wrote:
-> > > > > > In theory unidirectional links in DT are indeed enough. However,
-> > > > > > let's not forget the following.
-> > > > > > 
-> > > > > > - There's no such thing as single start points for graphs. Sure, in
-> > > > > > some simple cases the graph will have a single start point, but
-> > > > > > that's not a generic rule. For instance the camera graphs
-> > > > > > http://ideasonboard.org/media/omap3isp.ps and
-> > > > > > http://ideasonboard.org/media/eyecam.ps have two camera sensors, and
-> > > > > > thus two starting points from a data flow point of view.
-> > > > > 
-> > > > > I think we need to stop thinking of a graph linked in terms of data
-> > > > > flow - that's really not useful.
-> > > > > 
-> > > > > Consider a display subsystem.  The CRTC is the primary interface for
-> > > > > the CPU - this is the "most interesting" interface, it's the interface
-> > > > > which provides access to the picture to be displayed for the CPU. 
-> > > > > Other interfaces are secondary to that purpose - reading the I2C DDC
-> > > > > bus for the display information is all secondary to the primary
-> > > > > purpose of displaying a picture.
-> > > > > 
-> > > > > For a capture subsystem, the primary interface for the CPU is the
-> > > > > frame grabber (whether it be an already encoded frame or not.)  The
-> > > > > sensor devices are all secondary to that.
-> > > > > 
-> > > > > So, the primary software interface in each case is where the data for
-> > > > > the primary purpose is transferred.  This is the point at which these
-> > > > > graphs should commence since this is where we would normally start
-> > > > > enumeration of the secondary interfaces.
-> > > > > 
-> > > > > V4L2 even provides interfaces for this: you open the capture device,
-> > > > > which then allows you to enumerate the capture device's inputs, and
-> > > > > this in turn allows you to enumerate their properties.  You don't open
-> > > > > a particular sensor and work back up the tree.
-> > > > > 
-> > > > > I believe trying to do this according to the flow of data is just
-> > > > > wrong. You should always describe things from the primary device for
-> > > > > the CPU towards the peripheral devices and never the opposite
-> > > > > direction.
-> > > > 
-> > > > Agreed.
-> > > 
-> > > I don't agree, as what's the primary device is relative.
-> > > 
-> > > Actually, in the case of a media data flow, the CPU is generally not
-> > > the primary device.
-> > > 
-> > > Even on general purpose computers, if the full data flow is taken into
-> > > the account, the CPU is a mere device that will just be used to copy
-> > > data either to GPU and speakers or to disk, eventually doing format
-> > > conversions, when the hardware is cheap and don't provide format
-> > > converters.
-> > > 
-> > > On more complex devices, like the ones we want to solve with the
-> > > media controller, like an embedded hardware like a TV or a STB, the CPU
-> > > is just an ancillary component that could even hang without stopping
-> > > TV reception, as the data flow can be fully done inside the chipset.
-> > 
-> > We're talking about wiring up device drivers here, not data flow. Yes, I
-> > completely understand that data flow is often not even remotely
-> > cpu-centric. However, device drivers are, and the kernel needs to know
-> > the dependency graph for choosing what devices depend on other devices.
+Hi Guennadi,
+
+Thank you for the patch.
+
+On Thursday 27 March 2014 22:34:07 Guennadi Liakhovetski wrote:
+> It turns out, that 64-bit compilations sometimes align structs within
+> other structs on 32-bit boundaries, but in other cases alignment is done
+> on 64-bit boundaries, adding padding if necessary.
+
+You make it sound like the behaviour is random, I'm pretty sure it isn't :-)
+
+> This is done, for example when the embedded struct contains a pointer. This
+> is the case with struct v4l2_window, which is embedded into struct
+> v4l2_format, and that one is embedded into struct v4l2_create_buffers.
+> Unlike some other structs, used as a part of the kernel ABI as ioctl()
+> arguments, that are packed, these structs aren't packed. This isn't a
+> problem per se, but it turns out, that the ioctl-compat code for
+> VIDIOC_CREATE_BUFS contains a bug, that triggers in such 64-bit builds. That
+> code wrongly assumes, that in struct v4l2_create_buffers, struct v4l2_format
+> immediately follows the __u32 memory field, which in fact isn't the case.
+> This bug wasn't visible until now, because until recently hardly any
+> applications used this ioctl() and mostly embedded 32-bit only drivers
+> implemented it. This is changing now with addition of this ioctl() to some
+> USB drivers, e.g. UVC. This patch fixes the bug by copying parts of struct
+> v4l2_create_buffers separately.
 > 
-> Then we might not be talking about the same thing. I'm talking about DT 
-> bindings to represent the topology of the device, not how drivers are wired 
-> together.
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+> 
+> It's probably too late for 3.14, but maybe after pushing it into 3.15 we
+> have to send it to stable.
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index 04b2daf..28f87d7
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -213,8 +213,9 @@ static int get_v4l2_format32(struct v4l2_format *kp,
+> struct v4l2_format32 __user static int get_v4l2_create32(struct
+> v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up) {
+>  	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_create_buffers32)) ||
+> -	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32,
+> format.fmt)))
+> -			return -EFAULT;
+> +	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32,
+> format)) ||
+> +	    get_user(kp->format.type, &up->format.type))
+> +		return -EFAULT;
+>  	return __get_v4l2_format32(&kp->format, &up->format);
+>  }
 
-Possibly. I'm certainly confused now. You brought up the component
-helpers in drivers/base/component.c, so I thought working out
-dependencies is part of the purpose of this binding. Everything I've
-heard so far has given me the impression that the graph binding is tied
-up with knowing when all of the devices exist.
+I'm fine with the patch as it is, but wouldn't it be simpler to move the 
+get_user() inside the __get_v4l2_format32() function ? You could also then 
+remove that call from get_v4l2_format32() as well.
 
-How device drivers get connected together may not strictly be a property
-of hardware, but it absolutely is informed by hardware topology.
+-- 
+Regards,
 
-g.
+Laurent Pinchart
 
