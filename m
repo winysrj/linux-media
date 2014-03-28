@@ -1,228 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53613 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753754AbaCKPH5 (ORCPT
+Received: from oproxy12-pub.mail.unifiedlayer.com ([50.87.16.10]:41034 "HELO
+	oproxy12-pub.mail.unifiedlayer.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753227AbaC1Vdx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 11:07:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v3 26/48] v4l: Add support for DV timings ioctls on subdev nodes
-Date: Tue, 11 Mar 2014 16:09:28 +0100
-Message-Id: <1394550568-25152-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-27-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-27-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 28 Mar 2014 17:33:53 -0400
+Message-ID: <1396042028.3383.34.camel@Wailaba2>
+Subject: Re: [PATCH] [media] uvcvideo: Fix clock param realtime setting
+From: Olivier Langlois <olivier@trillion01.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: m.chehab@samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Stable <stable@vger.kernel.org>
+Date: Fri, 28 Mar 2014 17:27:08 -0400
+In-Reply-To: <16236471.uFSjvbT2di@avalon>
+References: <1395985358-17047-1-git-send-email-olivier@trillion01.com>
+	 <16236471.uFSjvbT2di@avalon>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Validate the pad field in the core code whenever specified.
+Hi Laurent,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- .../DocBook/media/v4l/vidioc-dv-timings-cap.xml    | 27 +++++++++++++++----
- .../DocBook/media/v4l/vidioc-enum-dv-timings.xml   | 30 +++++++++++++++++-----
- drivers/media/v4l2-core/v4l2-subdev.c              | 27 +++++++++++++++++++
- include/uapi/linux/v4l2-subdev.h                   |  5 ++++
- 4 files changed, 77 insertions(+), 12 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-index cd7720d..28a8c1e 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-@@ -1,11 +1,12 @@
- <refentry id="vidioc-dv-timings-cap">
-   <refmeta>
--    <refentrytitle>ioctl VIDIOC_DV_TIMINGS_CAP</refentrytitle>
-+    <refentrytitle>ioctl VIDIOC_DV_TIMINGS_CAP, VIDIOC_SUBDEV_DV_TIMINGS_CAP</refentrytitle>
-     &manvol;
-   </refmeta>
- 
-   <refnamediv>
-     <refname>VIDIOC_DV_TIMINGS_CAP</refname>
-+    <refname>VIDIOC_SUBDEV_DV_TIMINGS_CAP</refname>
-     <refpurpose>The capabilities of the Digital Video receiver/transmitter</refpurpose>
-   </refnamediv>
- 
-@@ -33,7 +34,7 @@
-       <varlistentry>
- 	<term><parameter>request</parameter></term>
- 	<listitem>
--	  <para>VIDIOC_DV_TIMINGS_CAP</para>
-+	  <para>VIDIOC_DV_TIMINGS_CAP, VIDIOC_SUBDEV_DV_TIMINGS_CAP</para>
- 	</listitem>
-       </varlistentry>
-       <varlistentry>
-@@ -54,10 +55,19 @@
-       interface and may change in the future.</para>
-     </note>
- 
--    <para>To query the capabilities of the DV receiver/transmitter applications can call
--this ioctl and the driver will fill in the structure. Note that drivers may return
-+    <para>To query the capabilities of the DV receiver/transmitter applications
-+can call the <constant>VIDIOC_DV_TIMINGS_CAP</constant> ioctl on a video node
-+and the driver will fill in the structure. Note that drivers may return
- different values after switching the video input or output.</para>
- 
-+    <para>When implemented by the driver DV capabilities of subdevices can be
-+queried by calling the <constant>VIDIOC_SUBDEV_DV_TIMINGS_CAP</constant> ioctl
-+directly on a subdevice node. The capabilities are specific to inputs (for DV
-+receivers) or outputs (for DV transmitters), applications must specify the
-+desired pad number in the &v4l2-dv-timings-cap; <structfield>pad</structfield>
-+field. Attempts to query capabilities on a pad that doesn't support them will
-+return an &EINVAL;.</para>
-+
-     <table pgwide="1" frame="none" id="v4l2-bt-timings-cap">
-       <title>struct <structname>v4l2_bt_timings_cap</structname></title>
-       <tgroup cols="3">
-@@ -127,7 +137,14 @@ different values after switching the video input or output.</para>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[3]</entry>
-+	    <entry><structfield>pad</structfield></entry>
-+	    <entry>Pad number as reported by the media controller API. This field
-+	    is only used when operating on a subdevice node. When operating on a
-+	    video node applications must set this field to zero.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[2]</entry>
- 	    <entry>Reserved for future extensions. Drivers must set the array to zero.</entry>
- 	  </row>
- 	  <row>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-index b3e17c1..b9fdfea 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-@@ -1,11 +1,12 @@
- <refentry id="vidioc-enum-dv-timings">
-   <refmeta>
--    <refentrytitle>ioctl VIDIOC_ENUM_DV_TIMINGS</refentrytitle>
-+    <refentrytitle>ioctl VIDIOC_ENUM_DV_TIMINGS, VIDIOC_SUBDEV_ENUM_DV_TIMINGS</refentrytitle>
-     &manvol;
-   </refmeta>
- 
-   <refnamediv>
-     <refname>VIDIOC_ENUM_DV_TIMINGS</refname>
-+    <refname>VIDIOC_SUBDEV_ENUM_DV_TIMINGS</refname>
-     <refpurpose>Enumerate supported Digital Video timings</refpurpose>
-   </refnamediv>
- 
-@@ -33,7 +34,7 @@
-       <varlistentry>
- 	<term><parameter>request</parameter></term>
- 	<listitem>
--	  <para>VIDIOC_ENUM_DV_TIMINGS</para>
-+	  <para>VIDIOC_ENUM_DV_TIMINGS, VIDIOC_SUBDEV_ENUM_DV_TIMINGS</para>
- 	</listitem>
-       </varlistentry>
-       <varlistentry>
-@@ -61,14 +62,21 @@ standards or even custom timings that are not in this list.</para>
- 
-     <para>To query the available timings, applications initialize the
- <structfield>index</structfield> field and zero the reserved array of &v4l2-enum-dv-timings;
--and call the <constant>VIDIOC_ENUM_DV_TIMINGS</constant> ioctl with a pointer to this
--structure. Drivers fill the rest of the structure or return an
-+and call the <constant>VIDIOC_ENUM_DV_TIMINGS</constant> ioctl on a video node with a
-+pointer to this structure. Drivers fill the rest of the structure or return an
- &EINVAL; when the index is out of bounds. To enumerate all supported DV timings,
- applications shall begin at index zero, incrementing by one until the
- driver returns <errorcode>EINVAL</errorcode>. Note that drivers may enumerate a
- different set of DV timings after switching the video input or
- output.</para>
- 
-+    <para>When implemented by the driver DV timings of subdevices can be queried
-+by calling the <constant>VIDIOC_SUBDEV_ENUM_DV_TIMINGS</constant> ioctl directly
-+on a subdevice node. The DV timings are specific to inputs (for DV receivers) or
-+outputs (for DV transmitters), applications must specify the desired pad number
-+in the &v4l2-enum-dv-timings; <structfield>pad</structfield> field. Attempts to
-+enumerate timings on a pad that doesn't support them will return an &EINVAL;.</para>
-+
-     <table pgwide="1" frame="none" id="v4l2-enum-dv-timings">
-       <title>struct <structname>v4l2_enum_dv_timings</structname></title>
-       <tgroup cols="3">
-@@ -82,8 +90,16 @@ application.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[3]</entry>
--	    <entry>Reserved for future extensions. Drivers must set the array to zero.</entry>
-+	    <entry><structfield>pad</structfield></entry>
-+	    <entry>Pad number as reported by the media controller API. This field
-+	    is only used when operating on a subdevice node. When operating on a
-+	    video node applications must set this field to zero.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[2]</entry>
-+	    <entry>Reserved for future extensions. Drivers and applications must
-+	    set the array to zero.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>&v4l2-dv-timings;</entry>
-@@ -103,7 +119,7 @@ application.</entry>
- 	<term><errorcode>EINVAL</errorcode></term>
- 	<listitem>
- 	  <para>The &v4l2-enum-dv-timings; <structfield>index</structfield>
--is out of bounds.</para>
-+is out of bounds or the <structfield>pad</structfield> number is invalid.</para>
- 	</listitem>
-       </varlistentry>
-       <varlistentry>
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 60d2550..853fb84 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -354,6 +354,33 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 
- 	case VIDIOC_SUBDEV_S_EDID:
- 		return v4l2_subdev_call(sd, pad, set_edid, arg);
-+
-+	case VIDIOC_SUBDEV_DV_TIMINGS_CAP: {
-+		struct v4l2_dv_timings_cap *cap = arg;
-+
-+		if (cap->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
-+	}
-+
-+	case VIDIOC_SUBDEV_ENUM_DV_TIMINGS: {
-+		struct v4l2_enum_dv_timings *dvt = arg;
-+
-+		if (dvt->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, enum_dv_timings, dvt);
-+	}
-+
-+	case VIDIOC_SUBDEV_QUERY_DV_TIMINGS:
-+		return v4l2_subdev_call(sd, video, query_dv_timings, arg);
-+
-+	case VIDIOC_SUBDEV_G_DV_TIMINGS:
-+		return v4l2_subdev_call(sd, video, g_dv_timings, arg);
-+
-+	case VIDIOC_SUBDEV_S_DV_TIMINGS:
-+		return v4l2_subdev_call(sd, video, s_dv_timings, arg);
- #endif
- 	default:
- 		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
-diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-index 9fe3493..8dadb16 100644
---- a/include/uapi/linux/v4l2-subdev.h
-+++ b/include/uapi/linux/v4l2-subdev.h
-@@ -169,5 +169,10 @@ struct v4l2_subdev_edid {
- #define VIDIOC_SUBDEV_S_SELECTION		_IOWR('V', 62, struct v4l2_subdev_selection)
- #define VIDIOC_SUBDEV_G_EDID			_IOWR('V', 40, struct v4l2_subdev_edid)
- #define VIDIOC_SUBDEV_S_EDID			_IOWR('V', 41, struct v4l2_subdev_edid)
-+#define VIDIOC_SUBDEV_S_DV_TIMINGS		_IOWR('V', 87, struct v4l2_dv_timings)
-+#define VIDIOC_SUBDEV_G_DV_TIMINGS		_IOWR('V', 88, struct v4l2_dv_timings)
-+#define VIDIOC_SUBDEV_ENUM_DV_TIMINGS		_IOWR('V', 98, struct v4l2_enum_dv_timings)
-+#define VIDIOC_SUBDEV_QUERY_DV_TIMINGS		_IOR('V', 99, struct v4l2_dv_timings)
-+#define VIDIOC_SUBDEV_DV_TIMINGS_CAP		_IOWR('V', 100, struct v4l2_dv_timings_cap)
- 
- #endif
--- 
-1.8.3.2
+On Fri, 2014-03-28 at 17:20 +0100, Laurent Pinchart wrote:
+> Hi Olivier,
+> 
+> Thank you for the patch.
+> 
+> On Friday 28 March 2014 01:42:38 Olivier Langlois wrote:
+> > timestamps in v4l2 buffers returned to userspace are updated in
+> > uvc_video_clock_update() which uses timestamps fetched from
+> > uvc_video_clock_decode() by calling unconditionally ktime_get_ts().
+> > 
+> > Hence setting the module clock param to realtime have no effect
+> > before this patch.
+> > 
+> > This has been tested with ffmpeg:
+> > 
+> > ffmpeg -y -f v4l2 -input_format yuyv422 -video_size 640x480 -framerate 30 -i
+> > /dev/video0 \ -f alsa -acodec pcm_s16le -ar 16000 -ac 1 -i default \
+> >  -c:v libx264 -preset ultrafast \
+> >  -c:a libfdk_aac \
+> >  out.mkv
+> > 
+> > and inspecting the v4l2 input starting timestamp.
+> > 
+> > Signed-off-by: Olivier Langlois <olivier@trillion01.com>
+> > Cc: Stable <stable@vger.kernel.org>
+> 
+> Before applying this, I'm curious, do you have a use case for realtime time 
+> stamps ?
+> 
+
+Yes. ffmpeg uses wall clock time to create timestamps for audio packets
+from ALSA device.
+
+There is a bug in ffmpeg describing problems to synchronize audio and
+the video from a v4l2 webcam.
+
+https://trac.ffmpeg.org/ticket/692
+
+To workaround this issue, ffmpeg devs added a switch to convert back
+monotonic to realtime. From ffmpeg/libavdevice/v4l2.c:
+
+  -ts                <int>        .D.... set type of timestamps for
+grabbed frames (from 0 to 2) (default 0)
+     default                      .D.... use timestamps from the kernel
+     abs                          .D.... use absolute timestamps (wall
+clock)
+     mono2abs                     .D.... force conversion from monotonic
+to absolute timestamps
+
+If the v4l2 driver is able to send realtime ts, it is easier synchronize
+in userspace if all inputs use the same clock.
+
+Greetings,
+Olivier
+
 
