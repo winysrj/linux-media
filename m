@@ -1,103 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:54051 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754866AbaCTOvb (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36232 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751680AbaC1QSS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Mar 2014 10:51:31 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC 0/8] LED / flash API integration
-Date: Thu, 20 Mar 2014 15:51:02 +0100
-Message-id: <1395327070-20215-1-git-send-email-j.anaszewski@samsung.com>
+	Fri, 28 Mar 2014 12:18:18 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Olivier Langlois <olivier@trillion01.com>
+Cc: m.chehab@samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Stable <stable@vger.kernel.org>
+Subject: Re: [PATCH] [media] uvcvideo: Fix clock param realtime setting
+Date: Fri, 28 Mar 2014 17:20:13 +0100
+Message-ID: <16236471.uFSjvbT2di@avalon>
+In-Reply-To: <1395985358-17047-1-git-send-email-olivier@trillion01.com>
+References: <1395985358-17047-1-git-send-email-olivier@trillion01.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series is a follow up of the discussion on Media
-summit 2013-10-23, related to the LED / flash API integration.
-The notes from the discussion were enclosed in the message [1],
-paragraph 5. The series is based on linux-next 20140319.
+Hi Olivier,
 
-In order to show the exemplary usage of the proposed mechanism
-the patch series includes implementation of a Flash LED device
-driver along with the suitable modifications in a media controller
-driver.
+Thank you for the patch.
 
-Description of the proposed modifications according to
-the kernel components they are relevant to:
-    - LED subsystem modifications
-        * added following sysfs attributes:
-            - flash_mode
-            - flash_timeout
-            - max_flash_timeout
-            - flash_fault
-            - hw_triggered
-        * added following public API functions:
-            - led_set_flash_mode
-            - led_set_flash_timeout
-            - led_get_flash_fault
-            - led_set_hw_triggered
-            - led_sysfs_lock
-            - led_sysfs_unlock
-            - led_sysfs_is_locked
-            - led_is_flash_mode
-        * added led_flash structure containing flash specific
-	  ops and flash timeout related data
-	* added led_classdev_init_flash function to be called
-	  by a led driver
-    - Addition of a v4l2_flash helpers
-        * added v4l2-flash.c and v4l2-flash.h files with helper
-          functions that facilitate registration/unregistration
-          of a subdevice, which wrapps a LED subsystem device and
-          exposes V4L2 Flash control interface
-    - exynos4-is media controller modifications
-    - Addition of a driver for the flash cell of the MAX77693 mfd
-        * the driver exploits the newly introduced mechanism
-    - Update of the samsung-fimc.txt DT bindings documentation
-    - Update of the max77693.txt DT bindings documentation
-    - Update of the LED subsystem documentation
+On Friday 28 March 2014 01:42:38 Olivier Langlois wrote:
+> timestamps in v4l2 buffers returned to userspace are updated in
+> uvc_video_clock_update() which uses timestamps fetched from
+> uvc_video_clock_decode() by calling unconditionally ktime_get_ts().
+> 
+> Hence setting the module clock param to realtime have no effect
+> before this patch.
+> 
+> This has been tested with ffmpeg:
+> 
+> ffmpeg -y -f v4l2 -input_format yuyv422 -video_size 640x480 -framerate 30 -i
+> /dev/video0 \ -f alsa -acodec pcm_s16le -ar 16000 -ac 1 -i default \
+>  -c:v libx264 -preset ultrafast \
+>  -c:a libfdk_aac \
+>  out.mkv
+> 
+> and inspecting the v4l2 input starting timestamp.
+> 
+> Signed-off-by: Olivier Langlois <olivier@trillion01.com>
+> Cc: Stable <stable@vger.kernel.org>
 
-Thanks,
-Jacek Anaszewski
+Before applying this, I'm curious, do you have a use case for realtime time 
+stamps ?
 
-[1] http://www.spinics.net/lists/linux-media/msg69253.html
-
-Jacek Anaszewski (8):
-  leds: Add sysfs and kernel internal API for flash LEDs
-  leds: Improve and export led_update_brightness function
-  Documentation: leds: Add description of flash mode
-  media: Add registration helpers for V4L2 flash sub-devices
-  media: exynos4-is: Add support for v4l2-flash subdevs
-  leds: Add support for max77693 mfd flash cell
-  DT: Add documentation for the mfd Maxim max77693 flash cell
-  DT: Add documentation for exynos4-is camera-flash property
-
- .../devicetree/bindings/media/samsung-fimc.txt     |    3 +
- Documentation/devicetree/bindings/mfd/max77693.txt |   47 ++
- Documentation/leds/leds-class.txt                  |   25 +
- drivers/leds/Kconfig                               |    9 +
- drivers/leds/Makefile                              |    1 +
- drivers/leds/led-class.c                           |  222 +++++-
- drivers/leds/led-core.c                            |  141 +++-
- drivers/leds/led-triggers.c                        |   17 +-
- drivers/leds/leds-max77693.c                       |  768 ++++++++++++++++++++
- drivers/leds/leds.h                                |    9 +
- drivers/media/platform/exynos4-is/media-dev.c      |   34 +-
- drivers/media/platform/exynos4-is/media-dev.h      |   14 +-
- drivers/media/v4l2-core/Makefile                   |    2 +-
- drivers/media/v4l2-core/v4l2-flash.c               |  320 ++++++++
- drivers/mfd/max77693.c                             |   21 +-
- include/linux/leds.h                               |  146 ++++
- include/linux/mfd/max77693.h                       |   32 +
- include/media/v4l2-flash.h                         |  102 +++
- 18 files changed, 1879 insertions(+), 34 deletions(-)
- create mode 100644 drivers/leds/leds-max77693.c
- create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
- create mode 100644 include/media/v4l2-flash.h
+> ---
+>  drivers/media/usb/uvc/uvc_video.c | 15 ++++++++++-----
+>  1 file changed, 10 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index 898c208..c79db33 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -361,6 +361,14 @@ static int uvc_commit_video(struct uvc_streaming
+> *stream, * Clocks and timestamps
+>   */
+> 
+> +static inline void uvc_video_get_ts(struct timespec *ts)
+> +{
+> +	if (uvc_clock_param == CLOCK_MONOTONIC)
+> +		ktime_get_ts(ts);
+> +	else
+> +		ktime_get_real_ts(ts);
+> +}
+> +
+>  static void
+>  uvc_video_clock_decode(struct uvc_streaming *stream, struct uvc_buffer
+> *buf, const __u8 *data, int len)
+> @@ -420,7 +428,7 @@ uvc_video_clock_decode(struct uvc_streaming *stream,
+> struct uvc_buffer *buf, stream->clock.last_sof = dev_sof;
+> 
+>  	host_sof = usb_get_current_frame_number(stream->dev->udev);
+> -	ktime_get_ts(&ts);
+> +	uvc_video_get_ts(&ts);
+> 
+>  	/* The UVC specification allows device implementations that can't obtain
+>  	 * the USB frame number to keep their own frame counters as long as they
+> @@ -1011,10 +1019,7 @@ static int uvc_video_decode_start(struct
+> uvc_streaming *stream,
+> 			return -ENODATA;
+>  		}
+> 
+> -		if (uvc_clock_param == CLOCK_MONOTONIC)
+> -			ktime_get_ts(&ts);
+> -		else
+> -			ktime_get_real_ts(&ts);
+> +		uvc_video_get_ts(&ts);
+> 
+>  		buf->buf.v4l2_buf.sequence = stream->sequence;
+>  		buf->buf.v4l2_buf.timestamp.tv_sec = ts.tv_sec;
 
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
