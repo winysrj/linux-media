@@ -1,44 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:37070 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750826AbaCVNAe (ORCPT
+Received: from alt-proxy69.mail.unifiedlayer.com ([67.20.124.9]:54978 "HELO
+	alt-proxy69.mail.unifiedlayer.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751077AbaC1FuG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Mar 2014 09:00:34 -0400
-Received: by mail-ee0-f51.google.com with SMTP id c13so2718779eek.24
-        for <linux-media@vger.kernel.org>; Sat, 22 Mar 2014 06:00:33 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 2/5] em28xx: fix i2c_set_adapdata() call in em28xx_i2c_register()
-Date: Sat, 22 Mar 2014 14:01:00 +0100
-Message-Id: <1395493263-2158-2-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1395493263-2158-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1395493263-2158-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Fri, 28 Mar 2014 01:50:06 -0400
+From: Olivier Langlois <olivier@trillion01.com>
+To: laurent.pinchart@ideasonboard.com, m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Olivier Langlois <olivier@trillion01.com>,
+	Stable <stable@vger.kernel.org>
+Subject: [PATCH] [media] uvcvideo: Fix clock param realtime setting
+Date: Fri, 28 Mar 2014 01:42:38 -0400
+Message-Id: <1395985358-17047-1-git-send-email-olivier@trillion01.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-i2c.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+timestamps in v4l2 buffers returned to userspace are updated in
+uvc_video_clock_update() which uses timestamps fetched from
+uvc_video_clock_decode() by calling unconditionally ktime_get_ts().
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index ba6433c..04e8577 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -939,7 +939,7 @@ int em28xx_i2c_register(struct em28xx *dev, unsigned bus,
- 	dev->i2c_bus[bus].algo_type = algo_type;
- 	dev->i2c_bus[bus].dev = dev;
- 	dev->i2c_adap[bus].algo_data = &dev->i2c_bus[bus];
--	i2c_set_adapdata(&dev->i2c_adap[bus], &dev->v4l2_dev);
-+	i2c_set_adapdata(&dev->i2c_adap[bus], dev);
+Hence setting the module clock param to realtime have no effect
+before this patch.
+
+This has been tested with ffmpeg:
+
+ffmpeg -y -f v4l2 -input_format yuyv422 -video_size 640x480 -framerate 30 -i /dev/video0 \
+ -f alsa -acodec pcm_s16le -ar 16000 -ac 1 -i default \
+ -c:v libx264 -preset ultrafast \
+ -c:a libfdk_aac \
+ out.mkv
+
+and inspecting the v4l2 input starting timestamp.
+
+Signed-off-by: Olivier Langlois <olivier@trillion01.com>
+Cc: Stable <stable@vger.kernel.org>
+---
+ drivers/media/usb/uvc/uvc_video.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 898c208..c79db33 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -361,6 +361,14 @@ static int uvc_commit_video(struct uvc_streaming *stream,
+  * Clocks and timestamps
+  */
  
- 	retval = i2c_add_adapter(&dev->i2c_adap[bus]);
- 	if (retval < 0) {
++static inline void uvc_video_get_ts(struct timespec *ts)
++{
++	if (uvc_clock_param == CLOCK_MONOTONIC)
++		ktime_get_ts(ts);
++	else
++		ktime_get_real_ts(ts);
++}
++
+ static void
+ uvc_video_clock_decode(struct uvc_streaming *stream, struct uvc_buffer *buf,
+ 		       const __u8 *data, int len)
+@@ -420,7 +428,7 @@ uvc_video_clock_decode(struct uvc_streaming *stream, struct uvc_buffer *buf,
+ 	stream->clock.last_sof = dev_sof;
+ 
+ 	host_sof = usb_get_current_frame_number(stream->dev->udev);
+-	ktime_get_ts(&ts);
++	uvc_video_get_ts(&ts);
+ 
+ 	/* The UVC specification allows device implementations that can't obtain
+ 	 * the USB frame number to keep their own frame counters as long as they
+@@ -1011,10 +1019,7 @@ static int uvc_video_decode_start(struct uvc_streaming *stream,
+ 			return -ENODATA;
+ 		}
+ 
+-		if (uvc_clock_param == CLOCK_MONOTONIC)
+-			ktime_get_ts(&ts);
+-		else
+-			ktime_get_real_ts(&ts);
++		uvc_video_get_ts(&ts);
+ 
+ 		buf->buf.v4l2_buf.sequence = stream->sequence;
+ 		buf->buf.v4l2_buf.timestamp.tv_sec = ts.tv_sec;
 -- 
-1.8.4.5
+1.9.1
 
