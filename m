@@ -1,121 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49421 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754182AbaCCKIB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:08:01 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 72/79] [media] drx-j: be sure to send the powerup command at device open
-Date: Mon,  3 Mar 2014 07:07:06 -0300
-Message-Id: <1393841233-24840-73-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3762 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751580AbaC1IvF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Mar 2014 04:51:05 -0400
+Message-ID: <533537E2.9020904@xs4all.nl>
+Date: Fri, 28 Mar 2014 09:50:42 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+CC: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Fengguang Wu <fengguang.wu@intel.com>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+	Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+Subject: Re: [PATCH 1/2] usb: gadget: uvc: Switch to monotonic clock for buffer
+ timestamps
+References: <20140323001018.GA11963@localhost> <1395588754-20587-1-git-send-email-laurent.pinchart@ideasonboard.com> <1395588754-20587-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1395588754-20587-2-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As drxj_close puts the device in powerdown, we need to power it up
-properly at drxj_open.
+Hi Laurent,
 
-This is the behavior noticed at the Windows driver.
+I have a few comments:
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/drx39xyj/drxj.c | 39 +++++++++++++++++------------
- 1 file changed, 23 insertions(+), 16 deletions(-)
+On 03/23/2014 04:32 PM, Laurent Pinchart wrote:
+> The wall time clock isn't useful for applications as it can jump around
+> due to time adjustement. Switch to the monotonic clock.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/usb/gadget/uvc_queue.c | 12 +++++-------
+>  1 file changed, 5 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/usb/gadget/uvc_queue.c b/drivers/usb/gadget/uvc_queue.c
+> index 0bb5d50..d4561ba 100644
+> --- a/drivers/usb/gadget/uvc_queue.c
+> +++ b/drivers/usb/gadget/uvc_queue.c
+> @@ -364,6 +364,7 @@ static struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
+>  						struct uvc_buffer *buf)
+>  {
+>  	struct uvc_buffer *nextbuf;
+> +	struct timespec ts;
+>  
+>  	if ((queue->flags & UVC_QUEUE_DROP_INCOMPLETE) &&
+>  	     buf->length != buf->bytesused) {
+> @@ -379,14 +380,11 @@ static struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
+>  	else
+>  		nextbuf = NULL;
+>  
+> -	/*
+> -	 * FIXME: with videobuf2, the sequence number or timestamp fields
+> -	 * are valid only for video capture devices and the UVC gadget usually
+> -	 * is a video output device. Keeping these until the specs are clear on
+> -	 * this aspect.
+> -	 */
+> +	ktime_get_ts(&ts);
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index f48f320d7bf3..97a30057ff09 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -18621,19 +18621,22 @@ ctrl_power_mode(struct drx_demod_instance *demod, enum drx_power_mode *mode)
- 		default:
- 			return -EIO;
- 		}
-+		ext_attr->standard = DRX_STANDARD_UNKNOWN;
-+	}
- 
--		if (*mode != DRXJ_POWER_DOWN_MAIN_PATH) {
--			rc = drxj_dap_write_reg16(dev_addr, SIO_CC_PWD_MODE__A, sio_cc_pwd_mode, 0);
--			if (rc != 0) {
--				pr_err("error %d\n", rc);
--				goto rw_error;
--			}
--			rc = drxj_dap_write_reg16(dev_addr, SIO_CC_UPDATE__A, SIO_CC_UPDATE_KEY, 0);
--			if (rc != 0) {
--				pr_err("error %d\n", rc);
--				goto rw_error;
--			}
-+	if (*mode != DRXJ_POWER_DOWN_MAIN_PATH) {
-+		rc = drxj_dap_write_reg16(dev_addr, SIO_CC_PWD_MODE__A, sio_cc_pwd_mode, 0);
-+		if (rc != 0) {
-+			pr_err("error %d\n", rc);
-+			goto rw_error;
-+		}
-+		rc = drxj_dap_write_reg16(dev_addr, SIO_CC_UPDATE__A, SIO_CC_UPDATE_KEY, 0);
-+		if (rc != 0) {
-+			pr_err("error %d\n", rc);
-+			goto rw_error;
-+		}
- 
-+		if ((*mode != DRX_POWER_UP)) {
- 			/* Initialize HI, wakeup key especially before put IC to sleep */
- 			rc = init_hi(demod);
- 			if (rc != 0) {
-@@ -18648,14 +18651,13 @@ ctrl_power_mode(struct drx_demod_instance *demod, enum drx_power_mode *mode)
- 				goto rw_error;
- 			}
- 		}
--		ext_attr->standard = DRX_STANDARD_UNKNOWN;
- 	}
- 
- 	common_attr->current_power_mode = *mode;
- 
- 	return 0;
- rw_error:
--	return -EIO;
-+	return rc;
- }
- 
- #if 0
-@@ -19838,7 +19840,7 @@ int drxj_open(struct drx_demod_instance *demod)
- 	struct drxu_code_info ucode_info;
- 	struct drx_cfg_mpeg_output cfg_mpeg_output;
- 	int rc;
--
-+	enum drx_power_mode power_mode = DRX_POWER_UP;
- 
- 	if ((demod == NULL) ||
- 	    (demod->my_common_attr == NULL) ||
-@@ -19856,12 +19858,16 @@ int drxj_open(struct drx_demod_instance *demod)
- 	ext_attr = (struct drxj_data *) demod->my_ext_attr;
- 	common_attr = (struct drx_common_attr *) demod->my_common_attr;
- 
--	rc = power_up_device(demod);
-+	rc = ctrl_power_mode(demod, &power_mode);
- 	if (rc != 0) {
- 		pr_err("error %d\n", rc);
- 		goto rw_error;
- 	}
--	common_attr->current_power_mode = DRX_POWER_UP;
-+	if (power_mode != DRX_POWER_UP) {
-+		rc = -EINVAL;
-+		pr_err("failed to powerup device\n");
-+		goto rw_error;
-+	}
- 
- 	/* has to be in front of setIqmAf and setOrxNsuAox */
- 	rc = get_device_capabilities(demod);
-@@ -20797,6 +20803,7 @@ struct dvb_frontend *drx39xxj_attach(struct i2c_adapter *i2c)
- 	demod->my_common_attr->microcode_file = DRX39XX_MAIN_FIRMWARE;
- 	demod->my_common_attr->verify_microcode = true;
- 	demod->my_common_attr->intermediate_freq = 5000;
-+	demod->my_common_attr->current_power_mode = DRX_POWER_DOWN;
- 	demod->my_ext_attr = demod_ext_attr;
- 	((struct drxj_data *)demod_ext_attr)->uio_sma_tx_mode = DRX_UIO_MODE_READWRITE;
- 	demod->i2c = i2c;
--- 
-1.8.5.3
+Why not use the v4l2-common.c helper v4l2_get_timestamp()?
+
+> +
+>  	buf->buf.v4l2_buf.sequence = queue->sequence++;
+> -	do_gettimeofday(&buf->buf.v4l2_buf.timestamp);
+> +	buf->buf.v4l2_buf.timestamp.tv_sec = ts.tv_sec;
+> +	buf->buf.v4l2_buf.timestamp.tv_usec = ts.tv_nsec / NSEC_PER_USEC;
+
+You should also add:
+
+	buf->buf.v4l2_buf.field = V4L2_FIELD_NONE;
+
+I noticed that that was never set, which is wrong.
+
+Regards,
+
+	Hans
+
+>  
+>  	vb2_set_plane_payload(&buf->buf, 0, buf->bytesused);
+>  	vb2_buffer_done(&buf->buf, VB2_BUF_STATE_DONE);
+> 
 
