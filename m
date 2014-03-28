@@ -1,45 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51041 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752468AbaCPV6x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Mar 2014 17:58:53 -0400
-Received: from dyn3-82-128-190-236.psoas.suomi.net ([82.128.190.236] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1WPJ52-00024r-FQ
-	for linux-media@vger.kernel.org; Sun, 16 Mar 2014 23:58:52 +0200
-Message-ID: <53261E9B.2070801@iki.fi>
-Date: Sun, 16 Mar 2014 23:58:51 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from aserp1040.oracle.com ([141.146.126.69]:32603 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751233AbaC1I0R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Mar 2014 04:26:17 -0400
+Date: Fri, 28 Mar 2014 11:26:03 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] av7110: fix confusing indenting
+Message-ID: <20140328082603.GJ25192@mwanda>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL] SDR / E4000 V4L2 dependency fix
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit ed97a6fe5308e5982d118a25f0697b791af5ec50:
+The else statement here is not aligned with the correct if statement.
+I think the code works as intended and it's just the indenting which is
+wrong.  Also kernel style says we should use curly braces here so I have
+added those.
 
-   [media] af9033: Don't export functions for the hardware filter 
-(2014-03-14 20:26:59 -0300)
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+This patch doesn't change how the code works, but I would still
+appreciate extra review because maybe the original code is wrong?
 
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git sdr_review_v8
-
-for you to fetch changes up to 50a30af2cbf149ee0354edd04be93aaef2335e32:
-
-   e4000: make VIDEO_V4L2 dependency optional (2014-03-16 23:22:51 +0200)
-
-----------------------------------------------------------------
-Antti Palosaari (1):
-       e4000: make VIDEO_V4L2 dependency optional
-
-  drivers/media/tuners/Kconfig | 2 +-
-  drivers/media/tuners/e4000.c | 6 ++++++
-  2 files changed, 7 insertions(+), 1 deletion(-)
-
--- 
-http://palosaari.fi/
+diff --git a/drivers/media/pci/ttpci/av7110_av.c b/drivers/media/pci/ttpci/av7110_av.c
+index 301029c..9544cfc 100644
+--- a/drivers/media/pci/ttpci/av7110_av.c
++++ b/drivers/media/pci/ttpci/av7110_av.c
+@@ -958,8 +958,10 @@ static unsigned int dvb_video_poll(struct file *file, poll_table *wait)
+ 		if (av7110->playing) {
+ 			if (FREE_COND)
+ 				mask |= (POLLOUT | POLLWRNORM);
+-			} else /* if not playing: may play if asked for */
+-				mask |= (POLLOUT | POLLWRNORM);
++		} else {
++			/* if not playing: may play if asked for */
++			mask |= (POLLOUT | POLLWRNORM);
++		}
+ 	}
+ 
+ 	return mask;
