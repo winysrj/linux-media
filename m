@@ -1,81 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:28351 "EHLO
+Received: from mailout1.samsung.com ([203.254.224.24]:40144 "EHLO
 	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753410AbaCFQWd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 11:22:33 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
-	mark.rutland@arm.com, galak@codeaurora.org,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v6 10/10] ARM: dts: exynos4: Update camera clk provider and
- s5k6a3 sensor node
-Date: Thu, 06 Mar 2014 17:20:19 +0100
-Message-id: <1394122819-9582-11-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
-References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
+	with ESMTP id S1750974AbaC1P3T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Mar 2014 11:29:19 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: s.nawrocki@samsung.com, a.hajda@samsung.com,
+	kyungmin.park@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v2 0/8] LED / flash API integration
+Date: Fri, 28 Mar 2014 16:28:57 +0100
+Message-id: <1396020545-15727-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove unused /camera/clock-controller node and required clock properties
-to the camera node. This is required for a clock provider that will be
-referenced by image sensor devices.
-Also add required clock related changes to s5k6a3 device node and afvdd
-regulator supply.
+This is is a second version of the patch series being a follow up
+of the discussion on Media summit 2013-10-23, related to the
+LED / flash API integration (the notes from the discussion were
+enclosed in the message [1], paragraph 5).
+The series is based on linux-next next-20140328 and contains
+significant number of modifications in comparison to its first
+version (Lee, Richard and Sakari - thanks for the review).
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
----
-Changes since v5:
-  - none.
+In order to show the exemplary usage of the proposed mechanism
+the patch series includes implementation of a Flash LED device
+driver along with the suitable modifications in a media controller
+driver.
 
-Changes since v4:
-  - added changes at the s5k6a3 device node.
-  - clock output names adjusted to better match documentation.
----
- arch/arm/boot/dts/exynos4.dtsi          |    6 ++----
- arch/arm/boot/dts/exynos4412-trats2.dts |    5 +++--
- 2 files changed, 5 insertions(+), 6 deletions(-)
+Description of the proposed modifications according to
+the kernel components they are relevant to:
+    - LED subsystem modifications
+        * added led_flash module which, when enabled in the config,
+	  registers flash specific sysfs attributes:
+            - flash_brightness
+	    - max_flash_brightness
+            - flash_timeout
+            - max_flash_timeout
+	    - flash_strobe
+            - flash_fault
+            - hw_triggered
+	and exposes kernel internal API
+            - led_set_flash_strobe
+            - led_get_flash_strobe
+            - led_set_flash_brightness
+            - led_update_flash_brightness
+            - led_set_flash_timeout
+            - led_get_flash_fault
+            - led_set_hw_triggered
+            - led_sysfs_lock
+            - led_sysfs_unlock
+    - Addition of a V4L2 Flash sub-device registration helpers
+        * added v4l2-flash.c and v4l2-flash.h files with helper
+          functions that facilitate registration/unregistration
+          of a subdevice, which wrapps a LED subsystem device and
+          exposes V4L2 Flash control interface
+    - exynos4-is media controller modifications
+    - Addition of a driver for the flash cell of the MAX77693 mfd
+        * the driver exploits the newly introduced mechanism
+    - Update of the samsung-fimc.txt DT bindings documentation
+    - Update of the max77693.txt DT bindings documentation
+    - Update of the LED subsystem documentation
 
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index 08452e1..6430a0e 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -109,12 +109,10 @@
- 		status = "disabled";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
-+		#clock-cells = <1>;
-+		clock-output-names = "cam_a_clkout", "cam_b_clkout";
- 		ranges;
- 
--		clock_cam: clock-controller {
--			 #clock-cells = <1>;
--		};
--
- 		fimc_0: fimc@11800000 {
- 			compatible = "samsung,exynos4210-fimc";
- 			reg = <0x11800000 0x1000>;
-diff --git a/arch/arm/boot/dts/exynos4412-trats2.dts b/arch/arm/boot/dts/exynos4412-trats2.dts
-index 0c6afbe..d7e13a4 100644
---- a/arch/arm/boot/dts/exynos4412-trats2.dts
-+++ b/arch/arm/boot/dts/exynos4412-trats2.dts
-@@ -647,10 +647,11 @@
- 					reg = <0x10>;
- 					svdda-supply = <&cam_io_reg>;
- 					svddio-supply = <&ldo19_reg>;
-+					afvdd-supply = <&ldo19_reg>;
- 					clock-frequency = <24000000>;
- 					/* CAM_B_CLKOUT */
--					clocks = <&clock_cam 1>;
--					clock-names = "mclk";
-+					clocks = <&camera 1>;
-+					clock-names = "extclk";
- 					samsung,camclk-out = <1>;
- 					gpios = <&gpm1 6 0>;
- 
+Thanks,
+Jacek Anaszewski
+
+[1] http://www.spinics.net/lists/linux-media/msg69253.html
+
+Jacek Anaszewski (8):
+  leds: Add sysfs and kernel internal API for flash LEDs
+  leds: Improve and export led_update_brightness function
+  Documentation: leds: Add description of flash mode
+  leds: Add support for max77693 mfd flash cell
+  DT: Add documentation for the mfd Maxim max77693 flash cell
+  media: Add registration helpers for V4L2 flash sub-devices
+  media: exynos4-is: Add support for v4l2-flash subdevs
+  DT: Add documentation for exynos4-is camera-flash property
+
+ .../devicetree/bindings/media/samsung-fimc.txt     |    3 +
+ Documentation/devicetree/bindings/mfd/max77693.txt |   47 ++
+ Documentation/leds/leds-class.txt                  |   52 ++
+ drivers/leds/Kconfig                               |   18 +
+ drivers/leds/Makefile                              |    2 +
+ drivers/leds/led-class.c                           |   62 +-
+ drivers/leds/led-core.c                            |   17 +
+ drivers/leds/led-flash.c                           |  375 +++++++++
+ drivers/leds/led-triggers.c                        |   16 +-
+ drivers/leds/leds-max77693.c                       |  864 ++++++++++++++++++++
+ drivers/leds/leds.h                                |    3 +
+ drivers/media/platform/exynos4-is/media-dev.c      |   34 +-
+ drivers/media/platform/exynos4-is/media-dev.h      |   14 +-
+ drivers/media/v4l2-core/Kconfig                    |   10 +
+ drivers/media/v4l2-core/Makefile                   |    2 +
+ drivers/media/v4l2-core/v4l2-flash.c               |  302 +++++++
+ drivers/mfd/max77693.c                             |    3 +-
+ include/linux/leds.h                               |   34 +-
+ include/linux/leds_flash.h                         |  189 +++++
+ include/linux/mfd/max77693.h                       |   32 +
+ include/media/v4l2-flash.h                         |  104 +++
+ 21 files changed, 2157 insertions(+), 26 deletions(-)
+ create mode 100644 drivers/leds/led-flash.c
+ create mode 100644 drivers/leds/leds-max77693.c
+ create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
+ create mode 100644 include/linux/leds_flash.h
+ create mode 100644 include/media/v4l2-flash.h
+
 -- 
 1.7.9.5
 
