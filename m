@@ -1,78 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47476 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753984AbaCJTSK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 15:18:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Grant Likely <grant.likely@linaro.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v6 4/8] of: Reduce indentation in of_graph_get_next_endpoint
-Date: Mon, 10 Mar 2014 20:19:44 +0100
-Message-ID: <1688746.6CaQoSDOni@avalon>
-In-Reply-To: <1394214054.16309.45.camel@paszta.hi.pengutronix.de>
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de> <31687163.hgTkcLrn0Z@avalon> <1394214054.16309.45.camel@paszta.hi.pengutronix.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mga02.intel.com ([134.134.136.20]:17264 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751304AbaC1OgB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Mar 2014 10:36:01 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id D78ED20994
+	for <linux-media@vger.kernel.org>; Fri, 28 Mar 2014 16:35:43 +0200 (EET)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 2/3] smiapp: Set sub-device owner
+Date: Fri, 28 Mar 2014 16:35:12 +0200
+Message-Id: <1396017313-3990-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1396017313-3990-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1396017313-3990-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+The smiapp driver is the owner of the sub-devices exposed by the smiapp
+driver. This prevents unloading the module whilst it's in use.
 
-On Friday 07 March 2014 18:40:54 Philipp Zabel wrote:
-> Am Freitag, den 07.03.2014, 01:12 +0100 schrieb Laurent Pinchart:
-> > Hi Philipp,
-> > 
-> > Thank you for the patch.
-> > 
-> > I've submitted a fix for the of_graph_get_next_endpoint() function, but it
-> > hasn't been applied yet due to the patch series that contained it needing
-> > more work.
-> > 
-> > The patch is available at https://patchwork.linuxtv.org/patch/21946/. I
-> > can rebase it on top of this series, but I still wanted to let you know
-> > about it in case you would like to integrate it.
-> 
-> Thank you for the pointer. A pity about the timing, this will mostly
-> revert my indentation patch. I'd be glad if you could rebase on top of
-> the merged series.
-> 
-> While we look at of_graph_get_next_endpoint(), could you explain the
-> reason behind the extra reference count increase on the prev node:
->
-> 	/*
-> 	 * Avoid dropping prev node refcount to 0 when getting the next
-> 	 * child below.
-> 	 */
-> 	of_node_get(prev);
->
-> This unfortunately makes using the function in for_each style macros a
-> hassle. If that part wasn't there and all users that want to keep using
-> prev after the call were expected to increase refcount themselves,
-> we could have a
->
-> #define of_graph_for_each_endpoint(parent, endpoint) \
-> 	for (endpoint = of_graph_get_next_endpoint(parent, NULL); \
-> 	     endpoint != NULL; \
-> 	     endpoint = of_graph_get_next_endpoint(parent, endpoint))
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I don't know what the exact design decision was (Sylwester might know), but I 
-suspect it's mostly about historical reasons. I see no reason that would 
-prevent modifying the current behaviour to make a for-each loop easier to 
-implement.
-
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 69c11ec..5179cf4 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2569,7 +2569,7 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
+ 
+ 		this->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 		this->sd.internal_ops = &smiapp_internal_ops;
+-		this->sd.owner = NULL;
++		this->sd.owner = THIS_MODULE;
+ 		v4l2_set_subdevdata(&this->sd, client);
+ 
+ 		rval = media_entity_init(&this->sd.entity,
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.2
 
