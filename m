@@ -1,77 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:8560 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752134AbaCAD1g (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36132 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751732AbaC1QAz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 22:27:36 -0500
-Message-id: <5311539E.10305@samsung.com>
-Date: Fri, 28 Feb 2014 20:27:26 -0700
-From: Shuah Khan <shuah.kh@samsung.com>
-Reply-to: shuah.kh@samsung.com
-MIME-version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>, shuahkhan@gmail.com,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Shuah Khan <shuah.kh@samsung.com>
-Subject: Re: [PATCH 0/3] media/drx39xyj: fix DJH_DEBUG path null pointer
- dereferences, and compile errors.
-References: <cover.1393621530.git.shuah.kh@samsung.com>
- <CAGoCfiyZr2eCCW3ZmAE4_YUZw++NC3o-VY84M+n38tzfLdfBiQ@mail.gmail.com>
-In-reply-to: <CAGoCfiyZr2eCCW3ZmAE4_YUZw++NC3o-VY84M+n38tzfLdfBiQ@mail.gmail.com>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Fri, 28 Mar 2014 12:00:55 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-usb@vger.kernel.org, Fengguang Wu <fengguang.wu@intel.com>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+	Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+Subject: [PATCH v2 3/3] usb: gadget: uvc: Set the vb2 queue timestamp flags
+Date: Fri, 28 Mar 2014 17:02:48 +0100
+Message-Id: <1396022568-6794-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1396022568-6794-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1396022568-6794-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/28/2014 05:13 PM, Devin Heitmueller wrote:
-> Seems kind of strange that I wasn't on the CC for this, since I was the
-> original author of all that code (in fact, DJH are my initials).
->
-> Mauro, did you strip off my authorship when you pulled the patches from
-> my tree?
->
-> The patches themselves look sane, and I will send a formal Acked-by once
-> I can get in front of a real computer.
->
-> Devin
+The vb2 queue timestamp_flags field must be set by drivers, as enforced
+by a WARN_ON in vb2_queue_init. The UVC gadget driver failed to do so.
+This resulted in the following warning.
 
-Thanks for the ack. I will include you on the cc for future patches. I 
-am working in Mauro's experimental git and probably that explains why 
-get_maintainer.pl just showed linux-media and Mauro.
+[    2.104371] g_webcam gadget: uvc_function_bind
+[    2.105567] ------------[ cut here ]------------
+[    2.105567] ------------[ cut here ]------------
+[    2.106779] WARNING: CPU: 0 PID: 1 at drivers/media/v4l2-core/videobuf2-core.c:2207 vb2_queue_init+0xa3/0x113()
 
--- Shuah
+Fix it.
 
->
-> On Feb 28, 2014 4:23 PM, "Shuah Khan" <shuah.kh@samsung.com
-> <mailto:shuah.kh@samsung.com>> wrote:
->
->     This patch series fixes null pointer dereference boot failure as well as
->     compile errors.
->
->     Shuah Khan (3):
->        media/drx39xyj: fix pr_dbg undefined compile errors when DJH_DEBUG is
->          defined
->        media/drx39xyj: remove return that prevents DJH_DEBUG code to run
->        media/drx39xyj: fix boot failure due to null pointer dereference
->
->       drivers/media/dvb-frontends/drx39xyj/drxj.c | 31
->     ++++++++++++++++++-----------
->       1 file changed, 19 insertions(+), 12 deletions(-)
->
->     --
->     1.8.3.2
->
->     --
->     To unsubscribe from this list: send the line "unsubscribe
->     linux-media" in
->     the body of a message to majordomo@vger.kernel.org
->     <mailto:majordomo@vger.kernel.org>
->     More majordomo info at http://vger.kernel.org/majordomo-info.html
->
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/usb/gadget/uvc_queue.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-
+diff --git a/drivers/usb/gadget/uvc_queue.c b/drivers/usb/gadget/uvc_queue.c
+index 305eb49..1c29bc9 100644
+--- a/drivers/usb/gadget/uvc_queue.c
++++ b/drivers/usb/gadget/uvc_queue.c
+@@ -137,6 +137,8 @@ static int uvc_queue_init(struct uvc_video_queue *queue,
+ 	queue->queue.buf_struct_size = sizeof(struct uvc_buffer);
+ 	queue->queue.ops = &uvc_queue_qops;
+ 	queue->queue.mem_ops = &vb2_vmalloc_memops;
++	queue->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
++				     | V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
+ 	ret = vb2_queue_init(&queue->queue);
+ 	if (ret)
+ 		return ret;
 -- 
-Shuah Khan
-Senior Linux Kernel Developer - Open Source Group
-Samsung Research America(Silicon Valley)
-shuah.kh@samsung.com | (970) 672-0658
+1.8.3.2
+
