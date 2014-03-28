@@ -1,127 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:53300 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753816AbaCZVK5 (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:39763 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751443AbaC1QEM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Mar 2014 17:10:57 -0400
-Received: by mail-wi0-f177.google.com with SMTP id cc10so2345377wib.10
-        for <linux-media@vger.kernel.org>; Wed, 26 Mar 2014 14:10:56 -0700 (PDT)
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, James Hogan <james.hogan@imgtec.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-Subject: [PATCH 1/3] rc-main: Revert generic scancode filtering support
-Date: Wed, 26 Mar 2014 21:08:31 +0000
-Message-Id: <1395868113-17950-2-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1395868113-17950-1-git-send-email-james.hogan@imgtec.com>
-References: <1395868113-17950-1-git-send-email-james.hogan@imgtec.com>
+	Fri, 28 Mar 2014 12:04:12 -0400
+Date: Fri, 28 Mar 2014 11:02:09 -0500
+From: Felipe Balbi <balbi@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: <linux-media@vger.kernel.org>, <linux-usb@vger.kernel.org>,
+	Fengguang Wu <fengguang.wu@intel.com>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+	Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+Subject: Re: [PATCH v2 3/3] usb: gadget: uvc: Set the vb2 queue timestamp
+ flags
+Message-ID: <20140328160209.GK17820@saruman.home>
+Reply-To: <balbi@ti.com>
+References: <1396022568-6794-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1396022568-6794-4-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BFVE2HhgxTpCzM8t"
+Content-Disposition: inline
+In-Reply-To: <1396022568-6794-4-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit b8c7d915087c ([media] rc-main: add generic scancode
-filtering), and removes certain parts of commit 6bea25af147f ([media]
-rc-main: automatically refresh filter on protocol change) where generic
-filtering is taken into account when refreshing filters on a protocol
-change, but that code cannot be reached any longer since the filter mask
-will always be zero if the s_filter callback is NULL.
+--BFVE2HhgxTpCzM8t
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Generic scancode filtering had questionable value and as David said:
-> given how difficult it is to remove functionality that is in a
-> released kernel...I think that particular part (i.e. the software
-> filtering) should be removed until it has had further discussion.
+On Fri, Mar 28, 2014 at 05:02:48PM +0100, Laurent Pinchart wrote:
+> The vb2 queue timestamp_flags field must be set by drivers, as enforced
+> by a WARN_ON in vb2_queue_init. The UVC gadget driver failed to do so.
+> This resulted in the following warning.
+>=20
+> [    2.104371] g_webcam gadget: uvc_function_bind
+> [    2.105567] ------------[ cut here ]------------
+> [    2.105567] ------------[ cut here ]------------
+> [    2.106779] WARNING: CPU: 0 PID: 1 at drivers/media/v4l2-core/videobuf=
+2-core.c:2207 vb2_queue_init+0xa3/0x113()
+>=20
+> Fix it.
+>=20
+> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Reported-by: David Härdeman <david@hardeman.nu>
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: David Härdeman <david@hardeman.nu>
-Cc: Antti Seppälä <a.seppala@gmail.com>
----
- drivers/media/rc/rc-main.c | 26 ++++++++------------------
- 1 file changed, 8 insertions(+), 18 deletions(-)
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 99697aa..e067fee 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -633,7 +633,6 @@ EXPORT_SYMBOL_GPL(rc_repeat);
- static void ir_do_keydown(struct rc_dev *dev, int scancode,
- 			  u32 keycode, u8 toggle)
- {
--	struct rc_scancode_filter *filter;
- 	bool new_event = !dev->keypressed ||
- 			 dev->last_scancode != scancode ||
- 			 dev->last_toggle != toggle;
-@@ -641,11 +640,6 @@ static void ir_do_keydown(struct rc_dev *dev, int scancode,
- 	if (new_event && dev->keypressed)
- 		ir_do_keyup(dev, false);
- 
--	/* Generic scancode filtering */
--	filter = &dev->scancode_filters[RC_FILTER_NORMAL];
--	if (filter->mask && ((scancode ^ filter->data) & filter->mask))
--		return;
--
- 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
- 
- 	if (new_event && keycode != KEY_RESERVED) {
-@@ -1012,9 +1006,6 @@ static ssize_t store_protocols(struct device *device,
- 		if (!type) {
- 			/* no protocol => clear filter */
- 			ret = -1;
--		} else if (!dev->s_filter) {
--			/* generic filtering => accept any filter */
--			ret = 0;
- 		} else {
- 			/* hardware filtering => try setting, otherwise clear */
- 			ret = dev->s_filter(dev, fattr->type, &local_filter);
-@@ -1023,8 +1014,7 @@ static ssize_t store_protocols(struct device *device,
- 			/* clear the filter */
- 			local_filter.data = 0;
- 			local_filter.mask = 0;
--			if (dev->s_filter)
--				dev->s_filter(dev, fattr->type, &local_filter);
-+			dev->s_filter(dev, fattr->type, &local_filter);
- 		}
- 
- 		/* commit the new filter */
-@@ -1068,7 +1058,9 @@ static ssize_t show_filter(struct device *device,
- 		return -EINVAL;
- 
- 	mutex_lock(&dev->lock);
--	if (fattr->mask)
-+	if (!dev->s_filter)
-+		val = 0;
-+	else if (fattr->mask)
- 		val = dev->scancode_filters[fattr->type].mask;
- 	else
- 		val = dev->scancode_filters[fattr->type].data;
-@@ -1116,7 +1108,7 @@ static ssize_t store_filter(struct device *device,
- 		return ret;
- 
- 	/* Scancode filter not supported (but still accept 0) */
--	if (!dev->s_filter && fattr->type != RC_FILTER_NORMAL)
-+	if (!dev->s_filter)
- 		return val ? -EINVAL : count;
- 
- 	mutex_lock(&dev->lock);
-@@ -1133,11 +1125,9 @@ static ssize_t store_filter(struct device *device,
- 		ret = -EINVAL;
- 		goto unlock;
- 	}
--	if (dev->s_filter) {
--		ret = dev->s_filter(dev, fattr->type, &local_filter);
--		if (ret < 0)
--			goto unlock;
--	}
-+	ret = dev->s_filter(dev, fattr->type, &local_filter);
-+	if (ret < 0)
-+		goto unlock;
- 
- 	/* Success, commit the new filter */
- 	*filter = local_filter;
--- 
-1.8.3.2
+> ---
+>  drivers/usb/gadget/uvc_queue.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>=20
+> diff --git a/drivers/usb/gadget/uvc_queue.c b/drivers/usb/gadget/uvc_queu=
+e.c
+> index 305eb49..1c29bc9 100644
+> --- a/drivers/usb/gadget/uvc_queue.c
+> +++ b/drivers/usb/gadget/uvc_queue.c
+> @@ -137,6 +137,8 @@ static int uvc_queue_init(struct uvc_video_queue *que=
+ue,
+>  	queue->queue.buf_struct_size =3D sizeof(struct uvc_buffer);
+>  	queue->queue.ops =3D &uvc_queue_qops;
+>  	queue->queue.mem_ops =3D &vb2_vmalloc_memops;
+> +	queue->queue.timestamp_flags =3D V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
+> +				     | V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
+>  	ret =3D vb2_queue_init(&queue->queue);
+>  	if (ret)
+>  		return ret;
+> --=20
+> 1.8.3.2
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+--=20
+balbi
+
+--BFVE2HhgxTpCzM8t
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTNZ0BAAoJEIaOsuA1yqREgREQAJaVKmZARUO9o5CQN7n71IHj
+kOrkQldhhxfDDF72BbCZZiMKyqsHPFxqva6qMgHOdj0+Bnzcv1xbwFoVhSgK84a0
+iYZZt5NnmGNY/VO2ghgFxIU0XCsNBWXriQZMGumOjpSCZ4bW8TmJcPg2735wuk1Y
+xpnC4zzeSjcqyZB0+oAmxCxNky5HDRSSYPO0gqCMG37L0elUQSTbu0KDkbpHfgi5
+kY3tnCSqMe2GVSMFjnM/ew/dzgEJeDXnCcj4nAfiwtXb0Qfivb4+JKF8MEh+9OEj
+Qo3B6Gnkh+rA65CevEChNquLLhIz7mOXA0V4CUgrcNOXd/8R3N14Q+OUgCXalfcz
++qDZ4Xub/KDJgaMs3Vs42bFQnAr2ffSs781xBeq7bXna4Q/yAHHSwqpC8qpNQ1KL
+5L0gsWNYfGhkkhGzQ4RvNqGTQviCy8T63zZrMR+kbCNv9XOtFCUHA9Jrh4L971ue
+MtsNtRAO11jP8J4EjvbyqsRj4lN4rmZSVrLCjBOX9E6eSIoKgUnveHuGAr4wCTQC
+S+kLzMx4rFBmkkhf5CnLdCwsrggcleKlagaU0sheQ2VmNZToW3prxcodww3ymgaG
+fYuLqEYOETbW6E6ypFmGcpd2kCAjU8l2BB5CHYEECgmkn9B8c105qdw78CuPU3R9
+W3dsTP+KHJnPwRqfVkIy
+=Cy7r
+-----END PGP SIGNATURE-----
+
+--BFVE2HhgxTpCzM8t--
