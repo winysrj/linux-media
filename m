@@ -1,179 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.246]:53774 "EHLO
-	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754970AbaCRLZb (ORCPT
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:51607 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751647AbaC1Q67 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Mar 2014 07:25:31 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: <g.liakhovetski@gmx.de>
-CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>,
-	<nicolas.ferre@atmel.com>, <linux-arm-kernel@lists.infradead.org>,
-	<grant.likely@linaro.org>, <galak@codeaurora.org>,
-	<rob@landley.net>, <mark.rutland@arm.com>, <robh+dt@kernel.org>,
-	<ijc+devicetree@hellion.org.uk>, <pawel.moll@arm.com>,
-	<devicetree@vger.kernel.org>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH 3/3] [media] atmel-isi: add primary DT support
-Date: Tue, 18 Mar 2014 19:19:54 +0800
-Message-ID: <1395141594-6065-1-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1395141238-5948-1-git-send-email-josh.wu@atmel.com>
-References: <1395141238-5948-1-git-send-email-josh.wu@atmel.com>
+	Fri, 28 Mar 2014 12:58:59 -0400
+From: "Ma Haijun" <mahaijuns@gmail.com>
+To: "'Hans Verkuil'" <hverkuil@xs4all.nl>,
+	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Cc: "'Mauro Carvalho Chehab'" <m.chehab@samsung.com>,
+	"'Al Viro'" <viro@ZenIV.linux.org.uk>
+References: <1395918426-27787-1-git-send-email-mahaijuns@gmail.com> <533540CE.8070703@xs4all.nl>
+In-Reply-To: <533540CE.8070703@xs4all.nl>
+Subject: RE: [media] videobuf-dma-contig: fix vm_iomap_memory() call
+Date: Sat, 29 Mar 2014 00:58:58 +0800
+Message-ID: <01a501cf4aa7$08664e30$1932ea90$@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Language: zh-cn
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add the DT support for Atmel ISI driver.
-It use the same v4l2 DT interface that defined in video-interfaces.txt.
+Hi,
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
-Cc: devicetree@vger.kernel.org
----
- .../devicetree/bindings/media/atmel-isi.txt        |   51 ++++++++++++++++++++
- drivers/media/platform/soc_camera/atmel-isi.c      |   33 ++++++++++++-
- 2 files changed, 82 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/atmel-isi.txt
+> -----Original Message-----
+> 
+> On 03/27/2014 12:07 PM, Ma Haijun wrote:
+> > Hi all,
+> >
+> > This is a trivial fix, but I think the patch itself has problem too.
+> > The function requires a phys_addr_t, but we feed it with a dma_handle_t.
+> > AFAIK, this implicit conversion does not always work.
+> > Can I use virt_to_phys(mem->vaddr) to get the physical address instead?
+> > (mem->vaddr and mem->dma_handle are from dma_alloc_coherent)
+> 
+> Does this actually fail? With what driver and on what hardware?
 
-diff --git a/Documentation/devicetree/bindings/media/atmel-isi.txt b/Documentation/devicetree/bindings/media/atmel-isi.txt
-new file mode 100644
-index 0000000..07f00eb
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/atmel-isi.txt
-@@ -0,0 +1,51 @@
-+Atmel Image Sensor Interface (ISI) SoC Camera Subsystem
-+----------------------------------------------
-+
-+Required properties:
-+- compatible: must be "atmel,at91sam9g45-isi"
-+- reg: physical base address and length of the registers set for the device;
-+- interrupts: should contain IRQ line for the ISI;
-+- clocks: list of clock specifiers, corresponding to entries in
-+          the clock-names property;
-+- clock-names: must contain "isi_clk", which is the isi peripherial clock.
-+               "isi_mck" is optinal, it is the master clock output to sensor.
-+
-+Optional properties:
-+- atmel,isi-disable-preview: a boolean property to disable the preview channel;
-+
-+Example:
-+	isi: isi@f0034000 {
-+		compatible = "atmel,at91sam9g45-isi";
-+		reg = <0xf0034000 0x4000>;
-+		interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
-+
-+		clocks = <&isi_clk>, <&pck1>;
-+		clock-names = "isi_clk", "isi_mck";
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_isi &pinctrl_pck1_as_isi_mck>;
-+
-+		port {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			isi_0: endpoint {
-+				remote-endpoint = <&ov2640_0>;
-+			};
-+		};
-+	};
-+
-+	i2c1: i2c@f0018000 {
-+		ov2640: camera@0x30 {
-+			compatible = "omnivision,ov2640";
-+			reg = <0x30>;
-+
-+			port {
-+				ov2640_0: endpoint {
-+					remote-endpoint = <&isi_0>;
-+					bus-width = <8>;
-+				};
-+			};
-+		};
-+	};
-+
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 93bf1cb..1822129 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -19,6 +19,7 @@
- #include <linux/interrupt.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/slab.h>
- 
-@@ -33,6 +34,7 @@
- #define VID_LIMIT_BYTES			(16 * 1024 * 1024)
- #define MIN_FRAME_RATE			15
- #define FRAME_INTERVAL_MILLI_SEC	(1000 / MIN_FRAME_RATE)
-+#define ISI_DEFAULT_MCLK_FREQ		25000000
- 
- /* Frame buffer descriptor */
- struct fbd {
-@@ -878,6 +880,22 @@ static int atmel_isi_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static int atmel_isi_probe_dt(struct atmel_isi *isi,
-+			struct platform_device *pdev)
-+{
-+	struct device_node *node = pdev->dev.of_node;
-+
-+	isi->pdata.full_mode = !of_property_read_bool(node,
-+			"atmel,isi-disable-preview");
-+
-+	/* Default settings for ISI */
-+	isi->pdata.mck_hz = ISI_DEFAULT_MCLK_FREQ;
-+	isi->pdata.frate = ISI_CFG1_FRATE_CAPTURE_ALL;
-+	isi->pdata.data_width_flags = ISI_DATAWIDTH_8 | ISI_DATAWIDTH_10;
-+
-+	return 0;
-+}
-+
- static int atmel_isi_probe(struct platform_device *pdev)
- {
- 	unsigned int irq;
-@@ -889,7 +907,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	struct isi_platform_data *pdata;
- 
- 	pdata = dev->platform_data;
--	if (!pdata || !pdata->data_width_flags) {
-+	if ((!pdata || !pdata->data_width_flags) && !pdev->dev.of_node) {
- 		dev_err(&pdev->dev,
- 			"No config available for Atmel ISI\n");
- 		return -EINVAL;
-@@ -905,7 +923,11 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	if (IS_ERR(isi->pclk))
- 		return PTR_ERR(isi->pclk);
- 
--	memcpy(&isi->pdata, pdata, sizeof(struct isi_platform_data));
-+	if (pdata)
-+		memcpy(&isi->pdata, pdata, sizeof(struct isi_platform_data));
-+	else	/* dt probe */
-+		atmel_isi_probe_dt(isi, pdev);
-+
- 	isi->active = NULL;
- 	spin_lock_init(&isi->lock);
- 	INIT_LIST_HEAD(&isi->video_buffer_list);
-@@ -1007,11 +1029,18 @@ err_alloc_ctx:
- 	return ret;
- }
- 
-+static const struct of_device_id atmel_isi_of_match[] = {
-+	{ .compatible = "atmel,at91sam9g45-isi" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, atmel_isi_of_match);
-+
- static struct platform_driver atmel_isi_driver = {
- 	.remove		= atmel_isi_remove,
- 	.driver		= {
- 		.name = "atmel_isi",
- 		.owner = THIS_MODULE,
-+		.of_match_table = atmel_isi_of_match,
- 	},
- };
- 
--- 
-1.7.9.5
+I notice it when I am reading the code,
+so I do not know if any driver is broken.
+
+> 
+> I ask because I am very reluctant to make any changes to videobuf. It is
+> slowly being replaced by the vastly superior videobuf2 framework. Existing
+> drivers in the kernel still using the old videobuf seem to work just fine
+> (or at least as fine as videobuf allows you to be).
+
+Sorry that the cover letter is a bit misleading, hope you does not skip the
+patch due to this.
+
+The actual problem is that userland virtual address is erroneously passed to
+vm_iomap_memory, while it expects physical address.
+And that is what the patch try to address.
+
+Seems this bug can be exploited to map and access physical address.
+So it is also a security problem, I think we should ether fix it
+or remove the code if not used any more.
+
+Regards,
+
+	Haijun
+
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> >
+> > Regards
+> >
+> > Ma Haijun
+> >
+> > Ma Haijun (1):
+> >   [media] videobuf-dma-contig: fix incorrect argument to
+> >     vm_iomap_memory() call
+> >
+> >  drivers/media/v4l2-core/videobuf-dma-contig.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
 
