@@ -1,64 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49458 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754157AbaCCKIG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:08:06 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 63/79] [media] drx-j: remove some unused data
-Date: Mon,  3 Mar 2014 07:06:57 -0300
-Message-Id: <1393841233-24840-64-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4429 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751664AbaC1Ivq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Mar 2014 04:51:46 -0400
+Message-ID: <5335380F.9070809@xs4all.nl>
+Date: Fri, 28 Mar 2014 09:51:27 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+CC: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Fengguang Wu <fengguang.wu@intel.com>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+	Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+Subject: Re: [PATCH 2/2] usb: gadget: uvc: Set the vb2 queue timestamp flags
+References: <20140323001018.GA11963@localhost> <1395588754-20587-1-git-send-email-laurent.pinchart@ideasonboard.com> <1395588754-20587-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1395588754-20587-3-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those struct data aren't used anymore. Get rid of them.
+On 03/23/2014 04:32 PM, Laurent Pinchart wrote:
+> The vb2 queue timestamp_flags field must be set by drivers, as enforced
+> by a WARN_ON in vb2_queue_init. The UVC gadget driver failed to do so.
+> This resulted in the following warning.
+> 
+> [    2.104371] g_webcam gadget: uvc_function_bind
+> [    2.105567] ------------[ cut here ]------------
+> [    2.105567] ------------[ cut here ]------------
+> [    2.106779] WARNING: CPU: 0 PID: 1 at drivers/media/v4l2-core/videobuf2-core.c:2207 vb2_queue_init+0xa3/0x113()
+> 
+> Fix it.
+> 
+> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/drx39xyj/drx39xxj.h | 2 --
- drivers/media/dvb-frontends/drx39xyj/drxj.c     | 3 ---
- 2 files changed, 5 deletions(-)
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drx39xxj.h b/drivers/media/dvb-frontends/drx39xyj/drx39xxj.h
-index b9f642e5d98b..2e0c50f0a12a 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drx39xxj.h
-+++ b/drivers/media/dvb-frontends/drx39xyj/drx39xxj.h
-@@ -29,9 +29,7 @@
- struct drx39xxj_state {
- 	struct i2c_adapter *i2c;
- 	struct drx_demod_instance *demod;
--	enum drx_standard current_standard;
- 	struct dvb_frontend frontend;
--	unsigned int powered_up:1;
- 	unsigned int i2c_gate_open:1;
- 	const struct firmware *fw;
- };
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index c843d8f4a96a..6fe65f4bd912 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -20015,7 +20015,6 @@ static int drx39xxj_set_powerstate(struct dvb_frontend *fe, int enable)
- 		return 0;
- 	}
- 
--	state->powered_up = enable;
- 	return 0;
- }
- 
-@@ -20222,8 +20221,6 @@ static int drx39xxj_set_frontend(struct dvb_frontend *fe)
- 			result);
- 		return -EINVAL;
- 	}
--	state->powered_up = 1;
--	state->current_standard = standard;
- 
- 	/* set channel parameters */
- 	channel = def_channel;
--- 
-1.8.5.3
+Regards,
+
+	Hans
+
+> ---
+>  drivers/usb/gadget/uvc_queue.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/usb/gadget/uvc_queue.c b/drivers/usb/gadget/uvc_queue.c
+> index d4561ba..4611e9c 100644
+> --- a/drivers/usb/gadget/uvc_queue.c
+> +++ b/drivers/usb/gadget/uvc_queue.c
+> @@ -136,6 +136,8 @@ static int uvc_queue_init(struct uvc_video_queue *queue,
+>  	queue->queue.buf_struct_size = sizeof(struct uvc_buffer);
+>  	queue->queue.ops = &uvc_queue_qops;
+>  	queue->queue.mem_ops = &vb2_vmalloc_memops;
+> +	queue->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
+> +				     | V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
+>  	ret = vb2_queue_init(&queue->queue);
+>  	if (ret)
+>  		return ret;
+> 
 
