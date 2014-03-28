@@ -1,86 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta13.emeryville.ca.mail.comcast.net ([76.96.27.243]:37441
-	"EHLO qmta13.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750868AbaCUVFF (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37869 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751768AbaC1VqG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 17:05:05 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: m.chehab@samsung.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, shuahkhan@gmail.com
-Subject: [PATCH] media: em28xx-video - change em28xx_scaler_set() to use em28xx_reg_len()
-Date: Fri, 21 Mar 2014 15:04:50 -0600
-Message-Id: <1395435890-15100-1-git-send-email-shuah.kh@samsung.com>
+	Fri, 28 Mar 2014 17:46:06 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Olivier Langlois <olivier@trillion01.com>
+Cc: m.chehab@samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Stable <stable@vger.kernel.org>
+Subject: Re: [PATCH] [media] uvcvideo: Fix clock param realtime setting
+Date: Fri, 28 Mar 2014 22:48:03 +0100
+Message-ID: <2051908.tTlcvVaa3D@avalon>
+In-Reply-To: <1396042028.3383.34.camel@Wailaba2>
+References: <1395985358-17047-1-git-send-email-olivier@trillion01.com> <16236471.uFSjvbT2di@avalon> <1396042028.3383.34.camel@Wailaba2>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change em28xx_scaler_set() to use em28xx_reg_len() to get register
-lengths for EM28XX_R30_HSCALELOW and EM28XX_R32_VSCALELOW registers,
-instead of hard-coding the length. Moved em28xx_reg_len() definition
-for it to be visible to em28xx_scaler_set().
+Hi Olivier,
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |   29 ++++++++++++++++-------------
- 1 file changed, 16 insertions(+), 13 deletions(-)
+On Friday 28 March 2014 17:27:08 Olivier Langlois wrote:
+> On Fri, 2014-03-28 at 17:20 +0100, Laurent Pinchart wrote:
+> > On Friday 28 March 2014 01:42:38 Olivier Langlois wrote:
+> > > timestamps in v4l2 buffers returned to userspace are updated in
+> > > uvc_video_clock_update() which uses timestamps fetched from
+> > > uvc_video_clock_decode() by calling unconditionally ktime_get_ts().
+> > > 
+> > > Hence setting the module clock param to realtime have no effect
+> > > before this patch.
+> > > 
+> > > This has been tested with ffmpeg:
+> > > 
+> > > ffmpeg -y -f v4l2 -input_format yuyv422 -video_size 640x480 -framerate
+> > > 30 -i /dev/video0 \ -f alsa -acodec pcm_s16le -ar 16000 -ac 1 -i
+> > > default \
+> > > -c:v libx264 -preset ultrafast \
+> > > -c:a libfdk_aac \
+> > > out.mkv
+> > > 
+> > > and inspecting the v4l2 input starting timestamp.
+> > > 
+> > > Signed-off-by: Olivier Langlois <olivier@trillion01.com>
+> > > Cc: Stable <stable@vger.kernel.org>
+> > 
+> > Before applying this, I'm curious, do you have a use case for realtime
+> > time stamps ?
+> 
+> Yes. ffmpeg uses wall clock time to create timestamps for audio packets from
+> ALSA device.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 19af6b3..f8a91de 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -272,6 +272,18 @@ static void em28xx_capture_area_set(struct em28xx *dev, u8 hstart, u8 vstart,
- 	}
- }
+OK. I suppose I shouldn't drop support for the realtime clock like I wanted to 
+then :-)
  
-+static int em28xx_reg_len(int reg)
-+{
-+	switch (reg) {
-+	case EM28XX_R40_AC97LSB:
-+	case EM28XX_R30_HSCALELOW:
-+	case EM28XX_R32_VSCALELOW:
-+		return 2;
-+	default:
-+		return 1;
-+	}
-+}
-+
- static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
- {
- 	u8 mode;
-@@ -284,11 +296,13 @@ static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
- 
- 		buf[0] = h;
- 		buf[1] = h >> 8;
--		em28xx_write_regs(dev, EM28XX_R30_HSCALELOW, (char *)buf, 2);
-+		em28xx_write_regs(dev, EM28XX_R30_HSCALELOW, (char *)buf,
-+				  em28xx_reg_len(EM28XX_R30_HSCALELOW));
- 
- 		buf[0] = v;
- 		buf[1] = v >> 8;
--		em28xx_write_regs(dev, EM28XX_R32_VSCALELOW, (char *)buf, 2);
-+		em28xx_write_regs(dev, EM28XX_R32_VSCALELOW, (char *)buf,
-+				  em28xx_reg_len(EM28XX_R32_VSCALELOW));
- 		/* it seems that both H and V scalers must be active
- 		   to work correctly */
- 		mode = (h || v) ? 0x30 : 0x00;
-@@ -1583,17 +1597,6 @@ static int vidioc_g_chip_info(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int em28xx_reg_len(int reg)
--{
--	switch (reg) {
--	case EM28XX_R40_AC97LSB:
--	case EM28XX_R30_HSCALELOW:
--	case EM28XX_R32_VSCALELOW:
--		return 2;
--	default:
--		return 1;
--	}
--}
- 
- static int vidioc_g_register(struct file *file, void *priv,
- 			     struct v4l2_dbg_register *reg)
+> There is a bug in ffmpeg describing problems to synchronize audio and
+> the video from a v4l2 webcam.
+> 
+> https://trac.ffmpeg.org/ticket/692
+> 
+> To workaround this issue, ffmpeg devs added a switch to convert back
+> monotonic to realtime. From ffmpeg/libavdevice/v4l2.c:
+> 
+>   -ts                <int>        .D.... set type of timestamps for
+> grabbed frames (from 0 to 2) (default 0)
+>      default                      .D.... use timestamps from the kernel
+>      abs                          .D.... use absolute timestamps (wall
+> clock)
+>      mono2abs                     .D.... force conversion from monotonic
+> to absolute timestamps
+> 
+> If the v4l2 driver is able to send realtime ts, it is easier synchronize
+> in userspace if all inputs use the same clock.
+
+That might be a stupid question, but shouldn't ALSA use the monotonic clock 
+instead ?
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
