@@ -1,60 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753445AbaCJXOz (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4969 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750974AbaC1QLk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 19:14:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 45/48] adv7604: Specify the default input through platform data
-Date: Tue, 11 Mar 2014 00:15:56 +0100
-Message-Id: <1394493359-14115-46-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 28 Mar 2014 12:11:40 -0400
+Message-ID: <53359F26.9050004@xs4all.nl>
+Date: Fri, 28 Mar 2014 17:11:18 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+CC: linux-usb@vger.kernel.org, Fengguang Wu <fengguang.wu@intel.com>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+	Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+Subject: Re: [PATCH v2 2/3] usb: gadget: uvc: Set the V4L2 buffer field to
+ V4L2_FIELD_NONE
+References: <1396022568-6794-1-git-send-email-laurent.pinchart@ideasonboard.com> <1396022568-6794-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1396022568-6794-3-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-And set input routing when initializing the device.
+On 03/28/2014 05:02 PM, Laurent Pinchart wrote:
+> The UVC gadget driver doesn't support interlaced video but left the
+> buffer field uninitialized. Set it to V4L2_FIELD_NONE.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/adv7604.c | 7 +++++++
- include/media/adv7604.h     | 2 ++
- 2 files changed, 9 insertions(+)
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 7f70c6f..cce140c 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2404,6 +2404,13 @@ static int adv7604_core_init(struct v4l2_subdev *sd)
- 
- 	disable_input(sd);
- 
-+	if (pdata->default_input >= 0 &&
-+	    pdata->default_input < state->source_pad) {
-+		state->selected_input = pdata->default_input;
-+		select_input(sd);
-+		enable_input(sd);
-+	}
-+
- 	/* power */
- 	io_write(sd, 0x0c, 0x42);   /* Power up part and power down VDP */
- 	io_write(sd, 0x0b, 0x44);   /* Power down ESDP block */
-diff --git a/include/media/adv7604.h b/include/media/adv7604.h
-index a1798d6..6d69207 100644
---- a/include/media/adv7604.h
-+++ b/include/media/adv7604.h
-@@ -90,6 +90,8 @@ struct adv7604_platform_data {
- 	/* DIS_CABLE_DET_RST: 1 if the 5V pins are unused and unconnected */
- 	unsigned disable_cable_det_rst:1;
- 
-+	int default_input;
-+
- 	/* Analog input muxing mode */
- 	enum adv7604_ain_sel ain_sel;
- 
--- 
-1.8.3.2
+Regards,
+
+	Hans
+
+> ---
+>  drivers/usb/gadget/uvc_queue.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/usb/gadget/uvc_queue.c b/drivers/usb/gadget/uvc_queue.c
+> index 9ac4ffe1..305eb49 100644
+> --- a/drivers/usb/gadget/uvc_queue.c
+> +++ b/drivers/usb/gadget/uvc_queue.c
+> @@ -380,6 +380,7 @@ static struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
+>  	else
+>  		nextbuf = NULL;
+>  
+> +	buf->buf.v4l2_buf.field = V4L2_FIELD_NONE;
+>  	buf->buf.v4l2_buf.sequence = queue->sequence++;
+>  	v4l2_get_timestamp(&buf->buf.v4l2_buf.timestamp);
+>  
+> 
 
