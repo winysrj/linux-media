@@ -1,71 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:64906 "EHLO
-	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752513AbaCYKr2 (ORCPT
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:59436 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750910AbaC2E4Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Mar 2014 06:47:28 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: <g.liakhovetski@gmx.de>
-CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>,
-	<nicolas.ferre@atmel.com>, <linux-arm-kernel@lists.infradead.org>,
-	<laurent.pinchart@ideasonboard.com>, <josh.wu@atmel.com>
-Subject: [PATCH v2 1/3] [media] atmel-isi: add v4l2 async probe support
-Date: Tue, 25 Mar 2014 18:41:26 +0800
-Message-ID: <1395744087-5753-2-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1395744087-5753-1-git-send-email-josh.wu@atmel.com>
-References: <1395744087-5753-1-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Sat, 29 Mar 2014 00:56:25 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Lad Prabhakar <prabhakar.csengg@gmail.com>,
+	devel@driverdev.osuosl.org
+Subject: [PATCH] staging: media: davinci_vpfe: fix checkpatch warning
+Date: Sat, 29 Mar 2014 10:26:13 +0530
+Message-Id: <1396068973-7968-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+
+This patch fixes following checkpatch warning,
+media/davinci_vpfe/dm365_ipipe.c:1271: WARNING: Missing a blank line after declarations
+media/davinci_vpfe/dm365_ipipe.c:1313: WARNING: Missing a blank line after declarations
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
-v1 --> v2:
- no change.
+ drivers/staging/media/davinci_vpfe/dm365_ipipe.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
- drivers/media/platform/soc_camera/atmel-isi.c |    5 +++++
- include/media/atmel-isi.h                     |    4 ++++
- 2 files changed, 9 insertions(+)
-
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index a1a95fe..9d977c5 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -989,6 +989,11 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	soc_host->v4l2_dev.dev	= &pdev->dev;
- 	soc_host->nr		= pdev->id;
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+index b7044a3..bdc7f00 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+@@ -1268,6 +1268,7 @@ static int ipipe_s_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
  
-+	if (isi->pdata.asd_sizes) {
-+		soc_host->asd = isi->pdata.asd;
-+		soc_host->asd_sizes = isi->pdata.asd_sizes;
-+	}
+ 	for (i = 0; i < ARRAY_SIZE(ipipe_modules); i++) {
+ 		unsigned int bit = 1 << i;
 +
- 	ret = soc_camera_host_register(soc_host);
- 	if (ret) {
- 		dev_err(&pdev->dev, "Unable to register soc camera host\n");
-diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
-index 2b02347..c2e5703 100644
---- a/include/media/atmel-isi.h
-+++ b/include/media/atmel-isi.h
-@@ -106,6 +106,8 @@
- #define ISI_DATAWIDTH_8				0x01
- #define ISI_DATAWIDTH_10			0x02
+ 		if (cfg->flag & bit) {
+ 			const struct ipipe_module_if *module_if =
+ 						&ipipe_modules[i];
+@@ -1310,6 +1311,7 @@ static int ipipe_g_config(struct v4l2_subdev *sd, struct vpfe_ipipe_config *cfg)
  
-+struct v4l2_async_subdev;
+ 	for (i = 1; i < ARRAY_SIZE(ipipe_modules); i++) {
+ 		unsigned int bit = 1 << i;
 +
- struct isi_platform_data {
- 	u8 has_emb_sync;
- 	u8 emb_crc_sync;
-@@ -118,6 +120,8 @@ struct isi_platform_data {
- 	u32 frate;
- 	/* Using for ISI_MCK */
- 	u32 mck_hz;
-+	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
-+	int *asd_sizes;		/* 0-terminated array of asd group sizes */
- };
- 
- #endif /* __ATMEL_ISI_H__ */
+ 		if (cfg->flag & bit) {
+ 			const struct ipipe_module_if *module_if =
+ 						&ipipe_modules[i];
 -- 
 1.7.9.5
 
