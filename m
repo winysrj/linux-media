@@ -1,71 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:51566 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753790AbaCXTct (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2647 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751864AbaC2Dau (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Mar 2014 15:32:49 -0400
-Received: by mail-ee0-f48.google.com with SMTP id b57so4804789eek.35
-        for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 12:32:48 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 00/19] em28xx: clean up the main device struct and move  sub-module specific data to its own data structs
-Date: Mon, 24 Mar 2014 20:33:06 +0100
-Message-Id: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Fri, 28 Mar 2014 23:30:50 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2T3UkBv099146
+	for <linux-media@vger.kernel.org>; Sat, 29 Mar 2014 04:30:48 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 9159D2A03F2
+	for <linux-media@vger.kernel.org>; Sat, 29 Mar 2014 04:30:44 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140329033044.9159D2A03F2@tschai.lan>
+Date: Sat, 29 Mar 2014 04:30:44 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series cleans up the main device struct of the em28xx driver.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Most of the patches (patches 3-16) are about moving the em28xx-v4l specific data
-to it's own dynamically allocated data structure.
-Patch 19 moves two em28xx-alsa specific fields to the em28xx_audio struct.
-Patches 17 and 18 remove two fields which aren't needed.
+Results of the daily build of media_tree:
 
+date:		Sat Mar 29 04:01:37 CET 2014
+git branch:	test
+git hash:	3ec40dcfb413214b2874aec858870502b61c2202
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0
+host hardware:	x86_64
+host os:	3.13-7.slh.1-amd64
 
-Frank Schäfer (19):
-  em28xx: move sub-module data structs to a common place in the main
-    struct
-  em28xx-video: simplify usage of the pointer to struct
-    v4l2_ctrl_handler in em28xx_v4l2_init()
-  em28xx: start moving em28xx-v4l specific data to its own struct
-  em28xx: move struct v4l2_ctrl_handler ctrl_handler from struct em28xx
-    to struct v4l2
-  em28xx: move struct v4l2_clk *clk from struct em28xx to struct v4l2
-  em28xx: move video_device structs from struct em28xx to struct v4l2
-  em28xx: move videobuf2 related data from struct em28xx to struct v4l2
-  em28xx: move v4l2 frame resolutions and scale data from struct em28xx
-    to struct v4l2
-  em28xx: move vinmode and vinctrl data from struct em28xx to struct
-    v4l2
-  em28xx: move TV norm from struct em28xx to struct v4l2
-  em28xx: move struct em28xx_fmt *format from struct em28xx to struct
-    v4l2
-  em28xx: move progressive/interlaced fields from struct em28xx to
-    struct v4l2
-  em28xx: move sensor parameter fields from struct em28xx to struct v4l2
-  em28xx: move capture state tracking fields from struct em28xx to
-    struct v4l2
-  em28xx: move v4l2 user counting fields from struct em28xx to struct
-    v4l2
-  em28xx: move tuner frequency field from struct em28xx to struct v4l2
-  em28xx: remove field tda9887_conf from struct em28xx
-  em28xx: remove field tuner_addr from struct em28xx
-  em28xx: move fields wq_trigger and streaming_started from struct
-    em28xx to struct em28xx_audio
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: ERRORS
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: ERRORS
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12-i686: ERRORS
+linux-3.13-i686: ERRORS
+linux-3.14-rc1-i686: ERRORS
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12-x86_64: ERRORS
+linux-3.13-x86_64: ERRORS
+linux-3.14-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0
+sparse: ERRORS
 
- drivers/media/usb/em28xx/em28xx-audio.c  |  39 +-
- drivers/media/usb/em28xx/em28xx-camera.c |  51 +--
- drivers/media/usb/em28xx/em28xx-cards.c  |   9 -
- drivers/media/usb/em28xx/em28xx-vbi.c    |  10 +-
- drivers/media/usb/em28xx/em28xx-video.c  | 592 +++++++++++++++++--------------
- drivers/media/usb/em28xx/em28xx.h        | 120 ++++---
- 6 files changed, 452 insertions(+), 369 deletions(-)
+Detailed results are available here:
 
--- 
-1.8.4.5
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
