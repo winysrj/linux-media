@@ -1,35 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1043 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753439AbaCMVp0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 17:45:26 -0400
-Message-ID: <532226E8.4040608@xs4all.nl>
-Date: Thu, 13 Mar 2014 22:45:12 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from hardeman.nu ([95.142.160.32]:38324 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751956AbaC2QOa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Mar 2014 12:14:30 -0400
+Date: Sat, 29 Mar 2014 17:14:28 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: James Hogan <james.hogan@imgtec.com>
+Cc: linux-media@vger.kernel.org, m.chehab@samsung.com
+Subject: Re: [PATCH] rc-core: do not change 32bit NEC scancode format for now
+Message-ID: <20140329161428.GA13387@hardeman.nu>
+References: <20140327210037.20406.93136.stgit@zeus.muc.hardeman.nu>
+ <7983411.lVWEDlBWc6@radagast>
+ <20140328000856.GB22491@hardeman.nu>
+ <22162617.bKffkdqYH7@radagast>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH v3 36/48] adv7604: Make output format configurable through
- pad format operations
-References: <1394493359-14115-37-git-send-email-laurent.pinchart@ideasonboard.com> <1394550634-25242-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394550634-25242-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <22162617.bKffkdqYH7@radagast>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/11/2014 04:10 PM, Laurent Pinchart wrote:
-> Replace the dummy video format operations by pad format operations that
-> configure the output format.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+On Fri, Mar 28, 2014 at 11:17:09PM +0000, James Hogan wrote:
+>On Friday 28 March 2014 01:08:56 David Härdeman wrote:
+>> drivers/media/usb/dvb-usb-v2/az6007.c
+>> drivers/media/usb/dvb-usb-v2/af9035.c
+>> drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>> drivers/media/usb/dvb-usb-v2/af9015.c
+>> drivers/media/usb/em28xx/em28xx-input.c
+>
+>Note, it appears none of these do any bit reversing for the 32bit case 
+>compared to 16/24 bit, so they're already different to the NEC32 scancode 
+>encoding that the raw nec decoder and tivo keymap were using, which used a 
+>different bitorder (!!) between the 32-bit and the 24/16-bit cases.
 
-My apologies, I completely forgot to test this today. It's going to be Tuesday,
-I'm afraid.
+I know, and none of those drivers have an in-kernel NEC32 keymap, so if
+anyone is using them in that manner...it's with a homebrew keymap.
 
-Sorry,
+>> I'd rather show you my complete proposal first before doing something
+>> radical with your driver. But it was a good reminder that I need to keep
+>> the NEC32 parsing in your driver in mind as well.
+>
+>Okay no problem. I had assumed you were aiming for a short term fix to prevent 
+>the encoding change hitting mainline or an actual release (v3.15).
 
-	Hans
+I am aiming for a fix within that time frame...but I hope that it can be
+more than a short term one :)
+
+Patches are on their way right now...
+
+Regards,
+David
+
