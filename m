@@ -1,246 +1,562 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:33871 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753545AbaCUIhf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 04:37:35 -0400
-Received: by mail-pa0-f47.google.com with SMTP id lj1so2109405pab.34
-        for <linux-media@vger.kernel.org>; Fri, 21 Mar 2014 01:37:34 -0700 (PDT)
-From: Arun Kumar K <arun.kk@samsung.com>
+Received: from hardeman.nu ([95.142.160.32]:38321 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751854AbaC2QLn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Mar 2014 12:11:43 -0400
+Subject: [PATCH 11/11] [RFC] rc-core: don't throw away protocol information
 To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com, posciak@chromium.org,
-	arunkk.samsung@gmail.com
-Subject: [PATCH 2/3] [media] s5p-mfc: Extract open/close MFC instance commands.
-Date: Fri, 21 Mar 2014 14:07:14 +0530
-Message-Id: <1395391035-27349-3-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1395391035-27349-1-git-send-email-arun.kk@samsung.com>
-References: <1395391035-27349-1-git-send-email-arun.kk@samsung.com>
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: james.hogan@imgtec.com, m.chehab@samsung.com
+Date: Sat, 29 Mar 2014 17:11:41 +0100
+Message-ID: <20140329161141.13234.45881.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140329160705.13234.60349.stgit@zeus.muc.hardeman.nu>
+References: <20140329160705.13234.60349.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pawel Osciak <posciak@chromium.org>
+Setting and getting keycodes in the input subsystem used to be done via
+the EVIOC[GS]KEYCODE ioctl and "unsigned int[2]" (one int for scancode
+and one for the keycode).
 
-This is in preparation for a new flow to fix issues with streamon, which
-should not be allocating buffer memory.
+The interface has now been extended to use the EVIOC[GS]KEYCODE_V2 ioctl
+which uses the following struct:
 
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+struct input_keymap_entry {
+	__u8  flags;
+	__u8  len;
+	__u16 index;
+	__u32 keycode;
+	__u8  scancode[32];
+};
+
+(scancode can of course be even bigger, thanks to the len member).
+
+This patch changes how the "input_keymap_entry" struct is interpreted
+by rc-core by casting it to "rc_keymap_entry":
+
+struct rc_scancode {
+	__u16 protocol;
+	__u16 reserved[3];
+	__u64 scancode;
+}
+
+struct rc_keymap_entry {
+	__u8  flags;
+	__u8  len;
+	__u16 index;
+	__u32 keycode;
+	union {
+		struct rc_scancode rc;
+		__u8 raw[32];
+	};
+};
+
+The u64 scancode member is large enough for all current protocols and it
+would be possible to extend it in the future should it be necessary for
+some exotic protocol.
+
+The main advantage with this change is that the protocol is made explicit,
+which means that we're not throwing away data (the protocol type) and that
+it'll be easier to support multiple protocols with one decoder (think rc5
+and rc5-streamzap).
+
+Heuristics are also added to hopefully do the right thing with older
+ioctls in order to preserve backwards compatibility.
+
+Further patches will also add the ability to communicate the protocol to
+userspace.
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c      |   19 +-------
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c |   61 +++++++++++++++++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h |    3 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c  |   28 +++---------
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c  |   18 ++------
- 5 files changed, 74 insertions(+), 55 deletions(-)
+ drivers/media/rc/rc-main.c |  184 ++++++++++++++++++++++++++++++++------------
+ include/media/rc-core.h    |   20 +++++
+ include/media/rc-map.h     |    8 +-
+ 3 files changed, 155 insertions(+), 57 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index d636789..04030f5 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -872,24 +872,7 @@ static int s5p_mfc_release(struct file *file)
- 	 * return instance and free resources */
- 	if (ctx->inst_no != MFC_NO_INSTANCE_SET) {
- 		mfc_debug(2, "Has to free instance\n");
--		ctx->state = MFCINST_RETURN_INST;
--		set_work_bit_irqsave(ctx);
--		s5p_mfc_clean_ctx_int_flags(ctx);
--		s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
--		/* Wait until instance is returned or timeout occurred */
--		if (s5p_mfc_wait_for_done_ctx
--		    (ctx, S5P_MFC_R2H_CMD_CLOSE_INSTANCE_RET, 0)) {
--			s5p_mfc_clock_off();
--			mfc_err("Err returning instance\n");
--		}
--		mfc_debug(2, "After free instance\n");
--		/* Free resources */
--		s5p_mfc_hw_call(dev->mfc_ops, release_codec_buffers, ctx);
--		s5p_mfc_hw_call(dev->mfc_ops, release_instance_buffer, ctx);
--		if (ctx->type == MFCINST_DECODER)
--			s5p_mfc_hw_call(dev->mfc_ops, release_dec_desc_buffer,
--					ctx);
--
-+		s5p_mfc_close_mfc_inst(dev, ctx);
- 		ctx->inst_no = MFC_NO_INSTANCE_SET;
- 	}
- 	/* hardware locking scheme */
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-index ba1d302..ccbfcb3 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-@@ -402,3 +402,64 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
- 	return 0;
- }
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 59bc44f..cd7fd27 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -102,7 +102,7 @@ EXPORT_SYMBOL_GPL(rc_map_unregister);
  
-+int s5p_mfc_open_mfc_inst(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx)
-+{
-+	int ret = 0;
-+
-+	ret = s5p_mfc_hw_call(dev->mfc_ops, alloc_instance_buffer, ctx);
-+	if (ret) {
-+		mfc_err("Failed allocating instance buffer\n");
-+		goto err;
-+	}
-+
-+	if (ctx->type == MFCINST_DECODER) {
-+		ret = s5p_mfc_hw_call(dev->mfc_ops,
-+					alloc_dec_temp_buffers, ctx);
-+		if (ret) {
-+			mfc_err("Failed allocating temporary buffers\n");
-+			goto err_free_inst_buf;
-+		}
-+	}
-+
-+	set_work_bit_irqsave(ctx);
-+	s5p_mfc_clean_ctx_int_flags(ctx);
-+	s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
-+	if (s5p_mfc_wait_for_done_ctx(ctx,
-+		S5P_MFC_R2H_CMD_OPEN_INSTANCE_RET, 0)) {
-+		/* Error or timeout */
-+		mfc_err("Error getting instance from hardware\n");
-+		ret = -EIO;
-+		goto err_free_desc_buf;
-+	}
-+
-+	mfc_debug(2, "Got instance number: %d\n", ctx->inst_no);
-+	return ret;
-+
-+err_free_desc_buf:
-+	if (ctx->type == MFCINST_DECODER)
-+		s5p_mfc_hw_call(dev->mfc_ops, release_dec_desc_buffer, ctx);
-+err_free_inst_buf:
-+	s5p_mfc_hw_call(dev->mfc_ops, release_instance_buffer, ctx);
-+err:
-+	return ret;
-+}
-+
-+void s5p_mfc_close_mfc_inst(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx)
-+{
-+	ctx->state = MFCINST_RETURN_INST;
-+	set_work_bit_irqsave(ctx);
-+	s5p_mfc_clean_ctx_int_flags(ctx);
-+	s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
-+	/* Wait until instance is returned or timeout occurred */
-+	if (s5p_mfc_wait_for_done_ctx(ctx,
-+				S5P_MFC_R2H_CMD_CLOSE_INSTANCE_RET, 0))
-+		mfc_err("Err returning instance\n");
-+
-+	/* Free resources */
-+	s5p_mfc_hw_call(dev->mfc_ops, release_codec_buffers, ctx);
-+	s5p_mfc_hw_call(dev->mfc_ops, release_instance_buffer, ctx);
-+	if (ctx->type == MFCINST_DECODER)
-+		s5p_mfc_hw_call(dev->mfc_ops, release_dec_desc_buffer, ctx);
-+
-+	ctx->state = MFCINST_FREE;
-+}
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h
-index 6a9b6f8..8e5df04 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h
-@@ -28,4 +28,7 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev);
  
- int s5p_mfc_reset(struct s5p_mfc_dev *dev);
+ static struct rc_map_table empty[] = {
+-	{ 0x2a, KEY_COFFEE },
++	{ RC_TYPE_OTHER, 0x2a, KEY_COFFEE },
+ };
  
-+int s5p_mfc_open_mfc_inst(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx);
-+void s5p_mfc_close_mfc_inst(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx);
-+
- #endif /* S5P_MFC_CTRL_H */
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 1ff82f2..efc78ae 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -25,6 +25,7 @@
- #include <media/v4l2-event.h>
- #include <media/videobuf2-core.h>
- #include "s5p_mfc_common.h"
-+#include "s5p_mfc_ctrl.h"
- #include "s5p_mfc_debug.h"
- #include "s5p_mfc_dec.h"
- #include "s5p_mfc_intr.h"
-@@ -674,36 +675,19 @@ static int vidioc_streamon(struct file *file, void *priv,
+ static struct rc_map_list empty_map = {
+@@ -118,7 +118,6 @@ static struct rc_map_list empty_map = {
+  * ir_create_table() - initializes a scancode table
+  * @rc_map:	the rc_map to initialize
+  * @name:	name to assign to the table
+- * @rc_type:	ir type to assign to the new table
+  * @size:	initial size of the table
+  * @return:	zero on success or a negative error code
+  *
+@@ -126,10 +125,9 @@ static struct rc_map_list empty_map = {
+  * memory to hold at least the specified number of elements.
+  */
+ static int ir_create_table(struct rc_map *rc_map,
+-			   const char *name, u64 rc_type, size_t size)
++			   const char *name, size_t size)
+ {
+ 	rc_map->name = name;
+-	rc_map->rc_type = rc_type;
+ 	rc_map->alloc = roundup_pow_of_two(size * sizeof(struct rc_map_table));
+ 	rc_map->size = rc_map->alloc / sizeof(struct rc_map_table);
+ 	rc_map->scan = kmalloc(rc_map->alloc, GFP_KERNEL);
+@@ -224,16 +222,20 @@ static unsigned int ir_update_mapping(struct rc_dev *dev,
  
- 	mfc_debug_enter();
- 	if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
--
- 		if (ctx->state == MFCINST_INIT) {
- 			ctx->dst_bufs_cnt = 0;
- 			ctx->src_bufs_cnt = 0;
- 			ctx->capture_state = QUEUE_FREE;
- 			ctx->output_state = QUEUE_FREE;
--			s5p_mfc_hw_call(dev->mfc_ops, alloc_instance_buffer,
--					ctx);
--			s5p_mfc_hw_call(dev->mfc_ops, alloc_dec_temp_buffers,
--					ctx);
--			set_work_bit_irqsave(ctx);
--			s5p_mfc_clean_ctx_int_flags(ctx);
--			s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
--
--			if (s5p_mfc_wait_for_done_ctx(ctx,
--				S5P_MFC_R2H_CMD_OPEN_INSTANCE_RET, 0)) {
--				/* Error or timeout */
--				mfc_err("Error getting instance from hardware\n");
--				s5p_mfc_hw_call(dev->mfc_ops,
--						release_instance_buffer, ctx);
--				s5p_mfc_hw_call(dev->mfc_ops,
--						release_dec_desc_buffer, ctx);
--				return -EIO;
--			}
--			mfc_debug(2, "Got instance number: %d\n", ctx->inst_no);
-+			ret = s5p_mfc_open_mfc_inst(dev, ctx);
-+			if (ret)
-+				return ret;
- 		}
- 		ret = vb2_streamon(&ctx->vq_src, type);
--		}
--	else if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+	} else if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
- 		ret = vb2_streamon(&ctx->vq_dst, type);
-+	}
- 	mfc_debug_leave();
- 	return ret;
- }
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index a67913e..f8c7053 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -26,6 +26,7 @@
- #include <media/v4l2-ctrls.h>
- #include <media/videobuf2-core.h>
- #include "s5p_mfc_common.h"
-+#include "s5p_mfc_ctrl.h"
- #include "s5p_mfc_debug.h"
- #include "s5p_mfc_enc.h"
- #include "s5p_mfc_intr.h"
-@@ -1112,20 +1113,7 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 		pix_fmt_mp->plane_fmt[0].bytesperline = 0;
- 		ctx->dst_bufs_cnt = 0;
- 		ctx->capture_state = QUEUE_FREE;
--		s5p_mfc_hw_call(dev->mfc_ops, alloc_instance_buffer, ctx);
--		set_work_bit_irqsave(ctx);
--		s5p_mfc_clean_ctx_int_flags(ctx);
--		s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
--		if (s5p_mfc_wait_for_done_ctx(ctx, \
--				S5P_MFC_R2H_CMD_OPEN_INSTANCE_RET, 1)) {
--				/* Error or timeout */
--			mfc_err("Error getting instance from hardware\n");
--			s5p_mfc_hw_call(dev->mfc_ops, release_instance_buffer,
--					ctx);
--			ret = -EIO;
--			goto out;
--		}
--		mfc_debug(2, "Got instance number: %d\n", ctx->inst_no);
-+		ret = s5p_mfc_open_mfc_inst(dev, ctx);
- 	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
- 		/* src_fmt is validated by call to vidioc_try_fmt */
- 		ctx->src_fmt = find_format(f, MFC_FMT_RAW);
-@@ -1146,7 +1134,7 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 		ctx->output_state = QUEUE_FREE;
+ 	/* Did the user wish to remove the mapping? */
+ 	if (new_keycode == KEY_RESERVED || new_keycode == KEY_UNKNOWN) {
+-		IR_dprintk(1, "#%d: Deleting scan 0x%04x\n",
+-			   index, rc_map->scan[index].scancode);
++		IR_dprintk(1, "#%d: Deleting proto 0x%04x, scan 0x%08llx\n",
++			   index, rc_map->scan[index].protocol,
++			   (unsigned long long)rc_map->scan[index].scancode);
+ 		rc_map->len--;
+ 		memmove(&rc_map->scan[index], &rc_map->scan[index+ 1],
+ 			(rc_map->len - index) * sizeof(struct rc_map_table));
  	} else {
- 		mfc_err("invalid buf type\n");
--		return -EINVAL;
-+		ret = -EINVAL;
+-		IR_dprintk(1, "#%d: %s scan 0x%04x with key 0x%04x\n",
++		IR_dprintk(1, "#%d: %s proto 0x%04x, scan 0x%08llx "
++			   "with key 0x%04x\n",
+ 			   index,
+ 			   old_keycode == KEY_RESERVED ? "New" : "Replacing",
+-			   rc_map->scan[index].scancode, new_keycode);
++			   rc_map->scan[index].protocol,
++			   (unsigned long long)rc_map->scan[index].scancode,
++			   new_keycode);
+ 		rc_map->scan[index].keycode = new_keycode;
+ 		__set_bit(new_keycode, dev->input_dev->keybit);
  	}
- out:
- 	mfc_debug_leave();
--- 
-1.7.9.5
+@@ -260,9 +262,9 @@ static unsigned int ir_update_mapping(struct rc_dev *dev,
+  * ir_establish_scancode() - set a keycode in the scancode->keycode table
+  * @dev:	the struct rc_dev device descriptor
+  * @rc_map:	scancode table to be searched
+- * @scancode:	the desired scancode
+- * @resize:	controls whether we allowed to resize the table to
+- *		accommodate not yet present scancodes
++ * @entry:	the entry to be added to the table
++ * @resize:	controls whether we are allowed to resize the table to
++ *		accomodate not yet present scancodes
+  * @return:	index of the mapping containing scancode in question
+  *		or -1U in case of failure.
+  *
+@@ -272,7 +274,7 @@ static unsigned int ir_update_mapping(struct rc_dev *dev,
+  */
+ static unsigned int ir_establish_scancode(struct rc_dev *dev,
+ 					  struct rc_map *rc_map,
+-					  unsigned int scancode,
++					  struct rc_map_table *entry,
+ 					  bool resize)
+ {
+ 	unsigned int i;
+@@ -286,16 +288,27 @@ static unsigned int ir_establish_scancode(struct rc_dev *dev,
+ 	 * indicate the valid bits of the scancodes.
+ 	 */
+ 	if (dev->scanmask)
+-		scancode &= dev->scanmask;
++		entry->scancode &= dev->scanmask;
+ 
+-	/* First check if we already have a mapping for this ir command */
++	/*
++	 * First check if we already have a mapping for this command.
++	 * Note that the keytable is sorted first on protocol and second
++	 * on scancode (lowest to highest).
++	 */
+ 	for (i = 0; i < rc_map->len; i++) {
+-		if (rc_map->scan[i].scancode == scancode)
+-			return i;
++		if (rc_map->scan[i].protocol < entry->protocol)
++			continue;
++
++		if (rc_map->scan[i].protocol > entry->protocol)
++			break;
++
++		if (rc_map->scan[i].scancode < entry->scancode)
++			continue;
+ 
+-		/* Keytable is sorted from lowest to highest scancode */
+-		if (rc_map->scan[i].scancode >= scancode)
++		if (rc_map->scan[i].scancode > entry->scancode)
+ 			break;
++
++		return i;
+ 	}
+ 
+ 	/* No previous mapping found, we might need to grow the table */
+@@ -308,7 +321,8 @@ static unsigned int ir_establish_scancode(struct rc_dev *dev,
+ 	if (i < rc_map->len)
+ 		memmove(&rc_map->scan[i + 1], &rc_map->scan[i],
+ 			(rc_map->len - i) * sizeof(struct rc_map_table));
+-	rc_map->scan[i].scancode = scancode;
++	rc_map->scan[i].scancode = entry->scancode;
++	rc_map->scan[i].protocol = entry->protocol;
+ 	rc_map->scan[i].keycode = KEY_RESERVED;
+ 	rc_map->len++;
+ 
+@@ -330,8 +344,10 @@ static inline enum rc_type guess_protocol(struct rc_dev *rdev)
+ 		return rc_bitmap_to_type(rdev->enabled_protocols[RC_FILTER_NORMAL]);
+ 	else if (hweight64(rdev->allowed_protocols[RC_FILTER_NORMAL]) == 1)
+ 		return rc_bitmap_to_type(rdev->allowed_protocols[RC_FILTER_NORMAL]);
++	else if (rc_map->len > 0)
++		return rc_map->scan[0].protocol;
+ 	else
+-		return rc_map->rc_type;
++		return RC_TYPE_OTHER;
+ }
+ 
+ /**
+@@ -374,10 +390,12 @@ static int ir_setkeycode(struct input_dev *idev,
+ 	struct rc_dev *rdev = input_get_drvdata(idev);
+ 	struct rc_map *rc_map = &rdev->rc_map;
+ 	unsigned int index;
+-	unsigned int scancode;
++	struct rc_map_table entry;
+ 	int retval = 0;
+ 	unsigned long flags;
+ 
++	entry.keycode = ke->keycode;
++
+ 	spin_lock_irqsave(&rc_map->lock, flags);
+ 
+ 	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
+@@ -386,19 +404,42 @@ static int ir_setkeycode(struct input_dev *idev,
+ 			retval = -EINVAL;
+ 			goto out;
+ 		}
+-	} else {
++	} else if (ke->len == sizeof(int)) {
++		/* Legacy EVIOCSKEYCODE ioctl */
++		u32 scancode;
+ 		retval = input_scancode_to_scalar(ke, &scancode);
+ 		if (retval)
+ 			goto out;
+ 
+-		if (guess_protocol(rdev) == RC_TYPE_NEC)
+-			scancode = to_nec32(scancode);
++		entry.scancode = scancode;
++		entry.protocol = guess_protocol(rdev);
++		if (entry.protocol == RC_TYPE_NEC)
++			entry.scancode = to_nec32(scancode);
++
++		index = ir_establish_scancode(rdev, rc_map, &entry, true);
++		if (index >= rc_map->len) {
++			retval = -ENOMEM;
++			goto out;
++		}
++	} else if (ke->len == sizeof(struct rc_scancode)) {
++		/* New EVIOCSKEYCODE_V2 ioctl */
++		const struct rc_keymap_entry *rke = (struct rc_keymap_entry *)ke;
++		entry.protocol = rke->rc.protocol;
++		entry.scancode = rke->rc.scancode;
+ 
+-		index = ir_establish_scancode(rdev, rc_map, scancode, true);
++		if (rke->rc.reserved[0] || rke->rc.reserved[1] || rke->rc.reserved[2]) {
++			retval = -EINVAL;
++			goto out;
++		}
++
++		index = ir_establish_scancode(rdev, rc_map, &entry, true);
+ 		if (index >= rc_map->len) {
+ 			retval = -ENOMEM;
+ 			goto out;
+ 		}
++	} else {
++		retval = -EINVAL;
++		goto out;
+ 	}
+ 
+ 	*old_keycode = ir_update_mapping(rdev, rc_map, index, ke->keycode);
+@@ -421,11 +462,11 @@ static int ir_setkeytable(struct rc_dev *dev,
+ 			  const struct rc_map *from)
+ {
+ 	struct rc_map *rc_map = &dev->rc_map;
++	struct rc_map_table entry;
+ 	unsigned int i, index;
+ 	int rc;
+ 
+-	rc = ir_create_table(rc_map, from->name,
+-			     from->rc_type, from->size);
++	rc = ir_create_table(rc_map, from->name, from->size);
+ 	if (rc)
+ 		return rc;
+ 
+@@ -433,18 +474,19 @@ static int ir_setkeytable(struct rc_dev *dev,
+ 		   rc_map->size, rc_map->alloc);
+ 
+ 	for (i = 0; i < from->size; i++) {
+-		index = ir_establish_scancode(dev, rc_map,
+-					      from->rc_type == RC_TYPE_NEC ?
+-					      to_nec32(from->scan[i].scancode) :
+-					      from->scan[i].scancode,
+-					      false);
++		if (from->rc_type == RC_TYPE_NEC)
++			entry.scancode = to_nec32(from->scan[i].scancode);
++		else
++			entry.scancode = from->scan[i].scancode;
++
++		entry.protocol = from->rc_type;
++		index = ir_establish_scancode(dev, rc_map, &entry, false);
+ 		if (index >= rc_map->len) {
+ 			rc = -ENOMEM;
+ 			break;
+ 		}
+ 
+-		ir_update_mapping(dev, rc_map, index,
+-				  from->scan[i].keycode);
++		ir_update_mapping(dev, rc_map, index, from->scan[i].keycode);
+ 	}
+ 
+ 	if (rc)
+@@ -456,6 +498,7 @@ static int ir_setkeytable(struct rc_dev *dev,
+ /**
+  * ir_lookup_by_scancode() - locate mapping by scancode
+  * @rc_map:	the struct rc_map to search
++ * @protocol:	protocol to look for in the table
+  * @scancode:	scancode to look for in the table
+  * @return:	index in the table, -1U if not found
+  *
+@@ -463,17 +506,24 @@ static int ir_setkeytable(struct rc_dev *dev,
+  * given scancode.
+  */
+ static unsigned int ir_lookup_by_scancode(const struct rc_map *rc_map,
+-					  unsigned int scancode)
++					  u16 protocol, u64 scancode)
+ {
+ 	int start = 0;
+ 	int end = rc_map->len - 1;
+ 	int mid;
++	struct rc_map_table *m;
+ 
+ 	while (start <= end) {
+ 		mid = (start + end) / 2;
+-		if (rc_map->scan[mid].scancode < scancode)
++		m = &rc_map->scan[mid];
++
++		if (m->protocol < protocol)
+ 			start = mid + 1;
+-		else if (rc_map->scan[mid].scancode > scancode)
++		else if (m->protocol > protocol)
++			end = mid - 1;
++		else if (m->scancode < scancode)
++			start = mid + 1;
++		else if (m->scancode > scancode)
+ 			end = mid - 1;
+ 		else
+ 			return mid;
+@@ -494,35 +544,60 @@ static unsigned int ir_lookup_by_scancode(const struct rc_map *rc_map,
+ static int ir_getkeycode(struct input_dev *idev,
+ 			 struct input_keymap_entry *ke)
+ {
++	struct rc_keymap_entry *rke = (struct rc_keymap_entry *)ke;
+ 	struct rc_dev *rdev = input_get_drvdata(idev);
+ 	struct rc_map *rc_map = &rdev->rc_map;
+ 	struct rc_map_table *entry;
+ 	unsigned long flags;
+ 	unsigned int index;
+-	unsigned int scancode;
+ 	int retval;
+ 
+ 	spin_lock_irqsave(&rc_map->lock, flags);
+ 
+ 	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
+ 		index = ke->index;
+-	} else {
++	} else if (ke->len == sizeof(int)) {
++		/* Legacy EVIOCGKEYCODE ioctl */
++		u32 scancode;
++		u16 protocol;
++
+ 		retval = input_scancode_to_scalar(ke, &scancode);
+ 		if (retval)
+ 			goto out;
+ 
+-		if (guess_protocol(rdev) == RC_TYPE_NEC)
++		protocol = guess_protocol(rdev);
++		if (protocol == RC_TYPE_NEC)
+ 			scancode = to_nec32(scancode);
+-		index = ir_lookup_by_scancode(rc_map, scancode);
++
++		index = ir_lookup_by_scancode(rc_map, protocol, scancode);
++
++	} else if (ke->len == sizeof(struct rc_scancode)) {
++		/* New EVIOCGKEYCODE_V2 ioctl */
++		if (rke->rc.reserved[0] || rke->rc.reserved[1] || rke->rc.reserved[2]) {
++			retval = -EINVAL;
++			goto out;
++		}
++
++		index = ir_lookup_by_scancode(rc_map,
++					      rke->rc.protocol, rke->rc.scancode);
++
++	} else {
++		retval = -EINVAL;
++		goto out;
+ 	}
+ 
+ 	if (index < rc_map->len) {
+ 		entry = &rc_map->scan[index];
+-
+ 		ke->index = index;
+ 		ke->keycode = entry->keycode;
+-		ke->len = sizeof(entry->scancode);
+-		memcpy(ke->scancode, &entry->scancode, sizeof(entry->scancode));
++		if (ke->len == sizeof(int)) {
++			u32 scancode = entry->scancode;
++			memcpy(ke->scancode, &scancode, sizeof(scancode));
++		} else {
++			ke->len = sizeof(struct rc_scancode);
++			rke->rc.protocol = entry->protocol;
++			rke->rc.scancode = entry->scancode;
++		}
+ 
+ 	} else if (!(ke->flags & INPUT_KEYMAP_BY_INDEX)) {
+ 		/*
+@@ -547,6 +622,7 @@ out:
+ /**
+  * rc_g_keycode_from_table() - gets the keycode that corresponds to a scancode
+  * @dev:	the struct rc_dev descriptor of the device
++ * @protocol:	the protocol to look for
+  * @scancode:	the scancode to look for
+  * @return:	the corresponding keycode, or KEY_RESERVED
+  *
+@@ -554,7 +630,8 @@ out:
+  * keycode. Normally it should not be used since drivers should have no
+  * interest in keycodes.
+  */
+-u32 rc_g_keycode_from_table(struct rc_dev *dev, u32 scancode)
++u32 rc_g_keycode_from_table(struct rc_dev *dev,
++			    enum rc_type protocol, u64 scancode)
+ {
+ 	struct rc_map *rc_map = &dev->rc_map;
+ 	unsigned int keycode;
+@@ -563,15 +640,16 @@ u32 rc_g_keycode_from_table(struct rc_dev *dev, u32 scancode)
+ 
+ 	spin_lock_irqsave(&rc_map->lock, flags);
+ 
+-	index = ir_lookup_by_scancode(rc_map, scancode);
++	index = ir_lookup_by_scancode(rc_map, protocol, scancode);
+ 	keycode = index < rc_map->len ?
+ 			rc_map->scan[index].keycode : KEY_RESERVED;
+ 
+ 	spin_unlock_irqrestore(&rc_map->lock, flags);
+ 
+ 	if (keycode != KEY_RESERVED)
+-		IR_dprintk(1, "%s: scancode 0x%04x keycode 0x%02x\n",
+-			   dev->input_name, scancode, keycode);
++		IR_dprintk(1, "%s: protocol 0x%04x scancode 0x%08llx keycode 0x%02x\n",
++			   dev->input_name, protocol,
++			   (unsigned long long)scancode, keycode);
+ 
+ 	return keycode;
+ }
+@@ -728,7 +806,7 @@ static void ir_do_keydown(struct rc_dev *dev, enum rc_type protocol,
+ void rc_keydown(struct rc_dev *dev, enum rc_type protocol, u32 scancode, u8 toggle)
+ {
+ 	unsigned long flags;
+-	u32 keycode = rc_g_keycode_from_table(dev, scancode);
++	u32 keycode = rc_g_keycode_from_table(dev, protocol, scancode);
+ 
+ 	spin_lock_irqsave(&dev->keylock, flags);
+ 	ir_do_keydown(dev, protocol, scancode, keycode, toggle);
+@@ -757,7 +835,7 @@ void rc_keydown_notimeout(struct rc_dev *dev, enum rc_type protocol,
+ 			  u32 scancode, u8 toggle)
+ {
+ 	unsigned long flags;
+-	u32 keycode = rc_g_keycode_from_table(dev, scancode);
++	u32 keycode = rc_g_keycode_from_table(dev, protocol, scancode);
+ 
+ 	spin_lock_irqsave(&dev->keylock, flags);
+ 	ir_do_keydown(dev, protocol, scancode, keycode, toggle);
+@@ -991,6 +1069,8 @@ static ssize_t store_protocols(struct device *device,
+ 	old_type = dev->enabled_protocols[fattr->type];
+ 	type = old_type;
+ 
++	type = dev->enabled_protocols;
++
+ 	while ((tmp = strsep((char **) &data, " \n")) != NULL) {
+ 		if (!*tmp)
+ 			break;
+@@ -1446,8 +1526,8 @@ int rc_register_device(struct rc_dev *dev)
+ 			goto out_input;
+ 	}
+ 
+-	if (dev->change_protocol) {
+-		u64 rc_type = (1 << rc_map->rc_type);
++	if (dev->change_protocol && rc_map->len > 0) {
++		u64 rc_type = (1 << rc_map->scan[0].protocol);
+ 		rc = dev->change_protocol(dev, &rc_type);
+ 		if (rc < 0)
+ 			goto out_raw;
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 2e97b98..6f66305 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -34,6 +34,24 @@ enum rc_driver_type {
+ 	RC_DRIVER_IR_RAW,	/* Needs a Infra-Red pulse/space decoder */
+ };
+ 
++/* This is used for the input EVIOC[SG]KEYCODE_V2 ioctls */
++struct rc_scancode {
++	__u16 protocol;
++	__u16 reserved[3];
++	__u64 scancode;
++};
++
++struct rc_keymap_entry {
++	__u8  flags;
++	__u8  len;
++	__u16 index;
++	__u32 keycode;
++	union {
++		struct rc_scancode rc;
++		__u8 raw[32];
++	};
++};
++
+ /**
+  * struct rc_scancode_filter - Filter scan codes.
+  * @data:	Scancode data to match.
+@@ -226,7 +244,7 @@ void rc_repeat(struct rc_dev *dev);
+ void rc_keydown(struct rc_dev *dev, enum rc_type protocol, u32 scancode, u8 toggle);
+ void rc_keydown_notimeout(struct rc_dev *dev, enum rc_type protocol, u32 scancode, u8 toggle);
+ void rc_keyup(struct rc_dev *dev);
+-u32 rc_g_keycode_from_table(struct rc_dev *dev, u32 scancode);
++u32 rc_g_keycode_from_table(struct rc_dev *dev, enum rc_type protocol, u64 scancode);
+ 
+ /*
+  * From rc-raw.c
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 2e6c659..bfa27fc 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -81,10 +81,10 @@ enum rc_type {
+          ((~(cmd)  & 0x00ff) << 0))
+ #define RC_SCANCODE_NEC32(data) ((data) & 0xffffffff)
+ 
+-
+ struct rc_map_table {
+-	u32	scancode;
+-	u32	keycode;
++	u64		scancode;
++	u32		keycode;
++	enum rc_type	protocol;
+ };
+ 
+ struct rc_map {
+@@ -92,7 +92,7 @@ struct rc_map {
+ 	unsigned int		size;	/* Max number of entries */
+ 	unsigned int		len;	/* Used number of entries */
+ 	unsigned int		alloc;	/* Size of *scan in bytes */
+-	enum rc_type		rc_type;
++	enum rc_type		rc_type; /* For in-kernel keymaps */
+ 	const char		*name;
+ 	spinlock_t		lock;
+ };
 
