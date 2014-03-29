@@ -1,53 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753309AbaCJXOr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 19:14:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from Gaia.Eases.nl ([46.182.217.96]:60483 "EHLO Gaia.Eases.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751775AbaC2WN5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Mar 2014 18:13:57 -0400
+Received: from [192.168.20.100] (D978A948.cm-3-1c.dynamic.ziggo.nl [217.120.169.72])
+	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by Gaia.Eases.nl (Postfix) with ESMTPSA id CE8F86668
+	for <linux-media@vger.kernel.org>; Sat, 29 Mar 2014 22:56:04 +0100 (CET)
+Message-ID: <53374174.4000909@podiumbv.nl>
+Date: Sat, 29 Mar 2014 22:56:04 +0100
+From: "Podium B.V." <mailinglist@podiumbv.nl>
+Reply-To: mailinglist@podiumbv.nl
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 29/48] adv7604: Add support for asynchronous probing
-Date: Tue, 11 Mar 2014 00:15:40 +0100
-Message-Id: <1394493359-14115-30-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: Re: FireDTV / w_scan / no data from NIT(actual)
+References: <533731B9.7030805@PodiumBV.com>
+In-Reply-To: <533731B9.7030805@PodiumBV.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lars-Peter Clausen <lars@metafoo.de>
+Dear Steve,
 
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/adv7604.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+I am already using the "-F" and the "-t 3" option...
+So a longer time waiting is not possible.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index de3db42..c3a76ac 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2333,6 +2333,11 @@ static int adv7604_probe(struct i2c_client *client,
- 		goto err_entity;
- 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
- 			client->addr << 1, client->adapter->name);
-+
-+	err = v4l2_async_register_subdev(sd);
-+	if (err)
-+		goto err_entity;
-+
- 	return 0;
- 
- err_entity:
-@@ -2356,6 +2361,7 @@ static int adv7604_remove(struct i2c_client *client)
- 
- 	cancel_delayed_work(&state->delayed_work_enable_hotplug);
- 	destroy_workqueue(state->work_queues);
-+	v4l2_async_unregister_subdev(sd);
- 	v4l2_device_unregister_subdev(sd);
- 	media_entity_cleanup(&sd->entity);
- 	adv7604_unregister_clients(to_state(sd));
--- 
-1.8.3.2
+     -F       use long filter timeout
+     -t N   tuning timeout
+                   1 = fastest [default]
+                   2 = medium
+                   3 = slowest
+
+And there are "NIT(actual) table" on the frequencies.
+My result should be very much like: http://www.dtvmonitor.com/nl/ziggo-noord
+
+But I also search more what my problem could be and I discovered that
+most examples say:
+
+     using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+
+and i only get:
+
+     using '/dev/dvb/adapter0/frontend0'
+
+But I guess demuxing is necessary to get the "NIT(actual) table", isn't it ?
+
+
+
+
+
+
+On 29-03-14 14:44, Steven Toth wrote:
+ >> Only is goes already wrong with the init scan.... I only get: "Info: 
+no data
+ >> from NIT(actual)"
+ > I suspect either their isn't a NIT(actual) table on your frequency, or
+ > the tool isn't waiting long enough for the NIT table to arrive.
+ >
+ > - Steve
+
+
+
+
+
 
