@@ -1,65 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:53750 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753869AbaCEJVD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 04:21:03 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v6 0/8] Move device tree graph parsing helpers to drivers/of
-Date: Wed,  5 Mar 2014 10:20:34 +0100
-Message-Id: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
+Received: from Gaia.Eases.nl ([46.182.217.96]:60162 "EHLO Gaia.Eases.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751454AbaC2M64 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Mar 2014 08:58:56 -0400
+Received: from [10.101.1.101] (D522A8E2.static.ziggozakelijk.nl [213.34.168.226])
+	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by Gaia.Eases.nl (Postfix) with ESMTPSA id 8FDB6692F
+	for <linux-media@vger.kernel.org>; Sat, 29 Mar 2014 13:20:07 +0100 (CET)
+Message-ID: <5336BA70.2080807@podiumbv.nl>
+Date: Sat, 29 Mar 2014 13:20:00 +0100
+From: "Podium B.V." <mailinglist@podiumbv.nl>
+Reply-To: mailinglist@podiumbv.nl
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: FireDTV / w_scan / no data from NIT(actual)
+References: <5336B87A.2010402@podiumbv.nl>
+In-Reply-To: <5336B87A.2010402@podiumbv.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-this version of the OF graph helper move series further addresses a few of
-Tomi's and Sylwester's comments.
+Hi all,
 
-Changes since v5:
- - Fixed spelling errors and a wrong device node name in the link section
- - Added parentless previous endpoint's full name to warning
- - Fixed documentation comment for of_graph_parse_endpoint
- - Unrolled for-loop in of_graph_get_remote_port_parent
+I am new to this mailinglist, but I couldn't find any help in forums
+so in the IRC someone suggested to mail my question here.
 
-Philipp Zabel (8):
-  [media] of: move graph helpers from drivers/media/v4l2-core to
-    drivers/of
-  Documentation: of: Document graph bindings
-  of: Warn if of_graph_get_next_endpoint is called with the root node
-  of: Reduce indentation in of_graph_get_next_endpoint
-  [media] of: move common endpoint parsing to drivers/of
-  of: Implement simplified graph binding for single port devices
-  of: Document simplified graph binding for single port devices
-  of: Warn if of_graph_parse_endpoint is called with the root node
+I am trying to get my FireDTV to tune on a mux so I can generate a 
+summary of bitrates
+of streams within the mux. So my goal is not to watch Digitale TV on my 
+Linux system.
 
- Documentation/devicetree/bindings/graph.txt   | 137 +++++++++++++++++++++
- drivers/media/i2c/adv7343.c                   |   4 +-
- drivers/media/i2c/mt9p031.c                   |   4 +-
- drivers/media/i2c/s5k5baf.c                   |   3 +-
- drivers/media/i2c/tvp514x.c                   |   3 +-
- drivers/media/i2c/tvp7002.c                   |   3 +-
- drivers/media/platform/exynos4-is/fimc-is.c   |   6 +-
- drivers/media/platform/exynos4-is/media-dev.c |  13 +-
- drivers/media/platform/exynos4-is/mipi-csis.c |   5 +-
- drivers/media/v4l2-core/v4l2-of.c             | 133 +-------------------
- drivers/of/base.c                             | 167 ++++++++++++++++++++++++++
- include/linux/of_graph.h                      |  66 ++++++++++
- include/media/v4l2-of.h                       |  33 +----
- 13 files changed, 399 insertions(+), 178 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/graph.txt
- create mode 100644 include/linux/of_graph.h
+Only is goes already wrong with the init scan.... I only get: "Info: no 
+data from NIT(actual)"
 
--- 
-1.9.0.rc3
+I tried to summary all the info here : http://pastebin.com/kSwxBsaU
+The OS I'm using is ubuntu 13.10 at the moment and I also tried / installed
+the latest build:
+
+cd /usr/src
+sudo git clone git://linuxtv.org/media_build.git
+sudo ./build
+sudo make install
+sudo reboot
+
+Does anyone has an idea what I am doing wrong ? Or missing ?
+I'm new to DVB-C on Linux.
+
+Kind regards!
+Ed
+
+
 
