@@ -1,80 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55938 "EHLO mail.kapsi.fi"
+Received: from hardeman.nu ([95.142.160.32]:38309 "EHLO hardeman.nu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752418AbaCJTeq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 15:34:46 -0400
-From: Antti Palosaari <crope@iki.fi>
+	id S1751864AbaC2QLX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Mar 2014 12:11:23 -0400
+Subject: [PATCH 07/11] dib0700: NEC scancode cleanup
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [FINAL PATCH 1/6] v4l: rename v4l2_format_sdr to v4l2_sdr_format
-Date: Mon, 10 Mar 2014 21:34:07 +0200
-Message-Id: <1394480052-6003-1-git-send-email-crope@iki.fi>
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: james.hogan@imgtec.com, m.chehab@samsung.com
+Date: Sat, 29 Mar 2014 17:11:21 +0100
+Message-ID: <20140329161121.13234.30213.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140329160705.13234.60349.stgit@zeus.muc.hardeman.nu>
+References: <20140329160705.13234.60349.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename v4l2_format_sdr to v4l2_sdr_format in order to keep it in
-line with other formats.
+the RC RX packet is defined as:
 
-Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+        struct dib0700_rc_response {
+		...
+                                u8 not_system;
+                                u8 system;
+		...
+                u8 data;
+                u8 not_data;
+
+The NEC protocol transmits in the order:
+        system
+        not_system
+        data
+        not_data
+
+Note that the code defines the NEC extended scancode as:
+
+        scancode = be16_to_cpu(poll_reply->system16) << 8 | poll_reply->data;
+
+i.e.
+
+        scancode = poll_reply->not_system << 16 |
+                   poll_reply->system     << 8  |
+                   poll_reply->data;
+
+Which, if the order *is* reversed, would mean that the scancode that
+gets defined is in reality:
+
+        scancode = poll_reply->system     << 16 |
+                   poll_reply->not_system << 8  |
+                   poll_reply->data;
+
+Which is the same as the order used in drivers/media/rc/ir-nec-decoder.c.
+
+This patch changes the code to match my assumption (the generated scancode
+should, however, not change).
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
+CC: Patrick Boettcher <pboettcher@kernellabs.com>
 ---
- Documentation/DocBook/media/v4l/dev-sdr.xml | 2 +-
- drivers/media/v4l2-core/v4l2-ioctl.c        | 2 +-
- include/uapi/linux/videodev2.h              | 6 +++---
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/media/usb/dvb-usb/dib0700_core.c |   28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
-index ac9f1af..524b9c4 100644
---- a/Documentation/DocBook/media/v4l/dev-sdr.xml
-+++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
-@@ -78,7 +78,7 @@ of the data format.
-     </para>
- 
-     <table pgwide="1" frame="none" id="v4l2-format-sdr">
--      <title>struct <structname>v4l2_format_sdr</structname></title>
-+      <title>struct <structname>v4l2_sdr_format</structname></title>
-       <tgroup cols="3">
-         &cs-str;
-         <tbody valign="top">
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 95dd4f1..e6e86a2 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -246,7 +246,7 @@ static void v4l_print_format(const void *arg, bool write_only)
- 	const struct v4l2_vbi_format *vbi;
- 	const struct v4l2_sliced_vbi_format *sliced;
- 	const struct v4l2_window *win;
--	const struct v4l2_format_sdr *sdr;
-+	const struct v4l2_sdr_format *sdr;
- 	unsigned i;
- 
- 	pr_cont("type=%s", prt_names(p->type, v4l2_type_names));
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index d3187d8..5f10ed9 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1714,10 +1714,10 @@ struct v4l2_pix_format_mplane {
- } __attribute__ ((packed));
- 
- /**
-- * struct v4l2_format_sdr - SDR format definition
-+ * struct v4l2_sdr_format - SDR format definition
-  * @pixelformat:	little endian four character code (fourcc)
-  */
--struct v4l2_format_sdr {
-+struct v4l2_sdr_format {
- 	__u32				pixelformat;
- 	__u8				reserved[28];
- } __attribute__ ((packed));
-@@ -1740,7 +1740,7 @@ struct v4l2_format {
- 		struct v4l2_window		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
- 		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
- 		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
--		struct v4l2_format_sdr		sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
-+		struct v4l2_sdr_format		sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
- 		__u8	raw_data[200];                   /* user-defined */
- 	} fmt;
+diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
+index 6afe7ea..4f5caf5 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_core.c
++++ b/drivers/media/usb/dvb-usb/dib0700_core.c
+@@ -658,13 +658,8 @@ out:
+ struct dib0700_rc_response {
+ 	u8 report_id;
+ 	u8 data_state;
+-	union {
+-		u16 system16;
+-		struct {
+-			u8 not_system;
+-			u8 system;
+-		};
+-	};
++	u8 system;
++	u8 not_system;
+ 	u8 data;
+ 	u8 not_data;
  };
--- 
-1.8.5.3
+@@ -712,20 +707,27 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+ 		toggle = 0;
+ 
+ 		/* NEC protocol sends repeat code as 0 0 0 FF */
+-		if ((poll_reply->system == 0x00) && (poll_reply->data == 0x00)
+-		    && (poll_reply->not_data == 0xff)) {
++		if (poll_reply->system     == 0x00 &&
++		    poll_reply->not_system == 0x00 &&
++		    poll_reply->data       == 0x00 &&
++		    poll_reply->not_data   == 0xff) {
+ 			poll_reply->data_state = 2;
+ 			break;
+ 		}
+ 
+-		if ((poll_reply->system ^ poll_reply->not_system) != 0xff) {
++		if (poll_reply->data ^ poll_reply->not_data != 0xff) {
++			deb_data("NEC32 protocol\n");
++			scancode = RC_SCANCODE_NEC32(poll_reply->system     << 24 |
++						     poll_reply->not_system << 16 |
++						     poll_reply->data       << 8  |
++						     poll_reply->not_data);
++		} else if (poll_reply->system ^ poll_reply->not_system != 0xff) {
+ 			deb_data("NEC extended protocol\n");
+-			/* NEC extended code - 24 bits */
+-			scancode = RC_SCANCODE_NECX(be16_to_cpu(poll_reply->system16),
++			scancode = RC_SCANCODE_NECX(poll_reply->system << 8 |
++						    poll_reply->not_system,
+ 						    poll_reply->data);
+ 		} else {
+ 			deb_data("NEC normal protocol\n");
+-			/* normal NEC code - 16 bits */
+ 			scancode = RC_SCANCODE_NEC(poll_reply->system,
+ 						   poll_reply->data);
+ 		}
 
