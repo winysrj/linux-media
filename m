@@ -1,66 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54159 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754896AbaCCWIg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 17:08:36 -0500
-Received: from avalon.localnet (unknown [91.178.178.142])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 6235C35AC4
-	for <linux-media@vger.kernel.org>; Mon,  3 Mar 2014 23:07:33 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.15] OMAP3 ISP and OMAP4 ISS fixes
-Date: Mon, 03 Mar 2014 23:10:01 +0100
-Message-ID: <2080385.eQNKOcWPWE@avalon>
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:49990 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751204AbaC2F2I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Mar 2014 01:28:08 -0400
+Received: by mail-lb0-f178.google.com with SMTP id s7so4321508lbd.37
+        for <linux-media@vger.kernel.org>; Fri, 28 Mar 2014 22:28:05 -0700 (PDT)
+Message-ID: <533659E2.4010001@t-25.ru>
+Date: Sat, 29 Mar 2014 09:28:02 +0400
+From: Anton Leontiev <bunder@t-25.ru>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] uvcvideo: Fix marking buffer erroneous in case
+ of FID toggling
+References: <1395722457-28080-1-git-send-email-bunder@t-25.ru> <1462972.4R5jTG4a0F@avalon> <5334F348.6070308@t-25.ru> <1459346.J1YUbuH55p@avalon>
+In-Reply-To: <1459346.J1YUbuH55p@avalon>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+28.03.2014 20:12, Laurent Pinchart пишет:
+>>>> + * Set error flag for incomplete buffer.
+>>>> + */
+>>>> +static void uvc_buffer_check_bytesused(const struct uvc_streaming *const
+>>>> stream,
+> 
+> No need for the second const keyword here.
+> 
+> I would have used "uvc_video_" as a prefix, to be in sync with the surrounding 
+> functions. What would you think of uvc_video_validate_buffer() ?
+> 
+>>>> +	struct uvc_buffer *const buf)
+> 
+> And no need for const at all here.
+> 
+>>>> +{
+>>>> +	if (buf->length != buf->bytesused &&
+>>>> +			!(stream->cur_format->flags & UVC_FMT_FLAG_COMPRESSED))
+> 
+> The indentation is wrong here, the ! on the second line should be aligned to 
+> the first 'buf' of the first line.
+> 
+> If you agree with these changes I can perform them while applying, there's no 
+> need to resubmit the patch.
+> 
 
-The following changes since commit cd701c89751d5c63230f47da9a78cdbb39384fdc:
+Thank you for reviewing my first patch to Linux kernel. I completely
+agree with your changes.
 
-  [media] em28xx: implement em28xx_usb_driver suspend, resume, reset_resume 
-hooks (2014-03-03 06:46:48 -0300)
+Just want to ask why there is no need for the second 'const' after
+pointer character '*'? I thought it marks pointer itself as constant for
+type-checking opposite to first 'const', which marks memory it points to
+as constant for type-checking. I understand that the function is simple
+enough to verify it by hand but it's better to add more information for
+automatic checking.
 
-are available in the git repository at:
+Is there any guidelines on 'const' keyword usage in Linux kernel code?
 
-  git://linuxtv.org/pinchartl/media.git omap3isp/next
-
-for you to fetch changes up to c6ca492864b522b57ed3ffbda9b15b78fc0c6b3c:
-
-  v4l: omap4iss: Add DEBUG compiler flag (2014-03-03 22:56:11 +0100)
-
-----------------------------------------------------------------
-Lad, Prabhakar (3):
-      omap3isp: Fix typos
-      omap3isp: ispccdc: Remove unwanted comments
-      omap3isp: Rename the variable names in description
-
-Paul Bolle (1):
-      v4l: omap4iss: Add DEBUG compiler flag
-
-Peter Meerwald (1):
-      omap3isp: Fix kerneldoc for _module_sync_is_stopping and isp_isr()
-
- drivers/media/platform/omap3isp/isp.c        |  7 ++-----
- drivers/media/platform/omap3isp/isp.h        | 12 ++++++------
- drivers/media/platform/omap3isp/ispccdc.c    | 10 +++++-----
- drivers/media/platform/omap3isp/ispccdc.h    |  6 ------
- drivers/media/platform/omap3isp/ispccp2.c    |  6 +++---
- drivers/media/platform/omap3isp/isphist.c    |  4 ++--
- drivers/media/platform/omap3isp/isppreview.c | 13 +++++++------
- drivers/media/platform/omap3isp/ispqueue.c   |  2 +-
- drivers/media/platform/omap3isp/ispresizer.c |  6 +++---
- drivers/media/platform/omap3isp/ispresizer.h |  4 ++--
- drivers/media/platform/omap3isp/ispstat.c    |  4 ++--
- drivers/media/platform/omap3isp/ispvideo.c   |  4 ++--
- drivers/staging/media/omap4iss/Makefile      |  2 ++
- 13 files changed, 37 insertions(+), 43 deletions(-)
-
--- 
 Regards,
 
-Laurent Pinchart
-
+-- 
+Anton Leontiev
