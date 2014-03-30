@@ -1,42 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49215 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753992AbaCCJtZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 04:49:25 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 3/4] [media] dvb_frontend: better handle lna set errors
-Date: Mon,  3 Mar 2014 06:48:46 -0300
-Message-Id: <1393840127-22081-3-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1393840127-22081-1-git-send-email-m.chehab@samsung.com>
-References: <1393840127-22081-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from ns.krstur.ru ([212.41.14.30]:28224 "EHLO mx.krstur.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752531AbaC3Bzu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Mar 2014 21:55:50 -0400
+Message-ID: <8D73FB71.4B2466D7@krstur.ru>
+Date: Sun, 30 Mar 2014 03:29:32 +0200
+Reply-To: "Linux c programming" <zayakin@krstur.ru>
+From: "Linux c programming" <zayakin@krstur.ru>
+MIME-Version: 1.0
+To: <linux-c-programming@vger.kernel.org>
+Subject: Half price off all watches
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If an attempt to set LNA fails, restore the cache to LNA_AUTO,
-in order to make it to reflect the current LNA status.
+Look rich without paying the price with one of our quality branded watches
+http://www.princessbag.co.jp/eufqour.php
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-core/dvb_frontend.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 1f925e856974..2d32c13ade7b 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -1882,6 +1882,8 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 		c->lna = tvp->u.data;
- 		if (fe->ops.set_lna)
- 			r = fe->ops.set_lna(fe);
-+		if (r < 0)
-+			c->lna = LNA_AUTO;
- 		break;
- 
- 	default:
--- 
-1.8.5.3
 
