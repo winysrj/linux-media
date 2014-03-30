@@ -1,128 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33735 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751231AbaCJGfY (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3386 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752610AbaC3CbY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 02:35:24 -0400
-Message-ID: <531D5D0E.8000605@ti.com>
-Date: Mon, 10 Mar 2014 08:34:54 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-MIME-Version: 1.0
-To: Grant Likely <grant.likely@linaro.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-CC: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core
- to drivers/of
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> < 1393340304-19005-2-git-send-email-p.zabel@pengutronix.de> <20140226113729. A9D5AC40A89@trevor.secretlab.ca> <1393428297.3248.92.camel@paszta.hi. pengutronix.de> <20140307171804.EF245C40A32@trevor.secretlab.ca> <531AF4ED. 5020608@ti.com> <20140308122321.9D433C40612@trevor.secretlab.ca>
-In-Reply-To: <20140308122321.9D433C40612@trevor.secretlab.ca>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="geFLiFodre9MAPFuUJV74UQT9Qala7crh"
+	Sat, 29 Mar 2014 22:31:24 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2U2VLbV055900
+	for <linux-media@vger.kernel.org>; Sun, 30 Mar 2014 04:31:23 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 321A92A03F2
+	for <linux-media@vger.kernel.org>; Sun, 30 Mar 2014 04:31:18 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140330023118.321A92A03F2@tschai.lan>
+Date: Sun, 30 Mar 2014 04:31:18 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---geFLiFodre9MAPFuUJV74UQT9Qala7crh
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 08/03/14 14:23, Grant Likely wrote:
+Results of the daily build of media_tree:
 
->>> That's fine. In that case the driver would specifically require the
->>> endpoint to be that one node.... although the above looks a little we=
-ird
->>
->> The driver can't require that. It's up to the board designer to decide=
+date:		Sun Mar 30 04:00:13 CEST 2014
+git branch:	test
+git hash:	3ec40dcfb413214b2874aec858870502b61c2202
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0
+host hardware:	x86_64
+host os:	3.13-7.slh.1-amd64
 
->> how many endpoints are used. A driver may say that it has a single inp=
-ut
->> port. But the number of endpoints for that port is up to the use case.=
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: ERRORS
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: ERRORS
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12-i686: ERRORS
+linux-3.13-i686: ERRORS
+linux-3.14-rc1-i686: ERRORS
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12-x86_64: ERRORS
+linux-3.13-x86_64: ERRORS
+linux-3.14-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0
+sparse: ERRORS
 
->=20
-> Come now, when you're writing a driver you know if it will ever be
-> possible to have more than one port. If that is the case then the
-> binding should be specifically laid out for that. If there will never b=
-e
-> multiple ports and the binding is unambiguous, then, and only then,
-> should the shortcut be used, and only the shortcut should be accepted.
+Detailed results are available here:
 
-I was talking about endpoints, not ports. There's no unclarity about the
-number of ports, that comes directly from the hardware for that specific
-component. The number of endpoints, however, come from the board
-hardware. The driver writer cannot know that.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
->>> to me. I would recommend that if there are other non-port child nodes=
+Full logs are available here:
 
->>> then the ports should still be encapsulated by a ports node.  The dev=
-ice
->>> binding should not be ambiguous about which nodes are ports.
->>
->> Hmm, ambiguous in what way?
->=20
-> Parsing the binding now consists of a ladder of 'ifs' that gives three
-> distinct different behaviours for no benefit. You don't want that in
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-It considerably lessens the amount of text in the DT for many use cases,
-making it easier to write and maintain the dts files.
+The Media Infrastructure API from this daily build is here:
 
-> bindings because it makes it more difficult to get the parsing right in=
-
-> the first place, and to make sure that all users parse it in the same
-> way (Linux, U-Boot, BSD, etc). Bindings should be as absolutely simple
-> as possible.
-
-Well, yes, I agree there. This is not the simplest of bindings. I'd be
-more than happy if we would come up with simpler version of this, which
-would still allow us to have the same descriptive power.
-
-> Just to be clear, I have no problem with having the option in the
-> pattern, but the driver needs to be specific about what layout it
-> expects.
-
-If we forget the shortened endpoint format, I think it can be quite
-specific.
-
-A device has either one port, in which case it should require the
-'ports' node to be omitted, or the device has more than one port, in
-which case it should require 'ports' node.
-
-Note that the original v4l2 binding doc says that 'ports' is always
-optional.
-
- Tomi
-
-
-
---geFLiFodre9MAPFuUJV74UQT9Qala7crh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTHV0OAAoJEPo9qoy8lh71HDgQAKM2fQOi/eKLuN2FOb5ogNqK
-I4aWC5M4WkeBaba5U2g0lPESu2g0x9hrOvWQOFgd/GpKctRZI1DmB4Rc+rSAv/UN
-0Cbzm+KB+RnGNfjaHmEzBNQDcv+a20I/jCLDWOcwJIm5kSW2gByBXSdsyXHuJpYP
-uMbbZa3Yql1+FF3Y+5FIf5NpFpVlrXI2tMTPHZw/5gAwFSe2laFIcBslRAsz8wwL
-4n3CkpJayQJSUG26wNsIdJnceCZ+QHEAWSSYXxyQCZ4rDG2x6+czUX4Dq3Jd46V+
-F6Hx2tuQIBZZsiZVLVDbCJvnAcT60WwvA0F8Vzd5FCl+Mn8GA4GXXot22HhBLHd2
-roUaSbMtd1iV51AfEw9d1St/QRKD0aiVL6xabAtSHvBUIuk2ICFUoOviG82Rl0cS
-JtNVcCjbE9Q/mXxoiXWDgyGVbaFjKU5e6CxiBT6Xf6zJOV5w6NRgw3IsC8ITLe+F
-RdSLKYCCr1+u31njpuZ37jST+MtkNr1UI9ocCQHT1SncYDFrHNbxabTfwN/f77S0
-gDADeDi6Y5LKlv8tnZLXp70gQuY/+BJonvyIDZkLMcUv/0n9771yWD0IFPtYl1kK
-bByZnSSuPPAy8zkwRRr2AOybasaLQ7xtVm/qouS+ydoAq3Rx8z/TZxVbJUDGMbik
-pbR/OIiW3ZDUpIjWk2+d
-=2Hm0
------END PGP SIGNATURE-----
-
---geFLiFodre9MAPFuUJV74UQT9Qala7crh--
+http://www.xs4all.nl/~hverkuil/spec/media.html
