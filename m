@@ -1,102 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:56566 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752410AbaCHFaZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 00:30:25 -0500
-Received: by mail-wg0-f48.google.com with SMTP id l18so1802481wgh.31
-        for <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 21:30:23 -0800 (PST)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v6 4/8] of: Reduce indentation in of_graph_get_next_endpoint
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-In-Reply-To: <1394011242-16783-5-git-send-email-p.zabel@pengutronix.de>
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de> < 1394011242-16783-5-git-send-email-p.zabel@pengutronix.de>
-Date: Fri, 07 Mar 2014 18:30:16 +0000
-Message-Id: <20140307183016.D3953C40B7C@trevor.secretlab.ca>
+Received: from mail-qg0-f47.google.com ([209.85.192.47]:35982 "EHLO
+	mail-qg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751719AbaC3TWq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Mar 2014 15:22:46 -0400
+Received: by mail-qg0-f47.google.com with SMTP id 63so6516486qgz.34
+        for <linux-media@vger.kernel.org>; Sun, 30 Mar 2014 12:22:46 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CALW6vT5S5OUo2o=f6WYVep5ixuswrnffJCv-MX6MWL8gON6rhA@mail.gmail.com>
+References: <CALW6vT5P-Q-GHyRz7YGxyjx-RdVzhNVJA++mG1A1NbV_DGT8Mw@mail.gmail.com>
+	<CAGoCfiz4whMp4hGiFCqE3++Z1Nmj2P=4wywQKQjeL+qgz67nag@mail.gmail.com>
+	<CALW6vT5S5OUo2o=f6WYVep5ixuswrnffJCv-MX6MWL8gON6rhA@mail.gmail.com>
+Date: Sun, 30 Mar 2014 15:22:45 -0400
+Message-ID: <CAGoCfiyaNi+LNY5iCjtE-PN8DP+3qiH5Sc=2BMwyt8zpxhYvWA@mail.gmail.com>
+Subject: Re: No channels on Hauppauge 950Q
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Sunset Machine <sunsetmachine7@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed,  5 Mar 2014 10:20:38 +0100, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> A 'return endpoint;' at the end of the (!prev) case allows to
-> reduce the indentation level of the (prev) case.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+On Sun, Mar 30, 2014 at 3:16 PM, Sunset Machine
+<sunsetmachine7@gmail.com> wrote:
+> kernel 3.2.0-4-686-pae and a new 950q
 
-Acked-by: Grant Likely <grant.likely@linaro.org>
+Ok.  If you own a Revision E1H3 device, then that kernel definitely
+won't work (the Rev is printed on the back of the stick above the
+barcode).
 
-> ---
->  drivers/of/base.c | 42 ++++++++++++++++++++++--------------------
->  1 file changed, 22 insertions(+), 20 deletions(-)
-> 
-> diff --git a/drivers/of/base.c b/drivers/of/base.c
-> index b5e690b..a8e47d3 100644
-> --- a/drivers/of/base.c
-> +++ b/drivers/of/base.c
-> @@ -2026,32 +2026,34 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
->  			pr_err("%s(): no endpoint nodes specified for %s\n",
->  			       __func__, parent->full_name);
->  		of_node_put(node);
-> -	} else {
-> -		port = of_get_parent(prev);
-> -		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
-> -			      __func__, prev->full_name))
-> -			return NULL;
->  
-> -		/* Avoid dropping prev node refcount to 0. */
-> -		of_node_get(prev);
-> -		endpoint = of_get_next_child(port, prev);
-> -		if (endpoint) {
-> -			of_node_put(port);
-> -			return endpoint;
-> -		}
-> +		return endpoint;
-> +	}
->  
-> -		/* No more endpoints under this port, try the next one. */
-> -		do {
-> -			port = of_get_next_child(parent, port);
-> -			if (!port)
-> -				return NULL;
-> -		} while (of_node_cmp(port->name, "port"));
-> +	port = of_get_parent(prev);
-> +	if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
-> +		      __func__, prev->full_name))
-> +		return NULL;
->  
-> -		/* Pick up the first endpoint in this port. */
-> -		endpoint = of_get_next_child(port, NULL);
-> +	/* Avoid dropping prev node refcount to 0. */
-> +	of_node_get(prev);
-> +	endpoint = of_get_next_child(port, prev);
-> +	if (endpoint) {
->  		of_node_put(port);
-> +		return endpoint;
->  	}
->  
-> +	/* No more endpoints under this port, try the next one. */
-> +	do {
-> +		port = of_get_next_child(parent, port);
-> +		if (!port)
-> +			return NULL;
-> +	} while (of_node_cmp(port->name, "port"));
-> +
-> +	/* Pick up the first endpoint in this port. */
-> +	endpoint = of_get_next_child(port, NULL);
-> +	of_node_put(port);
-> +
->  	return endpoint;
->  }
->  EXPORT_SYMBOL(of_graph_get_next_endpoint);
-> -- 
-> 1.9.0.rc3
-> 
+> 3.13-1-686-pae is available in Debian testing.  I'll look into it.
+>
+> TVTime, MythTV, Mplayer, Kaffeine, and w_scan. "scan" would oddly
+> leave the green signal light on when the program finished, as if it
+> were tuned, but reporting 0 channels found.
 
+Well TVTime won't do OTA broadcasts since it's digital only.  That
+said, the others should assuming you configured them properly.
+
+Definitely check the stick revision and try a much newer kernel.
+There have been a ton of fixes since 3.2 so it isn't worth even trying
+to debug on that kernel.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
