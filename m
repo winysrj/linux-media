@@ -1,51 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1832 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754533AbaCJVVe (ORCPT
+Received: from oproxy12-pub.mail.unifiedlayer.com ([50.87.16.10]:41055 "HELO
+	oproxy12-pub.mail.unifiedlayer.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750882AbaC3EXI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 17:21:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 07/11] vb2: reject output buffers with V4L2_FIELD_ALTERNATE
-Date: Mon, 10 Mar 2014 22:20:54 +0100
-Message-Id: <1394486458-9836-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
-References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
+	Sun, 30 Mar 2014 00:23:08 -0400
+Message-ID: <1396153381.3383.66.camel@Wailaba2>
+Subject: Re: [PATCH] [media] uvcvideo: Fix clock param realtime setting
+From: Olivier Langlois <olivier@trillion01.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: m.chehab@samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Stable <stable@vger.kernel.org>
+Date: Sun, 30 Mar 2014 00:23:01 -0400
+In-Reply-To: <2051908.tTlcvVaa3D@avalon>
+References: <1395985358-17047-1-git-send-email-olivier@trillion01.com>
+	 <16236471.uFSjvbT2di@avalon> <1396042028.3383.34.camel@Wailaba2>
+	 <2051908.tTlcvVaa3D@avalon>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent,
 
-This is not allowed by the spec and does in fact not make any sense.
-Return -EINVAL if this is the case.
+> > Yes. ffmpeg uses wall clock time to create timestamps for audio packets from
+> > ALSA device.
+> 
+> OK. I suppose I shouldn't drop support for the realtime clock like I wanted to 
+> then :-)
+>  
+> > There is a bug in ffmpeg describing problems to synchronize audio and
+> > the video from a v4l2 webcam.
+> > 
+> > https://trac.ffmpeg.org/ticket/692
+> > 
+> > To workaround this issue, ffmpeg devs added a switch to convert back
+> > monotonic to realtime. From ffmpeg/libavdevice/v4l2.c:
+> > 
+> >   -ts                <int>        .D.... set type of timestamps for
+> > grabbed frames (from 0 to 2) (default 0)
+> >      default                      .D.... use timestamps from the kernel
+> >      abs                          .D.... use absolute timestamps (wall
+> > clock)
+> >      mono2abs                     .D.... force conversion from monotonic
+> > to absolute timestamps
+> > 
+> > If the v4l2 driver is able to send realtime ts, it is easier synchronize
+> > in userspace if all inputs use the same clock.
+> 
+> That might be a stupid question, but shouldn't ALSA use the monotonic clock 
+> instead ?
+> 
+I think that I have that answer why ffmpeg use realtime clock for ALSA
+data. In fact ffmpeg uses realtime clock for every data coming from
+capture devices and the purpose is to be able to seek into the recorded
+stream by using the date where the recording occured. Same principle
+than a camera recording dates when pictures are taken.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+now a tougher question is whether or not it is up to the driver to
+provide these realtime ts.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index afd1268..8984187 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1526,6 +1526,15 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 			__func__, ret);
- 		return ret;
- 	}
-+	if (V4L2_TYPE_IS_OUTPUT(q->type) && b->field == V4L2_FIELD_ALTERNATE) {
-+		/*
-+		 * If field is ALTERNATE, then we return an error.
-+		 * If the format's field is ALTERNATE, then the buffer's field
-+		 * should be either TOP or BOTTOM, but using ALTERNATE here as
-+		 * well makes no sense.
-+		 */
-+		return -EINVAL;
-+	}
- 
- 	vb->state = VB2_BUF_STATE_PREPARING;
- 	vb->v4l2_buf.timestamp.tv_sec = 0;
--- 
-1.9.0
+I'm looking forward your verdict.
+
 
