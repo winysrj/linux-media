@@ -1,332 +1,692 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53627 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754270AbaCKPJY (ORCPT
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:59638 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751746AbaC3QVz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 11:09:24 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Sun, 30 Mar 2014 12:21:55 -0400
+Received: by mail-ee0-f54.google.com with SMTP id d49so5840734eek.13
+        for <linux-media@vger.kernel.org>; Sun, 30 Mar 2014 09:21:54 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v3 42/48] adv7604: Replace *_and_or() functions with *_clr_set()
-Date: Tue, 11 Mar 2014 16:10:55 +0100
-Message-Id: <1394550655-25280-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-43-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-43-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 4/8] libdvbv5: allow table parsers to get specific pointer to table struct
+Date: Sun, 30 Mar 2014 18:21:14 +0200
+Message-Id: <1396196478-996-4-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1396196478-996-1-git-send-email-neolynx@gmail.com>
+References: <1396196478-996-1-git-send-email-neolynx@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The *_and_or() functions take an 'and' bitmask to be ANDed with the
-register value before ORing it with th 'or' bitmask. As the functions
-are used to mask and set bits selectively, this requires the caller to
-invert the 'and' bitmask and is thus error prone. Replace those
-functions with a *_clr_set() variant that takes a mask of bits to be
-cleared instead of a mask of bits to be kept.
+this will allow simplifying the parser functions and
+to return the number of bytes read or an error code.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: André Roth <neolynx@gmail.com>
 ---
- drivers/media/i2c/adv7604.c | 86 ++++++++++++++++++++++-----------------------
- 1 file changed, 43 insertions(+), 43 deletions(-)
+ lib/include/libdvbv5/atsc_eit.h     |  2 +-
+ lib/include/libdvbv5/cat.h          |  2 +-
+ lib/include/libdvbv5/descriptors.h  |  2 +-
+ lib/include/libdvbv5/eit.h          |  2 +-
+ lib/include/libdvbv5/mgt.h          |  2 +-
+ lib/include/libdvbv5/nit.h          |  2 +-
+ lib/include/libdvbv5/pat.h          |  2 +-
+ lib/include/libdvbv5/pmt.h          |  2 +-
+ lib/include/libdvbv5/sdt.h          |  2 +-
+ lib/include/libdvbv5/vct.h          |  2 +-
+ lib/libdvbv5/descriptors.c          | 24 +++++++++++++-----------
+ lib/libdvbv5/descriptors/atsc_eit.c | 17 ++++++++++-------
+ lib/libdvbv5/descriptors/cat.c      | 14 ++++++++------
+ lib/libdvbv5/descriptors/eit.c      |  5 +++--
+ lib/libdvbv5/descriptors/mgt.c      | 16 ++++++++++------
+ lib/libdvbv5/descriptors/nit.c      | 23 ++++++++++++-----------
+ lib/libdvbv5/descriptors/pat.c      | 13 +++++++------
+ lib/libdvbv5/descriptors/pmt.c      | 10 +++++-----
+ lib/libdvbv5/descriptors/sdt.c      | 10 ++++++----
+ lib/libdvbv5/descriptors/vct.c      | 13 +++++++------
+ 20 files changed, 91 insertions(+), 74 deletions(-)
 
-Changes since v2:
-
-- Rebased on top of 36/48 v3.
-
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 4421fea..ed29d02 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -429,9 +429,9 @@ static inline int io_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state, ADV7604_PAGE_IO, reg, val);
+diff --git a/lib/include/libdvbv5/atsc_eit.h b/lib/include/libdvbv5/atsc_eit.h
+index 0c0d830..c527b1d 100644
+--- a/lib/include/libdvbv5/atsc_eit.h
++++ b/lib/include/libdvbv5/atsc_eit.h
+@@ -78,7 +78,7 @@ struct dvb_v5_fe_parms;
+ extern "C" {
+ #endif
+ 
+-void atsc_table_eit_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
++ssize_t atsc_table_eit_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, struct atsc_table_eit *eit, ssize_t *table_length);
+ void atsc_table_eit_free(struct atsc_table_eit *eit);
+ void atsc_table_eit_print(struct dvb_v5_fe_parms *parms, struct atsc_table_eit *eit);
+ void atsc_time(const uint32_t start_time, struct tm *tm);
+diff --git a/lib/include/libdvbv5/cat.h b/lib/include/libdvbv5/cat.h
+index 4c442a8..df1e417 100644
+--- a/lib/include/libdvbv5/cat.h
++++ b/lib/include/libdvbv5/cat.h
+@@ -40,7 +40,7 @@ struct dvb_v5_fe_parms;
+ extern "C" {
+ #endif
+ 
+-void dvb_table_cat_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
++ssize_t dvb_table_cat_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, struct dvb_table_cat *cat, ssize_t *table_length);
+ void dvb_table_cat_free(struct dvb_table_cat *cat);
+ void dvb_table_cat_print(struct dvb_v5_fe_parms *parms, struct dvb_table_cat *t);
+ 
+diff --git a/lib/include/libdvbv5/descriptors.h b/lib/include/libdvbv5/descriptors.h
+index 1ea0957..cc67a38 100644
+--- a/lib/include/libdvbv5/descriptors.h
++++ b/lib/include/libdvbv5/descriptors.h
+@@ -35,7 +35,7 @@
+ 
+ struct dvb_v5_fe_parms;
+ 
+-typedef void (*dvb_table_init_func)(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
++typedef void (*dvb_table_init_func)(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, void *table, ssize_t *table_length);
+ 
+ struct dvb_table_init {
+ 	dvb_table_init_func init;
+diff --git a/lib/include/libdvbv5/eit.h b/lib/include/libdvbv5/eit.h
+index 62e070d..fb5ce33 100644
+--- a/lib/include/libdvbv5/eit.h
++++ b/lib/include/libdvbv5/eit.h
+@@ -79,7 +79,7 @@ extern const char *dvb_eit_running_status_name[8];
+ extern "C" {
+ #endif
+ 
+-void dvb_table_eit_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
++ssize_t dvb_table_eit_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, struct dvb_table_eit *eit, ssize_t *table_length);
+ void dvb_table_eit_free(struct dvb_table_eit *eit);
+ void dvb_table_eit_print(struct dvb_v5_fe_parms *parms, struct dvb_table_eit *eit);
+ void dvb_time(const uint8_t data[5], struct tm *tm);
+diff --git a/lib/include/libdvbv5/mgt.h b/lib/include/libdvbv5/mgt.h
+index 346cbb5..4ea905d 100644
+--- a/lib/include/libdvbv5/mgt.h
++++ b/lib/include/libdvbv5/mgt.h
+@@ -68,7 +68,7 @@ struct dvb_v5_fe_parms;
+ extern "C" {
+ #endif
+ 
+-void atsc_table_mgt_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
++ssize_t atsc_table_mgt_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, struct atsc_table_mgt *mgt, ssize_t *table_length);
+ void atsc_table_mgt_free(struct atsc_table_mgt *mgt);
+ void atsc_table_mgt_print(struct dvb_v5_fe_parms *parms, struct atsc_table_mgt *mgt);
+ 
+diff --git a/lib/include/libdvbv5/nit.h b/lib/include/libdvbv5/nit.h
+index af57931..7477bd6 100644
+--- a/lib/include/libdvbv5/nit.h
++++ b/lib/include/libdvbv5/nit.h
+@@ -85,7 +85,7 @@ struct dvb_v5_fe_parms;
+ extern "C" {
+ #endif
+ 
+-void dvb_table_nit_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
++ssize_t dvb_table_nit_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, struct dvb_table_nit *nit, ssize_t *table_length);
+ void dvb_table_nit_free(struct dvb_table_nit *nit);
+ void dvb_table_nit_print(struct dvb_v5_fe_parms *parms, struct dvb_table_nit *nit);
+ 
+diff --git a/lib/include/libdvbv5/pat.h b/lib/include/libdvbv5/pat.h
+index 4c1fd4d..cd99d3e 100644
+--- a/lib/include/libdvbv5/pat.h
++++ b/lib/include/libdvbv5/pat.h
+@@ -57,7 +57,7 @@ struct dvb_v5_fe_parms;
+ extern "C" {
+ #endif
+ 
+-void dvb_table_pat_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
++ssize_t dvb_table_pat_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, struct dvb_table_pat *pat, ssize_t *table_length);
+ void dvb_table_pat_free(struct dvb_table_pat *pat);
+ void dvb_table_pat_print(struct dvb_v5_fe_parms *parms, struct dvb_table_pat *t);
+ 
+diff --git a/lib/include/libdvbv5/pmt.h b/lib/include/libdvbv5/pmt.h
+index e6273f0..432a458 100644
+--- a/lib/include/libdvbv5/pmt.h
++++ b/lib/include/libdvbv5/pmt.h
+@@ -112,7 +112,7 @@ struct dvb_v5_fe_parms;
+ extern "C" {
+ #endif
+ 
+-void dvb_table_pmt_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
++ssize_t dvb_table_pmt_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, struct dvb_table_pmt *pmt, ssize_t *table_length);
+ void dvb_table_pmt_free(struct dvb_table_pmt *pmt);
+ void dvb_table_pmt_print(struct dvb_v5_fe_parms *parms, const struct dvb_table_pmt *pmt);
+ 
+diff --git a/lib/include/libdvbv5/sdt.h b/lib/include/libdvbv5/sdt.h
+index 2b3e8e0..f1503ea 100644
+--- a/lib/include/libdvbv5/sdt.h
++++ b/lib/include/libdvbv5/sdt.h
+@@ -65,7 +65,7 @@ struct dvb_v5_fe_parms;
+ extern "C" {
+ #endif
+ 
+-void dvb_table_sdt_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
++ssize_t dvb_table_sdt_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, struct dvb_table_sdt *sdt, ssize_t *table_lengh);
+ void dvb_table_sdt_free(struct dvb_table_sdt *sdt);
+ void dvb_table_sdt_print(struct dvb_v5_fe_parms *parms, struct dvb_table_sdt *sdt);
+ 
+diff --git a/lib/include/libdvbv5/vct.h b/lib/include/libdvbv5/vct.h
+index fd7b845..6d41ac5 100644
+--- a/lib/include/libdvbv5/vct.h
++++ b/lib/include/libdvbv5/vct.h
+@@ -115,7 +115,7 @@ struct dvb_v5_fe_parms;
+ extern "C" {
+ #endif
+ 
+-void atsc_table_vct_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
++ssize_t atsc_table_vct_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, struct atsc_table_vct *vct, ssize_t *table_length);
+ void atsc_table_vct_free(struct atsc_table_vct *vct);
+ void atsc_table_vct_print(struct dvb_v5_fe_parms *parms, struct atsc_table_vct *vct);
+ 
+diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
+index 86bc7af..22fb7c4 100644
+--- a/lib/libdvbv5/descriptors.c
++++ b/lib/libdvbv5/descriptors.c
+@@ -78,18 +78,20 @@ static void dvb_desc_default_print(struct dvb_v5_fe_parms *parms, const struct d
+ 	hexdump(parms, "|           ", desc->data, desc->length);
  }
  
--static inline int io_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+static inline int io_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
++#define TABLE_INIT( _x ) { (dvb_table_init_func) _x##_init, sizeof(struct _x) }
++
+ const struct dvb_table_init dvb_table_initializers[] = {
+-	[DVB_TABLE_PAT]          = { dvb_table_pat_init, sizeof(struct dvb_table_pat) },
+-	[DVB_TABLE_CAT]          = { dvb_table_cat_init, sizeof(struct dvb_table_cat) },
+-	[DVB_TABLE_PMT]          = { dvb_table_pmt_init, sizeof(struct dvb_table_pmt) },
+-	[DVB_TABLE_NIT]          = { dvb_table_nit_init, sizeof(struct dvb_table_nit) },
+-	[DVB_TABLE_SDT]          = { dvb_table_sdt_init, sizeof(struct dvb_table_sdt) },
+-	[DVB_TABLE_EIT]          = { dvb_table_eit_init, sizeof(struct dvb_table_eit) },
+-	[DVB_TABLE_EIT_SCHEDULE] = { dvb_table_eit_init, sizeof(struct dvb_table_eit) },
+-	[ATSC_TABLE_MGT]         = { atsc_table_mgt_init, sizeof(struct atsc_table_mgt) },
+-	[ATSC_TABLE_EIT]         = { atsc_table_eit_init, sizeof(struct atsc_table_eit) },
+-	[ATSC_TABLE_TVCT]        = { atsc_table_vct_init, sizeof(struct atsc_table_vct) },
+-	[ATSC_TABLE_CVCT]        = { atsc_table_vct_init, sizeof(struct atsc_table_vct) },
++	[DVB_TABLE_PAT]          = TABLE_INIT(dvb_table_pat),
++	[DVB_TABLE_CAT]          = TABLE_INIT(dvb_table_cat),
++	[DVB_TABLE_PMT]          = TABLE_INIT(dvb_table_pmt),
++	[DVB_TABLE_NIT]          = TABLE_INIT(dvb_table_nit),
++	[DVB_TABLE_SDT]          = TABLE_INIT(dvb_table_sdt),
++	[DVB_TABLE_EIT]          = TABLE_INIT(dvb_table_eit),
++	[DVB_TABLE_EIT_SCHEDULE] = TABLE_INIT(dvb_table_eit),
++	[ATSC_TABLE_MGT]         = TABLE_INIT(atsc_table_mgt),
++	[ATSC_TABLE_EIT]         = TABLE_INIT(atsc_table_eit),
++	[ATSC_TABLE_TVCT]        = TABLE_INIT(atsc_table_vct),
++	[ATSC_TABLE_CVCT]        = TABLE_INIT(atsc_table_vct),
+ };
+ 
+ char *default_charset = "iso-8859-1";
+diff --git a/lib/libdvbv5/descriptors/atsc_eit.c b/lib/libdvbv5/descriptors/atsc_eit.c
+index 86a7b11..92764df 100644
+--- a/lib/libdvbv5/descriptors/atsc_eit.c
++++ b/lib/libdvbv5/descriptors/atsc_eit.c
+@@ -21,10 +21,10 @@
+ #include <libdvbv5/atsc_eit.h>
+ #include <libdvbv5/dvb-fe.h>
+ 
+-void atsc_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length)
++ssize_t atsc_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
++		ssize_t buflen, struct atsc_table_eit *eit, ssize_t *table_length)
  {
--	return io_write(sd, reg, (io_read(sd, reg) & mask) | val);
-+	return io_write(sd, reg, (io_read(sd, reg) & ~mask) | val);
- }
- 
- static inline int avlink_read(struct v4l2_subdev *sd, u8 reg)
-@@ -462,9 +462,9 @@ static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state, ADV7604_PAGE_CEC, reg, val);
- }
- 
--static inline int cec_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+static inline int cec_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
- {
--	return cec_write(sd, reg, (cec_read(sd, reg) & mask) | val);
-+	return cec_write(sd, reg, (cec_read(sd, reg) & ~mask) | val);
- }
- 
- static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
-@@ -538,9 +538,9 @@ static inline int rep_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state, ADV7604_PAGE_REP, reg, val);
- }
- 
--static inline int rep_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+static inline int rep_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
- {
--	return rep_write(sd, reg, (rep_read(sd, reg) & mask) | val);
-+	return rep_write(sd, reg, (rep_read(sd, reg) & ~mask) | val);
- }
- 
- static inline int edid_read(struct v4l2_subdev *sd, u8 reg)
-@@ -629,9 +629,9 @@ static inline int hdmi_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state, ADV7604_PAGE_HDMI, reg, val);
- }
- 
--static inline int hdmi_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+static inline int hdmi_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
- {
--	return hdmi_write(sd, reg, (hdmi_read(sd, reg) & mask) | val);
-+	return hdmi_write(sd, reg, (hdmi_read(sd, reg) & ~mask) | val);
- }
- 
- static inline int test_read(struct v4l2_subdev *sd, u8 reg)
-@@ -667,9 +667,9 @@ static inline int cp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state, ADV7604_PAGE_CP, reg, val);
- }
- 
--static inline int cp_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+static inline int cp_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
- {
--	return cp_write(sd, reg, (cp_read(sd, reg) & mask) | val);
-+	return cp_write(sd, reg, (cp_read(sd, reg) & ~mask) | val);
- }
- 
- static inline int vdp_read(struct v4l2_subdev *sd, u8 reg)
-@@ -947,7 +947,7 @@ static int configure_predefined_video_timings(struct v4l2_subdev *sd,
- 		io_write(sd, 0x17, 0x5a);
+ 	const uint8_t *p = buf, *endbuf = buf + buflen - 4; /* minus CRC */;
+-	struct atsc_table_eit *eit = (struct atsc_table_eit *) table;
+ 	struct atsc_table_eit_event **head;
+ 	int i = 0;
+ 	struct atsc_table_eit_event *last = NULL;
+@@ -33,7 +33,7 @@ void atsc_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssiz
+ 	if (p + size > endbuf) {
+ 		dvb_logerr("%s: short read %zd/%zd bytes", __func__,
+ 			   size, endbuf - p);
+-		return;
++		return -1;
  	}
- 	/* disable embedded syncs for auto graphics mode */
--	cp_write_and_or(sd, 0x81, 0xef, 0x00);
-+	cp_write_clr_set(sd, 0x81, 0x10, 0x00);
- 	cp_write(sd, 0x8f, 0x00);
- 	cp_write(sd, 0x90, 0x00);
- 	cp_write(sd, 0xa2, 0x00);
-@@ -1005,7 +1005,7 @@ static void configure_custom_video_timings(struct v4l2_subdev *sd,
- 		io_write(sd, 0x00, 0x07); /* video std */
- 		io_write(sd, 0x01, 0x02); /* prim mode */
- 		/* enable embedded syncs for auto graphics mode */
--		cp_write_and_or(sd, 0x81, 0xef, 0x10);
-+		cp_write_clr_set(sd, 0x81, 0x10, 0x10);
  
- 		/* Should only be set in auto-graphics mode [REF_02, p. 91-92] */
- 		/* setup PLL_DIV_MAN_EN and PLL_DIV_RATIO */
-@@ -1115,21 +1115,21 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 		if (state->selected_input == ADV7604_PAD_VGA_RGB) {
- 			/* Receiving analog RGB signal
- 			 * Set RGB full range (0-255) */
--			io_write_and_or(sd, 0x02, 0x0f, 0x10);
-+			io_write_clr_set(sd, 0x02, 0xf0, 0x10);
- 			break;
+ 	if (*table_length > 0) {
+@@ -60,7 +60,7 @@ void atsc_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssiz
+ 		if (p + size > endbuf) {
+ 			dvb_logerr("%s: short read %zd/%zd bytes", __func__,
+ 				   size, endbuf - p);
+-			return;
++			return -2;
  		}
- 
- 		if (state->selected_input == ADV7604_PAD_VGA_COMP) {
- 			/* Receiving analog YPbPr signal
- 			 * Set automode */
--			io_write_and_or(sd, 0x02, 0x0f, 0xf0);
-+			io_write_clr_set(sd, 0x02, 0xf0, 0xf0);
- 			break;
+ 		event = (struct atsc_table_eit_event *) malloc(sizeof(struct atsc_table_eit_event));
+ 		memcpy(event, p, size);
+@@ -78,7 +78,7 @@ void atsc_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssiz
+ 		if (p + size > endbuf) {
+ 			dvb_logerr("%s: short read %zd/%zd bytes", __func__,
+ 				   size, endbuf - p);
+-			return;
++			return -3;
  		}
- 
- 		if (hdmi_signal) {
- 			/* Receiving HDMI signal
- 			 * Set automode */
--			io_write_and_or(sd, 0x02, 0x0f, 0xf0);
-+			io_write_clr_set(sd, 0x02, 0xf0, 0xf0);
- 			break;
+                 /* TODO: parse title */
+                 p += size;
+@@ -93,7 +93,7 @@ void atsc_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssiz
+ 		if (p + size > endbuf) {
+ 			dvb_logerr("%s: short read %zd/%zd bytes", __func__,
+ 				   size, endbuf - p);
+-			return;
++			return -4;
  		}
- 
-@@ -1138,10 +1138,10 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 		 * input format (CE/IT) in automatic mode */
- 		if (state->timings.bt.standards & V4L2_DV_BT_STD_CEA861) {
- 			/* RGB limited range (16-235) */
--			io_write_and_or(sd, 0x02, 0x0f, 0x00);
-+			io_write_clr_set(sd, 0x02, 0xf0, 0x00);
- 		} else {
- 			/* RGB full range (0-255) */
--			io_write_and_or(sd, 0x02, 0x0f, 0x10);
-+			io_write_clr_set(sd, 0x02, 0xf0, 0x10);
- 
- 			if (is_digital_input(sd) && rgb_output) {
- 				adv7604_set_offset(sd, false, 0x40, 0x40, 0x40);
-@@ -1154,23 +1154,23 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 	case V4L2_DV_RGB_RANGE_LIMITED:
- 		if (state->selected_input == ADV7604_PAD_VGA_COMP) {
- 			/* YCrCb limited range (16-235) */
--			io_write_and_or(sd, 0x02, 0x0f, 0x20);
-+			io_write_clr_set(sd, 0x02, 0xf0, 0x20);
- 			break;
+ 		memcpy(&dl, p, size);
+                 p += size;
+@@ -103,13 +103,16 @@ void atsc_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssiz
+ 		if (p + size > endbuf) {
+ 			dvb_logerr("%s: short read %zd/%zd bytes", __func__,
+ 				   size, endbuf - p);
+-			return;
++			return -5;
  		}
+ 		dvb_parse_descriptors(parms, p, size, &event->descriptor);
  
- 		/* RGB limited range (16-235) */
--		io_write_and_or(sd, 0x02, 0x0f, 0x00);
-+		io_write_clr_set(sd, 0x02, 0xf0, 0x00);
+ 		p += size;
+ 		last = event;
+ 	}
++
++	*table_length = p - buf;
++	return p - buf;
+ }
  
- 		break;
- 	case V4L2_DV_RGB_RANGE_FULL:
- 		if (state->selected_input == ADV7604_PAD_VGA_COMP) {
- 			/* YCrCb full range (0-255) */
--			io_write_and_or(sd, 0x02, 0x0f, 0x60);
-+			io_write_clr_set(sd, 0x02, 0xf0, 0x60);
- 			break;
- 		}
+ void atsc_table_eit_free(struct atsc_table_eit *eit)
+diff --git a/lib/libdvbv5/descriptors/cat.c b/lib/libdvbv5/descriptors/cat.c
+index 20376de..b7e51e2 100644
+--- a/lib/libdvbv5/descriptors/cat.c
++++ b/lib/libdvbv5/descriptors/cat.c
+@@ -22,10 +22,9 @@
+ #include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
  
- 		/* RGB full range (0-255) */
--		io_write_and_or(sd, 0x02, 0x0f, 0x10);
-+		io_write_clr_set(sd, 0x02, 0xf0, 0x10);
+-void dvb_table_cat_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+-			ssize_t buflen, uint8_t *table, ssize_t *table_length)
++ssize_t dvb_table_cat_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
++			ssize_t buflen, struct dvb_table_cat *cat, ssize_t *table_length)
+ {
+-	struct dvb_table_cat *cat = (void *)table;
+ 	struct dvb_desc **head_desc = &cat->descriptor;
+ 	const uint8_t *p = buf, *endbuf = buf + buflen - 4;
+ 	size_t size;
+@@ -33,7 +32,7 @@ void dvb_table_cat_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	if (buf[0] != DVB_TABLE_CAT) {
+ 		dvb_logerr("%s: invalid marker 0x%02x, sould be 0x%02x", __func__, buf[0], DVB_TABLE_CAT);
+ 		*table_length = 0;
+-		return;
++		return -1;
+ 	}
  
- 		if (is_analog_input(sd) || hdmi_signal)
- 			break;
-@@ -1222,7 +1222,7 @@ static int adv7604_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_ADV_RX_FREE_RUN_COLOR_MANUAL:
- 		/* Use the default blue color for free running mode,
- 		   or supply your own. */
--		cp_write_and_or(sd, 0xbf, ~0x04, (ctrl->val << 2));
-+		cp_write_clr_set(sd, 0xbf, 0x04, ctrl->val << 2);
- 		return 0;
- 	case V4L2_CID_ADV_RX_FREE_RUN_COLOR:
- 		cp_write(sd, 0xc0, (ctrl->val & 0xff0000) >> 16);
-@@ -1605,11 +1605,11 @@ static int adv7604_query_dv_timings(struct v4l2_subdev *sd,
- 				v4l2_dbg(1, debug, sd, "%s: restart STDI\n", __func__);
- 				/* TODO restart STDI for Sync Channel 2 */
- 				/* enter one-shot mode */
--				cp_write_and_or(sd, 0x86, 0xf9, 0x00);
-+				cp_write_clr_set(sd, 0x86, 0x06, 0x00);
- 				/* trigger STDI restart */
--				cp_write_and_or(sd, 0x86, 0xf9, 0x04);
-+				cp_write_clr_set(sd, 0x86, 0x06, 0x04);
- 				/* reset to continuous mode */
--				cp_write_and_or(sd, 0x86, 0xf9, 0x02);
-+				cp_write_clr_set(sd, 0x86, 0x06, 0x02);
- 				state->restart_stdi_once = false;
- 				return -ENOLINK;
- 			}
-@@ -1668,7 +1668,7 @@ static int adv7604_s_dv_timings(struct v4l2_subdev *sd,
+ 	if (*table_length > 0) {
+@@ -46,15 +45,18 @@ void dvb_table_cat_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	if (p + size > endbuf) {
+ 		dvb_logerr("CAT table was truncated while filling dvb_table_cat. Need %zu bytes, but has only %zu.",
+ 			   size, buflen);
+-		return;
++		return -2;
+ 	}
  
- 	state->timings = *timings;
+-	memcpy(table, p, size);
++	memcpy(cat, p, size);
+ 	p += size;
+ 	*table_length = sizeof(struct dvb_table_cat);
  
--	cp_write_and_or(sd, 0x91, 0xbf, bt->interlaced ? 0x40 : 0x00);
-+	cp_write_clr_set(sd, 0x91, 0x40, bt->interlaced ? 0x40 : 0x00);
+ 	size = endbuf - p;
+ 	dvb_parse_descriptors(parms, p, size, head_desc);
++
++	*table_length = p - buf;
++	return p - buf;
+ }
  
- 	/* Use prim_mode and vid_std when available */
- 	err = configure_predefined_video_timings(sd, timings);
-@@ -1712,10 +1712,10 @@ static void enable_input(struct v4l2_subdev *sd)
- 	if (is_analog_input(sd)) {
- 		io_write(sd, 0x15, 0xb0);   /* Disable Tristate of Pins (no audio) */
- 	} else if (is_digital_input(sd)) {
--		hdmi_write_and_or(sd, 0x00, 0xfc, state->selected_input);
-+		hdmi_write_clr_set(sd, 0x00, 0x03, state->selected_input);
- 		state->info->set_termination(sd, true);
- 		io_write(sd, 0x15, 0xa0);   /* Disable Tristate of Pins */
--		hdmi_write_and_or(sd, 0x1a, 0xef, 0x00); /* Unmute audio */
-+		hdmi_write_clr_set(sd, 0x1a, 0x10, 0x00); /* Unmute audio */
+ void dvb_table_cat_free(struct dvb_table_cat *cat)
+diff --git a/lib/libdvbv5/descriptors/eit.c b/lib/libdvbv5/descriptors/eit.c
+index 1b64e29..86e2905 100644
+--- a/lib/libdvbv5/descriptors/eit.c
++++ b/lib/libdvbv5/descriptors/eit.c
+@@ -22,10 +22,9 @@
+ #include <libdvbv5/eit.h>
+ #include <libdvbv5/dvb-fe.h>
+ 
+-void dvb_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length)
++ssize_t dvb_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, struct dvb_table_eit *eit, ssize_t *table_length)
+ {
+ 	const uint8_t *p = buf;
+-	struct dvb_table_eit *eit = (struct dvb_table_eit *) table;
+ 	struct dvb_table_eit_event **head;
+ 
+ 	if (*table_length > 0) {
+@@ -90,6 +89,8 @@ void dvb_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize
+ 		p += event->section_length;
+ 		last = event;
+ 	}
++	*table_length = p - buf;
++	return p - buf;
+ }
+ 
+ void dvb_table_eit_free(struct dvb_table_eit *eit)
+diff --git a/lib/libdvbv5/descriptors/mgt.c b/lib/libdvbv5/descriptors/mgt.c
+index ba57c84..b445294 100644
+--- a/lib/libdvbv5/descriptors/mgt.c
++++ b/lib/libdvbv5/descriptors/mgt.c
+@@ -21,10 +21,10 @@
+ #include <libdvbv5/mgt.h>
+ #include <libdvbv5/dvb-fe.h>
+ 
+-void atsc_table_mgt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length)
++ssize_t atsc_table_mgt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
++		ssize_t buflen, struct atsc_table_mgt *mgt, ssize_t *table_length)
+ {
+ 	const uint8_t *p = buf, *endbuf = buf + buflen - 4; /* minus CRC */
+-	struct atsc_table_mgt *mgt = (struct atsc_table_mgt *) table;
+ 	struct dvb_desc **head_desc;
+ 	struct atsc_table_mgt_table **head;
+ 	int i = 0;
+@@ -34,7 +34,7 @@ void atsc_table_mgt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssiz
+ 	if (p + size > endbuf) {
+ 		dvb_logerr("%s: short read %zd/%zd bytes", __func__,
+ 			   size, endbuf - p);
+-		return;
++		return -1;
+ 	}
+ 
+ 	if (*table_length > 0) {
+@@ -48,7 +48,7 @@ void atsc_table_mgt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssiz
+ 
+ 		/* FIXME: read current mgt->tables for loop below */
  	} else {
- 		v4l2_dbg(2, debug, sd, "%s: Unknown port %d selected\n",
- 				__func__, state->selected_input);
-@@ -1726,7 +1726,7 @@ static void disable_input(struct v4l2_subdev *sd)
- {
- 	struct adv7604_state *state = to_state(sd);
+-		memcpy(table, p, size);
++		memcpy(mgt, p, size);
+ 		*table_length = sizeof(struct atsc_table_mgt);
  
--	hdmi_write_and_or(sd, 0x1a, 0xef, 0x10); /* Mute audio */
-+	hdmi_write_clr_set(sd, 0x1a, 0x10, 0x10); /* Mute audio */
- 	msleep(16); /* 512 samples with >= 32 kHz sample rate [REF_03, c. 7.16.10] */
- 	io_write(sd, 0x15, 0xbe);   /* Tristate all outputs from video core */
- 	state->info->set_termination(sd, false);
-@@ -1857,12 +1857,12 @@ static void adv7604_setup_format(struct adv7604_state *state)
- {
- 	struct v4l2_subdev *sd = &state->sd;
+ 		bswap16(mgt->tables);
+@@ -67,7 +67,7 @@ void atsc_table_mgt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssiz
+ 		if (p + size > endbuf) {
+ 			dvb_logerr("%s: short read %zd/%zd bytes", __func__,
+ 				   size, endbuf - p);
+-			return;
++			return -2;
+ 		}
+ 		table = (struct atsc_table_mgt_table *) malloc(sizeof(struct atsc_table_mgt_table));
+ 		memcpy(table, p, size);
+@@ -90,14 +90,18 @@ void atsc_table_mgt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssiz
+ 		if (p + size > endbuf) {
+ 			dvb_logerr("%s: short read %zd/%zd bytes", __func__,
+ 				   size, endbuf - p);
+-			return;
++			return -3;
+ 		}
+ 		dvb_parse_descriptors(parms, p, size, &table->descriptor);
  
--	io_write_and_or(sd, 0x02, 0xfd,
-+	io_write_clr_set(sd, 0x02, 0x02,
- 			state->format->rgb_out ? ADV7604_RGB_OUT : 0);
- 	io_write(sd, 0x03, state->format->op_format_sel |
- 		 state->pdata.op_format_mode_sel);
--	io_write_and_or(sd, 0x04, 0x1f, adv7604_op_ch_sel(state));
--	io_write_and_or(sd, 0x05, 0xfe,
-+	io_write_clr_set(sd, 0x04, 0xe0, adv7604_op_ch_sel(state));
-+	io_write_clr_set(sd, 0x05, 0x01,
- 			state->format->swap_cb_cr ? ADV7604_OP_SWAP_CB_CR : 0);
+ 		p += size;
+ 		last = table;
+ 	}
++
+ 	/* TODO: parse MGT descriptors here into head_desc */
++
++	*table_length = p - buf;
++	return p - buf;
  }
  
-@@ -2059,7 +2059,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 		/* Disable hotplug and I2C access to EDID RAM from DDC port */
- 		state->edid.present &= ~(1 << edid->pad);
- 		v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state->edid.present);
--		rep_write_and_or(sd, info->edid_enable_reg, 0xf0, state->edid.present);
-+		rep_write_clr_set(sd, info->edid_enable_reg, 0x0f, state->edid.present);
+ void atsc_table_mgt_free(struct atsc_table_mgt *mgt)
+diff --git a/lib/libdvbv5/descriptors/nit.c b/lib/libdvbv5/descriptors/nit.c
+index 1c08f0e..7749ee1 100644
+--- a/lib/libdvbv5/descriptors/nit.c
++++ b/lib/libdvbv5/descriptors/nit.c
+@@ -22,11 +22,10 @@
+ #include <libdvbv5/nit.h>
+ #include <libdvbv5/dvb-fe.h>
  
- 		/* Fall back to a 16:9 aspect ratio */
- 		state->aspect_ratio.numerator = 16;
-@@ -2083,7 +2083,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 	/* Disable hotplug and I2C access to EDID RAM from DDC port */
- 	cancel_delayed_work_sync(&state->delayed_work_enable_hotplug);
- 	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&tmp);
--	rep_write_and_or(sd, info->edid_enable_reg, 0xf0, 0x00);
-+	rep_write_clr_set(sd, info->edid_enable_reg, 0x0f, 0x00);
+-void dvb_table_nit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+-			ssize_t buflen, uint8_t *table, ssize_t *table_length)
++ssize_t dvb_table_nit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
++			ssize_t buflen, struct dvb_table_nit *nit, ssize_t *table_length)
+ {
+ 	const uint8_t *p = buf, *endbuf = buf + buflen - 4;
+-	struct dvb_table_nit *nit = (void *)table;
+ 	struct dvb_desc **head_desc = &nit->descriptor;
+ 	struct dvb_table_nit_transport **head = &nit->transport;
+ 	size_t size;
+@@ -43,7 +42,7 @@ void dvb_table_nit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		size = offsetof(struct dvb_table_nit, descriptor);
+ 		if (p + size > endbuf) {
+ 			dvb_logerr("NIT table (cont) was truncated");
+-			return;
++			return -1;
+ 		}
+ 		p += size;
+ 		t = (struct dvb_table_nit *)buf;
+@@ -55,9 +54,9 @@ void dvb_table_nit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		if (p + size > endbuf) {
+ 			dvb_logerr("NIT table was truncated while filling dvb_table_nit. Need %zu bytes, but has only %zu.",
+ 				   size, buflen);
+-			return;
++			return -2;
+ 		}
+-		memcpy(table, p, size);
++		memcpy(nit, p, size);
+ 		p += size;
  
- 	spa_loc = get_edid_spa_location(edid->edid);
- 	if (spa_loc < 0)
-@@ -2112,10 +2112,10 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
+ 		*table_length = sizeof(struct dvb_table_nit);
+@@ -71,7 +70,7 @@ void dvb_table_nit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	if (p + size > endbuf) {
+ 		dvb_logerr("NIT table was truncated while getting NIT descriptors. Need %zu bytes, but has only %zu.",
+ 			   size, endbuf - p);
+-		return;
++		return -3;
+ 	}
+ 	dvb_parse_descriptors(parms, p, size, head_desc);
+ 	p += size;
+@@ -80,7 +79,7 @@ void dvb_table_nit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	if (p + size > endbuf) {
+ 		dvb_logerr("NIT table was truncated while getting NIT transports. Need %zu bytes, but has only %zu.",
+ 			   size, endbuf - p);
+-		return;
++		return -4;
+ 	}
+ 	p += size;
  
- 	if (info->type == ADV7604) {
- 		rep_write(sd, 0x76, spa_loc & 0xff);
--		rep_write_and_or(sd, 0x77, 0xbf, (spa_loc & 0x100) >> 2);
-+		rep_write_clr_set(sd, 0x77, 0x40, (spa_loc & 0x100) >> 2);
- 	} else {
- 		/* FIXME: Where is the SPA location LSB register ? */
--		rep_write_and_or(sd, 0x71, 0xfe, (spa_loc & 0x100) >> 8);
-+		rep_write_clr_set(sd, 0x71, 0x01, (spa_loc & 0x100) >> 8);
+@@ -90,8 +89,8 @@ void dvb_table_nit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 
+ 		transport = malloc(sizeof(struct dvb_table_nit_transport));
+ 		if (!transport) {
+-			dvb_perror("Out of memory");
+-			return;
++			dvb_perror(__func__);
++			return -5;
+ 		}
+ 		memcpy(transport, p, size);
+ 		p += size;
+@@ -111,7 +110,7 @@ void dvb_table_nit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		if (p + transport->section_length > endbuf) {
+ 			dvb_logerr("NIT table was truncated while getting NIT transport descriptors. Need %u bytes, but has only %zu.",
+ 				   transport->section_length, endbuf - p);
+-			return;
++			return -6;
+ 		}
+ 		dvb_parse_descriptors(parms, p, transport->section_length, head_desc);
+ 		p += transport->section_length;
+@@ -119,6 +118,8 @@ void dvb_table_nit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	if (endbuf - p)
+ 		dvb_logerr("NIT table has %zu spurious bytes at the end.",
+ 			   endbuf - p);
++	*table_length = p - buf;
++	return p - buf;
+ }
+ 
+ void dvb_table_nit_free(struct dvb_table_nit *nit)
+diff --git a/lib/libdvbv5/descriptors/pat.c b/lib/libdvbv5/descriptors/pat.c
+index ac5b5d4..1bb7781 100644
+--- a/lib/libdvbv5/descriptors/pat.c
++++ b/lib/libdvbv5/descriptors/pat.c
+@@ -23,10 +23,9 @@
+ #include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
+ 
+-void dvb_table_pat_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+-			ssize_t buflen, uint8_t *table, ssize_t *table_length)
++ssize_t dvb_table_pat_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
++			ssize_t buflen, struct dvb_table_pat *pat, ssize_t *table_length)
+ {
+-	struct dvb_table_pat *pat = (void *)table;
+ 	struct dvb_table_pat_program **head = &pat->program;
+ 	const uint8_t *p = buf, *endbuf = buf + buflen - 4;
+ 	size_t size;
+@@ -40,9 +39,9 @@ void dvb_table_pat_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		if (p + size > endbuf) {
+ 			dvb_logerr("PAT table was truncated. Need %zu bytes, but has only %zu.",
+ 					size, buflen);
+-			return;
++			return -1;
+ 		}
+-		memcpy(table, buf, size);
++		memcpy(pat, buf, size);
+ 		p += size;
+ 		pat->programs = 0;
+ 		pat->program = NULL;
+@@ -56,7 +55,7 @@ void dvb_table_pat_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		pgm = malloc(sizeof(struct dvb_table_pat_program));
+ 		if (!pgm) {
+ 			dvb_perror("Out of memory");
+-			return;
++			return -2;
+ 		}
+ 
+ 		memcpy(pgm, p, size);
+@@ -74,6 +73,8 @@ void dvb_table_pat_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	if (endbuf - p)
+ 		dvb_logerr("PAT table has %zu spurious bytes at the end.",
+ 			   endbuf - p);
++	*table_length = p - buf;
++	return p - buf;
+ }
+ 
+ void dvb_table_pat_free(struct dvb_table_pat *pat)
+diff --git a/lib/libdvbv5/descriptors/pmt.c b/lib/libdvbv5/descriptors/pmt.c
+index c0af2d4..52bfa29 100644
+--- a/lib/libdvbv5/descriptors/pmt.c
++++ b/lib/libdvbv5/descriptors/pmt.c
+@@ -25,18 +25,17 @@
+ 
+ #include <string.h> /* memcpy */
+ 
+-void dvb_table_pmt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+-			ssize_t buflen, uint8_t *table, ssize_t *table_length)
++ssize_t dvb_table_pmt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
++			ssize_t buflen, struct dvb_table_pmt *pmt, ssize_t *table_length)
+ {
+ 	const uint8_t *p = buf, *endbuf = buf + buflen - 4;
+-	struct dvb_table_pmt *pmt = (void *)table;
+ 	struct dvb_table_pmt_stream **head = &pmt->stream;
+ 	size_t size;
+ 
+ 	if (buf[0] != DVB_TABLE_PMT) {
+ 		dvb_logerr("%s: invalid marker 0x%02x, sould be 0x%02x", __func__, buf[0], DVB_TABLE_PMT);
+ 		*table_length = 0;
+-		return;
++		return -1;
  	}
  
- 	edid->edid[spa_loc] = state->spa_port_a[0];
-@@ -2135,7 +2135,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
+ 	if (*table_length > 0) {
+@@ -48,7 +47,7 @@ void dvb_table_pmt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		if (p + size > endbuf) {
+ 			dvb_logerr("%s: short read %zd/%zd bytes", __func__,
+ 				   size, endbuf - p);
+-			return;
++			return -2;
+ 		}
+ 		memcpy(pmt, p, size);
+ 		p += size;
+@@ -109,6 +108,7 @@ void dvb_table_pmt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 			   __func__, endbuf - p);
  
- 	/* adv7604 calculates the checksums and enables I2C access to internal
- 	   EDID RAM from DDC port. */
--	rep_write_and_or(sd, info->edid_enable_reg, 0xf0, state->edid.present);
-+	rep_write_clr_set(sd, info->edid_enable_reg, 0x0f, state->edid.present);
+ 	*table_length = p - buf;
++	return p - buf;
+ }
  
- 	for (i = 0; i < 1000; i++) {
- 		if (rep_read(sd, info->edid_status_reg) & state->edid.present)
-@@ -2431,11 +2431,11 @@ static int adv7604_core_init(struct v4l2_subdev *sd)
- 	cp_write(sd, 0xcf, 0x01);   /* Power down macrovision */
+ void dvb_table_pmt_free(struct dvb_table_pmt *pmt)
+diff --git a/lib/libdvbv5/descriptors/sdt.c b/lib/libdvbv5/descriptors/sdt.c
+index 5c354f1..4fb6826 100644
+--- a/lib/libdvbv5/descriptors/sdt.c
++++ b/lib/libdvbv5/descriptors/sdt.c
+@@ -22,11 +22,10 @@
+ #include <libdvbv5/sdt.h>
+ #include <libdvbv5/dvb-fe.h>
  
- 	/* video format */
--	io_write_and_or(sd, 0x02, 0xf0,
-+	io_write_clr_set(sd, 0x02, 0x0f,
- 			pdata->alt_gamma << 3 |
- 			pdata->op_656_range << 2 |
- 			pdata->alt_data_sat << 0);
--	io_write_and_or(sd, 0x05, 0xf1, pdata->blank_data << 3 |
-+	io_write_clr_set(sd, 0x05, 0x0e, pdata->blank_data << 3 |
- 			pdata->insert_av_codes << 2 |
- 			pdata->replicate_av_codes << 1);
- 	adv7604_setup_format(state);
-@@ -2460,16 +2460,16 @@ static int adv7604_core_init(struct v4l2_subdev *sd)
- 				     for digital formats */
+-void dvb_table_sdt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+-			ssize_t buflen, uint8_t *table, ssize_t *table_length)
++ssize_t dvb_table_sdt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
++			ssize_t buflen, struct dvb_table_sdt *sdt, ssize_t *table_length)
+ {
+ 	const uint8_t *p = buf, *endbuf = buf + buflen - 4;
+-	struct dvb_table_sdt *sdt = (void *)table;
+ 	struct dvb_table_sdt_service **head = &sdt->service;
+ 	size_t size = offsetof(struct dvb_table_sdt, service);
  
- 	/* HDMI audio */
--	hdmi_write_and_or(sd, 0x15, 0xfc, 0x03); /* Mute on FIFO over-/underflow [REF_01, c. 1.2.18] */
--	hdmi_write_and_or(sd, 0x1a, 0xf1, 0x08); /* Wait 1 s before unmute */
--	hdmi_write_and_or(sd, 0x68, 0xf9, 0x06); /* FIFO reset on over-/underflow [REF_01, c. 1.2.19] */
-+	hdmi_write_clr_set(sd, 0x15, 0x03, 0x03); /* Mute on FIFO over-/underflow [REF_01, c. 1.2.18] */
-+	hdmi_write_clr_set(sd, 0x1a, 0x0e, 0x08); /* Wait 1 s before unmute */
-+	hdmi_write_clr_set(sd, 0x68, 0x06, 0x06); /* FIFO reset on over-/underflow [REF_01, c. 1.2.19] */
+@@ -38,7 +37,7 @@ void dvb_table_sdt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		if (p + size > endbuf) {
+ 			dvb_logerr("SDT table was truncated. Need %zu bytes, but has only %zu.",
+ 					size, buflen);
+-			return;
++			return -1;
+ 		}
+ 		memcpy(sdt, p, size);
+ 		*table_length = sizeof(struct dvb_table_sdt);
+@@ -75,6 +74,9 @@ void dvb_table_sdt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	if (endbuf - p)
+ 		dvb_logerr("SDT table has %zu spurious bytes at the end.",
+ 			   endbuf - p);
++
++	*table_length = p - buf;
++	return p - buf;
+ }
  
- 	/* TODO from platform data */
- 	afe_write(sd, 0xb5, 0x01);  /* Setting MCLK to 256Fs */
+ void dvb_table_sdt_free(struct dvb_table_sdt *sdt)
+diff --git a/lib/libdvbv5/descriptors/vct.c b/lib/libdvbv5/descriptors/vct.c
+index 0f051ac..8606d7e 100644
+--- a/lib/libdvbv5/descriptors/vct.c
++++ b/lib/libdvbv5/descriptors/vct.c
+@@ -23,11 +23,10 @@
+ #include <libdvbv5/dvb-fe.h>
+ #include <parse_string.h>
  
- 	if (adv7604_has_afe(state)) {
- 		afe_write(sd, 0x02, pdata->ain_sel); /* Select analog input muxing mode */
--		io_write_and_or(sd, 0x30, ~(1 << 4), pdata->output_bus_lsb_to_msb << 4);
-+		io_write_clr_set(sd, 0x30, 1 << 4, pdata->output_bus_lsb_to_msb << 4);
+-void atsc_table_vct_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+-			ssize_t buflen, uint8_t *table, ssize_t *table_length)
++ssize_t atsc_table_vct_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
++			ssize_t buflen, struct atsc_table_vct *vct, ssize_t *table_length)
+ {
+ 	const uint8_t *p = buf, *endbuf = buf + buflen - 4;
+-	struct atsc_table_vct *vct = (void *)table;
+ 	struct atsc_table_vct_channel **head = &vct->channel;
+ 	int i, n;
+ 	size_t size = offsetof(struct atsc_table_vct, channel);
+@@ -35,7 +34,7 @@ void atsc_table_vct_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	if (p + size > endbuf) {
+ 		dvb_logerr("VCT table was truncated. Need %zu bytes, but has only %zu.",
+ 			   size, buflen);
+-		return;
++		return -1;
  	}
  
- 	/* interrupts */
+ 	if (*table_length > 0) {
+@@ -99,7 +98,7 @@ void atsc_table_vct_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		if (endbuf - p < channel->descriptors_length) {
+ 			dvb_logerr("%s: short read %d/%zd bytes", __func__,
+ 				   channel->descriptors_length, endbuf - p);
+-			return;
++			return -2;
+ 		}
+ 
+ 		/* get the descriptors for each program */
+@@ -118,7 +117,7 @@ void atsc_table_vct_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		if (endbuf - p < d->descriptor_length) {
+ 			dvb_logerr("%s: short read %d/%zd bytes", __func__,
+ 				   d->descriptor_length, endbuf - p);
+-			return;
++			return -3;
+ 		}
+ 		dvb_parse_descriptors(parms, p, d->descriptor_length,
+ 				      &vct->descriptor);
+@@ -126,6 +125,8 @@ void atsc_table_vct_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	if (endbuf - p)
+ 		dvb_logerr("VCT table has %zu spurious bytes at the end.",
+ 			   endbuf - p);
++	*table_length = p - buf;
++	return p - buf;
+ }
+ 
+ void atsc_table_vct_free(struct atsc_table_vct *vct)
 -- 
 1.8.3.2
 
