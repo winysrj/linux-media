@@ -1,123 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f181.google.com ([74.125.82.181]:33244 "EHLO
-	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753415AbaCaHsO (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:48113 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752092AbaC3V2H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Mar 2014 03:48:14 -0400
-Received: by mail-we0-f181.google.com with SMTP id q58so4183810wes.26
-        for <linux-media@vger.kernel.org>; Mon, 31 Mar 2014 00:48:12 -0700 (PDT)
-Date: Mon, 31 Mar 2014 08:48:08 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com, Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	SangYoung Son <hello.son@smasung.com>,
-	Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH/RFC v2 4/8] leds: Add support for max77693 mfd flash cell
-Message-ID: <20140331074808.GM17779@lee--X1>
-References: <1396020545-15727-1-git-send-email-j.anaszewski@samsung.com>
- <1396020545-15727-5-git-send-email-j.anaszewski@samsung.com>
+	Sun, 30 Mar 2014 17:28:07 -0400
+Message-ID: <53388C63.6080006@codethink.co.uk>
+Date: Sun, 30 Mar 2014 22:28:03 +0100
+From: Ben Dooks <ben.dooks@codethink.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1396020545-15727-5-git-send-email-j.anaszewski@samsung.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-kernel@vger.kernel.org, magnus.damm@opensource.se,
+	linux-sh@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Subject: Re: [PATCH 5/5] rcar_vin: add devicetree support
+References: <1394197299-17528-1-git-send-email-ben.dooks@codethink.co.uk> <1394197299-17528-6-git-send-email-ben.dooks@codethink.co.uk> <Pine.LNX.4.64.1403081148050.18310@axis700.grange> <Pine.LNX.4.64.1403302303490.12008@axis700.grange> <5338890A.2050607@codethink.co.uk> <Pine.LNX.4.64.1403302316480.12008@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1403302316480.12008@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 28 Mar 2014, Jacek Anaszewski wrote:
+On 30/03/14 22:17, Guennadi Liakhovetski wrote:
+> On Sun, 30 Mar 2014, Ben Dooks wrote:
+>
+>> On 30/03/14 22:04, Guennadi Liakhovetski wrote:
+>>> Hi Ben,
+>>>
+>>> Since I never received a reply to this my query, I consider this your
+>>> patch series suspended.
+>>>
+>>> Thanks
+>>> Guennadi
+>>
+>> I meant to send out a patch series for the of probe for soc_camera.
+>> The actual rcar_vin does not need much to support async probe, it is
+>> just the soc_camera that needs sorting.
+>
+> But without that soc-camera DT support your patches are non-functional,
+> right?
 
-> This patch adds led-flash support to Maxim max77693 chipset.
-> Device can be exposed to user space through LED subsystem
-> sysfs interface or through V4L2 subdevice when the support
-> for Multimedia Framework is enabled. Device supports up to
-> two leds which can work in flash and torch mode. Leds can
-> be triggered externally or by software.
-> 
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> Cc: SangYoung Son <hello.son@smasung.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> Cc: Lee Jones <lee.jones@linaro.org>
-> ---
->  drivers/leds/Kconfig         |   10 +
->  drivers/leds/Makefile        |    1 +
->  drivers/leds/leds-max77693.c |  864 ++++++++++++++++++++++++++++++++++++++++++
->  drivers/mfd/max77693.c       |    3 +-
->  include/linux/mfd/max77693.h |   32 ++
->  5 files changed, 909 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/leds/leds-max77693.c
-
-[...]
-
-> diff --git a/drivers/mfd/max77693.c b/drivers/mfd/max77693.c
-> index c5535f0..d53c497 100644
-> --- a/drivers/mfd/max77693.c
-> +++ b/drivers/mfd/max77693.c
-> @@ -44,7 +44,8 @@
->  static const struct mfd_cell max77693_devs[] = {
->  	{ .name = "max77693-pmic", },
->  	{ .name = "max77693-charger", },
-> -	{ .name = "max77693-flash", },
-> +	{ .name = "max77693-flash",
-> +	  .of_compatible = "maxim,max77693-flash", },
-
-On one line please.
-
->  	{ .name = "max77693-muic", },
->  	{ .name = "max77693-haptic", },
->  };
-> diff --git a/include/linux/mfd/max77693.h b/include/linux/mfd/max77693.h
-> index 3f3dc45..5859698 100644
-> --- a/include/linux/mfd/max77693.h
-> +++ b/include/linux/mfd/max77693.h
-> @@ -63,6 +63,37 @@ struct max77693_muic_platform_data {
->  	int path_uart;
->  };
->  
-> +/* MAX77693 led flash */
-> +
-> +/* triggers */
-> +#define MAX77693_LED_TRIG_OFF	0
-> +#define MAX77693_LED_TRIG_FLASH	1
-> +#define MAX77693_LED_TRIG_TORCH	2
-> +#define MAX77693_LED_TRIG_EXT	(MAX77693_LED_TRIG_FLASH |\
-> +				MAX77693_LED_TRIG_TORCH)
-> +#define MAX77693_LED_TRIG_SOFT	4
-> +
-> +/* trigger types */
-> +#define MAX77693_LED_TRIG_TYPE_EDGE	0
-> +#define MAX77693_LED_TRIG_TYPE_LEVEL	1
-> +
-> +/* boost modes */
-> +#define MAX77693_LED_BOOST_NONE		0
-> +#define MAX77693_LED_BOOST_ADAPTIVE	1
-> +#define MAX77693_LED_BOOST_FIXED	2
-
-I think it would be better to enum all of the above.
-
-> +struct max77693_led_platform_data {
-> +	u32 iout[4];
-> +	u32 trigger[4];
-> +	u32 trigger_type[2];
-> +	u32 timeout[2];
-> +	u32 boost_mode[2];
-> +	u32 boost_vout;
-> +	u32 low_vsys;
-> +};
-
-I'll leave this LED stuff to the expert(s).
-
-[...]
+They're not much use. I've sent the soc-camera patch out now for
+review. I will sort out sending patches for the async device changes
+for the device(s) on the lager board as soon as I can get some time
+to re-test.
 
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Ben Dooks				http://www.codethink.co.uk/
+Senior Engineer				Codethink - Providing Genius
