@@ -1,216 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:65063 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754742AbaCYSUu (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:60856 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751897AbaC3VVK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Mar 2014 14:20:50 -0400
-Received: by mail-ee0-f51.google.com with SMTP id c13so769256eek.38
-        for <linux-media@vger.kernel.org>; Tue, 25 Mar 2014 11:20:49 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 11/11] libdvbv5: fix PMT parser
-Date: Tue, 25 Mar 2014 19:20:01 +0100
-Message-Id: <1395771601-3509-11-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1395771601-3509-1-git-send-email-neolynx@gmail.com>
-References: <1395771601-3509-1-git-send-email-neolynx@gmail.com>
+	Sun, 30 Mar 2014 17:21:10 -0400
+Date: Sun, 30 Mar 2014 23:20:17 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Josh Wu <josh.wu@atmel.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	m.chehab@samsung.com, nicolas.ferre@atmel.com,
+	linux-arm-kernel@lists.infradead.org, grant.likely@linaro.org,
+	galak@codeaurora.org, rob@landley.net, mark.rutland@arm.com,
+	robh+dt@kernel.org, ijc+devicetree@hellion.org.uk,
+	pawel.moll@arm.com, devicetree@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: Re: [PATCH v2 3/3] [media] atmel-isi: add primary DT support
+In-Reply-To: <1395744320-15025-1-git-send-email-josh.wu@atmel.com>
+Message-ID: <Pine.LNX.4.64.1403302313290.12008@axis700.grange>
+References: <1395744087-5753-1-git-send-email-josh.wu@atmel.com>
+ <1395744320-15025-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- check for correct table ID
-- parse all descriptos
-- improve table printing
+Hi Josh,
 
-Signed-off-by: André Roth <neolynx@gmail.com>
+Please correct me if I'm wrong, but I don't see how this is going to work 
+without the central part - building asynchronous V4L2 data structures from 
+the DT, something that your earlier patch "media: soc-camera: OF cameras" 
+was doing, but which you stopped developing after a discussion with Ben 
+(added to Cc).
+
+Thanks
+Guennadi
+
+On Tue, 25 Mar 2014, Josh Wu wrote:
+
+> This patch add the DT support for Atmel ISI driver.
+> It use the same v4l2 DT interface that defined in video-interfaces.txt.
+> 
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> Cc: devicetree@vger.kernel.org
+> ---
+> v1 --> v2:
+>  refine the binding document.
+>  add port node description.
+>  removed the optional property.
+> 
+>  .../devicetree/bindings/media/atmel-isi.txt        |   50 ++++++++++++++++++++
+>  drivers/media/platform/soc_camera/atmel-isi.c      |   31 +++++++++++-
+>  2 files changed, 79 insertions(+), 2 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/atmel-isi.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/atmel-isi.txt b/Documentation/devicetree/bindings/media/atmel-isi.txt
+> new file mode 100644
+> index 0000000..11c98ee
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/atmel-isi.txt
+> @@ -0,0 +1,50 @@
+> +Atmel Image Sensor Interface (ISI) SoC Camera Subsystem
+> +----------------------------------------------
+> +
+> +Required properties:
+> +- compatible: must be "atmel,at91sam9g45-isi"
+> +- reg: physical base address and length of the registers set for the device;
+> +- interrupts: should contain IRQ line for the ISI;
+> +- clocks: list of clock specifiers, corresponding to entries in
+> +          the clock-names property;
+> +- clock-names: must contain "isi_clk", which is the isi peripherial clock.
+> +
+> +ISI supports a single port node with parallel bus. It should contain one
+> +'port' child node with child 'endpoint' node. Please refer to the bindings
+> +defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +Example:
+> +	isi: isi@f0034000 {
+> +		compatible = "atmel,at91sam9g45-isi";
+> +		reg = <0xf0034000 0x4000>;
+> +		interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
+> +
+> +		clocks = <&isi_clk>;
+> +		clock-names = "isi_clk";
+> +
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&pinctrl_isi>;
+> +
+> +		port {
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +
+> +			isi_0: endpoint {
+> +				remote-endpoint = <&ov2640_0>;
+> +			};
+> +		};
+> +	};
+> +
+> +	i2c1: i2c@f0018000 {
+> +		ov2640: camera@0x30 {
+> +			compatible = "omnivision,ov2640";
+> +			reg = <0x30>;
+> +
+> +			port {
+> +				ov2640_0: endpoint {
+> +					remote-endpoint = <&isi_0>;
+> +					bus-width = <8>;
+> +				};
+> +			};
+> +		};
+> +	};
+> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+> index f4add0a..d6a1f7b 100644
+> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/interrupt.h>
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+> +#include <linux/of.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/slab.h>
+>  
+> @@ -33,6 +34,7 @@
+>  #define VID_LIMIT_BYTES			(16 * 1024 * 1024)
+>  #define MIN_FRAME_RATE			15
+>  #define FRAME_INTERVAL_MILLI_SEC	(1000 / MIN_FRAME_RATE)
+> +#define ISI_DEFAULT_MCLK_FREQ		25000000
+>  
+>  /* Frame buffer descriptor */
+>  struct fbd {
+> @@ -885,6 +887,20 @@ static int atmel_isi_remove(struct platform_device *pdev)
+>  	return 0;
+>  }
+>  
+> +static int atmel_isi_probe_dt(struct atmel_isi *isi,
+> +			struct platform_device *pdev)
+> +{
+> +	struct device_node *node = pdev->dev.of_node;
+> +
+> +	/* Default settings for ISI */
+> +	isi->pdata.full_mode = 1;
+> +	isi->pdata.mck_hz = ISI_DEFAULT_MCLK_FREQ;
+> +	isi->pdata.frate = ISI_CFG1_FRATE_CAPTURE_ALL;
+> +	isi->pdata.data_width_flags = ISI_DATAWIDTH_8 | ISI_DATAWIDTH_10;
+> +
+> +	return 0;
+> +}
+> +
+>  static int atmel_isi_probe(struct platform_device *pdev)
+>  {
+>  	unsigned int irq;
+> @@ -896,7 +912,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+>  	struct isi_platform_data *pdata;
+>  
+>  	pdata = dev->platform_data;
+> -	if (!pdata || !pdata->data_width_flags) {
+> +	if ((!pdata || !pdata->data_width_flags) && !pdev->dev.of_node) {
+>  		dev_err(&pdev->dev,
+>  			"No config available for Atmel ISI\n");
+>  		return -EINVAL;
+> @@ -912,7 +928,11 @@ static int atmel_isi_probe(struct platform_device *pdev)
+>  	if (IS_ERR(isi->pclk))
+>  		return PTR_ERR(isi->pclk);
+>  
+> -	memcpy(&isi->pdata, pdata, sizeof(struct isi_platform_data));
+> +	if (pdata)
+> +		memcpy(&isi->pdata, pdata, sizeof(struct isi_platform_data));
+> +	else	/* dt probe */
+> +		atmel_isi_probe_dt(isi, pdev);
+> +
+>  	isi->active = NULL;
+>  	spin_lock_init(&isi->lock);
+>  	INIT_LIST_HEAD(&isi->video_buffer_list);
+> @@ -1014,11 +1034,18 @@ err_alloc_ctx:
+>  	return ret;
+>  }
+>  
+> +static const struct of_device_id atmel_isi_of_match[] = {
+> +	{ .compatible = "atmel,at91sam9g45-isi" },
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(of, atmel_isi_of_match);
+> +
+>  static struct platform_driver atmel_isi_driver = {
+>  	.remove		= atmel_isi_remove,
+>  	.driver		= {
+>  		.name = "atmel_isi",
+>  		.owner = THIS_MODULE,
+> +		.of_match_table = atmel_isi_of_match,
+>  	},
+>  };
+>  
+> -- 
+> 1.7.9.5
+> 
+
 ---
- lib/include/libdvbv5/pmt.h     | 10 ++++--
- lib/libdvbv5/descriptors/pmt.c | 80 ++++++++++++++++++++++++++++--------------
- 2 files changed, 61 insertions(+), 29 deletions(-)
-
-diff --git a/lib/include/libdvbv5/pmt.h b/lib/include/libdvbv5/pmt.h
-index 07b77ce..e6273f0 100644
---- a/lib/include/libdvbv5/pmt.h
-+++ b/lib/include/libdvbv5/pmt.h
-@@ -27,7 +27,7 @@
- 
- #include <libdvbv5/header.h>
- 
--#define DVB_TABLE_PMT      2
-+#define DVB_TABLE_PMT      0x02
- 
- enum dvb_streams {
- 	stream_reserved0	= 0x00, // ITU-T | ISO/IEC Reserved
-@@ -69,7 +69,7 @@ struct dvb_table_pmt_stream {
- 	union {
- 		uint16_t bitfield2;
- 		struct {
--			uint16_t section_length:10;
-+			uint16_t desc_length:10;
- 			uint16_t zero:2;
- 			uint16_t reserved2:4;
- 		} __attribute__((packed));
-@@ -91,14 +91,18 @@ struct dvb_table_pmt {
- 	union {
- 		uint16_t bitfield2;
- 		struct {
--			uint16_t prog_length:10;
-+			uint16_t desc_length:10;
- 			uint16_t zero3:2;
- 			uint16_t reserved3:4;
- 		} __attribute__((packed));
- 	} __attribute__((packed));
-+	struct dvb_desc *descriptor;
- 	struct dvb_table_pmt_stream *stream;
- } __attribute__((packed));
- 
-+#define dvb_pmt_field_first header
-+#define dvb_pmt_field_last descriptor
-+
- #define dvb_pmt_stream_foreach(_stream, _pmt) \
-   for (struct dvb_table_pmt_stream *_stream = _pmt->stream; _stream; _stream = _stream->next) \
- 
-diff --git a/lib/libdvbv5/descriptors/pmt.c b/lib/libdvbv5/descriptors/pmt.c
-index 32ee7e4..adedf5a 100644
---- a/lib/libdvbv5/descriptors/pmt.c
-+++ b/lib/libdvbv5/descriptors/pmt.c
-@@ -1,6 +1,5 @@
- /*
-- * Copyright (c) 2011-2012 - Mauro Carvalho Chehab
-- * Copyright (c) 2012 - Andre Roth <neolynx@gmail.com>
-+ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-@@ -33,27 +32,43 @@ void dvb_table_pmt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
- 	struct dvb_table_pmt_stream **head = &pmt->stream;
- 	size_t size;
- 
-+	if (buf[0] != DVB_TABLE_PMT) {
-+		dvb_logerr("%s: invalid marker 0x%02x, sould be 0x%02x", __func__, buf[0], DVB_TABLE_PMT);
-+		*table_length = 0;
-+		return;
-+	}
-+
- 	if (*table_length > 0) {
- 		/* find end of current list */
- 		while (*head != NULL)
- 			head = &(*head)->next;
- 	} else {
--		size = offsetof(struct dvb_table_pmt, stream);
-+		size = offsetof(struct dvb_table_pmt, dvb_pmt_field_last);
- 		if (p + size > endbuf) {
--			dvb_logerr("PMT table was truncated. Need %zu bytes, but has only %zu.",
--				size, buflen);
-+			dvb_logerr("%s: short read %zd/%zd bytes", __func__,
-+				   size, endbuf - p);
- 			return;
- 		}
--		memcpy(table, p, size);
-+		memcpy(pmt, p, size);
- 		p += size;
--		*table_length = sizeof(struct dvb_table_pmt);
- 
- 		bswap16(pmt->bitfield);
- 		bswap16(pmt->bitfield2);
-+		pmt->descriptor = NULL;
- 		pmt->stream = NULL;
- 
--		/* skip prog section */
--		p += pmt->prog_length;
-+		/* parse the descriptors */
-+		if (pmt->desc_length > 0 ) {
-+			size = pmt->desc_length;
-+			if (p + size > endbuf) {
-+				dvb_logwarn("%s: decsriptors short read %zd/%zd bytes", __func__,
-+					   size, endbuf - p);
-+				size = endbuf - p;
-+			}
-+			dvb_parse_descriptors(parms, p, size,
-+					      &pmt->descriptor);
-+			p += size;
-+		}
- 	}
- 
- 	/* get the stream entries */
-@@ -74,15 +89,25 @@ void dvb_table_pmt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
- 		*head = stream;
- 		head = &(*head)->next;
- 
--		/* get the descriptors for each program */
--		dvb_parse_descriptors(parms, p, stream->section_length,
--				      &stream->descriptor);
--
--		p += stream->section_length;
-+		/* parse the descriptors */
-+		if (stream->desc_length > 0) {
-+			size = stream->desc_length;
-+			if (p + size > endbuf) {
-+				dvb_logwarn("%s: decsriptors short read %zd/%zd bytes", __func__,
-+					   size, endbuf - p);
-+				size = endbuf - p;
-+			}
-+			dvb_parse_descriptors(parms, p, size,
-+					      &stream->descriptor);
-+
-+			p += size;
-+		}
- 	}
--	if (endbuf - p)
--		dvb_logerr("PAT table has %zu spurious bytes at the end.",
--			   endbuf - p);
-+	if (p < endbuf)
-+		dvb_logwarn("%s: %zu spurious bytes at the end",
-+			   __func__, endbuf - p);
-+
-+	*table_length = p - buf;
- }
- 
- void dvb_table_pmt_free(struct dvb_table_pmt *pmt)
-@@ -94,29 +119,32 @@ void dvb_table_pmt_free(struct dvb_table_pmt *pmt)
- 		stream = stream->next;
- 		free(tmp);
- 	}
-+	dvb_free_descriptors((struct dvb_desc **) &pmt->descriptor);
- 	free(pmt);
- }
- 
- void dvb_table_pmt_print(struct dvb_v5_fe_parms *parms, const struct dvb_table_pmt *pmt)
- {
--	dvb_log("PMT");
-+	dvb_loginfo("PMT");
- 	dvb_table_header_print(parms, &pmt->header);
--	dvb_log("|- pcr_pid       %d", pmt->pcr_pid);
--	dvb_log("|  reserved2     %d", pmt->reserved2);
--	dvb_log("|  prog length   %d", pmt->prog_length);
--	dvb_log("|  zero3         %d", pmt->zero3);
--	dvb_log("|  reserved3     %d", pmt->reserved3);
--	dvb_log("|\\  pid     type");
-+	dvb_loginfo("|- pcr_pid          %04x", pmt->pcr_pid);
-+	dvb_loginfo("|  reserved2           %d", pmt->reserved2);
-+	dvb_loginfo("|  descriptor length   %d", pmt->desc_length);
-+	dvb_loginfo("|  zero3               %d", pmt->zero3);
-+	dvb_loginfo("|  reserved3          %d", pmt->reserved3);
-+	dvb_print_descriptors(parms, pmt->descriptor);
-+	dvb_loginfo("|\\");
- 	const struct dvb_table_pmt_stream *stream = pmt->stream;
- 	uint16_t streams = 0;
- 	while(stream) {
--		dvb_log("|- %5d   %s (%d)", stream->elementary_pid,
-+		dvb_loginfo("|- stream 0x%04x: %s (%x)", stream->elementary_pid,
- 				pmt_stream_name[stream->type], stream->type);
-+		dvb_loginfo("|    descriptor length   %d", stream->desc_length);
- 		dvb_print_descriptors(parms, stream->descriptor);
- 		stream = stream->next;
- 		streams++;
- 	}
--	dvb_log("|_  %d streams", streams);
-+	dvb_loginfo("|_  %d streams", streams);
- }
- 
- const char *pmt_stream_name[] = {
--- 
-1.8.3.2
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
