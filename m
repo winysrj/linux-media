@@ -1,42 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:57154 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751229AbaCWUrp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Mar 2014 16:47:45 -0400
-Message-ID: <532F486C.9030307@gentoo.org>
-Date: Sun, 23 Mar 2014 21:47:40 +0100
-From: Matthias Schwarzott <zzam@gentoo.org>
+Received: from mail-qc0-f193.google.com ([209.85.216.193]:57406 "EHLO
+	mail-qc0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752437AbaC3XEE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Mar 2014 19:04:04 -0400
+Received: by mail-qc0-f193.google.com with SMTP id e16so2453972qcx.8
+        for <linux-media@vger.kernel.org>; Sun, 30 Mar 2014 16:04:03 -0700 (PDT)
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 2/3] si2165: Add first driver version
-References: <1386918133-21628-1-git-send-email-zzam@gentoo.org> <1386918133-21628-3-git-send-email-zzam@gentoo.org> <52BA6B27.2040401@iki.fi> <532DBAC5.5040407@iki.fi>
-In-Reply-To: <532DBAC5.5040407@iki.fi>
+In-Reply-To: <CAGoCfiyaNi+LNY5iCjtE-PN8DP+3qiH5Sc=2BMwyt8zpxhYvWA@mail.gmail.com>
+References: <CALW6vT5P-Q-GHyRz7YGxyjx-RdVzhNVJA++mG1A1NbV_DGT8Mw@mail.gmail.com>
+	<CAGoCfiz4whMp4hGiFCqE3++Z1Nmj2P=4wywQKQjeL+qgz67nag@mail.gmail.com>
+	<CALW6vT5S5OUo2o=f6WYVep5ixuswrnffJCv-MX6MWL8gON6rhA@mail.gmail.com>
+	<CAGoCfiyaNi+LNY5iCjtE-PN8DP+3qiH5Sc=2BMwyt8zpxhYvWA@mail.gmail.com>
+Date: Sun, 30 Mar 2014 16:04:03 -0700
+Message-ID: <CALW6vT4zpSFa5yhLtrU-9wojCk+QoMVpjOnRkSh71Fy5Q=AqJg@mail.gmail.com>
+Subject: Re: No channels on Hauppauge 950Q
+From: Sunset Machine <sunsetmachine7@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22.03.2014 17:31, Antti Palosaari wrote:
-> Moi Matthias
-> 
-Hi Antti,
+On 3/30/14, Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+> On Sun, Mar 30, 2014 at 3:16 PM, Sunset Machine
+> <sunsetmachine7@gmail.com> wrote:
+>> kernel 3.2.0-4-686-pae and a new 950q
+>
+> Ok.  If you own a Revision E1H3 device, then that kernel definitely
+> won't work (the Rev is printed on the back of the stick above the
+> barcode).
 
-> So what is status of your work?
-> 
-The current status is:
-I compared parts of my code to si2161 documentation.
-I extracted firmware to an extra file.
-I disassembled parts of the windows driver to verify some assumptions.
+It is an E1H3, and I have good news. After upgrading the kernel to
+3.13 and the firmware, I ran w_scan and it found several channels.
+Creating a channels.conf with w_scan and running the command "mplayer
+dvb://ThisTV" soon had my local channel up on the screen.
 
-So the calculations should be almost correct for dvb-t.
-But for dvb-c I need some more knowledge or more disassembling to know
-how to calculate some register values.
+Think I'll go kill some time now. :-)
 
-e.g. What is the equivalence to this dvb-t value: DVB_rate = BW * 8/7
-I guess it should depend on the symbol rate of the dvb-c channel.
-
-I hope I manage to send out the current state as patches the next days.
-
-Regards
-Matthias
-
+Thank you!
