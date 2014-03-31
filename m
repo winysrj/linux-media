@@ -1,45 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38020 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754305AbaCKJxv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 05:53:51 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Janne=20Kujanp=C3=A4=C3=A4?= <jikuja@iki.fi>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] em28xx: fix PCTV 290e LNA oops
-Date: Tue, 11 Mar 2014 11:53:16 +0200
-Message-Id: <1394531596-19899-1-git-send-email-crope@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:46516 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752154AbaCaOxH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Mar 2014 10:53:07 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Lad Prabhakar <prabhakar.csengg@gmail.com>
+Subject: [PATCH 0/2] DaVinci: VPIF: upgrade with v4l helpers
+Date: Mon, 31 Mar 2014 20:22:50 +0530
+Message-Id: <1396277573-9513-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pointer to device state has been moved to different location during
-some change. PCTV 290e LNA function still uses old pointer, carried
-over FE priv, and it crash.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Reported-by: Janne Kujanpää <jikuja@iki.fi>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/em28xx/em28xx-dvb.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Hi All,
 
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 6638394..9b3f033 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -717,7 +717,8 @@ static void pctv_520e_init(struct em28xx *dev)
- static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe)
- {
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--	struct em28xx *dev = fe->dvb->priv;
-+	struct em28xx_i2c_bus *i2c_bus = fe->dvb->priv;
-+	struct em28xx *dev = i2c_bus->dev;
- #ifdef CONFIG_GPIOLIB
- 	struct em28xx_dvb *dvb = dev->dvb;
- 	int ret;
+This patch series upgrades the vpif capture & display
+driver with the all the helpers provided by v4l, this makes
+the driver much simpler and cleaner. This also includes few
+checkpatch issues.
+
+Sending them as single patch one for capture and another for
+display, splitting them would have caused a huge number small
+patches.
+
+Lad, Prabhakar (2):
+  media: davinci: vpif capture: upgrade the driver with v4l offerings
+  media: davinci: vpif display: upgrade the driver with v4l offerings
+
+ drivers/media/platform/davinci/vpif_capture.c |  916 ++++++-------------------
+ drivers/media/platform/davinci/vpif_capture.h |   32 +-
+ drivers/media/platform/davinci/vpif_display.c |  788 ++++++---------------
+ drivers/media/platform/davinci/vpif_display.h |   31 +-
+ 4 files changed, 446 insertions(+), 1321 deletions(-)
+
 -- 
-1.8.5.3
+1.7.9.5
 
