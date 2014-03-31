@@ -1,136 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45703 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752430AbaCANN7 (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:34466 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750987AbaCaWBN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Mar 2014 08:13:59 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, k.debski@samsung.com,
-	laurent.pinchart@ideasonboard.com
-Subject: [PATH v6 02/10] v4l: Document timestamp behaviour to correspond to reality
-Date: Sat,  1 Mar 2014 15:16:59 +0200
-Message-Id: <1393679828-25878-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1393679828-25878-1-git-send-email-sakari.ailus@iki.fi>
-References: <1393679828-25878-1-git-send-email-sakari.ailus@iki.fi>
+	Mon, 31 Mar 2014 18:01:13 -0400
+Received: by mail-we0-f174.google.com with SMTP id t60so5483329wes.33
+        for <linux-media@vger.kernel.org>; Mon, 31 Mar 2014 15:01:12 -0700 (PDT)
+From: James Hogan <james.hogan@imgtec.com>
+To: David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org, m.chehab@samsung.com
+Subject: Re: [PATCH 06/11] rc-core: remove generic scancode filter
+Date: Mon, 31 Mar 2014 23:01:02 +0100
+Message-ID: <2637649.OvhTEs7Wbs@radagast>
+In-Reply-To: <20140331193813.GC9610@hardeman.nu>
+References: <20140329160705.13234.60349.stgit@zeus.muc.hardeman.nu> <53393591.7060405@imgtec.com> <20140331193813.GC9610@hardeman.nu>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="nextPart1665380.8xFGl25Yo8"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document that monotonic timestamps are taken after the corresponding frame
-has been received, not when the reception has begun. This corresponds to the
-reality of current drivers: the timestamp is naturally taken when the
-hardware triggers an interrupt to tell the driver to handle the received
-frame.
 
-Remove the note on timestamp accuracy as it is fairly subjective what is
-actually an unstable timestamp.
+--nextPart1665380.8xFGl25Yo8
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 
-Also remove explanation that output buffer timestamps can be used to delay
-outputting a frame.
+On Monday 31 March 2014 21:38:13 David H=E4rdeman wrote:
+> >The rest looks reasonable, though it could easily have been a separa=
+te
+> >patch (at least as long as the show/store callbacks don't assume the=
 
-Remove the footnote saying we always use realtime clock.
+> >presence of the callbacks they use).
+>=20
+> Yes, I wanted to avoid there being more intermediary states than
+> necessary (i.e. first a read/writable sysfs file, then one that can't=
+ be
+> read/written, then the file disappears...).
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/io.xml |   56 +++++++-------------------------
- 1 file changed, 12 insertions(+), 44 deletions(-)
+Fair enough
 
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 2c4c068..8facac4 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -339,8 +339,8 @@ returns immediately with an &EAGAIN; when no buffer is available. The
- queues as a side effect. Since there is no notion of doing anything
- "now" on a multitasking system, if an application needs to synchronize
- with another event it should examine the &v4l2-buffer;
--<structfield>timestamp</structfield> of captured buffers, or set the
--field before enqueuing buffers for output.</para>
-+<structfield>timestamp</structfield> of captured or outputted buffers.
-+</para>
- 
-     <para>Drivers implementing memory mapping I/O must
- support the <constant>VIDIOC_REQBUFS</constant>,
-@@ -457,7 +457,7 @@ queues and unlocks all buffers as a side effect. Since there is no
- notion of doing anything "now" on a multitasking system, if an
- application needs to synchronize with another event it should examine
- the &v4l2-buffer; <structfield>timestamp</structfield> of captured
--buffers, or set the field before enqueuing buffers for output.</para>
-+or outputted buffers.</para>
- 
-     <para>Drivers implementing user pointer I/O must
- support the <constant>VIDIOC_REQBUFS</constant>,
-@@ -620,8 +620,7 @@ returns immediately with an &EAGAIN; when no buffer is available. The
- unlocks all buffers as a side effect. Since there is no notion of doing
- anything "now" on a multitasking system, if an application needs to synchronize
- with another event it should examine the &v4l2-buffer;
--<structfield>timestamp</structfield> of captured buffers, or set the field
--before enqueuing buffers for output.</para>
-+<structfield>timestamp</structfield> of captured or outputted buffers.</para>
- 
-     <para>Drivers implementing DMABUF importing I/O must support the
- <constant>VIDIOC_REQBUFS</constant>, <constant>VIDIOC_QBUF</constant>,
-@@ -654,38 +653,11 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
- In that case, struct <structname>v4l2_buffer</structname> contains an array of
- plane structures.</para>
- 
--      <para>Nominally timestamps refer to the first data byte transmitted.
--In practice however the wide range of hardware covered by the V4L2 API
--limits timestamp accuracy. Often an interrupt routine will
--sample the system clock shortly after the field or frame was stored
--completely in memory. So applications must expect a constant
--difference up to one field or frame period plus a small (few scan
--lines) random error. The delay and error can be much
--larger due to compression or transmission over an external bus when
--the frames are not properly stamped by the sender. This is frequently
--the case with USB cameras. Here timestamps refer to the instant the
--field or frame was received by the driver, not the capture time. These
--devices identify by not enumerating any video standards, see <xref
--linkend="standard" />.</para>
--
--      <para>Similar limitations apply to output timestamps. Typically
--the video hardware locks to a clock controlling the video timing, the
--horizontal and vertical synchronization pulses. At some point in the
--line sequence, possibly the vertical blanking, an interrupt routine
--samples the system clock, compares against the timestamp and programs
--the hardware to repeat the previous field or frame, or to display the
--buffer contents.</para>
--
--      <para>Apart of limitations of the video device and natural
--inaccuracies of all clocks, it should be noted system time itself is
--not perfectly stable. It can be affected by power saving cycles,
--warped to insert leap seconds, or even turned back or forth by the
--system administrator affecting long term measurements. <footnote>
--	  <para>Since no other Linux multimedia
--API supports unadjusted time it would be foolish to introduce here. We
--must use a universally supported clock to synchronize different media,
--hence time of day.</para>
--	</footnote></para>
-+      <para>For timestamp types that are sampled from the system clock
-+(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
-+taken after the complete frame has been received (or transmitted in
-+case of video output devices). For other kinds of
-+timestamps this may vary depending on the driver.</para>
- 
-     <table frame="none" pgwide="1" id="v4l2-buffer">
-       <title>struct <structname>v4l2_buffer</structname></title>
-@@ -745,13 +717,9 @@ applications when an output stream.</entry>
- 	    byte was captured, as returned by the
- 	    <function>clock_gettime()</function> function for the relevant
- 	    clock id; see <constant>V4L2_BUF_FLAG_TIMESTAMP_*</constant> in
--	    <xref linkend="buffer-flags" />. For output streams the data
--	    will not be displayed before this time, secondary to the nominal
--	    frame rate determined by the current video standard in enqueued
--	    order. Applications can for example zero this field to display
--	    frames as soon as possible. The driver stores the time at which
--	    the first data byte was actually sent out in the
--	    <structfield>timestamp</structfield> field. This permits
-+	    <xref linkend="buffer-flags" />. For output streams the driver
-+	    stores the time at which the last data byte was actually sent out
-+	    in the  <structfield>timestamp</structfield> field. This permits
- 	    applications to monitor the drift between the video and system
- 	    clock.</para></entry>
- 	  </row>
--- 
-1.7.10.4
+> Can still respin it on top of your patch if you prefer.
+
+It doesn't particularly bother me tbh, so do what you think is best.
+
+Cheers
+James
+--nextPart1665380.8xFGl25Yo8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAABAgAGBQJTOeWlAAoJEKHZs+irPybfGnMP/i6vFTey174XJTydziMRMFec
+kSOytHeWi8wQRcZ2zHVwbA8Ds/UTkEQ1GRPNjGmDbizNs4hjBS/gt5DSgRFrQR0X
+cIfMnMJZaXrMmnGUcEx9buASx8GzNxd7nbp4kao6MRM79jfWWvW1S4bXPWNC2Tl4
+BN7P0pXMBy7zHRl2fGvmrj/KOml+nzFS7lfJY0NmdTYi6CUiASyOENtyXwlB1bjl
+IQW288aV38K6uR41MQJSKFJi9d0UwA91b9FgfCLxBWakix76yuM+RKixpbO2JPzC
+tbXiwXhP/J2P2Pca2dxoTsiIwhCSdwsGRo9wcHhR98ChKdEKh9ee0v6+2IDIuhMK
+CdqGcak0MdwvAOpbxTnI/qmeg3VzUOuLmnv6ZZA8+Gl5zr2PY9G+DiqYUmmqJ2SQ
+E7peBE2/yGJQTDEOQmd4Ub9DgO3GebSqJzAoXX6ocscyLT9CaPh/VUxgi2kPxn94
+zWPZfYSZq8aHVyjojJrOzMkX2CiKhY6x2oLNmI6eglQ4nl6PtFCdNq8A+kifSL8v
+02OKDoeqW1YBHo2ZXV+9piZgHYGVIviW2oO2w4CXULpjbP6MtNXQtP5m0sRkLL6f
+NLH/qFbD07GQwrboUHc45tGtPj1D2T+6R20ipSP8AX0i5KeEXNexjlkOVgEx88f7
+TOK0XkWC9ALUOmH1RqTD
+=xqSN
+-----END PGP SIGNATURE-----
+
+--nextPart1665380.8xFGl25Yo8--
 
