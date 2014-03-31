@@ -1,58 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from omr-d03.mx.aol.com ([205.188.109.200]:60044 "EHLO
-	omr-d03.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751873AbaCJILd (ORCPT
+Received: from [217.156.133.130] ([217.156.133.130]:15819 "EHLO
+	imgpgp01.kl.imgtec.org" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753419AbaCaJzM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 04:11:33 -0400
-Received: from mtaout-mac01.mx.aol.com (mtaout-mac01.mx.aol.com [172.26.222.205])
-	by omr-d03.mx.aol.com (Outbound Mail Relay) with ESMTP id D4914701FA4C2
-	for <linux-media@vger.kernel.org>; Mon, 10 Mar 2014 04:11:32 -0400 (EDT)
-Received: from [192.168.10.62] (p17087-ipngn5502marunouchi.tokyo.ocn.ne.jp [153.160.16.87])
-	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
-	(No client certificate requested)
-	by mtaout-mac01.mx.aol.com (MUA/Third Party Client Interface) with ESMTPSA id 2C7783800009C
-	for <linux-media@vger.kernel.org>; Mon, 10 Mar 2014 04:11:31 -0400 (EDT)
-Message-ID: <531D73BD.6030602@aim.com>
-Date: Mon, 10 Mar 2014 17:11:41 +0900
-From: Sat <sattnag@aim.com>
+	Mon, 31 Mar 2014 05:55:12 -0400
+Message-ID: <53393B73.3010405@imgtec.com>
+Date: Mon, 31 Mar 2014 10:54:59 +0100
+From: James Hogan <james.hogan@imgtec.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Siano: smsusb - Add a device id for PX-S1UD
-References: <52F89FB9.7080004@aim.com>
-In-Reply-To: <52F89FB9.7080004@aim.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: =?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>
+CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>
+Subject: Re: [PATCH 03/11] rc-core: document the protocol type
+References: <20140329160705.13234.60349.stgit@zeus.muc.hardeman.nu> <20140329161100.13234.82892.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140329161100.13234.82892.stgit@zeus.muc.hardeman.nu>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="UP4hsVl9Xm43u42mKQBa8ibHRE0ih4vlw"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Could anyone move forward with this patch?
-Or is there anything I should do more?
-Please advise.
+--UP4hsVl9Xm43u42mKQBa8ibHRE0ih4vlw
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Satoshi
+On 29/03/14 16:11, David H=C3=A4rdeman wrote:
+> Right now the protocol information is not preserved, rc-core gets hande=
+d a
+> scancode but has no idea which protocol it corresponds to.
+>=20
+> This patch (which required reading through the source/keymap for all dr=
+ivers,
+> not fun) makes the protocol information explicit which is important
+> documentation and makes it easier to e.g. support multiple protocols wi=
+th one
+> decoder (think rc5 and rc-streamzap). The information isn't used yet so=
+ there
+> should be no functional changes.
+>=20
+> Signed-off-by: David H=C3=A4rdeman <david@hardeman.nu>
 
-(2014/02/10 18:45), Satoshi Nagahama wrote:
-> Add a device id to support for PX-S1UD (PLEX ISDB-T usb dongle) which
-> has sms2270.
->
-> Signed-off-by: Satoshi Nagahama <sattnag@aim.com>
-> ---
->   drivers/media/usb/siano/smsusb.c | 2 ++
->   1 file changed, 2 insertions(+)
->
-> diff --git a/drivers/media/usb/siano/smsusb.c
-> b/drivers/media/usb/siano/smsusb.c
-> index 05bd91a..1836a41 100644
-> --- a/drivers/media/usb/siano/smsusb.c
-> +++ b/drivers/media/usb/siano/smsusb.c
-> @@ -653,6 +653,8 @@ static const struct usb_device_id smsusb_id_table[] = {
->   		.driver_info = SMS1XXX_BOARD_ZTE_DVB_DATA_CARD },
->   	{ USB_DEVICE(0x19D2, 0x0078),
->   		.driver_info = SMS1XXX_BOARD_ONDA_MDTV_DATA_CARD },
-> +	{ USB_DEVICE(0x3275, 0x0080),
-> +		.driver_info = SMS1XXX_BOARD_SIANO_RIO },
->   	{ } /* Terminating entry */
->   	};
->
+Good stuff. I very much approve of the concept, and had considered doing
+the same thing myself.
 
+Cheers
+James
+
+
+--UP4hsVl9Xm43u42mKQBa8ibHRE0ih4vlw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.13 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTOTtzAAoJEGwLaZPeOHZ6fbsQALOBdufqH3JMvI01UN5tivx+
+IWnd4MDGhM8GIGJroWmBIM5Fer3DtOtyJipAKoB+uFE2evlU2Ol5GxGrxm75ZflA
+anRC5zFWyF6VEMrHZ8Sc/0c7JWZIBYnhcXg6fY5THBevCVhqY/o2vEFF3CR3tA8j
+YFfiW6ns18YpsR1w9bqi4qp8+Ti9ykhYW+5XH9BvEghOwSYOUyRa1HZWuKIfJObl
+0Lc52mYxnqsl+vVFVbPGiHgUqpTooVzHTtKUnhAq9LLdvSeJwq1iG/1VFuY8C+qb
+3l4EkzvcvPOOnifGA2bD0HMpLblhZTqNKe6BLYmVwlorynE456dSSXrdv32ReAED
+T2nZhQ3lfLS1noEfz7CNcdoRjs8IFT75cm2TkqXWbuFiBjLNmeJiQ6seAHhNGYDW
+q9dwJfg5NhVC5Q9p/VgtLC4a2fB4iMLeQdoCkohpfwEPA5RePssxurZY3BgDAAJE
+HG4mC56ZCSBCPCesNwMrbVwS91ApeHeZDpS1I2q6YTamtBEs5n98Wf4GCO9yhkdI
+Ka1jrWhcqqk8mDX/CJS5bIrcYoor3fKkWAvVWn9KHTZBbPvXCQCdk20mgad+dQ0I
+Q+wcNpPHtT2F98eDHdi8FKW8rlf6PzXpIlYY3YCzreX16KbW7swkS5zl/jIc5c9s
+TxXS/h27SzYekag0n2Ec
+=JYdm
+-----END PGP SIGNATURE-----
+
+--UP4hsVl9Xm43u42mKQBa8ibHRE0ih4vlw--
