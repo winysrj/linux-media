@@ -1,161 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:56927 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753545AbaCUIhj (ORCPT
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:13487 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751768AbaCaP1D convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 04:37:39 -0400
-Received: by mail-pb0-f42.google.com with SMTP id rr13so2119838pbb.15
-        for <linux-media@vger.kernel.org>; Fri, 21 Mar 2014 01:37:39 -0700 (PDT)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com, posciak@chromium.org,
-	arunkk.samsung@gmail.com
-Subject: [PATCH 3/3] [media] s5p-mfc: Don't allocate codec buffers on STREAMON.
-Date: Fri, 21 Mar 2014 14:07:15 +0530
-Message-Id: <1395391035-27349-4-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1395391035-27349-1-git-send-email-arun.kk@samsung.com>
-References: <1395391035-27349-1-git-send-email-arun.kk@samsung.com>
+	Mon, 31 Mar 2014 11:27:03 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N3B000BC490WG90@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 31 Mar 2014 11:27:01 -0400 (EDT)
+Date: Mon, 31 Mar 2014 12:26:56 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: James Hogan <james.hogan@imgtec.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 10/11] [RFC] rc-core: use the full 32 bits for NEC scancodes
+Message-id: <20140331122656.13266f88@samsung.com>
+In-reply-to: <37fcf3abf63e258ee29b23dc3b0f3f12@hardeman.nu>
+References: <20140329160705.13234.60349.stgit@zeus.muc.hardeman.nu>
+ <20140329161136.13234.733.stgit@zeus.muc.hardeman.nu>
+ <5339390B.6030709@imgtec.com> <4af025b742df648556360db390351166@hardeman.nu>
+ <533949F5.3080001@imgtec.com> <37fcf3abf63e258ee29b23dc3b0f3f12@hardeman.nu>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pawel Osciak <posciak@chromium.org>
+Em Mon, 31 Mar 2014 15:22:47 +0200
+David Härdeman <david@hardeman.nu> escreveu:
 
-Currently, we allocate private codec buffers on STREAMON, which may fail
-if we are out of memory. We don't check for failure though, which will
-make us crash with the codec accessing random memory.
+> On 2014-03-31 12:56, James Hogan wrote:
+> > On 31/03/14 11:19, David Härdeman wrote:
+> >> On 2014-03-31 11:44, James Hogan wrote:
+> >>> On 29/03/14 16:11, David Härdeman wrote:
+> >>>> +    /* raw encoding : ddDDaaAA -> scan encoding: AAaaDDdd */
+> >>>> +    *scancode = swab32((u32)raw);
+> >>> 
+> >>> What's the point of the byte swapping?
+> >>> 
+> >>> Surely the most natural NEC encoding would just treat it as a single
+> >>> 32-bit (LSBit first) field rather than 4 8-bit fields that needs
+> >>> swapping.
+> >> 
+> >> Thanks for having a look at the patches, I agree with your comments on
+> >> the other patches (and I have to respin some of them because I missed
+> >> two drivers), but the comments to this patch confuses me a bit.
+> >> 
+> >> That the NEC data is transmitted as 32 bits encoded with LSB bit order
+> >> within each byte is AFAIK just about the only thing that all
+> >> sources/documentation of the protocal can agree on (so bitrev:ing the
+> >> bits within each byte makes sense, unless the hardware has done it
+> >> already).
+> > 
+> > Agreed (in the case of img-ir there's a bit orientation setting which
+> > ensures that the u64 raw has the correct bit order, in the case of NEC
+> > the first bit received goes in the lowest order bit of the raw data).
+> > 
+> >> As for the byte order, AAaaDDdd corresponds to the transmission order
+> >> and seems to be what most drivers expect/use for their RX data.
+> > 
+> > AAaaDDdd is big endian rendering, no? (like "%08x")
+> 
+> Yeah, you could call it that.
+> 
+> > If it should be interpreted as LSBit first, then the first bits 
+> > received
+> > should go in the low bits of the scancode, and by extension the first
+> > bytes received in the low bytes of the scancode, i.e. at the end of the
+> > inherently big-endian hexadecimal rendering of the scancode.
+> 
+> I'm not saying the whole scancode should be interpreted as one 32 bit 
+> LSBit integer, just that the endianness within each byte should be 
+> respected.
+> 
+> >> Are you suggesting that rc-core should standardize on ddDDaaAA order?
+> > 
+> > Yes (where ddDDaaAA means something like scancode
+> > "0x(~cmd)(cmd)(~addr)(addr)")
+> 
+> Yes, that's what I meant.
+> 
+> > This would mean that if the data is put in the right bit order (first
+> > bit received in BIT(0), last bit received in BIT(31)), then the 
+> > scancode
+> > = raw, and if the data is received in the reverse bit order (like the
+> > raw decoder, shifting the data left and inserting the last bit in
+> > BIT(0)) then the scancode = bitrev32(raw).
+> > 
+> > Have I missed something?
+> 
+> I just think we have to agree to disagree :)
+> 
+> For me, storing/presenting the scancode as 0xAAaaDDdd is "obviously" the 
+> clearest and least confusing interpretation. But I might have spent too 
+> long time using that notation in code and mentally to be able to find 
+> anything else intuitive :)
 
-We shouldn't be failing STREAMON with out of memory errors though. So move
-the allocation of private codec buffers to REQBUFS for OUTPUT queue. Also,
-move MFC instance opening and closing to REQBUFS as well, as it's tied to
-allocation and deallocation of private codec buffers.
+Inside the RC core, for all other protocols, the order always
+ADDRESS + COMMAND.
 
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c      |   10 ++++-----
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c |    1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c  |   30 +++++++++++--------------
- 3 files changed, 19 insertions(+), 22 deletions(-)
+Up to NEC-24 bits, this is preserved, as the command is always 0xDD
+and the address is either 0xaaAA or 0xAA.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 04030f5..4ee5a02 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -637,8 +637,9 @@ static irqreturn_t s5p_mfc_irq(int irq, void *priv)
- 		goto irq_cleanup_hw;
- 
- 	case S5P_MFC_R2H_CMD_CLOSE_INSTANCE_RET:
--		clear_work_bit(ctx);
-+		ctx->inst_no = MFC_NO_INSTANCE_SET;
- 		ctx->state = MFCINST_FREE;
-+		clear_work_bit(ctx);
- 		wake_up(&ctx->queue);
- 		goto irq_cleanup_hw;
- 
-@@ -758,7 +759,7 @@ static int s5p_mfc_open(struct file *file)
- 		goto err_bad_node;
- 	}
- 	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
--	ctx->inst_no = -1;
-+	ctx->inst_no = MFC_NO_INSTANCE_SET;
- 	/* Load firmware if this is the first instance */
- 	if (dev->num_inst == 1) {
- 		dev->watchdog_timer.expires = jiffies +
-@@ -868,12 +869,11 @@ static int s5p_mfc_release(struct file *file)
- 	vb2_queue_release(&ctx->vq_dst);
- 	/* Mark context as idle */
- 	clear_work_bit_irqsave(ctx);
--	/* If instance was initialised then
-+	/* If instance was initialised and not yet freed,
- 	 * return instance and free resources */
--	if (ctx->inst_no != MFC_NO_INSTANCE_SET) {
-+	if (ctx->state != MFCINST_FREE && ctx->state != MFCINST_INIT) {
- 		mfc_debug(2, "Has to free instance\n");
- 		s5p_mfc_close_mfc_inst(dev, ctx);
--		ctx->inst_no = MFC_NO_INSTANCE_SET;
- 	}
- 	/* hardware locking scheme */
- 	if (dev->curr_ctx == ctx->num)
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-index ccbfcb3..865e9e0 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-@@ -461,5 +461,6 @@ void s5p_mfc_close_mfc_inst(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx)
- 	if (ctx->type == MFCINST_DECODER)
- 		s5p_mfc_hw_call(dev->mfc_ops, release_dec_desc_buffer, ctx);
- 
-+	ctx->inst_no = MFC_NO_INSTANCE_SET;
- 	ctx->state = MFCINST_FREE;
- }
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index efc78ae..4586186 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -475,11 +475,11 @@ static int reqbufs_output(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx,
- 		ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
- 		if (ret)
- 			goto out;
-+		s5p_mfc_close_mfc_inst(dev, ctx);
- 		ctx->src_bufs_cnt = 0;
-+		ctx->output_state = QUEUE_FREE;
- 	} else if (ctx->output_state == QUEUE_FREE) {
--		/* Can only request buffers after the instance
--		 * has been opened.
--		 */
-+		/* Can only request buffers when we have a valid format set. */
- 		WARN_ON(ctx->src_bufs_cnt != 0);
- 		if (ctx->state != MFCINST_INIT) {
- 			mfc_err("Reqbufs called in an invalid state\n");
-@@ -493,6 +493,13 @@ static int reqbufs_output(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx,
- 		if (ret)
- 			goto out;
- 
-+		ret = s5p_mfc_open_mfc_inst(dev, ctx);
-+		if (ret) {
-+			reqbufs->count = 0;
-+			vb2_reqbufs(&ctx->vq_src, reqbufs);
-+			goto out;
-+		}
-+
- 		ctx->output_state = QUEUE_BUFS_REQUESTED;
- 	} else {
- 		mfc_err("Buffers have already been requested\n");
-@@ -594,7 +601,7 @@ static int vidioc_querybuf(struct file *file, void *priv,
- 		return -EINVAL;
- 	}
- 	mfc_debug(2, "State: %d, buf->type: %d\n", ctx->state, buf->type);
--	if (ctx->state == MFCINST_INIT &&
-+	if (ctx->state == MFCINST_GOT_INST &&
- 			buf->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
- 		ret = vb2_querybuf(&ctx->vq_src, buf);
- 	} else if (ctx->state == MFCINST_RUNNING &&
-@@ -670,24 +677,13 @@ static int vidioc_streamon(struct file *file, void *priv,
- 			   enum v4l2_buf_type type)
- {
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
--	struct s5p_mfc_dev *dev = ctx->dev;
- 	int ret = -EINVAL;
- 
- 	mfc_debug_enter();
--	if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
--		if (ctx->state == MFCINST_INIT) {
--			ctx->dst_bufs_cnt = 0;
--			ctx->src_bufs_cnt = 0;
--			ctx->capture_state = QUEUE_FREE;
--			ctx->output_state = QUEUE_FREE;
--			ret = s5p_mfc_open_mfc_inst(dev, ctx);
--			if (ret)
--				return ret;
--		}
-+	if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
- 		ret = vb2_streamon(&ctx->vq_src, type);
--	} else if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+	else if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
- 		ret = vb2_streamon(&ctx->vq_dst, type);
--	}
- 	mfc_debug_leave();
- 	return ret;
- }
--- 
-1.7.9.5
+The 32-bits NEC is a little ackward, if we consider the command as
+also being 8 bits, and the address having 24 bits.
 
+The Tivo keytable is weird:
+
+	{ 0x3085f009, KEY_MEDIA },	/* TiVo Button */
+	{ 0x3085e010, KEY_POWER2 },	/* TV Power */
+	{ 0x3085e011, KEY_TV },		/* Live TV/Swap */
+	{ 0x3085c034, KEY_VIDEO_NEXT },	/* TV Input */
+	{ 0x3085e013, KEY_INFO },
+	{ 0x3085a05f, KEY_CYCLEWINDOWS }, /* Window */
+	{ 0x0085305f, KEY_CYCLEWINDOWS },
+	{ 0x3085c036, KEY_EPG },	/* Guide */
+	...
+
+There, the only part of the scancode that doesn't change is 0x85.
+It seems that they're using 8 bits for address (0xaa) and 24
+bits for command (0xAADDdd).
+
+So, it seems that they're actually sending address/command as:
+
+	[command >> 24><Address][(command >>8) & 0xff][command & 0xff]
+
+With seems too awkward.
+
+IMHO, it would make more sense to store those data as:
+	<address><command>
+
+So, KEY_MEDIA, for example, would be:
++	{ 0x8530f009, KEY_MEDIA },	/* TiVo Button */
+
+However, I'm not sure how other 32 bits NEC scancodes might be.
+
+So, I think we should keep the internal representation as-is,
+for now, while we're not sure about how other vendors handle
+it, as, for now, there's just one IR table with 32 bits nec.
+
+That's said, I don't mind much how this is internally stored at
+the Kernel level, as we can always change it, but we should provide
+backward compatibility for userspace, when userspace sends
+to Kernel a 16 bit or a 24 bit keytable.
+
+So, I think we should first focus on how to properly get/set the
+bitsize at the API in a way that this is backward compatible.
+
+Ok, the API actually sends the bit size of each keycode, as the
+size length is variable, but I'm not sure if this is reliable enough,
+as I think that the current userspace just sets it to 32 bits, even
+when passing a 16 bits key.
+
+In any case, it doesn't make any sense to require userspace to
+convert a 16 bits normal NEC table (or a 24 bits "extended" NEC
+table) into a 32 bits data+checksum bitpack on userspace.
+
+Regards,
+Mauro
