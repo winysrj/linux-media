@@ -1,165 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752366AbaCJXOf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 19:14:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 03/48] v4l: Add UYVY10_1X20 and VYUY10_1X20 media bus pixel codes
-Date: Tue, 11 Mar 2014 00:15:14 +0100
-Message-Id: <1394493359-14115-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail.comexp.ru ([78.110.60.213]:35338 "EHLO mail.comexp.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753540AbaCaNuy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Mar 2014 09:50:54 -0400
+Message-ID: <1396264443.4328.10.camel@localhost.localdomain>
+Subject: [PATCH v2 2/3] videodev2: add new event type
+ V4L2_EVENT_SIGNALCHANGED
+From: Mikhail Domrachev <mihail.domrychev@comexp.ru>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Aleksey Igonin <aleksey.igonin@comexp.ru>
+Date: Mon, 31 Mar 2014 15:14:03 +0400
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 104 +++++++++++++++++++++
- include/uapi/linux/v4l2-mediabus.h                 |   4 +-
- 2 files changed, 107 insertions(+), 1 deletion(-)
+Applications subscribed for this event can be notified about
+changes of TV standard.
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 6fb58de..e3cbbb4 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -2436,6 +2436,110 @@
- 	      <entry>v<subscript>1</subscript></entry>
- 	      <entry>v<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="V4L2-MBUS-FMT-UYVY10-1X20">
-+	      <entry>V4L2_MBUS_FMT_UYVY10_1X20</entry>
-+	      <entry>0x201a</entry>
-+	      <entry></entry>
-+	      &dash-ent-12;
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-12;
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-VYUY10-1X20">
-+	      <entry>V4L2_MBUS_FMT_VYUY10_1X20</entry>
-+	      <entry>0x201b</entry>
-+	      <entry></entry>
-+	      &dash-ent-12;
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-12;
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="V4L2-MBUS-FMT-YUYV10-1X20">
- 	      <entry>V4L2_MBUS_FMT_YUYV10_1X20</entry>
- 	      <entry>0x200d</entry>
-diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-index 20a99b1..43707b2 100644
---- a/include/uapi/linux/v4l2-mediabus.h
-+++ b/include/uapi/linux/v4l2-mediabus.h
-@@ -52,7 +52,7 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_RGB888_2X12_LE = 0x100c,
- 	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
+Signed-off-by: Mikhail Domrachev <mihail.domrychev@comexp.ru>
+---
+ Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml | 7 +++++++
+ include/uapi/linux/videodev2.h                             | 1 +
+ 2 files changed, 8 insertions(+)
+
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+index 5c70b61..dc7cb9f 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+@@ -155,6 +155,13 @@
+ 	    </entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_EVENT_SIGNALCHANGED</constant></entry>
++	    <entry>5</entry>
++	    <entry>This event is triggered when TV standard of the input signal is changed.
++		   New detected standard of type &v4l2-std-id; placed to u.data[] field of &v4l2-event;
++	    </entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
+ 	    <entry>0x08000000</entry>
+ 	    <entry>Base event number for driver-private events.</entry>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index e35ad6c..45094f2 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1765,6 +1765,7 @@ struct v4l2_streamparm {
+ #define V4L2_EVENT_EOS				2
+ #define V4L2_EVENT_CTRL				3
+ #define V4L2_EVENT_FRAME_SYNC			4
++#define V4L2_EVENT_SIGNALCHANGED		5
+ #define V4L2_EVENT_PRIVATE_START		0x08000000
  
--	/* YUV (including grey) - next is 0x201a */
-+	/* YUV (including grey) - next is 0x201c */
- 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
- 	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
- 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
-@@ -74,6 +74,8 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_YUYV8_1X16 = 0x2011,
- 	V4L2_MBUS_FMT_YVYU8_1X16 = 0x2012,
- 	V4L2_MBUS_FMT_YDYUYDYV8_1X16 = 0x2014,
-+	V4L2_MBUS_FMT_UYVY10_1X20 = 0x201a,
-+	V4L2_MBUS_FMT_VYUY10_1X20 = 0x201b,
- 	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
- 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
- 	V4L2_MBUS_FMT_YUV10_1X30 = 0x2016,
+ /* Payload for V4L2_EVENT_VSYNC */
 -- 
-1.8.3.2
+1.8.5.3
+
+
 
