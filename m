@@ -1,165 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:41408 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755926AbaCNXHF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Mar 2014 19:07:05 -0400
-Received: by mail-wi0-f173.google.com with SMTP id f8so167086wiw.6
-        for <linux-media@vger.kernel.org>; Fri, 14 Mar 2014 16:07:03 -0700 (PDT)
-From: James Hogan <james@albanarts.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-Cc: linux-media@vger.kernel.org, James Hogan <james@albanarts.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v2 7/9] rc: rc-core: Add support for encode_wakeup drivers
-Date: Fri, 14 Mar 2014 23:04:17 +0000
-Message-Id: <1394838259-14260-8-git-send-email-james@albanarts.com>
-In-Reply-To: <1394838259-14260-1-git-send-email-james@albanarts.com>
-References: <1394838259-14260-1-git-send-email-james@albanarts.com>
+Received: from hardeman.nu ([95.142.160.32]:39422 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752602AbaCaNyE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Mar 2014 09:54:04 -0400
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH 10/11] [RFC] rc-core: use the full 32 bits for NEC  scancodes
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
 Content-Transfer-Encoding: 8bit
+Date: Mon, 31 Mar 2014 15:54:02 +0200
+From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+Cc: James Hogan <james.hogan@imgtec.com>, linux-media@vger.kernel.org,
+	jarod@redhat.com, sean@mess.org
+In-Reply-To: <20140331101507.4f34c0ee@samsung.com>
+References: <20140329160705.13234.60349.stgit@zeus.muc.hardeman.nu>
+ <20140329161136.13234.733.stgit@zeus.muc.hardeman.nu>
+ <5339390B.6030709@imgtec.com> <4af025b742df648556360db390351166@hardeman.nu>
+ <20140331091433.0f232179@samsung.com>
+ <6b18c58fc8eef47b081583ab316bb000@hardeman.nu>
+ <20140331101507.4f34c0ee@samsung.com>
+Message-ID: <54e5a3e2631023ae36226333ff8f09e1@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support in rc-core for drivers which implement the wakeup scancode
-filter by encoding the scancode using the raw IR encoders. This is by
-way of rc_dev::encode_wakeup which should be set to true to make the
-allowed wakeup protocols the same as the set of raw IR encoders.
+On 2014-03-31 15:15, Mauro Carvalho Chehab wrote:
+> Em Mon, 31 Mar 2014 14:58:10 +0200
+> David Härdeman <david@hardeman.nu> escreveu:
+>> On 2014-03-31 14:14, Mauro Carvalho Chehab wrote:
+>>> The 24 or 32 bits variation is actually a violation of the NEC
+>>> protocol.
+>> 
+>> Violation is a misnomer. NEC created the 24 bit version, it's an
+>> extension. Many companies (such as your employer :)) have created
+>> further variations.
+> 
+> I'm fine if you call it as an extension, but the original NEC _is_
+> 16 bits, and most drivers are compliant with it.
+> 
+> We should not break what's working.
 
-As well as updating the sysfs interface to know which wakeup protocols
-are allowed for encode_wakeup drivers, also ensure that the IR
-decoders/encoders are loaded when an encode_wakeup driver is registered.
+You're misrepresenting the proposed changes now.
 
-Signed-off-by: James Hogan <james@albanarts.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Antti Seppälä <a.seppala@gmail.com>
-Cc: David Härdeman <david@hardeman.nu>
----
-Changes in v2:
- - New patch
----
- drivers/media/rc/ir-raw.c       | 15 +++++++++++++++
- drivers/media/rc/rc-core-priv.h |  1 +
- drivers/media/rc/rc-main.c      | 11 ++++++++---
- include/media/rc-core.h         |  3 +++
- 4 files changed, 27 insertions(+), 3 deletions(-)
+I'm trying to fixup the scancode handling in the best way possible, I'm 
+not willfully breaking anything.
 
-diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
-index 4310e82..d8ad81c 100644
---- a/drivers/media/rc/ir-raw.c
-+++ b/drivers/media/rc/ir-raw.c
-@@ -30,6 +30,7 @@ static LIST_HEAD(ir_raw_client_list);
- static DEFINE_MUTEX(ir_raw_handler_lock);
- static LIST_HEAD(ir_raw_handler_list);
- static u64 available_protocols;
-+static u64 encode_protocols;
- 
- static int ir_raw_event_thread(void *data)
- {
-@@ -240,6 +241,16 @@ ir_raw_get_allowed_protocols(void)
- 	return protocols;
- }
- 
-+/* used internally by the sysfs interface */
-+u64 ir_raw_get_encode_protocols(void)
-+{
-+	u64 protocols;
-+	mutex_lock(&ir_raw_handler_lock);
-+	protocols = encode_protocols;
-+	mutex_unlock(&ir_raw_handler_lock);
-+	return protocols;
-+}
-+
- /**
-  * ir_raw_gen_manchester() - Encode data with Manchester (bi-phase) modulation.
-  * @ev:		Pointer to pointer to next free event. *@ev is incremented for
-@@ -498,6 +509,8 @@ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler)
- 		list_for_each_entry(raw, &ir_raw_client_list, list)
- 			ir_raw_handler->raw_register(raw->dev);
- 	available_protocols |= ir_raw_handler->protocols;
-+	if (ir_raw_handler->encode)
-+		encode_protocols |= ir_raw_handler->protocols;
- 	mutex_unlock(&ir_raw_handler_lock);
- 
- 	return 0;
-@@ -514,6 +527,8 @@ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler)
- 		list_for_each_entry(raw, &ir_raw_client_list, list)
- 			ir_raw_handler->raw_unregister(raw->dev);
- 	available_protocols &= ~ir_raw_handler->protocols;
-+	if (ir_raw_handler->encode)
-+		encode_protocols &= ~ir_raw_handler->protocols;
- 	mutex_unlock(&ir_raw_handler_lock);
- }
- EXPORT_SYMBOL(ir_raw_handler_unregister);
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index c45b797..767ef69 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -239,6 +239,7 @@ int ir_raw_gen_pd(struct ir_raw_event **ev, unsigned int max,
-  * Routines from rc-raw.c to be used internally and by decoders
-  */
- u64 ir_raw_get_allowed_protocols(void);
-+u64 ir_raw_get_encode_protocols(void);
- int ir_raw_event_register(struct rc_dev *dev);
- void ir_raw_event_unregister(struct rc_dev *dev);
- int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 99697aa..712a2d7 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -857,8 +857,10 @@ static ssize_t show_protocols(struct device *device,
- 	mutex_lock(&dev->lock);
- 
- 	enabled = dev->enabled_protocols[fattr->type];
--	if (dev->driver_type == RC_DRIVER_SCANCODE ||
--	    fattr->type == RC_FILTER_WAKEUP)
-+	if (dev->encode_wakeup && fattr->type == RC_FILTER_WAKEUP)
-+		allowed = ir_raw_get_encode_protocols();
-+	else if (dev->driver_type == RC_DRIVER_SCANCODE ||
-+		 fattr->type == RC_FILTER_WAKEUP)
- 		allowed = dev->allowed_protocols[fattr->type];
- 	else if (dev->raw)
- 		allowed = ir_raw_get_allowed_protocols();
-@@ -1350,13 +1352,16 @@ int rc_register_device(struct rc_dev *dev)
- 		path ? path : "N/A");
- 	kfree(path);
- 
--	if (dev->driver_type == RC_DRIVER_IR_RAW) {
-+	if (dev->driver_type == RC_DRIVER_IR_RAW || dev->encode_wakeup) {
- 		/* Load raw decoders, if they aren't already */
- 		if (!raw_init) {
- 			IR_dprintk(1, "Loading raw decoders\n");
- 			ir_raw_init();
- 			raw_init = true;
- 		}
-+	}
-+
-+	if (dev->driver_type == RC_DRIVER_IR_RAW) {
- 		rc = ir_raw_event_register(dev);
- 		if (rc < 0)
- 			goto out_input;
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 8c64f9e..2d81d6c 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -73,6 +73,8 @@ enum rc_filter_type {
-  * @input_dev: the input child device used to communicate events to userspace
-  * @driver_type: specifies if protocol decoding is done in hardware or software
-  * @idle: used to keep track of RX state
-+ * @encode_wakeup: wakeup filtering uses IR encode API, therefore the allowed
-+ *	wakeup protocols is the set of all raw encoders
-  * @allowed_protocols: bitmask with the supported RC_BIT_* protocols for each
-  *	filter type
-  * @enabled_protocols: bitmask with the enabled RC_BIT_* protocols for each
-@@ -128,6 +130,7 @@ struct rc_dev {
- 	struct input_dev		*input_dev;
- 	enum rc_driver_type		driver_type;
- 	bool				idle;
-+	bool				encode_wakeup;
- 	u64				allowed_protocols[RC_FILTER_MAX];
- 	u64				enabled_protocols[RC_FILTER_MAX];
- 	u32				users;
--- 
-1.8.3.2
+Some things are inconsistent right now between the drivers, in such a 
+situation when driver A says "first X then Y" and driver B says "first Y 
+then X" the situation is:
+
+a) already "broken"; and
+
+b) can't be fixed without introducing "breakage" of a different kind to 
+either A or B
+
+>>> Well, changing the NEC decoders to always send a 32 bits code has
+>>> several issues:
+>>> 
+>>> 1) It makes the normal NEC protocol as an exception, and not as a
+>>>    rule;
+>> 
+>> It's not an exception. I just makes all 32 bits explicit.
+> 
+> Well, if all drivers but one only have 16 or 24 bits tables, this is
+> an exception.
+
+Not really. 32 bits are transmitted no matter what you call the 
+protocol. I'm proposing storing those 32 bits in the scancode<->keycode 
+table. Not what I'd call an exception (this particular point starts to 
+feel a bit off-topic though so I think we can drop it).
+
+>> And the lack of that explicit information currently makes the scancode
+>> ambiguous. Right now if I give you a NEC scancode of 0xff00 (like we
+>> give to userspace with the EV_SCAN event), you can't tell what it
+>> means...it could, for example, be a 32 bit code of 0x0000ff00...
+
+You didn't answer this part. It's actually one of the biggest reasons 
+for introducing the full scancode everywhere.
+
+>> > 2) It breaks all in-kernel tables for 16 bits and 24 bits NEC.
+>> >    As already said, currently, there's just one driver using 32
+>> >    bits NEC, and just for one IR type (RC_MAP_TIVO);
+>> 
+>> No, the proposed patch doesn't break all in-kernel tables. The 
+>> in-kernel
+>> tables are converted on the fly to NEC32 when loaded.
+> 
+> That's messy. We should either change everything in Kernelspace to
+> 32 bits or keep as is.
+
+No problem, I could respin the patch to also patch the keytables (which 
+is what I did first), but I'll wait until we've agreed on something).
+
+> If such emulation is needed, it should be only for userspace tables.
+> 
+>> > 3) It causes regressions to userspace, as userspace tables won't
+>> >    work anymore;
+>> 
+>> I know it may cause troubles for userspace, however:
+>> 
+>> a) You've already accepted patches that change the scancode format of
+>> the NEC decoder within the last few weeks so you've already set the
+>> stage for the same kind of trouble (even if I agree with James on 
+>> parts
+>> of that patch)
+> 
+> If I let this pass, we should revert it before it reaches upstream.
+> 
+> What patch caused regressions?
+
+18bc17448147e93f31cc9b1a83be49f1224657b2, since it changes the scancode 
+it'll break userspace keytables, it's mentioned in patch 4/11 in my 
+patchset.
+
+>> b) The current code is broken as well...using the same remote will
+>> generate different scancodes depending on the driver (even if the old
+>> and new hardware *can* receive the full scancode), meaning that your
+>> keytable will suddenly stop working if you change HW. That's bad.
+> 
+> On the devices I have here, it is not broken. Let's fix it where this
+> is broken, and not use it as an excuse to break even more things.
+
+Whether the hardware you happen to have agrees is beside the point?
+
+>>> (btw, the get_key_beholdm6xx() function at saa7134 driver seems
+>>> to be wrong, as the keytables for behold device has the address of
+>>> this vendor mapped as 0x6b86).
+>> 
+>> I know, I've already identified and fixed that problem in a separate
+>> patch that's posted to the list. And it will also break out-of-kernel
+>> user-defined keymaps. Any inconsistency is a no-win situation. And we
+>> *do* have inconsistencies right now.
+> 
+> Yes. That's one of the reasons why this was not fixed yet (and the 
+> other
+> one is that I don't have any of such device in hands, in order to be
+> sure that this is not another vendor that, by coincidence, has address
+> 0x6b86).
+
+I know we can't be 100% sure, but the byte order in the driver itself 
+also supports the notion that the address bytes have been reversed.
+
+>>> The way those codes are handled inside each in-hardware NEC
+>>> decoder are different. I've seen all those alternatives:
+>>> 
+>>> a) the full 24-bits code is received by the driver;
+>>> b) some hardware will simply discard the MSB of the address;
+>>> c) a few hardware will discard the entire keycode, as the
+>>>    checksum bytes won't match.
+>> 
+>> I know there's a lot of variety, another example is drivers that 
+>> discard
+>> (possibly after matching address) everything but the "command" part of
+>> the scancode. That should not be used as an excuse not to try to make
+>> the behavior as consistent as possible. After all...that's the point 
+>> of
+>> a common API.
+> 
+> It should be consistent, and it should be able to support the existing
+> hardware.
+
+Yes, I agree, but I'm not sure what your point is? Existing hardware 
+doesn't lose support with my patches?
+
+>>> The devices from the 0x866b manufacturer is used by a wide range
+>>> of devices that can do either (a) or (b).
+>>> 
+>>> Well, as the to_nec32() doesn't know the original keycode, it
+>>> would map an address like 0x866b as 0x946b, with is wrong, and
+>>> won't match the corresponding NEC table.
+>> 
+>> Yes, if the hardware throws away information, rc-core will sometime
+>> generate a scancode which does not match the real one.
+>> 
+>> As you say:
+>> 
+>> if the actual remote control transmits: 0x866b01fe
+>> and the hardware truncates it to:       0x..6b01fe
+>> then rc-core would convert back to:     0x946b01fe
+>> 
+>> And that could be fixed with a scanmask for that driver (0xffffff)?
+> 
+> I think you're meaning 0x0000ffff, right?
+
+Why 0x0000ffff?....the example I gave suggested HW which throws away one 
+byte, meaning the last three bytes (0x6b01fe) remain valid?
+
+>> (We could also expose the scanmask to userspace so it knows which part
+>> of the scancode it can trust...)
+> 
+> Yes, we could do it, but the current userspace should keep working.
+> Eventually, that means to add some backward compat code there, in order
+> to preserve the behavior with current tables.
+
+Not sure what you're suggesting?
+
+Regards,
+David
 
