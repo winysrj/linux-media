@@ -1,109 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:46157 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753796AbaCMRSS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 13:18:18 -0400
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	Denis Carikli <denis@eukrea.com>
-Subject: [PATCH v11][ 05/12] imx-drm: use defines for clock polarity settings
-Date: Thu, 13 Mar 2014 18:17:26 +0100
-Message-Id: <1394731053-6118-5-git-send-email-denis@eukrea.com>
-In-Reply-To: <1394731053-6118-1-git-send-email-denis@eukrea.com>
-References: <1394731053-6118-1-git-send-email-denis@eukrea.com>
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:60356 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753648AbaCaKKl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Mar 2014 06:10:41 -0400
+Message-ID: <53393F1D.1030603@codethink.co.uk>
+Date: Mon, 31 Mar 2014 11:10:37 +0100
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+MIME-Version: 1.0
+To: Josh Wu <josh.wu@atmel.com>
+CC: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Subject: Re: [RFCv3,3/3] soc_camera: initial of code
+References: <1396216471-11532-3-git-send-email-ben.dooks@codethink.co.uk> <1396258114-30124-1-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1396258114-30124-1-git-send-email-josh.wu@atmel.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
----
-ChangeLog v9->v10:
-- New patch which was splitted out from:
-  "staging: imx-drm: Use de-active and pixelclk-active display-timings.".
-- Fixes many issues in "staging: imx-drm: Use de-active and pixelclk-active
-  display-timings.":
-  - More clear meaning of the polarity settings.
-  - The SET_CLK_POL and SET_DE_POL masks are not
-    needed anymore.
----
- drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h |    8 +++++++-
- drivers/staging/imx-drm/ipu-v3/ipu-di.c     |    4 ++--
- drivers/staging/imx-drm/ipuv3-crtc.c        |    4 ++--
- 3 files changed, 11 insertions(+), 5 deletions(-)
+On 31/03/14 10:28, Josh Wu wrote:
+> Hi, Ben
+>
+> Thanks for the patch, I just test atmel-isi with the your patch,
+> I find the "mclk" registered in soc-camera driver cannot be find
+> by the soc-camera sensors. See comment in below:
 
-diff --git a/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h b/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
-index c4d14ea..b95cba1 100644
---- a/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
-+++ b/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
-@@ -27,6 +27,12 @@ enum ipuv3_type {
- 
- #define IPU_PIX_FMT_GBR24	v4l2_fourcc('G', 'B', 'R', '3')
- 
-+#define CLK_POL_ACTIVE_LOW	0
-+#define CLK_POL_ACTIVE_HIGH	1
-+
-+#define ENABLE_POL_NEGEDGE	0
-+#define ENABLE_POL_POSEDGE	1
-+
- /*
-  * Bitfield of Display Interface signal polarities.
-  */
-@@ -37,7 +43,7 @@ struct ipu_di_signal_cfg {
- 	unsigned clksel_en:1;
- 	unsigned clkidle_en:1;
- 	unsigned data_pol:1;	/* true = inverted */
--	unsigned clk_pol:1;	/* true = rising edge */
-+	unsigned clk_pol:1;
- 	unsigned enable_pol:1;
- 	unsigned Hsync_pol:1;	/* true = active high */
- 	unsigned Vsync_pol:1;
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-di.c b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-index 849b3e1..53646aa 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-@@ -595,7 +595,7 @@ int ipu_di_init_sync_panel(struct ipu_di *di, struct ipu_di_signal_cfg *sig)
- 		}
- 	}
- 
--	if (sig->clk_pol)
-+	if (sig->clk_pol == CLK_POL_ACTIVE_HIGH)
- 		di_gen |= DI_GEN_POLARITY_DISP_CLK;
- 
- 	ipu_di_write(di, di_gen, DI_GENERAL);
-@@ -606,7 +606,7 @@ int ipu_di_init_sync_panel(struct ipu_di *di, struct ipu_di_signal_cfg *sig)
- 	reg = ipu_di_read(di, DI_POL);
- 	reg &= ~(DI_POL_DRDY_DATA_POLARITY | DI_POL_DRDY_POLARITY_15);
- 
--	if (sig->enable_pol)
-+	if (sig->enable_pol == ENABLE_POL_POSEDGE)
- 		reg |= DI_POL_DRDY_POLARITY_15;
- 	if (sig->data_pol)
- 		reg |= DI_POL_DRDY_DATA_POLARITY;
-diff --git a/drivers/staging/imx-drm/ipuv3-crtc.c b/drivers/staging/imx-drm/ipuv3-crtc.c
-index db6bd64..8cfeb47 100644
---- a/drivers/staging/imx-drm/ipuv3-crtc.c
-+++ b/drivers/staging/imx-drm/ipuv3-crtc.c
-@@ -157,8 +157,8 @@ static int ipu_crtc_mode_set(struct drm_crtc *crtc,
- 	if (mode->flags & DRM_MODE_FLAG_PVSYNC)
- 		sig_cfg.Vsync_pol = 1;
- 
--	sig_cfg.enable_pol = 1;
--	sig_cfg.clk_pol = 0;
-+	sig_cfg.enable_pol = ENABLE_POL_POSEDGE;
-+	sig_cfg.clk_pol = CLK_POL_ACTIVE_LOW;
- 	sig_cfg.width = mode->hdisplay;
- 	sig_cfg.height = mode->vdisplay;
- 	sig_cfg.pixel_fmt = out_pixel_fmt;
+Ok, I guess that the driver I have does not need the
+mclk clock.
+
+>
+>> ... ...
+>
+>> +#ifdef CONFIG_OF
+>> +static int soc_of_bind(struct soc_camera_host *ici,
+>> +		       struct device_node *ep,
+>> +		       struct device_node *remote)
+>> +{
+>> +	struct soc_camera_device *icd;
+>> +	struct soc_camera_desc sdesc = {.host_desc.bus_id = ici->nr,};
+>> +	struct soc_camera_async_client *sasc;
+>> +	struct soc_camera_async_subdev *sasd;
+>> +	struct v4l2_async_subdev **asd_array;
+>> +	char clk_name[V4L2_SUBDEV_NAME_SIZE];
+>> +	int ret;
+>> +
+>> +	/* alloacte a new subdev and add match info to it */
+>> +	sasd = devm_kzalloc(ici->v4l2_dev.dev, sizeof(*sasd), GFP_KERNEL);
+>> +	if (!sasd)
+>> +		return -ENOMEM;
+>> +
+>> +	asd_array = devm_kzalloc(ici->v4l2_dev.dev,
+>> +				 sizeof(struct v4l2_async_subdev **),
+>> +				 GFP_KERNEL);
+>> +	if (!asd_array)
+>> +		return -ENOMEM;
+>> +
+>> +	sasd->asd.match.of.node = remote;
+>> +	sasd->asd.match_type = V4L2_ASYNC_MATCH_OF;
+>> +	asd_array[0] = &sasd->asd;
+>> +
+>> +	/* Or shall this be managed by the soc-camera device? */
+>> +	sasc = devm_kzalloc(ici->v4l2_dev.dev, sizeof(*sasc), GFP_KERNEL);
+>> +	if (!sasc)
+>> +		return -ENOMEM;
+>> +
+>> +	/* HACK: just need a != NULL */
+>> +	sdesc.host_desc.board_info = ERR_PTR(-ENODATA);
+>> +
+>> +	ret = soc_camera_dyn_pdev(&sdesc, sasc);
+>> +	if (ret < 0)
+>> +		return ret;
+>> +
+>> +	sasc->sensor = &sasd->asd;
+>> +
+>> +	icd = soc_camera_add_pdev(sasc);
+>> +	if (!icd) {
+>> +		platform_device_put(sasc->pdev);
+>> +		return -ENOMEM;
+>> +	}
+>> +
+>> +	//sasc->notifier.subdevs = asd;
+>> +	sasc->notifier.subdevs = asd_array;
+>> +	sasc->notifier.num_subdevs = 1;
+>> +	sasc->notifier.bound = soc_camera_async_bound;
+>> +	sasc->notifier.unbind = soc_camera_async_unbind;
+>> +	sasc->notifier.complete = soc_camera_async_complete;
+>> +
+>> +	icd->sasc = sasc;
+>> +	icd->parent = ici->v4l2_dev.dev;
+>> +
+>> +	snprintf(clk_name, sizeof(clk_name), "of-%s",
+>> +		 of_node_full_name(remote));
+>
+> The clk_name you register here is a OF string, but for the i2c sensors, which
+> call the v4l2_clk_get by using dev_name(&client->dev). It is format like:
+> "1-0030", combined i2c adaptor ID and addr.
+> So the i2c sensor can not find this registered mclk as the name is not match.
+
+Hmm, this sounds like something that really should go
+away and be handled by the clk system instead.
+
+[snip]
+
+
 -- 
-1.7.9.5
-
+Ben Dooks				http://www.codethink.co.uk/
+Senior Engineer				Codethink - Providing Genius
