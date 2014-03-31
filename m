@@ -1,339 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f182.google.com ([74.125.82.182]:52921 "EHLO
-	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752249AbaB1XRo (ORCPT
+Received: from nasmtp01.atmel.com ([192.199.1.245]:43609 "EHLO
+	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753449AbaCaJFY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 18:17:44 -0500
-Received: by mail-we0-f182.google.com with SMTP id u57so1121270wes.27
-        for <linux-media@vger.kernel.org>; Fri, 28 Feb 2014 15:17:42 -0800 (PST)
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: James Hogan <james.hogan@imgtec.com>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-	Rob Landley <rob@landley.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 4/5] rc: add wakeup_protocols sysfs file
-Date: Fri, 28 Feb 2014 23:17:05 +0000
-Message-Id: <1393629426-31341-5-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1393629426-31341-1-git-send-email-james.hogan@imgtec.com>
-References: <1393629426-31341-1-git-send-email-james.hogan@imgtec.com>
+	Mon, 31 Mar 2014 05:05:24 -0400
+Message-ID: <53392FC9.9070706@atmel.com>
+Date: Mon, 31 Mar 2014 17:05:13 +0800
+From: Josh Wu <josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	<m.chehab@samsung.com>, <nicolas.ferre@atmel.com>,
+	<linux-arm-kernel@lists.infradead.org>, <grant.likely@linaro.org>,
+	<galak@codeaurora.org>, <rob@landley.net>, <mark.rutland@arm.com>,
+	<robh+dt@kernel.org>, <ijc+devicetree@hellion.org.uk>,
+	<pawel.moll@arm.com>, <devicetree@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: Re: [PATCH v2 3/3] [media] atmel-isi: add primary DT support
+References: <1395744087-5753-1-git-send-email-josh.wu@atmel.com> <1395744320-15025-1-git-send-email-josh.wu@atmel.com> <Pine.LNX.4.64.1403302313290.12008@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1403302313290.12008@axis700.grange>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a wakeup_protocols sysfs file which controls the new
-rc_dev::enabled_protocols[RC_FILTER_WAKEUP], which is the mask of
-protocols that are used for the wakeup filter.
+Dear Guennadi
 
-A new RC driver callback change_wakeup_protocol() is called to change
-the wakeup protocol mask.
+On 3/31/2014 5:20 AM, Guennadi Liakhovetski wrote:
+> Hi Josh,
+>
+> Please correct me if I'm wrong, but I don't see how this is going to work
+> without the central part - building asynchronous V4L2 data structures from
+> the DT, something that your earlier patch
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Antti Seppälä <a.seppala@gmail.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: linux-media@vger.kernel.org
-Cc: linux-doc@vger.kernel.org
----
- Documentation/ABI/testing/sysfs-class-rc           | 23 +++++-
- .../DocBook/media/v4l/remote_controllers.xml       | 20 +++++-
- drivers/media/rc/rc-main.c                         | 82 +++++++++++++---------
- include/media/rc-core.h                            |  3 +
- 4 files changed, 90 insertions(+), 38 deletions(-)
+Here you mean Bryan Wu not me, right?   ;-)
+Bryan write the patch "[v2] media: soc-camera: OF cameras" in: 
+https://patchwork.linuxtv.org/patch/22288/.
+And I saw Ben Dooks already sent out his patch to support soc-camera OF 
+now (https://patchwork.linuxtv.org/patch/23304/) which is simpler than 
+Bryan's.
 
-diff --git a/Documentation/ABI/testing/sysfs-class-rc b/Documentation/ABI/testing/sysfs-class-rc
-index c0e1d14..b65674d 100644
---- a/Documentation/ABI/testing/sysfs-class-rc
-+++ b/Documentation/ABI/testing/sysfs-class-rc
-@@ -61,6 +61,25 @@ Description:
- 		an error.
- 		This value may be reset to 0 if the current protocol is altered.
- 
-+What:		/sys/class/rc/rcN/wakeup_protocols
-+Date:		Feb 2014
-+KernelVersion:	3.15
-+Contact:	Mauro Carvalho Chehab <m.chehab@samsung.com>
-+Description:
-+		Reading this file returns a list of available protocols to use
-+		for the wakeup filter, something like:
-+		    "rc5 rc6 nec jvc [sony]"
-+		The enabled wakeup protocol is shown in [] brackets.
-+		Writing "+proto" will add a protocol to the list of enabled
-+		wakeup protocols.
-+		Writing "-proto" will remove a protocol from the list of enabled
-+		wakeup protocols.
-+		Writing "proto" will use "proto" for wakeup events.
-+		Writing "none" will disable wakeup.
-+		Write fails with EINVAL if an invalid protocol combination or
-+		unknown protocol name is used, or if wakeup is not supported by
-+		the hardware.
-+
- What:		/sys/class/rc/rcN/wakeup_filter
- Date:		Jan 2014
- KernelVersion:	3.15
-@@ -74,7 +93,7 @@ Description:
- 		scancodes which match the filter will wake the system from e.g.
- 		suspend to RAM or power off.
- 		Otherwise the write will fail with an error.
--		This value may be reset to 0 if the current protocol is altered.
-+		This value may be reset to 0 if the wakeup protocol is altered.
- 
- What:		/sys/class/rc/rcN/wakeup_filter_mask
- Date:		Jan 2014
-@@ -89,4 +108,4 @@ Description:
- 		scancodes which match the filter will wake the system from e.g.
- 		suspend to RAM or power off.
- 		Otherwise the write will fail with an error.
--		This value may be reset to 0 if the current protocol is altered.
-+		This value may be reset to 0 if the wakeup protocol is altered.
-diff --git a/Documentation/DocBook/media/v4l/remote_controllers.xml b/Documentation/DocBook/media/v4l/remote_controllers.xml
-index c440a81..5124a6c 100644
---- a/Documentation/DocBook/media/v4l/remote_controllers.xml
-+++ b/Documentation/DocBook/media/v4l/remote_controllers.xml
-@@ -102,6 +102,22 @@ an error.</para>
- <para>This value may be reset to 0 if the current protocol is altered.</para>
- 
- </section>
-+<section id="sys_class_rc_rcN_wakeup_protocols">
-+<title>/sys/class/rc/rcN/wakeup_protocols</title>
-+<para>Reading this file returns a list of available protocols to use for the
-+wakeup filter, something like:</para>
-+<para><constant>rc5 rc6 nec jvc [sony]</constant></para>
-+<para>The enabled wakeup protocol is shown in [] brackets.</para>
-+<para>Writing "+proto" will add a protocol to the list of enabled wakeup
-+protocols.</para>
-+<para>Writing "-proto" will remove a protocol from the list of enabled wakeup
-+protocols.</para>
-+<para>Writing "proto" will use "proto" for wakeup events.</para>
-+<para>Writing "none" will disable wakeup.</para>
-+<para>Write fails with EINVAL if an invalid protocol combination or unknown
-+protocol name is used, or if wakeup is not supported by the hardware.</para>
-+
-+</section>
- <section id="sys_class_rc_rcN_wakeup_filter">
- <title>/sys/class/rc/rcN/wakeup_filter</title>
- <para>Sets the scancode wakeup filter expected value.
-@@ -112,7 +128,7 @@ to trigger a system wake event.</para>
- scancodes which match the filter will wake the system from e.g.
- suspend to RAM or power off.
- Otherwise the write will fail with an error.</para>
--<para>This value may be reset to 0 if the current protocol is altered.</para>
-+<para>This value may be reset to 0 if the wakeup protocol is altered.</para>
- 
- </section>
- <section id="sys_class_rc_rcN_wakeup_filter_mask">
-@@ -125,7 +141,7 @@ expected value to trigger a system wake event.</para>
- scancodes which match the filter will wake the system from e.g.
- suspend to RAM or power off.
- Otherwise the write will fail with an error.</para>
--<para>This value may be reset to 0 if the current protocol is altered.</para>
-+<para>This value may be reset to 0 if the wakeup protocol is altered.</para>
- </section>
- </section>
- 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 309d791..e6e3ec7 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -803,13 +803,38 @@ static struct {
- };
- 
- /**
-- * show_protocols() - shows the current IR protocol(s)
-+ * struct rc_filter_attribute - Device attribute relating to a filter type.
-+ * @attr:	Device attribute.
-+ * @type:	Filter type.
-+ * @mask:	false for filter value, true for filter mask.
-+ */
-+struct rc_filter_attribute {
-+	struct device_attribute		attr;
-+	enum rc_filter_type		type;
-+	bool				mask;
-+};
-+#define to_rc_filter_attr(a) container_of(a, struct rc_filter_attribute, attr)
-+
-+#define RC_PROTO_ATTR(_name, _mode, _show, _store, _type)		\
-+	struct rc_filter_attribute dev_attr_##_name = {			\
-+		.attr = __ATTR(_name, _mode, _show, _store),		\
-+		.type = (_type),					\
-+	}
-+#define RC_FILTER_ATTR(_name, _mode, _show, _store, _type, _mask)	\
-+	struct rc_filter_attribute dev_attr_##_name = {			\
-+		.attr = __ATTR(_name, _mode, _show, _store),		\
-+		.type = (_type),					\
-+		.mask = (_mask),					\
-+	}
-+
-+/**
-+ * show_protocols() - shows the current/wakeup IR protocol(s)
-  * @device:	the device descriptor
-  * @mattr:	the device attribute struct (unused)
-  * @buf:	a pointer to the output buffer
-  *
-  * This routine is a callback routine for input read the IR protocol type(s).
-- * it is trigged by reading /sys/class/rc/rc?/protocols.
-+ * it is trigged by reading /sys/class/rc/rc?/[wakeup_]protocols.
-  * It returns the protocol names of supported protocols.
-  * Enabled protocols are printed in brackets.
-  *
-@@ -820,6 +845,7 @@ static ssize_t show_protocols(struct device *device,
- 			      struct device_attribute *mattr, char *buf)
- {
- 	struct rc_dev *dev = to_rc_dev(device);
-+	struct rc_filter_attribute *fattr = to_rc_filter_attr(mattr);
- 	u64 allowed, enabled;
- 	char *tmp = buf;
- 	int i;
-@@ -830,9 +856,10 @@ static ssize_t show_protocols(struct device *device,
- 
- 	mutex_lock(&dev->lock);
- 
--	enabled = dev->enabled_protocols[RC_FILTER_NORMAL];
--	if (dev->driver_type == RC_DRIVER_SCANCODE)
--		allowed = dev->allowed_protocols[RC_FILTER_NORMAL];
-+	enabled = dev->enabled_protocols[fattr->type];
-+	if (dev->driver_type == RC_DRIVER_SCANCODE ||
-+	    fattr->type == RC_FILTER_WAKEUP)
-+		allowed = dev->allowed_protocols[fattr->type];
- 	else if (dev->raw)
- 		allowed = ir_raw_get_allowed_protocols();
- 	else {
-@@ -864,14 +891,14 @@ static ssize_t show_protocols(struct device *device,
- }
- 
- /**
-- * store_protocols() - changes the current IR protocol(s)
-+ * store_protocols() - changes the current/wakeup IR protocol(s)
-  * @device:	the device descriptor
-  * @mattr:	the device attribute struct (unused)
-  * @buf:	a pointer to the input buffer
-  * @len:	length of the input buffer
-  *
-  * This routine is for changing the IR protocol type.
-- * It is trigged by writing to /sys/class/rc/rc?/protocols.
-+ * It is trigged by writing to /sys/class/rc/rc?/[wakeup_]protocols.
-  * Writing "+proto" will add a protocol to the list of enabled protocols.
-  * Writing "-proto" will remove a protocol from the list of enabled protocols.
-  * Writing "proto" will enable only "proto".
-@@ -888,12 +915,14 @@ static ssize_t store_protocols(struct device *device,
- 			       size_t len)
- {
- 	struct rc_dev *dev = to_rc_dev(device);
-+	struct rc_filter_attribute *fattr = to_rc_filter_attr(mattr);
- 	bool enable, disable;
- 	const char *tmp;
- 	u64 type;
- 	u64 mask;
- 	int rc, i, count = 0;
- 	ssize_t ret;
-+	int (*change_protocol)(struct rc_dev *dev, u64 *rc_type);
- 
- 	/* Device is being removed */
- 	if (!dev)
-@@ -906,7 +935,7 @@ static ssize_t store_protocols(struct device *device,
- 		ret = -EINVAL;
- 		goto out;
- 	}
--	type = dev->enabled_protocols[RC_FILTER_NORMAL];
-+	type = dev->enabled_protocols[fattr->type];
- 
- 	while ((tmp = strsep((char **) &data, " \n")) != NULL) {
- 		if (!*tmp)
-@@ -954,8 +983,10 @@ static ssize_t store_protocols(struct device *device,
- 		goto out;
- 	}
- 
--	if (dev->change_protocol) {
--		rc = dev->change_protocol(dev, &type);
-+	change_protocol = (fattr->type == RC_FILTER_NORMAL)
-+		? dev->change_protocol : dev->change_wakeup_protocol;
-+	if (change_protocol) {
-+		rc = change_protocol(dev, &type);
- 		if (rc < 0) {
- 			IR_dprintk(1, "Error setting protocols to 0x%llx\n",
- 				   (long long)type);
-@@ -964,7 +995,7 @@ static ssize_t store_protocols(struct device *device,
- 		}
- 	}
- 
--	dev->enabled_protocols[RC_FILTER_NORMAL] = type;
-+	dev->enabled_protocols[fattr->type] = type;
- 	IR_dprintk(1, "Current protocol(s): 0x%llx\n",
- 		   (long long)type);
- 
-@@ -976,26 +1007,6 @@ out:
- }
- 
- /**
-- * struct rc_filter_attribute - Device attribute relating to a filter type.
-- * @attr:	Device attribute.
-- * @type:	Filter type.
-- * @mask:	false for filter value, true for filter mask.
-- */
--struct rc_filter_attribute {
--	struct device_attribute		attr;
--	enum rc_filter_type		type;
--	bool				mask;
--};
--#define to_rc_filter_attr(a) container_of(a, struct rc_filter_attribute, attr)
--
--#define RC_FILTER_ATTR(_name, _mode, _show, _store, _type, _mask)	\
--	struct rc_filter_attribute dev_attr_##_name = {			\
--		.attr = __ATTR(_name, _mode, _show, _store),		\
--		.type = (_type),					\
--		.mask = (_mask),					\
--	}
--
--/**
-  * show_filter() - shows the current scancode filter value or mask
-  * @device:	the device descriptor
-  * @attr:	the device attribute struct
-@@ -1128,8 +1139,10 @@ static int rc_dev_uevent(struct device *device, struct kobj_uevent_env *env)
- /*
-  * Static device attribute struct with the sysfs attributes for IR's
-  */
--static DEVICE_ATTR(protocols, S_IRUGO | S_IWUSR,
--		   show_protocols, store_protocols);
-+static RC_PROTO_ATTR(protocols, S_IRUGO | S_IWUSR,
-+		     show_protocols, store_protocols, RC_FILTER_NORMAL);
-+static RC_PROTO_ATTR(wakeup_protocols, S_IRUGO | S_IWUSR,
-+		     show_protocols, store_protocols, RC_FILTER_WAKEUP);
- static RC_FILTER_ATTR(filter, S_IRUGO|S_IWUSR,
- 		      show_filter, store_filter, RC_FILTER_NORMAL, false);
- static RC_FILTER_ATTR(filter_mask, S_IRUGO|S_IWUSR,
-@@ -1140,7 +1153,8 @@ static RC_FILTER_ATTR(wakeup_filter_mask, S_IRUGO|S_IWUSR,
- 		      show_filter, store_filter, RC_FILTER_WAKEUP, true);
- 
- static struct attribute *rc_dev_attrs[] = {
--	&dev_attr_protocols.attr,
-+	&dev_attr_protocols.attr.attr,
-+	&dev_attr_wakeup_protocols.attr.attr,
- 	&dev_attr_filter.attr.attr,
- 	&dev_attr_filter_mask.attr.attr,
- 	&dev_attr_wakeup_filter.attr.attr,
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index f165115..0b9f890 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -97,6 +97,8 @@ enum rc_filter_type {
-  * @tx_resolution: resolution (in ns) of output sampler
-  * @scancode_filters: scancode filters (indexed by enum rc_filter_type)
-  * @change_protocol: allow changing the protocol used on hardware decoders
-+ * @change_wakeup_protocol: allow changing the protocol used for wakeup
-+ *	filtering
-  * @open: callback to allow drivers to enable polling/irq when IR input device
-  *	is opened.
-  * @close: callback to allow drivers to disable polling/irq when IR input device
-@@ -145,6 +147,7 @@ struct rc_dev {
- 	u32				tx_resolution;
- 	struct rc_scancode_filter	scancode_filters[RC_FILTER_MAX];
- 	int				(*change_protocol)(struct rc_dev *dev, u64 *rc_type);
-+	int				(*change_wakeup_protocol)(struct rc_dev *dev, u64 *rc_type);
- 	int				(*open)(struct rc_dev *dev);
- 	void				(*close)(struct rc_dev *dev);
- 	int				(*s_tx_mask)(struct rc_dev *dev, u32 mask);
--- 
-1.8.3.2
+> "media: soc-camera: OF cameras"
+> was doing, but which you stopped developing after a discussion with Ben
+> (added to Cc).
+
+And yes, atmel-isi dt patch should not work without above SoC-Camera of 
+support patch.
+But as the atmel-isi dt binding document and port node can be finalized. 
+So I think this patch is ready for the mainline.
+
+BTW: I will test Ben's patch with atmel-isi.
+
+thanks and best regards,
+Josh Wu
+
+>
+> Thanks
+> Guennadi
+>
+> On Tue, 25 Mar 2014, Josh Wu wrote:
+>
+>> This patch add the DT support for Atmel ISI driver.
+>> It use the same v4l2 DT interface that defined in video-interfaces.txt.
+>>
+>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>> Cc: devicetree@vger.kernel.org
+>> ---
+>> v1 --> v2:
+>>   refine the binding document.
+>>   add port node description.
+>>   removed the optional property.
+>>
+>>   .../devicetree/bindings/media/atmel-isi.txt        |   50 ++++++++++++++++++++
+>>   drivers/media/platform/soc_camera/atmel-isi.c      |   31 +++++++++++-
+>>   2 files changed, 79 insertions(+), 2 deletions(-)
+>>   create mode 100644 Documentation/devicetree/bindings/media/atmel-isi.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/atmel-isi.txt b/Documentation/devicetree/bindings/media/atmel-isi.txt
+>> new file mode 100644
+>> index 0000000..11c98ee
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/atmel-isi.txt
+>> @@ -0,0 +1,50 @@
+>> +Atmel Image Sensor Interface (ISI) SoC Camera Subsystem
+>> +----------------------------------------------
+>> +
+>> +Required properties:
+>> +- compatible: must be "atmel,at91sam9g45-isi"
+>> +- reg: physical base address and length of the registers set for the device;
+>> +- interrupts: should contain IRQ line for the ISI;
+>> +- clocks: list of clock specifiers, corresponding to entries in
+>> +          the clock-names property;
+>> +- clock-names: must contain "isi_clk", which is the isi peripherial clock.
+>> +
+>> +ISI supports a single port node with parallel bus. It should contain one
+>> +'port' child node with child 'endpoint' node. Please refer to the bindings
+>> +defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
+>> +
+>> +Example:
+>> +	isi: isi@f0034000 {
+>> +		compatible = "atmel,at91sam9g45-isi";
+>> +		reg = <0xf0034000 0x4000>;
+>> +		interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
+>> +
+>> +		clocks = <&isi_clk>;
+>> +		clock-names = "isi_clk";
+>> +
+>> +		pinctrl-names = "default";
+>> +		pinctrl-0 = <&pinctrl_isi>;
+>> +
+>> +		port {
+>> +			#address-cells = <1>;
+>> +			#size-cells = <0>;
+>> +
+>> +			isi_0: endpoint {
+>> +				remote-endpoint = <&ov2640_0>;
+>> +			};
+>> +		};
+>> +	};
+>> +
+>> +	i2c1: i2c@f0018000 {
+>> +		ov2640: camera@0x30 {
+>> +			compatible = "omnivision,ov2640";
+>> +			reg = <0x30>;
+>> +
+>> +			port {
+>> +				ov2640_0: endpoint {
+>> +					remote-endpoint = <&isi_0>;
+>> +					bus-width = <8>;
+>> +				};
+>> +			};
+>> +		};
+>> +	};
+>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+>> index f4add0a..d6a1f7b 100644
+>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+>> @@ -19,6 +19,7 @@
+>>   #include <linux/interrupt.h>
+>>   #include <linux/kernel.h>
+>>   #include <linux/module.h>
+>> +#include <linux/of.h>
+>>   #include <linux/platform_device.h>
+>>   #include <linux/slab.h>
+>>   
+>> @@ -33,6 +34,7 @@
+>>   #define VID_LIMIT_BYTES			(16 * 1024 * 1024)
+>>   #define MIN_FRAME_RATE			15
+>>   #define FRAME_INTERVAL_MILLI_SEC	(1000 / MIN_FRAME_RATE)
+>> +#define ISI_DEFAULT_MCLK_FREQ		25000000
+>>   
+>>   /* Frame buffer descriptor */
+>>   struct fbd {
+>> @@ -885,6 +887,20 @@ static int atmel_isi_remove(struct platform_device *pdev)
+>>   	return 0;
+>>   }
+>>   
+>> +static int atmel_isi_probe_dt(struct atmel_isi *isi,
+>> +			struct platform_device *pdev)
+>> +{
+>> +	struct device_node *node = pdev->dev.of_node;
+>> +
+>> +	/* Default settings for ISI */
+>> +	isi->pdata.full_mode = 1;
+>> +	isi->pdata.mck_hz = ISI_DEFAULT_MCLK_FREQ;
+>> +	isi->pdata.frate = ISI_CFG1_FRATE_CAPTURE_ALL;
+>> +	isi->pdata.data_width_flags = ISI_DATAWIDTH_8 | ISI_DATAWIDTH_10;
+>> +
+>> +	return 0;
+>> +}
+>> +
+>>   static int atmel_isi_probe(struct platform_device *pdev)
+>>   {
+>>   	unsigned int irq;
+>> @@ -896,7 +912,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+>>   	struct isi_platform_data *pdata;
+>>   
+>>   	pdata = dev->platform_data;
+>> -	if (!pdata || !pdata->data_width_flags) {
+>> +	if ((!pdata || !pdata->data_width_flags) && !pdev->dev.of_node) {
+>>   		dev_err(&pdev->dev,
+>>   			"No config available for Atmel ISI\n");
+>>   		return -EINVAL;
+>> @@ -912,7 +928,11 @@ static int atmel_isi_probe(struct platform_device *pdev)
+>>   	if (IS_ERR(isi->pclk))
+>>   		return PTR_ERR(isi->pclk);
+>>   
+>> -	memcpy(&isi->pdata, pdata, sizeof(struct isi_platform_data));
+>> +	if (pdata)
+>> +		memcpy(&isi->pdata, pdata, sizeof(struct isi_platform_data));
+>> +	else	/* dt probe */
+>> +		atmel_isi_probe_dt(isi, pdev);
+>> +
+>>   	isi->active = NULL;
+>>   	spin_lock_init(&isi->lock);
+>>   	INIT_LIST_HEAD(&isi->video_buffer_list);
+>> @@ -1014,11 +1034,18 @@ err_alloc_ctx:
+>>   	return ret;
+>>   }
+>>   
+>> +static const struct of_device_id atmel_isi_of_match[] = {
+>> +	{ .compatible = "atmel,at91sam9g45-isi" },
+>> +	{ }
+>> +};
+>> +MODULE_DEVICE_TABLE(of, atmel_isi_of_match);
+>> +
+>>   static struct platform_driver atmel_isi_driver = {
+>>   	.remove		= atmel_isi_remove,
+>>   	.driver		= {
+>>   		.name = "atmel_isi",
+>>   		.owner = THIS_MODULE,
+>> +		.of_match_table = atmel_isi_of_match,
+>>   	},
+>>   };
+>>   
+>> -- 
+>> 1.7.9.5
+>>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
 
