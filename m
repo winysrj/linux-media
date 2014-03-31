@@ -1,112 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4709 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751018AbaCBD2g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Mar 2014 22:28:36 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s223SXgr051859
-	for <linux-media@vger.kernel.org>; Sun, 2 Mar 2014 04:28:35 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 68F692A0232
-	for <linux-media@vger.kernel.org>; Sun,  2 Mar 2014 04:28:24 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140302032824.68F692A0232@tschai.lan>
-Date: Sun,  2 Mar 2014 04:28:24 +0100 (CET)
+Received: from [217.156.133.130] ([217.156.133.130]:16061 "EHLO
+	imgpgp01.kl.imgtec.org" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753467AbaCaJo4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Mar 2014 05:44:56 -0400
+Message-ID: <5339390B.6030709@imgtec.com>
+Date: Mon, 31 Mar 2014 10:44:43 +0100
+From: James Hogan <james.hogan@imgtec.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>
+CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>
+Subject: Re: [PATCH 10/11] [RFC] rc-core: use the full 32 bits for NEC scancodes
+References: <20140329160705.13234.60349.stgit@zeus.muc.hardeman.nu> <20140329161136.13234.733.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140329161136.13234.733.stgit@zeus.muc.hardeman.nu>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="kLggSAB6JbkfgQasjkWpakiScigs3BVA5"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+--kLggSAB6JbkfgQasjkWpakiScigs3BVA5
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Results of the daily build of media_tree:
+On 29/03/14 16:11, David H=C3=A4rdeman wrote:
+> Using the full 32 bits for all kinds of NEC scancodes simplifies rc-cor=
+e
+> and the nec decoder without any loss of functionality.
+>=20
+> In order to maintain backwards compatibility, some heuristics are added=
 
-date:		Sun Mar  2 04:00:20 CET 2014
-git branch:	test
-git hash:	a06b429df49bb50ec1e671123a45147a1d1a6186
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+> in rc-main.c to convert scancodes to NEC32 as necessary.
+>=20
+> I plan to introduce a different ioctl later which makes the protocol
+> explicit (and which expects all NEC scancodes to be 32 bit, thereby
+> removing the need for guesswork).
+>=20
+> Signed-off-by: David H=C3=A4rdeman <david@hardeman.nu>
+> ---
+> diff --git a/drivers/media/rc/img-ir/img-ir-nec.c b/drivers/media/rc/im=
+g-ir/img-ir-nec.c
+> index 40ee844..133ea45 100644
+> --- a/drivers/media/rc/img-ir/img-ir-nec.c
+> +++ b/drivers/media/rc/img-ir/img-ir-nec.c
+> @@ -5,42 +5,20 @@
+>   */
+> =20
+>  #include "img-ir-hw.h"
+> -#include <linux/bitrev.h>
+> =20
+>  /* Convert NEC data to a scancode */
+>  static int img_ir_nec_scancode(int len, u64 raw, enum rc_type *protoco=
+l,
+>  			       u32 *scancode, u64 enabled_protocols)
+>  {
+> -	unsigned int addr, addr_inv, data, data_inv;
+>  	/* a repeat code has no data */
+>  	if (!len)
+>  		return IMG_IR_REPEATCODE;
+> +
+>  	if (len !=3D 32)
+>  		return -EINVAL;
+> -	/* raw encoding: ddDDaaAA */
+> -	addr     =3D (raw >>  0) & 0xff;
+> -	addr_inv =3D (raw >>  8) & 0xff;
+> -	data     =3D (raw >> 16) & 0xff;
+> -	data_inv =3D (raw >> 24) & 0xff;
+> -	if ((data_inv ^ data) !=3D 0xff) {
+> -		/* 32-bit NEC (used by Apple and TiVo remotes) */
+> -		/* scan encoding: AAaaDDdd (LSBit first) */
+> -		*scancode =3D bitrev8(addr)     << 24 |
+> -			    bitrev8(addr_inv) << 16 |
+> -			    bitrev8(data)     <<  8 |
+> -			    bitrev8(data_inv);
+> -	} else if ((addr_inv ^ addr) !=3D 0xff) {
+> -		/* Extended NEC */
+> -		/* scan encoding: AAaaDD */
+> -		*scancode =3D addr     << 16 |
+> -			    addr_inv <<  8 |
+> -			    data;
+> -	} else {
+> -		/* Normal NEC */
+> -		/* scan encoding: AADD */
+> -		*scancode =3D addr << 8 |
+> -			    data;
+> -	}
+> +
+> +	/* raw encoding : ddDDaaAA -> scan encoding: AAaaDDdd */
+> +	*scancode =3D swab32((u32)raw);
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+What's the point of the byte swapping?
 
-Detailed results are available here:
+Surely the most natural NEC encoding would just treat it as a single
+32-bit (LSBit first) field rather than 4 8-bit fields that needs swapping=
+=2E
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Cheers
+James
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+--kLggSAB6JbkfgQasjkWpakiScigs3BVA5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-The Media Infrastructure API from this daily build is here:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.13 (GNU/Linux)
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+iQIcBAEBAgAGBQJTOTkLAAoJEGwLaZPeOHZ61zIP+QHeTrZem6sOGmPHqh4ufqWP
+3rd1jgnS0smu3vYQIryvUo8AtiGHAv1L+LgCxTqQCHBzTL4f3/NZ2aE7dZmwEVPh
+eujfjVvqKXEefcO0Y+jNujx60/EGXjH02wJRosbdFnME9dF7NRC6Nbi1SYFY61sm
+5vQ8s2rushvhvWtG6WXPZBFfVbWQnHdyLa+F2WOub3heT0er2SuloDK/dmDyBAn/
+rKEklrvJxJFvxizbtnNVVS8jYdOIl84JT2fqlxHp1DoqGHw16so6pZXbkC+09Azh
+VttL8sVuVzQsFEF/45cfm2klkPoGiS+U+1Gs4/gpFN1kk15/0NbCE+bIgVNr25If
+i/tod3MZJRlaKtTi+61fAoKZzb5nTSxbQVdHP4OFkhSS0kGg7ZAlbnqNnU9znATB
+plYUgOyMx3Da0fiRR0GY0uO6ygwO53vaoRGd4mCOr03U+pdS3pRa5guWJk87E1QI
+VNyyvffXYlzbB0nzzHwqKBuK6OABPHI4ffpudXPPrGbReuIKjhaL3jZ1pRcrmeHT
+s8kB5WsU6ZNjOkKiVbivcU0kkGJvtcowwKamoN7eOgSKGQG/mWS9FSXTALWeOBHf
+Rw5RfNnEyjKC+i7GDmx+xjlVfHWHmxRtziLUZwKf+045oIG3BvgtrvXsUhec4QWa
+rTRZTL6GgFD4QgxQ42EF
+=DbTR
+-----END PGP SIGNATURE-----
+
+--kLggSAB6JbkfgQasjkWpakiScigs3BVA5--
