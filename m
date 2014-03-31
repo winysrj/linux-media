@@ -1,100 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60477 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751206AbaCHPmU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 10:42:20 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Grant Likely <grant.likely@linaro.org>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v4 3/3] Documentation: of: Document graph bindings
-Date: Sat, 08 Mar 2014 16:43:50 +0100
-Message-ID: <2496453.qPbng50cuV@avalon>
-In-Reply-To: <20140308122532.1AED9C40612@trevor.secretlab.ca>
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> <531AE46A.2060808@ti.com> <20140308122532.1AED9C40612@trevor.secretlab.ca>
+Received: from [217.156.133.130] ([217.156.133.130]:15067 "EHLO
+	imgpgp01.kl.imgtec.org" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752161AbaCaOGu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Mar 2014 10:06:50 -0400
+Message-ID: <53397666.8090806@imgtec.com>
+Date: Mon, 31 Mar 2014 15:06:30 +0100
+From: James Hogan <james.hogan@imgtec.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: =?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>
+CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>
+Subject: Re: [PATCH 10/11] [RFC] rc-core: use the full 32 bits for NEC   scancodes
+References: <20140329160705.13234.60349.stgit@zeus.muc.hardeman.nu> <20140329161136.13234.733.stgit@zeus.muc.hardeman.nu> <5339390B.6030709@imgtec.com> <4af025b742df648556360db390351166@hardeman.nu> <533949F5.3080001@imgtec.com> <37fcf3abf63e258ee29b23dc3b0f3f12@hardeman.nu>
+In-Reply-To: <37fcf3abf63e258ee29b23dc3b0f3f12@hardeman.nu>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="iFlcMKnR1aHK8EC7ehDhQV6rKSxUsaFjB"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Grant,
+--iFlcMKnR1aHK8EC7ehDhQV6rKSxUsaFjB
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-On Saturday 08 March 2014 12:25:32 Grant Likely wrote:
-> On Sat, 8 Mar 2014 11:35:38 +0200, Tomi Valkeinen wrote:
-> > On 07/03/14 20:11, Grant Likely wrote:
-> > >>> Any board not using that port can just leave the endpoint
-> > >>> disconnected.
-> > >> 
-> > >> Hmm I see. I'm against that.
-> > >> 
-> > >> I think the SoC dtsi should not contain endpoint node, or even port
-> > >> node (at least usually). It doesn't know how many endpoints, if any, a
-> > >> particular board has. That part should be up to the board dts.
-> > > 
-> > > Why? We have established precedence for unused devices still being in
-> > > the tree. I really see no issue with it.
-> > 
-> > I'm fine with having ports defined in the SoC dtsi. A port is a physical
-> > thing, a group of pins, for example.
-> > 
-> > But an endpoint is a description of the other end of a link. To me, a
-> > single endpoint makes no sense, there has to be a pair of endpoints. The
-> > board may need 0 to n endpoints, and the SoC dtsi cannot know how many
-> > are needed.
-> > 
-> > If the SoC dtsi defines a single endpoint for a port, and the board
-> > needs to use two endpoints for that port, it gets really messy: one
-> > endpoint is defined in the SoC dtsi, and used in the board dts. The
-> > second endpoint for the same port needs to be defined separately in the
-> > board file. I.e. something like:
->
-> Sure. If endpoints are logical, then only create the ones actually hooked
-> up. No problem there. But nor do I see any issue with having empty
-> connections if the board author things it makes sense to have them in the
-> dtsi.
+On 31/03/14 14:22, David H=C3=A4rdeman wrote:
+> On 2014-03-31 12:56, James Hogan wrote:
+>> This would mean that if the data is put in the right bit order (first
+>> bit received in BIT(0), last bit received in BIT(31)), then the scanco=
+de
+>> =3D raw, and if the data is received in the reverse bit order (like th=
+e
+>> raw decoder, shifting the data left and inserting the last bit in
+>> BIT(0)) then the scancode =3D bitrev32(raw).
+>>
+>> Have I missed something?
+>=20
+> I just think we have to agree to disagree :)
+>=20
+> For me, storing/presenting the scancode as 0xAAaaDDdd is "obviously" th=
+e
+> clearest and least confusing interpretation. But I might have spent too=
 
-I don't mind allowing board authors to add empty connections if they want to, 
-but I think it's a good practice not to include them given that endpoint are 
-logical. I would at least not include them in the of-graph DT bindings 
-examples.
+> long time using that notation in code and mentally to be able to find
+> anything else intuitive :)
+>=20
+> 0xAAaaDDdd means that you read/parse/print it left to right, just as yo=
+u
+> would if you drew a pulse-space chart showing the received IR pulse
+> (time normally progresses to the right...modulo the per-byte bitrev).
 
-> > /* the first ep */
-> > &port1_ep {
-> > 	remote-endpoint = <&..>;
-> > };
-> > 
-> > &port1 {
-> > 	/* the second ep */
-> > 	endpoint@2 {
-> > 		remote-endpoint = <&..>;
-> > 	};
-> > };
-> > 
-> > Versus:
-> > 
-> > &port1 {
-> > 	/* the first ep */
-> > 	endpoint@1 {
-> > 		remote-endpoint = <&..>;
-> > 	};
-> > 	
-> > 	/* the second ep */
-> > 	endpoint@2 {
-> > 		remote-endpoint = <&..>;
-> > 	};
-> > };
+Sure, but the NEC bit order is little endian, and the scancode is a
+32bit value not an array of 4 bytes, so it's artificial to expect it to
+make any sense when read as big endian. E.g. if you extended the
+transmission to 48 bits you'd expect the hex printed scancode to extend
+to the left not the right.
 
--- 
-Regards,
+The bits in the 32-bit word also become discontinuous for no good
+reason, especially considering the cases we're trying to take into
+account (NEC-32 and NEC-24) both effectively have 16-bit fields.
 
-Laurent Pinchart
+> It kind of matches the other protocol scancodes as well (the "address"
+> bits high, cmd bits low, the high bits tend to remain constant for one
+> given remote, the low bits change, although it's not a hard rule) and i=
+t
 
+Very true, but you still have the low byte of the command in the 2nd
+lowest byte, which is why my original suggestion was:
+0xaaAAddDD
+
+I.e. swap 16bit halves, each 16bit field intact.
+
+> matches most software I've ever seen (AFAIK, LIRC represents NEC32
+> scancodes this way, as does e.g. the Pronto software and protocol).
+>=20
+> That said...I think we at least agree that we need *a* representation
+> and that it should be used consistently in all drivers, right?
+
+Yes, that would be nice.
+
+Cheers
+James
+
+
+--iFlcMKnR1aHK8EC7ehDhQV6rKSxUsaFjB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.13 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTOXZsAAoJEGwLaZPeOHZ6PgUP/3XueZTRL+DdPtoXRSK8XI7o
+69c7tXejncQ1y1eHox/OvszFKJJir7xT0LftJi9ImgjpHToe3zNr9x5ta0R0Tty6
+5/19RBkAuFe4y7O/+d6IZiwHgrQPBsdfhVPtquLWlZcC3fk/nIXm5J9rQHoIUnNY
+4jBeFE8cFnkyn0vTTYUwOD5jD0TRdXzpmrsxQLnIVGKcUy5FPkUzxRUhiYI6kpkn
+6KBsQQbd1VzKPiB7PKLnT4S+eZs42mlMEg4tM1e3Joho96k07bsmlsyRFC63SCIO
+wHnHDrAEGAqfjhdV2HFnE2tCuMXnikRcPw/sYzfDfU6w1PM5E/qDfz6orIOixGOr
+hFAqn8uBhkEgQeLwwqT+RUay6+fmcYops63sErXBHoNy4vTzwFX6/AwZ69hwSKV9
+VK4AHjbskuPcL0ChIS/wYNAHV1VlbjT35szfiZNNi1HAyth7nolkHuhg9cwtpsbH
+Uu3k3jCfL3w/ZzotXW0B6NV+SxXm70L/I2SJaZ0XHplkjAKjk55UdGn4624LeFcp
+GKGYy7ry1EQ7TIy1xx9e6l3MLNgk/LT558St6u/3z5m5a4A62V0ecHHqSFA3ZOY4
+qg+BzUCV88vy3ktucswzx356/4bdylbDvEC3hAzhc+R/qpBUfzIvZ7/UiwzkHI08
+VAtpKlQ8szZQqQpdJJ0X
+=owoE
+-----END PGP SIGNATURE-----
+
+--iFlcMKnR1aHK8EC7ehDhQV6rKSxUsaFjB--
