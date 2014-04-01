@@ -1,43 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11678 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750857AbaDRJ7t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Apr 2014 05:59:49 -0400
-Message-ID: <5350F792.4010903@redhat.com>
-Date: Fri, 18 Apr 2014 11:59:46 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from aserp1040.oracle.com ([141.146.126.69]:41322 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750786AbaDAOof (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Apr 2014 10:44:35 -0400
+Date: Tue, 1 Apr 2014 17:44:07 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] dvb-core: check ->msg_len for
+ diseqc_send_master_cmd()
+Message-ID: <20140401144407.GG18506@mwanda>
+References: <516EF569.8070709@iki.fi>
+ <20130402075102.GA11233@longonot.mountain>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Robert Butora <robert.butora.fi@gmail.com>
-Subject: [GIT PULL patches for 3.16] media:gspca:dtcs033 Clean sparse check
- warnings on endianess
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130402075102.GA11233@longonot.mountain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Oops.  I send this to Mauro's old email address.  Sorry about that.
 
-Please pull from my gspca git tree for a gspca fix for some sparse errors.
+regards,
+dan carpenter
 
-The following changes since commit 701b57ee3387b8e3749845b02310b5625fbd8da0:
-
-  [media] vb2: Add videobuf2-dvb support (2014-04-16 18:59:29 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hgoede/gspca.git media-for_v3.16
-
-for you to fetch changes up to f1262be04ca6bfc57d13b21b247c3d9f6818caff:
-
-  media:gspca:dtcs033 Clean sparse check warnings on endianess (2014-04-18 11:31:50 +0200)
-
-----------------------------------------------------------------
-Robert Butora (1):
-      media:gspca:dtcs033 Clean sparse check warnings on endianess
-
- drivers/media/usb/gspca/dtcs033.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
-Thanks & Regards,
-
-Hans
+On Tue, Apr 01, 2014 at 05:38:07PM +0300, Dan Carpenter wrote:
+> I'd like to send this patch except that it "breaks"
+> cx24116_send_diseqc_msg().  The cx24116 driver accepts ->msg_len values
+> up to 24 but it looks like it's just copying 16 bytes past the end of
+> the ->msg[] array so it's already broken.
+> 
+> cmd->msg_len is an unsigned char.  The comment next to the struct
+> declaration says that valid values are are 3-6.  Some of the drivers
+> check that this is true, but most don't and it could cause memory
+> corruption.
+> 
+> Some examples of functions which don't check are:
+> ttusbdecfe_dvbs_diseqc_send_master_cmd()
+> cx24123_send_diseqc_msg()
+> ds3000_send_diseqc_msg()
+> etc.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> Reviewed-by: Antti Palosaari <crope@iki.fi>
+> ---
+> This is a static checker fix and I haven't tested it but the security
+> implications are quite bad so we should fix this.
+> 
+> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+> index 57601c0..3d1eee6 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb-core/dvb_frontend.c
+> @@ -2267,7 +2267,13 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+>  
+>  	case FE_DISEQC_SEND_MASTER_CMD:
+>  		if (fe->ops.diseqc_send_master_cmd) {
+> -			err = fe->ops.diseqc_send_master_cmd(fe, (struct dvb_diseqc_master_cmd*) parg);
+> +			struct dvb_diseqc_master_cmd *cmd = parg;
+> +
+> +			if (cmd->msg_len >= 3 && cmd->msg_len <= 6)
+> +				err = fe->ops.diseqc_send_master_cmd(fe, cmd);
+> +			else
+> +				err = -EINVAL;
+> +
+>  			fepriv->state = FESTATE_DISEQC;
+>  			fepriv->status = 0;
+>  		}
