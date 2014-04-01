@@ -1,162 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.225]:63078 "EHLO
-	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756605AbaDHObR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Apr 2014 10:31:17 -0400
-Message-ID: <5344077D.4030809@austin.rr.com>
-Date: Tue, 08 Apr 2014 09:28:13 -0500
-From: Keith Pyle <kpyle@austin.rr.com>
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:42202 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751238AbaDANv6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Apr 2014 09:51:58 -0400
+Message-ID: <533AC435.8040604@cisco.com>
+Date: Tue, 01 Apr 2014 15:50:45 +0200
+From: Hans Verkuil <hansverk@cisco.com>
 MIME-Version: 1.0
-To: Ryley Angus <ryleyjangus@gmail.com>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC] Fix interrupted recording with Hauppauge HD-PVR
-References: <C2340839-C85B-4DDF-8590-FA9049D6E65E@gmail.com> <5342B115.2070909@xs4all.nl> <007a01cf52db$253a7fe0$6faf7fa0$@gmail.com>
-In-Reply-To: <007a01cf52db$253a7fe0$6faf7fa0$@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH] v4l2-compliance: fix function pointer prototype
+References: <1396359906-6311-1-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1396359906-6311-1-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/07/14 22:32, Ryley Angus wrote:
-> Thanks Hans for getting back to me.
->
-> I've been trying out your patch and I found the device wasn't actually
-> restarting the streaming/recording properly after a channel
-> change. I changed "msecs_to_jiffies(500))" to "msecs_to_jiffies(1000))" and
-> had the same issue, but "msecs_to_jiffies(2000))"
-> seems to be working well. I'll let it keep going for a few more hours, but
-> at the moment it seems to be working well. The recordings
-> can be ended without anything hanging, and turning off the device ends the
-> recording properly (mine neglected this occurrence).
->
-> I'll let you know if I have any more issues,
->
-> ryley
->
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Tuesday, April 08, 2014 12:07 AM
-> To: Ryley Angus; linux-media@vger.kernel.org
-> Subject: Re: [RFC] Fix interrupted recording with Hauppauge HD-PVR
->
-> Hi Ryley,
->
-> Thank you for the patch. Your analysis seems sound. The patch is actually
-> not bad for a first attempt, but I did it a bit differently.
->
-> Can you test my patch?
->
-> Regards,
->
-> 	Hans
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->
-> diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c
-> b/drivers/media/usb/hdpvr/hdpvr-video.c
-> index 0500c417..a61373e 100644
-> --- a/drivers/media/usb/hdpvr/hdpvr-video.c
-> +++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-> @@ -454,6 +454,8 @@ static ssize_t hdpvr_read(struct file *file, char __user
-> *buffer, size_t count,
->   
->   		if (buf->status != BUFSTAT_READY &&
->   		    dev->status != STATUS_DISCONNECTED) {
-> +			int err;
-> +
->   			/* return nonblocking */
->   			if (file->f_flags & O_NONBLOCK) {
->   				if (!ret)
-> @@ -461,11 +463,23 @@ static ssize_t hdpvr_read(struct file *file, char
-> __user *buffer, size_t count,
->   				goto err;
->   			}
->   
-> -			if (wait_event_interruptible(dev->wait_data,
-> -					      buf->status == BUFSTAT_READY))
-> {
-> -				ret = -ERESTARTSYS;
-> +			err =
-> wait_event_interruptible_timeout(dev->wait_data,
-> +					      buf->status == BUFSTAT_READY,
-> +					      msecs_to_jiffies(500));
-> +			if (err < 0) {
-> +				ret = err;
->   				goto err;
->   			}
-> +			if (!err) {
-> +				v4l2_dbg(MSG_INFO, hdpvr_debug,
-> &dev->v4l2_dev,
-> +					"timeout: restart streaming\n");
-> +				hdpvr_stop_streaming(dev);
-> +				err = hdpvr_start_streaming(dev);
-> +				if (err) {
-> +					ret = err;
-> +					goto err;
-> +				}
-> +			}
->   		}
->   
->   		if (buf->status != BUFSTAT_READY)
->
->
-> On 04/07/2014 02:04 AM, Ryley Angus wrote:
->> (Sorry in advance for probably breaking a few conventions of the
->> mailing lists. First time using one so please let me know what I'm
->> doing wrong)
->>
->> I'm writing this because of an issue I had with my Hauppauge HD-PVR.
->> I record from my satellite set top box using component video and
->> optical audio input. I basically use "cat /dev/video0 > ~/video.ts"
->> or use dd. The box is set to output audio as AC-3 over optical, but
->> most channels are actually output as stereo PCM. When the channel is
->> changed between a PCM channel and (typically to a movie channel) to a
->> channel utilising AC-3, the HD-PVR stops the recording as the set top
->> box momentarily outputs no audio. Changing between PCM channels
->> doesn't cause any issues.
->>
->> My main problem was that when this happens, cat/dd doesn't actually
->> exit. When going through the hdpvr driver source and the dmesg output,
->> I found the hdpvr driver wasn't actually shutting down the device
->> properly until I manually killed cat/dd.
->>
->> I've seen references to this issue being a hardware issue from as far
->> back as 2010:
->> http://forums.gbpvr.com/showthread.php?46429-HD-PVR-drops-recording-on
->> -channel-change-Hauppauge-says-too-bad
->> .
->>
->> I tracked my issue to the file "hdpvr-video.c". Specifically, "if
->> (wait_event_interruptible(dev->wait_data, buf->status =
->> BUFSTAT_READY)) {" (line ~450). The device seems to get stuck waiting
->> for the buffer to become ready. But as far as I can tell, when the
->> channel is changed between a PCM and AC-3 broadcast the buffer status
->> will never actually become ready.
->>
->> ...
-I've seen the same problem Ryley describes and handled it in user space 
-with a cat-like program that could detect stalls and re-open the hdpvr 
-device.  This approach seems much better.  Kudos to both Ryley and Hans.
+Hi Prabhakar,
 
-I concur that the 500 ms. timeout is too small.  When testing my 
-program, I tried using a variety of timeout values when I found that the 
-HD-PVR seems to require some delay following a close before it is ready 
-to respond.  In my tests, anything of 2.5 seconds or less was not 
-reliable.  I only reached 100% re-open reliability with a 3 second 
-timeout.  It may be that 2 seconds will work with the code Hans posted, 
-but you may want to do some additional testing.  It is also possible 
-that my HD-PVR is more sensitive to the timeout (i.e., slower to become 
-ready).
+On 04/01/14 15:45, Lad, Prabhakar wrote:
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> 
+> There was a conflict between the mmap function pointer prototype of
+> struct v4l_fd and the actual function used. Make sure it is in sync
+> with the prototype of v4l2_mmap.
 
-There is one other potential problem you may want to check.  With my 
-user-space restart, the mpeg stream consists of two (or more) 
-concatenated streams.  This causes some programs like vlc to have 
-problems (e.g., doing forward jumps) since it only sees the length of 
-the last of the streams.  I'm not clear if this can also occur with your 
+The prototype of v4l2_mmap uses int64_t, so I don't understand this
 patch.
 
-Keith
+Regards,
 
+	Hans
 
+> 
+> This patch fixes following build error,
+> 
+> v4l2-compliance.cpp: In function 'void v4l_fd_test_init(v4l_fd*, int)':
+> v4l2-compliance.cpp:132: error: invalid conversion from
+> 'void* (*)(void*, size_t, int, int, int, int64_t)' to
+> 'void* (*)(void*, size_t, int, int, int, off_t)'
+> 
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>  utils/v4l2-compliance/v4l-helpers.h     |    2 +-
+>  utils/v4l2-compliance/v4l2-compliance.h |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/utils/v4l2-compliance/v4l-helpers.h b/utils/v4l2-compliance/v4l-helpers.h
+> index 48ea602..b2ce6c0 100644
+> --- a/utils/v4l2-compliance/v4l-helpers.h
+> +++ b/utils/v4l2-compliance/v4l-helpers.h
+> @@ -10,7 +10,7 @@ struct v4l_fd {
+>  	int fd;
+>  	int (*ioctl)(int fd, unsigned long cmd, ...);
+>  	void *(*mmap)(void *addr, size_t length, int prot, int flags,
+> -		      int fd, int64_t offset);
+> +		      int fd, off_t offset);
+>  	int (*munmap)(void *addr, size_t length);
+>  };
+>  
+> diff --git a/utils/v4l2-compliance/v4l2-compliance.h b/utils/v4l2-compliance/v4l2-compliance.h
+> index f2f7072..b6d4dae 100644
+> --- a/utils/v4l2-compliance/v4l2-compliance.h
+> +++ b/utils/v4l2-compliance/v4l2-compliance.h
+> @@ -137,7 +137,7 @@ static inline int test_ioctl(int fd, unsigned long cmd, ...)
+>  }
+>  
+>  static inline void *test_mmap(void *start, size_t length, int prot, int flags,
+> -		int fd, int64_t offset)
+> +		int fd, off_t offset)
+>  {
+>   	return wrapper ? v4l2_mmap(start, length, prot, flags, fd, offset) :
+>  		mmap(start, length, prot, flags, fd, offset);
+> 
