@@ -1,47 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59015 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755295AbaDWCBW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Apr 2014 22:01:22 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/2] si2168: relax demod lock checks a little
-Date: Wed, 23 Apr 2014 05:01:01 +0300
-Message-Id: <1398218462-29539-1-git-send-email-crope@iki.fi>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:44832 "EHLO
+	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751191AbaDAO3c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Apr 2014 10:29:32 -0400
+Date: Tue, 1 Apr 2014 07:28:53 -0700
+From: Josh Triplett <josh@joshtriplett.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sparse Mailing-list <linux-sparse@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Christopher Li <sparse@chrisli.org>
+Subject: Re: [PATCH] Fix _IOC_TYPECHECK sparse error
+Message-ID: <20140401142852.GA22576@leaf>
+References: <533A64EC.2090106@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <533A64EC.2090106@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-bit3 was not cleared always leaving driver reporting demod is not
-fully locked. Do not check bit0 as it seems to be always 0.
+On Tue, Apr 01, 2014 at 09:04:12AM +0200, Hans Verkuil wrote:
+> When running sparse over drivers/media/v4l2-core/v4l2-ioctl.c I get these
+> errors:
+> 
+> drivers/media/v4l2-core/v4l2-ioctl.c:2043:9: error: bad integer constant expression
+> drivers/media/v4l2-core/v4l2-ioctl.c:2044:9: error: bad integer constant expression
+> drivers/media/v4l2-core/v4l2-ioctl.c:2045:9: error: bad integer constant expression
+> drivers/media/v4l2-core/v4l2-ioctl.c:2046:9: error: bad integer constant expression
+> 
+> etc.
+> 
+> The root cause of that turns out to be in include/asm-generic/ioctl.h:
+> 
+> #include <uapi/asm-generic/ioctl.h>
+> 
+> /* provoke compile error for invalid uses of size argument */
+> extern unsigned int __invalid_size_argument_for_IOC;
+> #define _IOC_TYPECHECK(t) \
+>         ((sizeof(t) == sizeof(t[1]) && \
+>           sizeof(t) < (1 << _IOC_SIZEBITS)) ? \
+>           sizeof(t) : __invalid_size_argument_for_IOC)
+> 
+> If it is defined as this (as is already done if __KERNEL__ is not defined):
+> 
+> #define _IOC_TYPECHECK(t) (sizeof(t))
+> 
+> then all is well with the world.
+> 
+> This patch allows sparse to work correctly.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index dc5b64a..8637d2e 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -132,14 +132,11 @@ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 	 * [b4] statistics ready? Set in a few secs after lock is gained.
- 	 */
- 
--	switch ((cmd.args[2] >> 0) & 0x0f) {
--	case 0x0a:
-+	switch ((cmd.args[2] >> 1) & 0x03) {
-+	case 0x01:
- 		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
- 		break;
--	case 0x0e:
--		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI;
--		break;
--	case 0x06:
-+	case 0x03:
- 		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
- 				FE_HAS_SYNC | FE_HAS_LOCK;
- 		break;
--- 
-1.9.0
-
+> diff --git a/include/asm-generic/ioctl.h b/include/asm-generic/ioctl.h
+> index d17295b..297fb0d 100644
+> --- a/include/asm-generic/ioctl.h
+> +++ b/include/asm-generic/ioctl.h
+> @@ -3,10 +3,15 @@
+>  
+>  #include <uapi/asm-generic/ioctl.h>
+>  
+> +#ifdef __CHECKER__
+> +#define _IOC_TYPECHECK(t) (sizeof(t))
+> +#else
+>  /* provoke compile error for invalid uses of size argument */
+>  extern unsigned int __invalid_size_argument_for_IOC;
+>  #define _IOC_TYPECHECK(t) \
+>  	((sizeof(t) == sizeof(t[1]) && \
+>  	  sizeof(t) < (1 << _IOC_SIZEBITS)) ? \
+>  	  sizeof(t) : __invalid_size_argument_for_IOC)
+> +#endif
+> +
+>  #endif /* _ASM_GENERIC_IOCTL_H */
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-sparse" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
