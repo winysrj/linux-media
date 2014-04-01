@@ -1,64 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50683 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751605AbaDLNYP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Apr 2014 09:24:15 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [yavta PATCH v3 01/11] Separate device object initialisation and opening
-Date: Sat, 12 Apr 2014 16:23:53 +0300
-Message-Id: <1397309043-8322-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1397309043-8322-1-git-send-email-sakari.ailus@iki.fi>
-References: <1397309043-8322-1-git-send-email-sakari.ailus@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36740 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751632AbaDARz7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Apr 2014 13:55:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Anton Leontiev <bunder@t-25.ru>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] uvcvideo: Fix marking buffer erroneous in case of FID toggling
+Date: Tue, 01 Apr 2014 17:24:14 +0200
+Message-ID: <10422468.Ah80osK73i@avalon>
+In-Reply-To: <533659E2.4010001@t-25.ru>
+References: <1395722457-28080-1-git-send-email-bunder@t-25.ru> <1459346.J1YUbuH55p@avalon> <533659E2.4010001@t-25.ru>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- yavta.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+Hi Anton,
 
-diff --git a/yavta.c b/yavta.c
-index 739463d..c7ad7b4 100644
---- a/yavta.c
-+++ b/yavta.c
-@@ -220,17 +220,20 @@ static const char *v4l2_format_name(unsigned int fourcc)
- 	return name;
- }
- 
--static int video_open(struct device *dev, const char *devname, int no_query)
-+static void video_init(struct device *dev)
- {
--	struct v4l2_capability cap;
--	unsigned int capabilities;
--	int ret;
--
- 	memset(dev, 0, sizeof *dev);
- 	dev->fd = -1;
- 	dev->memtype = V4L2_MEMORY_MMAP;
- 	dev->buffers = NULL;
- 	dev->type = (enum v4l2_buf_type)-1;
-+}
-+
-+static int video_open(struct device *dev, const char *devname, int no_query)
-+{
-+	struct v4l2_capability cap;
-+	unsigned int capabilities;
-+	int ret;
- 
- 	dev->fd = open(devname, O_RDWR);
- 	if (dev->fd < 0) {
-@@ -1599,6 +1602,8 @@ int main(int argc, char *argv[])
- 
- 	unsigned int rt_priority = 1;
- 
-+	video_init(&dev);
-+
- 	opterr = 0;
- 	while ((c = getopt_long(argc, argv, "c::Cd:f:F::hi:Iln:pq:r:R::s:t:uw:", opts, NULL)) != -1) {
- 
+On Saturday 29 March 2014 09:28:02 Anton Leontiev wrote:
+> 28.03.2014 20:12, Laurent Pinchart пишет:
+> >>>> + * Set error flag for incomplete buffer.
+> >>>> + */
+> >>>> +static void uvc_buffer_check_bytesused(const struct uvc_streaming
+> >>>> *const stream,
+> > 
+> > No need for the second const keyword here.
+> > 
+> > I would have used "uvc_video_" as a prefix, to be in sync with the
+> > surrounding functions. What would you think of
+> > uvc_video_validate_buffer() ?
+> > 
+> >>>> +	struct uvc_buffer *const buf)
+> > 
+> > And no need for const at all here.
+> > 
+> >>>> +{
+> >>>> +	if (buf->length != buf->bytesused &&
+> >>>> +			!(stream->cur_format->flags & UVC_FMT_FLAG_COMPRESSED))
+> > 
+> > The indentation is wrong here, the ! on the second line should be aligned
+> > to the first 'buf' of the first line.
+> > 
+> > If you agree with these changes I can perform them while applying, there's
+> > no need to resubmit the patch.
+> 
+> Thank you for reviewing my first patch to Linux kernel.
+
+Thank you for submitting it :-)
+
+> I completely agree with your changes.
+> 
+> Just want to ask why there is no need for the second 'const' after pointer
+> character '*'? I thought it marks pointer itself as constant for type-
+> checking opposite to first 'const', which marks memory it points to as
+> constant for type-checking.
+
+Your understanding is correct (as far as I know).
+
+> I understand that the function is simple enough to verify it by hand but
+> it's better to add more information for automatic checking.
+>
+> Is there any guidelines on 'const' keyword usage in Linux kernel code?
+
+Marking the memory pointed to by the pointer as const ensures that the 
+function won't modify memory that the caller thought wouldn't be modified. It 
+thus serves as a contract between the caller and the callee, enforced by the 
+compiler.
+
+Marking the pointer as const, on the other hand, only affects the function 
+implementation, without influencing its call contract. Its only use in this 
+case would be to prevent the function from modifying a pointer that the 
+function itself thought it shouldn't modify. While not useless in all cases, 
+this compile-time checked if usually not performed in the kernel, especially 
+for simple functions. I'm not aware of any explicit rule regarding const usage 
+though.
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
