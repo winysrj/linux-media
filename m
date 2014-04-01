@@ -1,197 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43906 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932653AbaDBR7e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Apr 2014 13:59:34 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [PATCH v2 4/6] v4l: vsp1: Add DT support
-Date: Wed,  2 Apr 2014 20:01:30 +0200
-Message-Id: <1396461690-2334-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:58250 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751095AbaDALHe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Apr 2014 07:07:34 -0400
+Message-id: <533A9DF1.1000404@samsung.com>
+Date: Tue, 01 Apr 2014 13:07:29 +0200
+From: Andrzej Hajda <a.hajda@samsung.com>
+MIME-version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"open list:VIDEOBUF2 FRAMEWORK" <linux-media@vger.kernel.org>,
+	open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v3] vb2: Check if there are buffers before streamon
+References: <1389168093-4923-1-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1389168093-4923-1-git-send-email-ricardo.ribalda@gmail.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- .../devicetree/bindings/media/renesas,vsp1.txt     | 43 ++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_drv.c             | 52 ++++++++++++++++++----
- 2 files changed, 87 insertions(+), 8 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,vsp1.txt
-
 Hi,
 
-This is the last call for DT bindings review, with a small change to the
-bindings compared to v1. If I don't get any reply I'll assume that those
-(pretty simple) bindings are perfect :-)
+It seems the patch has been applied twice in linux-next/master:
 
-Changes since v1:
+$ git log --oneline -25 linux-next/master
+drivers/media/v4l2-core/videobuf2-core.c
+9cf3c31 [media] vb2: call buf_finish after the state check
+3f1a9a3 [media] vb2: fix streamoff handling if streamon wasn't called
+e4d2581 [media] vb2: replace BUG by WARN_ON
+fb64dca [media] vb2: properly clean up PREPARED and QUEUED buffers
+b3379c6 [media] vb2: only call start_streaming if sufficient buffers are
+queued
+a7afcac [media] vb2: don't init the list if there are still buffers
+6ea3b98 [media] vb2: rename queued_count to owned_by_drv_count
+256f316 [media] vb2: fix buf_init/buf_cleanup call sequences
+9c0863b [media] vb2: call buf_finish from __queue_cancel
+0647064 [media] vb2: change result code of buf_finish to void
+b5b4541 [media] vb2: add debugging code to check for unbalanced ops
+952c9ee [media] vb2: fix PREPARE_BUF regression
+4e5a4d8 [media] vb2: fix read/write regression
+>>>>> 249f5a5 [media] vb2: Check if there are buffers before streamon
+c897df0 Merge tag 'v3.14-rc5' into patchwork
+7ce6fd8 [media] v4l: Handle buffer timestamp flags correctly
+872484c [media] v4l: Add timestamp source flags, mask and document them
+c57ff79 [media] v4l: Timestamp flags will soon contain timestamp source,
+not just type
+ade4868 [media] v4l: Rename vb2_queue.timestamp_type as timestamp_flags
+f134328 [media] vb2: fix timecode and flags handling for output buffers
+>>>>> 548df78 [media] vb2: Check if there are buffers before streamon
 
-- Drop the clock-names property, as the VSP1 uses a single clock
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,vsp1.txt b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
-new file mode 100644
-index 0000000..45c1d3c
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
-@@ -0,0 +1,43 @@
-+* Renesas VSP1 Video Processing Engine
-+
-+The VSP1 is a video processing engine that supports up-/down-scaling, alpha
-+blending, color space conversion and various other image processing features.
-+It can be found in the Renesas R-Car second generation SoCs.
-+
-+Required properties:
-+
-+  - compatible: Must contain "renesas,vsp1"
-+
-+  - reg: Base address and length of the registers block for the VSP1.
-+  - interrupt-parent, interrupts: Specifier for the VSP1 interrupt.
-+  - clocks: A phandle + clock-specifier pair for the VSP1 functional clock.
-+
-+  - renesas,#rpf: Number of Read Pixel Formatter (RPF) modules in the VSP1.
-+  - renesas,#uds: Number of Up Down Scaler (UDS) modules in the VSP1.
-+  - renesas,#wpf: Number of Write Pixel Formatter (WPF) modules in the VSP1.
-+
-+
-+Optional properties:
-+
-+  - renesas,has-lif: Boolean, indicates that the LCD Interface (LIF) module is
-+    available.
-+  - renesas,has-lut: Boolean, indicates that the Look Up Table (LUT) module is
-+    available.
-+  - renesas,has-sru: Boolean, indicates that the Super Resolution Unit (SRU)
-+    module is available.
-+
-+
-+Example: R8A7790 (R-Car H2) VSP1-S node
-+
-+	vsp1@fe928000 {
-+		compatible = "renesas,vsp1";
-+		reg = <0 0xfe928000 0 0x8000>;
-+		interrupts = <0 267 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&mstp1_clks R8A7790_CLK_VSP1_S>;
-+
-+		renesas,has-lut;
-+		renesas,has-sru;
-+		renesas,#rpf = <5>;
-+		renesas,#uds = <3>;
-+		renesas,#wpf = <4>;
-+	};
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 28e1de3..644650f 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -16,6 +16,7 @@
- #include <linux/device.h>
- #include <linux/interrupt.h>
- #include <linux/module.h>
-+#include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/videodev2.h>
- 
-@@ -431,34 +432,59 @@ static const struct dev_pm_ops vsp1_pm_ops = {
-  * Platform Driver
-  */
- 
--static struct vsp1_platform_data *
--vsp1_get_platform_data(struct platform_device *pdev)
-+static int vsp1_validate_platform_data(struct platform_device *pdev,
-+				       struct vsp1_platform_data *pdata)
- {
--	struct vsp1_platform_data *pdata = pdev->dev.platform_data;
--
- 	if (pdata == NULL) {
- 		dev_err(&pdev->dev, "missing platform data\n");
--		return NULL;
-+		return -EINVAL;
- 	}
- 
- 	if (pdata->rpf_count <= 0 || pdata->rpf_count > VPS1_MAX_RPF) {
- 		dev_err(&pdev->dev, "invalid number of RPF (%u)\n",
- 			pdata->rpf_count);
--		return NULL;
-+		return -EINVAL;
- 	}
- 
- 	if (pdata->uds_count <= 0 || pdata->uds_count > VPS1_MAX_UDS) {
- 		dev_err(&pdev->dev, "invalid number of UDS (%u)\n",
- 			pdata->uds_count);
--		return NULL;
-+		return -EINVAL;
- 	}
- 
- 	if (pdata->wpf_count <= 0 || pdata->wpf_count > VPS1_MAX_WPF) {
- 		dev_err(&pdev->dev, "invalid number of WPF (%u)\n",
- 			pdata->wpf_count);
--		return NULL;
-+		return -EINVAL;
- 	}
- 
-+	return 0;
-+}
-+
-+static struct vsp1_platform_data *
-+vsp1_get_platform_data(struct platform_device *pdev)
-+{
-+	struct device_node *np = pdev->dev.of_node;
-+	struct vsp1_platform_data *pdata;
-+
-+	if (!IS_ENABLED(CONFIG_OF) || np == NULL)
-+		return pdev->dev.platform_data;
-+
-+	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-+	if (pdata == NULL)
-+		return NULL;
-+
-+	if (of_property_read_bool(np, "renesas,has-lif"))
-+		pdata->features |= VSP1_HAS_LIF;
-+	if (of_property_read_bool(np, "renesas,has-lut"))
-+		pdata->features |= VSP1_HAS_LUT;
-+	if (of_property_read_bool(np, "renesas,has-sru"))
-+		pdata->features |= VSP1_HAS_SRU;
-+
-+	of_property_read_u32(np, "renesas,#rpf", &pdata->rpf_count);
-+	of_property_read_u32(np, "renesas,#uds", &pdata->uds_count);
-+	of_property_read_u32(np, "renesas,#wpf", &pdata->wpf_count);
-+
- 	return pdata;
- }
- 
-@@ -481,6 +507,10 @@ static int vsp1_probe(struct platform_device *pdev)
- 	if (vsp1->pdata == NULL)
- 		return -ENODEV;
- 
-+	ret = vsp1_validate_platform_data(pdev, vsp1->pdata);
-+	if (ret < 0)
-+		return ret;
-+
- 	/* I/O, IRQ and clock resources */
- 	io = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	vsp1->mmio = devm_ioremap_resource(&pdev->dev, io);
-@@ -527,6 +557,11 @@ static int vsp1_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static const struct of_device_id vsp1_of_match[] = {
-+	{ .compatible = "renesas,vsp1" },
-+	{ },
-+};
-+
- static struct platform_driver vsp1_platform_driver = {
- 	.probe		= vsp1_probe,
- 	.remove		= vsp1_remove,
-@@ -534,6 +569,7 @@ static struct platform_driver vsp1_platform_driver = {
- 		.owner	= THIS_MODULE,
- 		.name	= "vsp1",
- 		.pm	= &vsp1_pm_ops,
-+		.of_match_table = of_match_ptr(vsp1_of_match),
- 	},
- };
- 
--- 
-Regards,
 
-Laurent Pinchart
+Regards
+Andrzej
+
+On 01/08/2014 09:01 AM, Ricardo Ribalda Delgado wrote:
+> This patch adds a test preventing streamon() if there is no buffer
+> ready.
+> 
+> Without this patch, a user could call streamon() before
+> preparing any buffer. This leads to a situation where if he calls
+> close() before calling streamoff() the device is kept streaming.
+> 
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+> v2: Comment by Marek Szyprowski:
+> Reword error message
+> 
+> v3: Comment by Marek Szyprowski:
+> Actualy do the reword :)
+> 
+>  drivers/media/v4l2-core/videobuf2-core.c | 5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 098df28..6409e0a 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1776,6 +1776,11 @@ static int vb2_internal_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
+>  		return 0;
+>  	}
+>  
+> +	if (!q->num_buffers) {
+> +		dprintk(1, "streamon: no buffers have been allocated\n");
+> +		return -EINVAL;
+> +	}
+> +
+>  	/*
+>  	 * If any buffers were queued before streamon,
+>  	 * we can now pass them to driver for processing.
+> 
 
