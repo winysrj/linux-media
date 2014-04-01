@@ -1,113 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4227 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753692AbaDKCfV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 22:35:21 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id s3B2ZIXJ082950
-	for <linux-media@vger.kernel.org>; Fri, 11 Apr 2014 04:35:20 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 5A1222A03F8
-	for <linux-media@vger.kernel.org>; Fri, 11 Apr 2014 04:34:58 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140411023458.5A1222A03F8@tschai.lan>
-Date: Fri, 11 Apr 2014 04:34:58 +0200 (CEST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38068 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751694AbaDAWPA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Apr 2014 18:15:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [yavta PATCH 5/9] Allow passing file descriptors to yavta
+Date: Wed, 02 Apr 2014 00:16:57 +0200
+Message-ID: <349099482.s11F5mBja6@avalon>
+In-Reply-To: <1393690690-5004-6-git-send-email-sakari.ailus@iki.fi>
+References: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi> <1393690690-5004-6-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Sakari,
 
-Results of the daily build of media_tree:
+Thank you for the patch.
 
-date:		Fri Apr 11 04:00:16 CEST 2014
-git branch:	test
-git hash:	a83b93a7480441a47856dc9104bea970e84cda87
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.13-7.slh.1-amd64
+On Saturday 01 March 2014 18:18:06 Sakari Ailus wrote:
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  yavta.c |   63 ++++++++++++++++++++++++++++++++++++++++--------------------
+>  1 file changed, 43 insertions(+), 20 deletions(-)
+> 
+> diff --git a/yavta.c b/yavta.c
+> index 870682e..a9b192a 100644
+> --- a/yavta.c
+> +++ b/yavta.c
+> @@ -62,6 +62,7 @@ struct buffer
+>  struct device
+>  {
+>  	int fd;
+> +	int opened;
+> 
+>  	enum v4l2_buf_type type;
+>  	enum v4l2_memory memtype;
+> @@ -180,13 +181,8 @@ static unsigned int v4l2_format_code(const char *name)
+>  	return 0;
+>  }
+> 
+> -static int video_open(struct device *dev, const char *devname, int
+> no_query)
+> +static int video_open(struct device *dev, const char *devname)
+>  {
+> -	dev->fd = -1;
+> -	dev->memtype = V4L2_MEMORY_MMAP;
+> -	dev->buffers = NULL;
+> -	dev->type = (enum v4l2_buf_type)-1;
+> -
+>  	dev->fd = open(devname, O_RDWR);
+>  	if (dev->fd < 0) {
+>  		printf("Error opening device %s: %s (%d).\n", devname,
+> @@ -196,6 +192,16 @@ static int video_open(struct device *dev, const char
+> *devname, int no_query)
+> 
+>  	printf("Device %s opened.\n", devname);
+> 
+> +	dev->opened = 1;
+> +
+> +	return 0;
+> +}
+> +
+> +static int video_querycap(struct device *dev, int no_query) {
+> +	struct v4l2_capability cap;
+> +	unsigned int capabilities;
+> +	int ret;
+> +
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+video_querycap ends up setting the dev->type field, which isn't really the job 
+of a query function. Would there be a clean way to pass the fd to the 
+video_open() function instead ? Maybe video_open() could be split and/or 
+renamed to video_init() ?
 
-Detailed results are available here:
+>  	if (no_query) {
+>  		/* Assume capture device. */
+>  		dev->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> @@ -215,9 +221,7 @@ static int video_open(struct device *dev, const char
+> *devname, int no_query) else if (capabilities & V4L2_CAP_VIDEO_OUTPUT)
+>  		dev->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+>  	else {
+> -		printf("Error opening device %s: neither video capture "
+> -			"nor video output supported.\n", devname);
+> -		close(dev->fd);
+> +		printf("Device supports neither capture nor output.\n");
+>  		return -EINVAL;
+>  	}
+> 
+> @@ -231,7 +235,8 @@ static void video_close(struct device *dev)
+>  {
+>  	free(dev->pattern);
+>  	free(dev->buffers);
+> -	close(dev->fd);
+> +	if (dev->opened)
+> +		close(dev->fd);
+>  }
+> 
+>  static unsigned int get_control_type(struct device *dev, unsigned int id)
+> @@ -1246,6 +1251,7 @@ static void usage(const char *argv0)
+>  	printf("-w, --set-control 'ctrl value'	Set control 'ctrl' to 
+'value'\n");
+>  	printf("    --enum-formats		Enumerate formats\n");
+>  	printf("    --enum-inputs		Enumerate inputs\n");
+> +	printf("    --fd                        Use a numeric file descriptor
+> insted of a device\n");
+>  	printf("    --no-query			Don't query capabilities on open\n");
+>  	printf("    --offset			User pointer buffer offset from page
+> start\n");
+>  	printf("    --requeue-last		Requeue the last buffers before
+> streamoff\n");
+> @@ -1262,6 +1268,7 @@ static void usage(const char *argv0)
+>  #define OPT_USERPTR_OFFSET	261
+>  #define OPT_REQUEUE_LAST	262
+>  #define OPT_STRIDE		263
+> +#define OPT_FD			264
+> 
+>  static struct option opts[] = {
+>  	{"capture", 2, 0, 'c'},
+> @@ -1269,6 +1276,7 @@ static struct option opts[] = {
+>  	{"delay", 1, 0, 'd'},
+>  	{"enum-formats", 0, 0, OPT_ENUM_FORMATS},
+>  	{"enum-inputs", 0, 0, OPT_ENUM_INPUTS},
+> +	{"fd", 1, 0, OPT_FD},
+>  	{"file", 2, 0, 'F'},
+>  	{"fill-frames", 0, 0, 'I'},
+>  	{"format", 1, 0, 'f'},
+> @@ -1297,7 +1305,11 @@ static struct option opts[] = {
+>  int main(int argc, char *argv[])
+>  {
+>  	struct sched_param sched;
+> -	struct device dev = { 0 };
+> +	struct device dev = {
+> +		.fd = -1,
+> +		.memtype = V4L2_MEMORY_MMAP,
+> +		.type = (enum v4l2_buf_type)-1,
+> +	};
+>  	int ret;
+> 
+>  	/* Options parsings */
+> @@ -1452,6 +1464,14 @@ int main(int argc, char *argv[])
+>  		case OPT_ENUM_INPUTS:
+>  			do_enum_inputs = 1;
+>  			break;
+> +		case OPT_FD:
+> +			dev.fd = atoi(optarg);
+> +			if (dev.fd < 0) {
+> +				printf("Bad file descriptor %d\n", dev.fd);
+> +				return 1;
+> +			}
+> +			printf("Using file descriptor %d\n", dev.fd);
+> +			break;
+>  		case OPT_NO_QUERY:
+>  			no_query = 1;
+>  			break;
+> @@ -1482,18 +1502,21 @@ int main(int argc, char *argv[])
+>  		return 1;
+>  	}
+> 
+> -	if (optind >= argc) {
+> -		usage(argv[0]);
+> -		return 1;
+> -	}
+> -
+>  	if (!do_file)
+>  		filename = NULL;
+> 
+> -	/* Open the video device. If the device type isn't recognized, set the
+> -	 * --no-query option to avoid querying V4L2 subdevs.
+> -	 */
+> -	ret = video_open(&dev, argv[optind], no_query);
+> +	if (dev.fd == -1) {
+> +		if (optind >= argc) {
+> +			usage(argv[0]);
+> +			return 1;
+> +		} else {
+> +			ret = video_open(&dev, argv[optind]);
+> +			if (ret < 0)
+> +				return 1;
+> +		}
+> +	}
+> +
+> +	ret = video_querycap(&dev, no_query);
+>  	if (ret < 0)
+>  		return 1;
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+-- 
+Regards,
 
-Full logs are available here:
+Laurent Pinchart
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
