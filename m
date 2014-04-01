@@ -1,165 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:61653 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756111AbaCKXfl (ORCPT
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:48932 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751061AbaDAAES (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 19:35:41 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N2A00LHWPJDTJ30@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 11 Mar 2014 19:35:37 -0400 (EDT)
-Date: Tue, 11 Mar 2014 20:35:30 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv3 PATCH 05/35] videodev2.h: add struct v4l2_query_ext_ctrl
- and VIDIOC_QUERY_EXT_CTRL.
-Message-id: <20140311203530.5955a09c@samsung.com>
-In-reply-to: <531F7229.9070306@xs4all.nl>
-References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
- <1392631070-41868-6-git-send-email-hverkuil@xs4all.nl>
- <20140311164221.13537163@samsung.com> <531F7229.9070306@xs4all.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Mon, 31 Mar 2014 20:04:18 -0400
+Received: by mail-lb0-f179.google.com with SMTP id p9so6305990lbv.38
+        for <linux-media@vger.kernel.org>; Mon, 31 Mar 2014 17:04:16 -0700 (PDT)
+MIME-Version: 1.0
+Date: Tue, 1 Apr 2014 10:04:16 +1000
+Message-ID: <CAHLDD1NSe9nrWJ2nfXaeBngZ_=aVYU_hTvsFgWez-n2OtVCLGA@mail.gmail.com>
+Subject: Lirc codec and starting "space" event
+From: Austin Lund <austin.lund@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=14dae94edbd3b07f1c04f5efe815
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 11 Mar 2014 21:29:29 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+--14dae94edbd3b07f1c04f5efe815
+Content-Type: text/plain; charset=UTF-8
 
-> On 03/11/2014 08:42 PM, Mauro Carvalho Chehab wrote:
-> > Em Mon, 17 Feb 2014 10:57:20 +0100
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>
-> >> Add a new struct and ioctl to extend the amount of information you can
-> >> get for a control.
-> >>
-> >> It gives back a unit string, the range is now a s64 type, and the matrix
-> >> and element size can be reported through cols/rows/elem_size.
-> >>
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >>  include/uapi/linux/videodev2.h | 31 +++++++++++++++++++++++++++++++
-> >>  1 file changed, 31 insertions(+)
-> >>
-> >> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> >> index 4d7782a..858a6f3 100644
-> >> --- a/include/uapi/linux/videodev2.h
-> >> +++ b/include/uapi/linux/videodev2.h
-> >> @@ -1272,6 +1272,35 @@ struct v4l2_queryctrl {
-> >>  	__u32		     reserved[2];
-> >>  };
-> >>  
-> >> +/*  Used in the VIDIOC_QUERY_EXT_CTRL ioctl for querying extended controls */
-> >> +struct v4l2_query_ext_ctrl {
-> >> +	__u32		     id;
-> >> +	__u32		     type;
-> >> +	char		     name[32];
-> >> +	char		     unit[32];
-> >> +	union {
-> >> +		__s64 val;
-> >> +		__u32 reserved[4];
-> > 
-> > Why to reserve 16 bytes here? for anything bigger than 64
-> > bits, we could use a pointer.
-> > 
-> > Same applies to the other unions.
-> 
-> The idea was to allow space for min/max/step/def values for compound types
-> if applicable. But that may have been overengineering.
+Hi,
 
-It seems overengineering for me ;)
+I've been having a problem with a GPIO ir device in an i.mx6 arm
+system that I have (cubox-i).
 
-> 
-> > 
-> >> +	} min;
-> >> +	union {
-> >> +		__s64 val;
-> >> +		__u32 reserved[4];
-> >> +	} max;
-> >> +	union {
-> >> +		__u64 val;
-> >> +		__u32 reserved[4];
-> >> +	} step;
-> >> +	union {
-> >> +		__s64 val;
-> >> +		__u32 reserved[4];
-> >> +	} def;
-> > 
-> > Please call it default. It is ok to simplify names inside a driver,
-> > but better to not do it at the API.
-> 
-> default_value, then. 'default' is a keyword. I should probably rename min and max
-> to minimum and maximum to stay in sync with v4l2_queryctrl.
+It seems to all work ok, except the output on /dev/lirc0 is not quite
+what lircd seems to expect.  Lircd wants a long space before the
+starting pulse before processing any output. However, no long space is
+sent when I check the output (doing "mode2" and a plain hexdump
+/dev/lirc0).
 
-OK.
+This causes problems in detecting button presses on remotes.
+Sometimes it works if you press the buttons quick enough, but after
+waiting a while it doesn't work.
 
-> > 
-> >> +	__u32                flags;
-> > 
-> >> +	__u32                cols;
-> >> +	__u32                rows;
-> >> +	__u32                elem_size;
-> > 
-> > The three above seem to be too specific for an array.
-> > 
-> > I would put those on a separate struct and add here an union,
-> > like:
-> > 
-> > 	union {
-> > 		struct v4l2_array arr;
-> > 		__u32 reserved[8];
-> > 	}
-> 
-> I have to sleep on this. I'm not sure this helps in any way.
+I have been looking at the code for a while now, and it seems that it
+has something to do with the lirc codec ignoring reset events (just
+returns 0).
 
-Well, for today's needs this may not bring any difference, but it may
-help if we need to add something else there.
+I've made up this patch, but I'm travelling at the moment and haven't
+had a chance to actually test it.
 
-Also, it helps to make clear, at the documentation which parts of the
-struct will be filled every time, and with part is array-specific.
+What I'm wondering is if this issue is known, and if my approach is
+going down the right path.
 
-> 
-> > 
-> >> +	__u32		     reserved[17];
-> > 
-> > This also seems too much. Why 17?
-> 
-> It aligned the struct up to some nice number. Also, experience tells me that
-> whenever I limit the number of reserved fields it bites me later.
-> 
-> > 
-> >> +};
-> > 
-> >> +
-> >>  /*  Used in the VIDIOC_QUERYMENU ioctl for querying menu items */
-> >>  struct v4l2_querymenu {
-> >>  	__u32		id;
-> >> @@ -1965,6 +1994,8 @@ struct v4l2_create_buffers {
-> >>     Never use these in applications! */
-> >>  #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
-> >>  
-> >> +#define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
-> >> +
-> >>  /* Reminder: when adding new ioctls please add support for them to
-> >>     drivers/media/video/v4l2-compat-ioctl32.c as well! */
-> >>  
-> > 
-> > 
-> 
-> Regards,
-> 
-> 	Hans
+The only alternative I could see is to change the way the gpio ir
+driver handles events.  It seems to just call ir_raw_event_store_edge
+which put a zeroed reset event into the queue.  I'm assuming there are
+other users of these functions and that it's probably best not to
+fiddle with that if possible.
 
+Thanks.
 
--- 
+PS Please CC me as I'm not subscribed.
 
-Regards,
-Mauro
+--14dae94edbd3b07f1c04f5efe815
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0001-media-rc-Send-sync-space-information-on-the-lirc-dev.patch"
+Content-Disposition: attachment;
+	filename="0001-media-rc-Send-sync-space-information-on-the-lirc-dev.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_htgf87ry0
+
+RnJvbSA0OWMwNDFlNmFiN2E5ZDVmY2JlODc4MTdkNWU4MTljMmFlZjZiM2FjIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBBdXN0aW4gTHVuZCA8YXVzdGluLmx1bmRAZ21haWwuY29tPgpE
+YXRlOiBNb24sIDMxIE1hciAyMDE0IDE0OjUyOjQ3ICsxMDAwClN1YmplY3Q6IFtQQVRDSF0gbWVk
+aWEvcmM6IFNlbmQgc3luYyBzcGFjZSBpbmZvcm1hdGlvbiBvbiB0aGUgbGlyYyBkZXZpY2UuCgpV
+c2Vyc3BhY2UgZXhwZWN0cyB0byBzZWUgYSBsb25nIHNwYWNlIGJlZm9yZSB0aGUgZmlyc3QgcHVs
+c2UgaXMgc2VudCBvbgp0aGUgbGlyYyBkZXZpY2UuICBDdXJyZW50bHksIGlmIGEgbG9uZyB0aW1l
+IGhhcyBwYXNzZWQgYW5kIGEgbmV3IHBhY2tldAppcyBzdGFydGVkLCB0aGUgbGlyYyBjb2RlYyBq
+dXN0IHJldHVybnMgYW5kIGRvZXNuJ3Qgc2VuZCBhbnl0aGluZy4gIFRoaXMKbWFrZXMgbGlyY2Qg
+aWdub3JlIG1hbnkgcGVyZmVjdGx5IHZhbGlkIHNpZ25hbHMgdW5sZXNzIHRoZXkgYXJlIHNlbnQg
+aW4KcXVpY2sgc3VjZXNzaW9uLiAgV2hlbiBhIHJlc2V0IGV2ZW50IGlzIGRlbGl2ZXJlZCwgd2Ug
+Y2Fubm90IGtub3cKYW55dGhpbmcgYWJvdXQgdGhlIGR1cmF0aW9uIG9mIHRoZSBzcGFjZS4gIEJ1
+dCBpdCBzaG91bGQgYmUgc2FmZSB0bwphc3N1bWUgaXQgaGFzIGJlZW4gYSBsb25nIHRpbWUgYW5k
+IHdlIGp1c3Qgc2V0IHRoZSBkdXJhdGlvbiB0byBtYXhpbXVtLgotLS0KIGRyaXZlcnMvbWVkaWEv
+cmMvaXItbGlyYy1jb2RlYy5jIHwgMTIgKysrKysrKysrLS0tCiAxIGZpbGUgY2hhbmdlZCwgOSBp
+bnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEv
+cmMvaXItbGlyYy1jb2RlYy5jIGIvZHJpdmVycy9tZWRpYS9yYy9pci1saXJjLWNvZGVjLmMKaW5k
+ZXggZTQ1NjEyNi4uYTg5NWVkMCAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS9yYy9pci1saXJj
+LWNvZGVjLmMKKysrIGIvZHJpdmVycy9tZWRpYS9yYy9pci1saXJjLWNvZGVjLmMKQEAgLTQyLDEx
+ICs0MiwxNyBAQCBzdGF0aWMgaW50IGlyX2xpcmNfZGVjb2RlKHN0cnVjdCByY19kZXYgKmRldiwg
+c3RydWN0IGlyX3Jhd19ldmVudCBldikKIAkJcmV0dXJuIC1FSU5WQUw7CiAKIAkvKiBQYWNrZXQg
+c3RhcnQgKi8KLQlpZiAoZXYucmVzZXQpCi0JCXJldHVybiAwOworCWlmIChldi5yZXNldCkgewor
+CQkvKiBVc2Vyc3BhY2UgZXhwZWN0cyBhIGxvbmcgc3BhY2UgZXZlbnQgYmVmb3JlIHRoZSBzdGFy
+dCBvZgorCQkgKiB0aGUgc2lnbmFsIHRvIHVzZSBhcyBhIHN5bmMuICBUaGlzIG1heSBiZSBkb25l
+IHdpdGggcmVwZWF0CisJCSAqIHBhY2tldHMgYW5kIG5vcm1hbCBzYW1wbGVzLiAgQnV0IGlmIGEg
+cmVzZXQgaGFzIGJlZW4gc2VudAorCQkgKiB0aGVuIHdlIGFzc3VtZSB0aGF0IGEgbG9uZyB0aW1l
+IGhhcyBwYXNzZWQsIHNvIHdlIHNlbmQgYQorCQkgKiBzcGFjZSB3aXRoIHRoZSBtYXhpbXVtIHRp
+bWUgdmFsdWUuICovCisJCXNhbXBsZSA9IExJUkNfU1BBQ0UoTElSQ19WQUxVRV9NQVNLKTsKKwkJ
+SVJfZHByaW50aygyLCAiZGVsaXZlcmluZyByZXNldCBzeW5jIHNwYWNlIHRvIGxpcmNfZGV2XG4i
+KTsKIAogCS8qIENhcnJpZXIgcmVwb3J0cyAqLwotCWlmIChldi5jYXJyaWVyX3JlcG9ydCkgewor
+CX0gZWxzZSBpZiAoZXYuY2Fycmllcl9yZXBvcnQpIHsKIAkJc2FtcGxlID0gTElSQ19GUkVRVUVO
+Q1koZXYuY2Fycmllcik7CiAJCUlSX2RwcmludGsoMiwgImNhcnJpZXIgcmVwb3J0IChmcmVxOiAl
+ZClcbiIsIHNhbXBsZSk7CiAKLS0gCjEuOS4xCgo=
+--14dae94edbd3b07f1c04f5efe815--
