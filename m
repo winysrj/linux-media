@@ -1,114 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:19790 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751938AbaDNPBH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 11:01:07 -0400
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-samsung-soc@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, robh+dt@kernel.org, inki.dae@samsung.com,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	t.figa@samsung.com, b.zolnierkie@samsung.com,
-	jy0922.shim@samsung.com, rahul.sharma@samsung.com,
-	pawel.moll@arm.com, Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 4/4] drm: exynos: hdmi: add support for pixel clock limitation
-Date: Mon, 14 Apr 2014 17:00:22 +0200
-Message-id: <1397487622-3577-5-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1397487622-3577-1-git-send-email-t.stanislaws@samsung.com>
-References: <1397487622-3577-1-git-send-email-t.stanislaws@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45439 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933473AbaDBXOv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Apr 2014 19:14:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH v2 4/6] v4l: vsp1: Add DT support
+Date: Thu, 03 Apr 2014 01:16:52 +0200
+Message-ID: <1484365.AL7arRdPNh@avalon>
+In-Reply-To: <533C832C.3080608@gmail.com>
+References: <1396461690-2334-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <533C832C.3080608@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds support for limitation of maximal pixel clock of HDMI
-signal. This feature is needed on boards that contains
-lines or bridges with frequency limitations.
+Hi Sylwester,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
----
- .../devicetree/bindings/video/exynos_hdmi.txt      |    4 ++++
- drivers/gpu/drm/exynos/exynos_hdmi.c               |   12 ++++++++++++
- include/media/s5p_hdmi.h                           |    1 +
- 3 files changed, 17 insertions(+)
+On Wednesday 02 April 2014 23:37:48 Sylwester Nawrocki wrote:
+> Hi Laurent,
+> 
+> I've got just couple minor comments...
 
-diff --git a/Documentation/devicetree/bindings/video/exynos_hdmi.txt b/Documentation/devicetree/bindings/video/exynos_hdmi.txt
-index f9187a2..8718f8d 100644
---- a/Documentation/devicetree/bindings/video/exynos_hdmi.txt
-+++ b/Documentation/devicetree/bindings/video/exynos_hdmi.txt
-@@ -28,6 +28,10 @@ Required properties:
- - ddc: phandle to the hdmi ddc node
- - phy: phandle to the hdmi phy node
- 
-+Optional properties:
-+- max-pixel-clock: used to limit the maximal pixel clock if a board has lines,
-+	connectors or bridges not capable of carring higher frequencies
-+
- Example:
- 
- 	hdmi {
-diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
-index 6fa63ea..ca313b3 100644
---- a/drivers/gpu/drm/exynos/exynos_hdmi.c
-+++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
-@@ -195,6 +195,7 @@ struct hdmi_context {
- 	struct hdmi_resources		res;
- 
- 	int				hpd_gpio;
-+	u32				max_pixel_clock;
- 
- 	enum hdmi_type			type;
- };
-@@ -883,6 +884,9 @@ static int hdmi_mode_valid(struct drm_connector *connector,
- 	if (ret)
- 		return MODE_BAD;
- 
-+	if (mode->clock * 1000 > hdata->max_pixel_clock)
-+		return MODE_BAD;
-+
- 	ret = hdmi_find_phy_conf(hdata, mode->clock * 1000);
- 	if (ret < 0)
- 		return MODE_BAD;
-@@ -2027,6 +2031,8 @@ static struct s5p_hdmi_platform_data *drm_hdmi_dt_parse_pdata
- 		return NULL;
- 	}
- 
-+	of_property_read_u32(np, "max-pixel-clock", &pd->max_pixel_clock);
-+
- 	return pd;
- }
- 
-@@ -2063,6 +2069,11 @@ static int hdmi_probe(struct platform_device *pdev)
- 	if (!pdata)
- 		return -EINVAL;
- 
-+	if (!pdata->max_pixel_clock) {
-+		DRM_INFO("max-pixel-clock is zero, using INF\n");
-+		pdata->max_pixel_clock = ULONG_MAX;
-+	}
-+
- 	hdata = devm_kzalloc(dev, sizeof(struct hdmi_context), GFP_KERNEL);
- 	if (!hdata)
- 		return -ENOMEM;
-@@ -2079,6 +2090,7 @@ static int hdmi_probe(struct platform_device *pdev)
- 	hdata->type = drv_data->type;
- 
- 	hdata->hpd_gpio = pdata->hpd_gpio;
-+	hdata->max_pixel_clock = pdata->max_pixel_clock;
- 	hdata->dev = dev;
- 
- 	ret = hdmi_resources_init(hdata);
-diff --git a/include/media/s5p_hdmi.h b/include/media/s5p_hdmi.h
-index 181642b..7272d65 100644
---- a/include/media/s5p_hdmi.h
-+++ b/include/media/s5p_hdmi.h
-@@ -31,6 +31,7 @@ struct s5p_hdmi_platform_data {
- 	int mhl_bus;
- 	struct i2c_board_info *mhl_info;
- 	int hpd_gpio;
-+	u32 max_pixel_clock;
- };
- 
- #endif /* S5P_HDMI_H */
+Thank you for your comments.
+
+> On 04/02/2014 08:01 PM, Laurent Pinchart wrote:
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> > ---
+> > 
+> >  .../devicetree/bindings/media/renesas,vsp1.txt     | 43 +++++++++++++++++
+> >  drivers/media/platform/vsp1/vsp1_drv.c             | 52 +++++++++++++----
+> >  2 files changed, 87 insertions(+), 8 deletions(-)
+> >  create mode 100644
+> >  Documentation/devicetree/bindings/media/renesas,vsp1.txt
+> > 
+> > Hi,
+> > 
+> > This is the last call for DT bindings review, with a small change to the
+> > bindings compared to v1. If I don't get any reply I'll assume that those
+> > (pretty simple) bindings are perfect :-)
+> > 
+> > Changes since v1:
+> > 
+> > - Drop the clock-names property, as the VSP1 uses a single clock
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/renesas,vsp1.txt
+> > b/Documentation/devicetree/bindings/media/renesas,vsp1.txt new file mode
+> > 100644
+> > index 0000000..45c1d3c
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
+> > @@ -0,0 +1,43 @@
+> > +* Renesas VSP1 Video Processing Engine
+> > +
+> > +The VSP1 is a video processing engine that supports up-/down-scaling,
+> > alpha
+> > +blending, color space conversion and various other image processing
+> > features.
+> > +It can be found in the Renesas R-Car second generation SoCs.
+> > +
+> > +Required properties:
+> > +
+> > +  - compatible: Must contain "renesas,vsp1"
+> > +
+> > +  - reg: Base address and length of the registers block for the VSP1.
+> > +  - interrupt-parent, interrupts: Specifier for the VSP1 interrupt.
+> 
+> I don't think 'interrupt-parent' needs to be documented in this device's
+> binding, I'd say it belongs more to the interrupt controller binding.
+> In any case, I would separate interrupt-parent and interrupt properties,
+> as the former contains a phandle to the parent interrupt controller and
+> the latter contains the vsp1 interrupt specifier.
+> 
+> I'd humbly suggest to rephrase it to something along the lines of:
+> 
+>       - interrupts: should contain the VSP1 interrupt specifier.
+
+Sure, that sounds good to me. I'll remove the interrupt-parent property.
+
+We should really come up with a standard working for interrupt specifiers and 
+use it through all the DT bindings...
+
+> > +  - clocks: A phandle + clock-specifier pair for the VSP1 functional
+> > clock.
+> > +
+> > +  - renesas,#rpf: Number of Read Pixel Formatter (RPF) modules in the
+> > VSP1.
+> > +  - renesas,#uds: Number of Up Down Scaler (UDS) modules in the> VSP1.
+> > +  - renesas,#wpf: Number of Write Pixel Formatter (WPF) modules in the
+> > VSP1.
+> > +
+> > +
+> > +Optional properties:
+> > +
+> > +  - renesas,has-lif: Boolean, indicates that the LCD Interface (LIF)
+> > module is +    available.
+> > +  - renesas,has-lut: Boolean, indicates that the Look Up Table (LUT)
+> > module is +    available.
+> > +  - renesas,has-sru: Boolean, indicates that the Super Resolution Unit
+> > (SRU) +    module is available.
+> > +
+> > +
+> > +Example: R8A7790 (R-Car H2) VSP1-S node
+> > +
+> > +	vsp1@fe928000 {
+> > +		compatible = "renesas,vsp1";
+> > +		reg = <0 0xfe928000 0 0x8000>;
+> 
+> These register ranges look suspicious, shouldn't this be just
+> <0xfe928000 0x8000> ? What is the #address-cells and #size-cells
+> values for this node ?
+
+Both #address-cells and #size-cells are equal to 2, the R8A7790 support LPAE.
+
+> > +		interrupts = <0 267 IRQ_TYPE_LEVEL_HIGH>;
+> > +		clocks = <&mstp1_clks R8A7790_CLK_VSP1_S>;
+> > +
+> > +		renesas,has-lut;
+> > +		renesas,has-sru;
+> > +		renesas,#rpf = <5>;
+> > +		renesas,#uds = <3>;
+> > +		renesas,#wpf = <4>;
+> > +	};
+> > diff --git a/drivers/media/platform/vsp1/vsp1_drv.c
+> > b/drivers/media/platform/vsp1/vsp1_drv.c index 28e1de3..644650f 100644
+> > --- a/drivers/media/platform/vsp1/vsp1_drv.c
+> > +++ b/drivers/media/platform/vsp1/vsp1_drv.c
+
+[snip]
+
+> > @@ -527,6 +557,11 @@ static int vsp1_remove(struct platform_device *pdev)
+> >   	return 0;
+> >   }
+> > 
+> > +static const struct of_device_id vsp1_of_match[] = {
+> > +	{ .compatible = "renesas,vsp1" },
+> > +	{ },
+> > +};
+> > +
+> >   static struct platform_driver vsp1_platform_driver = {
+> >   	.probe		= vsp1_probe,
+> >   	.remove		= vsp1_remove,
+> > @@ -534,6 +569,7 @@ static struct platform_driver vsp1_platform_driver = {
+> >   		.owner	= THIS_MODULE,
+> >   		.name	= "vsp1",
+> >   		.pm	= &vsp1_pm_ops,
+> > +		.of_match_table = of_match_ptr(vsp1_of_match),
+> 
+> Is of_match_ptr() really useful here, when vsp1_of_match[] array is always
+> compiled in ?
+
+Would it be better to compile the vsp1_of_match[] array conditionally ? On the 
+other hand the driver is only useful (at least at the moment) on ARM Renesas 
+SoCs, which are transitioning to DT anyway.
+
+> >   	},
+> >   };
+> 
+> Otherwise this binding indeed looks perfect to me. ;)
+
+Thank you :-)
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
