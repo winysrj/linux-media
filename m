@@ -1,536 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f180.google.com ([209.85.128.180]:58610 "EHLO
-	mail-ve0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751257AbaD0Xnz convert rfc822-to-8bit (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43000 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1758337AbaDBPSc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Apr 2014 19:43:55 -0400
-Received: by mail-ve0-f180.google.com with SMTP id jz11so7299231veb.11
-        for <linux-media@vger.kernel.org>; Sun, 27 Apr 2014 16:43:54 -0700 (PDT)
-Content-Type: text/plain; charset=windows-1252
-Mime-Version: 1.0 (Mac OS X Mail 7.2 \(1874\))
-Subject: Re: dvbv5-scan errors trying to search channels
-From: Roberto Alcantara <roberto@eletronica.org>
-In-Reply-To: <20140427080040.37a44d66.m.chehab@samsung.com>
-Date: Sun, 27 Apr 2014 20:43:52 -0300
-Cc: linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <A70EE12A-DA0C-435A-A4EB-56B50F500189@eletronica.org>
-References: <956F4699-C5BA-482E-813F-3CA05EC0CF43@eletronica.org> <20140427080040.37a44d66.m.chehab@samsung.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+	Wed, 2 Apr 2014 11:18:32 -0400
+Date: Wed, 2 Apr 2014 18:17:55 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Bryan Wu <cooloney@gmail.com>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	milo kim <milo.kim@ti.com>,
+	Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	Richard Purdie <rpurdie@rpsys.net>, linux-media@vger.kernel.org
+Subject: Re: brightness units
+Message-ID: <20140402151754.GG4522@valkosipuli.retiisi.org.uk>
+References: <533A6905.3010600@samsung.com>
+ <CAK5ve-LNU_BGUB_HxsbgiO4baM-39C7PWHRVx0DL=JTYfJGSuA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAK5ve-LNU_BGUB_HxsbgiO4baM-39C7PWHRVx0DL=JTYfJGSuA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Scan problem (not all) solved.
+Hi Bryan,
 
-Just to update thread, my backport driver was using MSG_SMS_GET_STATISTICS_REQ but firmware version for my isdb-t device do not respond. I need to use MSG_SMS_GET_STATISTICS_EX_REQ  and handle MSG_SMS_GET_STATISTICS_EX_RES to get answer.
+On Tue, Apr 01, 2014 at 03:09:55PM -0700, Bryan Wu wrote:
+> On Tue, Apr 1, 2014 at 12:21 AM, Jacek Anaszewski
+> <j.anaszewski@samsung.com> wrote:
+> > I am currently integrating LED subsystem and V4L2 Flash API.
+> > V4L2 Flash API defines units of torch and flash intensity
+> > in milliampers. In the LED subsystem documentation I can't
+> > find any reference to the brightness units. On the other
+> > hand there is led_brightness enum defined in the <linux/leds.h>
+> > header, with LED_FULL = 255, but not all leds drivers use it.
+> > I am aware that there are LEDs that can be only turned on/off
+> > without any possibility to set the current and in such cases
+> > LED_FULL doesn't reflect the current set.
+> >
+> 
+> Actually led_brightness is an logic concept not like milliampers,
+> since different led drivers has different implementation which is
+> hardware related. Like PWM led driver, it will be converted to duty
+> cycles.
+> 
+> For current control I do see some specific driver like LP55xx have it
+> but not for every one.
+> 
+> > So far I've assumed that brightness is expressed in milliampers
+> > and I don't stick to the LED_FULL limit. It allows for passing
+> > flash/torch intensity from V4L2 controls to the leds API
+> > without conversion. I am not sure if the units should be
+> > fixed to milliampers in the LED subsystem or not. It would
+> > clarify the situation, but if the existing LED drivers don't
+> > stick to this unit then it would make a confusion.
+> >
+> 
+> We probably need to convert those intensity to brightness numbers, for
+> example mapping the intensity value to 0 ~ 255 brightness level and
+> pass it to LED subsystem.
 
-I still with problems on scan but as i’m without antenna, tomorrow I will try again.
+I think for some devices it wouldn't matter much, but on those that
+generally are used as flash the current is known, and thus it should also be
+visible in the interface. The conversion from mA to native units could be
+done directly, or indirectly through the LED API.
 
-Thank you for help!
+There are a few things to consider though: besides minimum and maximum
+values for the current, the V4L2 controls have a step parameter that would
+still need to be passed to the control handler when creating the control.
+That essentially tells the user space how many levels does the control have.
 
-Cheers,
- - Roberto
+Care must be taken if converting to LED API units in between mA and native
+units so that the values will get through unchanged. On the other hand, I
+don't expect to get more levels than 256 either. But even this assumes that
+the current selection would be linear.
 
-root@awsom:~# dvbv5-scan freq.conf 
-INFO     Scanning frequency #1 473142857
-Lock   (0x1f) Signal= 0.06% C/N= 0.00% UCB= 0 postBER= 8
-error while waiting for PAT table
-INFO     Scanning frequency #2 479142857
-Lock   (0x1f) Signal= 0.06% C/N= 0.00% UCB= 0 postBER= 8
-error while waiting for PAT table
-INFO     Scanning frequency #3 485142857
-Lock   (0x1f) Signal= 0.06% C/N= 0.00% UCB= 0 postBER= 8
-error while waiting for PAT table
-INFO     Scanning frequency #4 491142857
-Lock   (0x1f) Signal= 0.07% C/N= 0.00% UCB= 0 postBER= 8
-error while waiting for PAT table
+-- 
+Kind regards,
 
-
-
-Em 27/04/2014, à(s) 10:00, Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
-
-> Em Sun, 27 Apr 2014 09:31:17 -0300
-> Roberto Alcantara <roberto@eletronica.org> escreveu:
-> 
->> Hello,
->> 
->> After a lot of tries with a few commits I obtained an version from siano drivers that loads fine in my 3.4.75.sun7i kernel @A20 device.
-> 
-> This message looks weird:
-> 	[ 1267.803903] data rate 0 bytes/secs
-> 
-> 
-> I’m using checkout from 2a7643159d commit.
->> 
->> Firmware is loading without any issue reported. But when I try to scan with dvbv5-scan I see:
->> 
->> root@awsom:~# dvbv5-scan freq.conf 
->> INFO     Scanning frequency #1 473142857
->> ERROR    FE_READ_STATUS: Timer expired
->> ERROR: dvb_fe_get_stats failed (Timer expired)
->> ERROR    Error: no adapter status
->> ERROR    FE_READ_STATUS: Timer expired
->> ERROR: dvb_fe_get_stats failed (Timer expired)
->> ERROR    Error: no adapter status
->> ERROR    FE_READ_STATUS: Timer expired
->> ERROR: dvb_fe_get_stats failed (Timer expired)
->> ERROR    Error: no adapter status
->> 
->> In my desktop using same firmware I can scan without this errors.  I tried with device directly connected and via usb powered hub with same results.
-> 
-> You should search for ETIME at the Siano driver. There are lots of
-> cases where this is returned at:
-> 	drivers/media/common/siano/smscoreapi.c
-> 
-> Probably, it is due to those:
->> [ 1050.516057] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1052.516059] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1054.516049] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1056.516057] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1058.516047] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
-> 
-> I'm not seeing any receive packet from those requested stats.
-> 
->> 
->> Did you have any tips for debug this error? Any ideas will be appreciated :-)
-> 
-> I suspect that this is due to driver's bad backport to Kernel 3.4.
-> 
-> Another possibility would be some troubles with URB settings or with the USB
-> driver.
-> 
-> Regards,
-> Mauro
-> 
->> Thank you very much!
->> 
->> - Roberto
->> 
->> 
->> dmesg:
->> 
->> [    6.012466] init: plymouth-splash main process (271) terminated with status 2
->> [    6.301960] init: bluetooth main process (231) terminated with status 1
->> [    6.359855] init: bluetooth main process ended, respawning
->> [    6.706961] smsusb_probe: interface number 0
->> [    6.709849] smsusb_probe: smsusb_probe 0
->> [    6.764522] smsusb_probe: endpoint 0 81 02 512
->> [    6.825161] smsusb_probe: endpoint 1 02 02 512
->> [    6.863769] smsusb_init_device: in_ep = 81, out_ep = 02
->> [    6.927804] smscore_register_device: allocated 50 buffers
->> [    6.932445] smscore_register_device: device ee6a7c00 created
->> [    7.040405] smsusb_init_device: smsusb_start_streaming(...).
->> [    7.158579] smscore_set_device_mode: set device mode to 6
->> [    7.212493] smsusb_sendrequest: sending MSG_SMS_GET_VERSION_EX_REQ(668) size: 8
->> [    7.275489] smsusb_onresponse: received MSG_SMS_GET_VERSION_EX_RES(669) size: 100
->> [    7.280571] smscore_onresponse: Firmware id 255 prots 0x0 ver 8.1
->> [    7.289832] smscore_get_fw_filename: trying to get fw name from sms_boards board_id 18 mode 6
->> [    7.362775] smscore_get_fw_filename: cannot find fw name in sms_boards, getting from lookup table mode 6 type 7
->> [    7.425728] smscore_load_firmware_from_file: Firmware name: isdbt_rio.inp
->> [    7.492292] smscore_load_firmware_from_file: read fw isdbt_rio.inp, buffer size=0x14f50
->> [    7.520049] smscore_load_firmware_family2: loading FW to addr 0x40260 size 85828
->> [    7.531771] smsusb_sendrequest: sending MSG_SMS_DATA_DOWNLOAD_REQ(660) size: 252
->> [    7.546317] smsusb_onresponse: received MSG_SMS_DATA_DOWNLOAD_RES(661) size: 12
->> [    7.556369] smsusb_sendrequest: sending MSG_SMS_DATA_DOWNLOAD_REQ(660) size: 252
->> [    7.572398] smsusb_onresponse: received MSG_SMS_DATA_DOWNLOAD_RES(661) size: 12
->> ...
->> [ 1037.808015] smscore_set_device_mode: firmware download success
->> [ 1037.814104] smsusb_sendrequest: sending MSG_SMS_INIT_DEVICE_REQ(578) size: 12
->> [ 1037.820918] smsusb_onresponse: received MSG_SMS_INIT_DEVICE_RES(579) size: 12
->> [ 1037.827058] smsusb_sendrequest: sending MSG_SMS_INIT_DEVICE_REQ(578) size: 12
->> [ 1037.833273] smsusb_onresponse: received MSG_SMS_INIT_DEVICE_RES(579) size: 12
->> [ 1037.838957] smscore_set_device_mode: Success setting device mode.
->> [ 1037.844360] DVB: registering new adapter (Siano Rio Digital Receiver)
->> [ 1037.852324] DVB: registering adapter 0 frontend 0 (Siano Mobile Digital MDTV Receiver)...
->> [ 1037.856897] smscore_register_client: eccd2800 693 1
->> [ 1037.861345] smscore_init_ir: IR port has not been detected
->> [ 1037.866723] smscore_start_device: device ee575c00 started, rc 0
->> [ 1037.871092] smsusb_init_device: device 0xeccd2000 created
->> [ 1037.873514] smsusb_probe: rc 0
->> [ 1048.492613] smsusb_sendrequest: sending MSG_SMS_ISDBT_TUNE_REQ(776) size: 24
->> [ 1048.499073] smsusb_onresponse: received MSG_SMS_ISDBT_TUNE_RES(777) size: 12
->> [ 1048.503532] smscore_onresponse: 
->> [ 1048.503540] data rate 275 bytes/secs
->> [ 1048.509963] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1048.926409] smsusb_onresponse: received MSG_SMS_NO_SIGNAL_IND(828) size: 8
->> [ 1050.516057] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1052.516059] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1054.516049] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1056.516057] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1058.516047] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1075.740431] smsusb_sendrequest: sending MSG_SMS_ISDBT_TUNE_REQ(776) size: 24
->> [ 1075.747999] smsusb_onresponse: received MSG_SMS_ISDBT_TUNE_RES(777) size: 12
->> [ 1075.752285] smscore_onresponse: 
->> [ 1075.752293] data rate 0 bytes/secs
->> [ 1075.759951] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1075.941272] smsusb_onresponse: received MSG_SMS_NO_SIGNAL_IND(828) size: 8
->> [ 1077.766050] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1135.457780] smsusb_sendrequest: sending MSG_SMS_ISDBT_TUNE_REQ(776) size: 24
->> [ 1135.463989] smsusb_onresponse: received MSG_SMS_ISDBT_TUNE_RES(777) size: 12
->> [ 1135.468278] smscore_onresponse: 
->> [ 1135.468286] data rate 0 bytes/secs
->> [ 1135.474758] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1135.657430] smsusb_onresponse: received MSG_SMS_NO_SIGNAL_IND(828) size: 8
->> [ 1137.496749] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1139.496050] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1141.496582] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1267.793252] smsusb_sendrequest: sending MSG_SMS_ISDBT_TUNE_REQ(776) size: 24
->> [ 1267.799608] smsusb_onresponse: received MSG_SMS_ISDBT_TUNE_RES(777) size: 12
->> [ 1267.803895] smscore_onresponse: 
->> [ 1267.803903] data rate 0 bytes/secs
->> [ 1267.810356] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1267.992273] smsusb_onresponse: received MSG_SMS_NO_SIGNAL_IND(828) size: 8
->> [ 1269.816058] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1271.816059] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1273.816488] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1275.816050] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> [ 1277.816965] smsusb_sendrequest: sending MSG_SMS_GET_STATISTICS_REQ(615) size: 8
->> 
->> 
->> 
->> root@awsom:~# lsmod
->> Module                  Size  Used by
->> smsdvb                 13909  0 
->> disp_ump                 854  0 
->> smsusb                 10021  0 
->> smsmdtv                43874  2 smsdvb,smsusb
->> mali_drm                2638  0 
->> mali                  116265  0 
->> ump                    56392  2 disp_ump,mali
->> lcd                     3646  0 
->> root@awsom:~# 
->> 
->> 
->> 
->> 
->> root@awsom:~# lsusb -v
->> 
->> Bus 001 Device 005: ID 187f:0600 Siano Mobile Silicon 
->> Device Descriptor:
->>  bLength                18
->>  bDescriptorType         1
->>  bcdUSB               2.00
->>  bDeviceClass            0 (Defined at Interface level)
->>  bDeviceSubClass         0 
->>  bDeviceProtocol         0 
->>  bMaxPacketSize0        64
->>  idVendor           0x187f Siano Mobile Silicon
->>  idProduct          0x0600 
->>  bcdDevice            0.08
->>  iManufacturer           1 MDTV Receiver
->>  iProduct                2 MDTV Receiver
->>  iSerial                 0 
->>  bNumConfigurations      1
->>  Configuration Descriptor:
->>    bLength                 9
->>    bDescriptorType         2
->>    wTotalLength           32
->>    bNumInterfaces          1
->>    bConfigurationValue     1
->>    iConfiguration          0 
->>    bmAttributes         0x80
->>      (Bus Powered)
->>    MaxPower              100mA
->>    Interface Descriptor:
->>      bLength                 9
->>      bDescriptorType         4
->>      bInterfaceNumber        0
->>      bAlternateSetting       0
->>      bNumEndpoints           2
->>      bInterfaceClass       255 Vendor Specific Class
->>      bInterfaceSubClass    255 Vendor Specific Subclass
->>      bInterfaceProtocol    255 Vendor Specific Protocol
->>      iInterface              0 
->>      Endpoint Descriptor:
->>        bLength                 7
->>        bDescriptorType         5
->>        bEndpointAddress     0x81  EP 1 IN
->>        bmAttributes            2
->>          Transfer Type            Bulk
->>          Synch Type               None
->>          Usage Type               Data
->>        wMaxPacketSize     0x0200  1x 512 bytes
->>        bInterval               0
->>      Endpoint Descriptor:
->>        bLength                 7
->>        bDescriptorType         5
->>        bEndpointAddress     0x02  EP 2 OUT
->>        bmAttributes            2
->>          Transfer Type            Bulk
->>          Synch Type               None
->>          Usage Type               Data
->>        wMaxPacketSize     0x0200  1x 512 bytes
->>        bInterval               0
->> Device Qualifier (for other device speed):
->>  bLength                10
->>  bDescriptorType         6
->>  bcdUSB               2.00
->>  bDeviceClass          255 Vendor Specific Class
->>  bDeviceSubClass       255 Vendor Specific Subclass
->>  bDeviceProtocol       255 Vendor Specific Protocol
->>  bMaxPacketSize0        64
->>  bNumConfigurations      1
->> Device Status:     0x0000
->>  (Bus Powered)
->> 
->> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
->> Device Descriptor:
->>  bLength                18
->>  bDescriptorType         1
->>  bcdUSB               2.00
->>  bDeviceClass            9 Hub
->>  bDeviceSubClass         0 Unused
->>  bDeviceProtocol         0 Full speed (or root) hub
->>  bMaxPacketSize0        64
->>  idVendor           0x1d6b Linux Foundation
->>  idProduct          0x0002 2.0 root hub
->>  bcdDevice            3.04
->>  iManufacturer           3 Linux 3.4.75.sun7i_CRAFF+ ehci_hcd
->>  iProduct                2 SW USB2.0 'Enhanced' Host Controller (EHCI) Driver
->>  iSerial                 1 sw-ehci
->>  bNumConfigurations      1
->>  Configuration Descriptor:
->>    bLength                 9
->>    bDescriptorType         2
->>    wTotalLength           25
->>    bNumInterfaces          1
->>    bConfigurationValue     1
->>    iConfiguration          0 
->>    bmAttributes         0xe0
->>      Self Powered
->>      Remote Wakeup
->>    MaxPower                0mA
->>    Interface Descriptor:
->>      bLength                 9
->>      bDescriptorType         4
->>      bInterfaceNumber        0
->>      bAlternateSetting       0
->>      bNumEndpoints           1
->>      bInterfaceClass         9 Hub
->>      bInterfaceSubClass      0 Unused
->>      bInterfaceProtocol      0 Full speed (or root) hub
->>      iInterface              0 
->>      Endpoint Descriptor:
->>        bLength                 7
->>        bDescriptorType         5
->>        bEndpointAddress     0x81  EP 1 IN
->>        bmAttributes            3
->>          Transfer Type            Interrupt
->>          Synch Type               None
->>          Usage Type               Data
->>        wMaxPacketSize     0x0004  1x 4 bytes
->>        bInterval              12
->> Hub Descriptor:
->>  bLength               9
->>  bDescriptorType      41
->>  nNbrPorts             1
->>  wHubCharacteristic 0x000a
->>    No power switching (usb 1.0)
->>    Per-port overcurrent protection
->>  bPwrOn2PwrGood       10 * 2 milli seconds
->>  bHubContrCurrent      0 milli Ampere
->>  DeviceRemovable    0x00
->>  PortPwrCtrlMask    0xff
->> Hub Port Status:
->>   Port 1: 0000.0503 highspeed power enable connect
->> Device Status:     0x0001
->>  Self Powered
->> 
->> Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
->> Device Descriptor:
->>  bLength                18
->>  bDescriptorType         1
->>  bcdUSB               1.10
->>  bDeviceClass            9 Hub
->>  bDeviceSubClass         0 Unused
->>  bDeviceProtocol         0 Full speed (or root) hub
->>  bMaxPacketSize0        64
->>  idVendor           0x1d6b Linux Foundation
->>  idProduct          0x0001 1.1 root hub
->>  bcdDevice            3.04
->>  iManufacturer           3 Linux 3.4.75.sun7i_CRAFF+ ohci_hcd
->>  iProduct                2 SW USB2.0 'Open' Host Controller (OHCI) Driver
->>  iSerial                 1 sw-ohci
->>  bNumConfigurations      1
->>  Configuration Descriptor:
->>    bLength                 9
->>    bDescriptorType         2
->>    wTotalLength           25
->>    bNumInterfaces          1
->>    bConfigurationValue     1
->>    iConfiguration          0 
->>    bmAttributes         0xe0
->>      Self Powered
->>      Remote Wakeup
->>    MaxPower                0mA
->>    Interface Descriptor:
->>      bLength                 9
->>      bDescriptorType         4
->>      bInterfaceNumber        0
->>      bAlternateSetting       0
->>      bNumEndpoints           1
->>      bInterfaceClass         9 Hub
->>      bInterfaceSubClass      0 Unused
->>      bInterfaceProtocol      0 Full speed (or root) hub
->>      iInterface              0 
->>      Endpoint Descriptor:
->>        bLength                 7
->>        bDescriptorType         5
->>        bEndpointAddress     0x81  EP 1 IN
->>        bmAttributes            3
->>          Transfer Type            Interrupt
->>          Synch Type               None
->>          Usage Type               Data
->>        wMaxPacketSize     0x0002  1x 2 bytes
->>        bInterval             255
->> Hub Descriptor:
->>  bLength               9
->>  bDescriptorType      41
->>  nNbrPorts             1
->>  wHubCharacteristic 0x0012
->>    No power switching (usb 1.0)
->>    No overcurrent protection
->>  bPwrOn2PwrGood        2 * 2 milli seconds
->>  bHubContrCurrent      0 milli Ampere
->>  DeviceRemovable    0x00
->>  PortPwrCtrlMask    0xff
->> Hub Port Status:
->>   Port 1: 0000.0100 power
->> Device Status:     0x0001
->>  Self Powered
->> 
->> Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
->> Device Descriptor:
->>  bLength                18
->>  bDescriptorType         1
->>  bcdUSB               2.00
->>  bDeviceClass            9 Hub
->>  bDeviceSubClass         0 Unused
->>  bDeviceProtocol         0 Full speed (or root) hub
->>  bMaxPacketSize0        64
->>  idVendor           0x1d6b Linux Foundation
->>  idProduct          0x0002 2.0 root hub
->>  bcdDevice            3.04
->>  iManufacturer           3 Linux 3.4.75.sun7i_CRAFF+ ehci_hcd
->>  iProduct                2 SW USB2.0 'Enhanced' Host Controller (EHCI) Driver
->>  iSerial                 1 sw-ehci
->>  bNumConfigurations      1
->>  Configuration Descriptor:
->>    bLength                 9
->>    bDescriptorType         2
->>    wTotalLength           25
->>    bNumInterfaces          1
->>    bConfigurationValue     1
->>    iConfiguration          0 
->>    bmAttributes         0xe0
->>      Self Powered
->>      Remote Wakeup
->>    MaxPower                0mA
->>    Interface Descriptor:
->>      bLength                 9
->>      bDescriptorType         4
->>      bInterfaceNumber        0
->>      bAlternateSetting       0
->>      bNumEndpoints           1
->>      bInterfaceClass         9 Hub
->>      bInterfaceSubClass      0 Unused
->>      bInterfaceProtocol      0 Full speed (or root) hub
->>      iInterface              0 
->>      Endpoint Descriptor:
->>        bLength                 7
->>        bDescriptorType         5
->>        bEndpointAddress     0x81  EP 1 IN
->>        bmAttributes            3
->>          Transfer Type            Interrupt
->>          Synch Type               None
->>          Usage Type               Data
->>        wMaxPacketSize     0x0004  1x 4 bytes
->>        bInterval              12
->> Hub Descriptor:
->>  bLength               9
->>  bDescriptorType      41
->>  nNbrPorts             1
->>  wHubCharacteristic 0x000a
->>    No power switching (usb 1.0)
->>    Per-port overcurrent protection
->>  bPwrOn2PwrGood       10 * 2 milli seconds
->>  bHubContrCurrent      0 milli Ampere
->>  DeviceRemovable    0x00
->>  PortPwrCtrlMask    0xff
->> Hub Port Status:
->>   Port 1: 0000.0100 power
->> Device Status:     0x0001
->>  Self Powered
->> 
->> Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
->> Device Descriptor:
->>  bLength                18
->>  bDescriptorType         1
->>  bcdUSB               1.10
->>  bDeviceClass            9 Hub
->>  bDeviceSubClass         0 Unused
->>  bDeviceProtocol         0 Full speed (or root) hub
->>  bMaxPacketSize0        64
->>  idVendor           0x1d6b Linux Foundation
->>  idProduct          0x0001 1.1 root hub
->>  bcdDevice            3.04
->>  iManufacturer           3 Linux 3.4.75.sun7i_CRAFF+ ohci_hcd
->>  iProduct                2 SW USB2.0 'Open' Host Controller (OHCI) Driver
->>  iSerial                 1 sw-ohci
->>  bNumConfigurations      1
->>  Configuration Descriptor:
->>    bLength                 9
->>    bDescriptorType         2
->>    wTotalLength           25
->>    bNumInterfaces          1
->>    bConfigurationValue     1
->>    iConfiguration          0 
->>    bmAttributes         0xe0
->>      Self Powered
->>      Remote Wakeup
->>    MaxPower                0mA
->>    Interface Descriptor:
->>      bLength                 9
->>      bDescriptorType         4
->>      bInterfaceNumber        0
->>      bAlternateSetting       0
->>      bNumEndpoints           1
->>      bInterfaceClass         9 Hub
->>      bInterfaceSubClass      0 Unused
->>      bInterfaceProtocol      0 Full speed (or root) hub
->>      iInterface              0 
->>      Endpoint Descriptor:
->>        bLength                 7
->>        bDescriptorType         5
->>        bEndpointAddress     0x81  EP 1 IN
->>        bmAttributes            3
->>          Transfer Type            Interrupt
->>          Synch Type               None
->>          Usage Type               Data
->>        wMaxPacketSize     0x0002  1x 2 bytes
->>        bInterval             255
->> Hub Descriptor:
->>  bLength               9
->>  bDescriptorType      41
->>  nNbrPorts             1
->>  wHubCharacteristic 0x0012
->>    No power switching (usb 1.0)
->>    No overcurrent protection
->>  bPwrOn2PwrGood        2 * 2 milli seconds
->>  bHubContrCurrent      0 milli Ampere
->>  DeviceRemovable    0x00
->>  PortPwrCtrlMask    0xff
->> Hub Port Status:
->>   Port 1: 0000.0100 power
->> Device Status:     0x0001
->>  Self Powered
->> root@awsom:~# 
->> 
->> 
-> 
-> 
-> -- 
-> 
-> Cheers,
-> Mauro
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
