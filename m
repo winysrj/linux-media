@@ -1,104 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta08.emeryville.ca.mail.comcast.net ([76.96.30.80]:46737 "EHLO
-	qmta08.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965173AbaD2TuS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Apr 2014 15:50:18 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: gregkh@linuxfoundation.org, m.chehab@samsung.com, tj@kernel.org,
-	olebowle@gmx.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: [PATCH 2/4] media: dvb-fe changes to use tuner token
-Date: Tue, 29 Apr 2014 13:49:24 -0600
-Message-Id: <9a211011e470e91ce4367529ba74cddb7fdaee60.1398797955.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1398797954.git.shuah.kh@samsung.com>
-References: <cover.1398797954.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1398797954.git.shuah.kh@samsung.com>
-References: <cover.1398797954.git.shuah.kh@samsung.com>
+Received: from mail-we0-f169.google.com ([74.125.82.169]:64639 "EHLO
+	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932181AbaDBOqf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Apr 2014 10:46:35 -0400
+Message-ID: <533C22C6.1090101@gmail.com>
+Date: Wed, 02 Apr 2014 16:46:30 +0200
+From: poma <pomidorabelisima@gmail.com>
+MIME-Version: 1.0
+To: Eric Dumazet <eric.dumazet@gmail.com>
+CC: Thomas Davis <tadavis@lbl.gov>, Tom Gundersen <teg@jklm.no>,
+	Dan Williams <dcbw@redhat.com>, netdev@vger.kernel.org,
+	linux-media <linux-media@vger.kernel.org>,
+	Mailing-List fedora-kernel <kernel@lists.fedoraproject.org>,
+	Veaceslav Falico <vfalico@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Josh Boyer <jwboyer@redhat.com>
+Subject: Re: 3.15 & Bonding
+References: <533BE2F8.5040903@gmail.com> <1396435596.3989.21.camel@edumazet-glaptop2.roam.corp.google.com>
+In-Reply-To: <1396435596.3989.21.camel@edumazet-glaptop2.roam.corp.google.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new field tuner_tkn to struct dvb_frontend. Drivers can
-create tuner token using devm_token_create() and initialize
-the tuner_tkn when frontend is registered with the dvb-core.
-This change enables drivers to provide a token devres for tuner
-access control.
+On 02.04.2014 12:46, Eric Dumazet wrote:
+> On Wed, 2014-04-02 at 12:14 +0200, poma wrote:
+>> Are you all all right?
+>> New Tour de Bugs...
+>>
+>> /sys/devices/virtual/net/bond0/bonding/mode:
+>> active-backup 1
+>>
+>> - systemd-networkd
+>> dmesg:
+>> BUG: sleeping function called from invalid context at mm/slub.c:965
+>> in_atomic(): 1, irqs_disabled(): 0, pid: 593, name: systemd-network
+>> 2 locks held by systemd-network/593:
+>>  #0:  (rtnl_mutex){+.+.+.}, at: [<ffffffff8169e57b>] rtnetlink_rcv+0x1b/0x40
+>>  #1:  (&bond->curr_slave_lock){+...+.}, at: [<ffffffffa0487291>]
+>> bond_enslave+0xf31/0xf50 [bonding]
+>> CPU: 2 PID: 593 Comm: systemd-network Not tainted
+>> 3.15.0-0.rc0.git2.1.fc21.x86_64 #1
+>> Call Trace:
+>> dump_stack+0x4d/0x66
+>> __might_sleep+0x17e/0x230
+>> kmem_cache_alloc_node+0x4a/0x390
+>>  [<ffffffff816779dd>] __alloc_skb+0x5d/0x2d0
+>>  [<ffffffff816a0bd8>] rtmsg_ifinfo+0x48/0x110
+>>  [<ffffffff810fa18d>] ? trace_hardirqs_on+0xd/0x10
+>>  [<ffffffff8109dd45>] ? __local_bh_enable_ip+0x75/0xe0
+>>  [<ffffffffa0485ca7>] bond_change_active_slave+0x197/0x670 [bonding]
+>>  [<ffffffffa0486264>] bond_select_active_slave+0xe4/0x1e0 [bonding]
+>>  [<ffffffffa048729a>] bond_enslave+0xf3a/0xf50 [bonding]
+>>  [<ffffffff8169fdf2>] do_setlink+0xa02/0xa70
+>>  [<ffffffff813f4fc6>] ? nla_parse+0x96/0xe0
+>>  [<ffffffff816a0da1>] rtnl_setlink+0xc1/0x130
+>>  [<ffffffff810a1739>] ? ns_capable+0x39/0x70
+>>  [<ffffffff8169e64b>] rtnetlink_rcv_msg+0xab/0x270
+>>  [<ffffffff8169e57b>] ? rtnetlink_rcv+0x1b/0x40
+>>  [<ffffffff8169e57b>] ? rtnetlink_rcv+0x1b/0x40
+>>  [<ffffffff8169e5a0>] ? rtnetlink_rcv+0x40/0x40
+>>  [<ffffffff816c3e29>] netlink_rcv_skb+0xa9/0xc0
+>>  [<ffffffff8169e58a>] rtnetlink_rcv+0x2a/0x40
+>>  [<ffffffff816c3420>] netlink_unicast+0x100/0x1e0
+>>  [<ffffffff816c3847>] netlink_sendmsg+0x347/0x770
+>>  [<ffffffff8166c78c>] sock_sendmsg+0x9c/0xe0
+>>  [<ffffffff811de22f>] ? might_fault+0x5f/0xb0
+>>  [<ffffffff811de278>] ? might_fault+0xa8/0xb0
+>>  [<ffffffff811de22f>] ? might_fault+0x5f/0xb0
+>>  [<ffffffff8166cd04>] SYSC_sendto+0x124/0x1d0
+>>  [<ffffffff81024879>] ? sched_clock+0x9/0x10
+>>  [<ffffffff810ddb75>] ? local_clock+0x25/0x30
+>>  [<ffffffff8111cfc9>] ? current_kernel_time+0x69/0xd0
+>>  [<ffffffff810fa0b5>] ? trace_hardirqs_on_caller+0x105/0x1d0
+>>  [<ffffffff810fa18d>] ? trace_hardirqs_on+0xd/0x10
+>>  [<ffffffff8166dede>] SyS_sendto+0xe/0x10
+>>  [<ffffffff817e79a9>] system_call_fastpath+0x16/0x1b
+> 
+> Should be fixed by
+> 
+> commit 072256d1f2b8ba0bbb265d590c703f3d57a39d6a
+> Author: Veaceslav Falico <vfalico@redhat.com>
+> Date:   Thu Mar 6 15:33:22 2014 +0100
+> 
+>     bonding: make slave status notifications GFP_ATOMIC
+>     
 
-Change dvb_frontend to lock tuner token for exclusive access to
-tuner function for digital TV function use. When Tuner token is
-present, dvb_frontend_start() calls devm_token_lock() to lock
-the token. If token is busy, -EBUSY is returned to the user-space.
-Tuner token is unlocked if kdvb adapter fe kthread fails to start.
-This token is held in use as long as the kdvb adapter fe kthread
-is running. Tuner token is unlocked in dvb_frontend_thread() when
-kdvb adapter fe thread exits.
+Thanks for picking this one!
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
----
- drivers/media/dvb-core/dvb_frontend.c |   15 +++++++++++++++
- drivers/media/dvb-core/dvb_frontend.h |    1 +
- 2 files changed, 16 insertions(+)
+Tested with
+3.15.0-0.rc0.git3.2.fc21.x86_64
+i.e.
+3.15.0-0.rc0.git3.1.fc21.x86_64[1] &
+bonding-make-slave-status-notifications-GFP_ATOMIC.patch[2]
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 6ce435a..2b35e3f 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -41,6 +41,7 @@
- #include <linux/jiffies.h>
- #include <linux/kthread.h>
- #include <asm/processor.h>
-+#include <linux/token_devres.h>
- 
- #include "dvb_frontend.h"
- #include "dvbdev.h"
-@@ -747,6 +748,9 @@ restart:
- 	if (semheld)
- 		up(&fepriv->sem);
- 	dvb_frontend_wakeup(fe);
-+
-+	if (fe->tuner_tkn)
-+		devm_token_unlock(fe->dvb->device, fe->tuner_tkn);
- 	return 0;
- }
- 
-@@ -840,6 +844,15 @@ static int dvb_frontend_start(struct dvb_frontend *fe)
- 	fepriv->state = FESTATE_IDLE;
- 	fepriv->exit = DVB_FE_NO_EXIT;
- 	fepriv->thread = NULL;
-+
-+	if (fe->tuner_tkn) {
-+		ret = devm_token_lock(fe->dvb->device, fe->tuner_tkn);
-+		if (ret) {
-+			dev_info(fe->dvb->device, "Tuner is busy %d\n", ret);
-+			return ret;
-+		}
-+	}
-+
- 	mb();
- 
- 	fe_thread = kthread_run(dvb_frontend_thread, fe,
-@@ -850,6 +863,8 @@ static int dvb_frontend_start(struct dvb_frontend *fe)
- 				"dvb_frontend_start: failed to start kthread (%d)\n",
- 				ret);
- 		up(&fepriv->sem);
-+		if (fe->tuner_tkn)
-+			devm_token_unlock(fe->dvb->device, fe->tuner_tkn);
- 		return ret;
- 	}
- 	fepriv->thread = fe_thread;
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index 371b6ca..c9ba5fd 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -418,6 +418,7 @@ struct dvb_frontend {
- #define DVB_FRONTEND_COMPONENT_DEMOD 1
- 	int (*callback)(void *adapter_priv, int component, int cmd, int arg);
- 	int id;
-+	char *tuner_tkn;
- };
- 
- extern int dvb_register_frontend(struct dvb_adapter *dvb,
--- 
-1.7.10.4
+PASSED!
+
+
+poma
+
+
+[1]
+http://koji.fedoraproject.org/koji/buildinfo?buildID=508615
+[2]
+https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/commit/drivers/net/bonding?id=072256d1f2b8ba0bbb265d590c703f3d57a39d6a
 
