@@ -1,274 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2616 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755497AbaDKIMY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 04:12:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, sakari.ailus@iki.fi, m.szyprowski@samsung.com,
-	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 11/13] vb2: start messages with a lower-case for consistency.
-Date: Fri, 11 Apr 2014 10:11:17 +0200
-Message-Id: <1397203879-37443-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
-References: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44307 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932696AbaDBTVK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Apr 2014 15:21:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Thomas Scheuermann <scheuermann@barco.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: v4l2_buffer with PBO mapped memory
+Date: Wed, 02 Apr 2014 21:23:09 +0200
+Message-ID: <11263729.kS3FzW2BUL@avalon>
+In-Reply-To: <533C2872.5090603@barco.com>
+References: <533C2872.5090603@barco.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Thomas,
 
-The kernel debug messages produced by vb2 started either with a
-lower or an upper case character. Switched all to use lower-case
-which seemed to be what was used in the majority of the messages.
+On Wednesday 02 April 2014 17:10:42 Thomas Scheuermann wrote:
+> Hello,
+> 
+> I've written a program which shows my webcam with the v4l2 interface.
+> In the v4l2_buffer I use the type V4L2_BUF_TYPE_VIDEO_CAPTURE and the
+> memory is V4L2_MEMORY_USERPTR.
+> Everything works if I use malloced memory for frame buffers.
+> Now I want to get the frames directly in OpenGL. I've mapped a pixel
+> buffer object with glMapBuffer and wanted to use this as a frame buffer.
+> But if I use this memory, the ioctl VIDIOC_QBUF fails with 'invalid
+> argument'.
+> 
+> What can I do to use the pixel buffer object together with the v4l2
+> interface?
+> I want to use as less copy steps as possible.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pawel Osciak <pawel@osciak.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 58 ++++++++++++++++----------------
- 1 file changed, 29 insertions(+), 29 deletions(-)
+The use case is reasonable (although V4L2_MEMORY_DMABUF would be better, but 
+we're not there yet on the OpenGL side I believe), so let's try to debug this. 
+First of all, what webcam driver do you use ?
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 6d28f49..aa96997 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -151,7 +151,7 @@ static void __vb2_buf_mem_free(struct vb2_buffer *vb)
- 	for (plane = 0; plane < vb->num_planes; ++plane) {
- 		call_memop(vb, put, vb->planes[plane].mem_priv);
- 		vb->planes[plane].mem_priv = NULL;
--		dprintk(3, "Freed plane %d of buffer %d\n", plane,
-+		dprintk(3, "freed plane %d of buffer %d\n", plane,
- 			vb->v4l2_buf.index);
- 	}
- }
-@@ -246,7 +246,7 @@ static void __setup_offsets(struct vb2_queue *q, unsigned int n)
- 		for (plane = 0; plane < vb->num_planes; ++plane) {
- 			vb->v4l2_planes[plane].m.mem_offset = off;
- 
--			dprintk(3, "Buffer %d, plane %d offset 0x%08lx\n",
-+			dprintk(3, "buffer %d, plane %d offset 0x%08lx\n",
- 					buffer, plane, off);
- 
- 			off += vb->v4l2_planes[plane].length;
-@@ -273,7 +273,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
- 		/* Allocate videobuf buffer structures */
- 		vb = kzalloc(q->buf_struct_size, GFP_KERNEL);
- 		if (!vb) {
--			dprintk(1, "Memory alloc for buffer struct failed\n");
-+			dprintk(1, "memory alloc for buffer struct failed\n");
- 			break;
- 		}
- 
-@@ -292,7 +292,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
- 		if (memory == V4L2_MEMORY_MMAP) {
- 			ret = __vb2_buf_mem_alloc(vb);
- 			if (ret) {
--				dprintk(1, "Failed allocating memory for "
-+				dprintk(1, "failed allocating memory for "
- 						"buffer %d\n", buffer);
- 				kfree(vb);
- 				break;
-@@ -304,7 +304,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
- 			 */
- 			ret = call_vb_qop(vb, buf_init, vb);
- 			if (ret) {
--				dprintk(1, "Buffer %d %p initialization"
-+				dprintk(1, "buffer %d %p initialization"
- 					" failed\n", buffer, vb);
- 				fail_vb_qop(vb, buf_init);
- 				__vb2_buf_mem_free(vb);
-@@ -320,7 +320,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
- 	if (memory == V4L2_MEMORY_MMAP)
- 		__setup_offsets(q, buffer);
- 
--	dprintk(1, "Allocated %d buffers, %d plane(s) each\n",
-+	dprintk(1, "allocated %d buffers, %d plane(s) each\n",
- 			buffer, num_planes);
- 
- 	return buffer;
-@@ -477,13 +477,13 @@ static int __verify_planes_array(struct vb2_buffer *vb, const struct v4l2_buffer
- 
- 	/* Is memory for copying plane information present? */
- 	if (NULL == b->m.planes) {
--		dprintk(1, "Multi-planar buffer passed but "
-+		dprintk(1, "multi-planar buffer passed but "
- 			   "planes array not provided\n");
- 		return -EINVAL;
- 	}
- 
- 	if (b->length < vb->num_planes || b->length > VIDEO_MAX_PLANES) {
--		dprintk(1, "Incorrect planes array length, "
-+		dprintk(1, "incorrect planes array length, "
- 			   "expected %d, got %d\n", vb->num_planes, b->length);
- 		return -EINVAL;
- 	}
-@@ -846,7 +846,7 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 	/* Finally, allocate buffers and video memory */
- 	allocated_buffers = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes);
- 	if (allocated_buffers == 0) {
--		dprintk(1, "Memory allocation failed\n");
-+		dprintk(1, "memory allocation failed\n");
- 		return -ENOMEM;
- 	}
- 
-@@ -959,7 +959,7 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
- 	allocated_buffers = __vb2_queue_alloc(q, create->memory, num_buffers,
- 				num_planes);
- 	if (allocated_buffers == 0) {
--		dprintk(1, "Memory allocation failed\n");
-+		dprintk(1, "memory allocation failed\n");
- 		return -ENOMEM;
- 	}
- 
-@@ -1106,7 +1106,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	 */
- 	vb->cnt_buf_done++;
- #endif
--	dprintk(4, "Done processing on buffer %d, state: %d\n",
-+	dprintk(4, "done processing on buffer %d, state: %d\n",
- 			vb->v4l2_buf.index, state);
- 
- 	/* sync buffers */
-@@ -1816,7 +1816,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
- 		int ret;
- 
- 		if (!q->streaming) {
--			dprintk(1, "Streaming off, will not wait for buffers\n");
-+			dprintk(1, "streaming off, will not wait for buffers\n");
- 			return -EINVAL;
- 		}
- 
-@@ -1828,7 +1828,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
- 		}
- 
- 		if (nonblocking) {
--			dprintk(1, "Nonblocking and no buffers to dequeue, "
-+			dprintk(1, "nonblocking and no buffers to dequeue, "
- 								"will not wait\n");
- 			return -EAGAIN;
- 		}
-@@ -1843,7 +1843,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
- 		/*
- 		 * All locks have been released, it is safe to sleep now.
- 		 */
--		dprintk(3, "Will sleep waiting for buffers\n");
-+		dprintk(3, "will sleep waiting for buffers\n");
- 		ret = wait_event_interruptible(q->done_wq,
- 				!list_empty(&q->done_list) || !q->streaming);
- 
-@@ -1853,7 +1853,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
- 		 */
- 		call_qop(q, wait_finish, q);
- 		if (ret) {
--			dprintk(1, "Sleep was interrupted\n");
-+			dprintk(1, "sleep was interrupted\n");
- 			return ret;
- 		}
- 	}
-@@ -1908,7 +1908,7 @@ static int __vb2_get_done_vb(struct vb2_queue *q, struct vb2_buffer **vb,
- int vb2_wait_for_all_buffers(struct vb2_queue *q)
- {
- 	if (!q->streaming) {
--		dprintk(1, "Streaming off, will not wait for buffers\n");
-+		dprintk(1, "streaming off, will not wait for buffers\n");
- 		return -EINVAL;
- 	}
- 
-@@ -1957,13 +1957,13 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
- 
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DONE:
--		dprintk(3, "Returning done buffer\n");
-+		dprintk(3, "returning done buffer\n");
- 		break;
- 	case VB2_BUF_STATE_ERROR:
--		dprintk(3, "Returning done buffer with errors\n");
-+		dprintk(3, "returning done buffer with errors\n");
- 		break;
- 	default:
--		dprintk(1, "Invalid buffer state\n");
-+		dprintk(1, "invalid buffer state\n");
- 		return -EINVAL;
- 	}
- 
-@@ -2237,17 +2237,17 @@ int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
- 	struct dma_buf *dbuf;
- 
- 	if (q->memory != V4L2_MEMORY_MMAP) {
--		dprintk(1, "Queue is not currently set up for mmap\n");
-+		dprintk(1, "queue is not currently set up for mmap\n");
- 		return -EINVAL;
- 	}
- 
- 	if (!q->mem_ops->get_dmabuf) {
--		dprintk(1, "Queue does not support DMA buffer exporting\n");
-+		dprintk(1, "queue does not support DMA buffer exporting\n");
- 		return -EINVAL;
- 	}
- 
- 	if (eb->flags & ~(O_CLOEXEC | O_ACCMODE)) {
--		dprintk(1, "Queue does support only O_CLOEXEC and access mode flags\n");
-+		dprintk(1, "queue does support only O_CLOEXEC and access mode flags\n");
- 		return -EINVAL;
- 	}
- 
-@@ -2277,7 +2277,7 @@ int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
- 
- 	dbuf = call_memop(vb, get_dmabuf, vb_plane->mem_priv, eb->flags & O_ACCMODE);
- 	if (IS_ERR_OR_NULL(dbuf)) {
--		dprintk(1, "Failed to export buffer %d, plane %d\n",
-+		dprintk(1, "failed to export buffer %d, plane %d\n",
- 			eb->index, eb->plane);
- 		fail_memop(vb, get_dmabuf);
- 		return -EINVAL;
-@@ -2327,7 +2327,7 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
- 	unsigned long length;
- 
- 	if (q->memory != V4L2_MEMORY_MMAP) {
--		dprintk(1, "Queue is not currently set up for mmap\n");
-+		dprintk(1, "queue is not currently set up for mmap\n");
- 		return -EINVAL;
- 	}
- 
-@@ -2335,17 +2335,17 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
- 	 * Check memory area access mode.
- 	 */
- 	if (!(vma->vm_flags & VM_SHARED)) {
--		dprintk(1, "Invalid vma flags, VM_SHARED needed\n");
-+		dprintk(1, "invalid vma flags, VM_SHARED needed\n");
- 		return -EINVAL;
- 	}
- 	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
- 		if (!(vma->vm_flags & VM_WRITE)) {
--			dprintk(1, "Invalid vma flags, VM_WRITE needed\n");
-+			dprintk(1, "invalid vma flags, VM_WRITE needed\n");
- 			return -EINVAL;
- 		}
- 	} else {
- 		if (!(vma->vm_flags & VM_READ)) {
--			dprintk(1, "Invalid vma flags, VM_READ needed\n");
-+			dprintk(1, "invalid vma flags, VM_READ needed\n");
- 			return -EINVAL;
- 		}
- 	}
-@@ -2381,7 +2381,7 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
- 		return ret;
- 	}
- 
--	dprintk(3, "Buffer %d, plane %d successfully mapped\n", buffer, plane);
-+	dprintk(3, "buffer %d, plane %d successfully mapped\n", buffer, plane);
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(vb2_mmap);
-@@ -2399,7 +2399,7 @@ unsigned long vb2_get_unmapped_area(struct vb2_queue *q,
- 	int ret;
- 
- 	if (q->memory != V4L2_MEMORY_MMAP) {
--		dprintk(1, "Queue is not currently set up for mmap\n");
-+		dprintk(1, "queue is not currently set up for mmap\n");
- 		return -EINVAL;
- 	}
- 
 -- 
-1.9.1
+Regards,
+
+Laurent Pinchart
 
