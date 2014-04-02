@@ -1,236 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f174.google.com ([209.85.160.174]:59590 "EHLO
-	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932996AbaDJBO4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 21:14:56 -0400
-Received: by mail-yk0-f174.google.com with SMTP id 20so2938611yks.19
-        for <linux-media@vger.kernel.org>; Wed, 09 Apr 2014 18:14:56 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1396876272-18222-10-git-send-email-hverkuil@xs4all.nl>
-References: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl> <1396876272-18222-10-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Thu, 10 Apr 2014 10:06:21 +0900
-Message-ID: <CAMm-=zDVBJUSduC87Sy-4x++wHuErVrLX0meLJv-H24ADwwfjw@mail.gmail.com>
-Subject: Re: [REVIEWv2 PATCH 09/13] vb2: add vb2_fileio_is_active and check it
- more often
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42840 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758641AbaDBOai (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Apr 2014 10:30:38 -0400
+Received: from avalon.ideasonboard.com (unknown [91.178.214.76])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id E3ACB359AD
+	for <linux-media@vger.kernel.org>; Wed,  2 Apr 2014 16:28:55 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] v4l: vsp1: Remove unexisting rt clocks
+Date: Wed,  2 Apr 2014 16:32:37 +0200
+Message-Id: <1396449157-4825-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 7, 2014 at 10:11 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Added a vb2_fileio_is_active inline function that returns true if fileio
-> is in progress. Check for this too in mmap() (you don't want apps mmap()ing
-> buffers used by fileio) and expbuf() (same reason).
->
-> In addition drivers should be able to check for this in queue_setup() to
-> return an error if an attempt is made to read() or write() with
-> V4L2_FIELD_ALTERNATE being configured. This is illegal (there is no way
-> to pass the TOP/BOTTOM information around using file I/O).
->
-> However, in order to be able to check for this the init_fileio function
-> needs to set q->fileio early on, before the buffers are allocated. So switch
-> to using internal functions (__reqbufs, vb2_internal_qbuf and
-> vb2_internal_streamon) to skip the fileio check. Well, that's why the internal
-> functions were created...
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+The VSP1 has no rt clock. Remove them from the driver.
 
-Acked-by: Pawel Osciak <pawel@osciak.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1.h     |  1 -
+ drivers/media/platform/vsp1/vsp1_drv.c | 40 +++++-----------------------------
+ 2 files changed, 5 insertions(+), 36 deletions(-)
 
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 39 ++++++++++++++++++++------------
->  include/media/videobuf2-core.h           | 17 ++++++++++++++
->  2 files changed, 41 insertions(+), 15 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 89147d2..08152dd 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -755,7 +755,7 @@ static int __verify_memory_type(struct vb2_queue *q,
->          * create_bufs is called with count == 0, but count == 0 should still
->          * do the memory and type validation.
->          */
-> -       if (q->fileio) {
-> +       if (vb2_fileio_is_active(q)) {
->                 dprintk(1, "file io in progress\n");
->                 return -EBUSY;
->         }
-> @@ -1617,7 +1617,7 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
->         struct vb2_buffer *vb;
->         int ret;
->
-> -       if (q->fileio) {
-> +       if (vb2_fileio_is_active(q)) {
->                 dprintk(1, "file io in progress\n");
->                 return -EBUSY;
->         }
-> @@ -1786,7 +1786,7 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->   */
->  int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  {
-> -       if (q->fileio) {
-> +       if (vb2_fileio_is_active(q)) {
->                 dprintk(1, "file io in progress\n");
->                 return -EBUSY;
->         }
-> @@ -2006,7 +2006,7 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
->   */
->  int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
->  {
-> -       if (q->fileio) {
-> +       if (vb2_fileio_is_active(q)) {
->                 dprintk(1, "file io in progress\n");
->                 return -EBUSY;
->         }
-> @@ -2136,7 +2136,7 @@ static int vb2_internal_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
->   */
->  int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
->  {
-> -       if (q->fileio) {
-> +       if (vb2_fileio_is_active(q)) {
->                 dprintk(1, "file io in progress\n");
->                 return -EBUSY;
->         }
-> @@ -2183,7 +2183,7 @@ static int vb2_internal_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
->   */
->  int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
->  {
-> -       if (q->fileio) {
-> +       if (vb2_fileio_is_active(q)) {
->                 dprintk(1, "file io in progress\n");
->                 return -EBUSY;
->         }
-> @@ -2268,6 +2268,11 @@ int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
->                 return -EINVAL;
->         }
->
-> +       if (vb2_fileio_is_active(q)) {
-> +               dprintk(1, "expbuf: file io in progress\n");
-> +               return -EBUSY;
-> +       }
-> +
->         vb_plane = &vb->planes[eb->plane];
->
->         dbuf = call_memop(vb, get_dmabuf, vb_plane->mem_priv, eb->flags & O_ACCMODE);
-> @@ -2344,6 +2349,10 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
->                         return -EINVAL;
->                 }
->         }
-> +       if (vb2_fileio_is_active(q)) {
-> +               dprintk(1, "mmap: file io in progress\n");
-> +               return -EBUSY;
-> +       }
->
->         /*
->          * Find the plane corresponding to the offset passed by userspace.
-> @@ -2455,7 +2464,7 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
->         /*
->          * Start file I/O emulator only if streaming API has not been used yet.
->          */
-> -       if (q->num_buffers == 0 && q->fileio == NULL) {
-> +       if (q->num_buffers == 0 && !vb2_fileio_is_active(q)) {
->                 if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ) &&
->                                 (req_events & (POLLIN | POLLRDNORM))) {
->                         if (__vb2_init_fileio(q, 1))
-> @@ -2660,7 +2669,8 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
->         fileio->req.count = count;
->         fileio->req.memory = V4L2_MEMORY_MMAP;
->         fileio->req.type = q->type;
-> -       ret = vb2_reqbufs(q, &fileio->req);
-> +       q->fileio = fileio;
-> +       ret = __reqbufs(q, &fileio->req);
->         if (ret)
->                 goto err_kfree;
->
-> @@ -2698,7 +2708,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
->                         b->type = q->type;
->                         b->memory = q->memory;
->                         b->index = i;
-> -                       ret = vb2_qbuf(q, b);
-> +                       ret = vb2_internal_qbuf(q, b);
->                         if (ret)
->                                 goto err_reqbufs;
->                         fileio->bufs[i].queued = 1;
-> @@ -2714,19 +2724,18 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
->         /*
->          * Start streaming.
->          */
-> -       ret = vb2_streamon(q, q->type);
-> +       ret = vb2_internal_streamon(q, q->type);
->         if (ret)
->                 goto err_reqbufs;
->
-> -       q->fileio = fileio;
-> -
->         return ret;
->
->  err_reqbufs:
->         fileio->req.count = 0;
-> -       vb2_reqbufs(q, &fileio->req);
-> +       __reqbufs(q, &fileio->req);
->
->  err_kfree:
-> +       q->fileio = NULL;
->         kfree(fileio);
->         return ret;
->  }
-> @@ -2779,7 +2788,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
->         /*
->          * Initialize emulator on first call.
->          */
-> -       if (!q->fileio) {
-> +       if (!vb2_fileio_is_active(q)) {
->                 ret = __vb2_init_fileio(q, read);
->                 dprintk(3, "vb2_init_fileio result: %d\n", ret);
->                 if (ret)
-> @@ -3147,7 +3156,7 @@ unsigned int vb2_fop_poll(struct file *file, poll_table *wait)
->
->         /* Try to be smart: only lock if polling might start fileio,
->            otherwise locking will only introduce unwanted delays. */
-> -       if (q->num_buffers == 0 && q->fileio == NULL) {
-> +       if (q->num_buffers == 0 && !vb2_fileio_is_active(q)) {
->                 if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ) &&
->                                 (req_events & (POLLIN | POLLRDNORM)))
->                         must_lock = true;
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 3b57851..af34ae0 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -472,6 +472,23 @@ static inline bool vb2_is_streaming(struct vb2_queue *q)
->  }
->
->  /**
-> + * vb2_fileio_is_active() - return true if fileio is active.
-> + * @q:         videobuf queue
-> + *
-> + * This returns true if read() or write() is used to stream the data
-> + * as opposed to stream I/O. This is almost never an important distinction,
-> + * except in rare cases. One such case is that using read() or write() to
-> + * stream a format using V4L2_FIELD_ALTERNATE is not allowed since there
-> + * is no way you can pass the field information of each buffer to/from
-> + * userspace. A driver that supports this field format should check for
-> + * this in the queue_setup op and reject it if this function returns true.
-> + */
-> +static inline bool vb2_fileio_is_active(struct vb2_queue *q)
-> +{
-> +       return q->fileio;
-> +}
-> +
-> +/**
->   * vb2_is_busy() - return busy status of the queue
->   * @q:         videobuf queue
->   *
-> --
-> 1.9.1
->
-
-
-
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index 94d1b02..732400e 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -45,7 +45,6 @@ struct vsp1_device {
+ 
+ 	void __iomem *mmio;
+ 	struct clk *clock;
+-	struct clk *rt_clock;
+ 
+ 	struct mutex lock;
+ 	int ref_count;
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 0df0a99..6f370da 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -329,33 +329,6 @@ static int vsp1_device_init(struct vsp1_device *vsp1)
+ 	return 0;
+ }
+ 
+-static int vsp1_clocks_enable(struct vsp1_device *vsp1)
+-{
+-	int ret;
+-
+-	ret = clk_prepare_enable(vsp1->clock);
+-	if (ret < 0)
+-		return ret;
+-
+-	if (IS_ERR(vsp1->rt_clock))
+-		return 0;
+-
+-	ret = clk_prepare_enable(vsp1->rt_clock);
+-	if (ret < 0) {
+-		clk_disable_unprepare(vsp1->clock);
+-		return ret;
+-	}
+-
+-	return 0;
+-}
+-
+-static void vsp1_clocks_disable(struct vsp1_device *vsp1)
+-{
+-	if (!IS_ERR(vsp1->rt_clock))
+-		clk_disable_unprepare(vsp1->rt_clock);
+-	clk_disable_unprepare(vsp1->clock);
+-}
+-
+ /*
+  * vsp1_device_get - Acquire the VSP1 device
+  *
+@@ -373,7 +346,7 @@ struct vsp1_device *vsp1_device_get(struct vsp1_device *vsp1)
+ 	if (vsp1->ref_count > 0)
+ 		goto done;
+ 
+-	ret = vsp1_clocks_enable(vsp1);
++	ret = clk_prepare_enable(vsp1->clock);
+ 	if (ret < 0) {
+ 		__vsp1 = NULL;
+ 		goto done;
+@@ -381,7 +354,7 @@ struct vsp1_device *vsp1_device_get(struct vsp1_device *vsp1)
+ 
+ 	ret = vsp1_device_init(vsp1);
+ 	if (ret < 0) {
+-		vsp1_clocks_disable(vsp1);
++		clk_disable_unprepare(vsp1->clock);
+ 		__vsp1 = NULL;
+ 		goto done;
+ 	}
+@@ -405,7 +378,7 @@ void vsp1_device_put(struct vsp1_device *vsp1)
+ 	mutex_lock(&vsp1->lock);
+ 
+ 	if (--vsp1->ref_count == 0)
+-		vsp1_clocks_disable(vsp1);
++		clk_disable_unprepare(vsp1->clock);
+ 
+ 	mutex_unlock(&vsp1->lock);
+ }
+@@ -424,7 +397,7 @@ static int vsp1_pm_suspend(struct device *dev)
+ 	if (vsp1->ref_count == 0)
+ 		return 0;
+ 
+-	vsp1_clocks_disable(vsp1);
++	clk_disable_unprepare(vsp1->clock);
+ 	return 0;
+ }
+ 
+@@ -437,7 +410,7 @@ static int vsp1_pm_resume(struct device *dev)
+ 	if (vsp1->ref_count)
+ 		return 0;
+ 
+-	return vsp1_clocks_enable(vsp1);
++	return clk_prepare_enable(vsp1->clock);
+ }
+ #endif
+ 
+@@ -511,9 +484,6 @@ static int vsp1_probe(struct platform_device *pdev)
+ 		return PTR_ERR(vsp1->clock);
+ 	}
+ 
+-	/* The RT clock is optional */
+-	vsp1->rt_clock = devm_clk_get(&pdev->dev, "rt");
+-
+ 	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+ 	if (!irq) {
+ 		dev_err(&pdev->dev, "missing IRQ\n");
 -- 
-Best regards,
-Pawel Osciak
+Regards,
+
+Laurent Pinchart
+
