@@ -1,130 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:54154 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751314AbaDQCRh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Apr 2014 22:17:37 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N4500AZUL1CEU00@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 16 Apr 2014 22:17:36 -0400 (EDT)
-Date: Wed, 16 Apr 2014 23:17:30 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Received: from mail-vc0-f176.google.com ([209.85.220.176]:56071 "EHLO
+	mail-vc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755344AbaDBKWy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Apr 2014 06:22:54 -0400
+MIME-Version: 1.0
+In-Reply-To: <533BDAA7.5070704@xs4all.nl>
+References: <1395683489-25986-1-git-send-email-prabhakar.csengg@gmail.com> <533BDAA7.5070704@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 2 Apr 2014 15:52:23 +0530
+Message-ID: <CA+V-a8vM=qNpRN++p27+FtLQ2unEebdsz8FRYg4hOWTUqth-iw@mail.gmail.com>
+Subject: Re: [PATCH] v4l2-pci-skeleton: fix typo while retrieving the skel_buffer
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH 3/3] saa7134: convert to vb2
-Message-id: <20140416231730.6252aae7@samsung.com>
-In-reply-to: <534F0553.2000808@xs4all.nl>
-References: <1394454049-12879-1-git-send-email-hverkuil@xs4all.nl>
- <1394454049-12879-4-git-send-email-hverkuil@xs4all.nl>
- <20140416192343.30a5a8fc@samsung.com> <534F0553.2000808@xs4all.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LDOC <linux-doc@vger.kernel.org>, Rob Landley <rob@landley.net>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 17 Apr 2014 00:33:55 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Hans,
 
-> On 04/17/2014 12:23 AM, Mauro Carvalho Chehab wrote:
-> > Em Mon, 10 Mar 2014 13:20:49 +0100
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>
-> >> Convert the saa7134 driver to vb2.
-> >>
-> >> Note that while this uses the vb2-dma-sg version, the VB2_USERPTR mode is
-> >> disabled. The DMA hardware only supports DMAing full pages, and in the
-> >> USERPTR memory model the first and last scatter-gather buffer is almost
-> >> never a full page.
-> >>
-> >> In practice this means that we can't use the VB2_USERPTR mode.
-> > 
-> > Why not? Provided that the buffer is equal or bigger than the number of
-> > pages required by saa7134, that should be OK.
-> > 
-> > All the driver needs to do is to check if the USERPTR buffer condition is met,
-> > returning an error otherwise (and likely printing a msg at dmesg).
-> 
-> Yuck. Well, I'll take a look at this.
-> 
-> It has in my view the same problem as abusing USERPTR to pass pointers to
-> physically contiguous memory: yes, it 'supports' USERPTR, but it has additional
-> requirements which userspace has no way of knowing or detecting.
-> 
-> It's really not USERPTR at all, it is PAGE_ALIGNED_USERPTR.
-> 
-> Quite different.
-
-Hmm... If I remember well, mmapped memory (being userptr or not) are always
-page aligned, at least on systems with MMU.
-
-> I would prefer that you have to enable it explicitly through e.g. a module option.
-> That way you can still do it, but you really have to know what you are doing.
-> 
-> > I suspect that this change will break some userspace programs used
-> > for video surveillance equipment.
-> > 
-> >> This has been tested with raw video, compressed video, VBI, radio, DVB and
-> >> video overlays.
-> >>
-> >> Unfortunately, a vb2 conversion is one of those things you cannot split
-> >> up in smaller patches, it's all or nothing. This patch switches the whole
-> >> driver over to vb2, using the vb2 ioctl and fop helper functions.
-> > 
-> > Not quite true. This patch contains lots of non-vb2 stuff, like:
-> > 	- Coding Style fixes;
-> > 	- Removal of res_get/res_set/res_free;
-> > 	- Functions got moved from one place to another one.
-> 
-> I will see if there is anything sensible that I can split up. I'm not aware
-> of any particular coding style issues, but I'll review it.
-
-There are several, like:
-
--	dprintk("buffer_finish %p\n",q->curr);
-+	dprintk("buffer_finish %p\n", q->curr);
-
-Also, it seems that you moved some functions, like:
-
-ts_reset_encoder(struct saa7134_dev* dev) that was moved
-to some other part of the code and renamed as stop_streaming().
-
-There are several of such cases, with makes hard to really see the
-VB2 changes, and what it might be some code dropped by mistake.
-
-> 
-> The removal of the resource functions is not something I can split up. It
-> is replaced by the resource handling that's built into the vb2 helper functions.
-
-Well, currently, it is really hard to see that all the checks between
-empress and normal video streams are still done right, as the patch
-become big and messy.
-
-Please try to break it into a more granular set of patches that
-would help to check if everything is there.
+On Wed, Apr 2, 2014 at 3:08 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 03/24/14 18:51, Lad, Prabhakar wrote:
+>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> ---
+>>  Documentation/video4linux/v4l2-pci-skeleton.c |    2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/Documentation/video4linux/v4l2-pci-skeleton.c b/Documentation/video4linux/v4l2-pci-skeleton.c
+>> index 3a1c0d2..61a56f4 100644
+>> --- a/Documentation/video4linux/v4l2-pci-skeleton.c
+>> +++ b/Documentation/video4linux/v4l2-pci-skeleton.c
+>> @@ -87,7 +87,7 @@ struct skel_buffer {
+>>
+>>  static inline struct skel_buffer *to_skel_buffer(struct vb2_buffer *vb2)
+>>  {
+>> -     return container_of(vb2, struct skel_buffer, vb);
+>> +     return container_of(vb2, struct skel_buffer, vb2);
+>
+> Why is this a type? The vb2_buffer member in struct skel_buffer is called
+> 'vb', so this should be correct.
+>
+Oops may be I overlooked, sorry for the noise.
 
 Thanks,
-Mauro
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> > It is really hard to review it, as is, as the real changes are mixed with
-> > the above code cleanups/changes.
-> > 
-> > Please split this patch in a way that it allows reviewing the changes
-> > there.
-> 
-
-
--- 
-
-Regards,
-Mauro
+--Prabhakar Lad
