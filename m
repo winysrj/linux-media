@@ -1,176 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:40361 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753848AbaDCXfZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Apr 2014 19:35:25 -0400
-Subject: [PATCH 49/49] rc-core: make rc-core.h userspace friendly
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Date: Fri, 04 Apr 2014 01:35:24 +0200
-Message-ID: <20140403233524.27099.33078.stgit@zeus.muc.hardeman.nu>
-In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
-References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:56018 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933101AbaDBURH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Apr 2014 16:17:07 -0400
+Received: from uscpsbgex4.samsung.com
+ (u125.gpu85.samsung.co.kr [203.254.195.125]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N3F002TF70I5H60@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 02 Apr 2014 16:17:06 -0400 (EDT)
+Message-id: <533C703E.8040607@samsung.com>
+Date: Wed, 02 Apr 2014 14:17:02 -0600
+From: Shuah Khan <shuah.kh@samsung.com>
+Reply-to: shuah.kh@samsung.com
+MIME-version: 1.0
+To: media-workshop@linuxtv.org, linux-media@vger.kernel.org,
+	"Mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>
+Cc: Shuah Khan <shuah.kh@samsung.com>
+Subject: [Proposal] media mini-summit - Linux media power management -
+ problems, challenges and fixes
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A few ifdef __KERNEL__ and some reorganisation to make rc-core.h usable from
-userspace programs. A split into include/uapi/ might be a good idea later.
+I am requesting that the following presentation/discussion to be added 
+to the media mini-summit agenda. The intent is to do a very short 
+presentation and leave time for discussion.
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- include/media/rc-core.h |   71 ++++++++++++++++++++++++++++++++---------------
- 1 file changed, 48 insertions(+), 23 deletions(-)
+Linux media power management - problems, challenges and fixes
 
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index aff3bdd..caa159f 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -16,21 +16,22 @@
- #ifndef _RC_CORE
- #define _RC_CORE
- 
-+#ifdef __KERNEL__
- #include <linux/spinlock.h>
- #include <linux/kfifo.h>
- #include <linux/time.h>
- #include <linux/timer.h>
- #include <linux/cdev.h>
- #include <media/rc-map.h>
-+#else
-+#include <sys/time.h>
-+#include <sys/ioctl.h>
-+#include <sys/types.h>
-+#include <linux/types.h>
-+#endif
- 
--extern int rc_core_debug;
--#define IR_dprintk(level, fmt, ...)				\
--do {								\
--	if (rc_core_debug >= level)				\
--		pr_debug("%s: " fmt, __func__, ##__VA_ARGS__);	\
--} while (0)
--
--#define RC_VERSION 0x010000
-+#define RC_VERSION		0x010000
-+#define RC_MAX_KEYTABLES	32
- 
- /*
-  * ioctl definitions
-@@ -177,13 +178,27 @@ struct rc_keytable_ioctl {
- 	char name[RC_KEYTABLE_NAME_SIZE];
- } __packed;
- 
--/* This is used for the input EVIOC[SG]KEYCODE_V2 ioctls */
-+/**
-+ * struct rc_scancode - protocol/scancode pair
-+ * @protocol:	the protocol of the rc command
-+ * @reserved:	for future use and padding, set to zero
-+ * @scancode:	the scancode of the command
-+ */
- struct rc_scancode {
- 	__u16 protocol;
- 	__u16 reserved[3];
- 	__u64 scancode;
- };
- 
-+/**
-+ * struct rc_keymap_entry - used in EVIOC[SG]KEYCODE_V2 ioctls
-+ * @flags:	see &struct input_keymap_entry
-+ * @len:	see &struct input_keymap_entry
-+ * @index:	see &struct input_keymap_entry
-+ * @keycode:	see &struct input_keymap_entry
-+ * @rc:		the scancode/protocol definition, see &struct rc_scancode
-+ * @raw:	alternative representation of @rc
-+ */
- struct rc_keymap_entry {
- 	__u8  flags;
- 	__u8  len;
-@@ -236,6 +251,9 @@ struct rc_event {
- 
- #define RC_TX_KFIFO_SIZE	1024
- 
-+#ifdef __KERNEL__
-+/* The rest is implementational details which shouldn't concern userspace */
-+
- /**
-  * struct rc_scancode_filter - Filter scan codes.
-  * @data:	Scancode data to match.
-@@ -323,7 +341,6 @@ enum rc_filter_type {
-  * @get_ir_tx: allow driver to provide tx settings
-  * @set_ir_tx: allow driver to change tx settings
-  */
--#define RC_MAX_KEYTABLES		32
- struct rc_dev {
- 	struct device			dev;
- 	struct cdev			cdev;
-@@ -382,31 +399,23 @@ struct rc_dev {
- 	void				(*get_ir_tx)(struct rc_dev *dev, struct rc_ir_tx *tx);
- 	int				(*set_ir_tx)(struct rc_dev *dev, struct rc_ir_tx *tx);
- };
--
- #define to_rc_dev(d) container_of(d, struct rc_dev, dev)
- 
--/*
-- * From rc-main.c
-- * Those functions can be used on any type of Remote Controller. They
-- * basically creates an input_dev and properly reports the device as a
-- * Remote Controller, at sys/class/rc.
-- */
--
-+/* From rc-main.c - see inline kerneldoc */
- struct rc_dev *rc_allocate_device(void);
- void rc_free_device(struct rc_dev *dev);
- int rc_register_device(struct rc_dev *dev);
- void rc_unregister_device(struct rc_dev *dev);
- void rc_event(struct rc_dev *dev, u16 type, u16 code, u32 val);
--
- int rc_open(struct rc_dev *rdev);
- void rc_close(struct rc_dev *rdev);
- 
-+/* From rc-keytable.c - see inline kerneldoc */
- void rc_repeat(struct rc_dev *dev);
--void rc_do_keydown(struct rc_dev *dev, enum rc_type protocol,
--		   u32 scancode, u8 toggle, bool autoup);
- void rc_keyup(struct rc_dev *dev);
- u32 rc_g_keycode_from_table(struct rc_dev *dev, enum rc_type protocol, u64 scancode);
--
-+void rc_do_keydown(struct rc_dev *dev, enum rc_type protocol,
-+		   u32 scancode, u8 toggle, bool autoup);
- static inline void rc_keydown(struct rc_dev *dev, enum rc_type protocol, u32 scancode, u8 toggle) {
- 	rc_do_keydown(dev, protocol, scancode, toggle, true);
- }
-@@ -415,7 +424,22 @@ static inline void rc_keydown_notimeout(struct rc_dev *dev, enum rc_type protoco
- 	rc_do_keydown(dev, protocol, scancode, toggle, false);
- }
- 
--/* extract mask bits out of data and pack them into the result */
-+extern int rc_core_debug;
-+#define IR_dprintk(level, fmt, ...)				\
-+do {								\
-+	if (rc_core_debug >= level)				\
-+		pr_debug("%s: " fmt, __func__, ##__VA_ARGS__);	\
-+} while (0)
-+
-+/**
-+ * ir_extract_bits() - extract bits of data according to a mask
-+ * @data:	the data to extract bits from
-+ * @mask:	the mask of bits to extract
-+ * @return:	the extracted bits packed together
-+ *
-+ * This helper function is used by some drivers to extract the relevant
-+ * (masked) bits of data.
-+ */
- static inline u32 ir_extract_bits(u32 data, u32 mask)
- {
- 	u32 vbit = 1, value = 0;
-@@ -432,4 +456,5 @@ static inline u32 ir_extract_bits(u32 data, u32 mask)
- 	return value;
- }
- 
-+#endif /* __KERNEL__ */
- #endif /* _RC_CORE */
+Media devices can be very complex to support in software - for example, 
+a small USB TV stick is packed with several components providing the 
+functionality to tune, stream analog and/or digital video and audio. 
+Some hybrid devices support both analog, and digital TV tuning 
+capability with or without a remote control capability. A single TV 
+device, which connects to the PC on a USB bus, could have one or more 
+I2C buses internally to implement tuning and remote control features.
 
+On Linux, several individual component drivers come together to provide 
+full functionality on these media devices. For instance, a single 
+digital USB TV stick will have a USB driver that acts as the front-end 
+for several Linux TV media infrastructure components such as: Digital 
+Video Broadcasting (dvb), Audio, and Video4linux (v4l2). Each of these 
+extensions initialize and control their set of registers on the device 
+with the aid of additional tuner and remote control drivers. As you can 
+see, the infrastructure supporting one of these devices is complex and 
+handling suspend/resume within the OS quickly becomes a challenge. It 
+won't come as a too much of a surprise to hear that most media drivers 
+don't handle power management properly. This is due to the lack of a 
+good PM infrastructure inside the media core, as well as driver bugs in 
+their suspend and resume code paths. This work also includes using 
+devres infrastructure work to handle shared media resources such as 
+tuner, demux etc.
+
+In this presentation, we will discuss what is being done to address 
+these issues and also present an overview of PM infrastructure being 
+considered for future kernel releases.
+
+-- Shuah
+-- 
+Shuah Khan
+Senior Linux Kernel Developer - Open Source Group
+Samsung Research America(Silicon Valley)
+shuah.kh@samsung.com | (970) 672-0658
