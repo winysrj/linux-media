@@ -1,1668 +1,1544 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1736 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752101AbaDDJSe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Apr 2014 05:18:34 -0400
-Message-ID: <533E78C7.6020607@xs4all.nl>
-Date: Fri, 04 Apr 2014 11:17:59 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from hardeman.nu ([95.142.160.32]:40268 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753783AbaDCXbd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 19:31:33 -0400
+Subject: [PATCH 03/49] rc-core: document the protocol type
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Fri, 04 Apr 2014 01:31:30 +0200
+Message-ID: <20140403233130.27099.36139.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
 MIME-Version: 1.0
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>
-CC: LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH v2 1/2] media: davinci: vpif capture: upgrade the driver
- with v4l offerings
-References: <1396588656-6660-1-git-send-email-prabhakar.csengg@gmail.com> <1396588656-6660-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1396588656-6660-2-git-send-email-prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Right now the protocol information is not preserved, rc-core gets handed a
+scancode but has no idea which protocol it corresponds to.
 
-Some review comments below. I'm going through the code quite carefully since
-this very nice cleanup is a good opportunity to check for correct behavior in
-this driver.
+This patch (which required reading through the source/keymap for all drivers,
+not fun) makes the protocol information explicit which is important
+documentation and makes it easier to e.g. support multiple protocols with one
+decoder (think rc5 and rc-streamzap). The information isn't used yet so there
+should be no functional changes.
 
-On 04/04/2014 07:17 AM, Lad, Prabhakar wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> This patch upgrades the vpif display driver with
-> v4l helpers, this patch does the following,
-> 
-> 1: initialize the vb2 queue and context at the time of probe
-> and removes context at remove() callback.
-> 2: uses vb2_ioctl_*() helpers.
-> 3: uses vb2_fop_*() helpers.
-> 4: uses SIMPLE_DEV_PM_OPS.
-> 5: uses vb2_ioctl_*() helpers.
-> 6: vidioc_g/s_priority is now handled by v4l core.
-> 7: removed driver specific fh and now using one provided by v4l.
-> 8: fixes checkpatch warnings.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  drivers/media/platform/davinci/vpif_capture.c |  931 +++++++------------------
->  drivers/media/platform/davinci/vpif_capture.h |   32 +-
->  2 files changed, 234 insertions(+), 729 deletions(-)
-> 
-> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-> index 8dea0b8..e4046f5 100644
-> --- a/drivers/media/platform/davinci/vpif_capture.c
-> +++ b/drivers/media/platform/davinci/vpif_capture.c
-> @@ -1,5 +1,6 @@
->  /*
->   * Copyright (C) 2009 Texas Instruments Inc
-> + * Copyright (C) 2014 Lad, Prabhakar <prabhakar.csengg@gmail.com>
->   *
->   * This program is free software; you can redistribute it and/or modify
->   * it under the terms of the GNU General Public License as published by
-> @@ -37,6 +38,8 @@ MODULE_VERSION(VPIF_CAPTURE_VERSION);
->  #define vpif_dbg(level, debug, fmt, arg...)	\
->  		v4l2_dbg(level, debug, &vpif_obj.v4l2_dev, fmt, ## arg)
->  
-> +#define VPIF_DRIVER_NAME	"vpif_capture"
-> +
->  static int debug = 1;
->  static u32 ch0_numbuffers = 3;
->  static u32 ch1_numbuffers = 3;
-> @@ -65,11 +68,25 @@ static struct vpif_config_params config_params = {
->  	.channel_bufsize[1] = 720 * 576 * 2,
->  };
->  
-> +static u8 channel_first_int[VPIF_NUMBER_OF_OBJECTS][2] = { {1, 1} };
-> +
->  /* global variables */
->  static struct vpif_device vpif_obj = { {NULL} };
->  static struct device *vpif_dev;
->  static void vpif_calculate_offsets(struct channel_obj *ch);
->  static void vpif_config_addr(struct channel_obj *ch, int muxmode);
-> +static int vpif_check_format(struct channel_obj *ch,
-> +			     struct v4l2_pix_format *pixfmt, int update);
-> +
-> +/*
-> + * Is set to 1 in case of SDTV formats, 2 in case of HDTV formats.
-> + */
-> +static int ycmux_mode;
-> +
-> +static inline struct vpif_cap_buffer *to_vpif_buffer(struct vb2_buffer *vb)
-> +{
-> +	return container_of(vb, struct vpif_cap_buffer, vb);
-> +}
->  
->  /**
->   * buffer_prepare :  callback function for buffer prepare
-> @@ -81,10 +98,8 @@ static void vpif_config_addr(struct channel_obj *ch, int muxmode);
->   */
->  static int vpif_buffer_prepare(struct vb2_buffer *vb)
->  {
-> -	/* Get the file handle object and channel object */
-> -	struct vpif_fh *fh = vb2_get_drv_priv(vb->vb2_queue);
->  	struct vb2_queue *q = vb->vb2_queue;
-> -	struct channel_obj *ch = fh->channel;
-> +	struct channel_obj *ch = vb2_get_drv_priv(q);
->  	struct common_obj *common;
->  	unsigned long addr;
->  
-> @@ -100,7 +115,7 @@ static int vpif_buffer_prepare(struct vb2_buffer *vb)
->  			goto exit;
->  		addr = vb2_dma_contig_plane_dma_addr(vb, 0);
->  
-> -		if (q->streaming) {
-> +		if (vb2_is_streaming(q)) {
->  			if (!IS_ALIGNED((addr + common->ytop_off), 8) ||
->  				!IS_ALIGNED((addr + common->ybtm_off), 8) ||
->  				!IS_ALIGNED((addr + common->ctop_off), 8) ||
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/i2c/ir-kbd-i2c.c              |    5 +
+ drivers/media/pci/bt8xx/bttv-input.c        |   12 ++-
+ drivers/media/pci/cx88/cx88-input.c         |   26 ++++++-
+ drivers/media/pci/dm1105/dm1105.c           |    3 +
+ drivers/media/pci/saa7134/saa7134-input.c   |    6 +-
+ drivers/media/pci/ttpci/budget-ci.c         |    8 +-
+ drivers/media/rc/ati_remote.c               |    4 +
+ drivers/media/rc/img-ir/img-ir-hw.c         |    8 +-
+ drivers/media/rc/img-ir/img-ir-hw.h         |    3 +
+ drivers/media/rc/img-ir/img-ir-jvc.c        |    4 +
+ drivers/media/rc/img-ir/img-ir-nec.c        |    4 +
+ drivers/media/rc/img-ir/img-ir-sanyo.c      |    4 +
+ drivers/media/rc/img-ir/img-ir-sharp.c      |    4 +
+ drivers/media/rc/img-ir/img-ir-sony.c       |   12 ++-
+ drivers/media/rc/imon.c                     |    5 +
+ drivers/media/rc/ir-jvc-decoder.c           |    2 -
+ drivers/media/rc/ir-nec-decoder.c           |    2 -
+ drivers/media/rc/ir-rc5-decoder.c           |    5 +
+ drivers/media/rc/ir-rc5-sz-decoder.c        |    2 -
+ drivers/media/rc/ir-rc6-decoder.c           |   37 ++++++++--
+ drivers/media/rc/ir-sanyo-decoder.c         |    2 -
+ drivers/media/rc/ir-sharp-decoder.c         |    2 -
+ drivers/media/rc/ir-sony-decoder.c          |    6 +-
+ drivers/media/rc/rc-main.c                  |   32 +++++----
+ drivers/media/usb/dvb-usb-v2/af9015.c       |   18 +++--
+ drivers/media/usb/dvb-usb-v2/af9035.c       |    9 +-
+ drivers/media/usb/dvb-usb-v2/anysee.c       |    3 +
+ drivers/media/usb/dvb-usb-v2/az6007.c       |   25 ++++---
+ drivers/media/usb/dvb-usb-v2/lmedm04.c      |    9 +-
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c     |   12 ++-
+ drivers/media/usb/dvb-usb/dib0700_core.c    |   16 +++-
+ drivers/media/usb/dvb-usb/dib0700_devices.c |   24 ++++---
+ drivers/media/usb/dvb-usb/dw2102.c          |    7 +-
+ drivers/media/usb/dvb-usb/m920x.c           |    2 -
+ drivers/media/usb/dvb-usb/pctv452e.c        |    8 +-
+ drivers/media/usb/dvb-usb/ttusb2.c          |    6 +-
+ drivers/media/usb/em28xx/em28xx-input.c     |   98 ++++++++++++++++-----------
+ drivers/media/usb/tm6000/tm6000-input.c     |   51 ++++++++++----
+ include/media/rc-core.h                     |    6 +-
+ 39 files changed, 307 insertions(+), 185 deletions(-)
 
-Why would you do this check only when streaming? Usually apps queued all
-buffers before calling S_STREAMON, so vb2_is_streaming(q) will still be
-false.
+diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
+index 143cb2b..f9c4233 100644
+--- a/drivers/media/i2c/ir-kbd-i2c.c
++++ b/drivers/media/i2c/ir-kbd-i2c.c
+@@ -261,8 +261,9 @@ static int ir_key_poll(struct IR_i2c *ir)
+ 	}
+ 
+ 	if (rc) {
+-		dprintk(1, "%s: scancode = 0x%08x\n", __func__, scancode);
+-		rc_keydown(ir->rc, scancode, toggle);
++		dprintk(1, "%s: proto = 0x%04x, scancode = 0x%08x\n",
++			__func__, protocol, scancode);
++		rc_keydown(ir->rc, protocol, scancode, toggle);
+ 	}
+ 	return 0;
+ }
+diff --git a/drivers/media/pci/bt8xx/bttv-input.c b/drivers/media/pci/bt8xx/bttv-input.c
+index e745f5a..67c8d6b 100644
+--- a/drivers/media/pci/bt8xx/bttv-input.c
++++ b/drivers/media/pci/bt8xx/bttv-input.c
+@@ -73,12 +73,12 @@ static void ir_handle_key(struct bttv *btv)
+ 
+ 	if ((ir->mask_keydown && (gpio & ir->mask_keydown)) ||
+ 	    (ir->mask_keyup   && !(gpio & ir->mask_keyup))) {
+-		rc_keydown_notimeout(ir->dev, data, 0);
++		rc_keydown_notimeout(ir->dev, RC_TYPE_UNKNOWN, data, 0);
+ 	} else {
+ 		/* HACK: Probably, ir->mask_keydown is missing
+ 		   for this board */
+ 		if (btv->c.type == BTTV_BOARD_WINFAST2000)
+-			rc_keydown_notimeout(ir->dev, data, 0);
++			rc_keydown_notimeout(ir->dev, RC_TYPE_UNKNOWN, data, 0);
+ 
+ 		rc_keyup(ir->dev);
+ 	}
+@@ -103,7 +103,7 @@ static void ir_enltv_handle_key(struct bttv *btv)
+ 			gpio, data,
+ 			(gpio & ir->mask_keyup) ? " up" : "up/down");
+ 
+-		rc_keydown_notimeout(ir->dev, data, 0);
++		rc_keydown_notimeout(ir->dev, RC_TYPE_UNKNOWN, data, 0);
+ 		if (keyup)
+ 			rc_keyup(ir->dev);
+ 	} else {
+@@ -117,7 +117,7 @@ static void ir_enltv_handle_key(struct bttv *btv)
+ 		if (keyup)
+ 			rc_keyup(ir->dev);
+ 		else
+-			rc_keydown_notimeout(ir->dev, data, 0);
++			rc_keydown_notimeout(ir->dev, RC_TYPE_UNKNOWN, data, 0);
+ 	}
+ 
+ 	ir->last_gpio = data | keyup;
+@@ -241,8 +241,8 @@ static void bttv_rc5_timer_end(unsigned long data)
+ 		return;
+ 	}
+ 
+-	scancode = system << 8 | command;
+-	rc_keydown(ir->dev, scancode, toggle);
++	scancode = RC_SCANCODE_RC5(system, command);
++	rc_keydown(ir->dev, RC_TYPE_RC5, scancode, toggle);
+ 	dprintk("scancode %x, toggle %x\n", scancode, toggle);
+ }
+ 
+diff --git a/drivers/media/pci/cx88/cx88-input.c b/drivers/media/pci/cx88/cx88-input.c
+index 779fc63..9bf48ca 100644
+--- a/drivers/media/pci/cx88/cx88-input.c
++++ b/drivers/media/pci/cx88/cx88-input.c
+@@ -130,25 +130,41 @@ static void cx88_ir_handle_key(struct cx88_IR *ir)
+ 
+ 		data = (data << 4) | ((gpio_key & 0xf0) >> 4);
+ 
+-		rc_keydown(ir->dev, data, 0);
++		rc_keydown(ir->dev, RC_TYPE_UNKNOWN, data, 0);
++
++	} else if (ir->core->boardnr == CX88_BOARD_PROLINK_PLAYTVPVR ||
++		   ir->core->boardnr == CX88_BOARD_PIXELVIEW_PLAYTV_ULTRA_PRO) {
++		/* bit cleared on keydown, NEC scancode, 0xAAAACC, A = 0x866b */
++		u16 addr;
++		u8 cmd;
++		u32 scancode;
++
++		addr = (data >> 8) & 0xffff;
++		cmd  = (data >> 0) & 0x00ff;
++		scancode = RC_SCANCODE_NECX(addr, cmd);
++
++		if (0 == (gpio & ir->mask_keyup))
++			rc_keydown_notimeout(ir->dev, RC_TYPE_NEC, scancode, 0);
++		else
++			rc_keyup(ir->dev);
+ 
+ 	} else if (ir->mask_keydown) {
+ 		/* bit set on keydown */
+ 		if (gpio & ir->mask_keydown)
+-			rc_keydown_notimeout(ir->dev, data, 0);
++			rc_keydown_notimeout(ir->dev, RC_TYPE_UNKNOWN, data, 0);
+ 		else
+ 			rc_keyup(ir->dev);
+ 
+ 	} else if (ir->mask_keyup) {
+ 		/* bit cleared on keydown */
+ 		if (0 == (gpio & ir->mask_keyup))
+-			rc_keydown_notimeout(ir->dev, data, 0);
++			rc_keydown_notimeout(ir->dev, RC_TYPE_UNKNOWN, data, 0);
+ 		else
+ 			rc_keyup(ir->dev);
+ 
+ 	} else {
+ 		/* can't distinguish keydown/up :-/ */
+-		rc_keydown_notimeout(ir->dev, data, 0);
++		rc_keydown_notimeout(ir->dev, RC_TYPE_UNKNOWN, data, 0);
+ 		rc_keyup(ir->dev);
+ 	}
+ }
+@@ -329,6 +345,7 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
+ 		 * 002-T mini RC, provided with newer PV hardware
+ 		 */
+ 		ir_codes = RC_MAP_PIXELVIEW_MK12;
++		rc_type = RC_BIT_NEC;
+ 		ir->gpio_addr = MO_GP1_IO;
+ 		ir->mask_keyup = 0x80;
+ 		ir->polling = 10; /* ms */
+@@ -416,7 +433,6 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
+ 		break;
+ 	case CX88_BOARD_TWINHAN_VP1027_DVBS:
+ 		ir_codes         = RC_MAP_TWINHAN_VP1027_DVBS;
+-		rc_type          = RC_BIT_NEC;
+ 		ir->sampling     = 0xff00; /* address */
+ 		break;
+ 	}
+diff --git a/drivers/media/pci/dm1105/dm1105.c b/drivers/media/pci/dm1105/dm1105.c
+index e60ac35..e8826c5 100644
+--- a/drivers/media/pci/dm1105/dm1105.c
++++ b/drivers/media/pci/dm1105/dm1105.c
+@@ -678,7 +678,8 @@ static void dm1105_emit_key(struct work_struct *work)
+ 
+ 	data = (ircom >> 8) & 0x7f;
+ 
+-	rc_keydown(ir->dev, data, 0);
++	/* FIXME: UNKNOWN because we don't generate a full NEC scancode (yet?) */
++	rc_keydown(ir->dev, RC_TYPE_UNKNOWN, data, 0);
+ }
+ 
+ /* work handler */
+diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
+index 73670ed..43dd8bd 100644
+--- a/drivers/media/pci/saa7134/saa7134-input.c
++++ b/drivers/media/pci/saa7134/saa7134-input.c
+@@ -83,14 +83,14 @@ static int build_key(struct saa7134_dev *dev)
+ 		if (data == ir->mask_keycode)
+ 			rc_keyup(ir->dev);
+ 		else
+-			rc_keydown_notimeout(ir->dev, data, 0);
++			rc_keydown_notimeout(ir->dev, RC_TYPE_UNKNOWN, data, 0);
+ 		return 0;
+ 	}
+ 
+ 	if (ir->polling) {
+ 		if ((ir->mask_keydown  &&  (0 != (gpio & ir->mask_keydown))) ||
+ 		    (ir->mask_keyup    &&  (0 == (gpio & ir->mask_keyup)))) {
+-			rc_keydown_notimeout(ir->dev, data, 0);
++			rc_keydown_notimeout(ir->dev, RC_TYPE_UNKNOWN, data, 0);
+ 		} else {
+ 			rc_keyup(ir->dev);
+ 		}
+@@ -98,7 +98,7 @@ static int build_key(struct saa7134_dev *dev)
+ 	else {	/* IRQ driven mode - handle key press and release in one go */
+ 		if ((ir->mask_keydown  &&  (0 != (gpio & ir->mask_keydown))) ||
+ 		    (ir->mask_keyup    &&  (0 == (gpio & ir->mask_keyup)))) {
+-			rc_keydown_notimeout(ir->dev, data, 0);
++			rc_keydown_notimeout(ir->dev, RC_TYPE_UNKNOWN, data, 0);
+ 			rc_keyup(ir->dev);
+ 		}
+ 	}
+diff --git a/drivers/media/pci/ttpci/budget-ci.c b/drivers/media/pci/ttpci/budget-ci.c
+index 0acf920..41ce7de 100644
+--- a/drivers/media/pci/ttpci/budget-ci.c
++++ b/drivers/media/pci/ttpci/budget-ci.c
+@@ -161,14 +161,14 @@ static void msp430_ir_interrupt(unsigned long data)
+ 		return;
+ 
+ 	if (budget_ci->ir.full_rc5) {
+-		rc_keydown(dev,
+-			   budget_ci->ir.rc5_device <<8 | budget_ci->ir.ir_key,
+-			   (command & 0x20) ? 1 : 0);
++		rc_keydown(dev, RC_TYPE_RC5,
++			   RC_SCANCODE_RC5(budget_ci->ir.rc5_device, budget_ci->ir.ir_key),
++			   !!(command & 0x20));
+ 		return;
+ 	}
+ 
+ 	/* FIXME: We should generate complete scancodes for all devices */
+-	rc_keydown(dev, budget_ci->ir.ir_key, (command & 0x20) ? 1 : 0);
++	rc_keydown(dev, RC_TYPE_UNKNOWN, budget_ci->ir.ir_key, !!(command & 0x20));
+ }
+ 
+ static int msp430_ir_init(struct budget_ci *budget_ci)
+diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
+index 2df7c55..8730b32 100644
+--- a/drivers/media/rc/ati_remote.c
++++ b/drivers/media/rc/ati_remote.c
+@@ -622,8 +622,8 @@ static void ati_remote_input_report(struct urb *urb)
+ 				* it would cause ghost repeats which would be a
+ 				* regression for this driver.
+ 				*/
+-				rc_keydown_notimeout(ati_remote->rdev, scancode,
+-						     data[2]);
++				rc_keydown_notimeout(ati_remote->rdev, RC_TYPE_OTHER,
++						     scancode, data[2]);
+ 				rc_keyup(ati_remote->rdev);
+ 			}
+ 			return;
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
+index 579a52b..aec79f7 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.c
++++ b/drivers/media/rc/img-ir/img-ir-hw.c
+@@ -778,9 +778,11 @@ static void img_ir_handle_data(struct img_ir_priv *priv, u32 len, u64 raw)
+ 	struct img_ir_priv_hw *hw = &priv->hw;
+ 	const struct img_ir_decoder *dec = hw->decoder;
+ 	int ret = IMG_IR_SCANCODE;
+-	int scancode;
++	u32 scancode;
++	enum rc_type protocol = RC_TYPE_UNKNOWN;
++
+ 	if (dec->scancode)
+-		ret = dec->scancode(len, raw, &scancode, hw->enabled_protocols);
++		ret = dec->scancode(len, raw, &protocol, &scancode, hw->enabled_protocols);
+ 	else if (len >= 32)
+ 		scancode = (u32)raw;
+ 	else if (len < 32)
+@@ -789,7 +791,7 @@ static void img_ir_handle_data(struct img_ir_priv *priv, u32 len, u64 raw)
+ 		len, (unsigned long long)raw);
+ 	if (ret == IMG_IR_SCANCODE) {
+ 		dev_dbg(priv->dev, "decoded scan code %#x\n", scancode);
+-		rc_keydown(hw->rdev, scancode, 0);
++		rc_keydown(hw->rdev, protocol, scancode, 0);
+ 		img_ir_end_repeat(priv);
+ 	} else if (ret == IMG_IR_REPEATCODE) {
+ 		if (hw->mode == IMG_IR_M_REPEATING) {
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.h b/drivers/media/rc/img-ir/img-ir-hw.h
+index 6c9a94a..e5dc98b 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.h
++++ b/drivers/media/rc/img-ir/img-ir-hw.h
+@@ -157,7 +157,8 @@ struct img_ir_decoder {
+ 	struct img_ir_control		control;
+ 
+ 	/* scancode logic */
+-	int (*scancode)(int len, u64 raw, int *scancode, u64 protocols);
++	int (*scancode)(int len, u64 raw, enum rc_type *protocol,
++			u32 *scancode, u64 enabled_protocols);
+ 	int (*filter)(const struct rc_scancode_filter *in,
+ 		      struct img_ir_filter *out, u64 protocols);
+ };
+diff --git a/drivers/media/rc/img-ir/img-ir-jvc.c b/drivers/media/rc/img-ir/img-ir-jvc.c
+index 10209d2..be68a16 100644
+--- a/drivers/media/rc/img-ir/img-ir-jvc.c
++++ b/drivers/media/rc/img-ir/img-ir-jvc.c
+@@ -7,7 +7,8 @@
+ #include "img-ir-hw.h"
+ 
+ /* Convert JVC data to a scancode */
+-static int img_ir_jvc_scancode(int len, u64 raw, int *scancode, u64 protocols)
++static int img_ir_jvc_scancode(int len, u64 raw, enum rc_type *protocol,
++			       u32 *scancode, u64 enabled_protocols)
+ {
+ 	unsigned int cust, data;
+ 
+@@ -17,6 +18,7 @@ static int img_ir_jvc_scancode(int len, u64 raw, int *scancode, u64 protocols)
+ 	cust = (raw >> 0) & 0xff;
+ 	data = (raw >> 8) & 0xff;
+ 
++	*protocol = RC_TYPE_JVC;
+ 	*scancode = cust << 8 | data;
+ 	return IMG_IR_SCANCODE;
+ }
+diff --git a/drivers/media/rc/img-ir/img-ir-nec.c b/drivers/media/rc/img-ir/img-ir-nec.c
+index e7a731b..c0111d6 100644
+--- a/drivers/media/rc/img-ir/img-ir-nec.c
++++ b/drivers/media/rc/img-ir/img-ir-nec.c
+@@ -7,7 +7,8 @@
+ #include "img-ir-hw.h"
+ 
+ /* Convert NEC data to a scancode */
+-static int img_ir_nec_scancode(int len, u64 raw, int *scancode, u64 protocols)
++static int img_ir_nec_scancode(int len, u64 raw, enum rc_type *protocol,
++			       u32 *scancode, u64 enabled_protocols)
+ {
+ 	unsigned int addr, addr_inv, data, data_inv;
+ 	/* a repeat code has no data */
+@@ -39,6 +40,7 @@ static int img_ir_nec_scancode(int len, u64 raw, int *scancode, u64 protocols)
+ 		*scancode = addr << 8 |
+ 			    data;
+ 	}
++	*protocol = RC_TYPE_NEC;
+ 	return IMG_IR_SCANCODE;
+ }
+ 
+diff --git a/drivers/media/rc/img-ir/img-ir-sanyo.c b/drivers/media/rc/img-ir/img-ir-sanyo.c
+index c2c763e..a0a0129 100644
+--- a/drivers/media/rc/img-ir/img-ir-sanyo.c
++++ b/drivers/media/rc/img-ir/img-ir-sanyo.c
+@@ -18,7 +18,8 @@
+ #include "img-ir-hw.h"
+ 
+ /* Convert Sanyo data to a scancode */
+-static int img_ir_sanyo_scancode(int len, u64 raw, int *scancode, u64 protocols)
++static int img_ir_sanyo_scancode(int len, u64 raw, enum rc_type *protocol,
++				 u32 *scancode, u64 enabled_protocols)
+ {
+ 	unsigned int addr, addr_inv, data, data_inv;
+ 	/* a repeat code has no data */
+@@ -38,6 +39,7 @@ static int img_ir_sanyo_scancode(int len, u64 raw, int *scancode, u64 protocols)
+ 		return -EINVAL;
+ 
+ 	/* Normal Sanyo */
++	*protocol = RC_TYPE_SANYO;
+ 	*scancode = addr << 8 | data;
+ 	return IMG_IR_SCANCODE;
+ }
+diff --git a/drivers/media/rc/img-ir/img-ir-sharp.c b/drivers/media/rc/img-ir/img-ir-sharp.c
+index 3397cc5..8624fd2 100644
+--- a/drivers/media/rc/img-ir/img-ir-sharp.c
++++ b/drivers/media/rc/img-ir/img-ir-sharp.c
+@@ -7,7 +7,8 @@
+ #include "img-ir-hw.h"
+ 
+ /* Convert Sharp data to a scancode */
+-static int img_ir_sharp_scancode(int len, u64 raw, int *scancode, u64 protocols)
++static int img_ir_sharp_scancode(int len, u64 raw, enum rc_type *protocol,
++				 u32 *scancode, u64 enabled_protocols)
+ {
+ 	unsigned int addr, cmd, exp, chk;
+ 
+@@ -26,6 +27,7 @@ static int img_ir_sharp_scancode(int len, u64 raw, int *scancode, u64 protocols)
+ 		/* probably the second half of the message */
+ 		return -EINVAL;
+ 
++	*protocol = RC_TYPE_SHARP;
+ 	*scancode = addr << 8 | cmd;
+ 	return IMG_IR_SCANCODE;
+ }
+diff --git a/drivers/media/rc/img-ir/img-ir-sony.c b/drivers/media/rc/img-ir/img-ir-sony.c
+index 993409a..eb11ce8 100644
+--- a/drivers/media/rc/img-ir/img-ir-sony.c
++++ b/drivers/media/rc/img-ir/img-ir-sony.c
+@@ -7,35 +7,39 @@
+ #include "img-ir-hw.h"
+ 
+ /* Convert Sony data to a scancode */
+-static int img_ir_sony_scancode(int len, u64 raw, int *scancode, u64 protocols)
++static int img_ir_sony_scancode(int len, u64 raw, enum rc_type *protocol,
++				u32 *scancode, u64 enabled_protocols)
+ {
+ 	unsigned int dev, subdev, func;
+ 
+ 	switch (len) {
+ 	case 12:
+-		if (!(protocols & RC_BIT_SONY12))
++		if (!(enabled_protocols & RC_BIT_SONY12))
+ 			return -EINVAL;
+ 		func   = raw & 0x7f;	/* first 7 bits */
+ 		raw    >>= 7;
+ 		dev    = raw & 0x1f;	/* next 5 bits */
+ 		subdev = 0;
++		*protocol = RC_TYPE_SONY12;
+ 		break;
+ 	case 15:
+-		if (!(protocols & RC_BIT_SONY15))
++		if (!(enabled_protocols & RC_BIT_SONY15))
+ 			return -EINVAL;
+ 		func   = raw & 0x7f;	/* first 7 bits */
+ 		raw    >>= 7;
+ 		dev    = raw & 0xff;	/* next 8 bits */
+ 		subdev = 0;
++		*protocol = RC_TYPE_SONY15;
+ 		break;
+ 	case 20:
+-		if (!(protocols & RC_BIT_SONY20))
++		if (!(enabled_protocols & RC_BIT_SONY20))
+ 			return -EINVAL;
+ 		func   = raw & 0x7f;	/* first 7 bits */
+ 		raw    >>= 7;
+ 		dev    = raw & 0x1f;	/* next 5 bits */
+ 		raw    >>= 5;
+ 		subdev = raw & 0xff;	/* next 8 bits */
++		*protocol = RC_TYPE_SONY20;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 6f24e77..d1564d1 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -1579,7 +1579,10 @@ static void imon_incoming_packet(struct imon_context *ictx,
+ 		if (press_type == 0)
+ 			rc_keyup(ictx->rdev);
+ 		else {
+-			rc_keydown(ictx->rdev, ictx->rc_scancode, ictx->rc_toggle);
++			if (ictx->rc_type == RC_BIT_RC6_MCE)
++			rc_keydown(ictx->rdev,
++				   ictx->rc_type == RC_BIT_RC6_MCE ? RC_TYPE_RC6_MCE : RC_TYPE_OTHER,
++				   ictx->rc_scancode, ictx->rc_toggle);
+ 			spin_lock_irqsave(&ictx->kc_lock, flags);
+ 			ictx->last_keycode = ictx->kc;
+ 			spin_unlock_irqrestore(&ictx->kc_lock, flags);
+diff --git a/drivers/media/rc/ir-jvc-decoder.c b/drivers/media/rc/ir-jvc-decoder.c
+index 4ea62a1..7b79eca 100644
+--- a/drivers/media/rc/ir-jvc-decoder.c
++++ b/drivers/media/rc/ir-jvc-decoder.c
+@@ -140,7 +140,7 @@ again:
+ 			scancode = (bitrev8((data->bits >> 8) & 0xff) << 8) |
+ 				   (bitrev8((data->bits >> 0) & 0xff) << 0);
+ 			IR_dprintk(1, "JVC scancode 0x%04x\n", scancode);
+-			rc_keydown(dev, scancode, data->toggle);
++			rc_keydown(dev, RC_TYPE_JVC, scancode, data->toggle);
+ 			data->first = false;
+ 			data->old_bits = data->bits;
+ 		} else if (data->bits == data->old_bits) {
+diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
+index 9de1791..735a509 100644
+--- a/drivers/media/rc/ir-nec-decoder.c
++++ b/drivers/media/rc/ir-nec-decoder.c
+@@ -192,7 +192,7 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 		if (data->is_nec_x)
+ 			data->necx_repeat = true;
+ 
+-		rc_keydown(dev, scancode, 0);
++		rc_keydown(dev, RC_TYPE_NEC, scancode, 0);
+ 		data->state = STATE_INACTIVE;
+ 		return 0;
+ 	}
+diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
+index 4295d9b..3d38cbc 100644
+--- a/drivers/media/rc/ir-rc5-decoder.c
++++ b/drivers/media/rc/ir-rc5-decoder.c
+@@ -51,6 +51,7 @@ static int ir_rc5_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 	struct rc5_dec *data = &dev->raw->rc5;
+ 	u8 toggle;
+ 	u32 scancode;
++	enum rc_type protocol;
+ 
+ 	if (!rc_protocols_enabled(dev, RC_BIT_RC5 | RC_BIT_RC5X))
+ 		return 0;
+@@ -138,6 +139,7 @@ again:
+ 			toggle   = (data->bits & 0x20000) ? 1 : 0;
+ 			command += (data->bits & 0x01000) ? 0 : 0x40;
+ 			scancode = system << 16 | command << 8 | xdata;
++			protocol = RC_TYPE_RC5X;
+ 
+ 			IR_dprintk(1, "RC5X scancode 0x%06x (toggle: %u)\n",
+ 				   scancode, toggle);
+@@ -154,12 +156,13 @@ again:
+ 			toggle   = (data->bits & 0x00800) ? 1 : 0;
+ 			command += (data->bits & 0x01000) ? 0 : 0x40;
+ 			scancode = system << 8 | command;
++			protocol = RC_TYPE_RC5;
+ 
+ 			IR_dprintk(1, "RC5 scancode 0x%04x (toggle: %u)\n",
+ 				   scancode, toggle);
+ 		}
+ 
+-		rc_keydown(dev, scancode, toggle);
++		rc_keydown(dev, protocol, scancode, toggle);
+ 		data->state = STATE_INACTIVE;
+ 		return 0;
+ 	}
+diff --git a/drivers/media/rc/ir-rc5-sz-decoder.c b/drivers/media/rc/ir-rc5-sz-decoder.c
+index dc18b74..85c7711 100644
+--- a/drivers/media/rc/ir-rc5-sz-decoder.c
++++ b/drivers/media/rc/ir-rc5-sz-decoder.c
+@@ -115,7 +115,7 @@ again:
+ 		IR_dprintk(1, "RC5-sz scancode 0x%04x (toggle: %u)\n",
+ 			   scancode, toggle);
+ 
+-		rc_keydown(dev, scancode, toggle);
++		rc_keydown(dev, RC_TYPE_RC5_SZ, scancode, toggle);
+ 		data->state = STATE_INACTIVE;
+ 		return 0;
+ 	}
+diff --git a/drivers/media/rc/ir-rc6-decoder.c b/drivers/media/rc/ir-rc6-decoder.c
+index cfbd64e..1dc97a7 100644
+--- a/drivers/media/rc/ir-rc6-decoder.c
++++ b/drivers/media/rc/ir-rc6-decoder.c
+@@ -88,6 +88,7 @@ static int ir_rc6_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 	struct rc6_dec *data = &dev->raw->rc6;
+ 	u32 scancode;
+ 	u8 toggle;
++	enum rc_type protocol;
+ 
+ 	if (!rc_protocols_enabled(dev, RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 |
+ 				  RC_BIT_RC6_6A_24 | RC_BIT_RC6_6A_32 |
+@@ -233,9 +234,11 @@ again:
+ 		case RC6_MODE_0:
+ 			scancode = data->body;
+ 			toggle = data->toggle;
++			protocol = RC_TYPE_RC6_0;
+ 			IR_dprintk(1, "RC6(0) scancode 0x%04x (toggle: %u)\n",
+ 				   scancode, toggle);
+ 			break;
++
+ 		case RC6_MODE_6A:
+ 			if (data->count > CHAR_BIT * sizeof data->body) {
+ 				IR_dprintk(1, "RC6 too many (%u) data bits\n",
+@@ -244,23 +247,39 @@ again:
+ 			}
+ 
+ 			scancode = data->body;
+-			if (data->count == RC6_6A_32_NBITS &&
+-					(scancode & RC6_6A_LCC_MASK) == RC6_6A_MCE_CC) {
+-				/* MCE RC */
+-				toggle = (scancode & RC6_6A_MCE_TOGGLE_MASK) ? 1 : 0;
+-				scancode &= ~RC6_6A_MCE_TOGGLE_MASK;
+-			} else {
++			switch (data->count) {
++			case 20:
++				protocol = RC_TYPE_RC6_6A_20;
++				toggle = 0;
++				break;
++			case 24:
++				protocol = RC_BIT_RC6_6A_24;
+ 				toggle = 0;
++				break;
++			case 32:
++				if ((scancode & RC6_6A_LCC_MASK) == RC6_6A_MCE_CC) {
++					protocol = RC_TYPE_RC6_MCE;
++					scancode &= ~RC6_6A_MCE_TOGGLE_MASK;
++					toggle = !!(scancode & RC6_6A_MCE_TOGGLE_MASK);
++				} else {
++					protocol = RC_BIT_RC6_6A_32;
++					toggle = 0;
++				}
++				break;
++			default:
++				IR_dprintk(1, "RC6(6A) unsupported length\n");
++				goto out;
+ 			}
+-			IR_dprintk(1, "RC6(6A) scancode 0x%08x (toggle: %u)\n",
+-				   scancode, toggle);
++
++			IR_dprintk(1, "RC6(6A) proto 0x%04x, scancode 0x%08x (toggle: %u)\n",
++				   protocol, scancode, toggle);
+ 			break;
+ 		default:
+ 			IR_dprintk(1, "RC6 unknown mode\n");
+ 			goto out;
+ 		}
+ 
+-		rc_keydown(dev, scancode, toggle);
++		rc_keydown(dev, protocol, scancode, toggle);
+ 		data->state = STATE_INACTIVE;
+ 		return 0;
+ 	}
+diff --git a/drivers/media/rc/ir-sanyo-decoder.c b/drivers/media/rc/ir-sanyo-decoder.c
+index eb715f0..5f77022 100644
+--- a/drivers/media/rc/ir-sanyo-decoder.c
++++ b/drivers/media/rc/ir-sanyo-decoder.c
+@@ -167,7 +167,7 @@ static int ir_sanyo_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 
+ 		scancode = address << 8 | command;
+ 		IR_dprintk(1, "SANYO scancode: 0x%06x\n", scancode);
+-		rc_keydown(dev, scancode, 0);
++		rc_keydown(dev, RC_TYPE_SANYO, scancode, 0);
+ 		data->state = STATE_INACTIVE;
+ 		return 0;
+ 	}
+diff --git a/drivers/media/rc/ir-sharp-decoder.c b/drivers/media/rc/ir-sharp-decoder.c
+index 66d2039..c8f2519 100644
+--- a/drivers/media/rc/ir-sharp-decoder.c
++++ b/drivers/media/rc/ir-sharp-decoder.c
+@@ -162,7 +162,7 @@ static int ir_sharp_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 		scancode = address << 8 | command;
+ 		IR_dprintk(1, "Sharp scancode 0x%04x\n", scancode);
+ 
+-		rc_keydown(dev, scancode, 0);
++		rc_keydown(dev, RC_TYPE_SHARP, scancode, 0);
+ 		data->state = STATE_INACTIVE;
+ 		return 0;
+ 	}
+diff --git a/drivers/media/rc/ir-sony-decoder.c b/drivers/media/rc/ir-sony-decoder.c
+index 599c19a..f485f9fe 100644
+--- a/drivers/media/rc/ir-sony-decoder.c
++++ b/drivers/media/rc/ir-sony-decoder.c
+@@ -42,6 +42,7 @@ enum sony_state {
+ static int ir_sony_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ {
+ 	struct sony_dec *data = &dev->raw->sony;
++	enum rc_type protocol;
+ 	u32 scancode;
+ 	u8 device, subdevice, function;
+ 
+@@ -131,6 +132,7 @@ static int ir_sony_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 			device    = bitrev8((data->bits <<  3) & 0xF8);
+ 			subdevice = 0;
+ 			function  = bitrev8((data->bits >>  4) & 0xFE);
++			protocol = RC_TYPE_SONY12;
+ 			break;
+ 		case 15:
+ 			if (!rc_protocols_enabled(dev, RC_BIT_SONY15)) {
+@@ -140,6 +142,7 @@ static int ir_sony_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 			device    = bitrev8((data->bits >>  0) & 0xFF);
+ 			subdevice = 0;
+ 			function  = bitrev8((data->bits >>  7) & 0xFE);
++			protocol = RC_TYPE_SONY15;
+ 			break;
+ 		case 20:
+ 			if (!rc_protocols_enabled(dev, RC_BIT_SONY20)) {
+@@ -149,6 +152,7 @@ static int ir_sony_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 			device    = bitrev8((data->bits >>  5) & 0xF8);
+ 			subdevice = bitrev8((data->bits >>  0) & 0xFF);
+ 			function  = bitrev8((data->bits >> 12) & 0xFE);
++			protocol = RC_TYPE_SONY20;
+ 			break;
+ 		default:
+ 			IR_dprintk(1, "Sony invalid bitcount %u\n", data->count);
+@@ -157,7 +161,7 @@ static int ir_sony_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 
+ 		scancode = device << 16 | subdevice << 8 | function;
+ 		IR_dprintk(1, "Sony(%u) scancode 0x%05x\n", data->count, scancode);
+-		rc_keydown(dev, scancode, 0);
++		rc_keydown(dev, protocol, scancode, 0);
+ 		data->state = STATE_INACTIVE;
+ 		return 0;
+ 	}
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 99697aa..c0bfd50 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -623,6 +623,7 @@ EXPORT_SYMBOL_GPL(rc_repeat);
+ /**
+  * ir_do_keydown() - internal function to process a keypress
+  * @dev:	the struct rc_dev descriptor of the device
++ * @protocol:	the protocol of the keypress
+  * @scancode:   the scancode of the keypress
+  * @keycode:    the keycode of the keypress
+  * @toggle:     the toggle value of the keypress
+@@ -630,13 +631,14 @@ EXPORT_SYMBOL_GPL(rc_repeat);
+  * This function is used internally to register a keypress, it must be
+  * called with keylock held.
+  */
+-static void ir_do_keydown(struct rc_dev *dev, int scancode,
+-			  u32 keycode, u8 toggle)
++static void ir_do_keydown(struct rc_dev *dev, enum rc_type protocol,
++			  u32 scancode, u32 keycode, u8 toggle)
+ {
+ 	struct rc_scancode_filter *filter;
+-	bool new_event = !dev->keypressed ||
+-			 dev->last_scancode != scancode ||
+-			 dev->last_toggle != toggle;
++	bool new_event = (!dev->keypressed		 ||
++			  dev->last_protocol != protocol ||
++			  dev->last_scancode != scancode ||
++			  dev->last_toggle   != toggle);
+ 
+ 	if (new_event && dev->keypressed)
+ 		ir_do_keyup(dev, false);
+@@ -651,13 +653,14 @@ static void ir_do_keydown(struct rc_dev *dev, int scancode,
+ 	if (new_event && keycode != KEY_RESERVED) {
+ 		/* Register a keypress */
+ 		dev->keypressed = true;
++		dev->last_protocol = protocol;
+ 		dev->last_scancode = scancode;
+ 		dev->last_toggle = toggle;
+ 		dev->last_keycode = keycode;
+ 
+ 		IR_dprintk(1, "%s: key down event, "
+-			   "key 0x%04x, scancode 0x%04x\n",
+-			   dev->input_name, keycode, scancode);
++			   "key 0x%04x, protocol 0x%04x, scancode 0x%08x\n",
++			   dev->input_name, keycode, protocol, scancode);
+ 		input_report_key(dev->input_dev, keycode, 1);
+ 
+ 		led_trigger_event(led_feedback, LED_FULL);
+@@ -669,20 +672,21 @@ static void ir_do_keydown(struct rc_dev *dev, int scancode,
+ /**
+  * rc_keydown() - generates input event for a key press
+  * @dev:	the struct rc_dev descriptor of the device
+- * @scancode:   the scancode that we're seeking
++ * @protocol:	the protocol for the keypress
++ * @scancode:	the scancode for the keypress
+  * @toggle:     the toggle value (protocol dependent, if the protocol doesn't
+  *              support toggle values, this should be set to zero)
+  *
+  * This routine is used to signal that a key has been pressed on the
+  * remote control.
+  */
+-void rc_keydown(struct rc_dev *dev, int scancode, u8 toggle)
++void rc_keydown(struct rc_dev *dev, enum rc_type protocol, u32 scancode, u8 toggle)
+ {
+ 	unsigned long flags;
+ 	u32 keycode = rc_g_keycode_from_table(dev, scancode);
+ 
+ 	spin_lock_irqsave(&dev->keylock, flags);
+-	ir_do_keydown(dev, scancode, keycode, toggle);
++	ir_do_keydown(dev, protocol, scancode, keycode, toggle);
+ 
+ 	if (dev->keypressed) {
+ 		dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
+@@ -696,20 +700,22 @@ EXPORT_SYMBOL_GPL(rc_keydown);
+  * rc_keydown_notimeout() - generates input event for a key press without
+  *                          an automatic keyup event at a later time
+  * @dev:	the struct rc_dev descriptor of the device
+- * @scancode:   the scancode that we're seeking
++ * @protocol:	the protocol for the keypress
++ * @scancode:	the scancode for the keypress
+  * @toggle:     the toggle value (protocol dependent, if the protocol doesn't
+  *              support toggle values, this should be set to zero)
+  *
+  * This routine is used to signal that a key has been pressed on the
+  * remote control. The driver must manually call rc_keyup() at a later stage.
+  */
+-void rc_keydown_notimeout(struct rc_dev *dev, int scancode, u8 toggle)
++void rc_keydown_notimeout(struct rc_dev *dev, enum rc_type protocol,
++			  u32 scancode, u8 toggle)
+ {
+ 	unsigned long flags;
+ 	u32 keycode = rc_g_keycode_from_table(dev, scancode);
+ 
+ 	spin_lock_irqsave(&dev->keylock, flags);
+-	ir_do_keydown(dev, scancode, keycode, toggle);
++	ir_do_keydown(dev, protocol, scancode, keycode, toggle);
+ 	spin_unlock_irqrestore(&dev->keylock, flags);
+ }
+ EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
+diff --git a/drivers/media/usb/dvb-usb-v2/af9015.c b/drivers/media/usb/dvb-usb-v2/af9015.c
+index da47d23..5ca738a 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9015.c
++++ b/drivers/media/usb/dvb-usb-v2/af9015.c
+@@ -1213,7 +1213,7 @@ static int af9015_rc_query(struct dvb_usb_device *d)
+ 	if ((state->rc_repeat != buf[6] || buf[0]) &&
+ 			!memcmp(&buf[12], state->rc_last, 4)) {
+ 		dev_dbg(&d->udev->dev, "%s: key repeated\n", __func__);
+-		rc_keydown(d->rc_dev, state->rc_keycode, 0);
++		rc_repeat(d->rc_dev);
+ 		state->rc_repeat = buf[6];
+ 		return ret;
+ 	}
+@@ -1233,18 +1233,22 @@ static int af9015_rc_query(struct dvb_usb_device *d)
+ 		if (buf[14] == (u8) ~buf[15]) {
+ 			if (buf[12] == (u8) ~buf[13]) {
+ 				/* NEC */
+-				state->rc_keycode = buf[12] << 8 | buf[14];
++				state->rc_keycode = RC_SCANCODE_NEC(buf[12],
++								    buf[14]);
+ 			} else {
+ 				/* NEC extended*/
+-				state->rc_keycode = buf[12] << 16 |
+-					buf[13] << 8 | buf[14];
++				state->rc_keycode = RC_SCANCODE_NECX(buf[12] << 8 |
++								     buf[13],
++								     buf[14]);
+ 			}
+ 		} else {
+ 			/* 32 bit NEC */
+-			state->rc_keycode = buf[12] << 24 | buf[13] << 16 |
+-					buf[14] << 8 | buf[15];
++			state->rc_keycode = RC_SCANCODE_NEC32(buf[12] << 24 |
++							      buf[13] << 16 |
++							      buf[14] << 8  |
++							      buf[15]);
+ 		}
+-		rc_keydown(d->rc_dev, state->rc_keycode, 0);
++		rc_keydown(d->rc_dev, RC_TYPE_NEC, state->rc_keycode, 0);
+ 	} else {
+ 		dev_dbg(&d->udev->dev, "%s: no key press\n", __func__);
+ 		/* Invalidate last keypress */
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 021e4d3..3bfba13 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -1287,19 +1287,20 @@ static int af9035_rc_query(struct dvb_usb_device *d)
+ 	if ((buf[2] + buf[3]) == 0xff) {
+ 		if ((buf[0] + buf[1]) == 0xff) {
+ 			/* NEC standard 16bit */
+-			key = buf[0] << 8 | buf[2];
++			key = RC_SCANCODE_NEC(buf[0], buf[2]);
+ 		} else {
+ 			/* NEC extended 24bit */
+-			key = buf[0] << 16 | buf[1] << 8 | buf[2];
++			key = RC_SCANCODE_NECX(buf[0] << 8 | buf[1], buf[2]);
+ 		}
+ 	} else {
+ 		/* NEC full code 32bit */
+-		key = buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3];
++		key = RC_SCANCODE_NEC32(buf[0] << 24 | buf[1] << 16 |
++					buf[2] << 8  | buf[3]);
+ 	}
+ 
+ 	dev_dbg(&d->udev->dev, "%s: %*ph\n", __func__, 4, buf);
+ 
+-	rc_keydown(d->rc_dev, key, 0);
++	rc_keydown(d->rc_dev, RC_TYPE_NEC, key, 0);
+ 
+ 	return 0;
+ 
+diff --git a/drivers/media/usb/dvb-usb-v2/anysee.c b/drivers/media/usb/dvb-usb-v2/anysee.c
+index eeab79b..e4a2382 100644
+--- a/drivers/media/usb/dvb-usb-v2/anysee.c
++++ b/drivers/media/usb/dvb-usb-v2/anysee.c
+@@ -1038,7 +1038,8 @@ static int anysee_rc_query(struct dvb_usb_device *d)
+ 	if (ircode[0]) {
+ 		dev_dbg(&d->udev->dev, "%s: key pressed %02x\n", __func__,
+ 				ircode[1]);
+-		rc_keydown(d->rc_dev, 0x08 << 8 | ircode[1], 0);
++		rc_keydown(d->rc_dev, RC_TYPE_NEC,
++			   RC_SCANCODE_NEC(0x08, ircode[1]), 0);
+ 	}
+ 
+ 	return 0;
+diff --git a/drivers/media/usb/dvb-usb-v2/az6007.c b/drivers/media/usb/dvb-usb-v2/az6007.c
+index c3c4b98..935dbaa 100644
+--- a/drivers/media/usb/dvb-usb-v2/az6007.c
++++ b/drivers/media/usb/dvb-usb-v2/az6007.c
+@@ -207,24 +207,27 @@ static int az6007_streaming_ctrl(struct dvb_frontend *fe, int onoff)
+ static int az6007_rc_query(struct dvb_usb_device *d)
+ {
+ 	struct az6007_device_state *st = d_to_priv(d);
+-	unsigned code = 0;
++	unsigned code;
+ 
+ 	az6007_read(d, AZ6007_READ_IR, 0, 0, st->data, 10);
+ 
+ 	if (st->data[1] == 0x44)
+ 		return 0;
+ 
+-	if ((st->data[1] ^ st->data[2]) == 0xff)
+-		code = st->data[1];
+-	else
+-		code = st->data[1] << 8 | st->data[2];
+-
+-	if ((st->data[3] ^ st->data[4]) == 0xff)
+-		code = code << 8 | st->data[3];
+-	else
+-		code = code << 16 | st->data[3] << 8 | st->data[4];
++	if ((st->data[3] ^ st->data[4]) == 0xff) {
++		if ((st->data[1] ^ st->data[2]) == 0xff)
++			code = RC_SCANCODE_NEC(st->data[1], st->data[3]);
++		else
++			code = RC_SCANCODE_NECX(st->data[1] << 8 | st->data[2],
++						st->data[3]);
++	} else {
++		code = RC_SCANCODE_NEC32(st->data[1] << 24 |
++					 st->data[2] << 16 |
++					 st->data[3] << 8  |
++					 st->data[4]);
++	}
+ 
+-	rc_keydown(d->rc_dev, code, st->data[5]);
++	rc_keydown(d->rc_dev, RC_TYPE_NEC, code, st->data[5]);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+index f674dc0..31f31fc 100644
+--- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
++++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+@@ -287,14 +287,13 @@ static void lme2510_int_response(struct urb *lme_urb)
+ 		case 0xaa:
+ 			debug_data_snipet(1, "INT Remote data snipet", ibuf);
+ 			if ((ibuf[4] + ibuf[5]) == 0xff) {
+-				key = ibuf[5];
+-				key += (ibuf[3] > 0)
+-					? (ibuf[3] ^ 0xff) << 8 : 0;
+-				key += (ibuf[2] ^ 0xff) << 16;
++				key = RC_SCANCODE_NECX((ibuf[2] ^ 0xff) << 8 |
++						       (ibuf[3] > 0) ? (ibuf[3] ^ 0xff) : 0,
++						       ibuf[5]);
+ 				deb_info(1, "INT Key =%08x", key);
+ 				if (adap_to_d(adap)->rc_dev != NULL)
+ 					rc_keydown(adap_to_d(adap)->rc_dev,
+-						key, 0);
++						   RC_TYPE_NEC, key, 0);
+ 			}
+ 			break;
+ 		case 0xbb:
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index c83c16c..574f4ee 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1249,19 +1249,19 @@ static int rtl2831u_rc_query(struct dvb_usb_device *d)
+ 		if (buf[2] == (u8) ~buf[3]) {
+ 			if (buf[0] == (u8) ~buf[1]) {
+ 				/* NEC standard (16 bit) */
+-				rc_code = buf[0] << 8 | buf[2];
++				rc_code = RC_SCANCODE_NEC(buf[0], buf[2]);
+ 			} else {
+ 				/* NEC extended (24 bit) */
+-				rc_code = buf[0] << 16 |
+-						buf[1] << 8 | buf[2];
++				rc_code = RC_SCANCODE_NECX(buf[0] << 8 | buf[1],
++							   buf[2]);
+ 			}
+ 		} else {
+ 			/* NEC full (32 bit) */
+-			rc_code = buf[0] << 24 | buf[1] << 16 |
+-					buf[2] << 8 | buf[3];
++			rc_code = RC_SCANCODE_NEC32(buf[0] << 24 | buf[1] << 16 |
++						    buf[2] << 8  | buf[3]);
+ 		}
+ 
+-		rc_keydown(d->rc_dev, rc_code, 0);
++		rc_keydown(d->rc_dev, RC_TYPE_NEC, rc_code, 0);
+ 
+ 		ret = rtl28xx_wr_reg(d, SYS_IRRC_SR, 1);
+ 		if (ret)
+diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
+index bf2a908..6afe7ea 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_core.c
++++ b/drivers/media/usb/dvb-usb/dib0700_core.c
+@@ -674,7 +674,8 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+ {
+ 	struct dvb_usb_device *d = purb->context;
+ 	struct dib0700_rc_response *poll_reply;
+-	u32 uninitialized_var(keycode);
++	enum rc_type protocol;
++	u32 uninitialized_var(scancode);
+ 	u8 toggle;
+ 
+ 	deb_info("%s()\n", __func__);
+@@ -707,6 +708,7 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+ 
+ 	switch (d->props.rc.core.protocol) {
+ 	case RC_BIT_NEC:
++		protocol = RC_TYPE_NEC;
+ 		toggle = 0;
+ 
+ 		/* NEC protocol sends repeat code as 0 0 0 FF */
+@@ -719,19 +721,21 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+ 		if ((poll_reply->system ^ poll_reply->not_system) != 0xff) {
+ 			deb_data("NEC extended protocol\n");
+ 			/* NEC extended code - 24 bits */
+-			keycode = be16_to_cpu(poll_reply->system16) << 8 | poll_reply->data;
++			scancode = RC_SCANCODE_NECX(be16_to_cpu(poll_reply->system16),
++						    poll_reply->data);
+ 		} else {
+ 			deb_data("NEC normal protocol\n");
+ 			/* normal NEC code - 16 bits */
+-			keycode = poll_reply->system << 8 | poll_reply->data;
++			scancode = RC_SCANCODE_NEC(poll_reply->system,
++						   poll_reply->data);
+ 		}
+ 
+ 		break;
+ 	default:
+ 		deb_data("RC5 protocol\n");
+-		/* RC5 Protocol */
++		protocol = RC_TYPE_RC5;
+ 		toggle = poll_reply->report_id;
+-		keycode = poll_reply->system << 8 | poll_reply->data;
++		scancode = RC_SCANCODE_RC5(poll_reply->system, poll_reply->data);
+ 
+ 		break;
+ 	}
+@@ -744,7 +748,7 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+ 		goto resubmit;
+ 	}
+ 
+-	rc_keydown(d->rc_dev, keycode, toggle);
++	rc_keydown(d->rc_dev, protocol, scancode, toggle);
+ 
+ resubmit:
+ 	/* Clean the buffer before we requeue */
+diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
+index 829323e..6a70223 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
+@@ -489,7 +489,8 @@ static u8 rc_request[] = { REQUEST_POLL_RC, 0 };
+ static int dib0700_rc_query_old_firmware(struct dvb_usb_device *d)
+ {
+ 	u8 key[4];
+-	u32 keycode;
++	enum rc_type protocol;
++	u32 scancode;
+ 	u8 toggle;
+ 	int i;
+ 	struct dib0700_state *st = d->priv;
+@@ -516,28 +517,29 @@ static int dib0700_rc_query_old_firmware(struct dvb_usb_device *d)
+ 
+ 	dib0700_rc_setup(d); /* reset ir sensor data to prevent false events */
+ 
+-	d->last_event = 0;
+ 	switch (d->props.rc.core.protocol) {
+ 	case RC_BIT_NEC:
+ 		/* NEC protocol sends repeat code as 0 0 0 FF */
+ 		if ((key[3-2] == 0x00) && (key[3-3] == 0x00) &&
+-		    (key[3] == 0xff))
+-			keycode = d->last_event;
+-		else {
+-			keycode = key[3-2] << 8 | key[3-3];
+-			d->last_event = keycode;
++		    (key[3] == 0xff)) {
++			rc_repeat(d->rc_dev);
++			return 0;
+ 		}
+ 
+-		rc_keydown(d->rc_dev, keycode, 0);
++		protocol = RC_TYPE_NEC;
++		scancode = RC_SCANCODE_NEC(key[3-2], key[3-3]);
++		toggle = 0;
+ 		break;
++
+ 	default:
+ 		/* RC-5 protocol changes toggle bit on new keypress */
+-		keycode = key[3-2] << 8 | key[3-3];
++		protocol = RC_TYPE_RC5;
++		scancode = RC_SCANCODE_RC5(key[3-2], key[3-3]);
+ 		toggle = key[3-1];
+-		rc_keydown(d->rc_dev, keycode, toggle);
+-
+ 		break;
+ 	}
++
++	rc_keydown(d->rc_dev, protocol, scancode, toggle);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
+index ae0f56a..8f22d79 100644
+--- a/drivers/media/usb/dvb-usb/dw2102.c
++++ b/drivers/media/usb/dvb-usb/dw2102.c
+@@ -1482,7 +1482,7 @@ static int dw2102_rc_query(struct dvb_usb_device *d)
+ 		if (msg.buf[0] != 0xff) {
+ 			deb_rc("%s: rc code: %x, %x\n",
+ 					__func__, key[0], key[1]);
+-			rc_keydown(d->rc_dev, key[0], 1);
++			rc_keydown(d->rc_dev, RC_TYPE_UNKNOWN, key[0], 0);
+ 		}
+ 	}
+ 
+@@ -1503,7 +1503,7 @@ static int prof_rc_query(struct dvb_usb_device *d)
+ 		if (msg.buf[0] != 0xff) {
+ 			deb_rc("%s: rc code: %x, %x\n",
+ 					__func__, key[0], key[1]);
+-			rc_keydown(d->rc_dev, key[0]^0xff, 1);
++			rc_keydown(d->rc_dev, RC_TYPE_UNKNOWN, key[0]^0xff, 0);
+ 		}
+ 	}
+ 
+@@ -1524,7 +1524,8 @@ static int su3000_rc_query(struct dvb_usb_device *d)
+ 		if (msg.buf[0] != 0xff) {
+ 			deb_rc("%s: rc code: %x, %x\n",
+ 					__func__, key[0], key[1]);
+-			rc_keydown(d->rc_dev, key[1] << 8 | key[0], 1);
++			rc_keydown(d->rc_dev, RC_TYPE_RC5,
++				   RC_SCANCODE_RC5(key[1], key[0]), 0);
+ 		}
+ 	}
+ 
+diff --git a/drivers/media/usb/dvb-usb/m920x.c b/drivers/media/usb/dvb-usb/m920x.c
+index 0306cb7..abf8ab2 100644
+--- a/drivers/media/usb/dvb-usb/m920x.c
++++ b/drivers/media/usb/dvb-usb/m920x.c
+@@ -245,7 +245,7 @@ static int m920x_rc_core_query(struct dvb_usb_device *d)
+ 	else if (state == REMOTE_KEY_REPEAT)
+ 		rc_repeat(d->rc_dev);
+ 	else
+-		rc_keydown(d->rc_dev, rc_state[1], 0);
++		rc_keydown(d->rc_dev, RC_TYPE_UNKNOWN, rc_state[1], 0);
+ 
+ out:
+ 	kfree(rc_state);
+diff --git a/drivers/media/usb/dvb-usb/pctv452e.c b/drivers/media/usb/dvb-usb/pctv452e.c
+index 449a996..bdfe896 100644
+--- a/drivers/media/usb/dvb-usb/pctv452e.c
++++ b/drivers/media/usb/dvb-usb/pctv452e.c
+@@ -565,12 +565,12 @@ static int pctv452e_rc_query(struct dvb_usb_device *d)
+ 
+ 	if ((rx[3] == 9) &&  (rx[12] & 0x01)) {
+ 		/* got a "press" event */
+-		state->last_rc_key = (rx[7] << 8) | rx[6];
++		state->last_rc_key = RC_SCANCODE_RC5(rx[7], rx[6]);
+ 		if (debug > 2)
+ 			info("%s: cmd=0x%02x sys=0x%02x\n",
+ 				__func__, rx[6], rx[7]);
+ 
+-		rc_keydown(d->rc_dev, state->last_rc_key, 0);
++		rc_keydown(d->rc_dev, RC_TYPE_RC5, state->last_rc_key, 0);
+ 	} else if (state->last_rc_key) {
+ 		rc_keyup(d->rc_dev);
+ 		state->last_rc_key = 0;
+@@ -927,7 +927,7 @@ static struct dvb_usb_device_properties pctv452e_properties = {
+ 
+ 	.rc.core = {
+ 		.rc_codes	= RC_MAP_DIB0700_RC5_TABLE,
+-		.allowed_protos	= RC_BIT_UNKNOWN,
++		.allowed_protos	= RC_BIT_RC5,
+ 		.rc_query	= pctv452e_rc_query,
+ 		.rc_interval	= 100,
+ 	},
+@@ -980,7 +980,7 @@ static struct dvb_usb_device_properties tt_connect_s2_3600_properties = {
+ 
+ 	.rc.core = {
+ 		.rc_codes	= RC_MAP_TT_1500,
+-		.allowed_protos	= RC_BIT_UNKNOWN,
++		.allowed_protos	= RC_BIT_RC5,
+ 		.rc_query	= pctv452e_rc_query,
+ 		.rc_interval	= 100,
+ 	},
+diff --git a/drivers/media/usb/dvb-usb/ttusb2.c b/drivers/media/usb/dvb-usb/ttusb2.c
+index 2ce3d19..f107173 100644
+--- a/drivers/media/usb/dvb-usb/ttusb2.c
++++ b/drivers/media/usb/dvb-usb/ttusb2.c
+@@ -438,9 +438,9 @@ static int tt3650_rc_query(struct dvb_usb_device *d)
+ 
+ 	if (rx[8] & 0x01) {
+ 		/* got a "press" event */
+-		st->last_rc_key = (rx[3] << 8) | rx[2];
++		st->last_rc_key = RC_SCANCODE_RC5(rx[3], rx[2]);
+ 		deb_info("%s: cmd=0x%02x sys=0x%02x\n", __func__, rx[2], rx[3]);
+-		rc_keydown(d->rc_dev, st->last_rc_key, rx[1]);
++		rc_keydown(d->rc_dev, RC_TYPE_RC5, st->last_rc_key, rx[1]);
+ 	} else if (st->last_rc_key) {
+ 		rc_keyup(d->rc_dev);
+ 		st->last_rc_key = 0;
+@@ -747,7 +747,7 @@ static struct dvb_usb_device_properties ttusb2_properties_ct3650 = {
+ 		.rc_interval      = 150, /* Less than IR_KEYPRESS_TIMEOUT */
+ 		.rc_codes         = RC_MAP_TT_1500,
+ 		.rc_query         = tt3650_rc_query,
+-		.allowed_protos   = RC_BIT_UNKNOWN,
++		.allowed_protos   = RC_BIT_RC5,
+ 	},
+ 
+ 	.num_adapters = 1,
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index 56ef49d..014888f 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -27,6 +27,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/usb.h>
+ #include <linux/slab.h>
++#include <linux/bitrev.h>
+ 
+ #include "em28xx.h"
+ 
+@@ -53,6 +54,7 @@ struct em28xx_ir_poll_result {
+ 	unsigned int toggle_bit:1;
+ 	unsigned int read_count:7;
+ 
++	enum rc_type protocol;
+ 	u32 scancode;
+ };
+ 
+@@ -72,7 +74,7 @@ struct em28xx_IR {
+ 	/* i2c slave address of external device (if used) */
+ 	u16 i2c_dev_addr;
+ 
+-	int  (*get_key_i2c)(struct i2c_client *, u32 *);
++	int  (*get_key_i2c)(struct i2c_client *ir, enum rc_type *protocol, u32 *scancode);
+ 	int  (*get_key)(struct em28xx_IR *, struct em28xx_ir_poll_result *);
+ };
+ 
+@@ -80,7 +82,8 @@ struct em28xx_IR {
+  I2C IR based get keycodes - should be used with ir-kbd-i2c
+  **********************************************************/
+ 
+-static int em28xx_get_key_terratec(struct i2c_client *i2c_dev, u32 *ir_key)
++static int em28xx_get_key_terratec(struct i2c_client *i2c_dev,
++				   enum rc_type *protocol, u32 *scancode)
+ {
+ 	unsigned char b;
+ 
+@@ -98,14 +101,15 @@ static int em28xx_get_key_terratec(struct i2c_client *i2c_dev, u32 *ir_key)
+ 		/* keep old data */
+ 		return 1;
+ 
+-	*ir_key = b;
++	*protocol = RC_TYPE_UNKNOWN;
++	*scancode = b;
+ 	return 1;
+ }
+ 
+-static int em28xx_get_key_em_haup(struct i2c_client *i2c_dev, u32 *ir_key)
++static int em28xx_get_key_em_haup(struct i2c_client *i2c_dev,
++				  enum rc_type *protocol, u32 *scancode)
+ {
+ 	unsigned char buf[2];
+-	u16 code;
+ 	int size;
+ 
+ 	/* poll IR chip */
+@@ -127,26 +131,13 @@ static int em28xx_get_key_em_haup(struct i2c_client *i2c_dev, u32 *ir_key)
+ 	 * So, the code translation is not complete. Yet, it is enough to
+ 	 * work with the provided RC5 IR.
+ 	 */
+-	code =
+-		 ((buf[0] & 0x01) ? 0x0020 : 0) | /* 		0010 0000 */
+-		 ((buf[0] & 0x02) ? 0x0010 : 0) | /* 		0001 0000 */
+-		 ((buf[0] & 0x04) ? 0x0008 : 0) | /* 		0000 1000 */
+-		 ((buf[0] & 0x08) ? 0x0004 : 0) | /* 		0000 0100 */
+-		 ((buf[0] & 0x10) ? 0x0002 : 0) | /* 		0000 0010 */
+-		 ((buf[0] & 0x20) ? 0x0001 : 0) | /* 		0000 0001 */
+-		 ((buf[1] & 0x08) ? 0x1000 : 0) | /* 0001 0000		  */
+-		 ((buf[1] & 0x10) ? 0x0800 : 0) | /* 0000 1000		  */
+-		 ((buf[1] & 0x20) ? 0x0400 : 0) | /* 0000 0100		  */
+-		 ((buf[1] & 0x40) ? 0x0200 : 0) | /* 0000 0010		  */
+-		 ((buf[1] & 0x80) ? 0x0100 : 0);  /* 0000 0001		  */
+-
+-	/* return key */
+-	*ir_key = code;
++	*protocol = RC_TYPE_RC5;
++	*scancode = (bitrev8(buf[1]) & 0x1f) << 8 | bitrev8(buf[0]) >> 2;
+ 	return 1;
+ }
+ 
+ static int em28xx_get_key_pinnacle_usb_grey(struct i2c_client *i2c_dev,
+-					    u32 *ir_key)
++					    enum rc_type *protocol, u32 *scancode)
+ {
+ 	unsigned char buf[3];
+ 
+@@ -158,13 +149,13 @@ static int em28xx_get_key_pinnacle_usb_grey(struct i2c_client *i2c_dev,
+ 	if (buf[0] != 0x00)
+ 		return 0;
+ 
+-	*ir_key = buf[2]&0x3f;
+-
++	*protocol = RC_TYPE_UNKNOWN;
++	*scancode = buf[2] & 0x3f;
+ 	return 1;
+ }
+ 
+ static int em28xx_get_key_winfast_usbii_deluxe(struct i2c_client *i2c_dev,
+-					       u32 *ir_key)
++					       enum rc_type *protocol, u32 *scancode)
+ {
+ 	unsigned char subaddr, keydetect, key;
+ 
+@@ -184,7 +175,8 @@ static int em28xx_get_key_winfast_usbii_deluxe(struct i2c_client *i2c_dev,
+ 	if (key == 0x00)
+ 		return 0;
+ 
+-	*ir_key = key;
++	*protocol = RC_TYPE_UNKNOWN;
++	*scancode = key;
+ 	return 1;
+ }
+ 
+@@ -215,7 +207,22 @@ static int default_polling_getkey(struct em28xx_IR *ir,
+ 	poll_result->read_count = (msg[0] & 0x7f);
+ 
+ 	/* Remote Control Address/Data (Regs 0x46/0x47) */
+-	poll_result->scancode = msg[1] << 8 | msg[2];
++	switch (ir->rc_type) {
++	case RC_BIT_RC5:
++		poll_result->protocol = RC_TYPE_RC5;
++		poll_result->scancode = RC_SCANCODE_RC5(msg[1], msg[2]);
++		break;
++
++	case RC_BIT_NEC:
++		poll_result->protocol = RC_TYPE_NEC;
++		poll_result->scancode = RC_SCANCODE_NEC(msg[1], msg[2]);
++		break;
++
++	default:
++		poll_result->protocol = RC_TYPE_UNKNOWN;
++		poll_result->scancode = msg[1] << 8 | msg[2];
++		break;
++	}
+ 
+ 	return 0;
+ }
+@@ -247,25 +254,32 @@ static int em2874_polling_getkey(struct em28xx_IR *ir,
+ 	 */
+ 	switch (ir->rc_type) {
+ 	case RC_BIT_RC5:
+-		poll_result->scancode = msg[1] << 8 | msg[2];
++		poll_result->protocol = RC_TYPE_RC5;
++		poll_result->scancode = RC_SCANCODE_RC5(msg[1], msg[2]);
+ 		break;
++
+ 	case RC_BIT_NEC:
++		poll_result->protocol = RC_TYPE_RC5;
++		poll_result->scancode = msg[1] << 8 | msg[2];
+ 		if ((msg[3] ^ msg[4]) != 0xff)		/* 32 bits NEC */
+-			poll_result->scancode = (msg[1] << 24) |
+-						(msg[2] << 16) |
+-						(msg[3] << 8)  |
+-						 msg[4];
++			poll_result->scancode = RC_SCANCODE_NEC32((msg[1] << 24) |
++								  (msg[2] << 16) |
++								  (msg[3] << 8)  |
++								  (msg[4]));
+ 		else if ((msg[1] ^ msg[2]) != 0xff)	/* 24 bits NEC */
+-			poll_result->scancode = (msg[1] << 16) |
+-						(msg[2] << 8)  |
+-						 msg[3];
++			poll_result->scancode = RC_SCANCODE_NECX(msg[1] << 8 |
++								 msg[2], msg[3]); 
+ 		else					/* Normal NEC */
+-			poll_result->scancode = msg[1] << 8 | msg[3];
++			poll_result->scancode = RC_SCANCODE_NEC(msg[1], msg[3]);
+ 		break;
++
+ 	case RC_BIT_RC6_0:
+-		poll_result->scancode = msg[1] << 8 | msg[2];
++		poll_result->protocol = RC_TYPE_RC6_0;
++		poll_result->scancode = RC_SCANCODE_RC6_0(msg[1], msg[2]);
+ 		break;
++
+ 	default:
++		poll_result->protocol = RC_TYPE_UNKNOWN;
+ 		poll_result->scancode = (msg[1] << 24) | (msg[2] << 16) |
+ 					(msg[3] << 8)  | msg[4];
+ 		break;
+@@ -281,22 +295,24 @@ static int em2874_polling_getkey(struct em28xx_IR *ir,
+ static int em28xx_i2c_ir_handle_key(struct em28xx_IR *ir)
+ {
+ 	struct em28xx *dev = ir->dev;
+-	static u32 ir_key;
++	static u32 scancode;
++	enum rc_type protocol;
+ 	int rc;
+ 	struct i2c_client client;
+ 
+ 	client.adapter = &ir->dev->i2c_adap[dev->def_i2c_bus];
+ 	client.addr = ir->i2c_dev_addr;
+ 
+-	rc = ir->get_key_i2c(&client, &ir_key);
++	rc = ir->get_key_i2c(&client, &protocol, &scancode);
+ 	if (rc < 0) {
+ 		dprintk("ir->get_key_i2c() failed: %d\n", rc);
+ 		return rc;
+ 	}
+ 
+ 	if (rc) {
+-		dprintk("%s: keycode = 0x%04x\n", __func__, ir_key);
+-		rc_keydown(ir->rc, ir_key, 0);
++		dprintk("%s: proto = 0x%04x, scancode = 0x%04x\n",
++			__func__, protocol, scancode);
++		rc_keydown(ir->rc, protocol, scancode, 0);
+ 	}
+ 	return 0;
+ }
+@@ -319,10 +335,12 @@ static void em28xx_ir_handle_key(struct em28xx_IR *ir)
+ 			poll_result.scancode);
+ 		if (ir->full_code)
+ 			rc_keydown(ir->rc,
++				   poll_result.protocol,
+ 				   poll_result.scancode,
+ 				   poll_result.toggle_bit);
+ 		else
+ 			rc_keydown(ir->rc,
++				   RC_TYPE_UNKNOWN,
+ 				   poll_result.scancode & 0xff,
+ 				   poll_result.toggle_bit);
+ 
+diff --git a/drivers/media/usb/tm6000/tm6000-input.c b/drivers/media/usb/tm6000/tm6000-input.c
+index d1af543..676c0232 100644
+--- a/drivers/media/usb/tm6000/tm6000-input.c
++++ b/drivers/media/usb/tm6000/tm6000-input.c
+@@ -162,11 +162,42 @@ static int tm6000_ir_config(struct tm6000_IR *ir)
+ 	return 0;
+ }
+ 
++static void tm6000_ir_keydown(struct tm6000_IR *ir,
++			      const char *buf, unsigned int len)
++{
++	u8 device, command;
++	u32 scancode;
++	enum rc_type protocol;
++
++	if (len < 1)
++		return;
++
++	command = buf[0];
++	device = (len > 1 ? buf[1] : 0x0);
++	switch (ir->rc_type) {
++	case RC_BIT_RC5:
++		protocol = RC_TYPE_RC5;
++		scancode = RC_SCANCODE_RC5(device, command);
++		break;
++	case RC_BIT_NEC:
++		protocol = RC_TYPE_NEC;
++		scancode = RC_SCANCODE_NEC(device, command);
++		break;
++	default:
++		protocol = RC_TYPE_OTHER;
++		scancode = RC_SCANCODE_OTHER(device << 8 | command);
++		break;
++	}
++
++	dprintk(1, "%s, protocol: 0x%04x, scancode: 0x%08x\n",
++		__func__, protocol, scancode);
++	rc_keydown(ir->rc, protocol, scancode, 0);
++}
++
+ static void tm6000_ir_urb_received(struct urb *urb)
+ {
+ 	struct tm6000_core *dev = urb->context;
+ 	struct tm6000_IR *ir = dev->ir;
+-	struct tm6000_ir_poll_result poll_result;
+ 	char *buf;
+ 
+ 	dprintk(2, "%s\n",__func__);
+@@ -184,12 +215,7 @@ static void tm6000_ir_urb_received(struct urb *urb)
+ 			       DUMP_PREFIX_OFFSET,16, 1,
+ 			       buf, urb->actual_length, false);
+ 
+-	poll_result.rc_data = buf[0];
+-	if (urb->actual_length > 1)
+-		poll_result.rc_data |= buf[1] << 8;
+-
+-	dprintk(1, "%s, scancode: 0x%04x\n",__func__, poll_result.rc_data);
+-	rc_keydown(ir->rc, poll_result.rc_data, 0);
++	tm6000_ir_keydown(ir, urb->transfer_buffer, urb->actual_length);
+ 
+ 	usb_submit_urb(urb, GFP_ATOMIC);
+ 	/*
+@@ -204,7 +230,6 @@ static void tm6000_ir_handle_key(struct work_struct *work)
+ {
+ 	struct tm6000_IR *ir = container_of(work, struct tm6000_IR, work.work);
+ 	struct tm6000_core *dev = ir->dev;
+-	struct tm6000_ir_poll_result poll_result;
+ 	int rc;
+ 	u8 buf[2];
+ 
+@@ -219,13 +244,8 @@ static void tm6000_ir_handle_key(struct work_struct *work)
+ 	if (rc < 0)
+ 		return;
+ 
+-	if (rc > 1)
+-		poll_result.rc_data = buf[0] | buf[1] << 8;
+-	else
+-		poll_result.rc_data = buf[0];
+-
+ 	/* Check if something was read */
+-	if ((poll_result.rc_data & 0xff) == 0xff) {
++	if ((buf[0] & 0xff) == 0xff) {
+ 		if (!ir->pwled) {
+ 			tm6000_flash_led(dev, 1);
+ 			ir->pwled = 1;
+@@ -233,8 +253,7 @@ static void tm6000_ir_handle_key(struct work_struct *work)
+ 		return;
+ 	}
+ 
+-	dprintk(1, "%s, scancode: 0x%04x\n",__func__, poll_result.rc_data);
+-	rc_keydown(ir->rc, poll_result.rc_data, 0);
++	tm6000_ir_keydown(ir, buf, rc);
+ 	tm6000_flash_led(dev, 0);
+ 	ir->pwled = 0;
+ 
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 0b9f890..dbbe63e 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -88,6 +88,7 @@ enum rc_filter_type {
+  * @keyup_jiffies: time (in jiffies) when the current keypress should be released
+  * @timer_keyup: timer for releasing a keypress
+  * @last_keycode: keycode of last keypress
++ * @last_protocol: protocol of last keypress
+  * @last_scancode: scancode of last keypress
+  * @last_toggle: toggle value of last command
+  * @timeout: optional time after which device stops sending data
+@@ -138,6 +139,7 @@ struct rc_dev {
+ 	unsigned long			keyup_jiffies;
+ 	struct timer_list		timer_keyup;
+ 	u32				last_keycode;
++	enum rc_type			last_protocol;
+ 	u32				last_scancode;
+ 	u8				last_toggle;
+ 	u32				timeout;
+@@ -217,8 +219,8 @@ int rc_open(struct rc_dev *rdev);
+ void rc_close(struct rc_dev *rdev);
+ 
+ void rc_repeat(struct rc_dev *dev);
+-void rc_keydown(struct rc_dev *dev, int scancode, u8 toggle);
+-void rc_keydown_notimeout(struct rc_dev *dev, int scancode, u8 toggle);
++void rc_keydown(struct rc_dev *dev, enum rc_type protocol, u32 scancode, u8 toggle);
++void rc_keydown_notimeout(struct rc_dev *dev, enum rc_type protocol, u32 scancode, u8 toggle);
+ void rc_keyup(struct rc_dev *dev);
+ u32 rc_g_keycode_from_table(struct rc_dev *dev, u32 scancode);
+ 
 
-The problem is that vpif_calculate_offsets() is called in start_streaming,
-but it should be called earlier in queue_setup. After queue_setup is called
-the application is no longer allowed to change the format, so that's a good
-place to do it. And then you can drop the vb2_is_streaming() check here
-since the offsets will always be valid.
-
-Also the 'if (vb->state != VB2_BUF_STATE_ACTIVE && vb->state != VB2_BUF_STATE_PREPARED)'
-can be droppedd. It will never be called in an invalid state.
-
-This check:
-
-	 if (vb2_plane_vaddr(vb, 0) &&
-                vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
-                        goto exit;
-
-can also be improved: drop the vb2_plane_vaddr(vb, 0) since the payload check
-should be done unconditionally. The 'goto exit' should be replaced with a
-proper vpif_dbg since the message printed in the 'exit' is for the alignment
-check.
-
-> @@ -131,9 +146,7 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
->  				unsigned int *nbuffers, unsigned int *nplanes,
->  				unsigned int sizes[], void *alloc_ctxs[])
->  {
-> -	/* Get the file handle object and channel object */
-> -	struct vpif_fh *fh = vb2_get_drv_priv(vq);
-> -	struct channel_obj *ch = fh->channel;
-> +	struct channel_obj *ch = vb2_get_drv_priv(vq);
->  	struct common_obj *common;
->  	unsigned long size;
->  
-> @@ -141,8 +154,7 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
->  
->  	vpif_dbg(2, debug, "vpif_buffer_setup\n");
->  
-> -	/* If memory type is not mmap, return */
-> -	if (V4L2_MEMORY_MMAP == common->memory) {
-> +	if (vq->memory == V4L2_MEMORY_MMAP) {
->  		/* Calculate the size of the buffer */
->  		size = config_params.channel_bufsize[ch->channel_id];
->  		/*
-
-A few general questions regarding queue_setup (not specific to this patch):
-
-Why do we use 'config_params.channel_bufsize[ch->channel_id]' as the buffer size
-in the MMAP case instead of common->fmt.fmt.pix.sizeimage? Why do we have the
-ch[01]_bufsize module options? How and when is video_limit configured? Why do we
-have ch[01]_numbuffers module options?
-
-Since you added support for create_buffers the code in queue_setup needs to
-change a bit as well:
-
-        if (*nbuffers < config_params.min_numbuffers)
-                *nbuffers = config_params.min_numbuffers;
-
-becomes:
-
-        if (vq->num_buffers + *nbuffers < config_params.min_numbuffers)
-                *nbuffers = config_params.min_numbuffers - vq->num_buffers;
-
-And when setting the size it should be:
-
-	size = fmt ? fmt->fmt.pix.sizeimage : common->fmt.fmt.pix.sizeimage;
-
-> @@ -183,11 +195,8 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
->   */
->  static void vpif_buffer_queue(struct vb2_buffer *vb)
->  {
-> -	/* Get the file handle object and channel object */
-> -	struct vpif_fh *fh = vb2_get_drv_priv(vb->vb2_queue);
-> -	struct channel_obj *ch = fh->channel;
-> -	struct vpif_cap_buffer *buf = container_of(vb,
-> -				struct vpif_cap_buffer, vb);
-> +	struct channel_obj *ch = vb2_get_drv_priv(vb->vb2_queue);
-> +	struct vpif_cap_buffer *buf = to_vpif_buffer(vb);
->  	struct common_obj *common;
->  	unsigned long flags;
->  
-> @@ -210,11 +219,8 @@ static void vpif_buffer_queue(struct vb2_buffer *vb)
->   */
->  static void vpif_buf_cleanup(struct vb2_buffer *vb)
->  {
-> -	/* Get the file handle object and channel object */
-> -	struct vpif_fh *fh = vb2_get_drv_priv(vb->vb2_queue);
-> -	struct vpif_cap_buffer *buf = container_of(vb,
-> -					struct vpif_cap_buffer, vb);
-> -	struct channel_obj *ch = fh->channel;
-> +	struct channel_obj *ch = vb2_get_drv_priv(vb->vb2_queue);
-> +	struct vpif_cap_buffer *buf = to_vpif_buffer(vb);
->  	struct common_obj *common;
->  	unsigned long flags;
->  
-
-buf_cleanup is *never* called if the buffer is in the active state, so you
-can drop the whole function.
-
-> @@ -227,65 +233,26 @@ static void vpif_buf_cleanup(struct vb2_buffer *vb)
->  
->  }
->  
-> -static void vpif_wait_prepare(struct vb2_queue *vq)
-> -{
-> -	struct vpif_fh *fh = vb2_get_drv_priv(vq);
-> -	struct channel_obj *ch = fh->channel;
-> -	struct common_obj *common;
-> -
-> -	common = &ch->common[VPIF_VIDEO_INDEX];
-> -	mutex_unlock(&common->lock);
-> -}
-> -
-> -static void vpif_wait_finish(struct vb2_queue *vq)
-> -{
-> -	struct vpif_fh *fh = vb2_get_drv_priv(vq);
-> -	struct channel_obj *ch = fh->channel;
-> -	struct common_obj *common;
-> -
-> -	common = &ch->common[VPIF_VIDEO_INDEX];
-> -	mutex_lock(&common->lock);
-> -}
-> -
-> -static int vpif_buffer_init(struct vb2_buffer *vb)
-> -{
-> -	struct vpif_cap_buffer *buf = container_of(vb,
-> -					struct vpif_cap_buffer, vb);
-> -
-> -	INIT_LIST_HEAD(&buf->list);
-> -
-> -	return 0;
-> -}
-> -
-> -static u8 channel_first_int[VPIF_NUMBER_OF_OBJECTS][2] =
-> -	{ {1, 1} };
-> -
->  static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
->  {
-> -	struct vpif_capture_config *vpif_config_data =
-> -					vpif_dev->platform_data;
-> -	struct vpif_fh *fh = vb2_get_drv_priv(vq);
-> -	struct channel_obj *ch = fh->channel;
-> +	struct vpif_capture_config *vpif_config_data;
-> +	struct channel_obj *ch = vb2_get_drv_priv(vq);
->  	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
->  	struct vpif_params *vpif = &ch->vpifparams;
-> -	unsigned long addr = 0;
-> -	unsigned long flags;
-> +	struct vpif_cap_buffer *buf, *tmp;
-> +	unsigned long addr, flags;
->  	int ret;
->  
->  	spin_lock_irqsave(&common->irqlock, flags);
->  
-> -	/* Get the next frame from the buffer queue */
-> -	common->cur_frm = common->next_frm = list_entry(common->dma_queue.next,
-> -				    struct vpif_cap_buffer, list);
-> -	/* Remove buffer from the buffer queue */
-> -	list_del(&common->cur_frm->list);
-> -	spin_unlock_irqrestore(&common->irqlock, flags);
-> -	/* Mark state of the current frame to active */
-> -	common->cur_frm->vb.state = VB2_BUF_STATE_ACTIVE;
-> -	/* Initialize field_id and started member */
-> +	/* Initialize field_id */
->  	ch->field_id = 0;
-> -	common->started = 1;
-> -	addr = vb2_dma_contig_plane_dma_addr(&common->cur_frm->vb, 0);
-> +
-> +	ret = vpif_check_format(ch, &common->fmt.fmt.pix, 0);
-> +	if (ret) {
-> +		ret = -EINVAL;
-> +		goto err;
-> +	}
-
-Why do a check_format here? Since that is already checked by try/s_fmt you
-should never get a wrong format here in start_streaming().
-
->  
->  	/* Calculate the offset for Y and C data in the buffer */
->  	vpif_calculate_offsets(ch);
-
-The same is true for the field checks that are done after the call to
-vpif_calculate_offsets.
-
-The way it should work is that s_std and s_dv_timings reset the current format
-to something that is valid for the new standard/timings. So field can never be
-wrong. See e.g. how the v4l2-pci-skeleton.c example source does it.
-
-> @@ -296,30 +263,50 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
->  	    (!vpif->std_info.frm_fmt &&
->  	     (common->fmt.fmt.pix.field == V4L2_FIELD_NONE))) {
->  		vpif_dbg(1, debug, "conflict in field format and std format\n");
-> -		return -EINVAL;
-> +		ret = -EINVAL;
-> +		goto err;
->  	}
->  
-> +	vpif_config_data = vpif_dev->platform_data;
->  	/* configure 1 or 2 channel mode */
->  	if (vpif_config_data->setup_input_channel_mode) {
->  		ret = vpif_config_data->
->  			setup_input_channel_mode(vpif->std_info.ycmux_mode);
->  		if (ret < 0) {
->  			vpif_dbg(1, debug, "can't set vpif channel mode\n");
-> -			return ret;
-> +			ret = -EINVAL;
-> +			goto err;
->  		}
->  	}
->  
-> +	ret = v4l2_subdev_call(ch->sd, video, s_stream, 1);
-> +
-> +	if (ret && ret != -ENOIOCTLCMD && ret != -ENODEV) {
-> +		vpif_dbg(1, debug, "stream on failed in subdev\n");
-> +		goto err;
-> +	}
-> +
->  	/* Call vpif_set_params function to set the parameters and addresses */
->  	ret = vpif_set_video_params(vpif, ch->channel_id);
-> -
->  	if (ret < 0) {
->  		vpif_dbg(1, debug, "can't set video params\n");
-> -		return ret;
-> +		ret = -EINVAL;
-> +		goto err;
->  	}
-> -
-> -	common->started = ret;
-> +	ycmux_mode = ret;
->  	vpif_config_addr(ch, ret);
->  
-> +	/* Get the next frame from the buffer queue */
-> +	common->cur_frm = common->next_frm = list_entry(common->dma_queue.next,
-> +				    struct vpif_cap_buffer, list);
-> +	/* Remove buffer from the buffer queue */
-> +	list_del(&common->cur_frm->list);
-> +	spin_unlock_irqrestore(&common->irqlock, flags);
-> +	/* Mark state of the current frame to active */
-> +	common->cur_frm->vb.state = VB2_BUF_STATE_ACTIVE;
-> +
-> +	addr = vb2_dma_contig_plane_dma_addr(&common->cur_frm->vb, 0);
-> +
->  	common->set_addr(addr + common->ytop_off,
->  			 addr + common->ybtm_off,
->  			 addr + common->ctop_off,
-> @@ -330,31 +317,35 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
->  	 * VPIF register
->  	 */
->  	channel_first_int[VPIF_VIDEO_INDEX][ch->channel_id] = 1;
-> -	if ((VPIF_CHANNEL0_VIDEO == ch->channel_id)) {
-> +	if (VPIF_CHANNEL0_VIDEO == ch->channel_id) {
->  		channel0_intr_assert();
->  		channel0_intr_enable(1);
->  		enable_channel0(1);
->  	}
-> -	if ((VPIF_CHANNEL1_VIDEO == ch->channel_id) ||
-> -	    (common->started == 2)) {
-> +	if (VPIF_CHANNEL1_VIDEO == ch->channel_id || ycmux_mode == 2) {
->  		channel1_intr_assert();
->  		channel1_intr_enable(1);
->  		enable_channel1(1);
->  	}
->  
->  	return 0;
-> +
-> +err:
-> +	list_for_each_entry_safe(buf, tmp, &common->dma_queue, list) {
-> +		list_del(&buf->list);
-> +		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-> +	}
-> +
-> +	return ret;
->  }
->  
->  /* abort streaming and wait for last buffer */
->  static int vpif_stop_streaming(struct vb2_queue *vq)
->  {
-> -	struct vpif_fh *fh = vb2_get_drv_priv(vq);
-> -	struct channel_obj *ch = fh->channel;
-> +	struct channel_obj *ch = vb2_get_drv_priv(vq);
->  	struct common_obj *common;
->  	unsigned long flags;
-> -
-> -	if (!vb2_is_streaming(vq))
-> -		return 0;
-> +	int ret;
->  
->  	common = &ch->common[VPIF_VIDEO_INDEX];
->  
-> @@ -363,12 +354,17 @@ static int vpif_stop_streaming(struct vb2_queue *vq)
->  		enable_channel0(0);
->  		channel0_intr_enable(0);
->  	}
-> -	if ((VPIF_CHANNEL1_VIDEO == ch->channel_id) ||
-> -		(2 == common->started)) {
-> +	if (VPIF_CHANNEL1_VIDEO == ch->channel_id || ycmux_mode == 2) {
->  		enable_channel1(0);
->  		channel1_intr_enable(0);
->  	}
-> -	common->started = 0;
-> +
-> +	ycmux_mode = 0;
-> +
-> +	ret = v4l2_subdev_call(ch->sd, video, s_stream, 0);
-> +
-> +	if (ret && ret != -ENOIOCTLCMD && ret != -ENODEV)
-> +		vpif_dbg(1, debug, "stream off failed in subdev\n");
->  
->  	/* release all active buffers */
->  	spin_lock_irqsave(&common->irqlock, flags);
-> @@ -396,9 +392,8 @@ static int vpif_stop_streaming(struct vb2_queue *vq)
->  
->  static struct vb2_ops video_qops = {
->  	.queue_setup		= vpif_buffer_queue_setup,
-> -	.wait_prepare		= vpif_wait_prepare,
-> -	.wait_finish		= vpif_wait_finish,
-> -	.buf_init		= vpif_buffer_init,
-> +	.wait_prepare		= vb2_ops_wait_prepare,
-> +	.wait_finish		= vb2_ops_wait_finish,
->  	.buf_prepare		= vpif_buffer_prepare,
->  	.start_streaming	= vpif_start_streaming,
->  	.stop_streaming		= vpif_stop_streaming,
-> @@ -417,8 +412,7 @@ static struct vb2_ops video_qops = {
->  static void vpif_process_buffer_complete(struct common_obj *common)
->  {
->  	v4l2_get_timestamp(&common->cur_frm->vb.v4l2_buf.timestamp);
-> -	vb2_buffer_done(&common->cur_frm->vb,
-> -					    VB2_BUF_STATE_DONE);
-> +	vb2_buffer_done(&common->cur_frm->vb, VB2_BUF_STATE_DONE);
-
-common->cur_frm->vb.v4l2_buf.field should also be set.
-
-This should have been caught by v4l2-compliance -s!
-
->  	/* Make curFrm pointing to nextFrm */
->  	common->cur_frm = common->next_frm;
->  }
-> @@ -433,7 +427,7 @@ static void vpif_process_buffer_complete(struct common_obj *common)
->   */
->  static void vpif_schedule_next_buffer(struct common_obj *common)
->  {
-> -	unsigned long addr = 0;
-> +	unsigned long addr;
->  
->  	spin_lock(&common->irqlock);
->  	common->next_frm = list_entry(common->dma_queue.next,
-> @@ -479,7 +473,7 @@ static irqreturn_t vpif_channel_isr(int irq, void *dev_id)
->  	for (i = 0; i < VPIF_NUMBER_OF_OBJECTS; i++) {
->  		common = &ch->common[i];
->  		/* skip If streaming is not started in this channel */
-> -		if (0 == common->started)
-> +		if (!vb2_is_streaming(&common->buffer_queue))
->  			continue;
-
-This check can be dropped. If you get here, you are always streaming.
-
->  
->  		/* Check the field format */
-> @@ -683,10 +677,6 @@ static void vpif_config_format(struct channel_obj *ch)
->  	vpif_dbg(2, debug, "vpif_config_format\n");
->  
->  	common->fmt.fmt.pix.field = V4L2_FIELD_ANY;
-
-In general I strongly recommend against using FIELD_ANY internally. It's
-cleaner to only use proper field values that are valid for the current format.
-
-Only in check_fmt would you check for FIELD_ANY and replace it with whatever
-is appropriate for the current format. The reason is that while the app my
-specify FIELD_ANY, the driver should never return it anywhere. To keep that
-from happening and to keep everything sane it is best in my experience to
-just make sure it is never used in internal data structures.
-
-> -	if (config_params.numbuffers[ch->channel_id] == 0)
-> -		common->memory = V4L2_MEMORY_USERPTR;
-> -	else
-> -		common->memory = V4L2_MEMORY_MMAP;
->  
->  	common->fmt.fmt.pix.sizeimage
->  	    = config_params.channel_bufsize[ch->channel_id];
-> @@ -837,415 +827,6 @@ static void vpif_config_addr(struct channel_obj *ch, int muxmode)
->  }
->  
->  /**
-> - * vpif_mmap : It is used to map kernel space buffers into user spaces
-> - * @filep: file pointer
-> - * @vma: ptr to vm_area_struct
-> - */
-> -static int vpif_mmap(struct file *filep, struct vm_area_struct *vma)
-> -{
-> -	/* Get the channel object and file handle object */
-> -	struct vpif_fh *fh = filep->private_data;
-> -	struct channel_obj *ch = fh->channel;
-> -	struct common_obj *common = &(ch->common[VPIF_VIDEO_INDEX]);
-> -	int ret;
-> -
-> -	vpif_dbg(2, debug, "vpif_mmap\n");
-> -
-> -	if (mutex_lock_interruptible(&common->lock))
-> -		return -ERESTARTSYS;
-> -	ret = vb2_mmap(&common->buffer_queue, vma);
-> -	mutex_unlock(&common->lock);
-> -	return ret;
-> -}
-> -
-> -/**
-> - * vpif_poll: It is used for select/poll system call
-> - * @filep: file pointer
-> - * @wait: poll table to wait
-> - */
-> -static unsigned int vpif_poll(struct file *filep, poll_table * wait)
-> -{
-> -	struct vpif_fh *fh = filep->private_data;
-> -	struct channel_obj *channel = fh->channel;
-> -	struct common_obj *common = &(channel->common[VPIF_VIDEO_INDEX]);
-> -	unsigned int res = 0;
-> -
-> -	vpif_dbg(2, debug, "vpif_poll\n");
-> -
-> -	if (common->started) {
-> -		mutex_lock(&common->lock);
-> -		res = vb2_poll(&common->buffer_queue, filep, wait);
-> -		mutex_unlock(&common->lock);
-> -	}
-> -	return res;
-> -}
-> -
-> -/**
-> - * vpif_open : vpif open handler
-> - * @filep: file ptr
-> - *
-> - * It creates object of file handle structure and stores it in private_data
-> - * member of filepointer
-> - */
-> -static int vpif_open(struct file *filep)
-> -{
-> -	struct video_device *vdev = video_devdata(filep);
-> -	struct common_obj *common;
-> -	struct video_obj *vid_ch;
-> -	struct channel_obj *ch;
-> -	struct vpif_fh *fh;
-> -
-> -	vpif_dbg(2, debug, "vpif_open\n");
-> -
-> -	ch = video_get_drvdata(vdev);
-> -
-> -	vid_ch = &ch->video;
-> -	common = &ch->common[VPIF_VIDEO_INDEX];
-> -
-> -	/* Allocate memory for the file handle object */
-> -	fh = kzalloc(sizeof(struct vpif_fh), GFP_KERNEL);
-> -	if (NULL == fh) {
-> -		vpif_err("unable to allocate memory for file handle object\n");
-> -		return -ENOMEM;
-> -	}
-> -
-> -	if (mutex_lock_interruptible(&common->lock)) {
-> -		kfree(fh);
-> -		return -ERESTARTSYS;
-> -	}
-> -	/* store pointer to fh in private_data member of filep */
-> -	filep->private_data = fh;
-> -	fh->channel = ch;
-> -	fh->initialized = 0;
-> -	/* If decoder is not initialized. initialize it */
-> -	if (!ch->initialized) {
-> -		fh->initialized = 1;
-> -		ch->initialized = 1;
-> -		memset(&(ch->vpifparams), 0, sizeof(struct vpif_params));
-> -	}
-> -	/* Increment channel usrs counter */
-> -	ch->usrs++;
-> -	/* Set io_allowed member to false */
-> -	fh->io_allowed[VPIF_VIDEO_INDEX] = 0;
-> -	/* Initialize priority of this instance to default priority */
-> -	fh->prio = V4L2_PRIORITY_UNSET;
-> -	v4l2_prio_open(&ch->prio, &fh->prio);
-> -	mutex_unlock(&common->lock);
-> -	return 0;
-> -}
-> -
-> -/**
-> - * vpif_release : function to clean up file close
-> - * @filep: file pointer
-> - *
-> - * This function deletes buffer queue, frees the buffers and the vpif file
-> - * handle
-> - */
-> -static int vpif_release(struct file *filep)
-> -{
-> -	struct vpif_fh *fh = filep->private_data;
-> -	struct channel_obj *ch = fh->channel;
-> -	struct common_obj *common;
-> -
-> -	vpif_dbg(2, debug, "vpif_release\n");
-> -
-> -	common = &ch->common[VPIF_VIDEO_INDEX];
-> -
-> -	mutex_lock(&common->lock);
-> -	/* if this instance is doing IO */
-> -	if (fh->io_allowed[VPIF_VIDEO_INDEX]) {
-> -		/* Reset io_usrs member of channel object */
-> -		common->io_usrs = 0;
-> -		/* Free buffers allocated */
-> -		vb2_queue_release(&common->buffer_queue);
-> -		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
-> -	}
-> -
-> -	/* Decrement channel usrs counter */
-> -	ch->usrs--;
-> -
-> -	/* Close the priority */
-> -	v4l2_prio_close(&ch->prio, fh->prio);
-> -
-> -	if (fh->initialized)
-> -		ch->initialized = 0;
-> -
-> -	mutex_unlock(&common->lock);
-> -	filep->private_data = NULL;
-> -	kfree(fh);
-> -	return 0;
-> -}
-> -
-> -/**
-> - * vpif_reqbufs() - request buffer handler
-> - * @file: file ptr
-> - * @priv: file handle
-> - * @reqbuf: request buffer structure ptr
-> - */
-> -static int vpif_reqbufs(struct file *file, void *priv,
-> -			struct v4l2_requestbuffers *reqbuf)
-> -{
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> -	struct common_obj *common;
-> -	u8 index = 0;
-> -	struct vb2_queue *q;
-> -	int ret;
-> -
-> -	vpif_dbg(2, debug, "vpif_reqbufs\n");
-> -
-> -	/**
-> -	 * This file handle has not initialized the channel,
-> -	 * It is not allowed to do settings
-> -	 */
-> -	if ((VPIF_CHANNEL0_VIDEO == ch->channel_id)
-> -	    || (VPIF_CHANNEL1_VIDEO == ch->channel_id)) {
-> -		if (!fh->initialized) {
-> -			vpif_dbg(1, debug, "Channel Busy\n");
-> -			return -EBUSY;
-> -		}
-> -	}
-> -
-> -	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != reqbuf->type || !vpif_dev)
-> -		return -EINVAL;
-> -
-> -	index = VPIF_VIDEO_INDEX;
-> -
-> -	common = &ch->common[index];
-> -
-> -	if (0 != common->io_usrs)
-> -		return -EBUSY;
-> -
-> -	/* Initialize videobuf2 queue as per the buffer type */
-> -	common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
-> -	if (IS_ERR(common->alloc_ctx)) {
-> -		vpif_err("Failed to get the context\n");
-> -		return PTR_ERR(common->alloc_ctx);
-> -	}
-> -	q = &common->buffer_queue;
-> -	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> -	q->io_modes = VB2_MMAP | VB2_USERPTR;
-> -	q->drv_priv = fh;
-> -	q->ops = &video_qops;
-> -	q->mem_ops = &vb2_dma_contig_memops;
-> -	q->buf_struct_size = sizeof(struct vpif_cap_buffer);
-> -	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> -	q->min_buffers_needed = 1;
-> -
-> -	ret = vb2_queue_init(q);
-> -	if (ret) {
-> -		vpif_err("vpif_capture: vb2_queue_init() failed\n");
-> -		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
-> -		return ret;
-> -	}
-> -	/* Set io allowed member of file handle to TRUE */
-> -	fh->io_allowed[index] = 1;
-> -	/* Increment io usrs member of channel object to 1 */
-> -	common->io_usrs = 1;
-> -	/* Store type of memory requested in channel object */
-> -	common->memory = reqbuf->memory;
-> -	INIT_LIST_HEAD(&common->dma_queue);
-> -
-> -	/* Allocate buffers */
-> -	return vb2_reqbufs(&common->buffer_queue, reqbuf);
-> -}
-> -
-> -/**
-> - * vpif_querybuf() - query buffer handler
-> - * @file: file ptr
-> - * @priv: file handle
-> - * @buf: v4l2 buffer structure ptr
-> - */
-> -static int vpif_querybuf(struct file *file, void *priv,
-> -				struct v4l2_buffer *buf)
-> -{
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> -	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
-> -
-> -	vpif_dbg(2, debug, "vpif_querybuf\n");
-> -
-> -	if (common->fmt.type != buf->type)
-> -		return -EINVAL;
-> -
-> -	if (common->memory != V4L2_MEMORY_MMAP) {
-> -		vpif_dbg(1, debug, "Invalid memory\n");
-> -		return -EINVAL;
-> -	}
-> -
-> -	return vb2_querybuf(&common->buffer_queue, buf);
-> -}
-> -
-> -/**
-> - * vpif_qbuf() - query buffer handler
-> - * @file: file ptr
-> - * @priv: file handle
-> - * @buf: v4l2 buffer structure ptr
-> - */
-> -static int vpif_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
-> -{
-> -
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> -	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
-> -	struct v4l2_buffer tbuf = *buf;
-> -
-> -	vpif_dbg(2, debug, "vpif_qbuf\n");
-> -
-> -	if (common->fmt.type != tbuf.type) {
-> -		vpif_err("invalid buffer type\n");
-> -		return -EINVAL;
-> -	}
-> -
-> -	if (!fh->io_allowed[VPIF_VIDEO_INDEX]) {
-> -		vpif_err("fh io not allowed\n");
-> -		return -EACCES;
-> -	}
-> -
-> -	return vb2_qbuf(&common->buffer_queue, buf);
-> -}
-> -
-> -/**
-> - * vpif_dqbuf() - query buffer handler
-> - * @file: file ptr
-> - * @priv: file handle
-> - * @buf: v4l2 buffer structure ptr
-> - */
-> -static int vpif_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
-> -{
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> -	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
-> -
-> -	vpif_dbg(2, debug, "vpif_dqbuf\n");
-> -
-> -	return vb2_dqbuf(&common->buffer_queue, buf,
-> -			 (file->f_flags & O_NONBLOCK));
-> -}
-> -
-> -/**
-> - * vpif_streamon() - streamon handler
-> - * @file: file ptr
-> - * @priv: file handle
-> - * @buftype: v4l2 buffer type
-> - */
-> -static int vpif_streamon(struct file *file, void *priv,
-> -				enum v4l2_buf_type buftype)
-> -{
-> -
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> -	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
-> -	struct channel_obj *oth_ch = vpif_obj.dev[!ch->channel_id];
-> -	struct vpif_params *vpif;
-> -	int ret = 0;
-> -
-> -	vpif_dbg(2, debug, "vpif_streamon\n");
-> -
-> -	vpif = &ch->vpifparams;
-> -
-> -	if (buftype != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-> -		vpif_dbg(1, debug, "buffer type not supported\n");
-> -		return -EINVAL;
-> -	}
-> -
-> -	/* If file handle is not allowed IO, return error */
-> -	if (!fh->io_allowed[VPIF_VIDEO_INDEX]) {
-> -		vpif_dbg(1, debug, "io not allowed\n");
-> -		return -EACCES;
-> -	}
-> -
-> -	/* If Streaming is already started, return error */
-> -	if (common->started) {
-> -		vpif_dbg(1, debug, "channel->started\n");
-> -		return -EBUSY;
-> -	}
-> -
-> -	if ((ch->channel_id == VPIF_CHANNEL0_VIDEO &&
-> -	    oth_ch->common[VPIF_VIDEO_INDEX].started &&
-> -	    vpif->std_info.ycmux_mode == 0) ||
-> -	   ((ch->channel_id == VPIF_CHANNEL1_VIDEO) &&
-> -	    (2 == oth_ch->common[VPIF_VIDEO_INDEX].started))) {
-> -		vpif_dbg(1, debug, "other channel is being used\n");
-> -		return -EBUSY;
-> -	}
-> -
-> -	ret = vpif_check_format(ch, &common->fmt.fmt.pix, 0);
-> -	if (ret)
-> -		return ret;
-> -
-> -	/* Enable streamon on the sub device */
-> -	ret = v4l2_subdev_call(ch->sd, video, s_stream, 1);
-> -
-> -	if (ret && ret != -ENOIOCTLCMD && ret != -ENODEV) {
-> -		vpif_dbg(1, debug, "stream on failed in subdev\n");
-> -		return ret;
-> -	}
-> -
-> -	/* Call vb2_streamon to start streaming in videobuf2 */
-> -	ret = vb2_streamon(&common->buffer_queue, buftype);
-> -	if (ret) {
-> -		vpif_dbg(1, debug, "vb2_streamon\n");
-> -		return ret;
-> -	}
-> -
-> -	return ret;
-> -}
-> -
-> -/**
-> - * vpif_streamoff() - streamoff handler
-> - * @file: file ptr
-> - * @priv: file handle
-> - * @buftype: v4l2 buffer type
-> - */
-> -static int vpif_streamoff(struct file *file, void *priv,
-> -				enum v4l2_buf_type buftype)
-> -{
-> -
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> -	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
-> -	int ret;
-> -
-> -	vpif_dbg(2, debug, "vpif_streamoff\n");
-> -
-> -	if (buftype != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-> -		vpif_dbg(1, debug, "buffer type not supported\n");
-> -		return -EINVAL;
-> -	}
-> -
-> -	/* If io is allowed for this file handle, return error */
-> -	if (!fh->io_allowed[VPIF_VIDEO_INDEX]) {
-> -		vpif_dbg(1, debug, "io not allowed\n");
-> -		return -EACCES;
-> -	}
-> -
-> -	/* If streaming is not started, return error */
-> -	if (!common->started) {
-> -		vpif_dbg(1, debug, "channel->started\n");
-> -		return -EINVAL;
-> -	}
-> -
-> -	/* disable channel */
-> -	if (VPIF_CHANNEL0_VIDEO == ch->channel_id) {
-> -		enable_channel0(0);
-> -		channel0_intr_enable(0);
-> -	} else {
-> -		enable_channel1(0);
-> -		channel1_intr_enable(0);
-> -	}
-> -
-> -	common->started = 0;
-> -
-> -	ret = v4l2_subdev_call(ch->sd, video, s_stream, 0);
-> -
-> -	if (ret && ret != -ENOIOCTLCMD && ret != -ENODEV)
-> -		vpif_dbg(1, debug, "stream off failed in subdev\n");
-> -
-> -	return vb2_streamoff(&common->buffer_queue, buftype);
-> -}
-> -
-> -/**
->   * vpif_input_to_subdev() - Maps input to sub device
->   * @vpif_cfg - global config ptr
->   * @chan_cfg - channel config ptr
-> @@ -1348,9 +929,9 @@ static int vpif_set_input(
->   */
->  static int vpif_querystd(struct file *file, void *priv, v4l2_std_id *std_id)
->  {
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> -	int ret = 0;
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct channel_obj *ch = video_get_drvdata(vdev);
-> +	int ret;
->  
->  	vpif_dbg(2, debug, "vpif_querystd\n");
->  
-> @@ -1375,8 +956,8 @@ static int vpif_querystd(struct file *file, void *priv, v4l2_std_id *std_id)
->   */
->  static int vpif_g_std(struct file *file, void *priv, v4l2_std_id *std)
->  {
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct channel_obj *ch = video_get_drvdata(vdev);
->  
->  	vpif_dbg(2, debug, "vpif_g_std\n");
->  
-> @@ -1392,31 +973,15 @@ static int vpif_g_std(struct file *file, void *priv, v4l2_std_id *std)
->   */
->  static int vpif_s_std(struct file *file, void *priv, v4l2_std_id std_id)
->  {
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct channel_obj *ch = video_get_drvdata(vdev);
->  	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
-> -	int ret = 0;
-> +	int ret;
->  
->  	vpif_dbg(2, debug, "vpif_s_std\n");
->  
-> -	if (common->started) {
-> -		vpif_err("streaming in progress\n");
-> +	if (vb2_is_streaming(&common->buffer_queue))
-
-This should be vb2_is_busy(). is_streaming is true when streaming is in progress,
-is_busy is true once reqbufs()/create_buffers() is called since that's the moment
-the format becomes locked and can no longer be changed.
-
->  		return -EBUSY;
-> -	}
-> -
-> -	if ((VPIF_CHANNEL0_VIDEO == ch->channel_id) ||
-> -	    (VPIF_CHANNEL1_VIDEO == ch->channel_id)) {
-> -		if (!fh->initialized) {
-> -			vpif_dbg(1, debug, "Channel Busy\n");
-> -			return -EBUSY;
-> -		}
-> -	}
-> -
-> -	ret = v4l2_prio_check(&ch->prio, fh->prio);
-> -	if (0 != ret)
-> -		return ret;
-> -
-> -	fh->initialized = 1;
->  
->  	/* Call encoder subdevice function to set the standard */
->  	ch->video.stdid = std_id;
-> @@ -1452,8 +1017,8 @@ static int vpif_enum_input(struct file *file, void *priv,
->  
->  	struct vpif_capture_config *config = vpif_dev->platform_data;
->  	struct vpif_capture_chan_config *chan_cfg;
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct channel_obj *ch = video_get_drvdata(vdev);
->  
->  	chan_cfg = &config->chan_config[ch->channel_id];
->  
-> @@ -1475,8 +1040,8 @@ static int vpif_enum_input(struct file *file, void *priv,
->   */
->  static int vpif_g_input(struct file *file, void *priv, unsigned int *index)
->  {
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct channel_obj *ch = video_get_drvdata(vdev);
->  
->  	*index = ch->input_idx;
->  	return 0;
-> @@ -1492,34 +1057,18 @@ static int vpif_s_input(struct file *file, void *priv, unsigned int index)
->  {
->  	struct vpif_capture_config *config = vpif_dev->platform_data;
->  	struct vpif_capture_chan_config *chan_cfg;
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct channel_obj *ch = video_get_drvdata(vdev);
->  	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
-> -	int ret;
-> +
-> +	if (vb2_is_streaming(&common->buffer_queue))
-
-vb2_is_busy()
-
-> +		return -EBUSY;
->  
->  	chan_cfg = &config->chan_config[ch->channel_id];
->  
->  	if (index >= chan_cfg->input_count)
->  		return -EINVAL;
->  
-> -	if (common->started) {
-> -		vpif_err("Streaming in progress\n");
-> -		return -EBUSY;
-> -	}
-> -
-> -	if ((VPIF_CHANNEL0_VIDEO == ch->channel_id) ||
-> -	    (VPIF_CHANNEL1_VIDEO == ch->channel_id)) {
-> -		if (!fh->initialized) {
-> -			vpif_dbg(1, debug, "Channel Busy\n");
-> -			return -EBUSY;
-> -		}
-> -	}
-> -
-> -	ret = v4l2_prio_check(&ch->prio, fh->prio);
-> -	if (0 != ret)
-> -		return ret;
-> -
-> -	fh->initialized = 1;
->  	return vpif_set_input(config, ch, index);
->  }
->  
-> @@ -1532,8 +1081,8 @@ static int vpif_s_input(struct file *file, void *priv, unsigned int index)
->  static int vpif_enum_fmt_vid_cap(struct file *file, void  *priv,
->  					struct v4l2_fmtdesc *fmt)
->  {
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct channel_obj *ch = video_get_drvdata(vdev);
->  
->  	if (fmt->index != 0) {
->  		vpif_dbg(1, debug, "Invalid format index\n");
-> @@ -1562,8 +1111,8 @@ static int vpif_enum_fmt_vid_cap(struct file *file, void  *priv,
->  static int vpif_try_fmt_vid_cap(struct file *file, void *priv,
->  				struct v4l2_format *fmt)
->  {
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct channel_obj *ch = video_get_drvdata(vdev);
->  	struct v4l2_pix_format *pixfmt = &fmt->fmt.pix;
->  
->  	return vpif_check_format(ch, pixfmt, 1);
-> @@ -1579,8 +1128,8 @@ static int vpif_try_fmt_vid_cap(struct file *file, void *priv,
->  static int vpif_g_fmt_vid_cap(struct file *file, void *priv,
->  				struct v4l2_format *fmt)
->  {
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct channel_obj *ch = video_get_drvdata(vdev);
->  	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
->  
->  	/* Check the validity of the buffer type */
-> @@ -1601,8 +1150,8 @@ static int vpif_g_fmt_vid_cap(struct file *file, void *priv,
->  static int vpif_s_fmt_vid_cap(struct file *file, void *priv,
->  				struct v4l2_format *fmt)
->  {
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct channel_obj *ch = video_get_drvdata(vdev);
->  	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
->  	struct v4l2_pix_format *pixfmt;
->  	int ret = 0;
-> @@ -1610,31 +1159,17 @@ static int vpif_s_fmt_vid_cap(struct file *file, void *priv,
->  	vpif_dbg(2, debug, "%s\n", __func__);
->  
->  	/* If streaming is started, return error */
-> -	if (common->started) {
-> +	if (vb2_is_streaming(&common->buffer_queue)) {
-
-vb2_is_busy()
-
->  		vpif_dbg(1, debug, "Streaming is started\n");
->  		return -EBUSY;
->  	}
->  
-> -	if ((VPIF_CHANNEL0_VIDEO == ch->channel_id) ||
-> -	    (VPIF_CHANNEL1_VIDEO == ch->channel_id)) {
-> -		if (!fh->initialized) {
-> -			vpif_dbg(1, debug, "Channel Busy\n");
-> -			return -EBUSY;
-> -		}
-> -	}
-> -
-> -	ret = v4l2_prio_check(&ch->prio, fh->prio);
-> -	if (0 != ret)
-> -		return ret;
-> -
-> -	fh->initialized = 1;
-> -
->  	pixfmt = &fmt->fmt.pix;
->  	/* Check for valid field format */
->  	ret = vpif_check_format(ch, pixfmt, 0);
-
-Once check_format is no longer called from start_streaming the check_format code
-can be moved to vpif_try_fmt_vid_cap and vpif_s_fmt_vid_cap can call
-vpif_try_fmt_vid_cap directly instead of check_formats.
-
-> -
->  	if (ret)
->  		return ret;
-> +
->  	/* store the format in the channel object */
->  	common->fmt = *fmt;
->  	return 0;
-> @@ -1653,7 +1188,7 @@ static int vpif_querycap(struct file *file, void  *priv,
->  
->  	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-
-You can add V4L2_CAP_READWRITE here if you add VB2_READ to q->io_modes and
-add .read = vb2_fop_read to vpif_fops.
-
->  	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-> -	snprintf(cap->driver, sizeof(cap->driver), "%s", dev_name(vpif_dev));
-> +	strlcpy(cap->driver, VPIF_DRIVER_NAME, sizeof(cap->driver));
->  	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
->  		 dev_name(vpif_dev));
->  	strlcpy(cap->card, config->card_name, sizeof(cap->card));
-> @@ -1662,37 +1197,6 @@ static int vpif_querycap(struct file *file, void  *priv,
->  }
->  
->  /**
-> - * vpif_g_priority() - get priority handler
-> - * @file: file ptr
-> - * @priv: file handle
-> - * @prio: ptr to v4l2_priority structure
-> - */
-> -static int vpif_g_priority(struct file *file, void *priv,
-> -			   enum v4l2_priority *prio)
-> -{
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> -
-> -	*prio = v4l2_prio_max(&ch->prio);
-> -
-> -	return 0;
-> -}
-> -
-> -/**
-> - * vpif_s_priority() - set priority handler
-> - * @file: file ptr
-> - * @priv: file handle
-> - * @prio: ptr to v4l2_priority structure
-> - */
-> -static int vpif_s_priority(struct file *file, void *priv, enum v4l2_priority p)
-> -{
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> -
-> -	return v4l2_prio_change(&ch->prio, &fh->prio, p);
-> -}
-> -
-> -/**
->   * vpif_cropcap() - cropcap handler
->   * @file: file ptr
->   * @priv: file handle
-> @@ -1701,8 +1205,8 @@ static int vpif_s_priority(struct file *file, void *priv, enum v4l2_priority p)
->  static int vpif_cropcap(struct file *file, void *priv,
->  			struct v4l2_cropcap *crop)
->  {
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct channel_obj *ch = video_get_drvdata(vdev);
->  	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
->  
->  	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != crop->type)
-
-I would drop cropcap. First of all this driver doesn't support cropping,
-so there is no need for cropcap, secondly it doesn't set pixelaspect
-which is wrong anyway.
-
-> @@ -1726,8 +1230,8 @@ static int
->  vpif_enum_dv_timings(struct file *file, void *priv,
->  		     struct v4l2_enum_dv_timings *timings)
->  {
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct channel_obj *ch = video_get_drvdata(vdev);
->  	int ret;
->  
-
-A general note for all dv_timings and std ioctls: if the current input or output
-does not support the std or dv_timings ioctls, then -ENODATA should be returned.
-
-So trying to call VIDIOC_G_DV_TIMINGS for an input that only supports SDTV or
-calling G_STD for an input that only supports HDTV should result in -ENODATA.
-
-Special care should be taken with ENUMSTD: that's handled by the v4l2 core and it
-uses the videodev->tvnorms field. So that field should be updated whenever you
-change inputs. See v4l2-pci-skeleton.c which actually implements that.
-
->  	ret = v4l2_subdev_call(ch->sd, video, enum_dv_timings, timings);
-> @@ -1746,8 +1250,8 @@ static int
->  vpif_query_dv_timings(struct file *file, void *priv,
->  		      struct v4l2_dv_timings *timings)
->  {
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct channel_obj *ch = video_get_drvdata(vdev);
->  	int ret;
->  
->  	ret = v4l2_subdev_call(ch->sd, video, query_dv_timings, timings);
-> @@ -1765,8 +1269,8 @@ vpif_query_dv_timings(struct file *file, void *priv,
->  static int vpif_s_dv_timings(struct file *file, void *priv,
->  		struct v4l2_dv_timings *timings)
->  {
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct channel_obj *ch = video_get_drvdata(vdev);
->  	struct vpif_params *vpifparams = &ch->vpifparams;
->  	struct vpif_channel_config_params *std_info = &vpifparams->std_info;
->  	struct video_obj *vid_ch = &ch->video;
-> @@ -1853,8 +1357,8 @@ static int vpif_s_dv_timings(struct file *file, void *priv,
->  static int vpif_g_dv_timings(struct file *file, void *priv,
->  		struct v4l2_dv_timings *timings)
->  {
-> -	struct vpif_fh *fh = priv;
-> -	struct channel_obj *ch = fh->channel;
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct channel_obj *ch = video_get_drvdata(vdev);
->  	struct video_obj *vid_ch = &ch->video;
->  
->  	*timings = vid_ch->dv_timings;
-> @@ -1879,49 +1383,46 @@ static int vpif_log_status(struct file *filep, void *priv)
->  
->  /* vpif capture ioctl operations */
->  static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
-> -	.vidioc_querycap        	= vpif_querycap,
-> -	.vidioc_g_priority		= vpif_g_priority,
-> -	.vidioc_s_priority		= vpif_s_priority,
-> +	.vidioc_querycap		= vpif_querycap,
->  	.vidioc_enum_fmt_vid_cap	= vpif_enum_fmt_vid_cap,
-> -	.vidioc_g_fmt_vid_cap  		= vpif_g_fmt_vid_cap,
-> +	.vidioc_g_fmt_vid_cap		= vpif_g_fmt_vid_cap,
->  	.vidioc_s_fmt_vid_cap		= vpif_s_fmt_vid_cap,
->  	.vidioc_try_fmt_vid_cap		= vpif_try_fmt_vid_cap,
-> +
->  	.vidioc_enum_input		= vpif_enum_input,
->  	.vidioc_s_input			= vpif_s_input,
->  	.vidioc_g_input			= vpif_g_input,
-> -	.vidioc_reqbufs         	= vpif_reqbufs,
-> -	.vidioc_querybuf        	= vpif_querybuf,
-> +
-> +	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
-> +	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
-> +	.vidioc_querybuf		= vb2_ioctl_querybuf,
-> +	.vidioc_qbuf			= vb2_ioctl_qbuf,
-> +	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
-> +	.vidioc_streamon		= vb2_ioctl_streamon,
-> +	.vidioc_streamoff		= vb2_ioctl_streamoff,
-
-Add .vidioc_expbuf = vb2_ioctl_expbuf
-
-That allows apps to export dmabuf buffers from this driver.
-
-> +
->  	.vidioc_querystd		= vpif_querystd,
-> -	.vidioc_s_std           	= vpif_s_std,
-> +	.vidioc_s_std			= vpif_s_std,
->  	.vidioc_g_std			= vpif_g_std,
-> -	.vidioc_qbuf            	= vpif_qbuf,
-> -	.vidioc_dqbuf           	= vpif_dqbuf,
-> -	.vidioc_streamon        	= vpif_streamon,
-> -	.vidioc_streamoff       	= vpif_streamoff,
-> -	.vidioc_cropcap         	= vpif_cropcap,
-> -	.vidioc_enum_dv_timings         = vpif_enum_dv_timings,
-> -	.vidioc_query_dv_timings        = vpif_query_dv_timings,
-> -	.vidioc_s_dv_timings            = vpif_s_dv_timings,
-> -	.vidioc_g_dv_timings            = vpif_g_dv_timings,
-> +
-> +	.vidioc_cropcap			= vpif_cropcap,
-> +
-> +	.vidioc_enum_dv_timings		= vpif_enum_dv_timings,
-> +	.vidioc_query_dv_timings	= vpif_query_dv_timings,
-> +	.vidioc_s_dv_timings		= vpif_s_dv_timings,
-> +	.vidioc_g_dv_timings		= vpif_g_dv_timings,
-> +
->  	.vidioc_log_status		= vpif_log_status,
->  };
->  
->  /* vpif file operations */
->  static struct v4l2_file_operations vpif_fops = {
-> -	.owner = THIS_MODULE,
-> -	.open = vpif_open,
-> -	.release = vpif_release,
-> -	.unlocked_ioctl = video_ioctl2,
-> -	.mmap = vpif_mmap,
-> -	.poll = vpif_poll
-> -};
-> -
-> -/* vpif video template */
-> -static struct video_device vpif_video_template = {
-> -	.name		= "vpif",
-> -	.fops		= &vpif_fops,
-> -	.minor		= -1,
-> -	.ioctl_ops	= &vpif_ioctl_ops,
-> +	.owner		= THIS_MODULE,
-> +	.open		= v4l2_fh_open,
-> +	.release	= vb2_fop_release,
-> +	.unlocked_ioctl	= video_ioctl2,
-> +	.mmap		= vb2_fop_mmap,
-> +	.poll		= vb2_fop_poll
->  };
->  
->  /**
-> @@ -1999,7 +1500,9 @@ static int vpif_async_bound(struct v4l2_async_notifier *notifier,
->  static int vpif_probe_complete(void)
->  {
->  	struct common_obj *common;
-> +	struct video_device *vdev;
->  	struct channel_obj *ch;
-> +	struct vb2_queue *q;
->  	int i, j, err, k;
->  
->  	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
-> @@ -2009,16 +1512,55 @@ static int vpif_probe_complete(void)
->  		spin_lock_init(&common->irqlock);
->  		mutex_init(&common->lock);
->  		ch->video_dev->lock = &common->lock;
-> -		/* Initialize prio member of channel object */
-> -		v4l2_prio_init(&ch->prio);
-> -		video_set_drvdata(ch->video_dev, ch);
->  
->  		/* select input 0 */
->  		err = vpif_set_input(vpif_obj.config, ch, 0);
->  		if (err)
->  			goto probe_out;
->  
-> -		err = video_register_device(ch->video_dev,
-> +		/* Initialize vb2 queue */
-> +		q = &common->buffer_queue;
-> +		q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +		q->io_modes = VB2_MMAP | VB2_USERPTR;
-
-Add VB2_DMABUF as well to get automatic DMABUF support.
-
-> +		q->drv_priv = ch;
-> +		q->ops = &video_qops;
-> +		q->mem_ops = &vb2_dma_contig_memops;
-> +		q->buf_struct_size = sizeof(struct vpif_cap_buffer);
-> +		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> +		q->min_buffers_needed = 3;
-
-This is a bit too high. min_buffers_needed is the minimum number of buffers
-required before you can start the DMA engine. Which for this device is either
-1 or 2. I can't remember when the davinci DMA engine reads the pointer for
-the next buffer to DMA: does that happen when the DMA engine is at the end
-of the current frame or is that at the start of the current frame? In the
-first case min_buffers_needed should be 1 so the DMA engine will start as
-quickly as possible. In the second case it should be 2 since otherwise it
-would most likely have to repeat the first frame.
-
-> +		q->lock = &common->lock;
-> +		q->gfp_flags = GFP_DMA32;
-
-Does this make sense for a davinci? It doesn't support 64 bit DMA, so I
-would just drop this.
-
-> +
-> +		err = vb2_queue_init(q);
-> +		if (err) {
-> +			vpif_err("vpif_display: vb2_queue_init() failed\n");
-> +			vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
-> +			goto probe_out;
-> +		}
-> +
-> +		common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
-> +		if (IS_ERR(common->alloc_ctx)) {
-> +			vpif_err("Failed to get the context\n");
-> +			err = PTR_ERR(common->alloc_ctx);
-> +			goto probe_out;
-> +		}
-> +
-> +		INIT_LIST_HEAD(&common->dma_queue);
-> +
-> +		/* Initialize the video_device structure */
-> +		vdev = ch->video_dev;
-> +		strlcpy(vdev->name, VPIF_DRIVER_NAME, sizeof(vdev->name));
-> +		vdev->release = video_device_release;
-> +		vdev->fops = &vpif_fops;
-> +		vdev->ioctl_ops = &vpif_ioctl_ops;
-> +		vdev->lock = &common->lock;
-> +		vdev->queue = q;
-> +		vdev->v4l2_dev = &vpif_obj.v4l2_dev;
-> +		vdev->vfl_dir = VFL_DIR_RX;
-> +		set_bit(V4L2_FL_USE_FH_PRIO, &vdev->flags);
-> +		video_set_drvdata(vdev, ch);
-> +
-> +		err = video_register_device(vdev,
->  					    VFL_TYPE_GRABBER, (j ? 1 : 0));
->  		if (err)
->  			goto probe_out;
-> @@ -2031,6 +1573,8 @@ probe_out:
->  	for (k = 0; k < j; k++) {
->  		/* Get the pointer to the channel object */
->  		ch = vpif_obj.dev[k];
-> +		common = &ch->common[k];
-> +		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
->  		/* Unregister video device */
->  		video_unregister_device(ch->video_dev);
->  	}
-> @@ -2085,7 +1629,7 @@ static __init int vpif_probe(struct platform_device *pdev)
->  
->  	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, res_idx))) {
->  		err = devm_request_irq(&pdev->dev, res->start, vpif_channel_isr,
-> -					IRQF_SHARED, "VPIF_Capture",
-> +					IRQF_SHARED, VPIF_DRIVER_NAME,
->  					(void *)(&vpif_obj.dev[res_idx]->
->  					channel_id));
->  		if (err) {
-> @@ -2109,13 +1653,6 @@ static __init int vpif_probe(struct platform_device *pdev)
->  			goto vpif_unregister;
->  		}
->  
-> -		/* Initialize field of video device */
-> -		*vfd = vpif_video_template;
-> -		vfd->v4l2_dev = &vpif_obj.v4l2_dev;
-> -		vfd->release = video_device_release;
-> -		snprintf(vfd->name, sizeof(vfd->name),
-> -			 "VPIF_Capture_DRIVER_V%s",
-> -			 VPIF_CAPTURE_VERSION);
->  		/* Set video_dev to the video device */
->  		ch->video_dev = vfd;
->  	}
-> @@ -2209,6 +1746,7 @@ vpif_unregister:
->   */
->  static int vpif_remove(struct platform_device *device)
->  {
-> +	struct common_obj *common;
->  	struct channel_obj *ch;
->  	int i;
->  
-> @@ -2219,6 +1757,8 @@ static int vpif_remove(struct platform_device *device)
->  	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
->  		/* Get the pointer to the channel object */
->  		ch = vpif_obj.dev[i];
-> +		common = &ch->common[i];
-> +		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
->  		/* Unregister video device */
->  		video_unregister_device(ch->video_dev);
->  		kfree(vpif_obj.dev[i]);
-> @@ -2226,13 +1766,12 @@ static int vpif_remove(struct platform_device *device)
->  	return 0;
->  }
->  
-> -#ifdef CONFIG_PM
-> +#ifdef CONFIG_PM_SLEEP
->  /**
->   * vpif_suspend: vpif device suspend
->   */
->  static int vpif_suspend(struct device *dev)
->  {
-> -
->  	struct common_obj *common;
->  	struct channel_obj *ch;
->  	int i;
-> @@ -2241,18 +1780,19 @@ static int vpif_suspend(struct device *dev)
->  		/* Get the pointer to the channel object */
->  		ch = vpif_obj.dev[i];
->  		common = &ch->common[VPIF_VIDEO_INDEX];
-> +
-> +		if (!vb2_is_streaming(&common->buffer_queue))
-> +			continue;
-> +
->  		mutex_lock(&common->lock);
-> -		if (ch->usrs && common->io_usrs) {
-> -			/* Disable channel */
-> -			if (ch->channel_id == VPIF_CHANNEL0_VIDEO) {
-> -				enable_channel0(0);
-> -				channel0_intr_enable(0);
-> -			}
-> -			if (ch->channel_id == VPIF_CHANNEL1_VIDEO ||
-> -			    common->started == 2) {
-> -				enable_channel1(0);
-> -				channel1_intr_enable(0);
-> -			}
-> +		/* Disable channel */
-> +		if (ch->channel_id == VPIF_CHANNEL0_VIDEO) {
-> +			enable_channel0(0);
-> +			channel0_intr_enable(0);
-> +		}
-> +		if (ch->channel_id == VPIF_CHANNEL1_VIDEO || ycmux_mode == 2) {
-> +			enable_channel1(0);
-> +			channel1_intr_enable(0);
->  		}
->  		mutex_unlock(&common->lock);
->  	}
-> @@ -2273,18 +1813,19 @@ static int vpif_resume(struct device *dev)
->  		/* Get the pointer to the channel object */
->  		ch = vpif_obj.dev[i];
->  		common = &ch->common[VPIF_VIDEO_INDEX];
-> +
-> +		if (!vb2_is_streaming(&common->buffer_queue))
-> +			continue;
-> +
->  		mutex_lock(&common->lock);
-> -		if (ch->usrs && common->io_usrs) {
-> -			/* Disable channel */
-> -			if (ch->channel_id == VPIF_CHANNEL0_VIDEO) {
-> -				enable_channel0(1);
-> -				channel0_intr_enable(1);
-> -			}
-> -			if (ch->channel_id == VPIF_CHANNEL1_VIDEO ||
-> -			    common->started == 2) {
-> -				enable_channel1(1);
-> -				channel1_intr_enable(1);
-> -			}
-> +		/* Enable channel */
-> +		if (ch->channel_id == VPIF_CHANNEL0_VIDEO) {
-> +			enable_channel0(1);
-> +			channel0_intr_enable(1);
-> +		}
-> +		if (ch->channel_id == VPIF_CHANNEL1_VIDEO || ycmux_mode == 2) {
-> +			enable_channel1(1);
-> +			channel1_intr_enable(1);
->  		}
->  		mutex_unlock(&common->lock);
->  	}
-> @@ -2292,21 +1833,15 @@ static int vpif_resume(struct device *dev)
->  	return 0;
->  }
->  
-> -static const struct dev_pm_ops vpif_dev_pm_ops = {
-> -	.suspend = vpif_suspend,
-> -	.resume = vpif_resume,
-> -};
-> -
-> -#define vpif_pm_ops (&vpif_dev_pm_ops)
-> -#else
-> -#define vpif_pm_ops NULL
->  #endif
->  
-> +static SIMPLE_DEV_PM_OPS(vpif_pm_ops, vpif_suspend, vpif_resume);
-> +
->  static __refdata struct platform_driver vpif_driver = {
->  	.driver	= {
-> -		.name	= "vpif_capture",
-> +		.name	= VPIF_DRIVER_NAME,
->  		.owner	= THIS_MODULE,
-> -		.pm	= vpif_pm_ops,
-> +		.pm	= &vpif_pm_ops,
->  	},
->  	.probe = vpif_probe,
->  	.remove = vpif_remove,
-> diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
-> index 5a29d9a..8af3b33 100644
-> --- a/drivers/media/platform/davinci/vpif_capture.h
-> +++ b/drivers/media/platform/davinci/vpif_capture.h
-> @@ -19,8 +19,6 @@
->  #ifndef VPIF_CAPTURE_H
->  #define VPIF_CAPTURE_H
->  
-> -#ifdef __KERNEL__
-> -
->  /* Header files */
->  #include <media/videobuf2-dma-contig.h>
->  #include <media/v4l2-device.h>
-> @@ -63,11 +61,6 @@ struct common_obj {
->  	struct vpif_cap_buffer *cur_frm;
->  	/* Pointer pointing to current v4l2_buffer */
->  	struct vpif_cap_buffer *next_frm;
-> -	/*
-> -	 * This field keeps track of type of buffer exchange mechanism
-> -	 * user has selected
-> -	 */
-> -	enum v4l2_memory memory;
->  	/* Used to store pixel format */
->  	struct v4l2_format fmt;
->  	/* Buffer queue used in video-buf */
-> @@ -80,12 +73,8 @@ struct common_obj {
->  	spinlock_t irqlock;
->  	/* lock used to access this structure */
->  	struct mutex lock;
-> -	/* number of users performing IO */
-> -	u32 io_usrs;
-> -	/* Indicates whether streaming started */
-> -	u8 started;
->  	/* Function pointer to set the addresses */
-> -	void (*set_addr) (unsigned long, unsigned long, unsigned long,
-> +	void (*set_addr)(unsigned long, unsigned long, unsigned long,
->  			  unsigned long);
->  	/* offset where Y top starts from the starting of the buffer */
->  	u32 ytop_off;
-> @@ -104,14 +93,8 @@ struct common_obj {
->  struct channel_obj {
->  	/* Identifies video device for this channel */
->  	struct video_device *video_dev;
-> -	/* Used to keep track of state of the priority */
-> -	struct v4l2_prio_state prio;
-> -	/* number of open instances of the channel */
-> -	int usrs;
->  	/* Indicates id of the field which is being displayed */
->  	u32 field_id;
-> -	/* flag to indicate whether decoder is initialized */
-> -	u8 initialized;
->  	/* Identifies channel */
->  	enum vpif_channel_id channel_id;
->  	/* Current input */
-> @@ -126,18 +109,6 @@ struct channel_obj {
->  	struct video_obj video;
->  };
->  
-> -/* File handle structure */
-> -struct vpif_fh {
-> -	/* pointer to channel object for opened device */
-> -	struct channel_obj *channel;
-> -	/* Indicates whether this file handle is doing IO */
-> -	u8 io_allowed[VPIF_NUMBER_OF_OBJECTS];
-> -	/* Used to keep track priority of this instance */
-> -	enum v4l2_priority prio;
-> -	/* Used to indicate channel is initialize or not */
-> -	u8 initialized;
-> -};
-> -
->  struct vpif_device {
->  	struct v4l2_device v4l2_dev;
->  	struct channel_obj *dev[VPIF_CAPTURE_NUM_CHANNELS];
-> @@ -157,5 +128,4 @@ struct vpif_config_params {
->  	u8 max_device_type;
->  };
->  
-> -#endif				/* End of __KERNEL__ */
->  #endif				/* VPIF_CAPTURE_H */
-> 
-
-Note that I'm not yet reviewing the vpif_display code. It's very similar to this
-one, so many of my comments apply there as well.
-
-Some of my comments are really about bugs/weirdness in the existing code. So
-those should probably be fixed in separate patches.
-
-Also, I would really appreciate it if you add the v4l2-compliance -s output when
-you post the next patch series. I'd like to see that.
-
-Regards,
-
-	Hans
