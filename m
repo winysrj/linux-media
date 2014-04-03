@@ -1,47 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49144 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754650AbaDGOB2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 10:01:28 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] [media] gpsca: remove the risk of a division by zero
-Date: Mon,  7 Apr 2014 11:01:19 -0300
-Message-Id: <1396879279-31299-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52433 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753979AbaDCWiI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:08 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 16/25] omap3isp: queue: Map PFNMAP buffers to device
+Date: Fri,  4 Apr 2014 00:39:46 +0200
+Message-Id: <1396564795-27192-17-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by Coverity, there's a potential risk of a division
-by zero on some calls to jpeg_set_qual(), if quality is zero.
+Userspace PFNMAP buffers need to be mapped to the device like the
+userspace non-PFNMAP buffers in order for the DMA mapping implementation
+to create IOMMU mappings when we'll switch to the IOMMU-aware DMA
+mapping backend.
 
-As quality can't be 0 or lower than that, adds an extra clause
-to cover this special case.
-
-Coverity reports: CID#11922280, CID#11922293, CID#11922295
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/usb/gspca/jpeg.h | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/media/platform/omap3isp/ispqueue.c | 37 +++++++++++++++++-------------
+ drivers/media/platform/omap3isp/ispqueue.h |  4 ++--
+ 2 files changed, 23 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/usb/gspca/jpeg.h b/drivers/media/usb/gspca/jpeg.h
-index ab54910418b4..0aa2b671faa4 100644
---- a/drivers/media/usb/gspca/jpeg.h
-+++ b/drivers/media/usb/gspca/jpeg.h
-@@ -154,7 +154,9 @@ static void jpeg_set_qual(u8 *jpeg_hdr,
- {
- 	int i, sc;
+diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
+index 479d348..4a271c7 100644
+--- a/drivers/media/platform/omap3isp/ispqueue.c
++++ b/drivers/media/platform/omap3isp/ispqueue.c
+@@ -173,6 +173,7 @@ static void isp_video_buffer_cleanup(struct isp_video_buffer *buf)
+ 	struct isp_video_fh *vfh = isp_video_queue_to_isp_video_fh(buf->queue);
+ 	struct isp_video *video = vfh->video;
+ 	enum dma_data_direction direction;
++	DEFINE_DMA_ATTRS(attrs);
+ 	unsigned int i;
  
--	if (quality < 50)
-+	if (quality <= 0)
-+		sc = 5000;
-+	else if (quality < 50)
- 		sc = 5000 / quality;
- 	else
- 		sc = 200 - quality * 2;
+ 	if (buf->dma) {
+@@ -181,11 +182,14 @@ static void isp_video_buffer_cleanup(struct isp_video_buffer *buf)
+ 		buf->dma = 0;
+ 	}
+ 
+-	if (!(buf->vm_flags & VM_PFNMAP)) {
++	if (buf->vbuf.memory == V4L2_MEMORY_USERPTR) {
++		if (buf->skip_cache)
++			dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
++
+ 		direction = buf->vbuf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE
+ 			  ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+-		dma_unmap_sg(buf->queue->dev, buf->sgt.sgl, buf->sgt.orig_nents,
+-			     direction);
++		dma_unmap_sg_attrs(buf->queue->dev, buf->sgt.sgl,
++				   buf->sgt.orig_nents, direction, &attrs);
+ 	}
+ 
+ 	sg_free_table(&buf->sgt);
+@@ -345,10 +349,6 @@ unlock:
+ 
+ 	for (sg = buf->sgt.sgl, i = 0; i < buf->npages; ++i, ++pfn) {
+ 		sg_set_page(sg, pfn_to_page(pfn), PAGE_SIZE - offset, offset);
+-		/* PFNMAP buffers will not get DMA-mapped, set the DMA address
+-		 * manually.
+-		 */
+-		sg_dma_address(sg) = (pfn << PAGE_SHIFT) + offset;
+ 		sg = sg_next(sg);
+ 		offset = 0;
+ 	}
+@@ -434,12 +434,15 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
+ 	struct isp_video_fh *vfh = isp_video_queue_to_isp_video_fh(buf->queue);
+ 	struct isp_video *video = vfh->video;
+ 	enum dma_data_direction direction;
++	DEFINE_DMA_ATTRS(attrs);
+ 	unsigned long addr;
+ 	int ret;
+ 
+ 	switch (buf->vbuf.memory) {
+ 	case V4L2_MEMORY_MMAP:
+ 		ret = isp_video_buffer_prepare_kernel(buf);
++		if (ret < 0)
++			goto done;
+ 		break;
+ 
+ 	case V4L2_MEMORY_USERPTR:
+@@ -451,24 +454,26 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
+ 			ret = isp_video_buffer_prepare_pfnmap(buf);
+ 		else
+ 			ret = isp_video_buffer_prepare_user(buf);
+-		break;
+ 
+-	default:
+-		return -EINVAL;
+-	}
++		if (ret < 0)
++			goto done;
+ 
+-	if (ret < 0)
+-		goto done;
++		if (buf->skip_cache)
++			dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+ 
+-	if (!(buf->vm_flags & VM_PFNMAP)) {
+ 		direction = buf->vbuf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE
+ 			  ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+-		ret = dma_map_sg(buf->queue->dev, buf->sgt.sgl,
+-				 buf->sgt.orig_nents, direction);
++		ret = dma_map_sg_attrs(buf->queue->dev, buf->sgt.sgl,
++				       buf->sgt.orig_nents, direction, &attrs);
+ 		if (ret <= 0) {
+ 			ret = -EFAULT;
+ 			goto done;
+ 		}
++
++		break;
++
++	default:
++		return -EINVAL;
+ 	}
+ 
+ 	addr = omap_iommu_vmap(video->isp->domain, video->isp->dev, 0,
+diff --git a/drivers/media/platform/omap3isp/ispqueue.h b/drivers/media/platform/omap3isp/ispqueue.h
+index e03af74..d580f58 100644
+--- a/drivers/media/platform/omap3isp/ispqueue.h
++++ b/drivers/media/platform/omap3isp/ispqueue.h
+@@ -72,7 +72,7 @@ enum isp_video_buffer_state {
+  * @vm_flags: Buffer VMA flags (for userspace buffers)
+  * @npages: Number of pages (for userspace buffers)
+  * @pages: Pages table (for userspace non-VM_PFNMAP buffers)
+- * @sgt: Scatter gather table (for non-VM_PFNMAP buffers)
++ * @sgt: Scatter gather table
+  * @vbuf: V4L2 buffer
+  * @irqlist: List head for insertion into IRQ queue
+  * @state: Current buffer state
+@@ -94,7 +94,7 @@ struct isp_video_buffer {
+ 	unsigned int npages;
+ 	struct page **pages;
+ 
+-	/* For all buffers except VM_PFNMAP. */
++	/* For all buffers. */
+ 	struct sg_table sgt;
+ 
+ 	/* Touched by the interrupt handler. */
 -- 
-1.9.0
+1.8.3.2
 
