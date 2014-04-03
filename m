@@ -1,50 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:20475 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932482AbaDILyn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 07:54:43 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [PATCH] [media] V4L: s5c73m3: Fix build after
- v4l2_of_get_next_endpoint rename
-Date: Wed, 09 Apr 2014 13:54:06 +0200
-Message-id: <1397044446-2257-1-git-send-email-k.kozlowski@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52434 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753888AbaDCWiC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 07/25] omap3isp: ccdc: Use the DMA API for LSC
+Date: Fri,  4 Apr 2014 00:39:37 +0200
+Message-Id: <1396564795-27192-8-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix build error after v4l2_of_get_next_endpoint rename (fd9fdb78a9bf:
-"[media] of: move graph helpers from drivers/media/v4l2-core..."):
+Replace the OMAP-specific IOMMU API usage by the DMA API for LSC. The
+table is now allocated using dma_alloc_coherent() and the related sg
+table is retrieved using dma_get_sgtable() for sync operations.
 
-drivers/media/i2c/s5c73m3/s5c73m3-core.c: In function ‘s5c73m3_get_platform_data’:
-drivers/media/i2c/s5c73m3/s5c73m3-core.c:1619:2: error: implicit declaration of function ‘v4l2_of_get_next_endpoint’ [-Werror=implicit-function-declaration]
-drivers/media/i2c/s5c73m3/s5c73m3-core.c:1619:10: warning: assignment makes pointer from integer without a cast [enabled by default]
-
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/i2c/s5c73m3/s5c73m3-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/omap3isp/ispccdc.c | 52 ++++++++++++++-----------------
+ drivers/media/platform/omap3isp/ispccdc.h |  8 +++--
+ 2 files changed, 29 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-index a4459301b5f8..ee0f57e01b56 100644
---- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-+++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-@@ -1616,7 +1616,7 @@ static int s5c73m3_get_platform_data(struct s5c73m3 *state)
- 	if (ret < 0)
- 		return -EINVAL;
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index 4d920c8..a907b20 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -206,7 +206,8 @@ static int ccdc_lsc_validate_config(struct isp_ccdc_device *ccdc,
+  * ccdc_lsc_program_table - Program Lens Shading Compensation table address.
+  * @ccdc: Pointer to ISP CCDC device.
+  */
+-static void ccdc_lsc_program_table(struct isp_ccdc_device *ccdc, u32 addr)
++static void ccdc_lsc_program_table(struct isp_ccdc_device *ccdc,
++				   dma_addr_t addr)
+ {
+ 	isp_reg_writel(to_isp_device(ccdc), addr,
+ 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC_TABLE_BASE);
+@@ -333,7 +334,7 @@ static int __ccdc_lsc_configure(struct isp_ccdc_device *ccdc,
+ 		return -EBUSY;
  
--	node_ep = v4l2_of_get_next_endpoint(node, NULL);
-+	node_ep = of_graph_get_next_endpoint(node, NULL);
- 	if (!node_ep) {
- 		dev_warn(dev, "no endpoint defined for node: %s\n",
- 						node->full_name);
+ 	ccdc_lsc_setup_regs(ccdc, &req->config);
+-	ccdc_lsc_program_table(ccdc, req->table);
++	ccdc_lsc_program_table(ccdc, req->table.dma);
+ 	return 0;
+ }
+ 
+@@ -368,11 +369,12 @@ static void ccdc_lsc_free_request(struct isp_ccdc_device *ccdc,
+ 	if (req == NULL)
+ 		return;
+ 
+-	if (req->iovm)
+-		dma_unmap_sg(isp->dev, req->iovm->sgt->sgl,
+-			     req->iovm->sgt->nents, DMA_TO_DEVICE);
+-	if (req->table)
+-		omap_iommu_vfree(isp->domain, isp->dev, req->table);
++	if (req->table.addr) {
++		sg_free_table(&req->table.sgt);
++		dma_free_coherent(isp->dev, req->config.size, req->table.addr,
++				  req->table.dma);
++	}
++
+ 	kfree(req);
+ }
+ 
+@@ -416,7 +418,6 @@ static int ccdc_lsc_config(struct isp_ccdc_device *ccdc,
+ 	struct isp_device *isp = to_isp_device(ccdc);
+ 	struct ispccdc_lsc_config_req *req;
+ 	unsigned long flags;
+-	void *table;
+ 	u16 update;
+ 	int ret;
+ 
+@@ -444,38 +445,31 @@ static int ccdc_lsc_config(struct isp_ccdc_device *ccdc,
+ 
+ 		req->enable = 1;
+ 
+-		req->table = omap_iommu_vmalloc(isp->domain, isp->dev, 0,
+-					req->config.size, IOMMU_FLAG);
+-		if (IS_ERR_VALUE(req->table)) {
+-			req->table = 0;
+-			ret = -ENOMEM;
+-			goto done;
+-		}
+-
+-		req->iovm = omap_find_iovm_area(isp->dev, req->table);
+-		if (req->iovm == NULL) {
++		req->table.addr = dma_alloc_coherent(isp->dev, req->config.size,
++						     &req->table.dma,
++						     GFP_KERNEL);
++		if (req->table.addr == NULL) {
+ 			ret = -ENOMEM;
+ 			goto done;
+ 		}
+ 
+-		if (!dma_map_sg(isp->dev, req->iovm->sgt->sgl,
+-				req->iovm->sgt->nents, DMA_TO_DEVICE)) {
+-			ret = -ENOMEM;
+-			req->iovm = NULL;
++		ret = dma_get_sgtable(isp->dev, &req->table.sgt,
++				      req->table.addr, req->table.dma,
++				      req->config.size);
++		if (ret < 0)
+ 			goto done;
+-		}
+ 
+-		dma_sync_sg_for_cpu(isp->dev, req->iovm->sgt->sgl,
+-				    req->iovm->sgt->nents, DMA_TO_DEVICE);
++		dma_sync_sg_for_cpu(isp->dev, req->table.sgt.sgl,
++				    req->table.sgt.nents, DMA_TO_DEVICE);
+ 
+-		table = omap_da_to_va(isp->dev, req->table);
+-		if (copy_from_user(table, config->lsc, req->config.size)) {
++		if (copy_from_user(req->table.addr, config->lsc,
++				   req->config.size)) {
+ 			ret = -EFAULT;
+ 			goto done;
+ 		}
+ 
+-		dma_sync_sg_for_device(isp->dev, req->iovm->sgt->sgl,
+-				       req->iovm->sgt->nents, DMA_TO_DEVICE);
++		dma_sync_sg_for_device(isp->dev, req->table.sgt.sgl,
++				       req->table.sgt.nents, DMA_TO_DEVICE);
+ 	}
+ 
+ 	spin_lock_irqsave(&ccdc->lsc.req_lock, flags);
+diff --git a/drivers/media/platform/omap3isp/ispccdc.h b/drivers/media/platform/omap3isp/ispccdc.h
+index 9d24e41..20db3a0 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.h
++++ b/drivers/media/platform/omap3isp/ispccdc.h
+@@ -57,8 +57,12 @@ struct ispccdc_lsc_config_req {
+ 	struct list_head list;
+ 	struct omap3isp_ccdc_lsc_config config;
+ 	unsigned char enable;
+-	u32 table;
+-	struct iovm_struct *iovm;
++
++	struct {
++		void *addr;
++		dma_addr_t dma;
++		struct sg_table sgt;
++	} table;
+ };
+ 
+ /*
 -- 
 1.8.3.2
 
