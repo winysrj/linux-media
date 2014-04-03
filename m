@@ -1,126 +1,521 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:14518 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750950AbaDKO5S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 10:57:18 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC v3 0/5] LED / flash API integration
-Date: Fri, 11 Apr 2014 16:56:51 +0200
-Message-id: <1397228216-6657-1-git-send-email-j.anaszewski@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52433 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753777AbaDCWiM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 20/25] omap3isp: Move queue mutex to isp_video structure
+Date: Fri,  4 Apr 2014 00:39:50 +0200
+Message-Id: <1396564795-27192-21-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is is the third version of the patch series being a follow up
-of the discussion on Media summit 2013-10-23, related to the
-LED / flash API integration (the notes from the discussion were
-enclosed in the message [1], paragraph 5).
-The series is based on linux-next next-20140328
+This prepares for the move to videobuf2.
 
-Description of the proposed modifications according to
-the kernel components they are relevant to:
-    - LED subsystem modifications
-        * added led_flash module which, when enabled in the config,
-	  registers flash specific sysfs attributes:
-            - flash_brightness
-	    - max_flash_brightness
-	    - indicator_brightness
-	    - max_indicator_brightness
-            - flash_timeout
-            - max_flash_timeout
-	    - flash_strobe
-            - flash_fault
-            - external_strobe
-	and exposes kernel internal API
-            - led_set_flash_strobe
-            - led_get_flash_strobe
-            - led_set_indicator_brightness
-            - led_update_indicator_brightness
-            - led_set_flash_timeout
-            - led_get_flash_fault
-            - led_set_external_strobe
-            - led_sysfs_lock
-            - led_sysfs_unlock
-    - Addition of a V4L2 Flash sub-device registration helpers
-        * added v4l2-flash.c and v4l2-flash.h files with helper
-          functions that facilitate registration/unregistration
-          of a subdevice, which wrapps a LED subsystem device and
-          exposes V4L2 Flash control interface
-    - Addition of a driver for the flash cell of the MAX77693 mfd
-        * the driver exploits the newly introduced mechanism
-    - Update of the max77693.txt DT bindings documentation
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/ispqueue.c | 102 ++++++++---------------------
+ drivers/media/platform/omap3isp/ispqueue.h |   2 -
+ drivers/media/platform/omap3isp/ispvideo.c |  72 ++++++++++++++++----
+ drivers/media/platform/omap3isp/ispvideo.h |   1 +
+ 4 files changed, 86 insertions(+), 91 deletions(-)
 
-================
-Changes since v2
-================
-
-    - refactored the code so that it is possible to build
-      led-core without led-flash module
-    - added v4l2-flash ops which slackens dependency from
-      the led-flash module
-    - implemented led_clamp_align_val function and led_ctrl
-      structure which allows to align led control values
-      in the manner compatible with V4L2 Flash controls;
-      the flash brightness and timeout units have been defined
-      as microamperes and microseconds respectively to properly
-      support devices which define current and time levels
-      as fractions of 1/1000.
-    - added support for the flash privacy leds
-    - modified LED sysfs locking mechanism - now it locks/unlocks
-      the interface on V4L2 Flash sub-device file open/close
-    - changed hw_triggered attribute name to external_strobe,
-      which maps on the V4L2_FLASH_STROBE_SOURCE_EXTERNAL name 
-      more intuitively
-    - made external_strobe and indicator related sysfs attributes
-      created optionally only if related features are declared
-      by the led device driver
-    - removed from the series patches modifying exynos4-is media
-      controller - a proposal for "flash manager" which will take
-      care of flash devices registration is due to be submitted
-    - removed modifications to the LED class devices documentation,
-      it will be covered after the whole functionality is accepted
-
-Thanks,
-Jacek Anaszewski
-
-[1] http://www.spinics.net/lists/linux-media/msg69253.html
-
-Jacek Anaszewski (5):
-  leds: Add sysfs and kernel internal API for flash LEDs
-  leds: Improve and export led_update_brightness function
-  leds: Add support for max77693 mfd flash cell
-  DT: Add documentation for the mfd Maxim max77693 flash cell
-  media: Add registration helpers for V4L2 flash sub-devices
-
- Documentation/devicetree/bindings/mfd/max77693.txt |   57 ++
- drivers/leds/Kconfig                               |   18 +
- drivers/leds/Makefile                              |    2 +
- drivers/leds/led-class.c                           |   42 +-
- drivers/leds/led-core.c                            |   16 +
- drivers/leds/led-flash.c                           |  627 ++++++++++++++++
- drivers/leds/led-triggers.c                        |   16 +-
- drivers/leds/leds-max77693.c                       |  794 ++++++++++++++++++++
- drivers/leds/leds.h                                |    6 +
- drivers/media/v4l2-core/Kconfig                    |   10 +
- drivers/media/v4l2-core/Makefile                   |    2 +
- drivers/media/v4l2-core/v4l2-flash.c               |  393 ++++++++++
- drivers/mfd/max77693.c                             |    2 +-
- include/linux/leds.h                               |   60 +-
- include/linux/leds_flash.h                         |  252 +++++++
- include/linux/mfd/max77693.h                       |   38 +
- include/media/v4l2-flash.h                         |  119 +++
- 17 files changed, 2433 insertions(+), 21 deletions(-)
- create mode 100644 drivers/leds/led-flash.c
- create mode 100644 drivers/leds/leds-max77693.c
- create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
- create mode 100644 include/linux/leds_flash.h
- create mode 100644 include/media/v4l2-flash.h
-
+diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
+index 515ed94..dcd9446 100644
+--- a/drivers/media/platform/omap3isp/ispqueue.c
++++ b/drivers/media/platform/omap3isp/ispqueue.c
+@@ -660,7 +660,6 @@ int omap3isp_video_queue_init(struct isp_video_queue *queue,
+ 			      struct device *dev, unsigned int bufsize)
+ {
+ 	INIT_LIST_HEAD(&queue->queue);
+-	mutex_init(&queue->lock);
+ 	spin_lock_init(&queue->irqlock);
+ 
+ 	queue->type = type;
+@@ -712,18 +711,12 @@ int omap3isp_video_queue_reqbufs(struct isp_video_queue *queue,
+ 
+ 	nbuffers = min_t(unsigned int, nbuffers, ISP_VIDEO_MAX_BUFFERS);
+ 
+-	mutex_lock(&queue->lock);
+-
+ 	ret = isp_video_queue_alloc(queue, nbuffers, size, rb->memory);
+ 	if (ret < 0)
+-		goto done;
++		return ret;
+ 
+ 	rb->count = ret;
+-	ret = 0;
+-
+-done:
+-	mutex_unlock(&queue->lock);
+-	return ret;
++	return 0;
+ }
+ 
+ /**
+@@ -738,24 +731,17 @@ int omap3isp_video_queue_querybuf(struct isp_video_queue *queue,
+ 				  struct v4l2_buffer *vbuf)
+ {
+ 	struct isp_video_buffer *buf;
+-	int ret = 0;
+ 
+ 	if (vbuf->type != queue->type)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&queue->lock);
+-
+-	if (vbuf->index >= queue->count) {
+-		ret = -EINVAL;
+-		goto done;
+-	}
++	if (vbuf->index >= queue->count)
++		return -EINVAL;
+ 
+ 	buf = queue->buffers[vbuf->index];
+ 	isp_video_buffer_query(buf, vbuf);
+ 
+-done:
+-	mutex_unlock(&queue->lock);
+-	return ret;
++	return 0;
+ }
+ 
+ /**
+@@ -776,27 +762,25 @@ int omap3isp_video_queue_qbuf(struct isp_video_queue *queue,
+ {
+ 	struct isp_video_buffer *buf;
+ 	unsigned long flags;
+-	int ret = -EINVAL;
++	int ret;
+ 
+ 	if (vbuf->type != queue->type)
+-		goto done;
+-
+-	mutex_lock(&queue->lock);
++		return -EINVAL;
+ 
+ 	if (vbuf->index >= queue->count)
+-		goto done;
++		return -EINVAL;
+ 
+ 	buf = queue->buffers[vbuf->index];
+ 
+ 	if (vbuf->memory != buf->vbuf.memory)
+-		goto done;
++		return -EINVAL;
+ 
+ 	if (buf->state != ISP_BUF_STATE_IDLE)
+-		goto done;
++		return -EINVAL;
+ 
+ 	if (vbuf->memory == V4L2_MEMORY_USERPTR &&
+ 	    vbuf->length < buf->vbuf.length)
+-		goto done;
++		return -EINVAL;
+ 
+ 	if (vbuf->memory == V4L2_MEMORY_USERPTR &&
+ 	    vbuf->m.userptr != buf->vbuf.m.userptr) {
+@@ -808,7 +792,7 @@ int omap3isp_video_queue_qbuf(struct isp_video_queue *queue,
+ 	if (!buf->prepared) {
+ 		ret = isp_video_buffer_prepare(buf);
+ 		if (ret < 0)
+-			goto done;
++			return ret;
+ 		buf->prepared = 1;
+ 	}
+ 
+@@ -823,11 +807,7 @@ int omap3isp_video_queue_qbuf(struct isp_video_queue *queue,
+ 		spin_unlock_irqrestore(&queue->irqlock, flags);
+ 	}
+ 
+-	ret = 0;
+-
+-done:
+-	mutex_unlock(&queue->lock);
+-	return ret;
++	return 0;
+ }
+ 
+ /**
+@@ -853,17 +833,13 @@ int omap3isp_video_queue_dqbuf(struct isp_video_queue *queue,
+ 	if (vbuf->type != queue->type)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&queue->lock);
+-
+-	if (list_empty(&queue->queue)) {
+-		ret = -EINVAL;
+-		goto done;
+-	}
++	if (list_empty(&queue->queue))
++		return -EINVAL;
+ 
+ 	buf = list_first_entry(&queue->queue, struct isp_video_buffer, stream);
+ 	ret = isp_video_buffer_wait(buf, nonblocking);
+ 	if (ret < 0)
+-		goto done;
++		return ret;
+ 
+ 	list_del(&buf->stream);
+ 
+@@ -871,9 +847,7 @@ int omap3isp_video_queue_dqbuf(struct isp_video_queue *queue,
+ 	buf->state = ISP_BUF_STATE_IDLE;
+ 	vbuf->flags &= ~V4L2_BUF_FLAG_QUEUED;
+ 
+-done:
+-	mutex_unlock(&queue->lock);
+-	return ret;
++	return 0;
+ }
+ 
+ /**
+@@ -890,10 +864,8 @@ int omap3isp_video_queue_streamon(struct isp_video_queue *queue)
+ 	struct isp_video_buffer *buf;
+ 	unsigned long flags;
+ 
+-	mutex_lock(&queue->lock);
+-
+ 	if (queue->streaming)
+-		goto done;
++		return 0;
+ 
+ 	queue->streaming = 1;
+ 
+@@ -902,8 +874,6 @@ int omap3isp_video_queue_streamon(struct isp_video_queue *queue)
+ 		queue->ops->buffer_queue(buf);
+ 	spin_unlock_irqrestore(&queue->irqlock, flags);
+ 
+-done:
+-	mutex_unlock(&queue->lock);
+ 	return 0;
+ }
+ 
+@@ -923,10 +893,8 @@ void omap3isp_video_queue_streamoff(struct isp_video_queue *queue)
+ 	unsigned long flags;
+ 	unsigned int i;
+ 
+-	mutex_lock(&queue->lock);
+-
+ 	if (!queue->streaming)
+-		goto done;
++		return;
+ 
+ 	queue->streaming = 0;
+ 
+@@ -942,9 +910,6 @@ void omap3isp_video_queue_streamoff(struct isp_video_queue *queue)
+ 	spin_unlock_irqrestore(&queue->irqlock, flags);
+ 
+ 	INIT_LIST_HEAD(&queue->queue);
+-
+-done:
+-	mutex_unlock(&queue->lock);
+ }
+ 
+ /**
+@@ -963,10 +928,8 @@ void omap3isp_video_queue_discard_done(struct isp_video_queue *queue)
+ 	struct isp_video_buffer *buf;
+ 	unsigned int i;
+ 
+-	mutex_lock(&queue->lock);
+-
+ 	if (!queue->streaming)
+-		goto done;
++		return;
+ 
+ 	for (i = 0; i < queue->count; ++i) {
+ 		buf = queue->buffers[i];
+@@ -974,9 +937,6 @@ void omap3isp_video_queue_discard_done(struct isp_video_queue *queue)
+ 		if (buf->state == ISP_BUF_STATE_DONE)
+ 			buf->state = ISP_BUF_STATE_ERROR;
+ 	}
+-
+-done:
+-	mutex_unlock(&queue->lock);
+ }
+ 
+ static void isp_video_queue_vm_open(struct vm_area_struct *vma)
+@@ -1014,26 +974,20 @@ int omap3isp_video_queue_mmap(struct isp_video_queue *queue,
+ 	unsigned int i;
+ 	int ret = 0;
+ 
+-	mutex_lock(&queue->lock);
+-
+ 	for (i = 0; i < queue->count; ++i) {
+ 		buf = queue->buffers[i];
+ 		if ((buf->vbuf.m.offset >> PAGE_SHIFT) == vma->vm_pgoff)
+ 			break;
+ 	}
+ 
+-	if (i == queue->count) {
+-		ret = -EINVAL;
+-		goto done;
+-	}
++	if (i == queue->count)
++		return -EINVAL;
+ 
+ 	size = vma->vm_end - vma->vm_start;
+ 
+ 	if (buf->vbuf.memory != V4L2_MEMORY_MMAP ||
+-	    size != PAGE_ALIGN(buf->vbuf.length)) {
+-		ret = -EINVAL;
+-		goto done;
+-	}
++	    size != PAGE_ALIGN(buf->vbuf.length))
++		return -EINVAL;
+ 
+ 	/* dma_mmap_coherent() uses vm_pgoff as an offset inside the buffer
+ 	 * while we used it to identify the buffer and want to map the whole
+@@ -1043,16 +997,14 @@ int omap3isp_video_queue_mmap(struct isp_video_queue *queue,
+ 
+ 	ret = dma_mmap_coherent(queue->dev, vma, buf->vaddr, buf->dma, size);
+ 	if (ret < 0)
+-		goto done;
++		return ret;
+ 
+ 	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
+ 	vma->vm_ops = &isp_video_queue_vm_ops;
+ 	vma->vm_private_data = buf;
+ 	isp_video_queue_vm_open(vma);
+ 
+-done:
+-	mutex_unlock(&queue->lock);
+-	return ret;
++	return 0;
+ }
+ 
+ /**
+@@ -1070,7 +1022,6 @@ unsigned int omap3isp_video_queue_poll(struct isp_video_queue *queue,
+ 	struct isp_video_buffer *buf;
+ 	unsigned int mask = 0;
+ 
+-	mutex_lock(&queue->lock);
+ 	if (list_empty(&queue->queue)) {
+ 		mask |= POLLERR;
+ 		goto done;
+@@ -1087,6 +1038,5 @@ unsigned int omap3isp_video_queue_poll(struct isp_video_queue *queue,
+ 	}
+ 
+ done:
+-	mutex_unlock(&queue->lock);
+ 	return mask;
+ }
+diff --git a/drivers/media/platform/omap3isp/ispqueue.h b/drivers/media/platform/omap3isp/ispqueue.h
+index 27189bb..ecff055 100644
+--- a/drivers/media/platform/omap3isp/ispqueue.h
++++ b/drivers/media/platform/omap3isp/ispqueue.h
+@@ -132,7 +132,6 @@ struct isp_video_queue_operations {
+  * @bufsize: Size of a driver-specific buffer object
+  * @count: Number of currently allocated buffers
+  * @buffers: ISP video buffers
+- * @lock: Mutex to protect access to the buffers, main queue and state
+  * @irqlock: Spinlock to protect access to the IRQ queue
+  * @streaming: Queue state, indicates whether the queue is streaming
+  * @queue: List of all queued buffers
+@@ -145,7 +144,6 @@ struct isp_video_queue {
+ 
+ 	unsigned int count;
+ 	struct isp_video_buffer *buffers[ISP_VIDEO_MAX_BUFFERS];
+-	struct mutex lock;
+ 	spinlock_t irqlock;
+ 
+ 	unsigned int streaming:1;
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index a7ef081..12b0f8c 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -555,8 +555,11 @@ void omap3isp_video_resume(struct isp_video *video, int continuous)
+ {
+ 	struct isp_buffer *buf = NULL;
+ 
+-	if (continuous && video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++	if (continuous && video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++		mutex_lock(&video->queue_lock);
+ 		omap3isp_video_queue_discard_done(video->queue);
++		mutex_unlock(&video->queue_lock);
++	}
+ 
+ 	if (!list_empty(&video->dmaqueue)) {
+ 		buf = list_first_entry(&video->dmaqueue,
+@@ -768,33 +771,57 @@ static int
+ isp_video_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *rb)
+ {
+ 	struct isp_video_fh *vfh = to_isp_video_fh(fh);
++	struct isp_video *video = video_drvdata(file);
++	int ret;
++
++	mutex_lock(&video->queue_lock);
++	ret = omap3isp_video_queue_reqbufs(&vfh->queue, rb);
++	mutex_unlock(&video->queue_lock);
+ 
+-	return omap3isp_video_queue_reqbufs(&vfh->queue, rb);
++	return ret;
+ }
+ 
+ static int
+ isp_video_querybuf(struct file *file, void *fh, struct v4l2_buffer *b)
+ {
+ 	struct isp_video_fh *vfh = to_isp_video_fh(fh);
++	struct isp_video *video = video_drvdata(file);
++	int ret;
+ 
+-	return omap3isp_video_queue_querybuf(&vfh->queue, b);
++	mutex_lock(&video->queue_lock);
++	ret = omap3isp_video_queue_querybuf(&vfh->queue, b);
++	mutex_unlock(&video->queue_lock);
++
++	return ret;
+ }
+ 
+ static int
+ isp_video_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
+ {
+ 	struct isp_video_fh *vfh = to_isp_video_fh(fh);
++	struct isp_video *video = video_drvdata(file);
++	int ret;
++
++	mutex_lock(&video->queue_lock);
++	ret = omap3isp_video_queue_qbuf(&vfh->queue, b);
++	mutex_unlock(&video->queue_lock);
+ 
+-	return omap3isp_video_queue_qbuf(&vfh->queue, b);
++	return ret;
+ }
+ 
+ static int
+ isp_video_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
+ {
+ 	struct isp_video_fh *vfh = to_isp_video_fh(fh);
++	struct isp_video *video = video_drvdata(file);
++	int ret;
++
++	mutex_lock(&video->queue_lock);
++	ret = omap3isp_video_queue_dqbuf(&vfh->queue, b,
++					 file->f_flags & O_NONBLOCK);
++	mutex_unlock(&video->queue_lock);
+ 
+-	return omap3isp_video_queue_dqbuf(&vfh->queue, b,
+-					  file->f_flags & O_NONBLOCK);
++	return ret;
+ }
+ 
+ static int isp_video_check_external_subdevs(struct isp_video *video,
+@@ -997,7 +1024,9 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	INIT_LIST_HEAD(&video->dmaqueue);
+ 	atomic_set(&pipe->frame_number, -1);
+ 
++	mutex_lock(&video->queue_lock);
+ 	ret = omap3isp_video_queue_streamon(&vfh->queue);
++	mutex_unlock(&video->queue_lock);
+ 	if (ret < 0)
+ 		goto err_check_format;
+ 
+@@ -1022,7 +1051,9 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	return 0;
+ 
+ err_set_stream:
++	mutex_lock(&video->queue_lock);
+ 	omap3isp_video_queue_streamoff(&vfh->queue);
++	mutex_unlock(&video->queue_lock);
+ err_check_format:
+ 	media_entity_pipeline_stop(&video->video.entity);
+ err_pipeline_start:
+@@ -1058,9 +1089,9 @@ isp_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	mutex_lock(&video->stream_lock);
+ 
+ 	/* Make sure we're not streaming yet. */
+-	mutex_lock(&vfh->queue.lock);
++	mutex_lock(&video->queue_lock);
+ 	streaming = vfh->queue.streaming;
+-	mutex_unlock(&vfh->queue.lock);
++	mutex_unlock(&video->queue_lock);
+ 
+ 	if (!streaming)
+ 		goto done;
+@@ -1079,7 +1110,9 @@ isp_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
+ 
+ 	/* Stop the stream. */
+ 	omap3isp_pipeline_set_stream(pipe, ISP_PIPELINE_STREAM_STOPPED);
++	mutex_lock(&video->queue_lock);
+ 	omap3isp_video_queue_streamoff(&vfh->queue);
++	mutex_unlock(&video->queue_lock);
+ 	video->queue = NULL;
+ 	video->streaming = 0;
+ 	video->error = false;
+@@ -1201,9 +1234,9 @@ static int isp_video_release(struct file *file)
+ 	/* Disable streaming and free the buffers queue resources. */
+ 	isp_video_streamoff(file, vfh, video->type);
+ 
+-	mutex_lock(&handle->queue.lock);
++	mutex_lock(&video->queue_lock);
+ 	omap3isp_video_queue_cleanup(&handle->queue);
+-	mutex_unlock(&handle->queue.lock);
++	mutex_unlock(&video->queue_lock);
+ 
+ 	omap3isp_pipeline_pm_use(&video->video.entity, 0);
+ 
+@@ -1220,16 +1253,27 @@ static int isp_video_release(struct file *file)
+ static unsigned int isp_video_poll(struct file *file, poll_table *wait)
+ {
+ 	struct isp_video_fh *vfh = to_isp_video_fh(file->private_data);
+-	struct isp_video_queue *queue = &vfh->queue;
++	struct isp_video *video = video_drvdata(file);
++	int ret;
+ 
+-	return omap3isp_video_queue_poll(queue, file, wait);
++	mutex_lock(&video->queue_lock);
++	ret = omap3isp_video_queue_poll(&vfh->queue, file, wait);
++	mutex_unlock(&video->queue_lock);
++
++	return ret;
+ }
+ 
+ static int isp_video_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct isp_video_fh *vfh = to_isp_video_fh(file->private_data);
++	struct isp_video *video = video_drvdata(file);
++	int ret;
++
++	mutex_lock(&video->queue_lock);
++	ret = omap3isp_video_queue_mmap(&vfh->queue, vma);
++	mutex_unlock(&video->queue_lock);
+ 
+-	return omap3isp_video_queue_mmap(&vfh->queue, vma);
++	return ret;
+ }
+ 
+ static struct v4l2_file_operations isp_video_fops = {
+@@ -1279,6 +1323,7 @@ int omap3isp_video_init(struct isp_video *video, const char *name)
+ 
+ 	spin_lock_init(&video->pipe.lock);
+ 	mutex_init(&video->stream_lock);
++	mutex_init(&video->queue_lock);
+ 
+ 	/* Initialize the video device. */
+ 	if (video->ops == NULL)
+@@ -1300,6 +1345,7 @@ int omap3isp_video_init(struct isp_video *video, const char *name)
+ void omap3isp_video_cleanup(struct isp_video *video)
+ {
+ 	media_entity_cleanup(&video->video.entity);
++	mutex_destroy(&video->queue_lock);
+ 	mutex_destroy(&video->stream_lock);
+ 	mutex_destroy(&video->mutex);
+ }
+diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
+index 4e19407..254e7d2 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.h
++++ b/drivers/media/platform/omap3isp/ispvideo.h
+@@ -182,6 +182,7 @@ struct isp_video {
+ 
+ 	/* Video buffers queue */
+ 	struct isp_video_queue *queue;
++	struct mutex queue_lock;	/* protects the queue */
+ 	struct list_head dmaqueue;
+ 	enum isp_video_dmaqueue_flags dmaqueue_flags;
+ 
 -- 
-1.7.9.5
+1.8.3.2
 
