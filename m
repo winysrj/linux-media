@@ -1,90 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1293 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751517AbaDQKjb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 06:39:31 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52434 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753938AbaDCWiA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, stable@vger.kernel.org,
-	#@tschai.lan, for@tschai.lan, v3.14@tschai.lan, and@tschai.lan,
-	up@tschai.lan
-Subject: [REVIEWv2 PATCH 01/11] saa7134: fix regression with tvtime
-Date: Thu, 17 Apr 2014 12:39:04 +0200
-Message-Id: <1397731154-34337-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1397731154-34337-1-git-send-email-hverkuil@xs4all.nl>
-References: <1397731154-34337-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 03/25] omap3isp: stat: Share common code for buffer allocation
+Date: Fri,  4 Apr 2014 00:39:33 +0200
+Message-Id: <1396564795-27192-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Move code common between the isp_stat_bufs_alloc_dma() and
+isp_stat_bufs_alloc_iommu() functions to isp_stat_bufs_alloc().
 
-This solves this bug:
-
-https://bugzilla.kernel.org/show_bug.cgi?id=73361
-
-The problem is that when you quit tvtime it calls STREAMOFF, but then it queues a
-bunch of buffers for no good reason before closing the file descriptor.
-
-In the past closing the fd would free the vb queue since that was part of the file
-handle struct. Since that was moved to the global struct that no longer happened.
-
-This wouldn't be a problem, but the extra QBUF calls that tvtime does meant that
-the buffer list in videobuf (q->stream) contained buffers, so REQBUFS would fail
-with -EBUSY.
-
-The solution is to init the list head explicitly when releasing the file
-descriptor and to not free the video resource when calling streamoff.
-
-The real fix will hopefully go into kernel 3.16 when the vb2 conversion is
-merged. Basically the saa7134 driver with the old videobuf is so full of holes it
-ain't funny anymore, so consider this a band-aid for kernels 3.14 and 15.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: stable@vger.kernel.org      # for v3.14 and up
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/pci/saa7134/saa7134-video.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/media/platform/omap3isp/ispstat.c | 114 ++++++++++++++----------------
+ 1 file changed, 54 insertions(+), 60 deletions(-)
 
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index eb472b5..40396e8 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -1243,6 +1243,7 @@ static int video_release(struct file *file)
- 		videobuf_streamoff(&dev->cap);
- 		res_free(dev, fh, RESOURCE_VIDEO);
- 		videobuf_mmap_free(&dev->cap);
-+		INIT_LIST_HEAD(&dev->cap.stream);
- 	}
- 	if (dev->cap.read_buf) {
- 		buffer_release(&dev->cap, dev->cap.read_buf);
-@@ -1254,6 +1255,7 @@ static int video_release(struct file *file)
- 		videobuf_stop(&dev->vbi);
- 		res_free(dev, fh, RESOURCE_VBI);
- 		videobuf_mmap_free(&dev->vbi);
-+		INIT_LIST_HEAD(&dev->vbi.stream);
- 	}
- 
- 	/* ts-capture will not work in planar mode, so turn it off Hac: 04.05*/
-@@ -1987,17 +1989,12 @@ int saa7134_streamoff(struct file *file, void *priv,
- 					enum v4l2_buf_type type)
- {
- 	struct saa7134_dev *dev = video_drvdata(file);
--	int err;
- 	int res = saa7134_resource(file);
- 
- 	if (res != RESOURCE_EMPRESS)
- 		pm_qos_remove_request(&dev->qos_request);
- 
--	err = videobuf_streamoff(saa7134_queue(file));
--	if (err < 0)
--		return err;
--	res_free(dev, priv, res);
--	return 0;
-+	return videobuf_streamoff(saa7134_queue(file));
+diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
+index c6c1290..b1eb902 100644
+--- a/drivers/media/platform/omap3isp/ispstat.c
++++ b/drivers/media/platform/omap3isp/ispstat.c
+@@ -389,74 +389,42 @@ static void isp_stat_bufs_free(struct ispstat *stat)
+ 	stat->active_buf = NULL;
  }
- EXPORT_SYMBOL_GPL(saa7134_streamoff);
  
+-static int isp_stat_bufs_alloc_iommu(struct ispstat *stat, unsigned int size)
++static int isp_stat_bufs_alloc_iommu(struct ispstat *stat,
++				     struct ispstat_buffer *buf,
++				     unsigned int size)
+ {
+ 	struct isp_device *isp = stat->isp;
+-	int i;
++	struct iovm_struct *iovm;
+ 
+-	stat->buf_alloc_size = size;
++	buf->iommu_addr = omap_iommu_vmalloc(isp->domain, isp->dev, 0,
++						size, IOMMU_FLAG);
++	if (IS_ERR((void *)buf->iommu_addr))
++		return -ENOMEM;
+ 
+-	for (i = 0; i < STAT_MAX_BUFS; i++) {
+-		struct ispstat_buffer *buf = &stat->buf[i];
+-		struct iovm_struct *iovm;
++	iovm = omap_find_iovm_area(isp->dev, buf->iommu_addr);
++	if (!iovm)
++		return -ENOMEM;
+ 
+-		buf->iommu_addr = omap_iommu_vmalloc(isp->domain, isp->dev, 0,
+-							size, IOMMU_FLAG);
+-		if (IS_ERR((void *)buf->iommu_addr)) {
+-			dev_err(stat->isp->dev,
+-				 "%s: Can't acquire memory for "
+-				 "buffer %d\n", stat->subdev.name, i);
+-			isp_stat_bufs_free(stat);
+-			return -ENOMEM;
+-		}
++	if (!dma_map_sg(isp->dev, iovm->sgt->sgl, iovm->sgt->nents,
++			DMA_FROM_DEVICE))
++		return -ENOMEM;
+ 
+-		iovm = omap_find_iovm_area(isp->dev, buf->iommu_addr);
+-		if (!iovm ||
+-		    !dma_map_sg(isp->dev, iovm->sgt->sgl, iovm->sgt->nents,
+-				DMA_FROM_DEVICE)) {
+-			isp_stat_bufs_free(stat);
+-			return -ENOMEM;
+-		}
+-		buf->iovm = iovm;
+-
+-		buf->virt_addr = omap_da_to_va(stat->isp->dev,
+-					  (u32)buf->iommu_addr);
+-		buf->empty = 1;
+-		dev_dbg(stat->isp->dev, "%s: buffer[%d] allocated."
+-			"iommu_addr=0x%08lx virt_addr=0x%08lx",
+-			stat->subdev.name, i, buf->iommu_addr,
+-			(unsigned long)buf->virt_addr);
+-	}
++	buf->iovm = iovm;
++	buf->virt_addr = omap_da_to_va(stat->isp->dev,
++				  (u32)buf->iommu_addr);
+ 
+ 	return 0;
+ }
+ 
+-static int isp_stat_bufs_alloc_dma(struct ispstat *stat, unsigned int size)
++static int isp_stat_bufs_alloc_dma(struct ispstat *stat,
++				   struct ispstat_buffer *buf,
++				   unsigned int size)
+ {
+-	int i;
+-
+-	stat->buf_alloc_size = size;
+-
+-	for (i = 0; i < STAT_MAX_BUFS; i++) {
+-		struct ispstat_buffer *buf = &stat->buf[i];
+-
+-		buf->virt_addr = dma_alloc_coherent(stat->isp->dev, size,
+-					&buf->dma_addr, GFP_KERNEL | GFP_DMA);
+-
+-		if (!buf->virt_addr || !buf->dma_addr) {
+-			dev_info(stat->isp->dev,
+-				 "%s: Can't acquire memory for "
+-				 "DMA buffer %d\n", stat->subdev.name, i);
+-			isp_stat_bufs_free(stat);
+-			return -ENOMEM;
+-		}
+-		buf->empty = 1;
++	buf->virt_addr = dma_alloc_coherent(stat->isp->dev, size,
++				&buf->dma_addr, GFP_KERNEL | GFP_DMA);
+ 
+-		dev_dbg(stat->isp->dev, "%s: buffer[%d] allocated."
+-			"dma_addr=0x%08lx virt_addr=0x%08lx\n",
+-			stat->subdev.name, i, (unsigned long)buf->dma_addr,
+-			(unsigned long)buf->virt_addr);
+-	}
++	if (!buf->virt_addr || !buf->dma_addr)
++		return -ENOMEM;
+ 
+ 	return 0;
+ }
+@@ -464,6 +432,7 @@ static int isp_stat_bufs_alloc_dma(struct ispstat *stat, unsigned int size)
+ static int isp_stat_bufs_alloc(struct ispstat *stat, u32 size)
+ {
+ 	unsigned long flags;
++	unsigned int i;
+ 
+ 	spin_lock_irqsave(&stat->isp->stat_lock, flags);
+ 
+@@ -487,10 +456,35 @@ static int isp_stat_bufs_alloc(struct ispstat *stat, u32 size)
+ 
+ 	isp_stat_bufs_free(stat);
+ 
+-	if (ISP_STAT_USES_DMAENGINE(stat))
+-		return isp_stat_bufs_alloc_dma(stat, size);
+-	else
+-		return isp_stat_bufs_alloc_iommu(stat, size);
++	stat->buf_alloc_size = size;
++
++	for (i = 0; i < STAT_MAX_BUFS; i++) {
++		struct ispstat_buffer *buf = &stat->buf[i];
++		int ret;
++
++		if (ISP_STAT_USES_DMAENGINE(stat))
++			ret = isp_stat_bufs_alloc_dma(stat, buf, size);
++		else
++			ret = isp_stat_bufs_alloc_iommu(stat, buf, size);
++
++		if (ret < 0) {
++			dev_err(stat->isp->dev,
++				"%s: Failed to allocate DMA buffer %u\n",
++				stat->subdev.name, i);
++			isp_stat_bufs_free(stat);
++			return ret;
++		}
++
++		buf->empty = 1;
++
++		dev_dbg(stat->isp->dev,
++			"%s: buffer[%u] allocated. iommu=0x%08lx dma=0x%08lx virt=0x%08lx",
++			stat->subdev.name, i, buf->iommu_addr,
++			(unsigned long)buf->dma_addr,
++			(unsigned long)buf->virt_addr);
++	}
++
++	return 0;
+ }
+ 
+ static void isp_stat_queue_event(struct ispstat *stat, int err)
 -- 
-1.9.2
+1.8.3.2
 
