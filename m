@@ -1,167 +1,290 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.comexp.ru ([78.110.60.213]:60477 "EHLO mail.comexp.ru"
+Received: from hardeman.nu ([95.142.160.32]:40343 "EHLO hardeman.nu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751913AbaDANuy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Apr 2014 09:50:54 -0400
-Message-ID: <1396355297.2395.1.camel@localhost.localdomain>
-Subject: [PATCH v3] saa7134: add vidioc_querystd
-From: Mikhail Domrachev <mihail.domrychev@comexp.ru>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Aleksey Igonin <aleksey.igonin@comexp.ru>
-Date: Tue, 01 Apr 2014 16:28:17 +0400
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1753909AbaDCXek (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 19:34:40 -0400
+Subject: [PATCH 40/49] rc-ir-raw: simplify locking
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Fri, 04 Apr 2014 01:34:38 +0200
+Message-ID: <20140403233438.27099.1183.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mikhail Domrachev <mihail.domrychev@comexp.ru>
+Simplify and improve the locking in rc-ir-raw by making better use of
+the existing kfifo functionality and by using RCU where possible.
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- drivers/media/pci/saa7134/saa7134-empress.c |  1 +
- drivers/media/pci/saa7134/saa7134-reg.h     |  5 ++++
- drivers/media/pci/saa7134/saa7134-video.c   | 41 +++++++++++++++++++++++++++--
- drivers/media/pci/saa7134/saa7134.h         |  1 +
- 4 files changed, 46 insertions(+), 2 deletions(-)
+ drivers/media/rc/rc-core-priv.h |    6 +-
+ drivers/media/rc/rc-ir-raw.c    |  124 ++++++++++++++++-----------------------
+ 2 files changed, 55 insertions(+), 75 deletions(-)
 
-diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
-index 0a9047e..a150deb 100644
---- a/drivers/media/pci/saa7134/saa7134-empress.c
-+++ b/drivers/media/pci/saa7134/saa7134-empress.c
-@@ -262,6 +262,7 @@ static const struct v4l2_ioctl_ops ts_ioctl_ops = {
- 	.vidioc_s_input			= saa7134_s_input,
- 	.vidioc_s_std			= saa7134_s_std,
- 	.vidioc_g_std			= saa7134_g_std,
-+	.vidioc_querystd		= saa7134_querystd,
- 	.vidioc_log_status		= v4l2_ctrl_log_status,
- 	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
- 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
-diff --git a/drivers/media/pci/saa7134/saa7134-reg.h b/drivers/media/pci/saa7134/saa7134-reg.h
-index e7e0af1..51737b1 100644
---- a/drivers/media/pci/saa7134/saa7134-reg.h
-+++ b/drivers/media/pci/saa7134/saa7134-reg.h
-@@ -167,17 +167,22 @@
- #define SAA7134_HSYNC_START                     0x106
- #define SAA7134_HSYNC_STOP                      0x107
- #define SAA7134_SYNC_CTRL                       0x108
-+#define   SAA7134_SYNC_CTRL_AUFD                (1 << 7)
- #define SAA7134_LUMA_CTRL                       0x109
-+#define   SAA7134_LUMA_CTRL_LDEL                (1 << 5)
- #define SAA7134_DEC_LUMA_BRIGHT                 0x10a
- #define SAA7134_DEC_LUMA_CONTRAST               0x10b
- #define SAA7134_DEC_CHROMA_SATURATION           0x10c
- #define SAA7134_DEC_CHROMA_HUE                  0x10d
- #define SAA7134_CHROMA_CTRL1                    0x10e
-+#define   SAA7134_CHROMA_CTRL1_AUTO0            (1 << 1)
-+#define   SAA7134_CHROMA_CTRL1_FCTC             (1 << 2)
- #define SAA7134_CHROMA_GAIN                     0x10f
- #define SAA7134_CHROMA_CTRL2                    0x110
- #define SAA7134_MODE_DELAY_CTRL                 0x111
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 0b32ef8..c3de26b 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -37,11 +37,13 @@ struct ir_raw_handler {
+ 	int (*raw_unregister)(struct rc_dev *dev);
+ };
  
- #define SAA7134_ANALOG_ADC                      0x114
-+#define   SAA7134_ANALOG_ADC_AUTO1              (1 << 2)
- #define SAA7134_VGATE_START                     0x115
- #define SAA7134_VGATE_STOP                      0x116
- #define SAA7134_MISC_VGATE_MSB                  0x117
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index eb472b5..5eb61ca 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -452,19 +452,26 @@ static void video_mux(struct saa7134_dev *dev, int input)
- 
- static void saa7134_set_decoder(struct saa7134_dev *dev)
- {
--	int luma_control, sync_control, mux;
-+	int luma_control, sync_control, chroma_ctrl1, mux;
- 
- 	struct saa7134_tvnorm *norm = dev->tvnorm;
- 	mux = card_in(dev, dev->ctl_input).vmux;
- 
- 	luma_control = norm->luma_control;
- 	sync_control = norm->sync_control;
-+	chroma_ctrl1 = norm->chroma_ctrl1;
- 
- 	if (mux > 5)
- 		luma_control |= 0x80; /* svideo */
- 	if (noninterlaced || dev->nosignal)
- 		sync_control |= 0x20;
- 
-+	/* switch on auto standard detection */
-+	sync_control |= SAA7134_SYNC_CTRL_AUFD;
-+	chroma_ctrl1 |= SAA7134_CHROMA_CTRL1_AUTO0;
-+	chroma_ctrl1 &= ~SAA7134_CHROMA_CTRL1_FCTC;
-+	luma_control &= ~SAA7134_LUMA_CTRL_LDEL;
++/* max number of pulse/space transitions to buffer */
++#define RC_MAX_IR_EVENTS	512
 +
- 	/* setup video decoder */
- 	saa_writeb(SAA7134_INCR_DELAY,            0x08);
- 	saa_writeb(SAA7134_ANALOG_IN_CTRL1,       0xc0 | mux);
-@@ -487,7 +494,7 @@ static void saa7134_set_decoder(struct saa7134_dev *dev)
- 		dev->ctl_invert ? -dev->ctl_saturation : dev->ctl_saturation);
+ struct ir_raw_event_ctrl {
+ 	struct list_head		list;		/* to keep track of raw clients */
+ 	struct task_struct		*thread;
+-	spinlock_t			lock;
+-	struct kfifo_rec_ptr_1		kfifo;		/* fifo for the pulse/space durations */
++	DECLARE_KFIFO(kfifo, struct ir_raw_event, RC_MAX_IR_EVENTS); /* for pulse/space durations */
+ 	ktime_t				last_event;	/* when last event occurred */
+ 	enum raw_event_type		last_type;	/* last event type */
+ 	struct rc_dev			*dev;		/* pointer to the parent rc_dev */
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 86f5aa7..9631825 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -21,15 +21,12 @@
+ #include <linux/freezer.h>
+ #include "rc-core-priv.h"
  
- 	saa_writeb(SAA7134_DEC_CHROMA_HUE,        dev->ctl_hue);
--	saa_writeb(SAA7134_CHROMA_CTRL1,          norm->chroma_ctrl1);
-+	saa_writeb(SAA7134_CHROMA_CTRL1,          chroma_ctrl1);
- 	saa_writeb(SAA7134_CHROMA_GAIN,           norm->chroma_gain);
+-/* Define the max number of pulse/space transitions to buffer */
+-#define MAX_IR_EVENT_SIZE      512
+-
+-/* Used to keep track of IR raw clients, protected by ir_raw_handler_lock */
++/* IR raw clients/handlers, writers synchronize with ir_raw_mutex */
++static DEFINE_MUTEX(ir_raw_mutex);
+ static LIST_HEAD(ir_raw_client_list);
+-
+-/* Used to handle IR raw handler extensions */
+-static DEFINE_MUTEX(ir_raw_handler_lock);
+ static LIST_HEAD(ir_raw_handler_list);
++
++/* protocols supported by the currently loaded decoders */
+ static u64 available_protocols;
  
- 	saa_writeb(SAA7134_CHROMA_CTRL2,          norm->chroma_ctrl2);
-@@ -1686,6 +1693,35 @@ int saa7134_g_std(struct file *file, void *priv, v4l2_std_id *id)
+ static int ir_raw_event_thread(void *data)
+@@ -37,32 +34,19 @@ static int ir_raw_event_thread(void *data)
+ 	struct ir_raw_event ev;
+ 	struct ir_raw_handler *handler;
+ 	struct ir_raw_event_ctrl *raw = (struct ir_raw_event_ctrl *)data;
+-	int retval;
+ 
+ 	while (!kthread_should_stop()) {
+-
+-		spin_lock_irq(&raw->lock);
+-		retval = kfifo_len(&raw->kfifo);
+-
+-		if (retval < sizeof(ev)) {
++		if (kfifo_out(&raw->kfifo, &ev, 1) == 0) {
+ 			set_current_state(TASK_INTERRUPTIBLE);
+-
+-			if (kthread_should_stop())
+-				set_current_state(TASK_RUNNING);
+-
+-			spin_unlock_irq(&raw->lock);
+ 			schedule();
+ 			continue;
+ 		}
+ 
+-		retval = kfifo_out(&raw->kfifo, &ev, sizeof(ev));
+-		spin_unlock_irq(&raw->lock);
+-
+-		mutex_lock(&ir_raw_handler_lock);
+-		list_for_each_entry(handler, &ir_raw_handler_list, list)
++		rcu_read_lock();
++		list_for_each_entry_rcu(handler, &ir_raw_handler_list, list)
+ 			handler->decode(raw->dev, ev);
++		rcu_read_unlock();
+ 		raw->prev_ev = ev;
+-		mutex_unlock(&ir_raw_handler_lock);
+ 	}
+ 
+ 	return 0;
+@@ -76,7 +60,8 @@ static int ir_raw_event_thread(void *data)
+  * This routine (which may be called from an interrupt context) stores a
+  * pulse/space duration for the raw ir decoding state machines. Pulses are
+  * signalled as positive values and spaces as negative values. A zero value
+- * will reset the decoding state machines.
++ * will reset the decoding state machines. Drivers are responsible for
++ * synchronizing calls to this function.
+  */
+ int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev)
+ {
+@@ -86,7 +71,7 @@ int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev)
+ 	IR_dprintk(2, "sample: (%05dus %s)\n",
+ 		   TO_US(ev->duration), TO_STR(ev->pulse));
+ 
+-	if (kfifo_in(&dev->raw->kfifo, ev, sizeof(*ev)) != sizeof(*ev))
++	if (kfifo_in(&dev->raw->kfifo, ev, 1) != 1)
+ 		return -ENOMEM;
+ 
+ 	return 0;
+@@ -258,14 +243,8 @@ EXPORT_SYMBOL_GPL(ir_raw_get_tx_event);
+  */
+ void ir_raw_event_handle(struct rc_dev *dev)
+ {
+-	unsigned long flags;
+-
+-	if (!dev->raw)
+-		return;
+-
+-	spin_lock_irqsave(&dev->raw->lock, flags);
+-	wake_up_process(dev->raw->thread);
+-	spin_unlock_irqrestore(&dev->raw->lock, flags);
++	if (dev->raw)
++		wake_up_process(dev->raw->thread);
  }
- EXPORT_SYMBOL_GPL(saa7134_g_std);
+ EXPORT_SYMBOL_GPL(ir_raw_event_handle);
  
-+static v4l2_std_id saa7134_read_std(struct saa7134_dev *dev)
-+{
-+	static v4l2_std_id stds[] = {
-+		V4L2_STD_UNKNOWN,
-+		V4L2_STD_NTSC,
-+		V4L2_STD_PAL,
-+		V4L2_STD_SECAM };
-+
-+	v4l2_std_id result = 0;
-+
-+	u8 st1 = saa_readb(SAA7134_STATUS_VIDEO1);
-+	u8 st2 = saa_readb(SAA7134_STATUS_VIDEO2);
-+
-+	if (!(st2 & 0x1)) /* RDCAP == 0 */
-+		result = V4L2_STD_UNKNOWN;
-+	else
-+		result = stds[st1 & 0x03];
-+
-+	return result;
-+}
-+
-+int saa7134_querystd(struct file *file, void *priv, v4l2_std_id *std)
-+{
-+	struct saa7134_dev *dev = video_drvdata(file);
-+	*std &= saa7134_read_std(dev);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(saa7134_querystd);
-+
- static int saa7134_cropcap(struct file *file, void *priv,
- 					struct v4l2_cropcap *cap)
+@@ -273,9 +252,9 @@ EXPORT_SYMBOL_GPL(ir_raw_event_handle);
+ static u64 ir_raw_get_allowed_protocols(struct rc_dev *dev)
  {
-@@ -2084,6 +2120,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 	.vidioc_dqbuf			= saa7134_dqbuf,
- 	.vidioc_s_std			= saa7134_s_std,
- 	.vidioc_g_std			= saa7134_g_std,
-+	.vidioc_querystd		= saa7134_querystd,
- 	.vidioc_enum_input		= saa7134_enum_input,
- 	.vidioc_g_input			= saa7134_g_input,
- 	.vidioc_s_input			= saa7134_s_input,
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index 2474e84..9c2249b 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -779,6 +779,7 @@ extern struct video_device saa7134_radio_template;
+ 	u64 protocols;
+-	mutex_lock(&ir_raw_handler_lock);
++	mutex_lock(&ir_raw_mutex);
+ 	protocols = available_protocols;
+-	mutex_unlock(&ir_raw_handler_lock);
++	mutex_unlock(&ir_raw_mutex);
+ 	return protocols;
+ }
  
- int saa7134_s_std(struct file *file, void *priv, v4l2_std_id id);
- int saa7134_g_std(struct file *file, void *priv, v4l2_std_id *id);
-+int saa7134_querystd(struct file *file, void *priv, v4l2_std_id *std);
- int saa7134_enum_input(struct file *file, void *priv, struct v4l2_input *i);
- int saa7134_g_input(struct file *file, void *priv, unsigned int *i);
- int saa7134_s_input(struct file *file, void *priv, unsigned int i);
--- 
-1.8.5.3
-
-
+@@ -290,52 +269,49 @@ static int change_protocol(struct rc_dev *dev, u64 *rc_type) {
+ int rc_register_ir_raw_device(struct rc_dev *dev)
+ {
+ 	int rc;
++	struct ir_raw_event_ctrl *raw;
+ 	struct ir_raw_handler *handler;
+ 
+ 	if (!dev)
+ 		return -EINVAL;
+ 
+-	dev->raw = kzalloc(sizeof(*dev->raw), GFP_KERNEL);
+-	if (!dev->raw)
++	raw = kzalloc(sizeof(*raw), GFP_KERNEL);
++	if (!raw)
+ 		return -ENOMEM;
+ 
+-	dev->raw->dev = dev;
+-	dev->enabled_protocols = ~0;
+-	dev->get_protocols = ir_raw_get_allowed_protocols;
+-	dev->driver_type = RC_DRIVER_IR_RAW;
+-	dev->change_protocol = change_protocol;
+-	spin_lock_init(&dev->raw->lock);
+-	rc = kfifo_alloc(&dev->raw->kfifo,
+-			 sizeof(struct ir_raw_event) * MAX_IR_EVENT_SIZE,
+-			 GFP_KERNEL);
+-	if (rc < 0)
+-		goto out;
+-
+-	dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
+-				       dev_name(&dev->dev));
++	raw->dev = dev;
++	INIT_KFIFO(raw->kfifo);
++	raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
++				  dev_name(&dev->dev));
+ 
+-	if (IS_ERR(dev->raw->thread)) {
+-		rc = PTR_ERR(dev->raw->thread);
++	if (IS_ERR(raw->thread)) {
++		rc = PTR_ERR(raw->thread);
+ 		goto out;
+ 	}
+ 
++	dev->raw = raw;
++	dev->enabled_protocols = ~0;
++	dev->get_protocols = ir_raw_get_allowed_protocols;
++	dev->driver_type = RC_DRIVER_IR_RAW;
++	dev->change_protocol = change_protocol;
+ 	rc = rc_register_device(dev);
+ 	if (rc < 0)
+ 		goto out_thread;
+ 
+-	mutex_lock(&ir_raw_handler_lock);
+-	list_add_tail(&dev->raw->list, &ir_raw_client_list);
+-	list_for_each_entry(handler, &ir_raw_handler_list, list)
++	mutex_lock(&ir_raw_mutex);
++	list_add_tail_rcu(&dev->raw->list, &ir_raw_client_list);
++	list_for_each_entry_rcu(handler, &ir_raw_handler_list, list)
+ 		if (handler->raw_register)
+ 			handler->raw_register(dev);
+-	mutex_unlock(&ir_raw_handler_lock);
++	mutex_unlock(&ir_raw_mutex);
++	synchronize_rcu();
+ 
+ 	return 0;
+ 
+ out_thread:
+-	kthread_stop(dev->raw->thread);
++	kthread_stop(raw->thread);
+ out:
+-	kfree(dev->raw);
++	kfree(raw);
+ 	dev->raw = NULL;
+ 	return rc;
+ }
+@@ -350,14 +326,14 @@ void rc_unregister_ir_raw_device(struct rc_dev *dev)
+ 
+ 	kthread_stop(dev->raw->thread);
+ 
+-	mutex_lock(&ir_raw_handler_lock);
+-	list_del(&dev->raw->list);
+-	list_for_each_entry(handler, &ir_raw_handler_list, list)
++	mutex_lock(&ir_raw_mutex);
++	list_del_rcu(&dev->raw->list);
++	list_for_each_entry_rcu(handler, &ir_raw_handler_list, list)
+ 		if (handler->raw_unregister)
+ 			handler->raw_unregister(dev);
+-	mutex_unlock(&ir_raw_handler_lock);
++	mutex_unlock(&ir_raw_mutex);
++	synchronize_rcu();
+ 
+-	kfifo_free(&dev->raw->kfifo);
+ 	kfree(dev->raw);
+ 	dev->raw = NULL;
+ 	rc_unregister_device(dev);
+@@ -372,13 +348,14 @@ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler)
+ {
+ 	struct ir_raw_event_ctrl *raw;
+ 
+-	mutex_lock(&ir_raw_handler_lock);
+-	list_add_tail(&ir_raw_handler->list, &ir_raw_handler_list);
++	mutex_lock(&ir_raw_mutex);
++	list_add_tail_rcu(&ir_raw_handler->list, &ir_raw_handler_list);
+ 	if (ir_raw_handler->raw_register)
+-		list_for_each_entry(raw, &ir_raw_client_list, list)
++		list_for_each_entry_rcu(raw, &ir_raw_client_list, list)
+ 			ir_raw_handler->raw_register(raw->dev);
+ 	available_protocols |= ir_raw_handler->protocols;
+-	mutex_unlock(&ir_raw_handler_lock);
++	mutex_unlock(&ir_raw_mutex);
++	synchronize_rcu();
+ 
+ 	return 0;
+ }
+@@ -388,13 +365,14 @@ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler)
+ {
+ 	struct ir_raw_event_ctrl *raw;
+ 
+-	mutex_lock(&ir_raw_handler_lock);
+-	list_del(&ir_raw_handler->list);
++	mutex_lock(&ir_raw_mutex);
++	list_del_rcu(&ir_raw_handler->list);
+ 	if (ir_raw_handler->raw_unregister)
+-		list_for_each_entry(raw, &ir_raw_client_list, list)
++		list_for_each_entry_rcu(raw, &ir_raw_client_list, list)
+ 			ir_raw_handler->raw_unregister(raw->dev);
+ 	available_protocols &= ~ir_raw_handler->protocols;
+-	mutex_unlock(&ir_raw_handler_lock);
++	mutex_unlock(&ir_raw_mutex);
++	synchronize_rcu();
+ }
+ EXPORT_SYMBOL(ir_raw_handler_unregister);
+ 
 
