@@ -1,46 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38682 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52690 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752326AbaDUM3W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Apr 2014 08:29:22 -0400
+	with ESMTP id S1753803AbaDCX3a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 19:29:30 -0400
+Received: from avalon.ideasonboard.com (unknown [91.177.168.144])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id C235A359AC
+	for <linux-media@vger.kernel.org>; Fri,  4 Apr 2014 01:27:45 +0200 (CEST)
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 23/26] omap3isp: Cancel all queued buffers when stopping the video stream
-Date: Mon, 21 Apr 2014 14:29:09 +0200
-Message-Id: <1398083352-8451-24-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] omap4iss: Add missing white space
+Date: Fri,  4 Apr 2014 01:31:30 +0200
+Message-Id: <1396567890-32640-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When stopping a video stream the driver waits for ongoing DMA opeations
-to complete for the currently active buffer, but doesn't release the
-non-active queued buffers. This isn't a problem in most cases as the
-video device is usually closed after the stream is stopped, which will
-release all the buffers. However the problem would generate a warning
-when switching to videobuf2. Fix it by cancelling all buffers after DMA
-operations have completed.
+The error was reported by checkpatch.pl. Fix it.
 
 Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/omap3isp/ispvideo.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/staging/media/omap4iss/iss_video.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index e1f9983..ffe56ad 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -1115,6 +1115,8 @@ isp_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
+diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
+index 878e4a3..9dccdb1 100644
+--- a/drivers/staging/media/omap4iss/iss_video.h
++++ b/drivers/staging/media/omap4iss/iss_video.h
+@@ -140,7 +140,7 @@ enum iss_video_dmaqueue_flags {
+  *		if there was no buffer previously queued.
+  */
+ struct iss_video_operations {
+-	int(*queue)(struct iss_video *video, struct iss_buffer *buffer);
++	int (*queue)(struct iss_video *video, struct iss_buffer *buffer);
+ };
  
- 	/* Stop the stream. */
- 	omap3isp_pipeline_set_stream(pipe, ISP_PIPELINE_STREAM_STOPPED);
-+	omap3isp_video_cancel_stream(video);
-+
- 	mutex_lock(&video->queue_lock);
- 	omap3isp_video_queue_streamoff(&vfh->queue);
- 	mutex_unlock(&video->queue_lock);
+ struct iss_video {
 -- 
-1.8.3.2
+Regards,
+
+Laurent Pinchart
 
