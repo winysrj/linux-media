@@ -1,44 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailex.mailcore.me ([94.136.40.62]:56283 "EHLO
-	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754083AbaDPSPR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Apr 2014 14:15:17 -0400
-Date: Wed, 16 Apr 2014 19:15:08 +0100
-Subject: Re: Hauppauge ImpactVCB-e 01385
-Message-ID: <xjuifxk76a4wghmign4a5brq.1397672108211@email.android.com>
-From: Steve Cookson <it@sca-uk.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Steven Toth <stoth@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
+Received: from hardeman.nu ([95.142.160.32]:40353 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753851AbaDCXfG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 19:35:06 -0400
+Subject: [PATCH 45/49] rc-ir-raw: add various rc_events
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Fri, 04 Apr 2014 01:35:03 +0200
+Message-ID: <20140403233503.27099.89532.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgSGFucywKCldlbGwgSSdsbCBjb25maXJtIHRoYXQgdG9tb3Jyb3cuIFRvIG1lIGl0IGxvb2tz
-IGxpa2UgMzIweDI0MCBzY2FsZWQgd2l0aCBhIGNvcnJlc3BvbmRpbmcgbG9zcyBvZiBkZXRhaWwu
-CgpJJ2xsIHNlZSBpZiBJIGNhbiBmaW5kIGEgbmljZSB0ZXN0IGltYWdlIHRvIHVzZSB0byBzaG93
-IHRoZSBkaWZmZXJlbmNlIGNsZWFybHkgaW4gY29tcGFyaXNvbiB0byB0aGUgc3RrMTE2MCBhdCB0
-aGUgc2FtZSByZXNvbHV0aW9uLiBUaGUgSW1wYWN0VkNCLWUgc2hvdWxkIGJlIGJldHRlciBidXQg
-aXQgaXNuJ3QuIFRoZSBzdGsxMTYwIHMtdmlkZW8gYXQgNjQweDQ4MCBpcyBtdWNoIGJldHRlciB0
-aGFuIHRoZSBJbXBhY3RWQ0ItZSBvbiBlaXRoZXIgY29tcG9zaXRlIG9yIHMtdmlkZW8uCgpSZWdh
-cmRzCgpIYW5zIFZlcmt1aWwgPGh2ZXJrdWlsQHhzNGFsbC5ubD4gd3JvdGU6Cgo+T24gMDQvMTYv
-MjAxNCAwNzoxMSBQTSwgU3RldmUgQ29va3NvbiB3cm90ZToKPj4gSGkgR3V5cywKPj4gCj4+IE9u
-IDE0LzA0LzE0IDE1OjAyLCBIYW5zIFZlcmt1aWwgd3JvdGU6Cj4+IAo+PiAgPiBJJ2QgYXBwcmVj
-aWF0ZSBpdCBpZiB5b3UgY2FuIHRlc3QgdGhpcyB3aXRoIGEgcHJvcGVyIHZpZGVvIGZlZWQuCj4+
-IAo+PiBPaywgaGVyZSBpcyB0aGUgZmlyc3QgaXNzdWU6Cj4+IAo+PiAxKSBJIGhhdmUgYSA2NDB4
-NDgwIHZpZGVvIGZlZWQgd2hpY2ggZGlzcGxheXMgYXBwcm9wcmlhdGVseSB0aHJvdWdoIAo+PiBz
-dGsxMTYwLCBidXQgb25seSBkaXNwbGF5cyBhdCAzMjB4MjQwIGluIEltcGFjdFZDQmUuCj4+IAo+
-PiBJbiBmYWN0IHRoaXMgaXMgdGhlIHNhbWUgaXNzdWUgSSBoYWQgbGFzdCB5ZWFyIHdpdGg6Cj4+
-IAo+PiBlY2hvIGN4MjM4ODUgY2FyZD01IHwgc3VkbyB0ZWUgLWEgL2V0Yy9tb2R1bGVzCj4+IAo+
-PiBJcyB5b3VyIGNhcmQgZ2l2aW5nIHlvdSA2NDB4NDgwPwo+Cj5Gb3Igbm8gZ29vZCByZWFzb24g
-QUZBSUNUIHRoZSBpbml0aWFsIHJlc29sdXRpb24gaXMgc2V0IHRvIDMyMHgyNDAuIEJ1dAo+eW91
-IGNhbiBqdXN0IHNldCBpdCB0byA2NDB4NDgwIChvciBtb3JlIGxpa2VseSwgNzIweDQ4MCBmb3Ig
-TlRTQyBvcgo+NzIweDU3NiBmb3IgUEFMKToKPgo+djRsMi1jdGwgLXYgd2lkdGg9NjQwLGhlaWdo
-dD00ODAKPgo+UmVnYXJkcywKPgo+CUhhbnMKPi0tCj5UbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMg
-bGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtbWVkaWEiIGluCj50aGUgYm9k
-eSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+TW9yZSBtYWpvcmRv
-bW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCg==
+Reporting pulse/space events via the /dev/rc/rcX device node is an
+important step towards having feature parity with LIRC.
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-ir-raw.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index bf5215b..3b68975 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -71,6 +71,17 @@ int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev)
+ 	IR_dprintk(2, "sample: (%05dus %s)\n",
+ 		   TO_US(ev->duration), TO_STR(ev->pulse));
+ 
++	if (ev->reset)
++		rc_event(dev, RC_IR, RC_IR_RESET, 1);
++	else if (ev->carrier_report)
++		rc_event(dev, RC_IR, RC_IR_CARRIER, ev->carrier);
++	else if (ev->timeout)
++		rc_event(dev, RC_IR, RC_IR_STOP, 1);
++	else if (ev->pulse)
++		rc_event(dev, RC_IR, RC_IR_PULSE, ev->duration);
++	else
++		rc_event(dev, RC_IR, RC_IR_SPACE, ev->duration);
++
+ 	if (kfifo_in(&dev->raw->kfifo, ev, 1) != 1)
+ 		return -ENOMEM;
+ 
 
