@@ -1,63 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:8608 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753585AbaDNPA6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 11:00:58 -0400
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-samsung-soc@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, robh+dt@kernel.org, inki.dae@samsung.com,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	t.figa@samsung.com, b.zolnierkie@samsung.com,
-	jy0922.shim@samsung.com, rahul.sharma@samsung.com,
-	pawel.moll@arm.com, Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 3/4] drm: exynos: add compatibles for HDMI and Mixer chips and
- exynos4210 SoC
-Date: Mon, 14 Apr 2014 17:00:21 +0200
-Message-id: <1397487622-3577-4-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1397487622-3577-1-git-send-email-t.stanislaws@samsung.com>
-References: <1397487622-3577-1-git-send-email-t.stanislaws@samsung.com>
+Received: from hardeman.nu ([95.142.160.32]:40280 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753803AbaDCXcD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 19:32:03 -0400
+Subject: [PATCH 09/49] saa7134: NEC scancode fix
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Fri, 04 Apr 2014 01:32:01 +0200
+Message-ID: <20140403233201.27099.88348.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add proper compatibles for Mixer and HDMI chip
-available on exynos4210 SoCs.
+This driver codes the two address bytes in reverse order when compared to the
+other drivers, so make it consistent (and update the keymap, note that the
+result is a prefix change from 0x6b86 -> 0x866b, and the latter is pretty
+common among the NECX keymaps. While not conclusive, it's still a strong hint
+that the change is correct).
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- drivers/gpu/drm/exynos/exynos_hdmi.c  |    3 +++
- drivers/gpu/drm/exynos/exynos_mixer.c |    3 +++
- 2 files changed, 6 insertions(+)
+ drivers/media/pci/saa7134/saa7134-input.c |    2 -
+ drivers/media/rc/keymaps/rc-behold.c      |   68 +++++++++++++++--------------
+ 2 files changed, 35 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
-index d2d6e2e..6fa63ea 100644
---- a/drivers/gpu/drm/exynos/exynos_hdmi.c
-+++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
-@@ -2032,6 +2032,9 @@ static struct s5p_hdmi_platform_data *drm_hdmi_dt_parse_pdata
+diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
+index 43dd8bd..887429b 100644
+--- a/drivers/media/pci/saa7134/saa7134-input.c
++++ b/drivers/media/pci/saa7134/saa7134-input.c
+@@ -346,7 +346,7 @@ static int get_key_beholdm6xx(struct IR_i2c *ir, enum rc_type *protocol,
+ 		return 0;
  
- static struct of_device_id hdmi_match_types[] = {
- 	{
-+		.compatible = "samsung,exynos4210-hdmi",
-+		.data	= (void	*)HDMI_TYPE13,
-+	}, {
- 		.compatible = "samsung,exynos5-hdmi",
- 		.data = &exynos5_hdmi_driver_data,
- 	}, {
-diff --git a/drivers/gpu/drm/exynos/exynos_mixer.c b/drivers/gpu/drm/exynos/exynos_mixer.c
-index e3306c8..fd8a9a0 100644
---- a/drivers/gpu/drm/exynos/exynos_mixer.c
-+++ b/drivers/gpu/drm/exynos/exynos_mixer.c
-@@ -1187,6 +1187,9 @@ static struct platform_device_id mixer_driver_types[] = {
+ 	*protocol = RC_TYPE_NEC;
+-	*scancode = RC_SCANCODE_NECX(((data[10] << 8) | data[11]), data[9]);
++	*scancode = RC_SCANCODE_NECX(data[11] << 8 | data[10], data[9]);
+ 	*toggle = 0;
+ 	return 1;
+ }
+diff --git a/drivers/media/rc/keymaps/rc-behold.c b/drivers/media/rc/keymaps/rc-behold.c
+index d6519f8..520a96f 100644
+--- a/drivers/media/rc/keymaps/rc-behold.c
++++ b/drivers/media/rc/keymaps/rc-behold.c
+@@ -30,8 +30,8 @@ static struct rc_map_table behold[] = {
+ 	/*  0x1c            0x12  *
+ 	 *  TV/FM          POWER  *
+ 	 *                        */
+-	{ 0x6b861c, KEY_TUNER },	/* XXX KEY_TV / KEY_RADIO */
+-	{ 0x6b8612, KEY_POWER },
++	{ 0x866b1c, KEY_TUNER },	/* XXX KEY_TV / KEY_RADIO */
++	{ 0x866b12, KEY_POWER },
  
- static struct of_device_id mixer_match_types[] = {
- 	{
-+		.compatible = "samsung,exynos4210-mixer",
-+		.data	= &exynos4210_mxr_drv_data,
-+	}, {
- 		.compatible = "samsung,exynos5-mixer",
- 		.data	= &exynos5250_mxr_drv_data,
- 	}, {
--- 
-1.7.9.5
+ 	/*  0x01    0x02    0x03  *
+ 	 *   1       2       3    *
+@@ -42,28 +42,28 @@ static struct rc_map_table behold[] = {
+ 	 *  0x07    0x08    0x09  *
+ 	 *   7       8       9    *
+ 	 *                        */
+-	{ 0x6b8601, KEY_1 },
+-	{ 0x6b8602, KEY_2 },
+-	{ 0x6b8603, KEY_3 },
+-	{ 0x6b8604, KEY_4 },
+-	{ 0x6b8605, KEY_5 },
+-	{ 0x6b8606, KEY_6 },
+-	{ 0x6b8607, KEY_7 },
+-	{ 0x6b8608, KEY_8 },
+-	{ 0x6b8609, KEY_9 },
++	{ 0x866b01, KEY_1 },
++	{ 0x866b02, KEY_2 },
++	{ 0x866b03, KEY_3 },
++	{ 0x866b04, KEY_4 },
++	{ 0x866b05, KEY_5 },
++	{ 0x866b06, KEY_6 },
++	{ 0x866b07, KEY_7 },
++	{ 0x866b08, KEY_8 },
++	{ 0x866b09, KEY_9 },
+ 
+ 	/*  0x0a    0x00    0x17  *
+ 	 * RECALL    0      MODE  *
+ 	 *                        */
+-	{ 0x6b860a, KEY_AGAIN },
+-	{ 0x6b8600, KEY_0 },
+-	{ 0x6b8617, KEY_MODE },
++	{ 0x866b0a, KEY_AGAIN },
++	{ 0x866b00, KEY_0 },
++	{ 0x866b17, KEY_MODE },
+ 
+ 	/*  0x14          0x10    *
+ 	 * ASPECT      FULLSCREEN *
+ 	 *                        */
+-	{ 0x6b8614, KEY_SCREEN },
+-	{ 0x6b8610, KEY_ZOOM },
++	{ 0x866b14, KEY_SCREEN },
++	{ 0x866b10, KEY_ZOOM },
+ 
+ 	/*          0x0b          *
+ 	 *           Up           *
+@@ -74,17 +74,17 @@ static struct rc_map_table behold[] = {
+ 	 *         0x015          *
+ 	 *         Down           *
+ 	 *                        */
+-	{ 0x6b860b, KEY_CHANNELUP },
+-	{ 0x6b8618, KEY_VOLUMEDOWN },
+-	{ 0x6b8616, KEY_OK },		/* XXX KEY_ENTER */
+-	{ 0x6b860c, KEY_VOLUMEUP },
+-	{ 0x6b8615, KEY_CHANNELDOWN },
++	{ 0x866b0b, KEY_CHANNELUP },
++	{ 0x866b18, KEY_VOLUMEDOWN },
++	{ 0x866b16, KEY_OK },		/* XXX KEY_ENTER */
++	{ 0x866b0c, KEY_VOLUMEUP },
++	{ 0x866b15, KEY_CHANNELDOWN },
+ 
+ 	/*  0x11            0x0d  *
+ 	 *  MUTE            INFO  *
+ 	 *                        */
+-	{ 0x6b8611, KEY_MUTE },
+-	{ 0x6b860d, KEY_INFO },
++	{ 0x866b11, KEY_MUTE },
++	{ 0x866b0d, KEY_INFO },
+ 
+ 	/*  0x0f    0x1b    0x1a  *
+ 	 * RECORD PLAY/PAUSE STOP *
+@@ -93,26 +93,26 @@ static struct rc_map_table behold[] = {
+ 	 *TELETEXT  AUDIO  SOURCE *
+ 	 *           RED   YELLOW *
+ 	 *                        */
+-	{ 0x6b860f, KEY_RECORD },
+-	{ 0x6b861b, KEY_PLAYPAUSE },
+-	{ 0x6b861a, KEY_STOP },
+-	{ 0x6b860e, KEY_TEXT },
+-	{ 0x6b861f, KEY_RED },	/*XXX KEY_AUDIO	*/
+-	{ 0x6b861e, KEY_VIDEO },
++	{ 0x866b0f, KEY_RECORD },
++	{ 0x866b1b, KEY_PLAYPAUSE },
++	{ 0x866b1a, KEY_STOP },
++	{ 0x866b0e, KEY_TEXT },
++	{ 0x866b1f, KEY_RED },	/*XXX KEY_AUDIO	*/
++	{ 0x866b1e, KEY_VIDEO },
+ 
+ 	/*  0x1d   0x13     0x19  *
+ 	 * SLEEP  PREVIEW   DVB   *
+ 	 *         GREEN    BLUE  *
+ 	 *                        */
+-	{ 0x6b861d, KEY_SLEEP },
+-	{ 0x6b8613, KEY_GREEN },
+-	{ 0x6b8619, KEY_BLUE },	/* XXX KEY_SAT	*/
++	{ 0x866b1d, KEY_SLEEP },
++	{ 0x866b13, KEY_GREEN },
++	{ 0x866b19, KEY_BLUE },	/* XXX KEY_SAT	*/
+ 
+ 	/*  0x58           0x5c   *
+ 	 * FREEZE        SNAPSHOT *
+ 	 *                        */
+-	{ 0x6b8658, KEY_SLOW },
+-	{ 0x6b865c, KEY_CAMERA },
++	{ 0x866b58, KEY_SLOW },
++	{ 0x866b5c, KEY_CAMERA },
+ 
+ };
+ 
 
