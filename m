@@ -1,91 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:51670 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754297AbaDKSJ4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 14:09:56 -0400
-Message-ID: <53482FF1.1090406@canonical.com>
-Date: Fri, 11 Apr 2014 20:09:53 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-MIME-Version: 1.0
-To: Thomas Hellstrom <thellstrom@vmware.com>
-CC: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	ccross@google.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] [RFC v2 with seqcount] reservation: add suppport
- for read-only access using rcu
-References: <20140409144239.26648.57918.stgit@patser> <20140409144831.26648.79163.stgit@patser> <53465A53.1090500@vmware.com> <53466D63.8080808@canonical.com> <53467B93.3000402@vmware.com> <5346B212.8050202@canonical.com> <5347A9FD.2070706@vmware.com> <5347B4E5.6090901@canonical.com> <5347BFC9.3020503@vmware.com>
-In-Reply-To: <5347BFC9.3020503@vmware.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52433 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753939AbaDCWiA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 04/25] omap3isp: stat: Merge dma_addr and iommu_addr fields
+Date: Fri,  4 Apr 2014 00:39:34 +0200
+Message-Id: <1396564795-27192-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-op 11-04-14 12:11, Thomas Hellstrom schreef:
-> On 04/11/2014 11:24 AM, Maarten Lankhorst wrote:
->> op 11-04-14 10:38, Thomas Hellstrom schreef:
->>> Hi, Maarten.
->>>
->>> Here I believe we encounter a lot of locking inconsistencies.
->>>
->>> First, it seems you're use a number of pointers as RCU pointers without
->>> annotating them as such and use the correct rcu
->>> macros when assigning those pointers.
->>>
->>> Some pointers (like the pointers in the shared fence list) are both used
->>> as RCU pointers (in dma_buf_poll()) for example,
->>> or considered protected by the seqlock
->>> (reservation_object_get_fences_rcu()), which I believe is OK, but then
->>> the pointers must
->>> be assigned using the correct rcu macros. In the memcpy in
->>> reservation_object_get_fences_rcu() we might get away with an
->>> ugly typecast, but with a verbose comment that the pointers are
->>> considered protected by the seqlock at that location.
->>>
->>> So I've updated (attached) the headers with proper __rcu annotation and
->>> locking comments according to how they are being used in the various
->>> reading functions.
->>> I believe if we want to get rid of this we need to validate those
->>> pointers using the seqlock as well.
->>> This will generate a lot of sparse warnings in those places needing
->>> rcu_dereference()
->>> rcu_assign_pointer()
->>> rcu_dereference_protected()
->>>
->>> With this I think we can get rid of all ACCESS_ONCE macros: It's not
->>> needed when the rcu_x() macros are used, and
->>> it's never needed for the members protected by the seqlock, (provided
->>> that the seq is tested). The only place where I think that's
->>> *not* the case is at the krealloc in
->>> reservation_object_get_fences_rcu().
->>>
->>> Also I have some more comments in the
->>> reservation_object_get_fences_rcu() function below:
->> I felt that the barriers needed for rcu were already provided by
->> checking the seqcount lock.
->> But looking at rcu_dereference makes it seem harmless to add it in
->> more places, it handles
->> the ACCESS_ONCE and barrier() for us.
-> And it makes the code more maintainable, and helps sparse doing a lot of
-> checking for us. I guess
-> we can tolerate a couple of extra barriers for that.
->
->> We could probably get away with using RCU_INIT_POINTER on the writer
->> side,
->> because the smp_wmb is already done by arranging seqcount updates
->> correctly.
-> Hmm. yes, probably. At least in the replace function. I think if we do
-> it in other places, we should add comments as to where
-> the smp_wmb() is located, for future reference.
->
->
-> Also  I saw in a couple of places where you're checking the shared
-> pointers, you're not checking for NULL pointers, which I guess may
-> happen if shared_count and pointers are not in full sync?
->
-No, because shared_count is protected with seqcount. I only allow appending to the array, so when
-shared_count is validated by seqcount it means that the [0...shared_count) indexes are valid and non-null.
-What could happen though is that the fence at a specific index is updated with another one from the same
-context, but that's harmless.
+The fields store buffer addresses as seen from the device. The first one
+is used with an external DMA engine while the second one is used with
+the ISP DMA engine. As they're never used together, merge them.
 
-~Maarten
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/isph3a_aewb.c |  2 +-
+ drivers/media/platform/omap3isp/isph3a_af.c   |  2 +-
+ drivers/media/platform/omap3isp/ispstat.c     | 21 +++++++++------------
+ drivers/media/platform/omap3isp/ispstat.h     |  1 -
+ 4 files changed, 11 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/media/platform/omap3isp/isph3a_aewb.c b/drivers/media/platform/omap3isp/isph3a_aewb.c
+index 75fd82b..d6811ce 100644
+--- a/drivers/media/platform/omap3isp/isph3a_aewb.c
++++ b/drivers/media/platform/omap3isp/isph3a_aewb.c
+@@ -47,7 +47,7 @@ static void h3a_aewb_setup_regs(struct ispstat *aewb, void *priv)
+ 	if (aewb->state == ISPSTAT_DISABLED)
+ 		return;
+ 
+-	isp_reg_writel(aewb->isp, aewb->active_buf->iommu_addr,
++	isp_reg_writel(aewb->isp, aewb->active_buf->dma_addr,
+ 		       OMAP3_ISP_IOMEM_H3A, ISPH3A_AEWBUFST);
+ 
+ 	if (!aewb->update)
+diff --git a/drivers/media/platform/omap3isp/isph3a_af.c b/drivers/media/platform/omap3isp/isph3a_af.c
+index a0bf5af..6fc960c 100644
+--- a/drivers/media/platform/omap3isp/isph3a_af.c
++++ b/drivers/media/platform/omap3isp/isph3a_af.c
+@@ -51,7 +51,7 @@ static void h3a_af_setup_regs(struct ispstat *af, void *priv)
+ 	if (af->state == ISPSTAT_DISABLED)
+ 		return;
+ 
+-	isp_reg_writel(af->isp, af->active_buf->iommu_addr, OMAP3_ISP_IOMEM_H3A,
++	isp_reg_writel(af->isp, af->active_buf->dma_addr, OMAP3_ISP_IOMEM_H3A,
+ 		       ISPH3A_AFBUFST);
+ 
+ 	if (!af->update)
+diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
+index b1eb902..dba713f 100644
+--- a/drivers/media/platform/omap3isp/ispstat.c
++++ b/drivers/media/platform/omap3isp/ispstat.c
+@@ -361,21 +361,19 @@ static void isp_stat_bufs_free(struct ispstat *stat)
+ 		struct ispstat_buffer *buf = &stat->buf[i];
+ 
+ 		if (!ISP_STAT_USES_DMAENGINE(stat)) {
+-			if (IS_ERR_OR_NULL((void *)buf->iommu_addr))
++			if (IS_ERR_OR_NULL((void *)buf->dma_addr))
+ 				continue;
+ 			if (buf->iovm)
+ 				dma_unmap_sg(isp->dev, buf->iovm->sgt->sgl,
+ 					     buf->iovm->sgt->nents,
+ 					     DMA_FROM_DEVICE);
+-			omap_iommu_vfree(isp->domain, isp->dev,
+-							buf->iommu_addr);
++			omap_iommu_vfree(isp->domain, isp->dev, buf->dma_addr);
+ 		} else {
+ 			if (!buf->virt_addr)
+ 				continue;
+ 			dma_free_coherent(stat->isp->dev, stat->buf_alloc_size,
+ 					  buf->virt_addr, buf->dma_addr);
+ 		}
+-		buf->iommu_addr = 0;
+ 		buf->iovm = NULL;
+ 		buf->dma_addr = 0;
+ 		buf->virt_addr = NULL;
+@@ -396,12 +394,12 @@ static int isp_stat_bufs_alloc_iommu(struct ispstat *stat,
+ 	struct isp_device *isp = stat->isp;
+ 	struct iovm_struct *iovm;
+ 
+-	buf->iommu_addr = omap_iommu_vmalloc(isp->domain, isp->dev, 0,
+-						size, IOMMU_FLAG);
+-	if (IS_ERR((void *)buf->iommu_addr))
++	buf->dma_addr = omap_iommu_vmalloc(isp->domain, isp->dev, 0,
++					   size, IOMMU_FLAG);
++	if (IS_ERR_VALUE(buf->dma_addr))
+ 		return -ENOMEM;
+ 
+-	iovm = omap_find_iovm_area(isp->dev, buf->iommu_addr);
++	iovm = omap_find_iovm_area(isp->dev, buf->dma_addr);
+ 	if (!iovm)
+ 		return -ENOMEM;
+ 
+@@ -410,8 +408,7 @@ static int isp_stat_bufs_alloc_iommu(struct ispstat *stat,
+ 		return -ENOMEM;
+ 
+ 	buf->iovm = iovm;
+-	buf->virt_addr = omap_da_to_va(stat->isp->dev,
+-				  (u32)buf->iommu_addr);
++	buf->virt_addr = omap_da_to_va(stat->isp->dev, buf->dma_addr);
+ 
+ 	return 0;
+ }
+@@ -478,8 +475,8 @@ static int isp_stat_bufs_alloc(struct ispstat *stat, u32 size)
+ 		buf->empty = 1;
+ 
+ 		dev_dbg(stat->isp->dev,
+-			"%s: buffer[%u] allocated. iommu=0x%08lx dma=0x%08lx virt=0x%08lx",
+-			stat->subdev.name, i, buf->iommu_addr,
++			"%s: buffer[%u] allocated. dma=0x%08lx virt=0x%08lx",
++			stat->subdev.name, i,
+ 			(unsigned long)buf->dma_addr,
+ 			(unsigned long)buf->virt_addr);
+ 	}
+diff --git a/drivers/media/platform/omap3isp/ispstat.h b/drivers/media/platform/omap3isp/ispstat.h
+index 9a047c9..8e76846 100644
+--- a/drivers/media/platform/omap3isp/ispstat.h
++++ b/drivers/media/platform/omap3isp/ispstat.h
+@@ -46,7 +46,6 @@
+ struct ispstat;
+ 
+ struct ispstat_buffer {
+-	unsigned long iommu_addr;
+ 	struct iovm_struct *iovm;
+ 	void *virt_addr;
+ 	dma_addr_t dma_addr;
+-- 
+1.8.3.2
+
