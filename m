@@ -1,41 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3142 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755335AbaDGNLn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 09:11:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 10/13] vb2: set v4l2_buffer.bytesused to 0 for mp buffers
-Date: Mon,  7 Apr 2014 15:11:09 +0200
-Message-Id: <1396876272-18222-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl>
-References: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl>
+Received: from cantor2.suse.de ([195.135.220.15]:59449 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751319AbaDCJcM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 05:32:12 -0400
+Date: Thu, 3 Apr 2014 11:32:06 +0200
+From: Jean Delvare <jdelvare@suse.de>
+To: dmaengine@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Vinod Koul <vinod.koul@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [PATCH] [media] platform: Fix timberdale dependencies
+Message-ID: <20140403113206.0aab763f@endymion.delvare>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+VIDEO_TIMBERDALE selects TIMB_DMA which itself depends on
+MFD_TIMBERDALE, so VIDEO_TIMBERDALE should either select or depend on
+MFD_TIMBERDALE as well. I chose to make it depend on it because I
+think it makes more sense and it is consistent with what other options
+are doing.
 
-The bytesused field of struct v4l2_buffer is not used for multiplanar
-formats, so just zero it to prevent it from having some random value.
+Adding a "|| HAS_IOMEM" to the TIMB_DMA dependencies silenced the
+kconfig warning about unmet direct dependencies but it was wrong:
+without MFD_TIMBERDALE, TIMB_DMA is useless as the driver has no
+device to bind to.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Cc: Vinod Koul <vinod.koul@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/dma/Kconfig            |    2 +-
+ drivers/media/platform/Kconfig |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 08152dd..ef7ef82 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -582,6 +582,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
- 		 * for it. The caller has already verified memory and size.
- 		 */
- 		b->length = vb->num_planes;
-+		b->bytesused = 0;
- 		memcpy(b->m.planes, vb->v4l2_planes,
- 			b->length * sizeof(struct v4l2_plane));
- 	} else {
+--- linux-3.14.orig/drivers/dma/Kconfig	2014-04-03 09:21:03.566405827 +0200
++++ linux-3.14/drivers/dma/Kconfig	2014-04-03 09:28:32.618779030 +0200
+@@ -197,7 +197,7 @@ config AMCC_PPC440SPE_ADMA
+ 
+ config TIMB_DMA
+ 	tristate "Timberdale FPGA DMA support"
+-	depends on MFD_TIMBERDALE || HAS_IOMEM
++	depends on MFD_TIMBERDALE
+ 	select DMA_ENGINE
+ 	help
+ 	  Enable support for the Timberdale FPGA DMA engine.
+--- linux-3.14.orig/drivers/media/platform/Kconfig	2014-04-03 09:21:03.566405827 +0200
++++ linux-3.14/drivers/media/platform/Kconfig	2014-04-03 09:28:32.618779030 +0200
+@@ -56,7 +56,7 @@ config VIDEO_VIU
+ 
+ config VIDEO_TIMBERDALE
+ 	tristate "Support for timberdale Video In/LogiWIN"
+-	depends on VIDEO_V4L2 && I2C && DMADEVICES
++	depends on MFD_TIMBERDALE && VIDEO_V4L2 && I2C && DMADEVICES
+ 	select DMA_ENGINE
+ 	select TIMB_DMA
+ 	select VIDEO_ADV7180
+
+
 -- 
-1.9.1
-
+Jean Delvare
+SUSE L3 Support
