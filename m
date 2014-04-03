@@ -1,41 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:23598 "EHLO mga02.intel.com"
+Received: from hardeman.nu ([95.142.160.32]:40339 "EHLO hardeman.nu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752752AbaDDN1M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Apr 2014 09:27:12 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id 2EC1C20869
-	for <linux-media@vger.kernel.org>; Fri,  4 Apr 2014 16:25:48 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+	id S1753909AbaDCXe3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 19:34:29 -0400
+Subject: [PATCH 38/49] rc-core: rename ir-raw.c
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 2/2] media: v4l: Remove documentation for nonexistend input field in v4l2_buffer
-Date: Fri,  4 Apr 2014 16:24:45 +0300
-Message-Id: <1396617885-5474-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1396617885-5474-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1396617885-5474-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: m.chehab@samsung.com
+Date: Fri, 04 Apr 2014 01:34:28 +0200
+Message-ID: <20140403233428.27099.43511.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The input field in struct v4l2_buffer no longer exists but has been replaced
-by a reserved field. Remove the field documentation.
+Move drivers/media/rc/ir-raw.c to drivers/media/rc/rc-ir-raw.c in
+preparation for the next patch.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- include/uapi/linux/videodev2.h | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/media/rc/Makefile    |    2 +-
+ drivers/media/rc/rc-ir-raw.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+ rename drivers/media/rc/{ir-raw.c => rc-ir-raw.c} (99%)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index ea468ee..db4aebd 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -649,7 +649,6 @@ struct v4l2_plane {
-  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
-  *		buffers (when type != *_MPLANE); number of elements in the
-  *		planes array for multi-plane buffers
-- * @input:	input number from which the video data has has been captured
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index de08ee6..661f449 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -1,4 +1,4 @@
+-rc-core-objs	:= rc-main.o rc-keytable.o ir-raw.o
++rc-core-objs	:= rc-main.o rc-keytable.o rc-ir-raw.o
+ 
+ obj-y += keymaps/
+ 
+diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+similarity index 99%
+rename from drivers/media/rc/ir-raw.c
+rename to drivers/media/rc/rc-ir-raw.c
+index aa2503d..5ed8007 100644
+--- a/drivers/media/rc/ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -1,4 +1,4 @@
+-/* ir-raw.c - handle IR pulse/space events
++/* rc-ir-raw.c - handle IR pulse/space events
   *
-  * Contains data exchanged by application and driver using one of the Streaming
-  * I/O methods.
--- 
-1.8.3.2
+  * Copyright (C) 2010 by Mauro Carvalho Chehab
+  *
 
