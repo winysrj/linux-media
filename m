@@ -1,120 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38541 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755177AbaDQNEp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 09:04:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ben Dooks <ben.dooks@codethink.co.uk>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH v2 48/48] adv7604: Add endpoint properties to DT bindings
-Date: Thu, 17 Apr 2014 15:04:48 +0200
-Message-ID: <3314076.XlLnTlbkWu@avalon>
-In-Reply-To: <534FD05F.6060106@codethink.co.uk>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com> <1791575.2krcfHqYT1@avalon> <534FD05F.6060106@codethink.co.uk>
+Received: from hardeman.nu ([95.142.160.32]:40274 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753803AbaDCXbr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 19:31:47 -0400
+Subject: [PATCH 06/49] rc-core: remove generic scancode filter
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Fri, 04 Apr 2014 01:31:46 +0200
+Message-ID: <20140403233145.27099.78225.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ben,
+The generic scancode filtering has questionable value and makes it
+impossible to determine from userspace if there is an actual
+scancode hw filter present or not.
 
-On Thursday 17 April 2014 14:00:15 Ben Dooks wrote:
-> On 17/04/14 13:45, Laurent Pinchart wrote:
-> > Hi Sylwester,
-> > 
-> > On Thursday 17 April 2014 13:17:41 Sylwester Nawrocki wrote:
-> >> On 11/03/14 00:15, Laurent Pinchart wrote:
-> >>> Add support for the hsync-active, vsync-active and pclk-sample
-> >>> properties to the DT bindings and control BT.656 mode implicitly.
-> >>> 
-> >>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>> ---
-> >>> 
-> >>>   .../devicetree/bindings/media/i2c/adv7604.txt      | 13 +++++++++
-> >>>   drivers/media/i2c/adv7604.c                        | 31
-> >>>   ++++++++++++++++++++-- 2 files changed, 42 insertions(+), 2
-> >>>   deletions(-)
-> >>> 
-> >>> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> >>> b/Documentation/devicetree/bindings/media/i2c/adv7604.txt index
-> >>> 0845c50..2b62c06 100644
-> >>> --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> >>> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> >>> 
-> >>> @@ -30,6 +30,19 @@ Optional Properties:
-> >>>     - adi,disable-cable-reset: Boolean property. When set disables the
-> >>>     HDMI
-> >>>     
-> >>>       receiver automatic reset when the HDMI cable is unplugged.
-> >>> 
-> >>> +Optional Endpoint Properties:
-> >>> +
-> >>> +  The following three properties are defined in video-interfaces.txt
-> >>> and
-> >>> are +  valid for source endpoints only.
-> >>> +
-> >>> +  - hsync-active: Horizontal synchronization polarity. Defaults to
-> >>> active
-> >>> low. +  - vsync-active: Vertical synchronization polarity. Defaults to
-> >>> active low. +  - pclk-sample: Pixel clock polarity. Defaults to output
-> >>> on
-> >>> the falling edge. +
-> >>> +  If none of hsync-active, vsync-active and pclk-sample is specified
-> >>> the
-> >>> +  endpoint will use embedded BT.656 synchronization.
-> >>> +
-> >>> +
-> >>> 
-> >>>   Example:
-> >>>   	hdmi_receiver@4c {
-> >>> 
-> >>> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> >>> index 95cc911..2a92099 100644
-> >>> --- a/drivers/media/i2c/adv7604.c
-> >>> +++ b/drivers/media/i2c/adv7604.c
-> >>> @@ -41,6 +41,7 @@
-> >>>  #include <media/v4l2-ctrls.h>
-> >>>  #include <media/v4l2-device.h>
-> >>>  #include <media/v4l2-dv-timings.h>
-> >>> +#include <media/v4l2-of.h>
-> >>> 
-> >>>  static int debug;
-> >>>  module_param(debug, int, 0644);
-> >>> @@ -2643,11 +2644,39 @@ MODULE_DEVICE_TABLE(of, adv7604_of_id);
-> >>> 
-> >>>   static int adv7604_parse_dt(struct adv7604_state *state)
-> >>>   {
-> >>> +	struct v4l2_of_endpoint bus_cfg;
-> >>> +	struct device_node *endpoint;
-> >>>   	struct device_node *np;
-> >>> +	unsigned int flags;
-> >>>   	int ret;
-> >>>   	
-> >>>   	np = state->i2c_clients[ADV7604_PAGE_IO]->dev.of_node;
-> >>> 
-> >>> +	/* Parse the endpoint. */
-> >>> +	endpoint = v4l2_of_get_next_endpoint(np, NULL);
-> >>> +	if (!endpoint)
-> >>> +		return -EINVAL;
-> >> 
-> >> Perhaps we should document this binding requires at least one endpoint
-> >> node ? I guess there is no point in not having any endpoint node ?
-> > 
-> > I think that's pretty much implied, otherwise the device will not be
-> > connected to anything and will be unusable. I will document ports node
-> > usage though, that's currently missing in the DT bindings documentation.
-> 
-> Doesn't the v4l2 helper code have standard parsing for the
-> endpoint sync configurations?
+So revert the generic parts.
 
-Yes it does, in the v4l2_of_parse_endpoint() function which the driver uses.
+Based on a patch from James Hogan <james.hogan@imgtec.com>, but this
+version also makes sure that only the valid sysfs files are created
+in the first place.
 
--- 
-Regards,
+v2: correct dev->s_filter check
 
-Laurent Pinchart
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-main.c |   67 +++++++++++++++++++++++++++++---------------
+ include/media/rc-core.h    |    2 +
+ 2 files changed, 46 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index ba955ac..26c266b 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -634,7 +634,6 @@ EXPORT_SYMBOL_GPL(rc_repeat);
+ static void ir_do_keydown(struct rc_dev *dev, enum rc_type protocol,
+ 			  u32 scancode, u32 keycode, u8 toggle)
+ {
+-	struct rc_scancode_filter *filter;
+ 	bool new_event = (!dev->keypressed		 ||
+ 			  dev->last_protocol != protocol ||
+ 			  dev->last_scancode != scancode ||
+@@ -643,11 +642,6 @@ static void ir_do_keydown(struct rc_dev *dev, enum rc_type protocol,
+ 	if (new_event && dev->keypressed)
+ 		ir_do_keyup(dev, false);
+ 
+-	/* Generic scancode filtering */
+-	filter = &dev->scancode_filters[RC_FILTER_NORMAL];
+-	if (filter->mask && ((scancode ^ filter->data) & filter->mask))
+-		return;
+-
+ 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
+ 
+ 	if (new_event && keycode != KEY_RESERVED) {
+@@ -1017,14 +1011,11 @@ static ssize_t store_protocols(struct device *device,
+ 	set_filter = (fattr->type == RC_FILTER_NORMAL)
+ 		? dev->s_filter : dev->s_wakeup_filter;
+ 
+-	if (old_type != type && filter->mask) {
++	if (set_filter && old_type != type && filter->mask) {
+ 		local_filter = *filter;
+ 		if (!type) {
+ 			/* no protocol => clear filter */
+ 			ret = -1;
+-		} else if (!set_filter) {
+-			/* generic filtering => accept any filter */
+-			ret = 0;
+ 		} else {
+ 			/* hardware filtering => try setting, otherwise clear */
+ 			ret = set_filter(dev, &local_filter);
+@@ -1033,8 +1024,7 @@ static ssize_t store_protocols(struct device *device,
+ 			/* clear the filter */
+ 			local_filter.data = 0;
+ 			local_filter.mask = 0;
+-			if (set_filter)
+-				set_filter(dev, &local_filter);
++			set_filter(dev, &local_filter);
+ 		}
+ 
+ 		/* commit the new filter */
+@@ -1078,7 +1068,10 @@ static ssize_t show_filter(struct device *device,
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&dev->lock);
+-	if (fattr->mask)
++	if ((fattr->type == RC_FILTER_NORMAL && !dev->s_filter) ||
++	    (fattr->type == RC_FILTER_WAKEUP && !dev->s_wakeup_filter))
++		val = 0;
++	else if (fattr->mask)
+ 		val = dev->scancode_filters[fattr->type].mask;
+ 	else
+ 		val = dev->scancode_filters[fattr->type].data;
+@@ -1202,27 +1195,45 @@ static RC_FILTER_ATTR(wakeup_filter, S_IRUGO|S_IWUSR,
+ static RC_FILTER_ATTR(wakeup_filter_mask, S_IRUGO|S_IWUSR,
+ 		      show_filter, store_filter, RC_FILTER_WAKEUP, true);
+ 
+-static struct attribute *rc_dev_attrs[] = {
++static struct attribute *rc_dev_protocol_attrs[] = {
+ 	&dev_attr_protocols.attr.attr,
++	NULL,
++};
++
++static struct attribute_group rc_dev_protocol_attr_grp = {
++	.attrs	= rc_dev_protocol_attrs,
++};
++
++static struct attribute *rc_dev_wakeup_protocol_attrs[] = {
+ 	&dev_attr_wakeup_protocols.attr.attr,
++	NULL,
++};
++
++static struct attribute_group rc_dev_wakeup_protocol_attr_grp = {
++	.attrs	= rc_dev_wakeup_protocol_attrs,
++};
++
++static struct attribute *rc_dev_filter_attrs[] = {
+ 	&dev_attr_filter.attr.attr,
+ 	&dev_attr_filter_mask.attr.attr,
+-	&dev_attr_wakeup_filter.attr.attr,
+-	&dev_attr_wakeup_filter_mask.attr.attr,
+ 	NULL,
+ };
+ 
+-static struct attribute_group rc_dev_attr_grp = {
+-	.attrs	= rc_dev_attrs,
++static struct attribute_group rc_dev_filter_attr_grp = {
++	.attrs	= rc_dev_filter_attrs,
++};
++
++static struct attribute *rc_dev_wakeup_filter_attrs[] = {
++	&dev_attr_wakeup_filter.attr.attr,
++	&dev_attr_wakeup_filter_mask.attr.attr,
++	NULL,
+ };
+ 
+-static const struct attribute_group *rc_dev_attr_groups[] = {
+-	&rc_dev_attr_grp,
+-	NULL
++static struct attribute_group rc_dev_wakeup_filter_attr_grp = {
++	.attrs	= rc_dev_wakeup_filter_attrs,
+ };
+ 
+ static struct device_type rc_dev_type = {
+-	.groups		= rc_dev_attr_groups,
+ 	.release	= rc_dev_release,
+ 	.uevent		= rc_dev_uevent,
+ };
+@@ -1279,7 +1290,7 @@ int rc_register_device(struct rc_dev *dev)
+ 	static bool raw_init = false; /* raw decoders loaded? */
+ 	struct rc_map *rc_map;
+ 	const char *path;
+-	int rc, devno;
++	int rc, devno, attr = 0;
+ 
+ 	if (!dev || !dev->map_name)
+ 		return -EINVAL;
+@@ -1307,6 +1318,16 @@ int rc_register_device(struct rc_dev *dev)
+ 			return -ENOMEM;
+ 	} while (test_and_set_bit(devno, ir_core_dev_number));
+ 
++	dev->dev.groups = dev->sysfs_groups;
++	dev->sysfs_groups[attr++] = &rc_dev_protocol_attr_grp;
++	if (dev->s_filter)
++		dev->sysfs_groups[attr++] = &rc_dev_filter_attr_grp;	
++	if (dev->s_wakeup_filter)
++		dev->sysfs_groups[attr++] = &rc_dev_wakeup_filter_attr_grp;
++	if (dev->change_wakeup_protocol)
++		dev->sysfs_groups[attr++] = &rc_dev_wakeup_protocol_attr_grp;
++	dev->sysfs_groups[attr++] = NULL;
++
+ 	/*
+ 	 * Take the lock here, as the device sysfs node will appear
+ 	 * when device_add() is called, which may trigger an ir-keytable udev
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 8c31e4a..2e97b98 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -60,6 +60,7 @@ enum rc_filter_type {
+ /**
+  * struct rc_dev - represents a remote control device
+  * @dev: driver model's view of this device
++ * @sysfs_groups: sysfs attribute groups
+  * @input_name: name of the input child device
+  * @input_phys: physical path to the input child device
+  * @input_id: id of the input child device (struct input_id)
+@@ -118,6 +119,7 @@ enum rc_filter_type {
+  */
+ struct rc_dev {
+ 	struct device			dev;
++	const struct attribute_group	*sysfs_groups[5];
+ 	const char			*input_name;
+ 	const char			*input_phys;
+ 	struct input_id			input_id;
 
