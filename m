@@ -1,60 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:47359 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751179AbaDQUun (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 16:50:43 -0400
-Message-id: <53503E9F.9050800@samsung.com>
-Date: Thu, 17 Apr 2014 14:50:39 -0600
-From: Shuah Khan <shuah.kh@samsung.com>
-Reply-to: shuah.kh@samsung.com
-MIME-version: 1.0
-To: Tejun Heo <tj@kernel.org>
-Cc: gregkh@linuxfoundation.org, m.chehab@samsung.com,
-	rafael.j.wysocki@intel.com, linux@roeck-us.net, toshi.kani@hp.com,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	shuahkhan@gmail.com
-Subject: Re: [RFC PATCH 2/2] drivers/base: add managed token devres interfaces
-References: <cover.1397050852.git.shuah.kh@samsung.com>
- <5f21c7e53811aba63f86bcf3e3bfdfdd5aeedf59.1397050852.git.shuah.kh@samsung.com>
- <20140416215821.GG26632@htj.dyndns.org> <5350331C.7010602@samsung.com>
- <20140417201034.GT15326@htj.dyndns.org>
-In-reply-to: <20140417201034.GT15326@htj.dyndns.org>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from hardeman.nu ([95.142.160.32]:40357 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754095AbaDCXfP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 19:35:15 -0400
+Subject: [PATCH 47/49] rc-core: add keytable events
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Fri, 04 Apr 2014 01:35:13 +0200
+Message-ID: <20140403233513.27099.6336.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/17/2014 02:10 PM, Tejun Heo wrote:
-> On Thu, Apr 17, 2014 at 02:01:32PM -0600, Shuah Khan wrote:
->> Operating on the lock should be atomic, which is what devres_update()
->> is doing. It can be simplified as follows by holding devres_lock
->> in devm_token_lock().
->>
->> spin_lock_irqsave(&dev->devres_lock, flags);
->> if (tkn_ptr->status == TOKEN_DEVRES_FREE)
->> 	tkn_ptr->status = TOKEN_DEVRES_BUSY;
->> spin_unlock_irqrestore(&dev->devres_lock, flags);
->>
->> Is this in-line with what you have in mind?
->
-> How is that different from tkn_ptr->status = TOKEN_DEVRES_BUSY?
->
+Add separe rc device events on keytable addition/removal.
 
-I see what you are saying. The code path doesn't ensure two threads
-not getting the lock. I have a bug in here that my rc settings aren't
-protected. You probably noticed that the RFC tag on the patch and this
-isn't fully cooked yet.
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-main.c |    2 ++
+ include/media/rc-core.h    |    2 ++
+ 2 files changed, 4 insertions(+)
 
-I started working on driver changes that use this token and I might have
-to add owner for the token as well. I hope to work these details out and
-send a real patch.
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index bd4dfab..b3db1dd 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -221,6 +221,7 @@ static int rc_add_keytable(struct rc_dev *dev, const char *name,
+ 	rcu_assign_pointer(dev->keytables[i], kt);
+ 	list_add_rcu(&kt->node, &dev->keytable_list);
+ 	synchronize_rcu();
++	rc_event(dev, RC_CORE, RC_CORE_KT_ADDED, i);
+ 	return 0;
+ }
+ 
+@@ -241,6 +242,7 @@ static int rc_remove_keytable(struct rc_dev *dev, unsigned i)
+ 		return -EINVAL;
+ 
+ 	rc_keytable_destroy(kt);
++	rc_event(dev, RC_CORE, RC_CORE_KT_REMOVED, i);
+ 	return 0;
+ }
+ 
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index a310e5b..a7354b7 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -203,6 +203,8 @@ struct rc_keymap_entry {
+ 
+ /* RC_CORE codes */
+ #define RC_CORE_DROPPED		0x0
++#define RC_CORE_KT_ADDED	0x1
++#define RC_CORE_KT_REMOVED	0x2
+ 
+ /* RC_KEY codes */
+ #define RC_KEY_REPEAT		0x0
 
-thanks,
--- Shuah
-
--- 
-Shuah Khan
-Senior Linux Kernel Developer - Open Source Group
-Samsung Research America(Silicon Valley)
-shuah.kh@samsung.com | (970) 672-0658
