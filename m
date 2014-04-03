@@ -1,131 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38905 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752862AbaDQONY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 10:13:24 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from hardeman.nu ([95.142.160.32]:40313 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753803AbaDCXdX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 19:33:23 -0400
+Subject: [PATCH 25/49] rc-loopback: add RCIOCSIRRX ioctl support
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v4 06/49] ad9389b: Add pad-level DV timings operations
-Date: Thu, 17 Apr 2014 16:12:37 +0200
-Message-Id: <1397744000-23967-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: m.chehab@samsung.com
+Date: Fri, 04 Apr 2014 01:33:22 +0200
+Message-ID: <20140403233322.27099.32196.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings and dv_timings_cap operations are deprecated.
-Implement the pad-level version of those operations to prepare for the
-removal of the video version.
+As an example, this patch adds support for the new RCIOCSIRRX ioctl
+to rc-loopback and removes deprecated functions without a loss in
+functionality (as LIRC will automatically use the new functions).
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- drivers/media/i2c/ad9389b.c | 68 ++++++++++++++++++++++++++-------------------
- 1 file changed, 39 insertions(+), 29 deletions(-)
+ drivers/media/rc/rc-loopback.c |   84 ++++++++++++++++++++--------------------
+ 1 file changed, 42 insertions(+), 42 deletions(-)
 
-diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
-index 1b7ecfd..cee0ae6 100644
---- a/drivers/media/i2c/ad9389b.c
-+++ b/drivers/media/i2c/ad9389b.c
-@@ -571,35 +571,6 @@ static const struct v4l2_subdev_core_ops ad9389b_core_ops = {
- 	.interrupt_service_routine = ad9389b_isr,
- };
+diff --git a/drivers/media/rc/rc-loopback.c b/drivers/media/rc/rc-loopback.c
+index 565318c..2ae1b5a 100644
+--- a/drivers/media/rc/rc-loopback.c
++++ b/drivers/media/rc/rc-loopback.c
+@@ -86,21 +86,6 @@ static int loop_set_tx_duty_cycle(struct rc_dev *dev, u32 duty_cycle)
+ 	return 0;
+ }
  
--/* ------------------------------ PAD OPS ------------------------------ */
--
--static int ad9389b_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+-static int loop_set_rx_carrier_range(struct rc_dev *dev, u32 min, u32 max)
 -{
--	struct ad9389b_state *state = get_ad9389b_state(sd);
+-	struct loopback_dev *lodev = dev->priv;
 -
--	if (edid->pad != 0)
+-	if (min < 1 || min > max) {
+-		dprintk("invalid rx carrier range %u to %u\n", min, max);
 -		return -EINVAL;
--	if (edid->blocks == 0 || edid->blocks > 256)
--		return -EINVAL;
--	if (!edid->edid)
--		return -EINVAL;
--	if (!state->edid.segments) {
--		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
--		return -ENODATA;
 -	}
--	if (edid->start_block >= state->edid.segments * 2)
--		return -E2BIG;
--	if (edid->blocks + edid->start_block >= state->edid.segments * 2)
--		edid->blocks = state->edid.segments * 2 - edid->start_block;
--	memcpy(edid->edid, &state->edid.data[edid->start_block * 128],
--	       128 * edid->blocks);
+-
+-	dprintk("setting rx carrier range %u to %u\n", min, max);
+-	lodev->rxcarriermin = min;
+-	lodev->rxcarriermax = max;
 -	return 0;
 -}
 -
--static const struct v4l2_subdev_pad_ops ad9389b_pad_ops = {
--	.get_edid = ad9389b_get_edid,
--};
+ static int loop_tx_ir(struct rc_dev *dev, unsigned count)
+ {
+ 	struct loopback_dev *lodev = dev->priv;
+@@ -157,30 +142,6 @@ static void loop_set_idle(struct rc_dev *dev, bool enable)
+ 	}
+ }
+ 
+-static int loop_set_learning_mode(struct rc_dev *dev, int enable)
+-{
+-	struct loopback_dev *lodev = dev->priv;
 -
- /* ------------------------------ VIDEO OPS ------------------------------ */
- 
- /* Enable/disable ad9389b output */
-@@ -678,6 +649,9 @@ static int ad9389b_g_dv_timings(struct v4l2_subdev *sd,
- static int ad9389b_enum_dv_timings(struct v4l2_subdev *sd,
- 				   struct v4l2_enum_dv_timings *timings)
- {
-+	if (timings->pad != 0)
-+		return -EINVAL;
-+
- 	return v4l2_enum_dv_timings_cap(timings, &ad9389b_timings_cap,
- 			NULL, NULL);
+-	if (lodev->learning != enable) {
+-		dprintk("%sing learning mode\n", enable ? "enter" : "exit");
+-		lodev->learning = !!enable;
+-	}
+-
+-	return 0;
+-}
+-
+-static int loop_set_carrier_report(struct rc_dev *dev, int enable)
+-{
+-	struct loopback_dev *lodev = dev->priv;
+-
+-	if (lodev->carrierreport != enable) {
+-		dprintk("%sabling carrier reports\n", enable ? "en" : "dis");
+-		lodev->carrierreport = !!enable;
+-	}
+-
+-	return 0;
+-}
+-
+ /**
+  * loop_get_ir_rx() - returns the current RX settings
+  * @dev: the &struct rc_dev to get the settings for
+@@ -202,6 +163,47 @@ static void loop_get_ir_rx(struct rc_dev *dev, struct rc_ir_rx *rx)
+ 	rx->duty_max = 99;
  }
-@@ -685,6 +659,9 @@ static int ad9389b_enum_dv_timings(struct v4l2_subdev *sd,
- static int ad9389b_dv_timings_cap(struct v4l2_subdev *sd,
- 				  struct v4l2_dv_timings_cap *cap)
- {
-+	if (cap->pad != 0)
-+		return -EINVAL;
-+
- 	*cap = ad9389b_timings_cap;
- 	return 0;
- }
-@@ -697,6 +674,39 @@ static const struct v4l2_subdev_video_ops ad9389b_video_ops = {
- 	.dv_timings_cap = ad9389b_dv_timings_cap,
- };
  
-+/* ------------------------------ PAD OPS ------------------------------ */
-+
-+static int ad9389b_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
++/**
++ * loop_set_ir_rx() - changes and returns the current RX settings
++ * @dev: the &struct rc_dev to change the settings for
++ * @rx: the &struct rc_ir_rx with the new settings
++ *
++ * This function is used to change and return the current RX settings.
++ */
++static int loop_set_ir_rx(struct rc_dev *dev, struct rc_ir_rx *rx)
 +{
-+	struct ad9389b_state *state = get_ad9389b_state(sd);
++	struct loopback_dev *lodev = dev->priv;
 +
-+	if (edid->pad != 0)
-+		return -EINVAL;
-+	if (edid->blocks == 0 || edid->blocks > 256)
-+		return -EINVAL;
-+	if (!edid->edid)
-+		return -EINVAL;
-+	if (!state->edid.segments) {
-+		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
-+		return -ENODATA;
++	dprintk("%s called\n", __func__);
++	if (lodev->rxcarriermin != rx->freq_min) {
++		dprintk("changing rx carrier min to %u\n", rx->freq_min);
++		lodev->rxcarriermin = rx->freq_min;
 +	}
-+	if (edid->start_block >= state->edid.segments * 2)
-+		return -E2BIG;
-+	if (edid->blocks + edid->start_block >= state->edid.segments * 2)
-+		edid->blocks = state->edid.segments * 2 - edid->start_block;
-+	memcpy(edid->edid, &state->edid.data[edid->start_block * 128],
-+	       128 * edid->blocks);
++
++	if (lodev->rxcarriermax != rx->freq_max) {
++		dprintk("changing rx carrier max to %u\n", rx->freq_max);
++		lodev->rxcarriermax = rx->freq_max;
++	}
++
++	if (lodev->carrierreport == !(rx->flags & RC_IR_RX_MEASURE_CARRIER)) {
++		lodev->carrierreport = !!(rx->flags & RC_IR_RX_MEASURE_CARRIER);
++		dprintk("%sabling carrier reports\n",
++			lodev->carrierreport ? "en" : "dis");
++	}
++
++	if ((rx->rx_enabled == RXMASK_LEARNING) && !lodev->learning) {
++		dprintk("enabling learning mode\n");
++		lodev->learning = true;
++	} else if ((rx->rx_enabled == RXMASK_REGULAR) && lodev->learning) {
++		dprintk("disabling learning mode\n");
++		lodev->learning = false;
++	}
++
++	/* Fill in the correct values after the changes */
++	loop_get_ir_rx(dev, rx);
 +	return 0;
 +}
 +
-+static const struct v4l2_subdev_pad_ops ad9389b_pad_ops = {
-+	.get_edid = ad9389b_get_edid,
-+	.enum_dv_timings = ad9389b_enum_dv_timings,
-+	.dv_timings_cap = ad9389b_dv_timings_cap,
-+};
-+
-+/* ------------------------------ AUDIO OPS ------------------------------ */
-+
- static int ad9389b_s_audio_stream(struct v4l2_subdev *sd, int enable)
+ static int __init loop_init(void)
  {
- 	v4l2_dbg(1, debug, sd, "%s: %sable\n", __func__, (enable ? "en" : "dis"));
--- 
-1.8.3.2
+ 	struct rc_dev *rc;
+@@ -230,12 +232,10 @@ static int __init loop_init(void)
+ 	rc->s_tx_mask		= loop_set_tx_mask;
+ 	rc->s_tx_carrier	= loop_set_tx_carrier;
+ 	rc->s_tx_duty_cycle	= loop_set_tx_duty_cycle;
+-	rc->s_rx_carrier_range	= loop_set_rx_carrier_range;
+ 	rc->tx_ir		= loop_tx_ir;
+ 	rc->s_idle		= loop_set_idle;
+-	rc->s_learning_mode	= loop_set_learning_mode;
+-	rc->s_carrier_report	= loop_set_carrier_report;
+ 	rc->get_ir_rx		= loop_get_ir_rx;
++	rc->set_ir_rx		= loop_set_ir_rx;
+ 
+ 	loopdev.txmask		= RXMASK_REGULAR;
+ 	loopdev.txcarrier	= 36000;
 
