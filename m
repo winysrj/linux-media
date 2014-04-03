@@ -1,84 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:58856 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933721AbaDIW1X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 18:27:23 -0400
-Received: by mail-ee0-f44.google.com with SMTP id e49so2375150eek.31
-        for <linux-media@vger.kernel.org>; Wed, 09 Apr 2014 15:27:22 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Received: from hardeman.nu ([95.142.160.32]:40290 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753803AbaDCXc2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 19:32:28 -0400
+Subject: [PATCH 14/49] rc-core: rename dev->scanmask to dev->scancode_mask
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
 To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 4/7] libdvbv5: make dvb_table_filter_free public
-Date: Thu, 10 Apr 2014 00:26:57 +0200
-Message-Id: <1397082420-31198-4-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1397082420-31198-1-git-send-email-neolynx@gmail.com>
-References: <1397082420-31198-1-git-send-email-neolynx@gmail.com>
+Cc: m.chehab@samsung.com
+Date: Fri, 04 Apr 2014 01:32:26 +0200
+Message-ID: <20140403233226.27099.88029.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-make dvb_table_filter_free public so it can be used by
-applications.
-fix potential double free.
+We already have dev->scancode_filter and dev->scancode_wakeup_filter
+so rename dev->scanmask to dev->scancode_mask for consistency.
 
-Signed-off-by: André Roth <neolynx@gmail.com>
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- lib/include/libdvbv5/dvb-scan.h |    2 ++
- lib/libdvbv5/dvb-scan.c         |   10 ++++++----
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ drivers/media/pci/cx88/cx88-input.c       |    2 +-
+ drivers/media/pci/ttpci/budget-ci.c       |    2 +-
+ drivers/media/rc/rc-main.c                |    4 ++--
+ drivers/media/usb/cx231xx/cx231xx-input.c |    2 +-
+ drivers/media/usb/tm6000/tm6000-input.c   |    2 +-
+ include/media/rc-core.h                   |    5 +++--
+ 6 files changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/lib/include/libdvbv5/dvb-scan.h b/lib/include/libdvbv5/dvb-scan.h
-index 206d409..f0af9d7 100644
---- a/lib/include/libdvbv5/dvb-scan.h
-+++ b/lib/include/libdvbv5/dvb-scan.h
-@@ -74,6 +74,8 @@ struct dvb_table_filter {
- 	void *priv;
- };
+diff --git a/drivers/media/pci/cx88/cx88-input.c b/drivers/media/pci/cx88/cx88-input.c
+index 93ff6a7..3f1342c 100644
+--- a/drivers/media/pci/cx88/cx88-input.c
++++ b/drivers/media/pci/cx88/cx88-input.c
+@@ -478,7 +478,7 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
+ 	dev->priv = core;
+ 	dev->open = cx88_ir_open;
+ 	dev->close = cx88_ir_close;
+-	dev->scanmask = hardware_mask;
++	dev->scancode_mask = hardware_mask;
  
-+void dvb_table_filter_free(struct dvb_table_filter *sect);
-+
- int dvb_read_section(struct dvb_v5_fe_parms *parms, int dmx_fd, unsigned char tid, uint16_t pid, void **table,
- 		unsigned timeout);
- 
-diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
-index e522225..d8b3953 100644
---- a/lib/libdvbv5/dvb-scan.c
-+++ b/lib/libdvbv5/dvb-scan.c
-@@ -158,10 +158,12 @@ static int dvb_parse_section_alloc(struct dvb_v5_fe_parms *parms,
- 	return 0;
- }
- 
--static void dvb_parse_section_free(struct dvb_table_filter *sect)
-+void dvb_table_filter_free(struct dvb_table_filter *sect)
- {
--	if (sect->priv)
-+	if (sect->priv) {
- 		free(sect->priv);
-+		sect->priv = NULL;
-+	}
- }
- 
- static int dvb_parse_section(struct dvb_v5_fe_parms *parms,
-@@ -280,7 +282,7 @@ int dvb_read_sections(struct dvb_v5_fe_parms *parms, int dmx_fd,
- 	if (!buf) {
- 		dvb_perror("Out of memory");
- 		dvb_dmx_stop(dmx_fd);
--		dvb_parse_section_free(sect);
-+		dvb_table_filter_free(sect);
- 		return -1;
+ 	if (ir->sampling) {
+ 		dev->driver_type = RC_DRIVER_IR_RAW;
+diff --git a/drivers/media/pci/ttpci/budget-ci.c b/drivers/media/pci/ttpci/budget-ci.c
+index 41ce7de..1feeeff 100644
+--- a/drivers/media/pci/ttpci/budget-ci.c
++++ b/drivers/media/pci/ttpci/budget-ci.c
+@@ -234,7 +234,7 @@ static int msp430_ir_init(struct budget_ci *budget_ci)
+ 		break;
  	}
+ 	if (!budget_ci->ir.full_rc5)
+-		dev->scanmask = 0xff;
++		dev->scancode_mask = 0xff;
  
-@@ -327,7 +329,7 @@ int dvb_read_sections(struct dvb_v5_fe_parms *parms, int dmx_fd,
- 	} while (!ret);
- 	free(buf);
- 	dvb_dmx_stop(dmx_fd);
--	dvb_parse_section_free(sect);
-+	dvb_table_filter_free(sect);
+ 	error = rc_register_device(dev);
+ 	if (error) {
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 287191b..2788102 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -287,8 +287,8 @@ static unsigned int ir_establish_scancode(struct rc_dev *dev,
+ 	 * IR tables from other remotes. So, we support specifying a mask to
+ 	 * indicate the valid bits of the scancodes.
+ 	 */
+-	if (dev->scanmask)
+-		entry->scancode &= dev->scanmask;
++	if (dev->scancode_mask)
++		entry->scancode &= dev->scancode_mask;
  
- 	if (ret > 0)
- 		ret = 0;
--- 
-1.7.10.4
+ 	/*
+ 	 * First check if we already have a mapping for this command.
+diff --git a/drivers/media/usb/cx231xx/cx231xx-input.c b/drivers/media/usb/cx231xx/cx231xx-input.c
+index adcdd92..05f0434 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-input.c
++++ b/drivers/media/usb/cx231xx/cx231xx-input.c
+@@ -91,7 +91,7 @@ int cx231xx_ir_init(struct cx231xx *dev)
+ 	dev->init_data.get_key = get_key_isdbt;
+ 	dev->init_data.ir_codes = cx231xx_boards[dev->model].rc_map_name;
+ 	/* The i2c micro-controller only outputs the cmd part of NEC protocol */
+-	dev->init_data.rc_dev->scanmask = 0xff;
++	dev->init_data.rc_dev->scancode_mask = 0xff;
+ 	dev->init_data.rc_dev->driver_name = "cx231xx";
+ 	dev->init_data.type = RC_BIT_NEC;
+ 	info.addr = 0x30;
+diff --git a/drivers/media/usb/tm6000/tm6000-input.c b/drivers/media/usb/tm6000/tm6000-input.c
+index 8a519f5..26b2ebb 100644
+--- a/drivers/media/usb/tm6000/tm6000-input.c
++++ b/drivers/media/usb/tm6000/tm6000-input.c
+@@ -443,7 +443,7 @@ int tm6000_ir_init(struct tm6000_core *dev)
+ 	/* input setup */
+ 	rc->allowed_protocols = RC_BIT_RC5 | RC_BIT_NEC;
+ 	/* Neded, in order to support NEC remotes with 24 or 32 bits */
+-	rc->scanmask = 0xffff;
++	rc->scancode_mask = 0xffff;
+ 	rc->priv = ir;
+ 	rc->change_protocol = tm6000_ir_change_protocol;
+ 	if (dev->int_in.endp) {
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index e6784e8..5a082e7 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -98,11 +98,12 @@ enum rc_filter_type {
+  * @enabled_wakeup_protocols: bitmask with the enabled RC_BIT_* wakeup protocols
+  * @scancode_filter: scancode filter
+  * @scancode_wakeup_filter: scancode wakeup filters
+- * @scanmask: some hardware decoders are not capable of providing the full
++ * @scancode_mask: some hardware decoders are not capable of providing the full
+  *	scancode to the application. As this is a hardware limit, we can't do
+  *	anything with it. Yet, as the same keycode table can be used with other
+  *	devices, a mask is provided to allow its usage. Drivers should generally
+  *	leave this field in blank
++ * @users: number of current users of the device
+  * @priv: driver-specific data
+  * @keylock: protects the remaining members of the struct
+  * @keypressed: whether a key is currently pressed
+@@ -157,8 +158,8 @@ struct rc_dev {
+ 	u64				enabled_wakeup_protocols;
+ 	struct rc_scancode_filter	scancode_filter;
+ 	struct rc_scancode_filter	scancode_wakeup_filter;
++	u32				scancode_mask;
+ 	u32				users;
+-	u32				scanmask;
+ 	void				*priv;
+ 	spinlock_t			keylock;
+ 	bool				keypressed;
 
