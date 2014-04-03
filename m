@@ -1,113 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-outbound-2.vmware.com ([208.91.2.13]:42142 "EHLO
-	smtp-outbound-2.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752312AbaDKTfK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 15:35:10 -0400
-Message-ID: <534843EA.6060602@vmware.com>
-Date: Fri, 11 Apr 2014 21:35:06 +0200
-From: Thomas Hellstrom <thellstrom@vmware.com>
-MIME-Version: 1.0
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-CC: Thomas Hellstrom <thellstrom@vmware.com>,
-	linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	ccross@google.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] [RFC v2 with seqcount] reservation: add suppport
- for read-only access using rcu
-References: <20140409144239.26648.57918.stgit@patser> <20140409144831.26648.79163.stgit@patser> <53465A53.1090500@vmware.com> <53466D63.8080808@canonical.com> <53467B93.3000402@vmware.com> <5346B212.8050202@canonical.com> <5347A9FD.2070706@vmware.com> <5347B4E5.6090901@canonical.com> <5347BFC9.3020503@vmware.com> <53482FF1.1090406@canonical.com>
-In-Reply-To: <53482FF1.1090406@canonical.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52434 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753960AbaDCWiF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 11/25] omap3isp: queue: Use sg_table structure
+Date: Fri,  4 Apr 2014 00:39:41 +0200
+Message-Id: <1396564795-27192-12-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/11/2014 08:09 PM, Maarten Lankhorst wrote:
-> op 11-04-14 12:11, Thomas Hellstrom schreef:
->> On 04/11/2014 11:24 AM, Maarten Lankhorst wrote:
->>> op 11-04-14 10:38, Thomas Hellstrom schreef:
->>>> Hi, Maarten.
->>>>
->>>> Here I believe we encounter a lot of locking inconsistencies.
->>>>
->>>> First, it seems you're use a number of pointers as RCU pointers
->>>> without
->>>> annotating them as such and use the correct rcu
->>>> macros when assigning those pointers.
->>>>
->>>> Some pointers (like the pointers in the shared fence list) are both
->>>> used
->>>> as RCU pointers (in dma_buf_poll()) for example,
->>>> or considered protected by the seqlock
->>>> (reservation_object_get_fences_rcu()), which I believe is OK, but then
->>>> the pointers must
->>>> be assigned using the correct rcu macros. In the memcpy in
->>>> reservation_object_get_fences_rcu() we might get away with an
->>>> ugly typecast, but with a verbose comment that the pointers are
->>>> considered protected by the seqlock at that location.
->>>>
->>>> So I've updated (attached) the headers with proper __rcu annotation
->>>> and
->>>> locking comments according to how they are being used in the various
->>>> reading functions.
->>>> I believe if we want to get rid of this we need to validate those
->>>> pointers using the seqlock as well.
->>>> This will generate a lot of sparse warnings in those places needing
->>>> rcu_dereference()
->>>> rcu_assign_pointer()
->>>> rcu_dereference_protected()
->>>>
->>>> With this I think we can get rid of all ACCESS_ONCE macros: It's not
->>>> needed when the rcu_x() macros are used, and
->>>> it's never needed for the members protected by the seqlock, (provided
->>>> that the seq is tested). The only place where I think that's
->>>> *not* the case is at the krealloc in
->>>> reservation_object_get_fences_rcu().
->>>>
->>>> Also I have some more comments in the
->>>> reservation_object_get_fences_rcu() function below:
->>> I felt that the barriers needed for rcu were already provided by
->>> checking the seqcount lock.
->>> But looking at rcu_dereference makes it seem harmless to add it in
->>> more places, it handles
->>> the ACCESS_ONCE and barrier() for us.
->> And it makes the code more maintainable, and helps sparse doing a lot of
->> checking for us. I guess
->> we can tolerate a couple of extra barriers for that.
->>
->>> We could probably get away with using RCU_INIT_POINTER on the writer
->>> side,
->>> because the smp_wmb is already done by arranging seqcount updates
->>> correctly.
->> Hmm. yes, probably. At least in the replace function. I think if we do
->> it in other places, we should add comments as to where
->> the smp_wmb() is located, for future reference.
->>
->>
->> Also  I saw in a couple of places where you're checking the shared
->> pointers, you're not checking for NULL pointers, which I guess may
->> happen if shared_count and pointers are not in full sync?
->>
-> No, because shared_count is protected with seqcount. I only allow
-> appending to the array, so when
-> shared_count is validated by seqcount it means that the
-> [0...shared_count) indexes are valid and non-null.
-> What could happen though is that the fence at a specific index is
-> updated with another one from the same
-> context, but that's harmless.
->
+Replace the sglen and sglist fields stored in the buffer structure with
+an sg_table. This allows using the sg table allocation helper function.
 
-Hmm, doesn't attaching an exclusive fence clear all shared fence
-pointers from under a reader?
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/ispqueue.c | 108 ++++++++++-------------------
+ drivers/media/platform/omap3isp/ispqueue.h |   6 +-
+ 2 files changed, 40 insertions(+), 74 deletions(-)
 
-/Thomas
+diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
+index 8623c05..51ec40d 100644
+--- a/drivers/media/platform/omap3isp/ispqueue.c
++++ b/drivers/media/platform/omap3isp/ispqueue.c
+@@ -45,33 +45,17 @@
+ #define IOMMU_FLAG	(IOVMF_ENDIAN_LITTLE | IOVMF_ELSZ_8)
+ 
+ /*
+- * ispmmu_vmap - Wrapper for Virtual memory mapping of a scatter gather list
++ * ispmmu_vmap - Wrapper for virtual memory mapping of a scatter gather table
+  * @dev: Device pointer specific to the OMAP3 ISP.
+- * @sglist: Pointer to source Scatter gather list to allocate.
+- * @sglen: Number of elements of the scatter-gatter list.
++ * @sgt: Pointer to source scatter gather table.
+  *
+  * Returns a resulting mapped device address by the ISP MMU, or -ENOMEM if
+  * we ran out of memory.
+  */
+ static dma_addr_t
+-ispmmu_vmap(struct isp_device *isp, const struct scatterlist *sglist, int sglen)
++ispmmu_vmap(struct isp_device *isp, const struct sg_table *sgt)
+ {
+-	struct sg_table *sgt;
+-	u32 da;
+-
+-	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
+-	if (sgt == NULL)
+-		return -ENOMEM;
+-
+-	sgt->sgl = (struct scatterlist *)sglist;
+-	sgt->nents = sglen;
+-	sgt->orig_nents = sglen;
+-
+-	da = omap_iommu_vmap(isp->domain, isp->dev, 0, sgt, IOMMU_FLAG);
+-	if (IS_ERR_VALUE(da))
+-		kfree(sgt);
+-
+-	return da;
++	return omap_iommu_vmap(isp->domain, isp->dev, 0, sgt, IOMMU_FLAG);
+ }
+ 
+ /*
+@@ -81,10 +65,7 @@ ispmmu_vmap(struct isp_device *isp, const struct scatterlist *sglist, int sglen)
+  */
+ static void ispmmu_vunmap(struct isp_device *isp, dma_addr_t da)
+ {
+-	struct sg_table *sgt;
+-
+-	sgt = omap_iommu_vunmap(isp->domain, isp->dev, (u32)da);
+-	kfree(sgt);
++	omap_iommu_vunmap(isp->domain, isp->dev, (u32)da);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -204,34 +185,31 @@ out:
+  */
+ static int isp_video_buffer_sglist_kernel(struct isp_video_buffer *buf)
+ {
+-	struct scatterlist *sglist;
++	struct scatterlist *sg;
+ 	unsigned int npages;
+ 	unsigned int i;
+ 	void *addr;
++	int ret;
+ 
+ 	addr = buf->vaddr;
+ 	npages = PAGE_ALIGN(buf->vbuf.length) >> PAGE_SHIFT;
+ 
+-	sglist = vmalloc(npages * sizeof(*sglist));
+-	if (sglist == NULL)
+-		return -ENOMEM;
+-
+-	sg_init_table(sglist, npages);
++	ret = sg_alloc_table(&buf->sgt, npages, GFP_KERNEL);
++	if (ret < 0)
++		return ret;
+ 
+-	for (i = 0; i < npages; ++i, addr += PAGE_SIZE) {
++	for (sg = buf->sgt.sgl, i = 0; i < npages; ++i, addr += PAGE_SIZE) {
+ 		struct page *page = vmalloc_to_page(addr);
+ 
+ 		if (page == NULL || PageHighMem(page)) {
+-			vfree(sglist);
++			sg_free_table(&buf->sgt);
+ 			return -EINVAL;
+ 		}
+ 
+-		sg_set_page(&sglist[i], page, PAGE_SIZE, 0);
++		sg_set_page(sg, page, PAGE_SIZE, 0);
++		sg = sg_next(sg);
+ 	}
+ 
+-	buf->sglen = npages;
+-	buf->sglist = sglist;
+-
+ 	return 0;
+ }
+ 
+@@ -242,30 +220,26 @@ static int isp_video_buffer_sglist_kernel(struct isp_video_buffer *buf)
+  */
+ static int isp_video_buffer_sglist_user(struct isp_video_buffer *buf)
+ {
+-	struct scatterlist *sglist;
+ 	unsigned int offset = buf->offset;
++	struct scatterlist *sg;
+ 	unsigned int i;
++	int ret;
+ 
+-	sglist = vmalloc(buf->npages * sizeof(*sglist));
+-	if (sglist == NULL)
+-		return -ENOMEM;
+-
+-	sg_init_table(sglist, buf->npages);
++	ret = sg_alloc_table(&buf->sgt, buf->npages, GFP_KERNEL);
++	if (ret < 0)
++		return ret;
+ 
+-	for (i = 0; i < buf->npages; ++i) {
++	for (sg = buf->sgt.sgl, i = 0; i < buf->npages; ++i) {
+ 		if (PageHighMem(buf->pages[i])) {
+-			vfree(sglist);
++			sg_free_table(&buf->sgt);
+ 			return -EINVAL;
+ 		}
+ 
+-		sg_set_page(&sglist[i], buf->pages[i], PAGE_SIZE - offset,
+-			    offset);
++		sg_set_page(sg, buf->pages[i], PAGE_SIZE - offset, offset);
++		sg = sg_next(sg);
+ 		offset = 0;
+ 	}
+ 
+-	buf->sglen = buf->npages;
+-	buf->sglist = sglist;
+-
+ 	return 0;
+ }
+ 
+@@ -277,30 +251,26 @@ static int isp_video_buffer_sglist_user(struct isp_video_buffer *buf)
+  */
+ static int isp_video_buffer_sglist_pfnmap(struct isp_video_buffer *buf)
+ {
+-	struct scatterlist *sglist;
++	struct scatterlist *sg;
+ 	unsigned int offset = buf->offset;
+ 	unsigned long pfn = buf->paddr >> PAGE_SHIFT;
+ 	unsigned int i;
++	int ret;
+ 
+-	sglist = vmalloc(buf->npages * sizeof(*sglist));
+-	if (sglist == NULL)
+-		return -ENOMEM;
+-
+-	sg_init_table(sglist, buf->npages);
++	ret = sg_alloc_table(&buf->sgt, buf->npages, GFP_KERNEL);
++	if (ret < 0)
++		return ret;
+ 
+-	for (i = 0; i < buf->npages; ++i, ++pfn) {
+-		sg_set_page(&sglist[i], pfn_to_page(pfn), PAGE_SIZE - offset,
+-			    offset);
++	for (sg = buf->sgt.sgl, i = 0; i < buf->npages; ++i, ++pfn) {
++		sg_set_page(sg, pfn_to_page(pfn), PAGE_SIZE - offset, offset);
+ 		/* PFNMAP buffers will not get DMA-mapped, set the DMA address
+ 		 * manually.
+ 		 */
+-		sg_dma_address(&sglist[i]) = (pfn << PAGE_SHIFT) + offset;
++		sg_dma_address(sg) = (pfn << PAGE_SHIFT) + offset;
++		sg = sg_next(sg);
+ 		offset = 0;
+ 	}
+ 
+-	buf->sglen = buf->npages;
+-	buf->sglist = sglist;
+-
+ 	return 0;
+ }
+ 
+@@ -325,13 +295,11 @@ static void isp_video_buffer_cleanup(struct isp_video_buffer *buf)
+ 	if (!(buf->vm_flags & VM_PFNMAP)) {
+ 		direction = buf->vbuf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE
+ 			  ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+-		dma_unmap_sg(buf->queue->dev, buf->sglist, buf->sglen,
++		dma_unmap_sg(buf->queue->dev, buf->sgt.sgl, buf->sgt.orig_nents,
+ 			     direction);
+ 	}
+ 
+-	vfree(buf->sglist);
+-	buf->sglist = NULL;
+-	buf->sglen = 0;
++	sg_free_table(&buf->sgt);
+ 
+ 	if (buf->pages != NULL) {
+ 		isp_video_buffer_lock_vma(buf, 0);
+@@ -576,15 +544,15 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
+ 	if (!(buf->vm_flags & VM_PFNMAP)) {
+ 		direction = buf->vbuf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE
+ 			  ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+-		ret = dma_map_sg(buf->queue->dev, buf->sglist, buf->sglen,
+-				 direction);
+-		if (ret != buf->sglen) {
++		ret = dma_map_sg(buf->queue->dev, buf->sgt.sgl,
++				 buf->sgt.orig_nents, direction);
++		if (ret != buf->sgt.orig_nents) {
+ 			ret = -EFAULT;
+ 			goto done;
+ 		}
+ 	}
+ 
+-	addr = ispmmu_vmap(video->isp, buf->sglist, buf->sglen);
++	addr = ispmmu_vmap(video->isp, &buf->sgt);
+ 	if (IS_ERR_VALUE(addr)) {
+ 		ret = -EIO;
+ 		goto done;
+diff --git a/drivers/media/platform/omap3isp/ispqueue.h b/drivers/media/platform/omap3isp/ispqueue.h
+index 0899a11..99c11e8 100644
+--- a/drivers/media/platform/omap3isp/ispqueue.h
++++ b/drivers/media/platform/omap3isp/ispqueue.h
+@@ -73,8 +73,7 @@ enum isp_video_buffer_state {
+  * @npages: Number of pages (for userspace buffers)
+  * @pages: Pages table (for userspace non-VM_PFNMAP buffers)
+  * @paddr: Memory physical address (for userspace VM_PFNMAP buffers)
+- * @sglen: Number of elements in the scatter list (for non-VM_PFNMAP buffers)
+- * @sglist: Scatter list (for non-VM_PFNMAP buffers)
++ * @sgt: Scatter gather table (for non-VM_PFNMAP buffers)
+  * @vbuf: V4L2 buffer
+  * @irqlist: List head for insertion into IRQ queue
+  * @state: Current buffer state
+@@ -98,8 +97,7 @@ struct isp_video_buffer {
+ 	dma_addr_t paddr;
+ 
+ 	/* For all buffers except VM_PFNMAP. */
+-	unsigned int sglen;
+-	struct scatterlist *sglist;
++	struct sg_table sgt;
+ 
+ 	/* Touched by the interrupt handler. */
+ 	struct v4l2_buffer vbuf;
+-- 
+1.8.3.2
 
-
-
-
-
-> ~Maarten
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
