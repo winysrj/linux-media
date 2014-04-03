@@ -1,133 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:28119 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751335AbaDQLRp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 07:17:45 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N46000UHA1JV270@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 17 Apr 2014 12:17:43 +0100 (BST)
-Message-id: <534FB855.1020702@samsung.com>
-Date: Thu, 17 Apr 2014 13:17:41 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH v2 48/48] adv7604: Add endpoint properties to DT bindings
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1394493359-14115-49-git-send-email-laurent.pinchart@ideasonboard.com>
-In-reply-to: <1394493359-14115-49-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from hardeman.nu ([95.142.160.32]:40272 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753803AbaDCXbm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 19:31:42 -0400
+Subject: [PATCH 05/49] rc-core: split dev->s_filter
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Fri, 04 Apr 2014 01:31:40 +0200
+Message-ID: <20140403233140.27099.76019.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Overloading dev->s_filter to do two different functions (set wakeup filters
+and generic hardware filters) makes it impossible to tell what the
+hardware actually supports, so create a separate dev->s_wakeup_filter and
+make the distinction explicit.
 
-On 11/03/14 00:15, Laurent Pinchart wrote:
-> Add support for the hsync-active, vsync-active and pclk-sample
-> properties to the DT bindings and control BT.656 mode implicitly.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  .../devicetree/bindings/media/i2c/adv7604.txt      | 13 +++++++++
->  drivers/media/i2c/adv7604.c                        | 31 ++++++++++++++++++++--
->  2 files changed, 42 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> index 0845c50..2b62c06 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> @@ -30,6 +30,19 @@ Optional Properties:
->    - adi,disable-cable-reset: Boolean property. When set disables the HDMI
->      receiver automatic reset when the HDMI cable is unplugged.
->  
-> +Optional Endpoint Properties:
-> +
-> +  The following three properties are defined in video-interfaces.txt and are
-> +  valid for source endpoints only.
-> +
-> +  - hsync-active: Horizontal synchronization polarity. Defaults to active low.
-> +  - vsync-active: Vertical synchronization polarity. Defaults to active low.
-> +  - pclk-sample: Pixel clock polarity. Defaults to output on the falling edge.
-> +
-> +  If none of hsync-active, vsync-active and pclk-sample is specified the
-> +  endpoint will use embedded BT.656 synchronization.
-> +
-> +
->  Example:
->  
->  	hdmi_receiver@4c {
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index 95cc911..2a92099 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -41,6 +41,7 @@
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-dv-timings.h>
-> +#include <media/v4l2-of.h>
->  
->  static int debug;
->  module_param(debug, int, 0644);
-> @@ -2643,11 +2644,39 @@ MODULE_DEVICE_TABLE(of, adv7604_of_id);
->  
->  static int adv7604_parse_dt(struct adv7604_state *state)
->  {
-> +	struct v4l2_of_endpoint bus_cfg;
-> +	struct device_node *endpoint;
->  	struct device_node *np;
-> +	unsigned int flags;
->  	int ret;
->  
->  	np = state->i2c_clients[ADV7604_PAGE_IO]->dev.of_node;
->  
-> +	/* Parse the endpoint. */
-> +	endpoint = v4l2_of_get_next_endpoint(np, NULL);
-> +	if (!endpoint)
-> +		return -EINVAL;
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/img-ir/img-ir-hw.c |   15 ++++++++++++++-
+ drivers/media/rc/rc-main.c          |   31 +++++++++++++++++++------------
+ include/media/rc-core.h             |    6 ++++--
+ 3 files changed, 37 insertions(+), 15 deletions(-)
 
-Perhaps we should document this binding requires at least one endpoint
-node ? I guess there is no point in not having any endpoint node ?
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
+index aec79f7..871a9b3 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.c
++++ b/drivers/media/rc/img-ir/img-ir-hw.c
+@@ -504,6 +504,18 @@ unlock:
+ 	return ret;
+ }
+ 
++static int img_ir_set_normal_filter(struct rc_dev *dev,
++				    struct rc_scancode_filter *sc_filter)
++{
++	return img_ir_set_filter(dev, RC_FILTER_NORMAL, sc_filter); 
++}
++
++static int img_ir_set_wakeup_filter(struct rc_dev *dev,
++				    struct rc_scancode_filter *sc_filter)
++{
++	return img_ir_set_filter(dev, RC_FILTER_WAKEUP, sc_filter);
++}
++
+ /**
+  * img_ir_set_decoder() - Set the current decoder.
+  * @priv:	IR private data.
+@@ -988,7 +1000,8 @@ int img_ir_probe_hw(struct img_ir_priv *priv)
+ 	rdev->map_name = RC_MAP_EMPTY;
+ 	rc_set_allowed_protocols(rdev, img_ir_allowed_protos(priv));
+ 	rdev->input_name = "IMG Infrared Decoder";
+-	rdev->s_filter = img_ir_set_filter;
++	rdev->s_filter = img_ir_set_normal_filter;
++	rdev->s_wakeup_filter = img_ir_set_wakeup_filter;
+ 
+ 	/* Register hardware decoder */
+ 	error = rc_register_device(rdev);
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index c0bfd50..ba955ac 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -929,6 +929,7 @@ static ssize_t store_protocols(struct device *device,
+ 	int rc, i, count = 0;
+ 	ssize_t ret;
+ 	int (*change_protocol)(struct rc_dev *dev, u64 *rc_type);
++	int (*set_filter)(struct rc_dev *dev, struct rc_scancode_filter *filter);
+ 	struct rc_scancode_filter local_filter, *filter;
+ 
+ 	/* Device is being removed */
+@@ -1013,24 +1014,27 @@ static ssize_t store_protocols(struct device *device,
+ 	 * Fall back to clearing the filter.
+ 	 */
+ 	filter = &dev->scancode_filters[fattr->type];
++	set_filter = (fattr->type == RC_FILTER_NORMAL)
++		? dev->s_filter : dev->s_wakeup_filter;
++
+ 	if (old_type != type && filter->mask) {
+ 		local_filter = *filter;
+ 		if (!type) {
+ 			/* no protocol => clear filter */
+ 			ret = -1;
+-		} else if (!dev->s_filter) {
++		} else if (!set_filter) {
+ 			/* generic filtering => accept any filter */
+ 			ret = 0;
+ 		} else {
+ 			/* hardware filtering => try setting, otherwise clear */
+-			ret = dev->s_filter(dev, fattr->type, &local_filter);
++			ret = set_filter(dev, &local_filter);
+ 		}
+ 		if (ret < 0) {
+ 			/* clear the filter */
+ 			local_filter.data = 0;
+ 			local_filter.mask = 0;
+-			if (dev->s_filter)
+-				dev->s_filter(dev, fattr->type, &local_filter);
++			if (set_filter)
++				set_filter(dev, &local_filter);
+ 		}
+ 
+ 		/* commit the new filter */
+@@ -1112,6 +1116,7 @@ static ssize_t store_filter(struct device *device,
+ 	struct rc_scancode_filter local_filter, *filter;
+ 	int ret;
+ 	unsigned long val;
++	int (*set_filter)(struct rc_dev *dev, struct rc_scancode_filter *filter);
+ 
+ 	/* Device is being removed */
+ 	if (!dev)
+@@ -1121,9 +1126,11 @@ static ssize_t store_filter(struct device *device,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	/* Scancode filter not supported (but still accept 0) */
+-	if (!dev->s_filter && fattr->type != RC_FILTER_NORMAL)
+-		return val ? -EINVAL : count;
++	/* Can the scancode filter be set? */
++	set_filter = (fattr->type == RC_FILTER_NORMAL)
++		? dev->s_filter : dev->s_wakeup_filter;
++	if (!set_filter)
++		return -EINVAL;
+ 
+ 	mutex_lock(&dev->lock);
+ 
+@@ -1134,16 +1141,16 @@ static ssize_t store_filter(struct device *device,
+ 		local_filter.mask = val;
+ 	else
+ 		local_filter.data = val;
++
+ 	if (!dev->enabled_protocols[fattr->type] && local_filter.mask) {
+ 		/* refuse to set a filter unless a protocol is enabled */
+ 		ret = -EINVAL;
+ 		goto unlock;
+ 	}
+-	if (dev->s_filter) {
+-		ret = dev->s_filter(dev, fattr->type, &local_filter);
+-		if (ret < 0)
+-			goto unlock;
+-	}
++
++	ret = set_filter(dev, &local_filter);
++	if (ret < 0)
++		goto unlock;
+ 
+ 	/* Success, commit the new filter */
+ 	*filter = local_filter;
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index dbbe63e..8c31e4a 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -113,7 +113,8 @@ enum rc_filter_type {
+  *	device doesn't interrupt host until it sees IR pulses
+  * @s_learning_mode: enable wide band receiver used for learning
+  * @s_carrier_report: enable carrier reports
+- * @s_filter: set the scancode filter of a given type
++ * @s_filter: set the scancode filter 
++ * @s_wakeup_filter: set the wakeup scancode filter
+  */
+ struct rc_dev {
+ 	struct device			dev;
+@@ -161,8 +162,9 @@ struct rc_dev {
+ 	int				(*s_learning_mode)(struct rc_dev *dev, int enable);
+ 	int				(*s_carrier_report) (struct rc_dev *dev, int enable);
+ 	int				(*s_filter)(struct rc_dev *dev,
+-						    enum rc_filter_type type,
+ 						    struct rc_scancode_filter *filter);
++	int				(*s_wakeup_filter)(struct rc_dev *dev,
++							   struct rc_scancode_filter *filter);
+ };
+ 
+ #define to_rc_dev(d) container_of(d, struct rc_dev, dev)
 
-> +	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-> +	of_node_put(endpoint);
-> +
-> +	flags = bus_cfg.bus.parallel.flags;
-> +
-> +	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-> +		state->pdata.inv_hs_pol = 1;
-> +
-> +	if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-> +		state->pdata.inv_vs_pol = 1;
-> +
-> +	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-> +		state->pdata.inv_llc_pol = 1;
-> +
-> +	if (bus_cfg.bus_type == V4L2_MBUS_BT656) {
-> +		state->pdata.insert_av_codes = 1;
-> +		state->pdata.op_656_range = 1;
-> +	}
-> +
-> +	/* Parse device-specific properties. */
->  	state->pdata.disable_pwrdnb =
->  		of_property_read_bool(np, "adi,disable-power-down");
->  	state->pdata.disable_cable_det_rst =
-> @@ -2677,9 +2706,7 @@ static int adv7604_parse_dt(struct adv7604_state *state)
->  
->  	/* HACK: Hardcode the remaining platform data fields. */
->  	state->pdata.blank_data = 1;
-> -	state->pdata.op_656_range = 1;
->  	state->pdata.alt_data_sat = 1;
-> -	state->pdata.insert_av_codes = 1;
->  	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
->  
->  	return 0;
-
---
-Regards,
-Sylwester
