@@ -1,614 +1,1831 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:43966 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755791AbaD3BPI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Apr 2014 21:15:08 -0400
-Date: Tue, 29 Apr 2014 18:14:54 -0700
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: =?utf-8?B?0JDQu9C10LrRgdCw0L3QtNGAINCR0LXRgNGB0LXQvdC10LI=?=
-	<bay@hackerdom.ru>
-Cc: linux-sunxi@googlegroups.com, rdunlap@infradead.org,
-	ijc+devicetree@hellion.org.uk, m.chehab@samsung.com,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v3] sunxi: Add support for consumer infrared devices
-Message-ID: <20140430011454.GB3000@lukather>
-References: <64a9c1e2-4db7-4486-841f-11adde303e32@googlegroups.com>
+Received: from hardeman.nu ([95.142.160.32]:40325 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753899AbaDCXdz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 19:33:55 -0400
+Subject: [PATCH 31/49] rc-core: split rc-main.c into rc-main.c and
+ rc-keytable.c
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Fri, 04 Apr 2014 01:33:52 +0200
+Message-ID: <20140403233352.27099.68688.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5QAgd0e35j3NYeGe"
-Content-Disposition: inline
-In-Reply-To: <64a9c1e2-4db7-4486-841f-11adde303e32@googlegroups.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+rc-main.c is getting quite large and contains two distinct parts, one
+related to the chardev (fops, sysfs, etc) and one related to all
+key functionality. Split off the key functionality to a separate file in
+preparation for the coming patches.
 
---5QAgd0e35j3NYeGe
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I've done the splitting as a separate patch with the absolute minimum changes
+(making some methods non-static) because it's nigh impossible to review
+code changes and this code of split in the same patch.
 
-Hi,
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/Makefile       |    2 
+ drivers/media/rc/rc-core-priv.h |   17 +
+ drivers/media/rc/rc-keytable.c  |  851 +++++++++++++++++++++++++++++++++++++++
+ drivers/media/rc/rc-main.c      |  853 +--------------------------------------
+ 4 files changed, 883 insertions(+), 840 deletions(-)
+ create mode 100644 drivers/media/rc/rc-keytable.c
 
-Thanks for contributing this patch.
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index d326d4d..de08ee6 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -1,4 +1,4 @@
+-rc-core-objs	:= rc-main.o ir-raw.o
++rc-core-objs	:= rc-main.o rc-keytable.o ir-raw.o
+ 
+ obj-y += keymaps/
+ 
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index aacc192..6da8a0d 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -155,9 +155,26 @@ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
+ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
+ void ir_raw_init(void);
+ 
++/*
++ * Methods from rc-keytable.c to be used internally
++ */
++void ir_timer_keyup(unsigned long cookie);
++int rc_input_open(struct input_dev *idev);
++void rc_input_close(struct input_dev *idev);
++int ir_setkeytable(struct rc_dev *dev, const struct rc_map *from);
++void ir_free_table(struct rc_map *rc_map);
++int ir_getkeycode(struct input_dev *idev,
++		  struct input_keymap_entry *ke);
++int ir_setkeycode(struct input_dev *idev,
++		  const struct input_keymap_entry *ke,
++		  unsigned int *old_keycode);
++
+ /* Only to be used by rc-core and ir-lirc-codec */
+ void rc_init_ir_rx(struct rc_dev *dev, struct rc_ir_rx *rx);
+ 
++/* Only to be used by rc-keytable.c */
++extern struct led_trigger *led_feedback;
++
+ /*
+  * Decoder initialization code
+  *
+diff --git a/drivers/media/rc/rc-keytable.c b/drivers/media/rc/rc-keytable.c
+new file mode 100644
+index 0000000..25faeba
+--- /dev/null
++++ b/drivers/media/rc/rc-keytable.c
+@@ -0,0 +1,851 @@
++/* rc-keytable.c - Remote Controller keytable handling
++ *
++ * Copyright (C) 2009-2010 by Mauro Carvalho Chehab
++ *
++ * This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation version 2 of the License.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ */
++
++#include <media/rc-core.h>
++#include <linux/spinlock.h>
++#include <linux/delay.h>
++#include <linux/input.h>
++#include <linux/leds.h>
++#include <linux/slab.h>
++#include <linux/sched.h>
++#include <linux/idr.h>
++#include <linux/device.h>
++#include <linux/module.h>
++#include <linux/poll.h>
++#include "rc-core-priv.h"
++
++/* Sizes are in bytes, 256 bytes allows for 32 entries on x64 */
++#define IR_TAB_MIN_SIZE		256
++#define IR_TAB_MAX_SIZE		8192
++
++/* FIXME: IR_KEYPRESS_TIMEOUT should be protocol specific */
++#define IR_KEYPRESS_TIMEOUT 250
++
++/* Used to keep track of known keymaps */
++static LIST_HEAD(rc_map_list);
++static DEFINE_SPINLOCK(rc_map_lock);
++
++static struct rc_map_list *seek_rc_map(const char *name)
++{
++	struct rc_map_list *map = NULL;
++
++	spin_lock(&rc_map_lock);
++	list_for_each_entry(map, &rc_map_list, list) {
++		if (!strcmp(name, map->map.name)) {
++			spin_unlock(&rc_map_lock);
++			return map;
++		}
++	}
++	spin_unlock(&rc_map_lock);
++
++	return NULL;
++}
++
++struct rc_map *rc_map_get(const char *name)
++{
++
++	struct rc_map_list *map;
++
++	map = seek_rc_map(name);
++#ifdef MODULE
++	if (!map) {
++		int rc = request_module("%s", name);
++		if (rc < 0) {
++			printk(KERN_ERR "Couldn't load IR keymap %s\n", name);
++			return NULL;
++		}
++		msleep(20);	/* Give some time for IR to register */
++
++		map = seek_rc_map(name);
++	}
++#endif
++	if (!map) {
++		printk(KERN_ERR "IR keymap %s not found\n", name);
++		return NULL;
++	}
++
++	printk(KERN_INFO "Registered IR keymap %s\n", map->map.name);
++
++	return &map->map;
++}
++EXPORT_SYMBOL_GPL(rc_map_get);
++
++int rc_map_register(struct rc_map_list *map)
++{
++	spin_lock(&rc_map_lock);
++	list_add_tail(&map->list, &rc_map_list);
++	spin_unlock(&rc_map_lock);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(rc_map_register);
++
++void rc_map_unregister(struct rc_map_list *map)
++{
++	spin_lock(&rc_map_lock);
++	list_del(&map->list);
++	spin_unlock(&rc_map_lock);
++}
++EXPORT_SYMBOL_GPL(rc_map_unregister);
++
++/**
++ * ir_create_table() - initializes a scancode table
++ * @rc_map:	the rc_map to initialize
++ * @name:	name to assign to the table
++ * @size:	initial size of the table
++ * @return:	zero on success or a negative error code
++ *
++ * This routine will initialize the rc_map and will allocate
++ * memory to hold at least the specified number of elements.
++ */
++static int ir_create_table(struct rc_map *rc_map,
++			   const char *name, size_t size)
++{
++	rc_map->name = name;
++	rc_map->alloc = roundup_pow_of_two(size * sizeof(struct rc_map_table));
++	rc_map->size = rc_map->alloc / sizeof(struct rc_map_table);
++	rc_map->scan = kmalloc(rc_map->alloc, GFP_KERNEL);
++	if (!rc_map->scan)
++		return -ENOMEM;
++
++	IR_dprintk(1, "Allocated space for %u keycode entries (%u bytes)\n",
++		   rc_map->size, rc_map->alloc);
++	return 0;
++}
++
++/**
++ * ir_free_table() - frees memory allocated by a scancode table
++ * @rc_map:	the table whose mappings need to be freed
++ *
++ * This routine will free memory alloctaed for key mappings used by given
++ * scancode table.
++ */
++void ir_free_table(struct rc_map *rc_map)
++{
++	rc_map->size = 0;
++	kfree(rc_map->scan);
++	rc_map->scan = NULL;
++}
++
++/**
++ * ir_resize_table() - resizes a scancode table if necessary
++ * @rc_map:	the rc_map to resize
++ * @gfp_flags:	gfp flags to use when allocating memory
++ * @return:	zero on success or a negative error code
++ *
++ * This routine will shrink the rc_map if it has lots of
++ * unused entries and grow it if it is full.
++ */
++static int ir_resize_table(struct rc_map *rc_map, gfp_t gfp_flags)
++{
++	unsigned int oldalloc = rc_map->alloc;
++	unsigned int newalloc = oldalloc;
++	struct rc_map_table *oldscan = rc_map->scan;
++	struct rc_map_table *newscan;
++
++	if (rc_map->size == rc_map->len) {
++		/* All entries in use -> grow keytable */
++		if (rc_map->alloc >= IR_TAB_MAX_SIZE)
++			return -ENOMEM;
++
++		newalloc *= 2;
++		IR_dprintk(1, "Growing table to %u bytes\n", newalloc);
++	}
++
++	if ((rc_map->len * 3 < rc_map->size) && (oldalloc > IR_TAB_MIN_SIZE)) {
++		/* Less than 1/3 of entries in use -> shrink keytable */
++		newalloc /= 2;
++		IR_dprintk(1, "Shrinking table to %u bytes\n", newalloc);
++	}
++
++	if (newalloc == oldalloc)
++		return 0;
++
++	newscan = kmalloc(newalloc, gfp_flags);
++	if (!newscan) {
++		IR_dprintk(1, "Failed to kmalloc %u bytes\n", newalloc);
++		return -ENOMEM;
++	}
++
++	memcpy(newscan, rc_map->scan, rc_map->len * sizeof(struct rc_map_table));
++	rc_map->scan = newscan;
++	rc_map->alloc = newalloc;
++	rc_map->size = rc_map->alloc / sizeof(struct rc_map_table);
++	kfree(oldscan);
++	return 0;
++}
++
++/**
++ * ir_update_mapping() - set a keycode in the scancode->keycode table
++ * @dev:	the struct rc_dev device descriptor
++ * @rc_map:	scancode table to be adjusted
++ * @index:	index of the mapping that needs to be updated
++ * @keycode:	the desired keycode
++ * @return:	previous keycode assigned to the mapping
++ *
++ * This routine is used to update scancode->keycode mapping at given
++ * position.
++ */
++static unsigned int ir_update_mapping(struct rc_dev *dev,
++				      struct rc_map *rc_map,
++				      unsigned int index,
++				      unsigned int new_keycode)
++{
++	int old_keycode = rc_map->scan[index].keycode;
++	int i;
++
++	/* Did the user wish to remove the mapping? */
++	if (new_keycode == KEY_RESERVED || new_keycode == KEY_UNKNOWN) {
++		IR_dprintk(1, "#%d: Deleting proto 0x%04x, scan 0x%08llx\n",
++			   index, rc_map->scan[index].protocol,
++			   (unsigned long long)rc_map->scan[index].scancode);
++		rc_map->len--;
++		memmove(&rc_map->scan[index], &rc_map->scan[index+ 1],
++			(rc_map->len - index) * sizeof(struct rc_map_table));
++	} else {
++		IR_dprintk(1, "#%d: %s proto 0x%04x, scan 0x%08llx "
++			   "with key 0x%04x\n",
++			   index,
++			   old_keycode == KEY_RESERVED ? "New" : "Replacing",
++			   rc_map->scan[index].protocol,
++			   (unsigned long long)rc_map->scan[index].scancode,
++			   new_keycode);
++		rc_map->scan[index].keycode = new_keycode;
++		__set_bit(new_keycode, dev->input_dev->keybit);
++	}
++
++	if (old_keycode != KEY_RESERVED) {
++		/* A previous mapping was updated... */
++		__clear_bit(old_keycode, dev->input_dev->keybit);
++		/* ... but another scancode might use the same keycode */
++		for (i = 0; i < rc_map->len; i++) {
++			if (rc_map->scan[i].keycode == old_keycode) {
++				__set_bit(old_keycode, dev->input_dev->keybit);
++				break;
++			}
++		}
++
++		/* Possibly shrink the keytable, failure is not a problem */
++		ir_resize_table(rc_map, GFP_ATOMIC);
++	}
++
++	return old_keycode;
++}
++
++/**
++ * ir_establish_scancode() - set a keycode in the scancode->keycode table
++ * @dev:	the struct rc_dev device descriptor
++ * @rc_map:	scancode table to be searched
++ * @entry:	the entry to be added to the table
++ * @resize:	controls whether we are allowed to resize the table to
++ *		accomodate not yet present scancodes
++ * @return:	index of the mapping containing scancode in question
++ *		or -1U in case of failure.
++ *
++ * This routine is used to locate given scancode in rc_map.
++ * If scancode is not yet present the routine will allocate a new slot
++ * for it.
++ */
++static unsigned int ir_establish_scancode(struct rc_dev *dev,
++					  struct rc_map *rc_map,
++					  struct rc_map_table *entry,
++					  bool resize)
++{
++	unsigned int i;
++
++	/*
++	 * Unfortunately, some hardware-based IR decoders don't provide
++	 * all bits for the complete IR code. In general, they provide only
++	 * the command part of the IR code. Yet, as it is possible to replace
++	 * the provided IR with another one, it is needed to allow loading
++	 * IR tables from other remotes. So, we support specifying a mask to
++	 * indicate the valid bits of the scancodes.
++	 */
++	if (dev->scancode_mask)
++		entry->scancode &= dev->scancode_mask;
++
++	/*
++	 * First check if we already have a mapping for this command.
++	 * Note that the keytable is sorted first on protocol and second
++	 * on scancode (lowest to highest).
++	 */
++	for (i = 0; i < rc_map->len; i++) {
++		if (rc_map->scan[i].protocol < entry->protocol)
++			continue;
++
++		if (rc_map->scan[i].protocol > entry->protocol)
++			break;
++
++		if (rc_map->scan[i].scancode < entry->scancode)
++			continue;
++
++		if (rc_map->scan[i].scancode > entry->scancode)
++			break;
++
++		return i;
++	}
++
++	/* No previous mapping found, we might need to grow the table */
++	if (rc_map->size == rc_map->len) {
++		if (!resize || ir_resize_table(rc_map, GFP_ATOMIC))
++			return -1U;
++	}
++
++	/* i is the proper index to insert our new keycode */
++	if (i < rc_map->len)
++		memmove(&rc_map->scan[i + 1], &rc_map->scan[i],
++			(rc_map->len - i) * sizeof(struct rc_map_table));
++	rc_map->scan[i].scancode = entry->scancode;
++	rc_map->scan[i].protocol = entry->protocol;
++	rc_map->scan[i].keycode = KEY_RESERVED;
++	rc_map->len++;
++
++	return i;
++}
++
++/**
++ * guess_protocol() - heuristics to guess the protocol for a scancode
++ * @rdev:	the struct rc_dev device descriptor
++ * @return:	the guessed RC_TYPE_* protocol
++ *
++ * Internal routine to guess the current IR protocol for legacy ioctls.
++ */
++static inline enum rc_type guess_protocol(struct rc_dev *rdev)
++{
++	struct rc_map *rc_map = &rdev->rc_map;
++
++	if (hweight64(rdev->enabled_protocols) == 1)
++		return rc_bitmap_to_type(rdev->enabled_protocols);
++	else if (hweight64(rdev->allowed_protocols) == 1)
++		return rc_bitmap_to_type(rdev->allowed_protocols);
++	else if (rc_map->len > 0)
++		return rc_map->scan[0].protocol;
++	else
++		return RC_TYPE_OTHER;
++}
++
++/**
++ * to_nec32() - helper function to try to convert misc NEC scancodes to NEC32
++ * @orig:	original scancode
++ * @return:	NEC32 scancode
++ *
++ * This helper routine is used to provide backwards compatibility.
++ */
++static u32 to_nec32(u32 orig)
++{
++	u8 b3 = (u8)(orig >> 16);
++	u8 b2 = (u8)(orig >>  8);
++	u8 b1 = (u8)(orig >>  0);
++
++	if (orig <= 0xffff)
++		/* Plain old NEC */
++		return b2 << 24 | ((u8)~b2) << 16 |  b1 << 8 | ((u8)~b1);
++	else if (orig <= 0xffffff)
++		/* NEC extended */
++		return b3 << 24 | b2 << 16 |  b1 << 8 | ((u8)~b1);
++	else
++		/* NEC32 */
++		return orig;
++}
++
++/**
++ * ir_setkeycode() - set a keycode in the scancode->keycode table
++ * @idev:	the struct input_dev device descriptor
++ * @scancode:	the desired scancode
++ * @keycode:	result
++ * @return:	-EINVAL if the keycode could not be inserted, otherwise zero.
++ *
++ * This routine is used to handle evdev EVIOCSKEY ioctl.
++ */
++int ir_setkeycode(struct input_dev *idev,
++		  const struct input_keymap_entry *ke,
++		  unsigned int *old_keycode)
++{
++	struct rc_dev *rdev = input_get_drvdata(idev);
++	struct rc_map *rc_map = &rdev->rc_map;
++	unsigned int index;
++	struct rc_map_table entry;
++	int retval = 0;
++	unsigned long flags;
++
++	entry.keycode = ke->keycode;
++
++	spin_lock_irqsave(&rc_map->lock, flags);
++
++	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
++		index = ke->index;
++		if (index >= rc_map->len) {
++			retval = -EINVAL;
++			goto out;
++		}
++	} else if (ke->len == sizeof(int)) {
++		/* Legacy EVIOCSKEYCODE ioctl */
++		u32 scancode;
++		retval = input_scancode_to_scalar(ke, &scancode);
++		if (retval)
++			goto out;
++
++		entry.scancode = scancode;
++		entry.protocol = guess_protocol(rdev);
++		if (entry.protocol == RC_TYPE_NEC)
++			entry.scancode = to_nec32(scancode);
++
++		index = ir_establish_scancode(rdev, rc_map, &entry, true);
++		if (index >= rc_map->len) {
++			retval = -ENOMEM;
++			goto out;
++		}
++	} else if (ke->len == sizeof(struct rc_scancode)) {
++		/* New EVIOCSKEYCODE_V2 ioctl */
++		const struct rc_keymap_entry *rke = (struct rc_keymap_entry *)ke;
++		entry.protocol = rke->rc.protocol;
++		entry.scancode = rke->rc.scancode;
++
++		if (rke->rc.reserved[0] || rke->rc.reserved[1] || rke->rc.reserved[2]) {
++			retval = -EINVAL;
++			goto out;
++		}
++
++		index = ir_establish_scancode(rdev, rc_map, &entry, true);
++		if (index >= rc_map->len) {
++			retval = -ENOMEM;
++			goto out;
++		}
++	} else {
++		retval = -EINVAL;
++		goto out;
++	}
++
++	*old_keycode = ir_update_mapping(rdev, rc_map, index, ke->keycode);
++
++out:
++	spin_unlock_irqrestore(&rc_map->lock, flags);
++	return retval;
++}
++
++/**
++ * ir_setkeytable() - sets several entries in the scancode->keycode table
++ * @dev:	the struct rc_dev device descriptor
++ * @to:		the struct rc_map to copy entries to
++ * @from:	the struct rc_map to copy entries from
++ * @return:	-ENOMEM if all keycodes could not be inserted, otherwise zero.
++ *
++ * This routine is used to handle table initialization.
++ */
++int ir_setkeytable(struct rc_dev *dev, const struct rc_map *from)
++{
++	struct rc_map *rc_map = &dev->rc_map;
++	struct rc_map_table entry;
++	unsigned int i, index;
++	int rc;
++
++	rc = ir_create_table(rc_map, from->name, from->size);
++	if (rc)
++		return rc;
++
++	IR_dprintk(1, "Allocated space for %u keycode entries (%u bytes)\n",
++		   rc_map->size, rc_map->alloc);
++
++	for (i = 0; i < from->size; i++) {
++		if (from->rc_type == RC_TYPE_NEC)
++			entry.scancode = to_nec32(from->scan[i].scancode);
++		else
++			entry.scancode = from->scan[i].scancode;
++
++		entry.protocol = from->rc_type;
++		index = ir_establish_scancode(dev, rc_map, &entry, false);
++		if (index >= rc_map->len) {
++			rc = -ENOMEM;
++			break;
++		}
++
++		ir_update_mapping(dev, rc_map, index, from->scan[i].keycode);
++	}
++
++	if (rc)
++		ir_free_table(rc_map);
++
++	return rc;
++}
++
++/**
++ * ir_lookup_by_scancode() - locate mapping by scancode
++ * @rc_map:	the struct rc_map to search
++ * @protocol:	protocol to look for in the table
++ * @scancode:	scancode to look for in the table
++ * @return:	index in the table, -1U if not found
++ *
++ * This routine performs binary search in RC keykeymap table for
++ * given scancode.
++ */
++static unsigned int ir_lookup_by_scancode(const struct rc_map *rc_map,
++					  u16 protocol, u64 scancode)
++{
++	int start = 0;
++	int end = rc_map->len - 1;
++	int mid;
++	struct rc_map_table *m;
++
++	while (start <= end) {
++		mid = (start + end) / 2;
++		m = &rc_map->scan[mid];
++
++		if (m->protocol < protocol)
++			start = mid + 1;
++		else if (m->protocol > protocol)
++			end = mid - 1;
++		else if (m->scancode < scancode)
++			start = mid + 1;
++		else if (m->scancode > scancode)
++			end = mid - 1;
++		else
++			return mid;
++	}
++
++	return -1U;
++}
++
++/**
++ * ir_getkeycode() - get a keycode from the scancode->keycode table
++ * @idev:	the struct input_dev device descriptor
++ * @scancode:	the desired scancode
++ * @keycode:	used to return the keycode, if found, or KEY_RESERVED
++ * @return:	always returns zero.
++ *
++ * This routine is used to handle evdev EVIOCGKEY ioctl.
++ */
++int ir_getkeycode(struct input_dev *idev,
++		  struct input_keymap_entry *ke)
++{
++	struct rc_keymap_entry *rke = (struct rc_keymap_entry *)ke;
++	struct rc_dev *rdev = input_get_drvdata(idev);
++	struct rc_map *rc_map = &rdev->rc_map;
++	struct rc_map_table *entry;
++	unsigned long flags;
++	unsigned int index;
++	int retval;
++
++	spin_lock_irqsave(&rc_map->lock, flags);
++
++	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
++		index = ke->index;
++	} else if (ke->len == sizeof(int)) {
++		/* Legacy EVIOCGKEYCODE ioctl */
++		u32 scancode;
++		u16 protocol;
++
++		retval = input_scancode_to_scalar(ke, &scancode);
++		if (retval)
++			goto out;
++
++		protocol = guess_protocol(rdev);
++		if (protocol == RC_TYPE_NEC)
++			scancode = to_nec32(scancode);
++
++		index = ir_lookup_by_scancode(rc_map, protocol, scancode);
++
++	} else if (ke->len == sizeof(struct rc_scancode)) {
++		/* New EVIOCGKEYCODE_V2 ioctl */
++		if (rke->rc.reserved[0] || rke->rc.reserved[1] || rke->rc.reserved[2]) {
++			retval = -EINVAL;
++			goto out;
++		}
++
++		index = ir_lookup_by_scancode(rc_map,
++					      rke->rc.protocol, rke->rc.scancode);
++
++	} else {
++		retval = -EINVAL;
++		goto out;
++	}
++
++	if (index < rc_map->len) {
++		entry = &rc_map->scan[index];
++		ke->index = index;
++		ke->keycode = entry->keycode;
++		if (ke->len == sizeof(int)) {
++			u32 scancode = entry->scancode;
++			memcpy(ke->scancode, &scancode, sizeof(scancode));
++		} else {
++			ke->len = sizeof(struct rc_scancode);
++			rke->rc.protocol = entry->protocol;
++			rke->rc.scancode = entry->scancode;
++		}
++
++	} else if (!(ke->flags & INPUT_KEYMAP_BY_INDEX)) {
++		/*
++		 * We do not really know the valid range of scancodes
++		 * so let's respond with KEY_RESERVED to anything we
++		 * do not have mapping for [yet].
++		 */
++		ke->index = index;
++		ke->keycode = KEY_RESERVED;
++	} else {
++		retval = -EINVAL;
++		goto out;
++	}
++
++	retval = 0;
++
++out:
++	spin_unlock_irqrestore(&rc_map->lock, flags);
++	return retval;
++}
++
++/**
++ * rc_g_keycode_from_table() - gets the keycode that corresponds to a scancode
++ * @dev:	the struct rc_dev descriptor of the device
++ * @protocol:	the protocol to look for
++ * @scancode:	the scancode to look for
++ * @return:	the corresponding keycode, or KEY_RESERVED
++ *
++ * This routine is used by drivers which need to convert a scancode to a
++ * keycode. Normally it should not be used since drivers should have no
++ * interest in keycodes.
++ */
++u32 rc_g_keycode_from_table(struct rc_dev *dev,
++			    enum rc_type protocol, u64 scancode)
++{
++	struct rc_map *rc_map = &dev->rc_map;
++	unsigned int keycode;
++	unsigned int index;
++	unsigned long flags;
++
++	spin_lock_irqsave(&rc_map->lock, flags);
++
++	index = ir_lookup_by_scancode(rc_map, protocol, scancode);
++	keycode = index < rc_map->len ?
++			rc_map->scan[index].keycode : KEY_RESERVED;
++
++	spin_unlock_irqrestore(&rc_map->lock, flags);
++
++	if (keycode != KEY_RESERVED)
++		IR_dprintk(1, "%s: protocol 0x%04x scancode 0x%08llx keycode 0x%02x\n",
++			   dev->input_name, protocol,
++			   (unsigned long long)scancode, keycode);
++
++	return keycode;
++}
++EXPORT_SYMBOL_GPL(rc_g_keycode_from_table);
++
++/**
++ * ir_do_keyup() - internal function to signal the release of a keypress
++ * @dev:	the struct rc_dev descriptor of the device
++ * @sync:	whether or not to call input_sync
++ *
++ * This function is used internally to release a keypress, it must be
++ * called with keylock held.
++ */
++static void ir_do_keyup(struct rc_dev *dev, bool sync)
++{
++	if (!dev->keypressed)
++		return;
++
++	IR_dprintk(1, "keyup key 0x%04x\n", dev->last_keycode);
++	input_report_key(dev->input_dev, dev->last_keycode, 0);
++	led_trigger_event(led_feedback, LED_OFF);
++	if (sync)
++		input_sync(dev->input_dev);
++	dev->keypressed = false;
++}
++
++/**
++ * rc_keyup() - signals the release of a keypress
++ * @dev:	the struct rc_dev descriptor of the device
++ *
++ * This routine is used to signal that a key has been released on the
++ * remote control.
++ */
++void rc_keyup(struct rc_dev *dev)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&dev->keylock, flags);
++	ir_do_keyup(dev, true);
++	spin_unlock_irqrestore(&dev->keylock, flags);
++}
++EXPORT_SYMBOL_GPL(rc_keyup);
++
++/**
++ * ir_timer_keyup() - generates a keyup event after a timeout
++ * @cookie:	a pointer to the struct rc_dev for the device
++ *
++ * This routine will generate a keyup event some time after a keydown event
++ * is generated when no further activity has been detected.
++ */
++void ir_timer_keyup(unsigned long cookie)
++{
++	struct rc_dev *dev = (struct rc_dev *)cookie;
++	unsigned long flags;
++
++	/*
++	 * ir->keyup_jiffies is used to prevent a race condition if a
++	 * hardware interrupt occurs at this point and the keyup timer
++	 * event is moved further into the future as a result.
++	 *
++	 * The timer will then be reactivated and this function called
++	 * again in the future. We need to exit gracefully in that case
++	 * to allow the input subsystem to do its auto-repeat magic or
++	 * a keyup event might follow immediately after the keydown.
++	 */
++	spin_lock_irqsave(&dev->keylock, flags);
++	if (time_is_before_eq_jiffies(dev->keyup_jiffies))
++		ir_do_keyup(dev, true);
++	spin_unlock_irqrestore(&dev->keylock, flags);
++}
++
++/**
++ * rc_repeat() - signals that a key is still pressed
++ * @dev:	the struct rc_dev descriptor of the device
++ *
++ * This routine is used by IR decoders when a repeat message which does
++ * not include the necessary bits to reproduce the scancode has been
++ * received.
++ */
++void rc_repeat(struct rc_dev *dev)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&dev->keylock, flags);
++
++	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
++	input_sync(dev->input_dev);
++	rc_event(dev, RC_KEY, RC_KEY_REPEAT, 1);
++
++	if (!dev->keypressed)
++		goto out;
++
++	dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
++	mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
++
++out:
++	spin_unlock_irqrestore(&dev->keylock, flags);
++}
++EXPORT_SYMBOL_GPL(rc_repeat);
++
++/**
++ * ir_do_keydown() - internal function to process a keypress
++ * @dev:	the struct rc_dev descriptor of the device
++ * @protocol:	the protocol of the keypress
++ * @scancode:   the scancode of the keypress
++ * @keycode:    the keycode of the keypress
++ * @toggle:     the toggle value of the keypress
++ *
++ * This function is used internally to register a keypress, it must be
++ * called with keylock held.
++ */
++static void ir_do_keydown(struct rc_dev *dev, enum rc_type protocol,
++			  u32 scancode, u32 keycode, u8 toggle)
++{
++	bool new_event = (!dev->keypressed		 ||
++			  dev->last_protocol != protocol ||
++			  dev->last_scancode != scancode ||
++			  dev->last_toggle   != toggle);
++
++	if (new_event && dev->keypressed)
++		ir_do_keyup(dev, false);
++
++	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
++	rc_event(dev, RC_KEY, RC_KEY_PROTOCOL, protocol);
++	/*
++	 * NOTE: If we ever get > 32 bit scancodes, we need to break the
++	 *	 scancode into 32 bit pieces and feed them to userspace
++	 *	 as one or more RC_KEY_SCANCODE_PART events followed
++	 *	 by a final RC_KEY_SCANCODE event.
++	 */
++	rc_event(dev, RC_KEY, RC_KEY_SCANCODE, scancode);
++	rc_event(dev, RC_KEY, RC_KEY_TOGGLE, toggle);
++
++	if (new_event && keycode != KEY_RESERVED) {
++		/* Register a keypress */
++		dev->keypressed = true;
++		dev->last_protocol = protocol;
++		dev->last_scancode = scancode;
++		dev->last_toggle = toggle;
++		dev->last_keycode = keycode;
++
++		IR_dprintk(1, "%s: key down event, "
++			   "key 0x%04x, protocol 0x%04x, scancode 0x%08x\n",
++			   dev->input_name, keycode, protocol, scancode);
++		input_report_key(dev->input_dev, keycode, 1);
++
++		led_trigger_event(led_feedback, LED_FULL);
++	}
++
++	input_sync(dev->input_dev);
++}
++
++/**
++ * rc_keydown() - generates input event for a key press
++ * @dev:	the struct rc_dev descriptor of the device
++ * @protocol:	the protocol for the keypress
++ * @scancode:	the scancode for the keypress
++ * @toggle:     the toggle value (protocol dependent, if the protocol doesn't
++ *              support toggle values, this should be set to zero)
++ *
++ * This routine is used to signal that a key has been pressed on the
++ * remote control.
++ */
++void rc_keydown(struct rc_dev *dev, enum rc_type protocol, u32 scancode, u8 toggle)
++{
++	unsigned long flags;
++	u32 keycode = rc_g_keycode_from_table(dev, protocol, scancode);
++
++	spin_lock_irqsave(&dev->keylock, flags);
++	ir_do_keydown(dev, protocol, scancode, keycode, toggle);
++
++	if (dev->keypressed) {
++		dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
++		mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
++	}
++	spin_unlock_irqrestore(&dev->keylock, flags);
++}
++EXPORT_SYMBOL_GPL(rc_keydown);
++
++/**
++ * rc_keydown_notimeout() - generates input event for a key press without
++ *                          an automatic keyup event at a later time
++ * @dev:	the struct rc_dev descriptor of the device
++ * @protocol:	the protocol for the keypress
++ * @scancode:	the scancode for the keypress
++ * @toggle:     the toggle value (protocol dependent, if the protocol doesn't
++ *              support toggle values, this should be set to zero)
++ *
++ * This routine is used to signal that a key has been pressed on the
++ * remote control. The driver must manually call rc_keyup() at a later stage.
++ */
++void rc_keydown_notimeout(struct rc_dev *dev, enum rc_type protocol,
++			  u32 scancode, u8 toggle)
++{
++	unsigned long flags;
++	u32 keycode = rc_g_keycode_from_table(dev, protocol, scancode);
++
++	spin_lock_irqsave(&dev->keylock, flags);
++	ir_do_keydown(dev, protocol, scancode, keycode, toggle);
++	spin_unlock_irqrestore(&dev->keylock, flags);
++}
++EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
++
++int rc_input_open(struct input_dev *idev)
++{
++	struct rc_dev *rdev = input_get_drvdata(idev);
++
++	return rc_open(rdev);
++}
++
++void rc_input_close(struct input_dev *idev)
++{
++	struct rc_dev *rdev = input_get_drvdata(idev);
++	rc_close(rdev);
++}
++
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index cc2f713..a01fce2 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -25,19 +25,9 @@
+ #include <linux/poll.h>
+ #include "rc-core-priv.h"
+ 
+-/* Sizes are in bytes, 256 bytes allows for 32 entries on x64 */
+-#define IR_TAB_MIN_SIZE		256
+-#define IR_TAB_MAX_SIZE		8192
+ #define RC_DEV_MAX		256
+ #define RC_RX_BUFFER_SIZE	1024
+-
+-/* FIXME: IR_KEYPRESS_TIMEOUT should be protocol specific */
+-#define IR_KEYPRESS_TIMEOUT 250
+-
+-/* Used to keep track of known keymaps */
+-static LIST_HEAD(rc_map_list);
+-static DEFINE_SPINLOCK(rc_map_lock);
+-static struct led_trigger *led_feedback;
++struct led_trigger *led_feedback;
+ 
+ /* Used to keep track of rc devices */
+ static DEFINE_IDA(rc_ida);
+@@ -115,821 +105,6 @@ void rc_event(struct rc_dev *dev, u16 type, u16 code, u32 val)
+ }
+ EXPORT_SYMBOL_GPL(rc_event);
+ 
+-static struct rc_map_list *seek_rc_map(const char *name)
+-{
+-	struct rc_map_list *map = NULL;
+-
+-	spin_lock(&rc_map_lock);
+-	list_for_each_entry(map, &rc_map_list, list) {
+-		if (!strcmp(name, map->map.name)) {
+-			spin_unlock(&rc_map_lock);
+-			return map;
+-		}
+-	}
+-	spin_unlock(&rc_map_lock);
+-
+-	return NULL;
+-}
+-
+-struct rc_map *rc_map_get(const char *name)
+-{
+-
+-	struct rc_map_list *map;
+-
+-	map = seek_rc_map(name);
+-#ifdef MODULE
+-	if (!map) {
+-		int rc = request_module("%s", name);
+-		if (rc < 0) {
+-			printk(KERN_ERR "Couldn't load IR keymap %s\n", name);
+-			return NULL;
+-		}
+-		msleep(20);	/* Give some time for IR to register */
+-
+-		map = seek_rc_map(name);
+-	}
+-#endif
+-	if (!map) {
+-		printk(KERN_ERR "IR keymap %s not found\n", name);
+-		return NULL;
+-	}
+-
+-	printk(KERN_INFO "Registered IR keymap %s\n", map->map.name);
+-
+-	return &map->map;
+-}
+-EXPORT_SYMBOL_GPL(rc_map_get);
+-
+-int rc_map_register(struct rc_map_list *map)
+-{
+-	spin_lock(&rc_map_lock);
+-	list_add_tail(&map->list, &rc_map_list);
+-	spin_unlock(&rc_map_lock);
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(rc_map_register);
+-
+-void rc_map_unregister(struct rc_map_list *map)
+-{
+-	spin_lock(&rc_map_lock);
+-	list_del(&map->list);
+-	spin_unlock(&rc_map_lock);
+-}
+-EXPORT_SYMBOL_GPL(rc_map_unregister);
+-
+-
+-static struct rc_map_table empty[] = {
+-	{ RC_TYPE_OTHER, 0x2a, KEY_COFFEE },
+-};
+-
+-static struct rc_map_list empty_map = {
+-	.map = {
+-		.scan    = empty,
+-		.size    = ARRAY_SIZE(empty),
+-		.rc_type = RC_TYPE_UNKNOWN,	/* Legacy IR type */
+-		.name    = RC_MAP_EMPTY,
+-	}
+-};
+-
+-/**
+- * ir_create_table() - initializes a scancode table
+- * @rc_map:	the rc_map to initialize
+- * @name:	name to assign to the table
+- * @size:	initial size of the table
+- * @return:	zero on success or a negative error code
+- *
+- * This routine will initialize the rc_map and will allocate
+- * memory to hold at least the specified number of elements.
+- */
+-static int ir_create_table(struct rc_map *rc_map,
+-			   const char *name, size_t size)
+-{
+-	rc_map->name = name;
+-	rc_map->alloc = roundup_pow_of_two(size * sizeof(struct rc_map_table));
+-	rc_map->size = rc_map->alloc / sizeof(struct rc_map_table);
+-	rc_map->scan = kmalloc(rc_map->alloc, GFP_KERNEL);
+-	if (!rc_map->scan)
+-		return -ENOMEM;
+-
+-	IR_dprintk(1, "Allocated space for %u keycode entries (%u bytes)\n",
+-		   rc_map->size, rc_map->alloc);
+-	return 0;
+-}
+-
+-/**
+- * ir_free_table() - frees memory allocated by a scancode table
+- * @rc_map:	the table whose mappings need to be freed
+- *
+- * This routine will free memory alloctaed for key mappings used by given
+- * scancode table.
+- */
+-static void ir_free_table(struct rc_map *rc_map)
+-{
+-	rc_map->size = 0;
+-	kfree(rc_map->scan);
+-	rc_map->scan = NULL;
+-}
+-
+-/**
+- * ir_resize_table() - resizes a scancode table if necessary
+- * @rc_map:	the rc_map to resize
+- * @gfp_flags:	gfp flags to use when allocating memory
+- * @return:	zero on success or a negative error code
+- *
+- * This routine will shrink the rc_map if it has lots of
+- * unused entries and grow it if it is full.
+- */
+-static int ir_resize_table(struct rc_map *rc_map, gfp_t gfp_flags)
+-{
+-	unsigned int oldalloc = rc_map->alloc;
+-	unsigned int newalloc = oldalloc;
+-	struct rc_map_table *oldscan = rc_map->scan;
+-	struct rc_map_table *newscan;
+-
+-	if (rc_map->size == rc_map->len) {
+-		/* All entries in use -> grow keytable */
+-		if (rc_map->alloc >= IR_TAB_MAX_SIZE)
+-			return -ENOMEM;
+-
+-		newalloc *= 2;
+-		IR_dprintk(1, "Growing table to %u bytes\n", newalloc);
+-	}
+-
+-	if ((rc_map->len * 3 < rc_map->size) && (oldalloc > IR_TAB_MIN_SIZE)) {
+-		/* Less than 1/3 of entries in use -> shrink keytable */
+-		newalloc /= 2;
+-		IR_dprintk(1, "Shrinking table to %u bytes\n", newalloc);
+-	}
+-
+-	if (newalloc == oldalloc)
+-		return 0;
+-
+-	newscan = kmalloc(newalloc, gfp_flags);
+-	if (!newscan) {
+-		IR_dprintk(1, "Failed to kmalloc %u bytes\n", newalloc);
+-		return -ENOMEM;
+-	}
+-
+-	memcpy(newscan, rc_map->scan, rc_map->len * sizeof(struct rc_map_table));
+-	rc_map->scan = newscan;
+-	rc_map->alloc = newalloc;
+-	rc_map->size = rc_map->alloc / sizeof(struct rc_map_table);
+-	kfree(oldscan);
+-	return 0;
+-}
+-
+-/**
+- * ir_update_mapping() - set a keycode in the scancode->keycode table
+- * @dev:	the struct rc_dev device descriptor
+- * @rc_map:	scancode table to be adjusted
+- * @index:	index of the mapping that needs to be updated
+- * @keycode:	the desired keycode
+- * @return:	previous keycode assigned to the mapping
+- *
+- * This routine is used to update scancode->keycode mapping at given
+- * position.
+- */
+-static unsigned int ir_update_mapping(struct rc_dev *dev,
+-				      struct rc_map *rc_map,
+-				      unsigned int index,
+-				      unsigned int new_keycode)
+-{
+-	int old_keycode = rc_map->scan[index].keycode;
+-	int i;
+-
+-	/* Did the user wish to remove the mapping? */
+-	if (new_keycode == KEY_RESERVED || new_keycode == KEY_UNKNOWN) {
+-		IR_dprintk(1, "#%d: Deleting proto 0x%04x, scan 0x%08llx\n",
+-			   index, rc_map->scan[index].protocol,
+-			   (unsigned long long)rc_map->scan[index].scancode);
+-		rc_map->len--;
+-		memmove(&rc_map->scan[index], &rc_map->scan[index+ 1],
+-			(rc_map->len - index) * sizeof(struct rc_map_table));
+-	} else {
+-		IR_dprintk(1, "#%d: %s proto 0x%04x, scan 0x%08llx "
+-			   "with key 0x%04x\n",
+-			   index,
+-			   old_keycode == KEY_RESERVED ? "New" : "Replacing",
+-			   rc_map->scan[index].protocol,
+-			   (unsigned long long)rc_map->scan[index].scancode,
+-			   new_keycode);
+-		rc_map->scan[index].keycode = new_keycode;
+-		__set_bit(new_keycode, dev->input_dev->keybit);
+-	}
+-
+-	if (old_keycode != KEY_RESERVED) {
+-		/* A previous mapping was updated... */
+-		__clear_bit(old_keycode, dev->input_dev->keybit);
+-		/* ... but another scancode might use the same keycode */
+-		for (i = 0; i < rc_map->len; i++) {
+-			if (rc_map->scan[i].keycode == old_keycode) {
+-				__set_bit(old_keycode, dev->input_dev->keybit);
+-				break;
+-			}
+-		}
+-
+-		/* Possibly shrink the keytable, failure is not a problem */
+-		ir_resize_table(rc_map, GFP_ATOMIC);
+-	}
+-
+-	return old_keycode;
+-}
+-
+-/**
+- * ir_establish_scancode() - set a keycode in the scancode->keycode table
+- * @dev:	the struct rc_dev device descriptor
+- * @rc_map:	scancode table to be searched
+- * @entry:	the entry to be added to the table
+- * @resize:	controls whether we are allowed to resize the table to
+- *		accomodate not yet present scancodes
+- * @return:	index of the mapping containing scancode in question
+- *		or -1U in case of failure.
+- *
+- * This routine is used to locate given scancode in rc_map.
+- * If scancode is not yet present the routine will allocate a new slot
+- * for it.
+- */
+-static unsigned int ir_establish_scancode(struct rc_dev *dev,
+-					  struct rc_map *rc_map,
+-					  struct rc_map_table *entry,
+-					  bool resize)
+-{
+-	unsigned int i;
+-
+-	/*
+-	 * Unfortunately, some hardware-based IR decoders don't provide
+-	 * all bits for the complete IR code. In general, they provide only
+-	 * the command part of the IR code. Yet, as it is possible to replace
+-	 * the provided IR with another one, it is needed to allow loading
+-	 * IR tables from other remotes. So, we support specifying a mask to
+-	 * indicate the valid bits of the scancodes.
+-	 */
+-	if (dev->scancode_mask)
+-		entry->scancode &= dev->scancode_mask;
+-
+-	/*
+-	 * First check if we already have a mapping for this command.
+-	 * Note that the keytable is sorted first on protocol and second
+-	 * on scancode (lowest to highest).
+-	 */
+-	for (i = 0; i < rc_map->len; i++) {
+-		if (rc_map->scan[i].protocol < entry->protocol)
+-			continue;
+-
+-		if (rc_map->scan[i].protocol > entry->protocol)
+-			break;
+-
+-		if (rc_map->scan[i].scancode < entry->scancode)
+-			continue;
+-
+-		if (rc_map->scan[i].scancode > entry->scancode)
+-			break;
+-
+-		return i;
+-	}
+-
+-	/* No previous mapping found, we might need to grow the table */
+-	if (rc_map->size == rc_map->len) {
+-		if (!resize || ir_resize_table(rc_map, GFP_ATOMIC))
+-			return -1U;
+-	}
+-
+-	/* i is the proper index to insert our new keycode */
+-	if (i < rc_map->len)
+-		memmove(&rc_map->scan[i + 1], &rc_map->scan[i],
+-			(rc_map->len - i) * sizeof(struct rc_map_table));
+-	rc_map->scan[i].scancode = entry->scancode;
+-	rc_map->scan[i].protocol = entry->protocol;
+-	rc_map->scan[i].keycode = KEY_RESERVED;
+-	rc_map->len++;
+-
+-	return i;
+-}
+-
+-/**
+- * guess_protocol() - heuristics to guess the protocol for a scancode
+- * @rdev:	the struct rc_dev device descriptor
+- * @return:	the guessed RC_TYPE_* protocol
+- *
+- * Internal routine to guess the current IR protocol for legacy ioctls.
+- */
+-static inline enum rc_type guess_protocol(struct rc_dev *rdev)
+-{
+-	struct rc_map *rc_map = &rdev->rc_map;
+-
+-	if (hweight64(rdev->enabled_protocols) == 1)
+-		return rc_bitmap_to_type(rdev->enabled_protocols);
+-	else if (hweight64(rdev->allowed_protocols) == 1)
+-		return rc_bitmap_to_type(rdev->allowed_protocols);
+-	else if (rc_map->len > 0)
+-		return rc_map->scan[0].protocol;
+-	else
+-		return RC_TYPE_OTHER;
+-}
+-
+-/**
+- * to_nec32() - helper function to try to convert misc NEC scancodes to NEC32
+- * @orig:	original scancode
+- * @return:	NEC32 scancode
+- *
+- * This helper routine is used to provide backwards compatibility.
+- */
+-static u32 to_nec32(u32 orig)
+-{
+-	u8 b3 = (u8)(orig >> 16);
+-	u8 b2 = (u8)(orig >>  8);
+-	u8 b1 = (u8)(orig >>  0);
+-
+-	if (orig <= 0xffff)
+-		/* Plain old NEC */
+-		return b2 << 24 | ((u8)~b2) << 16 |  b1 << 8 | ((u8)~b1);
+-	else if (orig <= 0xffffff)
+-		/* NEC extended */
+-		return b3 << 24 | b2 << 16 |  b1 << 8 | ((u8)~b1);
+-	else
+-		/* NEC32 */
+-		return orig;
+-}
+-
+-/**
+- * ir_setkeycode() - set a keycode in the scancode->keycode table
+- * @idev:	the struct input_dev device descriptor
+- * @scancode:	the desired scancode
+- * @keycode:	result
+- * @return:	-EINVAL if the keycode could not be inserted, otherwise zero.
+- *
+- * This routine is used to handle evdev EVIOCSKEY ioctl.
+- */
+-static int ir_setkeycode(struct input_dev *idev,
+-			 const struct input_keymap_entry *ke,
+-			 unsigned int *old_keycode)
+-{
+-	struct rc_dev *rdev = input_get_drvdata(idev);
+-	struct rc_map *rc_map = &rdev->rc_map;
+-	unsigned int index;
+-	struct rc_map_table entry;
+-	int retval = 0;
+-	unsigned long flags;
+-
+-	entry.keycode = ke->keycode;
+-
+-	spin_lock_irqsave(&rc_map->lock, flags);
+-
+-	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
+-		index = ke->index;
+-		if (index >= rc_map->len) {
+-			retval = -EINVAL;
+-			goto out;
+-		}
+-	} else if (ke->len == sizeof(int)) {
+-		/* Legacy EVIOCSKEYCODE ioctl */
+-		u32 scancode;
+-		retval = input_scancode_to_scalar(ke, &scancode);
+-		if (retval)
+-			goto out;
+-
+-		entry.scancode = scancode;
+-		entry.protocol = guess_protocol(rdev);
+-		if (entry.protocol == RC_TYPE_NEC)
+-			entry.scancode = to_nec32(scancode);
+-
+-		index = ir_establish_scancode(rdev, rc_map, &entry, true);
+-		if (index >= rc_map->len) {
+-			retval = -ENOMEM;
+-			goto out;
+-		}
+-	} else if (ke->len == sizeof(struct rc_scancode)) {
+-		/* New EVIOCSKEYCODE_V2 ioctl */
+-		const struct rc_keymap_entry *rke = (struct rc_keymap_entry *)ke;
+-		entry.protocol = rke->rc.protocol;
+-		entry.scancode = rke->rc.scancode;
+-
+-		if (rke->rc.reserved[0] || rke->rc.reserved[1] || rke->rc.reserved[2]) {
+-			retval = -EINVAL;
+-			goto out;
+-		}
+-
+-		index = ir_establish_scancode(rdev, rc_map, &entry, true);
+-		if (index >= rc_map->len) {
+-			retval = -ENOMEM;
+-			goto out;
+-		}
+-	} else {
+-		retval = -EINVAL;
+-		goto out;
+-	}
+-
+-	*old_keycode = ir_update_mapping(rdev, rc_map, index, ke->keycode);
+-
+-out:
+-	spin_unlock_irqrestore(&rc_map->lock, flags);
+-	return retval;
+-}
+-
+-/**
+- * ir_setkeytable() - sets several entries in the scancode->keycode table
+- * @dev:	the struct rc_dev device descriptor
+- * @to:		the struct rc_map to copy entries to
+- * @from:	the struct rc_map to copy entries from
+- * @return:	-ENOMEM if all keycodes could not be inserted, otherwise zero.
+- *
+- * This routine is used to handle table initialization.
+- */
+-static int ir_setkeytable(struct rc_dev *dev,
+-			  const struct rc_map *from)
+-{
+-	struct rc_map *rc_map = &dev->rc_map;
+-	struct rc_map_table entry;
+-	unsigned int i, index;
+-	int rc;
+-
+-	rc = ir_create_table(rc_map, from->name, from->size);
+-	if (rc)
+-		return rc;
+-
+-	IR_dprintk(1, "Allocated space for %u keycode entries (%u bytes)\n",
+-		   rc_map->size, rc_map->alloc);
+-
+-	for (i = 0; i < from->size; i++) {
+-		if (from->rc_type == RC_TYPE_NEC)
+-			entry.scancode = to_nec32(from->scan[i].scancode);
+-		else
+-			entry.scancode = from->scan[i].scancode;
+-
+-		entry.protocol = from->rc_type;
+-		index = ir_establish_scancode(dev, rc_map, &entry, false);
+-		if (index >= rc_map->len) {
+-			rc = -ENOMEM;
+-			break;
+-		}
+-
+-		ir_update_mapping(dev, rc_map, index, from->scan[i].keycode);
+-	}
+-
+-	if (rc)
+-		ir_free_table(rc_map);
+-
+-	return rc;
+-}
+-
+-/**
+- * ir_lookup_by_scancode() - locate mapping by scancode
+- * @rc_map:	the struct rc_map to search
+- * @protocol:	protocol to look for in the table
+- * @scancode:	scancode to look for in the table
+- * @return:	index in the table, -1U if not found
+- *
+- * This routine performs binary search in RC keykeymap table for
+- * given scancode.
+- */
+-static unsigned int ir_lookup_by_scancode(const struct rc_map *rc_map,
+-					  u16 protocol, u64 scancode)
+-{
+-	int start = 0;
+-	int end = rc_map->len - 1;
+-	int mid;
+-	struct rc_map_table *m;
+-
+-	while (start <= end) {
+-		mid = (start + end) / 2;
+-		m = &rc_map->scan[mid];
+-
+-		if (m->protocol < protocol)
+-			start = mid + 1;
+-		else if (m->protocol > protocol)
+-			end = mid - 1;
+-		else if (m->scancode < scancode)
+-			start = mid + 1;
+-		else if (m->scancode > scancode)
+-			end = mid - 1;
+-		else
+-			return mid;
+-	}
+-
+-	return -1U;
+-}
+-
+-/**
+- * ir_getkeycode() - get a keycode from the scancode->keycode table
+- * @idev:	the struct input_dev device descriptor
+- * @scancode:	the desired scancode
+- * @keycode:	used to return the keycode, if found, or KEY_RESERVED
+- * @return:	always returns zero.
+- *
+- * This routine is used to handle evdev EVIOCGKEY ioctl.
+- */
+-static int ir_getkeycode(struct input_dev *idev,
+-			 struct input_keymap_entry *ke)
+-{
+-	struct rc_keymap_entry *rke = (struct rc_keymap_entry *)ke;
+-	struct rc_dev *rdev = input_get_drvdata(idev);
+-	struct rc_map *rc_map = &rdev->rc_map;
+-	struct rc_map_table *entry;
+-	unsigned long flags;
+-	unsigned int index;
+-	int retval;
+-
+-	spin_lock_irqsave(&rc_map->lock, flags);
+-
+-	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
+-		index = ke->index;
+-	} else if (ke->len == sizeof(int)) {
+-		/* Legacy EVIOCGKEYCODE ioctl */
+-		u32 scancode;
+-		u16 protocol;
+-
+-		retval = input_scancode_to_scalar(ke, &scancode);
+-		if (retval)
+-			goto out;
+-
+-		protocol = guess_protocol(rdev);
+-		if (protocol == RC_TYPE_NEC)
+-			scancode = to_nec32(scancode);
+-
+-		index = ir_lookup_by_scancode(rc_map, protocol, scancode);
+-
+-	} else if (ke->len == sizeof(struct rc_scancode)) {
+-		/* New EVIOCGKEYCODE_V2 ioctl */
+-		if (rke->rc.reserved[0] || rke->rc.reserved[1] || rke->rc.reserved[2]) {
+-			retval = -EINVAL;
+-			goto out;
+-		}
+-
+-		index = ir_lookup_by_scancode(rc_map,
+-					      rke->rc.protocol, rke->rc.scancode);
+-
+-	} else {
+-		retval = -EINVAL;
+-		goto out;
+-	}
+-
+-	if (index < rc_map->len) {
+-		entry = &rc_map->scan[index];
+-		ke->index = index;
+-		ke->keycode = entry->keycode;
+-		if (ke->len == sizeof(int)) {
+-			u32 scancode = entry->scancode;
+-			memcpy(ke->scancode, &scancode, sizeof(scancode));
+-		} else {
+-			ke->len = sizeof(struct rc_scancode);
+-			rke->rc.protocol = entry->protocol;
+-			rke->rc.scancode = entry->scancode;
+-		}
+-
+-	} else if (!(ke->flags & INPUT_KEYMAP_BY_INDEX)) {
+-		/*
+-		 * We do not really know the valid range of scancodes
+-		 * so let's respond with KEY_RESERVED to anything we
+-		 * do not have mapping for [yet].
+-		 */
+-		ke->index = index;
+-		ke->keycode = KEY_RESERVED;
+-	} else {
+-		retval = -EINVAL;
+-		goto out;
+-	}
+-
+-	retval = 0;
+-
+-out:
+-	spin_unlock_irqrestore(&rc_map->lock, flags);
+-	return retval;
+-}
+-
+-/**
+- * rc_g_keycode_from_table() - gets the keycode that corresponds to a scancode
+- * @dev:	the struct rc_dev descriptor of the device
+- * @protocol:	the protocol to look for
+- * @scancode:	the scancode to look for
+- * @return:	the corresponding keycode, or KEY_RESERVED
+- *
+- * This routine is used by drivers which need to convert a scancode to a
+- * keycode. Normally it should not be used since drivers should have no
+- * interest in keycodes.
+- */
+-u32 rc_g_keycode_from_table(struct rc_dev *dev,
+-			    enum rc_type protocol, u64 scancode)
+-{
+-	struct rc_map *rc_map = &dev->rc_map;
+-	unsigned int keycode;
+-	unsigned int index;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&rc_map->lock, flags);
+-
+-	index = ir_lookup_by_scancode(rc_map, protocol, scancode);
+-	keycode = index < rc_map->len ?
+-			rc_map->scan[index].keycode : KEY_RESERVED;
+-
+-	spin_unlock_irqrestore(&rc_map->lock, flags);
+-
+-	if (keycode != KEY_RESERVED)
+-		IR_dprintk(1, "%s: protocol 0x%04x scancode 0x%08llx keycode 0x%02x\n",
+-			   dev->input_name, protocol,
+-			   (unsigned long long)scancode, keycode);
+-
+-	return keycode;
+-}
+-EXPORT_SYMBOL_GPL(rc_g_keycode_from_table);
+-
+-/**
+- * ir_do_keyup() - internal function to signal the release of a keypress
+- * @dev:	the struct rc_dev descriptor of the device
+- * @sync:	whether or not to call input_sync
+- *
+- * This function is used internally to release a keypress, it must be
+- * called with keylock held.
+- */
+-static void ir_do_keyup(struct rc_dev *dev, bool sync)
+-{
+-	if (!dev->keypressed)
+-		return;
+-
+-	IR_dprintk(1, "keyup key 0x%04x\n", dev->last_keycode);
+-	input_report_key(dev->input_dev, dev->last_keycode, 0);
+-	led_trigger_event(led_feedback, LED_OFF);
+-	if (sync)
+-		input_sync(dev->input_dev);
+-	dev->keypressed = false;
+-}
+-
+-/**
+- * rc_keyup() - signals the release of a keypress
+- * @dev:	the struct rc_dev descriptor of the device
+- *
+- * This routine is used to signal that a key has been released on the
+- * remote control.
+- */
+-void rc_keyup(struct rc_dev *dev)
+-{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&dev->keylock, flags);
+-	ir_do_keyup(dev, true);
+-	spin_unlock_irqrestore(&dev->keylock, flags);
+-}
+-EXPORT_SYMBOL_GPL(rc_keyup);
+-
+-/**
+- * ir_timer_keyup() - generates a keyup event after a timeout
+- * @cookie:	a pointer to the struct rc_dev for the device
+- *
+- * This routine will generate a keyup event some time after a keydown event
+- * is generated when no further activity has been detected.
+- */
+-static void ir_timer_keyup(unsigned long cookie)
+-{
+-	struct rc_dev *dev = (struct rc_dev *)cookie;
+-	unsigned long flags;
+-
+-	/*
+-	 * ir->keyup_jiffies is used to prevent a race condition if a
+-	 * hardware interrupt occurs at this point and the keyup timer
+-	 * event is moved further into the future as a result.
+-	 *
+-	 * The timer will then be reactivated and this function called
+-	 * again in the future. We need to exit gracefully in that case
+-	 * to allow the input subsystem to do its auto-repeat magic or
+-	 * a keyup event might follow immediately after the keydown.
+-	 */
+-	spin_lock_irqsave(&dev->keylock, flags);
+-	if (time_is_before_eq_jiffies(dev->keyup_jiffies))
+-		ir_do_keyup(dev, true);
+-	spin_unlock_irqrestore(&dev->keylock, flags);
+-}
+-
+-/**
+- * rc_repeat() - signals that a key is still pressed
+- * @dev:	the struct rc_dev descriptor of the device
+- *
+- * This routine is used by IR decoders when a repeat message which does
+- * not include the necessary bits to reproduce the scancode has been
+- * received.
+- */
+-void rc_repeat(struct rc_dev *dev)
+-{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&dev->keylock, flags);
+-
+-	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
+-	input_sync(dev->input_dev);
+-	rc_event(dev, RC_KEY, RC_KEY_REPEAT, 1);
+-
+-	if (!dev->keypressed)
+-		goto out;
+-
+-	dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
+-	mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
+-
+-out:
+-	spin_unlock_irqrestore(&dev->keylock, flags);
+-}
+-EXPORT_SYMBOL_GPL(rc_repeat);
+-
+-/**
+- * ir_do_keydown() - internal function to process a keypress
+- * @dev:	the struct rc_dev descriptor of the device
+- * @protocol:	the protocol of the keypress
+- * @scancode:   the scancode of the keypress
+- * @keycode:    the keycode of the keypress
+- * @toggle:     the toggle value of the keypress
+- *
+- * This function is used internally to register a keypress, it must be
+- * called with keylock held.
+- */
+-static void ir_do_keydown(struct rc_dev *dev, enum rc_type protocol,
+-			  u32 scancode, u32 keycode, u8 toggle)
+-{
+-	bool new_event = (!dev->keypressed		 ||
+-			  dev->last_protocol != protocol ||
+-			  dev->last_scancode != scancode ||
+-			  dev->last_toggle   != toggle);
+-
+-	if (new_event && dev->keypressed)
+-		ir_do_keyup(dev, false);
+-
+-	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
+-	rc_event(dev, RC_KEY, RC_KEY_PROTOCOL, protocol);
+-	/*
+-	 * NOTE: If we ever get > 32 bit scancodes, we need to break the
+-	 *	 scancode into 32 bit pieces and feed them to userspace
+-	 *	 as one or more RC_KEY_SCANCODE_PART events followed
+-	 *	 by a final RC_KEY_SCANCODE event.
+-	 */
+-	rc_event(dev, RC_KEY, RC_KEY_SCANCODE, scancode);
+-	rc_event(dev, RC_KEY, RC_KEY_TOGGLE, toggle);
+-
+-	if (new_event && keycode != KEY_RESERVED) {
+-		/* Register a keypress */
+-		dev->keypressed = true;
+-		dev->last_protocol = protocol;
+-		dev->last_scancode = scancode;
+-		dev->last_toggle = toggle;
+-		dev->last_keycode = keycode;
+-
+-		IR_dprintk(1, "%s: key down event, "
+-			   "key 0x%04x, protocol 0x%04x, scancode 0x%08x\n",
+-			   dev->input_name, keycode, protocol, scancode);
+-		input_report_key(dev->input_dev, keycode, 1);
+-
+-		led_trigger_event(led_feedback, LED_FULL);
+-	}
+-
+-	input_sync(dev->input_dev);
+-}
+-
+-/**
+- * rc_keydown() - generates input event for a key press
+- * @dev:	the struct rc_dev descriptor of the device
+- * @protocol:	the protocol for the keypress
+- * @scancode:	the scancode for the keypress
+- * @toggle:     the toggle value (protocol dependent, if the protocol doesn't
+- *              support toggle values, this should be set to zero)
+- *
+- * This routine is used to signal that a key has been pressed on the
+- * remote control.
+- */
+-void rc_keydown(struct rc_dev *dev, enum rc_type protocol, u32 scancode, u8 toggle)
+-{
+-	unsigned long flags;
+-	u32 keycode = rc_g_keycode_from_table(dev, protocol, scancode);
+-
+-	spin_lock_irqsave(&dev->keylock, flags);
+-	ir_do_keydown(dev, protocol, scancode, keycode, toggle);
+-
+-	if (dev->keypressed) {
+-		dev->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
+-		mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
+-	}
+-	spin_unlock_irqrestore(&dev->keylock, flags);
+-}
+-EXPORT_SYMBOL_GPL(rc_keydown);
+-
+-/**
+- * rc_keydown_notimeout() - generates input event for a key press without
+- *                          an automatic keyup event at a later time
+- * @dev:	the struct rc_dev descriptor of the device
+- * @protocol:	the protocol for the keypress
+- * @scancode:	the scancode for the keypress
+- * @toggle:     the toggle value (protocol dependent, if the protocol doesn't
+- *              support toggle values, this should be set to zero)
+- *
+- * This routine is used to signal that a key has been pressed on the
+- * remote control. The driver must manually call rc_keyup() at a later stage.
+- */
+-void rc_keydown_notimeout(struct rc_dev *dev, enum rc_type protocol,
+-			  u32 scancode, u8 toggle)
+-{
+-	unsigned long flags;
+-	u32 keycode = rc_g_keycode_from_table(dev, protocol, scancode);
+-
+-	spin_lock_irqsave(&dev->keylock, flags);
+-	ir_do_keydown(dev, protocol, scancode, keycode, toggle);
+-	spin_unlock_irqrestore(&dev->keylock, flags);
+-}
+-EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
+-
+ int rc_open(struct rc_dev *dev)
+ {
+ 	int err = 0;
+@@ -950,13 +125,6 @@ int rc_open(struct rc_dev *dev)
+ }
+ EXPORT_SYMBOL_GPL(rc_open);
+ 
+-static int rc_input_open(struct input_dev *idev)
+-{
+-	struct rc_dev *rdev = input_get_drvdata(idev);
+-
+-	return rc_open(rdev);
+-}
+-
+ void rc_close(struct rc_dev *dev)
+ {
+ 	mutex_lock(&dev->lock);
+@@ -968,12 +136,6 @@ void rc_close(struct rc_dev *dev)
+ }
+ EXPORT_SYMBOL_GPL(rc_close);
+ 
+-static void rc_input_close(struct input_dev *idev)
+-{
+-	struct rc_dev *rdev = input_get_drvdata(idev);
+-	rc_close(rdev);
+-}
+-
+ /* class for /sys/class/rc */
+ static char *rc_devnode(struct device *dev, umode_t *mode)
+ {
+@@ -2143,6 +1305,19 @@ void rc_unregister_device(struct rc_dev *dev)
+ }
+ EXPORT_SYMBOL_GPL(rc_unregister_device);
+ 
++static struct rc_map_table empty[] = {
++	{ RC_TYPE_OTHER, 0x2a, KEY_COFFEE },
++};
++
++static struct rc_map_list empty_map = {
++	.map = {
++		.scan    = empty,
++		.size    = ARRAY_SIZE(empty),
++		.rc_type = RC_TYPE_UNKNOWN,     /* Legacy IR type */
++		.name    = RC_MAP_EMPTY,
++	}
++};
++
+ static int __init rc_core_init(void)
+ {
+ 	int err;
 
-It seems like you're missing a few mailing lists / maintainers
-though. You should use the get_maintainer.pl script, and Cc every
-maintainer and mailing lists in there.
-
-On Tue, Apr 29, 2014 at 02:51:31PM -0700, =D0=90=D0=BB=D0=B5=D0=BA=D1=81=D0=
-=B0=D0=BD=D0=B4=D1=80 =D0=91=D0=B5=D1=80=D1=81=D0=B5=D0=BD=D0=B5=D0=B2 wrot=
-e:
-> This patch introduces Consumer IR(CIR) support for sunxi boards.
->=20
-> This is based on Alexsey Shestacov's work based on the original driver=20
-> supplied by Allwinner.=20
-
-Your Signed-off-by should be here so that it stays in the commit log,
-and not discarded.
-
-Note that you can use git commit -s to make sure it's at the right
-place.
-
-> ---=20
->=20
-> Changes since version 1:=20
->  - Fix timer memory leaks=20
->  - Fix race condition when driver unloads while interrupt handler is acti=
-ve
->  - Support Cubieboard 2(need testing)
->=20
->  Changes since version 2:
->  - More reliable keydown events
->  - Documentation fixes
->  - Rename registers accurding to A20 user manual
->  - Remove some includes, order includes alphabetically
->  - Use BIT macro
->  - Typo fixes
->=20
-> Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>=20
-> Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org> =20
->=20
-> diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt=20
-> b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-> new file mode 100644
-> index 0000000..0d416f4
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-> @@ -0,0 +1,21 @@
-> +Device-Tree bindings for SUNXI IR controller found in sunXi SoC family
-> +
-> +Required properties:
-> +       - compatible: Should be "allwinner,sunxi-ir".
-
-We prefer to use "allwinner,<family>-<soc>-<device>", with the soc and
-family being the one where it was first introduced. If this controller
-is the same in A10 and A20, it should be "allwinner,sun4i-a10-ir", if
-it is a new controller in the A20, "allwinner,sun7i-a20-ir".
-
-> +       - clocks: First clock should contain SoC gate for IR clock.
-> +                 Second should contain IR feed clock itself.
-
-Whenever there's several clocks, using clock-names is to be
-preferred. That way, you don't have to request any order, which is a
-lot less error prone.
-
-> +       - interrupts: Should contain IR IRQ number.
-> +       - reg: Should contain IO map address for IR.
-> +
-> +Optional properties:
-> +       - linux,rc-map-name: Remote control map name.
-> +
-> +Example:
-> +
-> +       ir0: ir@01c21800 {
-> +            compatible =3D "allwinner,sunxi-ir";
-> +            clocks =3D <&apb0_gates 6>, <&ir0_clk>;
-> +            interrupts =3D <0 5 1>;
-> +            reg =3D <0x01C21800 0x40>;
-> +            linux,rc-map-name =3D "rc-rc6-mce";
-> +       };
-> diff --git a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts=20
-> b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
-> index feeff64..01b519c 100644
-> --- a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
-> +++ b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
-> @@ -164,6 +164,13 @@
->   reg =3D <1>;
->   };
->   };
-> +
-> + ir0: ir@01c21800 {
-> + pinctrl-names =3D "default";
-> + pinctrl-0 =3D <&ir0_pins_a>;
-> + gpios =3D <&pio 1 4 0>;
-
-You don't seem to be using that gpios property anywhere.
-
-Plus, your indentation seems completely wrong. Please run
-checkpatch.pl on your patches before running it, and make sure there's
-no errors or warning.
-
-> + status =3D "okay";
-> + };
->   };
-> =20
->   leds {
-> diff --git a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts=20
-> b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
-> index e288562..683090f 100644
-> --- a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
-> +++ b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
-> @@ -232,6 +232,13 @@
->   reg =3D <1>;
->   };
->   };
-> +
-> + ir0: ir@01c21800 {
-> + pinctrl-names =3D "default";
-> + pinctrl-0 =3D <&ir0_pins_a>;
-> + gpios =3D <&pio 1 4 0>;
-
-Same here.
-
-> + status =3D "okay";
-> + };
->   };
-> =20
->   leds {
-> diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi=20
-> b/arch/arm/boot/dts/sun7i-a20.dtsi
-> index 0ae2b77..4597731 100644
-> --- a/arch/arm/boot/dts/sun7i-a20.dtsi
-> +++ b/arch/arm/boot/dts/sun7i-a20.dtsi
-> @@ -724,6 +724,19 @@
->   allwinner,drive =3D <2>;
->   allwinner,pull =3D <0>;
->   };
-> +
-> + ir0_pins_a: ir0@0 {
-> +    allwinner,pins =3D "PB3","PB4";
-> +    allwinner,function =3D "ir0";
-> +    allwinner,drive =3D <0>;
-> +    allwinner,pull =3D <0>;
-> + };
-> + ir1_pins_a: ir1@0 {
-> +    allwinner,pins =3D "PB22","PB23";
-> +    allwinner,function =3D "ir1";
-> +    allwinner,drive =3D <0>;
-> +    allwinner,pull =3D <0>;
-> + };
->   };
-> =20
->   timer@01c20c00 {
-> @@ -937,5 +950,21 @@
->   #interrupt-cells =3D <3>;
->   interrupts =3D <1 9 0xf04>;
->   };
-> +
-> +       ir0: ir@01c21800 {
-> +     compatible =3D "allwinner,sunxi-ir";
-> + clocks =3D <&apb0_gates 6>, <&ir0_clk>;
-> + interrupts =3D <0 5 4>;
-> + reg =3D <0x01C21800 0x40>;
-
-Please use lower-case for the address here.
-
-> + status =3D "disabled";
-> + };
-> +
-> +       ir1: ir@01c21c00 {
-> +     compatible =3D "allwinner,sunxi-ir";
-> + clocks =3D <&apb0_gates 7>, <&ir1_clk>;
-> + interrupts =3D <0 6 4>;
-> + reg =3D <0x01C21c00 0x40>;
-
-=2E.. or at least be consistent.
-
-> + status =3D "disabled";
-> + };
->   };
->  };
-> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> index 8fbd377..9427fad 100644
-> --- a/drivers/media/rc/Kconfig
-> +++ b/drivers/media/rc/Kconfig
-> @@ -343,4 +343,14 @@ config RC_ST
-> =20
->   If you're not sure, select N here.
-> =20
-> +config IR_SUNXI
-> +    tristate "SUNXI IR remote control"
-> +    depends on RC_CORE
-> +    depends on ARCH_SUNXI
-> +    ---help---
-> +      Say Y if you want to use sunXi internal IR Controller
-> +
-> +      To compile this driver as a module, choose M here: the module will
-> +      be called sunxi-ir.
-> +
->  endif #RC_DEVICES
-> diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-> index f8b54ff..93cdbe9 100644
-> --- a/drivers/media/rc/Makefile
-> +++ b/drivers/media/rc/Makefile
-> @@ -32,4 +32,5 @@ obj-$(CONFIG_IR_GPIO_CIR) +=3D gpio-ir-recv.o
->  obj-$(CONFIG_IR_IGUANA) +=3D iguanair.o
->  obj-$(CONFIG_IR_TTUSBIR) +=3D ttusbir.o
->  obj-$(CONFIG_RC_ST) +=3D st_rc.o
-> +obj-$(CONFIG_IR_SUNXI) +=3D sunxi-ir.o
->  obj-$(CONFIG_IR_IMG) +=3D img-ir/
-> diff --git a/drivers/media/rc/sunxi-ir.c b/drivers/media/rc/sunxi-ir.c
-> new file mode 100644
-> index 0000000..9b5639e
-> --- /dev/null
-> +++ b/drivers/media/rc/sunxi-ir.c
-> @@ -0,0 +1,314 @@
-> +/*
-> + * Driver for Allwinner sunXi IR controller
-> + *
-> + * Copyright (C) 2014 Alexsey Shestacov <wingrime@linux-sunxi.org>
-> + *
-> + * Based on sun5i-ir.c:
-> + * Copyright (C) 2007-2012 Daniel Wang
-> + * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation; either version 2 of
-> + * the License, or (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/clk.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/module.h>
-> +#include <linux/of_platform.h>
-> +#include <media/rc-core.h>
-> +
-> +#define SUNXI_IR_DEV "sunxi-ir"
-> +
-> +/* Registers */
-> +/* IR Control */
-> +#define SUNXI_IR_CTL_REG      0x00
-> +/* Rx Config */
-> +#define SUNXI_IR_RXCTL_REG    0x10
-> +/* Rx Data */
-> +#define SUNXI_IR_RXFIFO_REG   0x20
-> +/* Rx Interrupt Enable */
-> +#define SUNXI_IR_RXINT_REG    0x2C
-> +/* Rx Interrupt Status */
-> +#define SUNXI_IR_RXSTA_REG    0x30
-> +/* IR Sample Config */
-> +#define SUNXI_IR_CIR_REG      0x34
-> +
-> +/* Bit Definition of IR_RXINTS_REG Register */
-> +#define SUNXI_IR_RXINTS_RXOF   BIT(0) /* Rx FIFO Overflow */
-> +#define SUNXI_IR_RXINTS_RXPE   BIT(1) /* Rx Packet End */
-> +#define SUNXI_IR_RXINTS_RXDA   BIT(4) /* Rx FIFO Data Available */
-> +/* Hardware supported fifo size */
-> +#define SUNXI_IR_FIFO_SIZE 16
-> +/* How much messages in fifo triggers IRQ */
-> +#define SUNXI_IR_FIFO_TRIG 8
-> +/* Required frequency for IR0 or IR1 clock in CIR mode */
-> +#define SUNXI_IR_BASE_CLK 8000000
-
-Would it make sense to have different clock frequencies? If so, that
-should probably be in the DT.
-
-> +/* Frequency after IR internal divider  */
-> +#define SUNXI_IR_CLK  (SUNXI_IR_BASE_CLK / 64)
-> +/* Sample period in ns */
-> +#define SUNXI_IR_SAMPLE (1000000000ul / SUNXI_IR_CLK)
-> +/* Filter threshold in samples  */
-> +#define SUNXI_IR_RXFILT                1
-> +/* Idle Threshold in samples */
-> +#define SUNXI_IR_RXIDLE                20
-> +/* Time after which device stops sending data in ms */
-> +#define SUNXI_IR_TIMEOUT               120
-> +
-> +struct sunxi_ir {
-> + spinlock_t      ir_lock;
-> + struct rc_dev   *rc;
-> + void __iomem    *base;
-> + int             irq;
-> + struct clk      *clk;
-> + struct clk      *apb_clk;
-> + const char      *map_name;
-> +};
-> +
-> +static irqreturn_t sunxi_ir_irq(int irqno, void *dev_id)
-> +{
-> + unsigned long status;
-> + unsigned long flags;
-> + unsigned char dt;
-> + unsigned int cnt, rc;
-> + struct sunxi_ir *ir =3D dev_id;
-> + DEFINE_IR_RAW_EVENT(rawir);
-> +
-> + spin_lock_irqsave(&ir->ir_lock, flags);
-
-You don't need to use irqsave, you're already running with interrupts
-disabled.
-
-> +
-> + status =3D readl(ir->base + SUNXI_IR_RXSTA_REG);
-> +
-> + /* clean all pending statuses */
-> + writel(status | 0xff, ir->base + SUNXI_IR_RXSTA_REG);
-> +
-> + if (status & SUNXI_IR_RXINTS_RXDA) {
-> + /* How much messages in fifo */
-> + rc  =3D ((status>>8) & 0x3f);
-> + /* Sanity check */
-> + rc =3D rc > SUNXI_IR_FIFO_SIZE ? SUNXI_IR_FIFO_SIZE : rc;
-> + /* if we have data */
-> + for (cnt =3D 0; cnt < rc; cnt++) {
-> + /* for each bit in fifo */
-> + dt =3D (unsigned char)readl(ir->base +
-> +  SUNXI_IR_RXFIFO_REG);
-
-You can use readb then.
-
-> + rawir.pulse =3D (dt & 0x80) !=3D 0;
-> + rawir.duration =3D (dt & 0x7f)*SUNXI_IR_SAMPLE;
-> + ir_raw_event_store_with_filter(ir->rc, &rawir);
-> + }
-> + }
-> +
-> + if (status & SUNXI_IR_RXINTS_RXOF)
-> + ir_raw_event_reset(ir->rc);
-> + else if (status & SUNXI_IR_RXINTS_RXPE) {
-> + ir_raw_event_set_idle(ir->rc, true);
-> + ir_raw_event_handle(ir->rc);
-> + }
-> +
-> + spin_unlock_irqrestore(&ir->ir_lock, flags);
-> +
-> + return IRQ_HANDLED;
-> +}
-> +
-> +
-> +static int sunxi_ir_probe(struct platform_device *pdev)
-> +{
-> + int ret =3D 0;
-> +
-> + unsigned long tmp =3D 0;
-> +
-> + struct device *dev =3D &pdev->dev;
-> + struct device_node *dn =3D dev->of_node;
-> + struct resource *res;
-> + struct sunxi_ir *ir;
-> +
-> + ir =3D devm_kzalloc(dev, sizeof(struct sunxi_ir), GFP_KERNEL);
-> + if (!ir)
-> + return -ENOMEM;
-> +
-> + /* Clock */
-> + ir->apb_clk =3D of_clk_get(dn, 0);
-> + if (IS_ERR(ir->apb_clk)) {
-> + dev_err(dev, "failed to get a apb clock.\n");
-> + return PTR_ERR(ir->apb_clk);
-> + }
-> + ir->clk =3D of_clk_get(dn, 1);
-> + if (IS_ERR(ir->clk)) {
-> + dev_err(dev, "failed to get a ir clock.\n");
-> + ret =3D PTR_ERR(ir->clk);
-> + goto exit_clkput_apb_clk;
-> + }
-
-You can use devm_clk_get.
-
-> + ret =3D clk_set_rate(ir->clk, SUNXI_IR_BASE_CLK);
-> + if (ret) {
-> + dev_err(dev, "set ir base clock failed!\n");
-> + goto exit_clkput_clk;
-> + }
-> +
-> + if (clk_prepare_enable(ir->apb_clk)) {
-> + dev_err(dev, "try to enable apb_ir_clk failed\n");
-> + ret =3D -EINVAL;
-> + goto exit_clkput_clk;
-> + }
-> +
-> + if (clk_prepare_enable(ir->clk)) {
-> + dev_err(dev, "try to enable ir_clk failed\n");
-> + ret =3D -EINVAL;
-> + goto exit_clkdisable_apb_clk;
-> + }
-> +
-> + /* IO */
-> + res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +
-> + ir->base =3D devm_ioremap_resource(dev, res);
-> + if (IS_ERR(ir->base)) {
-> + dev_err(dev, "failed to map registers\n");
-> + ret =3D -ENOMEM;
-> + goto exit_clkdisable_clk;
-> + }
-> +
-> + /* IRQ */
-> + ir->irq =3D platform_get_irq(pdev, 0);
-> + if (ir->irq < 0) {
-> + dev_err(dev, "no irq resource\n");
-> + ret =3D -EINVAL;
-> + goto exit_clkdisable_clk;
-> + }
-> +
-> + ret =3D devm_request_irq(dev, ir->irq, sunxi_ir_irq, 0, SUNXI_IR_DEV, i=
-r);
-> + if (ret) {
-> + dev_err(dev, "failed request irq\n");
-> + ret =3D -EINVAL;
-> + goto exit_clkdisable_clk;
-> + }
-> +
-> + ir->rc =3D rc_allocate_device();
-> +
-> + if (!ir->rc) {
-> + ret =3D -ENOMEM;
-> + goto exit_clkdisable_clk;
-> + }
-> +
-> + ir->rc->priv =3D ir;
-> + ir->rc->input_name =3D SUNXI_IR_DEV;
-> + ir->rc->input_phys =3D "sunxi-ir/input0";
-> + ir->rc->input_id.bustype =3D BUS_HOST;
-> + ir->rc->input_id.vendor =3D 0x0001;
-> + ir->rc->input_id.product =3D 0x0001;
-> + ir->rc->input_id.version =3D 0x0100;
-> + ir->map_name =3D of_get_property(dn, "linux,rc-map-name", NULL);
-> + ir->rc->map_name =3D ir->map_name ?: RC_MAP_EMPTY;
-> + ir->rc->dev.parent =3D dev;
-> + ir->rc->driver_type =3D RC_DRIVER_IR_RAW;
-> + rc_set_allowed_protocols(ir->rc, RC_BIT_ALL);
-> + ir->rc->rx_resolution =3D SUNXI_IR_SAMPLE;
-> + ir->rc->timeout =3D MS_TO_NS(SUNXI_IR_TIMEOUT);
-> + ir->rc->driver_name =3D SUNXI_IR_DEV;
-> +
-> + ret =3D rc_register_device(ir->rc);
-> + if (ret) {
-> + dev_err(dev, "can't register rc device\n");
-> + ret =3D -EINVAL;
-> + goto exit_free_dev;
-> + }
-> +
-> + platform_set_drvdata(pdev, ir);
-> +
-> + /* Enable CIR Mode */
-> + writel(0x3<<4, ir->base+SUNXI_IR_CTL_REG);
-> +
-> + /* Config IR Sample Register */
-> + /* Fsample =3D clk */
-> + tmp =3D 0;
-> + /* Set Filter Threshold */
-> + tmp |=3D (SUNXI_IR_RXFILT & 0x3f) << 2;
-> + /* Set Idle Threshold */
-> + tmp |=3D (SUNXI_IR_RXIDLE & 0xff) << 8;
-> + writel(tmp, ir->base + SUNXI_IR_CIR_REG);
-> +
-> + /* Invert Input Signal */
-> + writel(0x1<<2, ir->base + SUNXI_IR_RXCTL_REG);
-> +
-> + /* Clear All Rx Interrupt Status */
-> + writel(0xff, ir->base + SUNXI_IR_RXSTA_REG);
-> +
-> + /* Enable IRQ on data, overflow, packed end */
-> + tmp =3D (0x1<<4)|0x3;
-> +
-> + /* Rx FIFO Threshold =3D 4 */
-> + tmp |=3D (SUNXI_IR_FIFO_TRIG - 1) << 8;
-> +
-> + writel(tmp, ir->base + SUNXI_IR_RXINT_REG);
-> +
-> + /* Enable IR Module */
-> + tmp =3D readl(ir->base + SUNXI_IR_CTL_REG);
-> +
-> + writel(tmp|0x3, ir->base + SUNXI_IR_CTL_REG);
-> +
-> + dev_info(dev, "initialized sunXi IR driver\n");
-> + return 0;
-> +
-> +exit_free_dev:
-> + rc_free_device(ir->rc);
-> +exit_clkdisable_clk:
-> + clk_disable_unprepare(ir->clk);
-> +exit_clkdisable_apb_clk:
-> + clk_disable_unprepare(ir->apb_clk);
-> +exit_clkput_clk:
-> + clk_put(ir->clk);
-> +exit_clkput_apb_clk:
-> + clk_put(ir->apb_clk);
-> +
-> + return ret;
-> +}
-> +
-> +static int sunxi_ir_remove(struct platform_device *pdev)
-> +{
-> + unsigned long flags;
-> + struct sunxi_ir *ir =3D platform_get_drvdata(pdev);
-> +
-> + clk_disable_unprepare(ir->clk);
-> + clk_disable_unprepare(ir->apb_clk);
-> +
-> + clk_put(ir->clk);
-> + clk_put(ir->apb_clk);
-> +
-> + spin_lock_irqsave(&ir->ir_lock, flags);
-> + /* disable IR IRQ */
-> + writel(0, ir->base + SUNXI_IR_RXINT_REG);
-> + /* clear All Rx Interrupt Status */
-> + writel(0xff, ir->base + SUNXI_IR_RXSTA_REG);
-> + /* disable IR */
-> + writel(0, ir->base + SUNXI_IR_CTL_REG);
-> + spin_unlock_irqrestore(&ir->ir_lock, flags);
-> +
-> + rc_unregister_device(ir->rc);
-> + return 0;
-> +}
-> +
-> +static const struct of_device_id sunxi_ir_match[] =3D {
-> + { .compatible =3D "allwinner,sunxi-ir", },
-> + {},
-> +};
-> +
-> +static struct platform_driver sunxi_ir_driver =3D {
-> + .probe          =3D sunxi_ir_probe,
-> + .remove         =3D sunxi_ir_remove,
-> + .driver =3D {
-> + .name =3D SUNXI_IR_DEV,
-> + .owner =3D THIS_MODULE,
-> + .of_match_table =3D sunxi_ir_match,
-> + },
-> +};
-> +
-> +module_platform_driver(sunxi_ir_driver);
-> +
-> +
-> +MODULE_DESCRIPTION("Allwinner sunXi IR controller driver");
-> +MODULE_AUTHOR("Alexsey Shestacov <wingrime@linux-sunxi.org>");
-> +MODULE_LICENSE("GPL");
->=20
-
-Overall, I'd like this to be split into several patches:
-  - One for the bindings documentation
-  - One for the driver
-  - One that adds the controller to the DT
-  - One that adds the pin muxing options
-  - and finally one that enables the IR receiver on the boards.
-
-Thanks!
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
-
---5QAgd0e35j3NYeGe
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTYE6OAAoJEBx+YmzsjxAgtKcP/2vEhAIS0xANed2fKJVnaNh8
-fGojaxA4sq2qIaJ0zxl5FpkdxRrx/7Vdx4WGeYXM2hXLafbh/KN0AbK5lQF+kSa2
-5PpzktYiMWTMMtqyosiTYZXB0GGo5hUtgNc7dUBBTyNlugfub2dSitLFqizU0PM0
-R5jHYaGLLlXG/o4+Bs6qudzH55qUYhYe/tr2/BreiuhUTnN2HOZUZBLB+dYgD+F3
-vyWLRceZgxyOjFe11P0NUZJEg4rU9jscAcmPXg+v0q/Y4hL5+kD/Ee3k3c8ri0ll
-9/TUCVQq4V88jNMtXfUz2CdWIT1gb4jmy1PcXvaiApJAPPnueUyqS7ZUocoTwzfd
-mdMz+bupFsvBSaL11DqK28gBnij5XpnKL0nshmyi4vNlRYxxk23u44MyNJLHllZJ
-n+JBKOhkMmQ7BnkcuTOgnpOAB3+opOC8yB3tSSTsiZpRYjmZQDqbDxG+IwqJCuSV
-pUbK2awjHSV4oduv9A038HqNpUfjdGoxmc/g46Z0WsWjMxwXfehsQwFPakhOapY5
-SRqPyIvHOCkYo5deAXKckLIyASm3dKuINRa5OR/AuznuWzmNFbV5CjJOHSADiJXo
-lbkWTxPyYC/wcodKRDRMYLYsQOrOmkKsdz0uNzeWCa2yrdNEbCJF2xR7vFQNaNGS
-+XYQwsUH8jwzVo7XgVii
-=5Yam
------END PGP SIGNATURE-----
-
---5QAgd0e35j3NYeGe--
