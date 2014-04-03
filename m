@@ -1,1018 +1,582 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40314 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754391AbaDPR0l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Apr 2014 13:26:41 -0400
-Date: Wed, 16 Apr 2014 20:26:05 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com, Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	SangYoung Son <hello.son@smasung.com>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH/RFC v3 3/5] leds: Add support for max77693 mfd flash cell
-Message-ID: <20140416172604.GF8753@valkosipuli.retiisi.org.uk>
-References: <1397228216-6657-1-git-send-email-j.anaszewski@samsung.com>
- <1397228216-6657-4-git-send-email-j.anaszewski@samsung.com>
+Received: from hardeman.nu ([95.142.160.32]:40266 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753681AbaDCXb1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 19:31:27 -0400
+Subject: [PATCH 02/49] rc-core: improve ir-kbd-i2c get_key functions
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Fri, 04 Apr 2014 01:31:25 +0200
+Message-ID: <20140403233125.27099.13731.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1397228216-6657-4-git-send-email-j.anaszewski@samsung.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+The arguments used for ir-kbd-i2c's get_key() functions are not
+really suited for rc-core and the ir_raw/ir_key distinction is
+just confusing.
 
-Thanks for the patch! Comments below.
+Convert all of them to return a protocol/scancode/toggle triple instead.
 
-On Fri, Apr 11, 2014 at 04:56:54PM +0200, Jacek Anaszewski wrote:
-> This patch adds led-flash support to Maxim max77693 chipset.
-> A device can be exposed to user space through LED subsystem
-> sysfs interface or through V4L2 subdevice when the support
-> for V4L2 Flash sub-devices is enabled. Device supports up to
-> two leds which can work in flash and torch mode. Leds can
-> be triggered externally or by software.
-> 
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> Cc: SangYoung Son <hello.son@smasung.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> Cc: Lee Jones <lee.jones@linaro.org>
-> ---
->  drivers/leds/Kconfig         |   10 +
->  drivers/leds/Makefile        |    1 +
->  drivers/leds/leds-max77693.c |  794 ++++++++++++++++++++++++++++++++++++++++++
->  drivers/mfd/max77693.c       |    2 +-
->  include/linux/mfd/max77693.h |   38 ++
->  5 files changed, 844 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/leds/leds-max77693.c
-> 
-> diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-> index 1e1c81f..b2152a6 100644
-> --- a/drivers/leds/Kconfig
-> +++ b/drivers/leds/Kconfig
-> @@ -462,6 +462,16 @@ config LEDS_TCA6507
->  	  LED driver chips accessed via the I2C bus.
->  	  Driver support brightness control and hardware-assisted blinking.
->  
-> +config LEDS_MAX77693
-> +	tristate "LED support for MAX77693 Flash"
-> +	depends on LEDS_CLASS_FLASH
-> +	depends on MFD_MAX77693
-> +	depends on OF
-> +	help
-> +	  This option enables support for the flash part of the MAX77693
-> +	  multifunction device. It has build in control for two leds in flash
-> +	  and torch mode.
-> +
->  config LEDS_MAX8997
->  	tristate "LED support for MAX8997 PMIC"
->  	depends on LEDS_CLASS && MFD_MAX8997
-> diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
-> index 8861b86..64f6234 100644
-> --- a/drivers/leds/Makefile
-> +++ b/drivers/leds/Makefile
-> @@ -52,6 +52,7 @@ obj-$(CONFIG_LEDS_MC13783)		+= leds-mc13783.o
->  obj-$(CONFIG_LEDS_NS2)			+= leds-ns2.o
->  obj-$(CONFIG_LEDS_NETXBIG)		+= leds-netxbig.o
->  obj-$(CONFIG_LEDS_ASIC3)		+= leds-asic3.o
-> +obj-$(CONFIG_LEDS_MAX77693)		+= leds-max77693.o
->  obj-$(CONFIG_LEDS_MAX8997)		+= leds-max8997.o
->  obj-$(CONFIG_LEDS_LM355x)		+= leds-lm355x.o
->  obj-$(CONFIG_LEDS_BLINKM)		+= leds-blinkm.o
-> diff --git a/drivers/leds/leds-max77693.c b/drivers/leds/leds-max77693.c
-> new file mode 100644
-> index 0000000..979736c
-> --- /dev/null
-> +++ b/drivers/leds/leds-max77693.c
-> @@ -0,0 +1,794 @@
-> +/*
-> + *	Copyright (C) 2014, Samsung Electronics Co., Ltd.
-> + *
-> + *	Authors: Andrzej Hajda <a.hajda@samsung.com>
-> + *		 Jacek Anaszewski <j.anaszewski@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + */
-> +
-> +#include <asm/div64.h>
-> +#include <linux/leds_flash.h>
-> +#include <linux/module.h>
-> +#include <linux/mutex.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/slab.h>
-> +#include <media/v4l2-flash.h>
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/i2c/ir-kbd-i2c.c            |   90 +++++++++++++++--------------
+ drivers/media/pci/bt8xx/bttv-input.c      |    8 ++-
+ drivers/media/pci/cx88/cx88-input.c       |    8 ++-
+ drivers/media/pci/ivtv/ivtv-i2c.c         |    9 ++-
+ drivers/media/pci/saa7134/saa7134-input.c |   76 +++++++++++++++---------
+ drivers/media/usb/cx231xx/cx231xx-input.c |   20 ++----
+ include/media/ir-kbd-i2c.h                |    6 +-
+ include/media/rc-map.h                    |   10 +++
+ 8 files changed, 127 insertions(+), 100 deletions(-)
 
-I guess this should be last in the list.
+diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
+index c8fe135..143cb2b 100644
+--- a/drivers/media/i2c/ir-kbd-i2c.c
++++ b/drivers/media/i2c/ir-kbd-i2c.c
+@@ -62,8 +62,8 @@ module_param(debug, int, 0644);    /* debug level (0,1,2) */
+ 
+ /* ----------------------------------------------------------------------- */
+ 
+-static int get_key_haup_common(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw,
+-			       int size, int offset)
++static int get_key_haup_common(struct IR_i2c *ir, enum rc_type *protocol,
++			       u32 *scancode, u8 *ptoggle, int size, int offset)
+ {
+ 	unsigned char buf[6];
+ 	int start, range, toggle, dev, code, ircode;
+@@ -86,19 +86,10 @@ static int get_key_haup_common(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw,
+ 	if (!start)
+ 		/* no key pressed */
+ 		return 0;
+-	/*
+-	 * Hauppauge remotes (black/silver) always use
+-	 * specific device ids. If we do not filter the
+-	 * device ids then messages destined for devices
+-	 * such as TVs (id=0) will get through causing
+-	 * mis-fired events.
+-	 *
+-	 * We also filter out invalid key presses which
+-	 * produce annoying debug log entries.
+-	 */
+-	ircode= (start << 12) | (toggle << 11) | (dev << 6) | code;
+-	if ((ircode & 0x1fff)==0x1fff)
+-		/* invalid key press */
++
++	/* filter out invalid key presses */
++	ircode = (start << 12) | (toggle << 11) | (dev << 6) | code;
++	if ((ircode & 0x1fff) == 0x1fff)
+ 		return 0;
+ 
+ 	if (!range)
+@@ -107,18 +98,20 @@ static int get_key_haup_common(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw,
+ 	dprintk(1,"ir hauppauge (rc5): s%d r%d t%d dev=%d code=%d\n",
+ 		start, range, toggle, dev, code);
+ 
+-	/* return key */
+-	*ir_key = (dev << 8) | code;
+-	*ir_raw = ircode;
++	*protocol = RC_TYPE_RC5;
++	*scancode = RC_SCANCODE_RC5(dev, code);
++	*ptoggle = toggle;
+ 	return 1;
+ }
+ 
+-static int get_key_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int get_key_haup(struct IR_i2c *ir, enum rc_type *protocol,
++			u32 *scancode, u8 *toggle)
+ {
+-	return get_key_haup_common (ir, ir_key, ir_raw, 3, 0);
++	return get_key_haup_common (ir, protocol, scancode, toggle, 3, 0);
+ }
+ 
+-static int get_key_haup_xvr(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int get_key_haup_xvr(struct IR_i2c *ir, enum rc_type *protocol,
++			    u32 *scancode, u8 *toggle)
+ {
+ 	int ret;
+ 	unsigned char buf[1] = { 0 };
+@@ -133,10 +126,11 @@ static int get_key_haup_xvr(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 	if (ret != 1)
+ 		return (ret < 0) ? ret : -EINVAL;
+ 
+-	return get_key_haup_common (ir, ir_key, ir_raw, 6, 3);
++	return get_key_haup_common(ir, protocol, scancode, toggle, 6, 3);
+ }
+ 
+-static int get_key_pixelview(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int get_key_pixelview(struct IR_i2c *ir, enum rc_type *protocol,
++			     u32 *scancode, u8 *toggle)
+ {
+ 	unsigned char b;
+ 
+@@ -145,12 +139,15 @@ static int get_key_pixelview(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 		dprintk(1,"read error\n");
+ 		return -EIO;
+ 	}
+-	*ir_key = b;
+-	*ir_raw = b;
++
++	*protocol = RC_TYPE_OTHER;
++	*scancode = b;
++	*toggle = 0;
+ 	return 1;
+ }
+ 
+-static int get_key_fusionhdtv(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int get_key_fusionhdtv(struct IR_i2c *ir, enum rc_type *protocol,
++			      u32 *scancode, u8 *toggle)
+ {
+ 	unsigned char buf[4];
+ 
+@@ -168,13 +165,14 @@ static int get_key_fusionhdtv(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 	if(buf[0] != 0x1 ||  buf[1] != 0xfe)
+ 		return 0;
+ 
+-	*ir_key = buf[2];
+-	*ir_raw = (buf[2] << 8) | buf[3];
+-
++	*protocol = RC_TYPE_UNKNOWN;
++	*scancode = buf[2];
++	*toggle = 0;
+ 	return 1;
+ }
+ 
+-static int get_key_knc1(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int get_key_knc1(struct IR_i2c *ir, enum rc_type *protocol,
++			u32 *scancode, u8 *toggle)
+ {
+ 	unsigned char b;
+ 
+@@ -197,13 +195,14 @@ static int get_key_knc1(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 		/* keep old data */
+ 		return 1;
+ 
+-	*ir_key = b;
+-	*ir_raw = b;
++	*protocol = RC_TYPE_UNKNOWN;
++	*scancode = b;
++	*toggle = 0;
+ 	return 1;
+ }
+ 
+-static int get_key_avermedia_cardbus(struct IR_i2c *ir,
+-				     u32 *ir_key, u32 *ir_raw)
++static int get_key_avermedia_cardbus(struct IR_i2c *ir, enum rc_type *protocol,
++				     u32 *scancode, u8 *toggle)
+ {
+ 	unsigned char subaddr, key, keygroup;
+ 	struct i2c_msg msg[] = { { .addr = ir->c->addr, .flags = 0,
+@@ -237,12 +236,11 @@ static int get_key_avermedia_cardbus(struct IR_i2c *ir,
+ 	}
+ 	key |= (keygroup & 1) << 6;
+ 
+-	*ir_key = key;
+-	*ir_raw = key;
+-	if (!strcmp(ir->ir_codes, RC_MAP_AVERMEDIA_M733A_RM_K6)) {
+-		*ir_key |= keygroup << 8;
+-		*ir_raw |= keygroup << 8;
+-	}
++	*protocol = RC_TYPE_UNKNOWN;
++	*scancode = key;
++	if (ir->c->addr == 0x41) /* AVerMedia EM78P153 */
++		*scancode |= keygroup << 8;
++	*toggle = 0;
+ 	return 1;
+ }
+ 
+@@ -250,19 +248,21 @@ static int get_key_avermedia_cardbus(struct IR_i2c *ir,
+ 
+ static int ir_key_poll(struct IR_i2c *ir)
+ {
+-	static u32 ir_key, ir_raw;
++	enum rc_type protocol;
++	u32 scancode;
++	u8 toggle;
+ 	int rc;
+ 
+ 	dprintk(3, "%s\n", __func__);
+-	rc = ir->get_key(ir, &ir_key, &ir_raw);
++	rc = ir->get_key(ir, &protocol, &scancode, &toggle);
+ 	if (rc < 0) {
+ 		dprintk(2,"error\n");
+ 		return rc;
+ 	}
+ 
+ 	if (rc) {
+-		dprintk(1, "%s: keycode = 0x%04x\n", __func__, ir_key);
+-		rc_keydown(ir->rc, ir_key, 0);
++		dprintk(1, "%s: scancode = 0x%08x\n", __func__, scancode);
++		rc_keydown(ir->rc, scancode, toggle);
+ 	}
+ 	return 0;
+ }
+@@ -327,7 +327,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	case 0x6b:
+ 		name        = "FusionHDTV";
+ 		ir->get_key = get_key_fusionhdtv;
+-		rc_type     = RC_BIT_RC5;
++		rc_type     = RC_BIT_UNKNOWN;
+ 		ir_codes    = RC_MAP_FUSIONHDTV_MCE;
+ 		break;
+ 	case 0x40:
+diff --git a/drivers/media/pci/bt8xx/bttv-input.c b/drivers/media/pci/bt8xx/bttv-input.c
+index ffc0ee1..e745f5a 100644
+--- a/drivers/media/pci/bt8xx/bttv-input.c
++++ b/drivers/media/pci/bt8xx/bttv-input.c
+@@ -336,7 +336,8 @@ static void bttv_ir_stop(struct bttv *btv)
+  * Get_key functions used by I2C remotes
+  */
+ 
+-static int get_key_pv951(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int get_key_pv951(struct IR_i2c *ir, enum rc_type *protocol,
++			 u32 *scancode, u8 *toggle)
+ {
+ 	unsigned char b;
+ 
+@@ -363,8 +364,9 @@ static int get_key_pv951(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 	 * 	   the device is bound to the vendor-provided RC.
+ 	 */
+ 
+-	*ir_key = b;
+-	*ir_raw = b;
++	*protocol = RC_TYPE_UNKNOWN;
++	*scancode = b;
++	*toggle = 0;
+ 	return 1;
+ }
+ 
+diff --git a/drivers/media/pci/cx88/cx88-input.c b/drivers/media/pci/cx88/cx88-input.c
+index f991696..779fc63 100644
+--- a/drivers/media/pci/cx88/cx88-input.c
++++ b/drivers/media/pci/cx88/cx88-input.c
+@@ -539,7 +539,8 @@ void cx88_ir_irq(struct cx88_core *core)
+ 	ir_raw_event_handle(ir->dev);
+ }
+ 
+-static int get_key_pvr2000(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int get_key_pvr2000(struct IR_i2c *ir, enum rc_type *protocol,
++			   u32 *scancode, u8 *toggle)
+ {
+ 	int flags, code;
+ 
+@@ -563,8 +564,9 @@ static int get_key_pvr2000(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 	dprintk("IR Key/Flags: (0x%02x/0x%02x)\n",
+ 		   code & 0xff, flags & 0xff);
+ 
+-	*ir_key = code & 0xff;
+-	*ir_raw = code;
++	*protocol = RC_TYPE_UNKNOWN;
++	*scancode = code & 0xff;
++	*toggle = 0;
+ 	return 1;
+ }
+ 
+diff --git a/drivers/media/pci/ivtv/ivtv-i2c.c b/drivers/media/pci/ivtv/ivtv-i2c.c
+index ceed2d8..1a41ba5 100644
+--- a/drivers/media/pci/ivtv/ivtv-i2c.c
++++ b/drivers/media/pci/ivtv/ivtv-i2c.c
+@@ -148,7 +148,8 @@ static const char * const hw_devicenames[] = {
+ 	"ir_video",		/* IVTV_HW_I2C_IR_RX_ADAPTEC */
+ };
+ 
+-static int get_key_adaptec(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int get_key_adaptec(struct IR_i2c *ir, enum rc_type *protocol,
++			   u32 *scancode, u8 *toggle)
+ {
+ 	unsigned char keybuf[4];
+ 
+@@ -167,9 +168,9 @@ static int get_key_adaptec(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 	keybuf[2] &= 0x7f;
+ 	keybuf[3] |= 0x80;
+ 
+-	*ir_key = keybuf[3] | keybuf[2] << 8 | keybuf[1] << 16 |keybuf[0] << 24;
+-	*ir_raw = *ir_key;
+-
++	*protocol = RC_TYPE_UNKNOWN;
++	*scancode = keybuf[3] | keybuf[2] << 8 | keybuf[1] << 16 |keybuf[0] << 24;
++	*toggle = 0;
+ 	return 1;
+ }
+ 
+diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
+index 6f43126..73670ed 100644
+--- a/drivers/media/pci/saa7134/saa7134-input.c
++++ b/drivers/media/pci/saa7134/saa7134-input.c
+@@ -108,7 +108,8 @@ static int build_key(struct saa7134_dev *dev)
+ 
+ /* --------------------- Chip specific I2C key builders ----------------- */
+ 
+-static int get_key_flydvb_trio(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int get_key_flydvb_trio(struct IR_i2c *ir, enum rc_type *protocol,
++			       u32 *scancode, u8 *toggle)
+ {
+ 	int gpio;
+ 	int attempt = 0;
+@@ -158,13 +159,14 @@ static int get_key_flydvb_trio(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 		return -EIO;
+ 	}
+ 
+-	*ir_key = b;
+-	*ir_raw = b;
++	*protocol = RC_TYPE_UNKNOWN;
++	*scancode = b;
++	*toggle = 0;
+ 	return 1;
+ }
+ 
+-static int get_key_msi_tvanywhere_plus(struct IR_i2c *ir, u32 *ir_key,
+-				       u32 *ir_raw)
++static int get_key_msi_tvanywhere_plus(struct IR_i2c *ir, enum rc_type *protocol,
++				       u32 *scancode, u8 *toggle)
+ {
+ 	unsigned char b;
+ 	int gpio;
+@@ -205,14 +207,15 @@ static int get_key_msi_tvanywhere_plus(struct IR_i2c *ir, u32 *ir_key,
+ 	/* Button pressed */
+ 
+ 	dprintk("get_key_msi_tvanywhere_plus: Key = 0x%02X\n", b);
+-	*ir_key = b;
+-	*ir_raw = b;
++	*protocol = RC_TYPE_UNKNOWN;
++	*scancode = b;
++	*toggle = 0;
+ 	return 1;
+ }
+ 
+ /* copied and modified from get_key_msi_tvanywhere_plus() */
+-static int get_key_kworld_pc150u(struct IR_i2c *ir, u32 *ir_key,
+-					u32 *ir_raw)
++static int get_key_kworld_pc150u(struct IR_i2c *ir, enum rc_type *protocol,
++				 u32 *scancode, u8 *toggle)
+ {
+ 	unsigned char b;
+ 	unsigned int gpio;
+@@ -253,12 +256,14 @@ static int get_key_kworld_pc150u(struct IR_i2c *ir, u32 *ir_key,
+ 	/* Button pressed */
+ 
+ 	dprintk("get_key_kworld_pc150u: Key = 0x%02X\n", b);
+-	*ir_key = b;
+-	*ir_raw = b;
++	*protocol = RC_TYPE_UNKNOWN;
++	*scancode = b;
++	*toggle = 0;
+ 	return 1;
+ }
+ 
+-static int get_key_purpletv(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int get_key_purpletv(struct IR_i2c *ir, enum rc_type *protocol,
++			    u32 *scancode, u8 *toggle)
+ {
+ 	unsigned char b;
+ 
+@@ -276,12 +281,14 @@ static int get_key_purpletv(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 	if (b & 0x80)
+ 		return 1;
+ 
+-	*ir_key = b;
+-	*ir_raw = b;
++	*protocol = RC_TYPE_UNKNOWN;
++	*scancode = b;
++	*toggle = 0;
+ 	return 1;
+ }
+ 
+-static int get_key_hvr1110(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int get_key_hvr1110(struct IR_i2c *ir, enum rc_type *protocol,
++			   u32 *scancode, u8 *toggle)
+ {
+ 	unsigned char buf[5];
+ 
+@@ -299,14 +306,20 @@ static int get_key_hvr1110(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 	 * by preserving it into two separate readings
+ 	 * buf[4] bits 0 and 1, and buf[1] and buf[2] are always
+ 	 * zero.
++	 *
++	 * Note that the keymap which the hvr1110 uses is RC5.
++	 *
++	 * FIXME: start bits could maybe be used...?
+ 	 */
+-	*ir_key = 0x1fff & ((buf[3] << 8) | (buf[4] >> 2));
+-	*ir_raw = *ir_key;
++	*protocol = RC_TYPE_RC5;
++	*scancode = RC_SCANCODE_RC5(buf[3] & 0x1f, buf[4] >> 2);
++	*toggle = !!(buf[3] & 0x40);
+ 	return 1;
+ }
+ 
+ 
+-static int get_key_beholdm6xx(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int get_key_beholdm6xx(struct IR_i2c *ir, enum rc_type *protocol,
++			      u32 *scancode, u8 *toggle)
+ {
+ 	unsigned char data[12];
+ 	u32 gpio;
+@@ -332,17 +345,18 @@ static int get_key_beholdm6xx(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 	if (data[9] != (unsigned char)(~data[8]))
+ 		return 0;
+ 
+-	*ir_raw = ((data[10] << 16) | (data[11] << 8) | (data[9] << 0));
+-	*ir_key = *ir_raw;
+-
++	*protocol = RC_TYPE_NEC;
++	*scancode = RC_SCANCODE_NECX(((data[10] << 8) | data[11]), data[9]);
++	*toggle = 0;
+ 	return 1;
+ }
+ 
+ /* Common (grey or coloured) pinnacle PCTV remote handling
+  *
+  */
+-static int get_key_pinnacle(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw,
+-			    int parity_offset, int marker, int code_modulo)
++static int get_key_pinnacle(struct IR_i2c *ir, enum rc_type *protocol,
++			    u32 *scancode, u8 *toggle, int parity_offset,
++			    int marker, int code_modulo)
+ {
+ 	unsigned char b[4];
+ 	unsigned int start = 0,parity = 0,code = 0;
+@@ -377,11 +391,11 @@ static int get_key_pinnacle(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw,
+ 
+ 	code %= code_modulo;
+ 
+-	*ir_raw = code;
+-	*ir_key = code;
++	*protocol = RC_TYPE_UNKNOWN;
++	*scancode = code;
++	*toggle = 0;
+ 
+ 	i2cdprintk("Pinnacle PCTV key %02x\n", code);
+-
+ 	return 1;
+ }
+ 
+@@ -394,10 +408,11 @@ static int get_key_pinnacle(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw,
+  *
+  * Sylvain Pasche <sylvain.pasche@gmail.com>
+  */
+-static int get_key_pinnacle_grey(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int get_key_pinnacle_grey(struct IR_i2c *ir, enum rc_type *protocol,
++				 u32 *scancode, u8 *toggle)
+ {
+ 
+-	return get_key_pinnacle(ir, ir_key, ir_raw, 1, 0xfe, 0xff);
++	return get_key_pinnacle(ir, protocol, scancode, toggle, 1, 0xfe, 0xff);
+ }
+ 
+ 
+@@ -405,7 +420,8 @@ static int get_key_pinnacle_grey(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+  *
+  * Ricardo Cerqueira <v4l@cerqueira.org>
+  */
+-static int get_key_pinnacle_color(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int get_key_pinnacle_color(struct IR_i2c *ir, enum rc_type *protocol,
++				  u32 *scancode, u8 *toggle)
+ {
+ 	/* code_modulo parameter (0x88) is used to reduce code value to fit inside IR_KEYTAB_SIZE
+ 	 *
+@@ -413,7 +429,7 @@ static int get_key_pinnacle_color(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 	 * codes < 128
+ 	 */
+ 
+-	return get_key_pinnacle(ir, ir_key, ir_raw, 2, 0x80, 0x88);
++	return get_key_pinnacle(ir, protocol, scancode, toggle, 2, 0x80, 0x88);
+ }
+ 
+ void saa7134_input_irq(struct saa7134_dev *dev)
+diff --git a/drivers/media/usb/cx231xx/cx231xx-input.c b/drivers/media/usb/cx231xx/cx231xx-input.c
+index 46d52fa..adcdd92 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-input.c
++++ b/drivers/media/usb/cx231xx/cx231xx-input.c
+@@ -21,11 +21,12 @@
+ #include "cx231xx.h"
+ #include <linux/usb.h>
+ #include <linux/slab.h>
++#include <linux/bitrev.h>
+ 
+ #define MODULE_NAME "cx231xx-input"
+ 
+-static int get_key_isdbt(struct IR_i2c *ir, u32 *ir_key,
+-			 u32 *ir_raw)
++static int get_key_isdbt(struct IR_i2c *ir, enum rc_type *protocol,
++			 u32 *pscancode, u8 *toggle)
+ {
+ 	int	rc;
+ 	u8	cmd, scancode;
+@@ -46,21 +47,14 @@ static int get_key_isdbt(struct IR_i2c *ir, u32 *ir_key,
+ 	if (cmd == 0xff)
+ 		return 0;
+ 
+-	scancode =
+-		 ((cmd & 0x01) ? 0x80 : 0) |
+-		 ((cmd & 0x02) ? 0x40 : 0) |
+-		 ((cmd & 0x04) ? 0x20 : 0) |
+-		 ((cmd & 0x08) ? 0x10 : 0) |
+-		 ((cmd & 0x10) ? 0x08 : 0) |
+-		 ((cmd & 0x20) ? 0x04 : 0) |
+-		 ((cmd & 0x40) ? 0x02 : 0) |
+-		 ((cmd & 0x80) ? 0x01 : 0);
++	scancode = bitrev8(cmd);
+ 
+ 	dev_dbg(&ir->rc->input_dev->dev, "cmd %02x, scan = %02x\n",
+ 		cmd, scancode);
+ 
+-	*ir_key = scancode;
+-	*ir_raw = scancode;
++	*protocol = RC_TYPE_OTHER;
++	*pscancode = scancode;
++	*toggle = 0;
+ 	return 1;
+ }
+ 
+diff --git a/include/media/ir-kbd-i2c.h b/include/media/ir-kbd-i2c.h
+index e221bc7..d856435 100644
+--- a/include/media/ir-kbd-i2c.h
++++ b/include/media/ir-kbd-i2c.h
+@@ -20,7 +20,8 @@ struct IR_i2c {
+ 	struct delayed_work    work;
+ 	char                   name[32];
+ 	char                   phys[32];
+-	int                    (*get_key)(struct IR_i2c*, u32*, u32*);
++	int                    (*get_key)(struct IR_i2c *ir, enum rc_type *protocol,
++					  u32 *scancode, u8 *toggle);
+ };
+ 
+ enum ir_kbd_get_key_fn {
+@@ -44,7 +45,8 @@ struct IR_i2c_init_data {
+ 	 * Specify either a function pointer or a value indicating one of
+ 	 * ir_kbd_i2c's internal get_key functions
+ 	 */
+-	int                    (*get_key)(struct IR_i2c*, u32*, u32*);
++	int                    (*get_key)(struct IR_i2c *ir, enum rc_type *protocol,
++					  u32 *scancode, u8 *toggle);
+ 	enum ir_kbd_get_key_fn internal_get_key_func;
+ 
+ 	struct rc_dev		*rc_dev;
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index e5aa240..894c7e4 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -62,6 +62,16 @@ enum rc_type {
+ 			 RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
+ 			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP)
+ 
++#define RC_SCANCODE_UNKNOWN(x)			(x)
++#define RC_SCANCODE_OTHER(x)			(x)
++#define RC_SCANCODE_NEC(addr, cmd)		(((addr) << 8) | (cmd))
++#define RC_SCANCODE_NECX(addr, cmd)		(((addr) << 8) | (cmd))
++#define RC_SCANCODE_NEC32(data)			((data) & 0xffffffff)
++#define RC_SCANCODE_RC5(sys, cmd)		(((sys) << 8) | (cmd))
++#define RC_SCANCODE_RC5_SZ(sys, cmd)		(((sys) << 8) | (cmd))
++#define RC_SCANCODE_RC6_0(sys, cmd)		(((sys) << 8) | (cmd))
++#define RC_SCANCODE_RC6_6A(vendor, sys, cmd)	(((vendor) << 16) | ((sys) << 8) | (cmd))
++
+ struct rc_map_table {
+ 	u32	scancode;
+ 	u32	keycode;
 
-> +#include <linux/workqueue.h>
-> +#include <linux/mfd/max77693.h>
-> +#include <linux/mfd/max77693-private.h>
-> +
-> +#define MAX77693_LED_NAME		"max77693-flash"
-> +
-> +#define MAX77693_TORCH_IOUT_BITS	4
-> +
-> +#define MAX77693_TORCH_NO_TIMER		0x40
-> +#define MAX77693_FLASH_TIMER_LEVEL	0x80
-> +
-> +#define MAX77693_FLASH_EN_OFF		0
-> +#define MAX77693_FLASH_EN_FLASH		1
-> +#define MAX77693_FLASH_EN_TORCH		2
-> +#define MAX77693_FLASH_EN_ON		3
-> +
-> +#define MAX77693_FLASH_EN1_SHIFT	6
-> +#define MAX77693_FLASH_EN2_SHIFT	4
-> +#define MAX77693_TORCH_EN1_SHIFT	2
-> +#define MAX77693_TORCH_EN2_SHIFT	0
-> +
-> +#define MAX77693_FLASH_LOW_BATTERY_EN	0x80
-> +
-> +#define MAX77693_FLASH_BOOST_FIXED	0x04
-> +#define MAX77693_FLASH_BOOST_LEDNUM_2	0x80
-> +
-> +#define MAX77693_FLASH_TIMEOUT_MIN	62500
-> +#define MAX77693_FLASH_TIMEOUT_MAX	1000000
-> +#define MAX77693_FLASH_TIMEOUT_STEP	62500
-> +
-> +#define MAX77693_TORCH_TIMEOUT_MIN	262000
-> +#define MAX77693_TORCH_TIMEOUT_MAX	15728000
-> +
-> +#define MAX77693_FLASH_IOUT_MIN		15625
-> +#define MAX77693_FLASH_IOUT_MAX_1LED	1000000
-> +#define MAX77693_FLASH_IOUT_MAX_2LEDS	625000
-> +#define MAX77693_FLASH_IOUT_STEP	15625
-> +
-> +#define MAX77693_TORCH_IOUT_MIN		15625
-> +#define MAX77693_TORCH_IOUT_MAX		250000
-> +#define MAX77693_TORCH_IOUT_STEP	15625
-> +
-> +#define MAX77693_FLASH_VSYS_MIN		2400
-> +#define MAX77693_FLASH_VSYS_MAX		3400
-> +#define MAX77693_FLASH_VSYS_STEP	33
-> +
-> +#define MAX77693_FLASH_VOUT_MIN		3300
-> +#define MAX77693_FLASH_VOUT_MAX		5500
-> +#define MAX77693_FLASH_VOUT_STEP	25
-> +#define MAX77693_FLASH_VOUT_RMIN	0x0c
-> +
-> +#define MAX77693_LED_STATUS_FLASH_ON	(1 << 3)
-> +#define MAX77693_LED_STATUS_TORCH_ON	(1 << 2)
-> +
-> +#define MAX77693_LED_FLASH_INT_FLED2_OPEN	(1 << 0)
-> +#define MAX77693_LED_FLASH_INT_FLED2_SHORT	(1 << 1)
-> +#define MAX77693_LED_FLASH_INT_FLED1_OPEN	(1 << 2)
-> +#define MAX77693_LED_FLASH_INT_FLED1_SHORT	(1 << 3)
-> +#define MAX77693_LED_FLASH_INT_OVER_CURRENT	(1 << 4)
-> +
-> +#define MAX77693_MODE_OFF			0
-> +#define MAX77693_MODE_FLASH			(1 << 0)
-> +#define MAX77693_MODE_TORCH			(1 << 1)
-> +#define MAX77693_MODE_FLASH_EXTERNAL		(1 << 2)
-> +
-> +enum {
-> +	FLASH1,
-> +	FLASH2,
-> +	TORCH1,
-> +	TORCH2
-> +};
-> +
-> +enum {
-> +	FLASH,
-> +	TORCH
-> +};
-> +
-> +struct max77693_led {
-> +	struct regmap *regmap;
-> +	struct platform_device *pdev;
-> +	struct max77693_led_platform_data *pdata;
-> +	struct mutex lock;
-> +
-> +	struct led_classdev ldev;
-> +
-> +	unsigned int torch_brightness;
-> +	struct work_struct work_brightness_set;
-> +	unsigned int mode_flags;
-> +};
-> +
-> +static u8 max77693_led_iout_to_reg(u32 ua)
-> +{
-> +	if (ua < MAX77693_FLASH_IOUT_MIN)
-> +		ua = MAX77693_FLASH_IOUT_MIN;
-> +	return (ua - MAX77693_FLASH_IOUT_MIN) / MAX77693_FLASH_IOUT_STEP;
-> +}
-> +
-> +static u8 max77693_flash_timeout_to_reg(u32 us)
-> +{
-> +	return (us - MAX77693_FLASH_TIMEOUT_MIN) / MAX77693_FLASH_TIMEOUT_STEP;
-> +}
-> +
-> +static const u32 max77693_torch_timeouts[] = {
-> +	262000, 524000, 786000, 1048000,
-> +	1572000, 2096000, 2620000, 3144000,
-> +	4193000, 5242000, 6291000, 7340000,
-> +	9437000, 11534000, 13631000, 1572800
-> +};
-> +
-> +static u8 max77693_torch_timeout_to_reg(u32 us)
-> +{
-> +	int i, b = 0, e = ARRAY_SIZE(max77693_torch_timeouts);
-
-I haven't run this, but it looks like it'll access max77693_torch_timeouts[]
-array after the last element if you pass it a value greater than 1572800.
-Shouldn't e be initialised to ARRAY_SIZE() - 1 instead?
-
-> +
-> +	while (e - b > 1) {
-> +		i = b + (e - b) / 2;
-> +		if (us < max77693_torch_timeouts[i])
-> +			e = i;
-> +		else
-> +			b = i;
-> +	}
-> +	return b;
-> +}
-> +
-> +static struct max77693_led *ldev_to_led(struct led_classdev *ldev)
-> +{
-> +	return container_of(ldev, struct max77693_led, ldev);
-> +}
-> +
-> +static u32 max77693_torch_timeout_from_reg(u8 reg)
-> +{
-
-I might limit reg to ARRAY_SIZE(...) as well. Up to you.
-
-> +	return max77693_torch_timeouts[reg];
-> +}
-> +
-> +static u8 max77693_led_vsys_to_reg(u32 mv)
-> +{
-> +	return ((mv - MAX77693_FLASH_VSYS_MIN) / MAX77693_FLASH_VSYS_STEP) << 2;
-> +}
-> +
-> +static u8 max77693_led_vout_to_reg(u32 mv)
-> +{
-> +	return (mv - MAX77693_FLASH_VOUT_MIN) / MAX77693_FLASH_VOUT_STEP +
-> +		MAX77693_FLASH_VOUT_RMIN;
-> +}
-> +
-> +/* split composite current @i into two @iout according to @imax weights */
-
-Are there dependencies between the two LEDs or are they entirely
-independent? If they're independent (with the possible exception of strobe),
-then I'd expose them individually.
-
-> +static void max77693_calc_iout(u32 iout[2], u32 i, u32 imax[2])
-> +{
-> +	u64 t = i;
-> +
-> +	t *= imax[1];
-> +	do_div(t, imax[0] + imax[1]);
-> +
-> +	iout[1] = (u32)t / MAX77693_FLASH_IOUT_STEP * MAX77693_FLASH_IOUT_STEP;
-> +	iout[0] = i - iout[1];
-> +}
-> +
-> +static int max77693_set_mode(struct max77693_led *led, unsigned int mode)
-> +{
-> +	struct max77693_led_platform_data *p = led->pdata;
-> +	struct regmap *rmap = led->regmap;
-> +	int ret, v = 0;
-> +
-> +	if (mode & MAX77693_MODE_TORCH) {
-> +		if (p->trigger[TORCH1] & MAX77693_LED_TRIG_SOFT)
-> +			v |= MAX77693_FLASH_EN_ON << MAX77693_TORCH_EN1_SHIFT;
-> +		if (p->trigger[TORCH2] & MAX77693_LED_TRIG_SOFT)
-> +			v |= MAX77693_FLASH_EN_ON << MAX77693_TORCH_EN2_SHIFT;
-> +	}
-> +
-> +	if (mode & MAX77693_MODE_FLASH) {
-> +		if (p->trigger[FLASH1] & MAX77693_LED_TRIG_SOFT)
-> +			v |= MAX77693_FLASH_EN_ON << MAX77693_FLASH_EN1_SHIFT;
-> +		if (p->trigger[FLASH2] & MAX77693_LED_TRIG_SOFT)
-> +			v |= MAX77693_FLASH_EN_ON << MAX77693_FLASH_EN2_SHIFT;
-> +	} else if (mode & MAX77693_MODE_FLASH_EXTERNAL) {
-> +		if (p->trigger[FLASH1] & MAX77693_LED_TRIG_EXT)
-> +			v |= MAX77693_FLASH_EN_FLASH << MAX77693_FLASH_EN1_SHIFT;
-> +		if (p->trigger[FLASH2] & MAX77693_LED_TRIG_EXT)
-> +			v |= MAX77693_FLASH_EN_FLASH << MAX77693_FLASH_EN2_SHIFT;
-> +		/*
-> +		 * Enable hw triggering also for torch mode, as some camera
-> +		 * sensors use torch led to fathom ambient light conditions
-> +		 * before strobing the flash.
-> +		 */
-> +		if (p->trigger[TORCH1] & MAX77693_LED_TRIG_EXT)
-> +			v |= MAX77693_FLASH_EN_TORCH << MAX77693_TORCH_EN1_SHIFT;
-> +		if (p->trigger[TORCH2] & MAX77693_LED_TRIG_EXT)
-> +			v |= MAX77693_FLASH_EN_TORCH << MAX77693_TORCH_EN2_SHIFT;
-> +	}
-> +
-> +	/* Reset the register only prior setting flash modes */
-> +	if (mode != MAX77693_MODE_TORCH) {
-> +		ret = max77693_write_reg(rmap, MAX77693_LED_REG_FLASH_EN, 0);
-
-A single wrie for strobe. Looks good!
-
-> +		if (ret < 0)
-> +			return ret;
-> +	}
-> +
-> +	return max77693_write_reg(rmap, MAX77693_LED_REG_FLASH_EN, v);
-> +}
-> +
-> +static int max77693_add_mode(struct max77693_led *led, unsigned int mode)
-> +{
-> +	int ret;
-> +
-> +	/* Once enabled torch mode is active until turned off */
-> +	if ((mode == MAX77693_MODE_TORCH) &&
-> +	    (led->mode_flags & MAX77693_MODE_TORCH))
-> +		return 0;
-> +
-> +	/*
-> +	 * FLASH_EXTERNAL mode activates HW triggered flash and torch
-> +	 * modes in the device. The related register settings interfere
-> +	 * with SW triggerred modes, thus clear them to ensure proper
-> +	 * device configuration.
-> +	 */
-> +	if (mode == MAX77693_MODE_FLASH_EXTERNAL)
-> +		led->mode_flags &= (~MAX77693_MODE_TORCH &
-> +				    ~MAX77693_MODE_FLASH);
-> +
-> +	led->mode_flags |= mode;
-> +
-> +	ret = max77693_set_mode(led, led->mode_flags);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	/*
-> +	 * Clear flash mode flag after setting the mode to avoid
-> +	 * spurous flash strobing on each successive torch mode
-> +	 * setting.
-> +	 */
-> +	if ((mode == MAX77693_MODE_FLASH) ||
-> +	    (mode == MAX77693_MODE_FLASH_EXTERNAL))
-> +		led->mode_flags &= ~mode;
-> +
-> +	return 0;
-> +}
-> +
-> +static int max77693_clear_mode(struct max77693_led *led, unsigned int mode)
-> +{
-> +	led->mode_flags &= ~mode;
-> +
-> +	return max77693_set_mode(led, led->mode_flags);
-> +}
-> +
-> +static int max77693_set_torch_current(struct max77693_led *led,
-> +					u32 micro_amp)
-> +{
-> +	struct max77693_led_platform_data *p = led->pdata;
-> +	struct regmap *rmap = led->regmap;
-> +	u32 iout[2];
-> +	u8 v, iout1_reg, iout2_reg;
-> +	int ret;
-> +
-> +	max77693_calc_iout(iout, micro_amp, &p->iout[TORCH1]);
-> +	iout1_reg = max77693_led_iout_to_reg(iout[0]);
-> +	iout2_reg = max77693_led_iout_to_reg(iout[1]);
-> +
-> +	v = iout1_reg | (iout2_reg << MAX77693_TORCH_IOUT_BITS);
-> +	ret = max77693_write_reg(rmap, MAX77693_LED_REG_ITORCH, v);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return 0;
-> +}
-> +
-> +static int max77693_set_flash_current(struct max77693_led *led,
-> +					u32 micro_amp)
-> +{
-> +	struct max77693_led_platform_data *p = led->pdata;
-> +	struct regmap *rmap = led->regmap;
-> +	u32 iout[2];
-> +	u8 iout1_reg, iout2_reg;
-> +	int ret;
-> +
-> +	max77693_calc_iout(iout, micro_amp, &p->iout[FLASH1]);
-> +	iout1_reg = max77693_led_iout_to_reg(iout[0]);
-> +	iout2_reg = max77693_led_iout_to_reg(iout[1]);
-> +
-> +	ret = max77693_write_reg(rmap, MAX77693_LED_REG_IFLASH1, iout1_reg);
-> +	if (ret < 0)
-> +		goto error_ret;
-> +	ret = max77693_write_reg(rmap, MAX77693_LED_REG_IFLASH2, iout2_reg);
-> +	if (ret < 0)
-> +		goto error_ret;
-> +
-> +error_ret:
-> +	return ret;
-> +}
-> +
-> +static int max77693_set_timeout(struct max77693_led *led,
-> +				u32 timeout)
-> +{
-> +	struct max77693_led_platform_data *p = led->pdata;
-> +	struct regmap *rmap = led->regmap;
-> +	u8 v;
-> +
-> +	v = max77693_flash_timeout_to_reg(timeout);
-> +
-> +	if (p->trigger_type[FLASH] == MAX77693_LED_TRIG_TYPE_LEVEL)
-> +		v |= MAX77693_FLASH_TIMER_LEVEL;
-> +
-> +	return max77693_write_reg(rmap, MAX77693_LED_REG_FLASH_TIMER, v);
-> +}
-> +
-> +static int max77693_strobe_status_get(struct max77693_led *led)
-> +{
-> +	struct regmap *rmap = led->regmap;
-> +	u8 v;
-> +	int ret;
-> +
-> +	ret = max77693_read_reg(rmap, MAX77693_LED_REG_FLASH_INT_STATUS, &v);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return !!(v & MAX77693_LED_STATUS_FLASH_ON);
-> +}
-> +
-> +static int max77693_int_flag_get(struct max77693_led *led, u8 *v)
-> +{
-> +	struct regmap *rmap = led->regmap;
-> +
-> +	return max77693_read_reg(rmap, MAX77693_LED_REG_FLASH_INT, v);
-> +}
-> +
-> +static int max77693_setup(struct max77693_led *led)
-> +{
-> +	struct max77693_led_platform_data *p = led->pdata;
-> +	struct regmap *rmap = led->regmap;
-> +	int ret;
-> +	u8 v;
-> +
-> +	ret = max77693_set_torch_current(led, p->iout[TORCH1] +
-> +						p->iout[TORCH2]);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = max77693_set_flash_current(led, p->iout[FLASH1] +
-> +						p->iout[FLASH2]);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	if (p->timeout[TORCH] > 0)
-> +		v = max77693_torch_timeout_to_reg(p->timeout[TORCH]);
-> +	else
-> +		v = MAX77693_TORCH_NO_TIMER;
-> +	if (p->trigger_type[TORCH] == MAX77693_LED_TRIG_TYPE_LEVEL)
-> +		v |= MAX77693_FLASH_TIMER_LEVEL;
-> +	ret = max77693_write_reg(rmap, MAX77693_LED_REG_ITORCHTIMER, v);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	v = max77693_flash_timeout_to_reg(p->timeout[FLASH]);
-> +	if (p->trigger_type[FLASH] == MAX77693_LED_TRIG_TYPE_LEVEL)
-> +		v |= MAX77693_FLASH_TIMER_LEVEL;
-> +	ret = max77693_write_reg(rmap, MAX77693_LED_REG_FLASH_TIMER, v);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	if (p->low_vsys > 0)
-> +		v = max77693_led_vsys_to_reg(p->low_vsys) |
-> +						MAX77693_FLASH_LOW_BATTERY_EN;
-> +	else
-> +		v = 0;
-> +
-> +	ret = max77693_write_reg(rmap, MAX77693_LED_REG_MAX_FLASH1, v);
-> +	if (ret < 0)
-> +		return ret;
-> +	ret = max77693_write_reg(rmap, MAX77693_LED_REG_MAX_FLASH2, 0);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	if (p->boost_mode[FLASH1] == MAX77693_LED_BOOST_FIXED ||
-> +	    p->boost_mode[FLASH2] == MAX77693_LED_BOOST_FIXED)
-> +		v = MAX77693_FLASH_BOOST_FIXED;
-> +	else
-> +		v = p->boost_mode[FLASH1] | (p->boost_mode[FLASH2] << 1);
-> +	if (p->boost_mode[FLASH1] && p->boost_mode[FLASH2])
-> +		v |= MAX77693_FLASH_BOOST_LEDNUM_2;
-> +	ret = max77693_write_reg(rmap, MAX77693_LED_REG_VOUT_CNTL, v);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	v = max77693_led_vout_to_reg(p->boost_vout);
-> +	ret = max77693_write_reg(rmap, MAX77693_LED_REG_VOUT_FLASH1, v);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return max77693_set_mode(led, MAX77693_MODE_OFF);
-> +}
-> +
-> +/* LED subsystem callbacks */
-> +
-> +static void max77693_brightness_set_work(struct work_struct *work)
-> +{
-> +	struct max77693_led *led =
-> +		container_of(work, struct max77693_led, work_brightness_set);
-> +	int ret;
-> +
-> +	mutex_lock(&led->lock);
-> +
-> +	if (led->torch_brightness == 0) {
-> +		ret = max77693_clear_mode(led, MAX77693_MODE_TORCH);
-> +		if (ret < 0)
-> +			dev_dbg(&led->pdev->dev,
-> +				"Failed to clear torch mode (%d)\n",
-> +				ret);
-> +		goto unlock;
-> +	}
-> +
-> +	ret = max77693_set_torch_current(led, led->torch_brightness *
-> +						MAX77693_TORCH_IOUT_STEP);
-> +	if (ret < 0) {
-> +		dev_dbg(&led->pdev->dev, "Failed to set torch current (%d)\n",
-> +			ret);
-> +		goto unlock;
-> +	}
-> +
-> +	ret = max77693_add_mode(led, MAX77693_MODE_TORCH);
-> +	if (ret < 0)
-> +		dev_dbg(&led->pdev->dev, "Failed to set torch mode (%d)\n",
-> +			ret);
-> +unlock:
-> +	mutex_unlock(&led->lock);
-> +}
-> +
-> +static void max77693_led_brightness_set(struct led_classdev *led_cdev,
-> +				enum led_brightness value)
-> +{
-> +	struct max77693_led *led = ldev_to_led(led_cdev);
-> +
-> +	led->torch_brightness = value;
-> +	schedule_work(&led->work_brightness_set);
-
-Is there a reason not to do this right now (but in a work queue instead)?
-
-> +}
-> +
-> +static int max77693_led_flash_strobe_get(struct led_classdev *led_cdev)
-> +{
-> +	struct max77693_led *led = ldev_to_led(led_cdev);
-> +	int ret;
-> +
-> +	mutex_lock(&led->lock);
-> +	ret = max77693_strobe_status_get(led);
-> +	mutex_unlock(&led->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static int max77693_led_flash_fault_get(struct led_classdev *led_cdev,
-> +					u32 *fault)
-> +{
-> +	struct max77693_led *led = ldev_to_led(led_cdev);
-> +	u8 v;
-> +	int ret;
-> +
-> +	mutex_lock(&led->lock);
-> +
-> +	ret = max77693_int_flag_get(led, &v);
-> +	if (ret < 0)
-> +		goto unlock;
-> +
-> +	*fault = 0;
-> +
-> +	if (v & MAX77693_LED_FLASH_INT_FLED2_OPEN ||
-> +	    v & MAX77693_LED_FLASH_INT_FLED1_OPEN)
-> +		*fault |= LED_FAULT_OVER_VOLTAGE;
-> +	if (v & MAX77693_LED_FLASH_INT_FLED2_SHORT ||
-> +	    v & MAX77693_LED_FLASH_INT_FLED1_SHORT)
-> +		*fault |= LED_FAULT_SHORT_CIRCUIT;
-> +	if (v & MAX77693_LED_FLASH_INT_OVER_CURRENT)
-> +		*fault |= LED_FAULT_OVER_CURRENT;
-> +unlock:
-> +	mutex_unlock(&led->lock);
-> +	return ret;
-> +}
-> +
-> +static int max77693_led_flash_strobe_set(struct led_classdev *led_cdev,
-> +						bool state)
-> +{
-> +	struct max77693_led *led = ldev_to_led(led_cdev);
-> +	struct led_flash *flash = led_cdev->flash;
-> +	int ret;
-> +
-> +	mutex_lock(&led->lock);
-> +
-> +	if (flash->external_strobe) {
-> +		ret = -EBUSY;
-> +		goto unlock;
-> +	}
-> +
-> +	if (!state) {
-> +		ret = max77693_clear_mode(led, MAX77693_MODE_FLASH);
-> +		goto unlock;
-> +	}
-> +
-> +	ret = max77693_add_mode(led, MAX77693_MODE_FLASH);
-> +	if (ret < 0)
-> +		goto unlock;
-> +unlock:
-> +	mutex_unlock(&led->lock);
-> +	return ret;
-> +}
-> +
-> +static int max77693_led_external_strobe_set(struct led_classdev *led_cdev,
-> +						bool enable)
-> +{
-> +	struct max77693_led *led = ldev_to_led(led_cdev);
-> +	int ret;
-> +
-> +	mutex_lock(&led->lock);
-> +
-> +	if (enable)
-> +		ret = max77693_add_mode(led, MAX77693_MODE_FLASH_EXTERNAL);
-> +	else
-> +		ret = max77693_clear_mode(led, MAX77693_MODE_FLASH_EXTERNAL);
-> +
-> +	mutex_unlock(&led->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static int max77693_led_flash_brightness_set(struct led_classdev *led_cdev,
-> +						u32 brightness)
-> +{
-> +	struct max77693_led *led = ldev_to_led(led_cdev);
-> +	int ret;
-> +
-> +	mutex_lock(&led->lock);
-> +
-> +	ret = max77693_set_flash_current(led, brightness);
-> +	if (ret < 0)
-> +		goto unlock;
-> +unlock:
-> +	mutex_unlock(&led->lock);
-> +	return ret;
-> +}
-> +
-> +static int max77693_led_flash_timeout_set(struct led_classdev *led_cdev,
-> +						u32 timeout)
-> +{
-> +	struct max77693_led *led = ldev_to_led(led_cdev);
-> +	int ret;
-> +
-> +	mutex_lock(&led->lock);
-> +
-> +	ret = max77693_set_timeout(led, timeout);
-> +	if (ret < 0)
-> +		goto unlock;
-> +
-> +unlock:
-> +	mutex_unlock(&led->lock);
-> +	return ret;
-> +}
-> +
-> +static void max77693_led_parse_dt(struct max77693_led_platform_data *p,
-> +			    struct device_node *node)
-> +{
-> +	of_property_read_u32_array(node, "maxim,iout", p->iout, 4);
-
-How about separate current for flash and torch modes? They are the same
-LEDs; just the mode is different.
-
-> +	of_property_read_u32_array(node, "maxim,trigger", p->trigger, 4);
-> +	of_property_read_u32_array(node, "maxim,trigger-type", p->trigger_type,
-> +									2);
-> +	of_property_read_u32_array(node, "maxim,timeout", p->timeout, 2);
-> +	of_property_read_u32_array(node, "maxim,boost-mode", p->boost_mode, 2);
-> +	of_property_read_u32(node, "maxim,boost-vout", &p->boost_vout);
-> +	of_property_read_u32(node, "maxim,vsys-min", &p->low_vsys);
-
-Are these values specific to the maxim chip? I'd suppose e.g. timeout and
-iout are something that can be found pretty much in any flash controller.
-
-> +}
-> +
-> +static void clamp_align(u32 *v, u32 min, u32 max, u32 step)
-> +{
-> +	*v = clamp_val(*v, min, max);
-> +	if (step > 1)
-> +		*v = (*v - min) / step * step + min;
-> +}
-> +
-> +static void max77693_led_validate_platform_data(
-> +					struct max77693_led_platform_data *p)
-> +{
-> +	u32 max;
-> +	int i;
-> +
-> +	for (i = 0; i < 2; ++i)
-
-How about using ARRAY_SIZE() here, too?
-
-> +		clamp_align(&p->boost_mode[i], MAX77693_LED_BOOST_NONE,
-> +			    MAX77693_LED_BOOST_FIXED, 1);
-> +	/* boost, if enabled, should be the same on both leds */
-> +	if (p->boost_mode[0] != MAX77693_LED_BOOST_NONE &&
-> +	    p->boost_mode[1] != MAX77693_LED_BOOST_NONE)
-> +		p->boost_mode[1] = p->boost_mode[0];
-> +
-> +	max = (p->boost_mode[FLASH1] && p->boost_mode[FLASH2]) ?
-> +		  MAX77693_FLASH_IOUT_MAX_2LEDS : MAX77693_FLASH_IOUT_MAX_1LED;
-> +
-> +	clamp_align(&p->iout[FLASH1], MAX77693_FLASH_IOUT_MIN,
-> +		    max, MAX77693_FLASH_IOUT_STEP);
-> +	clamp_align(&p->iout[FLASH2], MAX77693_FLASH_IOUT_MIN,
-> +		    max, MAX77693_FLASH_IOUT_STEP);
-> +	clamp_align(&p->iout[TORCH1], MAX77693_TORCH_IOUT_MIN,
-> +		    MAX77693_TORCH_IOUT_MAX, MAX77693_TORCH_IOUT_STEP);
-> +	clamp_align(&p->iout[TORCH2], MAX77693_TORCH_IOUT_MIN,
-> +		    MAX77693_TORCH_IOUT_MAX, MAX77693_TORCH_IOUT_STEP);
-> +
-> +	for (i = 0; i < 4; ++i)
-> +		clamp_align(&p->trigger[i], 0, 7, 1);
-> +	for (i = 0; i < 2; ++i)
-> +		clamp_align(&p->trigger_type[i], MAX77693_LED_TRIG_TYPE_EDGE,
-> +			    MAX77693_LED_TRIG_TYPE_LEVEL, 1);
-
-ARRAY_SIZE() would be nicer than using numeric values for the loop
-condition.
-
-> +	clamp_align(&p->timeout[FLASH], MAX77693_FLASH_TIMEOUT_MIN,
-> +		    MAX77693_FLASH_TIMEOUT_MAX, MAX77693_FLASH_TIMEOUT_STEP);
-> +
-> +	if (p->timeout[TORCH]) {
-> +		clamp_align(&p->timeout[TORCH], MAX77693_TORCH_TIMEOUT_MIN,
-> +			    MAX77693_TORCH_TIMEOUT_MAX, 1);
-> +		p->timeout[TORCH] = max77693_torch_timeout_from_reg(
-> +			      max77693_torch_timeout_to_reg(p->timeout[TORCH]));
-> +	}
-> +
-> +	clamp_align(&p->boost_vout, MAX77693_FLASH_VOUT_MIN,
-> +		    MAX77693_FLASH_VOUT_MAX, MAX77693_FLASH_VOUT_STEP);
-> +
-> +	if (p->low_vsys) {
-> +		clamp_align(&p->low_vsys, MAX77693_FLASH_VSYS_MIN,
-> +			    MAX77693_FLASH_VSYS_MAX, MAX77693_FLASH_VSYS_STEP);
-> +	}
-> +}
-> +
-> +static int max77693_led_get_platform_data(struct max77693_led *led)
-> +{
-> +	struct max77693_led_platform_data *p;
-> +	struct device *dev = &led->pdev->dev;
-> +
-> +	if (dev->of_node) {
-> +		p = devm_kzalloc(dev, sizeof(*led->pdata), GFP_KERNEL);
-> +		if (!p)
-> +			return -ENOMEM;
-
-Check for p can be moved out of the if as it's the same for both.
-
-You could also use led->pdata directly. Up to you.
-
-> +		max77693_led_parse_dt(p, dev->of_node);
-> +	} else {
-> +		p = dev_get_platdata(dev);
-> +		if (!p)
-> +			return -ENODEV;
-> +	}
-> +	led->pdata = p;
-> +
-> +	max77693_led_validate_platform_data(p);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct led_flash led_flash = {
-> +	.ops = {
-> +		.brightness_set		= max77693_led_flash_brightness_set,
-> +		.strobe_set		= max77693_led_flash_strobe_set,
-> +		.strobe_get		= max77693_led_flash_strobe_get,
-> +		.timeout_set		= max77693_led_flash_timeout_set,
-> +		.external_strobe_set	= max77693_led_external_strobe_set,
-> +		.fault_get		= max77693_led_flash_fault_get,
-> +	},
-> +	.has_flash_led = true,
-> +};
-> +
-> +static void max77693_init_led_controls(struct led_classdev *led_cdev,
-> +					struct max77693_led_platform_data *p)
-> +{
-> +	struct led_flash *flash = led_cdev->flash;
-> +	struct led_ctrl *c;
-> +
-> +	/*
-> +	 * brightness_ctrl and fault_flags are used only
-> +	 * for initializing related V4L2 controls.
-> +	 */
-> +#ifdef CONFIG_V4L2_FLASH
-> +	flash->fault_flags = V4L2_FLASH_FAULT_OVER_VOLTAGE |
-> +			     V4L2_FLASH_FAULT_SHORT_CIRCUIT |
-> +			     V4L2_FLASH_FAULT_OVER_CURRENT;
-> +
-> +	c = &led_cdev->brightness_ctrl;
-> +	c->min = (p->iout[TORCH1] != 0 && p->iout[TORCH2] != 0) ?
-> +					MAX77693_TORCH_IOUT_MIN * 2 :
-> +					MAX77693_TORCH_IOUT_MIN;
-> +	c->max = p->iout[TORCH1] + p->iout[TORCH2];
-> +	c->step = MAX77693_TORCH_IOUT_STEP;
-> +	c->val = p->iout[TORCH1] + p->iout[TORCH2];
-
-Can you control the current for the two flash LEDs separately? If yes, this
-should be also available on the V4L2 flash API. The lm3560 driver does this,
-for example. (It creates two sub-devices since we can only control a single
-LED using a single sub-device, at least for the time being.)
-
-> +#endif
-> +
-> +	c = &flash->brightness;
-> +	c->min = (p->iout[FLASH1] != 0 && p->iout[FLASH2] != 0) ?
-> +					MAX77693_FLASH_IOUT_MIN * 2 :
-> +					MAX77693_FLASH_IOUT_MIN;
-> +	c->max = p->iout[FLASH1] + p->iout[FLASH2];
-> +	c->step = MAX77693_FLASH_IOUT_STEP;
-> +	c->val = p->iout[FLASH1] + p->iout[FLASH2];
-> +
-> +	c = &flash->timeout;
-> +	c->min = MAX77693_FLASH_TIMEOUT_MIN;
-> +	c->max = MAX77693_FLASH_TIMEOUT_MAX;
-> +	c->step = MAX77693_FLASH_TIMEOUT_STEP;
-> +	c->val = p->timeout[FLASH];
-> +
-> +}
-> +
-> +static int max77693_led_probe(struct platform_device *pdev)
-> +{
-> +	struct device *dev = &pdev->dev;
-> +	struct max77693_dev *iodev = dev_get_drvdata(dev->parent);
-> +	struct max77693_led *led;
-> +	struct max77693_led_platform_data *p;
-> +	struct led_classdev *led_cdev;
-> +	int ret;
-> +
-> +	led = devm_kzalloc(dev, sizeof(*led), GFP_KERNEL);
-> +	if (!led)
-> +		return -ENOMEM;
-> +
-> +	led->pdev = pdev;
-> +	led_cdev = &led->ldev;
-> +	led->regmap = iodev->regmap;
-> +	platform_set_drvdata(pdev, led);
-> +	ret = max77693_led_get_platform_data(led);
-> +	if (ret < 0)
-> +		return -EINVAL;
-> +	p = led->pdata;
-> +
-> +	mutex_init(&led->lock);
-> +
-> +	INIT_WORK(&led->work_brightness_set, max77693_brightness_set_work);
-> +
-> +	/* LED class device initialization */
-> +	led_cdev->name = MAX77693_LED_NAME;
-> +	led_cdev->brightness_set = max77693_led_brightness_set;
-> +	led_cdev->max_brightness = (p->iout[TORCH1] + p->iout[TORCH2]) /
-> +						MAX77693_TORCH_IOUT_STEP;
-> +
-> +	if ((p->trigger[FLASH1] & MAX77693_LED_TRIG_FLASH) ||
-> +	    (p->trigger[FLASH2] & MAX77693_LED_TRIG_FLASH))
-> +		led_flash.has_external_strobe = true;
-> +	led_cdev->flash = &led_flash;
-> +
-> +	max77693_init_led_controls(led_cdev, p);
-> +
-> +	/* Register in the LED subsystem. */
-> +	ret = led_classdev_flash_register(&pdev->dev, led_cdev);
-> +	if (ret < 0)
-
-mutex_destroy()?
-
-> +		return -EINVAL;
-> +
-> +	ret = max77693_setup(led);
-
-Do you intentionally ignore the return value?
-
-> +	return 0;
-> +}
-> +
-> +static int max77693_led_remove(struct platform_device *pdev)
-> +{
-> +	struct max77693_led *led = platform_get_drvdata(pdev);
-> +
-> +	led_classdev_flash_unregister(&led->ldev);
-
-mutex_destroy()?
-
-> +	return 0;
-> +}
-> +
-> +static struct of_device_id max77693_led_dt_match[] = {
-> +	{.compatible = "maxim,max77693-flash"},
-> +	{},
-> +};
-> +
-> +static struct platform_driver max77693_led_driver = {
-> +	.probe		= max77693_led_probe,
-> +	.remove		= max77693_led_remove,
-> +	.driver		= {
-> +		.name	= "max77693-flash",
-> +		.owner	= THIS_MODULE,
-> +		.of_match_table = max77693_led_dt_match,
-> +	},
-> +};
-> +
-> +module_platform_driver(max77693_led_driver);
-> +
-> +MODULE_AUTHOR("Andrzej Hajda <a.hajda@samsung.com>");
-> +MODULE_AUTHOR("Jacek Anaszewski <j.anaszewski@samsung.com>");
-> +MODULE_DESCRIPTION("Maxim MAX77693 led flash driver");
-> +MODULE_LICENSE("GPL");
-> diff --git a/drivers/mfd/max77693.c b/drivers/mfd/max77693.c
-> index c5535f0..f061aa8 100644
-> --- a/drivers/mfd/max77693.c
-> +++ b/drivers/mfd/max77693.c
-> @@ -44,7 +44,7 @@
->  static const struct mfd_cell max77693_devs[] = {
->  	{ .name = "max77693-pmic", },
->  	{ .name = "max77693-charger", },
-> -	{ .name = "max77693-flash", },
-> +	{ .name = "max77693-flash", .of_compatible = "maxim,max77693-flash", },
->  	{ .name = "max77693-muic", },
->  	{ .name = "max77693-haptic", },
->  };
-> diff --git a/include/linux/mfd/max77693.h b/include/linux/mfd/max77693.h
-> index 3f3dc45..f2285b7 100644
-> --- a/include/linux/mfd/max77693.h
-> +++ b/include/linux/mfd/max77693.h
-> @@ -63,6 +63,43 @@ struct max77693_muic_platform_data {
->  	int path_uart;
->  };
->  
-> +/* MAX77693 led flash */
-> +
-> +/* triggers */
-> +enum max77693_led_trigger {
-> +	MAX77693_LED_TRIG_OFF,
-> +	MAX77693_LED_TRIG_FLASH,
-> +	MAX77693_LED_TRIG_TORCH,
-> +	MAX77693_LED_TRIG_EXT,
-> +	MAX77693_LED_TRIG_SOFT,
-> +};
-> +
-> +
-> +/* trigger types */
-> +enum max77693_led_trigger_type {
-> +	MAX77693_LED_TRIG_TYPE_EDGE,
-> +	MAX77693_LED_TRIG_TYPE_LEVEL,
-> +};
-> +
-> +/* boost modes */
-> +enum max77693_led_boost_mode {
-> +	MAX77693_LED_BOOST_NONE,
-> +	MAX77693_LED_BOOST_ADAPTIVE,
-> +	MAX77693_LED_BOOST_FIXED,
-> +};
-> +
-> +struct max77693_led_platform_data {
-> +	u32 iout[4];
-> +	u32 trigger[4];
-> +	u32 trigger_type[2];
-> +	u32 timeout[2];
-> +	u32 boost_mode[2];
-> +	u32 boost_vout;
-> +	u32 low_vsys;
-> +};
-> +
-> +/* MAX77693 */
-> +
->  struct max77693_platform_data {
->  	/* regulator data */
->  	struct max77693_regulator_data *regulators;
-> @@ -70,5 +107,6 @@ struct max77693_platform_data {
->  
->  	/* muic data */
->  	struct max77693_muic_platform_data *muic_data;
-> +	struct max77693_led_platform_data *led_data;
->  };
->  #endif	/* __LINUX_MFD_MAX77693_H */
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
