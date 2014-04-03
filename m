@@ -1,53 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailex.mailcore.me ([94.136.40.62]:60986 "EHLO
-	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751040AbaDOSpE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 14:45:04 -0400
-Message-ID: <534D7E24.4010602@sca-uk.com>
-Date: Tue, 15 Apr 2014 19:44:52 +0100
-From: Steve Cookson <it@sca-uk.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Steven Toth <stoth@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Hauppauge ImpactVCB-e 01385
-References: <534675E1.6050408@sca-uk.com> <5347B132.6040206@sca-uk.com> <5347B9A3.2050301@xs4all.nl> <5347BDDE.6080208@sca-uk.com> <5347C57B.7000207@xs4all.nl> <5347DD94.1070000@sca-uk.com> <5347E2AF.6030205@xs4all.nl> <5347EB5D.2020408@sca-uk.com> <5347EC3D.7040107@xs4all.nl> <5348392E.40808@sca-uk.com> <534BEA8A.2040604@xs4all.nl> <534D6241.5060903@sca-uk.com> <534D68C2.6050902@xs4all.nl>
-In-Reply-To: <534D68C2.6050902@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52433 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753803AbaDCWiO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 23/25] v4l: vb2: Add a function to discard all DONE buffers
+Date: Fri,  4 Apr 2014 00:39:53 +0200
+Message-Id: <1396564795-27192-24-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+When suspending a device while a video stream is active all buffers
+marked as done but not dequeued yet will be kept across suspend and
+given back to userspace after resume. This will result in outdated
+buffers being dequeued.
 
-On 15/04/14 18:13, Hans Verkuil wrote:
-> You may have to do a 'depmod -a' here. Try that first.
-I tried that.  It worked fine.  No more error messages from
+Introduce a new vb2 function to mark all done buffers as erroneous
+instead, to be used by drivers at resume time.
 
-make -C .. rmmod
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 24 ++++++++++++++++++++++++
+ include/media/videobuf2-core.h           |  1 +
+ 2 files changed, 25 insertions(+)
 
->> >11    tried to modprobe cx23885, but got "invalid agrgument"
-> Somewhat strange error message. Does 'dmesg' give you any useful info?
-However this error message is the same.  It actually:
-
-ERROR: could not insert 'cx23885': Invalid argument
-If I do a search for cx23885.ko, I find one that I have just created.  
-If I cd to that directory and modprobe ./cx23885 I get no error messages.
-
-However, lsmod | grep -i cx only finds cx2341x.
-
-Dmesg continues to give:
-
-[   13.237914] cx23885: disagrees about version of symbol altera_init
-[   13.237917] cx23885: Unknown symbol altera_init (err -22)
-
-altera_ci.ko is the only other file in 
-/lib/modules/3.11.0-18-generic/kernel/drivers/media/pci/cx23885/*
-
-Regards
-
-Steve
-
-
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index f9059bb..6ab13b7 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1131,6 +1131,30 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ EXPORT_SYMBOL_GPL(vb2_buffer_done);
+ 
+ /**
++ * vb2_discard_done() - discard all buffers marked as DONE
++ * @q:		videobuf2 queue
++ *
++ * This function is intended to be used with suspend/resume operations. It
++ * discards all 'done' buffers as they would be too old to be requested after
++ * resume.
++ *
++ * Drivers must stop the hardware and synchronize with interrupt handlers and/or
++ * delayed works before calling this function to make sure no buffer will be
++ * touched by the driver and/or hardware.
++ */
++void vb2_discard_done(struct vb2_queue *q)
++{
++	struct vb2_buffer *vb;
++	unsigned long flags;
++
++	spin_lock_irqsave(&q->done_lock, flags);
++	list_for_each_entry(vb, &q->done_list, done_entry)
++		vb->state = VB2_BUF_STATE_ERROR;
++	spin_unlock_irqrestore(&q->done_lock, flags);
++}
++EXPORT_SYMBOL_GPL(vb2_discard_done);
++
++/**
+  * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
+  * v4l2_buffer by the userspace. The caller has already verified that struct
+  * v4l2_buffer has a valid number of planes.
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index af46211..2c2f23b 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -429,6 +429,7 @@ void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no);
+ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no);
+ 
+ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state);
++void vb2_discard_done(struct vb2_queue *q);
+ int vb2_wait_for_all_buffers(struct vb2_queue *q);
+ 
+ int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b);
+-- 
+1.8.3.2
 
