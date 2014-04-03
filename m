@@ -1,68 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52434 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753939AbaDCWiK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from hardeman.nu ([95.142.160.32]:40276 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753803AbaDCXbw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 19:31:52 -0400
+Subject: [PATCH 07/49] dib0700: NEC scancode cleanup
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
 To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 17/25] omap3isp: queue: Use sg_alloc_table_from_pages()
-Date: Fri,  4 Apr 2014 00:39:47 +0200
-Message-Id: <1396564795-27192-18-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: m.chehab@samsung.com
+Date: Fri, 04 Apr 2014 01:31:51 +0200
+Message-ID: <20140403233151.27099.43998.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the custom implementation with a call to the scatterlist helper
-function.
+the RC RX packet is defined as:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+        struct dib0700_rc_response {
+		...
+                                u8 not_system;
+                                u8 system;
+		...
+                u8 data;
+                u8 not_data;
+
+The NEC protocol transmits in the order:
+        system
+        not_system
+        data
+        not_data
+
+Note that the code defines the NEC extended scancode as:
+
+        scancode = be16_to_cpu(poll_reply->system16) << 8 | poll_reply->data;
+
+i.e.
+
+        scancode = poll_reply->not_system << 16 |
+                   poll_reply->system     << 8  |
+                   poll_reply->data;
+
+Which, if the order *is* reversed, would mean that the scancode that
+gets defined is in reality:
+
+        scancode = poll_reply->system     << 16 |
+                   poll_reply->not_system << 8  |
+                   poll_reply->data;
+
+Which is the same as the order used in drivers/media/rc/ir-nec-decoder.c.
+
+This patch changes the code to match my assumption (the generated scancode
+should, however, not change).
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
+CC: Patrick Boettcher <pboettcher@kernellabs.com>
 ---
- drivers/media/platform/omap3isp/ispqueue.c | 16 ++--------------
- 1 file changed, 2 insertions(+), 14 deletions(-)
+ drivers/media/usb/dvb-usb/dib0700_core.c |   28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
-index 4a271c7..cee1b5d 100644
---- a/drivers/media/platform/omap3isp/ispqueue.c
-+++ b/drivers/media/platform/omap3isp/ispqueue.c
-@@ -233,12 +233,10 @@ static void isp_video_buffer_cleanup(struct isp_video_buffer *buf)
-  */
- static int isp_video_buffer_prepare_user(struct isp_video_buffer *buf)
- {
--	struct scatterlist *sg;
- 	unsigned int offset;
- 	unsigned long data;
- 	unsigned int first;
- 	unsigned int last;
--	unsigned int i;
- 	int ret;
+diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
+index 6afe7ea..0d881b9 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_core.c
++++ b/drivers/media/usb/dvb-usb/dib0700_core.c
+@@ -658,13 +658,8 @@ out:
+ struct dib0700_rc_response {
+ 	u8 report_id;
+ 	u8 data_state;
+-	union {
+-		u16 system16;
+-		struct {
+-			u8 not_system;
+-			u8 system;
+-		};
+-	};
++	u8 system;
++	u8 not_system;
+ 	u8 data;
+ 	u8 not_data;
+ };
+@@ -712,20 +707,27 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+ 		toggle = 0;
  
- 	data = buf->vbuf.m.userptr;
-@@ -267,21 +265,11 @@ static int isp_video_buffer_prepare_user(struct isp_video_buffer *buf)
- 	if (ret < 0)
- 		return ret;
+ 		/* NEC protocol sends repeat code as 0 0 0 FF */
+-		if ((poll_reply->system == 0x00) && (poll_reply->data == 0x00)
+-		    && (poll_reply->not_data == 0xff)) {
++		if (poll_reply->system     == 0x00 &&
++		    poll_reply->not_system == 0x00 &&
++		    poll_reply->data       == 0x00 &&
++		    poll_reply->not_data   == 0xff) {
+ 			poll_reply->data_state = 2;
+ 			break;
+ 		}
  
--	ret = sg_alloc_table(&buf->sgt, buf->npages, GFP_KERNEL);
-+	ret = sg_alloc_table_from_pages(&buf->sgt, buf->pages, buf->npages,
-+					offset, buf->vbuf.length, GFP_KERNEL);
- 	if (ret < 0)
- 		return ret;
- 
--	for (sg = buf->sgt.sgl, i = 0; i < buf->npages; ++i) {
--		if (PageHighMem(buf->pages[i])) {
--			sg_free_table(&buf->sgt);
--			return -EINVAL;
--		}
--
--		sg_set_page(sg, buf->pages[i], PAGE_SIZE - offset, offset);
--		sg = sg_next(sg);
--		offset = 0;
--	}
--
- 	return 0;
- }
- 
--- 
-1.8.3.2
+-		if ((poll_reply->system ^ poll_reply->not_system) != 0xff) {
++		if ((poll_reply->data ^ poll_reply->not_data) != 0xff) {
++			deb_data("NEC32 protocol\n");
++			scancode = RC_SCANCODE_NEC32(poll_reply->system     << 24 |
++						     poll_reply->not_system << 16 |
++						     poll_reply->data       << 8  |
++						     poll_reply->not_data);
++		} else if ((poll_reply->system ^ poll_reply->not_system) != 0xff) {
+ 			deb_data("NEC extended protocol\n");
+-			/* NEC extended code - 24 bits */
+-			scancode = RC_SCANCODE_NECX(be16_to_cpu(poll_reply->system16),
++			scancode = RC_SCANCODE_NECX(poll_reply->system << 8 |
++						    poll_reply->not_system,
+ 						    poll_reply->data);
+ 		} else {
+ 			deb_data("NEC normal protocol\n");
+-			/* normal NEC code - 16 bits */
+ 			scancode = RC_SCANCODE_NEC(poll_reply->system,
+ 						   poll_reply->data);
+ 		}
 
