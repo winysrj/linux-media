@@ -1,73 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51436 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753908AbaDUSfS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Apr 2014 14:35:18 -0400
-Message-ID: <535564D6.7030904@redhat.com>
-Date: Mon, 21 Apr 2014 20:35:02 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Andrey Volkov <volkov.am@ekb-info.ru>, linux-media@vger.kernel.org
-CC: Gregor Jasny <gjasny@googlemail.com>
-Subject: Re: [Bugreport] v4l-utils/libv4lconvert/ov511-decomp does not shutdown
- on SIGTERM
-References: <20140421191114.391d005d@axid.nolty.ru>
-In-Reply-To: <20140421191114.391d005d@axid.nolty.ru>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52434 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753939AbaDCWiK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 17/25] omap3isp: queue: Use sg_alloc_table_from_pages()
+Date: Fri,  4 Apr 2014 00:39:47 +0200
+Message-Id: <1396564795-27192-18-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Replace the custom implementation with a call to the scatterlist helper
+function.
 
-Thanks for the bug report. I must say I don't really
-like the suggested fix. Can you try removing the kill
-altogether and moving the 2 close calls to above
-the waitpid call and see if that helps, I think that
-is a cleaner solution.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/ispqueue.c | 16 ++--------------
+ 1 file changed, 2 insertions(+), 14 deletions(-)
 
-Thanks & Regards,
+diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
+index 4a271c7..cee1b5d 100644
+--- a/drivers/media/platform/omap3isp/ispqueue.c
++++ b/drivers/media/platform/omap3isp/ispqueue.c
+@@ -233,12 +233,10 @@ static void isp_video_buffer_cleanup(struct isp_video_buffer *buf)
+  */
+ static int isp_video_buffer_prepare_user(struct isp_video_buffer *buf)
+ {
+-	struct scatterlist *sg;
+ 	unsigned int offset;
+ 	unsigned long data;
+ 	unsigned int first;
+ 	unsigned int last;
+-	unsigned int i;
+ 	int ret;
+ 
+ 	data = buf->vbuf.m.userptr;
+@@ -267,21 +265,11 @@ static int isp_video_buffer_prepare_user(struct isp_video_buffer *buf)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = sg_alloc_table(&buf->sgt, buf->npages, GFP_KERNEL);
++	ret = sg_alloc_table_from_pages(&buf->sgt, buf->pages, buf->npages,
++					offset, buf->vbuf.length, GFP_KERNEL);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	for (sg = buf->sgt.sgl, i = 0; i < buf->npages; ++i) {
+-		if (PageHighMem(buf->pages[i])) {
+-			sg_free_table(&buf->sgt);
+-			return -EINVAL;
+-		}
+-
+-		sg_set_page(sg, buf->pages[i], PAGE_SIZE - offset, offset);
+-		sg = sg_next(sg);
+-		offset = 0;
+-	}
+-
+ 	return 0;
+ }
+ 
+-- 
+1.8.3.2
 
-Hans
-
-
-On 04/21/2014 03:11 PM, Andrey Volkov wrote:
-> Guys,
-> 
-> I use motion for my old web camera (v4l1) with
-> export LD_PRELOAD=/usr/lib/i386-linux-gnu/libv4l/v4l2convert.so
-> 
-> v4l2convert.so run decompress helper ov511-decomp.
-> 
-> Processes look like:
-> /usr/bin/motion
-> \_ /usr/lib/i386-linux-gnu/libv4lconvert0/ov511-decomp
-> 
-> (motion - http://www.lavrsen.dk/foswiki/bin/view/Motion/WebHome)
-> Everything works fine, but when I stop motion daemon I have to wait for a minute.
-> 
-> strace prints that ov511-decomp got SIGTERM, wait for the minute and then got SIGKILL.
-> 
-> When I do "killall -TERM ov511-decomp" ov511-decomp ignores it and continue to decomress.
-> "killall -INT ov511-decomp" ov511-decomp shut down as expected.
-> 
-> As a workaround I made this patch to lib/libv4lconvert/helper.c
-> 
-> --- v4l-utils-1.0.1.orig/lib/libv4lconvert/helper.c
-> +++ v4l-utils-1.0.1/lib/libv4lconvert/helper.c
-> @@ -212,7 +212,7 @@ void v4lconvert_helper_cleanup(struct v4
-> void v4lconvert_helper_cleanup(struct v4lconvert_data *data)
-> {
-> 	int status;
-> 
-> 	if (data->decompress_pid != -1) {
-> -		kill(data->decompress_pid, SIGTERM);
-> +		kill(data->decompress_pid, SIGINT);
-> 		waitpid(data->decompress_pid, &status, 0);
-> 
-> 		close(data->decompress_out_pipe[WRITE_END]);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
