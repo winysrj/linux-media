@@ -1,101 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37478 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933323AbaDITPJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 15:15:09 -0400
-Date: Wed, 9 Apr 2014 12:17:40 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Shuah Khan <shuah.kh@samsung.com>
-Cc: m.chehab@samsung.com, tj@kernel.org, rafael.j.wysocki@intel.com,
-	linux@roeck-us.net, toshi.kani@hp.com,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	shuahkhan@gmail.com
-Subject: Re: [RFC PATCH 0/2] managed token devres interfaces
-Message-ID: <20140409191740.GA10748@kroah.com>
-References: <cover.1397050852.git.shuah.kh@samsung.com>
+Received: from hardeman.nu ([95.142.160.32]:40347 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754081AbaDCXev (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 19:34:51 -0400
+Subject: [PATCH 42/49] rc-ir-raw: atomic reads of protocols
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Fri, 04 Apr 2014 01:34:48 +0200
+Message-ID: <20140403233448.27099.69654.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1397050852.git.shuah.kh@samsung.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 09, 2014 at 09:21:06AM -0600, Shuah Khan wrote:
-> Media devices often have hardware resources that are shared
-> across several functions. For instance, TV tuner cards often
-> have MUXes, converters, radios, tuners, etc. that are shared
-> across various functions. However, v4l2, alsa, DVB, usbfs, and
-> all other drivers have no knowledge of what resources are
-> shared. For example, users can't access DVB and alsa at the same
-> time, or the DVB and V4L analog API at the same time, since many
-> only have one converter that can be in either analog or digital
-> mode. Accessing and/or changing mode of a converter while it is
-> in use by another function results in video stream error.
-> 
-> A shared devres that can be locked and unlocked by various drivers
-> that control media functions on a single media device is needed to
-> address the above problems.
-> 
-> A token devres that can be looked up by a token for locking, try
-> locking, unlocking will help avoid adding data structure
-> dependencies between various media drivers. This token is a unique
-> string that can be constructed from a common data structure such as
-> struct device, bus_name, and hardware address.
-> 
-> The devm_token_* interfaces manage access to token resource.
-> 
-> Interfaces:
->     devm_token_create()
->     devm_token_destroy()
->     devm_token_lock()
->     devm_token_unlock()
-> Usage:
->     Create token:
->         Call devm_token_create() with a token id which is a unique
->         string.
->     Lock token: Call devm_token_lock() to lock or try lock a token.
->     Unlock token: Call devm_token_unlock().
->     Destroy token: Call devm_token_destroy() to delete the token.
-> 
-> A new devres_* interface to update the status of this token resource
-> to busy when locked and free when unlocked is necessary to implement
-> this new managed resource.
-> 
-> devres_update() searches for the resource that matches supplied match
-> criteria similar to devres_find(). When a match is found, it calls
-> the update function caller passed in.
-> 
-> This patch set adds a new devres_update) interface and token devres
-> interfaces.
-> 
-> Test Cases for token devres interfaces: (passed)
->  - Create, lock, unlock, and destroy sequence.
->  - Try lock while it is locked. Returns -EBUSY as expected.
->  - Try lock after destroy. Returns -ENODEV as expected.
->  - Unlock while it is unlocked. Returns 0 as expected. This is a no-op. 
->  - Try unlock after destroy. Returns -ENODEV as expected.
+Use atomic reads to avoid having to take a mutex when getting
+the bitmask of supported protocols.
 
-Any chance you can add these "test cases" as part of the kernel code so
-it lives here for any future changes?
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-core-priv.h |    2 +-
+ drivers/media/rc/rc-ir-raw.c    |   12 ++++--------
+ 2 files changed, 5 insertions(+), 9 deletions(-)
 
-> Special notes for Mauro Chehab:
->  - Please evaluate if these token devres interfaces cover all media driver
->    use-cases. If not what is needed to cover them.
->  - For use-case testing, I generated a string from em28xx device, as this
->    is common for all em28xx extensions: (hope this holds true when em28xx
->    uses snd-usb-audio
->  - Construct string with (dev is struct em28xx *dev)
-> 		format: "tuner:%s-%s-%d"
-> 		with the following:
->    		dev_name(&dev->udev->dev)
->                 dev->udev->bus->bus_name
->                 dev->tuner_addr
->  - I added test code to em28xx_card_setup() to test the interfaces:
->    example token from this test code generated with the format above:
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index c3de26b..04776e8 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -29,7 +29,7 @@ enum rc_driver_type {
+ struct ir_raw_handler {
+ 	struct list_head list;
+ 
+-	u64 protocols; /* which are handled by this handler */
++	unsigned protocols; /* which are handled by this handler */
+ 	int (*decode)(struct rc_dev *dev, struct ir_raw_event event);
+ 
+ 	/* These two should only be used by the lirc decoder */
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 9631825..bf5215b 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -27,7 +27,7 @@ static LIST_HEAD(ir_raw_client_list);
+ static LIST_HEAD(ir_raw_handler_list);
+ 
+ /* protocols supported by the currently loaded decoders */
+-static u64 available_protocols;
++static atomic_t available_protocols = ATOMIC_INIT(0);
+ 
+ static int ir_raw_event_thread(void *data)
+ {
+@@ -251,11 +251,7 @@ EXPORT_SYMBOL_GPL(ir_raw_event_handle);
+ /* used internally by the sysfs interface */
+ static u64 ir_raw_get_allowed_protocols(struct rc_dev *dev)
+ {
+-	u64 protocols;
+-	mutex_lock(&ir_raw_mutex);
+-	protocols = available_protocols;
+-	mutex_unlock(&ir_raw_mutex);
+-	return protocols;
++	return atomic_read(&available_protocols);
+ }
+ 
+ static int change_protocol(struct rc_dev *dev, u64 *rc_type) {
+@@ -353,7 +349,7 @@ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler)
+ 	if (ir_raw_handler->raw_register)
+ 		list_for_each_entry_rcu(raw, &ir_raw_client_list, list)
+ 			ir_raw_handler->raw_register(raw->dev);
+-	available_protocols |= ir_raw_handler->protocols;
++	atomic_set_mask(ir_raw_handler->protocols, &available_protocols);
+ 	mutex_unlock(&ir_raw_mutex);
+ 	synchronize_rcu();
+ 
+@@ -370,7 +366,7 @@ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler)
+ 	if (ir_raw_handler->raw_unregister)
+ 		list_for_each_entry_rcu(raw, &ir_raw_client_list, list)
+ 			ir_raw_handler->raw_unregister(raw->dev);
+-	available_protocols &= ~ir_raw_handler->protocols;
++	atomic_clear_mask(ir_raw_handler->protocols, &available_protocols);
+ 	mutex_unlock(&ir_raw_mutex);
+ 	synchronize_rcu();
+ }
 
-What would the driver changes look like to take advantage of these new
-functions?
-
-thanks,
-
-greg k-h
