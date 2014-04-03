@@ -1,66 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:58936 "EHLO mail.kernel.org"
+Received: from hardeman.nu ([95.142.160.32]:40304 "EHLO hardeman.nu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932358AbaD1OPg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Apr 2014 10:15:36 -0400
-Date: Mon, 28 Apr 2014 16:15:29 +0200
-From: Sebastian Reichel <sre@kernel.org>
+	id S1753803AbaDCXdD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 19:33:03 -0400
+Subject: [PATCH 21/49] rc-core: add ioctl support to the rc chardev
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
 To: linux-media@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>,
-	Eduardo Valentin <edubezval@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Dinesh Ram <Dinesh.Ram@cern.ch>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [RFC 0/2] [media] si4713 DT binding
-Message-ID: <20140428141527.GA29509@earth.universe>
-References: <1396785125-8759-1-git-send-email-sre@kernel.org>
+Cc: m.chehab@samsung.com
+Date: Fri, 04 Apr 2014 01:33:01 +0200
+Message-ID: <20140403233301.27099.10747.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="vtzGhvizbBRQ85DL"
-Content-Disposition: inline
-In-Reply-To: <1396785125-8759-1-git-send-email-sre@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add basic support for ioctl operations on the rc chardev.
 
---vtzGhvizbBRQ85DL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Only two ioctl's are defined for now: one to get the rc-core
+version and one to get the driver type of a given chardev.
 
-On Sun, Apr 06, 2014 at 01:52:03PM +0200, Sebastian Reichel wrote:
-> This is an RFC patch adding DT support to the si4713 radio
-> transmitter i2c driver.
+Userspace is expected to make sure that both match the expected
+values before proceeding with any ioctl/read/write ops.
 
-ping?
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ Documentation/ioctl/ioctl-number.txt |    1 +
+ drivers/media/rc/rc-main.c           |   65 ++++++++++++++++++++++++++++++++++
+ include/media/rc-core.h              |   19 ++++++++++
+ 3 files changed, 85 insertions(+)
 
--- Sebastian
+diff --git a/Documentation/ioctl/ioctl-number.txt b/Documentation/ioctl/ioctl-number.txt
+index d7e43fa..2868bc8 100644
+--- a/Documentation/ioctl/ioctl-number.txt
++++ b/Documentation/ioctl/ioctl-number.txt
+@@ -270,6 +270,7 @@ Code  Seq#(hex)	Include File		Comments
+ 'v'	00-0F	linux/sonypi.h		conflict!
+ 'v'	C0-FF	linux/meye.h		conflict!
+ 'w'	all				CERN SCI driver
++'x'	all	media/rc-core.h		Remote Control drivers
+ 'y'	00-1F				packet based user level communications
+ 					<mailto:zapman@interlan.net>
+ 'z'	00-3F				CAN bus card	conflict!
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index d7b24a1..477ad49 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1635,6 +1635,67 @@ static int rc_fasync(int fd, struct file *file, int on)
+ 	return fasync_helper(fd, file, on, &client->fasync);
+ }
+ 
++/**
++ * rc_do_ioctl() - internal implementation of ioctl handling
++ * @dev:	the &struct rc_dev to perform the command on
++ * @cmd:	the ioctl command to perform
++ * @arg:	the argument to the ioctl cmd
++ * @return:	zero on success, or a negative error code
++ *
++ * This function (which is called with the @dev mutex held) performs
++ * the actual processing of ioctl commands.
++ */
++static long rc_do_ioctl(struct rc_dev *dev, unsigned int cmd, unsigned long arg)
++{
++	void __user *p = (void __user *)arg;
++	unsigned int __user *ip = (unsigned int __user *)p;
++
++	switch (cmd) {
++
++	case RCIOCGVERSION:
++		return put_user(RC_VERSION, ip);
++
++	case RCIOCGTYPE:
++		return put_user(dev->driver_type, ip);
++	}
++
++	return -EINVAL;
++}
++
++/**
++ * rc_ioctl() - allows userspace to do ioctl operations on the rc device file
++ * @fd:		the file descriptor corresponding to the opened rc device
++ * @file:	the &struct file corresponding to the previous open()
++ * @cmd:	the ioctl command to perform
++ * @arg:	the argument to the ioctl cmd
++ * @return:	zero on success, or a negative error code
++ *
++ * This function (which implements the ioctl functionality in
++ * &struct file_operations) allows userspace to perform various ioctl
++ * operations on a rc device file.
++ */
++static long rc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
++{
++	struct rc_client *client = file->private_data;
++	struct rc_dev *dev = client->dev;
++	int ret;
++
++	ret = mutex_lock_interruptible(&dev->lock);
++	if (ret)
++		return ret;
++
++	if (dev->dead) {
++		ret = -ENODEV;
++		goto out;
++	}
++
++	ret = rc_do_ioctl(dev, cmd, arg);
++
++out:
++	mutex_unlock(&dev->lock);
++	return ret;
++}
++
+ static const struct file_operations rc_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= rc_dev_open,
+@@ -1644,6 +1705,10 @@ static const struct file_operations rc_fops = {
+ 	.poll		= rc_poll,
+ 	.fasync		= rc_fasync,
+ 	.llseek		= no_llseek,
++	.unlocked_ioctl	= rc_ioctl,
++#ifdef CONFIG_COMPAT
++	.compat_ioctl	= rc_ioctl,
++#endif
+ };
+ 
+ /**
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 39f3794..660a331 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -30,6 +30,25 @@ do {								\
+ 		pr_debug("%s: " fmt, __func__, ##__VA_ARGS__);	\
+ } while (0)
+ 
++#define RC_VERSION 0x010000
++
++/*
++ * ioctl definitions
++ *
++ * Note: userspace programs which wish to interact with /dev/rc/rc? devices
++ *	 should make sure that the RC version and driver type is known
++ *	 (by using RCIOCGVERSION and RCIOCGTYPE) before continuing with any
++ *	 read/write/ioctl ops.
++ */
++#define RC_IOC_MAGIC	'x'
++
++/* get rc version */
++#define RCIOCGVERSION	_IOR(RC_IOC_MAGIC, 0x01, unsigned int)
++
++/* get driver/hardware type */
++#define RCIOCGTYPE	_IOR(RC_IOC_MAGIC, 0x02, unsigned int)
++
++
+ enum rc_driver_type {
+ 	RC_DRIVER_SCANCODE = 0,	/* Driver or hardware generates a scancode */
+ 	RC_DRIVER_IR_RAW,	/* Needs a Infra-Red pulse/space decoder */
 
---vtzGhvizbBRQ85DL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJTXmJ/AAoJENju1/PIO/qa1KkP/1dDXOZJigLquQCPJrq1Dw4T
-ZK4uSXEA7/pkNF6AbZ855JLVDpGifke6lH8VPmJFXGjYS/qCNGycthvAXtLIG24/
-2JWVCpDi1NE38cZUqGXeFo4f3AzY4go8DRNHdY1NRZoNMh5Rx8Du6rJxHoYwNghS
-xvNdS5G9AH1YHHwXLfQJkrCMGvBA09D/DYXz3ATi8D53gQiSq7Zr8ZGtSK+/UTFl
-aSkc9aFXPjPqQsrDcmgx/iZbb1ZJd0CvYT3fIQwYl4mqb4e+dgyfkunTi1WkS3xI
-RW0ny2IAJSar68STvrAhT0Zav91dzXULzrx0daHg9+AR0JfOdtcW9L6pfSPTZ/wN
-kcwN5BB6LxJn3chgzN/MoSBpkzr3X/0E3XIJBzN5aepe/mYvij0JRES6RkcVTErB
-hpnUyPGNW/ryUPq4hWpn81CAx8C23WWAbECt5kcBkv37TBuzdzDPF4y11HuB6aJt
-UmtqFx0og+qCNaCJr7fyHK1S8T8uSOim3XiFKehByJYS1O0KTWWvzRsour2xajgU
-FpFTE92ReJda+0WLBX58Nbdc/1p831Yzr0XbEpVFgUAHELJ1t8d4vfikVTG7IfFo
-Wvr2iRlp4USUs0Mou5oXEOja4op14jPNssZBn6bhC0TP9s4VRP3jGF8k/K3bZCQX
-SrtcaPbFr+cF4MVSdrYT
-=7nd5
------END PGP SIGNATURE-----
-
---vtzGhvizbBRQ85DL--
