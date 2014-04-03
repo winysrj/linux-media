@@ -1,127 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:35553 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752354AbaDORew (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 13:34:52 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 1/5] ARM: S5PV210: Remove camera support from mach-goni.c
-Date: Tue, 15 Apr 2014 19:34:28 +0200
-Message-id: <1397583272-28295-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1397583272-28295-1-git-send-email-s.nawrocki@samsung.com>
-References: <1397583272-28295-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:10089 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030718AbaDCBlL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Apr 2014 21:41:11 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N3F002P6M0M5HB0@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 02 Apr 2014 21:41:10 -0400 (EDT)
+Date: Wed, 02 Apr 2014 22:41:04 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: [ANNOUNCE] git web interface was changed to cgit
+Message-id: <20140402224104.505dd740@samsung.com>
+In-reply-to: <20140403005641.GA30534@hardeman.nu>
+References: <20140402192651.7c9e3a74@samsung.com>
+ <20140403005641.GA30534@hardeman.nu>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-S5PV210 is going to get DT support, so we can remove the camera
-bits from the only board using camera on S5PV210. This allows to
-clean the exynos4-is driver by dropping code for non-dt platforms.
-This patch can be dropped if a patch removing the whole board
-file is applied first.
+Em Thu, 03 Apr 2014 02:56:41 +0200
+David Härdeman <david@hardeman.nu> escreveu:
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/mach-s5pv210/mach-goni.c |   51 -------------------------------------
- 1 file changed, 51 deletions(-)
+> On Wed, Apr 02, 2014 at 07:26:51PM -0300, Mauro Carvalho Chehab wrote:
+> >I changed today our git web interface from gitweb to cgit, due to seveal
+> >reasons:
+> ...
+> >Please ping me if you fin any problems on it.
+> 
+> Hi,
+> 
+> one small thing I've noticed is that the repo links from
+> http://linuxtv.org/cvs.php are broken now.
 
-diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
-index b41a38a..6c719ec 100644
---- a/arch/arm/mach-s5pv210/mach-goni.c
-+++ b/arch/arm/mach-s5pv210/mach-goni.c
-@@ -49,11 +49,6 @@
- #include <plat/clock.h>
- #include <plat/samsung-time.h>
- #include <plat/mfc.h>
--#include <plat/camport.h>
--
--#include <media/v4l2-mediabus.h>
--#include <media/s5p_fimc.h>
--#include <media/noon010pc30.h>
- 
- #include "common.h"
- 
-@@ -285,14 +280,6 @@ static void __init goni_tsp_init(void)
- /* USB OTG */
- static struct s3c_hsotg_plat goni_hsotg_pdata;
- 
--static void goni_camera_init(void)
--{
--	s5pv210_fimc_setup_gpio(S5P_CAMPORT_A);
--
--	/* Set max driver strength on CAM_A_CLKOUT pin. */
--	s5p_gpio_set_drvstr(S5PV210_GPE1(3), S5P_GPIO_DRVSTR_LV4);
--}
--
- /* MAX8998 regulators */
- #if defined(CONFIG_REGULATOR_MAX8998) || defined(CONFIG_REGULATOR_MAX8998_MODULE)
- 
-@@ -825,34 +812,6 @@ static void goni_setup_sdhci(void)
- 	s3c_sdhci2_set_platdata(&goni_hsmmc2_data);
- };
- 
--static struct noon010pc30_platform_data noon010pc30_pldata = {
--	.clk_rate	= 16000000UL,
--	.gpio_nreset	= S5PV210_GPB(2), /* CAM_CIF_NRST */
--	.gpio_nstby	= S5PV210_GPB(0), /* CAM_CIF_NSTBY */
--};
--
--static struct i2c_board_info noon010pc30_board_info = {
--	I2C_BOARD_INFO("NOON010PC30", 0x60 >> 1),
--	.platform_data = &noon010pc30_pldata,
--};
--
--static struct fimc_source_info goni_camera_sensors[] = {
--	{
--		.mux_id		= 0,
--		.flags		= V4L2_MBUS_PCLK_SAMPLE_FALLING |
--				  V4L2_MBUS_VSYNC_ACTIVE_LOW,
--		.fimc_bus_type	= FIMC_BUS_TYPE_ITU_601,
--		.board_info	= &noon010pc30_board_info,
--		.i2c_bus_num	= 0,
--		.clk_frequency	= 16000000UL,
--	},
--};
--
--static struct s5p_platform_fimc goni_fimc_md_platdata __initdata = {
--	.source_info	= goni_camera_sensors,
--	.num_clients	= ARRAY_SIZE(goni_camera_sensors),
--};
--
- /* Audio device */
- static struct platform_device goni_device_audio = {
- 	.name = "smdk-audio",
-@@ -874,10 +833,6 @@ static struct platform_device *goni_devices[] __initdata = {
- 	&s5p_device_mixer,
- 	&s5p_device_sdo,
- 	&s3c_device_i2c0,
--	&s5p_device_fimc0,
--	&s5p_device_fimc1,
--	&s5p_device_fimc2,
--	&s5p_device_fimc_md,
- 	&s3c_device_hsmmc0,
- 	&s3c_device_hsmmc1,
- 	&s3c_device_hsmmc2,
-@@ -946,14 +901,8 @@ static void __init goni_machine_init(void)
- 	/* FB */
- 	s3c_fb_set_platdata(&goni_lcd_pdata);
- 
--	/* FIMC */
--	s3c_set_platdata(&goni_fimc_md_platdata, sizeof(goni_fimc_md_platdata),
--			 &s5p_device_fimc_md);
--
- 	s3c_hsotg_set_platdata(&goni_hsotg_pdata);
- 
--	goni_camera_init();
--
- 	/* SPI */
- 	spi_register_board_info(spi_board_info, ARRAY_SIZE(spi_board_info));
- 
--- 
-1.7.9.5
+Thanks for noticing!
 
+I added a rewrite rule. This way, the old URLs will still work.
+
+Regards,
+Mauro
