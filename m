@@ -1,150 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50687 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754066AbaDLNYQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Apr 2014 09:24:16 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52429 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753909AbaDCWh6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:37:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [yavta PATCH v3 03/11] Separate querying capabilities and determining buffer queue type
-Date: Sat, 12 Apr 2014 16:23:55 +0300
-Message-Id: <1397309043-8322-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1397309043-8322-1-git-send-email-sakari.ailus@iki.fi>
-References: <1397309043-8322-1-git-send-email-sakari.ailus@iki.fi>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 00/25] OMAP3 ISP: Move to videobuf2
+Date: Fri,  4 Apr 2014 00:39:30 +0200
+Message-Id: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- yavta.c |   74 ++++++++++++++++++++++++++++++++++++---------------------------
- 1 file changed, 42 insertions(+), 32 deletions(-)
+Hello,
 
-diff --git a/yavta.c b/yavta.c
-index d8f0c59..02a7403 100644
---- a/yavta.c
-+++ b/yavta.c
-@@ -239,12 +239,8 @@ static void video_init(struct device *dev)
- 	dev->type = (enum v4l2_buf_type)-1;
- }
- 
--static int video_open(struct device *dev, const char *devname, int no_query)
-+static int video_open(struct device *dev, const char *devname)
- {
--	struct v4l2_capability cap;
--	unsigned int capabilities;
--	int ret;
--
- 	dev->fd = open(devname, O_RDWR);
- 	if (dev->fd < 0) {
- 		printf("Error opening device %s: %s (%d).\n", devname,
-@@ -254,35 +250,22 @@ static int video_open(struct device *dev, const char *devname, int no_query)
- 
- 	printf("Device %s opened.\n", devname);
- 
--	if (no_query) {
--		/* Assume capture device. */
--		dev->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--		return 0;
--	}
-+	return 0;
-+}
-+
-+static int video_querycap(struct device *dev, unsigned int *capabilities)
-+{
-+	struct v4l2_capability cap;
-+	int ret;
- 
- 	memset(&cap, 0, sizeof cap);
- 	ret = ioctl(dev->fd, VIDIOC_QUERYCAP, &cap);
- 	if (ret < 0)
- 		return 0;
- 
--	capabilities = cap.capabilities & V4L2_CAP_DEVICE_CAPS
-+	*capabilities = cap.capabilities & V4L2_CAP_DEVICE_CAPS
- 		     ? cap.device_caps : cap.capabilities;
- 
--	if (capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE)
--		dev->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
--	else if (capabilities & V4L2_CAP_VIDEO_OUTPUT_MPLANE)
--		dev->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
--	else if (capabilities & V4L2_CAP_VIDEO_CAPTURE)
--		dev->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	else if (capabilities & V4L2_CAP_VIDEO_OUTPUT)
--		dev->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
--	else {
--		printf("Error opening device %s: neither video capture "
--			"nor video output supported.\n", devname);
--		close(dev->fd);
--		return -EINVAL;
--	}
--
- 	printf("Device `%s' on `%s' is a video %s (%s mplanes) device.\n",
- 		cap.card, cap.bus_info,
- 		video_is_capture(dev) ? "capture" : "output",
-@@ -290,6 +273,24 @@ static int video_open(struct device *dev, const char *devname, int no_query)
- 	return 0;
- }
- 
-+static int cap_get_buf_type(unsigned int capabilities)
-+{
-+	if (capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE) {
-+		return V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+	} else if (capabilities & V4L2_CAP_VIDEO_OUTPUT_MPLANE) {
-+		return V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-+	} else if (capabilities & V4L2_CAP_VIDEO_CAPTURE) {
-+		return  V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	} else if (capabilities & V4L2_CAP_VIDEO_OUTPUT) {
-+		return V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	} else {
-+		printf("Device supports neither capture nor output.\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
- static void video_close(struct device *dev)
- {
- 	unsigned int i;
-@@ -1577,6 +1578,8 @@ int main(int argc, char *argv[])
- 
- 	/* Options parsings */
- 	const struct v4l2_format_info *info;
-+	/* Use video capture by default if query isn't done. */
-+	unsigned int capabilities = V4L2_CAP_VIDEO_CAPTURE;
- 	int do_file = 0, do_capture = 0, do_pause = 0;
- 	int do_set_time_per_frame = 0;
- 	int do_enum_formats = 0, do_set_format = 0;
-@@ -1766,15 +1769,22 @@ int main(int argc, char *argv[])
- 	if (!do_file)
- 		filename = NULL;
- 
--	/* Open the video device. If the device type isn't recognized, set the
--	 * --no-query option to avoid querying V4L2 subdevs.
--	 */
--	ret = video_open(&dev, argv[optind], no_query);
-+	ret = video_open(&dev, argv[optind]);
-+	if (ret < 0)
-+		return 1;
-+
-+	if (!no_query) {
-+		ret = video_querycap(&dev, &capabilities);
-+		if (ret < 0)
-+			return 1;
-+	}
-+
-+	ret = cap_get_buf_type(capabilities);
- 	if (ret < 0)
- 		return 1;
- 
--	if (dev.type == (enum v4l2_buf_type)-1)
--		no_query = 1;
-+	if (!video_is_buf_type_valid(&dev))
-+		video_set_buf_type(&dev, ret);
- 
- 	dev.memtype = memtype;
- 
+I think the subject line should be enough to get everybody excited about this
+patch series (everybody being Sakari, me, and possibly one or two other
+developers). The idea is pretty clear, I've tried to keep patches small and
+reviewable (24/25 is a bit too big for my taste, but splitting it further
+would be pretty difficult), so please look at them for details.
+
+The patches are based on top of the latest media master branch. They also
+depend at runtime on an OMAP IOMMU cleanup series. I've asked Joerg Roedel to
+provide a stable branch based on v3.15-rc1 (when it will be available).
+
+Laurent Pinchart (25):
+  omap3isp: stat: Rename IS_COHERENT_BUF to ISP_STAT_USES_DMAENGINE
+  omap3isp: stat: Remove impossible WARN_ON
+  omap3isp: stat: Share common code for buffer allocation
+  omap3isp: stat: Merge dma_addr and iommu_addr fields
+  omap3isp: stat: Store sg table in ispstat_buffer
+  omap3isp: stat: Use the DMA API
+  omap3isp: ccdc: Use the DMA API for LSC
+  omap3isp: ccdc: Use the DMA API for FPC
+  omap3isp: video: Set the buffer bytesused field at completion time
+  omap3isp: queue: Move IOMMU handling code to the queue
+  omap3isp: queue: Use sg_table structure
+  omap3isp: queue: Merge the prepare and sglist functions
+  omap3isp: queue: Inline the ispmmu_v(un)map functions
+  omap3isp: queue: Allocate kernel buffers with dma_alloc_coherent
+  omap3isp: queue: Fix the dma_map_sg() return value check
+  omap3isp: queue: Map PFNMAP buffers to device
+  omap3isp: queue: Use sg_alloc_table_from_pages()
+  omap3isp: Use the ARM DMA IOMMU-aware operations
+  omap3isp: queue: Don't build scatterlist for kernel buffer
+  omap3isp: Move queue mutex to isp_video structure
+  omap3isp: Move queue irqlock to isp_video structure
+  omap3isp: Move buffer irqlist to isp_buffer structure
+  v4l: vb2: Add a function to discard all DONE buffers
+  omap3isp: Move to videobuf2
+  omap3isp: Rename isp_buffer isp_addr field to dma
+
+ drivers/media/platform/Kconfig                |    4 +-
+ drivers/media/platform/omap3isp/Makefile      |    2 +-
+ drivers/media/platform/omap3isp/isp.c         |  108 ++-
+ drivers/media/platform/omap3isp/isp.h         |    8 +-
+ drivers/media/platform/omap3isp/ispccdc.c     |  107 ++-
+ drivers/media/platform/omap3isp/ispccdc.h     |   16 +-
+ drivers/media/platform/omap3isp/ispccp2.c     |    4 +-
+ drivers/media/platform/omap3isp/ispcsi2.c     |    4 +-
+ drivers/media/platform/omap3isp/isph3a_aewb.c |    2 +-
+ drivers/media/platform/omap3isp/isph3a_af.c   |    2 +-
+ drivers/media/platform/omap3isp/isppreview.c  |    8 +-
+ drivers/media/platform/omap3isp/ispqueue.c    | 1161 -------------------------
+ drivers/media/platform/omap3isp/ispqueue.h    |  188 ----
+ drivers/media/platform/omap3isp/ispresizer.c  |    8 +-
+ drivers/media/platform/omap3isp/ispstat.c     |  197 ++---
+ drivers/media/platform/omap3isp/ispstat.h     |    3 +-
+ drivers/media/platform/omap3isp/ispvideo.c    |  323 +++----
+ drivers/media/platform/omap3isp/ispvideo.h    |   29 +-
+ drivers/media/v4l2-core/videobuf2-core.c      |   24 +
+ drivers/staging/media/omap4iss/iss_video.c    |    2 +-
+ include/media/videobuf2-core.h                |    1 +
+ 21 files changed, 456 insertions(+), 1745 deletions(-)
+ delete mode 100644 drivers/media/platform/omap3isp/ispqueue.c
+ delete mode 100644 drivers/media/platform/omap3isp/ispqueue.h
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
