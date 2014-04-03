@@ -1,74 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:65379 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933402AbaDITY5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Apr 2014 15:24:57 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id 769AD21380
-	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 22:24:54 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52434 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753991AbaDCWiK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 12/17] smiapp-pll: Add quirk for op clk divisor == bits per pixel / 2
-Date: Wed,  9 Apr 2014 22:25:04 +0300
-Message-Id: <1397071509-2071-13-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 19/25] omap3isp: queue: Don't build scatterlist for kernel buffer
+Date: Fri,  4 Apr 2014 00:39:49 +0200
+Message-Id: <1396564795-27192-20-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For some sensors in some configurations the effective value of op clk div is
-bits per pixel divided by two. The output clock is correctly calculated
-whereas some of the rest of the clock tree uses higher clocks than
-calculated. This also limits the bpp to even values if the number of lanes
-is four.
+The scatterlist is not needed for those buffers, don't build it.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/i2c/smiapp-pll.c | 10 ++++++++++
- drivers/media/i2c/smiapp-pll.h |  2 ++
- 2 files changed, 12 insertions(+)
+ drivers/media/platform/omap3isp/ispqueue.c | 24 +++---------------------
+ drivers/media/platform/omap3isp/ispqueue.h |  8 ++++----
+ 2 files changed, 7 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
-index be94921..9d06a33 100644
---- a/drivers/media/i2c/smiapp-pll.c
-+++ b/drivers/media/i2c/smiapp-pll.c
-@@ -207,6 +207,8 @@ static int __smiapp_pll_calculate(struct device *dev,
- 		div_u64(pll->pll_op_clk_freq_hz, pll->op_sys_clk_div);
+diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
+index 9c90fb0..515ed94 100644
+--- a/drivers/media/platform/omap3isp/ispqueue.c
++++ b/drivers/media/platform/omap3isp/ispqueue.c
+@@ -147,21 +147,6 @@ out:
+ }
  
- 	pll->op_pix_clk_div = pll->bits_per_pixel;
-+	if (pll->flags & SMIAPP_PLL_FLAG_OP_PIX_DIV_HALF)
-+		pll->op_pix_clk_div /= 2;
- 	dev_dbg(dev, "op_pix_clk_div: %u\n", pll->op_pix_clk_div);
- 
- 	pll->op_pix_clk_freq_hz =
-@@ -416,6 +418,14 @@ int smiapp_pll_calculate(struct device *dev,
- 		return -EINVAL;
+ /*
+- * isp_video_buffer_prepare_kernel - Build scatter list for a kernel-allocated
+- * buffer
+- *
+- * Retrieve the sgtable using the DMA API.
+- */
+-static int isp_video_buffer_prepare_kernel(struct isp_video_buffer *buf)
+-{
+-	struct isp_video_fh *vfh = isp_video_queue_to_isp_video_fh(buf->queue);
+-	struct isp_video *video = vfh->video;
+-
+-	return dma_get_sgtable(video->isp->dev, &buf->sgt, buf->vaddr,
+-			       buf->dma, PAGE_ALIGN(buf->vbuf.length));
+-}
+-
+-/*
+  * isp_video_buffer_cleanup - Release pages for a userspace VMA.
+  *
+  * Release pages locked by a call isp_video_buffer_prepare_user and free the
+@@ -181,10 +166,9 @@ static void isp_video_buffer_cleanup(struct isp_video_buffer *buf)
+ 			  ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+ 		dma_unmap_sg_attrs(buf->queue->dev, buf->sgt.sgl,
+ 				   buf->sgt.orig_nents, direction, &attrs);
++		sg_free_table(&buf->sgt);
  	}
  
-+	/*
-+	 * Half op pix divisor will give us double the rate compared
-+	 * to the regular case. Thus divide the desired pll op clock
-+	 * frequency by two.
-+	 */
-+	if (pll->flags & SMIAPP_PLL_FLAG_OP_PIX_DIV_HALF)
-+		pll->pll_op_clk_freq_hz /= 2;
-+
- 	/* Figure out limits for pre-pll divider based on extclk */
- 	dev_dbg(dev, "min / max pre_pll_clk_div: %u / %u\n",
- 		limits->min_pre_pll_clk_div, limits->max_pre_pll_clk_div);
-diff --git a/drivers/media/i2c/smiapp-pll.h b/drivers/media/i2c/smiapp-pll.h
-index a25f550..02d11db 100644
---- a/drivers/media/i2c/smiapp-pll.h
-+++ b/drivers/media/i2c/smiapp-pll.h
-@@ -36,6 +36,8 @@
- #define SMIAPP_PLL_FLAG_NO_OP_CLOCKS				(1 << 1)
- /* the pre-pll div may be odd */
- #define SMIAPP_PLL_FLAG_ALLOW_ODD_PRE_PLL_CLK_DIV		(1 << 2)
-+/* op pix div value is half of the bits-per-pixel value */
-+#define SMIAPP_PLL_FLAG_OP_PIX_DIV_HALF				(1 << 3)
+-	sg_free_table(&buf->sgt);
+-
+ 	if (buf->pages != NULL) {
+ 		isp_video_buffer_lock_vma(buf, 0);
  
- struct smiapp_pll {
- 	/* input values */
+@@ -400,7 +384,7 @@ done:
+  *
+  * - validating VMAs (userspace buffers only)
+  * - locking pages and VMAs into memory (userspace buffers only)
+- * - building page and scatter-gather lists
++ * - building page and scatter-gather lists (userspace buffers only)
+  * - mapping buffers for DMA operation
+  * - performing driver-specific preparation
+  *
+@@ -416,9 +400,7 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
+ 
+ 	switch (buf->vbuf.memory) {
+ 	case V4L2_MEMORY_MMAP:
+-		ret = isp_video_buffer_prepare_kernel(buf);
+-		if (ret < 0)
+-			goto done;
++		ret = 0;
+ 		break;
+ 
+ 	case V4L2_MEMORY_USERPTR:
+diff --git a/drivers/media/platform/omap3isp/ispqueue.h b/drivers/media/platform/omap3isp/ispqueue.h
+index ae4acb9..27189bb 100644
+--- a/drivers/media/platform/omap3isp/ispqueue.h
++++ b/drivers/media/platform/omap3isp/ispqueue.h
+@@ -70,8 +70,8 @@ enum isp_video_buffer_state {
+  * @vaddr: Memory virtual address (for kernel buffers)
+  * @vm_flags: Buffer VMA flags (for userspace buffers)
+  * @npages: Number of pages (for userspace buffers)
++ * @sgt: Scatter gather table (for userspace buffers)
+  * @pages: Pages table (for userspace non-VM_PFNMAP buffers)
+- * @sgt: Scatter gather table
+  * @vbuf: V4L2 buffer
+  * @irqlist: List head for insertion into IRQ queue
+  * @state: Current buffer state
+@@ -90,11 +90,11 @@ struct isp_video_buffer {
+ 	/* For userspace buffers. */
+ 	vm_flags_t vm_flags;
+ 	unsigned int npages;
+-	struct page **pages;
+-
+-	/* For all buffers. */
+ 	struct sg_table sgt;
+ 
++	/* For non-VM_PFNMAP userspace buffers. */
++	struct page **pages;
++
+ 	/* Touched by the interrupt handler. */
+ 	struct v4l2_buffer vbuf;
+ 	struct list_head irqlist;
 -- 
 1.8.3.2
 
