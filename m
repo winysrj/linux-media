@@ -1,128 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta13.emeryville.ca.mail.comcast.net ([76.96.27.243]:38669
-	"EHLO qmta13.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933643AbaDIPV3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Apr 2014 11:21:29 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: gregkh@linuxfoundation.org, m.chehab@samsung.com, tj@kernel.org,
-	rafael.j.wysocki@intel.com, linux@roeck-us.net, toshi.kani@hp.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, shuahkhan@gmail.com
-Subject: [RFC PATCH 1/2] drivers/base: add new devres_update() interface to devres_*
-Date: Wed,  9 Apr 2014 09:21:07 -0600
-Message-Id: <e73e82c4b19e33171c3c5be991dc7f3d3f51d0a6.1397050852.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1397050852.git.shuah.kh@samsung.com>
-References: <cover.1397050852.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1397050852.git.shuah.kh@samsung.com>
-References: <cover.1397050852.git.shuah.kh@samsung.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:47230 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752255AbaDCOyd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 10:54:33 -0400
+Message-id: <533D7624.3010407@samsung.com>
+Date: Thu, 03 Apr 2014 16:54:28 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Bryan Wu <cooloney@gmail.com>, milo kim <milo.kim@ti.com>,
+	Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	Richard Purdie <rpurdie@rpsys.net>, linux-media@vger.kernel.org
+Subject: Re: brightness units
+References: <533A6905.3010600@samsung.com>
+ <CAK5ve-LNU_BGUB_HxsbgiO4baM-39C7PWHRVx0DL=JTYfJGSuA@mail.gmail.com>
+ <20140402151754.GG4522@valkosipuli.retiisi.org.uk>
+In-reply-to: <20140402151754.GG4522@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Media devices often have hardware resources that are shared
-across several functions. For instance, TV tuner cards often
-have MUXes, converters, radios, tuners, etc. that are shared
-across various functions. However, v4l2, alsa, DVB, usbfs, and
-all other drivers have no knowledge of what resources are
-shared. For example, users can't access DVB and alsa at the same
-time, or the DVB and V4L analog API at the same time, since many
-only have one converter that can be in either analog or digital
-mode. Accessing and/or changing mode of a converter while it is
-in use by another function results in video stream error.
+Hi Bryan, Milo and Sakari,
 
-A shared devres that can be locked and unlocked by various drivers
-that control media functions on a single media device is needed to
-address the above problems.
+Thanks for the replies.
 
-A token devres that can be looked up by a token for locking, try
-locking, unlocking will help avoid adding data structure
-dependencies between various media drivers. This token is a unique
-string that can be constructed from a common data structure such as
-struct device, bus_name, and hardware address.
+On 04/02/2014 05:17 PM, Sakari Ailus wrote:
+> Hi Bryan,
+>
+> On Tue, Apr 01, 2014 at 03:09:55PM -0700, Bryan Wu wrote:
+>> On Tue, Apr 1, 2014 at 12:21 AM, Jacek Anaszewski
+>> <j.anaszewski@samsung.com> wrote:
+>>> I am currently integrating LED subsystem and V4L2 Flash API.
+>>> V4L2 Flash API defines units of torch and flash intensity
+>>> in milliampers. In the LED subsystem documentation I can't
+>>> find any reference to the brightness units. On the other
+>>> hand there is led_brightness enum defined in the <linux/leds.h>
+>>> header, with LED_FULL = 255, but not all leds drivers use it.
+>>> I am aware that there are LEDs that can be only turned on/off
+>>> without any possibility to set the current and in such cases
+>>> LED_FULL doesn't reflect the current set.
+>>>
+>>
+>> Actually led_brightness is an logic concept not like milliampers,
+>> since different led drivers has different implementation which is
+>> hardware related. Like PWM led driver, it will be converted to duty
+>> cycles.
+>>
+>> For current control I do see some specific driver like LP55xx have it
+>> but not for every one.
+>>
+>>> So far I've assumed that brightness is expressed in milliampers
+>>> and I don't stick to the LED_FULL limit. It allows for passing
+>>> flash/torch intensity from V4L2 controls to the leds API
+>>> without conversion. I am not sure if the units should be
+>>> fixed to milliampers in the LED subsystem or not. It would
+>>> clarify the situation, but if the existing LED drivers don't
+>>> stick to this unit then it would make a confusion.
+>>>
+>>
+>> We probably need to convert those intensity to brightness numbers, for
+>> example mapping the intensity value to 0 ~ 255 brightness level and
+>> pass it to LED subsystem.
+>
+> I think for some devices it wouldn't matter much, but on those that
+> generally are used as flash the current is known, and thus it should also be
+> visible in the interface. The conversion from mA to native units could be
+> done directly, or indirectly through the LED API.
+>
+> There are a few things to consider though: besides minimum and maximum
+> values for the current, the V4L2 controls have a step parameter that would
+> still need to be passed to the control handler when creating the control.
+> That essentially tells the user space how many levels does the control have.
+>
+> Care must be taken if converting to LED API units in between mA and native
+> units so that the values will get through unchanged. On the other hand, I
+> don't expect to get more levels than 256 either. But even this assumes that
+> the current selection would be linear.
+>
 
-A new devres_* interface to update the status of this token resource
-to busy when locked and free when unlocked is necessary to implement
-this new managed resource.
+After analyzing the problem I decided to implement it this way:
 
-devres_update() searches for the resource that matches supplied match
-criteria similar to devres_find(). When a match is found, it calls
-the update function caller passed in.
+1. V4L2 Flash control will use existing LED API for setting/getting
+    torch brightness
+	- V4L2 Flash control handler will take care of
+	  mA <-> enum led_brightness conversion
+2. New API for flash leds will use mA with int primitive
+    as its type
+	- min, max and step parameters will not be used on the
+	  LED subsystem level to keep it as simple as possible -
+	  instead each flash driver will align the brightness
+	  according to the device constraints; the adjusted value
+	  will be made available for the LED subsystem after calling
+	  led_update_flash_brightness function
+	- min, max and step parameters will be passed to the
+	  v4l2-flash in the v4l2_flash_ctrl_config structure -
+	  it was introduced in my RFC.
+3. New API for indicator LEDs will be introduced in the led_flash
+    module - it will define its units as uA with int primitive
+    as the type
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
----
- drivers/base/devres.c  |   36 ++++++++++++++++++++++++++++++++++++
- include/linux/device.h |    4 ++++
- 2 files changed, 40 insertions(+)
+If you have any comments please let me know.
 
-diff --git a/drivers/base/devres.c b/drivers/base/devres.c
-index db4e264..8620600 100644
---- a/drivers/base/devres.c
-+++ b/drivers/base/devres.c
-@@ -272,6 +272,42 @@ void * devres_find(struct device *dev, dr_release_t release,
- EXPORT_SYMBOL_GPL(devres_find);
- 
- /**
-+ * devres_update - Find device resource and call update function
-+ * @dev: Device to lookup resource from
-+ * @release: Look for resources associated with this release function
-+ * @match: Match function - must be specified
-+ * @match_data: Data for the match function
-+ * @update: Update function - must be specified
-+ *
-+ * Find the latest devres of @dev which is associated with @release
-+ * and for which @match returns 1. If match is found, update will be
-+ * called. This is intended for changes to status type data in a devres
-+ *
-+ * RETURNS:
-+ * Pointer to found and updated devres, NULL if not found.
-+ */
-+void *devres_update(struct device *dev, dr_release_t release,
-+		   dr_match_t match, void *match_data, dr_update_t update)
-+{
-+	struct devres *dr;
-+	unsigned long flags;
-+
-+	if (!match || !update)
-+		return NULL;
-+
-+	spin_lock_irqsave(&dev->devres_lock, flags);
-+	dr = find_dr(dev, release, match, match_data);
-+	if (dr)
-+		update(dev, dr->data);
-+	spin_unlock_irqrestore(&dev->devres_lock, flags);
-+
-+	if (dr)
-+		return dr->data;
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(devres_update);
-+
-+/**
-  * devres_get - Find devres, if non-existent, add one atomically
-  * @dev: Device to lookup or add devres for
-  * @new_res: Pointer to new initialized devres to add if not found
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 233bbbe..39749df 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -576,6 +576,7 @@ extern int device_schedule_callback_owner(struct device *dev,
- /* device resource management */
- typedef void (*dr_release_t)(struct device *dev, void *res);
- typedef int (*dr_match_t)(struct device *dev, void *res, void *match_data);
-+typedef void (*dr_update_t)(struct device *dev, void *data);
- 
- #ifdef CONFIG_DEBUG_DEVRES
- extern void *__devres_alloc(dr_release_t release, size_t size, gfp_t gfp,
-@@ -593,6 +594,9 @@ extern void devres_free(void *res);
- extern void devres_add(struct device *dev, void *res);
- extern void *devres_find(struct device *dev, dr_release_t release,
- 			 dr_match_t match, void *match_data);
-+extern void *devres_update(struct device *dev, dr_release_t release,
-+			dr_match_t match, void *match_data,
-+			dr_update_t update);
- extern void *devres_get(struct device *dev, void *new_res,
- 			dr_match_t match, void *match_data);
- extern void *devres_remove(struct device *dev, dr_release_t release,
--- 
-1.7.10.4
-
+Thanks,
+Jacek Anaszewski
