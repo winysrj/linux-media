@@ -1,167 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:53176 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933552AbaD3ODr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Apr 2014 10:03:47 -0400
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: linux-kernel@vger.kernel.org (open list)
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	David Airlie <airlied@linux.ie>,
-	Inki Dae <inki.dae@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Figa <t.figa@samsung.com>,
-	Tomasz Stansislawski <t.stanislaws@samsung.com>,
-	linux-samsung-soc@vger.kernel.org (moderated list:ARM/S5P EXYNOS AR...),
-	linux-arm-kernel@lists.infradead.org (moderated list:ARM/S5P EXYNOS
-	AR...), dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org
-Subject: [RFC PATCH 3/4] drm/exynos/dpi: add interface tracker support
-Date: Wed, 30 Apr 2014 16:02:53 +0200
-Message-id: <1398866574-27001-4-git-send-email-a.hajda@samsung.com>
-In-reply-to: <1398866574-27001-1-git-send-email-a.hajda@samsung.com>
-References: <1398866574-27001-1-git-send-email-a.hajda@samsung.com>
+Received: from mail1.bemta8.messagelabs.com ([216.82.243.208]:48588 "EHLO
+	mail1.bemta8.messagelabs.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752427AbaDCQwX convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 12:52:23 -0400
+From: "Scheuermann, Mail" <Scheuermann@barco.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: AW: v4l2_buffer with PBO mapped memory
+Date: Thu, 3 Apr 2014 16:52:19 +0000
+Message-ID: <67C778DDEF97AE4BA9DC4BA8ECFD811E1DB2C949@KUUMEX11.barco.com>
+References: <533C2872.5090603@barco.com>,<11263729.kS3FzW2BUL@avalon>
+In-Reply-To: <11263729.kS3FzW2BUL@avalon>
+Content-Language: de-DE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-exynos_dpi uses connector polling for tracking panel presence,
-this solution introduces unnecessary 10s delay before panel activation.
-Moreover it is unsafe, module unloading or driver unbinding can
-cause system crash. interface_tracker support solves both problems.
+Hi Laurent,
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
----
- drivers/gpu/drm/exynos/exynos_drm_dpi.c | 58 ++++++++++++++++++++++++++-------
- 1 file changed, 47 insertions(+), 11 deletions(-)
+the driver my device uses is the uvcvideo. I have the kernel 3.11.0-18 from Ubuntu 13.10 running.
+It is built in in a Thinkpad X240 notebook.
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_dpi.c b/drivers/gpu/drm/exynos/exynos_drm_dpi.c
-index 2b09c7c..4c6682f 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_dpi.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_dpi.c
-@@ -14,6 +14,7 @@
- #include <drm/drm_crtc_helper.h>
- #include <drm/drm_panel.h>
- 
-+#include <linux/interface_tracker.h>
- #include <linux/regulator/consumer.h>
- 
- #include <video/of_videomode.h>
-@@ -21,6 +22,8 @@
- 
- #include "exynos_drm_drv.h"
- 
-+static void exynos_dpi_dpms(struct exynos_drm_display *display, int mode);
-+
- struct exynos_dpi {
- 	struct device *dev;
- 	struct device_node *panel_node;
-@@ -28,6 +31,7 @@ struct exynos_dpi {
- 	struct drm_panel *panel;
- 	struct drm_connector connector;
- 	struct drm_encoder *encoder;
-+	struct interface_tracker_block itb;
- 
- 	struct videomode *vm;
- 	int dpms_mode;
-@@ -41,15 +45,9 @@ exynos_dpi_detect(struct drm_connector *connector, bool force)
- 	struct exynos_dpi *ctx = connector_to_dpi(connector);
- 
- 	/* panels supported only by boot-loader are always connected */
--	if (!ctx->panel_node)
-+	if (ctx->vm)
- 		return connector_status_connected;
- 
--	if (!ctx->panel) {
--		ctx->panel = of_drm_find_panel(ctx->panel_node);
--		if (ctx->panel)
--			drm_panel_attach(ctx->panel, &ctx->connector);
--	}
--
- 	if (ctx->panel)
- 		return connector_status_connected;
- 
-@@ -114,6 +112,28 @@ static struct drm_connector_helper_funcs exynos_dpi_connector_helper_funcs = {
- 	.best_encoder = exynos_dpi_best_encoder,
- };
- 
-+void exynos_dpi_notifier(struct interface_tracker_block *itb,
-+			 const void *object, unsigned long type, bool on,
-+			 void *data)
-+{
-+	struct exynos_dpi *ctx = container_of(itb, struct exynos_dpi, itb);
-+
-+	mutex_lock(&ctx->connector.dev->mode_config.mutex);
-+	if (on) {
-+		ctx->panel = data;
-+		drm_panel_attach(ctx->panel, &ctx->connector);
-+	} else {
-+		struct exynos_drm_display *display;
-+
-+		display = platform_get_drvdata(to_platform_device(ctx->dev));
-+		exynos_dpi_dpms(display, DRM_MODE_DPMS_OFF);
-+		drm_panel_detach(ctx->panel);
-+		ctx->panel = NULL;
-+	}
-+	mutex_unlock(&ctx->connector.dev->mode_config.mutex);
-+	drm_helper_hpd_irq_event(ctx->connector.dev);
-+}
-+
- static int exynos_dpi_create_connector(struct exynos_drm_display *display,
- 				       struct drm_encoder *encoder)
- {
-@@ -123,10 +143,7 @@ static int exynos_dpi_create_connector(struct exynos_drm_display *display,
- 
- 	ctx->encoder = encoder;
- 
--	if (ctx->panel_node)
--		connector->polled = DRM_CONNECTOR_POLL_CONNECT;
--	else
--		connector->polled = DRM_CONNECTOR_POLL_HPD;
-+	connector->polled = DRM_CONNECTOR_POLL_HPD;
- 
- 	ret = drm_connector_init(encoder->dev, connector,
- 				 &exynos_dpi_connector_funcs,
-@@ -140,9 +157,27 @@ static int exynos_dpi_create_connector(struct exynos_drm_display *display,
- 	drm_sysfs_connector_add(connector);
- 	drm_mode_connector_attach_encoder(connector, encoder);
- 
-+	if (ctx->panel_node) {
-+		ctx->itb.callback = exynos_dpi_notifier;
-+		interface_tracker_register(ctx->panel_node,
-+					   INTERFACE_TRACKER_TYPE_DRM_PANEL,
-+					   &ctx->itb);
-+	}
-+
- 	return 0;
- }
- 
-+static void exynos_dpi_display_remove(struct exynos_drm_display *display)
-+{
-+	struct exynos_dpi *ctx = display->ctx;
-+
-+	if (ctx->panel_node) {
-+		interface_tracker_unregister(ctx->panel_node,
-+					     INTERFACE_TRACKER_TYPE_DRM_PANEL,
-+					     &ctx->itb);
-+	}
-+}
-+
- static void exynos_dpi_poweron(struct exynos_dpi *ctx)
- {
- 	if (ctx->panel)
-@@ -178,6 +213,7 @@ static void exynos_dpi_dpms(struct exynos_drm_display *display, int mode)
- 
- static struct exynos_drm_display_ops exynos_dpi_display_ops = {
- 	.create_connector = exynos_dpi_create_connector,
-+	.remove = exynos_dpi_display_remove,
- 	.dpms = exynos_dpi_dpms
- };
- 
--- 
-1.8.3.2
+Regards,
 
+Thomas
+
+________________________________________
+Von: Laurent Pinchart [laurent.pinchart@ideasonboard.com]
+Gesendet: Mittwoch, 2. April 2014 21:23
+An: Scheuermann, Mail
+Cc: linux-media@vger.kernel.org
+Betreff: Re: v4l2_buffer with PBO mapped memory
+
+Hi Thomas,
+
+On Wednesday 02 April 2014 17:10:42 Thomas Scheuermann wrote:
+> Hello,
+>
+> I've written a program which shows my webcam with the v4l2 interface.
+> In the v4l2_buffer I use the type V4L2_BUF_TYPE_VIDEO_CAPTURE and the
+> memory is V4L2_MEMORY_USERPTR.
+> Everything works if I use malloced memory for frame buffers.
+> Now I want to get the frames directly in OpenGL. I've mapped a pixel
+> buffer object with glMapBuffer and wanted to use this as a frame buffer.
+> But if I use this memory, the ioctl VIDIOC_QBUF fails with 'invalid
+> argument'.
+>
+> What can I do to use the pixel buffer object together with the v4l2
+> interface?
+> I want to use as less copy steps as possible.
+
+The use case is reasonable (although V4L2_MEMORY_DMABUF would be better, but
+we're not there yet on the OpenGL side I believe), so let's try to debug this.
+First of all, what webcam driver do you use ?
+
+--
+Regards,
+
+Laurent Pinchart
+
+This message is subject to the following terms and conditions: MAIL DISCLAIMER<http://www.barco.com/en/maildisclaimer>
