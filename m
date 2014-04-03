@@ -1,14 +1,14 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:40298 "EHLO hardeman.nu"
+Received: from hardeman.nu ([95.142.160.32]:40264 "EHLO hardeman.nu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753803AbaDCXcs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Apr 2014 19:32:48 -0400
-Subject: [PATCH 18/49] rc-core: allow chardev to be read
+	id S1753483AbaDCXbW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Apr 2014 19:31:22 -0400
+Subject: [PATCH 01/49] bt8xx: fixup RC5 decoding
 From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
 To: linux-media@vger.kernel.org
 Cc: m.chehab@samsung.com
-Date: Fri, 04 Apr 2014 01:32:46 +0200
-Message-ID: <20140403233246.27099.89520.stgit@zeus.muc.hardeman.nu>
+Date: Fri, 04 Apr 2014 01:31:20 +0200
+Message-ID: <20140403233120.27099.8572.stgit@zeus.muc.hardeman.nu>
 In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
 References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
 MIME-Version: 1.0
@@ -17,337 +17,268 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch is the first step towards making the rc chardev usable by adding
-read functionality.
-
-Basically the implementation mimics what evdev does. Userspace applications can
-open the rc device and read rc_event structs with data. Only some basic events
-are supported for now but later patches will add further events.
+The bt8xx driver does RC5 decoding for Nebula digi hardware, but includes
+some pointless limitations (both start bits must be one, the
+device/address/system must be 0x00). Remove those limitations and update
+the keymap to use the full RC5 scancode (fortunately the 0x00 address
+means that this is perfectly backwards compatible).
 
 Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- drivers/media/rc/rc-main.c |  154 +++++++++++++++++++++++++++++++++++++++++++-
- include/media/rc-core.h    |   40 +++++++++++
- 2 files changed, 189 insertions(+), 5 deletions(-)
+ drivers/media/pci/bt8xx/bttv-input.c |   62 ++++++++++---------
+ drivers/media/pci/bt8xx/bttvp.h      |    2 -
+ drivers/media/rc/keymaps/rc-nebula.c |  112 +++++++++++++++++-----------------
+ 3 files changed, 88 insertions(+), 88 deletions(-)
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 9c7bdb8..5ce0cdb 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -22,12 +22,14 @@
- #include <linux/idr.h>
- #include <linux/device.h>
- #include <linux/module.h>
-+#include <linux/poll.h>
- #include "rc-core-priv.h"
- 
- /* Sizes are in bytes, 256 bytes allows for 32 entries on x64 */
--#define IR_TAB_MIN_SIZE	256
--#define IR_TAB_MAX_SIZE	8192
--#define RC_DEV_MAX	256
-+#define IR_TAB_MIN_SIZE		256
-+#define IR_TAB_MAX_SIZE		8192
-+#define RC_DEV_MAX		256
-+#define RC_RX_BUFFER_SIZE	1024
- 
- /* FIXME: IR_KEYPRESS_TIMEOUT should be protocol specific */
- #define IR_KEYPRESS_TIMEOUT 250
-@@ -44,16 +46,75 @@ static dev_t rc_devt;
- /**
-  * struct rc_client - keeps track of processes which have opened a rc chardev
-  * @dev: the &struct rc_dev which is being controlled
-+ * @rxlock: protects the rxfifo
-+ * @rxfifo: stores rx events which can be read by the process
-  * @fasync: keeps track of the fasync queue
-  * @node: list of current clients for the rc device (protected by client_lock
-  *	in &struct rc_dev)
+diff --git a/drivers/media/pci/bt8xx/bttv-input.c b/drivers/media/pci/bt8xx/bttv-input.c
+index 5930bce..ffc0ee1 100644
+--- a/drivers/media/pci/bt8xx/bttv-input.c
++++ b/drivers/media/pci/bt8xx/bttv-input.c
+@@ -154,10 +154,10 @@ static void bttv_input_timer(unsigned long data)
+  * testing.
   */
- struct rc_client {
- 	struct rc_dev *dev;
-+	spinlock_t rxlock;
-+	DECLARE_KFIFO(rxfifo, struct rc_event, RC_RX_BUFFER_SIZE);
- 	struct fasync_struct *fasync;
- 	struct list_head node;
- };
  
-+/**
-+ * rc_client_event() - passes an rc event to a specific client
-+ * @client:	the &struct rc_client for this client
-+ * @type:	the event type
-+ * @code:	the event code (type specific)
-+ * @val:	the event value (type and code specific)
-+ *
-+ * This function writes a &struct rc_event entry to the client kfifo
-+ * for later reading from userspace.
-+ */
-+static void rc_client_event(struct rc_client *client, u16 type,
-+			    u16 code, u32 val)
-+{
-+	unsigned long flags;
-+	struct rc_event ev;
-+
-+	ev.type = type;
-+	ev.code = code;
-+	ev.val = val;
-+
-+	spin_lock_irqsave(&client->rxlock, flags);
-+	if (kfifo_is_full(&client->rxfifo)) {
-+		kfifo_skip(&client->rxfifo);
-+		ev.type = RC_CORE;
-+		ev.code = RC_CORE_DROPPED;
-+		ev.val = 1;
-+	}
-+
-+	kfifo_in(&client->rxfifo, &ev, 1);
-+	kill_fasync(&client->fasync, SIGIO, POLL_IN);
-+	spin_unlock_irqrestore(&client->rxlock, flags);
-+}
-+
-+/**
-+ * rc_event() - sends an rc_event to all listeners
-+ * @dev:	the struct rc_dev of the device generating the event
-+ * @type:	the event type
-+ * @code:	the event code (type specific)
-+ * @val:	the event value (type and code specific)
-+ *
-+ * This function passes an rc event to all clients.
-+ */
-+void rc_event(struct rc_dev *dev, u16 type, u16 code, u32 val)
-+{
-+	struct rc_client *client;
-+
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(client, &dev->client_list, node)
-+		rc_client_event(client, type, code, val);
-+	rcu_read_unlock();
-+
-+	wake_up_interruptible(&dev->rxwait);
-+}
-+EXPORT_SYMBOL_GPL(rc_event);
-+
- static struct rc_map_list *seek_rc_map(const char *name)
+-#define RC5_START(x)	(((x) >> 12) & 3)
+-#define RC5_TOGGLE(x)	(((x) >> 11) & 1)
+-#define RC5_ADDR(x)	(((x) >> 6) & 31)
+-#define RC5_INSTR(x)	((x) & 63)
++#define RC5_START(x)	(((x) >> 12) & 0x03)
++#define RC5_TOGGLE(x)	(((x) >> 11) & 0x01)
++#define RC5_ADDR(x)	(((x) >> 6)  & 0x1f)
++#define RC5_INSTR(x)	(((x) >> 0)  & 0x3f)
+ 
+ /* decode raw bit pattern to RC5 code */
+ static u32 bttv_rc5_decode(unsigned int code)
+@@ -195,8 +195,8 @@ static void bttv_rc5_timer_end(unsigned long data)
  {
- 	struct rc_map_list *map = NULL;
-@@ -753,6 +814,7 @@ void rc_repeat(struct rc_dev *dev)
+ 	struct bttv_ir *ir = (struct bttv_ir *)data;
+ 	struct timeval tv;
+-	u32 gap;
+-	u32 rc5 = 0;
++	u32 gap, rc5, scancode;
++	u8 toggle, command, system;
  
- 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
- 	input_sync(dev->input_dev);
-+	rc_event(dev, RC_KEY, RC_KEY_REPEAT, 1);
- 
- 	if (!dev->keypressed)
- 		goto out;
-@@ -788,6 +850,15 @@ static void ir_do_keydown(struct rc_dev *dev, enum rc_type protocol,
- 		ir_do_keyup(dev, false);
- 
- 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
-+	rc_event(dev, RC_KEY, RC_KEY_PROTOCOL, protocol);
-+	/*
-+	 * NOTE: If we ever get > 32 bit scancodes, we need to break the
-+	 *	 scancode into 32 bit pieces and feed them to userspace
-+	 *	 as one or more RC_KEY_SCANCODE_PART events followed
-+	 *	 by a final RC_KEY_SCANCODE event.
-+	 */
-+	rc_event(dev, RC_KEY, RC_KEY_SCANCODE, scancode);
-+	rc_event(dev, RC_KEY, RC_KEY_TOGGLE, toggle);
- 
- 	if (new_event && keycode != KEY_RESERVED) {
- 		/* Register a keypress */
-@@ -997,6 +1068,7 @@ static ssize_t show_protocols(struct device *device,
- 	if (!dev)
- 		return -EINVAL;
- 
-+	rc_event(dev, RC_KEY, RC_KEY_REPEAT, 1);
- 	mutex_lock(&dev->lock);
- 
- 	if (fattr->type == RC_FILTER_NORMAL) {
-@@ -1366,6 +1438,8 @@ static int rc_dev_open(struct inode *inode, struct file *file)
- 		return -ENOMEM;
- 
- 	client->dev = dev;
-+	spin_lock_init(&client->rxlock);
-+	INIT_KFIFO(client->rxfifo);
- 
- 	rc_attach_client(dev, client);
- 
-@@ -1408,6 +1482,74 @@ static int rc_release(struct inode *inode, struct file *file)
- }
- 
- /**
-+ * rc_read() - allows userspace to read rc events
-+ * @file:	the &struct file corresponding to the previous open()
-+ * @buffer:	the userspace buffer to read data to
-+ * @count:	the number of bytes to read
-+ * @ppos:	the file offset
-+ * @return:	the number of bytes read, or a negative error code
-+ *
-+ * This function (which implements read in &struct file_operations)
-+ * allows userspace to read events from the rc device file.
-+ */
-+static ssize_t rc_read(struct file *file, char __user *buffer,
-+		       size_t count, loff_t *ppos)
-+{
-+	struct rc_client *client = file->private_data;
-+	struct rc_dev *dev = client->dev;
-+	struct rc_event ev;
-+	int ret;
+ 	/* get time */
+ 	do_gettimeofday(&tv);
+@@ -221,26 +221,29 @@ static void bttv_rc5_timer_end(unsigned long data)
+ 	if (ir->last_bit < 20) {
+ 		/* ignore spurious codes (caused by light/other remotes) */
+ 		dprintk("short code: %x\n", ir->code);
+-	} else {
+-		ir->code = (ir->code << ir->shift_by) | 1;
+-		rc5 = bttv_rc5_decode(ir->code);
+-
+-		/* two start bits? */
+-		if (RC5_START(rc5) != ir->start) {
+-			pr_info(DEVNAME ":"
+-			       " rc5 start bits invalid: %u\n", RC5_START(rc5));
+-
+-			/* right address? */
+-		} else if (RC5_ADDR(rc5) == ir->addr) {
+-			u32 toggle = RC5_TOGGLE(rc5);
+-			u32 instr = RC5_INSTR(rc5);
+-
+-			/* Good code */
+-			rc_keydown(ir->dev, instr, toggle);
+-			dprintk("instruction %x, toggle %x\n",
+-				instr, toggle);
+-		}
++		return;
+ 	}
 +
-+	if (count < sizeof(ev))
-+		return -EINVAL;
++	ir->code = (ir->code << ir->shift_by) | 1;
++	rc5 = bttv_rc5_decode(ir->code);
 +
-+	if ((file->f_flags & O_NONBLOCK) &&
-+	    kfifo_is_empty(&client->rxfifo) &&
-+	    !dev->dead)
-+		return -EAGAIN;
++	toggle = RC5_TOGGLE(rc5);
++	system = RC5_ADDR(rc5);
++	command = RC5_INSTR(rc5);
 +
-+	ret = wait_event_interruptible(dev->rxwait,
-+				       !kfifo_is_empty(&client->rxfifo) ||
-+				       dev->dead);
-+
-+	if (ret)
-+		return ret;
-+
-+	if (dev->dead)
-+		return -ENODEV;
-+
-+	for (ret = 0; ret + sizeof(ev) <= count; ret += sizeof(ev)) {
-+		if (kfifo_out_spinlocked(&client->rxfifo, &ev, 1,
-+					 &client->rxlock) != 1)
-+			break;
-+
-+		if (copy_to_user(buffer + ret, &ev, sizeof(ev)))
-+			return -EFAULT;
++	switch (RC5_START(rc5)) {
++	case 0x3:
++		break;
++	case 0x2:
++		command += 0x40;
++		break;
++	default:
++		return;
 +	}
 +
-+	return ret;
-+}
-+
-+/**
-+ * rc_poll() - allows userspace to poll rc device files
-+ * @file:	the &struct file corresponding to the previous open()
-+ * @wait:	used to keep track of processes waiting for poll events
-+ * @return:	a mask of poll events which have occurred
-+ *
-+ * This function (which implements poll in &struct file_operations)
-+ * allows userspace to poll/select on the rc device file.
-+ */
-+static unsigned int rc_poll(struct file *file, poll_table *wait)
-+{
-+	struct rc_client *client = file->private_data;
-+	struct rc_dev *dev = client->dev;
-+
-+	poll_wait(file, &dev->rxwait, wait);
-+	return ((kfifo_is_empty(&client->rxfifo) ? 0 : (POLLIN | POLLRDNORM)) |
-+		(!dev->dead ? 0 : (POLLHUP | POLLERR)));
-+}
-+
-+/**
-  * rc_fasync() - allows userspace to recieve asynchronous notifications
-  * @fd:		the file descriptor corresponding to the opened rc device
-  * @file:	the &struct file corresponding to the previous open()
-@@ -1429,6 +1571,8 @@ static const struct file_operations rc_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= rc_dev_open,
- 	.release	= rc_release,
-+	.read		= rc_read,
-+	.poll		= rc_poll,
- 	.fasync		= rc_fasync,
- 	.llseek		= no_llseek,
- };
-@@ -1552,7 +1696,7 @@ struct rc_dev *rc_allocate_device(void)
- 
- 	INIT_LIST_HEAD(&dev->client_list);
- 	spin_lock_init(&dev->client_lock);
--
-+	init_waitqueue_head(&dev->rxwait);
- 	spin_lock_init(&dev->rc_map.lock);
- 	spin_lock_init(&dev->keylock);
- 	mutex_init(&dev->lock);
-@@ -1750,6 +1894,7 @@ void rc_unregister_device(struct rc_dev *dev)
- 	list_for_each_entry(client, &dev->client_list, node)
- 		kill_fasync(&client->fasync, SIGIO, POLL_HUP);
- 	spin_unlock(&dev->client_lock);
-+	wake_up_interruptible_all(&dev->rxwait);
- 
- 	cdev_del(&dev->cdev);
- 
-@@ -1771,7 +1916,6 @@ void rc_unregister_device(struct rc_dev *dev)
- 	ida_simple_remove(&rc_ida, MINOR(dev->dev.devt));
- 	put_device(&dev->dev);
++	scancode = system << 8 | command;
++	rc_keydown(ir->dev, scancode, toggle);
++	dprintk("scancode %x, toggle %x\n", scancode, toggle);
  }
--
- EXPORT_SYMBOL_GPL(rc_unregister_device);
  
- static int __init rc_core_init(void)
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index e2615e7..d31ccdd 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -53,6 +53,43 @@ struct rc_keymap_entry {
- 	};
+ static int bttv_rc5_irq(struct bttv *btv)
+@@ -310,8 +313,6 @@ static void bttv_ir_start(struct bttv *btv, struct bttv_ir *ir)
+ 		/* set timer_end for code completion */
+ 		setup_timer(&ir->timer, bttv_rc5_timer_end, (unsigned long)ir);
+ 		ir->shift_by = 1;
+-		ir->start = 3;
+-		ir->addr = 0x0;
+ 		ir->rc5_remote_gap = ir_rc5_remote_gap;
+ 	}
+ }
+@@ -490,8 +491,8 @@ int bttv_input_init(struct bttv *btv)
+ 		ir->polling      = 50; // ms
+ 		break;
+ 	case BTTV_BOARD_NEBULA_DIGITV:
+-		ir_codes = RC_MAP_NEBULA;
+-		ir->rc5_gpio = true;
++		ir_codes         = RC_MAP_NEBULA;
++		ir->rc5_gpio     = true;
+ 		break;
+ 	case BTTV_BOARD_MACHTV_MAGICTV:
+ 		ir_codes         = RC_MAP_APAC_VIEWCOMP;
+@@ -514,7 +515,8 @@ int bttv_input_init(struct bttv *btv)
+ 						   ir->mask_keycode);
+ 		break;
+ 	}
+-	if (NULL == ir_codes) {
++
++	if (!ir_codes) {
+ 		dprintk("Ooops: IR config error [card=%d]\n", btv->c.type);
+ 		err = -ENODEV;
+ 		goto err_out_free;
+diff --git a/drivers/media/pci/bt8xx/bttvp.h b/drivers/media/pci/bt8xx/bttvp.h
+index 6eefb59..9fe19488 100644
+--- a/drivers/media/pci/bt8xx/bttvp.h
++++ b/drivers/media/pci/bt8xx/bttvp.h
+@@ -133,8 +133,6 @@ struct bttv_ir {
+ 	u32                     polling;
+ 	u32                     last_gpio;
+ 	int                     shift_by;
+-	int                     start; // What should RC5_START() be
+-	int                     addr; // What RC5_ADDR() should be.
+ 	int                     rc5_remote_gap;
+ 
+ 	/* RC5 gpio */
+diff --git a/drivers/media/rc/keymaps/rc-nebula.c b/drivers/media/rc/keymaps/rc-nebula.c
+index 8ec881a..4c50f33 100644
+--- a/drivers/media/rc/keymaps/rc-nebula.c
++++ b/drivers/media/rc/keymaps/rc-nebula.c
+@@ -14,68 +14,68 @@
+ #include <linux/module.h>
+ 
+ static struct rc_map_table nebula[] = {
+-	{ 0x00, KEY_0 },
+-	{ 0x01, KEY_1 },
+-	{ 0x02, KEY_2 },
+-	{ 0x03, KEY_3 },
+-	{ 0x04, KEY_4 },
+-	{ 0x05, KEY_5 },
+-	{ 0x06, KEY_6 },
+-	{ 0x07, KEY_7 },
+-	{ 0x08, KEY_8 },
+-	{ 0x09, KEY_9 },
+-	{ 0x0a, KEY_TV },
+-	{ 0x0b, KEY_AUX },
+-	{ 0x0c, KEY_DVD },
+-	{ 0x0d, KEY_POWER },
+-	{ 0x0e, KEY_CAMERA },	/* labelled 'Picture' */
+-	{ 0x0f, KEY_AUDIO },
+-	{ 0x10, KEY_INFO },
+-	{ 0x11, KEY_F13 },	/* 16:9 */
+-	{ 0x12, KEY_F14 },	/* 14:9 */
+-	{ 0x13, KEY_EPG },
+-	{ 0x14, KEY_EXIT },
+-	{ 0x15, KEY_MENU },
+-	{ 0x16, KEY_UP },
+-	{ 0x17, KEY_DOWN },
+-	{ 0x18, KEY_LEFT },
+-	{ 0x19, KEY_RIGHT },
+-	{ 0x1a, KEY_ENTER },
+-	{ 0x1b, KEY_CHANNELUP },
+-	{ 0x1c, KEY_CHANNELDOWN },
+-	{ 0x1d, KEY_VOLUMEUP },
+-	{ 0x1e, KEY_VOLUMEDOWN },
+-	{ 0x1f, KEY_RED },
+-	{ 0x20, KEY_GREEN },
+-	{ 0x21, KEY_YELLOW },
+-	{ 0x22, KEY_BLUE },
+-	{ 0x23, KEY_SUBTITLE },
+-	{ 0x24, KEY_F15 },	/* AD */
+-	{ 0x25, KEY_TEXT },
+-	{ 0x26, KEY_MUTE },
+-	{ 0x27, KEY_REWIND },
+-	{ 0x28, KEY_STOP },
+-	{ 0x29, KEY_PLAY },
+-	{ 0x2a, KEY_FASTFORWARD },
+-	{ 0x2b, KEY_F16 },	/* chapter */
+-	{ 0x2c, KEY_PAUSE },
+-	{ 0x2d, KEY_PLAY },
+-	{ 0x2e, KEY_RECORD },
+-	{ 0x2f, KEY_F17 },	/* picture in picture */
+-	{ 0x30, KEY_KPPLUS },	/* zoom in */
+-	{ 0x31, KEY_KPMINUS },	/* zoom out */
+-	{ 0x32, KEY_F18 },	/* capture */
+-	{ 0x33, KEY_F19 },	/* web */
+-	{ 0x34, KEY_EMAIL },
+-	{ 0x35, KEY_PHONE },
+-	{ 0x36, KEY_PC },
++	{ 0x0000, KEY_0 },
++	{ 0x0001, KEY_1 },
++	{ 0x0002, KEY_2 },
++	{ 0x0003, KEY_3 },
++	{ 0x0004, KEY_4 },
++	{ 0x0005, KEY_5 },
++	{ 0x0006, KEY_6 },
++	{ 0x0007, KEY_7 },
++	{ 0x0008, KEY_8 },
++	{ 0x0009, KEY_9 },
++	{ 0x000a, KEY_TV },
++	{ 0x000b, KEY_AUX },
++	{ 0x000c, KEY_DVD },
++	{ 0x000d, KEY_POWER },
++	{ 0x000e, KEY_CAMERA },	/* labelled 'Picture' */
++	{ 0x000f, KEY_AUDIO },
++	{ 0x0010, KEY_INFO },
++	{ 0x0011, KEY_F13 },	/* 16:9 */
++	{ 0x0012, KEY_F14 },	/* 14:9 */
++	{ 0x0013, KEY_EPG },
++	{ 0x0014, KEY_EXIT },
++	{ 0x0015, KEY_MENU },
++	{ 0x0016, KEY_UP },
++	{ 0x0017, KEY_DOWN },
++	{ 0x0018, KEY_LEFT },
++	{ 0x0019, KEY_RIGHT },
++	{ 0x001a, KEY_ENTER },
++	{ 0x001b, KEY_CHANNELUP },
++	{ 0x001c, KEY_CHANNELDOWN },
++	{ 0x001d, KEY_VOLUMEUP },
++	{ 0x001e, KEY_VOLUMEDOWN },
++	{ 0x001f, KEY_RED },
++	{ 0x0020, KEY_GREEN },
++	{ 0x0021, KEY_YELLOW },
++	{ 0x0022, KEY_BLUE },
++	{ 0x0023, KEY_SUBTITLE },
++	{ 0x0024, KEY_F15 },	/* AD */
++	{ 0x0025, KEY_TEXT },
++	{ 0x0026, KEY_MUTE },
++	{ 0x0027, KEY_REWIND },
++	{ 0x0028, KEY_STOP },
++	{ 0x0029, KEY_PLAY },
++	{ 0x002a, KEY_FASTFORWARD },
++	{ 0x002b, KEY_F16 },	/* chapter */
++	{ 0x002c, KEY_PAUSE },
++	{ 0x002d, KEY_PLAY },
++	{ 0x002e, KEY_RECORD },
++	{ 0x002f, KEY_F17 },	/* picture in picture */
++	{ 0x0030, KEY_KPPLUS },	/* zoom in */
++	{ 0x0031, KEY_KPMINUS },	/* zoom out */
++	{ 0x0032, KEY_F18 },	/* capture */
++	{ 0x0033, KEY_F19 },	/* web */
++	{ 0x0034, KEY_EMAIL },
++	{ 0x0035, KEY_PHONE },
++	{ 0x0036, KEY_PC },
  };
  
-+/* rc_event.type value */
-+#define RC_DEBUG		0x0
-+#define RC_CORE			0x1
-+#define RC_KEY			0x2
-+#define RC_IR			0x3
-+
-+/* RC_CORE codes */
-+#define RC_CORE_DROPPED		0x0
-+
-+/* RC_KEY codes */
-+#define RC_KEY_REPEAT		0x0
-+#define RC_KEY_PROTOCOL		0x1
-+#define RC_KEY_SCANCODE		0x2
-+#define RC_KEY_SCANCODE_PART	0x3
-+#define RC_KEY_TOGGLE		0x4
-+
-+/* RC_IR codes */
-+#define RC_IR_SPACE		0x0
-+#define RC_IR_PULSE		0x1
-+#define RC_IR_START		0x2
-+#define RC_IR_STOP		0x3
-+#define RC_IR_RESET		0x4
-+#define RC_IR_CARRIER		0x5
-+#define RC_IR_DUTY_CYCLE	0x6
-+
-+/**
-+ * struct rc_event - used to communicate rc events to/from userspace
-+ * @type:	the event type
-+ * @code:	the event code (type specific)
-+ * @val:	the event value (type and code specific)
-+ */
-+struct rc_event {
-+	__u16 type;
-+	__u16 code;
-+	__u32 val;
-+} __packed;
-+
- /**
-  * struct rc_scancode_filter - Filter scan codes.
-  * @data:	Scancode data to match.
-@@ -92,6 +129,7 @@ enum rc_filter_type {
-  * @dead: used to determine if the device is still alive
-  * @client_list: list of clients (processes which have opened the rc chardev)
-  * @client_lock: protects client_list
-+ * @rxwait: waitqueue for processes waiting for data to read
-  * @raw: additional data for raw pulse/space devices
-  * @input_dev: the input child device used to communicate events to userspace
-  * @driver_type: specifies if protocol decoding is done in hardware or software
-@@ -155,6 +193,7 @@ struct rc_dev {
- 	bool				dead;
- 	struct list_head		client_list;
- 	spinlock_t			client_lock;
-+	wait_queue_head_t		rxwait;
- 	struct ir_raw_event_ctrl	*raw;
- 	struct input_dev		*input_dev;
- 	enum rc_driver_type		driver_type;
-@@ -212,6 +251,7 @@ struct rc_dev *rc_allocate_device(void);
- void rc_free_device(struct rc_dev *dev);
- int rc_register_device(struct rc_dev *dev);
- void rc_unregister_device(struct rc_dev *dev);
-+void rc_event(struct rc_dev *dev, u16 type, u16 code, u32 val);
- 
- int rc_open(struct rc_dev *rdev);
- void rc_close(struct rc_dev *rdev);
+ static struct rc_map_list nebula_map = {
+ 	.map = {
+ 		.scan    = nebula,
+ 		.size    = ARRAY_SIZE(nebula),
+-		.rc_type = RC_TYPE_UNKNOWN,	/* Legacy IR type */
++		.rc_type = RC_TYPE_RC5,
+ 		.name    = RC_MAP_NEBULA,
+ 	}
+ };
 
