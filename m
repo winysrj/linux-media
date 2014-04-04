@@ -1,52 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1813 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754945AbaDGMvx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 08:51:53 -0400
-Message-ID: <53429F53.7050005@xs4all.nl>
-Date: Mon, 07 Apr 2014 14:51:31 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:37441 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753492AbaDDOxz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Apr 2014 10:53:55 -0400
+Received: by mail-pa0-f52.google.com with SMTP id rd3so3589357pab.11
+        for <linux-media@vger.kernel.org>; Fri, 04 Apr 2014 07:53:55 -0700 (PDT)
+Date: Fri, 4 Apr 2014 07:52:47 -0700 (PDT)
+From: Hugh Dickins <hughd@google.com>
+To: "Kirill A. Shutemov" <kirill@shutemov.name>
+cc: Hugh Dickins <hughd@google.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Jan Kara <jack@suse.cz>, Roland Dreier <roland@kernel.org>,
+	Oleg Nesterov <oleg@redhat.com>,
+	Konstantin Khlebnikov <koct9i@gmail.com>,
+	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Omar Ramirez Luna <omar.ramirez@copitl.com>,
+	Inki Dae <inki.dae@samsung.com>, linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org, linux-rdma@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] mm: get_user_pages(write,force) refuse to COW in shared
+ areas
+In-Reply-To: <20140404123242.GA22320@node.dhcp.inet.fi>
+Message-ID: <alpine.LSU.2.11.1404040733490.7442@eggly.anvils>
+References: <alpine.LSU.2.11.1404040120110.6880@eggly.anvils> <20140404123242.GA22320@node.dhcp.inet.fi>
 MIME-Version: 1.0
-To: Divneil Wadhawan <divneil@outlook.com>,
-	Pawel Osciak <pawel@osciak.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: videobuf2-vmalloc suspect for corrupted data
-References: <BAY176-W225B62F958527124202669A9680@phx.gbl>,<CAMm-=zDKUoFN7OiGpL3c=7KCkmYNhiyns20t8H7Pz_=qgaeHMw@mail.gmail.com> <BAY176-W524A762315BE245FCCD5DCA9680@phx.gbl>,<53428483.7060107@xs4all.nl> <BAY176-W91C143782DF21AB7ACEC8A9680@phx.gbl>
-In-Reply-To: <BAY176-W91C143782DF21AB7ACEC8A9680@phx.gbl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/07/2014 01:20 PM, Divneil Wadhawan wrote:
-> Hi Hans,
->> Two more questions:
->>
->> Which kernel version are you using?
-> 3.4.58
+On Fri, 4 Apr 2014, Kirill A. Shutemov wrote:
+> 
+> There's comment in do_wp_page() which is not true anymore with patch
+> applied. It should be fixed.
 
-That should be new enough, I see no important differences between 3.4
-and 3.14 in this respect. But really, 3.4? That's over two years old!
-If you have control over what kernel you use then I recommend you
-upgrade.
+The * Only catch write-faults on shared writable pages,
+    * read-only shared pages can get COWed by
+    * get_user_pages(.write=1, .force=1).
 
->> Which capture driver are you using?
-> It's a TSMUX driver, written locally.
+Yes, I went back and forth on that: I found it difficult to remove that
+comment without also simplifying the VM_WRITE|VM_SHARED test immediately
+above it, possibly even looking again at the ordering of those tests.
 
-I have not seen any reports of problems with vmalloc with arm in a long
-time. I know the uvc driver uses vmalloc, and that's used frequently.
+In the end I decided to leave changing it to when we do the other
+little cleanups outside get_user_pages(), after it's become clear
+whether the new EFAULT is troublesome or not.  Most of my testing
+had been without any change in do_wp_page(), so I left that out.
 
-Question: if you use MEMORY_MMAP instead of USERPTR, does that work?
+> 
+> Otherwise, looks good to me:
+> 
+> Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 
-Have you tried to stream with v4l2-ctl? It's available here:
-http://git.linuxtv.org/cgit.cgi/v4l-utils.git/. It's the reference
-implementation of how to stream, so if that fails as well, then at
-least its not your application.
-
-Testing whether you see the same when capturing from a usb uvc webcam
-(most webcams are uvc these days) would be useful as well. If it works
-with a uvc webcam, but not with your driver, then I suspect the driver.
-
-Regards,
-
-	Hans
+Thanks,
+Hugh
