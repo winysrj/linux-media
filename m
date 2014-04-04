@@ -1,67 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f42.google.com ([209.85.213.42]:33462 "EHLO
-	mail-yh0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932996AbaDJBS5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 21:18:57 -0400
-Received: by mail-yh0-f42.google.com with SMTP id t59so3242719yho.29
-        for <linux-media@vger.kernel.org>; Wed, 09 Apr 2014 18:18:57 -0700 (PDT)
+Received: from userp1040.oracle.com ([156.151.31.81]:39499 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752597AbaDDL1b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Apr 2014 07:27:31 -0400
+Date: Fri, 4 Apr 2014 14:27:17 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Subject: Re: [media] V4L: Add driver for S3C24XX/S3C64XX SoC series camera
+ interface
+Message-ID: <20140404112717.GR18506@mwanda>
+References: <20130823094647.GO31293@elgon.mountain>
+ <5219F736.2010706@gmail.com>
+ <20130827141914.GD19256@mwanda>
+ <521CB6FF.70401@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <CAMm-=zADVfFPJSuHifGadOeYxbxM-8P0cf2nsRFbM_5U_6yxtQ@mail.gmail.com>
-References: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl>
- <1396876272-18222-11-git-send-email-hverkuil@xs4all.nl> <CAMm-=zADVfFPJSuHifGadOeYxbxM-8P0cf2nsRFbM_5U_6yxtQ@mail.gmail.com>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Thu, 10 Apr 2014 10:10:37 +0900
-Message-ID: <CAMm-=zAraDm38quOPBX9EFhwk65ogXkthd8S_E1B46+8DX3Rmw@mail.gmail.com>
-Subject: Re: [REVIEWv2 PATCH 10/13] vb2: set v4l2_buffer.bytesused to 0 for mp buffers
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <521CB6FF.70401@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ah, alas, Sakari is right. This should not be needed, since we memcpy
-vb->v4l2_buf to this, also overwriting bytesused.
+Whatever happened with this btw?  Also are you sure we don't need a
+second check after line 457?
 
-On Thu, Apr 10, 2014 at 10:08 AM, Pawel Osciak <pawel@osciak.com> wrote:
-> On Mon, Apr 7, 2014 at 10:11 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> The bytesused field of struct v4l2_buffer is not used for multiplanar
->> formats, so just zero it to prevent it from having some random value.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Acked-by: Pawel Osciak <pawel@osciak.com>
->
->> ---
->>  drivers/media/v4l2-core/videobuf2-core.c | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->> index 08152dd..ef7ef82 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -582,6 +582,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
->>                  * for it. The caller has already verified memory and size.
->>                  */
->>                 b->length = vb->num_planes;
->> +               b->bytesused = 0;
->>                 memcpy(b->m.planes, vb->v4l2_planes,
->>                         b->length * sizeof(struct v4l2_plane));
->>         } else {
->> --
->> 1.9.1
->>
->
->
->
+regards,
+dan carpenter
+
+On Tue, Aug 27, 2013 at 04:26:07PM +0200, Sylwester Nawrocki wrote:
+> On 08/27/2013 04:19 PM, Dan Carpenter wrote:
+> > On Sun, Aug 25, 2013 at 02:23:18PM +0200, Sylwester Nawrocki wrote:
+> >> On 08/23/2013 11:46 AM, Dan Carpenter wrote:
+> >>> [ Going through some old warnings... ]
+> >>>
+> >>> Hello Sylwester Nawrocki,
+> >>>
+> >>> This is a semi-automatic email about new static checker warnings.
+> >>>
+> >>> The patch babde1c243b2: "[media] V4L: Add driver for S3C24XX/S3C64XX
+> >>> SoC series camera interface" from Aug 22, 2012, leads to the
+> >>> following Smatch complaint:
+> >>>
+> >>> drivers/media/platform/s3c-camif/camif-capture.c:463 queue_setup()
+> >>> 	 warn: variable dereferenced before check 'fmt' (see line 460)
+> >>>
+> >>> drivers/media/platform/s3c-camif/camif-capture.c
+> >>>    455          if (pfmt) {
+> >>>    456                  pix =&pfmt->fmt.pix;
+> >>>    457                  fmt = s3c_camif_find_format(vp,&pix->pixelformat, -1);
+> >>>    458                  size = (pix->width * pix->height * fmt->depth) / 8;
+> >>>                                                            ^^^^^^^^^^
+> >>> Dereference.
+> >>>
+> >>>    459		} else {
+> >>>    460			size = (frame->f_width * frame->f_height * fmt->depth) / 8;
+> >>>                                                                    ^^^^^^^^^^
+> >>> Dereference.
+> >>>
+> >>>    461		}
+> >>>    462	
+> >>>    463		if (fmt == NULL)
+> >>>                     ^^^^^^^^^^^
+> >>> Check.
+> >>
+> >> Thanks for the bug report. This check of course should be before line 455.
+> >> Would you like to sent a patch for this or should I handle that ?
+> > 
+> > Could you handle it and give me the Reported-by tag?
+> 
+> Sure, will do.
+> 
 > --
-> Best regards,
-> Pawel Osciak
-
-
-
--- 
-Best regards,
-Pawel Osciak
+> Regards,
+> Sylwester
