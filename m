@@ -1,68 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback2.mail.ru ([94.100.176.87]:46859 "EHLO
-	fallback6.mail.ru" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750955AbaDRFLz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Apr 2014 01:11:55 -0400
-Received: from smtp35.i.mail.ru (smtp35.i.mail.ru [94.100.177.95])
-	by fallback6.mail.ru (mPOP.Fallback_MX) with ESMTP id 2A76636F19B8
-	for <linux-media@vger.kernel.org>; Fri, 18 Apr 2014 09:07:50 +0400 (MSK)
-From: Alexander Shiyan <shc_work@mail.ru>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Alexander Shiyan <shc_work@mail.ru>
-Subject: [PATCH] media: m2m-deinterlace: Convert to devm* API
-Date: Fri, 18 Apr 2014 09:07:33 +0400
-Message-Id: <1397797653-14717-1-git-send-email-shc_work@mail.ru>
+Received: from mail-ve0-f174.google.com ([209.85.128.174]:56516 "EHLO
+	mail-ve0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753815AbaDDR0n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Apr 2014 13:26:43 -0400
+MIME-Version: 1.0
+In-Reply-To: <20140403131143.69f324c7@samsung.com>
+References: <20140403131143.69f324c7@samsung.com>
+Date: Fri, 4 Apr 2014 10:26:42 -0700
+Message-ID: <CA+55aFwSA58-gbBBLHd87HBj6X-wZisE+9KDoxaJ1UrvqiyYFA@mail.gmail.com>
+Subject: Re: [GIT PULL for v3.15-rc1] media updates
+From: Linus Torvalds <torvalds@linux-foundation.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace resource handling in the driver with managed device resource.
+On Thu, Apr 3, 2014 at 9:11 AM, Mauro Carvalho Chehab
+<m.chehab@samsung.com> wrote:
+>
+> PS.: You'll find some minor conflicts between this changeset and upstream,
+> mainly due to some code that moved from V4L2 to OF subsystem.
 
-Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
----
- drivers/media/platform/m2m-deinterlace.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+That conflict was not at all minor, unless I were willing to do the
+merge incorrectly and just drop all changes from one side. Which is
+not how I do merges if I can at all avoid it.
 
-diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
-index c21d14f..d36c507 100644
---- a/drivers/media/platform/m2m-deinterlace.c
-+++ b/drivers/media/platform/m2m-deinterlace.c
-@@ -1002,7 +1002,7 @@ static int deinterlace_probe(struct platform_device *pdev)
- 	dma_cap_mask_t mask;
- 	int ret = 0;
- 
--	pcdev = kzalloc(sizeof *pcdev, GFP_KERNEL);
-+	pcdev = devm_kzalloc(&pdev->dev, sizeof(*pcdev), GFP_KERNEL);
- 	if (!pcdev)
- 		return -ENOMEM;
- 
-@@ -1012,7 +1012,7 @@ static int deinterlace_probe(struct platform_device *pdev)
- 	dma_cap_set(DMA_INTERLEAVE, mask);
- 	pcdev->dma_chan = dma_request_channel(mask, NULL, pcdev);
- 	if (!pcdev->dma_chan)
--		goto free_dev;
-+		return -ENODEV;
- 
- 	if (!dma_has_cap(DMA_INTERLEAVE, pcdev->dma_chan->device->cap_mask)) {
- 		v4l2_err(&pcdev->v4l2_dev, "DMA does not support INTERLEAVE\n");
-@@ -1078,8 +1078,6 @@ unreg_dev:
- 	v4l2_device_unregister(&pcdev->v4l2_dev);
- rel_dma:
- 	dma_release_channel(pcdev->dma_chan);
--free_dev:
--	kfree(pcdev);
- 
- 	return ret;
- }
-@@ -1094,7 +1092,6 @@ static int deinterlace_remove(struct platform_device *pdev)
- 	v4l2_device_unregister(&pcdev->v4l2_dev);
- 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
- 	dma_release_channel(pcdev->dma_chan);
--	kfree(pcdev);
- 
- 	return 0;
- }
--- 
-1.8.3.2
+The *trivial* merge would be to just take the
+of_graph_get_next_endpoint() function as it existed in its new
+location of drivers/of/base.c.
 
+However, there were to clashing changes to that function (one in the
+original location, one in the new moved location). They were:
+
+ - b9db140c1e46: "[media] v4l: of: Support empty port nodes"
+ - 4329b93b283c: "of: Reduce indentation in of_graph_get_next_endpoint"
+
+and quite frankly, I think that the second commit was the much less
+interesting of the two, so *that* was the one I felt I should drop.
+But that made the merge a lot more interesting than just picking the
+new location (because the new location didn't have the important
+change). And those two changes clash to the point of being basically
+mutually exclusive.
+
+So I did the complex merge that I think is the right thing by hand.
+
+However, I feel a bit bad about that more merge, because I have
+absolutely no way to test my result. So I'm including here all the
+relevant people wrt those two commits, and my note from my merge
+message:
+
+  NOTE! This merge effective drops commit 4329b93b283c ("of: Reduce
+  indentation in of_graph_get_next_endpoint").
+
+  The of_graph_get_next_endpoint() function was moved and renamed by
+  commit fd9fdb78a9bf ("[media] of: move graph helpers from
+  drivers/media/v4l2-core to drivers/of").  It was originally called
+  v4l2_of_get_next_endpoint() and lived in the file
+  drivers/media/v4l2-core/v4l2-of.c.
+
+  In that original location, it was then fixed to support empty port
+  nodes by commit b9db140c1e46 ("[media] v4l: of: Support empty port
+  nodes"), and that commit clashes badly with the dropped "Reduce
+  intendation" commit.  I had to choose one or the other, and decided
+  that the "Support empty port nodes" commit was more important
+
+So guys, can you please verify the end result? It looks sane to me,
+but there's no good way for me to do even basic compile testing of the
+OF code, so this was all done entirely blind. And hey, maybe you
+disagree about the empty port nodes being the important case anyway.
+
+Maybe I should have done the "wrong" merge just to avoid this issue,
+but I do hate doing that.
+
+                      Linus
