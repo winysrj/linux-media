@@ -1,86 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2846 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755584AbaDWNu5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Apr 2014 09:50:57 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id s3NDos5d084991
-	for <linux-media@vger.kernel.org>; Wed, 23 Apr 2014 15:50:56 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E39F82A0002
-	for <linux-media@vger.kernel.org>; Wed, 23 Apr 2014 15:50:42 +0200 (CEST)
-Message-ID: <5357C532.4030206@xs4all.nl>
-Date: Wed, 23 Apr 2014 15:50:42 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.16] saa7134 fixes and vb2 conversion
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:12024 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754498AbaDDTp3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Apr 2014 15:45:29 -0400
+Date: Fri, 04 Apr 2014 16:45:22 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v3.15-rc1] exynos patches
+Message-id: <20140404164522.21c2f58a@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Linus,
 
-I have attempted to split up the saa7134 vb2 conversion a bit more, but I don't
-see how I can reduce it further, except by disabling parts of the driver, then
-converting each part and enabling it again (i.e., disable dvb & empress, convert
-just video/vbi to vb2, then empress, then dvb).
+That's the remaining patches I have for the merge windows. It basically
+adds a new sensor and adds the needed DT bits for it to work.
 
-But I think that's rather ugly since a bisect might end up with a partially
-crippled driver.
+-
 
-It's the same as what I posted a week ago, except rebased to the latest master
-branch:
+PS.: This patch also have some conflicts with the code that got moved
+to drivers/of, but this conflict is just function rename:
 
-http://www.spinics.net/lists/linux-media/msg75893.html
+- 	node = v4l2_of_get_next_endpoint(node, NULL);
++	node = of_graph_get_next_endpoint(node, NULL);
 
-If you still want more changes, then please see if you can at least merge the
-first 9 patches.
+- 	node = v4l2_of_get_remote_port(node);
++	node = of_graph_get_remote_port(node);
 
-Regards,
+-
 
-	Hans
+The following changes since commit ba35ca07080268af1badeb47de0f9eff28126339:
 
-The following changes since commit ce9c22443e77594531be84ba8d523f4148ba09fe:
-
-  [media] vb2: fix compiler warning (2014-04-23 10:13:57 -0300)
+  [media] em28xx-audio: make sure audio is unmuted on open() (2014-03-14 10:17:18 -0300)
 
 are available in the git repository at:
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.16c
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media topic/exynos
 
-for you to fetch changes up to e37d96689c22fd547ed4153ae8a67c26c54ae679:
+for you to fetch changes up to 97e9858ed5525af5355769cd98b25b5ec94c0c85:
 
-  saa7134: add saa7134_userptr module option to enable USERPTR (2014-04-23 15:42:45 +0200)
+  [media] s5p-fimc: Remove reference to outdated macro (2014-03-14 10:37:43 -0300)
 
 ----------------------------------------------------------------
-Hans Verkuil (11):
-      saa7134: fix regression with tvtime
-      saa7134: coding style cleanups.
-      saa7134: drop abuse of low-level videobuf functions
-      saa7134: swap ts_init_encoder and ts_reset_encoder
-      saa7134: store VBI hlen/vlen globally
-      saa7134: remove fmt from saa7134_buf
-      saa7134: rename empress_tsq to empress_vbq
-      saa7134: rename vbi/cap to vbi_vbq/cap_vbq
-      saa7134: move saa7134_pgtable to saa7134_dmaqueue
-      saa7134: convert to vb2
-      saa7134: add saa7134_userptr module option to enable USERPTR
+Jacek Anaszewski (1):
+      [media] s5p-jpeg: Fix broken indentation in jpeg-regs.h
 
- drivers/media/pci/saa7134/Kconfig           |   4 +-
- drivers/media/pci/saa7134/saa7134-alsa.c    | 106 +++++++++++--
- drivers/media/pci/saa7134/saa7134-core.c    | 130 ++++++++--------
- drivers/media/pci/saa7134/saa7134-dvb.c     |  50 ++++---
- drivers/media/pci/saa7134/saa7134-empress.c | 186 +++++++++--------------
- drivers/media/pci/saa7134/saa7134-i2c.c     |   7 -
- drivers/media/pci/saa7134/saa7134-reg.h     |   7 -
- drivers/media/pci/saa7134/saa7134-ts.c      | 191 +++++++++++++-----------
- drivers/media/pci/saa7134/saa7134-tvaudio.c |   7 -
- drivers/media/pci/saa7134/saa7134-vbi.c     | 175 ++++++++++------------
- drivers/media/pci/saa7134/saa7134-video.c   | 652 +++++++++++++++++++++++++++++---------------------------------------------------
- drivers/media/pci/saa7134/saa7134.h         | 107 +++++++------
- 12 files changed, 732 insertions(+), 890 deletions(-)
+Paul Bolle (1):
+      [media] s5p-fimc: Remove reference to outdated macro
+
+Sylwester Nawrocki (9):
+      [media] Documentation: dt: Add binding documentation for S5K6A3 image sensor
+      [media] Documentation: dt: Add binding documentation for S5C73M3 camera
+      [media] Documentation: devicetree: Update Samsung FIMC DT binding
+      [media] V4L: Add driver for s5k6a3 image sensor
+      [media] V4L: s5c73m3: Add device tree support
+      [media] exynos4-is: Use external s5k6a3 sensor driver
+      [media] exynos4-is: Add clock provider for the SCLK_CAM clock outputs
+      [media] exynos4-is: Add support for asynchronous subdevices registration
+      [media] exynos4-is: Add the FIMC-IS ISP capture DMA driver
+
+ .../devicetree/bindings/media/samsung-fimc.txt     |  44 +-
+ .../devicetree/bindings/media/samsung-s5c73m3.txt  |  97 +++
+ .../devicetree/bindings/media/samsung-s5k6a3.txt   |  33 ++
+ Documentation/video4linux/fimc.txt                 |   5 +-
+ drivers/media/i2c/Kconfig                          |   8 +
+ drivers/media/i2c/Makefile                         |   1 +
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c           | 207 +++++--
+ drivers/media/i2c/s5c73m3/s5c73m3-spi.c            |   6 +
+ drivers/media/i2c/s5c73m3/s5c73m3.h                |   4 +
+ drivers/media/i2c/s5k6a3.c                         | 389 ++++++++++++
+ drivers/media/platform/exynos4-is/Kconfig          |   9 +
+ drivers/media/platform/exynos4-is/Makefile         |   4 +
+ drivers/media/platform/exynos4-is/fimc-is-param.c  |   2 +-
+ drivers/media/platform/exynos4-is/fimc-is-param.h  |   5 +
+ drivers/media/platform/exynos4-is/fimc-is-regs.c   |  16 +-
+ drivers/media/platform/exynos4-is/fimc-is-regs.h   |   1 +
+ drivers/media/platform/exynos4-is/fimc-is-sensor.c | 285 +--------
+ drivers/media/platform/exynos4-is/fimc-is-sensor.h |  49 +-
+ drivers/media/platform/exynos4-is/fimc-is.c        |  98 ++-
+ drivers/media/platform/exynos4-is/fimc-is.h        |   9 +-
+ drivers/media/platform/exynos4-is/fimc-isp-video.c | 660 +++++++++++++++++++++
+ drivers/media/platform/exynos4-is/fimc-isp-video.h |  44 ++
+ drivers/media/platform/exynos4-is/fimc-isp.c       |  29 +-
+ drivers/media/platform/exynos4-is/fimc-isp.h       |  27 +-
+ drivers/media/platform/exynos4-is/media-dev.c      | 363 +++++++++---
+ drivers/media/platform/exynos4-is/media-dev.h      |  32 +-
+ drivers/media/platform/s5p-jpeg/jpeg-regs.h        |  24 +-
+ 27 files changed, 1886 insertions(+), 565 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+ create mode 100644 drivers/media/i2c/s5k6a3.c
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-isp-video.c
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-isp-video.h
+
+
+This is the diff for the trivial merge conflict solve.
+
+diff --cc drivers/media/platform/exynos4-is/fimc-is.c
+index 9bdfa4599bc3,c289d5a69d09..000000000000
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@@ -167,11 -168,19 +168,18 @@@ static int fimc_is_parse_sensor_config(
+  	u32 tmp = 0;
+  	int ret;
+  
++ 	sensor->drvdata = fimc_is_sensor_get_drvdata(node);
++ 	if (!sensor->drvdata) {
++ 		dev_err(&is->pdev->dev, "no driver data found for: %s\n",
++ 							 node->full_name);
++ 		return -EINVAL;
++ 	}
++ 
+ -	node = v4l2_of_get_next_endpoint(node, NULL);
+ -	if (!node)
+ +	np = of_graph_get_next_endpoint(np, NULL);
+ +	if (!np)
+  		return -ENXIO;
+ -
+ -	node = v4l2_of_get_remote_port(node);
+ -	if (!node)
+ +	np = of_graph_get_remote_port(np);
+ +	if (!np)
+  		return -ENXIO;
+  
+  	/* Use MIPI-CSIS channel id to determine the ISP I2C bus index. */
+
+
+-- 
+
+Regards,
+Mauro
