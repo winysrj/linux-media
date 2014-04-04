@@ -1,296 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:46315 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934327AbaDITY5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Apr 2014 15:24:57 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id 6753020F47
-	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 22:24:53 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1479 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751672AbaDDCgK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 22:36:10 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s342a6ZL010274
+	for <linux-media@vger.kernel.org>; Fri, 4 Apr 2014 04:36:08 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 83BD32A03F4
+	for <linux-media@vger.kernel.org>; Fri,  4 Apr 2014 04:35:56 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 07/17] smiapp-pll: The clock tree values are unsigned --- fix debug prints
-Date: Wed,  9 Apr 2014 22:24:59 +0300
-Message-Id: <1397071509-2071-8-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140404023556.83BD32A03F4@tschai.lan>
+Date: Fri,  4 Apr 2014 04:35:56 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These values are unsigned, so use %u instead of %d.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp-pll.c | 94 +++++++++++++++++++++---------------------
- 1 file changed, 47 insertions(+), 47 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
-index ab5d9a3..d14af5c 100644
---- a/drivers/media/i2c/smiapp-pll.c
-+++ b/drivers/media/i2c/smiapp-pll.c
-@@ -65,26 +65,26 @@ static int bounds_check(struct device *dev, uint32_t val,
- 
- static void print_pll(struct device *dev, struct smiapp_pll *pll)
- {
--	dev_dbg(dev, "pre_pll_clk_div\t%d\n",  pll->pre_pll_clk_div);
--	dev_dbg(dev, "pll_multiplier \t%d\n",  pll->pll_multiplier);
-+	dev_dbg(dev, "pre_pll_clk_div\t%u\n",  pll->pre_pll_clk_div);
-+	dev_dbg(dev, "pll_multiplier \t%u\n",  pll->pll_multiplier);
- 	if (!(pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)) {
--		dev_dbg(dev, "op_sys_clk_div \t%d\n", pll->op_sys_clk_div);
--		dev_dbg(dev, "op_pix_clk_div \t%d\n", pll->op_pix_clk_div);
-+		dev_dbg(dev, "op_sys_clk_div \t%u\n", pll->op_sys_clk_div);
-+		dev_dbg(dev, "op_pix_clk_div \t%u\n", pll->op_pix_clk_div);
- 	}
--	dev_dbg(dev, "vt_sys_clk_div \t%d\n",  pll->vt_sys_clk_div);
--	dev_dbg(dev, "vt_pix_clk_div \t%d\n",  pll->vt_pix_clk_div);
-+	dev_dbg(dev, "vt_sys_clk_div \t%u\n",  pll->vt_sys_clk_div);
-+	dev_dbg(dev, "vt_pix_clk_div \t%u\n",  pll->vt_pix_clk_div);
- 
--	dev_dbg(dev, "ext_clk_freq_hz \t%d\n", pll->ext_clk_freq_hz);
--	dev_dbg(dev, "pll_ip_clk_freq_hz \t%d\n", pll->pll_ip_clk_freq_hz);
--	dev_dbg(dev, "pll_op_clk_freq_hz \t%d\n", pll->pll_op_clk_freq_hz);
-+	dev_dbg(dev, "ext_clk_freq_hz \t%u\n", pll->ext_clk_freq_hz);
-+	dev_dbg(dev, "pll_ip_clk_freq_hz \t%u\n", pll->pll_ip_clk_freq_hz);
-+	dev_dbg(dev, "pll_op_clk_freq_hz \t%u\n", pll->pll_op_clk_freq_hz);
- 	if (!(pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)) {
--		dev_dbg(dev, "op_sys_clk_freq_hz \t%d\n",
-+		dev_dbg(dev, "op_sys_clk_freq_hz \t%u\n",
- 			pll->op_sys_clk_freq_hz);
--		dev_dbg(dev, "op_pix_clk_freq_hz \t%d\n",
-+		dev_dbg(dev, "op_pix_clk_freq_hz \t%u\n",
- 			pll->op_pix_clk_freq_hz);
- 	}
--	dev_dbg(dev, "vt_sys_clk_freq_hz \t%d\n", pll->vt_sys_clk_freq_hz);
--	dev_dbg(dev, "vt_pix_clk_freq_hz \t%d\n", pll->vt_pix_clk_freq_hz);
-+	dev_dbg(dev, "vt_sys_clk_freq_hz \t%u\n", pll->vt_sys_clk_freq_hz);
-+	dev_dbg(dev, "vt_pix_clk_freq_hz \t%u\n", pll->vt_pix_clk_freq_hz);
- }
- 
- /*
-@@ -123,11 +123,11 @@ static int __smiapp_pll_calculate(struct device *dev,
- 	 * Get pre_pll_clk_div so that our pll_op_clk_freq_hz won't be
- 	 * too high.
- 	 */
--	dev_dbg(dev, "pre_pll_clk_div %d\n", pll->pre_pll_clk_div);
-+	dev_dbg(dev, "pre_pll_clk_div %u\n", pll->pre_pll_clk_div);
- 
- 	/* Don't go above max pll multiplier. */
- 	more_mul_max = limits->max_pll_multiplier / mul;
--	dev_dbg(dev, "more_mul_max: max_pll_multiplier check: %d\n",
-+	dev_dbg(dev, "more_mul_max: max_pll_multiplier check: %u\n",
- 		more_mul_max);
- 	/* Don't go above max pll op frequency. */
- 	more_mul_max =
-@@ -135,30 +135,30 @@ static int __smiapp_pll_calculate(struct device *dev,
- 		      more_mul_max,
- 		      limits->max_pll_op_freq_hz
- 		      / (pll->ext_clk_freq_hz / pll->pre_pll_clk_div * mul));
--	dev_dbg(dev, "more_mul_max: max_pll_op_freq_hz check: %d\n",
-+	dev_dbg(dev, "more_mul_max: max_pll_op_freq_hz check: %u\n",
- 		more_mul_max);
- 	/* Don't go above the division capability of op sys clock divider. */
- 	more_mul_max = min(more_mul_max,
- 			   limits->op.max_sys_clk_div * pll->pre_pll_clk_div
- 			   / div);
--	dev_dbg(dev, "more_mul_max: max_op_sys_clk_div check: %d\n",
-+	dev_dbg(dev, "more_mul_max: max_op_sys_clk_div check: %u\n",
- 		more_mul_max);
- 	/* Ensure we won't go above min_pll_multiplier. */
- 	more_mul_max = min(more_mul_max,
- 			   DIV_ROUND_UP(limits->max_pll_multiplier, mul));
--	dev_dbg(dev, "more_mul_max: min_pll_multiplier check: %d\n",
-+	dev_dbg(dev, "more_mul_max: min_pll_multiplier check: %u\n",
- 		more_mul_max);
- 
- 	/* Ensure we won't go below min_pll_op_freq_hz. */
- 	more_mul_min = DIV_ROUND_UP(limits->min_pll_op_freq_hz,
- 				    pll->ext_clk_freq_hz / pll->pre_pll_clk_div
- 				    * mul);
--	dev_dbg(dev, "more_mul_min: min_pll_op_freq_hz check: %d\n",
-+	dev_dbg(dev, "more_mul_min: min_pll_op_freq_hz check: %u\n",
- 		more_mul_min);
- 	/* Ensure we won't go below min_pll_multiplier. */
- 	more_mul_min = max(more_mul_min,
- 			   DIV_ROUND_UP(limits->min_pll_multiplier, mul));
--	dev_dbg(dev, "more_mul_min: min_pll_multiplier check: %d\n",
-+	dev_dbg(dev, "more_mul_min: min_pll_multiplier check: %u\n",
- 		more_mul_min);
- 
- 	if (more_mul_min > more_mul_max) {
-@@ -168,23 +168,23 @@ static int __smiapp_pll_calculate(struct device *dev,
- 	}
- 
- 	more_mul_factor = lcm(div, pll->pre_pll_clk_div) / div;
--	dev_dbg(dev, "more_mul_factor: %d\n", more_mul_factor);
-+	dev_dbg(dev, "more_mul_factor: %u\n", more_mul_factor);
- 	more_mul_factor = lcm(more_mul_factor, limits->op.min_sys_clk_div);
--	dev_dbg(dev, "more_mul_factor: min_op_sys_clk_div: %d\n",
-+	dev_dbg(dev, "more_mul_factor: min_op_sys_clk_div: %u\n",
- 		more_mul_factor);
- 	i = roundup(more_mul_min, more_mul_factor);
- 	if (!is_one_or_even(i))
- 		i <<= 1;
- 
--	dev_dbg(dev, "final more_mul: %d\n", i);
-+	dev_dbg(dev, "final more_mul: %u\n", i);
- 	if (i > more_mul_max) {
--		dev_dbg(dev, "final more_mul is bad, max %d\n", more_mul_max);
-+		dev_dbg(dev, "final more_mul is bad, max %u\n", more_mul_max);
- 		return -EINVAL;
- 	}
- 
- 	pll->pll_multiplier = mul * i;
- 	pll->op_sys_clk_div = div * i / pll->pre_pll_clk_div;
--	dev_dbg(dev, "op_sys_clk_div: %d\n", pll->op_sys_clk_div);
-+	dev_dbg(dev, "op_sys_clk_div: %u\n", pll->op_sys_clk_div);
- 
- 	pll->pll_ip_clk_freq_hz = pll->ext_clk_freq_hz
- 		/ pll->pre_pll_clk_div;
-@@ -197,7 +197,7 @@ static int __smiapp_pll_calculate(struct device *dev,
- 		pll->pll_op_clk_freq_hz / pll->op_sys_clk_div;
- 
- 	pll->op_pix_clk_div = pll->bits_per_pixel;
--	dev_dbg(dev, "op_pix_clk_div: %d\n", pll->op_pix_clk_div);
-+	dev_dbg(dev, "op_pix_clk_div: %u\n", pll->op_pix_clk_div);
- 
- 	pll->op_pix_clk_freq_hz =
- 		pll->op_sys_clk_freq_hz / pll->op_pix_clk_div;
-@@ -214,7 +214,7 @@ static int __smiapp_pll_calculate(struct device *dev,
- 		vt_op_binning_div = pll->binning_horizontal;
- 	else
- 		vt_op_binning_div = 1;
--	dev_dbg(dev, "vt_op_binning_div: %d\n", vt_op_binning_div);
-+	dev_dbg(dev, "vt_op_binning_div: %u\n", vt_op_binning_div);
- 
- 	/*
- 	 * Profile 2 supports vt_pix_clk_div E [4, 10]
-@@ -227,30 +227,30 @@ static int __smiapp_pll_calculate(struct device *dev,
- 	 *
- 	 * Find absolute limits for the factor of vt divider.
- 	 */
--	dev_dbg(dev, "scale_m: %d\n", pll->scale_m);
-+	dev_dbg(dev, "scale_m: %u\n", pll->scale_m);
- 	min_vt_div = DIV_ROUND_UP(pll->op_pix_clk_div * pll->op_sys_clk_div
- 				  * pll->scale_n,
- 				  lane_op_clock_ratio * vt_op_binning_div
- 				  * pll->scale_m);
- 
- 	/* Find smallest and biggest allowed vt divisor. */
--	dev_dbg(dev, "min_vt_div: %d\n", min_vt_div);
-+	dev_dbg(dev, "min_vt_div: %u\n", min_vt_div);
- 	min_vt_div = max(min_vt_div,
- 			 DIV_ROUND_UP(pll->pll_op_clk_freq_hz,
- 				      limits->vt.max_pix_clk_freq_hz));
--	dev_dbg(dev, "min_vt_div: max_vt_pix_clk_freq_hz: %d\n",
-+	dev_dbg(dev, "min_vt_div: max_vt_pix_clk_freq_hz: %u\n",
- 		min_vt_div);
- 	min_vt_div = max_t(uint32_t, min_vt_div,
- 			   limits->vt.min_pix_clk_div
- 			   * limits->vt.min_sys_clk_div);
--	dev_dbg(dev, "min_vt_div: min_vt_clk_div: %d\n", min_vt_div);
-+	dev_dbg(dev, "min_vt_div: min_vt_clk_div: %u\n", min_vt_div);
- 
- 	max_vt_div = limits->vt.max_sys_clk_div * limits->vt.max_pix_clk_div;
--	dev_dbg(dev, "max_vt_div: %d\n", max_vt_div);
-+	dev_dbg(dev, "max_vt_div: %u\n", max_vt_div);
- 	max_vt_div = min(max_vt_div,
- 			 DIV_ROUND_UP(pll->pll_op_clk_freq_hz,
- 				      limits->vt.min_pix_clk_freq_hz));
--	dev_dbg(dev, "max_vt_div: min_vt_pix_clk_freq_hz: %d\n",
-+	dev_dbg(dev, "max_vt_div: min_vt_pix_clk_freq_hz: %u\n",
- 		max_vt_div);
- 
- 	/*
-@@ -258,28 +258,28 @@ static int __smiapp_pll_calculate(struct device *dev,
- 	 * with all values of pix_clk_div.
- 	 */
- 	min_sys_div = limits->vt.min_sys_clk_div;
--	dev_dbg(dev, "min_sys_div: %d\n", min_sys_div);
-+	dev_dbg(dev, "min_sys_div: %u\n", min_sys_div);
- 	min_sys_div = max(min_sys_div,
- 			  DIV_ROUND_UP(min_vt_div,
- 				       limits->vt.max_pix_clk_div));
--	dev_dbg(dev, "min_sys_div: max_vt_pix_clk_div: %d\n", min_sys_div);
-+	dev_dbg(dev, "min_sys_div: max_vt_pix_clk_div: %u\n", min_sys_div);
- 	min_sys_div = max(min_sys_div,
- 			  pll->pll_op_clk_freq_hz
- 			  / limits->vt.max_sys_clk_freq_hz);
--	dev_dbg(dev, "min_sys_div: max_pll_op_clk_freq_hz: %d\n", min_sys_div);
-+	dev_dbg(dev, "min_sys_div: max_pll_op_clk_freq_hz: %u\n", min_sys_div);
- 	min_sys_div = clk_div_even_up(min_sys_div);
--	dev_dbg(dev, "min_sys_div: one or even: %d\n", min_sys_div);
-+	dev_dbg(dev, "min_sys_div: one or even: %u\n", min_sys_div);
- 
- 	max_sys_div = limits->vt.max_sys_clk_div;
--	dev_dbg(dev, "max_sys_div: %d\n", max_sys_div);
-+	dev_dbg(dev, "max_sys_div: %u\n", max_sys_div);
- 	max_sys_div = min(max_sys_div,
- 			  DIV_ROUND_UP(max_vt_div,
- 				       limits->vt.min_pix_clk_div));
--	dev_dbg(dev, "max_sys_div: min_vt_pix_clk_div: %d\n", max_sys_div);
-+	dev_dbg(dev, "max_sys_div: min_vt_pix_clk_div: %u\n", max_sys_div);
- 	max_sys_div = min(max_sys_div,
- 			  DIV_ROUND_UP(pll->pll_op_clk_freq_hz,
- 				       limits->vt.min_pix_clk_freq_hz));
--	dev_dbg(dev, "max_sys_div: min_vt_pix_clk_freq_hz: %d\n", max_sys_div);
-+	dev_dbg(dev, "max_sys_div: min_vt_pix_clk_freq_hz: %u\n", max_sys_div);
- 
- 	/*
- 	 * Find pix_div such that a legal pix_div * sys_div results
-@@ -296,7 +296,7 @@ static int __smiapp_pll_calculate(struct device *dev,
- 			if (pix_div < limits->vt.min_pix_clk_div
- 			    || pix_div > limits->vt.max_pix_clk_div) {
- 				dev_dbg(dev,
--					"pix_div %d too small or too big (%d--%d)\n",
-+					"pix_div %u too small or too big (%u--%u)\n",
- 					pix_div,
- 					limits->vt.min_pix_clk_div,
- 					limits->vt.max_pix_clk_div);
-@@ -390,9 +390,9 @@ int smiapp_pll_calculate(struct device *dev,
- 		lane_op_clock_ratio = pll->csi2.lanes;
- 	else
- 		lane_op_clock_ratio = 1;
--	dev_dbg(dev, "lane_op_clock_ratio: %d\n", lane_op_clock_ratio);
-+	dev_dbg(dev, "lane_op_clock_ratio: %u\n", lane_op_clock_ratio);
- 
--	dev_dbg(dev, "binning: %dx%d\n", pll->binning_horizontal,
-+	dev_dbg(dev, "binning: %ux%u\n", pll->binning_horizontal,
- 		pll->binning_vertical);
- 
- 	switch (pll->bus_type) {
-@@ -411,7 +411,7 @@ int smiapp_pll_calculate(struct device *dev,
- 	}
- 
- 	/* Figure out limits for pre-pll divider based on extclk */
--	dev_dbg(dev, "min / max pre_pll_clk_div: %d / %d\n",
-+	dev_dbg(dev, "min / max pre_pll_clk_div: %u / %u\n",
- 		limits->min_pre_pll_clk_div, limits->max_pre_pll_clk_div);
- 	max_pre_pll_clk_div =
- 		min_t(uint16_t, limits->max_pre_pll_clk_div,
-@@ -422,20 +422,20 @@ int smiapp_pll_calculate(struct device *dev,
- 		      clk_div_even_up(
- 			      DIV_ROUND_UP(pll->ext_clk_freq_hz,
- 					   limits->max_pll_ip_freq_hz)));
--	dev_dbg(dev, "pre-pll check: min / max pre_pll_clk_div: %d / %d\n",
-+	dev_dbg(dev, "pre-pll check: min / max pre_pll_clk_div: %u / %u\n",
- 		min_pre_pll_clk_div, max_pre_pll_clk_div);
- 
- 	i = gcd(pll->pll_op_clk_freq_hz, pll->ext_clk_freq_hz);
- 	mul = div_u64(pll->pll_op_clk_freq_hz, i);
- 	div = pll->ext_clk_freq_hz / i;
--	dev_dbg(dev, "mul %d / div %d\n", mul, div);
-+	dev_dbg(dev, "mul %u / div %u\n", mul, div);
- 
- 	min_pre_pll_clk_div =
- 		max_t(uint16_t, min_pre_pll_clk_div,
- 		      clk_div_even_up(
- 			      DIV_ROUND_UP(mul * pll->ext_clk_freq_hz,
- 					   limits->max_pll_op_freq_hz)));
--	dev_dbg(dev, "pll_op check: min / max pre_pll_clk_div: %d / %d\n",
-+	dev_dbg(dev, "pll_op check: min / max pre_pll_clk_div: %u / %u\n",
- 		min_pre_pll_clk_div, max_pre_pll_clk_div);
- 
- 	for (pll->pre_pll_clk_div = min_pre_pll_clk_div;
--- 
-1.8.3.2
+date:		Fri Apr  4 04:01:16 CEST 2014
+git branch:	test
+git hash:	a83b93a7480441a47856dc9104bea970e84cda87
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0
+host hardware:	x86_64
+host os:	3.13-7.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
