@@ -1,113 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:36458 "EHLO smtp3-g21.free.fr"
+Received: from hardeman.nu ([95.142.160.32]:40780 "EHLO hardeman.nu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754988AbaDGMpd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Apr 2014 08:45:33 -0400
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	Denis Carikli <denis@eukrea.com>
-Subject: [PATCH v12][ 05/12] imx-drm: use defines for clock polarity settings
-Date: Mon,  7 Apr 2014 14:44:44 +0200
-Message-Id: <1396874691-27954-5-git-send-email-denis@eukrea.com>
-In-Reply-To: <1396874691-27954-1-git-send-email-denis@eukrea.com>
-References: <1396874691-27954-1-git-send-email-denis@eukrea.com>
+	id S1753090AbaDDWGH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Apr 2014 18:06:07 -0400
+Subject: [PATCH 3/3] rc-core: remove generic scancode filter
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: james.hogan@imgtec.com, m.chehab@samsung.com
+Date: Sat, 05 Apr 2014 00:06:06 +0200
+Message-ID: <20140404220606.5068.13356.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20140404220404.5068.3669.stgit@zeus.muc.hardeman.nu>
+References: <20140404220404.5068.3669.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
----
-ChangeLog 11->v12:
-- Improved the define names to match the hardware:
-  ENABLE_POL is not a clock signal but instead an enable signal.
+The generic scancode filtering has questionable value and makes it
+impossible to determine from userspace if there is an actual
+scancode hw filter present or not.
 
-ChangeLog v9->v10:
-- New patch which was splitted out from:
-  "staging: imx-drm: Use de-active and pixelclk-active display-timings.".
-- Fixes many issues in "staging: imx-drm: Use de-active and pixelclk-active
-  display-timings.":
-  - More clear meaning of the polarity settings.
-  - The SET_CLK_POL and SET_DE_POL masks are not
-    needed anymore.
----
- drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h |    8 +++++++-
- drivers/staging/imx-drm/ipu-v3/ipu-di.c     |    4 ++--
- drivers/staging/imx-drm/ipuv3-crtc.c        |    4 ++--
- 3 files changed, 11 insertions(+), 5 deletions(-)
+So revert the generic parts.
 
-diff --git a/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h b/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
-index c4d14ea..eba8893 100644
---- a/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
-+++ b/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
-@@ -27,6 +27,12 @@ enum ipuv3_type {
+Based on a patch from James Hogan <james.hogan@imgtec.com>, but this
+version also makes sure that only the valid sysfs files are created
+in the first place.
+
+v2: correct dev->s_filter check
+
+v3: move some parts over from the previous patch
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-main.c |   88 +++++++++++++++++++++++++++-----------------
+ include/media/rc-core.h    |    2 +
+ 2 files changed, 55 insertions(+), 35 deletions(-)
+
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index ecbc20c..970b93d 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -633,19 +633,13 @@ EXPORT_SYMBOL_GPL(rc_repeat);
+ static void ir_do_keydown(struct rc_dev *dev, int scancode,
+ 			  u32 keycode, u8 toggle)
+ {
+-	struct rc_scancode_filter *filter;
+-	bool new_event = !dev->keypressed ||
+-			 dev->last_scancode != scancode ||
+-			 dev->last_toggle != toggle;
++	bool new_event = (!dev->keypressed		 ||
++			  dev->last_scancode != scancode ||
++			  dev->last_toggle != toggle);
  
- #define IPU_PIX_FMT_GBR24	v4l2_fourcc('G', 'B', 'R', '3')
+ 	if (new_event && dev->keypressed)
+ 		ir_do_keyup(dev, false);
  
-+#define CLK_POL_NEGEDGE		0
-+#define CLK_POL_POSEDGE		1
-+
-+#define ENABLE_POL_LOW		0
-+#define ENABLE_POL_HIGH		1
-+
- /*
-  * Bitfield of Display Interface signal polarities.
-  */
-@@ -37,7 +43,7 @@ struct ipu_di_signal_cfg {
- 	unsigned clksel_en:1;
- 	unsigned clkidle_en:1;
- 	unsigned data_pol:1;	/* true = inverted */
--	unsigned clk_pol:1;	/* true = rising edge */
-+	unsigned clk_pol:1;
- 	unsigned enable_pol:1;
- 	unsigned Hsync_pol:1;	/* true = active high */
- 	unsigned Vsync_pol:1;
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-di.c b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-index 849b3e1..0ce3f52 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-@@ -595,7 +595,7 @@ int ipu_di_init_sync_panel(struct ipu_di *di, struct ipu_di_signal_cfg *sig)
+-	/* Generic scancode filtering */
+-	filter = &dev->scancode_filters[RC_FILTER_NORMAL];
+-	if (filter->mask && ((scancode ^ filter->data) & filter->mask))
+-		return;
+-
+ 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
+ 
+ 	if (new_event && keycode != KEY_RESERVED) {
+@@ -1011,14 +1005,11 @@ static ssize_t store_protocols(struct device *device,
+ 	set_filter = (fattr->type == RC_FILTER_NORMAL)
+ 		? dev->s_filter : dev->s_wakeup_filter;
+ 
+-	if (old_type != type && filter->mask) {
++	if (set_filter && old_type != type && filter->mask) {
+ 		local_filter = *filter;
+ 		if (!type) {
+ 			/* no protocol => clear filter */
+ 			ret = -1;
+-		} else if (!set_filter) {
+-			/* generic filtering => accept any filter */
+-			ret = 0;
+ 		} else {
+ 			/* hardware filtering => try setting, otherwise clear */
+ 			ret = set_filter(dev, &local_filter);
+@@ -1027,8 +1018,7 @@ static ssize_t store_protocols(struct device *device,
+ 			/* clear the filter */
+ 			local_filter.data = 0;
+ 			local_filter.mask = 0;
+-			if (set_filter)
+-				set_filter(dev, &local_filter);
++			set_filter(dev, &local_filter);
  		}
+ 
+ 		/* commit the new filter */
+@@ -1072,7 +1062,10 @@ static ssize_t show_filter(struct device *device,
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&dev->lock);
+-	if (fattr->mask)
++	if ((fattr->type == RC_FILTER_NORMAL && !dev->s_filter) ||
++	    (fattr->type == RC_FILTER_WAKEUP && !dev->s_wakeup_filter))
++		val = 0;
++	else if (fattr->mask)
+ 		val = dev->scancode_filters[fattr->type].mask;
+ 	else
+ 		val = dev->scancode_filters[fattr->type].data;
+@@ -1120,12 +1113,11 @@ static ssize_t store_filter(struct device *device,
+ 	if (ret < 0)
+ 		return ret;
+ 
++	/* Can the scancode filter be set? */
+ 	set_filter = (fattr->type == RC_FILTER_NORMAL) ? dev->s_filter :
+ 							 dev->s_wakeup_filter;
+-
+-	/* Scancode filter not supported (but still accept 0) */
+-	if (!set_filter && fattr->type == RC_FILTER_WAKEUP)
+-		return val ? -EINVAL : count;
++	if (!set_filter)
++		return -EINVAL;
+ 
+ 	mutex_lock(&dev->lock);
+ 
+@@ -1143,11 +1135,9 @@ static ssize_t store_filter(struct device *device,
+ 		goto unlock;
  	}
  
--	if (sig->clk_pol)
-+	if (sig->clk_pol == CLK_POL_POSEDGE)
- 		di_gen |= DI_GEN_POLARITY_DISP_CLK;
+-	if (set_filter) {
+-		ret = set_filter(dev, &local_filter);
+-		if (ret < 0)
+-			goto unlock;
+-	}
++	ret = set_filter(dev, &local_filter);
++	if (ret < 0)
++		goto unlock;
  
- 	ipu_di_write(di, di_gen, DI_GENERAL);
-@@ -606,7 +606,7 @@ int ipu_di_init_sync_panel(struct ipu_di *di, struct ipu_di_signal_cfg *sig)
- 	reg = ipu_di_read(di, DI_POL);
- 	reg &= ~(DI_POL_DRDY_DATA_POLARITY | DI_POL_DRDY_POLARITY_15);
+ 	/* Success, commit the new filter */
+ 	*filter = local_filter;
+@@ -1199,27 +1189,45 @@ static RC_FILTER_ATTR(wakeup_filter, S_IRUGO|S_IWUSR,
+ static RC_FILTER_ATTR(wakeup_filter_mask, S_IRUGO|S_IWUSR,
+ 		      show_filter, store_filter, RC_FILTER_WAKEUP, true);
  
--	if (sig->enable_pol)
-+	if (sig->enable_pol == ENABLE_POL_HIGH)
- 		reg |= DI_POL_DRDY_POLARITY_15;
- 	if (sig->data_pol)
- 		reg |= DI_POL_DRDY_DATA_POLARITY;
-diff --git a/drivers/staging/imx-drm/ipuv3-crtc.c b/drivers/staging/imx-drm/ipuv3-crtc.c
-index f2c9cd0..9ba089c 100644
---- a/drivers/staging/imx-drm/ipuv3-crtc.c
-+++ b/drivers/staging/imx-drm/ipuv3-crtc.c
-@@ -157,8 +157,8 @@ static int ipu_crtc_mode_set(struct drm_crtc *crtc,
- 	if (mode->flags & DRM_MODE_FLAG_PVSYNC)
- 		sig_cfg.Vsync_pol = 1;
+-static struct attribute *rc_dev_attrs[] = {
++static struct attribute *rc_dev_protocol_attrs[] = {
+ 	&dev_attr_protocols.attr.attr,
++	NULL,
++};
++
++static struct attribute_group rc_dev_protocol_attr_grp = {
++	.attrs	= rc_dev_protocol_attrs,
++};
++
++static struct attribute *rc_dev_wakeup_protocol_attrs[] = {
+ 	&dev_attr_wakeup_protocols.attr.attr,
++	NULL,
++};
++
++static struct attribute_group rc_dev_wakeup_protocol_attr_grp = {
++	.attrs	= rc_dev_wakeup_protocol_attrs,
++};
++
++static struct attribute *rc_dev_filter_attrs[] = {
+ 	&dev_attr_filter.attr.attr,
+ 	&dev_attr_filter_mask.attr.attr,
+-	&dev_attr_wakeup_filter.attr.attr,
+-	&dev_attr_wakeup_filter_mask.attr.attr,
+ 	NULL,
+ };
  
--	sig_cfg.enable_pol = 1;
--	sig_cfg.clk_pol = 0;
-+	sig_cfg.enable_pol = ENABLE_POL_HIGH;
-+	sig_cfg.clk_pol = CLK_POL_NEGEDGE;
- 	sig_cfg.width = mode->hdisplay;
- 	sig_cfg.height = mode->vdisplay;
- 	sig_cfg.pixel_fmt = out_pixel_fmt;
--- 
-1.7.9.5
+-static struct attribute_group rc_dev_attr_grp = {
+-	.attrs	= rc_dev_attrs,
++static struct attribute_group rc_dev_filter_attr_grp = {
++	.attrs	= rc_dev_filter_attrs,
+ };
+ 
+-static const struct attribute_group *rc_dev_attr_groups[] = {
+-	&rc_dev_attr_grp,
+-	NULL
++static struct attribute *rc_dev_wakeup_filter_attrs[] = {
++	&dev_attr_wakeup_filter.attr.attr,
++	&dev_attr_wakeup_filter_mask.attr.attr,
++	NULL,
++};
++
++static struct attribute_group rc_dev_wakeup_filter_attr_grp = {
++	.attrs	= rc_dev_wakeup_filter_attrs,
+ };
+ 
+ static struct device_type rc_dev_type = {
+-	.groups		= rc_dev_attr_groups,
+ 	.release	= rc_dev_release,
+ 	.uevent		= rc_dev_uevent,
+ };
+@@ -1276,7 +1284,7 @@ int rc_register_device(struct rc_dev *dev)
+ 	static bool raw_init = false; /* raw decoders loaded? */
+ 	struct rc_map *rc_map;
+ 	const char *path;
+-	int rc, devno;
++	int rc, devno, attr = 0;
+ 
+ 	if (!dev || !dev->map_name)
+ 		return -EINVAL;
+@@ -1304,6 +1312,16 @@ int rc_register_device(struct rc_dev *dev)
+ 			return -ENOMEM;
+ 	} while (test_and_set_bit(devno, ir_core_dev_number));
+ 
++	dev->dev.groups = dev->sysfs_groups;
++	dev->sysfs_groups[attr++] = &rc_dev_protocol_attr_grp;
++	if (dev->s_filter)
++		dev->sysfs_groups[attr++] = &rc_dev_filter_attr_grp;	
++	if (dev->s_wakeup_filter)
++		dev->sysfs_groups[attr++] = &rc_dev_wakeup_filter_attr_grp;
++	if (dev->change_wakeup_protocol)
++		dev->sysfs_groups[attr++] = &rc_dev_wakeup_protocol_attr_grp;
++	dev->sysfs_groups[attr++] = NULL;
++
+ 	/*
+ 	 * Take the lock here, as the device sysfs node will appear
+ 	 * when device_add() is called, which may trigger an ir-keytable udev
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 6dbc7c1..fde142e 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -60,6 +60,7 @@ enum rc_filter_type {
+ /**
+  * struct rc_dev - represents a remote control device
+  * @dev: driver model's view of this device
++ * @sysfs_groups: sysfs attribute groups
+  * @input_name: name of the input child device
+  * @input_phys: physical path to the input child device
+  * @input_id: id of the input child device (struct input_id)
+@@ -117,6 +118,7 @@ enum rc_filter_type {
+  */
+ struct rc_dev {
+ 	struct device			dev;
++	const struct attribute_group	*sysfs_groups[5];
+ 	const char			*input_name;
+ 	const char			*input_phys;
+ 	struct input_id			input_id;
 
