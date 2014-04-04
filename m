@@ -1,46 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3623 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755338AbaDGNLn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 09:11:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 08/13] vb2: simplify a confusing condition.
-Date: Mon,  7 Apr 2014 15:11:07 +0200
-Message-Id: <1396876272-18222-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl>
-References: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail1.bemta7.messagelabs.com ([216.82.254.112]:5997 "EHLO
+	mail1.bemta7.messagelabs.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753273AbaDDUBj convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Apr 2014 16:01:39 -0400
+From: "Scheuermann, Mail" <Scheuermann@barco.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: AW: AW: v4l2_buffer with PBO mapped memory
+Date: Fri, 4 Apr 2014 20:01:33 +0000
+Message-ID: <67C778DDEF97AE4BA9DC4BA8ECFD811E1DB2EA13@KUUMEX11.barco.com>
+References: <533C2872.5090603@barco.com> <11263729.kS3FzW2BUL@avalon>
+ <67C778DDEF97AE4BA9DC4BA8ECFD811E1DB2C949@KUUMEX11.barco.com>,<82154683.DEhQIaoLxb@avalon>
+In-Reply-To: <82154683.DEhQIaoLxb@avalon>
+Content-Language: de-DE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent,
 
-q->start_streaming_called is always true, so the WARN_ON check against
-it being false can be dropped.
+I've done the following:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pawel Osciak <pawel@osciak.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+echo 3 >/sys/module/videobuf2_core/parameters/debug
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index c662ad9..89147d2 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1094,9 +1094,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	if (!q->start_streaming_called) {
- 		if (WARN_ON(state != VB2_BUF_STATE_QUEUED))
- 			state = VB2_BUF_STATE_QUEUED;
--	} else if (!WARN_ON(!q->start_streaming_called)) {
--		if (WARN_ON(state != VB2_BUF_STATE_DONE &&
--			    state != VB2_BUF_STATE_ERROR))
-+	} else if (WARN_ON(state != VB2_BUF_STATE_DONE &&
-+			   state != VB2_BUF_STATE_ERROR)) {
- 			state = VB2_BUF_STATE_ERROR;
- 	}
- 
--- 
-1.9.1
+and found in /var/log/kern.log after starting my program:
 
+Apr  4 21:53:48 x240 kernel: [239432.535077] vb2: Buffer 0, plane 0 offset 0x00000000
+Apr  4 21:53:48 x240 kernel: [239432.535080] vb2: Buffer 1, plane 0 offset 0x001c2000
+Apr  4 21:53:48 x240 kernel: [239432.535082] vb2: Buffer 2, plane 0 offset 0x00384000
+Apr  4 21:53:48 x240 kernel: [239432.535083] vb2: Allocated 3 buffers, 1 plane(s) each
+Apr  4 21:53:48 x240 kernel: [239432.535085] vb2: qbuf: userspace address for plane 0 changed, reacquiring memory
+Apr  4 21:53:48 x240 kernel: [239432.535087] vb2: qbuf: failed acquiring userspace memory for plane 0
+Apr  4 21:53:48 x240 kernel: [239432.535088] vb2: qbuf: buffer preparation failed: -22
+Apr  4 21:53:48 x240 kernel: [239432.535128] vb2: streamoff: not streaming
+
+Regards,
+
+Thomas
+
+________________________________________
+Von: Laurent Pinchart [laurent.pinchart@ideasonboard.com]
+Gesendet: Freitag, 4. April 2014 01:16
+An: Scheuermann, Mail
+Cc: linux-media@vger.kernel.org
+Betreff: Re: AW: v4l2_buffer with PBO mapped memory
+
+Hi Thomas,
+
+On Thursday 03 April 2014 16:52:19 Scheuermann, Mail wrote:
+> Hi Laurent,
+>
+> the driver my device uses is the uvcvideo. I have the kernel 3.11.0-18 from
+> Ubuntu 13.10 running. It is built in in a Thinkpad X240 notebook.
+
+OK. A bit of debugging will then be needed. Could you set the videobuf2-core
+debug parameter to 3, retry your test case and send us the kernel log ?
+
+--
+Regards,
+
+Laurent Pinchart
+
+This message is subject to the following terms and conditions: MAIL DISCLAIMER<http://www.barco.com/en/maildisclaimer>
