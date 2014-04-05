@@ -1,31 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailex.mailcore.me ([94.136.40.62]:43875 "EHLO
-	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750853AbaDKIUP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 04:20:15 -0400
-Message-ID: <5347A5BB.4040405@sca-uk.com>
-Date: Fri, 11 Apr 2014 09:20:11 +0100
-From: Steve Cookson - IT <it@sca-uk.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: List objectives and interests.
-References: <53479D15.4000400@sca-uk.com> <53479EB6.80504@xs4all.nl>
-In-Reply-To: <53479EB6.80504@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:53790 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753582AbaDEUYD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 Apr 2014 16:24:03 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [PATCH 4/4] xc2028: add missing break to switch
+Date: Sat,  5 Apr 2014 23:23:44 +0300
+Message-Id: <1396729424-17576-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1396729424-17576-1-git-send-email-crope@iki.fi>
+References: <1396729424-17576-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Coverity CID 1196501: Missing break in switch (MISSING_BREAK)
 
-Thanks for your reply.
+I introduced that bug recently by commit
+96a5b3a869e3dc7d55bf04a48a8dca8a4025787e.
+As a result, it will flood unintentionally error message to log.
 
-On 11/04/14 08:50, Hans Verkuil wrote:
-> HD is well supported for embedded systems
-What does embedded systems mean, you mean like the decklink proprietary 
-software?
+Reported-by: <scan-admin@coverity.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/tuner-xc2028.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Regards
+diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
+index 76a8165..6ef93ee 100644
+--- a/drivers/media/tuners/tuner-xc2028.c
++++ b/drivers/media/tuners/tuner-xc2028.c
+@@ -1107,6 +1107,7 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
+ 				offset += 200000;
+ 		}
+ #endif
++		break;
+ 	default:
+ 		tuner_err("Unsupported tuner type %d.\n", new_type);
+ 		break;
+-- 
+1.9.0
 
-Steve
