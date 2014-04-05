@@ -1,141 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:50019 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934297AbaDITZA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Apr 2014 15:25:00 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id A39BE21177
-	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 22:24:53 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from mail-qa0-f51.google.com ([209.85.216.51]:57354 "EHLO
+	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753016AbaDEQvb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Apr 2014 12:51:31 -0400
+Received: by mail-qa0-f51.google.com with SMTP id j7so4399487qaq.10
+        for <linux-media@vger.kernel.org>; Sat, 05 Apr 2014 09:51:30 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <loom.20140405T175545-158@post.gmane.org>
+References: <op.v7n77sv031sqp4@00-25-22-b5-7b-09.dummy.porta.siemens.net> <loom.20140405T175545-158@post.gmane.org>
+From: Ramiro Morales <cramm0@gmail.com>
+Date: Sat, 5 Apr 2014 13:43:11 -0300
+Message-ID: <CAO7PdF9OdqjZWs9dPN=rM9m-fGMUCfm5WaOTtXNSnbJTH+EcFg@mail.gmail.com>
+Subject: Re: [PATCH] rc-videomate-m1f.c Rename to match remote controler name
 To: linux-media@vger.kernel.org
-Subject: [PATCH 08/17] smiapp: Limits can be 64 bits
-Date: Wed,  9 Apr 2014 22:25:00 +0300
-Message-Id: <1397071509-2071-9-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Limits may exceed the value range of 32 bit unsigned integers. Thus use 64
-bits instead.
+On Sat, Apr 5, 2014 at 1:34 PM, Ramiro Morales <cramm0@gmail.com> wrote:
+> This hasn't landed correctly. Two years later, the rename is still
+> implemented in a halfway fashion on the kernel source tree:
+>
+> The drivers/media/rc/keymaps/Makefile file still mentions
+> rc-videomate-m1f.o and there is still a drivers/media/rc/keymaps
+> /rc-videomate-m1f.c file that should be named rc-videomate-m1f.c instead.
 
-Use typed min/max/clamp macros. Debug printing changes as well.
+See:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c  | 30 ++++++++++++++++--------------
- drivers/media/i2c/smiapp/smiapp-quirk.c |  4 ++--
- drivers/media/i2c/smiapp/smiapp-quirk.h |  2 +-
- drivers/media/i2c/smiapp/smiapp.h       |  2 +-
- 4 files changed, 20 insertions(+), 18 deletions(-)
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/media/rc/keymaps/Makefile?id=refs/tags/v3.14#n97
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 3af8df8..6d940f0 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -502,7 +502,8 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
- 		V4L2_CID_ANALOGUE_GAIN,
- 		sensor->limits[SMIAPP_LIMIT_ANALOGUE_GAIN_CODE_MIN],
- 		sensor->limits[SMIAPP_LIMIT_ANALOGUE_GAIN_CODE_MAX],
--		max(sensor->limits[SMIAPP_LIMIT_ANALOGUE_GAIN_CODE_STEP], 1U),
-+		max_t(uint32_t,
-+		      sensor->limits[SMIAPP_LIMIT_ANALOGUE_GAIN_CODE_STEP], 1U),
- 		sensor->limits[SMIAPP_LIMIT_ANALOGUE_GAIN_CODE_MIN]);
- 
- 	/* Exposure limits will be updated soon, use just something here. */
-@@ -679,7 +680,7 @@ static int smiapp_get_limits_binning(struct smiapp_sensor *sensor)
- 
- 	for (i = 0; i < ARRAY_SIZE(limits); i++) {
- 		dev_dbg(&client->dev,
--			"replace limit 0x%8.8x \"%s\" = %d, 0x%x\n",
-+			"replace limit 0x%8.8x \"%s\" = %llu, 0x%llx\n",
- 			smiapp_reg_limits[limits[i]].addr,
- 			smiapp_reg_limits[limits[i]].what,
- 			sensor->limits[limits_replace[i]],
-@@ -1689,13 +1690,13 @@ static int smiapp_set_format(struct v4l2_subdev *subdev,
- 	fmt->format.height &= ~1;
- 
- 	fmt->format.width =
--		clamp(fmt->format.width,
--		      sensor->limits[SMIAPP_LIMIT_MIN_X_OUTPUT_SIZE],
--		      sensor->limits[SMIAPP_LIMIT_MAX_X_OUTPUT_SIZE]);
-+		clamp_t(uint32_t, fmt->format.width,
-+			sensor->limits[SMIAPP_LIMIT_MIN_X_OUTPUT_SIZE],
-+			sensor->limits[SMIAPP_LIMIT_MAX_X_OUTPUT_SIZE]);
- 	fmt->format.height =
--		clamp(fmt->format.height,
--		      sensor->limits[SMIAPP_LIMIT_MIN_Y_OUTPUT_SIZE],
--		      sensor->limits[SMIAPP_LIMIT_MAX_Y_OUTPUT_SIZE]);
-+		clamp_t(uint32_t, fmt->format.height,
-+			sensor->limits[SMIAPP_LIMIT_MIN_Y_OUTPUT_SIZE],
-+			sensor->limits[SMIAPP_LIMIT_MAX_Y_OUTPUT_SIZE]);
- 
- 	smiapp_get_crop_compose(subdev, fh, crops, NULL, fmt->which);
- 
-@@ -1834,12 +1835,13 @@ static void smiapp_set_compose_scaler(struct v4l2_subdev *subdev,
- 		* sensor->limits[SMIAPP_LIMIT_SCALER_N_MIN]
- 		/ sensor->limits[SMIAPP_LIMIT_MIN_X_OUTPUT_SIZE];
- 
--	a = clamp(a, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
--		  sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
--	b = clamp(b, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
--		  sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
--	max_m = clamp(max_m, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
--		      sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
-+	a = clamp_t(uint32_t, a, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
-+		    sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
-+	b = clamp_t(uint32_t, b, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
-+		    sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
-+	max_m = clamp_t(uint32_t, max_m,
-+			sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
-+			sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
- 
- 	dev_dbg(&client->dev, "scaling: a %d b %d max_m %d\n", a, b, max_m);
- 
-diff --git a/drivers/media/i2c/smiapp/smiapp-quirk.c b/drivers/media/i2c/smiapp/smiapp-quirk.c
-index 20e62c1..580132d 100644
---- a/drivers/media/i2c/smiapp/smiapp-quirk.c
-+++ b/drivers/media/i2c/smiapp/smiapp-quirk.c
-@@ -51,11 +51,11 @@ static int smiapp_write_8s(struct smiapp_sensor *sensor,
- }
- 
- void smiapp_replace_limit(struct smiapp_sensor *sensor,
--			  u32 limit, u32 val)
-+			  u32 limit, u64 val)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
- 
--	dev_dbg(&client->dev, "quirk: 0x%8.8x \"%s\" = %d, 0x%x\n",
-+	dev_dbg(&client->dev, "quirk: 0x%8.8x \"%s\" = %llu, 0x%llx\n",
- 		smiapp_reg_limits[limit].addr,
- 		smiapp_reg_limits[limit].what, val, val);
- 	sensor->limits[limit] = val;
-diff --git a/drivers/media/i2c/smiapp/smiapp-quirk.h b/drivers/media/i2c/smiapp/smiapp-quirk.h
-index a6b3183..15ef0af6 100644
---- a/drivers/media/i2c/smiapp/smiapp-quirk.h
-+++ b/drivers/media/i2c/smiapp/smiapp-quirk.h
-@@ -54,7 +54,7 @@ struct smiapp_reg_8 {
- };
- 
- void smiapp_replace_limit(struct smiapp_sensor *sensor,
--			  u32 limit, u32 val);
-+			  u32 limit, u64 val);
- bool smiapp_quirk_reg(struct smiapp_sensor *sensor,
- 		      u32 reg, u32 *val);
- 
-diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
-index 7cc5aae..0a26487 100644
---- a/drivers/media/i2c/smiapp/smiapp.h
-+++ b/drivers/media/i2c/smiapp/smiapp.h
-@@ -199,7 +199,7 @@ struct smiapp_sensor {
- 	struct smiapp_platform_data *platform_data;
- 	struct regulator *vana;
- 	struct clk *ext_clk;
--	u32 limits[SMIAPP_LIMIT_LAST];
-+	u64 limits[SMIAPP_LIMIT_LAST];
- 	u8 nbinning_subtypes;
- 	struct smiapp_binning_subtype binning_subtypes[SMIAPP_BINNING_SUBTYPES];
- 	u32 mbus_frame_fmts;
+and
+
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/media/rc/keymaps/rc-videomate-m1f.c?id=refs/tags/v3.14
+
 -- 
-1.8.3.2
-
+Ramiro Morales
+@ramiromorales
