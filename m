@@ -1,50 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:36470 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750926AbaDDFRo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Apr 2014 01:17:44 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from ring0.de ([5.45.105.125]:51882 "EHLO ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754328AbaDFLw3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Apr 2014 07:52:29 -0400
+From: Sebastian Reichel <sre@kernel.org>
+To: linux-media@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>,
+	Eduardo Valentin <edubezval@gmail.com>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Lad Prabhakar <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2 0/2] DaVinci: VPIF: upgrade with v4l helpers
-Date: Fri,  4 Apr 2014 10:47:34 +0530
-Message-Id: <1396588656-6660-1-git-send-email-prabhakar.csengg@gmail.com>
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Dinesh Ram <Dinesh.Ram@cern.ch>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	Sebastian Reichel <sre@kernel.org>
+Subject: [RFC 2/2] [media] Ad DT binding documentation for si4713
+Date: Sun,  6 Apr 2014 13:52:05 +0200
+Message-Id: <1396785125-8759-3-git-send-email-sre@kernel.org>
+In-Reply-To: <1396785125-8759-1-git-send-email-sre@kernel.org>
+References: <1396785125-8759-1-git-send-email-sre@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+This patch adds the DT bindings documentation for Silicon Labs Si4713 FM
+radio transmitter.
 
-Hi All,
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+---
+ Documentation/devicetree/bindings/media/si4713.txt | 30 ++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/si4713.txt
 
-This patch series upgrades the vpif capture & display
-driver with the all the helpers provided by v4l, this makes
-the driver much simpler and cleaner. This also includes few
-checkpatch issues.
-
-Sending them as single patch one for capture and another for
-display, splitting them would have caused a huge number small
-patches.
-
-Changes for v2:
-a> Added a copyright.
-b> Dropped buf_init() callback from vb2_ops.
-c> Fixed enabling & disabling of interrupts in case of HD formats.
-
-
-Lad, Prabhakar (2):
-  media: davinci: vpif capture: upgrade the driver with v4l offerings
-  media: davinci: vpif display: upgrade the driver with v4l offerings
-
- drivers/media/platform/davinci/vpif_capture.c |  931 +++++++------------------
- drivers/media/platform/davinci/vpif_capture.h |   32 +-
- drivers/media/platform/davinci/vpif_display.c |  800 ++++++---------------
- drivers/media/platform/davinci/vpif_display.h |   31 +-
- 4 files changed, 455 insertions(+), 1339 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/media/si4713.txt b/Documentation/devicetree/bindings/media/si4713.txt
+new file mode 100644
+index 0000000..5ee5552
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/si4713.txt
+@@ -0,0 +1,30 @@
++* Silicon Labs FM Radio transmitter
++
++The Silicon Labs Si4713 is an FM radio transmitter with receive power scan
++supporting 76-108 MHz. It includes an RDS encoder and has both, a stereo-analog
++and a digital interface, which supports I2S, left-justified and a custom
++DSP-mode format. It is programmable through an I2C interface.
++
++Required Properties:
++- compatible: Should contain "silabs,si4713"
++- reg: the I2C address of the device
++
++Optional Properties:
++- interrupts-extended: Interrupt specifier for the chips interrupt
++- reset-gpios: GPIO specifier for the chips reset line
++- vdd-supply: phandle for Vdd regulator
++- vio-supply: phandle for Vio regulator
++
++Example:
++
++&i2c2 {
++        fmtx: si4713@63 {
++                compatible = "silabs,si4713";
++                reg = <0x63>;
++
++                interrupts-extended = <&gpio2 21 IRQ_TYPE_EDGE_FALLING>; /* 53 */
++                reset-gpios = <&gpio6 3 GPIO_ACTIVE_HIGH>; /* 163 */
++                vio-supply = <&vio>;
++                vdd-supply = <&vaux1>;
++        };
++};
 -- 
-1.7.9.5
+1.9.1
 
