@@ -1,107 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:43408 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754371AbaDKO5c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 10:57:32 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>
-Subject: [PATCH/RFC v3 2/5] leds: Improve and export led_update_brightness
- function
-Date: Fri, 11 Apr 2014 16:56:53 +0200
-Message-id: <1397228216-6657-3-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1397228216-6657-1-git-send-email-j.anaszewski@samsung.com>
-References: <1397228216-6657-1-git-send-email-j.anaszewski@samsung.com>
+Received: from aserp1040.oracle.com ([141.146.126.69]:49564 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752817AbaDFOCt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Apr 2014 10:02:49 -0400
+Message-ID: <53415E82.9030007@oracle.com>
+Date: Sun, 06 Apr 2014 10:02:42 -0400
+From: Sasha Levin <sasha.levin@oracle.com>
+MIME-Version: 1.0
+To: mchehab@redhat.com
+CC: linux-media@vger.kernel.org, Dave Jones <davej@redhat.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: v4l2: lockdep spew mmap_sem/dev_mutex
+References: <518858EF.2030503@oracle.com>
+In-Reply-To: <518858EF.2030503@oracle.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-led_update_brightness helper function used to be exploited
-only locally in the led-class.c module, where its result was
-being passed to the brightness_show sysfs callback. With the
-introduction of v4l2-flash subdevice the same functionality
-became required for reading current brightness from a LED
-device. This patch adds checking brightness_get callback
-error code and adds the function to the LED subsystem
-public API.
+Ping? This is still happening in -next, more than half a year later...
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
----
- drivers/leds/led-class.c |    6 ------
- drivers/leds/led-core.c  |   16 ++++++++++++++++
- include/linux/leds.h     |   10 ++++++++++
- 3 files changed, 26 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/leds/led-class.c b/drivers/leds/led-class.c
-index 58f16c3..7f285d7 100644
---- a/drivers/leds/led-class.c
-+++ b/drivers/leds/led-class.c
-@@ -24,12 +24,6 @@
- 
- static struct class *leds_class;
- 
--static void led_update_brightness(struct led_classdev *led_cdev)
--{
--	if (led_cdev->brightness_get)
--		led_cdev->brightness = led_cdev->brightness_get(led_cdev);
--}
--
- static ssize_t brightness_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-diff --git a/drivers/leds/led-core.c b/drivers/leds/led-core.c
-index 71b40d3..376166c 100644
---- a/drivers/leds/led-core.c
-+++ b/drivers/leds/led-core.c
-@@ -126,3 +126,19 @@ void led_set_brightness(struct led_classdev *led_cdev,
- 	__led_set_brightness(led_cdev, brightness);
- }
- EXPORT_SYMBOL(led_set_brightness);
-+
-+int led_update_brightness(struct led_classdev *led_cdev)
-+{
-+	int ret = 0;
-+
-+	if (led_cdev->brightness_get) {
-+		ret = led_cdev->brightness_get(led_cdev);
-+		if (ret >= 0) {
-+			led_cdev->brightness = ret;
-+			return 0;
-+		}
-+	}
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(led_update_brightness);
-diff --git a/include/linux/leds.h b/include/linux/leds.h
-index a794817..d085c21 100644
---- a/include/linux/leds.h
-+++ b/include/linux/leds.h
-@@ -174,6 +174,16 @@ extern void led_blink_set_oneshot(struct led_classdev *led_cdev,
-  */
- extern void led_set_brightness(struct led_classdev *led_cdev,
- 			       enum led_brightness brightness);
-+/**
-+ * led_update_brightness - update LED brightness
-+ * @led_cdev: the LED to query
-+ *
-+ * Get an LED's current brightness and update led_cdev->brightness
-+ * member with the obtained value.
-+ *
-+ * Returns: 0 on success or negative error value on failure
-+ */
-+extern int led_update_brightness(struct led_classdev *led_cdev);
- 
- /**
-  * led_sysfs_is_locked
--- 
-1.7.9.5
+Thanks,
+Sasha
+
+On 05/06/2013 09:29 PM, Sasha Levin wrote:
+> Hi guys,
+> 
+> While fuzzing with trinity running inside a KVM tools guest, using latest -next kernel,
+> I've stumbled on the following spew:
+> 
+> [  160.267181] ======================================================
+> [  160.267896] [ INFO: possible circular locking dependency detected ]
+> [  160.268631] 3.9.0-next-20130506-sasha-00012-g01de88a #356 Tainted: G        W
+> [  160.269486] -------------------------------------------------------
+> [  160.271108] trinity-child3/10132 is trying to acquire lock:
+> [  160.271108]  (&dev->dev_mutex){+.+.+.}, at: [<ffffffff831c39f1>] m2mtest_mmap+0x51/0x90
+> [  160.271108]
+> [  160.271108] but task is already holding lock:
+> [  160.271108]  (&mm->mmap_sem){++++++}, at: [<ffffffff8124ff02>] vm_mmap_pgoff+0x62/0xd0
+> [  160.271108]
+> [  160.271108] which lock already depends on the new lock.
+> [  160.271108]
+> [  160.271108]
+> [  160.271108] the existing dependency chain (in reverse order) is:
+> [  160.271108]
+> -> #1 (&mm->mmap_sem){++++++}:
+> [  160.271108]        [<ffffffff811a1f5a>] lock_acquire+0x1aa/0x240
+> [  160.271108]        [<ffffffff81259f8b>] might_fault+0x7b/0xa0
+> [  160.271108]        [<ffffffff8315d82e>] video_usercopy+0x41e/0x490
+> [  160.271108]        [<ffffffff8315d8b0>] video_ioctl2+0x10/0x20
+> [  160.271108]        [<ffffffff83157c33>] v4l2_ioctl+0xa3/0x170
+> [  160.271108]        [<ffffffff812bff52>] do_vfs_ioctl+0x522/0x570
+> [  160.271108]        [<ffffffff812bfffd>] SyS_ioctl+0x5d/0xa0
+> [  160.271108]        [<ffffffff84028558>] tracesys+0xe1/0xe6
+> [  160.271108]
+> -> #0 (&dev->dev_mutex){+.+.+.}:
+> [  160.271108]        [<ffffffff811a0e4f>] __lock_acquire+0x15af/0x1e40
+> [  160.271108]        [<ffffffff811a1f5a>] lock_acquire+0x1aa/0x240
+> [  160.271108]        [<ffffffff8401bf89>] __mutex_lock_common+0x59/0x600
+> [  160.271108]        [<ffffffff8401c56f>] mutex_lock_interruptible_nested+0x3f/0x50
+> [  160.271108]        [<ffffffff831c39f1>] m2mtest_mmap+0x51/0x90
+> [  160.271108]        [<ffffffff831576b8>] v4l2_mmap+0x48/0xa0
+> [  160.271108]        [<ffffffff81265fbb>] mmap_region+0x33b/0x630
+> [  160.271108]        [<ffffffff812665c6>] do_mmap_pgoff+0x316/0x3d0
+> [  160.271108]        [<ffffffff8124ff23>] vm_mmap_pgoff+0x83/0xd0
+> [  160.271108]        [<ffffffff81264b2e>] SyS_mmap_pgoff+0x16e/0x1b0
+> [  160.271108]        [<ffffffff8106ea2d>] SyS_mmap+0x1d/0x20
+> [  160.271108]        [<ffffffff84028558>] tracesys+0xe1/0xe6
+> [  160.271108]
+> [  160.271108] other info that might help us debug this:
+> [  160.271108]
+> [  160.271108]  Possible unsafe locking scenario:
+> [  160.271108]
+> [  160.271108]        CPU0                    CPU1
+> [  160.271108]        ----                    ----
+> [  160.271108]   lock(&mm->mmap_sem);
+> [  160.271108]                                lock(&dev->dev_mutex);
+> [  160.271108]                                lock(&mm->mmap_sem);
+> [  160.271108]   lock(&dev->dev_mutex);
+> [  160.271108]
+> [  160.271108]  *** DEADLOCK ***
+> [  160.271108]
+> [  160.271108] 1 lock held by trinity-child3/10132:
+> [  160.271108]  #0:  (&mm->mmap_sem){++++++}, at: [<ffffffff8124ff02>] vm_mmap_pgoff+0x62/0xd0
+> [  160.271108]
+> [  160.271108] stack backtrace:
+> [  160.271108] CPU: 3 PID: 10132 Comm: trinity-child3 Tainted: G        W    3.9.0-next-20130506-sasha-00012-g01de88a #356
+> [  160.271108]  ffffffff86ba8bf0 ffff8800ab3aba78 ffffffff83fde6a3 ffff8800ab3abac8
+> [  160.271108]  ffffffff83fd33cf 0000000000abc6d5 ffff8800ab3abb58 ffff8800ab3abac8
+> [  160.271108]  ffff88009314b9b0 ffff88009314b978 ffff88009314b000 0000000000abc6d5
+> [  160.271108] Call Trace:
+> [  160.271108]  [<ffffffff83fde6a3>] dump_stack+0x19/0x1b
+> [  160.271108]  [<ffffffff83fd33cf>] print_circular_bug+0x1fb/0x20c
+> [  160.271108]  [<ffffffff811a0e4f>] __lock_acquire+0x15af/0x1e40
+> [  160.271108]  [<ffffffff8401fb60>] ? _raw_spin_unlock+0x30/0x60
+> [  160.271108]  [<ffffffff811a1f5a>] lock_acquire+0x1aa/0x240
+> [  160.271108]  [<ffffffff831c39f1>] ? m2mtest_mmap+0x51/0x90
+> [  160.271108]  [<ffffffff8401bf89>] __mutex_lock_common+0x59/0x600
+> [  160.271108]  [<ffffffff831c39f1>] ? m2mtest_mmap+0x51/0x90
+> [  160.271108]  [<ffffffff8119e9aa>] ? __lock_is_held+0x5a/0x80
+> [  160.271108]  [<ffffffff81265ee4>] ? mmap_region+0x264/0x630
+> [  160.271108]  [<ffffffff831c39f1>] ? m2mtest_mmap+0x51/0x90
+> [  160.271108]  [<ffffffff8401c56f>] mutex_lock_interruptible_nested+0x3f/0x50
+> [  160.271108]  [<ffffffff831c39f1>] m2mtest_mmap+0x51/0x90
+> [  160.271108]  [<ffffffff81265ee4>] ? mmap_region+0x264/0x630
+> [  160.271108]  [<ffffffff831576b8>] v4l2_mmap+0x48/0xa0
+> [  160.271108]  [<ffffffff81265fbb>] mmap_region+0x33b/0x630
+> [  160.271108]  [<ffffffff812665c6>] do_mmap_pgoff+0x316/0x3d0
+> [  160.271108]  [<ffffffff8124ff02>] ? vm_mmap_pgoff+0x62/0xd0
+> [  160.271108]  [<ffffffff8124ff23>] vm_mmap_pgoff+0x83/0xd0
+> [  160.271108]  [<ffffffff81a4a889>] ? __const_udelay+0x29/0x30
+> [  160.271108]  [<ffffffff81151824>] ? __rcu_read_unlock+0x44/0xb0
+> [  160.271108]  [<ffffffff812cace0>] ? fget_raw+0x280/0x280
+> [  160.271108]  [<ffffffff81264b2e>] SyS_mmap_pgoff+0x16e/0x1b0
+> [  160.271108]  [<ffffffff8106ea2d>] SyS_mmap+0x1d/0x20
+> [  160.271108]  [<ffffffff84028558>] tracesys+0xe1/0xe6
+> 
+> Thanks,
+> Sasha
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
 
