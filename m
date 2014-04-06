@@ -1,843 +1,613 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44710 "EHLO mail.kapsi.fi"
+Received: from ring0.de ([5.45.105.125]:51864 "EHLO ring0.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750972AbaDOJcH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 05:32:07 -0400
-From: Antti Palosaari <crope@iki.fi>
+	id S1754325AbaDFLw1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Apr 2014 07:52:27 -0400
+From: Sebastian Reichel <sre@kernel.org>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 02/10] si2168: Silicon Labs Si2168 DVB-T/T2/C demod driver
-Date: Tue, 15 Apr 2014 12:31:38 +0300
-Message-Id: <1397554306-14561-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1397554306-14561-1-git-send-email-crope@iki.fi>
-References: <1397554306-14561-1-git-send-email-crope@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>,
+	Eduardo Valentin <edubezval@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Dinesh Ram <Dinesh.Ram@cern.ch>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	Sebastian Reichel <sre@kernel.org>
+Subject: [RFC 1/2] [media] si4713: add Device Tree support
+Date: Sun,  6 Apr 2014 13:52:04 +0200
+Message-Id: <1396785125-8759-2-git-send-email-sre@kernel.org>
+In-Reply-To: <1396785125-8759-1-git-send-email-sre@kernel.org>
+References: <1396785125-8759-1-git-send-email-sre@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Silicon Labs Si2168 DVB-T/T2/C demod driver.
-That driver version supports only DVB-T.
+Update si4713 driver to support being instantiated via
+Device Tree. This includes moving the regulator names
+back into the drivers, using regulator_get_optional
+to avoid breaking the USB driver and switching to the
+gpio resource interface.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- drivers/media/dvb-frontends/Kconfig       |   7 +
- drivers/media/dvb-frontends/Makefile      |   1 +
- drivers/media/dvb-frontends/si2168.c      | 708 ++++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/si2168.h      |  23 +
- drivers/media/dvb-frontends/si2168_priv.h |  30 ++
- 5 files changed, 769 insertions(+)
- create mode 100644 drivers/media/dvb-frontends/si2168.c
- create mode 100644 drivers/media/dvb-frontends/si2168.h
- create mode 100644 drivers/media/dvb-frontends/si2168_priv.h
+ arch/arm/mach-omap2/board-rx51-peripherals.c       |  67 ++++-----
+ drivers/media/radio/si4713/radio-platform-si4713.c |  28 +---
+ drivers/media/radio/si4713/si4713.c                | 166 +++++++++++++--------
+ drivers/media/radio/si4713/si4713.h                |  15 +-
+ include/media/radio-si4713.h                       |  30 ----
+ include/media/si4713.h                             |   4 +-
+ 6 files changed, 153 insertions(+), 157 deletions(-)
+ delete mode 100644 include/media/radio-si4713.h
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index 025fc54..1469d44 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -446,6 +446,13 @@ config DVB_RTL2832
- 	help
- 	  Say Y when you want to support this frontend.
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 01184ed..488cfe3 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -23,6 +23,7 @@
+ #include <linux/regulator/machine.h>
+ #include <linux/gpio.h>
+ #include <linux/gpio_keys.h>
++#include <linux/gpio/driver.h>
+ #include <linux/mmc/host.h>
+ #include <linux/power/isp1704_charger.h>
+ #include <linux/power/bq2415x_charger.h>
+@@ -39,7 +40,6 @@
  
-+config DVB_SI2168
-+	tristate "Silicon Labs Si2168"
-+	depends on DVB_CORE && I2C && I2C_MUX
-+	default m if !MEDIA_SUBDRV_AUTOSELECT
-+	help
-+	  Say Y when you want to support this frontend.
-+
- comment "DVB-C (cable) frontends"
- 	depends on DVB_CORE
+ #include <sound/tlv320aic3x.h>
+ #include <sound/tpa6130a2-plat.h>
+-#include <media/radio-si4713.h>
+ #include <media/si4713.h>
+ #include <linux/platform_data/leds-lp55xx.h>
  
-diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
-index 282aba2..dda0bee 100644
---- a/drivers/media/dvb-frontends/Makefile
-+++ b/drivers/media/dvb-frontends/Makefile
-@@ -78,6 +78,7 @@ obj-$(CONFIG_DVB_AF9013) += af9013.o
- obj-$(CONFIG_DVB_CX24116) += cx24116.o
- obj-$(CONFIG_DVB_CX24117) += cx24117.o
- obj-$(CONFIG_DVB_SI21XX) += si21xx.o
-+obj-$(CONFIG_DVB_SI2168) += si2168.o
- obj-$(CONFIG_DVB_STV0288) += stv0288.o
- obj-$(CONFIG_DVB_STB6000) += stb6000.o
- obj-$(CONFIG_DVB_S921) += s921.o
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-new file mode 100644
-index 0000000..eef4e45
---- /dev/null
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -0,0 +1,708 @@
-+#include "si2168_priv.h"
+@@ -761,46 +761,17 @@ static struct regulator_init_data rx51_vintdig = {
+ 	},
+ };
+ 
+-static const char * const si4713_supply_names[] = {
+-	"vio",
+-	"vdd",
+-};
+-
+-static struct si4713_platform_data rx51_si4713_i2c_data __initdata_or_module = {
+-	.supplies	= ARRAY_SIZE(si4713_supply_names),
+-	.supply_names	= si4713_supply_names,
+-	.gpio_reset	= RX51_FMTX_RESET_GPIO,
+-};
+-
+-static struct i2c_board_info rx51_si4713_board_info __initdata_or_module = {
+-	I2C_BOARD_INFO("si4713", SI4713_I2C_ADDR_BUSEN_HIGH),
+-	.platform_data	= &rx51_si4713_i2c_data,
+-};
+-
+-static struct radio_si4713_platform_data rx51_si4713_data __initdata_or_module = {
+-	.i2c_bus	= 2,
+-	.subdev_board_info = &rx51_si4713_board_info,
+-};
+-
+-static struct platform_device rx51_si4713_dev __initdata_or_module = {
+-	.name	= "radio-si4713",
+-	.id	= -1,
+-	.dev	= {
+-		.platform_data	= &rx51_si4713_data,
++static struct gpiod_lookup_table rx51_fmtx_gpios_table = {
++	.dev_id = "2-0063",
++	.table = {
++		GPIO_LOOKUP("gpio.6", 3, "reset", GPIO_ACTIVE_HIGH), /* 163 */
++		{ },
+ 	},
+ };
+ 
+-static __init void rx51_init_si4713(void)
++static __init void rx51_gpio_init(void)
+ {
+-	int err;
+-
+-	err = gpio_request_one(RX51_FMTX_IRQ, GPIOF_DIR_IN, "si4713 irq");
+-	if (err) {
+-		printk(KERN_ERR "Cannot request si4713 irq gpio. %d\n", err);
+-		return;
+-	}
+-	rx51_si4713_board_info.irq = gpio_to_irq(RX51_FMTX_IRQ);
+-	platform_device_register(&rx51_si4713_dev);
++	gpiod_add_lookup_table(&rx51_fmtx_gpios_table);
+ }
+ 
+ static int rx51_twlgpio_setup(struct device *dev, unsigned gpio, unsigned n)
+@@ -1040,7 +1011,17 @@ static struct bq2415x_platform_data rx51_bq24150a_platform_data = {
+ 	.notify_device = "isp1704",
+ };
+ 
++static struct si4713_platform_data rx51_si4713_platform_data = {
++	.is_platform_device = true
++};
 +
-+static const struct dvb_frontend_ops si2168_ops;
+ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
++#if IS_ENABLED(CONFIG_I2C_SI4713) && IS_ENABLED(CONFIG_PLATFORM_SI4713)
++	{
++		I2C_BOARD_INFO("si4713", 0x63),
++		.platform_data = &rx51_si4713_platform_data,
++	},
++#endif
+ 	{
+ 		I2C_BOARD_INFO("tlv320aic3x", 0x18),
+ 		.platform_data = &rx51_aic3x_data,
+@@ -1085,6 +1066,8 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_3[] = {
+ 
+ static int __init rx51_i2c_init(void)
+ {
++	int err;
 +
-+/* execute firmware command */
-+static int si2168_cmd_execute(struct si2168 *s, struct si2168_cmd *cmd)
-+{
-+	int ret;
-+	unsigned long timeout;
+ 	if ((system_rev >= SYSTEM_REV_S_USES_VAUX3 && system_rev < 0x100) ||
+ 	    system_rev >= SYSTEM_REV_B_USES_VAUX3) {
+ 		rx51_twldata.vaux3 = &rx51_vaux3_mmc;
+@@ -1102,6 +1085,14 @@ static int __init rx51_i2c_init(void)
+ 	rx51_twldata.vdac->constraints.name = "VDAC";
+ 
+ 	omap_pmic_init(1, 2200, "twl5030", 7 + OMAP_INTC_START, &rx51_twldata);
++#if IS_ENABLED(CONFIG_I2C_SI4713) && IS_ENABLED(CONFIG_PLATFORM_SI4713)
++	err = gpio_request_one(RX51_FMTX_IRQ, GPIOF_DIR_IN, "si4713 irq");
++	if (err) {
++		printk(KERN_ERR "Cannot request si4713 irq gpio. %d\n", err);
++		return err;
++	}
++	rx51_peripherals_i2c_board_info_2[0].irq = gpio_to_irq(RX51_FMTX_IRQ);
++#endif
+ 	omap_register_i2c_bus(2, 100, rx51_peripherals_i2c_board_info_2,
+ 			      ARRAY_SIZE(rx51_peripherals_i2c_board_info_2));
+ #if defined(CONFIG_SENSORS_LIS3_I2C) || defined(CONFIG_SENSORS_LIS3_I2C_MODULE)
+@@ -1315,6 +1306,7 @@ static void __init rx51_init_omap3_rom_rng(void)
+ 
+ void __init rx51_peripherals_init(void)
+ {
++	rx51_gpio_init();
+ 	rx51_i2c_init();
+ 	regulator_has_full_constraints();
+ 	gpmc_onenand_init(board_onenand_data);
+@@ -1322,7 +1314,6 @@ void __init rx51_peripherals_init(void)
+ 	rx51_add_gpio_keys();
+ 	rx51_init_wl1251();
+ 	rx51_init_tsc2005();
+-	rx51_init_si4713();
+ 	rx51_init_lirc();
+ 	spi_register_board_info(rx51_peripherals_spi_board_info,
+ 				ARRAY_SIZE(rx51_peripherals_spi_board_info));
+diff --git a/drivers/media/radio/si4713/radio-platform-si4713.c b/drivers/media/radio/si4713/radio-platform-si4713.c
+index ba4cfc9..27f1ffb 100644
+--- a/drivers/media/radio/si4713/radio-platform-si4713.c
++++ b/drivers/media/radio/si4713/radio-platform-si4713.c
+@@ -34,7 +34,7 @@
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-event.h>
+-#include <media/radio-si4713.h>
++#include "si4713.h"
+ 
+ /* module parameters */
+ static int radio_nr = -1;	/* radio device minor (-1 ==> auto assign) */
+@@ -153,7 +153,6 @@ static int radio_si4713_pdriver_probe(struct platform_device *pdev)
+ {
+ 	struct radio_si4713_platform_data *pdata = pdev->dev.platform_data;
+ 	struct radio_si4713_device *rsdev;
+-	struct i2c_adapter *adapter;
+ 	struct v4l2_subdev *sd;
+ 	int rval = 0;
+ 
+@@ -177,20 +176,11 @@ static int radio_si4713_pdriver_probe(struct platform_device *pdev)
+ 		goto exit;
+ 	}
+ 
+-	adapter = i2c_get_adapter(pdata->i2c_bus);
+-	if (!adapter) {
+-		dev_err(&pdev->dev, "Cannot get i2c adapter %d\n",
+-			pdata->i2c_bus);
+-		rval = -ENODEV;
+-		goto unregister_v4l2_dev;
+-	}
+-
+-	sd = v4l2_i2c_new_subdev_board(&rsdev->v4l2_dev, adapter,
+-				       pdata->subdev_board_info, NULL);
+-	if (!sd) {
++	sd = i2c_get_clientdata(pdata->subdev);
++	rval = v4l2_device_register_subdev(&rsdev->v4l2_dev, sd);
++	if (rval) {
+ 		dev_err(&pdev->dev, "Cannot get v4l2 subdevice\n");
+-		rval = -ENODEV;
+-		goto put_adapter;
++		goto unregister_v4l2_dev;
+ 	}
+ 
+ 	rsdev->radio_dev = radio_si4713_vdev_template;
+@@ -203,14 +193,12 @@ static int radio_si4713_pdriver_probe(struct platform_device *pdev)
+ 	if (video_register_device(&rsdev->radio_dev, VFL_TYPE_RADIO, radio_nr)) {
+ 		dev_err(&pdev->dev, "Could not register video device.\n");
+ 		rval = -EIO;
+-		goto put_adapter;
++		goto unregister_v4l2_dev;
+ 	}
+ 	dev_info(&pdev->dev, "New device successfully probed\n");
+ 
+ 	goto exit;
+ 
+-put_adapter:
+-	i2c_put_adapter(adapter);
+ unregister_v4l2_dev:
+ 	v4l2_device_unregister(&rsdev->v4l2_dev);
+ exit:
+@@ -221,14 +209,10 @@ exit:
+ static int radio_si4713_pdriver_remove(struct platform_device *pdev)
+ {
+ 	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
+-	struct v4l2_subdev *sd = list_entry(v4l2_dev->subdevs.next,
+-					    struct v4l2_subdev, list);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct radio_si4713_device *rsdev;
+ 
+ 	rsdev = container_of(v4l2_dev, struct radio_si4713_device, v4l2_dev);
+ 	video_unregister_device(&rsdev->radio_dev);
+-	i2c_put_adapter(client->adapter);
+ 	v4l2_device_unregister(&rsdev->v4l2_dev);
+ 
+ 	return 0;
+diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+index 07d5153..c12d3f9 100644
+--- a/drivers/media/radio/si4713/si4713.c
++++ b/drivers/media/radio/si4713/si4713.c
+@@ -23,6 +23,7 @@
+ 
+ #include <linux/completion.h>
+ #include <linux/delay.h>
++#include <linux/err.h>
+ #include <linux/interrupt.h>
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+@@ -366,16 +367,25 @@ static int si4713_powerup(struct si4713_device *sdev)
+ 	if (sdev->power_state)
+ 		return 0;
+ 
+-	if (sdev->supplies) {
+-		err = regulator_bulk_enable(sdev->supplies, sdev->supply_data);
++	if (sdev->vdd) {
++		err = regulator_enable(sdev->vdd);
+ 		if (err) {
+-			v4l2_err(&sdev->sd, "Failed to enable supplies: %d\n", err);
++			v4l2_err(&sdev->sd, "Failed to enable vdd: %d\n", err);
+ 			return err;
+ 		}
+ 	}
+-	if (gpio_is_valid(sdev->gpio_reset)) {
 +
-+	mutex_lock(&s->i2c_mutex);
-+
-+	if (cmd->wlen) {
-+		/* write cmd and args for firmware */
-+		ret = i2c_master_send(s->client, cmd->args, cmd->wlen);
-+		if (ret < 0) {
-+			goto err_mutex_unlock;
-+		} else if (ret != cmd->wlen) {
-+			ret = -EREMOTEIO;
-+			goto err_mutex_unlock;
++	if (sdev->vio) {
++		err = regulator_enable(sdev->vio);
++		if (err) {
++			v4l2_err(&sdev->sd, "Failed to enable vio: %d\n", err);
++			return err;
 +		}
 +	}
 +
-+	if (cmd->rlen) {
-+		/* wait cmd execution terminate */
-+		#define TIMEOUT 50
-+		timeout = jiffies + msecs_to_jiffies(TIMEOUT);
-+		while (!time_after(jiffies, timeout)) {
-+			ret = i2c_master_recv(s->client, cmd->args, cmd->rlen);
-+			if (ret < 0) {
-+				goto err_mutex_unlock;
-+			} else if (ret != cmd->rlen) {
-+				ret = -EREMOTEIO;
-+				goto err_mutex_unlock;
++	if (!IS_ERR(sdev->gpio_reset)) {
+ 		udelay(50);
+-		gpio_set_value(sdev->gpio_reset, 1);
++		gpiod_set_value(sdev->gpio_reset, 1);
+ 	}
+ 
+ 	if (client->irq)
+@@ -397,13 +407,20 @@ static int si4713_powerup(struct si4713_device *sdev)
+ 						SI4713_STC_INT | SI4713_CTS);
+ 		return err;
+ 	}
+-	if (gpio_is_valid(sdev->gpio_reset))
+-		gpio_set_value(sdev->gpio_reset, 0);
+-	if (sdev->supplies) {
+-		err = regulator_bulk_disable(sdev->supplies, sdev->supply_data);
++	if (!IS_ERR(sdev->gpio_reset))
++		gpiod_set_value(sdev->gpio_reset, 0);
++
++
++	if (sdev->vdd) {
++		err = regulator_disable(sdev->vdd);
+ 		if (err)
+-			v4l2_err(&sdev->sd,
+-				 "Failed to disable supplies: %d\n", err);
++			v4l2_err(&sdev->sd, "Failed to disable vdd: %d\n", err);
++	}
++
++	if (sdev->vio) {
++		err = regulator_disable(sdev->vio);
++		if (err)
++			v4l2_err(&sdev->sd, "Failed to disable vio: %d\n", err);
+ 	}
+ 
+ 	return err;
+@@ -430,15 +447,25 @@ static int si4713_powerdown(struct si4713_device *sdev)
+ 		v4l2_dbg(1, debug, &sdev->sd, "Power down response: 0x%02x\n",
+ 				resp[0]);
+ 		v4l2_dbg(1, debug, &sdev->sd, "Device in reset mode\n");
+-		if (gpio_is_valid(sdev->gpio_reset))
+-			gpio_set_value(sdev->gpio_reset, 0);
+-		if (sdev->supplies) {
+-			err = regulator_bulk_disable(sdev->supplies,
+-						     sdev->supply_data);
+-			if (err)
++		if (!IS_ERR(sdev->gpio_reset))
++			gpiod_set_value(sdev->gpio_reset, 0);
++
++		if (sdev->vdd) {
++			err = regulator_disable(sdev->vdd);
++			if (err) {
++				v4l2_err(&sdev->sd,
++					"Failed to disable vdd: %d\n", err);
 +			}
-+
-+			/* firmware ready? */
-+			if ((cmd->args[0] >> 7) & 0x01)
-+				break;
 +		}
 +
-+		dev_dbg(&s->client->dev, "%s: cmd execution took %d ms\n",
-+				__func__,
-+				jiffies_to_msecs(jiffies) -
-+				(jiffies_to_msecs(timeout) - TIMEOUT));
-+
-+		if (!(cmd->args[0] >> 7) & 0x01) {
-+			ret = -ETIMEDOUT;
-+			goto err_mutex_unlock;
-+		}
-+	}
-+
-+	ret = 0;
-+
-+err_mutex_unlock:
-+	mutex_unlock(&s->i2c_mutex);
-+	if (ret)
-+		goto err;
-+
-+	return 0;
-+err:
-+	dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
-+	return ret;
-+}
-+
-+static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
-+{
-+	struct si2168 *s = fe->demodulator_priv;
-+	int ret;
-+	struct si2168_cmd cmd;
-+
-+	*status = 0;
-+
-+	if (!s->active) {
-+		ret = -EAGAIN;
-+		goto err;
-+	}
-+
-+	cmd.args[0] = 0xa0;
-+	cmd.args[1] = 0x01;
-+	cmd.wlen = 2;
-+	cmd.rlen = 13;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	/*
-+	 * Possible values seen, in order from strong signal to weak:
-+	 * 16 0001 0110 full lock
-+	 * 1e 0001 1110 partial lock
-+	 * 1a 0001 1010 partial lock
-+	 * 18 0001 1000 no lock
-+	 *
-+	 * [b3:b1] lock bits
-+	 * [b4] statistics ready? Set in a few secs after lock is gained.
-+	 */
-+
-+	switch ((cmd.args[2] >> 0) & 0x0f) {
-+	case 0x0a:
-+		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
-+		break;
-+	case 0x0e:
-+		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI;
-+		break;
-+	case 0x06:
-+		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
-+				FE_HAS_SYNC | FE_HAS_LOCK;
-+		break;
-+	}
-+
-+	s->fe_status = *status;
-+
-+	dev_dbg(&s->client->dev, "%s: status=%02x args=%*ph\n",
-+			__func__, *status, cmd.rlen, cmd.args);
-+
-+	return 0;
-+err:
-+	dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
-+	return ret;
-+}
-+
-+static int si2168_set_frontend(struct dvb_frontend *fe)
-+{
-+	struct si2168 *s = fe->demodulator_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	int ret;
-+	struct si2168_cmd cmd;
-+	u8 bandwidth;
-+
-+	dev_dbg(&s->client->dev,
-+			"%s: delivery_system=%u modulation=%u frequency=%u bandwidth_hz=%u symbol_rate=%u inversion=%u\n",
-+			__func__, c->delivery_system, c->modulation,
-+			c->frequency, c->bandwidth_hz, c->symbol_rate,
-+			c->inversion);
-+
-+	if (!s->active) {
-+		ret = -EAGAIN;
-+		goto err;
-+	}
-+
-+	switch (c->bandwidth_hz) {
-+	case 5000000:
-+		bandwidth = 0x25;
-+		break;
-+	case 6000000:
-+		bandwidth = 0x26;
-+		break;
-+	case 7000000:
-+		bandwidth = 0x27;
-+		break;
-+	case 8000000:
-+		bandwidth = 0x28;
-+		break;
-+	default:
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	/* program tuner */
-+	if (fe->ops.tuner_ops.set_params) {
-+		ret = fe->ops.tuner_ops.set_params(fe);
-+		if (ret)
-+			goto err;
-+	}
-+
-+	memcpy(cmd.args, "\x88\x02\x02\x02\x02", 5);
-+	cmd.wlen = 5;
-+	cmd.rlen = 5;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x89\x21\x06\x11\xff\x98", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 3;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x51\x03", 2);
-+	cmd.wlen = 2;
-+	cmd.rlen = 12;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x12\x08\x04", 3);
-+	cmd.wlen = 3;
-+	cmd.rlen = 3;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x01\x04\x00\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x03\x10\x17\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x02\x10\x15\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x0c\x10\x12\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x06\x10\x24\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x0b\x10\x88\x13", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x07\x10\x00\x24", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x0a\x10\x00\x00", 6);
-+	cmd.args[4] = bandwidth;
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x04\x10\x15\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x05\x10\xa1\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x0f\x10\x10\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x0d\x10\xd0\x02", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x01\x10\x00\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x09\x10\xe3\x18", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x08\x10\xd7\x15", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x04\x03\x00\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x03\x03\x00\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x08\x03\x00\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x07\x03\x01\x02", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x06\x03\x00\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x05\x03\x00\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x01\x03\x0c\x40", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x01\x10\x16\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	memcpy(cmd.args, "\x14\x00\x01\x12\x00\x00", 6);
-+	cmd.wlen = 6;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	cmd.args[0] = 0x85;
-+	cmd.wlen = 1;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	s->delivery_system = c->delivery_system;
-+
-+	return 0;
-+err:
-+	dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
-+	return ret;
-+}
-+
-+static int si2168_init(struct dvb_frontend *fe)
-+{
-+	struct si2168 *s = fe->demodulator_priv;
-+	int ret, len, remaining;
-+	const struct firmware *fw = NULL;
-+	u8 *fw_file = SI2168_FIRMWARE;
-+	const unsigned int i2c_wr_max = 8;
-+	struct si2168_cmd cmd;
-+
-+	dev_dbg(&s->client->dev, "%s:\n", __func__);
-+
-+	cmd.args[0] = 0x13;
-+	cmd.wlen = 1;
-+	cmd.rlen = 0;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	cmd.args[0] = 0xc0;
-+	cmd.args[1] = 0x12;
-+	cmd.args[2] = 0x00;
-+	cmd.args[3] = 0x0c;
-+	cmd.args[4] = 0x00;
-+	cmd.args[5] = 0x0d;
-+	cmd.args[6] = 0x16;
-+	cmd.args[7] = 0x00;
-+	cmd.args[8] = 0x00;
-+	cmd.args[9] = 0x00;
-+	cmd.args[10] = 0x00;
-+	cmd.args[11] = 0x00;
-+	cmd.args[12] = 0x00;
-+	cmd.wlen = 13;
-+	cmd.rlen = 0;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	cmd.args[0] = 0xc0;
-+	cmd.args[1] = 0x06;
-+	cmd.args[2] = 0x01;
-+	cmd.args[3] = 0x0f;
-+	cmd.args[4] = 0x00;
-+	cmd.args[5] = 0x20;
-+	cmd.args[6] = 0x20;
-+	cmd.args[7] = 0x01;
-+	cmd.wlen = 8;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	cmd.args[0] = 0x02;
-+	cmd.wlen = 1;
-+	cmd.rlen = 13;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	cmd.args[0] = 0x05;
-+	cmd.args[1] = 0x00;
-+	cmd.args[2] = 0xaa;
-+	cmd.args[3] = 0x4d;
-+	cmd.args[4] = 0x56;
-+	cmd.args[5] = 0x40;
-+	cmd.args[6] = 0x00;
-+	cmd.args[7] = 0x00;
-+	cmd.wlen = 8;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	/* cold state - try to download firmware */
-+	dev_info(&s->client->dev, "%s: found a '%s' in cold state\n",
-+			KBUILD_MODNAME, si2168_ops.info.name);
-+
-+	/* request the firmware, this will block and timeout */
-+	ret = request_firmware(&fw, fw_file, &s->client->dev);
-+	if (ret) {
-+		dev_err(&s->client->dev, "%s: firmare file '%s' not found\n",
-+				KBUILD_MODNAME, fw_file);
-+		goto err;
-+	}
-+
-+	dev_info(&s->client->dev, "%s: downloading firmware from file '%s'\n",
-+			KBUILD_MODNAME, fw_file);
-+
-+	for (remaining = fw->size; remaining > 0; remaining -= i2c_wr_max) {
-+		len = remaining;
-+		if (len > i2c_wr_max)
-+			len = i2c_wr_max;
-+
-+		memcpy(cmd.args, &fw->data[fw->size - remaining], len);
-+		cmd.wlen = len;
-+		cmd.rlen = 1;
-+		ret = si2168_cmd_execute(s, &cmd);
-+		if (ret) {
-+			dev_err(&s->client->dev,
-+					"%s: firmware download failed=%d\n",
-+					KBUILD_MODNAME, ret);
-+			goto err;
-+		}
-+	}
-+
-+	release_firmware(fw);
-+	fw = NULL;
-+
-+	cmd.args[0] = 0x01;
-+	cmd.args[1] = 0x01;
-+	cmd.wlen = 2;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	dev_info(&s->client->dev, "%s: found a '%s' in warm state\n",
-+			KBUILD_MODNAME, si2168_ops.info.name);
-+
-+	s->active = true;
-+
-+	return 0;
-+err:
-+	if (fw)
-+		release_firmware(fw);
-+
-+	dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
-+	return ret;
-+}
-+
-+static int si2168_sleep(struct dvb_frontend *fe)
-+{
-+	struct si2168 *s = fe->demodulator_priv;
-+
-+	dev_dbg(&s->client->dev, "%s:\n", __func__);
-+
-+	s->active = false;
-+
-+	return 0;
-+}
-+
-+static int si2168_get_tune_settings(struct dvb_frontend *fe,
-+	struct dvb_frontend_tune_settings *s)
-+{
-+	s->min_delay_ms = 900;
-+
-+	return 0;
-+}
-+
-+/*
-+ * I2C gate logic
-+ * We must use unlocked i2c_transfer() here because I2C lock is already taken
-+ * by tuner driver.
-+ */
-+static int si2168_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
-+{
-+	struct si2168 *s = mux_priv;
-+	int ret;
-+	struct i2c_msg gate_open_msg = {
-+		.addr = s->client->addr,
-+		.flags = 0,
-+		.len = 3,
-+		.buf = "\xc0\x0d\x01",
-+	};
-+
-+	mutex_lock(&s->i2c_mutex);
-+
-+	/* open tuner I2C gate */
-+	ret = __i2c_transfer(s->client->adapter, &gate_open_msg, 1);
-+	if (ret != 1) {
-+		dev_warn(&s->client->dev, "%s: i2c write failed=%d\n",
-+				KBUILD_MODNAME, ret);
-+		if (ret >= 0)
-+			ret = -EREMOTEIO;
++		if (sdev->vio) {
++			err = regulator_disable(sdev->vio);
++			if (err) {
+ 				v4l2_err(&sdev->sd,
+-					 "Failed to disable supplies: %d\n", err);
++					"Failed to disable vio: %d\n", err);
++			}
+ 		}
++
+ 		sdev->power_state = POWER_OFF;
+ 	}
+ 
+@@ -1363,38 +1390,50 @@ static int si4713_probe(struct i2c_client *client,
+ 					const struct i2c_device_id *id)
+ {
+ 	struct si4713_device *sdev;
+-	struct si4713_platform_data *pdata = client->dev.platform_data;
+ 	struct v4l2_ctrl_handler *hdl;
+-	int rval, i;
++	struct si4713_platform_data *pdata = client->dev.platform_data;
++	struct device_node *np = client->dev.of_node;
++	int rval;
++
++	struct radio_si4713_platform_data si4713_pdev_pdata;
++	struct platform_device *si4713_pdev;
+ 
+-	sdev = kzalloc(sizeof(*sdev), GFP_KERNEL);
++	sdev = devm_kzalloc(&client->dev, sizeof(*sdev), GFP_KERNEL);
+ 	if (!sdev) {
+ 		dev_err(&client->dev, "Failed to alloc video device.\n");
+ 		rval = -ENOMEM;
+ 		goto exit;
+ 	}
+ 
+-	sdev->gpio_reset = -1;
+-	if (pdata && gpio_is_valid(pdata->gpio_reset)) {
+-		rval = gpio_request(pdata->gpio_reset, "si4713 reset");
+-		if (rval) {
+-			dev_err(&client->dev,
+-				"Failed to request gpio: %d\n", rval);
+-			goto free_sdev;
+-		}
+-		sdev->gpio_reset = pdata->gpio_reset;
+-		gpio_direction_output(sdev->gpio_reset, 0);
+-		sdev->supplies = pdata->supplies;
++	sdev->gpio_reset = devm_gpiod_get(&client->dev, "reset");
++	if (!IS_ERR(sdev->gpio_reset)) {
++		gpiod_direction_output(sdev->gpio_reset, 0);
++	} else if (PTR_ERR(sdev->gpio_reset) == -ENOENT) {
++		dev_dbg(&client->dev, "No reset GPIO assigned\n");
 +	} else {
-+		ret = 0;
++		rval = PTR_ERR(sdev->gpio_reset);
++		dev_err(&client->dev, "Failed to request gpio: %d\n", rval);
++		goto exit;
+ 	}
+ 
+-	for (i = 0; i < sdev->supplies; i++)
+-		sdev->supply_data[i].supply = pdata->supply_names[i];
++	sdev->vdd = devm_regulator_get_optional(&client->dev, "vdd");
++	if (IS_ERR(sdev->vdd)) {
++		rval = PTR_ERR(sdev->vdd);
++		if (rval == -EPROBE_DEFER)
++			goto exit;
+ 
+-	rval = regulator_bulk_get(&client->dev, sdev->supplies,
+-				  sdev->supply_data);
+-	if (rval) {
+-		dev_err(&client->dev, "Cannot get regulators: %d\n", rval);
+-		goto free_gpio;
++		dev_info(&client->dev, "no vdd regulator found: %d\n", rval);
++		sdev->vdd = NULL;
 +	}
 +
-+	return ret;
-+}
++	sdev->vio = devm_regulator_get_optional(&client->dev, "vio");
++	if (IS_ERR(sdev->vio)) {
++		rval = PTR_ERR(sdev->vio);
++		if (rval == -EPROBE_DEFER)
++			goto exit;
 +
-+static int si2168_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
-+{
-+	struct si2168 *s = mux_priv;
-+	int ret;
-+	struct i2c_msg gate_close_msg = {
-+		.addr = s->client->addr,
-+		.flags = 0,
-+		.len = 3,
-+		.buf = "\xc0\x0d\x00",
-+	};
++		dev_info(&client->dev, "no vio regulator found: %d\n", rval);
++		sdev->vio = NULL;
+ 	}
+ 
+ 	v4l2_i2c_subdev_init(&sdev->sd, client, &si4713_subdev_ops);
+@@ -1480,12 +1519,12 @@ static int si4713_probe(struct i2c_client *client,
+ 	sdev->sd.ctrl_handler = hdl;
+ 
+ 	if (client->irq) {
+-		rval = request_irq(client->irq,
++		rval = devm_request_irq(&client->dev, client->irq,
+ 			si4713_handler, IRQF_TRIGGER_FALLING,
+ 			client->name, sdev);
+ 		if (rval < 0) {
+ 			v4l2_err(&sdev->sd, "Could not request IRQ\n");
+-			goto put_reg;
++			goto free_ctrls;
+ 		}
+ 		v4l2_dbg(1, debug, &sdev->sd, "IRQ requested.\n");
+ 	} else {
+@@ -1495,23 +1534,36 @@ static int si4713_probe(struct i2c_client *client,
+ 	rval = si4713_initialize(sdev);
+ 	if (rval < 0) {
+ 		v4l2_err(&sdev->sd, "Failed to probe device information.\n");
+-		goto free_irq;
++		goto free_ctrls;
++	}
 +
-+	/* close tuner I2C gate */
-+	ret = __i2c_transfer(s->client->adapter, &gate_close_msg, 1);
-+	if (ret != 1) {
-+		dev_warn(&s->client->dev, "%s: i2c write failed=%d\n",
-+				KBUILD_MODNAME, ret);
-+		if (ret >= 0)
-+			ret = -EREMOTEIO;
++	if ((pdata && pdata->is_platform_device) || np) {
++		si4713_pdev = platform_device_alloc("radio-si4713", -1);
++		if (!si4713_pdev)
++			goto put_main_pdev;
++
++		si4713_pdev_pdata.subdev = client;
++		rval = platform_device_add_data(si4713_pdev, &si4713_pdev_pdata,
++						sizeof(si4713_pdev_pdata));
++		if (rval)
++			goto put_main_pdev;
++
++		rval = platform_device_add(si4713_pdev);
++		if (rval)
++			goto put_main_pdev;
++
++		sdev->pd = si4713_pdev;
 +	} else {
-+		ret = 0;
-+	}
++		sdev->pd = NULL;
+ 	}
+ 
+ 	return 0;
+ 
+-free_irq:
+-	if (client->irq)
+-		free_irq(client->irq, sdev);
++put_main_pdev:
++	platform_device_put(si4713_pdev);
++	v4l2_device_unregister_subdev(&sdev->sd);
+ free_ctrls:
+ 	v4l2_ctrl_handler_free(hdl);
+-put_reg:
+-	regulator_bulk_free(sdev->supplies, sdev->supply_data);
+-free_gpio:
+-	if (gpio_is_valid(sdev->gpio_reset))
+-		gpio_free(sdev->gpio_reset);
+-free_sdev:
+-	kfree(sdev);
+ exit:
+ 	return rval;
+ }
+@@ -1522,18 +1574,14 @@ static int si4713_remove(struct i2c_client *client)
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+ 	struct si4713_device *sdev = to_si4713_device(sd);
+ 
++	if (sdev->pd)
++		platform_device_unregister(sdev->pd);
 +
-+	mutex_unlock(&s->i2c_mutex);
+ 	if (sdev->power_state)
+ 		si4713_set_power_state(sdev, POWER_DOWN);
+ 
+-	if (client->irq > 0)
+-		free_irq(client->irq, sdev);
+-
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(sd->ctrl_handler);
+-	regulator_bulk_free(sdev->supplies, sdev->supply_data);
+-	if (gpio_is_valid(sdev->gpio_reset))
+-		gpio_free(sdev->gpio_reset);
+-	kfree(sdev);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
+index 4837cf6..2ff772e 100644
+--- a/drivers/media/radio/si4713/si4713.h
++++ b/drivers/media/radio/si4713/si4713.h
+@@ -15,7 +15,9 @@
+ #ifndef SI4713_I2C_H
+ #define SI4713_I2C_H
+ 
++#include <linux/platform_device.h>
+ #include <linux/regulator/consumer.h>
++#include <linux/gpio/consumer.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/si4713.h>
+@@ -190,8 +192,6 @@
+ #define MIN_ACOMP_THRESHOLD		(-40)
+ #define MAX_ACOMP_GAIN			20
+ 
+-#define SI4713_NUM_SUPPLIES		2
+-
+ /*
+  * si4713_device - private data
+  */
+@@ -227,9 +227,10 @@ struct si4713_device {
+ 		struct v4l2_ctrl *tune_ant_cap;
+ 	};
+ 	struct completion work;
+-	unsigned supplies;
+-	struct regulator_bulk_data supply_data[SI4713_NUM_SUPPLIES];
+-	int gpio_reset;
++	struct regulator *vdd;
++	struct regulator *vio;
++	struct gpio_desc *gpio_reset;
++	struct platform_device *pd;
+ 	u32 power_state;
+ 	u32 rds_enabled;
+ 	u32 frequency;
+@@ -237,4 +238,8 @@ struct si4713_device {
+ 	u32 stereo;
+ 	u32 tune_rnl;
+ };
 +
-+	return ret;
-+}
-+
-+static const struct dvb_frontend_ops si2168_ops = {
-+	.delsys = {SYS_DVBT},
-+	.info = {
-+		.name = "Silicon Labs Si2168",
-+		.caps =	FE_CAN_FEC_1_2 |
-+			FE_CAN_FEC_2_3 |
-+			FE_CAN_FEC_3_4 |
-+			FE_CAN_FEC_5_6 |
-+			FE_CAN_FEC_7_8 |
-+			FE_CAN_FEC_AUTO |
-+			FE_CAN_QPSK |
-+			FE_CAN_QAM_16 |
-+			FE_CAN_QAM_32 |
-+			FE_CAN_QAM_64 |
-+			FE_CAN_QAM_128 |
-+			FE_CAN_QAM_256 |
-+			FE_CAN_QAM_AUTO |
-+			FE_CAN_TRANSMISSION_MODE_AUTO |
-+			FE_CAN_GUARD_INTERVAL_AUTO |
-+			FE_CAN_HIERARCHY_AUTO |
-+			FE_CAN_MUTE_TS |
-+			FE_CAN_2G_MODULATION
-+	},
-+
-+	.get_tune_settings = si2168_get_tune_settings,
-+
-+	.init = si2168_init,
-+	.sleep = si2168_sleep,
-+
-+	.set_frontend = si2168_set_frontend,
-+
-+	.read_status = si2168_read_status,
++struct radio_si4713_platform_data {
++	struct i2c_client *subdev;
 +};
-+
-+static int si2168_probe(struct i2c_client *client,
-+		const struct i2c_device_id *id)
-+{
-+	struct si2168_config *config = client->dev.platform_data;
-+	struct si2168 *s;
-+	int ret;
-+	struct si2168_cmd cmd;
-+
-+	dev_dbg(&client->dev, "%s:\n", __func__);
-+
-+	s = kzalloc(sizeof(struct si2168), GFP_KERNEL);
-+	if (!s) {
-+		ret = -ENOMEM;
-+		dev_err(&client->dev, "%s: kzalloc() failed\n", KBUILD_MODNAME);
-+		goto err;
-+	}
-+
-+	s->client = client;
-+	mutex_init(&s->i2c_mutex);
-+
-+	/* check if the demod is there */
-+	cmd.wlen = 0;
-+	cmd.rlen = 1;
-+	ret = si2168_cmd_execute(s, &cmd);
-+	if (ret)
-+		goto err;
-+
-+	/* create mux i2c adapter for tuner */
-+	s->adapter = i2c_add_mux_adapter(client->adapter, &client->dev, s,
-+			0, 0, 0, si2168_select, si2168_deselect);
-+	if (s->adapter == NULL)
-+		goto err;
-+
-+	/* create dvb_frontend */
-+	memcpy(&s->fe.ops, &si2168_ops, sizeof(struct dvb_frontend_ops));
-+	s->fe.demodulator_priv = s;
-+
-+	*config->i2c_adapter = s->adapter;
-+	*config->fe = &s->fe;
-+
-+	i2c_set_clientdata(client, s);
-+
-+	dev_info(&s->client->dev,
-+			"%s: Silicon Labs Si2168 successfully attached\n",
-+			KBUILD_MODNAME);
-+	return 0;
-+err:
-+	kfree(s);
-+	dev_dbg(&client->dev, "%s: failed=%d\n", __func__, ret);
-+	return ret;
-+}
-+
-+static int si2168_remove(struct i2c_client *client)
-+{
-+	struct si2168 *s = i2c_get_clientdata(client);
-+
-+	dev_dbg(&client->dev, "%s:\n", __func__);
-+
-+	i2c_del_mux_adapter(s->adapter);
-+
-+	s->fe.ops.release = NULL;
-+	s->fe.demodulator_priv = NULL;
-+
-+	kfree(s);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id si2168_id[] = {
-+	{"si2168", 0},
-+	{}
-+};
-+MODULE_DEVICE_TABLE(i2c, si2168_id);
-+
-+static struct i2c_driver si2168_driver = {
-+	.driver = {
-+		.owner	= THIS_MODULE,
-+		.name	= "si2168",
-+	},
-+	.probe		= si2168_probe,
-+	.remove		= si2168_remove,
-+	.id_table	= si2168_id,
-+};
-+
-+module_i2c_driver(si2168_driver);
-+
-+MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
-+MODULE_DESCRIPTION("Silicon Labs Si2168 DVB-T/T2/C demodulator driver");
-+MODULE_LICENSE("GPL");
-+MODULE_FIRMWARE(SI2168_FIRMWARE);
-diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
-new file mode 100644
-index 0000000..5a801aa
---- /dev/null
-+++ b/drivers/media/dvb-frontends/si2168.h
-@@ -0,0 +1,23 @@
-+#ifndef SI2168_H
-+#define SI2168_H
-+
-+#include <linux/dvb/frontend.h>
-+/*
-+ * I2C address
-+ * 0x64
-+ */
-+struct si2168_config {
-+	/*
-+	 * frontend
-+	 * returned by driver
-+	 */
-+	struct dvb_frontend **fe;
-+
-+	/*
-+	 * tuner I2C adapter
-+	 * returned by driver
-+	 */
-+	struct i2c_adapter **i2c_adapter;
-+};
-+
-+#endif
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-new file mode 100644
-index 0000000..3646324
---- /dev/null
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -0,0 +1,30 @@
-+#ifndef SI2168_PRIV_H
-+#define SI2168_PRIV_H
-+
-+#include "si2168.h"
-+#include "dvb_frontend.h"
-+#include <linux/firmware.h>
-+#include <linux/i2c-mux.h>
-+
-+#define SI2168_FIRMWARE "dvb-demod-si2168-01.fw"
-+
-+/* state struct */
-+struct si2168 {
-+	struct i2c_client *client;
-+	struct i2c_adapter *adapter;
-+	struct mutex i2c_mutex;
-+	struct dvb_frontend fe;
-+	fe_delivery_system_t delivery_system;
-+	fe_status_t fe_status;
-+	bool active;
-+};
-+
-+/* firmare command struct */
-+#define SI2157_ARGLEN      30
-+struct si2168_cmd {
-+	u8 args[SI2157_ARGLEN];
-+	unsigned wlen;
-+	unsigned rlen;
-+};
-+
-+#endif
+ #endif /* ifndef SI4713_I2C_H */
+diff --git a/include/media/radio-si4713.h b/include/media/radio-si4713.h
+deleted file mode 100644
+index f6aae29..0000000
+--- a/include/media/radio-si4713.h
++++ /dev/null
+@@ -1,30 +0,0 @@
+-/*
+- * include/media/radio-si4713.h
+- *
+- * Board related data definitions for Si4713 radio transmitter chip.
+- *
+- * Copyright (c) 2009 Nokia Corporation
+- * Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
+- *
+- * This file is licensed under the terms of the GNU General Public License
+- * version 2. This program is licensed "as is" without any warranty of any
+- * kind, whether express or implied.
+- *
+- */
+-
+-#ifndef RADIO_SI4713_H
+-#define RADIO_SI4713_H
+-
+-#include <linux/i2c.h>
+-
+-#define SI4713_NAME "radio-si4713"
+-
+-/*
+- * Platform dependent definition
+- */
+-struct radio_si4713_platform_data {
+-	int i2c_bus;
+-	struct i2c_board_info *subdev_board_info;
+-};
+-
+-#endif /* ifndef RADIO_SI4713_H*/
+diff --git a/include/media/si4713.h b/include/media/si4713.h
+index f98a0a7..be4f58e 100644
+--- a/include/media/si4713.h
++++ b/include/media/si4713.h
+@@ -23,9 +23,7 @@
+  * Platform dependent definition
+  */
+ struct si4713_platform_data {
+-	const char * const *supply_names;
+-	unsigned supplies;
+-	int gpio_reset; /* < 0 if not used */
++	bool is_platform_device;
+ };
+ 
+ /*
 -- 
-1.9.0
+1.9.1
 
