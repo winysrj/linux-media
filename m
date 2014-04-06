@@ -1,62 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailex.mailcore.me ([94.136.40.62]:52228 "EHLO
-	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965718AbaDJKnx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 06:43:53 -0400
-Received: from 188.29.164.63.threembb.co.uk ([188.29.164.63] helo=[192.168.43.247])
-	by smtp04.mailcore.me with esmtpa (Exim 4.80.1)
-	(envelope-from <it@sca-uk.com>)
-	id 1WYCSR-0002oO-Sm
-	for linux-media@vger.kernel.org; Thu, 10 Apr 2014 11:43:49 +0100
-Message-ID: <534675E1.6050408@sca-uk.com>
-Date: Thu, 10 Apr 2014 11:43:45 +0100
-From: Steve Cookson - IT <it@sca-uk.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45274 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754641AbaDFXfW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Apr 2014 19:35:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Scheuermann, Mail" <Scheuermann@barco.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: AW: AW: v4l2_buffer with PBO mapped memory
+Date: Mon, 07 Apr 2014 01:37:28 +0200
+Message-ID: <12148246.7IO9AkCti4@avalon>
+In-Reply-To: <67C778DDEF97AE4BA9DC4BA8ECFD811E1DB2EA13@KUUMEX11.barco.com>
+References: <533C2872.5090603@barco.com> <82154683.DEhQIaoLxb@avalon> <67C778DDEF97AE4BA9DC4BA8ECFD811E1DB2EA13@KUUMEX11.barco.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Hauppauge ImpactVCB-e 01385
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guys,
+Hi Thomas,
 
-Sorry to go on about the Hauppauge ImpactVCB-e 01385, but it's a couple 
-of years and version 12.04, since I last asked.
+On Friday 04 April 2014 20:01:33 Scheuermann, Mail wrote:
+> Hi Laurent,
+> 
+> I've done the following:
+> 
+> echo 3 >/sys/module/videobuf2_core/parameters/debug
+> 
+> and found in /var/log/kern.log after starting my program:
+> 
+> [239432.535077] vb2: Buffer 0, plane 0 offset 0x00000000
+> [239432.535080] vb2: Buffer 1, plane 0 offset 0x001c2000
+> [239432.535082] vb2: Buffer 2, plane 0 offset 0x00384000
+> [239432.535083] vb2: Allocated 3 buffers, 1 plane(s) each
+> [239432.535085] vb2: qbuf: userspace address for plane 0 changed,
+> reacquiring memory
+> [239432.535087] vb2: qbuf: failed acquiring userspace memory for plane 0
 
-This page:
+This confirms everything is working properly up to the point where videobuf2-
+vmalloc fails to acquire the user pointer memory. The problem comes from 
+vb2_vmalloc_get_userptr() in drivers/media/v4l2-core/videobuf2-vmalloc.c. 
+Unfortunately that function lacks debugging. Are you familiar enough with 
+kernel programming to add printk statements there and see where it fails ?
 
-http://linuxtv.org/wiki/index.php/Hauppauge
+> [239432.535088] vb2: qbuf: buffer preparation failed: -22
+> [239432.535128] vb2: streamoff: not streaming
 
-Now shows:
+-- 
+Regards,
 
-Table of analog-only devices sold by Hauppauge Model Standard Interface 
-Supported Comments
-ImpactVCB-e Video PCIe ✔ Yes No tuners, only video-in. S-Video Capture 
-works with kernel 3.5.0 (Ubuntu 12.10).
+Laurent Pinchart
 
-As my distribution is 13.10 with kernel 3.11, I believe it should work.
-
-uname -a gives:
-
-3.11.0-19-generic #33-Ubuntu SMP Tue Mar 11 18:48:34 UTC 2014 x86_64 
-x86_64 x86_64 GNU/Linux
-
-When I plug in my 01385 I get the same old stuff in dmseg, ie:
-
-cx23885 driver version 0.0.3 loaded
-[ 8.921390] cx23885[0]: Your board isn't known (yet) to the driver.
-[ 8.921390] cx23885[0]: Try to pick one of the existing card configs via
-[ 8.921390] cx23885[0]: card=<n> insmod option. Updating to the latest
-[ 8.921390] cx23885[0]: version might help as well.
-[ 8.921393] cx23885[0]: Here is a list of valid choices for the card=<n> 
-insmod option:
-
-Etc.
-
-Does anyone have any idea of the issue here?
-
-Best regards
-
-Steve
