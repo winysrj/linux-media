@@ -1,84 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f52.google.com ([209.85.219.52]:48136 "EHLO
-	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758280AbaD2RPb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Apr 2014 13:15:31 -0400
-Received: by mail-oa0-f52.google.com with SMTP id l6so592834oag.11
-        for <linux-media@vger.kernel.org>; Tue, 29 Apr 2014 10:15:30 -0700 (PDT)
+Received: from mail-yk0-f177.google.com ([209.85.160.177]:60250 "EHLO
+	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750960AbaDGIJ5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 04:09:57 -0400
+Received: by mail-yk0-f177.google.com with SMTP id q200so5103199ykb.22
+        for <linux-media@vger.kernel.org>; Mon, 07 Apr 2014 01:09:51 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1398257864-12097-3-git-send-email-arun.kk@samsung.com>
-References: <1398257864-12097-1-git-send-email-arun.kk@samsung.com>
-	<1398257864-12097-3-git-send-email-arun.kk@samsung.com>
-Date: Tue, 29 Apr 2014 22:45:30 +0530
-Message-ID: <CAK9yfHzB11kJbOcL-jHHo_P4D2nXtHuGRM_FT0mNuvV0SLywrQ@mail.gmail.com>
-Subject: Re: [PATCH 2/3] [media] s5p-mfc: Core support to add v8 decoder
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Arun Kumar K <arun.kk@samsung.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>,
+In-Reply-To: <1394486458-9836-6-git-send-email-hverkuil@xs4all.nl>
+References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl> <1394486458-9836-6-git-send-email-hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Mon, 7 Apr 2014 17:09:11 +0900
+Message-ID: <CAMm-=zA7BHDHyRAzmEnsEvQNEabAcUAo5fQfiBPm+f7JkmG2Pg@mail.gmail.com>
+Subject: Re: [REVIEW PATCH 05/11] vb2: move __qbuf_mmap before __qbuf_userptr
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Pawel Osciak <posciak@chromium.org>,
-	Kiran Avnd <avnd.kiran@samsung.com>,
-	Arun Kumar <arunkk.samsung@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
+On Tue, Mar 11, 2014 at 6:20 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> __qbuf_mmap was sort of hidden in between the much larger __qbuf_userptr
+> and __qbuf_dmabuf functions. Move it before __qbuf_userptr which is
+> also conform the usual order these memory models are implemented: first
+> mmap, then userptr, then dmabuf.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 23 April 2014 18:27, Arun Kumar K <arun.kk@samsung.com> wrote:
-> From: Kiran AVND <avnd.kiran@samsung.com>
->
-> This patch adds variant data and core support for
-> V8 decoder. This patch also adds the register definition
-> file for new firmware version v8 for MFC.
->
-> Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Acked-by: Pawel Osciak <pawel@osciak.com>
+
 > ---
-<...>
-> +
-> +/* Returned value register for specific setting */
-> +#define S5P_FIMV_D_RET_PICTURE_TAG_TOP_V8      0xf674
-> +#define S5P_FIMV_D_RET_PICTURE_TAG_BOT_V8      0xf678
-> +#define S5P_FIMV_D_MVC_VIEW_ID_V8              0xf6d8
-> +
-> +/* SEI related information */
-> +#define S5P_FIMV_D_FRAME_PACK_SEI_AVAIL_V8     0xf6dc
-> +
-> +/* MFCv8 Context buffer sizes */
-> +#define MFC_CTX_BUF_SIZE_V8            (30 * SZ_1K)    /*  30KB */
-
-Please include header file for size macros.
-
-<...>
->  };
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> index 48a14b5..f0e63f5 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> @@ -23,8 +23,7 @@
->  #include <media/v4l2-ioctl.h>
->  #include <media/videobuf2-core.h>
->  #include "regs-mfc.h"
-> -#include "regs-mfc-v6.h"
-> -#include "regs-mfc-v7.h"
-> +#include "regs-mfc-v8.h"
+>  drivers/media/v4l2-core/videobuf2-core.c | 28 ++++++++++++++--------------
+>  1 file changed, 14 insertions(+), 14 deletions(-)
 >
->  /* Definitions related to MFC memory */
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 71be247..e38b45e 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1254,6 +1254,20 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>  }
 >
-> @@ -705,5 +704,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
->  #define IS_TWOPORT(dev)                (dev->variant->port_num == 2 ? 1 : 0)
->  #define IS_MFCV6_PLUS(dev)     (dev->variant->version >= 0x60 ? 1 : 0)
->  #define IS_MFCV7(dev)          (dev->variant->version >= 0x70 ? 1 : 0)
+>  /**
+> + * __qbuf_mmap() - handle qbuf of an MMAP buffer
+> + */
+> +static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+> +{
+> +       int ret;
+> +
+> +       __fill_vb2_buffer(vb, b, vb->v4l2_planes);
+> +       ret = call_vb_qop(vb, buf_prepare, vb);
+> +       if (ret)
+> +               fail_vb_qop(vb, buf_prepare);
+> +       return ret;
+> +}
+> +
+> +/**
+>   * __qbuf_userptr() - handle qbuf of a USERPTR buffer
+>   */
+>  static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+> @@ -1359,20 +1373,6 @@ err:
+>  }
+>
+>  /**
+> - * __qbuf_mmap() - handle qbuf of an MMAP buffer
+> - */
+> -static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+> -{
+> -       int ret;
+> -
+> -       __fill_vb2_buffer(vb, b, vb->v4l2_planes);
+> -       ret = call_vb_qop(vb, buf_prepare, vb);
+> -       if (ret)
+> -               fail_vb_qop(vb, buf_prepare);
+> -       return ret;
+> -}
+> -
+> -/**
+>   * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
+>   */
+>  static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+> --
+> 1.9.0
+>
 
-Is MFC v8 superset of MFC v7?
 
-> +#define IS_MFCV8(dev)          (dev->variant->version >= 0x80 ? 1 : 0)
 
 -- 
-With warm regards,
-Sachin
+Best regards,
+Pawel Osciak
