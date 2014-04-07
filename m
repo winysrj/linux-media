@@ -1,88 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46278 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753800AbaDJWRk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 18:17:40 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [yavta PATCH 5/9] Allow passing file descriptors to yavta
-Date: Fri, 11 Apr 2014 00:17:38 +0200
-Message-ID: <2768738.vMSoLa2vmM@avalon>
-In-Reply-To: <5346E797.5070503@iki.fi>
-References: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi> <349099482.s11F5mBja6@avalon> <5346E797.5070503@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout3.samsung.com ([203.254.224.33]:38056 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755277AbaDGNQ2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 09:16:28 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N3N006P7WVFCW60@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 07 Apr 2014 22:16:27 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 1/8] [media] s5p-jpeg: Add fmt_ver_flag field to the
+ s5p_jpeg_variant structure
+Date: Mon, 07 Apr 2014 15:16:06 +0200
+Message-id: <1396876573-15811-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Simplify the code by adding fmt_ver_flag field
+to the s5p_jpeg_variant structure which allows
+to avoid "if" statement in the s5p_jpeg_find_format
+function.
 
-On Thursday 10 April 2014 21:48:55 Sakari Ailus wrote:
-> Hi Laurent,
-> 
-> Thanks for the comments.
-> 
-> Laurent Pinchart wrote:
-> ...
-> 
-> >> @@ -196,6 +192,16 @@ static int video_open(struct device *dev, const char
-> >> *devname, int no_query)
-> >> 
-> >>   	printf("Device %s opened.\n", devname);
-> >> 
-> >> +	dev->opened = 1;
-> >> +
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int video_querycap(struct device *dev, int no_query) {
-> >> +	struct v4l2_capability cap;
-> >> +	unsigned int capabilities;
-> >> +	int ret;
-> >> +
-> > 
-> > video_querycap ends up setting the dev->type field, which isn't really the
-> > job of a query function. Would there be a clean way to pass the fd to the
-> > video_open() function instead ? Maybe video_open() could be split and/or
-> > renamed to video_init() ?
-> 
-> Agreed. I'll separate queue type selection from querycap. As the
-> querycap needs to be done after opening the device, I'll put it into
-> another function. I'm ok with video_init(), but what would you think
-> about e.g. video_set_queue_type() as the function does nothing else.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |   11 ++++-------
+ drivers/media/platform/s5p-jpeg/jpeg-core.h |    1 +
+ 2 files changed, 5 insertions(+), 7 deletions(-)
 
-Just thinking out loud, we need to
-
-- initialize the device structure,
-- open the device or use an externally provided fd,
-- optionally query the device capabilities,
-- optionally override the queue type.
-
-Initializing the device structure must be performed unconditionally, I would 
-create a video_init() function for that.
-
-Opening the device or using an externally provided fd are exclusive 
-operations, I would create two functions (that wouldn't do much).
-
-Querying the device capabilities is also optional, I would create one function 
-for that.
-
-Finally, overriding the queue type is of course optional and should be 
-implemented in its own function. We should probably return an error if the 
-user tries to set a queue type not reported by QUERYCAP (assuming QUERYCAP has 
-been called).
-
-Ideally I'd also like to make the --no-query argument non-mandatory when 
-operating on subdev nodes. It has been introduced because QUERYCAP isn't 
-supported by subdev nodes, and it would be nice if we could detect somehow 
-that the device node corresponds to a subdev and automatically skip QUERYCAP 
-in that case.
-
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 6db4d5e..9b0102d 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -959,7 +959,7 @@ static int s5p_jpeg_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ static struct s5p_jpeg_fmt *s5p_jpeg_find_format(struct s5p_jpeg_ctx *ctx,
+ 				u32 pixelformat, unsigned int fmt_type)
+ {
+-	unsigned int k, fmt_flag, ver_flag;
++	unsigned int k, fmt_flag;
+ 
+ 	if (ctx->mode == S5P_JPEG_ENCODE)
+ 		fmt_flag = (fmt_type == FMT_TYPE_OUTPUT) ?
+@@ -970,16 +970,11 @@ static struct s5p_jpeg_fmt *s5p_jpeg_find_format(struct s5p_jpeg_ctx *ctx,
+ 				SJPEG_FMT_FLAG_DEC_OUTPUT :
+ 				SJPEG_FMT_FLAG_DEC_CAPTURE;
+ 
+-	if (ctx->jpeg->variant->version == SJPEG_S5P)
+-		ver_flag = SJPEG_FMT_FLAG_S5P;
+-	else
+-		ver_flag = SJPEG_FMT_FLAG_EXYNOS4;
+-
+ 	for (k = 0; k < ARRAY_SIZE(sjpeg_formats); k++) {
+ 		struct s5p_jpeg_fmt *fmt = &sjpeg_formats[k];
+ 		if (fmt->fourcc == pixelformat &&
+ 		    fmt->flags & fmt_flag &&
+-		    fmt->flags & ver_flag) {
++		    fmt->flags & ctx->jpeg->variant->fmt_ver_flag) {
+ 			return fmt;
+ 		}
+ 	}
+@@ -2103,11 +2098,13 @@ static const struct dev_pm_ops s5p_jpeg_pm_ops = {
+ static struct s5p_jpeg_variant s5p_jpeg_drvdata = {
+ 	.version	= SJPEG_S5P,
+ 	.jpeg_irq	= s5p_jpeg_irq,
++	.fmt_ver_flag	= SJPEG_FMT_FLAG_S5P,
+ };
+ 
+ static struct s5p_jpeg_variant exynos4_jpeg_drvdata = {
+ 	.version	= SJPEG_EXYNOS4,
+ 	.jpeg_irq	= exynos4_jpeg_irq,
++	.fmt_ver_flag	= SJPEG_FMT_FLAG_EXYNOS4,
+ };
+ 
+ static const struct of_device_id samsung_jpeg_match[] = {
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+index f482dbf..c222436 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+@@ -118,6 +118,7 @@ struct s5p_jpeg {
+ 
+ struct s5p_jpeg_variant {
+ 	unsigned int	version;
++	unsigned int	fmt_ver_flag;
+ 	irqreturn_t	(*jpeg_irq)(int irq, void *priv);
+ };
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
