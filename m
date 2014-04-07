@@ -1,106 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55927 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751386AbaD0SvE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Apr 2014 14:51:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2] V4L2: fix VIDIOC_CREATE_BUFS in 64- / 32-bit compatibility mode
-Date: Sun, 27 Apr 2014 20:51:14 +0200
-Message-ID: <9390328.OxhPIEtXXa@avalon>
-In-Reply-To: <Pine.LNX.4.64.1404261745450.21367@axis700.grange>
-References: <Pine.LNX.4.64.1404261745450.21367@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp3-g21.free.fr ([212.27.42.3]:38569 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754988AbaDGMqJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Apr 2014 08:46:09 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v12][ 11/12] ARM: dts: mbimx51sd: Add CMO-QVGA backlight support.
+Date: Mon,  7 Apr 2014 14:44:50 +0200
+Message-Id: <1396874691-27954-11-git-send-email-denis@eukrea.com>
+In-Reply-To: <1396874691-27954-1-git-send-email-denis@eukrea.com>
+References: <1396874691-27954-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+---
+ChangeLog v9->v11:
+- Now uses the drm-panel instead of the display-timings.
 
-Thank you for the patch.
+ChangeLog v8->v9:
+- Removed the Cc. They are now set in git-send-email directly.
+- The backlight is now on at boot.
 
-On Saturday 26 April 2014 17:51:31 Guennadi Liakhovetski wrote:
-> If a struct contains 64-bit fields, it is aligned on 64-bit boundaries
-> within containing structs in 64-bit compilations. This is the case with
-> struct v4l2_window, which contains pointers and is embedded into struct
-> v4l2_format, and that one is embedded into struct v4l2_create_buffers.
-> Unlike some other structs, used as a part of the kernel ABI as ioctl()
-> arguments, that are packed, these structs aren't packed. This isn't a
-> problem per se, but the ioctl-compat code for VIDIOC_CREATE_BUFS contains
-> a bug, that triggers in such 64-bit builds. That code wrongly assumes,
-> that in struct v4l2_create_buffers, struct v4l2_format immediately follows
-> the __u32 memory field, which in fact isn't the case. This bug wasn't
-> visible until now, because until recently hardly any applications used
-> this ioctl() and mostly embedded 32-bit only drivers implemented it. This
-> is changing now with addition of this ioctl() to some USB drivers, e.g.
-> UVC. This patch fixes the bug by copying parts of struct
-> v4l2_create_buffers separately.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+ChangeLog v6->v7:
+- Shrinked even more the Cc list.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+ChangeLog v5->v6:
+- Reordered the Cc list.
 
-While you're at it, could you fix put_v4l2_format32() and put_v4l2_create32() 
-?
+ChangeLog v3->v5:
+- Updated to the new GPIO defines.
 
-> ---
-> 
-> v2:
-> 1. improved patch description
-> 2. moved the get_user() check inside __get_v4l2_format32()
-> 
-> Thanks to Laurent for suggestions
-> 
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 12 +++++++-----
->  1 file changed, 7 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index 04b2daf..7e2411c
-> 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -178,6 +178,9 @@ struct v4l2_create_buffers32 {
-> 
->  static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32
-> __user *up) {
-> +	if (get_user(kp->type, &up->type))
-> +		return -EFAULT;
-> +
->  	switch (kp->type) {
->  	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
->  	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-> @@ -204,17 +207,16 @@ static int __get_v4l2_format32(struct v4l2_format *kp,
-> struct v4l2_format32 __us
-> 
->  static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32
-> __user *up) {
-> -	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_format32)) ||
-> -			get_user(kp->type, &up->type))
-> -			return -EFAULT;
-> +	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_format32)))
-> +		return -EFAULT;
->  	return __get_v4l2_format32(kp, up);
->  }
-> 
->  static int get_v4l2_create32(struct v4l2_create_buffers *kp, struct
-> v4l2_create_buffers32 __user *up) {
->  	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_create_buffers32)) ||
-> -	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32,
-> format.fmt)))
-> -			return -EFAULT;
-> +	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32,
-> format)))
-> +		return -EFAULT;
->  	return __get_v4l2_format32(&kp->format, &up->format);
->  }
+ChangeLog v2->v3:
+- Splitted out from the patch that added support for the cpuimx51/mbimxsd51 boards.
+- This patch now only adds backlight support.
+- Added some interested people in the Cc list, and removed some people that
+  might be annoyed by the receiving of that patch which is unrelated to their
+  subsystem.
+---
+ .../imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts  |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
+diff --git a/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts
+index 7c280f8..4a3f805 100644
+--- a/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts
++++ b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts
+@@ -17,9 +17,19 @@
+ 	model = "Eukrea MBIMXSD51 with the CMO-QVGA Display";
+ 	compatible = "eukrea,mbimxsd51-baseboard-cmo-qvga", "eukrea,mbimxsd51-baseboard", "eukrea,cpuimx51", "fsl,imx51";
+ 
++	backlight: backlight {
++		compatible = "gpio-backlight";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_backlight_1>;
++		gpios = <&gpio3 4 GPIO_ACTIVE_HIGH>;
++		default-brightness-level = <1>;
++		default-on;
++	};
++
+ 	panel: panel {
+ 		compatible = "eukrea,mbimxsd51-cmo-qvga", "simple-panel";
+ 		power-supply = <&reg_lcd_3v3>;
++		backlight = <&backlight>;
+ 	};
+ 
+ 	reg_lcd_3v3: lcd-en {
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
