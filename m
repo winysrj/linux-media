@@ -1,115 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1897 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751319AbaDVCgO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Apr 2014 22:36:14 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s3M2aB72080989
-	for <linux-media@vger.kernel.org>; Tue, 22 Apr 2014 04:36:13 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id AF3E02A0253
-	for <linux-media@vger.kernel.org>; Tue, 22 Apr 2014 04:36:03 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140422023603.AF3E02A0253@tschai.lan>
-Date: Tue, 22 Apr 2014 04:36:03 +0200 (CEST)
+Received: from smtp3-g21.free.fr ([212.27.42.3]:35043 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754988AbaDGMpJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Apr 2014 08:45:09 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v12][ 01/12] [media] v4l2: add new V4L2_PIX_FMT_RGB666 pixel format.
+Date: Mon,  7 Apr 2014 14:44:40 +0200
+Message-Id: <1396874691-27954-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+That new macro is needed by the imx_drm staging driver
+  for supporting the QVGA display of the eukrea-cpuimx51 board.
 
-Results of the daily build of media_tree:
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ChangeLog v9->v10:
+- Rebased on top of:
+  "211e7f2 [media] DocBook media: drop the old incorrect packed RGB table"
+- Added Philipp Zabel's Ack.
 
-date:		Tue Apr 22 04:00:15 CEST 2014
-git branch:	test
-git hash:	701b57ee3387b8e3749845b02310b5625fbd8da0
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.13-7.slh.1-amd64
+ChangeLog v8->v9:
+- Removed the Cc. They are now set in git-send-email directly.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+ChangeLog v7->v8:
+- Added Mauro Carvalho Chehab back to the list of Cc
 
-Detailed results are available here:
+ChangeLog v6->v7:
+- Shrinked even more the Cc list.
+ChangeLog v5->v6:
+- Remove people not concerned by this patch from the Cc list.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+ChangeLog v3->v4:
+- Added Laurent Pinchart's Ack.
 
-Full logs are available here:
+ChangeLog v2->v3:
+- Added some interested people in the Cc list.
+- Added Mauro Carvalho Chehab's Ack.
+- Added documentation.
+---
+ .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |   39 ++++++++++++++++++++
+ include/uapi/linux/videodev2.h                     |    1 +
+ 2 files changed, 40 insertions(+)
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+index e1c4f8b..88a7fe1 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+@@ -279,6 +279,45 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+ 	    <entry></entry>
+ 	    <entry></entry>
+ 	  </row>
++	  <row id="V4L2-PIX-FMT-RGB666">
++	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
++	    <entry>'RGBH'</entry>
++	    <entry></entry>
++	    <entry>r<subscript>5</subscript></entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry>g<subscript>5</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>b<subscript>5</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
+ 	  <row id="V4L2-PIX-FMT-BGR24">
+ 	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
+ 	    <entry>'BGR3'</entry>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index ea468ee..d5d818a 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -299,6 +299,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
+ #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16  RGB-5-6-5 BE  */
+ #define V4L2_PIX_FMT_BGR666  v4l2_fourcc('B', 'G', 'R', 'H') /* 18  BGR-6-6-6	  */
++#define V4L2_PIX_FMT_RGB666  v4l2_fourcc('R', 'G', 'B', 'H') /* 18  RGB-6-6-6	  */
+ #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24  BGR-8-8-8     */
+ #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B', '3') /* 24  RGB-8-8-8     */
+ #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */
+-- 
+1.7.9.5
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
