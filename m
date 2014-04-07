@@ -1,71 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f41.google.com ([209.85.213.41]:62595 "EHLO
-	mail-yh0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751038AbaDOLC3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 07:02:29 -0400
-MIME-Version: 1.0
-In-Reply-To: <20140415093305.GE8753@valkosipuli.retiisi.org.uk>
-References: <1408657.25U3i1DfG3@daeseok-laptop.cloud.net>
-	<20140415093305.GE8753@valkosipuli.retiisi.org.uk>
-Date: Tue, 15 Apr 2014 19:54:43 +0900
-Message-ID: <CAHb8M2CECG7ydo9L2u5BOcQeq8V3=ydy149kCLkoueo+HbD6fg@mail.gmail.com>
-Subject: Re: [PATCH] [media] s2255drv: fix memory leak s2255_probe()
-From: DaeSeok Youn <daeseok.youn@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: m.chehab@samsung.com, linux-dev@sensoray.com,
-	hans.verkuil@cisco.com, linux-media@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout2.samsung.com ([203.254.224.25]:64617 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755277AbaDGNQm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 09:16:42 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N3N00JPVWVLO0C0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 07 Apr 2014 22:16:33 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 2/8] [media] s5p-jpeg: Perform fourcc downgrade only for
+ Exynos4x12 SoCs
+Date: Mon, 07 Apr 2014 15:16:07 +0200
+Message-id: <1396876573-15811-2-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1396876573-15811-1-git-send-email-j.anaszewski@samsung.com>
+References: <1396876573-15811-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Sakari
+Change the driver variant check from "is not S5PC210"
+to "is Exynos4" while checking whether YUV format needs
+to be downgraded in order to prevent upsampling which
+is not supported by Exynos4 SoCs family.
 
-2014-04-15 18:33 GMT+09:00 Sakari Ailus <sakari.ailus@iki.fi>:
-> Hi Daeseok,
->
-> On Tue, Apr 15, 2014 at 01:49:34PM +0900, Daeseok Youn wrote:
->>
->> smatch says:
->>  drivers/media/usb/s2255/s2255drv.c:2246 s2255_probe() warn:
->> possible memory leak of 'dev'
->>
->> Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
->> ---
->>  drivers/media/usb/s2255/s2255drv.c |    1 +
->>  1 files changed, 1 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
->> index 1d4ba2b..8aca3ef 100644
->> --- a/drivers/media/usb/s2255/s2255drv.c
->> +++ b/drivers/media/usb/s2255/s2255drv.c
->> @@ -2243,6 +2243,7 @@ static int s2255_probe(struct usb_interface *interface,
->>       dev->cmdbuf = kzalloc(S2255_CMDBUF_SIZE, GFP_KERNEL);
->>       if (dev->cmdbuf == NULL) {
->>               s2255_dev_err(&interface->dev, "out of memory\n");
->> +             kfree(dev);
->>               return -ENOMEM;
->>       }
->>
->
-> The rest of the function already uses goto and labels for error handling. I
-> think it'd take adding one more. dev is correctly released in other error
-> cases.
-I am not sure that adding a new label for error handling when
-allocation for dev->cmdbuf is failed.
-I think it is ok to me. :-) Because I think it is not good adding a
-new label and use goto statement for this.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks for review.
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 9b0102d..c675c90 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1070,7 +1070,7 @@ static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
+ 	 * If this requirement is not met then downgrade the requested
+ 	 * capture format to the one with subsampling equal to the input jpeg.
+ 	 */
+-	if ((ctx->jpeg->variant->version != SJPEG_S5P) &&
++	if ((ctx->jpeg->variant->version == SJPEG_EXYNOS4) &&
+ 	    (ctx->mode == S5P_JPEG_DECODE) &&
+ 	    (fmt->flags & SJPEG_FMT_NON_RGB) &&
+ 	    (fmt->subsampling < ctx->subsampling)) {
+-- 
+1.7.9.5
 
-Regards,
-Daeseok Youn.
->
-> What do you think?
->
-> --
-> Kind regards,
->
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
