@@ -1,112 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3120 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933251AbaDJCfQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 22:35:16 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s3A2ZCqa091975
-	for <linux-media@vger.kernel.org>; Thu, 10 Apr 2014 04:35:14 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 7D0E92A03F8
-	for <linux-media@vger.kernel.org>; Thu, 10 Apr 2014 04:34:54 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mailout2.samsung.com ([203.254.224.25]:64649 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755330AbaDGNRA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 09:17:00 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N3N00JQRWWBO0C0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 07 Apr 2014 22:16:59 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140410023454.7D0E92A03F8@tschai.lan>
-Date: Thu, 10 Apr 2014 04:34:54 +0200 (CEST)
+Cc: s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 7/8] [media] s5p_jpeg: Prevent JPEG 4:2:0 > YUV 4:2:0
+ decompression
+Date: Mon, 07 Apr 2014 15:16:12 +0200
+Message-id: <1396876573-15811-7-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1396876573-15811-1-git-send-email-j.anaszewski@samsung.com>
+References: <1396876573-15811-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Prevent decompression of a JPEG 4:2:0 with odd width to
+the YUV 4:2:0 compliant formats for Exynos4x12 SoCs and
+adjust capture format to RGB565 in such a case. This is
+required because the configuration would produce a raw
+image with broken luma component.
 
-Results of the daily build of media_tree:
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |   24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
-date:		Thu Apr 10 04:00:19 CEST 2014
-git branch:	test
-git hash:	a83b93a7480441a47856dc9104bea970e84cda87
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.13-7.slh.1-amd64
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index d266e78..9228bcb 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1064,15 +1064,17 @@ static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
+ 		return -EINVAL;
+ 	}
+ 
++	if ((ctx->jpeg->variant->version != SJPEG_EXYNOS4) ||
++	    (ctx->mode != S5P_JPEG_DECODE))
++		goto exit;
++
+ 	/*
+ 	 * The exynos4x12 device requires resulting YUV image
+ 	 * subsampling not to be lower than the input jpeg subsampling.
+ 	 * If this requirement is not met then downgrade the requested
+ 	 * capture format to the one with subsampling equal to the input jpeg.
+ 	 */
+-	if ((ctx->jpeg->variant->version == SJPEG_EXYNOS4) &&
+-	    (ctx->mode == S5P_JPEG_DECODE) &&
+-	    (fmt->flags & SJPEG_FMT_NON_RGB) &&
++	if ((fmt->flags & SJPEG_FMT_NON_RGB) &&
+ 	    (fmt->subsampling < ctx->subsampling)) {
+ 		ret = s5p_jpeg_adjust_fourcc_to_subsampling(ctx->subsampling,
+ 							    fmt->fourcc,
+@@ -1085,6 +1087,22 @@ static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
+ 							FMT_TYPE_CAPTURE);
+ 	}
+ 
++	if (ctx->subsampling == V4L2_JPEG_CHROMA_SUBSAMPLING_420 &&
++	    (ctx->out_q.w & 1) &&
++	    (pix->pixelformat == V4L2_PIX_FMT_NV12 ||
++	     pix->pixelformat == V4L2_PIX_FMT_NV21 ||
++	     pix->pixelformat == V4L2_PIX_FMT_YUV420)) {
++		pix->pixelformat = V4L2_PIX_FMT_RGB565;
++		fmt = s5p_jpeg_find_format(ctx, pix->pixelformat,
++							FMT_TYPE_CAPTURE);
++		v4l2_info(&ctx->jpeg->v4l2_dev,
++			  "Adjusted capture fourcc to RGB565. Decompression\n"
++			  "of a JPEG file with 4:2:0 subsampling and odd\n"
++			  "width to the YUV 4:2:0 compliant formats produces\n"
++			  "a raw image with broken luma component.\n");
++	}
++
++exit:
+ 	return vidioc_try_fmt(f, fmt, ctx, FMT_TYPE_CAPTURE);
+ }
+ 
+-- 
+1.7.9.5
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
