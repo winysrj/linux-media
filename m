@@ -1,145 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52433 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753979AbaDCWiI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 16/25] omap3isp: queue: Map PFNMAP buffers to device
-Date: Fri,  4 Apr 2014 00:39:46 +0200
-Message-Id: <1396564795-27192-17-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp3-g21.free.fr ([212.27.42.3]:36814 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754988AbaDGMpj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Apr 2014 08:45:39 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v12][ 06/12] ARM: dts: imx5*, imx6*: correct display-timings nodes.
+Date: Mon,  7 Apr 2014 14:44:45 +0200
+Message-Id: <1396874691-27954-6-git-send-email-denis@eukrea.com>
+In-Reply-To: <1396874691-27954-1-git-send-email-denis@eukrea.com>
+References: <1396874691-27954-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Userspace PFNMAP buffers need to be mapped to the device like the
-userspace non-PFNMAP buffers in order for the DMA mapping implementation
-to create IOMMU mappings when we'll switch to the IOMMU-aware DMA
-mapping backend.
+The imx-drm driver can't use the de-active and
+pixelclk-active display-timings properties yet.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Instead the data-enable and the pixel data clock
+polarity are hardcoded in the imx-drm driver.
+
+So theses properties are now set to keep
+the same behaviour when imx-drm will start
+using them.
+
+Signed-off-by: Denis Carikli <denis@eukrea.com>
 ---
- drivers/media/platform/omap3isp/ispqueue.c | 37 +++++++++++++++++-------------
- drivers/media/platform/omap3isp/ispqueue.h |  4 ++--
- 2 files changed, 23 insertions(+), 18 deletions(-)
+ChangeLog v9->v10:
+- New patch that was splitted out of:
+  "staging imx-drm: Use de-active and pixelclk-active
+  display-timings."
+---
+ arch/arm/boot/dts/imx51-babbage.dts       |    2 ++
+ arch/arm/boot/dts/imx53-m53evk.dts        |    2 ++
+ arch/arm/boot/dts/imx53-tx53-x03x.dts     |    2 +-
+ arch/arm/boot/dts/imx6qdl-gw53xx.dtsi     |    2 ++
+ arch/arm/boot/dts/imx6qdl-gw54xx.dtsi     |    2 ++
+ arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi |    2 ++
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi  |    2 ++
+ arch/arm/boot/dts/imx6qdl-sabrelite.dtsi  |    2 ++
+ arch/arm/boot/dts/imx6qdl-sabresd.dtsi    |    2 ++
+ 9 files changed, 17 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
-index 479d348..4a271c7 100644
---- a/drivers/media/platform/omap3isp/ispqueue.c
-+++ b/drivers/media/platform/omap3isp/ispqueue.c
-@@ -173,6 +173,7 @@ static void isp_video_buffer_cleanup(struct isp_video_buffer *buf)
- 	struct isp_video_fh *vfh = isp_video_queue_to_isp_video_fh(buf->queue);
- 	struct isp_video *video = vfh->video;
- 	enum dma_data_direction direction;
-+	DEFINE_DMA_ATTRS(attrs);
- 	unsigned int i;
+diff --git a/arch/arm/boot/dts/imx51-babbage.dts b/arch/arm/boot/dts/imx51-babbage.dts
+index 2dda06b..91ef454 100644
+--- a/arch/arm/boot/dts/imx51-babbage.dts
++++ b/arch/arm/boot/dts/imx51-babbage.dts
+@@ -38,6 +38,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
  
- 	if (buf->dma) {
-@@ -181,11 +182,14 @@ static void isp_video_buffer_cleanup(struct isp_video_buffer *buf)
- 		buf->dma = 0;
- 	}
+diff --git a/arch/arm/boot/dts/imx53-m53evk.dts b/arch/arm/boot/dts/imx53-m53evk.dts
+index 4b036b4..d03ced7 100644
+--- a/arch/arm/boot/dts/imx53-m53evk.dts
++++ b/arch/arm/boot/dts/imx53-m53evk.dts
+@@ -41,6 +41,8 @@
+ 					vfront-porch = <9>;
+ 					vsync-len = <3>;
+ 					vsync-active = <1>;
++					de-active = <1>;
++					pixelclk-active = <0>;
+ 				};
+ 			};
+ 		};
+diff --git a/arch/arm/boot/dts/imx53-tx53-x03x.dts b/arch/arm/boot/dts/imx53-tx53-x03x.dts
+index 0217dde3..4092a81 100644
+--- a/arch/arm/boot/dts/imx53-tx53-x03x.dts
++++ b/arch/arm/boot/dts/imx53-tx53-x03x.dts
+@@ -93,7 +93,7 @@
+ 					hsync-active = <0>;
+ 					vsync-active = <0>;
+ 					de-active = <1>;
+-					pixelclk-active = <1>;
++					pixelclk-active = <0>;
+ 				};
  
--	if (!(buf->vm_flags & VM_PFNMAP)) {
-+	if (buf->vbuf.memory == V4L2_MEMORY_USERPTR) {
-+		if (buf->skip_cache)
-+			dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
-+
- 		direction = buf->vbuf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE
- 			  ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
--		dma_unmap_sg(buf->queue->dev, buf->sgt.sgl, buf->sgt.orig_nents,
--			     direction);
-+		dma_unmap_sg_attrs(buf->queue->dev, buf->sgt.sgl,
-+				   buf->sgt.orig_nents, direction, &attrs);
- 	}
- 
- 	sg_free_table(&buf->sgt);
-@@ -345,10 +349,6 @@ unlock:
- 
- 	for (sg = buf->sgt.sgl, i = 0; i < buf->npages; ++i, ++pfn) {
- 		sg_set_page(sg, pfn_to_page(pfn), PAGE_SIZE - offset, offset);
--		/* PFNMAP buffers will not get DMA-mapped, set the DMA address
--		 * manually.
--		 */
--		sg_dma_address(sg) = (pfn << PAGE_SHIFT) + offset;
- 		sg = sg_next(sg);
- 		offset = 0;
- 	}
-@@ -434,12 +434,15 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
- 	struct isp_video_fh *vfh = isp_video_queue_to_isp_video_fh(buf->queue);
- 	struct isp_video *video = vfh->video;
- 	enum dma_data_direction direction;
-+	DEFINE_DMA_ATTRS(attrs);
- 	unsigned long addr;
- 	int ret;
- 
- 	switch (buf->vbuf.memory) {
- 	case V4L2_MEMORY_MMAP:
- 		ret = isp_video_buffer_prepare_kernel(buf);
-+		if (ret < 0)
-+			goto done;
- 		break;
- 
- 	case V4L2_MEMORY_USERPTR:
-@@ -451,24 +454,26 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
- 			ret = isp_video_buffer_prepare_pfnmap(buf);
- 		else
- 			ret = isp_video_buffer_prepare_user(buf);
--		break;
- 
--	default:
--		return -EINVAL;
--	}
-+		if (ret < 0)
-+			goto done;
- 
--	if (ret < 0)
--		goto done;
-+		if (buf->skip_cache)
-+			dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
- 
--	if (!(buf->vm_flags & VM_PFNMAP)) {
- 		direction = buf->vbuf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE
- 			  ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
--		ret = dma_map_sg(buf->queue->dev, buf->sgt.sgl,
--				 buf->sgt.orig_nents, direction);
-+		ret = dma_map_sg_attrs(buf->queue->dev, buf->sgt.sgl,
-+				       buf->sgt.orig_nents, direction, &attrs);
- 		if (ret <= 0) {
- 			ret = -EFAULT;
- 			goto done;
- 		}
-+
-+		break;
-+
-+	default:
-+		return -EINVAL;
- 	}
- 
- 	addr = omap_iommu_vmap(video->isp->domain, video->isp->dev, 0,
-diff --git a/drivers/media/platform/omap3isp/ispqueue.h b/drivers/media/platform/omap3isp/ispqueue.h
-index e03af74..d580f58 100644
---- a/drivers/media/platform/omap3isp/ispqueue.h
-+++ b/drivers/media/platform/omap3isp/ispqueue.h
-@@ -72,7 +72,7 @@ enum isp_video_buffer_state {
-  * @vm_flags: Buffer VMA flags (for userspace buffers)
-  * @npages: Number of pages (for userspace buffers)
-  * @pages: Pages table (for userspace non-VM_PFNMAP buffers)
-- * @sgt: Scatter gather table (for non-VM_PFNMAP buffers)
-+ * @sgt: Scatter gather table
-  * @vbuf: V4L2 buffer
-  * @irqlist: List head for insertion into IRQ queue
-  * @state: Current buffer state
-@@ -94,7 +94,7 @@ struct isp_video_buffer {
- 	unsigned int npages;
- 	struct page **pages;
- 
--	/* For all buffers except VM_PFNMAP. */
-+	/* For all buffers. */
- 	struct sg_table sgt;
- 
- 	/* Touched by the interrupt handler. */
+ 				ET0500 {
+diff --git a/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
+index c8e5ae0..43f48f2 100644
+--- a/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
+@@ -494,6 +494,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+index 2795dfc..59ecfd1 100644
+--- a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+@@ -516,6 +516,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi b/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
+index 99be301..e9419a2 100644
+--- a/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
+@@ -349,6 +349,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index 009abd6..230bbc6 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -405,6 +405,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+index 3bec128..ed4c72f 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+@@ -349,6 +349,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+index 7a88d9a..7d1c84c 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+@@ -463,6 +463,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
 -- 
-1.8.3.2
+1.7.9.5
 
