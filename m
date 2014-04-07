@@ -1,221 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:40771 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753034AbaDDWF5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Apr 2014 18:05:57 -0400
-Subject: [PATCH 1/3] rc-core: do not change 32bit NEC scancode format for now
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4499 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755331AbaDGNLn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 09:11:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: james.hogan@imgtec.com, m.chehab@samsung.com
-Date: Sat, 05 Apr 2014 00:05:56 +0200
-Message-ID: <20140404220556.5068.67187.stgit@zeus.muc.hardeman.nu>
-In-Reply-To: <20140404220404.5068.3669.stgit@zeus.muc.hardeman.nu>
-References: <20140404220404.5068.3669.stgit@zeus.muc.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Cc: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 05/13] vb2: move __qbuf_mmap before __qbuf_userptr
+Date: Mon,  7 Apr 2014 15:11:04 +0200
+Message-Id: <1396876272-18222-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl>
+References: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts 18bc17448147e93f31cc9b1a83be49f1224657b2
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The patch ignores the fact that NEC32 scancodes are generated not only in the
-NEC raw decoder but also directly in some drivers. Whichever approach is chosen
-it should be consistent across drivers and this patch needs more discussion.
+__qbuf_mmap was sort of hidden in between the much larger __qbuf_userptr
+and __qbuf_dmabuf functions. Move it before __qbuf_userptr which is
+also conform the usual order these memory models are implemented: first
+mmap, then userptr, then dmabuf.
 
-Furthermore, I'm convinced that we have to stop playing games trying to
-decipher the "meaning" of NEC scancodes (what's the customer/vendor/address,
-which byte is the MSB, etc).
-
-This patch is in preparation for the next few patches in this series.
-
-v2: make sure img-ir scancodes are bitrev8():ed as well
-
-v3: update comments
-
-Signed-off-by: David Härdeman <david@hardeman.nu>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pawel Osciak <pawel@osciak.com>
 ---
- drivers/media/rc/img-ir/img-ir-nec.c |   27 ++++++-----
- drivers/media/rc/ir-nec-decoder.c    |    5 --
- drivers/media/rc/keymaps/rc-tivo.c   |   86 +++++++++++++++++-----------------
- 3 files changed, 59 insertions(+), 59 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/rc/img-ir/img-ir-nec.c b/drivers/media/rc/img-ir/img-ir-nec.c
-index e7a731b..751d9d9 100644
---- a/drivers/media/rc/img-ir/img-ir-nec.c
-+++ b/drivers/media/rc/img-ir/img-ir-nec.c
-@@ -5,6 +5,7 @@
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 1421075..2e448a7 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1240,6 +1240,20 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ }
+ 
+ /**
++ * __qbuf_mmap() - handle qbuf of an MMAP buffer
++ */
++static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
++{
++	int ret;
++
++	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
++	ret = call_vb_qop(vb, buf_prepare, vb);
++	if (ret)
++		fail_vb_qop(vb, buf_prepare);
++	return ret;
++}
++
++/**
+  * __qbuf_userptr() - handle qbuf of a USERPTR buffer
   */
+ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+@@ -1346,20 +1360,6 @@ err:
+ }
  
- #include "img-ir-hw.h"
-+#include <linux/bitrev.h>
- 
- /* Convert NEC data to a scancode */
- static int img_ir_nec_scancode(int len, u64 raw, int *scancode, u64 protocols)
-@@ -22,11 +23,11 @@ static int img_ir_nec_scancode(int len, u64 raw, int *scancode, u64 protocols)
- 	data_inv = (raw >> 24) & 0xff;
- 	if ((data_inv ^ data) != 0xff) {
- 		/* 32-bit NEC (used by Apple and TiVo remotes) */
--		/* scan encoding: aaAAddDD */
--		*scancode = addr_inv << 24 |
--			    addr     << 16 |
--			    data_inv <<  8 |
--			    data;
-+		/* scan encoding: as transmitted, MSBit = first received bit */
-+		*scancode = bitrev8(addr)     << 24 |
-+			    bitrev8(addr_inv) << 16 |
-+			    bitrev8(data)     <<  8 |
-+			    bitrev8(data_inv);
- 	} else if ((addr_inv ^ addr) != 0xff) {
- 		/* Extended NEC */
- 		/* scan encoding: AAaaDD */
-@@ -54,13 +55,15 @@ static int img_ir_nec_filter(const struct rc_scancode_filter *in,
- 
- 	if ((in->data | in->mask) & 0xff000000) {
- 		/* 32-bit NEC (used by Apple and TiVo remotes) */
--		/* scan encoding: aaAAddDD */
--		addr_inv   = (in->data >> 24) & 0xff;
--		addr_inv_m = (in->mask >> 24) & 0xff;
--		addr       = (in->data >> 16) & 0xff;
--		addr_m     = (in->mask >> 16) & 0xff;
--		data_inv   = (in->data >>  8) & 0xff;
--		data_inv_m = (in->mask >>  8) & 0xff;
-+		/* scan encoding: as transmitted, MSBit = first received bit */
-+		addr       = bitrev8(in->data >> 24);
-+		addr_m     = bitrev8(in->mask >> 24);
-+		addr_inv   = bitrev8(in->data >> 16);
-+		addr_inv_m = bitrev8(in->mask >> 16);
-+		data       = bitrev8(in->data >>  8);
-+		data_m     = bitrev8(in->mask >>  8);
-+		data_inv   = bitrev8(in->data >>  0);
-+		data_inv_m = bitrev8(in->mask >>  0);
- 	} else if ((in->data | in->mask) & 0x00ff0000) {
- 		/* Extended NEC */
- 		/* scan encoding AAaaDD */
-diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
-index 9de1791..35c42e5 100644
---- a/drivers/media/rc/ir-nec-decoder.c
-+++ b/drivers/media/rc/ir-nec-decoder.c
-@@ -172,10 +172,7 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		if (send_32bits) {
- 			/* NEC transport, but modified protocol, used by at
- 			 * least Apple and TiVo remotes */
--			scancode = not_address << 24 |
--				   address     << 16 |
--				   not_command <<  8 |
--				   command;
-+			scancode = data->bits;
- 			IR_dprintk(1, "NEC (modified) scancode 0x%08x\n", scancode);
- 		} else if ((address ^ not_address) != 0xff) {
- 			/* Extended NEC */
-diff --git a/drivers/media/rc/keymaps/rc-tivo.c b/drivers/media/rc/keymaps/rc-tivo.c
-index 5cc1b45..454e062 100644
---- a/drivers/media/rc/keymaps/rc-tivo.c
-+++ b/drivers/media/rc/keymaps/rc-tivo.c
-@@ -15,62 +15,62 @@
-  * Initial mapping is for the TiVo remote included in the Nero LiquidTV bundle,
-  * which also ships with a TiVo-branded IR transceiver, supported by the mceusb
-  * driver. Note that the remote uses an NEC-ish protocol, but instead of having
-- * a command/not_command pair, it has a vendor ID of 0x3085, but some keys, the
-+ * a command/not_command pair, it has a vendor ID of 0xa10c, but some keys, the
-  * NEC extended checksums do pass, so the table presently has the intended
-  * values and the checksum-passed versions for those keys.
+ /**
+- * __qbuf_mmap() - handle qbuf of an MMAP buffer
+- */
+-static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+-{
+-	int ret;
+-
+-	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
+-	ret = call_vb_qop(vb, buf_prepare, vb);
+-	if (ret)
+-		fail_vb_qop(vb, buf_prepare);
+-	return ret;
+-}
+-
+-/**
+  * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
   */
- static struct rc_map_table tivo[] = {
--	{ 0x3085f009, KEY_MEDIA },	/* TiVo Button */
--	{ 0x3085e010, KEY_POWER2 },	/* TV Power */
--	{ 0x3085e011, KEY_TV },		/* Live TV/Swap */
--	{ 0x3085c034, KEY_VIDEO_NEXT },	/* TV Input */
--	{ 0x3085e013, KEY_INFO },
--	{ 0x3085a05f, KEY_CYCLEWINDOWS }, /* Window */
-+	{ 0xa10c900f, KEY_MEDIA },	/* TiVo Button */
-+	{ 0xa10c0807, KEY_POWER2 },	/* TV Power */
-+	{ 0xa10c8807, KEY_TV },		/* Live TV/Swap */
-+	{ 0xa10c2c03, KEY_VIDEO_NEXT },	/* TV Input */
-+	{ 0xa10cc807, KEY_INFO },
-+	{ 0xa10cfa05, KEY_CYCLEWINDOWS }, /* Window */
- 	{ 0x0085305f, KEY_CYCLEWINDOWS },
--	{ 0x3085c036, KEY_EPG },	/* Guide */
-+	{ 0xa10c6c03, KEY_EPG },	/* Guide */
- 
--	{ 0x3085e014, KEY_UP },
--	{ 0x3085e016, KEY_DOWN },
--	{ 0x3085e017, KEY_LEFT },
--	{ 0x3085e015, KEY_RIGHT },
-+	{ 0xa10c2807, KEY_UP },
-+	{ 0xa10c6807, KEY_DOWN },
-+	{ 0xa10ce807, KEY_LEFT },
-+	{ 0xa10ca807, KEY_RIGHT },
- 
--	{ 0x3085e018, KEY_SCROLLDOWN },	/* Red Thumbs Down */
--	{ 0x3085e019, KEY_SELECT },
--	{ 0x3085e01a, KEY_SCROLLUP },	/* Green Thumbs Up */
-+	{ 0xa10c1807, KEY_SCROLLDOWN },	/* Red Thumbs Down */
-+	{ 0xa10c9807, KEY_SELECT },
-+	{ 0xa10c5807, KEY_SCROLLUP },	/* Green Thumbs Up */
- 
--	{ 0x3085e01c, KEY_VOLUMEUP },
--	{ 0x3085e01d, KEY_VOLUMEDOWN },
--	{ 0x3085e01b, KEY_MUTE },
--	{ 0x3085d020, KEY_RECORD },
--	{ 0x3085e01e, KEY_CHANNELUP },
--	{ 0x3085e01f, KEY_CHANNELDOWN },
-+	{ 0xa10c3807, KEY_VOLUMEUP },
-+	{ 0xa10cb807, KEY_VOLUMEDOWN },
-+	{ 0xa10cd807, KEY_MUTE },
-+	{ 0xa10c040b, KEY_RECORD },
-+	{ 0xa10c7807, KEY_CHANNELUP },
-+	{ 0xa10cf807, KEY_CHANNELDOWN },
- 	{ 0x0085301f, KEY_CHANNELDOWN },
- 
--	{ 0x3085d021, KEY_PLAY },
--	{ 0x3085d023, KEY_PAUSE },
--	{ 0x3085d025, KEY_SLOW },
--	{ 0x3085d022, KEY_REWIND },
--	{ 0x3085d024, KEY_FASTFORWARD },
--	{ 0x3085d026, KEY_PREVIOUS },
--	{ 0x3085d027, KEY_NEXT },	/* ->| */
-+	{ 0xa10c840b, KEY_PLAY },
-+	{ 0xa10cc40b, KEY_PAUSE },
-+	{ 0xa10ca40b, KEY_SLOW },
-+	{ 0xa10c440b, KEY_REWIND },
-+	{ 0xa10c240b, KEY_FASTFORWARD },
-+	{ 0xa10c640b, KEY_PREVIOUS },
-+	{ 0xa10ce40b, KEY_NEXT },	/* ->| */
- 
--	{ 0x3085b044, KEY_ZOOM },	/* Aspect */
--	{ 0x3085b048, KEY_STOP },
--	{ 0x3085b04a, KEY_DVD },	/* DVD Menu */
-+	{ 0xa10c220d, KEY_ZOOM },	/* Aspect */
-+	{ 0xa10c120d, KEY_STOP },
-+	{ 0xa10c520d, KEY_DVD },	/* DVD Menu */
- 
--	{ 0x3085d028, KEY_NUMERIC_1 },
--	{ 0x3085d029, KEY_NUMERIC_2 },
--	{ 0x3085d02a, KEY_NUMERIC_3 },
--	{ 0x3085d02b, KEY_NUMERIC_4 },
--	{ 0x3085d02c, KEY_NUMERIC_5 },
--	{ 0x3085d02d, KEY_NUMERIC_6 },
--	{ 0x3085d02e, KEY_NUMERIC_7 },
--	{ 0x3085d02f, KEY_NUMERIC_8 },
-+	{ 0xa10c140b, KEY_NUMERIC_1 },
-+	{ 0xa10c940b, KEY_NUMERIC_2 },
-+	{ 0xa10c540b, KEY_NUMERIC_3 },
-+	{ 0xa10cd40b, KEY_NUMERIC_4 },
-+	{ 0xa10c340b, KEY_NUMERIC_5 },
-+	{ 0xa10cb40b, KEY_NUMERIC_6 },
-+	{ 0xa10c740b, KEY_NUMERIC_7 },
-+	{ 0xa10cf40b, KEY_NUMERIC_8 },
- 	{ 0x0085302f, KEY_NUMERIC_8 },
--	{ 0x3085c030, KEY_NUMERIC_9 },
--	{ 0x3085c031, KEY_NUMERIC_0 },
--	{ 0x3085c033, KEY_ENTER },
--	{ 0x3085c032, KEY_CLEAR },
-+	{ 0xa10c0c03, KEY_NUMERIC_9 },
-+	{ 0xa10c8c03, KEY_NUMERIC_0 },
-+	{ 0xa10ccc03, KEY_ENTER },
-+	{ 0xa10c4c03, KEY_CLEAR },
- };
- 
- static struct rc_map_list tivo_map = {
+ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+-- 
+1.9.1
 
