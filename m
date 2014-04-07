@@ -1,254 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:4538 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751475AbaDNJA6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 05:00:58 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id 4A2932096A
-	for <linux-media@vger.kernel.org>; Mon, 14 Apr 2014 12:00:55 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:64617 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755338AbaDGNQm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 09:16:42 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N3N00MT5WVQQW90@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 07 Apr 2014 22:16:38 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH v2 13/21] smiapp-pll: Use 64-bit types limits
-Date: Mon, 14 Apr 2014 11:58:38 +0300
-Message-Id: <1397465926-29724-14-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 3/8] [media] s5p-jpeg: Add m2m_ops field to the
+ s5p_jpeg_variant structure
+Date: Mon, 07 Apr 2014 15:16:08 +0200
+Message-id: <1396876573-15811-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1396876573-15811-1-git-send-email-j.anaszewski@samsung.com>
+References: <1396876573-15811-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Limits may exceed the value range of 32-bit unsigned integers. Thus use 64
-bits for all of them.
+Simplify the code by adding m2m_ops field to the
+s5p_jpeg_variant structure which allows to avoid
+"if" statement in the s5p_jpeg_probe function.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/i2c/smiapp-pll.c | 72 +++++++++++++++++++++++-------------------
- drivers/media/i2c/smiapp-pll.h | 20 ++++++------
- 2 files changed, 50 insertions(+), 42 deletions(-)
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |   12 ++++--------
+ drivers/media/platform/s5p-jpeg/jpeg-core.h |    7 ++++---
+ 2 files changed, 8 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
-index d14af5c..ec9f8bb 100644
---- a/drivers/media/i2c/smiapp-pll.c
-+++ b/drivers/media/i2c/smiapp-pll.c
-@@ -28,6 +28,11 @@
- 
- #include "smiapp-pll.h"
- 
-+static inline uint64_t div_u64_round_up(uint64_t dividend, uint32_t divisor)
-+{
-+	return div_u64(dividend + divisor - 1, divisor);
-+}
-+
- /* Return an even number or one. */
- static inline uint32_t clk_div_even(uint32_t a)
- {
-@@ -52,13 +57,14 @@ static inline uint32_t is_one_or_even(uint32_t a)
- 	return 1;
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index c675c90..4f4dc81 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1566,7 +1566,7 @@ static struct v4l2_m2m_ops s5p_jpeg_m2m_ops = {
+ 	.job_abort	= s5p_jpeg_job_abort,
  }
- 
--static int bounds_check(struct device *dev, uint32_t val,
--			uint32_t min, uint32_t max, char *str)
-+static int bounds_check(struct device *dev, uint64_t val,
-+			uint64_t min, uint64_t max, char *str)
+ ;
+-static struct v4l2_m2m_ops exynos_jpeg_m2m_ops = {
++static struct v4l2_m2m_ops exynos4_jpeg_m2m_ops = {
+ 	.device_run	= exynos4_jpeg_device_run,
+ 	.job_ready	= s5p_jpeg_job_ready,
+ 	.job_abort	= s5p_jpeg_job_abort,
+@@ -1849,7 +1849,6 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
  {
- 	if (val >= min && val <= max)
- 		return 0;
+ 	struct s5p_jpeg *jpeg;
+ 	struct resource *res;
+-	struct v4l2_m2m_ops *samsung_jpeg_m2m_ops;
+ 	int ret;
  
--	dev_dbg(dev, "%s out of bounds: %d (%d--%d)\n", str, val, min, max);
-+	dev_dbg(dev, "%s out of bounds: %llu (%llu--%llu)\n", str, val, min,
-+		max);
- 
- 	return -EINVAL;
- }
-@@ -75,15 +81,15 @@ static void print_pll(struct device *dev, struct smiapp_pll *pll)
- 	dev_dbg(dev, "vt_pix_clk_div \t%u\n",  pll->vt_pix_clk_div);
- 
- 	dev_dbg(dev, "ext_clk_freq_hz \t%u\n", pll->ext_clk_freq_hz);
--	dev_dbg(dev, "pll_ip_clk_freq_hz \t%u\n", pll->pll_ip_clk_freq_hz);
--	dev_dbg(dev, "pll_op_clk_freq_hz \t%u\n", pll->pll_op_clk_freq_hz);
-+	dev_dbg(dev, "pll_ip_clk_freq_hz \t%llu\n", pll->pll_ip_clk_freq_hz);
-+	dev_dbg(dev, "pll_op_clk_freq_hz \t%llu\n", pll->pll_op_clk_freq_hz);
- 	if (!(pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)) {
--		dev_dbg(dev, "op_sys_clk_freq_hz \t%u\n",
-+		dev_dbg(dev, "op_sys_clk_freq_hz \t%llu\n",
- 			pll->op_sys_clk_freq_hz);
- 		dev_dbg(dev, "op_pix_clk_freq_hz \t%u\n",
- 			pll->op_pix_clk_freq_hz);
+ 	if (!pdev->dev.of_node)
+@@ -1903,13 +1902,8 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ 		goto clk_get_rollback;
  	}
--	dev_dbg(dev, "vt_sys_clk_freq_hz \t%u\n", pll->vt_sys_clk_freq_hz);
-+	dev_dbg(dev, "vt_sys_clk_freq_hz \t%llu\n", pll->vt_sys_clk_freq_hz);
- 	dev_dbg(dev, "vt_pix_clk_freq_hz \t%u\n", pll->vt_pix_clk_freq_hz);
- }
  
-@@ -131,10 +137,11 @@ static int __smiapp_pll_calculate(struct device *dev,
- 		more_mul_max);
- 	/* Don't go above max pll op frequency. */
- 	more_mul_max =
--		min_t(uint32_t,
-+		min_t(uint64_t,
- 		      more_mul_max,
--		      limits->max_pll_op_freq_hz
--		      / (pll->ext_clk_freq_hz / pll->pre_pll_clk_div * mul));
-+		      div_u64(limits->max_pll_op_freq_hz,
-+			      (pll->ext_clk_freq_hz /
-+			       pll->pre_pll_clk_div * mul)));
- 	dev_dbg(dev, "more_mul_max: max_pll_op_freq_hz check: %u\n",
- 		more_mul_max);
- 	/* Don't go above the division capability of op sys clock divider. */
-@@ -150,9 +157,9 @@ static int __smiapp_pll_calculate(struct device *dev,
- 		more_mul_max);
- 
- 	/* Ensure we won't go below min_pll_op_freq_hz. */
--	more_mul_min = DIV_ROUND_UP(limits->min_pll_op_freq_hz,
--				    pll->ext_clk_freq_hz / pll->pre_pll_clk_div
--				    * mul);
-+	more_mul_min = div_u64_round_up(
-+		limits->min_pll_op_freq_hz,
-+		pll->ext_clk_freq_hz / pll->pre_pll_clk_div * mul);
- 	dev_dbg(dev, "more_mul_min: min_pll_op_freq_hz check: %u\n",
- 		more_mul_min);
- 	/* Ensure we won't go below min_pll_multiplier. */
-@@ -194,13 +201,13 @@ static int __smiapp_pll_calculate(struct device *dev,
- 
- 	/* Derive pll_op_clk_freq_hz. */
- 	pll->op_sys_clk_freq_hz =
--		pll->pll_op_clk_freq_hz / pll->op_sys_clk_div;
-+		div_u64(pll->pll_op_clk_freq_hz, pll->op_sys_clk_div);
- 
- 	pll->op_pix_clk_div = pll->bits_per_pixel;
- 	dev_dbg(dev, "op_pix_clk_div: %u\n", pll->op_pix_clk_div);
- 
- 	pll->op_pix_clk_freq_hz =
--		pll->op_sys_clk_freq_hz / pll->op_pix_clk_div;
-+		div_u64(pll->op_sys_clk_freq_hz, pll->op_pix_clk_div);
- 
- 	/*
- 	 * Some sensors perform analogue binning and some do this
-@@ -235,9 +242,9 @@ static int __smiapp_pll_calculate(struct device *dev,
- 
- 	/* Find smallest and biggest allowed vt divisor. */
- 	dev_dbg(dev, "min_vt_div: %u\n", min_vt_div);
--	min_vt_div = max(min_vt_div,
--			 DIV_ROUND_UP(pll->pll_op_clk_freq_hz,
--				      limits->vt.max_pix_clk_freq_hz));
-+	min_vt_div = max_t(uint32_t, min_vt_div,
-+			   div_u64_round_up(pll->pll_op_clk_freq_hz,
-+					    limits->vt.max_pix_clk_freq_hz));
- 	dev_dbg(dev, "min_vt_div: max_vt_pix_clk_freq_hz: %u\n",
- 		min_vt_div);
- 	min_vt_div = max_t(uint32_t, min_vt_div,
-@@ -247,9 +254,9 @@ static int __smiapp_pll_calculate(struct device *dev,
- 
- 	max_vt_div = limits->vt.max_sys_clk_div * limits->vt.max_pix_clk_div;
- 	dev_dbg(dev, "max_vt_div: %u\n", max_vt_div);
--	max_vt_div = min(max_vt_div,
--			 DIV_ROUND_UP(pll->pll_op_clk_freq_hz,
--				      limits->vt.min_pix_clk_freq_hz));
-+	max_vt_div = min_t(uint32_t, max_vt_div,
-+			   div_u64_round_up(pll->pll_op_clk_freq_hz,
-+					    limits->vt.min_pix_clk_freq_hz));
- 	dev_dbg(dev, "max_vt_div: min_vt_pix_clk_freq_hz: %u\n",
- 		max_vt_div);
- 
-@@ -263,9 +270,9 @@ static int __smiapp_pll_calculate(struct device *dev,
- 			  DIV_ROUND_UP(min_vt_div,
- 				       limits->vt.max_pix_clk_div));
- 	dev_dbg(dev, "min_sys_div: max_vt_pix_clk_div: %u\n", min_sys_div);
--	min_sys_div = max(min_sys_div,
--			  pll->pll_op_clk_freq_hz
--			  / limits->vt.max_sys_clk_freq_hz);
-+	min_sys_div = max_t(uint32_t, min_sys_div,
-+			    pll->pll_op_clk_freq_hz
-+			    / limits->vt.max_sys_clk_freq_hz);
- 	dev_dbg(dev, "min_sys_div: max_pll_op_clk_freq_hz: %u\n", min_sys_div);
- 	min_sys_div = clk_div_even_up(min_sys_div);
- 	dev_dbg(dev, "min_sys_div: one or even: %u\n", min_sys_div);
-@@ -276,9 +283,9 @@ static int __smiapp_pll_calculate(struct device *dev,
- 			  DIV_ROUND_UP(max_vt_div,
- 				       limits->vt.min_pix_clk_div));
- 	dev_dbg(dev, "max_sys_div: min_vt_pix_clk_div: %u\n", max_sys_div);
--	max_sys_div = min(max_sys_div,
--			  DIV_ROUND_UP(pll->pll_op_clk_freq_hz,
--				       limits->vt.min_pix_clk_freq_hz));
-+	max_sys_div = min_t(uint32_t, max_sys_div,
-+			    div_u64_round_up(pll->pll_op_clk_freq_hz,
-+					     limits->vt.min_pix_clk_freq_hz));
- 	dev_dbg(dev, "max_sys_div: min_vt_pix_clk_freq_hz: %u\n", max_sys_div);
- 
- 	/*
-@@ -316,9 +323,9 @@ static int __smiapp_pll_calculate(struct device *dev,
- 	pll->vt_pix_clk_div = best_pix_div;
- 
- 	pll->vt_sys_clk_freq_hz =
--		pll->pll_op_clk_freq_hz / pll->vt_sys_clk_div;
-+		div_u64(pll->pll_op_clk_freq_hz, pll->vt_sys_clk_div);
- 	pll->vt_pix_clk_freq_hz =
--		pll->vt_sys_clk_freq_hz / pll->vt_pix_clk_div;
-+		div_u64(pll->vt_sys_clk_freq_hz, pll->vt_pix_clk_div);
- 
- 	pll->pixel_rate_csi =
- 		pll->op_pix_clk_freq_hz * lane_op_clock_ratio;
-@@ -402,9 +409,10 @@ int smiapp_pll_calculate(struct device *dev,
- 			* (pll->csi2.lanes / lane_op_clock_ratio);
- 		break;
- 	case SMIAPP_PLL_BUS_TYPE_PARALLEL:
--		pll->pll_op_clk_freq_hz = pll->link_freq * pll->bits_per_pixel
--			/ DIV_ROUND_UP(pll->bits_per_pixel,
--				       pll->parallel.bus_width);
-+		pll->pll_op_clk_freq_hz = div_u64(
-+			pll->link_freq * pll->bits_per_pixel,
-+			DIV_ROUND_UP(pll->bits_per_pixel,
-+				     pll->parallel.bus_width));
- 		break;
- 	default:
- 		return -EINVAL;
-diff --git a/drivers/media/i2c/smiapp-pll.h b/drivers/media/i2c/smiapp-pll.h
-index 5ce2b61..bb5ae28 100644
---- a/drivers/media/i2c/smiapp-pll.h
-+++ b/drivers/media/i2c/smiapp-pll.h
-@@ -63,11 +63,11 @@ struct smiapp_pll {
- 	uint16_t vt_pix_clk_div;
- 
- 	uint32_t ext_clk_freq_hz;
--	uint32_t pll_ip_clk_freq_hz;
--	uint32_t pll_op_clk_freq_hz;
--	uint32_t op_sys_clk_freq_hz;
-+	uint64_t pll_ip_clk_freq_hz;
-+	uint64_t pll_op_clk_freq_hz;
-+	uint64_t op_sys_clk_freq_hz;
- 	uint32_t op_pix_clk_freq_hz;
--	uint32_t vt_sys_clk_freq_hz;
-+	uint64_t vt_sys_clk_freq_hz;
- 	uint32_t vt_pix_clk_freq_hz;
- 
- 	uint32_t pixel_rate_csi;
-@@ -76,12 +76,12 @@ struct smiapp_pll {
- struct smiapp_pll_branch_limits {
- 	uint16_t min_sys_clk_div;
- 	uint16_t max_sys_clk_div;
--	uint32_t min_sys_clk_freq_hz;
--	uint32_t max_sys_clk_freq_hz;
-+	uint64_t min_sys_clk_freq_hz;
-+	uint64_t max_sys_clk_freq_hz;
- 	uint16_t min_pix_clk_div;
- 	uint16_t max_pix_clk_div;
--	uint32_t min_pix_clk_freq_hz;
--	uint32_t max_pix_clk_freq_hz;
-+	uint64_t min_pix_clk_freq_hz;
-+	uint64_t max_pix_clk_freq_hz;
+-	if (jpeg->variant->version == SJPEG_S5P)
+-		samsung_jpeg_m2m_ops = &s5p_jpeg_m2m_ops;
+-	else
+-		samsung_jpeg_m2m_ops = &exynos_jpeg_m2m_ops;
+-
+ 	/* mem2mem device */
+-	jpeg->m2m_dev = v4l2_m2m_init(samsung_jpeg_m2m_ops);
++	jpeg->m2m_dev = v4l2_m2m_init(jpeg->variant->m2m_ops);
+ 	if (IS_ERR(jpeg->m2m_dev)) {
+ 		v4l2_err(&jpeg->v4l2_dev, "Failed to init mem2mem device\n");
+ 		ret = PTR_ERR(jpeg->m2m_dev);
+@@ -2098,12 +2092,14 @@ static const struct dev_pm_ops s5p_jpeg_pm_ops = {
+ static struct s5p_jpeg_variant s5p_jpeg_drvdata = {
+ 	.version	= SJPEG_S5P,
+ 	.jpeg_irq	= s5p_jpeg_irq,
++	.m2m_ops	= &s5p_jpeg_m2m_ops,
+ 	.fmt_ver_flag	= SJPEG_FMT_FLAG_S5P,
  };
  
- struct smiapp_pll_limits {
-@@ -94,8 +94,8 @@ struct smiapp_pll_limits {
- 	uint32_t max_pll_ip_freq_hz;
- 	uint16_t min_pll_multiplier;
- 	uint16_t max_pll_multiplier;
--	uint32_t min_pll_op_freq_hz;
--	uint32_t max_pll_op_freq_hz;
-+	uint64_t min_pll_op_freq_hz;
-+	uint64_t max_pll_op_freq_hz;
+ static struct s5p_jpeg_variant exynos4_jpeg_drvdata = {
+ 	.version	= SJPEG_EXYNOS4,
+ 	.jpeg_irq	= exynos4_jpeg_irq,
++	.m2m_ops	= &exynos4_jpeg_m2m_ops,
+ 	.fmt_ver_flag	= SJPEG_FMT_FLAG_EXYNOS4,
+ };
  
- 	struct smiapp_pll_branch_limits vt;
- 	struct smiapp_pll_branch_limits op;
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+index c222436..3e47863 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+@@ -117,9 +117,10 @@ struct s5p_jpeg {
+ };
+ 
+ struct s5p_jpeg_variant {
+-	unsigned int	version;
+-	unsigned int	fmt_ver_flag;
+-	irqreturn_t	(*jpeg_irq)(int irq, void *priv);
++	unsigned int		version;
++	unsigned int		fmt_ver_flag;
++	struct v4l2_m2m_ops	*m2m_ops;
++	irqreturn_t		(*jpeg_irq)(int irq, void *priv);
+ };
+ 
+ /**
 -- 
-1.8.3.2
+1.7.9.5
 
