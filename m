@@ -1,55 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:38885 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753286AbaDCWG2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:06:28 -0400
-Date: Thu, 03 Apr 2014 19:06:19 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	james.hogan@imgtec.com
-Subject: Re: [GIT PULL for v3.15-rc1] media updates
-Message-id: <20140403190619.4878ddb4@samsung.com>
-In-reply-to: <20140403214656.GA4662@hardeman.nu>
-References: <20140403131143.69f324c7@samsung.com>
- <20140403214656.GA4662@hardeman.nu>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3623 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755338AbaDGNLn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 09:11:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 08/13] vb2: simplify a confusing condition.
+Date: Mon,  7 Apr 2014 15:11:07 +0200
+Message-Id: <1396876272-18222-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl>
+References: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 03 Apr 2014 23:46:56 +0200
-David Härdeman <david@hardeman.nu> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> On Thu, Apr 03, 2014 at 01:11:43PM -0300, Mauro Carvalho Chehab wrote:
-> >Hi Linus,
-> >
-> >Please pull from:
-> >  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
-> >
-> ...
-> >James Hogan (27):
-> ...
-> >      [media] media: rc: add sysfs scancode filtering interface
-> >      [media] media: rc: change 32bit NEC scancode format
-> ...
-> >      [media] rc-main: add generic scancode filtering
-> 
-> Umm...we (mostly James and I, but you as well) have been discussing on
-> the linux-media whether those patches shouldn't be reverted...this pull
-> request seems to have overlooked that discussion...or have I missed
-> something?
+q->start_streaming_called is always true, so the WARN_ON check against
+it being false can be dropped.
 
-The discussions didn't finish yet. We can't hold pushing the patches
-forever due to a few patches in this series, and there's another pull
-request waiting for this to be merged.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-We can latter send a fix for the patches that are not ok early at
--rc tests, or next week if we come on an agreement.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index c662ad9..89147d2 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1094,9 +1094,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	if (!q->start_streaming_called) {
+ 		if (WARN_ON(state != VB2_BUF_STATE_QUEUED))
+ 			state = VB2_BUF_STATE_QUEUED;
+-	} else if (!WARN_ON(!q->start_streaming_called)) {
+-		if (WARN_ON(state != VB2_BUF_STATE_DONE &&
+-			    state != VB2_BUF_STATE_ERROR))
++	} else if (WARN_ON(state != VB2_BUF_STATE_DONE &&
++			   state != VB2_BUF_STATE_ERROR)) {
+ 			state = VB2_BUF_STATE_ERROR;
+ 	}
+ 
+-- 
+1.9.1
 
-Regards,
-Mauro
