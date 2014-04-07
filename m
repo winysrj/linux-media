@@ -1,45 +1,220 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:40251 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753650AbaDCVrA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Apr 2014 17:47:00 -0400
-Date: Thu, 3 Apr 2014 23:46:56 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	james.hogan@imgtec.com
-Subject: Re: [GIT PULL for v3.15-rc1] media updates
-Message-ID: <20140403214656.GA4662@hardeman.nu>
-References: <20140403131143.69f324c7@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20140403131143.69f324c7@samsung.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1476 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755337AbaDGNLo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 09:11:44 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 09/13] vb2: add vb2_fileio_is_active and check it more often
+Date: Mon,  7 Apr 2014 15:11:08 +0200
+Message-Id: <1396876272-18222-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl>
+References: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 03, 2014 at 01:11:43PM -0300, Mauro Carvalho Chehab wrote:
->Hi Linus,
->
->Please pull from:
->  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
->
-...
->James Hogan (27):
-...
->      [media] media: rc: add sysfs scancode filtering interface
->      [media] media: rc: change 32bit NEC scancode format
-...
->      [media] rc-main: add generic scancode filtering
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Umm...we (mostly James and I, but you as well) have been discussing on
-the linux-media whether those patches shouldn't be reverted...this pull
-request seems to have overlooked that discussion...or have I missed
-something?
+Added a vb2_fileio_is_active inline function that returns true if fileio
+is in progress. Check for this too in mmap() (you don't want apps mmap()ing
+buffers used by fileio) and expbuf() (same reason).
 
+In addition drivers should be able to check for this in queue_setup() to
+return an error if an attempt is made to read() or write() with
+V4L2_FIELD_ALTERNATE being configured. This is illegal (there is no way
+to pass the TOP/BOTTOM information around using file I/O).
+
+However, in order to be able to check for this the init_fileio function
+needs to set q->fileio early on, before the buffers are allocated. So switch
+to using internal functions (__reqbufs, vb2_internal_qbuf and
+vb2_internal_streamon) to skip the fileio check. Well, that's why the internal
+functions were created...
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 39 ++++++++++++++++++++------------
+ include/media/videobuf2-core.h           | 17 ++++++++++++++
+ 2 files changed, 41 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 89147d2..08152dd 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -755,7 +755,7 @@ static int __verify_memory_type(struct vb2_queue *q,
+ 	 * create_bufs is called with count == 0, but count == 0 should still
+ 	 * do the memory and type validation.
+ 	 */
+-	if (q->fileio) {
++	if (vb2_fileio_is_active(q)) {
+ 		dprintk(1, "file io in progress\n");
+ 		return -EBUSY;
+ 	}
+@@ -1617,7 +1617,7 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 	struct vb2_buffer *vb;
+ 	int ret;
+ 
+-	if (q->fileio) {
++	if (vb2_fileio_is_active(q)) {
+ 		dprintk(1, "file io in progress\n");
+ 		return -EBUSY;
+ 	}
+@@ -1786,7 +1786,7 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+  */
+ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ {
+-	if (q->fileio) {
++	if (vb2_fileio_is_active(q)) {
+ 		dprintk(1, "file io in progress\n");
+ 		return -EBUSY;
+ 	}
+@@ -2006,7 +2006,7 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
+  */
+ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
+ {
+-	if (q->fileio) {
++	if (vb2_fileio_is_active(q)) {
+ 		dprintk(1, "file io in progress\n");
+ 		return -EBUSY;
+ 	}
+@@ -2136,7 +2136,7 @@ static int vb2_internal_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
+  */
+ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
+ {
+-	if (q->fileio) {
++	if (vb2_fileio_is_active(q)) {
+ 		dprintk(1, "file io in progress\n");
+ 		return -EBUSY;
+ 	}
+@@ -2183,7 +2183,7 @@ static int vb2_internal_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
+  */
+ int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
+ {
+-	if (q->fileio) {
++	if (vb2_fileio_is_active(q)) {
+ 		dprintk(1, "file io in progress\n");
+ 		return -EBUSY;
+ 	}
+@@ -2268,6 +2268,11 @@ int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
+ 		return -EINVAL;
+ 	}
+ 
++	if (vb2_fileio_is_active(q)) {
++		dprintk(1, "expbuf: file io in progress\n");
++		return -EBUSY;
++	}
++
+ 	vb_plane = &vb->planes[eb->plane];
+ 
+ 	dbuf = call_memop(vb, get_dmabuf, vb_plane->mem_priv, eb->flags & O_ACCMODE);
+@@ -2344,6 +2349,10 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
+ 			return -EINVAL;
+ 		}
+ 	}
++	if (vb2_fileio_is_active(q)) {
++		dprintk(1, "mmap: file io in progress\n");
++		return -EBUSY;
++	}
+ 
+ 	/*
+ 	 * Find the plane corresponding to the offset passed by userspace.
+@@ -2455,7 +2464,7 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	/*
+ 	 * Start file I/O emulator only if streaming API has not been used yet.
+ 	 */
+-	if (q->num_buffers == 0 && q->fileio == NULL) {
++	if (q->num_buffers == 0 && !vb2_fileio_is_active(q)) {
+ 		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ) &&
+ 				(req_events & (POLLIN | POLLRDNORM))) {
+ 			if (__vb2_init_fileio(q, 1))
+@@ -2660,7 +2669,8 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	fileio->req.count = count;
+ 	fileio->req.memory = V4L2_MEMORY_MMAP;
+ 	fileio->req.type = q->type;
+-	ret = vb2_reqbufs(q, &fileio->req);
++	q->fileio = fileio;
++	ret = __reqbufs(q, &fileio->req);
+ 	if (ret)
+ 		goto err_kfree;
+ 
+@@ -2698,7 +2708,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 			b->type = q->type;
+ 			b->memory = q->memory;
+ 			b->index = i;
+-			ret = vb2_qbuf(q, b);
++			ret = vb2_internal_qbuf(q, b);
+ 			if (ret)
+ 				goto err_reqbufs;
+ 			fileio->bufs[i].queued = 1;
+@@ -2714,19 +2724,18 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	/*
+ 	 * Start streaming.
+ 	 */
+-	ret = vb2_streamon(q, q->type);
++	ret = vb2_internal_streamon(q, q->type);
+ 	if (ret)
+ 		goto err_reqbufs;
+ 
+-	q->fileio = fileio;
+-
+ 	return ret;
+ 
+ err_reqbufs:
+ 	fileio->req.count = 0;
+-	vb2_reqbufs(q, &fileio->req);
++	__reqbufs(q, &fileio->req);
+ 
+ err_kfree:
++	q->fileio = NULL;
+ 	kfree(fileio);
+ 	return ret;
+ }
+@@ -2779,7 +2788,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 	/*
+ 	 * Initialize emulator on first call.
+ 	 */
+-	if (!q->fileio) {
++	if (!vb2_fileio_is_active(q)) {
+ 		ret = __vb2_init_fileio(q, read);
+ 		dprintk(3, "vb2_init_fileio result: %d\n", ret);
+ 		if (ret)
+@@ -3147,7 +3156,7 @@ unsigned int vb2_fop_poll(struct file *file, poll_table *wait)
+ 
+ 	/* Try to be smart: only lock if polling might start fileio,
+ 	   otherwise locking will only introduce unwanted delays. */
+-	if (q->num_buffers == 0 && q->fileio == NULL) {
++	if (q->num_buffers == 0 && !vb2_fileio_is_active(q)) {
+ 		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ) &&
+ 				(req_events & (POLLIN | POLLRDNORM)))
+ 			must_lock = true;
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 3b57851..af34ae0 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -472,6 +472,23 @@ static inline bool vb2_is_streaming(struct vb2_queue *q)
+ }
+ 
+ /**
++ * vb2_fileio_is_active() - return true if fileio is active.
++ * @q:		videobuf queue
++ *
++ * This returns true if read() or write() is used to stream the data
++ * as opposed to stream I/O. This is almost never an important distinction,
++ * except in rare cases. One such case is that using read() or write() to
++ * stream a format using V4L2_FIELD_ALTERNATE is not allowed since there
++ * is no way you can pass the field information of each buffer to/from
++ * userspace. A driver that supports this field format should check for
++ * this in the queue_setup op and reject it if this function returns true.
++ */
++static inline bool vb2_fileio_is_active(struct vb2_queue *q)
++{
++	return q->fileio;
++}
++
++/**
+  * vb2_is_busy() - return busy status of the queue
+  * @q:		videobuf queue
+  *
 -- 
-David Härdeman
+1.9.1
+
