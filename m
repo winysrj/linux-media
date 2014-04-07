@@ -1,48 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:51470 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750905AbaDSGmA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Apr 2014 02:42:00 -0400
-MIME-Version: 1.0
-In-Reply-To: <1397876987-11254-1-git-send-email-jinqiangzeng@gmail.com>
-References: <1397876987-11254-1-git-send-email-jinqiangzeng@gmail.com>
-From: Jianyu Zhan <nasa4836@gmail.com>
-Date: Sat, 19 Apr 2014 14:41:19 +0800
-Message-ID: <CAHz2CGVVf6tFsPRX90PZDHrWMoEd2Jn+2x3Rex-b2J0+2CZOSA@mail.gmail.com>
-Subject: Re: [PATCH] fix the code style errors in sn9c102
-To: Jinqiang Zeng <jinqiangzeng@gmail.com>
-Cc: Luca Risolia <luca.risolia@studio.unibo.it>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout1.samsung.com ([203.254.224.24]:34061 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755332AbaDGNRF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 09:17:05 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N3N00CFKWWG5PD0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 07 Apr 2014 22:17:05 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 8/8] [media] s5p_jpeg: Fix NV12 format entry related to S5C2120
+ SoC
+Date: Mon, 07 Apr 2014 15:16:13 +0200
+Message-id: <1396876573-15811-8-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1396876573-15811-1-git-send-email-j.anaszewski@samsung.com>
+References: <1396876573-15811-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Apr 19, 2014 at 11:09 AM, Jinqiang Zeng <jinqiangzeng@gmail.com> wrote:
-> ---
->  drivers/staging/media/sn9c102/sn9c102.h            |   30 +-
->  drivers/staging/media/sn9c102/sn9c102_core.c       |  342 ++++++++++----------
->  drivers/staging/media/sn9c102/sn9c102_devtable.h   |   22 +-
->  drivers/staging/media/sn9c102/sn9c102_hv7131d.c    |   22 +-
->  drivers/staging/media/sn9c102/sn9c102_hv7131r.c    |   22 +-
->  drivers/staging/media/sn9c102/sn9c102_mi0343.c     |   30 +-
->  drivers/staging/media/sn9c102/sn9c102_mi0360.c     |   30 +-
->  drivers/staging/media/sn9c102/sn9c102_ov7630.c     |   22 +-
->  drivers/staging/media/sn9c102/sn9c102_ov7660.c     |   22 +-
->  drivers/staging/media/sn9c1
+S5PC210 SoC doesn't support encoding NV12 raw images. Remove
+the relavant flag from the respective entry in the sjpeg_formats
+array.
 
-Hi, Jinqiang,
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-you just missed something.
-1. a "Signed-off-by" line, if you use git, git-format-patch is a good tool.;-)
-2. better add a module name in cover later, like this:
-     "sn9c102: fix the coding style errors"
-3. maybe some changelog is good, but for this patch, leaving it out is OK.
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 9228bcb..a57a1e0 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -192,8 +192,7 @@ static struct s5p_jpeg_fmt sjpeg_formats[] = {
+ 		.colplanes	= 2,
+ 		.h_align	= 4,
+ 		.v_align	= 4,
+-		.flags		= SJPEG_FMT_FLAG_ENC_OUTPUT |
+-				  SJPEG_FMT_FLAG_DEC_CAPTURE |
++		.flags		= SJPEG_FMT_FLAG_DEC_CAPTURE |
+ 				  SJPEG_FMT_FLAG_S5P |
+ 				  SJPEG_FMT_NON_RGB,
+ 		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_420,
+-- 
+1.7.9.5
 
-You would better read the "Documentation/SubmittingPatches" .
-
-Thanks,
-Jianyu Zhan
