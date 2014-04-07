@@ -1,114 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52434 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753991AbaDCWiK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 19/25] omap3isp: queue: Don't build scatterlist for kernel buffer
-Date: Fri,  4 Apr 2014 00:39:49 +0200
-Message-Id: <1396564795-27192-20-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1784 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750740AbaDGJD3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 05:03:29 -0400
+Message-ID: <534269B8.7030401@xs4all.nl>
+Date: Mon, 07 Apr 2014 11:02:48 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Pawel Osciak <pawel@osciak.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEW PATCH 06/11] vb2: set timestamp when using write()
+References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl> <1394486458-9836-7-git-send-email-hverkuil@xs4all.nl> <CAMm-=zDr63ywzqhTPTen=8zFZamxtGOSp+jiP1Rkag0pFqE5_g@mail.gmail.com>
+In-Reply-To: <CAMm-=zDr63ywzqhTPTen=8zFZamxtGOSp+jiP1Rkag0pFqE5_g@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The scatterlist is not needed for those buffers, don't build it.
+On 04/07/2014 10:32 AM, Pawel Osciak wrote:
+> On Tue, Mar 11, 2014 at 6:20 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> When using write() to write data to an output video node the vb2 core
+>> should set timestamps if V4L2_BUF_FLAG_TIMESTAMP_COPY is set. Nobody
+> 
+> I'm confused. Shouldn't we be saving the existing timestamp from the buffer if
+> V4L2_BUF_FLAG_TIMESTAMP_COPY is true, instead of getting it from
+> v4l2_get_timestamp()?
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispqueue.c | 24 +++---------------------
- drivers/media/platform/omap3isp/ispqueue.h |  8 ++++----
- 2 files changed, 7 insertions(+), 25 deletions(-)
+When using the write() file operation the application has no way of setting the
+timestamp. So it is uninitialized and the reader on the other side receives an
+uninitialized (or 0, I'm not sure) timestamp. So __vb2_perform_fileio() has to
+fill in a valid timestamp instead.
 
-diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
-index 9c90fb0..515ed94 100644
---- a/drivers/media/platform/omap3isp/ispqueue.c
-+++ b/drivers/media/platform/omap3isp/ispqueue.c
-@@ -147,21 +147,6 @@ out:
- }
- 
- /*
-- * isp_video_buffer_prepare_kernel - Build scatter list for a kernel-allocated
-- * buffer
-- *
-- * Retrieve the sgtable using the DMA API.
-- */
--static int isp_video_buffer_prepare_kernel(struct isp_video_buffer *buf)
--{
--	struct isp_video_fh *vfh = isp_video_queue_to_isp_video_fh(buf->queue);
--	struct isp_video *video = vfh->video;
--
--	return dma_get_sgtable(video->isp->dev, &buf->sgt, buf->vaddr,
--			       buf->dma, PAGE_ALIGN(buf->vbuf.length));
--}
--
--/*
-  * isp_video_buffer_cleanup - Release pages for a userspace VMA.
-  *
-  * Release pages locked by a call isp_video_buffer_prepare_user and free the
-@@ -181,10 +166,9 @@ static void isp_video_buffer_cleanup(struct isp_video_buffer *buf)
- 			  ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
- 		dma_unmap_sg_attrs(buf->queue->dev, buf->sgt.sgl,
- 				   buf->sgt.orig_nents, direction, &attrs);
-+		sg_free_table(&buf->sgt);
- 	}
- 
--	sg_free_table(&buf->sgt);
--
- 	if (buf->pages != NULL) {
- 		isp_video_buffer_lock_vma(buf, 0);
- 
-@@ -400,7 +384,7 @@ done:
-  *
-  * - validating VMAs (userspace buffers only)
-  * - locking pages and VMAs into memory (userspace buffers only)
-- * - building page and scatter-gather lists
-+ * - building page and scatter-gather lists (userspace buffers only)
-  * - mapping buffers for DMA operation
-  * - performing driver-specific preparation
-  *
-@@ -416,9 +400,7 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
- 
- 	switch (buf->vbuf.memory) {
- 	case V4L2_MEMORY_MMAP:
--		ret = isp_video_buffer_prepare_kernel(buf);
--		if (ret < 0)
--			goto done;
-+		ret = 0;
- 		break;
- 
- 	case V4L2_MEMORY_USERPTR:
-diff --git a/drivers/media/platform/omap3isp/ispqueue.h b/drivers/media/platform/omap3isp/ispqueue.h
-index ae4acb9..27189bb 100644
---- a/drivers/media/platform/omap3isp/ispqueue.h
-+++ b/drivers/media/platform/omap3isp/ispqueue.h
-@@ -70,8 +70,8 @@ enum isp_video_buffer_state {
-  * @vaddr: Memory virtual address (for kernel buffers)
-  * @vm_flags: Buffer VMA flags (for userspace buffers)
-  * @npages: Number of pages (for userspace buffers)
-+ * @sgt: Scatter gather table (for userspace buffers)
-  * @pages: Pages table (for userspace non-VM_PFNMAP buffers)
-- * @sgt: Scatter gather table
-  * @vbuf: V4L2 buffer
-  * @irqlist: List head for insertion into IRQ queue
-  * @state: Current buffer state
-@@ -90,11 +90,11 @@ struct isp_video_buffer {
- 	/* For userspace buffers. */
- 	vm_flags_t vm_flags;
- 	unsigned int npages;
--	struct page **pages;
--
--	/* For all buffers. */
- 	struct sg_table sgt;
- 
-+	/* For non-VM_PFNMAP userspace buffers. */
-+	struct page **pages;
-+
- 	/* Touched by the interrupt handler. */
- 	struct v4l2_buffer vbuf;
- 	struct list_head irqlist;
--- 
-1.8.3.2
+It's a corner case.
+
+Regards,
+
+	Hans
+
+> 
+>> else is able to provide this information with the write() operation.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/v4l2-core/videobuf2-core.c | 6 ++++++
+>>  1 file changed, 6 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>> index e38b45e..afd1268 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -22,6 +22,7 @@
+>>  #include <media/v4l2-dev.h>
+>>  #include <media/v4l2-fh.h>
+>>  #include <media/v4l2-event.h>
+>> +#include <media/v4l2-common.h>
+>>  #include <media/videobuf2-core.h>
+>>
+>>  static int debug;
+>> @@ -2767,6 +2768,9 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+>>  {
+>>         struct vb2_fileio_data *fileio;
+>>         struct vb2_fileio_buf *buf;
+>> +       bool set_timestamp = !read &&
+>> +               (q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
+>> +               V4L2_BUF_FLAG_TIMESTAMP_COPY;
+>>         int ret, index;
+>>
+>>         dprintk(3, "file io: mode %s, offset %ld, count %zd, %sblocking\n",
+>> @@ -2868,6 +2872,8 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+>>                 fileio->b.memory = q->memory;
+>>                 fileio->b.index = index;
+>>                 fileio->b.bytesused = buf->pos;
+>> +               if (set_timestamp)
+>> +                       v4l2_get_timestamp(&fileio->b.timestamp);
+>>                 ret = vb2_internal_qbuf(q, &fileio->b);
+>>                 dprintk(5, "file io: vb2_internal_qbuf result: %d\n", ret);
+>>                 if (ret)
+>> --
+>> 1.9.0
+>>
+> 
+> 
+> 
 
