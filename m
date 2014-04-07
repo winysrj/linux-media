@@ -1,113 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38906 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754199AbaDQONk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 10:13:40 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v4 36/49] adv7604: Add pad-level DV timings support
-Date: Thu, 17 Apr 2014 16:13:07 +0200
-Message-Id: <1397744000-23967-37-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1813 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754945AbaDGMvx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 08:51:53 -0400
+Message-ID: <53429F53.7050005@xs4all.nl>
+Date: Mon, 07 Apr 2014 14:51:31 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Divneil Wadhawan <divneil@outlook.com>,
+	Pawel Osciak <pawel@osciak.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: videobuf2-vmalloc suspect for corrupted data
+References: <BAY176-W225B62F958527124202669A9680@phx.gbl>,<CAMm-=zDKUoFN7OiGpL3c=7KCkmYNhiyns20t8H7Pz_=qgaeHMw@mail.gmail.com> <BAY176-W524A762315BE245FCCD5DCA9680@phx.gbl>,<53428483.7060107@xs4all.nl> <BAY176-W91C143782DF21AB7ACEC8A9680@phx.gbl>
+In-Reply-To: <BAY176-W91C143782DF21AB7ACEC8A9680@phx.gbl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7604.c | 47 +++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 43 insertions(+), 4 deletions(-)
+On 04/07/2014 01:20 PM, Divneil Wadhawan wrote:
+> Hi Hans,
+>> Two more questions:
+>>
+>> Which kernel version are you using?
+> 3.4.58
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 59f7bf0..684b912 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1514,24 +1514,42 @@ static int read_stdi(struct v4l2_subdev *sd, struct stdi_readback *stdi)
- static int adv7604_enum_dv_timings(struct v4l2_subdev *sd,
- 			struct v4l2_enum_dv_timings *timings)
- {
-+	struct adv7604_state *state = to_state(sd);
-+
- 	if (timings->index >= ARRAY_SIZE(adv7604_timings) - 1)
- 		return -EINVAL;
-+
-+	if (timings->pad >= state->source_pad)
-+		return -EINVAL;
-+
- 	memset(timings->reserved, 0, sizeof(timings->reserved));
- 	timings->timings = adv7604_timings[timings->index];
- 	return 0;
- }
- 
--static int adv7604_dv_timings_cap(struct v4l2_subdev *sd,
--			struct v4l2_dv_timings_cap *cap)
-+static int __adv7604_dv_timings_cap(struct v4l2_subdev *sd,
-+			struct v4l2_dv_timings_cap *cap,
-+			unsigned int pad)
- {
- 	cap->type = V4L2_DV_BT_656_1120;
- 	cap->bt.max_width = 1920;
- 	cap->bt.max_height = 1200;
- 	cap->bt.min_pixelclock = 25000000;
--	if (is_digital_input(sd))
-+
-+	switch (pad) {
-+	case ADV7604_PAD_HDMI_PORT_A:
-+	case ADV7604_PAD_HDMI_PORT_B:
-+	case ADV7604_PAD_HDMI_PORT_C:
-+	case ADV7604_PAD_HDMI_PORT_D:
- 		cap->bt.max_pixelclock = 225000000;
--	else
-+		break;
-+	case ADV7604_PAD_VGA_RGB:
-+	case ADV7604_PAD_VGA_COMP:
-+	default:
- 		cap->bt.max_pixelclock = 170000000;
-+		break;
-+	}
-+
- 	cap->bt.standards = V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
- 			 V4L2_DV_BT_STD_GTF | V4L2_DV_BT_STD_CVT;
- 	cap->bt.capabilities = V4L2_DV_BT_CAP_PROGRESSIVE |
-@@ -1539,6 +1557,25 @@ static int adv7604_dv_timings_cap(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static int adv7604_dv_timings_cap(struct v4l2_subdev *sd,
-+			struct v4l2_dv_timings_cap *cap)
-+{
-+	struct adv7604_state *state = to_state(sd);
-+
-+	return __adv7604_dv_timings_cap(sd, cap, state->selected_input);
-+}
-+
-+static int adv7604_pad_dv_timings_cap(struct v4l2_subdev *sd,
-+			struct v4l2_dv_timings_cap *cap)
-+{
-+	struct adv7604_state *state = to_state(sd);
-+
-+	if (cap->pad >= state->source_pad)
-+		return -EINVAL;
-+
-+	return __adv7604_dv_timings_cap(sd, cap, cap->pad);
-+}
-+
- /* Fill the optional fields .standards and .flags in struct v4l2_dv_timings
-    if the format is listed in adv7604_timings[] */
- static void adv7604_fill_optional_dv_timings_fields(struct v4l2_subdev *sd,
-@@ -2426,6 +2463,8 @@ static const struct v4l2_subdev_pad_ops adv7604_pad_ops = {
- 	.set_fmt = adv7604_set_format,
- 	.get_edid = adv7604_get_edid,
- 	.set_edid = adv7604_set_edid,
-+	.dv_timings_cap = adv7604_pad_dv_timings_cap,
-+	.enum_dv_timings = adv7604_enum_dv_timings,
- };
- 
- static const struct v4l2_subdev_ops adv7604_ops = {
--- 
-1.8.3.2
+That should be new enough, I see no important differences between 3.4
+and 3.14 in this respect. But really, 3.4? That's over two years old!
+If you have control over what kernel you use then I recommend you
+upgrade.
 
+>> Which capture driver are you using?
+> It's a TSMUX driver, written locally.
+
+I have not seen any reports of problems with vmalloc with arm in a long
+time. I know the uvc driver uses vmalloc, and that's used frequently.
+
+Question: if you use MEMORY_MMAP instead of USERPTR, does that work?
+
+Have you tried to stream with v4l2-ctl? It's available here:
+http://git.linuxtv.org/cgit.cgi/v4l-utils.git/. It's the reference
+implementation of how to stream, so if that fails as well, then at
+least its not your application.
+
+Testing whether you see the same when capturing from a usb uvc webcam
+(most webcams are uvc these days) would be useful as well. If it works
+with a uvc webcam, but not with your driver, then I suspect the driver.
+
+Regards,
+
+	Hans
