@@ -1,52 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45274 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754641AbaDFXfW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Apr 2014 19:35:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Scheuermann, Mail" <Scheuermann@barco.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: AW: AW: v4l2_buffer with PBO mapped memory
-Date: Mon, 07 Apr 2014 01:37:28 +0200
-Message-ID: <12148246.7IO9AkCti4@avalon>
-In-Reply-To: <67C778DDEF97AE4BA9DC4BA8ECFD811E1DB2EA13@KUUMEX11.barco.com>
-References: <533C2872.5090603@barco.com> <82154683.DEhQIaoLxb@avalon> <67C778DDEF97AE4BA9DC4BA8ECFD811E1DB2EA13@KUUMEX11.barco.com>
+Received: from mail-yh0-f49.google.com ([209.85.213.49]:37425 "EHLO
+	mail-yh0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754760AbaDGInb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 04:43:31 -0400
+Received: by mail-yh0-f49.google.com with SMTP id z6so5494774yhz.36
+        for <linux-media@vger.kernel.org>; Mon, 07 Apr 2014 01:43:31 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1394486458-9836-9-git-send-email-hverkuil@xs4all.nl>
+References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl> <1394486458-9836-9-git-send-email-hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Mon, 7 Apr 2014 17:42:50 +0900
+Message-ID: <CAMm-=zD3-APQtnS1QFiB3TCCEPWK9jFPyjeEpM-GqV+T9_h8gg@mail.gmail.com>
+Subject: Re: [REVIEW PATCH 08/11] vb2: simplify a confusing condition.
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thomas,
+On Tue, Mar 11, 2014 at 6:20 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> q->start_streaming_called is always true, so the WARN_ON check against
+> it being false can be dropped.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Friday 04 April 2014 20:01:33 Scheuermann, Mail wrote:
-> Hi Laurent,
-> 
-> I've done the following:
-> 
-> echo 3 >/sys/module/videobuf2_core/parameters/debug
-> 
-> and found in /var/log/kern.log after starting my program:
-> 
-> [239432.535077] vb2: Buffer 0, plane 0 offset 0x00000000
-> [239432.535080] vb2: Buffer 1, plane 0 offset 0x001c2000
-> [239432.535082] vb2: Buffer 2, plane 0 offset 0x00384000
-> [239432.535083] vb2: Allocated 3 buffers, 1 plane(s) each
-> [239432.535085] vb2: qbuf: userspace address for plane 0 changed,
-> reacquiring memory
-> [239432.535087] vb2: qbuf: failed acquiring userspace memory for plane 0
+Acked-by: Pawel Osciak <pawel@osciak.com>
 
-This confirms everything is working properly up to the point where videobuf2-
-vmalloc fails to acquire the user pointer memory. The problem comes from 
-vb2_vmalloc_get_userptr() in drivers/media/v4l2-core/videobuf2-vmalloc.c. 
-Unfortunately that function lacks debugging. Are you familiar enough with 
-kernel programming to add printk statements there and see where it fails ?
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 8984187..2ae316b 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1099,9 +1099,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>         if (!q->start_streaming_called) {
+>                 if (WARN_ON(state != VB2_BUF_STATE_QUEUED))
+>                         state = VB2_BUF_STATE_QUEUED;
+> -       } else if (!WARN_ON(!q->start_streaming_called)) {
+> -               if (WARN_ON(state != VB2_BUF_STATE_DONE &&
+> -                           state != VB2_BUF_STATE_ERROR))
+> +       } else if (WARN_ON(state != VB2_BUF_STATE_DONE &&
+> +                          state != VB2_BUF_STATE_ERROR)) {
+>                         state = VB2_BUF_STATE_ERROR;
+>         }
+>
+> --
+> 1.9.0
+>
 
-> [239432.535088] vb2: qbuf: buffer preparation failed: -22
-> [239432.535128] vb2: streamoff: not streaming
+
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Best regards,
+Pawel Osciak
