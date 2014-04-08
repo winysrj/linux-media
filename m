@@ -1,158 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38682 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752113AbaDUM3N (ORCPT
+Received: from ch1ehsobe005.messaging.microsoft.com ([216.32.181.185]:3002
+	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756216AbaDHLsQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Apr 2014 08:29:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 08/26] omap3isp: ccdc: Use the DMA API for FPC
-Date: Mon, 21 Apr 2014 14:28:54 +0200
-Message-Id: <1398083352-8451-9-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 8 Apr 2014 07:48:16 -0400
+Date: Tue, 8 Apr 2014 19:47:53 +0800
+From: Shawn Guo <shawn.guo@linaro.org>
+To: Denis Carikli <denis@eukrea.com>
+CC: Philipp Zabel <p.zabel@pengutronix.de>,
+	Eric =?iso-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	<linux-arm-kernel@lists.infradead.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	<devel@driverdev.osuosl.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	<linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<dri-devel@lists.freedesktop.org>, David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12][ 12/12] ARM: imx_v6_v7_defconfig: Add more drm
+ drivers.
+Message-ID: <20140408114751.GC3860@dragon>
+References: <1396874691-27954-1-git-send-email-denis@eukrea.com>
+ <1396874691-27954-12-git-send-email-denis@eukrea.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <1396874691-27954-12-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the OMAP-specific IOMMU API usage by the DMA API for FPC. The
-table is now allocated using dma_alloc_coherent() and the related sg
-table is retrieved using dma_get_sgtable() for sync operations.
+On Mon, Apr 07, 2014 at 02:44:51PM +0200, Denis Carikli wrote:
+> The DRM_PANEL_SIMPLE is needed by the eukrea
+> mbimxsd51's displays.
+> 
+> Signed-off-by: Denis Carikli <denis@eukrea.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispccdc.c | 51 +++++++++++++++++--------------
- drivers/media/platform/omap3isp/ispccdc.h |  8 ++++-
- 2 files changed, 35 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index a907b20..004a4f5 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -30,7 +30,6 @@
- #include <linux/device.h>
- #include <linux/dma-mapping.h>
- #include <linux/mm.h>
--#include <linux/omap-iommu.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <media/v4l2-event.h>
-@@ -578,7 +577,7 @@ static void ccdc_configure_fpc(struct isp_ccdc_device *ccdc)
- 	if (!ccdc->fpc_en)
- 		return;
- 
--	isp_reg_writel(isp, ccdc->fpc.fpcaddr, OMAP3_ISP_IOMEM_CCDC,
-+	isp_reg_writel(isp, ccdc->fpc.dma, OMAP3_ISP_IOMEM_CCDC,
- 		       ISPCCDC_FPC_ADDR);
- 	/* The FPNUM field must be set before enabling FPC. */
- 	isp_reg_writel(isp, (ccdc->fpc.fpnum << ISPCCDC_FPC_FPNUM_SHIFT),
-@@ -718,8 +717,9 @@ static int ccdc_config(struct isp_ccdc_device *ccdc,
- 	ccdc->shadow_update = 0;
- 
- 	if (OMAP3ISP_CCDC_FPC & ccdc_struct->update) {
--		u32 table_old = 0;
--		u32 table_new;
-+		struct omap3isp_ccdc_fpc fpc;
-+		struct ispccdc_fpc fpc_old = { .addr = NULL, };
-+		struct ispccdc_fpc fpc_new;
- 		u32 size;
- 
- 		if (ccdc->state != ISP_PIPELINE_STREAM_STOPPED)
-@@ -728,35 +728,39 @@ static int ccdc_config(struct isp_ccdc_device *ccdc,
- 		ccdc->fpc_en = !!(OMAP3ISP_CCDC_FPC & ccdc_struct->flag);
- 
- 		if (ccdc->fpc_en) {
--			if (copy_from_user(&ccdc->fpc, ccdc_struct->fpc,
--					   sizeof(ccdc->fpc)))
-+			if (copy_from_user(&fpc, ccdc_struct->fpc, sizeof(fpc)))
- 				return -EFAULT;
- 
-+			size = fpc.fpnum * 4;
-+
- 			/*
--			 * table_new must be 64-bytes aligned, but it's
--			 * already done by omap_iommu_vmalloc().
-+			 * The table address must be 64-bytes aligned, which is
-+			 * guaranteed by dma_alloc_coherent().
- 			 */
--			size = ccdc->fpc.fpnum * 4;
--			table_new = omap_iommu_vmalloc(isp->domain, isp->dev,
--							0, size, IOMMU_FLAG);
--			if (IS_ERR_VALUE(table_new))
-+			fpc_new.fpnum = fpc.fpnum;
-+			fpc_new.addr = dma_alloc_coherent(isp->dev, size,
-+							  &fpc_new.dma,
-+							  GFP_KERNEL);
-+			if (fpc_new.addr == NULL)
- 				return -ENOMEM;
- 
--			if (copy_from_user(omap_da_to_va(isp->dev, table_new),
--					   (__force void __user *)
--					   ccdc->fpc.fpcaddr, size)) {
--				omap_iommu_vfree(isp->domain, isp->dev,
--								table_new);
-+			if (copy_from_user(fpc_new.addr,
-+					   (__force void __user *)fpc.fpcaddr,
-+					   size)) {
-+				dma_free_coherent(isp->dev, size, fpc_new.addr,
-+						  fpc_new.dma);
- 				return -EFAULT;
- 			}
- 
--			table_old = ccdc->fpc.fpcaddr;
--			ccdc->fpc.fpcaddr = table_new;
-+			fpc_old = ccdc->fpc;
-+			ccdc->fpc = fpc_new;
- 		}
- 
- 		ccdc_configure_fpc(ccdc);
--		if (table_old != 0)
--			omap_iommu_vfree(isp->domain, isp->dev, table_old);
-+
-+		if (fpc_old.addr != NULL)
-+			dma_free_coherent(isp->dev, fpc_old.fpnum * 4,
-+					  fpc_old.addr, fpc_old.dma);
- 	}
- 
- 	return ccdc_lsc_config(ccdc, ccdc_struct);
-@@ -2574,8 +2578,9 @@ void omap3isp_ccdc_cleanup(struct isp_device *isp)
- 	cancel_work_sync(&ccdc->lsc.table_work);
- 	ccdc_lsc_free_queue(ccdc, &ccdc->lsc.free_queue);
- 
--	if (ccdc->fpc.fpcaddr != 0)
--		omap_iommu_vfree(isp->domain, isp->dev, ccdc->fpc.fpcaddr);
-+	if (ccdc->fpc.addr != NULL)
-+		dma_free_coherent(isp->dev, ccdc->fpc.fpnum * 4, ccdc->fpc.addr,
-+				  ccdc->fpc.dma);
- 
- 	mutex_destroy(&ccdc->ioctl_lock);
- }
-diff --git a/drivers/media/platform/omap3isp/ispccdc.h b/drivers/media/platform/omap3isp/ispccdc.h
-index 20db3a0..f650616 100644
---- a/drivers/media/platform/omap3isp/ispccdc.h
-+++ b/drivers/media/platform/omap3isp/ispccdc.h
-@@ -46,6 +46,12 @@ enum ccdc_input_entity {
- 
- #define	OMAP3ISP_CCDC_NEVENTS	16
- 
-+struct ispccdc_fpc {
-+	void *addr;
-+	dma_addr_t dma;
-+	unsigned int fpnum;
-+};
-+
- enum ispccdc_lsc_state {
- 	LSC_STATE_STOPPED = 0,
- 	LSC_STATE_STOPPING = 1,
-@@ -140,7 +146,7 @@ struct isp_ccdc_device {
- 		     fpc_en:1;
- 	struct omap3isp_ccdc_blcomp blcomp;
- 	struct omap3isp_ccdc_bclamp clamp;
--	struct omap3isp_ccdc_fpc fpc;
-+	struct ispccdc_fpc fpc;
- 	struct ispccdc_lsc lsc;
- 	unsigned int update;
- 	unsigned int shadow_update;
--- 
-1.8.3.2
+Applied, thanks.
 
