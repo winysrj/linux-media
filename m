@@ -1,80 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52429 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58100 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753909AbaDCWh6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:37:58 -0400
+	with ESMTP id S1750868AbaDHQyz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 12:54:55 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 00/25] OMAP3 ISP: Move to videobuf2
-Date: Fri,  4 Apr 2014 00:39:30 +0200
-Message-Id: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Olivier Langlois <olivier@trillion01.com>
+Cc: m.chehab@samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Stable <stable@vger.kernel.org>,
+	ffmpeg-devel@ffmpeg.com
+Subject: Re: [PATCH] [media] uvcvideo: Fix clock param realtime setting
+Date: Tue, 08 Apr 2014 18:57:04 +0200
+Message-ID: <2912342.xkGF6kaQOW@avalon>
+In-Reply-To: <1396412820.3383.111.camel@Wailaba2>
+References: <1395985358-17047-1-git-send-email-olivier@trillion01.com> <1711768.4zHOjaJUg6@avalon> <1396412820.3383.111.camel@Wailaba2>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Olivier,
 
-I think the subject line should be enough to get everybody excited about this
-patch series (everybody being Sakari, me, and possibly one or two other
-developers). The idea is pretty clear, I've tried to keep patches small and
-reviewable (24/25 is a bit too big for my taste, but splitting it further
-would be pretty difficult), so please look at them for details.
+On Wednesday 02 April 2014 00:31:59 Olivier Langlois wrote:
+> On Tue, 2014-04-01 at 15:49 +0200, Laurent Pinchart wrote:
+> > On Sunday 30 March 2014 00:23:01 Olivier Langlois wrote:
+> > > > > Yes. ffmpeg uses wall clock time to create timestamps for audio
+> > > > > packets from ALSA device.
+> > > > 
+> > > > OK. I suppose I shouldn't drop support for the realtime clock like I
+> > > > wanted to then :-)
+> > > > 
+> > > > > There is a bug in ffmpeg describing problems to synchronize audio
+> > > > > and the video from a v4l2 webcam.
+> > > > > 
+> > > > > https://trac.ffmpeg.org/ticket/692
+> > > > > 
+> > > > > To workaround this issue, ffmpeg devs added a switch to convert back
+> > > > > 
+> > > > > monotonic to realtime. From ffmpeg/libavdevice/v4l2.c:
+> > > > >   -ts                <int>        .D.... set type of timestamps for
+> > > > >                                          grabbed frames (from 0 to
+> > > > >                                          2) (default 0)
+> > > > >      default                      .D.... use timestamps from the
+> > > > >                                          kernel
+> > > > >      abs                          .D.... use absolute timestamps
+> > > > >                                          (wall clock)
+> > > > >      mono2abs                     .D.... force conversion from
+> > > > >                                          monotonic to absolute
+> > > > >                                          timestamps
+> > > > > 
+> > > > > If the v4l2 driver is able to send realtime ts, it is easier
+> > > > > synchronize in userspace if all inputs use the same clock.
+> > > > 
+> > > > That might be a stupid question, but shouldn't ALSA use the monotonic
+> > > > clock instead ?
+> > > 
+> > > I think that I have that answer why ffmpeg use realtime clock for ALSA
+> > > data. In fact ffmpeg uses realtime clock for every data coming from
+> > > capture devices and the purpose is to be able to seek into the recorded
+> > > stream by using the date where the recording occured. Same principle
+> > > than a camera recording dates when pictures are taken.
+> > > 
+> > > now a tougher question is whether or not it is up to the driver to
+> > > provide these realtime ts.
+> > 
+> > It makes sense to associate a wall time with recorded streams for that
+> > purpose, but synchronization should in my opinion be performed using the
+> > monotonic clock, as the wall time can jump around. I believe drivers
+> > should provide monotonic timestamps only. However, given that the uvcvideo
+> > driver has the option of providing wall clock timestamps, that option
+> > should work, so your patch makes sense. I'd still like to remove support
+> > for the wall clock though, but I don't want to break userspace. ffmpeg
+> > should be fixed, especially given that most V4L devices provide monotonic
+> > timestamps only.
+>
+> Please do not stop yourself to remove realtime ts support in your driver
+> because that would not break ffmpeg, IMHO. It is just me that have tried
+> to leverage options offered by your driver to remove the need to use
+> ffmpeg workaround for a sync issue. I apparently have been the first
+> ffmpeg user to try out!
 
-The patches are based on top of the latest media master branch. They also
-depend at runtime on an OMAP IOMMU cleanup series. I've asked Joerg Roedel to
-provide a stable branch based on v3.15-rc1 (when it will be available).
+Then let's fix it first, and then I'll remove the option :-)
 
-Laurent Pinchart (25):
-  omap3isp: stat: Rename IS_COHERENT_BUF to ISP_STAT_USES_DMAENGINE
-  omap3isp: stat: Remove impossible WARN_ON
-  omap3isp: stat: Share common code for buffer allocation
-  omap3isp: stat: Merge dma_addr and iommu_addr fields
-  omap3isp: stat: Store sg table in ispstat_buffer
-  omap3isp: stat: Use the DMA API
-  omap3isp: ccdc: Use the DMA API for LSC
-  omap3isp: ccdc: Use the DMA API for FPC
-  omap3isp: video: Set the buffer bytesused field at completion time
-  omap3isp: queue: Move IOMMU handling code to the queue
-  omap3isp: queue: Use sg_table structure
-  omap3isp: queue: Merge the prepare and sglist functions
-  omap3isp: queue: Inline the ispmmu_v(un)map functions
-  omap3isp: queue: Allocate kernel buffers with dma_alloc_coherent
-  omap3isp: queue: Fix the dma_map_sg() return value check
-  omap3isp: queue: Map PFNMAP buffers to device
-  omap3isp: queue: Use sg_alloc_table_from_pages()
-  omap3isp: Use the ARM DMA IOMMU-aware operations
-  omap3isp: queue: Don't build scatterlist for kernel buffer
-  omap3isp: Move queue mutex to isp_video structure
-  omap3isp: Move queue irqlock to isp_video structure
-  omap3isp: Move buffer irqlist to isp_buffer structure
-  v4l: vb2: Add a function to discard all DONE buffers
-  omap3isp: Move to videobuf2
-  omap3isp: Rename isp_buffer isp_addr field to dma
+> I am currently in the process to contribute the introduction of using
+> CLOCK_MONOTONIC inside ffmpeg. CCing their list because I think your
+> reply is relevant to the discussion we have on the topic there at the
+> moment.
 
- drivers/media/platform/Kconfig                |    4 +-
- drivers/media/platform/omap3isp/Makefile      |    2 +-
- drivers/media/platform/omap3isp/isp.c         |  108 ++-
- drivers/media/platform/omap3isp/isp.h         |    8 +-
- drivers/media/platform/omap3isp/ispccdc.c     |  107 ++-
- drivers/media/platform/omap3isp/ispccdc.h     |   16 +-
- drivers/media/platform/omap3isp/ispccp2.c     |    4 +-
- drivers/media/platform/omap3isp/ispcsi2.c     |    4 +-
- drivers/media/platform/omap3isp/isph3a_aewb.c |    2 +-
- drivers/media/platform/omap3isp/isph3a_af.c   |    2 +-
- drivers/media/platform/omap3isp/isppreview.c  |    8 +-
- drivers/media/platform/omap3isp/ispqueue.c    | 1161 -------------------------
- drivers/media/platform/omap3isp/ispqueue.h    |  188 ----
- drivers/media/platform/omap3isp/ispresizer.c  |    8 +-
- drivers/media/platform/omap3isp/ispstat.c     |  197 ++---
- drivers/media/platform/omap3isp/ispstat.h     |    3 +-
- drivers/media/platform/omap3isp/ispvideo.c    |  323 +++----
- drivers/media/platform/omap3isp/ispvideo.h    |   29 +-
- drivers/media/v4l2-core/videobuf2-core.c      |   24 +
- drivers/staging/media/omap4iss/iss_video.c    |    2 +-
- include/media/videobuf2-core.h                |    1 +
- 21 files changed, 456 insertions(+), 1745 deletions(-)
- delete mode 100644 drivers/media/platform/omap3isp/ispqueue.c
- delete mode 100644 drivers/media/platform/omap3isp/ispqueue.h
+Very nice. Please keep me informed of the progress.
 
 -- 
 Regards,
