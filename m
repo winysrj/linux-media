@@ -1,108 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:18150 "EHLO
+Received: from mailout1.samsung.com ([203.254.224.24]:14580 "EHLO
 	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965168AbaDJHca (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 03:32:30 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N3T00L310Y5GHE0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Apr 2014 16:32:29 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH v2 3/8] s5p-jpeg: Add m2m_ops field to the s5p_jpeg_variant
- structure
-Date: Thu, 10 Apr 2014 09:32:13 +0200
-Message-id: <1397115138-1095-3-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1397115138-1095-1-git-send-email-j.anaszewski@samsung.com>
-References: <1397115138-1095-1-git-send-email-j.anaszewski@samsung.com>
+	with ESMTP id S932161AbaDHOiW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 10:38:22 -0400
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org
+Cc: kishon@ti.com, t.figa@samsung.com, kyungmin.park@samsung.com,
+	sylvester.nawrocki@gmail.com, robh+dt@kernel.org,
+	inki.dae@samsung.com, rahul.sharma@samsung.com,
+	grant.likely@linaro.org, kgene.kim@samsung.com,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv2 0/3] phy: Add exynos-simple-phy driver
+Date: Tue, 08 Apr 2014 16:37:33 +0200
+Message-id: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simplify the code by adding m2m_ops field to the
-s5p_jpeg_variant structure which allows to avoid
-"if" statement in the s5p_jpeg_probe function.
+Hello everyone,
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   12 ++++--------
- drivers/media/platform/s5p-jpeg/jpeg-core.h |    7 ++++---
- 2 files changed, 8 insertions(+), 11 deletions(-)
+The Samsung SoCs from Exynos family are enhanced with a bunch of devices that
+provide functionality of a physical layer for interfaces like USB, HDMI, SATA,
+etc. They are controlled by a simple interface, often a single bit that enables
+and/or resets the physical layer.
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index d307c0f..1b69b69 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1566,7 +1566,7 @@ static struct v4l2_m2m_ops s5p_jpeg_m2m_ops = {
- 	.job_abort	= s5p_jpeg_job_abort,
- }
- ;
--static struct v4l2_m2m_ops exynos_jpeg_m2m_ops = {
-+static struct v4l2_m2m_ops exynos4_jpeg_m2m_ops = {
- 	.device_run	= exynos4_jpeg_device_run,
- 	.job_ready	= s5p_jpeg_job_ready,
- 	.job_abort	= s5p_jpeg_job_abort,
-@@ -1852,7 +1852,6 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
- {
- 	struct s5p_jpeg *jpeg;
- 	struct resource *res;
--	struct v4l2_m2m_ops *samsung_jpeg_m2m_ops;
- 	int ret;
- 
- 	if (!pdev->dev.of_node)
-@@ -1906,13 +1905,8 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
- 		goto clk_get_rollback;
- 	}
- 
--	if (jpeg->variant->version == SJPEG_S5P)
--		samsung_jpeg_m2m_ops = &s5p_jpeg_m2m_ops;
--	else
--		samsung_jpeg_m2m_ops = &exynos_jpeg_m2m_ops;
--
- 	/* mem2mem device */
--	jpeg->m2m_dev = v4l2_m2m_init(samsung_jpeg_m2m_ops);
-+	jpeg->m2m_dev = v4l2_m2m_init(jpeg->variant->m2m_ops);
- 	if (IS_ERR(jpeg->m2m_dev)) {
- 		v4l2_err(&jpeg->v4l2_dev, "Failed to init mem2mem device\n");
- 		ret = PTR_ERR(jpeg->m2m_dev);
-@@ -2101,12 +2095,14 @@ static const struct dev_pm_ops s5p_jpeg_pm_ops = {
- static struct s5p_jpeg_variant s5p_jpeg_drvdata = {
- 	.version	= SJPEG_S5P,
- 	.jpeg_irq	= s5p_jpeg_irq,
-+	.m2m_ops	= &s5p_jpeg_m2m_ops,
- 	.fmt_ver_flag	= SJPEG_FMT_FLAG_S5P,
- };
- 
- static struct s5p_jpeg_variant exynos4_jpeg_drvdata = {
- 	.version	= SJPEG_EXYNOS4,
- 	.jpeg_irq	= exynos4_jpeg_irq,
-+	.m2m_ops	= &exynos4_jpeg_m2m_ops,
- 	.fmt_ver_flag	= SJPEG_FMT_FLAG_EXYNOS4,
- };
- 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-index c222436..3e47863 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-@@ -117,9 +117,10 @@ struct s5p_jpeg {
- };
- 
- struct s5p_jpeg_variant {
--	unsigned int	version;
--	unsigned int	fmt_ver_flag;
--	irqreturn_t	(*jpeg_irq)(int irq, void *priv);
-+	unsigned int		version;
-+	unsigned int		fmt_ver_flag;
-+	struct v4l2_m2m_ops	*m2m_ops;
-+	irqreturn_t		(*jpeg_irq)(int irq, void *priv);
- };
- 
- /**
+An IP driver should to control such a controller in an abstract manner.
+Therefore, such 'enablers' were implemented as clocks in older versions of
+Linux kernel.  With the dawn of PHY subsystems, PHYs become a natural way of
+exporting the 'enabler' functionality to drivers.  However, there is an
+unexpected consequence. Some of those 1-bit PHYs were implemented as separate
+drivers.  This means that one has to create a struct device, struct phy, its
+phy provider and 100-150 lines of driver code to basically set one bit.
+
+The DP phy driver is a good example:
+https://lkml.org/lkml/2013/7/18/53
+
+And simple-phy RFC (shares only driver code but not other resources):
+https://lkml.org/lkml/2013/10/21/313
+
+To avoid waste of resources I propose to create all such 1-bit phys from Exynos
+SoC using a single device, driver and phy provider.
+
+This patchset contains a proposed solution.
+
+All comment are welcome.
+
+Hopefully in future the functionality introduced by this patch may be merged
+into a larger Power Management Unit (PMU) gluer driver.  On Samsusng SoC , the
+PMU part contains a number of register barely linked to power management (like
+clock gating, clock dividers, CPU resetting, etc.).  It may be tempting to
+create a hybrid driver that export clocks/phys/etc that are controlled by PMU
+unit.
+
+Alternative solutions might be:
+* exporting a regmap to the IP driver and allow the driver to control the PHY layer
+  like in the patch:
+  http://thread.gmane.org/gmane.linux.kernel.samsung-soc/28617/focus=28648
+
+* create a dedicated power domain for hdmiphy
+
+Regards,
+Tomasz Stanislawski
+
+Changelog:
+v2:
+	* rename to exynos-simple-phy
+	* fix usage of devm_ioremap()
+	* add documentation for DT bindings
+	* add patches to client drivers
+
+v1: initial version
+
+Tomasz Stanislawski (3):
+  phy: Add exynos-simple-phy driver
+  drm: exynos: hdmi: use hdmiphy as PHY
+  s5p-tv: hdmi: use hdmiphy as PHY
+
+ .../devicetree/bindings/phy/samsung-phy.txt        |   24 +++
+ drivers/gpu/drm/exynos/exynos_hdmi.c               |   11 +-
+ drivers/media/platform/s5p-tv/hdmi_drv.c           |   11 +-
+ drivers/phy/Kconfig                                |    5 +
+ drivers/phy/Makefile                               |    1 +
+ drivers/phy/exynos-simple-phy.c                    |  154 ++++++++++++++++++++
+ 6 files changed, 196 insertions(+), 10 deletions(-)
+ create mode 100644 drivers/phy/exynos-simple-phy.c
+
 -- 
 1.7.9.5
 
