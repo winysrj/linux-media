@@ -1,130 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:6257 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934332AbaDITY7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Apr 2014 15:24:59 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id 18CFA212AB
-	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 22:24:54 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 10/17] smiapp-pll: Add support for odd pre-pll divisors
-Date: Wed,  9 Apr 2014 22:25:02 +0300
-Message-Id: <1397071509-2071-11-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:57818 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750789AbaDHGgL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 02:36:11 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N3P001Z79002040@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 08 Apr 2014 07:36:00 +0100 (BST)
+Message-id: <534398D5.4090600@samsung.com>
+Date: Tue, 08 Apr 2014 08:36:05 +0200
+From: Andrzej Hajda <a.hajda@samsung.com>
+MIME-version: 1.0
+To: Denis Carikli <denis@eukrea.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?ISO-8859-1?Q?Eric_B=E9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12][ 07/12] drm: drm_display_mode: add signal polarity
+ flags
+References: <1396874691-27954-1-git-send-email-denis@eukrea.com>
+ <1396874691-27954-7-git-send-email-denis@eukrea.com>
+In-reply-to: <1396874691-27954-7-git-send-email-denis@eukrea.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some sensors support odd pre-pll divisor.
+Hi Denis,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp-pll.c | 39 ++++++++++++++++++++++++++-------------
- drivers/media/i2c/smiapp-pll.h |  2 ++
- 2 files changed, 28 insertions(+), 13 deletions(-)
+On 04/07/2014 02:44 PM, Denis Carikli wrote:
+> We need a way to pass signal polarity informations
+>   between DRM panels, and the display drivers.
+> 
+> To do that, a pol_flags field was added to drm_display_mode.
+> 
+> Signed-off-by: Denis Carikli <denis@eukrea.com>
+> ---
+> ChangeLog v11->v12:
+> - Rebased: This patch now applies against drm_modes.h
+> - Rebased: It now uses the new DRM_MODE_FLAG_POL_DE flags defines names
+> 
+> ChangeLog v10->v11:
+> - Since the imx-drm won't be able to retrive its regulators
+>   from the device tree when using display-timings nodes,
+>   and that I was told that the drm simple-panel driver 
+>   already supported that, I then, instead, added what was
+>   lacking to make the eukrea displays work with the
+>   drm-simple-panel driver.
+> 
+>   That required a way to get back the display polarity
+>   informations from the imx-drm driver without affecting
+>   userspace.
+> ---
+>  include/drm/drm_modes.h |    8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/include/drm/drm_modes.h b/include/drm/drm_modes.h
+> index 2dbbf99..b3789e2 100644
+> --- a/include/drm/drm_modes.h
+> +++ b/include/drm/drm_modes.h
+> @@ -93,6 +93,13 @@ enum drm_mode_status {
+>  
+>  #define DRM_MODE_FLAG_3D_MAX	DRM_MODE_FLAG_3D_SIDE_BY_SIDE_HALF
+>  
+> +#define DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE	BIT(1)
+> +#define DRM_MODE_FLAG_POL_PIXDATA_POSEDGE	BIT(2)
+> +#define DRM_MODE_FLAG_POL_PIXDATA_PRESERVE	BIT(3)
 
-diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
-index 8c196c6..93a8214 100644
---- a/drivers/media/i2c/smiapp-pll.c
-+++ b/drivers/media/i2c/smiapp-pll.c
-@@ -34,14 +34,18 @@ static inline uint64_t div_u64_round_up(uint64_t dividend, uint32_t divisor)
- }
- 
- /* Return an even number or one. */
--static inline uint32_t clk_div_even(uint32_t a)
-+static inline uint32_t clk_div_even(uint32_t a, bool allow_odd)
- {
-+	if (allow_odd)
-+		return a;
- 	return max_t(uint32_t, 1, a & ~1);
- }
- 
- /* Return an even number or one. */
--static inline uint32_t clk_div_even_up(uint32_t a)
-+static inline uint32_t clk_div_even_up(uint32_t a, bool allow_odd)
- {
-+	if (allow_odd)
-+		return a;
- 	if (a == 1)
- 		return 1;
- 	return (a + 1) & ~1;
-@@ -268,13 +272,13 @@ static int __smiapp_pll_calculate(struct device *dev,
- 	min_sys_div = max(min_sys_div,
- 			  DIV_ROUND_UP(min_vt_div,
- 				       limits->vt.max_pix_clk_div));
--	dev_dbg(dev, "min_sys_div: max_vt_pix_clk_div: %u\n", min_sys_div);
-+	dev_dbg(dev, "min_sys_div: max_vt_pix_clk_div: %d\n", min_sys_div);
- 	min_sys_div = max_t(uint32_t, min_sys_div,
- 			    pll->pll_op_clk_freq_hz
- 			    / limits->vt.max_sys_clk_freq_hz);
--	dev_dbg(dev, "min_sys_div: max_pll_op_clk_freq_hz: %u\n", min_sys_div);
--	min_sys_div = clk_div_even_up(min_sys_div);
--	dev_dbg(dev, "min_sys_div: one or even: %u\n", min_sys_div);
-+	dev_dbg(dev, "min_sys_div: max_pll_op_clk_freq_hz: %d\n", min_sys_div);
-+	min_sys_div = clk_div_even_up(min_sys_div, 0);
-+	dev_dbg(dev, "min_sys_div: one or even: %d\n", min_sys_div);
- 
- 	max_sys_div = limits->vt.max_sys_clk_div;
- 	dev_dbg(dev, "max_sys_div: %u\n", max_sys_div);
-@@ -422,14 +426,19 @@ int smiapp_pll_calculate(struct device *dev,
- 		limits->min_pre_pll_clk_div, limits->max_pre_pll_clk_div);
- 	max_pre_pll_clk_div =
- 		min_t(uint16_t, limits->max_pre_pll_clk_div,
--		      clk_div_even(pll->ext_clk_freq_hz /
--				   limits->min_pll_ip_freq_hz));
-+		      clk_div_even(
-+			      pll->ext_clk_freq_hz /
-+			      limits->min_pll_ip_freq_hz,
-+			      pll->flags
-+			      & SMIAPP_PLL_FLAG_ALLOW_ODD_PRE_PLL_CLK_DIV));
- 	min_pre_pll_clk_div =
- 		max_t(uint16_t, limits->min_pre_pll_clk_div,
- 		      clk_div_even_up(
- 			      DIV_ROUND_UP(pll->ext_clk_freq_hz,
--					   limits->max_pll_ip_freq_hz)));
--	dev_dbg(dev, "pre-pll check: min / max pre_pll_clk_div: %u / %u\n",
-+					   limits->max_pll_ip_freq_hz),
-+			      pll->flags
-+			      & SMIAPP_PLL_FLAG_ALLOW_ODD_PRE_PLL_CLK_DIV));
-+	dev_dbg(dev, "pre-pll check: min / max pre_pll_clk_div: %d / %d\n",
- 		min_pre_pll_clk_div, max_pre_pll_clk_div);
- 
- 	i = gcd(pll->pll_op_clk_freq_hz, pll->ext_clk_freq_hz);
-@@ -441,13 +450,17 @@ int smiapp_pll_calculate(struct device *dev,
- 		max_t(uint16_t, min_pre_pll_clk_div,
- 		      clk_div_even_up(
- 			      DIV_ROUND_UP(mul * pll->ext_clk_freq_hz,
--					   limits->max_pll_op_freq_hz)));
--	dev_dbg(dev, "pll_op check: min / max pre_pll_clk_div: %u / %u\n",
-+					   limits->max_pll_op_freq_hz),
-+			      pll->flags
-+			      & SMIAPP_PLL_FLAG_ALLOW_ODD_PRE_PLL_CLK_DIV));
-+	dev_dbg(dev, "pll_op check: min / max pre_pll_clk_div: %d / %d\n",
- 		min_pre_pll_clk_div, max_pre_pll_clk_div);
- 
- 	for (pll->pre_pll_clk_div = min_pre_pll_clk_div;
- 	     pll->pre_pll_clk_div <= max_pre_pll_clk_div;
--	     pll->pre_pll_clk_div += 2 - (pll->pre_pll_clk_div & 1)) {
-+	     pll->pre_pll_clk_div +=
-+		     pll->flags & SMIAPP_PLL_FLAG_ALLOW_ODD_PRE_PLL_CLK_DIV
-+		     ? 1 : (2 - (pll->pre_pll_clk_div & 1))) {
- 		rval = __smiapp_pll_calculate(dev, limits, pll, mul, div,
- 					      lane_op_clock_ratio);
- 		if (rval)
-diff --git a/drivers/media/i2c/smiapp-pll.h b/drivers/media/i2c/smiapp-pll.h
-index bb5ae28..a25f550 100644
---- a/drivers/media/i2c/smiapp-pll.h
-+++ b/drivers/media/i2c/smiapp-pll.h
-@@ -34,6 +34,8 @@
- /* op pix clock is for all lanes in total normally */
- #define SMIAPP_PLL_FLAG_OP_PIX_CLOCK_PER_LANE			(1 << 0)
- #define SMIAPP_PLL_FLAG_NO_OP_CLOCKS				(1 << 1)
-+/* the pre-pll div may be odd */
-+#define SMIAPP_PLL_FLAG_ALLOW_ODD_PRE_PLL_CLK_DIV		(1 << 2)
- 
- struct smiapp_pll {
- 	/* input values */
--- 
-1.8.3.2
+What is the purpose of DRM_MODE_FLAG_POL_PIXDATA_PRESERVE?
+If 'preserve' means 'ignore' we can set to zero negedge and posedge bits
+instead of adding new bit. If it is something different please describe it.
+
+> +#define DRM_MODE_FLAG_POL_DE_LOW		BIT(4)
+> +#define DRM_MODE_FLAG_POL_DE_HIGH		BIT(5)
+> +#define DRM_MODE_FLAG_POL_DE_PRESERVE		BIT(6)
+> +
+
+The same comments here.
+
+>  struct drm_display_mode {
+>  	/* Header */
+>  	struct list_head head;
+> @@ -144,6 +151,7 @@ struct drm_display_mode {
+>  	int vrefresh;		/* in Hz */
+>  	int hsync;		/* in kHz */
+>  	enum hdmi_picture_aspect picture_aspect_ratio;
+> +	unsigned int pol_flags;
+
+Adding field and macros description to the DocBook would be nice.
+
+Regards
+Andrzej
+
+>  };
+>  
+>  /* mode specified on the command line */
+> 
 
