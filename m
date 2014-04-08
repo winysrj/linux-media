@@ -1,78 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:49247 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754198AbaDKNEL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 09:04:11 -0400
-Received: by mail-wi0-f172.google.com with SMTP id hi2so963349wib.5
-        for <linux-media@vger.kernel.org>; Fri, 11 Apr 2014 06:04:09 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20140411110822.GO4963@mwanda>
-References: <20131106161342.GD15603@elgon.mountain>
-	<20140411110822.GO4963@mwanda>
-Date: Fri, 11 Apr 2014 10:04:09 -0300
-Message-ID: <CAOMZO5D+APp=LcnVuCQYeCOtMDZ6KkyzHZ8js_XPC+DKHd-+Eg@mail.gmail.com>
-Subject: Re: [media] coda: update CODA7541 to firmware 1.4.50
-From: Fabio Estevam <festevam@gmail.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2774 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754690AbaDHClS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 22:41:18 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s382fE47059946
+	for <linux-media@vger.kernel.org>; Tue, 8 Apr 2014 04:41:16 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id CAE0A2A03F8
+	for <linux-media@vger.kernel.org>; Tue,  8 Apr 2014 04:40:58 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140408024058.CAE0A2A03F8@tschai.lan>
+Date: Tue,  8 Apr 2014 04:40:58 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan/Philipp,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Fri, Apr 11, 2014 at 8:08 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> What ever happened with this?
->
-> regards,
-> dan carpenter
->
-> On Wed, Nov 06, 2013 at 07:13:43PM +0300, Dan Carpenter wrote:
->> Hello Philipp Zabel,
->>
->> This is a semi-automatic email about new static checker warnings.
->>
->> The patch 5677e3b04d3b: "[media] coda: update CODA7541 to firmware
->> 1.4.50" from Jun 21, 2013, leads to the following Smatch complaint:
->>
->> drivers/media/platform/coda.c:1530 coda_alloc_framebuffers()
->>        error: we previously assumed 'ctx->codec' could be null (see line 1521)
->>
->> drivers/media/platform/coda.c
->>   1520
->>   1521                if (ctx->codec && ctx->codec->src_fourcc == V4L2_PIX_FMT_H264)
->>                     ^^^^^^^^^^
->> Patch introduces a new NULL check.
->>
->>   1522                        height = round_up(height, 16);
->>   1523                ysize = round_up(q_data->width, 8) * height;
->>   1524
->>   1525                /* Allocate frame buffers */
->>   1526                for (i = 0; i < ctx->num_internal_frames; i++) {
->>   1527                        size_t size;
->>   1528
->>   1529                        size = q_data->sizeimage;
->>   1530                        if (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264 &&
->>                             ^^^^^^^^^^^^^^^^^^^^^^
->> Patch introduces a new unchecked dereference.
->>
->>   1531                            dev->devtype->product != CODA_DX6)
->>   1532                                ctx->internal_frames[i].size += ysize/4;
+Results of the daily build of media_tree:
 
-Would the fix below address this issue?
+date:		Tue Apr  8 04:05:59 CEST 2014
+git branch:	test
+git hash:	a83b93a7480441a47856dc9104bea970e84cda87
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.13-7.slh.1-amd64
 
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1518,7 +1518,10 @@ static int coda_alloc_framebuffers(struct coda_ctx *ctx,
-        int ret;
-        int i;
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
--       if (ctx->codec && ctx->codec->src_fourcc == V4L2_PIX_FMT_H264)
-+       if (!ctx->codec)
-+               return -EINVAL;
-+
-+       if (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264)
-                height = round_up(height, 16);
-        ysize = round_up(q_data->width, 8) * height;
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
