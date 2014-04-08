@@ -1,100 +1,252 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43775 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751121AbaDOJcH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 05:32:07 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 07/10] si2157: add copyright and license
-Date: Tue, 15 Apr 2014 12:31:43 +0300
-Message-Id: <1397554306-14561-8-git-send-email-crope@iki.fi>
-In-Reply-To: <1397554306-14561-1-git-send-email-crope@iki.fi>
-References: <1397554306-14561-1-git-send-email-crope@iki.fi>
+Received: from mailout4.samsung.com ([203.254.224.34]:30708 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932161AbaDHOi2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 10:38:28 -0400
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org
+Cc: kishon@ti.com, t.figa@samsung.com, kyungmin.park@samsung.com,
+	sylvester.nawrocki@gmail.com, robh+dt@kernel.org,
+	inki.dae@samsung.com, rahul.sharma@samsung.com,
+	grant.likely@linaro.org, kgene.kim@samsung.com,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv2 1/3] phy: Add exynos-simple-phy driver
+Date: Tue, 08 Apr 2014 16:37:34 +0200
+Message-id: <1396967856-27470-2-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com>
+References: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add copyright and license for each file.
+Add exynos-simple-phy driver to support a single register
+PHY interfaces present on Exynos4 SoC.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
 ---
- drivers/media/tuners/si2157.c      | 16 ++++++++++++++++
- drivers/media/tuners/si2157.h      | 16 ++++++++++++++++
- drivers/media/tuners/si2157_priv.h | 16 ++++++++++++++++
- 3 files changed, 48 insertions(+)
+ .../devicetree/bindings/phy/samsung-phy.txt        |   24 +++
+ drivers/phy/Kconfig                                |    5 +
+ drivers/phy/Makefile                               |    1 +
+ drivers/phy/exynos-simple-phy.c                    |  154 ++++++++++++++++++++
+ 4 files changed, 184 insertions(+)
+ create mode 100644 drivers/phy/exynos-simple-phy.c
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 5675448..271a752 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -1,3 +1,19 @@
+diff --git a/Documentation/devicetree/bindings/phy/samsung-phy.txt b/Documentation/devicetree/bindings/phy/samsung-phy.txt
+index b422e38..f97c4c3 100644
+--- a/Documentation/devicetree/bindings/phy/samsung-phy.txt
++++ b/Documentation/devicetree/bindings/phy/samsung-phy.txt
+@@ -114,3 +114,27 @@ Example:
+ 		compatible = "samsung,exynos-sataphy-i2c";
+ 		reg = <0x38>;
+ 	};
++
++Samsung S5P/EXYNOS SoC series SIMPLE PHY
++-------------------------------------------------
++
++Required properties:
++- compatible : should be one of the listed compatibles:
++	- "samsung,exynos4210-simple-phy"
++	- "samsung,exynos4412-simple-phy"
++- reg : offset and length of the register set;
++- #phy-cells : from the generic phy bindings, must be 1;
++
++For "samsung,exynos4210-simple-phy" compatible PHYs the second cell in
++the PHY specifier identifies the PHY and its meaning is as follows:
++  0 - HDMI PHY,
++  1 - DAC PHY,
++  2 - ADC PHY,
++  3 - PCIE PHY.
++  4 - SATA PHY.
++
++For "samsung,exynos4412-simple-phy" compatible PHYs the second cell in
++the PHY specifier identifies the PHY and its meaning is as follows:
++  0 - HDMI PHY,
++  1 - ADC PHY,
++
+diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+index 3bb05f1..65ab783 100644
+--- a/drivers/phy/Kconfig
++++ b/drivers/phy/Kconfig
+@@ -166,4 +166,9 @@ config PHY_XGENE
+ 	help
+ 	  This option enables support for APM X-Gene SoC multi-purpose PHY.
+ 
++config EXYNOS_SIMPLE_PHY
++	tristate "Exynos Simple PHY driver"
++	help
++	  Support for 1-bit PHY controllers on SoCs from Exynos family.
++
+ endmenu
+diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
+index 2faf78e..88c5b60 100644
+--- a/drivers/phy/Makefile
++++ b/drivers/phy/Makefile
+@@ -18,3 +18,4 @@ obj-$(CONFIG_PHY_EXYNOS4210_USB2)	+= phy-exynos4210-usb2.o
+ obj-$(CONFIG_PHY_EXYNOS4X12_USB2)	+= phy-exynos4x12-usb2.o
+ obj-$(CONFIG_PHY_EXYNOS5250_USB2)	+= phy-exynos5250-usb2.o
+ obj-$(CONFIG_PHY_XGENE)			+= phy-xgene.o
++obj-$(CONFIG_EXYNOS_SIMPLE_PHY)		+= exynos-simple-phy.o
+diff --git a/drivers/phy/exynos-simple-phy.c b/drivers/phy/exynos-simple-phy.c
+new file mode 100644
+index 0000000..57ad338
+--- /dev/null
++++ b/drivers/phy/exynos-simple-phy.c
+@@ -0,0 +1,154 @@
 +/*
-+ * Silicon Labs Si2157 silicon tuner driver
++ * Exynos Simple PHY driver
 + *
-+ * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Author: Tomasz Stanislawski <t.stanislaws@samsung.com>
 + *
-+ *    This program is free software; you can redistribute it and/or modify
-+ *    it under the terms of the GNU General Public License as published by
-+ *    the Free Software Foundation; either version 2 of the License, or
-+ *    (at your option) any later version.
-+ *
-+ *    This program is distributed in the hope that it will be useful,
-+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *    GNU General Public License for more details.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
 +
- #include "si2157_priv.h"
- 
- /* execute firmware command */
-diff --git a/drivers/media/tuners/si2157.h b/drivers/media/tuners/si2157.h
-index 5de47d4..f469a09 100644
---- a/drivers/media/tuners/si2157.h
-+++ b/drivers/media/tuners/si2157.h
-@@ -1,3 +1,19 @@
-+/*
-+ * Silicon Labs Si2157 silicon tuner driver
-+ *
-+ * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
-+ *
-+ *    This program is free software; you can redistribute it and/or modify
-+ *    it under the terms of the GNU General Public License as published by
-+ *    the Free Software Foundation; either version 2 of the License, or
-+ *    (at your option) any later version.
-+ *
-+ *    This program is distributed in the hope that it will be useful,
-+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *    GNU General Public License for more details.
-+ */
++#include <linux/io.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
++#include <linux/of_device.h>
++#include <linux/phy/phy.h>
 +
- #ifndef SI2157_H
- #define SI2157_H
- 
-diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
-index 6018851..6cc6c6f 100644
---- a/drivers/media/tuners/si2157_priv.h
-+++ b/drivers/media/tuners/si2157_priv.h
-@@ -1,3 +1,19 @@
-+/*
-+ * Silicon Labs Si2157 silicon tuner driver
-+ *
-+ * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
-+ *
-+ *    This program is free software; you can redistribute it and/or modify
-+ *    it under the terms of the GNU General Public License as published by
-+ *    the Free Software Foundation; either version 2 of the License, or
-+ *    (at your option) any later version.
-+ *
-+ *    This program is distributed in the hope that it will be useful,
-+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *    GNU General Public License for more details.
-+ */
++#define EXYNOS_PHY_ENABLE	(1 << 0)
 +
- #ifndef SI2157_PRIV_H
- #define SI2157_PRIV_H
- 
++static int exynos_phy_power_on(struct phy *phy)
++{
++	void __iomem *reg = phy_get_drvdata(phy);
++	u32 val;
++
++	val = readl(reg);
++	val |= EXYNOS_PHY_ENABLE;
++	writel(val, reg);
++
++	return 0;
++}
++
++static int exynos_phy_power_off(struct phy *phy)
++{
++	void __iomem *reg = phy_get_drvdata(phy);
++	u32 val;
++
++	val = readl(reg);
++	val &= ~EXYNOS_PHY_ENABLE;
++	writel(val, reg);
++
++	return 0;
++}
++
++static struct phy_ops exynos_phy_ops = {
++	.power_on	= exynos_phy_power_on,
++	.power_off	= exynos_phy_power_off,
++	.owner		= THIS_MODULE,
++};
++
++static const u32 exynos4210_offsets[] = {
++	0x0700, /* HDMI_PHY */
++	0x070C, /* DAC_PHY */
++	0x0718, /* ADC_PHY */
++	0x071C, /* PCIE_PHY */
++	0x0720, /* SATA_PHY */
++	~0, /* end mark */
++};
++
++static const u32 exynos4412_offsets[] = {
++	0x0700, /* HDMI_PHY */
++	0x0718, /* ADC_PHY */
++	~0, /* end mark */
++};
++
++static const struct of_device_id exynos_phy_of_match[] = {
++	{ .compatible = "samsung,exynos4210-simple-phy",
++	  .data = exynos4210_offsets},
++	{ .compatible = "samsung,exynos4412-simple-phy",
++	  .data = exynos4412_offsets},
++	{ },
++};
++MODULE_DEVICE_TABLE(of, exynos_phy_of_match);
++
++static struct phy *exynos_phy_xlate(struct device *dev,
++					struct of_phandle_args *args)
++{
++	struct phy **phys = dev_get_drvdata(dev);
++	int index = args->args[0];
++	int i;
++
++	/* verify if index is valid */
++	for (i = 0; i <= index; ++i)
++		if (!phys[i])
++			return ERR_PTR(-ENODEV);
++
++	return phys[index];
++}
++
++static int exynos_phy_probe(struct platform_device *pdev)
++{
++	const struct of_device_id *of_id = of_match_device(
++		of_match_ptr(exynos_phy_of_match), &pdev->dev);
++	const u32 *offsets = of_id->data;
++	int count;
++	struct device *dev = &pdev->dev;
++	struct phy **phys;
++	struct resource *res;
++	void __iomem *regs;
++	int i;
++	struct phy_provider *phy_provider;
++
++	/* count number of phys to create */
++	for (count = 0; offsets[count] != ~0; ++count)
++		;
++
++	phys = devm_kzalloc(dev, (count + 1) * sizeof(phys[0]), GFP_KERNEL);
++	if (!phys)
++		return -ENOMEM;
++
++	dev_set_drvdata(dev, phys);
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++
++	regs = devm_ioremap(dev, res->start, res->end - res->start);
++	if (!regs) {
++		dev_err(dev, "failed to ioremap registers\n");
++		return -EFAULT;
++	}
++
++	/* NOTE: last entry in phys[] is NULL */
++	for (i = 0; i < count; ++i) {
++		phys[i] = devm_phy_create(dev, &exynos_phy_ops, NULL);
++		if (IS_ERR(phys[i])) {
++			dev_err(dev, "failed to create PHY %d\n", i);
++			return PTR_ERR(phys[i]);
++		}
++		phy_set_drvdata(phys[i], regs + offsets[i]);
++	}
++
++	phy_provider = devm_of_phy_provider_register(dev, exynos_phy_xlate);
++	if (IS_ERR(phy_provider)) {
++		dev_err(dev, "failed to register PHY provider\n");
++		return PTR_ERR(phy_provider);
++	}
++
++	dev_info(dev, "added %d phys\n", count);
++
++	return 0;
++}
++
++static struct platform_driver exynos_phy_driver = {
++	.probe	= exynos_phy_probe,
++	.driver = {
++		.of_match_table	= exynos_phy_of_match,
++		.name  = "exynos-simple-phy",
++		.owner = THIS_MODULE,
++	}
++};
++module_platform_driver(exynos_phy_driver);
++
++MODULE_DESCRIPTION("Exynos Simple PHY driver");
++MODULE_AUTHOR("Tomasz Stanislawski <t.stanislaws@samsung.com>");
++MODULE_LICENSE("GPL v2");
 -- 
-1.9.0
+1.7.9.5
 
