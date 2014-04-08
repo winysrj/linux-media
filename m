@@ -1,56 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f174.google.com ([209.85.160.174]:50291 "EHLO
-	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932996AbaDJBQt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 21:16:49 -0400
-Received: by mail-yk0-f174.google.com with SMTP id 20so2932157yks.5
-        for <linux-media@vger.kernel.org>; Wed, 09 Apr 2014 18:16:49 -0700 (PDT)
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:53502 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756628AbaDHMoD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Apr 2014 08:44:03 -0400
+Date: Tue, 8 Apr 2014 13:43:17 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Denis Carikli <denis@eukrea.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Eric =?iso-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12][ 03/12] imx-drm: Correct BGR666 and the board's
+	dts that use them.
+Message-ID: <20140408124317.GF16119@n2100.arm.linux.org.uk>
+References: <1396874691-27954-1-git-send-email-denis@eukrea.com> <1396874691-27954-3-git-send-email-denis@eukrea.com>
 MIME-Version: 1.0
-In-Reply-To: <1396876272-18222-11-git-send-email-hverkuil@xs4all.nl>
-References: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl> <1396876272-18222-11-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Thu, 10 Apr 2014 10:08:31 +0900
-Message-ID: <CAMm-=zADVfFPJSuHifGadOeYxbxM-8P0cf2nsRFbM_5U_6yxtQ@mail.gmail.com>
-Subject: Re: [REVIEWv2 PATCH 10/13] vb2: set v4l2_buffer.bytesused to 0 for mp buffers
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1396874691-27954-3-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 7, 2014 at 10:11 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> The bytesused field of struct v4l2_buffer is not used for multiplanar
-> formats, so just zero it to prevent it from having some random value.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, Apr 07, 2014 at 02:44:42PM +0200, Denis Carikli wrote:
+>  arch/arm/boot/dts/imx51-apf51dev.dts    |    2 +-
+>  arch/arm/boot/dts/imx53-m53evk.dts      |    2 +-
+>  drivers/staging/imx-drm/imx-ldb.c       |    4 ++--
+>  drivers/staging/imx-drm/ipu-v3/ipu-dc.c |    4 ++--
+>  4 files changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/imx51-apf51dev.dts b/arch/arm/boot/dts/imx51-apf51dev.dts
+> index c5a9a24..7b3851d 100644
+> --- a/arch/arm/boot/dts/imx51-apf51dev.dts
+> +++ b/arch/arm/boot/dts/imx51-apf51dev.dts
+> @@ -18,7 +18,7 @@
+>  
+>  	display@di1 {
+>  		compatible = "fsl,imx-parallel-display";
+> -		interface-pix-fmt = "bgr666";
+> +		interface-pix-fmt = "rgb666";
 
-Acked-by: Pawel Osciak <pawel@osciak.com>
+...
 
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 08152dd..ef7ef82 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -582,6 +582,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
->                  * for it. The caller has already verified memory and size.
->                  */
->                 b->length = vb->num_planes;
-> +               b->bytesused = 0;
->                 memcpy(b->m.planes, vb->v4l2_planes,
->                         b->length * sizeof(struct v4l2_plane));
->         } else {
-> --
-> 1.9.1
->
+>  	/* bgr666 */
+>  	ipu_dc_map_clear(priv, IPU_DC_MAP_BGR666);
+> -	ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 0, 5, 0xfc); /* blue */
+> +	ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 0, 17, 0xfc); /* blue */
+>  	ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 1, 11, 0xfc); /* green */
+> -	ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 2, 17, 0xfc); /* red */
+> +	ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 2, 5, 0xfc); /* red */
 
+arm-soc people have become very obtuse with respect to changes to any
+patches to arch/arm/boot/dts, and complain loudly if any changes to
+that directory do not go through them as separate patches.
 
+What this means is that your patch is unacceptable and needs to be split
+up.
+
+The choices seem to be to either break imx-drm by splitting the patch in
+two, thereby ending up with the two dependent changes being merged
+entirely separate, resulting in breakage while one or other is merged,
+or to add the RGB666 support, wait for that to hit mainline, then
+update the DT files, wait for that to hit mainline, then fix the BGR666
+support.  That'll take around six to nine months (two to three months
+per release cycle.)
+
+Or arm-soc could come to their senses and realise that they do not have
+sole ownership over arch/arm/boot/dts.
 
 -- 
-Best regards,
-Pawel Osciak
+FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
+improving, and getting towards what was expected from it.
