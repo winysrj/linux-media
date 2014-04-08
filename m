@@ -1,67 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.bemta7.messagelabs.com ([216.82.254.112]:5997 "EHLO
-	mail1.bemta7.messagelabs.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753273AbaDDUBj convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Apr 2014 16:01:39 -0400
-From: "Scheuermann, Mail" <Scheuermann@barco.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: AW: AW: v4l2_buffer with PBO mapped memory
-Date: Fri, 4 Apr 2014 20:01:33 +0000
-Message-ID: <67C778DDEF97AE4BA9DC4BA8ECFD811E1DB2EA13@KUUMEX11.barco.com>
-References: <533C2872.5090603@barco.com> <11263729.kS3FzW2BUL@avalon>
- <67C778DDEF97AE4BA9DC4BA8ECFD811E1DB2C949@KUUMEX11.barco.com>,<82154683.DEhQIaoLxb@avalon>
-In-Reply-To: <82154683.DEhQIaoLxb@avalon>
-Content-Language: de-DE
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-oa0-f47.google.com ([209.85.219.47]:49810 "EHLO
+	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750904AbaDHHno (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 03:43:44 -0400
+Received: by mail-oa0-f47.google.com with SMTP id i11so597244oag.6
+        for <linux-media@vger.kernel.org>; Tue, 08 Apr 2014 00:43:43 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <1396876573-15811-4-git-send-email-j.anaszewski@samsung.com>
+References: <1396876573-15811-1-git-send-email-j.anaszewski@samsung.com>
+	<1396876573-15811-4-git-send-email-j.anaszewski@samsung.com>
+Date: Tue, 8 Apr 2014 13:13:43 +0530
+Message-ID: <CAK9yfHwBVhe6eycHW9xdQSa6qG8DV5070rLsFCKxXS6c+Jpv5Q@mail.gmail.com>
+Subject: Re: [PATCH 4/8] [media] s5p-jpeg: Fix build break when CONFIG_OF is undefined
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Jacek,
 
-I've done the following:
-
-echo 3 >/sys/module/videobuf2_core/parameters/debug
-
-and found in /var/log/kern.log after starting my program:
-
-Apr  4 21:53:48 x240 kernel: [239432.535077] vb2: Buffer 0, plane 0 offset 0x00000000
-Apr  4 21:53:48 x240 kernel: [239432.535080] vb2: Buffer 1, plane 0 offset 0x001c2000
-Apr  4 21:53:48 x240 kernel: [239432.535082] vb2: Buffer 2, plane 0 offset 0x00384000
-Apr  4 21:53:48 x240 kernel: [239432.535083] vb2: Allocated 3 buffers, 1 plane(s) each
-Apr  4 21:53:48 x240 kernel: [239432.535085] vb2: qbuf: userspace address for plane 0 changed, reacquiring memory
-Apr  4 21:53:48 x240 kernel: [239432.535087] vb2: qbuf: failed acquiring userspace memory for plane 0
-Apr  4 21:53:48 x240 kernel: [239432.535088] vb2: qbuf: buffer preparation failed: -22
-Apr  4 21:53:48 x240 kernel: [239432.535128] vb2: streamoff: not streaming
-
-Regards,
-
-Thomas
-
-________________________________________
-Von: Laurent Pinchart [laurent.pinchart@ideasonboard.com]
-Gesendet: Freitag, 4. April 2014 01:16
-An: Scheuermann, Mail
-Cc: linux-media@vger.kernel.org
-Betreff: Re: AW: v4l2_buffer with PBO mapped memory
-
-Hi Thomas,
-
-On Thursday 03 April 2014 16:52:19 Scheuermann, Mail wrote:
-> Hi Laurent,
+On 7 April 2014 18:46, Jacek Anaszewski <j.anaszewski@samsung.com> wrote:
+> This patch fixes build break occurring when
+> there is no support for Device Tree turned on
+> in the kernel configuration. In such a case only
+> the driver variant for S5PC210 SoC will be available.
 >
-> the driver my device uses is the uvcvideo. I have the kernel 3.11.0-18 from
-> Ubuntu 13.10 running. It is built in in a Thinkpad X240 notebook.
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+<snip>
 
-OK. A bit of debugging will then be needed. Could you set the videobuf2-core
-debug parameter to 3, retry your test case and send us the kernel log ?
+>
+> +       if (!IS_ENABLED(CONFIG_OF) || dev->of_node == NULL)
 
---
-Regards,
+!dev->of_node instead of equating to NULL.
 
-Laurent Pinchart
 
-This message is subject to the following terms and conditions: MAIL DISCLAIMER<http://www.barco.com/en/maildisclaimer>
+> +               return &s5p_jpeg_drvdata;
+> +
+>         match = of_match_node(of_match_ptr(samsung_jpeg_match),
+
+Since you are returning above if CONFIG_OF is not enabled, of_match_ptr
+is not needed.
+
+-- 
+With warm regards,
+Sachin
