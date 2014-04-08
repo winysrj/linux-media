@@ -1,116 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50694 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754308AbaDLNYR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Apr 2014 09:24:17 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [yavta PATCH v3 05/11] Provide -B option for setting the buffer type
-Date: Sat, 12 Apr 2014 16:23:57 +0300
-Message-Id: <1397309043-8322-6-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1397309043-8322-1-git-send-email-sakari.ailus@iki.fi>
-References: <1397309043-8322-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mailout2.samsung.com ([203.254.224.25]:51265 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932161AbaDHOid (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 10:38:33 -0400
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org
+Cc: kishon@ti.com, t.figa@samsung.com, kyungmin.park@samsung.com,
+	sylvester.nawrocki@gmail.com, robh+dt@kernel.org,
+	inki.dae@samsung.com, rahul.sharma@samsung.com,
+	grant.likely@linaro.org, kgene.kim@samsung.com,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv2 2/3] drm: exynos: hdmi: use hdmiphy as PHY
+Date: Tue, 08 Apr 2014 16:37:35 +0200
+Message-id: <1396967856-27470-3-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com>
+References: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of guessing the buffer type, allow setting it explicitly.
+The HDMIPHY (physical interface) is controlled by a single
+bit in a power controller's regiter. It was implemented
+as clock. It was a simple but effective hack.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+This patch makes HDMI driver to control HDMIPHY via PHY interface.
+
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
 ---
- yavta.c |   44 +++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 37 insertions(+), 7 deletions(-)
+ drivers/gpu/drm/exynos/exynos_hdmi.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/yavta.c b/yavta.c
-index 01f61d2..78ebf21 100644
---- a/yavta.c
-+++ b/yavta.c
-@@ -99,15 +99,34 @@ static bool video_is_output(struct device *dev)
+diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
+index 9a6d652..ef1cdd0 100644
+--- a/drivers/gpu/drm/exynos/exynos_hdmi.c
++++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
+@@ -36,6 +36,7 @@
+ #include <linux/i2c.h>
+ #include <linux/of_gpio.h>
+ #include <linux/hdmi.h>
++#include <linux/phy/phy.h>
  
- static struct {
-  	enum v4l2_buf_type type;
-+ 	bool supported;
- 	const char *name;
-+	const char *string;
- } buf_types[] = {
--	{ V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, "Video capture mplanes", },
--	{ V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, "Video output", },
--	{ V4L2_BUF_TYPE_VIDEO_CAPTURE, "Video capture" },
--	{ V4L2_BUF_TYPE_VIDEO_OUTPUT, "Video output mplanes" },
--	{ V4L2_BUF_TYPE_VIDEO_OVERLAY, "Video overlay" },
-+	{ V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, 1, "Video capture mplanes", "capture-mplane", },
-+	{ V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, 1, "Video output", "output-mplane", },
-+	{ V4L2_BUF_TYPE_VIDEO_CAPTURE, 1, "Video capture", "capture", },
-+	{ V4L2_BUF_TYPE_VIDEO_OUTPUT, 1, "Video output mplanes", "output", },
-+	{ V4L2_BUF_TYPE_VIDEO_OVERLAY, 0, "Video overlay", "overlay" },
+ #include <drm/exynos_drm.h>
+ 
+@@ -74,8 +75,8 @@ struct hdmi_resources {
+ 	struct clk			*sclk_hdmi;
+ 	struct clk			*sclk_pixel;
+ 	struct clk			*sclk_hdmiphy;
+-	struct clk			*hdmiphy;
+ 	struct clk			*mout_hdmi;
++	struct phy			*hdmiphy;
+ 	struct regulator_bulk_data	*regul_bulk;
+ 	int				regul_count;
  };
+@@ -1854,7 +1855,7 @@ static void hdmi_poweron(struct exynos_drm_display *display)
+ 	if (regulator_bulk_enable(res->regul_count, res->regul_bulk))
+ 		DRM_DEBUG_KMS("failed to enable regulator bulk\n");
  
-+static int v4l2_buf_type_from_string(const char *str)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(buf_types); i++) {
-+		if (!buf_types[i].supported)
-+			continue;
-+
-+		if (strcmp(buf_types[i].string, str))
-+			continue;
-+
-+		return buf_types[i].type;
-+	}
-+
-+	return -1;
-+}
-+
- static const char *v4l2_buf_type_name(enum v4l2_buf_type type)
- {
- 	unsigned int i;
-@@ -1500,6 +1519,8 @@ static void usage(const char *argv0)
- {
- 	printf("Usage: %s [options] device\n", argv0);
- 	printf("Supported options:\n");
-+	printf("-B, --buffer-type		Buffer type (\"capture\", \"output\",\n");
-+	printf("                                \"capture-mplane\" or \"output-mplane\")\n");
- 	printf("-c, --capture[=nframes]		Capture frames\n");
- 	printf("-C, --check-overrun		Verify dequeued frames for buffer overrun\n");
- 	printf("-d, --delay			Delay (in ms) before requeuing buffers\n");
-@@ -1541,6 +1562,7 @@ static void usage(const char *argv0)
- #define OPT_STRIDE		263
+-	clk_prepare_enable(res->hdmiphy);
++	phy_power_on(res->hdmiphy);
+ 	clk_prepare_enable(res->hdmi);
+ 	clk_prepare_enable(res->sclk_hdmi);
  
- static struct option opts[] = {
-+	{"buffer-type", 1, 0, 'B'},
- 	{"capture", 2, 0, 'c'},
- 	{"check-overrun", 0, 0, 'C'},
- 	{"delay", 1, 0, 'd'},
-@@ -1618,9 +1640,17 @@ int main(int argc, char *argv[])
- 	video_init(&dev);
+@@ -1881,7 +1882,7 @@ static void hdmi_poweroff(struct exynos_drm_display *display)
  
- 	opterr = 0;
--	while ((c = getopt_long(argc, argv, "c::Cd:f:F::hi:Iln:pq:r:R::s:t:uw:", opts, NULL)) != -1) {
-+	while ((c = getopt_long(argc, argv, "B:c::Cd:f:F::hi:Iln:pq:r:R::s:t:uw:", opts, NULL)) != -1) {
+ 	clk_disable_unprepare(res->sclk_hdmi);
+ 	clk_disable_unprepare(res->hdmi);
+-	clk_disable_unprepare(res->hdmiphy);
++	phy_power_off(res->hdmiphy);
+ 	regulator_bulk_disable(res->regul_count, res->regul_bulk);
  
- 		switch (c) {
-+		case 'B':
-+			ret = v4l2_buf_type_from_string(optarg);
-+			if (ret == -1) {
-+				printf("Bad buffer type \"%s\"\n", optarg);
-+				return 1;
-+			}
-+			video_set_buf_type(&dev, ret);
-+			break;
- 		case 'c':
- 			do_capture = 1;
- 			if (optarg)
-@@ -1783,7 +1813,7 @@ int main(int argc, char *argv[])
- 	if (ret < 0)
- 		return 1;
- 
--	if (!video_is_buf_type_valid(&dev))
-+	if (!video_has_valid_buf_type(&dev))
- 		video_set_buf_type(&dev, ret);
- 
- 	dev.memtype = memtype;
+ 	pm_runtime_put_sync(hdata->dev);
+@@ -1977,9 +1978,9 @@ static int hdmi_resources_init(struct hdmi_context *hdata)
+ 		DRM_ERROR("failed to get clock 'sclk_hdmiphy'\n");
+ 		goto fail;
+ 	}
+-	res->hdmiphy = devm_clk_get(dev, "hdmiphy");
++	res->hdmiphy = devm_phy_get(dev, "hdmiphy");
+ 	if (IS_ERR(res->hdmiphy)) {
+-		DRM_ERROR("failed to get clock 'hdmiphy'\n");
++		DRM_ERROR("failed to get phy 'hdmiphy'\n");
+ 		goto fail;
+ 	}
+ 	res->mout_hdmi = devm_clk_get(dev, "mout_hdmi");
 -- 
-1.7.10.4
+1.7.9.5
 
