@@ -1,82 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:44832 "EHLO
-	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191AbaDAO3c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Apr 2014 10:29:32 -0400
-Date: Tue, 1 Apr 2014 07:28:53 -0700
-From: Josh Triplett <josh@joshtriplett.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Sparse Mailing-list <linux-sparse@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Christopher Li <sparse@chrisli.org>
-Subject: Re: [PATCH] Fix _IOC_TYPECHECK sparse error
-Message-ID: <20140401142852.GA22576@leaf>
-References: <533A64EC.2090106@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <533A64EC.2090106@xs4all.nl>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:24502 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756199AbaDHKC1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 06:02:27 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N3P005B3IK0BWA0@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 08 Apr 2014 11:02:24 +0100 (BST)
+Message-id: <5343C92D.2070508@samsung.com>
+Date: Tue, 08 Apr 2014 12:02:21 +0200
+From: Andrzej Hajda <a.hajda@samsung.com>
+MIME-version: 1.0
+To: Denis Carikli <denis@eukrea.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?ISO-8859-1?Q?Eric_B=E9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12][ 07/12] drm: drm_display_mode: add signal polarity
+ flags
+References: <1396874691-27954-1-git-send-email-denis@eukrea.com>
+ <1396874691-27954-7-git-send-email-denis@eukrea.com>
+ <534398D5.4090600@samsung.com> <5343AE8A.50803@eukrea.com>
+In-reply-to: <5343AE8A.50803@eukrea.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 01, 2014 at 09:04:12AM +0200, Hans Verkuil wrote:
-> When running sparse over drivers/media/v4l2-core/v4l2-ioctl.c I get these
-> errors:
+On 04/08/2014 10:08 AM, Denis Carikli wrote:
+> On 04/08/2014 08:36 AM, Andrzej Hajda wrote:
+>>
+>> Hi Denis,
+> Hi,
 > 
-> drivers/media/v4l2-core/v4l2-ioctl.c:2043:9: error: bad integer constant expression
-> drivers/media/v4l2-core/v4l2-ioctl.c:2044:9: error: bad integer constant expression
-> drivers/media/v4l2-core/v4l2-ioctl.c:2045:9: error: bad integer constant expression
-> drivers/media/v4l2-core/v4l2-ioctl.c:2046:9: error: bad integer constant expression
+>>> +#define DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE	BIT(1)
+>>> +#define DRM_MODE_FLAG_POL_PIXDATA_POSEDGE	BIT(2)
+>>> +#define DRM_MODE_FLAG_POL_PIXDATA_PRESERVE	BIT(3)
+>>
+>> What is the purpose of DRM_MODE_FLAG_POL_PIXDATA_PRESERVE?
+>> If 'preserve' means 'ignore' we can set to zero negedge and posedge bits
+>> instead of adding new bit. If it is something different please describe it.
+> Yes, it meant 'ignore'.
 > 
-> etc.
+> The goal was to be able to have a way to keep the old behavior while 
+> still being able to set the flags.
 > 
-> The root cause of that turns out to be in include/asm-generic/ioctl.h:
+> So, with the imx-drm driver, if none of the DRM_MODE_FLAG_POL_PIXDATA 
+> were set(that is POSEDGE, NEGEDGE, PRESERVE), then in ipuv3-crtc.c, it 
+> went using the old flags settings that were previously hardcoded.
 > 
-> #include <uapi/asm-generic/ioctl.h>
-> 
-> /* provoke compile error for invalid uses of size argument */
-> extern unsigned int __invalid_size_argument_for_IOC;
-> #define _IOC_TYPECHECK(t) \
->         ((sizeof(t) == sizeof(t[1]) && \
->           sizeof(t) < (1 << _IOC_SIZEBITS)) ? \
->           sizeof(t) : __invalid_size_argument_for_IOC)
-> 
-> If it is defined as this (as is already done if __KERNEL__ is not defined):
-> 
-> #define _IOC_TYPECHECK(t) (sizeof(t))
-> 
-> then all is well with the world.
-> 
-> This patch allows sparse to work correctly.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> The same applied for DRM_MODE_FLAG_POL_DE.
+> The patch using theses flags is the 08/12 of this same serie.
 
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+So as I understand you want to:
+- do not change hw polarity settings by using preserve bit,
+- keep the old behavior of the driver by setting all bits to zero.
 
-> diff --git a/include/asm-generic/ioctl.h b/include/asm-generic/ioctl.h
-> index d17295b..297fb0d 100644
-> --- a/include/asm-generic/ioctl.h
-> +++ b/include/asm-generic/ioctl.h
-> @@ -3,10 +3,15 @@
->  
->  #include <uapi/asm-generic/ioctl.h>
->  
-> +#ifdef __CHECKER__
-> +#define _IOC_TYPECHECK(t) (sizeof(t))
-> +#else
->  /* provoke compile error for invalid uses of size argument */
->  extern unsigned int __invalid_size_argument_for_IOC;
->  #define _IOC_TYPECHECK(t) \
->  	((sizeof(t) == sizeof(t[1]) && \
->  	  sizeof(t) < (1 << _IOC_SIZEBITS)) ? \
->  	  sizeof(t) : __invalid_size_argument_for_IOC)
-> +#endif
-> +
->  #endif /* _ASM_GENERIC_IOCTL_H */
+I think this is the issue of the specific driver, and it should not
+influence core structs.
+
+I am not familiar with imx but I guess it should not be a problem
+to solve the issue in the driver.
+
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-sparse" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>   struct drm_display_mode {
+> [..]
+>>> +	unsigned int pol_flags;
+>>
+>> Adding field and macros description to the DocBook would be nice.
+> So I will have to describe it in the "Connector Helper Operations" 
+> section of drm.tmpl, right before the mode_valid synopsis ?
+
+Yes, I think so.
+
+Andrzej
+
+> 
+> Denis.
+> 
+
