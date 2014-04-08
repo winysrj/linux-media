@@ -1,143 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38905 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753825AbaDQONd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 10:13:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v4 26/49] v4l: Validate fields in the core code for subdev EDID ioctls
-Date: Thu, 17 Apr 2014 16:12:57 +0200
-Message-Id: <1397744000-23967-27-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:30726 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932161AbaDHOim (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 10:38:42 -0400
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org
+Cc: kishon@ti.com, t.figa@samsung.com, kyungmin.park@samsung.com,
+	sylvester.nawrocki@gmail.com, robh+dt@kernel.org,
+	inki.dae@samsung.com, rahul.sharma@samsung.com,
+	grant.likely@linaro.org, kgene.kim@samsung.com,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv2 3/3] s5p-tv: hdmi: use hdmiphy as PHY
+Date: Tue, 08 Apr 2014 16:37:36 +0200
+Message-id: <1396967856-27470-4-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com>
+References: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The subdev EDID ioctls receive a pad field that must reference an
-existing pad and an EDID field that must point to a buffer. Validate
-both fields in the core code instead of duplicating validation in all
-drivers.
+The HDMIPHY (physical interface) is controlled by a single
+bit in a power controller's regiter. It was implemented
+as clock. It was a simple but effective hack.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+This patch makes S5P-HDMI driver to control HDMIPHY via PHY interface.
+
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
 ---
- drivers/media/i2c/ad9389b.c           |  2 --
- drivers/media/i2c/adv7511.c           |  2 --
- drivers/media/i2c/adv7604.c           |  4 ----
- drivers/media/i2c/adv7842.c           |  4 ----
- drivers/media/v4l2-core/v4l2-subdev.c | 24 ++++++++++++++++++++----
- 5 files changed, 20 insertions(+), 16 deletions(-)
+ drivers/media/platform/s5p-tv/hdmi_drv.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
-index f00b3dd..fada175 100644
---- a/drivers/media/i2c/ad9389b.c
-+++ b/drivers/media/i2c/ad9389b.c
-@@ -682,8 +682,6 @@ static int ad9389b_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- 		return -EINVAL;
- 	if (edid->blocks == 0 || edid->blocks > 256)
- 		return -EINVAL;
--	if (!edid->edid)
--		return -EINVAL;
- 	if (!state->edid.segments) {
- 		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
- 		return -ENODATA;
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index d77a1db..f98acf4 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -783,8 +783,6 @@ static int adv7511_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- 		return -EINVAL;
- 	if ((edid->blocks == 0) || (edid->blocks > 256))
- 		return -EINVAL;
--	if (!edid->edid)
--		return -EINVAL;
- 	if (!state->edid.segments) {
- 		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
- 		return -ENODATA;
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 98cc540..338baa4 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1673,8 +1673,6 @@ static int adv7604_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- 		return -EINVAL;
- 	if (edid->start_block == 1)
- 		edid->blocks = 1;
--	if (!edid->edid)
--		return -EINVAL;
+diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
+index 534722c..8013e52 100644
+--- a/drivers/media/platform/s5p-tv/hdmi_drv.c
++++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
+@@ -32,6 +32,7 @@
+ #include <linux/clk.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/v4l2-dv-timings.h>
++#include <linux/phy/phy.h>
  
- 	if (edid->blocks > state->edid.blocks)
- 		edid->blocks = state->edid.blocks;
-@@ -1761,8 +1759,6 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- 		edid->blocks = 2;
- 		return -E2BIG;
+ #include <media/s5p_hdmi.h>
+ #include <media/v4l2-common.h>
+@@ -66,7 +67,7 @@ struct hdmi_resources {
+ 	struct clk *sclk_hdmi;
+ 	struct clk *sclk_pixel;
+ 	struct clk *sclk_hdmiphy;
+-	struct clk *hdmiphy;
++	struct phy *hdmiphy;
+ 	struct regulator_bulk_data *regul_bulk;
+ 	int regul_count;
+ };
+@@ -586,7 +587,7 @@ static int hdmi_resource_poweron(struct hdmi_resources *res)
+ 	if (ret < 0)
+ 		return ret;
+ 	/* power-on hdmi physical interface */
+-	clk_enable(res->hdmiphy);
++	phy_power_on(res->hdmiphy);
+ 	/* use VPP as parent clock; HDMIPHY is not working yet */
+ 	clk_set_parent(res->sclk_hdmi, res->sclk_pixel);
+ 	/* turn clocks on */
+@@ -600,7 +601,7 @@ static void hdmi_resource_poweroff(struct hdmi_resources *res)
+ 	/* turn clocks off */
+ 	clk_disable(res->sclk_hdmi);
+ 	/* power-off hdmiphy */
+-	clk_disable(res->hdmiphy);
++	phy_power_off(res->hdmiphy);
+ 	/* turn HDMI power off */
+ 	regulator_bulk_disable(res->regul_count, res->regul_bulk);
+ }
+@@ -784,7 +785,7 @@ static void hdmi_resources_cleanup(struct hdmi_device *hdev)
+ 	/* kfree is NULL-safe */
+ 	kfree(res->regul_bulk);
+ 	if (!IS_ERR(res->hdmiphy))
+-		clk_put(res->hdmiphy);
++		phy_put(res->hdmiphy);
+ 	if (!IS_ERR(res->sclk_hdmiphy))
+ 		clk_put(res->sclk_hdmiphy);
+ 	if (!IS_ERR(res->sclk_pixel))
+@@ -835,7 +836,7 @@ static int hdmi_resources_init(struct hdmi_device *hdev)
+ 		dev_err(dev, "failed to get clock 'sclk_hdmiphy'\n");
+ 		goto fail;
  	}
--	if (!edid->edid)
--		return -EINVAL;
- 
- 	v4l2_dbg(2, debug, sd, "%s: write EDID pad %d, edid.present = 0x%x\n",
- 			__func__, edid->pad, state->edid.present);
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index c3165ea..56b127a 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -2036,8 +2036,6 @@ static int adv7842_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- 		return -EINVAL;
- 	if (edid->start_block == 1)
- 		edid->blocks = 1;
--	if (!edid->edid)
--		return -EINVAL;
- 
- 	switch (edid->pad) {
- 	case ADV7842_EDID_PORT_A:
-@@ -2072,8 +2070,6 @@ static int adv7842_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *e)
- 		return -EINVAL;
- 	if (e->blocks > 2)
- 		return -E2BIG;
--	if (!e->edid)
--		return -EINVAL;
- 
- 	/* todo, per edid */
- 	state->aspect_ratio = v4l2_calc_aspect_ratio(e->edid[0x15],
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 12f25cc..ad9aaae7 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -349,11 +349,27 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 			sd, pad, set_selection, subdev_fh, sel);
- 	}
- 
--	case VIDIOC_G_EDID:
--		return v4l2_subdev_call(sd, pad, get_edid, arg);
-+	case VIDIOC_G_EDID: {
-+		struct v4l2_subdev_edid *edid = arg;
- 
--	case VIDIOC_S_EDID:
--		return v4l2_subdev_call(sd, pad, set_edid, arg);
-+		if (edid->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+		if (edid->blocks && edid->edid == NULL)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, get_edid, edid);
-+	}
-+
-+	case VIDIOC_S_EDID: {
-+		struct v4l2_subdev_edid *edid = arg;
-+
-+		if (edid->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+		if (edid->blocks && edid->edid == NULL)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, set_edid, edid);
-+	}
- 
- 	case VIDIOC_SUBDEV_DV_TIMINGS_CAP: {
- 		struct v4l2_dv_timings_cap *cap = arg;
+-	res->hdmiphy = clk_get(dev, "hdmiphy");
++	res->hdmiphy = phy_get(dev, "hdmiphy");
+ 	if (IS_ERR(res->hdmiphy)) {
+ 		dev_err(dev, "failed to get clock 'hdmiphy'\n");
+ 		goto fail;
 -- 
-1.8.3.2
+1.7.9.5
 
