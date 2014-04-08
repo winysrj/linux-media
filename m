@@ -1,97 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44177 "EHLO mx1.redhat.com"
+Received: from smtp4-g21.free.fr ([212.27.42.4]:34089 "EHLO smtp4-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756848AbaDXNbT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Apr 2014 09:31:19 -0400
-Date: Thu, 24 Apr 2014 15:30:55 +0200
-From: Oleg Nesterov <oleg@redhat.com>
-To: Hugh Dickins <hughd@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Jan Kara <jack@suse.cz>, Roland Dreier <roland@kernel.org>,
-	Konstantin Khlebnikov <koct9i@gmail.com>,
-	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Omar Ramirez Luna <omar.ramirez@copitl.com>,
-	Inki Dae <inki.dae@samsung.com>, linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org, linux-rdma@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] mm: get_user_pages(write,force) refuse to COW in
-	shared areas
-Message-ID: <20140424133055.GA13269@redhat.com>
-References: <alpine.LSU.2.11.1404040120110.6880@eggly.anvils>
+	id S1756131AbaDHII6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Apr 2014 04:08:58 -0400
+Message-ID: <5343AE8A.50803@eukrea.com>
+Date: Tue, 08 Apr 2014 10:08:42 +0200
+From: Denis Carikli <denis@eukrea.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.11.1404040120110.6880@eggly.anvils>
+To: Andrzej Hajda <a.hajda@samsung.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+CC: =?ISO-8859-1?Q?Eric_B=E9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12][ 07/12] drm: drm_display_mode: add signal polarity
+ flags
+References: <1396874691-27954-1-git-send-email-denis@eukrea.com> <1396874691-27954-7-git-send-email-denis@eukrea.com> <534398D5.4090600@samsung.com>
+In-Reply-To: <534398D5.4090600@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hugh,
-
-Sorry for late reply. First of all, to avoid the confusion, I think the
-patch is fine.
-
-When I saw this patch I decided that uprobes should be updated accordingly,
-but I just realized that I do not understand what should I write in the
-changelog.
-
-On 04/04, Hugh Dickins wrote:
+On 04/08/2014 08:36 AM, Andrzej Hajda wrote:
 >
-> +		if (gup_flags & FOLL_WRITE) {
-> +			if (!(vm_flags & VM_WRITE)) {
-> +				if (!(gup_flags & FOLL_FORCE))
-> +					goto efault;
-> +				/*
-> +				 * We used to let the write,force case do COW
-> +				 * in a VM_MAYWRITE VM_SHARED !VM_WRITE vma, so
-> +				 * ptrace could set a breakpoint in a read-only
-> +				 * mapping of an executable, without corrupting
-> +				 * the file (yet only when that file had been
-> +				 * opened for writing!).  Anon pages in shared
-> +				 * mappings are surprising: now just reject it.
-> +				 */
-> +				if (!is_cow_mapping(vm_flags)) {
-> +					WARN_ON_ONCE(vm_flags & VM_MAYWRITE);
-> +					goto efault;
-> +				}
+> Hi Denis,
+Hi,
 
-OK. But could you please clarify "Anon pages in shared mappings are surprising" ?
-I mean, does this only apply to "VM_MAYWRITE VM_SHARED !VM_WRITE vma" mentioned
-above or this is bad even if a !FMODE_WRITE file was mmaped as MAP_SHARED ?
+>> +#define DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE	BIT(1)
+>> +#define DRM_MODE_FLAG_POL_PIXDATA_POSEDGE	BIT(2)
+>> +#define DRM_MODE_FLAG_POL_PIXDATA_PRESERVE	BIT(3)
+>
+> What is the purpose of DRM_MODE_FLAG_POL_PIXDATA_PRESERVE?
+> If 'preserve' means 'ignore' we can set to zero negedge and posedge bits
+> instead of adding new bit. If it is something different please describe it.
+Yes, it meant 'ignore'.
 
-Yes, in this case this vma is not VM_SHARED and it is not VM_MAYWRITE, it is only
-VM_MAYSHARE. This is in fact private mapping except mprotect(PROT_WRITE) will not
-work.
+The goal was to be able to have a way to keep the old behavior while 
+still being able to set the flags.
 
-But with or without this patch gup(FOLL_WRITE | FOLL_FORCE) won't work in this case,
-(although perhaps it could ?), is_cow_mapping() == F because of !VM_MAYWRITE.
+So, with the imx-drm driver, if none of the DRM_MODE_FLAG_POL_PIXDATA 
+were set(that is POSEDGE, NEGEDGE, PRESERVE), then in ipuv3-crtc.c, it 
+went using the old flags settings that were previously hardcoded.
 
-However, currently uprobes assumes that a cowed anon page is fine in this case, and
-this differs from gup().
+The same applied for DRM_MODE_FLAG_POL_DE.
+The patch using theses flags is the 08/12 of this same serie.
 
-So, what do you think about the patch below? It is probably fine in any case,
-but is there any "strong" reason to follow the gup's behaviour and forbid the
-anon page in VM_MAYSHARE && !VM_MAYWRITE vma?
+>>   struct drm_display_mode {
+[..]
+>> +	unsigned int pol_flags;
+>
+> Adding field and macros description to the DocBook would be nice.
+So I will have to describe it in the "Connector Helper Operations" 
+section of drm.tmpl, right before the mode_valid synopsis ?
 
-Oleg.
-
---- x/kernel/events/uprobes.c
-+++ x/kernel/events/uprobes.c
-@@ -127,12 +127,13 @@ struct xol_area {
-  */
- static bool valid_vma(struct vm_area_struct *vma, bool is_register)
- {
--	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC | VM_SHARED;
-+	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC;
- 
- 	if (is_register)
- 		flags |= VM_WRITE;
- 
--	return vma->vm_file && (vma->vm_flags & flags) == VM_MAYEXEC;
-+	return 	vma->vm_file && is_cow_mapping(vma->vm_flags) &&
-+		(vma->vm_flags & flags) == VM_MAYEXEC;
- }
- 
- static unsigned long offset_to_vaddr(struct vm_area_struct *vma, loff_t offset)
-
+Denis.
