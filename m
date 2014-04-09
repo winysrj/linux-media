@@ -1,129 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f52.google.com ([209.85.213.52]:62885 "EHLO
-	mail-yh0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754809AbaDGFRK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 01:17:10 -0400
-Received: by mail-yh0-f52.google.com with SMTP id c41so5378318yho.39
-        for <linux-media@vger.kernel.org>; Sun, 06 Apr 2014 22:17:04 -0700 (PDT)
+Received: from mail-la0-f51.google.com ([209.85.215.51]:58888 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933717AbaDIVfH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 17:35:07 -0400
 MIME-Version: 1.0
-In-Reply-To: <1394486458-9836-3-git-send-email-hverkuil@xs4all.nl>
-References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl> <1394486458-9836-3-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Mon, 7 Apr 2014 14:11:19 +0900
-Message-ID: <CAMm-=zBF8v-zKR_ddukfnSvXvxE8Hc9C2yf+0oywQ_hrxDUCfg@mail.gmail.com>
-Subject: Re: [REVIEW PATCH 02/11] vb2: fix handling of data_offset and v4l2_plane.reserved[]
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <1397079161-24144-2-git-send-email-crope@iki.fi>
+References: <1397079161-24144-1-git-send-email-crope@iki.fi> <1397079161-24144-2-git-send-email-crope@iki.fi>
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Date: Wed, 9 Apr 2014 14:34:45 -0700
+Message-ID: <CAB=NE6X-vqtn2Zk6+Xp6zYKnhKH3Cc3p3Zc712udsvmUYJJ3Lg@mail.gmail.com>
+Subject: Re: [PATCHv2 1/2] rtl28xxu: do not hard depend on staging SDR module
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org,
+	"backports@vger.kernel.org" <backports@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 11, 2014 at 6:20 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> The videobuf2-core did not zero the reserved array of v4l2_plane as it
-> should.
->
-> More serious is the fact that data_offset was not handled correctly:
->
-> - for capture devices it was never zeroed, which meant that it was
->   uninitialized. Unless the driver sets it it was a completely random
->   number.
->
-> - __qbuf_dmabuf had a completely incorrect length check that included
->   data_offset.
->
-> - in the single-planar case data_offset was never correctly set to 0.
->   The single-planar API doesn't support data_offset, so setting it
->   to 0 is the right thing to do.
->
-> All these issues were found with v4l2-compliance.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 19 ++++++++++---------
->  1 file changed, 10 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index f9059bb..1a09442 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1141,6 +1141,12 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->         unsigned int plane;
->
->         if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
-> +               for (plane = 0; plane < vb->num_planes; ++plane) {
-> +                       memset(v4l2_planes[plane].reserved, 0,
-> +                              sizeof(v4l2_planes[plane].reserved));
-> +                       v4l2_planes[plane].data_offset = 0;
-> +               }
-> +
+On Wed, Apr 9, 2014 at 2:32 PM, Antti Palosaari <crope@iki.fi> wrote:
+> +extern struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+> +       struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
+> +       struct v4l2_subdev *sd);
 
-Perhaps we should just memset the whole v4l2_planes array to 0 over
-all elements (ARRAY_SIZE)?
-Also I would extract this above the if and zero out everything for
-both multi and singleplanar.
-You shouldn't need to zero it out below then.
+extern
 
->                 /* Fill in driver-provided information for OUTPUT types */
->                 if (V4L2_TYPE_IS_OUTPUT(b->type)) {
->                         /*
-> @@ -1169,8 +1175,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->                                         b->m.planes[plane].m.fd;
->                                 v4l2_planes[plane].length =
->                                         b->m.planes[plane].length;
-> -                               v4l2_planes[plane].data_offset =
-> -                                       b->m.planes[plane].data_offset;
->                         }
->                 }
->         } else {
-> @@ -1180,10 +1184,10 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->                  * In videobuf we use our internal V4l2_planes struct for
->                  * single-planar buffers as well, for simplicity.
->                  */
-> -               if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-> +               if (V4L2_TYPE_IS_OUTPUT(b->type))
->                         v4l2_planes[0].bytesused = b->bytesused;
-> -                       v4l2_planes[0].data_offset = 0;
-> -               }
-> +               /* Single-planar buffers never use data_offset */
-> +               v4l2_planes[0].data_offset = 0;
->
->                 if (b->memory == V4L2_MEMORY_USERPTR) {
->                         v4l2_planes[0].m.userptr = b->m.userptr;
-> @@ -1193,9 +1197,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->                 if (b->memory == V4L2_MEMORY_DMABUF) {
->                         v4l2_planes[0].m.fd = b->m.fd;
->                         v4l2_planes[0].length = b->length;
-> -                       v4l2_planes[0].data_offset = 0;
->                 }
-> -
->         }
->
->         /* Zero flags that the vb2 core handles */
-> @@ -1374,8 +1376,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->                 if (planes[plane].length == 0)
->                         planes[plane].length = dbuf->size;
->
-> -               if (planes[plane].length < planes[plane].data_offset +
-> -                   q->plane_sizes[plane]) {
-> +               if (planes[plane].length < q->plane_sizes[plane]) {
-
-Good catch!
-
->                         dprintk(1, "qbuf: invalid dmabuf length for plane %d\n",
->                                 plane);
->                         ret = -EINVAL;
-> --
-> 1.9.0
->
-
-
-
--- 
-Best regards,
-Pawel Osciak
+  Luis
