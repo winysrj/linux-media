@@ -1,17 +1,19 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f47.google.com ([209.85.219.47]:49810 "EHLO
-	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904AbaDHHno (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 03:43:44 -0400
-Received: by mail-oa0-f47.google.com with SMTP id i11so597244oag.6
-        for <linux-media@vger.kernel.org>; Tue, 08 Apr 2014 00:43:43 -0700 (PDT)
+Received: from mail-ob0-f172.google.com ([209.85.214.172]:44294 "EHLO
+	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751460AbaDIH4n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 03:56:43 -0400
+Received: by mail-ob0-f172.google.com with SMTP id wm4so2298445obc.31
+        for <linux-media@vger.kernel.org>; Wed, 09 Apr 2014 00:56:43 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1396876573-15811-4-git-send-email-j.anaszewski@samsung.com>
+In-Reply-To: <5344F747.6080103@samsung.com>
 References: <1396876573-15811-1-git-send-email-j.anaszewski@samsung.com>
-	<1396876573-15811-4-git-send-email-j.anaszewski@samsung.com>
-Date: Tue, 8 Apr 2014 13:13:43 +0530
-Message-ID: <CAK9yfHwBVhe6eycHW9xdQSa6qG8DV5070rLsFCKxXS6c+Jpv5Q@mail.gmail.com>
-Subject: Re: [PATCH 4/8] [media] s5p-jpeg: Fix build break when CONFIG_OF is undefined
+	<1396876573-15811-7-git-send-email-j.anaszewski@samsung.com>
+	<CAK9yfHxXRXagZVAZhGjqH+qVGTAdP-=PnFw4O7HEU09UNB5Tsg@mail.gmail.com>
+	<5344F747.6080103@samsung.com>
+Date: Wed, 9 Apr 2014 13:26:43 +0530
+Message-ID: <CAK9yfHz+F=pfNN7nQn-HE5L=uux+cVhBRoHa4wMjRT1VZTRTyw@mail.gmail.com>
+Subject: Re: [PATCH 7/8] [media] s5p_jpeg: Prevent JPEG 4:2:0 > YUV 4:2:0 decompression
 From: Sachin Kamat <sachin.kamat@linaro.org>
 To: Jacek Anaszewski <j.anaszewski@samsung.com>
 Cc: linux-media <linux-media@vger.kernel.org>,
@@ -23,29 +25,22 @@ List-ID: <linux-media.vger.kernel.org>
 
 Hi Jacek,
 
-On 7 April 2014 18:46, Jacek Anaszewski <j.anaszewski@samsung.com> wrote:
-> This patch fixes build break occurring when
-> there is no support for Device Tree turned on
-> in the kernel configuration. In such a case only
-> the driver variant for S5PC210 SoC will be available.
+On 9 April 2014 13:01, Jacek Anaszewski <j.anaszewski@samsung.com> wrote:
+> On 04/08/2014 09:49 AM, Sachin Kamat wrote:
+>>
+
+> Hello Sachin,
 >
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
-<snip>
+> Thanks for the review. I put it into info message because this is
+> rather hard for the user to figure out why the adjustment occurred,
+> bearing in mind that JPEG with the same subsampling and even width
+> is decompressed properly. This is not a common adjustment like
+> alignment, and thus in my opinion it requires displaying the
+> information. Are there some rules that say what cases are relevant
+> for using the v4l2_info macro?
 
->
-> +       if (!IS_ENABLED(CONFIG_OF) || dev->of_node == NULL)
-
-!dev->of_node instead of equating to NULL.
-
-
-> +               return &s5p_jpeg_drvdata;
-> +
->         match = of_match_node(of_match_ptr(samsung_jpeg_match),
-
-Since you are returning above if CONFIG_OF is not enabled, of_match_ptr
-is not needed.
+Not really, but generally info messages are concise and detailed explanations
+provided as part of comments.
 
 -- 
 With warm regards,
