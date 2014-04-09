@@ -1,91 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58516 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754081AbaDDTPZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Apr 2014 15:15:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [GIT PULL for v3.15-rc1] media updates
-Date: Fri, 04 Apr 2014 21:17:27 +0200
-Message-ID: <6647416.Eq0uqnt6If@avalon>
-In-Reply-To: <CA+55aFwSA58-gbBBLHd87HBj6X-wZisE+9KDoxaJ1UrvqiyYFA@mail.gmail.com>
-References: <20140403131143.69f324c7@samsung.com> <CA+55aFwSA58-gbBBLHd87HBj6X-wZisE+9KDoxaJ1UrvqiyYFA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:54988 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758374AbaDII2k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 04:28:40 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N3R00M0L8VH0Z60@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 09 Apr 2014 09:28:29 +0100 (BST)
+Message-id: <534504B6.2020202@samsung.com>
+Date: Wed, 09 Apr 2014 10:28:38 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH 7/8] [media] s5p_jpeg: Prevent JPEG 4:2:0 > YUV 4:2:0
+ decompression
+References: <1396876573-15811-1-git-send-email-j.anaszewski@samsung.com>
+ <1396876573-15811-7-git-send-email-j.anaszewski@samsung.com>
+ <CAK9yfHxXRXagZVAZhGjqH+qVGTAdP-=PnFw4O7HEU09UNB5Tsg@mail.gmail.com>
+ <5344F747.6080103@samsung.com>
+ <CAK9yfHz+F=pfNN7nQn-HE5L=uux+cVhBRoHa4wMjRT1VZTRTyw@mail.gmail.com>
+In-reply-to: <CAK9yfHz+F=pfNN7nQn-HE5L=uux+cVhBRoHa4wMjRT1VZTRTyw@mail.gmail.com>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+On 04/09/2014 09:56 AM, Sachin Kamat wrote:
+> Hi Jacek,
+>
+> On 9 April 2014 13:01, Jacek Anaszewski <j.anaszewski@samsung.com> wrote:
+>> On 04/08/2014 09:49 AM, Sachin Kamat wrote:
+>>>
+>
+>> Hello Sachin,
+>>
+>> Thanks for the review. I put it into info message because this is
+>> rather hard for the user to figure out why the adjustment occurred,
+>> bearing in mind that JPEG with the same subsampling and even width
+>> is decompressed properly. This is not a common adjustment like
+>> alignment, and thus in my opinion it requires displaying the
+>> information. Are there some rules that say what cases are relevant
+>> for using the v4l2_info macro?
+>
+> Not really, but generally info messages are concise and detailed explanations
+> provided as part of comments.
+>
 
-On Friday 04 April 2014 10:26:42 Linus Torvalds wrote:
-> On Thu, Apr 3, 2014 at 9:11 AM, Mauro Carvalho Chehab wrote:
-> > PS.: You'll find some minor conflicts between this changeset and upstream,
-> > mainly due to some code that moved from V4L2 to OF subsystem.
-> 
-> That conflict was not at all minor, unless I were willing to do the
-> merge incorrectly and just drop all changes from one side. Which is
-> not how I do merges if I can at all avoid it.
-> 
-> The *trivial* merge would be to just take the
-> of_graph_get_next_endpoint() function as it existed in its new
-> location of drivers/of/base.c.
-> 
-> However, there were to clashing changes to that function (one in the
-> original location, one in the new moved location). They were:
-> 
->  - b9db140c1e46: "[media] v4l: of: Support empty port nodes"
->  - 4329b93b283c: "of: Reduce indentation in of_graph_get_next_endpoint"
-> 
-> and quite frankly, I think that the second commit was the much less
-> interesting of the two, so *that* was the one I felt I should drop.
-> But that made the merge a lot more interesting than just picking the
-> new location (because the new location didn't have the important
-> change). And those two changes clash to the point of being basically
-> mutually exclusive.
-> 
-> So I did the complex merge that I think is the right thing by hand.
-> 
-> However, I feel a bit bad about that more merge, because I have
-> absolutely no way to test my result. So I'm including here all the
-> relevant people wrt those two commits, and my note from my merge
-> message:
-> 
->   NOTE! This merge effective drops commit 4329b93b283c ("of: Reduce
->   indentation in of_graph_get_next_endpoint").
-> 
->   The of_graph_get_next_endpoint() function was moved and renamed by
->   commit fd9fdb78a9bf ("[media] of: move graph helpers from
->   drivers/media/v4l2-core to drivers/of").  It was originally called
->   v4l2_of_get_next_endpoint() and lived in the file
->   drivers/media/v4l2-core/v4l2-of.c.
-> 
->   In that original location, it was then fixed to support empty port
->   nodes by commit b9db140c1e46 ("[media] v4l: of: Support empty port
->   nodes"), and that commit clashes badly with the dropped "Reduce
->   intendation" commit.  I had to choose one or the other, and decided
->   that the "Support empty port nodes" commit was more important
-> 
-> So guys, can you please verify the end result? It looks sane to me,
-> but there's no good way for me to do even basic compile testing of the
-> OF code, so this was all done entirely blind. And hey, maybe you
-> disagree about the empty port nodes being the important case anyway.
-> 
-> Maybe I should have done the "wrong" merge just to avoid this issue,
-> but I do hate doing that.
+Thanks for the explanation, I will stick to it.
 
-I've reviewed the merge and tested it, and all looks good. Thank you for not 
-dropping my patch :-)
-
--- 
 Regards,
-
-Laurent Pinchart
-
+Jacek Anaszewski
