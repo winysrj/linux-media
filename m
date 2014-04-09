@@ -1,70 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4755 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752344AbaDKIMO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 04:12:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, sakari.ailus@iki.fi, m.szyprowski@samsung.com,
-	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 06/13] vb2: set timestamp when using write()
-Date: Fri, 11 Apr 2014 10:11:12 +0200
-Message-Id: <1397203879-37443-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
-References: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37478 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933323AbaDITPJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 15:15:09 -0400
+Date: Wed, 9 Apr 2014 12:17:40 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Shuah Khan <shuah.kh@samsung.com>
+Cc: m.chehab@samsung.com, tj@kernel.org, rafael.j.wysocki@intel.com,
+	linux@roeck-us.net, toshi.kani@hp.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	shuahkhan@gmail.com
+Subject: Re: [RFC PATCH 0/2] managed token devres interfaces
+Message-ID: <20140409191740.GA10748@kroah.com>
+References: <cover.1397050852.git.shuah.kh@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1397050852.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Apr 09, 2014 at 09:21:06AM -0600, Shuah Khan wrote:
+> Media devices often have hardware resources that are shared
+> across several functions. For instance, TV tuner cards often
+> have MUXes, converters, radios, tuners, etc. that are shared
+> across various functions. However, v4l2, alsa, DVB, usbfs, and
+> all other drivers have no knowledge of what resources are
+> shared. For example, users can't access DVB and alsa at the same
+> time, or the DVB and V4L analog API at the same time, since many
+> only have one converter that can be in either analog or digital
+> mode. Accessing and/or changing mode of a converter while it is
+> in use by another function results in video stream error.
+> 
+> A shared devres that can be locked and unlocked by various drivers
+> that control media functions on a single media device is needed to
+> address the above problems.
+> 
+> A token devres that can be looked up by a token for locking, try
+> locking, unlocking will help avoid adding data structure
+> dependencies between various media drivers. This token is a unique
+> string that can be constructed from a common data structure such as
+> struct device, bus_name, and hardware address.
+> 
+> The devm_token_* interfaces manage access to token resource.
+> 
+> Interfaces:
+>     devm_token_create()
+>     devm_token_destroy()
+>     devm_token_lock()
+>     devm_token_unlock()
+> Usage:
+>     Create token:
+>         Call devm_token_create() with a token id which is a unique
+>         string.
+>     Lock token: Call devm_token_lock() to lock or try lock a token.
+>     Unlock token: Call devm_token_unlock().
+>     Destroy token: Call devm_token_destroy() to delete the token.
+> 
+> A new devres_* interface to update the status of this token resource
+> to busy when locked and free when unlocked is necessary to implement
+> this new managed resource.
+> 
+> devres_update() searches for the resource that matches supplied match
+> criteria similar to devres_find(). When a match is found, it calls
+> the update function caller passed in.
+> 
+> This patch set adds a new devres_update) interface and token devres
+> interfaces.
+> 
+> Test Cases for token devres interfaces: (passed)
+>  - Create, lock, unlock, and destroy sequence.
+>  - Try lock while it is locked. Returns -EBUSY as expected.
+>  - Try lock after destroy. Returns -ENODEV as expected.
+>  - Unlock while it is unlocked. Returns 0 as expected. This is a no-op. 
+>  - Try unlock after destroy. Returns -ENODEV as expected.
 
-When using write() to write data to an output video node the vb2 core
-should set timestamps if V4L2_BUF_FLAG_TIMESTAMP_COPY is set. Nobody
-else is able to provide this information with the write() operation.
+Any chance you can add these "test cases" as part of the kernel code so
+it lives here for any future changes?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pawel Osciak <pawel@osciak.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+> Special notes for Mauro Chehab:
+>  - Please evaluate if these token devres interfaces cover all media driver
+>    use-cases. If not what is needed to cover them.
+>  - For use-case testing, I generated a string from em28xx device, as this
+>    is common for all em28xx extensions: (hope this holds true when em28xx
+>    uses snd-usb-audio
+>  - Construct string with (dev is struct em28xx *dev)
+> 		format: "tuner:%s-%s-%d"
+> 		with the following:
+>    		dev_name(&dev->udev->dev)
+>                 dev->udev->bus->bus_name
+>                 dev->tuner_addr
+>  - I added test code to em28xx_card_setup() to test the interfaces:
+>    example token from this test code generated with the format above:
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 2e448a7..6e05495 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -22,6 +22,7 @@
- #include <media/v4l2-dev.h>
- #include <media/v4l2-fh.h>
- #include <media/v4l2-event.h>
-+#include <media/v4l2-common.h>
- #include <media/videobuf2-core.h>
- 
- static int debug;
-@@ -2751,6 +2752,14 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- {
- 	struct vb2_fileio_data *fileio;
- 	struct vb2_fileio_buf *buf;
-+	/*
-+	 * When using write() to write data to an output video node the vb2 core
-+	 * should set timestamps if V4L2_BUF_FLAG_TIMESTAMP_COPY is set. Nobody
-+	 * else is able to provide this information with the write() operation.
-+	 */
-+	bool set_timestamp = !read &&
-+		(q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
-+		V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	int ret, index;
- 
- 	dprintk(3, "mode %s, offset %ld, count %zd, %sblocking\n",
-@@ -2852,6 +2861,8 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 		fileio->b.memory = q->memory;
- 		fileio->b.index = index;
- 		fileio->b.bytesused = buf->pos;
-+		if (set_timestamp)
-+			v4l2_get_timestamp(&fileio->b.timestamp);
- 		ret = vb2_internal_qbuf(q, &fileio->b);
- 		dprintk(5, "vb2_dbuf result: %d\n", ret);
- 		if (ret)
--- 
-1.9.1
+What would the driver changes look like to take advantage of these new
+functions?
 
+thanks,
+
+greg k-h
