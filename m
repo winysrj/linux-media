@@ -1,27 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.rtu.lv ([213.175.89.139]:29774 "EHLO mx1.rtu.lv"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752003AbaDDJUN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Apr 2014 05:20:13 -0400
-From: =?windows-1257?Q?Vit=E2lijs_=C8istovskis?=
-	<Vitalijs.Cistovskis@rtu.lv>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Issue with sound recording
-Date: Fri, 4 Apr 2014 09:14:19 +0000
-Message-ID: <B506BAE614F703439873571E5BD16BF5EEB00C95@DAG1.rtupasts.lan>
-Content-Language: lv-LV
-Content-Type: text/plain; charset="windows-1257"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-qc0-f169.google.com ([209.85.216.169]:45167 "EHLO
+	mail-qc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758037AbaDIInH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 04:43:07 -0400
+Received: by mail-qc0-f169.google.com with SMTP id i17so2387283qcy.28
+        for <linux-media@vger.kernel.org>; Wed, 09 Apr 2014 01:43:06 -0700 (PDT)
 MIME-Version: 1.0
+Date: Wed, 9 Apr 2014 10:43:06 +0200
+Message-ID: <CAPz3gm=yPyEPQXoiwA4EtwRJkaKxgzXma8e2B4gDeUgF_ZEv9Q@mail.gmail.com>
+Subject: Progressive and continuous record of a DVB stream
+From: shacky <shacky83@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Hi.
 
-We have an Osprey 210 video capture card, which we want to use with Matterhorn platform for lecture recording purposes. The problem is in the following, osprey card records audio in the “fast” mode. So, when you play the recorded track, speech sounds unnatural and accelerated. The card is installed on the Linux machine (Ubuntu Server 12.04 64-bit). As far as I understand, installation of the additional drivers is not required. All drivers are already included in the Linux kernel. I have tried to record the sound with Ubuntu Sound Recorder tool and gstreamer using different settings of the pipeline, the result was the same.  Despite of the problem with the audio, video records normally. That’s why we record sound separately using the default mainboard audio input, but it is not a good solution. The default mainboard audio input records sound with noises (I have tried to change the alsamixer settings, but it not helped much) and sound is a little behind video, too.  I think that if we will resolve the problem with osprey card, then a problem with the audio and video synchronization would disappear and the level of noise would be reduced. 
+I need to make a continuous (H24) recording of some DVB-S and DVB-T
+streams and I wish to let me to play it during its recording, without
+waiting for the file closing.
 
-What could be the reason of issue related to audio recording in accelerated mode? Maybe some advice related to the noise reducing, too? Thanks!
+The purpose is having something like a DVR which lets me to play a DVB
+stream selecting a date/time, so I will also need to index every
+recorded file trunk for channel, date and time (and I can make this in
+a database).
 
+I need to record every channel I find in the same MUX in a different TS file.
 
-Regards,
-Vitalijs
+Is there any utility that could help me what I need?
+Could you give me some advises, please?
+I looked for some best practices but I didn't find anything special
+regarding this question.
+
+Thank you very much.
+Bye!
