@@ -1,142 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:37517 "EHLO smtp3-g21.free.fr"
+Received: from mga01.intel.com ([192.55.52.88]:50019 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754988AbaDGMpv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Apr 2014 08:45:51 -0400
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	Denis Carikli <denis@eukrea.com>
-Subject: [PATCH v12][ 08/12] imx-drm: Use drm_display_mode timings flags.
-Date: Mon,  7 Apr 2014 14:44:47 +0200
-Message-Id: <1396874691-27954-8-git-send-email-denis@eukrea.com>
-In-Reply-To: <1396874691-27954-1-git-send-email-denis@eukrea.com>
-References: <1396874691-27954-1-git-send-email-denis@eukrea.com>
+	id S934297AbaDITZA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Apr 2014 15:25:00 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id A39BE21177
+	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 22:24:53 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 08/17] smiapp: Limits can be 64 bits
+Date: Wed,  9 Apr 2014 22:25:00 +0300
+Message-Id: <1397071509-2071-9-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The previous hardware behaviour was kept if the
-flags are not set.
+Limits may exceed the value range of 32 bit unsigned integers. Thus use 64
+bits instead.
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
+Use typed min/max/clamp macros. Debug printing changes as well.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
-ChangeLog v11->v12:
-- Rebased: It now uses the following new flags defines names:
-  CLK_POL, ENABLE_POL
-- The inversions in ipuv3-crtc.c are now fixed.
-- ipuv3-crtc.c was still using mode->private_flags
-  from the previous versions of this patchset, that's now fixed.
+ drivers/media/i2c/smiapp/smiapp-core.c  | 30 ++++++++++++++++--------------
+ drivers/media/i2c/smiapp/smiapp-quirk.c |  4 ++--
+ drivers/media/i2c/smiapp/smiapp-quirk.h |  2 +-
+ drivers/media/i2c/smiapp/smiapp.h       |  2 +-
+ 4 files changed, 20 insertions(+), 18 deletions(-)
 
-ChangeLog v10->v11:
-- This patch was splitted-out and adapted from:
-  "Prepare imx-drm for extra display-timings retrival."
-- The display-timings dt specific part was removed.
-- The flags names were changed to use the DRM ones from:
-  "drm: drm_display_mode: add signal polarity flags"
----
- drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h |    6 ++++--
- drivers/staging/imx-drm/ipu-v3/ipu-di.c     |    7 ++++++-
- drivers/staging/imx-drm/ipuv3-crtc.c        |   20 ++++++++++++++++++--
- 3 files changed, 28 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h b/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
-index eba8893..c934394 100644
---- a/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
-+++ b/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
-@@ -29,9 +29,11 @@ enum ipuv3_type {
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 3af8df8..6d940f0 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -502,7 +502,8 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
+ 		V4L2_CID_ANALOGUE_GAIN,
+ 		sensor->limits[SMIAPP_LIMIT_ANALOGUE_GAIN_CODE_MIN],
+ 		sensor->limits[SMIAPP_LIMIT_ANALOGUE_GAIN_CODE_MAX],
+-		max(sensor->limits[SMIAPP_LIMIT_ANALOGUE_GAIN_CODE_STEP], 1U),
++		max_t(uint32_t,
++		      sensor->limits[SMIAPP_LIMIT_ANALOGUE_GAIN_CODE_STEP], 1U),
+ 		sensor->limits[SMIAPP_LIMIT_ANALOGUE_GAIN_CODE_MIN]);
  
- #define CLK_POL_NEGEDGE		0
- #define CLK_POL_POSEDGE		1
-+#define CLK_POL_PRESERVE	2
+ 	/* Exposure limits will be updated soon, use just something here. */
+@@ -679,7 +680,7 @@ static int smiapp_get_limits_binning(struct smiapp_sensor *sensor)
  
- #define ENABLE_POL_LOW		0
- #define ENABLE_POL_HIGH		1
-+#define ENABLE_POL_PRESERVE	2
+ 	for (i = 0; i < ARRAY_SIZE(limits); i++) {
+ 		dev_dbg(&client->dev,
+-			"replace limit 0x%8.8x \"%s\" = %d, 0x%x\n",
++			"replace limit 0x%8.8x \"%s\" = %llu, 0x%llx\n",
+ 			smiapp_reg_limits[limits[i]].addr,
+ 			smiapp_reg_limits[limits[i]].what,
+ 			sensor->limits[limits_replace[i]],
+@@ -1689,13 +1690,13 @@ static int smiapp_set_format(struct v4l2_subdev *subdev,
+ 	fmt->format.height &= ~1;
  
- /*
-  * Bitfield of Display Interface signal polarities.
-@@ -43,10 +45,10 @@ struct ipu_di_signal_cfg {
- 	unsigned clksel_en:1;
- 	unsigned clkidle_en:1;
- 	unsigned data_pol:1;	/* true = inverted */
--	unsigned clk_pol:1;
--	unsigned enable_pol:1;
- 	unsigned Hsync_pol:1;	/* true = active high */
- 	unsigned Vsync_pol:1;
-+	u8 clk_pol;
-+	u8 enable_pol;
+ 	fmt->format.width =
+-		clamp(fmt->format.width,
+-		      sensor->limits[SMIAPP_LIMIT_MIN_X_OUTPUT_SIZE],
+-		      sensor->limits[SMIAPP_LIMIT_MAX_X_OUTPUT_SIZE]);
++		clamp_t(uint32_t, fmt->format.width,
++			sensor->limits[SMIAPP_LIMIT_MIN_X_OUTPUT_SIZE],
++			sensor->limits[SMIAPP_LIMIT_MAX_X_OUTPUT_SIZE]);
+ 	fmt->format.height =
+-		clamp(fmt->format.height,
+-		      sensor->limits[SMIAPP_LIMIT_MIN_Y_OUTPUT_SIZE],
+-		      sensor->limits[SMIAPP_LIMIT_MAX_Y_OUTPUT_SIZE]);
++		clamp_t(uint32_t, fmt->format.height,
++			sensor->limits[SMIAPP_LIMIT_MIN_Y_OUTPUT_SIZE],
++			sensor->limits[SMIAPP_LIMIT_MAX_Y_OUTPUT_SIZE]);
  
- 	u16 width;
- 	u16 height;
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-di.c b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-index 0ce3f52..c00b0ba 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-@@ -597,6 +597,8 @@ int ipu_di_init_sync_panel(struct ipu_di *di, struct ipu_di_signal_cfg *sig)
+ 	smiapp_get_crop_compose(subdev, fh, crops, NULL, fmt->which);
  
- 	if (sig->clk_pol == CLK_POL_POSEDGE)
- 		di_gen |= DI_GEN_POLARITY_DISP_CLK;
-+	else if (sig->clk_pol == CLK_POL_NEGEDGE)
-+		di_gen &= ~DI_GEN_POLARITY_DISP_CLK;
+@@ -1834,12 +1835,13 @@ static void smiapp_set_compose_scaler(struct v4l2_subdev *subdev,
+ 		* sensor->limits[SMIAPP_LIMIT_SCALER_N_MIN]
+ 		/ sensor->limits[SMIAPP_LIMIT_MIN_X_OUTPUT_SIZE];
  
- 	ipu_di_write(di, di_gen, DI_GENERAL);
+-	a = clamp(a, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
+-		  sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
+-	b = clamp(b, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
+-		  sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
+-	max_m = clamp(max_m, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
+-		      sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
++	a = clamp_t(uint32_t, a, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
++		    sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
++	b = clamp_t(uint32_t, b, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
++		    sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
++	max_m = clamp_t(uint32_t, max_m,
++			sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
++			sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
  
-@@ -604,10 +606,13 @@ int ipu_di_init_sync_panel(struct ipu_di *di, struct ipu_di_signal_cfg *sig)
- 		     DI_SYNC_AS_GEN);
+ 	dev_dbg(&client->dev, "scaling: a %d b %d max_m %d\n", a, b, max_m);
  
- 	reg = ipu_di_read(di, DI_POL);
--	reg &= ~(DI_POL_DRDY_DATA_POLARITY | DI_POL_DRDY_POLARITY_15);
-+	reg &= ~(DI_POL_DRDY_DATA_POLARITY);
+diff --git a/drivers/media/i2c/smiapp/smiapp-quirk.c b/drivers/media/i2c/smiapp/smiapp-quirk.c
+index 20e62c1..580132d 100644
+--- a/drivers/media/i2c/smiapp/smiapp-quirk.c
++++ b/drivers/media/i2c/smiapp/smiapp-quirk.c
+@@ -51,11 +51,11 @@ static int smiapp_write_8s(struct smiapp_sensor *sensor,
+ }
  
- 	if (sig->enable_pol == ENABLE_POL_HIGH)
- 		reg |= DI_POL_DRDY_POLARITY_15;
-+	else if (sig->enable_pol == ENABLE_POL_LOW)
-+		reg &= ~DI_POL_DRDY_POLARITY_15;
-+
- 	if (sig->data_pol)
- 		reg |= DI_POL_DRDY_DATA_POLARITY;
+ void smiapp_replace_limit(struct smiapp_sensor *sensor,
+-			  u32 limit, u32 val)
++			  u32 limit, u64 val)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
  
-diff --git a/drivers/staging/imx-drm/ipuv3-crtc.c b/drivers/staging/imx-drm/ipuv3-crtc.c
-index 9ba089c..b59b745 100644
---- a/drivers/staging/imx-drm/ipuv3-crtc.c
-+++ b/drivers/staging/imx-drm/ipuv3-crtc.c
-@@ -157,8 +157,24 @@ static int ipu_crtc_mode_set(struct drm_crtc *crtc,
- 	if (mode->flags & DRM_MODE_FLAG_PVSYNC)
- 		sig_cfg.Vsync_pol = 1;
+-	dev_dbg(&client->dev, "quirk: 0x%8.8x \"%s\" = %d, 0x%x\n",
++	dev_dbg(&client->dev, "quirk: 0x%8.8x \"%s\" = %llu, 0x%llx\n",
+ 		smiapp_reg_limits[limit].addr,
+ 		smiapp_reg_limits[limit].what, val, val);
+ 	sensor->limits[limit] = val;
+diff --git a/drivers/media/i2c/smiapp/smiapp-quirk.h b/drivers/media/i2c/smiapp/smiapp-quirk.h
+index a6b3183..15ef0af6 100644
+--- a/drivers/media/i2c/smiapp/smiapp-quirk.h
++++ b/drivers/media/i2c/smiapp/smiapp-quirk.h
+@@ -54,7 +54,7 @@ struct smiapp_reg_8 {
+ };
  
--	sig_cfg.enable_pol = ENABLE_POL_HIGH;
--	sig_cfg.clk_pol = CLK_POL_NEGEDGE;
-+	if (mode->pol_flags & DRM_MODE_FLAG_POL_PIXDATA_POSEDGE)
-+		sig_cfg.clk_pol = CLK_POL_POSEDGE;
-+	else if (mode->pol_flags & DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE)
-+		sig_cfg.clk_pol = CLK_POL_NEGEDGE;
-+	else if (mode->pol_flags & DRM_MODE_FLAG_POL_PIXDATA_PRESERVE)
-+		sig_cfg.clk_pol = CLK_POL_PRESERVE;
-+	else
-+		sig_cfg.clk_pol = CLK_POL_NEGEDGE;
-+
-+	if (mode->pol_flags & DRM_MODE_FLAG_POL_DE_HIGH)
-+		sig_cfg.enable_pol = ENABLE_POL_HIGH;
-+	else if (mode->pol_flags & DRM_MODE_FLAG_POL_DE_LOW)
-+		sig_cfg.enable_pol = ENABLE_POL_LOW;
-+	else if (mode->pol_flags & DRM_MODE_FLAG_POL_DE_PRESERVE)
-+		sig_cfg.enable_pol = ENABLE_POL_PRESERVE;
-+	else
-+		sig_cfg.enable_pol = ENABLE_POL_HIGH;
-+
- 	sig_cfg.width = mode->hdisplay;
- 	sig_cfg.height = mode->vdisplay;
- 	sig_cfg.pixel_fmt = out_pixel_fmt;
+ void smiapp_replace_limit(struct smiapp_sensor *sensor,
+-			  u32 limit, u32 val);
++			  u32 limit, u64 val);
+ bool smiapp_quirk_reg(struct smiapp_sensor *sensor,
+ 		      u32 reg, u32 *val);
+ 
+diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+index 7cc5aae..0a26487 100644
+--- a/drivers/media/i2c/smiapp/smiapp.h
++++ b/drivers/media/i2c/smiapp/smiapp.h
+@@ -199,7 +199,7 @@ struct smiapp_sensor {
+ 	struct smiapp_platform_data *platform_data;
+ 	struct regulator *vana;
+ 	struct clk *ext_clk;
+-	u32 limits[SMIAPP_LIMIT_LAST];
++	u64 limits[SMIAPP_LIMIT_LAST];
+ 	u8 nbinning_subtypes;
+ 	struct smiapp_binning_subtype binning_subtypes[SMIAPP_BINNING_SUBTYPES];
+ 	u32 mbus_frame_fmts;
 -- 
-1.7.9.5
+1.8.3.2
 
