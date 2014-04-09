@@ -1,63 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews05.kpnxchange.com ([213.75.39.8]:54919 "EHLO
-	cpsmtpb-ews05.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752215AbaDELfN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Apr 2014 07:35:13 -0400
-Message-ID: <1396696802.27142.15.camel@x220>
-Subject: [PATCH] [media] drx-j: use customise option correctly
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Sat, 05 Apr 2014 13:20:02 +0200
-In-Reply-To: <20140403131143.69f324c7@samsung.com>
-References: <20140403131143.69f324c7@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:37832 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933717AbaDIVc7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Apr 2014 17:32:59 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>,
+	Antti Palosaari <crope@iki.fi>, backports@vger.kernel.org
+Subject: [PATCHv2 1/2] rtl28xxu: do not hard depend on staging SDR module
+Date: Thu, 10 Apr 2014 00:32:40 +0300
+Message-Id: <1397079161-24144-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1397079161-24144-1-git-send-email-crope@iki.fi>
+References: <1397079161-24144-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2014-04-03 at 13:11 -0300, Mauro Carvalho Chehab wrote:
-> Devin Heitmueller (3):
->       [...]
->       [media] drx-j: add a driver for Trident drx-j frontend
+RTL2832 SDR extension module is currently on staging. SDR module
+headers were included from staging causing direct dependency staging
+directory. As a solution, add needed headers to main driver.
+Motivation of that change comes from Luis / driver backports project.
 
-This commit introduced a reference to DVB_FE_CUSTOMISE. But that Kconfig
-symbol was removed in v3.7. It seems that the intent was to use
-MEDIA_SUBDRV_AUTOSELECT here.
-
-So the following (untested!) patch makes the Kconfig entry for "Micronas
-DRX-J demodulator" use the current symbol. It is basically a copy of
-d65fcbb0007b "([media] ts2020: use customise option correctly").
---------- >8 ---------
-From: Paul Bolle <pebolle@tiscali.nl>
-
-The Kconfig entry for "Micronas DRX-J demodulator" defaults to modular
-if DVB_FE_CUSTOMISE is set. But that Kconfig symbol was replaced with
-MEDIA_SUBDRV_AUTOSELECT as of v3.7. So use the new symbol. And negate
-the logic, because MEDIA_SUBDRV_AUTOSELECT's logic is the opposite of
-the former logic.
-
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+Reported-by: Luis R. Rodriguez <mcgrof@do-not-panic.com>
+Cc: backports@vger.kernel.org
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/dvb-frontends/drx39xyj/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/dvb-usb-v2/Makefile   |  1 -
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 21 ++++++++++++++++++++-
+ 2 files changed, 20 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/Kconfig b/drivers/media/dvb-frontends/drx39xyj/Kconfig
-index 15628eb5cf0c..6c2ccb6a506b 100644
---- a/drivers/media/dvb-frontends/drx39xyj/Kconfig
-+++ b/drivers/media/dvb-frontends/drx39xyj/Kconfig
-@@ -1,7 +1,7 @@
- config DVB_DRX39XYJ
- 	tristate "Micronas DRX-J demodulator"
- 	depends on DVB_CORE && I2C
--	default m if DVB_FE_CUSTOMISE
-+	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  An ATSC 8VSB and QAM64/256 tuner module. Say Y when you want
- 	  to support this frontend.
+diff --git a/drivers/media/usb/dvb-usb-v2/Makefile b/drivers/media/usb/dvb-usb-v2/Makefile
+index 7407b83..bc38f03 100644
+--- a/drivers/media/usb/dvb-usb-v2/Makefile
++++ b/drivers/media/usb/dvb-usb-v2/Makefile
+@@ -41,4 +41,3 @@ ccflags-y += -I$(srctree)/drivers/media/dvb-core
+ ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
+ ccflags-y += -I$(srctree)/drivers/media/tuners
+ ccflags-y += -I$(srctree)/drivers/media/common
+-ccflags-y += -I$(srctree)/drivers/staging/media/rtl2832u_sdr
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index c83c16c..af43183 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -24,7 +24,6 @@
+ 
+ #include "rtl2830.h"
+ #include "rtl2832.h"
+-#include "rtl2832_sdr.h"
+ 
+ #include "qt1010.h"
+ #include "mt2060.h"
+@@ -36,6 +35,26 @@
+ #include "tua9001.h"
+ #include "r820t.h"
+ 
++/*
++ * RTL2832_SDR module is in staging. That logic is added in order to avoid any
++ * hard dependency to drivers/staging/ directory as we want compile mainline
++ * driver even whole staging directory is missing.
++ */
++#include <media/v4l2-subdev.h>
++
++#if IS_ENABLED(CONFIG_DVB_RTL2832_SDR)
++extern struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
++	struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
++	struct v4l2_subdev *sd);
++#else
++static inline struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
++	struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
++	struct v4l2_subdev *sd)
++{
++	return NULL;
++}
++#endif
++
+ static int rtl28xxu_disable_rc;
+ module_param_named(disable_rc, rtl28xxu_disable_rc, int, 0644);
+ MODULE_PARM_DESC(disable_rc, "disable RTL2832U remote controller");
 -- 
 1.9.0
 
