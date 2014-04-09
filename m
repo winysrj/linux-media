@@ -1,68 +1,317 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f54.google.com ([209.85.213.54]:42679 "EHLO
-	mail-yh0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932977AbaDJA6J (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 20:58:09 -0400
-Received: by mail-yh0-f54.google.com with SMTP id f73so3205220yha.13
-        for <linux-media@vger.kernel.org>; Wed, 09 Apr 2014 17:58:08 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1396876272-18222-8-git-send-email-hverkuil@xs4all.nl>
-References: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl> <1396876272-18222-8-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Thu, 10 Apr 2014 09:57:27 +0900
-Message-ID: <CAMm-=zDNLMCBFhCWgD1aOr5mbbn3fdLvE2eVnepGCxzkCWOr4A@mail.gmail.com>
-Subject: Re: [REVIEWv2 PATCH 07/13] vb2: reject output buffers with V4L2_FIELD_ALTERNATE
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from qmta13.emeryville.ca.mail.comcast.net ([76.96.27.243]:38669
+	"EHLO qmta13.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933779AbaDIPVa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Apr 2014 11:21:30 -0400
+From: Shuah Khan <shuah.kh@samsung.com>
+To: gregkh@linuxfoundation.org, m.chehab@samsung.com, tj@kernel.org,
+	rafael.j.wysocki@intel.com, linux@roeck-us.net, toshi.kani@hp.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, shuahkhan@gmail.com
+Subject: [RFC PATCH 2/2] drivers/base: add managed token devres interfaces
+Date: Wed,  9 Apr 2014 09:21:08 -0600
+Message-Id: <5f21c7e53811aba63f86bcf3e3bfdfdd5aeedf59.1397050852.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1397050852.git.shuah.kh@samsung.com>
+References: <cover.1397050852.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1397050852.git.shuah.kh@samsung.com>
+References: <cover.1397050852.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 7, 2014 at 10:11 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> This is not allowed by the spec and does in fact not make any sense.
-> Return -EINVAL if this is the case.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Media devices often have hardware resources that are shared
+across several functions. For instance, TV tuner cards often
+have MUXes, converters, radios, tuners, etc. that are shared
+across various functions. However, v4l2, alsa, DVB, usbfs, and
+all other drivers have no knowledge of what resources are
+shared. For example, users can't access DVB and alsa at the same
+time, or the DVB and V4L analog API at the same time, since many
+only have one converter that can be in either analog or digital
+mode. Accessing and/or changing mode of a converter while it is
+in use by another function results in video stream error.
 
-Acked-by: Pawel Osciak <pawel@osciak.com>
+A shared devres that can be locked and unlocked by various drivers
+that control media functions on a single media device is needed to
+address the above problems.
 
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 13 +++++++++++++
->  1 file changed, 13 insertions(+)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index b7de6be..c662ad9 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1511,6 +1511,19 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->                 dprintk(1, "plane parameters verification failed: %d\n", ret);
->                 return ret;
->         }
-> +       if (b->field == V4L2_FIELD_ALTERNATE && V4L2_TYPE_IS_OUTPUT(q->type)) {
-> +               /*
-> +                * If the format's field is ALTERNATE, then the buffer's field
-> +                * should be either TOP or BOTTOM, not ALTERNATE since that
-> +                * makes no sense. The driver has to know whether the
-> +                * buffer represents a top or a bottom field in order to
-> +                * program any DMA correctly. Using ALTERNATE is wrong, since
-> +                * that just says that it is either a top or a bottom field,
-> +                * but not which of the two it is.
-> +                */
-> +               dprintk(1, "the field is incorrectly set to ALTERNATE for an output buffer\n");
-> +               return -EINVAL;
-> +       }
->
->         vb->state = VB2_BUF_STATE_PREPARING;
->         vb->v4l2_buf.timestamp.tv_sec = 0;
-> --
-> 1.9.1
->
+A token devres that can be looked up by a token for locking, try
+locking, unlocking will help avoid adding data structure
+dependencies between various media drivers. This token is a unique
+string that can be constructed from a common data structure such as
+struct device, bus_name, and hardware address.
 
+The devm_token_* interfaces manage access to token resource.
 
+Interfaces:
+    devm_token_create()
+    devm_token_destroy()
+    devm_token_lock()
+    devm_token_unlock()
+Usage:
+    Create token:
+        Call devm_token_create() with a token id which is a unique
+        string.
+    Lock token: Call devm_token_lock() to lock or try lock a token.
+    Unlock token: Call devm_token_unlock().
+    Destroy token: Call devm_token_destroy() to delete the token.
 
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+---
+ drivers/base/Makefile        |    2 +-
+ drivers/base/token_devres.c  |  204 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/token_devres.h |   19 ++++
+ 3 files changed, 224 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/base/token_devres.c
+ create mode 100644 include/linux/token_devres.h
+
+diff --git a/drivers/base/Makefile b/drivers/base/Makefile
+index 04b314e..924665b 100644
+--- a/drivers/base/Makefile
++++ b/drivers/base/Makefile
+@@ -4,7 +4,7 @@ obj-y			:= component.o core.o bus.o dd.o syscore.o \
+ 			   driver.o class.o platform.o \
+ 			   cpu.o firmware.o init.o map.o devres.o \
+ 			   attribute_container.o transport_class.o \
+-			   topology.o container.o
++			   topology.o container.o token_devres.o
+ obj-$(CONFIG_DEVTMPFS)	+= devtmpfs.o
+ obj-$(CONFIG_DMA_CMA) += dma-contiguous.o
+ obj-y			+= power/
+diff --git a/drivers/base/token_devres.c b/drivers/base/token_devres.c
+new file mode 100644
+index 0000000..e7436c5
+--- /dev/null
++++ b/drivers/base/token_devres.c
+@@ -0,0 +1,204 @@
++/*
++ * drivers/base/token_devres.c - managed token resource
++ *
++ * Copyright (c) 2014 Shuah Khan <shuah.kh@samsung.com>
++ * Copyright (c) 2014 Samsung Electronics Co., Ltd.
++ *
++ * This file is released under the GPLv2.
++ */
++/*
++ * Media devices often have hardware resources that are shared
++ * across several functions. For instance, TV tuner cards often
++ * have MUXes, converters, radios, tuners, etc. that are shared
++ * across various functions. However, v4l2, alsa, DVB, usbfs, and
++ * all other drivers have no knowledge of what resources are
++ * shared. For example, users can't access DVB and alsa at the same
++ * time, or the DVB and V4L analog API at the same time, since many
++ * only have one converter that can be in either analog or digital
++ * mode. Accessing and/or changing mode of a converter while it is
++ * in use by another function results in video stream error.
++ *
++ * A shared devres that can be locked and unlocked by various drivers
++ * that control media functions on a single media device is needed to
++ * address the above problems.
++ *
++ * A token devres that can be looked up by a token for locking, try
++ * locking, unlocking will help avoid adding data structure
++ * dependencies between various media drivers. This token is a unique
++ * string that can be constructed from a common data structure such as
++ * struct device, bus_name, and hardware address.
++ *
++ * The devm_token_* interfaces manage access to token resource.
++ *
++ * Interfaces:
++ *	devm_token_create()
++ *	devm_token_destroy()
++ *	devm_token_lock()
++ *	devm_token_unlock()
++ * Usage:
++ *	Create token:
++ *		Call devm_token_create() with a token id which is
++ *		a unique string.
++ *	Lock token:
++ *		Call devm_token_lock() to lock or try lock a token.
++ *	Unlock token:
++ *		Call devm_token_unlock().
++ *	Destroy token:
++ *		Call devm_token_destroy() to delete the token.
++ *
++*/
++#include <linux/device.h>
++#include <linux/token_devres.h>
++
++#define TOKEN_DEVRES_FREE	0
++#define TOKEN_DEVRES_BUSY	1
++
++struct token_devres {
++	int	status;
++	char	id[];
++};
++
++struct tkn_match {
++	int	status;
++	const	char *id;
++};
++
++static void __devm_token_lock(struct device *dev, void *data)
++{
++	struct token_devres *tptr = data;
++
++	if (tptr && tptr->status == TOKEN_DEVRES_FREE)
++		tptr->status = TOKEN_DEVRES_BUSY;
++
++	return;
++}
++
++static void __devm_token_unlock(struct device *dev, void *data)
++{
++	struct token_devres *tptr = data;
++
++	if (tptr && tptr->status == TOKEN_DEVRES_BUSY)
++		tptr->status = TOKEN_DEVRES_FREE;
++
++	return;
++}
++
++static int devm_token_match(struct device *dev, void *res, void *data)
++{
++	struct token_devres *tkn = res;
++	struct tkn_match *mptr = data;
++	int rc;
++
++	if (!tkn || !data) {
++		WARN_ON(!tkn || !data);
++		return 0;
++	}
++
++	/* compare the token data and return 1 if it matches */
++	if (strcmp(tkn->id, mptr->id) == 0)
++			rc = 1;
++	else
++		rc = 0;
++
++	return rc;
++}
++
++static void devm_token_release(struct device *dev, void *res)
++{
++	dev_info(dev, "devm_token_release(): release token\n");
++	return;
++}
++
++/* creates a token devres and marks it free */
++int devm_token_create(struct device *dev, const char *id)
++{
++	struct token_devres *tkn;
++	size_t tkn_size;
++
++	if (!id)
++		return -EFAULT;
++
++	tkn_size = sizeof(struct token_devres) + strlen(id) + 1;
++	tkn = devres_alloc(devm_token_release, tkn_size, GFP_KERNEL);
++	if (!tkn)
++		return -ENOMEM;
++
++	strcpy(tkn->id, id);
++	tkn->status = TOKEN_DEVRES_FREE;
++
++	devres_add(dev, tkn);
++
++	dev_info(dev, "devm_token_create(): created token: %s\n", id);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(devm_token_create);
++
++/* If token is available, lock it for the caller, If not return -EBUSY */
++int devm_token_lock(struct device *dev, const char *id)
++{
++	struct token_devres *tkn_ptr;
++	struct tkn_match tkn;
++	int rc = 0;
++
++	if (!id)
++		return -EFAULT;
++
++	tkn.id = id;
++
++	tkn_ptr = devres_find(dev, devm_token_release, devm_token_match, &tkn);
++	if (tkn_ptr == NULL)
++		return -ENODEV;
++
++	if (tkn_ptr->status == TOKEN_DEVRES_FREE) {
++		devres_update(dev, devm_token_release, devm_token_match,
++				&tkn, __devm_token_lock);
++		rc = 0;
++	} else
++		rc = -EBUSY;
++
++	return rc;
++}
++EXPORT_SYMBOL_GPL(devm_token_lock);
++
++/* If token is locked, unlock */
++int devm_token_unlock(struct device *dev, const char *id)
++{
++	struct token_devres *tkn_ptr;
++	struct tkn_match tkn;
++
++	if (!id)
++		return -EFAULT;
++
++	tkn.id = id;
++
++	tkn_ptr = devres_find(dev, devm_token_release, devm_token_match, &tkn);
++	if (tkn_ptr == NULL)
++		return -ENODEV;
++
++	if (tkn_ptr->status == TOKEN_DEVRES_BUSY) {
++		devres_update(dev, devm_token_release, devm_token_match,
++				&tkn, __devm_token_unlock);
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(devm_token_unlock);
++
++/* destroy an existing token */
++int devm_token_destroy(struct device *dev, const char *id)
++{
++	struct tkn_match tkn;
++	int rc;
++
++	if (!id)
++		return -EFAULT;
++
++	tkn.id = id;
++
++	rc = devres_release(dev, devm_token_release, devm_token_match, &tkn);
++	WARN_ON(rc);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(devm_token_destroy);
+diff --git a/include/linux/token_devres.h b/include/linux/token_devres.h
+new file mode 100644
+index 0000000..e411fd5
+--- /dev/null
++++ b/include/linux/token_devres.h
+@@ -0,0 +1,19 @@
++/*
++ * token_devres.h - managed token resource
++ *
++ * Copyright (c) 2014 Shuah Khan <shuah.kh@samsung.com>
++ * Copyright (c) 2014 Samsung Electronics Co., Ltd.
++ *
++ * This file is released under the GPLv2.
++ */
++#ifndef __LINUX_TOKEN_DEVRES_H
++#define __LINUX_TOKEN_DEVRES_H
++
++struct device;
++
++extern int devm_token_create(struct device *dev, const char *id);
++extern int devm_token_lock(struct device *dev, const char *id);
++extern int devm_token_unlock(struct device *dev, const char *id);
++extern int devm_token_destroy(struct device *dev, const char *id);
++
++#endif	/* __LINUX_TOKEN_DEVRES_H */
 -- 
-Best regards,
-Pawel Osciak
+1.7.10.4
+
