@@ -1,178 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52434 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753938AbaDCWiA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 03/25] omap3isp: stat: Share common code for buffer allocation
-Date: Fri,  4 Apr 2014 00:39:33 +0200
-Message-Id: <1396564795-27192-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from qmta08.emeryville.ca.mail.comcast.net ([76.96.30.80]:45250 "EHLO
+	qmta08.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933372AbaDIP1a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Apr 2014 11:27:30 -0400
+From: Shuah Khan <shuah.kh@samsung.com>
+To: gregkh@linuxfoundation.org, m.chehab@samsung.com, tj@kernel.org,
+	rafael.j.wysocki@intel.com, linux@roeck-us.net, toshi.kani@hp.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, shuahkhan@gmail.com
+Subject: [RFC PATCH 0/2] managed token devres interfaces 
+Date: Wed,  9 Apr 2014 09:21:06 -0600
+Message-Id: <cover.1397050852.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move code common between the isp_stat_bufs_alloc_dma() and
-isp_stat_bufs_alloc_iommu() functions to isp_stat_bufs_alloc().
+Media devices often have hardware resources that are shared
+across several functions. For instance, TV tuner cards often
+have MUXes, converters, radios, tuners, etc. that are shared
+across various functions. However, v4l2, alsa, DVB, usbfs, and
+all other drivers have no knowledge of what resources are
+shared. For example, users can't access DVB and alsa at the same
+time, or the DVB and V4L analog API at the same time, since many
+only have one converter that can be in either analog or digital
+mode. Accessing and/or changing mode of a converter while it is
+in use by another function results in video stream error.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispstat.c | 114 ++++++++++++++----------------
- 1 file changed, 54 insertions(+), 60 deletions(-)
+A shared devres that can be locked and unlocked by various drivers
+that control media functions on a single media device is needed to
+address the above problems.
 
-diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
-index c6c1290..b1eb902 100644
---- a/drivers/media/platform/omap3isp/ispstat.c
-+++ b/drivers/media/platform/omap3isp/ispstat.c
-@@ -389,74 +389,42 @@ static void isp_stat_bufs_free(struct ispstat *stat)
- 	stat->active_buf = NULL;
- }
- 
--static int isp_stat_bufs_alloc_iommu(struct ispstat *stat, unsigned int size)
-+static int isp_stat_bufs_alloc_iommu(struct ispstat *stat,
-+				     struct ispstat_buffer *buf,
-+				     unsigned int size)
- {
- 	struct isp_device *isp = stat->isp;
--	int i;
-+	struct iovm_struct *iovm;
- 
--	stat->buf_alloc_size = size;
-+	buf->iommu_addr = omap_iommu_vmalloc(isp->domain, isp->dev, 0,
-+						size, IOMMU_FLAG);
-+	if (IS_ERR((void *)buf->iommu_addr))
-+		return -ENOMEM;
- 
--	for (i = 0; i < STAT_MAX_BUFS; i++) {
--		struct ispstat_buffer *buf = &stat->buf[i];
--		struct iovm_struct *iovm;
-+	iovm = omap_find_iovm_area(isp->dev, buf->iommu_addr);
-+	if (!iovm)
-+		return -ENOMEM;
- 
--		buf->iommu_addr = omap_iommu_vmalloc(isp->domain, isp->dev, 0,
--							size, IOMMU_FLAG);
--		if (IS_ERR((void *)buf->iommu_addr)) {
--			dev_err(stat->isp->dev,
--				 "%s: Can't acquire memory for "
--				 "buffer %d\n", stat->subdev.name, i);
--			isp_stat_bufs_free(stat);
--			return -ENOMEM;
--		}
-+	if (!dma_map_sg(isp->dev, iovm->sgt->sgl, iovm->sgt->nents,
-+			DMA_FROM_DEVICE))
-+		return -ENOMEM;
- 
--		iovm = omap_find_iovm_area(isp->dev, buf->iommu_addr);
--		if (!iovm ||
--		    !dma_map_sg(isp->dev, iovm->sgt->sgl, iovm->sgt->nents,
--				DMA_FROM_DEVICE)) {
--			isp_stat_bufs_free(stat);
--			return -ENOMEM;
--		}
--		buf->iovm = iovm;
--
--		buf->virt_addr = omap_da_to_va(stat->isp->dev,
--					  (u32)buf->iommu_addr);
--		buf->empty = 1;
--		dev_dbg(stat->isp->dev, "%s: buffer[%d] allocated."
--			"iommu_addr=0x%08lx virt_addr=0x%08lx",
--			stat->subdev.name, i, buf->iommu_addr,
--			(unsigned long)buf->virt_addr);
--	}
-+	buf->iovm = iovm;
-+	buf->virt_addr = omap_da_to_va(stat->isp->dev,
-+				  (u32)buf->iommu_addr);
- 
- 	return 0;
- }
- 
--static int isp_stat_bufs_alloc_dma(struct ispstat *stat, unsigned int size)
-+static int isp_stat_bufs_alloc_dma(struct ispstat *stat,
-+				   struct ispstat_buffer *buf,
-+				   unsigned int size)
- {
--	int i;
--
--	stat->buf_alloc_size = size;
--
--	for (i = 0; i < STAT_MAX_BUFS; i++) {
--		struct ispstat_buffer *buf = &stat->buf[i];
--
--		buf->virt_addr = dma_alloc_coherent(stat->isp->dev, size,
--					&buf->dma_addr, GFP_KERNEL | GFP_DMA);
--
--		if (!buf->virt_addr || !buf->dma_addr) {
--			dev_info(stat->isp->dev,
--				 "%s: Can't acquire memory for "
--				 "DMA buffer %d\n", stat->subdev.name, i);
--			isp_stat_bufs_free(stat);
--			return -ENOMEM;
--		}
--		buf->empty = 1;
-+	buf->virt_addr = dma_alloc_coherent(stat->isp->dev, size,
-+				&buf->dma_addr, GFP_KERNEL | GFP_DMA);
- 
--		dev_dbg(stat->isp->dev, "%s: buffer[%d] allocated."
--			"dma_addr=0x%08lx virt_addr=0x%08lx\n",
--			stat->subdev.name, i, (unsigned long)buf->dma_addr,
--			(unsigned long)buf->virt_addr);
--	}
-+	if (!buf->virt_addr || !buf->dma_addr)
-+		return -ENOMEM;
- 
- 	return 0;
- }
-@@ -464,6 +432,7 @@ static int isp_stat_bufs_alloc_dma(struct ispstat *stat, unsigned int size)
- static int isp_stat_bufs_alloc(struct ispstat *stat, u32 size)
- {
- 	unsigned long flags;
-+	unsigned int i;
- 
- 	spin_lock_irqsave(&stat->isp->stat_lock, flags);
- 
-@@ -487,10 +456,35 @@ static int isp_stat_bufs_alloc(struct ispstat *stat, u32 size)
- 
- 	isp_stat_bufs_free(stat);
- 
--	if (ISP_STAT_USES_DMAENGINE(stat))
--		return isp_stat_bufs_alloc_dma(stat, size);
--	else
--		return isp_stat_bufs_alloc_iommu(stat, size);
-+	stat->buf_alloc_size = size;
-+
-+	for (i = 0; i < STAT_MAX_BUFS; i++) {
-+		struct ispstat_buffer *buf = &stat->buf[i];
-+		int ret;
-+
-+		if (ISP_STAT_USES_DMAENGINE(stat))
-+			ret = isp_stat_bufs_alloc_dma(stat, buf, size);
-+		else
-+			ret = isp_stat_bufs_alloc_iommu(stat, buf, size);
-+
-+		if (ret < 0) {
-+			dev_err(stat->isp->dev,
-+				"%s: Failed to allocate DMA buffer %u\n",
-+				stat->subdev.name, i);
-+			isp_stat_bufs_free(stat);
-+			return ret;
-+		}
-+
-+		buf->empty = 1;
-+
-+		dev_dbg(stat->isp->dev,
-+			"%s: buffer[%u] allocated. iommu=0x%08lx dma=0x%08lx virt=0x%08lx",
-+			stat->subdev.name, i, buf->iommu_addr,
-+			(unsigned long)buf->dma_addr,
-+			(unsigned long)buf->virt_addr);
-+	}
-+
-+	return 0;
- }
- 
- static void isp_stat_queue_event(struct ispstat *stat, int err)
+A token devres that can be looked up by a token for locking, try
+locking, unlocking will help avoid adding data structure
+dependencies between various media drivers. This token is a unique
+string that can be constructed from a common data structure such as
+struct device, bus_name, and hardware address.
+
+The devm_token_* interfaces manage access to token resource.
+
+Interfaces:
+    devm_token_create()
+    devm_token_destroy()
+    devm_token_lock()
+    devm_token_unlock()
+Usage:
+    Create token:
+        Call devm_token_create() with a token id which is a unique
+        string.
+    Lock token: Call devm_token_lock() to lock or try lock a token.
+    Unlock token: Call devm_token_unlock().
+    Destroy token: Call devm_token_destroy() to delete the token.
+
+A new devres_* interface to update the status of this token resource
+to busy when locked and free when unlocked is necessary to implement
+this new managed resource.
+
+devres_update() searches for the resource that matches supplied match
+criteria similar to devres_find(). When a match is found, it calls
+the update function caller passed in.
+
+This patch set adds a new devres_update) interface and token devres
+interfaces.
+
+Test Cases for token devres interfaces: (passed)
+ - Create, lock, unlock, and destroy sequence.
+ - Try lock while it is locked. Returns -EBUSY as expected.
+ - Try lock after destroy. Returns -ENODEV as expected.
+ - Unlock while it is unlocked. Returns 0 as expected. This is a no-op. 
+ - Try unlock after destroy. Returns -ENODEV as expected.
+
+Special notes for Mauro Chehab:
+ - Please evaluate if these token devres interfaces cover all media driver
+   use-cases. If not what is needed to cover them.
+ - For use-case testing, I generated a string from em28xx device, as this
+   is common for all em28xx extensions: (hope this holds true when em28xx
+   uses snd-usb-audio
+ - Construct string with (dev is struct em28xx *dev)
+		format: "tuner:%s-%s-%d"
+		with the following:
+   		dev_name(&dev->udev->dev)
+                dev->udev->bus->bus_name
+                dev->tuner_addr
+ - I added test code to em28xx_card_setup() to test the interfaces:
+   example token from this test code generated with the format above:
+
+usb 8-1: devm_token_create(): created token: tuner:8-1-0000:00:10.1-0
+
+Shuah Khan (2):
+  drivers/base: add new devres_update() interface to devres_*
+  drivers/base: add managed token devres interfaces
+
+ drivers/base/Makefile        |    2 +-
+ drivers/base/devres.c        |   36 ++++++++
+ drivers/base/token_devres.c  |  204 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/device.h       |    4 +
+ include/linux/token_devres.h |   19 ++++
+ 5 files changed, 264 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/base/token_devres.c
+ create mode 100644 include/linux/token_devres.h
+
 -- 
-1.8.3.2
+1.7.10.4
 
