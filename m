@@ -1,49 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52433 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753924AbaDCWiA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mga09.intel.com ([134.134.136.24]:65379 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933402AbaDITYz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Apr 2014 15:24:55 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id DA93920EB1
+	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 22:24:52 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 02/25] omap3isp: stat: Remove impossible WARN_ON
-Date: Fri,  4 Apr 2014 00:39:32 +0200
-Message-Id: <1396564795-27192-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 03/17] smiapp: Make PLL flags unsigned long
+Date: Wed,  9 Apr 2014 22:24:55 +0300
+Message-Id: <1397071509-2071-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The WARN_ON statements in the buffer allocation functions try to catch
-conditions where buffers would have already been allocated. As the
-buffers are explicitly freed right before being allocated this can't
-happen.
+No reason to keep this u8, really.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/omap3isp/ispstat.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/media/i2c/smiapp-pll.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
-index 48b702a..c6c1290 100644
---- a/drivers/media/platform/omap3isp/ispstat.c
-+++ b/drivers/media/platform/omap3isp/ispstat.c
-@@ -400,7 +400,6 @@ static int isp_stat_bufs_alloc_iommu(struct ispstat *stat, unsigned int size)
- 		struct ispstat_buffer *buf = &stat->buf[i];
- 		struct iovm_struct *iovm;
- 
--		WARN_ON(buf->dma_addr);
- 		buf->iommu_addr = omap_iommu_vmalloc(isp->domain, isp->dev, 0,
- 							size, IOMMU_FLAG);
- 		if (IS_ERR((void *)buf->iommu_addr)) {
-@@ -441,7 +440,6 @@ static int isp_stat_bufs_alloc_dma(struct ispstat *stat, unsigned int size)
- 	for (i = 0; i < STAT_MAX_BUFS; i++) {
- 		struct ispstat_buffer *buf = &stat->buf[i];
- 
--		WARN_ON(buf->iommu_addr);
- 		buf->virt_addr = dma_alloc_coherent(stat->isp->dev, size,
- 					&buf->dma_addr, GFP_KERNEL | GFP_DMA);
- 
+diff --git a/drivers/media/i2c/smiapp-pll.h b/drivers/media/i2c/smiapp-pll.h
+index a4a6498..5ce2b61 100644
+--- a/drivers/media/i2c/smiapp-pll.h
++++ b/drivers/media/i2c/smiapp-pll.h
+@@ -46,7 +46,7 @@ struct smiapp_pll {
+ 			uint8_t bus_width;
+ 		} parallel;
+ 	};
+-	uint8_t flags;
++	unsigned long flags;
+ 	uint8_t binning_horizontal;
+ 	uint8_t binning_vertical;
+ 	uint8_t scale_m;
 -- 
 1.8.3.2
 
