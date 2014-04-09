@@ -1,179 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:40272 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753803AbaDCXbm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Apr 2014 19:31:42 -0400
-Subject: [PATCH 05/49] rc-core: split dev->s_filter
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Date: Fri, 04 Apr 2014 01:31:40 +0200
-Message-ID: <20140403233140.27099.76019.stgit@zeus.muc.hardeman.nu>
-In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
-References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:42516 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934321AbaDIXaT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 19:30:19 -0400
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-doc@vger.kernel.org,
+	Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH 2/2] dma-buf: update exp_name when using dma_buf_export()
+Date: Thu, 10 Apr 2014 01:30:06 +0200
+Message-Id: <1397086206-5898-2-git-send-email-javier.martinez@collabora.co.uk>
+In-Reply-To: <1397086206-5898-1-git-send-email-javier.martinez@collabora.co.uk>
+References: <1397086206-5898-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Overloading dev->s_filter to do two different functions (set wakeup filters
-and generic hardware filters) makes it impossible to tell what the
-hardware actually supports, so create a separate dev->s_wakeup_filter and
-make the distinction explicit.
+commit c0b00a5 ("dma-buf: update debugfs output") modified the
+default exporter name to be the KBUILD_MODNAME pre-processor
+macro instead of __FILE__ but the documentation was not updated.
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
+Also the "Supporting existing mmap interfaces in exporters" section
+title seems wrong since talks about the interface used by importers.
+
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 ---
- drivers/media/rc/img-ir/img-ir-hw.c |   15 ++++++++++++++-
- drivers/media/rc/rc-main.c          |   31 +++++++++++++++++++------------
- include/media/rc-core.h             |    6 ++++--
- 3 files changed, 37 insertions(+), 15 deletions(-)
+ Documentation/dma-buf-sharing.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
-index aec79f7..871a9b3 100644
---- a/drivers/media/rc/img-ir/img-ir-hw.c
-+++ b/drivers/media/rc/img-ir/img-ir-hw.c
-@@ -504,6 +504,18 @@ unlock:
- 	return ret;
- }
+diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+index 505e711..7d61cef 100644
+--- a/Documentation/dma-buf-sharing.txt
++++ b/Documentation/dma-buf-sharing.txt
+@@ -66,7 +66,7 @@ The dma_buf buffer sharing API usage contains the following steps:
  
-+static int img_ir_set_normal_filter(struct rc_dev *dev,
-+				    struct rc_scancode_filter *sc_filter)
-+{
-+	return img_ir_set_filter(dev, RC_FILTER_NORMAL, sc_filter); 
-+}
-+
-+static int img_ir_set_wakeup_filter(struct rc_dev *dev,
-+				    struct rc_scancode_filter *sc_filter)
-+{
-+	return img_ir_set_filter(dev, RC_FILTER_WAKEUP, sc_filter);
-+}
-+
- /**
-  * img_ir_set_decoder() - Set the current decoder.
-  * @priv:	IR private data.
-@@ -988,7 +1000,8 @@ int img_ir_probe_hw(struct img_ir_priv *priv)
- 	rdev->map_name = RC_MAP_EMPTY;
- 	rc_set_allowed_protocols(rdev, img_ir_allowed_protos(priv));
- 	rdev->input_name = "IMG Infrared Decoder";
--	rdev->s_filter = img_ir_set_filter;
-+	rdev->s_filter = img_ir_set_normal_filter;
-+	rdev->s_wakeup_filter = img_ir_set_wakeup_filter;
+    Exporting modules which do not wish to provide any specific name may use the
+    helper define 'dma_buf_export()', with the same arguments as above, but
+-   without the last argument; a __FILE__ pre-processor directive will be
++   without the last argument; a KBUILD_MODNAME pre-processor directive will be
+    inserted in place of 'exp_name' instead.
  
- 	/* Register hardware decoder */
- 	error = rc_register_device(rdev);
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index c0bfd50..ba955ac 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -929,6 +929,7 @@ static ssize_t store_protocols(struct device *device,
- 	int rc, i, count = 0;
- 	ssize_t ret;
- 	int (*change_protocol)(struct rc_dev *dev, u64 *rc_type);
-+	int (*set_filter)(struct rc_dev *dev, struct rc_scancode_filter *filter);
- 	struct rc_scancode_filter local_filter, *filter;
+ 2. Userspace gets a handle to pass around to potential buffer-users
+@@ -352,7 +352,7 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
  
- 	/* Device is being removed */
-@@ -1013,24 +1014,27 @@ static ssize_t store_protocols(struct device *device,
- 	 * Fall back to clearing the filter.
- 	 */
- 	filter = &dev->scancode_filters[fattr->type];
-+	set_filter = (fattr->type == RC_FILTER_NORMAL)
-+		? dev->s_filter : dev->s_wakeup_filter;
-+
- 	if (old_type != type && filter->mask) {
- 		local_filter = *filter;
- 		if (!type) {
- 			/* no protocol => clear filter */
- 			ret = -1;
--		} else if (!dev->s_filter) {
-+		} else if (!set_filter) {
- 			/* generic filtering => accept any filter */
- 			ret = 0;
- 		} else {
- 			/* hardware filtering => try setting, otherwise clear */
--			ret = dev->s_filter(dev, fattr->type, &local_filter);
-+			ret = set_filter(dev, &local_filter);
- 		}
- 		if (ret < 0) {
- 			/* clear the filter */
- 			local_filter.data = 0;
- 			local_filter.mask = 0;
--			if (dev->s_filter)
--				dev->s_filter(dev, fattr->type, &local_filter);
-+			if (set_filter)
-+				set_filter(dev, &local_filter);
- 		}
+    No special interfaces, userspace simply calls mmap on the dma-buf fd.
  
- 		/* commit the new filter */
-@@ -1112,6 +1116,7 @@ static ssize_t store_filter(struct device *device,
- 	struct rc_scancode_filter local_filter, *filter;
- 	int ret;
- 	unsigned long val;
-+	int (*set_filter)(struct rc_dev *dev, struct rc_scancode_filter *filter);
+-2. Supporting existing mmap interfaces in exporters
++2. Supporting existing mmap interfaces in importers
  
- 	/* Device is being removed */
- 	if (!dev)
-@@ -1121,9 +1126,11 @@ static ssize_t store_filter(struct device *device,
- 	if (ret < 0)
- 		return ret;
- 
--	/* Scancode filter not supported (but still accept 0) */
--	if (!dev->s_filter && fattr->type != RC_FILTER_NORMAL)
--		return val ? -EINVAL : count;
-+	/* Can the scancode filter be set? */
-+	set_filter = (fattr->type == RC_FILTER_NORMAL)
-+		? dev->s_filter : dev->s_wakeup_filter;
-+	if (!set_filter)
-+		return -EINVAL;
- 
- 	mutex_lock(&dev->lock);
- 
-@@ -1134,16 +1141,16 @@ static ssize_t store_filter(struct device *device,
- 		local_filter.mask = val;
- 	else
- 		local_filter.data = val;
-+
- 	if (!dev->enabled_protocols[fattr->type] && local_filter.mask) {
- 		/* refuse to set a filter unless a protocol is enabled */
- 		ret = -EINVAL;
- 		goto unlock;
- 	}
--	if (dev->s_filter) {
--		ret = dev->s_filter(dev, fattr->type, &local_filter);
--		if (ret < 0)
--			goto unlock;
--	}
-+
-+	ret = set_filter(dev, &local_filter);
-+	if (ret < 0)
-+		goto unlock;
- 
- 	/* Success, commit the new filter */
- 	*filter = local_filter;
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index dbbe63e..8c31e4a 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -113,7 +113,8 @@ enum rc_filter_type {
-  *	device doesn't interrupt host until it sees IR pulses
-  * @s_learning_mode: enable wide band receiver used for learning
-  * @s_carrier_report: enable carrier reports
-- * @s_filter: set the scancode filter of a given type
-+ * @s_filter: set the scancode filter 
-+ * @s_wakeup_filter: set the wakeup scancode filter
-  */
- struct rc_dev {
- 	struct device			dev;
-@@ -161,8 +162,9 @@ struct rc_dev {
- 	int				(*s_learning_mode)(struct rc_dev *dev, int enable);
- 	int				(*s_carrier_report) (struct rc_dev *dev, int enable);
- 	int				(*s_filter)(struct rc_dev *dev,
--						    enum rc_filter_type type,
- 						    struct rc_scancode_filter *filter);
-+	int				(*s_wakeup_filter)(struct rc_dev *dev,
-+							   struct rc_scancode_filter *filter);
- };
- 
- #define to_rc_dev(d) container_of(d, struct rc_dev, dev)
+    Similar to the motivation for kernel cpu access it is again important that
+    the userspace code of a given importing subsystem can use the same interfaces
+-- 
+1.9.0
 
