@@ -1,304 +1,296 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38683 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752128AbaDUM3O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Apr 2014 08:29:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mga09.intel.com ([134.134.136.24]:46315 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934327AbaDITY5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Apr 2014 15:24:57 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id 6753020F47
+	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 22:24:53 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 10/26] omap3isp: queue: Move IOMMU handling code to the queue
-Date: Mon, 21 Apr 2014 14:28:56 +0200
-Message-Id: <1398083352-8451-11-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 07/17] smiapp-pll: The clock tree values are unsigned --- fix debug prints
+Date: Wed,  9 Apr 2014 22:24:59 +0300
+Message-Id: <1397071509-2071-8-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As a preparation for the switch from the OMAP IOMMU API to the DMA API
-move all IOMMU handling code from the video node implementation to the
-buffers queue implementation.
+These values are unsigned, so use %u instead of %d.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/omap3isp/ispqueue.c | 78 +++++++++++++++++++++++++++++-
- drivers/media/platform/omap3isp/ispqueue.h |  6 +--
- drivers/media/platform/omap3isp/ispvideo.c | 77 +----------------------------
- 3 files changed, 78 insertions(+), 83 deletions(-)
+ drivers/media/i2c/smiapp-pll.c | 94 +++++++++++++++++++++---------------------
+ 1 file changed, 47 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
-index a5e6585..8623c05 100644
---- a/drivers/media/platform/omap3isp/ispqueue.c
-+++ b/drivers/media/platform/omap3isp/ispqueue.c
-@@ -26,6 +26,7 @@
- #include <asm/cacheflush.h>
- #include <linux/dma-mapping.h>
- #include <linux/mm.h>
-+#include <linux/omap-iommu.h>
- #include <linux/pagemap.h>
- #include <linux/poll.h>
- #include <linux/scatterlist.h>
-@@ -33,7 +34,58 @@
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
+diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
+index ab5d9a3..d14af5c 100644
+--- a/drivers/media/i2c/smiapp-pll.c
++++ b/drivers/media/i2c/smiapp-pll.c
+@@ -65,26 +65,26 @@ static int bounds_check(struct device *dev, uint32_t val,
  
-+#include "isp.h"
- #include "ispqueue.h"
-+#include "ispvideo.h"
-+
-+/* -----------------------------------------------------------------------------
-+ * IOMMU management
-+ */
-+
-+#define IOMMU_FLAG	(IOVMF_ENDIAN_LITTLE | IOVMF_ELSZ_8)
-+
-+/*
-+ * ispmmu_vmap - Wrapper for Virtual memory mapping of a scatter gather list
-+ * @dev: Device pointer specific to the OMAP3 ISP.
-+ * @sglist: Pointer to source Scatter gather list to allocate.
-+ * @sglen: Number of elements of the scatter-gatter list.
-+ *
-+ * Returns a resulting mapped device address by the ISP MMU, or -ENOMEM if
-+ * we ran out of memory.
-+ */
-+static dma_addr_t
-+ispmmu_vmap(struct isp_device *isp, const struct scatterlist *sglist, int sglen)
-+{
-+	struct sg_table *sgt;
-+	u32 da;
-+
-+	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
-+	if (sgt == NULL)
-+		return -ENOMEM;
-+
-+	sgt->sgl = (struct scatterlist *)sglist;
-+	sgt->nents = sglen;
-+	sgt->orig_nents = sglen;
-+
-+	da = omap_iommu_vmap(isp->domain, isp->dev, 0, sgt, IOMMU_FLAG);
-+	if (IS_ERR_VALUE(da))
-+		kfree(sgt);
-+
-+	return da;
-+}
-+
-+/*
-+ * ispmmu_vunmap - Unmap a device address from the ISP MMU
-+ * @dev: Device pointer specific to the OMAP3 ISP.
-+ * @da: Device address generated from a ispmmu_vmap call.
-+ */
-+static void ispmmu_vunmap(struct isp_device *isp, dma_addr_t da)
-+{
-+	struct sg_table *sgt;
-+
-+	sgt = omap_iommu_vunmap(isp->domain, isp->dev, (u32)da);
-+	kfree(sgt);
-+}
- 
- /* -----------------------------------------------------------------------------
-  * Video buffers management
-@@ -260,11 +312,15 @@ static int isp_video_buffer_sglist_pfnmap(struct isp_video_buffer *buf)
-  */
- static void isp_video_buffer_cleanup(struct isp_video_buffer *buf)
+ static void print_pll(struct device *dev, struct smiapp_pll *pll)
  {
-+	struct isp_video_fh *vfh = isp_video_queue_to_isp_video_fh(buf->queue);
-+	struct isp_video *video = vfh->video;
- 	enum dma_data_direction direction;
- 	unsigned int i;
- 
--	if (buf->queue->ops->buffer_cleanup)
--		buf->queue->ops->buffer_cleanup(buf);
-+	if (buf->dma) {
-+		ispmmu_vunmap(video->isp, buf->dma);
-+		buf->dma = 0;
-+	}
- 
- 	if (!(buf->vm_flags & VM_PFNMAP)) {
- 		direction = buf->vbuf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE
-@@ -479,7 +535,10 @@ done:
-  */
- static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
- {
-+	struct isp_video_fh *vfh = isp_video_queue_to_isp_video_fh(buf->queue);
-+	struct isp_video *video = vfh->video;
- 	enum dma_data_direction direction;
-+	unsigned long addr;
- 	int ret;
- 
- 	switch (buf->vbuf.memory) {
-@@ -525,6 +584,21 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
- 		}
+-	dev_dbg(dev, "pre_pll_clk_div\t%d\n",  pll->pre_pll_clk_div);
+-	dev_dbg(dev, "pll_multiplier \t%d\n",  pll->pll_multiplier);
++	dev_dbg(dev, "pre_pll_clk_div\t%u\n",  pll->pre_pll_clk_div);
++	dev_dbg(dev, "pll_multiplier \t%u\n",  pll->pll_multiplier);
+ 	if (!(pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)) {
+-		dev_dbg(dev, "op_sys_clk_div \t%d\n", pll->op_sys_clk_div);
+-		dev_dbg(dev, "op_pix_clk_div \t%d\n", pll->op_pix_clk_div);
++		dev_dbg(dev, "op_sys_clk_div \t%u\n", pll->op_sys_clk_div);
++		dev_dbg(dev, "op_pix_clk_div \t%u\n", pll->op_pix_clk_div);
  	}
+-	dev_dbg(dev, "vt_sys_clk_div \t%d\n",  pll->vt_sys_clk_div);
+-	dev_dbg(dev, "vt_pix_clk_div \t%d\n",  pll->vt_pix_clk_div);
++	dev_dbg(dev, "vt_sys_clk_div \t%u\n",  pll->vt_sys_clk_div);
++	dev_dbg(dev, "vt_pix_clk_div \t%u\n",  pll->vt_pix_clk_div);
  
-+	addr = ispmmu_vmap(video->isp, buf->sglist, buf->sglen);
-+	if (IS_ERR_VALUE(addr)) {
-+		ret = -EIO;
-+		goto done;
-+	}
-+
-+	buf->dma = addr;
-+
-+	if (!IS_ALIGNED(addr, 32)) {
-+		dev_dbg(video->isp->dev,
-+			"Buffer address must be aligned to 32 bytes boundary.\n");
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
- 	if (buf->queue->ops->buffer_prepare)
- 		ret = buf->queue->ops->buffer_prepare(buf);
- 
-diff --git a/drivers/media/platform/omap3isp/ispqueue.h b/drivers/media/platform/omap3isp/ispqueue.h
-index 3e048ad..0899a11 100644
---- a/drivers/media/platform/omap3isp/ispqueue.h
-+++ b/drivers/media/platform/omap3isp/ispqueue.h
-@@ -106,6 +106,7 @@ struct isp_video_buffer {
- 	struct list_head irqlist;
- 	enum isp_video_buffer_state state;
- 	wait_queue_head_t wait;
-+	dma_addr_t dma;
- };
- 
- #define to_isp_video_buffer(vb)	container_of(vb, struct isp_video_buffer, vb)
-@@ -121,17 +122,12 @@ struct isp_video_buffer {
-  *	mapping the buffer memory in an IOMMU). This operation is optional.
-  * @buffer_queue: Called when a buffer is being added to the queue with the
-  *	queue irqlock spinlock held.
-- * @buffer_cleanup: Called before freeing buffers, or before changing the
-- *	userspace memory address for a USERPTR buffer, with the queue lock held.
-- *	Drivers must perform cleanup operations required to undo the
-- *	buffer_prepare call. This operation is optional.
-  */
- struct isp_video_queue_operations {
- 	void (*queue_prepare)(struct isp_video_queue *queue,
- 			      unsigned int *nbuffers, unsigned int *size);
- 	int  (*buffer_prepare)(struct isp_video_buffer *buf);
- 	void (*buffer_queue)(struct isp_video_buffer *buf);
--	void (*buffer_cleanup)(struct isp_video_buffer *buf);
- };
- 
- /**
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index e0f594f3..a7ef081 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -27,7 +27,6 @@
- #include <linux/clk.h>
- #include <linux/mm.h>
- #include <linux/module.h>
--#include <linux/omap-iommu.h>
- #include <linux/pagemap.h>
- #include <linux/scatterlist.h>
- #include <linux/sched.h>
-@@ -326,55 +325,6 @@ isp_video_check_format(struct isp_video *video, struct isp_video_fh *vfh)
+-	dev_dbg(dev, "ext_clk_freq_hz \t%d\n", pll->ext_clk_freq_hz);
+-	dev_dbg(dev, "pll_ip_clk_freq_hz \t%d\n", pll->pll_ip_clk_freq_hz);
+-	dev_dbg(dev, "pll_op_clk_freq_hz \t%d\n", pll->pll_op_clk_freq_hz);
++	dev_dbg(dev, "ext_clk_freq_hz \t%u\n", pll->ext_clk_freq_hz);
++	dev_dbg(dev, "pll_ip_clk_freq_hz \t%u\n", pll->pll_ip_clk_freq_hz);
++	dev_dbg(dev, "pll_op_clk_freq_hz \t%u\n", pll->pll_op_clk_freq_hz);
+ 	if (!(pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)) {
+-		dev_dbg(dev, "op_sys_clk_freq_hz \t%d\n",
++		dev_dbg(dev, "op_sys_clk_freq_hz \t%u\n",
+ 			pll->op_sys_clk_freq_hz);
+-		dev_dbg(dev, "op_pix_clk_freq_hz \t%d\n",
++		dev_dbg(dev, "op_pix_clk_freq_hz \t%u\n",
+ 			pll->op_pix_clk_freq_hz);
+ 	}
+-	dev_dbg(dev, "vt_sys_clk_freq_hz \t%d\n", pll->vt_sys_clk_freq_hz);
+-	dev_dbg(dev, "vt_pix_clk_freq_hz \t%d\n", pll->vt_pix_clk_freq_hz);
++	dev_dbg(dev, "vt_sys_clk_freq_hz \t%u\n", pll->vt_sys_clk_freq_hz);
++	dev_dbg(dev, "vt_pix_clk_freq_hz \t%u\n", pll->vt_pix_clk_freq_hz);
  }
- 
- /* -----------------------------------------------------------------------------
-- * IOMMU management
-- */
--
--#define IOMMU_FLAG	(IOVMF_ENDIAN_LITTLE | IOVMF_ELSZ_8)
--
--/*
-- * ispmmu_vmap - Wrapper for Virtual memory mapping of a scatter gather list
-- * @isp: Device pointer specific to the OMAP3 ISP.
-- * @sglist: Pointer to source Scatter gather list to allocate.
-- * @sglen: Number of elements of the scatter-gatter list.
-- *
-- * Returns a resulting mapped device address by the ISP MMU, or -ENOMEM if
-- * we ran out of memory.
-- */
--static dma_addr_t
--ispmmu_vmap(struct isp_device *isp, const struct scatterlist *sglist, int sglen)
--{
--	struct sg_table *sgt;
--	u32 da;
--
--	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
--	if (sgt == NULL)
--		return -ENOMEM;
--
--	sgt->sgl = (struct scatterlist *)sglist;
--	sgt->nents = sglen;
--	sgt->orig_nents = sglen;
--
--	da = omap_iommu_vmap(isp->domain, isp->dev, 0, sgt, IOMMU_FLAG);
--	if (IS_ERR_VALUE(da))
--		kfree(sgt);
--
--	return da;
--}
--
--/*
-- * ispmmu_vunmap - Unmap a device address from the ISP MMU
-- * @isp: Device pointer specific to the OMAP3 ISP.
-- * @da: Device address generated from a ispmmu_vmap call.
-- */
--static void ispmmu_vunmap(struct isp_device *isp, dma_addr_t da)
--{
--	struct sg_table *sgt;
--
--	sgt = omap_iommu_vunmap(isp->domain, isp->dev, (u32)da);
--	kfree(sgt);
--}
--
--/* -----------------------------------------------------------------------------
-  * Video queue operations
-  */
- 
-@@ -392,24 +342,11 @@ static void isp_video_queue_prepare(struct isp_video_queue *queue,
- 	*nbuffers = min(*nbuffers, video->capture_mem / PAGE_ALIGN(*size));
- }
- 
--static void isp_video_buffer_cleanup(struct isp_video_buffer *buf)
--{
--	struct isp_video_fh *vfh = isp_video_queue_to_isp_video_fh(buf->queue);
--	struct isp_buffer *buffer = to_isp_buffer(buf);
--	struct isp_video *video = vfh->video;
--
--	if (buffer->isp_addr) {
--		ispmmu_vunmap(video->isp, buffer->isp_addr);
--		buffer->isp_addr = 0;
--	}
--}
--
- static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
- {
- 	struct isp_video_fh *vfh = isp_video_queue_to_isp_video_fh(buf->queue);
- 	struct isp_buffer *buffer = to_isp_buffer(buf);
- 	struct isp_video *video = vfh->video;
--	unsigned long addr;
- 
- 	/* Refuse to prepare the buffer is the video node has registered an
- 	 * error. We don't need to take any lock here as the operation is
-@@ -420,18 +357,7 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
- 	if (unlikely(video->error))
- 		return -EIO;
- 
--	addr = ispmmu_vmap(video->isp, buf->sglist, buf->sglen);
--	if (IS_ERR_VALUE(addr))
--		return -EIO;
--
--	if (!IS_ALIGNED(addr, 32)) {
--		dev_dbg(video->isp->dev, "Buffer address must be "
--			"aligned to 32 bytes boundary.\n");
--		ispmmu_vunmap(video->isp, buffer->isp_addr);
--		return -EINVAL;
--	}
--
--	buffer->isp_addr = addr;
-+	buffer->isp_addr = buf->dma;
- 	return 0;
- }
- 
-@@ -490,7 +416,6 @@ static const struct isp_video_queue_operations isp_video_queue_ops = {
- 	.queue_prepare = &isp_video_queue_prepare,
- 	.buffer_prepare = &isp_video_buffer_prepare,
- 	.buffer_queue = &isp_video_buffer_queue,
--	.buffer_cleanup = &isp_video_buffer_cleanup,
- };
  
  /*
+@@ -123,11 +123,11 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 	 * Get pre_pll_clk_div so that our pll_op_clk_freq_hz won't be
+ 	 * too high.
+ 	 */
+-	dev_dbg(dev, "pre_pll_clk_div %d\n", pll->pre_pll_clk_div);
++	dev_dbg(dev, "pre_pll_clk_div %u\n", pll->pre_pll_clk_div);
+ 
+ 	/* Don't go above max pll multiplier. */
+ 	more_mul_max = limits->max_pll_multiplier / mul;
+-	dev_dbg(dev, "more_mul_max: max_pll_multiplier check: %d\n",
++	dev_dbg(dev, "more_mul_max: max_pll_multiplier check: %u\n",
+ 		more_mul_max);
+ 	/* Don't go above max pll op frequency. */
+ 	more_mul_max =
+@@ -135,30 +135,30 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 		      more_mul_max,
+ 		      limits->max_pll_op_freq_hz
+ 		      / (pll->ext_clk_freq_hz / pll->pre_pll_clk_div * mul));
+-	dev_dbg(dev, "more_mul_max: max_pll_op_freq_hz check: %d\n",
++	dev_dbg(dev, "more_mul_max: max_pll_op_freq_hz check: %u\n",
+ 		more_mul_max);
+ 	/* Don't go above the division capability of op sys clock divider. */
+ 	more_mul_max = min(more_mul_max,
+ 			   limits->op.max_sys_clk_div * pll->pre_pll_clk_div
+ 			   / div);
+-	dev_dbg(dev, "more_mul_max: max_op_sys_clk_div check: %d\n",
++	dev_dbg(dev, "more_mul_max: max_op_sys_clk_div check: %u\n",
+ 		more_mul_max);
+ 	/* Ensure we won't go above min_pll_multiplier. */
+ 	more_mul_max = min(more_mul_max,
+ 			   DIV_ROUND_UP(limits->max_pll_multiplier, mul));
+-	dev_dbg(dev, "more_mul_max: min_pll_multiplier check: %d\n",
++	dev_dbg(dev, "more_mul_max: min_pll_multiplier check: %u\n",
+ 		more_mul_max);
+ 
+ 	/* Ensure we won't go below min_pll_op_freq_hz. */
+ 	more_mul_min = DIV_ROUND_UP(limits->min_pll_op_freq_hz,
+ 				    pll->ext_clk_freq_hz / pll->pre_pll_clk_div
+ 				    * mul);
+-	dev_dbg(dev, "more_mul_min: min_pll_op_freq_hz check: %d\n",
++	dev_dbg(dev, "more_mul_min: min_pll_op_freq_hz check: %u\n",
+ 		more_mul_min);
+ 	/* Ensure we won't go below min_pll_multiplier. */
+ 	more_mul_min = max(more_mul_min,
+ 			   DIV_ROUND_UP(limits->min_pll_multiplier, mul));
+-	dev_dbg(dev, "more_mul_min: min_pll_multiplier check: %d\n",
++	dev_dbg(dev, "more_mul_min: min_pll_multiplier check: %u\n",
+ 		more_mul_min);
+ 
+ 	if (more_mul_min > more_mul_max) {
+@@ -168,23 +168,23 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 	}
+ 
+ 	more_mul_factor = lcm(div, pll->pre_pll_clk_div) / div;
+-	dev_dbg(dev, "more_mul_factor: %d\n", more_mul_factor);
++	dev_dbg(dev, "more_mul_factor: %u\n", more_mul_factor);
+ 	more_mul_factor = lcm(more_mul_factor, limits->op.min_sys_clk_div);
+-	dev_dbg(dev, "more_mul_factor: min_op_sys_clk_div: %d\n",
++	dev_dbg(dev, "more_mul_factor: min_op_sys_clk_div: %u\n",
+ 		more_mul_factor);
+ 	i = roundup(more_mul_min, more_mul_factor);
+ 	if (!is_one_or_even(i))
+ 		i <<= 1;
+ 
+-	dev_dbg(dev, "final more_mul: %d\n", i);
++	dev_dbg(dev, "final more_mul: %u\n", i);
+ 	if (i > more_mul_max) {
+-		dev_dbg(dev, "final more_mul is bad, max %d\n", more_mul_max);
++		dev_dbg(dev, "final more_mul is bad, max %u\n", more_mul_max);
+ 		return -EINVAL;
+ 	}
+ 
+ 	pll->pll_multiplier = mul * i;
+ 	pll->op_sys_clk_div = div * i / pll->pre_pll_clk_div;
+-	dev_dbg(dev, "op_sys_clk_div: %d\n", pll->op_sys_clk_div);
++	dev_dbg(dev, "op_sys_clk_div: %u\n", pll->op_sys_clk_div);
+ 
+ 	pll->pll_ip_clk_freq_hz = pll->ext_clk_freq_hz
+ 		/ pll->pre_pll_clk_div;
+@@ -197,7 +197,7 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 		pll->pll_op_clk_freq_hz / pll->op_sys_clk_div;
+ 
+ 	pll->op_pix_clk_div = pll->bits_per_pixel;
+-	dev_dbg(dev, "op_pix_clk_div: %d\n", pll->op_pix_clk_div);
++	dev_dbg(dev, "op_pix_clk_div: %u\n", pll->op_pix_clk_div);
+ 
+ 	pll->op_pix_clk_freq_hz =
+ 		pll->op_sys_clk_freq_hz / pll->op_pix_clk_div;
+@@ -214,7 +214,7 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 		vt_op_binning_div = pll->binning_horizontal;
+ 	else
+ 		vt_op_binning_div = 1;
+-	dev_dbg(dev, "vt_op_binning_div: %d\n", vt_op_binning_div);
++	dev_dbg(dev, "vt_op_binning_div: %u\n", vt_op_binning_div);
+ 
+ 	/*
+ 	 * Profile 2 supports vt_pix_clk_div E [4, 10]
+@@ -227,30 +227,30 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 	 *
+ 	 * Find absolute limits for the factor of vt divider.
+ 	 */
+-	dev_dbg(dev, "scale_m: %d\n", pll->scale_m);
++	dev_dbg(dev, "scale_m: %u\n", pll->scale_m);
+ 	min_vt_div = DIV_ROUND_UP(pll->op_pix_clk_div * pll->op_sys_clk_div
+ 				  * pll->scale_n,
+ 				  lane_op_clock_ratio * vt_op_binning_div
+ 				  * pll->scale_m);
+ 
+ 	/* Find smallest and biggest allowed vt divisor. */
+-	dev_dbg(dev, "min_vt_div: %d\n", min_vt_div);
++	dev_dbg(dev, "min_vt_div: %u\n", min_vt_div);
+ 	min_vt_div = max(min_vt_div,
+ 			 DIV_ROUND_UP(pll->pll_op_clk_freq_hz,
+ 				      limits->vt.max_pix_clk_freq_hz));
+-	dev_dbg(dev, "min_vt_div: max_vt_pix_clk_freq_hz: %d\n",
++	dev_dbg(dev, "min_vt_div: max_vt_pix_clk_freq_hz: %u\n",
+ 		min_vt_div);
+ 	min_vt_div = max_t(uint32_t, min_vt_div,
+ 			   limits->vt.min_pix_clk_div
+ 			   * limits->vt.min_sys_clk_div);
+-	dev_dbg(dev, "min_vt_div: min_vt_clk_div: %d\n", min_vt_div);
++	dev_dbg(dev, "min_vt_div: min_vt_clk_div: %u\n", min_vt_div);
+ 
+ 	max_vt_div = limits->vt.max_sys_clk_div * limits->vt.max_pix_clk_div;
+-	dev_dbg(dev, "max_vt_div: %d\n", max_vt_div);
++	dev_dbg(dev, "max_vt_div: %u\n", max_vt_div);
+ 	max_vt_div = min(max_vt_div,
+ 			 DIV_ROUND_UP(pll->pll_op_clk_freq_hz,
+ 				      limits->vt.min_pix_clk_freq_hz));
+-	dev_dbg(dev, "max_vt_div: min_vt_pix_clk_freq_hz: %d\n",
++	dev_dbg(dev, "max_vt_div: min_vt_pix_clk_freq_hz: %u\n",
+ 		max_vt_div);
+ 
+ 	/*
+@@ -258,28 +258,28 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 	 * with all values of pix_clk_div.
+ 	 */
+ 	min_sys_div = limits->vt.min_sys_clk_div;
+-	dev_dbg(dev, "min_sys_div: %d\n", min_sys_div);
++	dev_dbg(dev, "min_sys_div: %u\n", min_sys_div);
+ 	min_sys_div = max(min_sys_div,
+ 			  DIV_ROUND_UP(min_vt_div,
+ 				       limits->vt.max_pix_clk_div));
+-	dev_dbg(dev, "min_sys_div: max_vt_pix_clk_div: %d\n", min_sys_div);
++	dev_dbg(dev, "min_sys_div: max_vt_pix_clk_div: %u\n", min_sys_div);
+ 	min_sys_div = max(min_sys_div,
+ 			  pll->pll_op_clk_freq_hz
+ 			  / limits->vt.max_sys_clk_freq_hz);
+-	dev_dbg(dev, "min_sys_div: max_pll_op_clk_freq_hz: %d\n", min_sys_div);
++	dev_dbg(dev, "min_sys_div: max_pll_op_clk_freq_hz: %u\n", min_sys_div);
+ 	min_sys_div = clk_div_even_up(min_sys_div);
+-	dev_dbg(dev, "min_sys_div: one or even: %d\n", min_sys_div);
++	dev_dbg(dev, "min_sys_div: one or even: %u\n", min_sys_div);
+ 
+ 	max_sys_div = limits->vt.max_sys_clk_div;
+-	dev_dbg(dev, "max_sys_div: %d\n", max_sys_div);
++	dev_dbg(dev, "max_sys_div: %u\n", max_sys_div);
+ 	max_sys_div = min(max_sys_div,
+ 			  DIV_ROUND_UP(max_vt_div,
+ 				       limits->vt.min_pix_clk_div));
+-	dev_dbg(dev, "max_sys_div: min_vt_pix_clk_div: %d\n", max_sys_div);
++	dev_dbg(dev, "max_sys_div: min_vt_pix_clk_div: %u\n", max_sys_div);
+ 	max_sys_div = min(max_sys_div,
+ 			  DIV_ROUND_UP(pll->pll_op_clk_freq_hz,
+ 				       limits->vt.min_pix_clk_freq_hz));
+-	dev_dbg(dev, "max_sys_div: min_vt_pix_clk_freq_hz: %d\n", max_sys_div);
++	dev_dbg(dev, "max_sys_div: min_vt_pix_clk_freq_hz: %u\n", max_sys_div);
+ 
+ 	/*
+ 	 * Find pix_div such that a legal pix_div * sys_div results
+@@ -296,7 +296,7 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 			if (pix_div < limits->vt.min_pix_clk_div
+ 			    || pix_div > limits->vt.max_pix_clk_div) {
+ 				dev_dbg(dev,
+-					"pix_div %d too small or too big (%d--%d)\n",
++					"pix_div %u too small or too big (%u--%u)\n",
+ 					pix_div,
+ 					limits->vt.min_pix_clk_div,
+ 					limits->vt.max_pix_clk_div);
+@@ -390,9 +390,9 @@ int smiapp_pll_calculate(struct device *dev,
+ 		lane_op_clock_ratio = pll->csi2.lanes;
+ 	else
+ 		lane_op_clock_ratio = 1;
+-	dev_dbg(dev, "lane_op_clock_ratio: %d\n", lane_op_clock_ratio);
++	dev_dbg(dev, "lane_op_clock_ratio: %u\n", lane_op_clock_ratio);
+ 
+-	dev_dbg(dev, "binning: %dx%d\n", pll->binning_horizontal,
++	dev_dbg(dev, "binning: %ux%u\n", pll->binning_horizontal,
+ 		pll->binning_vertical);
+ 
+ 	switch (pll->bus_type) {
+@@ -411,7 +411,7 @@ int smiapp_pll_calculate(struct device *dev,
+ 	}
+ 
+ 	/* Figure out limits for pre-pll divider based on extclk */
+-	dev_dbg(dev, "min / max pre_pll_clk_div: %d / %d\n",
++	dev_dbg(dev, "min / max pre_pll_clk_div: %u / %u\n",
+ 		limits->min_pre_pll_clk_div, limits->max_pre_pll_clk_div);
+ 	max_pre_pll_clk_div =
+ 		min_t(uint16_t, limits->max_pre_pll_clk_div,
+@@ -422,20 +422,20 @@ int smiapp_pll_calculate(struct device *dev,
+ 		      clk_div_even_up(
+ 			      DIV_ROUND_UP(pll->ext_clk_freq_hz,
+ 					   limits->max_pll_ip_freq_hz)));
+-	dev_dbg(dev, "pre-pll check: min / max pre_pll_clk_div: %d / %d\n",
++	dev_dbg(dev, "pre-pll check: min / max pre_pll_clk_div: %u / %u\n",
+ 		min_pre_pll_clk_div, max_pre_pll_clk_div);
+ 
+ 	i = gcd(pll->pll_op_clk_freq_hz, pll->ext_clk_freq_hz);
+ 	mul = div_u64(pll->pll_op_clk_freq_hz, i);
+ 	div = pll->ext_clk_freq_hz / i;
+-	dev_dbg(dev, "mul %d / div %d\n", mul, div);
++	dev_dbg(dev, "mul %u / div %u\n", mul, div);
+ 
+ 	min_pre_pll_clk_div =
+ 		max_t(uint16_t, min_pre_pll_clk_div,
+ 		      clk_div_even_up(
+ 			      DIV_ROUND_UP(mul * pll->ext_clk_freq_hz,
+ 					   limits->max_pll_op_freq_hz)));
+-	dev_dbg(dev, "pll_op check: min / max pre_pll_clk_div: %d / %d\n",
++	dev_dbg(dev, "pll_op check: min / max pre_pll_clk_div: %u / %u\n",
+ 		min_pre_pll_clk_div, max_pre_pll_clk_div);
+ 
+ 	for (pll->pre_pll_clk_div = min_pre_pll_clk_div;
 -- 
 1.8.3.2
 
