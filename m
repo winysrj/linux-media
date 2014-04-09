@@ -1,112 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vserver.eikelenboom.it ([84.200.39.61]:38913 "EHLO
-	smtp.eikelenboom.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754072AbaDNQzR (ORCPT
+Received: from qmta13.emeryville.ca.mail.comcast.net ([76.96.27.243]:38669
+	"EHLO qmta13.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933643AbaDIPV3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 12:55:17 -0400
-Date: Mon, 14 Apr 2014 18:55:13 +0200
-From: Sander Eikelenboom <linux@eikelenboom.it>
-Message-ID: <180763328.20140414185513@eikelenboom.it>
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] media: stk1160: Avoid stack-allocated buffer for control URBs
-In-Reply-To: <1397493665-912-1-git-send-email-ezequiel.garcia@free-electrons.com>
-References: <1397493665-912-1-git-send-email-ezequiel.garcia@free-electrons.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	Wed, 9 Apr 2014 11:21:29 -0400
+From: Shuah Khan <shuah.kh@samsung.com>
+To: gregkh@linuxfoundation.org, m.chehab@samsung.com, tj@kernel.org,
+	rafael.j.wysocki@intel.com, linux@roeck-us.net, toshi.kani@hp.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, shuahkhan@gmail.com
+Subject: [RFC PATCH 1/2] drivers/base: add new devres_update() interface to devres_*
+Date: Wed,  9 Apr 2014 09:21:07 -0600
+Message-Id: <e73e82c4b19e33171c3c5be991dc7f3d3f51d0a6.1397050852.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1397050852.git.shuah.kh@samsung.com>
+References: <cover.1397050852.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1397050852.git.shuah.kh@samsung.com>
+References: <cover.1397050852.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Media devices often have hardware resources that are shared
+across several functions. For instance, TV tuner cards often
+have MUXes, converters, radios, tuners, etc. that are shared
+across various functions. However, v4l2, alsa, DVB, usbfs, and
+all other drivers have no knowledge of what resources are
+shared. For example, users can't access DVB and alsa at the same
+time, or the DVB and V4L analog API at the same time, since many
+only have one converter that can be in either analog or digital
+mode. Accessing and/or changing mode of a converter while it is
+in use by another function results in video stream error.
 
-Monday, April 14, 2014, 6:41:05 PM, you wrote:
+A shared devres that can be locked and unlocked by various drivers
+that control media functions on a single media device is needed to
+address the above problems.
 
-> Currently stk1160_read_reg() uses a stack-allocated char to get the
-> read control value. This is wrong because usb_control_msg() requires
-> a kmalloc-ed buffer, and a DMA-API warning is produced:
+A token devres that can be looked up by a token for locking, try
+locking, unlocking will help avoid adding data structure
+dependencies between various media drivers. This token is a unique
+string that can be constructed from a common data structure such as
+struct device, bus_name, and hardware address.
 
-> WARNING: CPU: 0 PID: 1376 at lib/dma-debug.c:1153 check_for_stack+0xa0/0x100()
-> ehci-pci 0000:00:0a.0: DMA-API: device driver maps memory fromstack [addr=ffff88003d0b56bf]
+A new devres_* interface to update the status of this token resource
+to busy when locked and free when unlocked is necessary to implement
+this new managed resource.
 
-> This commit fixes such issue by using a 'usb_ctrl_read' field embedded
-> in the device's struct to pass the value. In addition, we introduce a
-> mutex to protect the value.
+devres_update() searches for the resource that matches supplied match
+criteria similar to devres_find(). When a match is found, it calls
+the update function caller passed in.
 
-> While here, let's remove the urb_buf array which was meant for a similar
-> purpose, but never really used.
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+---
+ drivers/base/devres.c  |   36 ++++++++++++++++++++++++++++++++++++
+ include/linux/device.h |    4 ++++
+ 2 files changed, 40 insertions(+)
 
-> Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
-> Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-> ---
-> Sander, Hans:
-> Does this cause any regressions, other than the DMA-API warning?
-> In that case, we can consider this as suitable for -stable.
-
-Thanks !
-
-Will test and report back later.
-
---
-Sander
-
->  drivers/media/usb/stk1160/stk1160-core.c | 8 +++++++-
->  drivers/media/usb/stk1160/stk1160.h      | 3 ++-
->  2 files changed, 9 insertions(+), 2 deletions(-)
-
-> diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/usb/stk1160/stk1160-core.c
-> index 34a26e0..cce91e7 100644
-> --- a/drivers/media/usb/stk1160/stk1160-core.c
-> +++ b/drivers/media/usb/stk1160/stk1160-core.c
-> @@ -69,15 +69,20 @@ int stk1160_read_reg(struct stk1160 *dev, u16 reg, u8 *value)
->         int pipe = usb_rcvctrlpipe(dev->udev, 0);
->  
->         *value = 0;
-> +
-> +       mutex_lock(&dev->urb_ctrl_lock);
->         ret = usb_control_msg(dev->udev, pipe, 0x00,
->                         USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> -                       0x00, reg, value, sizeof(u8), HZ);
-> +                       0x00, reg, &dev->urb_ctrl_read, sizeof(u8), HZ);
->         if (ret < 0) {
->                 stk1160_err("read failed on reg 0x%x (%d)\n",
->                         reg, ret);
-> +               mutex_unlock(&dev->urb_ctrl_lock);
->                 return ret;
->         }
->  
-> +       *value = dev->urb_ctrl_read;
-> +       mutex_unlock(&dev->urb_ctrl_lock);
->         return 0;
->  }
->  
-> @@ -322,6 +327,7 @@ static int stk1160_probe(struct usb_interface *interface,
->          * because we register the device node as the *last* thing.
->          */
->         spin_lock_init(&dev->buf_lock);
-> +       mutex_init(&dev->urb_ctrl_lock);
->         mutex_init(&dev->v4l_lock);
->         mutex_init(&dev->vb_queue_lock);
->  
-> diff --git a/drivers/media/usb/stk1160/stk1160.h b/drivers/media/usb/stk1160/stk1160.h
-> index 05b05b1..8886be4 100644
-> --- a/drivers/media/usb/stk1160/stk1160.h
-> +++ b/drivers/media/usb/stk1160/stk1160.h
-> @@ -143,7 +143,7 @@ struct stk1160 {
->         int num_alt;
->  
->         struct stk1160_isoc_ctl isoc_ctl;
-> -       char urb_buf[255];       /* urb control msg buffer */
-> +       char urb_ctrl_read;
->  
->         /* frame properties */
->         int width;                /* current frame width */
-> @@ -159,6 +159,7 @@ struct stk1160 {
->         struct i2c_adapter i2c_adap;
->         struct i2c_client i2c_client;
->  
-> +       struct mutex urb_ctrl_lock;     /* protects urb_ctrl_read */
->         struct mutex v4l_lock;
->         struct mutex vb_queue_lock;
->         spinlock_t buf_lock;
+diff --git a/drivers/base/devres.c b/drivers/base/devres.c
+index db4e264..8620600 100644
+--- a/drivers/base/devres.c
++++ b/drivers/base/devres.c
+@@ -272,6 +272,42 @@ void * devres_find(struct device *dev, dr_release_t release,
+ EXPORT_SYMBOL_GPL(devres_find);
+ 
+ /**
++ * devres_update - Find device resource and call update function
++ * @dev: Device to lookup resource from
++ * @release: Look for resources associated with this release function
++ * @match: Match function - must be specified
++ * @match_data: Data for the match function
++ * @update: Update function - must be specified
++ *
++ * Find the latest devres of @dev which is associated with @release
++ * and for which @match returns 1. If match is found, update will be
++ * called. This is intended for changes to status type data in a devres
++ *
++ * RETURNS:
++ * Pointer to found and updated devres, NULL if not found.
++ */
++void *devres_update(struct device *dev, dr_release_t release,
++		   dr_match_t match, void *match_data, dr_update_t update)
++{
++	struct devres *dr;
++	unsigned long flags;
++
++	if (!match || !update)
++		return NULL;
++
++	spin_lock_irqsave(&dev->devres_lock, flags);
++	dr = find_dr(dev, release, match, match_data);
++	if (dr)
++		update(dev, dr->data);
++	spin_unlock_irqrestore(&dev->devres_lock, flags);
++
++	if (dr)
++		return dr->data;
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(devres_update);
++
++/**
+  * devres_get - Find devres, if non-existent, add one atomically
+  * @dev: Device to lookup or add devres for
+  * @new_res: Pointer to new initialized devres to add if not found
+diff --git a/include/linux/device.h b/include/linux/device.h
+index 233bbbe..39749df 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -576,6 +576,7 @@ extern int device_schedule_callback_owner(struct device *dev,
+ /* device resource management */
+ typedef void (*dr_release_t)(struct device *dev, void *res);
+ typedef int (*dr_match_t)(struct device *dev, void *res, void *match_data);
++typedef void (*dr_update_t)(struct device *dev, void *data);
+ 
+ #ifdef CONFIG_DEBUG_DEVRES
+ extern void *__devres_alloc(dr_release_t release, size_t size, gfp_t gfp,
+@@ -593,6 +594,9 @@ extern void devres_free(void *res);
+ extern void devres_add(struct device *dev, void *res);
+ extern void *devres_find(struct device *dev, dr_release_t release,
+ 			 dr_match_t match, void *match_data);
++extern void *devres_update(struct device *dev, dr_release_t release,
++			dr_match_t match, void *match_data,
++			dr_update_t update);
+ extern void *devres_get(struct device *dev, void *new_res,
+ 			dr_match_t match, void *match_data);
+ extern void *devres_remove(struct device *dev, dr_release_t release,
+-- 
+1.7.10.4
 
