@@ -1,115 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f173.google.com ([209.85.214.173]:57644 "EHLO
-	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753892AbaDPRtR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Apr 2014 13:49:17 -0400
-Date: Wed, 16 Apr 2014 12:29:22 -0500 (CDT)
-From: Thomas Pugliese <thomas.pugliese@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Thomas Pugliese <thomas.pugliese@gmail.com>,
-	linux-media@vger.kernel.org, linux-usb@vger.kernel.org
-Subject: Re: [PATCH] uvc: update uvc_endpoint_max_bpi to handle USB_SPEED_WIRELESS
- devices
-In-Reply-To: <1482714.CWOKDIksaK@avalon>
-Message-ID: <alpine.DEB.2.10.1404161207140.8512@mint32-virtualbox>
-References: <1390598248-343-1-git-send-email-thomas.pugliese@gmail.com> <1483439.ESi3RcYlPK@avalon> <alpine.DEB.2.10.1404151553310.8128@mint32-virtualbox> <1482714.CWOKDIksaK@avalon>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:62808 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750784AbaDIKax (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 06:30:53 -0400
+Message-id: <53452157.9030203@samsung.com>
+Date: Wed, 09 Apr 2014 12:30:47 +0200
+From: Andrzej Hajda <a.hajda@samsung.com>
+MIME-version: 1.0
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org
+Cc: kgene.kim@samsung.com, kishon@ti.com, kyungmin.park@samsung.com,
+	robh+dt@kernel.org, grant.likely@linaro.org,
+	sylvester.nawrocki@gmail.com, rahul.sharma@samsung.com
+Subject: Re: [PATCHv2 2/3] drm: exynos: hdmi: use hdmiphy as PHY
+References: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com>
+ <1396967856-27470-3-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1396967856-27470-3-git-send-email-t.stanislaws@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Tomasz,
+
+On 04/08/2014 04:37 PM, Tomasz Stanislawski wrote:
+> The HDMIPHY (physical interface) is controlled by a single
+> bit in a power controller's regiter. It was implemented
+> as clock. It was a simple but effective hack.
+
+This power controller register has also bits to control HDMI clock
+divider ratio. I guess current drivers do not change it, but how do you
+want to implement access to it if some HDMI driver in the future will
+need to change ratio. I guess in case of clk it would be easier.
+
+Regards
+Andrzej
 
 
-On Wed, 16 Apr 2014, Laurent Pinchart wrote:
-
-> Hi Thomas,
-> 
-> (CC'ing the linux-usb mailing list)
-> 
-> On Tuesday 15 April 2014 16:45:28 Thomas Pugliese wrote:
-> > On Tue, 15 Apr 2014, Laurent Pinchart wrote:
-> > > Hi Thomas,
-> > > 
-> > > Could you please send me a proper revert patch with the above description
-> > > in the commit message and CC Mauro Carvalho Chehab <m.chehab@samsung.com>
-> > > ?
-> >
-> > Hi Laurent,
-> > I can submit a patch to revert but I should make a correction first.  I
-> > had backported this change to an earlier kernel (2.6.39) which was before
-> > super speed support was added and the regression I described was based on
-> > that kernel.  It was actually the addition of super speed support that
-> > broke windows compatible devices.  My previous change fixed spec compliant
-> > devices but left windows compatible devices broken.
-> > 
-> > Basically, the timeline of changes is this:
-> > 
-> > 1.  Prior to the addition of super speed support (commit
-> > 6fd90db8df379e215): all WUSB devices were treated as HIGH_SPEED devices.
-> > This is how Windows works so Windows compatible devices would work.  For
-> > spec compliant WUSB devices, the max packet size would be incorrectly
-> > calculated which would result in high-bandwidth isoc streams being unable
-> > to find an alt setting that provided enough bandwidth.
-> > 
-> > 2.  After super speed support: all WUSB devices fell through to the
-> > default case of uvc_endpoint_max_bpi which would mask off the upper bits
-> > of the max packet size.  This broke both WUSB spec compliant and non
-> > compliant devices because no endpoint with a large enough bpi would be
-> > found.
-> > 
-> > 3.  After 79af67e77f86404e77e: Spec compliant devices are fixed but
-> > non-spec compliant (although Windows compatible) devices are broken.
-> > Basically, this is the opposite of how it worked prior to super speed
-> > support.
-> > 
-> > Given that, I can submit a patch to revert 79af67e77f86404e77e but that
-> > would go back to having all WUSB devices broken.  Alternatively, the
-> > change below will revert the behavior back to scenario 1 where Windows
-> > compatible devices work but strictly spec complaint devices may not.
-> > 
-> > I can send a proper patch for whichever scenario you prefer.
-> 
-> Thank you for the explanation.
-> 
-> Reverting 79af67e77f86404e77e doesn't seem like a very good idea, given that 
-> all WUSB devices will be broken. We thus have two options:
-> 
-> - leaving the code as-is, with support for spec-compliant WUSB devices but not 
-> for microsoft-specific devices 
-> 
-> - applying the patch below, with support for microsoft-specific USB devices 
-> but not for spec-compliant devices
-> 
-> This isn't the first time this kind of situation occurs. Microsoft didn't 
-> support multiple configurations before Windows 8, making vendors come up with 
-> lots of "creative" MS-specific solutions. I consider those devices non USB 
-> compliant, and they should not be allowed to use the USB logo, but that would 
-> require a strong political move from the USB Implementers Forum which is more 
-> or less controlled by Microsoft... Welcome to the USB mafia.
-> 
-> Anyway, I have no experience with WUSB devices, so I don't know what's more 
-> common in the wild. What would you suggest ? 
-
-I think that almost all current devices support the Windows/USB 2.0 format 
-rather than stricty follow the WUSB spec.  Even the prototype device that 
-I initially used to test UVC with Wireless USB has been updated to use the 
-USB 2.0 format prior to shipping in order to remain compatible with 
-Windows.  That being said, these devices are not very common at all in the 
-consumer market.  They are mostly used in embedded/industrial settings so 
-that may factor in as to which direction you want to go.
-
-> Would there be a way to support 
-> both categories of devices ?
-> 
-
-As you had mentioned previously, it should be possible to support both 
-formats by ignoring the endpoint descriptor and looking at the bMaxBurst, 
-bOverTheAirInterval and wOverTheAirPacketSize fields in the WUSB endpoint 
-companion descriptor.  That is a more involved change to the UVC driver 
-and also would require changes to USB core to store the WUSB endpoint 
-companion descriptor in struct usb_host_endpoint similar to what is done 
-for super speed devices.
-
-Regards,
-Thomas
