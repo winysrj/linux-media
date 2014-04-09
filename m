@@ -1,194 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38068 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751694AbaDAWPA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Apr 2014 18:15:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [yavta PATCH 5/9] Allow passing file descriptors to yavta
-Date: Wed, 02 Apr 2014 00:16:57 +0200
-Message-ID: <349099482.s11F5mBja6@avalon>
-In-Reply-To: <1393690690-5004-6-git-send-email-sakari.ailus@iki.fi>
-References: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi> <1393690690-5004-6-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-yh0-f45.google.com ([209.85.213.45]:36985 "EHLO
+	mail-yh0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932932AbaDIM0h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 08:26:37 -0400
+Received: by mail-yh0-f45.google.com with SMTP id a41so2227345yho.32
+        for <linux-media@vger.kernel.org>; Wed, 09 Apr 2014 05:26:36 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CA+d4A-_qqjKVq3amo3kRMLpVYP-KE=CLxhC76rFFaKZ31a=Khw@mail.gmail.com>
+References: <CA+d4A-_qqjKVq3amo3kRMLpVYP-KE=CLxhC76rFFaKZ31a=Khw@mail.gmail.com>
+Date: Wed, 9 Apr 2014 08:26:36 -0400
+Message-ID: <CALzAhNU=4TpW6TwqQLQSjw_RwYX1=qE=wHnaNBNnU=v5Nk2RSw@mail.gmail.com>
+Subject: Re: Kworld PlusTV All in One PI610 - need help
+From: Steven Toth <stoth@kernellabs.com>
+To: Julian Day <julianfday@gmail.com>
+Cc: Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+I don't know the 7131 but the following advice is generic for any USB,
+PCI or PCIE device:
 
-Thank you for the patch.
+Essentially, when correctly configured, the tuner will output an
+Intermediate Frequency (IF). This is the frequency you've selected to
+tune, for example 474MHz, isolated into a 8MHz band and shifted down
+to a different frequency that the 10046 demodulator is designed to
+receive. Typicaly IFs are 44Mhz, 6MHz or variations of.
 
-On Saturday 01 March 2014 18:18:06 Sakari Ailus wrote:
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  yavta.c |   63 ++++++++++++++++++++++++++++++++++++++++--------------------
->  1 file changed, 43 insertions(+), 20 deletions(-)
-> 
-> diff --git a/yavta.c b/yavta.c
-> index 870682e..a9b192a 100644
-> --- a/yavta.c
-> +++ b/yavta.c
-> @@ -62,6 +62,7 @@ struct buffer
->  struct device
->  {
->  	int fd;
-> +	int opened;
-> 
->  	enum v4l2_buf_type type;
->  	enum v4l2_memory memtype;
-> @@ -180,13 +181,8 @@ static unsigned int v4l2_format_code(const char *name)
->  	return 0;
->  }
-> 
-> -static int video_open(struct device *dev, const char *devname, int
-> no_query)
-> +static int video_open(struct device *dev, const char *devname)
->  {
-> -	dev->fd = -1;
-> -	dev->memtype = V4L2_MEMORY_MMAP;
-> -	dev->buffers = NULL;
-> -	dev->type = (enum v4l2_buf_type)-1;
-> -
->  	dev->fd = open(devname, O_RDWR);
->  	if (dev->fd < 0) {
->  		printf("Error opening device %s: %s (%d).\n", devname,
-> @@ -196,6 +192,16 @@ static int video_open(struct device *dev, const char
-> *devname, int no_query)
-> 
->  	printf("Device %s opened.\n", devname);
-> 
-> +	dev->opened = 1;
-> +
-> +	return 0;
-> +}
-> +
-> +static int video_querycap(struct device *dev, int no_query) {
-> +	struct v4l2_capability cap;
-> +	unsigned int capabilities;
-> +	int ret;
-> +
+So, rule #1, match the IF on the tuner to the IF settings for the
+10046 demodulator. These are typically passed to tuner and demodulator
+parts during dvb_attach with tuner and demodualtor specific
+structures. Generally, this is very simple to to. If you create a
+miss-match, the demodulator is never going to lock, no matter how many
+times you tune the tuner to a new 474, 482 etc frequency.
 
-video_querycap ends up setting the dev->type field, which isn't really the job 
-of a query function. Would there be a clean way to pass the fd to the 
-video_open() function instead ? Maybe video_open() could be split and/or 
-renamed to video_init() ?
+Rule #2, you need reliable communication via i2c to the tuner. Look
+for any i2c errors during communication.
 
->  	if (no_query) {
->  		/* Assume capture device. */
->  		dev->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> @@ -215,9 +221,7 @@ static int video_open(struct device *dev, const char
-> *devname, int no_query) else if (capabilities & V4L2_CAP_VIDEO_OUTPUT)
->  		dev->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
->  	else {
-> -		printf("Error opening device %s: neither video capture "
-> -			"nor video output supported.\n", devname);
-> -		close(dev->fd);
-> +		printf("Device supports neither capture nor output.\n");
->  		return -EINVAL;
->  	}
-> 
-> @@ -231,7 +235,8 @@ static void video_close(struct device *dev)
->  {
->  	free(dev->pattern);
->  	free(dev->buffers);
-> -	close(dev->fd);
-> +	if (dev->opened)
-> +		close(dev->fd);
->  }
-> 
->  static unsigned int get_control_type(struct device *dev, unsigned int id)
-> @@ -1246,6 +1251,7 @@ static void usage(const char *argv0)
->  	printf("-w, --set-control 'ctrl value'	Set control 'ctrl' to 
-'value'\n");
->  	printf("    --enum-formats		Enumerate formats\n");
->  	printf("    --enum-inputs		Enumerate inputs\n");
-> +	printf("    --fd                        Use a numeric file descriptor
-> insted of a device\n");
->  	printf("    --no-query			Don't query capabilities on open\n");
->  	printf("    --offset			User pointer buffer offset from page
-> start\n");
->  	printf("    --requeue-last		Requeue the last buffers before
-> streamoff\n");
-> @@ -1262,6 +1268,7 @@ static void usage(const char *argv0)
->  #define OPT_USERPTR_OFFSET	261
->  #define OPT_REQUEUE_LAST	262
->  #define OPT_STRIDE		263
-> +#define OPT_FD			264
-> 
->  static struct option opts[] = {
->  	{"capture", 2, 0, 'c'},
-> @@ -1269,6 +1276,7 @@ static struct option opts[] = {
->  	{"delay", 1, 0, 'd'},
->  	{"enum-formats", 0, 0, OPT_ENUM_FORMATS},
->  	{"enum-inputs", 0, 0, OPT_ENUM_INPUTS},
-> +	{"fd", 1, 0, OPT_FD},
->  	{"file", 2, 0, 'F'},
->  	{"fill-frames", 0, 0, 'I'},
->  	{"format", 1, 0, 'f'},
-> @@ -1297,7 +1305,11 @@ static struct option opts[] = {
->  int main(int argc, char *argv[])
->  {
->  	struct sched_param sched;
-> -	struct device dev = { 0 };
-> +	struct device dev = {
-> +		.fd = -1,
-> +		.memtype = V4L2_MEMORY_MMAP,
-> +		.type = (enum v4l2_buf_type)-1,
-> +	};
->  	int ret;
-> 
->  	/* Options parsings */
-> @@ -1452,6 +1464,14 @@ int main(int argc, char *argv[])
->  		case OPT_ENUM_INPUTS:
->  			do_enum_inputs = 1;
->  			break;
-> +		case OPT_FD:
-> +			dev.fd = atoi(optarg);
-> +			if (dev.fd < 0) {
-> +				printf("Bad file descriptor %d\n", dev.fd);
-> +				return 1;
-> +			}
-> +			printf("Using file descriptor %d\n", dev.fd);
-> +			break;
->  		case OPT_NO_QUERY:
->  			no_query = 1;
->  			break;
-> @@ -1482,18 +1502,21 @@ int main(int argc, char *argv[])
->  		return 1;
->  	}
-> 
-> -	if (optind >= argc) {
-> -		usage(argv[0]);
-> -		return 1;
-> -	}
-> -
->  	if (!do_file)
->  		filename = NULL;
-> 
-> -	/* Open the video device. If the device type isn't recognized, set the
-> -	 * --no-query option to avoid querying V4L2 subdevs.
-> -	 */
-> -	ret = video_open(&dev, argv[optind], no_query);
-> +	if (dev.fd == -1) {
-> +		if (optind >= argc) {
-> +			usage(argv[0]);
-> +			return 1;
-> +		} else {
-> +			ret = video_open(&dev, argv[optind]);
-> +			if (ret < 0)
-> +				return 1;
-> +		}
-> +	}
-> +
-> +	ret = video_querycap(&dev, no_query);
->  	if (ret < 0)
->  		return 1;
+> I guess demod_address is likely to be 0x8 and tuner_address is likely
+> to be 0x61 or 0x60. I think 0x61 seems more like it. What else needs
+> to be set there and is there any guidance on how to probe this type of
+> info?
+
+I typically probe the i2c bus using a logic analyzer to do this with a
+PCI device. Often, poking at the windows driver configuration files
+can reveal the I2C addresses but ideally, look directly at the I2C bus
+when running the device under windows.
+
+>
+> With these mods scan shows tuning failed for every channel:
+>>>> tune to: 474000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+
+My advice, don't rely on scanning. Find an exact and strong frequency
+that's working reliably for you with another product and focus
+specificially on that frequency when test the new PCI board. Use tzap
+exclusive as a test tool until you see the tool report a LOCKED
+status.
+
+Once you have a LOCK, use the dvbtraffic tool in addition to tzap to
+help diagnose, no other s/w tools should be required.
+
+>
+> and:
+> julian@pabay:~$ dmesg |grep -i saa
+> [   19.248098] saa7130/34: v4l2 driver version 0, 2, 17 loaded
+> [   19.248462] saa7133[0]: found at 0000:04:08.0, rev: 209, irq: 16,
+> latency: 64, mmio: 0xfe6fb000
+> [   19.248467] saa7133[0]: subsystem: 17de:7256, board: Kworld PlusTV
+> All in One (PI610) [card=193,autodetected]
+> [   19.248482] saa7133[0]: board init: gpio is 100
+> [   19.400046] saa7133[0]: i2c eeprom 00: de 17 56 72 54 20 1c 00 43
+> 43 a9 1c 55 d2 b2 92
+> [   19.400058] saa7133[0]: i2c eeprom 10: ff ff ff 0f ff 20 ff ff ff
+> ff ff ff ff ff ff 01
+> [   19.400068] saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08
+> ff 00 fe ff ff ff ff
+> [   19.400077] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff ff ff
+> [   19.400087] saa7133[0]: i2c eeprom 40: ff 21 00 c2 96 10 03 32 15
+> 56 ff ff ff ff ff ff
+> [   19.400096] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff ff ff
+> [   19.400106] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff ff ff
+> [   19.400115] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff ff ff
+> [   19.400124] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff ff ff
+> [   19.400134] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff ff ff
+> [   19.400143] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff ff ff
+> [   19.400153] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff ff ff
+> [   19.400162] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff ff ff
+> [   19.400171] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff ff ff
+> [   19.400181] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff ff ff
+> [   19.400190] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff ff ff
+> [   24.053223] saa7133[0]: dsp access wait timeout [bit=WRR]
+> [   24.053764] saa7133[0]: dsp access wait timeout [bit=WRR]
+> [   24.116116] saa7133[0]: registered device video0 [v4l2]
+> [   24.116202] saa7133[0]: registered device vbi0
+> [   24.116260] saa7133[0]: registered device radio0
+> [   24.174563] saa7134 ALSA driver for DMA sound loaded
+> [   24.174590] saa7133[0]/alsa: saa7133[0] at 0xfe6fb000 irq 16
+> registered as card -2
+> [   24.179995] saa7133[0]: dsp access wait timeout [bit=WRR]
+> [   24.180539] saa7133[0]: dsp access wait timeout [bit=WRR]
+> [   24.185216] saa7133[0]: dsp access wait timeout [bit=WRR]
+> [   24.185756] saa7133[0]: dsp access wait timeout [bit=WRR]
+> [   24.640035] DVB: registering new adapter (saa7133[0])
+> [   24.640043] saa7134 0000:04:08.0: DVB: registering adapter 0
+> frontend 0 (Philips TDA10046H DVB-T)...
+> [   25.632561] saa7133[0]: dsp access wait timeout [bit=WRR]
+
+Once you have the demodulator locking, he next issue you'll
+potentially come across is the MPEG interfacing between the
+demodulator and the PCI controller. These are settings, usually passed
+in the 10046 struct during DVB_ATTACH. Each demodulator usually lets
+you configure serial vs parallel digital interfacing, and various
+polarity settings for the SOP and VALID lines. If you get the polarity
+wrong then the DVB-T bytes can be reliably moved between the
+demodulator and the PCI 7131. Uou'd expect either a) a complete loss
+of packets - which is what the dsp is reporting above or b) mangled
+and junk being received. dvbtraffic lets you 'see' the packets.
+Ideally you will see a list of pids and counts increasing, if the
+pids# column varies then most likely the mpeg interface is incorrectly
+configured.
+
+Other aspects come into play which can prevent the demodulator MPEG
+output from being received by the 7131, for example a gpio driven
+muxes can often cause problems, by routing altering the MPEG
+electrical routing....
+
+Focus on tzap and getting the demodulator to report successful LOCK first.
+
+Please ensure ensure any replies include the mailing list.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
