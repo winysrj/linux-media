@@ -1,108 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f174.google.com ([209.85.128.174]:51709 "EHLO
-	mail-ve0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965265AbaD2WUo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Apr 2014 18:20:44 -0400
-MIME-Version: 1.0
-In-Reply-To: <20140429071610.63ccdfae.m.chehab@samsung.com>
-References: <CAGG=RuYdtfjJf5wKG92KdyKuG6AiBHp2_OSH8Wemi3yQOsouMQ@mail.gmail.com>
- <CA+55aFzhydSCJqMLoUX59cLpiwbnoXtL524O5VtQ4-CVj8HxyA@mail.gmail.com>
- <20140428214000.GA9187@gmail.com> <20140429071610.63ccdfae.m.chehab@samsung.com>
-From: Brian Healy <healybrian@gmail.com>
-Date: Tue, 29 Apr 2014 23:20:23 +0100
-Message-ID: <CAGG=RuZ-uuJPq3cQJkZkHdDV=1t2Z_y=+ZC-gBq8dq7DmytmGA@mail.gmail.com>
-Subject: Re: [PATCH] Kernel 3.15-rc2 : Peak DVB-T USB tuner device ids for
- rtl28xxu driver
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.kapsi.fi ([217.30.184.167]:39817 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933741AbaDIWFS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Apr 2014 18:05:18 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>,
+	Antti Palosaari <crope@iki.fi>, backports@vger.kernel.org
+Subject: [PATCHv3 1/2] rtl28xxu: do not hard depend on staging SDR module
+Date: Thu, 10 Apr 2014 01:05:06 +0300
+Message-Id: <1397081107-2249-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1397081107-2249-1-git-send-email-crope@iki.fi>
+References: <1397081107-2249-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks Mauro,
+RTL2832 SDR extension module is currently on staging. SDR module
+headers were included from staging causing direct dependency staging
+directory. As a solution, add needed headers to main driver.
+Motivation of that change comes from Luis / driver backports project.
 
-I'll know for next time. It's my first patch submission so wasn't
-aware of the formatting rules.
+Reported-by: Luis R. Rodriguez <mcgrof@do-not-panic.com>
+Cc: backports@vger.kernel.org
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/Makefile   |  1 -
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 21 ++++++++++++++++++++-
+ 2 files changed, 20 insertions(+), 2 deletions(-)
 
-Brian
+diff --git a/drivers/media/usb/dvb-usb-v2/Makefile b/drivers/media/usb/dvb-usb-v2/Makefile
+index 7407b83..bc38f03 100644
+--- a/drivers/media/usb/dvb-usb-v2/Makefile
++++ b/drivers/media/usb/dvb-usb-v2/Makefile
+@@ -41,4 +41,3 @@ ccflags-y += -I$(srctree)/drivers/media/dvb-core
+ ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
+ ccflags-y += -I$(srctree)/drivers/media/tuners
+ ccflags-y += -I$(srctree)/drivers/media/common
+-ccflags-y += -I$(srctree)/drivers/staging/media/rtl2832u_sdr
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index c83c16c..8d7c5f2 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -24,7 +24,6 @@
+ 
+ #include "rtl2830.h"
+ #include "rtl2832.h"
+-#include "rtl2832_sdr.h"
+ 
+ #include "qt1010.h"
+ #include "mt2060.h"
+@@ -36,6 +35,26 @@
+ #include "tua9001.h"
+ #include "r820t.h"
+ 
++/*
++ * RTL2832_SDR module is in staging. That logic is added in order to avoid any
++ * hard dependency to drivers/staging/ directory as we want compile mainline
++ * driver even whole staging directory is missing.
++ */
++#include <media/v4l2-subdev.h>
++
++#if IS_ENABLED(CONFIG_DVB_RTL2832_SDR)
++struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
++	struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
++	struct v4l2_subdev *sd);
++#else
++static inline struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
++	struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
++	struct v4l2_subdev *sd)
++{
++	return NULL;
++}
++#endif
++
+ static int rtl28xxu_disable_rc;
+ module_param_named(disable_rc, rtl28xxu_disable_rc, int, 0644);
+ MODULE_PARM_DESC(disable_rc, "disable RTL2832U remote controller");
+-- 
+1.9.0
 
-On 29 April 2014 15:16, Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
-> Em Mon, 28 Apr 2014 22:40:00 +0100
-> Brian Healy <healybrian@gmail.com> escreveu:
->
->> From: Brian Healy <healybrian@gmail.com>
->> To: Antti Palosaari <crope@iki.fi>, Mauro Carvalho Chehab <m.chehab@samsung.com>
->> Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Media Mailing List <linux-media@vger.kernel.org>
->> Subject: Re: [PATCH] Kernel 3.15-rc2 : Peak DVB-T USB tuner device ids for rtl28xxu driver
->> Date: Mon, 28 Apr 2014 22:40:00 +0100
->> Sender: linux-media-owner@vger.kernel.org
->> User-Agent: Mutt/1.5.21 (2010-09-15)
->>
->> On Sun, Apr 27, 2014 at 03:19:12PM -0700, Linus Torvalds wrote:
->>
->> Hi Linus,
->>
->> apologies, i've changed email clients in order to preserve the
->> formatting this time around. The patch is now included inline as an
->> attachment. I ran the script but noticed you've already cc'd the
->> appropriate people.
->>
->> Brian.
->>
->>
->> Resubmitting modified patch. It's purpose is to add the appropriate
->> device/usb ids for the "Peak DVT-B usb dongle" to the rtl28xxu.c driver.
->>
->> Signed-off-by: Brian Healy <healybrian <at> gmail.com>
->>
->>
->> > Brian, please use
->> >
->> >  ./scripts/get_maintainer -f drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->> >
->> > to get the proper people to send this to, so that it doesn't get lost
->> > in the flood in lkml.
->> >
->> > The indentation of that new entry also seems to be suspect, in that it
->> > doesn't match the ones around it.
->> >
->> > Quoting full email for context for people added.
->> >
->> >              Linus
->> >
->>
->> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->> index 61d196e..b6e20cc 100644
->> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
->> @@ -1499,6 +1499,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
->>               &rtl2832u_props, "Crypto ReDi PC 50 A", NULL) },
->>       { DVB_USB_DEVICE(USB_VID_KYE, 0x707f,
->>               &rtl2832u_props, "Genius TVGo DVB-T03", NULL) },
->> +        { DVB_USB_DEVICE(USB_VID_KWORLD_2, 0xd395,
->> +                &rtl2832u_props, "Peak DVB-T USB", NULL) },
->
-> Patch is still a little odd, as you're using spaces for indenting, instead of
-> tabs, but I can fix it with my scripts. Next time, please use tabs.
->
-> Also, specifically in the case of patches for linux-media, you don't need
-> to c/c me. Just send the patch to linux-media and to the driver maintainer
-> (Antti, in this case).
->
-> My workflow is to pick the patches from patchwork:
->         https://patchwork.linuxtv.org/patch/23792/
-> after receiving Antti's ack.
->
-> Alternatively, Antti may opt to put it on his git tree, sending it to me
-> latter together of other patches he may have for the devices he maintains.
->
->>
->>       /* RTL2832P devices: */
->>       { DVB_USB_DEVICE(USB_VID_HANFTEK, 0x0131,
->
-> Thanks,
-> Mauro
