@@ -1,81 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52433 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753803AbaDCWiO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3915 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758079AbaDICgM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 22:36:12 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s392a969080758
+	for <linux-media@vger.kernel.org>; Wed, 9 Apr 2014 04:36:11 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 472E12A03F8
+	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 04:35:52 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 23/25] v4l: vb2: Add a function to discard all DONE buffers
-Date: Fri,  4 Apr 2014 00:39:53 +0200
-Message-Id: <1396564795-27192-24-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140409023552.472E12A03F8@tschai.lan>
+Date: Wed,  9 Apr 2014 04:35:52 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When suspending a device while a video stream is active all buffers
-marked as done but not dequeued yet will be kept across suspend and
-given back to userspace after resume. This will result in outdated
-buffers being dequeued.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Introduce a new vb2 function to mark all done buffers as erroneous
-instead, to be used by drivers at resume time.
+Results of the daily build of media_tree:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 24 ++++++++++++++++++++++++
- include/media/videobuf2-core.h           |  1 +
- 2 files changed, 25 insertions(+)
+date:		Wed Apr  9 04:01:04 CEST 2014
+git branch:	test
+git hash:	a83b93a7480441a47856dc9104bea970e84cda87
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.13-7.slh.1-amd64
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index f9059bb..6ab13b7 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1131,6 +1131,30 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- EXPORT_SYMBOL_GPL(vb2_buffer_done);
- 
- /**
-+ * vb2_discard_done() - discard all buffers marked as DONE
-+ * @q:		videobuf2 queue
-+ *
-+ * This function is intended to be used with suspend/resume operations. It
-+ * discards all 'done' buffers as they would be too old to be requested after
-+ * resume.
-+ *
-+ * Drivers must stop the hardware and synchronize with interrupt handlers and/or
-+ * delayed works before calling this function to make sure no buffer will be
-+ * touched by the driver and/or hardware.
-+ */
-+void vb2_discard_done(struct vb2_queue *q)
-+{
-+	struct vb2_buffer *vb;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&q->done_lock, flags);
-+	list_for_each_entry(vb, &q->done_list, done_entry)
-+		vb->state = VB2_BUF_STATE_ERROR;
-+	spin_unlock_irqrestore(&q->done_lock, flags);
-+}
-+EXPORT_SYMBOL_GPL(vb2_discard_done);
-+
-+/**
-  * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
-  * v4l2_buffer by the userspace. The caller has already verified that struct
-  * v4l2_buffer has a valid number of planes.
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index af46211..2c2f23b 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -429,6 +429,7 @@ void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no);
- void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no);
- 
- void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state);
-+void vb2_discard_done(struct vb2_queue *q);
- int vb2_wait_for_all_buffers(struct vb2_queue *q);
- 
- int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b);
--- 
-1.8.3.2
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
