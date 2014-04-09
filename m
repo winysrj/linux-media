@@ -1,63 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta02.emeryville.ca.mail.comcast.net ([76.96.30.24]:44941 "EHLO
-	qmta02.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757398AbaD2TuF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Apr 2014 15:50:05 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: gregkh@linuxfoundation.org, m.chehab@samsung.com, tj@kernel.org,
-	olebowle@gmx.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: [PATCH 0/4] Add managed token devres interfaces and change media drivers to use it 
-Date: Tue, 29 Apr 2014 13:49:22 -0600
-Message-Id: <cover.1398797954.git.shuah.kh@samsung.com>
+Received: from mga02.intel.com ([134.134.136.20]:39630 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964939AbaDITZO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Apr 2014 15:25:14 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id 2B261200CB
+	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 22:24:55 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 14/17] smiapp: Use actual pixel rate calculated by the PLL calculator
+Date: Wed,  9 Apr 2014 22:25:06 +0300
+Message-Id: <1397071509-2071-15-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Media drivers that control a single media TV stick are a
-diversified group. Analog and digital TV function drivers have
-to coordinate access to their shared functions. In some cases,
-snd-usb-audio is used to support audio function on media devices.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-A shared managed resource framework at drivers/base level will
-allow a media device to be controlled by drivers that don't
-fall under drivers/media and share functions with other media
-drivers.
-
-A token devres that can be looked up by a token for locking, try
-locking, unlocking will help avoid adding data structure
-dependencies between various drivers. This token is a unique
-string that can be constructed from a common data structure such as
-struct device, bus_name, and hardware address.
-
-This patch series adds devm_token_* interfaces to manage access to
-token resource and a tuner token to allow sharing tuner function
-across analog and digital functions. em28xx and dvb-core make
-use of this new tuner token to control tuner access. Analog changes
-will be added in a subsequent patch series.
-
-Patch series is tested with Kworld UB435-Q V3 USB TV stick and
-Kaffeine media player.
-
-Shuah Khan (4):
-  drivers/base: add managed token devres interfaces
-  media: dvb-fe changes to use token for shared access control
-  media/em28xx: changes to create token for tuner access
-  media: em28xx dvb changes to initialze dvb fe tuner token
-
- drivers/base/Makefile                   |    2 +-
- drivers/base/token_devres.c             |  146 +++++++++++++++++++++++++++++++
- drivers/media/dvb-core/dvb_frontend.c   |   15 ++++
- drivers/media/dvb-core/dvb_frontend.h   |    1 +
- drivers/media/usb/em28xx/em28xx-cards.c |   41 +++++++++
- drivers/media/usb/em28xx/em28xx-dvb.c   |    4 +
- drivers/media/usb/em28xx/em28xx.h       |    4 +
- include/linux/token_devres.h            |   19 ++++
- 8 files changed, 231 insertions(+), 1 deletion(-)
- create mode 100644 drivers/base/token_devres.c
- create mode 100644 include/linux/token_devres.h
-
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 6d940f0..284df17 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -297,7 +297,7 @@ static int smiapp_pll_update(struct smiapp_sensor *sensor)
+ 	if (rval < 0)
+ 		return rval;
+ 
+-	sensor->pixel_rate_parray->cur.val64 = pll->vt_pix_clk_freq_hz;
++	sensor->pixel_rate_parray->cur.val64 = pll->pixel_rate_pixel_array;
+ 	sensor->pixel_rate_csi->cur.val64 = pll->pixel_rate_csi;
+ 
+ 	return 0;
+@@ -865,7 +865,7 @@ static int smiapp_update_mode(struct smiapp_sensor *sensor)
+ 	dev_dbg(&client->dev, "hblank\t\t%d\n", sensor->hblank->val);
+ 
+ 	dev_dbg(&client->dev, "real timeperframe\t100/%d\n",
+-		sensor->pll.vt_pix_clk_freq_hz /
++		sensor->pll.pixel_rate_pixel_array /
+ 		((sensor->pixel_array->crop[SMIAPP_PA_PAD_SRC].width
+ 		  + sensor->hblank->val) *
+ 		 (sensor->pixel_array->crop[SMIAPP_PA_PAD_SRC].height
 -- 
-1.7.10.4
+1.8.3.2
 
