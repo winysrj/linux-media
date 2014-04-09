@@ -1,77 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39110 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750928AbaDQOn0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 10:43:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v4 45/49] adv7604: Add DT support
-Date: Thu, 17 Apr 2014 16:43:29 +0200
-Message-ID: <2187787.ESP9YKtS5Y@avalon>
-In-Reply-To: <534FE7A1.8060800@samsung.com>
-References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com> <1397744000-23967-46-git-send-email-laurent.pinchart@ideasonboard.com> <534FE7A1.8060800@samsung.com>
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:58856 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933721AbaDIW1X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 18:27:23 -0400
+Received: by mail-ee0-f44.google.com with SMTP id e49so2375150eek.31
+        for <linux-media@vger.kernel.org>; Wed, 09 Apr 2014 15:27:22 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 4/7] libdvbv5: make dvb_table_filter_free public
+Date: Thu, 10 Apr 2014 00:26:57 +0200
+Message-Id: <1397082420-31198-4-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1397082420-31198-1-git-send-email-neolynx@gmail.com>
+References: <1397082420-31198-1-git-send-email-neolynx@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+make dvb_table_filter_free public so it can be used by
+applications.
+fix potential double free.
 
-On Thursday 17 April 2014 16:39:29 Sylwester Nawrocki wrote:
-> On 17/04/14 16:13, Laurent Pinchart wrote:
-> > Parse the device tree node to populate platform data. Only the ADV7611
-> > is currently support with DT.
-> > 
-> > Cc: devicetree@vger.kernel.org
-> > Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The patch looks good to me.
-> 
-> Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: André Roth <neolynx@gmail.com>
+---
+ lib/include/libdvbv5/dvb-scan.h |    2 ++
+ lib/libdvbv5/dvb-scan.c         |   10 ++++++----
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-Thank you.
-
-> Just one comment below...
-
-[snip]
-
-> > diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> > index 342d73d..061794e 100644
-> > --- a/drivers/media/i2c/adv7604.c
-> > +++ b/drivers/media/i2c/adv7604.c
-> > @@ -2663,13 +2663,58 @@ static const struct adv7604_chip_info
-> > adv7604_chip_info[] = {> 
-> >  	},
-> >  
-> >  };
-> > 
-> > +static struct i2c_device_id adv7604_i2c_id[] = {
-> > +	{ "adv7604", (kernel_ulong_t)&adv7604_chip_info[ADV7604] },
-> > +	{ "adv7611", (kernel_ulong_t)&adv7604_chip_info[ADV7611] },
-> > +	{ }
-> > +};
-> > +MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
-> > +
-> > +static struct of_device_id adv7604_of_id[] = {
-> 
-> Not adding __maybe_unused attribute to this one ?
-
-Sure, of course. I'll squash patch 49/49 into this one.
-
-> > +	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
-> > +	{ }
-> > +};
-> > +MODULE_DEVICE_TABLE(of, adv7604_of_id);
-
+diff --git a/lib/include/libdvbv5/dvb-scan.h b/lib/include/libdvbv5/dvb-scan.h
+index 206d409..f0af9d7 100644
+--- a/lib/include/libdvbv5/dvb-scan.h
++++ b/lib/include/libdvbv5/dvb-scan.h
+@@ -74,6 +74,8 @@ struct dvb_table_filter {
+ 	void *priv;
+ };
+ 
++void dvb_table_filter_free(struct dvb_table_filter *sect);
++
+ int dvb_read_section(struct dvb_v5_fe_parms *parms, int dmx_fd, unsigned char tid, uint16_t pid, void **table,
+ 		unsigned timeout);
+ 
+diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
+index e522225..d8b3953 100644
+--- a/lib/libdvbv5/dvb-scan.c
++++ b/lib/libdvbv5/dvb-scan.c
+@@ -158,10 +158,12 @@ static int dvb_parse_section_alloc(struct dvb_v5_fe_parms *parms,
+ 	return 0;
+ }
+ 
+-static void dvb_parse_section_free(struct dvb_table_filter *sect)
++void dvb_table_filter_free(struct dvb_table_filter *sect)
+ {
+-	if (sect->priv)
++	if (sect->priv) {
+ 		free(sect->priv);
++		sect->priv = NULL;
++	}
+ }
+ 
+ static int dvb_parse_section(struct dvb_v5_fe_parms *parms,
+@@ -280,7 +282,7 @@ int dvb_read_sections(struct dvb_v5_fe_parms *parms, int dmx_fd,
+ 	if (!buf) {
+ 		dvb_perror("Out of memory");
+ 		dvb_dmx_stop(dmx_fd);
+-		dvb_parse_section_free(sect);
++		dvb_table_filter_free(sect);
+ 		return -1;
+ 	}
+ 
+@@ -327,7 +329,7 @@ int dvb_read_sections(struct dvb_v5_fe_parms *parms, int dmx_fd,
+ 	} while (!ret);
+ 	free(buf);
+ 	dvb_dmx_stop(dmx_fd);
+-	dvb_parse_section_free(sect);
++	dvb_table_filter_free(sect);
+ 
+ 	if (ret > 0)
+ 		ret = 0;
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
