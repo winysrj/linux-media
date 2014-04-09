@@ -1,110 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:61847 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751006AbaDOO3c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 10:29:32 -0400
-Message-id: <534D4245.2040901@samsung.com>
-Date: Tue, 15 Apr 2014 16:29:25 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-To: Rahul Sharma <r.sh.open@gmail.com>
-Cc: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>, b.zolnierkie@samsung.com,
-	"sw0312.kim" <sw0312.kim@samsung.com>,
-	sunil joshi <joshi@samsung.com>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	m.chehab@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Rahul Sharma <rahul.sharma@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCHv2 4/4] drm: exynos: hdmi: add support for pixel clock
- limitation
-References: <1397554040-4037-1-git-send-email-t.stanislaws@samsung.com>
- <1397554040-4037-5-git-send-email-t.stanislaws@samsung.com>
- <CAPdUM4NysWMpy3PZhJdKXFa96Oy4kG4dKkDdrabbAmM3+f5kag@mail.gmail.com>
- <534D3001.2030707@samsung.com>
- <CAPdUM4PCDC8J5k2uNv6DYf8FzXKcNcm7JQZ-cbAzmXzx9YDAAw@mail.gmail.com>
-In-reply-to: <CAPdUM4PCDC8J5k2uNv6DYf8FzXKcNcm7JQZ-cbAzmXzx9YDAAw@mail.gmail.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mga02.intel.com ([134.134.136.20]:6257 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933705AbaDITY4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Apr 2014 15:24:56 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id 0862D20EB6
+	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 22:24:53 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 04/17] smiapp: Make PLL (quirk) flags a function
+Date: Wed,  9 Apr 2014 22:24:56 +0300
+Message-Id: <1397071509-2071-5-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/15/2014 03:42 PM, Rahul Sharma wrote:
-> On 15 April 2014 18:41, Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
->> On 04/15/2014 11:42 AM, Rahul Sharma wrote:
->>> Hi Tomasz,
->>>
->>> On 15 April 2014 14:57, Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
->>>> Adds support for limitation of maximal pixel clock of HDMI
->>>> signal. This feature is needed on boards that contains
->>>> lines or bridges with frequency limitations.
->>>>
->>>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-[snip]
+This is more flexible. Quirk flags may be affected by configuration.
 
->>>> diff --git a/include/media/s5p_hdmi.h b/include/media/s5p_hdmi.h
->>>> index 181642b..7272d65 100644
->>>> --- a/include/media/s5p_hdmi.h
->>>> +++ b/include/media/s5p_hdmi.h
->>>> @@ -31,6 +31,7 @@ struct s5p_hdmi_platform_data {
->>>>         int mhl_bus;
->>>>         struct i2c_board_info *mhl_info;
->>>>         int hpd_gpio;
->>>> +       u32 max_pixel_clock;
->>>>  };
->>>
->>> We have already removed Non DT support from the drm hdmi
->>> driver. IMO we should not be extending the pdata struct.
->>>
->>> Regards,
->>> Rahul Sharma
->>
->> Hi Rahul,
->>
->> This is not a non-DT patch. The s5p_hdmi_platform_data is
->> generated from DT itself. This structure is just
->> a parsed version of DT attributes.
->>
->> It may be a good idea to rename s5p_hdmi_platform_data
->> to exynos_hdmi_pdata and move it to exynos_hdmi_drm.c file
->> or parse DT directly in probe function.
->>
->> I can prepare a patch for that.
-> 
-> Else we can completely remove the dependency from
-> s5p_hdmi_platform_data. We can directly assign to hdmi context
-> variables. Later we can remove that struct itself from include/.
-> What you say?
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c  | 4 ++--
+ drivers/media/i2c/smiapp/smiapp-quirk.c | 7 ++++++-
+ drivers/media/i2c/smiapp/smiapp-quirk.h | 2 +-
+ 3 files changed, 9 insertions(+), 4 deletions(-)
 
-This structure cannot be removed from include yet because it is used by s5p-tv driver.
-However its usage can be removed from both drivers.
-I can prepare both.
-
-> 
-> Regards,
-> Rahul Sharma
-> 
-
-Regards,
-Tomasz Stanislawski
-
->>
->> Regards,
->> Tomasz Stanislawski
->>
->>
->>>
->>>>
->>>>  #endif /* S5P_HDMI_H */
->>>> --
->>>> 1.7.9.5
->>>>
->>>> _______________________________________________
->>>> dri-devel mailing list
->>>> dri-devel@lists.freedesktop.org
->>>> http://lists.freedesktop.org/mailman/listinfo/dri-devel
->>
-> 
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 23f2c4d..02041cc 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2617,8 +2617,8 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
+ 	pll->bus_type = SMIAPP_PLL_BUS_TYPE_CSI2;
+ 	pll->csi2.lanes = sensor->platform_data->lanes;
+ 	pll->ext_clk_freq_hz = sensor->platform_data->ext_clk;
+-	if (sensor->minfo.quirk)
+-		pll->flags = sensor->minfo.quirk->pll_flags;
++	pll->flags = smiapp_call_quirk(sensor, pll_flags);
++
+ 	/* Profile 0 sensors have no separate OP clock branch. */
+ 	if (sensor->minfo.smiapp_profile == SMIAPP_PROFILE_0)
+ 		pll->flags |= SMIAPP_PLL_FLAG_NO_OP_CLOCKS;
+diff --git a/drivers/media/i2c/smiapp/smiapp-quirk.c b/drivers/media/i2c/smiapp/smiapp-quirk.c
+index c7f5194..20e62c1 100644
+--- a/drivers/media/i2c/smiapp/smiapp-quirk.c
++++ b/drivers/media/i2c/smiapp/smiapp-quirk.c
+@@ -266,12 +266,17 @@ static int jt8ev1_post_streamoff(struct smiapp_sensor *sensor)
+ 	return smiapp_write_8(sensor, 0x3328, 0x80);
+ }
+ 
++static unsigned long jt8ev1_pll_flags(struct smiapp_sensor *sensor)
++{
++	return SMIAPP_PLL_FLAG_OP_PIX_CLOCK_PER_LANE;
++}
++
+ const struct smiapp_quirk smiapp_jt8ev1_quirk = {
+ 	.limits = jt8ev1_limits,
+ 	.post_poweron = jt8ev1_post_poweron,
+ 	.pre_streamon = jt8ev1_pre_streamon,
+ 	.post_streamoff = jt8ev1_post_streamoff,
+-	.pll_flags = SMIAPP_PLL_FLAG_OP_PIX_CLOCK_PER_LANE,
++	.pll_flags = jt8ev1_pll_flags,
+ };
+ 
+ static int tcm8500md_limits(struct smiapp_sensor *sensor)
+diff --git a/drivers/media/i2c/smiapp/smiapp-quirk.h b/drivers/media/i2c/smiapp/smiapp-quirk.h
+index bc9d28c..a6b3183 100644
+--- a/drivers/media/i2c/smiapp/smiapp-quirk.h
++++ b/drivers/media/i2c/smiapp/smiapp-quirk.h
+@@ -41,9 +41,9 @@ struct smiapp_quirk {
+ 	int (*post_poweron)(struct smiapp_sensor *sensor);
+ 	int (*pre_streamon)(struct smiapp_sensor *sensor);
+ 	int (*post_streamoff)(struct smiapp_sensor *sensor);
++	unsigned long (*pll_flags)(struct smiapp_sensor *sensor);
+ 	const struct smia_reg *regs;
+ 	unsigned long flags;
+-	unsigned long pll_flags;
+ };
+ 
+ #define SMIAPP_QUIRK_FLAG_8BIT_READ_ONLY			(1 << 0)
+-- 
+1.8.3.2
 
