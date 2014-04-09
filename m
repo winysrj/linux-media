@@ -1,70 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:23131 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754357AbaDKCwh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 22:52:37 -0400
-Message-ID: <534756CD.90409@atmel.com>
-Date: Fri, 11 Apr 2014 10:43:25 +0800
-From: Josh Wu <josh.wu@atmel.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Bryan Wu <cooloney@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	linux-tegra <linux-tegra@vger.kernel.org>,
-	Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: Re: [v2] media: soc-camera: OF cameras
-References: <1392235552-28134-1-git-send-email-pengw@nvidia.com> <1394794130-13660-1-git-send-email-josh.wu@atmel.com> <CAK5ve-KuPJa6rBdYGvkuPyQU5TCiEe1t=PzEKN4NgsKgVWogqA@mail.gmail.com> <Pine.LNX.4.64.1404102308500.25569@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1404102308500.25569@axis700.grange>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mga09.intel.com ([134.134.136.24]:65379 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933402AbaDITY5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Apr 2014 15:24:57 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id 769AD21380
+	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 22:24:54 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 12/17] smiapp-pll: Add quirk for op clk divisor == bits per pixel / 2
+Date: Wed,  9 Apr 2014 22:25:04 +0300
+Message-Id: <1397071509-2071-13-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi
+For some sensors in some configurations the effective value of op clk div is
+bits per pixel divided by two. The output clock is correctly calculated
+whereas some of the rest of the clock tree uses higher clocks than
+calculated. This also limits the bpp to even values if the number of lanes
+is four.
 
-On 4/11/2014 5:18 AM, Guennadi Liakhovetski wrote:
-> Hi Bryan,
->
-> On Tue, 8 Apr 2014, Bryan Wu wrote:
->
->> Thanks Josh, I think I will take you point and rework my patch again.
->> But I need Guennadi's review firstly, Guennadi, could you please help
->> to review it?
-> Ok, let me double check the situation:
->
-> 1. We've got this patch from you, aiming at adding OF probing support to
-> soc-camra
->
-> 2. We've got an alternative patch from Ben to do the same, his last reply
-> to a comment to his patch was "Thanks, I will look into this."
->
-> 3. We've got Ben's patches for rcar-vin, that presumably work with his
-> patch from (2) above
->
-> 4. We've got Josh's patches to add OF / async probing to atmel-isi and
-> ov2640, that are not known to work with either (1) or (2) above, so, they
-> don't work at all, right?
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp-pll.c | 10 ++++++++++
+ drivers/media/i2c/smiapp-pll.h |  2 ++
+ 2 files changed, 12 insertions(+)
 
-Right, the atmel-isi dt cannot work in those two patches unless the mclk 
-stuff is added or adjusted.
+diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
+index be94921..9d06a33 100644
+--- a/drivers/media/i2c/smiapp-pll.c
++++ b/drivers/media/i2c/smiapp-pll.c
+@@ -207,6 +207,8 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 		div_u64(pll->pll_op_clk_freq_hz, pll->op_sys_clk_div);
+ 
+ 	pll->op_pix_clk_div = pll->bits_per_pixel;
++	if (pll->flags & SMIAPP_PLL_FLAG_OP_PIX_DIV_HALF)
++		pll->op_pix_clk_div /= 2;
+ 	dev_dbg(dev, "op_pix_clk_div: %u\n", pll->op_pix_clk_div);
+ 
+ 	pll->op_pix_clk_freq_hz =
+@@ -416,6 +418,14 @@ int smiapp_pll_calculate(struct device *dev,
+ 		return -EINVAL;
+ 	}
+ 
++	/*
++	 * Half op pix divisor will give us double the rate compared
++	 * to the regular case. Thus divide the desired pll op clock
++	 * frequency by two.
++	 */
++	if (pll->flags & SMIAPP_PLL_FLAG_OP_PIX_DIV_HALF)
++		pll->pll_op_clk_freq_hz /= 2;
++
+ 	/* Figure out limits for pre-pll divider based on extclk */
+ 	dev_dbg(dev, "min / max pre_pll_clk_div: %u / %u\n",
+ 		limits->min_pre_pll_clk_div, limits->max_pre_pll_clk_div);
+diff --git a/drivers/media/i2c/smiapp-pll.h b/drivers/media/i2c/smiapp-pll.h
+index a25f550..02d11db 100644
+--- a/drivers/media/i2c/smiapp-pll.h
++++ b/drivers/media/i2c/smiapp-pll.h
+@@ -36,6 +36,8 @@
+ #define SMIAPP_PLL_FLAG_NO_OP_CLOCKS				(1 << 1)
+ /* the pre-pll div may be odd */
+ #define SMIAPP_PLL_FLAG_ALLOW_ODD_PRE_PLL_CLK_DIV		(1 << 2)
++/* op pix div value is half of the bits-per-pixel value */
++#define SMIAPP_PLL_FLAG_OP_PIX_DIV_HALF				(1 << 3)
+ 
+ struct smiapp_pll {
+ 	/* input values */
+-- 
+1.8.3.2
 
->
-> So, to summarise, there is a core patch from Ben, that he possibly wants
-> to adjust, and that works with his rcar-vin OF, there is a patch from you
-> that isn't known to work with any driver, and there are patches from Josh,
-> that don't work, because there isn't a suitable patch available for them.
-> I will have a look at your and Ben's soc-camera OF patches to compare them
-> and compare them with my early code (hopefully this coming weekend), but
-> so far it looks like only Ben's solution has a complete working stack. Am
-> I missing something?
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-
-Best Regards,
-Josh Wu
