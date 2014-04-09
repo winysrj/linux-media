@@ -1,28 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3883 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756385AbaDHIJF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 04:09:05 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s38891eN018562
-	for <linux-media@vger.kernel.org>; Tue, 8 Apr 2014 10:09:03 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from cobaltpc1.cisco.com (173-38-208-169.cisco.com [173.38.208.169])
-	by tschai.lan (Postfix) with ESMTPSA id 14A962A03F8
-	for <linux-media@vger.kernel.org>; Tue,  8 Apr 2014 10:08:45 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mga01.intel.com ([192.55.52.88]:50019 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934330AbaDITY7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Apr 2014 15:24:59 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id CE1BE200CB
+	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 22:24:52 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 0/2] v4l2-dv-timings: add 4K timings
-Date: Tue,  8 Apr 2014 10:07:34 +0200
-Message-Id: <1396944456-20008-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [PATCH 01/17] smiapp: Use I2C adapter ID and address in the sub-device name
+Date: Wed,  9 Apr 2014 22:24:53 +0300
+Message-Id: <1397071509-2071-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the new CEA-861-F 4K timings to the list of predefined timings.
-This prepares V4L2 for use with HDMI 2.0.
+The sub-device names should be unique. Should two identical sensors be
+present in the same media device they would be indistinguishable. The names
+will change e.g. from "vs6555 pixel array" to "vs6555 1-0010 pixel array".
 
-Regards,
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-	Hans
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 8741cae..69c11ec 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2543,8 +2543,9 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
+ 		}
+ 
+ 		snprintf(this->sd.name,
+-			 sizeof(this->sd.name), "%s %s",
+-			 sensor->minfo.name, _this->name);
++			 sizeof(this->sd.name), "%s %d-%4.4x %s",
++			 sensor->minfo.name, i2c_adapter_id(client->adapter),
++			 client->addr, _this->name);
+ 
+ 		this->sink_fmt.width =
+ 			sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
+-- 
+1.8.3.2
 
