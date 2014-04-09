@@ -1,62 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:52449 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934020AbaDJVSj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 17:18:39 -0400
-Date: Thu, 10 Apr 2014 23:18:31 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Bryan Wu <cooloney@gmail.com>
-cc: Josh Wu <josh.wu@atmel.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	linux-tegra <linux-tegra@vger.kernel.org>,
-	Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: Re: [v2] media: soc-camera: OF cameras
-In-Reply-To: <CAK5ve-KuPJa6rBdYGvkuPyQU5TCiEe1t=PzEKN4NgsKgVWogqA@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1404102308500.25569@axis700.grange>
-References: <1392235552-28134-1-git-send-email-pengw@nvidia.com>
- <1394794130-13660-1-git-send-email-josh.wu@atmel.com>
- <CAK5ve-KuPJa6rBdYGvkuPyQU5TCiEe1t=PzEKN4NgsKgVWogqA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mga02.intel.com ([134.134.136.20]:39630 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934328AbaDITZO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Apr 2014 15:25:14 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id 16C3620EC7
+	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 22:24:53 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 05/17] smiapp: Use %u for printing u32 value
+Date: Wed,  9 Apr 2014 22:24:57 +0300
+Message-Id: <1397071509-2071-6-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bryan,
-
-On Tue, 8 Apr 2014, Bryan Wu wrote:
-
-> Thanks Josh, I think I will take you point and rework my patch again.
-> But I need Guennadi's review firstly, Guennadi, could you please help
-> to review it?
-
-Ok, let me double check the situation:
-
-1. We've got this patch from you, aiming at adding OF probing support to 
-soc-camra
-
-2. We've got an alternative patch from Ben to do the same, his last reply 
-to a comment to his patch was "Thanks, I will look into this."
-
-3. We've got Ben's patches for rcar-vin, that presumably work with his 
-patch from (2) above
-
-4. We've got Josh's patches to add OF / async probing to atmel-isi and 
-ov2640, that are not known to work with either (1) or (2) above, so, they 
-don't work at all, right?
-
-So, to summarise, there is a core patch from Ben, that he possibly wants 
-to adjust, and that works with his rcar-vin OF, there is a patch from you 
-that isn't known to work with any driver, and there are patches from Josh, 
-that don't work, because there isn't a suitable patch available for them. 
-I will have a look at your and Ben's soc-camera OF patches to compare them 
-and compare them with my early code (hopefully this coming weekend), but 
-so far it looks like only Ben's solution has a complete working stack. Am 
-I missing something?
-
-Thanks
-Guennadi
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/i2c/smiapp/smiapp-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 02041cc..3af8df8 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -606,7 +606,7 @@ static int smiapp_get_limits(struct smiapp_sensor *sensor, int const *limit,
+ 		if (rval)
+ 			return rval;
+ 		sensor->limits[limit[i]] = val;
+-		dev_dbg(&client->dev, "0x%8.8x \"%s\" = %d, 0x%x\n",
++		dev_dbg(&client->dev, "0x%8.8x \"%s\" = %u, 0x%x\n",
+ 			smiapp_reg_limits[limit[i]].addr,
+ 			smiapp_reg_limits[limit[i]].what, val, val);
+ 	}
+-- 
+1.8.3.2
+
