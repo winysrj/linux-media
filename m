@@ -1,43 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38657 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751073AbaDBAWx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Apr 2014 20:22:53 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [yavta PATCH 0/9] Timestamp source and mem-to-mem device support
-Date: Wed, 02 Apr 2014 02:24:53 +0200
-Message-ID: <3449850.PLWR070gQv@avalon>
-In-Reply-To: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi>
-References: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:41791 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932804AbaDIWo1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 18:44:27 -0400
+Message-id: <5345CD32.8010305@samsung.com>
+Date: Wed, 09 Apr 2014 16:44:02 -0600
+From: Shuah Khan <shuah.kh@samsung.com>
+Reply-to: shuah.kh@samsung.com
+MIME-version: 1.0
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: m.chehab@samsung.com, tj@kernel.org, rafael.j.wysocki@intel.com,
+	linux@roeck-us.net, toshi.kani@hp.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	shuahkhan@gmail.com, Shuah Khan <shuah.kh@samsung.com>
+Subject: Re: [RFC PATCH 0/2] managed token devres interfaces
+References: <cover.1397050852.git.shuah.kh@samsung.com>
+ <20140409191740.GA10748@kroah.com>
+In-reply-to: <20140409191740.GA10748@kroah.com>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On 04/09/2014 01:17 PM, Greg KH wrote:
+> On Wed, Apr 09, 2014 at 09:21:06AM -0600, Shuah Khan wrote:
 
-Thank you for the patches, and sorry for the late reply.
+>>
+>> Test Cases for token devres interfaces: (passed)
+>>   - Create, lock, unlock, and destroy sequence.
+>>   - Try lock while it is locked. Returns -EBUSY as expected.
+>>   - Try lock after destroy. Returns -ENODEV as expected.
+>>   - Unlock while it is unlocked. Returns 0 as expected. This is a no-op.
+>>   - Try unlock after destroy. Returns -ENODEV as expected.
+>
+> Any chance you can add these "test cases" as part of the kernel code so
+> it lives here for any future changes?
 
-I've pushed outstanding multiplane patches to the master branch of the yavta 
-repository, and applied the first two patches of this series on top of that. 
-After addressing the commends I've made on the individual patches, could you 
-please rebase the rest of the series and resend it ?
+Yes. I am planning to add these test cases to the kernel to serve as 
+regression tests when these interfaces change. I have to add these in a 
+driver framework, i.e I might need to create dummy driver perhaps. I 
+haven't given it much thought on how, but I do plan to add tests.
 
-On Saturday 01 March 2014 18:18:01 Sakari Ailus wrote:
-> Hi,
-> 
-> This patchset enables using yavta for mem-to-mem devices, including
-> mem2mem_testdev (or soon vim2m). The timestamp will be set for output
-> buffers when the timestamp type is copy. An option is added to set the
-> timestamp source flags (eof/soe).
-> 
-> To use yavta for mem2mem devices, just open the device in the shell and pass
-> the file descriptor to yavta (--fd).
+>
+>> Special notes for Mauro Chehab:
+>>   - Please evaluate if these token devres interfaces cover all media driver
+>>     use-cases. If not what is needed to cover them.
+>>   - For use-case testing, I generated a string from em28xx device, as this
+>>     is common for all em28xx extensions: (hope this holds true when em28xx
+>>     uses snd-usb-audio
+>>   - Construct string with (dev is struct em28xx *dev)
+>> 		format: "tuner:%s-%s-%d"
+>> 		with the following:
+>>     	            dev_name(&dev->udev->dev)
+>>                  dev->udev->bus->bus_name
+>>                  dev->tuner_addr
+>>   - I added test code to em28xx_card_setup() to test the interfaces:
+>>     example token from this test code generated with the format above:
+>
+> What would the driver changes look like to take advantage of these new
+> functions?
+>
+
+I am working on changes to em28xx driver to create and lock/unlock tuner 
+token when it starts analog/digital video streaming. I should have a 
+patch ready in a day or two.
+
+thanks,
+-- Shuah
+
 
 -- 
-Regards,
-
-Laurent Pinchart
+Shuah Khan
+Senior Linux Kernel Developer - Open Source Group
+Samsung Research America(Silicon Valley)
+shuah.kh@samsung.com | (970) 672-0658
