@@ -1,113 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1762 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751094AbaDNCey (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Apr 2014 22:34:54 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s3E2Yo6E055874
-	for <linux-media@vger.kernel.org>; Mon, 14 Apr 2014 04:34:52 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 14 Apr 2014 04:34:50 +0200 (CEST)
-Message-Id: <201404140234.s3E2Yo6E055874@smtp-vbr5.xs4all.nl>
-Received: from localhost (209.80-203-20.nextgentel.com [80.203.20.209])
-	by tschai.lan (Postfix) with ESMTPSA id CD5672A03F1
-	for <linux-media@vger.kernel.org>; Mon, 14 Apr 2014 04:34:49 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from mx1.redhat.com ([209.132.183.28]:65176 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752444AbaDIJGB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Apr 2014 05:06:01 -0400
+Message-ID: <53450D76.2010405@redhat.com>
+Date: Wed, 09 Apr 2014 11:05:58 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: alexander@xxor.de, linux-media@vger.kernel.org
+Subject: Re: gspca second isoc endpoint / kinect depth
+References: <53443C5D.9000607@xxor.de>
+In-Reply-To: <53443C5D.9000607@xxor.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+On 04/08/2014 08:13 PM, Alexander Sosna wrote:
+> Hi,
+> 
+> I took drivers/media/usb/gspca/kinect.c as skeleton to build a depth
+> driver for the kinect camera.
+> 
+> I needed to implement this feature because libfreenect performs so badly
+> on the raspberry pi that you can't get a single frame.
+> 
+> The kinecet has two isoc endpoints but gspca only uses the first.
+> To get it running I made a dirty hack to drivers/media/usb/gspca/gspca.c
+> I changed usb_host_endpoint *alt_xfer(...) so that it always returns the
+> second endpoint, which is not really good for everyone.
+> 
+> 
+> My driver is not ready for upstream now, it can not coexist with the
+> current gspca_kinect so you have to decide if you want to load the video
+> or the depth driver. Would be better to have one driver to do it all.
+> 
+> But in the meantime I would like to ask for ideas about a more clean
+> solution to get other isoc endpoints.
+> 
+> There was already a little discussion about this when kinect.c was
+> written by Antonio Ospite:
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/26194
+> 
+> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/26213
+> 
+> Has something changed?
 
-date:		Mon Apr 14 04:00:18 CEST 2014
-git branch:	test
-git hash:	a83b93a7480441a47856dc9104bea970e84cda87
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.13-7.slh.1-amd64
+No.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+> Is there a point against making multiple endpoints available?
 
-Detailed results are available here:
+No.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+> Better solution?
 
-Full logs are available here:
+Not that I know of.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+Regards,
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Hans
