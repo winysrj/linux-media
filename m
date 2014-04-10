@@ -1,72 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f175.google.com ([209.85.220.175]:45657 "EHLO
-	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933500AbaD2UI4 convert rfc822-to-8bit (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:35006 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965168AbaDJHch (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Apr 2014 16:08:56 -0400
-Received: by mail-vc0-f175.google.com with SMTP id lh4so970593vcb.6
-        for <linux-media@vger.kernel.org>; Tue, 29 Apr 2014 13:08:55 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <alpine.LNX.2.00.1404291241000.26512@spider.phas.ubc.ca>
-References: <alpine.LNX.2.00.1404291241000.26512@spider.phas.ubc.ca>
-Date: Tue, 29 Apr 2014 17:08:55 -0300
-Message-ID: <CAOMZO5DUGECOy8KTrrJzv5Aq2HW0LYtwP3VTwTmjQXLi5UXR7Q@mail.gmail.com>
-Subject: Re: au0828 (950Q) kernel OOPS 3.10.30 imx6
-From: Fabio Estevam <festevam@gmail.com>
-To: Carl Michal <michal@physics.ubc.ca>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Thu, 10 Apr 2014 03:32:37 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N3T00I0U0YCAMA0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 Apr 2014 16:32:37 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH v2 6/8] s5p-jpeg: Fix sysmmu page fault
+Date: Thu, 10 Apr 2014 09:32:16 +0200
+Message-id: <1397115138-1095-6-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1397115138-1095-1-git-send-email-j.anaszewski@samsung.com>
+References: <1397115138-1095-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 29, 2014 at 4:50 PM, Carl Michal <michal@physics.ubc.ca> wrote:
-> Hello,
->
-> I'm trying to use a Hauppage HVR-950Q ATSC tv stick with a Cubox-i running
-> geexbox.
->
-> It works great, until it doesn't. After its been up and running for a few
-> hours (sometimes minutes), I start to get kernel OOPs, example pasted in
-> below. The 950Q generally doesn't work afterwards.
->
-> This is a 3.10.30 kernel, that I believe the Cubox is somewhat tied to for
-> other driver reasons.
->
-> I haven't seen any such problems if the HVR-950Q is unplugged.
->
-> Any advice on tracking this down would be appreciated.
->
-> Carl
->
->
-> ————[ cut here ]————
-> WARNING: at mm/vmalloc.c:126 vmap_page_range_noflush+0×178/0x1c4()
-> Modules linked in: au8522_dig tuner au8522_decoder au8522_common
-> mxc_v4l2_capture au0828 ipu_bg_overlay_sdc snd_usb_audio ipu_still
-> ipu_prp_enc snd_usbmidi_lib ipu_csi_enc tveeprom snd_rawmidi
-> ipu_fg_overlay_sdc videobuf_vmalloc snd_hwdep brcmutil ir_lirc_codec
-> lirc_dev ir_rc5_sz_decoder ir_sanyo_decoder ir_mce_kbd_decoder
-> ir_sony_decoder ir_nec_decoder ir_jvc_decoder ir_rc6_decoder ir_rc5_decoder
-> uinput
-> CPU: 0 PID: 700 Comm: xbmc.bin Not tainted 3.10.30 #1
-> [<8001444c>] (unwind_backtrace) from [<800114ac>] (show_stack+0×10/0×14)
-> [<800114ac>] (show_stack) from [<80025fd0>]
-> (warn_slowpath_common+0x4c/0x6c)
-> [<80025fd0>] (warn_slowpath_common) from [<8002600c>]
-> (warn_slowpath_null+0x1c/0×24)
-> [<8002600c>] (warn_slowpath_null) from [<800af188>]
-> (vmap_page_range_noflush+0×178/0x1c4)
-> [<800af188>] (vmap_page_range_noflush) from [<800b0228>]
-> (map_vm_area+0x2c/0x7c)
-> [<800b0228>] (map_vm_area) from [<800b0dd0>]
-> (__vmalloc_node_range+0xfc/0x1dc)
-> [<800b0dd0>] (__vmalloc_node_range) from [<800b0eec>]
-> (__vmalloc_node+0x3c/0×44)
-> [<800b0eec>] (__vmalloc_node) from [<800b0f24>] (vmalloc+0×30/0×38)
-> [<800b0f24>] (vmalloc) from [<80438778>] (gckOS_AllocateMemory+0×40/0×54)
-> [<80438778>] (gckOS_AllocateMemory) from [<804387c0>]
+This patch fixes jpeg sysmmu page fault on Exynos4x12 SoCs.
+During encoding Exynos4x12 SoCs access wider memory area
+than it results from Image_x and Image_y values written to
+the JPEG_IMAGE_SIZE register. In order to avoid sysmmu page
+fault apply proper output buffer size alignment.
 
-This comes from the Vivante GPU driver, which is not in mainline.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |   46 +++++++++++++++++++++++++--
+ 1 file changed, 43 insertions(+), 3 deletions(-)
 
-Please try a 3.14.2 or 3.15-rc3 kernel instead.
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 541f03e..393f3fd 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1106,6 +1106,32 @@ static int s5p_jpeg_try_fmt_vid_out(struct file *file, void *priv,
+ 	return vidioc_try_fmt(f, fmt, ctx, FMT_TYPE_OUTPUT);
+ }
+ 
++static int exynos4_jpeg_get_output_buffer_size(struct s5p_jpeg_ctx *ctx,
++						struct v4l2_format *f,
++						int fmt_depth)
++{
++	struct v4l2_pix_format *pix = &f->fmt.pix;
++	u32 pix_fmt = f->fmt.pix.pixelformat;
++	int w = pix->width, h = pix->height, wh_align;
++
++	if (pix_fmt == V4L2_PIX_FMT_RGB32 ||
++	    pix_fmt == V4L2_PIX_FMT_NV24 ||
++	    pix_fmt == V4L2_PIX_FMT_NV42 ||
++	    pix_fmt == V4L2_PIX_FMT_NV12 ||
++	    pix_fmt == V4L2_PIX_FMT_NV21 ||
++	    pix_fmt == V4L2_PIX_FMT_YUV420)
++		wh_align = 4;
++	else
++		wh_align = 1;
++
++	jpeg_bound_align_image(&w, S5P_JPEG_MIN_WIDTH,
++			       S5P_JPEG_MAX_WIDTH, wh_align,
++			       &h, S5P_JPEG_MIN_HEIGHT,
++			       S5P_JPEG_MAX_HEIGHT, wh_align);
++
++	return w * h * fmt_depth >> 3;
++}
++
+ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
+ {
+ 	struct vb2_queue *vq;
+@@ -1132,10 +1158,24 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
+ 	q_data->fmt = s5p_jpeg_find_format(ct, pix->pixelformat, f_type);
+ 	q_data->w = pix->width;
+ 	q_data->h = pix->height;
+-	if (q_data->fmt->fourcc != V4L2_PIX_FMT_JPEG)
+-		q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
+-	else
++	if (q_data->fmt->fourcc != V4L2_PIX_FMT_JPEG) {
++		/*
++		 * During encoding Exynos4x12 SoCs access wider memory area
++		 * than it results from Image_x and Image_y values written to
++		 * the JPEG_IMAGE_SIZE register. In order to avoid sysmmu
++		 * page fault calculate proper buffer size in such a case.
++		 */
++		if (ct->jpeg->variant->version == SJPEG_EXYNOS4 &&
++		    f_type == FMT_TYPE_OUTPUT && ct->mode == S5P_JPEG_ENCODE)
++			q_data->size = exynos4_jpeg_get_output_buffer_size(ct,
++							f,
++							q_data->fmt->depth);
++		else
++			q_data->size = q_data->w * q_data->h *
++						q_data->fmt->depth >> 3;
++	} else {
+ 		q_data->size = pix->sizeimage;
++	}
+ 
+ 	if (f_type == FMT_TYPE_OUTPUT) {
+ 		ctrl_subs = v4l2_ctrl_find(&ct->ctrl_handler,
+-- 
+1.7.9.5
+
