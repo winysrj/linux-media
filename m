@@ -1,102 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:18267 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932560AbaDILOg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 07:14:36 -0400
-Message-id: <53452B97.8020700@samsung.com>
-Date: Wed, 09 Apr 2014 13:14:31 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-To: Rahul Sharma <r.sh.open@gmail.com>,
-	Andrzej Hajda <a.hajda@samsung.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	sunil joshi <joshi@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Rahul Sharma <rahul.sharma@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCHv2 1/3] phy: Add exynos-simple-phy driver
-References: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com>
- <1396967856-27470-2-git-send-email-t.stanislaws@samsung.com>
- <534506B1.4040908@samsung.com>
- <CAPdUM4M109_kzY6cUMJQPSwgazvWmNDWL1JeXgiqnzvH8dhK2Q@mail.gmail.com>
-In-reply-to: <CAPdUM4M109_kzY6cUMJQPSwgazvWmNDWL1JeXgiqnzvH8dhK2Q@mail.gmail.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mailout4.samsung.com ([203.254.224.34]:44301 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965197AbaDJHcg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Apr 2014 03:32:36 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N3T00CAT0Y7UK10@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 Apr 2014 16:32:31 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH v2 4/8] s5p-jpeg: Fix build break when CONFIG_OF is undefined
+Date: Thu, 10 Apr 2014 09:32:14 +0200
+Message-id: <1397115138-1095-4-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1397115138-1095-1-git-send-email-j.anaszewski@samsung.com>
+References: <1397115138-1095-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rahul,
+This patch fixes build break occurring when
+there is no support for Device Tree turned on
+in the kernel configuration. In such a case only
+the driver variant for S5PC210 SoC will be available.
 
-On 04/09/2014 11:12 AM, Rahul Sharma wrote:
-> Hi Tomasz,
-> 
-> On 9 April 2014 14:07, Andrzej Hajda <a.hajda@samsung.com> wrote:
->> Hi Tomasz,
->>
->> On 04/08/2014 04:37 PM, Tomasz Stanislawski wrote:
->>> Add exynos-simple-phy driver to support a single register
->>> PHY interfaces present on Exynos4 SoC.
->>>
->>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-[snip]
-
->>> +
->>> +     regs = devm_ioremap(dev, res->start, res->end - res->start);
->>> +     if (!regs) {
->>> +             dev_err(dev, "failed to ioremap registers\n");
->>> +             return -EFAULT;
->>> +     }
->>
->> Why not devm_ioremap_resource? If not, resource_size function calculates
->> length of resource correctly.
->>
->> Anyway I like the idea of implementing multiple phys in one driver.
->> The only drawback I see is that some phys will be created even there are
->> no consumers for them. To avoid such situation you can try to use
->> lazy approach - create phy only if there is request for it,
->> exynos_phy_xlate callback should allow this.
->>
->> Regards
->> Andrzej
->>
-> 
-> Idea looks good. How about keeping compatible which is independent
-> of SoC, something like "samsung,exynos-simple-phy" and provide Reg
-> and Bit through phy provider node. This way we can avoid SoC specific
-> hardcoding in phy driver and don't need to look into dt bindings for
-> each new SoC.
-
-A very nice idea BUT there is a very strong pressure from DT guys
-to avoid adding any bit fields/offsets/masks in DT nodes.
-
-Hopefully, as long as driver name starts with "exynos-" prefix
-one can hide SoCs specific tricks deep inside driver code.
-
-The idea behind this driver was not to create a generic phy for 1-bit
-devices but rather to hide SoC-specific issues from client drivers
-like DRM-HDMI.
-
-> 
-> We can use syscon interface to access PMU bits like USB phy.
-> PMU is already registered as system controller
-> 
-
-Ok. I will try to use it in PATCHv3.
-
-> Regards,
-> Rahul Sharma.
-> 
-
-Regards,
-Tomasz Stanislawski
-
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 1b69b69..04260c2 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1840,7 +1840,7 @@ static irqreturn_t exynos4_jpeg_irq(int irq, void *priv)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static void *jpeg_get_drv_data(struct platform_device *pdev);
++static void *jpeg_get_drv_data(struct device *dev);
+ 
+ /*
+  * ============================================================================
+@@ -1854,15 +1854,12 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ 	struct resource *res;
+ 	int ret;
+ 
+-	if (!pdev->dev.of_node)
+-		return -ENODEV;
+-
+ 	/* JPEG IP abstraction struct */
+ 	jpeg = devm_kzalloc(&pdev->dev, sizeof(struct s5p_jpeg), GFP_KERNEL);
+ 	if (!jpeg)
+ 		return -ENOMEM;
+ 
+-	jpeg->variant = jpeg_get_drv_data(pdev);
++	jpeg->variant = jpeg_get_drv_data(&pdev->dev);
+ 
+ 	mutex_init(&jpeg->lock);
+ 	spin_lock_init(&jpeg->slock);
+@@ -2091,7 +2088,6 @@ static const struct dev_pm_ops s5p_jpeg_pm_ops = {
+ 	SET_RUNTIME_PM_OPS(s5p_jpeg_runtime_suspend, s5p_jpeg_runtime_resume, NULL)
+ };
+ 
+-#ifdef CONFIG_OF
+ static struct s5p_jpeg_variant s5p_jpeg_drvdata = {
+ 	.version	= SJPEG_S5P,
+ 	.jpeg_irq	= s5p_jpeg_irq,
+@@ -2122,19 +2118,21 @@ static const struct of_device_id samsung_jpeg_match[] = {
+ 
+ MODULE_DEVICE_TABLE(of, samsung_jpeg_match);
+ 
+-static void *jpeg_get_drv_data(struct platform_device *pdev)
++static void *jpeg_get_drv_data(struct device *dev)
+ {
+ 	struct s5p_jpeg_variant *driver_data = NULL;
+ 	const struct of_device_id *match;
+ 
+-	match = of_match_node(of_match_ptr(samsung_jpeg_match),
+-					 pdev->dev.of_node);
++	if (!IS_ENABLED(CONFIG_OF) || !dev->of_node)
++		return &s5p_jpeg_drvdata;
++
++	match = of_match_node(samsung_jpeg_match, dev->of_node);
++
+ 	if (match)
+ 		driver_data = (struct s5p_jpeg_variant *)match->data;
+ 
+ 	return driver_data;
+ }
+-#endif
+ 
+ static struct platform_driver s5p_jpeg_driver = {
+ 	.probe = s5p_jpeg_probe,
+-- 
+1.7.9.5
 
