@@ -1,69 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2811 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750817AbaDKJpd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 05:45:33 -0400
-Message-ID: <5347B9A3.2050301@xs4all.nl>
-Date: Fri, 11 Apr 2014 11:45:07 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40097 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933736AbaDJBoZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 21:44:25 -0400
+Date: Wed, 9 Apr 2014 18:47:06 -0700
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Anthony DeStefano <adx@fastmail.fm>
+Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH] staging: rtl2832_sdr: fixup checkpatch/style issues
+Message-ID: <20140410014706.GA11347@kroah.com>
+References: <20140410000722.GA64332@pluto-arch.home>
 MIME-Version: 1.0
-To: Steve Cookson - IT <it@sca-uk.com>, linux-media@vger.kernel.org
-Subject: Re: Hauppauge ImpactVCB-e 01385
-References: <534675E1.6050408@sca-uk.com> <5347B132.6040206@sca-uk.com>
-In-Reply-To: <5347B132.6040206@sca-uk.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140410000722.GA64332@pluto-arch.home>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/11/2014 11:09 AM, Steve Cookson - IT wrote:
-> So I'm back to the Hauppauge ImpactVCB-e 01385.
+On Wed, Apr 09, 2014 at 08:07:28PM -0400, Anthony DeStefano wrote:
+> rtl2832_sdr.c: fixup checkpatch issues about long lines
 > 
-> Apparently it's fully supported by the current Linux kernel:
+> Signed-off-by: Anthony DeStefano <adx@fastmail.fm>
+> ---
+>  drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 23 ++++++++++++++++-------
+>  1 file changed, 16 insertions(+), 7 deletions(-)
 > 
-> Model                 Standard Interface     Supported     Comments
-> ImpactVCB-e     Video PCIe                 ✔ Yes                 No 
-> tuners, only video-in. S-Video Capture works with kernel 3.5.0 (Ubuntu 
-> 12.10).
-> 
-> http://linuxtv.org/wiki/index.php/Hauppauge.
-> 
-> So is this a typo or have I just encountered an install problem?
+> diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+> index 104ee8a..0e6c6fa 100644
+> --- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+> +++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+> @@ -935,7 +935,9 @@ static int rtl2832_sdr_set_tuner_freq(struct rtl2832_sdr_state *s)
+>  	/*
+>  	 * bandwidth (Hz)
+>  	 */
+> -	bandwidth_auto = v4l2_ctrl_find(&s->hdl, V4L2_CID_RF_TUNER_BANDWIDTH_AUTO);
+> +	bandwidth_auto = v4l2_ctrl_find(&s->hdl,
+> +		V4L2_CID_RF_TUNER_BANDWIDTH_AUTO);
 
-I have serious doubts whether this is actually supported. I see no mention of
-that board in the cx23885 driver. I wonder if there is a mixup between the
-ImpactVCB (which IS supported) and the ImpactVCB-e.
+Please line stuff up under the (, so for this line it would be:
 
-> 
->> When I plug in my 01385 I get the same old stuff in dmseg, ie:
->>
->> cx23885 driver version 0.0.3 loaded
->> [ 8.921390] cx23885[0]: Your board isn't known (yet) to the driver.
->> [ 8.921390] cx23885[0]: Try to pick one of the existing card configs via
->> [ 8.921390] cx23885[0]: card=<n> insmod option. Updating to the latest
->> [ 8.921390] cx23885[0]: version might help as well.
->> [ 8.921393] cx23885[0]: Here is a list of valid choices for the 
->> card=<n> insmod option:
+	bandwidth_auto = v4l2_ctrl_find(&s->hdl,
+					V4L2_CID_RF_TUNER_BANDWIDTH_AUTO);
 
-You can try some of the existing cards: one  of 1, 2, 3, 6, 20, 24, 32 might
-just work. Look in drivers/media/pci/cx23885/cx23885-cards.c.
+Please fix the rest of these all up.
 
-Each card definition there defines the inputs that are supported by the card.
-There is no perfect match, so you will have to change inputs to see which
-input produces an image. You can also add a card definition yourself and
-just fiddle around with the vmux/amux/gpio values to see which work. It is
-probably something close to what is used by other Hauppauge cards.
-
->>
->> Etc.
-> Would the daily build resolve this?  I haven't installed it on this test 
-> system, but I'm never clear when I should install it or whether I should 
-> just download a single driver from somewhere.
-
-There is no point in using the daily build. The cx23885 driver hasn't been
-updated in a long time.
-
-Regards,
-
-	Hans
+greg k-h
