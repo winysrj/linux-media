@@ -1,56 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1610 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752460AbaDOKni (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44276 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753800AbaDJWgF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 06:43:38 -0400
-Message-ID: <534D0D50.6020600@xs4all.nl>
-Date: Tue, 15 Apr 2014 12:43:28 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 10 Apr 2014 18:36:05 -0400
+Message-ID: <53471CD3.3060306@iki.fi>
+Date: Fri, 11 Apr 2014 01:36:03 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: it-support <it@sca-uk.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: stoth@kernellabs.com
-Subject: Re: [PATCH] cx23885: add support for Hauppauge ImpactVCB-e
-References: <534BE92F.3010501@xs4all.nl> <534D0CD5.3090906@sca-uk.com>
-In-Reply-To: <534D0CD5.3090906@sca-uk.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [yavta PATCH 7/9] Print timestamp type and source for dequeued
+ buffers
+References: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi> <5116965.JxiWPkm0Gp@avalon> <5346E9E1.2080702@iki.fi> <1981061.t1Onuu4osC@avalon>
+In-Reply-To: <1981061.t1Onuu4osC@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/15/2014 12:41 PM, it-support wrote:
-> Hi Guys,
-> 
-> This is a very noobie question,  but my 'patch' command does not return 
-> to the command prompt.
-> 
-> I assume that my problem is one (or all four) of:
-> 
-> 1) the patch doesn't start or end where I think it does (I assume the 
-> first line is
-> 
-> diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
-> 
-> and the last line is:
-> 
->   #define GPIO_1 0x00000002
-> 
-> 2) I have put it in the wrong directory (I tried:
-> 
-> ~/linuxtv/media_build/linux/drivers/media/pci/cx23885/
-> 
-> and
-> 
-> ~/linuxtv/media_build
-> 
-> 3) My patch syntax is wrong.  I run it in the same directory as the file 
-> like this: patch -b cx23885.diff
+Laurent Pinchart wrote:
+> On Thursday 10 April 2014 21:58:41 Sakari Ailus wrote:
+>> Laurent Pinchart wrote:
+>>> Hi Sakari,
+>>>
+>>> Thank you for the patch.
+>>>
+>>> Given that the timestamp type and source are not supposed to change during
+>>> streaming, do we really need to print them for every frame ?
+>>
+>> When processing frames from memory to memory (COPY timestamp type), the
+>> it is entirely possible that the timestamp source changes as the flags
+>> are copied from the OUTPUT buffer to the CAPTURE buffer.
+>
+> It's possible, but is it allowed by the V4L2 API ?
 
-It's: patch -b <cx23885.diff
+The spec states that:
 
-I still make this mistake and I've been doing this for many, many years :-)
+	"The V4L2_BUF_FLAG_TIMESTAMP_COPY timestamp type which is used by e.g. 
+on mem-to-mem devices is an exception to the rule: the timestamp source 
+flags are copied from the OUTPUT video buffer to the CAPTURE video buffer."
 
+>> These patches do not support it but it is allowed.
+>>
+>> One option would be to print the source on every frame only when the
+>> type is COPY. For a program like yavta this might be overly
+>> sophisticated IMO. :-)
+>
+> My concern is that this makes the lines output by yavta pretty long.
+
+True as well. I could remove "type/src " from the timestamp source 
+information. That's mostly redundant anyway. Then we shouldn't exceed 80 
+characters per line that easily anymore.
+
+Could this be the time to add a "verbose" option? :-)
+
+-- 
 Regards,
 
-	Hans
+Sakari Ailus
+sakari.ailus@iki.fi
