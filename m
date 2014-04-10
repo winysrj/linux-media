@@ -1,168 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:43078 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756471AbaDQNNR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 09:13:17 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N4600M2OFE4CA40@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 17 Apr 2014 09:13:16 -0400 (EDT)
-Date: Thu, 17 Apr 2014 10:13:10 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Received: from cantor2.suse.de ([195.135.220.15]:59028 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753800AbaDJWSV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Apr 2014 18:18:21 -0400
+Date: Fri, 11 Apr 2014 00:18:18 +0200
+From: Jan Kara <jack@suse.cz>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH 3/3] saa7134: convert to vb2
-Message-id: <20140417101310.0111d236@samsung.com>
-In-reply-to: <534FA3BF.2010308@xs4all.nl>
-References: <1394454049-12879-1-git-send-email-hverkuil@xs4all.nl>
- <1394454049-12879-4-git-send-email-hverkuil@xs4all.nl>
- <20140416192343.30a5a8fc@samsung.com> <534F0553.2000808@xs4all.nl>
- <20140416231730.6252aae7@samsung.com> <534FA3BF.2010308@xs4all.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Cc: Jan Kara <jack@suse.cz>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-mm@kvack.org, linux-media@vger.kernel.org,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	'Tomasz Stanislawski' <t.stanislaws@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] Helper to abstract vma handling in media layer
+Message-ID: <20140410221818.GA14625@quack.suse.cz>
+References: <1395085776-8626-1-git-send-email-jack@suse.cz>
+ <53466C4A.2030107@samsung.com>
+ <20140410103220.GB28404@quack.suse.cz>
+ <53467B7E.5060408@xs4all.nl>
+ <20140410121554.GC28404@quack.suse.cz>
+ <53468CFC.2060707@xs4all.nl>
+ <20140410215738.GB12339@quack.suse.cz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140410215738.GB12339@quack.suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 17 Apr 2014 11:49:51 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Thu 10-04-14 23:57:38, Jan Kara wrote:
+> On Thu 10-04-14 14:22:20, Hans Verkuil wrote:
+> > On 04/10/14 14:15, Jan Kara wrote:
+> > > On Thu 10-04-14 13:07:42, Hans Verkuil wrote:
+> > >> On 04/10/14 12:32, Jan Kara wrote:
+> > >>>   Hello,
+> > >>>
+> > >>> On Thu 10-04-14 12:02:50, Marek Szyprowski wrote:
+> > >>>> On 2014-03-17 20:49, Jan Kara wrote:
+> > >>>>>   The following patch series is my first stab at abstracting vma handling
+> > >>>> >from the various media drivers. After this patch set drivers have to know
+> > >>>>> much less details about vmas, their types, and locking. My motivation for
+> > >>>>> the series is that I want to change get_user_pages() locking and I want
+> > >>>>> to handle subtle locking details in as few places as possible.
+> > >>>>>
+> > >>>>> The core of the series is the new helper get_vaddr_pfns() which is given a
+> > >>>>> virtual address and it fills in PFNs into provided array. If PFNs correspond to
+> > >>>>> normal pages it also grabs references to these pages. The difference from
+> > >>>>> get_user_pages() is that this function can also deal with pfnmap, mixed, and io
+> > >>>>> mappings which is what the media drivers need.
+> > >>>>>
+> > >>>>> The patches are just compile tested (since I don't have any of the hardware
+> > >>>>> I'm afraid I won't be able to do any more testing anyway) so please handle
+> > >>>>> with care. I'm grateful for any comments.
+> > >>>>
+> > >>>> Thanks for posting this series! I will check if it works with our
+> > >>>> hardware soon.  This is something I wanted to introduce some time ago to
+> > >>>> simplify buffer handling in dma-buf, but I had no time to start working.
+> > >>>   Thanks for having a look in the series.
+> > >>>
+> > >>>> However I would like to go even further with integration of your pfn
+> > >>>> vector idea.  This structure looks like a best solution for a compact
+> > >>>> representation of the memory buffer, which should be considered by the
+> > >>>> hardware as contiguous (either contiguous in physical memory or mapped
+> > >>>> contiguously into dma address space by the respective iommu). As you
+> > >>>> already noticed it is widely used by graphics and video drivers.
+> > >>>>
+> > >>>> I would also like to add support for pfn vector directly to the
+> > >>>> dma-mapping subsystem. This can be done quite easily (even with a
+> > >>>> fallback for architectures which don't provide method for it). I will try
+> > >>>> to prepare rfc soon.  This will finally remove the need for hacks in
+> > >>>> media/v4l2-core/videobuf2-dma-contig.c
+> > >>>   That would be a worthwhile thing to do. When I was reading the code this
+> > >>> seemed like something which could be done but I delibrately avoided doing
+> > >>> more unification than necessary for my purposes as I don't have any
+> > >>> hardware to test and don't know all the subtleties in the code... BTW, is
+> > >>> there some way to test the drivers without the physical video HW?
+> > >>
+> > >> You can use the vivi driver (drivers/media/platform/vivi) for this.
+> > >> However, while the vivi driver can import dma buffers it cannot export
+> > >> them. If you want that, then you have to use this tree:
+> > >>
+> > >> http://git.linuxtv.org/cgit.cgi/hverkuil/media_tree.git/log/?h=vb2-part4
+> > >   Thanks for the pointer that looks good. I've also found
+> > > drivers/media/platform/mem2mem_testdev.c which seems to do even more
+> > > testing of the area I made changes to. So now I have to find some userspace
+> > > tool which can issue proper ioctls to setup and use the buffers and I can
+> > > start testing what I wrote :)
+> > 
+> > Get the v4l-utils.git repository (http://git.linuxtv.org/cgit.cgi/v4l-utils.git/).
+> > You want the v4l2-ctl tool. Don't use the version supplied by your distro,
+> > that's often too old.
+> > 
+> > 'v4l2-ctl --help-streaming' gives the available options for doing streaming.
+> > 
+> > So simple capturing from vivi is 'v4l2-ctl --stream-mmap' or '--stream-user'.
+> > You can't test dmabuf unless you switch to the vb2-part4 branch of my tree.
+>   Great, it seems to be doing something and it shows there's some bug in my
+> code. Thanks a lot for help.
+  OK, so after a small fix the basic functionality seems to be working. It
+doesn't seem there's a way to test multiplanar buffers with vivi, is there?
 
-> On 04/17/2014 04:17 AM, Mauro Carvalho Chehab wrote:
-> > Em Thu, 17 Apr 2014 00:33:55 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> >> On 04/17/2014 12:23 AM, Mauro Carvalho Chehab wrote:
-> >>> Em Mon, 10 Mar 2014 13:20:49 +0100
-> >>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >>>
-> >>>> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>>
-> >>>> Convert the saa7134 driver to vb2.
-> >>>>
-> >>>> Note that while this uses the vb2-dma-sg version, the VB2_USERPTR mode is
-> >>>> disabled. The DMA hardware only supports DMAing full pages, and in the
-> >>>> USERPTR memory model the first and last scatter-gather buffer is almost
-> >>>> never a full page.
-> >>>>
-> >>>> In practice this means that we can't use the VB2_USERPTR mode.
-> >>>
-> >>> Why not? Provided that the buffer is equal or bigger than the number of
-> >>> pages required by saa7134, that should be OK.
-> >>>
-> >>> All the driver needs to do is to check if the USERPTR buffer condition is met,
-> >>> returning an error otherwise (and likely printing a msg at dmesg).
-> >>
-> >> Yuck. Well, I'll take a look at this.
-> >>
-> >> It has in my view the same problem as abusing USERPTR to pass pointers to
-> >> physically contiguous memory: yes, it 'supports' USERPTR, but it has additional
-> >> requirements which userspace has no way of knowing or detecting.
-> >>
-> >> It's really not USERPTR at all, it is PAGE_ALIGNED_USERPTR.
-> >>
-> >> Quite different.
-> > 
-> > Hmm... If I remember well, mmapped memory (being userptr or not) are always
-> > page aligned, at least on systems with MMU.
-> 
-> Not malloc()ed memory. That's what userptr is about.
-
-Take a look at videobuf_dma_init_user_locked at
-drivers/media/v4l2-core/videobuf-dma-sg.c:
-
-	first = (data          & PAGE_MASK) >> PAGE_SHIFT;
-	last  = ((data+size-1) & PAGE_MASK) >> PAGE_SHIFT;
-	dma->offset = data & ~PAGE_MASK;
-	dma->size = size;
-	dma->nr_pages = last-first+1;
-	dma->pages = kmalloc(dma->nr_pages * sizeof(struct page *), GFP_KERNEL);
-
-The physical memory is always page aligned, even if VM memory isn't.
-The offset there is actually used just to subtract the size, at
-videobuf_pages_to_sg().
-
-So, with VB1, USERPTR works fine, and no special care is needed on
-userspace to align the offset.
-
-Btw, it seems that VB2 also does the same. Take a look at
-vb2_dma_sg_get_userptr().
-
-> >> I would prefer that you have to enable it explicitly through e.g. a module option.
-> >> That way you can still do it, but you really have to know what you are doing.
-> >>
-> >>> I suspect that this change will break some userspace programs used
-> >>> for video surveillance equipment.
-> >>>
-> >>>> This has been tested with raw video, compressed video, VBI, radio, DVB and
-> >>>> video overlays.
-> >>>>
-> >>>> Unfortunately, a vb2 conversion is one of those things you cannot split
-> >>>> up in smaller patches, it's all or nothing. This patch switches the whole
-> >>>> driver over to vb2, using the vb2 ioctl and fop helper functions.
-> >>>
-> >>> Not quite true. This patch contains lots of non-vb2 stuff, like:
-> >>> 	- Coding Style fixes;
-> >>> 	- Removal of res_get/res_set/res_free;
-> >>> 	- Functions got moved from one place to another one.
-> >>
-> >> I will see if there is anything sensible that I can split up. I'm not aware
-> >> of any particular coding style issues, but I'll review it.
-> > 
-> > There are several, like:
-> > 
-> > -	dprintk("buffer_finish %p\n",q->curr);
-> > +	dprintk("buffer_finish %p\n", q->curr);
-> > 
-> > Also, it seems that you moved some functions, like:
-> > 
-> > ts_reset_encoder(struct saa7134_dev* dev) that was moved
-> > to some other part of the code and renamed as stop_streaming().
-> > 
-> > There are several of such cases, with makes hard to really see the
-> > VB2 changes, and what it might be some code dropped by mistake.
-> > 
-> >>
-> >> The removal of the resource functions is not something I can split up. It
-> >> is replaced by the resource handling that's built into the vb2 helper functions.
-> > 
-> > Well, currently, it is really hard to see that all the checks between
-> > empress and normal video streams are still done right, as the patch
-> > become big and messy.
-> 
-> The original checks were never correct. This driver was buggy as hell once
-> you tried to use multiple streams at the same time.
-> 
-> I have split it up some more, but the actual vb2 conversion remains a big
-> patch.
-
-Ok.
-
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> > Please try to break it into a more granular set of patches that
-> > would help to check if everything is there.
-> > 
-> > Thanks,
-> > Mauro
-> > 
-> >>
-> >> Regards,
-> >>
-> >> 	Hans
-> >>
-> >>>
-> >>> It is really hard to review it, as is, as the real changes are mixed with
-> >>> the above code cleanups/changes.
-> >>>
-> >>> Please split this patch in a way that it allows reviewing the changes
-> >>> there.
-
+								Honza
 -- 
-
-Regards,
-Mauro
+Jan Kara <jack@suse.cz>
+SUSE Labs, CR
