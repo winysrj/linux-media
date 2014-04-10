@@ -1,81 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:44631 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759256AbaD3PQf (ORCPT
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:38716 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030235AbaDJLrg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Apr 2014 11:16:35 -0400
-Received: by mail-la0-f49.google.com with SMTP id hr17so1311006lab.8
-        for <linux-media@vger.kernel.org>; Wed, 30 Apr 2014 08:16:34 -0700 (PDT)
-From: Alexander Bersenev <bay@hackerdom.ru>
-To: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
-	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
-	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Alexander Bersenev <bay@hackerdom.ru>
-Subject: [PATCH v5 0/3] ARM: sunxi: Add support for consumer infrared devices
-Date: Wed, 30 Apr 2014 21:16:47 +0600
-Message-Id: <1398871010-30681-1-git-send-email-bay@hackerdom.ru>
+	Thu, 10 Apr 2014 07:47:36 -0400
+Date: Thu, 10 Apr 2014 12:46:53 +0100
+From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: shuah.kh@samsung.com, Greg KH <gregkh@linuxfoundation.org>,
+	tj@kernel.org, rafael.j.wysocki@intel.com, linux@roeck-us.net,
+	toshi.kani@hp.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, shuahkhan@gmail.com
+Subject: Re: [RFC PATCH 0/2] managed token devres interfaces
+Message-ID: <20140410124653.64aeb06d@alan.etchedpixels.co.uk>
+In-Reply-To: <20140410083841.488f9c43@samsung.com>
+References: <cover.1397050852.git.shuah.kh@samsung.com>
+	<20140409191740.GA10748@kroah.com>
+	<5345CD32.8010305@samsung.com>
+	<20140410120435.4c439a8b@alan.etchedpixels.co.uk>
+	<20140410083841.488f9c43@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch introduces Consumer IR(CIR) support for sunxi boards.
+> For example, some devices provide standard USB Audio Class, handled by
+> snd-usb-audio for the audio stream, while the video stream is handled
+> via a separate driver, like some em28xx devices.
 
-This is based on Alexsey Shestacov's work based on the original driver 
-supplied by Allwinner.
+Which is what mfd is designed to handle.
 
-Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
+> There are even more complex devices that provide 3G modem, storage
+> and digital TV, whose USB ID changes when either the 3G modem starts
+> or when the digital TV firmware is loaded.
 
----
-Changes since version 1: 
- - Fix timer memory leaks 
- - Fix race condition when driver unloads while interrupt handler is active
- - Support Cubieboard 2(need testing)
+But presumably you only have one driver at a time then ?
 
-Changes since version 2:
-- More reliable keydown events
-- Documentation fixes
-- Rename registers accurding to A20 user manual
-- Remove some includes, order includes alphabetically
-- Use BIT macro
-- Typo fixes
+> So, we need to find a way to lock some hardware resources among
+> different subsystems that don't share anything in common. Not sure if
+> mfd has the same type of problem of a non-mfd driver using another
+> function of the same device
 
-Changes since version 3:
-- Split the patch on smaller parts
-- More documentation fixes
-- Add clock-names in DT
-- Use devm_clk_get function to get the clocks
-- Removed gpios property from ir's DT
-- Changed compatible from allwinner,sunxi-ir to allwinner,sun7i-a20-ir in DT
-- Use spin_lock_irq instead spin_lock_irqsave in interrupt handler
-- Add myself in the copyright ;)
-- Coding style and indentation fixes
-
-Changes since version 4:
-- Try to fix indentation errors by sending patches with git send-mail
-
-Alexander Bersenev (3):
-  ARM: sunxi: Add documentation for sunxi consumer infrared devices
-  ARM: sunxi: Add driver for sunxi IR controller
-  ARM: sunxi: Add IR controller support in DT on A20
-
- .../devicetree/bindings/media/sunxi-ir.txt         |  23 ++
- arch/arm/boot/dts/sun7i-a20-cubieboard2.dts        |   6 +
- arch/arm/boot/dts/sun7i-a20-cubietruck.dts         |   6 +
- arch/arm/boot/dts/sun7i-a20.dtsi                   |  31 +++
- drivers/media/rc/Kconfig                           |  10 +
- drivers/media/rc/Makefile                          |   1 +
- drivers/media/rc/sunxi-ir.c                        | 303 +++++++++++++++++++++
- 7 files changed, 380 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sunxi-ir.txt
- create mode 100644 drivers/media/rc/sunxi-ir.c
-
--- 
-1.9.2
+The MFD device provides subdevices for all the functions. That is the
+whole underlying concept.
 
