@@ -1,47 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33699 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753576AbaDEUYD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Apr 2014 16:24:03 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/4] msi001: fix possible integer overflow
-Date: Sat,  5 Apr 2014 23:23:41 +0300
-Message-Id: <1396729424-17576-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1396729424-17576-1-git-send-email-crope@iki.fi>
-References: <1396729424-17576-1-git-send-email-crope@iki.fi>
+Received: from aserp1040.oracle.com ([141.146.126.69]:37931 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965484AbaDJJtN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Apr 2014 05:49:13 -0400
+Date: Thu, 10 Apr 2014 12:48:50 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Vitaly Osipov <vitaly.osipov@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: [PATCH 2/2] staging: media: omap24xx: fix up a checkpatch.pl
+ warning
+Message-ID: <20140410094850.GF26890@mwanda>
+References: <20140410090234.GA8654@witts-MacBook-Pro.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140410090234.GA8654@witts-MacBook-Pro.local>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Coverity CID 1196502: Unintentional integer overflow
-(OVERFLOW_BEFORE_WIDEN)
+The two subjects are really close to being the same.  You should choose
+better subjects.  Like:
 
-Potentially overflowing expression "(f_rf + f_if + f_if1) * lo_div"
-with type "unsigned int" (32 bits, unsigned) is evaluated using 32-bit
-arithmetic before being used in a context which expects an expression
-of type "u64" (64 bits, unsigned). To avoid overflow, cast either
-operand to "u64" before performing the multiplication.
+[PATCH 2/2] staging: media: omap24xx: use pr_info() instead of KERN_INFO
 
-Reported-by: <scan-admin@coverity.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/msi3101/msi001.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/msi3101/msi001.c b/drivers/staging/media/msi3101/msi001.c
-index ac43bae..bd0b93c 100644
---- a/drivers/staging/media/msi3101/msi001.c
-+++ b/drivers/staging/media/msi3101/msi001.c
-@@ -201,7 +201,7 @@ static int msi001_set_tuner(struct msi001 *s)
- 	dev_dbg(&s->spi->dev, "%s: bandwidth selected=%d\n",
- 			__func__, bandwidth_lut[i].freq);
- 
--	f_vco = (f_rf + f_if + f_if1) * lo_div;
-+	f_vco = (u64) (f_rf + f_if + f_if1) * lo_div;
- 	tmp64 = f_vco;
- 	m = do_div(tmp64, F_REF * R_REF);
- 	n = (unsigned int) tmp64;
--- 
-1.9.0
+(All the checkpatch.pl people use the exact same subject for everything
+though, so you're not alone in this).
+
+regards,
+dan carpenter
 
