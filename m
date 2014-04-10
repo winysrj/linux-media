@@ -1,66 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f169.google.com ([209.85.223.169]:53493 "EHLO
-	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758042AbaDBJlV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Apr 2014 05:41:21 -0400
+Received: from mailex.mailcore.me ([94.136.40.62]:52228 "EHLO
+	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965718AbaDJKnx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Apr 2014 06:43:53 -0400
+Received: from 188.29.164.63.threembb.co.uk ([188.29.164.63] helo=[192.168.43.247])
+	by smtp04.mailcore.me with esmtpa (Exim 4.80.1)
+	(envelope-from <it@sca-uk.com>)
+	id 1WYCSR-0002oO-Sm
+	for linux-media@vger.kernel.org; Thu, 10 Apr 2014 11:43:49 +0100
+Message-ID: <534675E1.6050408@sca-uk.com>
+Date: Thu, 10 Apr 2014 11:43:45 +0100
+From: Steve Cookson - IT <it@sca-uk.com>
 MIME-Version: 1.0
-In-Reply-To: <20140402091334.GV6991@mwanda>
-References: <1671118.MbmRfxWPeo@daeseok-laptop.cloud.net>
-	<20140402091334.GV6991@mwanda>
-Date: Wed, 2 Apr 2014 18:41:20 +0900
-Message-ID: <CAHb8M2AN5Hx4Mn9uTnge2MQzyT7BD1XxM2edZyPdeCt-V91J5g@mail.gmail.com>
-Subject: Re: [PATCH] staging: lirc: fix NULL pointer dereference
-From: DaeSeok Youn <daeseok.youn@gmail.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: m.chehab@samsung.com, devel <devel@driverdev.osuosl.org>,
-	Andreea Bernat <bernat.ada@gmail.com>,
-	Greg KH <gregkh@linuxfoundation.org>, jarod@wilsonet.com,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	Paul McKenney <paulmck@linux.vnet.ibm.com>,
-	Martina Trompouki <mtrompou@gmail.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: Hauppauge ImpactVCB-e 01385
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-You are right. remove whole thing and send it again.
+Hi Guys,
 
-Thanks.
-Daeseok Youn
+Sorry to go on about the Hauppauge ImpactVCB-e 01385, but it's a couple 
+of years and version 12.04, since I last asked.
 
-2014-04-02 18:13 GMT+09:00 Dan Carpenter <dan.carpenter@oracle.com>:
-> On Wed, Apr 02, 2014 at 05:18:39PM +0900, Daeseok Youn wrote:
->>
->> coccicheck says:
->>  drivers/staging/media/lirc/lirc_igorplugusb.c:226:15-21:
->> ERROR: ir is NULL but dereferenced.
->>
->> Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
->> ---
->>  drivers/staging/media/lirc/lirc_igorplugusb.c |    4 ++--
->>  1 files changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/staging/media/lirc/lirc_igorplugusb.c b/drivers/staging/media/lirc/lirc_igorplugusb.c
->> index f508a13..0ef393b 100644
->> --- a/drivers/staging/media/lirc/lirc_igorplugusb.c
->> +++ b/drivers/staging/media/lirc/lirc_igorplugusb.c
->> @@ -223,8 +223,8 @@ static int unregister_from_lirc(struct igorplug *ir)
->>       int devnum;
->>
->>       if (!ir) {
->> -             dev_err(&ir->usbdev->dev,
->> -                     "%s: called with NULL device struct!\n", __func__);
->> +             printk(DRIVER_NAME "%s: called with NULL device struct!\n",
->> +                    __func__);
->
->
-> It should be pr_err() or something.  But actually "ir" can't be NULL so
-> just delete the whole condition.
->
->
->>               return -EINVAL;
->>       }
->
-> regards,
-> dan carpenter
->
+This page:
+
+http://linuxtv.org/wiki/index.php/Hauppauge
+
+Now shows:
+
+Table of analog-only devices sold by Hauppauge Model Standard Interface 
+Supported Comments
+ImpactVCB-e Video PCIe ✔ Yes No tuners, only video-in. S-Video Capture 
+works with kernel 3.5.0 (Ubuntu 12.10).
+
+As my distribution is 13.10 with kernel 3.11, I believe it should work.
+
+uname -a gives:
+
+3.11.0-19-generic #33-Ubuntu SMP Tue Mar 11 18:48:34 UTC 2014 x86_64 
+x86_64 x86_64 GNU/Linux
+
+When I plug in my 01385 I get the same old stuff in dmseg, ie:
+
+cx23885 driver version 0.0.3 loaded
+[ 8.921390] cx23885[0]: Your board isn't known (yet) to the driver.
+[ 8.921390] cx23885[0]: Try to pick one of the existing card configs via
+[ 8.921390] cx23885[0]: card=<n> insmod option. Updating to the latest
+[ 8.921390] cx23885[0]: version might help as well.
+[ 8.921393] cx23885[0]: Here is a list of valid choices for the card=<n> 
+insmod option:
+
+Etc.
+
+Does anyone have any idea of the issue here?
+
+Best regards
+
+Steve
