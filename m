@@ -1,124 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37964 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751743AbaDUKYf (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1604 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030226AbaDJLJh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Apr 2014 06:24:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Arun Kumar K <arun.kk@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	k.debski@samsung.com, s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	posciak@chromium.org, arunkk.samsung@gmail.com
-Subject: Re: [PATCH v2 1/2] v4l: Add resolution change event.
-Date: Mon, 21 Apr 2014 12:24:43 +0200
-Message-ID: <1751714.6NNU6hXYoN@avalon>
-In-Reply-To: <1398072362-24962-2-git-send-email-arun.kk@samsung.com>
-References: <1398072362-24962-1-git-send-email-arun.kk@samsung.com> <1398072362-24962-2-git-send-email-arun.kk@samsung.com>
+	Thu, 10 Apr 2014 07:09:37 -0400
+Message-ID: <53467B7E.5060408@xs4all.nl>
+Date: Thu, 10 Apr 2014 13:07:42 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Jan Kara <jack@suse.cz>
+CC: Marek Szyprowski <m.szyprowski@samsung.com>, linux-mm@kvack.org,
+	linux-media@vger.kernel.org,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"'Tomasz Stanislawski'" <t.stanislaws@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] Helper to abstract vma handling in media layer
+References: <1395085776-8626-1-git-send-email-jack@suse.cz> <53466C4A.2030107@samsung.com> <20140410103220.GB28404@quack.suse.cz>
+In-Reply-To: <20140410103220.GB28404@quack.suse.cz>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
-
-Thank you for the patch.
-
-On Monday 21 April 2014 14:56:01 Arun Kumar K wrote:
-> From: Pawel Osciak <posciak@chromium.org>
+On 04/10/14 12:32, Jan Kara wrote:
+>   Hello,
 > 
-> This event indicates that the decoder has reached a point in the stream,
-> at which the resolution changes. The userspace is expected to provide a new
-> set of CAPTURE buffers for the new format before decoding can continue.
-> The event can also be used for more generic events involving resolution
-> or format changes at runtime for all kinds of video devices.
+> On Thu 10-04-14 12:02:50, Marek Szyprowski wrote:
+>> On 2014-03-17 20:49, Jan Kara wrote:
+>>>   The following patch series is my first stab at abstracting vma handling
+>> >from the various media drivers. After this patch set drivers have to know
+>>> much less details about vmas, their types, and locking. My motivation for
+>>> the series is that I want to change get_user_pages() locking and I want
+>>> to handle subtle locking details in as few places as possible.
+>>>
+>>> The core of the series is the new helper get_vaddr_pfns() which is given a
+>>> virtual address and it fills in PFNs into provided array. If PFNs correspond to
+>>> normal pages it also grabs references to these pages. The difference from
+>>> get_user_pages() is that this function can also deal with pfnmap, mixed, and io
+>>> mappings which is what the media drivers need.
+>>>
+>>> The patches are just compile tested (since I don't have any of the hardware
+>>> I'm afraid I won't be able to do any more testing anyway) so please handle
+>>> with care. I'm grateful for any comments.
+>>
+>> Thanks for posting this series! I will check if it works with our
+>> hardware soon.  This is something I wanted to introduce some time ago to
+>> simplify buffer handling in dma-buf, but I had no time to start working.
+>   Thanks for having a look in the series.
 > 
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-> ---
->  .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   16 ++++++++++++++++
->  include/uapi/linux/videodev2.h                     |    6 ++++++
->  2 files changed, 22 insertions(+)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-> b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml index
-> 5c70b61..0aec831 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-> @@ -155,6 +155,22 @@
->  	    </entry>
->  	  </row>
->  	  <row>
-> +	    <entry><constant>V4L2_EVENT_SOURCE_CHANGE</constant></entry>
-> +	    <entry>5</entry>
-> +	    <entry>
-> +	      <para>This event is triggered when a resolution or format change
-> +	       is detected during runtime by the video device. It can be a
-> +	       runtime resolution change triggered by a video decoder or the
-> +	       format change happening on an HDMI connector. Application may
-> +	       need to reinitialize buffers before proceeding further.</para>
-> +
-> +              <para>This event has a &v4l2-event-source-change; associated
-> +	      with it. This has significance only for v4l2 subdevs where the
-> +	      <structfield>pad_num</structfield> field will be updated with
-> +	      the pad number on which the event is triggered.</para>
-> +	    </entry>
-> +	  </row>
-> +	  <row>
->  	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
->  	    <entry>0x08000000</entry>
->  	    <entry>Base event number for driver-private events.</entry>
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 6ae7bbe..12e0614 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -1733,6 +1733,7 @@ struct v4l2_streamparm {
->  #define V4L2_EVENT_EOS				2
->  #define V4L2_EVENT_CTRL				3
->  #define V4L2_EVENT_FRAME_SYNC			4
-> +#define V4L2_EVENT_SOURCE_CHANGE		5
->  #define V4L2_EVENT_PRIVATE_START		0x08000000
-> 
->  /* Payload for V4L2_EVENT_VSYNC */
-> @@ -1764,12 +1765,17 @@ struct v4l2_event_frame_sync {
->  	__u32 frame_sequence;
->  };
-> 
-> +struct v4l2_event_source_change {
-> +	__u32 pad_num;
+>> However I would like to go even further with integration of your pfn
+>> vector idea.  This structure looks like a best solution for a compact
+>> representation of the memory buffer, which should be considered by the
+>> hardware as contiguous (either contiguous in physical memory or mapped
+>> contiguously into dma address space by the respective iommu). As you
+>> already noticed it is widely used by graphics and video drivers.
+>>
+>> I would also like to add support for pfn vector directly to the
+>> dma-mapping subsystem. This can be done quite easily (even with a
+>> fallback for architectures which don't provide method for it). I will try
+>> to prepare rfc soon.  This will finally remove the need for hacks in
+>> media/v4l2-core/videobuf2-dma-contig.c
+>   That would be a worthwhile thing to do. When I was reading the code this
+> seemed like something which could be done but I delibrately avoided doing
+> more unification than necessary for my purposes as I don't have any
+> hardware to test and don't know all the subtleties in the code... BTW, is
+> there some way to test the drivers without the physical video HW?
 
-I would call the field just "pad", 
+You can use the vivi driver (drivers/media/platform/vivi) for this.
+However, while the vivi driver can import dma buffers it cannot export
+them. If you want that, then you have to use this tree:
 
-> +};
-> +
->  struct v4l2_event {
->  	__u32				type;
->  	union {
->  		struct v4l2_event_vsync		vsync;
->  		struct v4l2_event_ctrl		ctrl;
->  		struct v4l2_event_frame_sync	frame_sync;
-> +		struct v4l2_event_source_change source_change;
->  		__u8				data[64];
+http://git.linuxtv.org/cgit.cgi/hverkuil/media_tree.git/log/?h=vb2-part4
 
-This looks pretty good to me, but I'm a bit concerned about future 
-compatibility. We might need to report more information to userspace, and in 
-particular what has been changed at the source (resolution, format, ...). In 
-order to do so, we'll need to add a flag field to v4l2_event_source_change. 
-The next __u32 right after the source_change field must thus be zeroed. I see 
-two ways of doing so:
-
-- zeroing the whole data array before setting event-specific data
-- adding a reserved must-be-zeroed field to v4l2_event_source_change
-
-I like the former better as it's more generic, but we then need to ensure that 
-all drivers zero the whole data field correctly. Adding a new 
-v4l2_event_init() function would help with that.
-
->  	} u;
->  	__u32				pending;
-
--- 
 Regards,
 
-Laurent Pinchart
-
+	Hans
