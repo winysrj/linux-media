@@ -1,104 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta08.emeryville.ca.mail.comcast.net ([76.96.30.80]:45250 "EHLO
-	qmta08.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933372AbaDIP1a (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:35006 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965199AbaDJHci (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Apr 2014 11:27:30 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: gregkh@linuxfoundation.org, m.chehab@samsung.com, tj@kernel.org,
-	rafael.j.wysocki@intel.com, linux@roeck-us.net, toshi.kani@hp.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, shuahkhan@gmail.com
-Subject: [RFC PATCH 0/2] managed token devres interfaces 
-Date: Wed,  9 Apr 2014 09:21:06 -0600
-Message-Id: <cover.1397050852.git.shuah.kh@samsung.com>
+	Thu, 10 Apr 2014 03:32:38 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N3T00JAT0YD8480@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 Apr 2014 16:32:37 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH v2 7/8] s5p_jpeg: Prevent JPEG 4:2:0 > YUV 4:2:0 decompression
+Date: Thu, 10 Apr 2014 09:32:17 +0200
+Message-id: <1397115138-1095-7-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1397115138-1095-1-git-send-email-j.anaszewski@samsung.com>
+References: <1397115138-1095-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Media devices often have hardware resources that are shared
-across several functions. For instance, TV tuner cards often
-have MUXes, converters, radios, tuners, etc. that are shared
-across various functions. However, v4l2, alsa, DVB, usbfs, and
-all other drivers have no knowledge of what resources are
-shared. For example, users can't access DVB and alsa at the same
-time, or the DVB and V4L analog API at the same time, since many
-only have one converter that can be in either analog or digital
-mode. Accessing and/or changing mode of a converter while it is
-in use by another function results in video stream error.
+Prevent decompression of a JPEG 4:2:0 with odd width to
+the YUV 4:2:0 compliant formats for Exynos4x12 SoCs and
+adjust capture format to RGB565 in such a case. This is
+required because the configuration would produce a raw
+image with broken luma component.
 
-A shared devres that can be locked and unlocked by various drivers
-that control media functions on a single media device is needed to
-address the above problems.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |   25 ++++++++++++++++++++++---
+ 1 file changed, 22 insertions(+), 3 deletions(-)
 
-A token devres that can be looked up by a token for locking, try
-locking, unlocking will help avoid adding data structure
-dependencies between various media drivers. This token is a unique
-string that can be constructed from a common data structure such as
-struct device, bus_name, and hardware address.
-
-The devm_token_* interfaces manage access to token resource.
-
-Interfaces:
-    devm_token_create()
-    devm_token_destroy()
-    devm_token_lock()
-    devm_token_unlock()
-Usage:
-    Create token:
-        Call devm_token_create() with a token id which is a unique
-        string.
-    Lock token: Call devm_token_lock() to lock or try lock a token.
-    Unlock token: Call devm_token_unlock().
-    Destroy token: Call devm_token_destroy() to delete the token.
-
-A new devres_* interface to update the status of this token resource
-to busy when locked and free when unlocked is necessary to implement
-this new managed resource.
-
-devres_update() searches for the resource that matches supplied match
-criteria similar to devres_find(). When a match is found, it calls
-the update function caller passed in.
-
-This patch set adds a new devres_update) interface and token devres
-interfaces.
-
-Test Cases for token devres interfaces: (passed)
- - Create, lock, unlock, and destroy sequence.
- - Try lock while it is locked. Returns -EBUSY as expected.
- - Try lock after destroy. Returns -ENODEV as expected.
- - Unlock while it is unlocked. Returns 0 as expected. This is a no-op. 
- - Try unlock after destroy. Returns -ENODEV as expected.
-
-Special notes for Mauro Chehab:
- - Please evaluate if these token devres interfaces cover all media driver
-   use-cases. If not what is needed to cover them.
- - For use-case testing, I generated a string from em28xx device, as this
-   is common for all em28xx extensions: (hope this holds true when em28xx
-   uses snd-usb-audio
- - Construct string with (dev is struct em28xx *dev)
-		format: "tuner:%s-%s-%d"
-		with the following:
-   		dev_name(&dev->udev->dev)
-                dev->udev->bus->bus_name
-                dev->tuner_addr
- - I added test code to em28xx_card_setup() to test the interfaces:
-   example token from this test code generated with the format above:
-
-usb 8-1: devm_token_create(): created token: tuner:8-1-0000:00:10.1-0
-
-Shuah Khan (2):
-  drivers/base: add new devres_update() interface to devres_*
-  drivers/base: add managed token devres interfaces
-
- drivers/base/Makefile        |    2 +-
- drivers/base/devres.c        |   36 ++++++++
- drivers/base/token_devres.c  |  204 ++++++++++++++++++++++++++++++++++++++++++
- include/linux/device.h       |    4 +
- include/linux/token_devres.h |   19 ++++
- 5 files changed, 264 insertions(+), 1 deletion(-)
- create mode 100644 drivers/base/token_devres.c
- create mode 100644 include/linux/token_devres.h
-
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 393f3fd..24545bd 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1064,15 +1064,17 @@ static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
+ 		return -EINVAL;
+ 	}
+ 
++	if ((ctx->jpeg->variant->version != SJPEG_EXYNOS4) ||
++	    (ctx->mode != S5P_JPEG_DECODE))
++		goto exit;
++
+ 	/*
+ 	 * The exynos4x12 device requires resulting YUV image
+ 	 * subsampling not to be lower than the input jpeg subsampling.
+ 	 * If this requirement is not met then downgrade the requested
+ 	 * capture format to the one with subsampling equal to the input jpeg.
+ 	 */
+-	if ((ctx->jpeg->variant->version == SJPEG_EXYNOS4) &&
+-	    (ctx->mode == S5P_JPEG_DECODE) &&
+-	    (fmt->flags & SJPEG_FMT_NON_RGB) &&
++	if ((fmt->flags & SJPEG_FMT_NON_RGB) &&
+ 	    (fmt->subsampling < ctx->subsampling)) {
+ 		ret = s5p_jpeg_adjust_fourcc_to_subsampling(ctx->subsampling,
+ 							    fmt->fourcc,
+@@ -1085,6 +1087,23 @@ static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
+ 							FMT_TYPE_CAPTURE);
+ 	}
+ 
++	/*
++	 * Decompression of a JPEG file with 4:2:0 subsampling and odd
++	 * width to the YUV 4:2:0 compliant formats produces a raw image
++	 * with broken luma component. Adjust capture format to RGB565
++	 * in such a case.
++	 */
++	if (ctx->subsampling == V4L2_JPEG_CHROMA_SUBSAMPLING_420 &&
++	    (ctx->out_q.w & 1) &&
++	    (pix->pixelformat == V4L2_PIX_FMT_NV12 ||
++	     pix->pixelformat == V4L2_PIX_FMT_NV21 ||
++	     pix->pixelformat == V4L2_PIX_FMT_YUV420)) {
++		pix->pixelformat = V4L2_PIX_FMT_RGB565;
++		fmt = s5p_jpeg_find_format(ctx, pix->pixelformat,
++							FMT_TYPE_CAPTURE);
++	}
++
++exit:
+ 	return vidioc_try_fmt(f, fmt, ctx, FMT_TYPE_CAPTURE);
+ }
+ 
 -- 
-1.7.10.4
+1.7.9.5
 
