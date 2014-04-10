@@ -1,73 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:34904 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754786AbaDKHPi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 03:15:38 -0400
-Date: Fri, 11 Apr 2014 09:15:32 +0200
-From: Jean Delvare <jdelvare@suse.de>
-To: Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Luca Risolia <luca.risolia@studio.unibo.it>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Subject: [PATCH] [media] Prefer gspca_sonixb over sn9c102 for all devices
-Message-ID: <20140411091532.2a1bcce2@endymion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:63585 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965065AbaDJOj7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Apr 2014 10:39:59 -0400
+Date: Thu, 10 Apr 2014 11:39:49 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+Cc: shuah.kh@samsung.com, Greg KH <gregkh@linuxfoundation.org>,
+	tj@kernel.org, rafael.j.wysocki@intel.com, linux@roeck-us.net,
+	toshi.kani@hp.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, shuahkhan@gmail.com
+Subject: Re: [RFC PATCH 0/2] managed token devres interfaces
+Message-id: <20140410113949.7de1312b@samsung.com>
+In-reply-to: <20140410124653.64aeb06d@alan.etchedpixels.co.uk>
+References: <cover.1397050852.git.shuah.kh@samsung.com>
+ <20140409191740.GA10748@kroah.com> <5345CD32.8010305@samsung.com>
+ <20140410120435.4c439a8b@alan.etchedpixels.co.uk>
+ <20140410083841.488f9c43@samsung.com>
+ <20140410124653.64aeb06d@alan.etchedpixels.co.uk>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sn9c102 driver is deprecated. It was moved to staging in
-anticipation of its removal in a future kernel version. However, USB
-devices 0C45:6024 and 0C45:6025 are still handled by sn9c102 when
-both sn9c102 and gspca_sonixb are enabled.
+Em Thu, 10 Apr 2014 12:46:53 +0100
+One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk> escreveu:
 
-We must migrate all the users of these devices to the gspca_sonixb
-driver now, so that it gets sufficient testing before the sn9c102
-driver is finally phased out.
+> > For example, some devices provide standard USB Audio Class, handled by
+> > snd-usb-audio for the audio stream, while the video stream is handled
+> > via a separate driver, like some em28xx devices.
+> 
+> Which is what mfd is designed to handle.
+> 
+> > There are even more complex devices that provide 3G modem, storage
+> > and digital TV, whose USB ID changes when either the 3G modem starts
+> > or when the digital TV firmware is loaded.
+> 
+> But presumably you only have one driver at a time then ?
 
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Luca Risolia <luca.risolia@studio.unibo.it>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
-I consider this a bug fix, I believe it should go upstream ASAP.
+In this specific device, before USB ID changes, only storage is
+available, as it contains the manufacturer's Windows driver on it
+(and the device firmware).
 
- drivers/media/usb/gspca/sonixb.c                 |    2 --
- drivers/staging/media/sn9c102/sn9c102_devtable.h |    2 --
- 2 files changed, 4 deletions(-)
+After the USB ID changes and after the 3G chip manufacturer is 
+recognized (if the device is locked to an specific 3G carrier), 
+the USB storage switches to work as a micro SD memory reader
+and the TV and 3G modem functions also become available.
 
---- linux-3.15-rc0.orig/drivers/media/usb/gspca/sonixb.c	2014-04-11 08:57:26.932408285 +0200
-+++ linux-3.15-rc0/drivers/media/usb/gspca/sonixb.c	2014-04-11 09:02:32.151943578 +0200
-@@ -1430,10 +1430,8 @@ static const struct usb_device_id device
- 	{USB_DEVICE(0x0c45, 0x600d), SB(PAS106, 101)},
- 	{USB_DEVICE(0x0c45, 0x6011), SB(OV6650, 101)},
- 	{USB_DEVICE(0x0c45, 0x6019), SB(OV7630, 101)},
--#if !IS_ENABLED(CONFIG_USB_SN9C102)
- 	{USB_DEVICE(0x0c45, 0x6024), SB(TAS5130CXX, 102)},
- 	{USB_DEVICE(0x0c45, 0x6025), SB(TAS5130CXX, 102)},
--#endif
- 	{USB_DEVICE(0x0c45, 0x6027), SB(OV7630, 101)}, /* Genius Eye 310 */
- 	{USB_DEVICE(0x0c45, 0x6028), SB(PAS202, 102)},
- 	{USB_DEVICE(0x0c45, 0x6029), SB(PAS106, 102)},
---- linux-3.15-rc0.orig/drivers/staging/media/sn9c102/sn9c102_devtable.h	2014-04-11 08:57:26.932408285 +0200
-+++ linux-3.15-rc0/drivers/staging/media/sn9c102/sn9c102_devtable.h	2014-04-11 09:02:32.151943578 +0200
-@@ -48,10 +48,8 @@ static const struct usb_device_id sn9c10
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x600d, BRIDGE_SN9C102), },
- /*	{ SN9C102_USB_DEVICE(0x0c45, 0x6011, BRIDGE_SN9C102), }, OV6650 */
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x6019, BRIDGE_SN9C102), },
--#endif
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x6024, BRIDGE_SN9C102), },
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x6025, BRIDGE_SN9C102), },
--#if !defined CONFIG_USB_GSPCA_SONIXB && !defined CONFIG_USB_GSPCA_SONIXB_MODULE
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x6028, BRIDGE_SN9C102), },
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x6029, BRIDGE_SN9C102), },
- 	{ SN9C102_USB_DEVICE(0x0c45, 0x602a, BRIDGE_SN9C102), },
+The Kernel drivers that are used by this device are:
 
+smsdvb                 18471  0 
+dvb_core              114974  1 smsdvb
+option                 42468  0 
+smsusb                 17819  0 
+usb_wwan               19510  1 option
+smsmdtv                52283  2 smsdvb,smsusb
+rc_core                27210  1 smsmdtv
+usb_storage            56690  0 
+
+Those are the logs:
+
+[210431.241488] usb 1-1.3: new high-speed USB device number 7 using ehci-pci
+[210431.340676] usb 1-1.3: New USB device found, idVendor=19d2, idProduct=2000
+[210431.340683] usb 1-1.3: New USB device strings: Mfr=3, Product=2, SerialNumber=4
+[210431.340687] usb 1-1.3: Product: ZTE WCDMA Technologies MSM
+[210431.340691] usb 1-1.3: Manufacturer: ZTE,Incorporated
+[210431.340695] usb 1-1.3: SerialNumber: P675B1ZTED010000
+[210431.344778] usb-storage 1-1.3:1.0: USB Mass Storage device detected
+[210431.344891] scsi10 : usb-storage 1-1.3:1.0
+[210432.701801] usb 1-1.3: USB disconnect, device number 7
+[210438.735217] usb 1-1.3: new high-speed USB device number 8 using ehci-pci
+[210438.834309] usb 1-1.3: New USB device found, idVendor=19d2, idProduct=0086
+[210438.834314] usb 1-1.3: New USB device strings: Mfr=3, Product=2, SerialNumber=4
+[210438.834317] usb 1-1.3: Product: ZTE WCDMA Technologies MSM
+[210438.834319] usb 1-1.3: Manufacturer: ZTE,Incorporated
+[210438.834321] usb 1-1.3: SerialNumber: P675B1ZTED010000
+[210438.839042] option 1-1.3:1.0: GSM modem (1-port) converter detected
+[210438.839369] usb 1-1.3: GSM modem (1-port) converter now attached to ttyUSB1
+[210438.839566] option 1-1.3:1.1: GSM modem (1-port) converter detected
+[210438.839749] usb 1-1.3: GSM modem (1-port) converter now attached to ttyUSB2
+[210438.839880] usb-storage 1-1.3:1.2: USB Mass Storage device detected
+[210438.840116] scsi11 : usb-storage 1-1.3:1.2
+[210438.840407] option 1-1.3:1.3: GSM modem (1-port) converter detected
+[210438.840593] usb 1-1.3: GSM modem (1-port) converter now attached to ttyUSB3
+[210438.840811] option 1-1.3:1.4: GSM modem (1-port) converter detected
+[210438.840961] usb 1-1.3: GSM modem (1-port) converter now attached to ttyUSB4
+[210439.844891] scsi 11:0:0:0: Direct-Access     ZTE      MMC Storage      2.31 PQ: 0 ANSI: 2
+[210439.845516] sd 11:0:0:0: Attached scsi generic sg4 type 0
+[210439.854702] sd 11:0:0:0: [sdd] Attached SCSI removable disk
+[210449.269010] smscore_detect_mode: line: 1274: MSG_SMS_GET_VERSION_EX_REQ failed first try
+[210454.266114] smscore_set_device_mode: line: 1354: mode detect failed -62
+[210454.266121] smsusb_init_device: line: 436: smscore_start_device(...) failed
+[210454.266371] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
+[210454.266618] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
+[210454.266855] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
+[210454.267090] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
+[210454.267341] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
+[210454.267593] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
+[210454.267868] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
+[210454.268106] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
+[210454.268340] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
+[210454.268609] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
+[210454.268625] sms_ir_exit: 
+[210454.274338] smsusb: probe of 1-1.3:1.5 failed with error -62
+[210454.274413] option 1-1.3:1.5: GSM modem (1-port) converter detected
+[210454.274768] usb 1-1.3: GSM modem (1-port) converter now attached to ttyUSB5
+[210454.310745] sd 11:0:0:0: [sdd] 7744512 512-byte logical blocks: (3.96 GB/3.69 GiB)
+[210454.316753] sd 11:0:0:0: [sdd] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+[210454.334348]  sdd: sdd1
+[210455.709432] EXT4-fs (sdd1): mounting ext3 file system using the ext4 subsystem
+
+> > So, we need to find a way to lock some hardware resources among
+> > different subsystems that don't share anything in common. Not sure if
+> > mfd has the same type of problem of a non-mfd driver using another
+> > function of the same device
+> 
+> The MFD device provides subdevices for all the functions. That is the
+> whole underlying concept.
+
+I'll take a look on how it works, and how it locks resources on
+other drivers. What drivers outside drivers/mfd use shared resources
+that require locks controlled by mfd?
 
 -- 
-Jean Delvare
-SUSE L3 Support
+
+Regards,
+Mauro
