@@ -1,88 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52434 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753970AbaDCWiH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 13/25] omap3isp: queue: Inline the ispmmu_v(un)map functions
-Date: Fri,  4 Apr 2014 00:39:43 +0200
-Message-Id: <1396564795-27192-14-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from cantor2.suse.de ([195.135.220.15]:48538 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030242AbaDJMP5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Apr 2014 08:15:57 -0400
+Date: Thu, 10 Apr 2014 14:15:54 +0200
+From: Jan Kara <jack@suse.cz>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jan Kara <jack@suse.cz>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-mm@kvack.org, linux-media@vger.kernel.org,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	'Tomasz Stanislawski' <t.stanislaws@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] Helper to abstract vma handling in media layer
+Message-ID: <20140410121554.GC28404@quack.suse.cz>
+References: <1395085776-8626-1-git-send-email-jack@suse.cz>
+ <53466C4A.2030107@samsung.com>
+ <20140410103220.GB28404@quack.suse.cz>
+ <53467B7E.5060408@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53467B7E.5060408@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ispmmu_vmap() and ispmmu_vunmap() functions are just wrappers around
-omap_iommu_vmap() and omap_iommu_vunmap(). Inline them.
+On Thu 10-04-14 13:07:42, Hans Verkuil wrote:
+> On 04/10/14 12:32, Jan Kara wrote:
+> >   Hello,
+> > 
+> > On Thu 10-04-14 12:02:50, Marek Szyprowski wrote:
+> >> On 2014-03-17 20:49, Jan Kara wrote:
+> >>>   The following patch series is my first stab at abstracting vma handling
+> >> >from the various media drivers. After this patch set drivers have to know
+> >>> much less details about vmas, their types, and locking. My motivation for
+> >>> the series is that I want to change get_user_pages() locking and I want
+> >>> to handle subtle locking details in as few places as possible.
+> >>>
+> >>> The core of the series is the new helper get_vaddr_pfns() which is given a
+> >>> virtual address and it fills in PFNs into provided array. If PFNs correspond to
+> >>> normal pages it also grabs references to these pages. The difference from
+> >>> get_user_pages() is that this function can also deal with pfnmap, mixed, and io
+> >>> mappings which is what the media drivers need.
+> >>>
+> >>> The patches are just compile tested (since I don't have any of the hardware
+> >>> I'm afraid I won't be able to do any more testing anyway) so please handle
+> >>> with care. I'm grateful for any comments.
+> >>
+> >> Thanks for posting this series! I will check if it works with our
+> >> hardware soon.  This is something I wanted to introduce some time ago to
+> >> simplify buffer handling in dma-buf, but I had no time to start working.
+> >   Thanks for having a look in the series.
+> > 
+> >> However I would like to go even further with integration of your pfn
+> >> vector idea.  This structure looks like a best solution for a compact
+> >> representation of the memory buffer, which should be considered by the
+> >> hardware as contiguous (either contiguous in physical memory or mapped
+> >> contiguously into dma address space by the respective iommu). As you
+> >> already noticed it is widely used by graphics and video drivers.
+> >>
+> >> I would also like to add support for pfn vector directly to the
+> >> dma-mapping subsystem. This can be done quite easily (even with a
+> >> fallback for architectures which don't provide method for it). I will try
+> >> to prepare rfc soon.  This will finally remove the need for hacks in
+> >> media/v4l2-core/videobuf2-dma-contig.c
+> >   That would be a worthwhile thing to do. When I was reading the code this
+> > seemed like something which could be done but I delibrately avoided doing
+> > more unification than necessary for my purposes as I don't have any
+> > hardware to test and don't know all the subtleties in the code... BTW, is
+> > there some way to test the drivers without the physical video HW?
+> 
+> You can use the vivi driver (drivers/media/platform/vivi) for this.
+> However, while the vivi driver can import dma buffers it cannot export
+> them. If you want that, then you have to use this tree:
+> 
+> http://git.linuxtv.org/cgit.cgi/hverkuil/media_tree.git/log/?h=vb2-part4
+  Thanks for the pointer that looks good. I've also found
+drivers/media/platform/mem2mem_testdev.c which seems to do even more
+testing of the area I made changes to. So now I have to find some userspace
+tool which can issue proper ioctls to setup and use the buffers and I can
+start testing what I wrote :)
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispqueue.c | 36 ++++--------------------------
- 1 file changed, 4 insertions(+), 32 deletions(-)
-
-diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
-index a7be7d7..088710b 100644
---- a/drivers/media/platform/omap3isp/ispqueue.c
-+++ b/drivers/media/platform/omap3isp/ispqueue.c
-@@ -39,36 +39,6 @@
- #include "ispvideo.h"
- 
- /* -----------------------------------------------------------------------------
-- * IOMMU management
-- */
--
--#define IOMMU_FLAG	(IOVMF_ENDIAN_LITTLE | IOVMF_ELSZ_8)
--
--/*
-- * ispmmu_vmap - Wrapper for virtual memory mapping of a scatter gather table
-- * @dev: Device pointer specific to the OMAP3 ISP.
-- * @sgt: Pointer to source scatter gather table.
-- *
-- * Returns a resulting mapped device address by the ISP MMU, or -ENOMEM if
-- * we ran out of memory.
-- */
--static dma_addr_t
--ispmmu_vmap(struct isp_device *isp, const struct sg_table *sgt)
--{
--	return omap_iommu_vmap(isp->domain, isp->dev, 0, sgt, IOMMU_FLAG);
--}
--
--/*
-- * ispmmu_vunmap - Unmap a device address from the ISP MMU
-- * @dev: Device pointer specific to the OMAP3 ISP.
-- * @da: Device address generated from a ispmmu_vmap call.
-- */
--static void ispmmu_vunmap(struct isp_device *isp, dma_addr_t da)
--{
--	omap_iommu_vunmap(isp->domain, isp->dev, (u32)da);
--}
--
--/* -----------------------------------------------------------------------------
-  * Video buffers management
-  */
- 
-@@ -227,7 +197,8 @@ static void isp_video_buffer_cleanup(struct isp_video_buffer *buf)
- 	unsigned int i;
- 
- 	if (buf->dma) {
--		ispmmu_vunmap(video->isp, buf->dma);
-+		omap_iommu_vunmap(video->isp->domain, video->isp->dev,
-+				  buf->dma);
- 		buf->dma = 0;
- 	}
- 
-@@ -521,7 +492,8 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
- 		}
- 	}
- 
--	addr = ispmmu_vmap(video->isp, &buf->sgt);
-+	addr = omap_iommu_vmap(video->isp->domain, video->isp->dev, 0,
-+			       &buf->sgt, IOVMF_ENDIAN_LITTLE | IOVMF_ELSZ_8);
- 	if (IS_ERR_VALUE(addr)) {
- 		ret = -EIO;
- 		goto done;
+								Honza
 -- 
-1.8.3.2
-
+Jan Kara <jack@suse.cz>
+SUSE Labs, CR
