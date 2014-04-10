@@ -1,112 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f182.google.com ([209.85.220.182]:41525 "EHLO
-	mail-vc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751095AbaDAOsb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Apr 2014 10:48:31 -0400
-Received: by mail-vc0-f182.google.com with SMTP id ks9so10111173vcb.27
-        for <linux-media@vger.kernel.org>; Tue, 01 Apr 2014 07:48:30 -0700 (PDT)
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4606 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750849AbaDJGlE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Apr 2014 02:41:04 -0400
+Message-ID: <53463CC9.2080502@xs4all.nl>
+Date: Thu, 10 Apr 2014 08:40:09 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <533AD055.2040700@xs4all.nl>
-References: <1396359906-6311-1-git-send-email-prabhakar.csengg@gmail.com>
- <533AC435.8040604@cisco.com> <CA+V-a8vcXgMW8EURZn25rfOrmyRMb4MNVbb5FuGn2J-pumSXGg@mail.gmail.com>
- <533ACC78.8000102@cisco.com> <533AD055.2040700@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 1 Apr 2014 20:18:00 +0530
-Message-ID: <CA+V-a8sdVe0bE9K5dHe3241dSX8GOb1=WK7WycNwhEzb3euq2g@mail.gmail.com>
-Subject: Re: [PATCH] v4l2-compliance: fix function pointer prototype
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Hans Verkuil <hansverk@cisco.com>,
-	LMML <linux-media@vger.kernel.org>,
+To: Pawel Osciak <pawel@osciak.com>
+CC: LMML <linux-media@vger.kernel.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=UTF-8
+Subject: Re: [REVIEWv2 PATCH 02/13] vb2: fix handling of data_offset and v4l2_plane.reserved[]
+References: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl> <1396876272-18222-3-git-send-email-hverkuil@xs4all.nl> <CAMm-=zC=k_Cx-tmd_iPsiFmv1YXpYXKwfaR12mU9UeYHGddfLg@mail.gmail.com>
+In-Reply-To: <CAMm-=zC=k_Cx-tmd_iPsiFmv1YXpYXKwfaR12mU9UeYHGddfLg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 04/10/2014 02:46 AM, Pawel Osciak wrote:
+> Looks good to me, just a small nit below.
+> 
+> 
+> On Mon, Apr 7, 2014 at 10:11 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> The videobuf2-core did not zero the 'planes' array in __qbuf_userptr()
+>> and __qbuf_dmabuf(). That's now memset to 0. Without this the reserved
+>> array in struct v4l2_plane would be non-zero, causing v4l2-compliance
+>> errors.
+>>
+>> More serious is the fact that data_offset was not handled correctly:
+>>
+>> - for capture devices it was never zeroed, which meant that it was
+>>   uninitialized. Unless the driver sets it it was a completely random
+>>   number. With the memset above this is now fixed.
+>>
+>> - __qbuf_dmabuf had a completely incorrect length check that included
+>>   data_offset.
+>>
+>> - in __fill_vb2_buffer in the DMABUF case the data_offset field was
+>>   unconditionally copied from v4l2_buffer to v4l2_plane when this
+>>   should only happen in the output case.
+>>
+>> - in the single-planar case data_offset was never correctly set to 0.
+>>   The single-planar API doesn't support data_offset, so setting it
+>>   to 0 is the right thing to do. This too is now solved by the memset.
+>>
+>> All these issues were found with v4l2-compliance.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Acked-by: Pawel Osciak <pawel@osciak.com>
+> 
+>> ---
+>>  drivers/media/v4l2-core/videobuf2-core.c | 13 ++++---------
+>>  1 file changed, 4 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>> index f9059bb..596998e 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -1169,8 +1169,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>>                                         b->m.planes[plane].m.fd;
+>>                                 v4l2_planes[plane].length =
+>>                                         b->m.planes[plane].length;
+>> -                               v4l2_planes[plane].data_offset =
+>> -                                       b->m.planes[plane].data_offset;
+>>                         }
+>>                 }
+>>         } else {
+>> @@ -1180,10 +1178,8 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>>                  * In videobuf we use our internal V4l2_planes struct for
+>>                  * single-planar buffers as well, for simplicity.
+>>                  */
+>> -               if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+>> +               if (V4L2_TYPE_IS_OUTPUT(b->type))
+>>                         v4l2_planes[0].bytesused = b->bytesused;
+>> -                       v4l2_planes[0].data_offset = 0;
+>> -               }
+>>
+>>                 if (b->memory == V4L2_MEMORY_USERPTR) {
+>>                         v4l2_planes[0].m.userptr = b->m.userptr;
+>> @@ -1193,9 +1189,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>>                 if (b->memory == V4L2_MEMORY_DMABUF) {
+>>                         v4l2_planes[0].m.fd = b->m.fd;
+>>                         v4l2_planes[0].length = b->length;
+>> -                       v4l2_planes[0].data_offset = 0;
+>>                 }
+>> -
+>>         }
+>>
+>>         /* Zero flags that the vb2 core handles */
+>> @@ -1238,6 +1232,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+>>         int write = !V4L2_TYPE_IS_OUTPUT(q->type);
+>>         bool reacquired = vb->planes[0].mem_priv == NULL;
+>>
+>> +       memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+> 
+> memset(planes, 0, sizeof(planes));
 
-On Tue, Apr 1, 2014 at 8:12 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 04/01/14 16:26, Hans Verkuil wrote:
->>
->>
->> On 04/01/14 16:06, Prabhakar Lad wrote:
->>> Hi Hans,
->>>
->>> On Tue, Apr 1, 2014 at 7:20 PM, Hans Verkuil <hansverk@cisco.com> wrote:
->>>> Hi Prabhakar,
->>>>
->>>> On 04/01/14 15:45, Lad, Prabhakar wrote:
->>>>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
->>>>>
->>>>> There was a conflict between the mmap function pointer prototype of
->>>>> struct v4l_fd and the actual function used. Make sure it is in sync
->>>>> with the prototype of v4l2_mmap.
->>>>
->>>> The prototype of v4l2_mmap uses int64_t, so I don't understand this
->>>> patch.
->>>>
->>> Actual prototype of mmap is,
->>>
->>>   void *mmap(void *addr, size_t length, int prot, int flags, int fd,
->>> off_t offset);
->>>
->>> But where as the prototype in v4l_fd mmap the last parameter type is int64_t
->>> but that should have been off_t and same applies with test_mmap().
->>
->> The problem is that v4l2_mmap (in lib/include/libv4l2.h) uses int64_t.
->> So the function pointer uses int64_t as well as does test_mmap.
->>
->> I don't see how the current v4l-utils tree can cause a compile error.
->>
->> For the record, I know you can't assign mmap to fd->mmap, you would
->> have to make a wrapper. Unfortunately mmap and v4l2_mmap do not have
->> the same prototype and I had to pick one (I'm not sure why they don't
->> use the same prototype).
->>
->> Most applications would typically have to use v4l2_mmap, so I went with
->> that one.
->>
->
-> I missed that mmap is assigned to v4l_fd_init(). Since mmap and v4l2_mmap
-> have different prototypes the only solution is to make a wrapper.
->
-> Does this work?
->
-Yes it compiles now with the below patch.
+Should we really do this? This array is for 8 planes, whereas today we do not
+have more than 2 planes worst case. So zeroing all planes for every qbuf seems
+excessive to me.
 
-Thanks,
---Prabhakar Lad
+I fact, looking at the code only the actual planes are copied back anyway:
 
-> diff --git a/utils/v4l2-compliance/v4l-helpers.h b/utils/v4l2-compliance/v4l-helpers.h
-> index 48ea602..e718a24 100644
-> --- a/utils/v4l2-compliance/v4l-helpers.h
-> +++ b/utils/v4l2-compliance/v4l-helpers.h
-> @@ -14,11 +14,21 @@ struct v4l_fd {
->         int (*munmap)(void *addr, size_t length);
->  };
->
-> +/*
-> + * mmap has a different prototype compared to v4l2_mmap. Because of
-> + * this we have to make a wrapper for it.
-> + */
-> +static inline void *v4l_fd_mmap(void *addr, size_t length, int prot, int flags,
-> +                                     int fd, int64_t offset)
-> +{
-> +       return mmap(addr, length, prot, flags, fd, offset);
-> +}
-> +
->  static inline void v4l_fd_init(struct v4l_fd *f, int fd)
->  {
->         f->fd = fd;
->         f->ioctl = ioctl;
-> -       f->mmap = mmap;
-> +       f->mmap = v4l_fd_mmap;
->         f->munmap = munmap;
->  }
->
->
-> On a 64-bit system the types are the same, it's only on a 32-bit system that
-> this will fail.
->
-> Regards,
->
->         Hans
+        /*
+         * Now that everything is in order, copy relevant information
+         * provided by userspace.
+         */
+        for (plane = 0; plane < vb->num_planes; ++plane)
+                vb->v4l2_planes[plane] = planes[plane];
+
+so memsetting more than the actual number of planes is pointless.
+
+Unless I am missing something?
+
+Regards,
+
+	Hans
+
+> 
+>>         /* Copy relevant information provided by the userspace */
+>>         __fill_vb2_buffer(vb, b, planes);
+>>
+>> @@ -1357,6 +1352,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+>>         int write = !V4L2_TYPE_IS_OUTPUT(q->type);
+>>         bool reacquired = vb->planes[0].mem_priv == NULL;
+>>
+>> +       memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+> 
+> memset(planes, 0, sizeof(planes));
+> 
+>>         /* Copy relevant information provided by the userspace */
+>>         __fill_vb2_buffer(vb, b, planes);
+>>
+>> @@ -1374,8 +1370,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+>>                 if (planes[plane].length == 0)
+>>                         planes[plane].length = dbuf->size;
+>>
+>> -               if (planes[plane].length < planes[plane].data_offset +
+>> -                   q->plane_sizes[plane]) {
+>> +               if (planes[plane].length < q->plane_sizes[plane]) {
+>>                         dprintk(1, "qbuf: invalid dmabuf length for plane %d\n",
+>>                                 plane);
+>>                         ret = -EINVAL;
+>> --
+>> 1.9.1
+>>
+> 
+> 
+> 
+
