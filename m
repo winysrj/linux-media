@@ -1,68 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44256 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753800AbaDJWad (ORCPT
+Received: from mail-ee0-f52.google.com ([74.125.83.52]:54213 "EHLO
+	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934689AbaDJHqS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 18:30:33 -0400
-Message-ID: <53471B87.20000@iki.fi>
-Date: Fri, 11 Apr 2014 01:30:31 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Thu, 10 Apr 2014 03:46:18 -0400
+Received: by mail-ee0-f52.google.com with SMTP id e49so2645290eek.39
+        for <linux-media@vger.kernel.org>; Thu, 10 Apr 2014 00:46:17 -0700 (PDT)
+Date: Thu, 10 Apr 2014 09:46:15 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	Jiri Kosina <trivial@kernel.org>, linux-doc@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] dma-buf: update exp_name when using dma_buf_export()
+Message-ID: <20140410074615.GM9262@phenom.ffwll.local>
+References: <1397086206-5898-1-git-send-email-javier.martinez@collabora.co.uk>
+ <1397086206-5898-2-git-send-email-javier.martinez@collabora.co.uk>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [yavta PATCH 5/9] Allow passing file descriptors to yavta
-References: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi> <349099482.s11F5mBja6@avalon> <5346E797.5070503@iki.fi> <2768738.vMSoLa2vmM@avalon>
-In-Reply-To: <2768738.vMSoLa2vmM@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1397086206-5898-2-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Thu, Apr 10, 2014 at 01:30:06AM +0200, Javier Martinez Canillas wrote:
+> commit c0b00a5 ("dma-buf: update debugfs output") modified the
+> default exporter name to be the KBUILD_MODNAME pre-processor
+> macro instead of __FILE__ but the documentation was not updated.
+> 
+> Also the "Supporting existing mmap interfaces in exporters" section
+> title seems wrong since talks about the interface used by importers.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-Laurent Pinchart wrote:
-> Just thinking out loud, we need to
->
-> - initialize the device structure,
-> - open the device or use an externally provided fd,
-> - optionally query the device capabilities,
-> - optionally override the queue type.
->
-> Initializing the device structure must be performed unconditionally, I would
-> create a video_init() function for that.
-
-This is now performed in the beginning of main(). video_open() no longer 
-initialises anything.
-
-> Opening the device or using an externally provided fd are exclusive
-> operations, I would create two functions (that wouldn't do much).
-
-Currently this is a few lines in main().
-
-> Querying the device capabilities is also optional, I would create one function
-> for that.
-
-Patch 4/9.
-
-> Finally, overriding the queue type is of course optional and should be
-> implemented in its own function. We should probably return an error if the
-> user tries to set a queue type not reported by QUERYCAP (assuming QUERYCAP has
-> been called).
-
-The same check already done in the driver, and an error is returned if 
-it's wrong. I'm leaning towards thinking this isn't necessary in yavta.
-
-> Ideally I'd also like to make the --no-query argument non-mandatory when
-> operating on subdev nodes. It has been introduced because QUERYCAP isn't
-> supported by subdev nodes, and it would be nice if we could detect somehow
-> that the device node corresponds to a subdev and automatically skip QUERYCAP
-> in that case.
-
-It's already non-mandatory. We don't try to rocognise sub-device nodes, 
-but failing querycap is a non-error already without this patchset.
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> ---
+>  Documentation/dma-buf-sharing.txt | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+> index 505e711..7d61cef 100644
+> --- a/Documentation/dma-buf-sharing.txt
+> +++ b/Documentation/dma-buf-sharing.txt
+> @@ -66,7 +66,7 @@ The dma_buf buffer sharing API usage contains the following steps:
+>  
+>     Exporting modules which do not wish to provide any specific name may use the
+>     helper define 'dma_buf_export()', with the same arguments as above, but
+> -   without the last argument; a __FILE__ pre-processor directive will be
+> +   without the last argument; a KBUILD_MODNAME pre-processor directive will be
+>     inserted in place of 'exp_name' instead.
+>  
+>  2. Userspace gets a handle to pass around to potential buffer-users
+> @@ -352,7 +352,7 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
+>  
+>     No special interfaces, userspace simply calls mmap on the dma-buf fd.
+>  
+> -2. Supporting existing mmap interfaces in exporters
+> +2. Supporting existing mmap interfaces in importers
+>  
+>     Similar to the motivation for kernel cpu access it is again important that
+>     the userspace code of a given importing subsystem can use the same interfaces
+> -- 
+> 1.9.0
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
 
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@iki.fi
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
