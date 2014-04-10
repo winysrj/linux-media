@@ -1,49 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28453 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757956AbaDBIlC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Apr 2014 04:41:02 -0400
-Message-ID: <533BCD1A.1010307@redhat.com>
-Date: Wed, 02 Apr 2014 10:40:58 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-yk0-f170.google.com ([209.85.160.170]:53206 "EHLO
+	mail-yk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934661AbaDJO5A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Apr 2014 10:57:00 -0400
+Received: by mail-yk0-f170.google.com with SMTP id 9so3658391ykp.29
+        for <linux-media@vger.kernel.org>; Thu, 10 Apr 2014 07:56:59 -0700 (PDT)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Robert Butora <robert.butora.fi@gmail.com>
-Subject: [GIT PULL new driver for 3.15] media/usb/gspca: Add support for Scopium
- astro webcam (0547:7303)
+In-Reply-To: <534675E1.6050408@sca-uk.com>
+References: <534675E1.6050408@sca-uk.com>
+Date: Thu, 10 Apr 2014 10:49:51 -0400
+Message-ID: <CALzAhNVxFYm4J-ZUwFB5AeR0N__+BRHiCEGgyxcKgEPqfKNJ=g@mail.gmail.com>
+Subject: Re: Hauppauge ImpactVCB-e 01385
+From: Steven Toth <stoth@kernellabs.com>
+To: Steve Cookson - IT <it@sca-uk.com>
+Cc: Linux-Media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+> When I plug in my 01385 I get the same old stuff in dmseg, ie:
+>
+> cx23885 driver version 0.0.3 loaded
+> [ 8.921390] cx23885[0]: Your board isn't known (yet) to the driver.
+> [ 8.921390] cx23885[0]: Try to pick one of the existing card configs via
+> [ 8.921390] cx23885[0]: card=<n> insmod option. Updating to the latest
+> [ 8.921390] cx23885[0]: version might help as well.
+> [ 8.921393] cx23885[0]: Here is a list of valid choices for the card=<n>
+> insmod option:
+>
+> Etc.
+>
+> Does anyone have any idea of the issue here?
 
-Please pull from my gspca git tree for a new gspca based webcam driver,
-since this is a new driver which does not touch anything else, I would
-like to see this go into 3.15 .
+Sure. The issue is nobody cares enough to update the driver to support
+your card and make it work out of the box.
 
-The following changes since commit a83b93a7480441a47856dc9104bea970e84cda87:
+- Steve
 
-  [media] em28xx-dvb: fix PCTV 461e tuner I2C binding (2014-03-31 08:02:16 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hgoede/gspca.git media-for_v3.15
-
-for you to fetch changes up to 8ad536cb48ac13174acef9550095539931692d69:
-
-  media/usb/gspca: Add support for Scopium astro webcam (0547:7303) (2014-04-02 10:20:48 +0200)
-
-----------------------------------------------------------------
-Robert Butora (1):
-      media/usb/gspca: Add support for Scopium astro webcam (0547:7303)
-
- drivers/media/usb/gspca/Kconfig   |  10 +
- drivers/media/usb/gspca/Makefile  |   2 +
- drivers/media/usb/gspca/dtcs033.c | 434 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 446 insertions(+)
- create mode 100644 drivers/media/usb/gspca/dtcs033.c
-
-Thanks & Regards,
-
-Hans
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
