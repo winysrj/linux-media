@@ -1,104 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:35006 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965168AbaDJHch (ORCPT
+Received: from smtp-outbound-1.vmware.com ([208.91.2.12]:36335 "EHLO
+	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030226AbaDJLIH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 03:32:37 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N3T00I0U0YCAMA0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Apr 2014 16:32:37 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH v2 6/8] s5p-jpeg: Fix sysmmu page fault
-Date: Thu, 10 Apr 2014 09:32:16 +0200
-Message-id: <1397115138-1095-6-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1397115138-1095-1-git-send-email-j.anaszewski@samsung.com>
-References: <1397115138-1095-1-git-send-email-j.anaszewski@samsung.com>
+	Thu, 10 Apr 2014 07:08:07 -0400
+Message-ID: <53467B93.3000402@vmware.com>
+Date: Thu, 10 Apr 2014 13:08:03 +0200
+From: Thomas Hellstrom <thellstrom@vmware.com>
+MIME-Version: 1.0
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+CC: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	ccross@google.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] [RFC] reservation: add suppport for read-only access
+ using rcu
+References: <20140409144239.26648.57918.stgit@patser> <20140409144831.26648.79163.stgit@patser> <53465A53.1090500@vmware.com> <53466D63.8080808@canonical.com>
+In-Reply-To: <53466D63.8080808@canonical.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes jpeg sysmmu page fault on Exynos4x12 SoCs.
-During encoding Exynos4x12 SoCs access wider memory area
-than it results from Image_x and Image_y values written to
-the JPEG_IMAGE_SIZE register. In order to avoid sysmmu page
-fault apply proper output buffer size alignment.
+On 04/10/2014 12:07 PM, Maarten Lankhorst wrote:
+> Hey,
+>
+> op 10-04-14 10:46, Thomas Hellstrom schreef:
+>> Hi!
+>>
+>> Ugh. This became more complicated than I thought, but I'm OK with moving
+>> TTM over to fence while we sort out
+>> how / if we're going to use this.
+>>
+>> While reviewing, it struck me that this is kind of error-prone, and hard
+>> to follow since we're operating on a structure that may be
+>> continually updated under us, needing a lot of RCU-specific macros and
+>> barriers.
+> Yeah, but with the exception of dma_buf_poll I don't think there is
+> anything else
+> outside drivers/base/reservation.c has to deal with rcu.
+>
+>> Also the rcu wait appears to not complete until there are no busy fences
+>> left (new ones can be added while we wait) rather than
+>> waiting on a snapshot of busy fences.
+> This has been by design, because 'wait for bo idle' type of functions
+> only care
+> if the bo is completely idle or not.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   46 +++++++++++++++++++++++++--
- 1 file changed, 43 insertions(+), 3 deletions(-)
+No, not when using RCU, because the bo may be busy again before the
+function returns :)
+Complete idleness can only be guaranteed if holding the reservation, or
+otherwise making sure
+that no new rendering is submitted to the buffer, so it's an overkill to
+wait for complete idleness here.
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 541f03e..393f3fd 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1106,6 +1106,32 @@ static int s5p_jpeg_try_fmt_vid_out(struct file *file, void *priv,
- 	return vidioc_try_fmt(f, fmt, ctx, FMT_TYPE_OUTPUT);
- }
- 
-+static int exynos4_jpeg_get_output_buffer_size(struct s5p_jpeg_ctx *ctx,
-+						struct v4l2_format *f,
-+						int fmt_depth)
-+{
-+	struct v4l2_pix_format *pix = &f->fmt.pix;
-+	u32 pix_fmt = f->fmt.pix.pixelformat;
-+	int w = pix->width, h = pix->height, wh_align;
-+
-+	if (pix_fmt == V4L2_PIX_FMT_RGB32 ||
-+	    pix_fmt == V4L2_PIX_FMT_NV24 ||
-+	    pix_fmt == V4L2_PIX_FMT_NV42 ||
-+	    pix_fmt == V4L2_PIX_FMT_NV12 ||
-+	    pix_fmt == V4L2_PIX_FMT_NV21 ||
-+	    pix_fmt == V4L2_PIX_FMT_YUV420)
-+		wh_align = 4;
-+	else
-+		wh_align = 1;
-+
-+	jpeg_bound_align_image(&w, S5P_JPEG_MIN_WIDTH,
-+			       S5P_JPEG_MAX_WIDTH, wh_align,
-+			       &h, S5P_JPEG_MIN_HEIGHT,
-+			       S5P_JPEG_MAX_HEIGHT, wh_align);
-+
-+	return w * h * fmt_depth >> 3;
-+}
-+
- static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
- {
- 	struct vb2_queue *vq;
-@@ -1132,10 +1158,24 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
- 	q_data->fmt = s5p_jpeg_find_format(ct, pix->pixelformat, f_type);
- 	q_data->w = pix->width;
- 	q_data->h = pix->height;
--	if (q_data->fmt->fourcc != V4L2_PIX_FMT_JPEG)
--		q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
--	else
-+	if (q_data->fmt->fourcc != V4L2_PIX_FMT_JPEG) {
-+		/*
-+		 * During encoding Exynos4x12 SoCs access wider memory area
-+		 * than it results from Image_x and Image_y values written to
-+		 * the JPEG_IMAGE_SIZE register. In order to avoid sysmmu
-+		 * page fault calculate proper buffer size in such a case.
-+		 */
-+		if (ct->jpeg->variant->version == SJPEG_EXYNOS4 &&
-+		    f_type == FMT_TYPE_OUTPUT && ct->mode == S5P_JPEG_ENCODE)
-+			q_data->size = exynos4_jpeg_get_output_buffer_size(ct,
-+							f,
-+							q_data->fmt->depth);
-+		else
-+			q_data->size = q_data->w * q_data->h *
-+						q_data->fmt->depth >> 3;
-+	} else {
- 		q_data->size = pix->sizeimage;
-+	}
- 
- 	if (f_type == FMT_TYPE_OUTPUT) {
- 		ctrl_subs = v4l2_ctrl_find(&ct->ctrl_handler,
--- 
-1.7.9.5
+>
+> It would be easy to make a snapshot even without seqlocks, just copy
+> reservation_object_test_signaled_rcu to return a shared list if
+> test_all is set, or return pointer to exclusive otherwise.
+>
+>> I wonder if these issues can be addressed by having a function that
+>> provides a snapshot of all busy fences: This can be accomplished
+>> either by including the exclusive fence in the fence_list structure and
+>> allocate a new such structure each time it is updated. The RCU reader
+>> could then just make a copy of the current fence_list structure pointed
+>> to by &obj->fence, but I'm not sure we want to reallocate *each* time we
+>> update the fence pointer.
+> No, the most common operation is updating fence pointers, which is why
+> the current design makes that cheap. It's also why doing rcu reads is
+> more expensive.
+>> The other approach uses a seqlock to obtain a consistent snapshot, and
+>> I've attached an incomplete outline, and I'm not 100% whether it's OK to
+>> combine RCU and seqlocks in this way...
+>>
+>> Both these approaches have the benefit of hiding the RCU snapshotting in
+>> a single function, that can then be used by any waiting
+>> or polling function.
+>>
+>
+> I think the middle way with using seqlocks to protect the fence_excl
+> pointer and shared list combination,
+> and using RCU to protect the refcounts for fences and the availability
+> of the list could work for our usecase
+> and might remove a bunch of memory barriers. But yeah that depends on
+> layering rcu and seqlocks.
+> No idea if that is allowed. But I suppose it is.
+>
+> Also, you're being overly paranoid with seqlock reading, we would only
+> need something like this:
+>
+> rcu_read_lock()
+>     preempt_disable()
+>     seq = read_seqcount_begin()
+>     read fence_excl, shared_count = ACCESS_ONCE(fence->shared_count)
+>     copy shared to a struct.
+>     if (read_seqcount_retry()) { unlock and retry }
+>   preempt_enable();
+>   use fence_get_rcu() to bump refcount on everything, if that fails
+> unlock, put, and retry
+> rcu_read_unlock()
+>
+> But the shared list would still need to be RCU'd, to make sure we're
+> not reading freed garbage.
 
+Ah. OK,
+But I think we should use rcu inside seqcount, because
+read_seqcount_begin() may spin for a long time if there are
+many writers. Also I don't think the preempt_disable() is needed for
+read_seq critical sections other than they might
+decrease the risc of retries..
+
+Thanks,
+Thomas
+
+
+>
+> ~Maarten
