@@ -1,46 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:63297 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935573AbaDJL6G (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43273 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S934295AbaDJS6n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 07:58:06 -0400
-Received: by mail-la0-f48.google.com with SMTP id gf5so2183846lab.21
-        for <linux-media@vger.kernel.org>; Thu, 10 Apr 2014 04:58:03 -0700 (PDT)
+	Thu, 10 Apr 2014 14:58:43 -0400
+Message-ID: <5346E9E1.2080702@iki.fi>
+Date: Thu, 10 Apr 2014 21:58:41 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <20140410094850.GF26890@mwanda>
-References: <20140410090234.GA8654@witts-MacBook-Pro.local> <20140410094850.GF26890@mwanda>
-From: Vitaly Osipov <vitaly.osipov@gmail.com>
-Date: Thu, 10 Apr 2014 21:57:23 +1000
-Message-ID: <CAH42NiVQ8ng3DSZ63uUb=-yq+icO7oV=h2Ry3mpm8m2kGLPgjA@mail.gmail.com>
-Subject: Re: [PATCH 2/2] staging: media: omap24xx: fix up a checkpatch.pl warning
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [yavta PATCH 7/9] Print timestamp type and source for dequeued
+ buffers
+References: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi> <1393690690-5004-8-git-send-email-sakari.ailus@iki.fi> <5116965.JxiWPkm0Gp@avalon>
+In-Reply-To: <5116965.JxiWPkm0Gp@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks, that's helpful - I for some reason thought that multi-part
-patch had to have more or less uniform subject. We the checkpatch.pl
-people come from http://www.eudyptula-challenge.org/, where at some
-stage we are told to submit a patch for a single style issue in the
-staging tree. All newbies... Hoping to be back with more substantial
-contributions soon.
-Regards,
-Vitaly
+Hi Laurent,
 
+Laurent Pinchart wrote:
+> Hi Sakari,
+>
+> Thank you for the patch.
+>
+> Given that the timestamp type and source are not supposed to change during
+> streaming, do we really need to print them for every frame ?
 
-On Thu, Apr 10, 2014 at 7:48 PM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> The two subjects are really close to being the same.  You should choose
-> better subjects.  Like:
->
-> [PATCH 2/2] staging: media: omap24xx: use pr_info() instead of KERN_INFO
->
->
-> (All the checkpatch.pl people use the exact same subject for everything
-> though, so you're not alone in this).
->
-> regards,
-> dan carpenter
->
+When processing frames from memory to memory (COPY timestamp type), the 
+it is entirely possible that the timestamp source changes as the flags 
+are copied from the OUTPUT buffer to the CAPTURE buffer.
+
+These patches do not support it but it is allowed.
+
+One option would be to print the source on every frame only when the 
+type is COPY. For a program like yavta this might be overly 
+sophisticated IMO. :-)
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@iki.fi
