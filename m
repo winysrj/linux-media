@@ -1,76 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48783 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759193AbaD3Q0w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Apr 2014 12:26:52 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Liu Ying <Ying.Liu@freescale.com>
-Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	a.hajda@samsung.com, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	hans.verkuil@cisco.com
-Subject: Re: [PATCH] [media] v4l2-device: fix potential NULL pointer dereference for subdev unregister path
-Date: Wed, 30 Apr 2014 18:27:07 +0200
-Message-ID: <1820972.unmABxgn1R@avalon>
-In-Reply-To: <1398831921-5652-1-git-send-email-Ying.Liu@freescale.com>
-References: <1398831921-5652-1-git-send-email-Ying.Liu@freescale.com>
+Received: from mail-yh0-f42.google.com ([209.85.213.42]:33462 "EHLO
+	mail-yh0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932996AbaDJBS5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 21:18:57 -0400
+Received: by mail-yh0-f42.google.com with SMTP id t59so3242719yho.29
+        for <linux-media@vger.kernel.org>; Wed, 09 Apr 2014 18:18:57 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAMm-=zADVfFPJSuHifGadOeYxbxM-8P0cf2nsRFbM_5U_6yxtQ@mail.gmail.com>
+References: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl>
+ <1396876272-18222-11-git-send-email-hverkuil@xs4all.nl> <CAMm-=zADVfFPJSuHifGadOeYxbxM-8P0cf2nsRFbM_5U_6yxtQ@mail.gmail.com>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Thu, 10 Apr 2014 10:10:37 +0900
+Message-ID: <CAMm-=zAraDm38quOPBX9EFhwk65ogXkthd8S_E1B46+8DX3Rmw@mail.gmail.com>
+Subject: Re: [REVIEWv2 PATCH 10/13] vb2: set v4l2_buffer.bytesused to 0 for mp buffers
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Liu,
+Ah, alas, Sakari is right. This should not be needed, since we memcpy
+vb->v4l2_buf to this, also overwriting bytesused.
 
-Thank you for the patch.
+On Thu, Apr 10, 2014 at 10:08 AM, Pawel Osciak <pawel@osciak.com> wrote:
+> On Mon, Apr 7, 2014 at 10:11 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> The bytesused field of struct v4l2_buffer is not used for multiplanar
+>> formats, so just zero it to prevent it from having some random value.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Acked-by: Pawel Osciak <pawel@osciak.com>
+>
+>> ---
+>>  drivers/media/v4l2-core/videobuf2-core.c | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>> index 08152dd..ef7ef82 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -582,6 +582,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+>>                  * for it. The caller has already verified memory and size.
+>>                  */
+>>                 b->length = vb->num_planes;
+>> +               b->bytesused = 0;
+>>                 memcpy(b->m.planes, vb->v4l2_planes,
+>>                         b->length * sizeof(struct v4l2_plane));
+>>         } else {
+>> --
+>> 1.9.1
+>>
+>
+>
+>
+> --
+> Best regards,
+> Pawel Osciak
 
-On Wednesday 30 April 2014 12:25:21 Liu Ying wrote:
-> The pointer 'sd->v4l2_dev' is likely to be NULL and dereferenced in the
-> subdev unregister path.  The issue should happen if CONFIG_MEDIA_CONTROLLER
-> is defined.
-> 
-> This patch fixes the issue by setting the pointer to be NULL after it will
-> not be derefereneced any more in the path.
 
-I'm not sure to understand the problem. Where do you see sd->v4l2_dev being 
-(potentially) dereferenced after being set to NULL ?
-
-> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Cc: Andrzej Hajda <a.hajda@samsung.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Liu Ying <Ying.Liu@freescale.com>
-> ---
->  drivers/media/v4l2-core/v4l2-device.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-device.c
-> b/drivers/media/v4l2-core/v4l2-device.c index 02d1b63..d98d96f 100644
-> --- a/drivers/media/v4l2-core/v4l2-device.c
-> +++ b/drivers/media/v4l2-core/v4l2-device.c
-> @@ -271,7 +271,6 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev
-> *sd)
-> 
->  	if (sd->internal_ops && sd->internal_ops->unregistered)
->  		sd->internal_ops->unregistered(sd);
-> -	sd->v4l2_dev = NULL;
-> 
->  #if defined(CONFIG_MEDIA_CONTROLLER)
->  	if (v4l2_dev->mdev) {
-> @@ -279,6 +278,7 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev
-> *sd) media_device_unregister_entity(&sd->entity);
->  	}
->  #endif
-> +	v4l2_dev = NULL;
->  	video_unregister_device(sd->devnode);
->  	module_put(sd->owner);
->  }
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Best regards,
+Pawel Osciak
