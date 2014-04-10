@@ -1,27 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54801 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932781AbaDINAI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Apr 2014 09:00:08 -0400
-Message-ID: <53454456.4060406@iki.fi>
-Date: Wed, 09 Apr 2014 16:00:06 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mailex.mailcore.me ([94.136.40.62]:44248 "EHLO
+	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030265AbaDJP1U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Apr 2014 11:27:20 -0400
+Date: Thu, 10 Apr 2014 16:27:07 +0100
+Subject: Re: Hauppauge ImpactVCB-e 01385
+Message-ID: <60d04q0ol9hd473vts6ctvix.1397143627582@email.android.com>
+From: Steve Cookson <it@sca-uk.com>
+To: Steven Toth <stoth@kernellabs.com>
+Cc: Linux-Media <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>,
-	Johannes Stezenbach <js@linuxtv.org>
-Subject: Linuxtv.org www is down
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
+PlRoZSBpc3N1ZSBpcyBub2JvZHkgY2FyZXMgZW5vdWdoIHRvIAo+dXBkYXRlIHRoZSBkcml2ZXIg
+dG8gc3VwcG9ydAo+eW91ciBjYXJkIGFuZCBtYWtlIGl0IHdvcmsgb3V0IG9mIHRoZSBib3guCgpI
+aSBTdGV2ZSwKClRoYW5rcyBmb3IgeW91ciByZXNwb25zZS4KCldlbGwgbm90IG5vYm9keSBiZWNh
+dXNlIEkgZG8uICBIb3cgZG8gSSBkbyBpdD8gSWYgeW91IHdvdWxkIGd1aWRlIG1lIHRocm91Z2gs
+IEkgd2lsbCBoYXBwaWx5IHVwZGF0ZSBpdC4KClJlZ2FyZHMKClN0ZXZlLgoKU3RldmVuIFRvdGgg
+PHN0b3RoQGtlcm5lbGxhYnMuY29tPiB3cm90ZToKCj4+IFdoZW4gSSBwbHVnIGluIG15IDAxMzg1
+IEkgZ2V0IHRoZSBzYW1lIG9sZCBzdHVmZiBpbiBkbXNlZywgaWU6Cj4+Cj4+IGN4MjM4ODUgZHJp
+dmVyIHZlcnNpb24gMC4wLjMgbG9hZGVkCj4+IFsgOC45MjEzOTBdIGN4MjM4ODVbMF06IFlvdXIg
+Ym9hcmQgaXNuJ3Qga25vd24gKHlldCkgdG8gdGhlIGRyaXZlci4KPj4gWyA4LjkyMTM5MF0gY3gy
+Mzg4NVswXTogVHJ5IHRvIHBpY2sgb25lIG9mIHRoZSBleGlzdGluZyBjYXJkIGNvbmZpZ3Mgdmlh
+Cj4+IFsgOC45MjEzOTBdIGN4MjM4ODVbMF06IGNhcmQ9PG4+IGluc21vZCBvcHRpb24uIFVwZGF0
+aW5nIHRvIHRoZSBsYXRlc3QKPj4gWyA4LjkyMTM5MF0gY3gyMzg4NVswXTogdmVyc2lvbiBtaWdo
+dCBoZWxwIGFzIHdlbGwuCj4+IFsgOC45MjEzOTNdIGN4MjM4ODVbMF06IEhlcmUgaXMgYSBsaXN0
+IG9mIHZhbGlkIGNob2ljZXMgZm9yIHRoZSBjYXJkPTxuPgo+PiBpbnNtb2Qgb3B0aW9uOgo+Pgo+
+PiBFdGMuCj4+Cj4+IERvZXMgYW55b25lIGhhdmUgYW55IGlkZWEgb2YgdGhlIGlzc3VlIGhlcmU/
+Cj4KPlN1cmUuIFRoZSBpc3N1ZSBpcyBub2JvZHkgY2FyZXMgZW5vdWdoIHRvIHVwZGF0ZSB0aGUg
+ZHJpdmVyIHRvIHN1cHBvcnQKPnlvdXIgY2FyZCBhbmQgbWFrZSBpdCB3b3JrIG91dCBvZiB0aGUg
+Ym94Lgo+Cj4tIFN0ZXZlCj4KPi0tIAo+U3RldmVuIFRvdGggLSBLZXJuZWwgTGFicwo+aHR0cDov
+L3d3dy5rZXJuZWxsYWJzLmNvbQo=
 
-http://linuxtv.org/ seems to be down currently. Server still answers to 
-ping...
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
