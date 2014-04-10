@@ -1,37 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f169.google.com ([209.85.216.169]:45167 "EHLO
-	mail-qc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758037AbaDIInH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 04:43:07 -0400
-Received: by mail-qc0-f169.google.com with SMTP id i17so2387283qcy.28
-        for <linux-media@vger.kernel.org>; Wed, 09 Apr 2014 01:43:06 -0700 (PDT)
+Received: from smtp-outbound-2.vmware.com ([208.91.2.13]:51415 "EHLO
+	smtp-outbound-2.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030292AbaDJLZb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Apr 2014 07:25:31 -0400
+Message-ID: <53467FA3.5040805@vmware.com>
+Date: Thu, 10 Apr 2014 13:25:23 +0200
+From: Thomas Hellstrom <thellstrom@vmware.com>
 MIME-Version: 1.0
-Date: Wed, 9 Apr 2014 10:43:06 +0200
-Message-ID: <CAPz3gm=yPyEPQXoiwA4EtwRJkaKxgzXma8e2B4gDeUgF_ZEv9Q@mail.gmail.com>
-Subject: Progressive and continuous record of a DVB stream
-From: shacky <shacky83@gmail.com>
-To: linux-media@vger.kernel.org
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+CC: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	ccross@google.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] [RFC] reservation: add suppport for read-only access
+ using rcu
+References: <20140409144239.26648.57918.stgit@patser> <20140409144831.26648.79163.stgit@patser> <53465A53.1090500@vmware.com> <53466D63.8080808@canonical.com> <53467B93.3000402@vmware.com>
+In-Reply-To: <53467B93.3000402@vmware.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi.
+On 04/10/2014 01:08 PM, Thomas Hellstrom wrote:
+> On 04/10/2014 12:07 PM, Maarten Lankhorst wrote:
+>> Hey,
+>>
+>> op 10-04-14 10:46, Thomas Hellstrom schreef:
+>>> Hi!
+>>>
+>>> Ugh. This became more complicated than I thought, but I'm OK with moving
+>>> TTM over to fence while we sort out
+>>> how / if we're going to use this.
+>>>
+>>> While reviewing, it struck me that this is kind of error-prone, and hard
+>>> to follow since we're operating on a structure that may be
+>>> continually updated under us, needing a lot of RCU-specific macros and
+>>> barriers.
+>> Yeah, but with the exception of dma_buf_poll I don't think there is
+>> anything else
+>> outside drivers/base/reservation.c has to deal with rcu.
+>>
+>>> Also the rcu wait appears to not complete until there are no busy fences
+>>> left (new ones can be added while we wait) rather than
+>>> waiting on a snapshot of busy fences.
+>> This has been by design, because 'wait for bo idle' type of functions
+>> only care
+>> if the bo is completely idle or not.
+> No, not when using RCU, because the bo may be busy again before the
+> function returns :)
+> Complete idleness can only be guaranteed if holding the reservation, or
+> otherwise making sure
+> that no new rendering is submitted to the buffer, so it's an overkill to
+> wait for complete idleness here.
+>
+Although, if we fail to get a refcount for a fence, and it's still busy
+we need to do  a seq retry,
+because the fence might have been replaced by another fence from the
+same context, without being idle. That check is not present in the
+snapshot code I sent.
 
-I need to make a continuous (H24) recording of some DVB-S and DVB-T
-streams and I wish to let me to play it during its recording, without
-waiting for the file closing.
-
-The purpose is having something like a DVR which lets me to play a DVB
-stream selecting a date/time, so I will also need to index every
-recorded file trunk for channel, date and time (and I can make this in
-a database).
-
-I need to record every channel I find in the same MUX in a different TS file.
-
-Is there any utility that could help me what I need?
-Could you give me some advises, please?
-I looked for some best practices but I didn't find anything special
-regarding this question.
-
-Thank you very much.
-Bye!
+/Thomas
