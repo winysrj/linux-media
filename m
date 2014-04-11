@@ -1,53 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3842 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755307AbaDGNLo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 09:11:44 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 07/13] vb2: reject output buffers with V4L2_FIELD_ALTERNATE
-Date: Mon,  7 Apr 2014 15:11:06 +0200
-Message-Id: <1396876272-18222-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl>
-References: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout1.samsung.com ([203.254.224.24]:14518 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750950AbaDKO5S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Apr 2014 10:57:18 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: s.nawrocki@samsung.com, a.hajda@samsung.com,
+	kyungmin.park@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v3 0/5] LED / flash API integration
+Date: Fri, 11 Apr 2014 16:56:51 +0200
+Message-id: <1397228216-6657-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This is is the third version of the patch series being a follow up
+of the discussion on Media summit 2013-10-23, related to the
+LED / flash API integration (the notes from the discussion were
+enclosed in the message [1], paragraph 5).
+The series is based on linux-next next-20140328
 
-This is not allowed by the spec and does in fact not make any sense.
-Return -EINVAL if this is the case.
+Description of the proposed modifications according to
+the kernel components they are relevant to:
+    - LED subsystem modifications
+        * added led_flash module which, when enabled in the config,
+	  registers flash specific sysfs attributes:
+            - flash_brightness
+	    - max_flash_brightness
+	    - indicator_brightness
+	    - max_indicator_brightness
+            - flash_timeout
+            - max_flash_timeout
+	    - flash_strobe
+            - flash_fault
+            - external_strobe
+	and exposes kernel internal API
+            - led_set_flash_strobe
+            - led_get_flash_strobe
+            - led_set_indicator_brightness
+            - led_update_indicator_brightness
+            - led_set_flash_timeout
+            - led_get_flash_fault
+            - led_set_external_strobe
+            - led_sysfs_lock
+            - led_sysfs_unlock
+    - Addition of a V4L2 Flash sub-device registration helpers
+        * added v4l2-flash.c and v4l2-flash.h files with helper
+          functions that facilitate registration/unregistration
+          of a subdevice, which wrapps a LED subsystem device and
+          exposes V4L2 Flash control interface
+    - Addition of a driver for the flash cell of the MAX77693 mfd
+        * the driver exploits the newly introduced mechanism
+    - Update of the max77693.txt DT bindings documentation
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+================
+Changes since v2
+================
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index b7de6be..c662ad9 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1511,6 +1511,19 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		dprintk(1, "plane parameters verification failed: %d\n", ret);
- 		return ret;
- 	}
-+	if (b->field == V4L2_FIELD_ALTERNATE && V4L2_TYPE_IS_OUTPUT(q->type)) {
-+		/*
-+		 * If the format's field is ALTERNATE, then the buffer's field
-+		 * should be either TOP or BOTTOM, not ALTERNATE since that
-+		 * makes no sense. The driver has to know whether the
-+		 * buffer represents a top or a bottom field in order to
-+		 * program any DMA correctly. Using ALTERNATE is wrong, since
-+		 * that just says that it is either a top or a bottom field,
-+		 * but not which of the two it is.
-+		 */
-+		dprintk(1, "the field is incorrectly set to ALTERNATE for an output buffer\n");
-+		return -EINVAL;
-+	}
- 
- 	vb->state = VB2_BUF_STATE_PREPARING;
- 	vb->v4l2_buf.timestamp.tv_sec = 0;
+    - refactored the code so that it is possible to build
+      led-core without led-flash module
+    - added v4l2-flash ops which slackens dependency from
+      the led-flash module
+    - implemented led_clamp_align_val function and led_ctrl
+      structure which allows to align led control values
+      in the manner compatible with V4L2 Flash controls;
+      the flash brightness and timeout units have been defined
+      as microamperes and microseconds respectively to properly
+      support devices which define current and time levels
+      as fractions of 1/1000.
+    - added support for the flash privacy leds
+    - modified LED sysfs locking mechanism - now it locks/unlocks
+      the interface on V4L2 Flash sub-device file open/close
+    - changed hw_triggered attribute name to external_strobe,
+      which maps on the V4L2_FLASH_STROBE_SOURCE_EXTERNAL name 
+      more intuitively
+    - made external_strobe and indicator related sysfs attributes
+      created optionally only if related features are declared
+      by the led device driver
+    - removed from the series patches modifying exynos4-is media
+      controller - a proposal for "flash manager" which will take
+      care of flash devices registration is due to be submitted
+    - removed modifications to the LED class devices documentation,
+      it will be covered after the whole functionality is accepted
+
+Thanks,
+Jacek Anaszewski
+
+[1] http://www.spinics.net/lists/linux-media/msg69253.html
+
+Jacek Anaszewski (5):
+  leds: Add sysfs and kernel internal API for flash LEDs
+  leds: Improve and export led_update_brightness function
+  leds: Add support for max77693 mfd flash cell
+  DT: Add documentation for the mfd Maxim max77693 flash cell
+  media: Add registration helpers for V4L2 flash sub-devices
+
+ Documentation/devicetree/bindings/mfd/max77693.txt |   57 ++
+ drivers/leds/Kconfig                               |   18 +
+ drivers/leds/Makefile                              |    2 +
+ drivers/leds/led-class.c                           |   42 +-
+ drivers/leds/led-core.c                            |   16 +
+ drivers/leds/led-flash.c                           |  627 ++++++++++++++++
+ drivers/leds/led-triggers.c                        |   16 +-
+ drivers/leds/leds-max77693.c                       |  794 ++++++++++++++++++++
+ drivers/leds/leds.h                                |    6 +
+ drivers/media/v4l2-core/Kconfig                    |   10 +
+ drivers/media/v4l2-core/Makefile                   |    2 +
+ drivers/media/v4l2-core/v4l2-flash.c               |  393 ++++++++++
+ drivers/mfd/max77693.c                             |    2 +-
+ include/linux/leds.h                               |   60 +-
+ include/linux/leds_flash.h                         |  252 +++++++
+ include/linux/mfd/max77693.h                       |   38 +
+ include/media/v4l2-flash.h                         |  119 +++
+ 17 files changed, 2433 insertions(+), 21 deletions(-)
+ create mode 100644 drivers/leds/led-flash.c
+ create mode 100644 drivers/leds/leds-max77693.c
+ create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
+ create mode 100644 include/linux/leds_flash.h
+ create mode 100644 include/media/v4l2-flash.h
+
 -- 
-1.9.1
+1.7.9.5
 
