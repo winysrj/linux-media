@@ -1,32 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f170.google.com ([209.85.128.170]:39632 "EHLO
-	mail-ve0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750857AbaDRFor (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:52656 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754321AbaDKNFa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Apr 2014 01:44:47 -0400
-Received: by mail-ve0-f170.google.com with SMTP id pa12so2083867veb.15
-        for <linux-media@vger.kernel.org>; Thu, 17 Apr 2014 22:44:46 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1397726510-12005-1-git-send-email-hverkuil@xs4all.nl>
-References: <1397726510-12005-1-git-send-email-hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 18 Apr 2014 11:14:16 +0530
-Message-ID: <CA+V-a8ueM2TQw-i4Lm9SZcyCp+prWiES5LQcRckbS=_mVDtVew@mail.gmail.com>
-Subject: Re: [PATCHv4 0/3] vb2: stop_streaming should return void
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 11 Apr 2014 09:05:30 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N3V00K1BB129A70@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 11 Apr 2014 14:05:26 +0100 (BST)
+Message-id: <5347E894.5010401@samsung.com>
+Date: Fri, 11 Apr 2014 15:05:24 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: pawel@osciak.com, sakari.ailus@iki.fi, m.szyprowski@samsung.com,
+	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv3 PATCH 09/13] vb2: add vb2_fileio_is_active and check it
+ more often
+References: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
+ <1397203879-37443-10-git-send-email-hverkuil@xs4all.nl>
+In-reply-to: <1397203879-37443-10-git-send-email-hverkuil@xs4all.nl>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Hans,
 
-On Thu, Apr 17, 2014 at 2:51 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Split off the removal of the vb2_is_streaming check as requested.
-> Note that the davinci drivers still have this unnecessary check, but
-> Prabhakar will remove that himself.
->
-Yes will post the patch, doping the check for davinci drivers.
+On 04/11/2014 10:11 AM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Added a vb2_fileio_is_active inline function that returns true if fileio
+> is in progress. Check for this too in mmap() (you don't want apps mmap()ing
+> buffers used by fileio) and expbuf() (same reason).
 
-Thanks,
---Prabhakar
+Why? I expect that there is no sane use case for using
+mmap() and expbuf in read/write mode but why forbidding this.
+
+Could you provide a reason?
+
+Regard,
+Tomasz Stanislawski
+
+> 
+> In addition drivers should be able to check for this in queue_setup() to
+> return an error if an attempt is made to read() or write() with
+> V4L2_FIELD_ALTERNATE being configured. This is illegal (there is no way
+> to pass the TOP/BOTTOM information around using file I/O).
+> 
+> However, in order to be able to check for this the init_fileio function
+> needs to set q->fileio early on, before the buffers are allocated. So switch
+> to using internal functions (__reqbufs, vb2_internal_qbuf and
+> vb2_internal_streamon) to skip the fileio check. Well, that's why the internal
+> functions were created...
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Pawel Osciak <pawel@osciak.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
