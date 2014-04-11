@@ -1,237 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:40780 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753090AbaDDWGH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Apr 2014 18:06:07 -0400
-Subject: [PATCH 3/3] rc-core: remove generic scancode filter
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: james.hogan@imgtec.com, m.chehab@samsung.com
-Date: Sat, 05 Apr 2014 00:06:06 +0200
-Message-ID: <20140404220606.5068.13356.stgit@zeus.muc.hardeman.nu>
-In-Reply-To: <20140404220404.5068.3669.stgit@zeus.muc.hardeman.nu>
-References: <20140404220404.5068.3669.stgit@zeus.muc.hardeman.nu>
+Received: from youngberry.canonical.com ([91.189.89.112]:51670 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754297AbaDKSJ4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Apr 2014 14:09:56 -0400
+Message-ID: <53482FF1.1090406@canonical.com>
+Date: Fri, 11 Apr 2014 20:09:53 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+To: Thomas Hellstrom <thellstrom@vmware.com>
+CC: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	ccross@google.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] [RFC v2 with seqcount] reservation: add suppport
+ for read-only access using rcu
+References: <20140409144239.26648.57918.stgit@patser> <20140409144831.26648.79163.stgit@patser> <53465A53.1090500@vmware.com> <53466D63.8080808@canonical.com> <53467B93.3000402@vmware.com> <5346B212.8050202@canonical.com> <5347A9FD.2070706@vmware.com> <5347B4E5.6090901@canonical.com> <5347BFC9.3020503@vmware.com>
+In-Reply-To: <5347BFC9.3020503@vmware.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The generic scancode filtering has questionable value and makes it
-impossible to determine from userspace if there is an actual
-scancode hw filter present or not.
+op 11-04-14 12:11, Thomas Hellstrom schreef:
+> On 04/11/2014 11:24 AM, Maarten Lankhorst wrote:
+>> op 11-04-14 10:38, Thomas Hellstrom schreef:
+>>> Hi, Maarten.
+>>>
+>>> Here I believe we encounter a lot of locking inconsistencies.
+>>>
+>>> First, it seems you're use a number of pointers as RCU pointers without
+>>> annotating them as such and use the correct rcu
+>>> macros when assigning those pointers.
+>>>
+>>> Some pointers (like the pointers in the shared fence list) are both used
+>>> as RCU pointers (in dma_buf_poll()) for example,
+>>> or considered protected by the seqlock
+>>> (reservation_object_get_fences_rcu()), which I believe is OK, but then
+>>> the pointers must
+>>> be assigned using the correct rcu macros. In the memcpy in
+>>> reservation_object_get_fences_rcu() we might get away with an
+>>> ugly typecast, but with a verbose comment that the pointers are
+>>> considered protected by the seqlock at that location.
+>>>
+>>> So I've updated (attached) the headers with proper __rcu annotation and
+>>> locking comments according to how they are being used in the various
+>>> reading functions.
+>>> I believe if we want to get rid of this we need to validate those
+>>> pointers using the seqlock as well.
+>>> This will generate a lot of sparse warnings in those places needing
+>>> rcu_dereference()
+>>> rcu_assign_pointer()
+>>> rcu_dereference_protected()
+>>>
+>>> With this I think we can get rid of all ACCESS_ONCE macros: It's not
+>>> needed when the rcu_x() macros are used, and
+>>> it's never needed for the members protected by the seqlock, (provided
+>>> that the seq is tested). The only place where I think that's
+>>> *not* the case is at the krealloc in
+>>> reservation_object_get_fences_rcu().
+>>>
+>>> Also I have some more comments in the
+>>> reservation_object_get_fences_rcu() function below:
+>> I felt that the barriers needed for rcu were already provided by
+>> checking the seqcount lock.
+>> But looking at rcu_dereference makes it seem harmless to add it in
+>> more places, it handles
+>> the ACCESS_ONCE and barrier() for us.
+> And it makes the code more maintainable, and helps sparse doing a lot of
+> checking for us. I guess
+> we can tolerate a couple of extra barriers for that.
+>
+>> We could probably get away with using RCU_INIT_POINTER on the writer
+>> side,
+>> because the smp_wmb is already done by arranging seqcount updates
+>> correctly.
+> Hmm. yes, probably. At least in the replace function. I think if we do
+> it in other places, we should add comments as to where
+> the smp_wmb() is located, for future reference.
+>
+>
+> Also  I saw in a couple of places where you're checking the shared
+> pointers, you're not checking for NULL pointers, which I guess may
+> happen if shared_count and pointers are not in full sync?
+>
+No, because shared_count is protected with seqcount. I only allow appending to the array, so when
+shared_count is validated by seqcount it means that the [0...shared_count) indexes are valid and non-null.
+What could happen though is that the fence at a specific index is updated with another one from the same
+context, but that's harmless.
 
-So revert the generic parts.
-
-Based on a patch from James Hogan <james.hogan@imgtec.com>, but this
-version also makes sure that only the valid sysfs files are created
-in the first place.
-
-v2: correct dev->s_filter check
-
-v3: move some parts over from the previous patch
-
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/rc-main.c |   88 +++++++++++++++++++++++++++-----------------
- include/media/rc-core.h    |    2 +
- 2 files changed, 55 insertions(+), 35 deletions(-)
-
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index ecbc20c..970b93d 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -633,19 +633,13 @@ EXPORT_SYMBOL_GPL(rc_repeat);
- static void ir_do_keydown(struct rc_dev *dev, int scancode,
- 			  u32 keycode, u8 toggle)
- {
--	struct rc_scancode_filter *filter;
--	bool new_event = !dev->keypressed ||
--			 dev->last_scancode != scancode ||
--			 dev->last_toggle != toggle;
-+	bool new_event = (!dev->keypressed		 ||
-+			  dev->last_scancode != scancode ||
-+			  dev->last_toggle != toggle);
- 
- 	if (new_event && dev->keypressed)
- 		ir_do_keyup(dev, false);
- 
--	/* Generic scancode filtering */
--	filter = &dev->scancode_filters[RC_FILTER_NORMAL];
--	if (filter->mask && ((scancode ^ filter->data) & filter->mask))
--		return;
--
- 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
- 
- 	if (new_event && keycode != KEY_RESERVED) {
-@@ -1011,14 +1005,11 @@ static ssize_t store_protocols(struct device *device,
- 	set_filter = (fattr->type == RC_FILTER_NORMAL)
- 		? dev->s_filter : dev->s_wakeup_filter;
- 
--	if (old_type != type && filter->mask) {
-+	if (set_filter && old_type != type && filter->mask) {
- 		local_filter = *filter;
- 		if (!type) {
- 			/* no protocol => clear filter */
- 			ret = -1;
--		} else if (!set_filter) {
--			/* generic filtering => accept any filter */
--			ret = 0;
- 		} else {
- 			/* hardware filtering => try setting, otherwise clear */
- 			ret = set_filter(dev, &local_filter);
-@@ -1027,8 +1018,7 @@ static ssize_t store_protocols(struct device *device,
- 			/* clear the filter */
- 			local_filter.data = 0;
- 			local_filter.mask = 0;
--			if (set_filter)
--				set_filter(dev, &local_filter);
-+			set_filter(dev, &local_filter);
- 		}
- 
- 		/* commit the new filter */
-@@ -1072,7 +1062,10 @@ static ssize_t show_filter(struct device *device,
- 		return -EINVAL;
- 
- 	mutex_lock(&dev->lock);
--	if (fattr->mask)
-+	if ((fattr->type == RC_FILTER_NORMAL && !dev->s_filter) ||
-+	    (fattr->type == RC_FILTER_WAKEUP && !dev->s_wakeup_filter))
-+		val = 0;
-+	else if (fattr->mask)
- 		val = dev->scancode_filters[fattr->type].mask;
- 	else
- 		val = dev->scancode_filters[fattr->type].data;
-@@ -1120,12 +1113,11 @@ static ssize_t store_filter(struct device *device,
- 	if (ret < 0)
- 		return ret;
- 
-+	/* Can the scancode filter be set? */
- 	set_filter = (fattr->type == RC_FILTER_NORMAL) ? dev->s_filter :
- 							 dev->s_wakeup_filter;
--
--	/* Scancode filter not supported (but still accept 0) */
--	if (!set_filter && fattr->type == RC_FILTER_WAKEUP)
--		return val ? -EINVAL : count;
-+	if (!set_filter)
-+		return -EINVAL;
- 
- 	mutex_lock(&dev->lock);
- 
-@@ -1143,11 +1135,9 @@ static ssize_t store_filter(struct device *device,
- 		goto unlock;
- 	}
- 
--	if (set_filter) {
--		ret = set_filter(dev, &local_filter);
--		if (ret < 0)
--			goto unlock;
--	}
-+	ret = set_filter(dev, &local_filter);
-+	if (ret < 0)
-+		goto unlock;
- 
- 	/* Success, commit the new filter */
- 	*filter = local_filter;
-@@ -1199,27 +1189,45 @@ static RC_FILTER_ATTR(wakeup_filter, S_IRUGO|S_IWUSR,
- static RC_FILTER_ATTR(wakeup_filter_mask, S_IRUGO|S_IWUSR,
- 		      show_filter, store_filter, RC_FILTER_WAKEUP, true);
- 
--static struct attribute *rc_dev_attrs[] = {
-+static struct attribute *rc_dev_protocol_attrs[] = {
- 	&dev_attr_protocols.attr.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group rc_dev_protocol_attr_grp = {
-+	.attrs	= rc_dev_protocol_attrs,
-+};
-+
-+static struct attribute *rc_dev_wakeup_protocol_attrs[] = {
- 	&dev_attr_wakeup_protocols.attr.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group rc_dev_wakeup_protocol_attr_grp = {
-+	.attrs	= rc_dev_wakeup_protocol_attrs,
-+};
-+
-+static struct attribute *rc_dev_filter_attrs[] = {
- 	&dev_attr_filter.attr.attr,
- 	&dev_attr_filter_mask.attr.attr,
--	&dev_attr_wakeup_filter.attr.attr,
--	&dev_attr_wakeup_filter_mask.attr.attr,
- 	NULL,
- };
- 
--static struct attribute_group rc_dev_attr_grp = {
--	.attrs	= rc_dev_attrs,
-+static struct attribute_group rc_dev_filter_attr_grp = {
-+	.attrs	= rc_dev_filter_attrs,
- };
- 
--static const struct attribute_group *rc_dev_attr_groups[] = {
--	&rc_dev_attr_grp,
--	NULL
-+static struct attribute *rc_dev_wakeup_filter_attrs[] = {
-+	&dev_attr_wakeup_filter.attr.attr,
-+	&dev_attr_wakeup_filter_mask.attr.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group rc_dev_wakeup_filter_attr_grp = {
-+	.attrs	= rc_dev_wakeup_filter_attrs,
- };
- 
- static struct device_type rc_dev_type = {
--	.groups		= rc_dev_attr_groups,
- 	.release	= rc_dev_release,
- 	.uevent		= rc_dev_uevent,
- };
-@@ -1276,7 +1284,7 @@ int rc_register_device(struct rc_dev *dev)
- 	static bool raw_init = false; /* raw decoders loaded? */
- 	struct rc_map *rc_map;
- 	const char *path;
--	int rc, devno;
-+	int rc, devno, attr = 0;
- 
- 	if (!dev || !dev->map_name)
- 		return -EINVAL;
-@@ -1304,6 +1312,16 @@ int rc_register_device(struct rc_dev *dev)
- 			return -ENOMEM;
- 	} while (test_and_set_bit(devno, ir_core_dev_number));
- 
-+	dev->dev.groups = dev->sysfs_groups;
-+	dev->sysfs_groups[attr++] = &rc_dev_protocol_attr_grp;
-+	if (dev->s_filter)
-+		dev->sysfs_groups[attr++] = &rc_dev_filter_attr_grp;	
-+	if (dev->s_wakeup_filter)
-+		dev->sysfs_groups[attr++] = &rc_dev_wakeup_filter_attr_grp;
-+	if (dev->change_wakeup_protocol)
-+		dev->sysfs_groups[attr++] = &rc_dev_wakeup_protocol_attr_grp;
-+	dev->sysfs_groups[attr++] = NULL;
-+
- 	/*
- 	 * Take the lock here, as the device sysfs node will appear
- 	 * when device_add() is called, which may trigger an ir-keytable udev
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 6dbc7c1..fde142e 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -60,6 +60,7 @@ enum rc_filter_type {
- /**
-  * struct rc_dev - represents a remote control device
-  * @dev: driver model's view of this device
-+ * @sysfs_groups: sysfs attribute groups
-  * @input_name: name of the input child device
-  * @input_phys: physical path to the input child device
-  * @input_id: id of the input child device (struct input_id)
-@@ -117,6 +118,7 @@ enum rc_filter_type {
-  */
- struct rc_dev {
- 	struct device			dev;
-+	const struct attribute_group	*sysfs_groups[5];
- 	const char			*input_name;
- 	const char			*input_phys;
- 	struct input_id			input_id;
-
+~Maarten
