@@ -1,110 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:37276 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751194AbaDNHE2 (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2584 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750798AbaDKIMY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 03:04:28 -0400
-Message-ID: <534B8875.9040104@canonical.com>
-Date: Mon, 14 Apr 2014 09:04:21 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-MIME-Version: 1.0
-To: Thomas Hellstrom <thellstrom@vmware.com>
-CC: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	ccross@google.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] [RFC v2 with seqcount] reservation: add suppport
- for read-only access using rcu
-References: <20140409144239.26648.57918.stgit@patser> <20140409144831.26648.79163.stgit@patser> <53465A53.1090500@vmware.com> <53466D63.8080808@canonical.com> <53467B93.3000402@vmware.com> <5346B212.8050202@canonical.com> <5347A9FD.2070706@vmware.com> <5347B4E5.6090901@canonical.com> <5347BFC9.3020503@vmware.com> <53482FF1.1090406@canonical.com> <534842CD.70303@vmware.com>
-In-Reply-To: <534842CD.70303@vmware.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 11 Apr 2014 04:12:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, sakari.ailus@iki.fi, m.szyprowski@samsung.com,
+	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv3 PATCH 08/13] vb2: simplify a confusing condition.
+Date: Fri, 11 Apr 2014 10:11:14 +0200
+Message-Id: <1397203879-37443-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
+References: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-op 11-04-14 21:30, Thomas Hellstrom schreef:
-> Hi!
->
-> On 04/11/2014 08:09 PM, Maarten Lankhorst wrote:
->> op 11-04-14 12:11, Thomas Hellstrom schreef:
->>> On 04/11/2014 11:24 AM, Maarten Lankhorst wrote:
->>>> op 11-04-14 10:38, Thomas Hellstrom schreef:
->>>>> Hi, Maarten.
->>>>>
->>>>> Here I believe we encounter a lot of locking inconsistencies.
->>>>>
->>>>> First, it seems you're use a number of pointers as RCU pointers
->>>>> without
->>>>> annotating them as such and use the correct rcu
->>>>> macros when assigning those pointers.
->>>>>
->>>>> Some pointers (like the pointers in the shared fence list) are both
->>>>> used
->>>>> as RCU pointers (in dma_buf_poll()) for example,
->>>>> or considered protected by the seqlock
->>>>> (reservation_object_get_fences_rcu()), which I believe is OK, but then
->>>>> the pointers must
->>>>> be assigned using the correct rcu macros. In the memcpy in
->>>>> reservation_object_get_fences_rcu() we might get away with an
->>>>> ugly typecast, but with a verbose comment that the pointers are
->>>>> considered protected by the seqlock at that location.
->>>>>
->>>>> So I've updated (attached) the headers with proper __rcu annotation
->>>>> and
->>>>> locking comments according to how they are being used in the various
->>>>> reading functions.
->>>>> I believe if we want to get rid of this we need to validate those
->>>>> pointers using the seqlock as well.
->>>>> This will generate a lot of sparse warnings in those places needing
->>>>> rcu_dereference()
->>>>> rcu_assign_pointer()
->>>>> rcu_dereference_protected()
->>>>>
->>>>> With this I think we can get rid of all ACCESS_ONCE macros: It's not
->>>>> needed when the rcu_x() macros are used, and
->>>>> it's never needed for the members protected by the seqlock, (provided
->>>>> that the seq is tested). The only place where I think that's
->>>>> *not* the case is at the krealloc in
->>>>> reservation_object_get_fences_rcu().
->>>>>
->>>>> Also I have some more comments in the
->>>>> reservation_object_get_fences_rcu() function below:
->>>> I felt that the barriers needed for rcu were already provided by
->>>> checking the seqcount lock.
->>>> But looking at rcu_dereference makes it seem harmless to add it in
->>>> more places, it handles
->>>> the ACCESS_ONCE and barrier() for us.
->>> And it makes the code more maintainable, and helps sparse doing a lot of
->>> checking for us. I guess
->>> we can tolerate a couple of extra barriers for that.
->>>
->>>> We could probably get away with using RCU_INIT_POINTER on the writer
->>>> side,
->>>> because the smp_wmb is already done by arranging seqcount updates
->>>> correctly.
->>> Hmm. yes, probably. At least in the replace function. I think if we do
->>> it in other places, we should add comments as to where
->>> the smp_wmb() is located, for future reference.
->>>
->>>
->>> Also  I saw in a couple of places where you're checking the shared
->>> pointers, you're not checking for NULL pointers, which I guess may
->>> happen if shared_count and pointers are not in full sync?
->>>
->> No, because shared_count is protected with seqcount. I only allow
->> appending to the array, so when
->> shared_count is validated by seqcount it means that the
->> [0...shared_count) indexes are valid and non-null.
->> What could happen though is that the fence at a specific index is
->> updated with another one from the same
->> context, but that's harmless.
-> Hmm.
-> Shouldn't we have a way to clean signaled fences from reservation
-> objects? Perhaps when we attach a new fence, or after a wait with
-> ww_mutex held? Otherwise we'd have a lot of completely unused fence
-> objects hanging around for no reason. I don't think we need to be as
-> picky as TTM, but I think we should do something?
->
-Calling reservation_object_add_excl_fence with a NULL fence works, I do this in ttm_bo_wait().
-It requires ww_mutex.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-~Maarten
+q->start_streaming_called is always true, so the WARN_ON check against
+it being false can be dropped.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pawel Osciak <pawel@osciak.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index f8c0247..3d2a003 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1094,9 +1094,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	if (!q->start_streaming_called) {
+ 		if (WARN_ON(state != VB2_BUF_STATE_QUEUED))
+ 			state = VB2_BUF_STATE_QUEUED;
+-	} else if (!WARN_ON(!q->start_streaming_called)) {
+-		if (WARN_ON(state != VB2_BUF_STATE_DONE &&
+-			    state != VB2_BUF_STATE_ERROR))
++	} else if (WARN_ON(state != VB2_BUF_STATE_DONE &&
++			   state != VB2_BUF_STATE_ERROR)) {
+ 			state = VB2_BUF_STATE_ERROR;
+ 	}
+ 
+-- 
+1.9.1
+
