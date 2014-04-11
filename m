@@ -1,65 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1890 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754315AbaDKHnA (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:49247 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754198AbaDKNEL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 03:43:00 -0400
-Message-ID: <53479CD6.4040502@xs4all.nl>
-Date: Fri, 11 Apr 2014 09:42:14 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 11 Apr 2014 09:04:11 -0400
+Received: by mail-wi0-f172.google.com with SMTP id hi2so963349wib.5
+        for <linux-media@vger.kernel.org>; Fri, 11 Apr 2014 06:04:09 -0700 (PDT)
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-media@vger.kernel.org, pawel@osciak.com,
-	s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH 10/11] vb2: set v4l2_buffer.bytesused to 0 for
- mp buffers
-References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl> <1394486458-9836-11-git-send-email-hverkuil@xs4all.nl> <20140409172128.GA7530@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20140409172128.GA7530@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20140411110822.GO4963@mwanda>
+References: <20131106161342.GD15603@elgon.mountain>
+	<20140411110822.GO4963@mwanda>
+Date: Fri, 11 Apr 2014 10:04:09 -0300
+Message-ID: <CAOMZO5D+APp=LcnVuCQYeCOtMDZ6KkyzHZ8js_XPC+DKHd-+Eg@mail.gmail.com>
+Subject: Re: [media] coda: update CODA7541 to firmware 1.4.50
+From: Fabio Estevam <festevam@gmail.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/09/2014 07:21 PM, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> Thanks for the set.
-> 
-> On Mon, Mar 10, 2014 at 10:20:57PM +0100, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Dan/Philipp,
+
+On Fri, Apr 11, 2014 at 8:08 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> What ever happened with this?
+>
+> regards,
+> dan carpenter
+>
+> On Wed, Nov 06, 2013 at 07:13:43PM +0300, Dan Carpenter wrote:
+>> Hello Philipp Zabel,
 >>
->> The bytesused field of struct v4l2_buffer is not used for multiplanar
->> formats, so just zero it to prevent it from having some random value.
+>> This is a semi-automatic email about new static checker warnings.
 >>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/v4l2-core/videobuf2-core.c | 1 +
->>  1 file changed, 1 insertion(+)
+>> The patch 5677e3b04d3b: "[media] coda: update CODA7541 to firmware
+>> 1.4.50" from Jun 21, 2013, leads to the following Smatch complaint:
 >>
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->> index f68a60f..54a4150 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -583,6 +583,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
->>  		 * for it. The caller has already verified memory and size.
->>  		 */
->>  		b->length = vb->num_planes;
->> +		b->bytesused = 0;
-> 
-> I wonder if I'm missing something, but doesn't the value of the field come
-> from the v4l2_buf field of the vb2_buffer which is allocated using kzalloc()
-> in __vb2_queue_alloc(), and never changed afterwards?
+>> drivers/media/platform/coda.c:1530 coda_alloc_framebuffers()
+>>        error: we previously assumed 'ctx->codec' could be null (see line 1521)
+>>
+>> drivers/media/platform/coda.c
+>>   1520
+>>   1521                if (ctx->codec && ctx->codec->src_fourcc == V4L2_PIX_FMT_H264)
+>>                     ^^^^^^^^^^
+>> Patch introduces a new NULL check.
+>>
+>>   1522                        height = round_up(height, 16);
+>>   1523                ysize = round_up(q_data->width, 8) * height;
+>>   1524
+>>   1525                /* Allocate frame buffers */
+>>   1526                for (i = 0; i < ctx->num_internal_frames; i++) {
+>>   1527                        size_t size;
+>>   1528
+>>   1529                        size = q_data->sizeimage;
+>>   1530                        if (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264 &&
+>>                             ^^^^^^^^^^^^^^^^^^^^^^
+>> Patch introduces a new unchecked dereference.
+>>
+>>   1531                            dev->devtype->product != CODA_DX6)
+>>   1532                                ctx->internal_frames[i].size += ysize/4;
 
-You are right, this isn't necessary. I've dropped this patch.
+Would the fix below address this issue?
 
-Thanks!
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -1518,7 +1518,10 @@ static int coda_alloc_framebuffers(struct coda_ctx *ctx,
+        int ret;
+        int i;
 
-	Hans
-
-> 
->>  		memcpy(b->m.planes, vb->v4l2_planes,
->>  			b->length * sizeof(struct v4l2_plane));
->>  	} else {
-> 
-
+-       if (ctx->codec && ctx->codec->src_fourcc == V4L2_PIX_FMT_H264)
++       if (!ctx->codec)
++               return -EINVAL;
++
++       if (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264)
+                height = round_up(height, 16);
+        ysize = round_up(q_data->width, 8) * height;
