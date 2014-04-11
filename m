@@ -1,93 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:30726 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932161AbaDHOim (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 10:38:42 -0400
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org
-Cc: kishon@ti.com, t.figa@samsung.com, kyungmin.park@samsung.com,
-	sylvester.nawrocki@gmail.com, robh+dt@kernel.org,
-	inki.dae@samsung.com, rahul.sharma@samsung.com,
-	grant.likely@linaro.org, kgene.kim@samsung.com,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv2 3/3] s5p-tv: hdmi: use hdmiphy as PHY
-Date: Tue, 08 Apr 2014 16:37:36 +0200
-Message-id: <1396967856-27470-4-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com>
-References: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1890 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754315AbaDKHnA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Apr 2014 03:43:00 -0400
+Message-ID: <53479CD6.4040502@xs4all.nl>
+Date: Fri, 11 Apr 2014 09:42:14 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, pawel@osciak.com,
+	s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEW PATCH 10/11] vb2: set v4l2_buffer.bytesused to 0 for
+ mp buffers
+References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl> <1394486458-9836-11-git-send-email-hverkuil@xs4all.nl> <20140409172128.GA7530@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20140409172128.GA7530@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The HDMIPHY (physical interface) is controlled by a single
-bit in a power controller's regiter. It was implemented
-as clock. It was a simple but effective hack.
+On 04/09/2014 07:21 PM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> Thanks for the set.
+> 
+> On Mon, Mar 10, 2014 at 10:20:57PM +0100, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> The bytesused field of struct v4l2_buffer is not used for multiplanar
+>> formats, so just zero it to prevent it from having some random value.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/v4l2-core/videobuf2-core.c | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>> index f68a60f..54a4150 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -583,6 +583,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+>>  		 * for it. The caller has already verified memory and size.
+>>  		 */
+>>  		b->length = vb->num_planes;
+>> +		b->bytesused = 0;
+> 
+> I wonder if I'm missing something, but doesn't the value of the field come
+> from the v4l2_buf field of the vb2_buffer which is allocated using kzalloc()
+> in __vb2_queue_alloc(), and never changed afterwards?
 
-This patch makes S5P-HDMI driver to control HDMIPHY via PHY interface.
+You are right, this isn't necessary. I've dropped this patch.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
----
- drivers/media/platform/s5p-tv/hdmi_drv.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+Thanks!
 
-diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
-index 534722c..8013e52 100644
---- a/drivers/media/platform/s5p-tv/hdmi_drv.c
-+++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
-@@ -32,6 +32,7 @@
- #include <linux/clk.h>
- #include <linux/regulator/consumer.h>
- #include <linux/v4l2-dv-timings.h>
-+#include <linux/phy/phy.h>
- 
- #include <media/s5p_hdmi.h>
- #include <media/v4l2-common.h>
-@@ -66,7 +67,7 @@ struct hdmi_resources {
- 	struct clk *sclk_hdmi;
- 	struct clk *sclk_pixel;
- 	struct clk *sclk_hdmiphy;
--	struct clk *hdmiphy;
-+	struct phy *hdmiphy;
- 	struct regulator_bulk_data *regul_bulk;
- 	int regul_count;
- };
-@@ -586,7 +587,7 @@ static int hdmi_resource_poweron(struct hdmi_resources *res)
- 	if (ret < 0)
- 		return ret;
- 	/* power-on hdmi physical interface */
--	clk_enable(res->hdmiphy);
-+	phy_power_on(res->hdmiphy);
- 	/* use VPP as parent clock; HDMIPHY is not working yet */
- 	clk_set_parent(res->sclk_hdmi, res->sclk_pixel);
- 	/* turn clocks on */
-@@ -600,7 +601,7 @@ static void hdmi_resource_poweroff(struct hdmi_resources *res)
- 	/* turn clocks off */
- 	clk_disable(res->sclk_hdmi);
- 	/* power-off hdmiphy */
--	clk_disable(res->hdmiphy);
-+	phy_power_off(res->hdmiphy);
- 	/* turn HDMI power off */
- 	regulator_bulk_disable(res->regul_count, res->regul_bulk);
- }
-@@ -784,7 +785,7 @@ static void hdmi_resources_cleanup(struct hdmi_device *hdev)
- 	/* kfree is NULL-safe */
- 	kfree(res->regul_bulk);
- 	if (!IS_ERR(res->hdmiphy))
--		clk_put(res->hdmiphy);
-+		phy_put(res->hdmiphy);
- 	if (!IS_ERR(res->sclk_hdmiphy))
- 		clk_put(res->sclk_hdmiphy);
- 	if (!IS_ERR(res->sclk_pixel))
-@@ -835,7 +836,7 @@ static int hdmi_resources_init(struct hdmi_device *hdev)
- 		dev_err(dev, "failed to get clock 'sclk_hdmiphy'\n");
- 		goto fail;
- 	}
--	res->hdmiphy = clk_get(dev, "hdmiphy");
-+	res->hdmiphy = phy_get(dev, "hdmiphy");
- 	if (IS_ERR(res->hdmiphy)) {
- 		dev_err(dev, "failed to get clock 'hdmiphy'\n");
- 		goto fail;
--- 
-1.7.9.5
+	Hans
+
+> 
+>>  		memcpy(b->m.planes, vb->v4l2_planes,
+>>  			b->length * sizeof(struct v4l2_plane));
+>>  	} else {
+> 
 
