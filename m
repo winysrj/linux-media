@@ -1,94 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:53226 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751666AbaDYTkX (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4266 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752152AbaDKIMM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Apr 2014 15:40:23 -0400
-Received: by mail-ee0-f52.google.com with SMTP id e49so3056217eek.39
-        for <linux-media@vger.kernel.org>; Fri, 25 Apr 2014 12:40:21 -0700 (PDT)
-Message-ID: <535ABA1B.8010701@dragonslave.de>
-Date: Fri, 25 Apr 2014 21:40:11 +0200
-From: Daniel Exner <dex@dragonslave.de>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: dex@dragonslave.de
-Subject: Re: Terratec Cinergy T XS Firmware (Kernel 3.14.1)
-References: <535823E6.8020802@dragonslave.de> <CAGoCfizxAopbb4pEtGXVtSSuccqAfu7iqB8Oc2Lb6TOS=6QL8g@mail.gmail.com> <5358279C.5060108@dragonslave.de> <20140424082919.66f7eab1@samsung.com> <20140424210930.592ec21c@Mycroft> <CAGoCfiwp1q1nLbStR-htsq=PdLpHPvkhy0CsGO=_1SRX_O-Pdg@mail.gmail.com> <20140424182626.47f5f01e@samsung.com>
-In-Reply-To: <20140424182626.47f5f01e@samsung.com>
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="hmhrf0OTg0jFtOcvmPr8MgLwLQ8d6lMal"
+	Fri, 11 Apr 2014 04:12:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, sakari.ailus@iki.fi, m.szyprowski@samsung.com,
+	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv3 PATCH 05/13] vb2: move __qbuf_mmap before __qbuf_userptr
+Date: Fri, 11 Apr 2014 10:11:11 +0200
+Message-Id: <1397203879-37443-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
+References: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---hmhrf0OTg0jFtOcvmPr8MgLwLQ8d6lMal
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Hi,
+__qbuf_mmap was sort of hidden in between the much larger __qbuf_userptr
+and __qbuf_dmabuf functions. Move it before __qbuf_userptr which is
+also conform the usual order these memory models are implemented: first
+mmap, then userptr, then dmabuf.
 
-Am 24.04.2014 23:26, schrieb Mauro Carvalho Chehab:
-> Em Thu, 24 Apr 2014 15:24:20 -0400
-> Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
-[...]
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pawel Osciak <pawel@osciak.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-> What can do, instead, is to sniff the traffic at the USB port, and get
-> the proper GPIO, XCLK and I2C speed settings for this device.
->=20
-> My suggestion is to either run it on a QEMU VM machine, redirecting
-> the USB device to the VM and sniffing the traffic on Linux, or to
-> use some USB snoop software.
->=20
-> Take a look at: http://linuxtv.org/wiki/index.php/Bus_snooping/sniffing=
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 1421075..2e448a7 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1240,6 +1240,20 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ }
+ 
+ /**
++ * __qbuf_mmap() - handle qbuf of an MMAP buffer
++ */
++static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
++{
++	int ret;
++
++	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
++	ret = call_vb_qop(vb, buf_prepare, vb);
++	if (ret)
++		fail_vb_qop(vb, buf_prepare);
++	return ret;
++}
++
++/**
+  * __qbuf_userptr() - handle qbuf of a USERPTR buffer
+  */
+ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+@@ -1346,20 +1360,6 @@ err:
+ }
+ 
+ /**
+- * __qbuf_mmap() - handle qbuf of an MMAP buffer
+- */
+-static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+-{
+-	int ret;
+-
+-	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
+-	ret = call_vb_qop(vb, buf_prepare, vb);
+-	if (ret)
+-		fail_vb_qop(vb, buf_prepare);
+-	return ret;
+-}
+-
+-/**
+  * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
+  */
+ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+-- 
+1.9.1
 
->=20
-> We have a script that parses em28xx traffic, converting them into
-> register writes. All you need to do is to sniff the traffic and check
-> what GPIO registers are needed to reset the device.
->=20
-> Then, add the corresponding data at em28xx-cards.c.
-
-
-Ok, I managed to setup a VBox with "TheOtherOS" and usbmon and sniffed
-some traffic when I (virtually) plugged in the device.
-
-The file is (compressed) about ~620 KiB.
-
-I am honest: I have no clue what I sniffed or how I should read GPIO
-registers from there.
-
-If anyone is interested in helping me I would send the file directly.
-
-Greetings
-Daniel
---=20
-Daniel Exner
-Public-Key: https://www.dragonslave.de/pub_key.asc
-
-
---hmhrf0OTg0jFtOcvmPr8MgLwLQ8d6lMal
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTWroiAAoJEJzUMd6kHcEpYF8P+wWEHRn0R+PJdG+ylU65MF0W
-A25Zq0jRp1M00QyfCGIT/9zvVqBgw5SWrOsi8vIEd+Y3XtcoKDKLnGaAyU6VshdB
-yRfLhVbRVzz1Bo8h5zvv9Q6Jt4CfC4k4eU2HDZnpLyYt/55L2hhBkcQBHEZF9NDx
-3N0aigrU+ZoQGyCC14+fUxfxJxENrcuiSlRCfcSJ+QdItuV/bhSd9UTBgIZFfvhm
-9tl79grznPIVEE9afKaZ6pNEUu7y5moYUq1+s/YO+ZUYb7pp3Pi+eodUvfaLR29i
-Ut8e3YeW6/qBpv7qkWWl9fz9z0sQkSUmZRmcQMLo1p0QG0S7xct6xqSi2a5cefWg
-WSWMJnZ6WcomStenPRKAgtxTOcc8aO0ni1HmjFv+iLoP5g3ZpUg8uwxAIwPsXJgP
-KkTQHOzjzH3RJ31LhWPalPGDQK7gAxv5dxmSv01A6+d3ncMq0qrfKGjgVNrSNQpP
-rHwP2PR4C0jYerL8VejPeSqYFuuiLhYnj/5eeEPprZn4kdOZ1kLdFh4Uhjrh9SUk
-y4CWGMd1C6SYuX0l7cI85gDieIjzxz2HrAB132zdUL2dE/P+6j7jg71TBUC+6Dah
-9AKeiVkS+FicsiYDOL32QXpr5rEZkVhPcKRrnVqO6baZSJJ5ieaOsZtdLXInKU7J
-aEuoBfORMUCTsft9EU6J
-=KNY2
------END PGP SIGNATURE-----
-
---hmhrf0OTg0jFtOcvmPr8MgLwLQ8d6lMal--
