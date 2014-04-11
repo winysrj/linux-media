@@ -1,53 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:40339 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753909AbaDCXe3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Apr 2014 19:34:29 -0400
-Subject: [PATCH 38/49] rc-core: rename ir-raw.c
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4033 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751176AbaDKIMH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Apr 2014 04:12:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Date: Fri, 04 Apr 2014 01:34:28 +0200
-Message-ID: <20140403233428.27099.43511.stgit@zeus.muc.hardeman.nu>
-In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
-References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Cc: pawel@osciak.com, sakari.ailus@iki.fi, m.szyprowski@samsung.com,
+	s.nawrocki@samsung.com
+Subject: [REVIEWv3 PATCH 00/13] vb2: various small fixes/improvements
+Date: Fri, 11 Apr 2014 10:11:06 +0200
+Message-Id: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move drivers/media/rc/ir-raw.c to drivers/media/rc/rc-ir-raw.c in
-preparation for the next patch.
+This is the third version of this review patch series.
+The previous can be found here:
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/Makefile    |    2 +-
- drivers/media/rc/rc-ir-raw.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
- rename drivers/media/rc/{ir-raw.c => rc-ir-raw.c} (99%)
+http://www.spinics.net/lists/linux-media/msg75428.html
 
-diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-index de08ee6..661f449 100644
---- a/drivers/media/rc/Makefile
-+++ b/drivers/media/rc/Makefile
-@@ -1,4 +1,4 @@
--rc-core-objs	:= rc-main.o rc-keytable.o ir-raw.o
-+rc-core-objs	:= rc-main.o rc-keytable.o rc-ir-raw.o
- 
- obj-y += keymaps/
- 
-diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-similarity index 99%
-rename from drivers/media/rc/ir-raw.c
-rename to drivers/media/rc/rc-ir-raw.c
-index aa2503d..5ed8007 100644
---- a/drivers/media/rc/ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -1,4 +1,4 @@
--/* ir-raw.c - handle IR pulse/space events
-+/* rc-ir-raw.c - handle IR pulse/space events
-  *
-  * Copyright (C) 2010 by Mauro Carvalho Chehab
-  *
+Changes since v2:
+
+- Updated v4l2-pci-skeleton.c as well in patch 01/13
+- Dropped patch 10/13 as it is not needed
+- Added comment to patch 06/13 as suggested by Pawel
+- Added patch 13/13: fix HDTV interlaced handling in v4l2-pci-skeleton.c
+
+If there are no more comments, then I plan on posting a pull request
+on Monday.
+
+Regards,
+
+	Hans
 
