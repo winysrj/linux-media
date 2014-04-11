@@ -1,82 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:9671 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751038AbaDON0C (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:53699 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755136AbaDKMAI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 09:26:02 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N4200CXBQNCIR20@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 15 Apr 2014 09:26:00 -0400 (EDT)
-Date: Tue, 15 Apr 2014 10:25:55 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Butora <robert.butora.fi@gmail.com>
-Subject: Re: [GIT PULL new driver for 3.15] media/usb/gspca: Add support for
- Scopium astro webcam (0547:7303)
-Message-id: <20140415102555.58836d83@samsung.com>
-In-reply-to: <533BCD1A.1010307@redhat.com>
-References: <533BCD1A.1010307@redhat.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Fri, 11 Apr 2014 08:00:08 -0400
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-doc@vger.kernel.org
+Cc: t.figa@samsung.com, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, robh+dt@kernel.org, arnd@arndb.de,
+	gregkh@linuxfoundation.org, grant.likely@linaro.org,
+	kgene.kim@samsung.com, rdunlap@infradead.org, ben-linux@fluff.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 0/2] Add support for sii9234 chip
+Date: Fri, 11 Apr 2014 13:48:28 +0200
+Message-id: <1397216910-15904-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi everyone,
+This patchset adds support for sii9234 HD Mobile Link Bridge.  The chip is used
+to convert HDMI signal into MHL.  The driver enables HDMI output on Trats and
+Trats2 boards.
 
-Em Wed, 02 Apr 2014 10:40:58 +0200
-Hans de Goede <hdegoede@redhat.com> escreveu:
+The code is based on the driver [1] developed by:
+       Adam Hampson <ahampson@sta.samsung.com>
+       Erik Gilling <konkers@android.com>
+with additional contributions from:
+       Shankar Bandal <shankar.b@samsung.com>
+       Dharam Kumar <dharam.kr@samsung.com>
 
-> Hi Mauro,
-> 
-> Please pull from my gspca git tree for a new gspca based webcam driver,
-> since this is a new driver which does not touch anything else, I would
-> like to see this go into 3.15 .
+The drivers architecture was greatly simplified and transformed into a form
+accepted (hopefully) by opensource community.  The main differences from
+original code are:
+* using single I2C client instead of 4 subclients
+* remove all logic non-related to establishing HDMI link
+* simplify error handling
+* rewrite state machine in interrupt handler
+* wakeup and discovery triggered by an extcon event
+* integrate with Device Tree
 
-Unfortunately, you sent this too late. The Kernel jenitors want to se those
-patches one week before the merge window, at least, for them to review.
+For now, the driver is added to drivers/misc/ directory because it has neigher
+userspace nor kernel interface.  The chip is capable of receiving and
+processing CEC events, so the driver may export an input device in /dev/ in the
+future.  However CEC could be also handled by HDMI driver.
 
-Also, this merge window was complex, as we merged a lot of patches there,
-including some that conflicted with some DT changes.
+I kindly ask for suggestions about the best location for this driver.
 
-I merged this series today for 3.16.
+Both the chip and the driver are quite autonomic. The chip works as 'invisible
+proxy' for HDMI signal, so there is no need to integrate it with HDMI drivers
+by helper-subsystems like v4l2_subdev or drm_bridge.  If the driver is merged
+then the driver from drivers/media/platform/s5p-tv/sii9234_drv.c could be safely
+removed.
 
-> 
-> The following changes since commit a83b93a7480441a47856dc9104bea970e84cda87:
-> 
->   [media] em28xx-dvb: fix PCTV 461e tuner I2C binding (2014-03-31 08:02:16 -0300)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hgoede/gspca.git media-for_v3.15
-> 
-> for you to fetch changes up to 8ad536cb48ac13174acef9550095539931692d69:
-> 
->   media/usb/gspca: Add support for Scopium astro webcam (0547:7303) (2014-04-02 10:20:48 +0200)
-> 
-> ----------------------------------------------------------------
-> Robert Butora (1):
->       media/usb/gspca: Add support for Scopium astro webcam (0547:7303)
-> 
->  drivers/media/usb/gspca/Kconfig   |  10 +
->  drivers/media/usb/gspca/Makefile  |   2 +
->  drivers/media/usb/gspca/dtcs033.c | 434 ++++++++++++++++++++++++++++++++++++++
->  3 files changed, 446 insertions(+)
->  create mode 100644 drivers/media/usb/gspca/dtcs033.c
-> 
-> Thanks & Regards,
-> 
-> Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Regard
--- 
+All comments are welcome.
 
 Regards,
-Mauro
+Tomasz Stanislawski
+
+
+References:
+[1] https://github.com/junpei0824/SC02C-linux/tree/master-jelly-cm-aokp/drivers/media/video/mhl
+
+
+Tomasz Stanislawski (2):
+  misc: add sii9234 driver
+  arm: dts: trats2: add SiI9234 node
+
+ Documentation/devicetree/bindings/sii9234.txt |   22 +
+ arch/arm/boot/dts/exynos4412-trats2.dts       |   43 +
+ drivers/misc/Kconfig                          |    8 +
+ drivers/misc/Makefile                         |    1 +
+ drivers/misc/sii9234.c                        | 1081 +++++++++++++++++++++++++
+ 5 files changed, 1155 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/sii9234.txt
+ create mode 100644 drivers/misc/sii9234.c
+
+-- 
+1.7.9.5
+
