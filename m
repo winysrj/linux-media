@@ -1,25 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bay0-omc2-s27.bay0.hotmail.com ([65.54.190.102]:6537 "EHLO
-	bay0-omc2-s27.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754523AbaDGLqP convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Apr 2014 07:46:15 -0400
-Message-ID: <BAY176-W17F71D88B32603057AE378A9680@phx.gbl>
-From: Divneil Wadhawan <divneil@outlook.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: videobuf2-vmalloc suspect for corrupted data
-Date: Mon, 7 Apr 2014 17:16:15 +0530
-In-Reply-To: <BAY176-W91C143782DF21AB7ACEC8A9680@phx.gbl>
-References: <BAY176-W225B62F958527124202669A9680@phx.gbl>,<CAMm-=zDKUoFN7OiGpL3c=7KCkmYNhiyns20t8H7Pz_=qgaeHMw@mail.gmail.com>,<BAY176-W524A762315BE245FCCD5DCA9680@phx.gbl>,<53428483.7060107@xs4all.nl>,<BAY176-W91C143782DF21AB7ACEC8A9680@phx.gbl>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from kirsty.vergenet.net ([202.4.237.240]:60488 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753896AbaDKAEd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Apr 2014 20:04:33 -0400
+Date: Fri, 11 Apr 2014 09:04:30 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH 4/6] v4l: vsp1: Add DT support
+Message-ID: <20140411000429.GB4816@verge.net.au>
+References: <1394047444-30077-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <4172444.b80tq3sQnW@avalon>
+ <20140410230417.GB4358@verge.net.au>
+ <2026957.GUESdWNMVE@avalon>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2026957.GUESdWNMVE@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> Which capture driver are you using?
-> It's a TSMUX driver, written locally.
-In complete, it's a Multi-INPUT, single output (MUXER) driver, but, currently, it's the capture side fault here.
-Regards,
-Divneil 		 	   		  
+On Fri, Apr 11, 2014 at 01:37:11AM +0200, Laurent Pinchart wrote:
+> Hi Simon,
+> 
+> On Friday 11 April 2014 08:04:18 Simon Horman wrote:
+> > On Tue, Mar 25, 2014 at 01:18:22PM +0100, Laurent Pinchart wrote:
+> > > Hello,
+> > > 
+> > > Gentle ping. I'll send a pull request in a week if I don't receive any
+> > > comment on the DT bindings in the meantime.
+> > 
+> > Hi Laurent,
+> > 
+> > one way or another can you let me know if/when the bindings are accepted and
+> > I'll queue-up the shmobile patches.
+> 
+> Sure. The DT bindings have been acked and I've sent a pull request. I'll
+> let you know when the patches get pulled, until then there's no guarantee
+> that the bindings won't change.
+
+Thanks, got it.
