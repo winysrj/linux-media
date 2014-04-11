@@ -1,117 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f175.google.com ([74.125.82.175]:39190 "EHLO
-	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750931AbaDPCHG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 22:07:06 -0400
+Received: from mail1.bemta8.messagelabs.com ([216.82.243.209]:21510 "EHLO
+	mail1.bemta8.messagelabs.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750810AbaDKGD1 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Apr 2014 02:03:27 -0400
+Message-ID: <53478425.1010502@barco.com>
+Date: Fri, 11 Apr 2014 07:56:53 +0200
+From: Thomas Scheuermann <scheuermann@barco.com>
 MIME-Version: 1.0
-In-Reply-To: <534D4245.2040901@samsung.com>
-References: <1397554040-4037-1-git-send-email-t.stanislaws@samsung.com>
-	<1397554040-4037-5-git-send-email-t.stanislaws@samsung.com>
-	<CAPdUM4NysWMpy3PZhJdKXFa96Oy4kG4dKkDdrabbAmM3+f5kag@mail.gmail.com>
-	<534D3001.2030707@samsung.com>
-	<CAPdUM4PCDC8J5k2uNv6DYf8FzXKcNcm7JQZ-cbAzmXzx9YDAAw@mail.gmail.com>
-	<534D4245.2040901@samsung.com>
-Date: Wed, 16 Apr 2014 07:37:04 +0530
-Message-ID: <CAPdUM4MhcOhTcAaMLWidqw6str8-oUvnYC+dyQKZUbp7_4wMuA@mail.gmail.com>
-Subject: Re: [PATCHv2 4/4] drm: exynos: hdmi: add support for pixel clock limitation
-From: Rahul Sharma <r.sh.open@gmail.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>, b.zolnierkie@samsung.com,
-	"sw0312.kim" <sw0312.kim@samsung.com>,
-	sunil joshi <joshi@samsung.com>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	m.chehab@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Rahul Sharma <rahul.sharma@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: AW: AW: v4l2_buffer with PBO mapped memory
+References: <533C2872.5090603@barco.com> <82154683.DEhQIaoLxb@avalon> <67C778DDEF97AE4BA9DC4BA8ECFD811E1DB2EA13@KUUMEX11.barco.com> <12148246.7IO9AkCti4@avalon>
+In-Reply-To: <12148246.7IO9AkCti4@avalon>
+Content-Type: text/plain; charset=US-ASCII;
+	format=flowed
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15 April 2014 19:59, Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
-> On 04/15/2014 03:42 PM, Rahul Sharma wrote:
->> On 15 April 2014 18:41, Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
->>> On 04/15/2014 11:42 AM, Rahul Sharma wrote:
->>>> Hi Tomasz,
->>>>
->>>> On 15 April 2014 14:57, Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
->>>>> Adds support for limitation of maximal pixel clock of HDMI
->>>>> signal. This feature is needed on boards that contains
->>>>> lines or bridges with frequency limitations.
->>>>>
->>>>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> [snip]
->
->>>>> diff --git a/include/media/s5p_hdmi.h b/include/media/s5p_hdmi.h
->>>>> index 181642b..7272d65 100644
->>>>> --- a/include/media/s5p_hdmi.h
->>>>> +++ b/include/media/s5p_hdmi.h
->>>>> @@ -31,6 +31,7 @@ struct s5p_hdmi_platform_data {
->>>>>         int mhl_bus;
->>>>>         struct i2c_board_info *mhl_info;
->>>>>         int hpd_gpio;
->>>>> +       u32 max_pixel_clock;
->>>>>  };
->>>>
->>>> We have already removed Non DT support from the drm hdmi
->>>> driver. IMO we should not be extending the pdata struct.
->>>>
->>>> Regards,
->>>> Rahul Sharma
->>>
->>> Hi Rahul,
->>>
->>> This is not a non-DT patch. The s5p_hdmi_platform_data is
->>> generated from DT itself. This structure is just
->>> a parsed version of DT attributes.
->>>
->>> It may be a good idea to rename s5p_hdmi_platform_data
->>> to exynos_hdmi_pdata and move it to exynos_hdmi_drm.c file
->>> or parse DT directly in probe function.
->>>
->>> I can prepare a patch for that.
->>
->> Else we can completely remove the dependency from
->> s5p_hdmi_platform_data. We can directly assign to hdmi context
->> variables. Later we can remove that struct itself from include/.
->> What you say?
->
-> This structure cannot be removed from include yet because it is used by s5p-tv driver.
-> However its usage can be removed from both drivers.
-> I can prepare both.
->
+Hi Laurent,
 
-yea correct. but if you doing it for both of them, it can be removed, I guess.
-your call.
+On 07.04.2014 01:37, Laurent Pinchart wrote:
+> Hi Thomas,
+>
+> On Friday 04 April 2014 20:01:33 Scheuermann, Mail wrote:
+>> Hi Laurent,
+>>
+>> I've done the following:
+>>
+>> echo 3 >/sys/module/videobuf2_core/parameters/debug
+>>
+>> and found in /var/log/kern.log after starting my program:
+>>
+>> [239432.535077] vb2: Buffer 0, plane 0 offset 0x00000000
+>> [239432.535080] vb2: Buffer 1, plane 0 offset 0x001c2000
+>> [239432.535082] vb2: Buffer 2, plane 0 offset 0x00384000
+>> [239432.535083] vb2: Allocated 3 buffers, 1 plane(s) each
+>> [239432.535085] vb2: qbuf: userspace address for plane 0 changed,
+>> reacquiring memory
+>> [239432.535087] vb2: qbuf: failed acquiring userspace memory for plane 0
+> This confirms everything is working properly up to the point where videobuf2-
+> vmalloc fails to acquire the user pointer memory. The problem comes from
+> vb2_vmalloc_get_userptr() in drivers/media/v4l2-core/videobuf2-vmalloc.c.
+> Unfortunately that function lacks debugging. Are you familiar enough with
+> kernel programming to add printk statements there and see where it fails ?
+I was able to put some debug output in vb2_vmalloc_get_userptr.
+A call to 'vb2_get_contig_userptr' failed.
+I will also put some debug code there to get more information.
+>> [239432.535088] vb2: qbuf: buffer preparation failed: -22
+>> [239432.535128] vb2: streamoff: not streaming
 
-Regards,
-Rahul Sharma
-
->>
->> Regards,
->> Rahul Sharma
->>
->
-> Regards,
-> Tomasz Stanislawski
->
->>>
->>> Regards,
->>> Tomasz Stanislawski
->>>
->>>
->>>>
->>>>>
->>>>>  #endif /* S5P_HDMI_H */
->>>>> --
->>>>> 1.7.9.5
->>>>>
->>>>> _______________________________________________
->>>>> dri-devel mailing list
->>>>> dri-devel@lists.freedesktop.org
->>>>> http://lists.freedesktop.org/mailman/listinfo/dri-devel
->>>
->>
->
+This message is subject to the following terms and conditions: MAIL DISCLAIMER<http://www.barco.com/en/maildisclaimer>
