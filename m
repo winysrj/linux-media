@@ -1,58 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:12329 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750786AbaDAOei (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Apr 2014 10:34:38 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N3C005RLWHO7N90@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 01 Apr 2014 15:34:36 +0100 (BST)
-Message-id: <533ACE75.1040908@samsung.com>
-Date: Tue, 01 Apr 2014 16:34:29 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/5] s5p-fimc: Changed RGB32 to BGR32
-References: <1395780301.11851.14.camel@nicolas-tpx230>
- <1395780923.11851.21.camel@nicolas-tpx230>
-In-reply-to: <1395780923.11851.21.camel@nicolas-tpx230>
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+Received: from smtp-outbound-2.vmware.com ([208.91.2.13]:42142 "EHLO
+	smtp-outbound-2.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752312AbaDKTfK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Apr 2014 15:35:10 -0400
+Message-ID: <534843EA.6060602@vmware.com>
+Date: Fri, 11 Apr 2014 21:35:06 +0200
+From: Thomas Hellstrom <thellstrom@vmware.com>
+MIME-Version: 1.0
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+CC: Thomas Hellstrom <thellstrom@vmware.com>,
+	linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	ccross@google.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] [RFC v2 with seqcount] reservation: add suppport
+ for read-only access using rcu
+References: <20140409144239.26648.57918.stgit@patser> <20140409144831.26648.79163.stgit@patser> <53465A53.1090500@vmware.com> <53466D63.8080808@canonical.com> <53467B93.3000402@vmware.com> <5346B212.8050202@canonical.com> <5347A9FD.2070706@vmware.com> <5347B4E5.6090901@canonical.com> <5347BFC9.3020503@vmware.com> <53482FF1.1090406@canonical.com>
+In-Reply-To: <53482FF1.1090406@canonical.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25/03/14 21:55, Nicolas Dufresne wrote:
-> Testing showed that HW produces BGR32 rather then RGB32 as exposed
-> in the driver. The documentation seems to state the pixels are stored
-> in little endian order.
-> 
-> Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-> ---
->  drivers/media/platform/exynos4-is/fimc-core.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
-> index da2fc86..bfb80fb 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-core.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-core.c
-> @@ -56,8 +56,8 @@ static struct fimc_fmt fimc_formats[] = {
->  		.colplanes	= 1,
->  		.flags		= FMT_FLAGS_M2M,
->  	}, {
-> -		.name		= "ARGB8888, 32 bpp",
-> -		.fourcc		= V4L2_PIX_FMT_RGB32,
-> +		.name		= "BGRB888, 32 bpp",
+On 04/11/2014 08:09 PM, Maarten Lankhorst wrote:
+> op 11-04-14 12:11, Thomas Hellstrom schreef:
+>> On 04/11/2014 11:24 AM, Maarten Lankhorst wrote:
+>>> op 11-04-14 10:38, Thomas Hellstrom schreef:
+>>>> Hi, Maarten.
+>>>>
+>>>> Here I believe we encounter a lot of locking inconsistencies.
+>>>>
+>>>> First, it seems you're use a number of pointers as RCU pointers
+>>>> without
+>>>> annotating them as such and use the correct rcu
+>>>> macros when assigning those pointers.
+>>>>
+>>>> Some pointers (like the pointers in the shared fence list) are both
+>>>> used
+>>>> as RCU pointers (in dma_buf_poll()) for example,
+>>>> or considered protected by the seqlock
+>>>> (reservation_object_get_fences_rcu()), which I believe is OK, but then
+>>>> the pointers must
+>>>> be assigned using the correct rcu macros. In the memcpy in
+>>>> reservation_object_get_fences_rcu() we might get away with an
+>>>> ugly typecast, but with a verbose comment that the pointers are
+>>>> considered protected by the seqlock at that location.
+>>>>
+>>>> So I've updated (attached) the headers with proper __rcu annotation
+>>>> and
+>>>> locking comments according to how they are being used in the various
+>>>> reading functions.
+>>>> I believe if we want to get rid of this we need to validate those
+>>>> pointers using the seqlock as well.
+>>>> This will generate a lot of sparse warnings in those places needing
+>>>> rcu_dereference()
+>>>> rcu_assign_pointer()
+>>>> rcu_dereference_protected()
+>>>>
+>>>> With this I think we can get rid of all ACCESS_ONCE macros: It's not
+>>>> needed when the rcu_x() macros are used, and
+>>>> it's never needed for the members protected by the seqlock, (provided
+>>>> that the seq is tested). The only place where I think that's
+>>>> *not* the case is at the krealloc in
+>>>> reservation_object_get_fences_rcu().
+>>>>
+>>>> Also I have some more comments in the
+>>>> reservation_object_get_fences_rcu() function below:
+>>> I felt that the barriers needed for rcu were already provided by
+>>> checking the seqcount lock.
+>>> But looking at rcu_dereference makes it seem harmless to add it in
+>>> more places, it handles
+>>> the ACCESS_ONCE and barrier() for us.
+>> And it makes the code more maintainable, and helps sparse doing a lot of
+>> checking for us. I guess
+>> we can tolerate a couple of extra barriers for that.
+>>
+>>> We could probably get away with using RCU_INIT_POINTER on the writer
+>>> side,
+>>> because the smp_wmb is already done by arranging seqcount updates
+>>> correctly.
+>> Hmm. yes, probably. At least in the replace function. I think if we do
+>> it in other places, we should add comments as to where
+>> the smp_wmb() is located, for future reference.
+>>
+>>
+>> Also  I saw in a couple of places where you're checking the shared
+>> pointers, you're not checking for NULL pointers, which I guess may
+>> happen if shared_count and pointers are not in full sync?
+>>
+> No, because shared_count is protected with seqcount. I only allow
+> appending to the array, so when
+> shared_count is validated by seqcount it means that the
+> [0...shared_count) indexes are valid and non-null.
+> What could happen though is that the fence at a specific index is
+> updated with another one from the same
+> context, but that's harmless.
+>
 
-It should be "BGRA8888, 32 bpp", I can fix it when applying, if
-you won't send next version of this patch until then.
+Hmm, doesn't attaching an exclusive fence clear all shared fence
+pointers from under a reader?
 
-> +		.fourcc		= V4L2_PIX_FMT_BGR32,
->  		.depth		= { 32 },
->  		.color		= FIMC_FMT_RGB888,
->  		.memplanes	= 1,
+/Thomas
 
---
-Thanks!
-Sylwester
+
+
+
+
+> ~Maarten
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
