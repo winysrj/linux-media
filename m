@@ -1,89 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:53168 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933549AbaD3ODp (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:43408 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754371AbaDKO5c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Apr 2014 10:03:45 -0400
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: linux-kernel@vger.kernel.org (open list)
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	David Airlie <airlied@linux.ie>,
-	Inki Dae <inki.dae@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Figa <t.figa@samsung.com>,
-	Tomasz Stansislawski <t.stanislaws@samsung.com>,
-	linux-samsung-soc@vger.kernel.org (moderated list:ARM/S5P EXYNOS AR...),
-	linux-arm-kernel@lists.infradead.org (moderated list:ARM/S5P EXYNOS
-	AR...), dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org
-Subject: [RFC PATCH 2/4] drm/panel: add interface tracker support
-Date: Wed, 30 Apr 2014 16:02:52 +0200
-Message-id: <1398866574-27001-3-git-send-email-a.hajda@samsung.com>
-In-reply-to: <1398866574-27001-1-git-send-email-a.hajda@samsung.com>
-References: <1398866574-27001-1-git-send-email-a.hajda@samsung.com>
+	Fri, 11 Apr 2014 10:57:32 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: s.nawrocki@samsung.com, a.hajda@samsung.com,
+	kyungmin.park@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: [PATCH/RFC v3 2/5] leds: Improve and export led_update_brightness
+ function
+Date: Fri, 11 Apr 2014 16:56:53 +0200
+Message-id: <1397228216-6657-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1397228216-6657-1-git-send-email-j.anaszewski@samsung.com>
+References: <1397228216-6657-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drm_panel framework allows only query for presence of given panel.
-It also does not protect panel module from unloading and does not
-provide solution for driver unbinding. interface_tracker
-should solve both issues.
+led_update_brightness helper function used to be exploited
+only locally in the led-class.c module, where its result was
+being passed to the brightness_show sysfs callback. With the
+introduction of v4l2-flash subdevice the same functionality
+became required for reading current brightness from a LED
+device. This patch adds checking brightness_get callback
+error code and adds the function to the LED subsystem
+public API.
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 ---
----
- drivers/gpu/drm/drm_panel.c       | 5 +++++
- include/linux/interface_tracker.h | 2 ++
- 2 files changed, 7 insertions(+)
+ drivers/leds/led-class.c |    6 ------
+ drivers/leds/led-core.c  |   16 ++++++++++++++++
+ include/linux/leds.h     |   10 ++++++++++
+ 3 files changed, 26 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_panel.c b/drivers/gpu/drm/drm_panel.c
-index 2ef988e..72a3c5c 100644
---- a/drivers/gpu/drm/drm_panel.c
-+++ b/drivers/gpu/drm/drm_panel.c
-@@ -22,6 +22,7 @@
-  */
+diff --git a/drivers/leds/led-class.c b/drivers/leds/led-class.c
+index 58f16c3..7f285d7 100644
+--- a/drivers/leds/led-class.c
++++ b/drivers/leds/led-class.c
+@@ -24,12 +24,6 @@
  
- #include <linux/err.h>
-+#include <linux/interface_tracker.h>
- #include <linux/module.h>
+ static struct class *leds_class;
  
- #include <drm/drm_crtc.h>
-@@ -41,6 +42,8 @@ int drm_panel_add(struct drm_panel *panel)
- 	mutex_lock(&panel_lock);
- 	list_add_tail(&panel->list, &panel_list);
- 	mutex_unlock(&panel_lock);
-+	interface_tracker_ifup(panel->dev->of_node,
-+			       INTERFACE_TRACKER_TYPE_DRM_PANEL, panel);
- 
- 	return 0;
- }
-@@ -48,6 +51,8 @@ EXPORT_SYMBOL(drm_panel_add);
- 
- void drm_panel_remove(struct drm_panel *panel)
+-static void led_update_brightness(struct led_classdev *led_cdev)
+-{
+-	if (led_cdev->brightness_get)
+-		led_cdev->brightness = led_cdev->brightness_get(led_cdev);
+-}
+-
+ static ssize_t brightness_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
  {
-+	interface_tracker_ifdown(panel->dev->of_node,
-+				 INTERFACE_TRACKER_TYPE_DRM_PANEL, panel);
- 	mutex_lock(&panel_lock);
- 	list_del_init(&panel->list);
- 	mutex_unlock(&panel_lock);
-diff --git a/include/linux/interface_tracker.h b/include/linux/interface_tracker.h
-index e1eff00..0a08cba 100644
---- a/include/linux/interface_tracker.h
-+++ b/include/linux/interface_tracker.h
-@@ -6,6 +6,8 @@
- struct list_head;
- struct interface_tracker_block;
- 
-+#define INTERFACE_TRACKER_TYPE_DRM_PANEL 1
+diff --git a/drivers/leds/led-core.c b/drivers/leds/led-core.c
+index 71b40d3..376166c 100644
+--- a/drivers/leds/led-core.c
++++ b/drivers/leds/led-core.c
+@@ -126,3 +126,19 @@ void led_set_brightness(struct led_classdev *led_cdev,
+ 	__led_set_brightness(led_cdev, brightness);
+ }
+ EXPORT_SYMBOL(led_set_brightness);
 +
- typedef void (*interface_tracker_fn_t)(struct interface_tracker_block *itb,
- 				       const void *object, unsigned long type,
- 				       bool on, void *data);
++int led_update_brightness(struct led_classdev *led_cdev)
++{
++	int ret = 0;
++
++	if (led_cdev->brightness_get) {
++		ret = led_cdev->brightness_get(led_cdev);
++		if (ret >= 0) {
++			led_cdev->brightness = ret;
++			return 0;
++		}
++	}
++
++	return ret;
++}
++EXPORT_SYMBOL(led_update_brightness);
+diff --git a/include/linux/leds.h b/include/linux/leds.h
+index a794817..d085c21 100644
+--- a/include/linux/leds.h
++++ b/include/linux/leds.h
+@@ -174,6 +174,16 @@ extern void led_blink_set_oneshot(struct led_classdev *led_cdev,
+  */
+ extern void led_set_brightness(struct led_classdev *led_cdev,
+ 			       enum led_brightness brightness);
++/**
++ * led_update_brightness - update LED brightness
++ * @led_cdev: the LED to query
++ *
++ * Get an LED's current brightness and update led_cdev->brightness
++ * member with the obtained value.
++ *
++ * Returns: 0 on success or negative error value on failure
++ */
++extern int led_update_brightness(struct led_classdev *led_cdev);
+ 
+ /**
+  * led_sysfs_is_locked
 -- 
-1.8.3.2
+1.7.9.5
 
