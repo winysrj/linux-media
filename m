@@ -1,112 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3915 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758079AbaDICgM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 22:36:12 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s392a969080758
-	for <linux-media@vger.kernel.org>; Wed, 9 Apr 2014 04:36:11 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 472E12A03F8
-	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 04:35:52 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140409023552.472E12A03F8@tschai.lan>
-Date: Wed,  9 Apr 2014 04:35:52 +0200 (CEST)
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2811 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750817AbaDKJpd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Apr 2014 05:45:33 -0400
+Message-ID: <5347B9A3.2050301@xs4all.nl>
+Date: Fri, 11 Apr 2014 11:45:07 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Steve Cookson - IT <it@sca-uk.com>, linux-media@vger.kernel.org
+Subject: Re: Hauppauge ImpactVCB-e 01385
+References: <534675E1.6050408@sca-uk.com> <5347B132.6040206@sca-uk.com>
+In-Reply-To: <5347B132.6040206@sca-uk.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 04/11/2014 11:09 AM, Steve Cookson - IT wrote:
+> So I'm back to the Hauppauge ImpactVCB-e 01385.
+> 
+> Apparently it's fully supported by the current Linux kernel:
+> 
+> Model                 Standard Interface     Supported     Comments
+> ImpactVCB-e     Video PCIe                 ✔ Yes                 No 
+> tuners, only video-in. S-Video Capture works with kernel 3.5.0 (Ubuntu 
+> 12.10).
+> 
+> http://linuxtv.org/wiki/index.php/Hauppauge.
+> 
+> So is this a typo or have I just encountered an install problem?
 
-Results of the daily build of media_tree:
+I have serious doubts whether this is actually supported. I see no mention of
+that board in the cx23885 driver. I wonder if there is a mixup between the
+ImpactVCB (which IS supported) and the ImpactVCB-e.
 
-date:		Wed Apr  9 04:01:04 CEST 2014
-git branch:	test
-git hash:	a83b93a7480441a47856dc9104bea970e84cda87
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.13-7.slh.1-amd64
+> 
+>> When I plug in my 01385 I get the same old stuff in dmseg, ie:
+>>
+>> cx23885 driver version 0.0.3 loaded
+>> [ 8.921390] cx23885[0]: Your board isn't known (yet) to the driver.
+>> [ 8.921390] cx23885[0]: Try to pick one of the existing card configs via
+>> [ 8.921390] cx23885[0]: card=<n> insmod option. Updating to the latest
+>> [ 8.921390] cx23885[0]: version might help as well.
+>> [ 8.921393] cx23885[0]: Here is a list of valid choices for the 
+>> card=<n> insmod option:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+You can try some of the existing cards: one  of 1, 2, 3, 6, 20, 24, 32 might
+just work. Look in drivers/media/pci/cx23885/cx23885-cards.c.
 
-Detailed results are available here:
+Each card definition there defines the inputs that are supported by the card.
+There is no perfect match, so you will have to change inputs to see which
+input produces an image. You can also add a card definition yourself and
+just fiddle around with the vmux/amux/gpio values to see which work. It is
+probably something close to what is used by other Hauppauge cards.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+>>
+>> Etc.
+> Would the daily build resolve this?  I haven't installed it on this test 
+> system, but I'm never clear when I should install it or whether I should 
+> just download a single driver from somewhere.
 
-Full logs are available here:
+There is no point in using the daily build. The cx23885 driver hasn't been
+updated in a long time.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+Regards,
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+	Hans
