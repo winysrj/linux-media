@@ -1,273 +1,274 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:40331 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753854AbaDCXeJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Apr 2014 19:34:09 -0400
-Subject: [PATCH 34/49] rc-core: add ioctls for adding/removing keytables
- from userspace
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2616 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755497AbaDKIMY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Apr 2014 04:12:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Date: Fri, 04 Apr 2014 01:34:08 +0200
-Message-ID: <20140403233407.27099.87278.stgit@zeus.muc.hardeman.nu>
-In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
-References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Cc: pawel@osciak.com, sakari.ailus@iki.fi, m.szyprowski@samsung.com,
+	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv3 PATCH 11/13] vb2: start messages with a lower-case for consistency.
+Date: Fri, 11 Apr 2014 10:11:17 +0200
+Message-Id: <1397203879-37443-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
+References: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As all the basics are now in place, we can finally add the ioctls
-for adding/removing keytables from userspace.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
+The kernel debug messages produced by vb2 started either with a
+lower or an upper case character. Switched all to use lower-case
+which seemed to be what was used in the majority of the messages.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pawel Osciak <pawel@osciak.com>
 ---
- drivers/media/rc/rc-core-priv.h |    2 -
- drivers/media/rc/rc-keytable.c  |    5 ++
- drivers/media/rc/rc-main.c      |   81 ++++++++++++++++++++++++++++++++++++---
- include/media/rc-core.h         |   27 +++++++++++++
- 4 files changed, 106 insertions(+), 9 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 58 ++++++++++++++++----------------
+ 1 file changed, 29 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 02b538c..0159836 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -162,7 +162,7 @@ void rc_keytable_keyup(struct rc_keytable *kt);
- void rc_keytable_repeat(struct rc_keytable *kt);
- void rc_keytable_keydown(struct rc_keytable *kt, enum rc_type protocol,
- 			 u32 scancode, u8 toggle, bool autokeyup);
--struct rc_keytable *rc_keytable_create(struct rc_dev *dev, struct rc_map *rc_map);
-+struct rc_keytable *rc_keytable_create(struct rc_dev *dev, const char *name, struct rc_map *rc_map);
- void rc_keytable_destroy(struct rc_keytable *kt);
- 
- /* Only to be used by rc-core and ir-lirc-codec */
-diff --git a/drivers/media/rc/rc-keytable.c b/drivers/media/rc/rc-keytable.c
-index 412d342..6d04b8f 100644
---- a/drivers/media/rc/rc-keytable.c
-+++ b/drivers/media/rc/rc-keytable.c
-@@ -825,6 +825,7 @@ static void rc_input_close(struct input_dev *idev)
- /**
-  * rc_keytable_create() - create a new keytable
-  * @dev:	the struct rc_dev device this keytable should belong to
-+ * @name:	the userfriendly name of this keymap
-  * @rc_map:	the keymap to use for the new keytable
-  * @return:	zero on success or a negative error code
-  *
-@@ -832,7 +833,8 @@ static void rc_input_close(struct input_dev *idev)
-  * keytable and an input device along with some state (whether a key is
-  * currently pressed or not, etc).
-  */
--struct rc_keytable *rc_keytable_create(struct rc_dev *dev, struct rc_map *rc_map)
-+struct rc_keytable *rc_keytable_create(struct rc_dev *dev, const char *name,
-+				       struct rc_map *rc_map)
- {
- 	struct rc_keytable *kt;
- 	struct input_dev *idev = NULL;
-@@ -854,6 +856,7 @@ struct rc_keytable *rc_keytable_create(struct rc_dev *dev, struct rc_map *rc_map
- 	kt->dev = dev;
- 	spin_lock_init(&kt->keylock);
- 	spin_lock_init(&kt->rc_map.lock);
-+	snprintf(kt->name, sizeof(*kt->name), name ? name : "undefined");
- 	idev->getkeycode = ir_getkeycode;
- 	idev->setkeycode = ir_setkeycode;
- 	idev->open = rc_input_open;
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index bc2d479..ad784c8 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -201,7 +201,8 @@ void rc_repeat(struct rc_dev *dev)
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 6d28f49..aa96997 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -151,7 +151,7 @@ static void __vb2_buf_mem_free(struct vb2_buffer *vb)
+ 	for (plane = 0; plane < vb->num_planes; ++plane) {
+ 		call_memop(vb, put, vb->planes[plane].mem_priv);
+ 		vb->planes[plane].mem_priv = NULL;
+-		dprintk(3, "Freed plane %d of buffer %d\n", plane,
++		dprintk(3, "freed plane %d of buffer %d\n", plane,
+ 			vb->v4l2_buf.index);
+ 	}
  }
- EXPORT_SYMBOL_GPL(rc_repeat);
+@@ -246,7 +246,7 @@ static void __setup_offsets(struct vb2_queue *q, unsigned int n)
+ 		for (plane = 0; plane < vb->num_planes; ++plane) {
+ 			vb->v4l2_planes[plane].m.mem_offset = off;
  
--static int rc_add_keytable(struct rc_dev *dev, struct rc_map *rc_map)
-+static int rc_add_keytable(struct rc_dev *dev, const char *name,
-+			   struct rc_map *rc_map)
+-			dprintk(3, "Buffer %d, plane %d offset 0x%08lx\n",
++			dprintk(3, "buffer %d, plane %d offset 0x%08lx\n",
+ 					buffer, plane, off);
+ 
+ 			off += vb->v4l2_planes[plane].length;
+@@ -273,7 +273,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
+ 		/* Allocate videobuf buffer structures */
+ 		vb = kzalloc(q->buf_struct_size, GFP_KERNEL);
+ 		if (!vb) {
+-			dprintk(1, "Memory alloc for buffer struct failed\n");
++			dprintk(1, "memory alloc for buffer struct failed\n");
+ 			break;
+ 		}
+ 
+@@ -292,7 +292,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
+ 		if (memory == V4L2_MEMORY_MMAP) {
+ 			ret = __vb2_buf_mem_alloc(vb);
+ 			if (ret) {
+-				dprintk(1, "Failed allocating memory for "
++				dprintk(1, "failed allocating memory for "
+ 						"buffer %d\n", buffer);
+ 				kfree(vb);
+ 				break;
+@@ -304,7 +304,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
+ 			 */
+ 			ret = call_vb_qop(vb, buf_init, vb);
+ 			if (ret) {
+-				dprintk(1, "Buffer %d %p initialization"
++				dprintk(1, "buffer %d %p initialization"
+ 					" failed\n", buffer, vb);
+ 				fail_vb_qop(vb, buf_init);
+ 				__vb2_buf_mem_free(vb);
+@@ -320,7 +320,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
+ 	if (memory == V4L2_MEMORY_MMAP)
+ 		__setup_offsets(q, buffer);
+ 
+-	dprintk(1, "Allocated %d buffers, %d plane(s) each\n",
++	dprintk(1, "allocated %d buffers, %d plane(s) each\n",
+ 			buffer, num_planes);
+ 
+ 	return buffer;
+@@ -477,13 +477,13 @@ static int __verify_planes_array(struct vb2_buffer *vb, const struct v4l2_buffer
+ 
+ 	/* Is memory for copying plane information present? */
+ 	if (NULL == b->m.planes) {
+-		dprintk(1, "Multi-planar buffer passed but "
++		dprintk(1, "multi-planar buffer passed but "
+ 			   "planes array not provided\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (b->length < vb->num_planes || b->length > VIDEO_MAX_PLANES) {
+-		dprintk(1, "Incorrect planes array length, "
++		dprintk(1, "incorrect planes array length, "
+ 			   "expected %d, got %d\n", vb->num_planes, b->length);
+ 		return -EINVAL;
+ 	}
+@@ -846,7 +846,7 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 	/* Finally, allocate buffers and video memory */
+ 	allocated_buffers = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes);
+ 	if (allocated_buffers == 0) {
+-		dprintk(1, "Memory allocation failed\n");
++		dprintk(1, "memory allocation failed\n");
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -959,7 +959,7 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
+ 	allocated_buffers = __vb2_queue_alloc(q, create->memory, num_buffers,
+ 				num_planes);
+ 	if (allocated_buffers == 0) {
+-		dprintk(1, "Memory allocation failed\n");
++		dprintk(1, "memory allocation failed\n");
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -1106,7 +1106,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	 */
+ 	vb->cnt_buf_done++;
+ #endif
+-	dprintk(4, "Done processing on buffer %d, state: %d\n",
++	dprintk(4, "done processing on buffer %d, state: %d\n",
+ 			vb->v4l2_buf.index, state);
+ 
+ 	/* sync buffers */
+@@ -1816,7 +1816,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+ 		int ret;
+ 
+ 		if (!q->streaming) {
+-			dprintk(1, "Streaming off, will not wait for buffers\n");
++			dprintk(1, "streaming off, will not wait for buffers\n");
+ 			return -EINVAL;
+ 		}
+ 
+@@ -1828,7 +1828,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+ 		}
+ 
+ 		if (nonblocking) {
+-			dprintk(1, "Nonblocking and no buffers to dequeue, "
++			dprintk(1, "nonblocking and no buffers to dequeue, "
+ 								"will not wait\n");
+ 			return -EAGAIN;
+ 		}
+@@ -1843,7 +1843,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+ 		/*
+ 		 * All locks have been released, it is safe to sleep now.
+ 		 */
+-		dprintk(3, "Will sleep waiting for buffers\n");
++		dprintk(3, "will sleep waiting for buffers\n");
+ 		ret = wait_event_interruptible(q->done_wq,
+ 				!list_empty(&q->done_list) || !q->streaming);
+ 
+@@ -1853,7 +1853,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+ 		 */
+ 		call_qop(q, wait_finish, q);
+ 		if (ret) {
+-			dprintk(1, "Sleep was interrupted\n");
++			dprintk(1, "sleep was interrupted\n");
+ 			return ret;
+ 		}
+ 	}
+@@ -1908,7 +1908,7 @@ static int __vb2_get_done_vb(struct vb2_queue *q, struct vb2_buffer **vb,
+ int vb2_wait_for_all_buffers(struct vb2_queue *q)
  {
- 	struct rc_keytable *kt;
- 	unsigned i;
-@@ -219,7 +220,7 @@ static int rc_add_keytable(struct rc_dev *dev, struct rc_map *rc_map)
- 	if (i >= ARRAY_SIZE(dev->keytables))
- 		return -ENFILE;
+ 	if (!q->streaming) {
+-		dprintk(1, "Streaming off, will not wait for buffers\n");
++		dprintk(1, "streaming off, will not wait for buffers\n");
+ 		return -EINVAL;
+ 	}
  
--	kt = rc_keytable_create(dev, rc_map);
-+	kt = rc_keytable_create(dev, name, rc_map);
- 	if (IS_ERR(kt))
- 		return PTR_ERR(kt);
+@@ -1957,13 +1957,13 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
  
-@@ -229,19 +230,24 @@ static int rc_add_keytable(struct rc_dev *dev, struct rc_map *rc_map)
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_DONE:
+-		dprintk(3, "Returning done buffer\n");
++		dprintk(3, "returning done buffer\n");
+ 		break;
+ 	case VB2_BUF_STATE_ERROR:
+-		dprintk(3, "Returning done buffer with errors\n");
++		dprintk(3, "returning done buffer with errors\n");
+ 		break;
+ 	default:
+-		dprintk(1, "Invalid buffer state\n");
++		dprintk(1, "invalid buffer state\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -2237,17 +2237,17 @@ int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
+ 	struct dma_buf *dbuf;
+ 
+ 	if (q->memory != V4L2_MEMORY_MMAP) {
+-		dprintk(1, "Queue is not currently set up for mmap\n");
++		dprintk(1, "queue is not currently set up for mmap\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (!q->mem_ops->get_dmabuf) {
+-		dprintk(1, "Queue does not support DMA buffer exporting\n");
++		dprintk(1, "queue does not support DMA buffer exporting\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (eb->flags & ~(O_CLOEXEC | O_ACCMODE)) {
+-		dprintk(1, "Queue does support only O_CLOEXEC and access mode flags\n");
++		dprintk(1, "queue does support only O_CLOEXEC and access mode flags\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -2277,7 +2277,7 @@ int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
+ 
+ 	dbuf = call_memop(vb, get_dmabuf, vb_plane->mem_priv, eb->flags & O_ACCMODE);
+ 	if (IS_ERR_OR_NULL(dbuf)) {
+-		dprintk(1, "Failed to export buffer %d, plane %d\n",
++		dprintk(1, "failed to export buffer %d, plane %d\n",
+ 			eb->index, eb->plane);
+ 		fail_memop(vb, get_dmabuf);
+ 		return -EINVAL;
+@@ -2327,7 +2327,7 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
+ 	unsigned long length;
+ 
+ 	if (q->memory != V4L2_MEMORY_MMAP) {
+-		dprintk(1, "Queue is not currently set up for mmap\n");
++		dprintk(1, "queue is not currently set up for mmap\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -2335,17 +2335,17 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
+ 	 * Check memory area access mode.
+ 	 */
+ 	if (!(vma->vm_flags & VM_SHARED)) {
+-		dprintk(1, "Invalid vma flags, VM_SHARED needed\n");
++		dprintk(1, "invalid vma flags, VM_SHARED needed\n");
+ 		return -EINVAL;
+ 	}
+ 	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
+ 		if (!(vma->vm_flags & VM_WRITE)) {
+-			dprintk(1, "Invalid vma flags, VM_WRITE needed\n");
++			dprintk(1, "invalid vma flags, VM_WRITE needed\n");
+ 			return -EINVAL;
+ 		}
+ 	} else {
+ 		if (!(vma->vm_flags & VM_READ)) {
+-			dprintk(1, "Invalid vma flags, VM_READ needed\n");
++			dprintk(1, "invalid vma flags, VM_READ needed\n");
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -2381,7 +2381,7 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
+ 		return ret;
+ 	}
+ 
+-	dprintk(3, "Buffer %d, plane %d successfully mapped\n", buffer, plane);
++	dprintk(3, "buffer %d, plane %d successfully mapped\n", buffer, plane);
  	return 0;
  }
+ EXPORT_SYMBOL_GPL(vb2_mmap);
+@@ -2399,7 +2399,7 @@ unsigned long vb2_get_unmapped_area(struct vb2_queue *q,
+ 	int ret;
  
--static void rc_remove_keytable(struct rc_dev *dev, unsigned i)
-+static int rc_remove_keytable(struct rc_dev *dev, unsigned i)
- {
- 	struct rc_keytable *kt;
+ 	if (q->memory != V4L2_MEMORY_MMAP) {
+-		dprintk(1, "Queue is not currently set up for mmap\n");
++		dprintk(1, "queue is not currently set up for mmap\n");
+ 		return -EINVAL;
+ 	}
  
- 	if (i >= ARRAY_SIZE(dev->keytables))
--		return;
-+		return -EINVAL;
- 
- 	kt = dev->keytables[i];
- 	rcu_assign_pointer(dev->keytables[i], NULL);
- 	if (kt)
- 		list_del_rcu(&kt->node);
- 	synchronize_rcu();
-+
-+	if (!kt)
-+		return -EINVAL;
-+
- 	rc_keytable_destroy(kt);
-+	return 0;
- }
- 
- /* class for /sys/class/rc */
-@@ -946,6 +952,8 @@ static long rc_do_ioctl(struct rc_dev *dev, unsigned int cmd, unsigned long arg)
- 	unsigned int __user *ip = (unsigned int __user *)p;
- 	struct rc_ir_rx rx;
- 	struct rc_ir_tx tx;
-+	struct rc_keytable_ioctl ktio;
-+	struct rc_keytable *kt;
- 	int error;
- 
- 	switch (cmd) {
-@@ -1007,8 +1015,69 @@ static long rc_do_ioctl(struct rc_dev *dev, unsigned int cmd, unsigned long arg)
- 			return -EFAULT;
- 
- 		return 0;
--	}
- 
-+	case RCIOCADDTABLE:
-+		if (copy_from_user(&ktio, p, sizeof(ktio)))
-+			return -EFAULT;
-+
-+		if (ktio.id >= RC_MAX_KEYTABLES)
-+			return -EINVAL;
-+
-+		if (ktio.flags)
-+			return -EINVAL;
-+
-+		ktio.name[sizeof(ktio.name) - 1] = '\0';
-+		if (strlen(ktio.name) < 1)
-+			return -EINVAL;
-+
-+		error = rc_add_keytable(dev, ktio.name, NULL);
-+		if (error < 0)
-+			return error;
-+		ktio.id = error;
-+
-+		if (copy_to_user(p, &ktio, sizeof(ktio)))
-+			return -EFAULT;
-+
-+		return 0;
-+
-+	case RCIOCGTABLENAME:
-+		if (copy_from_user(&ktio, p, sizeof(ktio)))
-+			return -EFAULT;
-+
-+		if (ktio.id >= RC_MAX_KEYTABLES)
-+			return -EINVAL;
-+
-+		if (ktio.flags)
-+			return -EINVAL;
-+
-+		rcu_read_lock();
-+		kt = rcu_dereference(dev->keytables[ktio.id]);
-+		if (kt) {
-+			ktio.name[0] = '\0';
-+			strncat(ktio.name, kt->name, sizeof(ktio.name));
-+		}
-+		rcu_read_unlock();
-+
-+		if (!kt)
-+			return -EINVAL;
-+
-+		if (copy_to_user(p, &ktio, sizeof(ktio)))
-+			return -EFAULT;
-+
-+		return 0;
-+
-+	case RCIOCDELTABLE:
-+		if (copy_from_user(&ktio, p, sizeof(ktio)))
-+			return -EFAULT;
-+
-+		if (ktio.id >= RC_MAX_KEYTABLES)
-+			return -EINVAL;
-+
-+		if (ktio.flags)
-+			return -EINVAL;
-+
-+		return rc_remove_keytable(dev, ktio.id);
-+	}
- 	return -EINVAL;
- }
- 
-@@ -1276,7 +1345,7 @@ int rc_register_device(struct rc_dev *dev)
- 	if (rc)
- 		goto out_cdev;
- 
--	rc = rc_add_keytable(dev, rc_map);
-+	rc = rc_add_keytable(dev, dev->map_name, rc_map);
- 	if (rc)
- 		goto out_dev;
- 
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index f48d5cd..6f282e6 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -153,6 +153,29 @@ struct rc_ir_tx {
- 	__u32 reserved[9];
- } __packed;
- 
-+/* add a keytable */
-+#define RCIOCADDTABLE	_IOC(_IOC_READ | _IOC_WRITE, RC_IOC_MAGIC, 0x06, sizeof(struct rc_keytable_ioctl))
-+
-+/* get the name of a keytable */
-+#define RCIOCGTABLENAME	_IOC(_IOC_READ, RC_IOC_MAGIC, 0x06, sizeof(struct rc_keytable_ioctl))
-+
-+/* remove a keytable */
-+#define RCIOCDELTABLE	_IOC(_IOC_WRITE, RC_IOC_MAGIC, 0x06, sizeof(struct rc_keytable_ioctl))
-+
-+/**
-+ * struct rc_keytable_ioctl - used to alter keytables
-+ * @id: the id of the keytable
-+ * @flags: flags for the keytable
-+ * @reserved: for future use, set to zero
-+ * @name: a user-friendly name for the keytable
-+ */
-+#define RC_KEYTABLE_NAME_SIZE	128
-+struct rc_keytable_ioctl {
-+	__u32 id;
-+	__u32 flags;
-+	__u32 reserved[4];
-+	char name[RC_KEYTABLE_NAME_SIZE];
-+} __packed;
- 
- enum rc_driver_type {
- 	RC_DRIVER_SCANCODE = 0,	/* Driver or hardware generates a scancode */
-@@ -303,7 +326,7 @@ enum rc_filter_type {
-  * @get_ir_tx: allow driver to provide tx settings
-  * @set_ir_tx: allow driver to change tx settings
-  */
--#define RC_MAX_KEYTABLES		1
-+#define RC_MAX_KEYTABLES		32
- struct rc_dev {
- 	struct device			dev;
- 	struct cdev			cdev;
-@@ -367,6 +390,7 @@ struct rc_dev {
-  * @node:		used to iterate over all keytables for a rc_dev device
-  * @dev:		the rc_dev device this keytable belongs to
-  * @idev:		the input_dev device which belongs to this keytable
-+ * @name:		the user-friendly name of this keytable
-  * @rc_map:		holds the scancode <-> keycode mappings
-  * @keypressed:		whether a key is currently pressed or not
-  * @keyup_jiffies:	when the key should be auto-released
-@@ -381,6 +405,7 @@ struct rc_keytable {
- 	struct list_head		node;
- 	struct rc_dev			*dev;
- 	struct input_dev		*idev;
-+	char				name[RC_KEYTABLE_NAME_SIZE];
- 	struct rc_map			rc_map;
- 	bool				keypressed;
- 	unsigned long			keyup_jiffies;
+-- 
+1.9.1
 
