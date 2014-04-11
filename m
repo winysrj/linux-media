@@ -1,56 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:54988 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758374AbaDII2k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 04:28:40 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N3R00M0L8VH0Z60@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 09 Apr 2014 09:28:29 +0100 (BST)
-Message-id: <534504B6.2020202@samsung.com>
-Date: Wed, 09 Apr 2014 10:28:38 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH 7/8] [media] s5p_jpeg: Prevent JPEG 4:2:0 > YUV 4:2:0
- decompression
-References: <1396876573-15811-1-git-send-email-j.anaszewski@samsung.com>
- <1396876573-15811-7-git-send-email-j.anaszewski@samsung.com>
- <CAK9yfHxXRXagZVAZhGjqH+qVGTAdP-=PnFw4O7HEU09UNB5Tsg@mail.gmail.com>
- <5344F747.6080103@samsung.com>
- <CAK9yfHz+F=pfNN7nQn-HE5L=uux+cVhBRoHa4wMjRT1VZTRTyw@mail.gmail.com>
-In-reply-to: <CAK9yfHz+F=pfNN7nQn-HE5L=uux+cVhBRoHa4wMjRT1VZTRTyw@mail.gmail.com>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1427 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750817AbaDKIqD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Apr 2014 04:46:03 -0400
+Message-ID: <5347ABB2.1010101@xs4all.nl>
+Date: Fri, 11 Apr 2014 10:45:38 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Pawel Osciak <pawel@osciak.com>
+Subject: Re: [PATCHv2 for v3.15] vb2: call finish() memop for prepared/queued
+ buffers
+References: <5335605D.5070106@xs4all.nl>
+In-Reply-To: <5335605D.5070106@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/09/2014 09:56 AM, Sachin Kamat wrote:
-> Hi Jacek,
->
-> On 9 April 2014 13:01, Jacek Anaszewski <j.anaszewski@samsung.com> wrote:
->> On 04/08/2014 09:49 AM, Sachin Kamat wrote:
->>>
->
->> Hello Sachin,
->>
->> Thanks for the review. I put it into info message because this is
->> rather hard for the user to figure out why the adjustment occurred,
->> bearing in mind that JPEG with the same subsampling and even width
->> is decompressed properly. This is not a common adjustment like
->> alignment, and thus in my opinion it requires displaying the
->> information. Are there some rules that say what cases are relevant
->> for using the v4l2_info macro?
->
-> Not really, but generally info messages are concise and detailed explanations
-> provided as part of comments.
->
+Please ignore this patch. This isn't valid for the current 3.15 tree. It will
+become relevant later after additional patches have been applied.
 
-Thanks for the explanation, I will stick to it.
+I've rejected this patch in patchwork.
 
 Regards,
-Jacek Anaszewski
+
+	Hans
+
+On 03/28/2014 12:43 PM, Hans Verkuil wrote:
+> This supersedes "[PATCH for v3.15] vb2: call __buf_finish_memory for
+> prepared/queued buffers". I realized that that patch was for an internal
+> git branch and didn't apply to the master branch. The fix is the same,
+> though.
+> 
+> v4l2-compliance reports unbalanced prepare/finish memops in the case
+> where buffers are queued, streamon is never called and then reqbufs()
+> is called that has to cancel any queued buffers.
+> 
+> When canceling a queue the finish() memop should be called for all
+> buffers in the state 'PREPARED' or 'QUEUED' to ensure the prepare() and
+> finish() memops are balanced.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 16 +++++++++++++---
+>  1 file changed, 13 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index f9059bb..cc1bd5a 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1063,6 +1063,15 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no)
+>  }
+>  EXPORT_SYMBOL_GPL(vb2_plane_cookie);
+>  
+> +static void vb2_buffer_finish(struct vb2_buffer *vb)
+> +{
+> +	unsigned plane;
+> +
+> +	/* sync buffers */
+> +	for (plane = 0; plane < vb->num_planes; ++plane)
+> +		call_memop(vb, finish, vb->planes[plane].mem_priv);
+> +}
+> +
+>  /**
+>   * vb2_buffer_done() - inform videobuf that an operation on a buffer is finished
+>   * @vb:		vb2_buffer returned from the driver
+> @@ -1086,7 +1095,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>  {
+>  	struct vb2_queue *q = vb->vb2_queue;
+>  	unsigned long flags;
+> -	unsigned int plane;
+>  
+>  	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
+>  		return;
+> @@ -1111,8 +1119,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>  			vb->v4l2_buf.index, state);
+>  
+>  	/* sync buffers */
+> -	for (plane = 0; plane < vb->num_planes; ++plane)
+> -		call_memop(vb, finish, vb->planes[plane].mem_priv);
+> +	vb2_buffer_finish(vb);
+>  
+>  	/* Add the buffer to the done buffers list */
+>  	spin_lock_irqsave(&q->done_lock, flags);
+> @@ -2041,6 +2048,9 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+>  		struct vb2_buffer *vb = q->bufs[i];
+>  
+>  		if (vb->state != VB2_BUF_STATE_DEQUEUED) {
+> +			if (vb->state == VB2_BUF_STATE_QUEUED ||
+> +			    vb->state == VB2_BUF_STATE_PREPARED)
+> +				vb2_buffer_finish(vb);
+>  			vb->state = VB2_BUF_STATE_PREPARED;
+>  			call_vb_qop(vb, buf_finish, vb);
+>  		}
+> 
+
