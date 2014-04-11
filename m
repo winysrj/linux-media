@@ -1,44 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38905 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754368AbaDQONq (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:48870 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756250AbaDKJY5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 10:13:46 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v4 49/49] adv7604: Mark adv7604_of_id table with __maybe_unused
-Date: Thu, 17 Apr 2014 16:13:20 +0200
-Message-Id: <1397744000-23967-50-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 11 Apr 2014 05:24:57 -0400
+Message-ID: <5347B4E5.6090901@canonical.com>
+Date: Fri, 11 Apr 2014 11:24:53 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+MIME-Version: 1.0
+To: Thomas Hellstrom <thellstrom@vmware.com>
+CC: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	ccross@google.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] [RFC v2 with seqcount] reservation: add suppport
+ for read-only access using rcu
+References: <20140409144239.26648.57918.stgit@patser> <20140409144831.26648.79163.stgit@patser> <53465A53.1090500@vmware.com> <53466D63.8080808@canonical.com> <53467B93.3000402@vmware.com> <5346B212.8050202@canonical.com> <5347A9FD.2070706@vmware.com>
+In-Reply-To: <5347A9FD.2070706@vmware.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The table is always declared but is unused when both CONFIG_OF and
-CONFIG_MODULES are not set. This results in a compile warning. Fix it by
-marking the table as __maybe_unused. The compiler will discard it if
-unused.
+op 11-04-14 10:38, Thomas Hellstrom schreef:
+> Hi, Maarten.
+>
+> Here I believe we encounter a lot of locking inconsistencies.
+>
+> First, it seems you're use a number of pointers as RCU pointers without
+> annotating them as such and use the correct rcu
+> macros when assigning those pointers.
+>
+> Some pointers (like the pointers in the shared fence list) are both used
+> as RCU pointers (in dma_buf_poll()) for example,
+> or considered protected by the seqlock
+> (reservation_object_get_fences_rcu()), which I believe is OK, but then
+> the pointers must
+> be assigned using the correct rcu macros. In the memcpy in
+> reservation_object_get_fences_rcu() we might get away with an
+> ugly typecast, but with a verbose comment that the pointers are
+> considered protected by the seqlock at that location.
+>
+> So I've updated (attached) the headers with proper __rcu annotation and
+> locking comments according to how they are being used in the various
+> reading functions.
+> I believe if we want to get rid of this we need to validate those
+> pointers using the seqlock as well.
+> This will generate a lot of sparse warnings in those places needing
+> rcu_dereference()
+> rcu_assign_pointer()
+> rcu_dereference_protected()
+>
+> With this I think we can get rid of all ACCESS_ONCE macros: It's not
+> needed when the rcu_x() macros are used, and
+> it's never needed for the members protected by the seqlock, (provided
+> that the seq is tested). The only place where I think that's
+> *not* the case is at the krealloc in reservation_object_get_fences_rcu().
+>
+> Also I have some more comments in the
+> reservation_object_get_fences_rcu() function below:
+I felt that the barriers needed for rcu were already provided by checking the seqcount lock.
+But looking at rcu_dereference makes it seem harmless to add it in more places, it handles
+the ACCESS_ONCE and barrier() for us.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/adv7604.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+We could probably get away with using RCU_INIT_POINTER on the writer side,
+because the smp_wmb is already done by arranging seqcount updates correctly.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 51029e1..1778d32 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2672,7 +2672,7 @@ static struct i2c_device_id adv7604_i2c_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
- 
--static struct of_device_id adv7604_of_id[] = {
-+static struct of_device_id adv7604_of_id[] __maybe_unused = {
- 	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
- 	{ }
- };
--- 
-1.8.3.2
-
+> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+> index d89a98d2c37b..ca6ef0c4b358 100644
+> --- a/drivers/base/dma-buf.c
+> +++ b/drivers/base/dma-buf.c
+>
+> +int reservation_object_get_fences_rcu(struct reservation_object *obj,
+> +                      struct fence **pfence_excl,
+> +                      unsigned *pshared_count,
+> +                      struct fence ***pshared)
+> +{
+> +    unsigned shared_count = 0;
+> +    unsigned retry = 1;
+> +    struct fence **shared = NULL, *fence_excl = NULL;
+> +    int ret = 0;
+> +
+> +    while (retry) {
+> +        struct reservation_object_list *fobj;
+> +        unsigned seq, retry;
+> You're shadowing retry?
+Oops.
+>
+>> +
+>> +        seq = read_seqcount_begin(&obj->seq);
+>> +
+>> +        rcu_read_lock();
+>> +
+>> +        fobj = ACCESS_ONCE(obj->fence);
+>> +        if (fobj) {
+>> +            struct fence **nshared;
+>> +
+>> +            shared_count = ACCESS_ONCE(fobj->shared_count);
+>> +            nshared = krealloc(shared, sizeof(*shared) *
+>> shared_count, GFP_KERNEL);
+> krealloc inside rcu_read_lock(). Better to put this first in the loop.
+Except that shared_count isn't known until the rcu_read_lock is taken.
+> Thanks,
+> Thomas
+~Maarten
