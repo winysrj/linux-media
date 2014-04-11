@@ -1,124 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:40349 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754081AbaDCXez (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Apr 2014 19:34:55 -0400
-Subject: [PATCH 43/49] rc-core: fix various sparse warnings
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3228 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751177AbaDKIMJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Apr 2014 04:12:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Date: Fri, 04 Apr 2014 01:34:53 +0200
-Message-ID: <20140403233453.27099.14425.stgit@zeus.muc.hardeman.nu>
-In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
-References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Cc: pawel@osciak.com, sakari.ailus@iki.fi, m.szyprowski@samsung.com,
+	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv3 PATCH 02/13] vb2: fix handling of data_offset and v4l2_plane.reserved[]
+Date: Fri, 11 Apr 2014 10:11:08 +0200
+Message-Id: <1397203879-37443-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
+References: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix various sparse warnings under drivers/media/rc/*.c, mostly
-by making functions static.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
+The videobuf2-core did not zero the 'planes' array in __qbuf_userptr()
+and __qbuf_dmabuf(). That's now memset to 0. Without this the reserved
+array in struct v4l2_plane would be non-zero, causing v4l2-compliance
+errors.
+
+More serious is the fact that data_offset was not handled correctly:
+
+- for capture devices it was never zeroed, which meant that it was
+  uninitialized. Unless the driver sets it it was a completely random
+  number. With the memset above this is now fixed.
+
+- __qbuf_dmabuf had a completely incorrect length check that included
+  data_offset.
+
+- in __fill_vb2_buffer in the DMABUF case the data_offset field was
+  unconditionally copied from v4l2_buffer to v4l2_plane when this
+  should only happen in the output case.
+
+- in the single-planar case data_offset was never correctly set to 0.
+  The single-planar API doesn't support data_offset, so setting it
+  to 0 is the right thing to do. This too is now solved by the memset.
+
+All these issues were found with v4l2-compliance.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pawel Osciak <pawel@osciak.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/rc/fintek-cir.c  |    4 ++--
- drivers/media/rc/imon.c        |    8 ++++----
- drivers/media/rc/ite-cir.c     |    4 ++--
- drivers/media/rc/nuvoton-cir.c |    4 ++--
- 4 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/rc/fintek-cir.c b/drivers/media/rc/fintek-cir.c
-index ce2db15..dd49c28 100644
---- a/drivers/media/rc/fintek-cir.c
-+++ b/drivers/media/rc/fintek-cir.c
-@@ -685,12 +685,12 @@ static struct pnp_driver fintek_driver = {
- 	.shutdown	= fintek_shutdown,
- };
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index f9059bb..596998e 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1169,8 +1169,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 					b->m.planes[plane].m.fd;
+ 				v4l2_planes[plane].length =
+ 					b->m.planes[plane].length;
+-				v4l2_planes[plane].data_offset =
+-					b->m.planes[plane].data_offset;
+ 			}
+ 		}
+ 	} else {
+@@ -1180,10 +1178,8 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 		 * In videobuf we use our internal V4l2_planes struct for
+ 		 * single-planar buffers as well, for simplicity.
+ 		 */
+-		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
++		if (V4L2_TYPE_IS_OUTPUT(b->type))
+ 			v4l2_planes[0].bytesused = b->bytesused;
+-			v4l2_planes[0].data_offset = 0;
+-		}
  
--static int fintek_init(void)
-+static int __init fintek_init(void)
- {
- 	return pnp_register_driver(&fintek_driver);
- }
+ 		if (b->memory == V4L2_MEMORY_USERPTR) {
+ 			v4l2_planes[0].m.userptr = b->m.userptr;
+@@ -1193,9 +1189,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 		if (b->memory == V4L2_MEMORY_DMABUF) {
+ 			v4l2_planes[0].m.fd = b->m.fd;
+ 			v4l2_planes[0].length = b->length;
+-			v4l2_planes[0].data_offset = 0;
+ 		}
+-
+ 	}
  
--static void fintek_exit(void)
-+static void __exit fintek_exit(void)
- {
- 	pnp_unregister_driver(&fintek_driver);
- }
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index 1aa2ac0..287edf6 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -78,11 +78,11 @@ static int display_open(struct inode *inode, struct file *file);
- static int display_close(struct inode *inode, struct file *file);
+ 	/* Zero flags that the vb2 core handles */
+@@ -1238,6 +1232,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
+ 	bool reacquired = vb->planes[0].mem_priv == NULL;
  
- /* VFD write operation */
--static ssize_t vfd_write(struct file *file, const char *buf,
-+static ssize_t vfd_write(struct file *file, const char __user *buf,
- 			 size_t n_bytes, loff_t *pos);
++	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+ 	/* Copy relevant information provided by the userspace */
+ 	__fill_vb2_buffer(vb, b, planes);
  
- /* LCD file_operations override function prototypes */
--static ssize_t lcd_write(struct file *file, const char *buf,
-+static ssize_t lcd_write(struct file *file, const char __user *buf,
- 			 size_t n_bytes, loff_t *pos);
+@@ -1357,6 +1352,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
+ 	bool reacquired = vb->planes[0].mem_priv == NULL;
  
- /*** G L O B A L S ***/
-@@ -825,7 +825,7 @@ static struct attribute_group imon_rf_attr_group = {
-  * than 32 bytes are provided spaces will be appended to
-  * generate a full screen.
-  */
--static ssize_t vfd_write(struct file *file, const char *buf,
-+static ssize_t vfd_write(struct file *file, const char __user *buf,
- 			 size_t n_bytes, loff_t *pos)
- {
- 	int i;
-@@ -912,7 +912,7 @@ exit:
-  * display whatever diacritics you need, and so on), but it's also
-  * a lot more complicated than most LCDs...
-  */
--static ssize_t lcd_write(struct file *file, const char *buf,
-+static ssize_t lcd_write(struct file *file, const char __user *buf,
- 			 size_t n_bytes, loff_t *pos)
- {
- 	int retval = 0;
-diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
-index 795fbc6..2755e06 100644
---- a/drivers/media/rc/ite-cir.c
-+++ b/drivers/media/rc/ite-cir.c
-@@ -1703,12 +1703,12 @@ static struct pnp_driver ite_driver = {
- 	.shutdown	= ite_shutdown,
- };
++	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+ 	/* Copy relevant information provided by the userspace */
+ 	__fill_vb2_buffer(vb, b, planes);
  
--static int ite_init(void)
-+static int __init ite_init(void)
- {
- 	return pnp_register_driver(&ite_driver);
- }
+@@ -1374,8 +1370,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		if (planes[plane].length == 0)
+ 			planes[plane].length = dbuf->size;
  
--static void ite_exit(void)
-+static void __exit ite_exit(void)
- {
- 	pnp_unregister_driver(&ite_driver);
- }
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index a8c9b5f..9e63ee6 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -1231,12 +1231,12 @@ static struct pnp_driver nvt_driver = {
- 	.shutdown	= nvt_shutdown,
- };
- 
--static int nvt_init(void)
-+static int __init nvt_init(void)
- {
- 	return pnp_register_driver(&nvt_driver);
- }
- 
--static void nvt_exit(void)
-+static void __exit nvt_exit(void)
- {
- 	pnp_unregister_driver(&nvt_driver);
- }
+-		if (planes[plane].length < planes[plane].data_offset +
+-		    q->plane_sizes[plane]) {
++		if (planes[plane].length < q->plane_sizes[plane]) {
+ 			dprintk(1, "qbuf: invalid dmabuf length for plane %d\n",
+ 				plane);
+ 			ret = -EINVAL;
+-- 
+1.9.1
 
