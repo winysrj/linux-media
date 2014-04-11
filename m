@@ -1,60 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44360 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933040AbaDBTaW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Apr 2014 15:30:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: media-workshop@linuxtv.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [media-workshop] [ANNOUNCE] media mini-summit on May, 2 in San Jose
-Date: Wed, 02 Apr 2014 21:32:23 +0200
-Message-ID: <1570966.yIK7hnZCMG@avalon>
-In-Reply-To: <1754746.9uKMiF2pdG@avalon>
-References: <20140319160227.27a37e90@samsung.com> <1754746.9uKMiF2pdG@avalon>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3411 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754198AbaDKNEN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Apr 2014 09:04:13 -0400
+Message-ID: <5347E829.2030102@xs4all.nl>
+Date: Fri, 11 Apr 2014 15:03:37 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org
+CC: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv2 PATCH 02/13] vb2: fix handling of data_offset and v4l2_plane.reserved[]
+References: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl> <1396876272-18222-3-git-send-email-hverkuil@xs4all.nl> <5347E49E.6020302@samsung.com>
+In-Reply-To: <5347E49E.6020302@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-
-On Thursday 20 March 2014 00:45:38 Laurent Pinchart wrote:
-> On Wednesday 19 March 2014 16:02:27 Mauro Carvalho Chehab wrote:
-> > As discussed on our IRC #v4l channels, most of the core developers will be
-> > in San Jose - CA - USA for the Embedded Linux Conference.
-> > 
-> > There are several subjects that we've been discussing those days that
-> > require a face to face meeting.
-> > 
-> > So, We'll be doing a media mini-summit on May, 2 (Friday) at Marriott San
-> > Jose. Eventually, we may also schedule some BoFs during the week, if
-> > needed.
-> > 
-> > In order to properly organize the event, I need the name of the
-> > developers interested on joining us, plus the themes proposed for
-> > discussions.
+On 04/11/2014 02:48 PM, Tomasz Stanislawski wrote:
+> On 04/07/2014 03:11 PM, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> The videobuf2-core did not zero the 'planes' array in __qbuf_userptr()
+>> and __qbuf_dmabuf(). That's now memset to 0. Without this the reserved
+>> array in struct v4l2_plane would be non-zero, causing v4l2-compliance
+>> errors.
+>>
+>> More serious is the fact that data_offset was not handled correctly:
+>>
+>> - for capture devices it was never zeroed, which meant that it was
+>>   uninitialized. Unless the driver sets it it was a completely random
+>>   number. With the memset above this is now fixed.
+>>
+>> - __qbuf_dmabuf had a completely incorrect length check that included
+>>   data_offset.
 > 
-> Please count me in.
+> Hi Hans,
 > 
-> Possible topics:
+> I may understand it wrongly but IMO allowing non-zero data offset
+> simplifies buffer sharing using dmabuf.
+> I remember a problem that occurred when someone wanted to use
+> a single dmabuf with multiplanar API.
 > 
-> - Integration of the of-graph helpers and the component framework
-> (drivers/base/component.c) in V4L2
+> For example, MFC shares a buffer with DRM. Assume that DRM device
+> forces the whole image to be located in one dmabuf.
 > 
-> - Format and selection rectangles interaction (Hans is working on adding
-> test cases for this to the compliance tools and ht reported that several
-> points were not clear)
+> The MFC uses multiplanar API therefore application must use
+> the same dmabuf to describe luma and chroma planes.
+> 
+> It is intuitive to use the same dmabuf for both planes and
+> data_offset=0 for luma plane and data_offset = luma_size
+> for chroma offset.
+> 
+> The check:
+> 
+>> -		if (planes[plane].length < planes[plane].data_offset +
+>> -		    q->plane_sizes[plane]) {
+> 
+> assured that the logical plane does not overflow the dmabuf.
+> 
+> Am I wrong?
 
-And another one:
+Yes :-)
 
-- Patch review process: several developers were unhappy with patch series 
-posted a month before being rejected right before the mainline merge window. 
-Should our process be improved in that area ?
+For video capture the data_offset field is set by the *driver*, not the
+application. In practice data_offset is the size of a header that is in
+front of the actual image.
 
--- 
+You cannot use data_offset for the purpose you describe. To do that a new
+offset field would have to be added (user_offset?). I'm not opposed to
+that, I think it is a valid use-case for both dmabuf and userptr and
+even mmap in combination with CREATE_BUFS.
+
 Regards,
 
-Laurent Pinchart
-
+	Hans
