@@ -1,115 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2764 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751286AbaDPCf4 (ORCPT
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:14379 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755018AbaDKU2d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 22:35:56 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s3G2ZrqF069708
-	for <linux-media@vger.kernel.org>; Wed, 16 Apr 2014 04:35:55 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id A73F42A0410
-	for <linux-media@vger.kernel.org>; Wed, 16 Apr 2014 04:35:49 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140416023549.A73F42A0410@tschai.lan>
-Date: Wed, 16 Apr 2014 04:35:49 +0200 (CEST)
+	Fri, 11 Apr 2014 16:28:33 -0400
+Message-id: <5348506C.6000604@samsung.com>
+Date: Fri, 11 Apr 2014 14:28:28 -0600
+From: Shuah Khan <shuah.kh@samsung.com>
+Reply-to: shuah.kh@samsung.com
+MIME-version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>,
+	Greg KH <gregkh@linuxfoundation.org>
+Cc: tj@kernel.org, rafael.j.wysocki@intel.com, linux@roeck-us.net,
+	toshi.kani@hp.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, shuahkhan@gmail.com,
+	Shuah Khan <shuah.kh@samsung.com>
+Subject: Re: [RFC PATCH 0/2] managed token devres interfaces
+References: <cover.1397050852.git.shuah.kh@samsung.com>
+ <20140409191740.GA10748@kroah.com> <5345CD32.8010305@samsung.com>
+ <20140410120435.4c439a8b@alan.etchedpixels.co.uk>
+ <20140410083841.488f9c43@samsung.com>
+ <20140410124653.64aeb06d@alan.etchedpixels.co.uk>
+ <20140410113949.7de1312b@samsung.com>
+In-reply-to: <20140410113949.7de1312b@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Here is an example driver use-case for this token resource: This is not 
+polished, but should give an idea on this new token resource is intended 
+to be used:
 
-Results of the daily build of media_tree:
+- create token resources in em28xx_usb_probe() right before the required 
+modules are loaded. It creates tuner, video and audio tokens to use as a 
+large grain lock on tuner, video DMA engine, and audio DMA engine 
+respectively.
 
-date:		Wed Apr 16 04:00:12 CEST 2014
-git branch:	test
-git hash:	30ece903f5470cf80971a5f2dc6924dd62d5d96c
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.13-7.slh.1-amd64
+- lock video token in em28xx_init_usb_xfer()
+- unlock in em28xx_uninit_usb_xfer()
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12-i686: WARNINGS
-linux-3.13-i686: WARNINGS
-linux-3.14-i686: WARNINGS
-linux-3.15-rc1-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12-x86_64: WARNINGS
-linux-3.13-x86_64: WARNINGS
-linux-3.14-x86_64: WARNINGS
-linux-3.15-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+- destroy token in em28xx_release_resources()
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+I did some hotplug testing with this:
 
-Full logs are available here:
+dmesg | grep token
+[  771.613332] usb 8-1: devm_token_create(): created token: 
+tuner:8-1-0000:00:10.1-0
+[  771.613335] em2874 #0: devm_token_create() returned 0
+[  771.613340] usb 8-1: devm_token_create(): created token: 
+video:8-1-0000:00:10.1
+[  851.202931] usb 8-1: devm_token_release(): release token
+[  851.202936] usb 8-1: devm_token_release(): release token
+[ 1775.052273] usb 8-2: devm_token_create(): created token: 
+tuner:8-2-0000:00:10.1-0
+[ 1775.052276] em2874 #0: devm_token_create() returned 0
+[ 1775.052285] usb 8-2: devm_token_create(): created token: 
+video:8-2-0000:00:10.1
+shuah@anduin:~$ dmesg | grep token
+[  771.613332] usb 8-1: devm_token_create(): created token: 
+tuner:8-1-0000:00:10.1-0
+[  771.613335] em2874 #0: devm_token_create() returned 0
+[  771.613340] usb 8-1: devm_token_create(): created token: 
+video:8-1-0000:00:10.1
+[  851.202931] usb 8-1: devm_token_release(): release token
+[  851.202936] usb 8-1: devm_token_release(): release token
+[ 1775.052273] usb 8-2: devm_token_create(): created token: 
+tuner:8-2-0000:00:10.1-0
+[ 1775.052276] em2874 #0: devm_token_create() returned 0
+[ 1775.052285] usb 8-2: devm_token_create(): created token: 
+video:8-2-0000:00:10.1
+[ 1799.610007] usb 8-2: devm_token_release(): release token
+[ 1799.610013] usb 8-2: devm_token_release(): release token
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-The Media Infrastructure API from this daily build is here:
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c 
+b/drivers/media/usb/em28xx/em28xx-cards.c
+index 50aa5a5..3305250 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2428,6 +2428,51 @@ static struct em28xx_hash_table em28xx_i2c_hash[] = {
+  };
+  /* NOTE: introduce a separate hash table for devices with 16 bit 
+eeproms */
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
++/* interfaces to create and destroy token resources */
++static int em28xx_create_token_resources(struct em28xx *dev)
++{
++       int rc = 0;
++
++       /* create token devres for tuner */
++       snprintf(dev->tuner_tkn_id, sizeof(dev->tuner_tkn_id),
++               "tuner:%s-%s-%d",
++               dev_name(&dev->udev->dev),
++               dev->udev->bus->bus_name,
++               dev->tuner_addr);
++
++       rc = devm_token_create(&dev->udev->dev, dev->tuner_tkn_id);
++       em28xx_info("devm_token_create() returned %d\n", rc);
++
++       if (dev->has_video || dev->board.has_dvb) {
++               snprintf(dev->video_tkn_id, sizeof(dev->video_tkn_id),
++                       "video:%s-%s",
++                       dev_name(&dev->udev->dev),
++                       dev->udev->bus->bus_name);
++               rc = devm_token_create(&dev->udev->dev, dev->video_tkn_id);
++       }
++       if (dev->audio_mode.has_audio) {
++               snprintf(dev->audio_tkn_id, sizeof(dev->audio_tkn_id),
++                       "audio:%s-%s",
++                       dev_name(&dev->udev->dev),
++                       dev->udev->bus->bus_name);
++               rc = devm_token_create(&dev->udev->dev, dev->audio_tkn_id);
++       }
++       return rc;
++}
++
++static int em28xx_destroy_token_resources(struct em28xx *dev)
++{
++       int rc = 0;
++
++       devm_token_destroy(&dev->udev->dev, dev->tuner_tkn_id);
++       if (dev->has_video || dev->board.has_dvb)
++               rc = devm_token_destroy(&dev->udev->dev, dev->video_tkn_id);
++       if (dev->audio_mode.has_audio)
++               rc = devm_token_destroy(&dev->udev->dev, dev->audio_tkn_id);
++
++       return rc;
++}
+
+  int em28xx_tuner_callback(void *ptr, int component, int command, int arg)
+  {
+         struct em28xx_i2c_bus *i2c_bus = ptr;
+@@ -2949,6 +2994,10 @@ static void em28xx_release_resources(struct 
+em28xx *dev)
+                 em28xx_i2c_unregister(dev, 1);
+         em28xx_i2c_unregister(dev, 0);
+
++       /* destroy token resources */
++       if (em28xx_destroy_token_resources(dev))
++               em28xx_info("Error destroying token resources\n");
++
+         usb_put_dev(dev->udev);
+
+         /* Mark device as unused */
+@@ -3431,6 +3480,10 @@ static int em28xx_usb_probe(struct usb_interface 
+*interface,
+
+         kref_init(&dev->ref);
+
++       /* create token resources before requesting for modules */
++       if (em28xx_create_token_resources(dev))
++               em28xx_info("Error creating token resources\n");
++
+         request_modules(dev);
+
+         /* Should be the last thing to do, to avoid newer udev's to
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c 
+b/drivers/media/usb/em28xx/em28xx-core.c
+index 523d7e9..8129a9c 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -824,6 +824,9 @@ void em28xx_uninit_usb_xfer(struct em28xx *dev, enum 
+em28xx_mode mode)
+         usb_bufs->num_bufs = 0;
+
+         em28xx_capture_start(dev, 0);
++
++       /* unlock token */
++       devm_token_unlock(&dev->udev->dev, dev->video_tkn_id);
+  }
+  EXPORT_SYMBOL_GPL(em28xx_uninit_usb_xfer);
+
+@@ -993,6 +996,11 @@ int em28xx_init_usb_xfer(struct em28xx *dev, enum 
+em28xx_mode mode,
+         em28xx_isocdbg("em28xx: called em28xx_init_usb_xfer in mode %d\n",
+                        mode);
+
++       /* lock token */
++       rc = devm_token_lock(&dev->udev->dev, dev->video_tkn_id);
++       if (rc)
++               return rc;
++
+         dev->usb_ctl.urb_data_copy = urb_data_copy;
+
+         if (mode == EM28XX_DIGITAL_MODE) {
+diff --git a/drivers/media/usb/em28xx/em28xx.h 
+b/drivers/media/usb/em28xx/em28xx.h
+index 2051fc9..b13ec6e 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -34,6 +34,7 @@
+  #include <linux/mutex.h>
+  #include <linux/kref.h>
+  #include <linux/videodev2.h>
++#include <linux/token_devres.h>
+
+  #include <media/videobuf2-vmalloc.h>
+  #include <media/v4l2-device.h>
+@@ -547,6 +548,11 @@ struct em28xx {
+         int devno;              /* marks the number of this device */
+         enum em28xx_chip_id chip_id;
+
++       /* token resources */
++       char tuner_tkn_id[64]; /* tuner token id */
++       char video_tkn_id[64]; /* video dma engine token */
++       char audio_tkn_id[64]; /* audio dma engine token id */
++
+         unsigned int is_em25xx:1;       /* em25xx/em276x/7x/8x family 
+bridge */
+         unsigned char disconnected:1;   /* device has been diconnected */
+         unsigned int has_video:1;
+
+thanks
+-- Shuah
+
+-- 
+Shuah Khan
+Senior Linux Kernel Developer - Open Source Group
+Samsung Research America(Silicon Valley)
+shuah.kh@samsung.com | (970) 672-0658
