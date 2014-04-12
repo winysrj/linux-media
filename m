@@ -1,125 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:25534 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933007AbaD2IfY (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50693 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754300AbaDLNYR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Apr 2014 04:35:24 -0400
-Message-id: <535F6451.1030403@samsung.com>
-Date: Tue, 29 Apr 2014 10:35:29 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Davidlohr Bueso <davidlohr@hp.com>, akpm@linux-foundation.org
-Cc: aswin@hp.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-	Pawel Osciak <pawel@osciak.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 7/6] media: videobuf2-dma-sg: call find_vma with the
- mmap_sem held
-References: <1397960791-16320-1-git-send-email-davidlohr@hp.com>
- <1398708571.25549.10.camel@buesod1.americas.hpqcorp.net>
-In-reply-to: <1398708571.25549.10.camel@buesod1.americas.hpqcorp.net>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+	Sat, 12 Apr 2014 09:24:17 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [yavta PATCH v3 06/11] Allow passing file descriptors to yavta
+Date: Sat, 12 Apr 2014 16:23:58 +0300
+Message-Id: <1397309043-8322-7-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1397309043-8322-1-git-send-email-sakari.ailus@iki.fi>
+References: <1397309043-8322-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ yavta.c |   57 ++++++++++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 48 insertions(+), 9 deletions(-)
 
-On 2014-04-28 20:09, Davidlohr Bueso wrote:
-> Performing vma lookups without taking the mm->mmap_sem is asking
-> for trouble. While doing the search, the vma in question can
-> be modified or even removed before returning to the caller.
-> Take the lock in order to avoid races while iterating through
-> the vmacache and/or rbtree.
->
-> Also do some very minor cleanup changes.
->
-> This patch is only compile tested.
-
-NACK.
-
-mm->mmap_sem is taken by videobuf2-core to avoid AB-BA deadlock with v4l2 core lock. For more information, please check videobuf2-core.c. However you are right that this is a bit confusing and we need more comments about the place where mmap_sem is taken. Here is some background for this decision:
-
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg38599.html
-http://www.spinics.net/lists/linux-media/msg40225.html
-
-> Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
-> Cc: Pawel Osciak <pawel@osciak.com>
-> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Cc: linux-media@vger.kernel.org
-> ---
-> It would seem this is the last offending user.
-> v4l2 is a maze but I believe that this is needed as I don't
-> see the mmap_sem being taken by any callers of vb2_dma_sg_get_userptr().
->
->   drivers/media/v4l2-core/videobuf2-dma-sg.c | 12 ++++++++----
->   1 file changed, 8 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> index c779f21..2a21100 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> @@ -168,8 +168,9 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
->   	unsigned long first, last;
->   	int num_pages_from_user;
->   	struct vm_area_struct *vma;
-> +	struct mm_struct *mm = current->mm;
->   
-> -	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-> +	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
->   	if (!buf)
->   		return NULL;
->   
-> @@ -178,7 +179,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
->   	buf->offset = vaddr & ~PAGE_MASK;
->   	buf->size = size;
->   
-> -	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
-> +	first = (vaddr & PAGE_MASK) >> PAGE_SHIFT;
->   	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
->   	buf->num_pages = last - first + 1;
->   
-> @@ -187,7 +188,8 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
->   	if (!buf->pages)
->   		goto userptr_fail_alloc_pages;
->   
-> -	vma = find_vma(current->mm, vaddr);
-> +	down_write(&mm->mmap_sem);
-> +	vma = find_vma(mm, vaddr);
->   	if (!vma) {
->   		dprintk(1, "no vma for address %lu\n", vaddr);
->   		goto userptr_fail_find_vma;
-> @@ -218,7 +220,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
->   			buf->pages[num_pages_from_user] = pfn_to_page(pfn);
->   		}
->   	} else
-> -		num_pages_from_user = get_user_pages(current, current->mm,
-> +		num_pages_from_user = get_user_pages(current, mm,
->   					     vaddr & PAGE_MASK,
->   					     buf->num_pages,
->   					     write,
-> @@ -233,6 +235,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
->   			buf->num_pages, buf->offset, size, 0))
->   		goto userptr_fail_alloc_table_from_pages;
->   
-> +	up_write(&mm->mmap_sem);
->   	return buf;
->   
->   userptr_fail_alloc_table_from_pages:
-> @@ -244,6 +247,7 @@ userptr_fail_get_user_pages:
->   			put_page(buf->pages[num_pages_from_user]);
->   	vb2_put_vma(buf->vma);
->   userptr_fail_find_vma:
-> +	up_write(&mm->mmap_sem);
->   	kfree(buf->pages);
->   userptr_fail_alloc_pages:
->   	kfree(buf);
-
-Best regards
+diff --git a/yavta.c b/yavta.c
+index 78ebf21..98f5e05 100644
+--- a/yavta.c
++++ b/yavta.c
+@@ -63,6 +63,7 @@ struct buffer
+ struct device
+ {
+ 	int fd;
++	int opened;
+ 
+ 	enum v4l2_buf_type type;
+ 	enum v4l2_memory memtype;
+@@ -258,8 +259,30 @@ static void video_init(struct device *dev)
+ 	dev->type = (enum v4l2_buf_type)-1;
+ }
+ 
++static bool video_has_fd(struct device *dev)
++{
++	return dev->fd != -1;
++}
++
++static int video_set_fd(struct device *dev, int fd)
++{
++	if (video_has_fd(dev)) {
++		printf("Can't set fd (already open).\n");
++		return -1;
++	}
++
++	dev->fd = fd;
++
++	return 0;
++}
++
+ static int video_open(struct device *dev, const char *devname)
+ {
++	if (video_has_fd(dev)) {
++		printf("Can't open device (already open).\n");
++		return -1;
++	}
++
+ 	dev->fd = open(devname, O_RDWR);
+ 	if (dev->fd < 0) {
+ 		printf("Error opening device %s: %s (%d).\n", devname,
+@@ -269,6 +292,8 @@ static int video_open(struct device *dev, const char *devname)
+ 
+ 	printf("Device %s opened.\n", devname);
+ 
++	dev->opened = 1;
++
+ 	return 0;
+ }
+ 
+@@ -318,7 +343,8 @@ static void video_close(struct device *dev)
+ 		free(dev->pattern[i]);
+ 
+ 	free(dev->buffers);
+-	close(dev->fd);
++	if (dev->opened)
++		close(dev->fd);
+ }
+ 
+ static unsigned int get_control_type(struct device *dev, unsigned int id)
+@@ -1544,6 +1570,7 @@ static void usage(const char *argv0)
+ 	printf("-w, --set-control 'ctrl value'	Set control 'ctrl' to 'value'\n");
+ 	printf("    --enum-formats		Enumerate formats\n");
+ 	printf("    --enum-inputs		Enumerate inputs\n");
++	printf("    --fd                        Use a numeric file descriptor insted of a device\n");
+ 	printf("    --no-query			Don't query capabilities on open\n");
+ 	printf("    --offset			User pointer buffer offset from page start\n");
+ 	printf("    --requeue-last		Requeue the last buffers before streamoff\n");
+@@ -1560,6 +1587,7 @@ static void usage(const char *argv0)
+ #define OPT_USERPTR_OFFSET	261
+ #define OPT_REQUEUE_LAST	262
+ #define OPT_STRIDE		263
++#define OPT_FD			264
+ 
+ static struct option opts[] = {
+ 	{"buffer-type", 1, 0, 'B'},
+@@ -1568,6 +1596,7 @@ static struct option opts[] = {
+ 	{"delay", 1, 0, 'd'},
+ 	{"enum-formats", 0, 0, OPT_ENUM_FORMATS},
+ 	{"enum-inputs", 0, 0, OPT_ENUM_INPUTS},
++	{"fd", 1, 0, OPT_FD},
+ 	{"file", 2, 0, 'F'},
+ 	{"fill-frames", 0, 0, 'I'},
+ 	{"format", 1, 0, 'f'},
+@@ -1761,6 +1790,15 @@ int main(int argc, char *argv[])
+ 		case OPT_ENUM_INPUTS:
+ 			do_enum_inputs = 1;
+ 			break;
++		case OPT_FD:
++			ret = atoi(optarg);
++			if (ret < 0) {
++				printf("Bad file descriptor %d\n", ret);
++				return 1;
++			}
++			printf("Using file descriptor %d\n", ret);
++			video_set_fd(&dev, ret);
++			break;
+ 		case OPT_NO_QUERY:
+ 			no_query = 1;
+ 			break;
+@@ -1791,17 +1829,18 @@ int main(int argc, char *argv[])
+ 		return 1;
+ 	}
+ 
+-	if (optind >= argc) {
+-		usage(argv[0]);
+-		return 1;
+-	}
+-
+ 	if (!do_file)
+ 		filename = NULL;
+ 
+-	ret = video_open(&dev, argv[optind]);
+-	if (ret < 0)
+-		return 1;
++	if (!video_has_fd(&dev)) {
++		if (optind >= argc) {
++			usage(argv[0]);
++			return 1;
++		}
++		ret = video_open(&dev, argv[optind]);
++		if (ret < 0)
++			return 1;
++	}
+ 
+ 	if (!no_query) {
+ 		ret = video_querycap(&dev, &capabilities);
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+1.7.10.4
 
