@@ -1,32 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3285 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751030AbaDQJWA (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50695 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754511AbaDLNYS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 05:22:00 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id s3H9LvcB028784
-	for <linux-media@vger.kernel.org>; Thu, 17 Apr 2014 11:21:59 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.fritz.box (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id C5A282A0410
-	for <linux-media@vger.kernel.org>; Thu, 17 Apr 2014 11:21:51 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 12 Apr 2014 09:24:18 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [PATCHv4 0/3] vb2: stop_streaming should return void
-Date: Thu, 17 Apr 2014 11:21:47 +0200
-Message-Id: <1397726510-12005-1-git-send-email-hverkuil@xs4all.nl>
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [yavta PATCH v3 11/11] Set timestamp for output buffers if the timestamp type is copy
+Date: Sat, 12 Apr 2014 16:24:03 +0300
+Message-Id: <1397309043-8322-12-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1397309043-8322-1-git-send-email-sakari.ailus@iki.fi>
+References: <1397309043-8322-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Split off the removal of the vb2_is_streaming check as requested.
-Note that the davinci drivers still have this unnecessary check, but
-Prabhakar will remove that himself.
+Copy timestamp type will mean the timestamp is be copied from the source to
+the destination buffer on mem-to-mem devices.
 
-Also fix a compiler warning that I got during the daily build.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ yavta.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-Regards,
-
-	Hans
+diff --git a/yavta.c b/yavta.c
+index c878c0d..9eb5e9c 100644
+--- a/yavta.c
++++ b/yavta.c
+@@ -73,6 +73,7 @@ struct device
+ 	unsigned int width;
+ 	unsigned int height;
+ 	uint32_t buffer_output_flags;
++	uint32_t timestamp_type;
+ 
+ 	unsigned char num_planes;
+ 	struct v4l2_plane_pix_format plane_fmt[VIDEO_MAX_PLANES];
+@@ -814,6 +815,7 @@ static int video_alloc_buffers(struct device *dev, int nbufs,
+ 			return ret;
+ 	}
+ 
++	dev->timestamp_type = buf.flags & V4L2_BUF_FLAG_TIMESTAMP_MASK;
+ 	dev->buffers = buffers;
+ 	dev->nbufs = rb.count;
+ 	return 0;
+@@ -876,8 +878,16 @@ static int video_queue_buffer(struct device *dev, int index, enum buffer_fill_mo
+ 	buf.type = dev->type;
+ 	buf.memory = dev->memtype;
+ 
+-	if (dev->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
++	if (dev->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+ 		buf.flags = dev->buffer_output_flags;
++		if (dev->timestamp_type == V4L2_BUF_FLAG_TIMESTAMP_COPY) {
++			struct timespec ts;
++			
++			clock_gettime(CLOCK_MONOTONIC, &ts);
++			buf.timestamp.tv_sec = ts.tv_sec;
++			buf.timestamp.tv_usec = ts.tv_nsec / 1000;
++		}
++	}
+ 
+ 	if (video_is_mplane(dev)) {
+ 		buf.m.planes = planes;
+-- 
+1.7.10.4
 
