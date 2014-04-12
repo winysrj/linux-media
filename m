@@ -1,209 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1830 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751413AbaDQKja (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50694 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754308AbaDLNYR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 06:39:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 12 Apr 2014 09:24:17 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 03/11] saa7134: drop abuse of low-level videobuf functions
-Date: Thu, 17 Apr 2014 12:39:06 +0200
-Message-Id: <1397731154-34337-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1397731154-34337-1-git-send-email-hverkuil@xs4all.nl>
-References: <1397731154-34337-1-git-send-email-hverkuil@xs4all.nl>
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [yavta PATCH v3 05/11] Provide -B option for setting the buffer type
+Date: Sat, 12 Apr 2014 16:23:57 +0300
+Message-Id: <1397309043-8322-6-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1397309043-8322-1-git-send-email-sakari.ailus@iki.fi>
+References: <1397309043-8322-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Instead of guessing the buffer type, allow setting it explicitly.
 
-saa7134-alsa used low-level videobuf functions to allocate and sync
-DMA buffers. Replace this with saa7134-specific code. These functions
-will not be available when we convert to vb2.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/pci/saa7134/saa7134-alsa.c | 95 ++++++++++++++++++++++++++++----
- drivers/media/pci/saa7134/saa7134.h      |  5 +-
- 2 files changed, 89 insertions(+), 11 deletions(-)
+ yavta.c |   44 +++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 37 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/pci/saa7134/saa7134-alsa.c b/drivers/media/pci/saa7134/saa7134-alsa.c
-index ff6f373..cf48987 100644
---- a/drivers/media/pci/saa7134/saa7134-alsa.c
-+++ b/drivers/media/pci/saa7134/saa7134-alsa.c
-@@ -274,6 +274,82 @@ static int snd_card_saa7134_capture_trigger(struct snd_pcm_substream * substream
- 	return err;
- }
+diff --git a/yavta.c b/yavta.c
+index 01f61d2..78ebf21 100644
+--- a/yavta.c
++++ b/yavta.c
+@@ -99,15 +99,34 @@ static bool video_is_output(struct device *dev)
  
-+static int saa7134_alsa_dma_init(struct saa7134_dev *dev, int nr_pages)
+ static struct {
+  	enum v4l2_buf_type type;
++ 	bool supported;
+ 	const char *name;
++	const char *string;
+ } buf_types[] = {
+-	{ V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, "Video capture mplanes", },
+-	{ V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, "Video output", },
+-	{ V4L2_BUF_TYPE_VIDEO_CAPTURE, "Video capture" },
+-	{ V4L2_BUF_TYPE_VIDEO_OUTPUT, "Video output mplanes" },
+-	{ V4L2_BUF_TYPE_VIDEO_OVERLAY, "Video overlay" },
++	{ V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, 1, "Video capture mplanes", "capture-mplane", },
++	{ V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, 1, "Video output", "output-mplane", },
++	{ V4L2_BUF_TYPE_VIDEO_CAPTURE, 1, "Video capture", "capture", },
++	{ V4L2_BUF_TYPE_VIDEO_OUTPUT, 1, "Video output mplanes", "output", },
++	{ V4L2_BUF_TYPE_VIDEO_OVERLAY, 0, "Video overlay", "overlay" },
+ };
+ 
++static int v4l2_buf_type_from_string(const char *str)
 +{
-+	struct saa7134_dmasound *dma = &dev->dmasound;
-+	struct page *pg;
-+	int i;
++	unsigned int i;
 +
-+	dma->vaddr = vmalloc_32(nr_pages << PAGE_SHIFT);
-+	if (NULL == dma->vaddr) {
-+		dprintk("vmalloc_32(%d pages) failed\n", nr_pages);
-+		return -ENOMEM;
++	for (i = 0; i < ARRAY_SIZE(buf_types); i++) {
++		if (!buf_types[i].supported)
++			continue;
++
++		if (strcmp(buf_types[i].string, str))
++			continue;
++
++		return buf_types[i].type;
 +	}
 +
-+	dprintk("vmalloc is at addr 0x%08lx, size=%d\n",
-+				(unsigned long)dma->vaddr,
-+				nr_pages << PAGE_SHIFT);
-+
-+	memset(dma->vaddr, 0, nr_pages << PAGE_SHIFT);
-+	dma->nr_pages = nr_pages;
-+
-+	dma->sglist = vzalloc(dma->nr_pages * sizeof(*dma->sglist));
-+	if (NULL == dma->sglist)
-+		goto vzalloc_err;
-+
-+	sg_init_table(dma->sglist, dma->nr_pages);
-+	for (i = 0; i < dma->nr_pages; i++) {
-+		pg = vmalloc_to_page(dma->vaddr + i * PAGE_SIZE);
-+		if (NULL == pg)
-+			goto vmalloc_to_page_err;
-+		sg_set_page(&dma->sglist[i], pg, PAGE_SIZE, 0);
-+	}
-+	return 0;
-+
-+vmalloc_to_page_err:
-+	vfree(dma->sglist);
-+	dma->sglist = NULL;
-+vzalloc_err:
-+	vfree(dma->vaddr);
-+	dma->vaddr = NULL;
-+	return -ENOMEM;
++	return -1;
 +}
 +
-+static int saa7134_alsa_dma_map(struct saa7134_dev *dev)
-+{
-+	struct saa7134_dmasound *dma = &dev->dmasound;
-+
-+	dma->sglen = dma_map_sg(&dev->pci->dev, dma->sglist,
-+			dma->nr_pages, PCI_DMA_FROMDEVICE);
-+
-+	if (0 == dma->sglen) {
-+		pr_warn("%s: saa7134_alsa_map_sg failed\n", __func__);
-+		return -ENOMEM;
-+	}
-+	return 0;
-+}
-+
-+static int saa7134_alsa_dma_unmap(struct saa7134_dev *dev)
-+{
-+	struct saa7134_dmasound *dma = &dev->dmasound;
-+
-+	if (!dma->sglen)
-+		return 0;
-+
-+	dma_unmap_sg(&dev->pci->dev, dma->sglist, dma->sglen, PCI_DMA_FROMDEVICE);
-+	dma->sglen = 0;
-+	return 0;
-+}
-+
-+static int saa7134_alsa_dma_free(struct saa7134_dmasound *dma)
-+{
-+	vfree(dma->sglist);
-+	dma->sglist = NULL;
-+	vfree(dma->vaddr);
-+	dma->vaddr = NULL;
-+	return 0;
-+}
-+
- /*
-  * DMA buffer initialization
-  *
-@@ -291,9 +367,8 @@ static int dsp_buffer_init(struct saa7134_dev *dev)
- 
- 	BUG_ON(!dev->dmasound.bufsize);
- 
--	videobuf_dma_init(&dev->dmasound.dma);
--	err = videobuf_dma_init_kernel(&dev->dmasound.dma, PCI_DMA_FROMDEVICE,
--				       (dev->dmasound.bufsize + PAGE_SIZE) >> PAGE_SHIFT);
-+	err = saa7134_alsa_dma_init(dev,
-+			       (dev->dmasound.bufsize + PAGE_SIZE) >> PAGE_SHIFT);
- 	if (0 != err)
- 		return err;
- 	return 0;
-@@ -310,7 +385,7 @@ static int dsp_buffer_free(struct saa7134_dev *dev)
+ static const char *v4l2_buf_type_name(enum v4l2_buf_type type)
  {
- 	BUG_ON(!dev->dmasound.blksize);
+ 	unsigned int i;
+@@ -1500,6 +1519,8 @@ static void usage(const char *argv0)
+ {
+ 	printf("Usage: %s [options] device\n", argv0);
+ 	printf("Supported options:\n");
++	printf("-B, --buffer-type		Buffer type (\"capture\", \"output\",\n");
++	printf("                                \"capture-mplane\" or \"output-mplane\")\n");
+ 	printf("-c, --capture[=nframes]		Capture frames\n");
+ 	printf("-C, --check-overrun		Verify dequeued frames for buffer overrun\n");
+ 	printf("-d, --delay			Delay (in ms) before requeuing buffers\n");
+@@ -1541,6 +1562,7 @@ static void usage(const char *argv0)
+ #define OPT_STRIDE		263
  
--	videobuf_dma_free(&dev->dmasound.dma);
-+	saa7134_alsa_dma_free(&dev->dmasound);
+ static struct option opts[] = {
++	{"buffer-type", 1, 0, 'B'},
+ 	{"capture", 2, 0, 'c'},
+ 	{"check-overrun", 0, 0, 'C'},
+ 	{"delay", 1, 0, 'd'},
+@@ -1618,9 +1640,17 @@ int main(int argc, char *argv[])
+ 	video_init(&dev);
  
- 	dev->dmasound.blocks  = 0;
- 	dev->dmasound.blksize = 0;
-@@ -632,7 +707,7 @@ static int snd_card_saa7134_hw_params(struct snd_pcm_substream * substream,
- 	/* release the old buffer */
- 	if (substream->runtime->dma_area) {
- 		saa7134_pgtable_free(dev->pci, &dev->dmasound.pt);
--		videobuf_dma_unmap(&dev->pci->dev, &dev->dmasound.dma);
-+		saa7134_alsa_dma_unmap(dev);
- 		dsp_buffer_free(dev);
- 		substream->runtime->dma_area = NULL;
- 	}
-@@ -648,14 +723,14 @@ static int snd_card_saa7134_hw_params(struct snd_pcm_substream * substream,
- 		return err;
- 	}
+ 	opterr = 0;
+-	while ((c = getopt_long(argc, argv, "c::Cd:f:F::hi:Iln:pq:r:R::s:t:uw:", opts, NULL)) != -1) {
++	while ((c = getopt_long(argc, argv, "B:c::Cd:f:F::hi:Iln:pq:r:R::s:t:uw:", opts, NULL)) != -1) {
  
--	err = videobuf_dma_map(&dev->pci->dev, &dev->dmasound.dma);
-+	err = saa7134_alsa_dma_map(dev);
- 	if (err) {
- 		dsp_buffer_free(dev);
- 		return err;
- 	}
- 	err = saa7134_pgtable_alloc(dev->pci, &dev->dmasound.pt);
- 	if (err) {
--		videobuf_dma_unmap(&dev->pci->dev, &dev->dmasound.dma);
-+		saa7134_alsa_dma_unmap(dev);
- 		dsp_buffer_free(dev);
- 		return err;
- 	}
-@@ -663,7 +738,7 @@ static int snd_card_saa7134_hw_params(struct snd_pcm_substream * substream,
- 				dev->dmasound.sglist, dev->dmasound.sglen, 0);
- 	if (err) {
- 		saa7134_pgtable_free(dev->pci, &dev->dmasound.pt);
--		videobuf_dma_unmap(&dev->pci->dev, &dev->dmasound.dma);
-+		saa7134_alsa_dma_unmap(dev);
- 		dsp_buffer_free(dev);
- 		return err;
- 	}
-@@ -672,7 +747,7 @@ static int snd_card_saa7134_hw_params(struct snd_pcm_substream * substream,
- 	   byte, but it doesn't work. So I allocate the DMA using the
- 	   V4L functions, and force ALSA to use that as the DMA area */
+ 		switch (c) {
++		case 'B':
++			ret = v4l2_buf_type_from_string(optarg);
++			if (ret == -1) {
++				printf("Bad buffer type \"%s\"\n", optarg);
++				return 1;
++			}
++			video_set_buf_type(&dev, ret);
++			break;
+ 		case 'c':
+ 			do_capture = 1;
+ 			if (optarg)
+@@ -1783,7 +1813,7 @@ int main(int argc, char *argv[])
+ 	if (ret < 0)
+ 		return 1;
  
--	substream->runtime->dma_area = dev->dmasound.dma.vaddr;
-+	substream->runtime->dma_area = dev->dmasound.vaddr;
- 	substream->runtime->dma_bytes = dev->dmasound.bufsize;
- 	substream->runtime->dma_addr = 0;
+-	if (!video_is_buf_type_valid(&dev))
++	if (!video_has_valid_buf_type(&dev))
+ 		video_set_buf_type(&dev, ret);
  
-@@ -699,7 +774,7 @@ static int snd_card_saa7134_hw_free(struct snd_pcm_substream * substream)
- 
- 	if (substream->runtime->dma_area) {
- 		saa7134_pgtable_free(dev->pci, &dev->dmasound.pt);
--		videobuf_dma_unmap(&dev->pci->dev, &dev->dmasound.dma);
-+		saa7134_alsa_dma_unmap(dev);
- 		dsp_buffer_free(dev);
- 		substream->runtime->dma_area = NULL;
- 	}
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index 2474e84..419f5f8 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -504,7 +504,10 @@ struct saa7134_dmasound {
- 	unsigned int               blksize;
- 	unsigned int               bufsize;
- 	struct saa7134_pgtable     pt;
--	struct videobuf_dmabuf     dma;
-+	void			   *vaddr;
-+	struct scatterlist	   *sglist;
-+	int                        sglen;
-+	int                        nr_pages;
- 	unsigned int               dma_blk;
- 	unsigned int               read_offset;
- 	unsigned int               read_count;
+ 	dev.memtype = memtype;
 -- 
-1.9.2
+1.7.10.4
 
