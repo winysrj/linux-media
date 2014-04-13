@@ -1,165 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:56250 "EHLO smtp.gentoo.org"
+Received: from mout.gmx.net ([212.227.15.15]:62941 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751996AbaDZUVt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Apr 2014 16:21:49 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
+	id S1750770AbaDMVr6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Apr 2014 17:47:58 -0400
+Received: from [192.168.1.56] ([84.26.254.29]) by mail.gmx.com (mrgmx002) with
+ ESMTPSA (Nemesis) id 0MWSwU-1WSQrv09t4-00XchH for
+ <linux-media@vger.kernel.org>; Sun, 13 Apr 2014 23:47:57 +0200
+Message-ID: <534B060C.8060109@gmx.net>
+Date: Sun, 13 Apr 2014 23:47:56 +0200
+From: "P. van Gaans" <w3ird_n3rd@gmx.net>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: zzam@gentoo.org, crope@iki.fi, xpert-reactos@gmx.de
-Subject: [PATCH 3/3] cx23885: Add si2165 support for HVR-5500
-Date: Sat, 26 Apr 2014 22:21:20 +0200
-Message-Id: <1398543680-21374-3-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1398543680-21374-1-git-send-email-zzam@gentoo.org>
-References: <1398543680-21374-1-git-send-email-zzam@gentoo.org>
+Subject: [Developers] I know how to make this Digivox work, could v4l-dvb
+ be patched for it?
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The same card entry is used for HVR-4400 and HVR-5500.
-Only HVR-5500 has been tested.
+Device: http://linuxtv.org/wiki/index.php/MSI_DigiVox_Trio
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/pci/cx23885/Kconfig         |  1 +
- drivers/media/pci/cx23885/cx23885-cards.c | 17 +++++++++---
- drivers/media/pci/cx23885/cx23885-dvb.c   | 43 +++++++++++++++++++++++++++----
- 3 files changed, 53 insertions(+), 8 deletions(-)
+In the "making it work" section I already described it: you just need to 
+threat this device exactly as if it's a Terratec H5.
 
-diff --git a/drivers/media/pci/cx23885/Kconfig b/drivers/media/pci/cx23885/Kconfig
-index d1dcb1d..6cd1db2 100644
---- a/drivers/media/pci/cx23885/Kconfig
-+++ b/drivers/media/pci/cx23885/Kconfig
-@@ -31,6 +31,7 @@ config VIDEO_CX23885
- 	select DVB_TDA10071 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_A8293 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_MB86A20S if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_SI2165 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_MT2063 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_MT2131 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_XC2028 if MEDIA_SUBDRV_AUTOSELECT
-diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
-index 79f20c8..6ed0551 100644
---- a/drivers/media/pci/cx23885/cx23885-cards.c
-+++ b/drivers/media/pci/cx23885/cx23885-cards.c
-@@ -619,7 +619,12 @@ struct cx23885_board cx23885_boards[] = {
- 	},
- 	[CX23885_BOARD_HAUPPAUGE_HVR4400] = {
- 		.name		= "Hauppauge WinTV-HVR4400",
-+		.porta		= CX23885_ANALOG_VIDEO,
- 		.portb		= CX23885_MPEG_DVB,
-+		.portc		= CX23885_MPEG_DVB,
-+		.tuner_type	= TUNER_NXP_TDA18271,
-+		.tuner_addr	= 0x60, /* 0xc0 >> 1 */
-+		.tuner_bus	= 1,
- 	},
- 	[CX23885_BOARD_AVERMEDIA_HC81R] = {
- 		.name		= "AVerTV Hybrid Express Slim HC81R",
-@@ -1449,13 +1454,16 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
- 		break;
- 	case CX23885_BOARD_HAUPPAUGE_HVR4400:
- 		/* GPIO-8 tda10071 demod reset */
-+		/* GPIO-9 si2165 demod reset */
- 
- 		/* Put the parts into reset and back */
--		cx23885_gpio_enable(dev, GPIO_8, 1);
--		cx23885_gpio_clear(dev, GPIO_8);
-+		cx23885_gpio_enable(dev, GPIO_8 | GPIO_9, 1);
-+
-+		cx23885_gpio_clear(dev, GPIO_8 | GPIO_9);
- 		mdelay(100);
--		cx23885_gpio_set(dev, GPIO_8);
-+		cx23885_gpio_set(dev, GPIO_8 | GPIO_9);
- 		mdelay(100);
-+
- 		break;
- 	case CX23885_BOARD_AVERMEDIA_HC81R:
- 		cx_clear(MC417_CTL, 1);
-@@ -1799,6 +1807,9 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 		ts1->gen_ctrl_val  = 0xc; /* Serial bus + punctured clock */
- 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
- 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-+		ts2->gen_ctrl_val  = 0xc; /* Serial bus + punctured clock */
-+		ts2->ts_clk_en_val = 0x1; /* Enable TS_CLK */
-+		ts2->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
- 		break;
- 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1500:
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 4be01b3..ddb0e82 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -71,6 +71,7 @@
- #include "tda10071.h"
- #include "a8293.h"
- #include "mb86a20s.h"
-+#include "si2165.h"
- 
- static unsigned int debug;
- 
-@@ -302,6 +303,11 @@ static struct tda18271_config hauppauge_hvr1210_tuner_config = {
- 	.output_opt = TDA18271_OUTPUT_LT_OFF,
- };
- 
-+static struct tda18271_config hauppauge_hvr4400_tuner_config = {
-+	.gate    = TDA18271_GATE_DIGITAL,
-+	.output_opt = TDA18271_OUTPUT_LT_OFF,
-+};
-+
- static struct tda18271_std_map hauppauge_hvr127x_std_map = {
- 	.atsc_6   = { .if_freq = 3250, .agc_mode = 3, .std = 4,
- 		      .if_lvl = 1, .rfagc_top = 0x58 },
-@@ -702,6 +708,12 @@ static const struct a8293_config hauppauge_a8293_config = {
- 	.i2c_addr = 0x0b,
- };
- 
-+static const struct si2165_config hauppauge_hvr4400_si2165_config = {
-+	.i2c_addr	= 0x64,
-+	.chip_mode	= SI2165_MODE_PLL_XTAL,
-+	.ref_freq_MHz	= 16,
-+};
-+
- static int netup_altera_fpga_rw(void *device, int flag, int data, int read)
- {
- 	struct cx23885_dev *dev = (struct cx23885_dev *)device;
-@@ -1331,13 +1343,34 @@ static int dvb_register(struct cx23885_tsport *port)
- 		break;
- 	case CX23885_BOARD_HAUPPAUGE_HVR4400:
- 		i2c_bus = &dev->i2c_bus[0];
--		fe0->dvb.frontend = dvb_attach(tda10071_attach,
-+		i2c_bus2 = &dev->i2c_bus[1];
-+		switch (port->nr) {
-+		/* port b */
-+		case 1:
-+			fe0->dvb.frontend = dvb_attach(tda10071_attach,
- 						&hauppauge_tda10071_config,
- 						&i2c_bus->i2c_adap);
--		if (fe0->dvb.frontend != NULL) {
--			dvb_attach(a8293_attach, fe0->dvb.frontend,
--				   &i2c_bus->i2c_adap,
--				   &hauppauge_a8293_config);
-+			if (fe0->dvb.frontend != NULL) {
-+				if (!dvb_attach(a8293_attach, fe0->dvb.frontend,
-+						&i2c_bus->i2c_adap,
-+						&hauppauge_a8293_config))
-+					goto frontend_detach;
-+			}
-+			break;
-+		/* port c */
-+		case 2:
-+			fe0->dvb.frontend = dvb_attach(si2165_attach,
-+					&hauppauge_hvr4400_si2165_config,
-+					&i2c_bus->i2c_adap);
-+			if (fe0->dvb.frontend != NULL) {
-+				fe0->dvb.frontend->ops.i2c_gate_ctrl = 0;
-+				if (!dvb_attach(tda18271_attach,
-+						fe0->dvb.frontend,
-+						0x60, &i2c_bus2->i2c_adap,
-+						&hauppauge_hvr4400_tuner_config))
-+					goto frontend_detach;
-+			}
-+			break;
- 		}
- 		break;
- 	default:
--- 
-1.9.0
+Something as simple as adding:
 
+  { USB_DEVICE(0xeb1a, 0x2885),    /* MSI Digivox Trio */
+             .driver_info = EM2884_BOARD_TERRATEC_H5 },
+
+to linux/drivers/media/usb/em28xx/em28xx-cards.c is sufficient. This is 
+probably a slightly ugly way to do it, but I've been using this solution 
+for half a year and haven't found any problems with it.
+
+What needs to be done in order to get a change like this (or maybe one 
+that looks slighty more neat) into the official v4l-dvb?
+
+Best regards,
+
+P. van Gaans
