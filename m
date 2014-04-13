@@ -1,70 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:52972 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932651AbaDWU5P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Apr 2014 16:57:15 -0400
-Received: by mail-pb0-f54.google.com with SMTP id ma3so1169362pbc.13
-        for <linux-media@vger.kernel.org>; Wed, 23 Apr 2014 13:57:14 -0700 (PDT)
-Date: Wed, 23 Apr 2014 13:57:12 -0700 (PDT)
-From: David Rientjes <rientjes@google.com>
-To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>
-Subject: Re: [PATCH] [media] V4L: s5c73m3: Fix build after v4l2_of_get_next_endpoint
- rename
-In-Reply-To: <1397044446-2257-1-git-send-email-k.kozlowski@samsung.com>
-Message-ID: <alpine.DEB.2.02.1404231354370.1281@chino.kir.corp.google.com>
-References: <1397044446-2257-1-git-send-email-k.kozlowski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:44925 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754083AbaDMM20 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Apr 2014 08:28:26 -0400
+Message-ID: <534A82DE.9080908@redhat.com>
+Date: Sun, 13 Apr 2014 14:28:14 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="531381512-1538973485-1398286633=:1281"
+To: Jean Delvare <jdelvare@suse.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Luca Risolia <luca.risolia@studio.unibo.it>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+CC: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH] [media] Prefer gspca_sonixb over sn9c102 for all devices
+References: <20140411091532.2a1bcce2@endymion.delvare>
+In-Reply-To: <20140411091532.2a1bcce2@endymion.delvare>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi,
 
---531381512-1538973485-1398286633=:1281
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-
-On Wed, 9 Apr 2014, Krzysztof Kozlowski wrote:
-
-> Fix build error after v4l2_of_get_next_endpoint rename (fd9fdb78a9bf:
-> "[media] of: move graph helpers from drivers/media/v4l2-core..."):
+On 04/11/2014 09:15 AM, Jean Delvare wrote:
+> The sn9c102 driver is deprecated. It was moved to staging in
+> anticipation of its removal in a future kernel version. However, USB
+> devices 0C45:6024 and 0C45:6025 are still handled by sn9c102 when
+> both sn9c102 and gspca_sonixb are enabled.
 > 
-> drivers/media/i2c/s5c73m3/s5c73m3-core.c: In function ‘s5c73m3_get_platform_data’:
-> drivers/media/i2c/s5c73m3/s5c73m3-core.c:1619:2: error: implicit declaration of function ‘v4l2_of_get_next_endpoint’ [-Werror=implicit-function-declaration]
-> drivers/media/i2c/s5c73m3/s5c73m3-core.c:1619:10: warning: assignment makes pointer from integer without a cast [enabled by default]
+> We must migrate all the users of these devices to the gspca_sonixb
+> driver now, so that it gets sufficient testing before the sn9c102
+> driver is finally phased out.
 > 
-> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+> Signed-off-by: Jean Delvare <jdelvare@suse.de>
+> Cc: Hans de Goede <hdegoede@redhat.com>
+> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> Cc: Luca Risolia <luca.risolia@studio.unibo.it>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 > ---
->  drivers/media/i2c/s5c73m3/s5c73m3-core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> I consider this a bug fix, I believe it should go upstream ASAP.
+
+Agreed:
+
+Acked-by: Hans de Goede <hdegoede@redhat.com>
+
+Mauro, can you pick this up directly, or do you want a pull-req from me
+for this?
+
+Regards,
+
+Hans
+
+
 > 
-> diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> index a4459301b5f8..ee0f57e01b56 100644
-> --- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> +++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> @@ -1616,7 +1616,7 @@ static int s5c73m3_get_platform_data(struct s5c73m3 *state)
->  	if (ret < 0)
->  		return -EINVAL;
->  
-> -	node_ep = v4l2_of_get_next_endpoint(node, NULL);
-> +	node_ep = of_graph_get_next_endpoint(node, NULL);
->  	if (!node_ep) {
->  		dev_warn(dev, "no endpoint defined for node: %s\n",
->  						node->full_name);
-
-Acked-by: David Rientjes <rientjes@google.com>
-
-The build error that this patch fixes is still present in Linus's tree, 
-and there's been no response to it in two weeks.  Any chance of this 
-getting merged?
---531381512-1538973485-1398286633=:1281--
+>  drivers/media/usb/gspca/sonixb.c                 |    2 --
+>  drivers/staging/media/sn9c102/sn9c102_devtable.h |    2 --
+>  2 files changed, 4 deletions(-)
+> 
+> --- linux-3.15-rc0.orig/drivers/media/usb/gspca/sonixb.c	2014-04-11 08:57:26.932408285 +0200
+> +++ linux-3.15-rc0/drivers/media/usb/gspca/sonixb.c	2014-04-11 09:02:32.151943578 +0200
+> @@ -1430,10 +1430,8 @@ static const struct usb_device_id device
+>  	{USB_DEVICE(0x0c45, 0x600d), SB(PAS106, 101)},
+>  	{USB_DEVICE(0x0c45, 0x6011), SB(OV6650, 101)},
+>  	{USB_DEVICE(0x0c45, 0x6019), SB(OV7630, 101)},
+> -#if !IS_ENABLED(CONFIG_USB_SN9C102)
+>  	{USB_DEVICE(0x0c45, 0x6024), SB(TAS5130CXX, 102)},
+>  	{USB_DEVICE(0x0c45, 0x6025), SB(TAS5130CXX, 102)},
+> -#endif
+>  	{USB_DEVICE(0x0c45, 0x6027), SB(OV7630, 101)}, /* Genius Eye 310 */
+>  	{USB_DEVICE(0x0c45, 0x6028), SB(PAS202, 102)},
+>  	{USB_DEVICE(0x0c45, 0x6029), SB(PAS106, 102)},
+> --- linux-3.15-rc0.orig/drivers/staging/media/sn9c102/sn9c102_devtable.h	2014-04-11 08:57:26.932408285 +0200
+> +++ linux-3.15-rc0/drivers/staging/media/sn9c102/sn9c102_devtable.h	2014-04-11 09:02:32.151943578 +0200
+> @@ -48,10 +48,8 @@ static const struct usb_device_id sn9c10
+>  	{ SN9C102_USB_DEVICE(0x0c45, 0x600d, BRIDGE_SN9C102), },
+>  /*	{ SN9C102_USB_DEVICE(0x0c45, 0x6011, BRIDGE_SN9C102), }, OV6650 */
+>  	{ SN9C102_USB_DEVICE(0x0c45, 0x6019, BRIDGE_SN9C102), },
+> -#endif
+>  	{ SN9C102_USB_DEVICE(0x0c45, 0x6024, BRIDGE_SN9C102), },
+>  	{ SN9C102_USB_DEVICE(0x0c45, 0x6025, BRIDGE_SN9C102), },
+> -#if !defined CONFIG_USB_GSPCA_SONIXB && !defined CONFIG_USB_GSPCA_SONIXB_MODULE
+>  	{ SN9C102_USB_DEVICE(0x0c45, 0x6028, BRIDGE_SN9C102), },
+>  	{ SN9C102_USB_DEVICE(0x0c45, 0x6029, BRIDGE_SN9C102), },
+>  	{ SN9C102_USB_DEVICE(0x0c45, 0x602a, BRIDGE_SN9C102), },
+> 
+> 
