@@ -1,135 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f45.google.com ([209.85.213.45]:35534 "EHLO
-	mail-yh0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932977AbaDJAxo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 20:53:44 -0400
-Received: by mail-yh0-f45.google.com with SMTP id a41so3199296yho.18
-        for <linux-media@vger.kernel.org>; Wed, 09 Apr 2014 17:53:43 -0700 (PDT)
+Received: from vserver.eikelenboom.it ([84.200.39.61]:38913 "EHLO
+	smtp.eikelenboom.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754072AbaDNQzR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Apr 2014 12:55:17 -0400
+Date: Mon, 14 Apr 2014 18:55:13 +0200
+From: Sander Eikelenboom <linux@eikelenboom.it>
+Message-ID: <180763328.20140414185513@eikelenboom.it>
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH] media: stk1160: Avoid stack-allocated buffer for control URBs
+In-Reply-To: <1397493665-912-1-git-send-email-ezequiel.garcia@free-electrons.com>
+References: <1397493665-912-1-git-send-email-ezequiel.garcia@free-electrons.com>
 MIME-Version: 1.0
-In-Reply-To: <1396876272-18222-3-git-send-email-hverkuil@xs4all.nl>
-References: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl> <1396876272-18222-3-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Thu, 10 Apr 2014 09:46:47 +0900
-Message-ID: <CAMm-=zC=k_Cx-tmd_iPsiFmv1YXpYXKwfaR12mU9UeYHGddfLg@mail.gmail.com>
-Subject: Re: [REVIEWv2 PATCH 02/13] vb2: fix handling of data_offset and v4l2_plane.reserved[]
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Looks good to me, just a small nit below.
 
+Monday, April 14, 2014, 6:41:05 PM, you wrote:
 
-On Mon, Apr 7, 2014 at 10:11 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> The videobuf2-core did not zero the 'planes' array in __qbuf_userptr()
-> and __qbuf_dmabuf(). That's now memset to 0. Without this the reserved
-> array in struct v4l2_plane would be non-zero, causing v4l2-compliance
-> errors.
->
-> More serious is the fact that data_offset was not handled correctly:
->
-> - for capture devices it was never zeroed, which meant that it was
->   uninitialized. Unless the driver sets it it was a completely random
->   number. With the memset above this is now fixed.
->
-> - __qbuf_dmabuf had a completely incorrect length check that included
->   data_offset.
->
-> - in __fill_vb2_buffer in the DMABUF case the data_offset field was
->   unconditionally copied from v4l2_buffer to v4l2_plane when this
->   should only happen in the output case.
->
-> - in the single-planar case data_offset was never correctly set to 0.
->   The single-planar API doesn't support data_offset, so setting it
->   to 0 is the right thing to do. This too is now solved by the memset.
->
-> All these issues were found with v4l2-compliance.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Currently stk1160_read_reg() uses a stack-allocated char to get the
+> read control value. This is wrong because usb_control_msg() requires
+> a kmalloc-ed buffer, and a DMA-API warning is produced:
 
-Acked-by: Pawel Osciak <pawel@osciak.com>
+> WARNING: CPU: 0 PID: 1376 at lib/dma-debug.c:1153 check_for_stack+0xa0/0x100()
+> ehci-pci 0000:00:0a.0: DMA-API: device driver maps memory fromstack [addr=ffff88003d0b56bf]
 
+> This commit fixes such issue by using a 'usb_ctrl_read' field embedded
+> in the device's struct to pass the value. In addition, we introduce a
+> mutex to protect the value.
+
+> While here, let's remove the urb_buf array which was meant for a similar
+> purpose, but never really used.
+
+> Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
+> Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 > ---
->  drivers/media/v4l2-core/videobuf2-core.c | 13 ++++---------
->  1 file changed, 4 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index f9059bb..596998e 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1169,8 +1169,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->                                         b->m.planes[plane].m.fd;
->                                 v4l2_planes[plane].length =
->                                         b->m.planes[plane].length;
-> -                               v4l2_planes[plane].data_offset =
-> -                                       b->m.planes[plane].data_offset;
->                         }
->                 }
->         } else {
-> @@ -1180,10 +1178,8 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->                  * In videobuf we use our internal V4l2_planes struct for
->                  * single-planar buffers as well, for simplicity.
->                  */
-> -               if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-> +               if (V4L2_TYPE_IS_OUTPUT(b->type))
->                         v4l2_planes[0].bytesused = b->bytesused;
-> -                       v4l2_planes[0].data_offset = 0;
-> -               }
->
->                 if (b->memory == V4L2_MEMORY_USERPTR) {
->                         v4l2_planes[0].m.userptr = b->m.userptr;
-> @@ -1193,9 +1189,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->                 if (b->memory == V4L2_MEMORY_DMABUF) {
->                         v4l2_planes[0].m.fd = b->m.fd;
->                         v4l2_planes[0].length = b->length;
-> -                       v4l2_planes[0].data_offset = 0;
->                 }
-> -
+> Sander, Hans:
+> Does this cause any regressions, other than the DMA-API warning?
+> In that case, we can consider this as suitable for -stable.
+
+Thanks !
+
+Will test and report back later.
+
+--
+Sander
+
+>  drivers/media/usb/stk1160/stk1160-core.c | 8 +++++++-
+>  drivers/media/usb/stk1160/stk1160.h      | 3 ++-
+>  2 files changed, 9 insertions(+), 2 deletions(-)
+
+> diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/usb/stk1160/stk1160-core.c
+> index 34a26e0..cce91e7 100644
+> --- a/drivers/media/usb/stk1160/stk1160-core.c
+> +++ b/drivers/media/usb/stk1160/stk1160-core.c
+> @@ -69,15 +69,20 @@ int stk1160_read_reg(struct stk1160 *dev, u16 reg, u8 *value)
+>         int pipe = usb_rcvctrlpipe(dev->udev, 0);
+>  
+>         *value = 0;
+> +
+> +       mutex_lock(&dev->urb_ctrl_lock);
+>         ret = usb_control_msg(dev->udev, pipe, 0x00,
+>                         USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> -                       0x00, reg, value, sizeof(u8), HZ);
+> +                       0x00, reg, &dev->urb_ctrl_read, sizeof(u8), HZ);
+>         if (ret < 0) {
+>                 stk1160_err("read failed on reg 0x%x (%d)\n",
+>                         reg, ret);
+> +               mutex_unlock(&dev->urb_ctrl_lock);
+>                 return ret;
 >         }
->
->         /* Zero flags that the vb2 core handles */
-> @@ -1238,6 +1232,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->         int write = !V4L2_TYPE_IS_OUTPUT(q->type);
->         bool reacquired = vb->planes[0].mem_priv == NULL;
->
-> +       memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+>  
+> +       *value = dev->urb_ctrl_read;
+> +       mutex_unlock(&dev->urb_ctrl_lock);
+>         return 0;
+>  }
+>  
+> @@ -322,6 +327,7 @@ static int stk1160_probe(struct usb_interface *interface,
+>          * because we register the device node as the *last* thing.
+>          */
+>         spin_lock_init(&dev->buf_lock);
+> +       mutex_init(&dev->urb_ctrl_lock);
+>         mutex_init(&dev->v4l_lock);
+>         mutex_init(&dev->vb_queue_lock);
+>  
+> diff --git a/drivers/media/usb/stk1160/stk1160.h b/drivers/media/usb/stk1160/stk1160.h
+> index 05b05b1..8886be4 100644
+> --- a/drivers/media/usb/stk1160/stk1160.h
+> +++ b/drivers/media/usb/stk1160/stk1160.h
+> @@ -143,7 +143,7 @@ struct stk1160 {
+>         int num_alt;
+>  
+>         struct stk1160_isoc_ctl isoc_ctl;
+> -       char urb_buf[255];       /* urb control msg buffer */
+> +       char urb_ctrl_read;
+>  
+>         /* frame properties */
+>         int width;                /* current frame width */
+> @@ -159,6 +159,7 @@ struct stk1160 {
+>         struct i2c_adapter i2c_adap;
+>         struct i2c_client i2c_client;
+>  
+> +       struct mutex urb_ctrl_lock;     /* protects urb_ctrl_read */
+>         struct mutex v4l_lock;
+>         struct mutex vb_queue_lock;
+>         spinlock_t buf_lock;
 
-memset(planes, 0, sizeof(planes));
-
->         /* Copy relevant information provided by the userspace */
->         __fill_vb2_buffer(vb, b, planes);
->
-> @@ -1357,6 +1352,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->         int write = !V4L2_TYPE_IS_OUTPUT(q->type);
->         bool reacquired = vb->planes[0].mem_priv == NULL;
->
-> +       memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
-
-memset(planes, 0, sizeof(planes));
-
->         /* Copy relevant information provided by the userspace */
->         __fill_vb2_buffer(vb, b, planes);
->
-> @@ -1374,8 +1370,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->                 if (planes[plane].length == 0)
->                         planes[plane].length = dbuf->size;
->
-> -               if (planes[plane].length < planes[plane].data_offset +
-> -                   q->plane_sizes[plane]) {
-> +               if (planes[plane].length < q->plane_sizes[plane]) {
->                         dprintk(1, "qbuf: invalid dmabuf length for plane %d\n",
->                                 plane);
->                         ret = -EINVAL;
-> --
-> 1.9.1
->
-
-
-
--- 
-Best regards,
-Pawel Osciak
