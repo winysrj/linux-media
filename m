@@ -1,52 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:20353 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932699AbaDVPDm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Apr 2014 11:03:42 -0400
-Date: Tue, 22 Apr 2014 18:02:39 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: hans.verkuil@cisco.com, m.chehab@samsung.com,
-	ext-eero.nurkkala@nokia.com, nils.faerber@kernelconcepts.de,
-	joni.lapilainen@gmail.com, freemangordon@abv.bg, sre@ring0.de,
-	pali.rohar@gmail.com, Greg KH <greg@kroah.com>, trivial@kernel.org,
-	linux-media@vger.kernel.org
-Cc: kernel list <linux-kernel@vger.kernel.org>
-Subject: [PATCH v3] [media] radio-bcm2048: fix wrong overflow check
-Message-ID: <20140422150239.GA32637@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20140422125726.GA30238@mwanda>
+Received: from mga01.intel.com ([192.55.52.88]:41256 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754511AbaDNJA6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Apr 2014 05:00:58 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id A0AFE209A7
+	for <linux-media@vger.kernel.org>; Mon, 14 Apr 2014 12:00:53 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 05/21] smiapp: Use I2C adapter ID and address in the sub-device name
+Date: Mon, 14 Apr 2014 11:58:30 +0300
+Message-Id: <1397465926-29724-6-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pali Rohár <pali.rohar@gmail.com>
+The sub-device names should be unique. Should two identical sensors be
+present in the same media device they would be indistinguishable. The names
+will change e.g. from "vs6555 pixel array" to "vs6555 1-0010 pixel array".
 
-This patch fixes an off by one check in bcm2048_set_region().
-
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
-v2: Send it to the correct list.  Re-work the changelog.
-v3: Correct subsystem prefix.
+ drivers/media/i2c/smiapp/smiapp-core.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index b2cd3a8..bbf236e 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -737,7 +737,7 @@ static int bcm2048_set_region(struct bcm2048_device *bdev, u8 region)
- 	int err;
- 	u32 new_frequency = 0;
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 8741cae..69c11ec 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2543,8 +2543,9 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
+ 		}
  
--	if (region > ARRAY_SIZE(region_configs))
-+	if (region >= ARRAY_SIZE(region_configs))
- 		return -EINVAL;
+ 		snprintf(this->sd.name,
+-			 sizeof(this->sd.name), "%s %s",
+-			 sensor->minfo.name, _this->name);
++			 sizeof(this->sd.name), "%s %d-%4.4x %s",
++			 sensor->minfo.name, i2c_adapter_id(client->adapter),
++			 client->addr, _this->name);
  
- 	mutex_lock(&bdev->mutex);
-
+ 		this->sink_fmt.width =
+ 			sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
 -- 
+1.8.3.2
 
