@@ -1,86 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:52468 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756023AbaDKLti (ORCPT
+Received: from smtp-outbound-2.vmware.com ([208.91.2.13]:49704 "EHLO
+	smtp-outbound-2.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752862AbaDNHpf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 07:49:38 -0400
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-doc@vger.kernel.org
-Cc: t.figa@samsung.com, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, robh+dt@kernel.org, arnd@arndb.de,
-	gregkh@linuxfoundation.org, grant.likely@linaro.org,
-	kgene.kim@samsung.com, rdunlap@infradead.org, ben-linux@fluff.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 2/2] arm: dts: trats2: add SiI9234 node
-Date: Fri, 11 Apr 2014 13:48:30 +0200
-Message-id: <1397216910-15904-3-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1397216910-15904-1-git-send-email-t.stanislaws@samsung.com>
-References: <1397216910-15904-1-git-send-email-t.stanislaws@samsung.com>
+	Mon, 14 Apr 2014 03:45:35 -0400
+Message-ID: <534B921B.4080504@vmware.com>
+Date: Mon, 14 Apr 2014 09:45:31 +0200
+From: Thomas Hellstrom <thellstrom@vmware.com>
+MIME-Version: 1.0
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+CC: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	ccross@google.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] [RFC v2 with seqcount] reservation: add suppport
+ for read-only access using rcu
+References: <20140409144239.26648.57918.stgit@patser> <20140409144831.26648.79163.stgit@patser> <53465A53.1090500@vmware.com> <53466D63.8080808@canonical.com> <53467B93.3000402@vmware.com> <5346B212.8050202@canonical.com> <5347A9FD.2070706@vmware.com> <5347B4E5.6090901@canonical.com> <5347BFC9.3020503@vmware.com> <53482FF1.1090406@canonical.com> <534843EA.6060602@vmware.com> <534B9165.4000101@canonical.com>
+In-Reply-To: <534B9165.4000101@canonical.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds configuration of SiI9234 bridge to Trats2 board.
+On 04/14/2014 09:42 AM, Maarten Lankhorst wrote:
+> op 11-04-14 21:35, Thomas Hellstrom schreef:
+>> On 04/11/2014 08:09 PM, Maarten Lankhorst wrote:
+>>> op 11-04-14 12:11, Thomas Hellstrom schreef:
+>>>> On 04/11/2014 11:24 AM, Maarten Lankhorst wrote:
+>>>>> op 11-04-14 10:38, Thomas Hellstrom schreef:
+>>>>>> Hi, Maarten.
+>>>>>>
+>>>>>> Here I believe we encounter a lot of locking inconsistencies.
+>>>>>>
+>>>>>> First, it seems you're use a number of pointers as RCU pointers
+>>>>>> without
+>>>>>> annotating them as such and use the correct rcu
+>>>>>> macros when assigning those pointers.
+>>>>>>
+>>>>>> Some pointers (like the pointers in the shared fence list) are both
+>>>>>> used
+>>>>>> as RCU pointers (in dma_buf_poll()) for example,
+>>>>>> or considered protected by the seqlock
+>>>>>> (reservation_object_get_fences_rcu()), which I believe is OK, but
+>>>>>> then
+>>>>>> the pointers must
+>>>>>> be assigned using the correct rcu macros. In the memcpy in
+>>>>>> reservation_object_get_fences_rcu() we might get away with an
+>>>>>> ugly typecast, but with a verbose comment that the pointers are
+>>>>>> considered protected by the seqlock at that location.
+>>>>>>
+>>>>>> So I've updated (attached) the headers with proper __rcu annotation
+>>>>>> and
+>>>>>> locking comments according to how they are being used in the various
+>>>>>> reading functions.
+>>>>>> I believe if we want to get rid of this we need to validate those
+>>>>>> pointers using the seqlock as well.
+>>>>>> This will generate a lot of sparse warnings in those places needing
+>>>>>> rcu_dereference()
+>>>>>> rcu_assign_pointer()
+>>>>>> rcu_dereference_protected()
+>>>>>>
+>>>>>> With this I think we can get rid of all ACCESS_ONCE macros: It's not
+>>>>>> needed when the rcu_x() macros are used, and
+>>>>>> it's never needed for the members protected by the seqlock,
+>>>>>> (provided
+>>>>>> that the seq is tested). The only place where I think that's
+>>>>>> *not* the case is at the krealloc in
+>>>>>> reservation_object_get_fences_rcu().
+>>>>>>
+>>>>>> Also I have some more comments in the
+>>>>>> reservation_object_get_fences_rcu() function below:
+>>>>> I felt that the barriers needed for rcu were already provided by
+>>>>> checking the seqcount lock.
+>>>>> But looking at rcu_dereference makes it seem harmless to add it in
+>>>>> more places, it handles
+>>>>> the ACCESS_ONCE and barrier() for us.
+>>>> And it makes the code more maintainable, and helps sparse doing a
+>>>> lot of
+>>>> checking for us. I guess
+>>>> we can tolerate a couple of extra barriers for that.
+>>>>
+>>>>> We could probably get away with using RCU_INIT_POINTER on the writer
+>>>>> side,
+>>>>> because the smp_wmb is already done by arranging seqcount updates
+>>>>> correctly.
+>>>> Hmm. yes, probably. At least in the replace function. I think if we do
+>>>> it in other places, we should add comments as to where
+>>>> the smp_wmb() is located, for future reference.
+>>>>
+>>>>
+>>>> Also  I saw in a couple of places where you're checking the shared
+>>>> pointers, you're not checking for NULL pointers, which I guess may
+>>>> happen if shared_count and pointers are not in full sync?
+>>>>
+>>> No, because shared_count is protected with seqcount. I only allow
+>>> appending to the array, so when
+>>> shared_count is validated by seqcount it means that the
+>>> [0...shared_count) indexes are valid and non-null.
+>>> What could happen though is that the fence at a specific index is
+>>> updated with another one from the same
+>>> context, but that's harmless.
+>>>
+>> Hmm, doesn't attaching an exclusive fence clear all shared fence
+>> pointers from under a reader?
+>>
+> No, for that reason. It only resets shared_count to 0.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
----
- arch/arm/boot/dts/exynos4412-trats2.dts |   43 +++++++++++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
+Ah. OK. I guess I didn't read the code carefully enough.
 
-diff --git a/arch/arm/boot/dts/exynos4412-trats2.dts b/arch/arm/boot/dts/exynos4412-trats2.dts
-index 9583563d..65fd1d4 100644
---- a/arch/arm/boot/dts/exynos4412-trats2.dts
-+++ b/arch/arm/boot/dts/exynos4412-trats2.dts
-@@ -680,4 +680,47 @@
- 		pulldown-ohm = <100000>; /* 100K */
- 		io-channels = <&adc 2>;  /* Battery temperature */
- 	};
-+
-+	vsil: voltage-regulator-vsil {
-+	        compatible = "regulator-fixed";
-+		regulator-name = "HDMI_5V";
-+		regulator-min-microvolt = <5000000>;
-+		regulator-max-microvolt = <5000000>;
-+		gpio = <&gpl0 4 0>;
-+		enable-active-high;
-+		vin-supply = <&buck7_reg>;
-+	};
-+
-+	i2c-mhl {
-+		compatible = "i2c-gpio";
-+		gpios = <&gpf0 4 0 &gpf0 6 0>;
-+		i2c-gpio,delay-us = <100>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		pinctrl-0 = <&i2c_mhl_bus>;
-+		pinctrl-names = "default";
-+		status = "okay";
-+
-+		sii9234: sii9234@39 {
-+			compatible = "sil,sii9234";
-+			vcc-supply = <&vsil>;
-+			gpio-reset = <&gpf3 4 0>;
-+			gpio-int = <&gpf3 5 0>;
-+			reg = <0x39>;
-+		};
-+	};
-+};
-+
-+&pinctrl_0 {
-+	mhl_int: mhl-int {
-+		samsung,pins = "gpf3-5";
-+		samsung,pin-pud = <0>;
-+	};
-+	i2c_mhl_bus: i2c-mhl-bus {
-+		samsung,pins = "gpf0-4", "gpf0-6";
-+		samsung,pin-function = <2>;
-+		samsung,pin-pud = <1>;
-+		samsung,pin-drv = <0>;
-+	};
- };
--- 
-1.7.9.5
+Thanks,
+Thomas
 
+
+
+>
+> ~Maarten
