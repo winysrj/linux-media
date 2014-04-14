@@ -1,63 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:65176 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752444AbaDIJGB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Apr 2014 05:06:01 -0400
-Message-ID: <53450D76.2010405@redhat.com>
-Date: Wed, 09 Apr 2014 11:05:58 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:62671 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751686AbaDNROn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Apr 2014 13:14:43 -0400
 MIME-Version: 1.0
-To: alexander@xxor.de, linux-media@vger.kernel.org
-Subject: Re: gspca second isoc endpoint / kinect depth
-References: <53443C5D.9000607@xxor.de>
-In-Reply-To: <53443C5D.9000607@xxor.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <Pine.LNX.4.64.1404102308500.25569@axis700.grange>
+References: <1392235552-28134-1-git-send-email-pengw@nvidia.com>
+ <1394794130-13660-1-git-send-email-josh.wu@atmel.com> <CAK5ve-KuPJa6rBdYGvkuPyQU5TCiEe1t=PzEKN4NgsKgVWogqA@mail.gmail.com>
+ <Pine.LNX.4.64.1404102308500.25569@axis700.grange>
+From: Bryan Wu <cooloney@gmail.com>
+Date: Mon, 14 Apr 2014 10:14:21 -0700
+Message-ID: <CAK5ve-KNivKYvyDAfp1nw6VgHG3AFuZzwC6gWV36pa3dpgkz1w@mail.gmail.com>
+Subject: Re: [v2] media: soc-camera: OF cameras
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Josh Wu <josh.wu@atmel.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	linux-tegra <linux-tegra@vger.kernel.org>,
+	Ben Dooks <ben.dooks@codethink.co.uk>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, Apr 10, 2014 at 2:18 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Hi Bryan,
+>
+> On Tue, 8 Apr 2014, Bryan Wu wrote:
+>
+>> Thanks Josh, I think I will take you point and rework my patch again.
+>> But I need Guennadi's review firstly, Guennadi, could you please help
+>> to review it?
+>
+> Ok, let me double check the situation:
+>
+> 1. We've got this patch from you, aiming at adding OF probing support to
+> soc-camra
+>
+> 2. We've got an alternative patch from Ben to do the same, his last reply
+> to a comment to his patch was "Thanks, I will look into this."
+>
+> 3. We've got Ben's patches for rcar-vin, that presumably work with his
+> patch from (2) above
+>
+> 4. We've got Josh's patches to add OF / async probing to atmel-isi and
+> ov2640, that are not known to work with either (1) or (2) above, so, they
+> don't work at all, right?
+>
+> So, to summarise, there is a core patch from Ben, that he possibly wants
+> to adjust, and that works with his rcar-vin OF, there is a patch from you
+> that isn't known to work with any driver, and there are patches from Josh,
+> that don't work, because there isn't a suitable patch available for them.
+> I will have a look at your and Ben's soc-camera OF patches to compare them
+> and compare them with my early code (hopefully this coming weekend), but
+> so far it looks like only Ben's solution has a complete working stack. Am
+> I missing something?
+>
 
-On 04/08/2014 08:13 PM, Alexander Sosna wrote:
-> Hi,
-> 
-> I took drivers/media/usb/gspca/kinect.c as skeleton to build a depth
-> driver for the kinect camera.
-> 
-> I needed to implement this feature because libfreenect performs so badly
-> on the raspberry pi that you can't get a single frame.
-> 
-> The kinecet has two isoc endpoints but gspca only uses the first.
-> To get it running I made a dirty hack to drivers/media/usb/gspca/gspca.c
-> I changed usb_host_endpoint *alt_xfer(...) so that it always returns the
-> second endpoint, which is not really good for everyone.
-> 
-> 
-> My driver is not ready for upstream now, it can not coexist with the
-> current gspca_kinect so you have to decide if you want to load the video
-> or the depth driver. Would be better to have one driver to do it all.
-> 
-> But in the meantime I would like to ask for ideas about a more clean
-> solution to get other isoc endpoints.
-> 
-> There was already a little discussion about this when kinect.c was
-> written by Antonio Ospite:
-> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/26194
-> 
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/26213
-> 
-> Has something changed?
+My bad. I missed the conversation and patches from Ben Dooks and you guys.
+I have no problem for merging Ben's patch and I will align my Tegra
+Camera patch with that, probably posted later.
 
-No.
-
-> Is there a point against making multiple endpoints available?
-
-No.
-
-> Better solution?
-
-Not that I know of.
-
-Regards,
-
-Hans
+Thanks,
+-Bryan
