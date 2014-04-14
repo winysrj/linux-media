@@ -1,117 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38905 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754145AbaDQONf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 10:13:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mga09.intel.com ([134.134.136.24]:3996 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754546AbaDNJBD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Apr 2014 05:01:03 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id C7F5C209A7
+	for <linux-media@vger.kernel.org>; Mon, 14 Apr 2014 12:00:56 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v4 30/49] adv7604: Add 16-bit read functions for CP and HDMI
-Date: Thu, 17 Apr 2014 16:13:01 +0200
-Message-Id: <1397744000-23967-31-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 20/21] smiapp: Define macros for obtaining properties of register definitions
+Date: Mon, 14 Apr 2014 11:58:45 +0300
+Message-Id: <1397465926-29724-21-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7604.c | 48 ++++++++++++++++++++++-----------------------
- 1 file changed, 24 insertions(+), 24 deletions(-)
+The register address, width and flags are encoded as a 32-bit value. Add
+macros for obtaining these separately. Use the macros in register access
+functions.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index dd0a9a9..da256dd 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -542,6 +542,11 @@ static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
- 	return adv_smbus_read_byte_data(state->i2c_hdmi, reg);
- }
- 
-+static u16 hdmi_read16(struct v4l2_subdev *sd, u8 reg, u16 mask)
-+{
-+	return ((hdmi_read(sd, reg) << 8) | hdmi_read(sd, reg + 1)) & mask;
-+}
-+
- static inline int hdmi_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-regs.c | 13 +++++++------
+ drivers/media/i2c/smiapp/smiapp-regs.h |  4 ++++
+ 2 files changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/i2c/smiapp/smiapp-regs.c b/drivers/media/i2c/smiapp/smiapp-regs.c
+index c2db205..47b9e4c 100644
+--- a/drivers/media/i2c/smiapp/smiapp-regs.c
++++ b/drivers/media/i2c/smiapp/smiapp-regs.c
+@@ -165,7 +165,7 @@ static int __smiapp_read(struct smiapp_sensor *sensor, u32 reg, u32 *val,
+ 			 bool only8)
  {
- 	struct adv7604_state *state = to_state(sd);
-@@ -575,6 +580,11 @@ static inline int cp_read(struct v4l2_subdev *sd, u8 reg)
- 	return adv_smbus_read_byte_data(state->i2c_cp, reg);
- }
+ 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
+-	unsigned int len = (u8)(reg >> 16);
++	u8 len = SMIAPP_REG_WIDTH(reg);
+ 	int rval;
  
-+static u16 cp_read16(struct v4l2_subdev *sd, u8 reg, u16 mask)
-+{
-+	return ((cp_read(sd, reg) << 8) | cp_read(sd, reg + 1)) & mask;
-+}
+ 	if (len != SMIAPP_REG_8BIT && len != SMIAPP_REG_16BIT
+@@ -173,9 +173,10 @@ static int __smiapp_read(struct smiapp_sensor *sensor, u32 reg, u32 *val,
+ 		return -EINVAL;
+ 
+ 	if (len == SMIAPP_REG_8BIT || !only8)
+-		rval = ____smiapp_read(sensor, (u16)reg, len, val);
++		rval = ____smiapp_read(sensor, SMIAPP_REG_ADDR(reg), len, val);
+ 	else
+-		rval = ____smiapp_read_8only(sensor, (u16)reg, len, val);
++		rval = ____smiapp_read_8only(sensor, SMIAPP_REG_ADDR(reg), len,
++					     val);
+ 	if (rval < 0)
+ 		return rval;
+ 
+@@ -208,9 +209,9 @@ int smiapp_write(struct smiapp_sensor *sensor, u32 reg, u32 val)
+ 	struct i2c_msg msg;
+ 	unsigned char data[6];
+ 	unsigned int retries;
+-	unsigned int flags = reg >> 24;
+-	unsigned int len = (u8)(reg >> 16);
+-	u16 offset = reg;
++	u8 flags = SMIAPP_REG_FLAGS(reg);
++	u8 len = SMIAPP_REG_WIDTH(reg);
++	u16 offset = SMIAPP_REG_ADDR(reg);
+ 	int r;
+ 
+ 	if ((len != SMIAPP_REG_8BIT && len != SMIAPP_REG_16BIT &&
+diff --git a/drivers/media/i2c/smiapp/smiapp-regs.h b/drivers/media/i2c/smiapp/smiapp-regs.h
+index 934130b..aeecab8 100644
+--- a/drivers/media/i2c/smiapp/smiapp-regs.h
++++ b/drivers/media/i2c/smiapp/smiapp-regs.h
+@@ -28,6 +28,10 @@
+ #include <linux/i2c.h>
+ #include <linux/types.h>
+ 
++#define SMIAPP_REG_ADDR(reg)		((u16)reg)
++#define SMIAPP_REG_WIDTH(reg)		((u8)(reg >> 16))
++#define SMIAPP_REG_FLAGS(reg)		((u8)(reg >> 24))
 +
- static inline int cp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv7604_state *state = to_state(sd);
-@@ -1203,8 +1213,8 @@ static int read_stdi(struct v4l2_subdev *sd, struct stdi_readback *stdi)
- 	}
+ /* Use upper 8 bits of the type field for flags */
+ #define SMIAPP_REG_FLAG_FLOAT		(1 << 24)
  
- 	/* read STDI */
--	stdi->bl = ((cp_read(sd, 0xb1) & 0x3f) << 8) | cp_read(sd, 0xb2);
--	stdi->lcf = ((cp_read(sd, 0xb3) & 0x7) << 8) | cp_read(sd, 0xb4);
-+	stdi->bl = cp_read16(sd, 0xb1, 0x3fff);
-+	stdi->lcf = cp_read16(sd, 0xb3, 0x7ff);
- 	stdi->lcvs = cp_read(sd, 0xb3) >> 3;
- 	stdi->interlaced = io_read(sd, 0x12) & 0x10;
- 
-@@ -1315,8 +1325,8 @@ static int adv7604_query_dv_timings(struct v4l2_subdev *sd,
- 
- 		timings->type = V4L2_DV_BT_656_1120;
- 
--		bt->width = (hdmi_read(sd, 0x07) & 0x0f) * 256 + hdmi_read(sd, 0x08);
--		bt->height = (hdmi_read(sd, 0x09) & 0x0f) * 256 + hdmi_read(sd, 0x0a);
-+		bt->width = hdmi_read16(sd, 0x07, 0xfff);
-+		bt->height = hdmi_read16(sd, 0x09, 0xfff);
- 		freq = (hdmi_read(sd, 0x06) * 1000000) +
- 			((hdmi_read(sd, 0x3b) & 0x30) >> 4) * 250000;
- 		if (is_hdmi(sd)) {
-@@ -1326,29 +1336,19 @@ static int adv7604_query_dv_timings(struct v4l2_subdev *sd,
- 			freq = freq * 8 / bits_per_channel;
- 		}
- 		bt->pixelclock = freq;
--		bt->hfrontporch = (hdmi_read(sd, 0x20) & 0x03) * 256 +
--			hdmi_read(sd, 0x21);
--		bt->hsync = (hdmi_read(sd, 0x22) & 0x03) * 256 +
--			hdmi_read(sd, 0x23);
--		bt->hbackporch = (hdmi_read(sd, 0x24) & 0x03) * 256 +
--			hdmi_read(sd, 0x25);
--		bt->vfrontporch = ((hdmi_read(sd, 0x2a) & 0x1f) * 256 +
--			hdmi_read(sd, 0x2b)) / 2;
--		bt->vsync = ((hdmi_read(sd, 0x2e) & 0x1f) * 256 +
--			hdmi_read(sd, 0x2f)) / 2;
--		bt->vbackporch = ((hdmi_read(sd, 0x32) & 0x1f) * 256 +
--			hdmi_read(sd, 0x33)) / 2;
-+		bt->hfrontporch = hdmi_read16(sd, 0x20, 0x3ff);
-+		bt->hsync = hdmi_read16(sd, 0x22, 0x3ff);
-+		bt->hbackporch = hdmi_read16(sd, 0x24, 0x3ff);
-+		bt->vfrontporch = hdmi_read16(sd, 0x2a, 0x1fff) / 2;
-+		bt->vsync = hdmi_read16(sd, 0x2e, 0x1fff) / 2;
-+		bt->vbackporch = hdmi_read16(sd, 0x32, 0x1fff) / 2;
- 		bt->polarities = ((hdmi_read(sd, 0x05) & 0x10) ? V4L2_DV_VSYNC_POS_POL : 0) |
- 			((hdmi_read(sd, 0x05) & 0x20) ? V4L2_DV_HSYNC_POS_POL : 0);
- 		if (bt->interlaced == V4L2_DV_INTERLACED) {
--			bt->height += (hdmi_read(sd, 0x0b) & 0x0f) * 256 +
--					hdmi_read(sd, 0x0c);
--			bt->il_vfrontporch = ((hdmi_read(sd, 0x2c) & 0x1f) * 256 +
--					hdmi_read(sd, 0x2d)) / 2;
--			bt->il_vsync = ((hdmi_read(sd, 0x30) & 0x1f) * 256 +
--					hdmi_read(sd, 0x31)) / 2;
--			bt->vbackporch = ((hdmi_read(sd, 0x34) & 0x1f) * 256 +
--					hdmi_read(sd, 0x35)) / 2;
-+			bt->height += hdmi_read16(sd, 0x0b, 0xfff);
-+			bt->il_vfrontporch = hdmi_read16(sd, 0x2c, 0x1fff) / 2;
-+			bt->il_vsync = hdmi_read16(sd, 0x30, 0x1fff) / 2;
-+			bt->vbackporch = hdmi_read16(sd, 0x34, 0x1fff) / 2;
- 		}
- 		adv7604_fill_optional_dv_timings_fields(sd, timings);
- 	} else {
 -- 
 1.8.3.2
 
