@@ -1,404 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38683 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40265 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752201AbaDUM3S (ORCPT
+	with ESMTP id S1750784AbaDNAet (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Apr 2014 08:29:18 -0400
+	Sun, 13 Apr 2014 20:34:49 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 18/26] omap3isp: Use the ARM DMA IOMMU-aware operations
-Date: Mon, 21 Apr 2014 14:29:04 +0200
-Message-Id: <1398083352-8451-19-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: William Manley <will@williammanley.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] uvcvideo: Work around buggy Logitech C920 firmware
+Date: Mon, 14 Apr 2014 02:34:47 +0200
+Message-ID: <1551199.fyCn5EYGon@avalon>
+In-Reply-To: <53222C64.90901@williammanley.net>
+References: <1394647711-25291-1-git-send-email-will@williammanley.net> <1832254.8GCCJyof1H@avalon> <53222C64.90901@williammanley.net>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Attach an ARM DMA I/O virtual address space to the ISP device. This
-switches to the IOMMU-aware ARM DMA backend, we can thus remove the
-explicit calls to the OMAP IOMMU map and unmap functions.
+Hi William,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/Kconfig             |   4 +-
- drivers/media/platform/omap3isp/isp.c      | 102 +++++++++++++++++++++--------
- drivers/media/platform/omap3isp/isp.h      |   8 +--
- drivers/media/platform/omap3isp/ispqueue.c |  34 ++--------
- drivers/media/platform/omap3isp/ispqueue.h |   2 -
- 5 files changed, 89 insertions(+), 61 deletions(-)
+On Thursday 13 March 2014 22:08:36 William Manley wrote:
+> On 13/03/14 17:03, Laurent Pinchart wrote:
+> > On Thursday 13 March 2014 10:48:20 Will Manley wrote:
+> >> On Thu, 13 Mar 2014, at 10:23, Laurent Pinchart wrote:
+> >>> On Wednesday 12 March 2014 18:08:31 William Manley wrote:
+> >>>> The uvcvideo webcam driver exposes the v4l2 control "Exposure
+> >>>> (Absolute)" which allows the user to control the exposure time of the
+> >>>> webcam, essentially controlling the brightness of the received image.
+> >>>> By default the webcam automatically adjusts the exposure time
+> >>>> automatically but the if you set the control "Exposure, Auto"="Manual
+> >>>> Mode" the user can fix the exposure time.
+> >>>> 
+> >>>> Unfortunately it seems that the Logitech C920 has a firmware bug where
+> >>>> it will forget that it's in manual mode temporarily during
+> >>>> initialisation. This means that the camera doesn't respect the exposure
+> >>>> time that the user requested if they request it before starting to
+> >>>> stream video. They end up with a video stream which is either too
+> >>>> bright or too dark and must reset the controls after video starts
+> >>>> streaming.
+> >>> 
+> >>> I would like to get a better understanding of the problem first. As I
+> >>> don't have a C920, could you please perform two tests for me ?
+> >>> 
+> >>> I would first like to know what the camera reports as its exposure time
+> >>> after starting the stream. If you get the exposure time at that point
+> >>> (by sending a GET_CUR request, bypassing the driver cache), do you get
+> >>> the value you had previously set (which, from your explanation, would be
+> >>> incorrect, as the exposure time has changed based on your findings), or
+> >>> a different value ? Does the camera change the exposure priority control
+> >>> autonomously as well, or just the exposure time ?
+> >> 
+> >> It's a bit of a strange behaviour. I'd already tried littering the code
+> >> with (uncached) GET_CUR requests. It seems that the value changes
+> >> sometime during the call to usb_set_interface in uvc_init_video.
+> > 
+> > I'll assume this means that the camera reports the updated exposure time
+> > in response to the GET_CUR request.
+> 
+> That's right
+> 
+> > Does the value of other controls (such as the
+> > exposure priority control for instance) change as well ?
+> 
+> No, I've not seen any of the other controls change.
+> 
+> >> Strangely enough though calling uvc_ctrl_restore_values immediately after
+> >> uvc_init_video has no effect. It must be put after the usb_submit_urb
+> >> loop to fix the problem.
+> >> 
+> >>> Then, I would like to know whether the camera sends a control update
+> >>> event when you start the stream, or if it just changes the exposure time
+> >>> without notifying the driver.
+> >> 
+> >> Wireshark tells me that it is sending a control update event, but it
+> >> seems like uvcvideo ignores it. I had to add the flag
+> >> UVC_CTRL_FLAG_AUTO_UPDATE to the uvc_control_info entry for "Exposure
+> >> (Auto)" for the new value to be properly reported to userspace.
+> > 
+> > Could you send me the USB trace ?
+> 
+> I've uploaded 3 traces: one with no patch (kernel 3.12) one with my
+> "PATCH v2" applied and one with no patch but caching of gets disabled.
+> You can get them here:
+> 
+>     http://williammanley.net/C920-no-patch.pcapng
+>     http://williammanley.net/C920-with-patch.pcapng
+>     http://williammanley.net/C920-no-caching.pcapng
+> 
+> The process to generate them was:
+> 
+>     sudo dumpcap -i usbmon1 -w /tmp/C920-no-patch2.pcapng &
+> 
+>     # Plug USB cable in here
+> 
+>     v4l2-ctl -d
+> /dev/v4l/by-id/usb-046d_HD_Pro_Webcam_C920_C833389F-video-index1
+> 
+> -cexposure_auto=1,exposure_auto_priority=0,exposure_absolute=152,white_balan
+> ce_temperature_auto=0
+> 
+>     ./streamon
+> 
+> The relevant output seems to be (here from C920-no-patch.pcapng):
+> > 10446 23.095874000 21:14:16.313257000         host -> 32.0         USB 64
+> > SET INTERFACE Request 10447 23.109379000 21:14:16.326762000         32.3
+> > -> host         USBVIDEO 70 URB_INTERRUPT in 10448 23.109389000
+> > 21:14:16.326772000         host -> 32.3         USB 64 URB_INTERRUPT in
+> > 10449 23.189448000 21:14:16.406831000         32.3 -> host        
+> > USBVIDEO 73 URB_INTERRUPT in 10450 23.189486000 21:14:16.406869000       
+> >  host -> 32.3         USB 64 URB_INTERRUPT in 10451 23.243314000
+> > 21:14:16.460697000         32.0 -> host         USB 64 SET INTERFACE
+> > Response
+> Taking a closer look at packet 10449:
+> > Frame 10449: 73 bytes on wire (584 bits), 73 bytes captured (584 bits) on
+> > interface 0> 
+> >     Interface id: 0
+> >     Encapsulation type: USB packets with Linux header and padding (115)
+> >     Arrival Time: Mar 13, 2014 21:14:16.406831000 GMT
+> >     [Time shift for this packet: 0.000000000 seconds]
+> >     Epoch Time: 1394745256.406831000 seconds
+> >     [Time delta from previous captured frame: 0.080059000 seconds]
+> >     [Time delta from previous displayed frame: 0.080059000 seconds]
+> >     [Time since reference or first frame: 23.189448000 seconds]
+> >     Frame Number: 10449
+> >     Frame Length: 73 bytes (584 bits)
+> >     Capture Length: 73 bytes (584 bits)
+> >     [Frame is marked: False]
+> >     [Frame is ignored: False]
+> >     [Protocols in frame: usb:usbvideo]
+> > 
+> > USB URB
+> > 
+> >     URB id: 0xffff88081bf95240
+> >     URB type: URB_COMPLETE ('C')
+> >     URB transfer type: URB_INTERRUPT (0x01)
+> >     Endpoint: 0x83, Direction: IN
+> >     
+> >         1... .... = Direction: IN (1)
+> >         .000 0011 = Endpoint value: 3
+> >     
+> >     Device: 32
+> >     URB bus id: 1
+> >     Device setup request: not relevant ('-')
+> >     Data: present (0)
+> >     URB sec: 1394745256
+> >     URB usec: 406831
+> >     URB status: Success (0)
+> >     URB length [bytes]: 9
+> >     Data length [bytes]: 9
+> >     [Request in: 10448]
+> >     [Time from request: 0.080059000 seconds]
+> >     [bInterfaceClass: Video (0x0e)]
+> > 
+> > .... 0001 = Status Type: VideoControl Interface (0x01)
+> > Originator: 1
+> > Event: Control Change (0x00)
+> > Control Selector: Exposure Time (Absolute) (0x04)
+> > Change Type: Value (0x00)
+> > Current value: 333 (0x0000014d)
+> 
+> This is the notification of the change of the value.  As you can see it
+> happens between "SET INTERFACE Request" and "SET INTERFACE Response".
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index c137abf..2091b2b 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -93,7 +93,9 @@ config VIDEO_M32R_AR_M64278
- 
- config VIDEO_OMAP3
- 	tristate "OMAP 3 Camera support"
--	depends on OMAP_IOVMM && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
-+	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
-+	select ARM_DMA_USE_IOMMU
-+	select OMAP_IOMMU
- 	---help---
- 	  Driver for an OMAP 3 camera controller.
- 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 06a0df4..5a4801b 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -69,6 +69,8 @@
- #include <linux/sched.h>
- #include <linux/vmalloc.h>
- 
-+#include <asm/dma-iommu.h>
-+
- #include <media/v4l2-common.h>
- #include <media/v4l2-device.h>
- 
-@@ -1625,7 +1627,7 @@ struct isp_device *omap3isp_get(struct isp_device *isp)
-  * Decrement the reference count on the ISP. If the last reference is released,
-  * power-down all submodules, disable clocks and free temporary buffers.
-  */
--void omap3isp_put(struct isp_device *isp)
-+static void __omap3isp_put(struct isp_device *isp, bool save_ctx)
- {
- 	if (isp == NULL)
- 		return;
-@@ -1634,7 +1636,7 @@ void omap3isp_put(struct isp_device *isp)
- 	BUG_ON(isp->ref_count == 0);
- 	if (--isp->ref_count == 0) {
- 		isp_disable_interrupts(isp);
--		if (isp->domain) {
-+		if (save_ctx) {
- 			isp_save_ctx(isp);
- 			isp->has_context = 1;
- 		}
-@@ -1648,6 +1650,11 @@ void omap3isp_put(struct isp_device *isp)
- 	mutex_unlock(&isp->isp_mutex);
- }
- 
-+void omap3isp_put(struct isp_device *isp)
-+{
-+	__omap3isp_put(isp, true);
-+}
-+
- /* --------------------------------------------------------------------------
-  * Platform device driver
-  */
-@@ -2120,6 +2127,61 @@ error_csiphy:
- 	return ret;
- }
- 
-+static void isp_detach_iommu(struct isp_device *isp)
-+{
-+	arm_iommu_release_mapping(isp->mapping);
-+	isp->mapping = NULL;
-+	iommu_group_remove_device(isp->dev);
-+}
-+
-+static int isp_attach_iommu(struct isp_device *isp)
-+{
-+	struct dma_iommu_mapping *mapping;
-+	struct iommu_group *group;
-+	int ret;
-+
-+	/* Create a device group and add the device to it. */
-+	group = iommu_group_alloc();
-+	if (IS_ERR(group)) {
-+		dev_err(isp->dev, "failed to allocate IOMMU group\n");
-+		return PTR_ERR(group);
-+	}
-+
-+	ret = iommu_group_add_device(group, isp->dev);
-+	iommu_group_put(group);
-+
-+	if (ret < 0) {
-+		dev_err(isp->dev, "failed to add device to IPMMU group\n");
-+		return ret;
-+	}
-+
-+	/*
-+	 * Create the ARM mapping, used by the ARM DMA mapping core to allocate
-+	 * VAs. This will allocate a corresponding IOMMU domain.
-+	 */
-+	mapping = arm_iommu_create_mapping(&platform_bus_type, SZ_1G, SZ_2G);
-+	if (IS_ERR(mapping)) {
-+		dev_err(isp->dev, "failed to create ARM IOMMU mapping\n");
-+		ret = PTR_ERR(mapping);
-+		goto error;
-+	}
-+
-+	isp->mapping = mapping;
-+
-+	/* Attach the ARM VA mapping to the device. */
-+	ret = arm_iommu_attach_device(isp->dev, mapping);
-+	if (ret < 0) {
-+		dev_err(isp->dev, "failed to attach device to VA mapping\n");
-+		goto error;
-+	}
-+
-+	return 0;
-+
-+error:
-+	isp_detach_iommu(isp);
-+	return ret;
-+}
-+
- /*
-  * isp_remove - Remove ISP platform device
-  * @pdev: Pointer to ISP platform device
-@@ -2135,10 +2197,8 @@ static int isp_remove(struct platform_device *pdev)
- 	isp_xclk_cleanup(isp);
- 
- 	__omap3isp_get(isp, false);
--	iommu_detach_device(isp->domain, &pdev->dev);
--	iommu_domain_free(isp->domain);
--	isp->domain = NULL;
--	omap3isp_put(isp);
-+	isp_detach_iommu(isp);
-+	__omap3isp_put(isp, false);
- 
- 	return 0;
- }
-@@ -2265,39 +2325,32 @@ static int isp_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	isp->domain = iommu_domain_alloc(pdev->dev.bus);
--	if (!isp->domain) {
--		dev_err(isp->dev, "can't alloc iommu domain\n");
--		ret = -ENOMEM;
-+	/* IOMMU */
-+	ret = isp_attach_iommu(isp);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "unable to attach to IOMMU\n");
- 		goto error_isp;
- 	}
- 
--	ret = iommu_attach_device(isp->domain, &pdev->dev);
--	if (ret) {
--		dev_err(&pdev->dev, "can't attach iommu device: %d\n", ret);
--		ret = -EPROBE_DEFER;
--		goto free_domain;
--	}
--
- 	/* Interrupt */
- 	isp->irq_num = platform_get_irq(pdev, 0);
- 	if (isp->irq_num <= 0) {
- 		dev_err(isp->dev, "No IRQ resource\n");
- 		ret = -ENODEV;
--		goto detach_dev;
-+		goto error_iommu;
- 	}
- 
- 	if (devm_request_irq(isp->dev, isp->irq_num, isp_isr, IRQF_SHARED,
- 			     "OMAP3 ISP", isp)) {
- 		dev_err(isp->dev, "Unable to request IRQ\n");
- 		ret = -EINVAL;
--		goto detach_dev;
-+		goto error_iommu;
- 	}
- 
- 	/* Entities */
- 	ret = isp_initialize_modules(isp);
- 	if (ret < 0)
--		goto detach_dev;
-+		goto error_iommu;
- 
- 	ret = isp_register_entities(isp);
- 	if (ret < 0)
-@@ -2310,14 +2363,11 @@ static int isp_probe(struct platform_device *pdev)
- 
- error_modules:
- 	isp_cleanup_modules(isp);
--detach_dev:
--	iommu_detach_device(isp->domain, &pdev->dev);
--free_domain:
--	iommu_domain_free(isp->domain);
--	isp->domain = NULL;
-+error_iommu:
-+	isp_detach_iommu(isp);
- error_isp:
- 	isp_xclk_cleanup(isp);
--	omap3isp_put(isp);
-+	__omap3isp_put(isp, false);
- error:
- 	mutex_destroy(&isp->isp_mutex);
- 
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 6d5e697..2c314ee 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -45,8 +45,6 @@
- #include "ispcsi2.h"
- #include "ispccp2.h"
- 
--#define IOMMU_FLAG (IOVMF_ENDIAN_LITTLE | IOVMF_ELSZ_8)
--
- #define ISP_TOK_TERM		0xFFFFFFFF	/*
- 						 * terminating token for ISP
- 						 * modules reg list
-@@ -152,6 +150,7 @@ struct isp_xclk {
-  *             regions.
-  * @mmio_base_phys: Array with physical L4 bus addresses for ISP register
-  *                  regions.
-+ * @mapping: IOMMU mapping
-  * @stat_lock: Spinlock for handling statistics
-  * @isp_mutex: Mutex for serializing requests to ISP.
-  * @stop_failure: Indicates that an entity failed to stop.
-@@ -171,7 +170,6 @@ struct isp_xclk {
-  * @isp_res: Pointer to current settings for ISP Resizer.
-  * @isp_prev: Pointer to current settings for ISP Preview.
-  * @isp_ccdc: Pointer to current settings for ISP CCDC.
-- * @iommu: Pointer to requested IOMMU instance for ISP.
-  * @platform_cb: ISP driver callback function pointers for platform code
-  *
-  * This structure is used to store the OMAP ISP Information.
-@@ -189,6 +187,8 @@ struct isp_device {
- 	void __iomem *mmio_base[OMAP3_ISP_IOMEM_LAST];
- 	unsigned long mmio_base_phys[OMAP3_ISP_IOMEM_LAST];
- 
-+	struct dma_iommu_mapping *mapping;
-+
- 	/* ISP Obj */
- 	spinlock_t stat_lock;	/* common lock for statistic drivers */
- 	struct mutex isp_mutex;	/* For handling ref_count field */
-@@ -219,8 +219,6 @@ struct isp_device {
- 
- 	unsigned int sbl_resources;
- 	unsigned int subclk_resources;
--
--	struct iommu_domain *domain;
- };
- 
- #define v4l2_dev_to_isp_device(dev) \
-diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
-index cee1b5d..9c90fb0 100644
---- a/drivers/media/platform/omap3isp/ispqueue.c
-+++ b/drivers/media/platform/omap3isp/ispqueue.c
-@@ -26,7 +26,6 @@
- #include <asm/cacheflush.h>
- #include <linux/dma-mapping.h>
- #include <linux/mm.h>
--#include <linux/omap-iommu.h>
- #include <linux/pagemap.h>
- #include <linux/poll.h>
- #include <linux/scatterlist.h>
-@@ -159,7 +158,7 @@ static int isp_video_buffer_prepare_kernel(struct isp_video_buffer *buf)
- 	struct isp_video *video = vfh->video;
- 
- 	return dma_get_sgtable(video->isp->dev, &buf->sgt, buf->vaddr,
--			       buf->paddr, PAGE_ALIGN(buf->vbuf.length));
-+			       buf->dma, PAGE_ALIGN(buf->vbuf.length));
- }
- 
- /*
-@@ -170,18 +169,10 @@ static int isp_video_buffer_prepare_kernel(struct isp_video_buffer *buf)
-  */
- static void isp_video_buffer_cleanup(struct isp_video_buffer *buf)
- {
--	struct isp_video_fh *vfh = isp_video_queue_to_isp_video_fh(buf->queue);
--	struct isp_video *video = vfh->video;
- 	enum dma_data_direction direction;
- 	DEFINE_DMA_ATTRS(attrs);
- 	unsigned int i;
- 
--	if (buf->dma) {
--		omap_iommu_vunmap(video->isp->domain, video->isp->dev,
--				  buf->dma);
--		buf->dma = 0;
--	}
--
- 	if (buf->vbuf.memory == V4L2_MEMORY_USERPTR) {
- 		if (buf->skip_cache)
- 			dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
-@@ -419,11 +410,8 @@ done:
-  */
- static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
- {
--	struct isp_video_fh *vfh = isp_video_queue_to_isp_video_fh(buf->queue);
--	struct isp_video *video = vfh->video;
- 	enum dma_data_direction direction;
- 	DEFINE_DMA_ATTRS(attrs);
--	unsigned long addr;
- 	int ret;
- 
- 	switch (buf->vbuf.memory) {
-@@ -458,23 +446,15 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
- 			goto done;
- 		}
- 
-+		buf->dma = sg_dma_address(buf->sgt.sgl);
- 		break;
- 
- 	default:
- 		return -EINVAL;
- 	}
- 
--	addr = omap_iommu_vmap(video->isp->domain, video->isp->dev, 0,
--			       &buf->sgt, IOVMF_ENDIAN_LITTLE | IOVMF_ELSZ_8);
--	if (IS_ERR_VALUE(addr)) {
--		ret = -EIO;
--		goto done;
--	}
--
--	buf->dma = addr;
--
--	if (!IS_ALIGNED(addr, 32)) {
--		dev_dbg(video->isp->dev,
-+	if (!IS_ALIGNED(buf->dma, 32)) {
-+		dev_dbg(buf->queue->dev,
- 			"Buffer address must be aligned to 32 bytes boundary.\n");
- 		ret = -EINVAL;
- 		goto done;
-@@ -576,7 +556,7 @@ static int isp_video_queue_free(struct isp_video_queue *queue)
- 		if (buf->vaddr) {
- 			dma_free_coherent(queue->dev,
- 					  PAGE_ALIGN(buf->vbuf.length),
--					  buf->vaddr, buf->paddr);
-+					  buf->vaddr, buf->dma);
- 			buf->vaddr = NULL;
- 		}
- 
-@@ -632,7 +612,7 @@ static int isp_video_queue_alloc(struct isp_video_queue *queue,
- 
- 			buf->vbuf.m.offset = i * PAGE_ALIGN(size);
- 			buf->vaddr = mem;
--			buf->paddr = dma;
-+			buf->dma = dma;
- 		}
- 
- 		buf->vbuf.index = i;
-@@ -1079,7 +1059,7 @@ int omap3isp_video_queue_mmap(struct isp_video_queue *queue,
- 	 */
- 	vma->vm_pgoff = 0;
- 
--	ret = dma_mmap_coherent(queue->dev, vma, buf->vaddr, buf->paddr, size);
-+	ret = dma_mmap_coherent(queue->dev, vma, buf->vaddr, buf->dma, size);
- 	if (ret < 0)
- 		goto done;
- 
-diff --git a/drivers/media/platform/omap3isp/ispqueue.h b/drivers/media/platform/omap3isp/ispqueue.h
-index d580f58..ae4acb9 100644
---- a/drivers/media/platform/omap3isp/ispqueue.h
-+++ b/drivers/media/platform/omap3isp/ispqueue.h
-@@ -68,7 +68,6 @@ enum isp_video_buffer_state {
-  * @prepared: Whether the buffer has been prepared
-  * @skip_cache: Whether to skip cache management operations for this buffer
-  * @vaddr: Memory virtual address (for kernel buffers)
-- * @paddr: Memory physicall address (for kernel buffers)
-  * @vm_flags: Buffer VMA flags (for userspace buffers)
-  * @npages: Number of pages (for userspace buffers)
-  * @pages: Pages table (for userspace non-VM_PFNMAP buffers)
-@@ -87,7 +86,6 @@ struct isp_video_buffer {
- 
- 	/* For kernel buffers. */
- 	void *vaddr;
--	dma_addr_t paddr;
- 
- 	/* For userspace buffers. */
- 	vm_flags_t vm_flags;
+Thank you for investigating this, and sorry for the late reply.
+
+I still haven't heard back from Logitech on this issue. I've pinged them, they 
+might be busy at the moment.
+
+Given that the device notifies us that the control value changes, one possibly 
+more clever fix would be to handle that even and set the old control value 
+back when the auto control is disabled. However, that's probably an 
+overengineered solution.
+
+I've still been wondering whether the quirk shouldn't restore only the 
+control(s) that are known to be erroneously changed by the camera instead of 
+restoring them all. Feel free to disagree, what's your opinion about that ?
+
 -- 
-1.8.3.2
+Regards,
+
+Laurent Pinchart
 
