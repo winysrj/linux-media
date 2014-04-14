@@ -1,46 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:41256 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754511AbaDNJA6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 05:00:58 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id A0AFE209A7
-	for <linux-media@vger.kernel.org>; Mon, 14 Apr 2014 12:00:53 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 05/21] smiapp: Use I2C adapter ID and address in the sub-device name
-Date: Mon, 14 Apr 2014 11:58:30 +0300
-Message-Id: <1397465926-29724-6-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:8601 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753585AbaDNPAv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Apr 2014 11:00:51 -0400
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-samsung-soc@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, robh+dt@kernel.org, inki.dae@samsung.com,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	t.figa@samsung.com, b.zolnierkie@samsung.com,
+	jy0922.shim@samsung.com, rahul.sharma@samsung.com,
+	pawel.moll@arm.com, Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 2/4] drm: exynos: mixer: fix using usleep() in atomic context
+Date: Mon, 14 Apr 2014 17:00:20 +0200
+Message-id: <1397487622-3577-3-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1397487622-3577-1-git-send-email-t.stanislaws@samsung.com>
+References: <1397487622-3577-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sub-device names should be unique. Should two identical sensors be
-present in the same media device they would be indistinguishable. The names
-will change e.g. from "vs6555 pixel array" to "vs6555 1-0010 pixel array".
+This patch fixes calling usleep_range() after taking reg_slock
+using spin_lock_irqsave(). The mdelay() is used instead.
+Waiting in atomic context is not the best idea in general.
+Hopefully, waiting occurs only when Video Processor fails
+to reset correctly.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/exynos/exynos_mixer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 8741cae..69c11ec 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2543,8 +2543,9 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 		}
- 
- 		snprintf(this->sd.name,
--			 sizeof(this->sd.name), "%s %s",
--			 sensor->minfo.name, _this->name);
-+			 sizeof(this->sd.name), "%s %d-%4.4x %s",
-+			 sensor->minfo.name, i2c_adapter_id(client->adapter),
-+			 client->addr, _this->name);
- 
- 		this->sink_fmt.width =
- 			sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
+diff --git a/drivers/gpu/drm/exynos/exynos_mixer.c b/drivers/gpu/drm/exynos/exynos_mixer.c
+index ce28881..e3306c8 100644
+--- a/drivers/gpu/drm/exynos/exynos_mixer.c
++++ b/drivers/gpu/drm/exynos/exynos_mixer.c
+@@ -615,7 +615,7 @@ static void vp_win_reset(struct mixer_context *ctx)
+ 		/* waiting until VP_SRESET_PROCESSING is 0 */
+ 		if (~vp_reg_read(res, VP_SRESET) & VP_SRESET_PROCESSING)
+ 			break;
+-		usleep_range(10000, 12000);
++		mdelay(10);
+ 	}
+ 	WARN(tries == 0, "failed to reset Video Processor\n");
+ }
 -- 
-1.8.3.2
+1.7.9.5
 
