@@ -1,293 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:38226 "EHLO smtp3-g21.free.fr"
+Received: from mga09.intel.com ([134.134.136.24]:43577 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754988AbaDGMqD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Apr 2014 08:46:03 -0400
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	Denis Carikli <denis@eukrea.com>
-Subject: =?UTF-8?q?=5BPATCH=20v12=5D=5B=2010/12=5D=20ARM=3A=20dts=3A=20mbimx51sd=3A=20Add=20display=20support=2E?=
-Date: Mon,  7 Apr 2014 14:44:49 +0200
-Message-Id: <1396874691-27954-10-git-send-email-denis@eukrea.com>
-In-Reply-To: <1396874691-27954-1-git-send-email-denis@eukrea.com>
-References: <1396874691-27954-1-git-send-email-denis@eukrea.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	id S1754489AbaDNJBC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Apr 2014 05:01:02 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id EFAF4214BD
+	for <linux-media@vger.kernel.org>; Mon, 14 Apr 2014 12:00:55 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 16/21] smiapp-pll: Add quirk for op clk divisor == bits per pixel / 2
+Date: Mon, 14 Apr 2014 11:58:41 +0300
+Message-Id: <1397465926-29724-17-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The CMO-QVGA, DVI-SVGA and DVI-VGA are added.
+For some sensors in some configurations the effective value of op clk div is
+bits per pixel divided by two. The output clock is correctly calculated
+whereas some of the rest of the clock tree uses higher clocks than
+calculated. This also limits the bpp to even values if the number of lanes
+is four.
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
-ChangeLog v10->v11:
-- Now uses the drm-panel instead of the display-timings.
-  This is to get regulator support, which is lacking in
-  the imx-drm driver when using the display-timings.
+ drivers/media/i2c/smiapp-pll.c | 10 ++++++++++
+ drivers/media/i2c/smiapp-pll.h |  2 ++
+ 2 files changed, 12 insertions(+)
 
-ChangeLog v9->v10:
-- Rebased
-- Now enables the cmo-qvga regulator at boot.
-
-ChangeLog v8->v9:
-- Removed the Cc. They are now set in git-send-email directly.
-- updated pixelclk-active after the following patch:
-  "imx-drm: Match ipu_di_signal_cfg's clk_pol with its description."
-
-ChangeLog v7->v8:
-- Rebased the patch: added the now required imx-drm node.
-- Adapted the svga clock-frequency value in order to still
-  be able to display an image after the following commit:
-  "imx-drm: ipu-v3: more inteligent DI clock selection"
-
-ChangeLog v6->v7:
-- Shrinked even more the Cc list.
-- Since the pingrp headers were removed, the references
-  to it where replaced by the actual pins.
-- Added the targets to arch/arm/boot/dts/Makefile
-
-ChangeLog v5->v6:
-- Reordered the Cc list.
-
-ChangeLog v3->v5:
-- Updated to new GPIO defines.
-- Updated to new licenses checkpatch requirements.
-- one whitespace cleanup.
-
-ChangeLog v2->v3:
-- Splitted out from the patch that added support for the cpuimx51/mbimxsd51 boards.
-- This patch now only adds display support.
-- Added some interested people in the Cc list, and removed some people that
-  might be annoyed by the receiving of that patch which is unrelated to their
-  subsystem.
-- rebased and reworked the dts displays addition.
-- Also rebased and reworked the fsl,pins usage.
----
- arch/arm/boot/dts/Makefile                         |    3 ++
- .../imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts  |   41 ++++++++++++++++
- .../imx51-eukrea-mbimxsd51-baseboard-dvi-svga.dts  |   28 +++++++++++
- .../imx51-eukrea-mbimxsd51-baseboard-dvi-vga.dts   |   28 +++++++++++
- .../boot/dts/imx51-eukrea-mbimxsd51-baseboard.dts  |   49 ++++++++++++++++++++
- 5 files changed, 149 insertions(+)
- create mode 100644 arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts
- create mode 100644 arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-dvi-svga.dts
- create mode 100644 arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-dvi-vga.dts
-
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index 2145af6..4ac8aeb 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -166,6 +166,9 @@ dtb-$(CONFIG_ARCH_MXC) += \
- 	imx51-apf51dev.dtb \
- 	imx51-babbage.dtb \
- 	imx51-eukrea-mbimxsd51-baseboard.dtb \
-+	imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dtb \
-+	imx51-eukrea-mbimxsd51-baseboard-dvi-svga.dtb \
-+	imx51-eukrea-mbimxsd51-baseboard-dvi-vga.dtb \
- 	imx53-ard.dtb \
- 	imx53-m53evk.dtb \
- 	imx53-mba53.dtb \
-diff --git a/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts
-new file mode 100644
-index 0000000..7c280f8
---- /dev/null
-+++ b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts
-@@ -0,0 +1,41 @@
-+/*
-+ * Copyright 2013 Eukréa Electromatique <denis@eukrea.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include "imx51-eukrea-mbimxsd51-baseboard.dts"
-+
-+/ {
-+	model = "Eukrea MBIMXSD51 with the CMO-QVGA Display";
-+	compatible = "eukrea,mbimxsd51-baseboard-cmo-qvga", "eukrea,mbimxsd51-baseboard", "eukrea,cpuimx51", "fsl,imx51";
-+
-+	panel: panel {
-+		compatible = "eukrea,mbimxsd51-cmo-qvga", "simple-panel";
-+		power-supply = <&reg_lcd_3v3>;
-+	};
-+
-+	reg_lcd_3v3: lcd-en {
-+		compatible = "regulator-fixed";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_reg_lcd_3v3>;
-+		regulator-name = "lcd-3v3";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		gpio = <&gpio3 13 GPIO_ACTIVE_HIGH>;
-+		enable-active-high;
-+		regulator-boot-on;
-+	};
-+};
-+
-+&display {
-+	status = "okay";
-+	fsl,panel = <&panel>;
-+};
-diff --git a/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-dvi-svga.dts b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-dvi-svga.dts
-new file mode 100644
-index 0000000..323ebf4
---- /dev/null
-+++ b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-dvi-svga.dts
-@@ -0,0 +1,28 @@
-+/*
-+ * Copyright 2013 Eukréa Electromatique <denis@eukrea.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include "imx51-eukrea-mbimxsd51-baseboard.dts"
-+
-+/ {
-+	model = "Eukrea MBIMXSD51 with the DVI-SVGA Display";
-+	compatible = "eukrea,mbimxsd51-baseboard-dvi-svga", "eukrea,mbimxsd51-baseboard", "eukrea,cpuimx51", "fsl,imx51";
-+
-+	panel: panel {
-+		compatible = "eukrea,mbimxsd51-dvi-svga", "simple-panel";
-+	};
-+};
-+
-+&display {
-+	status = "okay";
-+	fsl,panel = <&panel>;
-+};
-diff --git a/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-dvi-vga.dts b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-dvi-vga.dts
-new file mode 100644
-index 0000000..f065500
---- /dev/null
-+++ b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-dvi-vga.dts
-@@ -0,0 +1,28 @@
-+/*
-+ * Copyright 2013 Eukréa Electromatique <denis@eukrea.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include "imx51-eukrea-mbimxsd51-baseboard.dts"
-+
-+/ {
-+	model = "Eukrea MBIMXSD51 with the DVI-VGA Display";
-+	compatible = "eukrea,mbimxsd51-baseboard-dvi-vga", "eukrea,mbimxsd51-baseboard", "eukrea,cpuimx51", "fsl,imx51";
-+
-+	panel: panel {
-+		compatible = "eukrea,mbimxsd51-dvi-vga", "simple-panel";
-+	};
-+};
-+
-+&display {
-+	status = "okay";
-+	fsl,panel = <&panel>;
-+};
-diff --git a/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard.dts b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard.dts
-index 5cec4f3..dbd1832 100644
---- a/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard.dts
-+++ b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard.dts
-@@ -24,6 +24,20 @@
- 	model = "Eukrea CPUIMX51";
- 	compatible = "eukrea,mbimxsd51","eukrea,cpuimx51", "fsl,imx51";
+diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
+index 6bde587..aca0ed7 100644
+--- a/drivers/media/i2c/smiapp-pll.c
++++ b/drivers/media/i2c/smiapp-pll.c
+@@ -208,6 +208,8 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 		div_u64(pll->pll_op_clk_freq_hz, pll->op_sys_clk_div);
  
-+	display: display@di0 {
-+		compatible = "fsl,imx-parallel-display";
-+		interface-pix-fmt = "rgb666";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_ipu_disp1>;
-+		status = "disabled";
-+
-+		port {
-+			display0_in: endpoint {
-+				remote-endpoint = <&ipu_di0_disp0>;
-+			};
-+		};
-+	};
-+
- 	gpio_keys {
- 		compatible = "gpio-keys";
- 		pinctrl-names = "default";
-@@ -146,6 +160,37 @@
- 			>;
- 		};
+ 	pll->op_pix_clk_div = pll->bits_per_pixel;
++	if (pll->flags & SMIAPP_PLL_FLAG_OP_PIX_DIV_HALF)
++		pll->op_pix_clk_div /= 2;
+ 	dev_dbg(dev, "op_pix_clk_div: %u\n", pll->op_pix_clk_div);
  
-+		pinctrl_ipu_disp1: ipudisp1grp {
-+			fsl,pins = <
-+				MX51_PAD_DISP1_DAT0__DISP1_DAT0	  0x5
-+				MX51_PAD_DISP1_DAT1__DISP1_DAT1	  0x5
-+				MX51_PAD_DISP1_DAT2__DISP1_DAT2	  0x5
-+				MX51_PAD_DISP1_DAT3__DISP1_DAT3	  0x5
-+				MX51_PAD_DISP1_DAT4__DISP1_DAT4	  0x5
-+				MX51_PAD_DISP1_DAT5__DISP1_DAT5	  0x5
-+				MX51_PAD_DISP1_DAT6__DISP1_DAT6	  0x5
-+				MX51_PAD_DISP1_DAT7__DISP1_DAT7	  0x5
-+				MX51_PAD_DISP1_DAT8__DISP1_DAT8   0x5
-+				MX51_PAD_DISP1_DAT9__DISP1_DAT9	  0x5
-+				MX51_PAD_DISP1_DAT10__DISP1_DAT10 0x5
-+				MX51_PAD_DISP1_DAT11__DISP1_DAT11 0x5
-+				MX51_PAD_DISP1_DAT12__DISP1_DAT12 0x5
-+				MX51_PAD_DISP1_DAT13__DISP1_DAT13 0x5
-+				MX51_PAD_DISP1_DAT14__DISP1_DAT14 0x5
-+				MX51_PAD_DISP1_DAT15__DISP1_DAT15 0x5
-+				MX51_PAD_DISP1_DAT16__DISP1_DAT16 0x5
-+				MX51_PAD_DISP1_DAT17__DISP1_DAT17 0x5
-+				MX51_PAD_DISP1_DAT18__DISP1_DAT18 0x5
-+				MX51_PAD_DISP1_DAT19__DISP1_DAT19 0x5
-+				MX51_PAD_DISP1_DAT20__DISP1_DAT20 0x5
-+				MX51_PAD_DISP1_DAT21__DISP1_DAT21 0x5
-+				MX51_PAD_DISP1_DAT22__DISP1_DAT22 0x5
-+				MX51_PAD_DISP1_DAT23__DISP1_DAT23 0x5
-+				MX51_PAD_DI1_PIN2__DI1_PIN2       0x5
-+				MX51_PAD_DI1_PIN3__DI1_PIN3       0x5
-+			>;
-+		};
-+
- 		pinctrl_reg_lcd_3v3: reg_lcd_3v3 {
- 			fsl,pins = <
- 				MX51_PAD_CSI1_D9__GPIO3_13 0x1f5
-@@ -154,6 +199,10 @@
- 	};
- };
+ 	pll->op_pix_clk_freq_hz =
+@@ -417,6 +419,14 @@ int smiapp_pll_calculate(struct device *dev,
+ 		return -EINVAL;
+ 	}
  
-+&ipu_di0_disp0 {
-+	remote-endpoint = <&display0_in>;
-+};
++	/*
++	 * Half op pix divisor will give us double the rate compared
++	 * to the regular case. Thus divide the desired pll op clock
++	 * frequency by two.
++	 */
++	if (pll->flags & SMIAPP_PLL_FLAG_OP_PIX_DIV_HALF)
++		pll->pll_op_clk_freq_hz /= 2;
 +
- &ssi2 {
- 	codec-handle = <&tlv320aic23>;
- 	fsl,mode = "i2s-slave";
+ 	/* Figure out limits for pre-pll divider based on extclk */
+ 	dev_dbg(dev, "min / max pre_pll_clk_div: %u / %u\n",
+ 		limits->min_pre_pll_clk_div, limits->max_pre_pll_clk_div);
+diff --git a/drivers/media/i2c/smiapp-pll.h b/drivers/media/i2c/smiapp-pll.h
+index a25f550..02d11db 100644
+--- a/drivers/media/i2c/smiapp-pll.h
++++ b/drivers/media/i2c/smiapp-pll.h
+@@ -36,6 +36,8 @@
+ #define SMIAPP_PLL_FLAG_NO_OP_CLOCKS				(1 << 1)
+ /* the pre-pll div may be odd */
+ #define SMIAPP_PLL_FLAG_ALLOW_ODD_PRE_PLL_CLK_DIV		(1 << 2)
++/* op pix div value is half of the bits-per-pixel value */
++#define SMIAPP_PLL_FLAG_OP_PIX_DIV_HALF				(1 << 3)
+ 
+ struct smiapp_pll {
+ 	/* input values */
 -- 
-1.7.9.5
+1.8.3.2
 
