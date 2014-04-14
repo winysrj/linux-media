@@ -1,97 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:58250 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751095AbaDALHe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Apr 2014 07:07:34 -0400
-Message-id: <533A9DF1.1000404@samsung.com>
-Date: Tue, 01 Apr 2014 13:07:29 +0200
-From: Andrzej Hajda <a.hajda@samsung.com>
-MIME-version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Pawel Osciak <pawel@osciak.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"open list:VIDEOBUF2 FRAMEWORK" <linux-media@vger.kernel.org>,
-	open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v3] vb2: Check if there are buffers before streamon
-References: <1389168093-4923-1-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1389168093-4923-1-git-send-email-ricardo.ribalda@gmail.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from top.free-electrons.com ([176.31.233.9]:33648 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755926AbaDNQlj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Apr 2014 12:41:39 -0400
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+	Sander Eikelenboom <linux@eikelenboom.it>,
+	Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: [PATCH] media: stk1160: Avoid stack-allocated buffer for control URBs
+Date: Mon, 14 Apr 2014 13:41:05 -0300
+Message-Id: <1397493665-912-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Currently stk1160_read_reg() uses a stack-allocated char to get the
+read control value. This is wrong because usb_control_msg() requires
+a kmalloc-ed buffer, and a DMA-API warning is produced:
 
-It seems the patch has been applied twice in linux-next/master:
+WARNING: CPU: 0 PID: 1376 at lib/dma-debug.c:1153 check_for_stack+0xa0/0x100()
+ehci-pci 0000:00:0a.0: DMA-API: device driver maps memory fromstack [addr=ffff88003d0b56bf]
 
-$ git log --oneline -25 linux-next/master
-drivers/media/v4l2-core/videobuf2-core.c
-9cf3c31 [media] vb2: call buf_finish after the state check
-3f1a9a3 [media] vb2: fix streamoff handling if streamon wasn't called
-e4d2581 [media] vb2: replace BUG by WARN_ON
-fb64dca [media] vb2: properly clean up PREPARED and QUEUED buffers
-b3379c6 [media] vb2: only call start_streaming if sufficient buffers are
-queued
-a7afcac [media] vb2: don't init the list if there are still buffers
-6ea3b98 [media] vb2: rename queued_count to owned_by_drv_count
-256f316 [media] vb2: fix buf_init/buf_cleanup call sequences
-9c0863b [media] vb2: call buf_finish from __queue_cancel
-0647064 [media] vb2: change result code of buf_finish to void
-b5b4541 [media] vb2: add debugging code to check for unbalanced ops
-952c9ee [media] vb2: fix PREPARE_BUF regression
-4e5a4d8 [media] vb2: fix read/write regression
->>>>> 249f5a5 [media] vb2: Check if there are buffers before streamon
-c897df0 Merge tag 'v3.14-rc5' into patchwork
-7ce6fd8 [media] v4l: Handle buffer timestamp flags correctly
-872484c [media] v4l: Add timestamp source flags, mask and document them
-c57ff79 [media] v4l: Timestamp flags will soon contain timestamp source,
-not just type
-ade4868 [media] v4l: Rename vb2_queue.timestamp_type as timestamp_flags
-f134328 [media] vb2: fix timecode and flags handling for output buffers
->>>>> 548df78 [media] vb2: Check if there are buffers before streamon
+This commit fixes such issue by using a 'usb_ctrl_read' field embedded
+in the device's struct to pass the value. In addition, we introduce a
+mutex to protect the value.
 
+While here, let's remove the urb_buf array which was meant for a similar
+purpose, but never really used.
 
+Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
+Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+Sander, Hans:
+Does this cause any regressions, other than the DMA-API warning?
+In that case, we can consider this as suitable for -stable.
 
-Regards
-Andrzej
+ drivers/media/usb/stk1160/stk1160-core.c | 8 +++++++-
+ drivers/media/usb/stk1160/stk1160.h      | 3 ++-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-On 01/08/2014 09:01 AM, Ricardo Ribalda Delgado wrote:
-> This patch adds a test preventing streamon() if there is no buffer
-> ready.
-> 
-> Without this patch, a user could call streamon() before
-> preparing any buffer. This leads to a situation where if he calls
-> close() before calling streamoff() the device is kept streaming.
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> ---
-> v2: Comment by Marek Szyprowski:
-> Reword error message
-> 
-> v3: Comment by Marek Szyprowski:
-> Actualy do the reword :)
-> 
->  drivers/media/v4l2-core/videobuf2-core.c | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 098df28..6409e0a 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1776,6 +1776,11 @@ static int vb2_internal_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
->  		return 0;
->  	}
->  
-> +	if (!q->num_buffers) {
-> +		dprintk(1, "streamon: no buffers have been allocated\n");
-> +		return -EINVAL;
-> +	}
-> +
->  	/*
->  	 * If any buffers were queued before streamon,
->  	 * we can now pass them to driver for processing.
-> 
+diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/usb/stk1160/stk1160-core.c
+index 34a26e0..cce91e7 100644
+--- a/drivers/media/usb/stk1160/stk1160-core.c
++++ b/drivers/media/usb/stk1160/stk1160-core.c
+@@ -69,15 +69,20 @@ int stk1160_read_reg(struct stk1160 *dev, u16 reg, u8 *value)
+ 	int pipe = usb_rcvctrlpipe(dev->udev, 0);
+ 
+ 	*value = 0;
++
++	mutex_lock(&dev->urb_ctrl_lock);
+ 	ret = usb_control_msg(dev->udev, pipe, 0x00,
+ 			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+-			0x00, reg, value, sizeof(u8), HZ);
++			0x00, reg, &dev->urb_ctrl_read, sizeof(u8), HZ);
+ 	if (ret < 0) {
+ 		stk1160_err("read failed on reg 0x%x (%d)\n",
+ 			reg, ret);
++		mutex_unlock(&dev->urb_ctrl_lock);
+ 		return ret;
+ 	}
+ 
++	*value = dev->urb_ctrl_read;
++	mutex_unlock(&dev->urb_ctrl_lock);
+ 	return 0;
+ }
+ 
+@@ -322,6 +327,7 @@ static int stk1160_probe(struct usb_interface *interface,
+ 	 * because we register the device node as the *last* thing.
+ 	 */
+ 	spin_lock_init(&dev->buf_lock);
++	mutex_init(&dev->urb_ctrl_lock);
+ 	mutex_init(&dev->v4l_lock);
+ 	mutex_init(&dev->vb_queue_lock);
+ 
+diff --git a/drivers/media/usb/stk1160/stk1160.h b/drivers/media/usb/stk1160/stk1160.h
+index 05b05b1..8886be4 100644
+--- a/drivers/media/usb/stk1160/stk1160.h
++++ b/drivers/media/usb/stk1160/stk1160.h
+@@ -143,7 +143,7 @@ struct stk1160 {
+ 	int num_alt;
+ 
+ 	struct stk1160_isoc_ctl isoc_ctl;
+-	char urb_buf[255];	 /* urb control msg buffer */
++	char urb_ctrl_read;
+ 
+ 	/* frame properties */
+ 	int width;		  /* current frame width */
+@@ -159,6 +159,7 @@ struct stk1160 {
+ 	struct i2c_adapter i2c_adap;
+ 	struct i2c_client i2c_client;
+ 
++	struct mutex urb_ctrl_lock;	/* protects urb_ctrl_read */
+ 	struct mutex v4l_lock;
+ 	struct mutex vb_queue_lock;
+ 	spinlock_t buf_lock;
+-- 
+1.9.1
 
