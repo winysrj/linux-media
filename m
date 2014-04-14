@@ -1,203 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38682 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752354AbaDUM3X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Apr 2014 08:29:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mga03.intel.com ([143.182.124.21]:10238 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754477AbaDNJA4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Apr 2014 05:00:56 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id E6958203D6
+	for <linux-media@vger.kernel.org>; Mon, 14 Apr 2014 12:00:52 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 26/26] omap3isp: Rename isp_buffer isp_addr field to dma
-Date: Mon, 21 Apr 2014 14:29:12 +0200
-Message-Id: <1398083352-8451-27-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 02/21] smiapp: Rename SMIA_REG to SMIAPP_REG for consistency
+Date: Mon, 14 Apr 2014 11:58:27 +0300
+Message-Id: <1397465926-29724-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispccdc.c    | 4 ++--
- drivers/media/platform/omap3isp/ispccp2.c    | 4 ++--
- drivers/media/platform/omap3isp/ispcsi2.c    | 4 ++--
- drivers/media/platform/omap3isp/isppreview.c | 8 ++++----
- drivers/media/platform/omap3isp/ispresizer.c | 8 ++++----
- drivers/media/platform/omap3isp/ispvideo.c   | 2 +-
- drivers/media/platform/omap3isp/ispvideo.h   | 4 ++--
- 7 files changed, 17 insertions(+), 17 deletions(-)
+SMIAPP_REG_ is the common prefix used in the driver for register related
+definitions. Use it consistently.
 
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index 004a4f5..9f727d2 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -1521,7 +1521,7 @@ static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-quirk.c    |  2 +-
+ drivers/media/i2c/smiapp/smiapp-reg-defs.h |  8 ++++----
+ drivers/media/i2c/smiapp/smiapp-regs.c     | 24 ++++++++++++------------
+ drivers/media/i2c/smiapp/smiapp-regs.h     |  8 ++++----
+ 4 files changed, 21 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/media/i2c/smiapp/smiapp-quirk.c b/drivers/media/i2c/smiapp/smiapp-quirk.c
+index 4955289..06a0c21 100644
+--- a/drivers/media/i2c/smiapp/smiapp-quirk.c
++++ b/drivers/media/i2c/smiapp/smiapp-quirk.c
+@@ -28,7 +28,7 @@
  
- 	buffer = omap3isp_video_buffer_next(&ccdc->video_out);
- 	if (buffer != NULL) {
--		ccdc_set_outaddr(ccdc, buffer->isp_addr);
-+		ccdc_set_outaddr(ccdc, buffer->dma);
- 		restart = 1;
- 	}
- 
-@@ -1660,7 +1660,7 @@ static int ccdc_video_queue(struct isp_video *video, struct isp_buffer *buffer)
- 	if (!(ccdc->output & CCDC_OUTPUT_MEMORY))
- 		return -ENODEV;
- 
--	ccdc_set_outaddr(ccdc, buffer->isp_addr);
-+	ccdc_set_outaddr(ccdc, buffer->dma);
- 
- 	/* We now have a buffer queued on the output, restart the pipeline
- 	 * on the next CCDC interrupt if running in continuous mode (or when
-diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
-index b30b67d..f3801db 100644
---- a/drivers/media/platform/omap3isp/ispccp2.c
-+++ b/drivers/media/platform/omap3isp/ispccp2.c
-@@ -549,7 +549,7 @@ static void ccp2_isr_buffer(struct isp_ccp2_device *ccp2)
- 
- 	buffer = omap3isp_video_buffer_next(&ccp2->video_in);
- 	if (buffer != NULL)
--		ccp2_set_inaddr(ccp2, buffer->isp_addr);
-+		ccp2_set_inaddr(ccp2, buffer->dma);
- 
- 	pipe->state |= ISP_PIPELINE_IDLE_INPUT;
- 
-@@ -940,7 +940,7 @@ static int ccp2_video_queue(struct isp_video *video, struct isp_buffer *buffer)
+ static int smiapp_write_8(struct smiapp_sensor *sensor, u16 reg, u8 val)
  {
- 	struct isp_ccp2_device *ccp2 = &video->isp->isp_ccp2;
- 
--	ccp2_set_inaddr(ccp2, buffer->isp_addr);
-+	ccp2_set_inaddr(ccp2, buffer->dma);
- 	return 0;
+-	return smiapp_write(sensor, (SMIA_REG_8BIT << 16) | reg, val);
++	return smiapp_write(sensor, SMIAPP_REG_MK_U8(reg), val);
  }
  
-diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
-index 6205608..5a2e47e 100644
---- a/drivers/media/platform/omap3isp/ispcsi2.c
-+++ b/drivers/media/platform/omap3isp/ispcsi2.c
-@@ -695,7 +695,7 @@ static void csi2_isr_buffer(struct isp_csi2_device *csi2)
- 	if (buffer == NULL)
- 		return;
- 
--	csi2_set_outaddr(csi2, buffer->isp_addr);
-+	csi2_set_outaddr(csi2, buffer->dma);
- 	csi2_ctx_enable(isp, csi2, 0, 1);
- }
- 
-@@ -812,7 +812,7 @@ static int csi2_queue(struct isp_video *video, struct isp_buffer *buffer)
- 	struct isp_device *isp = video->isp;
- 	struct isp_csi2_device *csi2 = &isp->isp_csi2a;
- 
--	csi2_set_outaddr(csi2, buffer->isp_addr);
-+	csi2_set_outaddr(csi2, buffer->dma);
- 
- 	/*
- 	 * If streaming was enabled before there was a buffer queued
-diff --git a/drivers/media/platform/omap3isp/isppreview.c b/drivers/media/platform/omap3isp/isppreview.c
-index 395b2b0..720809b 100644
---- a/drivers/media/platform/omap3isp/isppreview.c
-+++ b/drivers/media/platform/omap3isp/isppreview.c
-@@ -1499,14 +1499,14 @@ static void preview_isr_buffer(struct isp_prev_device *prev)
- 	if (prev->input == PREVIEW_INPUT_MEMORY) {
- 		buffer = omap3isp_video_buffer_next(&prev->video_in);
- 		if (buffer != NULL)
--			preview_set_inaddr(prev, buffer->isp_addr);
-+			preview_set_inaddr(prev, buffer->dma);
- 		pipe->state |= ISP_PIPELINE_IDLE_INPUT;
- 	}
- 
- 	if (prev->output & PREVIEW_OUTPUT_MEMORY) {
- 		buffer = omap3isp_video_buffer_next(&prev->video_out);
- 		if (buffer != NULL) {
--			preview_set_outaddr(prev, buffer->isp_addr);
-+			preview_set_outaddr(prev, buffer->dma);
- 			restart = 1;
- 		}
- 		pipe->state |= ISP_PIPELINE_IDLE_OUTPUT;
-@@ -1577,10 +1577,10 @@ static int preview_video_queue(struct isp_video *video,
- 	struct isp_prev_device *prev = &video->isp->isp_prev;
- 
- 	if (video->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
--		preview_set_inaddr(prev, buffer->isp_addr);
-+		preview_set_inaddr(prev, buffer->dma);
- 
- 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		preview_set_outaddr(prev, buffer->isp_addr);
-+		preview_set_outaddr(prev, buffer->dma);
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/omap3isp/ispresizer.c b/drivers/media/platform/omap3isp/ispresizer.c
-index 86369df..6f077c2 100644
---- a/drivers/media/platform/omap3isp/ispresizer.c
-+++ b/drivers/media/platform/omap3isp/ispresizer.c
-@@ -1040,7 +1040,7 @@ static void resizer_isr_buffer(struct isp_res_device *res)
- 	 */
- 	buffer = omap3isp_video_buffer_next(&res->video_out);
- 	if (buffer != NULL) {
--		resizer_set_outaddr(res, buffer->isp_addr);
-+		resizer_set_outaddr(res, buffer->dma);
- 		restart = 1;
- 	}
- 
-@@ -1049,7 +1049,7 @@ static void resizer_isr_buffer(struct isp_res_device *res)
- 	if (res->input == RESIZER_INPUT_MEMORY) {
- 		buffer = omap3isp_video_buffer_next(&res->video_in);
- 		if (buffer != NULL)
--			resizer_set_inaddr(res, buffer->isp_addr);
-+			resizer_set_inaddr(res, buffer->dma);
- 		pipe->state |= ISP_PIPELINE_IDLE_INPUT;
- 	}
- 
-@@ -1101,7 +1101,7 @@ static int resizer_video_queue(struct isp_video *video,
- 	struct isp_res_device *res = &video->isp->isp_res;
- 
- 	if (video->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
--		resizer_set_inaddr(res, buffer->isp_addr);
-+		resizer_set_inaddr(res, buffer->dma);
- 
- 	/*
- 	 * We now have a buffer queued on the output. Despite what the
-@@ -1116,7 +1116,7 @@ static int resizer_video_queue(struct isp_video *video,
- 	 * continuous mode or when starting the stream.
- 	 */
- 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		resizer_set_outaddr(res, buffer->isp_addr);
-+		resizer_set_outaddr(res, buffer->dma);
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index c4a2f76..e36bac2 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -374,7 +374,7 @@ static int isp_video_buffer_prepare(struct vb2_buffer *buf)
- 	}
- 
- 	vb2_set_plane_payload(&buffer->vb, 0, vfh->format.fmt.pix.sizeimage);
--	buffer->isp_addr = addr;
-+	buffer->dma = addr;
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
-index 1015505..7d2e821 100644
---- a/drivers/media/platform/omap3isp/ispvideo.h
-+++ b/drivers/media/platform/omap3isp/ispvideo.h
-@@ -127,12 +127,12 @@ static inline int isp_pipeline_ready(struct isp_pipeline *pipe)
-  * struct isp_buffer - ISP video buffer
-  * @vb: videobuf2 buffer
-  * @irqlist: List head for insertion into IRQ queue
-- * @isp_addr: DMA address
-+ * @dma: DMA address
+ static int smiapp_write_8s(struct smiapp_sensor *sensor,
+diff --git a/drivers/media/i2c/smiapp/smiapp-reg-defs.h b/drivers/media/i2c/smiapp/smiapp-reg-defs.h
+index 3aa0ca9..c488ef0 100644
+--- a/drivers/media/i2c/smiapp/smiapp-reg-defs.h
++++ b/drivers/media/i2c/smiapp/smiapp-reg-defs.h
+@@ -21,11 +21,11 @@
+  * 02110-1301 USA
+  *
   */
- struct isp_buffer {
- 	struct vb2_buffer vb;
- 	struct list_head irqlist;
--	dma_addr_t isp_addr;
-+	dma_addr_t dma;
- };
+-#define SMIAPP_REG_MK_U8(r) ((SMIA_REG_8BIT << 16) | (r))
+-#define SMIAPP_REG_MK_U16(r) ((SMIA_REG_16BIT << 16) | (r))
+-#define SMIAPP_REG_MK_U32(r) ((SMIA_REG_32BIT << 16) | (r))
++#define SMIAPP_REG_MK_U8(r) ((SMIAPP_REG_8BIT << 16) | (r))
++#define SMIAPP_REG_MK_U16(r) ((SMIAPP_REG_16BIT << 16) | (r))
++#define SMIAPP_REG_MK_U32(r) ((SMIAPP_REG_32BIT << 16) | (r))
  
- #define to_isp_buffer(buf)	container_of(buf, struct isp_buffer, vb)
+-#define SMIAPP_REG_MK_F32(r) (SMIA_REG_FLAG_FLOAT | (SMIA_REG_32BIT << 16) | (r))
++#define SMIAPP_REG_MK_F32(r) (SMIAPP_REG_FLAG_FLOAT | (SMIAPP_REG_32BIT << 16) | (r))
+ 
+ #define SMIAPP_REG_U16_MODEL_ID					SMIAPP_REG_MK_U16(0x0000)
+ #define SMIAPP_REG_U8_REVISION_NUMBER_MAJOR			SMIAPP_REG_MK_U8(0x0002)
+diff --git a/drivers/media/i2c/smiapp/smiapp-regs.c b/drivers/media/i2c/smiapp/smiapp-regs.c
+index e01644c..5d0151a 100644
+--- a/drivers/media/i2c/smiapp/smiapp-regs.c
++++ b/drivers/media/i2c/smiapp/smiapp-regs.c
+@@ -114,14 +114,14 @@ static int ____smiapp_read(struct smiapp_sensor *sensor, u16 reg,
+ 	*val = 0;
+ 	/* high byte comes first */
+ 	switch (len) {
+-	case SMIA_REG_32BIT:
++	case SMIAPP_REG_32BIT:
+ 		*val = (data[0] << 24) + (data[1] << 16) + (data[2] << 8) +
+ 			data[3];
+ 		break;
+-	case SMIA_REG_16BIT:
++	case SMIAPP_REG_16BIT:
+ 		*val = (data[0] << 8) + data[1];
+ 		break;
+-	case SMIA_REG_8BIT:
++	case SMIAPP_REG_8BIT:
+ 		*val = data[0];
+ 		break;
+ 	default:
+@@ -168,18 +168,18 @@ static int __smiapp_read(struct smiapp_sensor *sensor, u32 reg, u32 *val,
+ 	unsigned int len = (u8)(reg >> 16);
+ 	int rval;
+ 
+-	if (len != SMIA_REG_8BIT && len != SMIA_REG_16BIT
+-	    && len != SMIA_REG_32BIT)
++	if (len != SMIAPP_REG_8BIT && len != SMIAPP_REG_16BIT
++	    && len != SMIAPP_REG_32BIT)
+ 		return -EINVAL;
+ 
+-	if (len == SMIA_REG_8BIT && !only8)
++	if (len == SMIAPP_REG_8BIT && !only8)
+ 		rval = ____smiapp_read(sensor, (u16)reg, len, val);
+ 	else
+ 		rval = ____smiapp_read_8only(sensor, (u16)reg, len, val);
+ 	if (rval < 0)
+ 		return rval;
+ 
+-	if (reg & SMIA_REG_FLAG_FLOAT)
++	if (reg & SMIAPP_REG_FLAG_FLOAT)
+ 		*val = float_to_u32_mul_1000000(client, *val);
+ 
+ 	return 0;
+@@ -213,8 +213,8 @@ int smiapp_write(struct smiapp_sensor *sensor, u32 reg, u32 val)
+ 	u16 offset = reg;
+ 	int r;
+ 
+-	if ((len != SMIA_REG_8BIT && len != SMIA_REG_16BIT &&
+-	     len != SMIA_REG_32BIT) || flags)
++	if ((len != SMIAPP_REG_8BIT && len != SMIAPP_REG_16BIT &&
++	     len != SMIAPP_REG_32BIT) || flags)
+ 		return -EINVAL;
+ 
+ 	msg.addr = client->addr;
+@@ -227,14 +227,14 @@ int smiapp_write(struct smiapp_sensor *sensor, u32 reg, u32 val)
+ 	data[1] = (u8) (reg & 0xff);
+ 
+ 	switch (len) {
+-	case SMIA_REG_8BIT:
++	case SMIAPP_REG_8BIT:
+ 		data[2] = val;
+ 		break;
+-	case SMIA_REG_16BIT:
++	case SMIAPP_REG_16BIT:
+ 		data[2] = val >> 8;
+ 		data[3] = val;
+ 		break;
+-	case SMIA_REG_32BIT:
++	case SMIAPP_REG_32BIT:
+ 		data[2] = val >> 24;
+ 		data[3] = val >> 16;
+ 		data[4] = val >> 8;
+diff --git a/drivers/media/i2c/smiapp/smiapp-regs.h b/drivers/media/i2c/smiapp/smiapp-regs.h
+index e07b30c..934130b 100644
+--- a/drivers/media/i2c/smiapp/smiapp-regs.h
++++ b/drivers/media/i2c/smiapp/smiapp-regs.h
+@@ -29,11 +29,11 @@
+ #include <linux/types.h>
+ 
+ /* Use upper 8 bits of the type field for flags */
+-#define SMIA_REG_FLAG_FLOAT		(1 << 24)
++#define SMIAPP_REG_FLAG_FLOAT		(1 << 24)
+ 
+-#define SMIA_REG_8BIT			1
+-#define SMIA_REG_16BIT			2
+-#define SMIA_REG_32BIT			4
++#define SMIAPP_REG_8BIT			1
++#define SMIAPP_REG_16BIT		2
++#define SMIAPP_REG_32BIT		4
+ 
+ struct smiapp_sensor;
+ 
 -- 
 1.8.3.2
 
