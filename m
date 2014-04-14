@@ -1,115 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4341 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750907AbaDYCoF (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2254 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754889AbaDNN5M (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Apr 2014 22:44:05 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s3P2i1rf098132
-	for <linux-media@vger.kernel.org>; Fri, 25 Apr 2014 04:44:03 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6E20E2A199E
-	for <linux-media@vger.kernel.org>; Fri, 25 Apr 2014 04:43:59 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140425024359.6E20E2A199E@tschai.lan>
-Date: Fri, 25 Apr 2014 04:43:59 +0200 (CEST)
+	Mon, 14 Apr 2014 09:57:12 -0400
+Message-ID: <534BE92F.3010501@xs4all.nl>
+Date: Mon, 14 Apr 2014 15:57:03 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Steve Cookson - IT <it@sca-uk.com>, stoth@kernellabs.com
+Subject: [PATCH] cx23885: add support for Hauppauge ImpactVCB-e
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patch adds support for the Hauppauge ImpactVCB-e card to cx23885.
 
-Results of the daily build of media_tree:
+Tested with Composite input and S-Video.
 
-date:		Fri Apr 25 04:00:30 CEST 2014
-git branch:	test
-git hash:	393cbd8dc532c1ebed60719da8d379f50d445f28
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.14-1.slh.1-amd64
+While I do get audio it is very choppy. It is not clear whether that is
+a general cx23885 driver problem or specific to this board. If it is specific
+to the board, then I might have missed something.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+Steven (Toth, not Cookson ;-) ), do you have an idea what it might be?
 
-Detailed results are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+	Hans
 
-Full logs are available here:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cx23885/cx23885-cards.c | 30 +++++++++++++++++++++++++++++-
+ drivers/media/pci/cx23885/cx23885-video.c |  1 +
+ drivers/media/pci/cx23885/cx23885.h       |  1 +
+ 3 files changed, 31 insertions(+), 1 deletion(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+index 79f20c8..49a3711 100644
+--- a/drivers/media/pci/cx23885/cx23885-cards.c
++++ b/drivers/media/pci/cx23885/cx23885-cards.c
+@@ -649,7 +649,25 @@ struct cx23885_board cx23885_boards[] = {
+ 				  CX25840_NONE1_CH3,
+ 			.amux   = CX25840_AUDIO6,
+ 		} },
+-	}
++	},
++	[CX23885_BOARD_HAUPPAUGE_IMPACTVCBE] = {
++		.name		= "Hauppauge ImpactVCB-e",
++		.porta		= CX23885_ANALOG_VIDEO,
++		.input          = {{
++			.type   = CX23885_VMUX_COMPOSITE1,
++			.vmux   = CX25840_VIN7_CH3 |
++				  CX25840_VIN4_CH2 |
++				  CX25840_VIN6_CH1,
++			.amux   = CX25840_AUDIO7,
++		}, {
++			.type   = CX23885_VMUX_SVIDEO,
++			.vmux   = CX25840_VIN7_CH3 |
++				  CX25840_VIN4_CH2 |
++				  CX25840_VIN8_CH1 |
++				  CX25840_SVIDEO_ON,
++			.amux   = CX25840_AUDIO7,
++		} },
++	},
+ };
+ const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
+ 
+@@ -897,6 +915,10 @@ struct cx23885_subid cx23885_subids[] = {
+ 		.subvendor = 0x1461,
+ 		.subdevice = 0xd939,
+ 		.card      = CX23885_BOARD_AVERMEDIA_HC81R,
++	}, {
++		.subvendor = 0x0070,
++		.subdevice = 0x7133,
++		.card      = CX23885_BOARD_HAUPPAUGE_IMPACTVCBE,
+ 	},
+ };
+ const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
+@@ -977,6 +999,9 @@ static void hauppauge_eeprom(struct cx23885_dev *dev, u8 *eeprom_data)
+ 	case 71009:
+ 		/* WinTV-HVR1200 (PCIe, Retail, full height)
+ 		 * DVB-T and basic analog */
++	case 71100:
++		/* WinTV-ImpactVCB-e (PCIe, Retail, half height)
++		 * Basic analog */
+ 	case 71359:
+ 		/* WinTV-HVR1200 (PCIe, OEM, half height)
+ 		 * DVB-T and basic analog */
+@@ -1701,6 +1726,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR4400:
++	case CX23885_BOARD_HAUPPAUGE_IMPACTVCBE:
+ 		if (dev->i2c_bus[0].i2c_rc == 0)
+ 			hauppauge_eeprom(dev, eeprom+0xc0);
+ 		break;
+@@ -1807,6 +1833,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1200:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1700:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1400:
++	case CX23885_BOARD_HAUPPAUGE_IMPACTVCBE:
+ 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
+ 	case CX23885_BOARD_LEADTEK_WINFAST_PXPVR2200:
+ 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000:
+@@ -1835,6 +1862,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 			break;
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1800:
++	case CX23885_BOARD_HAUPPAUGE_IMPACTVCBE:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1800lp:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1700:
+ 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
+diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+index 7891f34..976fe5d 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.c
++++ b/drivers/media/pci/cx23885/cx23885-video.c
+@@ -507,6 +507,7 @@ static int cx23885_video_mux(struct cx23885_dev *dev, unsigned int input)
+ 	if ((dev->board == CX23885_BOARD_HAUPPAUGE_HVR1800) ||
+ 		(dev->board == CX23885_BOARD_MPX885) ||
+ 		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1250) ||
++		(dev->board == CX23885_BOARD_HAUPPAUGE_IMPACTVCBE) ||
+ 		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255) ||
+ 		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255_22111) ||
+ 		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1850) ||
+diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+index 0fa4048..6a4b20e 100644
+--- a/drivers/media/pci/cx23885/cx23885.h
++++ b/drivers/media/pci/cx23885/cx23885.h
+@@ -96,6 +96,7 @@
+ #define CX23885_BOARD_TBS_6981                 40
+ #define CX23885_BOARD_TBS_6980                 41
+ #define CX23885_BOARD_LEADTEK_WINFAST_PXPVR2200 42
++#define CX23885_BOARD_HAUPPAUGE_IMPACTVCBE     43
+ 
+ #define GPIO_0 0x00000001
+ #define GPIO_1 0x00000002
+-- 
+1.9.1
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
