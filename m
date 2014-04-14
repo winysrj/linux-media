@@ -1,247 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:50025 "EHLO mga01.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:43048 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934336AbaDITZA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Apr 2014 15:25:00 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id E2E22211C0
-	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 22:24:53 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 09/17] smiapp-pll: Use 64-bit types limits
-Date: Wed,  9 Apr 2014 22:25:01 +0300
-Message-Id: <1397071509-2071-10-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
+	id S1755762AbaDNVT4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Apr 2014 17:19:56 -0400
+Date: Mon, 14 Apr 2014 23:19:51 +0200
+From: Jan Kara <jack@suse.cz>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jan Kara <jack@suse.cz>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-mm@kvack.org, linux-media@vger.kernel.org,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	'Tomasz Stanislawski' <t.stanislaws@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] Helper to abstract vma handling in media layer
+Message-ID: <20140414211951.GE13860@quack.suse.cz>
+References: <1395085776-8626-1-git-send-email-jack@suse.cz>
+ <53466C4A.2030107@samsung.com>
+ <20140410103220.GB28404@quack.suse.cz>
+ <53467B7E.5060408@xs4all.nl>
+ <20140410121554.GC28404@quack.suse.cz>
+ <53468CFC.2060707@xs4all.nl>
+ <20140410215738.GB12339@quack.suse.cz>
+ <20140410221818.GA14625@quack.suse.cz>
+ <534792B3.1060709@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <534792B3.1060709@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Limits may exceed the value range of 32-bit unsigned integers. Thus use 64
-bits for all of them.
+On Fri 11-04-14 08:58:59, Hans Verkuil wrote:
+> On 04/11/2014 12:18 AM, Jan Kara wrote:
+> > On Thu 10-04-14 23:57:38, Jan Kara wrote:
+> >> On Thu 10-04-14 14:22:20, Hans Verkuil wrote:
+> >>> On 04/10/14 14:15, Jan Kara wrote:
+> >>>> On Thu 10-04-14 13:07:42, Hans Verkuil wrote:
+> >>>>> On 04/10/14 12:32, Jan Kara wrote:
+> >>>>>>   Hello,
+> >>>>>>
+> >>>>>> On Thu 10-04-14 12:02:50, Marek Szyprowski wrote:
+> >>>>>>> On 2014-03-17 20:49, Jan Kara wrote:
+> >>>>>>>>   The following patch series is my first stab at abstracting vma handling
+> >>>>>>> >from the various media drivers. After this patch set drivers have to know
+> >>>>>>>> much less details about vmas, their types, and locking. My motivation for
+> >>>>>>>> the series is that I want to change get_user_pages() locking and I want
+> >>>>>>>> to handle subtle locking details in as few places as possible.
+> >>>>>>>>
+> >>>>>>>> The core of the series is the new helper get_vaddr_pfns() which is given a
+> >>>>>>>> virtual address and it fills in PFNs into provided array. If PFNs correspond to
+> >>>>>>>> normal pages it also grabs references to these pages. The difference from
+> >>>>>>>> get_user_pages() is that this function can also deal with pfnmap, mixed, and io
+> >>>>>>>> mappings which is what the media drivers need.
+> >>>>>>>>
+> >>>>>>>> The patches are just compile tested (since I don't have any of the hardware
+> >>>>>>>> I'm afraid I won't be able to do any more testing anyway) so please handle
+> >>>>>>>> with care. I'm grateful for any comments.
+> >>>>>>>
+> >>>>>>> Thanks for posting this series! I will check if it works with our
+> >>>>>>> hardware soon.  This is something I wanted to introduce some time ago to
+> >>>>>>> simplify buffer handling in dma-buf, but I had no time to start working.
+> >>>>>>   Thanks for having a look in the series.
+> >>>>>>
+> >>>>>>> However I would like to go even further with integration of your pfn
+> >>>>>>> vector idea.  This structure looks like a best solution for a compact
+> >>>>>>> representation of the memory buffer, which should be considered by the
+> >>>>>>> hardware as contiguous (either contiguous in physical memory or mapped
+> >>>>>>> contiguously into dma address space by the respective iommu). As you
+> >>>>>>> already noticed it is widely used by graphics and video drivers.
+> >>>>>>>
+> >>>>>>> I would also like to add support for pfn vector directly to the
+> >>>>>>> dma-mapping subsystem. This can be done quite easily (even with a
+> >>>>>>> fallback for architectures which don't provide method for it). I will try
+> >>>>>>> to prepare rfc soon.  This will finally remove the need for hacks in
+> >>>>>>> media/v4l2-core/videobuf2-dma-contig.c
+> >>>>>>   That would be a worthwhile thing to do. When I was reading the code this
+> >>>>>> seemed like something which could be done but I delibrately avoided doing
+> >>>>>> more unification than necessary for my purposes as I don't have any
+> >>>>>> hardware to test and don't know all the subtleties in the code... BTW, is
+> >>>>>> there some way to test the drivers without the physical video HW?
+> >>>>>
+> >>>>> You can use the vivi driver (drivers/media/platform/vivi) for this.
+> >>>>> However, while the vivi driver can import dma buffers it cannot export
+> >>>>> them. If you want that, then you have to use this tree:
+> >>>>>
+> >>>>> http://git.linuxtv.org/cgit.cgi/hverkuil/media_tree.git/log/?h=vb2-part4
+> >>>>   Thanks for the pointer that looks good. I've also found
+> >>>> drivers/media/platform/mem2mem_testdev.c which seems to do even more
+> >>>> testing of the area I made changes to. So now I have to find some userspace
+> >>>> tool which can issue proper ioctls to setup and use the buffers and I can
+> >>>> start testing what I wrote :)
+> >>>
+> >>> Get the v4l-utils.git repository (http://git.linuxtv.org/cgit.cgi/v4l-utils.git/).
+> >>> You want the v4l2-ctl tool. Don't use the version supplied by your distro,
+> >>> that's often too old.
+> >>>
+> >>> 'v4l2-ctl --help-streaming' gives the available options for doing streaming.
+> >>>
+> >>> So simple capturing from vivi is 'v4l2-ctl --stream-mmap' or '--stream-user'.
+> >>> You can't test dmabuf unless you switch to the vb2-part4 branch of my tree.
+> >>   Great, it seems to be doing something and it shows there's some bug in my
+> >> code. Thanks a lot for help.
+> >   OK, so after a small fix the basic functionality seems to be working. It
+> > doesn't seem there's a way to test multiplanar buffers with vivi, is there?
+> 
+> For that you need to switch to the vb2-part4 branch as well. That has support
+> for multiplanar.
+  OK, I've merged that branch to my kernel but I failed to find the setting
+for vivi that would create multiplanar buffers and in fact I don't see
+multiplanar capabilities among the capabilities reported by the v4l2-ctl
+tool. Can you help me please?
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp-pll.c | 69 +++++++++++++++++++++++-------------------
- drivers/media/i2c/smiapp-pll.h | 20 ++++++------
- 2 files changed, 48 insertions(+), 41 deletions(-)
-
-diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
-index d14af5c..8c196c6 100644
---- a/drivers/media/i2c/smiapp-pll.c
-+++ b/drivers/media/i2c/smiapp-pll.c
-@@ -28,6 +28,11 @@
- 
- #include "smiapp-pll.h"
- 
-+static inline uint64_t div_u64_round_up(uint64_t dividend, uint32_t divisor)
-+{
-+	return div_u64(dividend + divisor - 1, divisor);
-+}
-+
- /* Return an even number or one. */
- static inline uint32_t clk_div_even(uint32_t a)
- {
-@@ -52,8 +57,8 @@ static inline uint32_t is_one_or_even(uint32_t a)
- 	return 1;
- }
- 
--static int bounds_check(struct device *dev, uint32_t val,
--			uint32_t min, uint32_t max, char *str)
-+static int bounds_check(struct device *dev, uint64_t val,
-+			uint64_t min, uint64_t max, char *str)
- {
- 	if (val >= min && val <= max)
- 		return 0;
-@@ -75,15 +80,15 @@ static void print_pll(struct device *dev, struct smiapp_pll *pll)
- 	dev_dbg(dev, "vt_pix_clk_div \t%u\n",  pll->vt_pix_clk_div);
- 
- 	dev_dbg(dev, "ext_clk_freq_hz \t%u\n", pll->ext_clk_freq_hz);
--	dev_dbg(dev, "pll_ip_clk_freq_hz \t%u\n", pll->pll_ip_clk_freq_hz);
--	dev_dbg(dev, "pll_op_clk_freq_hz \t%u\n", pll->pll_op_clk_freq_hz);
-+	dev_dbg(dev, "pll_ip_clk_freq_hz \t%llu\n", pll->pll_ip_clk_freq_hz);
-+	dev_dbg(dev, "pll_op_clk_freq_hz \t%llu\n", pll->pll_op_clk_freq_hz);
- 	if (!(pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)) {
--		dev_dbg(dev, "op_sys_clk_freq_hz \t%u\n",
-+		dev_dbg(dev, "op_sys_clk_freq_hz \t%llu\n",
- 			pll->op_sys_clk_freq_hz);
- 		dev_dbg(dev, "op_pix_clk_freq_hz \t%u\n",
- 			pll->op_pix_clk_freq_hz);
- 	}
--	dev_dbg(dev, "vt_sys_clk_freq_hz \t%u\n", pll->vt_sys_clk_freq_hz);
-+	dev_dbg(dev, "vt_sys_clk_freq_hz \t%llu\n", pll->vt_sys_clk_freq_hz);
- 	dev_dbg(dev, "vt_pix_clk_freq_hz \t%u\n", pll->vt_pix_clk_freq_hz);
- }
- 
-@@ -131,10 +136,11 @@ static int __smiapp_pll_calculate(struct device *dev,
- 		more_mul_max);
- 	/* Don't go above max pll op frequency. */
- 	more_mul_max =
--		min_t(uint32_t,
-+		min_t(uint64_t,
- 		      more_mul_max,
--		      limits->max_pll_op_freq_hz
--		      / (pll->ext_clk_freq_hz / pll->pre_pll_clk_div * mul));
-+		      div_u64(limits->max_pll_op_freq_hz,
-+			      (pll->ext_clk_freq_hz /
-+			       pll->pre_pll_clk_div * mul)));
- 	dev_dbg(dev, "more_mul_max: max_pll_op_freq_hz check: %u\n",
- 		more_mul_max);
- 	/* Don't go above the division capability of op sys clock divider. */
-@@ -150,9 +156,9 @@ static int __smiapp_pll_calculate(struct device *dev,
- 		more_mul_max);
- 
- 	/* Ensure we won't go below min_pll_op_freq_hz. */
--	more_mul_min = DIV_ROUND_UP(limits->min_pll_op_freq_hz,
--				    pll->ext_clk_freq_hz / pll->pre_pll_clk_div
--				    * mul);
-+	more_mul_min = div_u64_round_up(
-+		limits->min_pll_op_freq_hz,
-+		pll->ext_clk_freq_hz / pll->pre_pll_clk_div * mul);
- 	dev_dbg(dev, "more_mul_min: min_pll_op_freq_hz check: %u\n",
- 		more_mul_min);
- 	/* Ensure we won't go below min_pll_multiplier. */
-@@ -194,13 +200,13 @@ static int __smiapp_pll_calculate(struct device *dev,
- 
- 	/* Derive pll_op_clk_freq_hz. */
- 	pll->op_sys_clk_freq_hz =
--		pll->pll_op_clk_freq_hz / pll->op_sys_clk_div;
-+		div_u64(pll->pll_op_clk_freq_hz, pll->op_sys_clk_div);
- 
- 	pll->op_pix_clk_div = pll->bits_per_pixel;
- 	dev_dbg(dev, "op_pix_clk_div: %u\n", pll->op_pix_clk_div);
- 
- 	pll->op_pix_clk_freq_hz =
--		pll->op_sys_clk_freq_hz / pll->op_pix_clk_div;
-+		div_u64(pll->op_sys_clk_freq_hz, pll->op_pix_clk_div);
- 
- 	/*
- 	 * Some sensors perform analogue binning and some do this
-@@ -235,9 +241,9 @@ static int __smiapp_pll_calculate(struct device *dev,
- 
- 	/* Find smallest and biggest allowed vt divisor. */
- 	dev_dbg(dev, "min_vt_div: %u\n", min_vt_div);
--	min_vt_div = max(min_vt_div,
--			 DIV_ROUND_UP(pll->pll_op_clk_freq_hz,
--				      limits->vt.max_pix_clk_freq_hz));
-+	min_vt_div = max_t(uint32_t, min_vt_div,
-+			   div_u64_round_up(pll->pll_op_clk_freq_hz,
-+					    limits->vt.max_pix_clk_freq_hz));
- 	dev_dbg(dev, "min_vt_div: max_vt_pix_clk_freq_hz: %u\n",
- 		min_vt_div);
- 	min_vt_div = max_t(uint32_t, min_vt_div,
-@@ -247,9 +253,9 @@ static int __smiapp_pll_calculate(struct device *dev,
- 
- 	max_vt_div = limits->vt.max_sys_clk_div * limits->vt.max_pix_clk_div;
- 	dev_dbg(dev, "max_vt_div: %u\n", max_vt_div);
--	max_vt_div = min(max_vt_div,
--			 DIV_ROUND_UP(pll->pll_op_clk_freq_hz,
--				      limits->vt.min_pix_clk_freq_hz));
-+	max_vt_div = min_t(uint32_t, max_vt_div,
-+			   div_u64_round_up(pll->pll_op_clk_freq_hz,
-+					    limits->vt.min_pix_clk_freq_hz));
- 	dev_dbg(dev, "max_vt_div: min_vt_pix_clk_freq_hz: %u\n",
- 		max_vt_div);
- 
-@@ -263,9 +269,9 @@ static int __smiapp_pll_calculate(struct device *dev,
- 			  DIV_ROUND_UP(min_vt_div,
- 				       limits->vt.max_pix_clk_div));
- 	dev_dbg(dev, "min_sys_div: max_vt_pix_clk_div: %u\n", min_sys_div);
--	min_sys_div = max(min_sys_div,
--			  pll->pll_op_clk_freq_hz
--			  / limits->vt.max_sys_clk_freq_hz);
-+	min_sys_div = max_t(uint32_t, min_sys_div,
-+			    pll->pll_op_clk_freq_hz
-+			    / limits->vt.max_sys_clk_freq_hz);
- 	dev_dbg(dev, "min_sys_div: max_pll_op_clk_freq_hz: %u\n", min_sys_div);
- 	min_sys_div = clk_div_even_up(min_sys_div);
- 	dev_dbg(dev, "min_sys_div: one or even: %u\n", min_sys_div);
-@@ -276,9 +282,9 @@ static int __smiapp_pll_calculate(struct device *dev,
- 			  DIV_ROUND_UP(max_vt_div,
- 				       limits->vt.min_pix_clk_div));
- 	dev_dbg(dev, "max_sys_div: min_vt_pix_clk_div: %u\n", max_sys_div);
--	max_sys_div = min(max_sys_div,
--			  DIV_ROUND_UP(pll->pll_op_clk_freq_hz,
--				       limits->vt.min_pix_clk_freq_hz));
-+	max_sys_div = min_t(uint32_t, max_sys_div,
-+			    div_u64_round_up(pll->pll_op_clk_freq_hz,
-+					     limits->vt.min_pix_clk_freq_hz));
- 	dev_dbg(dev, "max_sys_div: min_vt_pix_clk_freq_hz: %u\n", max_sys_div);
- 
- 	/*
-@@ -316,9 +322,9 @@ static int __smiapp_pll_calculate(struct device *dev,
- 	pll->vt_pix_clk_div = best_pix_div;
- 
- 	pll->vt_sys_clk_freq_hz =
--		pll->pll_op_clk_freq_hz / pll->vt_sys_clk_div;
-+		div_u64(pll->pll_op_clk_freq_hz, pll->vt_sys_clk_div);
- 	pll->vt_pix_clk_freq_hz =
--		pll->vt_sys_clk_freq_hz / pll->vt_pix_clk_div;
-+		div_u64(pll->vt_sys_clk_freq_hz, pll->vt_pix_clk_div);
- 
- 	pll->pixel_rate_csi =
- 		pll->op_pix_clk_freq_hz * lane_op_clock_ratio;
-@@ -402,9 +408,10 @@ int smiapp_pll_calculate(struct device *dev,
- 			* (pll->csi2.lanes / lane_op_clock_ratio);
- 		break;
- 	case SMIAPP_PLL_BUS_TYPE_PARALLEL:
--		pll->pll_op_clk_freq_hz = pll->link_freq * pll->bits_per_pixel
--			/ DIV_ROUND_UP(pll->bits_per_pixel,
--				       pll->parallel.bus_width);
-+		pll->pll_op_clk_freq_hz = div_u64(
-+			pll->link_freq * pll->bits_per_pixel,
-+			DIV_ROUND_UP(pll->bits_per_pixel,
-+				     pll->parallel.bus_width));
- 		break;
- 	default:
- 		return -EINVAL;
-diff --git a/drivers/media/i2c/smiapp-pll.h b/drivers/media/i2c/smiapp-pll.h
-index 5ce2b61..bb5ae28 100644
---- a/drivers/media/i2c/smiapp-pll.h
-+++ b/drivers/media/i2c/smiapp-pll.h
-@@ -63,11 +63,11 @@ struct smiapp_pll {
- 	uint16_t vt_pix_clk_div;
- 
- 	uint32_t ext_clk_freq_hz;
--	uint32_t pll_ip_clk_freq_hz;
--	uint32_t pll_op_clk_freq_hz;
--	uint32_t op_sys_clk_freq_hz;
-+	uint64_t pll_ip_clk_freq_hz;
-+	uint64_t pll_op_clk_freq_hz;
-+	uint64_t op_sys_clk_freq_hz;
- 	uint32_t op_pix_clk_freq_hz;
--	uint32_t vt_sys_clk_freq_hz;
-+	uint64_t vt_sys_clk_freq_hz;
- 	uint32_t vt_pix_clk_freq_hz;
- 
- 	uint32_t pixel_rate_csi;
-@@ -76,12 +76,12 @@ struct smiapp_pll {
- struct smiapp_pll_branch_limits {
- 	uint16_t min_sys_clk_div;
- 	uint16_t max_sys_clk_div;
--	uint32_t min_sys_clk_freq_hz;
--	uint32_t max_sys_clk_freq_hz;
-+	uint64_t min_sys_clk_freq_hz;
-+	uint64_t max_sys_clk_freq_hz;
- 	uint16_t min_pix_clk_div;
- 	uint16_t max_pix_clk_div;
--	uint32_t min_pix_clk_freq_hz;
--	uint32_t max_pix_clk_freq_hz;
-+	uint64_t min_pix_clk_freq_hz;
-+	uint64_t max_pix_clk_freq_hz;
- };
- 
- struct smiapp_pll_limits {
-@@ -94,8 +94,8 @@ struct smiapp_pll_limits {
- 	uint32_t max_pll_ip_freq_hz;
- 	uint16_t min_pll_multiplier;
- 	uint16_t max_pll_multiplier;
--	uint32_t min_pll_op_freq_hz;
--	uint32_t max_pll_op_freq_hz;
-+	uint64_t min_pll_op_freq_hz;
-+	uint64_t max_pll_op_freq_hz;
- 
- 	struct smiapp_pll_branch_limits vt;
- 	struct smiapp_pll_branch_limits op;
+								Honza
 -- 
-1.8.3.2
-
+Jan Kara <jack@suse.cz>
+SUSE Labs, CR
