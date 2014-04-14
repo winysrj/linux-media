@@ -1,53 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f176.google.com ([209.85.216.176]:39085 "EHLO
-	mail-qc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756193AbaDPNZK (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:8608 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753585AbaDNPA6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Apr 2014 09:25:10 -0400
-Received: by mail-qc0-f176.google.com with SMTP id m20so11768438qcx.7
-        for <linux-media@vger.kernel.org>; Wed, 16 Apr 2014 06:25:10 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <534E839C.6060203@xs4all.nl>
-References: <534675E1.6050408@sca-uk.com>
-	<5347B132.6040206@sca-uk.com>
-	<5347B9A3.2050301@xs4all.nl>
-	<5347BDDE.6080208@sca-uk.com>
-	<5347C57B.7000207@xs4all.nl>
-	<5347DD94.1070000@sca-uk.com>
-	<5347E2AF.6030205@xs4all.nl>
-	<5347EB5D.2020408@sca-uk.com>
-	<5347EC3D.7040107@xs4all.nl>
-	<5348392E.40808@sca-uk.com>
-	<534BEA8A.2040604@xs4all.nl>
-	<534D6241.5060903@sca-uk.com>
-	<534D68C2.6050902@xs4all.nl>
-	<534D7E24.4010602@sca-uk.com>
-	<534E5438.3030404@xs4all.nl>
-	<534E8225.6090804@sca-uk.com>
-	<534E839C.6060203@xs4all.nl>
-Date: Wed, 16 Apr 2014 09:25:10 -0400
-Message-ID: <CAGoCfiwMzQij8uaksshZH+q62kGJoOwKGHxiYhS0kk+KdtMK_A@mail.gmail.com>
-Subject: Re: Hauppauge ImpactVCB-e 01385
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Steve Cookson <it@sca-uk.com>, Steven Toth <stoth@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 14 Apr 2014 11:00:58 -0400
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-samsung-soc@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, robh+dt@kernel.org, inki.dae@samsung.com,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	t.figa@samsung.com, b.zolnierkie@samsung.com,
+	jy0922.shim@samsung.com, rahul.sharma@samsung.com,
+	pawel.moll@arm.com, Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 3/4] drm: exynos: add compatibles for HDMI and Mixer chips and
+ exynos4210 SoC
+Date: Mon, 14 Apr 2014 17:00:21 +0200
+Message-id: <1397487622-3577-4-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1397487622-3577-1-git-send-email-t.stanislaws@samsung.com>
+References: <1397487622-3577-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Anyway, I would recommend that you make a safety copy of your modules
-> first (just in case :-) ), and then move all the newly install modules
-> to the right place.
+This patch add proper compatibles for Mixer and HDMI chip
+available on exynos4210 SoCs.
 
-Yeah, I generally recommend that in such cases you just "rm -rf
-/lib/modules/`uname -r`/kernel/drivers/media" before running "make
-install", so you know you're in a clean state (make a backup copy
-first though, just in case).  This avoids having to figure out which
-driver moved and the old version of which didn't get deleted.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+---
+ drivers/gpu/drm/exynos/exynos_hdmi.c  |    3 +++
+ drivers/gpu/drm/exynos/exynos_mixer.c |    3 +++
+ 2 files changed, 6 insertions(+)
 
-Devin
-
+diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
+index d2d6e2e..6fa63ea 100644
+--- a/drivers/gpu/drm/exynos/exynos_hdmi.c
++++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
+@@ -2032,6 +2032,9 @@ static struct s5p_hdmi_platform_data *drm_hdmi_dt_parse_pdata
+ 
+ static struct of_device_id hdmi_match_types[] = {
+ 	{
++		.compatible = "samsung,exynos4210-hdmi",
++		.data	= (void	*)HDMI_TYPE13,
++	}, {
+ 		.compatible = "samsung,exynos5-hdmi",
+ 		.data = &exynos5_hdmi_driver_data,
+ 	}, {
+diff --git a/drivers/gpu/drm/exynos/exynos_mixer.c b/drivers/gpu/drm/exynos/exynos_mixer.c
+index e3306c8..fd8a9a0 100644
+--- a/drivers/gpu/drm/exynos/exynos_mixer.c
++++ b/drivers/gpu/drm/exynos/exynos_mixer.c
+@@ -1187,6 +1187,9 @@ static struct platform_device_id mixer_driver_types[] = {
+ 
+ static struct of_device_id mixer_match_types[] = {
+ 	{
++		.compatible = "samsung,exynos4210-mixer",
++		.data	= &exynos4210_mxr_drv_data,
++	}, {
+ 		.compatible = "samsung,exynos5-mixer",
+ 		.data	= &exynos5250_mxr_drv_data,
+ 	}, {
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.9.5
+
