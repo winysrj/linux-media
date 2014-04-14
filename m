@@ -1,46 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:27369 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756706AbaDHKvn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 06:51:43 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N3P007AHKU41D00@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 08 Apr 2014 11:51:40 +0100 (BST)
-Message-id: <5343D4BD.4090809@samsung.com>
-Date: Tue, 08 Apr 2014 12:51:41 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Kamil Debski <k.debski@samsung.com>, 'John Sheu' <sheu@google.com>,
-	linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, posciak@google.com, arun.m@samsung.com,
-	kgene.kim@samsung.com, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 4/4] v4l2-mem2mem: allow reqbufs(0) with "in use" MMAP
- buffers
-References: <1394578325-11298-1-git-send-email-sheu@google.com>
- <1394578325-11298-5-git-send-email-sheu@google.com>
- <06c801cf526f$7b0498a0$710dc9e0$%debski@samsung.com>
-In-reply-to: <06c801cf526f$7b0498a0$710dc9e0$%debski@samsung.com>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mga03.intel.com ([143.182.124.21]:10238 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754508AbaDNJA5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Apr 2014 05:00:57 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id C2DB520981
+	for <linux-media@vger.kernel.org>; Mon, 14 Apr 2014 12:00:55 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 15/21] smiapp: Remove validation of op_pix_clk_div
+Date: Mon, 14 Apr 2014 11:58:40 +0300
+Message-Id: <1397465926-29724-16-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+op_pix_clk_div is directly assigned and not calculated. There's no need to
+verify it.
 
-On 2014-04-07 16:41, Kamil Debski wrote:
-> Pawel, Marek,
->
-> Before taking this to my tree I wanted to get an ACK from one of the
-> videobuf2 maintainers. Could you spare a moment to look through this
-> patch?
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp-pll.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
-It's not a bug, it is a feature. This was one of the fundamental design 
-requirements to allow applications to track if the memory is used or not.
-
-Best regards
+diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
+index bed44c0..6bde587 100644
+--- a/drivers/media/i2c/smiapp-pll.c
++++ b/drivers/media/i2c/smiapp-pll.c
+@@ -355,11 +355,6 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 			"op_sys_clk_div");
+ 	if (!rval)
+ 		rval = bounds_check(
+-			dev, pll->op_pix_clk_div,
+-			limits->op.min_pix_clk_div, limits->op.max_pix_clk_div,
+-			"op_pix_clk_div");
+-	if (!rval)
+-		rval = bounds_check(
+ 			dev, pll->op_sys_clk_freq_hz,
+ 			limits->op.min_sys_clk_freq_hz,
+ 			limits->op.max_sys_clk_freq_hz,
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+1.8.3.2
 
