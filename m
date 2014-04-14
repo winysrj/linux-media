@@ -1,207 +1,254 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f43.google.com ([74.125.83.43]:38357 "EHLO
-	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754665AbaDHDcX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 23:32:23 -0400
-Received: by mail-ee0-f43.google.com with SMTP id e53so145823eek.2
-        for <linux-media@vger.kernel.org>; Mon, 07 Apr 2014 20:32:22 -0700 (PDT)
-From: "Ryley Angus" <ryleyjangus@gmail.com>
-To: "'Hans Verkuil'" <hverkuil@xs4all.nl>,
-	<linux-media@vger.kernel.org>
-References: <C2340839-C85B-4DDF-8590-FA9049D6E65E@gmail.com> <5342B115.2070909@xs4all.nl>
-In-Reply-To: <5342B115.2070909@xs4all.nl>
-Subject: RE: [RFC] Fix interrupted recording with Hauppauge HD-PVR
-Date: Tue, 8 Apr 2014 13:32:12 +1000
-Message-ID: <007a01cf52db$253a7fe0$6faf7fa0$@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Language: en-us
+Received: from mga01.intel.com ([192.55.52.88]:4538 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751475AbaDNJA6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Apr 2014 05:00:58 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id 4A2932096A
+	for <linux-media@vger.kernel.org>; Mon, 14 Apr 2014 12:00:55 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 13/21] smiapp-pll: Use 64-bit types limits
+Date: Mon, 14 Apr 2014 11:58:38 +0300
+Message-Id: <1397465926-29724-14-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks Hans for getting back to me.
+Limits may exceed the value range of 32-bit unsigned integers. Thus use 64
+bits for all of them.
 
-I've been trying out your patch and I found the device wasn't actually
-restarting the streaming/recording properly after a channel 
-change. I changed "msecs_to_jiffies(500))" to "msecs_to_jiffies(1000))" and
-had the same issue, but "msecs_to_jiffies(2000))" 
-seems to be working well. I'll let it keep going for a few more hours, but
-at the moment it seems to be working well. The recordings
-can be ended without anything hanging, and turning off the device ends the
-recording properly (mine neglected this occurrence).
-
-I'll let you know if I have any more issues,
-
-ryley
-
------Original Message-----
-From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
-Sent: Tuesday, April 08, 2014 12:07 AM
-To: Ryley Angus; linux-media@vger.kernel.org
-Subject: Re: [RFC] Fix interrupted recording with Hauppauge HD-PVR
-
-Hi Ryley,
-
-Thank you for the patch. Your analysis seems sound. The patch is actually
-not bad for a first attempt, but I did it a bit differently.
-
-Can you test my patch?
-
-Regards,
-
-	Hans
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c
-b/drivers/media/usb/hdpvr/hdpvr-video.c
-index 0500c417..a61373e 100644
---- a/drivers/media/usb/hdpvr/hdpvr-video.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-@@ -454,6 +454,8 @@ static ssize_t hdpvr_read(struct file *file, char __user
-*buffer, size_t count,
- 
- 		if (buf->status != BUFSTAT_READY &&
- 		    dev->status != STATUS_DISCONNECTED) {
-+			int err;
-+
- 			/* return nonblocking */
- 			if (file->f_flags & O_NONBLOCK) {
- 				if (!ret)
-@@ -461,11 +463,23 @@ static ssize_t hdpvr_read(struct file *file, char
-__user *buffer, size_t count,
- 				goto err;
- 			}
- 
--			if (wait_event_interruptible(dev->wait_data,
--					      buf->status == BUFSTAT_READY))
-{
--				ret = -ERESTARTSYS;
-+			err =
-wait_event_interruptible_timeout(dev->wait_data,
-+					      buf->status == BUFSTAT_READY,
-+					      msecs_to_jiffies(500));
-+			if (err < 0) {
-+				ret = err;
- 				goto err;
- 			}
-+			if (!err) {
-+				v4l2_dbg(MSG_INFO, hdpvr_debug,
-&dev->v4l2_dev,
-+					"timeout: restart streaming\n");
-+				hdpvr_stop_streaming(dev);
-+				err = hdpvr_start_streaming(dev);
-+				if (err) {
-+					ret = err;
-+					goto err;
-+				}
-+			}
- 		}
- 
- 		if (buf->status != BUFSTAT_READY)
-
-
-On 04/07/2014 02:04 AM, Ryley Angus wrote:
-> (Sorry in advance for probably breaking a few conventions of the 
-> mailing lists. First time using one so please let me know what I'm 
-> doing wrong)
-> 
-> I'm writing this because of an issue I had with my Hauppauge HD-PVR.
-> I record from my satellite set top box using component video and 
-> optical audio input. I basically use "cat /dev/video0 > ~/video.ts"
-> or use dd. The box is set to output audio as AC-3 over optical, but 
-> most channels are actually output as stereo PCM. When the channel is 
-> changed between a PCM channel and (typically to a movie channel) to a 
-> channel utilising AC-3, the HD-PVR stops the recording as the set top 
-> box momentarily outputs no audio. Changing between PCM channels 
-> doesn't cause any issues.
-> 
-> My main problem was that when this happens, cat/dd doesn't actually 
-> exit. When going through the hdpvr driver source and the dmesg output, 
-> I found the hdpvr driver wasn't actually shutting down the device 
-> properly until I manually killed cat/dd.
-> 
-> I've seen references to this issue being a hardware issue from as far 
-> back as 2010:
-> http://forums.gbpvr.com/showthread.php?46429-HD-PVR-drops-recording-on
-> -channel-change-Hauppauge-says-too-bad
-> .
-> 
-> I tracked my issue to the file "hdpvr-video.c". Specifically, "if 
-> (wait_event_interruptible(dev->wait_data, buf->status =
-> BUFSTAT_READY)) {" (line ~450). The device seems to get stuck waiting 
-> for the buffer to become ready. But as far as I can tell, when the 
-> channel is changed between a PCM and AC-3 broadcast the buffer status 
-> will never actually become ready.
-> 
-> I haven't really ever done much coding, but I wrote a really nasty 
-> patch for this which tracks the devices buffer status and stops/starts 
-> the devices recording when the buffer is not ready for a period of 
-> time. In my limited testing it has worked perfectly, no output is 
-> overwritten, the output is in sync and the recording changes perfectly 
-> between stereo AC-3 (PCM input is encoded to AC-3 by the hardware) and 
-> 5.1 AC-3 no matter how frequently I change the channels back and 
-> forth. All changes are transparent to cat/dd and neither exit 
-> prematurely. Manually killing cat/dd seems to properly shut down the 
-> device. There is a half-second glitch in the resultant where the 
-> recording restarts, but this amounts to less than a second of lost 
-> footage during the change and compared to having the device hang, I 
-> can live with it. I haven't had the device restart recording when it 
-> shouldn't have.
-> 
-> So considering my code is really messy, I'd love it if someone could 
-> make some suggestions to make the code better and make sure I don't 
-> have too many logic errors. I don't really know too much about kernel 
-> coding practices either. And if anyone who's experienced my issue 
-> could try out my change and let me know that'd be great. You will have 
-> to run "v4l2-ctl --verbose -d /dev/video0 -c audio_encoding=4"
-> to ensure the 5.1 AC-3 is captured properly (AAC capture of 5.1 
-> sources doesn't seem possible) and "v4l2-ctl --verbose -d $MPEG4_IN 
-> --set-audio-input=2" to capture from the optical input.
-> Thanks in advance,
-> 
-> ryley
-> 
-> 
-> --- a/hdpvr-video.c	2014-04-07 09:34:31.000000000 +1000
-> +++ b/hdpvr-video.c	2014-04-07 09:37:44.000000000 +1000
-> @@ -453,11 +453,17 @@
->  					ret = -EAGAIN;
->  				goto err;
->  			}
-> -
-> -			if (wait_event_interruptible(dev->wait_data,
-> -					      buf->status == BUFSTAT_READY))
-{
-> -				ret = -ERESTARTSYS;
-> -				goto err;
-> +			int counter=0;
-> +			while (buf->status != BUFSTAT_READY) {
-> +				counter++;
-> +				msleep(20);
-> +				if (counter == 30) {
-> +					v4l2_dbg(MSG_INFO, hdpvr_debug,
-&dev->v4l2_dev,
-> +                                                "limit hit, counter is
-%d, buf status is %d\n", counter, buf->status);
-> +					counter=0;
-> +					ret = hdpvr_stop_streaming(dev);
-> +					ret = hdpvr_start_streaming(dev);
-> +				}
->  			}
->  		}
-> 
-> 
-> 
-> 
-> 
-> 
-
-
-
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
-This email is free from viruses and malware because avast! Antivirus protection is active.
-http://www.avast.com
+ drivers/media/i2c/smiapp-pll.c | 72 +++++++++++++++++++++++-------------------
+ drivers/media/i2c/smiapp-pll.h | 20 ++++++------
+ 2 files changed, 50 insertions(+), 42 deletions(-)
+
+diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
+index d14af5c..ec9f8bb 100644
+--- a/drivers/media/i2c/smiapp-pll.c
++++ b/drivers/media/i2c/smiapp-pll.c
+@@ -28,6 +28,11 @@
+ 
+ #include "smiapp-pll.h"
+ 
++static inline uint64_t div_u64_round_up(uint64_t dividend, uint32_t divisor)
++{
++	return div_u64(dividend + divisor - 1, divisor);
++}
++
+ /* Return an even number or one. */
+ static inline uint32_t clk_div_even(uint32_t a)
+ {
+@@ -52,13 +57,14 @@ static inline uint32_t is_one_or_even(uint32_t a)
+ 	return 1;
+ }
+ 
+-static int bounds_check(struct device *dev, uint32_t val,
+-			uint32_t min, uint32_t max, char *str)
++static int bounds_check(struct device *dev, uint64_t val,
++			uint64_t min, uint64_t max, char *str)
+ {
+ 	if (val >= min && val <= max)
+ 		return 0;
+ 
+-	dev_dbg(dev, "%s out of bounds: %d (%d--%d)\n", str, val, min, max);
++	dev_dbg(dev, "%s out of bounds: %llu (%llu--%llu)\n", str, val, min,
++		max);
+ 
+ 	return -EINVAL;
+ }
+@@ -75,15 +81,15 @@ static void print_pll(struct device *dev, struct smiapp_pll *pll)
+ 	dev_dbg(dev, "vt_pix_clk_div \t%u\n",  pll->vt_pix_clk_div);
+ 
+ 	dev_dbg(dev, "ext_clk_freq_hz \t%u\n", pll->ext_clk_freq_hz);
+-	dev_dbg(dev, "pll_ip_clk_freq_hz \t%u\n", pll->pll_ip_clk_freq_hz);
+-	dev_dbg(dev, "pll_op_clk_freq_hz \t%u\n", pll->pll_op_clk_freq_hz);
++	dev_dbg(dev, "pll_ip_clk_freq_hz \t%llu\n", pll->pll_ip_clk_freq_hz);
++	dev_dbg(dev, "pll_op_clk_freq_hz \t%llu\n", pll->pll_op_clk_freq_hz);
+ 	if (!(pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)) {
+-		dev_dbg(dev, "op_sys_clk_freq_hz \t%u\n",
++		dev_dbg(dev, "op_sys_clk_freq_hz \t%llu\n",
+ 			pll->op_sys_clk_freq_hz);
+ 		dev_dbg(dev, "op_pix_clk_freq_hz \t%u\n",
+ 			pll->op_pix_clk_freq_hz);
+ 	}
+-	dev_dbg(dev, "vt_sys_clk_freq_hz \t%u\n", pll->vt_sys_clk_freq_hz);
++	dev_dbg(dev, "vt_sys_clk_freq_hz \t%llu\n", pll->vt_sys_clk_freq_hz);
+ 	dev_dbg(dev, "vt_pix_clk_freq_hz \t%u\n", pll->vt_pix_clk_freq_hz);
+ }
+ 
+@@ -131,10 +137,11 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 		more_mul_max);
+ 	/* Don't go above max pll op frequency. */
+ 	more_mul_max =
+-		min_t(uint32_t,
++		min_t(uint64_t,
+ 		      more_mul_max,
+-		      limits->max_pll_op_freq_hz
+-		      / (pll->ext_clk_freq_hz / pll->pre_pll_clk_div * mul));
++		      div_u64(limits->max_pll_op_freq_hz,
++			      (pll->ext_clk_freq_hz /
++			       pll->pre_pll_clk_div * mul)));
+ 	dev_dbg(dev, "more_mul_max: max_pll_op_freq_hz check: %u\n",
+ 		more_mul_max);
+ 	/* Don't go above the division capability of op sys clock divider. */
+@@ -150,9 +157,9 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 		more_mul_max);
+ 
+ 	/* Ensure we won't go below min_pll_op_freq_hz. */
+-	more_mul_min = DIV_ROUND_UP(limits->min_pll_op_freq_hz,
+-				    pll->ext_clk_freq_hz / pll->pre_pll_clk_div
+-				    * mul);
++	more_mul_min = div_u64_round_up(
++		limits->min_pll_op_freq_hz,
++		pll->ext_clk_freq_hz / pll->pre_pll_clk_div * mul);
+ 	dev_dbg(dev, "more_mul_min: min_pll_op_freq_hz check: %u\n",
+ 		more_mul_min);
+ 	/* Ensure we won't go below min_pll_multiplier. */
+@@ -194,13 +201,13 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 
+ 	/* Derive pll_op_clk_freq_hz. */
+ 	pll->op_sys_clk_freq_hz =
+-		pll->pll_op_clk_freq_hz / pll->op_sys_clk_div;
++		div_u64(pll->pll_op_clk_freq_hz, pll->op_sys_clk_div);
+ 
+ 	pll->op_pix_clk_div = pll->bits_per_pixel;
+ 	dev_dbg(dev, "op_pix_clk_div: %u\n", pll->op_pix_clk_div);
+ 
+ 	pll->op_pix_clk_freq_hz =
+-		pll->op_sys_clk_freq_hz / pll->op_pix_clk_div;
++		div_u64(pll->op_sys_clk_freq_hz, pll->op_pix_clk_div);
+ 
+ 	/*
+ 	 * Some sensors perform analogue binning and some do this
+@@ -235,9 +242,9 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 
+ 	/* Find smallest and biggest allowed vt divisor. */
+ 	dev_dbg(dev, "min_vt_div: %u\n", min_vt_div);
+-	min_vt_div = max(min_vt_div,
+-			 DIV_ROUND_UP(pll->pll_op_clk_freq_hz,
+-				      limits->vt.max_pix_clk_freq_hz));
++	min_vt_div = max_t(uint32_t, min_vt_div,
++			   div_u64_round_up(pll->pll_op_clk_freq_hz,
++					    limits->vt.max_pix_clk_freq_hz));
+ 	dev_dbg(dev, "min_vt_div: max_vt_pix_clk_freq_hz: %u\n",
+ 		min_vt_div);
+ 	min_vt_div = max_t(uint32_t, min_vt_div,
+@@ -247,9 +254,9 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 
+ 	max_vt_div = limits->vt.max_sys_clk_div * limits->vt.max_pix_clk_div;
+ 	dev_dbg(dev, "max_vt_div: %u\n", max_vt_div);
+-	max_vt_div = min(max_vt_div,
+-			 DIV_ROUND_UP(pll->pll_op_clk_freq_hz,
+-				      limits->vt.min_pix_clk_freq_hz));
++	max_vt_div = min_t(uint32_t, max_vt_div,
++			   div_u64_round_up(pll->pll_op_clk_freq_hz,
++					    limits->vt.min_pix_clk_freq_hz));
+ 	dev_dbg(dev, "max_vt_div: min_vt_pix_clk_freq_hz: %u\n",
+ 		max_vt_div);
+ 
+@@ -263,9 +270,9 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 			  DIV_ROUND_UP(min_vt_div,
+ 				       limits->vt.max_pix_clk_div));
+ 	dev_dbg(dev, "min_sys_div: max_vt_pix_clk_div: %u\n", min_sys_div);
+-	min_sys_div = max(min_sys_div,
+-			  pll->pll_op_clk_freq_hz
+-			  / limits->vt.max_sys_clk_freq_hz);
++	min_sys_div = max_t(uint32_t, min_sys_div,
++			    pll->pll_op_clk_freq_hz
++			    / limits->vt.max_sys_clk_freq_hz);
+ 	dev_dbg(dev, "min_sys_div: max_pll_op_clk_freq_hz: %u\n", min_sys_div);
+ 	min_sys_div = clk_div_even_up(min_sys_div);
+ 	dev_dbg(dev, "min_sys_div: one or even: %u\n", min_sys_div);
+@@ -276,9 +283,9 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 			  DIV_ROUND_UP(max_vt_div,
+ 				       limits->vt.min_pix_clk_div));
+ 	dev_dbg(dev, "max_sys_div: min_vt_pix_clk_div: %u\n", max_sys_div);
+-	max_sys_div = min(max_sys_div,
+-			  DIV_ROUND_UP(pll->pll_op_clk_freq_hz,
+-				       limits->vt.min_pix_clk_freq_hz));
++	max_sys_div = min_t(uint32_t, max_sys_div,
++			    div_u64_round_up(pll->pll_op_clk_freq_hz,
++					     limits->vt.min_pix_clk_freq_hz));
+ 	dev_dbg(dev, "max_sys_div: min_vt_pix_clk_freq_hz: %u\n", max_sys_div);
+ 
+ 	/*
+@@ -316,9 +323,9 @@ static int __smiapp_pll_calculate(struct device *dev,
+ 	pll->vt_pix_clk_div = best_pix_div;
+ 
+ 	pll->vt_sys_clk_freq_hz =
+-		pll->pll_op_clk_freq_hz / pll->vt_sys_clk_div;
++		div_u64(pll->pll_op_clk_freq_hz, pll->vt_sys_clk_div);
+ 	pll->vt_pix_clk_freq_hz =
+-		pll->vt_sys_clk_freq_hz / pll->vt_pix_clk_div;
++		div_u64(pll->vt_sys_clk_freq_hz, pll->vt_pix_clk_div);
+ 
+ 	pll->pixel_rate_csi =
+ 		pll->op_pix_clk_freq_hz * lane_op_clock_ratio;
+@@ -402,9 +409,10 @@ int smiapp_pll_calculate(struct device *dev,
+ 			* (pll->csi2.lanes / lane_op_clock_ratio);
+ 		break;
+ 	case SMIAPP_PLL_BUS_TYPE_PARALLEL:
+-		pll->pll_op_clk_freq_hz = pll->link_freq * pll->bits_per_pixel
+-			/ DIV_ROUND_UP(pll->bits_per_pixel,
+-				       pll->parallel.bus_width);
++		pll->pll_op_clk_freq_hz = div_u64(
++			pll->link_freq * pll->bits_per_pixel,
++			DIV_ROUND_UP(pll->bits_per_pixel,
++				     pll->parallel.bus_width));
+ 		break;
+ 	default:
+ 		return -EINVAL;
+diff --git a/drivers/media/i2c/smiapp-pll.h b/drivers/media/i2c/smiapp-pll.h
+index 5ce2b61..bb5ae28 100644
+--- a/drivers/media/i2c/smiapp-pll.h
++++ b/drivers/media/i2c/smiapp-pll.h
+@@ -63,11 +63,11 @@ struct smiapp_pll {
+ 	uint16_t vt_pix_clk_div;
+ 
+ 	uint32_t ext_clk_freq_hz;
+-	uint32_t pll_ip_clk_freq_hz;
+-	uint32_t pll_op_clk_freq_hz;
+-	uint32_t op_sys_clk_freq_hz;
++	uint64_t pll_ip_clk_freq_hz;
++	uint64_t pll_op_clk_freq_hz;
++	uint64_t op_sys_clk_freq_hz;
+ 	uint32_t op_pix_clk_freq_hz;
+-	uint32_t vt_sys_clk_freq_hz;
++	uint64_t vt_sys_clk_freq_hz;
+ 	uint32_t vt_pix_clk_freq_hz;
+ 
+ 	uint32_t pixel_rate_csi;
+@@ -76,12 +76,12 @@ struct smiapp_pll {
+ struct smiapp_pll_branch_limits {
+ 	uint16_t min_sys_clk_div;
+ 	uint16_t max_sys_clk_div;
+-	uint32_t min_sys_clk_freq_hz;
+-	uint32_t max_sys_clk_freq_hz;
++	uint64_t min_sys_clk_freq_hz;
++	uint64_t max_sys_clk_freq_hz;
+ 	uint16_t min_pix_clk_div;
+ 	uint16_t max_pix_clk_div;
+-	uint32_t min_pix_clk_freq_hz;
+-	uint32_t max_pix_clk_freq_hz;
++	uint64_t min_pix_clk_freq_hz;
++	uint64_t max_pix_clk_freq_hz;
+ };
+ 
+ struct smiapp_pll_limits {
+@@ -94,8 +94,8 @@ struct smiapp_pll_limits {
+ 	uint32_t max_pll_ip_freq_hz;
+ 	uint16_t min_pll_multiplier;
+ 	uint16_t max_pll_multiplier;
+-	uint32_t min_pll_op_freq_hz;
+-	uint32_t max_pll_op_freq_hz;
++	uint64_t min_pll_op_freq_hz;
++	uint64_t max_pll_op_freq_hz;
+ 
+ 	struct smiapp_pll_branch_limits vt;
+ 	struct smiapp_pll_branch_limits op;
+-- 
+1.8.3.2
 
