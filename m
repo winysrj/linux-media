@@ -1,153 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:46574 "EHLO mail.ispras.ru"
+Received: from mail.kapsi.fi ([217.30.184.167]:56377 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751486AbaDYQOx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Apr 2014 12:14:53 -0400
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, ldv-project@linuxtesting.org
-Subject: [PATCH] [media] ivtv: avoid GFP_KERNEL in atomic context
-Date: Fri, 25 Apr 2014 18:14:37 +0200
-Message-Id: <1398442477-28876-1-git-send-email-khoroshilov@ispras.ru>
+	id S1751115AbaDOJcH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Apr 2014 05:32:07 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 06/10] si2168: add support for DVB-C (annex A version)
+Date: Tue, 15 Apr 2014 12:31:42 +0300
+Message-Id: <1397554306-14561-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1397554306-14561-1-git-send-email-crope@iki.fi>
+References: <1397554306-14561-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ivtv_yuv_init() is used in atomic context,
-so memory allocation should be done keeping that in mind.
+Add support for DVB-C (annex A version).
 
-Call graph for ivtv_yuv_init() is as follows:
-- ivtv_yuv_next_free()
-  - ivtv_yuv_prep_frame() [ioctl handler]
-  - ivtv_yuv_setup_stream_frame()
-    - ivtv_irq_dec_data_req() -> ivtv_irq_handler() [ATOMIC CONTEXT]
-    - ivtv_yuv_udma_stream_frame() [with mutex held]
-    - ivtv_write() [with mutex held]
-
-The patch adds gfp_t argument and implements its usage according to the context.
-
-Found by Linux Driver Verification project (linuxtesting.org).
-
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/pci/ivtv/ivtv-fileops.c |  2 +-
- drivers/media/pci/ivtv/ivtv-irq.c     |  2 +-
- drivers/media/pci/ivtv/ivtv-yuv.c     | 16 ++++++++--------
- drivers/media/pci/ivtv/ivtv-yuv.h     |  2 +-
- 4 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/media/dvb-frontends/si2168.c | 36 ++++++++++++++++++++++--------------
+ 1 file changed, 22 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/pci/ivtv/ivtv-fileops.c b/drivers/media/pci/ivtv/ivtv-fileops.c
-index 9caffd8aa995..2e8885c245e7 100644
---- a/drivers/media/pci/ivtv/ivtv-fileops.c
-+++ b/drivers/media/pci/ivtv/ivtv-fileops.c
-@@ -689,7 +689,7 @@ retry:
- 			int got_sig;
- 
- 			if (mode == OUT_YUV)
--				ivtv_yuv_setup_stream_frame(itv);
-+				ivtv_yuv_setup_stream_frame(itv, GFP_KERNEL);
- 
- 			mutex_unlock(&itv->serialize_lock);
- 			prepare_to_wait(&itv->dma_waitq, &wait, TASK_INTERRUPTIBLE);
-diff --git a/drivers/media/pci/ivtv/ivtv-irq.c b/drivers/media/pci/ivtv/ivtv-irq.c
-index 19a7c9b990a3..7a44f6b7aed4 100644
---- a/drivers/media/pci/ivtv/ivtv-irq.c
-+++ b/drivers/media/pci/ivtv/ivtv-irq.c
-@@ -822,7 +822,7 @@ static void ivtv_irq_dec_data_req(struct ivtv *itv)
- 	}
- 	else {
- 		if (test_bit(IVTV_F_I_DEC_YUV, &itv->i_flags))
--			ivtv_yuv_setup_stream_frame(itv);
-+			ivtv_yuv_setup_stream_frame(itv, GFP_ATOMIC);
- 		clear_bit(IVTV_F_S_NEEDS_DATA, &s->s_flags);
- 		ivtv_queue_move(s, &s->q_full, NULL, &s->q_predma, itv->dma_data_req_size);
- 		ivtv_dma_stream_dec_prepare(s, itv->dma_data_req_offset + IVTV_DECODER_OFFSET, 0);
-diff --git a/drivers/media/pci/ivtv/ivtv-yuv.c b/drivers/media/pci/ivtv/ivtv-yuv.c
-index 2ad65eb29832..9bf47b89f8a0 100644
---- a/drivers/media/pci/ivtv/ivtv-yuv.c
-+++ b/drivers/media/pci/ivtv/ivtv-yuv.c
-@@ -854,7 +854,7 @@ void ivtv_yuv_work_handler(struct ivtv *itv)
- 	yi->old_frame_info = f;
- }
- 
--static void ivtv_yuv_init(struct ivtv *itv)
-+static void ivtv_yuv_init(struct ivtv *itv, gfp_t gfp)
- {
- 	struct yuv_playback_info *yi = &itv->yuv_info;
- 
-@@ -936,7 +936,7 @@ static void ivtv_yuv_init(struct ivtv *itv)
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 4f3efbe..7aaac81 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -84,6 +84,12 @@ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 		cmd.wlen = 2;
+ 		cmd.rlen = 13;
+ 		break;
++	case SYS_DVBC_ANNEX_A:
++		cmd.args[0] = 0x90;
++		cmd.args[1] = 0x01;
++		cmd.wlen = 2;
++		cmd.rlen = 9;
++		break;
+ 	case SYS_DVBT2:
+ 		cmd.args[0] = 0x50;
+ 		cmd.args[1] = 0x01;
+@@ -157,6 +163,9 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+ 	case SYS_DVBT:
+ 		delivery_system = 0x20;
+ 		break;
++	case SYS_DVBC_ANNEX_A:
++		delivery_system = 0x30;
++		break;
+ 	case SYS_DVBT2:
+ 		delivery_system = 0x70;
+ 		break;
+@@ -165,23 +174,20 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+ 		goto err;
  	}
  
- 	/* We need a buffer for blanking when Y plane is offset - non-fatal if we can't get one */
--	yi->blanking_ptr = kzalloc(720 * 16, GFP_KERNEL|__GFP_NOWARN);
-+	yi->blanking_ptr = kzalloc(720 * 16, gfp|__GFP_NOWARN);
- 	if (yi->blanking_ptr) {
- 		yi->blanking_dmaptr = pci_map_single(itv->pdev, yi->blanking_ptr, 720*16, PCI_DMA_TODEVICE);
- 	} else {
-@@ -952,13 +952,13 @@ static void ivtv_yuv_init(struct ivtv *itv)
+-	switch (c->bandwidth_hz) {
+-	case 5000000:
++	if (c->bandwidth_hz <= 5000000)
+ 		bandwidth = 0x05;
+-		break;
+-	case 6000000:
++	else if (c->bandwidth_hz <= 6000000)
+ 		bandwidth = 0x06;
+-		break;
+-	case 7000000:
++	else if (c->bandwidth_hz <= 7000000)
+ 		bandwidth = 0x07;
+-		break;
+-	case 8000000:
++	else if (c->bandwidth_hz <= 8000000)
+ 		bandwidth = 0x08;
+-		break;
+-	default:
+-		ret = -EINVAL;
+-		goto err;
+-	}
++	else if (c->bandwidth_hz <= 9000000)
++		bandwidth = 0x09;
++	else if (c->bandwidth_hz <= 10000000)
++		bandwidth = 0x0a;
++	else
++		bandwidth = 0x0f;
+ 
+ 	/* program tuner */
+ 	if (fe->ops.tuner_ops.set_params) {
+@@ -200,6 +206,8 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+ 	/* that has no big effect */
+ 	if (c->delivery_system == SYS_DVBT)
+ 		memcpy(cmd.args, "\x89\x21\x06\x11\xff\x98", 6);
++	else if (c->delivery_system == SYS_DVBC_ANNEX_A)
++		memcpy(cmd.args, "\x89\x21\x06\x11\x89\xf0", 6);
+ 	else if (c->delivery_system == SYS_DVBT2)
+ 		memcpy(cmd.args, "\x89\x21\x06\x11\x89\x20", 6);
+ 	cmd.wlen = 6;
+@@ -614,7 +622,7 @@ static int si2168_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
  }
  
- /* Get next available yuv buffer on PVR350 */
--static void ivtv_yuv_next_free(struct ivtv *itv)
-+static void ivtv_yuv_next_free(struct ivtv *itv, gfp_t gfp)
- {
- 	int draw, display;
- 	struct yuv_playback_info *yi = &itv->yuv_info;
- 
- 	if (atomic_read(&yi->next_dma_frame) == -1)
--		ivtv_yuv_init(itv);
-+		ivtv_yuv_init(itv, gfp);
- 
- 	draw = atomic_read(&yi->next_fill_frame);
- 	display = atomic_read(&yi->next_dma_frame);
-@@ -1119,12 +1119,12 @@ static int ivtv_yuv_udma_frame(struct ivtv *itv, struct ivtv_dma_frame *args)
- }
- 
- /* Setup frame according to V4L2 parameters */
--void ivtv_yuv_setup_stream_frame(struct ivtv *itv)
-+void ivtv_yuv_setup_stream_frame(struct ivtv *itv, gfp_t gfp)
- {
- 	struct yuv_playback_info *yi = &itv->yuv_info;
- 	struct ivtv_dma_frame dma_args;
- 
--	ivtv_yuv_next_free(itv);
-+	ivtv_yuv_next_free(itv, gfp);
- 
- 	/* Copy V4L2 parameters to an ivtv_dma_frame struct... */
- 	dma_args.y_source = NULL;
-@@ -1151,7 +1151,7 @@ int ivtv_yuv_udma_stream_frame(struct ivtv *itv, void __user *src)
- 	struct ivtv_dma_frame dma_args;
- 	int res;
- 
--	ivtv_yuv_setup_stream_frame(itv);
-+	ivtv_yuv_setup_stream_frame(itv, GFP_KERNEL);
- 
- 	/* We only need to supply source addresses for this */
- 	dma_args.y_source = src;
-@@ -1171,7 +1171,7 @@ int ivtv_yuv_prep_frame(struct ivtv *itv, struct ivtv_dma_frame *args)
- 	int res;
- 
- /*	IVTV_DEBUG_INFO("yuv_prep_frame\n"); */
--	ivtv_yuv_next_free(itv);
-+	ivtv_yuv_next_free(itv, GFP_KERNEL);
- 	ivtv_yuv_setup_frame(itv, args);
- 	/* Wait for frame DMA. Note that serialize_lock is locked,
- 	   so to allow other processes to access the driver while
-diff --git a/drivers/media/pci/ivtv/ivtv-yuv.h b/drivers/media/pci/ivtv/ivtv-yuv.h
-index ca5173fbf006..06753cfe64f3 100644
---- a/drivers/media/pci/ivtv/ivtv-yuv.h
-+++ b/drivers/media/pci/ivtv/ivtv-yuv.h
-@@ -34,7 +34,7 @@
- extern const u32 yuv_offset[IVTV_YUV_BUFFERS];
- 
- int ivtv_yuv_filter_check(struct ivtv *itv);
--void ivtv_yuv_setup_stream_frame(struct ivtv *itv);
-+void ivtv_yuv_setup_stream_frame(struct ivtv *itv, gfp_t gfp);
- int ivtv_yuv_udma_stream_frame(struct ivtv *itv, void __user *src);
- void ivtv_yuv_frame_complete(struct ivtv *itv);
- int ivtv_yuv_prep_frame(struct ivtv *itv, struct ivtv_dma_frame *args);
+ static const struct dvb_frontend_ops si2168_ops = {
+-	.delsys = {SYS_DVBT, SYS_DVBT2},
++	.delsys = {SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A},
+ 	.info = {
+ 		.name = "Silicon Labs Si2168",
+ 		.caps =	FE_CAN_FEC_1_2 |
 -- 
-1.8.3.2
+1.9.0
 
