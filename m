@@ -1,58 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:20852 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755817AbaDNQsp (ORCPT
+Received: from mail-ob0-f173.google.com ([209.85.214.173]:52190 "EHLO
+	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750829AbaDOVpe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 12:48:45 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N4100FWI5CXZT90@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 14 Apr 2014 17:48:33 +0100 (BST)
-Received: from [106.116.147.32] by eusync1.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0N4100JQS5D6SG00@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 14 Apr 2014 17:48:42 +0100 (BST)
-Message-id: <534C1169.3020903@samsung.com>
-Date: Mon, 14 Apr 2014 18:48:41 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL] Fixes for v3.15
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Tue, 15 Apr 2014 17:45:34 -0400
+Received: by mail-ob0-f173.google.com with SMTP id wn1so3943753obc.4
+        for <linux-media@vger.kernel.org>; Tue, 15 Apr 2014 14:45:34 -0700 (PDT)
+Date: Tue, 15 Apr 2014 16:45:28 -0500 (CDT)
+From: Thomas Pugliese <thomas.pugliese@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Thomas Pugliese <thomas.pugliese@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] uvc: update uvc_endpoint_max_bpi to handle USB_SPEED_WIRELESS
+ devices
+In-Reply-To: <1483439.ESi3RcYlPK@avalon>
+Message-ID: <alpine.DEB.2.10.1404151553310.8128@mint32-virtualbox>
+References: <1390598248-343-1-git-send-email-thomas.pugliese@gmail.com> <14957224.mkfABmkaAb@avalon> <alpine.DEB.2.10.1404142054390.22542@bitbucket> <1483439.ESi3RcYlPK@avalon>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-This includes a compilation error fix for s5c73m3 driver related to
-recently merged patch series moving the v4l2-of code and a memory
-allocation bug fix for the Exynos FIMC driver.
 
-The following changes since commit c9eaa447e77efe77b7fa4c953bd62de8297fd6c5:
+On Tue, 15 Apr 2014, Laurent Pinchart wrote:
 
-  Linux 3.15-rc1 (2014-04-13 14:18:35 -0700)
+> Hi Thomas,
+> 
+> 
+> Could you please send me a proper revert patch with the above description in 
+> the commit message and CC Mauro Carvalho Chehab <m.chehab@samsung.com> ?
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
 
-are available in the git repository at:
+Hi Laurent, 
+I can submit a patch to revert but I should make a correction first.  I 
+had backported this change to an earlier kernel (2.6.39) which was before 
+super speed support was added and the regression I described was based on 
+that kernel.  It was actually the addition of super speed support that 
+broke windows compatible devices.  My previous change fixed spec compliant 
+devices but left windows compatible devices broken.
 
-  ssh://linuxtv.org/git/snawrocki/samsung.git v3.15-fixes
+Basically, the timeline of changes is this:
 
-for you to fetch changes up to 45621f3b45650e98c704d598a4004355bc2cffb4:
+1.  Prior to the addition of super speed support (commit 
+6fd90db8df379e215): all WUSB devices were treated as HIGH_SPEED devices.  
+This is how Windows works so Windows compatible devices would work.  For 
+spec compliant WUSB devices, the max packet size would be incorrectly 
+calculated which would result in high-bandwidth isoc streams being unable 
+to find an alt setting that provided enough bandwidth.
 
-  s5p-fimc: Fix YUV422P depth (2014-04-14 17:06:11 +0200)
+2.  After super speed support: all WUSB devices fell through to the 
+default case of uvc_endpoint_max_bpi which would mask off the upper bits 
+of the max packet size.  This broke both WUSB spec compliant and non 
+compliant devices because no endpoint with a large enough bpi would be 
+found.
 
-----------------------------------------------------------------
-Nicolas Dufresne (1):
-      s5p-fimc: Fix YUV422P depth
+3.  After 79af67e77f86404e77e: Spec compliant devices are fixed but 
+non-spec compliant (although Windows compatible) devices are broken.  
+Basically, this is the opposite of how it worked prior to super speed 
+support.
 
-Sylwester Nawrocki (1):
-      s5c73m3: Add missing rename of v4l2_of_get_next_endpoint() function
+Given that, I can submit a patch to revert 79af67e77f86404e77e but that 
+would go back to having all WUSB devices broken.  Alternatively, the 
+change below will revert the behavior back to scenario 1 where Windows 
+compatible devices work but strictly spec complaint devices may not.
 
- drivers/media/i2c/s5c73m3/s5c73m3-core.c      |    2 +-
- drivers/media/platform/exynos4-is/fimc-core.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+I can send a proper patch for whichever scenario you prefer.
 
---
-Regards,
-Sylwester
+Thomas
+
+
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 8d52baf..ed594d6 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1451,11 +1451,9 @@ static unsigned int uvc_endpoint_max_bpi(struct usb_device *dev,
+ 	case USB_SPEED_SUPER:
+ 		return ep->ss_ep_comp.wBytesPerInterval;
+ 	case USB_SPEED_HIGH:
+-		psize = usb_endpoint_maxp(&ep->desc);
+-		return (psize & 0x07ff) * (1 + ((psize >> 11) & 3));
+ 	case USB_SPEED_WIRELESS:
+ 		psize = usb_endpoint_maxp(&ep->desc);
+-		return psize;
++		return (psize & 0x07ff) * (1 + ((psize >> 11) & 3));
+ 	default:
+ 		psize = usb_endpoint_maxp(&ep->desc);
+ 		return psize & 0x07ff;
+
+
