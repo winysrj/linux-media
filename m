@@ -1,176 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:40319 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754019AbaDCXdj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Apr 2014 19:33:39 -0400
-Subject: [PATCH 28/49] rc-core: add an ioctl for setting IR TX settings
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:39714 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750913AbaDOUdY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Apr 2014 16:33:24 -0400
+Received: by mail-ee0-f51.google.com with SMTP id c13so8203376eek.10
+        for <linux-media@vger.kernel.org>; Tue, 15 Apr 2014 13:33:22 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Date: Fri, 04 Apr 2014 01:33:37 +0200
-Message-ID: <20140403233337.27099.52201.stgit@zeus.muc.hardeman.nu>
-In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
-References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH] libdvbv5: improve CRC size handling
+Date: Tue, 15 Apr 2014 22:33:01 +0200
+Message-Id: <1397593981-18337-1-git-send-email-neolynx@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds a complementary ioctl to allow IR TX settings to be
-changed.
+- provide buffer without CRC to the table parsers
+- remove unneeded defines
 
-Much like the RCIOCSIRRX functionality, userspace is expected to call
-RCIOCGIRTX, change values and then call RCIOCSIRTX and finally inspect
-the struct rc_ir_tx to see the results.
-
-Also, LIRC is changed to use the new functionality as an alternative to the
-old one and another bunch of operations in struct rc_dev are now deprecated.
-
-Signed-off-by: David Härdeman <david@hardeman.nu>
+Signed-off-by: André Roth <neolynx@gmail.com>
 ---
- drivers/media/rc/ir-lirc-codec.c |   42 +++++++++++++++++++++++++++++---------
- drivers/media/rc/rc-main.c       |   13 ++++++++++++
- include/media/rc-core.h          |   13 ++++++++----
- 3 files changed, 54 insertions(+), 14 deletions(-)
+ lib/include/libdvbv5/descriptors.h | 3 +--
+ lib/libdvbv5/dvb-scan.c            | 2 +-
+ lib/libdvbv5/tables/atsc_eit.c     | 2 +-
+ lib/libdvbv5/tables/cat.c          | 4 ++--
+ lib/libdvbv5/tables/eit.c          | 2 +-
+ lib/libdvbv5/tables/mgt.c          | 2 +-
+ lib/libdvbv5/tables/nit.c          | 2 +-
+ lib/libdvbv5/tables/pat.c          | 2 +-
+ lib/libdvbv5/tables/pmt.c          | 4 ++--
+ lib/libdvbv5/tables/sdt.c          | 4 ++--
+ lib/libdvbv5/tables/vct.c          | 2 +-
+ 11 files changed, 14 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 6e31c83..7b56f21 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -189,6 +189,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 	int ret = 0;
- 	__u32 val = 0, tmp;
- 	struct rc_ir_rx rx;
-+	struct rc_ir_tx tx;
+diff --git a/lib/include/libdvbv5/descriptors.h b/lib/include/libdvbv5/descriptors.h
+index 66197f6..94d85a9 100644
+--- a/lib/include/libdvbv5/descriptors.h
++++ b/lib/include/libdvbv5/descriptors.h
+@@ -31,8 +31,7 @@
+ #include <stdint.h>
  
- 	lirc = lirc_get_pdata(filep);
- 	if (!lirc)
-@@ -218,25 +219,46 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ #define DVB_MAX_PAYLOAD_PACKET_SIZE 4096
+-#define DVB_PID_SDT      17
+-#define DVB_PMT_TABLE_ID 2
++#define DVB_CRC_SIZE 4
  
- 	/* TX settings */
- 	case LIRC_SET_TRANSMITTER_MASK:
--		if (!dev->s_tx_mask)
--			return -ENOSYS;
-+		if (dev->s_tx_mask)
-+			return dev->s_tx_mask(dev, val);
+ struct dvb_v5_fe_parms;
  
--		return dev->s_tx_mask(dev, val);
-+		if (dev->get_ir_tx && dev->set_ir_tx) {
-+			memset(&tx, 0, sizeof(tx));
-+			dev->get_ir_tx(dev, &tx);
-+			tx.tx_enabled = val;
-+			return dev->set_ir_tx(dev, &tx);
-+		}
-+
-+		return -ENOSYS;
+diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
+index 5cd38f8..b16f4c4 100644
+--- a/lib/libdvbv5/dvb-scan.c
++++ b/lib/libdvbv5/dvb-scan.c
+@@ -222,7 +222,7 @@ static int dvb_parse_section(struct dvb_v5_fe_parms *parms,
+ 		set_bit(h->section_id, priv->is_read_bits);
  
- 	case LIRC_SET_SEND_CARRIER:
--		if (!dev->s_tx_carrier)
--			return -ENOSYS;
-+		if (dev->s_tx_carrier)
-+			return dev->s_tx_carrier(dev, val);
+ 	if (dvb_table_initializers[tid])
+-		dvb_table_initializers[tid](parms, buf, buf_length,
++		dvb_table_initializers[tid](parms, buf, buf_length - DVB_CRC_SIZE,
+ 						 sect->table);
+ 	else
+ 		dvb_logerr("%s: no initializer for table %d",
+diff --git a/lib/libdvbv5/tables/atsc_eit.c b/lib/libdvbv5/tables/atsc_eit.c
+index 83a495c..cf69fff 100644
+--- a/lib/libdvbv5/tables/atsc_eit.c
++++ b/lib/libdvbv5/tables/atsc_eit.c
+@@ -25,7 +25,7 @@
+ ssize_t atsc_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		ssize_t buflen, struct atsc_table_eit **table)
+ {
+-	const uint8_t *p = buf, *endbuf = buf + buflen - 4; /* minus CRC */;
++	const uint8_t *p = buf, *endbuf = buf + buflen;
+ 	struct atsc_table_eit *eit;
+ 	struct atsc_table_eit_event **head;
+ 	size_t size;
+diff --git a/lib/libdvbv5/tables/cat.c b/lib/libdvbv5/tables/cat.c
+index 394eb3c..f5887b2 100644
+--- a/lib/libdvbv5/tables/cat.c
++++ b/lib/libdvbv5/tables/cat.c
+@@ -25,7 +25,7 @@
+ ssize_t dvb_table_cat_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		ssize_t buflen, struct dvb_table_cat **table)
+ {
+-	const uint8_t *p = buf, *endbuf = buf + buflen - 4;
++	const uint8_t *p = buf, *endbuf = buf + buflen;
+ 	struct dvb_table_cat *cat;
+ 	struct dvb_desc **head_desc;
+ 	size_t size;
+@@ -59,7 +59,7 @@ ssize_t dvb_table_cat_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	while (*head_desc != NULL)
+ 		head_desc = &(*head_desc)->next;
  
--		return dev->s_tx_carrier(dev, val);
-+		if (dev->get_ir_tx && dev->set_ir_tx) {
-+			memset(&tx, 0, sizeof(tx));
-+			dev->get_ir_tx(dev, &tx);
-+			tx.freq = val;
-+			return dev->set_ir_tx(dev, &tx);
-+		}
+-	size = cat->header.section_length + 3 - 4; /* plus header, minus CRC */
++	size = cat->header.section_length + 3 - DVB_CRC_SIZE; /* plus header, minus CRC */
+ 	if (buf + size > endbuf) {
+ 		dvb_logerr("%s: short read %zd/%zd bytes", __func__,
+ 			   endbuf - buf, size);
+diff --git a/lib/libdvbv5/tables/eit.c b/lib/libdvbv5/tables/eit.c
+index 1870722..ff68536 100644
+--- a/lib/libdvbv5/tables/eit.c
++++ b/lib/libdvbv5/tables/eit.c
+@@ -25,7 +25,7 @@
+ ssize_t dvb_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		ssize_t buflen, struct dvb_table_eit **table)
+ {
+-	const uint8_t *p = buf, *endbuf = buf + buflen - 4; /* minus CRC */
++	const uint8_t *p = buf, *endbuf = buf + buflen;
+ 	struct dvb_table_eit *eit;
+ 	struct dvb_table_eit_event **head;
+ 	size_t size;
+diff --git a/lib/libdvbv5/tables/mgt.c b/lib/libdvbv5/tables/mgt.c
+index bf77348..ffdea53 100644
+--- a/lib/libdvbv5/tables/mgt.c
++++ b/lib/libdvbv5/tables/mgt.c
+@@ -25,7 +25,7 @@
+ ssize_t atsc_table_mgt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		ssize_t buflen, struct atsc_table_mgt **table)
+ {
+-	const uint8_t *p = buf, *endbuf = buf + buflen - 4; /* minus CRC */
++	const uint8_t *p = buf, *endbuf = buf + buflen;
+ 	struct atsc_table_mgt *mgt;
+ 	struct atsc_table_mgt_table **head;
+ 	struct dvb_desc **head_desc;
+diff --git a/lib/libdvbv5/tables/nit.c b/lib/libdvbv5/tables/nit.c
+index 054b36b..243506d 100644
+--- a/lib/libdvbv5/tables/nit.c
++++ b/lib/libdvbv5/tables/nit.c
+@@ -25,7 +25,7 @@
+ ssize_t dvb_table_nit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 			ssize_t buflen, struct dvb_table_nit **table)
+ {
+-	const uint8_t *p = buf, *endbuf = buf + buflen - 4;
++	const uint8_t *p = buf, *endbuf = buf + buflen;
+ 	struct dvb_table_nit *nit;
+ 	struct dvb_table_nit_transport **head;
+ 	struct dvb_desc **head_desc;
+diff --git a/lib/libdvbv5/tables/pat.c b/lib/libdvbv5/tables/pat.c
+index 544bac4..29dbfff 100644
+--- a/lib/libdvbv5/tables/pat.c
++++ b/lib/libdvbv5/tables/pat.c
+@@ -26,7 +26,7 @@
+ ssize_t dvb_table_pat_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 			ssize_t buflen, struct dvb_table_pat **table)
+ {
+-	const uint8_t *p = buf, *endbuf = buf + buflen - 4;
++	const uint8_t *p = buf, *endbuf = buf + buflen;
+ 	struct dvb_table_pat *pat;
+ 	struct dvb_table_pat_program **head;
+ 	size_t size;
+diff --git a/lib/libdvbv5/tables/pmt.c b/lib/libdvbv5/tables/pmt.c
+index b81dad7..305d9e8 100644
+--- a/lib/libdvbv5/tables/pmt.c
++++ b/lib/libdvbv5/tables/pmt.c
+@@ -28,7 +28,7 @@
+ ssize_t dvb_table_pmt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 			ssize_t buflen, struct dvb_table_pmt **table)
+ {
+-	const uint8_t *p = buf, *endbuf = buf + buflen - 4;
++	const uint8_t *p = buf, *endbuf = buf + buflen;
+ 	struct dvb_table_pmt *pmt;
+ 	struct dvb_table_pmt_stream **head;
+ 	struct dvb_desc **head_desc;
+@@ -68,7 +68,7 @@ ssize_t dvb_table_pmt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	while (*head_desc != NULL)
+ 		head_desc = &(*head_desc)->next;
  
--	case LIRC_SET_SEND_DUTY_CYCLE:
--		if (!dev->s_tx_duty_cycle)
--			return -ENOSYS;
-+		return -ENOSYS;
+-	size = pmt->header.section_length + 3 - 4; /* plus header, minus CRC */
++	size = pmt->header.section_length + 3 - DVB_CRC_SIZE; /* plus header, minus CRC */
+ 	if (buf + size > endbuf) {
+ 		dvb_logerr("%s: short read %zd/%zd bytes", __func__,
+ 			   endbuf - buf, size);
+diff --git a/lib/libdvbv5/tables/sdt.c b/lib/libdvbv5/tables/sdt.c
+index a64726f..4285a9a 100644
+--- a/lib/libdvbv5/tables/sdt.c
++++ b/lib/libdvbv5/tables/sdt.c
+@@ -26,7 +26,7 @@
+ ssize_t dvb_table_sdt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 			ssize_t buflen, struct dvb_table_sdt **table)
+ {
+-	const uint8_t *p = buf, *endbuf = buf + buflen - 4;
++	const uint8_t *p = buf, *endbuf = buf + buflen;
+ 	struct dvb_table_sdt *sdt;
+ 	struct dvb_table_sdt_service **head;
+ 	size_t size;
+@@ -61,7 +61,7 @@ ssize_t dvb_table_sdt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	while (*head != NULL)
+ 		head = &(*head)->next;
  
-+	case LIRC_SET_SEND_DUTY_CYCLE:
- 		if (val <= 0 || val >= 100)
- 			return -EINVAL;
- 
--		return dev->s_tx_duty_cycle(dev, val);
-+		if (dev->s_tx_duty_cycle)
-+			return dev->s_tx_duty_cycle(dev, val);
-+
-+		if (dev->get_ir_tx && dev->set_ir_tx) {
-+			memset(&tx, 0, sizeof(tx));
-+			dev->get_ir_tx(dev, &tx);
-+			tx.duty = val;
-+			return dev->set_ir_tx(dev, &tx);
-+		}
-+
-+		return -ENOSYS;
- 
- 	/* RX settings */
- 	case LIRC_SET_REC_CARRIER:
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 611d24d..cc2f713 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1714,6 +1714,19 @@ static long rc_do_ioctl(struct rc_dev *dev, unsigned int cmd, unsigned long arg)
- 
- 		return 0;
- 
-+	case RCIOCSIRTX:
-+		if (!dev->set_ir_tx)
-+			return -ENOSYS;
-+
-+		if (copy_from_user(&tx, p, sizeof(tx)))
-+			return -EFAULT;
-+
-+		error = dev->set_ir_tx(dev, &tx);
-+		if (error)
-+			return error;
-+
-+		/* Fall through */
-+
- 	case RCIOCGIRTX:
- 		memset(&tx, 0, sizeof(tx));
- 
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 566ae7d..eacb735 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -116,8 +116,11 @@ struct rc_ir_rx {
- /* get ir tx parameters */
- #define RCIOCGIRTX	_IOC(_IOC_READ, RC_IOC_MAGIC, 0x05, sizeof(struct rc_ir_tx))
- 
-+/* set ir tx parameters */
-+#define RCIOCSIRTX	_IOC(_IOC_WRITE, RC_IOC_MAGIC, 0x05, sizeof(struct rc_ir_tx))
-+
- /**
-- * struct rc_ir_tx - used to get all IR TX parameters in one go
-+ * struct rc_ir_tx - used to get/set all IR TX parameters in one go
-  * @flags: device specific flags
-  * @tx_supported: bitmask of supported transmitters
-  * @tx_enabled: bitmask of enabled transmitters
-@@ -293,9 +296,9 @@ enum rc_filter_type {
-  *	is opened.
-  * @close: callback to allow drivers to disable polling/irq when IR input device
-  *	is opened.
-- * @s_tx_mask: set transmitter mask (for devices with multiple tx outputs)
-- * @s_tx_carrier: set transmit carrier frequency
-- * @s_tx_duty_cycle: set transmit duty cycle (0% - 100%)
-+ * @s_tx_mask: set transmitter mask (for devices with multiple tx outputs, deprecated)
-+ * @s_tx_carrier: set transmit carrier frequency (deprecated)
-+ * @s_tx_duty_cycle: set transmit duty cycle (0% - 100%, deprecated)
-  * @s_rx_carrier: inform driver about expected carrier (deprecated)
-  * @tx_ir: transmit IR
-  * @s_idle: enable/disable hardware idle mode, upon which,
-@@ -307,6 +310,7 @@ enum rc_filter_type {
-  * @get_ir_rx: allow driver to provide rx settings
-  * @set_ir_rx: allow driver to change rx settings
-  * @get_ir_tx: allow driver to provide tx settings
-+ * @set_ir_tx: allow driver to change tx settings
-  */
- struct rc_dev {
- 	struct device			dev;
-@@ -371,6 +375,7 @@ struct rc_dev {
- 	void				(*get_ir_rx)(struct rc_dev *dev, struct rc_ir_rx *rx);
- 	int				(*set_ir_rx)(struct rc_dev *dev, struct rc_ir_rx *rx);
- 	void				(*get_ir_tx)(struct rc_dev *dev, struct rc_ir_tx *tx);
-+	int				(*set_ir_tx)(struct rc_dev *dev, struct rc_ir_tx *tx);
- };
- 
- #define to_rc_dev(d) container_of(d, struct rc_dev, dev)
+-	size = sdt->header.section_length + 3 - 4; /* plus header, minus CRC */
++	size = sdt->header.section_length + 3 - DVB_CRC_SIZE; /* plus header, minus CRC */
+ 	if (buf + size > endbuf) {
+ 		dvb_logerr("%s: short read %zd/%zd bytes", __func__,
+ 			   endbuf - buf, size);
+diff --git a/lib/libdvbv5/tables/vct.c b/lib/libdvbv5/tables/vct.c
+index 970023d..e6bc1a2 100644
+--- a/lib/libdvbv5/tables/vct.c
++++ b/lib/libdvbv5/tables/vct.c
+@@ -27,7 +27,7 @@
+ ssize_t atsc_table_vct_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 			ssize_t buflen, struct atsc_table_vct **table)
+ {
+-	const uint8_t *p = buf, *endbuf = buf + buflen - 4;
++	const uint8_t *p = buf, *endbuf = buf + buflen;
+ 	struct atsc_table_vct *vct;
+ 	struct atsc_table_vct_channel **head;
+ 	size_t size;
+-- 
+1.9.1
 
