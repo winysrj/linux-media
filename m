@@ -1,47 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38906 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751666AbaDQON1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 10:13:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:32879 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751069AbaDOJcH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Apr 2014 05:32:07 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v4 13/49] media: bfin_capture: Switch to pad-level DV operations
-Date: Thu, 17 Apr 2014 16:12:44 +0200
-Message-Id: <1397744000-23967-14-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 05/10] si2157: extend frequency range for DVB-C
+Date: Tue, 15 Apr 2014 12:31:41 +0300
+Message-Id: <1397554306-14561-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1397554306-14561-1-git-send-email-crope@iki.fi>
+References: <1397554306-14561-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video-level enum_dv_timings and dv_timings_cap operations are
-deprecated in favor of the pad-level versions. All subdev drivers
-implement the pad-level versions, switch to them.
+DVB-C uses lower frequencies than DVB-T. Extend frequency range down to
+110 MHz in order to support DVB-C. 110 - 862 MHz range is defined by
+NorDig Unified 2.2 specification.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/blackfin/bfin_capture.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/media/tuners/si2157.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 200bec9..22fb701 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -648,7 +648,9 @@ static int bcap_enum_dv_timings(struct file *file, void *priv,
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
- 
--	return v4l2_subdev_call(bcap_dev->sd, video,
-+	timings->pad = 0;
-+
-+	return v4l2_subdev_call(bcap_dev->sd, pad,
- 			enum_dv_timings, timings);
- }
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index 953f2e3..5675448 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -155,7 +155,7 @@ err:
+ static const struct dvb_tuner_ops si2157_tuner_ops = {
+ 	.info = {
+ 		.name           = "Silicon Labs Si2157",
+-		.frequency_min  = 174000000,
++		.frequency_min  = 110000000,
+ 		.frequency_max  = 862000000,
+ 	},
  
 -- 
-1.8.3.2
+1.9.0
 
