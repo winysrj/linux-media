@@ -1,53 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay.ekb-info.ru ([217.24.190.220]:43470 "EHLO
-	relay.ekb-info.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752243AbaDUNTs (ORCPT
+Received: from mail-we0-f172.google.com ([74.125.82.172]:50484 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753367AbaDOJmZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Apr 2014 09:19:48 -0400
-Date: Mon, 21 Apr 2014 19:11:14 +0600
-From: Andrey Volkov <volkov.am@ekb-info.ru>
-To: linux-media@vger.kernel.org
-Cc: volkov.am@ekb-info.ru
-Subject: [Bugreport] v4l-utils/libv4lconvert/ov511-decomp does not shutdown
- on SIGTERM
-Message-ID: <20140421191114.391d005d@axid.nolty.ru>
+	Tue, 15 Apr 2014 05:42:25 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1397554040-4037-5-git-send-email-t.stanislaws@samsung.com>
+References: <1397554040-4037-1-git-send-email-t.stanislaws@samsung.com>
+	<1397554040-4037-5-git-send-email-t.stanislaws@samsung.com>
+Date: Tue, 15 Apr 2014 15:12:24 +0530
+Message-ID: <CAPdUM4NysWMpy3PZhJdKXFa96Oy4kG4dKkDdrabbAmM3+f5kag@mail.gmail.com>
+Subject: Re: [PATCHv2 4/4] drm: exynos: hdmi: add support for pixel clock limitation
+From: Rahul Sharma <r.sh.open@gmail.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>, b.zolnierkie@samsung.com,
+	"sw0312.kim" <sw0312.kim@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Rahul Sharma <rahul.sharma@samsung.com>, m.chehab@samsung.com,
+	sunil joshi <joshi@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guys,
+Hi Tomasz,
 
-I use motion for my old web camera (v4l1) with
-export LD_PRELOAD=/usr/lib/i386-linux-gnu/libv4l/v4l2convert.so
+On 15 April 2014 14:57, Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
+> Adds support for limitation of maximal pixel clock of HDMI
+> signal. This feature is needed on boards that contains
+> lines or bridges with frequency limitations.
+>
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> ---
+>  .../devicetree/bindings/video/exynos_hdmi.txt      |    4 ++++
+>  drivers/gpu/drm/exynos/exynos_hdmi.c               |   12 ++++++++++++
+>  include/media/s5p_hdmi.h                           |    1 +
+>  3 files changed, 17 insertions(+)
+>
+> diff --git a/Documentation/devicetree/bindings/video/exynos_hdmi.txt b/Documentation/devicetree/bindings/video/exynos_hdmi.txt
+> index f9187a2..8718f8d 100644
+> --- a/Documentation/devicetree/bindings/video/exynos_hdmi.txt
+> +++ b/Documentation/devicetree/bindings/video/exynos_hdmi.txt
+> @@ -28,6 +28,10 @@ Required properties:
+>  - ddc: phandle to the hdmi ddc node
+>  - phy: phandle to the hdmi phy node
+>
+> +Optional properties:
+> +- max-pixel-clock: used to limit the maximal pixel clock if a board has lines,
+> +       connectors or bridges not capable of carring higher frequencies
+> +
+>  Example:
+>
+>         hdmi {
+> diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
+> index 2a18f4e..404f1b7 100644
+> --- a/drivers/gpu/drm/exynos/exynos_hdmi.c
+> +++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
+> @@ -195,6 +195,7 @@ struct hdmi_context {
+>         struct hdmi_resources           res;
+>
+>         int                             hpd_gpio;
+> +       u32                             max_pixel_clock;
+>
+>         enum hdmi_type                  type;
+>  };
+> @@ -887,6 +888,9 @@ static int hdmi_mode_valid(struct drm_connector *connector,
+>         if (ret)
+>                 return MODE_BAD;
+>
+> +       if (mode->clock * 1000 > hdata->max_pixel_clock)
+> +               return MODE_BAD;
+> +
+>         ret = hdmi_find_phy_conf(hdata, mode->clock * 1000);
+>         if (ret < 0)
+>                 return MODE_BAD;
+> @@ -2031,6 +2035,8 @@ static struct s5p_hdmi_platform_data *drm_hdmi_dt_parse_pdata
+>                 return NULL;
+>         }
+>
+> +       of_property_read_u32(np, "max-pixel-clock", &pd->max_pixel_clock);
+> +
+>         return pd;
+>  }
+>
+> @@ -2067,6 +2073,11 @@ static int hdmi_probe(struct platform_device *pdev)
+>         if (!pdata)
+>                 return -EINVAL;
+>
+> +       if (!pdata->max_pixel_clock) {
+> +               DRM_INFO("max-pixel-clock is zero, using INF\n");
+> +               pdata->max_pixel_clock = U32_MAX;
+> +       }
+> +
+>         hdata = devm_kzalloc(dev, sizeof(struct hdmi_context), GFP_KERNEL);
+>         if (!hdata)
+>                 return -ENOMEM;
+> @@ -2083,6 +2094,7 @@ static int hdmi_probe(struct platform_device *pdev)
+>         hdata->type = drv_data->type;
+>
+>         hdata->hpd_gpio = pdata->hpd_gpio;
+> +       hdata->max_pixel_clock = pdata->max_pixel_clock;
+>         hdata->dev = dev;
+>
+>         ret = hdmi_resources_init(hdata);
+> diff --git a/include/media/s5p_hdmi.h b/include/media/s5p_hdmi.h
+> index 181642b..7272d65 100644
+> --- a/include/media/s5p_hdmi.h
+> +++ b/include/media/s5p_hdmi.h
+> @@ -31,6 +31,7 @@ struct s5p_hdmi_platform_data {
+>         int mhl_bus;
+>         struct i2c_board_info *mhl_info;
+>         int hpd_gpio;
+> +       u32 max_pixel_clock;
+>  };
 
-v4l2convert.so run decompress helper ov511-decomp.
+We have already removed Non DT support from the drm hdmi
+driver. IMO we should not be extending the pdata struct.
 
-Processes look like:
-/usr/bin/motion
-\_ /usr/lib/i386-linux-gnu/libv4lconvert0/ov511-decomp
+Regards,
+Rahul Sharma
 
-(motion - http://www.lavrsen.dk/foswiki/bin/view/Motion/WebHome)
-Everything works fine, but when I stop motion daemon I have to wait for a minute.
-
-strace prints that ov511-decomp got SIGTERM, wait for the minute and then got SIGKILL.
-
-When I do "killall -TERM ov511-decomp" ov511-decomp ignores it and continue to decomress.
-"killall -INT ov511-decomp" ov511-decomp shut down as expected.
-
-As a workaround I made this patch to lib/libv4lconvert/helper.c
-
---- v4l-utils-1.0.1.orig/lib/libv4lconvert/helper.c
-+++ v4l-utils-1.0.1/lib/libv4lconvert/helper.c
-@@ -212,7 +212,7 @@ void v4lconvert_helper_cleanup(struct v4
-void v4lconvert_helper_cleanup(struct v4lconvert_data *data)
-{
-	int status;
-
-	if (data->decompress_pid != -1) {
--		kill(data->decompress_pid, SIGTERM);
-+		kill(data->decompress_pid, SIGINT);
-		waitpid(data->decompress_pid, &status, 0);
-
-		close(data->decompress_out_pipe[WRITE_END]);
+>
+>  #endif /* S5P_HDMI_H */
+> --
+> 1.7.9.5
+>
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
