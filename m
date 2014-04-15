@@ -1,127 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f53.google.com ([209.85.215.53]:45986 "EHLO
-	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934044AbaD3PQy (ORCPT
+Received: from mail-oa0-f49.google.com ([209.85.219.49]:35503 "EHLO
+	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750997AbaDOCHO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Apr 2014 11:16:54 -0400
-Received: by mail-la0-f53.google.com with SMTP id b8so1325150lan.26
-        for <linux-media@vger.kernel.org>; Wed, 30 Apr 2014 08:16:53 -0700 (PDT)
-From: Alexander Bersenev <bay@hackerdom.ru>
-To: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
-	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
-	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mon, 14 Apr 2014 22:07:14 -0400
+Received: by mail-oa0-f49.google.com with SMTP id o6so10081359oag.36
+        for <linux-media@vger.kernel.org>; Mon, 14 Apr 2014 19:07:14 -0700 (PDT)
+Date: Mon, 14 Apr 2014 21:07:12 -0500 (CDT)
+From: Thomas Pugliese <thomas.pugliese@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Thomas Pugliese <thomas.pugliese@gmail.com>,
 	linux-media@vger.kernel.org
-Cc: Alexander Bersenev <bay@hackerdom.ru>
-Subject: [PATCH v5 3/3] ARM: sunxi: Add IR controller support in DT on A20
-Date: Wed, 30 Apr 2014 21:16:50 +0600
-Message-Id: <1398871010-30681-4-git-send-email-bay@hackerdom.ru>
-In-Reply-To: <1398871010-30681-1-git-send-email-bay@hackerdom.ru>
-References: <1398871010-30681-1-git-send-email-bay@hackerdom.ru>
+Subject: Re: [PATCH] uvc: update uvc_endpoint_max_bpi to handle USB_SPEED_WIRELESS
+ devices
+In-Reply-To: <14957224.mkfABmkaAb@avalon>
+Message-ID: <alpine.DEB.2.10.1404142054390.22542@bitbucket>
+References: <1390598248-343-1-git-send-email-thomas.pugliese@gmail.com> <8041079.da1zLPkO88@avalon> <alpine.DEB.2.10.1401270927410.16196@mint32-virtualbox> <14957224.mkfABmkaAb@avalon>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds IR controller in A20 Device-Tree:
-- Two IR devices found in A20 user manual
-- Pins for two devices
-- One IR device physically found on Cubieboard 2
-- One IR device physically found on Cubietruck
 
-Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
----
- arch/arm/boot/dts/sun7i-a20-cubieboard2.dts |  6 ++++++
- arch/arm/boot/dts/sun7i-a20-cubietruck.dts  |  6 ++++++
- arch/arm/boot/dts/sun7i-a20.dtsi            | 31 +++++++++++++++++++++++++++++
- 3 files changed, 43 insertions(+)
 
-diff --git a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
-index feeff64..2564e8c 100644
---- a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
-+++ b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
-@@ -164,6 +164,12 @@
- 				reg = <1>;
- 			};
- 		};
-+
-+		ir0: ir@01c21800 {
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&ir0_pins_a>;
-+			status = "okay";
-+		};
- 	};
- 
- 	leds {
-diff --git a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
-index e288562..e375e89 100644
---- a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
-+++ b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
-@@ -232,6 +232,12 @@
- 				reg = <1>;
- 			};
- 		};
-+
-+		ir0: ir@01c21800 {
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&ir0_pins_a>;
-+			status = "okay";
-+		};
- 	};
- 
- 	leds {
-diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
-index 0ae2b77..bb655a5 100644
---- a/arch/arm/boot/dts/sun7i-a20.dtsi
-+++ b/arch/arm/boot/dts/sun7i-a20.dtsi
-@@ -724,6 +724,19 @@
- 				allwinner,drive = <2>;
- 				allwinner,pull = <0>;
- 			};
-+
-+			ir0_pins_a: ir0@0 {
-+				    allwinner,pins = "PB3","PB4";
-+				    allwinner,function = "ir0";
-+				    allwinner,drive = <0>;
-+				    allwinner,pull = <0>;
-+			};
-+			ir1_pins_a: ir1@0 {
-+				    allwinner,pins = "PB22","PB23";
-+				    allwinner,function = "ir1";
-+				    allwinner,drive = <0>;
-+				    allwinner,pull = <0>;
-+			};
- 		};
- 
- 		timer@01c20c00 {
-@@ -937,5 +950,23 @@
- 			#interrupt-cells = <3>;
- 			interrupts = <1 9 0xf04>;
- 		};
-+
-+       		ir0: ir@01c21800 {
-+	     		compatible = "allwinner,sun7i-a20-ir";
-+			clocks = <&apb0_gates 6>, <&ir0_clk>;
-+			clock-names = "apb", "ir";
-+			interrupts = <0 5 4>;
-+			reg = <0x01c21800 0x40>;
-+			status = "disabled";
-+		};
-+
-+       		ir1: ir@01c21c00 {
-+	     		compatible = "allwinner,sun7i-a20-ir";
-+			clocks = <&apb0_gates 7>, <&ir1_clk>;
-+			clock-names = "apb", "ir";
-+			interrupts = <0 6 4>;
-+			reg = <0x01C21c00 0x40>;
-+			status = "disabled";
-+		};
- 	};
- };
--- 
-1.9.2
+On Mon, 27 Jan 2014, Laurent Pinchart wrote:
 
+> Hi Thomas,
+> 
+> On Monday 27 January 2014 09:54:58 Thomas Pugliese wrote:
+> > On Mon, 27 Jan 2014, Laurent Pinchart wrote:
+> > > On Friday 24 January 2014 15:17:28 Thomas Pugliese wrote:
+> > > > Isochronous endpoints on devices with speed == USB_SPEED_WIRELESS can
+> > > > have a max packet size ranging from 1-3584 bytes.  Add a case to
+> > > > uvc_endpoint_max_bpi to handle USB_SPEED_WIRELESS.  Otherwise endpoints
+> > > > for those devices will fall to the default case which masks off any
+> > > > values > 2047.  This causes uvc_init_video to underestimate the
+> > > > bandwidth available and fail to find a suitable alt setting for high
+> > > > bandwidth video streams.
+> > > 
+> > > I'm not too familiar with wireless USB, but shouldn't the value be
+> > > multiplied by bMaxBurst from the endpoint companion descriptor ?
+> > > Superspeed devices provide the multiplied value in their endpoint
+> > > companion descriptor's wBytesPerInterval field, but there's no such field
+> > > for wireless devices.
+> >
+> > For wireless USB isochronous endpoints, the values in the endpoint
+> > descriptor are the logical interval and max packet size that the endpoint
+> > can support.  They are provided for backwards compatibility for just this
+> > type of situation.  You are correct that the actual endpoint
+> > characteristics are the bMaxBurst, wOverTheAirPacketSize, and
+> > bOverTheAirInterval values from the WUSB endpoint companion descriptor but
+> > only the host controller really needs to know about those details.  In
+> > fact, the values from the endpoint companion descriptor might actually
+> > over-estimate the bandwidth available since the device can set bMaxBurst
+> > to a higher value than necessary to allow for retries.
+> 
+> OK, I'll trust you on that :-)
+> 
+> I've taken the patch in my tree and will send a pull request for v3.15.
+> 
+> > > Out of curiosity, which device have you tested this with ?
+> > 
+> > The device is a standard wired UVC webcam: Quanta CQEC2B (VID: 0x0408,
+> > PID: 0x9005).  It is connected to an Alereon Wireless USB bridge dev kit
+> > which allows it to operate as a WUSB device.
+> > 
+> > Thomas
+> > 
+> > > > Signed-off-by: Thomas Pugliese <thomas.pugliese@gmail.com>
+> > > > ---
+> > > > 
+> > > >  drivers/media/usb/uvc/uvc_video.c | 3 +++
+> > > >  1 file changed, 3 insertions(+)
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> 
+
+So it turns out that this change (commit 79af67e77f86404e77e65ad954bf) 
+breaks wireless USB devices that were designed to work with Windows 
+because Windows also does not differentiate between Wireless USB devices 
+and USB 2.0 high speed devices.  This change should probably be reverted 
+before it goes out in the 3.15 release.  Devices that are strictly WUSB 
+spec compliant will not work with some max packet sizes but they never did 
+anyway.
+
+In order to support both compliant and non-compliant WUSB devices, 
+uvc_endpoint_max_bpi should look at the endpoint companion descriptor but 
+that descriptor is not readily available as it is for super speed devices 
+so that patch will have to wait for another time.
+
+Thanks,
+Thomas
