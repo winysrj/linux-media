@@ -1,115 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1559 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755185AbaDTCgV (ORCPT
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:56488 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755213AbaDOSla (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Apr 2014 22:36:21 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s3K2aItG089002
-	for <linux-media@vger.kernel.org>; Sun, 20 Apr 2014 04:36:20 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 066342A196F
-	for <linux-media@vger.kernel.org>; Sun, 20 Apr 2014 04:36:16 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Tue, 15 Apr 2014 14:41:30 -0400
+Received: by mail-ee0-f54.google.com with SMTP id d49so8162930eek.27
+        for <linux-media@vger.kernel.org>; Tue, 15 Apr 2014 11:41:29 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140420023616.066342A196F@tschai.lan>
-Date: Sun, 20 Apr 2014 04:36:16 +0200 (CEST)
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 4/4] libdvbv5: build dynamic libdvbv5 by default
+Date: Tue, 15 Apr 2014 20:39:33 +0200
+Message-Id: <1397587173-1120-4-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1397587173-1120-1-git-send-email-neolynx@gmail.com>
+References: <1397587173-1120-1-git-send-email-neolynx@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+- renamed ./configure option --enable-libdvbv5 to --disable-libdvbv5
+- thus libdvbv5 will be build shared by default
+- cleanups in configure.ac
 
-Results of the daily build of media_tree:
+Signed-off-by: André Roth <neolynx@gmail.com>
+---
+ configure.ac | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-date:		Sun Apr 20 04:00:17 CEST 2014
-git branch:	test
-git hash:	701b57ee3387b8e3749845b02310b5625fbd8da0
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.13-7.slh.1-amd64
+diff --git a/configure.ac b/configure.ac
+index 4080d1e..474c681 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -216,10 +216,10 @@ AC_DEFINE_DIR([IR_KEYTABLE_USER_DIR], [keytableuserdir], [ir-keytable user defin
+ # options
+ 
+ AC_ARG_ENABLE(libdvbv5,
+-  AS_HELP_STRING([--enable-libdvbv5], [enable experimental dynamic libdvbv5 compilation]),
++  AS_HELP_STRING([--disable-libdvbv5], [disable experimental dynamic libdvbv5 compilation]),
+   [case "${enableval}" in
+      yes | no ) ;;
+-     *) AC_MSG_ERROR(bad value ${enableval} for --enable-libdvbv5) ;;
++     *) AC_MSG_ERROR(bad value ${enableval} for --disable-libdvbv5) ;;
+    esac]
+ )
+ 
+@@ -227,7 +227,7 @@ AC_ARG_ENABLE(libv4l,
+   AS_HELP_STRING([--disable-libv4l], [disable dynamic libv4l compilation]),
+   [case "${enableval}" in
+      yes | no ) ;;
+-     *) AC_MSG_ERROR(bad value ${enableval} for --enable-libv4l) ;;
++     *) AC_MSG_ERROR(bad value ${enableval} for --disable-libv4l) ;;
+    esac]
+ )
+ 
+@@ -235,7 +235,7 @@ AC_ARG_ENABLE(v4l-utils,
+   AS_HELP_STRING([--disable-v4l-utils], [disable v4l-utils compilation]),
+   [case "${enableval}" in
+      yes | no ) ;;
+-     *) AC_MSG_ERROR(bad value ${enableval} for --enable-v4l-utils) ;;
++     *) AC_MSG_ERROR(bad value ${enableval} for --disable-v4l-utils) ;;
+    esac]
+ )
+ 
+@@ -247,17 +247,17 @@ AC_ARG_ENABLE(qv4l2,
+    esac]
+ )
+ 
+-AM_CONDITIONAL([WITH_LIBDVBV5], [test x$enable_libdvbv5 = xyes])
+-AM_CONDITIONAL([WITH_LIBV4L], [test x$enable_libv4l != xno])
+-AM_CONDITIONAL([WITH_V4LUTILS], [test x$enable_v4l_utils != "xno"])
+-AM_CONDITIONAL([WITH_QV4L2], [test ${qt_pkgconfig} = true -a x$enable_qv4l2 != xno])
+-AM_CONDITIONAL([WITH_V4L_PLUGINS], [test x$enable_libv4l != xno -a x$enable_shared != xno])
++AM_CONDITIONAL([WITH_LIBDVBV5],     [test x$enable_libdvbv5  != xno])
++AM_CONDITIONAL([WITH_LIBV4L],       [test x$enable_libv4l    != xno])
++AM_CONDITIONAL([WITH_V4LUTILS],	    [test x$enable_v4l_utils != xno])
++AM_CONDITIONAL([WITH_QV4L2],	    [test ${qt_pkgconfig}  = true -a x$enable_qv4l2 != xno])
++AM_CONDITIONAL([WITH_V4L_PLUGINS],  [test x$enable_libv4l != xno -a x$enable_shared != xno])
+ AM_CONDITIONAL([WITH_V4L_WRAPPERS], [test x$enable_libv4l != xno -a x$enable_shared != xno])
+-AM_CONDITIONAL([WITH_QTGL], [test ${qt_pkgconfig_gl} = true])
++AM_CONDITIONAL([WITH_QTGL],	    [test ${qt_pkgconfig_gl} = true])
+ 
+ # append -static to libtool compile and link command to enforce static libs
+-AS_IF([test x$enable_libdvbv5 != xyes], [AC_SUBST([ENFORCE_LIBDVBV5_STATIC], ["-static"])])
+-AS_IF([test x$enable_libv4l = xno], [AC_SUBST([ENFORCE_LIBV4L_STATIC], ["-static"])])
++AS_IF([test x$enable_libdvbv5 = xno], [AC_SUBST([ENFORCE_LIBDVBV5_STATIC], ["-static"])])
++AS_IF([test x$enable_libv4l = xno],   [AC_SUBST([ENFORCE_LIBV4L_STATIC],   ["-static"])])
+ 
+ # misc
+ 
+-- 
+1.9.1
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
