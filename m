@@ -1,139 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailex.mailcore.me ([94.136.40.62]:52417 "EHLO
-	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751040AbaDOQqA (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:61847 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751006AbaDOO3c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 12:46:00 -0400
-Message-ID: <534D6241.5060903@sca-uk.com>
-Date: Tue, 15 Apr 2014 17:45:53 +0100
-From: Steve Cookson - IT <it@sca-uk.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Steven Toth <stoth@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Hauppauge ImpactVCB-e 01385
-References: <534675E1.6050408@sca-uk.com> <5347B132.6040206@sca-uk.com> <5347B9A3.2050301@xs4all.nl> <5347BDDE.6080208@sca-uk.com> <5347C57B.7000207@xs4all.nl> <5347DD94.1070000@sca-uk.com> <5347E2AF.6030205@xs4all.nl> <5347EB5D.2020408@sca-uk.com> <5347EC3D.7040107@xs4all.nl> <5348392E.40808@sca-uk.com> <534BEA8A.2040604@xs4all.nl>
-In-Reply-To: <534BEA8A.2040604@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	Tue, 15 Apr 2014 10:29:32 -0400
+Message-id: <534D4245.2040901@samsung.com>
+Date: Tue, 15 Apr 2014 16:29:25 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Rahul Sharma <r.sh.open@gmail.com>
+Cc: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>, b.zolnierkie@samsung.com,
+	"sw0312.kim" <sw0312.kim@samsung.com>,
+	sunil joshi <joshi@samsung.com>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	m.chehab@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Rahul Sharma <rahul.sharma@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv2 4/4] drm: exynos: hdmi: add support for pixel clock
+ limitation
+References: <1397554040-4037-1-git-send-email-t.stanislaws@samsung.com>
+ <1397554040-4037-5-git-send-email-t.stanislaws@samsung.com>
+ <CAPdUM4NysWMpy3PZhJdKXFa96Oy4kG4dKkDdrabbAmM3+f5kag@mail.gmail.com>
+ <534D3001.2030707@samsung.com>
+ <CAPdUM4PCDC8J5k2uNv6DYf8FzXKcNcm7JQZ-cbAzmXzx9YDAAw@mail.gmail.com>
+In-reply-to: <CAPdUM4PCDC8J5k2uNv6DYf8FzXKcNcm7JQZ-cbAzmXzx9YDAAw@mail.gmail.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  Hi Hans,
-On 14/04/14 15:02, Hans Verkuil wrote:
+On 04/15/2014 03:42 PM, Rahul Sharma wrote:
+> On 15 April 2014 18:41, Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
+>> On 04/15/2014 11:42 AM, Rahul Sharma wrote:
+>>> Hi Tomasz,
+>>>
+>>> On 15 April 2014 14:57, Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
+>>>> Adds support for limitation of maximal pixel clock of HDMI
+>>>> signal. This feature is needed on boards that contains
+>>>> lines or bridges with frequency limitations.
+>>>>
+>>>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+[snip]
 
- > I'd appreciate it if you can test this with a proper video feed.
+>>>> diff --git a/include/media/s5p_hdmi.h b/include/media/s5p_hdmi.h
+>>>> index 181642b..7272d65 100644
+>>>> --- a/include/media/s5p_hdmi.h
+>>>> +++ b/include/media/s5p_hdmi.h
+>>>> @@ -31,6 +31,7 @@ struct s5p_hdmi_platform_data {
+>>>>         int mhl_bus;
+>>>>         struct i2c_board_info *mhl_info;
+>>>>         int hpd_gpio;
+>>>> +       u32 max_pixel_clock;
+>>>>  };
+>>>
+>>> We have already removed Non DT support from the drm hdmi
+>>> driver. IMO we should not be extending the pdata struct.
+>>>
+>>> Regards,
+>>> Rahul Sharma
+>>
+>> Hi Rahul,
+>>
+>> This is not a non-DT patch. The s5p_hdmi_platform_data is
+>> generated from DT itself. This structure is just
+>> a parsed version of DT attributes.
+>>
+>> It may be a good idea to rename s5p_hdmi_platform_data
+>> to exynos_hdmi_pdata and move it to exynos_hdmi_drm.c file
+>> or parse DT directly in probe function.
+>>
+>> I can prepare a patch for that.
+> 
+> Else we can completely remove the dependency from
+> s5p_hdmi_platform_data. We can directly assign to hdmi context
+> variables. Later we can remove that struct itself from include/.
+> What you say?
 
-Well, I've been installing the patch today.  I finished the compilation 
-script and the card is not detected.  Here's what I did:
+This structure cannot be removed from include yet because it is used by s5p-tv driver.
+However its usage can be removed from both drivers.
+I can prepare both.
 
-It's been a bit hard-going because my ISP has been on a go-slow and 
-everything has taken much longer than it should.
+> 
+> Regards,
+> Rahul Sharma
+> 
 
-1    I did a fresh build of linux tv.  Deleted ~/linuxtv/media_build and 
-then typed:
-2    user$ git clone git://linuxtv.org/media_build.git
-3    user$ cd media_build
-4    user$./build --main-git
+Regards,
+Tomasz Stanislawski
 
-     This seemed to be fine.
-
-5    tried to apply the patch (patch -p1 cx23885) but had issues (only 
-the main ...card.c was updated and ....h and ...video.c were not 
-updated).  As it was only one line each, I applied the updates manually.
-6    user$ cd media
-7    user$ sudo -s
-8    root$ make -C ../v4l  (it scrolled up quickly, but completed with 
-no apparent errors
-9    root$ make -C ../ install
-10    root$ make -C .. rmmod (had a number of errors because of stk1160 
-so unplugged EasyCap and re-ran, lots of errors - see below)
-11    tried to modprobe cx23885, but got "invalid agrgument"
-12    tried to reboot, but ls /dev/video* showed nothing.
-
-Following are the errors from make -C .. rmmo.
-
-The ImpactVCB-e card is installed.  Should I unplug it before doing 
-point 11?
-
-Thanks
-
-Steve
-
-PS There is some Portuguese in here, sorry.  It should be fairly self 
-explanitory, Entrando is entering, saindo is exiting and diretório is 
-err... directory.
-
-make -C .. rmmod
-make: Entrando no diretório `/home/image/linuxtv/media_build'
-make -C /home/image/linuxtv/media_build/v4l rmmod
-make[1]: Entrando no diretório `/home/image/linuxtv/media_build/v4l'
-scripts/rmmod.pl unload
-found 582 modules
-/sbin/rmmod videodev
-Pulseaudio is running with UUID(s): 1000
-Error: Module videodev is in use by: cx2341x v4l2_common
-/sbin/rmmod videobuf_dvb
-/sbin/rmmod videobuf_dma_sg
-/sbin/rmmod videobuf_core
-/sbin/rmmod v4l2_common
-Error: Module v4l2_common is in use by: cx2341x
-/sbin/rmmod tveeprom
-/sbin/rmmod altera_ci
-/sbin/rmmod cx2341x
-/sbin/rmmod btcx_risc
-/sbin/rmmod dvb_core
-/sbin/rmmod tda18271
-/sbin/rmmod cx2341x
-Error: Module cx2341x is not currently loaded
-/sbin/rmmod v4l2_common
-/sbin/rmmod altera_ci
-Error: Module altera_ci is not currently loaded
-/sbin/rmmod videodev
-/sbin/rmmod videobuf_dma_sg
-Error: Module videobuf_dma_sg is not currently loaded
-/sbin/rmmod videobuf_dvb
-Error: Module videobuf_dvb is not currently loaded
-/sbin/rmmod media
-/sbin/rmmod btcx_risc
-Error: Module btcx_risc is not currently loaded
-/sbin/rmmod tda18271
-Error: Module tda18271 is not currently loaded
-/sbin/rmmod dvb_core
-Error: Module dvb_core is not currently loaded
-/sbin/rmmod videobuf_core
-Error: Module videobuf_core is not currently loaded
-/sbin/rmmod tveeprom
-Error: Module tveeprom is not currently loaded
-/sbin/rmmod altera_stapl
-/sbin/rmmod rc_core
-/sbin/rmmod videodev
-Error: Module videodev is not currently loaded
-/sbin/rmmod v4l2_common
-Error: Module v4l2_common is not currently loaded
-/sbin/rmmod cx2341x
-Error: Module cx2341x is not currently loaded
-/sbin/rmmod altera_ci
-Error: Module altera_ci is not currently loaded
-/sbin/rmmod videobuf_dma_sg
-Error: Module videobuf_dma_sg is not currently loaded
-/sbin/rmmod videobuf_dvb
-Error: Module videobuf_dvb is not currently loaded
-/sbin/rmmod btcx_risc
-Error: Module btcx_risc is not currently loaded
-/sbin/rmmod tda18271
-Error: Module tda18271 is not currently loaded
-/sbin/rmmod dvb_core
-Error: Module dvb_core is not currently loaded
-/sbin/rmmod videobuf_core
-Error: Module videobuf_core is not currently loaded
-/sbin/rmmod tveeprom
-Error: Module tveeprom is not currently loaded
-Couldn't unload: tveeprom videobuf_core dvb_core tda18271 btcx_risc 
-videobuf_dvb videobuf_dma_sg altera_ci cx2341x v4l2_common videodev
-make[1]: Saindo do diretório `/home/image/linuxtv/media_build/v4l'
-make: Saindo do diretório `/home/image/linuxtv/media_build'
-
-root@image-H61M-DS2:~/linuxtv/media_build/media# modprobe cx23885
-ERROR: could not insert 'cx23885': Invalid argument
+>>
+>> Regards,
+>> Tomasz Stanislawski
+>>
+>>
+>>>
+>>>>
+>>>>  #endif /* S5P_HDMI_H */
+>>>> --
+>>>> 1.7.9.5
+>>>>
+>>>> _______________________________________________
+>>>> dri-devel mailing list
+>>>> dri-devel@lists.freedesktop.org
+>>>> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+>>
+> 
 
