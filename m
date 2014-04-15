@@ -1,42 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38616 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932847AbaDIR1s (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:15906 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751920AbaDOJ1i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Apr 2014 13:27:48 -0400
-Date: Wed, 9 Apr 2014 20:27:45 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	s.nawrocki@samsung.com, m.szyprowski@samsung.com
-Subject: Re: vb2: various small fixes/improvements
-Message-ID: <20140409172744.GB7530@valkosipuli.retiisi.org.uk>
-References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 15 Apr 2014 05:27:38 -0400
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-samsung-soc@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, robh+dt@kernel.org, inki.dae@samsung.com,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	t.figa@samsung.com, b.zolnierkie@samsung.com,
+	jy0922.shim@samsung.com, rahul.sharma@samsung.com,
+	pawel.moll@arm.com, Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv2 1/4] drm: exynos: hdmi: simplify extracting hpd-gpio from DT
+Date: Tue, 15 Apr 2014 11:27:17 +0200
+Message-id: <1397554040-4037-2-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1397554040-4037-1-git-send-email-t.stanislaws@samsung.com>
+References: <1397554040-4037-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 10, 2014 at 10:20:47PM +0100, Hans Verkuil wrote:
-> This patch series contains a list of various vb2 fixes and improvements.
-> 
-> These patches were originally part of this RFC patch series:
-> 
-> http://www.spinics.net/lists/linux-media/msg73391.html
-> 
-> They are now rebased and reordered a bit. It's little stuff for the
-> most part, although the first patch touches on more drivers since it
-> changes the return type of stop_streaming to void. The return value was
-> always ignored by vb2 and you really cannot do anything sensible with it.
-> In general resource allocations can return an error, but freeing up resources
-> should not. That should always succeed.
+This patch eliminates redundant checks while retrieving HPD gpio from DT during
+HDMI's probe().
 
-For patches 1--10, with Pawel's comments addressed:
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+---
+ drivers/gpu/drm/exynos/exynos_hdmi.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
+index 9a6d652..47c6e85 100644
+--- a/drivers/gpu/drm/exynos/exynos_hdmi.c
++++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
+@@ -2016,23 +2016,18 @@ static struct s5p_hdmi_platform_data *drm_hdmi_dt_parse_pdata
+ {
+ 	struct device_node *np = dev->of_node;
+ 	struct s5p_hdmi_platform_data *pd;
+-	u32 value;
+ 
+ 	pd = devm_kzalloc(dev, sizeof(*pd), GFP_KERNEL);
+ 	if (!pd)
+-		goto err_data;
++		return NULL;
+ 
+-	if (!of_find_property(np, "hpd-gpio", &value)) {
++	pd->hpd_gpio = of_get_named_gpio(np, "hpd-gpio", 0);
++	if (!gpio_is_valid(pd->hpd_gpio)) {
+ 		DRM_ERROR("no hpd gpio property found\n");
+-		goto err_data;
++		return NULL;
+ 	}
+ 
+-	pd->hpd_gpio = of_get_named_gpio(np, "hpd-gpio", 0);
+-
+ 	return pd;
+-
+-err_data:
+-	return NULL;
+ }
+ 
+ static struct of_device_id hdmi_match_types[] = {
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.7.9.5
+
