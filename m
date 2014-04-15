@@ -1,60 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:8613 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753770AbaDORgt (ORCPT
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:40587 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750930AbaDOEtk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 13:36:49 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 5/5] ARM: dts: exynos4: Remove simple-bus compatible from
- camera subsystem nodes
-Date: Tue, 15 Apr 2014 19:34:32 +0200
-Message-id: <1397583272-28295-6-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1397583272-28295-1-git-send-email-s.nawrocki@samsung.com>
-References: <1397583272-28295-1-git-send-email-s.nawrocki@samsung.com>
+	Tue, 15 Apr 2014 00:49:40 -0400
+From: Daeseok Youn <daeseok.youn@gmail.com>
+To: m.chehab@samsung.com
+Cc: linux-dev@sensoray.com, hans.verkuil@cisco.com,
+	sakari.ailus@iki.fi, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] s2255drv: fix memory leak s2255_probe()
+Date: Tue, 15 Apr 2014 13:49:34 +0900
+Message-ID: <1408657.25U3i1DfG3@daeseok-laptop.cloud.net>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The usage of "simple-bus" was incorrect and the drivers now will also
-work without it so remove it.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+smatch says:
+ drivers/media/usb/s2255/s2255drv.c:2246 s2255_probe() warn:
+possible memory leak of 'dev'
+
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
 ---
- arch/arm/boot/dts/exynos4.dtsi    |    2 +-
- arch/arm/boot/dts/exynos4x12.dtsi |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/usb/s2255/s2255drv.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index 912fe72..ad06a1d 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -125,7 +125,7 @@
- 	};
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index 1d4ba2b..8aca3ef 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -2243,6 +2243,7 @@ static int s2255_probe(struct usb_interface *interface,
+ 	dev->cmdbuf = kzalloc(S2255_CMDBUF_SIZE, GFP_KERNEL);
+ 	if (dev->cmdbuf == NULL) {
+ 		s2255_dev_err(&interface->dev, "out of memory\n");
++		kfree(dev);
+ 		return -ENOMEM;
+ 	}
  
- 	camera {
--		compatible = "samsung,fimc", "simple-bus";
-+		compatible = "samsung,fimc";
- 		status = "disabled";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
-diff --git a/arch/arm/boot/dts/exynos4x12.dtsi b/arch/arm/boot/dts/exynos4x12.dtsi
-index 192617b..3fec920 100644
---- a/arch/arm/boot/dts/exynos4x12.dtsi
-+++ b/arch/arm/boot/dts/exynos4x12.dtsi
-@@ -190,7 +190,7 @@
- 		};
- 
- 		fimc_is: fimc-is@12000000 {
--			compatible = "samsung,exynos4212-fimc-is", "simple-bus";
-+			compatible = "samsung,exynos4212-fimc-is";
- 			reg = <0x12000000 0x260000>;
- 			interrupts = <0 90 0>, <0 95 0>;
- 			samsung,power-domain = <&pd_isp>;
 -- 
-1.7.9.5
+1.7.4.4
+
 
