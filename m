@@ -1,112 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1479 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751672AbaDDCgK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 22:36:10 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s342a6ZL010274
-	for <linux-media@vger.kernel.org>; Fri, 4 Apr 2014 04:36:08 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 83BD32A03F4
-	for <linux-media@vger.kernel.org>; Fri,  4 Apr 2014 04:35:56 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140404023556.83BD32A03F4@tschai.lan>
-Date: Fri,  4 Apr 2014 04:35:56 +0200 (CEST)
+Received: from mailout2.samsung.com ([203.254.224.25]:15929 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752349AbaDOJ2B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Apr 2014 05:28:01 -0400
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-samsung-soc@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, robh+dt@kernel.org, inki.dae@samsung.com,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	t.figa@samsung.com, b.zolnierkie@samsung.com,
+	jy0922.shim@samsung.com, rahul.sharma@samsung.com,
+	pawel.moll@arm.com, Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv2 2/4] drm: exynos: mixer: fix using usleep() in atomic context
+Date: Tue, 15 Apr 2014 11:27:18 +0200
+Message-id: <1397554040-4037-3-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1397554040-4037-1-git-send-email-t.stanislaws@samsung.com>
+References: <1397554040-4037-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patch fixes calling usleep_range() after taking reg_slock
+using spin_lock_irqsave(). The mdelay() is used instead.
+Waiting in atomic context is not the best idea in general.
+Hopefully, waiting occurs only when Video Processor fails
+to reset correctly.
 
-Results of the daily build of media_tree:
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+---
+ drivers/gpu/drm/exynos/exynos_mixer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-date:		Fri Apr  4 04:01:16 CEST 2014
-git branch:	test
-git hash:	a83b93a7480441a47856dc9104bea970e84cda87
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0
-host hardware:	x86_64
-host os:	3.13-7.slh.1-amd64
+diff --git a/drivers/gpu/drm/exynos/exynos_mixer.c b/drivers/gpu/drm/exynos/exynos_mixer.c
+index ce28881..e3306c8 100644
+--- a/drivers/gpu/drm/exynos/exynos_mixer.c
++++ b/drivers/gpu/drm/exynos/exynos_mixer.c
+@@ -615,7 +615,7 @@ static void vp_win_reset(struct mixer_context *ctx)
+ 		/* waiting until VP_SRESET_PROCESSING is 0 */
+ 		if (~vp_reg_read(res, VP_SRESET) & VP_SRESET_PROCESSING)
+ 			break;
+-		usleep_range(10000, 12000);
++		mdelay(10);
+ 	}
+ 	WARN(tries == 0, "failed to reset Video Processor\n");
+ }
+-- 
+1.7.9.5
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
