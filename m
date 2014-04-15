@@ -1,118 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:40321 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753899AbaDCXdo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Apr 2014 19:33:44 -0400
-Subject: [PATCH 29/49] rc-loopback: add RCIOCSIRTX ioctl support
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Date: Fri, 04 Apr 2014 01:33:42 +0200
-Message-ID: <20140403233342.27099.31020.stgit@zeus.muc.hardeman.nu>
-In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
-References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1610 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752460AbaDOKni (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Apr 2014 06:43:38 -0400
+Message-ID: <534D0D50.6020600@xs4all.nl>
+Date: Tue, 15 Apr 2014 12:43:28 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+To: it-support <it@sca-uk.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: stoth@kernellabs.com
+Subject: Re: [PATCH] cx23885: add support for Hauppauge ImpactVCB-e
+References: <534BE92F.3010501@xs4all.nl> <534D0CD5.3090906@sca-uk.com>
+In-Reply-To: <534D0CD5.3090906@sca-uk.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As an example, this patch adds support for the new RCIOCSIRTX ioctl
-to rc-loopback and removes deprecated functions without a loss in
-functionality (as LIRC will automatically use the new functions).
+On 04/15/2014 12:41 PM, it-support wrote:
+> Hi Guys,
+> 
+> This is a very noobie question,  but my 'patch' command does not return 
+> to the command prompt.
+> 
+> I assume that my problem is one (or all four) of:
+> 
+> 1) the patch doesn't start or end where I think it does (I assume the 
+> first line is
+> 
+> diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+> 
+> and the last line is:
+> 
+>   #define GPIO_1 0x00000002
+> 
+> 2) I have put it in the wrong directory (I tried:
+> 
+> ~/linuxtv/media_build/linux/drivers/media/pci/cx23885/
+> 
+> and
+> 
+> ~/linuxtv/media_build
+> 
+> 3) My patch syntax is wrong.  I run it in the same directory as the file 
+> like this: patch -b cx23885.diff
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/rc-loopback.c |   59 +++++++++++++---------------------------
- 1 file changed, 19 insertions(+), 40 deletions(-)
+It's: patch -b <cx23885.diff
 
-diff --git a/drivers/media/rc/rc-loopback.c b/drivers/media/rc/rc-loopback.c
-index ba36fbe..628e834 100644
---- a/drivers/media/rc/rc-loopback.c
-+++ b/drivers/media/rc/rc-loopback.c
-@@ -49,43 +49,6 @@ struct loopback_dev {
- 
- static struct loopback_dev loopdev;
- 
--static int loop_set_tx_mask(struct rc_dev *dev, u32 mask)
--{
--	struct loopback_dev *lodev = dev->priv;
--
--	if ((mask & (RXMASK_REGULAR | RXMASK_LEARNING)) != mask) {
--		dprintk("invalid tx mask: %u\n", mask);
--		return -EINVAL;
--	}
--
--	dprintk("setting tx mask: %u\n", mask);
--	lodev->txmask = mask;
--	return 0;
--}
--
--static int loop_set_tx_carrier(struct rc_dev *dev, u32 carrier)
--{
--	struct loopback_dev *lodev = dev->priv;
--
--	dprintk("setting tx carrier: %u\n", carrier);
--	lodev->txcarrier = carrier;
--	return 0;
--}
--
--static int loop_set_tx_duty_cycle(struct rc_dev *dev, u32 duty_cycle)
--{
--	struct loopback_dev *lodev = dev->priv;
--
--	if (duty_cycle < 1 || duty_cycle > 99) {
--		dprintk("invalid duty cycle: %u\n", duty_cycle);
--		return -EINVAL;
--	}
--
--	dprintk("setting duty cycle: %u\n", duty_cycle);
--	lodev->txduty = duty_cycle;
--	return 0;
--}
--
- static int loop_tx_ir(struct rc_dev *dev, unsigned count)
- {
- 	struct loopback_dev *lodev = dev->priv;
-@@ -229,6 +192,24 @@ static void loop_get_ir_tx(struct rc_dev *dev, struct rc_ir_tx *tx)
- 	tx->resolution_max = 1;
- }
- 
-+/**
-+ * loop_set_ir_tx() - changes and returns the current TX settings
-+ * @dev: the &struct rc_dev to change the settings for
-+ * @tx: the &struct rc_ir_tx with the new settings
-+ *
-+ * This function is used to change and return the current TX settings.
-+ */
-+static int loop_set_ir_tx(struct rc_dev *dev, struct rc_ir_tx *tx)
-+{
-+	struct loopback_dev *lodev = dev->priv;
-+
-+	lodev->txmask = tx->tx_enabled & (RXMASK_REGULAR | RXMASK_LEARNING);
-+	lodev->txcarrier = tx->freq;
-+	lodev->txduty = tx->duty;
-+
-+	return 0;
-+}
-+
- static int __init loop_init(void)
- {
- 	struct rc_dev *rc;
-@@ -254,14 +235,12 @@ static int __init loop_init(void)
- 	rc->max_timeout		= UINT_MAX;
- 	rc->rx_resolution	= 1000;
- 	rc->tx_resolution	= 1000;
--	rc->s_tx_mask		= loop_set_tx_mask;
--	rc->s_tx_carrier	= loop_set_tx_carrier;
--	rc->s_tx_duty_cycle	= loop_set_tx_duty_cycle;
- 	rc->tx_ir		= loop_tx_ir;
- 	rc->s_idle		= loop_set_idle;
- 	rc->get_ir_rx		= loop_get_ir_rx;
- 	rc->set_ir_rx		= loop_set_ir_rx;
- 	rc->get_ir_tx		= loop_get_ir_tx;
-+	rc->set_ir_tx		= loop_set_ir_tx;
- 
- 	loopdev.txmask		= RXMASK_REGULAR;
- 	loopdev.txcarrier	= 36000;
+I still make this mistake and I've been doing this for many, many years :-)
 
+Regards,
+
+	Hans
