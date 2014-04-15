@@ -1,78 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:64586 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752211AbaDNMdR (ORCPT
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:56191 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754974AbaDOSl2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 08:33:17 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N4000BN4TJE6B40@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 14 Apr 2014 13:33:15 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
-	'LMML' <linux-media@vger.kernel.org>, media-workshop@linuxtv.org
-Cc: laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	'Steven Toth' <stoth@kernellabs.com>,
-	'Shuah Khan' <shuah.kh@samsung.com>
-References: <20140319160227.27a37e90@samsung.com>
-In-reply-to: <20140319160227.27a37e90@samsung.com>
-Subject: RE: [ANNOUNCE] media mini-summit on May, 2 in San Jose
-Date: Mon, 14 Apr 2014 14:33:14 +0200
-Message-id: <0cae01cf57dd$b52eb600$1f8c2200$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Tue, 15 Apr 2014 14:41:28 -0400
+Received: by mail-ee0-f43.google.com with SMTP id e53so8012476eek.16
+        for <linux-media@vger.kernel.org>; Tue, 15 Apr 2014 11:41:27 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 3/4] libdvbv5: short API description
+Date: Tue, 15 Apr 2014 20:39:32 +0200
+Message-Id: <1397587173-1120-3-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1397587173-1120-1-git-send-email-neolynx@gmail.com>
+References: <1397587173-1120-1-git-send-email-neolynx@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Signed-off-by: André Roth <neolynx@gmail.com>
+---
+ lib/include/libdvbv5/dvb-scan.h | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Mauro Carvalho Chehab
-> Sent: Wednesday, March 19, 2014 8:02 PM
-> 
-> As discussed on our IRC #v4l channels, most of the core developers will
-> be in San Jose - CA - USA for the Embedded Linux Conference.
-> 
-> There are several subjects that we've been discussing those days that
-> require a face to face meeting.
-> 
-> So, We'll be doing a media mini-summit on May, 2 (Friday) at Marriott
-> San Jose. Eventually, we may also schedule some BoFs during the week,
-> if needed.
-> 
-> In order to properly organize the event, I need the name of the
-> developers interested on joining us, plus the themes proposed for
-> discussions.
-
-Sorry for joining so late. Me and Tomasz Figa will be attending the ELC and
-we would like to join the media mini summit.
-
-There were many interesting topics suggested. I would like to discuss in
-particular the "Per-frame settings aka configuration stores" suggested by
-Hans.
+diff --git a/lib/include/libdvbv5/dvb-scan.h b/lib/include/libdvbv5/dvb-scan.h
+index f0af9d7..8f0e553 100644
+--- a/lib/include/libdvbv5/dvb-scan.h
++++ b/lib/include/libdvbv5/dvb-scan.h
+@@ -76,6 +76,32 @@ struct dvb_table_filter {
  
-Tomasz is working with the device tree so he could help us
-with "Integration of the of-graph helpers and the component framework
-(drivers/base/component.c) in V4L2", suggested by Laurent.
-
-Best wishes,
+ void dvb_table_filter_free(struct dvb_table_filter *sect);
+ 
++/* Read DVB table sections
++ *
++ * The following functions can be used to read DVB table sections by
++ * specifying a table ID and a program ID. Optionally a transport
++ * stream ID can be specified as well. The function will read on the
++ * specified demux and return when reading is done or an error has
++ * occurred. If table is not NULL after the call, it has to be freed
++ * with the apropriate free table function (even if an error has
++ * occurred).
++ *
++ * Returns 0 on success or a negative error code.
++ *
++ * Example usage:
++ *
++ * struct dvb_table_pat *pat;
++ * int r = dvb_read_section( parms, dmx_fd, DVB_TABLE_PAT, DVB_TABLE_PAT_PID, (void **) &pat, 5 );
++ * if (r < 0)
++ *	dvb_logerr("error reading PAT table");
++ * else {
++ *	// do something with pat
++ * }
++ * if (pat)
++ *	dvb_table_pat_free( pat );
++ *
++ */
++
+ int dvb_read_section(struct dvb_v5_fe_parms *parms, int dmx_fd, unsigned char tid, uint16_t pid, void **table,
+ 		unsigned timeout);
+ 
 -- 
-Kamil Debski
-Samsung R&D Institute Poland
-
-> 
-> As usual, we'll be using the media-workshop@linuxtv.org ML for specific
-> discussions about that, so the ones interested on participate are
-> requested to subscribe it.
-> 
-> Thanks!
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in the body of a message to majordomo@vger.kernel.org More majordomo
-> info at  http://vger.kernel.org/majordomo-info.html
+1.9.1
 
