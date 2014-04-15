@@ -1,108 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2000 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752005AbaDQKje (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 06:39:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:45386 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751148AbaDOJcH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Apr 2014 05:32:07 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 07/11] saa7134: rename empress_tsq to empress_vbq
-Date: Thu, 17 Apr 2014 12:39:10 +0200
-Message-Id: <1397731154-34337-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1397731154-34337-1-git-send-email-hverkuil@xs4all.nl>
-References: <1397731154-34337-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 08/10] si2168: add copyright and license
+Date: Tue, 15 Apr 2014 12:31:44 +0300
+Message-Id: <1397554306-14561-9-git-send-email-crope@iki.fi>
+In-Reply-To: <1397554306-14561-1-git-send-email-crope@iki.fi>
+References: <1397554306-14561-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add copyright and license for each file.
 
-Create consistent _vbq suffix for videobuf_queue fields.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/pci/saa7134/saa7134-empress.c | 12 ++++++------
- drivers/media/pci/saa7134/saa7134-video.c   |  2 +-
- drivers/media/pci/saa7134/saa7134.h         |  2 +-
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/media/dvb-frontends/si2168.c      | 16 ++++++++++++++++
+ drivers/media/dvb-frontends/si2168.h      | 16 ++++++++++++++++
+ drivers/media/dvb-frontends/si2168_priv.h | 16 ++++++++++++++++
+ 3 files changed, 48 insertions(+)
 
-diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
-index 393c9f1..7d4d390 100644
---- a/drivers/media/pci/saa7134/saa7134-empress.c
-+++ b/drivers/media/pci/saa7134/saa7134-empress.c
-@@ -112,8 +112,8 @@ static int ts_release(struct file *file)
- 	struct saa7134_fh *fh = file->private_data;
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 7aaac81..dc5b64a 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -1,3 +1,19 @@
++/*
++ * Silicon Labs Si2168 DVB-T/T2/C demodulator driver
++ *
++ * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
++ *
++ *    This program is free software; you can redistribute it and/or modify
++ *    it under the terms of the GNU General Public License as published by
++ *    the Free Software Foundation; either version 2 of the License, or
++ *    (at your option) any later version.
++ *
++ *    This program is distributed in the hope that it will be useful,
++ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *    GNU General Public License for more details.
++ */
++
+ #include "si2168_priv.h"
  
- 	if (res_check(fh, RESOURCE_EMPRESS)) {
--		videobuf_stop(&dev->empress_tsq);
--		videobuf_mmap_free(&dev->empress_tsq);
-+		videobuf_stop(&dev->empress_vbq);
-+		videobuf_mmap_free(&dev->empress_vbq);
+ static const struct dvb_frontend_ops si2168_ops;
+diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
+index 5a801aa..3c5b5ab 100644
+--- a/drivers/media/dvb-frontends/si2168.h
++++ b/drivers/media/dvb-frontends/si2168.h
+@@ -1,3 +1,19 @@
++/*
++ * Silicon Labs Si2168 DVB-T/T2/C demodulator driver
++ *
++ * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
++ *
++ *    This program is free software; you can redistribute it and/or modify
++ *    it under the terms of the GNU General Public License as published by
++ *    the Free Software Foundation; either version 2 of the License, or
++ *    (at your option) any later version.
++ *
++ *    This program is distributed in the hope that it will be useful,
++ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *    GNU General Public License for more details.
++ */
++
+ #ifndef SI2168_H
+ #define SI2168_H
  
- 		/* stop the encoder */
- 		ts_reset_encoder(dev);
-@@ -138,7 +138,7 @@ ts_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
- 	if (!dev->empress_started)
- 		ts_init_encoder(dev);
+diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
+index 3646324..2a343e8 100644
+--- a/drivers/media/dvb-frontends/si2168_priv.h
++++ b/drivers/media/dvb-frontends/si2168_priv.h
+@@ -1,3 +1,19 @@
++/*
++ * Silicon Labs Si2168 DVB-T/T2/C demodulator driver
++ *
++ * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
++ *
++ *    This program is free software; you can redistribute it and/or modify
++ *    it under the terms of the GNU General Public License as published by
++ *    the Free Software Foundation; either version 2 of the License, or
++ *    (at your option) any later version.
++ *
++ *    This program is distributed in the hope that it will be useful,
++ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *    GNU General Public License for more details.
++ */
++
+ #ifndef SI2168_PRIV_H
+ #define SI2168_PRIV_H
  
--	return videobuf_read_stream(&dev->empress_tsq,
-+	return videobuf_read_stream(&dev->empress_vbq,
- 				    data, count, ppos, 0,
- 				    file->f_flags & O_NONBLOCK);
- }
-@@ -155,7 +155,7 @@ ts_poll(struct file *file, struct poll_table_struct *wait)
- 		rc = POLLPRI;
- 	else if (req_events & POLLPRI)
- 		poll_wait(file, &fh->fh.wait, wait);
--	return rc | videobuf_poll_stream(file, &dev->empress_tsq, wait);
-+	return rc | videobuf_poll_stream(file, &dev->empress_vbq, wait);
- }
- 
- 
-@@ -164,7 +164,7 @@ ts_mmap(struct file *file, struct vm_area_struct * vma)
- {
- 	struct saa7134_dev *dev = video_drvdata(file);
- 
--	return videobuf_mmap_mapper(&dev->empress_tsq, vma);
-+	return videobuf_mmap_mapper(&dev->empress_vbq, vma);
- }
- 
- static int empress_enum_fmt_vid_cap(struct file *file, void  *priv,
-@@ -354,7 +354,7 @@ static int empress_init(struct saa7134_dev *dev)
- 	printk(KERN_INFO "%s: registered device %s [mpeg]\n",
- 	       dev->name, video_device_node_name(dev->empress_dev));
- 
--	videobuf_queue_sg_init(&dev->empress_tsq, &saa7134_ts_qops,
-+	videobuf_queue_sg_init(&dev->empress_vbq, &saa7134_ts_qops,
- 			    &dev->pci->dev, &dev->slock,
- 			    V4L2_BUF_TYPE_VIDEO_CAPTURE,
- 			    V4L2_FIELD_ALTERNATE,
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index f331501..e5b2beb 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -1086,7 +1086,7 @@ static struct videobuf_queue *saa7134_queue(struct file *file)
- 
- 	switch (vdev->vfl_type) {
- 	case VFL_TYPE_GRABBER:
--		q = fh->is_empress ? &dev->empress_tsq : &dev->cap;
-+		q = fh->is_empress ? &dev->empress_vbq : &dev->cap;
- 		break;
- 	case VFL_TYPE_VBI:
- 		q = &dev->vbi;
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index d2ee545..482489a 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -647,7 +647,7 @@ struct saa7134_dev {
- 	/* SAA7134_MPEG_EMPRESS only */
- 	struct video_device        *empress_dev;
- 	struct v4l2_subdev	   *empress_sd;
--	struct videobuf_queue      empress_tsq;
-+	struct videobuf_queue      empress_vbq;
- 	struct work_struct         empress_workqueue;
- 	int                        empress_started;
- 	struct v4l2_ctrl_handler   empress_ctrl_handler;
 -- 
-1.9.2
+1.9.0
 
