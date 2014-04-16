@@ -1,60 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1blp0181.outbound.protection.outlook.com ([207.46.163.181]:32471
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751060AbaD3EiF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Apr 2014 00:38:05 -0400
-From: Liu Ying <Ying.Liu@freescale.com>
-To: <linux-media@vger.kernel.org>
-CC: <m.chehab@samsung.com>, <a.hajda@samsung.com>,
-	<laurent.pinchart@ideasonboard.com>, <sakari.ailus@iki.fi>,
-	<s.nawrocki@samsung.com>, <hans.verkuil@cisco.com>
-Subject: [PATCH] [media] v4l2-device: fix potential NULL pointer dereference for subdev unregister path
-Date: Wed, 30 Apr 2014 12:25:21 +0800
-Message-ID: <1398831921-5652-1-git-send-email-Ying.Liu@freescale.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:46148 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751305AbaDPTeN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Apr 2014 15:34:13 -0400
+Message-ID: <1397676846.10347.11.camel@nicolas-tpx230>
+Subject: [PATCH] vb2: Update buffer state flags after __vb2_dqbuf
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Date: Wed, 16 Apr 2014 15:34:06 -0400
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-b0XBOUakKoYEgxc3juAQ"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pointer 'sd->v4l2_dev' is likely to be NULL and dereferenced in the subdev
-unregister path.  The issue should happen if CONFIG_MEDIA_CONTROLLER is defined.
 
-This patch fixes the issue by setting the pointer to be NULL after it will not
-be derefereneced any more in the path.
+--=-b0XBOUakKoYEgxc3juAQ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Andrzej Hajda <a.hajda@samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Liu Ying <Ying.Liu@freescale.com>
+
+Previously we where updating the buffer state using __fill_v4l2_buffer
+before the state transition was completed through __vb2_dqbuf. This
+would cause the V4L2_BUF_FLAG_DONE to be set, which would mean it still
+queued. The spec says the dqbuf should clean the DONE flag, right not it
+alway set it.
+
+Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 ---
- drivers/media/v4l2-core/v4l2-device.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 02d1b63..d98d96f 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -271,7 +271,6 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
- 
- 	if (sd->internal_ops && sd->internal_ops->unregistered)
- 		sd->internal_ops->unregistered(sd);
--	sd->v4l2_dev = NULL;
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	if (v4l2_dev->mdev) {
-@@ -279,6 +278,7 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
- 		media_device_unregister_entity(&sd->entity);
- 	}
- #endif
-+	v4l2_dev = NULL;
- 	video_unregister_device(sd->devnode);
- 	module_put(sd->owner);
- }
--- 
-1.7.9.5
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-=
+core/videobuf2-core.c
+index f9059bb..ac5026a 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1943,14 +1943,15 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, =
+struct v4l2_buffer *b, bool n
+=20
+ 	call_vb_qop(vb, buf_finish, vb);
+=20
+-	/* Fill buffer information for the userspace */
+-	__fill_v4l2_buffer(vb, b);
+ 	/* Remove from videobuf queue */
+ 	list_del(&vb->queued_entry);
+ 	q->queued_count--;
+ 	/* go back to dequeued state */
+ 	__vb2_dqbuf(vb);
+=20
++	/* Fill buffer information for the userspace */
++	__fill_v4l2_buffer(vb, b);
++
+ 	dprintk(1, "dqbuf of buffer %d, with state %d\n",
+ 			vb->v4l2_buf.index, vb->state);
+=20
+--=20
+1.9.0
+
+
+
+--=-b0XBOUakKoYEgxc3juAQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iEYEABECAAYFAlNO2y8ACgkQcVMCLawGqBw+OACgz4oUdzGXE9jC1snkKQN0IITg
+ZPAAnRW+CSQdvRb7+uoEfgwV72ZDkM23
+=ANUY
+-----END PGP SIGNATURE-----
+
+--=-b0XBOUakKoYEgxc3juAQ--
 
