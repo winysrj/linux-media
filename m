@@ -1,165 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:33506 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750972AbaDONmk (ORCPT
+Received: from mail-vc0-f170.google.com ([209.85.220.170]:50844 "EHLO
+	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161487AbaDPOgn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 09:42:40 -0400
+	Wed, 16 Apr 2014 10:36:43 -0400
 MIME-Version: 1.0
-In-Reply-To: <534D3001.2030707@samsung.com>
-References: <1397554040-4037-1-git-send-email-t.stanislaws@samsung.com>
-	<1397554040-4037-5-git-send-email-t.stanislaws@samsung.com>
-	<CAPdUM4NysWMpy3PZhJdKXFa96Oy4kG4dKkDdrabbAmM3+f5kag@mail.gmail.com>
-	<534D3001.2030707@samsung.com>
-Date: Tue, 15 Apr 2014 19:12:38 +0530
-Message-ID: <CAPdUM4PCDC8J5k2uNv6DYf8FzXKcNcm7JQZ-cbAzmXzx9YDAAw@mail.gmail.com>
-Subject: Re: [PATCHv2 4/4] drm: exynos: hdmi: add support for pixel clock limitation
-From: Rahul Sharma <r.sh.open@gmail.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>, b.zolnierkie@samsung.com,
-	"sw0312.kim" <sw0312.kim@samsung.com>,
-	sunil joshi <joshi@samsung.com>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	m.chehab@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Rahul Sharma <rahul.sharma@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <534E90D5.7030809@xs4all.nl>
+References: <1397653162-10179-1-git-send-email-arun.kk@samsung.com>
+	<4943000.PTOl0cPirQ@avalon>
+	<534E90D5.7030809@xs4all.nl>
+Date: Wed, 16 Apr 2014 20:06:42 +0530
+Message-ID: <CALt3h7_=ASEhEtGA1DXbozhbdRrGbBLFxeUdoa=OyvHrezSagA@mail.gmail.com>
+Subject: Re: [PATCH 1/2] v4l: Add resolution change event.
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Pawel Osciak <posciak@chromium.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15 April 2014 18:41, Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
-> On 04/15/2014 11:42 AM, Rahul Sharma wrote:
->> Hi Tomasz,
+Hi Laurent and Hans,
+
+Thank you for the review.
+
+On Wed, Apr 16, 2014 at 7:46 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 04/16/2014 04:09 PM, Laurent Pinchart wrote:
+>> Hi Arun,
 >>
->> On 15 April 2014 14:57, Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
->>> Adds support for limitation of maximal pixel clock of HDMI
->>> signal. This feature is needed on boards that contains
->>> lines or bridges with frequency limitations.
+>> Thank you for the patch.
+>> On Wednesday 16 April 2014 18:29:21 Arun Kumar K wrote:
+>>> From: Pawel Osciak <posciak@chromium.org>
 >>>
->>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+>>> This event indicates that the decoder has reached a point in the stream,
+>>> at which the resolution changes. The userspace is expected to provide a new
+>>> set of CAPTURE buffers for the new format before decoding can continue.
+>>>
+>>> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+>>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 >>> ---
->>>  .../devicetree/bindings/video/exynos_hdmi.txt      |    4 ++++
->>>  drivers/gpu/drm/exynos/exynos_hdmi.c               |   12 ++++++++++++
->>>  include/media/s5p_hdmi.h                           |    1 +
->>>  3 files changed, 17 insertions(+)
+>>>  .../DocBook/media/v4l/vidioc-subscribe-event.xml   |    8 ++++++++
+>>>  include/uapi/linux/videodev2.h                     |    1 +
+>>>  2 files changed, 9 insertions(+)
 >>>
->>> diff --git a/Documentation/devicetree/bindings/video/exynos_hdmi.txt b/Documentation/devicetree/bindings/video/exynos_hdmi.txt
->>> index f9187a2..8718f8d 100644
->>> --- a/Documentation/devicetree/bindings/video/exynos_hdmi.txt
->>> +++ b/Documentation/devicetree/bindings/video/exynos_hdmi.txt
->>> @@ -28,6 +28,10 @@ Required properties:
->>>  - ddc: phandle to the hdmi ddc node
->>>  - phy: phandle to the hdmi phy node
->>>
->>> +Optional properties:
->>> +- max-pixel-clock: used to limit the maximal pixel clock if a board has lines,
->>> +       connectors or bridges not capable of carring higher frequencies
->>> +
->>>  Example:
->>>
->>>         hdmi {
->>> diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
->>> index 2a18f4e..404f1b7 100644
->>> --- a/drivers/gpu/drm/exynos/exynos_hdmi.c
->>> +++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
->>> @@ -195,6 +195,7 @@ struct hdmi_context {
->>>         struct hdmi_resources           res;
->>>
->>>         int                             hpd_gpio;
->>> +       u32                             max_pixel_clock;
->>>
->>>         enum hdmi_type                  type;
->>>  };
->>> @@ -887,6 +888,9 @@ static int hdmi_mode_valid(struct drm_connector *connector,
->>>         if (ret)
->>>                 return MODE_BAD;
->>>
->>> +       if (mode->clock * 1000 > hdata->max_pixel_clock)
->>> +               return MODE_BAD;
->>> +
->>>         ret = hdmi_find_phy_conf(hdata, mode->clock * 1000);
->>>         if (ret < 0)
->>>                 return MODE_BAD;
->>> @@ -2031,6 +2035,8 @@ static struct s5p_hdmi_platform_data *drm_hdmi_dt_parse_pdata
->>>                 return NULL;
->>>         }
->>>
->>> +       of_property_read_u32(np, "max-pixel-clock", &pd->max_pixel_clock);
->>> +
->>>         return pd;
->>>  }
->>>
->>> @@ -2067,6 +2073,11 @@ static int hdmi_probe(struct platform_device *pdev)
->>>         if (!pdata)
->>>                 return -EINVAL;
->>>
->>> +       if (!pdata->max_pixel_clock) {
->>> +               DRM_INFO("max-pixel-clock is zero, using INF\n");
->>> +               pdata->max_pixel_clock = U32_MAX;
->>> +       }
->>> +
->>>         hdata = devm_kzalloc(dev, sizeof(struct hdmi_context), GFP_KERNEL);
->>>         if (!hdata)
->>>                 return -ENOMEM;
->>> @@ -2083,6 +2094,7 @@ static int hdmi_probe(struct platform_device *pdev)
->>>         hdata->type = drv_data->type;
->>>
->>>         hdata->hpd_gpio = pdata->hpd_gpio;
->>> +       hdata->max_pixel_clock = pdata->max_pixel_clock;
->>>         hdata->dev = dev;
->>>
->>>         ret = hdmi_resources_init(hdata);
->>> diff --git a/include/media/s5p_hdmi.h b/include/media/s5p_hdmi.h
->>> index 181642b..7272d65 100644
->>> --- a/include/media/s5p_hdmi.h
->>> +++ b/include/media/s5p_hdmi.h
->>> @@ -31,6 +31,7 @@ struct s5p_hdmi_platform_data {
->>>         int mhl_bus;
->>>         struct i2c_board_info *mhl_info;
->>>         int hpd_gpio;
->>> +       u32 max_pixel_clock;
->>>  };
+>>> diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>>> b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml index
+>>> 5c70b61..d848628 100644
+>>> --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>>> +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>>> @@ -155,6 +155,14 @@
+>>>          </entry>
+>>>        </row>
+>>>        <row>
+>>> +        <entry><constant>V4L2_EVENT_RESOLUTION_CHANGE</constant></entry>
+>>> +        <entry>5</entry>
+>>> +        <entry>This event is triggered when a resolution change is detected
+>>> +        during runtime by the video decoder. Application may need to
+>>> +        reinitialize buffers before proceeding further.
+>>> +        </entry>
+>>> +      </row>
 >>
->> We have already removed Non DT support from the drm hdmi
->> driver. IMO we should not be extending the pdata struct.
->>
->> Regards,
->> Rahul Sharma
+>> Would it make sense to report the new resolution in the event data ? I suppose
+>> it might not be available in all cases though. If we can't report it, would it
+>> make sense to document how applications should proceed to retrieve it ?
 >
-> Hi Rahul,
+> I wouldn't report that. We played with this in Cisco, and in the end you just
+> want to know something changed and you can take it from there. Besides, what
+> constitutes a 'resolution' change? If my HDMI input switches from 720p60 to
+> 720p30 the resolution stays the same, but I most definitely have to get the new
+> timings.
 >
-> This is not a non-DT patch. The s5p_hdmi_platform_data is
-> generated from DT itself. This structure is just
-> a parsed version of DT attributes.
+> So I would call the event something different: EVENT_SOURCE_CHANGE or something
+> like that.
 >
-> It may be a good idea to rename s5p_hdmi_platform_data
-> to exynos_hdmi_pdata and move it to exynos_hdmi_drm.c file
-> or parse DT directly in probe function.
+> Getting the new timings is done through QUERYSTD or QUERY_DV_TIMINGS.
 >
-> I can prepare a patch for that.
 
-Else we can completely remove the dependency from
-s5p_hdmi_platform_data. We can directly assign to hdmi context
-variables. Later we can remove that struct itself from include/.
-What you say?
+Ok will use the name V4L2_EVENT_SOURCE_CHANGE and update description
+to reflect the generic usecase (not just for video decoders).
 
-Regards,
-Rahul Sharma
+>> A similar resolution change event might be useful on subdevs, in which case we
+>> would need to add a pad number to the event data. We could possibly leave that
+>> for later, but it would be worth considering the problem already.
+>
+> Actually, I would add that right away. That's some thing that the adv7604
+> driver can implement right away: it has multiple inputs and it can detect
+> when something is plugged in or unplugged.
+>
 
->
-> Regards,
-> Tomasz Stanislawski
->
->
->>
->>>
->>>  #endif /* S5P_HDMI_H */
->>> --
->>> 1.7.9.5
->>>
->>> _______________________________________________
->>> dri-devel mailing list
->>> dri-devel@lists.freedesktop.org
->>> http://lists.freedesktop.org/mailman/listinfo/dri-devel
->
+Ok will add support for mentioning pad number in event data.
+
+Regards
+Arun
