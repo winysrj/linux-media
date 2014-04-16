@@ -1,63 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:53851 "EHLO
-	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756121AbaDHNFk (ORCPT
+Received: from mailex.mailcore.me ([94.136.40.62]:56283 "EHLO
+	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754083AbaDPSPR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Apr 2014 09:05:40 -0400
-Received: from compute1.internal (compute1.nyi.mail.srv.osa [10.202.2.41])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id E273920F12
-	for <linux-media@vger.kernel.org>; Tue,  8 Apr 2014 09:05:39 -0400 (EDT)
-Message-ID: <5343F421.8040006@williammanley.net>
-Date: Tue, 08 Apr 2014 14:05:37 +0100
-From: William Manley <will@williammanley.net>
+	Wed, 16 Apr 2014 14:15:17 -0400
+Date: Wed, 16 Apr 2014 19:15:08 +0100
+Subject: Re: Hauppauge ImpactVCB-e 01385
+Message-ID: <xjuifxk76a4wghmign4a5brq.1397672108211@email.android.com>
+From: Steve Cookson <it@sca-uk.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Steven Toth <stoth@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] uvcvideo: Work around buggy Logitech C920 firmware
-References: <1394647711-25291-1-git-send-email-will@williammanley.net> <1394714328-29969-1-git-send-email-will@williammanley.net> <533209A1.5090806@williammanley.net> <3163919.oZbdpQdqrg@avalon>
-In-Reply-To: <3163919.oZbdpQdqrg@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25/03/14 23:03, Laurent Pinchart wrote:
-> Hi William,
-> 
-> On Tuesday 25 March 2014 22:56:33 William Manley wrote:
->> On 13/03/14 12:38, William Manley wrote:
->>> The uvcvideo webcam driver exposes the v4l2 control "Exposure (Absolute)"
->>> which allows the user to control the exposure time of the webcam,
->>> essentially controlling the brightness of the received image.  By default
->>> the webcam automatically adjusts the exposure time automatically but the
->>> if you set the control "Exposure, Auto"="Manual Mode" the user can fix
->>> the exposure time.
->>>
->>> Unfortunately it seems that the Logitech C920 has a firmware bug where
->>> it will forget that it's in manual mode temporarily during initialisation.
->>> This means that the camera doesn't respect the exposure time that the user
->>> requested if they request it before starting to stream video.  They end up
->>> with a video stream which is either too bright or too dark and must reset
->>> the controls after video starts streaming.
->>>
->>> This patch introduces the quirk UVC_QUIRK_RESTORE_CTRLS_ON_INIT which
->>> causes the cached controls to be re-uploaded to the camera immediately
->>> after initialising the camera.  This quirk is applied to the C920 to work
->>> around this camera bug.
->>>
->>> Changes since patch v1:
->>>  * Introduce quirk so workaround is only applied to the C920.
->>>
->>> Signed-off-by: William Manley <will@williammanley.net>
->>
->> Bump?
-> 
-> Sorry, I haven't had the time to handle your patch yet. I'll try to do so on 
-> Thursday or Friday.
-
-Apologies for the nagging: What's the current status?
-
-Thanks
-
-Will
+SGkgSGFucywKCldlbGwgSSdsbCBjb25maXJtIHRoYXQgdG9tb3Jyb3cuIFRvIG1lIGl0IGxvb2tz
+IGxpa2UgMzIweDI0MCBzY2FsZWQgd2l0aCBhIGNvcnJlc3BvbmRpbmcgbG9zcyBvZiBkZXRhaWwu
+CgpJJ2xsIHNlZSBpZiBJIGNhbiBmaW5kIGEgbmljZSB0ZXN0IGltYWdlIHRvIHVzZSB0byBzaG93
+IHRoZSBkaWZmZXJlbmNlIGNsZWFybHkgaW4gY29tcGFyaXNvbiB0byB0aGUgc3RrMTE2MCBhdCB0
+aGUgc2FtZSByZXNvbHV0aW9uLiBUaGUgSW1wYWN0VkNCLWUgc2hvdWxkIGJlIGJldHRlciBidXQg
+aXQgaXNuJ3QuIFRoZSBzdGsxMTYwIHMtdmlkZW8gYXQgNjQweDQ4MCBpcyBtdWNoIGJldHRlciB0
+aGFuIHRoZSBJbXBhY3RWQ0ItZSBvbiBlaXRoZXIgY29tcG9zaXRlIG9yIHMtdmlkZW8uCgpSZWdh
+cmRzCgpIYW5zIFZlcmt1aWwgPGh2ZXJrdWlsQHhzNGFsbC5ubD4gd3JvdGU6Cgo+T24gMDQvMTYv
+MjAxNCAwNzoxMSBQTSwgU3RldmUgQ29va3NvbiB3cm90ZToKPj4gSGkgR3V5cywKPj4gCj4+IE9u
+IDE0LzA0LzE0IDE1OjAyLCBIYW5zIFZlcmt1aWwgd3JvdGU6Cj4+IAo+PiAgPiBJJ2QgYXBwcmVj
+aWF0ZSBpdCBpZiB5b3UgY2FuIHRlc3QgdGhpcyB3aXRoIGEgcHJvcGVyIHZpZGVvIGZlZWQuCj4+
+IAo+PiBPaywgaGVyZSBpcyB0aGUgZmlyc3QgaXNzdWU6Cj4+IAo+PiAxKSBJIGhhdmUgYSA2NDB4
+NDgwIHZpZGVvIGZlZWQgd2hpY2ggZGlzcGxheXMgYXBwcm9wcmlhdGVseSB0aHJvdWdoIAo+PiBz
+dGsxMTYwLCBidXQgb25seSBkaXNwbGF5cyBhdCAzMjB4MjQwIGluIEltcGFjdFZDQmUuCj4+IAo+
+PiBJbiBmYWN0IHRoaXMgaXMgdGhlIHNhbWUgaXNzdWUgSSBoYWQgbGFzdCB5ZWFyIHdpdGg6Cj4+
+IAo+PiBlY2hvIGN4MjM4ODUgY2FyZD01IHwgc3VkbyB0ZWUgLWEgL2V0Yy9tb2R1bGVzCj4+IAo+
+PiBJcyB5b3VyIGNhcmQgZ2l2aW5nIHlvdSA2NDB4NDgwPwo+Cj5Gb3Igbm8gZ29vZCByZWFzb24g
+QUZBSUNUIHRoZSBpbml0aWFsIHJlc29sdXRpb24gaXMgc2V0IHRvIDMyMHgyNDAuIEJ1dAo+eW91
+IGNhbiBqdXN0IHNldCBpdCB0byA2NDB4NDgwIChvciBtb3JlIGxpa2VseSwgNzIweDQ4MCBmb3Ig
+TlRTQyBvcgo+NzIweDU3NiBmb3IgUEFMKToKPgo+djRsMi1jdGwgLXYgd2lkdGg9NjQwLGhlaWdo
+dD00ODAKPgo+UmVnYXJkcywKPgo+CUhhbnMKPi0tCj5UbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMg
+bGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtbWVkaWEiIGluCj50aGUgYm9k
+eSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+TW9yZSBtYWpvcmRv
+bW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCg==
 
