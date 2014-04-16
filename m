@@ -1,111 +1,279 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vserver.eikelenboom.it ([84.200.39.61]:39969 "EHLO
-	smtp.eikelenboom.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753851AbaD1TLe (ORCPT
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:50434 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756749AbaDPVWa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Apr 2014 15:11:34 -0400
-Date: Mon, 28 Apr 2014 20:45:27 +0200
-From: Sander Eikelenboom <linux@eikelenboom.it>
-Message-ID: <61399916.20140428204527@eikelenboom.it>
-To: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: WARNING: CPU: 0 PID: 3918 at drivers/media/v4l2-core/videobuf2-core.c:2094 __vb2_queue_cancel+0x11d/0x180()
+	Wed, 16 Apr 2014 17:22:30 -0400
+Received: by mail-ee0-f49.google.com with SMTP id c41so9171842eek.22
+        for <linux-media@vger.kernel.org>; Wed, 16 Apr 2014 14:22:29 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH] libdvbv5: improve DVB header handling
+Date: Wed, 16 Apr 2014 23:22:10 +0200
+Message-Id: <1397683330-5256-1-git-send-email-neolynx@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+the table parsers now initialize the complete table,
+and do no longer rely on an already initialized table
+header in the supplied buffer.
 
-With a 3.15-rc3 kernel i seem to reliably trigger these warnings (which don't 
-trigger on 3.14.2) when stopping a video stream. They don't seem to cause to 
-much havoc because the devices are still usable after this.
+adds section length checking in PAT as well.
 
-It seems to happen with both this syntek device as with em28xx devices.
+Signed-off-by: André Roth <neolynx@gmail.com>
+---
+ lib/include/libdvbv5/header.h  |  2 +-
+ lib/libdvbv5/dvb-scan.c        | 31 +++++++++++++++----------------
+ lib/libdvbv5/tables/atsc_eit.c |  1 +
+ lib/libdvbv5/tables/cat.c      |  1 +
+ lib/libdvbv5/tables/eit.c      |  1 +
+ lib/libdvbv5/tables/header.c   |  3 +--
+ lib/libdvbv5/tables/mgt.c      |  1 +
+ lib/libdvbv5/tables/nit.c      |  1 +
+ lib/libdvbv5/tables/pat.c      | 11 ++++++++++-
+ lib/libdvbv5/tables/pmt.c      |  1 +
+ lib/libdvbv5/tables/sdt.c      |  1 +
+ lib/libdvbv5/tables/vct.c      |  1 +
+ 12 files changed, 35 insertions(+), 20 deletions(-)
 
---
-Sander
-
-[  264.705467] stk1160: queue_setup: buffer count 8, each 691200 bytes
-[  264.728032] stk1160: queue_setup: buffer count 8, each 691200 bytes
-[  264.736159] stk1160: queue_setup: buffer count 8, each 691200 bytes
-[  264.744373] stk1160: setting alternate 5
-[  264.748274] stk1160: minimum isoc packet size: 3072 (alt=5)
-[  264.753377] stk1160: setting alt 5 with wMaxPacketSize=3072
-[  264.758958] stk1160: allocating urbs...
-[  264.765254] stk1160: 16 urbs allocated
-[  264.772243] stk1160: streaming started
-[  270.523114] stk1160: killing 16 urbs...
-[  270.656992] stk1160: all urbs killed
-[  270.660639] stk1160: freeing 16 urb buffers...
-[  270.664925] stk1160: all urb buffers freed
-[  270.668891] stk1160: setting alternate 0
-[  270.675200] stk1160: buffer [ffff88003b865000/7] aborted
-[  270.678496] stk1160: buffer [ffff88003b866400/0] aborted
-[  270.678496] stk1160: buffer [ffff88003b864400/1] aborted
-[  270.678496] stk1160: buffer [ffff88003b861000/2] aborted
-[  270.678496] stk1160: buffer [ffff88003b863800/3] aborted
-[  270.678496] stk1160: buffer [ffff88003b861c00/4] aborted
-[  270.700760] stk1160: streaming stopped
-[  270.703414] ------------[ cut here ]------------
-[  270.706603] WARNING: CPU: 0 PID: 3918 at drivers/media/v4l2-core/videobuf2-core.c:2094 __vb2_queue_cancel+0x11d/0x180()
-[  270.713272] Modules linked in:
-[  270.715907] CPU: 0 PID: 3918 Comm: videograbber.py Not tainted 3.15.0-rc3-security-20140428-v4lall-stkpatch+ #1
-[  270.721578] Hardware name: Xen HVM domU, BIOS 4.5-unstable 04/21/2014
-[  270.725238]  0000000000000009 ffff88003d589c48 ffffffff81c5277e 0000000000000000
-[  270.731505]  ffff88003d589c80 ffffffff810e4aa3 0000000000000000 0000000000000001
-[  270.737774]  0000000000000000 ffff88003c3b13e0 0000000000000000 ffff88003d589c90
-[  270.744021] Call Trace:
-[  270.746022]  [<ffffffff81c5277e>] dump_stack+0x45/0x56
-[  270.749420]  [<ffffffff810e4aa3>] warn_slowpath_common+0x73/0x90
-[  270.753934]  [<ffffffff810e4b75>] warn_slowpath_null+0x15/0x20
-[  270.758987]  [<ffffffff8185067d>] __vb2_queue_cancel+0x11d/0x180
-[  270.764168]  [<ffffffff81850766>] vb2_ioctl_streamoff+0x56/0x60
-[  270.769276]  [<ffffffff81838785>] v4l_streamoff+0x15/0x20
-[  270.774037]  [<ffffffff8183c2c4>] __video_do_ioctl+0x294/0x310
-[  270.779124]  [<ffffffff81bdd2f6>] ? unix_stream_sendmsg+0x3a6/0x3e0
-[  270.784460]  [<ffffffff8183bd50>] video_usercopy+0x1f0/0x4b0
-[  270.789411]  [<ffffffff8183c030>] ? video_ioctl2+0x20/0x20
-[  270.794193]  [<ffffffff81ae0e1f>] ? sock_aio_write+0xcf/0xe0
-[  270.799136]  [<ffffffff811771eb>] ? free_pages.part.69+0x3b/0x40
-[  270.804299]  [<ffffffff8118fe6d>] ? tlb_finish_mmu+0x2d/0x40
-[  270.809194]  [<ffffffff8183c020>] video_ioctl2+0x10/0x20
-[  270.813879]  [<ffffffff818375ff>] v4l2_ioctl+0x10f/0x150
-[  270.818407]  [<ffffffff811d62e0>] do_vfs_ioctl+0x2e0/0x4c0
-[  270.822878]  [<ffffffff811c4b1c>] ? vfs_write+0x17c/0x1e0
-[  270.827387]  [<ffffffff811d64fc>] SyS_ioctl+0x3c/0x80
-[  270.831927]  [<ffffffff81c687b9>] system_call_fastpath+0x16/0x1b
-[  270.837545] ---[ end trace 8d6b91c80125b9e2 ]---
-[  270.842103] ------------[ cut here ]------------
-[  270.846562] WARNING: CPU: 0 PID: 3918 at drivers/media/v4l2-core/videobuf2-core.c:1165 vb2_buffer_done+0x163/0x170()
-[  270.856204] Modules linked in:
-[  270.859787] CPU: 0 PID: 3918 Comm: videograbber.py Tainted: G        W     3.15.0-rc3-security-20140428-v4lall-stkpatch+ #1
-[  270.868591] Hardware name: Xen HVM domU, BIOS 4.5-unstable 04/21/2014
-[  270.873886]  0000000000000009 ffff88003d589c10 ffffffff81c5277e 0000000000000000
-[  270.882386]  ffff88003d589c48 ffffffff810e4aa3 ffff88003b863000 ffff88003c3b1460
-[  270.890943]  0000000000000000 ffff88003c3b13e0 0000000000000003 ffff88003d589c58
-[  270.899446] Call Trace:
-[  270.902102]  [<ffffffff81c5277e>] dump_stack+0x45/0x56
-[  270.906634]  [<ffffffff810e4aa3>] warn_slowpath_common+0x73/0x90
-[  270.911926]  [<ffffffff810e4b75>] warn_slowpath_null+0x15/0x20
-[  270.916783]  [<ffffffff8184f493>] vb2_buffer_done+0x163/0x170
-[  270.921378]  [<ffffffff818506b7>] __vb2_queue_cancel+0x157/0x180
-[  270.926030]  [<ffffffff81850766>] vb2_ioctl_streamoff+0x56/0x60
-[  270.931019]  [<ffffffff81838785>] v4l_streamoff+0x15/0x20
-[  270.935648]  [<ffffffff8183c2c4>] __video_do_ioctl+0x294/0x310
-[  270.940571]  [<ffffffff81bdd2f6>] ? unix_stream_sendmsg+0x3a6/0x3e0
-[  270.945806]  [<ffffffff8183bd50>] video_usercopy+0x1f0/0x4b0
-[  270.950581]  [<ffffffff8183c030>] ? video_ioctl2+0x20/0x20
-[  270.955479]  [<ffffffff81ae0e1f>] ? sock_aio_write+0xcf/0xe0
-[  270.960517]  [<ffffffff811771eb>] ? free_pages.part.69+0x3b/0x40
-[  270.965703]  [<ffffffff8118fe6d>] ? tlb_finish_mmu+0x2d/0x40
-[  270.970702]  [<ffffffff8183c020>] video_ioctl2+0x10/0x20
-[  270.975462]  [<ffffffff818375ff>] v4l2_ioctl+0x10f/0x150
-[  270.980200]  [<ffffffff811d62e0>] do_vfs_ioctl+0x2e0/0x4c0
-[  270.985080]  [<ffffffff811c4b1c>] ? vfs_write+0x17c/0x1e0
-[  270.989909]  [<ffffffff811d64fc>] SyS_ioctl+0x3c/0x80
-[  270.994470]  [<ffffffff81c687b9>] system_call_fastpath+0x16/0x1b
-[  270.999670] ---[ end trace 8d6b91c80125b9e3 ]---
+diff --git a/lib/include/libdvbv5/header.h b/lib/include/libdvbv5/header.h
+index dc85f46..856e4dc 100644
+--- a/lib/include/libdvbv5/header.h
++++ b/lib/include/libdvbv5/header.h
+@@ -71,7 +71,7 @@ struct dvb_v5_fe_parms;
+ extern "C" {
+ #endif
+ 
+-int  dvb_table_header_init (struct dvb_table_header *t);
++void dvb_table_header_init (struct dvb_table_header *t);
+ void dvb_table_header_print(struct dvb_v5_fe_parms *parms, const struct dvb_table_header *t);
+ 
+ #ifdef __cplusplus
+diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
+index b16f4c4..dfb597a 100644
+--- a/lib/libdvbv5/dvb-scan.c
++++ b/lib/libdvbv5/dvb-scan.c
+@@ -168,39 +168,38 @@ void dvb_table_filter_free(struct dvb_table_filter *sect)
+ 
+ static int dvb_parse_section(struct dvb_v5_fe_parms *parms,
+ 			     struct dvb_table_filter *sect,
+-			     uint8_t *buf, ssize_t buf_length)
++			     const uint8_t *buf, ssize_t buf_length)
+ {
+-	struct dvb_table_header *h;
++	struct dvb_table_header h;
+ 	struct dvb_table_filter_priv *priv;
+-
+ 	unsigned char tid;
+ 
+-	h = (struct dvb_table_header *)buf;
+-	dvb_table_header_init(h);
++	memcpy(&h, buf, sizeof(struct dvb_table_header));
++	dvb_table_header_init(&h);
+ 
+ 	if (parms->verbose)
+ 		dvb_log("%s: received table 0x%02x, TS ID 0x%04x, section %d/%d",
+-			__func__, h->table_id, h->id, h->section_id, h->last_section);
++			__func__, h.table_id, h.id, h.section_id, h.last_section);
+ 
+-	if (sect->tid != h->table_id) {
++	if (sect->tid != h.table_id) {
+ 		dvb_logdbg("%s: couldn't match ID %d at the active section filters",
+-			   __func__, h->table_id);
++			   __func__, h.table_id);
+ 		return -1;
+ 	}
+ 	priv = sect->priv;
+-	tid = h->table_id;
++	tid = h.table_id;
+ 
+ 	if (priv->first_ts_id < 0)
+-		priv->first_ts_id = h->id;
++		priv->first_ts_id = h.id;
+ 	if (priv->first_section < 0)
+-		priv->first_section = h->section_id;
++		priv->first_section = h.section_id;
+ 	if (priv->last_section < 0)
+-		priv->last_section = h->last_section;
++		priv->last_section = h.last_section;
+ 	else { /* Check if the table was already parsed, but not on first pass */
+ 		if (!sect->allow_section_gaps && sect->ts_id != -1) {
+-			if (test_bit(h->section_id, priv->is_read_bits))
++			if (test_bit(h.section_id, priv->is_read_bits))
+ 				return 0;
+-		} else if (priv->first_ts_id == h->id && priv->first_section == h->section_id) {
++		} else if (priv->first_ts_id == h.id && priv->first_section == h.section_id) {
+ 			/* tables like EIT can increment sections by gaps > 1.
+ 			 * in this case, reading is done when a already read
+ 			 * table is reached. */
+@@ -213,13 +212,13 @@ static int dvb_parse_section(struct dvb_v5_fe_parms *parms,
+ 
+ 	/* search for an specific TS ID */
+ 	if (sect->ts_id != -1) {
+-		if (h->id != sect->ts_id)
++		if (h.id != sect->ts_id)
+ 			return 0;
+ 	}
+ 
+ 	/* handle the sections */
+ 	if (!sect->allow_section_gaps && sect->ts_id != -1)
+-		set_bit(h->section_id, priv->is_read_bits);
++		set_bit(h.section_id, priv->is_read_bits);
+ 
+ 	if (dvb_table_initializers[tid])
+ 		dvb_table_initializers[tid](parms, buf, buf_length - DVB_CRC_SIZE,
+diff --git a/lib/libdvbv5/tables/atsc_eit.c b/lib/libdvbv5/tables/atsc_eit.c
+index cf69fff..6a7c4d2 100644
+--- a/lib/libdvbv5/tables/atsc_eit.c
++++ b/lib/libdvbv5/tables/atsc_eit.c
+@@ -54,6 +54,7 @@ ssize_t atsc_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	eit = *table;
+ 	memcpy(eit, p, size);
+ 	p += size;
++	dvb_table_header_init(&eit->header);
+ 
+ 	/* find end of curent list */
+ 	head = &eit->event;
+diff --git a/lib/libdvbv5/tables/cat.c b/lib/libdvbv5/tables/cat.c
+index f5887b2..4998307 100644
+--- a/lib/libdvbv5/tables/cat.c
++++ b/lib/libdvbv5/tables/cat.c
+@@ -53,6 +53,7 @@ ssize_t dvb_table_cat_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	cat = *table;
+ 	memcpy(cat, p, size);
+ 	p += size;
++	dvb_table_header_init(&cat->header);
+ 
+ 	/* find end of current lists */
+ 	head_desc = &cat->descriptor;
+diff --git a/lib/libdvbv5/tables/eit.c b/lib/libdvbv5/tables/eit.c
+index ff68536..b17ff32 100644
+--- a/lib/libdvbv5/tables/eit.c
++++ b/lib/libdvbv5/tables/eit.c
+@@ -57,6 +57,7 @@ ssize_t dvb_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	eit = *table;
+ 	memcpy(eit, p, size);
+ 	p += size;
++	dvb_table_header_init(&eit->header);
+ 
+ 	bswap16(eit->transport_id);
+ 	bswap16(eit->network_id);
+diff --git a/lib/libdvbv5/tables/header.c b/lib/libdvbv5/tables/header.c
+index 883283f..14b2372 100644
+--- a/lib/libdvbv5/tables/header.c
++++ b/lib/libdvbv5/tables/header.c
+@@ -23,11 +23,10 @@
+ #include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
+ 
+-int dvb_table_header_init(struct dvb_table_header *t)
++void dvb_table_header_init(struct dvb_table_header *t)
+ {
+ 	bswap16(t->bitfield);
+ 	bswap16(t->id);
+-	return 0;
+ }
+ 
+ void dvb_table_header_print(struct dvb_v5_fe_parms *parms, const struct dvb_table_header *t)
+diff --git a/lib/libdvbv5/tables/mgt.c b/lib/libdvbv5/tables/mgt.c
+index ffdea53..b2d59d6 100644
+--- a/lib/libdvbv5/tables/mgt.c
++++ b/lib/libdvbv5/tables/mgt.c
+@@ -55,6 +55,7 @@ ssize_t atsc_table_mgt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	mgt = *table;
+ 	memcpy(mgt, p, size);
+ 	p += size;
++	dvb_table_header_init(&mgt->header);
+ 
+ 	bswap16(mgt->tables);
+ 
+diff --git a/lib/libdvbv5/tables/nit.c b/lib/libdvbv5/tables/nit.c
+index 243506d..08b156c 100644
+--- a/lib/libdvbv5/tables/nit.c
++++ b/lib/libdvbv5/tables/nit.c
+@@ -54,6 +54,7 @@ ssize_t dvb_table_nit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	nit = *table;
+ 	memcpy(nit, p, size);
+ 	p += size;
++	dvb_table_header_init(&nit->header);
+ 
+ 	bswap16(nit->bitfield);
+ 
+diff --git a/lib/libdvbv5/tables/pat.c b/lib/libdvbv5/tables/pat.c
+index 29dbfff..03b75b0 100644
+--- a/lib/libdvbv5/tables/pat.c
++++ b/lib/libdvbv5/tables/pat.c
+@@ -54,12 +54,21 @@ ssize_t dvb_table_pat_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	pat = *table;
+ 	memcpy(pat, buf, size);
+ 	p += size;
++	dvb_table_header_init(&pat->header);
+ 
+ 	/* find end of current list */
+ 	head = &pat->program;
+ 	while (*head != NULL)
+ 		head = &(*head)->next;
+ 
++	size = pat->header.section_length + 3 - DVB_CRC_SIZE; /* plus header, minus CRC */
++	if (buf + size > endbuf) {
++		dvb_logerr("%s: short read %zd/%zd bytes", __func__,
++			   endbuf - buf, size);
++		return -4;
++	}
++	endbuf = buf + size;
++
+ 	size = offsetof(struct dvb_table_pat_program, next);
+ 	while (p + size <= endbuf) {
+ 		struct dvb_table_pat_program *prog;
+@@ -67,7 +76,7 @@ ssize_t dvb_table_pat_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		prog = malloc(sizeof(struct dvb_table_pat_program));
+ 		if (!prog) {
+ 			dvb_logerr("%s: out of memory", __func__);
+-			return -4;
++			return -5;
+ 		}
+ 
+ 		memcpy(prog, p, size);
+diff --git a/lib/libdvbv5/tables/pmt.c b/lib/libdvbv5/tables/pmt.c
+index 305d9e8..d2e2693 100644
+--- a/lib/libdvbv5/tables/pmt.c
++++ b/lib/libdvbv5/tables/pmt.c
+@@ -57,6 +57,7 @@ ssize_t dvb_table_pmt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	pmt = *table;
+ 	memcpy(pmt, p, size);
+ 	p += size;
++	dvb_table_header_init(&pmt->header);
+ 	bswap16(pmt->bitfield);
+ 	bswap16(pmt->bitfield2);
+ 
+diff --git a/lib/libdvbv5/tables/sdt.c b/lib/libdvbv5/tables/sdt.c
+index 4285a9a..d27cec8 100644
+--- a/lib/libdvbv5/tables/sdt.c
++++ b/lib/libdvbv5/tables/sdt.c
+@@ -54,6 +54,7 @@ ssize_t dvb_table_sdt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	sdt = *table;
+ 	memcpy(sdt, p, size);
+ 	p += size;
++	dvb_table_header_init(&sdt->header);
+ 	bswap16(sdt->network_id);
+ 
+ 	/* find end of curent list */
+diff --git a/lib/libdvbv5/tables/vct.c b/lib/libdvbv5/tables/vct.c
+index e6bc1a2..e761a7d 100644
+--- a/lib/libdvbv5/tables/vct.c
++++ b/lib/libdvbv5/tables/vct.c
+@@ -56,6 +56,7 @@ ssize_t atsc_table_vct_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 	vct = *table;
+ 	memcpy(vct, p, size);
+ 	p += size;
++	dvb_table_header_init(&vct->header);
+ 
+ 	/* find end of curent list */
+ 	head = &vct->channel;
+-- 
+1.9.1
 
