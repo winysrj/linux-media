@@ -1,41 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52434 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753938AbaDCWiH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 15/25] omap3isp: queue: Fix the dma_map_sg() return value check
-Date: Fri,  4 Apr 2014 00:39:45 +0200
-Message-Id: <1396564795-27192-16-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40576 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755151AbaDPSXL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Apr 2014 14:23:11 -0400
+Date: Wed, 16 Apr 2014 21:23:08 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [yavta PATCH v3 00/11] Timestamp source and mem-to-mem device
+ support
+Message-ID: <20140416182307.GH8753@valkosipuli.retiisi.org.uk>
+References: <1397309043-8322-1-git-send-email-sakari.ailus@iki.fi>
+ <3531905.nrTue8ouRr@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3531905.nrTue8ouRr@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dma_map_sg() can merge sglist entries, and can thus return a number of
-mapped entries different than the original value. Don't consider this as
-an error.
+On Wed, Apr 16, 2014 at 08:21:54PM +0200, Laurent Pinchart wrote:
+> Applied with whitespace fixes and the following change to 07/11.
+> 
+> @@ -867,6 +868,9 @@ static int video_queue_buffer(struct device *dev,
+>  	buf.type = dev->type;
+>  	buf.memory = dev->memtype;
+>  
+> -	if (dev->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +	if (video_is_output(dev))
+>  		buf.flags = dev->buffer_output_flags;
+>  
+>  	if (video_is_mplane(dev)) {
+> 
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispqueue.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thank you!
 
-diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
-index 2fd254f..479d348 100644
---- a/drivers/media/platform/omap3isp/ispqueue.c
-+++ b/drivers/media/platform/omap3isp/ispqueue.c
-@@ -465,7 +465,7 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
- 			  ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
- 		ret = dma_map_sg(buf->queue->dev, buf->sgt.sgl,
- 				 buf->sgt.orig_nents, direction);
--		if (ret != buf->sgt.orig_nents) {
-+		if (ret <= 0) {
- 			ret = -EFAULT;
- 			goto done;
- 		}
 -- 
-1.8.3.2
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
