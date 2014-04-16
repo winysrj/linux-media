@@ -1,73 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52684 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753701AbaDCX2I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 19:28:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Paul Bolle <pebolle@tiscali.nl>
-Subject: [PATCH] omap4iss: Remove VIDEO_OMAP4_DEBUG Kconfig option
-Date: Fri,  4 Apr 2014 01:30:07 +0200
-Message-Id: <1396567807-32564-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mailex.mailcore.me ([94.136.40.62]:53215 "EHLO
+	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751082AbaDPRLb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Apr 2014 13:11:31 -0400
+Message-ID: <534EB9BE.60102@sca-uk.com>
+Date: Wed, 16 Apr 2014 18:11:26 +0100
+From: Steve Cookson <it@sca-uk.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Steven Toth <stoth@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Hauppauge ImpactVCB-e 01385
+References: <534675E1.6050408@sca-uk.com> <5347B132.6040206@sca-uk.com> <5347B9A3.2050301@xs4all.nl> <5347BDDE.6080208@sca-uk.com> <5347C57B.7000207@xs4all.nl> <5347DD94.1070000@sca-uk.com> <5347E2AF.6030205@xs4all.nl> <5347EB5D.2020408@sca-uk.com> <5347EC3D.7040107@xs4all.nl> <5348392E.40808@sca-uk.com> <534BEA8A.2040604@xs4all.nl>
+In-Reply-To: <534BEA8A.2040604@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The option was supposed to control the definition of the DEBUG macro in
-the Makefile but has been left unused by mistake. Given that debugging
-should be enabled using dynamic printk, remote the Kconfig option.
+Hi Guys,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/staging/media/omap4iss/Kconfig | 6 ------
- drivers/staging/media/omap4iss/iss.c   | 6 +++---
- 2 files changed, 3 insertions(+), 9 deletions(-)
+On 14/04/14 15:02, Hans Verkuil wrote:
 
-diff --git a/drivers/staging/media/omap4iss/Kconfig b/drivers/staging/media/omap4iss/Kconfig
-index b9fe753..78b0fba 100644
---- a/drivers/staging/media/omap4iss/Kconfig
-+++ b/drivers/staging/media/omap4iss/Kconfig
-@@ -4,9 +4,3 @@ config VIDEO_OMAP4
- 	select VIDEOBUF2_DMA_CONTIG
- 	---help---
- 	  Driver for an OMAP 4 ISS controller.
--
--config VIDEO_OMAP4_DEBUG
--	bool "OMAP 4 Camera debug messages"
--	depends on VIDEO_OMAP4
--	---help---
--	  Enable debug messages on OMAP 4 ISS controller driver.
-diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-index 61fbfcd..219519d 100644
---- a/drivers/staging/media/omap4iss/iss.c
-+++ b/drivers/staging/media/omap4iss/iss.c
-@@ -204,7 +204,7 @@ void omap4iss_configure_bridge(struct iss_device *iss,
- 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_CTRL, isp5ctrl_val);
- }
- 
--#if defined(DEBUG) && defined(ISS_ISR_DEBUG)
-+#ifdef ISS_ISR_DEBUG
- static void iss_isr_dbg(struct iss_device *iss, u32 irqstatus)
- {
- 	static const char * const name[] = {
-@@ -347,14 +347,14 @@ static irqreturn_t iss_isr(int irq, void *_iss)
- 			omap4iss_resizer_isr(&iss->resizer,
- 					     isp_irqstatus & resizer_events);
- 
--#if defined(DEBUG) && defined(ISS_ISR_DEBUG)
-+#ifdef ISS_ISR_DEBUG
- 		iss_isp_isr_dbg(iss, isp_irqstatus);
- #endif
- 	}
- 
- 	omap4iss_flush(iss);
- 
--#if defined(DEBUG) && defined(ISS_ISR_DEBUG)
-+#ifdef ISS_ISR_DEBUG
- 	iss_isr_dbg(iss, irqstatus);
- #endif
- 
--- 
-Regards,
+ > I'd appreciate it if you can test this with a proper video feed.
 
-Laurent Pinchart
+Ok, here is the first issue:
 
+1) I have a 640x480 video feed which displays appropriately through 
+stk1160, but only displays at 320x240 in ImpactVCBe.
+
+In fact this is the same issue I had last year with:
+
+echo cx23885 card=5 | sudo tee -a /etc/modules
+
+Is your card giving you 640x480?
+
+Thanks
+
+Steve.
