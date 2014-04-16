@@ -1,138 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:42720 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755526AbaDPKfq (ORCPT
+Received: from mail-qc0-f176.google.com ([209.85.216.176]:39085 "EHLO
+	mail-qc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756193AbaDPNZK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Apr 2014 06:35:46 -0400
-Received: by mail-we0-f170.google.com with SMTP id w61so10769290wes.15
-        for <linux-media@vger.kernel.org>; Wed, 16 Apr 2014 03:35:44 -0700 (PDT)
-Date: Wed, 16 Apr 2014 11:35:40 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com, Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	SangYoung Son <hello.son@smasung.com>,
-	Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH/RFC v3 3/5] leds: Add support for max77693 mfd flash cell
-Message-ID: <20140416103540.GM4754@lee--X1>
-References: <1397228216-6657-1-git-send-email-j.anaszewski@samsung.com>
- <1397228216-6657-4-git-send-email-j.anaszewski@samsung.com>
+	Wed, 16 Apr 2014 09:25:10 -0400
+Received: by mail-qc0-f176.google.com with SMTP id m20so11768438qcx.7
+        for <linux-media@vger.kernel.org>; Wed, 16 Apr 2014 06:25:10 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1397228216-6657-4-git-send-email-j.anaszewski@samsung.com>
+In-Reply-To: <534E839C.6060203@xs4all.nl>
+References: <534675E1.6050408@sca-uk.com>
+	<5347B132.6040206@sca-uk.com>
+	<5347B9A3.2050301@xs4all.nl>
+	<5347BDDE.6080208@sca-uk.com>
+	<5347C57B.7000207@xs4all.nl>
+	<5347DD94.1070000@sca-uk.com>
+	<5347E2AF.6030205@xs4all.nl>
+	<5347EB5D.2020408@sca-uk.com>
+	<5347EC3D.7040107@xs4all.nl>
+	<5348392E.40808@sca-uk.com>
+	<534BEA8A.2040604@xs4all.nl>
+	<534D6241.5060903@sca-uk.com>
+	<534D68C2.6050902@xs4all.nl>
+	<534D7E24.4010602@sca-uk.com>
+	<534E5438.3030404@xs4all.nl>
+	<534E8225.6090804@sca-uk.com>
+	<534E839C.6060203@xs4all.nl>
+Date: Wed, 16 Apr 2014 09:25:10 -0400
+Message-ID: <CAGoCfiwMzQij8uaksshZH+q62kGJoOwKGHxiYhS0kk+KdtMK_A@mail.gmail.com>
+Subject: Re: Hauppauge ImpactVCB-e 01385
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Steve Cookson <it@sca-uk.com>, Steven Toth <stoth@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> This patch adds led-flash support to Maxim max77693 chipset.
-> A device can be exposed to user space through LED subsystem
-> sysfs interface or through V4L2 subdevice when the support
-> for V4L2 Flash sub-devices is enabled. Device supports up to
-> two leds which can work in flash and torch mode. Leds can
-> be triggered externally or by software.
-> 
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> Cc: SangYoung Son <hello.son@smasung.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> Cc: Lee Jones <lee.jones@linaro.org>
-> ---
->  drivers/leds/Kconfig         |   10 +
->  drivers/leds/Makefile        |    1 +
->  drivers/leds/leds-max77693.c |  794 ++++++++++++++++++++++++++++++++++++++++++
->  drivers/mfd/max77693.c       |    2 +-
->  include/linux/mfd/max77693.h |   38 ++
->  5 files changed, 844 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/leds/leds-max77693.c
+> Anyway, I would recommend that you make a safety copy of your modules
+> first (just in case :-) ), and then move all the newly install modules
+> to the right place.
 
-[...]
+Yeah, I generally recommend that in such cases you just "rm -rf
+/lib/modules/`uname -r`/kernel/drivers/media" before running "make
+install", so you know you're in a clean state (make a backup copy
+first though, just in case).  This avoids having to figure out which
+driver moved and the old version of which didn't get deleted.
 
-> diff --git a/drivers/mfd/max77693.c b/drivers/mfd/max77693.c
-> index c5535f0..f061aa8 100644
-> --- a/drivers/mfd/max77693.c
-> +++ b/drivers/mfd/max77693.c
-> @@ -44,7 +44,7 @@
->  static const struct mfd_cell max77693_devs[] = {
->  	{ .name = "max77693-pmic", },
->  	{ .name = "max77693-charger", },
-> -	{ .name = "max77693-flash", },
-> +	{ .name = "max77693-flash", .of_compatible = "maxim,max77693-flash", },
-
-I would prefer for this to be opened up i.e. not on one line.
-
->  	{ .name = "max77693-muic", },
->  	{ .name = "max77693-haptic", },
->  };
-> diff --git a/include/linux/mfd/max77693.h b/include/linux/mfd/max77693.h
-> index 3f3dc45..f2285b7 100644
-> --- a/include/linux/mfd/max77693.h
-> +++ b/include/linux/mfd/max77693.h
-> @@ -63,6 +63,43 @@ struct max77693_muic_platform_data {
->  	int path_uart;
->  };
->  
-> +/* MAX77693 led flash */
-> +
-> +/* triggers */
-> +enum max77693_led_trigger {
-> +	MAX77693_LED_TRIG_OFF,
-> +	MAX77693_LED_TRIG_FLASH,
-> +	MAX77693_LED_TRIG_TORCH,
-> +	MAX77693_LED_TRIG_EXT,
-> +	MAX77693_LED_TRIG_SOFT,
-> +};
-> +
-> +
-
-Extra '\n' here.
-
-> +/* trigger types */
-> +enum max77693_led_trigger_type {
-> +	MAX77693_LED_TRIG_TYPE_EDGE,
-> +	MAX77693_LED_TRIG_TYPE_LEVEL,
-> +};
-> +
-> +/* boost modes */
-> +enum max77693_led_boost_mode {
-> +	MAX77693_LED_BOOST_NONE,
-> +	MAX77693_LED_BOOST_ADAPTIVE,
-> +	MAX77693_LED_BOOST_FIXED,
-> +};
-> +
-> +struct max77693_led_platform_data {
-> +	u32 iout[4];
-> +	u32 trigger[4];
-> +	u32 trigger_type[2];
-> +	u32 timeout[2];
-> +	u32 boost_mode[2];
-> +	u32 boost_vout;
-> +	u32 low_vsys;
-> +};
-
-Bryan will have to review this.
-
-> +/* MAX77693 */
-> +
->  struct max77693_platform_data {
->  	/* regulator data */
->  	struct max77693_regulator_data *regulators;
-> @@ -70,5 +107,6 @@ struct max77693_platform_data {
->  
->  	/* muic data */
->  	struct max77693_muic_platform_data *muic_data;
-> +	struct max77693_led_platform_data *led_data;
->  };
->  #endif	/* __LINUX_MFD_MAX77693_H */
+Devin
 
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
