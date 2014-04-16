@@ -1,52 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:34929 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965070AbaDJHc2 (ORCPT
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:47818 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753240AbaDPM72 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 03:32:28 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N3T00LBJ0Y36U60@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Apr 2014 16:32:27 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH v2 2/8] s5p-jpeg: Perform fourcc downgrade only for Exynos4x12
- SoCs
-Date: Thu, 10 Apr 2014 09:32:12 +0200
-Message-id: <1397115138-1095-2-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1397115138-1095-1-git-send-email-j.anaszewski@samsung.com>
-References: <1397115138-1095-1-git-send-email-j.anaszewski@samsung.com>
+	Wed, 16 Apr 2014 08:59:28 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, s.nawrocki@samsung.com, hverkuil@xs4all.nl,
+	posciak@chromium.org, arunkk.samsung@gmail.com
+Subject: [PATCH 1/2] v4l: Add resolution change event.
+Date: Wed, 16 Apr 2014 18:29:21 +0530
+Message-Id: <1397653162-10179-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change the driver variant check from "is not S5PC210"
-to "is Exynos4" while checking whether YUV format needs
-to be downgraded in order to prevent upsampling which
-is not supported by Exynos4 SoCs family.
+From: Pawel Osciak <posciak@chromium.org>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+This event indicates that the decoder has reached a point in the stream,
+at which the resolution changes. The userspace is expected to provide a new
+set of CAPTURE buffers for the new format before decoding can continue.
+
+Signed-off-by: Pawel Osciak <posciak@chromium.org>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .../DocBook/media/v4l/vidioc-subscribe-event.xml   |    8 ++++++++
+ include/uapi/linux/videodev2.h                     |    1 +
+ 2 files changed, 9 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 3ae9210..d307c0f 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1070,7 +1070,7 @@ static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
- 	 * If this requirement is not met then downgrade the requested
- 	 * capture format to the one with subsampling equal to the input jpeg.
- 	 */
--	if ((ctx->jpeg->variant->version != SJPEG_S5P) &&
-+	if ((ctx->jpeg->variant->version == SJPEG_EXYNOS4) &&
- 	    (ctx->mode == S5P_JPEG_DECODE) &&
- 	    (fmt->flags & SJPEG_FMT_NON_RGB) &&
- 	    (fmt->subsampling < ctx->subsampling)) {
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+index 5c70b61..d848628 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+@@ -155,6 +155,14 @@
+ 	    </entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_EVENT_RESOLUTION_CHANGE</constant></entry>
++	    <entry>5</entry>
++	    <entry>This event is triggered when a resolution change is detected
++	    during runtime by the video decoder. Application may need to
++	    reinitialize buffers before proceeding further.
++	    </entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
+ 	    <entry>0x08000000</entry>
+ 	    <entry>Base event number for driver-private events.</entry>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 6ae7bbe..58488b7 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1733,6 +1733,7 @@ struct v4l2_streamparm {
+ #define V4L2_EVENT_EOS				2
+ #define V4L2_EVENT_CTRL				3
+ #define V4L2_EVENT_FRAME_SYNC			4
++#define V4L2_EVENT_RESOLUTION_CHANGE		5
+ #define V4L2_EVENT_PRIVATE_START		0x08000000
+ 
+ /* Payload for V4L2_EVENT_VSYNC */
 -- 
 1.7.9.5
 
