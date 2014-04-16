@@ -1,36 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailex.mailcore.me ([94.136.40.62]:53063 "EHLO
-	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750866AbaDORa0 (ORCPT
+Received: from mail-qg0-f42.google.com ([209.85.192.42]:53554 "EHLO
+	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756649AbaDPV6Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 13:30:26 -0400
-Message-ID: <534D6CAA.9020804@sca-uk.com>
-Date: Tue, 15 Apr 2014 18:30:18 +0100
-From: Steve Cookson <it@sca-uk.com>
+	Wed, 16 Apr 2014 17:58:25 -0400
+Date: Wed, 16 Apr 2014 17:58:21 -0400
+From: Tejun Heo <tj@kernel.org>
+To: Shuah Khan <shuah.kh@samsung.com>
+Cc: gregkh@linuxfoundation.org, m.chehab@samsung.com,
+	rafael.j.wysocki@intel.com, linux@roeck-us.net, toshi.kani@hp.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	shuahkhan@gmail.com
+Subject: Re: [RFC PATCH 2/2] drivers/base: add managed token devres interfaces
+Message-ID: <20140416215821.GG26632@htj.dyndns.org>
+References: <cover.1397050852.git.shuah.kh@samsung.com>
+ <5f21c7e53811aba63f86bcf3e3bfdfdd5aeedf59.1397050852.git.shuah.kh@samsung.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Steven Toth <stoth@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Hauppauge ImpactVCB-e 01385
-References: <534675E1.6050408@sca-uk.com> <5347B132.6040206@sca-uk.com> <5347B9A3.2050301@xs4all.nl> <5347BDDE.6080208@sca-uk.com> <5347C57B.7000207@xs4all.nl> <5347DD94.1070000@sca-uk.com> <5347E2AF.6030205@xs4all.nl> <5347EB5D.2020408@sca-uk.com> <5347EC3D.7040107@xs4all.nl> <5348392E.40808@sca-uk.com> <534BEA8A.2040604@xs4all.nl> <534D6241.5060903@sca-uk.com> <534D68C2.6050902@xs4all.nl>
-In-Reply-To: <534D68C2.6050902@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5f21c7e53811aba63f86bcf3e3bfdfdd5aeedf59.1397050852.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
 
-On 15/04/14 18:13, Hans Verkuil wrote:
-> Somewhat strange error message. Does 'dmesg' give you any useful info?
-I get this:
+On Wed, Apr 09, 2014 at 09:21:08AM -0600, Shuah Khan wrote:
+> +#define TOKEN_DEVRES_FREE	0
+> +#define TOKEN_DEVRES_BUSY	1
+> +
+> +struct token_devres {
+> +	int	status;
+> +	char	id[];
+> +};
 
-image@image-H61M-DS2:~$ dmesg | grep -i cx23885
-[   13.237914] cx23885: disagrees about version of symbol altera_init
-[   13.237917] cx23885: Unknown symbol altera_init (err -22)
-image@image-H61M-DS2:~$
+Please just do "bool busy" and drop the constants.
 
-There were altera_init issue in the dump I gave you earlier too.
+> +struct tkn_match {
+> +	int	status;
+> +	const	char *id;
+> +};
+> +
+> +static void __devm_token_lock(struct device *dev, void *data)
+> +{
+> +	struct token_devres *tptr = data;
+> +
+> +	if (tptr && tptr->status == TOKEN_DEVRES_FREE)
+> +		tptr->status = TOKEN_DEVRES_BUSY;
 
-Regards,
+How can this function be called with NULL @tptr and what why would you
+need to check tptr->status before assigning to it if the value is
+binary anyway?  And how is this supposed to work as locking if the
+outcome doesn't change depending on the current value?
 
-Steve.
+> +
+> +	return;
+
+No need to return from void function.
+
+> +static int devm_token_match(struct device *dev, void *res, void *data)
+> +{
+> +	struct token_devres *tkn = res;
+> +	struct tkn_match *mptr = data;
+> +	int rc;
+> +
+> +	if (!tkn || !data) {
+> +		WARN_ON(!tkn || !data);
+> +		return 0;
+> +	}
+
+How would the above be possible?
+
+> +
+> +	/* compare the token data and return 1 if it matches */
+> +	if (strcmp(tkn->id, mptr->id) == 0)
+> +			rc = 1;
+> +	else
+> +		rc = 0;
+> +
+> +	return rc;
+
+	return !strcmp(tkn->id, mptr->id);
+
+> +/* If token is available, lock it for the caller, If not return -EBUSY */
+> +int devm_token_lock(struct device *dev, const char *id)
+> +{
+> +	struct token_devres *tkn_ptr;
+> +	struct tkn_match tkn;
+> +	int rc = 0;
+> +
+> +	if (!id)
+> +		return -EFAULT;
+
+The function isn't supposed to be called with NULL @id, right?  I
+don't really think it'd be necessary to do the above.
+
+> +
+> +	tkn.id = id;
+> +
+> +	tkn_ptr = devres_find(dev, devm_token_release, devm_token_match, &tkn);
+> +	if (tkn_ptr == NULL)
+> +		return -ENODEV;
+
+What guarantees that the lock is not taken by someone else inbetween?
+
+> +
+> +	if (tkn_ptr->status == TOKEN_DEVRES_FREE) {
+> +		devres_update(dev, devm_token_release, devm_token_match,
+> +				&tkn, __devm_token_lock);
+> +		rc = 0;
+> +	} else
+> +		rc = -EBUSY;
+> +
+> +	return rc;
+> +}
+> +EXPORT_SYMBOL_GPL(devm_token_lock);
+> +
+> +/* If token is locked, unlock */
+> +int devm_token_unlock(struct device *dev, const char *id)
+> +{
+> +	struct token_devres *tkn_ptr;
+> +	struct tkn_match tkn;
+> +
+> +	if (!id)
+> +		return -EFAULT;
+> +
+> +	tkn.id = id;
+> +
+> +	tkn_ptr = devres_find(dev, devm_token_release, devm_token_match, &tkn);
+> +	if (tkn_ptr == NULL)
+> +		return -ENODEV;
+> +
+> +	if (tkn_ptr->status == TOKEN_DEVRES_BUSY) {
+> +		devres_update(dev, devm_token_release, devm_token_match,
+> +				&tkn, __devm_token_unlock);
+> +	}
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(devm_token_unlock);
+
+Why is devres_update() even necessary?  You can just embed lock in the
+data part and operate on it, no?
+
+This is among the most poorly written code that I've seen in a long
+time.  I don't know whether the token thing is the right appraoch or
+not but just purely on code quality,
+
+ Nacked-by: Tejun Heo <tj@kernel.org>
+
+Thanks.
+
+-- 
+tejun
