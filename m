@@ -1,97 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49267 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751547AbaDWCN3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Apr 2014 22:13:29 -0400
-Received: from dyn3-82-128-191-121.psoas.suomi.net ([82.128.191.121] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1Wcmgh-00070A-LR
-	for linux-media@vger.kernel.org; Wed, 23 Apr 2014 05:13:27 +0300
-Message-ID: <535721C7.7030807@iki.fi>
-Date: Wed, 23 Apr 2014 05:13:27 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-we0-f175.google.com ([74.125.82.175]:39190 "EHLO
+	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750931AbaDPCHG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Apr 2014 22:07:06 -0400
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL 3.16] 2013:025f PCTV tripleStick (292e)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <534D4245.2040901@samsung.com>
+References: <1397554040-4037-1-git-send-email-t.stanislaws@samsung.com>
+	<1397554040-4037-5-git-send-email-t.stanislaws@samsung.com>
+	<CAPdUM4NysWMpy3PZhJdKXFa96Oy4kG4dKkDdrabbAmM3+f5kag@mail.gmail.com>
+	<534D3001.2030707@samsung.com>
+	<CAPdUM4PCDC8J5k2uNv6DYf8FzXKcNcm7JQZ-cbAzmXzx9YDAAw@mail.gmail.com>
+	<534D4245.2040901@samsung.com>
+Date: Wed, 16 Apr 2014 07:37:04 +0530
+Message-ID: <CAPdUM4MhcOhTcAaMLWidqw6str8-oUvnYC+dyQKZUbp7_4wMuA@mail.gmail.com>
+Subject: Re: [PATCHv2 4/4] drm: exynos: hdmi: add support for pixel clock limitation
+From: Rahul Sharma <r.sh.open@gmail.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>, b.zolnierkie@samsung.com,
+	"sw0312.kim" <sw0312.kim@samsung.com>,
+	sunil joshi <joshi@samsung.com>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	m.chehab@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Rahul Sharma <rahul.sharma@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hardware is Empia EM28178, Silicon Labs Si2168, Silicon Labs Si2157. 
-There is on/off external LNA too. Two new drivers for Silicon Labs DTV 
-chipset.
+On 15 April 2014 19:59, Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
+> On 04/15/2014 03:42 PM, Rahul Sharma wrote:
+>> On 15 April 2014 18:41, Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
+>>> On 04/15/2014 11:42 AM, Rahul Sharma wrote:
+>>>> Hi Tomasz,
+>>>>
+>>>> On 15 April 2014 14:57, Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
+>>>>> Adds support for limitation of maximal pixel clock of HDMI
+>>>>> signal. This feature is needed on boards that contains
+>>>>> lines or bridges with frequency limitations.
+>>>>>
+>>>>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> [snip]
+>
+>>>>> diff --git a/include/media/s5p_hdmi.h b/include/media/s5p_hdmi.h
+>>>>> index 181642b..7272d65 100644
+>>>>> --- a/include/media/s5p_hdmi.h
+>>>>> +++ b/include/media/s5p_hdmi.h
+>>>>> @@ -31,6 +31,7 @@ struct s5p_hdmi_platform_data {
+>>>>>         int mhl_bus;
+>>>>>         struct i2c_board_info *mhl_info;
+>>>>>         int hpd_gpio;
+>>>>> +       u32 max_pixel_clock;
+>>>>>  };
+>>>>
+>>>> We have already removed Non DT support from the drm hdmi
+>>>> driver. IMO we should not be extending the pdata struct.
+>>>>
+>>>> Regards,
+>>>> Rahul Sharma
+>>>
+>>> Hi Rahul,
+>>>
+>>> This is not a non-DT patch. The s5p_hdmi_platform_data is
+>>> generated from DT itself. This structure is just
+>>> a parsed version of DT attributes.
+>>>
+>>> It may be a good idea to rename s5p_hdmi_platform_data
+>>> to exynos_hdmi_pdata and move it to exynos_hdmi_drm.c file
+>>> or parse DT directly in probe function.
+>>>
+>>> I can prepare a patch for that.
+>>
+>> Else we can completely remove the dependency from
+>> s5p_hdmi_platform_data. We can directly assign to hdmi context
+>> variables. Later we can remove that struct itself from include/.
+>> What you say?
+>
+> This structure cannot be removed from include yet because it is used by s5p-tv driver.
+> However its usage can be removed from both drivers.
+> I can prepare both.
+>
 
-Demod needs firmware, which could be found from driver CD version 6.4.8.984.
-/TVC 6.4.8/Driver/PCTV Empia/emOEM.sys
-dd if=emOEM.sys ibs=1 skip=1089416 count=2720 of=dvb-demod-si2168-01.fw
-md5sum dvb-demod-si2168-01.fw
-87c317e0b75ad49c2f2cbf35572a8093  dvb-demod-si2168-01.fw
+yea correct. but if you doing it for both of them, it can be removed, I guess.
+your call.
 
-Demod and tuner power-management is broken - chips are not put sleep at 
-all. It is same for windows driver too. Fortunately device eats only 
-around 200mA from USB when active. Will be fixed if and when windows 
-drivers are fixed.
+Regards,
+Rahul Sharma
 
-Here is some internals from device.
-http://blog.palosaari.fi/2014/04/naked-hardware-15-pctv-triplestick-292e.html
-
-
-
-The following changes since commit a83b93a7480441a47856dc9104bea970e84cda87:
-
-   [media] em28xx-dvb: fix PCTV 461e tuner I2C binding (2014-03-31 
-08:02:16 -0300)
-
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git pctv_292e
-
-for you to fetch changes up to 11c59dbb8a399558a2450a1cf64ff7b7e4157c45:
-
-   em28xx: PCTV tripleStick (292e) LNA support (2014-04-23 04:56:54 +0300)
-
-----------------------------------------------------------------
-Antti Palosaari (12):
-       si2157: Silicon Labs Si2157 silicon tuner driver
-       si2168: Silicon Labs Si2168 DVB-T/T2/C demod driver
-       em28xx: add [2013:025f] PCTV tripleStick (292e)
-       si2168: add support for DVB-T2
-       si2157: extend frequency range for DVB-C
-       si2168: add support for DVB-C (annex A version)
-       si2157: add copyright and license
-       si2168: add copyright and license
-       MAINTAINERS: add si2168 driver
-       MAINTAINERS: add si2157 driver
-       si2168: relax demod lock checks a little
-       em28xx: PCTV tripleStick (292e) LNA support
-
-  MAINTAINERS                               |  20 ++++
-  drivers/media/dvb-frontends/Kconfig       |   7 ++
-  drivers/media/dvb-frontends/Makefile      |   1 +
-  drivers/media/dvb-frontends/si2168.c      | 760 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  drivers/media/dvb-frontends/si2168.h      |  39 +++++++
-  drivers/media/dvb-frontends/si2168_priv.h |  46 +++++++++
-  drivers/media/tuners/Kconfig              |   7 ++
-  drivers/media/tuners/Makefile             |   1 +
-  drivers/media/tuners/si2157.c             | 260 
-++++++++++++++++++++++++++++++++++++++++++++++
-  drivers/media/tuners/si2157.h             |  34 ++++++
-  drivers/media/tuners/si2157_priv.h        |  37 +++++++
-  drivers/media/usb/em28xx/Kconfig          |   2 +
-  drivers/media/usb/em28xx/em28xx-cards.c   |  25 +++++
-  drivers/media/usb/em28xx/em28xx-dvb.c     |  89 ++++++++++++++++
-  drivers/media/usb/em28xx/em28xx.h         |   1 +
-  15 files changed, 1329 insertions(+)
-  create mode 100644 drivers/media/dvb-frontends/si2168.c
-  create mode 100644 drivers/media/dvb-frontends/si2168.h
-  create mode 100644 drivers/media/dvb-frontends/si2168_priv.h
-  create mode 100644 drivers/media/tuners/si2157.c
-  create mode 100644 drivers/media/tuners/si2157.h
-  create mode 100644 drivers/media/tuners/si2157_priv.h
-
--- 
-http://palosaari.fi/
+>>
+>> Regards,
+>> Rahul Sharma
+>>
+>
+> Regards,
+> Tomasz Stanislawski
+>
+>>>
+>>> Regards,
+>>> Tomasz Stanislawski
+>>>
+>>>
+>>>>
+>>>>>
+>>>>>  #endif /* S5P_HDMI_H */
+>>>>> --
+>>>>> 1.7.9.5
+>>>>>
+>>>>> _______________________________________________
+>>>>> dri-devel mailing list
+>>>>> dri-devel@lists.freedesktop.org
+>>>>> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+>>>
+>>
+>
