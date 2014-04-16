@@ -1,96 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58100 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750868AbaDHQyz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 12:54:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Olivier Langlois <olivier@trillion01.com>
-Cc: m.chehab@samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Stable <stable@vger.kernel.org>,
-	ffmpeg-devel@ffmpeg.com
-Subject: Re: [PATCH] [media] uvcvideo: Fix clock param realtime setting
-Date: Tue, 08 Apr 2014 18:57:04 +0200
-Message-ID: <2912342.xkGF6kaQOW@avalon>
-In-Reply-To: <1396412820.3383.111.camel@Wailaba2>
-References: <1395985358-17047-1-git-send-email-olivier@trillion01.com> <1711768.4zHOjaJUg6@avalon> <1396412820.3383.111.camel@Wailaba2>
+Received: from mail-we0-f170.google.com ([74.125.82.170]:42720 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755526AbaDPKfq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Apr 2014 06:35:46 -0400
+Received: by mail-we0-f170.google.com with SMTP id w61so10769290wes.15
+        for <linux-media@vger.kernel.org>; Wed, 16 Apr 2014 03:35:44 -0700 (PDT)
+Date: Wed, 16 Apr 2014 11:35:40 +0100
+From: Lee Jones <lee.jones@linaro.org>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	s.nawrocki@samsung.com, a.hajda@samsung.com,
+	kyungmin.park@samsung.com, Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	SangYoung Son <hello.son@smasung.com>,
+	Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH/RFC v3 3/5] leds: Add support for max77693 mfd flash cell
+Message-ID: <20140416103540.GM4754@lee--X1>
+References: <1397228216-6657-1-git-send-email-j.anaszewski@samsung.com>
+ <1397228216-6657-4-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1397228216-6657-4-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Olivier,
+> This patch adds led-flash support to Maxim max77693 chipset.
+> A device can be exposed to user space through LED subsystem
+> sysfs interface or through V4L2 subdevice when the support
+> for V4L2 Flash sub-devices is enabled. Device supports up to
+> two leds which can work in flash and torch mode. Leds can
+> be triggered externally or by software.
+> 
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> Cc: SangYoung Son <hello.son@smasung.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> ---
+>  drivers/leds/Kconfig         |   10 +
+>  drivers/leds/Makefile        |    1 +
+>  drivers/leds/leds-max77693.c |  794 ++++++++++++++++++++++++++++++++++++++++++
+>  drivers/mfd/max77693.c       |    2 +-
+>  include/linux/mfd/max77693.h |   38 ++
+>  5 files changed, 844 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/leds/leds-max77693.c
 
-On Wednesday 02 April 2014 00:31:59 Olivier Langlois wrote:
-> On Tue, 2014-04-01 at 15:49 +0200, Laurent Pinchart wrote:
-> > On Sunday 30 March 2014 00:23:01 Olivier Langlois wrote:
-> > > > > Yes. ffmpeg uses wall clock time to create timestamps for audio
-> > > > > packets from ALSA device.
-> > > > 
-> > > > OK. I suppose I shouldn't drop support for the realtime clock like I
-> > > > wanted to then :-)
-> > > > 
-> > > > > There is a bug in ffmpeg describing problems to synchronize audio
-> > > > > and the video from a v4l2 webcam.
-> > > > > 
-> > > > > https://trac.ffmpeg.org/ticket/692
-> > > > > 
-> > > > > To workaround this issue, ffmpeg devs added a switch to convert back
-> > > > > 
-> > > > > monotonic to realtime. From ffmpeg/libavdevice/v4l2.c:
-> > > > >   -ts                <int>        .D.... set type of timestamps for
-> > > > >                                          grabbed frames (from 0 to
-> > > > >                                          2) (default 0)
-> > > > >      default                      .D.... use timestamps from the
-> > > > >                                          kernel
-> > > > >      abs                          .D.... use absolute timestamps
-> > > > >                                          (wall clock)
-> > > > >      mono2abs                     .D.... force conversion from
-> > > > >                                          monotonic to absolute
-> > > > >                                          timestamps
-> > > > > 
-> > > > > If the v4l2 driver is able to send realtime ts, it is easier
-> > > > > synchronize in userspace if all inputs use the same clock.
-> > > > 
-> > > > That might be a stupid question, but shouldn't ALSA use the monotonic
-> > > > clock instead ?
-> > > 
-> > > I think that I have that answer why ffmpeg use realtime clock for ALSA
-> > > data. In fact ffmpeg uses realtime clock for every data coming from
-> > > capture devices and the purpose is to be able to seek into the recorded
-> > > stream by using the date where the recording occured. Same principle
-> > > than a camera recording dates when pictures are taken.
-> > > 
-> > > now a tougher question is whether or not it is up to the driver to
-> > > provide these realtime ts.
-> > 
-> > It makes sense to associate a wall time with recorded streams for that
-> > purpose, but synchronization should in my opinion be performed using the
-> > monotonic clock, as the wall time can jump around. I believe drivers
-> > should provide monotonic timestamps only. However, given that the uvcvideo
-> > driver has the option of providing wall clock timestamps, that option
-> > should work, so your patch makes sense. I'd still like to remove support
-> > for the wall clock though, but I don't want to break userspace. ffmpeg
-> > should be fixed, especially given that most V4L devices provide monotonic
-> > timestamps only.
->
-> Please do not stop yourself to remove realtime ts support in your driver
-> because that would not break ffmpeg, IMHO. It is just me that have tried
-> to leverage options offered by your driver to remove the need to use
-> ffmpeg workaround for a sync issue. I apparently have been the first
-> ffmpeg user to try out!
+[...]
 
-Then let's fix it first, and then I'll remove the option :-)
+> diff --git a/drivers/mfd/max77693.c b/drivers/mfd/max77693.c
+> index c5535f0..f061aa8 100644
+> --- a/drivers/mfd/max77693.c
+> +++ b/drivers/mfd/max77693.c
+> @@ -44,7 +44,7 @@
+>  static const struct mfd_cell max77693_devs[] = {
+>  	{ .name = "max77693-pmic", },
+>  	{ .name = "max77693-charger", },
+> -	{ .name = "max77693-flash", },
+> +	{ .name = "max77693-flash", .of_compatible = "maxim,max77693-flash", },
 
-> I am currently in the process to contribute the introduction of using
-> CLOCK_MONOTONIC inside ffmpeg. CCing their list because I think your
-> reply is relevant to the discussion we have on the topic there at the
-> moment.
+I would prefer for this to be opened up i.e. not on one line.
 
-Very nice. Please keep me informed of the progress.
+>  	{ .name = "max77693-muic", },
+>  	{ .name = "max77693-haptic", },
+>  };
+> diff --git a/include/linux/mfd/max77693.h b/include/linux/mfd/max77693.h
+> index 3f3dc45..f2285b7 100644
+> --- a/include/linux/mfd/max77693.h
+> +++ b/include/linux/mfd/max77693.h
+> @@ -63,6 +63,43 @@ struct max77693_muic_platform_data {
+>  	int path_uart;
+>  };
+>  
+> +/* MAX77693 led flash */
+> +
+> +/* triggers */
+> +enum max77693_led_trigger {
+> +	MAX77693_LED_TRIG_OFF,
+> +	MAX77693_LED_TRIG_FLASH,
+> +	MAX77693_LED_TRIG_TORCH,
+> +	MAX77693_LED_TRIG_EXT,
+> +	MAX77693_LED_TRIG_SOFT,
+> +};
+> +
+> +
+
+Extra '\n' here.
+
+> +/* trigger types */
+> +enum max77693_led_trigger_type {
+> +	MAX77693_LED_TRIG_TYPE_EDGE,
+> +	MAX77693_LED_TRIG_TYPE_LEVEL,
+> +};
+> +
+> +/* boost modes */
+> +enum max77693_led_boost_mode {
+> +	MAX77693_LED_BOOST_NONE,
+> +	MAX77693_LED_BOOST_ADAPTIVE,
+> +	MAX77693_LED_BOOST_FIXED,
+> +};
+> +
+> +struct max77693_led_platform_data {
+> +	u32 iout[4];
+> +	u32 trigger[4];
+> +	u32 trigger_type[2];
+> +	u32 timeout[2];
+> +	u32 boost_mode[2];
+> +	u32 boost_vout;
+> +	u32 low_vsys;
+> +};
+
+Bryan will have to review this.
+
+> +/* MAX77693 */
+> +
+>  struct max77693_platform_data {
+>  	/* regulator data */
+>  	struct max77693_regulator_data *regulators;
+> @@ -70,5 +107,6 @@ struct max77693_platform_data {
+>  
+>  	/* muic data */
+>  	struct max77693_muic_platform_data *muic_data;
+> +	struct max77693_led_platform_data *led_data;
+>  };
+>  #endif	/* __LINUX_MFD_MAX77693_H */
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
