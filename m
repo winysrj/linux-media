@@ -1,54 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:25049 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932346AbaDKNWh (ORCPT
+Received: from mailex.mailcore.me ([94.136.40.62]:53794 "EHLO
+	mailex.mailcore.me" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751465AbaDPQ4u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 09:22:37 -0400
-Message-ID: <5347EC86.5070004@cisco.com>
-Date: Fri, 11 Apr 2014 15:22:14 +0200
-From: Hans Verkuil <hansverk@cisco.com>
+	Wed, 16 Apr 2014 12:56:50 -0400
+Message-ID: <534EB64A.5050700@sca-uk.com>
+Date: Wed, 16 Apr 2014 17:56:42 +0100
+From: Steve Cookson <it@sca-uk.com>
 MIME-Version: 1.0
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-CC: pawel@osciak.com, sakari.ailus@iki.fi, m.szyprowski@samsung.com,
-	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv3 PATCH 09/13] vb2: add vb2_fileio_is_active and check
- it more often
-References: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl> <1397203879-37443-10-git-send-email-hverkuil@xs4all.nl> <5347E894.5010401@samsung.com>
-In-Reply-To: <5347E894.5010401@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Steven Toth <stoth@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Hauppauge ImpactVCB-e 01385
+References: <534675E1.6050408@sca-uk.com> <5347B132.6040206@sca-uk.com> <5347B9A3.2050301@xs4all.nl> <5347BDDE.6080208@sca-uk.com> <5347C57B.7000207@xs4all.nl> <5347DD94.1070000@sca-uk.com> <5347E2AF.6030205@xs4all.nl> <5347EB5D.2020408@sca-uk.com> <5347EC3D.7040107@xs4all.nl> <5348392E.40808@sca-uk.com> <534BEA8A.2040604@xs4all.nl> <534D6241.5060903@sca-uk.com> <534D68C2.6050902@xs4all.nl> <534D7E24.4010602@sca-uk.com> <534E5438.3030404@xs4all.nl> <534E8225.6090804@sca-uk.com> <534E839C.6060203@xs4all.nl>
+In-Reply-To: <534E839C.6060203@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/11/2014 03:05 PM, Tomasz Stanislawski wrote:
-> Hi Hans,
-> 
-> On 04/11/2014 10:11 AM, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Added a vb2_fileio_is_active inline function that returns true if fileio
->> is in progress. Check for this too in mmap() (you don't want apps mmap()ing
->> buffers used by fileio) and expbuf() (same reason).
-> 
-> Why? I expect that there is no sane use case for using
-> mmap() and expbuf in read/write mode but why forbidding this.
-> 
-> Could you provide a reason?
+Hi Guys,
+On 16/04/14 14:20, Hans Verkuil wrote:
+ >> However looking at the tree structure I have to say I don't understand
+ >> > it.  Firstly there seem to be two equivalent branches in 
+/lib/modules/:
+ >> >
+ >> > 1) drivers/linux/drivers/misc/altera-stapl/
+ >> >
+ >> > and
+ >> >
+ >> > 2) drivers/misc/altera-stapl/
+ >> >
+ >> > Before I do the patch and build, altera-stapl.ko is in 2) but the 
+make
+ >> > install puts the new version in 1).
+ > Weird. It looks like media_build misinstalls this. If altera-stapl is in
+ > the wrong place, then I suspect the other modules are also in the wrong
+ > place and thus duplicated, which will cause all the things you see below.
+ >
+ > Which distro are you using?
+ >
+ > Anyway, I would recommend that you make a safety copy of your modules
+ > first (just in case  ), and then move all the newly install modules
+ > to the right place.
 
-The buffer management is completely internal to vb2 for read()/write().
-I think that allowing expbuf/mmap is just plain weird. I don't think
-it would do any harm other than increasing the memory refcount, but
-I very much prefer to block this.
+Well after much soul-searching about how to find out how many files were 
+in the wrong place, it turns out it was JUST one: altera-stapl.ko
 
-The only ioctl allowed is querybuf, and that primarily for debugging.
-Frankly, I wouldn't mind if that is blocked off as well but since it
-is guaranteed to have no side-effects and it actually has a use-case
-(debugging) I've left that in.
+It was the only one in drivers/linux/drivers/misc/altera-stapl/. When I 
+moved it everything fell into place the card was detected.
 
-Personally I think the question is not: "why block this?", it is:
-"why would you allow it?".
+So this is the solution to issue one.
 
-Regards,
+My distribution is Debian (Kubuntu 13.10) and this appears to be the 
+only file that goes in the wrong place.  How do I log this as a bug?
 
-	Hans
+I set up a video feed and the video was detected.
+
+Results follow in next email.
+
+Regards
+
+Steve.
