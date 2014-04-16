@@ -1,50 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:64629 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964937AbaDITZO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Apr 2014 15:25:14 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id 52F7520EE0
-	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 22:24:53 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 06/17] smiapp-pll: Correct clock debug prints
-Date: Wed,  9 Apr 2014 22:24:58 +0300
-Message-Id: <1397071509-2071-7-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:47378 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756055AbaDPM7c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Apr 2014 08:59:32 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, s.nawrocki@samsung.com, hverkuil@xs4all.nl,
+	posciak@chromium.org, arunkk.samsung@gmail.com
+Subject: [PATCH 2/2] [media] s5p-mfc: Add support for resolution change event
+Date: Wed, 16 Apr 2014 18:29:22 +0530
+Message-Id: <1397653162-10179-2-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1397653162-10179-1-git-send-email-arun.kk@samsung.com>
+References: <1397653162-10179-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The PLL flags were not used correctly.
+From: Pawel Osciak <posciak@chromium.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+When a resolution change point is reached, queue an event to signal the
+userspace that a new set of buffers is required before decoding can
+continue.
+
+Signed-off-by: Pawel Osciak <posciak@chromium.org>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
- drivers/media/i2c/smiapp-pll.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc.c     |    6 ++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |    2 ++
+ 2 files changed, 8 insertions(+)
 
-diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
-index 2335529..ab5d9a3 100644
---- a/drivers/media/i2c/smiapp-pll.c
-+++ b/drivers/media/i2c/smiapp-pll.c
-@@ -67,7 +67,7 @@ static void print_pll(struct device *dev, struct smiapp_pll *pll)
- {
- 	dev_dbg(dev, "pre_pll_clk_div\t%d\n",  pll->pre_pll_clk_div);
- 	dev_dbg(dev, "pll_multiplier \t%d\n",  pll->pll_multiplier);
--	if (pll->flags != SMIAPP_PLL_FLAG_NO_OP_CLOCKS) {
-+	if (!(pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)) {
- 		dev_dbg(dev, "op_sys_clk_div \t%d\n", pll->op_sys_clk_div);
- 		dev_dbg(dev, "op_pix_clk_div \t%d\n", pll->op_pix_clk_div);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 4ee5a02..2efa758 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -308,6 +308,7 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx *ctx,
+ 	struct s5p_mfc_buf *src_buf;
+ 	unsigned long flags;
+ 	unsigned int res_change;
++	struct v4l2_event ev;
+ 
+ 	dst_frame_status = s5p_mfc_hw_call(dev->mfc_ops, get_dspl_status, dev)
+ 				& S5P_FIMV_DEC_STATUS_DECODING_STATUS_MASK;
+@@ -339,6 +340,11 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx *ctx,
+ 		if (ctx->state == MFCINST_RES_CHANGE_FLUSH) {
+ 			s5p_mfc_handle_frame_all_extracted(ctx);
+ 			ctx->state = MFCINST_RES_CHANGE_END;
++
++			memset(&ev, 0, sizeof(struct v4l2_event));
++			ev.type = V4L2_EVENT_RESOLUTION_CHANGE;
++			v4l2_event_queue_fh(&ctx->fh, &ev);
++
+ 			goto leave_handle_frame;
+ 		} else {
+ 			s5p_mfc_handle_frame_all_extracted(ctx);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 4586186..dd0ec6f 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -851,6 +851,8 @@ static int vidioc_subscribe_event(struct v4l2_fh *fh,
+ 	switch (sub->type) {
+ 	case V4L2_EVENT_EOS:
+ 		return v4l2_event_subscribe(fh, sub, 2, NULL);
++	case V4L2_EVENT_RESOLUTION_CHANGE:
++		return v4l2_event_subscribe(fh, sub, 2, NULL);
+ 	default:
+ 		return -EINVAL;
  	}
-@@ -77,7 +77,7 @@ static void print_pll(struct device *dev, struct smiapp_pll *pll)
- 	dev_dbg(dev, "ext_clk_freq_hz \t%d\n", pll->ext_clk_freq_hz);
- 	dev_dbg(dev, "pll_ip_clk_freq_hz \t%d\n", pll->pll_ip_clk_freq_hz);
- 	dev_dbg(dev, "pll_op_clk_freq_hz \t%d\n", pll->pll_op_clk_freq_hz);
--	if (pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS) {
-+	if (!(pll->flags & SMIAPP_PLL_FLAG_NO_OP_CLOCKS)) {
- 		dev_dbg(dev, "op_sys_clk_freq_hz \t%d\n",
- 			pll->op_sys_clk_freq_hz);
- 		dev_dbg(dev, "op_pix_clk_freq_hz \t%d\n",
 -- 
-1.8.3.2
+1.7.9.5
 
