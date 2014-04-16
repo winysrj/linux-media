@@ -1,150 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:27288 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754233AbaDNWsU (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4231 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752531AbaDPWeO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 18:48:20 -0400
-Message-id: <534C65AD.20404@samsung.com>
-Date: Mon, 14 Apr 2014 16:48:13 -0600
-From: Shuah Khan <shuah.kh@samsung.com>
-Reply-to: shuah.kh@samsung.com
-MIME-version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Cc: Greg KH <gregkh@linuxfoundation.org>, tj@kernel.org,
-	rafael.j.wysocki@intel.com, linux@roeck-us.net, toshi.kani@hp.com,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	shuahkhan@gmail.com, Shuah Khan <shuah.kh@samsung.com>
-Subject: Re: [RFC PATCH 0/2] managed token devres interfaces
-References: <cover.1397050852.git.shuah.kh@samsung.com>
- <20140409191740.GA10748@kroah.com> <5345CD32.8010305@samsung.com>
- <20140410120435.4c439a8b@alan.etchedpixels.co.uk>
- <20140410083841.488f9c43@samsung.com>
- <20140410124653.64aeb06d@alan.etchedpixels.co.uk>
- <20140410113949.7de1312b@samsung.com>
-In-reply-to: <20140410113949.7de1312b@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Wed, 16 Apr 2014 18:34:14 -0400
+Message-ID: <534F0553.2000808@xs4all.nl>
+Date: Thu, 17 Apr 2014 00:33:55 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEW PATCH 3/3] saa7134: convert to vb2
+References: <1394454049-12879-1-git-send-email-hverkuil@xs4all.nl> <1394454049-12879-4-git-send-email-hverkuil@xs4all.nl> <20140416192343.30a5a8fc@samsung.com>
+In-Reply-To: <20140416192343.30a5a8fc@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/10/2014 08:39 AM, Mauro Carvalho Chehab wrote:
-> Em Thu, 10 Apr 2014 12:46:53 +0100
-> One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk> escreveu:
->
->>> For example, some devices provide standard USB Audio Class, handled by
->>> snd-usb-audio for the audio stream, while the video stream is handled
->>> via a separate driver, like some em28xx devices.
+On 04/17/2014 12:23 AM, Mauro Carvalho Chehab wrote:
+> Em Mon, 10 Mar 2014 13:20:49 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
 >>
->> Which is what mfd is designed to handle.
+>> Convert the saa7134 driver to vb2.
 >>
->>> There are even more complex devices that provide 3G modem, storage
->>> and digital TV, whose USB ID changes when either the 3G modem starts
->>> or when the digital TV firmware is loaded.
+>> Note that while this uses the vb2-dma-sg version, the VB2_USERPTR mode is
+>> disabled. The DMA hardware only supports DMAing full pages, and in the
+>> USERPTR memory model the first and last scatter-gather buffer is almost
+>> never a full page.
 >>
->> But presumably you only have one driver at a time then ?
->
->> The MFD device provides subdevices for all the functions. That is the
->> whole underlying concept.
->
-> I'll take a look on how it works, and how it locks resources on
-> other drivers. What drivers outside drivers/mfd use shared resources
-> that require locks controlled by mfd?
->
+>> In practice this means that we can't use the VB2_USERPTR mode.
+> 
+> Why not? Provided that the buffer is equal or bigger than the number of
+> pages required by saa7134, that should be OK.
+> 
+> All the driver needs to do is to check if the USERPTR buffer condition is met,
+> returning an error otherwise (and likely printing a msg at dmesg).
 
-One question that came up during the RFC review is:
+Yuck. Well, I'll take a look at this.
 
-Can media drivers use mfd framework for sharing functions across drivers?
+It has in my view the same problem as abusing USERPTR to pass pointers to
+physically contiguous memory: yes, it 'supports' USERPTR, but it has additional
+requirements which userspace has no way of knowing or detecting.
 
-I looked into the mfd framework and see if it helps the problem at hand 
-hand. My conclusions as follows:
+It's really not USERPTR at all, it is PAGE_ALIGNED_USERPTR.
 
-1. device presentation
-- media devices appear as a group of devices that can be clearly
-   identified as independent devices. Each device implements a
-   function which could be shared by one or more functions.
+Quite different.
 
-- mfd devices appear as a single device. mfd framework helps present
-   them as discrete platform devices. This model seems to be similar
-   to a multi-function I/O card.
+I would prefer that you have to enable it explicitly through e.g. a module option.
+That way you can still do it, but you really have to know what you are doing.
 
-This above is an important difference between these two device types.
+> I suspect that this change will break some userspace programs used
+> for video surveillance equipment.
+> 
+>> This has been tested with raw video, compressed video, VBI, radio, DVB and
+>> video overlays.
+>>
+>> Unfortunately, a vb2 conversion is one of those things you cannot split
+>> up in smaller patches, it's all or nothing. This patch switches the whole
+>> driver over to vb2, using the vb2 ioctl and fop helper functions.
+> 
+> Not quite true. This patch contains lots of non-vb2 stuff, like:
+> 	- Coding Style fixes;
+> 	- Removal of res_get/res_set/res_free;
+> 	- Functions got moved from one place to another one.
 
-Media devices could benefit from using mfd framework in grouping
-the device to make it easier to treat these devices as a group. mfd
-framework could handle adding and removing devices. Something that
-could be looked into in detail to see if it makes sense to use mfd
-framework.
+I will see if there is anything sensible that I can split up. I'm not aware
+of any particular coding style issues, but I'll review it.
 
-2. function sharing
-- each media device supports a function and one or more functions share
-   another function. For example, tuner is shared by analog and digital
-   TV functions.
+The removal of the resource functions is not something I can split up. It
+is replaced by the resource handling that's built into the vb2 helper functions.
 
-- mfd devices don't seem to work this way. Each function seems to be
-   independent. Sharing is limited to the attach point. It works more
-   like a bus, where sub-devices attach. I couldn't find any examples
-   of a device/function being shared by other functions like in the case
-   of media devices.
+Regards,
 
-3. drivers
--  mfd/viperboard uses mfd to group gpio, i2c and does load viperboard
-    i2c and viperboard gpio drivers. These drivers seem to have anything
-    in common during run-time. i.e once mfd framework is used to carve
-    the device up to appear as discrete devices, each device can function
-    independently.
+	Hans
 
--  media drivers that drive one single media TV stick are a diversified
-    group. In general, Analog and digital TV functions have to coordinate
-    access to their shared functions.
+> 
+> It is really hard to review it, as is, as the real changes are mixed with
+> the above code cleanups/changes.
+> 
+> Please split this patch in a way that it allows reviewing the changes
+> there.
 
-4. Locking
-    Both media and mfd drivers have mechanisms to lock/unlock hardware.
-    mfd framework itself doesn't have any locking constructs.
-
-    mfd drivers use mutex similar to the way media drivers use to protect
-    access to hardware. This is a fine grain locking.
-
-However, media drivers need a large grain media function level locking
-mechanism, where a token devres will come in handy. I think this type of
-locking is needed even when media drivers take advantage of the mfd 
-framework to group sub-devices.
-
-Another question to ask is:
-Why add token resources to drivers/base? Why not add at drivers/media?
-
-Some medial devices provide multiple almost-independent functions. USB
-and PCI core work is to allow multiple drivers to handle those
-almost-independent functions.
-
-For instance, snd-usb-audio driver will handle USB Audio Class devices,
-including some em28x devices, as it provides an independent UAC interface,
-while analog and digital TV are provided via another interface.
-
-What this means is a em28xx device could have snd-usb-audio driving the
-audio function.  However, the audio stream is only available if the
-video stream is working. As a result, snd-usb-audio driver has to 
-coordinate with the analog and digital functions em28xx_* drivers 
-control. Hence, the need for a shared managed resource interfaces such 
-as the proposed token devres interfaces at drivers/base level. This will
-allow a media device to be controlled by drivers that don't necessarily
-fall under drivers/media as in this above example.
-
-Webcams with microphone on the other hand have completely independent
-devices for audio and video. They don't need a shared devres type 
-feature, as the USB core handles that properly.
-
-Based on the above, I think, the mfd framework will not help address the 
-media driver problem at hand. However, I do think media drivers can 
-benefit from using the mfd framework for streamlined handling of 
-sub-devices. I would propose going forward with adding the token devres 
-to solve the issue of sharing functions across drivers that control the 
-functions.
-
--- Shuah
-
--- 
-Shuah Khan
-Senior Linux Kernel Developer - Open Source Group
-Samsung Research America(Silicon Valley)
-shuah.kh@samsung.com | (970) 672-0658
