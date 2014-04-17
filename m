@@ -1,90 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:37595 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754422AbaDKMsq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 08:48:46 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1WYast-0005wj-V8
-	for linux-media@vger.kernel.org; Fri, 11 Apr 2014 14:48:43 +0200
-Received: from 217-67-201-162.itsa.net.pl ([217.67.201.162])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 11 Apr 2014 14:48:43 +0200
-Received: from t.stanislaws by 217-67-201-162.itsa.net.pl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 11 Apr 2014 14:48:43 +0200
-To: linux-media@vger.kernel.org
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [REVIEWv2 PATCH 02/13] vb2: fix handling of data_offset and v4l2_plane.reserved[]
-Date: Fri, 11 Apr 2014 14:48:30 +0200
-Message-ID: <5347E49E.6020302@samsung.com>
-References: <1396876272-18222-1-git-send-email-hverkuil@xs4all.nl> <1396876272-18222-3-git-send-email-hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
-In-Reply-To: <1396876272-18222-3-git-send-email-hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39110 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750928AbaDQOn0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Apr 2014 10:43:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v4 45/49] adv7604: Add DT support
+Date: Thu, 17 Apr 2014 16:43:29 +0200
+Message-ID: <2187787.ESP9YKtS5Y@avalon>
+In-Reply-To: <534FE7A1.8060800@samsung.com>
+References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com> <1397744000-23967-46-git-send-email-laurent.pinchart@ideasonboard.com> <534FE7A1.8060800@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/07/2014 03:11 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sylwester,
+
+On Thursday 17 April 2014 16:39:29 Sylwester Nawrocki wrote:
+> On 17/04/14 16:13, Laurent Pinchart wrote:
+> > Parse the device tree node to populate platform data. Only the ADV7611
+> > is currently support with DT.
+> > 
+> > Cc: devicetree@vger.kernel.org
+> > Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> The videobuf2-core did not zero the 'planes' array in __qbuf_userptr()
-> and __qbuf_dmabuf(). That's now memset to 0. Without this the reserved
-> array in struct v4l2_plane would be non-zero, causing v4l2-compliance
-> errors.
+> The patch looks good to me.
 > 
-> More serious is the fact that data_offset was not handled correctly:
+> Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+
+Thank you.
+
+> Just one comment below...
+
+[snip]
+
+> > diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> > index 342d73d..061794e 100644
+> > --- a/drivers/media/i2c/adv7604.c
+> > +++ b/drivers/media/i2c/adv7604.c
+> > @@ -2663,13 +2663,58 @@ static const struct adv7604_chip_info
+> > adv7604_chip_info[] = {> 
+> >  	},
+> >  
+> >  };
+> > 
+> > +static struct i2c_device_id adv7604_i2c_id[] = {
+> > +	{ "adv7604", (kernel_ulong_t)&adv7604_chip_info[ADV7604] },
+> > +	{ "adv7611", (kernel_ulong_t)&adv7604_chip_info[ADV7611] },
+> > +	{ }
+> > +};
+> > +MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
+> > +
+> > +static struct of_device_id adv7604_of_id[] = {
 > 
-> - for capture devices it was never zeroed, which meant that it was
->   uninitialized. Unless the driver sets it it was a completely random
->   number. With the memset above this is now fixed.
-> 
-> - __qbuf_dmabuf had a completely incorrect length check that included
->   data_offset.
+> Not adding __maybe_unused attribute to this one ?
 
-Hi Hans,
+Sure, of course. I'll squash patch 49/49 into this one.
 
-I may understand it wrongly but IMO allowing non-zero data offset
-simplifies buffer sharing using dmabuf.
-I remember a problem that occurred when someone wanted to use
-a single dmabuf with multiplanar API.
+> > +	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
+> > +	{ }
+> > +};
+> > +MODULE_DEVICE_TABLE(of, adv7604_of_id);
 
-For example, MFC shares a buffer with DRM. Assume that DRM device
-forces the whole image to be located in one dmabuf.
-
-The MFC uses multiplanar API therefore application must use
-the same dmabuf to describe luma and chroma planes.
-
-It is intuitive to use the same dmabuf for both planes and
-data_offset=0 for luma plane and data_offset = luma_size
-for chroma offset.
-
-The check:
-
-> -		if (planes[plane].length < planes[plane].data_offset +
-> -		    q->plane_sizes[plane]) {
-
-assured that the logical plane does not overflow the dmabuf.
-
-Am I wrong?
-
+-- 
 Regards,
-Tomasz Stanislawski
 
-> 
-> - in __fill_vb2_buffer in the DMABUF case the data_offset field was
->   unconditionally copied from v4l2_buffer to v4l2_plane when this
->   should only happen in the output case.
-> 
-> - in the single-planar case data_offset was never correctly set to 0.
->   The single-planar API doesn't support data_offset, so setting it
->   to 0 is the right thing to do. This too is now solved by the memset.
-> 
-> All these issues were found with v4l2-compliance.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
+Laurent Pinchart
 
