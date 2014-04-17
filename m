@@ -1,112 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2561 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754608AbaDGCfQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Apr 2014 22:35:16 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s372ZDxG025435
-	for <linux-media@vger.kernel.org>; Mon, 7 Apr 2014 04:35:15 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id EFFA12A03F5
-	for <linux-media@vger.kernel.org>; Mon,  7 Apr 2014 04:34:58 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140407023458.EFFA12A03F5@tschai.lan>
-Date: Mon,  7 Apr 2014 04:34:58 +0200 (CEST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38448 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753164AbaDQMpW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Apr 2014 08:45:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH v2 48/48] adv7604: Add endpoint properties to DT bindings
+Date: Thu, 17 Apr 2014 14:45:25 +0200
+Message-ID: <1791575.2krcfHqYT1@avalon>
+In-Reply-To: <534FB855.1020702@samsung.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com> <1394493359-14115-49-git-send-email-laurent.pinchart@ideasonboard.com> <534FB855.1020702@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Sylwester,
 
-Results of the daily build of media_tree:
+On Thursday 17 April 2014 13:17:41 Sylwester Nawrocki wrote:
+> On 11/03/14 00:15, Laurent Pinchart wrote:
+> > Add support for the hsync-active, vsync-active and pclk-sample
+> > properties to the DT bindings and control BT.656 mode implicitly.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  .../devicetree/bindings/media/i2c/adv7604.txt      | 13 +++++++++
+> >  drivers/media/i2c/adv7604.c                        | 31
+> >  ++++++++++++++++++++-- 2 files changed, 42 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> > b/Documentation/devicetree/bindings/media/i2c/adv7604.txt index
+> > 0845c50..2b62c06 100644
+> > --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> > +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> > 
+> > @@ -30,6 +30,19 @@ Optional Properties:
+> >    - adi,disable-cable-reset: Boolean property. When set disables the HDMI
+> >    
+> >      receiver automatic reset when the HDMI cable is unplugged.
+> > 
+> > +Optional Endpoint Properties:
+> > +
+> > +  The following three properties are defined in video-interfaces.txt and
+> > are +  valid for source endpoints only.
+> > +
+> > +  - hsync-active: Horizontal synchronization polarity. Defaults to active
+> > low. +  - vsync-active: Vertical synchronization polarity. Defaults to
+> > active low. +  - pclk-sample: Pixel clock polarity. Defaults to output on
+> > the falling edge. +
+> > +  If none of hsync-active, vsync-active and pclk-sample is specified the
+> > +  endpoint will use embedded BT.656 synchronization.
+> > +
+> > +
+> > 
+> >  Example:
+> >  	hdmi_receiver@4c {
+> > 
+> > diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> > index 95cc911..2a92099 100644
+> > --- a/drivers/media/i2c/adv7604.c
+> > +++ b/drivers/media/i2c/adv7604.c
+> > @@ -41,6 +41,7 @@
+> > 
+> >  #include <media/v4l2-ctrls.h>
+> >  #include <media/v4l2-device.h>
+> >  #include <media/v4l2-dv-timings.h>
+> > 
+> > +#include <media/v4l2-of.h>
+> > 
+> >  static int debug;
+> >  module_param(debug, int, 0644);
+> > 
+> > @@ -2643,11 +2644,39 @@ MODULE_DEVICE_TABLE(of, adv7604_of_id);
+> > 
+> >  static int adv7604_parse_dt(struct adv7604_state *state)
+> >  {
+> > 
+> > +	struct v4l2_of_endpoint bus_cfg;
+> > +	struct device_node *endpoint;
+> > 
+> >  	struct device_node *np;
+> > 
+> > +	unsigned int flags;
+> > 
+> >  	int ret;
+> >  	
+> >  	np = state->i2c_clients[ADV7604_PAGE_IO]->dev.of_node;
+> > 
+> > +	/* Parse the endpoint. */
+> > +	endpoint = v4l2_of_get_next_endpoint(np, NULL);
+> > +	if (!endpoint)
+> > +		return -EINVAL;
+> 
+> Perhaps we should document this binding requires at least one endpoint
+> node ? I guess there is no point in not having any endpoint node ?
 
-date:		Mon Apr  7 04:00:24 CEST 2014
-git branch:	test
-git hash:	a83b93a7480441a47856dc9104bea970e84cda87
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.13-7.slh.1-amd64
+I think that's pretty much implied, otherwise the device will not be connected 
+to anything and will be unusable. I will document ports node usage though, 
+that's currently missing in the DT bindings documentation.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+> > +	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
+> > +	of_node_put(endpoint);
+> > +
+> > +	flags = bus_cfg.bus.parallel.flags;
+> > +
+> > +	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+> > +		state->pdata.inv_hs_pol = 1;
+> > +
+> > +	if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+> > +		state->pdata.inv_vs_pol = 1;
+> > +
+> > +	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+> > +		state->pdata.inv_llc_pol = 1;
+> > +
+> > +	if (bus_cfg.bus_type == V4L2_MBUS_BT656) {
+> > +		state->pdata.insert_av_codes = 1;
+> > +		state->pdata.op_656_range = 1;
+> > +	}
+> > +
+> > +	/* Parse device-specific properties. */
+> > 
+> >  	state->pdata.disable_pwrdnb =
+> >  	
+> >  		of_property_read_bool(np, "adi,disable-power-down");
+> >  	
+> >  	state->pdata.disable_cable_det_rst =
+> > 
+> > @@ -2677,9 +2706,7 @@ static int adv7604_parse_dt(struct adv7604_state
+> > *state)> 
+> >  	/* HACK: Hardcode the remaining platform data fields. */
+> >  	state->pdata.blank_data = 1;
+> > 
+> > -	state->pdata.op_656_range = 1;
+> > 
+> >  	state->pdata.alt_data_sat = 1;
+> > 
+> > -	state->pdata.insert_av_codes = 1;
+> > 
+> >  	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
+> >  	
+> >  	return 0;
 
-Detailed results are available here:
+-- 
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+Laurent Pinchart
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
