@@ -1,53 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4336 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756385AbaDHIJI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 04:09:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38905 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754199AbaDQONn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Apr 2014 10:13:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/2] v4l2-dv-timings.c: add the new 4K timings to the list.
-Date: Tue,  8 Apr 2014 10:07:36 +0200
-Message-Id: <9c6eb841696ba4a5fe47523ac87f93b7c6c06fce.1396944189.git.hans.verkuil@cisco.com>
-In-Reply-To: <1396944456-20008-1-git-send-email-hverkuil@xs4all.nl>
-References: <1396944456-20008-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <3f4a49ed4bac96ac5bd05eb733a7d28fa37aee59.1396944189.git.hans.verkuil@cisco.com>
-References: <3f4a49ed4bac96ac5bd05eb733a7d28fa37aee59.1396944189.git.hans.verkuil@cisco.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v4 44/49] adv7604: Specify the default input through platform data
+Date: Thu, 17 Apr 2014 16:13:15 +0200
+Message-Id: <1397744000-23967-45-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+And set input routing when initializing the device.
 
-Add the new CEA-861-F and DMT 4K timings to the list of predefined
-timings.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-dv-timings.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/media/i2c/adv7604.c | 7 +++++++
+ include/media/adv7604.h     | 2 ++
+ 2 files changed, 9 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index 48b20df..4ae54ca 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -131,6 +131,17 @@ const struct v4l2_dv_timings v4l2_dv_timings_presets[] = {
- 	V4L2_DV_BT_DMT_2560X1600P75,
- 	V4L2_DV_BT_DMT_2560X1600P85,
- 	V4L2_DV_BT_DMT_2560X1600P120_RB,
-+	V4L2_DV_BT_CEA_3840X2160P24,
-+	V4L2_DV_BT_CEA_3840X2160P25,
-+	V4L2_DV_BT_CEA_3840X2160P30,
-+	V4L2_DV_BT_CEA_3840X2160P50,
-+	V4L2_DV_BT_CEA_3840X2160P60,
-+	V4L2_DV_BT_CEA_4096X2160P24,
-+	V4L2_DV_BT_CEA_4096X2160P25,
-+	V4L2_DV_BT_CEA_4096X2160P30,
-+	V4L2_DV_BT_CEA_4096X2160P50,
-+	V4L2_DV_BT_DMT_4096X2160P59_94_RB,
-+	V4L2_DV_BT_CEA_4096X2160P60,
- 	{ }
- };
- EXPORT_SYMBOL_GPL(v4l2_dv_timings_presets);
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index b14dc7d..342d73d 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2441,6 +2441,13 @@ static int adv7604_core_init(struct v4l2_subdev *sd)
+ 
+ 	disable_input(sd);
+ 
++	if (pdata->default_input >= 0 &&
++	    pdata->default_input < state->source_pad) {
++		state->selected_input = pdata->default_input;
++		select_input(sd);
++		enable_input(sd);
++	}
++
+ 	/* power */
+ 	io_write(sd, 0x0c, 0x42);   /* Power up part and power down VDP */
+ 	io_write(sd, 0x0b, 0x44);   /* Power down ESDP block */
+diff --git a/include/media/adv7604.h b/include/media/adv7604.h
+index 276135b..40b4ae0 100644
+--- a/include/media/adv7604.h
++++ b/include/media/adv7604.h
+@@ -104,6 +104,8 @@ struct adv7604_platform_data {
+ 	/* DIS_CABLE_DET_RST: 1 if the 5V pins are unused and unconnected */
+ 	unsigned disable_cable_det_rst:1;
+ 
++	int default_input;
++
+ 	/* Analog input muxing mode */
+ 	enum adv7604_ain_sel ain_sel;
+ 
 -- 
-1.8.4.rc3
+1.8.3.2
 
