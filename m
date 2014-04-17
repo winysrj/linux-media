@@ -1,110 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1113 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756445AbaDHIJI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Apr 2014 04:09:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/2] v4l2-dv-timings.h: add CEA-861-F 4K timings
-Date: Tue,  8 Apr 2014 10:07:35 +0200
-Message-Id: <3f4a49ed4bac96ac5bd05eb733a7d28fa37aee59.1396944189.git.hans.verkuil@cisco.com>
-In-Reply-To: <1396944456-20008-1-git-send-email-hverkuil@xs4all.nl>
-References: <1396944456-20008-1-git-send-email-hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38398 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752149AbaDQMga (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Apr 2014 08:36:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 46/48] adv7604: Add DT support
+Date: Thu, 17 Apr 2014 14:36:32 +0200
+Message-ID: <1810096.BfEfAl25kc@avalon>
+In-Reply-To: <534FB40A.20506@samsung.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com> <1394493359-14115-47-git-send-email-laurent.pinchart@ideasonboard.com> <534FB40A.20506@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sylwester,
 
-Add the CEA-861-F timings for 3840x2160p24/25/30/50/60 and
-4096x2160p24/25/30/50/60.
+Thank you for the review.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/v4l2-dv-timings.h | 70 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 70 insertions(+)
+On Thursday 17 April 2014 12:59:22 Sylwester Nawrocki wrote:
+> On 11/03/14 00:15, Laurent Pinchart wrote:
+> > Parse the device tree node to populate platform data.
+> > 
+> > Cc: devicetree@vger.kernel.org
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  .../devicetree/bindings/media/i2c/adv7604.txt      | 56 +++++++++++++
+> >  drivers/media/i2c/adv7604.c                        | 92 +++++++++++++----
+> >  2 files changed, 134 insertions(+), 14 deletions(-)
+> >  create mode 100644
+> >  Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> > b/Documentation/devicetree/bindings/media/i2c/adv7604.txt new file mode
+> > 100644
+> > index 0000000..0845c50
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> > @@ -0,0 +1,56 @@
+> > +* Analog Devices ADV7604/11 video decoder with HDMI receiver
+> > +
+> > +The ADV7604 and ADV7611 are multiformat video decoders with an integrated
+> > HDMI +receiver. The ADV7604 has four multiplexed HDMI inputs and one
+> > analog input, +and the ADV7611 has one HDMI input and no analog input.
+> > +
+> > +Required Properties:
+> > +
+> > +  - compatible: Must contain one of the following
+> > +    - "adi,adv7604" for the ADV7604
+> > +    - "adi,adv7611" for the ADV7611
+> > +
+> > +  - reg: I2C slave address
+> > +
+> > +  - hpd-gpios: References to the GPIOs that control the HDMI hot-plug
+> > +    detection pins, one per HDMI input. The active flag indicates the
+> > GPIO
+> > +    level that enables hot-plug detection.
+> > +
+> > +Optional Properties:
+> > +
+> > +  - reset-gpios: Reference to the GPIO connected to the device's reset
+> > pin. +
+> > +  - adi,default-input: Index of the input to be configured as default.
+> > Valid
+> > +    values are 0..5 for the ADV7604 and 0 for the ADV7611.
+> 
+> I have some doubts about this property. Firstly, it seems it is not needed
+> for ADV7611 since it is always 0 for that device ?
+> Why can't we hard code in the driver some default input ?
 
-diff --git a/include/uapi/linux/v4l2-dv-timings.h b/include/uapi/linux/v4l2-dv-timings.h
-index b6a5fe0..6c8f159 100644
---- a/include/uapi/linux/v4l2-dv-timings.h
-+++ b/include/uapi/linux/v4l2-dv-timings.h
-@@ -173,6 +173,76 @@
- 		V4L2_DV_FL_CAN_REDUCE_FPS) \
- }
- 
-+#define V4L2_DV_BT_CEA_3840X2160P24 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+		297000000, 1276, 88, 296, 8, 10, 72, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
-+}
-+
-+#define V4L2_DV_BT_CEA_3840X2160P25 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+		297000000, 1056, 88, 296, 8, 10, 72, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, 0) \
-+}
-+
-+#define V4L2_DV_BT_CEA_3840X2160P30 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+		297000000, 176, 88, 296, 8, 10, 72, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
-+}
-+
-+#define V4L2_DV_BT_CEA_3840X2160P50 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+		594000000, 1056, 88, 296, 8, 10, 72, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, 0) \
-+}
-+
-+#define V4L2_DV_BT_CEA_3840X2160P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+		594000000, 176, 88, 296, 8, 10, 72, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
-+}
-+
-+#define V4L2_DV_BT_CEA_4096X2160P24 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+		297000000, 1020, 88, 296, 8, 10, 72, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
-+}
-+
-+#define V4L2_DV_BT_CEA_4096X2160P25 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+		297000000, 968, 88, 128, 8, 10, 72, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, 0) \
-+}
-+
-+#define V4L2_DV_BT_CEA_4096X2160P30 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+		297000000, 88, 88, 128, 8, 10, 72, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
-+}
-+
-+#define V4L2_DV_BT_CEA_4096X2160P50 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+		594000000, 968, 88, 128, 8, 10, 72, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, 0) \
-+}
-+
-+#define V4L2_DV_BT_CEA_4096X2160P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+		594000000, 88, 88, 128, 8, 10, 72, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
-+}
-+
- 
- /* VESA Discrete Monitor Timings as per version 1.0, revision 12 */
- 
+I've thought about hardcoding a default input in the driver as well, but Hans 
+wasn't really keen on the idea. Hans, could you please comment on this ?
+
+> And which inputs it refers to ? HDMI inputs A..D + analog ? If we keep this
+> property I think exact mapping of numbers to inputs should be included
+> in description of this property.
+> 
+> > +  - adi,disable-power-down: Boolean property. When set forces the device
+> > to
+> > +    ignore the power-down pin. The property is valid for the ADV7604 only
+> > as
+> > +    the ADV7611 has no power-down pin.
+> 
+> Does it refer to the !PWRDWN pin ? If so I would replace "power-down" with
+> PWRDWN, so it is clear what we're talking about when someone looks only
+> at the datasheet.
+>
+> > +  - adi,disable-cable-reset: Boolean property. When set disables the HDMI
+> > +    receiver automatic reset when the HDMI cable is unplugged.
+> 
+> Couldn't this be configured from user space with some default assumed in the
+> driver ?
+
+Good question. I'm not sure what the exact use case for this is.
+
+Let's be careful not to introduce unneeded properties, I'll drop those two 
+properties for now, we can implement support for the features later when 
+needed.
+
+> > +Example:
+> > +
+> > +	hdmi_receiver@4c {
+> > +		compatible = "adi,adv7611";
+> > +		reg = <0x4c>;
+> > +
+> > +		reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
+> > +		hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
+> > +
+> > +		adi,default-input = <0>;
+> > +
+> > +		#address-cells = <1>;
+> > +		#size-cells = <0>;
+> > +
+> > +		port@0 {
+> > +			reg = <0>;
+> > +		};
+> > +		port@1 {
+> > +			reg = <1>;
+> > +			hdmi_in: endpoint {
+> > +				remote-endpoint = <&ccdc_in>;
+> > +			};
+> > +		};
+> > +	};
+> > diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> > index cce140c..de44213 100644
+> > --- a/drivers/media/i2c/adv7604.c
+> > +++ b/drivers/media/i2c/adv7604.c
+
+[snip]
+
+> > @@ -2836,21 +2906,15 @@ static int adv7604_remove(struct i2c_client
+> > *client)> 
+> >  /* ------------------------------------------------------------------- */
+> > -static struct i2c_device_id adv7604_id[] = {
+> > -	{ "adv7604", ADV7604 },
+> > -	{ "adv7611", ADV7611 },
+> > -	{ }
+> > -};
+> > -MODULE_DEVICE_TABLE(i2c, adv7604_id);
+> > -
+> >  static struct i2c_driver adv7604_driver = {
+> >  	.driver = {
+> >  		.owner = THIS_MODULE,
+> >  		.name = "adv7604",
+> > +		.of_match_table = of_match_ptr(adv7604_of_id),
+> 
+> of_match_ptr() isn't necessary here.
+
+Thanks, will fix in v3.
+
+> >  	},
+> >  	.probe = adv7604_probe,
+> >  	.remove = adv7604_remove,
+> > -	.id_table = adv7604_id,
+> > +	.id_table = adv7604_i2c_id,
+> >  };
+> >  
+> >  module_i2c_driver(adv7604_driver);
+
 -- 
-1.8.4.rc3
+Regards,
+
+Laurent Pinchart
 
