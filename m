@@ -1,94 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:38056 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755277AbaDGNQ2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 09:16:28 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N3N006P7WVFCW60@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 07 Apr 2014 22:16:27 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4681 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751623AbaDQKjd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Apr 2014 06:39:33 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 1/8] [media] s5p-jpeg: Add fmt_ver_flag field to the
- s5p_jpeg_variant structure
-Date: Mon, 07 Apr 2014 15:16:06 +0200
-Message-id: <1396876573-15811-1-git-send-email-j.anaszewski@samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 06/11] saa7134: remove fmt from saa7134_buf
+Date: Thu, 17 Apr 2014 12:39:09 +0200
+Message-Id: <1397731154-34337-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1397731154-34337-1-git-send-email-hverkuil@xs4all.nl>
+References: <1397731154-34337-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simplify the code by adding fmt_ver_flag field
-to the s5p_jpeg_variant structure which allows
-to avoid "if" statement in the s5p_jpeg_find_format
-function.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+This is already available from saa7134_dev.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   11 ++++-------
- drivers/media/platform/s5p-jpeg/jpeg-core.h |    1 +
- 2 files changed, 5 insertions(+), 7 deletions(-)
+ drivers/media/pci/saa7134/saa7134-core.c  |  3 +--
+ drivers/media/pci/saa7134/saa7134-video.c | 24 +++++++++++-------------
+ drivers/media/pci/saa7134/saa7134.h       |  1 -
+ 3 files changed, 12 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 6db4d5e..9b0102d 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -959,7 +959,7 @@ static int s5p_jpeg_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
- static struct s5p_jpeg_fmt *s5p_jpeg_find_format(struct s5p_jpeg_ctx *ctx,
- 				u32 pixelformat, unsigned int fmt_type)
- {
--	unsigned int k, fmt_flag, ver_flag;
-+	unsigned int k, fmt_flag;
- 
- 	if (ctx->mode == S5P_JPEG_ENCODE)
- 		fmt_flag = (fmt_type == FMT_TYPE_OUTPUT) ?
-@@ -970,16 +970,11 @@ static struct s5p_jpeg_fmt *s5p_jpeg_find_format(struct s5p_jpeg_ctx *ctx,
- 				SJPEG_FMT_FLAG_DEC_OUTPUT :
- 				SJPEG_FMT_FLAG_DEC_CAPTURE;
- 
--	if (ctx->jpeg->variant->version == SJPEG_S5P)
--		ver_flag = SJPEG_FMT_FLAG_S5P;
--	else
--		ver_flag = SJPEG_FMT_FLAG_EXYNOS4;
--
- 	for (k = 0; k < ARRAY_SIZE(sjpeg_formats); k++) {
- 		struct s5p_jpeg_fmt *fmt = &sjpeg_formats[k];
- 		if (fmt->fourcc == pixelformat &&
- 		    fmt->flags & fmt_flag &&
--		    fmt->flags & ver_flag) {
-+		    fmt->flags & ctx->jpeg->variant->fmt_ver_flag) {
- 			return fmt;
- 		}
+diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
+index 2495a9d..f6cfbb4 100644
+--- a/drivers/media/pci/saa7134/saa7134-core.c
++++ b/drivers/media/pci/saa7134/saa7134-core.c
+@@ -392,8 +392,7 @@ int saa7134_set_dmabits(struct saa7134_dev *dev)
  	}
-@@ -2103,11 +2098,13 @@ static const struct dev_pm_ops s5p_jpeg_pm_ops = {
- static struct s5p_jpeg_variant s5p_jpeg_drvdata = {
- 	.version	= SJPEG_S5P,
- 	.jpeg_irq	= s5p_jpeg_irq,
-+	.fmt_ver_flag	= SJPEG_FMT_FLAG_S5P,
- };
  
- static struct s5p_jpeg_variant exynos4_jpeg_drvdata = {
- 	.version	= SJPEG_EXYNOS4,
- 	.jpeg_irq	= exynos4_jpeg_irq,
-+	.fmt_ver_flag	= SJPEG_FMT_FLAG_EXYNOS4,
- };
+ 	/* video capture -- dma 1+2 (planar modes) */
+-	if (dev->video_q.curr &&
+-	    dev->video_q.curr->fmt->planar) {
++	if (dev->video_q.curr && dev->fmt->planar) {
+ 		ctrl |= SAA7134_MAIN_CTRL_TE4 |
+ 			SAA7134_MAIN_CTRL_TE5;
+ 	}
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index edf9ec3..f331501 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -826,24 +826,24 @@ static int buffer_activate(struct saa7134_dev *dev,
  
- static const struct of_device_id samsung_jpeg_match[] = {
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-index f482dbf..c222436 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-@@ -118,6 +118,7 @@ struct s5p_jpeg {
+ 	set_size(dev, TASK_A, buf->vb.width, buf->vb.height,
+ 		 V4L2_FIELD_HAS_BOTH(buf->vb.field));
+-	if (buf->fmt->yuv)
++	if (dev->fmt->yuv)
+ 		saa_andorb(SAA7134_DATA_PATH(TASK_A), 0x3f, 0x03);
+ 	else
+ 		saa_andorb(SAA7134_DATA_PATH(TASK_A), 0x3f, 0x01);
+-	saa_writeb(SAA7134_OFMT_VIDEO_A, buf->fmt->pm);
++	saa_writeb(SAA7134_OFMT_VIDEO_A, dev->fmt->pm);
  
- struct s5p_jpeg_variant {
- 	unsigned int	version;
-+	unsigned int	fmt_ver_flag;
- 	irqreturn_t	(*jpeg_irq)(int irq, void *priv);
- };
+ 	/* DMA: setup channel 0 (= Video Task A0) */
+ 	base  = saa7134_buffer_base(buf);
+-	if (buf->fmt->planar)
++	if (dev->fmt->planar)
+ 		bpl = buf->vb.width;
+ 	else
+-		bpl = (buf->vb.width * buf->fmt->depth) / 8;
++		bpl = (buf->vb.width * dev->fmt->depth) / 8;
+ 	control = SAA7134_RS_CONTROL_BURST_16 |
+ 		SAA7134_RS_CONTROL_ME |
+ 		(buf->pt->dma >> 12);
+-	if (buf->fmt->bswap)
++	if (dev->fmt->bswap)
+ 		control |= SAA7134_RS_CONTROL_BSWAP;
+-	if (buf->fmt->wswap)
++	if (dev->fmt->wswap)
+ 		control |= SAA7134_RS_CONTROL_WSWAP;
+ 	if (V4L2_FIELD_HAS_BOTH(buf->vb.field)) {
+ 		/* interlaced */
+@@ -858,13 +858,13 @@ static int buffer_activate(struct saa7134_dev *dev,
+ 	}
+ 	saa_writel(SAA7134_RS_CONTROL(0),control);
  
+-	if (buf->fmt->planar) {
++	if (dev->fmt->planar) {
+ 		/* DMA: setup channel 4+5 (= planar task A) */
+-		bpl_uv   = bpl >> buf->fmt->hshift;
+-		lines_uv = buf->vb.height >> buf->fmt->vshift;
++		bpl_uv   = bpl >> dev->fmt->hshift;
++		lines_uv = buf->vb.height >> dev->fmt->vshift;
+ 		base2    = base + bpl * buf->vb.height;
+ 		base3    = base2 + bpl_uv * lines_uv;
+-		if (buf->fmt->uvswap)
++		if (dev->fmt->uvswap)
+ 			tmp = base2, base2 = base3, base3 = tmp;
+ 		dprintk("uv: bpl=%ld lines=%ld base2/3=%ld/%ld\n",
+ 			bpl_uv,lines_uv,base2,base3);
+@@ -924,8 +924,7 @@ static int buffer_prepare(struct videobuf_queue *q,
+ 	if (buf->vb.width  != dev->width  ||
+ 	    buf->vb.height != dev->height ||
+ 	    buf->vb.size   != size       ||
+-	    buf->vb.field  != field      ||
+-	    buf->fmt       != dev->fmt) {
++	    buf->vb.field  != field) {
+ 		saa7134_dma_free(q,buf);
+ 	}
+ 
+@@ -936,7 +935,6 @@ static int buffer_prepare(struct videobuf_queue *q,
+ 		buf->vb.height = dev->height;
+ 		buf->vb.size   = size;
+ 		buf->vb.field  = field;
+-		buf->fmt       = dev->fmt;
+ 		buf->pt        = &dev->pt_cap;
+ 		dev->video_q.curr = NULL;
+ 
+diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
+index 907568e..d2ee545 100644
+--- a/drivers/media/pci/saa7134/saa7134.h
++++ b/drivers/media/pci/saa7134/saa7134.h
+@@ -456,7 +456,6 @@ struct saa7134_buf {
+ 	struct videobuf_buffer vb;
+ 
+ 	/* saa7134 specific */
+-	struct saa7134_format   *fmt;
+ 	unsigned int            top_seen;
+ 	int (*activate)(struct saa7134_dev *dev,
+ 			struct saa7134_buf *buf,
 -- 
-1.7.9.5
+1.9.2
 
