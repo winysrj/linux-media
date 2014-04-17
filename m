@@ -1,138 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:12024 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754498AbaDDTp3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Apr 2014 15:45:29 -0400
-Date: Fri, 04 Apr 2014 16:45:22 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v3.15-rc1] exynos patches
-Message-id: <20140404164522.21c2f58a@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38905 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752839AbaDQONW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Apr 2014 10:13:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v4 02/49] v4l: Add UYVY10_1X20 and VYUY10_1X20 media bus pixel codes
+Date: Thu, 17 Apr 2014 16:12:33 +0200
+Message-Id: <1397744000-23967-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 104 +++++++++++++++++++++
+ include/uapi/linux/v4l2-mediabus.h                 |   4 +-
+ 2 files changed, 107 insertions(+), 1 deletion(-)
 
-That's the remaining patches I have for the merge windows. It basically
-adds a new sensor and adds the needed DT bits for it to work.
-
--
-
-PS.: This patch also have some conflicts with the code that got moved
-to drivers/of, but this conflict is just function rename:
-
-- 	node = v4l2_of_get_next_endpoint(node, NULL);
-+	node = of_graph_get_next_endpoint(node, NULL);
-
-- 	node = v4l2_of_get_remote_port(node);
-+	node = of_graph_get_remote_port(node);
-
--
-
-The following changes since commit ba35ca07080268af1badeb47de0f9eff28126339:
-
-  [media] em28xx-audio: make sure audio is unmuted on open() (2014-03-14 10:17:18 -0300)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media topic/exynos
-
-for you to fetch changes up to 97e9858ed5525af5355769cd98b25b5ec94c0c85:
-
-  [media] s5p-fimc: Remove reference to outdated macro (2014-03-14 10:37:43 -0300)
-
-----------------------------------------------------------------
-Jacek Anaszewski (1):
-      [media] s5p-jpeg: Fix broken indentation in jpeg-regs.h
-
-Paul Bolle (1):
-      [media] s5p-fimc: Remove reference to outdated macro
-
-Sylwester Nawrocki (9):
-      [media] Documentation: dt: Add binding documentation for S5K6A3 image sensor
-      [media] Documentation: dt: Add binding documentation for S5C73M3 camera
-      [media] Documentation: devicetree: Update Samsung FIMC DT binding
-      [media] V4L: Add driver for s5k6a3 image sensor
-      [media] V4L: s5c73m3: Add device tree support
-      [media] exynos4-is: Use external s5k6a3 sensor driver
-      [media] exynos4-is: Add clock provider for the SCLK_CAM clock outputs
-      [media] exynos4-is: Add support for asynchronous subdevices registration
-      [media] exynos4-is: Add the FIMC-IS ISP capture DMA driver
-
- .../devicetree/bindings/media/samsung-fimc.txt     |  44 +-
- .../devicetree/bindings/media/samsung-s5c73m3.txt  |  97 +++
- .../devicetree/bindings/media/samsung-s5k6a3.txt   |  33 ++
- Documentation/video4linux/fimc.txt                 |   5 +-
- drivers/media/i2c/Kconfig                          |   8 +
- drivers/media/i2c/Makefile                         |   1 +
- drivers/media/i2c/s5c73m3/s5c73m3-core.c           | 207 +++++--
- drivers/media/i2c/s5c73m3/s5c73m3-spi.c            |   6 +
- drivers/media/i2c/s5c73m3/s5c73m3.h                |   4 +
- drivers/media/i2c/s5k6a3.c                         | 389 ++++++++++++
- drivers/media/platform/exynos4-is/Kconfig          |   9 +
- drivers/media/platform/exynos4-is/Makefile         |   4 +
- drivers/media/platform/exynos4-is/fimc-is-param.c  |   2 +-
- drivers/media/platform/exynos4-is/fimc-is-param.h  |   5 +
- drivers/media/platform/exynos4-is/fimc-is-regs.c   |  16 +-
- drivers/media/platform/exynos4-is/fimc-is-regs.h   |   1 +
- drivers/media/platform/exynos4-is/fimc-is-sensor.c | 285 +--------
- drivers/media/platform/exynos4-is/fimc-is-sensor.h |  49 +-
- drivers/media/platform/exynos4-is/fimc-is.c        |  98 ++-
- drivers/media/platform/exynos4-is/fimc-is.h        |   9 +-
- drivers/media/platform/exynos4-is/fimc-isp-video.c | 660 +++++++++++++++++++++
- drivers/media/platform/exynos4-is/fimc-isp-video.h |  44 ++
- drivers/media/platform/exynos4-is/fimc-isp.c       |  29 +-
- drivers/media/platform/exynos4-is/fimc-isp.h       |  27 +-
- drivers/media/platform/exynos4-is/media-dev.c      | 363 +++++++++---
- drivers/media/platform/exynos4-is/media-dev.h      |  32 +-
- drivers/media/platform/s5p-jpeg/jpeg-regs.h        |  24 +-
- 27 files changed, 1886 insertions(+), 565 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
- create mode 100644 drivers/media/i2c/s5k6a3.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-isp-video.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-isp-video.h
-
-
-This is the diff for the trivial merge conflict solve.
-
-diff --cc drivers/media/platform/exynos4-is/fimc-is.c
-index 9bdfa4599bc3,c289d5a69d09..000000000000
---- a/drivers/media/platform/exynos4-is/fimc-is.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is.c
-@@@ -167,11 -168,19 +168,18 @@@ static int fimc_is_parse_sensor_config(
-  	u32 tmp = 0;
-  	int ret;
-  
-+ 	sensor->drvdata = fimc_is_sensor_get_drvdata(node);
-+ 	if (!sensor->drvdata) {
-+ 		dev_err(&is->pdev->dev, "no driver data found for: %s\n",
-+ 							 node->full_name);
-+ 		return -EINVAL;
-+ 	}
-+ 
- -	node = v4l2_of_get_next_endpoint(node, NULL);
- -	if (!node)
- +	np = of_graph_get_next_endpoint(np, NULL);
- +	if (!np)
-  		return -ENXIO;
- -
- -	node = v4l2_of_get_remote_port(node);
- -	if (!node)
- +	np = of_graph_get_remote_port(np);
- +	if (!np)
-  		return -ENXIO;
-  
-  	/* Use MIPI-CSIS channel id to determine the ISP I2C bus index. */
-
-
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 6fb58de..e3cbbb4 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -2436,6 +2436,110 @@
+ 	      <entry>v<subscript>1</subscript></entry>
+ 	      <entry>v<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="V4L2-MBUS-FMT-UYVY10-1X20">
++	      <entry>V4L2_MBUS_FMT_UYVY10_1X20</entry>
++	      <entry>0x201a</entry>
++	      <entry></entry>
++	      &dash-ent-12;
++	      <entry>u<subscript>9</subscript></entry>
++	      <entry>u<subscript>8</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-12;
++	      <entry>v<subscript>9</subscript></entry>
++	      <entry>v<subscript>8</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row id="V4L2-MBUS-FMT-VYUY10-1X20">
++	      <entry>V4L2_MBUS_FMT_VYUY10_1X20</entry>
++	      <entry>0x201b</entry>
++	      <entry></entry>
++	      &dash-ent-12;
++	      <entry>v<subscript>9</subscript></entry>
++	      <entry>v<subscript>8</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-12;
++	      <entry>u<subscript>9</subscript></entry>
++	      <entry>u<subscript>8</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="V4L2-MBUS-FMT-YUYV10-1X20">
+ 	      <entry>V4L2_MBUS_FMT_YUYV10_1X20</entry>
+ 	      <entry>0x200d</entry>
+diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+index 20a99b1..43707b2 100644
+--- a/include/uapi/linux/v4l2-mediabus.h
++++ b/include/uapi/linux/v4l2-mediabus.h
+@@ -52,7 +52,7 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_RGB888_2X12_LE = 0x100c,
+ 	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
+ 
+-	/* YUV (including grey) - next is 0x201a */
++	/* YUV (including grey) - next is 0x201c */
+ 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
+ 	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
+ 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+@@ -74,6 +74,8 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_YUYV8_1X16 = 0x2011,
+ 	V4L2_MBUS_FMT_YVYU8_1X16 = 0x2012,
+ 	V4L2_MBUS_FMT_YDYUYDYV8_1X16 = 0x2014,
++	V4L2_MBUS_FMT_UYVY10_1X20 = 0x201a,
++	V4L2_MBUS_FMT_VYUY10_1X20 = 0x201b,
+ 	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
+ 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
+ 	V4L2_MBUS_FMT_YUV10_1X30 = 0x2016,
 -- 
+1.8.3.2
 
-Regards,
-Mauro
