@@ -1,144 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1282 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754774AbaDGLsS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 07:48:18 -0400
-Message-ID: <5342905D.40504@xs4all.nl>
-Date: Mon, 07 Apr 2014 13:47:41 +0200
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3316 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751956AbaDQKje (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Apr 2014 06:39:34 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Pawel Osciak <pawel@osciak.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH 02/11] vb2: fix handling of data_offset and v4l2_plane.reserved[]
-References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl> <1394486458-9836-3-git-send-email-hverkuil@xs4all.nl> <CAMm-=zBF8v-zKR_ddukfnSvXvxE8Hc9C2yf+0oywQ_hrxDUCfg@mail.gmail.com>
-In-Reply-To: <CAMm-=zBF8v-zKR_ddukfnSvXvxE8Hc9C2yf+0oywQ_hrxDUCfg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 08/11] saa7134: rename vbi/cap to vbi_vbq/cap_vbq
+Date: Thu, 17 Apr 2014 12:39:11 +0200
+Message-Id: <1397731154-34337-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1397731154-34337-1-git-send-email-hverkuil@xs4all.nl>
+References: <1397731154-34337-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/07/2014 07:11 AM, Pawel Osciak wrote:
-> On Tue, Mar 11, 2014 at 6:20 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> The videobuf2-core did not zero the reserved array of v4l2_plane as it
->> should.
->>
->> More serious is the fact that data_offset was not handled correctly:
->>
->> - for capture devices it was never zeroed, which meant that it was
->>   uninitialized. Unless the driver sets it it was a completely random
->>   number.
->>
->> - __qbuf_dmabuf had a completely incorrect length check that included
->>   data_offset.
->>
->> - in the single-planar case data_offset was never correctly set to 0.
->>   The single-planar API doesn't support data_offset, so setting it
->>   to 0 is the right thing to do.
->>
->> All these issues were found with v4l2-compliance.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/v4l2-core/videobuf2-core.c | 19 ++++++++++---------
->>  1 file changed, 10 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->> index f9059bb..1a09442 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -1141,6 +1141,12 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->>         unsigned int plane;
->>
->>         if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
->> +               for (plane = 0; plane < vb->num_planes; ++plane) {
->> +                       memset(v4l2_planes[plane].reserved, 0,
->> +                              sizeof(v4l2_planes[plane].reserved));
->> +                       v4l2_planes[plane].data_offset = 0;
->> +               }
->> +
-> 
-> Perhaps we should just memset the whole v4l2_planes array to 0 over
-> all elements (ARRAY_SIZE)?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-You can't do that here since in the mmap case the v4l2_planes array has already
-fields filled in. However, by doing a memset in __qbuf_userptr and __qbuf_dmabuf,
-before calling __fill_vb2_buffer, this can be solved neatly and correctly.
+Use consistent _vbq suffix for videobuf_queue fields.
 
-> Also I would extract this above the if and zero out everything for
-> both multi and singleplanar.
-> You shouldn't need to zero it out below then.
-> 
->>                 /* Fill in driver-provided information for OUTPUT types */
->>                 if (V4L2_TYPE_IS_OUTPUT(b->type)) {
->>                         /*
->> @@ -1169,8 +1175,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->>                                         b->m.planes[plane].m.fd;
->>                                 v4l2_planes[plane].length =
->>                                         b->m.planes[plane].length;
->> -                               v4l2_planes[plane].data_offset =
->> -                                       b->m.planes[plane].data_offset;
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/saa7134/saa7134-video.c | 52 +++++++++++++++----------------
+ drivers/media/pci/saa7134/saa7134.h       |  4 +--
+ 2 files changed, 28 insertions(+), 28 deletions(-)
 
-I've added an explicit explanation for this change to the commit log as
-well:
-
-- in __fill_vb2_buffer in the DMABUF case the data_offset field was
-  unconditionally copied from v4l2_buffer to v4l2_plane when this
-  should only happen in the output case.
-
-Regards,
-
-	Hans
-
->>                         }
->>                 }
->>         } else {
->> @@ -1180,10 +1184,10 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->>                  * In videobuf we use our internal V4l2_planes struct for
->>                  * single-planar buffers as well, for simplicity.
->>                  */
->> -               if (V4L2_TYPE_IS_OUTPUT(b->type)) {
->> +               if (V4L2_TYPE_IS_OUTPUT(b->type))
->>                         v4l2_planes[0].bytesused = b->bytesused;
->> -                       v4l2_planes[0].data_offset = 0;
->> -               }
->> +               /* Single-planar buffers never use data_offset */
->> +               v4l2_planes[0].data_offset = 0;
->>
->>                 if (b->memory == V4L2_MEMORY_USERPTR) {
->>                         v4l2_planes[0].m.userptr = b->m.userptr;
->> @@ -1193,9 +1197,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->>                 if (b->memory == V4L2_MEMORY_DMABUF) {
->>                         v4l2_planes[0].m.fd = b->m.fd;
->>                         v4l2_planes[0].length = b->length;
->> -                       v4l2_planes[0].data_offset = 0;
->>                 }
->> -
->>         }
->>
->>         /* Zero flags that the vb2 core handles */
->> @@ -1374,8 +1376,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->>                 if (planes[plane].length == 0)
->>                         planes[plane].length = dbuf->size;
->>
->> -               if (planes[plane].length < planes[plane].data_offset +
->> -                   q->plane_sizes[plane]) {
->> +               if (planes[plane].length < q->plane_sizes[plane]) {
-> 
-> Good catch!
-> 
->>                         dprintk(1, "qbuf: invalid dmabuf length for plane %d\n",
->>                                 plane);
->>                         ret = -EINVAL;
->> --
->> 1.9.0
->>
-> 
-> 
-> 
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index e5b2beb..9eb5564 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -1086,10 +1086,10 @@ static struct videobuf_queue *saa7134_queue(struct file *file)
+ 
+ 	switch (vdev->vfl_type) {
+ 	case VFL_TYPE_GRABBER:
+-		q = fh->is_empress ? &dev->empress_vbq : &dev->cap;
++		q = fh->is_empress ? &dev->empress_vbq : &dev->video_vbq;
+ 		break;
+ 	case VFL_TYPE_VBI:
+-		q = &dev->vbi;
++		q = &dev->vbi_vbq;
+ 		break;
+ 	default:
+ 		BUG();
+@@ -1174,6 +1174,7 @@ video_poll(struct file *file, struct poll_table_struct *wait)
+ 	struct saa7134_dev *dev = video_drvdata(file);
+ 	struct saa7134_fh *fh = file->private_data;
+ 	struct videobuf_buffer *buf = NULL;
++	struct videobuf_queue *q = &dev->video_vbq;
+ 	unsigned int rc = 0;
+ 
+ 	if (v4l2_event_pending(&fh->fh))
+@@ -1182,25 +1183,24 @@ video_poll(struct file *file, struct poll_table_struct *wait)
+ 		poll_wait(file, &fh->fh.wait, wait);
+ 
+ 	if (vdev->vfl_type == VFL_TYPE_VBI)
+-		return rc | videobuf_poll_stream(file, &dev->vbi, wait);
++		return rc | videobuf_poll_stream(file, &dev->vbi_vbq, wait);
+ 
+ 	if (res_check(fh, RESOURCE_VIDEO)) {
+-		mutex_lock(&dev->cap.vb_lock);
+-		if (!list_empty(&dev->cap.stream))
+-			buf = list_entry(dev->cap.stream.next, struct videobuf_buffer, stream);
++		mutex_lock(&q->vb_lock);
++		if (!list_empty(&q->stream))
++			buf = list_entry(q->stream.next, struct videobuf_buffer, stream);
+ 	} else {
+-		mutex_lock(&dev->cap.vb_lock);
+-		if (UNSET == dev->cap.read_off) {
++		mutex_lock(&q->vb_lock);
++		if (UNSET == q->read_off) {
+ 			/* need to capture a new frame */
+ 			if (res_locked(dev, RESOURCE_VIDEO))
+ 				goto err;
+-			if (0 != dev->cap.ops->buf_prepare(&dev->cap,
+-					dev->cap.read_buf, dev->cap.field))
++			if (0 != q->ops->buf_prepare(q, q->read_buf, q->field))
+ 				goto err;
+-			dev->cap.ops->buf_queue(&dev->cap, dev->cap.read_buf);
+-			dev->cap.read_off = 0;
++			q->ops->buf_queue(q, q->read_buf);
++			q->read_off = 0;
+ 		}
+-		buf = dev->cap.read_buf;
++		buf = q->read_buf;
+ 	}
+ 
+ 	if (!buf)
+@@ -1209,11 +1209,11 @@ video_poll(struct file *file, struct poll_table_struct *wait)
+ 	poll_wait(file, &buf->done, wait);
+ 	if (buf->state == VIDEOBUF_DONE || buf->state == VIDEOBUF_ERROR)
+ 		rc |= POLLIN | POLLRDNORM;
+-	mutex_unlock(&dev->cap.vb_lock);
++	mutex_unlock(&q->vb_lock);
+ 	return rc;
+ 
+ err:
+-	mutex_unlock(&dev->cap.vb_lock);
++	mutex_unlock(&q->vb_lock);
+ 	return rc | POLLERR;
+ }
+ 
+@@ -1238,21 +1238,21 @@ static int video_release(struct file *file)
+ 	/* stop video capture */
+ 	if (res_check(fh, RESOURCE_VIDEO)) {
+ 		pm_qos_remove_request(&dev->qos_request);
+-		videobuf_streamoff(&dev->cap);
++		videobuf_streamoff(&dev->video_vbq);
+ 		res_free(dev, fh, RESOURCE_VIDEO);
+-		videobuf_mmap_free(&dev->cap);
++		videobuf_mmap_free(&dev->video_vbq);
+ 		INIT_LIST_HEAD(&dev->cap.stream);
+ 	}
+-	if (dev->cap.read_buf) {
+-		buffer_release(&dev->cap, dev->cap.read_buf);
+-		kfree(dev->cap.read_buf);
++	if (dev->video_vbq.read_buf) {
++		buffer_release(&dev->video_vbq, dev->video_vbq.read_buf);
++		kfree(dev->video_vbq.read_buf);
+ 	}
+ 
+ 	/* stop vbi capture */
+ 	if (res_check(fh, RESOURCE_VBI)) {
+-		videobuf_stop(&dev->vbi);
++		videobuf_stop(&dev->vbi_vbq);
+ 		res_free(dev, fh, RESOURCE_VBI);
+-		videobuf_mmap_free(&dev->vbi);
++		videobuf_mmap_free(&dev->vbi_vbq);
+ 		INIT_LIST_HEAD(&dev->vbi.stream);
+ 	}
+ 
+@@ -1338,7 +1338,7 @@ static int saa7134_g_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	f->fmt.pix.width        = dev->width;
+ 	f->fmt.pix.height       = dev->height;
+-	f->fmt.pix.field        = dev->cap.field;
++	f->fmt.pix.field        = dev->video_vbq.field;
+ 	f->fmt.pix.pixelformat  = dev->fmt->fourcc;
+ 	f->fmt.pix.bytesperline =
+ 		(f->fmt.pix.width * dev->fmt->depth) >> 3;
+@@ -1460,7 +1460,7 @@ static int saa7134_s_fmt_vid_cap(struct file *file, void *priv,
+ 	dev->fmt = format_by_fourcc(f->fmt.pix.pixelformat);
+ 	dev->width = f->fmt.pix.width;
+ 	dev->height = f->fmt.pix.height;
+-	dev->cap.field = f->fmt.pix.field;
++	dev->video_vbq.field = f->fmt.pix.field;
+ 	return 0;
+ }
+ 
+@@ -2247,13 +2247,13 @@ int saa7134_video_init1(struct saa7134_dev *dev)
+ 	if (saa7134_boards[dev->board].video_out)
+ 		saa7134_videoport_init(dev);
+ 
+-	videobuf_queue_sg_init(&dev->cap, &video_qops,
++	videobuf_queue_sg_init(&dev->video_vbq, &video_qops,
+ 			    &dev->pci->dev, &dev->slock,
+ 			    V4L2_BUF_TYPE_VIDEO_CAPTURE,
+ 			    V4L2_FIELD_INTERLACED,
+ 			    sizeof(struct saa7134_buf),
+ 			    dev, NULL);
+-	videobuf_queue_sg_init(&dev->vbi, &saa7134_vbi_qops,
++	videobuf_queue_sg_init(&dev->vbi_vbq, &saa7134_vbi_qops,
+ 			    &dev->pci->dev, &dev->slock,
+ 			    V4L2_BUF_TYPE_VBI_CAPTURE,
+ 			    V4L2_FIELD_SEQ_TB,
+diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
+index 482489a..0c325e5 100644
+--- a/drivers/media/pci/saa7134/saa7134.h
++++ b/drivers/media/pci/saa7134/saa7134.h
+@@ -590,11 +590,11 @@ struct saa7134_dev {
+ 
+ 	/* video+ts+vbi capture */
+ 	struct saa7134_dmaqueue    video_q;
+-	struct videobuf_queue      cap;
+ 	struct saa7134_pgtable     pt_cap;
++	struct videobuf_queue      video_vbq;
+ 	struct saa7134_dmaqueue    vbi_q;
+-	struct videobuf_queue      vbi;
+ 	struct saa7134_pgtable     pt_vbi;
++	struct videobuf_queue      vbi_vbq;
+ 	unsigned int               video_fieldcount;
+ 	unsigned int               vbi_fieldcount;
+ 	struct saa7134_format      *fmt;
+-- 
+1.9.2
 
