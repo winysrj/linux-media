@@ -1,107 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f169.google.com ([74.125.82.169]:64639 "EHLO
-	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932181AbaDBOqf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Apr 2014 10:46:35 -0400
-Message-ID: <533C22C6.1090101@gmail.com>
-Date: Wed, 02 Apr 2014 16:46:30 +0200
-From: poma <pomidorabelisima@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38563 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754753AbaDQNI0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Apr 2014 09:08:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 46/48] adv7604: Add DT support
+Date: Thu, 17 Apr 2014 15:08:29 +0200
+Message-ID: <2010144.jYKNNgF1x7@avalon>
+In-Reply-To: <1810096.BfEfAl25kc@avalon>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com> <534FB40A.20506@samsung.com> <1810096.BfEfAl25kc@avalon>
 MIME-Version: 1.0
-To: Eric Dumazet <eric.dumazet@gmail.com>
-CC: Thomas Davis <tadavis@lbl.gov>, Tom Gundersen <teg@jklm.no>,
-	Dan Williams <dcbw@redhat.com>, netdev@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Mailing-List fedora-kernel <kernel@lists.fedoraproject.org>,
-	Veaceslav Falico <vfalico@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Josh Boyer <jwboyer@redhat.com>
-Subject: Re: 3.15 & Bonding
-References: <533BE2F8.5040903@gmail.com> <1396435596.3989.21.camel@edumazet-glaptop2.roam.corp.google.com>
-In-Reply-To: <1396435596.3989.21.camel@edumazet-glaptop2.roam.corp.google.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02.04.2014 12:46, Eric Dumazet wrote:
-> On Wed, 2014-04-02 at 12:14 +0200, poma wrote:
->> Are you all all right?
->> New Tour de Bugs...
->>
->> /sys/devices/virtual/net/bond0/bonding/mode:
->> active-backup 1
->>
->> - systemd-networkd
->> dmesg:
->> BUG: sleeping function called from invalid context at mm/slub.c:965
->> in_atomic(): 1, irqs_disabled(): 0, pid: 593, name: systemd-network
->> 2 locks held by systemd-network/593:
->>  #0:  (rtnl_mutex){+.+.+.}, at: [<ffffffff8169e57b>] rtnetlink_rcv+0x1b/0x40
->>  #1:  (&bond->curr_slave_lock){+...+.}, at: [<ffffffffa0487291>]
->> bond_enslave+0xf31/0xf50 [bonding]
->> CPU: 2 PID: 593 Comm: systemd-network Not tainted
->> 3.15.0-0.rc0.git2.1.fc21.x86_64 #1
->> Call Trace:
->> dump_stack+0x4d/0x66
->> __might_sleep+0x17e/0x230
->> kmem_cache_alloc_node+0x4a/0x390
->>  [<ffffffff816779dd>] __alloc_skb+0x5d/0x2d0
->>  [<ffffffff816a0bd8>] rtmsg_ifinfo+0x48/0x110
->>  [<ffffffff810fa18d>] ? trace_hardirqs_on+0xd/0x10
->>  [<ffffffff8109dd45>] ? __local_bh_enable_ip+0x75/0xe0
->>  [<ffffffffa0485ca7>] bond_change_active_slave+0x197/0x670 [bonding]
->>  [<ffffffffa0486264>] bond_select_active_slave+0xe4/0x1e0 [bonding]
->>  [<ffffffffa048729a>] bond_enslave+0xf3a/0xf50 [bonding]
->>  [<ffffffff8169fdf2>] do_setlink+0xa02/0xa70
->>  [<ffffffff813f4fc6>] ? nla_parse+0x96/0xe0
->>  [<ffffffff816a0da1>] rtnl_setlink+0xc1/0x130
->>  [<ffffffff810a1739>] ? ns_capable+0x39/0x70
->>  [<ffffffff8169e64b>] rtnetlink_rcv_msg+0xab/0x270
->>  [<ffffffff8169e57b>] ? rtnetlink_rcv+0x1b/0x40
->>  [<ffffffff8169e57b>] ? rtnetlink_rcv+0x1b/0x40
->>  [<ffffffff8169e5a0>] ? rtnetlink_rcv+0x40/0x40
->>  [<ffffffff816c3e29>] netlink_rcv_skb+0xa9/0xc0
->>  [<ffffffff8169e58a>] rtnetlink_rcv+0x2a/0x40
->>  [<ffffffff816c3420>] netlink_unicast+0x100/0x1e0
->>  [<ffffffff816c3847>] netlink_sendmsg+0x347/0x770
->>  [<ffffffff8166c78c>] sock_sendmsg+0x9c/0xe0
->>  [<ffffffff811de22f>] ? might_fault+0x5f/0xb0
->>  [<ffffffff811de278>] ? might_fault+0xa8/0xb0
->>  [<ffffffff811de22f>] ? might_fault+0x5f/0xb0
->>  [<ffffffff8166cd04>] SYSC_sendto+0x124/0x1d0
->>  [<ffffffff81024879>] ? sched_clock+0x9/0x10
->>  [<ffffffff810ddb75>] ? local_clock+0x25/0x30
->>  [<ffffffff8111cfc9>] ? current_kernel_time+0x69/0xd0
->>  [<ffffffff810fa0b5>] ? trace_hardirqs_on_caller+0x105/0x1d0
->>  [<ffffffff810fa18d>] ? trace_hardirqs_on+0xd/0x10
->>  [<ffffffff8166dede>] SyS_sendto+0xe/0x10
->>  [<ffffffff817e79a9>] system_call_fastpath+0x16/0x1b
+Hi Sylwester,
+
+On Thursday 17 April 2014 14:36:32 Laurent Pinchart wrote:
+> On Thursday 17 April 2014 12:59:22 Sylwester Nawrocki wrote:
+> > On 11/03/14 00:15, Laurent Pinchart wrote:
+> > > Parse the device tree node to populate platform data.
+> > > 
+> > > Cc: devicetree@vger.kernel.org
+> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > ---
+> > > 
+> > >  .../devicetree/bindings/media/i2c/adv7604.txt      | 56 +++++++++++++
+> > >  drivers/media/i2c/adv7604.c                        | 92
+> > >  +++++++++++++----
+> > >  2 files changed, 134 insertions(+), 14 deletions(-)
+> > >  create mode 100644
+> > >  Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> > > 
+> > > diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> > > b/Documentation/devicetree/bindings/media/i2c/adv7604.txt new file mode
+> > > 100644
+> > > index 0000000..0845c50
+> > > --- /dev/null
+> > > +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> > > @@ -0,0 +1,56 @@
+> > > +* Analog Devices ADV7604/11 video decoder with HDMI receiver
+> > > +
+> > > +The ADV7604 and ADV7611 are multiformat video decoders with an
+> > > integrated
+> > > HDMI +receiver. The ADV7604 has four multiplexed HDMI inputs and one
+> > > analog input, +and the ADV7611 has one HDMI input and no analog input.
+> > > +
+> > > +Required Properties:
+> > > +
+> > > +  - compatible: Must contain one of the following
+> > > +    - "adi,adv7604" for the ADV7604
+> > > +    - "adi,adv7611" for the ADV7611
+> > > +
+> > > +  - reg: I2C slave address
+> > > +
+> > > +  - hpd-gpios: References to the GPIOs that control the HDMI hot-plug
+> > > +    detection pins, one per HDMI input. The active flag indicates the
+> > > GPIO
+> > > +    level that enables hot-plug detection.
+> > > +
+> > > +Optional Properties:
+> > > +
+> > > +  - reset-gpios: Reference to the GPIO connected to the device's reset
+> > > pin. +
+> > > +  - adi,default-input: Index of the input to be configured as default.
+> > > Valid
+> > > +    values are 0..5 for the ADV7604 and 0 for the ADV7611.
+> > 
+> > I have some doubts about this property. Firstly, it seems it is not needed
+> > for ADV7611 since it is always 0 for that device ?
+> > Why can't we hard code in the driver some default input ?
 > 
-> Should be fixed by
+> I've thought about hardcoding a default input in the driver as well, but
+> Hans wasn't really keen on the idea. Hans, could you please comment on this
+> ?
+> > And which inputs it refers to ? HDMI inputs A..D + analog ? If we keep
+> > this
+> > property I think exact mapping of numbers to inputs should be included
+> > in description of this property.
+> > 
+> > > +  - adi,disable-power-down: Boolean property. When set forces the
+> > > device
+> > > to
+> > > +    ignore the power-down pin. The property is valid for the ADV7604
+> > > only
+> > > as
+> > > +    the ADV7611 has no power-down pin.
+> > 
+> > Does it refer to the !PWRDWN pin ? If so I would replace "power-down" with
+> > PWRDWN, so it is clear what we're talking about when someone looks only
+> > at the datasheet.
+> > 
+> > > +  - adi,disable-cable-reset: Boolean property. When set disables the
+> > > HDMI
+> > > +    receiver automatic reset when the HDMI cable is unplugged.
+> > 
+> > Couldn't this be configured from user space with some default assumed in
+> > the driver ?
 > 
-> commit 072256d1f2b8ba0bbb265d590c703f3d57a39d6a
-> Author: Veaceslav Falico <vfalico@redhat.com>
-> Date:   Thu Mar 6 15:33:22 2014 +0100
+> Good question. I'm not sure what the exact use case for this is.
 > 
->     bonding: make slave status notifications GFP_ATOMIC
->     
+> Let's be careful not to introduce unneeded properties, I'll drop those two
+> properties for now, we can implement support for the features later when
+> needed.
+> 
+> > > +Example:
+> > > +
+> > > +	hdmi_receiver@4c {
+> > > +		compatible = "adi,adv7611";
+> > > +		reg = <0x4c>;
+> > > +
+> > > +		reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
+> > > +		hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
+> > > +
+> > > +		adi,default-input = <0>;
+> > > +
+> > > +		#address-cells = <1>;
+> > > +		#size-cells = <0>;
+> > > +
+> > > +		port@0 {
+> > > +			reg = <0>;
+> > > +		};
+> > > +		port@1 {
+> > > +			reg = <1>;
+> > > +			hdmi_in: endpoint {
+> > > +				remote-endpoint = <&ccdc_in>;
+> > > +			};
+> > > +		};
+> > > +	};
+> > > diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> > > index cce140c..de44213 100644
+> > > --- a/drivers/media/i2c/adv7604.c
+> > > +++ b/drivers/media/i2c/adv7604.c
+> 
+> [snip]
+> 
+> > > @@ -2836,21 +2906,15 @@ static int adv7604_remove(struct i2c_client
+> > > *client)>
+> > > 
+> > >  /* -------------------------------------------------------------------
+> > >  */
+> > > 
+> > > -static struct i2c_device_id adv7604_id[] = {
+> > > -	{ "adv7604", ADV7604 },
+> > > -	{ "adv7611", ADV7611 },
+> > > -	{ }
+> > > -};
+> > > -MODULE_DEVICE_TABLE(i2c, adv7604_id);
+> > > -
+> > > 
+> > >  static struct i2c_driver adv7604_driver = {
+> > >  
+> > >  	.driver = {
+> > >  	
+> > >  		.owner = THIS_MODULE,
+> > >  		.name = "adv7604",
+> > > 
+> > > +		.of_match_table = of_match_ptr(adv7604_of_id),
+> > 
+> > of_match_ptr() isn't necessary here.
+> 
+> Thanks, will fix in v3.
 
-Thanks for picking this one!
+On second thought, as the driver has non-DT users, keeping of_match_ptr() and 
+marking the table as __maybe_unused will optimize the table out if neither 
+CONFIG_OF nor CONFIG_MODULE is set. I'd thus prefer keeping of_match_ptr().
 
-Tested with
-3.15.0-0.rc0.git3.2.fc21.x86_64
-i.e.
-3.15.0-0.rc0.git3.1.fc21.x86_64[1] &
-bonding-make-slave-status-notifications-GFP_ATOMIC.patch[2]
+> > >  	},
+> > >  	.probe = adv7604_probe,
+> > >  	.remove = adv7604_remove,
+> > > 
+> > > -	.id_table = adv7604_id,
+> > > +	.id_table = adv7604_i2c_id,
+> > > 
+> > >  };
+> > >  
+> > >  module_i2c_driver(adv7604_driver);
 
-PASSED!
+-- 
+Regards,
 
-
-poma
-
-
-[1]
-http://koji.fedoraproject.org/koji/buildinfo?buildID=508615
-[2]
-https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/commit/drivers/net/bonding?id=072256d1f2b8ba0bbb265d590c703f3d57a39d6a
+Laurent Pinchart
 
