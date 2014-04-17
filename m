@@ -1,46 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from forward1h.mail.yandex.net ([84.201.187.146]:57975 "EHLO
-	forward1h.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751357AbaDPUWH (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38905 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752862AbaDQONY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Apr 2014 16:22:07 -0400
-Received: from smtp4h.mail.yandex.net (smtp4h.mail.yandex.net [84.201.186.21])
-	by forward1h.mail.yandex.net (Yandex) with ESMTP id C52B59E1156
-	for <linux-media@vger.kernel.org>; Thu, 17 Apr 2014 00:22:04 +0400 (MSK)
-Received: from smtp4h.mail.yandex.net (localhost [127.0.0.1])
-	by smtp4h.mail.yandex.net (Yandex) with ESMTP id 934072C3534
-	for <linux-media@vger.kernel.org>; Thu, 17 Apr 2014 00:22:04 +0400 (MSK)
-From: CrazyCat <crazycat69@narod.ru>
+	Thu, 17 Apr 2014 10:13:24 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH] technisat-sub2: Fix stream curruption on high bitrate
-Date: Wed, 16 Apr 2014 23:22:01 +0300
-Message-ID: <3539618.frtlsOTgfg@ubuntu>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v4 06/49] ad9389b: Add pad-level DV timings operations
+Date: Thu, 17 Apr 2014 16:12:37 +0200
+Message-Id: <1397744000-23967-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix stream curruption on high bitrate (>60mbit).
+The video enum_dv_timings and dv_timings_cap operations are deprecated.
+Implement the pad-level version of those operations to prepare for the
+removal of the video version.
 
-Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/dvb-usb/technisat-usb2.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/ad9389b.c | 68 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 39 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb/technisat-usb2.c b/drivers/media/usb/dvb-usb/technisat-usb2.c
-index 420198f..4604c084 100644
---- a/drivers/media/usb/dvb-usb/technisat-usb2.c
-+++ b/drivers/media/usb/dvb-usb/technisat-usb2.c
-@@ -711,7 +711,7 @@ static struct dvb_usb_device_properties technisat_usb2_devices = {
- 					.isoc = {
- 						.framesperurb = 32,
- 						.framesize = 2048,
--						.interval = 3,
-+						.interval = 1,
- 					}
- 				}
- 			},
+diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
+index 1b7ecfd..cee0ae6 100644
+--- a/drivers/media/i2c/ad9389b.c
++++ b/drivers/media/i2c/ad9389b.c
+@@ -571,35 +571,6 @@ static const struct v4l2_subdev_core_ops ad9389b_core_ops = {
+ 	.interrupt_service_routine = ad9389b_isr,
+ };
+ 
+-/* ------------------------------ PAD OPS ------------------------------ */
+-
+-static int ad9389b_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+-{
+-	struct ad9389b_state *state = get_ad9389b_state(sd);
+-
+-	if (edid->pad != 0)
+-		return -EINVAL;
+-	if (edid->blocks == 0 || edid->blocks > 256)
+-		return -EINVAL;
+-	if (!edid->edid)
+-		return -EINVAL;
+-	if (!state->edid.segments) {
+-		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
+-		return -ENODATA;
+-	}
+-	if (edid->start_block >= state->edid.segments * 2)
+-		return -E2BIG;
+-	if (edid->blocks + edid->start_block >= state->edid.segments * 2)
+-		edid->blocks = state->edid.segments * 2 - edid->start_block;
+-	memcpy(edid->edid, &state->edid.data[edid->start_block * 128],
+-	       128 * edid->blocks);
+-	return 0;
+-}
+-
+-static const struct v4l2_subdev_pad_ops ad9389b_pad_ops = {
+-	.get_edid = ad9389b_get_edid,
+-};
+-
+ /* ------------------------------ VIDEO OPS ------------------------------ */
+ 
+ /* Enable/disable ad9389b output */
+@@ -678,6 +649,9 @@ static int ad9389b_g_dv_timings(struct v4l2_subdev *sd,
+ static int ad9389b_enum_dv_timings(struct v4l2_subdev *sd,
+ 				   struct v4l2_enum_dv_timings *timings)
+ {
++	if (timings->pad != 0)
++		return -EINVAL;
++
+ 	return v4l2_enum_dv_timings_cap(timings, &ad9389b_timings_cap,
+ 			NULL, NULL);
+ }
+@@ -685,6 +659,9 @@ static int ad9389b_enum_dv_timings(struct v4l2_subdev *sd,
+ static int ad9389b_dv_timings_cap(struct v4l2_subdev *sd,
+ 				  struct v4l2_dv_timings_cap *cap)
+ {
++	if (cap->pad != 0)
++		return -EINVAL;
++
+ 	*cap = ad9389b_timings_cap;
+ 	return 0;
+ }
+@@ -697,6 +674,39 @@ static const struct v4l2_subdev_video_ops ad9389b_video_ops = {
+ 	.dv_timings_cap = ad9389b_dv_timings_cap,
+ };
+ 
++/* ------------------------------ PAD OPS ------------------------------ */
++
++static int ad9389b_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
++{
++	struct ad9389b_state *state = get_ad9389b_state(sd);
++
++	if (edid->pad != 0)
++		return -EINVAL;
++	if (edid->blocks == 0 || edid->blocks > 256)
++		return -EINVAL;
++	if (!edid->edid)
++		return -EINVAL;
++	if (!state->edid.segments) {
++		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
++		return -ENODATA;
++	}
++	if (edid->start_block >= state->edid.segments * 2)
++		return -E2BIG;
++	if (edid->blocks + edid->start_block >= state->edid.segments * 2)
++		edid->blocks = state->edid.segments * 2 - edid->start_block;
++	memcpy(edid->edid, &state->edid.data[edid->start_block * 128],
++	       128 * edid->blocks);
++	return 0;
++}
++
++static const struct v4l2_subdev_pad_ops ad9389b_pad_ops = {
++	.get_edid = ad9389b_get_edid,
++	.enum_dv_timings = ad9389b_enum_dv_timings,
++	.dv_timings_cap = ad9389b_dv_timings_cap,
++};
++
++/* ------------------------------ AUDIO OPS ------------------------------ */
++
+ static int ad9389b_s_audio_stream(struct v4l2_subdev *sd, int enable)
+ {
+ 	v4l2_dbg(1, debug, sd, "%s: %sable\n", __func__, (enable ? "en" : "dis"));
 -- 
-1.7.9.5
+1.8.3.2
 
