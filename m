@@ -1,42 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:33145 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754523AbaDNQG6 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38903 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752772AbaDQONV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 12:06:58 -0400
-Date: Mon, 14 Apr 2014 13:06:28 -0300
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-To: Sander Eikelenboom <linux@eikelenboom.it>
+	Thu, 17 Apr 2014 10:13:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-usb@vger.kernel.org
-Subject: Re: stk1160 / ehci-pci 0000:00:0a.0: DMA-API: device driver maps
- memory fromstack [addr=ffff88003d0b56bf]
-Message-ID: <20140414160628.GA4420@arch>
-References: <438386739.20140413224553@eikelenboom.it>
- <20140414121231.GA6393@arch.cereza>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20140414121231.GA6393@arch.cereza>
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v4 01/49] v4l: Add UYVY10_2X10 and VYUY10_2X10 media bus pixel codes
+Date: Thu, 17 Apr 2014 16:12:32 +0200
+Message-Id: <1397744000-23967-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Apr 14, Ezequiel Garcia wrote:
-> On Apr 13, Sander Eikelenboom wrote:
-> > 
-> > I'm hitting this warning on boot with a syntek usb video grabber, it's not clear 
-> > to me if it's a driver issue of the stk1160 or a generic ehci issue.
-> > 
-> 
-> Can't reproduce the same warning easily here. Could you test the following patch?
-> 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 128 +++++++++++++++++++++
+ include/uapi/linux/v4l2-mediabus.h                 |   4 +-
+ 2 files changed, 131 insertions(+), 1 deletion(-)
 
-Nevermind, just reproduced the warning. I'll be pushing a fix now.
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 7331ce1..6fb58de 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -1898,6 +1898,134 @@
+ 	      <entry>y<subscript>1</subscript></entry>
+ 	      <entry>y<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="V4L2-MBUS-FMT-UYVY10-2X10">
++	      <entry>V4L2_MBUS_FMT_UYVY10_2X10</entry>
++	      <entry>0x2018</entry>
++	      <entry></entry>
++	      &dash-ent-22;
++	      <entry>u<subscript>9</subscript></entry>
++	      <entry>u<subscript>8</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-22;
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-22;
++	      <entry>v<subscript>9</subscript></entry>
++	      <entry>v<subscript>8</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-22;
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row id="V4L2-MBUS-FMT-VYUY10-2X10">
++	      <entry>V4L2_MBUS_FMT_VYUY10_2X10</entry>
++	      <entry>0x2019</entry>
++	      <entry></entry>
++	      &dash-ent-22;
++	      <entry>v<subscript>9</subscript></entry>
++	      <entry>v<subscript>8</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-22;
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-22;
++	      <entry>u<subscript>9</subscript></entry>
++	      <entry>u<subscript>8</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-22;
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="V4L2-MBUS-FMT-YUYV10-2X10">
+ 	      <entry>V4L2_MBUS_FMT_YUYV10_2X10</entry>
+ 	      <entry>0x200b</entry>
+diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+index b5c3aab..20a99b1 100644
+--- a/include/uapi/linux/v4l2-mediabus.h
++++ b/include/uapi/linux/v4l2-mediabus.h
+@@ -52,7 +52,7 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_RGB888_2X12_LE = 0x100c,
+ 	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
+ 
+-	/* YUV (including grey) - next is 0x2018 */
++	/* YUV (including grey) - next is 0x201a */
+ 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
+ 	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
+ 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+@@ -64,6 +64,8 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_YUYV8_2X8 = 0x2008,
+ 	V4L2_MBUS_FMT_YVYU8_2X8 = 0x2009,
+ 	V4L2_MBUS_FMT_Y10_1X10 = 0x200a,
++	V4L2_MBUS_FMT_UYVY10_2X10 = 0x2018,
++	V4L2_MBUS_FMT_VYUY10_2X10 = 0x2019,
+ 	V4L2_MBUS_FMT_YUYV10_2X10 = 0x200b,
+ 	V4L2_MBUS_FMT_YVYU10_2X10 = 0x200c,
+ 	V4L2_MBUS_FMT_Y12_1X12 = 0x2013,
 -- 
-Ezequiel García, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
+1.8.3.2
+
