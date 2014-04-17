@@ -1,170 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3704 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754343AbaDPNUk (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38902 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751239AbaDQONV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Apr 2014 09:20:40 -0400
-Message-ID: <534E839C.6060203@xs4all.nl>
-Date: Wed, 16 Apr 2014 15:20:28 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Steve Cookson <it@sca-uk.com>, Steven Toth <stoth@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Hauppauge ImpactVCB-e 01385
-References: <534675E1.6050408@sca-uk.com> <5347B132.6040206@sca-uk.com> <5347B9A3.2050301@xs4all.nl> <5347BDDE.6080208@sca-uk.com> <5347C57B.7000207@xs4all.nl> <5347DD94.1070000@sca-uk.com> <5347E2AF.6030205@xs4all.nl> <5347EB5D.2020408@sca-uk.com> <5347EC3D.7040107@xs4all.nl> <5348392E.40808@sca-uk.com> <534BEA8A.2040604@xs4all.nl> <534D6241.5060903@sca-uk.com> <534D68C2.6050902@xs4all.nl> <534D7E24.4010602@sca-uk.com> <534E5438.3030404@xs4all.nl> <534E8225.6090804@sca-uk.com>
-In-Reply-To: <534E8225.6090804@sca-uk.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Thu, 17 Apr 2014 10:13:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v4 00/49] ADV7611 support
+Date: Thu, 17 Apr 2014 16:12:31 +0200
+Message-Id: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/16/2014 03:14 PM, Steve Cookson wrote:
->   Hi Hans,
-> 
-> Thanks for this.
-> On 16/04/14 10:58, Hans Verkuil wrote:
->  > find /lib/modules/`uname -r`/|grep altera
->  >
->  > If you have duplicate altera-stapl.ko files, then that might explain it.
->  > In that case remove the older module.
-> There are indeed duplicates.  I removed the older one and dmesg went 
-> wild :)  Dump follows at end of email.
-> 
-> However looking at the tree structure I have to say I don't understand 
-> it.  Firstly there seem to be two equivalent branches in /lib/modules/:
-> 
-> 1) drivers/linux/drivers/misc/altera-stapl/
-> 
-> and
-> 
-> 2) drivers/misc/altera-stapl/
-> 
-> Before I do the patch and build, altera-stapl.ko is in 2) but the make 
-> install puts the new version in 1).
+Hello,
 
-Weird. It looks like media_build misinstalls this. If altera-stapl is in
-the wrong place, then I suspect the other modules are also in the wrong
-place and thus duplicated, which will cause all the things you see below.
+This patch set implements support for the ADV7611 in the adv7604 driver. It
+also comes up with new features such as output format configuration through
+pad format operations, hot-plug detect control through GPIO and DT support.
 
-Which distro are you using?
+I believe I've addressed all comments received on v3 and picked all the
+Acked-by, Reviewed-by and Tested-by tags from the mailing list.
 
-Anyway, I would recommend that you make a safety copy of your modules
-first (just in case :-) ), and then move all the newly install modules
-to the right place.
+Changes since v3:
 
+- Dropped DT support for ADV7604
+- Dropped the ADI-specific DT properties
+- Document port nodes in the DT bindings
+- Use the OF graph parsing code
+
+Changes since v2:
+
+- Use the same ioctls numbers for DV subdev and video ioctls
+- Accept edid == NULL when the number of blocks is 0
+- Support digital bus reordering
+
+Changes since v1:
+
+- Check the edid and pad fields for various ioctls in the subdev core
+- Switch to the descriptor-based GPIO API
+- Leave enum adv7604_pad in header file
+- Keep the hotplug notifier
+- Fix compilation breakage when !CONFIG_OF due to directly dereferencing the
+  return value of of_match_node()
+- Move patch "v4l: subdev: Remove deprecated video-level DV timings
+  operations" later in the series to avoid bisection breakages
+- Document struct v4l2_enum_dv_timings reserved field as being set to 0 by
+  both drivers and application
+- Document pad field of struct v4l2_enum_dv_timings and struct
+  v4l2_dv_timings_cap as being used for subdev nodes only
+- Typo fixes in documentation
+
+Lars-Peter Clausen (4):
+  adv7604: Add missing include to linux/types.h
+  adv7604: Add support for asynchronous probing
+  adv7604: Don't put info string arrays on the stack
+  adv7604: Add adv7611 support
+
+Laurent Pinchart (45):
+  v4l: Add UYVY10_2X10 and VYUY10_2X10 media bus pixel codes
+  v4l: Add UYVY10_1X20 and VYUY10_1X20 media bus pixel codes
+  v4l: Add 12-bit YUV 4:2:0 media bus pixel codes
+  v4l: Add 12-bit YUV 4:2:2 media bus pixel codes
+  v4l: Add pad-level DV timings subdev operations
+  ad9389b: Add pad-level DV timings operations
+  adv7511: Add pad-level DV timings operations
+  adv7842: Add pad-level DV timings operations
+  s5p-tv: hdmi: Add pad-level DV timings operations
+  s5p-tv: hdmiphy: Add pad-level DV timings operations
+  ths8200: Add pad-level DV timings operations
+  tvp7002: Add pad-level DV timings operations
+  media: bfin_capture: Switch to pad-level DV operations
+  media: davinci: vpif: Switch to pad-level DV operations
+  media: staging: davinci: vpfe: Switch to pad-level DV operations
+  s5p-tv: mixer: Switch to pad-level DV operations
+  ad9389b: Remove deprecated video-level DV timings operations
+  adv7511: Remove deprecated video-level DV timings operations
+  adv7842: Remove deprecated video-level DV timings operations
+  s5p-tv: hdmi: Remove deprecated video-level DV timings operations
+  s5p-tv: hdmiphy: Remove deprecated video-level DV timings operation
+  ths8200: Remove deprecated video-level DV timings operations
+  tvp7002: Remove deprecated video-level DV timings operations
+  v4l: Improve readability by not wrapping ioctl number #define's
+  v4l: Add support for DV timings ioctls on subdev nodes
+  v4l: Validate fields in the core code for subdev EDID ioctls
+  adv7604: Add 16-bit read functions for CP and HDMI
+  adv7604: Cache register contents when reading multiple bits
+  adv7604: Remove subdev control handlers
+  adv7604: Add sink pads
+  adv7604: Make output format configurable through pad format operations
+  adv7604: Add pad-level DV timings support
+  adv7604: Remove deprecated video-level DV timings operations
+  v4l: subdev: Remove deprecated video-level DV timings operations
+  adv7604: Inline the to_sd function
+  adv7604: Store I2C addresses and clients in arrays
+  adv7604: Replace *_and_or() functions with *_clr_set()
+  adv7604: Sort headers alphabetically
+  adv7604: Support hot-plug detect control through a GPIO
+  adv7604: Specify the default input through platform data
+  adv7604: Add DT support
+  adv7604: Add LLC polarity configuration
+  adv7604: Add endpoint properties to DT bindings
+  adv7604: Set HPD GPIO direction to output
+  adv7604: Mark adv7604_of_id table with __maybe_unused
+
+ Documentation/DocBook/media/v4l/subdev-formats.xml |  760 ++++++++++
+ .../DocBook/media/v4l/vidioc-dv-timings-cap.xml    |   27 +-
+ .../DocBook/media/v4l/vidioc-enum-dv-timings.xml   |   30 +-
+ .../devicetree/bindings/media/i2c/adv7604.txt      |   70 +
+ drivers/media/i2c/ad9389b.c                        |   64 +-
+ drivers/media/i2c/adv7511.c                        |   66 +-
+ drivers/media/i2c/adv7604.c                        | 1468 ++++++++++++++------
+ drivers/media/i2c/adv7842.c                        |   14 +-
+ drivers/media/i2c/ths8200.c                        |   10 +
+ drivers/media/i2c/tvp7002.c                        |    5 +-
+ drivers/media/platform/blackfin/bfin_capture.c     |    4 +-
+ drivers/media/platform/davinci/vpif_capture.c      |    4 +-
+ drivers/media/platform/davinci/vpif_display.c      |    4 +-
+ drivers/media/platform/s5p-tv/hdmi_drv.c           |   14 +-
+ drivers/media/platform/s5p-tv/hdmiphy_drv.c        |    9 +-
+ drivers/media/platform/s5p-tv/mixer_video.c        |    8 +-
+ drivers/media/v4l2-core/v4l2-subdev.c              |   51 +-
+ drivers/staging/media/davinci_vpfe/vpfe_video.c    |    4 +-
+ include/media/adv7604.h                            |  124 +-
+ include/media/v4l2-subdev.h                        |    8 +-
+ include/uapi/linux/v4l2-mediabus.h                 |   14 +-
+ include/uapi/linux/v4l2-subdev.h                   |   40 +-
+ include/uapi/linux/videodev2.h                     |   10 +-
+ 23 files changed, 2188 insertions(+), 620 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7604.txt
+
+-- 
 Regards,
 
-	Hans
-
-> 
-> If I delete the version in 1), I delete the effects of the patch, if I 
-> delete the version in 2), I get the dump below.
->  > It does install correctly for my 3.13 kernel.
-> I upgraded to 3.11.0.19 and reinstalled linux tv, but same effect.
-> 
-> Note that the dump here gives err 0, but the original error was err 
-> -22.  Is -22 significant, does anyone know what it means?
-> 
-> Also, there is an altera.h of size = 0 in 
-> lib/modules/...../include/config/spi but as it is not duplicated on 
-> linuxtv/media_build I imagine it doesn't affect the compile.
-> 
-> There has been quite a bit of discussion about this error in previous 
-> releases and patches have been applied (as I'm sure you saw).  It seems 
-> we still haven't quite got to the bottom of it as it is still 
-> reappearing.  I think it would be quite useful to put it to bed once and 
-> for all.
-> 
-> Thanks so much for your help.
-> 
-> Regards
-> 
-> Steve.
-> 
-> dmesg | grep -i cx
-> [    9.048582] cx23885: module verification failed: signature and/or 
-> required key missing - tainting kernel
-> [    9.048599] cx23885: Unknown symbol videobuf_streamoff (err 0)
-> [    9.048605] cx23885: Unknown symbol v4l2_norm_to_name (err 0)
-> [    9.048608] cx23885: Unknown symbol videobuf_poll_stream (err 0)
-> [    9.048611] cx23885: Unknown symbol video_ioctl2 (err 0)
-> [    9.048615] cx23885: Unknown symbol v4l2_get_timestamp (err 0)
-> [    9.048618] cx23885: Unknown symbol videobuf_read_stop (err 0)
-> [    9.048623] cx23885: Unknown symbol ir_raw_event_handle (err 0)
-> [    9.048626] cx23885: Unknown symbol videobuf_dma_map (err 0)
-> [    9.048632] cx23885: Unknown symbol dvb_ca_en50221_init (err 0)
-> [    9.048637] cx23885: Unknown symbol altera_init (err 0)
-> [    9.048641] cx23885: Unknown symbol snd_pcm_new (err 0)
-> [    9.048647] cx23885: Unknown symbol cx2341x_ext_ctrls (err 0)
-> [    9.048651] cx23885: Unknown symbol tda18271_attach (err 0)
-> [    9.048659] cx23885: Unknown symbol videobuf_dma_free (err 0)
-> [    9.048663] cx23885: Unknown symbol ir_raw_event_store (err 0)
-> [    9.048667] cx23885: Unknown symbol videobuf_reqbufs (err 0)
-> [    9.048674] cx23885: Unknown symbol videobuf_waiton (err 0)
-> [    9.048677] cx23885: Unknown symbol snd_pcm_format_physical_width (err 0)
-> [    9.048680] cx23885: Unknown symbol v4l2_subdev_init (err 0)
-> [    9.048684] cx23885: Unknown symbol videobuf_dqbuf (err 0)
-> [    9.048691] cx23885: Unknown symbol videobuf_dvb_alloc_frontend (err 0)
-> [    9.048695] cx23885: Unknown symbol v4l2_i2c_subdev_addr (err 0)
-> [    9.048698] cx23885: Unknown symbol v4l2_device_register_subdev (err 0)
-> [    9.048701] cx23885: Unknown symbol cx2341x_ctrl_query (err 0)
-> [    9.048706] cx23885: Unknown symbol video_devdata (err 0)
-> [    9.048710] cx23885: Unknown symbol v4l_bound_align_image (err 0)
-> [    9.048713] cx23885: Unknown symbol v4l2_type_names (err 0)
-> [    9.048716] cx23885: Unknown symbol v4l2_device_unregister_subdev (err 0)
-> [    9.048719] cx23885: Unknown symbol v4l2_ctrl_next (err 0)
-> [    9.048723] cx23885: Unknown symbol altera_ci_tuner_reset (err 0)
-> [    9.048727] cx23885: Unknown symbol btcx_riscmem_alloc (err 0)
-> [    9.048729] cx23885: Unknown symbol videobuf_dvb_get_frontend (err 0)
-> [    9.048732] cx23885: Unknown symbol snd_pcm_lib_ioctl (err 0)
-> [    9.048736] cx23885: Unknown symbol tveeprom_read (err 0)
-> [    9.048739] cx23885: Unknown symbol videobuf_queue_sg_init (err 0)
-> [    9.048741] cx23885: Unknown symbol btcx_riscmem_free (err 0)
-> [    9.048744] cx23885: Unknown symbol v4l2_ctrl_query_menu (err 0)
-> [    9.048747] cx23885: Unknown symbol videobuf_dma_unmap (err 0)
-> [    9.048749] cx23885: Unknown symbol videobuf_read_stream (err 0)
-> [    9.048753] cx23885: Unknown symbol dvb_ca_en50221_release (err 0)
-> [    9.048757] cx23885: Unknown symbol rc_register_device (err 0)
-> [    9.048761] cx23885: Unknown symbol videobuf_querybuf (err 0)
-> [    9.048763] cx23885: Unknown symbol snd_pcm_hw_constraint_pow2 (err 0)
-> [    9.048767] cx23885: Unknown symbol altera_ci_irq (err 0)
-> [    9.048769] cx23885: Unknown symbol snd_pcm_set_ops (err 0)
-> [    9.048772] cx23885: Unknown symbol video_unregister_device (err 0)
-> [    9.048775] cx23885: Unknown symbol videobuf_qbuf (err 0)
-> [    9.048779] cx23885: Unknown symbol altera_ci_release (err 0)
-> [    9.048782] cx23885: Unknown symbol cx2341x_update (err 0)
-> [    9.048785] cx23885: Unknown symbol video_device_alloc (err 0)
-> [    9.048789] cx23885: Unknown symbol videobuf_read_one (err 0)
-> [    9.048792] cx23885: Unknown symbol rc_free_device (err 0)
-> [    9.048794] cx23885: Unknown symbol videobuf_dma_init (err 0)
-> [    9.048799] cx23885: Unknown symbol dvb_ca_en50221_frda_irq (err 0)
-> [    9.048802] cx23885: Unknown symbol cx2341x_ctrl_get_menu (err 0)
-> [    9.048804] cx23885: Unknown symbol v4l2_device_register (err 0)
-> [    9.048807] cx23885: Unknown symbol videobuf_dvb_unregister_bus (err 0)
-> [    9.048812] cx23885: Unknown symbol dvb_ca_en50221_camready_irq (err 0)
-> [    9.048814] cx23885: Unknown symbol rc_allocate_device (err 0)
-> [    9.048817] cx23885: Unknown symbol cx2341x_log_status (err 0)
-> [    9.048821] cx23885: Unknown symbol videobuf_dma_init_kernel (err 0)
-> [    9.048824] cx23885: Unknown symbol cx2341x_fill_defaults (err 0)
-> [    9.048826] cx23885: Unknown symbol videobuf_dvb_register_bus (err 0)
-> [    9.048830] cx23885: Unknown symbol videobuf_iolock (err 0)
-> [    9.048834] cx23885: Unknown symbol __video_register_device (err 0)
-> [    9.048837] cx23885: Unknown symbol videobuf_streamon (err 0)
-> [    9.048839] cx23885: Unknown symbol videobuf_queue_cancel (err 0)
-> [    9.048842] cx23885: Unknown symbol videobuf_dvb_dealloc_frontends 
-> (err 0)
-> [    9.048844] cx23885: Unknown symbol v4l2_i2c_tuner_addrs (err 0)
-> [    9.048848] cx23885: Unknown symbol v4l2_device_unregister (err 0)
-> [    9.048851] cx23885: Unknown symbol tveeprom_hauppauge_analog (err 0)
-> [    9.048854] cx23885: Unknown symbol video_device_release (err 0)
-> [    9.048857] cx23885: Unknown symbol snd_pcm_period_elapsed (err 0)
-> [    9.048860] cx23885: Unknown symbol v4l2_i2c_new_subdev (err 0)
-> [    9.048863] cx23885: Unknown symbol videobuf_mmap_mapper (err 0)
-> [    9.048866] cx23885: Unknown symbol cx2341x_mpeg_ctrls (err 0)
-> [    9.048871] cx23885: Unknown symbol altera_ci_init (err 0)
-> [    9.048876] cx23885: Unknown symbol rc_unregister_device (err 0)
-> [    9.048880] cx23885: Unknown symbol videobuf_to_dma (err 0)
-> [    9.048883] cx23885: Unknown symbol videobuf_mmap_free (err 0)
-> image@image-H61M-DS2:~/media_build$
-> 
+Laurent Pinchart
 
