@@ -1,200 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:36342 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758926AbaD3Mih (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41305 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751019AbaDQV7T (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Apr 2014 08:38:37 -0400
-Message-ID: <5360EEC5.5050903@gmail.com>
-Date: Wed, 30 Apr 2014 18:08:29 +0530
-From: Arun Kumar K <arunkk.samsung@gmail.com>
+	Thu, 17 Apr 2014 17:59:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Thomas Pugliese <thomas.pugliese@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org
+Subject: Re: [PATCH] uvc: update uvc_endpoint_max_bpi to handle USB_SPEED_WIRELESS devices
+Date: Thu, 17 Apr 2014 23:59:22 +0200
+Message-ID: <13572613.UXhodzMO7U@avalon>
+In-Reply-To: <alpine.DEB.2.10.1404170949070.8990@mint32-virtualbox>
+References: <1390598248-343-1-git-send-email-thomas.pugliese@gmail.com> <18912543.lQLItvHSYH@avalon> <alpine.DEB.2.10.1404170949070.8990@mint32-virtualbox>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Arun Kumar K <arun.kk@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-CC: k.debski@samsung.com, s.nawrocki@samsung.com,
-	laurent.pinchart@ideasonboard.com, posciak@chromium.org
-Subject: Re: [PATCH v2 1/2] v4l: Add resolution change event.
-References: <1398072362-24962-1-git-send-email-arun.kk@samsung.com> <1398072362-24962-2-git-send-email-arun.kk@samsung.com> <53566601.2080801@xs4all.nl>
-In-Reply-To: <53566601.2080801@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Thomas,
 
+On Thursday 17 April 2014 09:53:32 Thomas Pugliese wrote:
+> On Thu, 17 Apr 2014, Laurent Pinchart wrote:
+> > On Wednesday 16 April 2014 12:29:22 Thomas Pugliese wrote:
 
-On 04/22/14 18:22, Hans Verkuil wrote:
-> On 04/21/2014 11:26 AM, Arun Kumar K wrote:
->> From: Pawel Osciak <posciak@chromium.org>
->>
->> This event indicates that the decoder has reached a point in the stream,
->> at which the resolution changes. The userspace is expected to provide a new
->> set of CAPTURE buffers for the new format before decoding can continue.
->> The event can also be used for more generic events involving resolution
->> or format changes at runtime for all kinds of video devices.
->>
->> Signed-off-by: Pawel Osciak <posciak@chromium.org>
->> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
->> ---
->>  .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   16 ++++++++++++++++
->>  include/uapi/linux/videodev2.h                     |    6 ++++++
->>  2 files changed, 22 insertions(+)
->>
->> diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
->> index 5c70b61..0aec831 100644
->> --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
->> +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
->> @@ -155,6 +155,22 @@
->>  	    </entry>
->>  	  </row>
->>  	  <row>
->> +	    <entry><constant>V4L2_EVENT_SOURCE_CHANGE</constant></entry>
->> +	    <entry>5</entry>
->> +	    <entry>
->> +	      <para>This event is triggered when a resolution or format change
->> +	       is detected during runtime by the video device. It can be a
->> +	       runtime resolution change triggered by a video decoder or the
->> +	       format change happening on an HDMI connector. Application may
->> +	       need to reinitialize buffers before proceeding further.</para>
->> +
->> +              <para>This event has a &v4l2-event-source-change; associated
->> +	      with it. This has significance only for v4l2 subdevs where the
->> +	      <structfield>pad_num</structfield> field will be updated with
->> +	      the pad number on which the event is triggered.</para>
->> +	    </entry>
->> +	  </row>
->> +	  <row>
->>  	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
->>  	    <entry>0x08000000</entry>
->>  	    <entry>Base event number for driver-private events.</entry>
->> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
->> index 6ae7bbe..12e0614 100644
->> --- a/include/uapi/linux/videodev2.h
->> +++ b/include/uapi/linux/videodev2.h
->> @@ -1733,6 +1733,7 @@ struct v4l2_streamparm {
->>  #define V4L2_EVENT_EOS				2
->>  #define V4L2_EVENT_CTRL				3
->>  #define V4L2_EVENT_FRAME_SYNC			4
->> +#define V4L2_EVENT_SOURCE_CHANGE		5
->>  #define V4L2_EVENT_PRIVATE_START		0x08000000
->>  
->>  /* Payload for V4L2_EVENT_VSYNC */
->> @@ -1764,12 +1765,17 @@ struct v4l2_event_frame_sync {
->>  	__u32 frame_sequence;
->>  };
->>  
->> +struct v4l2_event_source_change {
->> +	__u32 pad_num;
->> +};
->> +
->>  struct v4l2_event {
->>  	__u32				type;
->>  	union {
->>  		struct v4l2_event_vsync		vsync;
->>  		struct v4l2_event_ctrl		ctrl;
->>  		struct v4l2_event_frame_sync	frame_sync;
->> +		struct v4l2_event_source_change source_change;
->>  		__u8				data[64];
->>  	} u;
->>  	__u32				pending;
->>
+[snip]
+
+> > > As you had mentioned previously, it should be possible to support both
+> > > formats by ignoring the endpoint descriptor and looking at the
+> > > bMaxBurst, bOverTheAirInterval and wOverTheAirPacketSize fields in the
+> > > WUSB endpoint companion descriptor.  That is a more involved change to
+> > > the UVC driver and also would require changes to USB core to store the
+> > > WUSB endpoint companion descriptor in struct usb_host_endpoint similar
+> > > to what is done for super speed devices.
+> > 
+> > It's more complex indeed, but I believe it would be worth it. Any
+> > volunteer ? ;-) In the meantime I'm fine with a patch that reverts to the
+> > previous behaviour. Please include the explanation of the problem in the
+> > commit message.
 > 
-> This needs to be done differently. The problem is that you really have multiple
-> events that you want to subscribe to: one for each pad (or input: see the way
-> VIDIOC_G/S_EDID maps pad to an input or output index when used with a video node,
-> we have to support that for this event as well).
+> I may make an attempt at the more complete fix once I finish some of the
+> other items in my queue.
 > 
-> What you want to do is similar to what is done for control events: there you can
-> subscribe for a specific control and get notified when that control changes.
-> 
-> The way that works in the event code is that the 'id' field in the v4l2_event
-> struct contains that control ID, or, in this case, the pad/input/output index.
-> 
+> For clarification, would you like a patch that reverts to the pre-super
+> speed behavior where windows-compatible devices work not but spec
+> compliant devices will not (i.e. treat USB_SPEED_HIGH and
+> USB_SPEED_WIRELESS the same)?
 
-As I am new to v4l2-events itself, I might have some noob questions.
-I understood filling pad index into id field. But for video nodes,
-the application is supposed to put v4l2_buf_type in the id field?
+I'll trust your judgment on that, if you believe it would be better from a 
+user point of view, please send a patch. Otherwise we can wait until you find 
+time to work on a proper fix.
 
+-- 
+Regards,
 
-> In the application you will subscribe to the SOURCE_CHANGE event for a specific
-> pad/input/output index.
-> 
-> In other words, the pad_num field should be dropped and the id field used
-> instead.
-> 
-> Assuming we will also add a 'changes' field (see my reply to the other post
-> on that topic), then you should also provide replace and merge ops (see
-> v4l2-ctrls.c). That way it is sufficient to use just one element when calling
-> v4l2_event_subscribe(): you will never loose information since if multiple
-> events arrive before the application can dequeue them, the 'changes' information
-> will be the ORed value of all those intermediate events.
-> 
+Laurent Pinchart
 
-If I understand correctly, the implementation should go somewhat in the
-following lines:
-
-+void v4l2_event_src_replace(struct v4l2_event *old, const struct
-v4l2_event *new)
-+{
-+       u32 old_changes = old->u.src_change.changes;
-+
-+       old->u.src_change = new->u.src_change;
-+       old->u.src_change.changes |= old_changes;
-+}
-+
-+void v4l2_event_src_merge(const struct v4l2_event *old, struct
-v4l2_event *new)
-+{
-+       new->u.src_change.changes |= old->u.src_change.changes;
-+}
-+
-+const struct v4l2_subscribed_event_ops v4l2_event_src_ch_ops = {
-+       .replace = v4l2_event_src_replace,
-+       .merge = v4l2_event_src_merge,
-+};
-+
-+int v4l2_src_change_event_subscribe(struct v4l2_fh *fh,
-+                               const struct v4l2_event_subscription *sub)
-+{
-+       if (sub->type == V4L2_EVENT_SOURCE_CHANGE)
-+               return v4l2_event_subscribe(fh, sub, 0,
-&v4l2_event_src_ch_ops);
-+       return -EINVAL;
-+}
-
-And v4l2-event.c is the right place to put it?
-
-
-And in the videodev2.h file:
-
-+#define V4L2_EVENT_SRC_CH_RESOLUTION           (1 << 0)
-+#define V4L2_EVENT_SRC_CH_FORMAT               (1 << 1)
-+
-+struct v4l2_event_src_change {
-+       __u32 changes;
-+};
-+
- struct v4l2_event {
-        __u32                           type;
-        union {
-                struct v4l2_event_vsync         vsync;
-                struct v4l2_event_ctrl          ctrl;
-                struct v4l2_event_frame_sync    frame_sync;
-+               struct v4l2_event_src_change    src_change;
-                __u8                            data[64];
-        } u;
-        __u32                           pending;
-
-Please correct me if my understanding is totally wrong here?
-
-Regards
-Arun
-
-> It's all more work, but it is critical to ensure that the application never
-> misses events.
-> 
-> Regards,
-> 
-> 	Hans
-> 
