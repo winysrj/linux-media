@@ -1,81 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:25504 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754482AbaDNJA5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 05:00:57 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id 68B56209A1
-	for <linux-media@vger.kernel.org>; Mon, 14 Apr 2014 12:00:53 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38905 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754145AbaDQONf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Apr 2014 10:13:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH v2 06/21] smiapp: Make PLL flags separate from regular quirk flags
-Date: Mon, 14 Apr 2014 11:58:31 +0300
-Message-Id: <1397465926-29724-7-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v4 30/49] adv7604: Add 16-bit read functions for CP and HDMI
+Date: Thu, 17 Apr 2014 16:13:01 +0200
+Message-Id: <1397744000-23967-31-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It doesn't make sense to just copy the information to the PLL flags. Add a
-new fields for the quirks to contain the PLL flags.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c  | 5 ++---
- drivers/media/i2c/smiapp/smiapp-quirk.c | 2 +-
- drivers/media/i2c/smiapp/smiapp-quirk.h | 5 ++---
- 3 files changed, 5 insertions(+), 7 deletions(-)
+ drivers/media/i2c/adv7604.c | 48 ++++++++++++++++++++++-----------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 69c11ec..23f2c4d 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2617,12 +2617,11 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 	pll->bus_type = SMIAPP_PLL_BUS_TYPE_CSI2;
- 	pll->csi2.lanes = sensor->platform_data->lanes;
- 	pll->ext_clk_freq_hz = sensor->platform_data->ext_clk;
-+	if (sensor->minfo.quirk)
-+		pll->flags = sensor->minfo.quirk->pll_flags;
- 	/* Profile 0 sensors have no separate OP clock branch. */
- 	if (sensor->minfo.smiapp_profile == SMIAPP_PROFILE_0)
- 		pll->flags |= SMIAPP_PLL_FLAG_NO_OP_CLOCKS;
--	if (smiapp_needs_quirk(sensor,
--			       SMIAPP_QUIRK_FLAG_OP_PIX_CLOCK_PER_LANE))
--		pll->flags |= SMIAPP_PLL_FLAG_OP_PIX_CLOCK_PER_LANE;
- 	pll->scale_n = sensor->limits[SMIAPP_LIMIT_SCALER_N_MIN];
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index dd0a9a9..da256dd 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -542,6 +542,11 @@ static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
+ 	return adv_smbus_read_byte_data(state->i2c_hdmi, reg);
+ }
  
- 	rval = smiapp_update_mode(sensor);
-diff --git a/drivers/media/i2c/smiapp/smiapp-quirk.c b/drivers/media/i2c/smiapp/smiapp-quirk.c
-index 06a0c21..bd2f8a7 100644
---- a/drivers/media/i2c/smiapp/smiapp-quirk.c
-+++ b/drivers/media/i2c/smiapp/smiapp-quirk.c
-@@ -225,7 +225,7 @@ const struct smiapp_quirk smiapp_jt8ev1_quirk = {
- 	.post_poweron = jt8ev1_post_poweron,
- 	.pre_streamon = jt8ev1_pre_streamon,
- 	.post_streamoff = jt8ev1_post_streamoff,
--	.flags = SMIAPP_QUIRK_FLAG_OP_PIX_CLOCK_PER_LANE,
-+	.pll_flags = SMIAPP_PLL_FLAG_OP_PIX_CLOCK_PER_LANE,
- };
++static u16 hdmi_read16(struct v4l2_subdev *sd, u8 reg, u16 mask)
++{
++	return ((hdmi_read(sd, reg) << 8) | hdmi_read(sd, reg + 1)) & mask;
++}
++
+ static inline int hdmi_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ {
+ 	struct adv7604_state *state = to_state(sd);
+@@ -575,6 +580,11 @@ static inline int cp_read(struct v4l2_subdev *sd, u8 reg)
+ 	return adv_smbus_read_byte_data(state->i2c_cp, reg);
+ }
  
- static int tcm8500md_limits(struct smiapp_sensor *sensor)
-diff --git a/drivers/media/i2c/smiapp/smiapp-quirk.h b/drivers/media/i2c/smiapp/smiapp-quirk.h
-index 96a253e..ea8231c6 100644
---- a/drivers/media/i2c/smiapp/smiapp-quirk.h
-+++ b/drivers/media/i2c/smiapp/smiapp-quirk.h
-@@ -42,11 +42,10 @@ struct smiapp_quirk {
- 	int (*pre_streamon)(struct smiapp_sensor *sensor);
- 	int (*post_streamoff)(struct smiapp_sensor *sensor);
- 	unsigned long flags;
-+	unsigned long pll_flags;
- };
++static u16 cp_read16(struct v4l2_subdev *sd, u8 reg, u16 mask)
++{
++	return ((cp_read(sd, reg) << 8) | cp_read(sd, reg + 1)) & mask;
++}
++
+ static inline int cp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ {
+ 	struct adv7604_state *state = to_state(sd);
+@@ -1203,8 +1213,8 @@ static int read_stdi(struct v4l2_subdev *sd, struct stdi_readback *stdi)
+ 	}
  
--/* op pix clock is for all lanes in total normally */
--#define SMIAPP_QUIRK_FLAG_OP_PIX_CLOCK_PER_LANE			(1 << 0)
--#define SMIAPP_QUIRK_FLAG_8BIT_READ_ONLY			(1 << 1)
-+#define SMIAPP_QUIRK_FLAG_8BIT_READ_ONLY			(1 << 0)
+ 	/* read STDI */
+-	stdi->bl = ((cp_read(sd, 0xb1) & 0x3f) << 8) | cp_read(sd, 0xb2);
+-	stdi->lcf = ((cp_read(sd, 0xb3) & 0x7) << 8) | cp_read(sd, 0xb4);
++	stdi->bl = cp_read16(sd, 0xb1, 0x3fff);
++	stdi->lcf = cp_read16(sd, 0xb3, 0x7ff);
+ 	stdi->lcvs = cp_read(sd, 0xb3) >> 3;
+ 	stdi->interlaced = io_read(sd, 0x12) & 0x10;
  
- struct smiapp_reg_8 {
- 	u16 reg;
+@@ -1315,8 +1325,8 @@ static int adv7604_query_dv_timings(struct v4l2_subdev *sd,
+ 
+ 		timings->type = V4L2_DV_BT_656_1120;
+ 
+-		bt->width = (hdmi_read(sd, 0x07) & 0x0f) * 256 + hdmi_read(sd, 0x08);
+-		bt->height = (hdmi_read(sd, 0x09) & 0x0f) * 256 + hdmi_read(sd, 0x0a);
++		bt->width = hdmi_read16(sd, 0x07, 0xfff);
++		bt->height = hdmi_read16(sd, 0x09, 0xfff);
+ 		freq = (hdmi_read(sd, 0x06) * 1000000) +
+ 			((hdmi_read(sd, 0x3b) & 0x30) >> 4) * 250000;
+ 		if (is_hdmi(sd)) {
+@@ -1326,29 +1336,19 @@ static int adv7604_query_dv_timings(struct v4l2_subdev *sd,
+ 			freq = freq * 8 / bits_per_channel;
+ 		}
+ 		bt->pixelclock = freq;
+-		bt->hfrontporch = (hdmi_read(sd, 0x20) & 0x03) * 256 +
+-			hdmi_read(sd, 0x21);
+-		bt->hsync = (hdmi_read(sd, 0x22) & 0x03) * 256 +
+-			hdmi_read(sd, 0x23);
+-		bt->hbackporch = (hdmi_read(sd, 0x24) & 0x03) * 256 +
+-			hdmi_read(sd, 0x25);
+-		bt->vfrontporch = ((hdmi_read(sd, 0x2a) & 0x1f) * 256 +
+-			hdmi_read(sd, 0x2b)) / 2;
+-		bt->vsync = ((hdmi_read(sd, 0x2e) & 0x1f) * 256 +
+-			hdmi_read(sd, 0x2f)) / 2;
+-		bt->vbackporch = ((hdmi_read(sd, 0x32) & 0x1f) * 256 +
+-			hdmi_read(sd, 0x33)) / 2;
++		bt->hfrontporch = hdmi_read16(sd, 0x20, 0x3ff);
++		bt->hsync = hdmi_read16(sd, 0x22, 0x3ff);
++		bt->hbackporch = hdmi_read16(sd, 0x24, 0x3ff);
++		bt->vfrontporch = hdmi_read16(sd, 0x2a, 0x1fff) / 2;
++		bt->vsync = hdmi_read16(sd, 0x2e, 0x1fff) / 2;
++		bt->vbackporch = hdmi_read16(sd, 0x32, 0x1fff) / 2;
+ 		bt->polarities = ((hdmi_read(sd, 0x05) & 0x10) ? V4L2_DV_VSYNC_POS_POL : 0) |
+ 			((hdmi_read(sd, 0x05) & 0x20) ? V4L2_DV_HSYNC_POS_POL : 0);
+ 		if (bt->interlaced == V4L2_DV_INTERLACED) {
+-			bt->height += (hdmi_read(sd, 0x0b) & 0x0f) * 256 +
+-					hdmi_read(sd, 0x0c);
+-			bt->il_vfrontporch = ((hdmi_read(sd, 0x2c) & 0x1f) * 256 +
+-					hdmi_read(sd, 0x2d)) / 2;
+-			bt->il_vsync = ((hdmi_read(sd, 0x30) & 0x1f) * 256 +
+-					hdmi_read(sd, 0x31)) / 2;
+-			bt->vbackporch = ((hdmi_read(sd, 0x34) & 0x1f) * 256 +
+-					hdmi_read(sd, 0x35)) / 2;
++			bt->height += hdmi_read16(sd, 0x0b, 0xfff);
++			bt->il_vfrontporch = hdmi_read16(sd, 0x2c, 0x1fff) / 2;
++			bt->il_vsync = hdmi_read16(sd, 0x30, 0x1fff) / 2;
++			bt->vbackporch = hdmi_read16(sd, 0x34, 0x1fff) / 2;
+ 		}
+ 		adv7604_fill_optional_dv_timings_fields(sd, timings);
+ 	} else {
 -- 
 1.8.3.2
 
