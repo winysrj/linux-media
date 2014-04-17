@@ -1,138 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f181.google.com ([209.85.214.181]:45841 "EHLO
-	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751088AbaDQOxg (ORCPT
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:54154 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751314AbaDQCRh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 10:53:36 -0400
-Date: Thu, 17 Apr 2014 09:53:32 -0500 (CDT)
-From: Thomas Pugliese <thomas.pugliese@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Thomas Pugliese <thomas.pugliese@gmail.com>,
-	linux-media@vger.kernel.org, linux-usb@vger.kernel.org
-Subject: Re: [PATCH] uvc: update uvc_endpoint_max_bpi to handle USB_SPEED_WIRELESS
- devices
-In-Reply-To: <18912543.lQLItvHSYH@avalon>
-Message-ID: <alpine.DEB.2.10.1404170949070.8990@mint32-virtualbox>
-References: <1390598248-343-1-git-send-email-thomas.pugliese@gmail.com> <1482714.CWOKDIksaK@avalon> <alpine.DEB.2.10.1404161207140.8512@mint32-virtualbox> <18912543.lQLItvHSYH@avalon>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Wed, 16 Apr 2014 22:17:37 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N4500AZUL1CEU00@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 16 Apr 2014 22:17:36 -0400 (EDT)
+Date: Wed, 16 Apr 2014 23:17:30 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEW PATCH 3/3] saa7134: convert to vb2
+Message-id: <20140416231730.6252aae7@samsung.com>
+In-reply-to: <534F0553.2000808@xs4all.nl>
+References: <1394454049-12879-1-git-send-email-hverkuil@xs4all.nl>
+ <1394454049-12879-4-git-send-email-hverkuil@xs4all.nl>
+ <20140416192343.30a5a8fc@samsung.com> <534F0553.2000808@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Thu, 17 Apr 2014 00:33:55 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
+> On 04/17/2014 12:23 AM, Mauro Carvalho Chehab wrote:
+> > Em Mon, 10 Mar 2014 13:20:49 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> Convert the saa7134 driver to vb2.
+> >>
+> >> Note that while this uses the vb2-dma-sg version, the VB2_USERPTR mode is
+> >> disabled. The DMA hardware only supports DMAing full pages, and in the
+> >> USERPTR memory model the first and last scatter-gather buffer is almost
+> >> never a full page.
+> >>
+> >> In practice this means that we can't use the VB2_USERPTR mode.
+> > 
+> > Why not? Provided that the buffer is equal or bigger than the number of
+> > pages required by saa7134, that should be OK.
+> > 
+> > All the driver needs to do is to check if the USERPTR buffer condition is met,
+> > returning an error otherwise (and likely printing a msg at dmesg).
+> 
+> Yuck. Well, I'll take a look at this.
+> 
+> It has in my view the same problem as abusing USERPTR to pass pointers to
+> physically contiguous memory: yes, it 'supports' USERPTR, but it has additional
+> requirements which userspace has no way of knowing or detecting.
+> 
+> It's really not USERPTR at all, it is PAGE_ALIGNED_USERPTR.
+> 
+> Quite different.
 
-On Thu, 17 Apr 2014, Laurent Pinchart wrote:
+Hmm... If I remember well, mmapped memory (being userptr or not) are always
+page aligned, at least on systems with MMU.
 
-> Hi Thomas,
+> I would prefer that you have to enable it explicitly through e.g. a module option.
+> That way you can still do it, but you really have to know what you are doing.
 > 
-> On Wednesday 16 April 2014 12:29:22 Thomas Pugliese wrote:
-> > On Wed, 16 Apr 2014, Laurent Pinchart wrote:
-> > > Hi Thomas,
-> > > 
-> > > (CC'ing the linux-usb mailing list)
-> > > 
-> > > On Tuesday 15 April 2014 16:45:28 Thomas Pugliese wrote:
-> > > > On Tue, 15 Apr 2014, Laurent Pinchart wrote:
-> > > > > Hi Thomas,
-> > > > > 
-> > > > > Could you please send me a proper revert patch with the above
-> > > > > description in the commit message and CC Mauro Carvalho Chehab
-> > > > > <m.chehab@samsung.com> ?
-> > > > 
-> > > > Hi Laurent,
-> > > > I can submit a patch to revert but I should make a correction first.  I
-> > > > had backported this change to an earlier kernel (2.6.39) which was
-> > > > before super speed support was added and the regression I described was
-> > > > based on that kernel.  It was actually the addition of super speed
-> > > > support that broke windows compatible devices.  My previous change fixed
-> > > > spec compliant devices but left windows compatible devices broken.
-> > > > 
-> > > > Basically, the timeline of changes is this:
-> > > > 
-> > > > 1.  Prior to the addition of super speed support (commit
-> > > > 6fd90db8df379e215): all WUSB devices were treated as HIGH_SPEED devices.
-> > > > This is how Windows works so Windows compatible devices would work.  For
-> > > > spec compliant WUSB devices, the max packet size would be incorrectly
-> > > > calculated which would result in high-bandwidth isoc streams being
-> > > > unable to find an alt setting that provided enough bandwidth.
-> > > > 
-> > > > 2.  After super speed support: all WUSB devices fell through to the
-> > > > default case of uvc_endpoint_max_bpi which would mask off the upper bits
-> > > > of the max packet size.  This broke both WUSB spec compliant and non
-> > > > compliant devices because no endpoint with a large enough bpi would be
-> > > > found.
-> > > > 
-> > > > 3.  After 79af67e77f86404e77e: Spec compliant devices are fixed but
-> > > > non-spec compliant (although Windows compatible) devices are broken.
-> > > > Basically, this is the opposite of how it worked prior to super speed
-> > > > support.
-> > > > 
-> > > > Given that, I can submit a patch to revert 79af67e77f86404e77e but that
-> > > > would go back to having all WUSB devices broken.  Alternatively, the
-> > > > change below will revert the behavior back to scenario 1 where Windows
-> > > > compatible devices work but strictly spec complaint devices may not.
-> > > > 
-> > > > I can send a proper patch for whichever scenario you prefer.
-> > > 
-> > > Thank you for the explanation.
-> > > 
-> > > Reverting 79af67e77f86404e77e doesn't seem like a very good idea, given
-> > > that all WUSB devices will be broken. We thus have two options:
-> > > 
-> > > - leaving the code as-is, with support for spec-compliant WUSB devices but
-> > > not for microsoft-specific devices
-> > > 
-> > > - applying the patch below, with support for microsoft-specific USB
-> > > devices but not for spec-compliant devices
-> > > 
-> > > This isn't the first time this kind of situation occurs. Microsoft didn't
-> > > support multiple configurations before Windows 8, making vendors come up
-> > > with lots of "creative" MS-specific solutions. I consider those devices
-> > > non USB compliant, and they should not be allowed to use the USB logo,
-> > > but that would require a strong political move from the USB Implementers
-> > > Forum which is more or less controlled by Microsoft... Welcome to the USB
-> > > mafia.
-> > > 
-> > > Anyway, I have no experience with WUSB devices, so I don't know what's
-> > > more common in the wild. What would you suggest ?
+> > I suspect that this change will break some userspace programs used
+> > for video surveillance equipment.
 > > 
-> > I think that almost all current devices support the Windows/USB 2.0 format
-> > rather than stricty follow the WUSB spec.  Even the prototype device that
-> > I initially used to test UVC with Wireless USB has been updated to use the
-> > USB 2.0 format prior to shipping in order to remain compatible with
-> > Windows.  That being said, these devices are not very common at all in the
-> > consumer market.  They are mostly used in embedded/industrial settings so
-> > that may factor in as to which direction you want to go.
+> >> This has been tested with raw video, compressed video, VBI, radio, DVB and
+> >> video overlays.
+> >>
+> >> Unfortunately, a vb2 conversion is one of those things you cannot split
+> >> up in smaller patches, it's all or nothing. This patch switches the whole
+> >> driver over to vb2, using the vb2 ioctl and fop helper functions.
 > > 
-> > > Would there be a way to support
-> > > both categories of devices ?
-> > 
-> > As you had mentioned previously, it should be possible to support both
-> > formats by ignoring the endpoint descriptor and looking at the bMaxBurst,
-> > bOverTheAirInterval and wOverTheAirPacketSize fields in the WUSB endpoint
-> > companion descriptor.  That is a more involved change to the UVC driver
-> > and also would require changes to USB core to store the WUSB endpoint
-> > companion descriptor in struct usb_host_endpoint similar to what is done
-> > for super speed devices.
+> > Not quite true. This patch contains lots of non-vb2 stuff, like:
+> > 	- Coding Style fixes;
+> > 	- Removal of res_get/res_set/res_free;
+> > 	- Functions got moved from one place to another one.
 > 
-> It's more complex indeed, but I believe it would be worth it. Any volunteer ? 
-> ;-) In the meantime I'm fine with a patch that reverts to the previous 
-> behaviour. Please include the explanation of the problem in the commit 
-> message.
+> I will see if there is anything sensible that I can split up. I'm not aware
+> of any particular coding style issues, but I'll review it.
+
+There are several, like:
+
+-	dprintk("buffer_finish %p\n",q->curr);
++	dprintk("buffer_finish %p\n", q->curr);
+
+Also, it seems that you moved some functions, like:
+
+ts_reset_encoder(struct saa7134_dev* dev) that was moved
+to some other part of the code and renamed as stop_streaming().
+
+There are several of such cases, with makes hard to really see the
+VB2 changes, and what it might be some code dropped by mistake.
+
 > 
-> -- 
+> The removal of the resource functions is not something I can split up. It
+> is replaced by the resource handling that's built into the vb2 helper functions.
+
+Well, currently, it is really hard to see that all the checks between
+empress and normal video streams are still done right, as the patch
+become big and messy.
+
+Please try to break it into a more granular set of patches that
+would help to check if everything is there.
+
+Thanks,
+Mauro
+
+> 
 > Regards,
 > 
-> Laurent Pinchart
+> 	Hans
+> 
+> > 
+> > It is really hard to review it, as is, as the real changes are mixed with
+> > the above code cleanups/changes.
+> > 
+> > Please split this patch in a way that it allows reviewing the changes
+> > there.
 > 
 
-I may make an attempt at the more complete fix once I finish some of the 
-other items in my queue.  
 
-For clarification, would you like a patch that reverts to the pre-super 
-speed behavior where windows-compatible devices work not but spec 
-compliant devices will not (i.e. treat USB_SPEED_HIGH and 
-USB_SPEED_WIRELESS the same)?
+-- 
 
 Regards,
-Thomas
+Mauro
