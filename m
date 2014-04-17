@@ -1,41 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:45495 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759165AbaD3P6V (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38906 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753831AbaDQONd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Apr 2014 11:58:21 -0400
-Received: by mail-pd0-f177.google.com with SMTP id v10so1939888pde.36
-        for <linux-media@vger.kernel.org>; Wed, 30 Apr 2014 08:58:20 -0700 (PDT)
-From: Masanari Iida <standby24x7@gmail.com>
-To: m.chehab@samsung.com, linux-media@vger.kernel.org,
-	hverkuil@xs4all.nl
-Cc: Masanari Iida <standby24x7@gmail.com>
-Subject: [PATCH] media: parport: Fix format string mismatch in bw-qcam.c
-Date: Thu,  1 May 2014 00:57:50 +0900
-Message-Id: <1398873470-3740-1-git-send-email-standby24x7@gmail.com>
+	Thu, 17 Apr 2014 10:13:33 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v4 27/49] adv7604: Add missing include to linux/types.h
+Date: Thu, 17 Apr 2014 16:12:58 +0200
+Message-Id: <1397744000-23967-28-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix format string mismatch in bw-qcam.c
+From: Lars-Peter Clausen <lars@metafoo.de>
 
-Signed-off-by: Masanari Iida <standby24x7@gmail.com>
+The file is using u8 which is defined in linux/types.h.
+
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/parport/bw-qcam.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/media/adv7604.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/parport/bw-qcam.c b/drivers/media/parport/bw-qcam.c
-index 8a0e84c..416507a 100644
---- a/drivers/media/parport/bw-qcam.c
-+++ b/drivers/media/parport/bw-qcam.c
-@@ -937,7 +937,7 @@ static struct qcam *qcam_init(struct parport *port)
- 		return NULL;
+diff --git a/include/media/adv7604.h b/include/media/adv7604.h
+index d262a3a..c6b3937 100644
+--- a/include/media/adv7604.h
++++ b/include/media/adv7604.h
+@@ -21,6 +21,8 @@
+ #ifndef _ADV7604_
+ #define _ADV7604_
  
- 	v4l2_dev = &qcam->v4l2_dev;
--	snprintf(v4l2_dev->name, sizeof(v4l2_dev->name), "bw-qcam%d", num_cams);
-+	snprintf(v4l2_dev->name, sizeof(v4l2_dev->name), "bw-qcam%u", num_cams);
- 
- 	if (v4l2_device_register(port->dev, v4l2_dev) < 0) {
- 		v4l2_err(v4l2_dev, "Could not register v4l2_device\n");
++#include <linux/types.h>
++
+ /* Analog input muxing modes (AFE register 0x02, [2:0]) */
+ enum adv7604_ain_sel {
+ 	ADV7604_AIN1_2_3_NC_SYNC_1_2 = 0,
 -- 
-2.0.0.rc1
+1.8.3.2
 
