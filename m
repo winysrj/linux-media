@@ -1,186 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3316 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751956AbaDQKje (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38906 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754311AbaDQONn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 06:39:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 17 Apr 2014 10:13:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 08/11] saa7134: rename vbi/cap to vbi_vbq/cap_vbq
-Date: Thu, 17 Apr 2014 12:39:11 +0200
-Message-Id: <1397731154-34337-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1397731154-34337-1-git-send-email-hverkuil@xs4all.nl>
-References: <1397731154-34337-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v4 43/49] adv7604: Support hot-plug detect control through a GPIO
+Date: Thu, 17 Apr 2014 16:13:14 +0200
+Message-Id: <1397744000-23967-44-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add support for optional GPIO-controlled HPD pins in addition to the
+ADV7604-specific hotplug notifier.
 
-Use consistent _vbq suffix for videobuf_queue fields.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/saa7134/saa7134-video.c | 52 +++++++++++++++----------------
- drivers/media/pci/saa7134/saa7134.h       |  4 +--
- 2 files changed, 28 insertions(+), 28 deletions(-)
+ drivers/media/i2c/adv7604.c | 37 +++++++++++++++++++++++++++++++++----
+ 1 file changed, 33 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index e5b2beb..9eb5564 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -1086,10 +1086,10 @@ static struct videobuf_queue *saa7134_queue(struct file *file)
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 9ebe44c..b14dc7d 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -28,6 +28,7 @@
+  */
  
- 	switch (vdev->vfl_type) {
- 	case VFL_TYPE_GRABBER:
--		q = fh->is_empress ? &dev->empress_vbq : &dev->cap;
-+		q = fh->is_empress ? &dev->empress_vbq : &dev->video_vbq;
- 		break;
- 	case VFL_TYPE_VBI:
--		q = &dev->vbi;
-+		q = &dev->vbi_vbq;
- 		break;
- 	default:
- 		BUG();
-@@ -1174,6 +1174,7 @@ video_poll(struct file *file, struct poll_table_struct *wait)
- 	struct saa7134_dev *dev = video_drvdata(file);
- 	struct saa7134_fh *fh = file->private_data;
- 	struct videobuf_buffer *buf = NULL;
-+	struct videobuf_queue *q = &dev->video_vbq;
- 	unsigned int rc = 0;
+ #include <linux/delay.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/i2c.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -135,6 +136,8 @@ struct adv7604_state {
+ 	const struct adv7604_chip_info *info;
+ 	struct adv7604_platform_data pdata;
  
- 	if (v4l2_event_pending(&fh->fh))
-@@ -1182,25 +1183,24 @@ video_poll(struct file *file, struct poll_table_struct *wait)
- 		poll_wait(file, &fh->fh.wait, wait);
- 
- 	if (vdev->vfl_type == VFL_TYPE_VBI)
--		return rc | videobuf_poll_stream(file, &dev->vbi, wait);
-+		return rc | videobuf_poll_stream(file, &dev->vbi_vbq, wait);
- 
- 	if (res_check(fh, RESOURCE_VIDEO)) {
--		mutex_lock(&dev->cap.vb_lock);
--		if (!list_empty(&dev->cap.stream))
--			buf = list_entry(dev->cap.stream.next, struct videobuf_buffer, stream);
-+		mutex_lock(&q->vb_lock);
-+		if (!list_empty(&q->stream))
-+			buf = list_entry(q->stream.next, struct videobuf_buffer, stream);
- 	} else {
--		mutex_lock(&dev->cap.vb_lock);
--		if (UNSET == dev->cap.read_off) {
-+		mutex_lock(&q->vb_lock);
-+		if (UNSET == q->read_off) {
- 			/* need to capture a new frame */
- 			if (res_locked(dev, RESOURCE_VIDEO))
- 				goto err;
--			if (0 != dev->cap.ops->buf_prepare(&dev->cap,
--					dev->cap.read_buf, dev->cap.field))
-+			if (0 != q->ops->buf_prepare(q, q->read_buf, q->field))
- 				goto err;
--			dev->cap.ops->buf_queue(&dev->cap, dev->cap.read_buf);
--			dev->cap.read_off = 0;
-+			q->ops->buf_queue(q, q->read_buf);
-+			q->read_off = 0;
- 		}
--		buf = dev->cap.read_buf;
-+		buf = q->read_buf;
- 	}
- 
- 	if (!buf)
-@@ -1209,11 +1209,11 @@ video_poll(struct file *file, struct poll_table_struct *wait)
- 	poll_wait(file, &buf->done, wait);
- 	if (buf->state == VIDEOBUF_DONE || buf->state == VIDEOBUF_ERROR)
- 		rc |= POLLIN | POLLRDNORM;
--	mutex_unlock(&dev->cap.vb_lock);
-+	mutex_unlock(&q->vb_lock);
- 	return rc;
- 
- err:
--	mutex_unlock(&dev->cap.vb_lock);
-+	mutex_unlock(&q->vb_lock);
- 	return rc | POLLERR;
++	struct gpio_desc *hpd_gpio[4];
++
+ 	struct v4l2_subdev sd;
+ 	struct media_pad pads[ADV7604_PAD_MAX];
+ 	unsigned int source_pad;
+@@ -598,6 +601,20 @@ static inline int edid_write_block(struct v4l2_subdev *sd,
+ 	return err;
  }
  
-@@ -1238,21 +1238,21 @@ static int video_release(struct file *file)
- 	/* stop video capture */
- 	if (res_check(fh, RESOURCE_VIDEO)) {
- 		pm_qos_remove_request(&dev->qos_request);
--		videobuf_streamoff(&dev->cap);
-+		videobuf_streamoff(&dev->video_vbq);
- 		res_free(dev, fh, RESOURCE_VIDEO);
--		videobuf_mmap_free(&dev->cap);
-+		videobuf_mmap_free(&dev->video_vbq);
- 		INIT_LIST_HEAD(&dev->cap.stream);
- 	}
--	if (dev->cap.read_buf) {
--		buffer_release(&dev->cap, dev->cap.read_buf);
--		kfree(dev->cap.read_buf);
-+	if (dev->video_vbq.read_buf) {
-+		buffer_release(&dev->video_vbq, dev->video_vbq.read_buf);
-+		kfree(dev->video_vbq.read_buf);
- 	}
++static void adv7604_set_hpd(struct adv7604_state *state, unsigned int hpd)
++{
++	unsigned int i;
++
++	for (i = 0; i < state->info->num_dv_ports; ++i) {
++		if (IS_ERR(state->hpd_gpio[i]))
++			continue;
++
++		gpiod_set_value_cansleep(state->hpd_gpio[i], hpd & BIT(i));
++	}
++
++	v4l2_subdev_notify(&state->sd, ADV7604_HOTPLUG, &hpd);
++}
++
+ static void adv7604_delayed_work_enable_hotplug(struct work_struct *work)
+ {
+ 	struct delayed_work *dwork = to_delayed_work(work);
+@@ -607,7 +624,7 @@ static void adv7604_delayed_work_enable_hotplug(struct work_struct *work)
  
- 	/* stop vbi capture */
- 	if (res_check(fh, RESOURCE_VBI)) {
--		videobuf_stop(&dev->vbi);
-+		videobuf_stop(&dev->vbi_vbq);
- 		res_free(dev, fh, RESOURCE_VBI);
--		videobuf_mmap_free(&dev->vbi);
-+		videobuf_mmap_free(&dev->vbi_vbq);
- 		INIT_LIST_HEAD(&dev->vbi.stream);
- 	}
+ 	v4l2_dbg(2, debug, sd, "%s: enable hotplug\n", __func__);
  
-@@ -1338,7 +1338,7 @@ static int saa7134_g_fmt_vid_cap(struct file *file, void *priv,
- 
- 	f->fmt.pix.width        = dev->width;
- 	f->fmt.pix.height       = dev->height;
--	f->fmt.pix.field        = dev->cap.field;
-+	f->fmt.pix.field        = dev->video_vbq.field;
- 	f->fmt.pix.pixelformat  = dev->fmt->fourcc;
- 	f->fmt.pix.bytesperline =
- 		(f->fmt.pix.width * dev->fmt->depth) >> 3;
-@@ -1460,7 +1460,7 @@ static int saa7134_s_fmt_vid_cap(struct file *file, void *priv,
- 	dev->fmt = format_by_fourcc(f->fmt.pix.pixelformat);
- 	dev->width = f->fmt.pix.width;
- 	dev->height = f->fmt.pix.height;
--	dev->cap.field = f->fmt.pix.field;
-+	dev->video_vbq.field = f->fmt.pix.field;
- 	return 0;
+-	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state->edid.present);
++	adv7604_set_hpd(state, state->edid.present);
  }
  
-@@ -2247,13 +2247,13 @@ int saa7134_video_init1(struct saa7134_dev *dev)
- 	if (saa7134_boards[dev->board].video_out)
- 		saa7134_videoport_init(dev);
+ static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
+@@ -2047,7 +2064,6 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ 	struct adv7604_state *state = to_state(sd);
+ 	const struct adv7604_chip_info *info = state->info;
+ 	int spa_loc;
+-	int tmp = 0;
+ 	int err;
+ 	int i;
  
--	videobuf_queue_sg_init(&dev->cap, &video_qops,
-+	videobuf_queue_sg_init(&dev->video_vbq, &video_qops,
- 			    &dev->pci->dev, &dev->slock,
- 			    V4L2_BUF_TYPE_VIDEO_CAPTURE,
- 			    V4L2_FIELD_INTERLACED,
- 			    sizeof(struct saa7134_buf),
- 			    dev, NULL);
--	videobuf_queue_sg_init(&dev->vbi, &saa7134_vbi_qops,
-+	videobuf_queue_sg_init(&dev->vbi_vbq, &saa7134_vbi_qops,
- 			    &dev->pci->dev, &dev->slock,
- 			    V4L2_BUF_TYPE_VBI_CAPTURE,
- 			    V4L2_FIELD_SEQ_TB,
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index 482489a..0c325e5 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -590,11 +590,11 @@ struct saa7134_dev {
+@@ -2058,7 +2074,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ 	if (edid->blocks == 0) {
+ 		/* Disable hotplug and I2C access to EDID RAM from DDC port */
+ 		state->edid.present &= ~(1 << edid->pad);
+-		v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state->edid.present);
++		adv7604_set_hpd(state, state->edid.present);
+ 		rep_write_clr_set(sd, info->edid_enable_reg, 0x0f, state->edid.present);
  
- 	/* video+ts+vbi capture */
- 	struct saa7134_dmaqueue    video_q;
--	struct videobuf_queue      cap;
- 	struct saa7134_pgtable     pt_cap;
-+	struct videobuf_queue      video_vbq;
- 	struct saa7134_dmaqueue    vbi_q;
--	struct videobuf_queue      vbi;
- 	struct saa7134_pgtable     pt_vbi;
-+	struct videobuf_queue      vbi_vbq;
- 	unsigned int               video_fieldcount;
- 	unsigned int               vbi_fieldcount;
- 	struct saa7134_format      *fmt;
+ 		/* Fall back to a 16:9 aspect ratio */
+@@ -2082,7 +2098,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ 
+ 	/* Disable hotplug and I2C access to EDID RAM from DDC port */
+ 	cancel_delayed_work_sync(&state->delayed_work_enable_hotplug);
+-	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&tmp);
++	adv7604_set_hpd(state, 0);
+ 	rep_write_clr_set(sd, info->edid_enable_reg, 0x0f, 0x00);
+ 
+ 	spa_loc = get_edid_spa_location(edid->edid);
+@@ -2678,6 +2694,19 @@ static int adv7604_probe(struct i2c_client *client,
+ 		return -ENODEV;
+ 	}
+ 	state->pdata = *pdata;
++
++	/* Request GPIOs. */
++	for (i = 0; i < state->info->num_dv_ports; ++i) {
++		state->hpd_gpio[i] =
++			devm_gpiod_get_index(&client->dev, "hpd", i);
++		if (IS_ERR(state->hpd_gpio[i]))
++			continue;
++
++		gpiod_set_value_cansleep(state->hpd_gpio[i], 0);
++
++		v4l_info(client, "Handling HPD %u GPIO\n", i);
++	}
++
+ 	state->timings = cea640x480;
+ 	state->format = adv7604_format_info(state, V4L2_MBUS_FMT_YUYV8_2X8);
+ 
 -- 
-1.9.2
+1.8.3.2
 
