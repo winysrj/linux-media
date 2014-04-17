@@ -1,65 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55900 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38541 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751326AbaD0SsI (ORCPT
+	with ESMTP id S1755177AbaDQNEp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Apr 2014 14:48:08 -0400
+	Thu, 17 Apr 2014 09:04:45 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] V4L2: fix VIDIOC_CREATE_BUFS in 64- / 32-bit compatibility mode
-Date: Sun, 27 Apr 2014 20:48:17 +0200
-Message-ID: <9583205.X1uy75Zhv6@avalon>
-In-Reply-To: <Pine.LNX.4.64.1404261627390.21367@axis700.grange>
-References: <Pine.LNX.4.64.1403272206410.18471@axis700.grange> <7890812.mee88PGtyI@avalon> <Pine.LNX.4.64.1404261627390.21367@axis700.grange>
+To: Ben Dooks <ben.dooks@codethink.co.uk>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH v2 48/48] adv7604: Add endpoint properties to DT bindings
+Date: Thu, 17 Apr 2014 15:04:48 +0200
+Message-ID: <3314076.XlLnTlbkWu@avalon>
+In-Reply-To: <534FD05F.6060106@codethink.co.uk>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com> <1791575.2krcfHqYT1@avalon> <534FD05F.6060106@codethink.co.uk>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Ben,
 
-On Saturday 26 April 2014 17:28:24 Guennadi Liakhovetski wrote:
-> On Fri, 28 Mar 2014, Laurent Pinchart wrote:
-> > On Friday 28 March 2014 18:44:04 Guennadi Liakhovetski wrote:
-> > > On Fri, 28 Mar 2014, Laurent Pinchart wrote:
-> > > > On Thursday 27 March 2014 22:34:07 Guennadi Liakhovetski wrote:
-> > > > > It turns out, that 64-bit compilations sometimes align structs
-> > > > > within other structs on 32-bit boundaries, but in other cases
-> > > > > alignment is done on 64-bit boundaries, adding padding if necessary.
-> > > > 
-> > > > You make it sound like the behaviour is random, I'm pretty sure it
-> > > > isn't
-> > > > 
-> > > > :-)
-> > > 
-> > > I didn't mean it was random, I just meant it is not be as simple as
-> > > "align always." E.g. if there are only 32-bit fields in the embedded
-> > > struct, it won't be aligned, below I explain a bit with pointers. I just
-> > > don't know the exact logic, that's used there.
+On Thursday 17 April 2014 14:00:15 Ben Dooks wrote:
+> On 17/04/14 13:45, Laurent Pinchart wrote:
+> > Hi Sylwester,
 > > 
-> > The logic is basically that fields are aligned within structures to a
-> > multiple of their native access size, and structures are aligned to a
-> > multiple of the access size of the largest field. If a structure on a
-> > 64-bit systems contains a pointer the pointer field will be aligned to a
-> > multiple of 8 bytes within the structure, and instances of the structure
-> > will be aligned to multiples of 8 bytes as well. If that structure is
-> > embedded inside another structure, it will be placed on an 8 bytes
-> > boundary, possibly creating a gap if the fields before the structure
-> > don't add up to a multiple of 8 bytes. This is what happens here.
+> > On Thursday 17 April 2014 13:17:41 Sylwester Nawrocki wrote:
+> >> On 11/03/14 00:15, Laurent Pinchart wrote:
+> >>> Add support for the hsync-active, vsync-active and pclk-sample
+> >>> properties to the DT bindings and control BT.656 mode implicitly.
+> >>> 
+> >>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >>> ---
+> >>> 
+> >>>   .../devicetree/bindings/media/i2c/adv7604.txt      | 13 +++++++++
+> >>>   drivers/media/i2c/adv7604.c                        | 31
+> >>>   ++++++++++++++++++++-- 2 files changed, 42 insertions(+), 2
+> >>>   deletions(-)
+> >>> 
+> >>> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> >>> b/Documentation/devicetree/bindings/media/i2c/adv7604.txt index
+> >>> 0845c50..2b62c06 100644
+> >>> --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> >>> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> >>> 
+> >>> @@ -30,6 +30,19 @@ Optional Properties:
+> >>>     - adi,disable-cable-reset: Boolean property. When set disables the
+> >>>     HDMI
+> >>>     
+> >>>       receiver automatic reset when the HDMI cable is unplugged.
+> >>> 
+> >>> +Optional Endpoint Properties:
+> >>> +
+> >>> +  The following three properties are defined in video-interfaces.txt
+> >>> and
+> >>> are +  valid for source endpoints only.
+> >>> +
+> >>> +  - hsync-active: Horizontal synchronization polarity. Defaults to
+> >>> active
+> >>> low. +  - vsync-active: Vertical synchronization polarity. Defaults to
+> >>> active low. +  - pclk-sample: Pixel clock polarity. Defaults to output
+> >>> on
+> >>> the falling edge. +
+> >>> +  If none of hsync-active, vsync-active and pclk-sample is specified
+> >>> the
+> >>> +  endpoint will use embedded BT.656 synchronization.
+> >>> +
+> >>> +
+> >>> 
+> >>>   Example:
+> >>>   	hdmi_receiver@4c {
+> >>> 
+> >>> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> >>> index 95cc911..2a92099 100644
+> >>> --- a/drivers/media/i2c/adv7604.c
+> >>> +++ b/drivers/media/i2c/adv7604.c
+> >>> @@ -41,6 +41,7 @@
+> >>>  #include <media/v4l2-ctrls.h>
+> >>>  #include <media/v4l2-device.h>
+> >>>  #include <media/v4l2-dv-timings.h>
+> >>> +#include <media/v4l2-of.h>
+> >>> 
+> >>>  static int debug;
+> >>>  module_param(debug, int, 0644);
+> >>> @@ -2643,11 +2644,39 @@ MODULE_DEVICE_TABLE(of, adv7604_of_id);
+> >>> 
+> >>>   static int adv7604_parse_dt(struct adv7604_state *state)
+> >>>   {
+> >>> +	struct v4l2_of_endpoint bus_cfg;
+> >>> +	struct device_node *endpoint;
+> >>>   	struct device_node *np;
+> >>> +	unsigned int flags;
+> >>>   	int ret;
+> >>>   	
+> >>>   	np = state->i2c_clients[ADV7604_PAGE_IO]->dev.of_node;
+> >>> 
+> >>> +	/* Parse the endpoint. */
+> >>> +	endpoint = v4l2_of_get_next_endpoint(np, NULL);
+> >>> +	if (!endpoint)
+> >>> +		return -EINVAL;
+> >> 
+> >> Perhaps we should document this binding requires at least one endpoint
+> >> node ? I guess there is no point in not having any endpoint node ?
+> > 
+> > I think that's pretty much implied, otherwise the device will not be
+> > connected to anything and will be unusable. I will document ports node
+> > usage though, that's currently missing in the DT bindings documentation.
 > 
-> Yes, that's what I thought too, but I didn't have a documented
-> confirmation at hand, so, I left it a bit vague :) Have you got a pointer
-> to this?
+> Doesn't the v4l2 helper code have standard parsing for the
+> endpoint sync configurations?
 
-AFAIK how data are aligned in memory isn't part of the C standard but is 
-defined by the platform ABI. For instance see the ARM Procedure Call Standard 
-(AAPCS -  
-http://infocenter.arm.com/help/topic/com.arm.doc.ihi0042e/IHI0042E_aapcs.pdf). 
-There's probably a similar document for x86.
+Yes it does, in the v4l2_of_parse_endpoint() function which the driver uses.
 
 -- 
 Regards,
