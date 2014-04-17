@@ -1,38 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:44395 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751383AbaDVNDD (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38905 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754296AbaDQONn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Apr 2014 09:03:03 -0400
-Date: Tue, 22 Apr 2014 16:02:19 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
-	hans.verkuil@cisco.com, m.chehab@samsung.com,
-	ext-eero.nurkkala@nokia.com, nils.faerber@kernelconcepts.de,
-	joni.lapilainen@gmail.com, freemangordon@abv.bg, sre@ring0.de,
-	Greg KH <greg@kroah.com>, trivial@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] radio-bcm2048.c: fix wrong overflow check
-Message-ID: <20140422130219.GW4963@mwanda>
-References: <20140420145622.GA15567@amd.pavel.ucw.cz>
- <20140422083917.GS4963@mwanda>
- <201404221055.54799@pali>
- <20140422091656.GV4963@mwanda>
- <20140422093836.GA16686@amd.pavel.ucw.cz>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20140422093836.GA16686@amd.pavel.ucw.cz>
+	Thu, 17 Apr 2014 10:13:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v4 42/49] adv7604: Sort headers alphabetically
+Date: Thu, 17 Apr 2014 16:13:13 +0200
+Message-Id: <1397744000-23967-43-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 22, 2014 at 11:38:36AM +0200, Pavel Machek wrote:
-> Feel free to resubmit the patch yourself.
+This helps locating duplicates and inserting new headers.
 
-No problem.  Happy to help.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-regards,
-dan carpenter
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 7a9c17c..9ebe44c 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -27,19 +27,19 @@
+  * REF_03 - Analog devices, ADV7604, Hardware Manual, Rev. F, August 2010
+  */
+ 
+-
++#include <linux/delay.h>
++#include <linux/i2c.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+-#include <linux/i2c.h>
+-#include <linux/delay.h>
++#include <linux/v4l2-dv-timings.h>
+ #include <linux/videodev2.h>
+ #include <linux/workqueue.h>
+-#include <linux/v4l2-dv-timings.h>
+-#include <media/v4l2-device.h>
++
++#include <media/adv7604.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
+ #include <media/v4l2-dv-timings.h>
+-#include <media/adv7604.h>
+ 
+ static int debug;
+ module_param(debug, int, 0644);
+-- 
+1.8.3.2
 
