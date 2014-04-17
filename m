@@ -1,113 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4781 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750876AbaDMCf0 (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:40550 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750983AbaDQOoq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Apr 2014 22:35:26 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s3D2ZMhF082521
-	for <linux-media@vger.kernel.org>; Sun, 13 Apr 2014 04:35:25 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 0B3E22A03F8
-	for <linux-media@vger.kernel.org>; Sun, 13 Apr 2014 04:35:00 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140413023500.0B3E22A03F8@tschai.lan>
-Date: Sun, 13 Apr 2014 04:35:00 +0200 (CEST)
+	Thu, 17 Apr 2014 10:44:46 -0400
+Message-id: <534FE8D8.3070700@samsung.com>
+Date: Thu, 17 Apr 2014 16:44:40 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v4 47/49] adv7604: Add endpoint properties to DT bindings
+References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1397744000-23967-48-git-send-email-laurent.pinchart@ideasonboard.com>
+In-reply-to: <1397744000-23967-48-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 17/04/14 16:13, Laurent Pinchart wrote:
+> Add support for the hsync-active, vsync-active and pclk-sample
+> properties to the DT bindings and control BT.656 mode implicitly.
+> 
+> Cc: devicetree@vger.kernel.org
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+Thanks, the patch looks good to me.
 
-date:		Sun Apr 13 04:00:21 CEST 2014
-git branch:	test
-git hash:	a83b93a7480441a47856dc9104bea970e84cda87
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.13-7.slh.1-amd64
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+> ---
+>  .../devicetree/bindings/media/i2c/adv7604.txt      | 13 +++++++++
+>  drivers/media/i2c/adv7604.c                        | 34 ++++++++++++++++++++--
+>  2 files changed, 45 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> index 2efb48f..c27cede 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> @@ -33,6 +33,19 @@ Optional Properties:
+>  
+>    - reset-gpios: Reference to the GPIO connected to the device's reset pin.
+>  
+> +Optional Endpoint Properties:
+> +
+> +  The following three properties are defined in video-interfaces.txt and are
+> +  valid for source endpoints only.
+> +
+> +  - hsync-active: Horizontal synchronization polarity. Defaults to active low.
+> +  - vsync-active: Vertical synchronization polarity. Defaults to active low.
+> +  - pclk-sample: Pixel clock polarity. Defaults to output on the falling edge.
+> +
+> +  If none of hsync-active, vsync-active and pclk-sample is specified the
+> +  endpoint will use embedded BT.656 synchronization.
+> +
+> +
+>  Example:
+>  
+>  	hdmi_receiver@4c {
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index fd0c646..63f036f 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -41,6 +41,7 @@
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-dv-timings.h>
+> +#include <media/v4l2-of.h>
+>  
+>  static int debug;
+>  module_param(debug, int, 0644);
+> @@ -2679,6 +2680,37 @@ MODULE_DEVICE_TABLE(of, adv7604_of_id);
+>  
+>  static int adv7604_parse_dt(struct adv7604_state *state)
+>  {
+> +	struct v4l2_of_endpoint bus_cfg;
+> +	struct device_node *endpoint;
+> +	struct device_node *np;
+> +	unsigned int flags;
+> +
+> +	np = state->i2c_clients[ADV7604_PAGE_IO]->dev.of_node;
+> +
+> +	/* Parse the endpoint. */
+> +	endpoint = of_graph_get_next_endpoint(np, NULL);
+> +	if (!endpoint)
+> +		return -EINVAL;
+> +
+> +	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
+> +	of_node_put(endpoint);
+> +
+> +	flags = bus_cfg.bus.parallel.flags;
+> +
+> +	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+> +		state->pdata.inv_hs_pol = 1;
+> +
+> +	if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+> +		state->pdata.inv_vs_pol = 1;
+> +
+> +	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+> +		state->pdata.inv_llc_pol = 1;
+> +
+> +	if (bus_cfg.bus_type == V4L2_MBUS_BT656) {
+> +		state->pdata.insert_av_codes = 1;
+> +		state->pdata.op_656_range = 1;
+> +	}
+> +
+>  	/* Disable the interrupt for now as no DT-based board uses it. */
+>  	state->pdata.int1_config = ADV7604_INT1_CONFIG_DISABLED;
+>  
+> @@ -2701,9 +2733,7 @@ static int adv7604_parse_dt(struct adv7604_state *state)
+>  	state->pdata.disable_cable_det_rst = 0;
+>  	state->pdata.default_input = -1;
+>  	state->pdata.blank_data = 1;
+> -	state->pdata.op_656_range = 1;
+>  	state->pdata.alt_data_sat = 1;
+> -	state->pdata.insert_av_codes = 1;
+>  	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
+>  	state->pdata.bus_order = ADV7604_BUS_ORDER_RGB;
+>  
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Regards,
+Sylwester
