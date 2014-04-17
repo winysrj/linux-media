@@ -1,36 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4810 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751586AbaDKIYS (ORCPT
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:48993 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750997AbaDQUKq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 04:24:18 -0400
-Message-ID: <5347A698.1070004@xs4all.nl>
-Date: Fri, 11 Apr 2014 10:23:52 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 17 Apr 2014 16:10:46 -0400
+Date: Thu, 17 Apr 2014 16:10:34 -0400
+From: Tejun Heo <tj@kernel.org>
+To: Shuah Khan <shuah.kh@samsung.com>
+Cc: gregkh@linuxfoundation.org, m.chehab@samsung.com,
+	rafael.j.wysocki@intel.com, linux@roeck-us.net, toshi.kani@hp.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	shuahkhan@gmail.com
+Subject: Re: [RFC PATCH 2/2] drivers/base: add managed token devres interfaces
+Message-ID: <20140417201034.GT15326@htj.dyndns.org>
+References: <cover.1397050852.git.shuah.kh@samsung.com>
+ <5f21c7e53811aba63f86bcf3e3bfdfdd5aeedf59.1397050852.git.shuah.kh@samsung.com>
+ <20140416215821.GG26632@htj.dyndns.org>
+ <5350331C.7010602@samsung.com>
 MIME-Version: 1.0
-To: Steve Cookson - IT <it@sca-uk.com>, linux-media@vger.kernel.org
-Subject: Re: List objectives and interests.
-References: <53479D15.4000400@sca-uk.com> <53479EB6.80504@xs4all.nl> <5347A5BB.4040405@sca-uk.com>
-In-Reply-To: <5347A5BB.4040405@sca-uk.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5350331C.7010602@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/11/2014 10:20 AM, Steve Cookson - IT wrote:
-> Hi Hans,
+On Thu, Apr 17, 2014 at 02:01:32PM -0600, Shuah Khan wrote:
+> Operating on the lock should be atomic, which is what devres_update()
+> is doing. It can be simplified as follows by holding devres_lock
+> in devm_token_lock().
 > 
-> Thanks for your reply.
+> spin_lock_irqsave(&dev->devres_lock, flags);
+> if (tkn_ptr->status == TOKEN_DEVRES_FREE)
+> 	tkn_ptr->status = TOKEN_DEVRES_BUSY;
+> spin_unlock_irqrestore(&dev->devres_lock, flags);
 > 
-> On 11/04/14 08:50, Hans Verkuil wrote:
->> HD is well supported for embedded systems
-> What does embedded systems mean, you mean like the decklink proprietary 
-> software?
+> Is this in-line with what you have in mind?
 
-No, I'm referring to SoC support, e.g. support for the HDTV capabilities of
-a Samsung exynos SoC etc.
+How is that different from tkn_ptr->status = TOKEN_DEVRES_BUSY?
 
-Regards,
-
-	Hans
-
+-- 
+tejun
