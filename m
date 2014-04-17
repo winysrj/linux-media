@@ -1,53 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:20950 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191AbaDAO2r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Apr 2014 10:28:47 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N3C00AR4W7WZF90@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 01 Apr 2014 15:28:45 +0100 (BST)
-Content-transfer-encoding: 8BIT
-Message-id: <533ACD16.4070600@samsung.com>
-Date: Tue, 01 Apr 2014 16:28:38 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/5] s5p-fimc: Misc fixes
-References: <1395780301.11851.14.camel@nicolas-tpx230>
- <1396361586.18172.0.camel@nicolas-tpx230>
-In-reply-to: <1396361586.18172.0.camel@nicolas-tpx230>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3758 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751241AbaDQKja (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Apr 2014 06:39:30 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 04/11] saa7134: swap ts_init_encoder and ts_reset_encoder
+Date: Thu, 17 Apr 2014 12:39:07 +0200
+Message-Id: <1397731154-34337-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1397731154-34337-1-git-send-email-hverkuil@xs4all.nl>
+References: <1397731154-34337-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 01/04/14 16:13, Nicolas Dufresne wrote:
-> Any comment/input ?
+This will make the next patch a bit easier to read.
 
-My apologies for the delay. The patches look good to me, I'm going
-to apply them to my tree for 3.16, as the media tree is already closed
-for 3.15. Thanks a lot for these fixes!
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/saa7134/saa7134-empress.c | 24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-> Le mardi 25 mars 2014 à 16:45 -0400, Nicolas Dufresne a écrit :
->> This patch series fixes several bugs found in the s5p-fimc driver. These
->> bugs relate to bad parameters in the formats definition and short size
->> of image buffers.
->>
->> Nicolas Dufresne (5):
->>   s5p-fimc: Reuse calculated sizes
->>   s5p-fimc: Iterate for each memory plane
->>   s5p-fimc: Align imagesize to row size for tiled formats
->>   s5p-fimc: Fix YUV422P depth
->>   s5p-fimc: Changed RGB32 to BGR32
->>
->>  drivers/media/platform/exynos4-is/fimc-core.c | 21 +++++++++++++++------
->>  drivers/media/platform/exynos4-is/fimc-m2m.c  |  6 +++---
->>  2 files changed, 18 insertions(+), 9 deletions(-)
+diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
+index 07bd06c..393c9f1 100644
+--- a/drivers/media/pci/saa7134/saa7134-empress.c
++++ b/drivers/media/pci/saa7134/saa7134-empress.c
+@@ -48,17 +48,7 @@ MODULE_PARM_DESC(debug,"enable debug messages");
+ 
+ /* ------------------------------------------------------------------ */
+ 
+-static void ts_reset_encoder(struct saa7134_dev* dev)
+-{
+-	if (!dev->empress_started)
+-		return;
+-
+-	saa_writeb(SAA7134_SPECIAL_MODE, 0x00);
+-	msleep(10);
+-	saa_writeb(SAA7134_SPECIAL_MODE, 0x01);
+-	msleep(100);
+-	dev->empress_started = 0;
+-}
++static void ts_reset_encoder(struct saa7134_dev* dev);
+ 
+ static int ts_init_encoder(struct saa7134_dev* dev)
+ {
+@@ -79,6 +69,18 @@ static int ts_init_encoder(struct saa7134_dev* dev)
+ 	return 0;
+ }
+ 
++static void ts_reset_encoder(struct saa7134_dev* dev)
++{
++	if (!dev->empress_started)
++		return;
++
++	saa_writeb(SAA7134_SPECIAL_MODE, 0x00);
++	msleep(10);
++	saa_writeb(SAA7134_SPECIAL_MODE, 0x01);
++	msleep(100);
++	dev->empress_started = 0;
++}
++
+ /* ------------------------------------------------------------------ */
+ 
+ static int ts_open(struct file *file)
+-- 
+1.9.2
 
-
-Regards,
-Sylwester
