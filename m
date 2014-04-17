@@ -1,46 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43273 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S934295AbaDJS6n (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38905 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753868AbaDQONa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 14:58:43 -0400
-Message-ID: <5346E9E1.2080702@iki.fi>
-Date: Thu, 10 Apr 2014 21:58:41 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [yavta PATCH 7/9] Print timestamp type and source for dequeued
- buffers
-References: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi> <1393690690-5004-8-git-send-email-sakari.ailus@iki.fi> <5116965.JxiWPkm0Gp@avalon>
-In-Reply-To: <5116965.JxiWPkm0Gp@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 17 Apr 2014 10:13:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v4 20/49] s5p-tv: hdmi: Remove deprecated video-level DV timings operations
+Date: Thu, 17 Apr 2014 16:12:51 +0200
+Message-Id: <1397744000-23967-21-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+The video enum_dv_timings and dv_timings_cap operations are deprecated
+and unused. Remove them.
 
-Laurent Pinchart wrote:
-> Hi Sakari,
->
-> Thank you for the patch.
->
-> Given that the timestamp type and source are not supposed to change during
-> streaming, do we really need to print them for every frame ?
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/s5p-tv/hdmi_drv.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-When processing frames from memory to memory (COPY timestamp type), the 
-it is entirely possible that the timestamp source changes as the flags 
-are copied from the OUTPUT buffer to the CAPTURE buffer.
-
-These patches do not support it but it is allowed.
-
-One option would be to print the source on every frame only when the 
-type is COPY. For a program like yavta this might be overly 
-sophisticated IMO. :-)
-
+diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
+index 3db496c..754740f 100644
+--- a/drivers/media/platform/s5p-tv/hdmi_drv.c
++++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
+@@ -693,7 +693,7 @@ static int hdmi_dv_timings_cap(struct v4l2_subdev *sd,
+ 		return -EINVAL;
+ 
+ 	/* Let the phy fill in the pixelclock range */
+-	v4l2_subdev_call(hdev->phy_sd, video, dv_timings_cap, cap);
++	v4l2_subdev_call(hdev->phy_sd, pad, dv_timings_cap, cap);
+ 	cap->type = V4L2_DV_BT_656_1120;
+ 	cap->bt.min_width = 720;
+ 	cap->bt.max_width = 1920;
+@@ -712,8 +712,6 @@ static const struct v4l2_subdev_core_ops hdmi_sd_core_ops = {
+ static const struct v4l2_subdev_video_ops hdmi_sd_video_ops = {
+ 	.s_dv_timings = hdmi_s_dv_timings,
+ 	.g_dv_timings = hdmi_g_dv_timings,
+-	.enum_dv_timings = hdmi_enum_dv_timings,
+-	.dv_timings_cap = hdmi_dv_timings_cap,
+ 	.g_mbus_fmt = hdmi_g_mbus_fmt,
+ 	.s_stream = hdmi_s_stream,
+ };
 -- 
-Kind regards,
+1.8.3.2
 
-Sakari Ailus
-sakari.ailus@iki.fi
