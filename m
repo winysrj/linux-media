@@ -1,50 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:51830 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758042AbaDBJtF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Apr 2014 05:49:05 -0400
-From: Daeseok Youn <daeseok.youn@gmail.com>
-To: m.chehab@samsung.com
-Cc: jarod@wilsonet.com, gregkh@linuxfoundation.org,
-	dan.carpenter@oracle.com, paulmck@linux.vnet.ibm.com,
-	mtrompou@gmail.com, bernat.ada@gmail.com,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] staging: lirc: remove redundant NULL check in unregister_from_lirc()
-Date: Wed, 02 Apr 2014 02:49:03 -0700 (PDT)
-Message-ID: <4738406.3PgrFdIbI3@daeseok-laptop.cloud.net>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38905 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753117AbaDQONZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Apr 2014 10:13:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v4 08/49] adv7842: Add pad-level DV timings operations
+Date: Thu, 17 Apr 2014 16:12:39 +0200
+Message-Id: <1397744000-23967-9-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The video enum_dv_timings and dv_timings_cap operations are deprecated.
+Implement the pad-level version of those operations to prepare for the
+removal of the video version.
 
-"ir" is already checked before calling unregister_from_lirc().
-
-Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/lirc/lirc_igorplugusb.c |    6 ------
- 1 files changed, 0 insertions(+), 6 deletions(-)
+ drivers/media/i2c/adv7842.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/staging/media/lirc/lirc_igorplugusb.c b/drivers/staging/media/lirc/lirc_igorplugusb.c
-index f508a13..e93e1c2 100644
---- a/drivers/staging/media/lirc/lirc_igorplugusb.c
-+++ b/drivers/staging/media/lirc/lirc_igorplugusb.c
-@@ -222,12 +222,6 @@ static int unregister_from_lirc(struct igorplug *ir)
- 	struct lirc_driver *d;
- 	int devnum;
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 06c25c3..5742f6f 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -1399,6 +1399,9 @@ static int read_stdi(struct v4l2_subdev *sd, struct stdi_readback *stdi)
+ static int adv7842_enum_dv_timings(struct v4l2_subdev *sd,
+ 				   struct v4l2_enum_dv_timings *timings)
+ {
++	if (timings->pad != 0)
++		return -EINVAL;
++
+ 	return v4l2_enum_dv_timings_cap(timings,
+ 		adv7842_get_dv_timings_cap(sd), adv7842_check_dv_timings, NULL);
+ }
+@@ -1406,6 +1409,9 @@ static int adv7842_enum_dv_timings(struct v4l2_subdev *sd,
+ static int adv7842_dv_timings_cap(struct v4l2_subdev *sd,
+ 				  struct v4l2_dv_timings_cap *cap)
+ {
++	if (cap->pad != 0)
++		return -EINVAL;
++
+ 	*cap = *adv7842_get_dv_timings_cap(sd);
+ 	return 0;
+ }
+@@ -2901,6 +2907,8 @@ static const struct v4l2_subdev_video_ops adv7842_video_ops = {
+ static const struct v4l2_subdev_pad_ops adv7842_pad_ops = {
+ 	.get_edid = adv7842_get_edid,
+ 	.set_edid = adv7842_set_edid,
++	.enum_dv_timings = adv7842_enum_dv_timings,
++	.dv_timings_cap = adv7842_dv_timings_cap,
+ };
  
--	if (!ir) {
--		dev_err(&ir->usbdev->dev,
--			"%s: called with NULL device struct!\n", __func__);
--		return -EINVAL;
--	}
--
- 	devnum = ir->devnum;
- 	d = ir->d;
- 
+ static const struct v4l2_subdev_ops adv7842_ops = {
 -- 
-1.7.4.4
-
+1.8.3.2
 
