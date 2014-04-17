@@ -1,64 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:41221 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751134AbaDVM6L (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38906 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754209AbaDQONk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Apr 2014 08:58:11 -0400
-Date: Tue, 22 Apr 2014 15:57:26 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: hans.verkuil@cisco.com, m.chehab@samsung.com,
-	ext-eero.nurkkala@nokia.com, nils.faerber@kernelconcepts.de,
-	joni.lapilainen@gmail.com, freemangordon@abv.bg, sre@ring0.de,
-	pali.rohar@gmail.com, Greg KH <greg@kroah.com>, trivial@kernel.org,
-	linux-media@vger.kernel.org
-Cc: kernel list <linux-kernel@vger.kernel.org>
-Subject: [PATCH v2] radio-bcm2048.c: fix wrong overflow check
-Message-ID: <20140422125726.GA30238@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <201404221147.05726@pali>
+	Thu, 17 Apr 2014 10:13:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v4 37/49] adv7604: Remove deprecated video-level DV timings operations
+Date: Thu, 17 Apr 2014 16:13:08 +0200
+Message-Id: <1397744000-23967-38-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pali Rohár <pali.rohar@gmail.com>
+The video enum_dv_timings and dv_timings_cap operations are deprecated
+and unused. Remove them.
 
-This patch fixes an off by one check in bcm2048_set_region().
-
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-v2: Send it to the correct list.  Re-work the changelog.
+ drivers/media/i2c/adv7604.c | 35 +++++++++--------------------------
+ 1 file changed, 9 insertions(+), 26 deletions(-)
 
-This patch has been floating around for four months but Pavel and Pali
-are knuckle-heads and don't know how to use get_maintainer.pl so they
-never send it to linux-media.
-
-Also Pali doesn't give reporter credit and Pavel steals authorship
-credit.
-
-Also when you try explain to them about how to send patches correctly
-they complain that they have been trying but it is too much work so now
-I have to do it.  During the past four months thousands of other people
-have been able to send patches in the correct format to the correct list
-but it is too difficult for Pavel and Pali...  *sigh*.
-
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index b2cd3a8..bbf236e 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -737,7 +737,7 @@ static int bcm2048_set_region(struct bcm2048_device *bdev, u8 region)
- 	int err;
- 	u32 new_frequency = 0;
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 684b912..29bdb9e 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1527,16 +1527,20 @@ static int adv7604_enum_dv_timings(struct v4l2_subdev *sd,
+ 	return 0;
+ }
  
--	if (region > ARRAY_SIZE(region_configs))
-+	if (region >= ARRAY_SIZE(region_configs))
- 		return -EINVAL;
+-static int __adv7604_dv_timings_cap(struct v4l2_subdev *sd,
+-			struct v4l2_dv_timings_cap *cap,
+-			unsigned int pad)
++static int adv7604_dv_timings_cap(struct v4l2_subdev *sd,
++			struct v4l2_dv_timings_cap *cap)
+ {
++	struct adv7604_state *state = to_state(sd);
++
++	if (cap->pad >= state->source_pad)
++		return -EINVAL;
++
+ 	cap->type = V4L2_DV_BT_656_1120;
+ 	cap->bt.max_width = 1920;
+ 	cap->bt.max_height = 1200;
+ 	cap->bt.min_pixelclock = 25000000;
  
- 	mutex_lock(&bdev->mutex);
-
+-	switch (pad) {
++	switch (cap->pad) {
+ 	case ADV7604_PAD_HDMI_PORT_A:
+ 	case ADV7604_PAD_HDMI_PORT_B:
+ 	case ADV7604_PAD_HDMI_PORT_C:
+@@ -1557,25 +1561,6 @@ static int __adv7604_dv_timings_cap(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
+-static int adv7604_dv_timings_cap(struct v4l2_subdev *sd,
+-			struct v4l2_dv_timings_cap *cap)
+-{
+-	struct adv7604_state *state = to_state(sd);
+-
+-	return __adv7604_dv_timings_cap(sd, cap, state->selected_input);
+-}
+-
+-static int adv7604_pad_dv_timings_cap(struct v4l2_subdev *sd,
+-			struct v4l2_dv_timings_cap *cap)
+-{
+-	struct adv7604_state *state = to_state(sd);
+-
+-	if (cap->pad >= state->source_pad)
+-		return -EINVAL;
+-
+-	return __adv7604_dv_timings_cap(sd, cap, cap->pad);
+-}
+-
+ /* Fill the optional fields .standards and .flags in struct v4l2_dv_timings
+    if the format is listed in adv7604_timings[] */
+ static void adv7604_fill_optional_dv_timings_fields(struct v4l2_subdev *sd,
+@@ -2453,8 +2438,6 @@ static const struct v4l2_subdev_video_ops adv7604_video_ops = {
+ 	.s_dv_timings = adv7604_s_dv_timings,
+ 	.g_dv_timings = adv7604_g_dv_timings,
+ 	.query_dv_timings = adv7604_query_dv_timings,
+-	.enum_dv_timings = adv7604_enum_dv_timings,
+-	.dv_timings_cap = adv7604_dv_timings_cap,
+ };
+ 
+ static const struct v4l2_subdev_pad_ops adv7604_pad_ops = {
+@@ -2463,7 +2446,7 @@ static const struct v4l2_subdev_pad_ops adv7604_pad_ops = {
+ 	.set_fmt = adv7604_set_format,
+ 	.get_edid = adv7604_get_edid,
+ 	.set_edid = adv7604_set_edid,
+-	.dv_timings_cap = adv7604_pad_dv_timings_cap,
++	.dv_timings_cap = adv7604_dv_timings_cap,
+ 	.enum_dv_timings = adv7604_enum_dv_timings,
+ };
+ 
 -- 
+1.8.3.2
 
