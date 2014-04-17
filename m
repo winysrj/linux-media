@@ -1,47 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from s4.n225.n6.n64.static.myhostcenter.com ([64.6.225.4]:49495 "EHLO
-	ps04.myhostcenter.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750756AbaD3ByG convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38906 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753131AbaDQON0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Apr 2014 21:54:06 -0400
-Message-ID: <20140429215347.hb7hnquabcww0k0s@webmail.elihof.com>
-Date: Tue, 29 Apr 2014 21:53:47 -0400
-From: Mark Thompson <markthompson@voila.fr>
-To: undisclosed-recipients:;
-Subject: DEAR FRIEND!
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
+	Thu, 17 Apr 2014 10:13:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v4 09/49] s5p-tv: hdmi: Add pad-level DV timings operations
+Date: Thu, 17 Apr 2014 16:12:40 +0200
+Message-Id: <1397744000-23967-10-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The video enum_dv_timings and dv_timings_cap operations are deprecated.
+Implement the pad-level version of those operations to prepare for the
+removal of the video version.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/s5p-tv/hdmi_drv.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-From: Mr. Mark Thompson
-Bank of Africa Burkina Faso.
+diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
+index 534722c..3db496c 100644
+--- a/drivers/media/platform/s5p-tv/hdmi_drv.c
++++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
+@@ -674,6 +674,8 @@ static int hdmi_g_mbus_fmt(struct v4l2_subdev *sd,
+ static int hdmi_enum_dv_timings(struct v4l2_subdev *sd,
+ 	struct v4l2_enum_dv_timings *timings)
+ {
++	if (timings->pad != 0)
++		return -EINVAL;
+ 	if (timings->index >= ARRAY_SIZE(hdmi_timings))
+ 		return -EINVAL;
+ 	timings->timings = hdmi_timings[timings->index].dv_timings;
+@@ -687,6 +689,9 @@ static int hdmi_dv_timings_cap(struct v4l2_subdev *sd,
+ {
+ 	struct hdmi_device *hdev = sd_to_hdmi_dev(sd);
+ 
++	if (cap->pad != 0)
++		return -EINVAL;
++
+ 	/* Let the phy fill in the pixelclock range */
+ 	v4l2_subdev_call(hdev->phy_sd, video, dv_timings_cap, cap);
+ 	cap->type = V4L2_DV_BT_656_1120;
+@@ -713,6 +718,11 @@ static const struct v4l2_subdev_video_ops hdmi_sd_video_ops = {
+ 	.s_stream = hdmi_s_stream,
+ };
+ 
++static const struct v4l2_subdev_pad_ops hdmi_sd_pad_ops = {
++	.enum_dv_timings = hdmi_enum_dv_timings,
++	.dv_timings_cap = hdmi_dv_timings_cap,
++};
++
+ static const struct v4l2_subdev_ops hdmi_sd_ops = {
+ 	.core = &hdmi_sd_core_ops,
+ 	.video = &hdmi_sd_video_ops,
+-- 
+1.8.3.2
 
-Dear Friend,
-I am the manager account/audit department (Annexe) Bank of African (BOA) in
-Burkina faso. I would like you to indicate your interest to receive this
-transfer of US$10.5 Million; as the beneficiary (next of kin) to our  
-late client
-whom account is presently dormant and awaiting any claimer details  
-shall be send
-to you with drafted application letter to apply.
-Please reply to this email address:(markthompson@voila.fr)
-
-1. Full name:.........
-2. Current Address:.........
-3. Telephone N°:...........
-4. Occupation:.............
-5. Copy of your identity...
-6. Age:............
-7. Country:........
-
-Yours truly
-Mr. Mark Thompson
-Tel: 00226 75 49 66 04
