@@ -1,40 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:52372 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750970AbaDRBxH (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38906 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754022AbaDQONb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 21:53:07 -0400
-MIME-Version: 1.0
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Date: Thu, 17 Apr 2014 18:52:44 -0700
-Message-ID: <CAB=NE6WD0AB4qk7t=bszdv61F2g2NvDei_tcx2o98=kQvUuh-Q@mail.gmail.com>
-Subject: 3 linux-next based backports releases
-To: "backports@vger.kernel.org" <backports@vger.kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org,
-	linux-wireless <linux-wireless@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	linux-zigbee-devel@lists.sourceforge.net
-Content-Type: text/plain; charset=UTF-8
+	Thu, 17 Apr 2014 10:13:31 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v4 21/49] s5p-tv: hdmiphy: Remove deprecated video-level DV timings operation
+Date: Thu, 17 Apr 2014 16:12:52 +0200
+Message-Id: <1397744000-23967-22-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-3 new linux backports release are now available based on linux-next
-tags next-20140320 [0] next-20140411 [1] and next-20140417 [2]. This
-should mean that we can keep things in synch now almost daily, and
-drivers can be tested with the latest code as-is on linux-next. We've
-shaved off kernel support for kernels older than 3.0 in order to help
-scale the project. We've also have added 2 new SmPL patches to help
-backports backport two pain in the ass collateral evolutions
-automatically. Please note that the patches/ directory is now all
-tidied up -- folks interested in playing with SmPL can try to help by
-seeing if they can use SmPL grammer to formalize a collateral
-evolution backport. We have a bit of examples now. For more details
-please refer to the wiki [3] or git tree.
+The video enum_dv_timings operation is deprecated and unused. Remove it.
 
-[0] http://www.kernel.org/pub/linux/kernel/projects/backports/2014/03/20/backports-20140320.tar.xz
-[1] https://www.kernel.org/pub/linux/kernel/projects/backports/2014/04/11/backports-20140411.tar.xz
-[2] https://www.kernel.org/pub/linux/kernel/projects/backports/2014/04/17/backports-20140417.tar.xz
-[3] http://backports.wiki.kernel.org
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/s5p-tv/hdmiphy_drv.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-  Luis
+diff --git a/drivers/media/platform/s5p-tv/hdmiphy_drv.c b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
+index ff22320..c2f2e35 100644
+--- a/drivers/media/platform/s5p-tv/hdmiphy_drv.c
++++ b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
+@@ -262,7 +262,6 @@ static const struct v4l2_subdev_core_ops hdmiphy_core_ops = {
+ 
+ static const struct v4l2_subdev_video_ops hdmiphy_video_ops = {
+ 	.s_dv_timings = hdmiphy_s_dv_timings,
+-	.dv_timings_cap = hdmiphy_dv_timings_cap,
+ 	.s_stream =  hdmiphy_s_stream,
+ };
+ 
+-- 
+1.8.3.2
+
