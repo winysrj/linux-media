@@ -1,50 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4728 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752214AbaDDKBn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Apr 2014 06:01:43 -0400
-Message-ID: <533E82E6.4020209@xs4all.nl>
-Date: Fri, 04 Apr 2014 12:01:10 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:63461 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751352AbaDRRue (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Apr 2014 13:50:34 -0400
+From: =?UTF-8?q?Manuel=20Sch=C3=B6nlaub?= <manuel.schoenlaub@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: =?UTF-8?q?Manuel=20Sch=C3=B6nlaub?= <manuel.schoenlaub@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] az6027: Added the PID for a new revision of the Elgato EyeTV Sat DVB-S Tuner.
+Date: Fri, 18 Apr 2014 19:43:35 +0200
+Message-Id: <1397843015-15848-1-git-send-email-manuel.schoenlaub@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: pawel@osciak.com, s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-	m.szyprowski@samsung.com
-Subject: Re: vb2: various small fixes/improvements
-References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Can someone review this? That would be much appreciated!
+There is another clone of AZ6027. This patch adds the relevant PID.
 
-Regards,
+Signed-off-by: Manuel Schönlaub <manuel.schoenlaub@gmail.com>
+---
+ drivers/media/dvb-core/dvb-usb-ids.h | 1 +
+ drivers/media/usb/dvb-usb/az6027.c   | 7 ++++++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-	Hans
-
-On 03/10/2014 10:20 PM, Hans Verkuil wrote:
-> This patch series contains a list of various vb2 fixes and improvements.
-> 
-> These patches were originally part of this RFC patch series:
-> 
-> http://www.spinics.net/lists/linux-media/msg73391.html
-> 
-> They are now rebased and reordered a bit. It's little stuff for the
-> most part, although the first patch touches on more drivers since it
-> changes the return type of stop_streaming to void. The return value was
-> always ignored by vb2 and you really cannot do anything sensible with it.
-> In general resource allocations can return an error, but freeing up resources
-> should not. That should always succeed.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+index 1bdc0e7..a2530fe 100644
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -356,6 +356,7 @@
+ #define USB_PID_ELGATO_EYETV_DTT_2			0x003f
+ #define USB_PID_ELGATO_EYETV_DTT_Dlx			0x0020
+ #define USB_PID_ELGATO_EYETV_SAT			0x002a
++#define USB_PID_ELGATO_EYETV_SAT_V2			0x0025
+ #define USB_PID_DVB_T_USB_STICK_HIGH_SPEED_COLD		0x5000
+ #define USB_PID_DVB_T_USB_STICK_HIGH_SPEED_WARM		0x5001
+ #define USB_PID_FRIIO_WHITE				0x0001
+diff --git a/drivers/media/usb/dvb-usb/az6027.c b/drivers/media/usb/dvb-usb/az6027.c
+index c11138e..0df52ab 100644
+--- a/drivers/media/usb/dvb-usb/az6027.c
++++ b/drivers/media/usb/dvb-usb/az6027.c
+@@ -1088,6 +1088,7 @@ static struct usb_device_id az6027_usb_table[] = {
+ 	{ USB_DEVICE(USB_VID_TECHNISAT, USB_PID_TECHNISAT_USB2_HDCI_V1) },
+ 	{ USB_DEVICE(USB_VID_TECHNISAT, USB_PID_TECHNISAT_USB2_HDCI_V2) },
+ 	{ USB_DEVICE(USB_VID_ELGATO, USB_PID_ELGATO_EYETV_SAT) },
++	{ USB_DEVICE(USB_VID_ELGATO, USB_PID_ELGATO_EYETV_SAT_V2) },
+ 	{ },
+ };
+ 
+@@ -1136,7 +1137,7 @@ static struct dvb_usb_device_properties az6027_properties = {
+ 
+ 	.i2c_algo         = &az6027_i2c_algo,
+ 
+-	.num_device_descs = 6,
++	.num_device_descs = 7,
+ 	.devices = {
+ 		{
+ 			.name = "AZUREWAVE DVB-S/S2 USB2.0 (AZ6027)",
+@@ -1162,6 +1163,10 @@ static struct dvb_usb_device_properties az6027_properties = {
+ 			.name = "Elgato EyeTV Sat",
+ 			.cold_ids = { &az6027_usb_table[5], NULL },
+ 			.warm_ids = { NULL },
++		}, {
++			.name = "Elgato EyeTV Sat",
++			.cold_ids = { &az6027_usb_table[6], NULL },
++			.warm_ids = { NULL },
+ 		},
+ 		{ NULL },
+ 	}
+-- 
+1.9.2
 
