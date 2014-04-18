@@ -1,78 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:64629 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964940AbaDITZO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Apr 2014 15:25:14 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id 519DF20E92
-	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 22:24:55 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 15/17] smiapp-pll: Add quirk flag for sensors that effectively use double pix clks
-Date: Wed,  9 Apr 2014 22:25:07 +0300
-Message-Id: <1397071509-2071-16-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-qa0-f44.google.com ([209.85.216.44]:62968 "EHLO
+	mail-qa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185AbaDRNtf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Apr 2014 09:49:35 -0400
+Received: by mail-qa0-f44.google.com with SMTP id hw13so1588793qab.31
+        for <linux-media@vger.kernel.org>; Fri, 18 Apr 2014 06:49:34 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <5351106E.4080700@xs4all.nl>
+References: <1394454049-12879-1-git-send-email-hverkuil@xs4all.nl>
+	<1394454049-12879-4-git-send-email-hverkuil@xs4all.nl>
+	<20140416192343.30a5a8fc@samsung.com>
+	<534F0553.2000808@xs4all.nl>
+	<20140416231730.6252aae7@samsung.com>
+	<534FA3BF.2010308@xs4all.nl>
+	<20140417101310.0111d236@samsung.com>
+	<5351106E.4080700@xs4all.nl>
+Date: Fri, 18 Apr 2014 09:49:34 -0400
+Message-ID: <CAGoCfix1j8kLQQe3yMDj+bqi=Pyj_K+en31a-h32+HMzVU1arQ@mail.gmail.com>
+Subject: Re: [REVIEW PATCH 3/3] saa7134: convert to vb2
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some sensors have effectively the double pixel (and other clocks) compared
-to calculations.
+> This was a bit confusing following the previous paragraph. I meant to say that the
+> *saa7134* userptr implementation is not USERPTR at all but PAGE_ALIGNED_USERPTR.
+>
+> A proper USERPTR implementation (like in bttv) can use any malloc()ed pointer as
+> it should, but saa7134 can't as it requires the application to align the pointer
+> to a page boundary, which is non-standard.
 
-The frequency of the bus is also affected similarly so take this into
-account when calculating pll_op_clock frequency.
+It's probably worth mentioning at this point that there's a bug in
+videobuf2_vmalloc() where it forces the buffer provided by userptr
+mode to be page aligned.  This causes issues if you hand it a buffer
+that isn't actually page aligned, as it writes to an arbitrary offset
+into the buffer instead of the start of the buffer you provided.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+I've had the following patch in my private tree for months, but had
+been hesitant to submit it since I didn't know if it would effect
+other implementations.  I wasn't sure if USERPTR mode required the
+buffers to be page aligned and I was violating the spec.
+
+Devin
+
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Fri, 17 May 2013 19:53:02 +0000 (-0400)
+Subject: Fix alignment bug when using VB2 with userptr mode
+
+Fix alignment bug when using VB2 with userptr mode
+
+If we pass in a USERPTR buffer that isn't page aligned, the driver
+will align it (and not tell userland).  The result is that the driver
+thinks the video starts in one place while userland thinks it starts
+in another.  This manifests itself as the video being horizontally
+shifted and there being garbage from the start of the field up to
+that point.
+
+This problem was seen with both the em28xx and uvc drivers when
+testing on the Davinci platform (where the buffers allocated are
+not necessarily page aligned).
 ---
- drivers/media/i2c/smiapp-pll.c | 10 ++++++++++
- drivers/media/i2c/smiapp-pll.h |  6 ++++++
- 2 files changed, 16 insertions(+)
 
-diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
-index a83597e..8c48bdc 100644
---- a/drivers/media/i2c/smiapp-pll.c
-+++ b/drivers/media/i2c/smiapp-pll.c
-@@ -335,6 +335,10 @@ static int __smiapp_pll_calculate(struct device *dev,
- 	pll->pixel_rate_csi =
- 		pll->op_pix_clk_freq_hz * lane_op_clock_ratio;
- 	pll->pixel_rate_pixel_array = pll->vt_pix_clk_freq_hz;
-+	if (pll->flags & SMIAPP_PLL_FLAG_PIX_CLOCK_DOUBLE) {
-+		pll->pixel_rate_csi *= 2;
-+		pll->pixel_rate_pixel_array *= 2;
-+	}
- 
- 	rval = bounds_check(dev, pll->pll_ip_clk_freq_hz,
- 			    limits->min_pll_ip_freq_hz,
-@@ -426,6 +430,12 @@ int smiapp_pll_calculate(struct device *dev,
- 	 */
- 	if (pll->flags & SMIAPP_PLL_FLAG_OP_PIX_DIV_HALF)
- 		pll->pll_op_clk_freq_hz /= 2;
-+	/*
-+	 * If it'll be multiplied by two in the end divide it now to
-+	 * avoid achieving double the desired clock.
-+	 */
-+	if (pll->flags & SMIAPP_PLL_FLAG_PIX_CLOCK_DOUBLE)
-+		pll->pll_op_clk_freq_hz /= 2;
- 
- 	/* Figure out limits for pre-pll divider based on extclk */
- 	dev_dbg(dev, "min / max pre_pll_clk_div: %u / %u\n",
-diff --git a/drivers/media/i2c/smiapp-pll.h b/drivers/media/i2c/smiapp-pll.h
-index c6ad809..9eaac54 100644
---- a/drivers/media/i2c/smiapp-pll.h
-+++ b/drivers/media/i2c/smiapp-pll.h
-@@ -38,6 +38,12 @@
- #define SMIAPP_PLL_FLAG_ALLOW_ODD_PRE_PLL_CLK_DIV		(1 << 2)
- /* op pix div value is half of the bits-per-pixel value */
- #define SMIAPP_PLL_FLAG_OP_PIX_DIV_HALF				(1 << 3)
-+/*
-+ * The effective vt and op pix clocks are twice as high as the
-+ * calculated value. The limits are still against the regular limit
-+ * values.
-+ */
-+#define SMIAPP_PLL_FLAG_PIX_CLOCK_DOUBLE			(1 << 4)
- 
- struct smiapp_pll {
- 	/* input values */
+diff --git a/linux/drivers/media/v4l2-core/videobuf2-vmalloc.c
+b/linux/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index 94efa04..ad7ce7c 100644
+--- a/linux/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/linux/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -82,7 +82,7 @@ static void *vb2_vmalloc_get_userptr(void
+*alloc_ctx, unsigned long vaddr,
+  return NULL;
+
+  buf->write = write;
+- offset = vaddr & ~PAGE_MASK;
++ offset = 0;
+  buf->size = size;
+
 -- 
-1.8.3.2
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
