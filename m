@@ -1,131 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f42.google.com ([209.85.219.42]:57372 "EHLO
-	mail-oa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753239AbaDXOQp (ORCPT
+Received: from fallback2.mail.ru ([94.100.176.87]:46859 "EHLO
+	fallback6.mail.ru" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750955AbaDRFLz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Apr 2014 10:16:45 -0400
-Received: by mail-oa0-f42.google.com with SMTP id i4so2709888oah.1
-        for <linux-media@vger.kernel.org>; Thu, 24 Apr 2014 07:16:44 -0700 (PDT)
-Message-ID: <53591CBF.4070901@gmail.com>
-Date: Thu, 24 Apr 2014 09:16:31 -0500
-From: Matt DeVillier <matt.devillier@gmail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: [PATCH  v3] fix mceusb endpoint type identification/handling
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Fri, 18 Apr 2014 01:11:55 -0400
+Received: from smtp35.i.mail.ru (smtp35.i.mail.ru [94.100.177.95])
+	by fallback6.mail.ru (mPOP.Fallback_MX) with ESMTP id 2A76636F19B8
+	for <linux-media@vger.kernel.org>; Fri, 18 Apr 2014 09:07:50 +0400 (MSK)
+From: Alexander Shiyan <shc_work@mail.ru>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Alexander Shiyan <shc_work@mail.ru>
+Subject: [PATCH] media: m2m-deinterlace: Convert to devm* API
+Date: Fri, 18 Apr 2014 09:07:33 +0400
+Message-Id: <1397797653-14717-1-git-send-email-shc_work@mail.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Matt DeVillier <matt.devillier@gmail.com>
+Replace resource handling in the driver with managed device resource.
 
-Change the I/O endpoint handling of the mceusb driver to respect the endpoint 
-type reported by device (bulk/interrupt), rather than treating all endpoints 
-as type interrupt, which breaks devices using bulk endpoints when connected 
-to a xhci controller.  Accordingly, change the function calls to initialize 
-an endpoint's transfer pipe and urb handlers to use the correct function based 
-on the endpoint type.
-
-Signed-off-by: Matt DeVillier <matt.devillier@gmail.com>
-Tested-by: Sean Young <sean@mess.org>
--
-This is a continuation of the work started in patch #21648
-Patch compiled and tested against linux-media git master. Backported and tested 
-against 3.14.1 stable as well.
-v3 corrects formatting issues which prevented the patch from being applied
-with 'git am,' and replaces a few complex conditionals with inline functions 
-for improved clarity.
+Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
 ---
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 5d8f3d4..74721cc 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -747,11 +747,19 @@ static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
- 		}
+ drivers/media/platform/m2m-deinterlace.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
+index c21d14f..d36c507 100644
+--- a/drivers/media/platform/m2m-deinterlace.c
++++ b/drivers/media/platform/m2m-deinterlace.c
+@@ -1002,7 +1002,7 @@ static int deinterlace_probe(struct platform_device *pdev)
+ 	dma_cap_mask_t mask;
+ 	int ret = 0;
  
- 		/* outbound data */
--		pipe = usb_sndintpipe(ir->usbdev,
--				      ir->usb_ep_out->bEndpointAddress);
--		usb_fill_int_urb(async_urb, ir->usbdev, pipe,
--			async_buf, size, mce_async_callback,
--			ir, ir->usb_ep_out->bInterval);
-+		if (usb_endpoint_xfer_int(ir->usb_ep_out)) {
-+			pipe = usb_sndintpipe(ir->usbdev,
-+					 ir->usb_ep_out->bEndpointAddress);
-+			usb_fill_int_urb(async_urb, ir->usbdev, pipe, async_buf,
-+					 size, mce_async_callback, ir,
-+					 ir->usb_ep_out->bInterval);
-+		} else {
-+			pipe = usb_sndbulkpipe(ir->usbdev,
-+					 ir->usb_ep_out->bEndpointAddress);
-+			usb_fill_bulk_urb(async_urb, ir->usbdev, pipe,
-+					 async_buf, size, mce_async_callback,
-+					 ir);
-+		}
- 		memcpy(async_buf, data, size);
+-	pcdev = kzalloc(sizeof *pcdev, GFP_KERNEL);
++	pcdev = devm_kzalloc(&pdev->dev, sizeof(*pcdev), GFP_KERNEL);
+ 	if (!pcdev)
+ 		return -ENOMEM;
  
- 	} else if (urb_type == MCEUSB_RX) {
-@@ -1269,32 +1277,26 @@ static int mceusb_dev_probe(struct usb_interface *intf,
- 	for (i = 0; i < idesc->desc.bNumEndpoints; ++i) {
- 		ep = &idesc->endpoint[i].desc;
+@@ -1012,7 +1012,7 @@ static int deinterlace_probe(struct platform_device *pdev)
+ 	dma_cap_set(DMA_INTERLEAVE, mask);
+ 	pcdev->dma_chan = dma_request_channel(mask, NULL, pcdev);
+ 	if (!pcdev->dma_chan)
+-		goto free_dev;
++		return -ENODEV;
  
--		if ((ep_in == NULL)
--			&& ((ep->bEndpointAddress & USB_ENDPOINT_DIR_MASK)
--			    == USB_DIR_IN)
--			&& (((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
--			    == USB_ENDPOINT_XFER_BULK)
--			|| ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
--			    == USB_ENDPOINT_XFER_INT))) {
--
--			ep_in = ep;
--			ep_in->bmAttributes = USB_ENDPOINT_XFER_INT;
--			ep_in->bInterval = 1;
--			dev_dbg(&intf->dev, "acceptable inbound endpoint found");
-+		if ((ep_in == NULL) {
-+			if (usb_endpoint_is_bulk_in(ep)) {
-+				ep_in = ep;
-+				mce_dbg(&intf->dev, "acceptable bulk inbound endpoint found\n");
-+			} else if (usb_endpoint_is_int_in(ep)) {
-+				ep_in = ep;
-+				ep_in->bInterval = 1;
-+				mce_dbg(&intf->dev, "acceptable interrupt inbound endpoint found\n");
-+			}
- 		}
+ 	if (!dma_has_cap(DMA_INTERLEAVE, pcdev->dma_chan->device->cap_mask)) {
+ 		v4l2_err(&pcdev->v4l2_dev, "DMA does not support INTERLEAVE\n");
+@@ -1078,8 +1078,6 @@ unreg_dev:
+ 	v4l2_device_unregister(&pcdev->v4l2_dev);
+ rel_dma:
+ 	dma_release_channel(pcdev->dma_chan);
+-free_dev:
+-	kfree(pcdev);
  
--		if ((ep_out == NULL)
--			&& ((ep->bEndpointAddress & USB_ENDPOINT_DIR_MASK)
--			    == USB_DIR_OUT)
--			&& (((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
--			    == USB_ENDPOINT_XFER_BULK)
--			|| ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
--			    == USB_ENDPOINT_XFER_INT))) {
--
--			ep_out = ep;
--			ep_out->bmAttributes = USB_ENDPOINT_XFER_INT;
--			ep_out->bInterval = 1;
--			dev_dbg(&intf->dev, "acceptable outbound endpoint found");
-+		if ((ep_out == NULL) {
-+			if (usb_endpoint_is_bulk_out(ep)) {
-+				ep_out = ep;
-+				mce_dbg(&intf->dev, "acceptable bulk outbound endpoint found\n");
-+			} else if (usb_endpoint_is_int_out(ep)) {
-+				ep_out = ep;
-+				ep_out->bInterval = 1;
-+				mce_dbg(&intf->dev, "acceptable interrupt outbound endpoint found\n");
-+			}
- 		}
- 	}
- 	if (ep_in == NULL) {
-@@ -1302,7 +1304,10 @@ static int mceusb_dev_probe(struct usb_interface *intf,
- 		return -ENODEV;
- 	}
+ 	return ret;
+ }
+@@ -1094,7 +1092,6 @@ static int deinterlace_remove(struct platform_device *pdev)
+ 	v4l2_device_unregister(&pcdev->v4l2_dev);
+ 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+ 	dma_release_channel(pcdev->dma_chan);
+-	kfree(pcdev);
  
--	pipe = usb_rcvintpipe(dev, ep_in->bEndpointAddress);
-+	if (usb_endpoint_xfer_int(ep_in))
-+		pipe = usb_rcvintpipe(dev, ep_in->bEndpointAddress);
-+	else
-+		pipe = usb_rcvbulkpipe(dev, ep_in->bEndpointAddress);
- 	maxp = usb_maxpacket(dev, pipe, usb_pipeout(pipe));
- 
- 	ir = kzalloc(sizeof(struct mceusb_dev), GFP_KERNEL);
+ 	return 0;
+ }
+-- 
+1.8.3.2
+
