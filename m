@@ -1,107 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2228 "EHLO
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1659 "EHLO
 	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756703AbaDBGxL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Apr 2014 02:53:11 -0400
-Message-ID: <533BB3CA.1030000@xs4all.nl>
-Date: Wed, 02 Apr 2014 08:52:58 +0200
+	with ESMTP id S1751139AbaDROL6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Apr 2014 10:11:58 -0400
+Message-ID: <53513297.5040409@xs4all.nl>
+Date: Fri, 18 Apr 2014 16:11:35 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Sriakhil Gogineni <sriakhil.gogineni@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Writing a HDMI-CEC device driver for the IT66121
-References: <4E127074-D400-4334-874D-7A67CF2D42EB@gmail.com> <533A8708.6030302@xs4all.nl> <3F599A20-E00D-4C0A-B125-B1428774BCFE@gmail.com>
-In-Reply-To: <3F599A20-E00D-4C0A-B125-B1428774BCFE@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEW PATCH 3/3] saa7134: convert to vb2
+References: <1394454049-12879-1-git-send-email-hverkuil@xs4all.nl>	<1394454049-12879-4-git-send-email-hverkuil@xs4all.nl>	<20140416192343.30a5a8fc@samsung.com>	<534F0553.2000808@xs4all.nl>	<20140416231730.6252aae7@samsung.com>	<534FA3BF.2010308@xs4all.nl>	<20140417101310.0111d236@samsung.com>	<5351106E.4080700@xs4all.nl> <CAGoCfix1j8kLQQe3yMDj+bqi=Pyj_K+en31a-h32+HMzVU1arQ@mail.gmail.com>
+In-Reply-To: <CAGoCfix1j8kLQQe3yMDj+bqi=Pyj_K+en31a-h32+HMzVU1arQ@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/01/2014 08:55 PM, Sriakhil Gogineni wrote:
-> Hi Hans,
+Hi Devin,
+
+On 04/18/2014 03:49 PM, Devin Heitmueller wrote:
+>> This was a bit confusing following the previous paragraph. I meant to say that the
+>> *saa7134* userptr implementation is not USERPTR at all but PAGE_ALIGNED_USERPTR.
+>>
+>> A proper USERPTR implementation (like in bttv) can use any malloc()ed pointer as
+>> it should, but saa7134 can't as it requires the application to align the pointer
+>> to a page boundary, which is non-standard.
 > 
-> Thanks for the detailed response. As, much as I would love to have a
-> robust, fully functioning implementation for v1, I think it might be
-> a a bit of 'over-optimization' to write the complete spec into the
-> driver from the beginning.
+> It's probably worth mentioning at this point that there's a bug in
+> videobuf2_vmalloc() where it forces the buffer provided by userptr
+> mode to be page aligned.  This causes issues if you hand it a buffer
+> that isn't actually page aligned, as it writes to an arbitrary offset
+> into the buffer instead of the start of the buffer you provided.
 > 
-> The question I ask myself is, "how can we get it mainlined quickly?"
-> I'm not sure of the answer but I would like implement and test basic
-> features of HDMI-CEC and then add in the more advanced fun stuff ;)
+> I've had the following patch in my private tree for months, but had
+> been hesitant to submit it since I didn't know if it would effect
+> other implementations.  I wasn't sure if USERPTR mode required the
+> buffers to be page aligned and I was violating the spec.
+> 
+> Devin
+> 
+> From: Devin Heitmueller <dheitmueller@kernellabs.com>
+> Date: Fri, 17 May 2013 19:53:02 +0000 (-0400)
+> Subject: Fix alignment bug when using VB2 with userptr mode
+> 
+> Fix alignment bug when using VB2 with userptr mode
+> 
+> If we pass in a USERPTR buffer that isn't page aligned, the driver
+> will align it (and not tell userland).  The result is that the driver
+> thinks the video starts in one place while userland thinks it starts
+> in another.  This manifests itself as the video being horizontally
+> shifted and there being garbage from the start of the field up to
+> that point.
+> 
+> This problem was seen with both the em28xx and uvc drivers when
+> testing on the Davinci platform (where the buffers allocated are
+> not necessarily page aligned).
+> ---
+> 
+> diff --git a/linux/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> b/linux/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> index 94efa04..ad7ce7c 100644
+> --- a/linux/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> +++ b/linux/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> @@ -82,7 +82,7 @@ static void *vb2_vmalloc_get_userptr(void
+> *alloc_ctx, unsigned long vaddr,
+>   return NULL;
+> 
+>   buf->write = write;
+> - offset = vaddr & ~PAGE_MASK;
+> + offset = 0;
+>   buf->size = size;
+> 
 
-To test CEC you typically need three ioctls: read, write and configure.
-It's what we do for our drivers that support CEC. But this can't be
-mainlined because the core CEC protocol really needs to be in the
-kernel.
+This makes no sense. The vivi driver uses vb2-vmalloc as well, and that works
+perfectly fine in userptr mode. Applying this patch breaks vivi userptr mode,
+so this is a NACK for this patch.
 
-> So I'm trying to test out CEC on the hardware I have. Making clean
-> interfaces would allow for adaptable between 4l2 devices, drm/kms
-> devices and hardware. My question is how can I connect to / test on
-> the hardware I have?> 
+I wonder though if this is related to this thread:
 
-This might help:
+http://www.spinics.net/lists/linux-media/msg75815.html
 
-http://www.spinics.net/lists/linux-media/msg29617.html
-
-It's basically what we implemented in our V4L drivers. I have an
-implementation of this for the adv7511 driver that I can mail you
-off-list if you are interested. But forget about mainlining this as
-it is not able to support the newer CEC features as I explained.
+I suspect that in your case the vb2_get_contig_userptr() function is called
+which as far as I can tell is the wrong function to call for the vmalloc case
+since there is absolutely no requirement that user pointers should be
+physically contiguous for vmalloc drivers.
 
 Regards,
 
 	Hans
-
-> Best,
-> Sri
-> 
-> On Apr 1, 2014, at 2:29 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
->> Hi Sri,
->>
->> On 03/31/14 23:12, Sriakhil Gogineni wrote:
->>> Hi,
->>>
->>> I'm trying to write a HDMI-CEC driver for the Radxa Rock
->>> (Specification - Radxa). I am coming from a software background and
->>> have found libcec and am looking at other implementation.
->>>
->>> I'm wondering how to connect the hardware and software pieces under
->>> Linux / Android.
->>>
->>> I'm not sure if I need to find out what /dev/ its exposed under via
->>> the device tree or determine which register is used from the data
->>> sheet?
->>>
->>> Any advice / tips / pointers would be helpful.
->>
->> There is currently no kernel CEC support available. What makes cec
->> complex is 1) the CEC specification is horrible :-) and 2) a proper cec
->> implementation has to be able to take care of v4l2 devices, drm/kms devices
->> and usb dongles. In addition, at least some of the CEC handling has to
->> take place in the kernel in order to handle the audio return channel,
->> suspend commands, hotplug-over-CEC and such advanced features.
->>
->> I have been working on this, but it is a background project and I never
->> found the time to finish it.
->>
->> My latest code is available here:
->>
->> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/cec
->>
->> but it needs more work to make this ready for prime time.
->>
->> It works, but it needs cleanup and cec_claim_log_addrs() needs improvement.
->> Particularly when called from a driver: this needs to be done in non-
->> blocking mode which isn't yet working (in blocking mode the driver would
->> block for an unacceptable amount of time).
->>
->> If you or someone else would be willing to take over, I would have no
->> objections. I have no idea when I might have time to continue work on
->> this.
->>
->> Regards,
->>
->> 	Hans
-> 
-
