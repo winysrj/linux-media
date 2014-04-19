@@ -1,154 +1,23 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f173.google.com ([209.85.128.173]:62123 "EHLO
-	mail-ve0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755462AbaDVMWJ (ORCPT
+Received: from mail2.learning.gov.ab.ca ([142.229.16.40]:27485 "EHLO
+	VM-EXCHHUB-1B.lan.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751241AbaDSV4V convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Apr 2014 08:22:09 -0400
+	Sat, 19 Apr 2014 17:56:21 -0400
+From: Michelle Starzynski <Michelle.Starzynski@gov.ab.ca>
+Date: Sat, 19 Apr 2014 15:51:05 -0600
+Subject: =?windows-1256?Q?Humanitarian_Project=FD?=
+Message-ID: <CFC252D245250840832F9554C591DB8D1A3571EF8D@EDM-SME-EXCH-1A.lan.local>
+Content-Language: en-US
+Content-Type: text/plain; charset="windows-1256"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <2748799.75z4m0MVI7@avalon>
-References: <1398164568-6048-1-git-send-email-arun.kk@samsung.com>
-	<2748799.75z4m0MVI7@avalon>
-Date: Tue, 22 Apr 2014 17:52:08 +0530
-Message-ID: <CALt3h79VnDH17s51FQQUK7O_to7pA1-KU0HW8JY2WAqOP4rBRA@mail.gmail.com>
-Subject: Re: [PATCH] [media] s5p-mfc: Add IOMMU support
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	pullip.cho@samsung.com
-Content-Type: text/plain; charset=UTF-8
+To: Undisclosed recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
 
-Thank you for the review.
+I write you this email on behalf of Mrs. Margaret Crawford regards to her wish. She has decided to donate part of her inheritance to you for humanitarian work and your personal use. For more details contact her Attorney, Mark Lawson via email: mlawson1@rogers.com
 
-On Tue, Apr 22, 2014 at 5:23 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Arun,
->
-> Thank you for the patch.
->
-> On Tuesday 22 April 2014 16:32:48 Arun Kumar K wrote:
->> The patch adds IOMMU support for MFC driver.
->
-> I've been working on an IOMMU driver lately, which led me to think about how
-> drivers should be interfaced with IOMMUs. Runtime IOMMU handling is performed
-> by the DMA mapping API, but in many cases (including Exynos platforms) the
-> arm_iommu_create_mapping() and arm_iommu_attach_device() functions still need
-> to be called explicitly by drivers, which doesn't seem a very good idea to me.
-> Ideally IOMMU usage should be completely transparent for bus master drivers,
-> without requiring any driver modification to use the IOMMU.
->
-> What would you think about improving the Exynos IOMMU driver to create the
-> mapping and attach the device instead of having to modify all bus master
-> drivers ? See the ipmmu_add_device() function in
-> http://www.spinics.net/lists/linux-sh/msg30488.html for a possible
-> implementation.
->
-
-Yes that would be a better solution. But as far as I know, exynos platforms has
-few more complications where multiple IOMMUs are present for single IP.
-The exynos iommu work is still under progress and KyonHo Cho will have
-some inputs / comments on this. This seems to me a valid usecase which can
-be considered for exynos iommu also.
-
-Regards
-Arun
-
->> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
->> ---
->> This patch is tested on IOMMU support series [1] posted
->> by KyonHo Cho.
->> [1] https://lkml.org/lkml/2014/3/14/9
->> ---
->>  drivers/media/platform/s5p-mfc/s5p_mfc.c |   33 +++++++++++++++++++++++++++
->>  1 file changed, 33 insertions(+)
->>
->> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> b/drivers/media/platform/s5p-mfc/s5p_mfc.c index 89356ae..1f248ba 100644
->> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> @@ -32,11 +32,18 @@
->>  #include "s5p_mfc_opr.h"
->>  #include "s5p_mfc_cmd.h"
->>  #include "s5p_mfc_pm.h"
->> +#ifdef CONFIG_EXYNOS_IOMMU
->> +#include <asm/dma-iommu.h>
->> +#endif
->>
->>  #define S5P_MFC_NAME         "s5p-mfc"
->>  #define S5P_MFC_DEC_NAME     "s5p-mfc-dec"
->>  #define S5P_MFC_ENC_NAME     "s5p-mfc-enc"
->>
->> +#ifdef CONFIG_EXYNOS_IOMMU
->> +static struct dma_iommu_mapping *mapping;
->> +#endif
->> +
->>  int debug;
->>  module_param(debug, int, S_IRUGO | S_IWUSR);
->>  MODULE_PARM_DESC(debug, "Debug level - higher value produces more verbose
->> messages"); @@ -1013,6 +1020,23 @@ static void *mfc_get_drv_data(struct
->> platform_device *pdev);
->>
->>  static int s5p_mfc_alloc_memdevs(struct s5p_mfc_dev *dev)
->>  {
->> +#ifdef CONFIG_EXYNOS_IOMMU
->> +     struct device *mdev = &dev->plat_dev->dev;
->> +
->> +     mapping = arm_iommu_create_mapping(&platform_bus_type, 0x20000000,
->> +                     SZ_256M);
->> +     if (mapping == NULL) {
->> +             mfc_err("IOMMU mapping failed\n");
->> +             return -EFAULT;
->> +     }
->> +     mdev->dma_parms = devm_kzalloc(&dev->plat_dev->dev,
->> +                     sizeof(*mdev->dma_parms), GFP_KERNEL);
->> +     dma_set_max_seg_size(mdev, 0xffffffffu);
->> +     arm_iommu_attach_device(mdev, mapping);
->> +
->> +     dev->mem_dev_l = dev->mem_dev_r = mdev;
->> +     return 0;
->> +#else
->>       unsigned int mem_info[2] = { };
->>
->>       dev->mem_dev_l = devm_kzalloc(&dev->plat_dev->dev,
->> @@ -1049,6 +1073,7 @@ static int s5p_mfc_alloc_memdevs(struct s5p_mfc_dev
->> *dev) return -ENOMEM;
->>       }
->>       return 0;
->> +#endif
->>  }
->>
->>  /* MFC probe function */
->> @@ -1228,6 +1253,10 @@ err_mem_init_ctx_1:
->>       vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[0]);
->>  err_res:
->>       s5p_mfc_final_pm(dev);
->> +#ifdef CONFIG_EXYNOS_IOMMU
->> +     if (mapping)
->> +             arm_iommu_release_mapping(mapping);
->> +#endif
->>
->>       pr_debug("%s-- with error\n", __func__);
->>       return ret;
->> @@ -1256,6 +1285,10 @@ static int s5p_mfc_remove(struct platform_device
->> *pdev) put_device(dev->mem_dev_r);
->>       }
->>
->> +#ifdef CONFIG_EXYNOS_IOMMU
->> +     if (mapping)
->> +             arm_iommu_release_mapping(mapping);
->> +#endif
->>       s5p_mfc_final_pm(dev);
->>       return 0;
->>  }
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+________________________________
+This communication is intended for the use of the recipient to which it is addressed, and may contain confidential, personal, and or privileged information. Please contact us immediately if you are not the intended recipient of this communication, and do not copy, distribute, or take action relying on it. Any communication received in error, or subsequent reply, should be deleted or destroyed.
