@@ -1,73 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f176.google.com ([209.85.216.176]:41392 "EHLO
-	mail-qc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750860AbaDXTYV (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39188 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751032AbaDUN71 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Apr 2014 15:24:21 -0400
-Received: by mail-qc0-f176.google.com with SMTP id x13so2140016qcv.21
-        for <linux-media@vger.kernel.org>; Thu, 24 Apr 2014 12:24:21 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20140424210930.592ec21c@Mycroft>
-References: <535823E6.8020802@dragonslave.de>
-	<CAGoCfizxAopbb4pEtGXVtSSuccqAfu7iqB8Oc2Lb6TOS=6QL8g@mail.gmail.com>
-	<5358279C.5060108@dragonslave.de>
-	<20140424082919.66f7eab1@samsung.com>
-	<20140424210930.592ec21c@Mycroft>
-Date: Thu, 24 Apr 2014 15:24:20 -0400
-Message-ID: <CAGoCfiwp1q1nLbStR-htsq=PdLpHPvkhy0CsGO=_1SRX_O-Pdg@mail.gmail.com>
-Subject: Re: Terratec Cinergy T XS Firmware (Kernel 3.14.1)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Daniel Exner <dex@dragonslave.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 21 Apr 2014 09:59:27 -0400
+Received: from avalon.ideasonboard.com (147.20-200-80.adsl-dyn.isp.belgacom.be [80.200.20.147])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 447FF359AC
+	for <linux-media@vger.kernel.org>; Mon, 21 Apr 2014 15:57:15 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/2] omap4iss: Use a common macro for all sleep-based poll loops
+Date: Mon, 21 Apr 2014 15:59:30 +0200
+Message-Id: <1398088771-6375-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Yes, I am sure. The tuner-xc2028 module even reports FW Version 2.7.
+Instead of implementing usleep_range-based poll loops manually (and
+slightly differently), create a generic iss_poll_wait_timeout() macro
+and use it through the driver.
 
-Yeah, the firmware image itself looks fine.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/staging/media/omap4iss/iss.c      | 46 ++++++++++++++-----------------
+ drivers/staging/media/omap4iss/iss.h      | 14 ++++++++++
+ drivers/staging/media/omap4iss/iss_csi2.c | 39 ++++++++------------------
+ 3 files changed, 45 insertions(+), 54 deletions(-)
 
-> What I suspect is, that this piece of hardware simply doesn't work with
-> that firmware version.
-
-You've got the right blob (that's the only firmware that has ever run
-on the xc3028a chip).  The message you provided which says "Device is
-Xceive 34584 version 8.7, firmware version 1.8" is the value read out
-of the xc3028 chip after the firmware is loaded.  The value isn't read
-out of the firmware blob.
-
-There are really three possibilities here:
-
-1.  The xc3028 is being held in reset.  They've screwed up the GPIOs
-in the em28xx driver so many times that I've lost count.  If the chip
-is in reset during the firmware load or when reading the version info,
-you'll get whatever garbage happened to be in memory when the I2C call
-was made.  Alternatively, the xc3028 gets it's reset line probed
-between loading the firmware and reading the version (but this is less
-likely).
-
-2.  The xc3028 is not in reset, and the firmware load failed.  In this
-case, for whatever reason the firmware wasn't loaded properly into the
-chip (for example, due to a bug in the I2C code in the em28xx driver)
-and the CPU on the 3028 never gets started.  Hence when it goes to
-subsequently read the firmware version back out of the chip, the CPU
-on the 3028 isn't running so you're getting a garbage value back from
-the 3028.
-
-3. The firmware loaded properly, but due to some other condition the
-I2C call to read the firmware version never actually made it to the
-3028 and you're getting back whatever garbage value happened to be in
-the kernel memory that was supposed to be populated with the I2C
-response.
-
-The right way to debug this is probably to put a logic analyzer on the
-I2C bus and see if the traffic is making it to the xc3028 at all.
-Would also monitor the reset line with a scope and make sure it's high
-and watch for it being strobed when it shouldn't be.  Of course both
-of those debugging techniques require hardware.
-
-Devin
-
+diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+index 219519d..217d719 100644
+--- a/drivers/staging/media/omap4iss/iss.c
++++ b/drivers/staging/media/omap4iss/iss.c
+@@ -734,18 +734,17 @@ static int iss_pipeline_is_last(struct media_entity *me)
+ 
+ static int iss_reset(struct iss_device *iss)
+ {
+-	unsigned long timeout = 0;
++	unsigned int timeout;
+ 
+ 	iss_reg_set(iss, OMAP4_ISS_MEM_TOP, ISS_HL_SYSCONFIG,
+ 		    ISS_HL_SYSCONFIG_SOFTRESET);
+ 
+-	while (iss_reg_read(iss, OMAP4_ISS_MEM_TOP, ISS_HL_SYSCONFIG) &
+-	       ISS_HL_SYSCONFIG_SOFTRESET) {
+-		if (timeout++ > 100) {
+-			dev_alert(iss->dev, "cannot reset ISS\n");
+-			return -ETIMEDOUT;
+-		}
+-		usleep_range(10, 10);
++	timeout = iss_poll_condition_timeout(
++		!(iss_reg_read(iss, OMAP4_ISS_MEM_TOP, ISS_HL_SYSCONFIG) &
++		ISS_HL_SYSCONFIG_SOFTRESET), 1000, 10, 10);
++	if (timeout) {
++		dev_err(iss->dev, "ISS reset timeout\n");
++		return -ETIMEDOUT;
+ 	}
+ 
+ 	iss->crashed = 0;
+@@ -754,7 +753,7 @@ static int iss_reset(struct iss_device *iss)
+ 
+ static int iss_isp_reset(struct iss_device *iss)
+ {
+-	unsigned long timeout = 0;
++	unsigned int timeout;
+ 
+ 	/* Fist, ensure that the ISP is IDLE (no transactions happening) */
+ 	iss_reg_update(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_SYSCONFIG,
+@@ -763,29 +762,24 @@ static int iss_isp_reset(struct iss_device *iss)
+ 
+ 	iss_reg_set(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_CTRL, ISP5_CTRL_MSTANDBY);
+ 
+-	for (;;) {
+-		if (iss_reg_read(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_CTRL) &
+-		    ISP5_CTRL_MSTANDBY_WAIT)
+-			break;
+-		if (timeout++ > 1000) {
+-			dev_alert(iss->dev, "cannot set ISP5 to standby\n");
+-			return -ETIMEDOUT;
+-		}
+-		usleep_range(1000, 1500);
++	timeout = iss_poll_condition_timeout(
++		iss_reg_read(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_CTRL) &
++		ISP5_CTRL_MSTANDBY_WAIT, 1000000, 1000, 1500);
++	if (timeout) {
++		dev_err(iss->dev, "ISP5 standby timeout\n");
++		return -ETIMEDOUT;
+ 	}
+ 
+ 	/* Now finally, do the reset */
+ 	iss_reg_set(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_SYSCONFIG,
+ 		    ISP5_SYSCONFIG_SOFTRESET);
+ 
+-	timeout = 0;
+-	while (iss_reg_read(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_SYSCONFIG) &
+-	       ISP5_SYSCONFIG_SOFTRESET) {
+-		if (timeout++ > 1000) {
+-			dev_alert(iss->dev, "cannot reset ISP5\n");
+-			return -ETIMEDOUT;
+-		}
+-		usleep_range(1000, 1500);
++	timeout = iss_poll_condition_timeout(
++		!(iss_reg_read(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_SYSCONFIG) &
++		ISP5_SYSCONFIG_SOFTRESET), 1000000, 1000, 1500);
++	if (timeout) {
++		dev_err(iss->dev, "ISP5 reset timeout\n");
++		return -ETIMEDOUT;
+ 	}
+ 
+ 	return 0;
+diff --git a/drivers/staging/media/omap4iss/iss.h b/drivers/staging/media/omap4iss/iss.h
+index 346db92..05cd9bf 100644
+--- a/drivers/staging/media/omap4iss/iss.h
++++ b/drivers/staging/media/omap4iss/iss.h
+@@ -233,4 +233,18 @@ void iss_reg_update(struct iss_device *iss, enum iss_mem_resources res,
+ 	iss_reg_write(iss, res, offset, (v & ~clr) | set);
+ }
+ 
++#define iss_poll_condition_timeout(cond, timeout, min_ival, max_ival)	\
++({									\
++	unsigned long __timeout = jiffies + usecs_to_jiffies(timeout);	\
++	unsigned int __min_ival = (min_ival);				\
++	unsigned int __max_ival = (max_ival);				\
++	bool __cond;							\
++	while (!(__cond = (cond))) {					\
++		if (time_after(jiffies, __timeout))			\
++			break;						\
++		usleep_range(__min_ival, __max_ival);			\
++	}								\
++	!__cond;							\
++})
++
+ #endif /* _OMAP4_ISS_H_ */
+diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
+index 61fc350..3296115 100644
+--- a/drivers/staging/media/omap4iss/iss_csi2.c
++++ b/drivers/staging/media/omap4iss/iss_csi2.c
+@@ -487,9 +487,7 @@ static void csi2_irq_status_set(struct iss_csi2_device *csi2, int enable)
+  */
+ int omap4iss_csi2_reset(struct iss_csi2_device *csi2)
+ {
+-	u8 soft_reset_retries = 0;
+-	u32 reg;
+-	int i;
++	unsigned int timeout;
+ 
+ 	if (!csi2->available)
+ 		return -ENODEV;
+@@ -500,37 +498,22 @@ int omap4iss_csi2_reset(struct iss_csi2_device *csi2)
+ 	iss_reg_set(csi2->iss, csi2->regs1, CSI2_SYSCONFIG,
+ 		    CSI2_SYSCONFIG_SOFT_RESET);
+ 
+-	do {
+-		reg = iss_reg_read(csi2->iss, csi2->regs1, CSI2_SYSSTATUS)
+-		    & CSI2_SYSSTATUS_RESET_DONE;
+-		if (reg == CSI2_SYSSTATUS_RESET_DONE)
+-			break;
+-		soft_reset_retries++;
+-		if (soft_reset_retries < 5)
+-			usleep_range(100, 100);
+-	} while (soft_reset_retries < 5);
+-
+-	if (soft_reset_retries == 5) {
+-		dev_err(csi2->iss->dev,
+-			"CSI2: Soft reset try count exceeded!\n");
++	timeout = iss_poll_condition_timeout(
++		iss_reg_read(csi2->iss, csi2->regs1, CSI2_SYSSTATUS) &
++		CSI2_SYSSTATUS_RESET_DONE, 500, 100, 100);
++	if (timeout) {
++		dev_err(csi2->iss->dev, "CSI2: Soft reset timeout!\n");
+ 		return -EBUSY;
+ 	}
+ 
+ 	iss_reg_set(csi2->iss, csi2->regs1, CSI2_COMPLEXIO_CFG,
+ 		    CSI2_COMPLEXIO_CFG_RESET_CTRL);
+ 
+-	i = 100;
+-	do {
+-		reg = iss_reg_read(csi2->iss, csi2->phy->phy_regs, REGISTER1)
+-		    & REGISTER1_RESET_DONE_CTRLCLK;
+-		if (reg == REGISTER1_RESET_DONE_CTRLCLK)
+-			break;
+-		usleep_range(100, 100);
+-	} while (--i > 0);
+-
+-	if (i == 0) {
+-		dev_err(csi2->iss->dev,
+-			"CSI2: Reset for CSI2_96M_FCLK domain Failed!\n");
++	timeout = iss_poll_condition_timeout(
++		iss_reg_read(csi2->iss, csi2->phy->phy_regs, REGISTER1) &
++		REGISTER1_RESET_DONE_CTRLCLK, 10000, 100, 100);
++	if (timeout) {
++		dev_err(csi2->iss->dev, "CSI2: CSI2_96M_FCLK reset timeout!\n");
+ 		return -EBUSY;
+ 	}
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.8.3.2
+
