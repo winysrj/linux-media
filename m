@@ -1,154 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f42.google.com ([209.85.192.42]:53554 "EHLO
-	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756649AbaDPV6Z (ORCPT
+Received: from relay.ekb-info.ru ([217.24.190.220]:43470 "EHLO
+	relay.ekb-info.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752243AbaDUNTs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Apr 2014 17:58:25 -0400
-Date: Wed, 16 Apr 2014 17:58:21 -0400
-From: Tejun Heo <tj@kernel.org>
-To: Shuah Khan <shuah.kh@samsung.com>
-Cc: gregkh@linuxfoundation.org, m.chehab@samsung.com,
-	rafael.j.wysocki@intel.com, linux@roeck-us.net, toshi.kani@hp.com,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	shuahkhan@gmail.com
-Subject: Re: [RFC PATCH 2/2] drivers/base: add managed token devres interfaces
-Message-ID: <20140416215821.GG26632@htj.dyndns.org>
-References: <cover.1397050852.git.shuah.kh@samsung.com>
- <5f21c7e53811aba63f86bcf3e3bfdfdd5aeedf59.1397050852.git.shuah.kh@samsung.com>
+	Mon, 21 Apr 2014 09:19:48 -0400
+Date: Mon, 21 Apr 2014 19:11:14 +0600
+From: Andrey Volkov <volkov.am@ekb-info.ru>
+To: linux-media@vger.kernel.org
+Cc: volkov.am@ekb-info.ru
+Subject: [Bugreport] v4l-utils/libv4lconvert/ov511-decomp does not shutdown
+ on SIGTERM
+Message-ID: <20140421191114.391d005d@axid.nolty.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5f21c7e53811aba63f86bcf3e3bfdfdd5aeedf59.1397050852.git.shuah.kh@samsung.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Guys,
 
-On Wed, Apr 09, 2014 at 09:21:08AM -0600, Shuah Khan wrote:
-> +#define TOKEN_DEVRES_FREE	0
-> +#define TOKEN_DEVRES_BUSY	1
-> +
-> +struct token_devres {
-> +	int	status;
-> +	char	id[];
-> +};
+I use motion for my old web camera (v4l1) with
+export LD_PRELOAD=/usr/lib/i386-linux-gnu/libv4l/v4l2convert.so
 
-Please just do "bool busy" and drop the constants.
+v4l2convert.so run decompress helper ov511-decomp.
 
-> +struct tkn_match {
-> +	int	status;
-> +	const	char *id;
-> +};
-> +
-> +static void __devm_token_lock(struct device *dev, void *data)
-> +{
-> +	struct token_devres *tptr = data;
-> +
-> +	if (tptr && tptr->status == TOKEN_DEVRES_FREE)
-> +		tptr->status = TOKEN_DEVRES_BUSY;
+Processes look like:
+/usr/bin/motion
+\_ /usr/lib/i386-linux-gnu/libv4lconvert0/ov511-decomp
 
-How can this function be called with NULL @tptr and what why would you
-need to check tptr->status before assigning to it if the value is
-binary anyway?  And how is this supposed to work as locking if the
-outcome doesn't change depending on the current value?
+(motion - http://www.lavrsen.dk/foswiki/bin/view/Motion/WebHome)
+Everything works fine, but when I stop motion daemon I have to wait for a minute.
 
-> +
-> +	return;
+strace prints that ov511-decomp got SIGTERM, wait for the minute and then got SIGKILL.
 
-No need to return from void function.
+When I do "killall -TERM ov511-decomp" ov511-decomp ignores it and continue to decomress.
+"killall -INT ov511-decomp" ov511-decomp shut down as expected.
 
-> +static int devm_token_match(struct device *dev, void *res, void *data)
-> +{
-> +	struct token_devres *tkn = res;
-> +	struct tkn_match *mptr = data;
-> +	int rc;
-> +
-> +	if (!tkn || !data) {
-> +		WARN_ON(!tkn || !data);
-> +		return 0;
-> +	}
+As a workaround I made this patch to lib/libv4lconvert/helper.c
 
-How would the above be possible?
+--- v4l-utils-1.0.1.orig/lib/libv4lconvert/helper.c
++++ v4l-utils-1.0.1/lib/libv4lconvert/helper.c
+@@ -212,7 +212,7 @@ void v4lconvert_helper_cleanup(struct v4
+void v4lconvert_helper_cleanup(struct v4lconvert_data *data)
+{
+	int status;
 
-> +
-> +	/* compare the token data and return 1 if it matches */
-> +	if (strcmp(tkn->id, mptr->id) == 0)
-> +			rc = 1;
-> +	else
-> +		rc = 0;
-> +
-> +	return rc;
+	if (data->decompress_pid != -1) {
+-		kill(data->decompress_pid, SIGTERM);
++		kill(data->decompress_pid, SIGINT);
+		waitpid(data->decompress_pid, &status, 0);
 
-	return !strcmp(tkn->id, mptr->id);
-
-> +/* If token is available, lock it for the caller, If not return -EBUSY */
-> +int devm_token_lock(struct device *dev, const char *id)
-> +{
-> +	struct token_devres *tkn_ptr;
-> +	struct tkn_match tkn;
-> +	int rc = 0;
-> +
-> +	if (!id)
-> +		return -EFAULT;
-
-The function isn't supposed to be called with NULL @id, right?  I
-don't really think it'd be necessary to do the above.
-
-> +
-> +	tkn.id = id;
-> +
-> +	tkn_ptr = devres_find(dev, devm_token_release, devm_token_match, &tkn);
-> +	if (tkn_ptr == NULL)
-> +		return -ENODEV;
-
-What guarantees that the lock is not taken by someone else inbetween?
-
-> +
-> +	if (tkn_ptr->status == TOKEN_DEVRES_FREE) {
-> +		devres_update(dev, devm_token_release, devm_token_match,
-> +				&tkn, __devm_token_lock);
-> +		rc = 0;
-> +	} else
-> +		rc = -EBUSY;
-> +
-> +	return rc;
-> +}
-> +EXPORT_SYMBOL_GPL(devm_token_lock);
-> +
-> +/* If token is locked, unlock */
-> +int devm_token_unlock(struct device *dev, const char *id)
-> +{
-> +	struct token_devres *tkn_ptr;
-> +	struct tkn_match tkn;
-> +
-> +	if (!id)
-> +		return -EFAULT;
-> +
-> +	tkn.id = id;
-> +
-> +	tkn_ptr = devres_find(dev, devm_token_release, devm_token_match, &tkn);
-> +	if (tkn_ptr == NULL)
-> +		return -ENODEV;
-> +
-> +	if (tkn_ptr->status == TOKEN_DEVRES_BUSY) {
-> +		devres_update(dev, devm_token_release, devm_token_match,
-> +				&tkn, __devm_token_unlock);
-> +	}
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(devm_token_unlock);
-
-Why is devres_update() even necessary?  You can just embed lock in the
-data part and operate on it, no?
-
-This is among the most poorly written code that I've seen in a long
-time.  I don't know whether the token thing is the right appraoch or
-not but just purely on code quality,
-
- Nacked-by: Tejun Heo <tj@kernel.org>
-
-Thanks.
-
--- 
-tejun
+		close(data->decompress_out_pipe[WRITE_END]);
