@@ -1,81 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4266 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752152AbaDKIMM (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38680 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751860AbaDUM3I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 04:12:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 21 Apr 2014 08:29:08 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, sakari.ailus@iki.fi, m.szyprowski@samsung.com,
-	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 05/13] vb2: move __qbuf_mmap before __qbuf_userptr
-Date: Fri, 11 Apr 2014 10:11:11 +0200
-Message-Id: <1397203879-37443-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
-References: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 00/26] OMAP3 ISP: Move to videobuf2
+Date: Mon, 21 Apr 2014 14:28:46 +0200
+Message-Id: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello,
 
-__qbuf_mmap was sort of hidden in between the much larger __qbuf_userptr
-and __qbuf_dmabuf functions. Move it before __qbuf_userptr which is
-also conform the usual order these memory models are implemented: first
-mmap, then userptr, then dmabuf.
+This is the second version of the patch set that ports the OMAP3 ISP driver to
+the videobuf2 framework. I've tried to keep patches small and reviewable
+(24/25 is a bit too big for my taste, but splitting it further would be pretty
+difficult), so please look at them for details.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pawel Osciak <pawel@osciak.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+The patches are based on top of the latest OMAP IOMMU patches queued for
+v3.16, themselves based directly on top of v3.15-rc1. The result is currently
+broken due to changes to the ARM DMA mapping implementation in v3.15-rc1. A
+patch (http://www.spinics.net/lists/arm-kernel/msg324012.html) has been posted
+and should go in v3.15. Please apply the patch in the meantime if you want to
+test the driver.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 1421075..2e448a7 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1240,6 +1240,20 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- }
- 
- /**
-+ * __qbuf_mmap() - handle qbuf of an MMAP buffer
-+ */
-+static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
-+{
-+	int ret;
-+
-+	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
-+	ret = call_vb_qop(vb, buf_prepare, vb);
-+	if (ret)
-+		fail_vb_qop(vb, buf_prepare);
-+	return ret;
-+}
-+
-+/**
-  * __qbuf_userptr() - handle qbuf of a USERPTR buffer
-  */
- static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
-@@ -1346,20 +1360,6 @@ err:
- }
- 
- /**
-- * __qbuf_mmap() - handle qbuf of an MMAP buffer
-- */
--static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
--{
--	int ret;
--
--	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
--	ret = call_vb_qop(vb, buf_prepare, vb);
--	if (ret)
--		fail_vb_qop(vb, buf_prepare);
--	return ret;
--}
--
--/**
-  * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
-  */
- static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+I plan to send a pull request for v3.16 around the end of the week.
+
+Changes since v1:
+
+- Rebased on top of v3.15-rc1
+- Added patch 23/26
+
+Laurent Pinchart (26):
+  omap3isp: stat: Rename IS_COHERENT_BUF to ISP_STAT_USES_DMAENGINE
+  omap3isp: stat: Remove impossible WARN_ON
+  omap3isp: stat: Share common code for buffer allocation
+  omap3isp: stat: Merge dma_addr and iommu_addr fields
+  omap3isp: stat: Store sg table in ispstat_buffer
+  omap3isp: stat: Use the DMA API
+  omap3isp: ccdc: Use the DMA API for LSC
+  omap3isp: ccdc: Use the DMA API for FPC
+  omap3isp: video: Set the buffer bytesused field at completion time
+  omap3isp: queue: Move IOMMU handling code to the queue
+  omap3isp: queue: Use sg_table structure
+  omap3isp: queue: Merge the prepare and sglist functions
+  omap3isp: queue: Inline the ispmmu_v(un)map functions
+  omap3isp: queue: Allocate kernel buffers with dma_alloc_coherent
+  omap3isp: queue: Fix the dma_map_sg() return value check
+  omap3isp: queue: Map PFNMAP buffers to device
+  omap3isp: queue: Use sg_alloc_table_from_pages()
+  omap3isp: Use the ARM DMA IOMMU-aware operations
+  omap3isp: queue: Don't build scatterlist for kernel buffer
+  omap3isp: Move queue mutex to isp_video structure
+  omap3isp: Move queue irqlock to isp_video structure
+  omap3isp: Move buffer irqlist to isp_buffer structure
+  omap3isp: Cancel all queued buffers when stopping the video stream
+  v4l: vb2: Add a function to discard all DONE buffers
+  omap3isp: Move to videobuf2
+  omap3isp: Rename isp_buffer isp_addr field to dma
+
+ drivers/media/platform/Kconfig                |    4 +-
+ drivers/media/platform/omap3isp/Makefile      |    2 +-
+ drivers/media/platform/omap3isp/isp.c         |  108 ++-
+ drivers/media/platform/omap3isp/isp.h         |    8 +-
+ drivers/media/platform/omap3isp/ispccdc.c     |  107 ++-
+ drivers/media/platform/omap3isp/ispccdc.h     |   16 +-
+ drivers/media/platform/omap3isp/ispccp2.c     |    4 +-
+ drivers/media/platform/omap3isp/ispcsi2.c     |    4 +-
+ drivers/media/platform/omap3isp/isph3a_aewb.c |    2 +-
+ drivers/media/platform/omap3isp/isph3a_af.c   |    2 +-
+ drivers/media/platform/omap3isp/isppreview.c  |    8 +-
+ drivers/media/platform/omap3isp/ispqueue.c    | 1161 -------------------------
+ drivers/media/platform/omap3isp/ispqueue.h    |  188 ----
+ drivers/media/platform/omap3isp/ispresizer.c  |    8 +-
+ drivers/media/platform/omap3isp/ispstat.c     |  197 ++---
+ drivers/media/platform/omap3isp/ispstat.h     |    3 +-
+ drivers/media/platform/omap3isp/ispvideo.c    |  325 +++----
+ drivers/media/platform/omap3isp/ispvideo.h    |   29 +-
+ drivers/media/v4l2-core/videobuf2-core.c      |   24 +
+ drivers/staging/media/omap4iss/iss_video.c    |    2 +-
+ include/media/videobuf2-core.h                |    1 +
+ 21 files changed, 458 insertions(+), 1745 deletions(-)
+ delete mode 100644 drivers/media/platform/omap3isp/ispqueue.c
+ delete mode 100644 drivers/media/platform/omap3isp/ispqueue.h
+
 -- 
-1.9.1
+Regards,
+
+Laurent Pinchart
 
