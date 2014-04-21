@@ -1,39 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:4538 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754496AbaDNJA5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 05:00:57 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id 7FA3D21483
-	for <linux-media@vger.kernel.org>; Mon, 14 Apr 2014 12:00:54 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39189 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751073AbaDUN71 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Apr 2014 09:59:27 -0400
+Received: from avalon.ideasonboard.com (147.20-200-80.adsl-dyn.isp.belgacom.be [80.200.20.147])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 7F54F359FA
+	for <linux-media@vger.kernel.org>; Mon, 21 Apr 2014 15:57:15 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH v2 09/21] smiapp: Use %u for printing u32 value
-Date: Mon, 14 Apr 2014 11:58:34 +0300
-Message-Id: <1397465926-29724-10-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [PATCH 2/2] omap4iss: Relax usleep ranges
+Date: Mon, 21 Apr 2014 15:59:31 +0200
+Message-Id: <1398088771-6375-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1398088771-6375-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1398088771-6375-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Allow the system to merge CPU wakeups by specifying different minimum
+and maximum usleep values.
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 02041cc..3af8df8 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -606,7 +606,7 @@ static int smiapp_get_limits(struct smiapp_sensor *sensor, int const *limit,
- 		if (rval)
- 			return rval;
- 		sensor->limits[limit[i]] = val;
--		dev_dbg(&client->dev, "0x%8.8x \"%s\" = %d, 0x%x\n",
-+		dev_dbg(&client->dev, "0x%8.8x \"%s\" = %u, 0x%x\n",
- 			smiapp_reg_limits[limit[i]].addr,
- 			smiapp_reg_limits[limit[i]].what, val, val);
- 	}
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/staging/media/omap4iss/iss.c      | 2 +-
+ drivers/staging/media/omap4iss/iss_csi2.c | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+index 217d719..2e422dd 100644
+--- a/drivers/staging/media/omap4iss/iss.c
++++ b/drivers/staging/media/omap4iss/iss.c
+@@ -741,7 +741,7 @@ static int iss_reset(struct iss_device *iss)
+ 
+ 	timeout = iss_poll_condition_timeout(
+ 		!(iss_reg_read(iss, OMAP4_ISS_MEM_TOP, ISS_HL_SYSCONFIG) &
+-		ISS_HL_SYSCONFIG_SOFTRESET), 1000, 10, 10);
++		ISS_HL_SYSCONFIG_SOFTRESET), 1000, 10, 100);
+ 	if (timeout) {
+ 		dev_err(iss->dev, "ISS reset timeout\n");
+ 		return -ETIMEDOUT;
+diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
+index 3296115..bf8a657 100644
+--- a/drivers/staging/media/omap4iss/iss_csi2.c
++++ b/drivers/staging/media/omap4iss/iss_csi2.c
+@@ -500,7 +500,7 @@ int omap4iss_csi2_reset(struct iss_csi2_device *csi2)
+ 
+ 	timeout = iss_poll_condition_timeout(
+ 		iss_reg_read(csi2->iss, csi2->regs1, CSI2_SYSSTATUS) &
+-		CSI2_SYSSTATUS_RESET_DONE, 500, 100, 100);
++		CSI2_SYSSTATUS_RESET_DONE, 500, 100, 200);
+ 	if (timeout) {
+ 		dev_err(csi2->iss->dev, "CSI2: Soft reset timeout!\n");
+ 		return -EBUSY;
+@@ -511,7 +511,7 @@ int omap4iss_csi2_reset(struct iss_csi2_device *csi2)
+ 
+ 	timeout = iss_poll_condition_timeout(
+ 		iss_reg_read(csi2->iss, csi2->phy->phy_regs, REGISTER1) &
+-		REGISTER1_RESET_DONE_CTRLCLK, 10000, 100, 100);
++		REGISTER1_RESET_DONE_CTRLCLK, 10000, 100, 500);
+ 	if (timeout) {
+ 		dev_err(csi2->iss->dev, "CSI2: CSI2_96M_FCLK reset timeout!\n");
+ 		return -EBUSY;
 -- 
 1.8.3.2
 
