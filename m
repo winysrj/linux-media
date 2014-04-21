@@ -1,48 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40097 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933736AbaDJBoZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 21:44:25 -0400
-Date: Wed, 9 Apr 2014 18:47:06 -0700
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Anthony DeStefano <adx@fastmail.fm>
-Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH] staging: rtl2832_sdr: fixup checkpatch/style issues
-Message-ID: <20140410014706.GA11347@kroah.com>
-References: <20140410000722.GA64332@pluto-arch.home>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20140410000722.GA64332@pluto-arch.home>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38681 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752020AbaDUM3I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Apr 2014 08:29:08 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 01/26] omap3isp: stat: Rename IS_COHERENT_BUF to ISP_STAT_USES_DMAENGINE
+Date: Mon, 21 Apr 2014 14:28:47 +0200
+Message-Id: <1398083352-8451-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 09, 2014 at 08:07:28PM -0400, Anthony DeStefano wrote:
-> rtl2832_sdr.c: fixup checkpatch issues about long lines
-> 
-> Signed-off-by: Anthony DeStefano <adx@fastmail.fm>
-> ---
->  drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 23 ++++++++++++++++-------
->  1 file changed, 16 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-> index 104ee8a..0e6c6fa 100644
-> --- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-> +++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-> @@ -935,7 +935,9 @@ static int rtl2832_sdr_set_tuner_freq(struct rtl2832_sdr_state *s)
->  	/*
->  	 * bandwidth (Hz)
->  	 */
-> -	bandwidth_auto = v4l2_ctrl_find(&s->hdl, V4L2_CID_RF_TUNER_BANDWIDTH_AUTO);
-> +	bandwidth_auto = v4l2_ctrl_find(&s->hdl,
-> +		V4L2_CID_RF_TUNER_BANDWIDTH_AUTO);
+The macro is meant to test whether the statistics engine uses an
+external DMA engine to transfer data or supports DMA directly. As both
+cases will be supported by DMA coherent buffers rename the macro to
+ISP_STAT_USES_DMAENGINE for improved clarity.
 
-Please line stuff up under the (, so for this line it would be:
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/ispstat.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-	bandwidth_auto = v4l2_ctrl_find(&s->hdl,
-					V4L2_CID_RF_TUNER_BANDWIDTH_AUTO);
+diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
+index 5707f85..48b702a 100644
+--- a/drivers/media/platform/omap3isp/ispstat.c
++++ b/drivers/media/platform/omap3isp/ispstat.c
+@@ -32,7 +32,7 @@
+ 
+ #include "isp.h"
+ 
+-#define IS_COHERENT_BUF(stat)	((stat)->dma_ch >= 0)
++#define ISP_STAT_USES_DMAENGINE(stat)	((stat)->dma_ch >= 0)
+ 
+ /*
+  * MAGIC_SIZE must always be the greatest common divisor of
+@@ -99,7 +99,7 @@ static void isp_stat_buf_sync_magic_for_device(struct ispstat *stat,
+ 					       u32 buf_size,
+ 					       enum dma_data_direction dir)
+ {
+-	if (IS_COHERENT_BUF(stat))
++	if (ISP_STAT_USES_DMAENGINE(stat))
+ 		return;
+ 
+ 	__isp_stat_buf_sync_magic(stat, buf, buf_size, dir,
+@@ -111,7 +111,7 @@ static void isp_stat_buf_sync_magic_for_cpu(struct ispstat *stat,
+ 					    u32 buf_size,
+ 					    enum dma_data_direction dir)
+ {
+-	if (IS_COHERENT_BUF(stat))
++	if (ISP_STAT_USES_DMAENGINE(stat))
+ 		return;
+ 
+ 	__isp_stat_buf_sync_magic(stat, buf, buf_size, dir,
+@@ -180,7 +180,7 @@ static void isp_stat_buf_insert_magic(struct ispstat *stat,
+ static void isp_stat_buf_sync_for_device(struct ispstat *stat,
+ 					 struct ispstat_buffer *buf)
+ {
+-	if (IS_COHERENT_BUF(stat))
++	if (ISP_STAT_USES_DMAENGINE(stat))
+ 		return;
+ 
+ 	dma_sync_sg_for_device(stat->isp->dev, buf->iovm->sgt->sgl,
+@@ -190,7 +190,7 @@ static void isp_stat_buf_sync_for_device(struct ispstat *stat,
+ static void isp_stat_buf_sync_for_cpu(struct ispstat *stat,
+ 				      struct ispstat_buffer *buf)
+ {
+-	if (IS_COHERENT_BUF(stat))
++	if (ISP_STAT_USES_DMAENGINE(stat))
+ 		return;
+ 
+ 	dma_sync_sg_for_cpu(stat->isp->dev, buf->iovm->sgt->sgl,
+@@ -360,7 +360,7 @@ static void isp_stat_bufs_free(struct ispstat *stat)
+ 	for (i = 0; i < STAT_MAX_BUFS; i++) {
+ 		struct ispstat_buffer *buf = &stat->buf[i];
+ 
+-		if (!IS_COHERENT_BUF(stat)) {
++		if (!ISP_STAT_USES_DMAENGINE(stat)) {
+ 			if (IS_ERR_OR_NULL((void *)buf->iommu_addr))
+ 				continue;
+ 			if (buf->iovm)
+@@ -489,7 +489,7 @@ static int isp_stat_bufs_alloc(struct ispstat *stat, u32 size)
+ 
+ 	isp_stat_bufs_free(stat);
+ 
+-	if (IS_COHERENT_BUF(stat))
++	if (ISP_STAT_USES_DMAENGINE(stat))
+ 		return isp_stat_bufs_alloc_dma(stat, size);
+ 	else
+ 		return isp_stat_bufs_alloc_iommu(stat, size);
+-- 
+1.8.3.2
 
-Please fix the rest of these all up.
-
-greg k-h
