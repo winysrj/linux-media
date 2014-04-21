@@ -1,142 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57178 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751051AbaDOJcH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 05:32:07 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38683 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752126AbaDUM3N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Apr 2014 08:29:13 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 04/10] si2168: add support for DVB-T2
-Date: Tue, 15 Apr 2014 12:31:40 +0300
-Message-Id: <1397554306-14561-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1397554306-14561-1-git-send-email-crope@iki.fi>
-References: <1397554306-14561-1-git-send-email-crope@iki.fi>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 09/26] omap3isp: video: Set the buffer bytesused field at completion time
+Date: Mon, 21 Apr 2014 14:28:55 +0200
+Message-Id: <1398083352-8451-10-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for DVB-T2.
+The v4l buffer bytesused field is a value that will be returned to
+userspace when the buffer gets dequeued. As such it doesn't need to be
+set early at buffer queue time. Move the assignment to buffer completion
+in the omap3isp_video_buffer_next() function to prepare for the video
+buffers queue refactoring.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/dvb-frontends/si2168.c | 55 ++++++++++++++++++++++++++++--------
- 1 file changed, 43 insertions(+), 12 deletions(-)
+ drivers/media/platform/omap3isp/ispvideo.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index eef4e45..4f3efbe 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -66,6 +66,7 @@ err:
- static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
- {
- 	struct si2168 *s = fe->demodulator_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
- 	struct si2168_cmd cmd;
- 
-@@ -76,10 +77,24 @@ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 		goto err;
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 85b4036..e0f594f3 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -431,7 +431,6 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
+ 		return -EINVAL;
  	}
  
--	cmd.args[0] = 0xa0;
--	cmd.args[1] = 0x01;
--	cmd.wlen = 2;
--	cmd.rlen = 13;
-+	switch (c->delivery_system) {
-+	case SYS_DVBT:
-+		cmd.args[0] = 0xa0;
-+		cmd.args[1] = 0x01;
-+		cmd.wlen = 2;
-+		cmd.rlen = 13;
-+		break;
-+	case SYS_DVBT2:
-+		cmd.args[0] = 0x50;
-+		cmd.args[1] = 0x01;
-+		cmd.wlen = 2;
-+		cmd.rlen = 14;
-+		break;
-+	default:
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
- 	ret = si2168_cmd_execute(s, &cmd);
- 	if (ret)
- 		goto err;
-@@ -125,7 +140,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
- 	struct si2168_cmd cmd;
--	u8 bandwidth;
-+	u8 bandwidth, delivery_system;
- 
- 	dev_dbg(&s->client->dev,
- 			"%s: delivery_system=%u modulation=%u frequency=%u bandwidth_hz=%u symbol_rate=%u inversion=%u\n",
-@@ -138,18 +153,30 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 		goto err;
- 	}
- 
-+	switch (c->delivery_system) {
-+	case SYS_DVBT:
-+		delivery_system = 0x20;
-+		break;
-+	case SYS_DVBT2:
-+		delivery_system = 0x70;
-+		break;
-+	default:
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
- 	switch (c->bandwidth_hz) {
- 	case 5000000:
--		bandwidth = 0x25;
-+		bandwidth = 0x05;
- 		break;
- 	case 6000000:
--		bandwidth = 0x26;
-+		bandwidth = 0x06;
- 		break;
- 	case 7000000:
--		bandwidth = 0x27;
-+		bandwidth = 0x07;
- 		break;
- 	case 8000000:
--		bandwidth = 0x28;
-+		bandwidth = 0x08;
- 		break;
- 	default:
- 		ret = -EINVAL;
-@@ -170,7 +197,11 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	memcpy(cmd.args, "\x89\x21\x06\x11\xff\x98", 6);
-+	/* that has no big effect */
-+	if (c->delivery_system == SYS_DVBT)
-+		memcpy(cmd.args, "\x89\x21\x06\x11\xff\x98", 6);
-+	else if (c->delivery_system == SYS_DVBT2)
-+		memcpy(cmd.args, "\x89\x21\x06\x11\x89\x20", 6);
- 	cmd.wlen = 6;
- 	cmd.rlen = 3;
- 	ret = si2168_cmd_execute(s, &cmd);
-@@ -241,7 +272,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 		goto err;
- 
- 	memcpy(cmd.args, "\x14\x00\x0a\x10\x00\x00", 6);
--	cmd.args[4] = bandwidth;
-+	cmd.args[4] = delivery_system | bandwidth;
- 	cmd.wlen = 6;
- 	cmd.rlen = 1;
- 	ret = si2168_cmd_execute(s, &cmd);
-@@ -583,7 +614,7 @@ static int si2168_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
+-	buf->vbuf.bytesused = vfh->format.fmt.pix.sizeimage;
+ 	buffer->isp_addr = addr;
+ 	return 0;
  }
+@@ -514,6 +513,8 @@ struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video)
+ {
+ 	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
+ 	struct isp_video_queue *queue = video->queue;
++	struct isp_video_fh *vfh =
++		container_of(queue, struct isp_video_fh, queue);
+ 	enum isp_pipeline_state state;
+ 	struct isp_video_buffer *buf;
+ 	unsigned long flags;
+@@ -530,6 +531,8 @@ struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video)
+ 	list_del(&buf->irqlist);
+ 	spin_unlock_irqrestore(&queue->irqlock, flags);
  
- static const struct dvb_frontend_ops si2168_ops = {
--	.delsys = {SYS_DVBT},
-+	.delsys = {SYS_DVBT, SYS_DVBT2},
- 	.info = {
- 		.name = "Silicon Labs Si2168",
- 		.caps =	FE_CAN_FEC_1_2 |
++	buf->vbuf.bytesused = vfh->format.fmt.pix.sizeimage;
++
+ 	ktime_get_ts(&ts);
+ 	buf->vbuf.timestamp.tv_sec = ts.tv_sec;
+ 	buf->vbuf.timestamp.tv_usec = ts.tv_nsec / NSEC_PER_USEC;
 -- 
-1.9.0
+1.8.3.2
 
