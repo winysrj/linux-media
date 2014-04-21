@@ -1,150 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52434 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38682 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753888AbaDCWiC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Apr 2014 18:38:02 -0400
+	with ESMTP id S1752354AbaDUM3X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Apr 2014 08:29:23 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
 Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 07/25] omap3isp: ccdc: Use the DMA API for LSC
-Date: Fri,  4 Apr 2014 00:39:37 +0200
-Message-Id: <1396564795-27192-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1396564795-27192-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 26/26] omap3isp: Rename isp_buffer isp_addr field to dma
+Date: Mon, 21 Apr 2014 14:29:12 +0200
+Message-Id: <1398083352-8451-27-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the OMAP-specific IOMMU API usage by the DMA API for LSC. The
-table is now allocated using dma_alloc_coherent() and the related sg
-table is retrieved using dma_get_sgtable() for sync operations.
-
 Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/omap3isp/ispccdc.c | 52 ++++++++++++++-----------------
- drivers/media/platform/omap3isp/ispccdc.h |  8 +++--
- 2 files changed, 29 insertions(+), 31 deletions(-)
+ drivers/media/platform/omap3isp/ispccdc.c    | 4 ++--
+ drivers/media/platform/omap3isp/ispccp2.c    | 4 ++--
+ drivers/media/platform/omap3isp/ispcsi2.c    | 4 ++--
+ drivers/media/platform/omap3isp/isppreview.c | 8 ++++----
+ drivers/media/platform/omap3isp/ispresizer.c | 8 ++++----
+ drivers/media/platform/omap3isp/ispvideo.c   | 2 +-
+ drivers/media/platform/omap3isp/ispvideo.h   | 4 ++--
+ 7 files changed, 17 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index 4d920c8..a907b20 100644
+index 004a4f5..9f727d2 100644
 --- a/drivers/media/platform/omap3isp/ispccdc.c
 +++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -206,7 +206,8 @@ static int ccdc_lsc_validate_config(struct isp_ccdc_device *ccdc,
-  * ccdc_lsc_program_table - Program Lens Shading Compensation table address.
-  * @ccdc: Pointer to ISP CCDC device.
-  */
--static void ccdc_lsc_program_table(struct isp_ccdc_device *ccdc, u32 addr)
-+static void ccdc_lsc_program_table(struct isp_ccdc_device *ccdc,
-+				   dma_addr_t addr)
- {
- 	isp_reg_writel(to_isp_device(ccdc), addr,
- 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC_TABLE_BASE);
-@@ -333,7 +334,7 @@ static int __ccdc_lsc_configure(struct isp_ccdc_device *ccdc,
- 		return -EBUSY;
+@@ -1521,7 +1521,7 @@ static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
  
- 	ccdc_lsc_setup_regs(ccdc, &req->config);
--	ccdc_lsc_program_table(ccdc, req->table);
-+	ccdc_lsc_program_table(ccdc, req->table.dma);
+ 	buffer = omap3isp_video_buffer_next(&ccdc->video_out);
+ 	if (buffer != NULL) {
+-		ccdc_set_outaddr(ccdc, buffer->isp_addr);
++		ccdc_set_outaddr(ccdc, buffer->dma);
+ 		restart = 1;
+ 	}
+ 
+@@ -1660,7 +1660,7 @@ static int ccdc_video_queue(struct isp_video *video, struct isp_buffer *buffer)
+ 	if (!(ccdc->output & CCDC_OUTPUT_MEMORY))
+ 		return -ENODEV;
+ 
+-	ccdc_set_outaddr(ccdc, buffer->isp_addr);
++	ccdc_set_outaddr(ccdc, buffer->dma);
+ 
+ 	/* We now have a buffer queued on the output, restart the pipeline
+ 	 * on the next CCDC interrupt if running in continuous mode (or when
+diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
+index b30b67d..f3801db 100644
+--- a/drivers/media/platform/omap3isp/ispccp2.c
++++ b/drivers/media/platform/omap3isp/ispccp2.c
+@@ -549,7 +549,7 @@ static void ccp2_isr_buffer(struct isp_ccp2_device *ccp2)
+ 
+ 	buffer = omap3isp_video_buffer_next(&ccp2->video_in);
+ 	if (buffer != NULL)
+-		ccp2_set_inaddr(ccp2, buffer->isp_addr);
++		ccp2_set_inaddr(ccp2, buffer->dma);
+ 
+ 	pipe->state |= ISP_PIPELINE_IDLE_INPUT;
+ 
+@@ -940,7 +940,7 @@ static int ccp2_video_queue(struct isp_video *video, struct isp_buffer *buffer)
+ {
+ 	struct isp_ccp2_device *ccp2 = &video->isp->isp_ccp2;
+ 
+-	ccp2_set_inaddr(ccp2, buffer->isp_addr);
++	ccp2_set_inaddr(ccp2, buffer->dma);
  	return 0;
  }
  
-@@ -368,11 +369,12 @@ static void ccdc_lsc_free_request(struct isp_ccdc_device *ccdc,
- 	if (req == NULL)
+diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
+index 6205608..5a2e47e 100644
+--- a/drivers/media/platform/omap3isp/ispcsi2.c
++++ b/drivers/media/platform/omap3isp/ispcsi2.c
+@@ -695,7 +695,7 @@ static void csi2_isr_buffer(struct isp_csi2_device *csi2)
+ 	if (buffer == NULL)
  		return;
  
--	if (req->iovm)
--		dma_unmap_sg(isp->dev, req->iovm->sgt->sgl,
--			     req->iovm->sgt->nents, DMA_TO_DEVICE);
--	if (req->table)
--		omap_iommu_vfree(isp->domain, isp->dev, req->table);
-+	if (req->table.addr) {
-+		sg_free_table(&req->table.sgt);
-+		dma_free_coherent(isp->dev, req->config.size, req->table.addr,
-+				  req->table.dma);
-+	}
-+
- 	kfree(req);
+-	csi2_set_outaddr(csi2, buffer->isp_addr);
++	csi2_set_outaddr(csi2, buffer->dma);
+ 	csi2_ctx_enable(isp, csi2, 0, 1);
  }
  
-@@ -416,7 +418,6 @@ static int ccdc_lsc_config(struct isp_ccdc_device *ccdc,
- 	struct isp_device *isp = to_isp_device(ccdc);
- 	struct ispccdc_lsc_config_req *req;
- 	unsigned long flags;
--	void *table;
- 	u16 update;
- 	int ret;
+@@ -812,7 +812,7 @@ static int csi2_queue(struct isp_video *video, struct isp_buffer *buffer)
+ 	struct isp_device *isp = video->isp;
+ 	struct isp_csi2_device *csi2 = &isp->isp_csi2a;
  
-@@ -444,38 +445,31 @@ static int ccdc_lsc_config(struct isp_ccdc_device *ccdc,
+-	csi2_set_outaddr(csi2, buffer->isp_addr);
++	csi2_set_outaddr(csi2, buffer->dma);
  
- 		req->enable = 1;
- 
--		req->table = omap_iommu_vmalloc(isp->domain, isp->dev, 0,
--					req->config.size, IOMMU_FLAG);
--		if (IS_ERR_VALUE(req->table)) {
--			req->table = 0;
--			ret = -ENOMEM;
--			goto done;
--		}
--
--		req->iovm = omap_find_iovm_area(isp->dev, req->table);
--		if (req->iovm == NULL) {
-+		req->table.addr = dma_alloc_coherent(isp->dev, req->config.size,
-+						     &req->table.dma,
-+						     GFP_KERNEL);
-+		if (req->table.addr == NULL) {
- 			ret = -ENOMEM;
- 			goto done;
- 		}
- 
--		if (!dma_map_sg(isp->dev, req->iovm->sgt->sgl,
--				req->iovm->sgt->nents, DMA_TO_DEVICE)) {
--			ret = -ENOMEM;
--			req->iovm = NULL;
-+		ret = dma_get_sgtable(isp->dev, &req->table.sgt,
-+				      req->table.addr, req->table.dma,
-+				      req->config.size);
-+		if (ret < 0)
- 			goto done;
--		}
- 
--		dma_sync_sg_for_cpu(isp->dev, req->iovm->sgt->sgl,
--				    req->iovm->sgt->nents, DMA_TO_DEVICE);
-+		dma_sync_sg_for_cpu(isp->dev, req->table.sgt.sgl,
-+				    req->table.sgt.nents, DMA_TO_DEVICE);
- 
--		table = omap_da_to_va(isp->dev, req->table);
--		if (copy_from_user(table, config->lsc, req->config.size)) {
-+		if (copy_from_user(req->table.addr, config->lsc,
-+				   req->config.size)) {
- 			ret = -EFAULT;
- 			goto done;
- 		}
- 
--		dma_sync_sg_for_device(isp->dev, req->iovm->sgt->sgl,
--				       req->iovm->sgt->nents, DMA_TO_DEVICE);
-+		dma_sync_sg_for_device(isp->dev, req->table.sgt.sgl,
-+				       req->table.sgt.nents, DMA_TO_DEVICE);
+ 	/*
+ 	 * If streaming was enabled before there was a buffer queued
+diff --git a/drivers/media/platform/omap3isp/isppreview.c b/drivers/media/platform/omap3isp/isppreview.c
+index 395b2b0..720809b 100644
+--- a/drivers/media/platform/omap3isp/isppreview.c
++++ b/drivers/media/platform/omap3isp/isppreview.c
+@@ -1499,14 +1499,14 @@ static void preview_isr_buffer(struct isp_prev_device *prev)
+ 	if (prev->input == PREVIEW_INPUT_MEMORY) {
+ 		buffer = omap3isp_video_buffer_next(&prev->video_in);
+ 		if (buffer != NULL)
+-			preview_set_inaddr(prev, buffer->isp_addr);
++			preview_set_inaddr(prev, buffer->dma);
+ 		pipe->state |= ISP_PIPELINE_IDLE_INPUT;
  	}
  
- 	spin_lock_irqsave(&ccdc->lsc.req_lock, flags);
-diff --git a/drivers/media/platform/omap3isp/ispccdc.h b/drivers/media/platform/omap3isp/ispccdc.h
-index 9d24e41..20db3a0 100644
---- a/drivers/media/platform/omap3isp/ispccdc.h
-+++ b/drivers/media/platform/omap3isp/ispccdc.h
-@@ -57,8 +57,12 @@ struct ispccdc_lsc_config_req {
- 	struct list_head list;
- 	struct omap3isp_ccdc_lsc_config config;
- 	unsigned char enable;
--	u32 table;
--	struct iovm_struct *iovm;
-+
-+	struct {
-+		void *addr;
-+		dma_addr_t dma;
-+		struct sg_table sgt;
-+	} table;
+ 	if (prev->output & PREVIEW_OUTPUT_MEMORY) {
+ 		buffer = omap3isp_video_buffer_next(&prev->video_out);
+ 		if (buffer != NULL) {
+-			preview_set_outaddr(prev, buffer->isp_addr);
++			preview_set_outaddr(prev, buffer->dma);
+ 			restart = 1;
+ 		}
+ 		pipe->state |= ISP_PIPELINE_IDLE_OUTPUT;
+@@ -1577,10 +1577,10 @@ static int preview_video_queue(struct isp_video *video,
+ 	struct isp_prev_device *prev = &video->isp->isp_prev;
+ 
+ 	if (video->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+-		preview_set_inaddr(prev, buffer->isp_addr);
++		preview_set_inaddr(prev, buffer->dma);
+ 
+ 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		preview_set_outaddr(prev, buffer->isp_addr);
++		preview_set_outaddr(prev, buffer->dma);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/omap3isp/ispresizer.c b/drivers/media/platform/omap3isp/ispresizer.c
+index 86369df..6f077c2 100644
+--- a/drivers/media/platform/omap3isp/ispresizer.c
++++ b/drivers/media/platform/omap3isp/ispresizer.c
+@@ -1040,7 +1040,7 @@ static void resizer_isr_buffer(struct isp_res_device *res)
+ 	 */
+ 	buffer = omap3isp_video_buffer_next(&res->video_out);
+ 	if (buffer != NULL) {
+-		resizer_set_outaddr(res, buffer->isp_addr);
++		resizer_set_outaddr(res, buffer->dma);
+ 		restart = 1;
+ 	}
+ 
+@@ -1049,7 +1049,7 @@ static void resizer_isr_buffer(struct isp_res_device *res)
+ 	if (res->input == RESIZER_INPUT_MEMORY) {
+ 		buffer = omap3isp_video_buffer_next(&res->video_in);
+ 		if (buffer != NULL)
+-			resizer_set_inaddr(res, buffer->isp_addr);
++			resizer_set_inaddr(res, buffer->dma);
+ 		pipe->state |= ISP_PIPELINE_IDLE_INPUT;
+ 	}
+ 
+@@ -1101,7 +1101,7 @@ static int resizer_video_queue(struct isp_video *video,
+ 	struct isp_res_device *res = &video->isp->isp_res;
+ 
+ 	if (video->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+-		resizer_set_inaddr(res, buffer->isp_addr);
++		resizer_set_inaddr(res, buffer->dma);
+ 
+ 	/*
+ 	 * We now have a buffer queued on the output. Despite what the
+@@ -1116,7 +1116,7 @@ static int resizer_video_queue(struct isp_video *video,
+ 	 * continuous mode or when starting the stream.
+ 	 */
+ 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		resizer_set_outaddr(res, buffer->isp_addr);
++		resizer_set_outaddr(res, buffer->dma);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index c4a2f76..e36bac2 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -374,7 +374,7 @@ static int isp_video_buffer_prepare(struct vb2_buffer *buf)
+ 	}
+ 
+ 	vb2_set_plane_payload(&buffer->vb, 0, vfh->format.fmt.pix.sizeimage);
+-	buffer->isp_addr = addr;
++	buffer->dma = addr;
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
+index 1015505..7d2e821 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.h
++++ b/drivers/media/platform/omap3isp/ispvideo.h
+@@ -127,12 +127,12 @@ static inline int isp_pipeline_ready(struct isp_pipeline *pipe)
+  * struct isp_buffer - ISP video buffer
+  * @vb: videobuf2 buffer
+  * @irqlist: List head for insertion into IRQ queue
+- * @isp_addr: DMA address
++ * @dma: DMA address
+  */
+ struct isp_buffer {
+ 	struct vb2_buffer vb;
+ 	struct list_head irqlist;
+-	dma_addr_t isp_addr;
++	dma_addr_t dma;
  };
  
- /*
+ #define to_isp_buffer(buf)	container_of(buf, struct isp_buffer, vb)
 -- 
 1.8.3.2
 
