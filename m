@@ -1,103 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:64644 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755338AbaDGNQ4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 09:16:56 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N3N00KUDWW7KRB0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 07 Apr 2014 22:16:55 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38682 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752165AbaDUM3P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Apr 2014 08:29:15 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 6/8] [media] s5p-jpeg: Fix sysmmu page fault
-Date: Mon, 07 Apr 2014 15:16:11 +0200
-Message-id: <1396876573-15811-6-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1396876573-15811-1-git-send-email-j.anaszewski@samsung.com>
-References: <1396876573-15811-1-git-send-email-j.anaszewski@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 13/26] omap3isp: queue: Inline the ispmmu_v(un)map functions
+Date: Mon, 21 Apr 2014 14:28:59 +0200
+Message-Id: <1398083352-8451-14-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes jpeg sysmmu page fault on Exynos4x12 SoCs.
-During encoding Exynos4x12 SoCs access wider memory area
-than it results from Image_x and Image_y values written to
-the JPEG_IMAGE_SIZE register. In order to avoid sysmmu page
-fault apply proper output buffer size alignment.
+The ispmmu_vmap() and ispmmu_vunmap() functions are just wrappers around
+omap_iommu_vmap() and omap_iommu_vunmap(). Inline them.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   46 +++++++++++++++++++++++++--
- 1 file changed, 43 insertions(+), 3 deletions(-)
+ drivers/media/platform/omap3isp/ispqueue.c | 36 ++++--------------------------
+ 1 file changed, 4 insertions(+), 32 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 8a15c4a..d266e78 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1106,6 +1106,32 @@ static int s5p_jpeg_try_fmt_vid_out(struct file *file, void *priv,
- 	return vidioc_try_fmt(f, fmt, ctx, FMT_TYPE_OUTPUT);
- }
+diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
+index a7be7d7..088710b 100644
+--- a/drivers/media/platform/omap3isp/ispqueue.c
++++ b/drivers/media/platform/omap3isp/ispqueue.c
+@@ -39,36 +39,6 @@
+ #include "ispvideo.h"
  
-+static int exynos4_jpeg_get_output_buffer_size(struct s5p_jpeg_ctx *ctx,
-+						struct v4l2_format *f,
-+						int fmt_depth)
-+{
-+	struct v4l2_pix_format *pix = &f->fmt.pix;
-+	u32 pix_fmt = f->fmt.pix.pixelformat;
-+	int w = pix->width, h = pix->height, wh_align;
-+
-+	if (pix_fmt == V4L2_PIX_FMT_RGB32 ||
-+	    pix_fmt == V4L2_PIX_FMT_NV24 ||
-+	    pix_fmt == V4L2_PIX_FMT_NV42 ||
-+	    pix_fmt == V4L2_PIX_FMT_NV12 ||
-+	    pix_fmt == V4L2_PIX_FMT_NV21 ||
-+	    pix_fmt == V4L2_PIX_FMT_YUV420)
-+		wh_align = 4;
-+	else
-+		wh_align = 1;
-+
-+	jpeg_bound_align_image(&w, S5P_JPEG_MIN_WIDTH,
-+			       S5P_JPEG_MAX_WIDTH, wh_align,
-+			       &h, S5P_JPEG_MIN_HEIGHT,
-+			       S5P_JPEG_MAX_HEIGHT, wh_align);
-+
-+	return w * h * fmt_depth >> 3;
-+}
-+
- static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
- {
- 	struct vb2_queue *vq;
-@@ -1132,10 +1158,24 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
- 	q_data->fmt = s5p_jpeg_find_format(ct, pix->pixelformat, f_type);
- 	q_data->w = pix->width;
- 	q_data->h = pix->height;
--	if (q_data->fmt->fourcc != V4L2_PIX_FMT_JPEG)
--		q_data->size = q_data->w * q_data->h * q_data->fmt->depth >> 3;
--	else
-+	if (q_data->fmt->fourcc != V4L2_PIX_FMT_JPEG) {
-+		/*
-+		 * During encoding Exynos4x12 SoCs access wider memory area
-+		 * than it results from Image_x and Image_y values written to
-+		 * the JPEG_IMAGE_SIZE register. In order to avoid sysmmu
-+		 * page fault calculate proper buffer size in such a case.
-+		 */
-+		if (ct->jpeg->variant->version == SJPEG_EXYNOS4 &&
-+		    f_type == FMT_TYPE_OUTPUT && ct->mode == S5P_JPEG_ENCODE)
-+			q_data->size = exynos4_jpeg_get_output_buffer_size(ct,
-+							f,
-+							q_data->fmt->depth);
-+		else
-+			q_data->size = q_data->w * q_data->h *
-+						q_data->fmt->depth >> 3;
-+	} else {
- 		q_data->size = pix->sizeimage;
-+	}
+ /* -----------------------------------------------------------------------------
+- * IOMMU management
+- */
+-
+-#define IOMMU_FLAG	(IOVMF_ENDIAN_LITTLE | IOVMF_ELSZ_8)
+-
+-/*
+- * ispmmu_vmap - Wrapper for virtual memory mapping of a scatter gather table
+- * @dev: Device pointer specific to the OMAP3 ISP.
+- * @sgt: Pointer to source scatter gather table.
+- *
+- * Returns a resulting mapped device address by the ISP MMU, or -ENOMEM if
+- * we ran out of memory.
+- */
+-static dma_addr_t
+-ispmmu_vmap(struct isp_device *isp, const struct sg_table *sgt)
+-{
+-	return omap_iommu_vmap(isp->domain, isp->dev, 0, sgt, IOMMU_FLAG);
+-}
+-
+-/*
+- * ispmmu_vunmap - Unmap a device address from the ISP MMU
+- * @dev: Device pointer specific to the OMAP3 ISP.
+- * @da: Device address generated from a ispmmu_vmap call.
+- */
+-static void ispmmu_vunmap(struct isp_device *isp, dma_addr_t da)
+-{
+-	omap_iommu_vunmap(isp->domain, isp->dev, (u32)da);
+-}
+-
+-/* -----------------------------------------------------------------------------
+  * Video buffers management
+  */
  
- 	if (f_type == FMT_TYPE_OUTPUT) {
- 		ctrl_subs = v4l2_ctrl_find(&ct->ctrl_handler,
+@@ -227,7 +197,8 @@ static void isp_video_buffer_cleanup(struct isp_video_buffer *buf)
+ 	unsigned int i;
+ 
+ 	if (buf->dma) {
+-		ispmmu_vunmap(video->isp, buf->dma);
++		omap_iommu_vunmap(video->isp->domain, video->isp->dev,
++				  buf->dma);
+ 		buf->dma = 0;
+ 	}
+ 
+@@ -521,7 +492,8 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
+ 		}
+ 	}
+ 
+-	addr = ispmmu_vmap(video->isp, &buf->sgt);
++	addr = omap_iommu_vmap(video->isp->domain, video->isp->dev, 0,
++			       &buf->sgt, IOVMF_ENDIAN_LITTLE | IOVMF_ELSZ_8);
+ 	if (IS_ERR_VALUE(addr)) {
+ 		ret = -EIO;
+ 		goto done;
 -- 
-1.7.9.5
+1.8.3.2
 
