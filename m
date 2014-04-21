@@ -1,68 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:44589 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934835AbaDJJB6 (ORCPT
+Received: from mail-ve0-f174.google.com ([209.85.128.174]:46608 "EHLO
+	mail-ve0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397AbaDULt1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 05:01:58 -0400
-Received: by mail-pd0-f179.google.com with SMTP id w10so3587292pde.24
-        for <linux-media@vger.kernel.org>; Thu, 10 Apr 2014 02:01:57 -0700 (PDT)
-Date: Thu, 10 Apr 2014 19:01:50 +1000
-From: Vitaly Osipov <vitaly.osipov@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: [PATCH 1/2] staging: media: omap24xx: fix up checkpatch error message
-Message-ID: <20140410090144.GA8604@witts-MacBook-Pro.local>
+	Mon, 21 Apr 2014 07:49:27 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <1751714.6NNU6hXYoN@avalon>
+References: <1398072362-24962-1-git-send-email-arun.kk@samsung.com>
+	<1398072362-24962-2-git-send-email-arun.kk@samsung.com>
+	<1751714.6NNU6hXYoN@avalon>
+Date: Mon, 21 Apr 2014 17:19:26 +0530
+Message-ID: <CALt3h7921Ad9RCFit70ZFavoKhqjZpYLfvYiXh_ttqnhLQtZSA@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] v4l: Add resolution change event.
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Pawel Osciak <posciak@chromium.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tcm825x.c and tcm825x.h:
+Hi Laurent,
 
-fixing ERROR: Macros with complex values should be enclosed in parenthesis
+Thank you for the review.
 
-Signed-off-by: Vitaly Osipov <vitaly.osipov@gmail.com>
----
- drivers/staging/media/omap24xx/tcm825x.c |    8 ++++----
- drivers/staging/media/omap24xx/tcm825x.h |    4 ++--
- 2 files changed, 6 insertions(+), 6 deletions(-)
+On Mon, Apr 21, 2014 at 3:54 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Arun,
+>
+> Thank you for the patch.
+>
+> On Monday 21 April 2014 14:56:01 Arun Kumar K wrote:
+>> From: Pawel Osciak <posciak@chromium.org>
+>>
+>> This event indicates that the decoder has reached a point in the stream,
+>> at which the resolution changes. The userspace is expected to provide a new
+>> set of CAPTURE buffers for the new format before decoding can continue.
+>> The event can also be used for more generic events involving resolution
+>> or format changes at runtime for all kinds of video devices.
+>>
+>> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>> ---
+>>  .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   16 ++++++++++++++++
+>>  include/uapi/linux/videodev2.h                     |    6 ++++++
+>>  2 files changed, 22 insertions(+)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>> b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml index
+>> 5c70b61..0aec831 100644
+>> --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>> @@ -155,6 +155,22 @@
+>>           </entry>
+>>         </row>
+>>         <row>
+>> +         <entry><constant>V4L2_EVENT_SOURCE_CHANGE</constant></entry>
+>> +         <entry>5</entry>
+>> +         <entry>
+>> +           <para>This event is triggered when a resolution or format change
+>> +            is detected during runtime by the video device. It can be a
+>> +            runtime resolution change triggered by a video decoder or the
+>> +            format change happening on an HDMI connector. Application may
+>> +            need to reinitialize buffers before proceeding further.</para>
+>> +
+>> +              <para>This event has a &v4l2-event-source-change; associated
+>> +           with it. This has significance only for v4l2 subdevs where the
+>> +           <structfield>pad_num</structfield> field will be updated with
+>> +           the pad number on which the event is triggered.</para>
+>> +         </entry>
+>> +       </row>
+>> +       <row>
+>>           <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
+>>           <entry>0x08000000</entry>
+>>           <entry>Base event number for driver-private events.</entry>
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index 6ae7bbe..12e0614 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -1733,6 +1733,7 @@ struct v4l2_streamparm {
+>>  #define V4L2_EVENT_EOS                               2
+>>  #define V4L2_EVENT_CTRL                              3
+>>  #define V4L2_EVENT_FRAME_SYNC                        4
+>> +#define V4L2_EVENT_SOURCE_CHANGE             5
+>>  #define V4L2_EVENT_PRIVATE_START             0x08000000
+>>
+>>  /* Payload for V4L2_EVENT_VSYNC */
+>> @@ -1764,12 +1765,17 @@ struct v4l2_event_frame_sync {
+>>       __u32 frame_sequence;
+>>  };
+>>
+>> +struct v4l2_event_source_change {
+>> +     __u32 pad_num;
+>
+> I would call the field just "pad",
+>
 
-diff --git a/drivers/staging/media/omap24xx/tcm825x.c b/drivers/staging/media/omap24xx/tcm825x.c
-index f4dd32d..2326481 100644
---- a/drivers/staging/media/omap24xx/tcm825x.c
-+++ b/drivers/staging/media/omap24xx/tcm825x.c
-@@ -89,10 +89,10 @@ static const struct tcm825x_reg rgb565	=	{ 0x02, TCM825X_PICFMT };
- 
- /* Our own specific controls */
- #define V4L2_CID_ALC				V4L2_CID_PRIVATE_BASE
--#define V4L2_CID_H_EDGE_EN			V4L2_CID_PRIVATE_BASE + 1
--#define V4L2_CID_V_EDGE_EN			V4L2_CID_PRIVATE_BASE + 2
--#define V4L2_CID_LENS				V4L2_CID_PRIVATE_BASE + 3
--#define V4L2_CID_MAX_EXPOSURE_TIME		V4L2_CID_PRIVATE_BASE + 4
-+#define V4L2_CID_H_EDGE_EN			(V4L2_CID_PRIVATE_BASE + 1)
-+#define V4L2_CID_V_EDGE_EN			(V4L2_CID_PRIVATE_BASE + 2)
-+#define V4L2_CID_LENS				(V4L2_CID_PRIVATE_BASE + 3)
-+#define V4L2_CID_MAX_EXPOSURE_TIME		(V4L2_CID_PRIVATE_BASE + 4)
- #define V4L2_CID_LAST_PRIV			V4L2_CID_MAX_EXPOSURE_TIME
- 
- /*  Video controls  */
-diff --git a/drivers/staging/media/omap24xx/tcm825x.h b/drivers/staging/media/omap24xx/tcm825x.h
-index 9970fb1..4a41127 100644
---- a/drivers/staging/media/omap24xx/tcm825x.h
-+++ b/drivers/staging/media/omap24xx/tcm825x.h
-@@ -21,8 +21,8 @@
- 
- #define TCM825X_NAME "tcm825x"
- 
--#define TCM825X_MASK(x)  x & 0x00ff
--#define TCM825X_ADDR(x) (x & 0xff00) >> 8
-+#define TCM825X_MASK(x)  (x & 0x00ff)
-+#define TCM825X_ADDR(x) ((x & 0xff00) >> 8)
- 
- /* The TCM825X I2C sensor chip has a fixed slave address of 0x3d. */
- #define TCM825X_I2C_ADDR	0x3d
--- 
-1.7.9.5
+Ok.
 
+>> +};
+>> +
+>>  struct v4l2_event {
+>>       __u32                           type;
+>>       union {
+>>               struct v4l2_event_vsync         vsync;
+>>               struct v4l2_event_ctrl          ctrl;
+>>               struct v4l2_event_frame_sync    frame_sync;
+>> +             struct v4l2_event_source_change source_change;
+>>               __u8                            data[64];
+>
+> This looks pretty good to me, but I'm a bit concerned about future
+> compatibility. We might need to report more information to userspace, and in
+> particular what has been changed at the source (resolution, format, ...). In
+> order to do so, we'll need to add a flag field to v4l2_event_source_change.
+
+Ok a flag can be added with bitfields for reporting specific event type.
+
+> The next __u32 right after the source_change field must thus be zeroed. I see
+> two ways of doing so:
+>
+> - zeroing the whole data array before setting event-specific data
+> - adding a reserved must-be-zeroed field to v4l2_event_source_change
+>
+> I like the former better as it's more generic, but we then need to ensure that
+> all drivers zero the whole data field correctly. Adding a new
+> v4l2_event_init() function would help with that.
+>
+
+Is that a good idea to have an init() function just for zeroing the data field?
+If this is agreed upon, I can add this, but it can be easily missed
+out by drivers.
+Also how about the drivers already using the v4l2_event. Should we
+update those drivers too with v4l2_event_init() ?
+
+Regards
+Arun
+
+>>       } u;
+>>       __u32                           pending;
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
