@@ -1,163 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:53960 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752600AbaD0HNn (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41456 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754467AbaDUU6y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Apr 2014 03:13:43 -0400
-Received: by mail-ee0-f53.google.com with SMTP id b57so3867564eek.12
-        for <linux-media@vger.kernel.org>; Sun, 27 Apr 2014 00:13:42 -0700 (PDT)
-Received: from [192.168.1.100] ([188.24.76.92])
-        by mx.google.com with ESMTPSA id m8sm39449519eeg.11.2014.04.27.00.13.41
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Sun, 27 Apr 2014 00:13:41 -0700 (PDT)
-Message-ID: <535CAE24.2070603@gmail.com>
-Date: Sun, 27 Apr 2014 07:13:40 +0000
-From: Triniton Adam <trinitonadam@gmail.com>
+	Mon, 21 Apr 2014 16:58:54 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Arun Kumar K <arunkk.samsung@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Pawel Osciak <posciak@chromium.org>
+Subject: Re: [PATCH v2 1/2] v4l: Add resolution change event.
+Date: Mon, 21 Apr 2014 22:59:02 +0200
+Message-ID: <3623958.Gv7Rj4f0MS@avalon>
+In-Reply-To: <CALt3h7921Ad9RCFit70ZFavoKhqjZpYLfvYiXh_ttqnhLQtZSA@mail.gmail.com>
+References: <1398072362-24962-1-git-send-email-arun.kk@samsung.com> <1751714.6NNU6hXYoN@avalon> <CALt3h7921Ad9RCFit70ZFavoKhqjZpYLfvYiXh_ttqnhLQtZSA@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: saa7134: Add keymaps for Avermedia M733A with IR model RM-KS
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I have attempted to add support for saa7134 Avermedia M733A remote with 
-IR model RM-KS
-which is endowed with this model in Eastern Europe.
+Hi Arun,
 
-I not familiar with git and LinuxTV GIT patch system but I write new 
-rc-avermedia-m733a-rm-k6.c
-keymap file which is based on an addition of rc-avermedia-m733a-rm-k6.c 
-and rc-avermedia-rm-ks.c
-files.
+On Monday 21 April 2014 17:19:26 Arun Kumar K wrote:
+> On Mon, Apr 21, 2014 at 3:54 PM, Laurent Pinchart wrote:
+> > On Monday 21 April 2014 14:56:01 Arun Kumar K wrote:
+> >> From: Pawel Osciak <posciak@chromium.org>
+> >> 
+> >> This event indicates that the decoder has reached a point in the stream,
+> >> at which the resolution changes. The userspace is expected to provide a
+> >> new
+> >> set of CAPTURE buffers for the new format before decoding can continue.
+> >> The event can also be used for more generic events involving resolution
+> >> or format changes at runtime for all kinds of video devices.
+> >> 
+> >> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> >> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+> >> ---
+> >> 
+> >>  .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   16
+> >>  ++++++++++++++++
+> >>  include/uapi/linux/videodev2.h                     |    6 ++++++
+> >>  2 files changed, 22 insertions(+)
+> >> 
+> >> diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+> >> b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml index
+> >> 5c70b61..0aec831 100644
+> >> --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+> >> +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+> >> @@ -155,6 +155,22 @@
+> >>           </entry>
+> >>         </row>
+> >>         <row>
+> >> +         <entry><constant>V4L2_EVENT_SOURCE_CHANGE</constant></entry>
+> >> +         <entry>5</entry>
+> >> +         <entry>
+> >> +           <para>This event is triggered when a resolution or format
+> >> change +            is detected during runtime by the video device. It
+> >> can be a +            runtime resolution change triggered by a video
+> >> decoder or the +            format change happening on an HDMI
+> >> connector. Application may +            need to reinitialize buffers
+> >> before proceeding further.</para> +
+> >> +              <para>This event has a &v4l2-event-source-change;
+> >> associated
+> >> +           with it. This has significance only for v4l2 subdevs where
+> >> the
+> >> +           <structfield>pad_num</structfield> field will be updated with
+> >> +           the pad number on which the event is triggered.</para>
+> >> +         </entry>
+> >> +       </row>
+> >> +       <row>
+> >> 
+> >>           <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
+> >>           <entry>0x08000000</entry>
+> >>           <entry>Base event number for driver-private events.</entry>
+> >> diff --git a/include/uapi/linux/videodev2.h
+> >> b/include/uapi/linux/videodev2.h index 6ae7bbe..12e0614 100644
+> >> --- a/include/uapi/linux/videodev2.h
+> >> +++ b/include/uapi/linux/videodev2.h
+> >> @@ -1733,6 +1733,7 @@ struct v4l2_streamparm {
+> >>  #define V4L2_EVENT_EOS                               2
+> >>  #define V4L2_EVENT_CTRL                              3
+> >>  #define V4L2_EVENT_FRAME_SYNC                        4
+> >> +#define V4L2_EVENT_SOURCE_CHANGE             5
+> >>  #define V4L2_EVENT_PRIVATE_START             0x08000000
+> >>  
+> >>  /* Payload for V4L2_EVENT_VSYNC */
+> >> @@ -1764,12 +1765,17 @@ struct v4l2_event_frame_sync {
+> >>       __u32 frame_sequence;
+> >>  };
+> >> 
+> >> +struct v4l2_event_source_change {
+> >> +     __u32 pad_num;
+> > 
+> > I would call the field just "pad",
+> 
+> Ok.
+> 
+> >> +};
+> >> +
+> >> 
+> >>  struct v4l2_event {
+> >>       __u32                           type;
+> >>       union {
+> >>               struct v4l2_event_vsync         vsync;
+> >>               struct v4l2_event_ctrl          ctrl;
+> >>               struct v4l2_event_frame_sync    frame_sync;
+> >> +             struct v4l2_event_source_change source_change;
+> >>               __u8                            data[64];
+> > 
+> > This looks pretty good to me, but I'm a bit concerned about future
+> > compatibility. We might need to report more information to userspace, and
+> > in particular what has been changed at the source (resolution, format,
+> > ...). In order to do so, we'll need to add a flag field to
+> > v4l2_event_source_change.
+>
+> Ok a flag can be added with bitfields for reporting specific event type.
 
-I would like someone who is familiar with adding patches for LinuxTV to 
-produce one patch
-for Avermedia M733A remotes.
+I don't think we need to add it now. Just making sure it can be added later 
+without breaking the userspace API would be enough for me.
 
-Here is new rc-avermedia-m733a-rm-k6.c:
+> > The next __u32 right after the source_change field must thus be zeroed. I
+> > see two ways of doing so:
+> > 
+> > - zeroing the whole data array before setting event-specific data
+> > - adding a reserved must-be-zeroed field to v4l2_event_source_change
+> > 
+> > I like the former better as it's more generic, but we then need to ensure
+> > that all drivers zero the whole data field correctly. Adding a new
+> > v4l2_event_init() function would help with that.
+> 
+> Is that a good idea to have an init() function just for zeroing the data
+> field? If this is agreed upon, I can add this, but it can be easily missed
+> out by drivers.
 
-/* avermedia-m733a-rm-k6.h - Keytable for avermedia_m733a_rm_k6 Remote 
-Controller
-  *
-  * Copyright (c) 2010 by Herton Ronaldo Krzesinski <herton@mandriva.com.br>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; either version 2 of the License, or
-  * (at your option) any later version.
-  */
+I'm not sure. On one hand it would be easier to catch missing calls if we use 
+a dedicated function, as the function could set an initialized flag in the 
+event structure that would be checked by v4l2_event_queue. On the other hand, 
+that might be overengineering, and we could just manually check that all 
+drivers memset the structure to 0 before initializing fields. In both cases 
+the goal is to make sure that the structure is properly initialized, to avoid 
+leaking kernel data to userspace, and to avoid breaking the ABI when we'll 
+need to extend the v4l2_event_source_change structure. Hans might have an 
+opinion on that.
 
-#include <media/rc-map.h>
-#include <linux/module.h>
+> Also how about the drivers already using the v4l2_event. Should we
+> update those drivers too with v4l2_event_init() ?
 
-static struct rc_map_table avermedia_m733a_rm_k6[] = {
-     /* Avermedia M733A with IR model RM-K6 */
-     { 0x0401, KEY_POWER2 },
-     { 0x0406, KEY_MUTE },
-     { 0x0408, KEY_MODE },     /* TV/FM */
+If we decide to introduce a new function, yes. Otherwise, no :-)
 
-     { 0x0409, KEY_1 },
-     { 0x040a, KEY_2 },
-     { 0x040b, KEY_3 },
-     { 0x040c, KEY_4 },
-     { 0x040d, KEY_5 },
-     { 0x040e, KEY_6 },
-     { 0x040f, KEY_7 },
-     { 0x0410, KEY_8 },
-     { 0x0411, KEY_9 },
-     { 0x044c, KEY_DOT },      /* '.' */
-     { 0x0412, KEY_0 },
-     { 0x0407, KEY_REFRESH },  /* Refresh/Reload */
+> >>       } u;
+> >>       __u32                           pending;
 
-     { 0x0413, KEY_AUDIO },
-     { 0x0440, KEY_SCREEN },   /* Full Screen toggle */
-     { 0x0441, KEY_HOME },
-     { 0x0442, KEY_BACK },
-     { 0x0447, KEY_UP },
-     { 0x0448, KEY_DOWN },
-     { 0x0449, KEY_LEFT },
-     { 0x044a, KEY_RIGHT },
-     { 0x044b, KEY_OK },
-     { 0x0404, KEY_VOLUMEUP },
-     { 0x0405, KEY_VOLUMEDOWN },
-     { 0x0402, KEY_CHANNELUP },
-     { 0x0403, KEY_CHANNELDOWN },
+-- 
+Regards,
 
-     { 0x0443, KEY_RED },
-     { 0x0444, KEY_GREEN },
-     { 0x0445, KEY_YELLOW },
-     { 0x0446, KEY_BLUE },
-
-     { 0x0414, KEY_TEXT },
-     { 0x0415, KEY_EPG },
-     { 0x041a, KEY_TV2 },      /* PIP */
-     { 0x041b, KEY_CAMERA },      /* Snapshot */
-
-     { 0x0417, KEY_RECORD },
-     { 0x0416, KEY_PLAYPAUSE },
-     { 0x0418, KEY_STOP },
-     { 0x0419, KEY_PAUSE },
-
-     { 0x041f, KEY_PREVIOUS },
-     { 0x041c, KEY_REWIND },
-     { 0x041d, KEY_FORWARD },
-     { 0x041e, KEY_NEXT },
-
-     /* Avermedia M733A with IR model RM-KS */
-     { 0x0501, KEY_POWER2 },
-     { 0x0502, KEY_CHANNELUP },
-     { 0x0503, KEY_CHANNELDOWN },
-     { 0x0504, KEY_VOLUMEUP },
-     { 0x0505, KEY_VOLUMEDOWN },
-     { 0x0506, KEY_MUTE },
-     { 0x0507, KEY_RIGHT },
-     { 0x0508, KEY_RED },
-     { 0x0509, KEY_1 },
-     { 0x050a, KEY_2 },
-     { 0x050b, KEY_3 },
-     { 0x050c, KEY_4 },
-     { 0x050d, KEY_5 },
-     { 0x050e, KEY_6 },
-     { 0x050f, KEY_7 },
-     { 0x0510, KEY_8 },
-     { 0x0511, KEY_9 },
-     { 0x0512, KEY_0 },
-     { 0x0513, KEY_AUDIO },
-     { 0x0515, KEY_EPG },
-     { 0x0516, KEY_PLAY },
-     { 0x0517, KEY_RECORD },
-     { 0x0518, KEY_STOP },
-     { 0x051c, KEY_BACK },
-     { 0x051d, KEY_FORWARD },
-     { 0x054d, KEY_LEFT },
-     { 0x0556, KEY_ZOOM },
-};
-
-static struct rc_map_list avermedia_m733a_rm_k6_map = {
-     .map = {
-         .scan    = avermedia_m733a_rm_k6,
-         .size    = ARRAY_SIZE(avermedia_m733a_rm_k6),
-         .rc_type = RC_TYPE_NEC,
-         .name    = RC_MAP_AVERMEDIA_M733A_RM_K6,
-     }
-};
-
-static int __init init_rc_map_avermedia_m733a_rm_k6(void)
-{
-     return rc_map_register(&avermedia_m733a_rm_k6_map);
-}
-
-static void __exit exit_rc_map_avermedia_m733a_rm_k6(void)
-{
-     rc_map_unregister(&avermedia_m733a_rm_k6_map);
-}
-
-module_init(init_rc_map_avermedia_m733a_rm_k6)
-module_exit(exit_rc_map_avermedia_m733a_rm_k6)
-
-MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Mauro Carvalho Chehab");
+Laurent Pinchart
 
