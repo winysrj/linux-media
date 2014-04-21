@@ -1,71 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43233 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S934889AbaDJSxJ (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38683 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752075AbaDUM3K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 14:53:09 -0400
-Message-ID: <5346E893.6060402@iki.fi>
-Date: Thu, 10 Apr 2014 21:53:07 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [yavta PATCH 6/9] Timestamp source for output buffers
-References: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi> <1393690690-5004-7-git-send-email-sakari.ailus@iki.fi> <24499912.nkDMIsTe95@avalon>
-In-Reply-To: <24499912.nkDMIsTe95@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 21 Apr 2014 08:29:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 03/26] omap3isp: stat: Share common code for buffer allocation
+Date: Mon, 21 Apr 2014 14:28:49 +0200
+Message-Id: <1398083352-8451-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Move code common between the isp_stat_bufs_alloc_dma() and
+isp_stat_bufs_alloc_iommu() functions to isp_stat_bufs_alloc().
 
-Laurent Pinchart wrote:
-...
->> @@ -1298,7 +1302,8 @@ static struct option opts[] = {
->>   	{"sleep-forever", 0, 0, OPT_SLEEP_FOREVER},
->>   	{"stride", 1, 0, OPT_STRIDE},
->>   	{"time-per-frame", 1, 0, 't'},
->> -	{"userptr", 0, 0, 'u'},
->> +	{"timestamp-source", 1, 0, OPT_TSTAMP_SRC},
->> +	{"userptr", 1, 0, 'u'},
->
-> This seems to be an unrelated change.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/ispstat.c | 114 ++++++++++++++----------------
+ 1 file changed, 54 insertions(+), 60 deletions(-)
 
-Oops! My bad.
-
->>   	{0, 0, 0, 0}
->>   };
->>
->> @@ -1487,6 +1492,17 @@ int main(int argc, char *argv[])
->>   		case OPT_STRIDE:
->>   			stride = atoi(optarg);
->>   			break;
->> +		case OPT_TSTAMP_SRC:
->> +			if (!strcmp(optarg, "eof")) {
->> +				dev.buffer_output_flags |= V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
->
-> As the buffer_output_flags isn't used for anything else, would it make sense
-> to just name it timestamp_source ?
-
-Currently not. But it could. I'm fine with the change if you insist. :-)
-
->> +			} else if (!strcmp(optarg, "soe")) {
->> +				dev.buffer_output_flags |= V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
->> +			} else {
->> +				printf("Invalid timestamp source %s\n", optarg);
->> +				return 1;
->> +			}
->> +			printf("Using %s timestamp source\n", optarg);
->
-> Do we really need this printf ?
-
-Time to add a "verbose" option? :-D
-
-I'll remove it.
-
+diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
+index c6c1290..b1eb902 100644
+--- a/drivers/media/platform/omap3isp/ispstat.c
++++ b/drivers/media/platform/omap3isp/ispstat.c
+@@ -389,74 +389,42 @@ static void isp_stat_bufs_free(struct ispstat *stat)
+ 	stat->active_buf = NULL;
+ }
+ 
+-static int isp_stat_bufs_alloc_iommu(struct ispstat *stat, unsigned int size)
++static int isp_stat_bufs_alloc_iommu(struct ispstat *stat,
++				     struct ispstat_buffer *buf,
++				     unsigned int size)
+ {
+ 	struct isp_device *isp = stat->isp;
+-	int i;
++	struct iovm_struct *iovm;
+ 
+-	stat->buf_alloc_size = size;
++	buf->iommu_addr = omap_iommu_vmalloc(isp->domain, isp->dev, 0,
++						size, IOMMU_FLAG);
++	if (IS_ERR((void *)buf->iommu_addr))
++		return -ENOMEM;
+ 
+-	for (i = 0; i < STAT_MAX_BUFS; i++) {
+-		struct ispstat_buffer *buf = &stat->buf[i];
+-		struct iovm_struct *iovm;
++	iovm = omap_find_iovm_area(isp->dev, buf->iommu_addr);
++	if (!iovm)
++		return -ENOMEM;
+ 
+-		buf->iommu_addr = omap_iommu_vmalloc(isp->domain, isp->dev, 0,
+-							size, IOMMU_FLAG);
+-		if (IS_ERR((void *)buf->iommu_addr)) {
+-			dev_err(stat->isp->dev,
+-				 "%s: Can't acquire memory for "
+-				 "buffer %d\n", stat->subdev.name, i);
+-			isp_stat_bufs_free(stat);
+-			return -ENOMEM;
+-		}
++	if (!dma_map_sg(isp->dev, iovm->sgt->sgl, iovm->sgt->nents,
++			DMA_FROM_DEVICE))
++		return -ENOMEM;
+ 
+-		iovm = omap_find_iovm_area(isp->dev, buf->iommu_addr);
+-		if (!iovm ||
+-		    !dma_map_sg(isp->dev, iovm->sgt->sgl, iovm->sgt->nents,
+-				DMA_FROM_DEVICE)) {
+-			isp_stat_bufs_free(stat);
+-			return -ENOMEM;
+-		}
+-		buf->iovm = iovm;
+-
+-		buf->virt_addr = omap_da_to_va(stat->isp->dev,
+-					  (u32)buf->iommu_addr);
+-		buf->empty = 1;
+-		dev_dbg(stat->isp->dev, "%s: buffer[%d] allocated."
+-			"iommu_addr=0x%08lx virt_addr=0x%08lx",
+-			stat->subdev.name, i, buf->iommu_addr,
+-			(unsigned long)buf->virt_addr);
+-	}
++	buf->iovm = iovm;
++	buf->virt_addr = omap_da_to_va(stat->isp->dev,
++				  (u32)buf->iommu_addr);
+ 
+ 	return 0;
+ }
+ 
+-static int isp_stat_bufs_alloc_dma(struct ispstat *stat, unsigned int size)
++static int isp_stat_bufs_alloc_dma(struct ispstat *stat,
++				   struct ispstat_buffer *buf,
++				   unsigned int size)
+ {
+-	int i;
+-
+-	stat->buf_alloc_size = size;
+-
+-	for (i = 0; i < STAT_MAX_BUFS; i++) {
+-		struct ispstat_buffer *buf = &stat->buf[i];
+-
+-		buf->virt_addr = dma_alloc_coherent(stat->isp->dev, size,
+-					&buf->dma_addr, GFP_KERNEL | GFP_DMA);
+-
+-		if (!buf->virt_addr || !buf->dma_addr) {
+-			dev_info(stat->isp->dev,
+-				 "%s: Can't acquire memory for "
+-				 "DMA buffer %d\n", stat->subdev.name, i);
+-			isp_stat_bufs_free(stat);
+-			return -ENOMEM;
+-		}
+-		buf->empty = 1;
++	buf->virt_addr = dma_alloc_coherent(stat->isp->dev, size,
++				&buf->dma_addr, GFP_KERNEL | GFP_DMA);
+ 
+-		dev_dbg(stat->isp->dev, "%s: buffer[%d] allocated."
+-			"dma_addr=0x%08lx virt_addr=0x%08lx\n",
+-			stat->subdev.name, i, (unsigned long)buf->dma_addr,
+-			(unsigned long)buf->virt_addr);
+-	}
++	if (!buf->virt_addr || !buf->dma_addr)
++		return -ENOMEM;
+ 
+ 	return 0;
+ }
+@@ -464,6 +432,7 @@ static int isp_stat_bufs_alloc_dma(struct ispstat *stat, unsigned int size)
+ static int isp_stat_bufs_alloc(struct ispstat *stat, u32 size)
+ {
+ 	unsigned long flags;
++	unsigned int i;
+ 
+ 	spin_lock_irqsave(&stat->isp->stat_lock, flags);
+ 
+@@ -487,10 +456,35 @@ static int isp_stat_bufs_alloc(struct ispstat *stat, u32 size)
+ 
+ 	isp_stat_bufs_free(stat);
+ 
+-	if (ISP_STAT_USES_DMAENGINE(stat))
+-		return isp_stat_bufs_alloc_dma(stat, size);
+-	else
+-		return isp_stat_bufs_alloc_iommu(stat, size);
++	stat->buf_alloc_size = size;
++
++	for (i = 0; i < STAT_MAX_BUFS; i++) {
++		struct ispstat_buffer *buf = &stat->buf[i];
++		int ret;
++
++		if (ISP_STAT_USES_DMAENGINE(stat))
++			ret = isp_stat_bufs_alloc_dma(stat, buf, size);
++		else
++			ret = isp_stat_bufs_alloc_iommu(stat, buf, size);
++
++		if (ret < 0) {
++			dev_err(stat->isp->dev,
++				"%s: Failed to allocate DMA buffer %u\n",
++				stat->subdev.name, i);
++			isp_stat_bufs_free(stat);
++			return ret;
++		}
++
++		buf->empty = 1;
++
++		dev_dbg(stat->isp->dev,
++			"%s: buffer[%u] allocated. iommu=0x%08lx dma=0x%08lx virt=0x%08lx",
++			stat->subdev.name, i, buf->iommu_addr,
++			(unsigned long)buf->dma_addr,
++			(unsigned long)buf->virt_addr);
++	}
++
++	return 0;
+ }
+ 
+ static void isp_stat_queue_event(struct ispstat *stat, int err)
 -- 
-Cheers,
+1.8.3.2
 
-Sakari Ailus
-sakari.ailus@iki.fi
