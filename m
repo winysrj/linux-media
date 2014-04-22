@@ -1,54 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:39376 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755420AbaD2Gtr (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:20353 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932699AbaDVPDm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Apr 2014 02:49:47 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: devel@driverdev.osuosl.org, LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH] media: davinci_vpfe: dm365_resizer: fix sparse warning
-Date: Tue, 29 Apr 2014 12:19:34 +0530
-Message-Id: <1398754174-6892-1-git-send-email-prabhakar.csengg@gmail.com>
+	Tue, 22 Apr 2014 11:03:42 -0400
+Date: Tue, 22 Apr 2014 18:02:39 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: hans.verkuil@cisco.com, m.chehab@samsung.com,
+	ext-eero.nurkkala@nokia.com, nils.faerber@kernelconcepts.de,
+	joni.lapilainen@gmail.com, freemangordon@abv.bg, sre@ring0.de,
+	pali.rohar@gmail.com, Greg KH <greg@kroah.com>, trivial@kernel.org,
+	linux-media@vger.kernel.org
+Cc: kernel list <linux-kernel@vger.kernel.org>
+Subject: [PATCH v3] [media] radio-bcm2048: fix wrong overflow check
+Message-ID: <20140422150239.GA32637@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20140422125726.GA30238@mwanda>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+From: Pali Rohár <pali.rohar@gmail.com>
 
-this patch fixes following sparse warning,
-dm365_resizer.c:223:1: warning: symbol 'resizer_calculate_resize_ratios' was not declared. Should it be static?
-dm365_resizer.c:313:5: warning: symbol 'resizer_configure_output_win' was not declared. Should it be static?
+This patch fixes an off by one check in bcm2048_set_region().
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 ---
- drivers/staging/media/davinci_vpfe/dm365_resizer.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+v2: Send it to the correct list.  Re-work the changelog.
+v3: Correct subsystem prefix.
 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-index 8e13bd4..8828d6c 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-@@ -219,7 +219,7 @@ configure_resizer_out_params(struct vpfe_resizer_device *resizer, int index,
-  * @resizer: Pointer to VPFE resizer subdevice.
-  * @index: index RSZ_A-resizer-A RSZ_B-resizer-B.
-  */
--void
-+static void
- resizer_calculate_resize_ratios(struct vpfe_resizer_device *resizer, int index)
- {
- 	struct resizer_params *param = &resizer->config;
-@@ -310,7 +310,7 @@ resizer_calculate_sdram_offsets(struct vpfe_resizer_device *resizer, int index)
- 	return 0;
- }
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index b2cd3a8..bbf236e 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -737,7 +737,7 @@ static int bcm2048_set_region(struct bcm2048_device *bdev, u8 region)
+ 	int err;
+ 	u32 new_frequency = 0;
  
--int resizer_configure_output_win(struct vpfe_resizer_device *resizer)
-+static int resizer_configure_output_win(struct vpfe_resizer_device *resizer)
- {
- 	struct resizer_params *param = &resizer->config;
- 	struct vpfe_rsz_output_spec output_specs;
+-	if (region > ARRAY_SIZE(region_configs))
++	if (region >= ARRAY_SIZE(region_configs))
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&bdev->mutex);
+
 -- 
-1.7.9.5
 
