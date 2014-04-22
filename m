@@ -1,2153 +1,1257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44003 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751101AbaDQWrI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 18:47:08 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olliver Schinagl <oliver@schinagl.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] update DVB-T Finland Digita network
-Date: Fri, 18 Apr 2014 01:46:53 +0300
-Message-Id: <1397774813-17484-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1212 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755377AbaDVNBo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Apr 2014 09:01:44 -0400
+Message-ID: <53566829.4050104@xs4all.nl>
+Date: Tue, 22 Apr 2014 15:01:29 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] v4l: subdev: Move [gs]_std operation to video ops
+References: <1394532878-3943-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394532878-3943-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- dvb-t/fi-Aanekoski               | 2 +-
- dvb-t/fi-Aanekoski_Konginkangas  | 2 +-
- dvb-t/fi-Ahtari                  | 2 +-
- dvb-t/fi-Alajarvi                | 2 +-
- dvb-t/fi-Anjalankoski_Ruotila    | 2 +-
- dvb-t/fi-Enontekio_Ahovaara      | 2 +-
- dvb-t/fi-Enontekio_Hetta         | 2 +-
- dvb-t/fi-Enontekio_Kuttanen      | 2 +-
- dvb-t/fi-Espoo                   | 2 +-
- dvb-t/fi-Eurajoki                | 2 +-
- dvb-t/fi-Fiskars                 | 2 +-
- dvb-t/fi-Haapavesi               | 2 +-
- dvb-t/fi-Hameenkyro_Kyroskoski   | 2 +-
- dvb-t/fi-Hameenlinna_Painokangas | 2 +-
- dvb-t/fi-Hanko                   | 2 +-
- dvb-t/fi-Hartola                 | 2 +-
- dvb-t/fi-Heinavesi               | 2 +-
- dvb-t/fi-Heinola                 | 2 +-
- dvb-t/fi-Hyrynsalmi              | 2 +-
- dvb-t/fi-Hyrynsalmi_Kyparavaara  | 2 +-
- dvb-t/fi-Hyrynsalmi_Paljakka     | 2 +-
- dvb-t/fi-Hyvinkaa                | 4 ++--
- dvb-t/fi-Ii_Raiskio              | 2 +-
- dvb-t/fi-Iisalmi                 | 2 +-
- dvb-t/fi-Ikaalinen               | 2 +-
- dvb-t/fi-Ikaalinen_Riitiala      | 2 +-
- dvb-t/fi-Inari                   | 2 +-
- dvb-t/fi-Inari_Janispaa          | 2 +-
- dvb-t/fi-Inari_Naatamo           | 2 +-
- dvb-t/fi-Ivalo_Saarineitamovaara | 2 +-
- dvb-t/fi-Jalasjarvi              | 2 +-
- dvb-t/fi-Jamsa_Halli             | 2 +-
- dvb-t/fi-Jamsa_Kaipola           | 2 +-
- dvb-t/fi-Jamsa_Matkosvuori       | 2 +-
- dvb-t/fi-Jamsa_Ouninpohja        | 2 +-
- dvb-t/fi-Jamsankoski             | 2 +-
- dvb-t/fi-Joensuu_Vestinkallio    | 2 +-
- dvb-t/fi-Joroinen_Puukkola       | 2 +-
- dvb-t/fi-Joutsa_Lankia           | 2 +-
- dvb-t/fi-Joutseno                | 2 +-
- dvb-t/fi-Juupajoki_Kopsamo       | 2 +-
- dvb-t/fi-Juva                    | 2 +-
- dvb-t/fi-Jyvaskyla               | 2 +-
- dvb-t/fi-Jyvaskyla_Vaajakoski    | 2 +-
- dvb-t/fi-Kaavi_Sivakkavaara      | 2 +-
- dvb-t/fi-Kajaani_Pollyvaara      | 2 +-
- dvb-t/fi-Kalajoki                | 2 +-
- dvb-t/fi-Kangaslampi             | 2 +-
- dvb-t/fi-Kangasniemi_Turkinmaki  | 2 +-
- dvb-t/fi-Kankaanpaa              | 2 +-
- dvb-t/fi-Karigasniemi            | 2 +-
- dvb-t/fi-Karkkila                | 2 +-
- dvb-t/fi-Karstula                | 2 +-
- dvb-t/fi-Karvia                  | 2 +-
- dvb-t/fi-Kaunispaa               | 2 +-
- dvb-t/fi-Kemijarvi_Suomutunturi  | 2 +-
- dvb-t/fi-Kerimaki                | 4 ++--
- dvb-t/fi-Keuruu                  | 2 +-
- dvb-t/fi-Keuruu_Haapamaki        | 2 +-
- dvb-t/fi-Kihnio                  | 2 +-
- dvb-t/fi-Kiihtelysvaara          | 2 +-
- dvb-t/fi-Kilpisjarvi             | 2 +-
- dvb-t/fi-Kittila_Levitunturi     | 2 +-
- dvb-t/fi-Kolari_Vuolittaja       | 2 +-
- dvb-t/fi-Koli                    | 2 +-
- dvb-t/fi-Korpilahti_Vaarunvuori  | 2 +-
- dvb-t/fi-Korppoo                 | 2 +-
- dvb-t/fi-Kruunupyy               | 2 +-
- dvb-t/fi-Kuhmo_Haukela           | 2 +-
- dvb-t/fi-Kuhmo_Lentiira          | 2 +-
- dvb-t/fi-Kuhmo_Niva              | 2 +-
- dvb-t/fi-Kuhmoinen               | 2 +-
- dvb-t/fi-Kuhmoinen_Harjunsalmi   | 2 +-
- dvb-t/fi-Kuhmoinen_Puukkoinen    | 2 +-
- dvb-t/fi-Kuopio                  | 2 +-
- dvb-t/fi-Kurikka_Kesti           | 6 ++++++
- dvb-t/fi-Kustavi_Viherlahti      | 2 +-
- dvb-t/fi-Kuusamo_Hamppulampi     | 2 +-
- dvb-t/fi-Kyyjarvi_Noposenaho     | 2 +-
- dvb-t/fi-Lahti                   | 2 +-
- dvb-t/fi-Lapua                   | 2 +-
- dvb-t/fi-Laukaa                  | 2 +-
- dvb-t/fi-Laukaa_Vihtavuori       | 2 +-
- dvb-t/fi-Lavia                   | 2 +-
- dvb-t/fi-Lohja                   | 2 +-
- dvb-t/fi-Loimaa                  | 2 +-
- dvb-t/fi-Luhanka                 | 2 +-
- dvb-t/fi-Luopioinen              | 2 +-
- dvb-t/fi-Mantta                  | 2 +-
- dvb-t/fi-Mantyharju              | 2 +-
- dvb-t/fi-Mikkeli                 | 2 +-
- dvb-t/fi-Muonio_Olostunturi      | 2 +-
- dvb-t/fi-Nilsia                  | 2 +-
- dvb-t/fi-Nilsia_Keski-Siikajarvi | 2 +-
- dvb-t/fi-Nilsia_Pisa             | 2 +-
- dvb-t/fi-Nokia                   | 2 +-
- dvb-t/fi-Nokia_Siuro             | 2 +-
- dvb-t/fi-Nummi-Pusula_Hyonola    | 2 +-
- dvb-t/fi-Nuorgam_Njallavaara     | 2 +-
- dvb-t/fi-Nuorgam_raja            | 6 +++---
- dvb-t/fi-Nurmes_Konnanvaara      | 2 +-
- dvb-t/fi-Nurmes_Kortevaara       | 2 +-
- dvb-t/fi-Orivesi_Talviainen      | 2 +-
- dvb-t/fi-Oulu                    | 2 +-
- dvb-t/fi-Padasjoki               | 2 +-
- dvb-t/fi-Padasjoki_Arrakoski     | 2 +-
- dvb-t/fi-Paltamo_Kivesvaara      | 2 +-
- dvb-t/fi-Parainen_Houtskari      | 2 +-
- dvb-t/fi-Parikkala               | 2 +-
- dvb-t/fi-Parkano_Sopukallio      | 2 +-
- dvb-t/fi-Pello                   | 2 +-
- dvb-t/fi-Pello_Ratasvaara        | 2 +-
- dvb-t/fi-Perho                   | 2 +-
- dvb-t/fi-Pernaja                 | 2 +-
- dvb-t/fi-Pieksamaki_Halkokumpu   | 2 +-
- dvb-t/fi-Pihtipudas              | 2 +-
- dvb-t/fi-Porvoo_Suomenkyla       | 2 +-
- dvb-t/fi-Posio                   | 2 +-
- dvb-t/fi-Pudasjarvi              | 2 +-
- dvb-t/fi-Pudasjarvi_Iso-Syote    | 2 +-
- dvb-t/fi-Pudasjarvi_Kangasvaara  | 2 +-
- dvb-t/fi-Puolanka                | 2 +-
- dvb-t/fi-Pyhatunturi             | 2 +-
- dvb-t/fi-Pyhavuori               | 2 +-
- dvb-t/fi-Pylkonmaki_Karankajarvi | 2 +-
- dvb-t/fi-Raahe_Mestauskallio     | 2 +-
- dvb-t/fi-Raahe_Piehinki          | 4 ++--
- dvb-t/fi-Ranua_Haasionmaa        | 2 +-
- dvb-t/fi-Ranua_Leppiaho          | 2 +-
- dvb-t/fi-Rautavaara_Angervikko   | 2 +-
- dvb-t/fi-Rautjarvi_Simpele       | 2 +-
- dvb-t/fi-Ristijarvi              | 2 +-
- dvb-t/fi-Rovaniemi               | 2 +-
- dvb-t/fi-Rovaniemi_Kaihuanvaara  | 2 +-
- dvb-t/fi-Rovaniemi_Karhuvaara    | 2 +-
- dvb-t/fi-Rovaniemi_Marasenkallio | 2 +-
- dvb-t/fi-Rovaniemi_Rantalaki     | 2 +-
- dvb-t/fi-Rovaniemi_Sonka         | 2 +-
- dvb-t/fi-Rovaniemi_Sorviselka    | 4 ++--
- dvb-t/fi-Ruka                    | 2 +-
- dvb-t/fi-Ruovesi_Storminiemi     | 2 +-
- dvb-t/fi-Saarijarvi              | 2 +-
- dvb-t/fi-Saarijarvi_Kalmari      | 2 +-
- dvb-t/fi-Saarijarvi_Mahlu        | 2 +-
- dvb-t/fi-Salla_Hirvasvaara       | 2 +-
- dvb-t/fi-Salla_Ihistysjanka      | 6 +++---
- dvb-t/fi-Salla_Naruska           | 4 ++--
- dvb-t/fi-Salla_Sallatunturi      | 2 +-
- dvb-t/fi-Salla_Sarivaara         | 2 +-
- dvb-t/fi-Salo_Isokyla            | 2 +-
- dvb-t/fi-Savukoski_Martti        | 2 +-
- dvb-t/fi-Savukoski_Tanhua        | 2 +-
- dvb-t/fi-Siilinjarvi             | 2 +-
- dvb-t/fi-Simo_Viantie            | 5 +++++
- dvb-t/fi-Sipoo_Norrkulla         | 2 +-
- dvb-t/fi-Sodankyla_Pittiovaara   | 2 +-
- dvb-t/fi-Sodankyla_Vuotso        | 2 +-
- dvb-t/fi-Sulkava_Vaatalanmaki    | 2 +-
- dvb-t/fi-Suomussalmi_Ala-Vuokki  | 2 +-
- dvb-t/fi-Suomussalmi_Ammansaari  | 2 +-
- dvb-t/fi-Suomussalmi_Juntusranta | 2 +-
- dvb-t/fi-Suomussalmi_Myllylahti  | 2 +-
- dvb-t/fi-Sysma_Liikola           | 2 +-
- dvb-t/fi-Taivalkoski             | 2 +-
- dvb-t/fi-Taivalkoski_Taivalvaara | 2 +-
- dvb-t/fi-Tammela                 | 2 +-
- dvb-t/fi-Tammisaari              | 2 +-
- dvb-t/fi-Tampere                 | 2 +-
- dvb-t/fi-Tampere_Pyynikki        | 2 +-
- dvb-t/fi-Tervola                 | 2 +-
- dvb-t/fi-Turku                   | 2 +-
- dvb-t/fi-Utsjoki                 | 2 +-
- dvb-t/fi-Utsjoki_Nuvvus          | 2 +-
- dvb-t/fi-Utsjoki_Outakoski       | 2 +-
- dvb-t/fi-Utsjoki_Polvarniemi     | 2 +-
- dvb-t/fi-Utsjoki_Rovisuvanto     | 2 +-
- dvb-t/fi-Utsjoki_Tenola          | 2 +-
- dvb-t/fi-Uusikaupunki_Orivo      | 2 +-
- dvb-t/fi-Vaala                   | 2 +-
- dvb-t/fi-Vaasa                   | 2 +-
- dvb-t/fi-Valtimo                 | 2 +-
- dvb-t/fi-Vammala_Jyranvuori      | 2 +-
- dvb-t/fi-Vammala_Roismala        | 2 +-
- dvb-t/fi-Vammala_Savi            | 2 +-
- dvb-t/fi-Vantaa_Hakunila         | 2 +-
- dvb-t/fi-Varpaisjarvi_Honkamaki  | 2 +-
- dvb-t/fi-Virrat_Lappavuori       | 2 +-
- dvb-t/fi-Vuokatti                | 2 +-
- dvb-t/fi-Ylitornio_Ainiovaara    | 2 +-
- dvb-t/fi-Ylitornio_Raanujarvi    | 2 +-
- dvb-t/fi-Yllas                   | 2 +-
- dvb-t/fi-Yllasjarvi              | 2 +-
- 192 files changed, 210 insertions(+), 199 deletions(-)
- create mode 100644 dvb-t/fi-Kurikka_Kesti
- create mode 100644 dvb-t/fi-Simo_Viantie
+Hi Laurent,
 
-diff --git a/dvb-t/fi-Aanekoski b/dvb-t/fi-Aanekoski
-index 2534f16..df29664 100644
---- a/dvb-t/fi-Aanekoski
-+++ b/dvb-t/fi-Aanekoski
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Aanekoski_Konginkangas b/dvb-t/fi-Aanekoski_Konginkangas
-index cd6d9d8..d28fec5 100644
---- a/dvb-t/fi-Aanekoski_Konginkangas
-+++ b/dvb-t/fi-Aanekoski_Konginkangas
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Ahtari b/dvb-t/fi-Ahtari
-index 3b58df6..f4280ef 100644
---- a/dvb-t/fi-Ahtari
-+++ b/dvb-t/fi-Ahtari
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Alajarvi b/dvb-t/fi-Alajarvi
-index d484cb2..1b84fcd 100644
---- a/dvb-t/fi-Alajarvi
-+++ b/dvb-t/fi-Alajarvi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Anjalankoski_Ruotila b/dvb-t/fi-Anjalankoski_Ruotila
-index 31b8a59..1b62665 100644
---- a/dvb-t/fi-Anjalankoski_Ruotila
-+++ b/dvb-t/fi-Anjalankoski_Ruotila
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Enontekio_Ahovaara b/dvb-t/fi-Enontekio_Ahovaara
-index c33c1bd..07b1e99 100644
---- a/dvb-t/fi-Enontekio_Ahovaara
-+++ b/dvb-t/fi-Enontekio_Ahovaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Enontekio_Hetta b/dvb-t/fi-Enontekio_Hetta
-index 9e1521a..045a5f7 100644
---- a/dvb-t/fi-Enontekio_Hetta
-+++ b/dvb-t/fi-Enontekio_Hetta
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Enontekio_Kuttanen b/dvb-t/fi-Enontekio_Kuttanen
-index d14e918..d5cbbcd 100644
---- a/dvb-t/fi-Enontekio_Kuttanen
-+++ b/dvb-t/fi-Enontekio_Kuttanen
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Espoo b/dvb-t/fi-Espoo
-index f77a2ec..08eede1 100644
---- a/dvb-t/fi-Espoo
-+++ b/dvb-t/fi-Espoo
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Eurajoki b/dvb-t/fi-Eurajoki
-index 294f211..daa8251 100644
---- a/dvb-t/fi-Eurajoki
-+++ b/dvb-t/fi-Eurajoki
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Fiskars b/dvb-t/fi-Fiskars
-index e0d4a61..c18ed78 100644
---- a/dvb-t/fi-Fiskars
-+++ b/dvb-t/fi-Fiskars
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Haapavesi b/dvb-t/fi-Haapavesi
-index 0dd514a..f586c57 100644
---- a/dvb-t/fi-Haapavesi
-+++ b/dvb-t/fi-Haapavesi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Hameenkyro_Kyroskoski b/dvb-t/fi-Hameenkyro_Kyroskoski
-index e7a1b76..2fd7f6e 100644
---- a/dvb-t/fi-Hameenkyro_Kyroskoski
-+++ b/dvb-t/fi-Hameenkyro_Kyroskoski
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Hameenlinna_Painokangas b/dvb-t/fi-Hameenlinna_Painokangas
-index 109ada3..b37c1f7 100644
---- a/dvb-t/fi-Hameenlinna_Painokangas
-+++ b/dvb-t/fi-Hameenlinna_Painokangas
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Hanko b/dvb-t/fi-Hanko
-index 6e4f57a..58c77f0 100644
---- a/dvb-t/fi-Hanko
-+++ b/dvb-t/fi-Hanko
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Hartola b/dvb-t/fi-Hartola
-index cde1665..8cf7912 100644
---- a/dvb-t/fi-Hartola
-+++ b/dvb-t/fi-Hartola
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Heinavesi b/dvb-t/fi-Heinavesi
-index 1db3d11..3aa9fbb 100644
---- a/dvb-t/fi-Heinavesi
-+++ b/dvb-t/fi-Heinavesi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Heinola b/dvb-t/fi-Heinola
-index 75001d5..76871b1 100644
---- a/dvb-t/fi-Heinola
-+++ b/dvb-t/fi-Heinola
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Hyrynsalmi b/dvb-t/fi-Hyrynsalmi
-index a305343..9e79003 100644
---- a/dvb-t/fi-Hyrynsalmi
-+++ b/dvb-t/fi-Hyrynsalmi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Hyrynsalmi_Kyparavaara b/dvb-t/fi-Hyrynsalmi_Kyparavaara
-index 2aa1ec3..7c339fe 100644
---- a/dvb-t/fi-Hyrynsalmi_Kyparavaara
-+++ b/dvb-t/fi-Hyrynsalmi_Kyparavaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Hyrynsalmi_Paljakka b/dvb-t/fi-Hyrynsalmi_Paljakka
-index 0df57e3..04f205d 100644
---- a/dvb-t/fi-Hyrynsalmi_Paljakka
-+++ b/dvb-t/fi-Hyrynsalmi_Paljakka
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Hyvinkaa b/dvb-t/fi-Hyvinkaa
-index e9de8e8..530d637 100644
---- a/dvb-t/fi-Hyvinkaa
-+++ b/dvb-t/fi-Hyvinkaa
-@@ -1,6 +1,6 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 538000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 350000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Ii_Raiskio b/dvb-t/fi-Ii_Raiskio
-index ef139d4..d0bbc29 100644
---- a/dvb-t/fi-Ii_Raiskio
-+++ b/dvb-t/fi-Ii_Raiskio
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Iisalmi b/dvb-t/fi-Iisalmi
-index 02337c1..0b320a4 100644
---- a/dvb-t/fi-Iisalmi
-+++ b/dvb-t/fi-Iisalmi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Ikaalinen b/dvb-t/fi-Ikaalinen
-index 7baf77f..94e7448 100644
---- a/dvb-t/fi-Ikaalinen
-+++ b/dvb-t/fi-Ikaalinen
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 538000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Ikaalinen_Riitiala b/dvb-t/fi-Ikaalinen_Riitiala
-index c2d9657..0cab46f 100644
---- a/dvb-t/fi-Ikaalinen_Riitiala
-+++ b/dvb-t/fi-Ikaalinen_Riitiala
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 738000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Inari b/dvb-t/fi-Inari
-index 4eb7655..7719b5d 100644
---- a/dvb-t/fi-Inari
-+++ b/dvb-t/fi-Inari
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Inari_Janispaa b/dvb-t/fi-Inari_Janispaa
-index 376bfe8..15eb2f9 100644
---- a/dvb-t/fi-Inari_Janispaa
-+++ b/dvb-t/fi-Inari_Janispaa
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Inari_Naatamo b/dvb-t/fi-Inari_Naatamo
-index 5ab0cce..1ccdb25 100644
---- a/dvb-t/fi-Inari_Naatamo
-+++ b/dvb-t/fi-Inari_Naatamo
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Ivalo_Saarineitamovaara b/dvb-t/fi-Ivalo_Saarineitamovaara
-index 88b0457..0b42b76 100644
---- a/dvb-t/fi-Ivalo_Saarineitamovaara
-+++ b/dvb-t/fi-Ivalo_Saarineitamovaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Jalasjarvi b/dvb-t/fi-Jalasjarvi
-index 99a213c..b61e670 100644
---- a/dvb-t/fi-Jalasjarvi
-+++ b/dvb-t/fi-Jalasjarvi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Jamsa_Halli b/dvb-t/fi-Jamsa_Halli
-index f8b39c6..539c92a 100644
---- a/dvb-t/fi-Jamsa_Halli
-+++ b/dvb-t/fi-Jamsa_Halli
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Jamsa_Kaipola b/dvb-t/fi-Jamsa_Kaipola
-index 530927b..3d3e334 100644
---- a/dvb-t/fi-Jamsa_Kaipola
-+++ b/dvb-t/fi-Jamsa_Kaipola
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Jamsa_Matkosvuori b/dvb-t/fi-Jamsa_Matkosvuori
-index 2cac328..c9a4c58 100644
---- a/dvb-t/fi-Jamsa_Matkosvuori
-+++ b/dvb-t/fi-Jamsa_Matkosvuori
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Jamsa_Ouninpohja b/dvb-t/fi-Jamsa_Ouninpohja
-index feae4e6..6d5cc4e 100644
---- a/dvb-t/fi-Jamsa_Ouninpohja
-+++ b/dvb-t/fi-Jamsa_Ouninpohja
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Jamsankoski b/dvb-t/fi-Jamsankoski
-index 6a52743..33618cb 100644
---- a/dvb-t/fi-Jamsankoski
-+++ b/dvb-t/fi-Jamsankoski
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Joensuu_Vestinkallio b/dvb-t/fi-Joensuu_Vestinkallio
-index f5e298a..e1b38a3 100644
---- a/dvb-t/fi-Joensuu_Vestinkallio
-+++ b/dvb-t/fi-Joensuu_Vestinkallio
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Joroinen_Puukkola b/dvb-t/fi-Joroinen_Puukkola
-index ca0c569..a4afcc5 100644
---- a/dvb-t/fi-Joroinen_Puukkola
-+++ b/dvb-t/fi-Joroinen_Puukkola
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Joutsa_Lankia b/dvb-t/fi-Joutsa_Lankia
-index 1134f94..c1201c5 100644
---- a/dvb-t/fi-Joutsa_Lankia
-+++ b/dvb-t/fi-Joutsa_Lankia
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Joutseno b/dvb-t/fi-Joutseno
-index bb05688..3c0cce7 100644
---- a/dvb-t/fi-Joutseno
-+++ b/dvb-t/fi-Joutseno
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 586000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Juupajoki_Kopsamo b/dvb-t/fi-Juupajoki_Kopsamo
-index 0c460bf..8fb85d4 100644
---- a/dvb-t/fi-Juupajoki_Kopsamo
-+++ b/dvb-t/fi-Juupajoki_Kopsamo
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Juva b/dvb-t/fi-Juva
-index e158428..7a93400 100644
---- a/dvb-t/fi-Juva
-+++ b/dvb-t/fi-Juva
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Jyvaskyla b/dvb-t/fi-Jyvaskyla
-index 22ca83c..078ed79 100644
---- a/dvb-t/fi-Jyvaskyla
-+++ b/dvb-t/fi-Jyvaskyla
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Jyvaskyla_Vaajakoski b/dvb-t/fi-Jyvaskyla_Vaajakoski
-index 6dd4889..650dcb0 100644
---- a/dvb-t/fi-Jyvaskyla_Vaajakoski
-+++ b/dvb-t/fi-Jyvaskyla_Vaajakoski
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kaavi_Sivakkavaara b/dvb-t/fi-Kaavi_Sivakkavaara
-index 744097f..467b7c1 100644
---- a/dvb-t/fi-Kaavi_Sivakkavaara
-+++ b/dvb-t/fi-Kaavi_Sivakkavaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kajaani_Pollyvaara b/dvb-t/fi-Kajaani_Pollyvaara
-index 31f059a..e679fbd 100644
---- a/dvb-t/fi-Kajaani_Pollyvaara
-+++ b/dvb-t/fi-Kajaani_Pollyvaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kalajoki b/dvb-t/fi-Kalajoki
-index 189f2e3..913de49 100644
---- a/dvb-t/fi-Kalajoki
-+++ b/dvb-t/fi-Kalajoki
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kangaslampi b/dvb-t/fi-Kangaslampi
-index 7ee87b0..612703a 100644
---- a/dvb-t/fi-Kangaslampi
-+++ b/dvb-t/fi-Kangaslampi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kangasniemi_Turkinmaki b/dvb-t/fi-Kangasniemi_Turkinmaki
-index 1df5b81..aacf690 100644
---- a/dvb-t/fi-Kangasniemi_Turkinmaki
-+++ b/dvb-t/fi-Kangasniemi_Turkinmaki
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kankaanpaa b/dvb-t/fi-Kankaanpaa
-index 9b15ac9..79e4b91 100644
---- a/dvb-t/fi-Kankaanpaa
-+++ b/dvb-t/fi-Kankaanpaa
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Karigasniemi b/dvb-t/fi-Karigasniemi
-index 4438ee0..07cdfb6 100644
---- a/dvb-t/fi-Karigasniemi
-+++ b/dvb-t/fi-Karigasniemi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Karkkila b/dvb-t/fi-Karkkila
-index df84c99..7454f98 100644
---- a/dvb-t/fi-Karkkila
-+++ b/dvb-t/fi-Karkkila
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Karstula b/dvb-t/fi-Karstula
-index 0377d77..92ef99f 100644
---- a/dvb-t/fi-Karstula
-+++ b/dvb-t/fi-Karstula
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Karvia b/dvb-t/fi-Karvia
-index 9ba1fec..b27e7b2 100644
---- a/dvb-t/fi-Karvia
-+++ b/dvb-t/fi-Karvia
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kaunispaa b/dvb-t/fi-Kaunispaa
-index 4eb7655..7719b5d 100644
---- a/dvb-t/fi-Kaunispaa
-+++ b/dvb-t/fi-Kaunispaa
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kemijarvi_Suomutunturi b/dvb-t/fi-Kemijarvi_Suomutunturi
-index 7f96259..61c7c49 100644
---- a/dvb-t/fi-Kemijarvi_Suomutunturi
-+++ b/dvb-t/fi-Kemijarvi_Suomutunturi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kerimaki b/dvb-t/fi-Kerimaki
-index 8dbbdfc..9f35fea 100644
---- a/dvb-t/fi-Kerimaki
-+++ b/dvb-t/fi-Kerimaki
-@@ -1,6 +1,6 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Keuruu b/dvb-t/fi-Keuruu
-index acb8129..06f2b06 100644
---- a/dvb-t/fi-Keuruu
-+++ b/dvb-t/fi-Keuruu
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Keuruu_Haapamaki b/dvb-t/fi-Keuruu_Haapamaki
-index b3b4663..5c11a58 100644
---- a/dvb-t/fi-Keuruu_Haapamaki
-+++ b/dvb-t/fi-Keuruu_Haapamaki
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kihnio b/dvb-t/fi-Kihnio
-index 3af6822..57d8435 100644
---- a/dvb-t/fi-Kihnio
-+++ b/dvb-t/fi-Kihnio
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 738000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kiihtelysvaara b/dvb-t/fi-Kiihtelysvaara
-index a805130..ef201aa 100644
---- a/dvb-t/fi-Kiihtelysvaara
-+++ b/dvb-t/fi-Kiihtelysvaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 778000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kilpisjarvi b/dvb-t/fi-Kilpisjarvi
-index f463f4d..d009c9f 100644
---- a/dvb-t/fi-Kilpisjarvi
-+++ b/dvb-t/fi-Kilpisjarvi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kittila_Levitunturi b/dvb-t/fi-Kittila_Levitunturi
-index d20d560..cf9bc63 100644
---- a/dvb-t/fi-Kittila_Levitunturi
-+++ b/dvb-t/fi-Kittila_Levitunturi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kolari_Vuolittaja b/dvb-t/fi-Kolari_Vuolittaja
-index 2d1982a..b5bfaa3 100644
---- a/dvb-t/fi-Kolari_Vuolittaja
-+++ b/dvb-t/fi-Kolari_Vuolittaja
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Koli b/dvb-t/fi-Koli
-index eb975f3..331104a 100644
---- a/dvb-t/fi-Koli
-+++ b/dvb-t/fi-Koli
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Korpilahti_Vaarunvuori b/dvb-t/fi-Korpilahti_Vaarunvuori
-index 6a52743..33618cb 100644
---- a/dvb-t/fi-Korpilahti_Vaarunvuori
-+++ b/dvb-t/fi-Korpilahti_Vaarunvuori
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Korppoo b/dvb-t/fi-Korppoo
-index b30b9c5..3a812ca 100644
---- a/dvb-t/fi-Korppoo
-+++ b/dvb-t/fi-Korppoo
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kruunupyy b/dvb-t/fi-Kruunupyy
-index 77fbcd8..80a2ca0 100644
---- a/dvb-t/fi-Kruunupyy
-+++ b/dvb-t/fi-Kruunupyy
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kuhmo_Haukela b/dvb-t/fi-Kuhmo_Haukela
-index 2bd1ba2..424751e 100644
---- a/dvb-t/fi-Kuhmo_Haukela
-+++ b/dvb-t/fi-Kuhmo_Haukela
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kuhmo_Lentiira b/dvb-t/fi-Kuhmo_Lentiira
-index 68d24b7..e0e6a7e 100644
---- a/dvb-t/fi-Kuhmo_Lentiira
-+++ b/dvb-t/fi-Kuhmo_Lentiira
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kuhmo_Niva b/dvb-t/fi-Kuhmo_Niva
-index df1b5e9..c855b8f 100644
---- a/dvb-t/fi-Kuhmo_Niva
-+++ b/dvb-t/fi-Kuhmo_Niva
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kuhmoinen b/dvb-t/fi-Kuhmoinen
-index 1395069..528bd51 100644
---- a/dvb-t/fi-Kuhmoinen
-+++ b/dvb-t/fi-Kuhmoinen
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kuhmoinen_Harjunsalmi b/dvb-t/fi-Kuhmoinen_Harjunsalmi
-index 812fdab..8c8d514 100644
---- a/dvb-t/fi-Kuhmoinen_Harjunsalmi
-+++ b/dvb-t/fi-Kuhmoinen_Harjunsalmi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kuhmoinen_Puukkoinen b/dvb-t/fi-Kuhmoinen_Puukkoinen
-index b2c2427..14bd7f2 100644
---- a/dvb-t/fi-Kuhmoinen_Puukkoinen
-+++ b/dvb-t/fi-Kuhmoinen_Puukkoinen
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kuopio b/dvb-t/fi-Kuopio
-index aa2008f..1c133dc 100644
---- a/dvb-t/fi-Kuopio
-+++ b/dvb-t/fi-Kuopio
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kurikka_Kesti b/dvb-t/fi-Kurikka_Kesti
-new file mode 100644
-index 0000000..af779bb
---- /dev/null
-+++ b/dvb-t/fi-Kurikka_Kesti
-@@ -0,0 +1,6 @@
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kustavi_Viherlahti b/dvb-t/fi-Kustavi_Viherlahti
-index 28d8d91..65f49ca 100644
---- a/dvb-t/fi-Kustavi_Viherlahti
-+++ b/dvb-t/fi-Kustavi_Viherlahti
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 738000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kuusamo_Hamppulampi b/dvb-t/fi-Kuusamo_Hamppulampi
-index 358286d..f50c275 100644
---- a/dvb-t/fi-Kuusamo_Hamppulampi
-+++ b/dvb-t/fi-Kuusamo_Hamppulampi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Kyyjarvi_Noposenaho b/dvb-t/fi-Kyyjarvi_Noposenaho
-index bf891e1..6172d56 100644
---- a/dvb-t/fi-Kyyjarvi_Noposenaho
-+++ b/dvb-t/fi-Kyyjarvi_Noposenaho
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 586000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Lahti b/dvb-t/fi-Lahti
-index 92c0d2c..246151f 100644
---- a/dvb-t/fi-Lahti
-+++ b/dvb-t/fi-Lahti
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Lapua b/dvb-t/fi-Lapua
-index fff1bc1..82f9275 100644
---- a/dvb-t/fi-Lapua
-+++ b/dvb-t/fi-Lapua
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Laukaa b/dvb-t/fi-Laukaa
-index 6a52743..33618cb 100644
---- a/dvb-t/fi-Laukaa
-+++ b/dvb-t/fi-Laukaa
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Laukaa_Vihtavuori b/dvb-t/fi-Laukaa_Vihtavuori
-index 6a52743..33618cb 100644
---- a/dvb-t/fi-Laukaa_Vihtavuori
-+++ b/dvb-t/fi-Laukaa_Vihtavuori
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Lavia b/dvb-t/fi-Lavia
-index c2e7a0c..f6bbd4b 100644
---- a/dvb-t/fi-Lavia
-+++ b/dvb-t/fi-Lavia
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Lohja b/dvb-t/fi-Lohja
-index 367f0e3..32da823 100644
---- a/dvb-t/fi-Lohja
-+++ b/dvb-t/fi-Lohja
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Loimaa b/dvb-t/fi-Loimaa
-index ee8433d..4986fa0 100644
---- a/dvb-t/fi-Loimaa
-+++ b/dvb-t/fi-Loimaa
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Luhanka b/dvb-t/fi-Luhanka
-index 6765851..2fbe272 100644
---- a/dvb-t/fi-Luhanka
-+++ b/dvb-t/fi-Luhanka
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Luopioinen b/dvb-t/fi-Luopioinen
-index d251734..64cf51f 100644
---- a/dvb-t/fi-Luopioinen
-+++ b/dvb-t/fi-Luopioinen
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Mantta b/dvb-t/fi-Mantta
-index 2a440c7..138bc5d 100644
---- a/dvb-t/fi-Mantta
-+++ b/dvb-t/fi-Mantta
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Mantyharju b/dvb-t/fi-Mantyharju
-index 84ee2ab..99c20de 100644
---- a/dvb-t/fi-Mantyharju
-+++ b/dvb-t/fi-Mantyharju
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Mikkeli b/dvb-t/fi-Mikkeli
-index 0198404..62a731c 100644
---- a/dvb-t/fi-Mikkeli
-+++ b/dvb-t/fi-Mikkeli
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 538000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Muonio_Olostunturi b/dvb-t/fi-Muonio_Olostunturi
-index a0f2c9d..1e3ca6d 100644
---- a/dvb-t/fi-Muonio_Olostunturi
-+++ b/dvb-t/fi-Muonio_Olostunturi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Nilsia b/dvb-t/fi-Nilsia
-index e756bd7..07715b2 100644
---- a/dvb-t/fi-Nilsia
-+++ b/dvb-t/fi-Nilsia
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Nilsia_Keski-Siikajarvi b/dvb-t/fi-Nilsia_Keski-Siikajarvi
-index 328026f..b8f04b9 100644
---- a/dvb-t/fi-Nilsia_Keski-Siikajarvi
-+++ b/dvb-t/fi-Nilsia_Keski-Siikajarvi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Nilsia_Pisa b/dvb-t/fi-Nilsia_Pisa
-index 0a9f233..9aa9d01 100644
---- a/dvb-t/fi-Nilsia_Pisa
-+++ b/dvb-t/fi-Nilsia_Pisa
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Nokia b/dvb-t/fi-Nokia
-index 7e4853d..188bcff 100644
---- a/dvb-t/fi-Nokia
-+++ b/dvb-t/fi-Nokia
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Nokia_Siuro b/dvb-t/fi-Nokia_Siuro
-index 7e4853d..188bcff 100644
---- a/dvb-t/fi-Nokia_Siuro
-+++ b/dvb-t/fi-Nokia_Siuro
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Nummi-Pusula_Hyonola b/dvb-t/fi-Nummi-Pusula_Hyonola
-index 0b255be..1a45304 100644
---- a/dvb-t/fi-Nummi-Pusula_Hyonola
-+++ b/dvb-t/fi-Nummi-Pusula_Hyonola
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 778000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Nuorgam_Njallavaara b/dvb-t/fi-Nuorgam_Njallavaara
-index d4b5c21..6ac1d3c 100644
---- a/dvb-t/fi-Nuorgam_Njallavaara
-+++ b/dvb-t/fi-Nuorgam_Njallavaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Nuorgam_raja b/dvb-t/fi-Nuorgam_raja
-index d4b5c21..f65625a 100644
---- a/dvb-t/fi-Nuorgam_raja
-+++ b/dvb-t/fi-Nuorgam_raja
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
--T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Nurmes_Konnanvaara b/dvb-t/fi-Nurmes_Konnanvaara
-index 0f67047..6174c37 100644
---- a/dvb-t/fi-Nurmes_Konnanvaara
-+++ b/dvb-t/fi-Nurmes_Konnanvaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Nurmes_Kortevaara b/dvb-t/fi-Nurmes_Kortevaara
-index c00c535..21eef15 100644
---- a/dvb-t/fi-Nurmes_Kortevaara
-+++ b/dvb-t/fi-Nurmes_Kortevaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Orivesi_Talviainen b/dvb-t/fi-Orivesi_Talviainen
-index 1e7c752..eae855a 100644
---- a/dvb-t/fi-Orivesi_Talviainen
-+++ b/dvb-t/fi-Orivesi_Talviainen
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Oulu b/dvb-t/fi-Oulu
-index ae0133d..6083a0b 100644
---- a/dvb-t/fi-Oulu
-+++ b/dvb-t/fi-Oulu
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 634000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Padasjoki b/dvb-t/fi-Padasjoki
-index 6cfd9fa..1a5eabc 100644
---- a/dvb-t/fi-Padasjoki
-+++ b/dvb-t/fi-Padasjoki
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Padasjoki_Arrakoski b/dvb-t/fi-Padasjoki_Arrakoski
-index b56e164..ae93adb 100644
---- a/dvb-t/fi-Padasjoki_Arrakoski
-+++ b/dvb-t/fi-Padasjoki_Arrakoski
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Paltamo_Kivesvaara b/dvb-t/fi-Paltamo_Kivesvaara
-index 563c641..c1de40a 100644
---- a/dvb-t/fi-Paltamo_Kivesvaara
-+++ b/dvb-t/fi-Paltamo_Kivesvaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Parainen_Houtskari b/dvb-t/fi-Parainen_Houtskari
-index b30b9c5..3a812ca 100644
---- a/dvb-t/fi-Parainen_Houtskari
-+++ b/dvb-t/fi-Parainen_Houtskari
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Parikkala b/dvb-t/fi-Parikkala
-index c3a1870..d0ecaa2 100644
---- a/dvb-t/fi-Parikkala
-+++ b/dvb-t/fi-Parikkala
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 778000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Parkano_Sopukallio b/dvb-t/fi-Parkano_Sopukallio
-index d9e0722..1a01504 100644
---- a/dvb-t/fi-Parkano_Sopukallio
-+++ b/dvb-t/fi-Parkano_Sopukallio
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Pello b/dvb-t/fi-Pello
-index 12faa96..e48aed0 100644
---- a/dvb-t/fi-Pello
-+++ b/dvb-t/fi-Pello
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Pello_Ratasvaara b/dvb-t/fi-Pello_Ratasvaara
-index ff4811f..599a241 100644
---- a/dvb-t/fi-Pello_Ratasvaara
-+++ b/dvb-t/fi-Pello_Ratasvaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Perho b/dvb-t/fi-Perho
-index 7bd3060..f17f23a 100644
---- a/dvb-t/fi-Perho
-+++ b/dvb-t/fi-Perho
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Pernaja b/dvb-t/fi-Pernaja
-index 3e80114..a032ca2 100644
---- a/dvb-t/fi-Pernaja
-+++ b/dvb-t/fi-Pernaja
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Pieksamaki_Halkokumpu b/dvb-t/fi-Pieksamaki_Halkokumpu
-index d45114e..9f38363 100644
---- a/dvb-t/fi-Pieksamaki_Halkokumpu
-+++ b/dvb-t/fi-Pieksamaki_Halkokumpu
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Pihtipudas b/dvb-t/fi-Pihtipudas
-index e4f9707..b390296 100644
---- a/dvb-t/fi-Pihtipudas
-+++ b/dvb-t/fi-Pihtipudas
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Porvoo_Suomenkyla b/dvb-t/fi-Porvoo_Suomenkyla
-index 56ed3da..66c87ee 100644
---- a/dvb-t/fi-Porvoo_Suomenkyla
-+++ b/dvb-t/fi-Porvoo_Suomenkyla
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Posio b/dvb-t/fi-Posio
-index 086f1e5..290acbb 100644
---- a/dvb-t/fi-Posio
-+++ b/dvb-t/fi-Posio
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Pudasjarvi b/dvb-t/fi-Pudasjarvi
-index 43fc1a1..49becf6 100644
---- a/dvb-t/fi-Pudasjarvi
-+++ b/dvb-t/fi-Pudasjarvi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Pudasjarvi_Iso-Syote b/dvb-t/fi-Pudasjarvi_Iso-Syote
-index eac3af8..8325687 100644
---- a/dvb-t/fi-Pudasjarvi_Iso-Syote
-+++ b/dvb-t/fi-Pudasjarvi_Iso-Syote
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Pudasjarvi_Kangasvaara b/dvb-t/fi-Pudasjarvi_Kangasvaara
-index 0d56826..e6f402d 100644
---- a/dvb-t/fi-Pudasjarvi_Kangasvaara
-+++ b/dvb-t/fi-Pudasjarvi_Kangasvaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 538000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Puolanka b/dvb-t/fi-Puolanka
-index f2f5ae8..4498bb5 100644
---- a/dvb-t/fi-Puolanka
-+++ b/dvb-t/fi-Puolanka
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Pyhatunturi b/dvb-t/fi-Pyhatunturi
-index cc6d62a..caa90fc 100644
---- a/dvb-t/fi-Pyhatunturi
-+++ b/dvb-t/fi-Pyhatunturi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 634000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Pyhavuori b/dvb-t/fi-Pyhavuori
-index c21bd26..f0e89cb 100644
---- a/dvb-t/fi-Pyhavuori
-+++ b/dvb-t/fi-Pyhavuori
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 634000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Pylkonmaki_Karankajarvi b/dvb-t/fi-Pylkonmaki_Karankajarvi
-index 32fc368..a49cf8d 100644
---- a/dvb-t/fi-Pylkonmaki_Karankajarvi
-+++ b/dvb-t/fi-Pylkonmaki_Karankajarvi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Raahe_Mestauskallio b/dvb-t/fi-Raahe_Mestauskallio
-index 8ed4d47..7b23e15 100644
---- a/dvb-t/fi-Raahe_Mestauskallio
-+++ b/dvb-t/fi-Raahe_Mestauskallio
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Raahe_Piehinki b/dvb-t/fi-Raahe_Piehinki
-index 189f2e3..8760532 100644
---- a/dvb-t/fi-Raahe_Piehinki
-+++ b/dvb-t/fi-Raahe_Piehinki
-@@ -1,5 +1,5 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Ranua_Haasionmaa b/dvb-t/fi-Ranua_Haasionmaa
-index fdd5170..62927cd 100644
---- a/dvb-t/fi-Ranua_Haasionmaa
-+++ b/dvb-t/fi-Ranua_Haasionmaa
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 778000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Ranua_Leppiaho b/dvb-t/fi-Ranua_Leppiaho
-index 04878f0..72a32c9 100644
---- a/dvb-t/fi-Ranua_Leppiaho
-+++ b/dvb-t/fi-Ranua_Leppiaho
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Rautavaara_Angervikko b/dvb-t/fi-Rautavaara_Angervikko
-index a3bf806..6720d8b 100644
---- a/dvb-t/fi-Rautavaara_Angervikko
-+++ b/dvb-t/fi-Rautavaara_Angervikko
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 738000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Rautjarvi_Simpele b/dvb-t/fi-Rautjarvi_Simpele
-index 219d861..d7efefe 100644
---- a/dvb-t/fi-Rautjarvi_Simpele
-+++ b/dvb-t/fi-Rautjarvi_Simpele
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Ristijarvi b/dvb-t/fi-Ristijarvi
-index cc71a2e..ef0ea15 100644
---- a/dvb-t/fi-Ristijarvi
-+++ b/dvb-t/fi-Ristijarvi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Rovaniemi b/dvb-t/fi-Rovaniemi
-index ad311da..c86d368 100644
---- a/dvb-t/fi-Rovaniemi
-+++ b/dvb-t/fi-Rovaniemi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Rovaniemi_Kaihuanvaara b/dvb-t/fi-Rovaniemi_Kaihuanvaara
-index 4af59fc..65e1060 100644
---- a/dvb-t/fi-Rovaniemi_Kaihuanvaara
-+++ b/dvb-t/fi-Rovaniemi_Kaihuanvaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Rovaniemi_Karhuvaara b/dvb-t/fi-Rovaniemi_Karhuvaara
-index 2d1982a..b5bfaa3 100644
---- a/dvb-t/fi-Rovaniemi_Karhuvaara
-+++ b/dvb-t/fi-Rovaniemi_Karhuvaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Rovaniemi_Marasenkallio b/dvb-t/fi-Rovaniemi_Marasenkallio
-index 42d5e58..2b873f6 100644
---- a/dvb-t/fi-Rovaniemi_Marasenkallio
-+++ b/dvb-t/fi-Rovaniemi_Marasenkallio
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Rovaniemi_Rantalaki b/dvb-t/fi-Rovaniemi_Rantalaki
-index c47a475..db61425 100644
---- a/dvb-t/fi-Rovaniemi_Rantalaki
-+++ b/dvb-t/fi-Rovaniemi_Rantalaki
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Rovaniemi_Sonka b/dvb-t/fi-Rovaniemi_Sonka
-index 42d5e58..2b873f6 100644
---- a/dvb-t/fi-Rovaniemi_Sonka
-+++ b/dvb-t/fi-Rovaniemi_Sonka
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Rovaniemi_Sorviselka b/dvb-t/fi-Rovaniemi_Sorviselka
-index c47a475..4679f10 100644
---- a/dvb-t/fi-Rovaniemi_Sorviselka
-+++ b/dvb-t/fi-Rovaniemi_Sorviselka
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
--T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Ruka b/dvb-t/fi-Ruka
-index 342588e..b66db0f 100644
---- a/dvb-t/fi-Ruka
-+++ b/dvb-t/fi-Ruka
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Ruovesi_Storminiemi b/dvb-t/fi-Ruovesi_Storminiemi
-index e7a1b76..2fd7f6e 100644
---- a/dvb-t/fi-Ruovesi_Storminiemi
-+++ b/dvb-t/fi-Ruovesi_Storminiemi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Saarijarvi b/dvb-t/fi-Saarijarvi
-index 3a1d529..64c5a71 100644
---- a/dvb-t/fi-Saarijarvi
-+++ b/dvb-t/fi-Saarijarvi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Saarijarvi_Kalmari b/dvb-t/fi-Saarijarvi_Kalmari
-index 32fc368..a49cf8d 100644
---- a/dvb-t/fi-Saarijarvi_Kalmari
-+++ b/dvb-t/fi-Saarijarvi_Kalmari
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Saarijarvi_Mahlu b/dvb-t/fi-Saarijarvi_Mahlu
-index 5bc654d..23dc82d 100644
---- a/dvb-t/fi-Saarijarvi_Mahlu
-+++ b/dvb-t/fi-Saarijarvi_Mahlu
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Salla_Hirvasvaara b/dvb-t/fi-Salla_Hirvasvaara
-index dabee50..5f15fdf 100644
---- a/dvb-t/fi-Salla_Hirvasvaara
-+++ b/dvb-t/fi-Salla_Hirvasvaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Salla_Ihistysjanka b/dvb-t/fi-Salla_Ihistysjanka
-index f174639..d80d5a3 100644
---- a/dvb-t/fi-Salla_Ihistysjanka
-+++ b/dvb-t/fi-Salla_Ihistysjanka
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
--T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 586000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Salla_Naruska b/dvb-t/fi-Salla_Naruska
-index 82cc301..b6e4ae2 100644
---- a/dvb-t/fi-Salla_Naruska
-+++ b/dvb-t/fi-Salla_Naruska
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
--T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Salla_Sallatunturi b/dvb-t/fi-Salla_Sallatunturi
-index 02337c1..0b320a4 100644
---- a/dvb-t/fi-Salla_Sallatunturi
-+++ b/dvb-t/fi-Salla_Sallatunturi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Salla_Sarivaara b/dvb-t/fi-Salla_Sarivaara
-index 02337c1..0b320a4 100644
---- a/dvb-t/fi-Salla_Sarivaara
-+++ b/dvb-t/fi-Salla_Sarivaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Salo_Isokyla b/dvb-t/fi-Salo_Isokyla
-index fbc0e16..1898810 100644
---- a/dvb-t/fi-Salo_Isokyla
-+++ b/dvb-t/fi-Salo_Isokyla
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Savukoski_Martti b/dvb-t/fi-Savukoski_Martti
-index 528b935..ea5fade 100644
---- a/dvb-t/fi-Savukoski_Martti
-+++ b/dvb-t/fi-Savukoski_Martti
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Savukoski_Tanhua b/dvb-t/fi-Savukoski_Tanhua
-index 8b0ed7d..9d018a0 100644
---- a/dvb-t/fi-Savukoski_Tanhua
-+++ b/dvb-t/fi-Savukoski_Tanhua
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Siilinjarvi b/dvb-t/fi-Siilinjarvi
-index f9740e3..41f7378 100644
---- a/dvb-t/fi-Siilinjarvi
-+++ b/dvb-t/fi-Siilinjarvi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 634000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Simo_Viantie b/dvb-t/fi-Simo_Viantie
-new file mode 100644
-index 0000000..705ee6a
---- /dev/null
-+++ b/dvb-t/fi-Simo_Viantie
-@@ -0,0 +1,5 @@
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Sipoo_Norrkulla b/dvb-t/fi-Sipoo_Norrkulla
-index 36e347f..78bf7f7 100644
---- a/dvb-t/fi-Sipoo_Norrkulla
-+++ b/dvb-t/fi-Sipoo_Norrkulla
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Sodankyla_Pittiovaara b/dvb-t/fi-Sodankyla_Pittiovaara
-index 7d4d202..a1b1ea5 100644
---- a/dvb-t/fi-Sodankyla_Pittiovaara
-+++ b/dvb-t/fi-Sodankyla_Pittiovaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Sodankyla_Vuotso b/dvb-t/fi-Sodankyla_Vuotso
-index f3d427f..3122c87 100644
---- a/dvb-t/fi-Sodankyla_Vuotso
-+++ b/dvb-t/fi-Sodankyla_Vuotso
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Sulkava_Vaatalanmaki b/dvb-t/fi-Sulkava_Vaatalanmaki
-index f152823..60245bd 100644
---- a/dvb-t/fi-Sulkava_Vaatalanmaki
-+++ b/dvb-t/fi-Sulkava_Vaatalanmaki
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Suomussalmi_Ala-Vuokki b/dvb-t/fi-Suomussalmi_Ala-Vuokki
-index d993115..9efc445 100644
---- a/dvb-t/fi-Suomussalmi_Ala-Vuokki
-+++ b/dvb-t/fi-Suomussalmi_Ala-Vuokki
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Suomussalmi_Ammansaari b/dvb-t/fi-Suomussalmi_Ammansaari
-index 45a47d1..540d52b 100644
---- a/dvb-t/fi-Suomussalmi_Ammansaari
-+++ b/dvb-t/fi-Suomussalmi_Ammansaari
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Suomussalmi_Juntusranta b/dvb-t/fi-Suomussalmi_Juntusranta
-index 45a47d1..540d52b 100644
---- a/dvb-t/fi-Suomussalmi_Juntusranta
-+++ b/dvb-t/fi-Suomussalmi_Juntusranta
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Suomussalmi_Myllylahti b/dvb-t/fi-Suomussalmi_Myllylahti
-index d8824b2..4438848 100644
---- a/dvb-t/fi-Suomussalmi_Myllylahti
-+++ b/dvb-t/fi-Suomussalmi_Myllylahti
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Sysma_Liikola b/dvb-t/fi-Sysma_Liikola
-index 7920a08..d5d676a 100644
---- a/dvb-t/fi-Sysma_Liikola
-+++ b/dvb-t/fi-Sysma_Liikola
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Taivalkoski b/dvb-t/fi-Taivalkoski
-index 69fe3cb..33500d6 100644
---- a/dvb-t/fi-Taivalkoski
-+++ b/dvb-t/fi-Taivalkoski
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Taivalkoski_Taivalvaara b/dvb-t/fi-Taivalkoski_Taivalvaara
-index db30f84..532d4b3 100644
---- a/dvb-t/fi-Taivalkoski_Taivalvaara
-+++ b/dvb-t/fi-Taivalkoski_Taivalvaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Tammela b/dvb-t/fi-Tammela
-index 1fbd401..b1fa332 100644
---- a/dvb-t/fi-Tammela
-+++ b/dvb-t/fi-Tammela
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Tammisaari b/dvb-t/fi-Tammisaari
-index 41970b1..827e46a 100644
---- a/dvb-t/fi-Tammisaari
-+++ b/dvb-t/fi-Tammisaari
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Tampere b/dvb-t/fi-Tampere
-index ee78734..27ad95b 100644
---- a/dvb-t/fi-Tampere
-+++ b/dvb-t/fi-Tampere
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Tampere_Pyynikki b/dvb-t/fi-Tampere_Pyynikki
-index 76ba232..748e8a0 100644
---- a/dvb-t/fi-Tampere_Pyynikki
-+++ b/dvb-t/fi-Tampere_Pyynikki
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Tervola b/dvb-t/fi-Tervola
-index a532c2e..bdd08bf 100644
---- a/dvb-t/fi-Tervola
-+++ b/dvb-t/fi-Tervola
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Turku b/dvb-t/fi-Turku
-index 81b9c58..5d7fe00 100644
---- a/dvb-t/fi-Turku
-+++ b/dvb-t/fi-Turku
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 738000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Utsjoki b/dvb-t/fi-Utsjoki
-index 42a1548..46a9277 100644
---- a/dvb-t/fi-Utsjoki
-+++ b/dvb-t/fi-Utsjoki
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Utsjoki_Nuvvus b/dvb-t/fi-Utsjoki_Nuvvus
-index c1758b5..d0a768d 100644
---- a/dvb-t/fi-Utsjoki_Nuvvus
-+++ b/dvb-t/fi-Utsjoki_Nuvvus
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Utsjoki_Outakoski b/dvb-t/fi-Utsjoki_Outakoski
-index 4438ee0..07cdfb6 100644
---- a/dvb-t/fi-Utsjoki_Outakoski
-+++ b/dvb-t/fi-Utsjoki_Outakoski
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Utsjoki_Polvarniemi b/dvb-t/fi-Utsjoki_Polvarniemi
-index 4438ee0..07cdfb6 100644
---- a/dvb-t/fi-Utsjoki_Polvarniemi
-+++ b/dvb-t/fi-Utsjoki_Polvarniemi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Utsjoki_Rovisuvanto b/dvb-t/fi-Utsjoki_Rovisuvanto
-index 748370f..97cd05f 100644
---- a/dvb-t/fi-Utsjoki_Rovisuvanto
-+++ b/dvb-t/fi-Utsjoki_Rovisuvanto
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Utsjoki_Tenola b/dvb-t/fi-Utsjoki_Tenola
-index d3c19c2..41ed175 100644
---- a/dvb-t/fi-Utsjoki_Tenola
-+++ b/dvb-t/fi-Utsjoki_Tenola
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 634000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Uusikaupunki_Orivo b/dvb-t/fi-Uusikaupunki_Orivo
-index ea27b86..640fb25 100644
---- a/dvb-t/fi-Uusikaupunki_Orivo
-+++ b/dvb-t/fi-Uusikaupunki_Orivo
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Vaala b/dvb-t/fi-Vaala
-index 531ec04..1f7fb09 100644
---- a/dvb-t/fi-Vaala
-+++ b/dvb-t/fi-Vaala
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Vaasa b/dvb-t/fi-Vaasa
-index 38ae49f..396a5a3 100644
---- a/dvb-t/fi-Vaasa
-+++ b/dvb-t/fi-Vaasa
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Valtimo b/dvb-t/fi-Valtimo
-index 32f04c5..64d7d3a 100644
---- a/dvb-t/fi-Valtimo
-+++ b/dvb-t/fi-Valtimo
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 586000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Vammala_Jyranvuori b/dvb-t/fi-Vammala_Jyranvuori
-index 01f3d3d..a4474ae 100644
---- a/dvb-t/fi-Vammala_Jyranvuori
-+++ b/dvb-t/fi-Vammala_Jyranvuori
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Vammala_Roismala b/dvb-t/fi-Vammala_Roismala
-index ff228b2..649c383 100644
---- a/dvb-t/fi-Vammala_Roismala
-+++ b/dvb-t/fi-Vammala_Roismala
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Vammala_Savi b/dvb-t/fi-Vammala_Savi
-index 51ecf07..fe0102c 100644
---- a/dvb-t/fi-Vammala_Savi
-+++ b/dvb-t/fi-Vammala_Savi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Vantaa_Hakunila b/dvb-t/fi-Vantaa_Hakunila
-index 3c76ad5..91e721d 100644
---- a/dvb-t/fi-Vantaa_Hakunila
-+++ b/dvb-t/fi-Vantaa_Hakunila
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Varpaisjarvi_Honkamaki b/dvb-t/fi-Varpaisjarvi_Honkamaki
-index c302258..bca52ed 100644
---- a/dvb-t/fi-Varpaisjarvi_Honkamaki
-+++ b/dvb-t/fi-Varpaisjarvi_Honkamaki
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 634000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Virrat_Lappavuori b/dvb-t/fi-Virrat_Lappavuori
-index 72f369d..39992e2 100644
---- a/dvb-t/fi-Virrat_Lappavuori
-+++ b/dvb-t/fi-Virrat_Lappavuori
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Vuokatti b/dvb-t/fi-Vuokatti
-index 5384321..bf8b49c 100644
---- a/dvb-t/fi-Vuokatti
-+++ b/dvb-t/fi-Vuokatti
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Ylitornio_Ainiovaara b/dvb-t/fi-Ylitornio_Ainiovaara
-index db30295..34d9e04 100644
---- a/dvb-t/fi-Ylitornio_Ainiovaara
-+++ b/dvb-t/fi-Ylitornio_Ainiovaara
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Ylitornio_Raanujarvi b/dvb-t/fi-Ylitornio_Raanujarvi
-index 4a04198..2be87c6 100644
---- a/dvb-t/fi-Ylitornio_Raanujarvi
-+++ b/dvb-t/fi-Ylitornio_Raanujarvi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Yllas b/dvb-t/fi-Yllas
-index 12faa96..e48aed0 100644
---- a/dvb-t/fi-Yllas
-+++ b/dvb-t/fi-Yllas
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff --git a/dvb-t/fi-Yllasjarvi b/dvb-t/fi-Yllasjarvi
-index ad6f2a2..4887a06 100644
---- a/dvb-t/fi-Yllasjarvi
-+++ b/dvb-t/fi-Yllasjarvi
-@@ -1,4 +1,4 @@
--# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# 2014-04-18 Antti Palosaari <crope@iki.fi>
- # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--- 
-1.9.0
+On 03/11/2014 11:14 AM, Laurent Pinchart wrote:
+> The g_std and s_std operations are video-related, move them to the video
+> ops where they belong.
+
+You need to rebase this as it no longer applies to adv7180.c (trivial fix).
+
+Anyway, after rebasing:
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+I've also run the daily build with this patch without errors, so it looks
+like nothing was missed :-)
+
+Regards,
+
+	Hans
+
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/i2c/adv7180.c                     |  6 +-----
+>  drivers/media/i2c/adv7183.c                     |  4 ++--
+>  drivers/media/i2c/adv7842.c                     |  4 ++--
+>  drivers/media/i2c/bt819.c                       |  2 +-
+>  drivers/media/i2c/cx25840/cx25840-core.c        |  4 ++--
+>  drivers/media/i2c/ks0127.c                      |  6 +-----
+>  drivers/media/i2c/ml86v7667.c                   |  2 +-
+>  drivers/media/i2c/msp3400-driver.c              |  2 +-
+>  drivers/media/i2c/saa6752hs.c                   |  2 +-
+>  drivers/media/i2c/saa7110.c                     |  2 +-
+>  drivers/media/i2c/saa7115.c                     |  2 +-
+>  drivers/media/i2c/saa717x.c                     |  2 +-
+>  drivers/media/i2c/saa7191.c                     |  2 +-
+>  drivers/media/i2c/soc_camera/tw9910.c           |  4 ++--
+>  drivers/media/i2c/sony-btf-mpx.c                | 10 +++++-----
+>  drivers/media/i2c/tvaudio.c                     |  6 +++++-
+>  drivers/media/i2c/tvp514x.c                     |  2 +-
+>  drivers/media/i2c/tvp5150.c                     |  2 +-
+>  drivers/media/i2c/tw2804.c                      |  2 +-
+>  drivers/media/i2c/tw9903.c                      |  2 +-
+>  drivers/media/i2c/tw9906.c                      |  2 +-
+>  drivers/media/i2c/vp27smpx.c                    |  6 +++++-
+>  drivers/media/i2c/vpx3220.c                     |  2 +-
+>  drivers/media/pci/bt8xx/bttv-driver.c           |  2 +-
+>  drivers/media/pci/cx18/cx18-av-core.c           |  2 +-
+>  drivers/media/pci/cx18/cx18-fileops.c           |  2 +-
+>  drivers/media/pci/cx18/cx18-gpio.c              |  6 +++++-
+>  drivers/media/pci/cx18/cx18-ioctl.c             |  2 +-
+>  drivers/media/pci/cx23885/cx23885-video.c       |  4 ++--
+>  drivers/media/pci/cx88/cx88-core.c              |  2 +-
+>  drivers/media/pci/ivtv/ivtv-fileops.c           |  2 +-
+>  drivers/media/pci/ivtv/ivtv-ioctl.c             |  2 +-
+>  drivers/media/pci/saa7134/saa7134-video.c       |  4 ++--
+>  drivers/media/pci/saa7146/mxb.c                 | 14 +++++++-------
+>  drivers/media/pci/sta2x11/sta2x11_vip.c         |  4 ++--
+>  drivers/media/pci/zoran/zoran_device.c          |  2 +-
+>  drivers/media/pci/zoran/zoran_driver.c          |  2 +-
+>  drivers/media/platform/blackfin/bfin_capture.c  |  4 ++--
+>  drivers/media/platform/davinci/vpfe_capture.c   |  2 +-
+>  drivers/media/platform/davinci/vpif_capture.c   |  2 +-
+>  drivers/media/platform/davinci/vpif_display.c   |  2 +-
+>  drivers/media/platform/fsl-viu.c                |  2 +-
+>  drivers/media/platform/soc_camera/soc_camera.c  |  4 ++--
+>  drivers/media/platform/timblogiw.c              |  2 +-
+>  drivers/media/platform/vino.c                   |  6 +++---
+>  drivers/media/usb/au0828/au0828-video.c         |  4 ++--
+>  drivers/media/usb/cx231xx/cx231xx-417.c         |  2 +-
+>  drivers/media/usb/cx231xx/cx231xx-video.c       |  6 +++---
+>  drivers/media/usb/em28xx/em28xx-video.c         |  4 ++--
+>  drivers/media/usb/pvrusb2/pvrusb2-hdw.c         |  2 +-
+>  drivers/media/usb/stk1160/stk1160-v4l.c         |  4 ++--
+>  drivers/media/usb/tm6000/tm6000-cards.c         |  2 +-
+>  drivers/media/usb/tm6000/tm6000-video.c         |  2 +-
+>  drivers/media/usb/usbvision/usbvision-video.c   |  2 +-
+>  drivers/media/v4l2-core/tuner-core.c            |  6 +++++-
+>  drivers/staging/media/davinci_vpfe/vpfe_video.c |  2 +-
+>  drivers/staging/media/go7007/go7007-v4l2.c      |  2 +-
+>  drivers/staging/media/go7007/s2250-board.c      |  2 +-
+>  drivers/staging/media/go7007/saa7134-go7007.c   |  4 ++++
+>  include/media/v4l2-subdev.h                     |  6 +++---
+>  60 files changed, 107 insertions(+), 95 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+> index d7d99f1..10074a4 100644
+> --- a/drivers/media/i2c/adv7180.c
+> +++ b/drivers/media/i2c/adv7180.c
+> @@ -430,6 +430,7 @@ static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
+>  }
+>  
+>  static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+> +	.s_std = adv7180_s_std,
+>  	.querystd = adv7180_querystd,
+>  	.g_input_status = adv7180_g_input_status,
+>  	.s_routing = adv7180_s_routing,
+> @@ -440,12 +441,7 @@ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+>  	.g_mbus_config = adv7180_g_mbus_config,
+>  };
+>  
+> -static const struct v4l2_subdev_core_ops adv7180_core_ops = {
+> -	.s_std = adv7180_s_std,
+> -};
+> -
+>  static const struct v4l2_subdev_ops adv7180_ops = {
+> -	.core = &adv7180_core_ops,
+>  	.video = &adv7180_video_ops,
+>  };
+>  
+> diff --git a/drivers/media/i2c/adv7183.c b/drivers/media/i2c/adv7183.c
+> index d45e0e3..df461b0 100644
+> --- a/drivers/media/i2c/adv7183.c
+> +++ b/drivers/media/i2c/adv7183.c
+> @@ -501,8 +501,6 @@ static const struct v4l2_ctrl_ops adv7183_ctrl_ops = {
+>  
+>  static const struct v4l2_subdev_core_ops adv7183_core_ops = {
+>  	.log_status = adv7183_log_status,
+> -	.g_std = adv7183_g_std,
+> -	.s_std = adv7183_s_std,
+>  	.reset = adv7183_reset,
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+>  	.g_register = adv7183_g_register,
+> @@ -511,6 +509,8 @@ static const struct v4l2_subdev_core_ops adv7183_core_ops = {
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops adv7183_video_ops = {
+> +	.g_std = adv7183_g_std,
+> +	.s_std = adv7183_s_std,
+>  	.s_routing = adv7183_s_routing,
+>  	.querystd = adv7183_querystd,
+>  	.g_input_status = adv7183_g_input_status,
+> diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+> index 88ce9dc..12fb675 100644
+> --- a/drivers/media/i2c/adv7842.c
+> +++ b/drivers/media/i2c/adv7842.c
+> @@ -2869,8 +2869,6 @@ static const struct v4l2_ctrl_ops adv7842_ctrl_ops = {
+>  
+>  static const struct v4l2_subdev_core_ops adv7842_core_ops = {
+>  	.log_status = adv7842_log_status,
+> -	.g_std = adv7842_g_std,
+> -	.s_std = adv7842_s_std,
+>  	.ioctl = adv7842_ioctl,
+>  	.interrupt_service_routine = adv7842_isr,
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+> @@ -2880,6 +2878,8 @@ static const struct v4l2_subdev_core_ops adv7842_core_ops = {
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops adv7842_video_ops = {
+> +	.g_std = adv7842_g_std,
+> +	.s_std = adv7842_s_std,
+>  	.s_routing = adv7842_s_routing,
+>  	.querystd = adv7842_querystd,
+>  	.g_input_status = adv7842_g_input_status,
+> diff --git a/drivers/media/i2c/bt819.c b/drivers/media/i2c/bt819.c
+> index 369cf6f..76b334a 100644
+> --- a/drivers/media/i2c/bt819.c
+> +++ b/drivers/media/i2c/bt819.c
+> @@ -387,10 +387,10 @@ static const struct v4l2_subdev_core_ops bt819_core_ops = {
+>  	.s_ctrl = v4l2_subdev_s_ctrl,
+>  	.queryctrl = v4l2_subdev_queryctrl,
+>  	.querymenu = v4l2_subdev_querymenu,
+> -	.s_std = bt819_s_std,
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops bt819_video_ops = {
+> +	.s_std = bt819_s_std,
+>  	.s_routing = bt819_s_routing,
+>  	.s_stream = bt819_s_stream,
+>  	.querystd = bt819_querystd,
+> diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
+> index 2e3771d..e453a3f 100644
+> --- a/drivers/media/i2c/cx25840/cx25840-core.c
+> +++ b/drivers/media/i2c/cx25840/cx25840-core.c
+> @@ -5041,8 +5041,6 @@ static const struct v4l2_subdev_core_ops cx25840_core_ops = {
+>  	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
+>  	.queryctrl = v4l2_subdev_queryctrl,
+>  	.querymenu = v4l2_subdev_querymenu,
+> -	.s_std = cx25840_s_std,
+> -	.g_std = cx25840_g_std,
+>  	.reset = cx25840_reset,
+>  	.load_fw = cx25840_load_fw,
+>  	.s_io_pin_config = common_s_io_pin_config,
+> @@ -5067,6 +5065,8 @@ static const struct v4l2_subdev_audio_ops cx25840_audio_ops = {
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops cx25840_video_ops = {
+> +	.s_std = cx25840_s_std,
+> +	.g_std = cx25840_g_std,
+>  	.s_routing = cx25840_s_video_routing,
+>  	.s_mbus_fmt = cx25840_s_mbus_fmt,
+>  	.s_stream = cx25840_s_stream,
+> diff --git a/drivers/media/i2c/ks0127.c b/drivers/media/i2c/ks0127.c
+> index c3e94ae..25b81bc 100644
+> --- a/drivers/media/i2c/ks0127.c
+> +++ b/drivers/media/i2c/ks0127.c
+> @@ -648,11 +648,8 @@ static int ks0127_g_input_status(struct v4l2_subdev *sd, u32 *status)
+>  
+>  /* ----------------------------------------------------------------------- */
+>  
+> -static const struct v4l2_subdev_core_ops ks0127_core_ops = {
+> -	.s_std = ks0127_s_std,
+> -};
+> -
+>  static const struct v4l2_subdev_video_ops ks0127_video_ops = {
+> +	.s_std = ks0127_s_std,
+>  	.s_routing = ks0127_s_routing,
+>  	.s_stream = ks0127_s_stream,
+>  	.querystd = ks0127_querystd,
+> @@ -660,7 +657,6 @@ static const struct v4l2_subdev_video_ops ks0127_video_ops = {
+>  };
+>  
+>  static const struct v4l2_subdev_ops ks0127_ops = {
+> -	.core = &ks0127_core_ops,
+>  	.video = &ks0127_video_ops,
+>  };
+>  
+> diff --git a/drivers/media/i2c/ml86v7667.c b/drivers/media/i2c/ml86v7667.c
+> index a9110d8..2cace73 100644
+> --- a/drivers/media/i2c/ml86v7667.c
+> +++ b/drivers/media/i2c/ml86v7667.c
+> @@ -276,6 +276,7 @@ static const struct v4l2_ctrl_ops ml86v7667_ctrl_ops = {
+>  };
+>  
+>  static struct v4l2_subdev_video_ops ml86v7667_subdev_video_ops = {
+> +	.s_std = ml86v7667_s_std,
+>  	.querystd = ml86v7667_querystd,
+>  	.g_input_status = ml86v7667_g_input_status,
+>  	.enum_mbus_fmt = ml86v7667_enum_mbus_fmt,
+> @@ -286,7 +287,6 @@ static struct v4l2_subdev_video_ops ml86v7667_subdev_video_ops = {
+>  };
+>  
+>  static struct v4l2_subdev_core_ops ml86v7667_subdev_core_ops = {
+> -	.s_std = ml86v7667_s_std,
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+>  	.g_register = ml86v7667_g_register,
+>  	.s_register = ml86v7667_s_register,
+> diff --git a/drivers/media/i2c/msp3400-driver.c b/drivers/media/i2c/msp3400-driver.c
+> index 8190fec..4d9c6bc 100644
+> --- a/drivers/media/i2c/msp3400-driver.c
+> +++ b/drivers/media/i2c/msp3400-driver.c
+> @@ -649,10 +649,10 @@ static const struct v4l2_subdev_core_ops msp_core_ops = {
+>  	.s_ctrl = v4l2_subdev_s_ctrl,
+>  	.queryctrl = v4l2_subdev_queryctrl,
+>  	.querymenu = v4l2_subdev_querymenu,
+> -	.s_std = msp_s_std,
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops msp_video_ops = {
+> +	.s_std = msp_s_std,
+>  	.querystd = msp_querystd,
+>  };
+>  
+> diff --git a/drivers/media/i2c/saa6752hs.c b/drivers/media/i2c/saa6752hs.c
+> index 8272c0b..04e9e55 100644
+> --- a/drivers/media/i2c/saa6752hs.c
+> +++ b/drivers/media/i2c/saa6752hs.c
+> @@ -643,10 +643,10 @@ static const struct v4l2_ctrl_ops saa6752hs_ctrl_ops = {
+>  
+>  static const struct v4l2_subdev_core_ops saa6752hs_core_ops = {
+>  	.init = saa6752hs_init,
+> -	.s_std = saa6752hs_s_std,
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops saa6752hs_video_ops = {
+> +	.s_std = saa6752hs_s_std,
+>  	.s_mbus_fmt = saa6752hs_s_mbus_fmt,
+>  	.try_mbus_fmt = saa6752hs_try_mbus_fmt,
+>  	.g_mbus_fmt = saa6752hs_g_mbus_fmt,
+> diff --git a/drivers/media/i2c/saa7110.c b/drivers/media/i2c/saa7110.c
+> index ac43e92..99689ee 100644
+> --- a/drivers/media/i2c/saa7110.c
+> +++ b/drivers/media/i2c/saa7110.c
+> @@ -365,10 +365,10 @@ static const struct v4l2_subdev_core_ops saa7110_core_ops = {
+>  	.s_ctrl = v4l2_subdev_s_ctrl,
+>  	.queryctrl = v4l2_subdev_queryctrl,
+>  	.querymenu = v4l2_subdev_querymenu,
+> -	.s_std = saa7110_s_std,
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops saa7110_video_ops = {
+> +	.s_std = saa7110_s_std,
+>  	.s_routing = saa7110_s_routing,
+>  	.s_stream = saa7110_s_stream,
+>  	.querystd = saa7110_querystd,
+> diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+> index afdbcb0..35a4464 100644
+> --- a/drivers/media/i2c/saa7115.c
+> +++ b/drivers/media/i2c/saa7115.c
+> @@ -1582,7 +1582,6 @@ static const struct v4l2_subdev_core_ops saa711x_core_ops = {
+>  	.s_ctrl = v4l2_subdev_s_ctrl,
+>  	.queryctrl = v4l2_subdev_queryctrl,
+>  	.querymenu = v4l2_subdev_querymenu,
+> -	.s_std = saa711x_s_std,
+>  	.reset = saa711x_reset,
+>  	.s_gpio = saa711x_s_gpio,
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+> @@ -1601,6 +1600,7 @@ static const struct v4l2_subdev_audio_ops saa711x_audio_ops = {
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops saa711x_video_ops = {
+> +	.s_std = saa711x_s_std,
+>  	.s_routing = saa711x_s_routing,
+>  	.s_crystal_freq = saa711x_s_crystal_freq,
+>  	.s_mbus_fmt = saa711x_s_mbus_fmt,
+> diff --git a/drivers/media/i2c/saa717x.c b/drivers/media/i2c/saa717x.c
+> index 401ca11..6922a9f 100644
+> --- a/drivers/media/i2c/saa717x.c
+> +++ b/drivers/media/i2c/saa717x.c
+> @@ -1198,7 +1198,6 @@ static const struct v4l2_subdev_core_ops saa717x_core_ops = {
+>  	.g_register = saa717x_g_register,
+>  	.s_register = saa717x_s_register,
+>  #endif
+> -	.s_std = saa717x_s_std,
+>  	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
+>  	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+>  	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+> @@ -1216,6 +1215,7 @@ static const struct v4l2_subdev_tuner_ops saa717x_tuner_ops = {
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops saa717x_video_ops = {
+> +	.s_std = saa717x_s_std,
+>  	.s_routing = saa717x_s_video_routing,
+>  	.s_mbus_fmt = saa717x_s_mbus_fmt,
+>  	.s_stream = saa717x_s_stream,
+> diff --git a/drivers/media/i2c/saa7191.c b/drivers/media/i2c/saa7191.c
+> index 606a4ba..8e96992 100644
+> --- a/drivers/media/i2c/saa7191.c
+> +++ b/drivers/media/i2c/saa7191.c
+> @@ -573,10 +573,10 @@ static int saa7191_g_input_status(struct v4l2_subdev *sd, u32 *status)
+>  static const struct v4l2_subdev_core_ops saa7191_core_ops = {
+>  	.g_ctrl = saa7191_g_ctrl,
+>  	.s_ctrl = saa7191_s_ctrl,
+> -	.s_std = saa7191_s_std,
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops saa7191_video_ops = {
+> +	.s_std = saa7191_s_std,
+>  	.s_routing = saa7191_s_routing,
+>  	.querystd = saa7191_querystd,
+>  	.g_input_status = saa7191_g_input_status,
+> diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
+> index ab54628..059478a 100644
+> --- a/drivers/media/i2c/soc_camera/tw9910.c
+> +++ b/drivers/media/i2c/soc_camera/tw9910.c
+> @@ -814,8 +814,6 @@ done:
+>  }
+>  
+>  static struct v4l2_subdev_core_ops tw9910_subdev_core_ops = {
+> -	.s_std		= tw9910_s_std,
+> -	.g_std		= tw9910_g_std,
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+>  	.g_register	= tw9910_g_register,
+>  	.s_register	= tw9910_s_register,
+> @@ -873,6 +871,8 @@ static int tw9910_s_mbus_config(struct v4l2_subdev *sd,
+>  }
+>  
+>  static struct v4l2_subdev_video_ops tw9910_subdev_video_ops = {
+> +	.s_std		= tw9910_s_std,
+> +	.g_std		= tw9910_g_std,
+>  	.s_stream	= tw9910_s_stream,
+>  	.g_mbus_fmt	= tw9910_g_fmt,
+>  	.s_mbus_fmt	= tw9910_s_fmt,
+> diff --git a/drivers/media/i2c/sony-btf-mpx.c b/drivers/media/i2c/sony-btf-mpx.c
+> index 32d8232..1da8004 100644
+> --- a/drivers/media/i2c/sony-btf-mpx.c
+> +++ b/drivers/media/i2c/sony-btf-mpx.c
+> @@ -327,18 +327,18 @@ static int sony_btf_mpx_s_tuner(struct v4l2_subdev *sd, const struct v4l2_tuner
+>  
+>  /* --------------------------------------------------------------------------*/
+>  
+> -static const struct v4l2_subdev_core_ops sony_btf_mpx_core_ops = {
+> -	.s_std = sony_btf_mpx_s_std,
+> -};
+> -
+>  static const struct v4l2_subdev_tuner_ops sony_btf_mpx_tuner_ops = {
+>  	.s_tuner = sony_btf_mpx_s_tuner,
+>  	.g_tuner = sony_btf_mpx_g_tuner,
+>  };
+>  
+> +static const struct v4l2_subdev_video_ops sony_btf_mpx_video_ops = {
+> +	.s_std = sony_btf_mpx_s_std,
+> +};
+> +
+>  static const struct v4l2_subdev_ops sony_btf_mpx_ops = {
+> -	.core = &sony_btf_mpx_core_ops,
+>  	.tuner = &sony_btf_mpx_tuner_ops,
+> +	.video = &sony_btf_mpx_video_ops,
+>  };
+>  
+>  /* --------------------------------------------------------------------------*/
+> diff --git a/drivers/media/i2c/tvaudio.c b/drivers/media/i2c/tvaudio.c
+> index d76c53a8..070c152 100644
+> --- a/drivers/media/i2c/tvaudio.c
+> +++ b/drivers/media/i2c/tvaudio.c
+> @@ -1862,7 +1862,6 @@ static const struct v4l2_subdev_core_ops tvaudio_core_ops = {
+>  	.s_ctrl = v4l2_subdev_s_ctrl,
+>  	.queryctrl = v4l2_subdev_queryctrl,
+>  	.querymenu = v4l2_subdev_querymenu,
+> -	.s_std = tvaudio_s_std,
+>  };
+>  
+>  static const struct v4l2_subdev_tuner_ops tvaudio_tuner_ops = {
+> @@ -1876,10 +1875,15 @@ static const struct v4l2_subdev_audio_ops tvaudio_audio_ops = {
+>  	.s_routing = tvaudio_s_routing,
+>  };
+>  
+> +static const struct v4l2_subdev_video_ops tvaudio_video_ops = {
+> +	.s_std = tvaudio_s_std,
+> +};
+> +
+>  static const struct v4l2_subdev_ops tvaudio_ops = {
+>  	.core = &tvaudio_core_ops,
+>  	.tuner = &tvaudio_tuner_ops,
+>  	.audio = &tvaudio_audio_ops,
+> +	.video = &tvaudio_video_ops,
+>  };
+>  
+>  /* ----------------------------------------------------------------------- */
+> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+> index 83d85df..d163a95 100644
+> --- a/drivers/media/i2c/tvp514x.c
+> +++ b/drivers/media/i2c/tvp514x.c
+> @@ -1009,10 +1009,10 @@ static const struct v4l2_subdev_core_ops tvp514x_core_ops = {
+>  	.s_ctrl = v4l2_subdev_s_ctrl,
+>  	.queryctrl = v4l2_subdev_queryctrl,
+>  	.querymenu = v4l2_subdev_querymenu,
+> -	.s_std = tvp514x_s_std,
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops tvp514x_video_ops = {
+> +	.s_std = tvp514x_s_std,
+>  	.s_routing = tvp514x_s_routing,
+>  	.querystd = tvp514x_querystd,
+>  	.enum_mbus_fmt = tvp514x_enum_mbus_fmt,
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index 542d252..5ee0f40 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -1063,7 +1063,6 @@ static const struct v4l2_ctrl_ops tvp5150_ctrl_ops = {
+>  
+>  static const struct v4l2_subdev_core_ops tvp5150_core_ops = {
+>  	.log_status = tvp5150_log_status,
+> -	.s_std = tvp5150_s_std,
+>  	.reset = tvp5150_reset,
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+>  	.g_register = tvp5150_g_register,
+> @@ -1076,6 +1075,7 @@ static const struct v4l2_subdev_tuner_ops tvp5150_tuner_ops = {
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops tvp5150_video_ops = {
+> +	.s_std = tvp5150_s_std,
+>  	.s_routing = tvp5150_s_routing,
+>  	.enum_mbus_fmt = tvp5150_enum_mbus_fmt,
+>  	.s_mbus_fmt = tvp5150_mbus_fmt,
+> diff --git a/drivers/media/i2c/tw2804.c b/drivers/media/i2c/tw2804.c
+> index f58607d..7347480 100644
+> --- a/drivers/media/i2c/tw2804.c
+> +++ b/drivers/media/i2c/tw2804.c
+> @@ -342,12 +342,12 @@ static const struct v4l2_ctrl_ops tw2804_ctrl_ops = {
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops tw2804_video_ops = {
+> +	.s_std = tw2804_s_std,
+>  	.s_routing = tw2804_s_video_routing,
+>  };
+>  
+>  static const struct v4l2_subdev_core_ops tw2804_core_ops = {
+>  	.log_status = tw2804_log_status,
+> -	.s_std = tw2804_s_std,
+>  };
+>  
+>  static const struct v4l2_subdev_ops tw2804_ops = {
+> diff --git a/drivers/media/i2c/tw9903.c b/drivers/media/i2c/tw9903.c
+> index 285b759..12c7d21 100644
+> --- a/drivers/media/i2c/tw9903.c
+> +++ b/drivers/media/i2c/tw9903.c
+> @@ -187,10 +187,10 @@ static const struct v4l2_ctrl_ops tw9903_ctrl_ops = {
+>  
+>  static const struct v4l2_subdev_core_ops tw9903_core_ops = {
+>  	.log_status = tw9903_log_status,
+> -	.s_std = tw9903_s_std,
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops tw9903_video_ops = {
+> +	.s_std = tw9903_s_std,
+>  	.s_routing = tw9903_s_video_routing,
+>  };
+>  
+> diff --git a/drivers/media/i2c/tw9906.c b/drivers/media/i2c/tw9906.c
+> index f6bef25..2672d89 100644
+> --- a/drivers/media/i2c/tw9906.c
+> +++ b/drivers/media/i2c/tw9906.c
+> @@ -157,10 +157,10 @@ static const struct v4l2_ctrl_ops tw9906_ctrl_ops = {
+>  
+>  static const struct v4l2_subdev_core_ops tw9906_core_ops = {
+>  	.log_status = tw9906_log_status,
+> -	.s_std = tw9906_s_std,
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops tw9906_video_ops = {
+> +	.s_std = tw9906_s_std,
+>  	.s_routing = tw9906_s_video_routing,
+>  };
+>  
+> diff --git a/drivers/media/i2c/vp27smpx.c b/drivers/media/i2c/vp27smpx.c
+> index 6a3a3ff..819ab6d 100644
+> --- a/drivers/media/i2c/vp27smpx.c
+> +++ b/drivers/media/i2c/vp27smpx.c
+> @@ -124,7 +124,6 @@ static int vp27smpx_log_status(struct v4l2_subdev *sd)
+>  
+>  static const struct v4l2_subdev_core_ops vp27smpx_core_ops = {
+>  	.log_status = vp27smpx_log_status,
+> -	.s_std = vp27smpx_s_std,
+>  };
+>  
+>  static const struct v4l2_subdev_tuner_ops vp27smpx_tuner_ops = {
+> @@ -133,9 +132,14 @@ static const struct v4l2_subdev_tuner_ops vp27smpx_tuner_ops = {
+>  	.g_tuner = vp27smpx_g_tuner,
+>  };
+>  
+> +static const struct v4l2_subdev_video_ops vp27smpx_video_ops = {
+> +	.s_std = vp27smpx_s_std,
+> +};
+> +
+>  static const struct v4l2_subdev_ops vp27smpx_ops = {
+>  	.core = &vp27smpx_core_ops,
+>  	.tuner = &vp27smpx_tuner_ops,
+> +	.video = &vp27smpx_video_ops,
+>  };
+>  
+>  /* ----------------------------------------------------------------------- */
+> diff --git a/drivers/media/i2c/vpx3220.c b/drivers/media/i2c/vpx3220.c
+> index ece90df..016e766 100644
+> --- a/drivers/media/i2c/vpx3220.c
+> +++ b/drivers/media/i2c/vpx3220.c
+> @@ -457,10 +457,10 @@ static const struct v4l2_subdev_core_ops vpx3220_core_ops = {
+>  	.s_ctrl = v4l2_subdev_s_ctrl,
+>  	.queryctrl = v4l2_subdev_queryctrl,
+>  	.querymenu = v4l2_subdev_querymenu,
+> -	.s_std = vpx3220_s_std,
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops vpx3220_video_ops = {
+> +	.s_std = vpx3220_s_std,
+>  	.s_routing = vpx3220_s_routing,
+>  	.s_stream = vpx3220_s_stream,
+>  	.querystd = vpx3220_querystd,
+> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+> index afcd53b..da780f4 100644
+> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+> @@ -1182,7 +1182,7 @@ set_tvnorm(struct bttv *btv, unsigned int norm)
+>  		break;
+>  	}
+>  	id = tvnorm->v4l2_id;
+> -	bttv_call_all(btv, core, s_std, id);
+> +	bttv_call_all(btv, video, s_std, id);
+>  
+>  	return 0;
+>  }
+> diff --git a/drivers/media/pci/cx18/cx18-av-core.c b/drivers/media/pci/cx18/cx18-av-core.c
+> index c4890a4..2d3afe0 100644
+> --- a/drivers/media/pci/cx18/cx18-av-core.c
+> +++ b/drivers/media/pci/cx18/cx18-av-core.c
+> @@ -1263,7 +1263,6 @@ static const struct v4l2_subdev_core_ops cx18_av_general_ops = {
+>  	.log_status = cx18_av_log_status,
+>  	.load_fw = cx18_av_load_fw,
+>  	.reset = cx18_av_reset,
+> -	.s_std = cx18_av_s_std,
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+>  	.g_register = cx18_av_g_register,
+>  	.s_register = cx18_av_s_register,
+> @@ -1283,6 +1282,7 @@ static const struct v4l2_subdev_audio_ops cx18_av_audio_ops = {
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops cx18_av_video_ops = {
+> +	.s_std = cx18_av_s_std,
+>  	.s_routing = cx18_av_s_video_routing,
+>  	.s_stream = cx18_av_s_stream,
+>  	.s_mbus_fmt = cx18_av_s_mbus_fmt,
+> diff --git a/drivers/media/pci/cx18/cx18-fileops.c b/drivers/media/pci/cx18/cx18-fileops.c
+> index 4bfd865..76a3b4a 100644
+> --- a/drivers/media/pci/cx18/cx18-fileops.c
+> +++ b/drivers/media/pci/cx18/cx18-fileops.c
+> @@ -760,7 +760,7 @@ int cx18_v4l2_close(struct file *filp)
+>  		/* Mark that the radio is no longer in use */
+>  		clear_bit(CX18_F_I_RADIO_USER, &cx->i_flags);
+>  		/* Switch tuner to TV */
+> -		cx18_call_all(cx, core, s_std, cx->std);
+> +		cx18_call_all(cx, video, s_std, cx->std);
+>  		/* Select correct audio input (i.e. TV tuner or Line in) */
+>  		cx18_audio_set_io(cx);
+>  		if (atomic_read(&cx->ana_capturing) > 0) {
+> diff --git a/drivers/media/pci/cx18/cx18-gpio.c b/drivers/media/pci/cx18/cx18-gpio.c
+> index 5374aeb..38dc6b8 100644
+> --- a/drivers/media/pci/cx18/cx18-gpio.c
+> +++ b/drivers/media/pci/cx18/cx18-gpio.c
+> @@ -180,7 +180,6 @@ static int gpiomux_s_audio_routing(struct v4l2_subdev *sd,
+>  
+>  static const struct v4l2_subdev_core_ops gpiomux_core_ops = {
+>  	.log_status = gpiomux_log_status,
+> -	.s_std = gpiomux_s_std,
+>  };
+>  
+>  static const struct v4l2_subdev_tuner_ops gpiomux_tuner_ops = {
+> @@ -191,10 +190,15 @@ static const struct v4l2_subdev_audio_ops gpiomux_audio_ops = {
+>  	.s_routing = gpiomux_s_audio_routing,
+>  };
+>  
+> +static const struct v4l2_subdev_video_ops gpiomux_video_ops = {
+> +	.s_std = gpiomux_s_std,
+> +};
+> +
+>  static const struct v4l2_subdev_ops gpiomux_ops = {
+>  	.core = &gpiomux_core_ops,
+>  	.tuner = &gpiomux_tuner_ops,
+>  	.audio = &gpiomux_audio_ops,
+> +	.video = &gpiomux_video_ops,
+>  };
+>  
+>  /*
+> diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
+> index 1110bcb..fefb2cd 100644
+> --- a/drivers/media/pci/cx18/cx18-ioctl.c
+> +++ b/drivers/media/pci/cx18/cx18-ioctl.c
+> @@ -602,7 +602,7 @@ int cx18_s_std(struct file *file, void *fh, v4l2_std_id std)
+>  			(unsigned long long) cx->std);
+>  
+>  	/* Tuner */
+> -	cx18_call_all(cx, core, s_std, cx->std);
+> +	cx18_call_all(cx, video, s_std, cx->std);
+>  	return 0;
+>  }
+>  
+> diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+> index 7891f34..e0a5952 100644
+> --- a/drivers/media/pci/cx23885/cx23885-video.c
+> +++ b/drivers/media/pci/cx23885/cx23885-video.c
+> @@ -326,7 +326,7 @@ int cx23885_set_tvnorm(struct cx23885_dev *dev, v4l2_std_id norm)
+>  
+>  	dev->tvnorm = norm;
+>  
+> -	call_all(dev, core, s_std, norm);
+> +	call_all(dev, video, s_std, norm);
+>  
+>  	return 0;
+>  }
+> @@ -1589,7 +1589,7 @@ static int cx23885_set_freq_via_ops(struct cx23885_dev *dev,
+>  		fe = &dev->ts1.analog_fe;
+>  
+>  	if (fe && fe->ops.tuner_ops.set_analog_params) {
+> -		call_all(dev, core, s_std, dev->tvnorm);
+> +		call_all(dev, video, s_std, dev->tvnorm);
+>  		fe->ops.tuner_ops.set_analog_params(fe, &params);
+>  	}
+>  	else
+> diff --git a/drivers/media/pci/cx88/cx88-core.c b/drivers/media/pci/cx88/cx88-core.c
+> index ad59dc9..e061c88 100644
+> --- a/drivers/media/pci/cx88/cx88-core.c
+> +++ b/drivers/media/pci/cx88/cx88-core.c
+> @@ -1012,7 +1012,7 @@ int cx88_set_tvnorm(struct cx88_core *core, v4l2_std_id norm)
+>  	set_tvaudio(core);
+>  
+>  	// tell i2c chips
+> -	call_all(core, core, s_std, norm);
+> +	call_all(core, video, s_std, norm);
+>  
+>  	/* The chroma_agc control should be inaccessible if the video format is SECAM */
+>  	v4l2_ctrl_grab(core->chroma_agc, cxiformat == VideoFormatSECAM);
+> diff --git a/drivers/media/pci/ivtv/ivtv-fileops.c b/drivers/media/pci/ivtv/ivtv-fileops.c
+> index 9caffd8..e5ff627 100644
+> --- a/drivers/media/pci/ivtv/ivtv-fileops.c
+> +++ b/drivers/media/pci/ivtv/ivtv-fileops.c
+> @@ -894,7 +894,7 @@ int ivtv_v4l2_close(struct file *filp)
+>  		/* Mark that the radio is no longer in use */
+>  		clear_bit(IVTV_F_I_RADIO_USER, &itv->i_flags);
+>  		/* Switch tuner to TV */
+> -		ivtv_call_all(itv, core, s_std, itv->std);
+> +		ivtv_call_all(itv, video, s_std, itv->std);
+>  		/* Select correct audio input (i.e. TV tuner or Line in) */
+>  		ivtv_audio_set_io(itv);
+>  		if (itv->hw_flags & IVTV_HW_SAA711X) {
+> diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
+> index 807b275..b3667a0 100644
+> --- a/drivers/media/pci/ivtv/ivtv-ioctl.c
+> +++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
+> @@ -1090,7 +1090,7 @@ void ivtv_s_std_enc(struct ivtv *itv, v4l2_std_id std)
+>  		itv->vbi.sliced_decoder_line_size = itv->is_60hz ? 272 : 284;
+>  
+>  	/* Tuner */
+> -	ivtv_call_all(itv, core, s_std, itv->std);
+> +	ivtv_call_all(itv, video, s_std, itv->std);
+>  }
+>  
+>  void ivtv_s_std_dec(struct ivtv *itv, v4l2_std_id std)
+> diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+> index eb472b5..26082b4 100644
+> --- a/drivers/media/pci/saa7134/saa7134-video.c
+> +++ b/drivers/media/pci/saa7134/saa7134-video.c
+> @@ -506,10 +506,10 @@ void saa7134_set_tvnorm_hw(struct saa7134_dev *dev)
+>  	saa7134_set_decoder(dev);
+>  
+>  	if (card_in(dev, dev->ctl_input).tv)
+> -		saa_call_all(dev, core, s_std, dev->tvnorm->id);
+> +		saa_call_all(dev, video, s_std, dev->tvnorm->id);
+>  	/* Set the correct norm for the saa6752hs. This function
+>  	   does nothing if there is no saa6752hs. */
+> -	saa_call_empress(dev, core, s_std, dev->tvnorm->id);
+> +	saa_call_empress(dev, video, s_std, dev->tvnorm->id);
+>  }
+>  
+>  static void set_h_prescale(struct saa7134_dev *dev, int task, int prescale)
+> diff --git a/drivers/media/pci/saa7146/mxb.c b/drivers/media/pci/saa7146/mxb.c
+> index 33abe33..c4c8fce 100644
+> --- a/drivers/media/pci/saa7146/mxb.c
+> +++ b/drivers/media/pci/saa7146/mxb.c
+> @@ -357,7 +357,7 @@ static int mxb_init_done(struct saa7146_dev* dev)
+>  	tea6420_route(mxb, 6);
+>  
+>  	/* select video mode in saa7111a */
+> -	saa7111a_call(mxb, core, s_std, std);
+> +	saa7111a_call(mxb, video, s_std, std);
+>  
+>  	/* select tuner-output on saa7111a */
+>  	i = 0;
+> @@ -379,8 +379,8 @@ static int mxb_init_done(struct saa7146_dev* dev)
+>  	/* These two gpio calls set the GPIO pins that control the tda9820 */
+>  	saa7146_write(dev, GPIO_CTRL, 0x00404050);
+>  	saa7111a_call(mxb, core, s_gpio, 1);
+> -	saa7111a_call(mxb, core, s_std, std);
+> -	tuner_call(mxb, core, s_std, std);
+> +	saa7111a_call(mxb, video, s_std, std);
+> +	tuner_call(mxb, video, s_std, std);
+>  
+>  	/* switch to tuner-channel on tea6415c */
+>  	tea6415c_call(mxb, video, s_routing, 3, 17, 0);
+> @@ -771,9 +771,9 @@ static int std_callback(struct saa7146_dev *dev, struct saa7146_standard *standa
+>  		/* These two gpio calls set the GPIO pins that control the tda9820 */
+>  		saa7146_write(dev, GPIO_CTRL, 0x00404050);
+>  		saa7111a_call(mxb, core, s_gpio, 0);
+> -		saa7111a_call(mxb, core, s_std, std);
+> +		saa7111a_call(mxb, video, s_std, std);
+>  		if (mxb->cur_input == 0)
+> -			tuner_call(mxb, core, s_std, std);
+> +			tuner_call(mxb, video, s_std, std);
+>  	} else {
+>  		v4l2_std_id std = V4L2_STD_PAL_BG;
+>  
+> @@ -783,9 +783,9 @@ static int std_callback(struct saa7146_dev *dev, struct saa7146_standard *standa
+>  		/* These two gpio calls set the GPIO pins that control the tda9820 */
+>  		saa7146_write(dev, GPIO_CTRL, 0x00404050);
+>  		saa7111a_call(mxb, core, s_gpio, 1);
+> -		saa7111a_call(mxb, core, s_std, std);
+> +		saa7111a_call(mxb, video, s_std, std);
+>  		if (mxb->cur_input == 0)
+> -			tuner_call(mxb, core, s_std, std);
+> +			tuner_call(mxb, video, s_std, std);
+>  	}
+>  	return 0;
+>  }
+> diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
+> index bb11443..12485a9 100644
+> --- a/drivers/media/pci/sta2x11/sta2x11_vip.c
+> +++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+> @@ -445,7 +445,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id std)
+>  	int status;
+>  
+>  	if (V4L2_STD_ALL == std) {
+> -		v4l2_subdev_call(vip->decoder, core, s_std, std);
+> +		v4l2_subdev_call(vip->decoder, video, s_std, std);
+>  		ssleep(2);
+>  		v4l2_subdev_call(vip->decoder, video, querystd, &newstd);
+>  		v4l2_subdev_call(vip->decoder, video, g_input_status, &status);
+> @@ -468,7 +468,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id std)
+>  			vip->format = formats_50[0];
+>  	}
+>  
+> -	return v4l2_subdev_call(vip->decoder, core, s_std, std);
+> +	return v4l2_subdev_call(vip->decoder, video, s_std, std);
+>  }
+>  
+>  /**
+> diff --git a/drivers/media/pci/zoran/zoran_device.c b/drivers/media/pci/zoran/zoran_device.c
+> index 519164c..bf34b93 100644
+> --- a/drivers/media/pci/zoran/zoran_device.c
+> +++ b/drivers/media/pci/zoran/zoran_device.c
+> @@ -1572,7 +1572,7 @@ zoran_init_hardware (struct zoran *zr)
+>  	}
+>  
+>  	decoder_call(zr, core, init, 0);
+> -	decoder_call(zr, core, s_std, zr->norm);
+> +	decoder_call(zr, video, s_std, zr->norm);
+>  	decoder_call(zr, video, s_routing,
+>  		zr->card.input[zr->input].muxsel, 0, 0);
+>  
+> diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
+> index e7e9840..099d5fb 100644
+> --- a/drivers/media/pci/zoran/zoran_driver.c
+> +++ b/drivers/media/pci/zoran/zoran_driver.c
+> @@ -1469,7 +1469,7 @@ zoran_set_norm (struct zoran *zr,
+>  	if (on)
+>  		zr36057_overlay(zr, 0);
+>  
+> -	decoder_call(zr, core, s_std, norm);
+> +	decoder_call(zr, video, s_std, norm);
+>  	encoder_call(zr, video, s_std_output, norm);
+>  
+>  	if (on)
+> diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+> index 200bec9..852c05b 100644
+> --- a/drivers/media/platform/blackfin/bfin_capture.c
+> +++ b/drivers/media/platform/blackfin/bfin_capture.c
+> @@ -635,7 +635,7 @@ static int bcap_s_std(struct file *file, void *priv, v4l2_std_id std)
+>  	if (vb2_is_busy(&bcap_dev->buffer_queue))
+>  		return -EBUSY;
+>  
+> -	ret = v4l2_subdev_call(bcap_dev->sd, core, s_std, std);
+> +	ret = v4l2_subdev_call(bcap_dev->sd, video, s_std, std);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> @@ -1069,7 +1069,7 @@ static int bcap_probe(struct platform_device *pdev)
+>  	/* now we can probe the default state */
+>  	if (config->inputs[0].capabilities & V4L2_IN_CAP_STD) {
+>  		v4l2_std_id std;
+> -		ret = v4l2_subdev_call(bcap_dev->sd, core, g_std, &std);
+> +		ret = v4l2_subdev_call(bcap_dev->sd, video, g_std, &std);
+>  		if (ret) {
+>  			v4l2_err(&bcap_dev->v4l2_dev,
+>  					"Unable to get std\n");
+> diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+> index d762246..0ebbdf1 100644
+> --- a/drivers/media/platform/davinci/vpfe_capture.c
+> +++ b/drivers/media/platform/davinci/vpfe_capture.c
+> @@ -1215,7 +1215,7 @@ static int vpfe_s_std(struct file *file, void *priv, v4l2_std_id std_id)
+>  	}
+>  
+>  	ret = v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
+> -					 core, s_std, std_id);
+> +					 video, s_std, std_id);
+>  	if (ret < 0) {
+>  		v4l2_err(&vpfe_dev->v4l2_dev, "Failed to set standard\n");
+>  		goto unlock_out;
+> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+> index 756da78..ff6e9e0 100644
+> --- a/drivers/media/platform/davinci/vpif_capture.c
+> +++ b/drivers/media/platform/davinci/vpif_capture.c
+> @@ -1420,7 +1420,7 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id std_id)
+>  	vpif_config_format(ch);
+>  
+>  	/* set standard in the sub device */
+> -	ret = v4l2_subdev_call(ch->sd, core, s_std, std_id);
+> +	ret = v4l2_subdev_call(ch->sd, video, s_std, std_id);
+>  	if (ret && ret != -ENOIOCTLCMD && ret != -ENODEV) {
+>  		vpif_dbg(1, debug, "Failed to set standard for sub devices\n");
+>  		return ret;
+> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+> index 0ac841e..37c5d48 100644
+> --- a/drivers/media/platform/davinci/vpif_display.c
+> +++ b/drivers/media/platform/davinci/vpif_display.c
+> @@ -1076,7 +1076,7 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id std_id)
+>  		return ret;
+>  	}
+>  
+> -	ret = v4l2_device_call_until_err(&vpif_obj.v4l2_dev, 1, core,
+> +	ret = v4l2_device_call_until_err(&vpif_obj.v4l2_dev, 1, video,
+>  							s_std, std_id);
+>  	if (ret < 0)
+>  		vpif_err("Failed to set standard for sub devices\n");
+> diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
+> index dbf0ce3..d5dc198 100644
+> --- a/drivers/media/platform/fsl-viu.c
+> +++ b/drivers/media/platform/fsl-viu.c
+> @@ -964,7 +964,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
+>  	struct viu_fh *fh = priv;
+>  
+>  	fh->dev->std = id;
+> -	decoder_call(fh->dev, core, s_std, id);
+> +	decoder_call(fh->dev, video, s_std, id);
+>  	return 0;
+>  }
+>  
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> index 4b8c024..79bfbc6 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -314,7 +314,7 @@ static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id a)
+>  	struct soc_camera_device *icd = file->private_data;
+>  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>  
+> -	return v4l2_subdev_call(sd, core, s_std, a);
+> +	return v4l2_subdev_call(sd, video, s_std, a);
+>  }
+>  
+>  static int soc_camera_g_std(struct file *file, void *priv, v4l2_std_id *a)
+> @@ -322,7 +322,7 @@ static int soc_camera_g_std(struct file *file, void *priv, v4l2_std_id *a)
+>  	struct soc_camera_device *icd = file->private_data;
+>  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>  
+> -	return v4l2_subdev_call(sd, core, g_std, a);
+> +	return v4l2_subdev_call(sd, video, g_std, a);
+>  }
+>  
+>  static int soc_camera_enum_framesizes(struct file *file, void *fh,
+> diff --git a/drivers/media/platform/timblogiw.c b/drivers/media/platform/timblogiw.c
+> index ccdadd6..cc34eae 100644
+> --- a/drivers/media/platform/timblogiw.c
+> +++ b/drivers/media/platform/timblogiw.c
+> @@ -347,7 +347,7 @@ static int timblogiw_s_std(struct file *file, void  *priv, v4l2_std_id std)
+>  	mutex_lock(&lw->lock);
+>  
+>  	if (TIMBLOGIW_HAS_DECODER(lw))
+> -		err = v4l2_subdev_call(lw->sd_enc, core, s_std, std);
+> +		err = v4l2_subdev_call(lw->sd_enc, video, s_std, std);
+>  
+>  	if (!err)
+>  		fh->cur_norm = timblogiw_get_norm(std);
+> diff --git a/drivers/media/platform/vino.c b/drivers/media/platform/vino.c
+> index c6af974..470d353 100644
+> --- a/drivers/media/platform/vino.c
+> +++ b/drivers/media/platform/vino.c
+> @@ -2586,7 +2586,7 @@ static int vino_acquire_input(struct vino_channel_settings *vcs)
+>  			}
+>  			if (data_norm == 3)
+>  				data_norm = VINO_DATA_NORM_PAL;
+> -			ret = decoder_call(core, s_std, norm);
+> +			ret = decoder_call(video, s_std, norm);
+>  		}
+>  
+>  		spin_lock_irqsave(&vino_drvdata->input_lock, flags);
+> @@ -2675,7 +2675,7 @@ static int vino_set_input(struct vino_channel_settings *vcs, int input)
+>  				}
+>  				if (data_norm == 3)
+>  					data_norm = VINO_DATA_NORM_PAL;
+> -				ret = decoder_call(core, s_std, norm);
+> +				ret = decoder_call(video, s_std, norm);
+>  			}
+>  
+>  			spin_lock_irqsave(&vino_drvdata->input_lock, flags);
+> @@ -2809,7 +2809,7 @@ static int vino_set_data_norm(struct vino_channel_settings *vcs,
+>  		 * as it may take a while... */
+>  
+>  		norm = vino_data_norms[data_norm].std;
+> -		err = decoder_call(core, s_std, norm);
+> +		err = decoder_call(video, s_std, norm);
+>  
+>  		spin_lock_irqsave(&vino_drvdata->input_lock, *flags);
+>  
+> diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+> index f615454..9038194 100644
+> --- a/drivers/media/usb/au0828/au0828-video.c
+> +++ b/drivers/media/usb/au0828/au0828-video.c
+> @@ -1109,7 +1109,7 @@ static void au0828_init_tuner(struct au0828_dev *dev)
+>  	/* If we've never sent the standard in tuner core, do so now.
+>  	   We don't do this at device probe because we don't want to
+>  	   incur the cost of a firmware load */
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->std);
+> +	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_std, dev->std);
+>  	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, &f);
+>  	i2c_gate_ctrl(dev, 0);
+>  }
+> @@ -1368,7 +1368,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
+>  	   have to make the au0828 bridge adjust the size of its capture
+>  	   buffer, which is currently hardcoded at 720x480 */
+>  
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, norm);
+> +	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_std, norm);
+>  
+>  	i2c_gate_ctrl(dev, 0);
+>  
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+> index 2f63029..30a0c69 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-417.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+> @@ -1516,7 +1516,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
+>  		dev->ts1.height = 576;
+>  		cx2341x_handler_set_50hz(&dev->mpeg_ctrl_handler, true);
+>  	}
+> -	call_all(dev, core, s_std, dev->norm);
+> +	call_all(dev, video, s_std, dev->norm);
+>  	/* do mode control overrides */
+>  	cx231xx_do_mode_ctrl_overrides(dev);
+>  
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+> index 9906261..1f87513 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-video.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+> @@ -1009,7 +1009,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
+>  	dev->width = 720;
+>  	dev->height = (dev->norm & V4L2_STD_625_50) ? 576 : 480;
+>  
+> -	call_all(dev, core, s_std, dev->norm);
+> +	call_all(dev, video, s_std, dev->norm);
+>  
+>  	/* We need to reset basic properties in the decoder related to
+>  	   resolution (since a standard change effects things like the number
+> @@ -1108,7 +1108,7 @@ int cx231xx_s_input(struct file *file, void *priv, unsigned int i)
+>  		/* There's a tuner, so reset the standard and put it on the
+>  		   last known frequency (since it was probably powered down
+>  		   until now */
+> -		call_all(dev, core, s_std, dev->norm);
+> +		call_all(dev, video, s_std, dev->norm);
+>  	}
+>  
+>  	return 0;
+> @@ -2099,7 +2099,7 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
+>  	/* Set the initial input */
+>  	video_mux(dev, dev->video_input);
+>  
+> -	call_all(dev, core, s_std, dev->norm);
+> +	call_all(dev, video, s_std, dev->norm);
+>  
+>  	v4l2_ctrl_handler_init(&dev->ctrl_handler, 10);
+>  	v4l2_ctrl_handler_init(&dev->radio_ctrl_handler, 5);
+> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> index 0856e5d..b7c1abf 100644
+> --- a/drivers/media/usb/em28xx/em28xx-video.c
+> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> @@ -1351,7 +1351,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
+>  	size_to_scale(dev, dev->width, dev->height, &dev->hscale, &dev->vscale);
+>  
+>  	em28xx_resolution_set(dev);
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
+> +	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_std, dev->norm);
+>  
+>  	return 0;
+>  }
+> @@ -2349,7 +2349,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+>  
+>  	/* set default norm */
+>  	dev->norm = V4L2_STD_PAL;
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
+> +	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_std, dev->norm);
+>  	dev->interlaced = EM28XX_INTERLACED_DEFAULT;
+>  
+>  	/* Analog specific initialization */
+> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> index ea05f67..9623b62 100644
+> --- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> +++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> @@ -2910,7 +2910,7 @@ static void pvr2_subdev_update(struct pvr2_hdw *hdw)
+>  			v4l2_std_id vs;
+>  			vs = hdw->std_mask_cur;
+>  			v4l2_device_call_all(&hdw->v4l2_dev, 0,
+> -					     core, s_std, vs);
+> +					     video, s_std, vs);
+>  			pvr2_hdw_cx25840_vbi_hack(hdw);
+>  		}
+>  		hdw->tuner_signal_stale = !0;
+> diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
+> index 37bc00f..759e4b0 100644
+> --- a/drivers/media/usb/stk1160/stk1160-v4l.c
+> +++ b/drivers/media/usb/stk1160/stk1160-v4l.c
+> @@ -406,7 +406,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
+>  
+>  	stk1160_set_std(dev);
+>  
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std,
+> +	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_std,
+>  			dev->norm);
+>  
+>  	return 0;
+> @@ -682,7 +682,7 @@ int stk1160_video_register(struct stk1160 *dev)
+>  	dev->fmt = &format[0];
+>  	stk1160_set_std(dev);
+>  
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std,
+> +	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_std,
+>  			dev->norm);
+>  
+>  	video_set_drvdata(&dev->vdev, dev);
+> diff --git a/drivers/media/usb/tm6000/tm6000-cards.c b/drivers/media/usb/tm6000/tm6000-cards.c
+> index 1ccaadd..2e8c3af 100644
+> --- a/drivers/media/usb/tm6000/tm6000-cards.c
+> +++ b/drivers/media/usb/tm6000/tm6000-cards.c
+> @@ -1120,7 +1120,7 @@ static int tm6000_init_dev(struct tm6000_core *dev)
+>  	tm6000_config_tuner(dev);
+>  
+>  	/* Set video standard */
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
+> +	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_std, dev->norm);
+>  
+>  	/* Set tuner frequency - also loads firmware on xc2028/xc3028 */
+>  	f.tuner = 0;
+> diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
+> index cc1aa14..e6b3d5d 100644
+> --- a/drivers/media/usb/tm6000/tm6000-video.c
+> +++ b/drivers/media/usb/tm6000/tm6000-video.c
+> @@ -1071,7 +1071,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
+>  	if (rc < 0)
+>  		return rc;
+>  
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
+> +	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_std, dev->norm);
+>  
+>  	return 0;
+>  }
+> diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
+> index 5c9e312..68bc961 100644
+> --- a/drivers/media/usb/usbvision/usbvision-video.c
+> +++ b/drivers/media/usb/usbvision/usbvision-video.c
+> @@ -597,7 +597,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
+>  
+>  	usbvision->tvnorm_id = id;
+>  
+> -	call_all(usbvision, core, s_std, usbvision->tvnorm_id);
+> +	call_all(usbvision, video, s_std, usbvision->tvnorm_id);
+>  	/* propagate the change to the decoder */
+>  	usbvision_muxsel(usbvision, usbvision->ctl_input);
+>  
+> diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+> index 20c0922..06c18ba 100644
+> --- a/drivers/media/v4l2-core/tuner-core.c
+> +++ b/drivers/media/v4l2-core/tuner-core.c
+> @@ -1301,7 +1301,6 @@ static int tuner_command(struct i2c_client *client, unsigned cmd, void *arg)
+>  
+>  static const struct v4l2_subdev_core_ops tuner_core_ops = {
+>  	.log_status = tuner_log_status,
+> -	.s_std = tuner_s_std,
+>  	.s_power = tuner_s_power,
+>  };
+>  
+> @@ -1315,9 +1314,14 @@ static const struct v4l2_subdev_tuner_ops tuner_tuner_ops = {
+>  	.s_config = tuner_s_config,
+>  };
+>  
+> +static const struct v4l2_subdev_video_ops tuner_video_ops = {
+> +	.s_std = tuner_s_std,
+> +};
+> +
+>  static const struct v4l2_subdev_ops tuner_ops = {
+>  	.core = &tuner_core_ops,
+>  	.tuner = &tuner_tuner_ops,
+> +	.video = &tuner_video_ops,
+>  };
+>  
+>  /*
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> index 8c101cb..f59b9fd 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> @@ -945,7 +945,7 @@ static int vpfe_s_std(struct file *file, void *priv, v4l2_std_id std_id)
+>  		goto unlock_out;
+>  	}
+>  	ret = v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
+> -					 core, s_std, std_id);
+> +					 video, s_std, std_id);
+>  	if (ret < 0) {
+>  		v4l2_err(&vpfe_dev->v4l2_dev, "Failed to set standard\n");
+>  		video->stdid = V4L2_STD_UNKNOWN;
+> diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
+> index a349878..a767746 100644
+> --- a/drivers/staging/media/go7007/go7007-v4l2.c
+> +++ b/drivers/staging/media/go7007/go7007-v4l2.c
+> @@ -665,7 +665,7 @@ static int go7007_s_std(struct go7007 *go)
+>  		go->sensor_framerate = 30000;
+>  	}
+>  
+> -	call_all(&go->v4l2_dev, core, s_std, go->std);
+> +	call_all(&go->v4l2_dev, video, s_std, go->std);
+>  	set_capture_size(go, NULL, 0);
+>  	return 0;
+>  }
+> diff --git a/drivers/staging/media/go7007/s2250-board.c b/drivers/staging/media/go7007/s2250-board.c
+> index 696a807..eaa2b09 100644
+> --- a/drivers/staging/media/go7007/s2250-board.c
+> +++ b/drivers/staging/media/go7007/s2250-board.c
+> @@ -474,7 +474,6 @@ static const struct v4l2_ctrl_ops s2250_ctrl_ops = {
+>  
+>  static const struct v4l2_subdev_core_ops s2250_core_ops = {
+>  	.log_status = s2250_log_status,
+> -	.s_std = s2250_s_std,
+>  };
+>  
+>  static const struct v4l2_subdev_audio_ops s2250_audio_ops = {
+> @@ -482,6 +481,7 @@ static const struct v4l2_subdev_audio_ops s2250_audio_ops = {
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops s2250_video_ops = {
+> +	.s_std = s2250_s_std,
+>  	.s_routing = s2250_s_video_routing,
+>  	.s_mbus_fmt = s2250_s_mbus_fmt,
+>  };
+> diff --git a/drivers/staging/media/go7007/saa7134-go7007.c b/drivers/staging/media/go7007/saa7134-go7007.c
+> index 6e2ca33..e40f7fb 100644
+> --- a/drivers/staging/media/go7007/saa7134-go7007.c
+> +++ b/drivers/staging/media/go7007/saa7134-go7007.c
+> @@ -434,11 +434,15 @@ static const struct v4l2_subdev_core_ops saa7134_go7007_core_ops = {
+>  	.g_ctrl = saa7134_go7007_g_ctrl,
+>  	.s_ctrl = saa7134_go7007_s_ctrl,
+>  	.queryctrl = saa7134_go7007_queryctrl,
+> +};
+> +
+> +static const struct v4l2_subdev_video_ops saa7134_go7007_video_ops = {
+>  	.s_std = saa7134_go7007_s_std,
+>  };
+>  
+>  static const struct v4l2_subdev_ops saa7134_go7007_sd_ops = {
+>  	.core = &saa7134_go7007_core_ops,
+> +	.video = &saa7134_go7007_video_ops,
+>  };
+>  
+>  /* --------------------------------------------------------------------------*/
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 1752530..323236e 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -159,8 +159,6 @@ struct v4l2_subdev_core_ops {
+>  	int (*s_ext_ctrls)(struct v4l2_subdev *sd, struct v4l2_ext_controls *ctrls);
+>  	int (*try_ext_ctrls)(struct v4l2_subdev *sd, struct v4l2_ext_controls *ctrls);
+>  	int (*querymenu)(struct v4l2_subdev *sd, struct v4l2_querymenu *qm);
+> -	int (*g_std)(struct v4l2_subdev *sd, v4l2_std_id *norm);
+> -	int (*s_std)(struct v4l2_subdev *sd, v4l2_std_id norm);
+>  	long (*ioctl)(struct v4l2_subdev *sd, unsigned int cmd, void *arg);
+>  #ifdef CONFIG_COMPAT
+>  	long (*compat_ioctl32)(struct v4l2_subdev *sd, unsigned int cmd,
+> @@ -309,6 +307,8 @@ struct v4l2_mbus_frame_desc {
+>  struct v4l2_subdev_video_ops {
+>  	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
+>  	int (*s_crystal_freq)(struct v4l2_subdev *sd, u32 freq, u32 flags);
+> +	int (*g_std)(struct v4l2_subdev *sd, v4l2_std_id *norm);
+> +	int (*s_std)(struct v4l2_subdev *sd, v4l2_std_id norm);
+>  	int (*s_std_output)(struct v4l2_subdev *sd, v4l2_std_id std);
+>  	int (*g_std_output)(struct v4l2_subdev *sd, v4l2_std_id *std);
+>  	int (*querystd)(struct v4l2_subdev *sd, v4l2_std_id *std);
+> @@ -684,7 +684,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
+>  /* Call an ops of a v4l2_subdev, doing the right checks against
+>     NULL pointers.
+>  
+> -   Example: err = v4l2_subdev_call(sd, core, s_std, norm);
+> +   Example: err = v4l2_subdev_call(sd, video, s_std, norm);
+>   */
+>  #define v4l2_subdev_call(sd, o, f, args...)				\
+>  	(!(sd) ? -ENODEV : (((sd)->ops->o && (sd)->ops->o->f) ?	\
+> 
 
