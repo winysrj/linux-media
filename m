@@ -1,97 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f49.google.com ([209.85.219.49]:35503 "EHLO
-	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750997AbaDOCHO (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2957 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751924AbaDVMwo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 22:07:14 -0400
-Received: by mail-oa0-f49.google.com with SMTP id o6so10081359oag.36
-        for <linux-media@vger.kernel.org>; Mon, 14 Apr 2014 19:07:14 -0700 (PDT)
-Date: Mon, 14 Apr 2014 21:07:12 -0500 (CDT)
-From: Thomas Pugliese <thomas.pugliese@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Thomas Pugliese <thomas.pugliese@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] uvc: update uvc_endpoint_max_bpi to handle USB_SPEED_WIRELESS
- devices
-In-Reply-To: <14957224.mkfABmkaAb@avalon>
-Message-ID: <alpine.DEB.2.10.1404142054390.22542@bitbucket>
-References: <1390598248-343-1-git-send-email-thomas.pugliese@gmail.com> <8041079.da1zLPkO88@avalon> <alpine.DEB.2.10.1401270927410.16196@mint32-virtualbox> <14957224.mkfABmkaAb@avalon>
+	Tue, 22 Apr 2014 08:52:44 -0400
+Message-ID: <53566601.2080801@xs4all.nl>
+Date: Tue, 22 Apr 2014 14:52:17 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Arun Kumar K <arun.kk@samsung.com>, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org
+CC: k.debski@samsung.com, s.nawrocki@samsung.com,
+	laurent.pinchart@ideasonboard.com, posciak@chromium.org,
+	arunkk.samsung@gmail.com
+Subject: Re: [PATCH v2 1/2] v4l: Add resolution change event.
+References: <1398072362-24962-1-git-send-email-arun.kk@samsung.com> <1398072362-24962-2-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1398072362-24962-2-git-send-email-arun.kk@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 04/21/2014 11:26 AM, Arun Kumar K wrote:
+> From: Pawel Osciak <posciak@chromium.org>
+> 
+> This event indicates that the decoder has reached a point in the stream,
+> at which the resolution changes. The userspace is expected to provide a new
+> set of CAPTURE buffers for the new format before decoding can continue.
+> The event can also be used for more generic events involving resolution
+> or format changes at runtime for all kinds of video devices.
+> 
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+> ---
+>  .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   16 ++++++++++++++++
+>  include/uapi/linux/videodev2.h                     |    6 ++++++
+>  2 files changed, 22 insertions(+)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+> index 5c70b61..0aec831 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+> @@ -155,6 +155,22 @@
+>  	    </entry>
+>  	  </row>
+>  	  <row>
+> +	    <entry><constant>V4L2_EVENT_SOURCE_CHANGE</constant></entry>
+> +	    <entry>5</entry>
+> +	    <entry>
+> +	      <para>This event is triggered when a resolution or format change
+> +	       is detected during runtime by the video device. It can be a
+> +	       runtime resolution change triggered by a video decoder or the
+> +	       format change happening on an HDMI connector. Application may
+> +	       need to reinitialize buffers before proceeding further.</para>
+> +
+> +              <para>This event has a &v4l2-event-source-change; associated
+> +	      with it. This has significance only for v4l2 subdevs where the
+> +	      <structfield>pad_num</structfield> field will be updated with
+> +	      the pad number on which the event is triggered.</para>
+> +	    </entry>
+> +	  </row>
+> +	  <row>
+>  	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
+>  	    <entry>0x08000000</entry>
+>  	    <entry>Base event number for driver-private events.</entry>
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 6ae7bbe..12e0614 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -1733,6 +1733,7 @@ struct v4l2_streamparm {
+>  #define V4L2_EVENT_EOS				2
+>  #define V4L2_EVENT_CTRL				3
+>  #define V4L2_EVENT_FRAME_SYNC			4
+> +#define V4L2_EVENT_SOURCE_CHANGE		5
+>  #define V4L2_EVENT_PRIVATE_START		0x08000000
+>  
+>  /* Payload for V4L2_EVENT_VSYNC */
+> @@ -1764,12 +1765,17 @@ struct v4l2_event_frame_sync {
+>  	__u32 frame_sequence;
+>  };
+>  
+> +struct v4l2_event_source_change {
+> +	__u32 pad_num;
+> +};
+> +
+>  struct v4l2_event {
+>  	__u32				type;
+>  	union {
+>  		struct v4l2_event_vsync		vsync;
+>  		struct v4l2_event_ctrl		ctrl;
+>  		struct v4l2_event_frame_sync	frame_sync;
+> +		struct v4l2_event_source_change source_change;
+>  		__u8				data[64];
+>  	} u;
+>  	__u32				pending;
+> 
 
+This needs to be done differently. The problem is that you really have multiple
+events that you want to subscribe to: one for each pad (or input: see the way
+VIDIOC_G/S_EDID maps pad to an input or output index when used with a video node,
+we have to support that for this event as well).
 
-On Mon, 27 Jan 2014, Laurent Pinchart wrote:
+What you want to do is similar to what is done for control events: there you can
+subscribe for a specific control and get notified when that control changes.
 
-> Hi Thomas,
-> 
-> On Monday 27 January 2014 09:54:58 Thomas Pugliese wrote:
-> > On Mon, 27 Jan 2014, Laurent Pinchart wrote:
-> > > On Friday 24 January 2014 15:17:28 Thomas Pugliese wrote:
-> > > > Isochronous endpoints on devices with speed == USB_SPEED_WIRELESS can
-> > > > have a max packet size ranging from 1-3584 bytes.  Add a case to
-> > > > uvc_endpoint_max_bpi to handle USB_SPEED_WIRELESS.  Otherwise endpoints
-> > > > for those devices will fall to the default case which masks off any
-> > > > values > 2047.  This causes uvc_init_video to underestimate the
-> > > > bandwidth available and fail to find a suitable alt setting for high
-> > > > bandwidth video streams.
-> > > 
-> > > I'm not too familiar with wireless USB, but shouldn't the value be
-> > > multiplied by bMaxBurst from the endpoint companion descriptor ?
-> > > Superspeed devices provide the multiplied value in their endpoint
-> > > companion descriptor's wBytesPerInterval field, but there's no such field
-> > > for wireless devices.
-> >
-> > For wireless USB isochronous endpoints, the values in the endpoint
-> > descriptor are the logical interval and max packet size that the endpoint
-> > can support.  They are provided for backwards compatibility for just this
-> > type of situation.  You are correct that the actual endpoint
-> > characteristics are the bMaxBurst, wOverTheAirPacketSize, and
-> > bOverTheAirInterval values from the WUSB endpoint companion descriptor but
-> > only the host controller really needs to know about those details.  In
-> > fact, the values from the endpoint companion descriptor might actually
-> > over-estimate the bandwidth available since the device can set bMaxBurst
-> > to a higher value than necessary to allow for retries.
-> 
-> OK, I'll trust you on that :-)
-> 
-> I've taken the patch in my tree and will send a pull request for v3.15.
-> 
-> > > Out of curiosity, which device have you tested this with ?
-> > 
-> > The device is a standard wired UVC webcam: Quanta CQEC2B (VID: 0x0408,
-> > PID: 0x9005).  It is connected to an Alereon Wireless USB bridge dev kit
-> > which allows it to operate as a WUSB device.
-> > 
-> > Thomas
-> > 
-> > > > Signed-off-by: Thomas Pugliese <thomas.pugliese@gmail.com>
-> > > > ---
-> > > > 
-> > > >  drivers/media/usb/uvc/uvc_video.c | 3 +++
-> > > >  1 file changed, 3 insertions(+)
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-> 
+The way that works in the event code is that the 'id' field in the v4l2_event
+struct contains that control ID, or, in this case, the pad/input/output index.
 
-So it turns out that this change (commit 79af67e77f86404e77e65ad954bf) 
-breaks wireless USB devices that were designed to work with Windows 
-because Windows also does not differentiate between Wireless USB devices 
-and USB 2.0 high speed devices.  This change should probably be reverted 
-before it goes out in the 3.15 release.  Devices that are strictly WUSB 
-spec compliant will not work with some max packet sizes but they never did 
-anyway.
+In the application you will subscribe to the SOURCE_CHANGE event for a specific
+pad/input/output index.
 
-In order to support both compliant and non-compliant WUSB devices, 
-uvc_endpoint_max_bpi should look at the endpoint companion descriptor but 
-that descriptor is not readily available as it is for super speed devices 
-so that patch will have to wait for another time.
+In other words, the pad_num field should be dropped and the id field used
+instead.
 
-Thanks,
-Thomas
+Assuming we will also add a 'changes' field (see my reply to the other post
+on that topic), then you should also provide replace and merge ops (see
+v4l2-ctrls.c). That way it is sufficient to use just one element when calling
+v4l2_event_subscribe(): you will never loose information since if multiple
+events arrive before the application can dequeue them, the 'changes' information
+will be the ORed value of all those intermediate events.
+
+It's all more work, but it is critical to ensure that the application never
+misses events.
+
+Regards,
+
+	Hans
