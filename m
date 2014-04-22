@@ -1,57 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1428 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752867AbaDKIMO (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:41221 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751134AbaDVM6L (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 04:12:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, sakari.ailus@iki.fi, m.szyprowski@samsung.com,
-	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 07/13] vb2: reject output buffers with V4L2_FIELD_ALTERNATE
-Date: Fri, 11 Apr 2014 10:11:13 +0200
-Message-Id: <1397203879-37443-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
-References: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 22 Apr 2014 08:58:11 -0400
+Date: Tue, 22 Apr 2014 15:57:26 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: hans.verkuil@cisco.com, m.chehab@samsung.com,
+	ext-eero.nurkkala@nokia.com, nils.faerber@kernelconcepts.de,
+	joni.lapilainen@gmail.com, freemangordon@abv.bg, sre@ring0.de,
+	pali.rohar@gmail.com, Greg KH <greg@kroah.com>, trivial@kernel.org,
+	linux-media@vger.kernel.org
+Cc: kernel list <linux-kernel@vger.kernel.org>
+Subject: [PATCH v2] radio-bcm2048.c: fix wrong overflow check
+Message-ID: <20140422125726.GA30238@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <201404221147.05726@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Pali Rohár <pali.rohar@gmail.com>
 
-This is not allowed by the spec and does in fact not make any sense.
-Return -EINVAL if this is the case.
+This patch fixes an off by one check in bcm2048_set_region().
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pawel Osciak <pawel@osciak.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+v2: Send it to the correct list.  Re-work the changelog.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 6e05495..f8c0247 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1511,6 +1511,19 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		dprintk(1, "plane parameters verification failed: %d\n", ret);
- 		return ret;
- 	}
-+	if (b->field == V4L2_FIELD_ALTERNATE && V4L2_TYPE_IS_OUTPUT(q->type)) {
-+		/*
-+		 * If the format's field is ALTERNATE, then the buffer's field
-+		 * should be either TOP or BOTTOM, not ALTERNATE since that
-+		 * makes no sense. The driver has to know whether the
-+		 * buffer represents a top or a bottom field in order to
-+		 * program any DMA correctly. Using ALTERNATE is wrong, since
-+		 * that just says that it is either a top or a bottom field,
-+		 * but not which of the two it is.
-+		 */
-+		dprintk(1, "the field is incorrectly set to ALTERNATE for an output buffer\n");
-+		return -EINVAL;
-+	}
+This patch has been floating around for four months but Pavel and Pali
+are knuckle-heads and don't know how to use get_maintainer.pl so they
+never send it to linux-media.
+
+Also Pali doesn't give reporter credit and Pavel steals authorship
+credit.
+
+Also when you try explain to them about how to send patches correctly
+they complain that they have been trying but it is too much work so now
+I have to do it.  During the past four months thousands of other people
+have been able to send patches in the correct format to the correct list
+but it is too difficult for Pavel and Pali...  *sigh*.
+
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index b2cd3a8..bbf236e 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -737,7 +737,7 @@ static int bcm2048_set_region(struct bcm2048_device *bdev, u8 region)
+ 	int err;
+ 	u32 new_frequency = 0;
  
- 	vb->state = VB2_BUF_STATE_PREPARING;
- 	vb->v4l2_buf.timestamp.tv_sec = 0;
+-	if (region > ARRAY_SIZE(region_configs))
++	if (region >= ARRAY_SIZE(region_configs))
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&bdev->mutex);
+
 -- 
-1.9.1
 
