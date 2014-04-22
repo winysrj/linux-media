@@ -1,95 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f177.google.com ([209.85.160.177]:60250 "EHLO
-	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750960AbaDGIJ5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Apr 2014 04:09:57 -0400
-Received: by mail-yk0-f177.google.com with SMTP id q200so5103199ykb.22
-        for <linux-media@vger.kernel.org>; Mon, 07 Apr 2014 01:09:51 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1394486458-9836-6-git-send-email-hverkuil@xs4all.nl>
-References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl> <1394486458-9836-6-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Mon, 7 Apr 2014 17:09:11 +0900
-Message-ID: <CAMm-=zA7BHDHyRAzmEnsEvQNEabAcUAo5fQfiBPm+f7JkmG2Pg@mail.gmail.com>
-Subject: Re: [REVIEW PATCH 05/11] vb2: move __qbuf_mmap before __qbuf_userptr
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:48966 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752096AbaDVHea (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Apr 2014 03:34:30 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Pawel Osciak' <posciak@chromium.org>,
+	'Arun Kumar K' <arunkk.samsung@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	'linux-samsung-soc' <linux-samsung-soc@vger.kernel.org>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	'Hans Verkuil' <hverkuil@xs4all.nl>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
+References: <1398072362-24962-1-git-send-email-arun.kk@samsung.com>
+ <1398072362-24962-2-git-send-email-arun.kk@samsung.com>
+ <CACHYQ-qE4Qnwa9txUsx=MSM4NRG6HrDxqp=qOJUzCPv6uf9egw@mail.gmail.com>
+ <CALt3h7--QSL-UD=mAa5NPvy8UUeZB02o097y_+LqZTp2mXD5Pg@mail.gmail.com>
+ <CACHYQ-p564-HHpx0mY6rcq+Mg3kPp24pvfk2_MH7Vf5U0ygSOw@mail.gmail.com>
+In-reply-to: <CACHYQ-p564-HHpx0mY6rcq+Mg3kPp24pvfk2_MH7Vf5U0ygSOw@mail.gmail.com>
+Subject: RE: [PATCH v2 1/2] v4l: Add resolution change event.
+Date: Tue, 22 Apr 2014 09:34:32 +0200
+Message-id: <042601cf5dfd$4dfa44b0$e9eece10$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 11, 2014 at 6:20 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> __qbuf_mmap was sort of hidden in between the much larger __qbuf_userptr
-> and __qbuf_dmabuf functions. Move it before __qbuf_userptr which is
-> also conform the usual order these memory models are implemented: first
-> mmap, then userptr, then dmabuf.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Pawel,
 
-Acked-by: Pawel Osciak <pawel@osciak.com>
+> From: Pawel Osciak [mailto:posciak@chromium.org]
+> Sent: Monday, April 21, 2014 12:27 PM
+> To: Arun Kumar K
+> Cc: linux-media@vger.kernel.org; linux-samsung-soc; Kamil Debski;
+> Sylwester Nawrocki; Hans Verkuil; Laurent Pinchart
+> Subject: Re: [PATCH v2 1/2] v4l: Add resolution change event.
+> 
+> As a side note, because this is not really codified in the API, I would
+> like this event to indicate not only resolution change mid-stream, but
+> also detection of initial resolution, which should be a subset of
+> resolution change. I think this would make sense for the codec
+> interface:
+> 
+> Video decode:
+> 1. S_FMT to given codec on OUTPUT queue.
+> 2. REQBUFS(n) and STREAMON on OUTPUT queue.
+> 3. Keep QBUFing until we get an resolution change event on the CAPTURE
+> queue; until then, the driver/codec HW will operate on the OUTPUT queue
+> only and try to detect relevant headers in the OUTPUT buffers, and will
+> send resolution change event once it finds resolution, profile, etc.
+> info). DQEVENT.
+> 4. G_FMT on CAPTURE to get the discovered output format (resolution),
+> REQBUFS and STREAMON on the CAPTURE queue.
+> 5. Normal mem-to-mem decoding.
+> 6. If a resolution change event arrives on CAPTURE queue, DQEVENT,
+> STREAMOFF, REQBUFS(0) only on CAPTURE queue, and goto 4. OUTPUT queue
+> operates completely independently of this.
+> 
+> Also, this event should invariably indicate all of the below:
+> - all output buffers from before resolution change are already ready on
+> the CAPTURE queue to DQBUF (so it's ready to REQBUFS(0) after DQBUFs),
+> and
+> - there will be no more new ready buffers on the CAPTURE queue until
+> the streamoff-reqbufs(0)-g_fmt-reqbufs()-streamon is performed, and
+> - OUTPUT queue is completely independent of all of the above and can be
+> still used as normal, i.e. stream buffers can still keep being queued
+> at any stage of the resolution change and they will be decoded after
+> resolution change sequence is finished;
+> 
+> If we all agree to the above, I will prepare a subsequent patch for the
+> documentation to include the above.
 
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 28 ++++++++++++++--------------
->  1 file changed, 14 insertions(+), 14 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 71be247..e38b45e 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1254,6 +1254,20 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->  }
->
->  /**
-> + * __qbuf_mmap() - handle qbuf of an MMAP buffer
-> + */
-> +static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
-> +{
-> +       int ret;
-> +
-> +       __fill_vb2_buffer(vb, b, vb->v4l2_planes);
-> +       ret = call_vb_qop(vb, buf_prepare, vb);
-> +       if (ret)
-> +               fail_vb_qop(vb, buf_prepare);
-> +       return ret;
-> +}
-> +
-> +/**
->   * __qbuf_userptr() - handle qbuf of a USERPTR buffer
->   */
->  static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
-> @@ -1359,20 +1373,6 @@ err:
->  }
->
->  /**
-> - * __qbuf_mmap() - handle qbuf of an MMAP buffer
-> - */
-> -static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
-> -{
-> -       int ret;
-> -
-> -       __fill_vb2_buffer(vb, b, vb->v4l2_planes);
-> -       ret = call_vb_qop(vb, buf_prepare, vb);
-> -       if (ret)
-> -               fail_vb_qop(vb, buf_prepare);
-> -       return ret;
-> -}
-> -
-> -/**
->   * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
->   */
->  static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
-> --
-> 1.9.0
->
+If I understand correctly this will keep the old application working.
+By this I mean application that do not use events and rely on the current
+mechanism to detect initial header parsing and resolution change.
 
+If backward compatibility is kept I am all for the changes proposed by you.
 
+> 
+> Thanks,
+> Pawel
 
+Best wishes,
 -- 
-Best regards,
-Pawel Osciak
+Kamil Debski
+Samsung R&D Institute Poland
+
