@@ -1,130 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:63585 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965065AbaDJOj7 (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:54023 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752689AbaDVIqf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 10:39:59 -0400
-Date: Thu, 10 Apr 2014 11:39:49 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Cc: shuah.kh@samsung.com, Greg KH <gregkh@linuxfoundation.org>,
-	tj@kernel.org, rafael.j.wysocki@intel.com, linux@roeck-us.net,
-	toshi.kani@hp.com, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, shuahkhan@gmail.com
-Subject: Re: [RFC PATCH 0/2] managed token devres interfaces
-Message-id: <20140410113949.7de1312b@samsung.com>
-In-reply-to: <20140410124653.64aeb06d@alan.etchedpixels.co.uk>
-References: <cover.1397050852.git.shuah.kh@samsung.com>
- <20140409191740.GA10748@kroah.com> <5345CD32.8010305@samsung.com>
- <20140410120435.4c439a8b@alan.etchedpixels.co.uk>
- <20140410083841.488f9c43@samsung.com>
- <20140410124653.64aeb06d@alan.etchedpixels.co.uk>
+	Tue, 22 Apr 2014 04:46:35 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Pawel Osciak' <posciak@chromium.org>
+Cc: 'Arun Kumar K' <arunkk.samsung@gmail.com>,
+	linux-media@vger.kernel.org,
+	'linux-samsung-soc' <linux-samsung-soc@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
+References: <1398072362-24962-1-git-send-email-arun.kk@samsung.com>
+ <1398072362-24962-2-git-send-email-arun.kk@samsung.com>
+ <CACHYQ-qE4Qnwa9txUsx=MSM4NRG6HrDxqp=qOJUzCPv6uf9egw@mail.gmail.com>
+ <CALt3h7--QSL-UD=mAa5NPvy8UUeZB02o097y_+LqZTp2mXD5Pg@mail.gmail.com>
+ <CACHYQ-p564-HHpx0mY6rcq+Mg3kPp24pvfk2_MH7Vf5U0ygSOw@mail.gmail.com>
+ <042601cf5dfd$4dfa44b0$e9eece10$%debski@samsung.com>
+ <CACHYQ-pk1VkDj8YATkVGcrdv96wkmnK41UR68400oQQMM7asTw@mail.gmail.com>
+In-reply-to: <CACHYQ-pk1VkDj8YATkVGcrdv96wkmnK41UR68400oQQMM7asTw@mail.gmail.com>
+Subject: RE: [PATCH v2 1/2] v4l: Add resolution change event.
+Date: Tue, 22 Apr 2014 10:46:36 +0200
+Message-id: <044f01cf5e07$5f6f1090$1e4d31b0$%debski@samsung.com>
 MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
+Content-type: text/plain; charset=UTF-8
 Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 10 Apr 2014 12:46:53 +0100
-One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk> escreveu:
+Hi Pawel,
 
-> > For example, some devices provide standard USB Audio Class, handled by
-> > snd-usb-audio for the audio stream, while the video stream is handled
-> > via a separate driver, like some em28xx devices.
+> From: Pawel Osciak [mailto:posciak@chromium.org]
+> Sent: Tuesday, April 22, 2014 9:46 AM
+> To: Kamil Debski
+> Cc: Arun Kumar K; linux-media@vger.kernel.org; linux-samsung-soc;
+> Sylwester Nawrocki; Hans Verkuil; Laurent Pinchart
+> Subject: Re: [PATCH v2 1/2] v4l: Add resolution change event.
 > 
-> Which is what mfd is designed to handle.
+> Hi Kamil,
 > 
-> > There are even more complex devices that provide 3G modem, storage
-> > and digital TV, whose USB ID changes when either the 3G modem starts
-> > or when the digital TV firmware is loaded.
+> On Tue, Apr 22, 2014 at 4:34 PM, Kamil Debski <k.debski@samsung.com>
+> wrote:
 > 
-> But presumably you only have one driver at a time then ?
-
-In this specific device, before USB ID changes, only storage is
-available, as it contains the manufacturer's Windows driver on it
-(and the device firmware).
-
-After the USB ID changes and after the 3G chip manufacturer is 
-recognized (if the device is locked to an specific 3G carrier), 
-the USB storage switches to work as a micro SD memory reader
-and the TV and 3G modem functions also become available.
-
-The Kernel drivers that are used by this device are:
-
-smsdvb                 18471  0 
-dvb_core              114974  1 smsdvb
-option                 42468  0 
-smsusb                 17819  0 
-usb_wwan               19510  1 option
-smsmdtv                52283  2 smsdvb,smsusb
-rc_core                27210  1 smsmdtv
-usb_storage            56690  0 
-
-Those are the logs:
-
-[210431.241488] usb 1-1.3: new high-speed USB device number 7 using ehci-pci
-[210431.340676] usb 1-1.3: New USB device found, idVendor=19d2, idProduct=2000
-[210431.340683] usb 1-1.3: New USB device strings: Mfr=3, Product=2, SerialNumber=4
-[210431.340687] usb 1-1.3: Product: ZTE WCDMA Technologies MSM
-[210431.340691] usb 1-1.3: Manufacturer: ZTE,Incorporated
-[210431.340695] usb 1-1.3: SerialNumber: P675B1ZTED010000
-[210431.344778] usb-storage 1-1.3:1.0: USB Mass Storage device detected
-[210431.344891] scsi10 : usb-storage 1-1.3:1.0
-[210432.701801] usb 1-1.3: USB disconnect, device number 7
-[210438.735217] usb 1-1.3: new high-speed USB device number 8 using ehci-pci
-[210438.834309] usb 1-1.3: New USB device found, idVendor=19d2, idProduct=0086
-[210438.834314] usb 1-1.3: New USB device strings: Mfr=3, Product=2, SerialNumber=4
-[210438.834317] usb 1-1.3: Product: ZTE WCDMA Technologies MSM
-[210438.834319] usb 1-1.3: Manufacturer: ZTE,Incorporated
-[210438.834321] usb 1-1.3: SerialNumber: P675B1ZTED010000
-[210438.839042] option 1-1.3:1.0: GSM modem (1-port) converter detected
-[210438.839369] usb 1-1.3: GSM modem (1-port) converter now attached to ttyUSB1
-[210438.839566] option 1-1.3:1.1: GSM modem (1-port) converter detected
-[210438.839749] usb 1-1.3: GSM modem (1-port) converter now attached to ttyUSB2
-[210438.839880] usb-storage 1-1.3:1.2: USB Mass Storage device detected
-[210438.840116] scsi11 : usb-storage 1-1.3:1.2
-[210438.840407] option 1-1.3:1.3: GSM modem (1-port) converter detected
-[210438.840593] usb 1-1.3: GSM modem (1-port) converter now attached to ttyUSB3
-[210438.840811] option 1-1.3:1.4: GSM modem (1-port) converter detected
-[210438.840961] usb 1-1.3: GSM modem (1-port) converter now attached to ttyUSB4
-[210439.844891] scsi 11:0:0:0: Direct-Access     ZTE      MMC Storage      2.31 PQ: 0 ANSI: 2
-[210439.845516] sd 11:0:0:0: Attached scsi generic sg4 type 0
-[210439.854702] sd 11:0:0:0: [sdd] Attached SCSI removable disk
-[210449.269010] smscore_detect_mode: line: 1274: MSG_SMS_GET_VERSION_EX_REQ failed first try
-[210454.266114] smscore_set_device_mode: line: 1354: mode detect failed -62
-[210454.266121] smsusb_init_device: line: 436: smscore_start_device(...) failed
-[210454.266371] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
-[210454.266618] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
-[210454.266855] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
-[210454.267090] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
-[210454.267341] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
-[210454.267593] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
-[210454.267868] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
-[210454.268106] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
-[210454.268340] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
-[210454.268609] smsusb_onresponse: line: 143: error, urb status -2, 0 bytes
-[210454.268625] sms_ir_exit: 
-[210454.274338] smsusb: probe of 1-1.3:1.5 failed with error -62
-[210454.274413] option 1-1.3:1.5: GSM modem (1-port) converter detected
-[210454.274768] usb 1-1.3: GSM modem (1-port) converter now attached to ttyUSB5
-[210454.310745] sd 11:0:0:0: [sdd] 7744512 512-byte logical blocks: (3.96 GB/3.69 GiB)
-[210454.316753] sd 11:0:0:0: [sdd] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
-[210454.334348]  sdd: sdd1
-[210455.709432] EXT4-fs (sdd1): mounting ext3 file system using the ext4 subsystem
-
-> > So, we need to find a way to lock some hardware resources among
-> > different subsystems that don't share anything in common. Not sure if
-> > mfd has the same type of problem of a non-mfd driver using another
-> > function of the same device
 > 
-> The MFD device provides subdevices for all the functions. That is the
-> whole underlying concept.
+> 	Hi Pawel,
+> 
+> 	> From: Pawel Osciak [mailto:posciak@chromium.org]
+> 	> Sent: Monday, April 21, 2014 12:27 PM
+> 	> To: Arun Kumar K
+> 	> Cc: linux-media@vger.kernel.org; linux-samsung-soc; Kamil
+> Debski;
+> 	> Sylwester Nawrocki; Hans Verkuil; Laurent Pinchart
+> 	> Subject: Re: [PATCH v2 1/2] v4l: Add resolution change event.
+> 
+> 	>
+> 	> As a side note, because this is not really codified in the API,
+> I would
+> 	> like this event to indicate not only resolution change mid-
+> stream, but
+> 	> also detection of initial resolution, which should be a subset
+> of
+> 	> resolution change. I think this would make sense for the codec
+> 	> interface:
+> 	>
+> 	> Video decode:
+> 	> 1. S_FMT to given codec on OUTPUT queue.
+> 	> 2. REQBUFS(n) and STREAMON on OUTPUT queue.
+> 	> 3. Keep QBUFing until we get an resolution change event on the
+> CAPTURE
+> 	> queue; until then, the driver/codec HW will operate on the
+> OUTPUT queue
+> 	> only and try to detect relevant headers in the OUTPUT buffers,
+> and will
+> 	> send resolution change event once it finds resolution, profile,
+> etc.
+> 	> info). DQEVENT.
+> 	> 4. G_FMT on CAPTURE to get the discovered output format
+> (resolution),
+> 	> REQBUFS and STREAMON on the CAPTURE queue.
+> 	> 5. Normal mem-to-mem decoding.
+> 	> 6. If a resolution change event arrives on CAPTURE queue,
+> DQEVENT,
+> 	> STREAMOFF, REQBUFS(0) only on CAPTURE queue, and goto 4. OUTPUT
+> queue
+> 	> operates completely independently of this.
+> 	>
+> 	> Also, this event should invariably indicate all of the below:
+> 	> - all output buffers from before resolution change are already
+> ready on
+> 	> the CAPTURE queue to DQBUF (so it's ready to REQBUFS(0) after
+> DQBUFs),
+> 	> and
+> 	> - there will be no more new ready buffers on the CAPTURE queue
+> until
+> 	> the streamoff-reqbufs(0)-g_fmt-reqbufs()-streamon is performed,
+> and
+> 	> - OUTPUT queue is completely independent of all of the above
+> and can be
+> 	> still used as normal, i.e. stream buffers can still keep being
+> queued
+> 	> at any stage of the resolution change and they will be decoded
+> after
+> 	> resolution change sequence is finished;
+> 	>
+> 	> If we all agree to the above, I will prepare a subsequent patch
+> for the
+> 	> documentation to include the above.
+> 
+> 
+> 	If I understand correctly this will keep the old application
+> working.
+> 	By this I mean application that do not use events and rely on the
+> current
+> 	mechanism to detect initial header parsing and resolution change.
+> 
+> 	If backward compatibility is kept I am all for the changes
+> proposed by you.
+> 
+> 
+> 
+> MFC codec depends on the userspace to parse the stream and pass the
+> stream header with resolution info before calling G_FMT. So if it
+> ignores the events but keeps doing this, things should keep working I
+> think, as the G_FMT should still work as before.
+> 
+> This event will help userspace that doesn't want to bother itself with
+> parsing the stream to know if the right header was queued and rely on
+> events to know when to call G_FMT instead.
+> 
+> What do you think? Am I missing something?
 
-I'll take a look on how it works, and how it locks resources on
-other drivers. What drivers outside drivers/mfd use shared resources
-that require locks controlled by mfd?
+Do you think this will work with all MFC versions? I guess that your focus
+is on the newer MFC version such as v6 or even v7. I had worked mostly with
+the v5 version and I am not sure how well it will handle the situation when
+it does not receive the header as the first frame. Do you have a target with
+v5 of MFC at hand?
 
+I really like your idea. If you haven't got the possibility to check how it
+works on v5 then I suggest you go ahead with patches and later I will do some
+testing on MFC v5.
+
+Best wishes,
 -- 
+Kamil Debski
+Samsung R&D Institute Poland
 
-Regards,
-Mauro
