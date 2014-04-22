@@ -1,44 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60125 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030235AbaDJMLs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 08:11:48 -0400
-Message-ID: <53468A82.7010501@iki.fi>
-Date: Thu, 10 Apr 2014 15:11:46 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from aserp1040.oracle.com ([141.146.126.69]:31203 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932231AbaDVMkd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Apr 2014 08:40:33 -0400
+Date: Tue, 22 Apr 2014 15:39:50 +0300
+From: Pavel Machek <pavel@ucw.cz>
+To: hans.verkuil@cisco.com, m.chehab@samsung.com,
+	ext-eero.nurkkala@nokia.com, nils.faerber@kernelconcepts.de,
+	joni.lapilainen@gmail.com, freemangordon@abv.bg, sre@ring0.de,
+	pali.rohar@gmail.com, Greg KH <greg@kroah.com>, trivial@kernel.org,
+	linux-media@vger.kernel.org
+Cc: kernel list <linux-kernel@vger.kernel.org>
+Subject: [PATCH v2] radio-bcm2048.c: fix wrong overflow check
+Message-ID: <20140420145622.GA15567@amd.pavel.ucw.cz>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Subject: [GIT PULL 3.15] rtl2832_sdr attach fixes
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <201404221147.05726@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit a83b93a7480441a47856dc9104bea970e84cda87:
+From: Pali Rohár <pali.rohar@gmail.com>
 
-   [media] em28xx-dvb: fix PCTV 461e tuner I2C binding (2014-03-31 
-08:02:16 -0300)
+This patch fixes an off by one check in bcm2048_set_region().
 
-are available in the git repository at:
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+v2: Send it to the correct list.  Re-work the changelog.
 
-   git://linuxtv.org/anttip/media_tree.git fixes3.15_rtl2832_sdr_attach
+This patch has been floating around for four months but Pavel and Pali
+are knuckle-heads and don't know how to use get_maintainer.pl so they
+never send it to linux-media.
 
-for you to fetch changes up to 613f11d8dee62e4e7ecdc7670a54560773a324f9:
+Also Pali doesn't give reporter credit and Pavel steals authorship
+credit.
 
-   rtl28xxu: silence error log about disabled rtl2832_sdr module 
-(2014-04-10 01:01:24 +0300)
+Also when you try explain to them about how to send patches correctly
+they complain that they have been trying but it is too much work so now
+I have to do it.  During the past four months thousands of other people
+have been able to send patches in the correct format to the correct list
+but it is too difficult for Pavel and Pali...  *sigh*.
 
-----------------------------------------------------------------
-Antti Palosaari (2):
-       rtl28xxu: do not hard depend on staging SDR module
-       rtl28xxu: silence error log about disabled rtl2832_sdr module
-
-  drivers/media/usb/dvb-usb-v2/Makefile   |  1 -
-  drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 48 
-+++++++++++++++++++++++++++++++++++++++++++-----
-  2 files changed, 43 insertions(+), 6 deletions(-)
-
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index b2cd3a8..bbf236e 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -737,7 +737,7 @@ static int bcm2048_set_region(struct bcm2048_device *bdev, u8 region)
+ 	int err;
+ 	u32 new_frequency = 0;
+ 
+-	if (region > ARRAY_SIZE(region_configs))
++	if (region >= ARRAY_SIZE(region_configs))
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&bdev->mutex);
 
 -- 
-http://palosaari.fi/
