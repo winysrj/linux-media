@@ -1,72 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.225]:31868 "EHLO
-	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752768AbaDHULL (ORCPT
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:34518 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755132AbaDVJrL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Apr 2014 16:11:11 -0400
-Message-ID: <534457DD.4000406@austin.rr.com>
-Date: Tue, 08 Apr 2014 15:11:09 -0500
-From: Keith Pyle <kpyle@austin.rr.com>
-MIME-Version: 1.0
-To: Ryley Angus <ryleyjangus@gmail.com>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>,
+	Tue, 22 Apr 2014 05:47:11 -0400
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+To: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] radio-bcm2048.c: fix wrong overflow check
+Date: Tue, 22 Apr 2014 11:47:05 +0200
+Cc: Dan Carpenter <dan.carpenter@oracle.com>, hans.verkuil@cisco.com,
+	m.chehab@samsung.com, ext-eero.nurkkala@nokia.com,
+	nils.faerber@kernelconcepts.de, joni.lapilainen@gmail.com,
+	freemangordon@abv.bg, sre@ring0.de, Greg KH <greg@kroah.com>,
+	trivial@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
 	linux-media@vger.kernel.org
-Subject: Re: [RFC] Fix interrupted recording with Hauppauge HD-PVR
-References: <C2340839-C85B-4DDF-8590-FA9049D6E65E@gmail.com> <5342B115.2070909@xs4all.nl> <007a01cf52db$253a7fe0$6faf7fa0$@gmail.com> <5344077D.4030809@austin.rr.com> <00e901cf534d$15fd4220$41f7c660$@gmail.com>
-In-Reply-To: <00e901cf534d$15fd4220$41f7c660$@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+References: <20140420145622.GA15567@amd.pavel.ucw.cz> <20140422091656.GV4963@mwanda> <20140422093836.GA16686@amd.pavel.ucw.cz>
+In-Reply-To: <20140422093836.GA16686@amd.pavel.ucw.cz>
+MIME-Version: 1.0
+Content-Type: multipart/signed;
+  boundary="nextPart1832675.KFpLFIzXl0";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
+Message-Id: <201404221147.05726@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/08/14 12:07, Ryley Angus wrote:
-> Hi Kyle.
->
-> It may be possible that the delay in acceptable grace periods is due to a
-> difference in our input AV sources more so than the Hauppauge units
-> themselves. I'm wondering if it would be useful to control the timeout
-> period via a module parameter that defaults to 3 seconds perhaps?
->
-> As far as the issues with concatenated output, I've just looked at the files
-> containing a channel change and realized that VLC does show the duration as
-> 0:00. Seeking with a keyboard isn't functional. Seeking with the timeline
-> and a mouse is fine. Avidemux seems to have trouble editing the file. If I
-> cut a section from a file that is from a single recording "session" it's
-> duration is correct, sync is correct and audio properties are correct. I
-> cannot cut across segments. MPC-HC also has duration issues with the
-> recording.
->
-> If I run the recordings through "ffmpeg -fflags +genpts -I <INPUT> -c:v copy
-> -c:a copy <OUTPUT>", the resultant file duration is correct in VLC, I can
-> seek with the keyboard and mouse and editing is perfect with Avidemux. But
-> would it be better if the device just cleanly stopped recording instead of
-> automatically resuming? Or, continuing with the module parameters idea,
-> could we determine whether or not it will automatically restart based off a
-> module parameter?
->
-> I feel bad for not noticing the VLC issues earlier, but I mostly just use
-> VLC to broadcast the recordings through my home network to client instances
-> of VLC. This works well, but obviously seeking isn't relevant.
->
-> ryley
->
-> ...
-I doubt that the multiple segment problem can be easily fixed in the 
-hdpvr Linux driver.  With the caveat that I'm far away from being an 
-expert on MPEG, TS, and the like, I believe that the HD-PVR encoder 
-generates the timing data into the stream with its origin being defined 
-when the encoder starts the stream.  So, if the capture is restarted, 
-the encoder is re-initialized by the HD-PVR firmware and the result is a 
-new origin for the following stream segment.
+--nextPart1832675.KFpLFIzXl0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-The only real fix would be in the HD-PVR firmware - which we can't get 
-and is why we have this problem in the first place.
+On Tuesday 22 April 2014 11:38:36 Pavel Machek wrote:
+> On Tue 2014-04-22 12:16:56, Dan Carpenter wrote:
+> > On Tue, Apr 22, 2014 at 10:55:53AM +0200, Pali Roh=C3=A1r wrote:
+> > > On Tuesday 22 April 2014 10:39:17 Dan Carpenter wrote:
+> > > > On Sun, Apr 20, 2014 at 04:56:22PM +0200, Pavel Machek=20
+wrote:
+> > > > > Fix wrong overflow check in radio-bcm2048.
+> > > > >=20
+> > > > > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> > > > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > > >=20
+> > > > Signed off means like you're signing a legal document to
+> > > > show that you didn't do anything illegal when you
+> > > > handled the patch.  Was this patch authored by Pali?=20
+> > > > If so, then use the From: header.
+> > > >=20
+> > > > Btw, I reported this bug on Dec 10 last year.  It's
+> > > > better that we fix it now than not fix it at all but we
+> > > > could have done better.  Was the kbuild-zero-day bug
+> > > > report format confusing or how could I have helped out
+> > > > there?
+> > > >=20
+> > > > regards,
+> > > > dan carpenter
+> > >=20
+> > > Hello, I sent this patch months ago, but not generated by
+> > > commmand git format-patch.
+> >=20
+> > You should still have recieved authorship credit instead of
+> > Pavel.  It's a newbie mistake which I have made myself.=20
+> > Pavel, use the From: header to give authorship credit.  It
+> > goes on the first line of the email.
+> >=20
+> > Did you send it to the correct list?  This patch should have
+> > gone to linux-media@vger.kernel.org.  I see now that they
+> > are not CC'd.  Please resend it to the correct list.
+>=20
+> How many more mails need to be generated for single line
+> trivial patch? It is staging driver, so Greg should take it.
+> Anyway, cc-ed the list now.
+>=20
+> > > And yes, this problem was reported by some public static
+> > > code checker.
+> >=20
+> > I was the public static code checker and I sent the bug
+> > report from my @oracle.com email address.  Please, give me
+> > a Reported-by credit since you are resending this patch
+> > anyway.
+>=20
+> Feel free to resubmit the patch yourself.
+>=20
+> 									Pavel
 
-Regardless of this problem, I think the proposed driver patch is a 
-distinct improvement over the current situation.  Without the patch, we 
-get truncated recordings.  With the patch, we get nearly complete 
-recordings which have skip issues.  As you noted, this problem may be 
-fixed with ffmpeg.
+I agree with Pavel, this patch which fixing buffer overflow bug=20
+should have been already included in kernel tree. And I think it=20
+really does not matter which from, to or cc lines are specified=20
+for singleline patch which was inspirated by static code checker.=20
+Rather to have fixed bug as talking who found it or who fixed it.
 
-Keith
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
+--nextPart1832675.KFpLFIzXl0
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlNWOpkACgkQi/DJPQPkQ1JleQCdH4yrV+uY0zd3MEIIb4d0kbYl
+/6oAoLLS7auQ63/cWvtRfxu4ZH6KIPHR
+=9KVT
+-----END PGP SIGNATURE-----
+
+--nextPart1832675.KFpLFIzXl0--
