@@ -1,54 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:64863 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932542AbaDILFL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Apr 2014 07:05:11 -0400
-Message-id: <53452960.5070501@samsung.com>
-Date: Wed, 09 Apr 2014 13:05:04 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-To: Andrzej Hajda <a.hajda@samsung.com>, linux-kernel@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: kgene.kim@samsung.com, kishon@ti.com, kyungmin.park@samsung.com,
-	robh+dt@kernel.org, grant.likely@linaro.org,
-	sylvester.nawrocki@gmail.com, rahul.sharma@samsung.com
-Subject: Re: [PATCHv2 2/3] drm: exynos: hdmi: use hdmiphy as PHY
-References: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com>
- <1396967856-27470-3-git-send-email-t.stanislaws@samsung.com>
- <53452157.9030203@samsung.com>
-In-reply-to: <53452157.9030203@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:59352 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932150AbaDVLCy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Apr 2014 07:02:54 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, s.nawrocki@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH] [media] s5p-mfc: Add IOMMU support
+Date: Tue, 22 Apr 2014 16:32:48 +0530
+Message-Id: <1398164568-6048-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej,
-This issue could be solved by exporting a regmap from PMU driver
-or Exynos clock provider for the usage by exynos-simple-phy.
-The operations on PHYs from exynos-simple-phy provider would
-be chained to PMU driver and protected by a spinlock in the regmap.
+The patch adds IOMMU support for MFC driver.
 
-Luckily, the divider is not used as far as I know.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+This patch is tested on IOMMU support series [1] posted
+by KyonHo Cho.
+[1] https://lkml.org/lkml/2014/3/14/9
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |   33 ++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
-Regards,
-Tomasz Stanislawski
-
-On 04/09/2014 12:30 PM, Andrzej Hajda wrote:
-> Hi Tomasz,
-> 
-> On 04/08/2014 04:37 PM, Tomasz Stanislawski wrote:
->> The HDMIPHY (physical interface) is controlled by a single
->> bit in a power controller's regiter. It was implemented
->> as clock. It was a simple but effective hack.
-> 
-> This power controller register has also bits to control HDMI clock
-> divider ratio. I guess current drivers do not change it, but how do you
-> want to implement access to it if some HDMI driver in the future will
-> need to change ratio. I guess in case of clk it would be easier.
-> 
-> Regards
-> Andrzej
-> 
-> 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 89356ae..1f248ba 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -32,11 +32,18 @@
+ #include "s5p_mfc_opr.h"
+ #include "s5p_mfc_cmd.h"
+ #include "s5p_mfc_pm.h"
++#ifdef CONFIG_EXYNOS_IOMMU
++#include <asm/dma-iommu.h>
++#endif
+ 
+ #define S5P_MFC_NAME		"s5p-mfc"
+ #define S5P_MFC_DEC_NAME	"s5p-mfc-dec"
+ #define S5P_MFC_ENC_NAME	"s5p-mfc-enc"
+ 
++#ifdef CONFIG_EXYNOS_IOMMU
++static struct dma_iommu_mapping *mapping;
++#endif
++
+ int debug;
+ module_param(debug, int, S_IRUGO | S_IWUSR);
+ MODULE_PARM_DESC(debug, "Debug level - higher value produces more verbose messages");
+@@ -1013,6 +1020,23 @@ static void *mfc_get_drv_data(struct platform_device *pdev);
+ 
+ static int s5p_mfc_alloc_memdevs(struct s5p_mfc_dev *dev)
+ {
++#ifdef CONFIG_EXYNOS_IOMMU
++	struct device *mdev = &dev->plat_dev->dev;
++
++	mapping = arm_iommu_create_mapping(&platform_bus_type, 0x20000000,
++			SZ_256M);
++	if (mapping == NULL) {
++		mfc_err("IOMMU mapping failed\n");
++		return -EFAULT;
++	}
++	mdev->dma_parms = devm_kzalloc(&dev->plat_dev->dev,
++			sizeof(*mdev->dma_parms), GFP_KERNEL);
++	dma_set_max_seg_size(mdev, 0xffffffffu);
++	arm_iommu_attach_device(mdev, mapping);
++
++	dev->mem_dev_l = dev->mem_dev_r = mdev;
++	return 0;
++#else
+ 	unsigned int mem_info[2] = { };
+ 
+ 	dev->mem_dev_l = devm_kzalloc(&dev->plat_dev->dev,
+@@ -1049,6 +1073,7 @@ static int s5p_mfc_alloc_memdevs(struct s5p_mfc_dev *dev)
+ 		return -ENOMEM;
+ 	}
+ 	return 0;
++#endif
+ }
+ 
+ /* MFC probe function */
+@@ -1228,6 +1253,10 @@ err_mem_init_ctx_1:
+ 	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[0]);
+ err_res:
+ 	s5p_mfc_final_pm(dev);
++#ifdef CONFIG_EXYNOS_IOMMU
++	if (mapping)
++		arm_iommu_release_mapping(mapping);
++#endif
+ 
+ 	pr_debug("%s-- with error\n", __func__);
+ 	return ret;
+@@ -1256,6 +1285,10 @@ static int s5p_mfc_remove(struct platform_device *pdev)
+ 		put_device(dev->mem_dev_r);
+ 	}
+ 
++#ifdef CONFIG_EXYNOS_IOMMU
++	if (mapping)
++		arm_iommu_release_mapping(mapping);
++#endif
+ 	s5p_mfc_final_pm(dev);
+ 	return 0;
+ }
+-- 
+1.7.9.5
 
