@@ -1,130 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-outbound-1.vmware.com ([208.91.2.12]:47748 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751141AbaDKKLZ (ORCPT
+Received: from mail-oa0-f54.google.com ([209.85.219.54]:46325 "EHLO
+	mail-oa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753720AbaDWPFY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 06:11:25 -0400
-Message-ID: <5347BFC9.3020503@vmware.com>
-Date: Fri, 11 Apr 2014 12:11:21 +0200
-From: Thomas Hellstrom <thellstrom@vmware.com>
+	Wed, 23 Apr 2014 11:05:24 -0400
+Received: by mail-oa0-f54.google.com with SMTP id i7so1166784oag.27
+        for <linux-media@vger.kernel.org>; Wed, 23 Apr 2014 08:05:24 -0700 (PDT)
+Message-ID: <5357D6A4.4070008@gmail.com>
+Date: Wed, 23 Apr 2014 10:05:08 -0500
+From: Matt DeVillier <matt.devillier@gmail.com>
 MIME-Version: 1.0
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-CC: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	ccross@google.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] [RFC v2 with seqcount] reservation: add suppport
- for read-only access using rcu
-References: <20140409144239.26648.57918.stgit@patser> <20140409144831.26648.79163.stgit@patser> <53465A53.1090500@vmware.com> <53466D63.8080808@canonical.com> <53467B93.3000402@vmware.com> <5346B212.8050202@canonical.com> <5347A9FD.2070706@vmware.com> <5347B4E5.6090901@canonical.com>
-In-Reply-To: <5347B4E5.6090901@canonical.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org
+Subject: [PATCH  v2] fix mceusb endpoint type identification/handling
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/11/2014 11:24 AM, Maarten Lankhorst wrote:
-> op 11-04-14 10:38, Thomas Hellstrom schreef:
->> Hi, Maarten.
->>
->> Here I believe we encounter a lot of locking inconsistencies.
->>
->> First, it seems you're use a number of pointers as RCU pointers without
->> annotating them as such and use the correct rcu
->> macros when assigning those pointers.
->>
->> Some pointers (like the pointers in the shared fence list) are both used
->> as RCU pointers (in dma_buf_poll()) for example,
->> or considered protected by the seqlock
->> (reservation_object_get_fences_rcu()), which I believe is OK, but then
->> the pointers must
->> be assigned using the correct rcu macros. In the memcpy in
->> reservation_object_get_fences_rcu() we might get away with an
->> ugly typecast, but with a verbose comment that the pointers are
->> considered protected by the seqlock at that location.
->>
->> So I've updated (attached) the headers with proper __rcu annotation and
->> locking comments according to how they are being used in the various
->> reading functions.
->> I believe if we want to get rid of this we need to validate those
->> pointers using the seqlock as well.
->> This will generate a lot of sparse warnings in those places needing
->> rcu_dereference()
->> rcu_assign_pointer()
->> rcu_dereference_protected()
->>
->> With this I think we can get rid of all ACCESS_ONCE macros: It's not
->> needed when the rcu_x() macros are used, and
->> it's never needed for the members protected by the seqlock, (provided
->> that the seq is tested). The only place where I think that's
->> *not* the case is at the krealloc in
->> reservation_object_get_fences_rcu().
->>
->> Also I have some more comments in the
->> reservation_object_get_fences_rcu() function below:
-> I felt that the barriers needed for rcu were already provided by
-> checking the seqcount lock.
-> But looking at rcu_dereference makes it seem harmless to add it in
-> more places, it handles
-> the ACCESS_ONCE and barrier() for us.
+From: Matt DeVillier <matt.devillier@gmail.com>
 
-And it makes the code more maintainable, and helps sparse doing a lot of
-checking for us. I guess
-we can tolerate a couple of extra barriers for that.
+Change the I/O endpoint handling of the mceusb driver to respect the endpoint 
+type reported by device (bulk/interrupt), rather than treating all endpoints 
+as type interrupt, which breaks devices using bulk endpoints when connected 
+to a xhci controller.  Accordingly, change the function calls to initialize 
+an endpoint's transfer pipe and urb handlers to use the correct function based 
+on the endpoint type.
 
->
-> We could probably get away with using RCU_INIT_POINTER on the writer
-> side,
-> because the smp_wmb is already done by arranging seqcount updates
-> correctly.
+Signed-off-by: Matt DeVillier <matt.devillier@gmail.com>
+Tested-by: Sean Young <sean@mess.org>
+---
+This is a continuation of the work started in patch #21648
+Patch compiled and tested against linux-media git master. Backported and tested 
+against 3.14.1 stable as well.
+v2 corrects some formatting issues (both with the patch itself and MUA), and 
+removes a small bug fix not relevant to the core patch functionality.
+---
+diff -up mceusb.c{.orig,}
+--- mceusb.c.orig	2014-04-22 13:48:51.186259472 -0500
++++ mceusb.c	2014-04-23 09:51:50.060107612 -0500
+@@ -747,11 +747,19 @@ static void mce_request_packet(struct mc
+		}
 
-Hmm. yes, probably. At least in the replace function. I think if we do
-it in other places, we should add comments as to where
-the smp_wmb() is located, for future reference.
+		/* outbound data */
+-		pipe = usb_sndintpipe(ir->usbdev,
+-				      ir->usb_ep_out->bEndpointAddress);
+-		usb_fill_int_urb(async_urb, ir->usbdev, pipe,
+-			async_buf, size, mce_async_callback,
+-			ir, ir->usb_ep_out->bInterval);
++		if ((ir->usb_ep_out->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
++			== USB_ENDPOINT_XFER_INT) {
++			pipe = usb_sndintpipe(ir->usbdev,
++					 ir->usb_ep_out->bEndpointAddress);
++			usb_fill_int_urb(async_urb, ir->usbdev, pipe, async_buf,
++					 size, mce_async_callback, ir,
++					 ir->usb_ep_out->bInterval);
++		} else {
++			pipe = usb_sndbulkpipe(ir->usbdev,
++					 ir->usb_ep_out->bEndpointAddress);
++			usb_fill_bulk_urb(async_urb, ir->usbdev, pipe, async_buf,
++					 size, mce_async_callback, ir);
++		}
+		memcpy(async_buf, data, size);
+
+	} else if (urb_type == MCEUSB_RX) {
+@@ -1271,38 +1279,47 @@ static int mceusb_dev_probe(struct usb_i
+
+		if ((ep_in == NULL)
+			&& ((ep->bEndpointAddress & USB_ENDPOINT_DIR_MASK)
+-			    == USB_DIR_IN)
+-			&& (((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+-			    == USB_ENDPOINT_XFER_BULK)
+-			|| ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+-			    == USB_ENDPOINT_XFER_INT))) {
+-
+-			ep_in = ep;
+-			ep_in->bmAttributes = USB_ENDPOINT_XFER_INT;
+-			ep_in->bInterval = 1;
+-			dev_dbg(&intf->dev, "acceptable inbound endpoint found");
++			== USB_DIR_IN)) {
++
++			if ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
++				== USB_ENDPOINT_XFER_BULK) {
++
++				ep_in = ep;
++				mce_dbg(&intf->dev, "acceptable bulk inbound endpoint found\n");
++			} else if ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
++				== USB_ENDPOINT_XFER_INT) {
++
++				ep_in = ep;
++				ep_in->bInterval = 1;
++				mce_dbg(&intf->dev, "acceptable interrupt inbound endpoint found\n");
++			}
+		}
+
+		if ((ep_out == NULL)
+			&& ((ep->bEndpointAddress & USB_ENDPOINT_DIR_MASK)
+-			    == USB_DIR_OUT)
+-			&& (((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+-			    == USB_ENDPOINT_XFER_BULK)
+-			|| ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+-			    == USB_ENDPOINT_XFER_INT))) {
+-
+-			ep_out = ep;
+-			ep_out->bmAttributes = USB_ENDPOINT_XFER_INT;
+-			ep_out->bInterval = 1;
+-			dev_dbg(&intf->dev, "acceptable outbound endpoint found");
++			== USB_DIR_OUT)) {
++			if ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
++				== USB_ENDPOINT_XFER_BULK) {
++				ep_out = ep;
++				mce_dbg(&intf->dev, "acceptable bulk outbound endpoint found\n");
++			} else if ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
++				== USB_ENDPOINT_XFER_INT) {
++				ep_out = ep;
++				ep_out->bInterval = 1;
++				mce_dbg(&intf->dev, "acceptable interrupt outbound endpoint found\n");
++			}
+		}
+-	}
+	if (ep_in == NULL) {
+		dev_dbg(&intf->dev, "inbound and/or endpoint not found");
+		return -ENODEV;
+	}
+
+-	pipe = usb_rcvintpipe(dev, ep_in->bEndpointAddress);
++	if ((ep_in->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
++		== USB_ENDPOINT_XFER_INT) {
++		pipe = usb_rcvintpipe(dev, ep_in->bEndpointAddress);
++	} else {
++		pipe = usb_rcvbulkpipe(dev, ep_in->bEndpointAddress);
++	}
+	maxp = usb_maxpacket(dev, pipe, usb_pipeout(pipe));
+
+	ir = kzalloc(sizeof(struct mceusb_dev), GFP_KERNEL);
+@@ -1343,8 +1360,14 @@ static int mceusb_dev_probe(struct usb_i
+		goto rc_dev_fail;
+
+	/* wire up inbound data handler */
+-	usb_fill_int_urb(ir->urb_in, dev, pipe, ir->buf_in, maxp,
+-				mceusb_dev_recv, ir, ep_in->bInterval);
++	if ((ep_in->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
++		== USB_ENDPOINT_XFER_INT) {
++		usb_fill_int_urb(ir->urb_in, dev, pipe, ir->buf_in, maxp,
++				 mceusb_dev_recv, ir, ep_in->bInterval);
++	} else {
++		usb_fill_bulk_urb(ir->urb_in, dev, pipe, ir->buf_in, maxp,
++				 mceusb_dev_recv, ir);
++	}
+	ir->urb_in->transfer_dma = ir->dma_in;
+	ir->urb_in->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 
 
-Also  I saw in a couple of places where you're checking the shared
-pointers, you're not checking for NULL pointers, which I guess may
-happen if shared_count and pointers are not in full sync?
-
-Thanks,
-/Thomas
-
-
->
->> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
->> index d89a98d2c37b..ca6ef0c4b358 100644
->> --- a/drivers/base/dma-buf.c
->> +++ b/drivers/base/dma-buf.c
->>
->> +int reservation_object_get_fences_rcu(struct reservation_object *obj,
->> +                      struct fence **pfence_excl,
->> +                      unsigned *pshared_count,
->> +                      struct fence ***pshared)
->> +{
->> +    unsigned shared_count = 0;
->> +    unsigned retry = 1;
->> +    struct fence **shared = NULL, *fence_excl = NULL;
->> +    int ret = 0;
->> +
->> +    while (retry) {
->> +        struct reservation_object_list *fobj;
->> +        unsigned seq, retry;
->> You're shadowing retry?
-> Oops.
->>
->>> +
->>> +        seq = read_seqcount_begin(&obj->seq);
->>> +
->>> +        rcu_read_lock();
->>> +
->>> +        fobj = ACCESS_ONCE(obj->fence);
->>> +        if (fobj) {
->>> +            struct fence **nshared;
->>> +
->>> +            shared_count = ACCESS_ONCE(fobj->shared_count);
->>> +            nshared = krealloc(shared, sizeof(*shared) *
->>> shared_count, GFP_KERNEL);
->> krealloc inside rcu_read_lock(). Better to put this first in the loop.
-> Except that shared_count isn't known until the rcu_read_lock is taken.
->> Thanks,
->> Thomas
-> ~Maarten
