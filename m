@@ -1,95 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f173.google.com ([209.85.223.173]:47862 "EHLO
-	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750833AbaD3FpW (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2741 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932527AbaDWOcP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Apr 2014 01:45:22 -0400
-Message-ID: <53608DEB.1020608@gmail.com>
-Date: Wed, 30 Apr 2014 11:15:15 +0530
-From: Arun Kumar K <arunkk.samsung@gmail.com>
+	Wed, 23 Apr 2014 10:32:15 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s3NEWBJd000189
+	for <linux-media@vger.kernel.org>; Wed, 23 Apr 2014 16:32:13 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 7DA9A2A199E
+	for <linux-media@vger.kernel.org>; Wed, 23 Apr 2014 16:32:11 +0200 (CEST)
+Message-ID: <5357CEEB.5040809@xs4all.nl>
+Date: Wed, 23 Apr 2014 16:32:11 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>,
-	Arun Kumar K <arun.kk@samsung.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Pawel Osciak <posciak@chromium.org>,
-	Kiran Avnd <avnd.kiran@samsung.com>
-Subject: Re: [PATCH 2/3] [media] s5p-mfc: Core support to add v8 decoder
-References: <1398257864-12097-1-git-send-email-arun.kk@samsung.com>	<1398257864-12097-3-git-send-email-arun.kk@samsung.com> <CAK9yfHzB11kJbOcL-jHHo_P4D2nXtHuGRM_FT0mNuvV0SLywrQ@mail.gmail.com>
-In-Reply-To: <CAK9yfHzB11kJbOcL-jHHo_P4D2nXtHuGRM_FT0mNuvV0SLywrQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] v4l2-pci-skeleton: fix typo
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thank you for the review.
-
-On 04/29/14 22:45, Sachin Kamat wrote:
-> Hi Arun,
->
-> On 23 April 2014 18:27, Arun Kumar K <arun.kk@samsung.com> wrote:
->> From: Kiran AVND <avnd.kiran@samsung.com>
->>
->> This patch adds variant data and core support for
->> V8 decoder. This patch also adds the register definition
->> file for new firmware version v8 for MFC.
->>
->> Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
->> Signed-off-by: Pawel Osciak <posciak@chromium.org>
->> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
->> ---
-> <...>
->> +
->> +/* Returned value register for specific setting */
->> +#define S5P_FIMV_D_RET_PICTURE_TAG_TOP_V8      0xf674
->> +#define S5P_FIMV_D_RET_PICTURE_TAG_BOT_V8      0xf678
->> +#define S5P_FIMV_D_MVC_VIEW_ID_V8              0xf6d8
->> +
->> +/* SEI related information */
->> +#define S5P_FIMV_D_FRAME_PACK_SEI_AVAIL_V8     0xf6dc
->> +
->> +/* MFCv8 Context buffer sizes */
->> +#define MFC_CTX_BUF_SIZE_V8            (30 * SZ_1K)    /*  30KB */
->
-> Please include header file for size macros.
->
-
-The file linux/sizes.h is included in regs-mfc-v6.h which
-inturn gets included in this file. Isnt that fine?
-
-> <...>
->>   };
->> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
->> index 48a14b5..f0e63f5 100644
->> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
->> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
->> @@ -23,8 +23,7 @@
->>   #include <media/v4l2-ioctl.h>
->>   #include <media/videobuf2-core.h>
->>   #include "regs-mfc.h"
->> -#include "regs-mfc-v6.h"
->> -#include "regs-mfc-v7.h"
->> +#include "regs-mfc-v8.h"
->>
->>   /* Definitions related to MFC memory */
->>
->> @@ -705,5 +704,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
->>   #define IS_TWOPORT(dev)                (dev->variant->port_num == 2 ? 1 : 0)
->>   #define IS_MFCV6_PLUS(dev)     (dev->variant->version >= 0x60 ? 1 : 0)
->>   #define IS_MFCV7(dev)          (dev->variant->version >= 0x70 ? 1 : 0)
->
-> Is MFC v8 superset of MFC v7?
->
-
-Yes it is a superset.
-So the last patch in this series renames IS_MFCV7 to IS_MFCV7_PLUS.
-
-Regards
-Arun
-
->> +#define IS_MFCV8(dev)          (dev->variant->version >= 0x80 ? 1 : 0)
->
+diff --git a/Documentation/video4linux/v4l2-pci-skeleton.c b/Documentation/video4linux/v4l2-pci-skeleton.c
+index 53dd346..46904fe 100644
+--- a/Documentation/video4linux/v4l2-pci-skeleton.c
++++ b/Documentation/video4linux/v4l2-pci-skeleton.c
+@@ -174,7 +174,7 @@ static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
+ 		 * You cannot use read() with FIELD_ALTERNATE since the field
+ 		 * information (TOP/BOTTOM) cannot be passed back to the user.
+ 		 */
+-		if (vb2_fileio_is_active(q))
++		if (vb2_fileio_is_active(vq))
+ 			return -EINVAL;
+ 		skel->field = V4L2_FIELD_TOP;
+ 	}
