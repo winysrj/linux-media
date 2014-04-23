@@ -1,125 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34824 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750902AbaDUACf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Apr 2014 20:02:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv4 PATCH 12/18] vb2: only call start_streaming if sufficient buffers are queued
-Date: Mon, 21 Apr 2014 02:02:42 +0200
-Message-ID: <77689490.zVtD3Raa0D@avalon>
-In-Reply-To: <1393929746-39437-13-git-send-email-hverkuil@xs4all.nl>
-References: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl> <1393929746-39437-13-git-send-email-hverkuil@xs4all.nl>
+Received: from pequod.mess.org ([80.229.237.210]:45736 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755258AbaDWNZi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Apr 2014 09:25:38 -0400
+Date: Wed, 23 Apr 2014 14:19:51 +0100
+From: Sean Young <sean@mess.org>
+To: Matt DeVillier <matt.devillier@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH ] fix mceusb endpoint type identification/handling
+Message-ID: <20140423131951.GA17979@pequod.mess.org>
+References: <5356F1DF.7030901@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5356F1DF.7030901@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Tuesday 04 March 2014 11:42:20 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue, Apr 22, 2014 at 05:49:03PM -0500, Matt DeVillier wrote:
+> From: Matt DeVillier <matt.devillier@gmail.com>
 > 
-> In commit 02f142ecd24aaf891324ffba8527284c1731b561 support was added to
-> start_streaming to return -ENOBUFS if insufficient buffers were queued
-> for the DMA engine to start. The vb2 core would attempt calling
-> start_streaming again if another buffer would be queued up.
+> Change the I/O endpoint handling of the mceusb driver to respect the
+> endpoint type reported by device (bulk/interrupt), rather than
+> treating all endpoints as type interrupt, which breaks devices using
+> bulk endpoints when connected to a xhci controller.  Accordingly,
+> change the function calls to initialize an endpoint's transfer pipe
+> and urb handlers to use the correct function based on the endpoint
+> type.
 > 
-> Later analysis uncovered problems with the queue management if
-> start_streaming would return an error: the buffers are enqueued to the
-> driver before the start_streaming op is called, so after an error they are
-> never returned to the vb2 core. The solution for this is to let the driver
-> return them to the vb2 core in case of an error while starting the DMA
-> engine. However, in the case of -ENOBUFS that would be weird: it is not a
-> real error, it just says that more buffers are needed. Requiring
-> start_streaming to give them back only to have them requeued again the next
-> time the application calls QBUF is inefficient.
-> 
-> This patch changes this mechanism: it adds a 'min_buffers_needed' field
-> to vb2_queue that drivers can set with the minimum number of buffers
-> required to start the DMA engine. The start_streaming op is only called
-> if enough buffers are queued. The -ENOBUFS handling has been dropped in
-> favor of this new method.
-> 
-> Drivers are expected to return buffers back to vb2 core with state QUEUED
-> if start_streaming would return an error. The vb2 core checks for this
-> and produces a warning if that didn't happen and it will forcefully
-> reclaim such buffers to ensure that the internal vb2 core state remains
-> consistent and all buffer-related resources have been correctly freed
-> and all op calls have been balanced.
-> 
-> __reqbufs() has been updated to check that at least min_buffers_needed
-> buffers could be allocated. If fewer buffers were allocated then __reqbufs
-> will free what was allocated and return -ENOMEM. Based on a suggestion from
-> Pawel Osciak.
-> 
-> __create_bufs() doesn't do that check, since the use of __create_bufs
-> assumes some advance scenario where the user might want more control.
-> Instead streamon will check if enough buffers were allocated to prevent
-> streaming with fewer than the minimum required number of buffers.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Matt DeVillier <matt.devillier@gmail.com>
 > ---
->  drivers/media/platform/davinci/vpbe_display.c   |   6 +-
->  drivers/media/platform/davinci/vpif_capture.c   |   7 +-
->  drivers/media/platform/davinci/vpif_display.c   |   7 +-
->  drivers/media/platform/s5p-tv/mixer_video.c     |   6 +-
->  drivers/media/v4l2-core/videobuf2-core.c        | 146 ++++++++++++++-------
->  drivers/staging/media/davinci_vpfe/vpfe_video.c |   3 +-
->  include/media/videobuf2-core.h                  |  14 ++-
->  7 files changed, 116 insertions(+), 73 deletions(-)
-
-[snip]
-
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> b/drivers/media/v4l2-core/videobuf2-core.c index 07cce7f..1f6eccf 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-
-[snip]
-
-> @@ -1890,18 +1939,23 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
->  {
->  	unsigned int i;
+> This is a continuation of the work started in patch #21648
+> Patch compiled and tested against linux-media git master. Backported
+> and tested against 3.14.1 stable as well.
+> ---
+> --- mceusb.c.orig    2014-04-22 13:48:51.186259472 -0500
+> +++ mceusb.c    2014-04-22 14:46:12.378347584 -0500
+> @@ -747,11 +747,17 @@ static void mce_request_packet(struct mc
+>          }
 > 
-> -	if (q->retry_start_streaming) {
-> -		q->retry_start_streaming = 0;
-> -		q->streaming = 0;
-> -	}
+>          /* outbound data */
+> -        pipe = usb_sndintpipe(ir->usbdev,
+> -                      ir->usb_ep_out->bEndpointAddress);
+> -        usb_fill_int_urb(async_urb, ir->usbdev, pipe,
+> -            async_buf, size, mce_async_callback,
+> -            ir, ir->usb_ep_out->bInterval);
+> +        if ((ir->usb_ep_out->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+> +            == USB_ENDPOINT_XFER_INT) {
+> +            pipe = usb_sndintpipe(ir->usbdev,
+> ir->usb_ep_out->bEndpointAddress);
+
+The lines are wrapped and tabs have been replaced with spaces; your mail
+client messed with your patch.
+
+See
+https://www.kernel.org/doc/Documentation/email-clients.txt
+
+> +            usb_fill_int_urb(async_urb, ir->usbdev, pipe, async_buf,
+> +                     size, mce_async_callback, ir,
+> ir->usb_ep_out->bInterval);
+> +        } else {
+> +            pipe = usb_sndbulkpipe(ir->usbdev,
+> +                     ir->usb_ep_out->bEndpointAddress);
+> +            usb_fill_bulk_urb(async_urb, ir->usbdev, pipe, async_buf,
+> +                     size, mce_async_callback, ir);
+> +        }
+>          memcpy(async_buf, data, size);
+> 
+>      } else if (urb_type == MCEUSB_RX) {
+> @@ -1271,38 +1277,48 @@ static int mceusb_dev_probe(struct usb_i
+> 
+>          if ((ep_in == NULL)
+>              && ((ep->bEndpointAddress & USB_ENDPOINT_DIR_MASK)
+> -                == USB_DIR_IN)
+> -            && (((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+> -                == USB_ENDPOINT_XFER_BULK)
+> -            || ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+> -                == USB_ENDPOINT_XFER_INT))) {
 > -
->  	/*
->  	 * Tell driver to stop all transactions and release all queued
->  	 * buffers.
->  	 */
-> -	if (q->streaming)
-> +	if (q->start_streaming_called)
->  		call_qop(q, stop_streaming, q);
->  	q->streaming = 0;
-> +	q->start_streaming_called = 0;
-> +	q->queued_count = 0;
+> -            ep_in = ep;
+> -            ep_in->bmAttributes = USB_ENDPOINT_XFER_INT;
+> -            ep_in->bInterval = 1;
+> -            dev_dbg(&intf->dev, "acceptable inbound endpoint found");
+> +            == USB_DIR_IN)) {
 > +
-> +	if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
-
-What's the rationale for a WARN_ON() here ? Wouldn't it simplify drivers to 
-handle buffer completion inside vb2 when stopping the stream ?
-
-> +		for (i = 0; i < q->num_buffers; ++i)
-> +			if (q->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
-> +				vb2_buffer_done(q->bufs[i], VB2_BUF_STATE_ERROR);
-> +		/* Must be zero now */
-> +		WARN_ON(atomic_read(&q->owned_by_drv_count));
-> +	}
+> +            if ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+> +                == USB_ENDPOINT_XFER_BULK) {
+> +
+> +                ep_in = ep;
+> +                mce_dbg(&intf->dev, "acceptable bulk inbound
+> endpoint found\n");
+> +            } else if ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+> +                == USB_ENDPOINT_XFER_INT) {
+> +
+> +                ep_in = ep;
+> +                ep_in->bInterval = 1;
+> +                mce_dbg(&intf->dev, "acceptable interrupt inbound
+> endpoint found\n");
+> +            }
+>          }
 > 
->  	/*
->  	 * Remove all buffers from videobuf's list...
+>          if ((ep_out == NULL)
+>              && ((ep->bEndpointAddress & USB_ENDPOINT_DIR_MASK)
+> -                == USB_DIR_OUT)
+> -            && (((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+> -                == USB_ENDPOINT_XFER_BULK)
+> -            || ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+> -                == USB_ENDPOINT_XFER_INT))) {
+> -
+> -            ep_out = ep;
+> -            ep_out->bmAttributes = USB_ENDPOINT_XFER_INT;
+> -            ep_out->bInterval = 1;
+> -            dev_dbg(&intf->dev, "acceptable outbound endpoint found");
+> +            == USB_DIR_OUT)) {
+> +            if ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+> +                == USB_ENDPOINT_XFER_BULK) {
+> +                ep_out = ep;
+> +                mce_dbg(&intf->dev, "acceptable bulk outbound
+> endpoint found\n");
+> +            } else if ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+> +                == USB_ENDPOINT_XFER_INT) {
+> +                ep_out = ep;
+> +                ep_out->bInterval = 1;
+> +                mce_dbg(&intf->dev, "acceptable interrupt outbound
+> endpoint found\n");
+> +            }
+>          }
+>      }
+> -    if (ep_in == NULL) {
+> +    if (ep_in == NULL || ep_out == NULL) {
 
--- 
-Regards,
+Although I think this is correct this is unrelated to the rest of the patch.
 
-Laurent Pinchart
+>          dev_dbg(&intf->dev, "inbound and/or endpoint not found");
+>          return -ENODEV;
+>      }
+> 
+> -    pipe = usb_rcvintpipe(dev, ep_in->bEndpointAddress);
+> +    if ((ep_in->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+> +        == USB_ENDPOINT_XFER_INT) {
+> +        pipe = usb_rcvintpipe(dev, ep_in->bEndpointAddress);
+> +    } else {
+> +        pipe = usb_rcvbulkpipe(dev, ep_in->bEndpointAddress);
+> +    }
+>      maxp = usb_maxpacket(dev, pipe, usb_pipeout(pipe));
+> 
+>      ir = kzalloc(sizeof(struct mceusb_dev), GFP_KERNEL);
+> @@ -1343,8 +1359,14 @@ static int mceusb_dev_probe(struct usb_i
+>          goto rc_dev_fail;
+> 
+>      /* wire up inbound data handler */
+> -    usb_fill_int_urb(ir->urb_in, dev, pipe, ir->buf_in, maxp,
+> -                mceusb_dev_recv, ir, ep_in->bInterval);
+> +    if ((ep_in->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+> +        == USB_ENDPOINT_XFER_INT) {
+> +        usb_fill_int_urb(ir->urb_in, dev, pipe, ir->buf_in, maxp,
+> +                 mceusb_dev_recv, ir, ep_in->bInterval);
+> +    } else {
+> +        usb_fill_bulk_urb(ir->urb_in, dev, pipe, ir->buf_in, maxp,
+> +                 mceusb_dev_recv, ir);
+> +    }
+>      ir->urb_in->transfer_dma = ir->dma_in;
+>      ir->urb_in->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
+
+I've tested this patch and it does fix my mceusb device with bulk 
+endpoints on xhci. So
+
+Tested-by: Sean Young <sean@mess.org>
 
