@@ -1,118 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:40276 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753803AbaDCXbw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Apr 2014 19:31:52 -0400
-Subject: [PATCH 07/49] dib0700: NEC scancode cleanup
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Date: Fri, 04 Apr 2014 01:31:51 +0200
-Message-ID: <20140403233151.27099.43998.stgit@zeus.muc.hardeman.nu>
-In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
-References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4782 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756626AbaDWHZI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Apr 2014 03:25:08 -0400
+Message-ID: <53576AC4.8090303@xs4all.nl>
+Date: Wed, 23 Apr 2014 09:24:52 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+To: n179911 <n179911@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Question about implementation of __qbuf_dmabuf() in videobuf2-core.c
+References: <CAKZjMP3B5k8MByhVrn=vsWOwnZLDL+YS48VvAWQ+z4=RKduV-Q@mail.gmail.com>
+In-Reply-To: <CAKZjMP3B5k8MByhVrn=vsWOwnZLDL+YS48VvAWQ+z4=RKduV-Q@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-the RC RX packet is defined as:
+On 04/23/2014 02:18 AM, n179911 wrote:
+> In __qbuf_dmabuf(), it check the length and size of the buffer being
+> queued, like this:
+> http://lxr.free-electrons.com/source/drivers/media/v4l2-core/videobuf2-core.c#L1158
+> 
+> My question is why the range check is liked this:
+> 
+> 1158  if (planes[plane].length < planes[plane].data_offset +
+> 1159                     q->plane_sizes[plane]) {
 
-        struct dib0700_rc_response {
-		...
-                                u8 not_system;
-                                u8 system;
-		...
-                u8 data;
-                u8 not_data;
+It's a bug. It should be:
 
-The NEC protocol transmits in the order:
-        system
-        not_system
-        data
-        not_data
+	if (planes[plane].length < q->plane_sizes[plane]) {
 
-Note that the code defines the NEC extended scancode as:
+This has been fixed in our upstream code and will appear in 3.16.
 
-        scancode = be16_to_cpu(poll_reply->system16) << 8 | poll_reply->data;
+Regards,
 
-i.e.
+	Hans
 
-        scancode = poll_reply->not_system << 16 |
-                   poll_reply->system     << 8  |
-                   poll_reply->data;
-
-Which, if the order *is* reversed, would mean that the scancode that
-gets defined is in reality:
-
-        scancode = poll_reply->system     << 16 |
-                   poll_reply->not_system << 8  |
-                   poll_reply->data;
-
-Which is the same as the order used in drivers/media/rc/ir-nec-decoder.c.
-
-This patch changes the code to match my assumption (the generated scancode
-should, however, not change).
-
-Signed-off-by: David Härdeman <david@hardeman.nu>
-CC: Patrick Boettcher <pboettcher@kernellabs.com>
----
- drivers/media/usb/dvb-usb/dib0700_core.c |   28 +++++++++++++++-------------
- 1 file changed, 15 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
-index 6afe7ea..0d881b9 100644
---- a/drivers/media/usb/dvb-usb/dib0700_core.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_core.c
-@@ -658,13 +658,8 @@ out:
- struct dib0700_rc_response {
- 	u8 report_id;
- 	u8 data_state;
--	union {
--		u16 system16;
--		struct {
--			u8 not_system;
--			u8 system;
--		};
--	};
-+	u8 system;
-+	u8 not_system;
- 	u8 data;
- 	u8 not_data;
- };
-@@ -712,20 +707,27 @@ static void dib0700_rc_urb_completion(struct urb *purb)
- 		toggle = 0;
- 
- 		/* NEC protocol sends repeat code as 0 0 0 FF */
--		if ((poll_reply->system == 0x00) && (poll_reply->data == 0x00)
--		    && (poll_reply->not_data == 0xff)) {
-+		if (poll_reply->system     == 0x00 &&
-+		    poll_reply->not_system == 0x00 &&
-+		    poll_reply->data       == 0x00 &&
-+		    poll_reply->not_data   == 0xff) {
- 			poll_reply->data_state = 2;
- 			break;
- 		}
- 
--		if ((poll_reply->system ^ poll_reply->not_system) != 0xff) {
-+		if ((poll_reply->data ^ poll_reply->not_data) != 0xff) {
-+			deb_data("NEC32 protocol\n");
-+			scancode = RC_SCANCODE_NEC32(poll_reply->system     << 24 |
-+						     poll_reply->not_system << 16 |
-+						     poll_reply->data       << 8  |
-+						     poll_reply->not_data);
-+		} else if ((poll_reply->system ^ poll_reply->not_system) != 0xff) {
- 			deb_data("NEC extended protocol\n");
--			/* NEC extended code - 24 bits */
--			scancode = RC_SCANCODE_NECX(be16_to_cpu(poll_reply->system16),
-+			scancode = RC_SCANCODE_NECX(poll_reply->system << 8 |
-+						    poll_reply->not_system,
- 						    poll_reply->data);
- 		} else {
- 			deb_data("NEC normal protocol\n");
--			/* normal NEC code - 16 bits */
- 			scancode = RC_SCANCODE_NEC(poll_reply->system,
- 						   poll_reply->data);
- 		}
+>         .....
+> 
+> Isn't  planes[plane].length + planes[plane].data_offset equals to
+> q->plane_sizes[plane]?
+> 
+> So the check should be?
+>  if (planes[plane].length < q->plane_sizes[plane] - planes[plane].data_offset)
+> 
+> Please tell me what am I missing?
+> 
+> Thank you
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
