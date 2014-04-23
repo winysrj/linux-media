@@ -1,105 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56377 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751115AbaDOJcH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 05:32:07 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 06/10] si2168: add support for DVB-C (annex A version)
-Date: Tue, 15 Apr 2014 12:31:42 +0300
-Message-Id: <1397554306-14561-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1397554306-14561-1-git-send-email-crope@iki.fi>
-References: <1397554306-14561-1-git-send-email-crope@iki.fi>
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:45500 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752201AbaDWM5u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Apr 2014 08:57:50 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, s.nawrocki@samsung.com, posciak@chromium.org,
+	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH 0/3] Add MFCv8 support
+Date: Wed, 23 Apr 2014 18:27:41 +0530
+Message-Id: <1398257864-12097-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for DVB-C (annex A version).
+This patchset adds MFCv8 support to the s5p-mfc driver.
+MFCv8 has the same operation sequence as that of v6+, but
+there is some shuffling of the registers happened. So to
+re-use the exisiting code, register access uses context
+variables instead of macros.
+The patchset modifies opr_v6 file to use register variables
+and is tested on mfc v6, v7 and v8 based boards.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c | 36 ++++++++++++++++++++++--------------
- 1 file changed, 22 insertions(+), 14 deletions(-)
+The patchset is based on the following set of patches
+posted for MFC which are currently under review:
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 4f3efbe..7aaac81 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -84,6 +84,12 @@ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 		cmd.wlen = 2;
- 		cmd.rlen = 13;
- 		break;
-+	case SYS_DVBC_ANNEX_A:
-+		cmd.args[0] = 0x90;
-+		cmd.args[1] = 0x01;
-+		cmd.wlen = 2;
-+		cmd.rlen = 9;
-+		break;
- 	case SYS_DVBT2:
- 		cmd.args[0] = 0x50;
- 		cmd.args[1] = 0x01;
-@@ -157,6 +163,9 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	case SYS_DVBT:
- 		delivery_system = 0x20;
- 		break;
-+	case SYS_DVBC_ANNEX_A:
-+		delivery_system = 0x30;
-+		break;
- 	case SYS_DVBT2:
- 		delivery_system = 0x70;
- 		break;
-@@ -165,23 +174,20 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 		goto err;
- 	}
- 
--	switch (c->bandwidth_hz) {
--	case 5000000:
-+	if (c->bandwidth_hz <= 5000000)
- 		bandwidth = 0x05;
--		break;
--	case 6000000:
-+	else if (c->bandwidth_hz <= 6000000)
- 		bandwidth = 0x06;
--		break;
--	case 7000000:
-+	else if (c->bandwidth_hz <= 7000000)
- 		bandwidth = 0x07;
--		break;
--	case 8000000:
-+	else if (c->bandwidth_hz <= 8000000)
- 		bandwidth = 0x08;
--		break;
--	default:
--		ret = -EINVAL;
--		goto err;
--	}
-+	else if (c->bandwidth_hz <= 9000000)
-+		bandwidth = 0x09;
-+	else if (c->bandwidth_hz <= 10000000)
-+		bandwidth = 0x0a;
-+	else
-+		bandwidth = 0x0f;
- 
- 	/* program tuner */
- 	if (fe->ops.tuner_ops.set_params) {
-@@ -200,6 +206,8 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	/* that has no big effect */
- 	if (c->delivery_system == SYS_DVBT)
- 		memcpy(cmd.args, "\x89\x21\x06\x11\xff\x98", 6);
-+	else if (c->delivery_system == SYS_DVBC_ANNEX_A)
-+		memcpy(cmd.args, "\x89\x21\x06\x11\x89\xf0", 6);
- 	else if (c->delivery_system == SYS_DVBT2)
- 		memcpy(cmd.args, "\x89\x21\x06\x11\x89\x20", 6);
- 	cmd.wlen = 6;
-@@ -614,7 +622,7 @@ static int si2168_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
- }
- 
- static const struct dvb_frontend_ops si2168_ops = {
--	.delsys = {SYS_DVBT, SYS_DVBT2},
-+	.delsys = {SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A},
- 	.info = {
- 		.name = "Silicon Labs Si2168",
- 		.caps =	FE_CAN_FEC_1_2 |
+[media] s5p-mfc: Add support for resolution change event
+v4l: Add resolution change event.
+[media] s5p-mfc: Don't allocate codec buffers on STREAMON.
+[media] s5p-mfc: Extract open/close MFC instance commands.
+[media] s5p-mfc: Fixes for decode REQBUFS.
+[media] s5p-mfc: Copy timestamps only when a frame is produced.
+[media] s5p-mfc: add init buffer cmd to MFCV6
+[media] s5p-mfc: Don't try to resubmit VP8 bitstream buffer for decode.
+[media] s5p-mfc: Add a control for IVF format for VP8 encoder
+
+Arun Kumar K (1):
+  [media] s5p-mfc: Rename IS_MFCV7 macro
+
+Kiran AVND (2):
+  [media] s5p-mfc: Add variants to access mfc registers
+  [media] s5p-mfc: Core support to add v8 decoder
+
+ .../devicetree/bindings/media/s5p-mfc.txt          |    3 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v8.h       |   93 +++
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |   31 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    7 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |    4 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.c       |    6 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h       |  254 +++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |  792 +++++++++++++-------
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |    7 +-
+ 10 files changed, 926 insertions(+), 273 deletions(-)
+ create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v8.h
+
 -- 
-1.9.0
+1.7.9.5
 
