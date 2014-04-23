@@ -1,43 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f170.google.com ([209.85.160.170]:53206 "EHLO
-	mail-yk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934661AbaDJO5A (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 10:57:00 -0400
-Received: by mail-yk0-f170.google.com with SMTP id 9so3658391ykp.29
-        for <linux-media@vger.kernel.org>; Thu, 10 Apr 2014 07:56:59 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:53645 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755549AbaDWPy6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Apr 2014 11:54:58 -0400
+Message-ID: <5357E24F.70701@iki.fi>
+Date: Wed, 23 Apr 2014 18:54:55 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <534675E1.6050408@sca-uk.com>
-References: <534675E1.6050408@sca-uk.com>
-Date: Thu, 10 Apr 2014 10:49:51 -0400
-Message-ID: <CALzAhNVxFYm4J-ZUwFB5AeR0N__+BRHiCEGgyxcKgEPqfKNJ=g@mail.gmail.com>
-Subject: Re: Hauppauge ImpactVCB-e 01385
-From: Steven Toth <stoth@kernellabs.com>
-To: Steve Cookson - IT <it@sca-uk.com>
-Cc: Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL 3.16] 2013:025f PCTV tripleStick (292e)
+References: <535721C7.7030807@iki.fi> <20140423101103.534da391@samsung.com>
+In-Reply-To: <20140423101103.534da391@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> When I plug in my 01385 I get the same old stuff in dmseg, ie:
+On 23.04.2014 16:11, Mauro Carvalho Chehab wrote:
+> Em Wed, 23 Apr 2014 05:13:27 +0300
+> Antti Palosaari <crope@iki.fi> escreveu:
 >
-> cx23885 driver version 0.0.3 loaded
-> [ 8.921390] cx23885[0]: Your board isn't known (yet) to the driver.
-> [ 8.921390] cx23885[0]: Try to pick one of the existing card configs via
-> [ 8.921390] cx23885[0]: card=<n> insmod option. Updating to the latest
-> [ 8.921390] cx23885[0]: version might help as well.
-> [ 8.921393] cx23885[0]: Here is a list of valid choices for the card=<n>
-> insmod option:
+>> Hardware is Empia EM28178, Silicon Labs Si2168, Silicon Labs Si2157.
+>> There is on/off external LNA too. Two new drivers for Silicon Labs DTV
+>> chipset.
+>>
+>> Demod needs firmware, which could be found from driver CD version 6.4.8.984.
+>> /TVC 6.4.8/Driver/PCTV Empia/emOEM.sys
+>> dd if=emOEM.sys ibs=1 skip=1089416 count=2720 of=dvb-demod-si2168-01.fw
+>> md5sum dvb-demod-si2168-01.fw
+>> 87c317e0b75ad49c2f2cbf35572a8093  dvb-demod-si2168-01.fw
 >
-> Etc.
->
-> Does anyone have any idea of the issue here?
+> Not sure if you did it already, but could you please put the above
+> instructions on our Wiki page?
 
-Sure. The issue is nobody cares enough to update the driver to support
-your card and make it work out of the box.
+Will do.
 
-- Steve
+> It would be better to add it at the DVB get firmware script, but it seems
+> that PCTV didn't put the driver yet on their website.
 
+There is driver updates , but not that as it is very new device and no 
+updates available. I will add it after driver is available online.
+
+regards
+Antti
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+http://palosaari.fi/
