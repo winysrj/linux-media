@@ -1,88 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19160 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750857AbaDRJ6w (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Apr 2014 05:58:52 -0400
-Message-ID: <5350F758.5050308@redhat.com>
-Date: Fri, 18 Apr 2014 11:58:48 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36962 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751993AbaDWMGB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Apr 2014 08:06:01 -0400
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::80:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id DBBC360093
+	for <linux-media@vger.kernel.org>; Wed, 23 Apr 2014 15:05:57 +0300 (EEST)
+Date: Wed, 23 Apr 2014 15:05:56 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for v3.16] smiapp: small fixes and cleanups
+Message-ID: <20140423120556.GI8753@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-To: Robert Butora <robert.butora.fi@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] media:gspca:dtcs033 Clean sparse check warnings on
- endianess
-References: <1397674009-10271-1-git-send-email-robert.butora.fi@gmail.com>
-In-Reply-To: <1397674009-10271-1-git-send-email-robert.butora.fi@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
 
-On 04/16/2014 08:46 PM, Robert Butora wrote:
-> Warnings due to __le16 / u16 conversions.
-> Replace offending struct and so stay on cpu domain.
-> 
-> Signed-off-by: Robert Butora <robert.butora.fi@gmail.com>
+This patchset contains small cleanups and fixes to the smiapp driver from
+the patchset "smiapp and smiapp-pll quirk improvements, fixes". I'm sending
+just the driver patches now; the PLL patches are still pending. The PLL
+patches are dependent on the patches in this pull request.
 
-Thanks, I'll include this in my next pull-req to Mauro.
+The following changes since commit 701b57ee3387b8e3749845b02310b5625fbd8da0:
 
-Regards,
+  [media] vb2: Add videobuf2-dvb support (2014-04-16 18:59:29 -0300)
 
-Hans
+are available in the git repository at:
 
-> ---
->  drivers/media/usb/gspca/dtcs033.c | 15 +++++++++++----
->  1 file changed, 11 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/usb/gspca/dtcs033.c b/drivers/media/usb/gspca/dtcs033.c
-> index 5e42c71..96bfd4e 100644
-> --- a/drivers/media/usb/gspca/dtcs033.c
-> +++ b/drivers/media/usb/gspca/dtcs033.c
-> @@ -22,6 +22,13 @@ MODULE_AUTHOR("Robert Butora <robert.butora.fi@gmail.com>");
->  MODULE_DESCRIPTION("Scopium DTCS033 astro-cam USB Camera Driver");
->  MODULE_LICENSE("GPL");
->  
-> +struct dtcs033_usb_requests {
-> +	u8 bRequestType;
-> +	u8 bRequest;
-> +	u16 wValue;
-> +	u16 wIndex;
-> +	u16 wLength;
-> +};
->  
->  /* send a usb request */
->  static void reg_rw(struct gspca_dev *gspca_dev,
-> @@ -50,10 +57,10 @@ static void reg_rw(struct gspca_dev *gspca_dev,
->  }
->  /* send several usb in/out requests */
->  static int reg_reqs(struct gspca_dev *gspca_dev,
-> -		    const struct usb_ctrlrequest *preqs, int n_reqs)
-> +		    const struct dtcs033_usb_requests *preqs, int n_reqs)
->  {
->  	int i = 0;
-> -	const struct usb_ctrlrequest *preq;
-> +	const struct dtcs033_usb_requests *preq;
->  
->  	while ((i < n_reqs) && (gspca_dev->usb_err >= 0)) {
->  
-> @@ -290,7 +297,7 @@ module_usb_driver(sd_driver);
->   0x40 =  USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
->   0xC0 =  USB_DIR_IN  | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
->  */
-> -static const struct usb_ctrlrequest dtcs033_start_reqs[] = {
-> +static const struct dtcs033_usb_requests dtcs033_start_reqs[] = {
->  /* -- bRequest,wValue,wIndex,wLength */
->  { 0x40, 0x01, 0x0001, 0x000F, 0x0000 },
->  { 0x40, 0x01, 0x0000, 0x000F, 0x0000 },
-> @@ -414,7 +421,7 @@ static const struct usb_ctrlrequest dtcs033_start_reqs[] = {
->  { 0x40, 0x01, 0x0003, 0x000F, 0x0000 }
->  };
->  
-> -static const struct usb_ctrlrequest dtcs033_stop_reqs[] = {
-> +static const struct dtcs033_usb_requests dtcs033_stop_reqs[] = {
->  /* -- bRequest,wValue,wIndex,wLength */
->  { 0x40, 0x01, 0x0001, 0x000F, 0x0000 },
->  { 0x40, 0x01, 0x0000, 0x000F, 0x0000 },
-> 
+  ssh://linuxtv.org/git/sailus/media_tree.git smiapp
+
+for you to fetch changes up to 1e350219b4c70ce7bfa0a8b26c58db38357168ac:
+
+  smiapp: Use %u for printing u32 value (2014-04-22 20:42:16 +0300)
+
+----------------------------------------------------------------
+Sakari Ailus (11):
+      smiapp: Remove unused quirk register functionality
+      smiapp: Rename SMIA_REG to SMIAPP_REG for consistency
+      smiapp: Fix determining the need for 8-bit read access
+      smiapp: Add a macro for constructing 8-bit quirk registers
+      smiapp: Use I2C adapter ID and address in the sub-device name
+      smiapp: Make PLL flags separate from regular quirk flags
+      smiapp: Make PLL flags unsigned long
+      smiapp: Make PLL (quirk) flags a function
+      smiapp: Add register diversion quirk
+      smiapp: Define macros for obtaining properties of register definitions
+      smiapp: Use %u for printing u32 value
+
+ drivers/media/i2c/smiapp-pll.h             |    2 +-
+ drivers/media/i2c/smiapp/smiapp-core.c     |   12 ++--
+ drivers/media/i2c/smiapp/smiapp-quirk.c    |   55 +++--------------
+ drivers/media/i2c/smiapp/smiapp-quirk.h    |   24 +++++---
+ drivers/media/i2c/smiapp/smiapp-reg-defs.h |    8 +--
+ drivers/media/i2c/smiapp/smiapp-regs.c     |   89 +++++++++++++++++++---------
+ drivers/media/i2c/smiapp/smiapp-regs.h     |   19 +++---
+ 7 files changed, 105 insertions(+), 104 deletions(-)
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
