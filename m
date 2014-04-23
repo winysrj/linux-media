@@ -1,47 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:42513 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754408AbaDOOID (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 10:08:03 -0400
-Date: Tue, 15 Apr 2014 10:08:01 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sander Eikelenboom <linux@eikelenboom.it>
-Subject: Re: [PATCH] media: stk1160: Avoid stack-allocated buffer for control
- URBs
-In-Reply-To: <20140414182350.GA23722@arch.cereza>
-Message-ID: <Pine.LNX.4.44L0.1404151007220.1310-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mga02.intel.com ([134.134.136.20]:27693 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757918AbaDWTeK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Apr 2014 15:34:10 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id E5139207B5
+	for <linux-media@vger.kernel.org>; Wed, 23 Apr 2014 22:33:33 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 3/3] smiapp: Scaling goodness is signed
+Date: Wed, 23 Apr 2014 22:33:59 +0300
+Message-Id: <1398281639-15839-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1398281639-15839-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1398281639-15839-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 14 Apr 2014, Ezequiel Garcia wrote:
+The "best" value was unsigned however, leading to signed-to-unsigned
+comparison and wrong results. Possibly only on a newer GCC. Fix this by
+making the best value signed as well.
 
-> On Apr 14, Alan Stern wrote:
-> > On Mon, 14 Apr 2014, Ezequiel Garcia wrote:
-> > 
-> > > Currently stk1160_read_reg() uses a stack-allocated char to get the
-> > > read control value. This is wrong because usb_control_msg() requires
-> > > a kmalloc-ed buffer, and a DMA-API warning is produced:
-> > > 
-> > > WARNING: CPU: 0 PID: 1376 at lib/dma-debug.c:1153 check_for_stack+0xa0/0x100()
-> > > ehci-pci 0000:00:0a.0: DMA-API: device driver maps memory fromstack [addr=ffff88003d0b56bf]
-> > > 
-> > > This commit fixes such issue by using a 'usb_ctrl_read' field embedded
-> > > in the device's struct to pass the value. In addition, we introduce a
-> > > mutex to protect the value.
-> > 
-> > This isn't right either.  The buffer must be allocated in its own cache
-> > line; it must not be part of a larger structure.
-> > 
-> 
-> In that case, we can simply allocate 1 byte using kmalloc(). We won't
-> be needing the mutex and it'll ensure proper cache alignment, right?
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Yes, that will work fine.
-
-Alan Stern
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 0a74e14..db3d5a6 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -1766,7 +1766,7 @@ static void smiapp_set_compose_binner(struct v4l2_subdev *subdev,
+ 	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
+ 	unsigned int i;
+ 	unsigned int binh = 1, binv = 1;
+-	unsigned int best = scaling_goodness(
++	int best = scaling_goodness(
+ 		subdev,
+ 		crops[SMIAPP_PAD_SINK]->width, sel->r.width,
+ 		crops[SMIAPP_PAD_SINK]->height, sel->r.height, sel->flags);
+-- 
+1.8.3.2
 
