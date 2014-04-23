@@ -1,63 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:47818 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753240AbaDPM72 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Apr 2014 08:59:28 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	posciak@chromium.org, arunkk.samsung@gmail.com
-Subject: [PATCH 1/2] v4l: Add resolution change event.
-Date: Wed, 16 Apr 2014 18:29:21 +0530
-Message-Id: <1397653162-10179-1-git-send-email-arun.kk@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:53727 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755620AbaDWCBW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Apr 2014 22:01:22 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/2] em28xx: PCTV tripleStick (292e) LNA support
+Date: Wed, 23 Apr 2014 05:01:02 +0300
+Message-Id: <1398218462-29539-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1398218462-29539-1-git-send-email-crope@iki.fi>
+References: <1398218462-29539-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pawel Osciak <posciak@chromium.org>
+External LNA between antenna connector and RF tuner is controlled
+by EM28178 GPIO 0. GPIO value 1 is LNA active and value 0 is LNA
+disabled.
 
-This event indicates that the decoder has reached a point in the stream,
-at which the resolution changes. The userspace is expected to provide a new
-set of CAPTURE buffers for the new format before decoding can continue.
-
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- .../DocBook/media/v4l/vidioc-subscribe-event.xml   |    8 ++++++++
- include/uapi/linux/videodev2.h                     |    1 +
- 2 files changed, 9 insertions(+)
+ drivers/media/usb/em28xx/em28xx-dvb.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-index 5c70b61..d848628 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-@@ -155,6 +155,14 @@
- 	    </entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_EVENT_RESOLUTION_CHANGE</constant></entry>
-+	    <entry>5</entry>
-+	    <entry>This event is triggered when a resolution change is detected
-+	    during runtime by the video decoder. Application may need to
-+	    reinitialize buffers before proceeding further.
-+	    </entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
- 	    <entry>0x08000000</entry>
- 	    <entry>Base event number for driver-private events.</entry>
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 6ae7bbe..58488b7 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1733,6 +1733,7 @@ struct v4l2_streamparm {
- #define V4L2_EVENT_EOS				2
- #define V4L2_EVENT_CTRL				3
- #define V4L2_EVENT_FRAME_SYNC			4
-+#define V4L2_EVENT_RESOLUTION_CHANGE		5
- #define V4L2_EVENT_PRIVATE_START		0x08000000
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index b79e08b..a121ed9 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -746,6 +746,21 @@ static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe)
+ #endif
+ }
  
- /* Payload for V4L2_EVENT_VSYNC */
++static int em28xx_pctv_292e_set_lna(struct dvb_frontend *fe)
++{
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	struct em28xx_i2c_bus *i2c_bus = fe->dvb->priv;
++	struct em28xx *dev = i2c_bus->dev;
++	u8 lna;
++
++	if (c->lna == 1)
++		lna = 0x01;
++	else
++		lna = 0x00;
++
++	return em28xx_write_reg_bits(dev, EM2874_R80_GPIO_P0_CTRL, lna, 0x01);
++}
++
+ static int em28xx_mt352_terratec_xs_init(struct dvb_frontend *fe)
+ {
+ 	/* Values extracted from a USB trace of the Terratec Windows driver */
+@@ -1553,6 +1568,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			}
+ 
+ 			dvb->i2c_client_tuner = client;
++			dvb->fe[0]->ops.set_lna = em28xx_pctv_292e_set_lna;
+ 		}
+ 		break;
+ 	default:
 -- 
-1.7.9.5
+1.9.0
 
