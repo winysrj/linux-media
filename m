@@ -1,42 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.pmeerw.net ([87.118.82.44]:59945 "EHLO pmeerw.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755878AbaD3JEQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Apr 2014 05:04:16 -0400
-Date: Wed, 30 Apr 2014 11:04:14 +0200 (CEST)
-From: Peter Meerwald <pmeerw@pmeerw.net>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH] omap3isp: Make isp_register_entities() fail when sensor
- registration fails
-In-Reply-To: <20140430083830.GR8753@valkosipuli.retiisi.org.uk>
-Message-ID: <alpine.DEB.2.01.1404301052560.3218@pmeerw.net>
-References: <1398845671-12989-1-git-send-email-pmeerw@pmeerw.net> <20140430083830.GR8753@valkosipuli.retiisi.org.uk>
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:64556 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750705AbaDWAS4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Apr 2014 20:18:56 -0400
+Received: by mail-lb0-f180.google.com with SMTP id 10so172887lbg.11
+        for <linux-media@vger.kernel.org>; Tue, 22 Apr 2014 17:18:54 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Tue, 22 Apr 2014 17:18:54 -0700
+Message-ID: <CAKZjMP3B5k8MByhVrn=vsWOwnZLDL+YS48VvAWQ+z4=RKduV-Q@mail.gmail.com>
+Subject: Question about implementation of __qbuf_dmabuf() in videobuf2-core.c
+From: n179911 <n179911@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+In __qbuf_dmabuf(), it check the length and size of the buffer being
+queued, like this:
+http://lxr.free-electrons.com/source/drivers/media/v4l2-core/videobuf2-core.c#L1158
 
-> On Wed, Apr 30, 2014 at 10:14:31AM +0200, Peter Meerwald wrote:
-> > isp_register_entities() ignores registration failure of the sensor,
-> > /dev/video* devices are created nevertheless
-> > 
-> > if the sensor fails, all entities should not be created
+My question is why the range check is liked this:
 
-> Why? In some cases it'd be nice to be able to use the devices that actually
-> are available. This certainly isn't something that should cause probe to
-> fail IMHO.
+1158  if (planes[plane].length < planes[plane].data_offset +
+1159                     q->plane_sizes[plane]) {
+        .....
 
-I see your point; e.g the ISP resizer could be used without a sensor
+Isn't  planes[plane].length + planes[plane].data_offset equals to
+q->plane_sizes[plane]?
 
-anyway, I can figure out later-on from the device topology that no sensor 
-is present
+So the check should be?
+ if (planes[plane].length < q->plane_sizes[plane] - planes[plane].data_offset)
 
-thanks, p.
+Please tell me what am I missing?
 
--- 
-
-Peter Meerwald
-+43-664-2444418 (mobile)
+Thank you
