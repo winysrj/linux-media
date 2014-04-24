@@ -1,135 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1223 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161088AbaDQJuL (ORCPT
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:62444 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754090AbaDXXQL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 05:50:11 -0400
-Message-ID: <534FA3BF.2010308@xs4all.nl>
-Date: Thu, 17 Apr 2014 11:49:51 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 24 Apr 2014 19:16:11 -0400
+Received: by mail-pa0-f44.google.com with SMTP id ey11so600423pad.31
+        for <linux-media@vger.kernel.org>; Thu, 24 Apr 2014 16:16:10 -0700 (PDT)
+Date: Thu, 24 Apr 2014 16:14:56 -0700 (PDT)
+From: Hugh Dickins <hughd@google.com>
+To: Oleg Nesterov <oleg@redhat.com>
+cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Jan Kara <jack@suse.cz>, Roland Dreier <roland@kernel.org>,
+	Konstantin Khlebnikov <koct9i@gmail.com>,
+	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Omar Ramirez Luna <omar.ramirez@copitl.com>,
+	Inki Dae <inki.dae@samsung.com>, linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org, linux-rdma@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] mm: get_user_pages(write,force) refuse to COW in shared
+ areas
+In-Reply-To: <20140424133055.GA13269@redhat.com>
+Message-ID: <alpine.LSU.2.11.1404241518510.4454@eggly.anvils>
+References: <alpine.LSU.2.11.1404040120110.6880@eggly.anvils> <20140424133055.GA13269@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH 3/3] saa7134: convert to vb2
-References: <1394454049-12879-1-git-send-email-hverkuil@xs4all.nl> <1394454049-12879-4-git-send-email-hverkuil@xs4all.nl> <20140416192343.30a5a8fc@samsung.com> <534F0553.2000808@xs4all.nl> <20140416231730.6252aae7@samsung.com>
-In-Reply-To: <20140416231730.6252aae7@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/17/2014 04:17 AM, Mauro Carvalho Chehab wrote:
-> Em Thu, 17 Apr 2014 00:33:55 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 04/17/2014 12:23 AM, Mauro Carvalho Chehab wrote:
->>> Em Mon, 10 Mar 2014 13:20:49 +0100
->>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>
->>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>
->>>> Convert the saa7134 driver to vb2.
->>>>
->>>> Note that while this uses the vb2-dma-sg version, the VB2_USERPTR mode is
->>>> disabled. The DMA hardware only supports DMAing full pages, and in the
->>>> USERPTR memory model the first and last scatter-gather buffer is almost
->>>> never a full page.
->>>>
->>>> In practice this means that we can't use the VB2_USERPTR mode.
->>>
->>> Why not? Provided that the buffer is equal or bigger than the number of
->>> pages required by saa7134, that should be OK.
->>>
->>> All the driver needs to do is to check if the USERPTR buffer condition is met,
->>> returning an error otherwise (and likely printing a msg at dmesg).
->>
->> Yuck. Well, I'll take a look at this.
->>
->> It has in my view the same problem as abusing USERPTR to pass pointers to
->> physically contiguous memory: yes, it 'supports' USERPTR, but it has additional
->> requirements which userspace has no way of knowing or detecting.
->>
->> It's really not USERPTR at all, it is PAGE_ALIGNED_USERPTR.
->>
->> Quite different.
-> 
-> Hmm... If I remember well, mmapped memory (being userptr or not) are always
-> page aligned, at least on systems with MMU.
+On Thu, 24 Apr 2014, Oleg Nesterov wrote:
 
-Not malloc()ed memory. That's what userptr is about.
+> Hi Hugh,
+> 
+> Sorry for late reply. First of all, to avoid the confusion, I think the
+> patch is fine.
+> 
+> When I saw this patch I decided that uprobes should be updated accordingly,
+> but I just realized that I do not understand what should I write in the
+> changelog.
+
+Thanks a lot for considering similar issues in uprobes, Oleg: I merely
+checked that its uses of get_user_pages() would not be problematic,
+and didn't look around to rediscover the worrying mm business that
+goes on down there in kernel/events.
 
 > 
->> I would prefer that you have to enable it explicitly through e.g. a module option.
->> That way you can still do it, but you really have to know what you are doing.
->>
->>> I suspect that this change will break some userspace programs used
->>> for video surveillance equipment.
->>>
->>>> This has been tested with raw video, compressed video, VBI, radio, DVB and
->>>> video overlays.
->>>>
->>>> Unfortunately, a vb2 conversion is one of those things you cannot split
->>>> up in smaller patches, it's all or nothing. This patch switches the whole
->>>> driver over to vb2, using the vb2 ioctl and fop helper functions.
->>>
->>> Not quite true. This patch contains lots of non-vb2 stuff, like:
->>> 	- Coding Style fixes;
->>> 	- Removal of res_get/res_set/res_free;
->>> 	- Functions got moved from one place to another one.
->>
->> I will see if there is anything sensible that I can split up. I'm not aware
->> of any particular coding style issues, but I'll review it.
+> On 04/04, Hugh Dickins wrote:
+> >
+> > +		if (gup_flags & FOLL_WRITE) {
+> > +			if (!(vm_flags & VM_WRITE)) {
+> > +				if (!(gup_flags & FOLL_FORCE))
+> > +					goto efault;
+> > +				/*
+> > +				 * We used to let the write,force case do COW
+> > +				 * in a VM_MAYWRITE VM_SHARED !VM_WRITE vma, so
+> > +				 * ptrace could set a breakpoint in a read-only
+> > +				 * mapping of an executable, without corrupting
+> > +				 * the file (yet only when that file had been
+> > +				 * opened for writing!).  Anon pages in shared
+> > +				 * mappings are surprising: now just reject it.
+> > +				 */
+> > +				if (!is_cow_mapping(vm_flags)) {
+> > +					WARN_ON_ONCE(vm_flags & VM_MAYWRITE);
+> > +					goto efault;
+> > +				}
 > 
-> There are several, like:
-> 
-> -	dprintk("buffer_finish %p\n",q->curr);
-> +	dprintk("buffer_finish %p\n", q->curr);
-> 
-> Also, it seems that you moved some functions, like:
-> 
-> ts_reset_encoder(struct saa7134_dev* dev) that was moved
-> to some other part of the code and renamed as stop_streaming().
-> 
-> There are several of such cases, with makes hard to really see the
-> VB2 changes, and what it might be some code dropped by mistake.
-> 
->>
->> The removal of the resource functions is not something I can split up. It
->> is replaced by the resource handling that's built into the vb2 helper functions.
-> 
-> Well, currently, it is really hard to see that all the checks between
-> empress and normal video streams are still done right, as the patch
-> become big and messy.
+> OK. But could you please clarify "Anon pages in shared mappings are surprising" ?
+> I mean, does this only apply to "VM_MAYWRITE VM_SHARED !VM_WRITE vma" mentioned
+> above or this is bad even if a !FMODE_WRITE file was mmaped as MAP_SHARED ?
 
-The original checks were never correct. This driver was buggy as hell once
-you tried to use multiple streams at the same time.
-
-I have split it up some more, but the actual vb2 conversion remains a big
-patch.
-
-Regards,
-
-	Hans
+Good question. I simply didn't consider that - and (as you have realized)
+didn't need to consider it, because I was just stopping the problematic
+behaviour in gup(), and didn't need to consider whether other behaviour
+prohibited by gup() was actually unproblematic.
 
 > 
-> Please try to break it into a more granular set of patches that
-> would help to check if everything is there.
+> Yes, in this case this vma is not VM_SHARED and it is not VM_MAYWRITE, it is only
+> VM_MAYSHARE. This is in fact private mapping except mprotect(PROT_WRITE) will not
+> work.
 > 
-> Thanks,
-> Mauro
+> But with or without this patch gup(FOLL_WRITE | FOLL_FORCE) won't work in this case,
+                     "this" meaning my patch rather than yours below
+> (although perhaps it could ?), is_cow_mapping() == F because of !VM_MAYWRITE.
 > 
->>
->> Regards,
->>
->> 	Hans
->>
->>>
->>> It is really hard to review it, as is, as the real changes are mixed with
->>> the above code cleanups/changes.
->>>
->>> Please split this patch in a way that it allows reviewing the changes
->>> there.
->>
+> However, currently uprobes assumes that a cowed anon page is fine in this case, and
+> this differs from gup().
 > 
-> 
+> So, what do you think about the patch below? It is probably fine in any case,
+> but is there any "strong" reason to follow the gup's behaviour and forbid the
+> anon page in VM_MAYSHARE && !VM_MAYWRITE vma?
 
+I don't think there is a "strong" reason to forbid it.
+
+The strongest reason is simply that it's much safer if uprobes follows
+the same conventions as mm, and get_user_pages() happens to have
+forbidden that all along.
+
+The philosophical reason to forbid it is that the user mmapped with
+MAP_SHARED, and it's merely a kernel-internal detail that we flip off
+VM_SHARED and treat these read-only shared mappings very much like
+private mappings.  The user asked for MAP_SHARED, and we prefer to
+respect that by not letting private COWs creep in.
+
+We could treat those mappings even more like private mappings, and
+allow the COWs; but better to be strict about it, so long as doing
+so doesn't give you regressions.
+
+> 
+> Oleg.
+> 
+> --- x/kernel/events/uprobes.c
+> +++ x/kernel/events/uprobes.c
+> @@ -127,12 +127,13 @@ struct xol_area {
+>   */
+>  static bool valid_vma(struct vm_area_struct *vma, bool is_register)
+>  {
+> -	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC | VM_SHARED;
+> +	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC;
+
+I think a one-line patch changing VM_SHARED to VM_MAYSHARE would do it,
+wouldn't it?  And save you from having to export is_cow_mapping()
+from mm/memory.c.  (I used is_cow_mapping() because I had to make the
+test more complex anyway, just to exclude the case which had been
+oddly handled before.)
+
+Hugh
+
+>  
+>  	if (is_register)
+>  		flags |= VM_WRITE;
+>  
+> -	return vma->vm_file && (vma->vm_flags & flags) == VM_MAYEXEC;
+> +	return 	vma->vm_file && is_cow_mapping(vma->vm_flags) &&
+> +		(vma->vm_flags & flags) == VM_MAYEXEC;
+>  }
+>  
+>  static unsigned long offset_to_vaddr(struct vm_area_struct *vma, loff_t offset)
