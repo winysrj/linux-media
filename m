@@ -1,81 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37832 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933717AbaDIVc7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Apr 2014 17:32:59 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>,
-	Antti Palosaari <crope@iki.fi>, backports@vger.kernel.org
-Subject: [PATCHv2 1/2] rtl28xxu: do not hard depend on staging SDR module
-Date: Thu, 10 Apr 2014 00:32:40 +0300
-Message-Id: <1397079161-24144-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1397079161-24144-1-git-send-email-crope@iki.fi>
-References: <1397079161-24144-1-git-send-email-crope@iki.fi>
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:46235 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753767AbaDXL3Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Apr 2014 07:29:25 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N4J00BJI990VW30@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Apr 2014 07:29:24 -0400 (EDT)
+Date: Thu, 24 Apr 2014 08:29:19 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Daniel Exner <dex@dragonslave.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Terratec Cinergy T XS Firmware (Kernel 3.14.1)
+Message-id: <20140424082919.66f7eab1@samsung.com>
+In-reply-to: <5358279C.5060108@dragonslave.de>
+References: <535823E6.8020802@dragonslave.de>
+ <CAGoCfizxAopbb4pEtGXVtSSuccqAfu7iqB8Oc2Lb6TOS=6QL8g@mail.gmail.com>
+ <5358279C.5060108@dragonslave.de>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RTL2832 SDR extension module is currently on staging. SDR module
-headers were included from staging causing direct dependency staging
-directory. As a solution, add needed headers to main driver.
-Motivation of that change comes from Luis / driver backports project.
+Em Wed, 23 Apr 2014 22:50:36 +0200
+Daniel Exner <dex@dragonslave.de> escreveu:
 
-Reported-by: Luis R. Rodriguez <mcgrof@do-not-panic.com>
-Cc: backports@vger.kernel.org
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/Makefile   |  1 -
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 21 ++++++++++++++++++++-
- 2 files changed, 20 insertions(+), 2 deletions(-)
+> Hi,
+> 
+> Am 23.04.2014 22:42, schrieb Devin Heitmueller:
+> > On Wed, Apr 23, 2014 at 4:34 PM, Daniel Exner <dex@dragonslave.de> wrote:
+> > You can get the firmware via the following procedure:
+> > 
+> > http://www.linuxtv.org/wiki/index.php/Xceive_XC3028/XC2028#How_to_Obtain_the_Firmware
+> > 
+> > or if you're on Ubuntu it's already packaged in
+> > linux-firmware-nonfree.  The file itself is 66220 bytes and has an MD5
+> > checksum of 293dc5e915d9a0f74a368f8a2ce3cc10.
+> 
+> I used that procedure and have exactly that file in my /lib/firmware dir.
+> 
+> > Note that if you have that file in /lib/firmware, it's entirely
+> > possible that the driver is just broken (this happens quite often).
+> > The values read back by dmesg are from the device itself, so if the
+> > chip wasn't properly initialized fields such as the version will
+> > contain garbage values.
+> On the page you linked above older firmware versions are mentions that
+> should be supported by the driver.
+> 
+> My Question is: how to get them?
+> 
+> But you may be right, because "Device is Xceive 34584" seems also wrong
+> (didn't find any hint such a device exists..)
+> 
+> I'm willing to invest some time to repair the driver.
+> Anyone interested in helping me in getting this thing back to work?
 
-diff --git a/drivers/media/usb/dvb-usb-v2/Makefile b/drivers/media/usb/dvb-usb-v2/Makefile
-index 7407b83..bc38f03 100644
---- a/drivers/media/usb/dvb-usb-v2/Makefile
-+++ b/drivers/media/usb/dvb-usb-v2/Makefile
-@@ -41,4 +41,3 @@ ccflags-y += -I$(srctree)/drivers/media/dvb-core
- ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
- ccflags-y += -I$(srctree)/drivers/media/tuners
- ccflags-y += -I$(srctree)/drivers/media/common
--ccflags-y += -I$(srctree)/drivers/staging/media/rtl2832u_sdr
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index c83c16c..af43183 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -24,7 +24,6 @@
- 
- #include "rtl2830.h"
- #include "rtl2832.h"
--#include "rtl2832_sdr.h"
- 
- #include "qt1010.h"
- #include "mt2060.h"
-@@ -36,6 +35,26 @@
- #include "tua9001.h"
- #include "r820t.h"
- 
-+/*
-+ * RTL2832_SDR module is in staging. That logic is added in order to avoid any
-+ * hard dependency to drivers/staging/ directory as we want compile mainline
-+ * driver even whole staging directory is missing.
-+ */
-+#include <media/v4l2-subdev.h>
-+
-+#if IS_ENABLED(CONFIG_DVB_RTL2832_SDR)
-+extern struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
-+	struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
-+	struct v4l2_subdev *sd);
-+#else
-+static inline struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
-+	struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
-+	struct v4l2_subdev *sd)
-+{
-+	return NULL;
-+}
-+#endif
-+
- static int rtl28xxu_disable_rc;
- module_param_named(disable_rc, rtl28xxu_disable_rc, int, 0644);
- MODULE_PARM_DESC(disable_rc, "disable RTL2832U remote controller");
+That doesn't seem to be a driver issue, but a badly extracted
+firmware. The firmware version should be 2.7. It the version doesn't
+match, that means that the firmware was not properly loaded.
+
+The driver checks if the firmware version loaded matches the version
+of the file, and prints warnings via dmesg.
+
+Are you sure that the md5sum of the firmware is 
+293dc5e915d9a0f74a368f8a2ce3cc10?
+
 -- 
-1.9.0
 
+Regards,
+Mauro
