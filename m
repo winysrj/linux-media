@@ -1,82 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37718 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755782AbaDKJDY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 05:03:24 -0400
-Message-ID: <5347AF96.8030008@ti.com>
-Date: Fri, 11 Apr 2014 14:32:14 +0530
-From: Archit Taneja <archit@ti.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>
-CC: <pawel@osciak.com>, <sakari.ailus@iki.fi>,
-	<m.szyprowski@samsung.com>, <s.nawrocki@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv3 PATCH 07/13] vb2: reject output buffers with V4L2_FIELD_ALTERNATE
-References: <1397203879-37443-1-git-send-email-hverkuil@xs4all.nl> <1397203879-37443-8-git-send-email-hverkuil@xs4all.nl> <5347AAF5.30704@ti.com> <5347AEC5.6050700@xs4all.nl>
-In-Reply-To: <5347AEC5.6050700@xs4all.nl>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1383 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751269AbaDXCja (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Apr 2014 22:39:30 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s3O2dQSt080723
+	for <linux-media@vger.kernel.org>; Thu, 24 Apr 2014 04:39:28 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id EAF862A199E
+	for <linux-media@vger.kernel.org>; Thu, 24 Apr 2014 04:39:25 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140424023925.EAF862A199E@tschai.lan>
+Date: Thu, 24 Apr 2014 04:39:25 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 11 April 2014 02:28 PM, Hans Verkuil wrote:
-> On 04/11/2014 10:42 AM, Archit Taneja wrote:
->> On Friday 11 April 2014 01:41 PM, Hans Verkuil wrote:
->>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>
->>> This is not allowed by the spec and does in fact not make any sense.
->>> Return -EINVAL if this is the case.
->>>
->>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>> Acked-by: Pawel Osciak <pawel@osciak.com>
->>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>> ---
->>>    drivers/media/v4l2-core/videobuf2-core.c | 13 +++++++++++++
->>>    1 file changed, 13 insertions(+)
->>>
->>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->>> index 6e05495..f8c0247 100644
->>> --- a/drivers/media/v4l2-core/videobuf2-core.c
->>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->>> @@ -1511,6 +1511,19 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->>>    		dprintk(1, "plane parameters verification failed: %d\n", ret);
->>>    		return ret;
->>>    	}
->>> +	if (b->field == V4L2_FIELD_ALTERNATE && V4L2_TYPE_IS_OUTPUT(q->type)) {
->>> +		/*
->>> +		 * If the format's field is ALTERNATE, then the buffer's field
->>> +		 * should be either TOP or BOTTOM, not ALTERNATE since that
->>> +		 * makes no sense. The driver has to know whether the
->>> +		 * buffer represents a top or a bottom field in order to
->>> +		 * program any DMA correctly. Using ALTERNATE is wrong, since
->>> +		 * that just says that it is either a top or a bottom field,
->>> +		 * but not which of the two it is.
->>> +		 */
->>> +		dprintk(1, "the field is incorrectly set to ALTERNATE for an output buffer\n");
->>> +		return -EINVAL;
->>> +	}
->>
->> If vb2_queue had a field parameter, which tells the format's field type.
->> We could have returned an error if the field format was ALTERNATE, and
->> the buffer field was not TOP or BOTTOM.
->>
->> I don't know whether having a field parameter in vb2_queue is a good
->> idea or not.
->
-> The predecessor of vb2, videobuf, had that actually.
->
-> I am not sure myself if it is a good idea or not to do the same for vb2.
-> For now I think we should leave it as is. There are very few drivers that
-> support FIELD_ALTERNATE although this should become more common for
-> drivers supporting interlaced HDTV formats. When we see more drivers that
-> support this, then we can see if it makes sense to move part of the handling
-> to vb2.
->
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Sure, queue_setup vb op might be a good place to populate it. But as you 
-said, there aren't many drivers that use FIELD_ALTERNATE, and there 
-doesn't seem to be any other advantage for having 'field' in vb2_queue. 
-So, it can be left for later.
+Results of the daily build of media_tree:
 
-Archit
+date:		Thu Apr 24 04:00:28 CEST 2014
+git branch:	test
+git hash:	393cbd8dc532c1ebed60719da8d379f50d445f28
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-1.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
