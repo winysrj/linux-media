@@ -1,116 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:43428 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756160AbaDKO5n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 10:57:43 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: [PATCH/RFC v3 4/5] DT: Add documentation for the mfd Maxim max77693
- flash cell
-Date: Fri, 11 Apr 2014 16:56:55 +0200
-Message-id: <1397228216-6657-5-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1397228216-6657-1-git-send-email-j.anaszewski@samsung.com>
-References: <1397228216-6657-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:44177 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756848AbaDXNbT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Apr 2014 09:31:19 -0400
+Date: Thu, 24 Apr 2014 15:30:55 +0200
+From: Oleg Nesterov <oleg@redhat.com>
+To: Hugh Dickins <hughd@google.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Jan Kara <jack@suse.cz>, Roland Dreier <roland@kernel.org>,
+	Konstantin Khlebnikov <koct9i@gmail.com>,
+	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Omar Ramirez Luna <omar.ramirez@copitl.com>,
+	Inki Dae <inki.dae@samsung.com>, linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org, linux-rdma@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] mm: get_user_pages(write,force) refuse to COW in
+	shared areas
+Message-ID: <20140424133055.GA13269@redhat.com>
+References: <alpine.LSU.2.11.1404040120110.6880@eggly.anvils>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.11.1404040120110.6880@eggly.anvils>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds device tree binding documentation for
-the flash cell of the Maxim max77693 multifunctional device.
+Hi Hugh,
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
----
- Documentation/devicetree/bindings/mfd/max77693.txt |   57 ++++++++++++++++++++
- 1 file changed, 57 insertions(+)
+Sorry for late reply. First of all, to avoid the confusion, I think the
+patch is fine.
 
-diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-index 11921cc..f58d192 100644
---- a/Documentation/devicetree/bindings/mfd/max77693.txt
-+++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-@@ -27,6 +27,53 @@ Optional properties:
+When I saw this patch I decided that uprobes should be updated accordingly,
+but I just realized that I do not understand what should I write in the
+changelog.
+
+On 04/04, Hugh Dickins wrote:
+>
+> +		if (gup_flags & FOLL_WRITE) {
+> +			if (!(vm_flags & VM_WRITE)) {
+> +				if (!(gup_flags & FOLL_FORCE))
+> +					goto efault;
+> +				/*
+> +				 * We used to let the write,force case do COW
+> +				 * in a VM_MAYWRITE VM_SHARED !VM_WRITE vma, so
+> +				 * ptrace could set a breakpoint in a read-only
+> +				 * mapping of an executable, without corrupting
+> +				 * the file (yet only when that file had been
+> +				 * opened for writing!).  Anon pages in shared
+> +				 * mappings are surprising: now just reject it.
+> +				 */
+> +				if (!is_cow_mapping(vm_flags)) {
+> +					WARN_ON_ONCE(vm_flags & VM_MAYWRITE);
+> +					goto efault;
+> +				}
+
+OK. But could you please clarify "Anon pages in shared mappings are surprising" ?
+I mean, does this only apply to "VM_MAYWRITE VM_SHARED !VM_WRITE vma" mentioned
+above or this is bad even if a !FMODE_WRITE file was mmaped as MAP_SHARED ?
+
+Yes, in this case this vma is not VM_SHARED and it is not VM_MAYWRITE, it is only
+VM_MAYSHARE. This is in fact private mapping except mprotect(PROT_WRITE) will not
+work.
+
+But with or without this patch gup(FOLL_WRITE | FOLL_FORCE) won't work in this case,
+(although perhaps it could ?), is_cow_mapping() == F because of !VM_MAYWRITE.
+
+However, currently uprobes assumes that a cowed anon page is fine in this case, and
+this differs from gup().
+
+So, what do you think about the patch below? It is probably fine in any case,
+but is there any "strong" reason to follow the gup's behaviour and forbid the
+anon page in VM_MAYSHARE && !VM_MAYWRITE vma?
+
+Oleg.
+
+--- x/kernel/events/uprobes.c
++++ x/kernel/events/uprobes.c
+@@ -127,12 +127,13 @@ struct xol_area {
+  */
+ static bool valid_vma(struct vm_area_struct *vma, bool is_register)
+ {
+-	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC | VM_SHARED;
++	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC;
  
- 	[*] refer Documentation/devicetree/bindings/regulator/regulator.txt
+ 	if (is_register)
+ 		flags |= VM_WRITE;
  
-+Optional node:
-+- led-flash : the LED submodule device node
-+
-+Required properties of "led-flash" node:
-+- compatible : must be "maxim,max77693-flash"
-+
-+Optional properties of "led-flash" node:
-+- maxim,iout : Array of four maximum intensities in microamperes of the current
-+	in order: flash1, flash2, torch1, torch2.
-+	Range:
-+		flash - 15625 - 1000000 (max 625000 if boost mode
-+					 is enabled for both outputs),
-+		torch - 15625 - 250000.
-+- maxim,trigger : Array of flags indicating which trigger can activate given led
-+	in order: flash1, flash2, torch1, torch2.
-+	Possible flag values (can be combined):
-+		1 - FLASH pin of the chip,
-+		2 - TORCH pin of the chip,
-+		4 - software via I2C command.
-+- maxim,trigger-type : Array of trigger types in order: flash, torch.
-+	Possible trigger types:
-+		0 - Rising edge of the signal triggers the flash/torch,
-+		1 - Signal level controls duration of the flash/torch.
-+- maxim,timeout : Array of timeouts in microseconds after which leds are
-+	turned off in order: flash, torch.
-+	Range:
-+		flash: 62500 - 1000000,
-+		torch: 0 (no timeout) - 15728000.
-+- maxim,boost-mode : Array of the flash boost modes in order: flash1, flash2.
-+	If both current outputs are connected then the same non-zero value
-+	has to be set for them. This setting influences also maximum
-+	current value for torch and flash modes:
-+		flash1 and flash2 set to 1 or 2:
-+			- max flash current: 1250 mA (625 mA on each output)
-+			- max torch current: 500 mA (250 mA on each output)
-+		flash1 or flash2 set to 0:
-+			- max flash current: 1000 mA
-+			- max torch current: 250 mA
-+	Possible values:
-+		0 - no boost,
-+		1 - adaptive mode,
-+		2 - fixed mode.
-+- maxim,boost-vout : Output voltage of the boost module in millivolts.
-+- maxim,vsys-min : Low input voltage level in millivolts. Flash is not fired
-+	if chip estimates that system voltage could drop below this level due
-+	to flash power consumption.
-+
- Example:
- 	max77693@66 {
- 		compatible = "maxim,max77693";
-@@ -52,4 +99,14 @@ Example:
- 					regulator-boot-on;
- 			};
- 		};
-+		led_flash: led-flash {
-+			compatible = "maxim,max77693-flash";
-+			maxim,iout = <625000 625000 250000 250000>;
-+			maxim,trigger = <5 5 6 6>;
-+			maxim,trigger-type = <0 1>;
-+			maxim,timeout = <500000 0>;
-+			maxim,boost-mode = <1 1>;
-+			maxim,boost-vout = <5000>;
-+			maxim,vsys-min = <2400>;
-+		};
- 	};
--- 
-1.7.9.5
+-	return vma->vm_file && (vma->vm_flags & flags) == VM_MAYEXEC;
++	return 	vma->vm_file && is_cow_mapping(vma->vm_flags) &&
++		(vma->vm_flags & flags) == VM_MAYEXEC;
+ }
+ 
+ static unsigned long offset_to_vaddr(struct vm_area_struct *vma, loff_t offset)
 
