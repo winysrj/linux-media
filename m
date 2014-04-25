@@ -1,100 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39433 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751438AbaDUOiN (ORCPT
+Received: from mail-ob0-f182.google.com ([209.85.214.182]:35149 "EHLO
+	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752909AbaDYSb2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Apr 2014 10:38:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] v4l: subdev: Move [gs]_std operation to video ops
-Date: Mon, 21 Apr 2014 16:38:20 +0200
-Message-ID: <1946703.iYRICFVott@avalon>
-In-Reply-To: <1394532878-3943-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394532878-3943-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 25 Apr 2014 14:31:28 -0400
+Received: by mail-ob0-f182.google.com with SMTP id uy5so4648381obc.41
+        for <linux-media@vger.kernel.org>; Fri, 25 Apr 2014 11:31:27 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Date: Fri, 25 Apr 2014 19:31:27 +0100
+Message-ID: <CAOS+5GGaHQvO30fhgG6PYGc2POHFiFwHvDozZ6k6f_1MEy9_eA@mail.gmail.com>
+Subject: Elgato Eye TV Deluxe V2 supported?
+From: Another Sillyname <anothersname@googlemail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans, Guennadi,
+I have an Elgato Eye TV V2 USB device  USB ID 0fd9:002c which reading here....
 
-Could you please review this patch ? I'd like to get it in v3.16.
+https://github.com/mirrors/linux-2.6/blob/master/drivers/staging/media/as102/as102_usb_drv.h
 
-On Tuesday 11 March 2014 11:14:38 Laurent Pinchart wrote:
-> The g_std and s_std operations are video-related, move them to the video
-> ops where they belong.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/i2c/adv7180.c                     |  6 +-----
->  drivers/media/i2c/adv7183.c                     |  4 ++--
->  drivers/media/i2c/adv7842.c                     |  4 ++--
->  drivers/media/i2c/bt819.c                       |  2 +-
->  drivers/media/i2c/cx25840/cx25840-core.c        |  4 ++--
->  drivers/media/i2c/ks0127.c                      |  6 +-----
->  drivers/media/i2c/ml86v7667.c                   |  2 +-
->  drivers/media/i2c/msp3400-driver.c              |  2 +-
->  drivers/media/i2c/saa6752hs.c                   |  2 +-
->  drivers/media/i2c/saa7110.c                     |  2 +-
->  drivers/media/i2c/saa7115.c                     |  2 +-
->  drivers/media/i2c/saa717x.c                     |  2 +-
->  drivers/media/i2c/saa7191.c                     |  2 +-
->  drivers/media/i2c/soc_camera/tw9910.c           |  4 ++--
->  drivers/media/i2c/sony-btf-mpx.c                | 10 +++++-----
->  drivers/media/i2c/tvaudio.c                     |  6 +++++-
->  drivers/media/i2c/tvp514x.c                     |  2 +-
->  drivers/media/i2c/tvp5150.c                     |  2 +-
->  drivers/media/i2c/tw2804.c                      |  2 +-
->  drivers/media/i2c/tw9903.c                      |  2 +-
->  drivers/media/i2c/tw9906.c                      |  2 +-
->  drivers/media/i2c/vp27smpx.c                    |  6 +++++-
->  drivers/media/i2c/vpx3220.c                     |  2 +-
->  drivers/media/pci/bt8xx/bttv-driver.c           |  2 +-
->  drivers/media/pci/cx18/cx18-av-core.c           |  2 +-
->  drivers/media/pci/cx18/cx18-fileops.c           |  2 +-
->  drivers/media/pci/cx18/cx18-gpio.c              |  6 +++++-
->  drivers/media/pci/cx18/cx18-ioctl.c             |  2 +-
->  drivers/media/pci/cx23885/cx23885-video.c       |  4 ++--
->  drivers/media/pci/cx88/cx88-core.c              |  2 +-
->  drivers/media/pci/ivtv/ivtv-fileops.c           |  2 +-
->  drivers/media/pci/ivtv/ivtv-ioctl.c             |  2 +-
->  drivers/media/pci/saa7134/saa7134-video.c       |  4 ++--
->  drivers/media/pci/saa7146/mxb.c                 | 14 +++++++-------
->  drivers/media/pci/sta2x11/sta2x11_vip.c         |  4 ++--
->  drivers/media/pci/zoran/zoran_device.c          |  2 +-
->  drivers/media/pci/zoran/zoran_driver.c          |  2 +-
->  drivers/media/platform/blackfin/bfin_capture.c  |  4 ++--
->  drivers/media/platform/davinci/vpfe_capture.c   |  2 +-
->  drivers/media/platform/davinci/vpif_capture.c   |  2 +-
->  drivers/media/platform/davinci/vpif_display.c   |  2 +-
->  drivers/media/platform/fsl-viu.c                |  2 +-
->  drivers/media/platform/soc_camera/soc_camera.c  |  4 ++--
->  drivers/media/platform/timblogiw.c              |  2 +-
->  drivers/media/platform/vino.c                   |  6 +++---
->  drivers/media/usb/au0828/au0828-video.c         |  4 ++--
->  drivers/media/usb/cx231xx/cx231xx-417.c         |  2 +-
->  drivers/media/usb/cx231xx/cx231xx-video.c       |  6 +++---
->  drivers/media/usb/em28xx/em28xx-video.c         |  4 ++--
->  drivers/media/usb/pvrusb2/pvrusb2-hdw.c         |  2 +-
->  drivers/media/usb/stk1160/stk1160-v4l.c         |  4 ++--
->  drivers/media/usb/tm6000/tm6000-cards.c         |  2 +-
->  drivers/media/usb/tm6000/tm6000-video.c         |  2 +-
->  drivers/media/usb/usbvision/usbvision-video.c   |  2 +-
->  drivers/media/v4l2-core/tuner-core.c            |  6 +++++-
->  drivers/staging/media/davinci_vpfe/vpfe_video.c |  2 +-
->  drivers/staging/media/go7007/go7007-v4l2.c      |  2 +-
->  drivers/staging/media/go7007/s2250-board.c      |  2 +-
->  drivers/staging/media/go7007/saa7134-go7007.c   |  4 ++++
->  include/media/v4l2-subdev.h                     |  6 +++---
->  60 files changed, 107 insertions(+), 95 deletions(-)
+Looks like it should be supported (it looks like Devin wrote some of
+the code?)......it gets recognised in dmesg and indeed lsusb sees it,
+but no firmware is loaded (I have the required as102 files in
+/lib/firmware) and in effect it never 'initialises'.
 
-[snip]
+Has something broken since kernel 2.6 (I'm currently running 3.13.10)
+or did it never work?
 
--- 
-Regards,
+Googling around pops up a load of contradictory information whether it
+works or not.
 
-Laurent Pinchart
+lsusb gives me this...
 
+lsusb -v -d 0fd9:002c
+
+Bus 002 Device 004: ID 0fd9:002c Elgato Systems GmbH EyeTV DTT Deluxe v2
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass          255 Vendor Specific Class
+  bDeviceSubClass       255 Vendor Specific Subclass
+  bDeviceProtocol       255 Vendor Specific Protocol
+  bMaxPacketSize0        64
+  idVendor           0x0fd9 Elgato Systems GmbH
+  idProduct          0x002c EyeTV DTT Deluxe v2
+  bcdDevice            1.00
+  iManufacturer           1 Elgato
+  iProduct                2 EyeTV DTT Dlx
+  iSerial                 3 0000xxxxxxxxxxxx
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           39
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0
+    bmAttributes         0x80
+      (Bus Powered)
+    MaxPower              300mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           3
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x83  EP 3 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+Device Qualifier (for other device speed):
+  bLength                10
+  bDescriptorType         6
+  bcdUSB               2.00
+  bDeviceClass          255 Vendor Specific Class
+  bDeviceSubClass       255 Vendor Specific Subclass
+  bDeviceProtocol       255 Vendor Specific Protocol
+  bMaxPacketSize0        64
+  bNumConfigurations      1
+Device Status:     0x0000
+  (Bus Powered)
+
+
+
+lsusb ends
+
+
+
+Any ideas?
+
+Thanks in advance.
+
+Tony
