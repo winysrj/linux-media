@@ -1,129 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:40550 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750983AbaDQOoq (ORCPT
+Received: from top.free-electrons.com ([176.31.233.9]:46787 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751311AbaDYN04 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 10:44:46 -0400
-Message-id: <534FE8D8.3070700@samsung.com>
-Date: Thu, 17 Apr 2014 16:44:40 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v4 47/49] adv7604: Add endpoint properties to DT bindings
-References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1397744000-23967-48-git-send-email-laurent.pinchart@ideasonboard.com>
-In-reply-to: <1397744000-23967-48-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Fri, 25 Apr 2014 09:26:56 -0400
+Date: Fri, 25 Apr 2014 10:26:25 -0300
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: Steve Cookson <it@sca-uk.com>
+Cc: Steve Cookson <steve.cookson@sca-uk.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Steven Toth <stoth@kernellabs.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: Comparisons of images between Dazzle DVC100, EasyCap stk1160 and
+ Hauppauge ImapctVCB-e in Linux.
+Message-ID: <20140425132625.GA1364@arch.cereza>
+References: <5357DAC2.20005@sca-uk.com>
+ <535A52CB.7060106@sca-uk.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <535A52CB.7060106@sca-uk.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17/04/14 16:13, Laurent Pinchart wrote:
-> Add support for the hsync-active, vsync-active and pclk-sample
-> properties to the DT bindings and control BT.656 mode implicitly.
+On Apr 25, Steve Cookson wrote:
+[..]
 > 
-> Cc: devicetree@vger.kernel.org
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Thanks, the patch looks good to me.
-
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-
-> ---
->  .../devicetree/bindings/media/i2c/adv7604.txt      | 13 +++++++++
->  drivers/media/i2c/adv7604.c                        | 34 ++++++++++++++++++++--
->  2 files changed, 45 insertions(+), 2 deletions(-)
+> If the DVC100 and ImpactVCB-e had had the same love and attention that
+> Ezequial has shown the EasyCap would they outperform it?
 > 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> index 2efb48f..c27cede 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> @@ -33,6 +33,19 @@ Optional Properties:
->  
->    - reset-gpios: Reference to the GPIO connected to the device's reset pin.
->  
-> +Optional Endpoint Properties:
-> +
-> +  The following three properties are defined in video-interfaces.txt and are
-> +  valid for source endpoints only.
-> +
-> +  - hsync-active: Horizontal synchronization polarity. Defaults to active low.
-> +  - vsync-active: Vertical synchronization polarity. Defaults to active low.
-> +  - pclk-sample: Pixel clock polarity. Defaults to output on the falling edge.
-> +
-> +  If none of hsync-active, vsync-active and pclk-sample is specified the
-> +  endpoint will use embedded BT.656 synchronization.
-> +
-> +
->  Example:
->  
->  	hdmi_receiver@4c {
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index fd0c646..63f036f 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -41,6 +41,7 @@
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-dv-timings.h>
-> +#include <media/v4l2-of.h>
->  
->  static int debug;
->  module_param(debug, int, 0644);
-> @@ -2679,6 +2680,37 @@ MODULE_DEVICE_TABLE(of, adv7604_of_id);
->  
->  static int adv7604_parse_dt(struct adv7604_state *state)
->  {
-> +	struct v4l2_of_endpoint bus_cfg;
-> +	struct device_node *endpoint;
-> +	struct device_node *np;
-> +	unsigned int flags;
-> +
-> +	np = state->i2c_clients[ADV7604_PAGE_IO]->dev.of_node;
-> +
-> +	/* Parse the endpoint. */
-> +	endpoint = of_graph_get_next_endpoint(np, NULL);
-> +	if (!endpoint)
-> +		return -EINVAL;
-> +
-> +	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-> +	of_node_put(endpoint);
-> +
-> +	flags = bus_cfg.bus.parallel.flags;
-> +
-> +	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-> +		state->pdata.inv_hs_pol = 1;
-> +
-> +	if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-> +		state->pdata.inv_vs_pol = 1;
-> +
-> +	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-> +		state->pdata.inv_llc_pol = 1;
-> +
-> +	if (bus_cfg.bus_type == V4L2_MBUS_BT656) {
-> +		state->pdata.insert_av_codes = 1;
-> +		state->pdata.op_656_range = 1;
-> +	}
-> +
->  	/* Disable the interrupt for now as no DT-based board uses it. */
->  	state->pdata.int1_config = ADV7604_INT1_CONFIG_DISABLED;
->  
-> @@ -2701,9 +2733,7 @@ static int adv7604_parse_dt(struct adv7604_state *state)
->  	state->pdata.disable_cable_det_rst = 0;
->  	state->pdata.default_input = -1;
->  	state->pdata.blank_data = 1;
-> -	state->pdata.op_656_range = 1;
->  	state->pdata.alt_data_sat = 1;
-> -	state->pdata.insert_av_codes = 1;
->  	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
->  	state->pdata.bus_order = ADV7604_BUS_ORDER_RGB;
->  
 
+I really appreciate the kind words and I'm happy to see the driver is being
+used and works well.
+
+However, to be fair, the stk1160 is just a little link in a larger chain.
+The video decoder is controlled through another driver (saa7115) and so
+I've little merit in the image quality.
+
+[..]
+> 
+> Otherwise I should just focus on EasyCap for my raw SD capture and move on.
+> 
+
+Hm.. hard to say. Easycap stk1160 devices are hard to get, it seems they are
+manufactured in a few different hardware flavors (but with the same case)
+and it's hard to tell what flavor you buy.
+
+Right now, I think we've supported the two stk1160 cases, but there's a
+third Easycap variant currently unsupported (which doesn't use stk1160
+but a Somagic chipset).
+
+In addition, given the stk1160 was partly reverse-engineered, partly
+based on a non-public and very laconic datasheet, it's not easy to fix
+given the lack of details about the chip.
+
+In conclusion, if you pick stk1160, make sure you buy enough Easycap devices
+(from the same provider) and do some extra effort to test *each* of them to
+ensure they work as you expect.
 -- 
-Regards,
-Sylwester
+Ezequiel García, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
