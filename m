@@ -1,64 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50698 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754143AbaDLNYR (ORCPT
+Received: from mail-qg0-f50.google.com ([209.85.192.50]:55135 "EHLO
+	mail-qg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751664AbaDYSkx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Apr 2014 09:24:17 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [yavta PATCH v3 09/11] Shorten dequeued buffer info print
-Date: Sat, 12 Apr 2014 16:24:01 +0300
-Message-Id: <1397309043-8322-10-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1397309043-8322-1-git-send-email-sakari.ailus@iki.fi>
-References: <1397309043-8322-1-git-send-email-sakari.ailus@iki.fi>
+	Fri, 25 Apr 2014 14:40:53 -0400
+Received: by mail-qg0-f50.google.com with SMTP id 63so4391425qgz.37
+        for <linux-media@vger.kernel.org>; Fri, 25 Apr 2014 11:40:52 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAOS+5GGaHQvO30fhgG6PYGc2POHFiFwHvDozZ6k6f_1MEy9_eA@mail.gmail.com>
+References: <CAOS+5GGaHQvO30fhgG6PYGc2POHFiFwHvDozZ6k6f_1MEy9_eA@mail.gmail.com>
+Date: Fri, 25 Apr 2014 14:40:52 -0400
+Message-ID: <CAGoCfiyuG0q-pCsPsSkMPFa8V+qo97ewY7ngyu4Mhmu_45RDYw@mail.gmail.com>
+Subject: Re: Elgato Eye TV Deluxe V2 supported?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Another Sillyname <anothersname@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- yavta.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+On Fri, Apr 25, 2014 at 2:31 PM, Another Sillyname
+<anothersname@googlemail.com> wrote:
+> I have an Elgato Eye TV V2 USB device  USB ID 0fd9:002c which reading here....
+>
+> https://github.com/mirrors/linux-2.6/blob/master/drivers/staging/media/as102/as102_usb_drv.h
+>
+> Looks like it should be supported (it looks like Devin wrote some of
+> the code?)......it gets recognised in dmesg and indeed lsusb sees it,
+> but no firmware is loaded (I have the required as102 files in
+> /lib/firmware) and in effect it never 'initialises'.
 
-diff --git a/yavta.c b/yavta.c
-index 5516675..e81e058 100644
---- a/yavta.c
-+++ b/yavta.c
-@@ -721,13 +721,13 @@ static void get_ts_flags(uint32_t flags, const char **ts_type, const char **ts_s
- {
- 	switch (flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) {
- 	case V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN:
--		*ts_type = "unknown";
-+		*ts_type = "unk";
- 		break;
- 	case V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC:
--		*ts_type = "monotonic";
-+		*ts_type = "mono";
- 		break;
- 	default:
--		*ts_type = "invalid";
-+		*ts_type = "inv";
- 	}
- 	switch (flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK) {
- 	case V4L2_BUF_FLAG_TSTAMP_SRC_EOF:
-@@ -737,7 +737,7 @@ static void get_ts_flags(uint32_t flags, const char **ts_type, const char **ts_s
- 		*ts_source = "SoE";
- 		break;
- 	default:
--		*ts_source = "invalid";
-+		*ts_source = "inv";
- 	}
- }
- 
-@@ -1490,7 +1490,7 @@ static int video_do_capture(struct device *dev, unsigned int nframes,
- 
- 		clock_gettime(CLOCK_MONOTONIC, &ts);
- 		get_ts_flags(buf.flags, &ts_type, &ts_source);
--		printf("%u (%u) [%c] %u %u bytes %ld.%06ld %ld.%06ld %.3f fps ts %s/%s\n", i, buf.index,
-+		printf("%u (%u) [%c] %u %u B %ld.%06ld %ld.%06ld %.3f fps ts %s/%s\n", i, buf.index,
- 			(buf.flags & V4L2_BUF_FLAG_ERROR) ? 'E' : '-',
- 			buf.sequence, buf.bytesused, buf.timestamp.tv_sec,
- 			buf.timestamp.tv_usec, ts.tv_sec, ts.tv_nsec/1000, fps,
+Hi Tony,
+
+Sorry, I saw your email yesterday but forgot to reply.  The issue is
+that the as102 is still in "staging", so it won't appear in mainline
+kernels by default.  You would need to install the media_build tree,
+run "make menuconfig", enable "staging drivers" and then enable the
+"as102" bridge.
+
+The messages you are seeing in dmesg and lsusb are just the kernel
+finding the hardware at a USB level - these messages will appear
+whether there is a driver or not for the actual device.
+
+Devin
+
 -- 
-1.7.10.4
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
