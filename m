@@ -1,185 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:37877 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754988AbaDGMp5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Apr 2014 08:45:57 -0400
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:37344 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750902AbaDYUIQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Apr 2014 16:08:16 -0400
+Received: by mail-pa0-f46.google.com with SMTP id kp14so3535772pab.19
+        for <linux-media@vger.kernel.org>; Fri, 25 Apr 2014 13:08:15 -0700 (PDT)
+Date: Fri, 25 Apr 2014 13:07:01 -0700 (PDT)
+From: Hugh Dickins <hughd@google.com>
+To: Oleg Nesterov <oleg@redhat.com>
+cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Jan Kara <jack@suse.cz>, Roland Dreier <roland@kernel.org>,
+	Konstantin Khlebnikov <koct9i@gmail.com>,
+	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	Denis Carikli <denis@eukrea.com>
-Subject: [PATCH v12][ 09/12] drm/panel: Add Eukrea mbimxsd51 displays.
-Date: Mon,  7 Apr 2014 14:44:48 +0200
-Message-Id: <1396874691-27954-9-git-send-email-denis@eukrea.com>
-In-Reply-To: <1396874691-27954-1-git-send-email-denis@eukrea.com>
-References: <1396874691-27954-1-git-send-email-denis@eukrea.com>
+	Omar Ramirez Luna <omar.ramirez@copitl.com>,
+	Inki Dae <inki.dae@samsung.com>, linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org, linux-rdma@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] mm: get_user_pages(write,force) refuse to COW in shared
+ areas
+In-Reply-To: <20140425190931.GA11323@redhat.com>
+Message-ID: <alpine.LSU.2.11.1404251254230.6272@eggly.anvils>
+References: <alpine.LSU.2.11.1404040120110.6880@eggly.anvils> <20140424133055.GA13269@redhat.com> <alpine.LSU.2.11.1404241518510.4454@eggly.anvils> <20140425190931.GA11323@redhat.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
----
-ChangeLog v11->v12:
-- Rebased: It now uses the new DRM_MODE_FLAG_POL_DE flags defines names
+On Fri, 25 Apr 2014, Oleg Nesterov wrote:
+> 
+> And I forgot to mention, there is another reason why I would like to
+> change uprobes to follow the same convention. I still think it would
+> be better to kill __replace_page() and use gup(FOLL_WRITE | FORCE)
+> in uprobe_write_opcode().
 
-ChangeLog v10->v11:
-- New patch.
----
- .../bindings/panel/eukrea,mbimxsd51-cmo-qvga.txt   |    7 ++
- .../bindings/panel/eukrea,mbimxsd51-dvi-svga.txt   |    7 ++
- .../bindings/panel/eukrea,mbimxsd51-dvi-vga.txt    |    7 ++
- drivers/gpu/drm/panel/panel-simple.c               |   81 ++++++++++++++++++++
- 4 files changed, 102 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-cmo-qvga.txt
- create mode 100644 Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-svga.txt
- create mode 100644 Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-vga.txt
+Oh, please please do!  I assumed there was a good atomicity reason
+for doing it that way, but if you can do it with gup() please do so.
 
-diff --git a/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-cmo-qvga.txt b/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-cmo-qvga.txt
-new file mode 100644
-index 0000000..03679d0
---- /dev/null
-+++ b/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-cmo-qvga.txt
-@@ -0,0 +1,7 @@
-+Eukrea CMO-QVGA (320x240 pixels) TFT LCD panel
-+
-+Required properties:
-+- compatible: should be "eukrea,mbimxsd51-cmo-qvga"
-+
-+This binding is compatible with the simple-panel binding, which is specified
-+in simple-panel.txt in this directory.
-diff --git a/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-svga.txt b/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-svga.txt
-new file mode 100644
-index 0000000..f408c9a
---- /dev/null
-+++ b/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-svga.txt
-@@ -0,0 +1,7 @@
-+Eukrea DVI-SVGA (800x600 pixels) DVI output.
-+
-+Required properties:
-+- compatible: should be "eukrea,mbimxsd51-dvi-svga"
-+
-+This binding is compatible with the simple-panel binding, which is specified
-+in simple-panel.txt in this directory.
-diff --git a/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-vga.txt b/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-vga.txt
-new file mode 100644
-index 0000000..8ea90da
---- /dev/null
-+++ b/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-vga.txt
-@@ -0,0 +1,7 @@
-+Eukrea DVI-VGA (640x480 pixels) DVI output.
-+
-+Required properties:
-+- compatible: should be "eukrea,mbimxsd51-dvi-vga"
-+
-+This binding is compatible with the simple-panel binding, which is specified
-+in simple-panel.txt in this directory.
-diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
-index 309f29e..45797d8 100644
---- a/drivers/gpu/drm/panel/panel-simple.c
-+++ b/drivers/gpu/drm/panel/panel-simple.c
-@@ -328,6 +328,78 @@ static const struct panel_desc chunghwa_claa101wb01 = {
- 	},
- };
- 
-+static const struct drm_display_mode eukrea_mbimxsd51_cmoqvga_mode = {
-+	.clock = 6500,
-+	.hdisplay = 320,
-+	.hsync_start = 320 + 38,
-+	.hsync_end = 320 + 38 + 20,
-+	.htotal = 320 + 38 + 20 + 30,
-+	.vdisplay = 240,
-+	.vsync_start = 240 + 15,
-+	.vsync_end = 240 + 15 + 4,
-+	.vtotal = 240 + 15 + 4 + 3,
-+	.vrefresh = 60,
-+	.pol_flags = DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE |
-+		     DRM_MODE_FLAG_POL_DE_LOW,
-+};
-+
-+static const struct panel_desc eukrea_mbimxsd51_cmoqvga = {
-+	.modes = &eukrea_mbimxsd51_cmoqvga_mode,
-+	.num_modes = 1,
-+	.size = {
-+		.width = 73,
-+		.height = 56,
-+	},
-+};
-+
-+static const struct drm_display_mode eukrea_mbimxsd51_dvisvga_mode = {
-+	.clock = 44333,
-+	.hdisplay = 800,
-+	.hsync_start = 800 + 112,
-+	.hsync_end = 800 + 112 + 32,
-+	.htotal = 800 + 112 + 32 + 80,
-+	.vdisplay = 600,
-+	.vsync_start = 600 + 3,
-+	.vsync_end = 600 + 3 + 17,
-+	.vtotal = 600 + 3 + 17 + 4,
-+	.vrefresh = 60,
-+	.pol_flags = DRM_MODE_FLAG_POL_PIXDATA_POSEDGE |
-+		     DRM_MODE_FLAG_POL_DE_HIGH,
-+};
-+
-+static const struct panel_desc eukrea_mbimxsd51_dvisvga = {
-+	.modes = &eukrea_mbimxsd51_dvisvga_mode,
-+	.num_modes = 1,
-+	.size = {
-+		.width = 0,
-+		.height = 0,
-+	},
-+};
-+
-+static const struct drm_display_mode eukrea_mbimxsd51_dvivga_mode = {
-+	.clock = 23750,
-+	.hdisplay = 640,
-+	.hsync_start = 640 + 80,
-+	.hsync_end = 640 + 80 + 16,
-+	.htotal = 640 + 80 + 16 + 64,
-+	.vdisplay = 480,
-+	.vsync_start = 480 + 3,
-+	.vsync_end = 480 + 3 + 13,
-+	.vtotal  = 480 + 3 + 13 + 4,
-+	.vrefresh = 60,
-+	.pol_flags = DRM_MODE_FLAG_POL_PIXDATA_POSEDGE |
-+		     DRM_MODE_FLAG_POL_DE_HIGH,
-+};
-+
-+static const struct panel_desc eukrea_mbimxsd51_dvivga = {
-+	.modes = &eukrea_mbimxsd51_dvivga_mode,
-+	.num_modes = 1,
-+	.size = {
-+		.width = 0,
-+		.height = 0,
-+	},
-+};
-+
- static const struct drm_display_mode lg_lp129qe_mode = {
- 	.clock = 285250,
- 	.hdisplay = 2560,
-@@ -380,6 +452,15 @@ static const struct of_device_id platform_of_match[] = {
- 		.compatible = "chunghwa,claa101wa01a",
- 		.data = &chunghwa_claa101wa01a
- 	}, {
-+		.compatible = "eukrea,mbimxsd51-cmo-qvga",
-+		.data = &eukrea_mbimxsd51_cmoqvga,
-+	}, {
-+		.compatible = "eukrea,mbimxsd51-dvi-svga",
-+		.data = &eukrea_mbimxsd51_dvisvga,
-+	}, {
-+		.compatible = "eukrea,mbimxsd51-dvi-vga",
-+		.data = &eukrea_mbimxsd51_dvivga,
-+	}, {
- 		.compatible = "chunghwa,claa101wb01",
- 		.data = &chunghwa_claa101wb01
- 	}, {
--- 
-1.7.9.5
+I went off into a little rant about __replace_page() in my reply to you;
+but then felt that you had approached with an honest enquiry, and didn't
+deserve a rant in response, so I deleted it.
 
+And, of course, I'm conscious that I have from start to finish withheld
+my involvement from uprobes, and refused to review that __replace_page()
+(beyond insisting that it not be put in a common place for sharing with
+KSM, because I just couldn't guarantee it for uprobes).  I'm afraid that
+it's much like HWPoison to me, a complexity (nastiness?) way beyond what
+I have time to support myself.
+
+Hugh
