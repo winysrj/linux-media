@@ -1,81 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43000 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1758337AbaDBPSc (ORCPT
+Received: from mail-yh0-f49.google.com ([209.85.213.49]:45452 "EHLO
+	mail-yh0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752720AbaDYMsx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Apr 2014 11:18:32 -0400
-Date: Wed, 2 Apr 2014 18:17:55 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Bryan Wu <cooloney@gmail.com>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	milo kim <milo.kim@ti.com>,
-	Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	Richard Purdie <rpurdie@rpsys.net>, linux-media@vger.kernel.org
-Subject: Re: brightness units
-Message-ID: <20140402151754.GG4522@valkosipuli.retiisi.org.uk>
-References: <533A6905.3010600@samsung.com>
- <CAK5ve-LNU_BGUB_HxsbgiO4baM-39C7PWHRVx0DL=JTYfJGSuA@mail.gmail.com>
+	Fri, 25 Apr 2014 08:48:53 -0400
+Received: by mail-yh0-f49.google.com with SMTP id z6so3490972yhz.8
+        for <linux-media@vger.kernel.org>; Fri, 25 Apr 2014 05:48:52 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAK5ve-LNU_BGUB_HxsbgiO4baM-39C7PWHRVx0DL=JTYfJGSuA@mail.gmail.com>
+In-Reply-To: <CALzAhNWvQ1ZYL-0rK2w7yPwzm9QyyCN8JvRyjGhq5eO6rOH9dw@mail.gmail.com>
+References: <5357DAC2.20005@sca-uk.com>
+	<535A52CB.7060106@sca-uk.com>
+	<CALzAhNWvQ1ZYL-0rK2w7yPwzm9QyyCN8JvRyjGhq5eO6rOH9dw@mail.gmail.com>
+Date: Fri, 25 Apr 2014 08:48:52 -0400
+Message-ID: <CALzAhNVJkMtnsHaR55C-i+pLY_nZumBsedWT-vuOhWczHd8UFQ@mail.gmail.com>
+Subject: Re: Comparisons of images between Dazzle DVC100, EasyCap stk1160 and
+ Hauppauge ImapctVCB-e in Linux.
+From: Steven Toth <stoth@kernellabs.com>
+To: Steve Cookson <it@sca-uk.com>
+Cc: Steve Cookson <steve.cookson@sca-uk.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	ezequiel.garcia@free-electrons.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bryan,
+Doh, HTML cause vger to drop it. Resending.
 
-On Tue, Apr 01, 2014 at 03:09:55PM -0700, Bryan Wu wrote:
-> On Tue, Apr 1, 2014 at 12:21 AM, Jacek Anaszewski
-> <j.anaszewski@samsung.com> wrote:
-> > I am currently integrating LED subsystem and V4L2 Flash API.
-> > V4L2 Flash API defines units of torch and flash intensity
-> > in milliampers. In the LED subsystem documentation I can't
-> > find any reference to the brightness units. On the other
-> > hand there is led_brightness enum defined in the <linux/leds.h>
-> > header, with LED_FULL = 255, but not all leds drivers use it.
-> > I am aware that there are LEDs that can be only turned on/off
-> > without any possibility to set the current and in such cases
-> > LED_FULL doesn't reflect the current set.
-> >
-> 
-> Actually led_brightness is an logic concept not like milliampers,
-> since different led drivers has different implementation which is
-> hardware related. Like PWM led driver, it will be converted to duty
-> cycles.
-> 
-> For current control I do see some specific driver like LP55xx have it
-> but not for every one.
-> 
-> > So far I've assumed that brightness is expressed in milliampers
-> > and I don't stick to the LED_FULL limit. It allows for passing
-> > flash/torch intensity from V4L2 controls to the leds API
-> > without conversion. I am not sure if the units should be
-> > fixed to milliampers in the LED subsystem or not. It would
-> > clarify the situation, but if the existing LED drivers don't
-> > stick to this unit then it would make a confusion.
-> >
-> 
-> We probably need to convert those intensity to brightness numbers, for
-> example mapping the intensity value to 0 ~ 255 brightness level and
-> pass it to LED subsystem.
+On Fri, Apr 25, 2014 at 8:47 AM, Steven Toth <stoth@kernellabs.com> wrote:
+> On Fri, Apr 25, 2014 at 8:19 AM, Steve Cookson <it@sca-uk.com> wrote:
+>>
+>> Hi Guys,
+>>
+>
+> Hello again.
+>
+>>
+>> (I'm copying Ezequial on this because of the work he has done on the
+>> stk1160).
+>>
+>> My colleague (a Doctor) had this to say on the medical images I posted
+>> earlier (see below):
+>>
+>> >  The impactVCB-e image is redder and less clear. The dvc100 and easycap
+>> > seem similar to me and both of them are not as good as the original one.
+>>
+>> So I have to ask how is it that the cheap little EasyCap is performing at
+>> the same level as the Dazzle DVC100 and better than the ImpactVCB-e?
+>>
+>
+> Its usually either because the Linux engineers simply aren't focused on
+> improving quality for the last 'mile', or that the ADC/Video digitizer
+> differers between products. 'Redder' isn't usually a differentiation between
+> video digitizer silicon, its miss-configuration - for example.
+>
+>
+>>
+>> It seems to me that the more complex and expensive DVC100 and ImpactVCB-e
+>> should perform well and that the EasyCap should be the runner up.
+>>
+>
+> Not necessarily, but I can understand why you may think that. The reality is
+> - you are measuring the work of individuals who we're not paid to create
+> these Linux drivers. They work well enough for their needs, they scratched
+> their own itch, then they moved on, more than likely this is the case. So,
+> you are seeing a mixture of different silicon, different attention to
+> detail, different default values and different levels of commitment in the
+> driver developers.
+>
+>> If the DVC100 and ImpactVCB-e had had the same love and attention that
+>> Ezequial has shown the EasyCap would they outperform it?
+>>
+>
+> Hard to say. With my experience working for Hauppauge, directly in their
+> engineering team, having worked on literally hundreds of products, lots of
+> different video digitizer, they're all fairly close quality wise in general,
+> with good signals, with the right drivers.
+>
+> What makes a good video digitizer stand out from a poor one, it how it
+> performs in very poor signal conditions.
+>
+>
+>>
+>> The ImpactVCB-e is easier to use internally and the Dazzle is external.
+>> Does the fact that the ImpactVCB-e has a PCI-e connector help it at all?
+>>
+>
+>
+> Invariably not.
+>
+>
+>>
+>> Otherwise I should just focus on EasyCap for my raw SD capture and move
+>> on.
+>>
+>
+> You need to make that judgement call. If you are building a business around
+> medical imaging and have no engineering capability to improve drivers, go
+> with what your gut says and what's available to you today. You shouldn't
+> rely on the good will of Linux engineers to fix your business requirements
+> in their spare time, in the coming weeks or months.
+>
+> Or, hire a consultant to improve the drivers for you and the rest of the
+> Linux community. This what everyone else does.
+>
+> - Steve
+>
+>>
+>> Thanks,
+>>
+>> Steve
+>>
+>>
+>> On 23/04/14 16:22, Steve Cookson wrote:
+>>>
+>>> Hi Guys,
+>>>
+>>> I would be interested in your views of the comparisons of these images.
+>>> The still is the image of a duodenum taken during an endoscopy and recorded
+>>> to a DVD player (via an s-video or composite cable).  Although the endoscope
+>>> is an HD endoscope, the DVD recorder isn't and the resulting video is
+>>> 720x480i59.94.
+>>>
+>>> Here are further details of the video:-
+>>>
+>>> Format : MPEG Video v2
+>>> Format profile : Main@Main
+>>> Format settings, BVOP : Yes, Matrix : Custom, GOP : M=3, N=15
+>>> Bit rate mode : Variable
+>>> Bit rate : 4 566 Kbps
+>>> Maximum bit rate : 10 000 Kbps
+>>> Width : 720 pixels
+>>> Height : 480 pixels
+>>> Display aspect ratio : 4:3
+>>> Frame rate : 29.970 fps
+>>> Standard : NTSC
+>>> Color space : YUV
+>>> Chroma subsampling : 4:2:0
+>>> Bit depth : 8 bits
+>>> Scan type : Interlaced
+>>> Scan order : Top Field First
+>>> Compression mode : Lossy
+>>> Bits/(Pixel*Frame) : 0.441
+>>>
+>>> The video was played through Dragon Player and the video signal has
+>>> exited through a mini-VGA port defined as 640x480 and passed through a
+>>> VGA->S-Video converter to an s-video cable.
+>>>
+>>> The cable has in turn been connected in turn to a Dazzle DVC100, an
+>>> EasyCap stk1160 and a Hauppauge ImapctVCB-e.
+>>>
+>>> Each setting (eg brightness and contrast etc) has as near as possible to
+>>> mid-range and a screengrab taken.
+>>>
+>>> The results are shown here:
+>>>
+>>> Original:
+>>> http://tinypic.com/usermedia.php?uo=fNkd6hpTbcMrgmD6gSf74Ih4l5k2TGxc
+>>>
+>>> Dazzle DVC100:
+>>> http://tinypic.com/usermedia.php?uo=fNkd6hpTbcMaOf4QTsIefYh4l5k2TGxc
+>>>
+>>> ImpactVCB-e:
+>>> http://tinypic.com/usermedia.php?uo=fNkd6hpTbcM7i72IqGujuIh4l5k2TGxc
+>>>
+>>> STK1160:
+>>> http://tinypic.com/usermedia.php?uo=fNkd6hpTbcPO7kmQk/IS94h4l5k2TGxc
+>>>
+>>> I would be grateful for your views on the quality of the images.
+>>>
+>>> Is one of materially higher quality than the others, or can I adjust the
+>>> settings to improve the quality of one of them more.
+>>>
+>>> It seems to me that the Hauppauge is marginally better than the others.
+>>> What do you think?
+>>>
+>>> Can I improve the test?
+>>>
+>>> Regards
+>>>
+>>> Steve.
+>>>
+>>>
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+>
+>
+>
+> --
+> Steven Toth - Kernel Labs
+> http://www.kernellabs.com
+>
 
-I think for some devices it wouldn't matter much, but on those that
-generally are used as flash the current is known, and thus it should also be
-visible in the interface. The conversion from mA to native units could be
-done directly, or indirectly through the LED API.
 
-There are a few things to consider though: besides minimum and maximum
-values for the current, the V4L2 controls have a step parameter that would
-still need to be passed to the control handler when creating the control.
-That essentially tells the user space how many levels does the control have.
-
-Care must be taken if converting to LED API units in between mA and native
-units so that the values will get through unchanged. On the other hand, I
-don't expect to get more levels than 256 either. But even this assumes that
-the current selection would be linear.
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
++1.646.355.8490
