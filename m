@@ -1,64 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2002 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810AbaDKHuj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Apr 2014 03:50:39 -0400
-Message-ID: <53479EB6.80504@xs4all.nl>
-Date: Fri, 11 Apr 2014 09:50:14 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:24212 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751333AbaDYTJs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Apr 2014 15:09:48 -0400
+Date: Fri, 25 Apr 2014 21:09:31 +0200
+From: Oleg Nesterov <oleg@redhat.com>
+To: Hugh Dickins <hughd@google.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Jan Kara <jack@suse.cz>, Roland Dreier <roland@kernel.org>,
+	Konstantin Khlebnikov <koct9i@gmail.com>,
+	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Omar Ramirez Luna <omar.ramirez@copitl.com>,
+	Inki Dae <inki.dae@samsung.com>, linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org, linux-rdma@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] mm: get_user_pages(write,force) refuse to COW in
+	shared areas
+Message-ID: <20140425190931.GA11323@redhat.com>
+References: <alpine.LSU.2.11.1404040120110.6880@eggly.anvils> <20140424133055.GA13269@redhat.com> <alpine.LSU.2.11.1404241518510.4454@eggly.anvils>
 MIME-Version: 1.0
-To: Steve Cookson - IT <it@sca-uk.com>, linux-media@vger.kernel.org
-Subject: Re: List objectives and interests.
-References: <53479D15.4000400@sca-uk.com>
-In-Reply-To: <53479D15.4000400@sca-uk.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.11.1404241518510.4454@eggly.anvils>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+On 04/24, Hugh Dickins wrote:
+>
+> On Thu, 24 Apr 2014, Oleg Nesterov wrote:
+>
+> > So, what do you think about the patch below? It is probably fine in any case,
+> > but is there any "strong" reason to follow the gup's behaviour and forbid the
+> > anon page in VM_MAYSHARE && !VM_MAYWRITE vma?
+>
+> I don't think there is a "strong" reason to forbid it.
+>
+> The strongest reason is simply that it's much safer if uprobes follows
+> the same conventions as mm, and get_user_pages() happens to have
+> forbidden that all along.
+>
+> The philosophical reason to forbid it is that the user mmapped with
+> MAP_SHARED, and it's merely a kernel-internal detail that we flip off
+> VM_SHARED and treat these read-only shared mappings very much like
+> private mappings.  The user asked for MAP_SHARED, and we prefer to
+> respect that by not letting private COWs creep in.
+>
+> We could treat those mappings even more like private mappings, and
+> allow the COWs; but better to be strict about it, so long as doing
+> so doesn't give you regressions.
 
-On 04/11/2014 09:43 AM, Steve Cookson - IT wrote:
-> Hi People,
-> 
-> Could I, please, I clarify what the purposes of this list are?
-> 
-> I am developing a system to collect medical raw video based on Linux.  I 
-> have tested a number of SD and HD adaptors for this project some of 
-> which have worked to a greater or lesser extent.
-> 
-> Is this the right place for peer-based support for video capture?
-> 
-> I know that SD is a bit old and maybe there is no longer much demand for 
-> it, in which case I could move to an HD adaptor, but there also doesn't 
-> seem to be much out there on Linux to capture raw HD either.
-> 
-> So is this list really about Linux TV rather than video capture more 
-> generally?
-> 
-> Is there a more appropriate list to ask questions about raw video capture?
+Great, thanks a lot! I was worried I missed something subtle.
 
-No, this is the right list for that. The linux-media mailinglist is for
-developers and users of anything under drivers/media in the kernel tree.
+And I forgot to mention, there is another reason why I would like to
+change uprobes to follow the same convention. I still think it would
+be better to kill __replace_page() and use gup(FOLL_WRITE | FORCE)
+in uprobe_write_opcode().
 
-With regards to HD: while HD is well supported for embedded systems, there
-are really no V4L2 drivers for consumer HDTV capture boards. The closest is
-an out-of-tree driver for a DVI capture board (Osprey 820e), but there is
-nothing for HDMI capture.
 
-Regards,
+> > --- x/kernel/events/uprobes.c
+> > +++ x/kernel/events/uprobes.c
+> > @@ -127,12 +127,13 @@ struct xol_area {
+> >   */
+> >  static bool valid_vma(struct vm_area_struct *vma, bool is_register)
+> >  {
+> > -	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC | VM_SHARED;
+> > +	vm_flags_t flags = VM_HUGETLB | VM_MAYEXEC;
+>
+> I think a one-line patch changing VM_SHARED to VM_MAYSHARE would do it,
+> wouldn't it?  And save you from having to export is_cow_mapping()
+> from mm/memory.c.  (I used is_cow_mapping() because I had to make the
+> test more complex anyway, just to exclude the case which had been
+> oddly handled before.)
 
-	Hans
+Indeed, thanks!
 
-> Any help or pointers very gratefully received.
-> 
-> Regards
-> 
-> Steve.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Oleg.
 
