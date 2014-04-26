@@ -1,332 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:56696 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753612AbaDJV3M (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.10]:62953 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751566AbaDZP3G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 17:29:12 -0400
-Received: by mail-we0-f179.google.com with SMTP id x48so4619271wes.10
-        for <linux-media@vger.kernel.org>; Thu, 10 Apr 2014 14:29:11 -0700 (PDT)
-From: James Hogan <james@albanarts.com>
-To: David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, m.chehab@samsung.com
-Subject: Re: [PATCH 41/49] rc-core: rename mutex
-Date: Thu, 10 Apr 2014 22:28:56 +0100
-Message-ID: <1659184.sbKmMp9I49@radagast>
-In-Reply-To: <20140403233443.27099.29952.stgit@zeus.muc.hardeman.nu>
-References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu> <20140403233443.27099.29952.stgit@zeus.muc.hardeman.nu>
+	Sat, 26 Apr 2014 11:29:06 -0400
+Date: Sat, 26 Apr 2014 17:28:24 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] V4L2: fix VIDIOC_CREATE_BUFS in 64- / 32-bit compatibility
+ mode
+In-Reply-To: <7890812.mee88PGtyI@avalon>
+Message-ID: <Pine.LNX.4.64.1404261627390.21367@axis700.grange>
+References: <Pine.LNX.4.64.1403272206410.18471@axis700.grange>
+ <22889282.D1rkAPVGhe@avalon> <Pine.LNX.4.64.1403281838400.24601@axis700.grange>
+ <7890812.mee88PGtyI@avalon>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart6326219.tcyXepKzMc"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Laurent,
 
---nextPart6326219.tcyXepKzMc
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+On Fri, 28 Mar 2014, Laurent Pinchart wrote:
 
-On Friday 04 April 2014 01:34:43 David H=E4rdeman wrote:
-> Having a mutex named "lock" is a bit misleading.
+> Hi Guennadi,
+> 
+> On Friday 28 March 2014 18:44:04 Guennadi Liakhovetski wrote:
+> > On Fri, 28 Mar 2014, Laurent Pinchart wrote:
+> > > On Thursday 27 March 2014 22:34:07 Guennadi Liakhovetski wrote:
+> > > > It turns out, that 64-bit compilations sometimes align structs within
+> > > > other structs on 32-bit boundaries, but in other cases alignment is done
+> > > > on 64-bit boundaries, adding padding if necessary.
+> > > 
+> > > You make it sound like the behaviour is random, I'm pretty sure it isn't
+> > > :-)
+> >
+> > I didn't mean it was random, I just meant it is not be as simple as "align
+> > always." E.g. if there are only 32-bit fields in the embedded struct, it
+> > won't be aligned, below I explain a bit with pointers. I just don't know
+> > the exact logic, that's used there.
+> 
+> The logic is basically that fields are aligned within structures to a multiple 
+> of their native access size, and structures are aligned to a multiple of the 
+> access size of the largest field. If a structure on a 64-bit systems contains 
+> a pointer the pointer field will be aligned to a multiple of 8 bytes within 
+> the structure, and instances of the structure will be aligned to multiples of 
+> 8 bytes as well. If that structure is embedded inside another structure, it 
+> will be placed on an 8 bytes boundary, possibly creating a gap if the fields 
+> before the structure don't add up to a multiple of 8 bytes. This is what 
+> happens here.
 
-Why? A mutex is a type of lock so what's the problem?
+Yes, that's what I thought too, but I didn't have a documented 
+confirmation at hand, so, I left it a bit vague :) Have you got a pointer 
+to this?
 
-A little grep'ing and sed'ing reveals that out of the 1578 unique mutex=
- names=20
-in the kernel source I have to hand, 540 contain "lock", and 921 contai=
-n=20
-"mutex".
+> 
+> > > > This is done, for example when the embedded struct contains a pointer.
+> > > > This is the case with struct v4l2_window, which is embedded into struct
+> > > > v4l2_format, and that one is embedded into struct v4l2_create_buffers.
+> > > > Unlike some other structs, used as a part of the kernel ABI as ioctl()
+> > > > arguments, that are packed, these structs aren't packed. This isn't a
+> > > > problem per se, but it turns out, that the ioctl-compat code for
+> > > > VIDIOC_CREATE_BUFS contains a bug, that triggers in such 64-bit builds.
+> > > > That code wrongly assumes, that in struct v4l2_create_buffers, struct
+> > > > v4l2_format immediately follows the __u32 memory field, which in fact
+> > > > isn't the case. This bug wasn't visible until now, because until
+> > > > recently hardly any applications used this ioctl() and mostly embedded
+> > > > 32-bit only drivers implemented it. This is changing now with addition
+> > > > of this ioctl() to some USB drivers, e.g. UVC. This patch fixes the bug
+> > > > by copying parts of struct v4l2_create_buffers separately.
+> > > > 
+> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > > ---
+> > > > 
+> > > > It's probably too late for 3.14, but maybe after pushing it into 3.15 we
+> > > > have to send it to stable.
+> > > > 
+> > > > diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> > > > b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index 04b2daf..28f87d7
+> > > > 100644
+> > > > --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> > > > +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> > > > @@ -213,8 +213,9 @@ static int get_v4l2_format32(struct v4l2_format *kp,
+> > > > struct v4l2_format32 __user static int get_v4l2_create32(struct
+> > > > v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up) {
+> > > > 
+> > > >  	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_create_buffers32))
+> > > >  	||
+> > > > 
+> > > > -	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32,
+> > > > format.fmt)))
+> > > > -			return -EFAULT;
+> > > > +	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32,
+> > > > format)) ||
+> > > > +	    get_user(kp->format.type, &up->format.type))
+> > > > +		return -EFAULT;
+> > > > 
+> > > >  	return __get_v4l2_format32(&kp->format, &up->format);
+> > > >  
+> > > >  }
+> > > 
+> > > I'm fine with the patch as it is, but wouldn't it be simpler to move the
+> > > get_user() inside the __get_v4l2_format32() function ? You could also then
+> > > remove that call from get_v4l2_format32() as well.
+> > 
+> > This would duplicate the call to access_ok(), but it could be done, sure.
+> 
+> You don't need to call access_ok() inside __get_v4l2_format32(), both 
+> get_v4l2_format32() and get_v4l2_create32() perform an access_ok() check that 
+> can be left in place.
 
-Cheers
-James
+Right, yes, that's possible, I just wanted to keep the patch minimal and 
+as little intrusive as possible... But ok, I can do that too.
 
->=20
-> Signed-off-by: David H=E4rdeman <david@hardeman.nu>
-> ---
->  drivers/media/rc/img-ir/img-ir-hw.c |    4 ++-
->  drivers/media/rc/rc-main.c          |   42
-> ++++++++++++++++++----------------- include/media/rc-core.h          =
-   | =20
->  5 ++--
->  3 files changed, 25 insertions(+), 26 deletions(-)
->=20
-> diff --git a/drivers/media/rc/img-ir/img-ir-hw.c
-> b/drivers/media/rc/img-ir/img-ir-hw.c index 5bc7903..a9abbb4 100644
-> --- a/drivers/media/rc/img-ir/img-ir-hw.c
-> +++ b/drivers/media/rc/img-ir/img-ir-hw.c
-> @@ -666,11 +666,11 @@ static void img_ir_set_protocol(struct img_ir_p=
-riv
-> *priv, u64 proto) {
->  =09struct rc_dev *rdev =3D priv->hw.rdev;
->=20
-> -=09mutex_lock(&rdev->lock);
-> +=09mutex_lock(&rdev->mutex);
->  =09rdev->enabled_protocols =3D proto;
->  =09rdev->allowed_wakeup_protocols =3D proto;
->  =09rdev->enabled_wakeup_protocols =3D proto;
-> -=09mutex_unlock(&rdev->lock);
-> +=09mutex_unlock(&rdev->mutex);
->  }
->=20
->  /* Set up IR decoders */
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 7caca4f..bd4dfab 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -109,7 +109,7 @@ int rc_open(struct rc_dev *dev)
->  {
->  =09int err =3D 0;
->=20
-> -=09mutex_lock(&dev->lock);
-> +=09mutex_lock(&dev->mutex);
->=20
->  =09if (dev->dead)
->  =09=09err =3D -ENODEV;
-> @@ -119,7 +119,7 @@ int rc_open(struct rc_dev *dev)
->  =09=09=09dev->users--;
->  =09}
->=20
-> -=09mutex_unlock(&dev->lock);
-> +=09mutex_unlock(&dev->mutex);
->=20
->  =09return err;
->  }
-> @@ -127,12 +127,12 @@ EXPORT_SYMBOL_GPL(rc_open);
->=20
->  void rc_close(struct rc_dev *dev)
->  {
-> -=09mutex_lock(&dev->lock);
-> +=09mutex_lock(&dev->mutex);
->=20
->  =09if (!dev->dead && !--dev->users && dev->close)
->  =09=09dev->close(dev);
->=20
-> -=09mutex_unlock(&dev->lock);
-> +=09mutex_unlock(&dev->mutex);
->  }
->  EXPORT_SYMBOL_GPL(rc_close);
->=20
-> @@ -322,7 +322,7 @@ struct rc_filter_attribute {
->   * It returns the protocol names of supported protocols.
->   * Enabled protocols are printed in brackets.
->   *
-> - * dev->lock is taken to guard against races between store_protocols=
- and
-> + * dev->mutex is taken to guard against races between store_protocol=
-s and
->   * show_protocols.
->   */
->  static ssize_t show_protocols(struct device *device,
-> @@ -339,7 +339,7 @@ static ssize_t show_protocols(struct device *devi=
-ce,
->  =09=09return -EINVAL;
->=20
->  =09rc_event(dev, RC_KEY, RC_KEY_REPEAT, 1);
-> -=09mutex_lock(&dev->lock);
-> +=09mutex_lock(&dev->mutex);
->=20
->  =09if (fattr->type =3D=3D RC_FILTER_NORMAL) {
->  =09=09enabled =3D dev->enabled_protocols;
-> @@ -349,7 +349,7 @@ static ssize_t show_protocols(struct device *devi=
-ce,
->  =09=09allowed =3D dev->allowed_wakeup_protocols;
->  =09}
->=20
-> -=09mutex_unlock(&dev->lock);
-> +=09mutex_unlock(&dev->mutex);
->=20
->  =09IR_dprintk(1, "%s: allowed - 0x%llx, enabled - 0x%llx\n",
->  =09=09   __func__, (long long)allowed, (long long)enabled);
-> @@ -449,7 +449,7 @@ static int parse_protocol_change(u64 *protocols, =
-const
-> char *buf) * See parse_protocol_change() for the valid commands.
->   * Returns @len on success or a negative error code.
->   *
-> - * dev->lock is taken to guard against races between store_protocols=
- and
-> + * dev->mutex is taken to guard against races between store_protocol=
-s and
->   * show_protocols.
->   */
->  static ssize_t store_protocols(struct device *device,
-> @@ -488,7 +488,7 @@ static ssize_t store_protocols(struct device *dev=
-ice,
->  =09=09return -EINVAL;
->  =09}
->=20
-> -=09mutex_lock(&dev->lock);
-> +=09mutex_lock(&dev->mutex);
->=20
->  =09old_protocols =3D *current_protocols;
->  =09new_protocols =3D old_protocols;
-> @@ -532,7 +532,7 @@ static ssize_t store_protocols(struct device *dev=
-ice,
->  =09rc =3D len;
->=20
->  out:
-> -=09mutex_unlock(&dev->lock);
-> +=09mutex_unlock(&dev->mutex);
->  =09return rc;
->  }
->=20
-> @@ -550,7 +550,7 @@ out:
->   * Bits of the filter value corresponding to set bits in the filter =
-mask
-> are * compared against input scancodes and non-matching scancodes are=
-
-> discarded. *
-> - * dev->lock is taken to guard against races between store_filter an=
-d
-> + * dev->mutex is taken to guard against races between store_filter a=
-nd
->   * show_filter.
->   */
->  static ssize_t show_filter(struct device *device,
-> @@ -571,12 +571,12 @@ static ssize_t show_filter(struct device *devic=
-e,
->  =09else
->  =09=09filter =3D &dev->scancode_wakeup_filter;
->=20
-> -=09mutex_lock(&dev->lock);
-> +=09mutex_lock(&dev->mutex);
->  =09if (fattr->mask)
->  =09=09val =3D filter->mask;
->  =09else
->  =09=09val =3D filter->data;
-> -=09mutex_unlock(&dev->lock);
-> +=09mutex_unlock(&dev->mutex);
->=20
->  =09return sprintf(buf, "%#x\n", val);
->  }
-> @@ -597,7 +597,7 @@ static ssize_t show_filter(struct device *device,=
-
->   * Bits of the filter value corresponding to set bits in the filter =
-mask
-> are * compared against input scancodes and non-matching scancodes are=
-
-> discarded. *
-> - * dev->lock is taken to guard against races between store_filter an=
-d
-> + * dev->mutex is taken to guard against races between store_filter a=
-nd
->   * show_filter.
->   */
->  static ssize_t store_filter(struct device *device,
-> @@ -633,7 +633,7 @@ static ssize_t store_filter(struct device *device=
-,
->  =09if (!set_filter)
->  =09=09return -EINVAL;
->=20
-> -=09mutex_lock(&dev->lock);
-> +=09mutex_lock(&dev->mutex);
->=20
->  =09new_filter =3D *filter;
->  =09if (fattr->mask)
-> @@ -654,7 +654,7 @@ static ssize_t store_filter(struct device *device=
-,
->  =09*filter =3D new_filter;
->=20
->  unlock:
-> -=09mutex_unlock(&dev->lock);
-> +=09mutex_unlock(&dev->mutex);
->  =09return (ret < 0) ? ret : len;
->  }
->=20
-> @@ -1087,7 +1087,7 @@ static long rc_ioctl(struct file *file, unsigne=
-d int
-> cmd, unsigned long arg) struct rc_dev *dev =3D client->dev;
->  =09int ret;
->=20
-> -=09ret =3D mutex_lock_interruptible(&dev->lock);
-> +=09ret =3D mutex_lock_interruptible(&dev->mutex);
->  =09if (ret)
->  =09=09return ret;
->=20
-> @@ -1099,7 +1099,7 @@ static long rc_ioctl(struct file *file, unsigne=
-d int
-> cmd, unsigned long arg) ret =3D rc_do_ioctl(dev, cmd, arg);
->=20
->  out:
-> -=09mutex_unlock(&dev->lock);
-> +=09mutex_unlock(&dev->mutex);
->  =09return ret;
->  }
->=20
-> @@ -1226,7 +1226,7 @@ struct rc_dev *rc_allocate_device(void)
->  =09mutex_init(&dev->txmutex);
->  =09init_waitqueue_head(&dev->txwait);
->  =09init_waitqueue_head(&dev->rxwait);
-> -=09mutex_init(&dev->lock);
-> +=09mutex_init(&dev->mutex);
->=20
->  =09dev->dev.type =3D &rc_dev_type;
->  =09dev->dev.class =3D &rc_class;
-> @@ -1339,9 +1339,9 @@ void rc_unregister_device(struct rc_dev *dev)
->  =09if (!dev)
->  =09=09return;
->=20
-> -=09mutex_lock(&dev->lock);
-> +=09mutex_lock(&dev->mutex);
->  =09dev->dead =3D true;
-> -=09mutex_unlock(&dev->lock);
-> +=09mutex_unlock(&dev->mutex);
->=20
->  =09spin_lock(&dev->client_lock);
->  =09list_for_each_entry(client, &dev->client_list, node)
-> diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-> index 25c1d38..a310e5b 100644
-> --- a/include/media/rc-core.h
-> +++ b/include/media/rc-core.h
-> @@ -268,8 +268,7 @@ enum rc_filter_type {
->   * @driver_name: name of the hardware driver which registered this d=
-evice
->   * @map_name: name of the default keymap
->   * @rc_kt: current rc_keytable
-> - * @lock: used to ensure we've filled in all protocol details before=
-
-> - *=09anyone can call show_protocols or store_protocols
-> + * @mutex: used where a more specific lock/mutex/etc is not availabl=
-e
->   * @dead: used to determine if the device is still alive
->   * @client_list: list of clients (processes which have opened the rc=
-
-> chardev) * @client_lock: protects client_list
-> @@ -334,7 +333,7 @@ struct rc_dev {
->  =09const char=09=09=09*map_name;
->  =09struct rc_keytable=09=09*keytables[RC_MAX_KEYTABLES];
->  =09struct list_head=09=09keytable_list;
-> -=09struct mutex=09=09=09lock;
-> +=09struct mutex=09=09=09mutex;
->  =09bool=09=09=09=09dead;
->  =09struct list_head=09=09client_list;
->  =09spinlock_t=09=09=09client_lock;
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media=
-" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---nextPart6326219.tcyXepKzMc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAABAgAGBQJTRw0jAAoJEGwLaZPeOHZ6IngQAIZ6Sj7lHoS/4gZDFE3V6oIm
-F8LACWaqTfEBd4suEZjin9iL/0fWs8GVklmb9DC7wLohhbfZXNFtDPLJkWUdqXtS
-3KMWfQEb+42uEN8otGD6blfGYLNj23YeHOUKTytdcOX9j1srrHb/fkzxcEqB4EPN
-glEw8kqVvNmttl4R5HQ0Yl/doEkNJjZALlctKw3NymoB3xxQrho2fyzLsyEJh94v
-BPCXAU0KRVh45GML++V1oyuDBDigE9Cvsn0l/7YF/kp9WiEfmeWDPCpQdGGpNzTy
-1JTHDZR0ysYSZchNwzGG2UmgGWXI/Bc8JsGVNmcAac3NpjHgfSBjUk8xbrPvaMcH
-1jv5tZn2hB9ZCZXZVnIAzZAs/oPm7WPxdV5e7HDldizQJFbM1Mfp6vJxlNntJFCg
-R+R1E+7ZmEhFHjFfEGO7ro71iqrUk95IO1CSDsMiX3F4j3VHZAXyB3jWyEso9/Ek
-hxUxay+3ro22hYCT59VbeIwGfHcHx0CbUi0mH53GsEAuKZalmlowCfLHpf+hUFAz
-fScyH9FBAJIFJPHDjmLmmsye5Eh6snjhKfbdcIRE+ZITG2XiOB3CqACkt6mB7xtP
-baSN70HA2VxgmTdVtfZQdcYfmhG4x+UgTsBUossfVVvjBkoEdt8OduqwC5NGnCh3
-jSDHSmWNumeLnvq7eh8g
-=mNTL
------END PGP SIGNATURE-----
-
---nextPart6326219.tcyXepKzMc--
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
