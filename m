@@ -1,116 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-outbound-2.vmware.com ([208.91.2.13]:49704 "EHLO
-	smtp-outbound-2.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752862AbaDNHpf (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55927 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751386AbaD0SvE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 03:45:35 -0400
-Message-ID: <534B921B.4080504@vmware.com>
-Date: Mon, 14 Apr 2014 09:45:31 +0200
-From: Thomas Hellstrom <thellstrom@vmware.com>
+	Sun, 27 Apr 2014 14:51:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2] V4L2: fix VIDIOC_CREATE_BUFS in 64- / 32-bit compatibility mode
+Date: Sun, 27 Apr 2014 20:51:14 +0200
+Message-ID: <9390328.OxhPIEtXXa@avalon>
+In-Reply-To: <Pine.LNX.4.64.1404261745450.21367@axis700.grange>
+References: <Pine.LNX.4.64.1404261745450.21367@axis700.grange>
 MIME-Version: 1.0
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-CC: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	ccross@google.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] [RFC v2 with seqcount] reservation: add suppport
- for read-only access using rcu
-References: <20140409144239.26648.57918.stgit@patser> <20140409144831.26648.79163.stgit@patser> <53465A53.1090500@vmware.com> <53466D63.8080808@canonical.com> <53467B93.3000402@vmware.com> <5346B212.8050202@canonical.com> <5347A9FD.2070706@vmware.com> <5347B4E5.6090901@canonical.com> <5347BFC9.3020503@vmware.com> <53482FF1.1090406@canonical.com> <534843EA.6060602@vmware.com> <534B9165.4000101@canonical.com>
-In-Reply-To: <534B9165.4000101@canonical.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/14/2014 09:42 AM, Maarten Lankhorst wrote:
-> op 11-04-14 21:35, Thomas Hellstrom schreef:
->> On 04/11/2014 08:09 PM, Maarten Lankhorst wrote:
->>> op 11-04-14 12:11, Thomas Hellstrom schreef:
->>>> On 04/11/2014 11:24 AM, Maarten Lankhorst wrote:
->>>>> op 11-04-14 10:38, Thomas Hellstrom schreef:
->>>>>> Hi, Maarten.
->>>>>>
->>>>>> Here I believe we encounter a lot of locking inconsistencies.
->>>>>>
->>>>>> First, it seems you're use a number of pointers as RCU pointers
->>>>>> without
->>>>>> annotating them as such and use the correct rcu
->>>>>> macros when assigning those pointers.
->>>>>>
->>>>>> Some pointers (like the pointers in the shared fence list) are both
->>>>>> used
->>>>>> as RCU pointers (in dma_buf_poll()) for example,
->>>>>> or considered protected by the seqlock
->>>>>> (reservation_object_get_fences_rcu()), which I believe is OK, but
->>>>>> then
->>>>>> the pointers must
->>>>>> be assigned using the correct rcu macros. In the memcpy in
->>>>>> reservation_object_get_fences_rcu() we might get away with an
->>>>>> ugly typecast, but with a verbose comment that the pointers are
->>>>>> considered protected by the seqlock at that location.
->>>>>>
->>>>>> So I've updated (attached) the headers with proper __rcu annotation
->>>>>> and
->>>>>> locking comments according to how they are being used in the various
->>>>>> reading functions.
->>>>>> I believe if we want to get rid of this we need to validate those
->>>>>> pointers using the seqlock as well.
->>>>>> This will generate a lot of sparse warnings in those places needing
->>>>>> rcu_dereference()
->>>>>> rcu_assign_pointer()
->>>>>> rcu_dereference_protected()
->>>>>>
->>>>>> With this I think we can get rid of all ACCESS_ONCE macros: It's not
->>>>>> needed when the rcu_x() macros are used, and
->>>>>> it's never needed for the members protected by the seqlock,
->>>>>> (provided
->>>>>> that the seq is tested). The only place where I think that's
->>>>>> *not* the case is at the krealloc in
->>>>>> reservation_object_get_fences_rcu().
->>>>>>
->>>>>> Also I have some more comments in the
->>>>>> reservation_object_get_fences_rcu() function below:
->>>>> I felt that the barriers needed for rcu were already provided by
->>>>> checking the seqcount lock.
->>>>> But looking at rcu_dereference makes it seem harmless to add it in
->>>>> more places, it handles
->>>>> the ACCESS_ONCE and barrier() for us.
->>>> And it makes the code more maintainable, and helps sparse doing a
->>>> lot of
->>>> checking for us. I guess
->>>> we can tolerate a couple of extra barriers for that.
->>>>
->>>>> We could probably get away with using RCU_INIT_POINTER on the writer
->>>>> side,
->>>>> because the smp_wmb is already done by arranging seqcount updates
->>>>> correctly.
->>>> Hmm. yes, probably. At least in the replace function. I think if we do
->>>> it in other places, we should add comments as to where
->>>> the smp_wmb() is located, for future reference.
->>>>
->>>>
->>>> Also  I saw in a couple of places where you're checking the shared
->>>> pointers, you're not checking for NULL pointers, which I guess may
->>>> happen if shared_count and pointers are not in full sync?
->>>>
->>> No, because shared_count is protected with seqcount. I only allow
->>> appending to the array, so when
->>> shared_count is validated by seqcount it means that the
->>> [0...shared_count) indexes are valid and non-null.
->>> What could happen though is that the fence at a specific index is
->>> updated with another one from the same
->>> context, but that's harmless.
->>>
->> Hmm, doesn't attaching an exclusive fence clear all shared fence
->> pointers from under a reader?
->>
-> No, for that reason. It only resets shared_count to 0.
+Hi Guennadi,
 
-Ah. OK. I guess I didn't read the code carefully enough.
+Thank you for the patch.
 
-Thanks,
-Thomas
+On Saturday 26 April 2014 17:51:31 Guennadi Liakhovetski wrote:
+> If a struct contains 64-bit fields, it is aligned on 64-bit boundaries
+> within containing structs in 64-bit compilations. This is the case with
+> struct v4l2_window, which contains pointers and is embedded into struct
+> v4l2_format, and that one is embedded into struct v4l2_create_buffers.
+> Unlike some other structs, used as a part of the kernel ABI as ioctl()
+> arguments, that are packed, these structs aren't packed. This isn't a
+> problem per se, but the ioctl-compat code for VIDIOC_CREATE_BUFS contains
+> a bug, that triggers in such 64-bit builds. That code wrongly assumes,
+> that in struct v4l2_create_buffers, struct v4l2_format immediately follows
+> the __u32 memory field, which in fact isn't the case. This bug wasn't
+> visible until now, because until recently hardly any applications used
+> this ioctl() and mostly embedded 32-bit only drivers implemented it. This
+> is changing now with addition of this ioctl() to some USB drivers, e.g.
+> UVC. This patch fixes the bug by copying parts of struct
+> v4l2_create_buffers separately.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
+While you're at it, could you fix put_v4l2_format32() and put_v4l2_create32() 
+?
 
->
-> ~Maarten
+> ---
+> 
+> v2:
+> 1. improved patch description
+> 2. moved the get_user() check inside __get_v4l2_format32()
+> 
+> Thanks to Laurent for suggestions
+> 
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 12 +++++++-----
+>  1 file changed, 7 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index 04b2daf..7e2411c
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -178,6 +178,9 @@ struct v4l2_create_buffers32 {
+> 
+>  static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32
+> __user *up) {
+> +	if (get_user(kp->type, &up->type))
+> +		return -EFAULT;
+> +
+>  	switch (kp->type) {
+>  	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+>  	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+> @@ -204,17 +207,16 @@ static int __get_v4l2_format32(struct v4l2_format *kp,
+> struct v4l2_format32 __us
+> 
+>  static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32
+> __user *up) {
+> -	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_format32)) ||
+> -			get_user(kp->type, &up->type))
+> -			return -EFAULT;
+> +	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_format32)))
+> +		return -EFAULT;
+>  	return __get_v4l2_format32(kp, up);
+>  }
+> 
+>  static int get_v4l2_create32(struct v4l2_create_buffers *kp, struct
+> v4l2_create_buffers32 __user *up) {
+>  	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_create_buffers32)) ||
+> -	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32,
+> format.fmt)))
+> -			return -EFAULT;
+> +	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32,
+> format)))
+> +		return -EFAULT;
+>  	return __get_v4l2_format32(&kp->format, &up->format);
+>  }
+
+-- 
+Regards,
+
+Laurent Pinchart
+
