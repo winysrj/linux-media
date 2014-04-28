@@ -1,179 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3635 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932494AbaDVMeg (ORCPT
+Received: from mail-we0-f177.google.com ([74.125.82.177]:52531 "EHLO
+	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753974AbaD1VkD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Apr 2014 08:34:36 -0400
-Message-ID: <535661C1.3040701@xs4all.nl>
-Date: Tue, 22 Apr 2014 14:34:09 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 28 Apr 2014 17:40:03 -0400
+Date: Mon, 28 Apr 2014 22:40:00 +0100
+From: Brian Healy <healybrian@gmail.com>
+To: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Kernel 3.15-rc2 : Peak DVB-T USB tuner device ids for
+ rtl28xxu driver
+Message-ID: <20140428214000.GA9187@gmail.com>
+References: <CAGG=RuYdtfjJf5wKG92KdyKuG6AiBHp2_OSH8Wemi3yQOsouMQ@mail.gmail.com>
+ <CA+55aFzhydSCJqMLoUX59cLpiwbnoXtL524O5VtQ4-CVj8HxyA@mail.gmail.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Arun Kumar K <arunkk.samsung@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Pawel Osciak <posciak@chromium.org>
-Subject: Re: [PATCH v2 1/2] v4l: Add resolution change event.
-References: <1398072362-24962-1-git-send-email-arun.kk@samsung.com> <1751714.6NNU6hXYoN@avalon> <CALt3h7921Ad9RCFit70ZFavoKhqjZpYLfvYiXh_ttqnhLQtZSA@mail.gmail.com> <3623958.Gv7Rj4f0MS@avalon>
-In-Reply-To: <3623958.Gv7Rj4f0MS@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="opJtzjQTFsWo+cga"
+Content-Disposition: inline
+In-Reply-To: <CA+55aFzhydSCJqMLoUX59cLpiwbnoXtL524O5VtQ4-CVj8HxyA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/21/2014 10:59 PM, Laurent Pinchart wrote:
-> Hi Arun,
+
+--opJtzjQTFsWo+cga
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Sun, Apr 27, 2014 at 03:19:12PM -0700, Linus Torvalds wrote:
+
+Hi Linus,
+
+apologies, i've changed email clients in order to preserve the
+formatting this time around. The patch is now included inline as an
+attachment. I ran the script but noticed you've already cc'd the
+appropriate people. 
+
+Brian.
+
+
+Resubmitting modified patch. It's purpose is to add the appropriate
+device/usb ids for the "Peak DVT-B usb dongle" to the rtl28xxu.c driver.
+
+Signed-off-by: Brian Healy <healybrian <at> gmail.com>
+
+
+> Brian, please use
 > 
-> On Monday 21 April 2014 17:19:26 Arun Kumar K wrote:
->> On Mon, Apr 21, 2014 at 3:54 PM, Laurent Pinchart wrote:
->>> On Monday 21 April 2014 14:56:01 Arun Kumar K wrote:
->>>> From: Pawel Osciak <posciak@chromium.org>
->>>>
->>>> This event indicates that the decoder has reached a point in the stream,
->>>> at which the resolution changes. The userspace is expected to provide a
->>>> new
->>>> set of CAPTURE buffers for the new format before decoding can continue.
->>>> The event can also be used for more generic events involving resolution
->>>> or format changes at runtime for all kinds of video devices.
->>>>
->>>> Signed-off-by: Pawel Osciak <posciak@chromium.org>
->>>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
->>>> ---
->>>>
->>>>  .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   16
->>>>  ++++++++++++++++
->>>>  include/uapi/linux/videodev2.h                     |    6 ++++++
->>>>  2 files changed, 22 insertions(+)
->>>>
->>>> diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
->>>> b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml index
->>>> 5c70b61..0aec831 100644
->>>> --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
->>>> +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
->>>> @@ -155,6 +155,22 @@
->>>>           </entry>
->>>>         </row>
->>>>         <row>
->>>> +         <entry><constant>V4L2_EVENT_SOURCE_CHANGE</constant></entry>
->>>> +         <entry>5</entry>
->>>> +         <entry>
->>>> +           <para>This event is triggered when a resolution or format
->>>> change +            is detected during runtime by the video device. It
->>>> can be a +            runtime resolution change triggered by a video
->>>> decoder or the +            format change happening on an HDMI
->>>> connector. Application may +            need to reinitialize buffers
->>>> before proceeding further.</para> +
->>>> +              <para>This event has a &v4l2-event-source-change;
->>>> associated
->>>> +           with it. This has significance only for v4l2 subdevs where
->>>> the
->>>> +           <structfield>pad_num</structfield> field will be updated with
->>>> +           the pad number on which the event is triggered.</para>
->>>> +         </entry>
->>>> +       </row>
->>>> +       <row>
->>>>
->>>>           <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
->>>>           <entry>0x08000000</entry>
->>>>           <entry>Base event number for driver-private events.</entry>
->>>> diff --git a/include/uapi/linux/videodev2.h
->>>> b/include/uapi/linux/videodev2.h index 6ae7bbe..12e0614 100644
->>>> --- a/include/uapi/linux/videodev2.h
->>>> +++ b/include/uapi/linux/videodev2.h
->>>> @@ -1733,6 +1733,7 @@ struct v4l2_streamparm {
->>>>  #define V4L2_EVENT_EOS                               2
->>>>  #define V4L2_EVENT_CTRL                              3
->>>>  #define V4L2_EVENT_FRAME_SYNC                        4
->>>> +#define V4L2_EVENT_SOURCE_CHANGE             5
->>>>  #define V4L2_EVENT_PRIVATE_START             0x08000000
->>>>  
->>>>  /* Payload for V4L2_EVENT_VSYNC */
->>>> @@ -1764,12 +1765,17 @@ struct v4l2_event_frame_sync {
->>>>       __u32 frame_sequence;
->>>>  };
->>>>
->>>> +struct v4l2_event_source_change {
->>>> +     __u32 pad_num;
->>>
->>> I would call the field just "pad",
->>
->> Ok.
->>
->>>> +};
->>>> +
->>>>
->>>>  struct v4l2_event {
->>>>       __u32                           type;
->>>>       union {
->>>>               struct v4l2_event_vsync         vsync;
->>>>               struct v4l2_event_ctrl          ctrl;
->>>>               struct v4l2_event_frame_sync    frame_sync;
->>>> +             struct v4l2_event_source_change source_change;
->>>>               __u8                            data[64];
->>>
->>> This looks pretty good to me, but I'm a bit concerned about future
->>> compatibility. We might need to report more information to userspace, and
->>> in particular what has been changed at the source (resolution, format,
->>> ...). In order to do so, we'll need to add a flag field to
->>> v4l2_event_source_change.
->>
->> Ok a flag can be added with bitfields for reporting specific event type.
+>  ./scripts/get_maintainer -f drivers/media/usb/dvb-usb-v2/rtl28xxu.c
 > 
-> I don't think we need to add it now. Just making sure it can be added later 
-> without breaking the userspace API would be enough for me.
-
-I would add it, I think it makes sense. It would be similar to the 'changes'
-field in struct v4l2_event_ctrl.
-
+> to get the proper people to send this to, so that it doesn't get lost
+> in the flood in lkml.
 > 
->>> The next __u32 right after the source_change field must thus be zeroed. I
->>> see two ways of doing so:
->>>
->>> - zeroing the whole data array before setting event-specific data
->>> - adding a reserved must-be-zeroed field to v4l2_event_source_change
->>>
->>> I like the former better as it's more generic, but we then need to ensure
->>> that all drivers zero the whole data field correctly. Adding a new
->>> v4l2_event_init() function would help with that.
->>
->> Is that a good idea to have an init() function just for zeroing the data
->> field? If this is agreed upon, I can add this, but it can be easily missed
->> out by drivers.
+> The indentation of that new entry also seems to be suspect, in that it
+> doesn't match the ones around it.
 > 
-> I'm not sure. On one hand it would be easier to catch missing calls if we use 
-> a dedicated function, as the function could set an initialized flag in the 
-> event structure that would be checked by v4l2_event_queue. On the other hand, 
-> that might be overengineering, and we could just manually check that all 
-> drivers memset the structure to 0 before initializing fields. In both cases 
-> the goal is to make sure that the structure is properly initialized, to avoid 
-> leaking kernel data to userspace, and to avoid breaking the ABI when we'll 
-> need to extend the v4l2_event_source_change structure. Hans might have an 
-> opinion on that.
-
-I think a v4l2_event_init function is not a bad idea:
-
-void v4l2_event_init(struct v4l2_event *ev, u32 type, u32 id)
-{
-	ev->type = type;
-	ev->id = id;
-	memset(ev->u, 0, sizeof(ev->u));
-}
-
-Note: all other fields, including reserved[], are set by v4l2-event.c.
-
-Regards,
-
-	Hans
-
+> Quoting full email for context for people added.
 > 
->> Also how about the drivers already using the v4l2_event. Should we
->> update those drivers too with v4l2_event_init() ?
-> 
-> If we decide to introduce a new function, yes. Otherwise, no :-)
-> 
->>>>       } u;
->>>>       __u32                           pending;
+>              Linus
 > 
 
+--opJtzjQTFsWo+cga
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="rtl28xxu.patch"
+
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 61d196e..b6e20cc 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1499,6 +1499,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
+ 		&rtl2832u_props, "Crypto ReDi PC 50 A", NULL) },
+ 	{ DVB_USB_DEVICE(USB_VID_KYE, 0x707f,
+ 		&rtl2832u_props, "Genius TVGo DVB-T03", NULL) },
++        { DVB_USB_DEVICE(USB_VID_KWORLD_2, 0xd395,
++                &rtl2832u_props, "Peak DVB-T USB", NULL) },
+ 
+ 	/* RTL2832P devices: */
+ 	{ DVB_USB_DEVICE(USB_VID_HANFTEK, 0x0131,
+
+--opJtzjQTFsWo+cga--
