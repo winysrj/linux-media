@@ -1,16 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35346 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35223 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756423AbaD1Twx (ORCPT
+	with ESMTP id S932982AbaD1T3b (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Apr 2014 15:52:53 -0400
+	Mon, 28 Apr 2014 15:29:31 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hverkuil@xs4all.nl>,
 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v3] v4l: subdev: Move [gs]_std operation to video ops
-Date: Mon, 28 Apr 2014 21:53:01 +0200
-Message-Id: <1398714781-5165-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2] v4l: subdev: Move [gs]_std operation to video ops
+Date: Mon, 28 Apr 2014 21:29:38 +0200
+Message-Id: <1398713378-4174-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -19,7 +19,6 @@ ops where they belong.
 
 Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
  drivers/media/i2c/adv7180.c                     |  2 +-
  drivers/media/i2c/adv7183.c                     |  4 ++--
@@ -83,9 +82,9 @@ Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
  include/media/v4l2-subdev.h                     |  6 +++---
  60 files changed, 107 insertions(+), 91 deletions(-)
 
-Changes compared to v2:
+Changes compared to v1:
 
-- Picked Prabhakar's Acked-by tag
+- Rebase on top of the latest media tree master branch
 
 diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
 index 5e638b1..ac1cdbe 100644
@@ -1236,5 +1235,4 @@ index ee1cb2d..2f1ca53 100644
 Regards,
 
 Laurent Pinchart
-
 
