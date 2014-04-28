@@ -1,72 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:35554 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751123AbaDORe4 (ORCPT
+Received: from g2t1383g.austin.hp.com ([15.217.136.92]:58380 "EHLO
+	g2t1383g.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932923AbaD1T2c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 13:34:56 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 2/5] exynos4-is: Fix compilation for !CONFIG_COMMON_CLK
-Date: Tue, 15 Apr 2014 19:34:29 +0200
-Message-id: <1397583272-28295-3-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1397583272-28295-1-git-send-email-s.nawrocki@samsung.com>
-References: <1397583272-28295-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 28 Apr 2014 15:28:32 -0400
+Message-ID: <1398708571.25549.10.camel@buesod1.americas.hpqcorp.net>
+Subject: [PATCH 7/6] media: videobuf2-dma-sg: call find_vma with the
+ mmap_sem held
+From: Davidlohr Bueso <davidlohr@hp.com>
+To: akpm@linux-foundation.org
+Cc: davidlohr@hp.com, aswin@hp.com, linux-mm@kvack.org,
+	linux-kernel@vger.kernel.org, Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Date: Mon, 28 Apr 2014 11:09:31 -0700
+In-Reply-To: <1397960791-16320-1-git-send-email-davidlohr@hp.com>
+References: <1397960791-16320-1-git-send-email-davidlohr@hp.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CONFIG_COMMON_CLK is not enabled on S5PV210 platform, so include
-some clk API data structures conditionally to avoid compilation
-errors. These #ifdefs will be removed for next kernel release,
-when the S5PV210 platform moves to DT and the common clk API.
+Performing vma lookups without taking the mm->mmap_sem is asking
+for trouble. While doing the search, the vma in question can
+be modified or even removed before returning to the caller.
+Take the lock in order to avoid races while iterating through
+the vmacache and/or rbtree.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Also do some very minor cleanup changes.
+
+This patch is only compile tested.
+
+Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Pawel Osciak <pawel@osciak.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
 ---
- drivers/media/platform/exynos4-is/media-dev.c |    2 +-
- drivers/media/platform/exynos4-is/media-dev.h |    4 ++++
- 2 files changed, 5 insertions(+), 1 deletion(-)
+It would seem this is the last offending user. 
+v4l2 is a maze but I believe that this is needed as I don't
+see the mmap_sem being taken by any callers of vb2_dma_sg_get_userptr().
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index 2a2d42e..002abbf 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -1523,7 +1523,7 @@ err:
- }
- #else
- #define fimc_md_register_clk_provider(fmd) (0)
--#define fimc_md_unregister_clk_provider(fmd) (0)
-+#define fimc_md_unregister_clk_provider(fmd)
- #endif
+ drivers/media/v4l2-core/videobuf2-dma-sg.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index c779f21..2a21100 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -168,8 +168,9 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	unsigned long first, last;
+ 	int num_pages_from_user;
+ 	struct vm_area_struct *vma;
++	struct mm_struct *mm = current->mm;
  
- static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
-diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
-index ee1e251..58c4945 100644
---- a/drivers/media/platform/exynos4-is/media-dev.h
-+++ b/drivers/media/platform/exynos4-is/media-dev.h
-@@ -94,7 +94,9 @@ struct fimc_sensor_info {
- };
+-	buf = kzalloc(sizeof *buf, GFP_KERNEL);
++	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+ 	if (!buf)
+ 		return NULL;
  
- struct cam_clk {
-+#ifdef CONFIG_COMMON_CLK
- 	struct clk_hw hw;
-+#endif
- 	struct fimc_md *fmd;
- };
- #define to_cam_clk(_hw) container_of(_hw, struct cam_clk, hw)
-@@ -142,7 +144,9 @@ struct fimc_md {
+@@ -178,7 +179,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	buf->offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
  
- 	struct cam_clk_provider {
- 		struct clk *clks[FIMC_MAX_CAMCLKS];
-+#ifdef CONFIG_COMMON_CLK
- 		struct clk_onecell_data clk_data;
-+#endif
- 		struct device_node *of_node;
- 		struct cam_clk camclk[FIMC_MAX_CAMCLKS];
- 		int num_clocks;
+-	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
++	first = (vaddr & PAGE_MASK) >> PAGE_SHIFT;
+ 	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
+ 	buf->num_pages = last - first + 1;
+ 
+@@ -187,7 +188,8 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	if (!buf->pages)
+ 		goto userptr_fail_alloc_pages;
+ 
+-	vma = find_vma(current->mm, vaddr);
++	down_write(&mm->mmap_sem);
++	vma = find_vma(mm, vaddr);
+ 	if (!vma) {
+ 		dprintk(1, "no vma for address %lu\n", vaddr);
+ 		goto userptr_fail_find_vma;
+@@ -218,7 +220,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 			buf->pages[num_pages_from_user] = pfn_to_page(pfn);
+ 		}
+ 	} else
+-		num_pages_from_user = get_user_pages(current, current->mm,
++		num_pages_from_user = get_user_pages(current, mm,
+ 					     vaddr & PAGE_MASK,
+ 					     buf->num_pages,
+ 					     write,
+@@ -233,6 +235,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 			buf->num_pages, buf->offset, size, 0))
+ 		goto userptr_fail_alloc_table_from_pages;
+ 
++	up_write(&mm->mmap_sem);
+ 	return buf;
+ 
+ userptr_fail_alloc_table_from_pages:
+@@ -244,6 +247,7 @@ userptr_fail_get_user_pages:
+ 			put_page(buf->pages[num_pages_from_user]);
+ 	vb2_put_vma(buf->vma);
+ userptr_fail_find_vma:
++	up_write(&mm->mmap_sem);
+ 	kfree(buf->pages);
+ userptr_fail_alloc_pages:
+ 	kfree(buf);
 -- 
-1.7.9.5
+1.8.1.4
+
+
 
