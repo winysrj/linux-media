@@ -1,100 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:33648 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755926AbaDNQlj (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:52331 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753604AbaD1LZN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 12:41:39 -0400
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Alan Stern <stern@rowland.harvard.edu>,
-	Sander Eikelenboom <linux@eikelenboom.it>,
-	Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: [PATCH] media: stk1160: Avoid stack-allocated buffer for control URBs
-Date: Mon, 14 Apr 2014 13:41:05 -0300
-Message-Id: <1397493665-912-1-git-send-email-ezequiel.garcia@free-electrons.com>
+	Mon, 28 Apr 2014 07:25:13 -0400
+Message-id: <535E3A95.6010206@samsung.com>
+Date: Mon, 28 Apr 2014 13:25:09 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	s.nawrocki@samsung.com, a.hajda@samsung.com,
+	kyungmin.park@samsung.com
+Subject: Re: [PATCH/RFC v3 5/5] media: Add registration helpers for V4L2 flash
+ sub-devices
+References: <1397228216-6657-1-git-send-email-j.anaszewski@samsung.com>
+ <1397228216-6657-6-git-send-email-j.anaszewski@samsung.com>
+ <20140416182141.GG8753@valkosipuli.retiisi.org.uk>
+ <534F9044.6080508@samsung.com>
+ <20140423152435.GJ8753@valkosipuli.retiisi.org.uk>
+In-reply-to: <20140423152435.GJ8753@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently stk1160_read_reg() uses a stack-allocated char to get the
-read control value. This is wrong because usb_control_msg() requires
-a kmalloc-ed buffer, and a DMA-API warning is produced:
+Hi Sakari,
 
-WARNING: CPU: 0 PID: 1376 at lib/dma-debug.c:1153 check_for_stack+0xa0/0x100()
-ehci-pci 0000:00:0a.0: DMA-API: device driver maps memory fromstack [addr=ffff88003d0b56bf]
+On 04/23/2014 05:24 PM, Sakari Ailus wrote:
+> Hi Jacek,
+>
+> On Thu, Apr 17, 2014 at 10:26:44AM +0200, Jacek Anaszewski wrote:
+>> Hi Sakari,
+>>
+>> Thanks for the review.
+>>
+>> On 04/16/2014 08:21 PM, Sakari Ailus wrote:
+>>> Hi Jacek,
+>>>
+>>> Thanks for the update!
+>>>
+>> [...]
+>>>> +static inline enum led_brightness v4l2_flash_intensity_to_led_brightness(
+>>>> +					struct led_ctrl *config,
+>>>> +					u32 intensity)
+>>>
+>>> Fits on a single line.
+>>>
+>>>> +{
+>>>> +	return intensity / config->step;
+>>>
+>>> Shouldn't you first decrement the minimum before the division?
+>>
+>> Brightness level 0 means that led is off. Let's consider following case:
+>>
+>> intensity - 15625
+>> config->step - 15625
+>> intensity / config->step = 1 (the lowest possible current level)
+>
+> In V4L2 controls the minimum is not off, and zero might not be a possible
+> value since minimum isn't divisible by step.
+>
+> I wonder how to best take that into account.
 
-This commit fixes such issue by using a 'usb_ctrl_read' field embedded
-in the device's struct to pass the value. In addition, we introduce a
-mutex to protect the value.
+I've assumed that in MODE_TORCH a led is always on. Switching
+the mode to MODE_FLASH or MODE_OFF turns the led off.
+This way we avoid the problem with converting 0 uA value to
+led_brightness, as available torch brightness levels start from
+the minimum current level value and turning the led off is
+accomplished on transition to MODE_OFF or MODE_FLASH, by
+calling brightness_set op with led_brightness = 0.
 
-While here, let's remove the urb_buf array which was meant for a similar
-purpose, but never really used.
+[...]
 
-Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
-Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
----
-Sander, Hans:
-Does this cause any regressions, other than the DMA-API warning?
-In that case, we can consider this as suitable for -stable.
+>>>> +/*
+>>>> + * V4L2 subdev internal operations
+>>>> + */
+>>>> +
+>>>> +static int v4l2_flash_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+>>>> +{
+>>>> +	struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd);
+>>>> +	struct led_classdev *led_cdev = v4l2_flash->led_cdev;
+>>>> +
+>>>> +	mutex_lock(&led_cdev->led_lock);
+>>>> +	v4l2_call_flash_op(sysfs_lock, led_cdev);
+>>>
+>>> Have you thought about device power management yet?
+>>
+>> Having in mind that the V4L2 Flash sub-device is only a wrapper
+>> for LED driver, shouldn't power management be left to the
+>> drivers?
+>
+> How does the LED controller driver know it needs to power the device up in
+> that case?
+>
+> I think an s_power() op which uses PM runtime to set the power state until
+> V4L2 sub-device switches to it should be enough. But I'm fine leaving it out
+> from this patchset.
+>
 
- drivers/media/usb/stk1160/stk1160-core.c | 8 +++++++-
- drivers/media/usb/stk1160/stk1160.h      | 3 ++-
- 2 files changed, 9 insertions(+), 2 deletions(-)
+This solution looks reasonable.
 
-diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/usb/stk1160/stk1160-core.c
-index 34a26e0..cce91e7 100644
---- a/drivers/media/usb/stk1160/stk1160-core.c
-+++ b/drivers/media/usb/stk1160/stk1160-core.c
-@@ -69,15 +69,20 @@ int stk1160_read_reg(struct stk1160 *dev, u16 reg, u8 *value)
- 	int pipe = usb_rcvctrlpipe(dev->udev, 0);
- 
- 	*value = 0;
-+
-+	mutex_lock(&dev->urb_ctrl_lock);
- 	ret = usb_control_msg(dev->udev, pipe, 0x00,
- 			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
--			0x00, reg, value, sizeof(u8), HZ);
-+			0x00, reg, &dev->urb_ctrl_read, sizeof(u8), HZ);
- 	if (ret < 0) {
- 		stk1160_err("read failed on reg 0x%x (%d)\n",
- 			reg, ret);
-+		mutex_unlock(&dev->urb_ctrl_lock);
- 		return ret;
- 	}
- 
-+	*value = dev->urb_ctrl_read;
-+	mutex_unlock(&dev->urb_ctrl_lock);
- 	return 0;
- }
- 
-@@ -322,6 +327,7 @@ static int stk1160_probe(struct usb_interface *interface,
- 	 * because we register the device node as the *last* thing.
- 	 */
- 	spin_lock_init(&dev->buf_lock);
-+	mutex_init(&dev->urb_ctrl_lock);
- 	mutex_init(&dev->v4l_lock);
- 	mutex_init(&dev->vb_queue_lock);
- 
-diff --git a/drivers/media/usb/stk1160/stk1160.h b/drivers/media/usb/stk1160/stk1160.h
-index 05b05b1..8886be4 100644
---- a/drivers/media/usb/stk1160/stk1160.h
-+++ b/drivers/media/usb/stk1160/stk1160.h
-@@ -143,7 +143,7 @@ struct stk1160 {
- 	int num_alt;
- 
- 	struct stk1160_isoc_ctl isoc_ctl;
--	char urb_buf[255];	 /* urb control msg buffer */
-+	char urb_ctrl_read;
- 
- 	/* frame properties */
- 	int width;		  /* current frame width */
-@@ -159,6 +159,7 @@ struct stk1160 {
- 	struct i2c_adapter i2c_adap;
- 	struct i2c_client i2c_client;
- 
-+	struct mutex urb_ctrl_lock;	/* protects urb_ctrl_read */
- 	struct mutex v4l_lock;
- 	struct mutex vb_queue_lock;
- 	spinlock_t buf_lock;
--- 
-1.9.1
+Regards,
+Jacek Anaszewski
+
 
