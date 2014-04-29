@@ -1,41 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38906 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754022AbaDQONb (ORCPT
+Received: from qmta08.emeryville.ca.mail.comcast.net ([76.96.30.80]:46737 "EHLO
+	qmta08.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965173AbaD2TuS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 10:13:31 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v4 21/49] s5p-tv: hdmiphy: Remove deprecated video-level DV timings operation
-Date: Thu, 17 Apr 2014 16:12:52 +0200
-Message-Id: <1397744000-23967-22-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 29 Apr 2014 15:50:18 -0400
+From: Shuah Khan <shuah.kh@samsung.com>
+To: gregkh@linuxfoundation.org, m.chehab@samsung.com, tj@kernel.org,
+	olebowle@gmx.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: [PATCH 2/4] media: dvb-fe changes to use tuner token
+Date: Tue, 29 Apr 2014 13:49:24 -0600
+Message-Id: <9a211011e470e91ce4367529ba74cddb7fdaee60.1398797955.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1398797954.git.shuah.kh@samsung.com>
+References: <cover.1398797954.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1398797954.git.shuah.kh@samsung.com>
+References: <cover.1398797954.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings operation is deprecated and unused. Remove it.
+Add a new field tuner_tkn to struct dvb_frontend. Drivers can
+create tuner token using devm_token_create() and initialize
+the tuner_tkn when frontend is registered with the dvb-core.
+This change enables drivers to provide a token devres for tuner
+access control.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Change dvb_frontend to lock tuner token for exclusive access to
+tuner function for digital TV function use. When Tuner token is
+present, dvb_frontend_start() calls devm_token_lock() to lock
+the token. If token is busy, -EBUSY is returned to the user-space.
+Tuner token is unlocked if kdvb adapter fe kthread fails to start.
+This token is held in use as long as the kdvb adapter fe kthread
+is running. Tuner token is unlocked in dvb_frontend_thread() when
+kdvb adapter fe thread exits.
+
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
 ---
- drivers/media/platform/s5p-tv/hdmiphy_drv.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/media/dvb-core/dvb_frontend.c |   15 +++++++++++++++
+ drivers/media/dvb-core/dvb_frontend.h |    1 +
+ 2 files changed, 16 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-tv/hdmiphy_drv.c b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
-index ff22320..c2f2e35 100644
---- a/drivers/media/platform/s5p-tv/hdmiphy_drv.c
-+++ b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
-@@ -262,7 +262,6 @@ static const struct v4l2_subdev_core_ops hdmiphy_core_ops = {
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 6ce435a..2b35e3f 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -41,6 +41,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/kthread.h>
+ #include <asm/processor.h>
++#include <linux/token_devres.h>
  
- static const struct v4l2_subdev_video_ops hdmiphy_video_ops = {
- 	.s_dv_timings = hdmiphy_s_dv_timings,
--	.dv_timings_cap = hdmiphy_dv_timings_cap,
- 	.s_stream =  hdmiphy_s_stream,
+ #include "dvb_frontend.h"
+ #include "dvbdev.h"
+@@ -747,6 +748,9 @@ restart:
+ 	if (semheld)
+ 		up(&fepriv->sem);
+ 	dvb_frontend_wakeup(fe);
++
++	if (fe->tuner_tkn)
++		devm_token_unlock(fe->dvb->device, fe->tuner_tkn);
+ 	return 0;
+ }
+ 
+@@ -840,6 +844,15 @@ static int dvb_frontend_start(struct dvb_frontend *fe)
+ 	fepriv->state = FESTATE_IDLE;
+ 	fepriv->exit = DVB_FE_NO_EXIT;
+ 	fepriv->thread = NULL;
++
++	if (fe->tuner_tkn) {
++		ret = devm_token_lock(fe->dvb->device, fe->tuner_tkn);
++		if (ret) {
++			dev_info(fe->dvb->device, "Tuner is busy %d\n", ret);
++			return ret;
++		}
++	}
++
+ 	mb();
+ 
+ 	fe_thread = kthread_run(dvb_frontend_thread, fe,
+@@ -850,6 +863,8 @@ static int dvb_frontend_start(struct dvb_frontend *fe)
+ 				"dvb_frontend_start: failed to start kthread (%d)\n",
+ 				ret);
+ 		up(&fepriv->sem);
++		if (fe->tuner_tkn)
++			devm_token_unlock(fe->dvb->device, fe->tuner_tkn);
+ 		return ret;
+ 	}
+ 	fepriv->thread = fe_thread;
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index 371b6ca..c9ba5fd 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -418,6 +418,7 @@ struct dvb_frontend {
+ #define DVB_FRONTEND_COMPONENT_DEMOD 1
+ 	int (*callback)(void *adapter_priv, int component, int cmd, int arg);
+ 	int id;
++	char *tuner_tkn;
  };
  
+ extern int dvb_register_frontend(struct dvb_adapter *dvb,
 -- 
-1.8.3.2
+1.7.10.4
 
