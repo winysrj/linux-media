@@ -1,117 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-outbound-1.vmware.com ([208.91.2.12]:36335 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030226AbaDJLIH (ORCPT
+Received: from mail-ve0-f174.google.com ([209.85.128.174]:51709 "EHLO
+	mail-ve0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965265AbaD2WUo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 07:08:07 -0400
-Message-ID: <53467B93.3000402@vmware.com>
-Date: Thu, 10 Apr 2014 13:08:03 +0200
-From: Thomas Hellstrom <thellstrom@vmware.com>
+	Tue, 29 Apr 2014 18:20:44 -0400
 MIME-Version: 1.0
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-CC: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	ccross@google.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] [RFC] reservation: add suppport for read-only access
- using rcu
-References: <20140409144239.26648.57918.stgit@patser> <20140409144831.26648.79163.stgit@patser> <53465A53.1090500@vmware.com> <53466D63.8080808@canonical.com>
-In-Reply-To: <53466D63.8080808@canonical.com>
+In-Reply-To: <20140429071610.63ccdfae.m.chehab@samsung.com>
+References: <CAGG=RuYdtfjJf5wKG92KdyKuG6AiBHp2_OSH8Wemi3yQOsouMQ@mail.gmail.com>
+ <CA+55aFzhydSCJqMLoUX59cLpiwbnoXtL524O5VtQ4-CVj8HxyA@mail.gmail.com>
+ <20140428214000.GA9187@gmail.com> <20140429071610.63ccdfae.m.chehab@samsung.com>
+From: Brian Healy <healybrian@gmail.com>
+Date: Tue, 29 Apr 2014 23:20:23 +0100
+Message-ID: <CAGG=RuZ-uuJPq3cQJkZkHdDV=1t2Z_y=+ZC-gBq8dq7DmytmGA@mail.gmail.com>
+Subject: Re: [PATCH] Kernel 3.15-rc2 : Peak DVB-T USB tuner device ids for
+ rtl28xxu driver
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/10/2014 12:07 PM, Maarten Lankhorst wrote:
-> Hey,
+Thanks Mauro,
+
+I'll know for next time. It's my first patch submission so wasn't
+aware of the formatting rules.
+
+Brian
+
+On 29 April 2014 15:16, Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
+> Em Mon, 28 Apr 2014 22:40:00 +0100
+> Brian Healy <healybrian@gmail.com> escreveu:
 >
-> op 10-04-14 10:46, Thomas Hellstrom schreef:
->> Hi!
+>> From: Brian Healy <healybrian@gmail.com>
+>> To: Antti Palosaari <crope@iki.fi>, Mauro Carvalho Chehab <m.chehab@samsung.com>
+>> Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Media Mailing List <linux-media@vger.kernel.org>
+>> Subject: Re: [PATCH] Kernel 3.15-rc2 : Peak DVB-T USB tuner device ids for rtl28xxu driver
+>> Date: Mon, 28 Apr 2014 22:40:00 +0100
+>> Sender: linux-media-owner@vger.kernel.org
+>> User-Agent: Mutt/1.5.21 (2010-09-15)
 >>
->> Ugh. This became more complicated than I thought, but I'm OK with moving
->> TTM over to fence while we sort out
->> how / if we're going to use this.
+>> On Sun, Apr 27, 2014 at 03:19:12PM -0700, Linus Torvalds wrote:
 >>
->> While reviewing, it struck me that this is kind of error-prone, and hard
->> to follow since we're operating on a structure that may be
->> continually updated under us, needing a lot of RCU-specific macros and
->> barriers.
-> Yeah, but with the exception of dma_buf_poll I don't think there is
-> anything else
-> outside drivers/base/reservation.c has to deal with rcu.
->
->> Also the rcu wait appears to not complete until there are no busy fences
->> left (new ones can be added while we wait) rather than
->> waiting on a snapshot of busy fences.
-> This has been by design, because 'wait for bo idle' type of functions
-> only care
-> if the bo is completely idle or not.
-
-No, not when using RCU, because the bo may be busy again before the
-function returns :)
-Complete idleness can only be guaranteed if holding the reservation, or
-otherwise making sure
-that no new rendering is submitted to the buffer, so it's an overkill to
-wait for complete idleness here.
-
->
-> It would be easy to make a snapshot even without seqlocks, just copy
-> reservation_object_test_signaled_rcu to return a shared list if
-> test_all is set, or return pointer to exclusive otherwise.
->
->> I wonder if these issues can be addressed by having a function that
->> provides a snapshot of all busy fences: This can be accomplished
->> either by including the exclusive fence in the fence_list structure and
->> allocate a new such structure each time it is updated. The RCU reader
->> could then just make a copy of the current fence_list structure pointed
->> to by &obj->fence, but I'm not sure we want to reallocate *each* time we
->> update the fence pointer.
-> No, the most common operation is updating fence pointers, which is why
-> the current design makes that cheap. It's also why doing rcu reads is
-> more expensive.
->> The other approach uses a seqlock to obtain a consistent snapshot, and
->> I've attached an incomplete outline, and I'm not 100% whether it's OK to
->> combine RCU and seqlocks in this way...
+>> Hi Linus,
 >>
->> Both these approaches have the benefit of hiding the RCU snapshotting in
->> a single function, that can then be used by any waiting
->> or polling function.
+>> apologies, i've changed email clients in order to preserve the
+>> formatting this time around. The patch is now included inline as an
+>> attachment. I ran the script but noticed you've already cc'd the
+>> appropriate people.
 >>
+>> Brian.
+>>
+>>
+>> Resubmitting modified patch. It's purpose is to add the appropriate
+>> device/usb ids for the "Peak DVT-B usb dongle" to the rtl28xxu.c driver.
+>>
+>> Signed-off-by: Brian Healy <healybrian <at> gmail.com>
+>>
+>>
+>> > Brian, please use
+>> >
+>> >  ./scripts/get_maintainer -f drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>> >
+>> > to get the proper people to send this to, so that it doesn't get lost
+>> > in the flood in lkml.
+>> >
+>> > The indentation of that new entry also seems to be suspect, in that it
+>> > doesn't match the ones around it.
+>> >
+>> > Quoting full email for context for people added.
+>> >
+>> >              Linus
+>> >
+>>
+>> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>> index 61d196e..b6e20cc 100644
+>> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>> @@ -1499,6 +1499,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
+>>               &rtl2832u_props, "Crypto ReDi PC 50 A", NULL) },
+>>       { DVB_USB_DEVICE(USB_VID_KYE, 0x707f,
+>>               &rtl2832u_props, "Genius TVGo DVB-T03", NULL) },
+>> +        { DVB_USB_DEVICE(USB_VID_KWORLD_2, 0xd395,
+>> +                &rtl2832u_props, "Peak DVB-T USB", NULL) },
 >
-> I think the middle way with using seqlocks to protect the fence_excl
-> pointer and shared list combination,
-> and using RCU to protect the refcounts for fences and the availability
-> of the list could work for our usecase
-> and might remove a bunch of memory barriers. But yeah that depends on
-> layering rcu and seqlocks.
-> No idea if that is allowed. But I suppose it is.
+> Patch is still a little odd, as you're using spaces for indenting, instead of
+> tabs, but I can fix it with my scripts. Next time, please use tabs.
 >
-> Also, you're being overly paranoid with seqlock reading, we would only
-> need something like this:
+> Also, specifically in the case of patches for linux-media, you don't need
+> to c/c me. Just send the patch to linux-media and to the driver maintainer
+> (Antti, in this case).
 >
-> rcu_read_lock()
->     preempt_disable()
->     seq = read_seqcount_begin()
->     read fence_excl, shared_count = ACCESS_ONCE(fence->shared_count)
->     copy shared to a struct.
->     if (read_seqcount_retry()) { unlock and retry }
->   preempt_enable();
->   use fence_get_rcu() to bump refcount on everything, if that fails
-> unlock, put, and retry
-> rcu_read_unlock()
+> My workflow is to pick the patches from patchwork:
+>         https://patchwork.linuxtv.org/patch/23792/
+> after receiving Antti's ack.
 >
-> But the shared list would still need to be RCU'd, to make sure we're
-> not reading freed garbage.
-
-Ah. OK,
-But I think we should use rcu inside seqcount, because
-read_seqcount_begin() may spin for a long time if there are
-many writers. Also I don't think the preempt_disable() is needed for
-read_seq critical sections other than they might
-decrease the risc of retries..
-
-Thanks,
-Thomas
-
-
+> Alternatively, Antti may opt to put it on his git tree, sending it to me
+> latter together of other patches he may have for the devices he maintains.
 >
-> ~Maarten
+>>
+>>       /* RTL2832P devices: */
+>>       { DVB_USB_DEVICE(USB_VID_HANFTEK, 0x0131,
+>
+> Thanks,
+> Mauro
