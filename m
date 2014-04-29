@@ -1,113 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38084 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751515AbaDAWSU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Apr 2014 18:18:20 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [yavta PATCH 6/9] Timestamp source for output buffers
-Date: Wed, 02 Apr 2014 00:20:18 +0200
-Message-ID: <24499912.nkDMIsTe95@avalon>
-In-Reply-To: <1393690690-5004-7-git-send-email-sakari.ailus@iki.fi>
-References: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi> <1393690690-5004-7-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from qmta09.emeryville.ca.mail.comcast.net ([76.96.30.96]:35675 "EHLO
+	qmta09.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965170AbaD2TuS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Apr 2014 15:50:18 -0400
+From: Shuah Khan <shuah.kh@samsung.com>
+To: gregkh@linuxfoundation.org, m.chehab@samsung.com, tj@kernel.org,
+	olebowle@gmx.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: [PATCH 3/4] media/em28xx: changes to create token for tuner access
+Date: Tue, 29 Apr 2014 13:49:25 -0600
+Message-Id: <019bbf54a8ccbd236bbdfd552919d9a11a006db9.1398797955.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1398797954.git.shuah.kh@samsung.com>
+References: <cover.1398797954.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1398797954.git.shuah.kh@samsung.com>
+References: <cover.1398797954.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Changes add a new tuner_tkn field to struct em28xx and create
+a token devres to allow sharing tuner function across analog
+and digital functions. Tuner token is created during probe in
+em28xx_usb_probe() and destroyed during disconnect in
+em28xx_release_resources().
 
-Thank you for the patch.
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c |   41 +++++++++++++++++++++++++++++++
+ drivers/media/usb/em28xx/em28xx.h       |    4 +++
+ 2 files changed, 45 insertions(+)
 
-On Saturday 01 March 2014 18:18:07 Sakari Ailus wrote:
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  yavta.c |   18 +++++++++++++++++-
->  1 file changed, 17 insertions(+), 1 deletion(-)
-> 
-> diff --git a/yavta.c b/yavta.c
-> index a9b192a..71c1477 100644
-> --- a/yavta.c
-> +++ b/yavta.c
-> @@ -73,6 +73,7 @@ struct device
->  	unsigned int height;
->  	unsigned int bytesperline;
->  	unsigned int imagesize;
-> +	uint32_t buffer_output_flags;
-> 
->  	void *pattern;
->  	unsigned int patternsize;
-> @@ -611,6 +612,7 @@ static int video_queue_buffer(struct device *dev, int
-> index, enum buffer_fill_mo buf.m.userptr = (unsigned
-> long)dev->buffers[index].mem;
-> 
->  	if (dev->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> +		buf.flags = dev->buffer_output_flags;
->  		buf.bytesused = dev->patternsize;
->  		memcpy(dev->buffers[buf.index].mem, dev->pattern, dev->patternsize);
->  	} else {
-> @@ -1255,6 +1257,7 @@ static void usage(const char *argv0)
->  	printf("    --no-query			Don't query capabilities on open\n");
->  	printf("    --offset			User pointer buffer offset from page
-> start\n");
->  	printf("    --requeue-last		Requeue the last buffers before
-> streamoff\n");
-> +	printf("    --timestamp-source		Set timestamp source on output
-> buffers [eof, soe]\n");
->  	printf("    --skip n			Skip the first n frames\n");
->  	printf("    --sleep-forever		Sleep forever after configuring the
-> device\n"); printf("    --stride value		Line stride in bytes\n");
-> @@ -1269,6 +1272,7 @@ static void usage(const char *argv0)
->  #define OPT_REQUEUE_LAST	262
->  #define OPT_STRIDE		263
->  #define OPT_FD			264
-> +#define OPT_TSTAMP_SRC		265
-> 
->  static struct option opts[] = {
->  	{"capture", 2, 0, 'c'},
-> @@ -1298,7 +1302,8 @@ static struct option opts[] = {
->  	{"sleep-forever", 0, 0, OPT_SLEEP_FOREVER},
->  	{"stride", 1, 0, OPT_STRIDE},
->  	{"time-per-frame", 1, 0, 't'},
-> -	{"userptr", 0, 0, 'u'},
-> +	{"timestamp-source", 1, 0, OPT_TSTAMP_SRC},
-> +	{"userptr", 1, 0, 'u'},
-
-This seems to be an unrelated change.
-
->  	{0, 0, 0, 0}
->  };
-> 
-> @@ -1487,6 +1492,17 @@ int main(int argc, char *argv[])
->  		case OPT_STRIDE:
->  			stride = atoi(optarg);
->  			break;
-> +		case OPT_TSTAMP_SRC:
-> +			if (!strcmp(optarg, "eof")) {
-> +				dev.buffer_output_flags |= V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
-
-As the buffer_output_flags isn't used for anything else, would it make sense 
-to just name it timestamp_source ?
-
-> +			} else if (!strcmp(optarg, "soe")) {
-> +				dev.buffer_output_flags |= V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
-> +			} else {
-> +				printf("Invalid timestamp source %s\n", optarg);
-> +				return 1;
-> +			}
-> +			printf("Using %s timestamp source\n", optarg);
-
-Do we really need this printf ?
-
-> +			break;
->  		case OPT_USERPTR_OFFSET:
->  			userptr_offset = atoi(optarg);
->  			break;
-
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 50aa5a5..01c1955 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2428,6 +2428,37 @@ static struct em28xx_hash_table em28xx_i2c_hash[] = {
+ };
+ /* NOTE: introduce a separate hash table for devices with 16 bit eeproms */
+ 
++/* interfaces to create and destroy token resources */
++static int em28xx_create_token_resources(struct em28xx *dev)
++{
++	int rc = 0, len;
++	char buf[64];
++
++	/* create token devres for tuner */
++	len = snprintf(buf, sizeof(buf),
++		"tuner:%s-%s-%d",
++		dev_name(&dev->udev->dev),
++		dev->udev->bus->bus_name,
++		dev->tuner_addr);
++
++	dev->tuner_tkn = devm_kzalloc(&dev->udev->dev, len + 1, GFP_KERNEL);
++	if (!dev->tuner_tkn)
++		return -ENOMEM;
++
++	strcpy(dev->tuner_tkn, buf);
++	rc = devm_token_create(&dev->udev->dev, dev->tuner_tkn);
++	if (rc)
++		return rc;
++
++	em28xx_info("Tuner token created\n");
++	return rc;
++}
++
++static void em28xx_destroy_token_resources(struct em28xx *dev)
++{
++	devm_token_destroy(&dev->udev->dev, dev->tuner_tkn);
++}
++
+ int em28xx_tuner_callback(void *ptr, int component, int command, int arg)
+ {
+ 	struct em28xx_i2c_bus *i2c_bus = ptr;
+@@ -2949,6 +2980,9 @@ static void em28xx_release_resources(struct em28xx *dev)
+ 		em28xx_i2c_unregister(dev, 1);
+ 	em28xx_i2c_unregister(dev, 0);
+ 
++	/* destroy token resources */
++	em28xx_destroy_token_resources(dev);
++
+ 	usb_put_dev(dev->udev);
+ 
+ 	/* Mark device as unused */
+@@ -3431,6 +3465,13 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 
+ 	kref_init(&dev->ref);
+ 
++	/* create token resources before requesting for modules */
++	if (em28xx_create_token_resources(dev)) {
++		em28xx_errdev("Error creating token resources!\n");
++		retval = -ENOMEM;
++		goto err_free;
++	}
++
+ 	request_modules(dev);
+ 
+ 	/* Should be the last thing to do, to avoid newer udev's to
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 2051fc9..e82f868 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -34,6 +34,7 @@
+ #include <linux/mutex.h>
+ #include <linux/kref.h>
+ #include <linux/videodev2.h>
++#include <linux/token_devres.h>
+ 
+ #include <media/videobuf2-vmalloc.h>
+ #include <media/v4l2-device.h>
+@@ -547,6 +548,9 @@ struct em28xx {
+ 	int devno;		/* marks the number of this device */
+ 	enum em28xx_chip_id chip_id;
+ 
++	/* token resources */
++	char *tuner_tkn; /* tuner token id */
++
+ 	unsigned int is_em25xx:1;	/* em25xx/em276x/7x/8x family bridge */
+ 	unsigned char disconnected:1;	/* device has been diconnected */
+ 	unsigned int has_video:1;
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
