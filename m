@@ -1,258 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f180.google.com ([209.85.192.180]:51055 "EHLO
-	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751440AbaDSLlZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Apr 2014 07:41:25 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v3 0/2] DaVinci: VPIF: upgrade with v4l helpers
-Date: Sat, 19 Apr 2014 17:11:13 +0530
-Message-Id: <1397907675-525-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from beta.phas.ubc.ca ([142.103.236.75]:56622 "EHLO beta.phas.ubc.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934077AbaD2Tz5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Apr 2014 15:55:57 -0400
+Received: from spider.phas.ubc.ca (spider.phas.ubc.ca [142.103.235.177])
+	(authenticated bits=0)
+	by beta.phas.ubc.ca (8.13.1/8.13.1) with ESMTP id s3TJorou029799
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 29 Apr 2014 12:50:53 -0700
+Date: Tue, 29 Apr 2014 12:50:52 -0700 (PDT)
+From: Carl Michal <michal@physics.ubc.ca>
+To: linux-media@vger.kernel.org
+Subject: au0828 (950Q)  kernel OOPS 3.10.30 imx6
+Message-ID: <alpine.LNX.2.00.1404291241000.26512@spider.phas.ubc.ca>
+MIME-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="1737404907-1693507706-1398801053=:26512"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Hi All,
+--1737404907-1693507706-1398801053=:26512
+Content-Type: TEXT/PLAIN; format=flowed; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 
-This patch series upgrades the vpif capture & display
-driver with the all the helpers provided by v4l, this makes
-the driver much simpler and cleaner. This also includes few
-checkpatch issues.
+Hello,
 
-Sending them as single patch one for capture and another for
-display, splitting them would have caused a huge number small
-patches.
+I'm trying to use a Hauppage HVR-950Q ATSC tv stick with a Cubox-i running 
+geexbox.
 
-Changes for v2:
-a> Added a copyright.
-b> Dropped buf_init() callback from vb2_ops.
-c> Fixed enabling & disabling of interrupts in case of HD formats.
+It works great, until it doesn't. After its been up and running for a few 
+hours (sometimes minutes), I start to get kernel OOPs, example pasted in 
+below. The 950Q generally doesn't work afterwards.
 
-Changes for v3:
-a> Fixed review comments pointed by Hans.
+This is a 3.10.30 kernel, that I believe the Cubox is somewhat tied to for 
+other driver reasons.
 
-v4l-compliance output is as follows:--
+I haven't seen any such problems if the HVR-950Q is unplugged.
 
-root@da850-omapl138-evm:/usr# ./v4l2-compliance -d /dev/video0 -i -s 
-Driver Info:
-        Driver name   : vpif_capture
-        Card type     : DA850/OMAP-L13vpif_capture vpif_capture: =================  START STATUS  =================
-vpif_capture vpif_capture: ==================  END STATUS  ==================
+Any advice on tracking this down would be appreciated.
 
-        Bus info      : platform:vpif_capture
-        Driver version: 3.1.10
-        Capabilities  : 0x84000001
-                Video Capture
-                Streaming
-                Device Capabilities
-        Device Caps   : 0x04000001
-                Video Capture
-                Streaming
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test input 0:
-
-        Control ioctls:
-                test VIDIOC_QUERYCTRL/MENU: OK (Not Supported)
-                test VIDIOC_G/S_CTRL: OK (Not Supported)
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 0 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                fail: v4l2-test-formats.cpp(1003): cap->readbuffers
-                test VIDIOC_G/S_PARM: FAIL
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                fail: v4l2-test-formats.cpp(405): !pix.sizeimage
-                test VIDIOC_G_FMT: FAIL
-                test VIDIOC_TRY_FMT: OK (Not Supported)
-                test VIDIOC_S_FMT: OK (Not Supported)
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-Buffer ioctls:
-        test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                fail: v4l2-test-buffers.cpp(506): q.has_expbuf()
-        test VIDIOC_EXPBUF: FAIL
-
-Total: 38, Succeeded: 35, Failed: 3, Warnings: 0
-
-For Display:---
-
-root@da850-omapl138-evm:/usr# ./v4l2-compliance -d /dev/video2 -o -s 
-Driver Info:
-        Driver name   : vpif_display
-        Card type     : DA850/OMAP-L138 Video Display
-        Bus info      vpif_display vpif_display: =================  START STATUS  =================
-: platform:vpif_display
-        Driveradv7343 1-002a: Standard: ff
- version: 3.1.10adv7343 1-002a: Output: Composite
-
-        Capabilities vpif_display vpif_display: ==================  END STATUS  ==================
- : 0x84000002
-                Video Output
-                Streaming
-                Device Capabilities
-        Device Caps   : 0x04000002
-                Video Output
-                Streaming
-
-Compliance test for device /dev/video2 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-vpif_display vpif_display: Invalid format index
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK
-vpif_display vpif_display: Invalid format index
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 2 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test output 0:
-
-        Control ioctls:
-                test VIDIOC_QUERYCTRL/MENU: OK (Not Supported)
-                test VIDIOC_G/S_CTRL: OK (Not Supported)
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 0 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                fail: v4l2-test-formats.cpp(406): !pix.colorspace
-                test VIDIOC_G_FMT: FAIL
-                test VIDIOC_TRY_FMT: OK (Not Supported)
-                test VIDIOC_S_FMT: OK (Not Supported)
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-Test output 1:
-
-        Control ioctls:
-                test VIDIOC_QUERYCTRL/MENU: OK (Not Supported)
-                test VIDIOC_G/S_CTRL: OK (Not Supported)
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 0 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                fail: v4l2-test-formats.cpp(406): !pix.colorspace
-                test VIDIOC_G_FMT: FAIL
-                test VIDIOC_TRY_FMT: OK (Not Supported)
-                test VIDIOC_S_FMT: OK (Not Supported)
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-Buffer ioctls:
-        test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                fail: v4l2-test-buffers.cpp(506): q.has_expbuf()
-        test VIDIOC_EXPBUF: FAIL
-
-Total: 53, Succeeded: 50, Failed: 3, Warnings: 0
+Carl
 
 
-Lad, Prabhakar (2):
-  media: davinci: vpif capture: upgrade the driver with v4l offerings
-  media: davinci: vpif display: upgrade the driver with v4l offerings
+————[ cut here ]————
+WARNING: at mm/vmalloc.c:126 vmap_page_range_noflush+0×178/0x1c4()
+Modules linked in: au8522_dig tuner au8522_decoder au8522_common 
+mxc_v4l2_capture au0828 ipu_bg_overlay_sdc snd_usb_audio ipu_still 
+ipu_prp_enc snd_usbmidi_lib ipu_csi_enc tveeprom snd_rawmidi 
+ipu_fg_overlay_sdc videobuf_vmalloc snd_hwdep brcmutil ir_lirc_codec 
+lirc_dev ir_rc5_sz_decoder ir_sanyo_decoder ir_mce_kbd_decoder 
+ir_sony_decoder ir_nec_decoder ir_jvc_decoder ir_rc6_decoder 
+ir_rc5_decoder uinput
+CPU: 0 PID: 700 Comm: xbmc.bin Not tainted 3.10.30 #1
+[<8001444c>] (unwind_backtrace) from [<800114ac>] (show_stack+0×10/0×14)
+[<800114ac>] (show_stack) from [<80025fd0>]  (warn_slowpath_common+0x4c/0x6c)
+[<80025fd0>] (warn_slowpath_common) from [<8002600c>] (warn_slowpath_null+0x1c/0×24)
+[<8002600c>] (warn_slowpath_null) from [<800af188>] (vmap_page_range_noflush+0×178/0x1c4)
+[<800af188>] (vmap_page_range_noflush) from [<800b0228>] (map_vm_area+0x2c/0x7c)
+[<800b0228>] (map_vm_area) from [<800b0dd0>] (__vmalloc_node_range+0xfc/0x1dc)
+[<800b0dd0>] (__vmalloc_node_range) from [<800b0eec>] (__vmalloc_node+0x3c/0×44)
+[<800b0eec>] (__vmalloc_node) from [<800b0f24>] (vmalloc+0×30/0×38)
+[<800b0f24>] (vmalloc) from [<80438778>] (gckOS_AllocateMemory+0×40/0×54)
+[<80438778>] (gckOS_AllocateMemory) from [<804387c0>] (gckOS_Allocate+0×34/0×44)
+[<804387c0>] (gckOS_Allocate) from [<8043d694>] (gckKERNEL_AllocateIntegerId+0xe4/0×160)
+[<8043d694>] (gckKERNEL_AllocateIntegerId) from [<8043d82c>] (gckKERNEL_AllocateNameFromPointer+0×18/0x2c)
+[<8043d82c>] (gckKERNEL_AllocateNameFromPointer) from [<8043e510>] (gckKERNEL_Dispatch+0xc84/0x12ac)
+[<8043e510>] (gckKERNEL_Dispatch) from [<8043753c>] (drv_ioctl+0×118/0×234)
+[<8043753c>] (drv_ioctl) from [<800cd33c>] (do_vfs_ioctl+0×80/0x5a0)
+[<800cd33c>] (do_vfs_ioctl) from [<800cd894>] (SyS_ioctl+0×38/0×60)
+[<800cd894>] (SyS_ioctl) from [<8000e080>] (ret_fast_syscall+0×0/0×30)
+—[ end trace 318ff254bf545f80 ]—
+vmalloc: allocation failure, allocated 479232 of 483328 bytes
+xbmc.bin: page allocation failure: order:0, mode:0xd2
+CPU: 0 PID: 700 Comm: xbmc.bin Tainted: G W 3.10.30 #1
+[<8001444c>] (unwind_backtrace) from [<800114ac>] (show_stack+0×10/0×14)
+[<800114ac>] (show_stack) from [<8008be94>] (warn_alloc_failed+0xd0/0×110)
+[<8008be94>] (warn_alloc_failed) from [<800b0e70>] (__vmalloc_node_range+0x19c/0x1dc)
+[<800b0e70>] (__vmalloc_node_range) from [<800b0eec>] (__vmalloc_node+0x3c/0×44)
+[<800b0eec>] (__vmalloc_node) from [<800b0f24>] (vmalloc+0×30/0×38)
+[<800b0f24>] (vmalloc) from [<80438778>] (gckOS_AllocateMemory+0×40/0×54)
+[<80438778>] (gckOS_AllocateMemory) from [<804387c0>] (gckOS_Allocate+0×34/0×44)
+[<804387c0>] (gckOS_Allocate) from [<8043d694>] (gckKERNEL_AllocateIntegerId+0xe4/0×160)
+[<8043d694>] (gckKERNEL_AllocateIntegerId) from [<8043d82c>] (gckKERNEL_AllocateNameFromPointer+0×18/0x2c)
+[<8043d82c>] (gckKERNEL_AllocateNameFromPointer) from [<8043e510>] (gckKERNEL_Dispatch+0xc84/0x12ac)
+[<8043e510>] (gckKERNEL_Dispatch) from [<8043753c>] (drv_ioctl+0×118/0×234)
+[<8043753c>] (drv_ioctl) from [<800cd33c>] (do_vfs_ioctl+0×80/0x5a0)
+[<800cd33c>] (do_vfs_ioctl) from [<800cd894>] (SyS_ioctl+0×38/0×60)
+[<800cd894>] (SyS_ioctl) from [<8000e080>] (ret_fast_syscall+0×0/0×30)
+Mem-info:
+DMA per-cpu:
+CPU 0: hi: 186, btch: 31 usd: 71
+CPU 1: hi: 186, btch: 31 usd: 51
+CPU 2: hi: 186, btch: 31 usd: 161
+CPU 3: hi: 186, btch: 31 usd: 30
+active_anon:32634 inactive_anon:458 isolated_anon:0
+active_file:75360 inactive_file:275422 isolated_file:0
+unevictable:33 dirty:2011 writeback:0 unstable:0
+free:9091 slab_reclaimable:7864 slab_unreclaimable:6195
+mapped:7616 shmem:635 pagetables:496 bounce:0
+free_cma:7336
+DMA free:36364kB min:4960kB low:6200kB high:7440kB active_anon:130536kB 
+inactive_anon:1832kB active_file:301440kB inactive_file:1101688kB 
+unevictable:132kB isolated(anon):0kB isolated(file):0kB present:1826816kB 
+managed:1539272kB mlocked:132kB dirty:8044kB writeback:0kB mapped:30464kB 
+shmem:2540kB slab_reclaimable:31456kB slab_unreclaimable:24780kB 
+kernel_stack:1208kB pagetables:1984kB unstable:0kB bounce:0kB 
+free_cma:29344kB writeback_tmp:0kB pages_scanned:3 all_unreclaimable? no
+lowmem_reserve[]: 0 0 0
+DMA: 1704*4kB (EMRC) 1160*8kB (UEMRC) 947*16kB (UMRC) 15*32kB (MR) 1*64kB 
+(R) 1*128kB (R) 4*256kB (R) 5*512kB (R) 1*1024kB (R) 0*2048kB 0*4096kB 
+0*8192kB 0*16384kB 0*32768kB = 36528kB
+351490 total pagecache pages
+0 pages in swap cache
+Swap cache stats: add 0, delete 0, find 0/0
+Free swap = 0kB
+Total swap = 0kB
+456704 pages of RAM
+9697 free pages
+6289 reserved pages
+11851 slab pages
+780535 pages shared
+0 pages swap cached
 
- drivers/media/platform/davinci/vpif_capture.c | 1474 ++++++++-----------------
- drivers/media/platform/davinci/vpif_capture.h |   43 +-
- drivers/media/platform/davinci/vpif_display.c | 1257 +++++++--------------
- drivers/media/platform/davinci/vpif_display.h |   46 +-
- 4 files changed, 844 insertions(+), 1976 deletions(-)
-
--- 
-1.7.9.5
-
+tvheadend: page allocation failure: order:4, mode:0x10c0d0
+CPU: 1 PID: 687 Comm: tvheadend Tainted: G W 3.10.30 #1
+[<8001444c>] (unwind_backtrace) from [<800114ac>] (show_stack+0×10/0×14)
+[<800114ac>] (show_stack) from [<8008be94>] (warn_alloc_failed+0xd0/0×110)
+[<8008be94>] (warn_alloc_failed) from [<8008eb18>] (__alloc_pages_nodemask+0x5a4/0x8b4)
+[<8008eb18>] (__alloc_pages_nodemask) from [<8008ee38>] (__get_free_pages+0×10/0x4c)
+[<8008ee38>] (__get_free_pages) from [<7f140430>] (urb_completion+0×164/0×280 [au0828])
+[<7f140430>] (urb_completion [au0828]) from [<7f140604>] (au0828_dvb_start_feed+0xb8/0xe4 [au0828])
+[<7f140604>] (au0828_dvb_start_feed [au0828]) from [<803fa4f0>] (dmx_section_feed_start_filtering+0xc8/0x16c)
+[<803fa4f0>] (dmx_section_feed_start_filtering) from [<803f8c44>] (dvb_dmxdev_filter_start+0×228/0x3e0)
+[<803f8c44>] (dvb_dmxdev_filter_start) from [<803f91a8>] (dvb_demux_do_ioctl+0x3ac/0×618)
+[<803f91a8>] (dvb_demux_do_ioctl) from [<803f7528>] (dvb_usercopy+0×38/0×158)
+[<803f7528>] (dvb_usercopy) from [<800cd33c>] (do_vfs_ioctl+0×80/0x5a0)
+[<800cd33c>] (do_vfs_ioctl) from [<800cd894>] (SyS_ioctl+0×38/0×60)
+[<800cd894>] (SyS_ioctl) from [<8000e080>] (ret_fast_syscall+0×0/0×30)
+--1737404907-1693507706-1398801053=:26512--
