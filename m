@@ -1,95 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f54.google.com ([74.125.83.54]:56488 "EHLO
-	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755213AbaDOSla (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33793 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756883AbaD2Qkj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Apr 2014 14:41:30 -0400
-Received: by mail-ee0-f54.google.com with SMTP id d49so8162930eek.27
-        for <linux-media@vger.kernel.org>; Tue, 15 Apr 2014 11:41:29 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 4/4] libdvbv5: build dynamic libdvbv5 by default
-Date: Tue, 15 Apr 2014 20:39:33 +0200
-Message-Id: <1397587173-1120-4-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1397587173-1120-1-git-send-email-neolynx@gmail.com>
-References: <1397587173-1120-1-git-send-email-neolynx@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Tue, 29 Apr 2014 12:40:39 -0400
+Message-ID: <1398789637.3428.12.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH] media: coda: Use full device name for request_irq()
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Alexander Shiyan <shc_work@mail.ru>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>
+Date: Tue, 29 Apr 2014 18:40:37 +0200
+In-Reply-To: <1398503686-21102-1-git-send-email-shc_work@mail.ru>
+References: <1398503686-21102-1-git-send-email-shc_work@mail.ru>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- renamed ./configure option --enable-libdvbv5 to --disable-libdvbv5
-- thus libdvbv5 will be build shared by default
-- cleanups in configure.ac
+Am Samstag, den 26.04.2014, 13:14 +0400 schrieb Alexander Shiyan:
+> This will help to debug driver, allows us to see the full name of
+> the device through /proc/interrupts.
+> 
+>            CPU0
+> ...
+>  69:          0  mxc-avic  53  10023000.coda
+> ...
+>
+> Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
 
-Signed-off-by: André Roth <neolynx@gmail.com>
----
- configure.ac | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-diff --git a/configure.ac b/configure.ac
-index 4080d1e..474c681 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -216,10 +216,10 @@ AC_DEFINE_DIR([IR_KEYTABLE_USER_DIR], [keytableuserdir], [ir-keytable user defin
- # options
- 
- AC_ARG_ENABLE(libdvbv5,
--  AS_HELP_STRING([--enable-libdvbv5], [enable experimental dynamic libdvbv5 compilation]),
-+  AS_HELP_STRING([--disable-libdvbv5], [disable experimental dynamic libdvbv5 compilation]),
-   [case "${enableval}" in
-      yes | no ) ;;
--     *) AC_MSG_ERROR(bad value ${enableval} for --enable-libdvbv5) ;;
-+     *) AC_MSG_ERROR(bad value ${enableval} for --disable-libdvbv5) ;;
-    esac]
- )
- 
-@@ -227,7 +227,7 @@ AC_ARG_ENABLE(libv4l,
-   AS_HELP_STRING([--disable-libv4l], [disable dynamic libv4l compilation]),
-   [case "${enableval}" in
-      yes | no ) ;;
--     *) AC_MSG_ERROR(bad value ${enableval} for --enable-libv4l) ;;
-+     *) AC_MSG_ERROR(bad value ${enableval} for --disable-libv4l) ;;
-    esac]
- )
- 
-@@ -235,7 +235,7 @@ AC_ARG_ENABLE(v4l-utils,
-   AS_HELP_STRING([--disable-v4l-utils], [disable v4l-utils compilation]),
-   [case "${enableval}" in
-      yes | no ) ;;
--     *) AC_MSG_ERROR(bad value ${enableval} for --enable-v4l-utils) ;;
-+     *) AC_MSG_ERROR(bad value ${enableval} for --disable-v4l-utils) ;;
-    esac]
- )
- 
-@@ -247,17 +247,17 @@ AC_ARG_ENABLE(qv4l2,
-    esac]
- )
- 
--AM_CONDITIONAL([WITH_LIBDVBV5], [test x$enable_libdvbv5 = xyes])
--AM_CONDITIONAL([WITH_LIBV4L], [test x$enable_libv4l != xno])
--AM_CONDITIONAL([WITH_V4LUTILS], [test x$enable_v4l_utils != "xno"])
--AM_CONDITIONAL([WITH_QV4L2], [test ${qt_pkgconfig} = true -a x$enable_qv4l2 != xno])
--AM_CONDITIONAL([WITH_V4L_PLUGINS], [test x$enable_libv4l != xno -a x$enable_shared != xno])
-+AM_CONDITIONAL([WITH_LIBDVBV5],     [test x$enable_libdvbv5  != xno])
-+AM_CONDITIONAL([WITH_LIBV4L],       [test x$enable_libv4l    != xno])
-+AM_CONDITIONAL([WITH_V4LUTILS],	    [test x$enable_v4l_utils != xno])
-+AM_CONDITIONAL([WITH_QV4L2],	    [test ${qt_pkgconfig}  = true -a x$enable_qv4l2 != xno])
-+AM_CONDITIONAL([WITH_V4L_PLUGINS],  [test x$enable_libv4l != xno -a x$enable_shared != xno])
- AM_CONDITIONAL([WITH_V4L_WRAPPERS], [test x$enable_libv4l != xno -a x$enable_shared != xno])
--AM_CONDITIONAL([WITH_QTGL], [test ${qt_pkgconfig_gl} = true])
-+AM_CONDITIONAL([WITH_QTGL],	    [test ${qt_pkgconfig_gl} = true])
- 
- # append -static to libtool compile and link command to enforce static libs
--AS_IF([test x$enable_libdvbv5 != xyes], [AC_SUBST([ENFORCE_LIBDVBV5_STATIC], ["-static"])])
--AS_IF([test x$enable_libv4l = xno], [AC_SUBST([ENFORCE_LIBV4L_STATIC], ["-static"])])
-+AS_IF([test x$enable_libdvbv5 = xno], [AC_SUBST([ENFORCE_LIBDVBV5_STATIC], ["-static"])])
-+AS_IF([test x$enable_libv4l = xno],   [AC_SUBST([ENFORCE_LIBV4L_STATIC],   ["-static"])])
- 
- # misc
- 
--- 
-1.9.1
+> ---
+>  drivers/media/platform/coda.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index 3e5199e..11023b1 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -3235,7 +3235,7 @@ static int coda_probe(struct platform_device *pdev)
+>  	}
+>  
+>  	if (devm_request_threaded_irq(&pdev->dev, irq, NULL, coda_irq_handler,
+> -		IRQF_ONESHOT, CODA_NAME, dev) < 0) {
+> +		IRQF_ONESHOT, dev_name(&pdev->dev), dev) < 0) {
+>  		dev_err(&pdev->dev, "failed to request irq\n");
+>  		return -ENOENT;
+>  	}
+
+regards
+Philipp
 
