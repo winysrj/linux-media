@@ -1,70 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:54745 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933828AbaD3PQl (ORCPT
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:59288 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757896AbaD2R13 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Apr 2014 11:16:41 -0400
-Received: by mail-la0-f49.google.com with SMTP id hr17so1324225lab.22
-        for <linux-media@vger.kernel.org>; Wed, 30 Apr 2014 08:16:40 -0700 (PDT)
-From: Alexander Bersenev <bay@hackerdom.ru>
-To: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
-	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
-	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Alexander Bersenev <bay@hackerdom.ru>
-Subject: [PATCH v5 1/3] ARM: sunxi: Add documentation for sunxi consumer infrared devices
-Date: Wed, 30 Apr 2014 21:16:48 +0600
-Message-Id: <1398871010-30681-2-git-send-email-bay@hackerdom.ru>
-In-Reply-To: <1398871010-30681-1-git-send-email-bay@hackerdom.ru>
-References: <1398871010-30681-1-git-send-email-bay@hackerdom.ru>
+	Tue, 29 Apr 2014 13:27:29 -0400
+Received: by mail-wi0-f176.google.com with SMTP id f8so1588445wiw.9
+        for <linux-media@vger.kernel.org>; Tue, 29 Apr 2014 10:27:28 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <53576AC4.8090303@xs4all.nl>
+References: <CAKZjMP3B5k8MByhVrn=vsWOwnZLDL+YS48VvAWQ+z4=RKduV-Q@mail.gmail.com>
+	<53576AC4.8090303@xs4all.nl>
+Date: Tue, 29 Apr 2014 10:27:27 -0700
+Message-ID: <CAKZjMP14q0YTu11hJuQoRoOYihWw5Y63qGAoMUfGpL=2=ouG4g@mail.gmail.com>
+Subject: Re: Question about implementation of __qbuf_dmabuf() in videobuf2-core.c
+From: n179911 <n179911@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds documentation for Device-Tree bindings for sunxi IR
-controller.
+Hi,
 
-Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
----
- .../devicetree/bindings/media/sunxi-ir.txt         | 23 ++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sunxi-ir.txt
+Is there a work around for this bug without upgrading to 3.16 kernel?
 
-diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-new file mode 100644
-index 0000000..d502cf4
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-@@ -0,0 +1,23 @@
-+Device-Tree bindings for SUNXI IR controller found in sunXi SoC family
-+
-+Required properties:
-+- compatible	    : should be "allwinner,sun7i-a20-ir";
-+- clocks	    : list of clock specifiers, corresponding to
-+		      entries in clock-names property;
-+- clock-names	    : should contain "apb0_ir0" and "ir0" entries;
-+- interrupts	    : should contain IR IRQ number;
-+- reg		    : should contain IO map address for IR.
-+
-+Optional properties:
-+- linux,rc-map-name : Remote control map name.
-+
-+Example:
-+
-+ir0: ir@01c21800 {
-+       	compatible = "allwinner,sun7i-a20-ir";
-+       	clocks = <&apb0_gates 6>, <&ir0_clk>;
-+       	clock-names = "apb0_ir0", "ir0";
-+       	interrupts = <0 5 1>;
-+       	reg = <0x01C21800 0x40>;
-+       	linux,rc-map-name = "rc-rc6-mce";
-+};
--- 
-1.9.2
+Is it safe to manually set the length to be data_offset + size + 1 to make sure
 
+planes[plane].length is greater than planes[plane].data_offset +
+                    q->plane_sizes[plane]?
+
+Thank you.
+
+On Wed, Apr 23, 2014 at 12:24 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 04/23/2014 02:18 AM, n179911 wrote:
+>> In __qbuf_dmabuf(), it check the length and size of the buffer being
+>> queued, like this:
+>> http://lxr.free-electrons.com/source/drivers/media/v4l2-core/videobuf2-core.c#L1158
+>>
+>> My question is why the range check is liked this:
+>>
+>> 1158  if (planes[plane].length < planes[plane].data_offset +
+>> 1159                     q->plane_sizes[plane]) {
+>
+> It's a bug. It should be:
+>
+>         if (planes[plane].length < q->plane_sizes[plane]) {
+>
+> This has been fixed in our upstream code and will appear in 3.16.
+>
+> Regards,
+>
+>         Hans
+>
+>>         .....
+>>
+>> Isn't  planes[plane].length + planes[plane].data_offset equals to
+>> q->plane_sizes[plane]?
+>>
+>> So the check should be?
+>>  if (planes[plane].length < q->plane_sizes[plane] - planes[plane].data_offset)
+>>
+>> Please tell me what am I missing?
+>>
+>> Thank you
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
