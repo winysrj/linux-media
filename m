@@ -1,113 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1181 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750819AbaDOCPY (ORCPT
+Received: from mail-vc0-f175.google.com ([209.85.220.175]:45657 "EHLO
+	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933500AbaD2UI4 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 22:15:24 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s3F2FLuE034963
-	for <linux-media@vger.kernel.org>; Tue, 15 Apr 2014 04:15:23 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 15 Apr 2014 04:15:21 +0200 (CEST)
-Message-Id: <201404150215.s3F2FLuE034963@smtp-vbr5.xs4all.nl>
-Received: from localhost (209.80-203-20.nextgentel.com [80.203.20.209])
-	by tschai.lan (Postfix) with ESMTPSA id CBAD42A0410
-	for <linux-media@vger.kernel.org>; Tue, 15 Apr 2014 04:15:18 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+	Tue, 29 Apr 2014 16:08:56 -0400
+Received: by mail-vc0-f175.google.com with SMTP id lh4so970593vcb.6
+        for <linux-media@vger.kernel.org>; Tue, 29 Apr 2014 13:08:55 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <alpine.LNX.2.00.1404291241000.26512@spider.phas.ubc.ca>
+References: <alpine.LNX.2.00.1404291241000.26512@spider.phas.ubc.ca>
+Date: Tue, 29 Apr 2014 17:08:55 -0300
+Message-ID: <CAOMZO5DUGECOy8KTrrJzv5Aq2HW0LYtwP3VTwTmjQXLi5UXR7Q@mail.gmail.com>
+Subject: Re: au0828 (950Q) kernel OOPS 3.10.30 imx6
+From: Fabio Estevam <festevam@gmail.com>
+To: Carl Michal <michal@physics.ubc.ca>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Tue, Apr 29, 2014 at 4:50 PM, Carl Michal <michal@physics.ubc.ca> wrote:
+> Hello,
+>
+> I'm trying to use a Hauppage HVR-950Q ATSC tv stick with a Cubox-i running
+> geexbox.
+>
+> It works great, until it doesn't. After its been up and running for a few
+> hours (sometimes minutes), I start to get kernel OOPs, example pasted in
+> below. The 950Q generally doesn't work afterwards.
+>
+> This is a 3.10.30 kernel, that I believe the Cubox is somewhat tied to for
+> other driver reasons.
+>
+> I haven't seen any such problems if the HVR-950Q is unplugged.
+>
+> Any advice on tracking this down would be appreciated.
+>
+> Carl
+>
+>
+> ————[ cut here ]————
+> WARNING: at mm/vmalloc.c:126 vmap_page_range_noflush+0×178/0x1c4()
+> Modules linked in: au8522_dig tuner au8522_decoder au8522_common
+> mxc_v4l2_capture au0828 ipu_bg_overlay_sdc snd_usb_audio ipu_still
+> ipu_prp_enc snd_usbmidi_lib ipu_csi_enc tveeprom snd_rawmidi
+> ipu_fg_overlay_sdc videobuf_vmalloc snd_hwdep brcmutil ir_lirc_codec
+> lirc_dev ir_rc5_sz_decoder ir_sanyo_decoder ir_mce_kbd_decoder
+> ir_sony_decoder ir_nec_decoder ir_jvc_decoder ir_rc6_decoder ir_rc5_decoder
+> uinput
+> CPU: 0 PID: 700 Comm: xbmc.bin Not tainted 3.10.30 #1
+> [<8001444c>] (unwind_backtrace) from [<800114ac>] (show_stack+0×10/0×14)
+> [<800114ac>] (show_stack) from [<80025fd0>]
+> (warn_slowpath_common+0x4c/0x6c)
+> [<80025fd0>] (warn_slowpath_common) from [<8002600c>]
+> (warn_slowpath_null+0x1c/0×24)
+> [<8002600c>] (warn_slowpath_null) from [<800af188>]
+> (vmap_page_range_noflush+0×178/0x1c4)
+> [<800af188>] (vmap_page_range_noflush) from [<800b0228>]
+> (map_vm_area+0x2c/0x7c)
+> [<800b0228>] (map_vm_area) from [<800b0dd0>]
+> (__vmalloc_node_range+0xfc/0x1dc)
+> [<800b0dd0>] (__vmalloc_node_range) from [<800b0eec>]
+> (__vmalloc_node+0x3c/0×44)
+> [<800b0eec>] (__vmalloc_node) from [<800b0f24>] (vmalloc+0×30/0×38)
+> [<800b0f24>] (vmalloc) from [<80438778>] (gckOS_AllocateMemory+0×40/0×54)
+> [<80438778>] (gckOS_AllocateMemory) from [<804387c0>]
 
-Results of the daily build of media_tree:
+This comes from the Vivante GPU driver, which is not in mainline.
 
-date:		Tue Apr 15 04:00:26 CEST 2014
-git branch:	test
-git hash:	277a163c83d7ba93fba1e8980d29a9f8bfcfba6c
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.13-7.slh.1-amd64
-
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12-i686: ERRORS
-linux-3.13-i686: ERRORS
-linux-3.14-i686: ERRORS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12-x86_64: ERRORS
-linux-3.13-x86_64: ERRORS
-linux-3.14-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Please try a 3.14.2 or 3.15-rc3 kernel instead.
