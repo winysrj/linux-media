@@ -1,46 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:50019 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934330AbaDITY7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Apr 2014 15:24:59 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id CE1BE200CB
-	for <linux-media@vger.kernel.org>; Wed,  9 Apr 2014 22:24:52 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 01/17] smiapp: Use I2C adapter ID and address in the sub-device name
-Date: Wed,  9 Apr 2014 22:24:53 +0300
-Message-Id: <1397071509-2071-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1397071509-2071-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:39376 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755420AbaD2Gtr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Apr 2014 02:49:47 -0400
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: devel@driverdev.osuosl.org, LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH] media: davinci_vpfe: dm365_resizer: fix sparse warning
+Date: Tue, 29 Apr 2014 12:19:34 +0530
+Message-Id: <1398754174-6892-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sub-device names should be unique. Should two identical sensors be
-present in the same media device they would be indistinguishable. The names
-will change e.g. from "vs6555 pixel array" to "vs6555 1-0010 pixel array".
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+this patch fixes following sparse warning,
+dm365_resizer.c:223:1: warning: symbol 'resizer_calculate_resize_ratios' was not declared. Should it be static?
+dm365_resizer.c:313:5: warning: symbol 'resizer_configure_output_win' was not declared. Should it be static?
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/staging/media/davinci_vpfe/dm365_resizer.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 8741cae..69c11ec 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2543,8 +2543,9 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 		}
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+index 8e13bd4..8828d6c 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+@@ -219,7 +219,7 @@ configure_resizer_out_params(struct vpfe_resizer_device *resizer, int index,
+  * @resizer: Pointer to VPFE resizer subdevice.
+  * @index: index RSZ_A-resizer-A RSZ_B-resizer-B.
+  */
+-void
++static void
+ resizer_calculate_resize_ratios(struct vpfe_resizer_device *resizer, int index)
+ {
+ 	struct resizer_params *param = &resizer->config;
+@@ -310,7 +310,7 @@ resizer_calculate_sdram_offsets(struct vpfe_resizer_device *resizer, int index)
+ 	return 0;
+ }
  
- 		snprintf(this->sd.name,
--			 sizeof(this->sd.name), "%s %s",
--			 sensor->minfo.name, _this->name);
-+			 sizeof(this->sd.name), "%s %d-%4.4x %s",
-+			 sensor->minfo.name, i2c_adapter_id(client->adapter),
-+			 client->addr, _this->name);
- 
- 		this->sink_fmt.width =
- 			sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
+-int resizer_configure_output_win(struct vpfe_resizer_device *resizer)
++static int resizer_configure_output_win(struct vpfe_resizer_device *resizer)
+ {
+ 	struct resizer_params *param = &resizer->config;
+ 	struct vpfe_rsz_output_spec output_specs;
 -- 
-1.8.3.2
+1.7.9.5
 
