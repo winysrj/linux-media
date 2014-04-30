@@ -1,164 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:40302 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753803AbaDCXc6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Apr 2014 19:32:58 -0400
-Subject: [PATCH 20/49] rc-core: allow chardev to be written
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Date: Fri, 04 Apr 2014 01:32:56 +0200
-Message-ID: <20140403233256.27099.34338.stgit@zeus.muc.hardeman.nu>
-In-Reply-To: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
-References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
+Received: from mail-oa0-f45.google.com ([209.85.219.45]:54427 "EHLO
+	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750816AbaD3Fth (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Apr 2014 01:49:37 -0400
+Received: by mail-oa0-f45.google.com with SMTP id eb12so1427117oac.18
+        for <linux-media@vger.kernel.org>; Tue, 29 Apr 2014 22:49:37 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <53608DEB.1020608@gmail.com>
+References: <1398257864-12097-1-git-send-email-arun.kk@samsung.com>
+	<1398257864-12097-3-git-send-email-arun.kk@samsung.com>
+	<CAK9yfHzB11kJbOcL-jHHo_P4D2nXtHuGRM_FT0mNuvV0SLywrQ@mail.gmail.com>
+	<53608DEB.1020608@gmail.com>
+Date: Wed, 30 Apr 2014 11:19:36 +0530
+Message-ID: <CAK9yfHzFsSaWHFzWW--C_4vzaVRCbjeZ0+T6ZTAQn4NwP5oYYw@mail.gmail.com>
+Subject: Re: [PATCH 2/3] [media] s5p-mfc: Core support to add v8 decoder
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Arun Kumar K <arunkk.samsung@gmail.com>
+Cc: Arun Kumar K <arun.kk@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Pawel Osciak <posciak@chromium.org>,
+	Kiran Avnd <avnd.kiran@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add write functionality to the rc chardev (for use in transmitting remote
-control commands on capable hardware).
+Hi Arun,
 
-The data format of the TX data is probably going to have to be dependent
-on the rc_driver_type.
+On 30 April 2014 11:15, Arun Kumar K <arunkk.samsung@gmail.com> wrote:
+> Hi Sachin,
+>
+> Thank you for the review.
+>
+>
+> On 04/29/14 22:45, Sachin Kamat wrote:
+>>
+>> Hi Arun,
+>>
+>> On 23 April 2014 18:27, Arun Kumar K <arun.kk@samsung.com> wrote:
+>>>
+>>> From: Kiran AVND <avnd.kiran@samsung.com>
+>>>
+>>> This patch adds variant data and core support for
+>>> V8 decoder. This patch also adds the register definition
+>>> file for new firmware version v8 for MFC.
+>>>
+>>> Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+>>> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+>>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>>> ---
+>>
+>> <...>
+>>>
+>>> +
+>>> +/* Returned value register for specific setting */
+>>> +#define S5P_FIMV_D_RET_PICTURE_TAG_TOP_V8      0xf674
+>>> +#define S5P_FIMV_D_RET_PICTURE_TAG_BOT_V8      0xf678
+>>> +#define S5P_FIMV_D_MVC_VIEW_ID_V8              0xf6d8
+>>> +
+>>> +/* SEI related information */
+>>> +#define S5P_FIMV_D_FRAME_PACK_SEI_AVAIL_V8     0xf6dc
+>>> +
+>>> +/* MFCv8 Context buffer sizes */
+>>> +#define MFC_CTX_BUF_SIZE_V8            (30 * SZ_1K)    /*  30KB */
+>>
+>>
+>> Please include header file for size macros.
+>>
+>
+> The file linux/sizes.h is included in regs-mfc-v6.h which
+> inturn gets included in this file. Isnt that fine?
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/rc-main.c |   71 ++++++++++++++++++++++++++++++++++++++++++++
- include/media/rc-core.h    |    2 +
- 2 files changed, 73 insertions(+)
+Direct inclusions are encouraged. Please add it in this file.
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 43789b4..d7b24a1 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1531,6 +1531,72 @@ static ssize_t rc_read(struct file *file, char __user *buffer,
- }
- 
- /**
-+ * rc_write() - allows userspace to write data to transmit
-+ * @file:	the &struct file corresponding to the previous open()
-+ * @buffer:	the userspace buffer to read data from
-+ * @count:	the number of bytes to read
-+ * @ppos:	the file offset
-+ * @return:	the number of bytes written, or a negative error code
-+ *
-+ * This function (which implements write in &struct file_operations)
-+ * allows userspace to transmit data using a suitable rc device
-+ */
-+static ssize_t rc_write(struct file *file, const char __user *buffer,
-+			size_t count, loff_t *ppos)
-+{
-+	struct rc_client *client = file->private_data;
-+	struct rc_dev *dev = client->dev;
-+	ssize_t ret;
-+	struct rc_event ev;
-+
-+	if (!dev->tx_ir)
-+		return -ENOSYS;
-+
-+	if (count < sizeof(ev) || count % sizeof(ev))
-+		return -EINVAL;
-+
-+again:
-+	if (kfifo_is_full(&dev->txfifo) && !dev->dead &&
-+	    (file->f_flags & O_NONBLOCK))
-+		return -EAGAIN;
-+
-+	ret = wait_event_interruptible(dev->txwait,
-+				       !kfifo_is_full(&dev->txfifo) ||
-+				       dev->dead);
-+	if (ret)
-+		return ret;
-+
-+	if (dev->dead)
-+		return -ENODEV;
-+
-+	mutex_lock(&dev->txmutex);
-+	for (ret = 0; ret + sizeof(ev) <= count; ret += sizeof(ev)) {
-+		if (copy_from_user(&ev, buffer + ret, sizeof(ev))) {
-+			kfifo_reset_out(&dev->txfifo);
-+			mutex_unlock(&dev->txmutex);
-+			return -EFAULT;
-+		}
-+
-+		if (kfifo_in(&dev->txfifo, &ev, 1) != 1)
-+			break;
-+	}
-+
-+	if (ret == 0) {
-+		mutex_unlock(&dev->txmutex);
-+		goto again;
-+	}
-+
-+	ret = dev->tx_ir(dev, ret / sizeof(ev));
-+	mutex_unlock(&dev->txmutex);
-+	wake_up_interruptible(&dev->txwait);
-+
-+	if (ret > 0)
-+		ret *= sizeof(ev);
-+
-+	return ret;
-+}
-+
-+/**
-  * rc_poll() - allows userspace to poll rc device files
-  * @file:	the &struct file corresponding to the previous open()
-  * @wait:	used to keep track of processes waiting for poll events
-@@ -1544,8 +1610,10 @@ static unsigned int rc_poll(struct file *file, poll_table *wait)
- 	struct rc_client *client = file->private_data;
- 	struct rc_dev *dev = client->dev;
- 
-+	poll_wait(file, &dev->txwait, wait);
- 	poll_wait(file, &dev->rxwait, wait);
- 	return ((kfifo_is_empty(&client->rxfifo) ? 0 : (POLLIN | POLLRDNORM)) |
-+		(kfifo_is_full(&dev->txfifo) ? 0 : (POLLOUT | POLLWRNORM)) |
- 		(!dev->dead ? 0 : (POLLHUP | POLLERR)));
- }
- 
-@@ -1572,6 +1640,7 @@ static const struct file_operations rc_fops = {
- 	.open		= rc_dev_open,
- 	.release	= rc_release,
- 	.read		= rc_read,
-+	.write		= rc_write,
- 	.poll		= rc_poll,
- 	.fasync		= rc_fasync,
- 	.llseek		= no_llseek,
-@@ -1698,6 +1767,7 @@ struct rc_dev *rc_allocate_device(void)
- 	INIT_LIST_HEAD(&dev->client_list);
- 	spin_lock_init(&dev->client_lock);
- 	mutex_init(&dev->txmutex);
-+	init_waitqueue_head(&dev->txwait);
- 	init_waitqueue_head(&dev->rxwait);
- 	spin_lock_init(&dev->rc_map.lock);
- 	spin_lock_init(&dev->keylock);
-@@ -1904,6 +1974,7 @@ void rc_unregister_device(struct rc_dev *dev)
- 		kill_fasync(&client->fasync, SIGIO, POLL_HUP);
- 	spin_unlock(&dev->client_lock);
- 	wake_up_interruptible_all(&dev->rxwait);
-+	wake_up_interruptible_all(&dev->txwait);
- 
- 	cdev_del(&dev->cdev);
- 
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index ca22cf7..39f3794 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -133,6 +133,7 @@ enum rc_filter_type {
-  * @client_lock: protects client_list
-  * @txfifo: fifo with tx data to transmit
-  * @txmutex: protects txfifo and serializes calls to @tx_ir
-+ * @txwait: waitqueue for processes waiting to write data to the txfifo
-  * @rxwait: waitqueue for processes waiting for data to read
-  * @raw: additional data for raw pulse/space devices
-  * @input_dev: the input child device used to communicate events to userspace
-@@ -199,6 +200,7 @@ struct rc_dev {
- 	spinlock_t			client_lock;
- 	DECLARE_KFIFO_PTR(txfifo, struct rc_event);
- 	struct mutex			txmutex;
-+	wait_queue_head_t		txwait;
- 	wait_queue_head_t		rxwait;
- 	struct ir_raw_event_ctrl	*raw;
- 	struct input_dev		*input_dev;
+>
+>
+>> <...>
+>>>
+>>>   };
+>>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+>>> b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+>>> index 48a14b5..f0e63f5 100644
+>>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+>>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+>>> @@ -23,8 +23,7 @@
+>>>   #include <media/v4l2-ioctl.h>
+>>>   #include <media/videobuf2-core.h>
+>>>   #include "regs-mfc.h"
+>>> -#include "regs-mfc-v6.h"
+>>> -#include "regs-mfc-v7.h"
+>>> +#include "regs-mfc-v8.h"
+>>>
+>>>   /* Definitions related to MFC memory */
+>>>
+>>> @@ -705,5 +704,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
+>>>   #define IS_TWOPORT(dev)                (dev->variant->port_num == 2 ? 1
+>>> : 0)
+>>>   #define IS_MFCV6_PLUS(dev)     (dev->variant->version >= 0x60 ? 1 : 0)
+>>>   #define IS_MFCV7(dev)          (dev->variant->version >= 0x70 ? 1 : 0)
+>>
+>>
+>> Is MFC v8 superset of MFC v7?
+>>
+>
+> Yes it is a superset.
+> So the last patch in this series renames IS_MFCV7 to IS_MFCV7_PLUS.
 
+Shouldn't that be done first in that case?
+
+-- 
+With warm regards,
+Sachin
