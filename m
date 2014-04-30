@@ -1,47 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:4538 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754481AbaDNJA4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 05:00:56 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id F1F902097A
-	for <linux-media@vger.kernel.org>; Mon, 14 Apr 2014 12:00:52 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 03/21] smiapp: Fix determining the need for 8-bit read access
-Date: Mon, 14 Apr 2014 11:58:28 +0300
-Message-Id: <1397465926-29724-4-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1397465926-29724-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from s4.n225.n6.n64.static.myhostcenter.com ([64.6.225.4]:49495 "EHLO
+	ps04.myhostcenter.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750756AbaD3ByG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Apr 2014 21:54:06 -0400
+Message-ID: <20140429215347.hb7hnquabcww0k0s@webmail.elihof.com>
+Date: Tue, 29 Apr 2014 21:53:47 -0400
+From: Mark Thompson <markthompson@voila.fr>
+To: undisclosed-recipients:;
+Subject: DEAR FRIEND!
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-8-bit reads are needed in some cases; however the condition used was wrong.
-Regular access (register width) was used if:
 
-	len == SMIAPP_REG_8BIT && !only8
 
-This causes 8-bit read access to be used always. The operator should be ||
-instead: regular access can be used for 8-bit reads OR if allowed otherwise.
+From: Mr. Mark Thompson
+Bank of Africa Burkina Faso.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-regs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Dear Friend,
+I am the manager account/audit department (Annexe) Bank of African (BOA) in
+Burkina faso. I would like you to indicate your interest to receive this
+transfer of US$10.5 Million; as the beneficiary (next of kin) to our  
+late client
+whom account is presently dormant and awaiting any claimer details  
+shall be send
+to you with drafted application letter to apply.
+Please reply to this email address:(markthompson@voila.fr)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-regs.c b/drivers/media/i2c/smiapp/smiapp-regs.c
-index 5d0151a..c2db205 100644
---- a/drivers/media/i2c/smiapp/smiapp-regs.c
-+++ b/drivers/media/i2c/smiapp/smiapp-regs.c
-@@ -172,7 +172,7 @@ static int __smiapp_read(struct smiapp_sensor *sensor, u32 reg, u32 *val,
- 	    && len != SMIAPP_REG_32BIT)
- 		return -EINVAL;
- 
--	if (len == SMIAPP_REG_8BIT && !only8)
-+	if (len == SMIAPP_REG_8BIT || !only8)
- 		rval = ____smiapp_read(sensor, (u16)reg, len, val);
- 	else
- 		rval = ____smiapp_read_8only(sensor, (u16)reg, len, val);
--- 
-1.8.3.2
+1. Full name:.........
+2. Current Address:.........
+3. Telephone N°:...........
+4. Occupation:.............
+5. Copy of your identity...
+6. Age:............
+7. Country:........
 
+Yours truly
+Mr. Mark Thompson
+Tel: 00226 75 49 66 04
