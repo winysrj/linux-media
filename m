@@ -1,102 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:44301 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965197AbaDJHcg (ORCPT
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:59466 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1422672AbaD3W3t (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Apr 2014 03:32:36 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N3T00CAT0Y7UK10@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Apr 2014 16:32:31 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH v2 4/8] s5p-jpeg: Fix build break when CONFIG_OF is undefined
-Date: Thu, 10 Apr 2014 09:32:14 +0200
-Message-id: <1397115138-1095-4-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1397115138-1095-1-git-send-email-j.anaszewski@samsung.com>
-References: <1397115138-1095-1-git-send-email-j.anaszewski@samsung.com>
+	Wed, 30 Apr 2014 18:29:49 -0400
+Date: Wed, 30 Apr 2014 23:28:39 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Andrzej Hajda <andrzej.hajda@wp.pl>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	open list <linux-kernel@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	David Airlie <airlied@linux.ie>,
+	Inki Dae <inki.dae@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Figa <t.figa@samsung.com>,
+	Tomasz Stansislawski <t.stanislaws@samsung.com>,
+	"moderated list:ARM/S5P EXYNOS AR..."
+	<linux-samsung-soc@vger.kernel.org>,
+	"moderated list:ARM/S5P EXYNOS AR..."
+	<linux-arm-kernel@lists.infradead.org>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC PATCH 0/4] drivers/base: Generic framework for tracking
+	internal interfaces
+Message-ID: <20140430222839.GE26756@n2100.arm.linux.org.uk>
+References: <1398866574-27001-1-git-send-email-a.hajda@samsung.com> <20140430154914.GA898@kroah.com> <53616E31.3050404@wp.pl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53616E31.3050404@wp.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes build break occurring when
-there is no support for Device Tree turned on
-in the kernel configuration. In such a case only
-the driver variant for S5PC210 SoC will be available.
+On Wed, Apr 30, 2014 at 11:42:09PM +0200, Andrzej Hajda wrote:
+> The main problem with component framework is that componentization  
+> significantly changes every driver and changes it in a way which is not  
+> compatible with traditional drivers, so devices which are intended to  
+> work with different DRM masters are hard to componentize if some of DRMs  
+> are componentized and some not.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+Many of the problems which the component helpers are designed to solve
+are those where you need the drm_device structure (or snd_card, or whatever
+subsystem specific card/device representation structure) pre-created in
+order to initialise the components.
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 1b69b69..04260c2 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1840,7 +1840,7 @@ static irqreturn_t exynos4_jpeg_irq(int irq, void *priv)
- 	return IRQ_HANDLED;
- }
- 
--static void *jpeg_get_drv_data(struct platform_device *pdev);
-+static void *jpeg_get_drv_data(struct device *dev);
- 
- /*
-  * ============================================================================
-@@ -1854,15 +1854,12 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
- 	struct resource *res;
- 	int ret;
- 
--	if (!pdev->dev.of_node)
--		return -ENODEV;
--
- 	/* JPEG IP abstraction struct */
- 	jpeg = devm_kzalloc(&pdev->dev, sizeof(struct s5p_jpeg), GFP_KERNEL);
- 	if (!jpeg)
- 		return -ENOMEM;
- 
--	jpeg->variant = jpeg_get_drv_data(pdev);
-+	jpeg->variant = jpeg_get_drv_data(&pdev->dev);
- 
- 	mutex_init(&jpeg->lock);
- 	spin_lock_init(&jpeg->slock);
-@@ -2091,7 +2088,6 @@ static const struct dev_pm_ops s5p_jpeg_pm_ops = {
- 	SET_RUNTIME_PM_OPS(s5p_jpeg_runtime_suspend, s5p_jpeg_runtime_resume, NULL)
- };
- 
--#ifdef CONFIG_OF
- static struct s5p_jpeg_variant s5p_jpeg_drvdata = {
- 	.version	= SJPEG_S5P,
- 	.jpeg_irq	= s5p_jpeg_irq,
-@@ -2122,19 +2118,21 @@ static const struct of_device_id samsung_jpeg_match[] = {
- 
- MODULE_DEVICE_TABLE(of, samsung_jpeg_match);
- 
--static void *jpeg_get_drv_data(struct platform_device *pdev)
-+static void *jpeg_get_drv_data(struct device *dev)
- {
- 	struct s5p_jpeg_variant *driver_data = NULL;
- 	const struct of_device_id *match;
- 
--	match = of_match_node(of_match_ptr(samsung_jpeg_match),
--					 pdev->dev.of_node);
-+	if (!IS_ENABLED(CONFIG_OF) || !dev->of_node)
-+		return &s5p_jpeg_drvdata;
-+
-+	match = of_match_node(samsung_jpeg_match, dev->of_node);
-+
- 	if (match)
- 		driver_data = (struct s5p_jpeg_variant *)match->data;
- 
- 	return driver_data;
- }
--#endif
- 
- static struct platform_driver s5p_jpeg_driver = {
- 	.probe = s5p_jpeg_probe,
+In the case of DRM, you can't initialise encoders or connectors without
+their drm_device structure pre-existing - because these components are
+attached to the drm_device.
+
+Your solution to that is to delay those calls, but the DRM subsystem is
+not designed to cope like that - it's designed such that when the
+connector or encoder initialisation functions are called, it is assumed
+that the driver is initialising its state. (I've raised this point before
+but you've just fobbed it off in the past.)
+
+Another issue here is that the order of initialisation matters greatly.
+Take CRTCs for example.  In DRM, the order of attachment of CRTCs defines
+their identity, changing the order changes their identity, and changes
+how they are bound to their respective connectors.
+
 -- 
-1.7.9.5
-
+FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
+improving, and getting towards what was expected from it.
