@@ -1,85 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36740 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751632AbaDARz7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Apr 2014 13:55:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Anton Leontiev <bunder@t-25.ru>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] uvcvideo: Fix marking buffer erroneous in case of FID toggling
-Date: Tue, 01 Apr 2014 17:24:14 +0200
-Message-ID: <10422468.Ah80osK73i@avalon>
-In-Reply-To: <533659E2.4010001@t-25.ru>
-References: <1395722457-28080-1-git-send-email-bunder@t-25.ru> <1459346.J1YUbuH55p@avalon> <533659E2.4010001@t-25.ru>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:53179 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933754AbaD3ODt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Apr 2014 10:03:49 -0400
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: linux-kernel@vger.kernel.org (open list)
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	David Airlie <airlied@linux.ie>,
+	Inki Dae <inki.dae@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Figa <t.figa@samsung.com>,
+	Tomasz Stansislawski <t.stanislaws@samsung.com>,
+	linux-samsung-soc@vger.kernel.org (moderated list:ARM/S5P EXYNOS AR...),
+	linux-arm-kernel@lists.infradead.org (moderated list:ARM/S5P EXYNOS
+	AR...), dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org
+Subject: [RFC PATCH 4/4] drm/panel/ld9040: do not power off panel on removal
+Date: Wed, 30 Apr 2014 16:02:54 +0200
+Message-id: <1398866574-27001-5-git-send-email-a.hajda@samsung.com>
+In-reply-to: <1398866574-27001-1-git-send-email-a.hajda@samsung.com>
+References: <1398866574-27001-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Anton,
+Panel is powered off already by connector during drm_panel_remove call.
 
-On Saturday 29 March 2014 09:28:02 Anton Leontiev wrote:
-> 28.03.2014 20:12, Laurent Pinchart пишет:
-> >>>> + * Set error flag for incomplete buffer.
-> >>>> + */
-> >>>> +static void uvc_buffer_check_bytesused(const struct uvc_streaming
-> >>>> *const stream,
-> > 
-> > No need for the second const keyword here.
-> > 
-> > I would have used "uvc_video_" as a prefix, to be in sync with the
-> > surrounding functions. What would you think of
-> > uvc_video_validate_buffer() ?
-> > 
-> >>>> +	struct uvc_buffer *const buf)
-> > 
-> > And no need for const at all here.
-> > 
-> >>>> +{
-> >>>> +	if (buf->length != buf->bytesused &&
-> >>>> +			!(stream->cur_format->flags & UVC_FMT_FLAG_COMPRESSED))
-> > 
-> > The indentation is wrong here, the ! on the second line should be aligned
-> > to the first 'buf' of the first line.
-> > 
-> > If you agree with these changes I can perform them while applying, there's
-> > no need to resubmit the patch.
-> 
-> Thank you for reviewing my first patch to Linux kernel.
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+---
+ drivers/gpu/drm/panel/panel-ld9040.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Thank you for submitting it :-)
-
-> I completely agree with your changes.
-> 
-> Just want to ask why there is no need for the second 'const' after pointer
-> character '*'? I thought it marks pointer itself as constant for type-
-> checking opposite to first 'const', which marks memory it points to as
-> constant for type-checking.
-
-Your understanding is correct (as far as I know).
-
-> I understand that the function is simple enough to verify it by hand but
-> it's better to add more information for automatic checking.
->
-> Is there any guidelines on 'const' keyword usage in Linux kernel code?
-
-Marking the memory pointed to by the pointer as const ensures that the 
-function won't modify memory that the caller thought wouldn't be modified. It 
-thus serves as a contract between the caller and the callee, enforced by the 
-compiler.
-
-Marking the pointer as const, on the other hand, only affects the function 
-implementation, without influencing its call contract. Its only use in this 
-case would be to prevent the function from modifying a pointer that the 
-function itself thought it shouldn't modify. While not useless in all cases, 
-this compile-time checked if usually not performed in the kernel, especially 
-for simple functions. I'm not aware of any explicit rule regarding const usage 
-though.
-
+diff --git a/drivers/gpu/drm/panel/panel-ld9040.c b/drivers/gpu/drm/panel/panel-ld9040.c
+index 1f1f837..1def4b0 100644
+--- a/drivers/gpu/drm/panel/panel-ld9040.c
++++ b/drivers/gpu/drm/panel/panel-ld9040.c
+@@ -348,7 +348,6 @@ static int ld9040_remove(struct spi_device *spi)
+ {
+ 	struct ld9040 *ctx = spi_get_drvdata(spi);
+ 
+-	ld9040_power_off(ctx);
+ 	drm_panel_remove(&ctx->panel);
+ 
+ 	return 0;
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.2
 
