@@ -1,107 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:37432 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754151AbaDNHmg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Apr 2014 03:42:36 -0400
-Message-ID: <534B9165.4000101@canonical.com>
-Date: Mon, 14 Apr 2014 09:42:29 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-MIME-Version: 1.0
-To: Thomas Hellstrom <thellstrom@vmware.com>
-CC: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	ccross@google.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] [RFC v2 with seqcount] reservation: add suppport
- for read-only access using rcu
-References: <20140409144239.26648.57918.stgit@patser> <20140409144831.26648.79163.stgit@patser> <53465A53.1090500@vmware.com> <53466D63.8080808@canonical.com> <53467B93.3000402@vmware.com> <5346B212.8050202@canonical.com> <5347A9FD.2070706@vmware.com> <5347B4E5.6090901@canonical.com> <5347BFC9.3020503@vmware.com> <53482FF1.1090406@canonical.com> <534843EA.6060602@vmware.com>
-In-Reply-To: <534843EA.6060602@vmware.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from ns.pmeerw.net ([87.118.82.44]:59578 "EHLO pmeerw.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751576AbaD3INg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Apr 2014 04:13:36 -0400
+From: Peter Meerwald <pmeerw@pmeerw.net>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	stable@vger.kernel.org, Peter Meerwald <pmeerw@pmeerw.net>
+Subject: [PATCH] omap3isp: Fix iommu domain use-after-free in isp_probe() error path
+Date: Wed, 30 Apr 2014 10:13:30 +0200
+Message-Id: <1398845610-12954-1-git-send-email-pmeerw@pmeerw.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-op 11-04-14 21:35, Thomas Hellstrom schreef:
-> On 04/11/2014 08:09 PM, Maarten Lankhorst wrote:
->> op 11-04-14 12:11, Thomas Hellstrom schreef:
->>> On 04/11/2014 11:24 AM, Maarten Lankhorst wrote:
->>>> op 11-04-14 10:38, Thomas Hellstrom schreef:
->>>>> Hi, Maarten.
->>>>>
->>>>> Here I believe we encounter a lot of locking inconsistencies.
->>>>>
->>>>> First, it seems you're use a number of pointers as RCU pointers
->>>>> without
->>>>> annotating them as such and use the correct rcu
->>>>> macros when assigning those pointers.
->>>>>
->>>>> Some pointers (like the pointers in the shared fence list) are both
->>>>> used
->>>>> as RCU pointers (in dma_buf_poll()) for example,
->>>>> or considered protected by the seqlock
->>>>> (reservation_object_get_fences_rcu()), which I believe is OK, but then
->>>>> the pointers must
->>>>> be assigned using the correct rcu macros. In the memcpy in
->>>>> reservation_object_get_fences_rcu() we might get away with an
->>>>> ugly typecast, but with a verbose comment that the pointers are
->>>>> considered protected by the seqlock at that location.
->>>>>
->>>>> So I've updated (attached) the headers with proper __rcu annotation
->>>>> and
->>>>> locking comments according to how they are being used in the various
->>>>> reading functions.
->>>>> I believe if we want to get rid of this we need to validate those
->>>>> pointers using the seqlock as well.
->>>>> This will generate a lot of sparse warnings in those places needing
->>>>> rcu_dereference()
->>>>> rcu_assign_pointer()
->>>>> rcu_dereference_protected()
->>>>>
->>>>> With this I think we can get rid of all ACCESS_ONCE macros: It's not
->>>>> needed when the rcu_x() macros are used, and
->>>>> it's never needed for the members protected by the seqlock, (provided
->>>>> that the seq is tested). The only place where I think that's
->>>>> *not* the case is at the krealloc in
->>>>> reservation_object_get_fences_rcu().
->>>>>
->>>>> Also I have some more comments in the
->>>>> reservation_object_get_fences_rcu() function below:
->>>> I felt that the barriers needed for rcu were already provided by
->>>> checking the seqcount lock.
->>>> But looking at rcu_dereference makes it seem harmless to add it in
->>>> more places, it handles
->>>> the ACCESS_ONCE and barrier() for us.
->>> And it makes the code more maintainable, and helps sparse doing a lot of
->>> checking for us. I guess
->>> we can tolerate a couple of extra barriers for that.
->>>
->>>> We could probably get away with using RCU_INIT_POINTER on the writer
->>>> side,
->>>> because the smp_wmb is already done by arranging seqcount updates
->>>> correctly.
->>> Hmm. yes, probably. At least in the replace function. I think if we do
->>> it in other places, we should add comments as to where
->>> the smp_wmb() is located, for future reference.
->>>
->>>
->>> Also  I saw in a couple of places where you're checking the shared
->>> pointers, you're not checking for NULL pointers, which I guess may
->>> happen if shared_count and pointers are not in full sync?
->>>
->> No, because shared_count is protected with seqcount. I only allow
->> appending to the array, so when
->> shared_count is validated by seqcount it means that the
->> [0...shared_count) indexes are valid and non-null.
->> What could happen though is that the fence at a specific index is
->> updated with another one from the same
->> context, but that's harmless.
->>
-> Hmm, doesn't attaching an exclusive fence clear all shared fence
-> pointers from under a reader?
->
-No, for that reason. It only resets shared_count to 0. This is harmless because the shared fence pointers are
-still valid long enough because of RCU delayed deletion. fence_get_rcu will fail when the refcount has
-dropped to zero. This is enough of a check to prevent errors, so there's no need to explicitly clear the fence
-pointers.
+isp_save_ctx() is called from omap3isp_put() after iommu_domain_free() in
+the isp_probe() error path
 
-~Maarten
+[    3.205047] Unable to handle kernel NULL pointer dereference at virtual address 0000003c
+[    3.213470] pgd = c0004000
+[    3.216308] [0000003c] *pgd=00000000
+[    3.220031] Internal error: Oops: 5 [#1] PREEMPT ARM
+[    3.225189] Modules linked in:
+[    3.228363] CPU: 0    Not tainted  (3.7.10 #3)
+[    3.232971] PC is at omap2_iommu_save_ctx+0x0/0x34
+[    3.237945] LR is at omap_iommu_save_ctx+0x1c/0x24
+[    3.242919] pc : [<c0026a24>]    lr : [<c02b5878>]    psr: 60000113
+...
+[    3.425109] [<c0026a24>] (omap2_iommu_save_ctx+0x0/0x34) from [<c02b5878>] (omap_iommu_save_ctx+0x1c/0x24)
+[    3.435150] [<c02b5878>] (omap_iommu_save_ctx+0x1c/0x24) from [<c027f39c>] (omap3isp_put+0x84/0xfc)
+[    3.444519] [<c027f39c>] (omap3isp_put+0x84/0xfc) from [<c0392b64>] (isp_probe+0x8d8/0xa60)
+[    3.453186] [<c0392b64>] (isp_probe+0x8d8/0xa60) from [<c01fa72c>] (platform_drv_probe+0x14/0x18)
+[    3.462402] [<c01fa72c>] (platform_drv_probe+0x14/0x18) from [<c01f982c>] (driver_probe_device+0xb0/0x1dc)
+
+compare isp_remove(): isp->domain is set to NULL after iommu_domain_free()
+
+above crash is observed with 3.7
+the issue is fixed in 3.11 (7c0f812a5d65e712618af880dda4a5cc7ed79463),
+but present in 3.10 longterm
+
+Cc: stable@vger.kernel.org
+Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
+---
+ drivers/media/platform/omap3isp/isp.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 1d7dbd5..a73d9d9 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2287,6 +2287,7 @@ detach_dev:
+ 	iommu_detach_device(isp->domain, &pdev->dev);
+ free_domain:
+ 	iommu_domain_free(isp->domain);
++	isp->domain = NULL;
+ error_isp:
+ 	isp_xclk_cleanup(isp);
+ 	omap3isp_put(isp);
+-- 
+1.7.9.5
+
