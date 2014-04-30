@@ -1,100 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2971 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750919AbaDPWXe (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:32045 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758056AbaD3IdN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Apr 2014 18:23:34 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s3GMNVWD021404
-	for <linux-media@vger.kernel.org>; Thu, 17 Apr 2014 00:23:33 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id A8D9F2A0410
-	for <linux-media@vger.kernel.org>; Thu, 17 Apr 2014 00:23:26 +0200 (CEST)
-Message-ID: <534F02DE.40002@xs4all.nl>
-Date: Thu, 17 Apr 2014 00:23:26 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.16] Rebase stop_streaming & saa7134 vb2 conversion
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 30 Apr 2014 04:33:13 -0400
+Message-id: <5360B538.3020104@samsung.com>
+Date: Wed, 30 Apr 2014 10:32:56 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Rahul Sharma <r.sh.open@gmail.com>,
+	Andreas Oberritter <obi@saftware.de>
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Grant Likely <grant.likely@linaro.org>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Rahul Sharma <rahul.sharma@samsung.com>,
+	sunil joshi <joshi@samsung.com>
+Subject: Re: [PATCHv2 1/3] phy: Add exynos-simple-phy driver
+References: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com>
+ <1396967856-27470-2-git-send-email-t.stanislaws@samsung.com>
+ <534506B1.4040908@samsung.com> <5345333D.4080505@saftware.de>
+ <CAPdUM4OOaaP2byJa+MgksAaDtsffwqTYT-obfVEBsRxjy_vKrg@mail.gmail.com>
+In-reply-to: <CAPdUM4OOaaP2byJa+MgksAaDtsffwqTYT-obfVEBsRxjy_vKrg@mail.gmail.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As requested by Mauro, here is the rebased version of the 'vb2: stop_streaming
-should return void' patch and the saa7134 vb2 conversion patch.
-
+Hi Rahul,
+I will prepare we v3 version.
+Do you want me to add your patches for exynos5?50 to the patchset?
 Regards,
+Tomasz Stanislawski
 
-	Hans
+On 04/30/2014 08:37 AM, Rahul Sharma wrote:
+> Hi Tomasz,
+> 
+> I have tested your patches for exynos5250 and 5420. Works fine. Are
+> you planning to post v3? If you want I can share hand with you for v3.
+> 
+> Regards,
+> Rahul Sharma
+> 
+> On 9 April 2014 17:17, Andreas Oberritter <obi@saftware.de> wrote:
+>> Hello Andrzej,
+>>
+>> On 09.04.2014 10:37, Andrzej Hajda wrote:
+>>>> +static int exynos_phy_probe(struct platform_device *pdev)
+>>>> +{
+>>>> +    const struct of_device_id *of_id = of_match_device(
+>>>> +            of_match_ptr(exynos_phy_of_match), &pdev->dev);
+>>>> +    const u32 *offsets = of_id->data;
+>>>> +    int count;
+>>>> +    struct device *dev = &pdev->dev;
+>>>> +    struct phy **phys;
+>>>> +    struct resource *res;
+>>>> +    void __iomem *regs;
+>>>> +    int i;
+>>>> +    struct phy_provider *phy_provider;
+>>>> +
+>>>> +    /* count number of phys to create */
+>>>> +    for (count = 0; offsets[count] != ~0; ++count)
+>>>> +            ;
+>>>
+>>> count = ARRAY_SIZE(offsets) - 1;
+>>
+>> u32 *offsets is not an array.
+>>
+>> Regards,
+>> Andreas
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-samsung-soc" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-The following changes since commit 701b57ee3387b8e3749845b02310b5625fbd8da0:
-
-  [media] vb2: Add videobuf2-dvb support (2014-04-16 18:59:29 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.16b
-
-for you to fetch changes up to b4694ff091e304a669b661141f0bbaffaa3f41a3:
-
-  saa7134: convert to vb2 (2014-04-17 00:15:53 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (2):
-      vb2: stop_streaming should return void
-      saa7134: convert to vb2
-
- Documentation/video4linux/v4l2-pci-skeleton.c            |   3 +-
- drivers/media/pci/saa7134/Kconfig                        |   4 +-
- drivers/media/pci/saa7134/saa7134-alsa.c                 | 106 +++++++++--
- drivers/media/pci/saa7134/saa7134-core.c                 | 107 +++++------
- drivers/media/pci/saa7134/saa7134-dvb.c                  |  43 +++--
- drivers/media/pci/saa7134/saa7134-empress.c              | 179 +++++++-----------
- drivers/media/pci/saa7134/saa7134-ts.c                   | 184 +++++++++++--------
- drivers/media/pci/saa7134/saa7134-vbi.c                  | 170 ++++++++----------
- drivers/media/pci/saa7134/saa7134-video.c                | 658 ++++++++++++++++++++++++-------------------------------------------
- drivers/media/pci/saa7134/saa7134.h                      | 106 ++++++-----
- drivers/media/pci/sta2x11/sta2x11_vip.c                  |   3 +-
- drivers/media/platform/blackfin/bfin_capture.c           |   6 +-
- drivers/media/platform/coda.c                            |   4 +-
- drivers/media/platform/davinci/vpbe_display.c            |   5 +-
- drivers/media/platform/davinci/vpif_capture.c            |   6 +-
- drivers/media/platform/davinci/vpif_display.c            |   6 +-
- drivers/media/platform/exynos-gsc/gsc-m2m.c              |   4 +-
- drivers/media/platform/exynos4-is/fimc-capture.c         |   6 +-
- drivers/media/platform/exynos4-is/fimc-isp-video.c       |   5 +-
- drivers/media/platform/exynos4-is/fimc-lite.c            |   6 +-
- drivers/media/platform/exynos4-is/fimc-m2m.c             |   3 +-
- drivers/media/platform/marvell-ccic/mcam-core.c          |   7 +-
- drivers/media/platform/mem2mem_testdev.c                 |   5 +-
- drivers/media/platform/s3c-camif/camif-capture.c         |   4 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c              |   4 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c             |   3 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c             |   3 +-
- drivers/media/platform/s5p-tv/mixer_video.c              |   3 +-
- drivers/media/platform/soc_camera/atmel-isi.c            |   6 +-
- drivers/media/platform/soc_camera/mx2_camera.c           |   4 +-
- drivers/media/platform/soc_camera/mx3_camera.c           |   4 +-
- drivers/media/platform/soc_camera/rcar_vin.c             |   4 +-
- drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c |   4 +-
- drivers/media/platform/vivi.c                            |   3 +-
- drivers/media/platform/vsp1/vsp1_video.c                 |   4 +-
- drivers/media/usb/em28xx/em28xx-v4l.h                    |   2 +-
- drivers/media/usb/em28xx/em28xx-video.c                  |   8 +-
- drivers/media/usb/pwc/pwc-if.c                           |   7 +-
- drivers/media/usb/s2255/s2255drv.c                       |   5 +-
- drivers/media/usb/stk1160/stk1160-v4l.c                  |   4 +-
- drivers/media/usb/usbtv/usbtv-video.c                    |   9 +-
- drivers/media/v4l2-core/videobuf2-core.c                 |   2 +-
- drivers/staging/media/davinci_vpfe/vpfe_video.c          |   3 +-
- drivers/staging/media/dt3155v4l/dt3155v4l.c              |   3 +-
- drivers/staging/media/go7007/go7007-v4l2.c               |   3 +-
- drivers/staging/media/msi3101/sdr-msi3101.c              |  24 +--
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c         |   7 +-
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c       |   3 +-
- drivers/staging/media/solo6x10/solo6x10-v4l2.c           |   3 +-
- include/media/videobuf2-core.h                           |   2 +-
- 50 files changed, 782 insertions(+), 975 deletions(-)
