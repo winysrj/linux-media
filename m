@@ -1,43 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38906 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754113AbaDQONb (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:48472 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757271AbaD3JgZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 10:13:31 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v4 23/49] tvp7002: Remove deprecated video-level DV timings operations
-Date: Thu, 17 Apr 2014 16:12:54 +0200
-Message-Id: <1397744000-23967-24-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 30 Apr 2014 05:36:25 -0400
+Date: Wed, 30 Apr 2014 12:36:03 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org,
+	Frank =?iso-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	kernel-janitors@vger.kernel.org
+Subject: [patch v3] [media] em28xx-cards: fix indenting in probe()
+Message-ID: <20140430093603.GA20713@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140307170110.GP4774@mwanda>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings and dv_timings_cap operations are deprecated
-and unused. Remove them.
+There was a mix of 4 space and tab indenting here which was confusing.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 ---
- drivers/media/i2c/tvp7002.c | 1 -
- 1 file changed, 1 deletion(-)
+v3: Just fix all the surrounding indents as well.
+v2: At first I thought the code was buggy and was missing curly braces
+    but it was just the indenting which was confusing.
 
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index 019dbcf..11f2387 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -927,7 +927,6 @@ static const struct v4l2_subdev_core_ops tvp7002_core_ops = {
- static const struct v4l2_subdev_video_ops tvp7002_video_ops = {
- 	.g_dv_timings = tvp7002_g_dv_timings,
- 	.s_dv_timings = tvp7002_s_dv_timings,
--	.enum_dv_timings = tvp7002_enum_dv_timings,
- 	.query_dv_timings = tvp7002_query_dv_timings,
- 	.s_stream = tvp7002_s_stream,
- 	.g_mbus_fmt = tvp7002_mbus_fmt,
--- 
-1.8.3.2
-
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 50aa5a5..3744766 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3416,14 +3416,14 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 
+ 	/* Select USB transfer types to use */
+ 	if (has_video) {
+-	    if (!dev->analog_ep_isoc || (try_bulk && dev->analog_ep_bulk))
+-		dev->analog_xfer_bulk = 1;
+-	    em28xx_info("analog set to %s mode.\n",
+-			dev->analog_xfer_bulk ? "bulk" : "isoc");
++		if (!dev->analog_ep_isoc || (try_bulk && dev->analog_ep_bulk))
++			dev->analog_xfer_bulk = 1;
++		em28xx_info("analog set to %s mode.\n",
++			    dev->analog_xfer_bulk ? "bulk" : "isoc");
+ 	}
+ 	if (has_dvb) {
+-	    if (!dev->dvb_ep_isoc || (try_bulk && dev->dvb_ep_bulk))
+-		dev->dvb_xfer_bulk = 1;
++		if (!dev->dvb_ep_isoc || (try_bulk && dev->dvb_ep_bulk))
++			dev->dvb_xfer_bulk = 1;
+ 
+ 		em28xx_info("dvb set to %s mode.\n",
+ 			    dev->dvb_xfer_bulk ? "bulk" : "isoc");
