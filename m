@@ -1,63 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38905 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753585AbaDQON2 (ORCPT
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:45495 "EHLO
+	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759165AbaD3P6V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Apr 2014 10:13:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v4 14/49] media: davinci: vpif: Switch to pad-level DV operations
-Date: Thu, 17 Apr 2014 16:12:45 +0200
-Message-Id: <1397744000-23967-15-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1397744000-23967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 30 Apr 2014 11:58:21 -0400
+Received: by mail-pd0-f177.google.com with SMTP id v10so1939888pde.36
+        for <linux-media@vger.kernel.org>; Wed, 30 Apr 2014 08:58:20 -0700 (PDT)
+From: Masanari Iida <standby24x7@gmail.com>
+To: m.chehab@samsung.com, linux-media@vger.kernel.org,
+	hverkuil@xs4all.nl
+Cc: Masanari Iida <standby24x7@gmail.com>
+Subject: [PATCH] media: parport: Fix format string mismatch in bw-qcam.c
+Date: Thu,  1 May 2014 00:57:50 +0900
+Message-Id: <1398873470-3740-1-git-send-email-standby24x7@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video-level enum_dv_timings and dv_timings_cap operations are
-deprecated in favor of the pad-level versions. All subdev drivers
-implement the pad-level versions, switch to them.
+Fix format string mismatch in bw-qcam.c
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Masanari Iida <standby24x7@gmail.com>
 ---
- drivers/media/platform/davinci/vpif_capture.c | 4 +++-
- drivers/media/platform/davinci/vpif_display.c | 4 +++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/media/parport/bw-qcam.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 8dea0b8..f976438 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -1730,7 +1730,9 @@ vpif_enum_dv_timings(struct file *file, void *priv,
- 	struct channel_obj *ch = fh->channel;
- 	int ret;
+diff --git a/drivers/media/parport/bw-qcam.c b/drivers/media/parport/bw-qcam.c
+index 8a0e84c..416507a 100644
+--- a/drivers/media/parport/bw-qcam.c
++++ b/drivers/media/parport/bw-qcam.c
+@@ -937,7 +937,7 @@ static struct qcam *qcam_init(struct parport *port)
+ 		return NULL;
  
--	ret = v4l2_subdev_call(ch->sd, video, enum_dv_timings, timings);
-+	timings->pad = 0;
-+
-+	ret = v4l2_subdev_call(ch->sd, pad, enum_dv_timings, timings);
- 	if (ret == -ENOIOCTLCMD || ret == -ENODEV)
- 		return -EINVAL;
- 	return ret;
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index aed41ed..f4bc39a 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -1386,7 +1386,9 @@ vpif_enum_dv_timings(struct file *file, void *priv,
- 	struct channel_obj *ch = fh->channel;
- 	int ret;
+ 	v4l2_dev = &qcam->v4l2_dev;
+-	snprintf(v4l2_dev->name, sizeof(v4l2_dev->name), "bw-qcam%d", num_cams);
++	snprintf(v4l2_dev->name, sizeof(v4l2_dev->name), "bw-qcam%u", num_cams);
  
--	ret = v4l2_subdev_call(ch->sd, video, enum_dv_timings, timings);
-+	timings->pad = 0;
-+
-+	ret = v4l2_subdev_call(ch->sd, pad, enum_dv_timings, timings);
- 	if (ret == -ENOIOCTLCMD || ret == -ENODEV)
- 		return -EINVAL;
- 	return ret;
+ 	if (v4l2_device_register(port->dev, v4l2_dev) < 0) {
+ 		v4l2_err(v4l2_dev, "Could not register v4l2_device\n");
 -- 
-1.8.3.2
+2.0.0.rc1
 
