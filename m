@@ -1,52 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f41.google.com ([209.85.192.41]:37379 "EHLO
-	mail-qg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754207AbaDFTQN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Apr 2014 15:16:13 -0400
-Received: by mail-qg0-f41.google.com with SMTP id z60so5427619qgd.0
-        for <linux-media@vger.kernel.org>; Sun, 06 Apr 2014 12:16:12 -0700 (PDT)
-Date: Sun, 6 Apr 2014 15:16:08 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Subject: [GIT PULL] DVB / tuner fixes: git://linuxtv.org/mkrufky/dvb fixes
-Message-ID: <20140406151608.48722575@vujade>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:53168 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933549AbaD3ODp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Apr 2014 10:03:45 -0400
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: linux-kernel@vger.kernel.org (open list)
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	David Airlie <airlied@linux.ie>,
+	Inki Dae <inki.dae@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Figa <t.figa@samsung.com>,
+	Tomasz Stansislawski <t.stanislaws@samsung.com>,
+	linux-samsung-soc@vger.kernel.org (moderated list:ARM/S5P EXYNOS AR...),
+	linux-arm-kernel@lists.infradead.org (moderated list:ARM/S5P EXYNOS
+	AR...), dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org
+Subject: [RFC PATCH 2/4] drm/panel: add interface tracker support
+Date: Wed, 30 Apr 2014 16:02:52 +0200
+Message-id: <1398866574-27001-3-git-send-email-a.hajda@samsung.com>
+In-reply-to: <1398866574-27001-1-git-send-email-a.hajda@samsung.com>
+References: <1398866574-27001-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit
-a83b93a7480441a47856dc9104bea970e84cda87:
+drm_panel framework allows only query for presence of given panel.
+It also does not protect panel module from unloading and does not
+provide solution for driver unbinding. interface_tracker
+should solve both issues.
 
-  [media] em28xx-dvb: fix PCTV 461e tuner I2C binding (2014-03-31
-  08:02:16 -0300)
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+---
+---
+ drivers/gpu/drm/drm_panel.c       | 5 +++++
+ include/linux/interface_tracker.h | 2 ++
+ 2 files changed, 7 insertions(+)
 
-are available in the git repository at:
+diff --git a/drivers/gpu/drm/drm_panel.c b/drivers/gpu/drm/drm_panel.c
+index 2ef988e..72a3c5c 100644
+--- a/drivers/gpu/drm/drm_panel.c
++++ b/drivers/gpu/drm/drm_panel.c
+@@ -22,6 +22,7 @@
+  */
+ 
+ #include <linux/err.h>
++#include <linux/interface_tracker.h>
+ #include <linux/module.h>
+ 
+ #include <drm/drm_crtc.h>
+@@ -41,6 +42,8 @@ int drm_panel_add(struct drm_panel *panel)
+ 	mutex_lock(&panel_lock);
+ 	list_add_tail(&panel->list, &panel_list);
+ 	mutex_unlock(&panel_lock);
++	interface_tracker_ifup(panel->dev->of_node,
++			       INTERFACE_TRACKER_TYPE_DRM_PANEL, panel);
+ 
+ 	return 0;
+ }
+@@ -48,6 +51,8 @@ EXPORT_SYMBOL(drm_panel_add);
+ 
+ void drm_panel_remove(struct drm_panel *panel)
+ {
++	interface_tracker_ifdown(panel->dev->of_node,
++				 INTERFACE_TRACKER_TYPE_DRM_PANEL, panel);
+ 	mutex_lock(&panel_lock);
+ 	list_del_init(&panel->list);
+ 	mutex_unlock(&panel_lock);
+diff --git a/include/linux/interface_tracker.h b/include/linux/interface_tracker.h
+index e1eff00..0a08cba 100644
+--- a/include/linux/interface_tracker.h
++++ b/include/linux/interface_tracker.h
+@@ -6,6 +6,8 @@
+ struct list_head;
+ struct interface_tracker_block;
+ 
++#define INTERFACE_TRACKER_TYPE_DRM_PANEL 1
++
+ typedef void (*interface_tracker_fn_t)(struct interface_tracker_block *itb,
+ 				       const void *object, unsigned long type,
+ 				       bool on, void *data);
+-- 
+1.8.3.2
 
-  git://linuxtv.org/mkrufky/dvb fixes
-
-for you to fetch changes up to 45a55dc31e497027b99c8278bcc778a4aff76a2f:
-
-  lgdt3305: include sleep functionality in lgdt3304_ops (2014-04-06
-  15:06:52 -0400)
-
-----------------------------------------------------------------
-Benjamin Larsson (1):
-      r820t: fix size and init values
-
-Malcolm Priestley (1):
-      m88rs2000: fix sparse static warnings
-
-Paul Bolle (1):
-      drx-j: use customise option correctly
-
-Shuah Khan (1):
-      lgdt3305: include sleep functionality in lgdt3304_ops
-
- drivers/media/dvb-frontends/drx39xyj/Kconfig | 2 +-
- drivers/media/dvb-frontends/lgdt3305.c       | 1 +
- drivers/media/dvb-frontends/m88rs2000.c      | 8 ++++----
- drivers/media/tuners/r820t.c                 | 3 ++-
- 4 files changed, 8 insertions(+), 6 deletions(-)
