@@ -1,139 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50982 "EHLO mail.kapsi.fi"
+Received: from gn237.zone.eu ([217.146.67.237]:45417 "EHLO gn237.zone.eu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933342AbaDIQOz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Apr 2014 12:14:55 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>,
-	Antti Palosaari <crope@iki.fi>, backports@vger.kernel.org
-Subject: [PATCH] rtl28xxu: do not hard depend on staging SDR module
-Date: Wed,  9 Apr 2014 19:14:29 +0300
-Message-Id: <1397060069-12757-1-git-send-email-crope@iki.fi>
+	id S1750741AbaEAGB3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 May 2014 02:01:29 -0400
+From: "Priit Laes" <plaes@plaes.org>
+Message-ID: <1398924019.8330.11.camel@chi.lan>
+Subject: Re: [linux-sunxi] [PATCH v5 0/3] ARM: sunxi: Add support for
+ consumer infrared devices
+To: linux-sunxi@googlegroups.com
+Cc: david@hardeman.nu, devicetree@vger.kernel.org,
+	galak@codeaurora.org, grant.likely@linaro.org,
+	ijc+devicetree@hellion.org.uk, james.hogan@imgtec.com,
+	linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk,
+	m.chehab@samsung.com, mark.rutland@arm.com,
+	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
+	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
+	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, Alexander Bersenev <bay@hackerdom.ru>
+Date: Thu, 01 May 2014 09:00:19 +0300
+In-Reply-To: <1398871010-30681-1-git-send-email-bay@hackerdom.ru>
+References: <1398871010-30681-1-git-send-email-bay@hackerdom.ru>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RTL2832 SDR extension module is currently on staging. SDR module
-headers were included from staging causing direct dependency staging
-directory. As a solution, add needed headers to main driver.
-Motivation of that change comes from Luis / driver backports project.
+Ühel kenal päeval, K, 30.04.2014 kell 21:16, kirjutas Alexander
+Bersenev:
+> This patch introduces Consumer IR(CIR) support for sunxi boards.
+> 
+> This is based on Alexsey Shestacov's work based on the original driver 
+> supplied by Allwinner.
+> 
+> Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
+> Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
 
-Another issues was a little too heavy looking error log "DVB: Unable
-to find symbol rtl2832_sdr_attach()" when staging module was disabled.
-Get rid of it too by introducing own version of dvb_attach() macro
-without the error text.
+> ---
+> Changes since version 1: 
+>  - Fix timer memory leaks 
+>  - Fix race condition when driver unloads while interrupt handler is active
+>  - Support Cubieboard 2(need testing)
+> 
+> Changes since version 2:
+> - More reliable keydown events
+> - Documentation fixes
+> - Rename registers accurding to A20 user manual
+> - Remove some includes, order includes alphabetically
+> - Use BIT macro
+> - Typo fixes
+> 
+> Changes since version 3:
+> - Split the patch on smaller parts
+> - More documentation fixes
+> - Add clock-names in DT
+> - Use devm_clk_get function to get the clocks
+> - Removed gpios property from ir's DT
+> - Changed compatible from allwinner,sunxi-ir to allwinner,sun7i-a20-ir in DT
+> - Use spin_lock_irq instead spin_lock_irqsave in interrupt handler
+> - Add myself in the copyright ;)
+> - Coding style and indentation fixes
+> 
+> Changes since version 4:
+> - Try to fix indentation errors by sending patches with git send-mail
 
-Reported-by: Luis R. Rodriguez <mcgrof@do-not-panic.com>
-Cc: backports@vger.kernel.org
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/Makefile   |  1 -
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 48 +++++++++++++++++++++++++++++----
- 2 files changed, 43 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/usb/dvb-usb-v2/Makefile b/drivers/media/usb/dvb-usb-v2/Makefile
-index 7407b83..bc38f03 100644
---- a/drivers/media/usb/dvb-usb-v2/Makefile
-+++ b/drivers/media/usb/dvb-usb-v2/Makefile
-@@ -41,4 +41,3 @@ ccflags-y += -I$(srctree)/drivers/media/dvb-core
- ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
- ccflags-y += -I$(srctree)/drivers/media/tuners
- ccflags-y += -I$(srctree)/drivers/media/common
--ccflags-y += -I$(srctree)/drivers/staging/media/rtl2832u_sdr
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index c83c16c..f58a952 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -24,7 +24,6 @@
- 
- #include "rtl2830.h"
- #include "rtl2832.h"
--#include "rtl2832_sdr.h"
- 
- #include "qt1010.h"
- #include "mt2060.h"
-@@ -36,6 +35,45 @@
- #include "tua9001.h"
- #include "r820t.h"
- 
-+/*
-+ * RTL2832_SDR module is in staging. That logic is added in order to avoid any
-+ * hard dependency to drivers/staging/ directory as we want compile mainline
-+ * driver even whole staging directory is missing.
-+ */
-+#include <media/v4l2-subdev.h>
-+
-+#ifdef CONFIG_MEDIA_ATTACH
-+#define dvb_attach_sdr(FUNCTION, ARGS...) ({ \
-+	void *__r = NULL; \
-+	typeof(&FUNCTION) __a = symbol_request(FUNCTION); \
-+	if (__a) { \
-+		__r = (void *) __a(ARGS); \
-+		if (__r == NULL) \
-+			symbol_put(FUNCTION); \
-+	} \
-+	__r; \
-+})
-+
-+#else
-+#define dvb_attach_sdr(FUNCTION, ARGS...) ({ \
-+	FUNCTION(ARGS); \
-+})
-+
-+#endif
-+
-+#if IS_ENABLED(CONFIG_DVB_RTL2832_SDR)
-+extern struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
-+	struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
-+	struct v4l2_subdev *sd);
-+#else
-+static inline struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
-+	struct i2c_adapter *i2c, const struct rtl2832_config *cfg,
-+	struct v4l2_subdev *sd)
-+{
-+	return NULL;
-+}
-+#endif
-+
- static int rtl28xxu_disable_rc;
- module_param_named(disable_rc, rtl28xxu_disable_rc, int, 0644);
- MODULE_PARM_DESC(disable_rc, "disable RTL2832U remote controller");
-@@ -908,7 +946,7 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
- 
- 		/* attach SDR */
--		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
-+		dvb_attach_sdr(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
- 				&rtl28xxu_rtl2832_fc0012_config, NULL);
- 		break;
- 	case TUNER_RTL2832_FC0013:
-@@ -920,7 +958,7 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
- 
- 		/* attach SDR */
--		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
-+		dvb_attach_sdr(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
- 				&rtl28xxu_rtl2832_fc0013_config, NULL);
- 		break;
- 	case TUNER_RTL2832_E4000: {
-@@ -951,7 +989,7 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 			i2c_set_adapdata(i2c_adap_internal, d);
- 
- 			/* attach SDR */
--			dvb_attach(rtl2832_sdr_attach, adap->fe[0],
-+			dvb_attach_sdr(rtl2832_sdr_attach, adap->fe[0],
- 					i2c_adap_internal,
- 					&rtl28xxu_rtl2832_e4000_config, sd);
- 		}
-@@ -982,7 +1020,7 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
- 
- 		/* attach SDR */
--		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
-+		dvb_attach_sdr(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
- 				&rtl28xxu_rtl2832_r820t_config, NULL);
- 		break;
- 	case TUNER_RTL2832_R828D:
--- 
-1.9.0
+git am still complains due to mixed tabs-spaces used for indentation
+> Alexander Bersenev (3):
+>   ARM: sunxi: Add documentation for sunxi consumer infrared devices
+Applying: ARM: sunxi: Add documentation for sunxi consumer infrared devices
+/usr/src/linux/.git/rebase-apply/patch:28: space before tab in indent.
+       	compatible = "allwinner,sun7i-a20-ir";
+/usr/src/linux/.git/rebase-apply/patch:29: space before tab in indent.
+       	clocks = <&apb0_gates 6>, <&ir0_clk>;
+/usr/src/linux/.git/rebase-apply/patch:30: space before tab in indent.
+       	clock-names = "apb0_ir0", "ir0";
+/usr/src/linux/.git/rebase-apply/patch:31: space before tab in indent.
+       	interrupts = <0 5 1>;
+/usr/src/linux/.git/rebase-apply/patch:32: space before tab in indent.
+       	reg = <0x01C21800 0x40>;
+>   ARM: sunxi: Add driver for sunxi IR controller
+OK
+>   ARM: sunxi: Add IR controller support in DT on A20
+Applying: ARM: sunxi: Add IR controller support in DT on A20
+/usr/src/linux/.git/rebase-apply/patch:70: space before tab in indent.
+       		ir0: ir@01c21800 {
+/usr/src/linux/.git/rebase-apply/patch:71: space before tab in indent.
+	     		compatible = "allwinner,sun7i-a20-ir";
+/usr/src/linux/.git/rebase-apply/patch:79: space before tab in indent.
+       		ir1: ir@01c21c00 {
+/usr/src/linux/.git/rebase-apply/patch:80: space before tab in indent.
+	     		compatible = "allwinner,sun7i-a20-ir";
 
