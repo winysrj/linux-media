@@ -1,55 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49832 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751830AbaEZTuE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 15:50:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Julien BERAUD <julien.beraud@parrot.com>,
-	Boris Todorov <boris.st.todorov@gmail.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Enrico <ebutera@users.berlios.de>,
-	Stefan Herbrechtsmeier <sherbrec@cit-ec.uni-bielefeld.de>,
-	Javier Martinez Canillas <martinez.javier@gmail.com>,
-	Chris Whittenburg <whittenburg@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 05/11] omap3isp: Default to progressive field order when setting the format
-Date: Mon, 26 May 2014 21:50:06 +0200
-Message-Id: <1401133812-8745-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-qc0-f173.google.com ([209.85.216.173]:54048 "EHLO
+	mail-qc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752366AbaEAOxl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 May 2014 10:53:41 -0400
+Date: Thu, 1 May 2014 10:53:37 -0400
+From: Tejun Heo <tj@kernel.org>
+To: Shuah Khan <shuah.kh@samsung.com>
+Cc: gregkh@linuxfoundation.org, m.chehab@samsung.com, olebowle@gmx.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/4] drivers/base: add managed token devres interfaces
+Message-ID: <20140501145337.GC31611@htj.dyndns.org>
+References: <cover.1398797954.git.shuah.kh@samsung.com>
+ <6cb20ce23f540c883e60e6ce71302042b034c4aa.1398797955.git.shuah.kh@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6cb20ce23f540c883e60e6ce71302042b034c4aa.1398797955.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the requested field order is not supported default to progressive as
-we can't guess how the user will configure the pipeline later on.
+Hello,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispvideo.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+On Tue, Apr 29, 2014 at 01:49:23PM -0600, Shuah Khan wrote:
+> +/* creates a token devres and marks it available */
+> +int devm_token_create(struct device *dev, const char *id)
+> +{
+> +	struct token_devres *tkn;
+> +	size_t tkn_size;
+> +
+> +	tkn_size = sizeof(struct token_devres) + strlen(id) + 1;
+> +	tkn = devres_alloc(devm_token_release, tkn_size, GFP_KERNEL);
+> +	if (!tkn)
+> +		return -ENOMEM;
 
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 2876f34..2fe1c46 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -631,6 +631,15 @@ isp_video_set_format(struct file *file, void *fh, struct v4l2_format *format)
- 	if (format->type != video->type)
- 		return -EINVAL;
- 
-+	/* Default to the progressive field order if the requested value is not
-+	 * supported (or set to ANY). The only supported orders are progressive
-+	 * (available on all video nodes) and alternate (available on capture
-+	 * nodes only).
-+	 */
-+	if (format->fmt.pix.field != V4L2_FIELD_ALTERNATE ||
-+	    video->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+		format->fmt.pix.field = V4L2_FIELD_NONE;
-+
- 	/* Fill the bytesperline and sizeimage fields by converting to media bus
- 	 * format and back to pixel format.
- 	 */
+Is nesting devres inside devres really necessary?  I think it should
+work but why do it this way?  Just kzalloc here and free from release.
+
+> +
+> +	strcpy(tkn->id, id);
+> +	tkn->in_use = false;
+> +	mutex_init(&tkn->lock);
+> +
+> +	devres_add(dev, tkn);
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(devm_token_create);
+> +
+> +/* If token is available, lock it for the caller, If not return -EBUSY */
+> +int devm_token_lock(struct device *dev, const char *id)
+
+trylock probably is a more apt name.
+
+> +{
+> +	struct token_devres *tkn_ptr;
+> +	int rc = 0;
+> +
+> +	tkn_ptr = devres_find(dev, devm_token_release, devm_token_match,
+> +				(void *)id);
+> +	if (tkn_ptr == NULL)
+> +		return -ENODEV;
+> +
+> +	if (!mutex_trylock(&tkn_ptr->lock))
+> +		return -EBUSY;
+
+How is this lock supposed to be used?  Have you tested it with lockdep
+enabled?  Does it ever get released by a task which is different from
+the one which locked it?  If the lock ownership is really about driver
+association rather than tasks, it might be necessary to nullify
+lockdep protection and add your own annotation to at least track that
+unlocking driver (identified how? maybe impossible?) actually owns the
+lock.
+
+> +	if (tkn_ptr->in_use)
+> +		rc = -EBUSY;
+> +	else
+> +		tkn_ptr->in_use = true;
+
+Wat?  Why would you have in_use protected by trylock?  What's the
+reasonsing behind that?  What would you need "try"lock there?  Okay,
+strick everything I wrote above.
+
+ Nacked-by: Tejun Heo <tj@kernel.org>
+
 -- 
-1.8.5.5
-
+tejun
