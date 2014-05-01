@@ -1,82 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43742 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750768AbaEHLVo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 May 2014 07:21:44 -0400
-Date: Thu, 8 May 2014 14:21:06 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: DaeSeok Youn <daeseok.youn@gmail.com>
-Cc: m.chehab@samsung.com, linux-dev@sensoray.com,
-	hans.verkuil@cisco.com, linux-media@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] [media] s2255drv: fix memory leak s2255_probe()
-Message-ID: <20140508112106.GH8753@valkosipuli.retiisi.org.uk>
-References: <1408657.25U3i1DfG3@daeseok-laptop.cloud.net>
- <20140415093305.GE8753@valkosipuli.retiisi.org.uk>
- <CAHb8M2CECG7ydo9L2u5BOcQeq8V3=ydy149kCLkoueo+HbD6fg@mail.gmail.com>
- <20140505083856.GZ8753@valkosipuli.retiisi.org.uk>
- <CAHb8M2D5C-w3+_gWHOnJRXnjwMhtMYKNLnQwtX3wuGXZN=heng@mail.gmail.com>
+Received: from mail-vc0-f179.google.com ([209.85.220.179]:56577 "EHLO
+	mail-vc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750802AbaEAQOd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 May 2014 12:14:33 -0400
+Received: by mail-vc0-f179.google.com with SMTP id ij19so4102452vcb.38
+        for <linux-media@vger.kernel.org>; Thu, 01 May 2014 09:14:32 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHb8M2D5C-w3+_gWHOnJRXnjwMhtMYKNLnQwtX3wuGXZN=heng@mail.gmail.com>
+From: John Francis <john.e.francis@gmail.com>
+Date: Thu, 1 May 2014 12:14:12 -0400
+Message-ID: <CAEPm76so-s_Eppuzn9XfVVkSzj=65ZGX+5AcX-LjJqeSpGy_kw@mail.gmail.com>
+Subject: Conexant 25858
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 07, 2014 at 01:38:58PM +0900, DaeSeok Youn wrote:
-> Hello,
-> 
-> 2014-05-05 17:38 GMT+09:00 Sakari Ailus <sakari.ailus@iki.fi>:
-> > On Tue, Apr 15, 2014 at 07:54:43PM +0900, DaeSeok Youn wrote:
-> >> Hi, Sakari
-> >>
-> >> 2014-04-15 18:33 GMT+09:00 Sakari Ailus <sakari.ailus@iki.fi>:
-> >> > Hi Daeseok,
-> >> >
-> >> > On Tue, Apr 15, 2014 at 01:49:34PM +0900, Daeseok Youn wrote:
-> >> >>
-> >> >> smatch says:
-> >> >>  drivers/media/usb/s2255/s2255drv.c:2246 s2255_probe() warn:
-> >> >> possible memory leak of 'dev'
-> >> >>
-> >> >> Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
-> >> >> ---
-> >> >>  drivers/media/usb/s2255/s2255drv.c |    1 +
-> >> >>  1 files changed, 1 insertions(+), 0 deletions(-)
-> >> >>
-> >> >> diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-> >> >> index 1d4ba2b..8aca3ef 100644
-> >> >> --- a/drivers/media/usb/s2255/s2255drv.c
-> >> >> +++ b/drivers/media/usb/s2255/s2255drv.c
-> >> >> @@ -2243,6 +2243,7 @@ static int s2255_probe(struct usb_interface *interface,
-> >> >>       dev->cmdbuf = kzalloc(S2255_CMDBUF_SIZE, GFP_KERNEL);
-> >> >>       if (dev->cmdbuf == NULL) {
-> >> >>               s2255_dev_err(&interface->dev, "out of memory\n");
-> >> >> +             kfree(dev);
-> >> >>               return -ENOMEM;
-> >> >>       }
-> >> >>
-> >> >
-> >> > The rest of the function already uses goto and labels for error handling. I
-> >> > think it'd take adding one more. dev is correctly released in other error
-> >> > cases.
-> >> I am not sure that adding a new label for error handling when
-> >> allocation for dev->cmdbuf is failed.
-> >> I think it is ok to me. :-) Because I think it is not good adding a
-> >> new label and use goto statement for this.
-> >
-> > I can ack this if you use the same pattern for error handling that's already
-> > there.
-> But it has a redundant kfree() call for dev->cmdbuf when it failed to
-> allocate, right?
+Hi Folks - is there any interest/hope in developing a driver for the
+Conexant 25854/25858? Barriers?
 
-Correct.
+The options for high-performing multiple camera PCIe cards on Linux
+are very limited. Cards based on the the 25858 are cheap and available
+by the bucketload.
 
-> If it is ok, I send this again after fixing as your comment.
+I noticed the 25854/8 mentioned on the LinuxTV wiki. I've seen
+references to someone providing a linux driver at
+http://tprd.info/lexwiki/index.php/Module:M858_module
 
-Please do. Thanks.
+I haven't been able to obtain it myself, but it does seem to be possible.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Regards,
+John
+Sad PCIe Conexant 25858 and PCI-only 8-way BT878 Owner
