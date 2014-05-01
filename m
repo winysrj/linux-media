@@ -1,81 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1lp0144.outbound.protection.outlook.com ([207.46.163.144]:7213
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751077AbaEOBUo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 May 2014 21:20:44 -0400
-Date: Thu, 15 May 2014 09:19:35 +0800
-From: Shawn Guo <shawn.guo@freescale.com>
-To: Alexander Shiyan <shc_work@mail.ru>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	<linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<devicetree@vger.kernel.org>, Sascha Hauer <kernel@pengutronix.de>
-Subject: Re: [PATCH 3/3] media: mx2-emmaprp: Add devicetree support
-Message-ID: <20140515011933.GA10685@dragon>
-References: <1399015119-24000-1-git-send-email-shc_work@mail.ru>
- <1400001829.645600850@f332.i.mail.ru> <53734A1F.7080905@samsung.com>
- <1400086794.204219517@f388.i.mail.ru>
+Received: from mx3.wp.pl ([212.77.101.10]:31709 "EHLO mx3.wp.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752106AbaEAHEW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 May 2014 03:04:22 -0400
+Message-ID: <5361F1F3.7070005@wp.pl>
+Date: Thu, 01 May 2014 09:04:19 +0200
+From: Andrzej Hajda <andrzej.hajda@wp.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1400086794.204219517@f388.i.mail.ru>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	open list <linux-kernel@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	David Airlie <airlied@linux.ie>,
+	Inki Dae <inki.dae@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Figa <t.figa@samsung.com>,
+	Tomasz Stansislawski <t.stanislaws@samsung.com>,
+	"moderated list:ARM/S5P EXYNOS AR..."
+	<linux-samsung-soc@vger.kernel.org>,
+	"moderated list:ARM/S5P EXYNOS AR..."
+	<linux-arm-kernel@lists.infradead.org>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC PATCH 0/4] drivers/base: Generic framework for tracking
+ internal interfaces
+References: <1398866574-27001-1-git-send-email-a.hajda@samsung.com> <20140430154914.GA898@kroah.com> <53616E31.3050404@wp.pl> <20140430222839.GE26756@n2100.arm.linux.org.uk>
+In-Reply-To: <20140430222839.GE26756@n2100.arm.linux.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 14, 2014 at 08:59:54PM +0400, Alexander Shiyan wrote:
-> Wed, 14 May 2014 12:49:03 +0200 от Sylwester Nawrocki <s.nawrocki@samsung.com>:
-> > On 13/05/14 19:23, Alexander Shiyan wrote:
-> > > Tue, 13 May 2014 19:09:30 +0200 от Sylwester Nawrocki <s.nawrocki@samsung.com>:
-> > >> > Hi,
-> > >> > 
-> > >> > On 02/05/14 09:18, Alexander Shiyan wrote:
-> > >>> > > This patch adds devicetree support for the Freescale enhanced Multimedia
-> > >>> > > Accelerator (eMMA) video Pre-processor (PrP).
-> > >>> > > 
-> > >>> > > Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
-> > >>> > > ---
-> > >>> > >  .../devicetree/bindings/media/fsl-imx-emmaprp.txt     | 19 +++++++++++++++++++
-> > >>> > >  drivers/media/platform/mx2_emmaprp.c                  |  8 ++++++++
-> > >>> > >  2 files changed, 27 insertions(+)
-> > >>> > >  create mode 100644 Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
-> > >>> > > 
-> > >>> > > diff --git a/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt b/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
-> > >>> > > new file mode 100644
-> > >>> > > index 0000000..9e8238f
-> > >>> > > --- /dev/null
-> > >>> > > +++ b/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
-> > >>> > > @@ -0,0 +1,19 @@
-> > >>> > > +* Freescale enhanced Multimedia Accelerator (eMMA) video Pre-processor (PrP)
-> > >>> > > +  for i.MX.
-> > >>> > > +
-> > >>> > > +Required properties:
-> > >>> > > +- compatible : Shall contain "fsl,imx21-emmaprp".
-> > >>> > > +- reg        : Offset and length of the register set for the device.
-> > >>> > > +- interrupts : Should contain eMMA PrP interrupt number.
-> > >>> > > +- clocks     : Should contain the ahb and ipg clocks, in the order
-> > >>> > > +               determined by the clock-names property.
-> > >>> > > +- clock-names: Should be "ahb", "ipg".
-> > >>> > > +
-> > >>> > > +Example:
-> > >>> > > +	emmaprp: emmaprp@10026400 {
-> > >>> > > +		compatible = "fsl,imx27-emmaprp", "fsl,imx21-emmaprp";
-> > >> > 
-> > >> > Is "fsl,imx27-emmaprp" compatible documented somewhere ?
-> > >
-> > > The overall structure of the eMMA module is slightly different.
-> > > As for the part of the PrP, according to the datasheet they are compatible.
-> > 
-> > Then can we please have all the valid compatible strings listed at the
-> > 'compatible' property's description above ? I think it is useful to have
-> > an indication to which SoC each of them apply in documentation of the
-> > binding.
-> 
-> Traditionally, i.MX drivers uses youngest chip for compatibility string.
-> The best example of this: drivers/bus/imx-weim.c
+Russell King - ARM Linux wrote, On 01.05.2014 00:28:
+> On Wed, Apr 30, 2014 at 11:42:09PM +0200, Andrzej Hajda wrote:
+>> The main problem with component framework is that componentization
+>> significantly changes every driver and changes it in a way which is not
+>> compatible with traditional drivers, so devices which are intended to
+>> work with different DRM masters are hard to componentize if some of DRMs
+>> are componentized and some not.
+> Many of the problems which the component helpers are designed to solve
+> are those where you need the drm_device structure (or snd_card, or whatever
+> subsystem specific card/device representation structure) pre-created in
+> order to initialise the components.
+>
+> In the case of DRM, you can't initialise encoders or connectors without
+> their drm_device structure pre-existing - because these components are
+> attached to the drm_device.
+>
+> Your solution to that is to delay those calls, but the DRM subsystem is
+> not designed to cope like that - it's designed such that when the
+> connector or encoder initialisation functions are called, it is assumed
+> that the driver is initialising its state. (I've raised this point before
+> but you've just fobbed it off in the past.)
+>
+> Another issue here is that the order of initialisation matters greatly.
+> Take CRTCs for example.  In DRM, the order of attachment of CRTCs defines
+> their identity, changing the order changes their identity, and changes
+> how they are bound to their respective connectors.
+>
+The two problems you show here are not a real problems in this framework:
+1. making real device initialization during drm initialization - 
+decision is left
+to driver developer what should be done in probe, what should be done in
+'bind', I guess this is also true for components, at least the framework 
+allows it.
+2. initialization order - if you put initialization into components 
+'bind' function,
+master can choose any order of calls to 'bind'.
 
-I guess Sylwester's point is either "fsl,imx27-emmaprp" is documented in
-the bindings or it shouldn't be used anywhere.
+Anyway you can implement the same behaviour as components with
+interface_tracker. Just simple proof of concept, how to convert 
+componentized
+drivers to interface_tracker:
+Components:
+1. you can reuse component_ops
+2. You replace calls of component_add and component_del with calls
+to interface_tracker_ifup(dev, INTERFACE_TRACKER_TYPE_COMPONENT, 
+&specific_component_ops),
+or interface_tracker_ifdown.
+Thats all for components.
 
-Shawn
+Master:
+1. you register callback for tracking all components.
+2. in the callback you check if all components are up, if yes you do the
+same as in component framework initialization, to simplify it
+helper function can be added.
+
+I guess it should work the same way, if there is interest in it I can 
+develop the
+helper next week, I hope.
+
+What is the benefit of interface_tracker:
+1. interface_tracker is more generic - it can track not only components.
+2. you put component initialization code into helper function - sounds 
+like mid-layer removal,
+developer can choose different helper if it suits better.
+
+So from component point of view interface_tracker can be treated as kind 
+of extensions
+of the component framework.
+
+I hope I have answerer all your concerns.
+
+I have holidays till Sunday and I am not sure if I will be able to 
+answer next emails before
+Monday.
+
+Regards
+Andrzej
