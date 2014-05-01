@@ -1,80 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:35958 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751137AbaEUSUP (ORCPT
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:60558 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750848AbaEAJML (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 May 2014 14:20:15 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Changbing Xiong <cb.xiong@samsung.com>,
-	Trevor G <trevor.forums@gmail.com>,
-	"Reynaldo H. Verdejo Pinochet" <r.verdejo@sisa.samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 7/8] xc5000: Don't use whitespace before tabs
-Date: Wed, 21 May 2014 15:20:01 -0300
-Message-Id: <1400696402-1805-8-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1400696402-1805-1-git-send-email-m.chehab@samsung.com>
-References: <1400696402-1805-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Thu, 1 May 2014 05:12:11 -0400
+Date: Thu, 1 May 2014 10:11:02 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Andrzej Hajda <andrzej.hajda@wp.pl>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	open list <linux-kernel@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	David Airlie <airlied@linux.ie>,
+	Inki Dae <inki.dae@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Figa <t.figa@samsung.com>,
+	Tomasz Stansislawski <t.stanislaws@samsung.com>,
+	"moderated list:ARM/S5P EXYNOS AR..."
+	<linux-samsung-soc@vger.kernel.org>,
+	"moderated list:ARM/S5P EXYNOS AR..."
+	<linux-arm-kernel@lists.infradead.org>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC PATCH 0/4] drivers/base: Generic framework for tracking
+	internal interfaces
+Message-ID: <20140501091102.GF26756@n2100.arm.linux.org.uk>
+References: <1398866574-27001-1-git-send-email-a.hajda@samsung.com> <20140430154914.GA898@kroah.com> <53616E31.3050404@wp.pl> <20140430222839.GE26756@n2100.arm.linux.org.uk> <5361F1F3.7070005@wp.pl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5361F1F3.7070005@wp.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-WARNING: please, no space before tabs
-+#define XC_PRODUCT_ID_FW_LOADED ^I0x1388$
+On Thu, May 01, 2014 at 09:04:19AM +0200, Andrzej Hajda wrote:
+> 2. You replace calls of component_add and component_del with calls
+> to interface_tracker_ifup(dev, INTERFACE_TRACKER_TYPE_COMPONENT,  
+> &specific_component_ops),
+> or interface_tracker_ifdown.
+> Thats all for components.
 
-WARNING: please, no space before tabs
-+#define DK_SECAM_A2LDK3 ^I13$
+How does the master get to decide which components are for it?  As
+I see it, all masters see all components of a particular "type".
+What if you have a system with two masters each of which are bound
+to a set of unique components but some of the components are of a
+the same type?
 
-WARNING: please, no space before tabs
-+#define DK_SECAM_A2MONO ^I14$
+How does the master know what "type" to use?
 
-WARNING: please, no space before tabs
-+#define FM_RADIO_INPUT2 ^I21$
-
-WARNING: please, no space before tabs
-+#define FM_RADIO_INPUT1 ^I22$
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/tuners/xc5000.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
-index da4c29ed48bd..8df92619883f 100644
---- a/drivers/media/tuners/xc5000.c
-+++ b/drivers/media/tuners/xc5000.c
-@@ -77,7 +77,7 @@ struct xc5000_priv {
- 
- /* Product id */
- #define XC_PRODUCT_ID_FW_NOT_LOADED	0x2000
--#define XC_PRODUCT_ID_FW_LOADED 	0x1388
-+#define XC_PRODUCT_ID_FW_LOADED	0x1388
- 
- /* Registers */
- #define XREG_INIT         0x00
-@@ -164,16 +164,16 @@ struct XC_TV_STANDARD {
- #define DK_PAL_NICAM		10
- #define DK_PAL_MONO		11
- #define DK_SECAM_A2DK1		12
--#define DK_SECAM_A2LDK3 	13
--#define DK_SECAM_A2MONO 	14
-+#define DK_SECAM_A2LDK3		13
-+#define DK_SECAM_A2MONO		14
- #define L_SECAM_NICAM		15
- #define LC_SECAM_NICAM		16
- #define DTV6			17
- #define DTV8			18
- #define DTV7_8			19
- #define DTV7			20
--#define FM_RADIO_INPUT2 	21
--#define FM_RADIO_INPUT1 	22
-+#define FM_RADIO_INPUT2		21
-+#define FM_RADIO_INPUT1		22
- #define FM_RADIO_INPUT1_MONO	23
- 
- static struct XC_TV_STANDARD xc5000_standard[MAX_TV_STANDARD] = {
 -- 
-1.9.0
-
+FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
+improving, and getting towards what was expected from it.
