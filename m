@@ -1,89 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:36797 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751684AbaE0JPF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 May 2014 05:15:05 -0400
-Date: Tue, 27 May 2014 11:13:37 +0200
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Alexander Bersenev <bay@hackerdom.ru>
-Cc: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	pawel.moll@arm.com, rdunlap@infradead.org, robh+dt@kernel.org,
-	sean@mess.org, srinivas.kandagatla@st.com,
-	wingrime@linux-sunxi.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v8 3/3] ARM: sunxi: Add IR controller support in DT on A20
-Message-ID: <20140527091337.GJ4730@lukather>
-References: <1401056805-2218-1-git-send-email-bay@hackerdom.ru>
- <1401056805-2218-4-git-send-email-bay@hackerdom.ru>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Q59ABw34pTSIagmi"
-Content-Disposition: inline
-In-Reply-To: <1401056805-2218-4-git-send-email-bay@hackerdom.ru>
+Received: from fallback4.mail.ru ([94.100.176.42]:39625 "EHLO
+	fallback4.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751854AbaEBHT0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 May 2014 03:19:26 -0400
+Received: from smtp53.i.mail.ru (smtp53.i.mail.ru [94.100.177.113])
+	by fallback4.mail.ru (mPOP.Fallback_MX) with ESMTP id 528C62289274
+	for <linux-media@vger.kernel.org>; Fri,  2 May 2014 11:19:20 +0400 (MSK)
+From: Alexander Shiyan <shc_work@mail.ru>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Shawn Guo <shawn.guo@freescale.com>,
+	devicetree@vger.kernel.org, Alexander Shiyan <shc_work@mail.ru>
+Subject: [PATCH 3/3] media: mx2-emmaprp: Add devicetree support
+Date: Fri,  2 May 2014 11:18:39 +0400
+Message-Id: <1399015119-24000-1-git-send-email-shc_work@mail.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch adds devicetree support for the Freescale enhanced Multimedia
+Accelerator (eMMA) video Pre-processor (PrP).
 
---Q59ABw34pTSIagmi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
+---
+ .../devicetree/bindings/media/fsl-imx-emmaprp.txt     | 19 +++++++++++++++++++
+ drivers/media/platform/mx2_emmaprp.c                  |  8 ++++++++
+ 2 files changed, 27 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
 
-On Mon, May 26, 2014 at 04:26:45AM +0600, Alexander Bersenev wrote:
-> This patch adds IR controller in A20 Device-Tree:
-> - Two IR devices found in A20 user manual
-> - Pins for two devices
-> - One IR device physically found on Cubieboard 2
-> - One IR device physically found on Cubietruck
->=20
-> Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-> Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
-> ---
->  arch/arm/boot/dts/sun7i-a20-cubieboard2.dts |  6 ++++++
->  arch/arm/boot/dts/sun7i-a20-cubietruck.dts  |  6 ++++++
->  arch/arm/boot/dts/sun7i-a20.dtsi            | 32 +++++++++++++++++++++++=
-++++++
+diff --git a/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt b/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
+new file mode 100644
+index 0000000..9e8238f
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
+@@ -0,0 +1,19 @@
++* Freescale enhanced Multimedia Accelerator (eMMA) video Pre-processor (PrP)
++  for i.MX.
++
++Required properties:
++- compatible : Shall contain "fsl,imx21-emmaprp".
++- reg        : Offset and length of the register set for the device.
++- interrupts : Should contain eMMA PrP interrupt number.
++- clocks     : Should contain the ahb and ipg clocks, in the order
++               determined by the clock-names property.
++- clock-names: Should be "ahb", "ipg".
++
++Example:
++	emmaprp: emmaprp@10026400 {
++		compatible = "fsl,imx27-emmaprp", "fsl,imx21-emmaprp";
++		reg = <0x10026400 0x100>;
++		interrupts = <51>;
++		clocks = <&clks 49>, <&clks 68>;
++		clock-names = "ipg", "ahb";
++	};
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index fa8f7ca..0646bda 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -18,6 +18,7 @@
+  */
+ #include <linux/module.h>
+ #include <linux/clk.h>
++#include <linux/of.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+@@ -1005,12 +1006,19 @@ static int emmaprp_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct of_device_id __maybe_unused emmaprp_dt_ids[] = {
++	{ .compatible = "fsl,imx21-emmaprp", },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, emmaprp_dt_ids);
++
+ static struct platform_driver emmaprp_pdrv = {
+ 	.probe		= emmaprp_probe,
+ 	.remove		= emmaprp_remove,
+ 	.driver		= {
+ 		.name	= MEM2MEM_NAME,
+ 		.owner	= THIS_MODULE,
++		.of_match_table = of_match_ptr(emmaprp_dt_ids),
+ 	},
+ };
+ module_platform_driver(emmaprp_pdrv);
+-- 
+1.8.3.2
 
-I told you numerous times already that I wanted this patch to be split
-into at least three of them:
-  - One to add the device to the DTSI.
-  - One to add the pins
-  - and one to enable the devices in the DTS.
-
-Please address this comment.
-
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
-
---Q59ABw34pTSIagmi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJThFdBAAoJEBx+YmzsjxAgVEQP/0SS2UMHhFf2Ma96RSvUCMja
-IGjon+ErnFINm9OO7MD53SqSQikxg+wQv/gvJHo+ib2lHxJkj40MhzobSML1oE2+
-hcJ3Wknbc3aPZHLJvYl+z0IcA603/CZcdbpH0WP0npB4tNGKpnONHtMBJdDjPmYp
-vr01GEg/WMFW6359FY5nVusZbFBUR1aaXxA9fEUQveUGswbnXyIrT3m7j4QV0wqy
-EJIflTVFpY2g+LaW8jOCAU1nC5zRB2nOUAWPhNXfmUDIwJS3elNBQ188hC6VlMNI
-IyXV3yxa7qSVO38JdZ4vwInLdnNeQyuJpwS8e5VFjx6tJA7qpzo0zMArmpy44Lwg
-RRgZYj6GWw8ABgLwxc8oSWOSaCPVwFFT7+poF7mRb9dLxvzzKGL7/hv3GloKiSEu
-vB75kiu45oPH0rwbZlfGBVULTS4U+cyI1qq16RqRjM05+jlD0RX80nbHnw5k5CXx
-jG7B6nPbS/YQcYntMIDvLrCLQHLGqY8NPR/TxB7CWMP4g6iu/1w+sgNaekiuv6/b
-IQxHnyQytsxoeeBqg7Is6kvRM3p1CooJRoppJm3ZSepVgGOGvNpa0rHfS+DhzGHV
-V+jLb6eiv5klWN2Z/12pF7MZPmlRVV1nQSYka3tKoMG2PVh/3AmuPU5Qhx8vRUvy
-owDjGElsC1Zl7Uk/uRg/
-=TAtz
------END PGP SIGNATURE-----
-
---Q59ABw34pTSIagmi--
