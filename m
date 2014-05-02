@@ -1,105 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:32818 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753230AbaE1OhF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 May 2014 10:37:05 -0400
-Message-ID: <1401287823.3054.61.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH] [media] mt9v032: do not clear reserved bits in read
- mode register
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2196 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750991AbaEBOyt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 May 2014 10:54:49 -0400
+Message-ID: <5363B1B0.5000405@xs4all.nl>
+Date: Fri, 02 May 2014 14:54:40 +0000
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: "max.schulze@online.de" <max.schulze@online.de>,
 	linux-media@vger.kernel.org
-Date: Wed, 28 May 2014 16:37:03 +0200
-In-Reply-To: <50047481.fyhejgQsbG@avalon>
-References: <1401112775-18981-1-git-send-email-p.zabel@pengutronix.de>
-	 <50047481.fyhejgQsbG@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Subject: Re: getting 50 fields/sec from bttv, but not on usb with em28xx /
+ cx231xx
+References: <trinity-366a0e3a-4d3d-47f1-9f37-02de36c5e96b-1399041648866@3capp-1and1-bs01>
+In-Reply-To: <trinity-366a0e3a-4d3d-47f1-9f37-02de36c5e96b-1399041648866@3capp-1and1-bs01>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On 05/02/2014 02:40 PM, max.schulze@online.de wrote:
+> Hello,
+> 
+> I have modified the 5dpo example (http://sourceforge.net/p/sdpo-cl/) to work with v4l2_pix_format set to V4L2_FIELD_ALTERNATE. With a pci grabber card and corresponding driver bttv I get 50 fields per second. Fine, great!
+> 
+> I then plugged a usb grabber (2040:c200 Hauppauge, module is cx231xx) and retried the same expriment and it only provides 25 (fields/frames) per second. 
+> Same with a ( saa7115 8-0025: saa7113 found @ 0x4a em2860 ).
+> 
+> What do these usb grabbers do fundamentally different? Can't they provide every single field? What would be a good starting point for further investigation?
 
-Am Mittwoch, den 28.05.2014, 13:30 +0200 schrieb Laurent Pinchart:
-> Hi Philipp,
-> 
-> Thank you for the patch.
-> 
-> On Monday 26 May 2014 15:59:35 Philipp Zabel wrote:
-> > The read mode register bits 8 and 9 are set and marked as reserved.
-> > Don't clear them.
-> 
-> Good catch. Have you noticed any issue in practice ?
+FIELD_ALTERNATE is only supported by saa7134, bttv and saa7146. No USB driver supports it.
 
-No. I have no idea what (if anything) those bits actually do, though.
+In some (most?) cases that is because the hardware doesn't support it somewhere in their
+video pipeline, or because we don't have the datasheets, or the driver author didn't
+care about field capture (most of the time people want an interlaced picture).
 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> >  drivers/media/i2c/mt9v032.c | 9 ++++++---
-> >  1 file changed, 6 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-> > index 33a110a..052e754 100644
-> > --- a/drivers/media/i2c/mt9v032.c
-> > +++ b/drivers/media/i2c/mt9v032.c
-> > @@ -415,6 +415,7 @@ static int mt9v032_s_stream(struct v4l2_subdev *subdev,
-> > int enable) struct i2c_client *client = v4l2_get_subdevdata(subdev);
-> >  	struct mt9v032 *mt9v032 = to_mt9v032(subdev);
-> >  	struct v4l2_rect *crop = &mt9v032->crop;
-> > +	unsigned int read_mode;
-> >  	unsigned int hbin;
-> >  	unsigned int vbin;
-> >  	int ret;
-> > @@ -425,9 +426,11 @@ static int mt9v032_s_stream(struct v4l2_subdev *subdev,
-> > int enable) /* Configure the window size and row/column bin */
-> >  	hbin = fls(mt9v032->hratio) - 1;
-> >  	vbin = fls(mt9v032->vratio) - 1;
-> > -	ret = mt9v032_write(client, MT9V032_READ_MODE,
-> > -			    hbin << MT9V032_READ_MODE_COLUMN_BIN_SHIFT |
-> > -			    vbin << MT9V032_READ_MODE_ROW_BIN_SHIFT);
-> > +	read_mode = mt9v032_read(client, MT9V032_READ_MODE);
 > 
-> Shouldn't you check the return value for errors here ?
+> I have looked through media_tree.git/tree/drivers/media/usb/cx231xx/cx231xx-video.c but did not find any clue, as I'm not really into c.
 
-Yes, thanks.
+At least in this case I don't have datasheets.
 
-> > +	read_mode &= ~0xff; /* bits 0x300 are reserved */
 > 
-> What about defining an MT9V032_READ_MODE_RESERVED macro set to 0x0300 and 
-> using it here ?
+> Advice appreciated!\
 
-I'll do that.
+If you want to capture fields, the three PCI devices mentioned above are the only ones
+that can do it.
 
-> > +	read_mode |= hbin << MT9V032_READ_MODE_COLUMN_BIN_SHIFT |
-> > +		     vbin << MT9V032_READ_MODE_ROW_BIN_SHIFT;
-> > +	ret = mt9v032_write(client, MT9V032_READ_MODE, read_mode);
-> 
-> I'm tempted to create an mt9v032_write_read_mode function, as the code is 
-> getting a bit complex:
-> 
-> static int mt9v032_write_read_mode(struct mt9v032 *mt9v032, u16 value)
-> {
-> 	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
-> 	int ret;
-> 
-> 	ret = mt9v032_read(client, MT9V032_READ_MODE);
-> 	if (ret < 0)
-> 		return ret;
-> 
-> 	ret &= ~MT9V032_READ_MODE_RESERVED;
-> 	ret |= value;
-> 
-> 	return mt9v032_write(client, MT9V032_READ_MODE, ret);
-> }
->
-> But I'll leave that up to you, feel free to ignore the suggestion.
+Regards,
 
-I'd rather convert the driver to use regmap so we don't have to open
-code those read-modify-writes everywhere.
+	Hans
 
-regards
-Philipp
+> 
+> Regards,
+> 
+> Max
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
