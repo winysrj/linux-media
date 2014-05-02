@@ -1,103 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f175.google.com ([209.85.220.175]:61194 "EHLO
-	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758786AbaEMKrl (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49844 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751784AbaEBLH0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 May 2014 06:47:41 -0400
+	Fri, 2 May 2014 07:07:26 -0400
+Date: Fri, 2 May 2014 14:06:51 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	s.nawrocki@samsung.com, a.hajda@samsung.com,
+	kyungmin.park@samsung.com
+Subject: Re: [PATCH/RFC v3 5/5] media: Add registration helpers for V4L2
+ flash sub-devices
+Message-ID: <20140502110651.GX8753@valkosipuli.retiisi.org.uk>
+References: <1397228216-6657-1-git-send-email-j.anaszewski@samsung.com>
+ <1397228216-6657-6-git-send-email-j.anaszewski@samsung.com>
+ <20140416182141.GG8753@valkosipuli.retiisi.org.uk>
+ <534F9044.6080508@samsung.com>
+ <20140423152435.GJ8753@valkosipuli.retiisi.org.uk>
+ <535E3A95.6010206@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <5371D0ED.4050208@xs4all.nl>
-References: <1399960743-4542-1-git-send-email-arun.kk@samsung.com>
-	<1399960743-4542-3-git-send-email-arun.kk@samsung.com>
-	<5371D0ED.4050208@xs4all.nl>
-Date: Tue, 13 May 2014 16:17:41 +0530
-Message-ID: <CALt3h78bhGtvaqQSrHSmejGu4rb1OywU8dhGQxx+NxqJE3pitw@mail.gmail.com>
-Subject: Re: [PATCH v4 2/2] [media] s5p-mfc: Add support for resolution change event
-From: Arun Kumar K <arun.kk@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <posciak@chromium.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <535E3A95.6010206@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Jacek,
 
-On Tue, May 13, 2014 at 1:29 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 05/13/14 07:59, Arun Kumar K wrote:
->> From: Pawel Osciak <posciak@chromium.org>
->>
->> When a resolution change point is reached, queue an event to signal the
->> userspace that a new set of buffers is required before decoding can
->> continue.
->>
->> Signed-off-by: Pawel Osciak <posciak@chromium.org>
->> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
->> ---
->>  drivers/media/platform/s5p-mfc/s5p_mfc.c     |    7 +++++++
->>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |    2 ++
->>  2 files changed, 9 insertions(+)
->>
->> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> index 54f7ba1..2d7d1ae 100644
->> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> @@ -320,6 +320,7 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx *ctx,
->>       struct s5p_mfc_buf *src_buf;
->>       unsigned long flags;
->>       unsigned int res_change;
->> +     struct v4l2_event ev;
->>
->>       dst_frame_status = s5p_mfc_hw_call(dev->mfc_ops, get_dspl_status, dev)
->>                               & S5P_FIMV_DEC_STATUS_DECODING_STATUS_MASK;
->> @@ -351,6 +352,12 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx *ctx,
->>               if (ctx->state == MFCINST_RES_CHANGE_FLUSH) {
->>                       s5p_mfc_handle_frame_all_extracted(ctx);
->>                       ctx->state = MFCINST_RES_CHANGE_END;
->> +
->> +                     memset(&ev, 0, sizeof(struct v4l2_event));
->> +                     ev.type = V4L2_EVENT_SOURCE_CHANGE;
->> +                     ev.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION;
->
-> I would replace this by:
->
->                 static const struct v4l2_event ev_src_ch = {
->                         .type = V4L2_EVENT_SOURCE_CHANGE,
->                         .u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
->                 };
->
-> No need for memsets or filling in structs at runtime.
->
+On Mon, Apr 28, 2014 at 01:25:09PM +0200, Jacek Anaszewski wrote:
+> Hi Sakari,
+> 
+> On 04/23/2014 05:24 PM, Sakari Ailus wrote:
+> >Hi Jacek,
+> >
+> >On Thu, Apr 17, 2014 at 10:26:44AM +0200, Jacek Anaszewski wrote:
+> >>Hi Sakari,
+> >>
+> >>Thanks for the review.
+> >>
+> >>On 04/16/2014 08:21 PM, Sakari Ailus wrote:
+> >>>Hi Jacek,
+> >>>
+> >>>Thanks for the update!
+> >>>
+> >>[...]
+> >>>>+static inline enum led_brightness v4l2_flash_intensity_to_led_brightness(
+> >>>>+					struct led_ctrl *config,
+> >>>>+					u32 intensity)
+> >>>
+> >>>Fits on a single line.
+> >>>
+> >>>>+{
+> >>>>+	return intensity / config->step;
+> >>>
+> >>>Shouldn't you first decrement the minimum before the division?
+> >>
+> >>Brightness level 0 means that led is off. Let's consider following case:
+> >>
+> >>intensity - 15625
+> >>config->step - 15625
+> >>intensity / config->step = 1 (the lowest possible current level)
+> >
+> >In V4L2 controls the minimum is not off, and zero might not be a possible
+> >value since minimum isn't divisible by step.
+> >
+> >I wonder how to best take that into account.
+> 
+> I've assumed that in MODE_TORCH a led is always on. Switching
+> the mode to MODE_FLASH or MODE_OFF turns the led off.
+> This way we avoid the problem with converting 0 uA value to
+> led_brightness, as available torch brightness levels start from
+> the minimum current level value and turning the led off is
+> accomplished on transition to MODE_OFF or MODE_FLASH, by
+> calling brightness_set op with led_brightness = 0.
 
-Ok will make this change.
+I'm not sure if we understood the issue the same way. My concern was that if
+the intensity isn't a multiple of step (but intensity - min is), the above
+formula won't return a valid result (unless I miss something).
 
-Regards
-Arun
+-- 
+Regards,
 
-> Regards,
->
->         Hans
->
->> +                     v4l2_event_queue_fh(&ctx->fh, &ev);
->> +
->>                       goto leave_handle_frame;
->>               } else {
->>                       s5p_mfc_handle_frame_all_extracted(ctx);
->> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
->> index 4f94491..b383829 100644
->> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
->> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
->> @@ -855,6 +855,8 @@ static int vidioc_subscribe_event(struct v4l2_fh *fh,
->>       switch (sub->type) {
->>       case V4L2_EVENT_EOS:
->>               return v4l2_event_subscribe(fh, sub, 2, NULL);
->> +     case V4L2_EVENT_SOURCE_CHANGE:
->> +             return v4l2_src_change_event_subscribe(fh, sub);
->>       default:
->>               return -EINVAL;
->>       }
->>
->
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
