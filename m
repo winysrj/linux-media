@@ -1,147 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.horizon.com ([71.41.210.147]:42283 "HELO ns.horizon.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754825AbaEKLOz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 May 2014 07:14:55 -0400
-Date: 11 May 2014 07:14:54 -0400
-Message-ID: <20140511111454.14786.qmail@ns.horizon.com>
-From: "George Spelvin" <linux@horizon.com>
-To: james.hogan@imgtec.com, linux-media@vger.kernel.org,
-	linux@horizon.com, m.chehab@samsung.com
-Subject: [PATCH 05/10] ati_remote: Shrink the ati_remote_tbl even more
-In-Reply-To: <20140511111113.14427.qmail@ns.horizon.com>
+Received: from fallback7.mail.ru ([94.100.176.135]:52922 "EHLO
+	fallback7.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751854AbaEBHSW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 May 2014 03:18:22 -0400
+Received: from smtp10.mail.ru (smtp10.mail.ru [94.100.176.152])
+	by fallback7.mail.ru (mPOP.Fallback_MX) with ESMTP id 835D2100D8C34
+	for <linux-media@vger.kernel.org>; Fri,  2 May 2014 11:18:20 +0400 (MSK)
+From: Alexander Shiyan <shc_work@mail.ru>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Shawn Guo <shawn.guo@freescale.com>,
+	Alexander Shiyan <shc_work@mail.ru>
+Subject: [PATCH 2/3] media: mx2-emmaprp: Add missing mutex_destroy()
+Date: Fri,  2 May 2014 11:18:01 +0400
+Message-Id: <1399015081-23953-2-git-send-email-shc_work@mail.ru>
+In-Reply-To: <1399015081-23953-1-git-send-email-shc_work@mail.ru>
+References: <1399015081-23953-1-git-send-email-shc_work@mail.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Get rid of the unnecessary "type" and "value" fields.
+This patch adds the missing mutex_destroy(), when the driver is removed.
 
-Signed-off-by: George Spelvin <linux@horizon.com>
+Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
 ---
- drivers/media/rc/ati_remote.c | 69 ++++++++++++++++++++++---------------------
- 1 file changed, 35 insertions(+), 34 deletions(-)
+ drivers/media/platform/mx2_emmaprp.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
-index ba5c1bba53..8d9937fd5d 100644
---- a/drivers/media/rc/ati_remote.c
-+++ b/drivers/media/rc/ati_remote.c
-@@ -279,43 +279,42 @@ struct ati_remote {
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index 85ce099..fa8f7ca 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -985,6 +985,8 @@ rel_vdev:
+ unreg_dev:
+ 	v4l2_device_unregister(&pcdev->v4l2_dev);
  
- /* "Kinds" of messages sent from the hardware to the driver. */
- #define KIND_END        0
--#define KIND_LITERAL    1   /* Simply pass to input system */
-+#define KIND_LITERAL    1   /* Simply pass to input system as EV_KEY */
- #define KIND_FILTERED   2   /* Add artificial key-up events, drop keyrepeats */
--#define KIND_ACCEL      3   /* Directional keypad - left, right, up, down.*/
-+#define KIND_ACCEL      3   /* Translate to EV_REL mouse-move events */
- 
- /* Translation table from hardware messages to input events. */
- static const struct {
- 	unsigned char kind;
--	unsigned char data;
--	unsigned char type;
--	unsigned short code;
--	signed char value;
-+	unsigned char data;	/* Raw key code from remote */
-+	unsigned short code;	/* Input layer translation */
- }  ati_remote_tbl[] = {
- 	/* Directional control pad axes.  Code is xxyy */
--	{KIND_ACCEL,   0x70, EV_REL, 0xff00, 0},	/* left */
--	{KIND_ACCEL,   0x71, EV_REL, 0x0100, 0},	/* right */
--	{KIND_ACCEL,   0x72, EV_REL, 0x00ff, 0},	/* up */
--	{KIND_ACCEL,   0x73, EV_REL, 0x0001, 0},	/* down */
-+	{KIND_ACCEL,    0x70, 0xff00},	/* left */
-+	{KIND_ACCEL,    0x71, 0x0100},	/* right */
-+	{KIND_ACCEL,    0x72, 0x00ff},	/* up */
-+	{KIND_ACCEL,    0x73, 0x0001},	/* down */
- 
- 	/* Directional control pad diagonals */
--	{KIND_ACCEL,   0x74, EV_REL, 0xffff, 0},	/* left up */
--	{KIND_ACCEL,   0x75, EV_REL, 0x01ff, 0},	/* right up */
--	{KIND_ACCEL,   0x77, EV_REL, 0xff01, 0},	/* left down */
--	{KIND_ACCEL,   0x76, EV_REL, 0x0101, 0},	/* right down */
--
--	/* "Mouse button" buttons */
--	{KIND_LITERAL, 0x78, EV_KEY, BTN_LEFT, 1}, /* left btn down */
--	{KIND_LITERAL, 0x79, EV_KEY, BTN_LEFT, 0}, /* left btn up */
--	{KIND_LITERAL, 0x7c, EV_KEY, BTN_RIGHT, 1},/* right btn down */
--	{KIND_LITERAL, 0x7d, EV_KEY, BTN_RIGHT, 0},/* right btn up */
-+	{KIND_ACCEL,    0x74, 0xffff},	/* left up */
-+	{KIND_ACCEL,    0x75, 0x01ff},	/* right up */
-+	{KIND_ACCEL,    0x77, 0xff01},	/* left down */
-+	{KIND_ACCEL,    0x76, 0x0101},	/* right down */
++	mutex_destroy(&pcdev->dev_mutex);
 +
-+	/* "Mouse button" buttons.  The code below uses the fact that the
-+	 * lsbit of the raw code is a down/up indicator. */
-+	{KIND_LITERAL,  0x78, BTN_LEFT}, /* left btn down */
-+	{KIND_LITERAL,  0x79, BTN_LEFT}, /* left btn up */
-+	{KIND_LITERAL,  0x7c, BTN_RIGHT},/* right btn down */
-+	{KIND_LITERAL,  0x7d, BTN_RIGHT},/* right btn up */
+ 	return ret;
+ }
  
- 	/* Artificial "doubleclick" events are generated by the hardware.
- 	 * They are mapped to the "side" and "extra" mouse buttons here. */
--	{KIND_FILTERED, 0x7a, EV_KEY, BTN_SIDE, 1}, /* left dblclick */
--	{KIND_FILTERED, 0x7e, EV_KEY, BTN_EXTRA, 1},/* right dblclick */
-+	{KIND_FILTERED, 0x7a, BTN_SIDE}, /* left dblclick */
-+	{KIND_FILTERED, 0x7e, BTN_EXTRA},/* right dblclick */
+@@ -998,6 +1000,7 @@ static int emmaprp_remove(struct platform_device *pdev)
+ 	v4l2_m2m_release(pcdev->m2m_dev);
+ 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+ 	v4l2_device_unregister(&pcdev->v4l2_dev);
++	mutex_destroy(&pcdev->dev_mutex);
  
- 	/* Non-mouse events are handled by rc-core */
--	{KIND_END, 0x00, EV_MAX + 1, 0, 0}
-+	{KIND_END, 0x00, 0}
- };
- 
- /*
-@@ -563,9 +562,12 @@ static void ati_remote_input_report(struct urb *urb)
- 	}
- 
- 	if (index >= 0 && ati_remote_tbl[index].kind == KIND_LITERAL) {
--		input_event(dev, ati_remote_tbl[index].type,
--			ati_remote_tbl[index].code,
--			ati_remote_tbl[index].value);
-+		/*
-+		 * The lsbit of the raw key code is a down/up flag.
-+		 * Invert it to match the input layer's conventions.
-+		 */
-+		input_event(dev, EV_KEY, ati_remote_tbl[index].code,
-+			!(data[2] & 1));
- 		input_sync(dev);
- 
- 		ati_remote->old_jiffies = jiffies;
-@@ -586,9 +588,9 @@ static void ati_remote_input_report(struct urb *urb)
- 		ati_remote->old_data = data[2];
- 		ati_remote->old_jiffies = now;
- 
--		/* Ensure we skip at least the 4 first duplicate events (generated
--		 * by a single keypress), and continue skipping until repeat_delay
--		 * msecs have passed
-+		/* Ensure we skip at least the 4 first duplicate events
-+		 * (generated by a single keypress), and continue skipping
-+		 * until repeat_delay msecs have passed.
- 		 */
- 		if (ati_remote->repeat_count > 0 &&
- 		    (ati_remote->repeat_count < 5 ||
-@@ -624,10 +626,8 @@ static void ati_remote_input_report(struct urb *urb)
- 			return;
- 		}
- 
--		input_event(dev, ati_remote_tbl[index].type,
--			ati_remote_tbl[index].code, 1);
--		input_event(dev, ati_remote_tbl[index].type,
--			ati_remote_tbl[index].code, 0);
-+		input_event(dev, EV_KEY, ati_remote_tbl[index].code, 1);
-+		input_event(dev, EV_KEY, ati_remote_tbl[index].code, 0);
- 		input_sync(dev);
- 
- 	} else if (ati_remote_tbl[index].kind == KIND_ACCEL) {
-@@ -738,7 +738,8 @@ static void ati_remote_input_init(struct ati_remote *ati_remote)
- 		BIT_MASK(BTN_RIGHT) | BIT_MASK(BTN_SIDE) | BIT_MASK(BTN_EXTRA);
- 	idev->relbit[0] = BIT_MASK(REL_X) | BIT_MASK(REL_Y);
- 	for (i = 0; ati_remote_tbl[i].kind != KIND_END; i++)
--		if (ati_remote_tbl[i].type == EV_KEY)
-+		if (ati_remote_tbl[i].kind == KIND_LITERAL ||
-+		    ati_remote_tbl[i].kind == KIND_FILTERED)
- 			set_bit(ati_remote_tbl[i].code, idev->keybit);
- 
- 	input_set_drvdata(idev, ati_remote);
+ 	return 0;
+ }
 -- 
-1.9.2
+1.8.3.2
 
