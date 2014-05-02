@@ -1,58 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46328 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751325AbaEALPr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 May 2014 07:15:47 -0400
-Date: Thu, 1 May 2014 14:15:42 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 01/26] omap3isp: stat: Rename IS_COHERENT_BUF to
- ISP_STAT_USES_DMAENGINE
-Message-ID: <20140501111542.GU8753@valkosipuli.retiisi.org.uk>
-References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1398083352-8451-2-git-send-email-laurent.pinchart@ideasonboard.com>
- <20140430224547.GT8753@valkosipuli.retiisi.org.uk>
- <1747188.f0Jd97RYvh@avalon>
+Received: from mout.kundenserver.de ([212.227.17.24]:55564 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750991AbaEBOku (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 May 2014 10:40:50 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1747188.f0Jd97RYvh@avalon>
+Message-ID: <trinity-366a0e3a-4d3d-47f1-9f37-02de36c5e96b-1399041648866@3capp-1and1-bs01>
+From: "max.schulze@online.de" <max.schulze@online.de>
+To: linux-media@vger.kernel.org
+Subject: getting 50 fields/sec from bttv, but not on usb with em28xx /
+ cx231xx
+Content-Type: text/plain; charset=UTF-8
+Date: Fri, 2 May 2014 16:40:48 +0200
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 01, 2014 at 12:48:57AM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Thursday 01 May 2014 01:45:47 Sakari Ailus wrote:
-> > Hi Laurent,
-> > 
-> > Thanks for the set! I've been looking forward to see this! :)
-> > 
-> > On Mon, Apr 21, 2014 at 02:28:47PM +0200, Laurent Pinchart wrote:
-> > > The macro is meant to test whether the statistics engine uses an
-> > > external DMA engine to transfer data or supports DMA directly. As both
-> > > cases will be supported by DMA coherent buffers rename the macro to
-> > > ISP_STAT_USES_DMAENGINE for improved clarity.
-> > 
-> > Both use DMA, but the ISP just implements its own. How about calling the
-> > macro ISP_STAT_USES_SYSTEM_DMA instead? Up to you.
-> 
-> DMA engine is the Linux name for the system DMA engine API. It might indeed be 
+Hello,
 
-The documentation does not use that term at least. It speaks of DMA mapping
-instead. The DMA being used for the transfers in that case is OMAP system
-DMA, not ISP DMA.
+I have modified the 5dpo example (http://sourceforge.net/p/sdpo-cl/) to work with v4l2_pix_format set to V4L2_FIELD_ALTERNATE. With a pci grabber card and corresponding driver bttv I get 50 fields per second. Fine, great!
 
-> slightly generic, but I'm not too sure whether ISP_STAT_USES_SYSTEM_DMA would 
-> be more descriptive. I suppose it depends on the background of the reader :-) 
-> If you insist I can change it.
+I then plugged a usb grabber (2040:c200 Hauppauge, module is cx231xx) and retried the same expriment and it only provides 25 (fields/frames) per second. 
+Same with a ( saa7115 8-0025: saa7113 found @ 0x4a em2860 ).
 
-I think ISP_STAT_USES_SYSTEM_DMA is simply better. Up to you.
+What do these usb grabbers do fundamentally different? Can't they provide every single field? What would be a good starting point for further investigation?
 
--- 
+I have looked through media_tree.git/tree/drivers/media/usb/cx231xx/cx231xx-video.c but did not find any clue, as I'm not really into c.
+
+Advice appreciated!
+
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Max
