@@ -1,70 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f170.google.com ([209.85.217.170]:55198 "EHLO
-	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754432AbaEMSkO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 May 2014 14:40:14 -0400
-Received: by mail-lb0-f170.google.com with SMTP id w7so610182lbi.1
-        for <linux-media@vger.kernel.org>; Tue, 13 May 2014 11:40:12 -0700 (PDT)
-From: Alexander Bersenev <bay@hackerdom.ru>
-To: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
-	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
-	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Alexander Bersenev <bay@hackerdom.ru>
-Subject: [PATCH v6 1/3] ARM: sunxi: Add documentation for sunxi consumer infrared devices
-Date: Wed, 14 May 2014 00:39:00 +0600
-Message-Id: <1400006342-2968-2-git-send-email-bay@hackerdom.ru>
-In-Reply-To: <1400006342-2968-1-git-send-email-bay@hackerdom.ru>
-References: <1400006342-2968-1-git-send-email-bay@hackerdom.ru>
+Received: from fallback1.mail.ru ([94.100.176.18]:52300 "EHLO
+	fallback1.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751851AbaEBHSW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 May 2014 03:18:22 -0400
+Received: from smtp10.mail.ru (smtp10.mail.ru [94.100.176.152])
+	by fallback1.mail.ru (mPOP.Fallback_MX) with ESMTP id 3EF1D37EE889
+	for <linux-media@vger.kernel.org>; Fri,  2 May 2014 11:18:20 +0400 (MSK)
+From: Alexander Shiyan <shc_work@mail.ru>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Shawn Guo <shawn.guo@freescale.com>,
+	Alexander Shiyan <shc_work@mail.ru>
+Subject: [PATCH 1/3] media: mx2-emmaprp: Cleanup internal structure
+Date: Fri,  2 May 2014 11:18:00 +0400
+Message-Id: <1399015081-23953-1-git-send-email-shc_work@mail.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds documentation for Device-Tree bindings for sunxi IR
-controller.
+There are no need to store resource struct and IRQ in the driver
+internal structure.
+This patch remove these fields and improve error handling by using
+proper return codes from devm_ioremap_resource() and devm_request_irq().
 
-Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
+Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
 ---
- .../devicetree/bindings/media/sunxi-ir.txt         | 23 ++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sunxi-ir.txt
+ drivers/media/platform/mx2_emmaprp.c | 34 ++++++++++------------------------
+ 1 file changed, 10 insertions(+), 24 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-new file mode 100644
-index 0000000..014dd8b
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-@@ -0,0 +1,23 @@
-+Device-Tree bindings for SUNXI IR controller found in sunXi SoC family
-+
-+Required properties:
-+- compatible	    : should be "allwinner,sun7i-a20-ir";
-+- clocks	    : list of clock specifiers, corresponding to
-+		      entries in clock-names property;
-+- clock-names	    : should contain "apb" and "ir" entries;
-+- interrupts	    : should contain IR IRQ number;
-+- reg		    : should contain IO map address for IR.
-+
-+Optional properties:
-+- linux,rc-map-name : Remote control map name.
-+
-+Example:
-+
-+ir0: ir@01c21800 {
-+	compatible = "allwinner,sun7i-a20-ir";
-+	clocks = <&apb0_gates 6>, <&ir0_clk>;
-+	clock-names = "apb", "ir";
-+	interrupts = <0 5 1>;
-+	reg = <0x01C21800 0x40>;
-+	linux,rc-map-name = "rc-rc6-mce";
-+};
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index 0b7480e..85ce099 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -207,10 +207,8 @@ struct emmaprp_dev {
+ 	struct mutex		dev_mutex;
+ 	spinlock_t		irqlock;
+ 
+-	int			irq_emma;
+ 	void __iomem		*base_emma;
+ 	struct clk		*clk_emma_ahb, *clk_emma_ipg;
+-	struct resource		*res_emma;
+ 
+ 	struct v4l2_m2m_dev	*m2m_dev;
+ 	struct vb2_alloc_ctx	*alloc_ctx;
+@@ -901,9 +899,8 @@ static int emmaprp_probe(struct platform_device *pdev)
+ {
+ 	struct emmaprp_dev *pcdev;
+ 	struct video_device *vfd;
+-	struct resource *res_emma;
+-	int irq_emma;
+-	int ret;
++	struct resource *res;
++	int irq, ret;
+ 
+ 	pcdev = devm_kzalloc(&pdev->dev, sizeof(*pcdev), GFP_KERNEL);
+ 	if (!pcdev)
+@@ -920,12 +917,10 @@ static int emmaprp_probe(struct platform_device *pdev)
+ 	if (IS_ERR(pcdev->clk_emma_ahb))
+ 		return PTR_ERR(pcdev->clk_emma_ahb);
+ 
+-	irq_emma = platform_get_irq(pdev, 0);
+-	res_emma = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (irq_emma < 0 || res_emma == NULL) {
+-		dev_err(&pdev->dev, "Missing platform resources data\n");
+-		return -ENODEV;
+-	}
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	pcdev->base_emma = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(pcdev->base_emma))
++		return PTR_ERR(pcdev->base_emma);
+ 
+ 	ret = v4l2_device_register(&pdev->dev, &pcdev->v4l2_dev);
+ 	if (ret)
+@@ -952,20 +947,11 @@ static int emmaprp_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, pcdev);
+ 
+-	pcdev->base_emma = devm_ioremap_resource(&pdev->dev, res_emma);
+-	if (IS_ERR(pcdev->base_emma)) {
+-		ret = PTR_ERR(pcdev->base_emma);
+-		goto rel_vdev;
+-	}
+-
+-	pcdev->irq_emma = irq_emma;
+-	pcdev->res_emma = res_emma;
+-
+-	if (devm_request_irq(&pdev->dev, pcdev->irq_emma, emmaprp_irq,
+-			     0, MEM2MEM_NAME, pcdev) < 0) {
+-		ret = -ENODEV;
++	irq = platform_get_irq(pdev, 0);
++	ret = devm_request_irq(&pdev->dev, irq, emmaprp_irq, 0,
++			       dev_name(&pdev->dev), pcdev);
++	if (ret)
+ 		goto rel_vdev;
+-	}
+ 
+ 	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+ 	if (IS_ERR(pcdev->alloc_ctx)) {
 -- 
-1.9.3
+1.8.3.2
 
