@@ -1,63 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4036 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751409AbaEMRdO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 May 2014 13:33:14 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4DHXAn6043379
-	for <linux-media@vger.kernel.org>; Tue, 13 May 2014 19:33:13 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id EAA782A19A4
-	for <linux-media@vger.kernel.org>; Tue, 13 May 2014 19:32:58 +0200 (CEST)
-Message-ID: <5372574A.7010902@xs4all.nl>
-Date: Tue, 13 May 2014 19:32:58 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from top.free-electrons.com ([176.31.233.9]:60484 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752193AbaECRuG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 May 2014 13:50:06 -0400
+Date: Sat, 3 May 2014 10:45:20 -0700
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Alexander Bersenev <bay@hackerdom.ru>
+Cc: linux-sunxi@googlegroups.com, david@hardeman.nu,
+	devicetree@vger.kernel.org, galak@codeaurora.org,
+	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
+	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
+	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
+	pawel.moll@arm.com, rdunlap@infradead.org, robh+dt@kernel.org,
+	sean@mess.org, srinivas.kandagatla@st.com,
+	wingrime@linux-sunxi.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v5 1/3] ARM: sunxi: Add documentation for sunxi consumer
+ infrared devices
+Message-ID: <20140503174520.GA15342@lukather>
+References: <1398871010-30681-1-git-send-email-bay@hackerdom.ru>
+ <1398871010-30681-2-git-send-email-bay@hackerdom.ru>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.16] saa7134 fixes and vb2 conversion (with bisect
- fix)
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="huq684BweRXVnRxX"
+Content-Disposition: inline
+In-Reply-To: <1398871010-30681-2-git-send-email-bay@hackerdom.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-Updated and rebased, fixing the embarrassing bisect problem, otherwise unchanged.
+--huq684BweRXVnRxX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+On Wed, Apr 30, 2014 at 09:16:48PM +0600, Alexander Bersenev wrote:
+> This patch adds documentation for Device-Tree bindings for sunxi IR
+> controller.
+>=20
+> Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
+> Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
+> ---
+>  .../devicetree/bindings/media/sunxi-ir.txt         | 23 ++++++++++++++++=
+++++++
+>  1 file changed, 23 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/sunxi-ir.txt
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Docum=
+entation/devicetree/bindings/media/sunxi-ir.txt
+> new file mode 100644
+> index 0000000..d502cf4
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+> @@ -0,0 +1,23 @@
+> +Device-Tree bindings for SUNXI IR controller found in sunXi SoC family
+> +
+> +Required properties:
+> +- compatible	    : should be "allwinner,sun7i-a20-ir";
+> +- clocks	    : list of clock specifiers, corresponding to
+> +		      entries in clock-names property;
+> +- clock-names	    : should contain "apb0_ir0" and "ir0" entries;
+> +- interrupts	    : should contain IR IRQ number;
+> +- reg		    : should contain IO map address for IR.
+> +
+> +Optional properties:
+> +- linux,rc-map-name : Remote control map name.
+> +
+> +Example:
+> +
+> +ir0: ir@01c21800 {
+> +       	compatible =3D "allwinner,sun7i-a20-ir";
+> +       	clocks =3D <&apb0_gates 6>, <&ir0_clk>;
+> +       	clock-names =3D "apb0_ir0", "ir0";
 
-	Hans
+Most of the time, we use something like "apb" and "ir". The names
+being generic, if there ever comes a time where you have a second
+controller, you don't have to do anything confusing or inconsistent.
 
+Thanks!
+Maxime
 
-The following changes since commit 7ffd58ddab76969019098e97d687711451d32a3d:
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
 
-  [media] v4l: Add 12-bit YUV 4:2:2 media bus pixel codes (2014-05-13 13:48:29 -0300)
+--huq684BweRXVnRxX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-are available in the git repository at:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.16f
+iQIcBAEBAgAGBQJTZSswAAoJEBx+YmzsjxAg5gYP/2lsQUHZgbQkji8OwT4EDdzy
+JSsE8bmWB+YZjkD0GHMKEn5RUqxt0VCNiNngpKAFwT0A8n3HFN5AlCo3ZZz70RyN
+88l5R2pfq/ftzhDJE+Pp8Q5ToQ+XR2k4CmEA5UpdMsJ8+stxNRlaKOnYIPfnK1Wj
+Hmi9xSyJZ1Nz6sdw7fxy051lmPiWWSvrmVjh6OqAxGte+Odw5lz0fiosNv9VpJo6
+8luskf+PHPAk5clbTqd7RyZ//sGB9r6htc5ybeh5ql4OJ1Yp/ntWs/yhZ3Sn3iyA
+V6vgGNEmdsJleWOeN0on3/cccTFLnDkWNQXYOQDPGx573WTtWoSwW94nJICFe0Hl
+8P1ZTvwD3bVrAebdWEGa6yAJ1vETU5heTFCY2llO0JZLaeCL6DaSU2f8fjWHJOp+
+7g2zAdISKm9qaPRdVF/K1Hdt2flp8TWAq4sxZUer7eTGab6NYGrGmG4cATpBhcDr
+ZGcYmGjoC7kswPP5frVg7q+6r3RWu1r+BA9ZqdJGHHZjrHrINANLyn1uybKPTTgB
+h2RuKVdfIm4DvMIMaiVE8x4dK/NjXa2Y4ptdG20eNVaxIuPQ9gAZN878Pdf4u7Iu
+B/jAqkE4r3lVfjarMyHMSKx1yjXKgjBujhCj0J1eveiLWCOeg+MLIzUGNQoyjlPO
+vfI/90NAa3X3SlyoQ8tY
+=B/uK
+-----END PGP SIGNATURE-----
 
-for you to fetch changes up to 3581ec3e87ffaa9cda258948410528c807c4a2d7:
-
-  saa7134: add saa7134_userptr module option to enable USERPTR (2014-05-13 19:30:05 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (4):
-      saa7134: rename vbi/cap to vbi_vbq/cap_vbq
-      saa7134: move saa7134_pgtable to saa7134_dmaqueue
-      saa7134: convert to vb2
-      saa7134: add saa7134_userptr module option to enable USERPTR
-
- drivers/media/pci/saa7134/Kconfig           |   4 +-
- drivers/media/pci/saa7134/saa7134-core.c    |  90 ++++++------
- drivers/media/pci/saa7134/saa7134-dvb.c     |  43 +++---
- drivers/media/pci/saa7134/saa7134-empress.c | 175 +++++++++--------------
- drivers/media/pci/saa7134/saa7134-ts.c      | 184 ++++++++++++++----------
- drivers/media/pci/saa7134/saa7134-vbi.c     | 114 +++++++--------
- drivers/media/pci/saa7134/saa7134-video.c   | 612 +++++++++++++++++++++++++++++---------------------------------------------------
- drivers/media/pci/saa7134/saa7134.h         | 100 +++++++------
- 8 files changed, 578 insertions(+), 744 deletions(-)
+--huq684BweRXVnRxX--
