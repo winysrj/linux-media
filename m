@@ -1,63 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:10777 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757477AbaE2Ola (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 May 2014 10:41:30 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [PATCH v3 2/3] smiapp: Add driver-specific test pattern menu item definitions
-Date: Thu, 29 May 2014 17:40:47 +0300
-Message-Id: <1401374448-30411-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mout.kundenserver.de ([212.227.126.130]:60166 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750990AbaECKfI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 May 2014 06:35:08 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id 0735340BD9
+	for <linux-media@vger.kernel.org>; Sat,  3 May 2014 12:35:06 +0200 (CEST)
+Date: Sat, 3 May 2014 12:35:05 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL] fixes for 3.15
+Message-ID: <Pine.LNX.4.64.1405031232030.23253@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add numeric definitions for menu items used in the smiapp driver's test
-pattern menu.
+Hi Mauro,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+I've collected these patches over some time, they contain real fixes for 
+real problems :) Please, push to 3.15 before it enters a "critical 
+life-or-world-rescuing if-not-be-prepared-to-be-fried" phase :)
+
+The following changes since commit 6c6ca9c2a5b97ab37ffd1b091d15eb5cd3f1bf23:
+
+  Merge tag 'pm+acpi-3.15-rc4' of git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm (2014-05-02 18:16:31 -0700)
+
+are available in the git repository at:
+
+
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git fixes-3.15-rc3
+
+for you to fetch changes up to e35b8a5da7721b2a7b92d3b51812ab7d540c3e73:
+
+  V4L2: fix VIDIOC_CREATE_BUFS in 64- / 32-bit compatibility mode (2014-05-03 11:56:19 +0200)
+
+----------------------------------------------------------------
+Guennadi Liakhovetski (2):
+      V4L2: ov7670: fix a wrong index, potentially Oopsing the kernel from user-space
+      V4L2: fix VIDIOC_CREATE_BUFS in 64- / 32-bit compatibility mode
+
+Hans Verkuil (3):
+      v4l2-subdev.h: add g_tvnorms video op
+      tw9910: add g_tvnorms video op
+      soc_camera: disable STD ioctls if no tvnorms are set.
+
+ drivers/media/i2c/ov7670.c                     |  2 +-
+ drivers/media/i2c/soc_camera/tw9910.c          |  7 +++++++
+ drivers/media/platform/soc_camera/soc_camera.c |  8 ++++++++
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c  | 12 +++++++-----
+ include/media/v4l2-subdev.h                    |  8 ++++++--
+ 5 files changed, 29 insertions(+), 8 deletions(-)
+
+Thanks
+Guennadi
 ---
- include/uapi/linux/smiapp.h | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
- create mode 100644 include/uapi/linux/smiapp.h
-
-diff --git a/include/uapi/linux/smiapp.h b/include/uapi/linux/smiapp.h
-new file mode 100644
-index 0000000..53938f4
---- /dev/null
-+++ b/include/uapi/linux/smiapp.h
-@@ -0,0 +1,29 @@
-+/*
-+ * include/uapi/linux/smiapp.h
-+ *
-+ * Generic driver for SMIA/SMIA++ compliant camera modules
-+ *
-+ * Copyright (C) 2014 Intel Corporation
-+ * Contact: Sakari Ailus <sakari.ailus@iki.fi>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ */
-+
-+#ifndef __UAPI_LINUX_SMIAPP_H_
-+#define __UAPI_LINUX_SMIAPP_H_
-+
-+#define V4L2_SMIAPP_TEST_PATTERN_MODE_DISABLED			0
-+#define V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR		1
-+#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS		2
-+#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS_GREY		3
-+#define V4L2_SMIAPP_TEST_PATTERN_MODE_PN9			4
-+
-+#endif /* __UAPI_LINUX_SMIAPP_H_ */
--- 
-1.8.3.2
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
