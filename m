@@ -1,181 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f45.google.com ([74.125.83.45]:35607 "EHLO
-	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751438AbaEKU64 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 May 2014 16:58:56 -0400
-Received: by mail-ee0-f45.google.com with SMTP id d49so4129021eek.4
-        for <linux-media@vger.kernel.org>; Sun, 11 May 2014 13:58:55 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 15/19, REBASED] em28xx: move v4l2 user counting fields from struct em28xx to struct v4l2
-Date: Sun, 11 May 2014 22:59:04 +0200
-Message-Id: <1399841944-3083-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from top.free-electrons.com ([176.31.233.9]:60917 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752347AbaECSuH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 May 2014 14:50:07 -0400
+Date: Sat, 3 May 2014 11:00:49 -0700
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Alexander Bersenev <bay@hackerdom.ru>
+Cc: linux-sunxi@googlegroups.com, david@hardeman.nu,
+	devicetree@vger.kernel.org, galak@codeaurora.org,
+	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
+	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
+	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
+	pawel.moll@arm.com, rdunlap@infradead.org, robh+dt@kernel.org,
+	sean@mess.org, srinivas.kandagatla@st.com,
+	wingrime@linux-sunxi.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v5 3/3] ARM: sunxi: Add IR controller support in DT on A20
+Message-ID: <20140503180049.GD15342@lukather>
+References: <1398871010-30681-1-git-send-email-bay@hackerdom.ru>
+ <1398871010-30681-4-git-send-email-bay@hackerdom.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="uxuisgdDHaNETlh8"
+Content-Disposition: inline
+In-Reply-To: <1398871010-30681-4-git-send-email-bay@hackerdom.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-video.c | 27 +++++++++++++++------------
- drivers/media/usb/em28xx/em28xx.h       |  5 +++--
- 2 files changed, 18 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 496dcef..aaab111 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -934,7 +934,7 @@ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
- 	if (rc)
- 		return rc;
- 
--	if (dev->streaming_users == 0) {
-+	if (v4l2->streaming_users == 0) {
- 		/* First active streaming user, so allocate all the URBs */
- 
- 		/* Allocate the USB bandwidth */
-@@ -972,7 +972,7 @@ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
- 				     0, tuner, s_frequency, &f);
- 	}
- 
--	dev->streaming_users++;
-+	v4l2->streaming_users++;
- 
- 	return rc;
- }
-@@ -980,6 +980,7 @@ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
- static void em28xx_stop_streaming(struct vb2_queue *vq)
- {
- 	struct em28xx *dev = vb2_get_drv_priv(vq);
-+	struct em28xx_v4l2 *v4l2 = dev->v4l2;
- 	struct em28xx_dmaqueue *vidq = &dev->vidq;
- 	unsigned long flags = 0;
- 
-@@ -987,7 +988,7 @@ static void em28xx_stop_streaming(struct vb2_queue *vq)
- 
- 	res_free(dev, vq->type);
- 
--	if (dev->streaming_users-- == 1) {
-+	if (v4l2->streaming_users-- == 1) {
- 		/* Last active user, so shutdown all the URBS */
- 		em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
- 	}
-@@ -1008,6 +1009,7 @@ static void em28xx_stop_streaming(struct vb2_queue *vq)
- void em28xx_stop_vbi_streaming(struct vb2_queue *vq)
- {
- 	struct em28xx *dev = vb2_get_drv_priv(vq);
-+	struct em28xx_v4l2 *v4l2 = dev->v4l2;
- 	struct em28xx_dmaqueue *vbiq = &dev->vbiq;
- 	unsigned long flags = 0;
- 
-@@ -1015,7 +1017,7 @@ void em28xx_stop_vbi_streaming(struct vb2_queue *vq)
- 
- 	res_free(dev, vq->type);
- 
--	if (dev->streaming_users-- == 1) {
-+	if (v4l2->streaming_users-- == 1) {
- 		/* Last active user, so shutdown all the URBS */
- 		em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
- 	}
-@@ -1344,8 +1346,9 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 			struct v4l2_format *f)
- {
- 	struct em28xx *dev = video_drvdata(file);
-+	struct em28xx_v4l2 *v4l2 = dev->v4l2;
- 
--	if (dev->streaming_users > 0)
-+	if (v4l2->streaming_users > 0)
- 		return -EBUSY;
- 
- 	vidioc_try_fmt_vid_cap(file, priv, f);
-@@ -1384,7 +1387,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
- 	if (norm == v4l2->norm)
- 		return 0;
- 
--	if (dev->streaming_users > 0)
-+	if (v4l2->streaming_users > 0)
- 		return -EBUSY;
- 
- 	v4l2->norm = norm;
-@@ -1907,7 +1910,7 @@ static int em28xx_v4l2_open(struct file *filp)
- 
- 	em28xx_videodbg("open dev=%s type=%s users=%d\n",
- 			video_device_node_name(vdev), v4l2_type_names[fh_type],
--			dev->users);
-+			v4l2->users);
- 
- 	if (mutex_lock_interruptible(&dev->lock))
- 		return -ERESTARTSYS;
-@@ -1922,7 +1925,7 @@ static int em28xx_v4l2_open(struct file *filp)
- 	fh->type = fh_type;
- 	filp->private_data = fh;
- 
--	if (dev->users == 0) {
-+	if (v4l2->users == 0) {
- 		em28xx_set_mode(dev, EM28XX_ANALOG_MODE);
- 
- 		if (vdev->vfl_type != VFL_TYPE_RADIO)
-@@ -1942,7 +1945,7 @@ static int em28xx_v4l2_open(struct file *filp)
- 
- 	kref_get(&dev->ref);
- 	kref_get(&v4l2->ref);
--	dev->users++;
-+	v4l2->users++;
- 
- 	mutex_unlock(&dev->lock);
- 	v4l2_fh_add(&fh->fh);
-@@ -2051,12 +2054,12 @@ static int em28xx_v4l2_close(struct file *filp)
- 	struct em28xx_v4l2    *v4l2 = dev->v4l2;
- 	int              errCode;
- 
--	em28xx_videodbg("users=%d\n", dev->users);
-+	em28xx_videodbg("users=%d\n", v4l2->users);
- 
- 	vb2_fop_release(filp);
- 	mutex_lock(&dev->lock);
- 
--	if (dev->users == 1) {
-+	if (v4l2->users == 1) {
- 		/* No sense to try to write to the device */
- 		if (dev->disconnected)
- 			goto exit;
-@@ -2078,8 +2081,8 @@ static int em28xx_v4l2_close(struct file *filp)
- 	}
- 
- exit:
-+	v4l2->users--;
- 	kref_put(&v4l2->ref, em28xx_free_v4l2);
--	dev->users--;
- 	mutex_unlock(&dev->lock);
- 	kref_put(&dev->ref, em28xx_free_device);
- 
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 91bb624..0585217 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -523,6 +523,9 @@ struct em28xx_v4l2 {
- 	int sensor_yres;
- 	int sensor_xtal;
- 
-+	int users;		/* user count for exclusive use */
-+	int streaming_users;    /* number of actively streaming users */
-+
- 	struct em28xx_fmt *format;
- 	v4l2_std_id norm;	/* selected tv norm */
- 
-@@ -641,8 +644,6 @@ struct em28xx {
- 	struct rt_mutex i2c_bus_lock;
- 
- 	/* video for linux */
--	int users;		/* user count for exclusive use */
--	int streaming_users;    /* Number of actively streaming users */
- 	int ctl_freq;		/* selected frequency */
- 	unsigned int ctl_input;	/* selected input */
- 	unsigned int ctl_ainput;/* selected audio input */
--- 
-1.8.4.5
+--uxuisgdDHaNETlh8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Wed, Apr 30, 2014 at 09:16:50PM +0600, Alexander Bersenev wrote:
+> This patch adds IR controller in A20 Device-Tree:
+> - Two IR devices found in A20 user manual
+> - Pins for two devices
+> - One IR device physically found on Cubieboard 2
+> - One IR device physically found on Cubietruck
+>=20
+> Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
+> Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
+> ---
+>  arch/arm/boot/dts/sun7i-a20-cubieboard2.dts |  6 ++++++
+>  arch/arm/boot/dts/sun7i-a20-cubietruck.dts  |  6 ++++++
+>  arch/arm/boot/dts/sun7i-a20.dtsi            | 31 +++++++++++++++++++++++=
+++++++
+>  3 files changed, 43 insertions(+)
+>=20
+> diff --git a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts b/arch/arm/boot/=
+dts/sun7i-a20-cubieboard2.dts
+> index feeff64..2564e8c 100644
+> --- a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
+> +++ b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
+> @@ -164,6 +164,12 @@
+>  				reg =3D <1>;
+>  			};
+>  		};
+> +
+> +		ir0: ir@01c21800 {
+> +			pinctrl-names =3D "default";
+> +			pinctrl-0 =3D <&ir0_pins_a>;
+> +			status =3D "okay";
+> +		};
+>  	};
+> =20
+>  	leds {
+> diff --git a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts b/arch/arm/boot/d=
+ts/sun7i-a20-cubietruck.dts
+> index e288562..e375e89 100644
+> --- a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
+> +++ b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
+> @@ -232,6 +232,12 @@
+>  				reg =3D <1>;
+>  			};
+>  		};
+> +
+> +		ir0: ir@01c21800 {
+> +			pinctrl-names =3D "default";
+> +			pinctrl-0 =3D <&ir0_pins_a>;
+> +			status =3D "okay";
+> +		};
+>  	};
+> =20
+>  	leds {
+> diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a=
+20.dtsi
+> index 0ae2b77..bb655a5 100644
+> --- a/arch/arm/boot/dts/sun7i-a20.dtsi
+> +++ b/arch/arm/boot/dts/sun7i-a20.dtsi
+> @@ -724,6 +724,19 @@
+>  				allwinner,drive =3D <2>;
+>  				allwinner,pull =3D <0>;
+>  			};
+> +
+> +			ir0_pins_a: ir0@0 {
+> +				    allwinner,pins =3D "PB3","PB4";
+> +				    allwinner,function =3D "ir0";
+> +				    allwinner,drive =3D <0>;
+> +				    allwinner,pull =3D <0>;
+> +			};
+> +			ir1_pins_a: ir1@0 {
+> +				    allwinner,pins =3D "PB22","PB23";
+> +				    allwinner,function =3D "ir1";
+> +				    allwinner,drive =3D <0>;
+> +				    allwinner,pull =3D <0>;
+> +			};
+>  		};
+> =20
+>  		timer@01c20c00 {
+> @@ -937,5 +950,23 @@
+>  			#interrupt-cells =3D <3>;
+>  			interrupts =3D <1 9 0xf04>;
+>  		};
+> +
+> +       		ir0: ir@01c21800 {
+
+This line...
+
+> +	     		compatible =3D "allwinner,sun7i-a20-ir";
+> +			clocks =3D <&apb0_gates 6>, <&ir0_clk>;
+> +			clock-names =3D "apb", "ir";
+> +			interrupts =3D <0 5 4>;
+> +			reg =3D <0x01c21800 0x40>;
+> +			status =3D "disabled";
+> +		};
+> +
+> +       		ir1: ir@01c21c00 {
+
+=2E.. and this one are indented a tab too far.
+
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
+
+--uxuisgdDHaNETlh8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTZS7RAAoJEBx+YmzsjxAguBUP/R4YhizsM2BOcvNCLqXUqcdr
+tZzhQzHC9/Lrq55oq6jie35tZAKS9ZVaa7nuihmnLUm68XR4LOQHQy2lSYKDZcX1
+IPWjloMwab+5yQ/dbOL0M08zZh+Oz7s99mTMJR3TKu7D7vfMUbn1s/fUtXOUuKWk
+TacUirouo3sGjtjFX2uQEIUIThOQLN5sbJhdIc3bZBMitoLtBHkmothVkuypRpon
+/FDu6k4HPGMyVVE6emncCX2uzVZAaNkHIvz4rLeExpEnFJpbaN5mWFwrfb7mjNdE
+HYrFQoNKSgjaYWz+yLucOn4tPxFnVoTX3FlmBGCoXNcx95BwOF+sx5udhBjyaHu+
+pv9F/eBP5ttvEt8cWA7IS3ulMEAZ+Wswl/PtaTwq3YUO5RhModf+eKYTfXrKrP/z
+hYn/MnirFnMc21gG5Nas78wsA7CjEmSvA4+h5nQP+0mrRqmBOEH/vyfvuOCWlRJx
+up6Frbol57uGKhWIQslc/yEI/yvdzBly6a4VGVnGnJ+6NwRJzygWllsfsVnVqbwY
+aFM5IVOw1oEkp87LJhqH7AfGB636rdnL3GonadxWfXVAM+8aExA+RwdeG3ZWsQP9
+bL3Ud+rWIiPai3Z/41DKZtuwnymiswiioMrcOQXnbJsZaQiynporAO/P8LQtKu6b
+GONEqcp4bfzQyPlPjvzd
+=hN4V
+-----END PGP SIGNATURE-----
+
+--uxuisgdDHaNETlh8--
