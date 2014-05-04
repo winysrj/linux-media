@@ -1,49 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47988 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751420AbaEPBxd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 May 2014 21:53:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail-we0-f182.google.com ([74.125.82.182]:55032 "EHLO
+	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753140AbaEDKhq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 May 2014 06:37:46 -0400
+Received: by mail-we0-f182.google.com with SMTP id t60so615497wes.41
+        for <linux-media@vger.kernel.org>; Sun, 04 May 2014 03:37:45 -0700 (PDT)
+From: Alessandro Miceli <angelofsky1980@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH] tvp5150: Replace container_of() with to_tvp5150()
-Date: Fri, 16 May 2014 03:53:31 +0200
-Message-Id: <1400205211-24161-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Alessandro Miceli <angelofsky1980@gmail.com>
+Subject: [PATCH] Added Sveon STV20 device based on Realtek 2832U and FC0012 tuner
+Date: Sun,  4 May 2014 12:37:15 +0200
+Message-Id: <1399199835-25033-1-git-send-email-angelofsky1980@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the driver-specific inline function to cast from a subdev pointer to
-a tvp5150 pointer instead of the generic container_of().
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Alessandro Miceli <angelofsky1980@gmail.com>
 ---
- drivers/media/i2c/tvp5150.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/dvb-core/dvb-usb-ids.h    |    1 +
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c |    2 ++
+ 2 files changed, 3 insertions(+)
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 4fd3688..07dee44 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -913,7 +913,7 @@ static int tvp5150_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
+diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+index 1bdc0e7..71c987b 100644
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -361,6 +361,7 @@
+ #define USB_PID_FRIIO_WHITE				0x0001
+ #define USB_PID_TVWAY_PLUS				0x0002
+ #define USB_PID_SVEON_STV20				0xe39d
++#define USB_PID_SVEON_STV20_RTL2832U			0xd39d
+ #define USB_PID_SVEON_STV22				0xe401
+ #define USB_PID_SVEON_STV22_IT9137			0xe411
+ #define USB_PID_AZUREWAVE_AZ6027			0x3275
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index dcbd392..0b63c3f 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1537,6 +1537,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
+ 		&rtl2832u_props, "Crypto ReDi PC 50 A", NULL) },
+ 	{ DVB_USB_DEVICE(USB_VID_KYE, 0x707f,
+ 		&rtl2832u_props, "Genius TVGo DVB-T03", NULL) },
++	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV20_RTL2832U,
++		&rtl2832u_props, "Sveon STV20", NULL) },
  
- static int tvp5150_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
- {
--	struct tvp5150 *decoder = container_of(sd, struct tvp5150, sd);
-+	struct tvp5150 *decoder = to_tvp5150(sd);
- 
- 	a->c	= decoder->rect;
- 	a->type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-@@ -923,7 +923,7 @@ static int tvp5150_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
- 
- static int tvp5150_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
- {
--	struct tvp5150 *decoder = container_of(sd, struct tvp5150, sd);
-+	struct tvp5150 *decoder = to_tvp5150(sd);
- 	v4l2_std_id std;
- 
- 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 	/* RTL2832P devices: */
+ 	{ DVB_USB_DEVICE(USB_VID_HANFTEK, 0x0131,
 -- 
-1.8.5.5
+1.7.9.5
 
