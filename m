@@ -1,61 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:60762 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757483AbaEPNjf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:39:35 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 14/49] media: davinci: vpif_display: drop unnecessary field memory
-Date: Fri, 16 May 2014 19:03:19 +0530
-Message-Id: <1400247235-31434-16-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:57706 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753186AbaEDWNZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 4 May 2014 18:13:25 -0400
+Message-ID: <5366BB83.7050807@iki.fi>
+Date: Mon, 05 May 2014 01:13:23 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+CC: Brian Healy <healybrian@gmail.com>,
+	Alessandro Miceli <angelofsky1980@gmail.com>
+Subject: [GIT PULL 3.15] RTL2832U USB IDs
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Here is 3 new USB IDs for RTL28XXU driver and nothing more. These should 
+be OK for 3.15 at that phase of RC cycle.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif_display.c |    5 -----
- drivers/media/platform/davinci/vpif_display.h |    3 ---
- 2 files changed, 8 deletions(-)
+regards
+Antti
 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index bfe1e50..ab097ce 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -572,11 +572,6 @@ static void vpif_config_format(struct channel_obj *ch)
- 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
- 
- 	common->fmt.fmt.pix.field = V4L2_FIELD_ANY;
--	if (config_params.numbuffers[ch->channel_id] == 0)
--		common->memory = V4L2_MEMORY_USERPTR;
--	else
--		common->memory = V4L2_MEMORY_MMAP;
--
- 	common->fmt.fmt.pix.sizeimage =
- 			config_params.channel_bufsize[ch->channel_id];
- 	common->fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV422P;
-diff --git a/drivers/media/platform/davinci/vpif_display.h b/drivers/media/platform/davinci/vpif_display.h
-index b22bb33..06b8d24 100644
---- a/drivers/media/platform/davinci/vpif_display.h
-+++ b/drivers/media/platform/davinci/vpif_display.h
-@@ -72,9 +72,6 @@ struct common_obj {
- 						 * vb2_buffer */
- 	struct vpif_disp_buffer *next_frm;	/* Pointer pointing to next
- 						 * vb2_buffer */
--	enum v4l2_memory memory;		/* This field keeps track of
--						 * type of buffer exchange
--						 * method user has selected */
- 	struct v4l2_format fmt;			/* Used to store the format */
- 	struct vb2_queue buffer_queue;		/* Buffer queue used in
- 						 * video-buf */
+
+
+The following changes since commit 8845cc6415ec28ef8d57b3fb81c75ef9bce69c5f:
+
+   [media] fc2580: fix tuning failure on 32-bit arch (2014-04-16 
+18:13:11 -0300)
+
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git rtl2832u_id
+
+for you to fetch changes up to 5fc42f2a0cc20a558b31993f80d68e443388d307:
+
+   rtl28xxu: add [1b80:d3af] Sveon STV27 (2014-05-05 01:03:56 +0300)
+
+----------------------------------------------------------------
+Alessandro Miceli (2):
+       rtl28xxu: add [1b80:d39d] Sveon STV20
+       rtl28xxu: add [1b80:d3af] Sveon STV27
+
+Brian Healy (1):
+       rtl28xxu: add 1b80:d395 Peak DVB-T USB
+
+  drivers/media/dvb-core/dvb-usb-ids.h    | 2 ++
+  drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 6 ++++++
+  2 files changed, 8 insertions(+)
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
