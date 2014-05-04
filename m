@@ -1,158 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:40790 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932605AbaEPNmn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:42:43 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 44/49] media: davinci: vpif_capture: use SIMPLE_DEV_PM_OPS
-Date: Fri, 16 May 2014 19:03:50 +0530
-Message-Id: <1400247235-31434-47-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail-we0-f181.google.com ([74.125.82.181]:62400 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753490AbaEDKu4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 May 2014 06:50:56 -0400
+Received: by mail-we0-f181.google.com with SMTP id q58so6432261wes.12
+        for <linux-media@vger.kernel.org>; Sun, 04 May 2014 03:50:55 -0700 (PDT)
+From: Alessandro Miceli <angelofsky1980@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Alessandro Miceli <angelofsky1980@gmail.com>
+Subject: [PATCH] Added support for Sveon STV27 device (rtl2832u + FC0013 tuner)
+Date: Sun,  4 May 2014 12:50:31 +0200
+Message-Id: <1399200631-25641-1-git-send-email-angelofsky1980@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-
-this patch uses SIMPLE_DEV_PM_OPS, and drops unneeded members
-from io_usrs, usrs and makes use of vb2 helepers instead.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Alessandro Miceli <angelofsky1980@gmail.com>
 ---
- drivers/media/platform/davinci/vpif_capture.c |   63 ++++++++++++-------------
- drivers/media/platform/davinci/vpif_capture.h |    4 --
- 2 files changed, 30 insertions(+), 37 deletions(-)
+ drivers/media/dvb-core/dvb-usb-ids.h    |    1 +
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c |    2 ++
+ 2 files changed, 3 insertions(+)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 9b41465..f4cf24c 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -1595,7 +1595,7 @@ static int vpif_remove(struct platform_device *device)
- 	return 0;
- }
- 
--#ifdef CONFIG_PM
-+#ifdef CONFIG_PM_SLEEP
- /**
-  * vpif_suspend: vpif device suspend
-  */
-@@ -1610,18 +1610,20 @@ static int vpif_suspend(struct device *dev)
- 		/* Get the pointer to the channel object */
- 		ch = vpif_obj.dev[i];
- 		common = &ch->common[VPIF_VIDEO_INDEX];
-+
-+		if (!vb2_is_streaming(&common->buffer_queue))
-+			continue;
-+
- 		mutex_lock(&common->lock);
--		if (ch->usrs && common->io_usrs) {
--			/* Disable channel */
--			if (ch->channel_id == VPIF_CHANNEL0_VIDEO) {
--				enable_channel0(0);
--				channel0_intr_enable(0);
--			}
--			if (ch->channel_id == VPIF_CHANNEL1_VIDEO ||
--				ycmux_mode == 2) {
--				enable_channel1(0);
--				channel1_intr_enable(0);
--			}
-+		/* Disable channel */
-+		if (ch->channel_id == VPIF_CHANNEL0_VIDEO) {
-+			enable_channel0(0);
-+			channel0_intr_enable(0);
-+		}
-+		if (ch->channel_id == VPIF_CHANNEL1_VIDEO ||
-+			ycmux_mode == 2) {
-+			enable_channel1(0);
-+			channel1_intr_enable(0);
- 		}
- 		mutex_unlock(&common->lock);
- 	}
-@@ -1642,40 +1644,35 @@ static int vpif_resume(struct device *dev)
- 		/* Get the pointer to the channel object */
- 		ch = vpif_obj.dev[i];
- 		common = &ch->common[VPIF_VIDEO_INDEX];
-+
-+		if (!vb2_is_streaming(&common->buffer_queue))
-+			continue;
-+
- 		mutex_lock(&common->lock);
--		if (ch->usrs && common->io_usrs) {
--			/* Disable channel */
--			if (ch->channel_id == VPIF_CHANNEL0_VIDEO) {
--				enable_channel0(1);
--				channel0_intr_enable(1);
--			}
--			if (ch->channel_id == VPIF_CHANNEL1_VIDEO ||
--				ycmux_mode == 2) {
--				enable_channel1(1);
--				channel1_intr_enable(1);
--			}
-+		/* Enable channel */
-+		if (ch->channel_id == VPIF_CHANNEL0_VIDEO) {
-+			enable_channel0(1);
-+			channel0_intr_enable(1);
-+		}
-+		if (ch->channel_id == VPIF_CHANNEL1_VIDEO ||
-+			ycmux_mode == 2) {
-+			enable_channel1(1);
-+			channel1_intr_enable(1);
- 		}
- 		mutex_unlock(&common->lock);
- 	}
- 
- 	return 0;
- }
--
--static const struct dev_pm_ops vpif_dev_pm_ops = {
--	.suspend = vpif_suspend,
--	.resume = vpif_resume,
--};
--
--#define vpif_pm_ops (&vpif_dev_pm_ops)
--#else
--#define vpif_pm_ops NULL
+diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+index 71c987b..80643ef 100644
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -376,4 +376,5 @@
+ #define USB_PID_CTVDIGDUAL_V2				0xe410
+ #define USB_PID_PCTV_2002E                              0x025c
+ #define USB_PID_PCTV_2002E_SE                           0x025d
++#define USB_PID_SVEON_STV27                             0xd3af
  #endif
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 0b63c3f..f7e10f0 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1539,6 +1539,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
+ 		&rtl2832u_props, "Genius TVGo DVB-T03", NULL) },
+ 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV20_RTL2832U,
+ 		&rtl2832u_props, "Sveon STV20", NULL) },
++	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV27,
++		&rtl2832u_props, "Sveon STV27", NULL) },
  
-+static SIMPLE_DEV_PM_OPS(vpif_pm_ops, vpif_suspend, vpif_resume);
-+
- static __refdata struct platform_driver vpif_driver = {
- 	.driver	= {
- 		.name	= VPIF_DRIVER_NAME,
- 		.owner	= THIS_MODULE,
--		.pm	= vpif_pm_ops,
-+		.pm	= &vpif_pm_ops,
- 	},
- 	.probe = vpif_probe,
- 	.remove = vpif_remove,
-diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
-index 537076a..3b5ea30 100644
---- a/drivers/media/platform/davinci/vpif_capture.h
-+++ b/drivers/media/platform/davinci/vpif_capture.h
-@@ -75,8 +75,6 @@ struct common_obj {
- 	spinlock_t irqlock;
- 	/* lock used to access this structure */
- 	struct mutex lock;
--	/* number of users performing IO */
--	u32 io_usrs;
- 	/* Function pointer to set the addresses */
- 	void (*set_addr) (unsigned long, unsigned long, unsigned long,
- 			  unsigned long);
-@@ -97,8 +95,6 @@ struct common_obj {
- struct channel_obj {
- 	/* Identifies video device for this channel */
- 	struct video_device *video_dev;
--	/* number of open instances of the channel */
--	int usrs;
- 	/* Indicates id of the field which is being displayed */
- 	u32 field_id;
- 	/* flag to indicate whether decoder is initialized */
+ 	/* RTL2832P devices: */
+ 	{ DVB_USB_DEVICE(USB_VID_HANFTEK, 0x0131,
 -- 
 1.7.9.5
 
