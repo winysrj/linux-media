@@ -1,251 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:47011 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755047AbaEPNgJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:36:09 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 01/49] media: davinci: vpif_display: initialize vb2 queue and DMA context during probe
-Date: Fri, 16 May 2014 19:03:06 +0530
-Message-Id: <1400247235-31434-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from fep19.mx.upcmail.net ([62.179.121.39]:63351 "EHLO
+	fep19.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753390AbaEDCJv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 May 2014 22:09:51 -0400
+From: Jonathan McCrohan <jmccrohan@gmail.com>
+To: linux-media@vger.kernel.org,
+	pkg-vdr-dvb-devel@lists.alioth.debian.org
+Cc: Jonathan McCrohan <jmccrohan@gmail.com>
+Subject: [PATCH 1/6] [dvb-apps] dvb-apps: fix typos throughout the dvb-apps tree
+Date: Sun,  4 May 2014 02:51:16 +0100
+Message-Id: <1399168281-20626-2-git-send-email-jmccrohan@gmail.com>
+In-Reply-To: <1399168281-20626-1-git-send-email-jmccrohan@gmail.com>
+References: <1399168281-20626-1-git-send-email-jmccrohan@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+As found by Debian's Lintian tool.
 
-this patch moves the initalization of vb2 queue and
-the DMA context to probe() and clean up in remove()
-callback respectively.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Jonathan McCrohan <jmccrohan@gmail.com>
 ---
- drivers/media/platform/davinci/vpif_display.c |   86 ++++++++++++-------------
- 1 file changed, 41 insertions(+), 45 deletions(-)
+ lib/libdvben50221/en50221_transport.c | 4 ++--
+ lib/libdvbsec/dvbsec_cfg.h            | 2 +-
+ util/alevt/exp-gfx.c                  | 2 +-
+ util/dib3000-watch/dib3000-watch.c    | 2 +-
+ util/dvbscan/dvbscan.c                | 2 +-
+ util/scan/scan.c                      | 2 +-
+ 6 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index d03487f..dbd4f0f 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -74,12 +74,12 @@ static void vpif_config_addr(struct channel_obj *ch, int muxmode);
-  */
- static int vpif_buffer_prepare(struct vb2_buffer *vb)
- {
--	struct vpif_fh *fh = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vb2_queue *q = vb->vb2_queue;
-+	struct channel_obj *ch = vb2_get_drv_priv(q);
- 	struct common_obj *common;
- 	unsigned long addr;
- 
--	common = &fh->channel->common[VPIF_VIDEO_INDEX];
-+	common = &ch->common[VPIF_VIDEO_INDEX];
- 	if (vb->state != VB2_BUF_STATE_ACTIVE &&
- 		vb->state != VB2_BUF_STATE_PREPARED) {
- 		vb2_set_plane_payload(vb, 0, common->fmt.fmt.pix.sizeimage);
-@@ -112,8 +112,7 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
- 				unsigned int *nbuffers, unsigned int *nplanes,
- 				unsigned int sizes[], void *alloc_ctxs[])
- {
--	struct vpif_fh *fh = vb2_get_drv_priv(vq);
--	struct channel_obj *ch = fh->channel;
-+	struct channel_obj *ch = vb2_get_drv_priv(vq);
- 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
- 	unsigned long size;
- 
-@@ -154,10 +153,9 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
-  */
- static void vpif_buffer_queue(struct vb2_buffer *vb)
- {
--	struct vpif_fh *fh = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vpif_disp_buffer *buf = container_of(vb,
- 				struct vpif_disp_buffer, vb);
--	struct channel_obj *ch = fh->channel;
-+	struct channel_obj *ch = vb2_get_drv_priv(vb->vb2_queue);
- 	struct common_obj *common;
- 	unsigned long flags;
- 
-@@ -175,10 +173,9 @@ static void vpif_buffer_queue(struct vb2_buffer *vb)
-  */
- static void vpif_buf_cleanup(struct vb2_buffer *vb)
- {
--	struct vpif_fh *fh = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vpif_disp_buffer *buf = container_of(vb,
- 					struct vpif_disp_buffer, vb);
--	struct channel_obj *ch = fh->channel;
-+	struct channel_obj *ch = vb2_get_drv_priv(vb->vb2_queue);
- 	struct common_obj *common;
- 	unsigned long flags;
- 
-@@ -192,8 +189,7 @@ static void vpif_buf_cleanup(struct vb2_buffer *vb)
- 
- static void vpif_wait_prepare(struct vb2_queue *vq)
- {
--	struct vpif_fh *fh = vb2_get_drv_priv(vq);
--	struct channel_obj *ch = fh->channel;
-+	struct channel_obj *ch = vb2_get_drv_priv(vq);
- 	struct common_obj *common;
- 
- 	common = &ch->common[VPIF_VIDEO_INDEX];
-@@ -202,8 +198,7 @@ static void vpif_wait_prepare(struct vb2_queue *vq)
- 
- static void vpif_wait_finish(struct vb2_queue *vq)
- {
--	struct vpif_fh *fh = vb2_get_drv_priv(vq);
--	struct channel_obj *ch = fh->channel;
-+	struct channel_obj *ch = vb2_get_drv_priv(vq);
- 	struct common_obj *common;
- 
- 	common = &ch->common[VPIF_VIDEO_INDEX];
-@@ -226,8 +221,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct vpif_display_config *vpif_config_data =
- 					vpif_dev->platform_data;
--	struct vpif_fh *fh = vb2_get_drv_priv(vq);
--	struct channel_obj *ch = fh->channel;
-+	struct channel_obj *ch = vb2_get_drv_priv(vq);
- 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
- 	struct vpif_params *vpif = &ch->vpifparams;
- 	unsigned long addr = 0;
-@@ -310,8 +304,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- /* abort streaming and wait for last buffer */
- static void vpif_stop_streaming(struct vb2_queue *vq)
- {
--	struct vpif_fh *fh = vb2_get_drv_priv(vq);
--	struct channel_obj *ch = fh->channel;
-+	struct channel_obj *ch = vb2_get_drv_priv(vq);
- 	struct common_obj *common;
- 	unsigned long flags;
- 
-@@ -794,10 +787,6 @@ static int vpif_release(struct file *filep)
- 	if (fh->io_allowed[VPIF_VIDEO_INDEX]) {
- 		/* Reset io_usrs member of channel object */
- 		common->io_usrs = 0;
--		/* Free buffers allocated */
--		vb2_queue_release(&common->buffer_queue);
--		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
--
- 		common->numbuffers =
- 		    config_params.numbuffers[ch->channel_id];
+diff --git a/lib/libdvben50221/en50221_transport.c b/lib/libdvben50221/en50221_transport.c
+index f6f46db..e5babeb 100644
+--- a/lib/libdvben50221/en50221_transport.c
++++ b/lib/libdvben50221/en50221_transport.c
+@@ -929,7 +929,7 @@ static int en50221_tl_process_data(struct en50221_transport_layer *tl,
+ 			break;
+ 		default:
+ 			print(LOG_LEVEL, ERROR, 1,
+-			      "Recieved unexpected TPDU tag %02x from module on slot %02x\n",
++			      "Received unexpected TPDU tag %02x from module on slot %02x\n",
+ 			      tpdu_tag, slot_id);
+ 			tl->error_slot = slot_id;
+ 			tl->error = EN50221ERR_BADCAMDATA;
+@@ -1226,7 +1226,7 @@ static int en50221_tl_handle_sb(struct en50221_transport_layer *tl,
+ 	// did we get enough data in the T_SB?
+ 	if (data_length != 1) {
+ 		print(LOG_LEVEL, ERROR, 1,
+-		      "Recieved T_SB with invalid length from module on slot %02x\n",
++		      "Received T_SB with invalid length from module on slot %02x\n",
+ 		      slot_id);
+ 		tl->error_slot = slot_id;
+ 		tl->error = EN50221ERR_BADCAMDATA;
+diff --git a/lib/libdvbsec/dvbsec_cfg.h b/lib/libdvbsec/dvbsec_cfg.h
+index d4546de..81439bb 100644
+--- a/lib/libdvbsec/dvbsec_cfg.h
++++ b/lib/libdvbsec/dvbsec_cfg.h
+@@ -81,7 +81,7 @@
+  *
+  * The cmd-<lo|hi>-<v|h|l|r> describes the SEC cmd string to use in advanced mode for each of the possible combinations of
+  * frequency band and polarisation. If a certain combination is not required, it may be omitted. It consists of a
+- * space seperated combination of commands - those available are as follows:
++ * space separated combination of commands - those available are as follows:
+  *
+  *	tone(<0|1>)  - control the 22kHz tone 0:off, 1:on
+  *	voltage(<0|13|18>) - control the LNB voltage 0v, 13v, or 18v
+diff --git a/util/alevt/exp-gfx.c b/util/alevt/exp-gfx.c
+index 82ab218..e68167b 100644
+--- a/util/alevt/exp-gfx.c
++++ b/util/alevt/exp-gfx.c
+@@ -123,7 +123,7 @@ static int ppm_output(struct export *e, char *name, struct fmt_page *pg)
+     {
+       if (!fwrite(rgb1[(int) *(colour_matrix+n)], 3, 1, fp))
+ 	{
+-	  export_error("error while writting to file");
++	  export_error("error while writing to file");
+ 	  free(colour_matrix);
+ 	  fclose(fp);
+ 	  return -1;
+diff --git a/util/dib3000-watch/dib3000-watch.c b/util/dib3000-watch/dib3000-watch.c
+index 16bccb7..300e000 100644
+--- a/util/dib3000-watch/dib3000-watch.c
++++ b/util/dib3000-watch/dib3000-watch.c
+@@ -285,7 +285,7 @@ int main (int argc, char * const argv[])
+ 				break;
+ 			default:
+ 				interrupted=1;
+-				err("no monitoring writting for this demod, yet.\n");
++				err("no monitoring writing for this demod, yet.\n");
+ 		}
+ 		usleep((int) (intervall * 1000000));
  	}
-@@ -939,9 +928,7 @@ static int vpif_reqbufs(struct file *file, void *priv,
- 	struct channel_obj *ch = fh->channel;
- 	struct common_obj *common;
- 	enum v4l2_field field;
--	struct vb2_queue *q;
- 	u8 index = 0;
--	int ret;
- 
- 	/* This file handle has not initialized the channel,
- 	   It is not allowed to do settings */
-@@ -973,35 +960,12 @@ static int vpif_reqbufs(struct file *file, void *priv,
- 	} else {
- 		field = V4L2_VBI_INTERLACED;
+diff --git a/util/dvbscan/dvbscan.c b/util/dvbscan/dvbscan.c
+index 87751c4..f23411f 100644
+--- a/util/dvbscan/dvbscan.c
++++ b/util/dvbscan/dvbscan.c
+@@ -77,7 +77,7 @@ static void usage(void)
+ 		" -inversion <on|off|auto> Specify inversion (default: auto) (note: this option is ignored).\n"
+ 		" -uk-ordering 		Use UK DVB-T channel ordering if present (note: this option is ignored).\n"
+ 		" -timeout <secs>	Specify filter timeout to use (standard specced values will be used by default)\n"
+-		" -filter <filter>	Specify service filter, a comma seperated list of the following tokens:\n"
++		" -filter <filter>	Specify service filter, a comma separated list of the following tokens:\n"
+ 		" 			 (If no filter is supplied, all services will be output)\n"
+ 		"			 * tv - Output TV channels\n"
+ 		"			 * radio - Output radio channels\n"
+diff --git a/util/scan/scan.c b/util/scan/scan.c
+index 71a20db..803efdf 100644
+--- a/util/scan/scan.c
++++ b/util/scan/scan.c
+@@ -1560,7 +1560,7 @@ static int parse_section (struct section_buf *s)
+ 	buf += 8;			/* past generic table header */
+ 	section_length -= 5 + 4;	/* header + crc */
+ 	if (section_length < 0) {
+-		warning("truncated section (PID 0x%04x, lenght %d)",
++		warning("truncated section (PID 0x%04x, length %d)",
+ 			s->pid, section_length + 9);
+ 		return 0;
  	}
--	/* Initialize videobuf2 queue as per the buffer type */
--	common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
--	if (IS_ERR(common->alloc_ctx)) {
--		vpif_err("Failed to get the context\n");
--		return PTR_ERR(common->alloc_ctx);
--	}
--	q = &common->buffer_queue;
--	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
--	q->io_modes = VB2_MMAP | VB2_USERPTR;
--	q->drv_priv = fh;
--	q->ops = &video_qops;
--	q->mem_ops = &vb2_dma_contig_memops;
--	q->buf_struct_size = sizeof(struct vpif_disp_buffer);
--	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
--	q->min_buffers_needed = 1;
--
--	ret = vb2_queue_init(q);
--	if (ret) {
--		vpif_err("vpif_display: vb2_queue_init() failed\n");
--		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
--		return ret;
--	}
- 	/* Set io allowed member of file handle to TRUE */
- 	fh->io_allowed[index] = 1;
- 	/* Increment io usrs member of channel object to 1 */
- 	common->io_usrs = 1;
- 	/* Store type of memory requested in channel object */
- 	common->memory = reqbuf->memory;
--	INIT_LIST_HEAD(&common->dma_queue);
- 	/* Allocate buffers */
- 	return vb2_reqbufs(&common->buffer_queue, reqbuf);
- }
-@@ -1637,6 +1601,7 @@ static int vpif_probe_complete(void)
- {
- 	struct common_obj *common;
- 	struct channel_obj *ch;
-+	struct vb2_queue *q;
- 	int j, err, k;
- 
- 	for (j = 0; j < VPIF_DISPLAY_MAX_DEVICES; j++) {
-@@ -1685,6 +1650,32 @@ static int vpif_probe_complete(void)
- 		if (err)
- 			goto probe_out;
- 
-+		/* Initialize vb2 queue */
-+		q = &common->buffer_queue;
-+		q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
-+		q->drv_priv = ch;
-+		q->ops = &video_qops;
-+		q->mem_ops = &vb2_dma_contig_memops;
-+		q->buf_struct_size = sizeof(struct vpif_disp_buffer);
-+		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+		q->min_buffers_needed = 1;
-+
-+		err = vb2_queue_init(q);
-+		if (err) {
-+			vpif_err("vpif_display: vb2_queue_init() failed\n");
-+			goto probe_out;
-+		}
-+
-+		common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
-+		if (IS_ERR(common->alloc_ctx)) {
-+			vpif_err("Failed to get the context\n");
-+			err = PTR_ERR(common->alloc_ctx);
-+			goto probe_out;
-+		}
-+
-+		INIT_LIST_HEAD(&common->dma_queue);
-+
- 		/* register video device */
- 		vpif_dbg(1, debug, "channel=%x,channel->video_dev=%x\n",
- 			 (int)ch, (int)&ch->video_dev);
-@@ -1700,6 +1691,8 @@ static int vpif_probe_complete(void)
- probe_out:
- 	for (k = 0; k < j; k++) {
- 		ch = vpif_obj.dev[k];
-+		common = &ch->common[k];
-+		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
- 		video_unregister_device(ch->video_dev);
- 		video_device_release(ch->video_dev);
- 		ch->video_dev = NULL;
-@@ -1865,6 +1858,7 @@ vpif_unregister:
-  */
- static int vpif_remove(struct platform_device *device)
- {
-+	struct common_obj *common;
- 	struct channel_obj *ch;
- 	int i;
- 
-@@ -1875,6 +1869,8 @@ static int vpif_remove(struct platform_device *device)
- 	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
- 		/* Get the pointer to the channel object */
- 		ch = vpif_obj.dev[i];
-+		common = &ch->common[i];
-+		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
- 		/* Unregister video device */
- 		video_unregister_device(ch->video_dev);
- 
 -- 
-1.7.9.5
+1.9.2
 
