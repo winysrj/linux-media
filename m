@@ -1,59 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48266 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751055AbaEIHc5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 May 2014 03:32:57 -0400
-Date: Fri, 9 May 2014 10:32:52 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Daeseok Youn <daeseok.youn@gmail.com>
-Cc: m.chehab@samsung.com, linux-dev@sensoray.com,
-	hans.verkuil@cisco.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] s2255drv: fix memory leak s2255_probe()
-Message-ID: <20140509073252.GI8753@valkosipuli.retiisi.org.uk>
-References: <20140508225718.GA24276@devel.8.8.4.4>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20140508225718.GA24276@devel.8.8.4.4>
+Received: from mail.kapsi.fi ([217.30.184.167]:55031 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751492AbaEDWIV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 4 May 2014 18:08:21 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Alessandro Miceli <angelofsky1980@gmail.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 3/3] rtl28xxu: add [1b80:d3af] Sveon STV27
+Date: Mon,  5 May 2014 01:07:29 +0300
+Message-Id: <1399241249-12065-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1399241249-12065-1-git-send-email-crope@iki.fi>
+References: <1399241249-12065-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daeseok,
+From: Alessandro Miceli <angelofsky1980@gmail.com>
 
-Thanks for the update! :-)
+Added support for Sveon STV27 device (rtl2832u + FC0013 tuner)
 
-On Fri, May 09, 2014 at 07:57:18AM +0900, Daeseok Youn wrote:
-> smatch says:
->  drivers/media/usb/s2255/s2255drv.c:2246 s2255_probe() warn:
-> possible memory leak of 'dev'
-> 
-> Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
-> ---
-> V2: use the same pattern for error handling.
-> 
->  drivers/media/usb/s2255/s2255drv.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-> index 1d4ba2b..3193474 100644
-> --- a/drivers/media/usb/s2255/s2255drv.c
-> +++ b/drivers/media/usb/s2255/s2255drv.c
-> @@ -2243,7 +2243,7 @@ static int s2255_probe(struct usb_interface *interface,
->  	dev->cmdbuf = kzalloc(S2255_CMDBUF_SIZE, GFP_KERNEL);
->  	if (dev->cmdbuf == NULL) {
->  		s2255_dev_err(&interface->dev, "out of memory\n");
-> -		return -ENOMEM;
-> +		goto errorFWDATA1;
->  	}
->  
->  	atomic_set(&dev->num_channels, 0);
+Signed-off-by: Alessandro Miceli <angelofsky1980@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-core/dvb-usb-ids.h    | 1 +
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 ++
+ 2 files changed, 3 insertions(+)
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+index 71c987b..80643ef 100644
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -376,4 +376,5 @@
+ #define USB_PID_CTVDIGDUAL_V2				0xe410
+ #define USB_PID_PCTV_2002E                              0x025c
+ #define USB_PID_PCTV_2002E_SE                           0x025d
++#define USB_PID_SVEON_STV27                             0xd3af
+ #endif
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 007be1a..a676e44 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1541,6 +1541,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
+ 		&rtl2832u_props, "Peak DVB-T USB", NULL) },
+ 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV20_RTL2832U,
+ 		&rtl2832u_props, "Sveon STV20", NULL) },
++	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV27,
++		&rtl2832u_props, "Sveon STV27", NULL) },
+ 
+ 	/* RTL2832P devices: */
+ 	{ DVB_USB_DEVICE(USB_VID_HANFTEK, 0x0131,
 -- 
-Kind regards,
+1.9.0
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
