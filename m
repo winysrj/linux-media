@@ -1,72 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f42.google.com ([209.85.216.42]:39322 "EHLO
-	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750858AbaEBHfF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 May 2014 03:35:05 -0400
-Received: by mail-qa0-f42.google.com with SMTP id j5so1425042qaq.1
-        for <linux-media@vger.kernel.org>; Fri, 02 May 2014 00:35:03 -0700 (PDT)
-MIME-Version: 1.0
-Date: Fri, 2 May 2014 10:35:03 +0300
-Message-ID: <CAAUE0eoWt7kfDFmCyAsU0Nq8fKPUxxQCv91Okf9zhGFrbf2z4A@mail.gmail.com>
-Subject: Updated scan table for fi-sonera
-From: Mikko Autio <mikko.autio1@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54431 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753460AbaEDA31 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 May 2014 20:29:27 -0400
+Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id CE17260097
+	for <linux-media@vger.kernel.org>; Sun,  4 May 2014 03:29:24 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: oliver@schinagl.nl
-Content-Type: multipart/mixed; boundary=001a11c15aaae5bc3604f865d1bb
+Subject: [PATCH 3/3] smiapp: Return correct return value in smiapp_registered()
+Date: Sun,  4 May 2014 03:31:57 +0300
+Message-Id: <1399163517-5220-4-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1399163517-5220-1-git-send-email-sakari.ailus@iki.fi>
+References: <1399163517-5220-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---001a11c15aaae5bc3604f865d1bb
-Content-Type: text/plain; charset=UTF-8
+Prepare for supporting systems using the Device tree. Should the resources
+not be available at the time of driver probe(), the EPROBE_DEFER error code
+must be also returned from its probe function.
 
-Hello,
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-Attached is an updated scan table for fi-sonera. The table is
-generated according to the list available at [1].
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index e4037c8..3c7be76 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2358,14 +2358,14 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
+ 	sensor->vana = devm_regulator_get(&client->dev, "vana");
+ 	if (IS_ERR(sensor->vana)) {
+ 		dev_err(&client->dev, "could not get regulator for vana\n");
+-		return -ENODEV;
++		return PTR_ERR(sensor->vana);
+ 	}
+ 
+ 	if (!sensor->platform_data->set_xclk) {
+ 		sensor->ext_clk = devm_clk_get(&client->dev, "ext_clk");
+ 		if (IS_ERR(sensor->ext_clk)) {
+ 			dev_err(&client->dev, "could not get clock\n");
+-			return -ENODEV;
++			return PTR_ERR(sensor->ext_clk);
+ 		}
+ 
+ 		rval = clk_set_rate(sensor->ext_clk,
+@@ -2374,18 +2374,19 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
+ 			dev_err(&client->dev,
+ 				"unable to set clock freq to %u\n",
+ 				sensor->platform_data->ext_clk);
+-			return -ENODEV;
++			return rval;
+ 		}
+ 	}
+ 
+ 	if (gpio_is_valid(sensor->platform_data->xshutdown)) {
+-		if (devm_gpio_request_one(&client->dev,
+-					  sensor->platform_data->xshutdown, 0,
+-					  "SMIA++ xshutdown") != 0) {
++		rval = devm_gpio_request_one(
++			&client->dev, sensor->platform_data->xshutdown, 0,
++			"SMIA++ xshutdown");
++		if (rval < 0) {
+ 			dev_err(&client->dev,
+ 				"unable to acquire reset gpio %d\n",
+ 				sensor->platform_data->xshutdown);
+-			return -ENODEV;
++			return rval;
+ 		}
+ 	}
+ 
+-- 
+1.7.10.4
 
-[1] http://www5.sonera.fi/ohjeet/Kaapeli-TV-taajuudet_(laajennettu)
-
---001a11c15aaae5bc3604f865d1bb
-Content-Type: text/x-patch; charset=UTF-8; name="Updated-scan-table-for-fi-sonera.patch"
-Content-Disposition: attachment;
-	filename="Updated-scan-table-for-fi-sonera.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hup5w03h0
-
-RnJvbSBiY2Y3ZjkwMGE3OGNmY2ZiOGIzNTZhZDIzNDA2M2UzNjY5Yjg3MGFmIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNaWtrbyBBdXRpbyA8bWlra28uYXV0aW8xQGdtYWlsLmNvbT4K
-RGF0ZTogRnJpLCAyIE1heSAyMDE0IDEwOjE2OjEwICswMzAwClN1YmplY3Q6IFtQQVRDSF0gVXBk
-YXRlZCBzY2FuIHRhYmxlIGZvciBmaS1zb25lcmEKCkdlbmVyYXRlZCBhY2NvcmRpbmcgdG8gdGhl
-IGxpc3QgYXZhaWxhYmxlIGF0Cmh0dHA6Ly93d3c1LnNvbmVyYS5maS9vaGplZXQvS2FhcGVsaS1U
-Vi10YWFqdXVkZXRfKGxhYWplbm5ldHR1KQotLS0KIGR2Yi1jL2ZpLXNvbmVyYSB8IDM1ICsrKysr
-KysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgMjAgaW5zZXJ0
-aW9ucygrKSwgMTUgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHZiLWMvZmktc29uZXJhIGIv
-ZHZiLWMvZmktc29uZXJhCmluZGV4IDJlZWU5ZjkuLmU2MDQ5ODIgMTAwNjQ0Ci0tLSBhL2R2Yi1j
-L2ZpLXNvbmVyYQorKysgYi9kdmItYy9maS1zb25lcmEKQEAgLTEsMjMgKzEsMjggQEAKICMgU29u
-ZXJhIGthYXBlbGktdHYgKEZpbmxhbmQpCi0jIE1ha3N1dHRvbWF0IGthbmF2YXQgb3ZhdCAxNjIg
-amEgMTcwIE1IejpuIG11eGVpc3NhCisjIE1ha3N1dHRvbWF0IGthbmF2YXQgb3ZhdCAyNDIsMjUw
-LDMxNCwzNzAgamEgNDEwIE1IejpuIG11eGVpc3NhCiAjCiAjIGZyZXEgwqAgwqAgwqBzciDCoCDC
-oCDCoGZlYyDCoG1vZAotQyAxNTQwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTEyOAotQyAxNjIwMDAw
-MDAgNjkwMDAwMCBOT05FIFFBTTEyOAotQyAxNzAwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTEyOAog
-QyAyMzQwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgogQyAyNDIwMDAwMDAgNjkwMDAwMCBOT05F
-IFFBTTI1NgogQyAyNTAwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgogQyAyNTgwMDAwMDAgNjkw
-MDAwMCBOT05FIFFBTTI1NgogQyAyNjYwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgotQyAzMTQw
-MDAwMDAgNjkwMDAwMCBOT05FIFFBTTEyOAotQyAzMjIwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTEy
-OAotQyAzMzgwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTEyOAotQyAzNDYwMDAwMDAgNjkwMDAwMCBO
-T05FIFFBTTEyOAotQyAzNTQwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTEyOAotQyAzNjIwMDAwMDAg
-NjkwMDAwMCBOT05FIFFBTTEyOAotQyAzNzAwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTEyOAotQyAz
-NzgwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTEyOAotQyAzODYwMDAwMDAgNjkwMDAwMCBOT05FIFFB
-TTEyOAotQyAzOTQwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTEyOAotQyA0MDIwMDAwMDAgNjkwMDAw
-MCBOT05FIFFBTTEyOAorQyAyNzQwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgorQyAyOTgwMDAw
-MDAgNjkwMDAwMCBOT05FIFFBTTI1NgorQyAzMDYwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1Ngor
-QyAzMTQwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgorQyAzMjIwMDAwMDAgNjkwMDAwMCBOT05F
-IFFBTTI1NgorQyAzMzgwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgorQyAzNDYwMDAwMDAgNjkw
-MDAwMCBBVVRPIFFBTTI1NgorQyAzNTQwMDAwMDAgNjkwMDAwMCBBVVRPIFFBTTI1NgorQyAzNjIw
-MDAwMDAgNjkwMDAwMCBBVVRPIFFBTTI1NgorQyAzNzAwMDAwMDAgNjkwMDAwMCBBVVRPIFFBTTI1
-NgorQyAzNzgwMDAwMDAgNjkwMDAwMCBBVVRPIFFBTTI1NgorQyAzODYwMDAwMDAgNjkwMDAwMCBB
-VVRPIFFBTTI1NgorQyAzOTQwMDAwMDAgNjkwMDAwMCBBVVRPIFFBTTI1NgorQyA0MDIwMDAwMDAg
-NjkwMDAwMCBBVVRPIFFBTTI1NgorQyA0MTAwMDAwMDAgNjkwMDAwMCBBVVRPIFFBTTI1NgorQyA0
-MTgwMDAwMDAgNjkwMDAwMCBBVVRPIFFBTTI1NgorQyA0MjYwMDAwMDAgNjkwMDAwMCBBVVRPIFFB
-TTI1NgorQyA0MzQwMDAwMDAgNjkwMDAwMCBBVVRPIFFBTTI1NgorQyAzMzAwMDAwMDAgNjkwMDAw
-MCBBVVRPIFFBTTI1NgotLSAKMi4wLjAucmMwCgo=
---001a11c15aaae5bc3604f865d1bb--
