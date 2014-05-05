@@ -1,129 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:65327 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751304AbaE3AXt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 May 2014 20:23:49 -0400
-Received: by mail-wi0-f171.google.com with SMTP id cc10so215682wib.10
-        for <linux-media@vger.kernel.org>; Thu, 29 May 2014 17:23:48 -0700 (PDT)
-Date: Fri, 30 May 2014 01:23:45 +0100
-From: Jonathan McCrohan <jmccrohan@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, oliver@schinagl.nl
-Subject: Re: [PATCH 00/12] dvbv5 scan tables for Brazil
-Message-ID: <20140530002345.GA12450@lambda.dereenigne.org>
-References: <1401209432-7327-1-git-send-email-m.chehab@samsung.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="NMuMz9nt05w80d4+"
-Content-Disposition: inline
-In-Reply-To: <1401209432-7327-1-git-send-email-m.chehab@samsung.com>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4229 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753843AbaEECnd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 May 2014 22:43:33 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id s452hUj4046190
+	for <linux-media@vger.kernel.org>; Mon, 5 May 2014 04:43:32 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 85F882A19A2
+	for <linux-media@vger.kernel.org>; Mon,  5 May 2014 04:43:29 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140505024329.85F882A19A2@tschai.lan>
+Date: Mon,  5 May 2014 04:43:29 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---NMuMz9nt05w80d4+
-Content-Type: multipart/mixed; boundary="XsQoSWH+UP9D9v3l"
-Content-Disposition: inline
+Results of the daily build of media_tree:
 
+date:		Mon May  5 04:00:30 CEST 2014
+git branch:	test
+git hash:	393cbd8dc532c1ebed60719da8d379f50d445f28
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-1.slh.1-amd64
 
---XsQoSWH+UP9D9v3l
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
-Hi Mauro,
+Detailed results are available here:
 
-On Tue, 27 May 2014 13:50:20 -0300, Mauro Carvalho Chehab wrote:
-> This patch series add the DTV scan tables for Brazilian ISDB-T
-> and for the Brazilian Countys that have already digital TV.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Thanks for the DVBv5 scan files. I had the attached draft patch sitting
-in my tree. I don't think it is ready to be committed yet, but probably
-worth sending now to discuss.
+Full logs are available here:
 
-How do we want to manage the migration from DVBv3 to DVBv5:
-1) point in time migration from DVBv3 to DVBv5?
-2) maintain both until DVBv5 is in widespread use?
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-On a side note, I found a bug in dvb-format-convert; it cannot parse
-DVB-T2 DVBv3 scan files.
+The Media Infrastructure API from this daily build is here:
 
-Jon
-
---XsQoSWH+UP9D9v3l
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-Add-Makefile-to-convert-DVBv3-files-to-DVBv5.patch"
-Content-Transfer-Encoding: quoted-printable
-
-=46rom fdcabb0802a4a40e257d54dbd5e5eba59b9820f7 Mon Sep 17 00:00:00 2001
-=46rom: Jonathan McCrohan <jmccrohan@gmail.com>
-Date: Fri, 30 May 2014 01:14:42 +0100
-Subject: [PATCH] Add Makefile to convert DVBv3 files to DVBv5
-
-Signed-off-by: Jonathan McCrohan <jmccrohan@gmail.com>
----
- Makefile | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
- create mode 100644 Makefile
-
-diff --git a/Makefile b/Makefile
-new file mode 100644
-index 0000000..fac40e7
---- /dev/null
-+++ b/Makefile
-@@ -0,0 +1,25 @@
-+# Makefile for dtv-scan-tables (26 May 2014)
-+# Copyright 2014 Jonathan McCrohan <jmccrohan@gmail.com>
-+
-+# The vast majority of the DVB scan files contained in this repository
-+# are DVBv3 scan files. This format has been deprecated in favor of the
-+# DVBv5 scan format.
-+#
-+# Use this makefile to convert the existing DVBv3 scan files to DVBv5
-+# scan files until such time as DVBv5 scan format is in widespread use.
-+#
-+# Requires dvb-format-convert from v4l-utils.
-+
-+MKDIR =3D mkdir -p
-+DVBFORMATCONVERT =3D dvb-format-convert
-+
-+DVBFORMATCONVERT_CHANNEL_DVBV5 =3D -ICHANNEL -ODVBV5
-+
-+DVBV3DIRS =3D atsc dvb-c dvb-s dvb-t
-+DVBV3CHANNELFILES =3D $(foreach dir,$(DVBV3DIRS),$(wildcard $(dir)/*))
-+
-+DVBV5OUTPUTDIR =3D dvbv5
-+
-+makedvbv5:
-+	@$(foreach var,$(DVBV3DIRS), $(MKDIR) $(DVBV5OUTPUTDIR)/$(var);)
-+	@$(foreach var,$(DVBV3CHANNELFILES), $(DVBFORMATCONVERT) $(DVBFORMATCONVE=
-RT_CHANNEL_DVBV5) $(var) $(DVBV5OUTPUTDIR)/$(var);)
---=20
-2.0.0.rc2
-
-
---XsQoSWH+UP9D9v3l--
-
---NMuMz9nt05w80d4+
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-Comment: Signed by Jonathan McCrohan
-
-iQIcBAABCAAGBQJTh8+RAAoJEBVu7Ac3rTKWFA0QAJvJiYliZB8BCcNBTCLoc81k
-l9HXfVyszRmeucF+5M2uhx/ry6ZHH35/t5GTRobUeivWGOpwQlKI9Bbx48DbMiZ1
-yXCeIGwlj4PhsHTOi25V8/TXEX9hUt8TW+n6QilfcSPHp9OesQPlLjmTNfwfmrUo
-POotchPucn1cXFTFiVRjtgpZz1QwMDZLAKYf4UiwB0ClHG6+bVbz2XQ1z4TJZ9VJ
-JNOqWpDSWZq9esmRNsagTX2Q9liOFB6CoXtSiDtXzFYUfmgaFQTO6L3YqosXCqq2
-UQ2+FQxOSLdXILH9w7Pi82LFDQHZvLoTxuMRd6Pzn7RK2av8egTgfFEgbUY2FdLA
-xoZvvaj2PsAFJgSQn6z1mD8KIRLsHjbtB0eItR9lGhzW3Y6mwzt+prbK8FQH2eqs
-5FBUK99OotdjT1pJZ0BzUyztiSDQ+1h92g+nbbhaXkvqqfQrGZiu2aNi3VTW/yuW
-wDlWJzEvNpVryWufmzycwatCkBviAuSuNV8AveDHmCq/wTlao2/A2nbveYDuwPP/
-SgeKm0CetifD1mh/td1c+QgDeRiDtbmyl8r4kQNrhGzH2X44B3W1+WdnFqdkV6Ww
-1864f/+0eR/V3kdVfx9rKAeHPMuFxl5HR2zDuoQXJyYiHoYQxP3muhmKcinjWNHg
-GT2AhSRUVgqTPCvUJVpt
-=AAXq
------END PGP SIGNATURE-----
-
---NMuMz9nt05w80d4+--
+http://www.xs4all.nl/~hverkuil/spec/media.html
