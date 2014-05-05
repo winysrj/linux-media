@@ -1,95 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:50918 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751407AbaENV5o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 May 2014 17:57:44 -0400
-Received: by mail-lb0-f181.google.com with SMTP id u14so140738lbd.12
-        for <linux-media@vger.kernel.org>; Wed, 14 May 2014 14:57:42 -0700 (PDT)
-From: Alexander Bersenev <bay@hackerdom.ru>
-To: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
-	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
-	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Alexander Bersenev <bay@hackerdom.ru>
-Subject: [PATCH v7 0/3] ARM: sunxi: Add support for consumer infrared devices
-Date: Thu, 15 May 2014 03:56:39 +0600
-Message-Id: <1400104602-16431-1-git-send-email-bay@hackerdom.ru>
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:20255 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751776AbaEETQu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 May 2014 15:16:50 -0400
+Message-id: <5367E39E.7090401@samsung.com>
+Date: Mon, 05 May 2014 13:16:46 -0600
+From: Shuah Khan <shuah.kh@samsung.com>
+Reply-to: shuah.kh@samsung.com
+MIME-version: 1.0
+To: Tejun Heo <tj@kernel.org>
+Cc: gregkh@linuxfoundation.org, m.chehab@samsung.com, olebowle@gmx.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Shuah Khan <shuah.kh@samsung.com>
+Subject: Re: [PATCH 1/4] drivers/base: add managed token devres interfaces
+References: <cover.1398797954.git.shuah.kh@samsung.com>
+ <6cb20ce23f540c883e60e6ce71302042b034c4aa.1398797955.git.shuah.kh@samsung.com>
+ <20140501145337.GC31611@htj.dyndns.org>
+In-reply-to: <20140501145337.GC31611@htj.dyndns.org>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch introduces Consumer IR(CIR) support for sunxi boards.
+Hi Tejun,
 
-This is based on Alexsey Shestacov's work based on the original driver 
-supplied by Allwinner.
+On 05/01/2014 08:53 AM, Tejun Heo wrote:
 
-Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
+>> +	if (!mutex_trylock(&tkn_ptr->lock))
+>> +		return -EBUSY;
+>
+> How is this lock supposed to be used?  Have you tested it with lockdep
+> enabled?  Does it ever get released by a task which is different from
+> the one which locked it?  If the lock ownership is really about driver
+> association rather than tasks, it might be necessary to nullify
+> lockdep protection and add your own annotation to at least track that
+> unlocking driver (identified how? maybe impossible?) actually owns the
+> lock.
+>
 
----
-Changes since version 1: 
- - Fix timer memory leaks 
- - Fix race condition when driver unloads while interrupt handler is active
- - Support Cubieboard 2(need testing)
+This lock is associated with a driver. Let me describe the use-case,
+so you have more information to help me head in the right direction.
 
-Changes since version 2:
-- More reliable keydown events
-- Documentation fixes
-- Rename registers accurding to A20 user manual
-- Remove some includes, order includes alphabetically
-- Use BIT macro
-- Typo fixes
+Media devices have more than one function and one or more functions
+share a function without being aware that they are sharing it. For
+instance, USB TV stick that supports both analog and digital TV, tuner
+is shared by both these functions. When tuner is in use by analog,
+digital function should not be allowed to touch it. This a longterm
+lockout. So when an analog driver is using the tuner, if digital
+driver tries to access the tuner, it should know as early as possible,
+at the time user application requests tuning to a digital channel.
 
-Changes since version 3:
-- Split the patch on smaller parts
-- More documentation fixes
-- Add clock-names in DT
-- Use devm_clk_get function to get the clocks
-- Removed gpios property from ir's DT
-- Changed compatible from allwinner,sunxi-ir to allwinner,sun7i-a20-ir in DT
-- Use spin_lock_irq instead spin_lock_irqsave in interrupt handler
-- Add myself in the copyright ;)
-- Coding style and indentation fixes
+The tuner hardware is protected by a mutex, however the longer path
+isn't protected. The path I am trying to protect is the between the
+time digital driver gets the request from user-space and gets ready
+to service it. It starts a kthread to handle the digital stream. Once
+user changes channel and/or stops the stream, the kthread is terminated
+and the tuner usage ends. The path that token hold is needed starts
+right before kthread gets started and ends when kthread exits. This is
+just an example, and analog use-case hold might start and end at times
+that makes more sense for that path.
 
-Changes since version 4:
-- Try to fix indentation errors by sending patches with git send-mail
+There is the audio stream as well. On some cases, snd-audio-usb handles
+the audio part. Audio stream has to be active only when video stream is
+active. So having a token construct at struct device level will have it
+be associated with the common data structure that is available to all
+drivers that provide full support for a media device.
 
-Changes since version 5:
-- More indentation fixes
-- Make patches pass checkpatch with --strict option
-- Replaced magic numbers with defines(patch by Priit Laes)
-- Fixed oops on loading(patch by Hans de Goede)
+I started testing with a device that has both analog, digital, and uses
+snd-usb-audio instead of a media audio driver. I am hoping this will
+help me refine this locking construct and approach.
 
-Changes since version 6:
-- Removed constants from code
-- Better errrors handling on loading
-- Renamed sunxi-ir.c to sunxi-cir.c
-- Changed description of second commit
-- Order entries in dts and dtsi by register address
-- Code style fixes
+You are right that there is a need for an owner field to indicate who
+has the token. Since the path is very long, I didn't want to use just
+the mutex and keep it tied up for long periods of time. That is the
+reason why I added in_use field that marks it in-use or free. I hold
+the mutex just to change the token status. This is what you are seeing
+on the the following path:
+
++ if (tkn_ptr->in_use)
++		rc = -EBUSY;
++	else
++		tkn_ptr->in_use = true;
 
 
-Alexander Bersenev (3):
-  ARM: sunxi: Add documentation for sunxi consumer infrared devices
-  [media] rc: add sunxi-ir driver
-  ARM: sunxi: Add IR controller support in DT on A20
+Hope this description helps you get a full picture of what I am trying
+to solve. Maybe there is a different approach that would work better
+than the one I am proposing.
 
- .../devicetree/bindings/media/sunxi-ir.txt         |  23 ++
- arch/arm/boot/dts/sun7i-a20-cubieboard2.dts        |   6 +
- arch/arm/boot/dts/sun7i-a20-cubietruck.dts         |   6 +
- arch/arm/boot/dts/sun7i-a20.dtsi                   |  32 ++
- drivers/media/rc/Kconfig                           |  10 +
- drivers/media/rc/Makefile                          |   1 +
- drivers/media/rc/sunxi-cir.c                       | 334 +++++++++++++++++++++
- 7 files changed, 412 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sunxi-ir.txt
- create mode 100644 drivers/media/rc/sunxi-cir.c
+This new device I am testing with now presents all the use-cases that 
+need addressing. So I am hoping to refine the approach and make course
+corrections as needed with this device.
+
+-- Shuah
 
 -- 
-1.9.3
+Shuah Khan
+Senior Linux Kernel Developer - Open Source Group
+Samsung Research America(Silicon Valley)
+shuah.kh@samsung.com | (970) 672-0658
