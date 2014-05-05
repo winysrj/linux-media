@@ -1,85 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:55484 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753378AbaEIQKX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 12:10:23 -0400
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-To: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [PATCH v2] radio-bcm2048.c: fix wrong overflow check
-Date: Fri, 9 May 2014 18:10:17 +0200
-Cc: Dan Carpenter <dan.carpenter@oracle.com>, hans.verkuil@cisco.com,
-	m.chehab@samsung.com, ext-eero.nurkkala@nokia.com,
-	nils.faerber@kernelconcepts.de, joni.lapilainen@gmail.com,
-	freemangordon@abv.bg, sre@ring0.de, Greg KH <greg@kroah.com>,
-	linux-media@vger.kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	Pavel Machek <pavel@ucw.cz>
-References: <20140422125726.GA30238@mwanda> <alpine.LNX.2.00.1405051534090.3969@pobox.suse.cz>
-In-Reply-To: <alpine.LNX.2.00.1405051534090.3969@pobox.suse.cz>
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:53469 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753114AbaEETln (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 May 2014 15:41:43 -0400
+Received: by mail-qa0-f46.google.com with SMTP id w8so7510890qac.19
+        for <linux-media@vger.kernel.org>; Mon, 05 May 2014 12:41:43 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2631387.AxMYleU8kP";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Message-Id: <201405091810.18289@pali>
+In-Reply-To: <20140505193616.GR11231@htj.dyndns.org>
+References: <cover.1398797954.git.shuah.kh@samsung.com>
+	<6cb20ce23f540c883e60e6ce71302042b034c4aa.1398797955.git.shuah.kh@samsung.com>
+	<20140501145337.GC31611@htj.dyndns.org>
+	<5367E39E.7090401@samsung.com>
+	<20140505192633.GQ11231@htj.dyndns.org>
+	<CAGoCfiwoFipx79tx6Jkgx5nfU_K9qXdfGe25kzrNb6Jwka0H7A@mail.gmail.com>
+	<20140505193616.GR11231@htj.dyndns.org>
+Date: Mon, 5 May 2014 15:41:43 -0400
+Message-ID: <CAGoCfix3DB3cNy3Zk74nQzVw6gxCBWq_c-dRFHArLRiK_yrWUQ@mail.gmail.com>
+Subject: Re: [PATCH 1/4] drivers/base: add managed token devres interfaces
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Tejun Heo <tj@kernel.org>
+Cc: Shuah Khan <shuah.kh@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	olebowle@gmx.com, Linux Kernel <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---nextPart2631387.AxMYleU8kP
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Mon, May 5, 2014 at 3:36 PM, Tejun Heo <tj@kernel.org> wrote:
+> On Mon, May 05, 2014 at 03:30:34PM -0400, Devin Heitmueller wrote:
+>> On Mon, May 5, 2014 at 3:26 PM, Tejun Heo <tj@kernel.org> wrote:
+>> > As such, please consider the patches nacked and try to find someone
+>> > who can shepherd the code.  Mauro, can you help out here?
+>>
+>> We actually discussed this proposal at length at the media summit last
+>> week.  The patches are being pulled pending further internal review
+>
+> "being pulled into a tree" or "being pulled for more work"?
 
-On Monday 05 May 2014 15:34:29 Jiri Kosina wrote:
-> On Tue, 22 Apr 2014, Dan Carpenter wrote:
-> > From: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> >=20
-> > This patch fixes an off by one check in
-> > bcm2048_set_region().
-> >=20
-> > Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > ---
-> > v2: Send it to the correct list.  Re-work the changelog.
-> >=20
-> > This patch has been floating around for four months but
-> > Pavel and Pali are knuckle-heads and don't know how to use
-> > get_maintainer.pl so they never send it to linux-media.
-> >=20
-> > Also Pali doesn't give reporter credit and Pavel steals
-> > authorship credit.
-> >=20
-> > Also when you try explain to them about how to send patches
-> > correctly they complain that they have been trying but it
-> > is too much work so now I have to do it.  During the past
-> > four months thousands of other people have been able to
-> > send patches in the correct format to the correct list but
-> > it is too difficult for Pavel and Pali...  *sigh*.
->=20
-> Seems like it's not in linux-next as of today, so I am taking
-> it now. Thanks,
+Sorry, I wasn't clear.  They are being pulled for more work.  After
+discussion with the rest of the linux-media developers, it was
+determined that the patches don't cover all the use cases and the
+patch submission was premature.
 
-I still do not see this patch in torvalds branch... So what is=20
-needed to include this security buffer overflow patch into=20
-mainline & stable kernels?
+Devin
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart2631387.AxMYleU8kP
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlNs/eoACgkQi/DJPQPkQ1LyvwCfW2bD3mNnIkopKovNtmu8Ln/w
-t+YAn3hyS/hRtclc3eHqR1KaAg0DrT+4
-=26FT
------END PGP SIGNATURE-----
-
---nextPart2631387.AxMYleU8kP--
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
