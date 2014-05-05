@@ -1,68 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:52909 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756217AbaELKQx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 May 2014 06:16:53 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com, posciak@chromium.org,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v2] [media] s5p-mfc: Don't try to resubmit VP8 bitstream buffer for decode.
-Date: Mon, 12 May 2014 15:46:44 +0530
-Message-Id: <1399889804-4225-1-git-send-email-arun.kk@samsung.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:57066 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755659AbaEEJoa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 May 2014 05:44:30 -0400
+Message-ID: <53675D72.70103@ti.com>
+Date: Mon, 5 May 2014 15:14:18 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
+MIME-Version: 1.0
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Rahul Sharma <r.sh.open@gmail.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+CC: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Grant Likely <grant.likely@linaro.org>,
+	Rahul Sharma <rahul.sharma@samsung.com>,
+	sunil joshi <joshi@samsung.com>
+Subject: Re: [PATCHv2 1/3] phy: Add exynos-simple-phy driver
+References: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com> <1396967856-27470-2-git-send-email-t.stanislaws@samsung.com> <534506B1.4040908@samsung.com> <CAPdUM4M109_kzY6cUMJQPSwgazvWmNDWL1JeXgiqnzvH8dhK2Q@mail.gmail.com> <53451A60.4050803@samsung.com>
+In-Reply-To: <53451A60.4050803@samsung.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pawel Osciak <posciak@chromium.org>
+Hi,
 
-Currently, for formats that are not H264, MFC driver will check
-the consumed stream size returned by the firmware and, based on that,
-will try to decide whether the bitstream buffer contained more than
-one frame. If the size of the buffer is larger than the consumed
-stream, it assumes that there are more frames in the buffer and that the
-buffer should be resubmitted for decode. This rarely works though and
-actually introduces problems, because:
+On Wednesday 09 April 2014 03:31 PM, Sylwester Nawrocki wrote:
+> Hi,
+> 
+> On 09/04/14 11:12, Rahul Sharma wrote:
+>> Idea looks good. How about keeping compatible which is independent
+>> of SoC, something like "samsung,exynos-simple-phy" and provide Reg
+>> and Bit through phy provider node. This way we can avoid SoC specific
+>> hardcoding in phy driver and don't need to look into dt bindings for
+>> each new SoC.
+> 
+> I believe it is a not recommended approach.
 
-- v7 firmware will always return consumed stream size equal to whatever
-the driver passed to it when running decode (which is the size of the whole
-buffer), which means we will never try to resubmit, because the firmware
-will always tell us that it consumed all the data we passed to it;
+Why not? We should try to avoid hard coding in the driver code. Moreover by
+avoiding hardcoding we can make it a generic driver for single bit PHYs.
 
-- v6 firmware will return the number of consumed bytes, but will not
-include the padding ("stuffing") bytes that are allowed after the frame
-in VP8. Since there is no way of figuring out how many of those bytes
-follow the frame without getting the frame size from IVF headers (or
-somewhere else, but not from the stream itself), the driver tries to guess that
-padding size is not larger than 4 bytes, which is not always true;
-
-The only way to make it work is to queue only one frame per buffer from
-userspace and the check in the kernel is useless and wrong for VP8.
-So adding VP8 also along with H264 to disallow re-submitting of buffer
-back to hardware for decode.
-
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
-Changes from v1
-- Made the condition to specifically add VP8 case only
-  suggested by Kamil.
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c |    1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 0f796ad..2d7d1ae 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -382,6 +382,7 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx *ctx,
- 		ctx->consumed_stream += s5p_mfc_hw_call(dev->mfc_ops,
- 						get_consumed_stream, dev);
- 		if (ctx->codec_mode != S5P_MFC_CODEC_H264_DEC &&
-+			ctx->codec_mode != S5P_MFC_CODEC_VP8_DEC &&
- 			ctx->consumed_stream + STUFF_BYTE <
- 			src_buf->b->v4l2_planes[0].bytesused) {
- 			/* Run MFC again on the same buffer */
--- 
-1.7.9.5
-
+Cheers
+Kishon
