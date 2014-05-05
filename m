@@ -1,89 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback4.mail.ru ([94.100.176.42]:39625 "EHLO
-	fallback4.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751854AbaEBHT0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 May 2014 03:19:26 -0400
-Received: from smtp53.i.mail.ru (smtp53.i.mail.ru [94.100.177.113])
-	by fallback4.mail.ru (mPOP.Fallback_MX) with ESMTP id 528C62289274
-	for <linux-media@vger.kernel.org>; Fri,  2 May 2014 11:19:20 +0400 (MSK)
-From: Alexander Shiyan <shc_work@mail.ru>
+Received: from forward1l.mail.yandex.net ([84.201.143.144]:33978 "EHLO
+	forward1l.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755604AbaEEUzy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 May 2014 16:55:54 -0400
+Received: from smtp17.mail.yandex.net (smtp17.mail.yandex.net [95.108.252.17])
+	by forward1l.mail.yandex.net (Yandex) with ESMTP id 92BEF1520FAF
+	for <linux-media@vger.kernel.org>; Tue,  6 May 2014 00:48:54 +0400 (MSK)
+Received: from smtp17.mail.yandex.net (localhost [127.0.0.1])
+	by smtp17.mail.yandex.net (Yandex) with ESMTP id 544EF19000E4
+	for <linux-media@vger.kernel.org>; Tue,  6 May 2014 00:48:54 +0400 (MSK)
+From: CrazyCat <crazycat69@narod.ru>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Shawn Guo <shawn.guo@freescale.com>,
-	devicetree@vger.kernel.org, Alexander Shiyan <shc_work@mail.ru>
-Subject: [PATCH 3/3] media: mx2-emmaprp: Add devicetree support
-Date: Fri,  2 May 2014 11:18:39 +0400
-Message-Id: <1399015119-24000-1-git-send-email-shc_work@mail.ru>
+Subject: [PATCH] dw2102: Geniatech T220 init fixed
+Date: Mon, 05 May 2014 23:48:50 +0300
+Message-ID: <1709090.pAjQK6zJW5@ubuntu>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds devicetree support for the Freescale enhanced Multimedia
-Accelerator (eMMA) video Pre-processor (PrP).
+Geniatech T220 init fixed.
 
-Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
----
- .../devicetree/bindings/media/fsl-imx-emmaprp.txt     | 19 +++++++++++++++++++
- drivers/media/platform/mx2_emmaprp.c                  |  8 ++++++++
- 2 files changed, 27 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
+Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
 
-diff --git a/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt b/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
-new file mode 100644
-index 0000000..9e8238f
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
-@@ -0,0 +1,19 @@
-+* Freescale enhanced Multimedia Accelerator (eMMA) video Pre-processor (PrP)
-+  for i.MX.
-+
-+Required properties:
-+- compatible : Shall contain "fsl,imx21-emmaprp".
-+- reg        : Offset and length of the register set for the device.
-+- interrupts : Should contain eMMA PrP interrupt number.
-+- clocks     : Should contain the ahb and ipg clocks, in the order
-+               determined by the clock-names property.
-+- clock-names: Should be "ahb", "ipg".
-+
-+Example:
-+	emmaprp: emmaprp@10026400 {
-+		compatible = "fsl,imx27-emmaprp", "fsl,imx21-emmaprp";
-+		reg = <0x10026400 0x100>;
-+		interrupts = <51>;
-+		clocks = <&clks 49>, <&clks 68>;
-+		clock-names = "ipg", "ahb";
-+	};
-diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
-index fa8f7ca..0646bda 100644
---- a/drivers/media/platform/mx2_emmaprp.c
-+++ b/drivers/media/platform/mx2_emmaprp.c
-@@ -18,6 +18,7 @@
-  */
- #include <linux/module.h>
- #include <linux/clk.h>
-+#include <linux/of.h>
- #include <linux/slab.h>
- #include <linux/interrupt.h>
- #include <linux/io.h>
-@@ -1005,12 +1006,19 @@ static int emmaprp_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static const struct of_device_id __maybe_unused emmaprp_dt_ids[] = {
-+	{ .compatible = "fsl,imx21-emmaprp", },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, emmaprp_dt_ids);
-+
- static struct platform_driver emmaprp_pdrv = {
- 	.probe		= emmaprp_probe,
- 	.remove		= emmaprp_remove,
- 	.driver		= {
- 		.name	= MEM2MEM_NAME,
- 		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(emmaprp_dt_ids),
- 	},
+diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
+index ae0f56a..7135a3e 100644
+--- a/drivers/media/usb/dvb-usb/dw2102.c
++++ b/drivers/media/usb/dvb-usb/dw2102.c
+@@ -1109,6 +1109,7 @@ static struct ds3000_config su3000_ds3000_config = {
+ static struct cxd2820r_config cxd2820r_config = {
+ 	.i2c_address = 0x6c, /* (0xd8 >> 1) */
+ 	.ts_mode = 0x38,
++	.ts_clock_inv = 1,
  };
- module_platform_driver(emmaprp_pdrv);
--- 
-1.8.3.2
+ 
+ static struct tda18271_config tda18271_config = {
+@@ -1387,20 +1388,27 @@ static int su3000_frontend_attach(struct dvb_usb_adapter *d)
+ 
+ static int t220_frontend_attach(struct dvb_usb_adapter *d)
+ {
+-	u8 obuf[3] = { 0xe, 0x80, 0 };
++	u8 obuf[3] = { 0xe, 0x87, 0 };
+ 	u8 ibuf[] = { 0 };
+ 
+ 	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
+ 		err("command 0x0e transfer failed.");
+ 
+ 	obuf[0] = 0xe;
+-	obuf[1] = 0x83;
++	obuf[1] = 0x86;
++	obuf[2] = 1;
++
++	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
++		err("command 0x0e transfer failed.");
++
++	obuf[0] = 0xe;
++	obuf[1] = 0x80;
+ 	obuf[2] = 0;
+ 
+ 	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
+ 		err("command 0x0e transfer failed.");
+ 
+-	msleep(100);
++	msleep(50);
+ 
+ 	obuf[0] = 0xe;
+ 	obuf[1] = 0x80;
 
