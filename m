@@ -1,67 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32486 "EHLO mx1.redhat.com"
+Received: from ns.pmeerw.net ([87.118.82.44]:60782 "EHLO pmeerw.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755240AbaEHTlc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 May 2014 15:41:32 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id s48JfVsV027418
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 8 May 2014 15:41:32 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 2/3] rc_keymaps: Add a keymap for the remote shipped with allwinner i12-a20 tv boxes
-Date: Thu,  8 May 2014 21:41:26 +0200
-Message-Id: <1399578087-2365-3-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1399578087-2365-1-git-send-email-hdegoede@redhat.com>
-References: <1399578087-2365-1-git-send-email-hdegoede@redhat.com>
+	id S932271AbaEENHA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 May 2014 09:07:00 -0400
+Date: Mon, 5 May 2014 15:06:57 +0200 (CEST)
+From: Peter Meerwald <pmeerw@pmeerw.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi,
+	stable@vger.kernel.org
+Subject: Re: [PATCH] omap3isp: Fix iommu domain use-after-free in isp_probe()
+ error path
+In-Reply-To: <2047675.m2gtpURIVn@avalon>
+Message-ID: <alpine.DEB.2.01.1405051504180.30493@pmeerw.net>
+References: <1398845610-12954-1-git-send-email-pmeerw@pmeerw.net> <2047675.m2gtpURIVn@avalon>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an unbranded remote found with unbranded allwinner a20 based android
-tv boxes, which are referred to as i12 tv boxes since the pcb is marked i12
-(the i12 name is also used in u-boot and for the devicetree files).
+Hello,
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- utils/keytable/rc_keymaps/allwinner_i12_a20_tv_box | 28 ++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
- create mode 100644 utils/keytable/rc_keymaps/allwinner_i12_a20_tv_box
+> > isp_save_ctx() is called from omap3isp_put() after iommu_domain_free() in
+> > the isp_probe() error path
+> > 
+> > [    3.205047] Unable to handle kernel NULL pointer dereference at virtual
+> > address 0000003c [    3.213470] pgd = c0004000
+> > [    3.216308] [0000003c] *pgd=00000000
+> > [    3.220031] Internal error: Oops: 5 [#1] PREEMPT ARM
+> > [    3.225189] Modules linked in:
+> > [    3.228363] CPU: 0    Not tainted  (3.7.10 #3)
+> > [    3.232971] PC is at omap2_iommu_save_ctx+0x0/0x34
+> > [    3.237945] LR is at omap_iommu_save_ctx+0x1c/0x24
+> > [    3.242919] pc : [<c0026a24>]    lr : [<c02b5878>]    psr: 60000113
+> > ...
+> > [    3.425109] [<c0026a24>] (omap2_iommu_save_ctx+0x0/0x34) from
+> > [<c02b5878>] (omap_iommu_save_ctx+0x1c/0x24)
+> > [    3.435150] [<c02b5878>] (omap_iommu_save_ctx+0x1c/0x24) from
+> > [<c027f39c>] (omap3isp_put+0x84/0xfc)
+> > [    3.444519] [<c027f39c>] (omap3isp_put+0x84/0xfc) from [<c0392b64>]
+> > (isp_probe+0x8d8/0xa60)
+> > [    3.453186] [<c0392b64>] (isp_probe+0x8d8/0xa60) from [<c01fa72c>]
+> > (platform_drv_probe+0x14/0x18)
+> > [    3.462402] [<c01fa72c>] (platform_drv_probe+0x14/0x18) from [<c01f982c>]
+> > (driver_probe_device+0xb0/0x1dc)
+> > 
+> > compare isp_remove(): isp->domain is set to NULL after iommu_domain_free()
+> > 
+> > above crash is observed with 3.7
+> > the issue is fixed in 3.11 (7c0f812a5d65e712618af880dda4a5cc7ed79463),
+> > but present in 3.10 longterm
+> 
+> Would cherry-picking commit 7c0f812a5d65e712618af880dda4a5cc7ed79463 for the 
+> 3.10 stable series make sense instead ? Otherwise,
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-diff --git a/utils/keytable/rc_keymaps/allwinner_i12_a20_tv_box b/utils/keytable/rc_keymaps/allwinner_i12_a20_tv_box
-new file mode 100644
-index 0000000..edbc7a7
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/allwinner_i12_a20_tv_box
-@@ -0,0 +1,28 @@
-+# table allwinner_i12_a20_tv_box, type: NEC
-+0x00 KEY_7
-+0x01 KEY_4
-+0x02 KEY_1
-+0x03 KEY_VOLUMEDOWN
-+0x04 KEY_8
-+0x05 KEY_5
-+0x06 KEY_2
-+0x07 KEY_BACK
-+0x08 KEY_9
-+0x09 KEY_6
-+0x0a KEY_3
-+0x0b KEY_NEXTSONG
-+0x0c KEY_WWW
-+0x0d KEY_0
-+0x0e KEY_BACKSPACE
-+0x40 KEY_VOLUMEUP
-+0x41 KEY_LEFT
-+0x42 KEY_HOME
-+0x43 KEY_POWER
-+0x44 KEY_DOWN
-+0x45 KEY_OK
-+0x46 KEY_UP
-+0x47 KEY_CONTEXT_MENU
-+0x48 KEY_PREVIOUSSONG
-+0x49 KEY_RIGHT
-+0x4a KEY_MENU
-+0x4b KEY_MUTE
+7c0f812a5d65e712618af880dda4a5cc7ed79463 looks good as well for 3.10 
+longterm
+
+thanks, p.
+ 
+> > Cc: stable@vger.kernel.org
+> > Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
+> > ---
+> >  drivers/media/platform/omap3isp/isp.c |    1 +
+> >  1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/drivers/media/platform/omap3isp/isp.c
+> > b/drivers/media/platform/omap3isp/isp.c index 1d7dbd5..a73d9d9 100644
+> > --- a/drivers/media/platform/omap3isp/isp.c
+> > +++ b/drivers/media/platform/omap3isp/isp.c
+> > @@ -2287,6 +2287,7 @@ detach_dev:
+> >  	iommu_detach_device(isp->domain, &pdev->dev);
+> >  free_domain:
+> >  	iommu_domain_free(isp->domain);
+> > +	isp->domain = NULL;
+> >  error_isp:
+> >  	isp_xclk_cleanup(isp);
+> >  	omap3isp_put(isp);
+> 
+> 
+
 -- 
-1.9.0
 
+Peter Meerwald
++43-664-2444418 (mobile)
