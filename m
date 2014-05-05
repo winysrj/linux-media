@@ -1,106 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:47176 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932752AbaEGOTM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 May 2014 10:19:12 -0400
-MIME-Version: 1.0
-In-Reply-To: <536A36F5.5080303@samsung.com>
-References: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com>
-	<1396967856-27470-2-git-send-email-t.stanislaws@samsung.com>
-	<534506B1.4040908@samsung.com>
-	<CAPdUM4M109_kzY6cUMJQPSwgazvWmNDWL1JeXgiqnzvH8dhK2Q@mail.gmail.com>
-	<53451A60.4050803@samsung.com>
-	<53675D72.70103@ti.com>
-	<CAPdUM4N+2VXpiFSiWW9gKfbte1zkpDbCOSF+KvEo4T1KLqqwjw@mail.gmail.com>
-	<536A36F5.5080303@samsung.com>
-Date: Wed, 7 May 2014 19:49:10 +0530
-Message-ID: <CAPdUM4M6uk2KN_L487_cRkOqbgJrhhMRx9zpczA6-3LzSM3FSg@mail.gmail.com>
-Subject: Re: [PATCHv2 1/3] phy: Add exynos-simple-phy driver
-From: Rahul Sharma <rahul.sharma@samsung.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	sunil joshi <joshi@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:10925 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932770AbaEEOqJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 May 2014 10:46:09 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N5300HBTVOKF000@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 05 May 2014 15:45:56 +0100 (BST)
+Received: from [106.116.147.32] by eusync2.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0N5300DA5VOVF910@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 05 May 2014 15:46:07 +0100 (BST)
+Message-id: <5367A422.5030103@samsung.com>
+Date: Mon, 05 May 2014 16:45:54 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] Samsung Exynos JPEG codec and FIMC driver updates
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 7 May 2014 19:06, Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
-> On 05/07/2014 12:38 PM, Rahul Sharma wrote:
->> On 5 May 2014 15:14, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->>> Hi,
->>>
->>> On Wednesday 09 April 2014 03:31 PM, Sylwester Nawrocki wrote:
->>>> Hi,
->>>>
->>>> On 09/04/14 11:12, Rahul Sharma wrote:
->>>>> Idea looks good. How about keeping compatible which is independent
->>>>> of SoC, something like "samsung,exynos-simple-phy" and provide Reg
->>>>> and Bit through phy provider node. This way we can avoid SoC specific
->>>>> hardcoding in phy driver and don't need to look into dt bindings for
->>>>> each new SoC.
->>>>
->>>> I believe it is a not recommended approach.
->>>
->>> Why not? We should try to avoid hard coding in the driver code. Moreover by
->>> avoiding hardcoding we can make it a generic driver for single bit PHYs.
->>>
->>
->> +1.
->>
->> @Tomasz, any plans to consider this approach for simple phy driver?
->>
->> Regards,
->> Rahul Sharma.
->>
->
-> Hi Rahul,
-> Initially, I wanted to make a very generic driver and to add bit and
-> register (or its offset) attribute to the PHY node.
-> However, there was a very strong opposition from DT maintainers
-> to adding any bit related configuration to DT.
-> The current solution was designed to be a trade-off between
-> being generic and being accepted :).
->
+Hi Mauro,
 
-Thanks Tomasz,
-Ok got it. lets discuss it again and conclude it.
+This includes a few bug fixes for the Samsung SoC FIMC m2m driver
+and fixes and cleanups at the s5p-jpeg driver, as a prerequisite 
+to support JPEG codec IP found on the Exynos3250 SoCs.
 
-@Kishon, DT-folks,
+The following changes since commit 393cbd8dc532c1ebed60719da8d379f50d445f28:
 
-The original RFC patch from Tomasz (at https://lkml.org/lkml/2013/10/21/313)
-added simple phy driver as "Generic-simple-phy" with these properties:
+  [media] smiapp: Use %u for printing u32 value (2014-04-23 16:05:06 -0300)
 
-+ of_property_read_u32(dev->of_node, "mask", &sphy->mask);
-+ of_property_read_u32(dev->of_node, "on-value", &sphy->on_value);
-+ of_property_read_u32(dev->of_node, "off-value", &sphy->off_value);
+are available in the git repository at:
 
-Shall we consider the same solution again for generic simple phy
-driver which just expose on/off control through register bit.
+  git://linuxtv.org/snawrocki/samsung.git for-v3.16
 
-Regards,
-Rahul Sharma
+for you to fetch changes up to 13b46c7a03adbcc347b77a13ed27066bc92d515c:
 
-> Regards,
-> Tomasz Stanislawski
->
->
->
->>> Cheers
->>> Kishon
->>
->
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+  s5p-jpeg: Fix NV12 format entry related to S5C2120 SoC (2014-05-05 16:22:01 +0200)
+
+----------------------------------------------------------------
+Jacek Anaszewski (8):
+      s5p-jpeg: Add fmt_ver_flag field to the s5p_jpeg_variant structure
+      s5p-jpeg: Perform fourcc downgrade only for Exynos4x12 SoCs
+      s5p-jpeg: Add m2m_ops field to the s5p_jpeg_variant structure
+      s5p-jpeg: g_selection callback should always succeed
+      s5p-jpeg: Fix sysmmu page fault
+      s5p-jpeg: Prevent JPEG 4:2:0 > YUV 4:2:0 decompression
+      s5p-jpeg: Fix build break when CONFIG_OF is undefined
+      s5p-jpeg: Fix NV12 format entry related to S5C2120 SoC
+
+Nicolas Dufresne (3):
+      s5p-fimc: Iterate for each memory plane
+      s5p-fimc: Changed RGB32 to BGR32
+      s5p-fimc: Reuse calculated sizes
+
+ drivers/media/platform/exynos4-is/fimc-core.c |    6 +-
+ drivers/media/platform/exynos4-is/fimc-m2m.c  |    6 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c   |  118 +++++++++++++++++--------
+ drivers/media/platform/s5p-jpeg/jpeg-core.h   |    6 +-
+ 4 files changed, 93 insertions(+), 43 deletions(-)
+
+--
+Thanks,
+Sylwester
