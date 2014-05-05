@@ -1,87 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:33352 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750758AbaESUda (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 May 2014 16:33:30 -0400
-Date: Mon, 19 May 2014 22:26:16 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Alexander Bersenev <bay@hackerdom.ru>
-Cc: linux-sunxi@googlegroups.com, devicetree@vger.kernel.org,
-	galak@codeaurora.org, grant.likely@linaro.org,
-	ijc+devicetree@hellion.org.uk, james.hogan@imgtec.com,
-	linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk,
-	m.chehab@samsung.com, mark.rutland@arm.com,
-	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
-	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
-	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v7 2/3] [media] rc: add sunxi-ir driver
-Message-ID: <20140519202616.GA25415@hardeman.nu>
-References: <1400104602-16431-1-git-send-email-bay@hackerdom.ru>
- <1400104602-16431-3-git-send-email-bay@hackerdom.ru>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1400104602-16431-3-git-send-email-bay@hackerdom.ru>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:9343 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932538AbaEEOPS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 May 2014 10:15:18 -0400
+Message-id: <53679CE7.3070202@samsung.com>
+Date: Mon, 05 May 2014 16:15:03 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-doc@vger.kernel.org, t.figa@samsung.com,
+	kyungmin.park@samsung.com, m.szyprowski@samsung.com,
+	robh+dt@kernel.org, arnd@arndb.de, grant.likely@linaro.org,
+	kgene.kim@samsung.com, rdunlap@infradead.org, ben-linux@fluff.org
+Subject: Re: [PATCH 0/2] Add support for sii9234 chip
+References: <1397216910-15904-1-git-send-email-t.stanislaws@samsung.com>
+ <20140503231726.GA20212@kroah.com>
+In-reply-to: <20140503231726.GA20212@kroah.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 15, 2014 at 03:56:41AM +0600, Alexander Bersenev wrote:
->This patch adds driver for sunxi IR controller.
->It is based on Alexsey Shestacov's work based on the original driver
->supplied by Allwinner.
->
+On 05/04/2014 01:17 AM, Greg KH wrote:
+> On Fri, Apr 11, 2014 at 01:48:28PM +0200, Tomasz Stanislawski wrote:
+>> Hi everyone,
+>> This patchset adds support for sii9234 HD Mobile Link Bridge.  The chip is used
+>> to convert HDMI signal into MHL.  The driver enables HDMI output on Trats and
+>> Trats2 boards.
+>>
+>> The code is based on the driver [1] developed by:
+>>        Adam Hampson <ahampson@sta.samsung.com>
+>>        Erik Gilling <konkers@android.com>
+>> with additional contributions from:
+>>        Shankar Bandal <shankar.b@samsung.com>
+>>        Dharam Kumar <dharam.kr@samsung.com>
+>>
+>> The drivers architecture was greatly simplified and transformed into a form
+>> accepted (hopefully) by opensource community.  The main differences from
+>> original code are:
+>> * using single I2C client instead of 4 subclients
+>> * remove all logic non-related to establishing HDMI link
+>> * simplify error handling
+>> * rewrite state machine in interrupt handler
+>> * wakeup and discovery triggered by an extcon event
+>> * integrate with Device Tree
+>>
+>> For now, the driver is added to drivers/misc/ directory because it has neigher
+>> userspace nor kernel interface.  The chip is capable of receiving and
+>> processing CEC events, so the driver may export an input device in /dev/ in the
+>> future.  However CEC could be also handled by HDMI driver.
+>>
+>> I kindly ask for suggestions about the best location for this driver.
+> 
+> It really is an extcon driver, so why not put it in drivers/extcon?  And
+> that might solve any build issues you have if you don't select extcon in
+> your .config file and try to build this code :)
+> 
+> thanks,
 
-...
+Hi Greg,
+Thank you for your comments.
 
->+static irqreturn_t sunxi_ir_irq(int irqno, void *dev_id)
->+{
->+	unsigned long status;
->+	unsigned char dt;
->+	unsigned int cnt, rc;
->+	struct sunxi_ir *ir = dev_id;
->+	DEFINE_IR_RAW_EVENT(rawir);
->+
->+	spin_lock(&ir->ir_lock);
->+
->+	status = readl(ir->base + SUNXI_IR_RXSTA_REG);
->+
->+	/* clean all pending statuses */
->+	writel(status | REG_RXSTA_CLEARALL, ir->base + SUNXI_IR_RXSTA_REG);
->+
->+	if (status & REG_RXINT_RAI_EN) {
->+		/* How many messages in fifo */
->+		rc  = (status >> REG_RXSTA_RAC__SHIFT) & REG_RXSTA_RAC__MASK;
->+		/* Sanity check */
->+		rc = rc > SUNXI_IR_FIFO_SIZE ? SUNXI_IR_FIFO_SIZE : rc;
->+		/* If we have data */
->+		for (cnt = 0; cnt < rc; cnt++) {
->+			/* for each bit in fifo */
->+			dt = readb(ir->base + SUNXI_IR_RXFIFO_REG);
->+			rawir.pulse = (dt & 0x80) != 0;
->+			rawir.duration = (dt & 0x7f) * SUNXI_IR_SAMPLE;
+As I understand, drivers/extcon contains only extcon providers.
+This driver is an extcon client, so mentioned location may not be adequate.
 
-Can the hardware actually return a zero duration or should that be dt &
-0x7f + 1?
+I am surprised that there are no comments about this driver.
+Sii9234 chip is present on many exynos based boards/phones
+and HDMI subsystem will not work without this code.
 
-(Not familiar with this particular hardware but I know I've seen that
-behaviour before).
+Regards,
+Tomasz Stanislawski
 
->+			ir_raw_event_store_with_filter(ir->rc, &rawir);
->+		}
->+	}
->+
->+	if (status & REG_RXINT_ROI_EN) {
->+		ir_raw_event_reset(ir->rc);
->+	} else if (status & REG_RXINT_RPEI_EN) {
->+		ir_raw_event_set_idle(ir->rc, true);
->+		ir_raw_event_handle(ir->rc);
->+	}
->+
->+	spin_unlock(&ir->ir_lock);
->+
->+	return IRQ_HANDLED;
->+}
-....
+> 
+> greg k-h
+> 
 
