@@ -1,40 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f177.google.com ([209.85.214.177]:41436 "EHLO
-	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752908AbaE1ASa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 May 2014 20:18:30 -0400
-Received: by mail-ob0-f177.google.com with SMTP id wp4so9702066obc.8
-        for <linux-media@vger.kernel.org>; Tue, 27 May 2014 17:18:30 -0700 (PDT)
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2939 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755764AbaEEKTg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 May 2014 06:19:36 -0400
+Message-ID: <536765B1.3050207@xs4all.nl>
+Date: Mon, 05 May 2014 12:19:29 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CALzAhNU50EFaZ83_+=4GYHN-rBdHPEMU3zufbqXroCJSJctmTw@mail.gmail.com>
-References: <CAC8M0EtVTh+EmDaJa-Xmtm17x8VK6ozzw2A56Et_aj_m8ZFdpw@mail.gmail.com>
-	<537CF2C4.6030302@iki.fi>
-	<CAC8M0EsCjtc2+uPEQ=n36h_w4OEjoZOaHViAQgF_0MshgF2TJw@mail.gmail.com>
-	<CALzAhNU50EFaZ83_+=4GYHN-rBdHPEMU3zufbqXroCJSJctmTw@mail.gmail.com>
-Date: Tue, 27 May 2014 17:18:30 -0700
-Message-ID: <CAC8M0Eu7AyMJxyo-knwXdeJEy_UAYMs=ufE+oDK-kwHWrqvPQg@mail.gmail.com>
-Subject: Re: am i in the right list?
-From: Michael Durkin <kc7noa@gmail.com>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Linux-Media <linux-media@vger.kernel.org>
+To: n179911 <n179911@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Question about implementation of __qbuf_dmabuf() in videobuf2-core.c
+References: <CAKZjMP3B5k8MByhVrn=vsWOwnZLDL+YS48VvAWQ+z4=RKduV-Q@mail.gmail.com>	<53576AC4.8090303@xs4all.nl> <CAKZjMP14q0YTu11hJuQoRoOYihWw5Y63qGAoMUfGpL=2=ouG4g@mail.gmail.com>
+In-Reply-To: <CAKZjMP14q0YTu11hJuQoRoOYihWw5Y63qGAoMUfGpL=2=ouG4g@mail.gmail.com>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-what's the process tree like when its looked at?
+On 04/29/2014 07:27 PM, n179911 wrote:
+> Hi,
+> 
+> Is there a work around for this bug without upgrading to 3.16 kernel?
+> 
+> Is it safe to manually set the length to be data_offset + size + 1 to make sure
+> 
+> planes[plane].length is greater than planes[plane].data_offset +
+>                     q->plane_sizes[plane]?
 
-1d5c:2000
+Yes, that should be safe. However, if you are building the kernel yourself, then
+I would recommend just fixing the kernel instead of working around it elsewhere.
 
-On Thu, May 22, 2014 at 8:44 AM, Steven Toth <stoth@kernellabs.com> wrote:
->> Should i email Hans Verkuil or would he see this already ?
->> Fresco Logic FL2000 USB to VGA adapter
->
-> He would have seen this already.
->
-> - Steve
->
-> --
-> Steven Toth - Kernel Labs
-> http://www.kernellabs.com
+Regards,
+
+	Hans
+
+> 
+> Thank you.
+> 
+> On Wed, Apr 23, 2014 at 12:24 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 04/23/2014 02:18 AM, n179911 wrote:
+>>> In __qbuf_dmabuf(), it check the length and size of the buffer being
+>>> queued, like this:
+>>> http://lxr.free-electrons.com/source/drivers/media/v4l2-core/videobuf2-core.c#L1158
+>>>
+>>> My question is why the range check is liked this:
+>>>
+>>> 1158  if (planes[plane].length < planes[plane].data_offset +
+>>> 1159                     q->plane_sizes[plane]) {
+>>
+>> It's a bug. It should be:
+>>
+>>         if (planes[plane].length < q->plane_sizes[plane]) {
+>>
+>> This has been fixed in our upstream code and will appear in 3.16.
+>>
+>> Regards,
+>>
+>>         Hans
+>>
+>>>         .....
+>>>
+>>> Isn't  planes[plane].length + planes[plane].data_offset equals to
+>>> q->plane_sizes[plane]?
+>>>
+>>> So the check should be?
+>>>  if (planes[plane].length < q->plane_sizes[plane] - planes[plane].data_offset)
+>>>
+>>> Please tell me what am I missing?
+>>>
+>>> Thank you
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+
