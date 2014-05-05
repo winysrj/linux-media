@@ -1,77 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:56215 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751022AbaEUJjJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 May 2014 05:39:09 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N5X00LMT452FO50@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 May 2014 10:39:02 +0100 (BST)
-Received: from [106.116.147.32] by eusync4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTPA id <0N5X00LG1456DK50@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 May 2014 10:39:07 +0100 (BST)
-Message-id: <537C7439.6080507@samsung.com>
-Date: Wed, 21 May 2014 11:39:05 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR 3.16] exynos4-is driver cleanup
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from cantor2.suse.de ([195.135.220.15]:43497 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932538AbaEEOUI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 May 2014 10:20:08 -0400
+From: Takashi Iwai <tiwai@suse.de>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] ivtv: Fix Oops when no firmware is loaded
+Date: Mon,  5 May 2014 16:20:05 +0200
+Message-Id: <1399299605-20409-1-git-send-email-tiwai@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+When ivtv PCM device is accessed at the state where no firmware is
+loaded, it oopses like:
 
-This two patches is the exynos4-is driver cleanup, i.e. removing unused
-code to support non-dt platforms. One of the patches touches arch/arm and
-it has been acked by Mr. Kim.
-Please note this branch includes two patches from my previous pull request
-[1], which I hoped to be merged for 3.15.
+  BUG: unable to handle kernel NULL pointer dereference at 0000000000000050
+  IP: [<ffffffffa049a881>] try_mailbox.isra.0+0x11/0x50 [ivtv]
+  Call Trace:
+    [<ffffffffa049aa20>] ivtv_api_call+0x160/0x6b0 [ivtv]
+    [<ffffffffa049af86>] ivtv_api+0x16/0x40 [ivtv]
+    [<ffffffffa049b10c>] ivtv_vapi+0xac/0xc0 [ivtv]
+    [<ffffffffa049d40d>] ivtv_start_v4l2_encode_stream+0x19d/0x630 [ivtv]
+    [<ffffffffa0530653>] snd_ivtv_pcm_capture_open+0x173/0x1c0 [ivtv_alsa]
+    [<ffffffffa04526f1>] snd_pcm_open_substream+0x51/0x100 [snd_pcm]
+    [<ffffffffa0452853>] snd_pcm_open+0xb3/0x260 [snd_pcm]
+    [<ffffffffa0452a37>] snd_pcm_capture_open+0x37/0x50 [snd_pcm]
+    [<ffffffffa033f557>] snd_open+0xa7/0x1e0 [snd]
+    [<ffffffff8118a628>] chrdev_open+0x88/0x1d0
+    [<ffffffff811840be>] do_dentry_open+0x1de/0x270
+    [<ffffffff81193a73>] do_last+0x1c3/0xec0
+    [<ffffffff81194826>] path_openat+0xb6/0x670
+    [<ffffffff81195b65>] do_filp_open+0x35/0x80
+    [<ffffffff81185449>] do_sys_open+0x129/0x210
+    [<ffffffff815b782d>] system_call_fastpath+0x1a/0x1f
 
-[1] https://patchwork.linuxtv.org/patch/23891/
+This patch adds the check of firmware at PCM open callback like other
+open callbacks of this driver.
 
-The following changes since commit 491a5efdef074fac14b99e2c85d2fe7a08f9e73d:
+Bugzilla: https://apibugzilla.novell.com/show_bug.cgi?id=875440
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+---
+ drivers/media/pci/ivtv/ivtv-alsa-pcm.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-  exynos4-is: Free FIMC-IS CPU memory only when allocated (2014-05-21 11:22:04 +0200)
+diff --git a/drivers/media/pci/ivtv/ivtv-alsa-pcm.c b/drivers/media/pci/ivtv/ivtv-alsa-pcm.c
+index e1863dbf4edc..7a9b98bc208b 100644
+--- a/drivers/media/pci/ivtv/ivtv-alsa-pcm.c
++++ b/drivers/media/pci/ivtv/ivtv-alsa-pcm.c
+@@ -159,6 +159,12 @@ static int snd_ivtv_pcm_capture_open(struct snd_pcm_substream *substream)
+ 
+ 	/* Instruct the CX2341[56] to start sending packets */
+ 	snd_ivtv_lock(itvsc);
++
++	if (ivtv_init_on_first_open(itv)) {
++		snd_ivtv_unlock(itvsc);
++		return -ENXIO;
++	}
++
+ 	s = &itv->streams[IVTV_ENC_STREAM_TYPE_PCM];
+ 
+ 	v4l2_fh_init(&item.fh, s->vdev);
+-- 
+1.9.2
 
-are available in the git repository at:
-
-  git://linuxtv.org/snawrocki/samsung.git for-v3.16-2
-
-for you to fetch changes up to f7c0dfda8531ed4236a5c716b4c044e85f1ec3d0:
-
-  exynos4-is: Remove support for non-dt platforms (2014-05-21 11:22:27 +0200)
-
-----------------------------------------------------------------
-Sylwester Nawrocki (2):
-      ARM: S5PV210: Remove camera support from mach-goni.c
-      exynos4-is: Remove support for non-dt platforms
-
- Documentation/video4linux/fimc.txt                 |   30 --
- MAINTAINERS                                        |    1 -
- arch/arm/mach-s5pv210/mach-goni.c                  |   51 ---
- drivers/media/platform/exynos4-is/Kconfig          |    3 +-
- drivers/media/platform/exynos4-is/common.c         |    2 +-
- drivers/media/platform/exynos4-is/fimc-core.h      |    2 +-
- drivers/media/platform/exynos4-is/fimc-isp-video.c |    2 +-
- drivers/media/platform/exynos4-is/fimc-isp.h       |    2 +-
- drivers/media/platform/exynos4-is/fimc-lite-reg.c  |    2 +-
- drivers/media/platform/exynos4-is/fimc-lite.c      |    2 +-
- drivers/media/platform/exynos4-is/fimc-lite.h      |    2 +-
- drivers/media/platform/exynos4-is/fimc-reg.c       |    2 +-
- drivers/media/platform/exynos4-is/media-dev.c      |  329 ++------------------
- drivers/media/platform/exynos4-is/media-dev.h      |    6 +-
- drivers/media/platform/exynos4-is/mipi-csis.c      |   43 +--
- include/linux/platform_data/mipi-csis.h            |   28 --
- include/media/{s5p_fimc.h => exynos-fimc.h}        |   21 --
- 17 files changed, 50 insertions(+), 478 deletions(-)
- delete mode 100644 include/linux/platform_data/mipi-csis.h
- rename include/media/{s5p_fimc.h => exynos-fimc.h} (87%)
-
---
-Regards,
-Sylwester
