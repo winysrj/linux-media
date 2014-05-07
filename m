@@ -1,169 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f178.google.com ([74.125.82.178]:39501 "EHLO
-	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750722AbaENR3U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 May 2014 13:29:20 -0400
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3454 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754472AbaEGKMd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 May 2014 06:12:33 -0400
+Message-ID: <536A0709.5090605@xs4all.nl>
+Date: Wed, 07 May 2014 12:12:25 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <5370997C.1060700@xs4all.nl>
-References: <1399885110-9899-1-git-send-email-prabhakar.csengg@gmail.com>
- <1399885110-9899-2-git-send-email-prabhakar.csengg@gmail.com> <5370997C.1060700@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Wed, 14 May 2014 22:58:48 +0530
-Message-ID: <CA+V-a8vMtY32gMy6BWvewL1jafEKuuL5U_J8+BbFfWWsZn0hqg@mail.gmail.com>
-Subject: Re: [PATCH v4 1/2] media: davinci: vpif capture: upgrade the driver
- with v4l offerings
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Divneil Wadhawan <divneil@outlook.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: vb2_reqbufs() is not allowing more than VIDEO_MAX_FRAME
+References: <BAY176-W18F88DAF5A1C8B5194F30DA94E0@phx.gbl>
+In-Reply-To: <BAY176-W18F88DAF5A1C8B5194F30DA94E0@phx.gbl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Divneil,
 
-Thanks for the review.
+On 05/07/14 11:37, Divneil Wadhawan wrote:
+> Hi,
+> 
+> 
+> I have a driver which is MUXING out data taking in multiple inputs.
+> 
+> It has been found in certain cases, at the minimum 40 buffers are
+> required to be queued before it could MUX out anything.
+> 
+> Currently, VIDEO_MAX_FRAME is restricting the max size to 32. This
+> can be over-ridden in driver queue_setup, but, it is making it
+> mandatory to use always a particular count. So, it takes the
+> independence from application to allocate any count> 32.
+> 
+> So, is it okay to revise this limit or introduce a new queue->depth
+> variable which could be used in conjuction with VIDEO_MAX_FRAME to
+> determine the num_buffers.
 
-On Mon, May 12, 2014 at 3:20 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Prabhakar,
->
-> Thanks for the patch, but I have a few comments...
->
-> On 05/12/2014 10:58 AM, Lad, Prabhakar wrote:
->> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
->>
->> This patch upgrades the vpif display driver with
->> v4l helpers, this patch does the following,
->>
->> 1: initialize the vb2 queue and context at the time of probe
->> and removes context at remove() callback.
->> 2: uses vb2_ioctl_*() helpers.
->> 3: uses vb2_fop_*() helpers.
->> 4: uses SIMPLE_DEV_PM_OPS.
->> 5: uses vb2_ioctl_*() helpers.
->> 6: vidioc_g/s_priority is now handled by v4l core.
->> 7: removed driver specific fh and now using one provided by v4l.
->> 8: fixes checkpatch warnings.
->
-> This really packs too much in one patch. At the very least 1, 4, 6 and
-> 8 can be done in separate patches. 2 and 5 are duplicates, BTW. The way
-> it is now makes this hard to review. So it would be much appreciated if
-> you can split it up.
->
-Ok, I have started working on splitting them up.
+Hmm, I always wondered when this would happen.
 
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> ---
->>
->> root@da850-omapl138-evm:/usr# ./v4l2-compliance -d /dev/video0 -i -s -v
->> Driver Info:
->>         Driver name   : vpif_capture
->> vpif_capture vpif_capture: =================  START STATUS  =================
->>
->>         Bus info      : platform:vpif_capture
->>         Drivervpif_capture vpif_capture: ==================  END STATUS  ==================
->>  version: 3.15.0
->>         Capabilities  : 0x84000001
->>                 Video Capture
->>                 Streaming
->>                 Device Capabilities
->>         Device Caps   : 0x04000001
->>                 Video Capture
->>                 Streaming
->>
->> Compliance test for device /dev/video0 (not using libv4l2):
->>
->> Required ioctls:
->>         test VIDIOC_QUERYCAP: OK
->>
->> Allow for multiple opens:
->>         test second video open: OK
->>         test VIDIOC_QUERYCAP: OK
->>         test VIDIOC_G/S_PRIORITY: OK
->>
->> Debug ioctls:
->>         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
->>         test VIDIOC_LOG_STATUS: OK
->>
->> Input ioctls:
->>         test VIDIOC_G/S_TUNER: OK (Not Supported)
->>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->>         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
->>         test VIDIOC_ENUMAUDIO: OK (Not Supported)
->>         test VIDIOC_G/S/ENUMINPUT: OK
->>         test VIDIOC_G/S_AUDIO: OK (Not Supported)
->>         Inputs: 1 Audio Inputs: 0 Tuners: 0
->>
->> Output ioctls:
->>         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
->>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->>         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
->>         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
->>         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
->>         Outputs: 0 Audio Outputs: 0 Modulators: 0
->>
->> Input/Output configuration ioctls:
->>         test VIDIOC_ENUM/G/S/QUERY_STD: OK
->>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
->>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
->>         test VIDIOC_G/S_EDID: OK (Not Supported)
->>
->> Test input 0:
->>
->>         Control ioctls:
->>                 test VIDIOC_QUERYCTRL/MENU: OK (Not Supported)
->>                 test VIDIOC_G/S_CTRL: OK (Not Supported)
->>                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
->>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
->>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
->>                 Standard Controls: 0 Private Controls: 0
->>
->>         Format ioctls:
->>                 info: found 1 formats for buftype 1
->>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
->>                 fail: v4l2-test-formats.cpp(1003): cap->readbuffers
->
-> Just set readbuffers to the minimum number of buffers that queue_setup uses.
->
+The right approach would be to add a VB2_MAX_FRAME define to videobuf2-core.h
+and use that in any v4l2 driver that uses videobuf2. VIDEO_MAX_FRAME
+really shouldn't be in a public API, but I don't think we can remove it
+since it's been there for ages.
 
-OK.
+The maximum number of frames is really a property of vb2 (and the older
+videobuf, but I don't want to tamper with that) and as such it would be
+no problem increasing it to 64.
 
->>                 test VIDIOC_G/S_PARM: FAIL
->>                 test VIDIOC_G_FBUF: OK (Not Supported)
->>                 fail: v4l2-test-formats.cpp(405): !pix.sizeimage
->
-> Highly dubious. You need to investigate this!
->
-Fixed it.
+In theory we could make the number of maximum frames driver specific, but
+it would be more trouble than it's worth at the moment IMHO.
 
->>                 test VIDIOC_G_FMT: FAIL
->>                 test VIDIOC_TRY_FMT: OK (Not Supported)
->>                 test VIDIOC_S_FMT: OK (Not Supported)
->>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
->>
->>         Codec ioctls:
->>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
->>
->> Buffer ioctls:
->>         test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->>                 fail: v4l2-test-buffers.cpp(506): q.has_expbuf()
->
-> This is weird. I'm not sure why this happens since you seem to have VB2_DMABUF set
-> and also vb2_ioctl_expbuf.
->
->>         test VIDIOC_EXPBUF: FAIL
->>
->> Total: 38, Succeeded: 35, Failed: 3, Warnings: 0
->
-> Also test with 'v4l2-compliance -s' (streaming). The '-i' option is available to
-> test streaming from a specific input.
->
-BTW the output is with -s option set.
+If we ever get drivers that need more than 64 buffers, then we can
+always reconsider.
 
-Thanks,
---Prabhakar Lad
+Which driver are you using? Is it something that you or someone else is
+likely to upstream to the linux kernel?
+
+Regards,
+
+	Hans
