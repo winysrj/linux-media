@@ -1,79 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fep19.mx.upcmail.net ([62.179.121.39]:63351 "EHLO
-	fep19.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752897AbaEDCJt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 May 2014 22:09:49 -0400
-From: Jonathan McCrohan <jmccrohan@gmail.com>
-To: linux-media@vger.kernel.org,
-	pkg-vdr-dvb-devel@lists.alioth.debian.org
-Cc: Jonathan McCrohan <jmccrohan@gmail.com>
-Subject: [PATCH 4/6] [dvb-apps] dvb-apps: pass LDFLAGS to alevt and lib binaries
-Date: Sun,  4 May 2014 02:51:19 +0100
-Message-Id: <1399168281-20626-5-git-send-email-jmccrohan@gmail.com>
-In-Reply-To: <1399168281-20626-1-git-send-email-jmccrohan@gmail.com>
-References: <1399168281-20626-1-git-send-email-jmccrohan@gmail.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4258 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751116AbaEGCnj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 May 2014 22:43:39 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s472ha1X042815
+	for <linux-media@vger.kernel.org>; Wed, 7 May 2014 04:43:38 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id D8B492A19A2
+	for <linux-media@vger.kernel.org>; Wed,  7 May 2014 04:43:32 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140507024332.D8B492A19A2@tschai.lan>
+Date: Wed,  7 May 2014 04:43:32 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Based on patch by Tobias Grimm in Debian's dvb-apps 1.1.1+rev1500-1
-package.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Description: Use LDFLAGS passed in from dpkg-buildflags
- The alevt and lib binaries are not linked with the hardening options
- provided by dpkg-buildflags because LDFLAGS isn't used there.
- This patch simple adds the LDFLAGS to the Makefiles.
-Author: Tobias Grimm <etobi@debian.org>
-Date: Thu, 19 Sep 2013 23:04:58 +0200
+Results of the daily build of media_tree:
 
-Signed-off-by: Jonathan McCrohan <jmccrohan@gmail.com>
----
- Make.rules          | 4 ++--
- util/alevt/Makefile | 6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+date:		Wed May  7 04:00:20 CEST 2014
+git branch:	test
+git hash:	393cbd8dc532c1ebed60719da8d379f50d445f28
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-1.slh.1-amd64
 
-diff --git a/Make.rules b/Make.rules
-index 3410d7b..0726060 100644
---- a/Make.rules
-+++ b/Make.rules
-@@ -46,7 +46,7 @@ ifeq ($(V),1)
- %: %.c
- 	$(CC) $(CPPFLAGS) $(CFLAGS) -MMD $(LDFLAGS) -o $@ $< $(filter-out %.h %.c,$^) $(LOADLIBES) $(LDLIBS)
- %.so:
--	$(CC) -shared -o $@ $^
-+	$(CC) -shared $(LDFLAGS) -o $@ $^
- %.a:
- 	$(AR) rcs $@ $^
- clean::
-@@ -76,7 +76,7 @@ else
- 	@$(CC) $(CPPFLAGS) $(CFLAGS) -MMD $(LDFLAGS) -o $@ $< $(filter-out %.h %.c,$^) $(LOADLIBES) $(LDLIBS)
- %.so:
- 	@echo CC $@
--	@$(CC) -shared -o $@ $^
-+	@$(CC) -shared $(LDFLAGS) -o $@ $^
- %.a:
- 	@echo AR $@
- 	@$(AR) rcs $@ $^
-diff --git a/util/alevt/Makefile b/util/alevt/Makefile
-index 2f7c8da..ac1996f 100644
---- a/util/alevt/Makefile
-+++ b/util/alevt/Makefile
-@@ -25,13 +25,13 @@ endif
- all: alevt alevt-date alevt-cap alevt.1 alevt-date.1 alevt-cap.1
- 
- alevt: $(OBJS)
--	$(CC) $(OPT) $(OBJS) -o alevt -L$(PREFIX)/lib -L$(PREFIX)/lib64 -lX11 $(EXPLIBS)
-+	$(CC) $(OPT) $(OBJS) $(LDFLAGS) -o alevt -L$(PREFIX)/lib -L$(PREFIX)/lib64 -lX11 $(EXPLIBS)
- 
- alevt-date: $(TOBJS)
--	$(CC) $(OPT) $(TOBJS) -o alevt-date $(ZVBILIB)
-+	$(CC) $(OPT) $(TOBJS) $(LDFLAGS) -o alevt-date $(ZVBILIB)
- 
- alevt-cap: $(COBJS)
--	$(CC) $(OPT) $(COBJS) -o alevt-cap $(EXPLIBS)
-+	$(CC) $(OPT) $(COBJS) $(LDFLAGS) -o alevt-cap $(EXPLIBS)
- 
- font.o: font1.xbm font2.xbm font3.xbm font4.xbm
- fontsize.h: font1.xbm font2.xbm font3.xbm font4.xbm
--- 
-1.9.2
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
