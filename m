@@ -1,36 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59674 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932243AbaEGM5S (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 May 2014 08:57:18 -0400
-Message-ID: <536A2DA7.7050803@iki.fi>
-Date: Wed, 07 May 2014 15:57:11 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from bay0-omc2-s16.bay0.hotmail.com ([65.54.190.91]:29046 "EHLO
+	bay0-omc2-s16.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755468AbaEGJh7 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 May 2014 05:37:59 -0400
+Message-ID: <BAY176-W18F88DAF5A1C8B5194F30DA94E0@phx.gbl>
+From: Divneil Wadhawan <divneil@outlook.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: vb2_reqbufs() is not allowing more than VIDEO_MAX_FRAME
+Date: Wed, 7 May 2014 15:07:59 +0530
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: V4L control units
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka
-What is preferred way implement controls that could have some known unit 
-or unknown unit? For example for gain controls, I would like to offer 
-gain in unit of dB (decibel) and also some unknown driver specific unit. 
-Should I two controls, one for each unit?
-
-Like that
-
-V4L2_CID_RF_TUNER_LNA_GAIN_AUTO
-V4L2_CID_RF_TUNER_LNA_GAIN
-V4L2_CID_RF_TUNER_LNA_GAIN_dB
+Hi,
 
 
-regards
-Antti
+I have a driver which is MUXING out data taking in multiple inputs.
 
--- 
-http://palosaari.fi/
+It has been found in certain cases, at the minimum 40 buffers are required to be queued before it could MUX out anything.
+
+
+Currently, VIDEO_MAX_FRAME is restricting the max size to 32. This can be over-ridden in driver queue_setup, but, it is making it mandatory to use always a particular count. So, it takes the independence from application to allocate any count> 32.
+
+
+So, is it okay to revise this limit or introduce a new queue->depth variable which could be used in conjuction with VIDEO_MAX_FRAME to determine the num_buffers.
+
+
+Regards,
+
+Divneil 		 	   		  
