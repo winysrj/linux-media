@@ -1,87 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49844 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751784AbaEBLH0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 May 2014 07:07:26 -0400
-Date: Fri, 2 May 2014 14:06:51 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com
-Subject: Re: [PATCH/RFC v3 5/5] media: Add registration helpers for V4L2
- flash sub-devices
-Message-ID: <20140502110651.GX8753@valkosipuli.retiisi.org.uk>
-References: <1397228216-6657-1-git-send-email-j.anaszewski@samsung.com>
- <1397228216-6657-6-git-send-email-j.anaszewski@samsung.com>
- <20140416182141.GG8753@valkosipuli.retiisi.org.uk>
- <534F9044.6080508@samsung.com>
- <20140423152435.GJ8753@valkosipuli.retiisi.org.uk>
- <535E3A95.6010206@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <535E3A95.6010206@samsung.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:40526 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750933AbaEGNg6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 May 2014 09:36:58 -0400
+Message-id: <536A36F5.5080303@samsung.com>
+Date: Wed, 07 May 2014 15:36:53 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Rahul Sharma <rahul.sharma@samsung.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Grant Likely <grant.likely@linaro.org>,
+	sunil joshi <joshi@samsung.com>
+Subject: Re: [PATCHv2 1/3] phy: Add exynos-simple-phy driver
+References: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com>
+ <1396967856-27470-2-git-send-email-t.stanislaws@samsung.com>
+ <534506B1.4040908@samsung.com>
+ <CAPdUM4M109_kzY6cUMJQPSwgazvWmNDWL1JeXgiqnzvH8dhK2Q@mail.gmail.com>
+ <53451A60.4050803@samsung.com> <53675D72.70103@ti.com>
+ <CAPdUM4N+2VXpiFSiWW9gKfbte1zkpDbCOSF+KvEo4T1KLqqwjw@mail.gmail.com>
+In-reply-to: <CAPdUM4N+2VXpiFSiWW9gKfbte1zkpDbCOSF+KvEo4T1KLqqwjw@mail.gmail.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
-
-On Mon, Apr 28, 2014 at 01:25:09PM +0200, Jacek Anaszewski wrote:
-> Hi Sakari,
+On 05/07/2014 12:38 PM, Rahul Sharma wrote:
+> On 5 May 2014 15:14, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>> Hi,
+>>
+>> On Wednesday 09 April 2014 03:31 PM, Sylwester Nawrocki wrote:
+>>> Hi,
+>>>
+>>> On 09/04/14 11:12, Rahul Sharma wrote:
+>>>> Idea looks good. How about keeping compatible which is independent
+>>>> of SoC, something like "samsung,exynos-simple-phy" and provide Reg
+>>>> and Bit through phy provider node. This way we can avoid SoC specific
+>>>> hardcoding in phy driver and don't need to look into dt bindings for
+>>>> each new SoC.
+>>>
+>>> I believe it is a not recommended approach.
+>>
+>> Why not? We should try to avoid hard coding in the driver code. Moreover by
+>> avoiding hardcoding we can make it a generic driver for single bit PHYs.
+>>
 > 
-> On 04/23/2014 05:24 PM, Sakari Ailus wrote:
-> >Hi Jacek,
-> >
-> >On Thu, Apr 17, 2014 at 10:26:44AM +0200, Jacek Anaszewski wrote:
-> >>Hi Sakari,
-> >>
-> >>Thanks for the review.
-> >>
-> >>On 04/16/2014 08:21 PM, Sakari Ailus wrote:
-> >>>Hi Jacek,
-> >>>
-> >>>Thanks for the update!
-> >>>
-> >>[...]
-> >>>>+static inline enum led_brightness v4l2_flash_intensity_to_led_brightness(
-> >>>>+					struct led_ctrl *config,
-> >>>>+					u32 intensity)
-> >>>
-> >>>Fits on a single line.
-> >>>
-> >>>>+{
-> >>>>+	return intensity / config->step;
-> >>>
-> >>>Shouldn't you first decrement the minimum before the division?
-> >>
-> >>Brightness level 0 means that led is off. Let's consider following case:
-> >>
-> >>intensity - 15625
-> >>config->step - 15625
-> >>intensity / config->step = 1 (the lowest possible current level)
-> >
-> >In V4L2 controls the minimum is not off, and zero might not be a possible
-> >value since minimum isn't divisible by step.
-> >
-> >I wonder how to best take that into account.
+> +1.
 > 
-> I've assumed that in MODE_TORCH a led is always on. Switching
-> the mode to MODE_FLASH or MODE_OFF turns the led off.
-> This way we avoid the problem with converting 0 uA value to
-> led_brightness, as available torch brightness levels start from
-> the minimum current level value and turning the led off is
-> accomplished on transition to MODE_OFF or MODE_FLASH, by
-> calling brightness_set op with led_brightness = 0.
+> @Tomasz, any plans to consider this approach for simple phy driver?
+> 
+> Regards,
+> Rahul Sharma.
+> 
 
-I'm not sure if we understood the issue the same way. My concern was that if
-the intensity isn't a multiple of step (but intensity - min is), the above
-formula won't return a valid result (unless I miss something).
+Hi Rahul,
+Initially, I wanted to make a very generic driver and to add bit and
+register (or its offset) attribute to the PHY node.
+However, there was a very strong opposition from DT maintainers
+to adding any bit related configuration to DT.
+The current solution was designed to be a trade-off between
+being generic and being accepted :).
 
--- 
 Regards,
+Tomasz Stanislawski
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+
+
+>> Cheers
+>> Kishon
+> 
+
