@@ -1,47 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback3.mail.ru ([94.100.181.189]:49305 "EHLO
-	fallback3.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750977AbaEXF2v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 May 2014 01:28:51 -0400
-Received: from smtp53.i.mail.ru (smtp53.i.mail.ru [94.100.177.113])
-	by fallback3.mail.ru (mPOP.Fallback_MX) with ESMTP id D5EAF116F2B51
-	for <linux-media@vger.kernel.org>; Sat, 24 May 2014 08:57:11 +0400 (MSK)
-From: Alexander Shiyan <shc_work@mail.ru>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42370 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751853AbaEGPkf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 May 2014 11:40:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Shawn Guo <shawn.guo@freescale.com>,
-	Alexander Shiyan <shc_work@mail.ru>
-Subject: [PATCH 2/2] media: mx2_camera: Change Kconfig dependency
-Date: Sat, 24 May 2014 08:56:23 +0400
-Message-Id: <1400907383-32590-2-git-send-email-shc_work@mail.ru>
-In-Reply-To: <1400907383-32590-1-git-send-email-shc_work@mail.ru>
-References: <1400907383-32590-1-git-send-email-shc_work@mail.ru>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] mt9p031: Really disable Black Level Calibration in test pattern mode
+Date: Wed,  7 May 2014 17:40:55 +0200
+Message-Id: <1399477255-21207-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch change MACH_MX27 dependency to SOC_IMX27 for MX2 camera
-driver, since MACH_MX27 symbol is scheduled for removal.
+The digital side of the Black Level Calibration (BLC) function must be
+disabled when generating a test pattern to avoid artifacts in the image.
+The driver disables BLC correctly at the hardware level, but the feature
+gets reenabled by v4l2_ctrl_handler_setup() the next time the device is
+powered on.
 
-Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
+Fix this by marking the BLC controls as inactive when generating a test
+pattern, and ignoring control set requests on inactive controls.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/soc_camera/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/mt9p031.c | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-index 122e03a..fc62897 100644
---- a/drivers/media/platform/soc_camera/Kconfig
-+++ b/drivers/media/platform/soc_camera/Kconfig
-@@ -63,7 +63,7 @@ config VIDEO_OMAP1
+diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+index 33daace..9102b23 100644
+--- a/drivers/media/i2c/mt9p031.c
++++ b/drivers/media/i2c/mt9p031.c
+@@ -655,6 +655,9 @@ static int mt9p031_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	u16 data;
+ 	int ret;
  
- config VIDEO_MX2
- 	tristate "i.MX27 Camera Sensor Interface driver"
--	depends on VIDEO_DEV && SOC_CAMERA && MACH_MX27
-+	depends on VIDEO_DEV && SOC_CAMERA && SOC_IMX27
- 	select VIDEOBUF2_DMA_CONTIG
- 	---help---
- 	  This is a v4l2 driver for the i.MX27 Camera Sensor Interface
++	if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
++		return 0;
++
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_EXPOSURE:
+ 		ret = mt9p031_write(client, MT9P031_SHUTTER_WIDTH_UPPER,
+@@ -709,8 +712,16 @@ static int mt9p031_s_ctrl(struct v4l2_ctrl *ctrl)
+ 					MT9P031_READ_MODE_2_ROW_MIR, 0);
+ 
+ 	case V4L2_CID_TEST_PATTERN:
++		/* The digital side of the Black Level Calibration function must
++		 * be disabled when generating a test pattern to avoid artifacts
++		 * in the image. Activate (deactivate) the BLC-related controls
++		 * when the test pattern is enabled (disabled).
++		 */
++		v4l2_ctrl_activate(mt9p031->blc_auto, ctrl->val == 0);
++		v4l2_ctrl_activate(mt9p031->blc_offset, ctrl->val == 0);
++
+ 		if (!ctrl->val) {
+-			/* Restore the black level compensation settings. */
++			/* Restore the BLC settings. */
+ 			if (mt9p031->blc_auto->cur.val != 0) {
+ 				ret = mt9p031_s_ctrl(mt9p031->blc_auto);
+ 				if (ret < 0)
+@@ -735,9 +746,7 @@ static int mt9p031_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		if (ret < 0)
+ 			return ret;
+ 
+-		/* Disable digital black level compensation when using a test
+-		 * pattern.
+-		 */
++		/* Disable digital BLC when generating a test pattern. */
+ 		ret = mt9p031_set_mode2(mt9p031, MT9P031_READ_MODE_2_ROW_BLC,
+ 					0);
+ 		if (ret < 0)
 -- 
-1.8.5.5
+Regards,
+
+Laurent Pinchart
 
