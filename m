@@ -1,73 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2405 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753230AbaEWRMr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 May 2014 13:12:47 -0400
-Message-ID: <537F8152.5050705@xs4all.nl>
-Date: Fri, 23 May 2014 19:11:46 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-qc0-f175.google.com ([209.85.216.175]:58999 "EHLO
+	mail-qc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756260AbaEGPmu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 May 2014 11:42:50 -0400
+Received: by mail-qc0-f175.google.com with SMTP id w7so1305560qcr.34
+        for <linux-media@vger.kernel.org>; Wed, 07 May 2014 08:42:50 -0700 (PDT)
 MIME-Version: 1.0
-To: Chaitanya Hazarey <c@24.io>,
-	Dan Carpenter <dan.carpenter@oracle.com>
-CC: Luca Risolia <luca.risolia@studio.unibo.it>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Staging: Media: sn9c102: Fixed a pointer declaration
- coding style issue
-References: <CADadk9FjRgvBqO4FMpz8UrBAh8pV8t4SZnKPVBwyjHzBUw+0=Q@mail.gmail.com>	<20140523071005.GR15585@mwanda> <CADadk9HqHKNxTOEqmEVGDTq2gqxLB3=R25GHjNR+BV+apH8izA@mail.gmail.com>
-In-Reply-To: <CADadk9HqHKNxTOEqmEVGDTq2gqxLB3=R25GHjNR+BV+apH8izA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1399435082-5416-1-git-send-email-cb.xiong@samsung.com>
+References: <1399435082-5416-1-git-send-email-cb.xiong@samsung.com>
+Date: Wed, 7 May 2014 11:42:50 -0400
+Message-ID: <CAGoCfiziMm1zeUkOOd7qwTtQxmMmoqZ=QAvZuPoN71KT0_iUgA@mail.gmail.com>
+Subject: Re: [PATCH] au0828: fix logic of tuner disconnection
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: cb.xiong@samsung.com
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/23/2014 06:59 PM, Chaitanya Hazarey wrote:
-> Hey Dan,
-> 
-> Sorry my bad, will resubmit the patch in a proper manner with the
-> required corrections.
-> 
+On Tue, May 6, 2014 at 11:58 PM,  <cb.xiong@samsung.com> wrote:
+> From: Changbing Xiong <cb.xiong@samsung.com>
+>
+> The driver crashed when the tuner was disconnected while restart stream
+> operations are still being performed. Fixed by adding a flag in struct
+> au0828_dvb to indicate whether restart stream operations can be performed.
+>
+> If the stream gets misaligned, the work of restart stream operations are
+>  usually scheduled for many times in a row. If tuner is disconnected at
+> this time and some of restart stream operations are still not flushed,
+> then the driver crashed due to accessing the resource which used in
+> restart stream operations has been released.
+>
+> Signed-off-by: Changbing Xiong <cb.xiong@samsung.com>
 
-Don't bother. This patch: http://comments.gmane.org/gmane.linux.drivers.driver-project.devel/48570
-has just been merged and that has the same fixes as your patch.
+I haven't yet reviewed the logic in detail, but at a minimum this
+should really be two patches - one to address the disconnect bug and a
+second to deal with failure to cancel to the worker thread.  Also, you
+need to pick a name for the variable that is more explanatory than
+"flag".
 
-But thanks anyway :-)
+Please resubmit this as two separate patches with "flag" renamed, and
+I will then look at the actual implementation to see if it causes any
+problems.
 
-Regards,
+Thanks,
 
-	Hans
+Devin
 
-> Thanks for looking into this.
-> 
-> Thanks,
-> 
-> Chaitanya
-> 
-> On Fri, May 23, 2014 at 12:10 AM, Dan Carpenter
-> <dan.carpenter@oracle.com> wrote:
->> On Thu, May 22, 2014 at 04:11:38PM -0700, Chaitanya wrote:
->>> Fixed the ERROR thrown off by checkpatch.pl.
->>>
->>
->> Put the error message here, or say what it was.
->>
->>> Signed-off-by: Chaitanya Hazarey <c@24.io>
->>
->> Could you change your email client so it has your last in the From:
->> header?
->>
->> This patch doesn't apply.  Read this:
->> https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/tree/Documentation/email-clients.txt
->>
->> regards,
->> dan carpenter
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
