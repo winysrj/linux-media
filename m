@@ -1,82 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:57306 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757492AbaEPNjw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:39:52 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 15/49] media: davinci: vpif_display: drop numbuffers field from common_obj
-Date: Fri, 16 May 2014 19:03:20 +0530
-Message-Id: <1400247235-31434-17-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail-yk0-f174.google.com ([209.85.160.174]:59980 "EHLO
+	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932368AbaEGLge (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 May 2014 07:36:34 -0400
+Received: by mail-yk0-f174.google.com with SMTP id 9so684085ykp.33
+        for <linux-media@vger.kernel.org>; Wed, 07 May 2014 04:36:34 -0700 (PDT)
+Received: from [192.168.1.18] (c-68-56-128-104.hsd1.fl.comcast.net. [68.56.128.104])
+        by mx.google.com with ESMTPSA id k7sm26731731yhj.31.2014.05.07.04.36.33
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Wed, 07 May 2014 04:36:33 -0700 (PDT)
+Message-ID: <536A1AC1.7010304@gmail.com>
+Date: Wed, 07 May 2014 07:36:33 -0400
+From: Dale Ritchey <mergan14846@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: https://bugzilla.kernel.org/show_bug.cgi?id=75591
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-
-this patch drops numbuffers member from struct common_obj
-as this was not required.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif_display.c |    8 --------
- drivers/media/platform/davinci/vpif_display.h |    1 -
- 2 files changed, 9 deletions(-)
-
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index ab097ce..5ea2db8 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -1221,13 +1221,11 @@ static int vpif_probe_complete(void)
- 		/* Initialize field of the channel objects */
- 		atomic_set(&ch->usrs, 0);
- 		for (k = 0; k < VPIF_NUMOBJECTS; k++) {
--			ch->common[k].numbuffers = 0;
- 			common = &ch->common[k];
- 			common->io_usrs = 0;
- 			common->started = 0;
- 			spin_lock_init(&common->irqlock);
- 			mutex_init(&common->lock);
--			common->numbuffers = 0;
- 			common->set_addr = NULL;
- 			common->ytop_off = 0;
- 			common->ybtm_off = 0;
-@@ -1236,17 +1234,11 @@ static int vpif_probe_complete(void)
- 			common->cur_frm = NULL;
- 			common->next_frm = NULL;
- 			memset(&common->fmt, 0, sizeof(common->fmt));
--			common->numbuffers = config_params.numbuffers[k];
- 		}
- 		ch->initialized = 0;
- 		if (vpif_obj.config->subdev_count)
- 			ch->sd = vpif_obj.sd[0];
- 		ch->channel_id = j;
--		if (j < 2)
--			ch->common[VPIF_VIDEO_INDEX].numbuffers =
--			    config_params.numbuffers[ch->channel_id];
--		else
--			ch->common[VPIF_VIDEO_INDEX].numbuffers = 0;
- 
- 		memset(&ch->vpifparams, 0, sizeof(ch->vpifparams));
- 
-diff --git a/drivers/media/platform/davinci/vpif_display.h b/drivers/media/platform/davinci/vpif_display.h
-index 06b8d24..e21a343 100644
---- a/drivers/media/platform/davinci/vpif_display.h
-+++ b/drivers/media/platform/davinci/vpif_display.h
-@@ -67,7 +67,6 @@ struct vpif_disp_buffer {
- };
- 
- struct common_obj {
--	u32 numbuffers;				/* number of buffers */
- 	struct vpif_disp_buffer *cur_frm;	/* Pointer pointing to current
- 						 * vb2_buffer */
- 	struct vpif_disp_buffer *next_frm;	/* Pointer pointing to next
--- 
-1.7.9.5
-
+I had problems with uvc with the linux-3.15 kernel, all rc's When uvc is 
+added I have problems with pulse audio that prevents firefox from 
+functioning. disabling pulse audio allows firefox to work properly. on 
+shut down and reboot watchdog does not stop and systemd says it cannot 
+unmount some directorys. With uvc removed all works as they should.
