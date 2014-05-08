@@ -1,106 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48923 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754170AbaEHNSi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 09:18:38 -0400
-Received: from avalon.localnet (unknown [91.178.192.101])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id A3EB435A2D
-	for <linux-media@vger.kernel.org>; Thu,  8 May 2014 15:16:00 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.16] Migrate the OMAP3 ISP driver to videobuf2
-Date: Thu, 08 May 2014 15:19:02 +0200
-Message-ID: <1490830.vhB1M3oxv4@avalon>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:51950 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753742AbaEHJjM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 05:39:12 -0400
+Received: by mail-oa0-f46.google.com with SMTP id i4so2768880oah.33
+        for <linux-media@vger.kernel.org>; Thu, 08 May 2014 02:39:12 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1399462252-21821-1-git-send-email-arun.kk@samsung.com>
+References: <1399462252-21821-1-git-send-email-arun.kk@samsung.com>
+Date: Thu, 8 May 2014 15:09:12 +0530
+Message-ID: <CAK9yfHz-YuC0pdqChK2=OFLxyf9zguGFS5275O9fG3DVB8YHsA@mail.gmail.com>
+Subject: Re: [PATCH] [media] s5p-mfc: Dequeue sequence header after STREAMON
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Arun Kumar K <arun.kk@samsung.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Pawel Osciak <posciak@chromium.org>,
+	Kiran Avnd <avnd.kiran@samsung.com>,
+	Arun Kumar <arunkk.samsung@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Arun,
 
-The following changes since commit 286f600bc890347f7ec7bd50d33210d53a9095a3:
+Just 2 small nits.
 
-  iommu/omap: Fix map protection value handling (2014-04-16 16:30:18 +0200)
+On 7 May 2014 17:00, Arun Kumar K <arun.kk@samsung.com> wrote:
+> MFCv6 encoder needs specific minimum number of buffers to
+> be queued in the CAPTURE plane. This minimum number will
+> be known only when the sequence header is generated.
+> So we used to allow STREAMON on the CAPTURE plane only after
+> sequence header is generated and checked with the minimum
+> buffer requirement.
+>
+> But this causes a problem that we call a vb2_buffer_done
+> for the sequence header buffer before doing a STREAON on the
+> CAPTURE plane. This used to still work fine until this patch
+> was merged b3379c6201bb3555298cdbf0aa004af260f2a6a4.
 
-are available in the git repository at:
+Please provide the patch title too along with commit ID
+(first 12 characters of ID is enough).
 
-  git://linuxtv.org/pinchartl/media.git omap3isp/videobuf2
+>
+> This problem should also come in earlier MFC firmware versions
+> if the application calls STREAMON on CAPTURE with some delay
+> after doing STREAMON on OUTPUT.
+>
+> So this patch keeps the header buffer until the other frame
+> buffers are ready and dequeues it just before the first frame
+> is ready.
+>
+> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 ++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |    6 +++++-
+>  2 files changed, 7 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> index d64b680..4fd1034 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> @@ -523,6 +523,7 @@ struct s5p_mfc_codec_ops {
+>   * @output_state:      state of the output buffers queue
+>   * @src_bufs:          information on allocated source buffers
+>   * @dst_bufs:          information on allocated destination buffers
+> + * @header_mb:         buf pointer of the encoded sequence header
 
-for you to fetch changes up to 04930b353d8ee711d223a94ec644b5433a53e135:
-
-  omap3isp: Rename isp_buffer isp_addr field to dma (2014-05-03 00:58:48 
-+0200)
-
-The series depends on patches for the OMAP IOMMU driver. I've asked Joerg 
-Roedel to merge them in his tree and provide a stable branch, you can find it 
-at
-
-	git://git.kernel.org/pub/scm/linux/kernel/git/joro/iommu.git arm/omap
-
-The branch will be merged in v3.16.
-
-The series also has a runtime dependency on commit 
-59f0f119e85cfb173db518328b55efbac4087c9f ("arm: dma-mapping: Fix mapping size 
-value") that has been merged in v3.15-rc3. It would thus be nice if you could 
-merge v3.15-rc3 in the master branch first, to avoid git bisection breakages.
-
-----------------------------------------------------------------
-Laurent Pinchart (26):
-      omap3isp: stat: Rename IS_COHERENT_BUF to ISP_STAT_USES_DMAENGINE
-      omap3isp: stat: Remove impossible WARN_ON
-      omap3isp: stat: Share common code for buffer allocation
-      omap3isp: stat: Merge dma_addr and iommu_addr fields
-      omap3isp: stat: Store sg table in ispstat_buffer
-      omap3isp: stat: Use the DMA API
-      omap3isp: ccdc: Use the DMA API for LSC
-      omap3isp: ccdc: Use the DMA API for FPC
-      omap3isp: video: Set the buffer bytesused field at completion time
-      omap3isp: queue: Move IOMMU handling code to the queue
-      omap3isp: queue: Use sg_table structure
-      omap3isp: queue: Merge the prepare and sglist functions
-      omap3isp: queue: Inline the ispmmu_v(un)map functions
-      omap3isp: queue: Allocate kernel buffers with dma_alloc_coherent
-      omap3isp: queue: Fix the dma_map_sg() return value check
-      omap3isp: queue: Map PFNMAP buffers to device
-      omap3isp: queue: Use sg_alloc_table_from_pages()
-      omap3isp: Use the ARM DMA IOMMU-aware operations
-      omap3isp: queue: Don't build scatterlist for kernel buffer
-      omap3isp: Move queue mutex to isp_video structure
-      omap3isp: Move queue irqlock to isp_video structure
-      omap3isp: Move buffer irqlist to isp_buffer structure
-      omap3isp: Cancel all queued buffers when stopping the video stream
-      v4l: vb2: Add a function to discard all DONE buffers
-      omap3isp: Move to videobuf2
-      omap3isp: Rename isp_buffer isp_addr field to dma
-
- drivers/media/platform/Kconfig                |    4 +-
- drivers/media/platform/omap3isp/Makefile      |    2 +-
- drivers/media/platform/omap3isp/isp.c         |  108 ++-
- drivers/media/platform/omap3isp/isp.h         |    8 +-
- drivers/media/platform/omap3isp/ispccdc.c     |  107 ++-
- drivers/media/platform/omap3isp/ispccdc.h     |   16 +-
- drivers/media/platform/omap3isp/ispccp2.c     |    4 +-
- drivers/media/platform/omap3isp/ispcsi2.c     |    4 +-
- drivers/media/platform/omap3isp/isph3a_aewb.c |    2 +-
- drivers/media/platform/omap3isp/isph3a_af.c   |    2 +-
- drivers/media/platform/omap3isp/isppreview.c  |    8 +-
- drivers/media/platform/omap3isp/ispqueue.c    | 1161 ------------------------
- drivers/media/platform/omap3isp/ispqueue.h    |  188 ------
- drivers/media/platform/omap3isp/ispresizer.c  |    8 +-
- drivers/media/platform/omap3isp/ispstat.c     |  197 +++---
- drivers/media/platform/omap3isp/ispstat.h     |    3 +-
- drivers/media/platform/omap3isp/ispvideo.c    |  325 ++++-----
- drivers/media/platform/omap3isp/ispvideo.h    |   29 +-
- drivers/media/v4l2-core/videobuf2-core.c      |   24 +
- drivers/staging/media/omap4iss/iss_video.c    |    2 +-
- include/media/videobuf2-core.h                |    1 +
- 21 files changed, 458 insertions(+), 1745 deletions(-)
- delete mode 100644 drivers/media/platform/omap3isp/ispqueue.c
- delete mode 100644 drivers/media/platform/omap3isp/ispqueue.h
+s/buf/buffer
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+With warm regards,
+Sachin
