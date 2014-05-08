@@ -1,50 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.redembedded.com ([82.219.14.93]:43459 "EHLO
-	mail1.redembedded.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756218AbaE2PW1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 May 2014 11:22:27 -0400
-Received: from exmail.redembedded.com ([10.82.128.38]:62765)
-	by mail1.redembedded.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.76)
-	(envelope-from <robert.barker@redembedded.com>)
-	id 1Wq1bn-0001JA-MF
-	for linux-media@vger.kernel.org; Thu, 29 May 2014 15:47:07 +0100
-Message-ID: <53874874.90402@redembedded.com>
-Date: Thu, 29 May 2014 15:47:16 +0100
-From: Rob Barker <robert.barker@redembedded.com>
-MIME-Version: 1.0
-To: <linux-media@vger.kernel.org>
-Subject: [PATCH] v4l-utils: libdvbv5: fix compilation issue
-Content-Type: text/plain; charset=US-ASCII;
-	format=flowed
-Content-Transfer-Encoding: 7BIT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:33822 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753858AbaEHQWf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 12:22:35 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Arun Kumar K' <arun.kk@samsung.com>, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>, posciak@chromium.org,
+	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
+References: <1394529345-31952-1-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1394529345-31952-1-git-send-email-arun.kk@samsung.com>
+Subject: RE: [PATCH v2] [media] s5p-mfc: add init buffer cmd to MFCV6
+Date: Thu, 08 May 2014 18:22:41 +0200
+Message-id: <004c01cf6ad9$bcc0e780$3642b680$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Removed unnecessary header file to fix issue with some compilers.
+Hi,
 
-Signed-off-by: Rob Barker <robert.barker@redembedded.com>
----
+> From: Arun Kumar K [mailto:arunkk.samsung@gmail.com] On Behalf Of Arun
+> Kumar K
+> Sent: Tuesday, March 11, 2014 10:16 AM
+> 
+> From: avnd kiran <avnd.kiran@samsung.com>
+> 
+> Latest MFC v6 firmware requires tile mode and loop filter setting to be
+> done as part of Init buffer command, in sync with v7. Since there are
+> two versions of v6 firmware with different interfaces, it is
+> differenciated using the version number read back from firmware which
+> is a hexadecimal value based on the firmware date.
 
-diff --git a/lib/include/libdvbv5/descriptors.h
-b/lib/include/libdvbv5/descriptors.h
-index 94d85a9..cda958e 100644
---- a/lib/include/libdvbv5/descriptors.h
-+++ b/lib/include/libdvbv5/descriptors.h
-@@ -26,7 +26,6 @@
-  #ifndef _DESCRIPTORS_H
-  #define _DESCRIPTORS_H
+MFC version has two parts major and minor. Are you sure that date is 
+the only way to check if the interface has changed? Maybe the major number
+should stay the same (6) in this case, and the minor should be updates?
+Do you have contact with persons writing the firmware?
 
--#include <arpa/inet.h>
-  #include <unistd.h>
-  #include <stdint.h>
---
-Rob Barker
-Red Embedded
+Also, I don't see a patch with the newer firmware posted to linux-firmware.
+When it is going to be sent?
 
-This E-mail and any attachments hereto are strictly confidential and intended solely for the addressee. If you are not the intended addressee please notify the sender by return and delete the message.
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
 
-You must not disclose, forward or copy this E-mail or attachments to any third party without the prior consent of the sender.
+> 
+> Signed-off-by: avnd kiran <avnd.kiran@samsung.com>
+> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+> ---
+> Changes from v1
+> ---------------
+> - Check for v6 firmware date for differenciating old and new firmware
+>   as per comments from Kamil and Sylwester.
+> ---
+>  drivers/media/platform/s5p-mfc/regs-mfc-v6.h    |    1 +
+>  drivers/media/platform/s5p-mfc/regs-mfc-v7.h    |    2 --
+>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 ++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |    8 +++---
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   30
+> ++++++++++++++++++++---
+>  5 files changed, 34 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+> b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+> index 8d0b686..b47567c 100644
+> --- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+> +++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+> @@ -132,6 +132,7 @@
+>  #define S5P_FIMV_D_METADATA_BUFFER_ADDR_V6	0xf448
+>  #define S5P_FIMV_D_METADATA_BUFFER_SIZE_V6	0xf44c
+>  #define S5P_FIMV_D_NUM_MV_V6			0xf478
+> +#define S5P_FIMV_D_INIT_BUFFER_OPTIONS_V6	0xf47c
+>  #define S5P_FIMV_D_CPB_BUFFER_ADDR_V6		0xf4b0
+>  #define S5P_FIMV_D_CPB_BUFFER_SIZE_V6		0xf4b4
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+> b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+> index ea5ec2a..82c96fa 100644
+> --- a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+> +++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+> @@ -18,8 +18,6 @@
+>  #define S5P_FIMV_CODEC_VP8_ENC_V7	25
+> 
+>  /* Additional registers for v7 */
+> -#define S5P_FIMV_D_INIT_BUFFER_OPTIONS_V7		0xf47c
+> -
+>  #define S5P_FIMV_E_SOURCE_FIRST_ADDR_V7			0xf9e0
+>  #define S5P_FIMV_E_SOURCE_SECOND_ADDR_V7		0xf9e4
+>  #define S5P_FIMV_E_SOURCE_THIRD_ADDR_V7			0xf9e8
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> index 4d17df9..f5404a6 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> @@ -287,6 +287,7 @@ struct s5p_mfc_priv_buf {
+>   * @warn_start:		hardware error code from which warnings
+start
+>   * @mfc_ops:		ops structure holding HW operation function
+> pointers
+>   * @mfc_cmds:		cmd structure holding HW commands function
+> pointers
+> + * @ver:		firmware sub version
+>   *
+>   */
+>  struct s5p_mfc_dev {
+> @@ -330,6 +331,7 @@ struct s5p_mfc_dev {
+>  	int warn_start;
+>  	struct s5p_mfc_hw_ops *mfc_ops;
+>  	struct s5p_mfc_hw_cmds *mfc_cmds;
+> +	int ver;
+>  };
+> 
+>  /**
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> index 2475a3c..ba1d302 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> @@ -240,7 +240,6 @@ static inline void s5p_mfc_clear_cmds(struct
+> s5p_mfc_dev *dev)
+>  /* Initialize hardware */
+>  int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)  {
+> -	unsigned int ver;
+>  	int ret;
+> 
+>  	mfc_debug_enter();
+> @@ -302,12 +301,13 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
+>  		return -EIO;
+>  	}
+>  	if (IS_MFCV6_PLUS(dev))
+> -		ver = mfc_read(dev, S5P_FIMV_FW_VERSION_V6);
+> +		dev->ver = mfc_read(dev, S5P_FIMV_FW_VERSION_V6);
+>  	else
+> -		ver = mfc_read(dev, S5P_FIMV_FW_VERSION);
+> +		dev->ver = mfc_read(dev, S5P_FIMV_FW_VERSION);
+> 
+>  	mfc_debug(2, "MFC F/W version : %02xyy, %02xmm, %02xdd\n",
+> -		(ver >> 16) & 0xFF, (ver >> 8) & 0xFF, ver & 0xFF);
+> +		(dev->ver >> 16) & 0xFF, (dev->ver >> 8) & 0xFF,
+> +		dev->ver & 0xFF);
+>  	s5p_mfc_clock_off();
+>  	mfc_debug_leave();
+>  	return 0;
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> index 90edb19..356cfe5 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> @@ -14,6 +14,7 @@
+> 
+>  #undef DEBUG
+> 
+> +#include <linux/bcd.h>
+>  #include <linux/delay.h>
+>  #include <linux/mm.h>
+>  #include <linux/io.h>
+> @@ -1269,6 +1270,29 @@ static int s5p_mfc_set_enc_params_vp8(struct
+> s5p_mfc_ctx *ctx)
+>  	return 0;
+>  }
+> 
+> +/* Check if newer v6 firmware with changed init buffer interface */
+> +static bool s5p_mfc_is_v6_new(struct s5p_mfc_dev *dev) {
+> +	unsigned long cur_fw, v6_new_fw;
+> +	unsigned int y, m, d;
+> +
+> +	if (IS_MFCV7(dev))
+> +		return false;
+> +
+> +	y = bcd2bin((dev->ver >> 16) & 0xFF) + 2000;
+> +	m = bcd2bin((dev->ver >> 8) & 0xFF);
+> +	d = bcd2bin(dev->ver & 0xFF);
+> +
+> +	cur_fw = mktime(y, m, d, 0, 0, 0);
+> +	/*
+> +	 * Firmware versions from date 29/06/2012 are coming with new
+> interface
+> +	 * for init buffer
+> +	 */
+> +	v6_new_fw = mktime(2012, 6, 29, 0, 0, 0);
+> +
+> +	return cur_fw >= v6_new_fw;
+> +}
+> +
+>  /* Initialize decoding */
+>  static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)  { @@ -
+> 1296,7 +1320,7 @@ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx
+> *ctx)
+>  		WRITEL(ctx->display_delay, S5P_FIMV_D_DISPLAY_DELAY_V6);
+>  	}
+> 
+> -	if (IS_MFCV7(dev)) {
+> +	if (IS_MFCV7(dev) || s5p_mfc_is_v6_new(dev)) {
+>  		WRITEL(reg, S5P_FIMV_D_DEC_OPTIONS_V6);
+>  		reg = 0;
+>  	}
+> @@ -1311,8 +1335,8 @@ static int s5p_mfc_init_decode_v6(struct
+> s5p_mfc_ctx *ctx)
+>  	if (ctx->dst_fmt->fourcc == V4L2_PIX_FMT_NV12MT_16X16)
+>  		reg |= (0x1 << S5P_FIMV_D_OPT_TILE_MODE_SHIFT_V6);
+> 
+> -	if (IS_MFCV7(dev))
+> -		WRITEL(reg, S5P_FIMV_D_INIT_BUFFER_OPTIONS_V7);
+> +	if (IS_MFCV7(dev) || s5p_mfc_is_v6_new(dev))
+> +		WRITEL(reg, S5P_FIMV_D_INIT_BUFFER_OPTIONS_V6);
+>  	else
+>  		WRITEL(reg, S5P_FIMV_D_DEC_OPTIONS_V6);
+> 
+> --
+> 1.7.9.5
 
-Red Embedded Consulting, Company Number 06688270 Registered in England: The Waterfront, Salts Mill Rd, Saltaire, BD17 7EZ
+
