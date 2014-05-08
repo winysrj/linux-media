@@ -1,41 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:22457 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752564AbaEWHKl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 May 2014 03:10:41 -0400
-Date: Fri, 23 May 2014 10:10:06 +0300
+Received: from aserp1040.oracle.com ([141.146.126.69]:25345 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752673AbaEHLf1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 07:35:27 -0400
+Date: Thu, 8 May 2014 14:35:06 +0300
 From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Chaitanya <c@24.io>
-Cc: Luca Risolia <luca.risolia@studio.unibo.it>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Staging: Media: sn9c102: Fixed a pointer declaration
- coding style issue
-Message-ID: <20140523071005.GR15585@mwanda>
-References: <CADadk9FjRgvBqO4FMpz8UrBAh8pV8t4SZnKPVBwyjHzBUw+0=Q@mail.gmail.com>
+To: Tuomas Tynkkynen <tuomas.tynkkynen@iki.fi>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] staging: lirc: Fix sparse warnings
+Message-ID: <20140508113506.GF26890@mwanda>
+References: <1399547597-4006-1-git-send-email-tuomas.tynkkynen@iki.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CADadk9FjRgvBqO4FMpz8UrBAh8pV8t4SZnKPVBwyjHzBUw+0=Q@mail.gmail.com>
+In-Reply-To: <1399547597-4006-1-git-send-email-tuomas.tynkkynen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 22, 2014 at 04:11:38PM -0700, Chaitanya wrote:
-> Fixed the ERROR thrown off by checkpatch.pl.
+On Thu, May 08, 2014 at 02:13:17PM +0300, Tuomas Tynkkynen wrote:
+> Fix sparse warnings by adding __user and __iomem annotations where
+> necessary and removing certain unnecessary casts. While at it,
+> also use u32 in place of __u32.
 > 
+> Signed-off-by: Tuomas Tynkkynen <tuomas.tynkkynen@iki.fi>
 
-Put the error message here, or say what it was.
+Thanks.
 
-> Signed-off-by: Chaitanya Hazarey <c@24.io>
+Reviewed-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Could you change your email client so it has your last in the From:
-header?
+Btw, don't resend this (someone will have to fix it in a later patch)
+but I notice that these IOCTLs are not implemented consistently.  Even
+outside of staging we have this problem.  For example lirc_rx51_ioctl().
 
-This patch doesn't apply.  Read this:
-https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/tree/Documentation/email-clients.txt
+In this function the user gets a u32.
+
+>  	case LIRC_GET_FEATURES:
+> -		result = put_user(features, (__u32 *) arg);
+> +		result = put_user(features, uptr);
+>  		if (result)
+>  			return result;
+>  		break;
+
+But here they get a long.
+
+>  	case LIRC_GET_FEATURES:
+> -		result = put_user(features, (unsigned long *) arg);
+> +		result = put_user(features, uptr);
+>  		break;
+
+My feeling it should always be u32 so we don't have to write a
+compatability layer for 32 bit applications on a 64 bit kernel.
 
 regards,
 dan carpenter
