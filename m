@@ -1,83 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5.pb.cz ([109.72.0.115]:57979 "EHLO smtp5.pb.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751342AbaEGGZ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 May 2014 02:25:59 -0400
-Received: from [192.168.1.15] (unknown [109.72.4.22])
-	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
-	(No client certificate requested)
-	by smtp5.pb.cz (Postfix) with ESMTPS id 39D8882B31
-	for <linux-media@vger.kernel.org>; Wed,  7 May 2014 08:25:58 +0200 (CEST)
-Message-ID: <5369D1F6.6060007@mizera.cz>
-Date: Wed, 07 May 2014 08:25:58 +0200
-From: kapetr@mizera.cz
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: build problem - from git
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from hm1315-17.locaweb.com.br ([201.76.49.147]:27370 "EHLO
+	hm1315-17.locaweb.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754871AbaEHVbi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 17:31:38 -0400
+Received: from mcbain0006.correio.pw (189.126.112.72) by hm1315-38.locaweb.com.br (PowerMTA(TM) v3.5r15) id hdfrrk0nvfoo for <linux-media@vger.kernel.org>; Thu, 8 May 2014 18:31:36 -0300 (envelope-from <marcio@netopen.com.br>)
+Content-Type: text/plain; charset=windows-1252
+Mime-Version: 1.0 (Mac OS X Mail 7.2 \(1874\))
+Subject: Re: s_ctrl V4l2 device driver does not work
+From: Marcio Campos de Lima <marcio@netopen.com.br>
+In-Reply-To: <Pine.LNX.4.64.1405082259340.14834@axis700.grange>
+Date: Thu, 8 May 2014 18:30:46 -0300
+Cc: linux-arm-kernel@lists.infradead.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <5869970E-84C8-4159-99EB-8C5D63AE72C9@netopen.com.br>
+References: <B43D69CB-FE7A-4168-B203-02A7934215F4@netopen.com.br> <Pine.LNX.4.64.1405082211240.14834@axis700.grange> <E916BA02-89F5-4E34-96A5-1D3EE8F944CF@netopen.com.br> <Pine.LNX.4.64.1405082259340.14834@axis700.grange>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+I have also tried these settings
 
-I run Ubuntu 12.04 64b.
-I'm using USB - ID 048d:9135 Integrated Technology Express, Inc. Zolid 
-Mini DVB-T Stick
+#define VIDIOC_AVANCA_ZOOM	(0x009a0000|0x900)+14
+#define VIDIOC_RECUA_ZOOM	(0x009a0000|0x900)+14
+#define VIDIOC_ATIVA_FLASH	(0x009a0000|0x900)+3
+#define VIDIOC_WHITE_BALANCE	(0x009a0000|0x900)+13
 
-with linux-media build-ed drivers - as described here:
-http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+Em 08/05/2014, à(s) 18:01, Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
 
+> On Thu, 8 May 2014, Marcio Campos de Lima wrote:
+> 
+>> Hi Guennadi
+>> Thank you very much for your answer.
+>> The driver is a modified OV5642.c for the Omnivision OV5642 sensor. The platform is a custom AT91SAM9M10 board with a camera paralell interface.
+>> the driver is working quite well (capturing images) apart the set control interface.
+> 
+> So, you're using the atmel-isi camera _host_ driver.
+> 
+>> Unfortunately I cannot move to the most current kernel now.
+> 
+> I don't find VIDIOC_AVANCA_ZOOM in the mainline kernel, it seems to be a 
+> part of your modification, so, I don't think I can help you, sorry.
+> 
+> Thanks
+> Guennadi
+> 
+>> Thanks again
+>> Regards
+>> Marcio
+>> Em 08/05/2014, à(s) 17:14, Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+>> 
+>>> Hi Marcio,
+>>> 
+>>> Firstly, please direct all V4L related questions to the linux-media list 
+>>> (added to CC), secondly, your problem will have much better chances to 
+>>> attract attention if you use a current kernel, thirdly, please, specify 
+>>> which camera host driver / which ARM platform you're dealing with.
+>>> 
+>>> Thanks
+>>> Guennadi
+>>> 
+>>> On Thu, 8 May 2014, Marcio Campos de Lima wrote:
+>>> 
+>>>> Hi
+>>>> 
+>>>> Can anybody tell me why the set control function is not working in Linux 3.6.9? Thanks.
+>>>> 
+>>>> —— APPLICATION CALL ——
+>>>> struct v4l2_control controle;
+>>>>   controle.id = VIDIOC_AVANCA_ZOOM;
+>>>>   controle.value = time;
+>>>>   if (-1 == xioctl(fd_camera, VIDIOC_S_CTRL,&controle))
+>>>> 	{
+>>>> 	printf ("%s erro\n",__FUNCTION__);
+>>>> 	perror ("erro iotcl");
+>>>> 	}
+>>>> 
+>>>> The ioctl call returns with invalid argument. It is amazing because the first time the ioctl is called it is executed ok. Then no more call is allowed and return the invalid 
+>>>> 
+>>>> below is the device driver  code I think may be relevant.
+>>>> 
+>>>> v4l2_ctrl_handler_init(&priv->ctrls, ARRAY_SIZE(ov5642_ctrls));
+>>>>   printk ("handler_init\n");
+>>>>   v4l2_ctrl_new_std(&priv->ctrls, &ov5642_ctrl_ops,V4L2_CID_ZOOM_RELATIVE, -1000, 1000, 1, 500);
+>>>>   v4l2_ctrl_new_std(&priv->ctrls, &ov5642_ctrl_ops,V4L2_CID_FLASH_STROBE, -100, 100, 1, 5);
+>>>> 
+>>>> 
+>>>>   priv->subdev.ctrl_handler=&priv->ctrls;
+>>>>   v4l2_i2c_subdev_init(&priv->subdev, client, &ov5642_subdev_ops);
+>>>>   return ov5642_video_probe(client);
+>>>> 
+>>>> static int ov5642_s_ctrl(struct v4l2_ctrl *ctrl)
+>>>> {
+>>>> 	struct ov5642 *ov5642 =
+>>>> 			container_of(ctrl->handler, struct ov5642, ctrls);
+>>>> 	struct i2c_client *client = v4l2_get_subdevdata(&ov5642->subdev);
+>>>> 	u16 data;
+>>>> 	int ret;
+>>>> 	printk ("%s: id=%08x val=%d\n",__FUNCTION__, ctrl->id, ctrl->val);
+>>>> 	switch (ctrl->id) {
+>>>> 	case V4L2_CID_DO_WHITE_BALANCE:
+>>>> 		ov5640_set_wb_oem(client, ctrl->val);
+>>>> 		break;
+>>>> 	case V4L2_CID_EXPOSURE:
+>>>> 
+>>>> 		break;
+>>>> 	case V4L2_CID_GAIN:
+>>>> 		/* Gain is controlled by 2 analog stages and a digital stage.
+>>>> 		 * Valid values for the 3 stages are
+>>>> 		 *
+>>>> 		 * Stage                Min     Max     Step
+>>>> 		 * ------------------------------------------
+>>>> 		 * First analog stage   x1      x2      1
+>>>> 		 * Second analog stage  x1      x4      0.125
+>>>> 		 * Digital stage        x1      x16     0.125
+>>>> 		 *
+>>>> 		 * To minimize noise, the gain stages should be used in the
+>>>> 		 * second analog stage, first analog stage, digital stage order.
+>>>> 		 * Gain from a previous stage should be pushed to its maximum
+>>>> 		 * value before the next stage is used.
+>>>> 		 */
+>>>> 		if (ctrl->val <= 32) {
+>>>> 			data = ctrl->val;
+>>>> 		} else if (ctrl->val <= 64) {
+>>>> 			ctrl->val &= ~1;
+>>>> 			data = (1 << 6) | (ctrl->val >> 1);
+>>>> 		} else {
+>>>> 			ctrl->val &= ~7;
+>>>> 			data = ((ctrl->val - 64) << 5) | (1 << 6) | 32;
+>>>> 		}
+>>>> 		break;
+>>>> 	case V4L2_CID_ZOOM_RELATIVE:
+>>>> 		if (ctrl->val>0)
+>>>> 			avanca_zoom(sysPriv.v4l2_int_device, ctrl->val);
+>>>> 		else
+>>>> 			recua_zoom(sysPriv.v4l2_int_device, ctrl->val);
+>>>> 
+>>>> 		break;
+>>>> 	case V4L2_CID_BRIGHTNESS:
+>>>> 		 ov5640_set_brightness(client, ctrl->val);
+>>>> 		 break;
+>>>> 	case V4L2_CID_CONTRAST:
+>>>> 		ov5640_set_contrast(client, ctrl->val);
+>>>> 		break;
+>>>> 	case V4L2_CID_FLASH_STROBE:
+>>>> 		ativa_flash (sysPriv.v4l2_int_device, ctrl->val);
+>>>> 		break;
+>>>> 	case V4L2_CID_VFLIP:
+>>>> 
+>>>> 	case V4L2_CID_TEST_PATTERN:
+>>>> 
+>>>> 
+>>>> 
+>>>> 	case V4L2_CID_BLC_AUTO:
+>>>> 
+>>>> 	case V4L2_CID_BLC_TARGET_LEVEL:
+>>>> 
+>>>> 	case V4L2_CID_BLC_ANALOG_OFFSET:
+>>>> 
+>>>> 	case V4L2_CID_BLC_DIGITAL_OFFSET:
+>>>> 		return 1;
+>>>> 			}
+>>>> 
+>>>> 	return 0;
+>>>> }
+>>>> 
+>>>> static struct v4l2_ctrl_ops ov5642_ctrl_ops = {
+>>>> 	.s_ctrl = ov5642_s_ctrl,
+>>>> };
+>>>> 
+>>>> 
+>>>> _______________________________________________
+>>>> linux-arm-kernel mailing list
+>>>> linux-arm-kernel@lists.infradead.org
+>>>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>>>> 
+>>> 
+>>> ---
+>>> Guennadi Liakhovetski, Ph.D.
+>>> Freelance Open-Source Software Developer
+>>> http://www.open-technology.de/
+>> 
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
 
-I just have to build it again after every kernel update - OK.
-
-But last time - I have done the same as every time, but the build 
-process failed:
-
-
-$ git clone --depth=1 git://linuxtv.org/media_build.git
-$ cd media_build/
-$ ./build --verbose
-
-but it ends with error
-
-xxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-...
-
-******************
-* Start building *
-******************
-make -C /home/hugo/tmp/media_build/v4l allyesconfig
-make[1]: Entering directory `/home/hugo/tmp/media_build/v4l'
-No version yet, using 3.2.0-61-generic
-make[1]: Leaving directory `/home/hugo/tmp/media_build/v4l'
-make[1]: Entering directory `/home/hugo/tmp/media_build/v4l'
-make[2]: Entering directory `/home/hugo/tmp/media_build/linux'
-Applying patches for kernel 3.2.0-61-generic
-patch -s -f -N -p1 -i ../backports/api_version.patch
-patch -s -f -N -p1 -i ../backports/pr_fmt.patch
-The text leading up to this was:
---------------------------
-|diff --git a/drivers/media/usb/gspca/dtcs033.c 
-b/drivers/media/usb/gspca/dtcs033.c
-|index 5e42c71..ba01a3e 100644
-|--- a/drivers/media/usb/gspca/dtcs033.c
-|+++ b/drivers/media/usb/gspca/dtcs033.c
---------------------------
-No file to patch.  Skipping patch.
-1 out of 1 hunk ignored
-make[2]: *** [apply_patches] Error 1
-make[2]: Leaving directory `/home/hugo/tmp/media_build/linux'
-make[1]: *** [allyesconfig] Error 2
-make[1]: Leaving directory `/home/hugo/tmp/media_build/v4l'
-make: *** [allyesconfig] Error 2
-can't select all drivers at ./build line 490.
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-Please help me to get my TV working again.
-
-
-Thanks
-
---kapetr
