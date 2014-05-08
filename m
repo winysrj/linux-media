@@ -1,70 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:54685 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751075AbaEYSaF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 May 2014 14:30:05 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N65000FR7E30C70@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Sun, 25 May 2014 14:30:03 -0400 (EDT)
-Date: Sun, 25 May 2014 15:29:57 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: CrazyCat <crazycat69@narod.ru>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] technisat-sub2: Fix stream curruption on high bitrate
-Message-id: <20140525152957.23be9b06.m.chehab@samsung.com>
-In-reply-to: <3539618.frtlsOTgfg@ubuntu>
-References: <3539618.frtlsOTgfg@ubuntu>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from userp1040.oracle.com ([156.151.31.81]:30189 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754374AbaEHNQh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 09:16:37 -0400
+Date: Thu, 8 May 2014 16:16:20 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: s.nawrocki@samsung.com
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Subject: re: [media] exynos4-is: Add the FIMC-IS ISP capture DMA driver
+Message-ID: <20140508131620.GA7606@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello Sylwester Nawrocki,
 
-Em Wed, 16 Apr 2014 23:22:01 +0300
-CrazyCat <crazycat69@narod.ru> escreveu:
+The patch 34947b8aebe3: "[media] exynos4-is: Add the FIMC-IS ISP
+capture DMA driver" from Dec 20, 2013, leads to the following static
+checker warning:
 
-> Fix stream curruption on high bitrate (>60mbit).
+	drivers/media/platform/exynos4-is/fimc-isp-video.c:415 isp_video_try_fmt_mplane()
+	error: XXX NULL dereference inside function. '()' '0'
 
-Could you please better document this patch? 
+drivers/media/platform/exynos4-is/fimc-isp-video.c
+   390  static void __isp_video_try_fmt(struct fimc_isp *isp,
+   391                                  struct v4l2_pix_format_mplane *pixm,
+   392                                  const struct fimc_fmt **fmt)
+   393  {
+   394          *fmt = fimc_isp_find_format(&pixm->pixelformat, NULL, 2);
+   395  
+   396          pixm->colorspace = V4L2_COLORSPACE_SRGB;
+   397          pixm->field = V4L2_FIELD_NONE;
+   398          pixm->num_planes = (*fmt)->memplanes;
+   399          pixm->pixelformat = (*fmt)->fourcc;
+   400          /*
+   401           * TODO: double check with the docmentation these width/height
+   402           * constraints are correct.
+   403           */
+   404          v4l_bound_align_image(&pixm->width, FIMC_ISP_SOURCE_WIDTH_MIN,
+   405                                FIMC_ISP_SOURCE_WIDTH_MAX, 3,
+   406                                &pixm->height, FIMC_ISP_SOURCE_HEIGHT_MIN,
+   407                                FIMC_ISP_SOURCE_HEIGHT_MAX, 0, 0);
+   408  }
+   409  
+   410  static int isp_video_try_fmt_mplane(struct file *file, void *fh,
+   411                                          struct v4l2_format *f)
+   412  {
+   413          struct fimc_isp *isp = video_drvdata(file);
+   414  
+   415          __isp_video_try_fmt(isp, &f->fmt.pix_mp, NULL);
+                                                         ^^^^
+This will just NULL deref.  What was intended?
 
-I would be expecting a better description of the problem you faced,
-the version of the board you have (assuming that different versions
-might have different minimal intervals) and an lsusb -v output from
-the board you faced issues, showing what the endpoint descriptors
-say about that.
+   416          return 0;
+   417  }
 
-Btw, if those tables are ok, can't we just retrieve the information
-directly from the descriptors, instead of hardcoding it, e. g
-filling it with:
-
-       interval = 1 << (ep->bInterval - 1);
-
-at the board probing time, just like we did at changeset 1b3fd2d34266?
-
-Regards,
-Mauro
-
-> 
-> Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
-> ---
->  drivers/media/usb/dvb-usb/technisat-usb2.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/dvb-usb/technisat-usb2.c b/drivers/media/usb/dvb-usb/technisat-usb2.c
-> index 420198f..4604c084 100644
-> --- a/drivers/media/usb/dvb-usb/technisat-usb2.c
-> +++ b/drivers/media/usb/dvb-usb/technisat-usb2.c
-> @@ -711,7 +711,7 @@ static struct dvb_usb_device_properties technisat_usb2_devices = {
->  					.isoc = {
->  						.framesperurb = 32,
->  						.framesize = 2048,
-> -						.interval = 3,
-> +						.interval = 1,
->  					}
->  				}
->  			},
+regards,
+dan carpenter
