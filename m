@@ -1,115 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1916 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751360AbaE3CnZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 May 2014 22:43:25 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4U2hMLx043304
-	for <linux-media@vger.kernel.org>; Fri, 30 May 2014 04:43:24 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 810DD2A19A8
-	for <linux-media@vger.kernel.org>; Fri, 30 May 2014 04:43:19 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mailout3.samsung.com ([203.254.224.33]:58321 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754413AbaEHRgJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 13:36:09 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140530024319.810DD2A19A8@tschai.lan>
-Date: Fri, 30 May 2014 04:43:19 +0200 (CEST)
+Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH V2 2/4] exynos4-is: Move firmware request to subdev open()
+Date: Thu, 08 May 2014 19:35:16 +0200
+Message-id: <1399570516-29782-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1399570516-29782-1-git-send-email-s.nawrocki@samsung.com>
+References: <1399570516-29782-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Move the firmware request to the FIMC-IS-ISP subdev open callback
+so we can avoid crashed on error paths in probe and deferred probing,
+when firmware request was sheduled and is in progress while the
+fimc-is device is being unregistered and its driver detached.
 
-Results of the daily build of media_tree:
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-is.c  |   31 ++++++++------------------
+ drivers/media/platform/exynos4-is/fimc-is.h  |    2 +-
+ drivers/media/platform/exynos4-is/fimc-isp.c |   10 ++++++++-
+ 3 files changed, 19 insertions(+), 24 deletions(-)
 
-date:		Fri May 30 04:00:16 CEST 2014
-git branch:	test
-git hash:	26f15c1fff5493fc0771248d5a409f2c7815a53a
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.14-1.slh.1-amd64
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index 5476dce..6bbb6ca 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -374,22 +374,22 @@ static void fimc_is_free_cpu_memory(struct fimc_is *is)
+ 			  is->memory.paddr);
+ }
+ 
+-static void fimc_is_load_firmware(const struct firmware *fw, void *context)
++int fimc_is_request_firmware(struct fimc_is *is, const char *fw_name)
+ {
+-	struct fimc_is *is = context;
++	const struct firmware *fw;
+ 	struct device *dev = &is->pdev->dev;
+ 	void *buf;
+ 	int ret;
+ 
+-	if (fw == NULL) {
++	ret = request_firmware(&fw, fw_name, &is->pdev->dev);
++	if (ret < 0) {
+ 		dev_err(dev, "firmware request failed\n");
+-		return;
++		return ret;
+ 	}
+-	mutex_lock(&is->lock);
+ 
+ 	if (fw->size < FIMC_IS_FW_SIZE_MIN || fw->size > FIMC_IS_FW_SIZE_MAX) {
+ 		dev_err(dev, "wrong firmware size: %d\n", fw->size);
+-		goto done;
++		return -EINVAL;
+ 	}
+ 
+ 	is->fw.size = fw->size;
+@@ -397,7 +397,7 @@ static void fimc_is_load_firmware(const struct firmware *fw, void *context)
+ 	ret = fimc_is_alloc_cpu_memory(is);
+ 	if (ret < 0) {
+ 		dev_err(dev, "failed to allocate FIMC-IS CPU memory\n");
+-		goto done;
++		return -ENOMEM;
+ 	}
+ 
+ 	memcpy(is->memory.vaddr, fw->data, fw->size);
+@@ -430,16 +430,9 @@ static void fimc_is_load_firmware(const struct firmware *fw, void *context)
+ 	 */
+ 	if (is->fw.f_w)
+ 		release_firmware(is->fw.f_w);
+-	is->fw.f_w = fw;
+-done:
+-	mutex_unlock(&is->lock);
+-}
+ 
+-static int fimc_is_request_firmware(struct fimc_is *is, const char *fw_name)
+-{
+-	return request_firmware_nowait(THIS_MODULE,
+-				FW_ACTION_HOTPLUG, fw_name, &is->pdev->dev,
+-				GFP_KERNEL, is, fimc_is_load_firmware);
++	is->fw.f_w = fw;
++	return 0;
+ }
+ 
+ /* General IS interrupt handler */
+@@ -795,7 +788,6 @@ static int fimc_is_probe(struct platform_device *pdev)
+ 
+ 	init_waitqueue_head(&is->irq_queue);
+ 	spin_lock_init(&is->slock);
+-	mutex_init(&is->lock);
+ 
+ 	ret = of_address_to_resource(dev->of_node, 0, &res);
+ 	if (ret < 0)
+@@ -859,17 +851,12 @@ static int fimc_is_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto err_sd;
+ 
+-	ret = fimc_is_request_firmware(is, FIMC_IS_FW_FILENAME);
+-	if (ret < 0)
+-		goto err_dfs;
+ 
+ 	pm_runtime_put_sync(dev);
+ 
+ 	dev_dbg(dev, "FIMC-IS registered successfully\n");
+ 	return 0;
+ 
+-err_dfs:
+-	fimc_is_debugfs_remove(is);
+ err_sd:
+ 	fimc_is_unregister_subdevs(is);
+ err_vb:
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.h b/drivers/media/platform/exynos4-is/fimc-is.h
+index e0be691..16afd9c 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.h
++++ b/drivers/media/platform/exynos4-is/fimc-is.h
+@@ -234,7 +234,6 @@ struct chain_config {
+  * @pctrl: pointer to pinctrl structure for this device
+  * @v4l2_dev: pointer to top the level v4l2_device
+  * @alloc_ctx: videobuf2 memory allocator context
+- * @lock: mutex serializing video device and the subdev operations
+  * @slock: spinlock protecting this data structure and the hw registers
+  * @clocks: FIMC-LITE gate clock
+  * @regs: MCUCTL mmapped registers region
+@@ -336,6 +335,7 @@ static inline u32 pmuisp_read(struct fimc_is *is, unsigned int offset)
+ 
+ int fimc_is_wait_event(struct fimc_is *is, unsigned long bit,
+ 		       unsigned int state, unsigned int timeout);
++int fimc_is_request_firmware(struct fimc_is *is, const char *fw_name);
+ int fimc_is_cpu_set_power(struct fimc_is *is, int on);
+ int fimc_is_start_firmware(struct fimc_is *is);
+ int fimc_is_hw_initialize(struct fimc_is *is);
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp.c b/drivers/media/platform/exynos4-is/fimc-isp.c
+index be62d6b..915c46b 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp.c
++++ b/drivers/media/platform/exynos4-is/fimc-isp.c
+@@ -366,8 +366,11 @@ static int fimc_isp_subdev_s_power(struct v4l2_subdev *sd, int on)
+ static int fimc_isp_subdev_open(struct v4l2_subdev *sd,
+ 				struct v4l2_subdev_fh *fh)
+ {
++	struct fimc_isp *isp = v4l2_get_subdevdata(sd);
++	struct fimc_is *is = fimc_isp_to_is(isp);
+ 	struct v4l2_mbus_framefmt fmt;
+ 	struct v4l2_mbus_framefmt *format;
++	int ret;
+ 
+ 	format = v4l2_subdev_get_try_format(fh, FIMC_ISP_SD_PAD_SINK);
+ 
+@@ -386,7 +389,12 @@ static int fimc_isp_subdev_open(struct v4l2_subdev *sd,
+ 	format = v4l2_subdev_get_try_format(fh, FIMC_ISP_SD_PAD_SRC_DMA);
+ 	*format = fmt;
+ 
+-	return 0;
++	mutex_lock(&isp->subdev_lock);
++	if (is->fw.f_w == NULL)
++		ret = fimc_is_request_firmware(is, FIMC_IS_FW_FILENAME);
++
++	mutex_unlock(&isp->subdev_lock);
++	return ret;
+ }
+ 
+ static int fimc_isp_subdev_registered(struct v4l2_subdev *sd)
+-- 
+1.7.9.5
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
