@@ -1,115 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1665 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752891AbaE1Cnv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 May 2014 22:43:51 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4S2hlZF093703
-	for <linux-media@vger.kernel.org>; Wed, 28 May 2014 04:43:49 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E0C482A19A8
-	for <linux-media@vger.kernel.org>; Wed, 28 May 2014 04:43:17 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140528024317.E0C482A19A8@tschai.lan>
-Date: Wed, 28 May 2014 04:43:17 +0200 (CEST)
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:39019 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754600AbaEHQWS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 12:22:18 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Arun Kumar K' <arun.kk@samsung.com>, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>, posciak@chromium.org,
+	arunkk.samsung@gmail.com
+References: <1394180752-16348-1-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1394180752-16348-1-git-send-email-arun.kk@samsung.com>
+Subject: RE: [PATCH] [media] s5p-mfc: Don't try to resubmit VP8 bitstream
+ buffer for decode.
+Date: Thu, 08 May 2014 18:22:29 +0200
+Message-id: <004b01cf6ad9$b5c83c80$2158b580$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
 
-date:		Wed May 28 04:00:17 CEST 2014
-git branch:	test
-git hash:	26f15c1fff5493fc0771248d5a409f2c7815a53a
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.14-1.slh.1-amd64
+> From: Arun Kumar K [mailto:arunkk.samsung@gmail.com] On Behalf Of Arun
+> Kumar K
+> Sent: Friday, March 07, 2014 9:26 AM
+> 
+> From: Pawel Osciak <posciak@chromium.org>
+> 
+> Currently, for formats that are not H264, MFC driver will check the
+> consumed stream size returned by the firmware and, based on that, will
+> try to decide whether the bitstream buffer contained more than one
+> frame. If the size of the buffer is larger than the consumed stream, it
+> assumes that there are more frames in the buffer and that the buffer
+> should be resubmitted for decode. This rarely works though and actually
+> introduces problems, because:
+> 
+> - v7 firmware will always return consumed stream size equal to whatever
+> the driver passed to it when running decode (which is the size of the
+> whole buffer), which means we will never try to resubmit, because the
+> firmware will always tell us that it consumed all the data we passed to
+> it;
+> 
+> - v6 firmware will return the number of consumed bytes, but will not
+> include the padding ("stuffing") bytes that are allowed after the frame
+> in VP8. Since there is no way of figuring out how many of those bytes
+> follow the frame without getting the frame size from IVF headers (or
+> somewhere else, but not from the stream itself), the driver tries to
+> guess that padding size is not larger than 4 bytes, which is not always
+> true;
+> 
+> The only way to make it work is to queue only one frame per buffer from
+> userspace and the check in the kernel is useless and wrong for VP8.
+> MPEG4 still seems to require it, so keep it only for that format.
+> 
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index e2aac59..66c1775 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -360,7 +360,7 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx
+> *ctx,
+>  								list);
+>  		ctx->consumed_stream += s5p_mfc_hw_call(dev->mfc_ops,
+>  						get_consumed_stream, dev);
+> -		if (ctx->codec_mode != S5P_MFC_CODEC_H264_DEC &&
+> +		if (ctx->codec_mode == S5P_MFC_CODEC_MPEG4_DEC &&
+>  			ctx->consumed_stream + STUFF_BYTE <
+>  			src_buf->b->v4l2_planes[0].bytesused) {
+>  			/* Run MFC again on the same buffer */
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+I expressed my doubts to this patch in my previous email.
+I think that packed PB can also be found in other codecs such as H263.
+So please change to the following if this is a workaround for VP8 only.
+(The title says that it only changes behavior of VP8 decoding, so it is
+misleading).
 
-Detailed results are available here:
+-		if (ctx->codec_mode != S5P_MFC_CODEC_H264_DEC &&
++		if (ctx->codec_mode != S5P_MFC_CODEC_H264_DEC &&
++		    ctx->codec_mode != S5P_MFC_CODEC_VP8_DEC &&
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-Full logs are available here:
+Did you try to revert your patch https://patchwork.linuxtv.org/patch/15448/
+and checking if this fixes the problem for VP8?
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+> --
+> 1.7.9.5
 
-The Media Infrastructure API from this daily build is here:
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
