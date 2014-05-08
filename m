@@ -1,50 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:57200 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754050AbaEOH4V (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 May 2014 03:56:21 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-	by paasikivi.fi.intel.com (Postfix) with ESMTP id 1279C2003E
-	for <linux-media@vger.kernel.org>; Thu, 15 May 2014 10:56:19 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/1] smiapp: I2C address is the last part of the subdev name
-Date: Thu, 15 May 2014 10:56:42 +0300
-Message-Id: <1400140602-27282-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:33643 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753858AbaEHQJv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 12:09:51 -0400
+Message-id: <536BAC34.2020904@samsung.com>
+Date: Thu, 08 May 2014 18:09:24 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Kukjin Kim <kgene.kim@samsung.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, kyungmin.park@samsung.com,
+	linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH 1/5] ARM: S5PV210: Remove camera support from mach-goni.c
+References: <1397583272-28295-1-git-send-email-s.nawrocki@samsung.com>
+ <1397583272-28295-2-git-send-email-s.nawrocki@samsung.com>
+ <081001cf65cc$cbef8700$63ce9500$@samsung.com>
+In-reply-to: <081001cf65cc$cbef8700$63ce9500$@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The I2C address of the sensor device was in the middle of the sub-device
-name and not in the end as it should have been. The smiapp sub-device names
-will change from e.g. "vs6555 1-0010 pixel array" to "vs6555 pixel array
-1-0010".
+On 02/05/14 08:07, Kukjin Kim wrote:
+> Sylwester Nawrocki wrote:
+>> > 
+>> > S5PV210 is going to get DT support, so we can remove the camera
+>> > bits from the only board using camera on S5PV210. This allows to
+>> > clean the exynos4-is driver by dropping code for non-dt platforms.
+>> > This patch can be dropped if a patch removing the whole board
+>> > file is applied first.
+>> > 
+>> > Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> > Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>
+> Hi Sylwester,
+> 
+> Cleanup is always welcome ;-)
+> 
+> I think, when this series is ready for mainline, this will be handled in
+> media tree. So,
+> 
+> Acked-by: Kukjin Kim <kgene.kim@samsung.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-This was already supposed to be fixed by "[media] smiapp: Use I2C adapter ID
-and address in the sub-device name" but the I2C address indeed was in the
-middle of the sub-device name and not in the end as it should have been.
+Hi Kukjin,
 
- drivers/media/i2c/smiapp/smiapp-core.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Thank you, patch queued up for the media tree!
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index db3d5a6..2413d3c 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2543,9 +2543,9 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 		}
- 
- 		snprintf(this->sd.name,
--			 sizeof(this->sd.name), "%s %d-%4.4x %s",
--			 sensor->minfo.name, i2c_adapter_id(client->adapter),
--			 client->addr, _this->name);
-+			 sizeof(this->sd.name), "%s %s %d-%4.4x",
-+			 sensor->minfo.name, _this->name,
-+			 i2c_adapter_id(client->adapter), client->addr);
- 
- 		this->sink_fmt.width =
- 			sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
--- 
-1.8.3.2
-
+--
+Regards,
+Sylwester
