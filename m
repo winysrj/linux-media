@@ -1,134 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4154 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752049AbaEWGzH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 May 2014 02:55:07 -0400
-Message-ID: <537EF098.7010409@xs4all.nl>
-Date: Fri, 23 May 2014 08:54:16 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Sasha Levin <sasha.levin@oracle.com>, m.chehab@samsung.com,
-	hans.verkuil@cisco.com
-CC: LKML <linux-kernel@vger.kernel.org>, Dave Jones <davej@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: v4l2: circular locking between mmap_sem and device mutex
-References: <5367B2F8.7020905@oracle.com> <537EB82E.1000907@oracle.com>
-In-Reply-To: <537EB82E.1000907@oracle.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.samsung.com ([203.254.224.34]:25794 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752101AbaEHG2m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 02:28:42 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N5800I23SNSH390@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 08 May 2014 15:28:40 +0900 (KST)
+From: Changbing Xiong <cb.xiong@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, dheitmueller@kernellabs.com
+Subject: [PATCH 2/2] au0828: Cancel stream-restart operation if frontend is
+ disconnected
+Date: Thu, 08 May 2014 14:28:23 +0800
+Message-id: <1399530503-6820-1-git-send-email-cb.xiong@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/23/2014 04:53 AM, Sasha Levin wrote:
-> ping?
+If the tuner is already disconnected, It is meaningless to go on doing the
+stream-restart operation, It is better to cancel this operation.
 
-I've reproduced it and plan to look at it soon.
+Signed-off-by: Changbing Xiong <cb.xiong@samsung.com>
+---
+ drivers/media/usb/au0828/au0828-dvb.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-Regards,
+diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
+index 878f66f..6995309 100755
+--- a/drivers/media/usb/au0828/au0828-dvb.c
++++ b/drivers/media/usb/au0828/au0828-dvb.c
+@@ -422,6 +422,8 @@ void au0828_dvb_unregister(struct au0828_dev *dev)
+ 	dvb_unregister_frontend(dvb->frontend);
+ 	dvb_frontend_detach(dvb->frontend);
+ 	dvb_unregister_adapter(&dvb->adapter);
++
++	cancel_work_sync(&dev->restart_streaming);
+ }
 
-	Hans
-
-> 
-> On 05/05/2014 11:49 AM, Sasha Levin wrote:
->> Hi all,
->>
->> While fuzzing with trinity inside a KVM tools guest running latest -next
->> kernel I've stumbled on the following:
->>
->>
->> [ 2179.111265] ======================================================
->> [ 2179.112228] [ INFO: possible circular locking dependency detected ]
->> [ 2179.113144] 3.15.0-rc3-next-20140502-sasha-00020-g3183c20 #432 Tainted: G        W
->> [ 2179.114325] -------------------------------------------------------
->> [ 2179.115286] trinity-c15/27050 is trying to acquire lock:
->> [ 2179.116071] (&dev->mutex#3){+.+.+.}, at: vb2_fop_mmap (drivers/media/v4l2-core/videobuf2-core.c:3029 (discriminator 1))
->> [ 2179.117347]
->> [ 2179.117347] but task is already holding lock:
->> [ 2179.118185] (&mm->mmap_sem){++++++}, at: vm_mmap_pgoff (mm/util.c:398)
->> [ 2179.120023]
->> [ 2179.120023] which lock already depends on the new lock.
->> [ 2179.120023]
->> [ 2179.120036]
->> [ 2179.120036] the existing dependency chain (in reverse order) is:
->> [ 2179.120036]
->> -> #1 (&mm->mmap_sem){++++++}:
->> [ 2179.120036] lock_acquire (arch/x86/include/asm/current.h:14 kernel/locking/lockdep.c:3602)
->> [ 2179.120036] might_fault (mm/memory.c:4368)
->> [ 2179.120036] video_usercopy (arch/x86/include/asm/uaccess.h:713 drivers/media/v4l2-core/v4l2-ioctl.c:2369)
->> [ 2179.120036] video_ioctl2 (drivers/media/v4l2-core/v4l2-ioctl.c:2445)
->> [ 2179.120036] v4l2_ioctl (drivers/media/v4l2-core/v4l2-dev.c:355)
->> [ 2179.120036] do_vfs_ioctl (fs/ioctl.c:44 fs/ioctl.c:598)
->> [ 2179.120036] SyS_ioctl (include/linux/file.h:38 fs/ioctl.c:614 fs/ioctl.c:604)
->> [ 2179.120036] tracesys (arch/x86/kernel/entry_64.S:746)
->> [ 2179.120036]
->> -> #0 (&dev->mutex#3){+.+.+.}:
->> [ 2179.120036] __lock_acquire (kernel/locking/lockdep.c:1840 kernel/locking/lockdep.c:1945 kernel/locking/lockdep.c:2131 kernel/locking/lockdep.c:3182)
->> [ 2179.120036] lock_acquire (arch/x86/include/asm/current.h:14 kernel/locking/lockdep.c:3602)
->> [ 2179.120036] mutex_lock_interruptible_nested (kernel/locking/mutex.c:486 kernel/locking/mutex.c:616)
->> [ 2179.120036] vb2_fop_mmap (drivers/media/v4l2-core/videobuf2-core.c:3029 (discriminator 1))
->> [ 2179.120036] v4l2_mmap (drivers/media/v4l2-core/v4l2-dev.c:427)
->> [ 2179.120036] mmap_region (mm/mmap.c:1577)
->> [ 2179.120036] do_mmap_pgoff (mm/mmap.c:1369)
->> [ 2179.120036] vm_mmap_pgoff (mm/util.c:400)
->> [ 2179.120036] SyS_mmap_pgoff (mm/mmap.c:1418 mm/mmap.c:1378)
->> [ 2179.120036] SyS_mmap (arch/x86/kernel/sys_x86_64.c:72)
->> [ 2179.120036] tracesys (arch/x86/kernel/entry_64.S:746)
->> [ 2179.120036]
->> [ 2179.120036] other info that might help us debug this:
->> [ 2179.120036]
->> [ 2179.120036]  Possible unsafe locking scenario:
->> [ 2179.120036]
->> [ 2179.120036]        CPU0                    CPU1
->> [ 2179.120036]        ----                    ----
->> [ 2179.120036]   lock(&mm->mmap_sem);
->> [ 2179.120036]                                lock(&dev->mutex#3);
->> [ 2179.120036]                                lock(&mm->mmap_sem);
->> [ 2179.120036]   lock(&dev->mutex#3);
->> [ 2179.120036]
->> [ 2179.120036]  *** DEADLOCK ***
->> [ 2179.120036]
->> [ 2179.120036] 1 lock held by trinity-c15/27050:
->> [ 2179.120036] #0: (&mm->mmap_sem){++++++}, at: vm_mmap_pgoff (mm/util.c:398)
->> [ 2179.120036]
->> [ 2179.120036] stack backtrace:
->> [ 2179.120036] CPU: 1 PID: 27050 Comm: trinity-c15 Tainted: G        W     3.15.0-rc3-next-20140502-sasha-00020-g3183c20 #432
->> [ 2179.120036]  ffffffffbaa718e0 ffff88065df9dab8 ffffffffb75326bb 0000000000000002
->> [ 2179.120036]  ffffffffbaa718e0 ffff88065df9db08 ffffffffb7525488 0000000000000001
->> [ 2179.120036]  ffff88065df9db98 ffff88065df9db08 ffff88065dd63cf0 ffff88065dd63d28
->> [ 2179.120036] Call Trace:
->> [ 2179.120036] dump_stack (lib/dump_stack.c:52)
->> [ 2179.120036] print_circular_bug (kernel/locking/lockdep.c:1216)
->> [ 2179.120036] __lock_acquire (kernel/locking/lockdep.c:1840 kernel/locking/lockdep.c:1945 kernel/locking/lockdep.c:2131 kernel/locking/lockdep.c:3182)
->> [ 2179.120036] ? mmap_region (mm/mmap.c:1556)
->> [ 2179.120036] lock_acquire (arch/x86/include/asm/current.h:14 kernel/locking/lockdep.c:3602)
->> [ 2179.120036] ? vb2_fop_mmap (drivers/media/v4l2-core/videobuf2-core.c:3029 (discriminator 1))
->> [ 2179.120036] mutex_lock_interruptible_nested (kernel/locking/mutex.c:486 kernel/locking/mutex.c:616)
->> [ 2179.120036] ? vb2_fop_mmap (drivers/media/v4l2-core/videobuf2-core.c:3029 (discriminator 1))
->> [ 2179.120036] ? vb2_fop_mmap (drivers/media/v4l2-core/videobuf2-core.c:3029 (discriminator 1))
->> [ 2179.120036] ? get_parent_ip (kernel/sched/core.c:2485)
->> [ 2179.120036] vb2_fop_mmap (drivers/media/v4l2-core/videobuf2-core.c:3029 (discriminator 1))
->> [ 2179.120036] ? mmap_region (mm/mmap.c:1556)
->> [ 2179.120036] ? mmap_region (mm/mmap.c:1556)
->> [ 2179.120036] v4l2_mmap (drivers/media/v4l2-core/v4l2-dev.c:427)
->> [ 2179.120036] mmap_region (mm/mmap.c:1577)
->> [ 2179.120036] do_mmap_pgoff (mm/mmap.c:1369)
->> [ 2179.120036] ? vm_mmap_pgoff (mm/util.c:398)
->> [ 2179.120036] vm_mmap_pgoff (mm/util.c:400)
->> [ 2179.120036] ? __rcu_read_unlock (kernel/rcu/update.c:97)
->> [ 2179.120036] ? __fget (fs/file.c:633)
->> [ 2179.120036] SyS_mmap_pgoff (mm/mmap.c:1418 mm/mmap.c:1378)
->> [ 2179.120036] SyS_mmap (arch/x86/kernel/sys_x86_64.c:72)
->> [ 2179.120036] tracesys (arch/x86/kernel/entry_64.S:746)
->>
->>
->> Thanks,
->> Sasha
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+ /* All the DVB attach calls go here, this function get's modified
+--
+1.7.9.5
 
