@@ -1,47 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1043 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752329AbaEWHB4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 May 2014 03:01:56 -0400
-Message-ID: <537EF246.8000005@xs4all.nl>
-Date: Fri, 23 May 2014 09:01:26 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:46519 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750768AbaEHN5W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 May 2014 09:57:22 -0400
+Message-ID: <536B8CDD.7040600@redhat.com>
+Date: Thu, 08 May 2014 15:55:41 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Krzysztof Czarnowski <khczarnowski@gmail.com>,
+To: Alexander Bersenev <bay@hackerdom.ru>,
+	linux-sunxi <linux-sunxi@googlegroups.com>, david@hardeman.nu,
+	devicetree@vger.kernel.org, galak@codeaurora.org,
+	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
+	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
+	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
+	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
+	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
+	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
 	linux-media@vger.kernel.org
-Subject: Re: V4L2 control API - choosing base CID for private controls
-References: <CAHqFTYpRQ1=S8tVb5-Mgc79p_DNCecyoUnpj77zQeiiJP2Z6rA@mail.gmail.com>
-In-Reply-To: <CAHqFTYpRQ1=S8tVb5-Mgc79p_DNCecyoUnpj77zQeiiJP2Z6rA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Subject: Re: [PATCH v5 0/3] ARM: sunxi: Add support for consumer infrared
+ devices
+References: <1398871010-30681-1-git-send-email-bay@hackerdom.ru>
+In-Reply-To: <1398871010-30681-1-git-send-email-bay@hackerdom.ru>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/22/2014 01:33 PM, Krzysztof Czarnowski wrote:
-> Hi,
+Hi,
+
+On 04/30/2014 05:16 PM, Alexander Bersenev wrote:
+> This patch introduces Consumer IR(CIR) support for sunxi boards.
 > 
-> I got completely confused while trying to create private controls with
-> control API and when I finally got down to sanity checks in
-> v4l2_ctrl_new() in v4l2-ctrls.c...
+> This is based on Alexsey Shestacov's work based on the original driver 
+> supplied by Allwinner.
 > 
-> It would be nice if the following explanation by Hans (archive msg69922)
-> or maybe some more elaborate version could somehow make its way to
-> Documentation/video4linux/v4l2-controls.txt
-> :-)
+> Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
+> Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
 
-Yeah, I need to improve that.
-
-But basically you add a 'driver base' to include/uapi/linux/v4l2-controls.h
-(see e.g. V4L2_CID_USER_SAA7134_BASE) where you reserve a range of private
-controls for your driver and you use that base to define your controls. See
-drivers/media/pci/saa7134/saa7134.h how that's done for the saa7134.
-
-You probably tried to use V4L2_CID_PRIVATE_BASE which is not allowed in
-combination with the control framework. The control framework will emulate
-V4L2_CID_PRIVATE_BASE internally so old applications still work, but it's
-not how they should be defined in the drivers.
+Alexander, v5 still has various issues which need fixing,
+do you plan to do a v6 soon ?
 
 Regards,
 
-	Hans
+Hans
+
+> 
+> ---
+> Changes since version 1: 
+>  - Fix timer memory leaks 
+>  - Fix race condition when driver unloads while interrupt handler is active
+>  - Support Cubieboard 2(need testing)
+> 
+> Changes since version 2:
+> - More reliable keydown events
+> - Documentation fixes
+> - Rename registers accurding to A20 user manual
+> - Remove some includes, order includes alphabetically
+> - Use BIT macro
+> - Typo fixes
+> 
+> Changes since version 3:
+> - Split the patch on smaller parts
+> - More documentation fixes
+> - Add clock-names in DT
+> - Use devm_clk_get function to get the clocks
+> - Removed gpios property from ir's DT
+> - Changed compatible from allwinner,sunxi-ir to allwinner,sun7i-a20-ir in DT
+> - Use spin_lock_irq instead spin_lock_irqsave in interrupt handler
+> - Add myself in the copyright ;)
+> - Coding style and indentation fixes
+> 
+> Changes since version 4:
+> - Try to fix indentation errors by sending patches with git send-mail
+> 
+> Alexander Bersenev (3):
+>   ARM: sunxi: Add documentation for sunxi consumer infrared devices
+>   ARM: sunxi: Add driver for sunxi IR controller
+>   ARM: sunxi: Add IR controller support in DT on A20
+> 
+>  .../devicetree/bindings/media/sunxi-ir.txt         |  23 ++
+>  arch/arm/boot/dts/sun7i-a20-cubieboard2.dts        |   6 +
+>  arch/arm/boot/dts/sun7i-a20-cubietruck.dts         |   6 +
+>  arch/arm/boot/dts/sun7i-a20.dtsi                   |  31 +++
+>  drivers/media/rc/Kconfig                           |  10 +
+>  drivers/media/rc/Makefile                          |   1 +
+>  drivers/media/rc/sunxi-ir.c                        | 303 +++++++++++++++++++++
+>  7 files changed, 380 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/sunxi-ir.txt
+>  create mode 100644 drivers/media/rc/sunxi-ir.c
+> 
