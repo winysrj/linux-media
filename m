@@ -1,76 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42370 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751853AbaEGPkf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 May 2014 11:40:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH] mt9p031: Really disable Black Level Calibration in test pattern mode
-Date: Wed,  7 May 2014 17:40:55 +0200
-Message-Id: <1399477255-21207-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43742 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750768AbaEHLVo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 May 2014 07:21:44 -0400
+Date: Thu, 8 May 2014 14:21:06 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: DaeSeok Youn <daeseok.youn@gmail.com>
+Cc: m.chehab@samsung.com, linux-dev@sensoray.com,
+	hans.verkuil@cisco.com, linux-media@vger.kernel.org,
+	linux-kernel <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] [media] s2255drv: fix memory leak s2255_probe()
+Message-ID: <20140508112106.GH8753@valkosipuli.retiisi.org.uk>
+References: <1408657.25U3i1DfG3@daeseok-laptop.cloud.net>
+ <20140415093305.GE8753@valkosipuli.retiisi.org.uk>
+ <CAHb8M2CECG7ydo9L2u5BOcQeq8V3=ydy149kCLkoueo+HbD6fg@mail.gmail.com>
+ <20140505083856.GZ8753@valkosipuli.retiisi.org.uk>
+ <CAHb8M2D5C-w3+_gWHOnJRXnjwMhtMYKNLnQwtX3wuGXZN=heng@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHb8M2D5C-w3+_gWHOnJRXnjwMhtMYKNLnQwtX3wuGXZN=heng@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The digital side of the Black Level Calibration (BLC) function must be
-disabled when generating a test pattern to avoid artifacts in the image.
-The driver disables BLC correctly at the hardware level, but the feature
-gets reenabled by v4l2_ctrl_handler_setup() the next time the device is
-powered on.
+On Wed, May 07, 2014 at 01:38:58PM +0900, DaeSeok Youn wrote:
+> Hello,
+> 
+> 2014-05-05 17:38 GMT+09:00 Sakari Ailus <sakari.ailus@iki.fi>:
+> > On Tue, Apr 15, 2014 at 07:54:43PM +0900, DaeSeok Youn wrote:
+> >> Hi, Sakari
+> >>
+> >> 2014-04-15 18:33 GMT+09:00 Sakari Ailus <sakari.ailus@iki.fi>:
+> >> > Hi Daeseok,
+> >> >
+> >> > On Tue, Apr 15, 2014 at 01:49:34PM +0900, Daeseok Youn wrote:
+> >> >>
+> >> >> smatch says:
+> >> >>  drivers/media/usb/s2255/s2255drv.c:2246 s2255_probe() warn:
+> >> >> possible memory leak of 'dev'
+> >> >>
+> >> >> Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+> >> >> ---
+> >> >>  drivers/media/usb/s2255/s2255drv.c |    1 +
+> >> >>  1 files changed, 1 insertions(+), 0 deletions(-)
+> >> >>
+> >> >> diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+> >> >> index 1d4ba2b..8aca3ef 100644
+> >> >> --- a/drivers/media/usb/s2255/s2255drv.c
+> >> >> +++ b/drivers/media/usb/s2255/s2255drv.c
+> >> >> @@ -2243,6 +2243,7 @@ static int s2255_probe(struct usb_interface *interface,
+> >> >>       dev->cmdbuf = kzalloc(S2255_CMDBUF_SIZE, GFP_KERNEL);
+> >> >>       if (dev->cmdbuf == NULL) {
+> >> >>               s2255_dev_err(&interface->dev, "out of memory\n");
+> >> >> +             kfree(dev);
+> >> >>               return -ENOMEM;
+> >> >>       }
+> >> >>
+> >> >
+> >> > The rest of the function already uses goto and labels for error handling. I
+> >> > think it'd take adding one more. dev is correctly released in other error
+> >> > cases.
+> >> I am not sure that adding a new label for error handling when
+> >> allocation for dev->cmdbuf is failed.
+> >> I think it is ok to me. :-) Because I think it is not good adding a
+> >> new label and use goto statement for this.
+> >
+> > I can ack this if you use the same pattern for error handling that's already
+> > there.
+> But it has a redundant kfree() call for dev->cmdbuf when it failed to
+> allocate, right?
 
-Fix this by marking the BLC controls as inactive when generating a test
-pattern, and ignoring control set requests on inactive controls.
+Correct.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/mt9p031.c | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+> If it is ok, I send this again after fixing as your comment.
 
-diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-index 33daace..9102b23 100644
---- a/drivers/media/i2c/mt9p031.c
-+++ b/drivers/media/i2c/mt9p031.c
-@@ -655,6 +655,9 @@ static int mt9p031_s_ctrl(struct v4l2_ctrl *ctrl)
- 	u16 data;
- 	int ret;
- 
-+	if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
-+		return 0;
-+
- 	switch (ctrl->id) {
- 	case V4L2_CID_EXPOSURE:
- 		ret = mt9p031_write(client, MT9P031_SHUTTER_WIDTH_UPPER,
-@@ -709,8 +712,16 @@ static int mt9p031_s_ctrl(struct v4l2_ctrl *ctrl)
- 					MT9P031_READ_MODE_2_ROW_MIR, 0);
- 
- 	case V4L2_CID_TEST_PATTERN:
-+		/* The digital side of the Black Level Calibration function must
-+		 * be disabled when generating a test pattern to avoid artifacts
-+		 * in the image. Activate (deactivate) the BLC-related controls
-+		 * when the test pattern is enabled (disabled).
-+		 */
-+		v4l2_ctrl_activate(mt9p031->blc_auto, ctrl->val == 0);
-+		v4l2_ctrl_activate(mt9p031->blc_offset, ctrl->val == 0);
-+
- 		if (!ctrl->val) {
--			/* Restore the black level compensation settings. */
-+			/* Restore the BLC settings. */
- 			if (mt9p031->blc_auto->cur.val != 0) {
- 				ret = mt9p031_s_ctrl(mt9p031->blc_auto);
- 				if (ret < 0)
-@@ -735,9 +746,7 @@ static int mt9p031_s_ctrl(struct v4l2_ctrl *ctrl)
- 		if (ret < 0)
- 			return ret;
- 
--		/* Disable digital black level compensation when using a test
--		 * pattern.
--		 */
-+		/* Disable digital BLC when generating a test pattern. */
- 		ret = mt9p031_set_mode2(mt9p031, MT9P031_READ_MODE_2_ROW_BLC,
- 					0);
- 		if (ret < 0)
+Please do. Thanks.
+
 -- 
-Regards,
-
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
