@@ -1,51 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:44534 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933601AbaEPNm6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:42:58 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 47/49] media: davinci: vpif_capture: drop check __KERNEL__
-Date: Fri, 16 May 2014 19:03:53 +0530
-Message-Id: <1400247235-31434-50-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4697 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756359AbaEIIlH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 04:41:07 -0400
+Message-ID: <536C948B.8080106@xs4all.nl>
+Date: Fri, 09 May 2014 10:40:43 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
+	m.chehab@samsung.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/5] em28xx: fix i2c_set_adapdata() call in em28xx_i2c_register()
+References: <1395493263-2158-1-git-send-email-fschaefer.oss@googlemail.com> <1395493263-2158-2-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1395493263-2158-2-git-send-email-fschaefer.oss@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi Frank,
 
-this drops check for #ifdef __KERNEL__
+I've got a comment about this patch:
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif_capture.h |    3 ---
- 1 file changed, 3 deletions(-)
+On 03/22/2014 02:01 PM, Frank Schäfer wrote:
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-i2c.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+> index ba6433c..04e8577 100644
+> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+> @@ -939,7 +939,7 @@ int em28xx_i2c_register(struct em28xx *dev, unsigned bus,
+>  	dev->i2c_bus[bus].algo_type = algo_type;
+>  	dev->i2c_bus[bus].dev = dev;
+>  	dev->i2c_adap[bus].algo_data = &dev->i2c_bus[bus];
+> -	i2c_set_adapdata(&dev->i2c_adap[bus], &dev->v4l2_dev);
+> +	i2c_set_adapdata(&dev->i2c_adap[bus], dev);
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
-index 3b5ea30..f65d28d 100644
---- a/drivers/media/platform/davinci/vpif_capture.h
-+++ b/drivers/media/platform/davinci/vpif_capture.h
-@@ -19,8 +19,6 @@
- #ifndef VPIF_CAPTURE_H
- #define VPIF_CAPTURE_H
- 
--#ifdef __KERNEL__
--
- /* Header files */
- #include <media/videobuf2-dma-contig.h>
- #include <media/v4l2-device.h>
-@@ -121,5 +119,4 @@ struct vpif_device {
- 	struct vpif_capture_config *config;
- };
- 
--#endif				/* End of __KERNEL__ */
- #endif				/* VPIF_CAPTURE_H */
--- 
-1.7.9.5
+As far as I can see nobody is calling i2c_get_adapdata. Should this line be removed
+altogether?
+
+If it is used somewhere, can you point me that?
+
+I'm taking the other patches from this series (using the v2 version of patch 4/5) since
+those look fine.
+
+Regards,
+
+	Hans
+
+>  
+>  	retval = i2c_add_adapter(&dev->i2c_adap[bus]);
+>  	if (retval < 0) {
+> 
 
