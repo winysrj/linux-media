@@ -1,253 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4826 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752166AbaE1JJY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 May 2014 05:09:24 -0400
-Message-ID: <5385A798.8060707@xs4all.nl>
-Date: Wed, 28 May 2014 11:08:40 +0200
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2264 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756508AbaEIK4m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 06:56:42 -0400
+Message-ID: <536CB401.4090403@xs4all.nl>
+Date: Fri, 09 May 2014 12:54:57 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] smiapp: Implement the test pattern control
-References: <1401194628-31679-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1401194628-31679-1-git-send-email-sakari.ailus@linux.intel.com>
+To: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	Andy Walls <awalls@md.metrocast.net>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, ldv-project@linuxtesting.org
+Subject: Re: [PATCH] [media] ivtv: avoid GFP_KERNEL in atomic context
+References: <1398442477-28876-1-git-send-email-khoroshilov@ispras.ru>
+In-Reply-To: <1398442477-28876-1-git-send-email-khoroshilov@ispras.ru>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/27/14 14:43, Sakari Ailus wrote:
-> Add support for the V4L2_CID_TEST_PATTERN control. When the solid colour
-> mode is selected, additional controls become available for setting the
-> solid four solid colour components.
+On 04/25/2014 06:14 PM, Alexey Khoroshilov wrote:
+> ivtv_yuv_init() is used in atomic context,
+> so memory allocation should be done keeping that in mind.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/i2c/smiapp/smiapp-core.c | 120 +++++++++++++++++++++++++++++++--
->  drivers/media/i2c/smiapp/smiapp.h      |   4 ++
->  2 files changed, 120 insertions(+), 4 deletions(-)
+> Call graph for ivtv_yuv_init() is as follows:
+> - ivtv_yuv_next_free()
+>   - ivtv_yuv_prep_frame() [ioctl handler]
+>   - ivtv_yuv_setup_stream_frame()
+>     - ivtv_irq_dec_data_req() -> ivtv_irq_handler() [ATOMIC CONTEXT]
+>     - ivtv_yuv_udma_stream_frame() [with mutex held]
+>     - ivtv_write() [with mutex held]
 > 
-> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-> index 446c82c..025342c 100644
-> --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-> @@ -32,6 +32,7 @@
->  #include <linux/gpio.h>
->  #include <linux/module.h>
->  #include <linux/slab.h>
-> +#include <linux/smiapp.h>
->  #include <linux/regulator/consumer.h>
->  #include <linux/v4l2-mediabus.h>
->  #include <media/v4l2-device.h>
-> @@ -404,6 +405,52 @@ static void smiapp_update_mbus_formats(struct smiapp_sensor *sensor)
->  		pixel_order_str[pixel_order]);
->  }
->  
-> +static const char * const smiapp_test_patterns[] = {
-> +	"Disabled",
-> +	"Solid colour",
-> +	"Eight vertical colour bars",
-> +	"Colour bars with fade to grey",
-> +	"Pseudorandom sequence (PN9)",
-> +};
+> The patch adds gfp_t argument and implements its usage according to the context.
+> 
+> Found by Linux Driver Verification project (linuxtesting.org).
 
-Capitalize the strings (same rules as are used for book titles in english).
+I am hesitant to take this patch. I'm fairly certain that the call from the irq handler
+will never have to allocate memory (it will always be allocated already) so is this
+patch really needed? On the other hand, it certainly won't break anything.
 
-> +
-> +static const struct v4l2_ctrl_ops smiapp_ctrl_ops;
-> +
-> +static struct v4l2_ctrl_config
-> +smiapp_test_pattern_colours[SMIAPP_COLOUR_COMPONENTS] = {
-> +	{
-> +		&smiapp_ctrl_ops,
-> +		V4L2_CID_SMIAPP_TEST_PATTERN_RED,
-> +		"Solid red pixel value",
-> +		V4L2_CTRL_TYPE_INTEGER,
-> +		0, 0, 1, 0,
-> +		V4L2_CTRL_FLAG_INACTIVE, 0, NULL, NULL, 0
-> +	},
-> +	{
-> +		&smiapp_ctrl_ops,
-> +		V4L2_CID_SMIAPP_TEST_PATTERN_GREENR,
-> +		"Solid green (red) pixel value",
-> +		V4L2_CTRL_TYPE_INTEGER,
-> +		0, 0, 1, 0,
-> +		V4L2_CTRL_FLAG_INACTIVE, 0, NULL, NULL, 0
-> +	},
-> +	{
-> +		&smiapp_ctrl_ops,
-> +		V4L2_CID_SMIAPP_TEST_PATTERN_BLUE,
-> +		"Solid blue pixel value",
-> +		V4L2_CTRL_TYPE_INTEGER,
-> +		0, 0, 1, 0,
-> +		V4L2_CTRL_FLAG_INACTIVE, 0, NULL, NULL, 0
-> +	},
-> +	{
-> +		&smiapp_ctrl_ops,
-> +		V4L2_CID_SMIAPP_TEST_PATTERN_GREENB,
-> +		"Solid green (blue) pixel value",
-> +		V4L2_CTRL_TYPE_INTEGER,
-> +		0, 0, 1, 0,
-> +		V4L2_CTRL_FLAG_INACTIVE, 0, NULL, NULL, 0
-> +	},
-> +};
-
-Ditto for the control names.
-
-After that you can add my:
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Andy, what is your opinion on this?
 
 Regards,
 
 	Hans
 
-> +
->  static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
+> 
+> Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+> ---
+>  drivers/media/pci/ivtv/ivtv-fileops.c |  2 +-
+>  drivers/media/pci/ivtv/ivtv-irq.c     |  2 +-
+>  drivers/media/pci/ivtv/ivtv-yuv.c     | 16 ++++++++--------
+>  drivers/media/pci/ivtv/ivtv-yuv.h     |  2 +-
+>  4 files changed, 11 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/pci/ivtv/ivtv-fileops.c b/drivers/media/pci/ivtv/ivtv-fileops.c
+> index 9caffd8aa995..2e8885c245e7 100644
+> --- a/drivers/media/pci/ivtv/ivtv-fileops.c
+> +++ b/drivers/media/pci/ivtv/ivtv-fileops.c
+> @@ -689,7 +689,7 @@ retry:
+>  			int got_sig;
+>  
+>  			if (mode == OUT_YUV)
+> -				ivtv_yuv_setup_stream_frame(itv);
+> +				ivtv_yuv_setup_stream_frame(itv, GFP_KERNEL);
+>  
+>  			mutex_unlock(&itv->serialize_lock);
+>  			prepare_to_wait(&itv->dma_waitq, &wait, TASK_INTERRUPTIBLE);
+> diff --git a/drivers/media/pci/ivtv/ivtv-irq.c b/drivers/media/pci/ivtv/ivtv-irq.c
+> index 19a7c9b990a3..7a44f6b7aed4 100644
+> --- a/drivers/media/pci/ivtv/ivtv-irq.c
+> +++ b/drivers/media/pci/ivtv/ivtv-irq.c
+> @@ -822,7 +822,7 @@ static void ivtv_irq_dec_data_req(struct ivtv *itv)
+>  	}
+>  	else {
+>  		if (test_bit(IVTV_F_I_DEC_YUV, &itv->i_flags))
+> -			ivtv_yuv_setup_stream_frame(itv);
+> +			ivtv_yuv_setup_stream_frame(itv, GFP_ATOMIC);
+>  		clear_bit(IVTV_F_S_NEEDS_DATA, &s->s_flags);
+>  		ivtv_queue_move(s, &s->q_full, NULL, &s->q_predma, itv->dma_data_req_size);
+>  		ivtv_dma_stream_dec_prepare(s, itv->dma_data_req_offset + IVTV_DECODER_OFFSET, 0);
+> diff --git a/drivers/media/pci/ivtv/ivtv-yuv.c b/drivers/media/pci/ivtv/ivtv-yuv.c
+> index 2ad65eb29832..9bf47b89f8a0 100644
+> --- a/drivers/media/pci/ivtv/ivtv-yuv.c
+> +++ b/drivers/media/pci/ivtv/ivtv-yuv.c
+> @@ -854,7 +854,7 @@ void ivtv_yuv_work_handler(struct ivtv *itv)
+>  	yi->old_frame_info = f;
+>  }
+>  
+> -static void ivtv_yuv_init(struct ivtv *itv)
+> +static void ivtv_yuv_init(struct ivtv *itv, gfp_t gfp)
 >  {
->  	struct smiapp_sensor *sensor =
-> @@ -477,6 +524,35 @@ static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
+>  	struct yuv_playback_info *yi = &itv->yuv_info;
 >  
->  		return smiapp_pll_update(sensor);
->  
-> +	case V4L2_CID_TEST_PATTERN: {
-> +		unsigned int i;
-> +
-> +		for (i = 0; i < ARRAY_SIZE(smiapp_test_pattern_colours); i++)
-> +			v4l2_ctrl_activate(
-> +				sensor->test_data[i],
-> +				ctrl->val ==
-> +				V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR);
-> +
-> +		return smiapp_write(
-> +			sensor, SMIAPP_REG_U16_TEST_PATTERN_MODE, ctrl->val);
-> +	}
-> +
-> +	case V4L2_CID_SMIAPP_TEST_PATTERN_RED:
-> +		return smiapp_write(
-> +			sensor, SMIAPP_REG_U16_TEST_DATA_RED, ctrl->val);
-> +
-> +	case V4L2_CID_SMIAPP_TEST_PATTERN_GREENR:
-> +		return smiapp_write(
-> +			sensor, SMIAPP_REG_U16_TEST_DATA_GREENR, ctrl->val);
-> +
-> +	case V4L2_CID_SMIAPP_TEST_PATTERN_BLUE:
-> +		return smiapp_write(
-> +			sensor, SMIAPP_REG_U16_TEST_DATA_BLUE, ctrl->val);
-> +
-> +	case V4L2_CID_SMIAPP_TEST_PATTERN_GREENB:
-> +		return smiapp_write(
-> +			sensor, SMIAPP_REG_U16_TEST_DATA_GREENB, ctrl->val);
-> +
->  	default:
->  		return -EINVAL;
+> @@ -936,7 +936,7 @@ static void ivtv_yuv_init(struct ivtv *itv)
 >  	}
-> @@ -489,10 +565,10 @@ static const struct v4l2_ctrl_ops smiapp_ctrl_ops = {
->  static int smiapp_init_controls(struct smiapp_sensor *sensor)
+>  
+>  	/* We need a buffer for blanking when Y plane is offset - non-fatal if we can't get one */
+> -	yi->blanking_ptr = kzalloc(720 * 16, GFP_KERNEL|__GFP_NOWARN);
+> +	yi->blanking_ptr = kzalloc(720 * 16, gfp|__GFP_NOWARN);
+>  	if (yi->blanking_ptr) {
+>  		yi->blanking_dmaptr = pci_map_single(itv->pdev, yi->blanking_ptr, 720*16, PCI_DMA_TODEVICE);
+>  	} else {
+> @@ -952,13 +952,13 @@ static void ivtv_yuv_init(struct ivtv *itv)
+>  }
+>  
+>  /* Get next available yuv buffer on PVR350 */
+> -static void ivtv_yuv_next_free(struct ivtv *itv)
+> +static void ivtv_yuv_next_free(struct ivtv *itv, gfp_t gfp)
 >  {
->  	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
-> -	unsigned int max;
-> +	unsigned int max, i;
->  	int rval;
+>  	int draw, display;
+>  	struct yuv_playback_info *yi = &itv->yuv_info;
 >  
-> -	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 7);
-> +	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 12);
->  	if (rval)
->  		return rval;
->  	sensor->pixel_array->ctrl_handler.lock = &sensor->mutex;
-> @@ -535,6 +611,17 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
->  		&sensor->pixel_array->ctrl_handler, &smiapp_ctrl_ops,
->  		V4L2_CID_PIXEL_RATE, 0, 0, 1, 0);
+>  	if (atomic_read(&yi->next_dma_frame) == -1)
+> -		ivtv_yuv_init(itv);
+> +		ivtv_yuv_init(itv, gfp);
 >  
-> +	v4l2_ctrl_new_std_menu_items(&sensor->pixel_array->ctrl_handler,
-> +				     &smiapp_ctrl_ops, V4L2_CID_TEST_PATTERN,
-> +				     ARRAY_SIZE(smiapp_test_patterns) - 1,
-> +				     0, 0, smiapp_test_patterns);
-> +
-> +	for (i = 0; i < ARRAY_SIZE(smiapp_test_pattern_colours); i++)
-> +		sensor->test_data[i] =
-> +			v4l2_ctrl_new_custom(&sensor->pixel_array->ctrl_handler,
-> +					     &smiapp_test_pattern_colours[i],
-> +					     NULL);
-> +
->  	if (sensor->pixel_array->ctrl_handler.error) {
->  		dev_err(&client->dev,
->  			"pixel array controls initialization failed (%d)\n",
-> @@ -543,6 +630,14 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
->  		goto error;
->  	}
+>  	draw = atomic_read(&yi->next_fill_frame);
+>  	display = atomic_read(&yi->next_dma_frame);
+> @@ -1119,12 +1119,12 @@ static int ivtv_yuv_udma_frame(struct ivtv *itv, struct ivtv_dma_frame *args)
+>  }
 >  
-> +	for (i = 0; i < ARRAY_SIZE(smiapp_test_pattern_colours); i++) {
-> +		struct v4l2_ctrl *ctrl = sensor->test_data[i];
-> +
-> +		ctrl->maximum =
-> +			ctrl->default_value =
-> +			ctrl->cur.val = (1 << sensor->csi_format->width) - 1;
-> +	}
-> +
->  	sensor->pixel_array->sd.ctrl_handler =
->  		&sensor->pixel_array->ctrl_handler;
+>  /* Setup frame according to V4L2 parameters */
+> -void ivtv_yuv_setup_stream_frame(struct ivtv *itv)
+> +void ivtv_yuv_setup_stream_frame(struct ivtv *itv, gfp_t gfp)
+>  {
+>  	struct yuv_playback_info *yi = &itv->yuv_info;
+>  	struct ivtv_dma_frame dma_args;
 >  
-> @@ -1670,17 +1765,34 @@ static int smiapp_set_format(struct v4l2_subdev *subdev,
->  	if (fmt->pad == ssd->source_pad) {
->  		u32 code = fmt->format.code;
->  		int rval = __smiapp_get_format(subdev, fh, fmt);
-> +		bool range_changed = false;
-> +		unsigned int i;
+> -	ivtv_yuv_next_free(itv);
+> +	ivtv_yuv_next_free(itv, gfp);
 >  
->  		if (!rval && subdev == &sensor->src->sd) {
->  			const struct smiapp_csi_data_format *csi_format =
->  				smiapp_validate_csi_data_format(sensor, code);
-> -			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-> +
-> +			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> +				if (csi_format->width !=
-> +				    sensor->csi_format->width)
-> +					range_changed = true;
-> +
->  				sensor->csi_format = csi_format;
-> +			}
-> +
->  			fmt->format.code = csi_format->code;
->  		}
+>  	/* Copy V4L2 parameters to an ivtv_dma_frame struct... */
+>  	dma_args.y_source = NULL;
+> @@ -1151,7 +1151,7 @@ int ivtv_yuv_udma_stream_frame(struct ivtv *itv, void __user *src)
+>  	struct ivtv_dma_frame dma_args;
+>  	int res;
 >  
->  		mutex_unlock(&sensor->mutex);
-> -		return rval;
-> +		if (rval || !range_changed)
-> +			return rval;
-> +
-> +		for (i = 0; i < ARRAY_SIZE(smiapp_test_pattern_colours); i++)
-> +			v4l2_ctrl_modify_range(
-> +				sensor->test_data[i],
-> +				0, (1 << sensor->csi_format->width) - 1, 1, 0);
-> +
-> +		return 0;
->  	}
+> -	ivtv_yuv_setup_stream_frame(itv);
+> +	ivtv_yuv_setup_stream_frame(itv, GFP_KERNEL);
 >  
->  	/* Sink pad. Width and height are changeable here. */
-> diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
-> index 7cc5aae..874b49f 100644
-> --- a/drivers/media/i2c/smiapp/smiapp.h
-> +++ b/drivers/media/i2c/smiapp/smiapp.h
-> @@ -54,6 +54,8 @@
->  	(1000 +	(SMIAPP_RESET_DELAY_CLOCKS * 1000	\
->  		 + (clk) / 1000 - 1) / ((clk) / 1000))
+>  	/* We only need to supply source addresses for this */
+>  	dma_args.y_source = src;
+> @@ -1171,7 +1171,7 @@ int ivtv_yuv_prep_frame(struct ivtv *itv, struct ivtv_dma_frame *args)
+>  	int res;
 >  
-> +#define SMIAPP_COLOUR_COMPONENTS	4
-> +
->  #include "smiapp-limits.h"
+>  /*	IVTV_DEBUG_INFO("yuv_prep_frame\n"); */
+> -	ivtv_yuv_next_free(itv);
+> +	ivtv_yuv_next_free(itv, GFP_KERNEL);
+>  	ivtv_yuv_setup_frame(itv, args);
+>  	/* Wait for frame DMA. Note that serialize_lock is locked,
+>  	   so to allow other processes to access the driver while
+> diff --git a/drivers/media/pci/ivtv/ivtv-yuv.h b/drivers/media/pci/ivtv/ivtv-yuv.h
+> index ca5173fbf006..06753cfe64f3 100644
+> --- a/drivers/media/pci/ivtv/ivtv-yuv.h
+> +++ b/drivers/media/pci/ivtv/ivtv-yuv.h
+> @@ -34,7 +34,7 @@
+>  extern const u32 yuv_offset[IVTV_YUV_BUFFERS];
 >  
->  struct smiapp_quirk;
-> @@ -241,6 +243,8 @@ struct smiapp_sensor {
->  	/* src controls */
->  	struct v4l2_ctrl *link_freq;
->  	struct v4l2_ctrl *pixel_rate_csi;
-> +	/* test pattern colour components */
-> +	struct v4l2_ctrl *test_data[SMIAPP_COLOUR_COMPONENTS];
->  };
->  
->  #define to_smiapp_subdev(_sd)				\
+>  int ivtv_yuv_filter_check(struct ivtv *itv);
+> -void ivtv_yuv_setup_stream_frame(struct ivtv *itv);
+> +void ivtv_yuv_setup_stream_frame(struct ivtv *itv, gfp_t gfp);
+>  int ivtv_yuv_udma_stream_frame(struct ivtv *itv, void __user *src);
+>  void ivtv_yuv_frame_complete(struct ivtv *itv);
+>  int ivtv_yuv_prep_frame(struct ivtv *itv, struct ivtv_dma_frame *args);
 > 
 
