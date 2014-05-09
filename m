@@ -1,289 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4005 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756332AbaEIJRi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 05:17:38 -0400
-Message-ID: <536C9D1F.7040804@xs4all.nl>
-Date: Fri, 09 May 2014 11:17:19 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.226]:22258 "EHLO
+	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757382AbaEITkq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 May 2014 15:40:46 -0400
+Message-ID: <536D2EFF.2000508@austin.rr.com>
+Date: Fri, 09 May 2014 14:39:43 -0500
+From: Keith Pyle <kpyle@austin.rr.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
-	m.chehab@samsung.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 03/19] em28xx: start moving em28xx-v4l specific data to
- its own struct
-References: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com> <1395689605-2705-4-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1395689605-2705-4-git-send-email-fschaefer.oss@googlemail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Ryley Angus <ryleyjangus@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC] Fix interrupted recording with Hauppauge HD-PVR
+References: <C2340839-C85B-4DDF-8590-FA9049D6E65E@gmail.com> <5342B115.2070909@xs4all.nl> <007a01cf52db$253a7fe0$6faf7fa0$@gmail.com> <5344077D.4030809@austin.rr.com> <00e901cf534d$15fd4220$41f7c660$@gmail.com> <536CB747.7070809@xs4all.nl>
+In-Reply-To: <536CB747.7070809@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some comments for future improvements:
+On 05/09/14 06:08, Hans Verkuil wrote:
+> On 04/08/2014 07:07 PM, Ryley Angus wrote:
+>> Hi Kyle.
+>>
+>> It may be possible that the delay in acceptable grace periods is due to a
+>> difference in our input AV sources more so than the Hauppauge units
+>> themselves. I'm wondering if it would be useful to control the timeout
+>> period via a module parameter that defaults to 3 seconds perhaps?
+> It is OK for both of you if I set the timeout to 3 seconds in my patch? So it
+> will use "msecs_to_jiffies(3000));".
+>
+> If you can both confirm that that works, then I'll merge the patch.
+>
+> Sorry for being late with my reply, it's been busy lately :-)
+>
+> Regards,
+>
+> 	Hans
+>
+>> As far as the issues with concatenated output, I've just looked at the files
+>> containing a channel change and realized that VLC does show the duration as
+>> 0:00. Seeking with a keyboard isn't functional. Seeking with the timeline
+>> and a mouse is fine. Avidemux seems to have trouble editing the file. If I
+>> cut a section from a file that is from a single recording "session" it's
+>> duration is correct, sync is correct and audio properties are correct. I
+>> cannot cut across segments. MPC-HC also has duration issues with the
+>> recording.
+>>
+>> If I run the recordings through "ffmpeg -fflags +genpts -I <INPUT> -c:v copy
+>> -c:a copy <OUTPUT>", the resultant file duration is correct in VLC, I can
+>> seek with the keyboard and mouse and editing is perfect with Avidemux. But
+>> would it be better if the device just cleanly stopped recording instead of
+>> automatically resuming? Or, continuing with the module parameters idea,
+>> could we determine whether or not it will automatically restart based off a
+>> module parameter?
+>>
+>> I feel bad for not noticing the VLC issues earlier, but I mostly just use
+>> VLC to broadcast the recordings through my home network to client instances
+>> of VLC. This works well, but obviously seeking isn't relevant.
+>>
+>> ryley
+>>
+>> -----Original Message-----
+>> From: Keith Pyle [mailto:kpyle@austin.rr.com]
+>> Sent: Wednesday, April 09, 2014 12:28 AM
+>> To: Ryley Angus; 'Hans Verkuil'; linux-media@vger.kernel.org
+>> Subject: Re: [RFC] Fix interrupted recording with Hauppauge HD-PVR
+>>
+>> On 04/07/14 22:32, Ryley Angus wrote:
+>>> Thanks Hans for getting back to me.
+>>>
+>>> I've been trying out your patch and I found the device wasn't actually
+>>> restarting the streaming/recording properly after a channel change. I
+>>> changed "msecs_to_jiffies(500))" to "msecs_to_jiffies(1000))" and had
+>>> the same issue, but "msecs_to_jiffies(2000))"
+>>> seems to be working well. I'll let it keep going for a few more hours,
+>>> but at the moment it seems to be working well. The recordings can be
+>>> ended without anything hanging, and turning off the device ends the
+>>> recording properly (mine neglected this occurrence).
+>>>
+>>> I'll let you know if I have any more issues,
+>>>
+>>> ryley
+>>>
+>>> -----Original Message-----
+>>> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>>> Sent: Tuesday, April 08, 2014 12:07 AM
+>>> To: Ryley Angus; linux-media@vger.kernel.org
+>>> Subject: Re: [RFC] Fix interrupted recording with Hauppauge HD-PVR
+>>>
+>>> Hi Ryley,
+>>>
+>>> Thank you for the patch. Your analysis seems sound. The patch is
+>>> actually not bad for a first attempt, but I did it a bit differently.
+>>>
+>>> Can you test my patch?
+>>>
+>>> Regards,
+>>>
+>>> 	Hans
+>>>
+>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>
+>>> diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c
+>>> b/drivers/media/usb/hdpvr/hdpvr-video.c
+>>> index 0500c417..a61373e 100644
+>>> --- a/drivers/media/usb/hdpvr/hdpvr-video.c
+>>> +++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+>>> @@ -454,6 +454,8 @@ static ssize_t hdpvr_read(struct file *file, char
+>>> __user *buffer, size_t count,
+>>>    
+>>>    		if (buf->status != BUFSTAT_READY &&
+>>>    		    dev->status != STATUS_DISCONNECTED) {
+>>> +			int err;
+>>> +
+>>>    			/* return nonblocking */
+>>>    			if (file->f_flags & O_NONBLOCK) {
+>>>    				if (!ret)
+>>> @@ -461,11 +463,23 @@ static ssize_t hdpvr_read(struct file *file,
+>>> char __user *buffer, size_t count,
+>>>    				goto err;
+>>>    			}
+>>>    
+>>> -			if (wait_event_interruptible(dev->wait_data,
+>>> -					      buf->status == BUFSTAT_READY))
+>>> {
+>>> -				ret = -ERESTARTSYS;
+>>> +			err =
+>>> wait_event_interruptible_timeout(dev->wait_data,
+>>> +					      buf->status == BUFSTAT_READY,
+>>> +					      msecs_to_jiffies(500));
+>>> +			if (err < 0) {
+>>> +				ret = err;
+>>>    				goto err;
+>>>    			}
+>>> +			if (!err) {
+>>> +				v4l2_dbg(MSG_INFO, hdpvr_debug,
+>>> &dev->v4l2_dev,
+>>> +					"timeout: restart streaming\n");
+>>> +				hdpvr_stop_streaming(dev);
+>>> +				err = hdpvr_start_streaming(dev);
+>>> +				if (err) {
+>>> +					ret = err;
+>>> +					goto err;
+>>> +				}
+>>> +			}
+>>>    		}
+>>>    
+>>>    		if (buf->status != BUFSTAT_READY)
+>>>
+>>>
+>>> On 04/07/2014 02:04 AM, Ryley Angus wrote:
+>>>> (Sorry in advance for probably breaking a few conventions of the
+>>>> mailing lists. First time using one so please let me know what I'm
+>>>> doing wrong)
+>>>>
+>>>> I'm writing this because of an issue I had with my Hauppauge HD-PVR.
+>>>> I record from my satellite set top box using component video and
+>>>> optical audio input. I basically use "cat /dev/video0 > ~/video.ts"
+>>>> or use dd. The box is set to output audio as AC-3 over optical, but
+>>>> most channels are actually output as stereo PCM. When the channel is
+>>>> changed between a PCM channel and (typically to a movie channel) to a
+>>>> channel utilising AC-3, the HD-PVR stops the recording as the set top
+>>>> box momentarily outputs no audio. Changing between PCM channels
+>>>> doesn't cause any issues.
+>>>>
+>>>> My main problem was that when this happens, cat/dd doesn't actually
+>>>> exit. When going through the hdpvr driver source and the dmesg
+>>>> output, I found the hdpvr driver wasn't actually shutting down the
+>>>> device properly until I manually killed cat/dd.
+>>>>
+>>>> I've seen references to this issue being a hardware issue from as far
+>>>> back as 2010:
+>>>> http://forums.gbpvr.com/showthread.php?46429-HD-PVR-drops-recording-o
+>>>> n -channel-change-Hauppauge-says-too-bad
+>>>> .
+>>>>
+>>>> I tracked my issue to the file "hdpvr-video.c". Specifically, "if
+>>>> (wait_event_interruptible(dev->wait_data, buf->status =
+>>>> BUFSTAT_READY)) {" (line ~450). The device seems to get stuck waiting
+>>>> for the buffer to become ready. But as far as I can tell, when the
+>>>> channel is changed between a PCM and AC-3 broadcast the buffer status
+>>>> will never actually become ready.
+>>>>
+>>>> ...
+>> I've seen the same problem Ryley describes and handled it in user space with
+>> a cat-like program that could detect stalls and re-open the hdpvr device.
+>> This approach seems much better.  Kudos to both Ryley and Hans.
+>>
+>> I concur that the 500 ms. timeout is too small.  When testing my program, I
+>> tried using a variety of timeout values when I found that the HD-PVR seems
+>> to require some delay following a close before it is ready to respond.  In
+>> my tests, anything of 2.5 seconds or less was not reliable.  I only reached
+>> 100% re-open reliability with a 3 second timeout.  It may be that 2 seconds
+>> will work with the code Hans posted, but you may want to do some additional
+>> testing.  It is also possible that my HD-PVR is more sensitive to the
+>> timeout (i.e., slower to become ready).
+>>
+>> There is one other potential problem you may want to check.  With my
+>> user-space restart, the mpeg stream consists of two (or more) concatenated
+>> streams.  This causes some programs like vlc to have problems (e.g., doing
+>> forward jumps) since it only sees the length of the last of the streams.
+>> I'm not clear if this can also occur with your patch.
+>>
+>> Keith
+>>
+>>
+>>
+>>
+>> ---
+>> This email is free from viruses and malware because avast! Antivirus protection is active.
+>> http://www.avast.com
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+Yes, a 3-second timeout should be fine.  I'll be happy to test the 
+merged patch.
 
-On 03/24/2014 08:33 PM, Frank Schäfer wrote:
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-camera.c |   4 +-
->  drivers/media/usb/em28xx/em28xx-video.c  | 160 +++++++++++++++++++++----------
->  drivers/media/usb/em28xx/em28xx.h        |   8 +-
->  3 files changed, 116 insertions(+), 56 deletions(-)
-> 
-> diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
-> index 505e050..daebef3 100644
-> --- a/drivers/media/usb/em28xx/em28xx-camera.c
-> +++ b/drivers/media/usb/em28xx/em28xx-camera.c
-> @@ -365,7 +365,7 @@ int em28xx_init_camera(struct em28xx *dev)
->  		dev->sensor_xtal = 4300000;
->  		pdata.xtal = dev->sensor_xtal;
->  		if (NULL ==
-> -		    v4l2_i2c_new_subdev_board(&dev->v4l2_dev, adap,
-> +		    v4l2_i2c_new_subdev_board(&dev->v4l2->v4l2_dev, adap,
->  					      &mt9v011_info, NULL)) {
->  			ret = -ENODEV;
->  			break;
-> @@ -422,7 +422,7 @@ int em28xx_init_camera(struct em28xx *dev)
->  		dev->sensor_yres = 480;
->  
->  		subdev =
-> -		     v4l2_i2c_new_subdev_board(&dev->v4l2_dev, adap,
-> +		     v4l2_i2c_new_subdev_board(&dev->v4l2->v4l2_dev, adap,
->  					       &ov2640_info, NULL);
->  		if (NULL == subdev) {
->  			ret = -ENODEV;
-> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> index 45ad471..89947db 100644
-> --- a/drivers/media/usb/em28xx/em28xx-video.c
-> +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> @@ -189,10 +189,11 @@ static int em28xx_vbi_supported(struct em28xx *dev)
->   */
->  static void em28xx_wake_i2c(struct em28xx *dev)
->  {
-> -	v4l2_device_call_all(&dev->v4l2_dev, 0, core,  reset, 0);
-> -	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
-> +	struct v4l2_device *v4l2_dev = &dev->v4l2->v4l2_dev;
-> +	v4l2_device_call_all(v4l2_dev, 0, core,  reset, 0);
-> +	v4l2_device_call_all(v4l2_dev, 0, video, s_routing,
->  			INPUT(dev->ctl_input)->vmux, 0, 0);
-> -	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 0);
-> +	v4l2_device_call_all(v4l2_dev, 0, video, s_stream, 0);
->  }
->  
->  static int em28xx_colorlevels_set_default(struct em28xx *dev)
-> @@ -952,7 +953,8 @@ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
->  			f.type = V4L2_TUNER_RADIO;
->  		else
->  			f.type = V4L2_TUNER_ANALOG_TV;
-> -		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, &f);
-> +		v4l2_device_call_all(&dev->v4l2->v4l2_dev,
-> +				     0, tuner, s_frequency, &f);
->  	}
->  
->  	dev->streaming_users++;
-> @@ -1083,6 +1085,7 @@ static int em28xx_vb2_setup(struct em28xx *dev)
->  
->  static void video_mux(struct em28xx *dev, int index)
->  {
-> +	struct v4l2_device *v4l2_dev = &dev->v4l2->v4l2_dev;
->  	dev->ctl_input = index;
->  	dev->ctl_ainput = INPUT(index)->amux;
->  	dev->ctl_aoutput = INPUT(index)->aout;
-> @@ -1090,21 +1093,21 @@ static void video_mux(struct em28xx *dev, int index)
->  	if (!dev->ctl_aoutput)
->  		dev->ctl_aoutput = EM28XX_AOUT_MASTER;
->  
-> -	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
-> +	v4l2_device_call_all(v4l2_dev, 0, video, s_routing,
->  			INPUT(index)->vmux, 0, 0);
->  
->  	if (dev->board.has_msp34xx) {
->  		if (dev->i2s_speed) {
-> -			v4l2_device_call_all(&dev->v4l2_dev, 0, audio,
-> +			v4l2_device_call_all(v4l2_dev, 0, audio,
->  				s_i2s_clock_freq, dev->i2s_speed);
->  		}
->  		/* Note: this is msp3400 specific */
-> -		v4l2_device_call_all(&dev->v4l2_dev, 0, audio, s_routing,
-> +		v4l2_device_call_all(v4l2_dev, 0, audio, s_routing,
->  			 dev->ctl_ainput, MSP_OUTPUT(MSP_SC_IN_DSP_SCART1), 0);
->  	}
->  
->  	if (dev->board.adecoder != EM28XX_NOADECODER) {
-> -		v4l2_device_call_all(&dev->v4l2_dev, 0, audio, s_routing,
-> +		v4l2_device_call_all(v4l2_dev, 0, audio, s_routing,
->  			dev->ctl_ainput, dev->ctl_aoutput, 0);
->  	}
->  
-> @@ -1344,7 +1347,7 @@ static int vidioc_querystd(struct file *file, void *priv, v4l2_std_id *norm)
->  	struct em28xx_fh   *fh  = priv;
->  	struct em28xx      *dev = fh->dev;
->  
-> -	v4l2_device_call_all(&dev->v4l2_dev, 0, video, querystd, norm);
-> +	v4l2_device_call_all(&dev->v4l2->v4l2_dev, 0, video, querystd, norm);
->  
->  	return 0;
->  }
-> @@ -1374,7 +1377,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
->  	size_to_scale(dev, dev->width, dev->height, &dev->hscale, &dev->vscale);
->  
->  	em28xx_resolution_set(dev);
-> -	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
-> +	v4l2_device_call_all(&dev->v4l2->v4l2_dev, 0, core, s_std, dev->norm);
->  
->  	return 0;
->  }
-> @@ -1388,7 +1391,7 @@ static int vidioc_g_parm(struct file *file, void *priv,
->  
->  	p->parm.capture.readbuffers = EM28XX_MIN_BUF;
->  	if (dev->board.is_webcam)
-> -		rc = v4l2_device_call_until_err(&dev->v4l2_dev, 0,
-> +		rc = v4l2_device_call_until_err(&dev->v4l2->v4l2_dev, 0,
->  						video, g_parm, p);
->  	else
->  		v4l2_video_std_frame_period(dev->norm,
-> @@ -1404,7 +1407,8 @@ static int vidioc_s_parm(struct file *file, void *priv,
->  	struct em28xx      *dev = fh->dev;
->  
->  	p->parm.capture.readbuffers = EM28XX_MIN_BUF;
-> -	return v4l2_device_call_until_err(&dev->v4l2_dev, 0, video, s_parm, p);
-> +	return v4l2_device_call_until_err(&dev->v4l2->v4l2_dev,
-> +					  0, video, s_parm, p);
->  }
->  
->  static const char *iname[] = {
-> @@ -1543,7 +1547,7 @@ static int vidioc_g_tuner(struct file *file, void *priv,
->  
->  	strcpy(t->name, "Tuner");
->  
-> -	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_tuner, t);
-> +	v4l2_device_call_all(&dev->v4l2->v4l2_dev, 0, tuner, g_tuner, t);
->  	return 0;
->  }
->  
-> @@ -1556,7 +1560,7 @@ static int vidioc_s_tuner(struct file *file, void *priv,
->  	if (0 != t->index)
->  		return -EINVAL;
->  
-> -	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_tuner, t);
-> +	v4l2_device_call_all(&dev->v4l2->v4l2_dev, 0, tuner, s_tuner, t);
->  	return 0;
->  }
->  
-> @@ -1576,15 +1580,16 @@ static int vidioc_g_frequency(struct file *file, void *priv,
->  static int vidioc_s_frequency(struct file *file, void *priv,
->  				const struct v4l2_frequency *f)
->  {
-> -	struct v4l2_frequency new_freq = *f;
-> -	struct em28xx_fh      *fh  = priv;
-> -	struct em28xx         *dev = fh->dev;
-> +	struct v4l2_frequency  new_freq = *f;
-> +	struct em28xx_fh          *fh   = priv;
-> +	struct em28xx             *dev  = fh->dev;
-> +	struct em28xx_v4l2        *v4l2 = dev->v4l2;
->  
->  	if (0 != f->tuner)
->  		return -EINVAL;
->  
-> -	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, f);
-> -	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_frequency, &new_freq);
-> +	v4l2_device_call_all(&v4l2->v4l2_dev, 0, tuner, s_frequency, f);
-> +	v4l2_device_call_all(&v4l2->v4l2_dev, 0, tuner, g_frequency, &new_freq);
->  	dev->ctl_freq = new_freq.frequency;
->  
->  	return 0;
-> @@ -1602,7 +1607,8 @@ static int vidioc_g_chip_info(struct file *file, void *priv,
->  	if (chip->match.addr == 1)
->  		strlcpy(chip->name, "ac97", sizeof(chip->name));
->  	else
-> -		strlcpy(chip->name, dev->v4l2_dev.name, sizeof(chip->name));
-> +		strlcpy(chip->name,
-> +			dev->v4l2->v4l2_dev.name, sizeof(chip->name));
->  	return 0;
->  }
->  
-> @@ -1814,7 +1820,7 @@ static int radio_g_tuner(struct file *file, void *priv,
->  
->  	strcpy(t->name, "Radio");
->  
-> -	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_tuner, t);
-> +	v4l2_device_call_all(&dev->v4l2->v4l2_dev, 0, tuner, g_tuner, t);
->  
->  	return 0;
->  }
-> @@ -1827,12 +1833,26 @@ static int radio_s_tuner(struct file *file, void *priv,
->  	if (0 != t->index)
->  		return -EINVAL;
->  
-> -	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_tuner, t);
-> +	v4l2_device_call_all(&dev->v4l2->v4l2_dev, 0, tuner, s_tuner, t);
->  
->  	return 0;
->  }
->  
->  /*
-> + * em28xx_free_v4l2() - Free struct em28xx_v4l2
-> + *
-> + * @ref: struct kref for struct em28xx_v4l2
-> + *
-> + * Called when all users of struct em28xx_v4l2 are gone
-> + */
-> +void em28xx_free_v4l2(struct kref *ref)
-> +{
-> +	struct em28xx_v4l2 *v4l2 = container_of(ref, struct em28xx_v4l2, ref);
-> +
-> +	kfree(v4l2);
-> +}
-> +
-> +/*
->   * em28xx_v4l2_open()
->   * inits the device and starts isoc transfer
->   */
-> @@ -1840,6 +1860,7 @@ static int em28xx_v4l2_open(struct file *filp)
->  {
->  	struct video_device *vdev = video_devdata(filp);
->  	struct em28xx *dev = video_drvdata(filp);
-> +	struct em28xx_v4l2 *v4l2 = dev->v4l2;
->  	enum v4l2_buf_type fh_type = 0;
->  	struct em28xx_fh *fh;
->  
-> @@ -1888,10 +1909,11 @@ static int em28xx_v4l2_open(struct file *filp)
->  
->  	if (vdev->vfl_type == VFL_TYPE_RADIO) {
->  		em28xx_videodbg("video_open: setting radio device\n");
-> -		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_radio);
-> +		v4l2_device_call_all(&v4l2->v4l2_dev, 0, tuner, s_radio);
->  	}
->  
->  	kref_get(&dev->ref);
-> +	kref_get(&v4l2->ref);
-
-I never like these kref things. Especially for usb devices I strongly recommend
-using the release() callback from v4l2_device instead: this callback will only
-be called once all references to video_device nodes have been closed. In other
-words, only once all filehandles to /dev/videoX (and radio, vbi etc) are closed
-will the release callback be called.
-
-As such it is a perfect place to put the final cleanup, and there is no more need
-to mess around with krefs.
-
-
->  	dev->users++;
-
-The same for these user counters. You can use v4l2_fh_is_singular_file() to check
-if the file open is the first file. However, this function assumes that v4l2_fh_add
-has been called first.
-
-So for this driver it might be easier if we add a v4l2_fh_is_empty() to v4l2-fh.c
-so we can call this before v4l2_fh_add.
-
-For that matter, you can almost certainly remove struct em28xx_fh altogether.
-The type field of that struct can be determined by vdev->vfl_type and 'dev' can be
-obtained via video_get_drvdata().
-
-Regards,
-
-	Hans
-
->  
->  	mutex_unlock(&dev->lock);
-
+Keith
