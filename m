@@ -1,142 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f179.google.com ([209.85.220.179]:43463 "EHLO
-	mail-vc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932948AbaEaNOq (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50231 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750702AbaEINq0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 May 2014 09:14:46 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 9/11] drivers/media: Remove useless return variables
-Date: Sat, 31 May 2014 10:14:09 -0300
-Message-Id: <1401542051-3174-9-git-send-email-peter.senna@gmail.com>
+	Fri, 9 May 2014 09:46:26 -0400
+Date: Fri, 9 May 2014 16:46:22 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: V4L control units
+Message-ID: <20140509134622.GK8753@valkosipuli.retiisi.org.uk>
+References: <536A2DA7.7050803@iki.fi>
+ <20140508090446.GG8753@valkosipuli.retiisi.org.uk>
+ <536CD0A9.4020904@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <536CD0A9.4020904@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch remove variables that are initialized with a constant,
-are never updated, and are only used as parameter of return.
-Return the constant instead of using a variable.
+Hi Hans,
 
-Verified by compilation only.
+On Fri, May 09, 2014 at 02:57:13PM +0200, Hans Verkuil wrote:
+> On 05/08/2014 11:04 AM, Sakari Ailus wrote:
+> > Heippa!
+> > 
+> > On Wed, May 07, 2014 at 03:57:11PM +0300, Antti Palosaari wrote:
+> >> What is preferred way implement controls that could have some known
+> >> unit or unknown unit? For example for gain controls, I would like to
+> >> offer gain in unit of dB (decibel) and also some unknown driver
+> >> specific unit. Should I two controls, one for each unit?
+> >>
+> >> Like that
+> >>
+> >> V4L2_CID_RF_TUNER_LNA_GAIN_AUTO
+> >> V4L2_CID_RF_TUNER_LNA_GAIN
+> >> V4L2_CID_RF_TUNER_LNA_GAIN_dB
+> > 
+> > I suppose that on any single device there would be a single unit to control
+> > a given... control. Some existing controls do document the unit as well but
+> > I don't think that's scalable nor preferrable. This way we'd have many
+> > different controls to control the same thing but just using a different
+> > unit. The auto control is naturally different. Hans did have a patch to add
+> > the unit to queryctrl (in the form of QUERY_EXT_CTRL).
+> 
+> Well, that's going to be dropped again. There were too many comments about
+> that during the mini-summit and it was not critical for me.
 
-The coccinelle script that find and fixes this issue is:
-// <smpl>
-@@
-type T;
-constant C;
-identifier ret;
-@@
-- T ret = C;
-... when != ret
-    when strict
-return
-- ret
-+ C
-;
-// </smpl>
+Ok. Thanks for the information.
 
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+> > <URL:http://www.spinics.net/lists/linux-media/msg73136.html>
+> > 
+> > I wish we can get these in relatively soon.
+> 
+> Sakari, I think you will have to push this if you want this done.
 
----
- drivers/media/pci/ngene/ngene-core.c      |   11 ++---------
- drivers/media/usb/cx231xx/cx231xx-video.c |   11 +++++------
- 2 files changed, 7 insertions(+), 15 deletions(-)
+Ack. I think I proposed something like this already a few years ago so I'm
+fine picking it up. :-) Now it's a good time to add the required space in
+the struct as we're going to have a new IOCTL anyway.
 
-diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
-index 970e833..d8435a5 100644
---- a/drivers/media/pci/ngene/ngene-core.c
-+++ b/drivers/media/pci/ngene/ngene-core.c
-@@ -910,7 +910,6 @@ static int AllocateRingBuffers(struct pci_dev *pci_dev,
- {
- 	dma_addr_t tmp;
- 	u32 i, j;
--	int status = 0;
- 	u32 SCListMemSize = pRingBuffer->NumBuffers
- 		* ((Buffer2Length != 0) ? (NUM_SCATTER_GATHER_ENTRIES * 2) :
- 		    NUM_SCATTER_GATHER_ENTRIES)
-@@ -1010,18 +1009,12 @@ static int AllocateRingBuffers(struct pci_dev *pci_dev,
- 
- 	}
- 
--	return status;
-+	return 0;
- }
- 
- static int FillTSIdleBuffer(struct SRingBufferDescriptor *pIdleBuffer,
- 			    struct SRingBufferDescriptor *pRingBuffer)
- {
--	int status = 0;
--
--	/* Copy pointer to scatter gather list in TSRingbuffer
--	   structure for buffer 2
--	   Load number of buffer
--	*/
- 	u32 n = pRingBuffer->NumBuffers;
- 
- 	/* Point to first buffer entry */
-@@ -1038,7 +1031,7 @@ static int FillTSIdleBuffer(struct SRingBufferDescriptor *pIdleBuffer,
- 			pIdleBuffer->Head->ngeneBuffer.Number_of_entries_1;
- 		Cur = Cur->Next;
- 	}
--	return status;
-+	return 0;
- }
- 
- static u32 RingBufferSizes[MAX_STREAM] = {
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 1f87513..cba7fea 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -208,7 +208,7 @@ static inline void get_next_buf(struct cx231xx_dmaqueue *dma_q,
- static inline int cx231xx_isoc_copy(struct cx231xx *dev, struct urb *urb)
- {
- 	struct cx231xx_dmaqueue *dma_q = urb->context;
--	int i, rc = 1;
-+	int i;
- 	unsigned char *p_buffer;
- 	u32 bytes_parsed = 0, buffer_size = 0;
- 	u8 sav_eav = 0;
-@@ -299,13 +299,12 @@ static inline int cx231xx_isoc_copy(struct cx231xx *dev, struct urb *urb)
- 		bytes_parsed = 0;
- 
- 	}
--	return rc;
-+	return 1;
- }
- 
- static inline int cx231xx_bulk_copy(struct cx231xx *dev, struct urb *urb)
- {
- 	struct cx231xx_dmaqueue *dma_q = urb->context;
--	int rc = 1;
- 	unsigned char *p_buffer;
- 	u32 bytes_parsed = 0, buffer_size = 0;
- 	u8 sav_eav = 0;
-@@ -379,7 +378,7 @@ static inline int cx231xx_bulk_copy(struct cx231xx *dev, struct urb *urb)
- 		bytes_parsed = 0;
- 
- 	}
--	return rc;
-+	return 1;
- }
- 
- 
-@@ -1620,7 +1619,7 @@ static int radio_s_tuner(struct file *file, void *priv, const struct v4l2_tuner
-  */
- static int cx231xx_v4l2_open(struct file *filp)
- {
--	int errCode = 0, radio = 0;
-+	int radio = 0;
- 	struct video_device *vdev = video_devdata(filp);
- 	struct cx231xx *dev = video_drvdata(filp);
- 	struct cx231xx_fh *fh;
-@@ -1718,7 +1717,7 @@ static int cx231xx_v4l2_open(struct file *filp)
- 	mutex_unlock(&dev->lock);
- 	v4l2_fh_add(&fh->fh);
- 
--	return errCode;
-+	return 0;
- }
- 
- /*
+> One interesting thing to look at: the AVB IEEE 1722.1 standard has extensive
+> support for all sorts of units. I don't know if you have access to the standard
+> document, but it might be interesting to look at what they do there.
 
+I have access to it but I don't see this would be that interesting in
+regards to what we're doing. In any case, we should document the units so
+that different drivers end up using exactly the same string to signal a
+particular unit.
+
+I prefer to have a prefix as well: a lot of hardware devices use binary
+fractions so that even if we provide an integer control to the user the
+actual control value may well be divided by e.g. 256. That is a somewhat
+separate topic still.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
