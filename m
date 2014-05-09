@@ -1,83 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:40337 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753204AbaETKeG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 May 2014 06:34:06 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: kernel-janitors@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 6/8] USB: as102_usb_drv.c: Remove useless return variables
-Date: Tue, 20 May 2014 12:33:46 +0200
-Message-Id: <1400582028-24990-6-git-send-email-peter.senna@gmail.com>
+Received: from smtp04.udag.de ([62.146.106.30]:54768 "EHLO smtp04.udag.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754207AbaEIB40 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 May 2014 21:56:26 -0400
+Received: from [192.168.0.10] (ip-5-146-193-63.unitymediagroup.de [5.146.193.63])
+	by smtp04.udag.de (Postfix) with ESMTPA id 52DCE3FCAB
+	for <linux-media@vger.kernel.org>; Fri,  9 May 2014 03:48:52 +0200 (CEST)
+Message-ID: <536C3403.8010402@cevel.net>
+Date: Fri, 09 May 2014 03:48:51 +0200
+From: Tolga Cakir <tolga@cevel.net>
+Reply-To: tolga@cevel.net
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Support for Elgato Game Capture HD / MStar MST3367CMK
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch remove variables that are initialized with a constant,
-are never updated, and are only used as parameter of return.
-Return the constant instead of using a variable.
+Hello everyone!
 
-Verified by compilation only.
+Over the past weeks, I've been busy capturing USB packets between the 
+Elgato Game Capture HD and my PC. It's using the MStar MST3367CMK chip, 
+which seems to have proprietary Linux support available only for 
+hardware vendors in form of an SDK. Problem is, that this SDK is 
+strictly kept under an NDA, making it kinda impossible for us to get our 
+hands on.
 
-The coccinelle script that find and fixes this issue is:
-// <smpl>
-@@
-type T;
-constant C;
-identifier ret;
-@@
-- T ret = C;
-... when != ret
-- return ret;
-+ return C;
-// </smpl>
+So, I got my hands dirty and have found some very good stuff! First of 
+all, in contrast to many sources, the Elgato Game Capture HD outputs 
+compressed video and audio via USB! It's already encoded, so there is no 
+need for reencoding, this will save CPU power. For testing purposes, 
+I've only tried capturing 720p data for now, but this should be more 
+than enough.
 
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+Basically, we need to read raw USB traffic, write an MPEG-TS file 
+header, put in the raw USB data and close the file. I'm not super 
+experienced in C / kernel development (especially V4L), but I'll give my 
+best to get this project forward. My next step is getting a prototype 
+working with libusb in userland; after that's done, I'll try porting it 
+over to kernel / V4L.
 
----
- drivers/staging/media/as102/as102_usb_drv.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+Project page can be found here:
+https://github.com/tolga9009/elgato-gchd
 
-diff --git a/drivers/staging/media/as102/as102_usb_drv.c b/drivers/staging/media/as102/as102_usb_drv.c
-index e4a6945..e6f6278 100644
---- a/drivers/staging/media/as102/as102_usb_drv.c
-+++ b/drivers/staging/media/as102/as102_usb_drv.c
-@@ -249,7 +249,7 @@ static void as102_free_usb_stream_buffer(struct as102_dev_t *dev)
- 
- static int as102_alloc_usb_stream_buffer(struct as102_dev_t *dev)
- {
--	int i, ret = 0;
-+	int i;
- 
- 	dev->stream = usb_alloc_coherent(dev->bus_adap.usb_dev,
- 				       MAX_STREAM_URB * AS102_USB_BUF_SIZE,
-@@ -280,7 +280,7 @@ static int as102_alloc_usb_stream_buffer(struct as102_dev_t *dev)
- 
- 		dev->stream_urb[i] = urb;
- 	}
--	return ret;
-+	return 0;
- }
- 
- static void as102_usb_stop_stream(struct as102_dev_t *dev)
-@@ -458,7 +458,6 @@ exit:
- 
- static int as102_release(struct inode *inode, struct file *file)
- {
--	int ret = 0;
- 	struct as102_dev_t *dev = NULL;
- 
- 	dev = file->private_data;
-@@ -467,7 +466,7 @@ static int as102_release(struct inode *inode, struct file *file)
- 		kref_put(&dev->kref, as102_usb_release);
- 	}
- 
--	return ret;
-+	return 0;
- }
- 
- MODULE_DEVICE_TABLE(usb, as102_usb_id_table);
+USB logs and docs:
+v1.0 as 7zip: https://docs.google.com/file/d/0B29z6-xPIPLEQVBMTWZHbUswYjg
+v1.0 as rar: https://docs.google.com/file/d/0B29z6-xPIPLEcENMWnh1MklPdTQ
+v1.0 as zip: https://docs.google.com/file/d/0B29z6-xPIPLEQWtibWk3T3AtVjA
 
+Is anyone interested in getting involved / taking over? Overall, it 
+seems doable and not too complex. I'd be happy about any help! Also, if 
+you need more information, just ask me. I'll provide you everything I 
+have about this little device.
+
+Cheers,
+Tolga Cakir
