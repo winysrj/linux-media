@@ -1,76 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f178.google.com ([209.85.213.178]:47479 "EHLO
-	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751324AbaEGEi7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 May 2014 00:38:59 -0400
-MIME-Version: 1.0
-In-Reply-To: <20140505083856.GZ8753@valkosipuli.retiisi.org.uk>
-References: <1408657.25U3i1DfG3@daeseok-laptop.cloud.net>
-	<20140415093305.GE8753@valkosipuli.retiisi.org.uk>
-	<CAHb8M2CECG7ydo9L2u5BOcQeq8V3=ydy149kCLkoueo+HbD6fg@mail.gmail.com>
-	<20140505083856.GZ8753@valkosipuli.retiisi.org.uk>
-Date: Wed, 7 May 2014 13:38:58 +0900
-Message-ID: <CAHb8M2D5C-w3+_gWHOnJRXnjwMhtMYKNLnQwtX3wuGXZN=heng@mail.gmail.com>
-Subject: Re: [PATCH] [media] s2255drv: fix memory leak s2255_probe()
-From: DaeSeok Youn <daeseok.youn@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: m.chehab@samsung.com, linux-dev@sensoray.com,
-	hans.verkuil@cisco.com, linux-media@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:61926 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751992AbaEIINA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 04:13:00 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N5A00LS7S5NJG80@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 09 May 2014 04:12:59 -0400 (EDT)
+Date: Fri, 09 May 2014 05:12:53 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: "Changbing Xiong"@pop3.w2.samsung.net, dheitmueller@kernellabs.com
+Cc: linux-media@vger.kernel.org, Changbing Xiong <cb.xiong@samsung.com>
+Subject: Re: [PATCH] au0828: Cancel stream-restart operation if frontend is
+ disconnected
+Message-id: <20140509051253.0417fc38.m.chehab@samsung.com>
+In-reply-to: <1399611251-7746-1-git-send-email-cb.xiong@samsung.com>
+References: <1399611251-7746-1-git-send-email-cb.xiong@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Em Fri, 09 May 2014 12:54:11 +0800
+Changbing Xiong@pop3.w2.samsung.net escreveu:
 
-2014-05-05 17:38 GMT+09:00 Sakari Ailus <sakari.ailus@iki.fi>:
-> On Tue, Apr 15, 2014 at 07:54:43PM +0900, DaeSeok Youn wrote:
->> Hi, Sakari
->>
->> 2014-04-15 18:33 GMT+09:00 Sakari Ailus <sakari.ailus@iki.fi>:
->> > Hi Daeseok,
->> >
->> > On Tue, Apr 15, 2014 at 01:49:34PM +0900, Daeseok Youn wrote:
->> >>
->> >> smatch says:
->> >>  drivers/media/usb/s2255/s2255drv.c:2246 s2255_probe() warn:
->> >> possible memory leak of 'dev'
->> >>
->> >> Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
->> >> ---
->> >>  drivers/media/usb/s2255/s2255drv.c |    1 +
->> >>  1 files changed, 1 insertions(+), 0 deletions(-)
->> >>
->> >> diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
->> >> index 1d4ba2b..8aca3ef 100644
->> >> --- a/drivers/media/usb/s2255/s2255drv.c
->> >> +++ b/drivers/media/usb/s2255/s2255drv.c
->> >> @@ -2243,6 +2243,7 @@ static int s2255_probe(struct usb_interface *interface,
->> >>       dev->cmdbuf = kzalloc(S2255_CMDBUF_SIZE, GFP_KERNEL);
->> >>       if (dev->cmdbuf == NULL) {
->> >>               s2255_dev_err(&interface->dev, "out of memory\n");
->> >> +             kfree(dev);
->> >>               return -ENOMEM;
->> >>       }
->> >>
->> >
->> > The rest of the function already uses goto and labels for error handling. I
->> > think it'd take adding one more. dev is correctly released in other error
->> > cases.
->> I am not sure that adding a new label for error handling when
->> allocation for dev->cmdbuf is failed.
->> I think it is ok to me. :-) Because I think it is not good adding a
->> new label and use goto statement for this.
->
-> I can ack this if you use the same pattern for error handling that's already
-> there.
-But it has a redundant kfree() call for dev->cmdbuf when it failed to
-allocate, right?
-If it is ok, I send this again after fixing as your comment.
+> From: Changbing Xiong <cb.xiong@samsung.com>
+> 
+> If the tuner is already disconnected, It is meaningless to go on doing the
+> stream-restart operation, It is better to cancel this operation.
+> 
+> Signed-off-by: Changbing Xiong <cb.xiong@samsung.com>
+> ---
+>  drivers/media/usb/au0828/au0828-dvb.c |    2 ++
+>  1 file changed, 2 insertions(+)
+>  mode change 100644 => 100755 drivers/media/usb/au0828/au0828-dvb.c
+> 
+> diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
+> old mode 100644
+> new mode 100755
+> index 9a6f156..fd8e798
+> --- a/drivers/media/usb/au0828/au0828-dvb.c
+> +++ b/drivers/media/usb/au0828/au0828-dvb.c
+> @@ -403,6 +403,8 @@ void au0828_dvb_unregister(struct au0828_dev *dev)
+>  	if (dvb->frontend == NULL)
+>  		return;
+> 
+> +	cancel_work_sync(&dev->restart_streaming);
+> +
+>  	dvb_net_release(&dvb->net);
+>  	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_mem);
+>  	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_hw);
 
-Thanks.
-Daeseok Youn.
->
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+Seems ok on my eyes.
+
+Btw, I think we should also call cancel_work_sync() on other
+places. On some tests I did with this frontend last week, things
+sometimes get badly when switching from one channel to another one,
+or doing channel scan.
+
+This thread could be the culprit. Unfortunately, I can't test it
+ATM, as I'm in a business trip this week.
+
+Anyway, from a theoretical perspective, it seems logical that
+call cancel_work_sync() should also be called when:
+	- stop_urb_transfer() is called;
+	- when a new tuning starts.
+
+For the second one, the patch should be somewhat similar to what 
+cx23885_set_frontend_hook() does, e. g. hooking the 
+fe->ops.set_frontend, in order to call cancel_work_sync() before setting
+the frontend parameters for the next frequency to zap. Due to the 
+DVB zigzag algorithm, I suspect that this could even improve channel
+scanning.
+
+Devin,
+
+What do you think?
+
+Thanks,
+Mauro
