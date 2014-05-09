@@ -1,92 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:57400 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932218AbaE1JA6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 May 2014 05:00:58 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH 1/1] smiapp: Add driver-specific control class, test pattern controls
-Date: Wed, 28 May 2014 12:00:38 +0300
-Message-Id: <1401267638-7606-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1401194628-31679-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1401194628-31679-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4005 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756332AbaEIJRi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 05:17:38 -0400
+Message-ID: <536C9D1F.7040804@xs4all.nl>
+Date: Fri, 09 May 2014 11:17:19 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
+	m.chehab@samsung.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 03/19] em28xx: start moving em28xx-v4l specific data to
+ its own struct
+References: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com> <1395689605-2705-4-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1395689605-2705-4-git-send-email-fschaefer.oss@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add smiapp driver specific control sub-class for test pattern controls. More
-controls are expected since a fair amount of the standard functionality is
-still unsupported. There are sensor model specific functionality as well and
-expectedly thus also sensor specific controls. So reserve 128 controls for
-this driver.
+Some comments for future improvements:
 
-This patch also adds test pattern controls for the four colour components.
+On 03/24/2014 08:33 PM, Frank Schäfer wrote:
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-camera.c |   4 +-
+>  drivers/media/usb/em28xx/em28xx-video.c  | 160 +++++++++++++++++++++----------
+>  drivers/media/usb/em28xx/em28xx.h        |   8 +-
+>  3 files changed, 116 insertions(+), 56 deletions(-)
+> 
+> diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
+> index 505e050..daebef3 100644
+> --- a/drivers/media/usb/em28xx/em28xx-camera.c
+> +++ b/drivers/media/usb/em28xx/em28xx-camera.c
+> @@ -365,7 +365,7 @@ int em28xx_init_camera(struct em28xx *dev)
+>  		dev->sensor_xtal = 4300000;
+>  		pdata.xtal = dev->sensor_xtal;
+>  		if (NULL ==
+> -		    v4l2_i2c_new_subdev_board(&dev->v4l2_dev, adap,
+> +		    v4l2_i2c_new_subdev_board(&dev->v4l2->v4l2_dev, adap,
+>  					      &mt9v011_info, NULL)) {
+>  			ret = -ENODEV;
+>  			break;
+> @@ -422,7 +422,7 @@ int em28xx_init_camera(struct em28xx *dev)
+>  		dev->sensor_yres = 480;
+>  
+>  		subdev =
+> -		     v4l2_i2c_new_subdev_board(&dev->v4l2_dev, adap,
+> +		     v4l2_i2c_new_subdev_board(&dev->v4l2->v4l2_dev, adap,
+>  					       &ov2640_info, NULL);
+>  		if (NULL == subdev) {
+>  			ret = -ENODEV;
+> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> index 45ad471..89947db 100644
+> --- a/drivers/media/usb/em28xx/em28xx-video.c
+> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> @@ -189,10 +189,11 @@ static int em28xx_vbi_supported(struct em28xx *dev)
+>   */
+>  static void em28xx_wake_i2c(struct em28xx *dev)
+>  {
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, core,  reset, 0);
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
+> +	struct v4l2_device *v4l2_dev = &dev->v4l2->v4l2_dev;
+> +	v4l2_device_call_all(v4l2_dev, 0, core,  reset, 0);
+> +	v4l2_device_call_all(v4l2_dev, 0, video, s_routing,
+>  			INPUT(dev->ctl_input)->vmux, 0, 0);
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 0);
+> +	v4l2_device_call_all(v4l2_dev, 0, video, s_stream, 0);
+>  }
+>  
+>  static int em28xx_colorlevels_set_default(struct em28xx *dev)
+> @@ -952,7 +953,8 @@ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
+>  			f.type = V4L2_TUNER_RADIO;
+>  		else
+>  			f.type = V4L2_TUNER_ANALOG_TV;
+> -		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, &f);
+> +		v4l2_device_call_all(&dev->v4l2->v4l2_dev,
+> +				     0, tuner, s_frequency, &f);
+>  	}
+>  
+>  	dev->streaming_users++;
+> @@ -1083,6 +1085,7 @@ static int em28xx_vb2_setup(struct em28xx *dev)
+>  
+>  static void video_mux(struct em28xx *dev, int index)
+>  {
+> +	struct v4l2_device *v4l2_dev = &dev->v4l2->v4l2_dev;
+>  	dev->ctl_input = index;
+>  	dev->ctl_ainput = INPUT(index)->amux;
+>  	dev->ctl_aoutput = INPUT(index)->aout;
+> @@ -1090,21 +1093,21 @@ static void video_mux(struct em28xx *dev, int index)
+>  	if (!dev->ctl_aoutput)
+>  		dev->ctl_aoutput = EM28XX_AOUT_MASTER;
+>  
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
+> +	v4l2_device_call_all(v4l2_dev, 0, video, s_routing,
+>  			INPUT(index)->vmux, 0, 0);
+>  
+>  	if (dev->board.has_msp34xx) {
+>  		if (dev->i2s_speed) {
+> -			v4l2_device_call_all(&dev->v4l2_dev, 0, audio,
+> +			v4l2_device_call_all(v4l2_dev, 0, audio,
+>  				s_i2s_clock_freq, dev->i2s_speed);
+>  		}
+>  		/* Note: this is msp3400 specific */
+> -		v4l2_device_call_all(&dev->v4l2_dev, 0, audio, s_routing,
+> +		v4l2_device_call_all(v4l2_dev, 0, audio, s_routing,
+>  			 dev->ctl_ainput, MSP_OUTPUT(MSP_SC_IN_DSP_SCART1), 0);
+>  	}
+>  
+>  	if (dev->board.adecoder != EM28XX_NOADECODER) {
+> -		v4l2_device_call_all(&dev->v4l2_dev, 0, audio, s_routing,
+> +		v4l2_device_call_all(v4l2_dev, 0, audio, s_routing,
+>  			dev->ctl_ainput, dev->ctl_aoutput, 0);
+>  	}
+>  
+> @@ -1344,7 +1347,7 @@ static int vidioc_querystd(struct file *file, void *priv, v4l2_std_id *norm)
+>  	struct em28xx_fh   *fh  = priv;
+>  	struct em28xx      *dev = fh->dev;
+>  
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, video, querystd, norm);
+> +	v4l2_device_call_all(&dev->v4l2->v4l2_dev, 0, video, querystd, norm);
+>  
+>  	return 0;
+>  }
+> @@ -1374,7 +1377,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
+>  	size_to_scale(dev, dev->width, dev->height, &dev->hscale, &dev->vscale);
+>  
+>  	em28xx_resolution_set(dev);
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
+> +	v4l2_device_call_all(&dev->v4l2->v4l2_dev, 0, core, s_std, dev->norm);
+>  
+>  	return 0;
+>  }
+> @@ -1388,7 +1391,7 @@ static int vidioc_g_parm(struct file *file, void *priv,
+>  
+>  	p->parm.capture.readbuffers = EM28XX_MIN_BUF;
+>  	if (dev->board.is_webcam)
+> -		rc = v4l2_device_call_until_err(&dev->v4l2_dev, 0,
+> +		rc = v4l2_device_call_until_err(&dev->v4l2->v4l2_dev, 0,
+>  						video, g_parm, p);
+>  	else
+>  		v4l2_video_std_frame_period(dev->norm,
+> @@ -1404,7 +1407,8 @@ static int vidioc_s_parm(struct file *file, void *priv,
+>  	struct em28xx      *dev = fh->dev;
+>  
+>  	p->parm.capture.readbuffers = EM28XX_MIN_BUF;
+> -	return v4l2_device_call_until_err(&dev->v4l2_dev, 0, video, s_parm, p);
+> +	return v4l2_device_call_until_err(&dev->v4l2->v4l2_dev,
+> +					  0, video, s_parm, p);
+>  }
+>  
+>  static const char *iname[] = {
+> @@ -1543,7 +1547,7 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+>  
+>  	strcpy(t->name, "Tuner");
+>  
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_tuner, t);
+> +	v4l2_device_call_all(&dev->v4l2->v4l2_dev, 0, tuner, g_tuner, t);
+>  	return 0;
+>  }
+>  
+> @@ -1556,7 +1560,7 @@ static int vidioc_s_tuner(struct file *file, void *priv,
+>  	if (0 != t->index)
+>  		return -EINVAL;
+>  
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_tuner, t);
+> +	v4l2_device_call_all(&dev->v4l2->v4l2_dev, 0, tuner, s_tuner, t);
+>  	return 0;
+>  }
+>  
+> @@ -1576,15 +1580,16 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+>  static int vidioc_s_frequency(struct file *file, void *priv,
+>  				const struct v4l2_frequency *f)
+>  {
+> -	struct v4l2_frequency new_freq = *f;
+> -	struct em28xx_fh      *fh  = priv;
+> -	struct em28xx         *dev = fh->dev;
+> +	struct v4l2_frequency  new_freq = *f;
+> +	struct em28xx_fh          *fh   = priv;
+> +	struct em28xx             *dev  = fh->dev;
+> +	struct em28xx_v4l2        *v4l2 = dev->v4l2;
+>  
+>  	if (0 != f->tuner)
+>  		return -EINVAL;
+>  
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, f);
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_frequency, &new_freq);
+> +	v4l2_device_call_all(&v4l2->v4l2_dev, 0, tuner, s_frequency, f);
+> +	v4l2_device_call_all(&v4l2->v4l2_dev, 0, tuner, g_frequency, &new_freq);
+>  	dev->ctl_freq = new_freq.frequency;
+>  
+>  	return 0;
+> @@ -1602,7 +1607,8 @@ static int vidioc_g_chip_info(struct file *file, void *priv,
+>  	if (chip->match.addr == 1)
+>  		strlcpy(chip->name, "ac97", sizeof(chip->name));
+>  	else
+> -		strlcpy(chip->name, dev->v4l2_dev.name, sizeof(chip->name));
+> +		strlcpy(chip->name,
+> +			dev->v4l2->v4l2_dev.name, sizeof(chip->name));
+>  	return 0;
+>  }
+>  
+> @@ -1814,7 +1820,7 @@ static int radio_g_tuner(struct file *file, void *priv,
+>  
+>  	strcpy(t->name, "Radio");
+>  
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_tuner, t);
+> +	v4l2_device_call_all(&dev->v4l2->v4l2_dev, 0, tuner, g_tuner, t);
+>  
+>  	return 0;
+>  }
+> @@ -1827,12 +1833,26 @@ static int radio_s_tuner(struct file *file, void *priv,
+>  	if (0 != t->index)
+>  		return -EINVAL;
+>  
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_tuner, t);
+> +	v4l2_device_call_all(&dev->v4l2->v4l2_dev, 0, tuner, s_tuner, t);
+>  
+>  	return 0;
+>  }
+>  
+>  /*
+> + * em28xx_free_v4l2() - Free struct em28xx_v4l2
+> + *
+> + * @ref: struct kref for struct em28xx_v4l2
+> + *
+> + * Called when all users of struct em28xx_v4l2 are gone
+> + */
+> +void em28xx_free_v4l2(struct kref *ref)
+> +{
+> +	struct em28xx_v4l2 *v4l2 = container_of(ref, struct em28xx_v4l2, ref);
+> +
+> +	kfree(v4l2);
+> +}
+> +
+> +/*
+>   * em28xx_v4l2_open()
+>   * inits the device and starts isoc transfer
+>   */
+> @@ -1840,6 +1860,7 @@ static int em28xx_v4l2_open(struct file *filp)
+>  {
+>  	struct video_device *vdev = video_devdata(filp);
+>  	struct em28xx *dev = video_drvdata(filp);
+> +	struct em28xx_v4l2 *v4l2 = dev->v4l2;
+>  	enum v4l2_buf_type fh_type = 0;
+>  	struct em28xx_fh *fh;
+>  
+> @@ -1888,10 +1909,11 @@ static int em28xx_v4l2_open(struct file *filp)
+>  
+>  	if (vdev->vfl_type == VFL_TYPE_RADIO) {
+>  		em28xx_videodbg("video_open: setting radio device\n");
+> -		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_radio);
+> +		v4l2_device_call_all(&v4l2->v4l2_dev, 0, tuner, s_radio);
+>  	}
+>  
+>  	kref_get(&dev->ref);
+> +	kref_get(&v4l2->ref);
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-This patch comes before the previous patch I sent to the thread. I missed
-this when sending it.
+I never like these kref things. Especially for usb devices I strongly recommend
+using the release() callback from v4l2_device instead: this callback will only
+be called once all references to video_device nodes have been closed. In other
+words, only once all filehandles to /dev/videoX (and radio, vbi etc) are closed
+will the release callback be called.
 
- include/uapi/linux/smiapp.h        | 34 ++++++++++++++++++++++++++++++++++
- include/uapi/linux/v4l2-controls.h |  4 ++++
- 2 files changed, 38 insertions(+)
- create mode 100644 include/uapi/linux/smiapp.h
+As such it is a perfect place to put the final cleanup, and there is no more need
+to mess around with krefs.
 
-diff --git a/include/uapi/linux/smiapp.h b/include/uapi/linux/smiapp.h
-new file mode 100644
-index 0000000..116fc69
---- /dev/null
-+++ b/include/uapi/linux/smiapp.h
-@@ -0,0 +1,34 @@
-+/*
-+ * include/media/smiapp.h
-+ *
-+ * Generic driver for SMIA/SMIA++ compliant camera modules
-+ *
-+ * Copyright (C) 2014 Intel Corporation
-+ * Contact: Sakari Ailus <sakari.ailus@iki.fi>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ */
-+
-+#ifndef __UAPI_LINUX_SMIAPP_H_
-+#define __UAPI_LINUX_SMIAPP_H_
-+
-+#define V4L2_SMIAPP_TEST_PATTERN_MODE_DISABLED			0
-+#define V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR		1
-+#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS		2
-+#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS_GREY		3
-+#define V4L2_SMIAPP_TEST_PATTERN_MODE_PN9			4
-+
-+#define V4L2_CID_SMIAPP_TEST_PATTERN_RED	(V4L2_CID_USER_SMIAPP_BASE | 0x01)
-+#define V4L2_CID_SMIAPP_TEST_PATTERN_GREENR	(V4L2_CID_USER_SMIAPP_BASE | 0x02)
-+#define V4L2_CID_SMIAPP_TEST_PATTERN_BLUE	(V4L2_CID_USER_SMIAPP_BASE | 0x03)
-+#define V4L2_CID_SMIAPP_TEST_PATTERN_GREENB	(V4L2_CID_USER_SMIAPP_BASE | 0x04)
-+
-+#endif /* __UAPI_LINUX_SMIAPP_H_ */
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 2ac5597..8b5502f 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -169,6 +169,10 @@ enum v4l2_colorfx {
-  * We reserve 16 controls for this driver. */
- #define V4L2_CID_USER_SAA7134_BASE		(V4L2_CID_USER_BASE + 0x1060)
- 
-+/* The base for the smiapp driver controls. See include/media/smiapp.h
-+ * for the list of controls. 128 controls are reserved for this driver. */
-+#define V4L2_CID_USER_SMIAPP_BASE		(V4L2_CID_USER_BASE + 0x1070)
-+
- /* MPEG-class control IDs */
- /* The MPEG controls are applicable to all codec controls
-  * and the 'MPEG' part of the define is historical */
--- 
-1.8.3.2
+
+>  	dev->users++;
+
+The same for these user counters. You can use v4l2_fh_is_singular_file() to check
+if the file open is the first file. However, this function assumes that v4l2_fh_add
+has been called first.
+
+So for this driver it might be easier if we add a v4l2_fh_is_empty() to v4l2-fh.c
+so we can call this before v4l2_fh_add.
+
+For that matter, you can almost certainly remove struct em28xx_fh altogether.
+The type field of that struct can be determined by vdev->vfl_type and 'dev' can be
+obtained via video_get_drvdata().
+
+Regards,
+
+	Hans
+
+>  
+>  	mutex_unlock(&dev->lock);
 
