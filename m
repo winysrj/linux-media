@@ -1,92 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49826 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751960AbaEZTuG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 15:50:06 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Julien BERAUD <julien.beraud@parrot.com>,
-	Boris Todorov <boris.st.todorov@gmail.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Enrico <ebutera@users.berlios.de>,
-	Stefan Herbrechtsmeier <sherbrec@cit-ec.uni-bielefeld.de>,
-	Javier Martinez Canillas <martinez.javier@gmail.com>,
-	Chris Whittenburg <whittenburg@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 08/11] omap3isp: ccdc: Simplify the ccdc_isr_buffer() function
-Date: Mon, 26 May 2014 21:50:09 +0200
-Message-Id: <1401133812-8745-9-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:63813 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750780AbaEIEeS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 00:34:18 -0400
+Message-ID: <536C5AB0.4090007@gmail.com>
+Date: Fri, 09 May 2014 10:03:52 +0530
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+MIME-Version: 1.0
+To: Kamil Debski <k.debski@samsung.com>,
+	'Arun Kumar K' <arun.kk@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>, posciak@chromium.org
+Subject: Re: [PATCH] [media] s5p-mfc: Don't try to resubmit VP8 bitstream
+ buffer for decode.
+References: <1394180752-16348-1-git-send-email-arun.kk@samsung.com> <004b01cf6ad9$b5c83c80$2158b580$%debski@samsung.com>
+In-Reply-To: <004b01cf6ad9$b5c83c80$2158b580$%debski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using goto statements to a single line return, return the
-correct value immediately.
+Hi Kamil,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispccdc.c | 15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+On 05/08/14 21:52, Kamil Debski wrote:
+> Hi,
+> 
+> 
+>> From: Arun Kumar K [mailto:arunkk.samsung@gmail.com] On Behalf Of Arun
+>> Kumar K
+>> Sent: Friday, March 07, 2014 9:26 AM
+>>
+>> From: Pawel Osciak <posciak@chromium.org>
+>>
+>> Currently, for formats that are not H264, MFC driver will check the
+>> consumed stream size returned by the firmware and, based on that, will
+>> try to decide whether the bitstream buffer contained more than one
+>> frame. If the size of the buffer is larger than the consumed stream, it
+>> assumes that there are more frames in the buffer and that the buffer
+>> should be resubmitted for decode. This rarely works though and actually
+>> introduces problems, because:
+>>
+>> - v7 firmware will always return consumed stream size equal to whatever
+>> the driver passed to it when running decode (which is the size of the
+>> whole buffer), which means we will never try to resubmit, because the
+>> firmware will always tell us that it consumed all the data we passed to
+>> it;
+>>
+>> - v6 firmware will return the number of consumed bytes, but will not
+>> include the padding ("stuffing") bytes that are allowed after the frame
+>> in VP8. Since there is no way of figuring out how many of those bytes
+>> follow the frame without getting the frame size from IVF headers (or
+>> somewhere else, but not from the stream itself), the driver tries to
+>> guess that padding size is not larger than 4 bytes, which is not always
+>> true;
+>>
+>> The only way to make it work is to queue only one frame per buffer from
+>> userspace and the check in the kernel is useless and wrong for VP8.
+>> MPEG4 still seems to require it, so keep it only for that format.
+>>
+>> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>> ---
+>>  drivers/media/platform/s5p-mfc/s5p_mfc.c |    2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+>> b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+>> index e2aac59..66c1775 100644
+>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+>> @@ -360,7 +360,7 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx
+>> *ctx,
+>>  								list);
+>>  		ctx->consumed_stream += s5p_mfc_hw_call(dev->mfc_ops,
+>>  						get_consumed_stream, dev);
+>> -		if (ctx->codec_mode != S5P_MFC_CODEC_H264_DEC &&
+>> +		if (ctx->codec_mode == S5P_MFC_CODEC_MPEG4_DEC &&
+>>  			ctx->consumed_stream + STUFF_BYTE <
+>>  			src_buf->b->v4l2_planes[0].bytesused) {
+>>  			/* Run MFC again on the same buffer */
+> 
+> I expressed my doubts to this patch in my previous email.
+> I think that packed PB can also be found in other codecs such as H263.
+> So please change to the following if this is a workaround for VP8 only.
+> (The title says that it only changes behavior of VP8 decoding, so it is
+> misleading).
+> 
 
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index 8fbba95..76d4fd7 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -1480,7 +1480,6 @@ static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
- 	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
- 	struct isp_device *isp = to_isp_device(ccdc);
- 	struct isp_buffer *buffer;
--	int restart = 0;
- 
- 	/* The CCDC generates VD0 interrupts even when disabled (the datasheet
- 	 * doesn't explicitly state if that's supposed to happen or not, so it
-@@ -1489,30 +1488,27 @@ static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
- 	 * would thus not be enough, we need to handle the situation explicitly.
- 	 */
- 	if (list_empty(&ccdc->video_out.dmaqueue))
--		goto done;
-+		return 0;
- 
- 	/* We're in continuous mode, and memory writes were disabled due to a
- 	 * buffer underrun. Reenable them now that we have a buffer. The buffer
- 	 * address has been set in ccdc_video_queue.
- 	 */
- 	if (ccdc->state == ISP_PIPELINE_STREAM_CONTINUOUS && ccdc->underrun) {
--		restart = 1;
- 		ccdc->underrun = 0;
--		goto done;
-+		return 1;
- 	}
- 
- 	if (ccdc_sbl_wait_idle(ccdc, 1000)) {
- 		dev_info(isp->dev, "CCDC won't become idle!\n");
- 		isp->crashed |= 1U << ccdc->subdev.entity.id;
- 		omap3isp_pipeline_cancel_stream(pipe);
--		goto done;
-+		return 0;
- 	}
- 
- 	buffer = omap3isp_video_buffer_next(&ccdc->video_out);
--	if (buffer != NULL) {
-+	if (buffer != NULL)
- 		ccdc_set_outaddr(ccdc, buffer->dma);
--		restart = 1;
--	}
- 
- 	pipe->state |= ISP_PIPELINE_IDLE_OUTPUT;
- 
-@@ -1521,8 +1517,7 @@ static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
- 		omap3isp_pipeline_set_stream(pipe,
- 					ISP_PIPELINE_STREAM_SINGLESHOT);
- 
--done:
--	return restart;
-+	return buffer != NULL;
- }
- 
- /*
--- 
-1.8.5.5
+Yes it is seen as affecting only VP8 decoding.
 
+> -		if (ctx->codec_mode != S5P_MFC_CODEC_H264_DEC &&
+> +		if (ctx->codec_mode != S5P_MFC_CODEC_H264_DEC &&
+> +		    ctx->codec_mode != S5P_MFC_CODEC_VP8_DEC &&
+> 
+
+Ok. I will change it this way.
+
+> 
+> Did you try to revert your patch https://patchwork.linuxtv.org/patch/15448/
+> and checking if this fixes the problem for VP8?
+> 
+
+I am afraid it will not solve the VP8 issue as before that patch, it
+used to check for ctx->codec_mode != S5P_MFC_CODEC_H264_DEC and frame
+type is S5P_FIMV_DECODE_FRAME_P_FRAME, buffer was sent again to decode.
+This condition can be triggered in VP8 case causing erroneous behaviour.
+
+So I will make the change as you suggested above.
+
+Regards
+Arun
+
+>> --
+>> 1.7.9.5
+> 
+> Best wishes,
+> 
