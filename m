@@ -1,66 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33645 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751830AbaE1LMW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 May 2014 07:12:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] [media] mt9v032: fix hblank calculation
-Date: Wed, 28 May 2014 13:12:39 +0200
-Message-ID: <63696231.uYod94i5s6@avalon>
-In-Reply-To: <1401112551-21046-1-git-send-email-p.zabel@pengutronix.de>
-References: <1401112551-21046-1-git-send-email-p.zabel@pengutronix.de>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3286 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751304AbaEING5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 09:06:57 -0400
+Message-ID: <536CD2AA.4040108@xs4all.nl>
+Date: Fri, 09 May 2014 15:05:46 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Marcio Campos de Lima <marcio@netopen.com.br>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-arm-kernel@lists.infradead.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: s_ctrl V4l2 device driver does not work
+References: <B43D69CB-FE7A-4168-B203-02A7934215F4@netopen.com.br> <Pine.LNX.4.64.1405082211240.14834@axis700.grange> <E916BA02-89F5-4E34-96A5-1D3EE8F944CF@netopen.com.br> <Pine.LNX.4.64.1405082259340.14834@axis700.grange> <5869970E-84C8-4159-99EB-8C5D63AE72C9@netopen.com.br>
+In-Reply-To: <5869970E-84C8-4159-99EB-8C5D63AE72C9@netopen.com.br>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
-
-Thank you for the patch.
-
-On Monday 26 May 2014 15:55:51 Philipp Zabel wrote:
-> Since (min_row_time - crop->width) can be negative, we have to do a signed
-> comparison here. Otherwise max_t casts the negative value to unsigned int
-> and sets min_hblank to that invalid value.
+On 05/08/2014 11:30 PM, Marcio Campos de Lima wrote:
+> I have also tried these settings
 > 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> #define VIDIOC_AVANCA_ZOOM	(0x009a0000|0x900)+14
+> #define VIDIOC_RECUA_ZOOM	(0x009a0000|0x900)+14
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+All controls must have unique IDs, which is clearly not the case for these
+two ZOOM controls.
 
-and applied to my tree. Do you see a need to fasttrack this to v3.16 or can it 
-be applied to v3.17 ? Should I CC stable ?
+You say you have problems with setting AVANCA_ZOOM, but you don't provide
+the code in s_ctrl that actually handles that control, so that makes it
+impossible to tell what's going on.
 
-> ---
-> Changes since v1:
->  - Remove now unneeded casts to (int).
-> ---
->  drivers/media/i2c/mt9v032.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-> index 40172b8..f04d0bb 100644
-> --- a/drivers/media/i2c/mt9v032.c
-> +++ b/drivers/media/i2c/mt9v032.c
-> @@ -305,8 +305,8 @@ mt9v032_update_hblank(struct mt9v032 *mt9v032)
-> 
->  	if (mt9v032->version->version == MT9V034_CHIP_ID_REV1)
->  		min_hblank += (mt9v032->hratio - 1) * 10;
-> -	min_hblank = max_t(unsigned int, (int)mt9v032->model->data->min_row_time 
--
-> crop->width, -			   (int)min_hblank);
-> +	min_hblank = max_t(int, mt9v032->model->data->min_row_time - crop->width,
-> +			   min_hblank);
->  	hblank = max_t(unsigned int, mt9v032->hblank, min_hblank);
-> 
->  	return mt9v032_write(client, MT9V032_HORIZONTAL_BLANKING, hblank);
+In addition I see a 'return 1' in s_ctrl, which makes no sense since return
+codes from s_ctrl must either be 0 (for success) or negative (for error codes).
 
--- 
+You really need to give more info (post the entire source?) if you want help.
+
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> #define VIDIOC_ATIVA_FLASH	(0x009a0000|0x900)+3
+> #define VIDIOC_WHITE_BALANCE	(0x009a0000|0x900)+13
+> 
+> Em 08/05/2014, à(s) 18:01, Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+> 
+>> On Thu, 8 May 2014, Marcio Campos de Lima wrote:
+>>
+>>> Hi Guennadi
+>>> Thank you very much for your answer.
+>>> The driver is a modified OV5642.c for the Omnivision OV5642 sensor. The platform is a custom AT91SAM9M10 board with a camera paralell interface.
+>>> the driver is working quite well (capturing images) apart the set control interface.
+>>
+>> So, you're using the atmel-isi camera _host_ driver.
+>>
+>>> Unfortunately I cannot move to the most current kernel now.
+>>
+>> I don't find VIDIOC_AVANCA_ZOOM in the mainline kernel, it seems to be a 
+>> part of your modification, so, I don't think I can help you, sorry.
+>>
+>> Thanks
+>> Guennadi
+>>
+>>> Thanks again
+>>> Regards
+>>> Marcio
+>>> Em 08/05/2014, à(s) 17:14, Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+>>>
+>>>> Hi Marcio,
+>>>>
+>>>> Firstly, please direct all V4L related questions to the linux-media list 
+>>>> (added to CC), secondly, your problem will have much better chances to 
+>>>> attract attention if you use a current kernel, thirdly, please, specify 
+>>>> which camera host driver / which ARM platform you're dealing with.
+>>>>
+>>>> Thanks
+>>>> Guennadi
+>>>>
+>>>> On Thu, 8 May 2014, Marcio Campos de Lima wrote:
+>>>>
+>>>>> Hi
+>>>>>
+>>>>> Can anybody tell me why the set control function is not working in Linux 3.6.9? Thanks.
+>>>>>
+>>>>> —— APPLICATION CALL ——
+>>>>> struct v4l2_control controle;
+>>>>>   controle.id = VIDIOC_AVANCA_ZOOM;
+>>>>>   controle.value = time;
+>>>>>   if (-1 == xioctl(fd_camera, VIDIOC_S_CTRL,&controle))
+>>>>> 	{
+>>>>> 	printf ("%s erro\n",__FUNCTION__);
+>>>>> 	perror ("erro iotcl");
+>>>>> 	}
+>>>>>
+>>>>> The ioctl call returns with invalid argument. It is amazing because the first time the ioctl is called it is executed ok. Then no more call is allowed and return the invalid 
+>>>>>
+>>>>> below is the device driver  code I think may be relevant.
+>>>>>
+>>>>> v4l2_ctrl_handler_init(&priv->ctrls, ARRAY_SIZE(ov5642_ctrls));
+>>>>>   printk ("handler_init\n");
+>>>>>   v4l2_ctrl_new_std(&priv->ctrls, &ov5642_ctrl_ops,V4L2_CID_ZOOM_RELATIVE, -1000, 1000, 1, 500);
+>>>>>   v4l2_ctrl_new_std(&priv->ctrls, &ov5642_ctrl_ops,V4L2_CID_FLASH_STROBE, -100, 100, 1, 5);
+>>>>>
+>>>>>
+>>>>>   priv->subdev.ctrl_handler=&priv->ctrls;
+>>>>>   v4l2_i2c_subdev_init(&priv->subdev, client, &ov5642_subdev_ops);
+>>>>>   return ov5642_video_probe(client);
+>>>>>
+>>>>> static int ov5642_s_ctrl(struct v4l2_ctrl *ctrl)
+>>>>> {
+>>>>> 	struct ov5642 *ov5642 =
+>>>>> 			container_of(ctrl->handler, struct ov5642, ctrls);
+>>>>> 	struct i2c_client *client = v4l2_get_subdevdata(&ov5642->subdev);
+>>>>> 	u16 data;
+>>>>> 	int ret;
+>>>>> 	printk ("%s: id=%08x val=%d\n",__FUNCTION__, ctrl->id, ctrl->val);
+>>>>> 	switch (ctrl->id) {
+>>>>> 	case V4L2_CID_DO_WHITE_BALANCE:
+>>>>> 		ov5640_set_wb_oem(client, ctrl->val);
+>>>>> 		break;
+>>>>> 	case V4L2_CID_EXPOSURE:
+>>>>>
+>>>>> 		break;
+>>>>> 	case V4L2_CID_GAIN:
+>>>>> 		/* Gain is controlled by 2 analog stages and a digital stage.
+>>>>> 		 * Valid values for the 3 stages are
+>>>>> 		 *
+>>>>> 		 * Stage                Min     Max     Step
+>>>>> 		 * ------------------------------------------
+>>>>> 		 * First analog stage   x1      x2      1
+>>>>> 		 * Second analog stage  x1      x4      0.125
+>>>>> 		 * Digital stage        x1      x16     0.125
+>>>>> 		 *
+>>>>> 		 * To minimize noise, the gain stages should be used in the
+>>>>> 		 * second analog stage, first analog stage, digital stage order.
+>>>>> 		 * Gain from a previous stage should be pushed to its maximum
+>>>>> 		 * value before the next stage is used.
+>>>>> 		 */
+>>>>> 		if (ctrl->val <= 32) {
+>>>>> 			data = ctrl->val;
+>>>>> 		} else if (ctrl->val <= 64) {
+>>>>> 			ctrl->val &= ~1;
+>>>>> 			data = (1 << 6) | (ctrl->val >> 1);
+>>>>> 		} else {
+>>>>> 			ctrl->val &= ~7;
+>>>>> 			data = ((ctrl->val - 64) << 5) | (1 << 6) | 32;
+>>>>> 		}
+>>>>> 		break;
+>>>>> 	case V4L2_CID_ZOOM_RELATIVE:
+>>>>> 		if (ctrl->val>0)
+>>>>> 			avanca_zoom(sysPriv.v4l2_int_device, ctrl->val);
+>>>>> 		else
+>>>>> 			recua_zoom(sysPriv.v4l2_int_device, ctrl->val);
+>>>>>
+>>>>> 		break;
+>>>>> 	case V4L2_CID_BRIGHTNESS:
+>>>>> 		 ov5640_set_brightness(client, ctrl->val);
+>>>>> 		 break;
+>>>>> 	case V4L2_CID_CONTRAST:
+>>>>> 		ov5640_set_contrast(client, ctrl->val);
+>>>>> 		break;
+>>>>> 	case V4L2_CID_FLASH_STROBE:
+>>>>> 		ativa_flash (sysPriv.v4l2_int_device, ctrl->val);
+>>>>> 		break;
+>>>>> 	case V4L2_CID_VFLIP:
+>>>>>
+>>>>> 	case V4L2_CID_TEST_PATTERN:
+>>>>>
+>>>>>
+>>>>>
+>>>>> 	case V4L2_CID_BLC_AUTO:
+>>>>>
+>>>>> 	case V4L2_CID_BLC_TARGET_LEVEL:
+>>>>>
+>>>>> 	case V4L2_CID_BLC_ANALOG_OFFSET:
+>>>>>
+>>>>> 	case V4L2_CID_BLC_DIGITAL_OFFSET:
+>>>>> 		return 1;
+>>>>> 			}
+>>>>>
+>>>>> 	return 0;
+>>>>> }
+>>>>>
+>>>>> static struct v4l2_ctrl_ops ov5642_ctrl_ops = {
+>>>>> 	.s_ctrl = ov5642_s_ctrl,
+>>>>> };
+>>>>>
+>>>>>
+>>>>> _______________________________________________
+>>>>> linux-arm-kernel mailing list
+>>>>> linux-arm-kernel@lists.infradead.org
+>>>>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>>>>>
+>>>>
+>>>> ---
+>>>> Guennadi Liakhovetski, Ph.D.
+>>>> Freelance Open-Source Software Developer
+>>>> http://www.open-technology.de/
+>>>
+>>
+>> ---
+>> Guennadi Liakhovetski, Ph.D.
+>> Freelance Open-Source Software Developer
+>> http://www.open-technology.de/
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
