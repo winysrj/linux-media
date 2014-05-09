@@ -1,93 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3213 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932375AbaE3M20 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 May 2014 08:28:26 -0400
-Message-ID: <53887960.3050003@xs4all.nl>
-Date: Fri, 30 May 2014 14:28:16 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 1/3] v4l: Add test pattern colour component controls
-References: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com> <48325310.Ydj7bxFi9C@avalon> <53874B33.5050109@linux.intel.com> <1559123.5XHCoOtRWQ@avalon>
-In-Reply-To: <1559123.5XHCoOtRWQ@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4511 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752626AbaEICnk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 22:43:40 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id s492hacI019408
+	for <linux-media@vger.kernel.org>; Fri, 9 May 2014 04:43:38 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 892502A19A2
+	for <linux-media@vger.kernel.org>; Fri,  9 May 2014 04:43:30 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140509024330.892502A19A2@tschai.lan>
+Date: Fri,  9 May 2014 04:43:30 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/29/2014 05:01 PM, Laurent Pinchart wrote:
-> On Thursday 29 May 2014 17:58:59 Sakari Ailus wrote:
->> Laurent Pinchart wrote:
->>> On Thursday 29 May 2014 17:40:46 Sakari Ailus wrote:
->>>> In many cases the test pattern has selectable values for each colour
->>>> component. Implement controls for raw bayer components. Additional
->>>> controls
->>>> should be defined for colour components that are not covered by these
->>>> controls.
->>>>
->>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>>> ---
->>>>
->>>>   Documentation/DocBook/media/v4l/controls.xml | 34 +++++++++++++++++++++
->>>>   drivers/media/v4l2-core/v4l2-ctrls.c         |  4 ++++
->>>>   include/uapi/linux/v4l2-controls.h           |  4 ++++
->>>>   3 files changed, 42 insertions(+)
->>>>
->>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
->>>> b/Documentation/DocBook/media/v4l/controls.xml index 47198ee..bf23994
->>>> 100644
->>>> --- a/Documentation/DocBook/media/v4l/controls.xml
->>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
->>>> @@ -4677,6 +4677,40 @@ interface and may change in the future.</para>
->>>>   	    conversion.
->>>>   	    </entry>
->>>>   	  </row>
->>>> +	  <row>
->>>> +	    <entry
->>>> spanname="id"><constant>V4L2_CID_TEST_PATTERN_RED</constant></entry>
->>>> +       <entry>integer</entry>
->>>> +	  </row>
->>>> +	  <row>
->>>> +	    <entry spanname="descr">Test pattern red colour component.
->>>> +	    </entry>
->>>> +	  </row>
->>>> +	  <row>
->>>> +	    <entry
->>>> spanname="id"><constant>V4L2_CID_TEST_PATTERN_GREENR</constant></entry>
->>>> +	    <entry>integer</entry>
->>>> +	  </row>
->>>> +	  <row>
->>>> +	    <entry spanname="descr">Test pattern green (next to red)
->>>> +	    colour component.
->>>
->>> What about non-Bayer RGB sensors ? Should they use the GREENR or the
->>> GREENB control for the green component ? Or a different control ?
->>
->> A different one. It should be simply green. I could add it to the same
->> patch if you wish.
->>
->>> I'm wondering whether we shouldn't have a single test pattern color
->>> control and create a color type using Hans' complex controls API.
->>
->> A raw bayer four-pixel value, you mean?
-> 
-> Yes. I'll let Hans comment on that.
-> 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Why would you need the complex control API for that? It would fit in a s32,
-and certainly in a s64.
+Results of the daily build of media_tree:
 
-We have done something similar to this in the past (V4L2_CID_BG_COLOR).
+date:		Fri May  9 04:00:17 CEST 2014
+git branch:	test
+git hash:	393cbd8dc532c1ebed60719da8d379f50d445f28
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-1.slh.1-amd64
 
-The main problem is that the interpretation of the s32 value has to be
-clearly defined. And if different sensors might have different min/max values
-for each component, then it becomes messy to use a single control. My feeling
-is that it is better to go with separate controls, one for each component.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
-Regards,
+Detailed results are available here:
 
-	Hans
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
