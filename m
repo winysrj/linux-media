@@ -1,127 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:35004 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754522AbaEMSkY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 May 2014 14:40:24 -0400
-Received: by mail-la0-f50.google.com with SMTP id b8so615956lan.9
-        for <linux-media@vger.kernel.org>; Tue, 13 May 2014 11:40:23 -0700 (PDT)
-From: Alexander Bersenev <bay@hackerdom.ru>
-To: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
-	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
-	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Alexander Bersenev <bay@hackerdom.ru>
-Subject: [PATCH v6 3/3] ARM: sunxi: Add IR controller support in DT on A20
-Date: Wed, 14 May 2014 00:39:02 +0600
-Message-Id: <1400006342-2968-4-git-send-email-bay@hackerdom.ru>
-In-Reply-To: <1400006342-2968-1-git-send-email-bay@hackerdom.ru>
-References: <1400006342-2968-1-git-send-email-bay@hackerdom.ru>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55880 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751056AbaEIMPe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 08:15:34 -0400
+Received: from avalon.localnet (161.23-200-80.adsl-dyn.isp.belgacom.be [80.200.23.161])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 515ED359FA
+	for <linux-media@vger.kernel.org>; Fri,  9 May 2014 14:12:55 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.16] uvcvideo fixes
+Date: Fri, 09 May 2014 14:15:33 +0200
+Message-ID: <7909686.JGN3j7sPAP@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds IR controller in A20 Device-Tree:
-- Two IR devices found in A20 user manual
-- Pins for two devices
-- One IR device physically found on Cubieboard 2
-- One IR device physically found on Cubietruck
+Hi Mauro,
 
-Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
----
- arch/arm/boot/dts/sun7i-a20-cubieboard2.dts |  6 ++++++
- arch/arm/boot/dts/sun7i-a20-cubietruck.dts  |  6 ++++++
- arch/arm/boot/dts/sun7i-a20.dtsi            | 31 +++++++++++++++++++++++++++++
- 3 files changed, 43 insertions(+)
+The following changes since commit 393cbd8dc532c1ebed60719da8d379f50d445f28:
 
-diff --git a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
-index feeff64..2564e8c 100644
---- a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
-+++ b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
-@@ -164,6 +164,12 @@
- 				reg = <1>;
- 			};
- 		};
-+
-+		ir0: ir@01c21800 {
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&ir0_pins_a>;
-+			status = "okay";
-+		};
- 	};
- 
- 	leds {
-diff --git a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
-index e288562..e375e89 100644
---- a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
-+++ b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
-@@ -232,6 +232,12 @@
- 				reg = <1>;
- 			};
- 		};
-+
-+		ir0: ir@01c21800 {
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&ir0_pins_a>;
-+			status = "okay";
-+		};
- 	};
- 
- 	leds {
-diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
-index 0ae2b77..40ded74 100644
---- a/arch/arm/boot/dts/sun7i-a20.dtsi
-+++ b/arch/arm/boot/dts/sun7i-a20.dtsi
-@@ -724,6 +724,19 @@
- 				allwinner,drive = <2>;
- 				allwinner,pull = <0>;
- 			};
-+
-+			ir0_pins_a: ir0@0 {
-+				    allwinner,pins = "PB3","PB4";
-+				    allwinner,function = "ir0";
-+				    allwinner,drive = <0>;
-+				    allwinner,pull = <0>;
-+			};
-+			ir1_pins_a: ir1@0 {
-+				    allwinner,pins = "PB22","PB23";
-+				    allwinner,function = "ir1";
-+				    allwinner,drive = <0>;
-+				    allwinner,pull = <0>;
-+			};
- 		};
- 
- 		timer@01c20c00 {
-@@ -937,5 +950,23 @@
- 			#interrupt-cells = <3>;
- 			interrupts = <1 9 0xf04>;
- 		};
-+
-+		ir0: ir@01c21800 {
-+			compatible = "allwinner,sun7i-a20-ir";
-+			clocks = <&apb0_gates 6>, <&ir0_clk>;
-+			clock-names = "apb", "ir";
-+			interrupts = <0 5 4>;
-+			reg = <0x01c21800 0x40>;
-+			status = "disabled";
-+		};
-+
-+		ir1: ir@01c21c00 {
-+			compatible = "allwinner,sun7i-a20-ir";
-+			clocks = <&apb0_gates 7>, <&ir1_clk>;
-+			clock-names = "apb", "ir";
-+			interrupts = <0 6 4>;
-+			reg = <0x01C21c00 0x40>;
-+			status = "disabled";
-+		};
- 	};
- };
+  [media] smiapp: Use %u for printing u32 value (2014-04-23 16:05:06 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
+
+for you to fetch changes up to 4d576e85f1d7e11190652619156b9a136d4c4a98:
+
+  uvcvideo: Fix clock param realtime setting (2014-05-09 14:10:37 +0200)
+
+----------------------------------------------------------------
+Anton Leontiev (1):
+      uvcvideo: Fix marking buffer erroneous in case of FID toggling
+
+Olivier Langlois (1):
+      uvcvideo: Fix clock param realtime setting
+
+ drivers/media/usb/uvc/uvc_video.c | 36 +++++++++++++++++++++++++-----------
+ 1 file changed, 25 insertions(+), 11 deletions(-)
+
 -- 
-1.9.3
+Regards,
+
+Laurent Pinchart
 
