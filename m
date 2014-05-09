@@ -1,110 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:46800 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751745AbaE1MZZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 May 2014 08:25:25 -0400
-Message-ID: <5385D5B3.7040004@linux.intel.com>
-Date: Wed, 28 May 2014 15:25:23 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] smiapp: Add driver-specific control class, test pattern
- controls
-References: <1401194628-31679-1-git-send-email-sakari.ailus@linux.intel.com> <1867765.dyDJbEnErb@avalon> <5385D3BA.90201@linux.intel.com> <8546276.JFbZmZjli4@avalon>
-In-Reply-To: <8546276.JFbZmZjli4@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58198 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757189AbaEIU7u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 16:59:50 -0400
+Date: Fri, 9 May 2014 13:59:49 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] Fix _IOC_TYPECHECK sparse error
+Message-Id: <20140509135949.feac79f3cb0ed9b13afbfeb4@linux-foundation.org>
+In-Reply-To: <536C873E.8060408@xs4all.nl>
+References: <536C873E.8060408@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-> Hi Sakari,
->
-> On Wednesday 28 May 2014 15:16:58 Sakari Ailus wrote:
->> Laurent Pinchart wrote:
->>> On Wednesday 28 May 2014 12:00:38 Sakari Ailus wrote:
->>>> Add smiapp driver specific control sub-class for test pattern controls.
->>>> More controls are expected since a fair amount of the standard
->>>> functionality is still unsupported. There are sensor model specific
->>>> functionality as well and expectedly thus also sensor specific controls.
->>>> So reserve 128 controls for this driver.
->>>>
->>>> This patch also adds test pattern controls for the four colour
->>>> components.
->>>>
->>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>>> ---
->>>> This patch comes before the previous patch I sent to the thread. I missed
->>>> this when sending it.
->>>>
->>>>    include/uapi/linux/smiapp.h        | 34 +++++++++++++++++++++++++++++++
->>>>    include/uapi/linux/v4l2-controls.h |  4 ++++
->>>>    2 files changed, 38 insertions(+)
->>>>    create mode 100644 include/uapi/linux/smiapp.h
->>>>
->>>> diff --git a/include/uapi/linux/smiapp.h b/include/uapi/linux/smiapp.h
->>>> new file mode 100644
->>>> index 0000000..116fc69
->>>> --- /dev/null
->>>> +++ b/include/uapi/linux/smiapp.h
->>>> @@ -0,0 +1,34 @@
->>>> +/*
->>>> + * include/media/smiapp.h
->>>> + *
->>>> + * Generic driver for SMIA/SMIA++ compliant camera modules
->>>> + *
->>>> + * Copyright (C) 2014 Intel Corporation
->>>> + * Contact: Sakari Ailus <sakari.ailus@iki.fi>
->>>> + *
->>>> + * This program is free software; you can redistribute it and/or
->>>> + * modify it under the terms of the GNU General Public License
->>>> + * version 2 as published by the Free Software Foundation.
->>>> + *
->>>> + * This program is distributed in the hope that it will be useful, but
->>>> + * WITHOUT ANY WARRANTY; without even the implied warranty of
->>>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
->>>> + * General Public License for more details.
->>>> + *
->>>> + */
->>>> +
->>>> +#ifndef __UAPI_LINUX_SMIAPP_H_
->>>> +#define __UAPI_LINUX_SMIAPP_H_
->>>> +
->>>> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_DISABLED			0
->>>> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR		1
->>>> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS		2
->>>> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS_GREY		3
->>>> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_PN9			4
->>>> +
->>>> +#define V4L2_CID_SMIAPP_TEST_PATTERN_RED	(V4L2_CID_USER_SMIAPP_BASE |
->>>> 0x01)
->>>> +#define V4L2_CID_SMIAPP_TEST_PATTERN_GREENR	(V4L2_CID_USER_SMIAPP_BASE |
->>>> 0x02)
->>>> +#define V4L2_CID_SMIAPP_TEST_PATTERN_BLUE	(V4L2_CID_USER_SMIAPP_BASE |
->>>> 0x03)
->>>> +#define V4L2_CID_SMIAPP_TEST_PATTERN_GREENB	(V4L2_CID_USER_SMIAPP_BASE |
->>>> 0x04)
->>>
->>> Wouldn't it make sense to create a standard test pattern color control
->>> instead ? Several sensors can control the test pattern color in a way or
->>> another. Some of them might need more than one color though, so I'm not
->>> sure how much standardization would be possible.
->>
->> Now that you mention it, I'd guess many raw bayer sensors can set
->> colours for the test pattern (or image). The menu control has no
->> standardised values so I didn't think of standardising controls that
->> depend on it.
->>
->> I'll update the patches (and add a new one for the standard controls).
->
-> The color format might differ between devices though, some might not be able
-> to differentiate between Gr and Gb for the test pattern. A standard test
-> pattern color control should thus be flexible in the color format I suppose.
+On Fri, 09 May 2014 09:43:58 +0200 Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-I think we should simply create a separate control for each component. 
-There aren't that many components after all.
+> Andrew, can you merge this for 3.15 or 3.16 (you decide)? While it fixes a sparse error
+> for the media subsystem, it is not really appropriate to go through our media tree.
+> 
+> Thanks,
+> 
+> 	Hans
+> 
+> 
+> When running sparse over drivers/media/v4l2-core/v4l2-ioctl.c I get these
+> errors:
+> 
+> drivers/media/v4l2-core/v4l2-ioctl.c:2043:9: error: bad integer constant expression
+> drivers/media/v4l2-core/v4l2-ioctl.c:2044:9: error: bad integer constant expression
+> drivers/media/v4l2-core/v4l2-ioctl.c:2045:9: error: bad integer constant expression
+> drivers/media/v4l2-core/v4l2-ioctl.c:2046:9: error: bad integer constant expression
+> 
+> etc.
+> 
+> The root cause of that turns out to be in include/asm-generic/ioctl.h:
+> 
+> #include <uapi/asm-generic/ioctl.h>
+> 
+> /* provoke compile error for invalid uses of size argument */
+> extern unsigned int __invalid_size_argument_for_IOC;
+> #define _IOC_TYPECHECK(t) \
+>         ((sizeof(t) == sizeof(t[1]) && \
+>           sizeof(t) < (1 << _IOC_SIZEBITS)) ? \
+>           sizeof(t) : __invalid_size_argument_for_IOC)
+> 
+> If it is defined as this (as is already done if __KERNEL__ is not defined):
+> 
+> #define _IOC_TYPECHECK(t) (sizeof(t))
+> 
+> then all is well with the world.
+> 
+> This patch allows sparse to work correctly.
+> 
+> --- a/include/asm-generic/ioctl.h
+> +++ b/include/asm-generic/ioctl.h
+> @@ -3,10 +3,15 @@
+>  
+>  #include <uapi/asm-generic/ioctl.h>
+>  
+> +#ifdef __CHECKER__
+> +#define _IOC_TYPECHECK(t) (sizeof(t))
+> +#else
+>  /* provoke compile error for invalid uses of size argument */
+>  extern unsigned int __invalid_size_argument_for_IOC;
+>  #define _IOC_TYPECHECK(t) \
+>  	((sizeof(t) == sizeof(t[1]) && \
+>  	  sizeof(t) < (1 << _IOC_SIZEBITS)) ? \
+>  	  sizeof(t) : __invalid_size_argument_for_IOC)
+> +#endif
+> +
+>  #endif /* _ASM_GENERIC_IOCTL_H */
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Can't we use BUILD_BUG_ON() here?  That's neater, more standard and
+BUILD_BUG_ON() already has sparse handling.  
