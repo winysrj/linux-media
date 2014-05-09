@@ -1,51 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f172.google.com ([209.85.160.172]:51705 "EHLO
-	mail-yk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752430AbaERXYT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 May 2014 19:24:19 -0400
-Received: by mail-yk0-f172.google.com with SMTP id 79so3932041ykr.3
-        for <linux-media@vger.kernel.org>; Sun, 18 May 2014 16:24:18 -0700 (PDT)
-From: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-Subject: [PATCH] solo6x10: Kconfig: Add supported card list to the SOLO6X10 knob
-Date: Sun, 18 May 2014 20:23:47 -0300
-Message-Id: <1400455427-10780-1-git-send-email-ismael.luceno@corp.bluecherry.net>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:57580 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751172AbaEIHSs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 03:18:48 -0400
+Message-id: <536C815F.8060906@samsung.com>
+Date: Fri, 09 May 2014 09:18:55 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	s.nawrocki@samsung.com, a.hajda@samsung.com,
+	kyungmin.park@samsung.com
+Subject: Re: [PATCH/RFC v3 5/5] media: Add registration helpers for V4L2 flash
+ sub-devices
+References: <1397228216-6657-1-git-send-email-j.anaszewski@samsung.com>
+ <1397228216-6657-6-git-send-email-j.anaszewski@samsung.com>
+ <20140416182141.GG8753@valkosipuli.retiisi.org.uk>
+ <534F9044.6080508@samsung.com>
+ <20140423152435.GJ8753@valkosipuli.retiisi.org.uk>
+ <535E3A95.6010206@samsung.com>
+ <20140502110651.GX8753@valkosipuli.retiisi.org.uk>
+ <536884D9.4050104@samsung.com>
+ <20140506091059.GB8753@valkosipuli.retiisi.org.uk>
+ <5369DEB1.2060803@samsung.com>
+ <20140507075828.GD8753@valkosipuli.retiisi.org.uk>
+In-reply-to: <20140507075828.GD8753@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
----
- drivers/staging/media/solo6x10/Kconfig | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+Hi Sakari,
 
-diff --git a/drivers/staging/media/solo6x10/Kconfig b/drivers/staging/media/solo6x10/Kconfig
-index 9a4296c..6a1906f 100644
---- a/drivers/staging/media/solo6x10/Kconfig
-+++ b/drivers/staging/media/solo6x10/Kconfig
-@@ -1,5 +1,5 @@
- config SOLO6X10
--	tristate "Softlogic 6x10 MPEG codec cards"
-+	tristate "Bluecherry / Softlogic 6x10 capture cards (MPEG-4/H.264)"
- 	depends on PCI && VIDEO_DEV && SND && I2C
- 	select FONT_SUPPORT
- 	select FONT_8x16
-@@ -8,5 +8,11 @@ config SOLO6X10
- 	select SND_PCM
- 	select FONT_8x16
- 	---help---
--	  This driver supports the Softlogic based MPEG-4 and h.264 codec
--	  cards.
-+	  This driver supports the Bluecherry H.264 and MPEG-4 hardware
-+	  compression capture cards and other Softlogic-based ones.
-+
-+	  Following cards have been tested:
-+	  * Bluecherry BC-H16480A (PCIe, 16 port, H.264)
-+	  * Bluecherry BC-H04120A (PCIe, 4 port, H.264)
-+	  * Bluecherry BC-H04120A-MPCI (Mini-PCI, 4 port, H.264)
-+	  * Bluecherry BC-04120A (PCIe, 4 port, MPEG-4)
--- 
-1.9.1
+On 05/07/2014 09:58 AM, Sakari Ailus wrote:
+> Hi Jacek,
+>
+> On Wed, May 07, 2014 at 09:20:17AM +0200, Jacek Anaszewski wrote:
+>> On 05/06/2014 11:10 AM, Sakari Ailus wrote:
+>>> Hi Jacek,
+>>>
+>>> On Tue, May 06, 2014 at 08:44:41AM +0200, Jacek Anaszewski wrote:
+>>>> Hi Sakari,
+>>>>
+>>>> On 05/02/2014 01:06 PM, Sakari Ailus wrote:
+>>>>
+>>>>>>>> [...]
+>>>>>>>>>> +static inline enum led_brightness v4l2_flash_intensity_to_led_brightness(
+>>>>>>>>>> +					struct led_ctrl *config,
+>>>>>>>>>> +					u32 intensity)
+>>>>>>>>>
+>>>>>>>>> Fits on a single line.
+>>>>>>>>>
+>>>>>>>>>> +{
+>>>>>>>>>> +	return intensity / config->step;
+>>>>>>>>>
+>>>>>>>>> Shouldn't you first decrement the minimum before the division?
+>>>>>>>>
+>>>>>>>> Brightness level 0 means that led is off. Let's consider following case:
+>>>>>>>>
+>>>>>>>> intensity - 15625
+>>>>>>>> config->step - 15625
+>>>>>>>> intensity / config->step = 1 (the lowest possible current level)
+>>>>>>>
+>>>>>>> In V4L2 controls the minimum is not off, and zero might not be a possible
+>>>>>>> value since minimum isn't divisible by step.
+>>>>>>>
+>>>>>>> I wonder how to best take that into account.
+>>>>>>
+>>>>>> I've assumed that in MODE_TORCH a led is always on. Switching
+>>>>>> the mode to MODE_FLASH or MODE_OFF turns the led off.
+>>>>>> This way we avoid the problem with converting 0 uA value to
+>>>>>> led_brightness, as available torch brightness levels start from
+>>>>>> the minimum current level value and turning the led off is
+>>>>>> accomplished on transition to MODE_OFF or MODE_FLASH, by
+>>>>>> calling brightness_set op with led_brightness = 0.
+>>>>>
+>>>>> I'm not sure if we understood the issue the same way. My concern was that if
+>>>>> the intensity isn't a multiple of step (but intensity - min is), the above
+>>>>> formula won't return a valid result (unless I miss something).
+>>>>>
+>>>>
+>>>> Please note that v4l2_flash_intensity_to_led_brightness is called only
+>>> >from s_ctrl callback, and thus it expects to get the intensity aligned
+>>>> to the step value, so it will always be a multiple of step.
+>>>> Is it possible that s_ctrl callback would be passed a non-aligned
+>>>> control value?
+>>>
+>>> In a nutshell: value - min is aligned but value is not. Please see
+>>> validate_new() in drivers/media/v4l2-core/v4l2-ctrls.c .
+>>>
+>>
+>> Still, to my mind, value is aligned.
+>>
+>> Below I execute the calculation steps one by one
+>> according to the V4L2_CTRL_TYPE_INTEGER case in the
+>> validate_new function:
+>>
+>> c->value = 35000
+>>
+>> val = c->value + step / 2;       // 35000 + 15625 / 2 = 42812
+>> val = clamp(val, min, max);      // val = 42812
+>> offset = val - min;              // 42812 - 15625 = 27187
+>> offset = step * (offset / step); // 15625 * (27187 / 15625) = 15625
+>> c->value = min + offset;         // 15625 + 15625 = 31250
+>>
+>> Value is aligned to the nearest step.
+>>
+>> Please spot any discrepancies in my way of thinking if there
+>> are any :)
+>
+> min is aligned to step above. This is not necessarily the case. And if min
+> is not aligned, neither is value.
+>
 
+Thanks for spotting this. Below are improved versions of the conversion
+functions. Please let me know if you have any comments.
+
+static inline
+enum led_brightnessv4l2_flash_intensity_to_led_brightness(
+                                         struct led_ctrl *config,
+                                         u32 intensity)
+{
+         return ((intensity - config->min) / config->step) + 1;
+}
+
+static inline
+u32 v4l2_flash_led_brightness_to_intensity(
+                                         struct led_ctrl *config,
+                                         enum led_brightness brightness)
+{
+         return ((brightness - 1) * config->step) + config->min;
+}
+
+Regards,
+Jacek Anaszewski
