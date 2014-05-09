@@ -1,213 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3286 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751304AbaEING5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 09:06:57 -0400
-Message-ID: <536CD2AA.4040108@xs4all.nl>
-Date: Fri, 09 May 2014 15:05:46 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-qc0-f172.google.com ([209.85.216.172]:43757 "EHLO
+	mail-qc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751924AbaEIBgM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 21:36:12 -0400
+Received: by mail-qc0-f172.google.com with SMTP id l6so3826051qcy.17
+        for <linux-media@vger.kernel.org>; Thu, 08 May 2014 18:36:11 -0700 (PDT)
+Received: from mail-qg0-f42.google.com (mail-qg0-f42.google.com [209.85.192.42])
+        by mx.google.com with ESMTPSA id k9sm4188949qat.18.2014.05.08.18.36.10
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Thu, 08 May 2014 18:36:10 -0700 (PDT)
+Received: by mail-qg0-f42.google.com with SMTP id q107so3842773qgd.1
+        for <linux-media@vger.kernel.org>; Thu, 08 May 2014 18:36:10 -0700 (PDT)
 MIME-Version: 1.0
-To: Marcio Campos de Lima <marcio@netopen.com.br>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: linux-arm-kernel@lists.infradead.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: s_ctrl V4l2 device driver does not work
-References: <B43D69CB-FE7A-4168-B203-02A7934215F4@netopen.com.br> <Pine.LNX.4.64.1405082211240.14834@axis700.grange> <E916BA02-89F5-4E34-96A5-1D3EE8F944CF@netopen.com.br> <Pine.LNX.4.64.1405082259340.14834@axis700.grange> <5869970E-84C8-4159-99EB-8C5D63AE72C9@netopen.com.br>
-In-Reply-To: <5869970E-84C8-4159-99EB-8C5D63AE72C9@netopen.com.br>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <004a01cf6ad9$a5a2c870$f0e85950$%debski@samsung.com>
+References: <1395391035-27349-1-git-send-email-arun.kk@samsung.com>
+ <1395391035-27349-4-git-send-email-arun.kk@samsung.com> <004a01cf6ad9$a5a2c870$f0e85950$%debski@samsung.com>
+From: Pawel Osciak <posciak@chromium.org>
+Date: Fri, 9 May 2014 10:35:30 +0900
+Message-ID: <CACHYQ-qBTPkavKMJ_PK+LaTnAzve9MxDmp8hjw=P8mx8=yA7xw@mail.gmail.com>
+Subject: Re: [PATCH 3/3] [media] s5p-mfc: Don't allocate codec buffers on STREAMON.
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Arun Kumar K <arun.kk@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Arun Kumar <arunkk.samsung@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/08/2014 11:30 PM, Marcio Campos de Lima wrote:
-> I have also tried these settings
-> 
-> #define VIDIOC_AVANCA_ZOOM	(0x009a0000|0x900)+14
-> #define VIDIOC_RECUA_ZOOM	(0x009a0000|0x900)+14
+Hi Kamil,
 
-All controls must have unique IDs, which is clearly not the case for these
-two ZOOM controls.
-
-You say you have problems with setting AVANCA_ZOOM, but you don't provide
-the code in s_ctrl that actually handles that control, so that makes it
-impossible to tell what's going on.
-
-In addition I see a 'return 1' in s_ctrl, which makes no sense since return
-codes from s_ctrl must either be 0 (for success) or negative (for error codes).
-
-You really need to give more info (post the entire source?) if you want help.
-
-Regards,
-
-	Hans
-
-> #define VIDIOC_ATIVA_FLASH	(0x009a0000|0x900)+3
-> #define VIDIOC_WHITE_BALANCE	(0x009a0000|0x900)+13
-> 
-> Em 08/05/2014, à(s) 18:01, Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
-> 
->> On Thu, 8 May 2014, Marcio Campos de Lima wrote:
+On Fri, May 9, 2014 at 1:22 AM, Kamil Debski <k.debski@samsung.com> wrote:
+> Hi,
+>
+>> From: Arun Kumar K [mailto:arunkk.samsung@gmail.com] On Behalf Of Arun
+>> Kumar K
+>> Sent: Friday, March 21, 2014 9:37 AM
 >>
->>> Hi Guennadi
->>> Thank you very much for your answer.
->>> The driver is a modified OV5642.c for the Omnivision OV5642 sensor. The platform is a custom AT91SAM9M10 board with a camera paralell interface.
->>> the driver is working quite well (capturing images) apart the set control interface.
+>> From: Pawel Osciak <posciak@chromium.org>
 >>
->> So, you're using the atmel-isi camera _host_ driver.
+>> Currently, we allocate private codec buffers on STREAMON, which may
+>> fail if we are out of memory. We don't check for failure though, which
+>> will make us crash with the codec accessing random memory.
 >>
->>> Unfortunately I cannot move to the most current kernel now.
+>> We shouldn't be failing STREAMON with out of memory errors though. So
+>> move the allocation of private codec buffers to REQBUFS for OUTPUT
+>> queue. Also, move MFC instance opening and closing to REQBUFS as well,
+>> as it's tied to allocation and deallocation of private codec buffers.
 >>
->> I don't find VIDIOC_AVANCA_ZOOM in the mainline kernel, it seems to be a 
->> part of your modification, so, I don't think I can help you, sorry.
->>
->> Thanks
->> Guennadi
->>
->>> Thanks again
->>> Regards
->>> Marcio
->>> Em 08/05/2014, à(s) 17:14, Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
->>>
->>>> Hi Marcio,
->>>>
->>>> Firstly, please direct all V4L related questions to the linux-media list 
->>>> (added to CC), secondly, your problem will have much better chances to 
->>>> attract attention if you use a current kernel, thirdly, please, specify 
->>>> which camera host driver / which ARM platform you're dealing with.
->>>>
->>>> Thanks
->>>> Guennadi
->>>>
->>>> On Thu, 8 May 2014, Marcio Campos de Lima wrote:
->>>>
->>>>> Hi
->>>>>
->>>>> Can anybody tell me why the set control function is not working in Linux 3.6.9? Thanks.
->>>>>
->>>>> —— APPLICATION CALL ——
->>>>> struct v4l2_control controle;
->>>>>   controle.id = VIDIOC_AVANCA_ZOOM;
->>>>>   controle.value = time;
->>>>>   if (-1 == xioctl(fd_camera, VIDIOC_S_CTRL,&controle))
->>>>> 	{
->>>>> 	printf ("%s erro\n",__FUNCTION__);
->>>>> 	perror ("erro iotcl");
->>>>> 	}
->>>>>
->>>>> The ioctl call returns with invalid argument. It is amazing because the first time the ioctl is called it is executed ok. Then no more call is allowed and return the invalid 
->>>>>
->>>>> below is the device driver  code I think may be relevant.
->>>>>
->>>>> v4l2_ctrl_handler_init(&priv->ctrls, ARRAY_SIZE(ov5642_ctrls));
->>>>>   printk ("handler_init\n");
->>>>>   v4l2_ctrl_new_std(&priv->ctrls, &ov5642_ctrl_ops,V4L2_CID_ZOOM_RELATIVE, -1000, 1000, 1, 500);
->>>>>   v4l2_ctrl_new_std(&priv->ctrls, &ov5642_ctrl_ops,V4L2_CID_FLASH_STROBE, -100, 100, 1, 5);
->>>>>
->>>>>
->>>>>   priv->subdev.ctrl_handler=&priv->ctrls;
->>>>>   v4l2_i2c_subdev_init(&priv->subdev, client, &ov5642_subdev_ops);
->>>>>   return ov5642_video_probe(client);
->>>>>
->>>>> static int ov5642_s_ctrl(struct v4l2_ctrl *ctrl)
->>>>> {
->>>>> 	struct ov5642 *ov5642 =
->>>>> 			container_of(ctrl->handler, struct ov5642, ctrls);
->>>>> 	struct i2c_client *client = v4l2_get_subdevdata(&ov5642->subdev);
->>>>> 	u16 data;
->>>>> 	int ret;
->>>>> 	printk ("%s: id=%08x val=%d\n",__FUNCTION__, ctrl->id, ctrl->val);
->>>>> 	switch (ctrl->id) {
->>>>> 	case V4L2_CID_DO_WHITE_BALANCE:
->>>>> 		ov5640_set_wb_oem(client, ctrl->val);
->>>>> 		break;
->>>>> 	case V4L2_CID_EXPOSURE:
->>>>>
->>>>> 		break;
->>>>> 	case V4L2_CID_GAIN:
->>>>> 		/* Gain is controlled by 2 analog stages and a digital stage.
->>>>> 		 * Valid values for the 3 stages are
->>>>> 		 *
->>>>> 		 * Stage                Min     Max     Step
->>>>> 		 * ------------------------------------------
->>>>> 		 * First analog stage   x1      x2      1
->>>>> 		 * Second analog stage  x1      x4      0.125
->>>>> 		 * Digital stage        x1      x16     0.125
->>>>> 		 *
->>>>> 		 * To minimize noise, the gain stages should be used in the
->>>>> 		 * second analog stage, first analog stage, digital stage order.
->>>>> 		 * Gain from a previous stage should be pushed to its maximum
->>>>> 		 * value before the next stage is used.
->>>>> 		 */
->>>>> 		if (ctrl->val <= 32) {
->>>>> 			data = ctrl->val;
->>>>> 		} else if (ctrl->val <= 64) {
->>>>> 			ctrl->val &= ~1;
->>>>> 			data = (1 << 6) | (ctrl->val >> 1);
->>>>> 		} else {
->>>>> 			ctrl->val &= ~7;
->>>>> 			data = ((ctrl->val - 64) << 5) | (1 << 6) | 32;
->>>>> 		}
->>>>> 		break;
->>>>> 	case V4L2_CID_ZOOM_RELATIVE:
->>>>> 		if (ctrl->val>0)
->>>>> 			avanca_zoom(sysPriv.v4l2_int_device, ctrl->val);
->>>>> 		else
->>>>> 			recua_zoom(sysPriv.v4l2_int_device, ctrl->val);
->>>>>
->>>>> 		break;
->>>>> 	case V4L2_CID_BRIGHTNESS:
->>>>> 		 ov5640_set_brightness(client, ctrl->val);
->>>>> 		 break;
->>>>> 	case V4L2_CID_CONTRAST:
->>>>> 		ov5640_set_contrast(client, ctrl->val);
->>>>> 		break;
->>>>> 	case V4L2_CID_FLASH_STROBE:
->>>>> 		ativa_flash (sysPriv.v4l2_int_device, ctrl->val);
->>>>> 		break;
->>>>> 	case V4L2_CID_VFLIP:
->>>>>
->>>>> 	case V4L2_CID_TEST_PATTERN:
->>>>>
->>>>>
->>>>>
->>>>> 	case V4L2_CID_BLC_AUTO:
->>>>>
->>>>> 	case V4L2_CID_BLC_TARGET_LEVEL:
->>>>>
->>>>> 	case V4L2_CID_BLC_ANALOG_OFFSET:
->>>>>
->>>>> 	case V4L2_CID_BLC_DIGITAL_OFFSET:
->>>>> 		return 1;
->>>>> 			}
->>>>>
->>>>> 	return 0;
->>>>> }
->>>>>
->>>>> static struct v4l2_ctrl_ops ov5642_ctrl_ops = {
->>>>> 	.s_ctrl = ov5642_s_ctrl,
->>>>> };
->>>>>
->>>>>
->>>>> _______________________________________________
->>>>> linux-arm-kernel mailing list
->>>>> linux-arm-kernel@lists.infradead.org
->>>>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->>>>>
->>>>
->>>> ---
->>>> Guennadi Liakhovetski, Ph.D.
->>>> Freelance Open-Source Software Developer
->>>> http://www.open-technology.de/
->>>
->>
+>> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 >> ---
->> Guennadi Liakhovetski, Ph.D.
->> Freelance Open-Source Software Developer
->> http://www.open-technology.de/
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>>  drivers/media/platform/s5p-mfc/s5p_mfc.c      |   10 ++++-----
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c |    1 +
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c  |   30 +++++++++++------
+>> --------
+>>  3 files changed, 19 insertions(+), 22 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+>> b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+>> index 04030f5..4ee5a02 100644
+>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+>> @@ -637,8 +637,9 @@ static irqreturn_t s5p_mfc_irq(int irq, void *priv)
+>>               goto irq_cleanup_hw;
+>>
+>>       case S5P_MFC_R2H_CMD_CLOSE_INSTANCE_RET:
+>> -             clear_work_bit(ctx);
+>> +             ctx->inst_no = MFC_NO_INSTANCE_SET;
+>>               ctx->state = MFCINST_FREE;
+>> +             clear_work_bit(ctx);
+>>               wake_up(&ctx->queue);
+>
+> I have the impression that work bit first should be cleared and then
+> changes made to the context.
 
+While I agree it's probably a good idea, it shouldn't matter here.
+This irq comes
+after processing with hw_lock being held. clear_work_bit() influences
+the decision
+made under the same lock in try_run when choosing the next instance to run.
+
+>
+>                 clear_work_bit(ctx);
+> +               ctx->inst_no = MFC_NO_INSTANCE_SET;
+>                 ctx->state = MFCINST_FREE;
+>
+>>               goto irq_cleanup_hw;
+>>
+>> @@ -758,7 +759,7 @@ static int s5p_mfc_open(struct file *file)
+>>               goto err_bad_node;
+>>       }
+>>       ctx->fh.ctrl_handler = &ctx->ctrl_handler;
+>> -     ctx->inst_no = -1;
+>> +     ctx->inst_no = MFC_NO_INSTANCE_SET;
+>>       /* Load firmware if this is the first instance */
+>>       if (dev->num_inst == 1) {
+>>               dev->watchdog_timer.expires = jiffies + @@ -868,12 +869,11
+>> @@ static int s5p_mfc_release(struct file *file)
+>>       vb2_queue_release(&ctx->vq_dst);
+>>       /* Mark context as idle */
+>>       clear_work_bit_irqsave(ctx);
+>> -     /* If instance was initialised then
+>> +     /* If instance was initialised and not yet freed,
+>>        * return instance and free resources */
+>> -     if (ctx->inst_no != MFC_NO_INSTANCE_SET) {
+>> +     if (ctx->state != MFCINST_FREE && ctx->state != MFCINST_INIT) {
+>>               mfc_debug(2, "Has to free instance\n");
+>>               s5p_mfc_close_mfc_inst(dev, ctx);
+>> -             ctx->inst_no = MFC_NO_INSTANCE_SET;
+>>       }
+>>       /* hardware locking scheme */
+>>       if (dev->curr_ctx == ctx->num)
+>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+>> b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+>> index ccbfcb3..865e9e0 100644
+>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+>> @@ -461,5 +461,6 @@ void s5p_mfc_close_mfc_inst(struct s5p_mfc_dev *dev,
+>> struct s5p_mfc_ctx *ctx)
+>>       if (ctx->type == MFCINST_DECODER)
+>>               s5p_mfc_hw_call(dev->mfc_ops, release_dec_desc_buffer, ctx);
+>>
+>> +     ctx->inst_no = MFC_NO_INSTANCE_SET;
+>>       ctx->state = MFCINST_FREE;
+>>  }
+>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+>> b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+>> index efc78ae..4586186 100644
+>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+>> @@ -475,11 +475,11 @@ static int reqbufs_output(struct s5p_mfc_dev *dev,
+>> struct s5p_mfc_ctx *ctx,
+>>               ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
+>>               if (ret)
+>>                       goto out;
+>> +             s5p_mfc_close_mfc_inst(dev, ctx);
+>>               ctx->src_bufs_cnt = 0;
+>> +             ctx->output_state = QUEUE_FREE;
+>>       } else if (ctx->output_state == QUEUE_FREE) {
+>> -             /* Can only request buffers after the instance
+>> -              * has been opened.
+>> -              */
+>> +             /* Can only request buffers when we have a valid format set.
+>> */
+>>               WARN_ON(ctx->src_bufs_cnt != 0);
+>>               if (ctx->state != MFCINST_INIT) {
+>>                       mfc_err("Reqbufs called in an invalid state\n"); @@
+> -
+>> 493,6 +493,13 @@ static int reqbufs_output(struct s5p_mfc_dev *dev,
+>> struct s5p_mfc_ctx *ctx,
+>>               if (ret)
+>>                       goto out;
+>>
+>> +             ret = s5p_mfc_open_mfc_inst(dev, ctx);
+>> +             if (ret) {
+>> +                     reqbufs->count = 0;
+>> +                     vb2_reqbufs(&ctx->vq_src, reqbufs);
+>> +                     goto out;
+>> +             }
+>> +
+>>               ctx->output_state = QUEUE_BUFS_REQUESTED;
+>>       } else {
+>>               mfc_err("Buffers have already been requested\n"); @@ -594,7
+>> +601,7 @@ static int vidioc_querybuf(struct file *file, void *priv,
+>>               return -EINVAL;
+>>       }
+>>       mfc_debug(2, "State: %d, buf->type: %d\n", ctx->state, buf->type);
+>> -     if (ctx->state == MFCINST_INIT &&
+>> +     if (ctx->state == MFCINST_GOT_INST &&
+>>                       buf->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+>>               ret = vb2_querybuf(&ctx->vq_src, buf);
+>>       } else if (ctx->state == MFCINST_RUNNING && @@ -670,24 +677,13 @@
+>> static int vidioc_streamon(struct file *file, void *priv,
+>>                          enum v4l2_buf_type type)
+>>  {
+>>       struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
+>> -     struct s5p_mfc_dev *dev = ctx->dev;
+>>       int ret = -EINVAL;
+>>
+>>       mfc_debug_enter();
+>> -     if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+>> -             if (ctx->state == MFCINST_INIT) {
+>> -                     ctx->dst_bufs_cnt = 0;
+>> -                     ctx->src_bufs_cnt = 0;
+>> -                     ctx->capture_state = QUEUE_FREE;
+>> -                     ctx->output_state = QUEUE_FREE;
+>> -                     ret = s5p_mfc_open_mfc_inst(dev, ctx);
+>> -                     if (ret)
+>> -                             return ret;
+>> -             }
+>> +     if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+>>               ret = vb2_streamon(&ctx->vq_src, type);
+>> -     } else if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+>> +     else if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+>>               ret = vb2_streamon(&ctx->vq_dst, type);
+>> -     }
+>>       mfc_debug_leave();
+>>       return ret;
+>>  }
+>> --
+>> 1.7.9.5
+>
+> Best wishes,
+> --
+> Kamil Debski
+> Samsung R&D Institute Poland
+>
