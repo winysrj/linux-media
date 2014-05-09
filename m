@@ -1,52 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:56341 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751710AbaE1Ju2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 May 2014 05:50:28 -0400
-Message-ID: <1401270626.3054.13.camel@paszta.hi.pengutronix.de>
-Subject: Re: [RFC PATCH] [media] mt9v032: Add support for mt9v022 and mt9v024
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Date: Wed, 28 May 2014 11:50:26 +0200
-In-Reply-To: <Pine.LNX.4.64.1405272146260.24747@axis700.grange>
-References: <1401112985-32338-1-git-send-email-p.zabel@pengutronix.de>
-	 <Pine.LNX.4.64.1405272146260.24747@axis700.grange>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from top.free-electrons.com ([176.31.233.9]:45574 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751010AbaEINHt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 09:07:49 -0400
+Date: Fri, 9 May 2014 10:07:15 -0300
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH v2] media: stk1160: Avoid stack-allocated buffer for
+ control URBs
+Message-ID: <20140509130715.GA764@arch.cereza>
+References: <1397737700-1081-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <536CAF29.4030200@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <536CAF29.4030200@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
-
-Am Dienstag, den 27.05.2014, 21:48 +0200 schrieb Guennadi Liakhovetski:
-> Hi Philipp,
+On 09 May 12:34 PM, Hans Verkuil wrote:
+> Hi Ezequiel,
 > 
-> On Mon, 26 May 2014, Philipp Zabel wrote:
+> On 04/17/2014 02:28 PM, Ezequiel Garcia wrote:
+> > Currently stk1160_read_reg() uses a stack-allocated char to get the
+> > read control value. This is wrong because usb_control_msg() requires
+> > a kmalloc-ed buffer.
+> > 
+> > This commit fixes such issue by kmalloc'ating a 1-byte buffer to receive
+> > the read value.
+> > 
+> > While here, let's remove the urb_buf array which was meant for a similar
+> > purpose, but never really used.
 > 
-> > >From the looks of it, mt9v022 and mt9v032 are very similar,
-> > as are mt9v024 and mt9v034. With minimal changes it is possible
-> > to support mt9v02[24] with the same driver.
+> Rather than allocating and freeing a buffer for every read_reg I would allocate
+> this buffer in the probe function.
 > 
-> Are you aware of drivers/media/i2c/soc_camera/mt9v022.c?
+> That way this allocation is done only once.
+> 
 
-Yes. Unfortunately this driver can't be used in a system without
-soc_camera. It uses soc_camera helpers and doesn't implement pad ops
-among others.
-
-> With this patch you'd duplicate support for both mt9v022 and mt9v024,
-> which doesn't look like a good idea to me.
-
-While this is true, given that the mt9v02x/3x sensors are so similar,
-the support is already duplicated in all but name.
-Would you suggest we should try to merge the mt9v032 and mt9v022
-drivers?
-
-regards
-Philipp
-
-
+I get your point. I just thought that since the control URBs are only used for
+changing the configuration parameters, and this path is scarcely taken, it wasn't
+a big deal to allocate it each time.
+-- 
+Ezequiel García, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
