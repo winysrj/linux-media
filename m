@@ -1,61 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from isis.lip6.fr ([132.227.60.2]:56482 "EHLO isis.lip6.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752753AbaEZP1h (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 11:27:37 -0400
-From: Benoit Taine <benoit.taine@lip6.fr>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: benoit.taine@lip6.fr, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [PATCH 17/18] drx-j: Use kmemdup instead of kmalloc + memcpy
-Date: Mon, 26 May 2014 17:21:26 +0200
-Message-Id: <1401117687-28911-18-git-send-email-benoit.taine@lip6.fr>
-In-Reply-To: <1401117687-28911-1-git-send-email-benoit.taine@lip6.fr>
-References: <1401117687-28911-1-git-send-email-benoit.taine@lip6.fr>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2764 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751365AbaEINPf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 09:15:35 -0400
+Message-ID: <536CD4DD.1080101@xs4all.nl>
+Date: Fri, 09 May 2014 15:15:09 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Arun Kumar K <arun.kk@samsung.com>
+CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	k.debski@samsung.com, s.nawrocki@samsung.com, posciak@chromium.org,
+	arunkk.samsung@gmail.com
+Subject: Re: [PATCH v3 1/2] [media] v4l: Add source change event
+References: <1399549756-3743-1-git-send-email-arun.kk@samsung.com> <1399549756-3743-2-git-send-email-arun.kk@samsung.com> <3628141.bT6snEDtDi@avalon>
+In-Reply-To: <3628141.bT6snEDtDi@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This issue was reported by coccicheck using the semantic patch 
-at scripts/coccinelle/api/memdup.cocci
+On 05/09/2014 03:09 PM, Laurent Pinchart wrote:
+> Hi Arun,
+> 
+> Thank you for the patch. We're slowly getting there :-)
+> 
+> On Thursday 08 May 2014 17:19:15 Arun Kumar K wrote:
+>> This event indicates that the video device has encountered
+>> a source parameter change during runtime. This can typically be a
+>> resolution change detected by a video decoder OR a format change
+>> detected by an HDMI connector.
+>>
+>> This needs to be nofified to the userspace and the application may
+>> be expected to reallocate buffers before proceeding. The application
+>> can subscribe to events on a specific pad or input/output port which
+>> it is interested in.
+>>
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>> ---
+>>  Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   32 +++++++++++++++++
+>>  .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   19 +++++++++++
+>>  drivers/media/v4l2-core/v4l2-event.c               |   36 +++++++++++++++++
+>>  include/media/v4l2-event.h                         |    4 +++
+>>  include/uapi/linux/videodev2.h                     |    8 +++++
+>>  5 files changed, 99 insertions(+)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+>> b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml index 89891ad..6afabaa
+>> 100644
+>> --- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+>> @@ -242,6 +242,22 @@
+>>        </tgroup>
+>>      </table>
+>>
+>> +    <table frame="none" pgwide="1" id="v4l2-event-src-change">
+>> +      <title>struct <structname>v4l2_event_src_change</structname></title>
+>> +      <tgroup cols="3">
+>> +	&cs-str;
+>> +	<tbody valign="top">
+>> +	  <row>
+>> +	    <entry>__u32</entry>
+>> +	    <entry><structfield>changes</structfield></entry>
+>> +	    <entry>
+>> +	      A bitmask that tells what has changed. See <xref
+>> linkend="src-changes-flags" />. +	    </entry>
+>> +	  </row>
+>> +	</tbody>
+>> +      </tgroup>
+>> +    </table>
+>> +
+>>      <table pgwide="1" frame="none" id="changes-flags">
+>>        <title>Changes</title>
+>>        <tgroup cols="3">
+>> @@ -270,6 +286,22 @@
+>>  	</tbody>
+>>        </tgroup>
+>>      </table>
+>> +
+>> +    <table pgwide="1" frame="none" id="src-changes-flags">
+>> +      <title>Source Changes</title>
+>> +      <tgroup cols="3">
+>> +	&cs-def;
+>> +	<tbody valign="top">
+>> +	  <row>
+>> +	    <entry><constant>V4L2_EVENT_SRC_CH_RESOLUTION</constant></entry>
+>> +	    <entry>0x0001</entry>
+>> +	    <entry>This event gets triggered when a resolution change is
+>> +	    detected at runtime. This can typically come from a video decoder.
+>> +	    </entry>
+>> +	  </row>
+>> +	</tbody>
+>> +      </tgroup>
+>> +    </table>
+>>    </refsect1>
+>>    <refsect1>
+>>      &return-value;
+>> diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>> b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml index
+>> 5c70b61..8012829 100644
+>> --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>> @@ -155,6 +155,25 @@
+>>  	    </entry>
+>>  	  </row>
+>>  	  <row>
+>> +	    <entry><constant>V4L2_EVENT_SOURCE_CHANGE</constant></entry>
+>> +	    <entry>5</entry>
+>> +	    <entry>
+>> +	      <para>This event is triggered when a format change is
+>> +	       detected during runtime by the video device. It can be a
+>> +	       runtime resolution change triggered by a video decoder or the
+>> +	       format change happening on an HDMI connector.
+>> +	       This event requires that the <structfield>id</structfield>
+>> +               matches the pad/input/output index from which you want to
+>> +	       receive events.</para>
+>> +
+>> +              <para>This event has a &v4l2-event-source-change; associated
+>> +	      with it. The <structfield>changes</structfield> bitfield denotes
+>> +	      what has changed for the subscribed pad. If multiple events
+>> +	      occured before application could dequeue them, then the changes
+>> +	      will have the ORed value of all the events generated.</para>
+>> +	    </entry>
+>> +	  </row>
+>> +	  <row>
+>>  	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
+>>  	    <entry>0x08000000</entry>
+>>  	    <entry>Base event number for driver-private events.</entry>
+>> diff --git a/drivers/media/v4l2-core/v4l2-event.c
+>> b/drivers/media/v4l2-core/v4l2-event.c index 86dcb54..8761aab 100644
+>> --- a/drivers/media/v4l2-core/v4l2-event.c
+>> +++ b/drivers/media/v4l2-core/v4l2-event.c
+>> @@ -318,3 +318,39 @@ int v4l2_event_subdev_unsubscribe(struct v4l2_subdev
+>> *sd, struct v4l2_fh *fh, return v4l2_event_unsubscribe(fh, sub);
+>>  }
+>>  EXPORT_SYMBOL_GPL(v4l2_event_subdev_unsubscribe);
+>> +
+>> +static void v4l2_event_src_replace(struct v4l2_event *old,
+>> +				const struct v4l2_event *new)
+>> +{
+>> +	u32 old_changes = old->u.src_change.changes;
+>> +
+>> +	old->u.src_change = new->u.src_change;
+>> +	old->u.src_change.changes |= old_changes;
+>> +}
+>> +
+>> +static void v4l2_event_src_merge(const struct v4l2_event *old,
+>> +				struct v4l2_event *new)
+>> +{
+>> +	new->u.src_change.changes |= old->u.src_change.changes;
+>> +}
+>> +
+>> +static const struct v4l2_subscribed_event_ops v4l2_event_src_ch_ops = {
+>> +	.replace = v4l2_event_src_replace,
+>> +	.merge = v4l2_event_src_merge,
+>> +};
+>> +
+>> +int v4l2_src_change_event_subscribe(struct v4l2_fh *fh,
+>> +				const struct v4l2_event_subscription *sub)
+>> +{
+>> +	if (sub->type == V4L2_EVENT_SOURCE_CHANGE)
+>> +		return v4l2_event_subscribe(fh, sub, 0, &v4l2_event_src_ch_ops);
+>> +	return -EINVAL;
+>> +}
+>> +EXPORT_SYMBOL_GPL(v4l2_src_change_event_subscribe);
+>> +
+>> +int v4l2_src_change_event_subdev_subscribe(struct v4l2_subdev *sd,
+>> +		struct v4l2_fh *fh, struct v4l2_event_subscription *sub)
+>> +{
+>> +	return v4l2_src_change_event_subscribe(fh, sub);
+>> +}
+>> +EXPORT_SYMBOL_GPL(v4l2_src_change_event_subdev_subscribe);
+>> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+>> index be05d01..1ab9045 100644
+>> --- a/include/media/v4l2-event.h
+>> +++ b/include/media/v4l2-event.h
+>> @@ -132,4 +132,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+>>  void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
+>>  int v4l2_event_subdev_unsubscribe(struct v4l2_subdev *sd, struct v4l2_fh
+>> *fh, struct v4l2_event_subscription *sub);
+>> +int v4l2_src_change_event_subscribe(struct v4l2_fh *fh,
+>> +				const struct v4l2_event_subscription *sub);
+>> +int v4l2_src_change_event_subdev_subscribe(struct v4l2_subdev *sd,
+>> +		struct v4l2_fh *fh, struct v4l2_event_subscription *sub);
+>>  #endif /* V4L2_EVENT_H */
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index ea468ee..b923d91 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -1765,6 +1765,7 @@ struct v4l2_streamparm {
+>>  #define V4L2_EVENT_EOS				2
+>>  #define V4L2_EVENT_CTRL				3
+>>  #define V4L2_EVENT_FRAME_SYNC			4
+>> +#define V4L2_EVENT_SOURCE_CHANGE		5
+> 
+> My last concern is about the event name (and the name of the related 
+> structure). Either this event applies to inputs only, in which case the 
+> documentation shouldn't mention the output number as it does above, or the 
+> event applies to both inputs and outputs, in which case the name "source" is 
+> too restrictive. I'd be tempted to go for the second option, even though I 
+> have less use cases in mind on the output side.
 
-Signed-off-by: Benoit Taine <benoit.taine@lip6.fr>
----
-Not compile tested.
+I don't think it makes sense to support this for outputs (I think I originally
+suggested that, but I didn't think that through). One practical problem with
+that approach would be with m2m devices because that makes it impossible to
+tell the difference between a change on the capture side and a change on the
+output side, the other is that normally outputs do not change since you are in
+control w.r.t. to the format/resolution, etc.
 
- drivers/media/dvb-frontends/drx39xyj/drxj.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+If there is a need for format change events on an output, then I would expect
+to see a separate event for that.
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 9482954..3795f65 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -12272,22 +12272,20 @@ struct dvb_frontend *drx39xxj_attach(struct i2c_adapter *i2c)
- 	if (demod == NULL)
- 		goto error;
- 
--	demod_addr = kmalloc(sizeof(struct i2c_device_addr), GFP_KERNEL);
-+	demod_addr = kmemdup(&drxj_default_addr_g,
-+			     sizeof(struct i2c_device_addr), GFP_KERNEL);
- 	if (demod_addr == NULL)
- 		goto error;
--	memcpy(demod_addr, &drxj_default_addr_g,
--	       sizeof(struct i2c_device_addr));
- 
--	demod_comm_attr = kmalloc(sizeof(struct drx_common_attr), GFP_KERNEL);
-+	demod_comm_attr = kmemdup(&drxj_default_comm_attr_g,
-+				  sizeof(struct drx_common_attr), GFP_KERNEL);
- 	if (demod_comm_attr == NULL)
- 		goto error;
--	memcpy(demod_comm_attr, &drxj_default_comm_attr_g,
--	       sizeof(struct drx_common_attr));
- 
--	demod_ext_attr = kmalloc(sizeof(struct drxj_data), GFP_KERNEL);
-+	demod_ext_attr = kmemdup(&drxj_data_g, sizeof(struct drxj_data),
-+				 GFP_KERNEL);
- 	if (demod_ext_attr == NULL)
- 		goto error;
--	memcpy(demod_ext_attr, &drxj_data_g, sizeof(struct drxj_data));
- 
- 	/* setup the state */
- 	state->i2c = i2c;
+Regards,
+
+	Hans
+
+> 
+>>  #define V4L2_EVENT_PRIVATE_START		0x08000000
+>>
+>>  /* Payload for V4L2_EVENT_VSYNC */
+>> @@ -1796,12 +1797,19 @@ struct v4l2_event_frame_sync {
+>>  	__u32 frame_sequence;
+>>  };
+>>
+>> +#define V4L2_EVENT_SRC_CH_RESOLUTION		(1 << 0)
+>> +
+>> +struct v4l2_event_src_change {
+>> +	__u32 changes;
+>> +};
+>> +
+>>  struct v4l2_event {
+>>  	__u32				type;
+>>  	union {
+>>  		struct v4l2_event_vsync		vsync;
+>>  		struct v4l2_event_ctrl		ctrl;
+>>  		struct v4l2_event_frame_sync	frame_sync;
+>> +		struct v4l2_event_src_change	src_change;
+>>  		__u8				data[64];
+>>  	} u;
+>>  	__u32				pending;
+> 
 
