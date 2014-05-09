@@ -1,78 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f47.google.com ([209.85.160.47]:62784 "EHLO
-	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933179AbaEPNlW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:41:22 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 28/49] media: davinci: vpif_capture: use vb2_ops_wait_prepare/finish helper functions
-Date: Fri, 16 May 2014 19:03:33 +0530
-Message-Id: <1400247235-31434-30-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3770 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751076AbaEIM5j (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 08:57:39 -0400
+Message-ID: <536CD0A9.4020904@xs4all.nl>
+Date: Fri, 09 May 2014 14:57:13 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>, Antti Palosaari <crope@iki.fi>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: V4L control units
+References: <536A2DA7.7050803@iki.fi> <20140508090446.GG8753@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20140508090446.GG8753@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+On 05/08/2014 11:04 AM, Sakari Ailus wrote:
+> Heippa!
+> 
+> On Wed, May 07, 2014 at 03:57:11PM +0300, Antti Palosaari wrote:
+>> What is preferred way implement controls that could have some known
+>> unit or unknown unit? For example for gain controls, I would like to
+>> offer gain in unit of dB (decibel) and also some unknown driver
+>> specific unit. Should I two controls, one for each unit?
+>>
+>> Like that
+>>
+>> V4L2_CID_RF_TUNER_LNA_GAIN_AUTO
+>> V4L2_CID_RF_TUNER_LNA_GAIN
+>> V4L2_CID_RF_TUNER_LNA_GAIN_dB
+> 
+> I suppose that on any single device there would be a single unit to control
+> a given... control. Some existing controls do document the unit as well but
+> I don't think that's scalable nor preferrable. This way we'd have many
+> different controls to control the same thing but just using a different
+> unit. The auto control is naturally different. Hans did have a patch to add
+> the unit to queryctrl (in the form of QUERY_EXT_CTRL).
 
-this patch makes use of vb2_ops_wait_prepare/finish helper functions.
+Well, that's going to be dropped again. There were too many comments about
+that during the mini-summit and it was not critical for me.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif_capture.c |   21 +--------------------
- 1 file changed, 1 insertion(+), 20 deletions(-)
+> 
+> <URL:http://www.spinics.net/lists/linux-media/msg73136.html>
+> 
+> I wish we can get these in relatively soon.
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 484d858..8572efe 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -224,24 +224,6 @@ static void vpif_buf_cleanup(struct vb2_buffer *vb)
- 
- }
- 
--static void vpif_wait_prepare(struct vb2_queue *vq)
--{
--	struct channel_obj *ch = vb2_get_drv_priv(vq);
--	struct common_obj *common;
--
--	common = &ch->common[VPIF_VIDEO_INDEX];
--	mutex_unlock(&common->lock);
--}
--
--static void vpif_wait_finish(struct vb2_queue *vq)
--{
--	struct channel_obj *ch = vb2_get_drv_priv(vq);
--	struct common_obj *common;
--
--	common = &ch->common[VPIF_VIDEO_INDEX];
--	mutex_lock(&common->lock);
--}
--
- static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct vpif_capture_config *vpif_config_data =
-@@ -374,8 +356,6 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
- 
- static struct vb2_ops video_qops = {
- 	.queue_setup		= vpif_buffer_queue_setup,
--	.wait_prepare		= vpif_wait_prepare,
--	.wait_finish		= vpif_wait_finish,
- 	.buf_prepare		= vpif_buffer_prepare,
- 	.start_streaming	= vpif_start_streaming,
- 	.stop_streaming		= vpif_stop_streaming,
-@@ -1977,6 +1957,7 @@ static int vpif_probe_complete(void)
- 		q->buf_struct_size = sizeof(struct vpif_cap_buffer);
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 1;
-+		q->lock = &common->lock;
- 
- 		err = vb2_queue_init(q);
- 		if (err) {
--- 
-1.7.9.5
+Sakari, I think you will have to push this if you want this done.
 
+One interesting thing to look at: the AVB IEEE 1722.1 standard has extensive
+support for all sorts of units. I don't know if you have access to the standard
+document, but it might be interesting to look at what they do there.
+
+Regards,
+
+	Hans
