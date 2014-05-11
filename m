@@ -1,107 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f43.google.com ([209.85.160.43]:50209 "EHLO
-	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933242AbaEPNlp (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4299 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752417AbaEKCni (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:41:45 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 32/49] media: davinci: vpif_capture: improve vpif_buffer_queue_setup() function
-Date: Fri, 16 May 2014 19:03:38 +0530
-Message-Id: <1400247235-31434-35-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+	Sat, 10 May 2014 22:43:38 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4B2hZAB059608
+	for <linux-media@vger.kernel.org>; Sun, 11 May 2014 04:43:37 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id D87242A19A2
+	for <linux-media@vger.kernel.org>; Sun, 11 May 2014 04:43:26 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140511024326.D87242A19A2@tschai.lan>
+Date: Sun, 11 May 2014 04:43:26 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-this patch sets the sizes[0] of plane according to the fmt passed
-or which is being set in the channel, in both MMAP and USERPTR buffer
-type.
+Results of the daily build of media_tree:
 
-This patch also move the calculation of offests(vpif_calculate_offsets())
-to queue_setup() callback as after queue_setup() callback the
-application is no longer allowed to change format, and prepares to
-removal of config_params.
+date:		Sun May 11 04:00:15 CEST 2014
+git branch:	test
+git hash:	393cbd8dc532c1ebed60719da8d379f50d445f28
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-1.slh.1-amd64
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif_capture.c |   40 +++++--------------------
- 1 file changed, 8 insertions(+), 32 deletions(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 025eb24..c77c176 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -134,45 +134,24 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
- {
- 	struct channel_obj *ch = vb2_get_drv_priv(vq);
- 	struct common_obj *common;
--	unsigned long size;
- 
- 	common = &ch->common[VPIF_VIDEO_INDEX];
- 
- 	vpif_dbg(2, debug, "vpif_buffer_setup\n");
- 
--	/* If memory type is not mmap, return */
--	if (V4L2_MEMORY_MMAP == common->memory) {
--		/* Calculate the size of the buffer */
--		size = config_params.channel_bufsize[ch->channel_id];
--		/*
--		 * Checking if the buffer size exceeds the available buffer
--		 * ycmux_mode = 0 means 1 channel mode HD and
--		 * ycmux_mode = 1 means 2 channels mode SD
--		 */
--		if (ch->vpifparams.std_info.ycmux_mode == 0) {
--			if (config_params.video_limit[ch->channel_id])
--				while (size * *nbuffers >
--					(config_params.video_limit[0]
--						+ config_params.video_limit[1]))
--					(*nbuffers)--;
--		} else {
--			if (config_params.video_limit[ch->channel_id])
--				while (size * *nbuffers >
--				config_params.video_limit[ch->channel_id])
--					(*nbuffers)--;
--		}
--
--	} else {
--		size = common->fmt.fmt.pix.sizeimage;
--	}
-+	if (fmt && fmt->fmt.pix.sizeimage < common->fmt.fmt.pix.sizeimage)
-+		return -EINVAL;
- 
--	if (*nbuffers < config_params.min_numbuffers)
--		*nbuffers = config_params.min_numbuffers;
-+	if (vq->num_buffers + *nbuffers < 3)
-+		*nbuffers = 3 - vq->num_buffers;
- 
- 	*nplanes = 1;
--	sizes[0] = size;
-+	sizes[0] = fmt ? fmt->fmt.pix.sizeimage : common->fmt.fmt.pix.sizeimage;
- 	alloc_ctxs[0] = common->alloc_ctx;
- 
-+	/* Calculate the offset for Y and C data in the buffer */
-+	vpif_calculate_offsets(ch);
-+
- 	return 0;
- }
- 
-@@ -214,9 +193,6 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	ch->field_id = 0;
- 	common->started = 1;
- 
--	/* Calculate the offset for Y and C data in the buffer */
--	vpif_calculate_offsets(ch);
--
- 	if ((vpif->std_info.frm_fmt &&
- 	    ((common->fmt.fmt.pix.field != V4L2_FIELD_NONE) &&
- 	     (common->fmt.fmt.pix.field != V4L2_FIELD_ANY))) ||
--- 
-1.7.9.5
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
