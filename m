@@ -1,210 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:50323 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191AbaEMF7R (ORCPT
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:58755 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932392AbaEKUZg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 May 2014 01:59:17 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, posciak@chromium.org,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v4 1/2] [media] v4l: Add source change event
-Date: Tue, 13 May 2014 11:29:02 +0530
-Message-Id: <1399960743-4542-2-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1399960743-4542-1-git-send-email-arun.kk@samsung.com>
-References: <1399960743-4542-1-git-send-email-arun.kk@samsung.com>
+	Sun, 11 May 2014 16:25:36 -0400
+Received: by mail-ee0-f44.google.com with SMTP id c41so4036441eek.17
+        for <linux-media@vger.kernel.org>; Sun, 11 May 2014 13:25:34 -0700 (PDT)
+Message-ID: <536FDCD3.5030301@googlemail.com>
+Date: Sun, 11 May 2014 22:25:55 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>, m.chehab@samsung.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/5] em28xx: fix i2c_set_adapdata() call in em28xx_i2c_register()
+References: <1395493263-2158-1-git-send-email-fschaefer.oss@googlemail.com> <1395493263-2158-2-git-send-email-fschaefer.oss@googlemail.com> <536C948B.8080106@xs4all.nl>
+In-Reply-To: <536C948B.8080106@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This event indicates that the video device has encountered
-a source parameter change during runtime. This can typically be a
-resolution change detected by a video decoder OR a format change
-detected by an HDMI connector.
 
-This needs to be nofified to the userspace and the application may
-be expected to reallocate buffers before proceeding. The application
-can subscribe to events on a specific pad or input port which
-it is interested in.
+Hi Hans,
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   32 +++++++++++++++++
- .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   19 +++++++++++
- drivers/media/v4l2-core/v4l2-event.c               |   36 ++++++++++++++++++++
- include/media/v4l2-event.h                         |    4 +++
- include/uapi/linux/videodev2.h                     |    8 +++++
- 5 files changed, 99 insertions(+)
+Am 09.05.2014 10:40, schrieb Hans Verkuil:
+> Hi Frank,
+>
+> I've got a comment about this patch:
+>
+> On 03/22/2014 02:01 PM, Frank Schäfer wrote:
+>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>> ---
+>>  drivers/media/usb/em28xx/em28xx-i2c.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+>> index ba6433c..04e8577 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+>> @@ -939,7 +939,7 @@ int em28xx_i2c_register(struct em28xx *dev, unsigned bus,
+>>  	dev->i2c_bus[bus].algo_type = algo_type;
+>>  	dev->i2c_bus[bus].dev = dev;
+>>  	dev->i2c_adap[bus].algo_data = &dev->i2c_bus[bus];
+>> -	i2c_set_adapdata(&dev->i2c_adap[bus], &dev->v4l2_dev);
+>> +	i2c_set_adapdata(&dev->i2c_adap[bus], dev);
+> As far as I can see nobody is calling i2c_get_adapdata. Should this line be removed
+> altogether?
+>
+> If it is used somewhere, can you point me that?
+Good catch.
+Indeed, nobody is using it anymore so it can removed instead.
+Drop this patch, I will send a new one in a minute.
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-index 89891ad..6afabaa 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-@@ -242,6 +242,22 @@
-       </tgroup>
-     </table>
- 
-+    <table frame="none" pgwide="1" id="v4l2-event-src-change">
-+      <title>struct <structname>v4l2_event_src_change</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>changes</structfield></entry>
-+	    <entry>
-+	      A bitmask that tells what has changed. See <xref linkend="src-changes-flags" />.
-+	    </entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-     <table pgwide="1" frame="none" id="changes-flags">
-       <title>Changes</title>
-       <tgroup cols="3">
-@@ -270,6 +286,22 @@
- 	</tbody>
-       </tgroup>
-     </table>
-+
-+    <table pgwide="1" frame="none" id="src-changes-flags">
-+      <title>Source Changes</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>V4L2_EVENT_SRC_CH_RESOLUTION</constant></entry>
-+	    <entry>0x0001</entry>
-+	    <entry>This event gets triggered when a resolution change is
-+	    detected at runtime. This can typically come from a video decoder.
-+	    </entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-   </refsect1>
-   <refsect1>
-     &return-value;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-index 5c70b61..067a0d5 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-@@ -155,6 +155,25 @@
- 	    </entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_EVENT_SOURCE_CHANGE</constant></entry>
-+	    <entry>5</entry>
-+	    <entry>
-+	      <para>This event is triggered when a source parameter change is
-+	       detected during runtime by the video device. It can be a
-+	       runtime resolution change triggered by a video decoder or the
-+	       format change happening on an HDMI connector.
-+	       This event requires that the <structfield>id</structfield>
-+	       matches the pad / input index from which you want to receive
-+	       events.</para>
-+
-+              <para>This event has a &v4l2-event-source-change; associated
-+	      with it. The <structfield>changes</structfield> bitfield denotes
-+	      what has changed for the subscribed pad. If multiple events
-+	      occured before application could dequeue them, then the changes
-+	      will have the ORed value of all the events generated.</para>
-+	    </entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
- 	    <entry>0x08000000</entry>
- 	    <entry>Base event number for driver-private events.</entry>
-diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-index 86dcb54..8761aab 100644
---- a/drivers/media/v4l2-core/v4l2-event.c
-+++ b/drivers/media/v4l2-core/v4l2-event.c
-@@ -318,3 +318,39 @@ int v4l2_event_subdev_unsubscribe(struct v4l2_subdev *sd, struct v4l2_fh *fh,
- 	return v4l2_event_unsubscribe(fh, sub);
- }
- EXPORT_SYMBOL_GPL(v4l2_event_subdev_unsubscribe);
-+
-+static void v4l2_event_src_replace(struct v4l2_event *old,
-+				const struct v4l2_event *new)
-+{
-+	u32 old_changes = old->u.src_change.changes;
-+
-+	old->u.src_change = new->u.src_change;
-+	old->u.src_change.changes |= old_changes;
-+}
-+
-+static void v4l2_event_src_merge(const struct v4l2_event *old,
-+				struct v4l2_event *new)
-+{
-+	new->u.src_change.changes |= old->u.src_change.changes;
-+}
-+
-+static const struct v4l2_subscribed_event_ops v4l2_event_src_ch_ops = {
-+	.replace = v4l2_event_src_replace,
-+	.merge = v4l2_event_src_merge,
-+};
-+
-+int v4l2_src_change_event_subscribe(struct v4l2_fh *fh,
-+				const struct v4l2_event_subscription *sub)
-+{
-+	if (sub->type == V4L2_EVENT_SOURCE_CHANGE)
-+		return v4l2_event_subscribe(fh, sub, 0, &v4l2_event_src_ch_ops);
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_src_change_event_subscribe);
-+
-+int v4l2_src_change_event_subdev_subscribe(struct v4l2_subdev *sd,
-+		struct v4l2_fh *fh, struct v4l2_event_subscription *sub)
-+{
-+	return v4l2_src_change_event_subscribe(fh, sub);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_src_change_event_subdev_subscribe);
-diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-index be05d01..1ab9045 100644
---- a/include/media/v4l2-event.h
-+++ b/include/media/v4l2-event.h
-@@ -132,4 +132,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
- int v4l2_event_subdev_unsubscribe(struct v4l2_subdev *sd, struct v4l2_fh *fh,
- 				  struct v4l2_event_subscription *sub);
-+int v4l2_src_change_event_subscribe(struct v4l2_fh *fh,
-+				const struct v4l2_event_subscription *sub);
-+int v4l2_src_change_event_subdev_subscribe(struct v4l2_subdev *sd,
-+		struct v4l2_fh *fh, struct v4l2_event_subscription *sub);
- #endif /* V4L2_EVENT_H */
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index ea468ee..b923d91 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1765,6 +1765,7 @@ struct v4l2_streamparm {
- #define V4L2_EVENT_EOS				2
- #define V4L2_EVENT_CTRL				3
- #define V4L2_EVENT_FRAME_SYNC			4
-+#define V4L2_EVENT_SOURCE_CHANGE		5
- #define V4L2_EVENT_PRIVATE_START		0x08000000
- 
- /* Payload for V4L2_EVENT_VSYNC */
-@@ -1796,12 +1797,19 @@ struct v4l2_event_frame_sync {
- 	__u32 frame_sequence;
- };
- 
-+#define V4L2_EVENT_SRC_CH_RESOLUTION		(1 << 0)
-+
-+struct v4l2_event_src_change {
-+	__u32 changes;
-+};
-+
- struct v4l2_event {
- 	__u32				type;
- 	union {
- 		struct v4l2_event_vsync		vsync;
- 		struct v4l2_event_ctrl		ctrl;
- 		struct v4l2_event_frame_sync	frame_sync;
-+		struct v4l2_event_src_change	src_change;
- 		__u8				data[64];
- 	} u;
- 	__u32				pending;
--- 
-1.7.9.5
+> I'm taking the other patches from this series (using the v2 version of patch 4/5) since
+> those look fine.
+Thanks !
+
+Regards,
+Frank
+
+
+>
+> Regards,
+>
+> 	Hans
+>
+>>  
+>>  	retval = i2c_add_adapter(&dev->i2c_adap[bus]);
+>>  	if (retval < 0) {
+>>
 
