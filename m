@@ -1,99 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:56837 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932769AbaE3Lba (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 May 2014 07:31:30 -0400
-From: abdoulaye berthe <berthe.ab@gmail.com>
-To: linus.walleij@linaro.org, gnurou@gmail.com, m@bues.ch,
-	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-mips@linux-mips.org,
-	linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
-	linux-wireless@vger.kernel.org,
-	patches@opensource.wolfsonmicro.com, linux-input@vger.kernel.org,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-samsungsoc@vger.kernel.org, spear-devel@list.st.com,
-	platform-driver-x86@vger.kernel.org, netdev@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Cc: abdoulaye berthe <berthe.ab@gmail.com>
-Subject: [PATCH 2/2] gpio: gpiolib: set gpiochip_remove retval to void
-Date: Fri, 30 May 2014 13:30:54 +0200
-Message-Id: <1401449454-30895-2-git-send-email-berthe.ab@gmail.com>
-In-Reply-To: <1401449454-30895-1-git-send-email-berthe.ab@gmail.com>
-References: <20140530094025.3b78301e@canb.auug.org.au>
- <1401449454-30895-1-git-send-email-berthe.ab@gmail.com>
+Received: from ns.horizon.com ([71.41.210.147]:42283 "HELO ns.horizon.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754825AbaEKLOz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 May 2014 07:14:55 -0400
+Date: 11 May 2014 07:14:54 -0400
+Message-ID: <20140511111454.14786.qmail@ns.horizon.com>
+From: "George Spelvin" <linux@horizon.com>
+To: james.hogan@imgtec.com, linux-media@vger.kernel.org,
+	linux@horizon.com, m.chehab@samsung.com
+Subject: [PATCH 05/10] ati_remote: Shrink the ati_remote_tbl even more
+In-Reply-To: <20140511111113.14427.qmail@ns.horizon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This avoids handling gpiochip remove error in device
-remove handler.
+Get rid of the unnecessary "type" and "value" fields.
 
-Signed-off-by: abdoulaye berthe <berthe.ab@gmail.com>
+Signed-off-by: George Spelvin <linux@horizon.com>
 ---
- drivers/gpio/gpiolib.c      | 24 +++++++-----------------
- include/linux/gpio/driver.h |  2 +-
- 2 files changed, 8 insertions(+), 18 deletions(-)
+ drivers/media/rc/ati_remote.c | 69 ++++++++++++++++++++++---------------------
+ 1 file changed, 35 insertions(+), 34 deletions(-)
 
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index f48817d..022543f 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -1263,10 +1263,9 @@ static void gpiochip_irqchip_remove(struct gpio_chip *gpiochip);
-  *
-  * A gpio_chip with any GPIOs still requested may not be removed.
-  */
--int gpiochip_remove(struct gpio_chip *chip)
-+void gpiochip_remove(struct gpio_chip *chip)
- {
- 	unsigned long	flags;
--	int		status = 0;
- 	unsigned	id;
+diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
+index ba5c1bba53..8d9937fd5d 100644
+--- a/drivers/media/rc/ati_remote.c
++++ b/drivers/media/rc/ati_remote.c
+@@ -279,43 +279,42 @@ struct ati_remote {
  
- 	acpi_gpiochip_remove(chip);
-@@ -1278,24 +1277,15 @@ int gpiochip_remove(struct gpio_chip *chip)
- 	of_gpiochip_remove(chip);
+ /* "Kinds" of messages sent from the hardware to the driver. */
+ #define KIND_END        0
+-#define KIND_LITERAL    1   /* Simply pass to input system */
++#define KIND_LITERAL    1   /* Simply pass to input system as EV_KEY */
+ #define KIND_FILTERED   2   /* Add artificial key-up events, drop keyrepeats */
+-#define KIND_ACCEL      3   /* Directional keypad - left, right, up, down.*/
++#define KIND_ACCEL      3   /* Translate to EV_REL mouse-move events */
  
- 	for (id = 0; id < chip->ngpio; id++) {
--		if (test_bit(FLAG_REQUESTED, &chip->desc[id].flags)) {
--			status = -EBUSY;
--			break;
--		}
--	}
--	if (status == 0) {
--		for (id = 0; id < chip->ngpio; id++)
--			chip->desc[id].chip = NULL;
+ /* Translation table from hardware messages to input events. */
+ static const struct {
+ 	unsigned char kind;
+-	unsigned char data;
+-	unsigned char type;
+-	unsigned short code;
+-	signed char value;
++	unsigned char data;	/* Raw key code from remote */
++	unsigned short code;	/* Input layer translation */
+ }  ati_remote_tbl[] = {
+ 	/* Directional control pad axes.  Code is xxyy */
+-	{KIND_ACCEL,   0x70, EV_REL, 0xff00, 0},	/* left */
+-	{KIND_ACCEL,   0x71, EV_REL, 0x0100, 0},	/* right */
+-	{KIND_ACCEL,   0x72, EV_REL, 0x00ff, 0},	/* up */
+-	{KIND_ACCEL,   0x73, EV_REL, 0x0001, 0},	/* down */
++	{KIND_ACCEL,    0x70, 0xff00},	/* left */
++	{KIND_ACCEL,    0x71, 0x0100},	/* right */
++	{KIND_ACCEL,    0x72, 0x00ff},	/* up */
++	{KIND_ACCEL,    0x73, 0x0001},	/* down */
+ 
+ 	/* Directional control pad diagonals */
+-	{KIND_ACCEL,   0x74, EV_REL, 0xffff, 0},	/* left up */
+-	{KIND_ACCEL,   0x75, EV_REL, 0x01ff, 0},	/* right up */
+-	{KIND_ACCEL,   0x77, EV_REL, 0xff01, 0},	/* left down */
+-	{KIND_ACCEL,   0x76, EV_REL, 0x0101, 0},	/* right down */
 -
--		list_del(&chip->list);
-+		if (test_bit(FLAG_REQUESTED, &chip->desc[id].flags))
-+			panic("gpio: removing gpiochip with gpios still requested\n");
+-	/* "Mouse button" buttons */
+-	{KIND_LITERAL, 0x78, EV_KEY, BTN_LEFT, 1}, /* left btn down */
+-	{KIND_LITERAL, 0x79, EV_KEY, BTN_LEFT, 0}, /* left btn up */
+-	{KIND_LITERAL, 0x7c, EV_KEY, BTN_RIGHT, 1},/* right btn down */
+-	{KIND_LITERAL, 0x7d, EV_KEY, BTN_RIGHT, 0},/* right btn up */
++	{KIND_ACCEL,    0x74, 0xffff},	/* left up */
++	{KIND_ACCEL,    0x75, 0x01ff},	/* right up */
++	{KIND_ACCEL,    0x77, 0xff01},	/* left down */
++	{KIND_ACCEL,    0x76, 0x0101},	/* right down */
++
++	/* "Mouse button" buttons.  The code below uses the fact that the
++	 * lsbit of the raw code is a down/up indicator. */
++	{KIND_LITERAL,  0x78, BTN_LEFT}, /* left btn down */
++	{KIND_LITERAL,  0x79, BTN_LEFT}, /* left btn up */
++	{KIND_LITERAL,  0x7c, BTN_RIGHT},/* right btn down */
++	{KIND_LITERAL,  0x7d, BTN_RIGHT},/* right btn up */
+ 
+ 	/* Artificial "doubleclick" events are generated by the hardware.
+ 	 * They are mapped to the "side" and "extra" mouse buttons here. */
+-	{KIND_FILTERED, 0x7a, EV_KEY, BTN_SIDE, 1}, /* left dblclick */
+-	{KIND_FILTERED, 0x7e, EV_KEY, BTN_EXTRA, 1},/* right dblclick */
++	{KIND_FILTERED, 0x7a, BTN_SIDE}, /* left dblclick */
++	{KIND_FILTERED, 0x7e, BTN_EXTRA},/* right dblclick */
+ 
+ 	/* Non-mouse events are handled by rc-core */
+-	{KIND_END, 0x00, EV_MAX + 1, 0, 0}
++	{KIND_END, 0x00, 0}
+ };
+ 
+ /*
+@@ -563,9 +562,12 @@ static void ati_remote_input_report(struct urb *urb)
  	}
-+	for (id = 0; id < chip->ngpio; id++)
-+		chip->desc[id].chip = NULL;
  
-+	list_del(&chip->list);
- 	spin_unlock_irqrestore(&gpio_lock, flags);
--
--	if (status == 0)
--		gpiochip_unexport(chip);
--
--	return status;
-+	gpiochip_unexport(chip);
- }
- EXPORT_SYMBOL_GPL(gpiochip_remove);
+ 	if (index >= 0 && ati_remote_tbl[index].kind == KIND_LITERAL) {
+-		input_event(dev, ati_remote_tbl[index].type,
+-			ati_remote_tbl[index].code,
+-			ati_remote_tbl[index].value);
++		/*
++		 * The lsbit of the raw key code is a down/up flag.
++		 * Invert it to match the input layer's conventions.
++		 */
++		input_event(dev, EV_KEY, ati_remote_tbl[index].code,
++			!(data[2] & 1));
+ 		input_sync(dev);
  
-diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
-index 1827b43..72ed256 100644
---- a/include/linux/gpio/driver.h
-+++ b/include/linux/gpio/driver.h
-@@ -138,7 +138,7 @@ extern const char *gpiochip_is_requested(struct gpio_chip *chip,
+ 		ati_remote->old_jiffies = jiffies;
+@@ -586,9 +588,9 @@ static void ati_remote_input_report(struct urb *urb)
+ 		ati_remote->old_data = data[2];
+ 		ati_remote->old_jiffies = now;
  
- /* add/remove chips */
- extern int gpiochip_add(struct gpio_chip *chip);
--extern int __must_check gpiochip_remove(struct gpio_chip *chip);
-+void gpiochip_remove(struct gpio_chip *chip);
- extern struct gpio_chip *gpiochip_find(void *data,
- 			      int (*match)(struct gpio_chip *chip, void *data));
+-		/* Ensure we skip at least the 4 first duplicate events (generated
+-		 * by a single keypress), and continue skipping until repeat_delay
+-		 * msecs have passed
++		/* Ensure we skip at least the 4 first duplicate events
++		 * (generated by a single keypress), and continue skipping
++		 * until repeat_delay msecs have passed.
+ 		 */
+ 		if (ati_remote->repeat_count > 0 &&
+ 		    (ati_remote->repeat_count < 5 ||
+@@ -624,10 +626,8 @@ static void ati_remote_input_report(struct urb *urb)
+ 			return;
+ 		}
  
+-		input_event(dev, ati_remote_tbl[index].type,
+-			ati_remote_tbl[index].code, 1);
+-		input_event(dev, ati_remote_tbl[index].type,
+-			ati_remote_tbl[index].code, 0);
++		input_event(dev, EV_KEY, ati_remote_tbl[index].code, 1);
++		input_event(dev, EV_KEY, ati_remote_tbl[index].code, 0);
+ 		input_sync(dev);
+ 
+ 	} else if (ati_remote_tbl[index].kind == KIND_ACCEL) {
+@@ -738,7 +738,8 @@ static void ati_remote_input_init(struct ati_remote *ati_remote)
+ 		BIT_MASK(BTN_RIGHT) | BIT_MASK(BTN_SIDE) | BIT_MASK(BTN_EXTRA);
+ 	idev->relbit[0] = BIT_MASK(REL_X) | BIT_MASK(REL_Y);
+ 	for (i = 0; ati_remote_tbl[i].kind != KIND_END; i++)
+-		if (ati_remote_tbl[i].type == EV_KEY)
++		if (ati_remote_tbl[i].kind == KIND_LITERAL ||
++		    ati_remote_tbl[i].kind == KIND_FILTERED)
+ 			set_bit(ati_remote_tbl[i].code, idev->keybit);
+ 
+ 	input_set_drvdata(idev, ati_remote);
 -- 
-1.8.3.2
+1.9.2
 
