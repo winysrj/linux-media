@@ -1,110 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4726 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752629AbaEWNzU (ORCPT
+Received: from mail-ee0-f45.google.com ([74.125.83.45]:35607 "EHLO
+	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751438AbaEKU64 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 May 2014 09:55:20 -0400
-Message-ID: <537F5315.8030705@xs4all.nl>
-Date: Fri, 23 May 2014 15:54:29 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sun, 11 May 2014 16:58:56 -0400
+Received: by mail-ee0-f45.google.com with SMTP id d49so4129021eek.4
+        for <linux-media@vger.kernel.org>; Sun, 11 May 2014 13:58:55 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 15/19, REBASED] em28xx: move v4l2 user counting fields from struct em28xx to struct v4l2
+Date: Sun, 11 May 2014 22:59:04 +0200
+Message-Id: <1399841944-3083-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org
-CC: Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-sh@vger.kernel.org, Sasha Levin <sasha.levin@oracle.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Dave Jones <davej@redhat.com>
-Subject: Re: [PATCH v7] media: vb2: Take queue or device lock in mmap-related
- vb2 ioctl handlers
-References: <201308061239.27188.hverkuil@xs4all.nl> <1375819848-2658-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1375819848-2658-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c | 27 +++++++++++++++------------
+ drivers/media/usb/em28xx/em28xx.h       |  5 +++--
+ 2 files changed, 18 insertions(+), 14 deletions(-)
 
-This patch caused a circular locking dependency as reported by Sasha Levin:
-
-https://lkml.org/lkml/2014/5/5/366
-
-The reason is that copy_to/from_user is called in video_usercopy() with the
-core lock held. The copy functions can fault which takes the mmap_sem. If it
-was just video_usercopy() then it would be fairly easy to solve this, but
-the copy_to_/from_user functions are also called from read and write and they
-can be used in other unexpected places.
-
-I'm not sure if vb2_fop_get_unmapped_area() is a problem. I suspect (but I'm
-not sure) that when that one is called the mmap_sem isn't taken, in which
-case taking the lock is fine.
-
-But taking the lock in vb2_fop_mmap() does cause lockdep problems.
-
-Ideally I would like to drop taking that lock in vb2_fop_mmap and resolve the
-race condition that it intended to fix in a different way.
-
-Regards,
-
-	Hans
-
-On 08/06/2013 10:10 PM, Laurent Pinchart wrote:
-> The vb2_fop_mmap() and vb2_fop_get_unmapped_area() functions are plug-in
-> implementation of the mmap() and get_unmapped_area() file operations
-> that calls vb2_mmap() and vb2_get_unmapped_area() on the queue
-> associated with the video device. Neither the
-> vb2_fop_mmap/vb2_fop_get_unmapped_area nor the
-> v4l2_mmap/vb2_get_unmapped_area functions in the V4L2 core take any
-> lock, leading to race conditions between mmap/get_unmapped_area and
-> other buffer-related ioctls such as VIDIOC_REQBUFS.
-> 
-> Fix it by taking the queue or device lock around the vb2_mmap() and
-> vb2_get_unmapped_area() calls.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 18 ++++++++++++++++--
->  1 file changed, 16 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 9fc4bab..c9b50c7 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -2578,8 +2578,15 @@ EXPORT_SYMBOL_GPL(vb2_ioctl_expbuf);
->  int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
->  {
->  	struct video_device *vdev = video_devdata(file);
-> +	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
-> +	int err;
->  
-> -	return vb2_mmap(vdev->queue, vma);
-> +	if (lock && mutex_lock_interruptible(lock))
-> +		return -ERESTARTSYS;
-> +	err = vb2_mmap(vdev->queue, vma);
-> +	if (lock)
-> +		mutex_unlock(lock);
-> +	return err;
->  }
->  EXPORT_SYMBOL_GPL(vb2_fop_mmap);
->  
-> @@ -2685,8 +2692,15 @@ unsigned long vb2_fop_get_unmapped_area(struct file *file, unsigned long addr,
->  		unsigned long len, unsigned long pgoff, unsigned long flags)
->  {
->  	struct video_device *vdev = video_devdata(file);
-> +	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
-> +	int ret;
->  
-> -	return vb2_get_unmapped_area(vdev->queue, addr, len, pgoff, flags);
-> +	if (lock && mutex_lock_interruptible(lock))
-> +		return -ERESTARTSYS;
-> +	ret = vb2_get_unmapped_area(vdev->queue, addr, len, pgoff, flags);
-> +	if (lock)
-> +		mutex_unlock(lock);
-> +	return ret;
->  }
->  EXPORT_SYMBOL_GPL(vb2_fop_get_unmapped_area);
->  #endif
-> 
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 496dcef..aaab111 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -934,7 +934,7 @@ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
+ 	if (rc)
+ 		return rc;
+ 
+-	if (dev->streaming_users == 0) {
++	if (v4l2->streaming_users == 0) {
+ 		/* First active streaming user, so allocate all the URBs */
+ 
+ 		/* Allocate the USB bandwidth */
+@@ -972,7 +972,7 @@ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
+ 				     0, tuner, s_frequency, &f);
+ 	}
+ 
+-	dev->streaming_users++;
++	v4l2->streaming_users++;
+ 
+ 	return rc;
+ }
+@@ -980,6 +980,7 @@ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
+ static void em28xx_stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct em28xx *dev = vb2_get_drv_priv(vq);
++	struct em28xx_v4l2 *v4l2 = dev->v4l2;
+ 	struct em28xx_dmaqueue *vidq = &dev->vidq;
+ 	unsigned long flags = 0;
+ 
+@@ -987,7 +988,7 @@ static void em28xx_stop_streaming(struct vb2_queue *vq)
+ 
+ 	res_free(dev, vq->type);
+ 
+-	if (dev->streaming_users-- == 1) {
++	if (v4l2->streaming_users-- == 1) {
+ 		/* Last active user, so shutdown all the URBS */
+ 		em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
+ 	}
+@@ -1008,6 +1009,7 @@ static void em28xx_stop_streaming(struct vb2_queue *vq)
+ void em28xx_stop_vbi_streaming(struct vb2_queue *vq)
+ {
+ 	struct em28xx *dev = vb2_get_drv_priv(vq);
++	struct em28xx_v4l2 *v4l2 = dev->v4l2;
+ 	struct em28xx_dmaqueue *vbiq = &dev->vbiq;
+ 	unsigned long flags = 0;
+ 
+@@ -1015,7 +1017,7 @@ void em28xx_stop_vbi_streaming(struct vb2_queue *vq)
+ 
+ 	res_free(dev, vq->type);
+ 
+-	if (dev->streaming_users-- == 1) {
++	if (v4l2->streaming_users-- == 1) {
+ 		/* Last active user, so shutdown all the URBS */
+ 		em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
+ 	}
+@@ -1344,8 +1346,9 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 			struct v4l2_format *f)
+ {
+ 	struct em28xx *dev = video_drvdata(file);
++	struct em28xx_v4l2 *v4l2 = dev->v4l2;
+ 
+-	if (dev->streaming_users > 0)
++	if (v4l2->streaming_users > 0)
+ 		return -EBUSY;
+ 
+ 	vidioc_try_fmt_vid_cap(file, priv, f);
+@@ -1384,7 +1387,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
+ 	if (norm == v4l2->norm)
+ 		return 0;
+ 
+-	if (dev->streaming_users > 0)
++	if (v4l2->streaming_users > 0)
+ 		return -EBUSY;
+ 
+ 	v4l2->norm = norm;
+@@ -1907,7 +1910,7 @@ static int em28xx_v4l2_open(struct file *filp)
+ 
+ 	em28xx_videodbg("open dev=%s type=%s users=%d\n",
+ 			video_device_node_name(vdev), v4l2_type_names[fh_type],
+-			dev->users);
++			v4l2->users);
+ 
+ 	if (mutex_lock_interruptible(&dev->lock))
+ 		return -ERESTARTSYS;
+@@ -1922,7 +1925,7 @@ static int em28xx_v4l2_open(struct file *filp)
+ 	fh->type = fh_type;
+ 	filp->private_data = fh;
+ 
+-	if (dev->users == 0) {
++	if (v4l2->users == 0) {
+ 		em28xx_set_mode(dev, EM28XX_ANALOG_MODE);
+ 
+ 		if (vdev->vfl_type != VFL_TYPE_RADIO)
+@@ -1942,7 +1945,7 @@ static int em28xx_v4l2_open(struct file *filp)
+ 
+ 	kref_get(&dev->ref);
+ 	kref_get(&v4l2->ref);
+-	dev->users++;
++	v4l2->users++;
+ 
+ 	mutex_unlock(&dev->lock);
+ 	v4l2_fh_add(&fh->fh);
+@@ -2051,12 +2054,12 @@ static int em28xx_v4l2_close(struct file *filp)
+ 	struct em28xx_v4l2    *v4l2 = dev->v4l2;
+ 	int              errCode;
+ 
+-	em28xx_videodbg("users=%d\n", dev->users);
++	em28xx_videodbg("users=%d\n", v4l2->users);
+ 
+ 	vb2_fop_release(filp);
+ 	mutex_lock(&dev->lock);
+ 
+-	if (dev->users == 1) {
++	if (v4l2->users == 1) {
+ 		/* No sense to try to write to the device */
+ 		if (dev->disconnected)
+ 			goto exit;
+@@ -2078,8 +2081,8 @@ static int em28xx_v4l2_close(struct file *filp)
+ 	}
+ 
+ exit:
++	v4l2->users--;
+ 	kref_put(&v4l2->ref, em28xx_free_v4l2);
+-	dev->users--;
+ 	mutex_unlock(&dev->lock);
+ 	kref_put(&dev->ref, em28xx_free_device);
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 91bb624..0585217 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -523,6 +523,9 @@ struct em28xx_v4l2 {
+ 	int sensor_yres;
+ 	int sensor_xtal;
+ 
++	int users;		/* user count for exclusive use */
++	int streaming_users;    /* number of actively streaming users */
++
+ 	struct em28xx_fmt *format;
+ 	v4l2_std_id norm;	/* selected tv norm */
+ 
+@@ -641,8 +644,6 @@ struct em28xx {
+ 	struct rt_mutex i2c_bus_lock;
+ 
+ 	/* video for linux */
+-	int users;		/* user count for exclusive use */
+-	int streaming_users;    /* Number of actively streaming users */
+ 	int ctl_freq;		/* selected frequency */
+ 	unsigned int ctl_input;	/* selected input */
+ 	unsigned int ctl_ainput;/* selected audio input */
+-- 
+1.8.4.5
 
