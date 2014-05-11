@@ -1,57 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:58405 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754284AbaEHRh5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 13:37:57 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH V2 4/4] ARM: dts: exynos4: Remove simple-bus compatibles from
- the camera subsystem
-Date: Thu, 08 May 2014 19:37:39 +0200
-Message-id: <1399570659-29864-1-git-send-email-s.nawrocki@samsung.com>
+Received: from ns.horizon.com ([71.41.210.147]:32660 "HELO ns.horizon.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1757631AbaEKLLO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 May 2014 07:11:14 -0400
+Date: 11 May 2014 07:11:13 -0400
+Message-ID: <20140511111113.14427.qmail@ns.horizon.com>
+From: "George Spelvin" <linux@horizon.com>
+To: james.hogan@imgtec.com, linux-media@vger.kernel.org,
+	m.chehab@samsung.com
+Subject: [PATCH 0/10] drivers/media/rc/ati_remote.c tweaks
+Cc: linux@horizon.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The usage of "simple-bus" was incorrect and the drivers now will also
-work without it so remove it.
+Here are a bunch of cleanups to the ati_remote driver that have been
+sitting in my tree since 2011, and I'm hoping to push upstream.  They work
+fine on my v1 ATI Remote Wonder.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/boot/dts/exynos4.dtsi    |    2 +-
- arch/arm/boot/dts/exynos4x12.dtsi |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Patch 4/10 is the nicest in terms of code deletion, but the
+others shrink the driver, too.
 
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index 2f8bcd0..bfb0e73 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -125,7 +125,7 @@
- 	};
- 
- 	camera {
--		compatible = "samsung,fimc", "simple-bus";
-+		compatible = "samsung,fimc";
- 		status = "disabled";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
-diff --git a/arch/arm/boot/dts/exynos4x12.dtsi b/arch/arm/boot/dts/exynos4x12.dtsi
-index c4a9306..0cabb74 100644
---- a/arch/arm/boot/dts/exynos4x12.dtsi
-+++ b/arch/arm/boot/dts/exynos4x12.dtsi
-@@ -188,7 +188,7 @@
- 		};
- 
- 		fimc_is: fimc-is@12000000 {
--			compatible = "samsung,exynos4212-fimc-is", "simple-bus";
-+			compatible = "samsung,exynos4212-fimc-is";
- 			reg = <0x12000000 0x260000>;
- 			interrupts = <0 90 0>, <0 95 0>;
- 			samsung,power-domain = <&pd_isp>;
--- 
-1.7.9.5
+There are some that I'm not sure if they're wanted:
 
+6/10 is the most questionable code rearrangement.
+Cleaner or messier?  Feedback welcome.
+
+Patches 8 and 9 are just prettying up the keymap table.
+
+Patch 10 fixes some of the sillier default key assignments.  I'm pretty
+sure this would constitute a kernel regression and is not okay, but it's
+another local change I made, and I might as well see what people think.
+Feel free to forget about this one.
