@@ -1,127 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:35096 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754612AbaESONY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 May 2014 10:13:24 -0400
-Message-ID: <537A1180.2010109@canonical.com>
-Date: Mon, 19 May 2014 16:13:20 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-MIME-Version: 1.0
-To: Thomas Hellstrom <thellstrom@vmware.com>
-CC: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	ccross@google.com, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 2/2 with seqcount v3] reservation: add suppport for
- read-only access using rcu
-References: <20140409144239.26648.57918.stgit@patser> <20140409144831.26648.79163.stgit@patser> <53465A53.1090500@vmware.com> <53466D63.8080808@canonical.com> <53467B93.3000402@vmware.com> <5346B212.8050202@canonical.com> <5347A9FD.2070706@vmware.com> <5347B4E5.6090901@canonical.com> <5347BFC9.3020503@vmware.com> <53482FF1.1090406@canonical.com> <534843EA.6060602@vmware.com> <534B9165.4000101@canonical.com> <534B921B.4080504@vmware.com> <5357A0DE.7030305@canonical.com> <537A0A5D.6090909@vmware.com>
-In-Reply-To: <537A0A5D.6090909@vmware.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from ns.horizon.com ([71.41.210.147]:18438 "HELO ns.horizon.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1757719AbaEKLRi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 May 2014 07:17:38 -0400
+Date: 11 May 2014 07:17:37 -0400
+Message-ID: <20140511111737.15065.qmail@ns.horizon.com>
+From: "George Spelvin" <linux@horizon.com>
+To: james.hogan@imgtec.com, linux-media@vger.kernel.org,
+	linux@horizon.com, m.chehab@samsung.com
+Subject: [PATCH 09/10] ati_remote: Add comments to keycode table
+In-Reply-To: <20140511111113.14427.qmail@ns.horizon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-op 19-05-14 15:42, Thomas Hellstrom schreef:
-> Hi, Maarten!
->
-> Some nitpicks, and that krealloc within rcu lock still worries me.
-> Otherwise looks good.
->
-> /Thomas
->
->
->
-> On 04/23/2014 12:15 PM, Maarten Lankhorst wrote:
->> @@ -55,8 +60,8 @@ int reservation_object_reserve_shared(struct
->> reservation_object *obj)
->>               kfree(obj->staged);
->>               obj->staged = NULL;
->>               return 0;
->> -        }
->> -        max = old->shared_max * 2;
->> +        } else
->> +            max = old->shared_max * 2;
-> Perhaps as a separate reformatting patch?
-I'll fold it in to the patch that added reservation_object_reserve_shared.
->> +
->> +int reservation_object_get_fences_rcu(struct reservation_object *obj,
->> +                      struct fence **pfence_excl,
->> +                      unsigned *pshared_count,
->> +                      struct fence ***pshared)
->> +{
->> +    unsigned shared_count = 0;
->> +    unsigned retry = 1;
->> +    struct fence **shared = NULL, *fence_excl = NULL;
->> +    int ret = 0;
->> +
->> +    while (retry) {
->> +        struct reservation_object_list *fobj;
->> +        unsigned seq;
->> +
->> +        seq = read_seqcount_begin(&obj->seq);
->> +
->> +        rcu_read_lock();
->> +
->> +        fobj = rcu_dereference(obj->fence);
->> +        if (fobj) {
->> +            struct fence **nshared;
->> +
->> +            shared_count = ACCESS_ONCE(fobj->shared_count);
-> ACCESS_ONCE() shouldn't be needed inside the seqlock?
-Yes it is, shared_count may be increased, leading to potential different sizes for krealloc and memcpy
-if the ACCESS_ONCE is removed. I could use shared_max here instead, which stays the same,
-but it would waste more memory.
+A more detailed description of what the buttons look like and
+their intended function makes it easier for people to maintain
+this code without access to the hardware.
 
->> +            nshared = krealloc(shared, sizeof(*shared) *
->> shared_count, GFP_KERNEL);
-> Again, krealloc should be a sleeping function, and not suitable within a
-> RCU read lock? I still think this krealloc should be moved to the start
-> of the retry loop, and we should start with a suitable guess of
-> shared_count (perhaps 0?) It's not like we're going to waste a lot of
-> memory....
-But shared_count is only known when holding the rcu lock.
+Signed-off-by: George Spelvin <linux@horizon.com>
+---
+ drivers/media/rc/keymaps/rc-ati-x10.c | 33 +++++++++++++++++++++++----------
+ 1 file changed, 23 insertions(+), 10 deletions(-)
 
-What about this change?
-
-@@ -254,16 +254,27 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
-  		fobj = rcu_dereference(obj->fence);
-  		if (fobj) {
-  			struct fence **nshared;
-+			size_t sz;
-  
-  			shared_count = ACCESS_ONCE(fobj->shared_count);
--			nshared = krealloc(shared, sizeof(*shared) * shared_count, GFP_KERNEL);
-+			sz = sizeof(*shared) * shared_count;
+diff --git a/drivers/media/rc/keymaps/rc-ati-x10.c b/drivers/media/rc/keymaps/rc-ati-x10.c
+index 4e2cbbafe9..df8968eb1f 100644
+--- a/drivers/media/rc/keymaps/rc-ati-x10.c
++++ b/drivers/media/rc/keymaps/rc-ati-x10.c
+@@ -26,6 +26,17 @@
+ #include <linux/module.h>
+ #include <media/rc-map.h>
+ 
++/*
++ * Intended usage comments below are from vendor-supplied
++ * Source: ATI REMOTE WONDER™ Installation Guide
++ * http://www2.ati.com/manuals/remctrl.pdf
++ *
++ * Scancodes were in strict left-right, top-bottom order on the
++ * original ATI Remote Wonder, but were moved on later models.
++ *
++ * Keys A-F are intended to be user-programmable.
++ */
 +
-+			nshared = krealloc(shared, sz,
-+					   GFP_NOWAIT | __GFP_NOWARN);
-  			if (!nshared) {
-+				rcu_read_unlock();
-+				nshared = krealloc(shared, sz, GFP_KERNEL)
-+				if (nshared) {
-+					shared = nshared;
-+					continue;
-+				}
+ static struct rc_map_table ati_x10[] = {
+ 	/* keyboard - Above the cursor pad */
+ 	{ 0x00, KEY_A },
+@@ -35,9 +46,11 @@ static struct rc_map_table ati_x10[] = {
+ 	{ 0x03, KEY_TV },         /* TV */
+ 	{ 0x04, KEY_DVD },        /* DVD */
+ 	{ 0x05, KEY_WWW },        /* WEB */
+-	{ 0x06, KEY_BOOKMARKS },  /* "book" */
+-	{ 0x07, KEY_EDIT },       /* "hand" */
+-	/* Below the cursor pad */
++	{ 0x06, KEY_BOOKMARKS },  /* "book": Open Mdeia Library */
++	{ 0x07, KEY_EDIT },       /* "hand": Toggle left mouse button (grab) */
 +
-  				ret = -ENOMEM;
--				shared_count = retry = 0;
--				goto unlock;
-+				shared_count = 0;
-+				break;
-  			}
-  			shared = nshared;
--			memcpy(shared, fobj->shared, sizeof(*shared) * shared_count);
-+			memcpy(shared, fobj->shared, sz);
-  		} else
-  			shared_count = 0;
-  		fence_excl = rcu_dereference(obj->fence_excl);
-
-
->> +
->> +        /*
->> +         * There could be a read_seqcount_retry here, but nothing cares
->> +         * about whether it's the old or newer fence pointers that are
->> +         * signale. That race could still have happened after checking
-> Typo.
-Oops.
++	/* Mouse emulation pad goes here, handled by driver separately */
++
+ 	{ 0x09, KEY_VOLUMEDOWN }, /* VOL + */
+ 	{ 0x08, KEY_VOLUMEUP },   /* VOL - */
+ 	{ 0x0a, KEY_MUTE },       /* MUTE  */
+@@ -53,9 +66,9 @@ static struct rc_map_table ati_x10[] = {
+ 	{ 0x13, KEY_7 },
+ 	{ 0x14, KEY_8 },
+ 	{ 0x15, KEY_9 },
+-	{ 0x16, KEY_MENU },       /* "menu" */
++	{ 0x16, KEY_MENU },       /* "menu": DVD root menu */
+ 	{ 0x17, KEY_0 },
+-	{ 0x18, KEY_KPENTER },    /* "check" */
++	{ 0x18, KEY_KPENTER },    /* "check": DVD setup menu */
+ 
+ 	/* DVD navigation buttons */
+ 	{ 0x19, KEY_C },
+@@ -72,13 +85,13 @@ static struct rc_map_table ati_x10[] = {
+ 	{ 0x22, KEY_DOWN },       /* down */
+ 	{ 0x23, KEY_F },
+ 	/* Play/stop/pause buttons */
+-	{ 0x24, KEY_REWIND },     /* (<<) */
+-	{ 0x25, KEY_PLAY },       /* ( >) */
+-	{ 0x26, KEY_FORWARD },    /* (>>) */
++	{ 0x24, KEY_REWIND },     /* (<<) Rewind */
++	{ 0x25, KEY_PLAY },       /* ( >) Play */
++	{ 0x26, KEY_FORWARD },    /* (>>) Fast forward */
+ 
+ 	{ 0x27, KEY_RECORD },     /* ( o) red */
+-	{ 0x28, KEY_STOP },       /* ([]) */
+-	{ 0x29, KEY_PAUSE },      /* ('') */
++	{ 0x28, KEY_STOP },       /* ([]) Stop */
++	{ 0x29, KEY_PAUSE },      /* ('') Pause */
+ 
+ 	/* Extra keys, not on the original ATI remote */
+ 	{ 0x2a, KEY_NEXT },       /* (>+) */
+-- 
+1.9.2
 
