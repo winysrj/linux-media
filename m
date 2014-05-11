@@ -1,70 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:39891 "EHLO posteo.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755163AbaEQNX5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 May 2014 09:23:57 -0400
-From: Martin Kepplinger <martink@posteo.de>
-To: gregkh@linuxfoundation.org
-Cc: m.chehab@samsung.com, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	Martin Kepplinger <martink@posteo.de>
-Subject: [PATCH] staging: media: as102: replace custom dprintk() with dev_dbg()
-Date: Sat, 17 May 2014 15:16:31 +0200
-Message-Id: <1400332591-27528-1-git-send-email-martink@posteo.de>
+Received: from ns.horizon.com ([71.41.210.147]:51492 "HELO ns.horizon.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1757829AbaEKLMK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 May 2014 07:12:10 -0400
+Date: 11 May 2014 07:12:09 -0400
+Message-ID: <20140511111209.14512.qmail@ns.horizon.com>
+From: "George Spelvin" <linux@horizon.com>
+To: james.hogan@imgtec.com, linux-media@vger.kernel.org,
+	linux@horizon.com, m.chehab@samsung.com
+Subject: [PATCH 01/10] ati_remote: Check the checksum
+In-Reply-To: <20140511111113.14427.qmail@ns.horizon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-don't reinvent dev_dbg(). use the common kernel coding style.
+An input report is 4 bytes long, but there are only 12 bits
+of actual payload.  The 4 bytes are:
+data[0] = 0x14
+data[1] = data[2] + data[3] + 0xd5 (a checksum byte)
+data[2] = the raw scancode (plus toggle bit in msbit)
+data[3] = channel << 4 (the low 4 bits must be zero)
 
-Signed-off-by: Martin Kepplinger <martink@posteo.de>
+Ignore reports with a bad checksum.
+
+Signed-off-by: George Spelvin <linux@horizon.com>
 ---
-this applies to next-20140516.
+ drivers/media/rc/ati_remote.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
- drivers/staging/media/as102/as102_drv.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/staging/media/as102/as102_drv.c b/drivers/staging/media/as102/as102_drv.c
-index 09d64cd..99c3ed93 100644
---- a/drivers/staging/media/as102/as102_drv.c
-+++ b/drivers/staging/media/as102/as102_drv.c
-@@ -74,7 +74,8 @@ static void as102_stop_stream(struct as102_dev_t *dev)
- 			return;
+diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
+index 2df7c55160..3ddd66a23d 100644
+--- a/drivers/media/rc/ati_remote.c
++++ b/drivers/media/rc/ati_remote.c
+@@ -507,8 +507,9 @@ static void ati_remote_input_report(struct urb *urb)
+ 	 */
  
- 		if (as10x_cmd_stop_streaming(bus_adap) < 0)
--			dprintk(debug, "as10x_cmd_stop_streaming failed\n");
-+			dev_dbg(&dev->bus_adap.usb_dev->dev,
-+				"as10x_cmd_stop_streaming failed\n");
- 
- 		mutex_unlock(&dev->bus_adap.lock);
+ 	/* Deal with strange looking inputs */
+-	if ( (urb->actual_length != 4) || (data[0] != 0x14) ||
+-		((data[3] & 0x0f) != 0x00) ) {
++	if ( urb->actual_length != 4 || data[0] != 0x14 ||
++	     data[1] != (unsigned char)(data[2] + data[3] + 0xD5) ||
++	     (data[3] & 0x0f) != 0x00) {
+ 		ati_remote_dump(&urb->dev->dev, data, urb->actual_length);
+ 		return;
  	}
-@@ -112,14 +113,16 @@ static int as10x_pid_filter(struct as102_dev_t *dev,
- 	int ret = -EFAULT;
- 
- 	if (mutex_lock_interruptible(&dev->bus_adap.lock)) {
--		dprintk(debug, "mutex_lock_interruptible(lock) failed !\n");
-+		dev_dbg(&dev->bus_adap.usb_dev->dev,
-+			"amutex_lock_interruptible(lock) failed !\n");
- 		return -EBUSY;
+@@ -524,9 +525,9 @@ static void ati_remote_input_report(struct urb *urb)
+ 	remote_num = (data[3] >> 4) & 0x0f;
+ 	if (channel_mask & (1 << (remote_num + 1))) {
+ 		dbginfo(&ati_remote->interface->dev,
+-			"Masked input from channel 0x%02x: data %02x,%02x, "
++			"Masked input from channel 0x%02x: data %02x, "
+ 			"mask= 0x%02lx\n",
+-			remote_num, data[1], data[2], channel_mask);
++			remote_num, data[2], channel_mask);
+ 		return;
  	}
  
- 	switch (onoff) {
- 	case 0:
- 		ret = as10x_cmd_del_PID_filter(bus_adap, (uint16_t) pid);
--		dprintk(debug, "DEL_PID_FILTER([%02d] 0x%04x) ret = %d\n",
-+		dev_dbg(&dev->bus_adap.usb_dev->dev,
-+			"DEL_PID_FILTER([%02d] 0x%04x) ret = %d\n",
- 			index, pid, ret);
- 		break;
- 	case 1:
-@@ -131,7 +134,7 @@ static int as10x_pid_filter(struct as102_dev_t *dev,
- 		filter.pid = pid;
- 
- 		ret = as10x_cmd_add_PID_filter(bus_adap, &filter);
--		dprintk(debug,
-+		dev_dbg(&dev->bus_adap.usb_dev->dev,
- 			"ADD_PID_FILTER([%02d -> %02d], 0x%04x) ret = %d\n",
- 			index, filter.idx, filter.pid, ret);
- 		break;
 -- 
-1.7.10.4
+1.9.2
 
