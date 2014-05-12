@@ -1,70 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:35359 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751553AbaEYW0D (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:35220 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751989AbaELQSE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 May 2014 18:26:03 -0400
-Received: by mail-la0-f49.google.com with SMTP id pv20so5357452lab.36
-        for <linux-media@vger.kernel.org>; Sun, 25 May 2014 15:26:01 -0700 (PDT)
-From: Alexander Bersenev <bay@hackerdom.ru>
-To: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
-	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
-	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Alexander Bersenev <bay@hackerdom.ru>
-Subject: [PATCH v8 1/3] ARM: sunxi: Add documentation for sunxi consumer infrared devices
-Date: Mon, 26 May 2014 04:26:43 +0600
-Message-Id: <1401056805-2218-2-git-send-email-bay@hackerdom.ru>
-In-Reply-To: <1401056805-2218-1-git-send-email-bay@hackerdom.ru>
-References: <1401056805-2218-1-git-send-email-bay@hackerdom.ru>
+	Mon, 12 May 2014 12:18:04 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N5G00575YM1RNA0@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 May 2014 17:18:01 +0100 (BST)
+Received: from [106.116.147.32] by eusync4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0N5G002TPYM10WC0@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 May 2014 17:18:01 +0100 (BST)
+Message-id: <5370F435.6040703@samsung.com>
+Date: Mon, 12 May 2014 18:17:57 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR 3.15] exynos4-is driver fixes
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds documentation for Device-Tree bindings for sunxi IR
-controller.
+The following changes since commit e6a623460e5fc960ac3ee9f946d3106233fd28d8:
 
-Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
----
- .../devicetree/bindings/media/sunxi-ir.txt         | 23 ++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sunxi-ir.txt
+  [media] media-device: fix infoleak in ioctl media_enum_entities() (2014-05-01 05:53:28 -0700)
 
-diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-new file mode 100644
-index 0000000..014dd8b
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-@@ -0,0 +1,23 @@
-+Device-Tree bindings for SUNXI IR controller found in sunXi SoC family
-+
-+Required properties:
-+- compatible	    : should be "allwinner,sun7i-a20-ir";
-+- clocks	    : list of clock specifiers, corresponding to
-+		      entries in clock-names property;
-+- clock-names	    : should contain "apb" and "ir" entries;
-+- interrupts	    : should contain IR IRQ number;
-+- reg		    : should contain IO map address for IR.
-+
-+Optional properties:
-+- linux,rc-map-name : Remote control map name.
-+
-+Example:
-+
-+ir0: ir@01c21800 {
-+	compatible = "allwinner,sun7i-a20-ir";
-+	clocks = <&apb0_gates 6>, <&ir0_clk>;
-+	clock-names = "apb", "ir";
-+	interrupts = <0 5 1>;
-+	reg = <0x01C21800 0x40>;
-+	linux,rc-map-name = "rc-rc6-mce";
-+};
--- 
-1.9.3
+are available in the git repository at:
 
+  ssh://linuxtv.org/git/snawrocki/samsung.git v3.15-fixes-2
+
+for you to fetch changes up to 1f9aadef778aa41e5d723817fdd0d4c7c98df4ad:
+
+  exynos4-is: Free FIMC-IS CPU memory only when allocated (2014-05-12 18:09:38 +0200)
+
+----------------------------------------------------------------
+Sylwester Nawrocki (2):
+      exynos4-is: Fix compilation for !CONFIG_COMMON_CLK
+      exynos4-is: Free FIMC-IS CPU memory only when allocated
+
+ drivers/media/platform/exynos4-is/fimc-is.c   |    3 +++
+ drivers/media/platform/exynos4-is/media-dev.c |    2 +-
+ drivers/media/platform/exynos4-is/media-dev.h |    4 ++++
+ 3 files changed, 8 insertions(+), 1 deletion(-)
