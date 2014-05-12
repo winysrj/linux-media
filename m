@@ -1,68 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:60883 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752790AbaECQNI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 May 2014 12:13:08 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id 8466740BD9
-	for <linux-media@vger.kernel.org>; Sat,  3 May 2014 18:13:05 +0200 (CEST)
-Date: Sat, 3 May 2014 18:13:05 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] V4L: soc-camera: wxplicitly free allocated managed memory
- on error
-Message-ID: <Pine.LNX.4.64.1405031812230.26510@axis700.grange>
+Received: from mail-bl2on0057.outbound.protection.outlook.com ([65.55.169.57]:57791
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751709AbaELPmr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 May 2014 11:42:47 -0400
+Date: Mon, 12 May 2014 22:09:34 +0800
+From: Shawn Guo <shawn.guo@freescale.com>
+To: Alexander Shiyan <shc_work@mail.ru>
+CC: <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: Re: [PATCH] media: mx1_camera: Remove driver
+Message-ID: <20140512140933.GC8330@dragon>
+References: <1399788551-8218-1-git-send-email-shc_work@mail.ru>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <1399788551-8218-1-git-send-email-shc_work@mail.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-devm_kzalloc() allocations are freed when the device is unbound. But if a
-certain path fails and the allocated memory cannot be used anyway it is
-better to free it explicitly immediately. This patch does exactly this if
-asynchronous group probing in scan_async_group() fails after memory has
-been allocated.
+On Sun, May 11, 2014 at 10:09:11AM +0400, Alexander Shiyan wrote:
+> That driver hasn't been really maintained for a long time. It doesn't
+> compile in any way, it includes non-existent headers, has no users,
+> and marked as "broken" more than year. Due to these factors, mx1_camera
+> is now removed from the tree.
+> 
+> Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
+> ---
+>  arch/arm/mach-imx/Makefile                      |   3 -
+>  arch/arm/mach-imx/devices/Kconfig               |   3 -
+>  arch/arm/mach-imx/devices/Makefile              |   1 -
+>  arch/arm/mach-imx/devices/devices-common.h      |  10 -
+>  arch/arm/mach-imx/devices/platform-mx1-camera.c |  42 --
+>  arch/arm/mach-imx/mx1-camera-fiq-ksym.c         |  18 -
+>  arch/arm/mach-imx/mx1-camera-fiq.S              |  35 -
+>  drivers/media/platform/soc_camera/Kconfig       |  13 -
+>  drivers/media/platform/soc_camera/Makefile      |   1 -
+>  drivers/media/platform/soc_camera/mx1_camera.c  | 866 ------------------------
+>  include/linux/platform_data/camera-mx1.h        |  35 -
+>  11 files changed, 1027 deletions(-)
+>  delete mode 100644 arch/arm/mach-imx/devices/platform-mx1-camera.c
+>  delete mode 100644 arch/arm/mach-imx/mx1-camera-fiq-ksym.c
+>  delete mode 100644 arch/arm/mach-imx/mx1-camera-fiq.S
+>  delete mode 100644 drivers/media/platform/soc_camera/mx1_camera.c
+>  delete mode 100644 include/linux/platform_data/camera-mx1.h
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/soc_camera/soc_camera.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+Can this patch be split into arch and driver part?  Recently, arm-soc
+folks do not want to have arch changes go via driver tree, unless that's
+absolutely necessary.
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index 4b8c024..ef5e197 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1522,14 +1522,14 @@ static int scan_async_group(struct soc_camera_host *ici,
- 
- 	ret = soc_camera_dyn_pdev(&sdesc, sasc);
- 	if (ret < 0)
--		return ret;
-+		goto eallocpdev;
- 
- 	sasc->sensor = &sasd->asd;
- 
- 	icd = soc_camera_add_pdev(sasc);
- 	if (!icd) {
--		platform_device_put(sasc->pdev);
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto eaddpdev;
- 	}
- 
- 	sasc->notifier.subdevs = asd;
-@@ -1557,7 +1557,11 @@ static int scan_async_group(struct soc_camera_host *ici,
- 	v4l2_clk_unregister(icd->clk);
- eclkreg:
- 	icd->clk = NULL;
--	platform_device_unregister(sasc->pdev);
-+	platform_device_del(sasc->pdev);
-+eaddpdev:
-+	platform_device_put(sasc->pdev);
-+eallocpdev:
-+	devm_kfree(ici->v4l2_dev.dev, sasc);
- 	dev_err(ici->v4l2_dev.dev, "group probe failed: %d\n", ret);
- 
- 	return ret;
--- 
-1.9.2
-
+Shawn
