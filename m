@@ -1,179 +1,254 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:10144 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751372AbaEXUAH (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:51368 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752651AbaELMQ2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 May 2014 16:00:07 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N630076OGW6Z990@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Sat, 24 May 2014 16:00:06 -0400 (EDT)
-Date: Sat, 24 May 2014 16:59:59 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: Re: [GIT PULL FOR v3.16] davinci updates
-Message-id: <20140524165959.4cfe9f0e.m.chehab@samsung.com>
-In-reply-to: <20140524163214.6796f264.m.chehab@samsung.com>
-References: <537F0FCD.207@xs4all.nl>
- <20140523194545.4793e1a0.m.chehab@samsung.com> <53805338.50301@xs4all.nl>
- <20140524163214.6796f264.m.chehab@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Mon, 12 May 2014 08:16:28 -0400
+Message-ID: <5370BB96.9060300@samsung.com>
+Date: Mon, 12 May 2014 17:46:22 +0530
+From: Arun Kumar K <arun.kk@samsung.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	k.debski@samsung.com, s.nawrocki@samsung.com, posciak@chromium.org,
+	arunkk.samsung@gmail.com
+Subject: Re: [PATCH v3 1/2] [media] v4l: Add source change event
+References: <1399549756-3743-1-git-send-email-arun.kk@samsung.com> <1399549756-3743-2-git-send-email-arun.kk@samsung.com> <3628141.bT6snEDtDi@avalon> <536CD4DD.1080101@xs4all.nl>
+In-Reply-To: <536CD4DD.1080101@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 24 May 2014 16:32:14 -0300
-Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
+Hi Hans, Laurent,
 
-> Em Sat, 24 May 2014 10:07:20 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 05/09/14 18:45, Hans Verkuil wrote:
+> On 05/09/2014 03:09 PM, Laurent Pinchart wrote:
+>> Hi Arun,
+>>
+>> Thank you for the patch. We're slowly getting there :-)
+>>
+>> On Thursday 08 May 2014 17:19:15 Arun Kumar K wrote:
+>>> This event indicates that the video device has encountered
+>>> a source parameter change during runtime. This can typically be a
+>>> resolution change detected by a video decoder OR a format change
+>>> detected by an HDMI connector.
+>>>
+>>> This needs to be nofified to the userspace and the application may
+>>> be expected to reallocate buffers before proceeding. The application
+>>> can subscribe to events on a specific pad or input/output port which
+>>> it is interested in.
+>>>
+>>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>>> ---
+>>>  Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   32 +++++++++++++++++
+>>>  .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   19 +++++++++++
+>>>  drivers/media/v4l2-core/v4l2-event.c               |   36 +++++++++++++++++
+>>>  include/media/v4l2-event.h                         |    4 +++
+>>>  include/uapi/linux/videodev2.h                     |    8 +++++
+>>>  5 files changed, 99 insertions(+)
+>>>
+>>> diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+>>> b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml index 89891ad..6afabaa
+>>> 100644
+>>> --- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+>>> +++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+>>> @@ -242,6 +242,22 @@
+>>>        </tgroup>
+>>>      </table>
+>>>
+>>> +    <table frame="none" pgwide="1" id="v4l2-event-src-change">
+>>> +      <title>struct <structname>v4l2_event_src_change</structname></title>
+>>> +      <tgroup cols="3">
+>>> +	&cs-str;
+>>> +	<tbody valign="top">
+>>> +	  <row>
+>>> +	    <entry>__u32</entry>
+>>> +	    <entry><structfield>changes</structfield></entry>
+>>> +	    <entry>
+>>> +	      A bitmask that tells what has changed. See <xref
+>>> linkend="src-changes-flags" />. +	    </entry>
+>>> +	  </row>
+>>> +	</tbody>
+>>> +      </tgroup>
+>>> +    </table>
+>>> +
+>>>      <table pgwide="1" frame="none" id="changes-flags">
+>>>        <title>Changes</title>
+>>>        <tgroup cols="3">
+>>> @@ -270,6 +286,22 @@
+>>>  	</tbody>
+>>>        </tgroup>
+>>>      </table>
+>>> +
+>>> +    <table pgwide="1" frame="none" id="src-changes-flags">
+>>> +      <title>Source Changes</title>
+>>> +      <tgroup cols="3">
+>>> +	&cs-def;
+>>> +	<tbody valign="top">
+>>> +	  <row>
+>>> +	    <entry><constant>V4L2_EVENT_SRC_CH_RESOLUTION</constant></entry>
+>>> +	    <entry>0x0001</entry>
+>>> +	    <entry>This event gets triggered when a resolution change is
+>>> +	    detected at runtime. This can typically come from a video decoder.
+>>> +	    </entry>
+>>> +	  </row>
+>>> +	</tbody>
+>>> +      </tgroup>
+>>> +    </table>
+>>>    </refsect1>
+>>>    <refsect1>
+>>>      &return-value;
+>>> diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>>> b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml index
+>>> 5c70b61..8012829 100644
+>>> --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>>> +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+>>> @@ -155,6 +155,25 @@
+>>>  	    </entry>
+>>>  	  </row>
+>>>  	  <row>
+>>> +	    <entry><constant>V4L2_EVENT_SOURCE_CHANGE</constant></entry>
+>>> +	    <entry>5</entry>
+>>> +	    <entry>
+>>> +	      <para>This event is triggered when a format change is
+>>> +	       detected during runtime by the video device. It can be a
+>>> +	       runtime resolution change triggered by a video decoder or the
+>>> +	       format change happening on an HDMI connector.
+>>> +	       This event requires that the <structfield>id</structfield>
+>>> +               matches the pad/input/output index from which you want to
+>>> +	       receive events.</para>
+>>> +
+>>> +              <para>This event has a &v4l2-event-source-change; associated
+>>> +	      with it. The <structfield>changes</structfield> bitfield denotes
+>>> +	      what has changed for the subscribed pad. If multiple events
+>>> +	      occured before application could dequeue them, then the changes
+>>> +	      will have the ORed value of all the events generated.</para>
+>>> +	    </entry>
+>>> +	  </row>
+>>> +	  <row>
+>>>  	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
+>>>  	    <entry>0x08000000</entry>
+>>>  	    <entry>Base event number for driver-private events.</entry>
+>>> diff --git a/drivers/media/v4l2-core/v4l2-event.c
+>>> b/drivers/media/v4l2-core/v4l2-event.c index 86dcb54..8761aab 100644
+>>> --- a/drivers/media/v4l2-core/v4l2-event.c
+>>> +++ b/drivers/media/v4l2-core/v4l2-event.c
+>>> @@ -318,3 +318,39 @@ int v4l2_event_subdev_unsubscribe(struct v4l2_subdev
+>>> *sd, struct v4l2_fh *fh, return v4l2_event_unsubscribe(fh, sub);
+>>>  }
+>>>  EXPORT_SYMBOL_GPL(v4l2_event_subdev_unsubscribe);
+>>> +
+>>> +static void v4l2_event_src_replace(struct v4l2_event *old,
+>>> +				const struct v4l2_event *new)
+>>> +{
+>>> +	u32 old_changes = old->u.src_change.changes;
+>>> +
+>>> +	old->u.src_change = new->u.src_change;
+>>> +	old->u.src_change.changes |= old_changes;
+>>> +}
+>>> +
+>>> +static void v4l2_event_src_merge(const struct v4l2_event *old,
+>>> +				struct v4l2_event *new)
+>>> +{
+>>> +	new->u.src_change.changes |= old->u.src_change.changes;
+>>> +}
+>>> +
+>>> +static const struct v4l2_subscribed_event_ops v4l2_event_src_ch_ops = {
+>>> +	.replace = v4l2_event_src_replace,
+>>> +	.merge = v4l2_event_src_merge,
+>>> +};
+>>> +
+>>> +int v4l2_src_change_event_subscribe(struct v4l2_fh *fh,
+>>> +				const struct v4l2_event_subscription *sub)
+>>> +{
+>>> +	if (sub->type == V4L2_EVENT_SOURCE_CHANGE)
+>>> +		return v4l2_event_subscribe(fh, sub, 0, &v4l2_event_src_ch_ops);
+>>> +	return -EINVAL;
+>>> +}
+>>> +EXPORT_SYMBOL_GPL(v4l2_src_change_event_subscribe);
+>>> +
+>>> +int v4l2_src_change_event_subdev_subscribe(struct v4l2_subdev *sd,
+>>> +		struct v4l2_fh *fh, struct v4l2_event_subscription *sub)
+>>> +{
+>>> +	return v4l2_src_change_event_subscribe(fh, sub);
+>>> +}
+>>> +EXPORT_SYMBOL_GPL(v4l2_src_change_event_subdev_subscribe);
+>>> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+>>> index be05d01..1ab9045 100644
+>>> --- a/include/media/v4l2-event.h
+>>> +++ b/include/media/v4l2-event.h
+>>> @@ -132,4 +132,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+>>>  void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
+>>>  int v4l2_event_subdev_unsubscribe(struct v4l2_subdev *sd, struct v4l2_fh
+>>> *fh, struct v4l2_event_subscription *sub);
+>>> +int v4l2_src_change_event_subscribe(struct v4l2_fh *fh,
+>>> +				const struct v4l2_event_subscription *sub);
+>>> +int v4l2_src_change_event_subdev_subscribe(struct v4l2_subdev *sd,
+>>> +		struct v4l2_fh *fh, struct v4l2_event_subscription *sub);
+>>>  #endif /* V4L2_EVENT_H */
+>>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>>> index ea468ee..b923d91 100644
+>>> --- a/include/uapi/linux/videodev2.h
+>>> +++ b/include/uapi/linux/videodev2.h
+>>> @@ -1765,6 +1765,7 @@ struct v4l2_streamparm {
+>>>  #define V4L2_EVENT_EOS				2
+>>>  #define V4L2_EVENT_CTRL				3
+>>>  #define V4L2_EVENT_FRAME_SYNC			4
+>>> +#define V4L2_EVENT_SOURCE_CHANGE		5
+>>
+>> My last concern is about the event name (and the name of the related 
+>> structure). Either this event applies to inputs only, in which case the 
+>> documentation shouldn't mention the output number as it does above, or the 
+>> event applies to both inputs and outputs, in which case the name "source" is 
+>> too restrictive. I'd be tempted to go for the second option, even though I 
+>> have less use cases in mind on the output side.
 > 
-> > On 05/24/2014 12:45 AM, Mauro Carvalho Chehab wrote:
-> > > Em Fri, 23 May 2014 11:07:25 +0200
-> > > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > > 
-> > >> Hi Mauro,
-> > >>
-> > >> These are cleanup patches for the davinci drivers. A total of about 1200 lines
-> > >> of code are removed. Not bad!
-> > >>
-> > >> Regards,
-> > >>
-> > >> 	Hans
-> > >>
-> > >>
-> > >> The following changes since commit e899966f626f1f657a4a7bac736c0b9ae5a243ea:
-> > >>
-> > >>   Merge tag 'v3.15-rc6' into patchwork (2014-05-21 23:03:15 -0300)
-> > >>
-> > >> are available in the git repository at:
-> > >>
-> > >>
-> > >>   git://linuxtv.org/hverkuil/media_tree.git davinci
-> > >>
-> > >> for you to fetch changes up to c1022cd59bb34dbb435cda9a2fc98bb6fb931f61:
-> > >>
-> > >>   media: davinci: vpif: add Copyright message (2014-05-23 10:12:34 +0200)
-> > >>
-> > >> ----------------------------------------------------------------
-> > >> Lad, Prabhakar (49):
-> > >>       media: davinci: vpif_display: initialize vb2 queue and DMA context during probe
-> > >>       media: davinci: vpif_display: drop buf_init() callback
-> > >>       media: davinci: vpif_display: use vb2_ops_wait_prepare/finish helper functions
-> > >>       media: davinci: vpif_display: release buffers in case start_streaming() call back fails
-> > >>       media: davinci: vpif_display: drop buf_cleanup() callback
-> > >>       media: davinci: vpif_display: improve vpif_buffer_prepare() callback
-> > >>       media: davinci: vpif_display: improve vpif_buffer_queue_setup() function
-> > >>       media: davinci: vpif_display: improve start/stop_streaming callbacks
-> > >>       media: davinci: vpif_display: use vb2_fop_mmap/poll
-> > >>       media: davinci: vpif_display: use v4l2_fh_open and vb2_fop_release
-> > >>       media: davinci: vpif_display: use vb2_ioctl_* helpers
-> > >>       media: davinci: vpif_display: drop unused member fbuffers
-> > >>       media: davinci: vpif_display: drop reserving memory for device
-> > >>       media: davinci: vpif_display: drop unnecessary field memory
-> > >>       media: davinci: vpif_display: drop numbuffers field from common_obj
-> > >>       media: davinic: vpif_display: drop started member from struct common_obj
-> > >>       media: davinci: vpif_display: initialize the video device in single place
-> > >>       media: davinci: vpif_display: drop unneeded module params
-> > >>       media: davinci: vpif_display: drop cropcap
-> > >>       media: davinci: vpif_display: group v4l2_ioctl_ops
-> > >>       media: davinci: vpif_display: use SIMPLE_DEV_PM_OPS
-> > >>       media: davinci: vpif_display: return -ENODATA for *dv_timings calls
-> > >>       media: davinci: vpif_display: return -ENODATA for *std calls
-> > >>       media: davinci; vpif_display: fix checkpatch error
-> > >>       media: davinci: vpif_display: fix v4l-complinace issues
-> > >>       media: davinci: vpif_capture: initalize vb2 queue and DMA context during probe
-> > >>       media: davinci: vpif_capture: drop buf_init() callback
-> > >>       media: davinci: vpif_capture: use vb2_ops_wait_prepare/finish helper functions
-> > >>       media: davinci: vpif_capture: release buffers in case start_streaming() call back fails
-> > >>       media: davinci: vpif_capture: drop buf_cleanup() callback
-> > >>       media: davinci: vpif_capture: improve vpif_buffer_prepare() callback
-> > >>       media: davinci: vpif_capture: improve vpif_buffer_queue_setup() function
-> > >>       media: davinci: vpif_capture: improve start/stop_streaming callbacks
-> > >>       media: davinci: vpif_capture: use vb2_fop_mmap/poll
-> > >>       media: davinci: vpif_capture: use v4l2_fh_open and vb2_fop_release
-> > >>       media: davinci: vpif_capture: use vb2_ioctl_* helpers
-> > >>       media: davinci: vpif_capture: drop reserving memory for device
-> > >>       media: davinci: vpif_capture: drop unnecessary field memory
-> > >>       media: davinic: vpif_capture: drop started member from struct common_obj
-> > >>       media: davinci: vpif_capture: initialize the video device in single place
-> > > 
-> > >>       media: davinci: vpif_capture: drop unneeded module params
-> > > 
-> > > Enough!
-> > > 
-> > > I'm tired of guessing why those bad commented are needed and what them are
-> > > actually doing.
-> > > 
-> > > In this particular case:
-> > > 
-> > > Why those module parameters were needed before, but aren't needed anymore?
-> > > What changed? The removal of module parameters is a sort of API change.
-> > > 
-> > > So, I _DO_ expect them to be very well justified.
-> > > 
-> > > Please, properly describe _ALL_ patches, or I'll NACK the pull requests.
-> > > 
-> > > This time, I applied everything up to the patch before this one. On a next
-> > > pull request without proper descriptions, I'll likely just stop on the first
-> > > patch missing description (or with a crappy one).
-> > 
-> > Next time you see patches with insufficient commit log text just send them back
-> > with 'Changes Requested'. I don't mind since I have a bit of a blind spot for
-> > that myself. It's good training for me.
-> > 
-> > But in this case you accepted the patch ("drop unneeded module params") which
-> > really needed a better description (again, blind spot on my side, I should
-> > have caught that), 
+> I don't think it makes sense to support this for outputs (I think I originally
+> suggested that, but I didn't think that through). One practical problem with
+> that approach would be with m2m devices because that makes it impossible to
+> tell the difference between a change on the capture side and a change on the
+> output side, the other is that normally outputs do not change since you are in
+> control w.r.t. to the format/resolution, etc.
 > 
-> Sorry, my fault. I was supposed to have reverted the merge of this one
-> before pushing at mainstream.
+> If there is a need for format change events on an output, then I would expect
+> to see a separate event for that.
 > 
-> > and then stopped merging the remaining patches. But those
-> > remaining patches all have proper commit logs (at least in my view), so I am
-> > requesting that you pull in the remaining patches. 
+
+Ok. I will modify the documentation to mention only about pad / input
+index and keep the same name.
+
+Regards
+Arun
+
+> Regards,
 > 
-> Fair enough. I'll revert changeset b952662f272ae43c1583fac4dcda71ef36c33528,
-> and apply the remaining ones, if they're ok and don't depend on it.
-
-Applied those patches:
-
-96787eb4bc24 [media] media: davinci: vpif: add Copyright messa
-11016daef2a6 [media] media: davinci: vpif_capture: drop check __KERNEL__
-d557b7d549de [media] media: davinci: vpif_capture: return -ENODATA for *std call
-1e8852af358d [media] media: davinci: vpif_capture: return -ENODATA for *dv_timin
-b7047713bda9 [media] media: davinci: vpif_capture: use SIMPLE_DEV_PM_OPS
-7b4657fa45a9 [media] media: davinci: vpif_capture: group v4l2_ioctl_ops
-023047a36962 [media] media: davinci: vpif_capture: drop cropcap
-ea06cc5d908c Revert "[media]  
-
-The next patch at this pull request broke, maybe because of the reverted
-patch.
-
-Please work with Prabhakar, in order to have a proper description for the
-reverted patch and resubmit the remaining ones:
-
-media: davinci: vpif_capture: drop unneeded module params
-media: davinci: vpif_capture: fix v4l-complinace issues
-
-Ah, please fix the typo there: "complinace".
-
-Thanks,
-Mauro
-
+> 	Hans
 > 
-> > 
-> > If you think that the commit logs for the remaining patches isn't good enough,
-> > just let me know and I will improve them.
+>>
+>>>  #define V4L2_EVENT_PRIVATE_START		0x08000000
+>>>
+>>>  /* Payload for V4L2_EVENT_VSYNC */
+>>> @@ -1796,12 +1797,19 @@ struct v4l2_event_frame_sync {
+>>>  	__u32 frame_sequence;
+>>>  };
+>>>
+>>> +#define V4L2_EVENT_SRC_CH_RESOLUTION		(1 << 0)
+>>> +
+>>> +struct v4l2_event_src_change {
+>>> +	__u32 changes;
+>>> +};
+>>> +
+>>>  struct v4l2_event {
+>>>  	__u32				type;
+>>>  	union {
+>>>  		struct v4l2_event_vsync		vsync;
+>>>  		struct v4l2_event_ctrl		ctrl;
+>>>  		struct v4l2_event_frame_sync	frame_sync;
+>>> +		struct v4l2_event_src_change	src_change;
+>>>  		__u8				data[64];
+>>>  	} u;
+>>>  	__u32				pending;
+>>
 > 
-> Ok.
-> 
-> > 
-> > Regards,
-> > 
-> > 	Hans
