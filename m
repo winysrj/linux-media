@@ -1,89 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:58635 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751005AbaEUI3L (ORCPT
+Received: from fallback8.mail.ru ([94.100.176.136]:44762 "EHLO
+	fallback8.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751000AbaELPwn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 May 2014 04:29:11 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N5X002U80WIMB30@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 May 2014 09:29:06 +0100 (BST)
-Received: from AMDN910 ([106.116.147.102])
- by eusync3.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0N5X00ASD0WGTQ80@eusync3.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 May 2014 09:29:05 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for v3.16] mem2mem patches
-Date: Wed, 21 May 2014 10:29:04 +0200
-Message-id: <06ad01cf74ce$ba830f30$2f892d90$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Mon, 12 May 2014 11:52:43 -0400
+From: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
+To: =?UTF-8?B?U2hhd24gR3Vv?= <shawn.guo@freescale.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	=?UTF-8?B?R3Vlbm5hZGkgTGlha2hvdmV0c2tp?= <g.liakhovetski@gmx.de>,
+	=?UTF-8?B?U2FzY2hhIEhhdWVy?= <kernel@pengutronix.de>,
+	=?UTF-8?B?TWF1cm8gQ2FydmFsaG8gQ2hlaGFi?= <m.chehab@samsung.com>
+Subject: =?UTF-8?B?UmU6IFtQQVRDSF0gbWVkaWE6IG14MV9jYW1lcmE6IFJlbW92ZSBkcml2ZXI=?=
+Mime-Version: 1.0
+Date: Mon, 12 May 2014 19:46:48 +0400
+Reply-To: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
+Message-ID: <1399909608.365840986@f391.i.mail.ru>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
+In-Reply-To: <20140512142533.GF8330@dragon>
+References: <1399788551-8218-1-git-send-email-shc_work@mail.ru>
+ <1399904280.435992890@f125.i.mail.ru>
+ <20140512142533.GF8330@dragon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 61b2123701c3568fcf8a07e69fe1c2854f640a4e:
-
-  v4l: ti-vpe: Rename csc memory resource name (2014-05-14 15:53:39 +0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/kdebski/media_tree_2.git for-3.16-3
-
-for you to fetch changes up to a48bcde914d311835ead01d81d25d304a913b718:
-
-  s5p-mfc: Core support for v8 encoder (2014-05-20 15:19:41 +0200)
-
-----------------------------------------------------------------
-Alexander Shiyan (2):
-      media: mx2-emmaprp: Cleanup internal structure
-      media: mx2-emmaprp: Add missing mutex_destroy()
-
-Arun Kumar K (3):
-      s5p-mfc: Update scratch buffer size for MPEG4
-      s5p-mfc: Move INIT_BUFFER_OPTIONS from v7 to v6
-      s5p-mfc: Rename IS_MFCV7 macro
-
-John Sheu (1):
-      s5p-mfc: fix encoder crash after VIDIOC_STREAMOFF
-
-Kamil Debski (2):
-      v4l: s5p-mfc: Fix default pixel format selection for decoder
-      v4l: s5p-mfc: Limit enum_fmt to output formats of current version
-
-Kiran AVND (4):
-      s5p-mfc: Update scratch buffer size for VP8 encoder
-      s5p-mfc: Add variants to access mfc registers
-      s5p-mfc: Core support to add v8 decoder
-      s5p-mfc: Core support for v8 encoder
-
-Pawel Osciak (5):
-      s5p-mfc: Copy timestamps only when a frame is produced.
-      s5p-mfc: Fixes for decode REQBUFS.
-      s5p-mfc: Extract open/close MFC instance commands.
-      s5p-mfc: Don't allocate codec buffers on STREAMON.
-      s5p-mfc: Don't try to resubmit VP8 bitstream buffer for decode.
-
- .../devicetree/bindings/media/s5p-mfc.txt          |    3 +-
- drivers/media/platform/mx2_emmaprp.c               |   37 +-
- drivers/media/platform/s5p-mfc/regs-mfc-v6.h       |    4 +-
- drivers/media/platform/s5p-mfc/regs-mfc-v7.h       |    5 +-
- drivers/media/platform/s5p-mfc/regs-mfc-v8.h       |  124 +++
- drivers/media/platform/s5p-mfc/s5p_mfc.c           |   71 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |   15 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |   62 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h      |    3 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |  285 ++++---
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   93 ++-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.c       |    6 +
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.h       |  254 ++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |  842
-+++++++++++++-------
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |    7 +-
- 15 files changed, 1300 insertions(+), 511 deletions(-)
- create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v8.h
-
+TW9uLCAxMiBNYXkgMjAxNCAyMjoyNTozNCArMDgwMCDQvtGCIFNoYXduIEd1byA8c2hhd24uZ3Vv
+QGZyZWVzY2FsZS5jb20+Ogo+IE9uIE1vbiwgTWF5IDEyLCAyMDE0IGF0IDA2OjE4OjAwUE0gKzA0
+MDAsIEFsZXhhbmRlciBTaGl5YW4gd3JvdGU6Cj4gPiBNb24sIDEyIE1heSAyMDE0IDIyOjA5OjM0
+ICswODAwINC+0YIgU2hhd24gR3VvIDxzaGF3bi5ndW9AZnJlZXNjYWxlLmNvbT46Cj4gPiA+IE9u
+IFN1biwgTWF5IDExLCAyMDE0IGF0IDEwOjA5OjExQU0gKzA0MDAsIEFsZXhhbmRlciBTaGl5YW4g
+d3JvdGU6Cj4gPiA+ID4gVGhhdCBkcml2ZXIgaGFzbid0IGJlZW4gcmVhbGx5IG1haW50YWluZWQg
+Zm9yIGEgbG9uZyB0aW1lLiBJdCBkb2Vzbid0Cj4gPiA+ID4gY29tcGlsZSBpbiBhbnkgd2F5LCBp
+dCBpbmNsdWRlcyBub24tZXhpc3RlbnQgaGVhZGVycywgaGFzIG5vIHVzZXJzLAo+ID4gPiA+IGFu
+ZCBtYXJrZWQgYXMgImJyb2tlbiIgbW9yZSB0aGFuIHllYXIuIER1ZSB0byB0aGVzZSBmYWN0b3Jz
+LCBteDFfY2FtZXJhCj4gPiA+ID4gaXMgbm93IHJlbW92ZWQgZnJvbSB0aGUgdHJlZS4KPiA+ID4g
+PiAKPiA+ID4gPiBTaWduZWQtb2ZmLWJ5OiBBbGV4YW5kZXIgU2hpeWFuIDxzaGNfd29ya0BtYWls
+LnJ1Pgo+ID4gPiA+IC0tLQo+ID4gPiA+ICBhcmNoL2FybS9tYWNoLWlteC9NYWtlZmlsZSAgICAg
+ICAgICAgICAgICAgICAgICB8ICAgMyAtCj4gPiA+ID4gIGFyY2gvYXJtL21hY2gtaW14L2Rldmlj
+ZXMvS2NvbmZpZyAgICAgICAgICAgICAgIHwgICAzIC0KPiA+ID4gPiAgYXJjaC9hcm0vbWFjaC1p
+bXgvZGV2aWNlcy9NYWtlZmlsZSAgICAgICAgICAgICAgfCAgIDEgLQo+ID4gPiA+ICBhcmNoL2Fy
+bS9tYWNoLWlteC9kZXZpY2VzL2RldmljZXMtY29tbW9uLmggICAgICB8ICAxMCAtCj4gPiA+ID4g
+IGFyY2gvYXJtL21hY2gtaW14L2RldmljZXMvcGxhdGZvcm0tbXgxLWNhbWVyYS5jIHwgIDQyIC0t
+Cj4gPiA+ID4gIGFyY2gvYXJtL21hY2gtaW14L214MS1jYW1lcmEtZmlxLWtzeW0uYyAgICAgICAg
+IHwgIDE4IC0KPiA+ID4gPiAgYXJjaC9hcm0vbWFjaC1pbXgvbXgxLWNhbWVyYS1maXEuUyAgICAg
+ICAgICAgICAgfCAgMzUgLQo+ID4gPiA+ICBkcml2ZXJzL21lZGlhL3BsYXRmb3JtL3NvY19jYW1l
+cmEvS2NvbmZpZyAgICAgICB8ICAxMyAtCj4gPiA+ID4gIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0v
+c29jX2NhbWVyYS9NYWtlZmlsZSAgICAgIHwgICAxIC0KPiA+ID4gPiAgZHJpdmVycy9tZWRpYS9w
+bGF0Zm9ybS9zb2NfY2FtZXJhL214MV9jYW1lcmEuYyAgfCA4NjYgLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tCj4gPiA+ID4gIGluY2x1ZGUvbGludXgvcGxhdGZvcm1fZGF0YS9jYW1lcmEtbXgxLmgg
+ICAgICAgIHwgIDM1IC0KPiA+ID4gPiAgMTEgZmlsZXMgY2hhbmdlZCwgMTAyNyBkZWxldGlvbnMo
+LSkKPiA+ID4gPiAgZGVsZXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL21hY2gtaW14L2RldmljZXMv
+cGxhdGZvcm0tbXgxLWNhbWVyYS5jCj4gPiA+ID4gIGRlbGV0ZSBtb2RlIDEwMDY0NCBhcmNoL2Fy
+bS9tYWNoLWlteC9teDEtY2FtZXJhLWZpcS1rc3ltLmMKPiA+ID4gPiAgZGVsZXRlIG1vZGUgMTAw
+NjQ0IGFyY2gvYXJtL21hY2gtaW14L214MS1jYW1lcmEtZmlxLlMKPiA+ID4gPiAgZGVsZXRlIG1v
+ZGUgMTAwNjQ0IGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc29jX2NhbWVyYS9teDFfY2FtZXJhLmMK
+PiA+ID4gPiAgZGVsZXRlIG1vZGUgMTAwNjQ0IGluY2x1ZGUvbGludXgvcGxhdGZvcm1fZGF0YS9j
+YW1lcmEtbXgxLmgKPiA+ID4gCj4gPiA+IENhbiB0aGlzIHBhdGNoIGJlIHNwbGl0IGludG8gYXJj
+aCBhbmQgZHJpdmVyIHBhcnQ/ICBSZWNlbnRseSwgYXJtLXNvYwo+ID4gPiBmb2xrcyBkbyBub3Qg
+d2FudCB0byBoYXZlIGFyY2ggY2hhbmdlcyBnbyB2aWEgZHJpdmVyIHRyZWUsIHVubGVzcyB0aGF0
+J3MKPiA+ID4gYWJzb2x1dGVseSBuZWNlc3NhcnkuCj4gPiAKPiA+IENhbiB0aGlzIHBhdGNoIGJl
+IGFwcGxpZWQgdGhyb3VnaCBhcm0tc29jIChpbXgpIHRyZWUgaWYgaXQgd2lsbCBiZSBhcHByb3Zl
+ZAo+ID4gYnkgdGhlIGxpbnV4LW1lZGlhIG1haW50YWluZXJzPwo+IAo+IFllcywgaXQgY2FuLCBp
+ZiBsaW51eC1tZWRpYSBtYWludGFpbmVycyB3YW50LiAgQnV0IEkgc3RpbGwgcHJlZmVyIHRvIHR3
+bwo+IHBhdGNoZXMsIHNpbmNlIEkgZG8gbm90IHNlZSBhbnkgdGhpbmcgcmVxdWlyaW5nIGl0IGJl
+IG9uZS4gIERvaW5nIHRoYXQKPiB3aWxsIGVuc3VyZSB3ZSBkbyBub3QgcnVuIGludG8gYW55IG1l
+cmdlIGNvbmZsaWN0cy4KCkFSTSBwYXJ0IGFuZCBsaW51eC1tZWRpYSBwYXJ0IGFyZSBpbnRlcmNv
+bm5lY3RlZCBieSB1c2luZyBzaW5nbGUgaGVhZGVyCjxsaW51eC9wbGF0Zm9ybV9kYXRhL2NhbWVy
+YS1teDEuaD4uIFNvIHJlbW92aW5nIGEgZHJpdmVyIGluIGEgc2VwYXJhdGVkCnBhdGNoIHdpbGwg
+dG91Y2ggQVJNIHBhcnQgaW4gYW55IGNhc2UuCgotLS0KCg==
