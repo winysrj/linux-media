@@ -1,86 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1400 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751055AbaEIJFE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 05:05:04 -0400
-Message-ID: <536C9A32.10703@xs4all.nl>
-Date: Fri, 09 May 2014 11:04:50 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
-	m.chehab@samsung.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 00/19] em28xx: clean up the main device struct and move
-  sub-module specific data to its own data structs
-References: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:40468 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756403AbaELMvJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 May 2014 08:51:09 -0400
+Received: by mail-pa0-f42.google.com with SMTP id rd3so8561938pab.1
+        for <linux-media@vger.kernel.org>; Mon, 12 May 2014 05:51:09 -0700 (PDT)
+Content-Type: text/plain;
+	charset=utf-8
+Mime-Version: 1.0 (1.0)
+Subject: Re: [PATCH] hdpvr: fix interrupted recording
+From: Ryley Angus <ryleyjangus@gmail.com>
+In-Reply-To: <5370C18C.7040006@xs4all.nl>
+Date: Mon, 12 May 2014 22:51:02 +1000
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Keith Pyle <kpyle@austin.rr.com>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <4318B9B5-95EC-4353-8F9E-939EF37B1EF0@gmail.com>
+References: <5370C18C.7040006@xs4all.nl>
+To: Hans Verkuil <hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Frank,
+Sorry for the late reply. I've been fiddling with the Windows drivers/capture applications and I've haven't been able to reproduce the issue I faced with the Linux driver. Nonetheless, the patch you posted is the only approach so far to avoid interrupted recordings on Linux and the three second delay was plenty with my testing.
 
-This looks good to me. I do have some comments for future cleanups and I'll
-reply to the relevant patches for that.
+Tested-by: Ryley Angus
+<ryleyjangus@gmail.com>
 
-However, before I can apply this patch series you need to take a look at my comments
-for this pre-requisite patch:
-
-https://patchwork.linuxtv.org/patch/23179/
-
-That needs to be sorted before I can apply this series.
-
-Regards,
-
-	Hans
-
-On 03/24/2014 08:33 PM, Frank Schäfer wrote:
-> This patch series cleans up the main device struct of the em28xx driver.
+> On 12 May 2014, at 10:41 pm, Hans Verkuil <hverkuil@xs4all.nl> wrote:
 > 
-> Most of the patches (patches 3-16) are about moving the em28xx-v4l specific data
-> to it's own dynamically allocated data structure.
-> Patch 19 moves two em28xx-alsa specific fields to the em28xx_audio struct.
-> Patches 17 and 18 remove two fields which aren't needed.
+> Ryley, Keith, can you test this one more time and if it works reply with
+> a 'Tested-by' tag that I can add to the patch?
+> 
+> Thanks!
+> 
+>    Hans
 > 
 > 
-> Frank Schäfer (19):
->   em28xx: move sub-module data structs to a common place in the main
->     struct
->   em28xx-video: simplify usage of the pointer to struct
->     v4l2_ctrl_handler in em28xx_v4l2_init()
->   em28xx: start moving em28xx-v4l specific data to its own struct
->   em28xx: move struct v4l2_ctrl_handler ctrl_handler from struct em28xx
->     to struct v4l2
->   em28xx: move struct v4l2_clk *clk from struct em28xx to struct v4l2
->   em28xx: move video_device structs from struct em28xx to struct v4l2
->   em28xx: move videobuf2 related data from struct em28xx to struct v4l2
->   em28xx: move v4l2 frame resolutions and scale data from struct em28xx
->     to struct v4l2
->   em28xx: move vinmode and vinctrl data from struct em28xx to struct
->     v4l2
->   em28xx: move TV norm from struct em28xx to struct v4l2
->   em28xx: move struct em28xx_fmt *format from struct em28xx to struct
->     v4l2
->   em28xx: move progressive/interlaced fields from struct em28xx to
->     struct v4l2
->   em28xx: move sensor parameter fields from struct em28xx to struct v4l2
->   em28xx: move capture state tracking fields from struct em28xx to
->     struct v4l2
->   em28xx: move v4l2 user counting fields from struct em28xx to struct
->     v4l2
->   em28xx: move tuner frequency field from struct em28xx to struct v4l2
->   em28xx: remove field tda9887_conf from struct em28xx
->   em28xx: remove field tuner_addr from struct em28xx
->   em28xx: move fields wq_trigger and streaming_started from struct
->     em28xx to struct em28xx_audio
+> This issue was reported by Ryley Angus:
 > 
->  drivers/media/usb/em28xx/em28xx-audio.c  |  39 +-
->  drivers/media/usb/em28xx/em28xx-camera.c |  51 +--
->  drivers/media/usb/em28xx/em28xx-cards.c  |   9 -
->  drivers/media/usb/em28xx/em28xx-vbi.c    |  10 +-
->  drivers/media/usb/em28xx/em28xx-video.c  | 592 +++++++++++++++++--------------
->  drivers/media/usb/em28xx/em28xx.h        | 120 ++++---
->  6 files changed, 452 insertions(+), 369 deletions(-)
+> <quote>
+> I record from my satellite set top box using component video and optical
+> audio input. I basically use "cat /dev/video0 > ~/video.ts” or use dd. The
+> box is set to output audio as AC-3 over optical, but most channels are
+> actually output as stereo PCM. When the channel is changed between a PCM
+> channel and (typically to a movie channel) to a channel utilising AC-3,
+> the HD-PVR stops the recording as the set top box momentarily outputs no
+> audio. Changing between PCM channels doesn't cause any issues.
 > 
-
+> My main problem was that when this happens, cat/dd doesn't actually exit.
+> When going through the hdpvr driver source and the dmesg output, I found
+> the hdpvr driver wasn't actually shutting down the device properly until
+> I manually killed cat/dd.
+> 
+> I've seen references to this issue being a hardware issue from as far back
+> as 2010: http://forums.gbpvr.com/showthread.php?46429-HD-PVR-drops-recording-on-channel-change-Hauppauge-says-too-bad .
+> 
+> I tracked my issue to the file hdpvr-video.c. Specifically:
+> "if (wait_event_interruptible(dev->wait_data, buf->status = BUFSTAT_READY)) {"
+> (line ~450). The device seems to get stuck waiting for the buffer to become
+> ready. But as far as I can tell, when the channel is changed between a PCM
+> and AC-3 broadcast the buffer status will never actually become ready.
+> </quote>
+> 
+> Angus provided a hack to fix this, which I've rewritten.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Reported-by: Ryley Angus <ryleyjangus@gmail.com>
+> ---
+> drivers/media/usb/hdpvr/hdpvr-video.c | 20 +++++++++++++++++---
+> 1 file changed, 17 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+> index 0500c417..44227da 100644
+> --- a/drivers/media/usb/hdpvr/hdpvr-video.c
+> +++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+> @@ -454,6 +454,8 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
+> 
+>        if (buf->status != BUFSTAT_READY &&
+>            dev->status != STATUS_DISCONNECTED) {
+> +            int err;
+> +
+>            /* return nonblocking */
+>            if (file->f_flags & O_NONBLOCK) {
+>                if (!ret)
+> @@ -461,11 +463,23 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
+>                goto err;
+>            }
+> 
+> -            if (wait_event_interruptible(dev->wait_data,
+> -                          buf->status == BUFSTAT_READY)) {
+> -                ret = -ERESTARTSYS;
+> +            err = wait_event_interruptible_timeout(dev->wait_data,
+> +                          buf->status == BUFSTAT_READY,
+> +                          msecs_to_jiffies(3000));
+> +            if (err < 0) {
+> +                ret = err;
+>                goto err;
+>            }
+> +            if (!err) {
+> +                v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
+> +                    "timeout: restart streaming\n");
+> +                hdpvr_stop_streaming(dev);
+> +                err = hdpvr_start_streaming(dev);
+> +                if (err) {
+> +                    ret = err;
+> +                    goto err;
+> +                }
+> +            }
+>        }
+> 
+>        if (buf->status != BUFSTAT_READY)
+> -- 
+> 2.0.0.rc0
+> 
