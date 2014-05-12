@@ -1,127 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3180 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752277AbaENHJo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 May 2014 03:09:44 -0400
-Message-ID: <53731693.80002@xs4all.nl>
-Date: Wed, 14 May 2014 09:09:07 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:37074 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758314AbaELVRX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 May 2014 17:17:23 -0400
+Message-ID: <5371390B.50001@schinagl.nl>
+Date: Mon, 12 May 2014 23:11:39 +0200
+From: Olliver Schinagl <oliver@schinagl.nl>
 MIME-Version: 1.0
-To: Arun Kumar K <arun.kk@samsung.com>, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org
-CC: k.debski@samsung.com, s.nawrocki@samsung.com,
-	sachin.kamat@linaro.org, arunkk.samsung@gmail.com
-Subject: Re: [PATCH v2] [media] s5p-mfc: Dequeue sequence header after STREAMON
-References: <1400048996-726-1-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1400048996-726-1-git-send-email-arun.kk@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Jonathan McCrohan <jmccrohan@gmail.com>
+CC: linux-media@vger.kernel.org, 746404@bugs.debian.org,
+	fredboboss <fredSPAM_IS_EVILboboss@free.fr>
+Subject: Re: Fwd: Bug#746404: dtv-scan-tables: /usr/share/dvb/dvb-t/fr-all
+ file : invalid enum and no DVB-T services found
+References: <20140429175057.15801.6071.reportbug@pif> <20140429215717.GA9139@lambda.dereenigne.org>
+In-Reply-To: <20140429215717.GA9139@lambda.dereenigne.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/14/2014 08:29 AM, Arun Kumar K wrote:
-> MFCv6 encoder needs specific minimum number of buffers to
-> be queued in the CAPTURE plane. This minimum number will
-> be known only when the sequence header is generated.
-> So we used to allow STREAMON on the CAPTURE plane only after
-> sequence header is generated and checked with the minimum
-> buffer requirement.
-> 
-> But this causes a problem that we call a vb2_buffer_done
-> for the sequence header buffer before doing a STREAON on the
-> CAPTURE plane. 
+Apologies to all involved, I overlooked this e-mail. I patched it to fix 
+the casing as suggested in the e-mail and pushed it upstream. Can you 
+please test it?
 
-How could this ever have worked? Buffers aren't queued to the driver until
-STREAMON is called, and calling vb2_buffer_done for a buffer that is not queued
-first to the driver will mess up internal data (q->queued_count for one).
+Olliver
 
-> This used to still work fine until this patch
-> was merged -
-> b3379c6 : vb2: only call start_streaming if sufficient buffers are queued
-
-Are you testing with CONFIG_VIDEO_ADV_DEBUG set? If not, you should do so. That
-will check whether all the vb2 calls are balanced.
-
-BTW, that's a small typo in s5p_mfc_enc.c (search for 'inavlid').
-
-> This problem should also come in earlier MFC firmware versions
-> if the application calls STREAMON on CAPTURE with some delay
-> after doing STREAMON on OUTPUT.
-
-You can also play around with the min_buffers_needed field. My rule-of-thumb is that
-when start_streaming is called everything should be ready to stream. It is painful
-for drivers to have to keep track of the 'do I have enough buffers' status.
-
-For that reason I introduced the min_buffers_needed field. What I believe you can
-do here is to set it initially to a large value, preventing start_streaming from
-being called, and once you really know the minimum number of buffers that you need
-it can be updated again to the actual value.
-
-I don't know this driver well enough to tell whether that works here or not, but
-it is worth looking at IMHO.
-
-Regards,
-
-	Hans
-
-> So this patch keeps the header buffer until the other frame
-> buffers are ready and dequeues it just before the first frame
-> is ready.
-> 
-> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-> ---
-> Changes from v1
-> - Addressed review comments from Sachin
->   https://patchwork.linuxtv.org/patch/23839/
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 ++
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |    6 +++++-
->  2 files changed, 7 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> index f5404a6..cc2b96e 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> @@ -523,6 +523,7 @@ struct s5p_mfc_codec_ops {
->   * @output_state:	state of the output buffers queue
->   * @src_bufs:		information on allocated source buffers
->   * @dst_bufs:		information on allocated destination buffers
-> + * @header_mb:		buffer pointer of the encoded sequence header
->   * @sequence:		counter for the sequence number for v4l2
->   * @dec_dst_flag:	flags for buffers queued in the hardware
->   * @dec_src_buf_size:	size of the buffer for source buffers in decoding
-> @@ -607,6 +608,7 @@ struct s5p_mfc_ctx {
->  	int src_bufs_cnt;
->  	struct s5p_mfc_buf dst_bufs[MFC_MAX_BUFFERS];
->  	int dst_bufs_cnt;
-> +	struct s5p_mfc_buf *header_mb;
->  
->  	unsigned int sequence;
->  	unsigned long dec_dst_flag;
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> index f8c7053..0c8d593e 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> @@ -787,7 +787,7 @@ static int enc_post_seq_start(struct s5p_mfc_ctx *ctx)
->  		ctx->dst_queue_cnt--;
->  		vb2_set_plane_payload(dst_mb->b, 0,
->  			s5p_mfc_hw_call(dev->mfc_ops, get_enc_strm_size, dev));
-> -		vb2_buffer_done(dst_mb->b, VB2_BUF_STATE_DONE);
-> +		ctx->header_mb = dst_mb;
->  		spin_unlock_irqrestore(&dev->irqlock, flags);
->  	}
->  
-> @@ -845,6 +845,10 @@ static int enc_post_frame_start(struct s5p_mfc_ctx *ctx)
->  	unsigned int strm_size;
->  	unsigned long flags;
->  
-> +	if (ctx->header_mb) {
-> +		vb2_buffer_done(ctx->header_mb->b, VB2_BUF_STATE_DONE);
-> +		ctx->header_mb = NULL;
-> +	}
->  	slice_type = s5p_mfc_hw_call(dev->mfc_ops, get_enc_slice_type, dev);
->  	strm_size = s5p_mfc_hw_call(dev->mfc_ops, get_enc_strm_size, dev);
->  	mfc_debug(2, "Encoded slice type: %d\n", slice_type);
-> 
+On 04/29/2014 11:57 PM, Jonathan McCrohan wrote:
+> Hi Oliver,
+>
+> Please find Debian bug report from fredboboss regarding
+> dtv-scan-tables below.
+>
+> Thanks,
+> Jon
+>
+> On Tue, 29 Apr 2014 19:50:57 +0200, fredboboss wrote:
+>> Package: dtv-scan-tables
+>> Version: 0+git20140326.cfc2975-1
+>> Severity: normal
+>>
+>> Dear Maintainer,
+>>
+>> Dear Debian Maintainer,
+>>
+>> when performing a DVB-T frequency scan with the /usr/bin/scan utility (dvb-apps package) and the /usr/share/dvb/dvb-t/fr-All frequency file (dtv-scan-tables packages) the following 2 problems occur :
+>>
+>> 1) file parsing error :
+>> ERROR: invalid enum value '8MHZ'
+>> ERROR: invalid enum value '8K'
+>>
+>> 2) in the end no DVB-T services are found with a Hauppauge NOVA-TD-500 DVB-T card.
+>>
+>> Those problems seem to come from the /usr/share/dvb/dvb-t/fr-All file.
+>>
+>> The following changes are proposed in this file :
+>>
+>> For 1) :
+>> - 8MHZ changed by 8MHz
+>> - 8K changed by 8k
+>>
+>> For 2) :
+>> - change FEC_HI parameter by AUTO
+>>
+>> Thus the 1st frequency line of the file would be changed like that :
+>> -T 474000000 8MHZ 2/3 NONE QAM64 8K 1/32 NONE #Channel UHF 21
+>> +T 474000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 21
+>>
+>> (Please refer to the end of the mail for the complete modified file).
+>>
+>> Thanks to those modifications I successfully performed a DVB-T scan with the NOVA TD-500 card.
+>>
+>> In case more information is needed don't hesitate to contact me.
+>>
+>> Best regards,
+>> Fred
+>>
+>> -- System Information:
+>> Debian Release: jessie/sid
+>>    APT prefers testing-updates
+>>    APT policy: (500, 'testing-updates'), (500, 'testing')
+>> Architecture: amd64 (x86_64)
+>>
+>> Kernel: Linux 3.13-1-amd64 (SMP w/4 CPU cores)
+>> Locale: LANG=C, LC_CTYPE=en_US.utf8 (charmap=UTF-8)
+>> Shell: /bin/sh linked to /bin/dash
+>>
+>> -- no debconf information
+>>
+>> Modified file :
+>> # France ALL (All channel 21 to 60)
+>> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+>> T 474000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 21
+>> T 482000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 22
+>> T 490000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 23
+>> T 498000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 24
+>> T 506000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 25
+>> T 514000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 26
+>> T 522000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 27
+>> T 530000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 28
+>> T 538000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 29
+>> T 546000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 30
+>> T 554000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 31
+>> T 562000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 32
+>> T 570000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 33
+>> T 578000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 34
+>> T 586000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 35
+>> T 594000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 36
+>> T 602000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 37
+>> T 610000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 38
+>> T 618000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 39
+>> T 626000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 40
+>> T 634000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 41
+>> T 642000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 42
+>> T 650000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 43
+>> T 658000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 44
+>> T 666000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 45
+>> T 674000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 46
+>> T 682000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 47
+>> T 690000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 48
+>> T 698000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 49
+>> T 706000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 50
+>> T 714000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 51
+>> T 722000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 52
+>> T 730000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 53
+>> T 738000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 54
+>> T 746000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 55
+>> T 754000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 56
+>> T 762000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 57
+>> T 770000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 58
+>> T 778000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 59
+>> T 786000000 8MHz AUTO NONE QAM64 8k 1/32 NONE #Channel UHF 60
 
