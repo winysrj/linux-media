@@ -1,67 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49983 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751392AbaEZUKj (ORCPT
+Received: from lgeamrelo02.lge.com ([156.147.1.126]:42197 "EHLO
+	lgeamrelo02.lge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751115AbaELLyl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 16:10:39 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: OMAP3 ISP & BT656
-Date: Mon, 26 May 2014 22:10:58 +0200
-Message-ID: <1508483.ine07GQHKa@avalon>
-In-Reply-To: <4F15ED39.4070604@mlbassoc.com>
-References: <4F15ED39.4070604@mlbassoc.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 12 May 2014 07:54:41 -0400
+From: "gioh.kim" <gioh.kim@lge.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: gunho.lee@lge.com, gioh.kim@lge.com
+Subject: [PATCH] Documentation/dma-buf-sharing.txt: update API descriptions
+Date: Mon, 12 May 2014 20:48:12 +0900
+Message-Id: <1399895292-29520-1-git-send-email-gioh.kim@lge.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gary,
+From: "gioh.kim" <gioh.kim@lge.com>
 
-On Tuesday 17 January 2012 14:50:49 you wrote:
-> I have a number of boards with OMAP 3530/3730 that use the
-> TVP5150AM1 video decoder.  On most of these boards, I can
-> capture reasonable quality video.  However, I have some (more
-> than a few which is reason for concern) where the video is
-> either really bad or even the ISP doesn't seem to recognize
-> the BT656 data stream.  On the ones that have "bad" video,
-> the data is all blown out and barely recognizable.
-> 
-> All the boards are running the same kernel (3.0+ with the
-> YUV patches that Lennart and others proposed late last year).
-> I've verified that the component registers (ISPCCDC and TVP5150)
-> match.  I can't see what could be the cause of such radically
-> variable behaviour.
-> 
-> The one thing I've found is on the boards that don't work
-> at all, the CCDC_SYN_MODE[FLDSTAT] bit is not toggling, which
-> in turn causes no data to be pushed through the V4L2 pipeline.
-> 
-> Any ideas what can cause this?  More importantly, what I can
-> try to fix it?  The really scary thing is that all the boards
-> in my lab work great, but in the factory (some 6000 miles away),
-> more than not don't work :-(
-> 
-> Would it be possible to configure the CCDC to capture the
-> raw BT656 data?  These boards are very small and it's impossible
-> to get onto the video data lines going into the processor (they
-> are all hidden within the circuit board).
-> 
-> Any help/ideas gladly accepted.
+update some descriptions for API arguments and descriptions.
 
-I realize this is a *really* late reply :-)
+Signed-off-by: Gioh Kim <gioh.kim@lge.com>
+---
+ Documentation/dma-buf-sharing.txt |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Just for your information, I've posted patches to the linux-media mailing list 
-that add BT.656 support to the OMAP3 ISP driver. I've CC'ed you, in case you 
-would find them useful and/or want to test them.
-
-I'm also wondering whether you have been to fix the BT.656 issue you've 
-described here.
-
+diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+index 505e711..1ea89b8 100644
+--- a/Documentation/dma-buf-sharing.txt
++++ b/Documentation/dma-buf-sharing.txt
+@@ -56,7 +56,7 @@ The dma_buf buffer sharing API usage contains the following steps:
+ 				     size_t size, int flags,
+ 				     const char *exp_name)
+ 
+-   If this succeeds, dma_buf_export allocates a dma_buf structure, and returns a
++   If this succeeds, dma_buf_export_named allocates a dma_buf structure, and returns a
+    pointer to the same. It also associates an anonymous file with this buffer,
+    so it can be exported. On failure to allocate the dma_buf object, it returns
+    NULL.
+@@ -66,7 +66,7 @@ The dma_buf buffer sharing API usage contains the following steps:
+ 
+    Exporting modules which do not wish to provide any specific name may use the
+    helper define 'dma_buf_export()', with the same arguments as above, but
+-   without the last argument; a __FILE__ pre-processor directive will be
++   without the last argument; a KBUILD_MODNAME pre-processor directive will be
+    inserted in place of 'exp_name' instead.
+ 
+ 2. Userspace gets a handle to pass around to potential buffer-users
+@@ -76,7 +76,7 @@ The dma_buf buffer sharing API usage contains the following steps:
+    drivers and/or processes.
+ 
+    Interface:
+-      int dma_buf_fd(struct dma_buf *dmabuf)
++      int dma_buf_fd(struct dma_buf *dmabuf, int flags)
+ 
+    This API installs an fd for the anonymous file associated with this buffer;
+    returns either 'fd', or error.
+@@ -157,7 +157,9 @@ to request use of buffer for allocation.
+    "dma_buf->ops->" indirection from the users of this interface.
+ 
+    In struct dma_buf_ops, unmap_dma_buf is defined as
+-      void (*unmap_dma_buf)(struct dma_buf_attachment *, struct sg_table *);
++      void (*unmap_dma_buf)(struct dma_buf_attachment *,
++                            struct sg_table *,
++                            enum dma_data_direction);
+ 
+    unmap_dma_buf signifies the end-of-DMA for the attachment provided. Like
+    map_dma_buf, this API also must be implemented by the exporter.
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
