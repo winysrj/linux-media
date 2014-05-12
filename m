@@ -1,75 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:56555 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933242AbaEPNlf (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4749 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754515AbaELMmH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:41:35 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 30/49] media: davinci: vpif_capture: drop buf_cleanup() callback
-Date: Fri, 16 May 2014 19:03:36 +0530
-Message-Id: <1400247235-31434-33-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+	Mon, 12 May 2014 08:42:07 -0400
+Message-ID: <5370C18C.7040006@xs4all.nl>
+Date: Mon, 12 May 2014 14:41:48 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Ryley Angus <ryleyjangus@gmail.com>,
+	"'Keith Pyle'" <kpyle@austin.rr.com>
+Subject: [PATCH] hdpvr: fix interrupted recording
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Ryley, Keith, can you test this one more time and if it works reply with
+a 'Tested-by' tag that I can add to the patch?
 
-this patch drops buf_cleanup() callback as this callback
-is never called with buffer state active.
+Thanks!
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+	Hans
+
+
+This issue was reported by Ryley Angus:
+
+<quote>
+I record from my satellite set top box using component video and optical
+audio input. I basically use "cat /dev/video0 > ~/video.ts” or use dd. The
+box is set to output audio as AC-3 over optical, but most channels are
+actually output as stereo PCM. When the channel is changed between a PCM
+channel and (typically to a movie channel) to a channel utilising AC-3,
+the HD-PVR stops the recording as the set top box momentarily outputs no
+audio. Changing between PCM channels doesn't cause any issues.
+
+My main problem was that when this happens, cat/dd doesn't actually exit.
+When going through the hdpvr driver source and the dmesg output, I found
+the hdpvr driver wasn't actually shutting down the device properly until
+I manually killed cat/dd.
+
+I've seen references to this issue being a hardware issue from as far back
+as 2010: http://forums.gbpvr.com/showthread.php?46429-HD-PVR-drops-recording-on-channel-change-Hauppauge-says-too-bad .
+
+I tracked my issue to the file hdpvr-video.c. Specifically:
+"if (wait_event_interruptible(dev->wait_data, buf->status = BUFSTAT_READY)) {"
+(line ~450). The device seems to get stuck waiting for the buffer to become
+ready. But as far as I can tell, when the channel is changed between a PCM
+and AC-3 broadcast the buffer status will never actually become ready.
+</quote>
+
+Angus provided a hack to fix this, which I've rewritten.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Ryley Angus <ryleyjangus@gmail.com>
 ---
- drivers/media/platform/davinci/vpif_capture.c |   24 ------------------------
- 1 file changed, 24 deletions(-)
+ drivers/media/usb/hdpvr/hdpvr-video.c | 20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index fd384d0..6c5ff0f 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -201,29 +201,6 @@ static void vpif_buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&common->irqlock, flags);
- }
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 0500c417..44227da 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -454,6 +454,8 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
  
--/**
-- * vpif_buf_cleanup : Callback function to free buffer
-- * @vb: ptr to vb2_buffer
-- *
-- * This function is called from the videobuf2 layer to free memory
-- * allocated to  the buffers
-- */
--static void vpif_buf_cleanup(struct vb2_buffer *vb)
--{
--	struct channel_obj *ch = vb2_get_drv_priv(vb->vb2_queue);
--	struct vpif_cap_buffer *buf = to_vpif_buffer(vb);
--	struct common_obj *common;
--	unsigned long flags;
--
--	common = &ch->common[VPIF_VIDEO_INDEX];
--
--	spin_lock_irqsave(&common->irqlock, flags);
--	if (vb->state == VB2_BUF_STATE_ACTIVE)
--		list_del_init(&buf->list);
--	spin_unlock_irqrestore(&common->irqlock, flags);
--
--}
--
- static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct vpif_capture_config *vpif_config_data =
-@@ -370,7 +347,6 @@ static struct vb2_ops video_qops = {
- 	.buf_prepare		= vpif_buffer_prepare,
- 	.start_streaming	= vpif_start_streaming,
- 	.stop_streaming		= vpif_stop_streaming,
--	.buf_cleanup		= vpif_buf_cleanup,
- 	.buf_queue		= vpif_buffer_queue,
- };
+ 		if (buf->status != BUFSTAT_READY &&
+ 		    dev->status != STATUS_DISCONNECTED) {
++			int err;
++
+ 			/* return nonblocking */
+ 			if (file->f_flags & O_NONBLOCK) {
+ 				if (!ret)
+@@ -461,11 +463,23 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
+ 				goto err;
+ 			}
  
+-			if (wait_event_interruptible(dev->wait_data,
+-					      buf->status == BUFSTAT_READY)) {
+-				ret = -ERESTARTSYS;
++			err = wait_event_interruptible_timeout(dev->wait_data,
++					      buf->status == BUFSTAT_READY,
++					      msecs_to_jiffies(3000));
++			if (err < 0) {
++				ret = err;
+ 				goto err;
+ 			}
++			if (!err) {
++				v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
++					"timeout: restart streaming\n");
++				hdpvr_stop_streaming(dev);
++				err = hdpvr_start_streaming(dev);
++				if (err) {
++					ret = err;
++					goto err;
++				}
++			}
+ 		}
+ 
+ 		if (buf->status != BUFSTAT_READY)
 -- 
-1.7.9.5
+2.0.0.rc0
 
