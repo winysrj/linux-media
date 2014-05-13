@@ -1,82 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49699 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751343AbaEZTbN (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4821 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751921AbaEMCoV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 15:31:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Mon, 12 May 2014 22:44:21 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4D2iGOY025220
+	for <linux-media@vger.kernel.org>; Tue, 13 May 2014 04:44:20 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 647522A19A4
+	for <linux-media@vger.kernel.org>; Tue, 13 May 2014 04:44:05 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [PATCH] tvp5150: Use i2c_smbus_(read|write)_byte_data
-Date: Mon, 26 May 2014 21:31:28 +0200
-Message-Id: <1401132688-5632-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140513024405.647522A19A4@tschai.lan>
+Date: Tue, 13 May 2014 04:44:05 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the custom I2C read/write implementation with SMBUS functions to
-simplify the driver.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/tvp5150.c | 31 +++++++++++--------------------
- 1 file changed, 11 insertions(+), 20 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 937e48b..193e7d6 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -56,38 +56,29 @@ static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
- static int tvp5150_read(struct v4l2_subdev *sd, unsigned char addr)
- {
- 	struct i2c_client *c = v4l2_get_subdevdata(sd);
--	unsigned char buffer[1];
- 	int rc;
--	struct i2c_msg msg[] = {
--		{ .addr = c->addr, .flags = 0,
--		  .buf = &addr, .len = 1 },
--		{ .addr = c->addr, .flags = I2C_M_RD,
--		  .buf = buffer, .len = 1 }
--	};
--
--	rc = i2c_transfer(c->adapter, msg, 2);
--	if (rc < 0 || rc != 2) {
--		v4l2_err(sd, "i2c i/o error: rc == %d (should be 2)\n", rc);
--		return rc < 0 ? rc : -EIO;
-+
-+	rc = i2c_smbus_read_byte_data(c, addr);
-+	if (rc < 0) {
-+		v4l2_err(sd, "i2c i/o error: rc == %d\n", rc);
-+		return rc;
- 	}
- 
--	v4l2_dbg(2, debug, sd, "tvp5150: read 0x%02x = 0x%02x\n", addr, buffer[0]);
-+	v4l2_dbg(2, debug, sd, "tvp5150: read 0x%02x = 0x%02x\n", addr, rc);
- 
--	return (buffer[0]);
-+	return rc;
- }
- 
- static inline void tvp5150_write(struct v4l2_subdev *sd, unsigned char addr,
- 				 unsigned char value)
- {
- 	struct i2c_client *c = v4l2_get_subdevdata(sd);
--	unsigned char buffer[2];
- 	int rc;
- 
--	buffer[0] = addr;
--	buffer[1] = value;
--	v4l2_dbg(2, debug, sd, "tvp5150: writing 0x%02x 0x%02x\n", buffer[0], buffer[1]);
--	if (2 != (rc = i2c_master_send(c, buffer, 2)))
--		v4l2_dbg(0, debug, sd, "i2c i/o error: rc == %d (should be 2)\n", rc);
-+	v4l2_dbg(2, debug, sd, "tvp5150: writing 0x%02x 0x%02x\n", addr, value);
-+	rc = i2c_smbus_write_byte_data(c, addr, value);
-+	if (rc < 0)
-+		v4l2_dbg(0, debug, sd, "i2c i/o error: rc == %d\n", rc);
- }
- 
- static void dump_reg_range(struct v4l2_subdev *sd, char *s, u8 init,
--- 
-Regards,
+date:		Tue May 13 04:00:29 CEST 2014
+git branch:	test
+git hash:	393cbd8dc532c1ebed60719da8d379f50d445f28
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-1.slh.1-amd64
 
-Laurent Pinchart
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
