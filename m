@@ -1,79 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ozlabs.org ([103.22.144.67]:55074 "EHLO ozlabs.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753310AbaE2Xkf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 May 2014 19:40:35 -0400
-Date: Fri, 30 May 2014 09:40:25 +1000
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-To: abdoulaye berthe <berthe.ab@gmail.com>
-Cc: David Daney <ddaney.cavm@gmail.com>, devel@driverdev.osuosl.org,
-	Alexandre Courbot <gnurou@gmail.com>,
-	patches@opensource.wolfsonmicro.com, linux-mips@linux-mips.org,
-	netdev@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>,
-	linux-sh@vger.kernel.org, linux-wireless@vger.kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	spear-devel@list.st.com, linux-samsungsoc@vger.kernel.org,
-	"linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
-	linux-leds@vger.kernel.org, m@bues.ch, linux-input@vger.kernel.org,
-	platform-driver-x86@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] gpio: removes all usage of gpiochip_remove retval
-Message-ID: <20140530094025.3b78301e@canb.auug.org.au>
-In-Reply-To: <CABprBybQ-Jyk95zCqnoWjjyzhNyHVbsbEhb=vA5d=ZYp95_bFA@mail.gmail.com>
-References: <1401400492-26175-1-git-send-email-berthe.ab@gmail.com>
-	<5387B149.20408@gmail.com>
-	<CABprBybQ-Jyk95zCqnoWjjyzhNyHVbsbEhb=vA5d=ZYp95_bFA@mail.gmail.com>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:43984 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752829AbaEMLUe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 May 2014 07:20:34 -0400
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/852XE2D+8ii.R+aAPw7pJ16"; protocol="application/pgp-signature"
+In-Reply-To: <536A5258.3080104@samsung.com>
+References: <1396967856-27470-1-git-send-email-t.stanislaws@samsung.com>
+	<1396967856-27470-2-git-send-email-t.stanislaws@samsung.com>
+	<534506B1.4040908@samsung.com>
+	<CAPdUM4M109_kzY6cUMJQPSwgazvWmNDWL1JeXgiqnzvH8dhK2Q@mail.gmail.com>
+	<53451A60.4050803@samsung.com>
+	<53675D72.70103@ti.com>
+	<CAPdUM4N+2VXpiFSiWW9gKfbte1zkpDbCOSF+KvEo4T1KLqqwjw@mail.gmail.com>
+	<536A36F5.5080303@samsung.com>
+	<CAPdUM4M6uk2KN_L487_cRkOqbgJrhhMRx9zpczA6-3LzSM3FSg@mail.gmail.com>
+	<536A5258.3080104@samsung.com>
+Date: Tue, 13 May 2014 16:50:31 +0530
+Message-ID: <CAPdUM4MZS4jMNcEtjHkw1==zG3Z_rNYfsw9Q4Qt3kRpV5PuLJw@mail.gmail.com>
+Subject: Re: [PATCHv2 1/3] phy: Add exynos-simple-phy driver
+From: Rahul Sharma <rahul.sharma@samsung.com>
+To: Tomasz Figa <t.figa@samsung.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Mark Rutland <Mark.Rutland@arm.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kumar Gala <galak@codeaurora.org>,
+	Grant Likely <grant.likely@linaro.org>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	sunil joshi <joshi@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/852XE2D+8ii.R+aAPw7pJ16
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+<Gentle PING>
 
-Hi abdoulaye,
-
-On Fri, 30 May 2014 01:16:22 +0200 abdoulaye berthe <berthe.ab@gmail.com> w=
-rote:
+On 7 May 2014 21:03, Tomasz Figa <t.figa@samsung.com> wrote:
+> [CCing more DT-folks :)]
 >
-> The aim of this patch is to make gpiochip_remove() behavior consistent,
-> especially when issuing a remove request while the chipio chip is
-> still requested. A patch has been submitted to change the return value of
-> gpiochip_remove() from int to void. This one updates users of the return
-> value:
-
-Then you need to keep these two patch in a series with this one first
-to make sure that the other patch is not applied without this one.
-
-And you should add the above explanation to the changelog for this
-patch.
-
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-
---Sig_/852XE2D+8ii.R+aAPw7pJ16
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBCAAGBQJTh8VuAAoJEMDTa8Ir7ZwV8iEQAICWaN/UMPsdzewqsMiXXSMh
-C5svkPpUj+qDUSm6Z89xsBlSrNn5iaa06uiZllN8KLoLbhGpZ5xdGqmMalys33zc
-Bh2lJNCtozIbI1fMW63+W94wMtWNSnUAbX4szSpxbbaZQ3ig9ixXegji8nvONTqw
-QWNjGORnMPvzrCsTrv8/hNYlmeT/9WZwAwVLr9++ldM0fow/SfF251WvmNjheAcq
-2YCd1vEk7ZZ9aFDr463CKP3eeTKDtWaSrdoXLdIvs627tRtfhSuqQF1q6d8B1Vbk
-HR9xx3bANosgA/Fa7rHcWxw8lLr5EDXeaHJieT0I05kXPM1rSIh9tTGAeXivG/LH
-j+FWHe7P3v2qN+mvgqRHIndi1axUhm4ZbqG3Wcg8uAV+rGxemlmkZMWzdMPwzcRA
-YJKTVoc+LbLp4Yb1HpZ4hYbKvxu7iEf8OQJsb9bY3lnm8Rnax4VhQtn15aKn2fLr
-b8xSfM9iGeL1bgEyh5pK4BVgE1+N7Z/7qGfD95EAT9v5cX7di9y+eU8zXb0fmXRh
-V1rV2n9RfrbH3wE8DoR4yC2SeDcQl5F/CwII/zHkymzWTgGvpN4mhk06q0CPhxxO
-nZD317b7OuLQbDbZJ+o/92/XMlOt6Sanno1I27C19ahUMynJAo32O+xHIDdv5AKI
-Dom8qI4Ex3DKkwqflJzw
-=RG4V
------END PGP SIGNATURE-----
-
---Sig_/852XE2D+8ii.R+aAPw7pJ16--
+> On 07.05.2014 16:19, Rahul Sharma wrote:
+>> On 7 May 2014 19:06, Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
+>>> On 05/07/2014 12:38 PM, Rahul Sharma wrote:
+>>>> On 5 May 2014 15:14, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>>>>> Hi,
+>>>>>
+>>>>> On Wednesday 09 April 2014 03:31 PM, Sylwester Nawrocki wrote:
+>>>>>> Hi,
+>>>>>>
+>>>>>> On 09/04/14 11:12, Rahul Sharma wrote:
+>>>>>>> Idea looks good. How about keeping compatible which is independent
+>>>>>>> of SoC, something like "samsung,exynos-simple-phy" and provide Reg
+>>>>>>> and Bit through phy provider node. This way we can avoid SoC specific
+>>>>>>> hardcoding in phy driver and don't need to look into dt bindings for
+>>>>>>> each new SoC.
+>>>>>>
+>>>>>> I believe it is a not recommended approach.
+>>>>>
+>>>>> Why not? We should try to avoid hard coding in the driver code. Moreover by
+>>>>> avoiding hardcoding we can make it a generic driver for single bit PHYs.
+>>>>>
+>>>>
+>>>> +1.
+>>>>
+>>>> @Tomasz, any plans to consider this approach for simple phy driver?
+>>>>
+>>>> Regards,
+>>>> Rahul Sharma.
+>>>>
+>>>
+>>> Hi Rahul,
+>>> Initially, I wanted to make a very generic driver and to add bit and
+>>> register (or its offset) attribute to the PHY node.
+>>> However, there was a very strong opposition from DT maintainers
+>>> to adding any bit related configuration to DT.
+>>> The current solution was designed to be a trade-off between
+>>> being generic and being accepted :).
+>>>
+>>
+>> Thanks Tomasz,
+>> Ok got it. lets discuss it again and conclude it.
+>>
+>> @Kishon, DT-folks,
+>>
+>> The original RFC patch from Tomasz (at https://lkml.org/lkml/2013/10/21/313)
+>> added simple phy driver as "Generic-simple-phy" with these properties:
+>>
+>> + of_property_read_u32(dev->of_node, "mask", &sphy->mask);
+>> + of_property_read_u32(dev->of_node, "on-value", &sphy->on_value);
+>> + of_property_read_u32(dev->of_node, "off-value", &sphy->off_value);
+>>
+>> Shall we consider the same solution again for generic simple phy
+>> driver which just expose on/off control through register bit.
+>>
+>> Regards,
+>> Rahul Sharma
+>>
+>>> Regards,
+>>> Tomasz Stanislawski
+>>>
+>>>
+>>>
+>>>>> Cheers
+>>>>> Kishon
+>>>>
+>>>
+>>> _______________________________________________
+>>> dri-devel mailing list
+>>> dri-devel@lists.freedesktop.org
+>>> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-samsung-soc" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+> Best regards,
+> Tomasz
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
