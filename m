@@ -1,180 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:33847 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754587AbaEHQYZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 12:24:25 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Arun Kumar K' <arunkk.samsung@gmail.com>,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: 'LMML' <linux-media@vger.kernel.org>,
-	'linux-samsung-soc' <linux-samsung-soc@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	pullip.cho@samsung.com
-References: <1398164568-6048-1-git-send-email-arun.kk@samsung.com>
- <2748799.75z4m0MVI7@avalon>
- <CALt3h79VnDH17s51FQQUK7O_to7pA1-KU0HW8JY2WAqOP4rBRA@mail.gmail.com>
-In-reply-to: <CALt3h79VnDH17s51FQQUK7O_to7pA1-KU0HW8JY2WAqOP4rBRA@mail.gmail.com>
-Subject: RE: [PATCH] [media] s5p-mfc: Add IOMMU support
-Date: Thu, 08 May 2014 18:24:32 +0200
-Message-id: <004d01cf6ad9$fec16b50$fc4441f0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mail-la0-f50.google.com ([209.85.215.50]:35004 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754522AbaEMSkY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 May 2014 14:40:24 -0400
+Received: by mail-la0-f50.google.com with SMTP id b8so615956lan.9
+        for <linux-media@vger.kernel.org>; Tue, 13 May 2014 11:40:23 -0700 (PDT)
+From: Alexander Bersenev <bay@hackerdom.ru>
+To: linux-sunxi@googlegroups.com, david@hardeman.nu,
+	devicetree@vger.kernel.org, galak@codeaurora.org,
+	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
+	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
+	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
+	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
+	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
+	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Alexander Bersenev <bay@hackerdom.ru>
+Subject: [PATCH v6 3/3] ARM: sunxi: Add IR controller support in DT on A20
+Date: Wed, 14 May 2014 00:39:02 +0600
+Message-Id: <1400006342-2968-4-git-send-email-bay@hackerdom.ru>
+In-Reply-To: <1400006342-2968-1-git-send-email-bay@hackerdom.ru>
+References: <1400006342-2968-1-git-send-email-bay@hackerdom.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
+This patch adds IR controller in A20 Device-Tree:
+- Two IR devices found in A20 user manual
+- Pins for two devices
+- One IR device physically found on Cubieboard 2
+- One IR device physically found on Cubietruck
 
-> From: Arun Kumar K [mailto:arunkk.samsung@gmail.com]
-> Sent: Tuesday, April 22, 2014 2:22 PM
-> 
-> Hi Laurent,
-> 
-> Thank you for the review.
-> 
-> On Tue, Apr 22, 2014 at 5:23 PM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
-> > Hi Arun,
-> >
-> > Thank you for the patch.
-> >
-> > On Tuesday 22 April 2014 16:32:48 Arun Kumar K wrote:
-> >> The patch adds IOMMU support for MFC driver.
-> >
-> > I've been working on an IOMMU driver lately, which led me to think
-> > about how drivers should be interfaced with IOMMUs. Runtime IOMMU
-> > handling is performed by the DMA mapping API, but in many cases
-> > (including Exynos platforms) the
-> > arm_iommu_create_mapping() and arm_iommu_attach_device() functions
-> > still need to be called explicitly by drivers, which doesn't seem a
-> very good idea to me.
-> > Ideally IOMMU usage should be completely transparent for bus master
-> > drivers, without requiring any driver modification to use the IOMMU.
-> >
-> > What would you think about improving the Exynos IOMMU driver to
-> create
-> > the mapping and attach the device instead of having to modify all bus
-> > master drivers ? See the ipmmu_add_device() function in
-> > http://www.spinics.net/lists/linux-sh/msg30488.html for a possible
-> > implementation.
-> >
-> 
-> Yes that would be a better solution. But as far as I know, exynos
-> platforms has few more complications where multiple IOMMUs are present
-> for single IP.
-> The exynos iommu work is still under progress and KyonHo Cho will have
-> some inputs / comments on this. This seems to me a valid usecase which
-> can be considered for exynos iommu also.
+Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
+Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
+---
+ arch/arm/boot/dts/sun7i-a20-cubieboard2.dts |  6 ++++++
+ arch/arm/boot/dts/sun7i-a20-cubietruck.dts  |  6 ++++++
+ arch/arm/boot/dts/sun7i-a20.dtsi            | 31 +++++++++++++++++++++++++++++
+ 3 files changed, 43 insertions(+)
 
-Arun, could you tell me how did you test this?
-I think that the MFC driver should not be modified to use iommu. Dma_mapping
-should be used. On Tizenorg there is a 3.10 kernel with an iommu driver that
-works with MFC without any patches to the MFC drvier.
-
-I disagree to merging this patch, sorry. This should be done the correct way.
-
-NACK.
-
-Best wishes,
+diff --git a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
+index feeff64..2564e8c 100644
+--- a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
++++ b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
+@@ -164,6 +164,12 @@
+ 				reg = <1>;
+ 			};
+ 		};
++
++		ir0: ir@01c21800 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&ir0_pins_a>;
++			status = "okay";
++		};
+ 	};
+ 
+ 	leds {
+diff --git a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
+index e288562..e375e89 100644
+--- a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
++++ b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
+@@ -232,6 +232,12 @@
+ 				reg = <1>;
+ 			};
+ 		};
++
++		ir0: ir@01c21800 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&ir0_pins_a>;
++			status = "okay";
++		};
+ 	};
+ 
+ 	leds {
+diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
+index 0ae2b77..40ded74 100644
+--- a/arch/arm/boot/dts/sun7i-a20.dtsi
++++ b/arch/arm/boot/dts/sun7i-a20.dtsi
+@@ -724,6 +724,19 @@
+ 				allwinner,drive = <2>;
+ 				allwinner,pull = <0>;
+ 			};
++
++			ir0_pins_a: ir0@0 {
++				    allwinner,pins = "PB3","PB4";
++				    allwinner,function = "ir0";
++				    allwinner,drive = <0>;
++				    allwinner,pull = <0>;
++			};
++			ir1_pins_a: ir1@0 {
++				    allwinner,pins = "PB22","PB23";
++				    allwinner,function = "ir1";
++				    allwinner,drive = <0>;
++				    allwinner,pull = <0>;
++			};
+ 		};
+ 
+ 		timer@01c20c00 {
+@@ -937,5 +950,23 @@
+ 			#interrupt-cells = <3>;
+ 			interrupts = <1 9 0xf04>;
+ 		};
++
++		ir0: ir@01c21800 {
++			compatible = "allwinner,sun7i-a20-ir";
++			clocks = <&apb0_gates 6>, <&ir0_clk>;
++			clock-names = "apb", "ir";
++			interrupts = <0 5 4>;
++			reg = <0x01c21800 0x40>;
++			status = "disabled";
++		};
++
++		ir1: ir@01c21c00 {
++			compatible = "allwinner,sun7i-a20-ir";
++			clocks = <&apb0_gates 7>, <&ir1_clk>;
++			clock-names = "apb", "ir";
++			interrupts = <0 6 4>;
++			reg = <0x01C21c00 0x40>;
++			status = "disabled";
++		};
+ 	};
+ };
 -- 
-Kamil Debski
-Samsung R&D Institute Poland
-
-> 
-> >> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-> >> ---
-> >> This patch is tested on IOMMU support series [1] posted by KyonHo
-> >> Cho.
-> >> [1] https://lkml.org/lkml/2014/3/14/9
-> >> ---
-> >>  drivers/media/platform/s5p-mfc/s5p_mfc.c |   33
-> +++++++++++++++++++++++++++
-> >>  1 file changed, 33 insertions(+)
-> >>
-> >> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> >> b/drivers/media/platform/s5p-mfc/s5p_mfc.c index 89356ae..1f248ba
-> >> 100644
-> >> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> >> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> >> @@ -32,11 +32,18 @@
-> >>  #include "s5p_mfc_opr.h"
-> >>  #include "s5p_mfc_cmd.h"
-> >>  #include "s5p_mfc_pm.h"
-> >> +#ifdef CONFIG_EXYNOS_IOMMU
-> >> +#include <asm/dma-iommu.h>
-> >> +#endif
-> >>
-> >>  #define S5P_MFC_NAME         "s5p-mfc"
-> >>  #define S5P_MFC_DEC_NAME     "s5p-mfc-dec"
-> >>  #define S5P_MFC_ENC_NAME     "s5p-mfc-enc"
-> >>
-> >> +#ifdef CONFIG_EXYNOS_IOMMU
-> >> +static struct dma_iommu_mapping *mapping; #endif
-> >> +
-> >>  int debug;
-> >>  module_param(debug, int, S_IRUGO | S_IWUSR);
-> >> MODULE_PARM_DESC(debug, "Debug level - higher value produces more
-> >> verbose messages"); @@ -1013,6 +1020,23 @@ static void
-> >> *mfc_get_drv_data(struct platform_device *pdev);
-> >>
-> >>  static int s5p_mfc_alloc_memdevs(struct s5p_mfc_dev *dev)  {
-> >> +#ifdef CONFIG_EXYNOS_IOMMU
-> >> +     struct device *mdev = &dev->plat_dev->dev;
-> >> +
-> >> +     mapping = arm_iommu_create_mapping(&platform_bus_type,
-> 0x20000000,
-> >> +                     SZ_256M);
-> >> +     if (mapping == NULL) {
-> >> +             mfc_err("IOMMU mapping failed\n");
-> >> +             return -EFAULT;
-> >> +     }
-> >> +     mdev->dma_parms = devm_kzalloc(&dev->plat_dev->dev,
-> >> +                     sizeof(*mdev->dma_parms), GFP_KERNEL);
-> >> +     dma_set_max_seg_size(mdev, 0xffffffffu);
-> >> +     arm_iommu_attach_device(mdev, mapping);
-> >> +
-> >> +     dev->mem_dev_l = dev->mem_dev_r = mdev;
-> >> +     return 0;
-> >> +#else
-> >>       unsigned int mem_info[2] = { };
-> >>
-> >>       dev->mem_dev_l = devm_kzalloc(&dev->plat_dev->dev, @@ -1049,6
-> >> +1073,7 @@ static int s5p_mfc_alloc_memdevs(struct s5p_mfc_dev
-> >> *dev) return -ENOMEM;
-> >>       }
-> >>       return 0;
-> >> +#endif
-> >>  }
-> >>
-> >>  /* MFC probe function */
-> >> @@ -1228,6 +1253,10 @@ err_mem_init_ctx_1:
-> >>       vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[0]);
-> >>  err_res:
-> >>       s5p_mfc_final_pm(dev);
-> >> +#ifdef CONFIG_EXYNOS_IOMMU
-> >> +     if (mapping)
-> >> +             arm_iommu_release_mapping(mapping);
-> >> +#endif
-> >>
-> >>       pr_debug("%s-- with error\n", __func__);
-> >>       return ret;
-> >> @@ -1256,6 +1285,10 @@ static int s5p_mfc_remove(struct
-> >> platform_device
-> >> *pdev) put_device(dev->mem_dev_r);
-> >>       }
-> >>
-> >> +#ifdef CONFIG_EXYNOS_IOMMU
-> >> +     if (mapping)
-> >> +             arm_iommu_release_mapping(mapping);
-> >> +#endif
-> >>       s5p_mfc_final_pm(dev);
-> >>       return 0;
-> >>  }
-> >
-> > --
-> > Regards,
-> >
-> > Laurent Pinchart
-> >
+1.9.3
 
