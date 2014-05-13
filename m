@@ -1,83 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5.pb.cz ([109.72.0.115]:57088 "EHLO smtp5.pb.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750857AbaEGGUG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 May 2014 02:20:06 -0400
-Received: from [192.168.1.15] (unknown [109.72.4.22])
-	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
-	(No client certificate requested)
-	by smtp5.pb.cz (Postfix) with ESMTPS id 9875082B4A
-	for <linux-media@vger.kernel.org>; Wed,  7 May 2014 07:45:54 +0200 (CEST)
-Message-ID: <5369C892.3010509@mizera.cz>
-Date: Wed, 07 May 2014 07:45:54 +0200
-From: kapetr@mizera.cz
+Received: from mail-pb0-f44.google.com ([209.85.160.44]:50050 "EHLO
+	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753000AbaEMLYa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 May 2014 07:24:30 -0400
+Message-ID: <537200E9.60900@samsung.com>
+Date: Tue, 13 May 2014 16:54:25 +0530
+From: Arun Kumar K <arun.kk@samsung.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: build problem
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+To: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>, posciak@chromium.org,
+	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
+Subject: Re: [PATCH 1/3] [media] s5p-mfc: Add variants to access mfc registers
+References: <1398257864-12097-1-git-send-email-arun.kk@samsung.com> <1398257864-12097-2-git-send-email-arun.kk@samsung.com> <026d01cf6e96$a85d4bb0$f917e310$%debski@samsung.com>
+In-Reply-To: <026d01cf6e96$a85d4bb0$f917e310$%debski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Kamil,
 
-I run Ubuntu 12.04 64b.
-I'm using USB - ID 048d:9135 Integrated Technology Express, Inc. Zolid 
-Mini DVB-T Stick
+On 05/13/14 16:02, Kamil Debski wrote:
+> Hi, 
+> 
+> One small comment below,
+> 
+>> -----Original Message-----
+>> From: Arun Kumar K [mailto:arunkk.samsung@gmail.com] On Behalf Of Arun
+>> Kumar K
+>> Sent: Wednesday, April 23, 2014 2:58 PM
+>> To: linux-media@vger.kernel.org; linux-samsung-soc@vger.kernel.org
+>> Cc: k.debski@samsung.com; s.nawrocki@samsung.com; posciak@chromium.org;
+>> avnd.kiran@samsung.com; arunkk.samsung@gmail.com
+>> Subject: [PATCH 1/3] [media] s5p-mfc: Add variants to access mfc
+>> registers
+>>
+>> From: Kiran AVND <avnd.kiran@samsung.com>
+>>
+>> This patch is needed in preparation to add MFC V8
+>> where the register offsets are changed w.r.t MFC V6/V7.
+>>
+>> This patch adds variants of MFC V6 and V7 while
+>> accessing MFC registers. Registers are kept in mfc context
+>> and are initialized to a particular MFC variant during probe,
+>> which is used instead of macros.
+>>
+>> This avoids duplication of the code for MFC variants
+>> V6 & V7, and reduces the if_else checks while accessing
+>> registers of different MFC variants.
+>>
+>> Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+>> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>> ---
+>>  drivers/media/platform/s5p-mfc/s5p_mfc.c        |    1 +
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    1 +
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_opr.c    |    6 +
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |  254 +++++++++
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |  697
+>> +++++++++++++++--------
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |    7 +-
+>>  6 files changed, 710 insertions(+), 256 deletions(-)
+>>
 
-with linux-media build-ed drivers - as described here:
-http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+[snip]
 
+>>  	if (p_h264->fmo) {
+>> @@ -988,10 +991,12 @@ static int s5p_mfc_set_enc_params_h264(struct
+>> s5p_mfc_ctx *ctx)
+>>  		case V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_INTERLEAVED_SLICES:
+>>  			if (p_h264->fmo_slice_grp > 4)
+>>  				p_h264->fmo_slice_grp = 4;
+>> -			for (i = 0; i < (p_h264->fmo_slice_grp & 0xF); i++)
+>> +			for (i = 0; i < ARRAY_SIZE(p_h264->fmo_run_len)
+>> +					&& i < p_h264->fmo_slice_grp; i++) {
+> 
+> What do you think about moving this to separate path? This seems
+> like it slipped with the register patches.
+> 
 
-I just have to build it again after every kernel update - OK.
+Sure I will remove this change from this patch. Thanks for spotting this.
 
-But last time - I have done the same as every time, but the build 
-process failed:
+Regards
+Arun
 
-
-$ git clone --depth=1 git://linuxtv.org/media_build.git
-$ cd media_build/
-$ ./build --verbose
-
-but it ends with error
-
-xxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-...
-
-******************
-* Start building *
-******************
-make -C /home/hugo/tmp/media_build/v4l allyesconfig
-make[1]: Entering directory `/home/hugo/tmp/media_build/v4l'
-No version yet, using 3.2.0-61-generic
-make[1]: Leaving directory `/home/hugo/tmp/media_build/v4l'
-make[1]: Entering directory `/home/hugo/tmp/media_build/v4l'
-make[2]: Entering directory `/home/hugo/tmp/media_build/linux'
-Applying patches for kernel 3.2.0-61-generic
-patch -s -f -N -p1 -i ../backports/api_version.patch
-patch -s -f -N -p1 -i ../backports/pr_fmt.patch
-The text leading up to this was:
---------------------------
-|diff --git a/drivers/media/usb/gspca/dtcs033.c 
-b/drivers/media/usb/gspca/dtcs033.c
-|index 5e42c71..ba01a3e 100644
-|--- a/drivers/media/usb/gspca/dtcs033.c
-|+++ b/drivers/media/usb/gspca/dtcs033.c
---------------------------
-No file to patch.  Skipping patch.
-1 out of 1 hunk ignored
-make[2]: *** [apply_patches] Error 1
-make[2]: Leaving directory `/home/hugo/tmp/media_build/linux'
-make[1]: *** [allyesconfig] Error 2
-make[1]: Leaving directory `/home/hugo/tmp/media_build/v4l'
-make: *** [allyesconfig] Error 2
-can't select all drivers at ./build line 490.
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-Please help me to get my TV working again.
-
-
-Thanks
-
---kapetr
