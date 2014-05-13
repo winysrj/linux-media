@@ -1,137 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:49345 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933453AbaEPNm3 (ORCPT
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:50323 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751191AbaEMF7R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:42:29 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 41/49] media: davinci: vpif_capture: drop unneeded module params
-Date: Fri, 16 May 2014 19:03:47 +0530
-Message-Id: <1400247235-31434-44-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+	Tue, 13 May 2014 01:59:17 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, s.nawrocki@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, posciak@chromium.org,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v4 1/2] [media] v4l: Add source change event
+Date: Tue, 13 May 2014 11:29:02 +0530
+Message-Id: <1399960743-4542-2-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1399960743-4542-1-git-send-email-arun.kk@samsung.com>
+References: <1399960743-4542-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+This event indicates that the video device has encountered
+a source parameter change during runtime. This can typically be a
+resolution change detected by a video decoder OR a format change
+detected by an HDMI connector.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+This needs to be nofified to the userspace and the application may
+be expected to reallocate buffers before proceeding. The application
+can subscribe to events on a specific pad or input port which
+it is interested in.
+
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
- drivers/media/platform/davinci/vpif_capture.c |   54 +------------------------
- drivers/media/platform/davinci/vpif_capture.h |   11 -----
- 2 files changed, 1 insertion(+), 64 deletions(-)
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   32 +++++++++++++++++
+ .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   19 +++++++++++
+ drivers/media/v4l2-core/v4l2-event.c               |   36 ++++++++++++++++++++
+ include/media/v4l2-event.h                         |    4 +++
+ include/uapi/linux/videodev2.h                     |    8 +++++
+ 5 files changed, 99 insertions(+)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index d452eaf..e967cf7 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -38,32 +38,10 @@ MODULE_VERSION(VPIF_CAPTURE_VERSION);
- 		v4l2_dbg(level, debug, &vpif_obj.v4l2_dev, fmt, ## arg)
+diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+index 89891ad..6afabaa 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+@@ -242,6 +242,22 @@
+       </tgroup>
+     </table>
  
- static int debug = 1;
--static u32 ch0_numbuffers = 3;
--static u32 ch1_numbuffers = 3;
--static u32 ch0_bufsize = 1920 * 1080 * 2;
--static u32 ch1_bufsize = 720 * 576 * 2;
++    <table frame="none" pgwide="1" id="v4l2-event-src-change">
++      <title>struct <structname>v4l2_event_src_change</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>changes</structfield></entry>
++	    <entry>
++	      A bitmask that tells what has changed. See <xref linkend="src-changes-flags" />.
++	    </entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
+     <table pgwide="1" frame="none" id="changes-flags">
+       <title>Changes</title>
+       <tgroup cols="3">
+@@ -270,6 +286,22 @@
+ 	</tbody>
+       </tgroup>
+     </table>
++
++    <table pgwide="1" frame="none" id="src-changes-flags">
++      <title>Source Changes</title>
++      <tgroup cols="3">
++	&cs-def;
++	<tbody valign="top">
++	  <row>
++	    <entry><constant>V4L2_EVENT_SRC_CH_RESOLUTION</constant></entry>
++	    <entry>0x0001</entry>
++	    <entry>This event gets triggered when a resolution change is
++	    detected at runtime. This can typically come from a video decoder.
++	    </entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
+   </refsect1>
+   <refsect1>
+     &return-value;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+index 5c70b61..067a0d5 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+@@ -155,6 +155,25 @@
+ 	    </entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_EVENT_SOURCE_CHANGE</constant></entry>
++	    <entry>5</entry>
++	    <entry>
++	      <para>This event is triggered when a source parameter change is
++	       detected during runtime by the video device. It can be a
++	       runtime resolution change triggered by a video decoder or the
++	       format change happening on an HDMI connector.
++	       This event requires that the <structfield>id</structfield>
++	       matches the pad / input index from which you want to receive
++	       events.</para>
++
++              <para>This event has a &v4l2-event-source-change; associated
++	      with it. The <structfield>changes</structfield> bitfield denotes
++	      what has changed for the subscribed pad. If multiple events
++	      occured before application could dequeue them, then the changes
++	      will have the ORed value of all the events generated.</para>
++	    </entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
+ 	    <entry>0x08000000</entry>
+ 	    <entry>Base event number for driver-private events.</entry>
+diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
+index 86dcb54..8761aab 100644
+--- a/drivers/media/v4l2-core/v4l2-event.c
++++ b/drivers/media/v4l2-core/v4l2-event.c
+@@ -318,3 +318,39 @@ int v4l2_event_subdev_unsubscribe(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+ 	return v4l2_event_unsubscribe(fh, sub);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_event_subdev_unsubscribe);
++
++static void v4l2_event_src_replace(struct v4l2_event *old,
++				const struct v4l2_event *new)
++{
++	u32 old_changes = old->u.src_change.changes;
++
++	old->u.src_change = new->u.src_change;
++	old->u.src_change.changes |= old_changes;
++}
++
++static void v4l2_event_src_merge(const struct v4l2_event *old,
++				struct v4l2_event *new)
++{
++	new->u.src_change.changes |= old->u.src_change.changes;
++}
++
++static const struct v4l2_subscribed_event_ops v4l2_event_src_ch_ops = {
++	.replace = v4l2_event_src_replace,
++	.merge = v4l2_event_src_merge,
++};
++
++int v4l2_src_change_event_subscribe(struct v4l2_fh *fh,
++				const struct v4l2_event_subscription *sub)
++{
++	if (sub->type == V4L2_EVENT_SOURCE_CHANGE)
++		return v4l2_event_subscribe(fh, sub, 0, &v4l2_event_src_ch_ops);
++	return -EINVAL;
++}
++EXPORT_SYMBOL_GPL(v4l2_src_change_event_subscribe);
++
++int v4l2_src_change_event_subdev_subscribe(struct v4l2_subdev *sd,
++		struct v4l2_fh *fh, struct v4l2_event_subscription *sub)
++{
++	return v4l2_src_change_event_subscribe(fh, sub);
++}
++EXPORT_SYMBOL_GPL(v4l2_src_change_event_subdev_subscribe);
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+index be05d01..1ab9045 100644
+--- a/include/media/v4l2-event.h
++++ b/include/media/v4l2-event.h
+@@ -132,4 +132,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
+ int v4l2_event_subdev_unsubscribe(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+ 				  struct v4l2_event_subscription *sub);
++int v4l2_src_change_event_subscribe(struct v4l2_fh *fh,
++				const struct v4l2_event_subscription *sub);
++int v4l2_src_change_event_subdev_subscribe(struct v4l2_subdev *sd,
++		struct v4l2_fh *fh, struct v4l2_event_subscription *sub);
+ #endif /* V4L2_EVENT_H */
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index ea468ee..b923d91 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1765,6 +1765,7 @@ struct v4l2_streamparm {
+ #define V4L2_EVENT_EOS				2
+ #define V4L2_EVENT_CTRL				3
+ #define V4L2_EVENT_FRAME_SYNC			4
++#define V4L2_EVENT_SOURCE_CHANGE		5
+ #define V4L2_EVENT_PRIVATE_START		0x08000000
  
- module_param(debug, int, 0644);
--module_param(ch0_numbuffers, uint, S_IRUGO);
--module_param(ch1_numbuffers, uint, S_IRUGO);
--module_param(ch0_bufsize, uint, S_IRUGO);
--module_param(ch1_bufsize, uint, S_IRUGO);
- 
- MODULE_PARM_DESC(debug, "Debug level 0-1");
--MODULE_PARM_DESC(ch2_numbuffers, "Channel0 buffer count (default:3)");
--MODULE_PARM_DESC(ch3_numbuffers, "Channel1 buffer count (default:3)");
--MODULE_PARM_DESC(ch2_bufsize, "Channel0 buffer size (default:1920 x 1080 x 2)");
--MODULE_PARM_DESC(ch3_bufsize, "Channel1 buffer size (default:720 x 576 x 2)");
--
--static struct vpif_config_params config_params = {
--	.min_numbuffers = 3,
--	.numbuffers[0] = 3,
--	.numbuffers[1] = 3,
--	.min_bufsize[0] = 720 * 480 * 2,
--	.min_bufsize[1] = 720 * 480 * 2,
--	.channel_bufsize[0] = 1920 * 1080 * 2,
--	.channel_bufsize[1] = 720 * 576 * 2,
--};
- 
- #define VPIF_DRIVER_NAME	"vpif_capture"
- 
-@@ -609,9 +587,6 @@ static void vpif_config_format(struct channel_obj *ch)
- 	vpif_dbg(2, debug, "vpif_config_format\n");
- 
- 	common->fmt.fmt.pix.field = V4L2_FIELD_ANY;
--	common->fmt.fmt.pix.sizeimage
--	    = config_params.channel_bufsize[ch->channel_id];
--
- 	if (ch->vpifparams.iface.if_type == VPIF_IF_RAW_BAYER)
- 		common->fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_SBGGR8;
- 	else
-@@ -1358,36 +1333,9 @@ static struct v4l2_file_operations vpif_fops = {
-  */
- static int initialize_vpif(void)
- {
--	int err = 0, i, j;
-+	int err, i, j;
- 	int free_channel_objects_index;
- 
--	/* Default number of buffers should be 3 */
--	if ((ch0_numbuffers > 0) &&
--	    (ch0_numbuffers < config_params.min_numbuffers))
--		ch0_numbuffers = config_params.min_numbuffers;
--	if ((ch1_numbuffers > 0) &&
--	    (ch1_numbuffers < config_params.min_numbuffers))
--		ch1_numbuffers = config_params.min_numbuffers;
--
--	/* Set buffer size to min buffers size if it is invalid */
--	if (ch0_bufsize < config_params.min_bufsize[VPIF_CHANNEL0_VIDEO])
--		ch0_bufsize =
--		    config_params.min_bufsize[VPIF_CHANNEL0_VIDEO];
--	if (ch1_bufsize < config_params.min_bufsize[VPIF_CHANNEL1_VIDEO])
--		ch1_bufsize =
--		    config_params.min_bufsize[VPIF_CHANNEL1_VIDEO];
--
--	config_params.numbuffers[VPIF_CHANNEL0_VIDEO] = ch0_numbuffers;
--	config_params.numbuffers[VPIF_CHANNEL1_VIDEO] = ch1_numbuffers;
--	if (ch0_numbuffers) {
--		config_params.channel_bufsize[VPIF_CHANNEL0_VIDEO]
--		    = ch0_bufsize;
--	}
--	if (ch1_numbuffers) {
--		config_params.channel_bufsize[VPIF_CHANNEL1_VIDEO]
--		    = ch1_bufsize;
--	}
--
- 	/* Allocate memory for six channel objects */
- 	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
- 		vpif_obj.dev[i] =
-diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
-index 4960504..537076a 100644
---- a/drivers/media/platform/davinci/vpif_capture.h
-+++ b/drivers/media/platform/davinci/vpif_capture.h
-@@ -125,16 +125,5 @@ struct vpif_device {
- 	struct vpif_capture_config *config;
+ /* Payload for V4L2_EVENT_VSYNC */
+@@ -1796,12 +1797,19 @@ struct v4l2_event_frame_sync {
+ 	__u32 frame_sequence;
  };
  
--struct vpif_config_params {
--	u8 min_numbuffers;
--	u8 numbuffers[VPIF_CAPTURE_NUM_CHANNELS];
--	s8 device_type;
--	u32 min_bufsize[VPIF_CAPTURE_NUM_CHANNELS];
--	u32 channel_bufsize[VPIF_CAPTURE_NUM_CHANNELS];
--	u8 default_device[VPIF_CAPTURE_NUM_CHANNELS];
--	u32 video_limit[VPIF_CAPTURE_NUM_CHANNELS];
--	u8 max_device_type;
--};
--
- #endif				/* End of __KERNEL__ */
- #endif				/* VPIF_CAPTURE_H */
++#define V4L2_EVENT_SRC_CH_RESOLUTION		(1 << 0)
++
++struct v4l2_event_src_change {
++	__u32 changes;
++};
++
+ struct v4l2_event {
+ 	__u32				type;
+ 	union {
+ 		struct v4l2_event_vsync		vsync;
+ 		struct v4l2_event_ctrl		ctrl;
+ 		struct v4l2_event_frame_sync	frame_sync;
++		struct v4l2_event_src_change	src_change;
+ 		__u8				data[64];
+ 	} u;
+ 	__u32				pending;
 -- 
 1.7.9.5
 
