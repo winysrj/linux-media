@@ -1,44 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2793 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750934AbaEYOPk (ORCPT
+Received: from lgeamrelo02.lge.com ([156.147.1.126]:56164 "EHLO
+	lgeamrelo02.lge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755497AbaEMX4Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 May 2014 10:15:40 -0400
-Message-ID: <5381FAE7.2080003@xs4all.nl>
-Date: Sun, 25 May 2014 16:15:03 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Arun Kumar K <arun.kk@samsung.com>
-Subject: [PATCH for v3.16] DocBook media: fix typo
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Tue, 13 May 2014 19:56:25 -0400
+From: Gioh Kim <gioh.kim@lge.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: gunho.lee@lge.com, Gioh Kim <gioh.kim@lge.com>
+Subject: [PATCH] Documentation/dma-buf-sharing.txt: update API descriptions
+Date: Wed, 14 May 2014 08:49:43 +0900
+Message-Id: <1400024983-21891-1-git-send-email-gioh.kim@lge.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The reference to v4l2-event-source-change should have been v4l2-event-src-change.
-This caused a failure when building the spec.
+Update some descriptions for API arguments and descriptions.
 
-Fixed.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Gioh Kim <gioh.kim@lge.com>
 ---
- Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/dma-buf-sharing.txt |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-index f016254..17efa87 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-@@ -167,7 +167,7 @@
- 	       or the pad index (when used with a subdevice node) from which
- 	       you want to receive events.</para>
+diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+index 505e711..aadd901 100644
+--- a/Documentation/dma-buf-sharing.txt
++++ b/Documentation/dma-buf-sharing.txt
+@@ -56,10 +56,10 @@ The dma_buf buffer sharing API usage contains the following steps:
+ 				     size_t size, int flags,
+ 				     const char *exp_name)
  
--              <para>This event has a &v4l2-event-source-change; associated
-+              <para>This event has a &v4l2-event-src-change; associated
- 	      with it. The <structfield>changes</structfield> bitfield denotes
- 	      what has changed for the subscribed pad. If multiple events
- 	      occurred before application could dequeue them, then the changes
+-   If this succeeds, dma_buf_export allocates a dma_buf structure, and returns a
+-   pointer to the same. It also associates an anonymous file with this buffer,
+-   so it can be exported. On failure to allocate the dma_buf object, it returns
+-   NULL.
++   If this succeeds, dma_buf_export_named allocates a dma_buf structure, and
++   returns a pointer to the same. It also associates an anonymous file with this
++   buffer, so it can be exported. On failure to allocate the dma_buf object,
++   it returns NULL.
+ 
+    'exp_name' is the name of exporter - to facilitate information while
+    debugging.
+@@ -76,7 +76,7 @@ The dma_buf buffer sharing API usage contains the following steps:
+    drivers and/or processes.
+ 
+    Interface:
+-      int dma_buf_fd(struct dma_buf *dmabuf)
++      int dma_buf_fd(struct dma_buf *dmabuf, int flags)
+ 
+    This API installs an fd for the anonymous file associated with this buffer;
+    returns either 'fd', or error.
+@@ -157,7 +157,9 @@ to request use of buffer for allocation.
+    "dma_buf->ops->" indirection from the users of this interface.
+ 
+    In struct dma_buf_ops, unmap_dma_buf is defined as
+-      void (*unmap_dma_buf)(struct dma_buf_attachment *, struct sg_table *);
++      void (*unmap_dma_buf)(struct dma_buf_attachment *,
++                            struct sg_table *,
++                            enum dma_data_direction);
+ 
+    unmap_dma_buf signifies the end-of-DMA for the attachment provided. Like
+    map_dma_buf, this API also must be implemented by the exporter.
 -- 
-2.0.0.rc0
+1.7.9.5
 
