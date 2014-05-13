@@ -1,28 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f174.google.com ([209.85.160.174]:59980 "EHLO
-	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932368AbaEGLge (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 May 2014 07:36:34 -0400
-Received: by mail-yk0-f174.google.com with SMTP id 9so684085ykp.33
-        for <linux-media@vger.kernel.org>; Wed, 07 May 2014 04:36:34 -0700 (PDT)
-Received: from [192.168.1.18] (c-68-56-128-104.hsd1.fl.comcast.net. [68.56.128.104])
-        by mx.google.com with ESMTPSA id k7sm26731731yhj.31.2014.05.07.04.36.33
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Wed, 07 May 2014 04:36:33 -0700 (PDT)
-Message-ID: <536A1AC1.7010304@gmail.com>
-Date: Wed, 07 May 2014 07:36:33 -0400
-From: Dale Ritchey <mergan14846@gmail.com>
+Received: from lgeamrelo02.lge.com ([156.147.1.126]:55244 "EHLO
+	lgeamrelo02.lge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755422AbaEMXyD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 May 2014 19:54:03 -0400
+From: "Gioh Kim" <gioh.kim@lge.com>
+To: "'Thierry Reding'" <thierry.reding@gmail.com>
+Cc: "'Sumit Semwal'" <sumit.semwal@linaro.org>,
+	"'Randy Dunlap'" <rdunlap@infradead.org>,
+	<linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<gunho.lee@lge.com>
+References: <1399895292-29520-1-git-send-email-gioh.kim@lge.com> <20140513084440.GL6754@ulmo>
+In-Reply-To: <20140513084440.GL6754@ulmo>
+Subject: RE: [PATCH] Documentation/dma-buf-sharing.txt: update API descriptions
+Date: Wed, 14 May 2014 08:53:59 +0900
+Message-ID: <001501cf6f06$9c86f190$d594d4b0$@lge.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: https://bugzilla.kernel.org/show_bug.cgi?id=75591
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I had problems with uvc with the linux-3.15 kernel, all rc's When uvc is 
-added I have problems with pulse audio that prevents firefox from 
-functioning. disabling pulse audio allows firefox to work properly. on 
-shut down and reboot watchdog does not stop and systemd says it cannot 
-unmount some directorys. With uvc removed all works as they should.
+Thank you for advice.
+I will send a fixed patch soon.
+
+> -----Original Message-----
+> From: Thierry Reding [mailto:thierry.reding@gmail.com]
+> Sent: Tuesday, May 13, 2014 5:45 PM
+> To: gioh.kim
+> Cc: Sumit Semwal; Randy Dunlap; linux-media@vger.kernel.org; dri-devel@lists.freedesktop.org; linux-
+> doc@vger.kernel.org; linux-kernel@vger.kernel.org; gunho.lee@lge.com
+> Subject: Re: [PATCH] Documentation/dma-buf-sharing.txt: update API descriptions
+> 
+> On Mon, May 12, 2014 at 08:48:12PM +0900, gioh.kim wrote:
+> > From: "gioh.kim" <gioh.kim@lge.com>
+> 
+> It might be good to fix your setup to make this be the same as the name
+> and email used in the Signed-off-by line below.
+> 
+> > update some descriptions for API arguments and descriptions.
+> 
+> Nit: "Update" since it's the beginning of a sentence.
+> 
+> > Signed-off-by: Gioh Kim <gioh.kim@lge.com>
+> > ---
+> >  Documentation/dma-buf-sharing.txt |   10 ++++++----
+> >  1 file changed, 6 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+> > index 505e711..1ea89b8 100644
+> > --- a/Documentation/dma-buf-sharing.txt
+> > +++ b/Documentation/dma-buf-sharing.txt
+> > @@ -56,7 +56,7 @@ The dma_buf buffer sharing API usage contains the following steps:
+> >  				     size_t size, int flags,
+> >  				     const char *exp_name)
+> >
+> > -   If this succeeds, dma_buf_export allocates a dma_buf structure, and returns a
+> > +   If this succeeds, dma_buf_export_named allocates a dma_buf structure, and returns a
+> 
+> Perhaps reformat this so that the lines don't exceed 80 characters?
+> 
+> >     pointer to the same. It also associates an anonymous file with this buffer,
+> >     so it can be exported. On failure to allocate the dma_buf object, it returns
+> >     NULL.
+> > @@ -66,7 +66,7 @@ The dma_buf buffer sharing API usage contains the following steps:
+> >
+> >     Exporting modules which do not wish to provide any specific name may use the
+> >     helper define 'dma_buf_export()', with the same arguments as above, but
+> > -   without the last argument; a __FILE__ pre-processor directive will be
+> > +   without the last argument; a KBUILD_MODNAME pre-processor directive will be
+> >     inserted in place of 'exp_name' instead.
+> 
+> This was already fixed in commit 2e33def0339c (dma-buf: update exp_name
+> when using dma_buf_export()). Perhaps you should rebase this patch on
+> top of the latest linux-next.
+> 
+> Otherwise looks good.
+> 
+> Thierry
+
