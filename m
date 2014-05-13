@@ -1,209 +1,324 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:43771 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753270AbaEHLtb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 07:49:31 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, posciak@chromium.org,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v3 1/2] [media] v4l: Add source change event
-Date: Thu,  8 May 2014 17:19:15 +0530
-Message-Id: <1399549756-3743-2-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1399549756-3743-1-git-send-email-arun.kk@samsung.com>
-References: <1399549756-3743-1-git-send-email-arun.kk@samsung.com>
+Received: from mail-la0-f50.google.com ([209.85.215.50]:41281 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752211AbaEMPx0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 May 2014 11:53:26 -0400
+Received: by mail-la0-f50.google.com with SMTP id b8so437554lan.23
+        for <linux-media@vger.kernel.org>; Tue, 13 May 2014 08:53:24 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20140511115802.330f15b7@recife.lan>
+References: <CAJHRZ=KtLYbK=80FOZEquufSBXogxxduKc_eD9sbDsGD3Y3N2w@mail.gmail.com>
+	<20140511115802.330f15b7@recife.lan>
+Date: Tue, 13 May 2014 11:53:24 -0400
+Message-ID: <CAJHRZ=L-ZJxL6RFMVEAUpxMGo3ZC5GmniKw_ANXnq=GsTrVZRA@mail.gmail.com>
+Subject: Re: Hauppauge 950Q TS capture intermittent lock up
+From: Trevor G <trevor.forums@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	cb.xiong@samsung.com
+Content-Type: multipart/mixed; boundary=089e0158c7c05ead0d04f94a10ec
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This event indicates that the video device has encountered
-a source parameter change during runtime. This can typically be a
-resolution change detected by a video decoder OR a format change
-detected by an HDMI connector.
+--089e0158c7c05ead0d04f94a10ec
+Content-Type: text/plain; charset=UTF-8
 
-This needs to be nofified to the userspace and the application may
-be expected to reallocate buffers before proceeding. The application
-can subscribe to events on a specific pad or input/output port which
-it is interested in.
+Example app is attached. My build is just "gcc -O2 dvbcapture.c -o dvbcapture".
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   32 +++++++++++++++++
- .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   19 +++++++++++
- drivers/media/v4l2-core/v4l2-event.c               |   36 ++++++++++++++++++++
- include/media/v4l2-event.h                         |    4 +++
- include/uapi/linux/videodev2.h                     |    8 +++++
- 5 files changed, 99 insertions(+)
+Here's example output and usage of this app - both working and with
+data lockup. Params mean: DVB adapter 0, frequency 357Mhz, 4 seconds,
+output to "stuff.ts", QAM256. The app returns exit code 3 if no data
+is available on the DVR device (as in 2nd run below), which is my
+trigger to reset the USB (via usbreset:
+https://gist.github.com/x2q/5124616). Resetting the USB device then
+enables the capture to work.
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-index 89891ad..6afabaa 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-@@ -242,6 +242,22 @@
-       </tgroup>
-     </table>
- 
-+    <table frame="none" pgwide="1" id="v4l2-event-src-change">
-+      <title>struct <structname>v4l2_event_src_change</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>changes</structfield></entry>
-+	    <entry>
-+	      A bitmask that tells what has changed. See <xref linkend="src-changes-flags" />.
-+	    </entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-     <table pgwide="1" frame="none" id="changes-flags">
-       <title>Changes</title>
-       <tgroup cols="3">
-@@ -270,6 +286,22 @@
- 	</tbody>
-       </tgroup>
-     </table>
-+
-+    <table pgwide="1" frame="none" id="src-changes-flags">
-+      <title>Source Changes</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>V4L2_EVENT_SRC_CH_RESOLUTION</constant></entry>
-+	    <entry>0x0001</entry>
-+	    <entry>This event gets triggered when a resolution change is
-+	    detected at runtime. This can typically come from a video decoder.
-+	    </entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-   </refsect1>
-   <refsect1>
-     &return-value;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-index 5c70b61..8012829 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-@@ -155,6 +155,25 @@
- 	    </entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_EVENT_SOURCE_CHANGE</constant></entry>
-+	    <entry>5</entry>
-+	    <entry>
-+	      <para>This event is triggered when a format change is
-+	       detected during runtime by the video device. It can be a
-+	       runtime resolution change triggered by a video decoder or the
-+	       format change happening on an HDMI connector.
-+	       This event requires that the <structfield>id</structfield>
-+               matches the pad/input/output index from which you want to
-+	       receive events.</para>
-+
-+              <para>This event has a &v4l2-event-source-change; associated
-+	      with it. The <structfield>changes</structfield> bitfield denotes
-+	      what has changed for the subscribed pad. If multiple events
-+	      occured before application could dequeue them, then the changes
-+	      will have the ORed value of all the events generated.</para>
-+	    </entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
- 	    <entry>0x08000000</entry>
- 	    <entry>Base event number for driver-private events.</entry>
-diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-index 86dcb54..8761aab 100644
---- a/drivers/media/v4l2-core/v4l2-event.c
-+++ b/drivers/media/v4l2-core/v4l2-event.c
-@@ -318,3 +318,39 @@ int v4l2_event_subdev_unsubscribe(struct v4l2_subdev *sd, struct v4l2_fh *fh,
- 	return v4l2_event_unsubscribe(fh, sub);
- }
- EXPORT_SYMBOL_GPL(v4l2_event_subdev_unsubscribe);
-+
-+static void v4l2_event_src_replace(struct v4l2_event *old,
-+				const struct v4l2_event *new)
-+{
-+	u32 old_changes = old->u.src_change.changes;
-+
-+	old->u.src_change = new->u.src_change;
-+	old->u.src_change.changes |= old_changes;
-+}
-+
-+static void v4l2_event_src_merge(const struct v4l2_event *old,
-+				struct v4l2_event *new)
-+{
-+	new->u.src_change.changes |= old->u.src_change.changes;
-+}
-+
-+static const struct v4l2_subscribed_event_ops v4l2_event_src_ch_ops = {
-+	.replace = v4l2_event_src_replace,
-+	.merge = v4l2_event_src_merge,
-+};
-+
-+int v4l2_src_change_event_subscribe(struct v4l2_fh *fh,
-+				const struct v4l2_event_subscription *sub)
-+{
-+	if (sub->type == V4L2_EVENT_SOURCE_CHANGE)
-+		return v4l2_event_subscribe(fh, sub, 0, &v4l2_event_src_ch_ops);
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_src_change_event_subscribe);
-+
-+int v4l2_src_change_event_subdev_subscribe(struct v4l2_subdev *sd,
-+		struct v4l2_fh *fh, struct v4l2_event_subscription *sub)
-+{
-+	return v4l2_src_change_event_subscribe(fh, sub);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_src_change_event_subdev_subscribe);
-diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-index be05d01..1ab9045 100644
---- a/include/media/v4l2-event.h
-+++ b/include/media/v4l2-event.h
-@@ -132,4 +132,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
- int v4l2_event_subdev_unsubscribe(struct v4l2_subdev *sd, struct v4l2_fh *fh,
- 				  struct v4l2_event_subscription *sub);
-+int v4l2_src_change_event_subscribe(struct v4l2_fh *fh,
-+				const struct v4l2_event_subscription *sub);
-+int v4l2_src_change_event_subdev_subscribe(struct v4l2_subdev *sd,
-+		struct v4l2_fh *fh, struct v4l2_event_subscription *sub);
- #endif /* V4L2_EVENT_H */
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index ea468ee..b923d91 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1765,6 +1765,7 @@ struct v4l2_streamparm {
- #define V4L2_EVENT_EOS				2
- #define V4L2_EVENT_CTRL				3
- #define V4L2_EVENT_FRAME_SYNC			4
-+#define V4L2_EVENT_SOURCE_CHANGE		5
- #define V4L2_EVENT_PRIVATE_START		0x08000000
- 
- /* Payload for V4L2_EVENT_VSYNC */
-@@ -1796,12 +1797,19 @@ struct v4l2_event_frame_sync {
- 	__u32 frame_sequence;
- };
- 
-+#define V4L2_EVENT_SRC_CH_RESOLUTION		(1 << 0)
-+
-+struct v4l2_event_src_change {
-+	__u32 changes;
-+};
-+
- struct v4l2_event {
- 	__u32				type;
- 	union {
- 		struct v4l2_event_vsync		vsync;
- 		struct v4l2_event_ctrl		ctrl;
- 		struct v4l2_event_frame_sync	frame_sync;
-+		struct v4l2_event_src_change	src_change;
- 		__u8				data[64];
- 	} u;
- 	__u32				pending;
--- 
-1.7.9.5
+[trevor@xxx bin]$ ./dvbcapture -c 0 -f 357000000 -t 4 -o stuff.ts -q 256
+Frontend type: ATSC
+DVB card: Auvitek AU8522 QAM/8VSB Frontend
+Frequency: 357000000
+Getting frontend status
+Locked frequency: 357000000
+Locked modulation: 5
+Bit error rate: 96
+Signal strength: 65535
+SNR: 398
+FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI FE_HAS_SYNC
+Setting TS filter to capture all PIDs
+Capturing for 4 seconds
+Caught timeout
+DONE - wrote 19415136 bytes!
 
+[trevor@xxx bin]$ ./dvbcapture -c 0 -f 357000000 -t 4 -o stuff.ts -q 256
+Frontend type: ATSC
+DVB card: Auvitek AU8522 QAM/8VSB Frontend
+Frequency: 357000000
+Getting frontend status
+Locked frequency: 357000000
+Locked modulation: 5
+Bit error rate: 94
+Signal strength: 65535
+SNR: 398
+FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI FE_HAS_SYNC
+Setting TS filter to capture all PIDs
+Capturing for 4 seconds
+No data available on DVR device!
+
+
+
+
+
+On Sun, May 11, 2014 at 10:58 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> Hi Trevor,
+>
+> Em Fri, 9 May 2014 11:19:49 -0400
+> Trevor Anonymous <trevor.forums@gmail.com> escreveu:
+>
+>> Hello all,
+>>
+>> I have written a simple application to capture RF QAM transport
+>> streams with the Hauppauge 950Q, and save to a file. This is
+>> essentially the same as dvbstream, but with unnecessary stuff removed
+>> (and I have verified this bug using dvbstream as well):
+>> - tune using frontend device
+>> - demux device: DMX_SET_PES_FILTER on pid 8192 with DMX_OUT_TS_TAP output.
+>> - Read from dvr device, save to file.
+>> - Interrupt app using alarm() and stop pes filter, close devices.
+>>
+>>
+>> This works as expected. The problem is after running this a bunch of
+>> times (sometimes 15-20+), the device seems to eventually get into a
+>> bad state, and nothing is available to read on the dvr device. The
+>> lockup never seems to happen while reading data (i.e., either data
+>> comes and the app works completely, or the app reads 0 bytes). When
+>> this happens, all the tuning/demod locks look good, and everything
+>> appears to be working -- there just isn't data ready to read from the
+>> dvr device.
+>>
+>> When it gets into a bad state, I have to physically remove/reinsert
+>> the 950Q device or otherwise reset the device (e.g., usb reset -
+>> USBDEVFS_RESET ioctl).
+>
+> Yes, I noticed a similar issue with last devel Kernel. I suspect
+> that the culprit could be due to a sheduled work that fixes a
+> hardware bug. Such scheduled work task should be cancelled when
+> the device is closed or the channel is changed. This is likely
+> a partial fix for it (untested):
+>         https://patchwork.linuxtv.org/patch/23860/
+>
+> It makes sure that the thread is canceled when a new set frontend
+> ioctl is sent. Yet, this patch won't solve your specific problem.
+>
+> I suspect that the right approach would be to also call
+> cancel_work_sync(&dev->restart_streaming) on all other places
+> where stop_urb_transfer() is called.
+>
+> Btw, could you share your small test application? That would
+> help us to test the bug locally and work on a patch.
+>
+>>
+>> Has anyone seen this issue before?
+>>
+>> I am running Fedora 19 with 3.13.9 kernel. Hardware is:
+>> - au0828, au8522, xc5000 (with dvb-fe-xc5000c-4.1.30.7.fw)
+>>
+>>
+>> Thanks,
+>> -Trevor
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--089e0158c7c05ead0d04f94a10ec
+Content-Type: text/x-csrc; charset=US-ASCII; name="dvbcapture.c"
+Content-Disposition: attachment; filename="dvbcapture.c"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hv5dng560
+
+LyoqIGR2YmNhcHR1cmUuYyAtLSBBcHBsaWNhdGlvbiB0byBjYXB0dXJlIFRTIHN0cmVhbSBmcm9t
+IERWQiBkZXZpY2UgKGN1cnJlbnRseSBBVFNDIChRQU0pIG9ubHkpCiAqIE5PVEU6IFNvbWUgb2Yg
+dGhlIGNvZGUgKGVzcGVjaWFsbHkgdHVuaW5nKSBpcyBmcm9tIGR2YnN0cmVhbSAoYXZhaWxhYmxl
+IGF0IGh0dHA6Ly9zb3VyY2Vmb3JnZS5uZXQvcHJvamVjdHMvZHZidG9vbHMvKSwgd2hpY2ggaXMg
+R1BMIGxpY2Vuc2VkIHNvZnR3YXJlLgogKi8KCi8vIExpbnV4IGluY2x1ZGVzOgojaW5jbHVkZSA8
+c3RkaW8uaD4KI2luY2x1ZGUgPGVycm5vLmg+CiNpbmNsdWRlIDxzdGRsaWIuaD4KI2luY2x1ZGUg
+PGN0eXBlLmg+CiNpbmNsdWRlIDxzeXMvaW9jdGwuaD4KI2luY2x1ZGUgPHN5cy90aW1lLmg+CiNp
+bmNsdWRlIDxzeXMvcG9sbC5oPgojaW5jbHVkZSA8c3lzL3N0YXQuaD4KI2luY2x1ZGUgPHJlc29s
+di5oPgojaW5jbHVkZSA8ZmNudGwuaD4KI2luY2x1ZGUgPHVuaXN0ZC5oPgojaW5jbHVkZSA8c2ln
+bmFsLmg+CiNpbmNsdWRlIDx2YWx1ZXMuaD4KI2luY2x1ZGUgPHN0cmluZy5oPgoKLy8gRFZCIGlu
+Y2x1ZGVzOgojaW5jbHVkZSA8bGludXgvZHZiL2RteC5oPgojaW5jbHVkZSA8bGludXgvZHZiL2Zy
+b250ZW5kLmg+CgplbnVtIEV4aXRTdGF0dXMgewoJRVhJVF9PSyA9IDAsIEVYSVRfRVJSX0FSR1Mg
+PSAxLCAvKiBCYWQgY29tbWFuZCBsaW5lICovCglFWElUX0VSUl9ERVZJQ0UgPSAyLCAvKiBFcnJv
+ciBvcGVuaW5nL3JlYWRpbmcvaW9jdGwsIGV0YyAqLwoJRVhJVF9FUlJfREFUQSA9IDMsIC8qIE5v
+IGRhdGEgKi8KCUVYSVRfRVJSX0lOVCA9IDQgLyogVXNlciBpbnRlcnJ1cHQgc2lnbmFsIGNhdWdo
+dCAqLwp9OwoKI2RlZmluZSBUU19TSVpFIDE4OAoKc3RydWN0IGNvbmZpZ190IHsKCWNoYXIqIGZy
+b250ZW5kZGV2OwoJY2hhciogZGVtdXhkZXY7CgljaGFyKiBkdnJkZXY7CgljaGFyKiBvdXRwdXRu
+YW1lOwoJaW50IHRpbWU7CglpbnQgZnJlcXVlbmN5OwoJaW50IG1vZHVsYXRpb247Cn07CgovKioK
+ICogVHVuaW5nIEZ1bmN0aW9ucwogKi8KCnZvaWQgcHJpbnRfc3RhdHVzKEZJTEUqIGZkLCBmZV9z
+dGF0dXNfdCBmZXN0YXR1cykgewoJZnByaW50ZihmZCwgIkZFX1NUQVRVUzoiKTsKCWlmIChmZXN0
+YXR1cyAmIEZFX0hBU19TSUdOQUwpCgkJZnByaW50ZihmZCwgIiBGRV9IQVNfU0lHTkFMIik7Cglp
+ZiAoZmVzdGF0dXMgJiBGRV9USU1FRE9VVCkKCQlmcHJpbnRmKGZkLCAiIEZFX1RJTUVET1VUIik7
+CglpZiAoZmVzdGF0dXMgJiBGRV9IQVNfTE9DSykKCQlmcHJpbnRmKGZkLCAiIEZFX0hBU19MT0NL
+Iik7CglpZiAoZmVzdGF0dXMgJiBGRV9IQVNfQ0FSUklFUikKCQlmcHJpbnRmKGZkLCAiIEZFX0hB
+U19DQVJSSUVSIik7CglpZiAoZmVzdGF0dXMgJiBGRV9IQVNfVklURVJCSSkKCQlmcHJpbnRmKGZk
+LCAiIEZFX0hBU19WSVRFUkJJIik7CglpZiAoZmVzdGF0dXMgJiBGRV9IQVNfU1lOQykKCQlmcHJp
+bnRmKGZkLCAiIEZFX0hBU19TWU5DIik7CglmcHJpbnRmKGZkLCAiXG4iKTsKfQoKCi8qIE5vdGU6
+IFRPRE8gLSBzdGFydF91bmNvcnJlY3RlZCwgZ2V0X3VuY29ycmVjdGVkIG5vdCB3b3JraW5nIGFz
+IGV4cGVjdGVkLiAqLwpzdGF0aWMgaW50IHVuY29ycmVjdGVkX3N0YXJ0X2Jsb2NrcyA9IDA7CnZv
+aWQgc3RhcnRfdW5jb3JyZWN0ZWQoaW50IGZkX2Zyb250ZW5kKSB7CglpbnQgaW9yZXQgPSAwOwoJ
+aWYgKGlvY3RsKGZkX2Zyb250ZW5kLCBGRV9SRUFEX1VOQ09SUkVDVEVEX0JMT0NLUywgJmlvcmV0
+KSA+PSAwKQoJCWZwcmludGYoc3RkZXJyLCAiU3RhcnQgVU5DOiAlZFxuIiwgaW9yZXQpOwoJdW5j
+b3JyZWN0ZWRfc3RhcnRfYmxvY2tzID0gaW9yZXQ7Cn0KCmludCBnZXRfdW5jb3JyZWN0ZWQoaW50
+IGZkX2Zyb250ZW5kKSB7CglpbnQgaW9yZXQgPSAwOwoJaWYgKGlvY3RsKGZkX2Zyb250ZW5kLCBG
+RV9SRUFEX1VOQ09SUkVDVEVEX0JMT0NLUywgJmlvcmV0KSA+PSAwKQoJCWZwcmludGYoc3RkZXJy
+LCAiU3RvcCBVTkM6ICVkXG4iLCBpb3JldCk7CglpbnQgdW5jID0gaW9yZXQgLSB1bmNvcnJlY3Rl
+ZF9zdGFydF9ibG9ja3M7CglmcHJpbnRmKHN0ZGVyciwgIlVOQzogJWRcbiIsIHVuYyk7Cn0KCgoK
+aW50IHR1bmUoaW50IGZkX2Zyb250ZW5kLCBpbnQgZnJlcXVlbmN5LCBpbnQgbW9kdWxhdGlvbikg
+ewoJc3RydWN0IGR2Yl9mcm9udGVuZF9wYXJhbWV0ZXJzIGZlcGFyYW1zID0geyAwIH07CglzdHJ1
+Y3QgZHZiX2Zyb250ZW5kX2luZm8gZmVpbmZvID0geyAwIH07CgoJY29uc3QgY2hhciogY2FyZF90
+eXBlc1tdID0geyJRUFNLIiwgIlFBTSIsICJPRkRNIiwgIkFUU0MifTsKCgoJaWYgKGlvY3RsKGZk
+X2Zyb250ZW5kLCBGRV9HRVRfSU5GTywgJmZlaW5mbykgPCAwKSB7CgkJcGVycm9yKCJGRV9HRVRf
+SU5GTzogIik7CgkJcmV0dXJuIC0xOwoJfQoKCWZwcmludGYoc3RkZXJyLCAiRnJvbnRlbmQgdHlw
+ZTogJXNcbiIsIGNhcmRfdHlwZXNbZmVpbmZvLnR5cGVdKTsKCglpZiAoZmVpbmZvLnR5cGUgIT0g
+RkVfQVRTQykgewoJCWZwcmludGYoc3RkZXJyLCAiRXJyb3I6IE9ubHkgQVRTQyBjYXJkcyBhcmUg
+Y3VycmVudGx5IHN1cHBvcnRlZFxuIik7Cgl9CgoJZnByaW50ZihzdGRlcnIsICJEVkIgY2FyZDog
+JXNcbiIsIGZlaW5mby5uYW1lLCBmcmVxdWVuY3kpOwoJZnByaW50ZihzdGRlcnIsICJGcmVxdWVu
+Y3k6ICVkXG4iLCBmcmVxdWVuY3kpOwoKCglmZXBhcmFtcy5mcmVxdWVuY3kgPSBmcmVxdWVuY3k7
+CglmZXBhcmFtcy51LnZzYi5tb2R1bGF0aW9uID0gbW9kdWxhdGlvbjsKCglmZV9zdGF0dXNfdCBm
+ZXN0YXR1czsKCXN0cnVjdCBwb2xsZmQgcGZkWzFdOwoJaW50IGxvY2tzID0gMCwgb2sgPSAwOwoJ
+dGltZV90IHRtMSwgdG0yOwoKCWlmIChpb2N0bChmZF9mcm9udGVuZCwgRkVfU0VUX0ZST05URU5E
+LCAmZmVwYXJhbXMpIDwgMCkgewoJCXBlcnJvcigiRXJyb3IgdHVuaW5nIGNoYW5uZWwiKTsKCQly
+ZXR1cm4gLTE7Cgl9CgoJcGZkWzBdLmZkID0gZmRfZnJvbnRlbmQ7CglwZmRbMF0uZXZlbnRzID0g
+UE9MTFBSSTsKCgl0bTEgPSB0bTIgPSB0aW1lKCh0aW1lX3QqKSBOVUxMKTsKCWZwcmludGYoc3Rk
+ZXJyLCAiR2V0dGluZyBmcm9udGVuZCBzdGF0dXNcbiIpOwoJd2hpbGUgKCFvaykgewoJCWZlc3Rh
+dHVzID0gMDsKCQlpZiAocG9sbChwZmQsIDEsIDMwMDApID4gMCkgewoJCQlpZiAocGZkWzBdLnJl
+dmVudHMgJiBQT0xMUFJJKSB7CgkJCQlpZiAoaW9jdGwoZmRfZnJvbnRlbmQsIEZFX1JFQURfU1RB
+VFVTLCAmZmVzdGF0dXMpID49IDApCgkJCQkJaWYgKGZlc3RhdHVzICYgRkVfSEFTX0xPQ0spCgkJ
+CQkJCWxvY2tzKys7CgkJCX0KCQl9CgkJdXNsZWVwKDEwMDAwKTsKCQl0bTIgPSB0aW1lKCh0aW1l
+X3QqKSBOVUxMKTsKCQlpZiAoKGZlc3RhdHVzICYgRkVfVElNRURPVVQpIHx8IChsb2NrcyA+PSAy
+KSB8fCAodG0yIC0gdG0xID49IDMpKQoJCQlvayA9IDE7Cgl9CgoJaWYgKGZlc3RhdHVzICYgRkVf
+SEFTX0xPQ0spIHsKCQlpbnQzMl90IGlvcmV0OwoKCQlpZiAoaW9jdGwoZmRfZnJvbnRlbmQsIEZF
+X0dFVF9GUk9OVEVORCwgJmZlcGFyYW1zKSA+PSAwKSB7CgkJCWZwcmludGYoc3RkZXJyLCAiTG9j
+a2VkIGZyZXF1ZW5jeTogJWRcbiIsIGZlcGFyYW1zLmZyZXF1ZW5jeSk7CgkJCWZwcmludGYoc3Rk
+ZXJyLCAiTG9ja2VkIG1vZHVsYXRpb246ICVkXG4iLCBmZXBhcmFtcy51LnZzYi5tb2R1bGF0aW9u
+KTsKCQl9CgoJCWlvcmV0ID0gMDsKCQlpZiAoaW9jdGwoZmRfZnJvbnRlbmQsIEZFX1JFQURfQkVS
+LCAmaW9yZXQpID49IDApCgkJCWZwcmludGYoc3RkZXJyLCAiQml0IGVycm9yIHJhdGU6ICVkXG4i
+LCBpb3JldCk7CgoJCWlvcmV0ID0gMDsKCQlpZiAoaW9jdGwoZmRfZnJvbnRlbmQsIEZFX1JFQURf
+U0lHTkFMX1NUUkVOR1RILCAmaW9yZXQpID49IDApCgkJCWZwcmludGYoc3RkZXJyLCAiU2lnbmFs
+IHN0cmVuZ3RoOiAlZFxuIiwgaW9yZXQpOwoKCQlpb3JldCA9IDA7CgkJaWYgKGlvY3RsKGZkX2Zy
+b250ZW5kLCBGRV9SRUFEX1NOUiwgJmlvcmV0KSA+PSAwKQoJCQlmcHJpbnRmKHN0ZGVyciwgIlNO
+UjogJWRcbiIsIGlvcmV0KTsKCgkJcHJpbnRfc3RhdHVzKHN0ZGVyciwgZmVzdGF0dXMpOwoJfSBl
+bHNlIHsKCQlmcHJpbnRmKHN0ZGVyciwKCQkJCSJOb3QgYWJsZSB0byBsb2NrIHRvIHRoZSBzaWdu
+YWwgb24gdGhlIGdpdmVuIGZyZXF1ZW5jeVxuIik7CgkJcmV0dXJuIC0xOwoJfQoJcmV0dXJuIDA7
+Cn0KCi8qKgogKiAgRGVtdXggRnVuY3Rpb25zCiAqLwoKaW50IHNldF90c19maWx0KGludCBmZF9k
+ZW11eCkgewoJc3RydWN0IGRteF9wZXNfZmlsdGVyX3BhcmFtcyBwZXNGaWx0ZXJQYXJhbXM7CgoJ
+ZnByaW50ZihzdGRlcnIsICJTZXR0aW5nIFRTIGZpbHRlciB0byBjYXB0dXJlIGFsbCBQSURzXG4i
+KTsKCXBlc0ZpbHRlclBhcmFtcy5waWQgPSA4MTkyOwoJcGVzRmlsdGVyUGFyYW1zLmlucHV0ID0g
+RE1YX0lOX0ZST05URU5EOwoJcGVzRmlsdGVyUGFyYW1zLm91dHB1dCA9IERNWF9PVVRfVFNfVEFQ
+OwoJcGVzRmlsdGVyUGFyYW1zLnBlc190eXBlID0gRE1YX1BFU19PVEhFUjsKCXBlc0ZpbHRlclBh
+cmFtcy5mbGFncyA9IERNWF9JTU1FRElBVEVfU1RBUlQ7CgoJaWYgKGlvY3RsKGZkX2RlbXV4LCBE
+TVhfU0VUX1BFU19GSUxURVIsICZwZXNGaWx0ZXJQYXJhbXMpIDwgMCkgewoJCWZwcmludGYoc3Rk
+ZXJyLCAiRmFpbGVkIHNldHRpbmcgZmlsdGVyIik7CgkJcGVycm9yKCJETVggU0VUIFBFUyBGSUxU
+RVIiKTsKCQlyZXR1cm4gLTE7Cgl9CglpZiAoaW9jdGwoZmRfZGVtdXgsIERNWF9TVEFSVCkgPCAw
+KSB7CgkJcGVycm9yKCJETVhfU1RPUCIpOwoJCXJldHVybiAtMTsKCX0KCglyZXR1cm4gMDsKfQoK
+aW50IHN0b3BfdHNfZmlsdChpbnQgZmRfZGVtdXgpIHsKCWlmIChpb2N0bChmZF9kZW11eCwgRE1Y
+X1NUT1ApIDwgMCkgewoJCXBlcnJvcigiRE1YX1NUT1AiKTsKCQlyZXR1cm4gLTE7Cgl9CglyZXR1
+cm4gMDsKfQoKLyoqCiAqIERWUi9DYXB0dXJlIEZ1bmN0aW9ucwogKi8KCmludCBjYXB0dXJlKGlu
+dCBmZF9kdnIsIEZJTEUqIG91dGZpbGUpIHsKCWludCBieXRlc19yZWFkOwoJaW50IGJ5dGVzX3dy
+aXR0ZW4gPSAwOwoJdWludDhfdCBidWZbVFNfU0laRV07CgoJYnl0ZXNfcmVhZCA9IHJlYWQoZmRf
+ZHZyLCBidWYsIFRTX1NJWkUpOwoJaWYgKGJ5dGVzX3JlYWQgPiAwKSB7CgkJaWYgKGJ1ZlswXSA9
+PSAweDQ3KSB7CgkJCWJ5dGVzX3dyaXR0ZW4gPSBmd3JpdGUoYnVmLCAxLCBieXRlc19yZWFkLCBv
+dXRmaWxlKTsKCQl9IGVsc2UgewoJCQlmcHJpbnRmKHN0ZGVyciwgIk5PTiAwWDQ3XG4iKTsKCQl9
+Cgl9IGVsc2UgewoJCWlmIChlcnJubyAhPSBFQUdBSU4gJiYgZXJybm8gIT0gRUlOVFIpIHsKCQkJ
+cGVycm9yKCJFcnJvciBkdnJkZXYgcmVhZCIpOwoJCX0KCX0KCXJldHVybiBieXRlc193cml0dGVu
+Owp9CgovKioKICogVXRpbGl0eS9Jbml0aWFsaXphdGlvbgogKi8KCi8qIFNpZ25hbCBoYW5kbGVy
+IHRvIGNhdXNlIGNvbXBsZXRpb24gb2YgYXBwICovCnZvbGF0aWxlIGludCBmaW5pc2hlZCA9IDA7
+CnZvbGF0aWxlIGludCB1c2VyX2ludGVycnVwdGVkID0gMDsKdm9pZCBzdG9wX3NpZ25hbF9oYW5k
+bGVyKGludCBzaWcpIHsKCWlmIChzaWcgPT0gU0lHQUxSTSkgewoJCWZwcmludGYoc3RkZXJyLCAi
+Q2F1Z2h0IHRpbWVvdXRcbiIpOwoJfSBlbHNlIGlmIChzaWcgPT0gU0lHSU5UKSB7CgkJdXNlcl9p
+bnRlcnJ1cHRlZCA9IDE7CgkJZnByaW50ZihzdGRlcnIsICJDYXVnaHQgaW50ZXJydXB0IHNpZ25h
+bFxuIik7Cgl9CglmaW5pc2hlZCA9IDE7Cn0KCi8qIFdhaXQgZm9yIGRhdGEgb24gZmlsZSBkZXNj
+cmlwdG9yIGZvciBkdXJhdGlvbiBpbiBtaWxsaXNlY29uZHMuIFJldHVybiAxIGlmIGRhdGEgaXMg
+YXZhaWxhYmxlLCAwIG90aGVyd2lzZSAqLwppbnQgd2FpdF9mb3JfZGF0YShpbnQgZmQsIGludCBt
+aWxsaXMpIHsKCXN0cnVjdCBwb2xsZmQgcGZkWzFdOwoKCXBmZFswXS5mZCA9IGZkOwoJcGZkWzBd
+LmV2ZW50cyA9IFBPTExJTjsKCglpZiAocG9sbChwZmQsIDEsIG1pbGxpcykgPiAwKSB7CgkJaWYg
+KHBmZFswXS5yZXZlbnRzICYgUE9MTElOKSB7CgkJCXJldHVybiAxOwoJCX0KCX0KCglyZXR1cm4g
+MDsKfQoKLyogUHJpbnQgdXNhZ2UgKi8Kdm9pZCBwcmludGhlbHAoKSB7CglmcHJpbnRmKHN0ZGVy
+ciwKCQkJIlVzYWdlOiBkdmJjYXB0dXJlIC1jIDxjYXJkX251bWJlcj4gLWYgPGZyZXF1ZW5jeT4g
+LXQgPHRpbWU+IC1vIDxvdXRwdXRfZmlsZT4gLXEgPHFhbT5cbiIpOwoJZnByaW50ZihzdGRlcnIs
+ICJjYXJkX251bWJlciAgICAgIERWQiBkZXZpY2UgYWRhcHRlciBudW1iZXJcbiIpOwoJZnByaW50
+ZihzdGRlcnIsICJmcmVxdWVuY3kgICAgICAgIEZyZXF1ZW5jeSB0byB0dW5lIHRvXG4iKTsKCWZw
+cmludGYoc3RkZXJyLCAidGltZSAgICAgICAgICAgICBUaW1lIHRvIGNhcHR1cmUgaW4gc2Vjb25k
+c1xuIik7CglmcHJpbnRmKHN0ZGVyciwgIm91dHB1dF9maWxlICAgICAgRmlsZSBuYW1lIHRvIHN0
+b3JlIGNhcHR1cmVcbiIpOwoJZnByaW50ZihzdGRlcnIsICJxYW0gICAgICAgICAgICAgIEVpdGhl
+ciAxNiBvciAyNTYgZm9yIFFBTTE2IGFuZCBRQU0yNTZcbiIpOwp9CgovKiBTZXQgY29uZmlnIHBh
+cmFtZXRlcnMgYmFzZWQgb24gY29tbWFuZCBsaW5lIGFyZ3MgKi8KaW50IGluaXRpYWxpemUoaW50
+IGFyZ2MsIGNoYXIqIGFyZ3ZbXSwgc3RydWN0IGNvbmZpZ190ICpjb25maWcpIHsKCWludCBjYXJk
+X251bWJlciA9IDA7CglpbnQgdGltZSA9IC0xOwoJaW50IGNhcmRfc2VsZWN0ZWRfZmxhZyA9IDA7
+CglpbnQgdGltZV9zZWxlY3RlZF9mbGFnID0gMDsKCWludCBmcmVxdWVuY3kgPSAwOwoJaW50IG1v
+ZHVsYXRpb24gPSAwOwoJY2hhciogb3V0cHV0bmFtZTsKCglvcHRlcnIgPSAwOwoJaW50IGM7CgoJ
+d2hpbGUgKChjID0gZ2V0b3B0KGFyZ2MsIGFyZ3YsICJoYzp0Om86ZjpxOiIpKSAhPSAtMSkKCQlz
+d2l0Y2ggKGMpIHsKCQljYXNlICdoJzoKCQkJcHJpbnRoZWxwKCk7CgkJCXJldHVybiBFWElUX0VS
+Ul9BUkdTOwoJCWNhc2UgJ2MnOgoJCQljYXJkX251bWJlciA9IGF0b2kob3B0YXJnKTsKCQkJY2Fy
+ZF9zZWxlY3RlZF9mbGFnID0gMTsKCQkJYnJlYWs7CgkJY2FzZSAndCc6CgkJCXRpbWUgPSBhdG9p
+KG9wdGFyZyk7CgkJCXRpbWVfc2VsZWN0ZWRfZmxhZyA9IDE7CgkJCWJyZWFrOwoJCWNhc2UgJ28n
+OgoJCQlvdXRwdXRuYW1lID0gb3B0YXJnOwoJCQlicmVhazsKCQljYXNlICdmJzoKCQkJZnJlcXVl
+bmN5ID0gYXRvaShvcHRhcmcpOwoJCQlicmVhazsKCQljYXNlICdxJzoKCQkJbW9kdWxhdGlvbiA9
+IGF0b2kob3B0YXJnKTsKCQkJYnJlYWs7CgkJfQoKCWlmICghY2FyZF9zZWxlY3RlZF9mbGFnIHx8
+ICF0aW1lX3NlbGVjdGVkX2ZsYWcgfHwgY2FyZF9udW1iZXIgPCAwCgkJCXx8IHRpbWUgPD0gMCB8
+fCAhb3V0cHV0bmFtZSB8fCAhZnJlcXVlbmN5CgkJCXx8IChtb2R1bGF0aW9uICE9IDE2ICYmIG1v
+ZHVsYXRpb24gIT0gMjU2KSkgewoJCXByaW50aGVscCgpOwoJCXJldHVybiBFWElUX0VSUl9BUkdT
+OwoJfQoKCWFzcHJpbnRmKCZjb25maWctPmZyb250ZW5kZGV2LCAiL2Rldi9kdmIvYWRhcHRlciVk
+L2Zyb250ZW5kMCIsIGNhcmRfbnVtYmVyKTsKCWFzcHJpbnRmKCZjb25maWctPmRlbXV4ZGV2LCAi
+L2Rldi9kdmIvYWRhcHRlciVkL2RlbXV4MCIsIGNhcmRfbnVtYmVyKTsKCWFzcHJpbnRmKCZjb25m
+aWctPmR2cmRldiwgIi9kZXYvZHZiL2FkYXB0ZXIlZC9kdnIwIiwgY2FyZF9udW1iZXIpOwoKCWNv
+bmZpZy0+dGltZSA9IHRpbWU7Cgljb25maWctPm91dHB1dG5hbWUgPSBvdXRwdXRuYW1lOwoJY29u
+ZmlnLT5mcmVxdWVuY3kgPSBmcmVxdWVuY3k7CglpZiAobW9kdWxhdGlvbiA9PSAxNikgewoJCWNv
+bmZpZy0+bW9kdWxhdGlvbiA9IFFBTV8xNjsKCX0gZWxzZSBpZiAobW9kdWxhdGlvbiA9PSAyNTYp
+IHsKCQljb25maWctPm1vZHVsYXRpb24gPSBRQU1fMjU2OwoJfQoKCXJldHVybiBFWElUX09LOwp9
+CgoKLyogTUFJTiAqLwppbnQgbWFpbihpbnQgYXJnYywgY2hhciogYXJndltdKSB7CglGSUxFKiBv
+dXRmaWxlOwoJc3RydWN0IGNvbmZpZ190IGNvbmZpZyA9IHsgMCB9OwoJaW50IHJldDsKCglpbnQg
+ZmRfZnJvbnRlbmQsIGZkX2RlbXV4LCBmZF9kdnI7CgoJZmRfZnJvbnRlbmQgPSBmZF9kZW11eCA9
+IGZkX2R2ciA9IC0xOwoKCXJldCA9IGluaXRpYWxpemUoYXJnYywgYXJndiwgJmNvbmZpZyk7Cglp
+ZiAocmV0ICE9IDApIHsKCQlyZXR1cm4gcmV0OwoJfQoKCWlmICgoZmRfZnJvbnRlbmQgPSBvcGVu
+KGNvbmZpZy5mcm9udGVuZGRldiwgT19SRFdSKSkgPCAwKSB7CgkJZnByaW50ZihzdGRlcnIsICJF
+cnJvciBvcGVuaW5nIGZyb250ZW5kIGRldmljZSAlczogJXNcbiIsCgkJCQljb25maWcuZnJvbnRl
+bmRkZXYsIHN0cmVycm9yKGVycm5vKSk7CgkJcmV0ID0gRVhJVF9FUlJfREVWSUNFOwoJCWdvdG8g
+Y29tcGxldGU7Cgl9CglpZiAoKGZkX2RlbXV4ID0gb3Blbihjb25maWcuZGVtdXhkZXYsIE9fUkRP
+TkxZKSkgPCAwKSB7CgkJZnByaW50ZihzdGRlcnIsICJFcnJvciBvcGVuaW5nIGRlbXV4IGRldmlj
+ZSAlczogJXNcbiIsIGNvbmZpZy5kZW11eGRldiwKCQkJCXN0cmVycm9yKGVycm5vKSk7CgkJcmV0
+ID0gRVhJVF9FUlJfREVWSUNFOwoJCWdvdG8gY29tcGxldGU7Cgl9CglpZiAoKGZkX2R2ciA9IG9w
+ZW4oY29uZmlnLmR2cmRldiwgT19SRE9OTFkpKSA8IDApIHsKCQlmcHJpbnRmKHN0ZGVyciwgIkVy
+cm9yIG9wZW5pbmcgZHZyIGRldmljZSAlczogJXNcbiIsIGNvbmZpZy5kdnJkZXYsCgkJCQlzdHJl
+cnJvcihlcnJubykpOwoJCXJldCA9IEVYSVRfRVJSX0RFVklDRTsKCQlnb3RvIGNvbXBsZXRlOwoJ
+fQoJaWYgKChvdXRmaWxlID0gZm9wZW4oY29uZmlnLm91dHB1dG5hbWUsICJ3YiIpKSA9PSAwKSB7
+CgkJcGVycm9yKCJFcnJvciBvcGVuaW5nIG91dHB1dCBmaWxlIik7CgkJcmV0ID0gRVhJVF9FUlJf
+REVWSUNFOwoJCWdvdG8gY29tcGxldGU7Cgl9CglpZiAodHVuZShmZF9mcm9udGVuZCwgY29uZmln
+LmZyZXF1ZW5jeSwgY29uZmlnLm1vZHVsYXRpb24pICE9IDApIHsKCQlmcHJpbnRmKHN0ZGVyciwg
+IkVycm9yIHR1bmluZ1xuIik7CgkJcmV0ID0gRVhJVF9FUlJfREVWSUNFOwoJCWdvdG8gY29tcGxl
+dGU7Cgl9CgoJaWYgKHNldF90c19maWx0KGZkX2RlbXV4KSAhPSAwKSB7CgkJcmV0ID0gRVhJVF9F
+UlJfREVWSUNFOwoJCWdvdG8gY29tcGxldGU7Cgl9CgoJLy8gc3RhcnRfdW5jb3JyZWN0ZWQoZmRf
+ZnJvbnRlbmQpOwoKCS8qIEluc3RhbGwgU0lHSU5UIGhhbmRsZXIgKi8KCXN0cnVjdCBzaWdhY3Rp
+b24gaW50X2FjdGlvbiA9IHsgMCB9OwoKCWludF9hY3Rpb24uc2FfaGFuZGxlciA9IHN0b3Bfc2ln
+bmFsX2hhbmRsZXI7CglzaWdhY3Rpb24oU0lHSU5ULCAmaW50X2FjdGlvbiwgTlVMTCk7CgoJLyog
+Q2FwdHVyZSAqLwoJaW50IHNpemUgPSAwOwoKCWZwcmludGYoc3RkZXJyLCAiQ2FwdHVyaW5nIGZv
+ciAlZCBzZWNvbmRzXG4iLCBjb25maWcudGltZSk7CgoJLyogRW5zdXJlIGRhdGEgaXMgYXZhaWxh
+YmxlIHRvIHJlYWQgKi8KCWlmICh3YWl0X2Zvcl9kYXRhKGZkX2R2ciwgMjAwMCkgIT0gMSkgewoJ
+CWlmICghdXNlcl9pbnRlcnJ1cHRlZCkgewoJCQlmcHJpbnRmKHN0ZGVyciwgIk5vIGRhdGEgYXZh
+aWxhYmxlIG9uIERWUiBkZXZpY2UhXG4iKTsKCQkJcmV0ID0gRVhJVF9FUlJfREFUQTsKCQkJZ290
+byBjb21wbGV0ZTsKCQl9Cgl9CgoJLyogU2V0IHVwIGFsYXJtICovCglzdHJ1Y3Qgc2lnYWN0aW9u
+IGFsYXJtX2FjdGlvbiA9IHsgMCB9OwoKCWFsYXJtX2FjdGlvbi5zYV9oYW5kbGVyID0gc3RvcF9z
+aWduYWxfaGFuZGxlcjsKCXNpZ2FjdGlvbihTSUdBTFJNLCAmYWxhcm1fYWN0aW9uLCBOVUxMKTsK
+CglhbGFybShjb25maWcudGltZSk7CgoJLyogQ2FwdHVyZSBkYXRhICovCgl3aGlsZSAoIWZpbmlz
+aGVkKSB7CgkJc2l6ZSArPSBjYXB0dXJlKGZkX2R2ciwgb3V0ZmlsZSk7Cgl9CgoJLy8gZ2V0X3Vu
+Y29ycmVjdGVkKGZkX2Zyb250ZW5kKTsKCglmcHJpbnRmKHN0ZGVyciwgIiVzRE9ORSAtIHdyb3Rl
+ICVkIGJ5dGVzIVxuIiwKCQkJdXNlcl9pbnRlcnJ1cHRlZCA/ICIoVXNlciBJbnRlcnJ1cHQpICIg
+OiAiIiwgc2l6ZSk7CglyZXQgPSBFWElUX09LOwoKCWNvbXBsZXRlOiBpZiAoZmRfZGVtdXggPj0g
+MCkKCQlzdG9wX3RzX2ZpbHQoZmRfZGVtdXgpOwoJaWYgKGZkX2R2ciA+PSAwKQoJCWNsb3NlKGZk
+X2R2cik7CglpZiAoZmRfZGVtdXggPj0gMCkKCQljbG9zZShmZF9kZW11eCk7CglpZiAoZmRfZnJv
+bnRlbmQgPj0gMCkKCQljbG9zZShmZF9mcm9udGVuZCk7CglpZiAob3V0ZmlsZSkKCQlmY2xvc2Uo
+b3V0ZmlsZSk7CgoJcmV0dXJuIHJldDsKfQo=
+--089e0158c7c05ead0d04f94a10ec--
