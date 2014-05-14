@@ -1,84 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:58687 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751913AbaE0Oaf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 May 2014 10:30:35 -0400
-Message-ID: <5384A188.7040906@gmx.net>
-Date: Tue, 27 May 2014 16:30:32 +0200
-From: "P. van Gaans" <w3ird_n3rd@gmx.net>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] em28xx: add MSI Digivox Trio support
-References: <5383D673.5050101@gmx.net> <53843AD3.7060601@xs4all.nl>
-In-Reply-To: <53843AD3.7060601@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:47816 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752836AbaENJKI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 May 2014 05:10:08 -0400
+Message-id: <537332EA.9020702@samsung.com>
+Date: Wed, 14 May 2014 11:10:02 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Arun Kumar K <arun.kk@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	k.debski@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, posciak@chromium.org,
+	arunkk.samsung@gmail.com
+Subject: Re: [PATCH v5 2/2] [media] s5p-mfc: Add support for resolution change
+ event
+References: <1400050783-2158-1-git-send-email-arun.kk@samsung.com>
+ <1400050783-2158-3-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1400050783-2158-3-git-send-email-arun.kk@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/27/2014 09:12 AM, Hans Verkuil wrote:
-> On 05/27/2014 02:04 AM, P. van Gaans wrote:
->> http://linuxtv.org/wiki/index.php/MSI_DigiVox_Trio
->>
->> If you're having a deja-vu, yeah, it's still me. I'm still using this
->> device using my butt-ugly patch by adding:
->>
->> { USB_DEVICE(0xeb1a, 0x2885),    /* MSI Digivox Trio */
->>               .driver_info = EM2884_BOARD_TERRATEC_H5 },
->>
->> to linux/drivers/media/usb/em28xx/em28xx-cards.c.
->>
->> It's starting to bug me more and more that I can never update my kernel
->> (well not without hassle anyway). I've written this to the mailinglist
->> before, but with no response.
->>
->> I just don't have the skill to write this in the neat way it needs to be
->> to be able to go upstream. Should I try to hire someone to do that? If
->> so, any suggestions? Just put an ad up on craigslist or something? Does
->> such a patch have a chance of going upstream? (as that's the whole point
->> - I want to update my kernel again)
->>
->> It should be really straightforward given that no reverse engineering or
->> anything is needed. It's just what it states above - pretend the Digivox
->> is an H5 and it's done.
->>
->> Anyone who can tune in on this, please share your thoughts.
->
-> I've made it into a proper patch, see below.
->
-> Can you reply with your 'Signed-off-by' line?
->
-> i.e.: Signed-off-by: John Doe <john.doe@foo.com>
->
-> Since you're the author of the patch (I just formatted it), I need that to
-> get it upstream.
->
-> Regards,
->
-> 	Hans
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-> index 15ad470..9da812b 100644
-> --- a/drivers/media/usb/em28xx/em28xx-cards.c
-> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
-> @@ -2280,6 +2280,8 @@ struct usb_device_id em28xx_id_table[] = {
->   			.driver_info = EM2820_BOARD_UNKNOWN },
->   	{ USB_DEVICE(0xeb1a, 0x2875),
->   			.driver_info = EM2820_BOARD_UNKNOWN },
-> +	{ USB_DEVICE(0xeb1a, 0x2885), /* MSI Digivox Trio */
-> +			.driver_info = EM2884_BOARD_TERRATEC_H5 },
->   	{ USB_DEVICE(0xeb1a, 0xe300),
->   			.driver_info = EM2861_BOARD_KWORLD_PVRTV_300U },
->   	{ USB_DEVICE(0xeb1a, 0xe303),
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+On 14/05/14 08:59, Arun Kumar K wrote:
+> From: Pawel Osciak <posciak@chromium.org>
+> 
+> When a resolution change point is reached, queue an event to signal the
+> userspace that a new set of buffers is required before decoding can
+> continue.
+> 
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 
-Thank you!
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Signed-off-by: P. van Gaans <w3ird_n3rd@gmx.net>
-
-
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c     |    8 ++++++++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |    2 ++
+>  2 files changed, 10 insertions(+)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index 6b04f17..f3a4576 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -349,8 +349,16 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx *ctx,
+>  	/* All frames remaining in the buffer have been extracted  */
+>  	if (dst_frame_status == S5P_FIMV_DEC_STATUS_DECODING_EMPTY) {
+>  		if (ctx->state == MFCINST_RES_CHANGE_FLUSH) {
+> +			static const struct v4l2_event ev_src_ch = {
+> +				.type = V4L2_EVENT_SOURCE_CHANGE,
+> +				.u.src_change.changes =
+> +					V4L2_EVENT_SRC_CH_RESOLUTION,
+> +			};
+> +
+>  			s5p_mfc_handle_frame_all_extracted(ctx);
+>  			ctx->state = MFCINST_RES_CHANGE_END;
+> +			v4l2_event_queue_fh(&ctx->fh, &ev_src_ch);
+> +
+>  			goto leave_handle_frame;
+>  		} else {
+>  			s5p_mfc_handle_frame_all_extracted(ctx);
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> index 4586186..326d8db 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> @@ -851,6 +851,8 @@ static int vidioc_subscribe_event(struct v4l2_fh *fh,
+>  	switch (sub->type) {
+>  	case V4L2_EVENT_EOS:
+>  		return v4l2_event_subscribe(fh, sub, 2, NULL);
+> +	case V4L2_EVENT_SOURCE_CHANGE:
+> +		return v4l2_src_change_event_subscribe(fh, sub);
+>  	default:
+>  		return -EINVAL;
+>  	}
