@@ -1,22 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3340 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751103AbaETCoa (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1515 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750907AbaENCds (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 May 2014 22:44:30 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	Tue, 13 May 2014 22:33:48 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
 	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4K2iRPu056045
-	for <linux-media@vger.kernel.org>; Tue, 20 May 2014 04:44:29 +0200 (CEST)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4E2Xi6V011891
+	for <linux-media@vger.kernel.org>; Wed, 14 May 2014 04:33:46 +0200 (CEST)
 	(envelope-from hverkuil@xs4all.nl)
 Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 7FACD2A19A6
-	for <linux-media@vger.kernel.org>; Tue, 20 May 2014 04:44:07 +0200 (CEST)
+	by tschai.lan (Postfix) with ESMTPSA id A8D2D2A19A4
+	for <linux-media@vger.kernel.org>; Wed, 14 May 2014 04:33:32 +0200 (CEST)
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140520024407.7FACD2A19A6@tschai.lan>
-Date: Tue, 20 May 2014 04:44:07 +0200 (CEST)
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140514023332.A8D2D2A19A4@tschai.lan>
+Date: Wed, 14 May 2014 04:33:32 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -25,9 +25,9 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:		Tue May 20 04:00:16 CEST 2014
+date:		Wed May 14 04:00:20 CEST 2014
 git branch:	test
-git hash:	ba0d342ecc21fbbe2f6c178f4479944d1fb34f3b
+git hash:	8fae379aa57b5b851437bfadc7cd8890c4b72066
 gcc version:	i686-linux-gcc (GCC) 4.8.2
 sparse version:	v0.5.0-11-g38d1124
 host hardware:	x86_64
@@ -47,17 +47,17 @@ linux-git-mips: OK
 linux-git-powerpc64: OK
 linux-git-sh: OK
 linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
 linux-3.2.37-i686: OK
 linux-3.3.8-i686: OK
 linux-3.4.27-i686: OK
@@ -72,17 +72,17 @@ linux-3.12-i686: OK
 linux-3.13-i686: OK
 linux-3.14-i686: OK
 linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
 linux-3.2.37-x86_64: OK
 linux-3.3.8-x86_64: OK
 linux-3.4.27-x86_64: OK
@@ -104,11 +104,11 @@ sparse: ERRORS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
 The Media Infrastructure API from this daily build is here:
 
