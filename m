@@ -1,53 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([195.168.3.45]:60730 "EHLO shell.v3.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751359AbaEZX5s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 19:57:48 -0400
-Message-ID: <1401148238.1590.2.camel@odvarok>
-Subject: Re: [PATCH] [media] usbtv: fix leak at failure path in usbtv_probe()
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: Alexey Khoroshilov <khoroshilov@ispras.ru>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ldv-project@linuxtesting.org
-Date: Tue, 27 May 2014 01:50:38 +0200
-In-Reply-To: <1400878027-22954-1-git-send-email-khoroshilov@ispras.ru>
-References: <1400878027-22954-1-git-send-email-khoroshilov@ispras.ru>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1821 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750750AbaENS0x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 May 2014 14:26:53 -0400
+Message-ID: <5373B556.5010101@xs4all.nl>
+Date: Wed, 14 May 2014 20:26:30 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v4 1/2] media: davinci: vpif capture: upgrade the driver
+ with v4l offerings
+References: <1399885110-9899-1-git-send-email-prabhakar.csengg@gmail.com> <1399885110-9899-2-git-send-email-prabhakar.csengg@gmail.com> <5370997C.1060700@xs4all.nl> <CA+V-a8vMtY32gMy6BWvewL1jafEKuuL5U_J8+BbFfWWsZn0hqg@mail.gmail.com>
+In-Reply-To: <CA+V-a8vMtY32gMy6BWvewL1jafEKuuL5U_J8+BbFfWWsZn0hqg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2014-05-24 at 00:47 +0400, Alexey Khoroshilov wrote:
-> Error handling code in usbtv_probe() misses usb_put_dev().
+On 05/14/2014 07:28 PM, Prabhakar Lad wrote:
+> Hi Hans,
 > 
-> Found by Linux Driver Verification project (linuxtesting.org).
+> Thanks for the review.
 > 
-> Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+> On Mon, May 12, 2014 at 3:20 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Prabhakar,
+>>
+>> Thanks for the patch, but I have a few comments...
+>>
+>> On 05/12/2014 10:58 AM, Lad, Prabhakar wrote:
+>>> Buffer ioctls:
+>>>         test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>>>                 fail: v4l2-test-buffers.cpp(506): q.has_expbuf()
+>>
+>> This is weird. I'm not sure why this happens since you seem to have VB2_DMABUF set
+>> and also vb2_ioctl_expbuf.
+>>
+>>>         test VIDIOC_EXPBUF: FAIL
+>>>
+>>> Total: 38, Succeeded: 35, Failed: 3, Warnings: 0
+>>
+>> Also test with 'v4l2-compliance -s' (streaming). The '-i' option is available to
+>> test streaming from a specific input.
+>>
+> BTW the output is with -s option set.
 
-Acked-by: Lubomir Rintel <lkundrak@v3.sk>
+Something is wrong. With -s you should see something like this:
 
-Thank you!
-Lubo
+Buffer ioctls:
+        test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+        test VIDIOC_EXPBUF: OK (Not Supported)
+        test read/write: OK
+        test MMAP: OK                                     
+        test USERPTR: OK                                  
+        test DMABUF: Cannot test, specify --expbuf-device
 
-> ---
->  drivers/media/usb/usbtv/usbtv-core.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/usb/usbtv/usbtv-core.c b/drivers/media/usb/usbtv/usbtv-core.c
-> index 2f87ddfa469f..473fab81b602 100644
-> --- a/drivers/media/usb/usbtv/usbtv-core.c
-> +++ b/drivers/media/usb/usbtv/usbtv-core.c
-> @@ -91,6 +91,8 @@ static int usbtv_probe(struct usb_interface *intf,
->  	return 0;
->  
->  usbtv_video_fail:
-> +	usb_set_intfdata(intf, NULL);
-> +	usb_put_dev(usbtv->udev);
->  	kfree(usbtv);
->  
->  	return ret;
+Regards,
 
+	Hans
 
