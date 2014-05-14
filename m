@@ -1,61 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2196 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991AbaEBOyt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 May 2014 10:54:49 -0400
-Message-ID: <5363B1B0.5000405@xs4all.nl>
-Date: Fri, 02 May 2014 14:54:40 +0000
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: "max.schulze@online.de" <max.schulze@online.de>,
-	linux-media@vger.kernel.org
-Subject: Re: getting 50 fields/sec from bttv, but not on usb with em28xx /
- cx231xx
-References: <trinity-366a0e3a-4d3d-47f1-9f37-02de36c5e96b-1399041648866@3capp-1and1-bs01>
-In-Reply-To: <trinity-366a0e3a-4d3d-47f1-9f37-02de36c5e96b-1399041648866@3capp-1and1-bs01>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:13199 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752445AbaENPZx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 May 2014 11:25:53 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N5K0048TLJ2XM30@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 14 May 2014 16:25:50 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: 'Archit Taneja' <archit@ti.com>
+Subject: [GIT PULL for 3.16] ti-vpe patches
+Date: Wed, 14 May 2014 17:26:07 +0200
+Message-id: <038c01cf6f88$d3f26fb0$7bd74f10$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/02/2014 02:40 PM, max.schulze@online.de wrote:
-> Hello,
-> 
-> I have modified the 5dpo example (http://sourceforge.net/p/sdpo-cl/) to work with v4l2_pix_format set to V4L2_FIELD_ALTERNATE. With a pci grabber card and corresponding driver bttv I get 50 fields per second. Fine, great!
-> 
-> I then plugged a usb grabber (2040:c200 Hauppauge, module is cx231xx) and retried the same expriment and it only provides 25 (fields/frames) per second. 
-> Same with a ( saa7115 8-0025: saa7113 found @ 0x4a em2860 ).
-> 
-> What do these usb grabbers do fundamentally different? Can't they provide every single field? What would be a good starting point for further investigation?
+The following changes since commit ba0d342ecc21fbbe2f6c178f4479944d1fb34f3b:
 
-FIELD_ALTERNATE is only supported by saa7134, bttv and saa7146. No USB driver supports it.
+  saa7134-alsa: include vmalloc.h (2014-05-13 23:05:15 -0300)
 
-In some (most?) cases that is because the hardware doesn't support it somewhere in their
-video pipeline, or because we don't have the datasheets, or the driver author didn't
-care about field capture (most of the time people want an interlaced picture).
+are available in the git repository at:
 
-> 
-> I have looked through media_tree.git/tree/drivers/media/usb/cx231xx/cx231xx-video.c but did not find any clue, as I'm not really into c.
+  git://linuxtv.org/kdebski/media_tree_2.git for-3.16
 
-At least in this case I don't have datasheets.
+for you to fetch changes up to 61b2123701c3568fcf8a07e69fe1c2854f640a4e:
 
-> 
-> Advice appreciated!\
+  v4l: ti-vpe: Rename csc memory resource name (2014-05-14 15:53:39 +0200)
 
-If you want to capture fields, the three PCI devices mentioned above are the only ones
-that can do it.
+----------------------------------------------------------------
+Archit Taneja (5):
+      v4l: ti-vpe: register video device only when firmware is loaded
+      v4l: ti-vpe: Allow DMABUF buffer type support
+      v4l: ti-vpe: Fix some params in VPE data descriptors
+      v4l: ti-vpe: Add selection API in VPE driver
+      v4l: ti-vpe: Rename csc memory resource name
 
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> 
-> Max
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+ drivers/media/platform/ti-vpe/csc.c   |    2 +-
+ drivers/media/platform/ti-vpe/vpdma.c |   68 +++++++---
+ drivers/media/platform/ti-vpe/vpdma.h |   17 ++-
+ drivers/media/platform/ti-vpe/vpe.c   |  227
+++++++++++++++++++++++++++++-----
+ 4 files changed, 258 insertions(+), 56 deletions(-)
 
