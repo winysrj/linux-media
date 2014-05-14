@@ -1,61 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:18027 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751620AbaENPEa (ORCPT
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:38402 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750942AbaENG7v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 May 2014 11:04:30 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N5K009Z5KJCTP20@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 14 May 2014 16:04:25 +0100 (BST)
-Message-id: <537385F9.2030809@samsung.com>
-Date: Wed, 14 May 2014 17:04:25 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org
-Cc: arun.kk@samsung.com
-Subject: Re: [PATCH] v4l: Fix documentation of V4L2_PIX_FMT_H264_MVC and VP8
- pixel formats
-References: <1400077869-17573-1-git-send-email-k.debski@samsung.com>
-In-reply-to: <1400077869-17573-1-git-send-email-k.debski@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Wed, 14 May 2014 02:59:51 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, s.nawrocki@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, posciak@chromium.org,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v5 0/2] Add resolution change event
+Date: Wed, 14 May 2014 12:29:41 +0530
+Message-Id: <1400050783-2158-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14/05/14 16:31, Kamil Debski wrote:
-> The 'Code' column in the documentation should provide the real fourcc
-> code that is used. Changed the documentation to provide the fourcc
-> defined in videodev2.h
-> 
-> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+This patchset adds a source_change event to the v4l2-events.
+This can be used for notifying the userspace about runtime
+format changes happening on video nodes / pads like resolution
+change in video decoder.
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Changes from v4
+--------------
+- Addressed comments from Hans
+  https://patchwork.linuxtv.org/patch/23892/
+  https://patchwork.linuxtv.org/patch/23893/
 
-> ---
->  Documentation/DocBook/media/v4l/pixfmt.xml |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-> index ea514d6..91dcbc8 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-> @@ -772,7 +772,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
->  	  </row>
->  	  <row id="V4L2-PIX-FMT-H264-MVC">
->  		<entry><constant>V4L2_PIX_FMT_H264_MVC</constant></entry>
-> -		<entry>'MVC'</entry>
-> +		<entry>'M264'</entry>
->  		<entry>H264 MVC video elementary stream.</entry>
->  	  </row>
->  	  <row id="V4L2-PIX-FMT-H263">
-> @@ -812,7 +812,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
->  	  </row>
->  	  <row id="V4L2-PIX-FMT-VP8">
->  		<entry><constant>V4L2_PIX_FMT_VP8</constant></entry>
-> -		<entry>'VP8'</entry>
-> +		<entry>'VP80'</entry>
->  		<entry>VP8 video elementary stream.</entry>
->  	  </row>
->  	</tbody>
+Changes from v3
+--------------
+- Addressed comments from Laurent / Hans
+  https://patchwork.kernel.org/patch/4135731/
+
+Changes from v2
+---------------
+- Event can be subscribed on specific pad / port as
+  suggested by Hans.
+
+Changes from v1
+---------------
+- Addressed review comments from Hans and Laurent
+  https://patchwork.kernel.org/patch/4000951/
+
+Arun Kumar K (1):
+  [media] v4l: Add source change event
+
+Pawel Osciak (1):
+  [media] s5p-mfc: Add support for resolution change event
+
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   33 ++++++++++++++++++
+ .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   20 +++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |    8 +++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |    2 ++
+ drivers/media/v4l2-core/v4l2-event.c               |   36 ++++++++++++++++++++
+ include/media/v4l2-event.h                         |    4 +++
+ include/uapi/linux/videodev2.h                     |    8 +++++
+ 7 files changed, 111 insertions(+)
+
+-- 
+1.7.9.5
+
