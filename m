@@ -1,97 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:52692 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750808AbaETRA0 convert rfc822-to-8bit (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:53902 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753838AbaENKtI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 May 2014 13:00:26 -0400
-Date: Tue, 20 May 2014 14:00:19 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v3.15-rc6] media fixes
-Message-id: <20140520140019.4bb688d3.m.chehab@samsung.com>
+	Wed, 14 May 2014 06:49:08 -0400
 MIME-version: 1.0
 Content-type: text/plain; charset=UTF-8
 Content-transfer-encoding: 8BIT
+Message-id: <53734A1F.7080905@samsung.com>
+Date: Wed, 14 May 2014 12:49:03 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: Alexander Shiyan <shc_work@mail.ru>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Shawn Guo <shawn.guo@freescale.com>, devicetree@vger.kernel.org
+Subject: Re: [PATCH 3/3] media: mx2-emmaprp: Add devicetree support
+References: <1399015119-24000-1-git-send-email-shc_work@mail.ru>
+ <537251CA.3070005@samsung.com> <1400001829.645600850@f332.i.mail.ru>
+In-reply-to: <1400001829.645600850@f332.i.mail.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+On 13/05/14 19:23, Alexander Shiyan wrote:
+> Tue, 13 May 2014 19:09:30 +0200 от Sylwester Nawrocki <s.nawrocki@samsung.com>:
+>> > Hi,
+>> > 
+>> > On 02/05/14 09:18, Alexander Shiyan wrote:
+>>> > > This patch adds devicetree support for the Freescale enhanced Multimedia
+>>> > > Accelerator (eMMA) video Pre-processor (PrP).
+>>> > > 
+>>> > > Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
+>>> > > ---
+>>> > >  .../devicetree/bindings/media/fsl-imx-emmaprp.txt     | 19 +++++++++++++++++++
+>>> > >  drivers/media/platform/mx2_emmaprp.c                  |  8 ++++++++
+>>> > >  2 files changed, 27 insertions(+)
+>>> > >  create mode 100644 Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
+>>> > > 
+>>> > > diff --git a/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt b/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
+>>> > > new file mode 100644
+>>> > > index 0000000..9e8238f
+>>> > > --- /dev/null
+>>> > > +++ b/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
+>>> > > @@ -0,0 +1,19 @@
+>>> > > +* Freescale enhanced Multimedia Accelerator (eMMA) video Pre-processor (PrP)
+>>> > > +  for i.MX.
+>>> > > +
+>>> > > +Required properties:
+>>> > > +- compatible : Shall contain "fsl,imx21-emmaprp".
+>>> > > +- reg        : Offset and length of the register set for the device.
+>>> > > +- interrupts : Should contain eMMA PrP interrupt number.
+>>> > > +- clocks     : Should contain the ahb and ipg clocks, in the order
+>>> > > +               determined by the clock-names property.
+>>> > > +- clock-names: Should be "ahb", "ipg".
+>>> > > +
+>>> > > +Example:
+>>> > > +	emmaprp: emmaprp@10026400 {
+>>> > > +		compatible = "fsl,imx27-emmaprp", "fsl,imx21-emmaprp";
+>> > 
+>> > Is "fsl,imx27-emmaprp" compatible documented somewhere ?
+>
+> The overall structure of the eMMA module is slightly different.
+> As for the part of the PrP, according to the datasheet they are compatible.
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+Then can we please have all the valid compatible strings listed at the
+'compatible' property's description above ? I think it is useful to have
+an indication to which SoC each of them apply in documentation of the
+binding.
 
-
-Most of the changes are drivers fixes (rtl28xuu, fc2580, ov7670, davinci,
-gspca, s5p-fimc and s5c73m3). There is also a compat32 fix and one infoleak
-fixup at the media controller.
-
-Thanks!
-Mauro.
-
--
-
-The following changes since commit c9eaa447e77efe77b7fa4c953bd62de8297fd6c5:
-
-  Linux 3.15-rc1 (2014-04-13 14:18:35 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
-
-for you to fetch changes up to 97d9d23dda6f37d90aefeec4ed619d52df525382:
-
-  [media] V4L2: fix VIDIOC_CREATE_BUFS in 64- / 32-bit compatibility mode (2014-05-13 20:03:31 -0300)
-
-----------------------------------------------------------------
-Antti Palosaari (3):
-      [media] rtl28xxu: do not hard depend on staging SDR module
-      [media] rtl28xxu: silence error log about disabled rtl2832_sdr module
-      [media] fc2580: fix tuning failure on 32-bit arch
-
-Guennadi Liakhovetski (2):
-      [media] V4L2: ov7670: fix a wrong index, potentially Oopsing the kernel from user-space
-      [media] V4L2: fix VIDIOC_CREATE_BUFS in 64- / 32-bit compatibility mode
-
-Jean Delvare (1):
-      [media] Prefer gspca_sonixb over sn9c102 for all devices
-
-Lad, Prabhakar (5):
-      [media] media: davinci: vpif_capture: fix releasing of active buffers
-      [media] media: davinci: vpif_display: fix releasing of active buffers
-      [media] media: davinci: vpbe_display: fix releasing of active buffers
-      [media] staging: media: davinci: vpfe: make sure all the buffers are released
-      [media] media: davinci: vpfe: make sure all the buffers unmapped and released
-
-Mauro Carvalho Chehab (1):
-      Merge tag 'v3.15-rc1' into patchwork
-
-Nicolas Dufresne (1):
-      [media] s5p-fimc: Fix YUV422P depth
-
-Salva Peiró (1):
-      [media] media-device: fix infoleak in ioctl media_enum_entities()
-
-Sylwester Nawrocki (1):
-      [media] s5c73m3: Add missing rename of v4l2_of_get_next_endpoint() function
-
- drivers/media/i2c/ov7670.c                       |  2 +-
- drivers/media/i2c/s5c73m3/s5c73m3-core.c         |  2 +-
- drivers/media/media-device.c                     |  1 +
- drivers/media/platform/davinci/vpbe_display.c    | 16 +++++++-
- drivers/media/platform/davinci/vpfe_capture.c    |  2 +
- drivers/media/platform/davinci/vpif_capture.c    | 34 +++++++++++------
- drivers/media/platform/davinci/vpif_display.c    | 35 +++++++++++------
- drivers/media/platform/exynos4-is/fimc-core.c    |  2 +-
- drivers/media/tuners/fc2580.c                    |  6 +--
- drivers/media/tuners/fc2580_priv.h               |  1 +
- drivers/media/usb/dvb-usb-v2/Makefile            |  1 -
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c          | 48 +++++++++++++++++++++---
- drivers/media/usb/gspca/sonixb.c                 |  2 -
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c    | 12 +++---
- drivers/staging/media/davinci_vpfe/vpfe_video.c  | 13 ++++++-
- drivers/staging/media/sn9c102/sn9c102_devtable.h |  2 -
- 16 files changed, 132 insertions(+), 47 deletions(-)
-
+--
+Thanks,
+Sylwester
