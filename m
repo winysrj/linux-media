@@ -1,75 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:47985 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932605AbaEPNme (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:42:34 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 42/49] media: davinci: vpif_capture: drop cropcap
-Date: Fri, 16 May 2014 19:03:48 +0530
-Message-Id: <1400247235-31434-45-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:50747 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750919AbaENMT2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 May 2014 08:19:28 -0400
+Message-ID: <53735F4D.6090008@iki.fi>
+Date: Wed, 14 May 2014 15:19:25 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Vincent McIntyre <vincent.mcintyre@gmail.com>
+Subject: Re: regression: firmware loading for dvico dual digital 4
+References: <CAEsFdVN5MJQnb9+ZoagMOLpLYTJVYjjqQid9NrhU_Q8HfrtjAg@mail.gmail.com>
+In-Reply-To: <CAEsFdVN5MJQnb9+ZoagMOLpLYTJVYjjqQid9NrhU_Q8HfrtjAg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Mauro,
 
-this patch drops cropcap as this driver doesnt support cropping.
+Bug is that:
+kernel: [ 37.360226] cxusb: i2c wr: len=64 is too big!
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif_capture.c |   25 -------------------------
- 1 file changed, 25 deletions(-)
+I suspect that this is coming from your dynamic stack allocation patch 
+set - as there has been very many similar looking bug reports earlier. 
+Didn't analyzed it any deeply.
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index e967cf7..113d333 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -1100,30 +1100,6 @@ static int vpif_querycap(struct file *file, void  *priv,
- }
- 
- /**
-- * vpif_cropcap() - cropcap handler
-- * @file: file ptr
-- * @priv: file handle
-- * @crop: ptr to v4l2_cropcap structure
-- */
--static int vpif_cropcap(struct file *file, void *priv,
--			struct v4l2_cropcap *crop)
--{
--	struct video_device *vdev = video_devdata(file);
--	struct channel_obj *ch = video_get_drvdata(vdev);
--	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
--
--	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != crop->type)
--		return -EINVAL;
--
--	crop->bounds.left = 0;
--	crop->bounds.top = 0;
--	crop->bounds.height = common->height;
--	crop->bounds.width = common->width;
--	crop->defrect = crop->bounds;
--	return 0;
--}
--
--/**
-  * vpif_enum_dv_timings() - ENUM_DV_TIMINGS handler
-  * @file: file ptr
-  * @priv: file handle
-@@ -1308,7 +1284,6 @@ static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
- 	.vidioc_s_std           	= vpif_s_std,
- 	.vidioc_g_std			= vpif_g_std,
- 
--	.vidioc_cropcap         	= vpif_cropcap,
- 	.vidioc_enum_dv_timings         = vpif_enum_dv_timings,
- 	.vidioc_query_dv_timings        = vpif_query_dv_timings,
- 	.vidioc_s_dv_timings            = vpif_s_dv_timings,
+regards
+Antti
+
+
+On 05/14/2014 02:30 PM, Vincent McIntyre wrote:
+> Hi,
+>
+> Antti asked me to report this.
+>
+> I built the latest media_build git on Ubuntu 12.04, with 3.8.0 kernel,
+> using './build --main-git'.
+> The attached tarball has the relvant info.
+>
+> Without the media_build modules, firmware loads fine (file dmesg.1)
+> Once I build and install the media_build modules, the firmware no
+> longer loads. (dmesg.2)
+>
+> The firmware loading issue appears to have been reported to ubuntu (a
+> later kernel, 3.11)  with a possible fix proposed, see
+> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1291459
+>
+> I can post lspci etc details if people want.
+>
+> Kind regards
+> VInce
+>
+
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
