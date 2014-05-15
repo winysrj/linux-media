@@ -1,73 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4389 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752232AbaENHMK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 May 2014 03:12:10 -0400
-Message-ID: <5373172A.9070406@xs4all.nl>
-Date: Wed, 14 May 2014 09:11:38 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Arun Kumar K <arun.kk@samsung.com>, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org
-CC: k.debski@samsung.com, s.nawrocki@samsung.com,
-	laurent.pinchart@ideasonboard.com, posciak@chromium.org,
-	arunkk.samsung@gmail.com
-Subject: Re: [PATCH v5 0/2] Add resolution change event
-References: <1400050783-2158-1-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1400050783-2158-1-git-send-email-arun.kk@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mga02.intel.com ([134.134.136.20]:57200 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754050AbaEOH4V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 May 2014 03:56:21 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+	by paasikivi.fi.intel.com (Postfix) with ESMTP id 1279C2003E
+	for <linux-media@vger.kernel.org>; Thu, 15 May 2014 10:56:19 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/1] smiapp: I2C address is the last part of the subdev name
+Date: Thu, 15 May 2014 10:56:42 +0300
+Message-Id: <1400140602-27282-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/14/2014 08:59 AM, Arun Kumar K wrote:
-> This patchset adds a source_change event to the v4l2-events.
-> This can be used for notifying the userspace about runtime
-> format changes happening on video nodes / pads like resolution
-> change in video decoder.
+The I2C address of the sensor device was in the middle of the sub-device
+name and not in the end as it should have been. The smiapp sub-device names
+will change from e.g. "vs6555 1-0010 pixel array" to "vs6555 pixel array
+1-0010".
 
-Looks good. I'll merge this after the weekend if there are no more comments.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+This was already supposed to be fixed by "[media] smiapp: Use I2C adapter ID
+and address in the sub-device name" but the I2C address indeed was in the
+middle of the sub-device name and not in the end as it should have been.
 
-Regards,
+ drivers/media/i2c/smiapp/smiapp-core.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-	Hans
-
-> 
-> Changes from v4
-> --------------
-> - Addressed comments from Hans
->   https://patchwork.linuxtv.org/patch/23892/
->   https://patchwork.linuxtv.org/patch/23893/
-> 
-> Changes from v3
-> --------------
-> - Addressed comments from Laurent / Hans
->   https://patchwork.kernel.org/patch/4135731/
-> 
-> Changes from v2
-> ---------------
-> - Event can be subscribed on specific pad / port as
->   suggested by Hans.
-> 
-> Changes from v1
-> ---------------
-> - Addressed review comments from Hans and Laurent
->   https://patchwork.kernel.org/patch/4000951/
-> 
-> Arun Kumar K (1):
->   [media] v4l: Add source change event
-> 
-> Pawel Osciak (1):
->   [media] s5p-mfc: Add support for resolution change event
-> 
->  Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   33 ++++++++++++++++++
->  .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   20 +++++++++++
->  drivers/media/platform/s5p-mfc/s5p_mfc.c           |    8 +++++
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |    2 ++
->  drivers/media/v4l2-core/v4l2-event.c               |   36 ++++++++++++++++++++
->  include/media/v4l2-event.h                         |    4 +++
->  include/uapi/linux/videodev2.h                     |    8 +++++
->  7 files changed, 111 insertions(+)
-> 
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index db3d5a6..2413d3c 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2543,9 +2543,9 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
+ 		}
+ 
+ 		snprintf(this->sd.name,
+-			 sizeof(this->sd.name), "%s %d-%4.4x %s",
+-			 sensor->minfo.name, i2c_adapter_id(client->adapter),
+-			 client->addr, _this->name);
++			 sizeof(this->sd.name), "%s %s %d-%4.4x",
++			 sensor->minfo.name, _this->name,
++			 i2c_adapter_id(client->adapter), client->addr);
+ 
+ 		this->sink_fmt.width =
+ 			sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
+-- 
+1.8.3.2
 
