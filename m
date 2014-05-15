@@ -1,69 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:55849 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750983AbaENG77 (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:51610 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752179AbaEOPR3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 May 2014 02:59:59 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, posciak@chromium.org,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v5 2/2] [media] s5p-mfc: Add support for resolution change event
-Date: Wed, 14 May 2014 12:29:43 +0530
-Message-Id: <1400050783-2158-3-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1400050783-2158-1-git-send-email-arun.kk@samsung.com>
-References: <1400050783-2158-1-git-send-email-arun.kk@samsung.com>
+	Thu, 15 May 2014 11:17:29 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Arun Kumar K' <arun.kk@samsung.com>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	sachin.kamat@linaro.org, arunkk.samsung@gmail.com
+References: <1400048996-726-1-git-send-email-arun.kk@samsung.com>
+ <53731693.80002@xs4all.nl> <537324E5.3030704@samsung.com>
+In-reply-to: <537324E5.3030704@samsung.com>
+Subject: RE: [PATCH v2] [media] s5p-mfc: Dequeue sequence header after STREAMON
+Date: Thu, 15 May 2014 17:17:42 +0200
+Message-id: <047d01cf7050$d1943780$74bca680$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pawel Osciak <posciak@chromium.org>
+Hi Arun,
 
-When a resolution change point is reached, queue an event to signal the
-userspace that a new set of buffers is required before decoding can
-continue.
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Arun Kumar K
+> Sent: Wednesday, May 14, 2014 10:10 AM
+> 
+> Hi Hans,
+> 
+> On 05/14/14 12:39, Hans Verkuil wrote:
+> > On 05/14/2014 08:29 AM, Arun Kumar K wrote:
+> >> MFCv6 encoder needs specific minimum number of buffers to be queued
+> >> in the CAPTURE plane. This minimum number will be known only when
+> the
+> >> sequence header is generated.
+> >> So we used to allow STREAMON on the CAPTURE plane only after
+> sequence
+> >> header is generated and checked with the minimum buffer requirement.
+> >>
+> >> But this causes a problem that we call a vb2_buffer_done for the
+> >> sequence header buffer before doing a STREAON on the CAPTURE plane.
+> >
+> > How could this ever have worked? Buffers aren't queued to the driver
+> > until STREAMON is called, and calling vb2_buffer_done for a buffer
+> > that is not queued first to the driver will mess up internal data (q-
+> >queued_count for one).
+> >
+> 
+> This worked till now because __enqueue_in_driver is called first and
+> then start_streaming qop is called. In MFCv6, the start_streaming
+> driver callback used to wait till sequence header interrupt is received
+> and it used to do vb2_buffer_done in that interrupt context. So it
+> happened after buffers are enqueued in driver and before completing the
+> vb2_streamon.
+> 
+> >> This used to still work fine until this patch was merged -
+> >> b3379c6 : vb2: only call start_streaming if sufficient buffers are
+> >> queued
+> >
+> > Are you testing with CONFIG_VIDEO_ADV_DEBUG set? If not, you should
+> do
+> > so. That will check whether all the vb2 calls are balanced.
+> >
+> > BTW, that's a small typo in s5p_mfc_enc.c (search for 'inavlid').
+> >
+> 
+> I got it. Will post a patch fixing them. Thanks for spotting this.
+> 
+> >> This problem should also come in earlier MFC firmware versions if
+> the
+> >> application calls STREAMON on CAPTURE with some delay after doing
+> >> STREAMON on OUTPUT.
+> >
+> > You can also play around with the min_buffers_needed field. My
+> > rule-of-thumb is that when start_streaming is called everything
+> should
+> > be ready to stream. It is painful for drivers to have to keep track
+> of the 'do I have enough buffers' status.
+> >
+> > For that reason I introduced the min_buffers_needed field. What I
+> > believe you can do here is to set it initially to a large value,
+> > preventing start_streaming from being called, and once you really
+> know
+> > the minimum number of buffers that you need it can be updated again
+> to the actual value.
+> 
+> If a large value is kept in min_buffers_needed, there will be some
+> unnecessary memory initialization needed for say 16 full HD raw YUV
+> buffers when actual needed is only 4. And once the encoding is started,
+> updating the min_buffers_needed to actual value doesnt give any
+> advantage as nobody checks for it after that.
+> So the whole idea is to not enforce a worst case buffer allocation
+> requirement beforehand itself. I hope the current scheme of things
+> works well for the requirement.
 
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c     |    8 ++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |    2 ++
- 2 files changed, 10 insertions(+)
+I was looking in the code of the MFC encoder and handling of this situation
+seems wrong to me.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 6b04f17..f3a4576 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -349,8 +349,16 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx *ctx,
- 	/* All frames remaining in the buffer have been extracted  */
- 	if (dst_frame_status == S5P_FIMV_DEC_STATUS_DECODING_EMPTY) {
- 		if (ctx->state == MFCINST_RES_CHANGE_FLUSH) {
-+			static const struct v4l2_event ev_src_ch = {
-+				.type = V4L2_EVENT_SOURCE_CHANGE,
-+				.u.src_change.changes =
-+					V4L2_EVENT_SRC_CH_RESOLUTION,
-+			};
-+
- 			s5p_mfc_handle_frame_all_extracted(ctx);
- 			ctx->state = MFCINST_RES_CHANGE_END;
-+			v4l2_event_queue_fh(&ctx->fh, &ev_src_ch);
-+
- 			goto leave_handle_frame;
- 		} else {
- 			s5p_mfc_handle_frame_all_extracted(ctx);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 4586186..326d8db 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -851,6 +851,8 @@ static int vidioc_subscribe_event(struct v4l2_fh *fh,
- 	switch (sub->type) {
- 	case V4L2_EVENT_EOS:
- 		return v4l2_event_subscribe(fh, sub, 2, NULL);
-+	case V4L2_EVENT_SOURCE_CHANGE:
-+		return v4l2_src_change_event_subscribe(fh, sub);
- 	default:
- 		return -EINVAL;
- 	}
+You say that a minimum number of buffers has to be queued for MFC encoder to
+work. But this number is not checked in s5p_mfc_ctx_ready in s5p_mfc_enc.c.
+
+It is only checked during reqbufs. This way it does not ensure that there is
+a minimum number of buffers queued.
+
+Also there is a control V4L2_CID_MIN_BUFFERS_FOR_CAPTURE, maybe it could be
+used
+in this context?
+
+Another thing - you say that header is generated to a CAPTURE buffer before
+STREAMON on CAPTURE was done. Is this correct? Can the hardware/driver write
+to a queued buffer without streaming enabled? Hans, Sylwester?
+
+Arun, is there a way to guess the needed number of buffers from controls?
+Isn't this
+related with number of B frames? I understand how this affects the number of
+buffers for OUTPUT, but I thought that a single CAPTURE buffer is always
+enough.
+I understood that a generated compressed stream is no longer used after it
+was
+created and its processing is finished.
+
+I think we need some discussion on this patch.
+ 
+Best wishes,
 -- 
-1.7.9.5
+Kamil Debski
+Samsung R&D Institute Poland
+
+
 
