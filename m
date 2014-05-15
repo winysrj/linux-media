@@ -1,21 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3790 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933630AbaEFCnt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 May 2014 22:43:49 -0400
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2117 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751279AbaEOCoD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 May 2014 22:44:03 -0400
 Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
 	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s462hkTs088154
-	for <linux-media@vger.kernel.org>; Tue, 6 May 2014 04:43:48 +0200 (CEST)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4F2hxah042364
+	for <linux-media@vger.kernel.org>; Thu, 15 May 2014 04:44:01 +0200 (CEST)
 	(envelope-from hverkuil@xs4all.nl)
 Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id C56F02A19A2
-	for <linux-media@vger.kernel.org>; Tue,  6 May 2014 04:43:43 +0200 (CEST)
+	by tschai.lan (Postfix) with ESMTPSA id 087692A19A4
+	for <linux-media@vger.kernel.org>; Thu, 15 May 2014 04:43:46 +0200 (CEST)
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Subject: cron job: media_tree daily build: OK
-Message-Id: <20140506024343.C56F02A19A2@tschai.lan>
-Date: Tue,  6 May 2014 04:43:43 +0200 (CEST)
+Message-Id: <20140515024346.087692A19A4@tschai.lan>
+Date: Thu, 15 May 2014 04:43:46 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -24,9 +25,9 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:		Tue May  6 04:00:27 CEST 2014
+date:		Thu May 15 04:00:15 CEST 2014
 git branch:	test
-git hash:	393cbd8dc532c1ebed60719da8d379f50d445f28
+git hash:	ba0d342ecc21fbbe2f6c178f4479944d1fb34f3b
 gcc version:	i686-linux-gcc (GCC) 4.8.2
 sparse version:	v0.5.0-11-g38d1124
 host hardware:	x86_64
@@ -103,11 +104,11 @@ sparse: ERRORS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
 The Media Infrastructure API from this daily build is here:
 
