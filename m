@@ -1,68 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:10925 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932770AbaEEOqJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 May 2014 10:46:09 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N5300HBTVOKF000@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 05 May 2014 15:45:56 +0100 (BST)
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0N5300DA5VOVF910@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 05 May 2014 15:46:07 +0100 (BST)
-Message-id: <5367A422.5030103@samsung.com>
-Date: Mon, 05 May 2014 16:45:54 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL] Samsung Exynos JPEG codec and FIMC driver updates
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from comal.ext.ti.com ([198.47.26.152]:54199 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751662AbaEOPj4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 May 2014 11:39:56 -0400
+Date: Thu, 15 May 2014 10:39:45 -0500
+From: Felipe Balbi <balbi@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Felipe Balbi <balbi@ti.com>, <linux-usb@vger.kernel.org>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.16] UVC gadget driver fixes
+Message-ID: <20140515153945.GC7360@saruman.home>
+Reply-To: <balbi@ti.com>
+References: <42415415.jy6YRrDCiC@avalon>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="da4uJneut+ArUgXk"
+Content-Disposition: inline
+In-Reply-To: <42415415.jy6YRrDCiC@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+--da4uJneut+ArUgXk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This includes a few bug fixes for the Samsung SoC FIMC m2m driver
-and fixes and cleanups at the s5p-jpeg driver, as a prerequisite 
-to support JPEG codec IP found on the Exynos3250 SoCs.
+Hi,
 
-The following changes since commit 393cbd8dc532c1ebed60719da8d379f50d445f28:
+On Fri, May 09, 2014 at 02:27:34PM +0200, Laurent Pinchart wrote:
+> Hi Felipe,
+>=20
+> Could you please pull the following three patches for v3.16 ? They've
+> been reviewed on the linux-media and linux-usb mailing list.
 
-  [media] smiapp: Use %u for printing u32 value (2014-04-23 16:05:06 -0300)
+ok, are these patches being merged in any other tree ? I don't usually
+take pull requests, only patches, so if these aren't merged anyway, I'll
+cherry-pick them as patches.
 
-are available in the git repository at:
+--=20
+balbi
 
-  git://linuxtv.org/snawrocki/samsung.git for-v3.16
+--da4uJneut+ArUgXk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-for you to fetch changes up to 13b46c7a03adbcc347b77a13ed27066bc92d515c:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-  s5p-jpeg: Fix NV12 format entry related to S5C2120 SoC (2014-05-05 16:22:01 +0200)
+iQIcBAEBAgAGBQJTdN/BAAoJEIaOsuA1yqREg64P/jBX4pcftM83jP9/tBpSRNPk
+OHTttccLb3bgdAAAGpW3xbmG6ecbSd48hxJCTMee/qPRlLOh9MWpSMSOWNFoeJaK
+8UABWrxjLs77NKVTeyv0d9FTQppdLi5Lk43OB1v+JLWwmxen7ZJYYncy/GYWbq3O
+RFqbCnuEjYg47r+YQ54ox0zMulsvCZ0om5+B/4x6aDJMI3Q67ba6sHFqoRJqWBoF
+NOpAamWpdhwd3pmje1yNKso2QDP9156I76HZzTL7m6u1bM+66HAZPNoIKulgkfUu
+O/3rfokZOc5yXBu2dl1DZ9gK3YIbhestGORyQ3ovStBnrxIcDR14x46zx80tNo6h
+QM4797RO7UtE9Yik6KxuMXkn8CByz9N9TeUopBMVb6HNHTrt2xfJMeswBfByQYDZ
+Vy2oYP4/IwUhjL4OI8SBBwUjk/o+sTDKW/Ts6adEvqYw/7rxN+cmWqFqtrZXx6rR
+yd3qCzwv0lQqL7pbv56ZB/dp/kBnimrbk1kSvT0pmuHDg4Z9fby42MOo+o2nLPTY
+j7VqvO0YOHooaiyr6sxgyoslv6L/JvDDZn6deNrD35I/a59WmtQU2lk3v9nW4WGd
+lGXZWfsNNzjUsenwDBQInOftERG+Tj7FaKTAZR7Y2lkyi/41sE6g90sPAR90B42B
+vRUhpw1C4B9rCeWqJc69
+=fLD6
+-----END PGP SIGNATURE-----
 
-----------------------------------------------------------------
-Jacek Anaszewski (8):
-      s5p-jpeg: Add fmt_ver_flag field to the s5p_jpeg_variant structure
-      s5p-jpeg: Perform fourcc downgrade only for Exynos4x12 SoCs
-      s5p-jpeg: Add m2m_ops field to the s5p_jpeg_variant structure
-      s5p-jpeg: g_selection callback should always succeed
-      s5p-jpeg: Fix sysmmu page fault
-      s5p-jpeg: Prevent JPEG 4:2:0 > YUV 4:2:0 decompression
-      s5p-jpeg: Fix build break when CONFIG_OF is undefined
-      s5p-jpeg: Fix NV12 format entry related to S5C2120 SoC
-
-Nicolas Dufresne (3):
-      s5p-fimc: Iterate for each memory plane
-      s5p-fimc: Changed RGB32 to BGR32
-      s5p-fimc: Reuse calculated sizes
-
- drivers/media/platform/exynos4-is/fimc-core.c |    6 +-
- drivers/media/platform/exynos4-is/fimc-m2m.c  |    6 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c   |  118 +++++++++++++++++--------
- drivers/media/platform/s5p-jpeg/jpeg-core.h   |    6 +-
- 4 files changed, 93 insertions(+), 43 deletions(-)
-
---
-Thanks,
-Sylwester
+--da4uJneut+ArUgXk--
