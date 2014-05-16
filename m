@@ -1,127 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.246]:28779 "EHLO
-	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751258AbaEWDMm (ORCPT
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:34011 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933002AbaEPNk0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 May 2014 23:12:42 -0400
-Message-ID: <537EBCA3.8020701@atmel.com>
-Date: Fri, 23 May 2014 11:12:35 +0800
-From: Josh Wu <josh.wu@atmel.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>,
-	<nicolas.ferre@atmel.com>, <linux-arm-kernel@lists.infradead.org>,
-	<grant.likely@linaro.org>, <galak@codeaurora.org>,
-	<rob@landley.net>, <mark.rutland@arm.com>, <robh+dt@kernel.org>,
-	<ijc+devicetree@hellion.org.uk>, <pawel.moll@arm.com>,
-	<devicetree@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 3/3] [media] atmel-isi: add primary DT support
-References: <1395744087-5753-1-git-send-email-josh.wu@atmel.com> <1395744320-15025-1-git-send-email-josh.wu@atmel.com> <Pine.LNX.4.64.1405182308110.23804@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1405182308110.23804@axis700.grange>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 16 May 2014 09:40:26 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 18/49] media: davinci: vpif_display: drop unneeded module params
+Date: Fri, 16 May 2014 19:03:23 +0530
+Message-Id: <1400247235-31434-20-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-On 5/19/2014 5:51 AM, Guennadi Liakhovetski wrote:
-> On Tue, 25 Mar 2014, Josh Wu wrote:
->
->> This patch add the DT support for Atmel ISI driver.
->> It use the same v4l2 DT interface that defined in video-interfaces.txt.
->>
->> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->> Cc: devicetree@vger.kernel.org
->> ---
->> v1 --> v2:
->>   refine the binding document.
->>   add port node description.
->>   removed the optional property.
->>
->>   .../devicetree/bindings/media/atmel-isi.txt        |   50 ++++++++++++++++++++
->>   drivers/media/platform/soc_camera/atmel-isi.c      |   31 +++++++++++-
->>   2 files changed, 79 insertions(+), 2 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/media/atmel-isi.txt
-> [snip]
->
->> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
->> index f4add0a..d6a1f7b 100644
->> --- a/drivers/media/platform/soc_camera/atmel-isi.c
->> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> [snip]
->
->> @@ -885,6 +887,20 @@ static int atmel_isi_remove(struct platform_device *pdev)
->>   	return 0;
->>   }
->>   
->> +static int atmel_isi_probe_dt(struct atmel_isi *isi,
->> +			struct platform_device *pdev)
->> +{
->> +	struct device_node *node = pdev->dev.of_node;
->> +
->> +	/* Default settings for ISI */
->> +	isi->pdata.full_mode = 1;
->> +	isi->pdata.mck_hz = ISI_DEFAULT_MCLK_FREQ;
->> +	isi->pdata.frate = ISI_CFG1_FRATE_CAPTURE_ALL;
-> The above flags eventually should probably partially be added as new
-> driver-specific DT properties, partially derived from DT clock bindings.
-> But I'm ok to have them fixed like this in the initial version.
->
->> +	isi->pdata.data_width_flags = ISI_DATAWIDTH_8 | ISI_DATAWIDTH_10;
-> Whereas these flags, I think, should already now be derived from the
-> bus-width standard property?
+this pacth drops unneeded module params and vpif_config_params.
 
-yes. I agree.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_display.c |   69 +------------------------
+ drivers/media/platform/davinci/vpif_display.h |    8 ---
+ 2 files changed, 1 insertion(+), 76 deletions(-)
 
-> v4l2_of_parse_parallel_bus() will extract
-> them for you and I just asked Ben to add a call to
-> v4l2_of_parse_endpoint() to his patch.
-
-Is it better to call v4l2_of_parse_endpoint() in the atmel-isi driver? I 
-think the dt parsing stuff should be done by host driver and sensor 
-driver itself. No need to call v4l2_of_parse_endpoint() in soc-camera.c.
-
-> Consequently you'll have to
-> rearrange bus-width interpretation in isi_camera_try_bus_param() a bit and
-> use OF parsing results there directly if available? Or maybe you find a
-> better way. It would certainly be better to extend your probing code and
-> just use OF results to initialise isi->width_flags, but that might be
-> impossible, because OF parsing would be performed inside
-> soc_camera_host_register() and your isi_camera_try_bus_param() can also be
-> called immediately from it if all required I2C devices are already
-> available?
-
-I am little bit confuse here. I don't see any issue in above case. Since 
-atmel_isi_probe_dt() will always be called earlier then 
-soc_camera_host_register().
-That means when soc_camera_host_register() called 
-isi_camera_try_bus_param(), the isi->width_flags are already initialized 
-in a valid value by atmel_isi_probe_dt().
-Am I missing anything here?
-
-> If your I2C subdevice drivers defer probing until the host has
-> probed, then you could initialise .width_flags after
-> soc_camera_host_register(), but you cannot rely on that.
-
-I tested these two cases without any issue:
-1. In dtb, the i2c sensor dt node probe earlier than atmel-isi dt node.
-     i2c sensor will do a defer probe here as mclk is not found until 
-atmel-isi driver probed and call soc_camera_host_register().
-2. In dtb, the atmel-isi dt node is probed earlier than i2c sensor.
-
-Best Regards,
-Josh Wu
-
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index 1e0a162..fef03be 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -35,32 +35,10 @@ MODULE_VERSION(VPIF_DISPLAY_VERSION);
+ 		v4l2_dbg(level, debug, &vpif_obj.v4l2_dev, fmt, ## arg)
+ 
+ static int debug = 1;
+-static u32 ch2_numbuffers = 3;
+-static u32 ch3_numbuffers = 3;
+-static u32 ch2_bufsize = 1920 * 1080 * 2;
+-static u32 ch3_bufsize = 720 * 576 * 2;
+ 
+ module_param(debug, int, 0644);
+-module_param(ch2_numbuffers, uint, S_IRUGO);
+-module_param(ch3_numbuffers, uint, S_IRUGO);
+-module_param(ch2_bufsize, uint, S_IRUGO);
+-module_param(ch3_bufsize, uint, S_IRUGO);
+ 
+ MODULE_PARM_DESC(debug, "Debug level 0-1");
+-MODULE_PARM_DESC(ch2_numbuffers, "Channel2 buffer count (default:3)");
+-MODULE_PARM_DESC(ch3_numbuffers, "Channel3 buffer count (default:3)");
+-MODULE_PARM_DESC(ch2_bufsize, "Channel2 buffer size (default:1920 x 1080 x 2)");
+-MODULE_PARM_DESC(ch3_bufsize, "Channel3 buffer size (default:720 x 576 x 2)");
+-
+-static struct vpif_config_params config_params = {
+-	.min_numbuffers		= 3,
+-	.numbuffers[0]		= 3,
+-	.numbuffers[1]		= 3,
+-	.min_bufsize[0]		= 720 * 480 * 2,
+-	.min_bufsize[1]		= 720 * 480 * 2,
+-	.channel_bufsize[0]	= 1920 * 1080 * 2,
+-	.channel_bufsize[1]	= 720 * 576 * 2,
+-};
+ 
+ #define VPIF_DRIVER_NAME	"vpif_display"
+ 
+@@ -571,8 +549,6 @@ static void vpif_config_format(struct channel_obj *ch)
+ 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+ 
+ 	common->fmt.fmt.pix.field = V4L2_FIELD_ANY;
+-	common->fmt.fmt.pix.sizeimage =
+-			config_params.channel_bufsize[ch->channel_id];
+ 	common->fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV422P;
+ 	common->fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+ }
+@@ -758,13 +734,6 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id std_id)
+ 	if (vpif_update_resolution(ch))
+ 		return -EINVAL;
+ 
+-	if ((ch->vpifparams.std_info.width *
+-		ch->vpifparams.std_info.height * 2) >
+-		config_params.channel_bufsize[ch->channel_id]) {
+-		vpif_err("invalid std for this size\n");
+-		return -EINVAL;
+-	}
+-
+ 	common->fmt.fmt.pix.bytesperline = common->fmt.fmt.pix.width;
+ 	/* Configure the default format information */
+ 	vpif_config_format(ch);
+@@ -1121,39 +1090,7 @@ static const struct v4l2_file_operations vpif_fops = {
+ static int initialize_vpif(void)
+ {
+ 	int free_channel_objects_index;
+-	int free_buffer_channel_index;
+-	int free_buffer_index;
+-	int err = 0, i, j;
+-
+-	/* Default number of buffers should be 3 */
+-	if ((ch2_numbuffers > 0) &&
+-	    (ch2_numbuffers < config_params.min_numbuffers))
+-		ch2_numbuffers = config_params.min_numbuffers;
+-	if ((ch3_numbuffers > 0) &&
+-	    (ch3_numbuffers < config_params.min_numbuffers))
+-		ch3_numbuffers = config_params.min_numbuffers;
+-
+-	/* Set buffer size to min buffers size if invalid buffer size is
+-	 * given */
+-	if (ch2_bufsize < config_params.min_bufsize[VPIF_CHANNEL2_VIDEO])
+-		ch2_bufsize =
+-		    config_params.min_bufsize[VPIF_CHANNEL2_VIDEO];
+-	if (ch3_bufsize < config_params.min_bufsize[VPIF_CHANNEL3_VIDEO])
+-		ch3_bufsize =
+-		    config_params.min_bufsize[VPIF_CHANNEL3_VIDEO];
+-
+-	config_params.numbuffers[VPIF_CHANNEL2_VIDEO] = ch2_numbuffers;
+-
+-	if (ch2_numbuffers) {
+-		config_params.channel_bufsize[VPIF_CHANNEL2_VIDEO] =
+-							ch2_bufsize;
+-	}
+-	config_params.numbuffers[VPIF_CHANNEL3_VIDEO] = ch3_numbuffers;
+-
+-	if (ch3_numbuffers) {
+-		config_params.channel_bufsize[VPIF_CHANNEL3_VIDEO] =
+-							ch3_bufsize;
+-	}
++	int err, i, j;
+ 
+ 	/* Allocate memory for six channel objects */
+ 	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
+@@ -1167,10 +1104,6 @@ static int initialize_vpif(void)
+ 		}
+ 	}
+ 
+-	free_channel_objects_index = VPIF_DISPLAY_MAX_DEVICES;
+-	free_buffer_channel_index = VPIF_DISPLAY_NUM_CHANNELS;
+-	free_buffer_index = config_params.numbuffers[i - 1];
+-
+ 	return 0;
+ 
+ vpif_init_free_channel_objects:
+diff --git a/drivers/media/platform/davinci/vpif_display.h b/drivers/media/platform/davinci/vpif_display.h
+index 029e0c5..089e860 100644
+--- a/drivers/media/platform/davinci/vpif_display.h
++++ b/drivers/media/platform/davinci/vpif_display.h
+@@ -128,12 +128,4 @@ struct vpif_device {
+ 	struct vpif_display_config *config;
+ };
+ 
+-struct vpif_config_params {
+-	u32 min_bufsize[VPIF_DISPLAY_NUM_CHANNELS];
+-	u32 channel_bufsize[VPIF_DISPLAY_NUM_CHANNELS];
+-	u8 numbuffers[VPIF_DISPLAY_NUM_CHANNELS];
+-	u32 video_limit[VPIF_DISPLAY_NUM_CHANNELS];
+-	u8 min_numbuffers;
+-};
+-
+ #endif				/* DAVINCIHD_DISPLAY_H */
+-- 
+1.7.9.5
 
