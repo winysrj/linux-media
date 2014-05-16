@@ -1,36 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35702 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932352AbaEGMzH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 May 2014 08:55:07 -0400
-Message-ID: <536A2D25.9020802@iki.fi>
-Date: Wed, 07 May 2014 15:55:01 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: V4L control units
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:44534 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933601AbaEPNm6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 May 2014 09:42:58 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 47/49] media: davinci: vpif_capture: drop check __KERNEL__
+Date: Fri, 16 May 2014 19:03:53 +0530
+Message-Id: <1400247235-31434-50-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka
-What is preferred way implement controls that could have some known unit 
-or unknown unit? For example for gain controls, I would like to offer 
-gain in unit of dB (decibel) and also some unknown driver specific unit. 
-Should I two controls, one for each unit?
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Like that
+this drops check for #ifdef __KERNEL__
 
-V4L2_CID_RF_TUNER_LNA_GAIN_AUTO
-V4L2_CID_RF_TUNER_LNA_GAIN
-V4L2_CID_RF_TUNER_LNA_GAIN_dB
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_capture.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-
-regards
-Antti
-
+diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
+index 3b5ea30..f65d28d 100644
+--- a/drivers/media/platform/davinci/vpif_capture.h
++++ b/drivers/media/platform/davinci/vpif_capture.h
+@@ -19,8 +19,6 @@
+ #ifndef VPIF_CAPTURE_H
+ #define VPIF_CAPTURE_H
+ 
+-#ifdef __KERNEL__
+-
+ /* Header files */
+ #include <media/videobuf2-dma-contig.h>
+ #include <media/v4l2-device.h>
+@@ -121,5 +119,4 @@ struct vpif_device {
+ 	struct vpif_capture_config *config;
+ };
+ 
+-#endif				/* End of __KERNEL__ */
+ #endif				/* VPIF_CAPTURE_H */
 -- 
-http://palosaari.fi/
+1.7.9.5
+
