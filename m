@@ -1,102 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:39019 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754600AbaEHQWS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 12:22:18 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Arun Kumar K' <arun.kk@samsung.com>, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>, posciak@chromium.org,
-	arunkk.samsung@gmail.com
-References: <1394180752-16348-1-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1394180752-16348-1-git-send-email-arun.kk@samsung.com>
-Subject: RE: [PATCH] [media] s5p-mfc: Don't try to resubmit VP8 bitstream
- buffer for decode.
-Date: Thu, 08 May 2014 18:22:29 +0200
-Message-id: <004b01cf6ad9$b5c83c80$2158b580$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:57306 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757492AbaEPNjw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 May 2014 09:39:52 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 15/49] media: davinci: vpif_display: drop numbuffers field from common_obj
+Date: Fri, 16 May 2014 19:03:20 +0530
+Message-Id: <1400247235-31434-17-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
+this patch drops numbuffers member from struct common_obj
+as this was not required.
 
-> From: Arun Kumar K [mailto:arunkk.samsung@gmail.com] On Behalf Of Arun
-> Kumar K
-> Sent: Friday, March 07, 2014 9:26 AM
-> 
-> From: Pawel Osciak <posciak@chromium.org>
-> 
-> Currently, for formats that are not H264, MFC driver will check the
-> consumed stream size returned by the firmware and, based on that, will
-> try to decide whether the bitstream buffer contained more than one
-> frame. If the size of the buffer is larger than the consumed stream, it
-> assumes that there are more frames in the buffer and that the buffer
-> should be resubmitted for decode. This rarely works though and actually
-> introduces problems, because:
-> 
-> - v7 firmware will always return consumed stream size equal to whatever
-> the driver passed to it when running decode (which is the size of the
-> whole buffer), which means we will never try to resubmit, because the
-> firmware will always tell us that it consumed all the data we passed to
-> it;
-> 
-> - v6 firmware will return the number of consumed bytes, but will not
-> include the padding ("stuffing") bytes that are allowed after the frame
-> in VP8. Since there is no way of figuring out how many of those bytes
-> follow the frame without getting the frame size from IVF headers (or
-> somewhere else, but not from the stream itself), the driver tries to
-> guess that padding size is not larger than 4 bytes, which is not always
-> true;
-> 
-> The only way to make it work is to queue only one frame per buffer from
-> userspace and the check in the kernel is useless and wrong for VP8.
-> MPEG4 still seems to require it, so keep it only for that format.
-> 
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> index e2aac59..66c1775 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> @@ -360,7 +360,7 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx
-> *ctx,
->  								list);
->  		ctx->consumed_stream += s5p_mfc_hw_call(dev->mfc_ops,
->  						get_consumed_stream, dev);
-> -		if (ctx->codec_mode != S5P_MFC_CODEC_H264_DEC &&
-> +		if (ctx->codec_mode == S5P_MFC_CODEC_MPEG4_DEC &&
->  			ctx->consumed_stream + STUFF_BYTE <
->  			src_buf->b->v4l2_planes[0].bytesused) {
->  			/* Run MFC again on the same buffer */
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_display.c |    8 --------
+ drivers/media/platform/davinci/vpif_display.h |    1 -
+ 2 files changed, 9 deletions(-)
 
-I expressed my doubts to this patch in my previous email.
-I think that packed PB can also be found in other codecs such as H263.
-So please change to the following if this is a workaround for VP8 only.
-(The title says that it only changes behavior of VP8 decoding, so it is
-misleading).
-
--		if (ctx->codec_mode != S5P_MFC_CODEC_H264_DEC &&
-+		if (ctx->codec_mode != S5P_MFC_CODEC_H264_DEC &&
-+		    ctx->codec_mode != S5P_MFC_CODEC_VP8_DEC &&
-
-
-Did you try to revert your patch https://patchwork.linuxtv.org/patch/15448/
-and checking if this fixes the problem for VP8?
-
-> --
-> 1.7.9.5
-
-Best wishes,
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index ab097ce..5ea2db8 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -1221,13 +1221,11 @@ static int vpif_probe_complete(void)
+ 		/* Initialize field of the channel objects */
+ 		atomic_set(&ch->usrs, 0);
+ 		for (k = 0; k < VPIF_NUMOBJECTS; k++) {
+-			ch->common[k].numbuffers = 0;
+ 			common = &ch->common[k];
+ 			common->io_usrs = 0;
+ 			common->started = 0;
+ 			spin_lock_init(&common->irqlock);
+ 			mutex_init(&common->lock);
+-			common->numbuffers = 0;
+ 			common->set_addr = NULL;
+ 			common->ytop_off = 0;
+ 			common->ybtm_off = 0;
+@@ -1236,17 +1234,11 @@ static int vpif_probe_complete(void)
+ 			common->cur_frm = NULL;
+ 			common->next_frm = NULL;
+ 			memset(&common->fmt, 0, sizeof(common->fmt));
+-			common->numbuffers = config_params.numbuffers[k];
+ 		}
+ 		ch->initialized = 0;
+ 		if (vpif_obj.config->subdev_count)
+ 			ch->sd = vpif_obj.sd[0];
+ 		ch->channel_id = j;
+-		if (j < 2)
+-			ch->common[VPIF_VIDEO_INDEX].numbuffers =
+-			    config_params.numbuffers[ch->channel_id];
+-		else
+-			ch->common[VPIF_VIDEO_INDEX].numbuffers = 0;
+ 
+ 		memset(&ch->vpifparams, 0, sizeof(ch->vpifparams));
+ 
+diff --git a/drivers/media/platform/davinci/vpif_display.h b/drivers/media/platform/davinci/vpif_display.h
+index 06b8d24..e21a343 100644
+--- a/drivers/media/platform/davinci/vpif_display.h
++++ b/drivers/media/platform/davinci/vpif_display.h
+@@ -67,7 +67,6 @@ struct vpif_disp_buffer {
+ };
+ 
+ struct common_obj {
+-	u32 numbuffers;				/* number of buffers */
+ 	struct vpif_disp_buffer *cur_frm;	/* Pointer pointing to current
+ 						 * vb2_buffer */
+ 	struct vpif_disp_buffer *next_frm;	/* Pointer pointing to next
 -- 
-Kamil Debski
-Samsung R&D Institute Poland
+1.7.9.5
 
