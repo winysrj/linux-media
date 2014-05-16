@@ -1,126 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1171 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751114AbaEXIHz (ORCPT
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:51589 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755123AbaEPNhD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 May 2014 04:07:55 -0400
-Message-ID: <53805338.50301@xs4all.nl>
-Date: Sat, 24 May 2014 10:07:20 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.16] davinci updates
-References: <537F0FCD.207@xs4all.nl> <20140523194545.4793e1a0.m.chehab@samsung.com>
-In-Reply-To: <20140523194545.4793e1a0.m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Fri, 16 May 2014 09:37:03 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 04/49] media: davinci: vpif_display: release buffers in case start_streaming() call back fails
+Date: Fri, 16 May 2014 19:03:09 +0530
+Message-Id: <1400247235-31434-6-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/24/2014 12:45 AM, Mauro Carvalho Chehab wrote:
-> Em Fri, 23 May 2014 11:07:25 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> Hi Mauro,
->>
->> These are cleanup patches for the davinci drivers. A total of about 1200 lines
->> of code are removed. Not bad!
->>
->> Regards,
->>
->> 	Hans
->>
->>
->> The following changes since commit e899966f626f1f657a4a7bac736c0b9ae5a243ea:
->>
->>   Merge tag 'v3.15-rc6' into patchwork (2014-05-21 23:03:15 -0300)
->>
->> are available in the git repository at:
->>
->>
->>   git://linuxtv.org/hverkuil/media_tree.git davinci
->>
->> for you to fetch changes up to c1022cd59bb34dbb435cda9a2fc98bb6fb931f61:
->>
->>   media: davinci: vpif: add Copyright message (2014-05-23 10:12:34 +0200)
->>
->> ----------------------------------------------------------------
->> Lad, Prabhakar (49):
->>       media: davinci: vpif_display: initialize vb2 queue and DMA context during probe
->>       media: davinci: vpif_display: drop buf_init() callback
->>       media: davinci: vpif_display: use vb2_ops_wait_prepare/finish helper functions
->>       media: davinci: vpif_display: release buffers in case start_streaming() call back fails
->>       media: davinci: vpif_display: drop buf_cleanup() callback
->>       media: davinci: vpif_display: improve vpif_buffer_prepare() callback
->>       media: davinci: vpif_display: improve vpif_buffer_queue_setup() function
->>       media: davinci: vpif_display: improve start/stop_streaming callbacks
->>       media: davinci: vpif_display: use vb2_fop_mmap/poll
->>       media: davinci: vpif_display: use v4l2_fh_open and vb2_fop_release
->>       media: davinci: vpif_display: use vb2_ioctl_* helpers
->>       media: davinci: vpif_display: drop unused member fbuffers
->>       media: davinci: vpif_display: drop reserving memory for device
->>       media: davinci: vpif_display: drop unnecessary field memory
->>       media: davinci: vpif_display: drop numbuffers field from common_obj
->>       media: davinic: vpif_display: drop started member from struct common_obj
->>       media: davinci: vpif_display: initialize the video device in single place
->>       media: davinci: vpif_display: drop unneeded module params
->>       media: davinci: vpif_display: drop cropcap
->>       media: davinci: vpif_display: group v4l2_ioctl_ops
->>       media: davinci: vpif_display: use SIMPLE_DEV_PM_OPS
->>       media: davinci: vpif_display: return -ENODATA for *dv_timings calls
->>       media: davinci: vpif_display: return -ENODATA for *std calls
->>       media: davinci; vpif_display: fix checkpatch error
->>       media: davinci: vpif_display: fix v4l-complinace issues
->>       media: davinci: vpif_capture: initalize vb2 queue and DMA context during probe
->>       media: davinci: vpif_capture: drop buf_init() callback
->>       media: davinci: vpif_capture: use vb2_ops_wait_prepare/finish helper functions
->>       media: davinci: vpif_capture: release buffers in case start_streaming() call back fails
->>       media: davinci: vpif_capture: drop buf_cleanup() callback
->>       media: davinci: vpif_capture: improve vpif_buffer_prepare() callback
->>       media: davinci: vpif_capture: improve vpif_buffer_queue_setup() function
->>       media: davinci: vpif_capture: improve start/stop_streaming callbacks
->>       media: davinci: vpif_capture: use vb2_fop_mmap/poll
->>       media: davinci: vpif_capture: use v4l2_fh_open and vb2_fop_release
->>       media: davinci: vpif_capture: use vb2_ioctl_* helpers
->>       media: davinci: vpif_capture: drop reserving memory for device
->>       media: davinci: vpif_capture: drop unnecessary field memory
->>       media: davinic: vpif_capture: drop started member from struct common_obj
->>       media: davinci: vpif_capture: initialize the video device in single place
-> 
->>       media: davinci: vpif_capture: drop unneeded module params
-> 
-> Enough!
-> 
-> I'm tired of guessing why those bad commented are needed and what them are
-> actually doing.
-> 
-> In this particular case:
-> 
-> Why those module parameters were needed before, but aren't needed anymore?
-> What changed? The removal of module parameters is a sort of API change.
-> 
-> So, I _DO_ expect them to be very well justified.
-> 
-> Please, properly describe _ALL_ patches, or I'll NACK the pull requests.
-> 
-> This time, I applied everything up to the patch before this one. On a next
-> pull request without proper descriptions, I'll likely just stop on the first
-> patch missing description (or with a crappy one).
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Next time you see patches with insufficient commit log text just send them back
-with 'Changes Requested'. I don't mind since I have a bit of a blind spot for
-that myself. It's good training for me.
+this patch adds support to release the buffer by calling
+vb2_buffer_done(), with state marked as VB2_BUF_STATE_QUEUED
+if start_streaming() call back fails.
 
-But in this case you accepted the patch ("drop unneeded module params") which
-really needed a better description (again, blind spot on my side, I should
-have caught that), and then stopped merging the remaining patches. But those
-remaining patches all have proper commit logs (at least in my view), so I am
-requesting that you pull in the remaining patches. 
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_display.c |   42 +++++++++++++++----------
+ 1 file changed, 26 insertions(+), 16 deletions(-)
 
-If you think that the commit logs for the remaining patches isn't good enough,
-just let me know and I will improve them.
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index 8bb9f02..1a17a45 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -196,26 +196,16 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	struct channel_obj *ch = vb2_get_drv_priv(vq);
+ 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+ 	struct vpif_params *vpif = &ch->vpifparams;
+-	unsigned long addr = 0;
+-	unsigned long flags;
++	struct vpif_disp_buffer *buf, *tmp;
++	unsigned long addr, flags;
+ 	int ret;
+ 
+ 	spin_lock_irqsave(&common->irqlock, flags);
+ 
+-	/* Get the next frame from the buffer queue */
+-	common->next_frm = common->cur_frm =
+-			    list_entry(common->dma_queue.next,
+-				       struct vpif_disp_buffer, list);
+-
+-	list_del(&common->cur_frm->list);
+-	spin_unlock_irqrestore(&common->irqlock, flags);
+-	/* Mark state of the current frame to active */
+-	common->cur_frm->vb.state = VB2_BUF_STATE_ACTIVE;
+-
+ 	/* Initialize field_id and started member */
+ 	ch->field_id = 0;
+ 	common->started = 1;
+-	addr = vb2_dma_contig_plane_dma_addr(&common->cur_frm->vb, 0);
++
+ 	/* Calculate the offset for Y and C data  in the buffer */
+ 	vpif_calculate_offsets(ch);
+ 
+@@ -225,7 +215,8 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 		|| (!ch->vpifparams.std_info.frm_fmt
+ 		&& (common->fmt.fmt.pix.field == V4L2_FIELD_NONE))) {
+ 		vpif_err("conflict in field format and std format\n");
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto err;
+ 	}
+ 
+ 	/* clock settings */
+@@ -234,17 +225,28 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 		ycmux_mode, ch->vpifparams.std_info.hd_sd);
+ 		if (ret < 0) {
+ 			vpif_err("can't set clock\n");
+-			return ret;
++			goto err;
+ 		}
+ 	}
+ 
+ 	/* set the parameters and addresses */
+ 	ret = vpif_set_video_params(vpif, ch->channel_id + 2);
+ 	if (ret < 0)
+-		return ret;
++		goto err;
+ 
+ 	common->started = ret;
+ 	vpif_config_addr(ch, ret);
++	/* Get the next frame from the buffer queue */
++	common->next_frm = common->cur_frm =
++			    list_entry(common->dma_queue.next,
++				       struct vpif_disp_buffer, list);
++
++	list_del(&common->cur_frm->list);
++	spin_unlock_irqrestore(&common->irqlock, flags);
++	/* Mark state of the current frame to active */
++	common->cur_frm->vb.state = VB2_BUF_STATE_ACTIVE;
++
++	addr = vb2_dma_contig_plane_dma_addr(&common->cur_frm->vb, 0);
+ 	common->set_addr((addr + common->ytop_off),
+ 			    (addr + common->ybtm_off),
+ 			    (addr + common->ctop_off),
+@@ -271,6 +273,14 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	}
+ 
+ 	return 0;
++
++err:
++	list_for_each_entry_safe(buf, tmp, &common->dma_queue, list) {
++		list_del(&buf->list);
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
++	}
++
++	return ret;
+ }
+ 
+ /* abort streaming and wait for last buffer */
+-- 
+1.7.9.5
 
-Regards,
-
-	Hans
