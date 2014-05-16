@@ -1,101 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f176.google.com ([209.85.214.176]:38093 "EHLO
-	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751068AbaEUDnl convert rfc822-to-8bit (ORCPT
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:50911 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933242AbaEPNlk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 May 2014 23:43:41 -0400
-Received: by mail-ob0-f176.google.com with SMTP id wo20so1508501obc.7
-        for <linux-media@vger.kernel.org>; Tue, 20 May 2014 20:43:41 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20140520232016.GB24638@google.com>
-References: <1400024983-21891-1-git-send-email-gioh.kim@lge.com> <20140520232016.GB24638@google.com>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Wed, 21 May 2014 09:13:21 +0530
-Message-ID: <CAO_48GGHRiYAL-pU0R6pZ8V=8BN6FqObsT25TnsZLTtt7AvxKA@mail.gmail.com>
-Subject: Re: [PATCH] Documentation/dma-buf-sharing.txt: update API descriptions
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Gioh Kim <gioh.kim@lge.com>, Randy Dunlap <rdunlap@infradead.org>,
-	linux-media@vger.kernel.org,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	linux-doc@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	=?UTF-8?B?7J206rG07Zi4?= <gunho.lee@lge.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Fri, 16 May 2014 09:41:40 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 31/49] media: davinci: vpif_capture: improve vpif_buffer_prepare() callback
+Date: Fri, 16 May 2014 19:03:37 +0530
+Message-Id: <1400247235-31434-34-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bjorn,
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-On 21 May 2014 04:50, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Wed, May 14, 2014 at 08:49:43AM +0900, Gioh Kim wrote:
->> Update some descriptions for API arguments and descriptions.
->>
->> Signed-off-by: Gioh Kim <gioh.kim@lge.com>
->
-> I applied this to my "dma-api" branch for v3.16, thanks!
-As always, I would queue this up for my dma-buf pull request, along
-with other dma-buf changes.
+this patch improve vpif_buffer_prepare() callback, as buf_prepare()
+callback is never called with invalid state and check for
+vb2_plane_vaddr(vb, 0) is dropped as payload check should
+be done unconditionally.
 
-Thanks and best regards,
-~Sumit.
->
->> ---
->>  Documentation/dma-buf-sharing.txt |   14 ++++++++------
->>  1 file changed, 8 insertions(+), 6 deletions(-)
->>
->> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
->> index 505e711..aadd901 100644
->> --- a/Documentation/dma-buf-sharing.txt
->> +++ b/Documentation/dma-buf-sharing.txt
->> @@ -56,10 +56,10 @@ The dma_buf buffer sharing API usage contains the following steps:
->>                                    size_t size, int flags,
->>                                    const char *exp_name)
->>
->> -   If this succeeds, dma_buf_export allocates a dma_buf structure, and returns a
->> -   pointer to the same. It also associates an anonymous file with this buffer,
->> -   so it can be exported. On failure to allocate the dma_buf object, it returns
->> -   NULL.
->> +   If this succeeds, dma_buf_export_named allocates a dma_buf structure, and
->> +   returns a pointer to the same. It also associates an anonymous file with this
->> +   buffer, so it can be exported. On failure to allocate the dma_buf object,
->> +   it returns NULL.
->>
->>     'exp_name' is the name of exporter - to facilitate information while
->>     debugging.
->> @@ -76,7 +76,7 @@ The dma_buf buffer sharing API usage contains the following steps:
->>     drivers and/or processes.
->>
->>     Interface:
->> -      int dma_buf_fd(struct dma_buf *dmabuf)
->> +      int dma_buf_fd(struct dma_buf *dmabuf, int flags)
->>
->>     This API installs an fd for the anonymous file associated with this buffer;
->>     returns either 'fd', or error.
->> @@ -157,7 +157,9 @@ to request use of buffer for allocation.
->>     "dma_buf->ops->" indirection from the users of this interface.
->>
->>     In struct dma_buf_ops, unmap_dma_buf is defined as
->> -      void (*unmap_dma_buf)(struct dma_buf_attachment *, struct sg_table *);
->> +      void (*unmap_dma_buf)(struct dma_buf_attachment *,
->> +                            struct sg_table *,
->> +                            enum dma_data_direction);
->>
->>     unmap_dma_buf signifies the end-of-DMA for the attachment provided. Like
->>     map_dma_buf, this API also must be implemented by the exporter.
->> --
->> 1.7.9.5
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c |   32 +++++++++++--------------
+ 1 file changed, 14 insertions(+), 18 deletions(-)
 
-
-
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 6c5ff0f..025eb24 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -79,7 +79,7 @@ static inline struct vpif_cap_buffer *to_vpif_buffer(struct vb2_buffer *vb)
+ }
+ 
+ /**
+- * buffer_prepare :  callback function for buffer prepare
++ * vpif_buffer_prepare :  callback function for buffer prepare
+  * @vb: ptr to vb2_buffer
+  *
+  * This is the callback function for buffer prepare when vb2_qbuf()
+@@ -97,26 +97,22 @@ static int vpif_buffer_prepare(struct vb2_buffer *vb)
+ 
+ 	common = &ch->common[VPIF_VIDEO_INDEX];
+ 
+-	if (vb->state != VB2_BUF_STATE_ACTIVE &&
+-		vb->state != VB2_BUF_STATE_PREPARED) {
+-		vb2_set_plane_payload(vb, 0, common->fmt.fmt.pix.sizeimage);
+-		if (vb2_plane_vaddr(vb, 0) &&
+-		vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
+-			goto exit;
+-		addr = vb2_dma_contig_plane_dma_addr(vb, 0);
++	vb2_set_plane_payload(vb, 0, common->fmt.fmt.pix.sizeimage);
++	if (vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
++		return -EINVAL;
+ 
+-		if (q->streaming) {
+-			if (!IS_ALIGNED((addr + common->ytop_off), 8) ||
+-				!IS_ALIGNED((addr + common->ybtm_off), 8) ||
+-				!IS_ALIGNED((addr + common->ctop_off), 8) ||
+-				!IS_ALIGNED((addr + common->cbtm_off), 8))
+-				goto exit;
+-		}
++	vb->v4l2_buf.field = common->fmt.fmt.pix.field;
++
++	addr = vb2_dma_contig_plane_dma_addr(vb, 0);
++	if (!IS_ALIGNED((addr + common->ytop_off), 8) ||
++		!IS_ALIGNED((addr + common->ybtm_off), 8) ||
++		!IS_ALIGNED((addr + common->ctop_off), 8) ||
++		!IS_ALIGNED((addr + common->cbtm_off), 8)) {
++		vpif_dbg(1, debug, "offset is not aligned\n");
++		return -EINVAL;
+ 	}
++
+ 	return 0;
+-exit:
+-	vpif_dbg(1, debug, "buffer_prepare:offset is not aligned to 8 bytes\n");
+-	return -EINVAL;
+ }
+ 
+ /**
 -- 
-Thanks and regards,
+1.7.9.5
 
-Sumit Semwal
-Graphics Engineer - Graphics working group
-Linaro.org │ Open source software for ARM SoCs
