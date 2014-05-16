@@ -1,45 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.aswsp.com ([193.34.35.150]:27996 "EHLO mail.aswsp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752434AbaEUJsZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 May 2014 05:48:25 -0400
-From: Victor Lambret <victor.lambret.ext@parrot.com>
-To: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC: Victor Lambret <victor.lambret.ext@parrot.com>
-Subject: [PATCH] videobuf2-core: remove duplicated code
-Date: Wed, 21 May 2014 11:48:43 +0200
-Message-ID: <1400665723-21695-1-git-send-email-victor.lambret.ext@parrot.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:46790 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933242AbaEPNlx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 May 2014 09:41:53 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 34/49] media: davinci: vpif_capture: use vb2_fop_mmap/poll
+Date: Fri, 16 May 2014 19:03:40 +0530
+Message-Id: <1400247235-31434-37-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove duplicated test of buffer presence at streamon
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Victor Lambret <victor.lambret.ext@parrot.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/media/platform/davinci/vpif_capture.c |   53 +++----------------------
+ 1 file changed, 6 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index f9059bb..b731b66 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2067,10 +2067,6 @@ static int vb2_internal_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
- 		return -EINVAL;
- 	}
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 58dddf6..a50e392 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -751,50 +751,6 @@ static void vpif_config_addr(struct channel_obj *ch, int muxmode)
+ }
  
--	if (!q->num_buffers) {
--		dprintk(1, "streamon: no buffers have been allocated\n");
--		return -EINVAL;
+ /**
+- * vpif_mmap : It is used to map kernel space buffers into user spaces
+- * @filep: file pointer
+- * @vma: ptr to vm_area_struct
+- */
+-static int vpif_mmap(struct file *filep, struct vm_area_struct *vma)
+-{
+-	/* Get the channel object and file handle object */
+-	struct vpif_fh *fh = filep->private_data;
+-	struct channel_obj *ch = fh->channel;
+-	struct common_obj *common = &(ch->common[VPIF_VIDEO_INDEX]);
+-	int ret;
+-
+-	vpif_dbg(2, debug, "vpif_mmap\n");
+-
+-	if (mutex_lock_interruptible(&common->lock))
+-		return -ERESTARTSYS;
+-	ret = vb2_mmap(&common->buffer_queue, vma);
+-	mutex_unlock(&common->lock);
+-	return ret;
+-}
+-
+-/**
+- * vpif_poll: It is used for select/poll system call
+- * @filep: file pointer
+- * @wait: poll table to wait
+- */
+-static unsigned int vpif_poll(struct file *filep, poll_table * wait)
+-{
+-	struct vpif_fh *fh = filep->private_data;
+-	struct channel_obj *channel = fh->channel;
+-	struct common_obj *common = &(channel->common[VPIF_VIDEO_INDEX]);
+-	unsigned int res = 0;
+-
+-	vpif_dbg(2, debug, "vpif_poll\n");
+-
+-	if (common->started) {
+-		mutex_lock(&common->lock);
+-		res = vb2_poll(&common->buffer_queue, filep, wait);
+-		mutex_unlock(&common->lock);
 -	}
- 	if (q->num_buffers < q->min_buffers_needed) {
- 		dprintk(1, "streamon: need at least %u allocated buffers\n",
- 				q->min_buffers_needed);
+-	return res;
+-}
+-
+-/**
+  * vpif_open : vpif open handler
+  * @filep: file ptr
+  *
+@@ -1797,8 +1753,8 @@ static struct v4l2_file_operations vpif_fops = {
+ 	.open = vpif_open,
+ 	.release = vpif_release,
+ 	.unlocked_ioctl = video_ioctl2,
+-	.mmap = vpif_mmap,
+-	.poll = vpif_poll
++	.mmap = vb2_fop_mmap,
++	.poll = vb2_fop_poll
+ };
+ 
+ /* vpif video template */
+@@ -1884,6 +1840,7 @@ static int vpif_async_bound(struct v4l2_async_notifier *notifier,
+ static int vpif_probe_complete(void)
+ {
+ 	struct common_obj *common;
++	struct video_device *vdev;
+ 	struct channel_obj *ch;
+ 	struct vb2_queue *q;
+ 	int i, j, err, k;
+@@ -1931,7 +1888,9 @@ static int vpif_probe_complete(void)
+ 
+ 		INIT_LIST_HEAD(&common->dma_queue);
+ 
+-		err = video_register_device(ch->video_dev,
++		vdev = ch->video_dev;
++		vdev->queue = q;
++		err = video_register_device(vdev,
+ 					    VFL_TYPE_GRABBER, (j ? 1 : 0));
+ 		if (err)
+ 			goto probe_out;
 -- 
-2.0.0.rc2
+1.7.9.5
 
