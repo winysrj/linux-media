@@ -1,48 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50878 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751498AbaEZWqy (ORCPT
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:62784 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933179AbaEPNlW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 18:46:54 -0400
-Received: from avalon.ideasonboard.com (30.141-246-81.adsl-dyn.isp.belgacom.be [81.246.141.30])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id CF74835A00
-	for <linux-media@vger.kernel.org>; Tue, 27 May 2014 00:46:42 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] v4l: vsp1: sru: Handle control handler initialization errors
-Date: Tue, 27 May 2014 00:46:49 +0200
-Message-Id: <1401144409-13217-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Fri, 16 May 2014 09:41:22 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 28/49] media: davinci: vpif_capture: use vb2_ops_wait_prepare/finish helper functions
+Date: Fri, 16 May 2014 19:03:33 +0530
+Message-Id: <1400247235-31434-30-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bail out when the SRU control handler fails to initialize.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+this patch makes use of vb2_ops_wait_prepare/finish helper functions.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/platform/vsp1/vsp1_sru.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/platform/davinci/vpif_capture.c |   21 +--------------------
+ 1 file changed, 1 insertion(+), 20 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index aa0e04c..79efcaf 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -348,6 +348,14 @@ struct vsp1_sru *vsp1_sru_create(struct vsp1_device *vsp1)
- 	/* Initialize the control handler. */
- 	v4l2_ctrl_handler_init(&sru->ctrls, 1);
- 	v4l2_ctrl_new_custom(&sru->ctrls, &sru_intensity_control, NULL);
-+
-+	if (sru->ctrls.error) {
-+		dev_err(vsp1->dev, "sru: failed to initialize controls\n");
-+		ret = sru->ctrls.error;
-+		v4l2_ctrl_handler_free(&sru->ctrls);
-+		return ERR_PTR(ret);
-+	}
-+
- 	v4l2_ctrl_handler_setup(&sru->ctrls);
- 	sru->entity.subdev.ctrl_handler = &sru->ctrls;
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 484d858..8572efe 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -224,24 +224,6 @@ static void vpif_buf_cleanup(struct vb2_buffer *vb)
  
+ }
+ 
+-static void vpif_wait_prepare(struct vb2_queue *vq)
+-{
+-	struct channel_obj *ch = vb2_get_drv_priv(vq);
+-	struct common_obj *common;
+-
+-	common = &ch->common[VPIF_VIDEO_INDEX];
+-	mutex_unlock(&common->lock);
+-}
+-
+-static void vpif_wait_finish(struct vb2_queue *vq)
+-{
+-	struct channel_obj *ch = vb2_get_drv_priv(vq);
+-	struct common_obj *common;
+-
+-	common = &ch->common[VPIF_VIDEO_INDEX];
+-	mutex_lock(&common->lock);
+-}
+-
+ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct vpif_capture_config *vpif_config_data =
+@@ -374,8 +356,6 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
+ 
+ static struct vb2_ops video_qops = {
+ 	.queue_setup		= vpif_buffer_queue_setup,
+-	.wait_prepare		= vpif_wait_prepare,
+-	.wait_finish		= vpif_wait_finish,
+ 	.buf_prepare		= vpif_buffer_prepare,
+ 	.start_streaming	= vpif_start_streaming,
+ 	.stop_streaming		= vpif_stop_streaming,
+@@ -1977,6 +1957,7 @@ static int vpif_probe_complete(void)
+ 		q->buf_struct_size = sizeof(struct vpif_cap_buffer);
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 1;
++		q->lock = &common->lock;
+ 
+ 		err = vb2_queue_init(q);
+ 		if (err) {
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
