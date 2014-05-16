@@ -1,110 +1,286 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3591 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752978AbaE1Lbb (ORCPT
+Received: from mail-pb0-f51.google.com ([209.85.160.51]:58091 "EHLO
+	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932566AbaEPNlI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 May 2014 07:31:31 -0400
-Message-ID: <5385C8D7.3090804@xs4all.nl>
-Date: Wed, 28 May 2014 13:30:31 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Pawel Osciak <pawel@osciak.com>
-CC: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] videobuf2: call __verify_length only for MMAP
- and USERPTR memory
-References: <1401113934-29601-1-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1401113934-29601-1-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Fri, 16 May 2014 09:41:08 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 26/49] media: davinci: vpif_capture: initalize vb2 queue and DMA context during probe
+Date: Fri, 16 May 2014 19:03:31 +0530
+Message-Id: <1400247235-31434-28-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-I will have to look at this more carefully when I have more time. I'm not too
-keen about having an exception for dmabuf. Perhaps this check should be moved
-for all memory models.
+this patch moves the initalization of vb2 queue and
+the DMA context to probe() and clean up in remove()
+callback respectively.
 
-On 05/26/14 16:18, Philipp Zabel wrote:
-> For DMABUF memory, buffer length is allowed to be zero on QBUF because the
-> actual buffer size can be taken from the DMABUF. Therefore, the length check
-> can only be done later in __qbuf_dmabuf, once the dmabuf was obtained.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 15 +++++++++++++--
->  1 file changed, 13 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index f9059bb..434bdff 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1374,6 +1374,15 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->  		if (planes[plane].length == 0)
->  			planes[plane].length = dbuf->size;
->  
-> +		/* verify that the bytesused value fits in the plane length and
-> +		 * that the data offset doesn't exceed the bytesused value.
-> +		 */
-> +		if ((planes[plane].bytesused > planes[plane].length) ||
-> +		    (planes[plane].data_offset >= planes[plane].bytesused)) {
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c |  110 ++++++++++++-------------
+ 1 file changed, 51 insertions(+), 59 deletions(-)
 
-This is wrong, it should be:
-
-		if ((planes[plane].bytesused > planes[plane].length) ||
-		    (planes[plane].data_offset > 0 &&
-		     planes[plane].data_offset >= planes[plane].bytesused)) {
-
-just like what __verify_length does. In rare cases bytesused can be 0.
-
-For the reason why see commit 3c5c23c57717bf134a3c3f4af5886c7e08500e34:
-
-    [media] vb2: Allow queuing OUTPUT buffers with zeroed 'bytesused'
-    
-    Modify the bytesused/data_offset check to not fail if both bytesused
-    and data_offset is set to 0. This should minimize possible issues in
-    existing applications which worked before we enforced the plane lengths
-    for output buffers checks introduced in commit 8023ed09cb278004a2
-    "videobuf2-core: Verify planes lengths for output buffers"
-
-Hmm, the length check should really be commented with that commit message
-since it looks weird otherwise.
-
-Regards,
-
-	Hans
-
-> +			ret = -EINVAL;
-> +			goto err;
-> +		}
-> +
->  		if (planes[plane].length < planes[plane].data_offset +
->  		    q->plane_sizes[plane]) {
->  			dprintk(1, "qbuf: invalid dmabuf length for plane %d\n",
-> @@ -1488,9 +1497,10 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->  {
->  	struct vb2_queue *q = vb->vb2_queue;
->  	struct rw_semaphore *mmap_sem;
-> -	int ret;
-> +	int ret = 0;
->  
-> -	ret = __verify_length(vb, b);
-> +	if (q->memory != V4L2_MEMORY_DMABUF)
-> +		ret = __verify_length(vb, b);
->  	if (ret < 0) {
->  		dprintk(1, "%s(): plane parameters verification failed: %d\n",
->  			__func__, ret);
-> @@ -1529,6 +1539,7 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->  		up_read(mmap_sem);
->  		break;
->  	case V4L2_MEMORY_DMABUF:
-> +		/* __qbuf_dmabuf verifies buffer length itself */
->  		ret = __qbuf_dmabuf(vb, b);
->  		break;
->  	default:
-> 
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index d09a27a..b035c88 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -71,6 +71,13 @@ static struct device *vpif_dev;
+ static void vpif_calculate_offsets(struct channel_obj *ch);
+ static void vpif_config_addr(struct channel_obj *ch, int muxmode);
+ 
++static u8 channel_first_int[VPIF_NUMBER_OF_OBJECTS][2] = { {1, 1} };
++
++static inline struct vpif_cap_buffer *to_vpif_buffer(struct vb2_buffer *vb)
++{
++	return container_of(vb, struct vpif_cap_buffer, vb);
++}
++
+ /**
+  * buffer_prepare :  callback function for buffer prepare
+  * @vb: ptr to vb2_buffer
+@@ -81,10 +88,8 @@ static void vpif_config_addr(struct channel_obj *ch, int muxmode);
+  */
+ static int vpif_buffer_prepare(struct vb2_buffer *vb)
+ {
+-	/* Get the file handle object and channel object */
+-	struct vpif_fh *fh = vb2_get_drv_priv(vb->vb2_queue);
+ 	struct vb2_queue *q = vb->vb2_queue;
+-	struct channel_obj *ch = fh->channel;
++	struct channel_obj *ch = vb2_get_drv_priv(q);
+ 	struct common_obj *common;
+ 	unsigned long addr;
+ 
+@@ -131,9 +136,7 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
+ 				unsigned int *nbuffers, unsigned int *nplanes,
+ 				unsigned int sizes[], void *alloc_ctxs[])
+ {
+-	/* Get the file handle object and channel object */
+-	struct vpif_fh *fh = vb2_get_drv_priv(vq);
+-	struct channel_obj *ch = fh->channel;
++	struct channel_obj *ch = vb2_get_drv_priv(vq);
+ 	struct common_obj *common;
+ 	unsigned long size;
+ 
+@@ -183,11 +186,8 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
+  */
+ static void vpif_buffer_queue(struct vb2_buffer *vb)
+ {
+-	/* Get the file handle object and channel object */
+-	struct vpif_fh *fh = vb2_get_drv_priv(vb->vb2_queue);
+-	struct channel_obj *ch = fh->channel;
+-	struct vpif_cap_buffer *buf = container_of(vb,
+-				struct vpif_cap_buffer, vb);
++	struct channel_obj *ch = vb2_get_drv_priv(vb->vb2_queue);
++	struct vpif_cap_buffer *buf = to_vpif_buffer(vb);
+ 	struct common_obj *common;
+ 	unsigned long flags;
+ 
+@@ -210,11 +210,8 @@ static void vpif_buffer_queue(struct vb2_buffer *vb)
+  */
+ static void vpif_buf_cleanup(struct vb2_buffer *vb)
+ {
+-	/* Get the file handle object and channel object */
+-	struct vpif_fh *fh = vb2_get_drv_priv(vb->vb2_queue);
+-	struct vpif_cap_buffer *buf = container_of(vb,
+-					struct vpif_cap_buffer, vb);
+-	struct channel_obj *ch = fh->channel;
++	struct channel_obj *ch = vb2_get_drv_priv(vb->vb2_queue);
++	struct vpif_cap_buffer *buf = to_vpif_buffer(vb);
+ 	struct common_obj *common;
+ 	unsigned long flags;
+ 
+@@ -229,8 +226,7 @@ static void vpif_buf_cleanup(struct vb2_buffer *vb)
+ 
+ static void vpif_wait_prepare(struct vb2_queue *vq)
+ {
+-	struct vpif_fh *fh = vb2_get_drv_priv(vq);
+-	struct channel_obj *ch = fh->channel;
++	struct channel_obj *ch = vb2_get_drv_priv(vq);
+ 	struct common_obj *common;
+ 
+ 	common = &ch->common[VPIF_VIDEO_INDEX];
+@@ -239,8 +235,7 @@ static void vpif_wait_prepare(struct vb2_queue *vq)
+ 
+ static void vpif_wait_finish(struct vb2_queue *vq)
+ {
+-	struct vpif_fh *fh = vb2_get_drv_priv(vq);
+-	struct channel_obj *ch = fh->channel;
++	struct channel_obj *ch = vb2_get_drv_priv(vq);
+ 	struct common_obj *common;
+ 
+ 	common = &ch->common[VPIF_VIDEO_INDEX];
+@@ -249,23 +244,18 @@ static void vpif_wait_finish(struct vb2_queue *vq)
+ 
+ static int vpif_buffer_init(struct vb2_buffer *vb)
+ {
+-	struct vpif_cap_buffer *buf = container_of(vb,
+-					struct vpif_cap_buffer, vb);
++	struct vpif_cap_buffer *buf = to_vpif_buffer(vb);
+ 
+ 	INIT_LIST_HEAD(&buf->list);
+ 
+ 	return 0;
+ }
+ 
+-static u8 channel_first_int[VPIF_NUMBER_OF_OBJECTS][2] =
+-	{ {1, 1} };
+-
+ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct vpif_capture_config *vpif_config_data =
+ 					vpif_dev->platform_data;
+-	struct vpif_fh *fh = vb2_get_drv_priv(vq);
+-	struct channel_obj *ch = fh->channel;
++	struct channel_obj *ch = vb2_get_drv_priv(vq);
+ 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+ 	struct vpif_params *vpif = &ch->vpifparams;
+ 	unsigned long addr = 0;
+@@ -348,8 +338,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ /* abort streaming and wait for last buffer */
+ static void vpif_stop_streaming(struct vb2_queue *vq)
+ {
+-	struct vpif_fh *fh = vb2_get_drv_priv(vq);
+-	struct channel_obj *ch = fh->channel;
++	struct channel_obj *ch = vb2_get_drv_priv(vq);
+ 	struct common_obj *common;
+ 	unsigned long flags;
+ 
+@@ -951,13 +940,9 @@ static int vpif_release(struct file *filep)
+ 
+ 	mutex_lock(&common->lock);
+ 	/* if this instance is doing IO */
+-	if (fh->io_allowed[VPIF_VIDEO_INDEX]) {
++	if (fh->io_allowed[VPIF_VIDEO_INDEX])
+ 		/* Reset io_usrs member of channel object */
+ 		common->io_usrs = 0;
+-		/* Free buffers allocated */
+-		vb2_queue_release(&common->buffer_queue);
+-		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+-	}
+ 
+ 	/* Decrement channel usrs counter */
+ 	ch->usrs--;
+@@ -987,8 +972,6 @@ static int vpif_reqbufs(struct file *file, void *priv,
+ 	struct channel_obj *ch = fh->channel;
+ 	struct common_obj *common;
+ 	u8 index = 0;
+-	struct vb2_queue *q;
+-	int ret;
+ 
+ 	vpif_dbg(2, debug, "vpif_reqbufs\n");
+ 
+@@ -1014,35 +997,12 @@ static int vpif_reqbufs(struct file *file, void *priv,
+ 	if (0 != common->io_usrs)
+ 		return -EBUSY;
+ 
+-	/* Initialize videobuf2 queue as per the buffer type */
+-	common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
+-	if (IS_ERR(common->alloc_ctx)) {
+-		vpif_err("Failed to get the context\n");
+-		return PTR_ERR(common->alloc_ctx);
+-	}
+-	q = &common->buffer_queue;
+-	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-	q->io_modes = VB2_MMAP | VB2_USERPTR;
+-	q->drv_priv = fh;
+-	q->ops = &video_qops;
+-	q->mem_ops = &vb2_dma_contig_memops;
+-	q->buf_struct_size = sizeof(struct vpif_cap_buffer);
+-	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+-	q->min_buffers_needed = 1;
+-
+-	ret = vb2_queue_init(q);
+-	if (ret) {
+-		vpif_err("vpif_capture: vb2_queue_init() failed\n");
+-		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+-		return ret;
+-	}
+ 	/* Set io allowed member of file handle to TRUE */
+ 	fh->io_allowed[index] = 1;
+ 	/* Increment io usrs member of channel object to 1 */
+ 	common->io_usrs = 1;
+ 	/* Store type of memory requested in channel object */
+ 	common->memory = reqbuf->memory;
+-	INIT_LIST_HEAD(&common->dma_queue);
+ 
+ 	/* Allocate buffers */
+ 	return vb2_reqbufs(&common->buffer_queue, reqbuf);
+@@ -1998,6 +1958,7 @@ static int vpif_probe_complete(void)
+ {
+ 	struct common_obj *common;
+ 	struct channel_obj *ch;
++	struct vb2_queue *q;
+ 	int i, j, err, k;
+ 
+ 	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
+@@ -2016,6 +1977,32 @@ static int vpif_probe_complete(void)
+ 		if (err)
+ 			goto probe_out;
+ 
++		/* Initialize vb2 queue */
++		q = &common->buffer_queue;
++		q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
++		q->drv_priv = ch;
++		q->ops = &video_qops;
++		q->mem_ops = &vb2_dma_contig_memops;
++		q->buf_struct_size = sizeof(struct vpif_cap_buffer);
++		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++		q->min_buffers_needed = 1;
++
++		err = vb2_queue_init(q);
++		if (err) {
++			vpif_err("vpif_capture: vb2_queue_init() failed\n");
++			goto probe_out;
++		}
++
++		common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
++		if (IS_ERR(common->alloc_ctx)) {
++			vpif_err("Failed to get the context\n");
++			err = PTR_ERR(common->alloc_ctx);
++			goto probe_out;
++		}
++
++		INIT_LIST_HEAD(&common->dma_queue);
++
+ 		err = video_register_device(ch->video_dev,
+ 					    VFL_TYPE_GRABBER, (j ? 1 : 0));
+ 		if (err)
+@@ -2029,6 +2016,8 @@ probe_out:
+ 	for (k = 0; k < j; k++) {
+ 		/* Get the pointer to the channel object */
+ 		ch = vpif_obj.dev[k];
++		common = &ch->common[k];
++		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+ 		/* Unregister video device */
+ 		video_unregister_device(ch->video_dev);
+ 	}
+@@ -2207,6 +2196,7 @@ vpif_unregister:
+  */
+ static int vpif_remove(struct platform_device *device)
+ {
++	struct common_obj *common;
+ 	struct channel_obj *ch;
+ 	int i;
+ 
+@@ -2217,6 +2207,8 @@ static int vpif_remove(struct platform_device *device)
+ 	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
+ 		/* Get the pointer to the channel object */
+ 		ch = vpif_obj.dev[i];
++		common = &ch->common[i];
++		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+ 		/* Unregister video device */
+ 		video_unregister_device(ch->video_dev);
+ 		kfree(vpif_obj.dev[i]);
+-- 
+1.7.9.5
 
