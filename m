@@ -1,139 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2616 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906AbaEWIfv (ORCPT
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:53299 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753497AbaEPNkK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 May 2014 04:35:51 -0400
-Message-ID: <537F0840.5030105@xs4all.nl>
-Date: Fri, 23 May 2014 10:35:12 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
+	Fri, 16 May 2014 09:40:10 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-CC: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v5 04/49] media: davinci: vpif_display: release buffers
- in case start_streaming() call back fails
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com> <1400247235-31434-6-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-6-git-send-email-prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 16/49] media: davinic: vpif_display: drop started member from struct common_obj
+Date: Fri, 16 May 2014 19:03:21 +0530
+Message-Id: <1400247235-31434-18-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/16/2014 03:33 PM, Lad, Prabhakar wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> this patch adds support to release the buffer by calling
-> vb2_buffer_done(), with state marked as VB2_BUF_STATE_QUEUED
-> if start_streaming() call back fails.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  drivers/media/platform/davinci/vpif_display.c |   42 +++++++++++++++----------
->  1 file changed, 26 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-> index 8bb9f02..1a17a45 100644
-> --- a/drivers/media/platform/davinci/vpif_display.c
-> +++ b/drivers/media/platform/davinci/vpif_display.c
-> @@ -196,26 +196,16 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
->  	struct channel_obj *ch = vb2_get_drv_priv(vq);
->  	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
->  	struct vpif_params *vpif = &ch->vpifparams;
-> -	unsigned long addr = 0;
-> -	unsigned long flags;
-> +	struct vpif_disp_buffer *buf, *tmp;
-> +	unsigned long addr, flags;
->  	int ret;
->  
->  	spin_lock_irqsave(&common->irqlock, flags);
->  
-> -	/* Get the next frame from the buffer queue */
-> -	common->next_frm = common->cur_frm =
-> -			    list_entry(common->dma_queue.next,
-> -				       struct vpif_disp_buffer, list);
-> -
-> -	list_del(&common->cur_frm->list);
-> -	spin_unlock_irqrestore(&common->irqlock, flags);
-> -	/* Mark state of the current frame to active */
-> -	common->cur_frm->vb.state = VB2_BUF_STATE_ACTIVE;
-> -
->  	/* Initialize field_id and started member */
->  	ch->field_id = 0;
->  	common->started = 1;
-> -	addr = vb2_dma_contig_plane_dma_addr(&common->cur_frm->vb, 0);
-> +
->  	/* Calculate the offset for Y and C data  in the buffer */
->  	vpif_calculate_offsets(ch);
->  
-> @@ -225,7 +215,8 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
->  		|| (!ch->vpifparams.std_info.frm_fmt
->  		&& (common->fmt.fmt.pix.field == V4L2_FIELD_NONE))) {
->  		vpif_err("conflict in field format and std format\n");
-> -		return -EINVAL;
-> +		ret = -EINVAL;
-> +		goto err;
->  	}
->  
->  	/* clock settings */
-> @@ -234,17 +225,28 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
->  		ycmux_mode, ch->vpifparams.std_info.hd_sd);
->  		if (ret < 0) {
->  			vpif_err("can't set clock\n");
-> -			return ret;
-> +			goto err;
->  		}
->  	}
->  
->  	/* set the parameters and addresses */
->  	ret = vpif_set_video_params(vpif, ch->channel_id + 2);
->  	if (ret < 0)
-> -		return ret;
-> +		goto err;
->  
->  	common->started = ret;
->  	vpif_config_addr(ch, ret);
-> +	/* Get the next frame from the buffer queue */
-> +	common->next_frm = common->cur_frm =
-> +			    list_entry(common->dma_queue.next,
-> +				       struct vpif_disp_buffer, list);
-> +
-> +	list_del(&common->cur_frm->list);
-> +	spin_unlock_irqrestore(&common->irqlock, flags);
-> +	/* Mark state of the current frame to active */
-> +	common->cur_frm->vb.state = VB2_BUF_STATE_ACTIVE;
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-There is no need to set this, all buffers queued to the driver are always in state
-ACTIVE. The vb2 core sets that for you. In general drivers never need to change the
-state manually.
+the started member was indicating whether streaming was started
+or not, this can be determined by vb2 offering, this patch replaces
+the started member from struct common_obj with appropriate vb2 calls.
 
-It happens twice in this driver and in both cases the assignment can be removed.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_display.c |   42 ++++++++++---------------
+ drivers/media/platform/davinci/vpif_display.h |    2 --
+ 2 files changed, 17 insertions(+), 27 deletions(-)
 
-Regards,
-
-	Hans
-
-> +
-> +	addr = vb2_dma_contig_plane_dma_addr(&common->cur_frm->vb, 0);
->  	common->set_addr((addr + common->ytop_off),
->  			    (addr + common->ybtm_off),
->  			    (addr + common->ctop_off),
-> @@ -271,6 +273,14 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
->  	}
->  
->  	return 0;
-> +
-> +err:
-> +	list_for_each_entry_safe(buf, tmp, &common->dma_queue, list) {
-> +		list_del(&buf->list);
-> +		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-> +	}
-> +
-> +	return ret;
->  }
->  
->  /* abort streaming and wait for last buffer */
-> 
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index 5ea2db8..aa487a6 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -62,6 +62,10 @@ static struct vpif_config_params config_params = {
+ 	.channel_bufsize[1]	= 720 * 576 * 2,
+ };
+ 
++
++/* Is set to 1 in case of SDTV formats, 2 in case of HDTV formats. */
++static int ycmux_mode;
++
+ static u8 channel_first_int[VPIF_NUMOBJECTS][2] = { {1, 1} };
+ 
+ static struct vpif_device vpif_obj = { {NULL} };
+@@ -185,9 +189,8 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 
+ 	spin_lock_irqsave(&common->irqlock, flags);
+ 
+-	/* Initialize field_id and started member */
++	/* Initialize field_id */
+ 	ch->field_id = 0;
+-	common->started = 1;
+ 
+ 	/* clock settings */
+ 	if (vpif_config_data->set_clock) {
+@@ -204,7 +207,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	common->started = ret;
++	ycmux_mode = ret;
+ 	vpif_config_addr(ch, ret);
+ 	/* Get the next frame from the buffer queue */
+ 	common->next_frm = common->cur_frm =
+@@ -235,8 +238,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 			channel2_clipping_enable(1);
+ 	}
+ 
+-	if (VPIF_CHANNEL3_VIDEO == ch->channel_id ||
+-		common->started == 2) {
++	if (VPIF_CHANNEL3_VIDEO == ch->channel_id || ycmux_mode == 2) {
+ 		channel3_intr_assert();
+ 		channel3_intr_enable(1);
+ 		enable_channel3(1);
+@@ -275,12 +277,10 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
+ 		enable_channel2(0);
+ 		channel2_intr_enable(0);
+ 	}
+-	if (VPIF_CHANNEL3_VIDEO == ch->channel_id ||
+-		2 == common->started) {
++	if (VPIF_CHANNEL3_VIDEO == ch->channel_id || ycmux_mode == 2) {
+ 		enable_channel3(0);
+ 		channel3_intr_enable(0);
+ 	}
+-	common->started = 0;
+ 
+ 	/* release all active buffers */
+ 	spin_lock_irqsave(&common->irqlock, flags);
+@@ -392,8 +392,6 @@ static irqreturn_t vpif_channel_isr(int irq, void *dev_id)
+ 	for (i = 0; i < VPIF_NUMOBJECTS; i++) {
+ 		common = &ch->common[i];
+ 		/* If streaming is started in this channel */
+-		if (0 == common->started)
+-			continue;
+ 
+ 		if (1 == ch->vpifparams.std_info.frm_fmt) {
+ 			spin_lock(&common->irqlock);
+@@ -704,10 +702,8 @@ static int vpif_s_fmt_vid_out(struct file *file, void *priv,
+ 	struct v4l2_pix_format *pixfmt;
+ 	int ret = 0;
+ 
+-	if (common->started) {
+-		vpif_dbg(1, debug, "Streaming in progress\n");
++	if (vb2_is_busy(&common->buffer_queue))
+ 		return -EBUSY;
+-	}
+ 
+ 	pixfmt = &fmt->fmt.pix;
+ 	/* Check for valid field format */
+@@ -747,13 +743,12 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id std_id)
+ 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+ 	int ret = 0;
+ 
++	if (vb2_is_busy(&common->buffer_queue))
++		return -EBUSY;
++
+ 	if (!(std_id & VPIF_V4L2_STD))
+ 		return -EINVAL;
+ 
+-	if (common->started) {
+-		vpif_err("streaming in progress\n");
+-		return -EBUSY;
+-	}
+ 
+ 	/* Call encoder subdevice function to set the standard */
+ 	ch->video.stdid = std_id;
+@@ -920,16 +915,14 @@ static int vpif_s_output(struct file *file, void *priv, unsigned int i)
+ 	struct vpif_display_chan_config *chan_cfg;
+ 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+ 
++	if (vb2_is_busy(&common->buffer_queue))
++		return -EBUSY;
++
+ 	chan_cfg = &config->chan_config[ch->channel_id];
+ 
+ 	if (i >= chan_cfg->output_count)
+ 		return -EINVAL;
+ 
+-	if (common->started) {
+-		vpif_err("Streaming in progress\n");
+-		return -EBUSY;
+-	}
+-
+ 	return vpif_set_output(config, ch, i);
+ }
+ 
+@@ -1223,7 +1216,6 @@ static int vpif_probe_complete(void)
+ 		for (k = 0; k < VPIF_NUMOBJECTS; k++) {
+ 			common = &ch->common[k];
+ 			common->io_usrs = 0;
+-			common->started = 0;
+ 			spin_lock_init(&common->irqlock);
+ 			mutex_init(&common->lock);
+ 			common->set_addr = NULL;
+@@ -1488,7 +1480,7 @@ static int vpif_suspend(struct device *dev)
+ 				channel2_intr_enable(0);
+ 			}
+ 			if (ch->channel_id == VPIF_CHANNEL3_VIDEO ||
+-					common->started == 2) {
++				ycmux_mode == 2) {
+ 				enable_channel3(0);
+ 				channel3_intr_enable(0);
+ 			}
+@@ -1518,7 +1510,7 @@ static int vpif_resume(struct device *dev)
+ 				channel2_intr_enable(1);
+ 			}
+ 			if (ch->channel_id == VPIF_CHANNEL3_VIDEO ||
+-					common->started == 2) {
++					ycmux_mode == 2) {
+ 				enable_channel3(1);
+ 				channel3_intr_enable(1);
+ 			}
+diff --git a/drivers/media/platform/davinci/vpif_display.h b/drivers/media/platform/davinci/vpif_display.h
+index e21a343..029e0c5 100644
+--- a/drivers/media/platform/davinci/vpif_display.h
++++ b/drivers/media/platform/davinci/vpif_display.h
+@@ -85,8 +85,6 @@ struct common_obj {
+ 						 * structure */
+ 	u32 io_usrs;				/* number of users performing
+ 						 * IO */
+-	u8 started;				/* Indicates whether streaming
+-						 * started */
+ 	u32 ytop_off;				/* offset of Y top from the
+ 						 * starting of the buffer */
+ 	u32 ybtm_off;				/* offset of Y bottom from the
+-- 
+1.7.9.5
 
