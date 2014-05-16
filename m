@@ -1,47 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:35220 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751989AbaELQSE (ORCPT
+Received: from mail-pb0-f50.google.com ([209.85.160.50]:62601 "EHLO
+	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932605AbaEPNmy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 May 2014 12:18:04 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N5G00575YM1RNA0@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 12 May 2014 17:18:01 +0100 (BST)
-Received: from [106.116.147.32] by eusync4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTPA id <0N5G002TPYM10WC0@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 12 May 2014 17:18:01 +0100 (BST)
-Message-id: <5370F435.6040703@samsung.com>
-Date: Mon, 12 May 2014 18:17:57 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR 3.15] exynos4-is driver fixes
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Fri, 16 May 2014 09:42:54 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 46/49] media: davinci: vpif_capture: return -ENODATA for *std calls
+Date: Fri, 16 May 2014 19:03:52 +0530
+Message-Id: <1400247235-31434-49-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit e6a623460e5fc960ac3ee9f946d3106233fd28d8:
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-  [media] media-device: fix infoleak in ioctl media_enum_entities() (2014-05-01 05:53:28 -0700)
+this patch adds supports to return -ENODATA to *std calls
+if the selected output does not support it.
 
-are available in the git repository at:
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c |   24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
-  ssh://linuxtv.org/git/snawrocki/samsung.git v3.15-fixes-2
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 0b97023..8d7ada2 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -862,11 +862,22 @@ static int vpif_querystd(struct file *file, void *priv, v4l2_std_id *std_id)
+  */
+ static int vpif_g_std(struct file *file, void *priv, v4l2_std_id *std)
+ {
++	struct vpif_capture_config *config = vpif_dev->platform_data;
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct channel_obj *ch = video_get_drvdata(vdev);
++	struct vpif_capture_chan_config *chan_cfg;
++	struct v4l2_input input;
+ 
+ 	vpif_dbg(2, debug, "vpif_g_std\n");
+ 
++	if (config->chan_config[ch->channel_id].inputs == NULL)
++		return -ENODATA;
++
++	chan_cfg = &config->chan_config[ch->channel_id];
++	input = chan_cfg->inputs[ch->input_idx].input;
++	if (input.capabilities != V4L2_IN_CAP_STD)
++		return -ENODATA;
++
+ 	*std = ch->video.stdid;
+ 	return 0;
+ }
+@@ -879,13 +890,24 @@ static int vpif_g_std(struct file *file, void *priv, v4l2_std_id *std)
+  */
+ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id std_id)
+ {
++	struct vpif_capture_config *config = vpif_dev->platform_data;
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct channel_obj *ch = video_get_drvdata(vdev);
+ 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+-	int ret = 0;
++	struct vpif_capture_chan_config *chan_cfg;
++	struct v4l2_input input;
++	int ret;
+ 
+ 	vpif_dbg(2, debug, "vpif_s_std\n");
+ 
++	if (config->chan_config[ch->channel_id].inputs == NULL)
++		return -ENODATA;
++
++	chan_cfg = &config->chan_config[ch->channel_id];
++	input = chan_cfg->inputs[ch->input_idx].input;
++	if (input.capabilities != V4L2_IN_CAP_STD)
++		return -ENODATA;
++
+ 	if (vb2_is_busy(&common->buffer_queue))
+ 		return -EBUSY;
+ 
+-- 
+1.7.9.5
 
-for you to fetch changes up to 1f9aadef778aa41e5d723817fdd0d4c7c98df4ad:
-
-  exynos4-is: Free FIMC-IS CPU memory only when allocated (2014-05-12 18:09:38 +0200)
-
-----------------------------------------------------------------
-Sylwester Nawrocki (2):
-      exynos4-is: Fix compilation for !CONFIG_COMMON_CLK
-      exynos4-is: Free FIMC-IS CPU memory only when allocated
-
- drivers/media/platform/exynos4-is/fimc-is.c   |    3 +++
- drivers/media/platform/exynos4-is/media-dev.c |    2 +-
- drivers/media/platform/exynos4-is/media-dev.h |    4 ++++
- 3 files changed, 8 insertions(+), 1 deletion(-)
