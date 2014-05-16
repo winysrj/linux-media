@@ -1,119 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f174.google.com ([209.85.128.174]:37142 "EHLO
-	mail-ve0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933196AbaEaNOo (ORCPT
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:60451 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933442AbaEPNmY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 May 2014 09:14:44 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: kernel-janitors@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 8/11] drivers/media/usb/usbvision/usbvision-core.c: Remove useless return variables
-Date: Sat, 31 May 2014 10:14:08 -0300
-Message-Id: <1401542051-3174-8-git-send-email-peter.senna@gmail.com>
+	Fri, 16 May 2014 09:42:24 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 40/49] media: davinci: vpif_capture: initialize the video device in single place
+Date: Fri, 16 May 2014 19:03:46 +0530
+Message-Id: <1400247235-31434-43-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch remove variables that are initialized with a constant,
-are never updated, and are only used as parameter of return.
-Return the constant instead of using a variable.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Verified by compilation only.
+this patch moves the initalization of video device to a
+single place and uses macro to define the driver name and
+use it appropraitely in required places.
 
-The coccinelle script that find and fixes this issue is:
-// <smpl>
-@@
-type T;
-constant C;
-identifier ret;
-@@
-- T ret = C;
-... when != ret
-    when strict
-return
-- ret
-+ C
-;
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/usb/usbvision/usbvision-core.c |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ drivers/media/platform/davinci/vpif_capture.c |   30 ++++++++++---------------
+ 1 file changed, 12 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/usb/usbvision/usbvision-core.c b/drivers/media/usb/usbvision/usbvision-core.c
-index 816b1cf..302aa07 100644
---- a/drivers/media/usb/usbvision/usbvision-core.c
-+++ b/drivers/media/usb/usbvision/usbvision-core.c
-@@ -1463,8 +1463,6 @@ static int usbvision_write_reg_irq(struct usb_usbvision *usbvision, int address,
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index b898779..d452eaf 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -65,6 +65,8 @@ static struct vpif_config_params config_params = {
+ 	.channel_bufsize[1] = 720 * 576 * 2,
+ };
  
- static int usbvision_init_compression(struct usb_usbvision *usbvision)
- {
--	int err_code = 0;
++#define VPIF_DRIVER_NAME	"vpif_capture"
++
+ /* global variables */
+ static struct vpif_device vpif_obj = { {NULL} };
+ static struct device *vpif_dev;
+@@ -1114,7 +1116,7 @@ static int vpif_querycap(struct file *file, void  *priv,
+ 
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+-	snprintf(cap->driver, sizeof(cap->driver), "%s", dev_name(vpif_dev));
++	strlcpy(cap->driver, VPIF_DRIVER_NAME, sizeof(cap->driver));
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
+ 		 dev_name(vpif_dev));
+ 	strlcpy(cap->card, config->card_name, sizeof(cap->card));
+@@ -1349,14 +1351,6 @@ static struct v4l2_file_operations vpif_fops = {
+ 	.poll = vb2_fop_poll
+ };
+ 
+-/* vpif video template */
+-static struct video_device vpif_video_template = {
+-	.name		= "vpif",
+-	.fops		= &vpif_fops,
+-	.minor		= -1,
+-	.ioctl_ops	= &vpif_ioctl_ops,
+-};
 -
- 	usbvision->last_isoc_frame_num = -1;
- 	usbvision->isoc_data_count = 0;
- 	usbvision->isoc_packet_count = 0;
-@@ -1475,7 +1473,7 @@ static int usbvision_init_compression(struct usb_usbvision *usbvision)
- 	usbvision->request_intra = 1;
- 	usbvision->isoc_measure_bandwidth_count = 0;
+ /**
+  * initialize_vpif() - Initialize vpif data structures
+  *
+@@ -1476,7 +1470,14 @@ static int vpif_probe_complete(void)
  
--	return err_code;
-+	return 0;
- }
+ 		INIT_LIST_HEAD(&common->dma_queue);
  
- /* this function measures the used bandwidth since last call
-@@ -1484,11 +1482,9 @@ static int usbvision_init_compression(struct usb_usbvision *usbvision)
-  */
- static int usbvision_measure_bandwidth(struct usb_usbvision *usbvision)
- {
--	int err_code = 0;
--
- 	if (usbvision->isoc_measure_bandwidth_count < 2) { /* this gives an average bandwidth of 3 frames */
- 		usbvision->isoc_measure_bandwidth_count++;
--		return err_code;
-+		return 0;
++		/* Initialize the video_device structure */
+ 		vdev = ch->video_dev;
++		strlcpy(vdev->name, VPIF_DRIVER_NAME, sizeof(vdev->name));
++		vdev->release = video_device_release;
++		vdev->fops = &vpif_fops;
++		vdev->ioctl_ops = &vpif_ioctl_ops;
++		vdev->v4l2_dev = &vpif_obj.v4l2_dev;
++		vdev->vfl_dir = VFL_DIR_RX;
+ 		vdev->queue = q;
+ 		vdev->lock = &common->lock;
+ 		set_bit(V4L2_FL_USE_FH_PRIO, &vdev->flags);
+@@ -1549,7 +1550,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 
+ 	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, res_idx))) {
+ 		err = devm_request_irq(&pdev->dev, res->start, vpif_channel_isr,
+-					IRQF_SHARED, "VPIF_Capture",
++					IRQF_SHARED, VPIF_DRIVER_NAME,
+ 					(void *)(&vpif_obj.dev[res_idx]->
+ 					channel_id));
+ 		if (err) {
+@@ -1573,13 +1574,6 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 			goto vpif_unregister;
+ 		}
+ 
+-		/* Initialize field of video device */
+-		*vfd = vpif_video_template;
+-		vfd->v4l2_dev = &vpif_obj.v4l2_dev;
+-		vfd->release = video_device_release;
+-		snprintf(vfd->name, sizeof(vfd->name),
+-			 "VPIF_Capture_DRIVER_V%s",
+-			 VPIF_CAPTURE_VERSION);
+ 		/* Set video_dev to the video device */
+ 		ch->video_dev = vfd;
  	}
- 	if ((usbvision->isoc_packet_size > 0) && (usbvision->isoc_packet_count > 0)) {
- 		usbvision->used_bandwidth = usbvision->isoc_data_count /
-@@ -1499,7 +1495,7 @@ static int usbvision_measure_bandwidth(struct usb_usbvision *usbvision)
- 	usbvision->isoc_data_count = 0;
- 	usbvision->isoc_packet_count = 0;
- 	usbvision->isoc_skip_count = 0;
--	return err_code;
-+	return 0;
- }
+@@ -1754,7 +1748,7 @@ static const struct dev_pm_ops vpif_dev_pm_ops = {
  
- static int usbvision_adjust_compression(struct usb_usbvision *usbvision)
-@@ -1546,26 +1542,24 @@ static int usbvision_adjust_compression(struct usb_usbvision *usbvision)
- 
- static int usbvision_request_intra(struct usb_usbvision *usbvision)
- {
--	int err_code = 0;
- 	unsigned char buffer[1];
- 
- 	PDEBUG(DBG_IRQ, "");
- 	usbvision->request_intra = 1;
- 	buffer[0] = 1;
- 	usbvision_write_reg_irq(usbvision, USBVISION_FORCE_INTRA, buffer, 1);
--	return err_code;
-+	return 0;
- }
- 
- static int usbvision_unrequest_intra(struct usb_usbvision *usbvision)
- {
--	int err_code = 0;
- 	unsigned char buffer[1];
- 
- 	PDEBUG(DBG_IRQ, "");
- 	usbvision->request_intra = 0;
- 	buffer[0] = 0;
- 	usbvision_write_reg_irq(usbvision, USBVISION_FORCE_INTRA, buffer, 1);
--	return err_code;
-+	return 0;
- }
- 
- /*******************************
+ static __refdata struct platform_driver vpif_driver = {
+ 	.driver	= {
+-		.name	= "vpif_capture",
++		.name	= VPIF_DRIVER_NAME,
+ 		.owner	= THIS_MODULE,
+ 		.pm	= vpif_pm_ops,
+ 	},
+-- 
+1.7.9.5
 
