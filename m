@@ -1,36 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39926 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757263AbaEIPcO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 11:32:14 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] vb2: fix num_buffers calculation if req->count > VIDEO_MAX_FRAMES
-Date: Fri,  9 May 2014 17:32:10 +0200
-Message-Id: <1399649530-20885-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:54341 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754454AbaEPNg0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 May 2014 09:36:26 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 02/49] media: davinci: vpif_display: drop buf_init() callback
+Date: Fri, 16 May 2014 19:03:07 +0530
+Message-Id: <1400247235-31434-4-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/v4l2-core/videobuf2-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 40024d7..4d4f6ba 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -905,7 +905,7 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 	 * Make sure the requested values and current defaults are sane.
- 	 */
- 	num_buffers = min_t(unsigned int, req->count, VIDEO_MAX_FRAME);
--	num_buffers = max_t(unsigned int, req->count, q->min_buffers_needed);
-+	num_buffers = max_t(unsigned int, num_buffers, q->min_buffers_needed);
- 	memset(q->plane_sizes, 0, sizeof(q->plane_sizes));
- 	memset(q->alloc_ctx, 0, sizeof(q->alloc_ctx));
- 	q->memory = req->memory;
+this patch drops the buf_init() callback as init
+of buf list is not required.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_display.c |   11 -----------
+ 1 file changed, 11 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index dbd4f0f..e2102ea 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -205,16 +205,6 @@ static void vpif_wait_finish(struct vb2_queue *vq)
+ 	mutex_lock(&common->lock);
+ }
+ 
+-static int vpif_buffer_init(struct vb2_buffer *vb)
+-{
+-	struct vpif_disp_buffer *buf = container_of(vb,
+-					struct vpif_disp_buffer, vb);
+-
+-	INIT_LIST_HEAD(&buf->list);
+-
+-	return 0;
+-}
+-
+ static u8 channel_first_int[VPIF_NUMOBJECTS][2] = { {1, 1} };
+ 
+ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+@@ -351,7 +341,6 @@ static struct vb2_ops video_qops = {
+ 	.queue_setup		= vpif_buffer_queue_setup,
+ 	.wait_prepare		= vpif_wait_prepare,
+ 	.wait_finish		= vpif_wait_finish,
+-	.buf_init		= vpif_buffer_init,
+ 	.buf_prepare		= vpif_buffer_prepare,
+ 	.start_streaming	= vpif_start_streaming,
+ 	.stop_streaming		= vpif_stop_streaming,
 -- 
-2.0.0.rc0
+1.7.9.5
 
