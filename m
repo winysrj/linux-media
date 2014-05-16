@@ -1,129 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2640 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191AbaEZCoF (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:29198 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757194AbaEPMEM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 May 2014 22:44:05 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4Q2i0Dw064524
-	for <linux-media@vger.kernel.org>; Mon, 26 May 2014 04:44:02 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 803D12A19A6
-	for <linux-media@vger.kernel.org>; Mon, 26 May 2014 04:43:33 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Fri, 16 May 2014 08:04:12 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N5O008JC1IYKU70@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 16 May 2014 21:04:10 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ABI WARNING
-Message-Id: <20140526024333.803D12A19A6@tschai.lan>
-Date: Mon, 26 May 2014 04:43:33 +0200 (CEST)
+Cc: s.nawrocki@samsung.com, arun.kk@samsung.com,
+	Kamil Debski <k.debski@samsung.com>
+Subject: [PATCH 1/2] v4l: s5p-mfc: Fix default pixel format selection for
+ decoder
+Date: Fri, 16 May 2014 14:03:43 +0200
+Message-id: <1400241824-18260-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The patch adding the v6 version of MFC changed the default format for
+the CAPTURE queue, but this also affects the v5 version. This patch
+solves this problem by checking the MFC version before assigning the
+default format.
 
-Results of the daily build of media_tree:
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-date:		Mon May 26 04:00:28 CEST 2014
-git branch:	test
-git hash:	f7a27ff1fb77e114d1059a5eb2ed1cffdc508ce8
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.14-1.slh.1-amd64
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index a4e6668..ac43a4a 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -32,9 +32,6 @@
+ #include "s5p_mfc_opr.h"
+ #include "s5p_mfc_pm.h"
+ 
+-#define DEF_SRC_FMT_DEC	V4L2_PIX_FMT_H264
+-#define DEF_DST_FMT_DEC	V4L2_PIX_FMT_NV12MT_16X16
+-
+ static struct s5p_mfc_fmt formats[] = {
+ 	{
+ 		.name		= "4:2:0 2 Planes 16x16 Tiles",
+@@ -1190,9 +1187,12 @@ void s5p_mfc_dec_ctrls_delete(struct s5p_mfc_ctx *ctx)
+ void s5p_mfc_dec_init(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct v4l2_format f;
+-	f.fmt.pix_mp.pixelformat = DEF_SRC_FMT_DEC;
++	f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_H264;
+ 	ctx->src_fmt = find_format(&f, MFC_FMT_DEC);
+-	f.fmt.pix_mp.pixelformat = DEF_DST_FMT_DEC;
++	if (IS_MFCV6_PLUS(ctx->dev))
++		f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12MT_16X16;
++	else
++		f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12MT;
+ 	ctx->dst_fmt = find_format(&f, MFC_FMT_RAW);
+ 	mfc_debug(2, "Default src_fmt is %x, dest_fmt is %x\n",
+ 			(unsigned int)ctx->src_fmt, (unsigned int)ctx->dst_fmt);
+-- 
+1.7.9.5
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
