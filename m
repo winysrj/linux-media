@@ -1,70 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49832 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751952AbaEZTuF (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4664 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752138AbaEPCny (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 15:50:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Thu, 15 May 2014 22:43:54 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4G2ho30077747
+	for <linux-media@vger.kernel.org>; Fri, 16 May 2014 04:43:52 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id C5C7A2A19A4
+	for <linux-media@vger.kernel.org>; Fri, 16 May 2014 04:43:35 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Julien BERAUD <julien.beraud@parrot.com>,
-	Boris Todorov <boris.st.todorov@gmail.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Enrico <ebutera@users.berlios.de>,
-	Stefan Herbrechtsmeier <sherbrec@cit-ec.uni-bielefeld.de>,
-	Javier Martinez Canillas <martinez.javier@gmail.com>,
-	Chris Whittenburg <whittenburg@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 07/11] omap3isp: ccdc: Simplify the configuration function
-Date: Mon, 26 May 2014 21:50:08 +0200
-Message-Id: <1401133812-8745-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140516024335.C5C7A2A19A4@tschai.lan>
+Date: Fri, 16 May 2014 04:43:35 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Assign the format variable to the sink pad format earlier and use it
-instead of accessing the sink pad format directly from the ISP
-structure.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispccdc.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index 6409292..8fbba95 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -1114,6 +1114,9 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 		pdata = &((struct isp_v4l2_subdevs_group *)sensor->host_priv)
- 			->bus.parallel;
- 
-+	/* CCDC_PAD_SINK */
-+	format = &ccdc->formats[CCDC_PAD_SINK];
-+
- 	/* Compute the lane shifter shift value and enable the bridge when the
- 	 * input format is YUV.
- 	 */
-@@ -1124,8 +1127,7 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 		depth_in = fmt_info->width;
- 	}
- 
--	fmt_info = omap3isp_video_format_info
--		(isp->isp_ccdc.formats[CCDC_PAD_SINK].code);
-+	fmt_info = omap3isp_video_format_info(format->code);
- 	depth_out = fmt_info->width;
- 	shift = depth_in - depth_out;
- 
-@@ -1157,9 +1159,6 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	else
- 		syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
- 
--	/* CCDC_PAD_SINK */
--	format = &ccdc->formats[CCDC_PAD_SINK];
--
- 	/* Mosaic filter */
- 	switch (format->code) {
- 	case V4L2_MBUS_FMT_SRGGB10_1X10:
--- 
-1.8.5.5
+date:		Fri May 16 04:00:15 CEST 2014
+git branch:	test
+git hash:	ba0d342ecc21fbbe2f6c178f4479944d1fb34f3b
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-1.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
