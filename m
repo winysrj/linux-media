@@ -1,115 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2924 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751890AbaERCny (ORCPT
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:47844 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933029AbaEPNkw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 May 2014 22:43:54 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4I2hodk044905
-	for <linux-media@vger.kernel.org>; Sun, 18 May 2014 04:43:52 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 14BFB2A19A4
-	for <linux-media@vger.kernel.org>; Sun, 18 May 2014 04:43:33 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140518024333.14BFB2A19A4@tschai.lan>
-Date: Sun, 18 May 2014 04:43:33 +0200 (CEST)
+	Fri, 16 May 2014 09:40:52 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 23/49] media: davinci: vpif_display: return -ENODATA for *std calls
+Date: Fri, 16 May 2014 19:03:28 +0530
+Message-Id: <1400247235-31434-25-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Results of the daily build of media_tree:
+this patch adds supports to return -ENODATA to *std calls
+if the selected output does not support it.
 
-date:		Sun May 18 04:00:15 CEST 2014
-git branch:	test
-git hash:	ba0d342ecc21fbbe2f6c178f4479944d1fb34f3b
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.14-1.slh.1-amd64
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_display.c |   25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index f51b5be..f581e7a 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -715,14 +715,26 @@ static int vpif_try_fmt_vid_out(struct file *file, void *priv,
+ 
+ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id std_id)
+ {
++	struct vpif_display_config *config = vpif_dev->platform_data;
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct channel_obj *ch = video_get_drvdata(vdev);
+ 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+-	int ret = 0;
++	struct vpif_display_chan_config *chan_cfg;
++	struct v4l2_output output;
++	int ret;
++
++	if (config->chan_config[ch->channel_id].outputs == NULL)
++		return -ENODATA;
++
++	chan_cfg = &config->chan_config[ch->channel_id];
++	output = chan_cfg->outputs[ch->output_idx].output;
++	if (output.capabilities != V4L2_OUT_CAP_STD)
++		return -ENODATA;
+ 
+ 	if (vb2_is_busy(&common->buffer_queue))
+ 		return -EBUSY;
+ 
++
+ 	if (!(std_id & VPIF_V4L2_STD))
+ 		return -EINVAL;
+ 
+@@ -754,8 +766,19 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id std_id)
+ 
+ static int vpif_g_std(struct file *file, void *priv, v4l2_std_id *std)
+ {
++	struct vpif_display_config *config = vpif_dev->platform_data;
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct channel_obj *ch = video_get_drvdata(vdev);
++	struct vpif_display_chan_config *chan_cfg;
++	struct v4l2_output output;
++
++	if (config->chan_config[ch->channel_id].outputs == NULL)
++		return -ENODATA;
++
++	chan_cfg = &config->chan_config[ch->channel_id];
++	output = chan_cfg->outputs[ch->output_idx].output;
++	if (output.capabilities != V4L2_OUT_CAP_STD)
++		return -ENODATA;
+ 
+ 	*std = ch->video.stdid;
+ 	return 0;
+-- 
+1.7.9.5
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
