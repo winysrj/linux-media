@@ -1,49 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:57032 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752289AbaE0AEF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 20:04:05 -0400
-Received: from [192.168.1.56] ([84.26.254.29]) by mail.gmx.com (mrgmx001) with
- ESMTPSA (Nemesis) id 0M39zL-1WXXgi44O7-00sxOc for
- <linux-media@vger.kernel.org>; Tue, 27 May 2014 02:04:04 +0200
-Message-ID: <5383D673.5050101@gmx.net>
-Date: Tue, 27 May 2014 02:04:03 +0200
-From: "P. van Gaans" <w3ird_n3rd@gmx.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: MSI Digivox Trio, should I try to hire someone to patch for this
- device?
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:45945 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757479AbaEPNio (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 May 2014 09:38:44 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 11/49] media: davinci: vpif_display: use vb2_ioctl_* helpers
+Date: Fri, 16 May 2014 19:03:16 +0530
+Message-Id: <1400247235-31434-13-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-http://linuxtv.org/wiki/index.php/MSI_DigiVox_Trio
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-If you're having a deja-vu, yeah, it's still me. I'm still using this 
-device using my butt-ugly patch by adding:
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_display.c |  180 ++-----------------------
+ 1 file changed, 10 insertions(+), 170 deletions(-)
 
-{ USB_DEVICE(0xeb1a, 0x2885),    /* MSI Digivox Trio */
-             .driver_info = EM2884_BOARD_TERRATEC_H5 },
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index 5fc1256..8bd3794 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -745,75 +745,6 @@ static int vpif_try_fmt_vid_out(struct file *file, void *priv,
+ 	return ret;
+ }
+ 
+-static int vpif_reqbufs(struct file *file, void *priv,
+-			struct v4l2_requestbuffers *reqbuf)
+-{
+-	struct video_device *vdev = video_devdata(file);
+-	struct channel_obj *ch = video_get_drvdata(vdev);
+-	struct common_obj *common;
+-	enum v4l2_field field;
+-	u8 index = 0;
+-
+-	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != reqbuf->type)
+-		return -EINVAL;
+-
+-	index = VPIF_VIDEO_INDEX;
+-
+-	common = &ch->common[index];
+-
+-	if (common->fmt.type != reqbuf->type || !vpif_dev)
+-		return -EINVAL;
+-	if (0 != common->io_usrs)
+-		return -EBUSY;
+-
+-	if (reqbuf->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+-		if (common->fmt.fmt.pix.field == V4L2_FIELD_ANY)
+-			field = V4L2_FIELD_INTERLACED;
+-		else
+-			field = common->fmt.fmt.pix.field;
+-	} else {
+-		field = V4L2_VBI_INTERLACED;
+-	}
+-	/* Increment io usrs member of channel object to 1 */
+-	common->io_usrs = 1;
+-	/* Store type of memory requested in channel object */
+-	common->memory = reqbuf->memory;
+-	/* Allocate buffers */
+-	return vb2_reqbufs(&common->buffer_queue, reqbuf);
+-}
+-
+-static int vpif_querybuf(struct file *file, void *priv,
+-				struct v4l2_buffer *tbuf)
+-{
+-	struct video_device *vdev = video_devdata(file);
+-	struct channel_obj *ch = video_get_drvdata(vdev);
+-	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+-
+-	if (common->fmt.type != tbuf->type)
+-		return -EINVAL;
+-
+-	return vb2_querybuf(&common->buffer_queue, tbuf);
+-}
+-
+-static int vpif_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+-{
+-	struct video_device *vdev = video_devdata(file);
+-	struct channel_obj *ch = video_get_drvdata(vdev);
+-	struct common_obj *common = NULL;
+-
+-	if (!buf || !priv)
+-		return -EINVAL;
+-
+-	if (!ch)
+-		return -EINVAL;
+-
+-	common = &(ch->common[VPIF_VIDEO_INDEX]);
+-	if (common->fmt.type != buf->type)
+-		return -EINVAL;
+-
+-	return vb2_qbuf(&common->buffer_queue, buf);
+-}
+-
+ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id std_id)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+@@ -870,101 +801,6 @@ static int vpif_g_std(struct file *file, void *priv, v4l2_std_id *std)
+ 	return 0;
+ }
+ 
+-static int vpif_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+-{
+-	struct video_device *vdev = video_devdata(file);
+-	struct channel_obj *ch = video_get_drvdata(vdev);
+-	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+-
+-	return vb2_dqbuf(&common->buffer_queue, p,
+-					(file->f_flags & O_NONBLOCK));
+-}
+-
+-static int vpif_streamon(struct file *file, void *priv,
+-				enum v4l2_buf_type buftype)
+-{
+-	struct video_device *vdev = video_devdata(file);
+-	struct channel_obj *ch = video_get_drvdata(vdev);
+-	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+-	struct channel_obj *oth_ch = vpif_obj.dev[!ch->channel_id];
+-	int ret = 0;
+-
+-	if (buftype != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+-		vpif_err("buffer type not supported\n");
+-		return -EINVAL;
+-	}
+-
+-	/* If Streaming is already started, return error */
+-	if (common->started) {
+-		vpif_err("channel->started\n");
+-		return -EBUSY;
+-	}
+-
+-	if ((ch->channel_id == VPIF_CHANNEL2_VIDEO
+-		&& oth_ch->common[VPIF_VIDEO_INDEX].started &&
+-		ch->vpifparams.std_info.ycmux_mode == 0)
+-		|| ((ch->channel_id == VPIF_CHANNEL3_VIDEO)
+-		&& (2 == oth_ch->common[VPIF_VIDEO_INDEX].started))) {
+-		vpif_err("other channel is using\n");
+-		return -EBUSY;
+-	}
+-
+-	ret = vpif_check_format(ch, &common->fmt.fmt.pix);
+-	if (ret < 0)
+-		return ret;
+-
+-	/* Call vb2_streamon to start streaming in videobuf2 */
+-	ret = vb2_streamon(&common->buffer_queue, buftype);
+-	if (ret < 0) {
+-		vpif_err("vb2_streamon\n");
+-		return ret;
+-	}
+-
+-	return ret;
+-}
+-
+-static int vpif_streamoff(struct file *file, void *priv,
+-				enum v4l2_buf_type buftype)
+-{
+-	struct video_device *vdev = video_devdata(file);
+-	struct channel_obj *ch = video_get_drvdata(vdev);
+-	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+-	struct vpif_display_config *vpif_config_data =
+-					vpif_dev->platform_data;
+-
+-	if (buftype != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+-		vpif_err("buffer type not supported\n");
+-		return -EINVAL;
+-	}
+-
+-	if (!common->started) {
+-		vpif_err("channel->started\n");
+-		return -EINVAL;
+-	}
+-
+-	if (buftype == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+-		/* disable channel */
+-		if (VPIF_CHANNEL2_VIDEO == ch->channel_id) {
+-			if (vpif_config_data->
+-				chan_config[VPIF_CHANNEL2_VIDEO].clip_en)
+-				channel2_clipping_enable(0);
+-			enable_channel2(0);
+-			channel2_intr_enable(0);
+-		}
+-		if ((VPIF_CHANNEL3_VIDEO == ch->channel_id) ||
+-					(2 == common->started)) {
+-			if (vpif_config_data->
+-				chan_config[VPIF_CHANNEL3_VIDEO].clip_en)
+-				channel3_clipping_enable(0);
+-			enable_channel3(0);
+-			channel3_intr_enable(0);
+-		}
+-	}
+-
+-	common->started = 0;
+-	return vb2_streamoff(&common->buffer_queue, buftype);
+-}
+-
+ static int vpif_cropcap(struct file *file, void *priv,
+ 			struct v4l2_cropcap *crop)
+ {
+@@ -1261,12 +1097,16 @@ static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
+ 	.vidioc_g_fmt_vid_out  		= vpif_g_fmt_vid_out,
+ 	.vidioc_s_fmt_vid_out   	= vpif_s_fmt_vid_out,
+ 	.vidioc_try_fmt_vid_out 	= vpif_try_fmt_vid_out,
+-	.vidioc_reqbufs         	= vpif_reqbufs,
+-	.vidioc_querybuf        	= vpif_querybuf,
+-	.vidioc_qbuf            	= vpif_qbuf,
+-	.vidioc_dqbuf           	= vpif_dqbuf,
+-	.vidioc_streamon        	= vpif_streamon,
+-	.vidioc_streamoff       	= vpif_streamoff,
++
++	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
++	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_expbuf			= vb2_ioctl_expbuf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++
+ 	.vidioc_s_std           	= vpif_s_std,
+ 	.vidioc_g_std			= vpif_g_std,
+ 	.vidioc_enum_output		= vpif_enum_output,
+-- 
+1.7.9.5
 
-to linux/drivers/media/usb/em28xx/em28xx-cards.c.
-
-It's starting to bug me more and more that I can never update my kernel 
-(well not without hassle anyway). I've written this to the mailinglist 
-before, but with no response.
-
-I just don't have the skill to write this in the neat way it needs to be 
-to be able to go upstream. Should I try to hire someone to do that? If 
-so, any suggestions? Just put an ad up on craigslist or something? Does 
-such a patch have a chance of going upstream? (as that's the whole point 
-- I want to update my kernel again)
-
-It should be really straightforward given that no reverse engineering or 
-anything is needed. It's just what it states above - pretend the Digivox 
-is an H5 and it's done.
-
-Anyone who can tune in on this, please share your thoughts.
-
-Best regards,
-
-P. van Gaans
