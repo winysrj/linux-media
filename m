@@ -1,118 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:63813 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750780AbaEIEeS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 00:34:18 -0400
-Message-ID: <536C5AB0.4090007@gmail.com>
-Date: Fri, 09 May 2014 10:03:52 +0530
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-MIME-Version: 1.0
-To: Kamil Debski <k.debski@samsung.com>,
-	'Arun Kumar K' <arun.kk@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>, posciak@chromium.org
-Subject: Re: [PATCH] [media] s5p-mfc: Don't try to resubmit VP8 bitstream
- buffer for decode.
-References: <1394180752-16348-1-git-send-email-arun.kk@samsung.com> <004b01cf6ad9$b5c83c80$2158b580$%debski@samsung.com>
-In-Reply-To: <004b01cf6ad9$b5c83c80$2158b580$%debski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:51147 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933242AbaEPNlt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 May 2014 09:41:49 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 33/49] media: davinci: vpif_capture: improve start/stop_streaming callbacks
+Date: Fri, 16 May 2014 19:03:39 +0530
+Message-Id: <1400247235-31434-36-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-On 05/08/14 21:52, Kamil Debski wrote:
-> Hi,
-> 
-> 
->> From: Arun Kumar K [mailto:arunkk.samsung@gmail.com] On Behalf Of Arun
->> Kumar K
->> Sent: Friday, March 07, 2014 9:26 AM
->>
->> From: Pawel Osciak <posciak@chromium.org>
->>
->> Currently, for formats that are not H264, MFC driver will check the
->> consumed stream size returned by the firmware and, based on that, will
->> try to decide whether the bitstream buffer contained more than one
->> frame. If the size of the buffer is larger than the consumed stream, it
->> assumes that there are more frames in the buffer and that the buffer
->> should be resubmitted for decode. This rarely works though and actually
->> introduces problems, because:
->>
->> - v7 firmware will always return consumed stream size equal to whatever
->> the driver passed to it when running decode (which is the size of the
->> whole buffer), which means we will never try to resubmit, because the
->> firmware will always tell us that it consumed all the data we passed to
->> it;
->>
->> - v6 firmware will return the number of consumed bytes, but will not
->> include the padding ("stuffing") bytes that are allowed after the frame
->> in VP8. Since there is no way of figuring out how many of those bytes
->> follow the frame without getting the frame size from IVF headers (or
->> somewhere else, but not from the stream itself), the driver tries to
->> guess that padding size is not larger than 4 bytes, which is not always
->> true;
->>
->> The only way to make it work is to queue only one frame per buffer from
->> userspace and the check in the kernel is useless and wrong for VP8.
->> MPEG4 still seems to require it, so keep it only for that format.
->>
->> Signed-off-by: Pawel Osciak <posciak@chromium.org>
->> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
->> ---
->>  drivers/media/platform/s5p-mfc/s5p_mfc.c |    2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> index e2aac59..66c1775 100644
->> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> @@ -360,7 +360,7 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx
->> *ctx,
->>  								list);
->>  		ctx->consumed_stream += s5p_mfc_hw_call(dev->mfc_ops,
->>  						get_consumed_stream, dev);
->> -		if (ctx->codec_mode != S5P_MFC_CODEC_H264_DEC &&
->> +		if (ctx->codec_mode == S5P_MFC_CODEC_MPEG4_DEC &&
->>  			ctx->consumed_stream + STUFF_BYTE <
->>  			src_buf->b->v4l2_planes[0].bytesused) {
->>  			/* Run MFC again on the same buffer */
-> 
-> I expressed my doubts to this patch in my previous email.
-> I think that packed PB can also be found in other codecs such as H263.
-> So please change to the following if this is a workaround for VP8 only.
-> (The title says that it only changes behavior of VP8 decoding, so it is
-> misleading).
-> 
+this patch drops unnecessary check from start_streaming() callback
+as this is already done in try/s_fmt and some minor code cleanups,
+drops check for vb2_is_streaming() as this check is done by vb2
+itself before calling this callback.
 
-Yes it is seen as affecting only VP8 decoding.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c |   36 ++++++++++++-------------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
-> -		if (ctx->codec_mode != S5P_MFC_CODEC_H264_DEC &&
-> +		if (ctx->codec_mode != S5P_MFC_CODEC_H264_DEC &&
-> +		    ctx->codec_mode != S5P_MFC_CODEC_VP8_DEC &&
-> 
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index c77c176..58dddf6 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -176,6 +176,11 @@ static void vpif_buffer_queue(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&common->irqlock, flags);
+ }
+ 
++/**
++ * vpif_start_streaming : Starts the DMA engine for streaming
++ * @vb: ptr to vb2_buffer
++ * @count: number of buffers
++ */
+ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct vpif_capture_config *vpif_config_data =
+@@ -193,16 +198,6 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	ch->field_id = 0;
+ 	common->started = 1;
+ 
+-	if ((vpif->std_info.frm_fmt &&
+-	    ((common->fmt.fmt.pix.field != V4L2_FIELD_NONE) &&
+-	     (common->fmt.fmt.pix.field != V4L2_FIELD_ANY))) ||
+-	    (!vpif->std_info.frm_fmt &&
+-	     (common->fmt.fmt.pix.field == V4L2_FIELD_NONE))) {
+-		vpif_dbg(1, debug, "conflict in field format and std format\n");
+-		ret = -EINVAL;
+-		goto err;
+-	}
+-
+ 	/* configure 1 or 2 channel mode */
+ 	if (vpif_config_data->setup_input_channel_mode) {
+ 		ret = vpif_config_data->
+@@ -245,13 +240,13 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	 * VPIF register
+ 	 */
+ 	channel_first_int[VPIF_VIDEO_INDEX][ch->channel_id] = 1;
+-	if ((VPIF_CHANNEL0_VIDEO == ch->channel_id)) {
++	if (VPIF_CHANNEL0_VIDEO == ch->channel_id) {
+ 		channel0_intr_assert();
+ 		channel0_intr_enable(1);
+ 		enable_channel0(1);
+ 	}
+-	if ((VPIF_CHANNEL1_VIDEO == ch->channel_id) ||
+-	    (common->started == 2)) {
++	if (VPIF_CHANNEL1_VIDEO == ch->channel_id ||
++		common->started == 2) {
+ 		channel1_intr_assert();
+ 		channel1_intr_enable(1);
+ 		enable_channel1(1);
+@@ -268,16 +263,19 @@ err:
+ 	return ret;
+ }
+ 
+-/* abort streaming and wait for last buffer */
++/**
++ * vpif_stop_streaming : Stop the DMA engine
++ * @vq: ptr to vb2_queue
++ *
++ * This callback stops the DMA engine and any remaining buffers
++ * in the DMA queue are released.
++ */
+ static void vpif_stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct channel_obj *ch = vb2_get_drv_priv(vq);
+ 	struct common_obj *common;
+ 	unsigned long flags;
+ 
+-	if (!vb2_is_streaming(vq))
+-		return;
+-
+ 	common = &ch->common[VPIF_VIDEO_INDEX];
+ 
+ 	/* Disable channel as per its device type and channel id */
+@@ -285,8 +283,8 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
+ 		enable_channel0(0);
+ 		channel0_intr_enable(0);
+ 	}
+-	if ((VPIF_CHANNEL1_VIDEO == ch->channel_id) ||
+-		(2 == common->started)) {
++	if (VPIF_CHANNEL1_VIDEO == ch->channel_id ||
++		2 == common->started) {
+ 		enable_channel1(0);
+ 		channel1_intr_enable(0);
+ 	}
+-- 
+1.7.9.5
 
-Ok. I will change it this way.
-
-> 
-> Did you try to revert your patch https://patchwork.linuxtv.org/patch/15448/
-> and checking if this fixes the problem for VP8?
-> 
-
-I am afraid it will not solve the VP8 issue as before that patch, it
-used to check for ctx->codec_mode != S5P_MFC_CODEC_H264_DEC and frame
-type is S5P_FIMV_DECODE_FRAME_P_FRAME, buffer was sent again to decode.
-This condition can be triggered in VP8 case causing erroneous behaviour.
-
-So I will make the change as you suggested above.
-
-Regards
-Arun
-
->> --
->> 1.7.9.5
-> 
-> Best wishes,
-> 
