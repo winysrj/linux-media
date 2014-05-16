@@ -1,153 +1,265 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.231]:11935 "EHLO
-	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751882AbaEODRF (ORCPT
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:60702 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933113AbaEPNlB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 May 2014 23:17:05 -0400
-Message-ID: <537431AF.6010900@austin.rr.com>
-Date: Wed, 14 May 2014 22:17:03 -0500
-From: Keith Pyle <kpyle@austin.rr.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Ryley Angus <ryleyjangus@gmail.com>
-Subject: Re: [PATCH] hdpvr: fix interrupted recording
-References: <53742F4A.1090803@austin.rr.com>
-In-Reply-To: <53742F4A.1090803@austin.rr.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+	Fri, 16 May 2014 09:41:01 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 25/49] media: davinci: vpif_display: fix v4l-complinace issues
+Date: Fri, 16 May 2014 19:03:30 +0530
+Message-Id: <1400247235-31434-27-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
+this patch does following,
+1: sets initial default format during probe.
+2: removes spurious messages.
+3: optimize vpif_s/try_fmt_vid_out code.
 
-On 05/12/14 07:41, Hans Verkuil wrote:
-> Ryley, Keith, can you test this one more time and if it works reply with
-> a 'Tested-by' tag that I can add to the patch?
->
-> Thanks!
->
-> 	Hans
->
->
-> This issue was reported by Ryley Angus:
->
-> <quote>
-> I record from my satellite set top box using component video and optical
-> audio input. I basically use "cat /dev/video0 > ~/video.ts” or use dd. The
-> box is set to output audio as AC-3 over optical, but most channels are
-> actually output as stereo PCM. When the channel is changed between a PCM
-> channel and (typically to a movie channel) to a channel utilising AC-3,
-> the HD-PVR stops the recording as the set top box momentarily outputs no
-> audio. Changing between PCM channels doesn't cause any issues.
->
-> My main problem was that when this happens, cat/dd doesn't actually exit.
-> When going through the hdpvr driver source and the dmesg output, I found
-> the hdpvr driver wasn't actually shutting down the device properly until
-> I manually killed cat/dd.
->
-> I've seen references to this issue being a hardware issue from as far back
-> as 2010:http://forums.gbpvr.com/showthread.php?46429-HD-PVR-drops-recording-on-channel-change-Hauppauge-says-too-bad  .
->
-> I tracked my issue to the file hdpvr-video.c. Specifically:
-> "if (wait_event_interruptible(dev->wait_data, buf->status = BUFSTAT_READY)) {"
-> (line ~450). The device seems to get stuck waiting for the buffer to become
-> ready. But as far as I can tell, when the channel is changed between a PCM
-> and AC-3 broadcast the buffer status will never actually become ready.
-> </quote>
->
-> Angus provided a hack to fix this, which I've rewritten.
->
-> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
-> Reported-by: Ryley Angus<ryleyjangus@gmail.com>
-> ---
->   drivers/media/usb/hdpvr/hdpvr-video.c | 20 +++++++++++++++++---
->   1 file changed, 17 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
-> index 0500c417..44227da 100644
-> --- a/drivers/media/usb/hdpvr/hdpvr-video.c
-> +++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-> @@ -454,6 +454,8 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
->   
->   		if (buf->status != BUFSTAT_READY &&
->   		    dev->status != STATUS_DISCONNECTED) {
-> +			int err;
-> +
->   			/* return nonblocking */
->   			if (file->f_flags & O_NONBLOCK) {
->   				if (!ret)
-> @@ -461,11 +463,23 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
->   				goto err;
->   			}
->   
-> -			if (wait_event_interruptible(dev->wait_data,
-> -					      buf->status == BUFSTAT_READY)) {
-> -				ret = -ERESTARTSYS;
-> +			err = wait_event_interruptible_timeout(dev->wait_data,
-> +					      buf->status == BUFSTAT_READY,
-> +					      msecs_to_jiffies(3000));
-> +			if (err < 0) {
-> +				ret = err;
->   				goto err;
->   			}
-> +			if (!err) {
-> +				v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
-> +					"timeout: restart streaming\n");
-> +				hdpvr_stop_streaming(dev);
-> +				err = hdpvr_start_streaming(dev);
-> +				if (err) {
-> +					ret = err;
-> +					goto err;
-> +				}
-> +			}
->   		}
->   
->   		if (buf->status != BUFSTAT_READY)
-Unfortunately, 2 of my 3 tests failed.  The new code correctly detected 
-the loss of signal and generated the timeout message for all three 
-tests.  For tests 1 & 3, the HD-PVR did not restart streaming.  Test 1 
-gave a 'Resource temporarily unavailable' error.  Test 3 did not produce 
-an error message.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_display.c |  138 +++++++++----------------
+ 1 file changed, 51 insertions(+), 87 deletions(-)
 
-I believe I understand the problem.  In my user-space code that (mostly) 
-deals with this problem, my algorithm differs slightly from that in 
-Hans' code.  The proposed patch has this flow:
-
- 1. watch for time-out on read for 3 seconds
- 2. if no data is received in time-out period, close streaming on HD-PVR
- 3. immediately re-open streaming from the HD-PVR
-
-
-In my testing last year, I found that the HD-PVR is sensitive to being 
-re-opened too soon.  The HD-PVR firmware seems to take a few seconds to 
-reset itself after a close and be ready to accept a new open.  So, my 
-flow is:
-
- 1. watch for time-out on read for 1 second
- 2. if no data received in timeout period, close the HD-PVR device
- 3. sleep for 4 seconds
- 4. re-open the HD-PVR device
-
-
-I believe that Hans' patch fails my tests because there is no delay 
-between the stop and start streaming calls in his patch. The minimum 
-reliable time between such actions on my HD-PVR is 3 seconds.   I 
-established this value by running a number of tests where I opened, 
-closed, and re-open the device with different sleep times before the 
-re-open.  I use 4 seconds to allow some additional safety.
-
-I suggest the following two changes to Hans' patch:
-
- 1. reduce the current read time-out from 3000 to 1000 ms. as 1 second
-    has been highly reliable for detecting a data stall in my user-space
-    code
- 2. add a sleep of 4 seconds after the hdpvr_stop_streaming call to
-    allow the HD-PVR to fully reset
-
-Let me know if you have any questions.
-
-Keith
-
-
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index f581e7a..cda0851 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -466,6 +466,7 @@ static int vpif_update_resolution(struct channel_obj *ch)
+ 			return -EINVAL;
+ 	}
+ 
++	common->fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV422P;
+ 	common->fmt.fmt.pix.width = std_info->width;
+ 	common->fmt.fmt.pix.height = std_info->height;
+ 	vpif_dbg(1, debug, "Pixel details: Width = %d,Height = %d\n",
+@@ -474,6 +475,17 @@ static int vpif_update_resolution(struct channel_obj *ch)
+ 	/* Set height and width paramateres */
+ 	common->height = std_info->height;
+ 	common->width = std_info->width;
++	common->fmt.fmt.pix.sizeimage = common->height * common->width * 2;
++
++	if (vid_ch->stdid)
++		common->fmt.fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
++	else
++		common->fmt.fmt.pix.colorspace = V4L2_COLORSPACE_REC709;
++
++	if (ch->vpifparams.std_info.frm_fmt)
++		common->fmt.fmt.pix.field = V4L2_FIELD_NONE;
++	else
++		common->fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
+ 
+ 	return 0;
+ }
+@@ -544,63 +556,6 @@ static void vpif_calculate_offsets(struct channel_obj *ch)
+ 	ch->vpifparams.video_params.stdid = ch->vpifparams.std_info.stdid;
+ }
+ 
+-static void vpif_config_format(struct channel_obj *ch)
+-{
+-	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+-
+-	common->fmt.fmt.pix.field = V4L2_FIELD_ANY;
+-	common->fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV422P;
+-	common->fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+-}
+-
+-static int vpif_check_format(struct channel_obj *ch,
+-			     struct v4l2_pix_format *pixfmt)
+-{
+-	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+-	enum v4l2_field field = pixfmt->field;
+-	u32 sizeimage, hpitch, vpitch;
+-
+-	if (pixfmt->pixelformat != V4L2_PIX_FMT_YUV422P)
+-		goto invalid_fmt_exit;
+-
+-	if (!(VPIF_VALID_FIELD(field)))
+-		goto invalid_fmt_exit;
+-
+-	if (pixfmt->bytesperline <= 0)
+-		goto invalid_pitch_exit;
+-
+-	sizeimage = pixfmt->sizeimage;
+-
+-	if (vpif_update_resolution(ch))
+-		return -EINVAL;
+-
+-	hpitch = pixfmt->bytesperline;
+-	vpitch = sizeimage / (hpitch * 2);
+-
+-	/* Check for valid value of pitch */
+-	if ((hpitch < ch->vpifparams.std_info.width) ||
+-	    (vpitch < ch->vpifparams.std_info.height))
+-		goto invalid_pitch_exit;
+-
+-	/* Check for 8 byte alignment */
+-	if (!ISALIGNED(hpitch)) {
+-		vpif_err("invalid pitch alignment\n");
+-		return -EINVAL;
+-	}
+-	pixfmt->width = common->fmt.fmt.pix.width;
+-	pixfmt->height = common->fmt.fmt.pix.height;
+-
+-	return 0;
+-
+-invalid_fmt_exit:
+-	vpif_err("invalid field format\n");
+-	return -EINVAL;
+-
+-invalid_pitch_exit:
+-	vpif_err("invalid pitch\n");
+-	return -EINVAL;
+-}
+-
+ static void vpif_config_addr(struct channel_obj *ch, int muxmode)
+ {
+ 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+@@ -640,16 +595,14 @@ static int vpif_querycap(struct file *file, void  *priv,
+ static int vpif_enum_fmt_vid_out(struct file *file, void  *priv,
+ 					struct v4l2_fmtdesc *fmt)
+ {
+-	if (fmt->index != 0) {
+-		vpif_err("Invalid format index\n");
++	if (fmt->index != 0)
+ 		return -EINVAL;
+-	}
+ 
+ 	/* Fill in the information about format */
+ 	fmt->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+ 	strcpy(fmt->description, "YCbCr4:2:2 YC Planar");
+ 	fmt->pixelformat = V4L2_PIX_FMT_YUV422P;
+-
++	fmt->flags = 0;
+ 	return 0;
+ }
+ 
+@@ -670,47 +623,57 @@ static int vpif_g_fmt_vid_out(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int vpif_s_fmt_vid_out(struct file *file, void *priv,
++static int vpif_try_fmt_vid_out(struct file *file, void *priv,
+ 				struct v4l2_format *fmt)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct channel_obj *ch = video_get_drvdata(vdev);
+ 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+-	struct v4l2_pix_format *pixfmt;
+-	int ret = 0;
++	struct v4l2_pix_format *pixfmt = &fmt->fmt.pix;
+ 
+-	if (vb2_is_busy(&common->buffer_queue))
+-		return -EBUSY;
++	/*
++	 * to supress v4l-compliance warnings silently correct
++	 * the pixelformat
++	 */
++	if (pixfmt->pixelformat != V4L2_PIX_FMT_YUV422P)
++		pixfmt->pixelformat = common->fmt.fmt.pix.pixelformat;
+ 
+-	pixfmt = &fmt->fmt.pix;
+-	/* Check for valid field format */
+-	ret = vpif_check_format(ch, pixfmt);
+-	if (ret)
+-		return ret;
++	if (vpif_update_resolution(ch))
++		return -EINVAL;
++
++	pixfmt->colorspace = common->fmt.fmt.pix.colorspace;
++	pixfmt->field = common->fmt.fmt.pix.field;
++	pixfmt->bytesperline = common->fmt.fmt.pix.width;
++	pixfmt->width = common->fmt.fmt.pix.width;
++	pixfmt->height = common->fmt.fmt.pix.height;
++	pixfmt->sizeimage = pixfmt->bytesperline * pixfmt->height * 2;
++	pixfmt->priv = 0;
+ 
+-	/* store the pix format in the channel object */
+-	common->fmt.fmt.pix = *pixfmt;
+-	/* store the format in the channel object */
+-	common->fmt = *fmt;
+ 	return 0;
+ }
+ 
+-static int vpif_try_fmt_vid_out(struct file *file, void *priv,
++static int vpif_s_fmt_vid_out(struct file *file, void *priv,
+ 				struct v4l2_format *fmt)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct channel_obj *ch = video_get_drvdata(vdev);
+ 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+ 	struct v4l2_pix_format *pixfmt = &fmt->fmt.pix;
+-	int ret = 0;
++	int ret;
+ 
+-	ret = vpif_check_format(ch, pixfmt);
+-	if (ret) {
+-		*pixfmt = common->fmt.fmt.pix;
+-		pixfmt->sizeimage = pixfmt->width * pixfmt->height * 2;
+-	}
++	if (vb2_is_busy(&common->buffer_queue))
++		return -EBUSY;
+ 
+-	return ret;
++	ret = vpif_try_fmt_vid_out(file, priv, fmt);
++	if (ret)
++		return ret;
++
++	/* store the pix format in the channel object */
++	common->fmt.fmt.pix = *pixfmt;
++
++	/* store the format in the channel object */
++	common->fmt = *fmt;
++	return 0;
+ }
+ 
+ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id std_id)
+@@ -738,7 +701,6 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id std_id)
+ 	if (!(std_id & VPIF_V4L2_STD))
+ 		return -EINVAL;
+ 
+-
+ 	/* Call encoder subdevice function to set the standard */
+ 	ch->video.stdid = std_id;
+ 	memset(&ch->video.dv_timings, 0, sizeof(ch->video.dv_timings));
+@@ -747,8 +709,6 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id std_id)
+ 		return -EINVAL;
+ 
+ 	common->fmt.fmt.pix.bytesperline = common->fmt.fmt.pix.width;
+-	/* Configure the default format information */
+-	vpif_config_format(ch);
+ 
+ 	ret = v4l2_device_call_until_err(&vpif_obj.v4l2_dev, 1, video,
+ 						s_std_output, std_id);
+@@ -1215,6 +1175,11 @@ static int vpif_probe_complete(void)
+ 		if (err)
+ 			goto probe_out;
+ 
++		/* set initial format */
++		ch->video.stdid = V4L2_STD_525_60;
++		memset(&ch->video.dv_timings, 0, sizeof(ch->video.dv_timings));
++		vpif_update_resolution(ch);
++
+ 		/* Initialize vb2 queue */
+ 		q = &common->buffer_queue;
+ 		q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+@@ -1226,7 +1191,6 @@ static int vpif_probe_complete(void)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 1;
+ 		q->lock = &common->lock;
+-
+ 		err = vb2_queue_init(q);
+ 		if (err) {
+ 			vpif_err("vpif_display: vb2_queue_init() failed\n");
+-- 
+1.7.9.5
 
