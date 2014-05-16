@@ -1,94 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:32912 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750716AbaENGaE (ORCPT
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:63736 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933009AbaEPNka (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 May 2014 02:30:04 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com,
-	sachin.kamat@linaro.org, arunkk.samsung@gmail.com
-Subject: [PATCH v2] [media] s5p-mfc: Dequeue sequence header after STREAMON
-Date: Wed, 14 May 2014 11:59:56 +0530
-Message-Id: <1400048996-726-1-git-send-email-arun.kk@samsung.com>
+	Fri, 16 May 2014 09:40:30 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 19/49] media: davinci: vpif_display: drop cropcap
+Date: Fri, 16 May 2014 19:03:24 +0530
+Message-Id: <1400247235-31434-21-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-MFCv6 encoder needs specific minimum number of buffers to
-be queued in the CAPTURE plane. This minimum number will
-be known only when the sequence header is generated.
-So we used to allow STREAMON on the CAPTURE plane only after
-sequence header is generated and checked with the minimum
-buffer requirement.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-But this causes a problem that we call a vb2_buffer_done
-for the sequence header buffer before doing a STREAON on the
-CAPTURE plane. This used to still work fine until this patch
-was merged -
-b3379c6 : vb2: only call start_streaming if sufficient buffers are queued
+this patch drops cropcap as this driver doesnt support cropping.
 
-This problem should also come in earlier MFC firmware versions
-if the application calls STREAMON on CAPTURE with some delay
-after doing STREAMON on OUTPUT.
-
-So this patch keeps the header buffer until the other frame
-buffers are ready and dequeues it just before the first frame
-is ready.
-
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
-Changes from v1
-- Addressed review comments from Sachin
-  https://patchwork.linuxtv.org/patch/23839/
----
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |    6 +++++-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/media/platform/davinci/vpif_display.c |   19 -------------------
+ 1 file changed, 19 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index f5404a6..cc2b96e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -523,6 +523,7 @@ struct s5p_mfc_codec_ops {
-  * @output_state:	state of the output buffers queue
-  * @src_bufs:		information on allocated source buffers
-  * @dst_bufs:		information on allocated destination buffers
-+ * @header_mb:		buffer pointer of the encoded sequence header
-  * @sequence:		counter for the sequence number for v4l2
-  * @dec_dst_flag:	flags for buffers queued in the hardware
-  * @dec_src_buf_size:	size of the buffer for source buffers in decoding
-@@ -607,6 +608,7 @@ struct s5p_mfc_ctx {
- 	int src_bufs_cnt;
- 	struct s5p_mfc_buf dst_bufs[MFC_MAX_BUFFERS];
- 	int dst_bufs_cnt;
-+	struct s5p_mfc_buf *header_mb;
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index fef03be..9848996 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -761,24 +761,6 @@ static int vpif_g_std(struct file *file, void *priv, v4l2_std_id *std)
+ 	return 0;
+ }
  
- 	unsigned int sequence;
- 	unsigned long dec_dst_flag;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index f8c7053..0c8d593e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -787,7 +787,7 @@ static int enc_post_seq_start(struct s5p_mfc_ctx *ctx)
- 		ctx->dst_queue_cnt--;
- 		vb2_set_plane_payload(dst_mb->b, 0,
- 			s5p_mfc_hw_call(dev->mfc_ops, get_enc_strm_size, dev));
--		vb2_buffer_done(dst_mb->b, VB2_BUF_STATE_DONE);
-+		ctx->header_mb = dst_mb;
- 		spin_unlock_irqrestore(&dev->irqlock, flags);
- 	}
- 
-@@ -845,6 +845,10 @@ static int enc_post_frame_start(struct s5p_mfc_ctx *ctx)
- 	unsigned int strm_size;
- 	unsigned long flags;
- 
-+	if (ctx->header_mb) {
-+		vb2_buffer_done(ctx->header_mb->b, VB2_BUF_STATE_DONE);
-+		ctx->header_mb = NULL;
-+	}
- 	slice_type = s5p_mfc_hw_call(dev->mfc_ops, get_enc_slice_type, dev);
- 	strm_size = s5p_mfc_hw_call(dev->mfc_ops, get_enc_strm_size, dev);
- 	mfc_debug(2, "Encoded slice type: %d\n", slice_type);
+-static int vpif_cropcap(struct file *file, void *priv,
+-			struct v4l2_cropcap *crop)
+-{
+-	struct video_device *vdev = video_devdata(file);
+-	struct channel_obj *ch = video_get_drvdata(vdev);
+-	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+-
+-	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != crop->type)
+-		return -EINVAL;
+-
+-	crop->bounds.left = crop->bounds.top = 0;
+-	crop->defrect.left = crop->defrect.top = 0;
+-	crop->defrect.height = crop->bounds.height = common->height;
+-	crop->defrect.width = crop->bounds.width = common->width;
+-
+-	return 0;
+-}
+-
+ static int vpif_enum_output(struct file *file, void *fh,
+ 				struct v4l2_output *output)
+ {
+@@ -1070,7 +1052,6 @@ static const struct v4l2_ioctl_ops vpif_ioctl_ops = {
+ 	.vidioc_enum_output		= vpif_enum_output,
+ 	.vidioc_s_output		= vpif_s_output,
+ 	.vidioc_g_output		= vpif_g_output,
+-	.vidioc_cropcap         	= vpif_cropcap,
+ 	.vidioc_enum_dv_timings         = vpif_enum_dv_timings,
+ 	.vidioc_s_dv_timings            = vpif_s_dv_timings,
+ 	.vidioc_g_dv_timings            = vpif_g_dv_timings,
 -- 
 1.7.9.5
 
