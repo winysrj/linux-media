@@ -1,141 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f171.google.com ([209.85.220.171]:48663 "EHLO
-	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751514AbaEaQbG (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47988 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751420AbaEPBxd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 May 2014 12:31:06 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 9/11 V2] drivers/media: Remove useless return variables
-Date: Sat, 31 May 2014 13:30:52 -0300
-Message-Id: <1401553852-13753-1-git-send-email-peter.senna@gmail.com>
+	Thu, 15 May 2014 21:53:33 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] tvp5150: Replace container_of() with to_tvp5150()
+Date: Fri, 16 May 2014 03:53:31 +0200
+Message-Id: <1400205211-24161-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch remove variables that are initialized with a constant,
-are never updated, and are only used as parameter of return.
-Return the constant instead of using a variable.
+Use the driver-specific inline function to cast from a subdev pointer to
+a tvp5150 pointer instead of the generic container_of().
 
-Verified by compilation only.
-
-The coccinelle script that find and fixes this issue is:
-// <smpl>
-@@
-type T;
-constant C;
-identifier ret;
-@@
-- T ret = C;
-... when != ret
-    when strict
-return
-- ret
-+ C
-;
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
-Changes from V1:
- - Do not remove comment after the definition of return variable
+ drivers/media/i2c/tvp5150.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
- drivers/media/pci/ngene/ngene-core.c      |   11 ++---------
- drivers/media/usb/cx231xx/cx231xx-video.c |   11 +++++------
- 2 files changed, 7 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
-index 970e833..826228c 100644
---- a/drivers/media/pci/ngene/ngene-core.c
-+++ b/drivers/media/pci/ngene/ngene-core.c
-@@ -910,7 +910,6 @@ static int AllocateRingBuffers(struct pci_dev *pci_dev,
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 4fd3688..07dee44 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -913,7 +913,7 @@ static int tvp5150_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
+ 
+ static int tvp5150_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
  {
- 	dma_addr_t tmp;
- 	u32 i, j;
--	int status = 0;
- 	u32 SCListMemSize = pRingBuffer->NumBuffers
- 		* ((Buffer2Length != 0) ? (NUM_SCATTER_GATHER_ENTRIES * 2) :
- 		    NUM_SCATTER_GATHER_ENTRIES)
-@@ -1010,14 +1009,12 @@ static int AllocateRingBuffers(struct pci_dev *pci_dev,
+-	struct tvp5150 *decoder = container_of(sd, struct tvp5150, sd);
++	struct tvp5150 *decoder = to_tvp5150(sd);
  
- 	}
+ 	a->c	= decoder->rect;
+ 	a->type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+@@ -923,7 +923,7 @@ static int tvp5150_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
  
--	return status;
-+	return 0;
- }
- 
- static int FillTSIdleBuffer(struct SRingBufferDescriptor *pIdleBuffer,
- 			    struct SRingBufferDescriptor *pRingBuffer)
+ static int tvp5150_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
  {
--	int status = 0;
--
- 	/* Copy pointer to scatter gather list in TSRingbuffer
- 	   structure for buffer 2
- 	   Load number of buffer
-@@ -1038,7 +1035,7 @@ static int FillTSIdleBuffer(struct SRingBufferDescriptor *pIdleBuffer,
- 			pIdleBuffer->Head->ngeneBuffer.Number_of_entries_1;
- 		Cur = Cur->Next;
- 	}
--	return status;
-+	return 0;
- }
+-	struct tvp5150 *decoder = container_of(sd, struct tvp5150, sd);
++	struct tvp5150 *decoder = to_tvp5150(sd);
+ 	v4l2_std_id std;
  
- static u32 RingBufferSizes[MAX_STREAM] = {
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 1f87513..cba7fea 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -208,7 +208,7 @@ static inline void get_next_buf(struct cx231xx_dmaqueue *dma_q,
- static inline int cx231xx_isoc_copy(struct cx231xx *dev, struct urb *urb)
- {
- 	struct cx231xx_dmaqueue *dma_q = urb->context;
--	int i, rc = 1;
-+	int i;
- 	unsigned char *p_buffer;
- 	u32 bytes_parsed = 0, buffer_size = 0;
- 	u8 sav_eav = 0;
-@@ -299,13 +299,12 @@ static inline int cx231xx_isoc_copy(struct cx231xx *dev, struct urb *urb)
- 		bytes_parsed = 0;
- 
- 	}
--	return rc;
-+	return 1;
- }
- 
- static inline int cx231xx_bulk_copy(struct cx231xx *dev, struct urb *urb)
- {
- 	struct cx231xx_dmaqueue *dma_q = urb->context;
--	int rc = 1;
- 	unsigned char *p_buffer;
- 	u32 bytes_parsed = 0, buffer_size = 0;
- 	u8 sav_eav = 0;
-@@ -379,7 +378,7 @@ static inline int cx231xx_bulk_copy(struct cx231xx *dev, struct urb *urb)
- 		bytes_parsed = 0;
- 
- 	}
--	return rc;
-+	return 1;
- }
- 
- 
-@@ -1620,7 +1619,7 @@ static int radio_s_tuner(struct file *file, void *priv, const struct v4l2_tuner
-  */
- static int cx231xx_v4l2_open(struct file *filp)
- {
--	int errCode = 0, radio = 0;
-+	int radio = 0;
- 	struct video_device *vdev = video_devdata(filp);
- 	struct cx231xx *dev = video_drvdata(filp);
- 	struct cx231xx_fh *fh;
-@@ -1718,7 +1717,7 @@ static int cx231xx_v4l2_open(struct file *filp)
- 	mutex_unlock(&dev->lock);
- 	v4l2_fh_add(&fh->fh);
- 
--	return errCode;
-+	return 0;
- }
- 
- /*
+ 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-- 
+1.8.5.5
 
