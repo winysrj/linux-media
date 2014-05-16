@@ -1,89 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:57340 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752108AbaEUJ3p (ORCPT
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:51921 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755933AbaEPNgo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 May 2014 05:29:45 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com, posciak@chromium.org,
-	avnd.kiran@samsung.com, sachin.kamat@linaro.org,
-	t.figa@samsung.com, arunkk.samsung@gmail.com
-Subject: [PATCH v2 1/3] [media] s5p-mfc: Remove duplicate function s5p_mfc_reload_firmware
-Date: Wed, 21 May 2014 14:59:29 +0530
-Message-Id: <1400664571-13746-2-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1400664571-13746-1-git-send-email-arun.kk@samsung.com>
-References: <1400664571-13746-1-git-send-email-arun.kk@samsung.com>
+	Fri, 16 May 2014 09:36:44 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 03/49] media: davinci: vpif_display: use vb2_ops_wait_prepare/finish helper functions
+Date: Fri, 16 May 2014 19:03:08 +0530
+Message-Id: <1400247235-31434-5-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The function s5p_mfc_reload_firmware is exactly same as
-s5p_mfc_load_firmware. So removing the duplicate function.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Reviewed-by: Tomasz Figa <t.figa@samsung.com>
+this patch makes use of vb2_ops_wait_prepare/finish helper functions.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c      |    2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c |   33 -------------------------
- 2 files changed, 1 insertion(+), 34 deletions(-)
+ drivers/media/platform/davinci/vpif_display.c |   23 +++--------------------
+ 1 file changed, 3 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 9ed0985..8da4c23 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -162,7 +162,7 @@ static void s5p_mfc_watchdog_worker(struct work_struct *work)
- 	/* Double check if there is at least one instance running.
- 	 * If no instance is in memory than no firmware should be present */
- 	if (dev->num_inst > 0) {
--		ret = s5p_mfc_reload_firmware(dev);
-+		ret = s5p_mfc_load_firmware(dev);
- 		if (ret) {
- 			mfc_err("Failed to reload FW\n");
- 			goto unlock;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-index 6c3f8f7..c97c7c8 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-@@ -107,39 +107,6 @@ int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev)
- 	return 0;
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index e2102ea..8bb9f02 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -187,24 +187,6 @@ static void vpif_buf_cleanup(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&common->irqlock, flags);
  }
  
--/* Reload firmware to MFC */
--int s5p_mfc_reload_firmware(struct s5p_mfc_dev *dev)
+-static void vpif_wait_prepare(struct vb2_queue *vq)
 -{
--	struct firmware *fw_blob;
--	int err;
+-	struct channel_obj *ch = vb2_get_drv_priv(vq);
+-	struct common_obj *common;
 -
--	/* Firmare has to be present as a separate file or compiled
--	 * into kernel. */
--	mfc_debug_enter();
--
--	err = request_firmware((const struct firmware **)&fw_blob,
--				     dev->variant->fw_name, dev->v4l2_dev.dev);
--	if (err != 0) {
--		mfc_err("Firmware is not present in the /lib/firmware directory nor compiled in kernel\n");
--		return -EINVAL;
--	}
--	if (fw_blob->size > dev->fw_size) {
--		mfc_err("MFC firmware is too big to be loaded\n");
--		release_firmware(fw_blob);
--		return -ENOMEM;
--	}
--	if (!dev->fw_virt_addr) {
--		mfc_err("MFC firmware is not allocated\n");
--		release_firmware(fw_blob);
--		return -EINVAL;
--	}
--	memcpy(dev->fw_virt_addr, fw_blob->data, fw_blob->size);
--	wmb();
--	release_firmware(fw_blob);
--	mfc_debug_leave();
--	return 0;
+-	common = &ch->common[VPIF_VIDEO_INDEX];
+-	mutex_unlock(&common->lock);
 -}
 -
- /* Release firmware memory */
- int s5p_mfc_release_firmware(struct s5p_mfc_dev *dev)
- {
+-static void vpif_wait_finish(struct vb2_queue *vq)
+-{
+-	struct channel_obj *ch = vb2_get_drv_priv(vq);
+-	struct common_obj *common;
+-
+-	common = &ch->common[VPIF_VIDEO_INDEX];
+-	mutex_lock(&common->lock);
+-}
+-
+ static u8 channel_first_int[VPIF_NUMOBJECTS][2] = { {1, 1} };
+ 
+ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+@@ -339,8 +321,8 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
+ 
+ static struct vb2_ops video_qops = {
+ 	.queue_setup		= vpif_buffer_queue_setup,
+-	.wait_prepare		= vpif_wait_prepare,
+-	.wait_finish		= vpif_wait_finish,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
+ 	.buf_prepare		= vpif_buffer_prepare,
+ 	.start_streaming	= vpif_start_streaming,
+ 	.stop_streaming		= vpif_stop_streaming,
+@@ -1649,6 +1631,7 @@ static int vpif_probe_complete(void)
+ 		q->buf_struct_size = sizeof(struct vpif_disp_buffer);
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 1;
++		q->lock = &common->lock;
+ 
+ 		err = vb2_queue_init(q);
+ 		if (err) {
 -- 
 1.7.9.5
 
