@@ -1,53 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57706 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753186AbaEDWNZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 May 2014 18:13:25 -0400
-Message-ID: <5366BB83.7050807@iki.fi>
-Date: Mon, 05 May 2014 01:13:23 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from userp1040.oracle.com ([156.151.31.81]:25130 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750877AbaEQTXg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 May 2014 15:23:36 -0400
+Date: Sat, 17 May 2014 22:22:53 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Martin Kepplinger <martink@posteo.de>, gregkh@linuxfoundation.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, m.chehab@samsung.com
+Subject: Re: [PATCHv2] staging: media: as102: replace custom dprintk() with
+ dev_dbg()
+Message-ID: <20140517192253.GC15585@mwanda>
+References: <53776B57.5050504@iki.fi>
+ <1400342738-32652-1-git-send-email-martink@posteo.de>
+ <53779A7F.8020007@iki.fi>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: Brian Healy <healybrian@gmail.com>,
-	Alessandro Miceli <angelofsky1980@gmail.com>
-Subject: [GIT PULL 3.15] RTL2832U USB IDs
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53779A7F.8020007@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here is 3 new USB IDs for RTL28XXU driver and nothing more. These should 
-be OK for 3.15 at that phase of RC cycle.
+On Sat, May 17, 2014 at 08:21:03PM +0300, Antti Palosaari wrote:
+> On 05/17/2014 07:05 PM, Martin Kepplinger wrote:
+> >don't reinvent dev_dbg(). remove dprintk() in as102_drv.c.
+> >use the common kernel coding style.
+> >
+> >Signed-off-by: Martin Kepplinger <martink@posteo.de>
+> 
+> Reviewed-by: Antti Palosaari <crope@iki.fi>
+> 
+> >---
+> >this applies to next-20140516. any more suggestions?
+> >more cleanup can be done when dprintk() is completely gone.
+> 
+> Do you have the device? I am a bit reluctant patching that driver
+> without any testing as it has happened too many times something has
+> gone totally broken.
 
-regards
-Antti
+Looking through the log the only time I see breakage is build breakage
+on allyesconfig.
 
+1ec9a35 [media] staging: as102: Add missing function argument
 
+This was a compile warning and it definitely should have been caught
+before the code was submitted or merged, but it wasn't something people
+would hit in real life.
 
-The following changes since commit 8845cc6415ec28ef8d57b3fb81c75ef9bce69c5f:
-
-   [media] fc2580: fix tuning failure on 32-bit arch (2014-04-16 
-18:13:11 -0300)
-
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git rtl2832u_id
-
-for you to fetch changes up to 5fc42f2a0cc20a558b31993f80d68e443388d307:
-
-   rtl28xxu: add [1b80:d3af] Sveon STV27 (2014-05-05 01:03:56 +0300)
-
-----------------------------------------------------------------
-Alessandro Miceli (2):
-       rtl28xxu: add [1b80:d39d] Sveon STV20
-       rtl28xxu: add [1b80:d3af] Sveon STV27
-
-Brian Healy (1):
-       rtl28xxu: add 1b80:d395 Peak DVB-T USB
-
-  drivers/media/dvb-core/dvb-usb-ids.h    | 2 ++
-  drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 6 ++++++
-  2 files changed, 8 insertions(+)
-
--- 
-http://palosaari.fi/
+regards,
+dan carpenter
