@@ -1,169 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2264 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756508AbaEIK4m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 06:56:42 -0400
-Message-ID: <536CB401.4090403@xs4all.nl>
-Date: Fri, 09 May 2014 12:54:57 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:33560 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755145AbaEQN76 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 May 2014 09:59:58 -0400
+Message-ID: <53776B57.5050504@iki.fi>
+Date: Sat, 17 May 2014 16:59:51 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Andy Walls <awalls@md.metrocast.net>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, ldv-project@linuxtesting.org
-Subject: Re: [PATCH] [media] ivtv: avoid GFP_KERNEL in atomic context
-References: <1398442477-28876-1-git-send-email-khoroshilov@ispras.ru>
-In-Reply-To: <1398442477-28876-1-git-send-email-khoroshilov@ispras.ru>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Martin Kepplinger <martink@posteo.de>, gregkh@linuxfoundation.org
+CC: m.chehab@samsung.com, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] staging: media: as102: replace custom dprintk() with
+ dev_dbg()
+References: <1400332591-27528-1-git-send-email-martink@posteo.de>
+In-Reply-To: <1400332591-27528-1-git-send-email-martink@posteo.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/25/2014 06:14 PM, Alexey Khoroshilov wrote:
-> ivtv_yuv_init() is used in atomic context,
-> so memory allocation should be done keeping that in mind.
-> 
-> Call graph for ivtv_yuv_init() is as follows:
-> - ivtv_yuv_next_free()
->   - ivtv_yuv_prep_frame() [ioctl handler]
->   - ivtv_yuv_setup_stream_frame()
->     - ivtv_irq_dec_data_req() -> ivtv_irq_handler() [ATOMIC CONTEXT]
->     - ivtv_yuv_udma_stream_frame() [with mutex held]
->     - ivtv_write() [with mutex held]
-> 
-> The patch adds gfp_t argument and implements its usage according to the context.
-> 
-> Found by Linux Driver Verification project (linuxtesting.org).
+you forget to remove debug parameter itself.
 
-I am hesitant to take this patch. I'm fairly certain that the call from the irq handler
-will never have to allocate memory (it will always be allocated already) so is this
-patch really needed? On the other hand, it certainly won't break anything.
+Antti
 
-Andy, what is your opinion on this?
 
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+On 05/17/2014 04:16 PM, Martin Kepplinger wrote:
+> don't reinvent dev_dbg(). use the common kernel coding style.
+>
+> Signed-off-by: Martin Kepplinger <martink@posteo.de>
 > ---
->  drivers/media/pci/ivtv/ivtv-fileops.c |  2 +-
->  drivers/media/pci/ivtv/ivtv-irq.c     |  2 +-
->  drivers/media/pci/ivtv/ivtv-yuv.c     | 16 ++++++++--------
->  drivers/media/pci/ivtv/ivtv-yuv.h     |  2 +-
->  4 files changed, 11 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/pci/ivtv/ivtv-fileops.c b/drivers/media/pci/ivtv/ivtv-fileops.c
-> index 9caffd8aa995..2e8885c245e7 100644
-> --- a/drivers/media/pci/ivtv/ivtv-fileops.c
-> +++ b/drivers/media/pci/ivtv/ivtv-fileops.c
-> @@ -689,7 +689,7 @@ retry:
->  			int got_sig;
->  
->  			if (mode == OUT_YUV)
-> -				ivtv_yuv_setup_stream_frame(itv);
-> +				ivtv_yuv_setup_stream_frame(itv, GFP_KERNEL);
->  
->  			mutex_unlock(&itv->serialize_lock);
->  			prepare_to_wait(&itv->dma_waitq, &wait, TASK_INTERRUPTIBLE);
-> diff --git a/drivers/media/pci/ivtv/ivtv-irq.c b/drivers/media/pci/ivtv/ivtv-irq.c
-> index 19a7c9b990a3..7a44f6b7aed4 100644
-> --- a/drivers/media/pci/ivtv/ivtv-irq.c
-> +++ b/drivers/media/pci/ivtv/ivtv-irq.c
-> @@ -822,7 +822,7 @@ static void ivtv_irq_dec_data_req(struct ivtv *itv)
->  	}
->  	else {
->  		if (test_bit(IVTV_F_I_DEC_YUV, &itv->i_flags))
-> -			ivtv_yuv_setup_stream_frame(itv);
-> +			ivtv_yuv_setup_stream_frame(itv, GFP_ATOMIC);
->  		clear_bit(IVTV_F_S_NEEDS_DATA, &s->s_flags);
->  		ivtv_queue_move(s, &s->q_full, NULL, &s->q_predma, itv->dma_data_req_size);
->  		ivtv_dma_stream_dec_prepare(s, itv->dma_data_req_offset + IVTV_DECODER_OFFSET, 0);
-> diff --git a/drivers/media/pci/ivtv/ivtv-yuv.c b/drivers/media/pci/ivtv/ivtv-yuv.c
-> index 2ad65eb29832..9bf47b89f8a0 100644
-> --- a/drivers/media/pci/ivtv/ivtv-yuv.c
-> +++ b/drivers/media/pci/ivtv/ivtv-yuv.c
-> @@ -854,7 +854,7 @@ void ivtv_yuv_work_handler(struct ivtv *itv)
->  	yi->old_frame_info = f;
->  }
->  
-> -static void ivtv_yuv_init(struct ivtv *itv)
-> +static void ivtv_yuv_init(struct ivtv *itv, gfp_t gfp)
->  {
->  	struct yuv_playback_info *yi = &itv->yuv_info;
->  
-> @@ -936,7 +936,7 @@ static void ivtv_yuv_init(struct ivtv *itv)
->  	}
->  
->  	/* We need a buffer for blanking when Y plane is offset - non-fatal if we can't get one */
-> -	yi->blanking_ptr = kzalloc(720 * 16, GFP_KERNEL|__GFP_NOWARN);
-> +	yi->blanking_ptr = kzalloc(720 * 16, gfp|__GFP_NOWARN);
->  	if (yi->blanking_ptr) {
->  		yi->blanking_dmaptr = pci_map_single(itv->pdev, yi->blanking_ptr, 720*16, PCI_DMA_TODEVICE);
->  	} else {
-> @@ -952,13 +952,13 @@ static void ivtv_yuv_init(struct ivtv *itv)
->  }
->  
->  /* Get next available yuv buffer on PVR350 */
-> -static void ivtv_yuv_next_free(struct ivtv *itv)
-> +static void ivtv_yuv_next_free(struct ivtv *itv, gfp_t gfp)
->  {
->  	int draw, display;
->  	struct yuv_playback_info *yi = &itv->yuv_info;
->  
->  	if (atomic_read(&yi->next_dma_frame) == -1)
-> -		ivtv_yuv_init(itv);
-> +		ivtv_yuv_init(itv, gfp);
->  
->  	draw = atomic_read(&yi->next_fill_frame);
->  	display = atomic_read(&yi->next_dma_frame);
-> @@ -1119,12 +1119,12 @@ static int ivtv_yuv_udma_frame(struct ivtv *itv, struct ivtv_dma_frame *args)
->  }
->  
->  /* Setup frame according to V4L2 parameters */
-> -void ivtv_yuv_setup_stream_frame(struct ivtv *itv)
-> +void ivtv_yuv_setup_stream_frame(struct ivtv *itv, gfp_t gfp)
->  {
->  	struct yuv_playback_info *yi = &itv->yuv_info;
->  	struct ivtv_dma_frame dma_args;
->  
-> -	ivtv_yuv_next_free(itv);
-> +	ivtv_yuv_next_free(itv, gfp);
->  
->  	/* Copy V4L2 parameters to an ivtv_dma_frame struct... */
->  	dma_args.y_source = NULL;
-> @@ -1151,7 +1151,7 @@ int ivtv_yuv_udma_stream_frame(struct ivtv *itv, void __user *src)
->  	struct ivtv_dma_frame dma_args;
->  	int res;
->  
-> -	ivtv_yuv_setup_stream_frame(itv);
-> +	ivtv_yuv_setup_stream_frame(itv, GFP_KERNEL);
->  
->  	/* We only need to supply source addresses for this */
->  	dma_args.y_source = src;
-> @@ -1171,7 +1171,7 @@ int ivtv_yuv_prep_frame(struct ivtv *itv, struct ivtv_dma_frame *args)
->  	int res;
->  
->  /*	IVTV_DEBUG_INFO("yuv_prep_frame\n"); */
-> -	ivtv_yuv_next_free(itv);
-> +	ivtv_yuv_next_free(itv, GFP_KERNEL);
->  	ivtv_yuv_setup_frame(itv, args);
->  	/* Wait for frame DMA. Note that serialize_lock is locked,
->  	   so to allow other processes to access the driver while
-> diff --git a/drivers/media/pci/ivtv/ivtv-yuv.h b/drivers/media/pci/ivtv/ivtv-yuv.h
-> index ca5173fbf006..06753cfe64f3 100644
-> --- a/drivers/media/pci/ivtv/ivtv-yuv.h
-> +++ b/drivers/media/pci/ivtv/ivtv-yuv.h
-> @@ -34,7 +34,7 @@
->  extern const u32 yuv_offset[IVTV_YUV_BUFFERS];
->  
->  int ivtv_yuv_filter_check(struct ivtv *itv);
-> -void ivtv_yuv_setup_stream_frame(struct ivtv *itv);
-> +void ivtv_yuv_setup_stream_frame(struct ivtv *itv, gfp_t gfp);
->  int ivtv_yuv_udma_stream_frame(struct ivtv *itv, void __user *src);
->  void ivtv_yuv_frame_complete(struct ivtv *itv);
->  int ivtv_yuv_prep_frame(struct ivtv *itv, struct ivtv_dma_frame *args);
-> 
+> this applies to next-20140516.
+>
+>   drivers/staging/media/as102/as102_drv.c |   11 +++++++----
+>   1 file changed, 7 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/staging/media/as102/as102_drv.c b/drivers/staging/media/as102/as102_drv.c
+> index 09d64cd..99c3ed93 100644
+> --- a/drivers/staging/media/as102/as102_drv.c
+> +++ b/drivers/staging/media/as102/as102_drv.c
+> @@ -74,7 +74,8 @@ static void as102_stop_stream(struct as102_dev_t *dev)
+>   			return;
+>
+>   		if (as10x_cmd_stop_streaming(bus_adap) < 0)
+> -			dprintk(debug, "as10x_cmd_stop_streaming failed\n");
+> +			dev_dbg(&dev->bus_adap.usb_dev->dev,
+> +				"as10x_cmd_stop_streaming failed\n");
+>
+>   		mutex_unlock(&dev->bus_adap.lock);
+>   	}
+> @@ -112,14 +113,16 @@ static int as10x_pid_filter(struct as102_dev_t *dev,
+>   	int ret = -EFAULT;
+>
+>   	if (mutex_lock_interruptible(&dev->bus_adap.lock)) {
+> -		dprintk(debug, "mutex_lock_interruptible(lock) failed !\n");
+> +		dev_dbg(&dev->bus_adap.usb_dev->dev,
+> +			"amutex_lock_interruptible(lock) failed !\n");
+>   		return -EBUSY;
+>   	}
+>
+>   	switch (onoff) {
+>   	case 0:
+>   		ret = as10x_cmd_del_PID_filter(bus_adap, (uint16_t) pid);
+> -		dprintk(debug, "DEL_PID_FILTER([%02d] 0x%04x) ret = %d\n",
+> +		dev_dbg(&dev->bus_adap.usb_dev->dev,
+> +			"DEL_PID_FILTER([%02d] 0x%04x) ret = %d\n",
+>   			index, pid, ret);
+>   		break;
+>   	case 1:
+> @@ -131,7 +134,7 @@ static int as10x_pid_filter(struct as102_dev_t *dev,
+>   		filter.pid = pid;
+>
+>   		ret = as10x_cmd_add_PID_filter(bus_adap, &filter);
+> -		dprintk(debug,
+> +		dev_dbg(&dev->bus_adap.usb_dev->dev,
+>   			"ADD_PID_FILTER([%02d -> %02d], 0x%04x) ret = %d\n",
+>   			index, filter.idx, filter.pid, ret);
+>   		break;
+>
 
+
+-- 
+http://palosaari.fi/
