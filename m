@@ -1,72 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:54606 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751491AbaE3X0k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 May 2014 19:26:40 -0400
-Date: Sat, 31 May 2014 01:26:38 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH] V4L2: fix VIDIOC_CREATE_BUFS 32-bit compatibility mode data
- copy-back
-Message-ID: <Pine.LNX.4.64.1405310125260.17582@axis700.grange>
+Received: from mail.kapsi.fi ([217.30.184.167]:59738 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030196AbaEQRVL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 May 2014 13:21:11 -0400
+Message-ID: <53779A7F.8020007@iki.fi>
+Date: Sat, 17 May 2014 20:21:03 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Martin Kepplinger <martink@posteo.de>, gregkh@linuxfoundation.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: m.chehab@samsung.com, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCHv2] staging: media: as102: replace custom dprintk() with
+ dev_dbg()
+References: <53776B57.5050504@iki.fi> <1400342738-32652-1-git-send-email-martink@posteo.de>
+In-Reply-To: <1400342738-32652-1-git-send-email-martink@posteo.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Similar to an earlier patch, fixing reading user-space data for the
-VIDIOC_CREATE_BUFS ioctl() in 32-bit compatibility mode, this patch fixes
-writing back of the possibly modified struct to the user. However, unlike
-the former bug, this one is much less harmful, because it only results in
-the kernel failing to write the .type field back to the user, but in fact
-this is likely unneeded, because the kernel will hardly want to change
-that field. Therefore this bug is more of a theoretical nature.
+On 05/17/2014 07:05 PM, Martin Kepplinger wrote:
+> don't reinvent dev_dbg(). remove dprintk() in as102_drv.c.
+> use the common kernel coding style.
+>
+> Signed-off-by: Martin Kepplinger <martink@posteo.de>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Not tested yet, I'll (try not to forget to) test it next week.
+> ---
+> this applies to next-20140516. any more suggestions?
+> more cleanup can be done when dprintk() is completely gone.
 
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+Do you have the device? I am a bit reluctant patching that driver 
+without any testing as it has happened too many times something has gone 
+totally broken.
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 7e2411c..c86a7e8 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -222,6 +222,9 @@ static int get_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_
- 
- static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
- {
-+	if (put_user(kp->type, &up->type))
-+		return -EFAULT;
-+
- 	switch (kp->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-@@ -248,8 +251,7 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
- 
- static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
- {
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)) ||
--		put_user(kp->type, &up->type))
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)))
- 		return -EFAULT;
- 	return __put_v4l2_format32(kp, up);
- }
-@@ -257,8 +259,8 @@ static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user
- static int put_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
- {
- 	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_create_buffers32)) ||
--	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32, format.fmt)))
--			return -EFAULT;
-+	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32, format)))
-+		return -EFAULT;
- 	return __put_v4l2_format32(&kp->format, &up->format);
- }
- 
+IIRC Devin said it is in staging because of style issues and nothing 
+more. Is that correct?
+
+regards
+Antti
+
 -- 
-1.9.3
-
+http://palosaari.fi/
