@@ -1,67 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-06.arcor-online.net ([151.189.21.46]:47268 "EHLO
-	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754614AbaE3VQy (ORCPT
+Received: from top.free-electrons.com ([176.31.233.9]:44877 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932428AbaEQMVt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 May 2014 17:16:54 -0400
-From: "Daniel Mayer" <danielmayer@arcor.de>
-To: <crope@iki.fi>
-Cc: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>
-References: 
-In-Reply-To: 
-Subject: WG: Patch pctv452e.c: Suppress annoying dmesg-SPAM
-Date: Fri, 30 May 2014 23:16:52 +0200
-Message-ID: <029901cf7c4c$7a4d78d0$6ee86a70$@arcor.de>
+	Sat, 17 May 2014 08:21:49 -0400
+Date: Sat, 17 May 2014 09:21:12 -0300
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH v2] media: stk1160: Avoid stack-allocated buffer for
+ control URBs
+Message-ID: <20140517122112.GA704@arch.cereza>
+References: <1397737700-1081-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <536CAF29.4030200@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_029A_01CF7C5D.3DD6BE00"
-Content-Language: de
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <536CAF29.4030200@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multipart message in MIME format.
+Hi Hans,
 
-------=_NextPart_000_029A_01CF7C5D.3DD6BE00
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+On 09 May 12:34 PM, Hans Verkuil wrote:
+> On 04/17/2014 02:28 PM, Ezequiel Garcia wrote:
+> > Currently stk1160_read_reg() uses a stack-allocated char to get the
+> > read control value. This is wrong because usb_control_msg() requires
+> > a kmalloc-ed buffer.
+> > 
+> > This commit fixes such issue by kmalloc'ating a 1-byte buffer to receive
+> > the read value.
+> > 
+> > While here, let's remove the urb_buf array which was meant for a similar
+> > purpose, but never really used.
+> 
+> Rather than allocating and freeing a buffer for every read_reg I would allocate
+> this buffer in the probe function.
+> 
+> That way this allocation is done only once.
+> 
 
-Hi,
-attached micro-patch removes the text output of an error-message of the
-PCTV452e-driver. The error messages "I2C error: [.]" do not help any user of
-the kernel, so whatever causes the error, it does not hamper the function of
-my TT-3600 USB receiver.
-So: Just remove the entries in the dmesg, for it is quite spam-like. 
-Perhaps someone with deeper knowledge could have a look up the background of
-this message and fix it?
-Thanks,
-Daniel
+Hm... sorry for being so stubborn, but I've just noticed that having a
+shared buffer would require adding a spinlock to protect it, where the current
+proposal doesn't need it.
 
-(resent as plain-text; sorry)
+Do you still think that's the right thing to do?
 
-------=_NextPart_000_029A_01CF7C5D.3DD6BE00
-Content-Type: application/octet-stream;
-	name="pctv452e.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="pctv452e.patch"
-
---- pctv452e.c.orig	2014-05-30 22:16:28.638949289 +0200=0A=
-+++ pctv452e.c	2014-05-30 22:16:43.165359598 +0200=0A=
-@@ -446,11 +446,11 @@ static int pctv452e_i2c_msg(struct dvb_u=0A=
- 	return rcv_len;=0A=
- =0A=
- failed:=0A=
--	err("I2C error %d; %02X %02X  %02X %02X %02X -> "=0A=
-+/*	err("I2C error %d; %02X %02X  %02X %02X %02X -> "=0A=
- 	     "%02X %02X  %02X %02X %02X.",=0A=
- 	     ret, SYNC_BYTE_OUT, id, addr << 1, snd_len, rcv_len,=0A=
- 	     buf[0], buf[1], buf[4], buf[5], buf[6]);=0A=
--=0A=
-+*/=0A=
- 	return ret;=0A=
- }=0A=
- =0A=
-
-------=_NextPart_000_029A_01CF7C5D.3DD6BE00--
-
+Thanks!
+-- 
+Ezequiel García, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
