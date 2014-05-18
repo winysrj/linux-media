@@ -1,81 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33593 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751545AbaE1LEE (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.131]:53304 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752170AbaERUgQ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 May 2014 07:04:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH] [media] mt9v032: Add support for mt9v022 and mt9v024
-Date: Wed, 28 May 2014 13:04:21 +0200
-Message-ID: <2161017.E5TWD97cmR@avalon>
-In-Reply-To: <Pine.LNX.4.64.1405281155440.27831@axis700.grange>
-References: <1401112985-32338-1-git-send-email-p.zabel@pengutronix.de> <1401270626.3054.13.camel@paszta.hi.pengutronix.de> <Pine.LNX.4.64.1405281155440.27831@axis700.grange>
+	Sun, 18 May 2014 16:36:16 -0400
+Date: Sun, 18 May 2014 22:36:01 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Alexander Shiyan <shc_work@mail.ru>,
+	Shawn Guo <shawn.guo@freescale.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH] media: mx1_camera: Remove driver
+In-Reply-To: <5370F95D.4080207@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1405182230170.23804@axis700.grange>
+References: <1399788551-8218-1-git-send-email-shc_work@mail.ru>
+ <1399904280.435992890@f125.i.mail.ru> <20140512142533.GF8330@dragon>
+ <1399909608.365840986@f391.i.mail.ru> <5370F95D.4080207@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Mon, 12 May 2014, Hans Verkuil wrote:
 
-On Wednesday 28 May 2014 12:07:57 Guennadi Liakhovetski wrote:
-> On Wed, 28 May 2014, Philipp Zabel wrote:
-> > Am Dienstag, den 27.05.2014, 21:48 +0200 schrieb Guennadi Liakhovetski:
-> > > On Mon, 26 May 2014, Philipp Zabel wrote:
-> > > > From the looks of it, mt9v022 and mt9v032 are very similar,
-> > > > as are mt9v024 and mt9v034. With minimal changes it is possible
-> > > > to support mt9v02[24] with the same driver.
-> > > 
-> > > Are you aware of drivers/media/i2c/soc_camera/mt9v022.c?
+> On 05/12/2014 05:46 PM, Alexander Shiyan wrote:
+> > Mon, 12 May 2014 22:25:34 +0800 от Shawn Guo <shawn.guo@freescale.com>:
+> >> On Mon, May 12, 2014 at 06:18:00PM +0400, Alexander Shiyan wrote:
+> >>> Mon, 12 May 2014 22:09:34 +0800 от Shawn Guo <shawn.guo@freescale.com>:
+> >>>> On Sun, May 11, 2014 at 10:09:11AM +0400, Alexander Shiyan wrote:
+> >>>>> That driver hasn't been really maintained for a long time. It doesn't
+> >>>>> compile in any way, it includes non-existent headers, has no users,
+> >>>>> and marked as "broken" more than year. Due to these factors, mx1_camera
+> >>>>> is now removed from the tree.
+> >>>>>
+> >>>>> Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
+> >>>>> ---
+> >>>>>  arch/arm/mach-imx/Makefile                      |   3 -
+> >>>>>  arch/arm/mach-imx/devices/Kconfig               |   3 -
+> >>>>>  arch/arm/mach-imx/devices/Makefile              |   1 -
+> >>>>>  arch/arm/mach-imx/devices/devices-common.h      |  10 -
+> >>>>>  arch/arm/mach-imx/devices/platform-mx1-camera.c |  42 --
+> >>>>>  arch/arm/mach-imx/mx1-camera-fiq-ksym.c         |  18 -
+> >>>>>  arch/arm/mach-imx/mx1-camera-fiq.S              |  35 -
+> >>>>>  drivers/media/platform/soc_camera/Kconfig       |  13 -
+> >>>>>  drivers/media/platform/soc_camera/Makefile      |   1 -
+> >>>>>  drivers/media/platform/soc_camera/mx1_camera.c  | 866 ------------------------
+> >>>>>  include/linux/platform_data/camera-mx1.h        |  35 -
+> >>>>>  11 files changed, 1027 deletions(-)
+> >>>>>  delete mode 100644 arch/arm/mach-imx/devices/platform-mx1-camera.c
+> >>>>>  delete mode 100644 arch/arm/mach-imx/mx1-camera-fiq-ksym.c
+> >>>>>  delete mode 100644 arch/arm/mach-imx/mx1-camera-fiq.S
+> >>>>>  delete mode 100644 drivers/media/platform/soc_camera/mx1_camera.c
+> >>>>>  delete mode 100644 include/linux/platform_data/camera-mx1.h
+> >>>>
+> >>>> Can this patch be split into arch and driver part?  Recently, arm-soc
+> >>>> folks do not want to have arch changes go via driver tree, unless that's
+> >>>> absolutely necessary.
+> >>>
+> >>> Can this patch be applied through arm-soc (imx) tree if it will be approved
+> >>> by the linux-media maintainers?
+> >>
+> >> Yes, it can, if linux-media maintainers want.  But I still prefer to two
+> >> patches, since I do not see any thing requiring it be one.  Doing that
+> >> will ensure we do not run into any merge conflicts.
 > > 
-> > Yes. Unfortunately this driver can't be used in a system without
-> > soc_camera. It uses soc_camera helpers and doesn't implement pad ops
-> > among others.
+> > ARM part and linux-media part are interconnected by using single header
+> > <linux/platform_data/camera-mx1.h>. So removing a driver in a separated
+> > patch will touch ARM part in any case.
 > 
-> As I mentioned many times, this compatibility is a matter of someone just
-> needing and finally doing this. If you need this, please, extend the
-> mt9v022 driver to also work with non soc-camera hosts, if you need any
-> help - please feel free to ask, I can send you my conversion code, that
-> I've done for ov772x, but never managed to finalise testing,
-> unfortunately.
->
-> > > With this patch you'd duplicate support for both mt9v022 and mt9v024,
-> > > which doesn't look like a good idea to me.
-> > 
-> > While this is true, given that the mt9v02x/3x sensors are so similar,
-> > the support is already duplicated in all but name.
-> > Would you suggest we should try to merge the mt9v032 and mt9v022
-> > drivers?
-> 
-> Out of 3 options:
-> 
-> 1. extend mt9v022 to work with non soc-camera hosts
-> 2. extend mt9v032 to also support mt9v022 and mt9v024
-> 3. merge both mt9v022 and mt9v032 drivers
-> 
-> option 2 seems the worst to me. I'm ok with either 1 or 3, whereas 3 is
-> more difficult than 1.
+> But the linux-media driver depends on BROKEN, so that isn't build in any
+> case, right?
 
-This topic has been discussed over and over. It indeed "just" requires someone 
-to do it, although it might be more complex than that sounds.
+Either way works for me. You can have my
 
-We need to fix the infrastructure to make sensor drivers completely unaware of 
-soc-camera. This isn't about extending the mt9v022 driver to work with non 
-soc-camera hosts, it's about fixing soc-camera not to require any change to 
-sensor drivers. Philipp, if you have time to work on that, we can discuss what 
-needs to be done.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-On the sensor side, we should have a single driver for the mt9v022, 024 and 
-032 sensors. I would vote for merging the two drivers into 
-drivers/media/i2c/mt9v032.c, as that one is closer to the goal of not being 
-soc-camera specific.
+if it is pulled via the ARM tree or you can split it into two patches and 
+I can take the V4L part via my tree. In that case maybe it would be better 
+to either guarantee, that the arch part is applied first or you leave the 
+header for the next version or you remove it together with the arch part, 
+not the driver part.
 
--- 
-Regards,
-
-Laurent Pinchart
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
