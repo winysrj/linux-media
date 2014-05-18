@@ -1,129 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:59707 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753728AbaENV6B (ORCPT
+Received: from mail-yh0-f46.google.com ([209.85.213.46]:61583 "EHLO
+	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751689AbaERToy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 May 2014 17:58:01 -0400
-Received: by mail-lb0-f182.google.com with SMTP id q8so141841lbi.13
-        for <linux-media@vger.kernel.org>; Wed, 14 May 2014 14:58:00 -0700 (PDT)
-From: Alexander Bersenev <bay@hackerdom.ru>
-To: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
-	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
-	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Alexander Bersenev <bay@hackerdom.ru>
-Subject: [PATCH v7 3/3] ARM: sunxi: Add IR controller support in DT on A20
-Date: Thu, 15 May 2014 03:56:42 +0600
-Message-Id: <1400104602-16431-4-git-send-email-bay@hackerdom.ru>
-In-Reply-To: <1400104602-16431-1-git-send-email-bay@hackerdom.ru>
-References: <1400104602-16431-1-git-send-email-bay@hackerdom.ru>
+	Sun, 18 May 2014 15:44:54 -0400
+Received: by mail-yh0-f46.google.com with SMTP id 29so6127123yhl.33
+        for <linux-media@vger.kernel.org>; Sun, 18 May 2014 12:44:53 -0700 (PDT)
+From: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+Subject: [PATCH] solo6x10: Reduce OSD writes to the minimum necessary
+Date: Sun, 18 May 2014 16:44:11 -0300
+Message-Id: <1400442251-7548-1-git-send-email-ismael.luceno@corp.bluecherry.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds IR controller in A20 Device-Tree:
-- Two IR devices found in A20 user manual
-- Pins for two devices
-- One IR device physically found on Cubieboard 2
-- One IR device physically found on Cubietruck
-
-Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
+Signed-off-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
 ---
- arch/arm/boot/dts/sun7i-a20-cubieboard2.dts |  6 ++++++
- arch/arm/boot/dts/sun7i-a20-cubietruck.dts  |  6 ++++++
- arch/arm/boot/dts/sun7i-a20.dtsi            | 32 +++++++++++++++++++++++++++++
- 3 files changed, 44 insertions(+)
+ drivers/staging/media/solo6x10/solo6x10-enc.c     | 31 ++++++++++-------------
+ drivers/staging/media/solo6x10/solo6x10-offsets.h |  2 ++
+ 2 files changed, 16 insertions(+), 17 deletions(-)
 
-diff --git a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
-index feeff64..b44d61b 100644
---- a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
-+++ b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
-@@ -65,6 +65,12 @@
- 			};
- 		};
+diff --git a/drivers/staging/media/solo6x10/solo6x10-enc.c b/drivers/staging/media/solo6x10/solo6x10-enc.c
+index 94d5735..2db53b6 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-enc.c
++++ b/drivers/staging/media/solo6x10/solo6x10-enc.c
+@@ -134,51 +134,48 @@ static void solo_capture_config(struct solo_dev *solo_dev)
+ 	kfree(buf);
+ }
  
-+		ir0: ir@01c21800 {
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&ir0_pins_a>;
-+			status = "okay";
-+		};
++#define SOLO_OSD_WRITE_SIZE (16 * OSD_TEXT_MAX)
 +
- 		uart0: serial@01c28000 {
- 			pinctrl-names = "default";
- 			pinctrl-0 = <&uart0_pins_a>;
-diff --git a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
-index e288562..5f5c31d 100644
---- a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
-+++ b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
-@@ -121,6 +121,12 @@
- 			};
- 		};
+ /* Should be called with enable_lock held */
+ int solo_osd_print(struct solo_enc_dev *solo_enc)
+ {
+ 	struct solo_dev *solo_dev = solo_enc->solo_dev;
+ 	unsigned char *str = solo_enc->osd_text;
+ 	u8 *buf = solo_enc->osd_buf;
+-	u32 reg = solo_reg_read(solo_dev, SOLO_VE_OSD_CH);
++	u32 reg;
+ 	const struct font_desc *vga = find_font("VGA8x16");
+ 	const unsigned char *vga_data;
+-	int len;
+ 	int i, j;
  
-+		ir0: ir@01c21800 {
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&ir0_pins_a>;
-+			status = "okay";
-+		};
-+
- 		uart0: serial@01c28000 {
- 			pinctrl-names = "default";
- 			pinctrl-0 = <&uart0_pins_a>;
-diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
-index 0ae2b77..fe1f8ff 100644
---- a/arch/arm/boot/dts/sun7i-a20.dtsi
-+++ b/arch/arm/boot/dts/sun7i-a20.dtsi
-@@ -724,6 +724,20 @@
- 				allwinner,drive = <2>;
- 				allwinner,pull = <0>;
- 			};
-+
-+			ir0_pins_a: ir0@0 {
-+				    allwinner,pins = "PB3","PB4";
-+				    allwinner,function = "ir0";
-+				    allwinner,drive = <0>;
-+				    allwinner,pull = <0>;
-+			};
-+
-+			ir1_pins_a: ir1@0 {
-+				    allwinner,pins = "PB22","PB23";
-+				    allwinner,function = "ir1";
-+				    allwinner,drive = <0>;
-+				    allwinner,pull = <0>;
-+			};
- 		};
+ 	if (WARN_ON_ONCE(!vga))
+ 		return -ENODEV;
  
- 		timer@01c20c00 {
-@@ -749,6 +763,24 @@
- 			interrupts = <0 24 4>;
- 		};
+-	len = strlen(str);
+-
+-	if (len == 0) {
++	reg = solo_reg_read(solo_dev, SOLO_VE_OSD_CH);
++	if (!*str) {
+ 		/* Disable OSD on this channel */
+ 		reg &= ~(1 << solo_enc->ch);
+-		solo_reg_write(solo_dev, SOLO_VE_OSD_CH, reg);
+-		return 0;
++		goto out;
+ 	}
  
-+		ir0: ir@01c21800 {
-+			compatible = "allwinner,sun7i-a20-ir";
-+			clocks = <&apb0_gates 6>, <&ir0_clk>;
-+			clock-names = "apb", "ir";
-+			interrupts = <0 5 4>;
-+			reg = <0x01c21800 0x40>;
-+			status = "disabled";
-+		};
-+
-+		ir1: ir@01c21c00 {
-+			compatible = "allwinner,sun7i-a20-ir";
-+			clocks = <&apb0_gates 7>, <&ir1_clk>;
-+			clock-names = "apb", "ir";
-+			interrupts = <0 6 4>;
-+			reg = <0x01c21c00 0x40>;
-+			status = "disabled";
-+		};
-+
- 		lradc: lradc@01c22800 {
- 			compatible = "allwinner,sun4i-lradc-keys";
- 			reg = <0x01c22800 0x100>;
+-	memset(buf, 0, SOLO_EOSD_EXT_SIZE_MAX);
++	memset(buf, 0, SOLO_OSD_WRITE_SIZE);
+ 	vga_data = (const unsigned char *)vga->data;
+ 
+-	for (i = 0; i < len; i++) {
+-		unsigned char c = str[i];
+-
++	for (i = 0; *str; i++, str++) {
+ 		for (j = 0; j < 16; j++) {
+-			buf[(j * 2) + (i % 2) + (i / 2 * 32)] =
+-				bitrev8(vga_data[(c * 16) + j]);
++			buf[(j << 1) | (i & 1) | ((i & ~1) << 4)] =
++			    bitrev8(vga_data[(*str << 4) | j]);
+ 		}
+ 	}
+ 
+ 	solo_p2m_dma(solo_dev, 1, buf,
+-		     SOLO_EOSD_EXT_ADDR +
+-		     (solo_enc->ch * SOLO_EOSD_EXT_SIZE(solo_dev)),
+-		     SOLO_EOSD_EXT_SIZE(solo_dev), 0, 0);
++		     SOLO_EOSD_EXT_ADDR_CHAN(solo_dev, solo_enc->ch),
++		     SOLO_OSD_WRITE_SIZE, 0, 0);
+ 
+ 	/* Enable OSD on this channel */
+ 	reg |= (1 << solo_enc->ch);
+-	solo_reg_write(solo_dev, SOLO_VE_OSD_CH, reg);
+ 
++out:
++	solo_reg_write(solo_dev, SOLO_VE_OSD_CH, reg);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/staging/media/solo6x10/solo6x10-offsets.h b/drivers/staging/media/solo6x10/solo6x10-offsets.h
+index f005dca..13eeb44 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-offsets.h
++++ b/drivers/staging/media/solo6x10/solo6x10-offsets.h
+@@ -35,6 +35,8 @@
+ #define SOLO_EOSD_EXT_SIZE_MAX			0x20000
+ #define SOLO_EOSD_EXT_AREA(__solo) \
+ 	(SOLO_EOSD_EXT_SIZE(__solo) * 32)
++#define SOLO_EOSD_EXT_ADDR_CHAN(__solo, ch) \
++	(SOLO_EOSD_EXT_ADDR + SOLO_EOSD_EXT_SIZE(__solo) * (ch))
+ 
+ #define SOLO_MOTION_EXT_ADDR(__solo) \
+ 	(SOLO_EOSD_EXT_ADDR + SOLO_EOSD_EXT_AREA(__solo))
 -- 
-1.9.3
+1.9.1
 
