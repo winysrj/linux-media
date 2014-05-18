@@ -1,185 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:44027 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750948AbaETFqy (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.131]:59333 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752035AbaERVwS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 May 2014 01:46:54 -0400
-Message-ID: <537AEC4C.2060000@samsung.com>
-Date: Tue, 20 May 2014 11:16:52 +0530
-From: Arun Kumar K <arun.kk@samsung.com>
+	Sun, 18 May 2014 17:52:18 -0400
+Date: Sun, 18 May 2014 23:51:59 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Josh Wu <josh.wu@atmel.com>
+cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	nicolas.ferre@atmel.com, linux-arm-kernel@lists.infradead.org,
+	grant.likely@linaro.org, galak@codeaurora.org, rob@landley.net,
+	mark.rutland@arm.com, robh+dt@kernel.org,
+	ijc+devicetree@hellion.org.uk, pawel.moll@arm.com,
+	devicetree@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v2 3/3] [media] atmel-isi: add primary DT support
+In-Reply-To: <1395744320-15025-1-git-send-email-josh.wu@atmel.com>
+Message-ID: <Pine.LNX.4.64.1405182308110.23804@axis700.grange>
+References: <1395744087-5753-1-git-send-email-josh.wu@atmel.com>
+ <1395744320-15025-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-To: Kamil Debski <k.debski@samsung.com>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	sachin.kamat@linaro.org, arunkk.samsung@gmail.com
-Subject: Re: [PATCH v2] [media] s5p-mfc: Dequeue sequence header after STREAMON
-References: <1400048996-726-1-git-send-email-arun.kk@samsung.com> <53731693.80002@xs4all.nl> <537324E5.3030704@samsung.com> <047d01cf7050$d1943780$74bca680$%debski@samsung.com>
-In-Reply-To: <047d01cf7050$d1943780$74bca680$%debski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+On Tue, 25 Mar 2014, Josh Wu wrote:
 
-On 05/15/14 20:47, Kamil Debski wrote:
-> Hi Arun,
+> This patch add the DT support for Atmel ISI driver.
+> It use the same v4l2 DT interface that defined in video-interfaces.txt.
 > 
->> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->> owner@vger.kernel.org] On Behalf Of Arun Kumar K
->> Sent: Wednesday, May 14, 2014 10:10 AM
->>
->> Hi Hans,
->>
->> On 05/14/14 12:39, Hans Verkuil wrote:
->>> On 05/14/2014 08:29 AM, Arun Kumar K wrote:
->>>> MFCv6 encoder needs specific minimum number of buffers to be queued
->>>> in the CAPTURE plane. This minimum number will be known only when
->> the
->>>> sequence header is generated.
->>>> So we used to allow STREAMON on the CAPTURE plane only after
->> sequence
->>>> header is generated and checked with the minimum buffer requirement.
->>>>
->>>> But this causes a problem that we call a vb2_buffer_done for the
->>>> sequence header buffer before doing a STREAON on the CAPTURE plane.
->>>
->>> How could this ever have worked? Buffers aren't queued to the driver
->>> until STREAMON is called, and calling vb2_buffer_done for a buffer
->>> that is not queued first to the driver will mess up internal data (q-
->>> queued_count for one).
->>>
->>
->> This worked till now because __enqueue_in_driver is called first and
->> then start_streaming qop is called. In MFCv6, the start_streaming
->> driver callback used to wait till sequence header interrupt is received
->> and it used to do vb2_buffer_done in that interrupt context. So it
->> happened after buffers are enqueued in driver and before completing the
->> vb2_streamon.
->>
->>>> This used to still work fine until this patch was merged -
->>>> b3379c6 : vb2: only call start_streaming if sufficient buffers are
->>>> queued
->>>
->>> Are you testing with CONFIG_VIDEO_ADV_DEBUG set? If not, you should
->> do
->>> so. That will check whether all the vb2 calls are balanced.
->>>
->>> BTW, that's a small typo in s5p_mfc_enc.c (search for 'inavlid').
->>>
->>
->> I got it. Will post a patch fixing them. Thanks for spotting this.
->>
->>>> This problem should also come in earlier MFC firmware versions if
->> the
->>>> application calls STREAMON on CAPTURE with some delay after doing
->>>> STREAMON on OUTPUT.
->>>
->>> You can also play around with the min_buffers_needed field. My
->>> rule-of-thumb is that when start_streaming is called everything
->> should
->>> be ready to stream. It is painful for drivers to have to keep track
->> of the 'do I have enough buffers' status.
->>>
->>> For that reason I introduced the min_buffers_needed field. What I
->>> believe you can do here is to set it initially to a large value,
->>> preventing start_streaming from being called, and once you really
->> know
->>> the minimum number of buffers that you need it can be updated again
->> to the actual value.
->>
->> If a large value is kept in min_buffers_needed, there will be some
->> unnecessary memory initialization needed for say 16 full HD raw YUV
->> buffers when actual needed is only 4. And once the encoding is started,
->> updating the min_buffers_needed to actual value doesnt give any
->> advantage as nobody checks for it after that.
->> So the whole idea is to not enforce a worst case buffer allocation
->> requirement beforehand itself. I hope the current scheme of things
->> works well for the requirement.
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> Cc: devicetree@vger.kernel.org
+> ---
+> v1 --> v2:
+>  refine the binding document.
+>  add port node description.
+>  removed the optional property.
 > 
-> I was looking in the code of the MFC encoder and handling of this situation
-> seems wrong to me.
-> 
-> You say that a minimum number of buffers has to be queued for MFC encoder to
-> work. But this number is not checked in s5p_mfc_ctx_ready in s5p_mfc_enc.c.
-> 
+>  .../devicetree/bindings/media/atmel-isi.txt        |   50 ++++++++++++++++++++
+>  drivers/media/platform/soc_camera/atmel-isi.c      |   31 +++++++++++-
+>  2 files changed, 79 insertions(+), 2 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/atmel-isi.txt
 
-The situation is bit tricky here. The s5p_mfc_ctx_ready has to be true
-for giving the first frame to encode which generates the sequence
-header. So this condition still holds good -
-        /* context is ready to make header */
-        if (ctx->state == MFCINST_GOT_INST && ctx->dst_queue_cnt >= 1)
-                return 1;
+[snip]
 
-So at this moment, atleast 1 buffer has to be queued in CAPTURE plane so
-as to generate sequence header. But once that is generated, then only
-the total buffer requirement will be known as per the v6+ firmware.
-So if we make ctx_ready only after STREAMON on CAPTURE is done, then
-there is no way to check for min. buffer requirement and the application
-will start the encoding and will fail during runtime.
+> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+> index f4add0a..d6a1f7b 100644
+> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
 
-> It is only checked during reqbufs. This way it does not ensure that there is
-> a minimum number of buffers queued.
-> 
-> Also there is a control V4L2_CID_MIN_BUFFERS_FOR_CAPTURE, maybe it could be
-> used
-> in this context?
-> 
+[snip]
 
-We had a discussion on this sometime back when a sequence change was
-proposed for encoding.
-http://www.mail-archive.com/linux-media%40vger.kernel.org/msg60400.html
-
-But we kept the old sequence for backward compatibility with old
-applications. If the application had requested buffers & streamon on
-CAPTURE plane first, then this issue will not come as the minimum OUTPUT
-buffer requirement is checked in the REQBUF for OUTPUT.
-So the best sequence would be
-1) REQBUF on CAPTURE
-2) QBUF and STREAMON on CAPTURE
-3) REQBUF on OUTPUT (Will know at this time the minimum OUTPUT buffer
-requirement)
-
-But if an application follows the following sequence:
-1) REQBUF on OUTPUT (we dont know the min. number yet)
-2) REQBUF on CAPTURE
-3) STREAMON on OUTPUT (header generated)
-4) STREAMON on CAPTURE (check for min. OUTPUT buffers here)
-
-So due to this check, a wait is introduced in start_streaming for the
-header generation. And due to this wait, a header is generated after
-buffers are enqueued in driver and before completing the STREAMON.
-
-> Another thing - you say that header is generated to a CAPTURE buffer before
-> STREAMON on CAPTURE was done. Is this correct? Can the hardware/driver write
-> to a queued buffer without streaming enabled? Hans, Sylwester?
-> 
-
-The reason is as I mentioned above. The vb2_streamon function is called
-which first call __enqueue_in_driver after which it calls the
-start_streaming qop. There it waits in our driver which gives the issue.
-The patch posted actually solves all these problems, without affecting
-any other functionality I feel.
-
-> Arun, is there a way to guess the needed number of buffers from controls?
-> Isn't this
-> related with number of B frames? I understand how this affects the number of
-> buffers for OUTPUT, but I thought that a single CAPTURE buffer is always
-> enough.
-
-It should be possible, but there is no interface given by the firmware
-for this. We need to know the internal logic of firmware for correctly
-arriving at a number beforehand.
-
-Regards
-Arun
-
-> I understood that a generated compressed stream is no longer used after it
-> was
-> created and its processing is finished.
-> 
-> I think we need some discussion on this patch.
+> @@ -885,6 +887,20 @@ static int atmel_isi_remove(struct platform_device *pdev)
+>  	return 0;
+>  }
 >  
-> Best wishes,
-> 
+> +static int atmel_isi_probe_dt(struct atmel_isi *isi,
+> +			struct platform_device *pdev)
+> +{
+> +	struct device_node *node = pdev->dev.of_node;
+> +
+> +	/* Default settings for ISI */
+> +	isi->pdata.full_mode = 1;
+> +	isi->pdata.mck_hz = ISI_DEFAULT_MCLK_FREQ;
+> +	isi->pdata.frate = ISI_CFG1_FRATE_CAPTURE_ALL;
+
+The above flags eventually should probably partially be added as new 
+driver-specific DT properties, partially derived from DT clock bindings. 
+But I'm ok to have them fixed like this in the initial version.
+
+> +	isi->pdata.data_width_flags = ISI_DATAWIDTH_8 | ISI_DATAWIDTH_10;
+
+Whereas these flags, I think, should already now be derived from the 
+bus-width standard property? v4l2_of_parse_parallel_bus() will extract 
+them for you and I just asked Ben to add a call to 
+v4l2_of_parse_endpoint() to his patch. Consequently you'll have to 
+rearrange bus-width interpretation in isi_camera_try_bus_param() a bit and 
+use OF parsing results there directly if available? Or maybe you find a 
+better way. It would certainly be better to extend your probing code and 
+just use OF results to initialise isi->width_flags, but that might be 
+impossible, because OF parsing would be performed inside 
+soc_camera_host_register() and your isi_camera_try_bus_param() can also be 
+called immediately from it if all required I2C devices are already 
+available? If your I2C subdevice drivers defer probing until the host has 
+probed, then you could initialise .width_flags after 
+soc_camera_host_register(), but you cannot rely on that.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
