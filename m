@@ -1,79 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp02.atmel.com ([204.2.163.16]:48723 "EHLO
-	SJOEDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751266AbaEWDQm (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2924 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751890AbaERCny (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 May 2014 23:16:42 -0400
-Message-ID: <537EBD46.6030406@atmel.com>
-Date: Fri, 23 May 2014 11:15:18 +0800
-From: Josh Wu <josh.wu@atmel.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>,
-	<nicolas.ferre@atmel.com>, <linux-arm-kernel@lists.infradead.org>,
-	<laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 2/3] [media] atmel-isi: convert the pdata from pointer
- to structure
-References: <1395744087-5753-1-git-send-email-josh.wu@atmel.com> <1395744087-5753-3-git-send-email-josh.wu@atmel.com> <Pine.LNX.4.64.1405182255540.23804@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1405182255540.23804@axis700.grange>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sat, 17 May 2014 22:43:54 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4I2hodk044905
+	for <linux-media@vger.kernel.org>; Sun, 18 May 2014 04:43:52 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 14BFB2A19A4
+	for <linux-media@vger.kernel.org>; Sun, 18 May 2014 04:43:33 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140518024333.14BFB2A19A4@tschai.lan>
+Date: Sun, 18 May 2014 04:43:33 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 5/19/2014 4:59 AM, Guennadi Liakhovetski wrote:
-> Hi Josh,
->
-> I'm still waiting for an update of Ben's patches to then also apply yours,
-> but I decided to have a look at yours now to see if I find anything, that
-> might be worth changing. A small note to this one below.
->
-> On Tue, 25 Mar 2014, Josh Wu wrote:
->
->> Now the platform data is initialized by allocation of isi
->> structure. In the future, we use pdata to store the dt parameters.
->>
->> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->> ---
->> v1 --> v2:
->>   no change.
->>
->>   drivers/media/platform/soc_camera/atmel-isi.c |   22 +++++++++++-----------
->>   1 file changed, 11 insertions(+), 11 deletions(-)
->>
->> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
->> index 9d977c5..f4add0a 100644
->> --- a/drivers/media/platform/soc_camera/atmel-isi.c
->> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> [snip]
->
->> @@ -912,7 +912,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
->>   	if (IS_ERR(isi->pclk))
->>   		return PTR_ERR(isi->pclk);
->>   
->> -	isi->pdata = pdata;
->> +	memcpy(&isi->pdata, pdata, sizeof(struct isi_platform_data));
-> I think it'd be better to use
->
-> +	memcpy(&isi->pdata, pdata, sizeof(isi->pdata));
->
-> This way if the type of the pdata changes at any time in the future this
-> line will not have to be changed. If you don't mind I can make this change
-> myself, so you don't have to make a new version just for this.
+Results of the daily build of media_tree:
 
-Thanks for pointing it out.  I think I will sent out a new version of 
-patch (include bus-width parsing) then I will included with this fix.
+date:		Sun May 18 04:00:15 CEST 2014
+git branch:	test
+git hash:	ba0d342ecc21fbbe2f6c178f4479944d1fb34f3b
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-1.slh.1-amd64
 
-Best Regards,
-Josh Wu
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
