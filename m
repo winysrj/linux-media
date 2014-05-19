@@ -1,170 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:21924 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904AbaE1KCP (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3639 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750969AbaESCn4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 May 2014 06:02:15 -0400
-Message-id: <5385B41E.5080503@samsung.com>
-Date: Wed, 28 May 2014 12:02:06 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Alexander Shiyan <shc_work@mail.ru>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Shawn Guo <shawn.guo@freescale.com>,
-	Sascha Hauer <kernel@pengutronix.de>
-Subject: Re: [PATCH 2/2] media: mx2-emmaprp: Add DT bindings documentation
-References: <1401176914-7358-1-git-send-email-shc_work@mail.ru>
-In-reply-to: <1401176914-7358-1-git-send-email-shc_work@mail.ru>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Sun, 18 May 2014 22:43:56 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4J2hqvY089155
+	for <linux-media@vger.kernel.org>; Mon, 19 May 2014 04:43:54 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E57252A19A6
+	for <linux-media@vger.kernel.org>; Mon, 19 May 2014 04:43:33 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140519024333.E57252A19A6@tschai.lan>
+Date: Mon, 19 May 2014 04:43:33 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27/05/14 09:48, Alexander Shiyan wrote:
-> This patch adds DT binding documentation for the Freescale enhanced
-> Multimedia Accelerator (eMMA) video Pre-processor (PrP).
-> 
-> Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
-> ---
->  .../devicetree/bindings/media/fsl-imx-emmaprp.txt    | 20 ++++++++++++++++++++
->  1 file changed, 20 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt b/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
-> new file mode 100644
-> index 0000000..d78b1b6
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
-> @@ -0,0 +1,20 @@
-> +* Freescale enhanced Multimedia Accelerator (eMMA) video Pre-processor (PrP)
-> +  for i.MX21 & i.MX27 SoCs.
-> +
-> +Required properties:
-> +- compatible : Shall contain "fsl,imx21-emmaprp" for compatible with
-> +               the one integrated on i.MX21 SoC.
-> +- reg        : Offset and length of the register set for the device.
-> +- interrupts : Should contain eMMA PrP interrupt number.
-> +- clocks     : Should contain the ahb and ipg clocks, in the order
-> +               determined by the clock-names property.
-> +- clock-names: Should be "ahb", "ipg".
-> +
-> +Example:
-> +	emmaprp: emmaprp@10026400 {
-> +		compatible = "fsl,imx27-emmaprp", "fsl,imx21-emmaprp";
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-As we discussed previously, please either remove "fsl,imx27-emmaprp" from
-here or document it above.
+Results of the daily build of media_tree:
 
-> +		reg = <0x10026400 0x100>;
-> +		interrupts = <51>;
-> +		clocks = <&clks 49>, <&clks 68>;
-> +		clock-names = "ipg", "ahb";
-> +	};
+date:		Mon May 19 04:00:15 CEST 2014
+git branch:	test
+git hash:	ba0d342ecc21fbbe2f6c178f4479944d1fb34f3b
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-1.slh.1-amd64
 
-There are also some checkpatch warnings:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
-WARNING: Use a single space after To:
-#35:
-To:	linux-media@vger.kernel.org
+Detailed results are available here:
 
-WARNING: Use a single space after Cc:
-#36:
-Cc:	devicetree@vger.kernel.org,
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-ERROR: DOS line endings
-#67: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:1:
-+* Freescale enhanced Multimedia Accelerator (eMMA) video Pre-processor (PrP)^M$
+Full logs are available here:
 
-ERROR: DOS line endings
-#68: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:2:
-+  for i.MX21 & i.MX27 SoCs.^M$
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-ERROR: DOS line endings
-#69: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:3:
-+^M$
+The Media Infrastructure API from this daily build is here:
 
-ERROR: DOS line endings
-#70: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:4:
-+Required properties:^M$
-
-ERROR: DOS line endings
-#71: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:5:
-+- compatible : Shall contain "fsl,imx21-emmaprp" for compatible with^M$
-
-ERROR: DOS line endings
-#72: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:6:
-+               the one integrated on i.MX21 SoC.^M$
-
-ERROR: DOS line endings
-#73: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:7:
-+- reg        : Offset and length of the register set for the device.^M$
-
-ERROR: DOS line endings
-#74: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:8:
-+- interrupts : Should contain eMMA PrP interrupt number.^M$
-
-ERROR: DOS line endings
-#75: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:9:
-+- clocks     : Should contain the ahb and ipg clocks, in the order^M$
-
-ERROR: DOS line endings
-#76: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:10:
-+               determined by the clock-names property.^M$
-
-ERROR: DOS line endings
-#77: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:11:
-+- clock-names: Should be "ahb", "ipg".^M$
-
-ERROR: DOS line endings
-#78: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:12:
-+^M$
-
-ERROR: DOS line endings
-#79: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:13:
-+Example:^M$
-
-ERROR: DOS line endings
-#80: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:14:
-+^Iemmaprp: emmaprp@10026400 {^M$
-
-ERROR: DOS line endings
-#81: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:15:
-+^I^Icompatible = "fsl,imx27-emmaprp", "fsl,imx21-emmaprp";^M$
-
-ERROR: DOS line endings
-#82: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:16:
-+^I^Ireg = <0x10026400 0x100>;^M$
-
-ERROR: DOS line endings
-#83: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:17:
-+^I^Iinterrupts = <51>;^M$
-
-ERROR: DOS line endings
-#84: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:18:
-+^I^Iclocks = <&clks 49>, <&clks 68>;^M$
-
-ERROR: DOS line endings
-#85: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:19:
-+^I^Iclock-names = "ipg", "ahb";^M$
-
-ERROR: DOS line endings
-#86: FILE: Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt:20:
-+^I};^M$
-
-total: 20 errors, 2 warnings, 20 lines checked
-
-[PATCH 2_2] media: mx2-emmaprp: Add DT bindings documentation.eml has style
-problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-
-With that fixed feel free to add:
-
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-
---
-Regards,
-Sylwester
+http://www.xs4all.nl/~hverkuil/spec/media.html
