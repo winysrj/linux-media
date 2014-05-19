@@ -1,75 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50155 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751218AbaEZUqG (ORCPT
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:33992 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754538AbaESMd2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 16:46:06 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] smiapp: I2C address is the last part of the subdev name
-Date: Mon, 26 May 2014 22:46:24 +0200
-Message-ID: <3402705.9k4s8R0HnX@avalon>
-In-Reply-To: <1400140602-27282-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1400140602-27282-1-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 19 May 2014 08:33:28 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, posciak@chromium.org, avnd.kiran@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH 05/10] [media] s5p-mfc: Update scratch buffer size for VP8 encoder
+Date: Mon, 19 May 2014 18:03:01 +0530
+Message-Id: <1400502786-4826-6-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1400502786-4826-1-git-send-email-arun.kk@samsung.com>
+References: <1400502786-4826-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Kiran AVND <avnd.kiran@samsung.com>
 
-Thank you for the patch.
+Scratch buffer size updated for vp8 encoding as per
+the latest v7 firmware. As the new macro increases the
+scratch buffer size, it is backward compatible with the older
+firmware too.
 
-On Thursday 15 May 2014 10:56:42 Sakari Ailus wrote:
-> The I2C address of the sensor device was in the middle of the sub-device
-> name and not in the end as it should have been. The smiapp sub-device names
-> will change from e.g. "vs6555 1-0010 pixel array" to "vs6555 pixel array
-> 1-0010".
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> This was already supposed to be fixed by "[media] smiapp: Use I2C adapter ID
-> and address in the sub-device name" but the I2C address indeed was in the
-> middle of the sub-device name and not in the end as it should have been.
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/regs-mfc-v7.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-I don't mind much whether the I2C bus number is in the middle or at the end of 
-the name. The current "vs6555 1-0010 pixel array" value looks good to me, as 
-it means "the pixel array of the vs6555 1-0010 sensor" in English, but I'm 
-fine with "vs6555 pixel array 1-0010" as well.
-
-However, as discussed privately, I think we need to make sure that 
-applications don't rely on a specific format for the name. Names must be 
-unique, but should not otherwise be parsed by applications to extract device 
-location information (at least in my opinion). That information should be 
-reported through a separate new ioctl that would report all kind of static 
-information about entities. We've discussed that ioctl on and off for years 
-(including with ALSA developers), it's "just" a matter of implementing it.
-
->  drivers/media/i2c/smiapp/smiapp-core.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c
-> b/drivers/media/i2c/smiapp/smiapp-core.c index db3d5a6..2413d3c 100644
-> --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-> @@ -2543,9 +2543,9 @@ static int smiapp_registered(struct v4l2_subdev
-> *subdev) }
-> 
->  		snprintf(this->sd.name,
-> -			 sizeof(this->sd.name), "%s %d-%4.4x %s",
-> -			 sensor->minfo.name, i2c_adapter_id(client->adapter),
-> -			 client->addr, _this->name);
-> +			 sizeof(this->sd.name), "%s %s %d-%4.4x",
-> +			 sensor->minfo.name, _this->name,
-> +			 i2c_adapter_id(client->adapter), client->addr);
-> 
->  		this->sink_fmt.width =
->  			sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
-
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+index ea5ec2a..5dfa149 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+@@ -56,6 +56,7 @@
+ 			(SZ_1M + ((w) * 144) + (8192 * (h)) + 49216)
+ 
+ #define S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V7(w, h) \
+-			(((w) * 48) + (((w) + 1) / 2 * 128) + 144 + 8192)
++			(((w) * 48) + 8192 + ((((w) + 1) / 2) * 128) + 144 + \
++			((((((w) * 16) * ((h) * 16)) * 3) / 2) * 4))
+ 
+ #endif /*_REGS_MFC_V7_H*/
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
