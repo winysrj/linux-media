@@ -1,52 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42413 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751075AbaEYTyn (ORCPT
+Received: from mail-qg0-f49.google.com ([209.85.192.49]:32777 "EHLO
+	mail-qg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751644AbaESLSJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 May 2014 15:54:43 -0400
-Received: from avalon.ideasonboard.com (254.20-200-80.adsl-dyn.isp.belgacom.be [80.200.20.254])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 4943C35A40
-	for <linux-media@vger.kernel.org>; Sun, 25 May 2014 21:54:32 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] m5mols: Replace missing header
-Date: Sun, 25 May 2014 21:54:55 +0200
-Message-Id: <1401047695-2046-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 19 May 2014 07:18:09 -0400
+Received: by mail-qg0-f49.google.com with SMTP id a108so8365342qge.22
+        for <linux-media@vger.kernel.org>; Mon, 19 May 2014 04:18:08 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1400241824-18260-2-git-send-email-k.debski@samsung.com>
+References: <1400241824-18260-1-git-send-email-k.debski@samsung.com>
+	<1400241824-18260-2-git-send-email-k.debski@samsung.com>
+Date: Mon, 19 May 2014 16:48:08 +0530
+Message-ID: <CALt3h78q4sk5imcwfXXcdFKh9PMA+uYGd6p_pkgEzQ5OdL_Vog@mail.gmail.com>
+Subject: Re: [PATCH 2/2] v4l: s5p-mfc: Limit enum_fmt to output formats of
+ current version
+From: Arun Kumar K <arun.kk@samsung.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The include/media/s5p_fimc.h header has been removed in commit
-49b2f4c56fbf70ca693d6df1c491f0566d516aea ("exynos4-is: Remove support
-for non-dt platforms"). This broke compilation of the m5mols driver.
+Hi Kamil,
 
-Include the include/media/exynos-fimc.h header instead, which contains
-the S5P_FIMC_TX_END_NOTIFY definition required by the driver.
+Only a small correction.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/m5mols/m5mols_capture.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Fri, May 16, 2014 at 5:33 PM, Kamil Debski <k.debski@samsung.com> wrote:
+> MFC versions support a different set of formats, this specially applies
+> to the raw YUV formats. This patch changes enum_fmt, so that it only
+> reports formats that are supported by the used MFC version.
+>
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c        |    3 ++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    7 ++++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |   49 +++++++++++++---------
+>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   50 ++++++++++++-----------
+>  4 files changed, 67 insertions(+), 42 deletions(-)
+>
 
-(Resending to linux-media has the original patch seems not to have made it to
-the list for an unknown reason.)
+[snip]
 
-This is a regression in Mauro's latest master branch.
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> index d09c2e1..1ddd152 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> @@ -42,6 +42,7 @@ static struct s5p_mfc_fmt formats[] = {
+>                 .codec_mode     = S5P_MFC_CODEC_NONE,
+>                 .type           = MFC_FMT_RAW,
+>                 .num_planes     = 2,
+> +               .versions       = MFC_V6 | MFC_V7,
+>         },
+>         {
+>                 .name           = "4:2:0 2 Planes 64x32 Tiles",
+> @@ -49,6 +50,7 @@ static struct s5p_mfc_fmt formats[] = {
+>                 .codec_mode     = S5P_MFC_CODEC_NONE,
+>                 .type           = MFC_FMT_RAW,
+>                 .num_planes     = 2,
+> +               .versions       = MFC_V5,
+>         },
+>         {
+>                 .name           = "4:2:0 2 Planes Y/CbCr",
+> @@ -56,6 +58,7 @@ static struct s5p_mfc_fmt formats[] = {
+>                 .codec_mode     = S5P_MFC_CODEC_NONE,
+>                 .type           = MFC_FMT_RAW,
+>                 .num_planes     = 2,
+> +               .versions       = MFC_V5 | MFC_V6 | MFC_V7,
+>         },
+>         {
+>                 .name           = "4:2:0 2 Planes Y/CrCb",
+> @@ -63,6 +66,7 @@ static struct s5p_mfc_fmt formats[] = {
+>                 .codec_mode     = S5P_MFC_CODEC_NONE,
+>                 .type           = MFC_FMT_RAW,
+>                 .num_planes     = 2,
+> +               .versions       = MFC_V5 | MFC_V6 | MFC_V7,
+>         },
+>         {
+>                 .name           = "H264 Encoded Stream",
+> @@ -70,6 +74,7 @@ static struct s5p_mfc_fmt formats[] = {
+>                 .codec_mode     = S5P_MFC_CODEC_H264_ENC,
+>                 .type           = MFC_FMT_ENC,
+>                 .num_planes     = 1,
+> +               .versions       = MFC_V5 | MFC_V6 | MFC_V7,
+>         },
+>         {
+>                 .name           = "MPEG4 Encoded Stream",
+> @@ -77,6 +82,7 @@ static struct s5p_mfc_fmt formats[] = {
+>                 .codec_mode     = S5P_MFC_CODEC_MPEG4_ENC,
+>                 .type           = MFC_FMT_ENC,
+>                 .num_planes     = 1,
+> +               .versions       = MFC_V5 | MFC_V6 | MFC_V7,
+>         },
+>         {
+>                 .name           = "H263 Encoded Stream",
+> @@ -84,6 +90,7 @@ static struct s5p_mfc_fmt formats[] = {
+>                 .codec_mode     = S5P_MFC_CODEC_H263_ENC,
+>                 .type           = MFC_FMT_ENC,
+>                 .num_planes     = 1,
+> +               .versions       = MFC_V5 | MFC_V6 | MFC_V7,
+>         },
+>         {
+>                 .name           = "VP8 Encoded Stream",
+> @@ -91,6 +98,7 @@ static struct s5p_mfc_fmt formats[] = {
+>                 .codec_mode     = S5P_MFC_CODEC_VP8_ENC,
+>                 .type           = MFC_FMT_ENC,
+>                 .num_planes     = 1,
+> +               .versions       = MFC_V6 | MFC_V7,
 
-diff --git a/drivers/media/i2c/m5mols/m5mols_capture.c b/drivers/media/i2c/m5mols/m5mols_capture.c
-index ab34cce..1a03d02 100644
---- a/drivers/media/i2c/m5mols/m5mols_capture.c
-+++ b/drivers/media/i2c/m5mols/m5mols_capture.c
-@@ -26,7 +26,7 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
- #include <media/m5mols.h>
--#include <media/s5p_fimc.h>
-+#include <media/exynos-fimc.h>
- 
- #include "m5mols.h"
- #include "m5mols_reg.h"
--- 
-Regards,
+VP8 encodig is supported only from v7 onwards.
+So you can remove MFC_V6 from this.
 
-Laurent Pinchart
+Otherwise looks good to me.
 
+Regards
+Arun
