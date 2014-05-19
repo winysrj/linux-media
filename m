@@ -1,83 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50231 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750702AbaEINq0 (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:35096 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754612AbaESONY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 May 2014 09:46:26 -0400
-Date: Fri, 9 May 2014 16:46:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: V4L control units
-Message-ID: <20140509134622.GK8753@valkosipuli.retiisi.org.uk>
-References: <536A2DA7.7050803@iki.fi>
- <20140508090446.GG8753@valkosipuli.retiisi.org.uk>
- <536CD0A9.4020904@xs4all.nl>
+	Mon, 19 May 2014 10:13:24 -0400
+Message-ID: <537A1180.2010109@canonical.com>
+Date: Mon, 19 May 2014 16:13:20 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <536CD0A9.4020904@xs4all.nl>
+To: Thomas Hellstrom <thellstrom@vmware.com>
+CC: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	ccross@google.com, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 2/2 with seqcount v3] reservation: add suppport for
+ read-only access using rcu
+References: <20140409144239.26648.57918.stgit@patser> <20140409144831.26648.79163.stgit@patser> <53465A53.1090500@vmware.com> <53466D63.8080808@canonical.com> <53467B93.3000402@vmware.com> <5346B212.8050202@canonical.com> <5347A9FD.2070706@vmware.com> <5347B4E5.6090901@canonical.com> <5347BFC9.3020503@vmware.com> <53482FF1.1090406@canonical.com> <534843EA.6060602@vmware.com> <534B9165.4000101@canonical.com> <534B921B.4080504@vmware.com> <5357A0DE.7030305@canonical.com> <537A0A5D.6090909@vmware.com>
+In-Reply-To: <537A0A5D.6090909@vmware.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+op 19-05-14 15:42, Thomas Hellstrom schreef:
+> Hi, Maarten!
+>
+> Some nitpicks, and that krealloc within rcu lock still worries me.
+> Otherwise looks good.
+>
+> /Thomas
+>
+>
+>
+> On 04/23/2014 12:15 PM, Maarten Lankhorst wrote:
+>> @@ -55,8 +60,8 @@ int reservation_object_reserve_shared(struct
+>> reservation_object *obj)
+>>               kfree(obj->staged);
+>>               obj->staged = NULL;
+>>               return 0;
+>> -        }
+>> -        max = old->shared_max * 2;
+>> +        } else
+>> +            max = old->shared_max * 2;
+> Perhaps as a separate reformatting patch?
+I'll fold it in to the patch that added reservation_object_reserve_shared.
+>> +
+>> +int reservation_object_get_fences_rcu(struct reservation_object *obj,
+>> +                      struct fence **pfence_excl,
+>> +                      unsigned *pshared_count,
+>> +                      struct fence ***pshared)
+>> +{
+>> +    unsigned shared_count = 0;
+>> +    unsigned retry = 1;
+>> +    struct fence **shared = NULL, *fence_excl = NULL;
+>> +    int ret = 0;
+>> +
+>> +    while (retry) {
+>> +        struct reservation_object_list *fobj;
+>> +        unsigned seq;
+>> +
+>> +        seq = read_seqcount_begin(&obj->seq);
+>> +
+>> +        rcu_read_lock();
+>> +
+>> +        fobj = rcu_dereference(obj->fence);
+>> +        if (fobj) {
+>> +            struct fence **nshared;
+>> +
+>> +            shared_count = ACCESS_ONCE(fobj->shared_count);
+> ACCESS_ONCE() shouldn't be needed inside the seqlock?
+Yes it is, shared_count may be increased, leading to potential different sizes for krealloc and memcpy
+if the ACCESS_ONCE is removed. I could use shared_max here instead, which stays the same,
+but it would waste more memory.
 
-On Fri, May 09, 2014 at 02:57:13PM +0200, Hans Verkuil wrote:
-> On 05/08/2014 11:04 AM, Sakari Ailus wrote:
-> > Heippa!
-> > 
-> > On Wed, May 07, 2014 at 03:57:11PM +0300, Antti Palosaari wrote:
-> >> What is preferred way implement controls that could have some known
-> >> unit or unknown unit? For example for gain controls, I would like to
-> >> offer gain in unit of dB (decibel) and also some unknown driver
-> >> specific unit. Should I two controls, one for each unit?
-> >>
-> >> Like that
-> >>
-> >> V4L2_CID_RF_TUNER_LNA_GAIN_AUTO
-> >> V4L2_CID_RF_TUNER_LNA_GAIN
-> >> V4L2_CID_RF_TUNER_LNA_GAIN_dB
-> > 
-> > I suppose that on any single device there would be a single unit to control
-> > a given... control. Some existing controls do document the unit as well but
-> > I don't think that's scalable nor preferrable. This way we'd have many
-> > different controls to control the same thing but just using a different
-> > unit. The auto control is naturally different. Hans did have a patch to add
-> > the unit to queryctrl (in the form of QUERY_EXT_CTRL).
-> 
-> Well, that's going to be dropped again. There were too many comments about
-> that during the mini-summit and it was not critical for me.
+>> +            nshared = krealloc(shared, sizeof(*shared) *
+>> shared_count, GFP_KERNEL);
+> Again, krealloc should be a sleeping function, and not suitable within a
+> RCU read lock? I still think this krealloc should be moved to the start
+> of the retry loop, and we should start with a suitable guess of
+> shared_count (perhaps 0?) It's not like we're going to waste a lot of
+> memory....
+But shared_count is only known when holding the rcu lock.
 
-Ok. Thanks for the information.
+What about this change?
 
-> > <URL:http://www.spinics.net/lists/linux-media/msg73136.html>
-> > 
-> > I wish we can get these in relatively soon.
-> 
-> Sakari, I think you will have to push this if you want this done.
+@@ -254,16 +254,27 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+  		fobj = rcu_dereference(obj->fence);
+  		if (fobj) {
+  			struct fence **nshared;
++			size_t sz;
+  
+  			shared_count = ACCESS_ONCE(fobj->shared_count);
+-			nshared = krealloc(shared, sizeof(*shared) * shared_count, GFP_KERNEL);
++			sz = sizeof(*shared) * shared_count;
++
++			nshared = krealloc(shared, sz,
++					   GFP_NOWAIT | __GFP_NOWARN);
+  			if (!nshared) {
++				rcu_read_unlock();
++				nshared = krealloc(shared, sz, GFP_KERNEL)
++				if (nshared) {
++					shared = nshared;
++					continue;
++				}
++
+  				ret = -ENOMEM;
+-				shared_count = retry = 0;
+-				goto unlock;
++				shared_count = 0;
++				break;
+  			}
+  			shared = nshared;
+-			memcpy(shared, fobj->shared, sizeof(*shared) * shared_count);
++			memcpy(shared, fobj->shared, sz);
+  		} else
+  			shared_count = 0;
+  		fence_excl = rcu_dereference(obj->fence_excl);
 
-Ack. I think I proposed something like this already a few years ago so I'm
-fine picking it up. :-) Now it's a good time to add the required space in
-the struct as we're going to have a new IOCTL anyway.
 
-> One interesting thing to look at: the AVB IEEE 1722.1 standard has extensive
-> support for all sorts of units. I don't know if you have access to the standard
-> document, but it might be interesting to look at what they do there.
+>> +
+>> +        /*
+>> +         * There could be a read_seqcount_retry here, but nothing cares
+>> +         * about whether it's the old or newer fence pointers that are
+>> +         * signale. That race could still have happened after checking
+> Typo.
+Oops.
 
-I have access to it but I don't see this would be that interesting in
-regards to what we're doing. In any case, we should document the units so
-that different drivers end up using exactly the same string to signal a
-particular unit.
-
-I prefer to have a prefix as well: a lot of hardware devices use binary
-fractions so that even if we provide an integer control to the user the
-actual control value may well be divided by e.g. 256. That is a somewhat
-separate topic still.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
