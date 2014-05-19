@@ -1,111 +1,254 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.horizon.com ([71.41.210.147]:22387 "HELO ns.horizon.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1757805AbaEKLTC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 May 2014 07:19:02 -0400
-Date: 11 May 2014 07:19:01 -0400
-Message-ID: <20140511111901.15187.qmail@ns.horizon.com>
-From: "George Spelvin" <linux@horizon.com>
-To: james.hogan@imgtec.com, linux-media@vger.kernel.org,
-	linux@horizon.com, m.chehab@samsung.com
-Subject: [PATCH 10/10] ati_remote: Better default keycodes
-In-Reply-To: <20140511111113.14427.qmail@ns.horizon.com>
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:56452 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754526AbaESMdT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 May 2014 08:33:19 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, posciak@chromium.org, avnd.kiran@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH 02/10] [media] s5p-mfc: Fixes for decode REQBUFS.
+Date: Mon, 19 May 2014 18:02:58 +0530
+Message-Id: <1400502786-4826-3-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1400502786-4826-1-git-send-email-arun.kk@samsung.com>
+References: <1400502786-4826-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This tries to make them more like other remotes, and/or
-the button labels.
+From: Pawel Osciak <posciak@chromium.org>
 
-Notably, the (>>) button is made KEY_FASTFORWARD, which is the
-correct opposite of (<<)'s KEY_REVERSE.  (It was KEY_FORWARD,
-something else entirely.)
+- Honor return values from vb2_reqbufs on REQBUFS(0).
 
-Likewise, KEY_STOP is the Sun keyboard "interrupt program" key;
-the media key is KEY_STOPCD.
+- Do not set the number of allocated buffers to 0 if userspace tries
+  to request buffers again without freeing them.
 
-A restriction is that I try to avoid keycodes above 255, as the X11
-client/server protocol is limited to 8-bit key codes.  If not for
-this, I would have used the KEY_NUMERIC_x codes for the numbers.
+- There is no need to verify correct instance state on reqbufs, as we will
+  verify this in queue_setup().
 
-Signed-off-by: George Spelvin <linux@horizon.com>
+- There is also no need to verify that vb2_reqbufs() was able to allocate enough
+  buffers (pb_count) and call buf_init on that many buffers (i.e. dst_buf_count
+  is at least pb_count), because this will be verified by second queue_setup()
+  call as well and vb2_reqbufs() will fail otherwise.
+
+- Only verify state is MFCINST_INIT when allocating, not when freeing.
+
+- Refactor and simplify code.
+
+Signed-off-by: Pawel Osciak <posciak@chromium.org>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
-As mentioned earlier, this constitutes a user-visible kernel change and
-thus possibly a regression, so it's probably a non-starter, but what the heck.
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |  178 ++++++++++++++------------
+ 1 file changed, 99 insertions(+), 79 deletions(-)
 
- drivers/media/rc/keymaps/rc-ati-x10.c | 30 ++++++++++++++++++++----------
- 1 file changed, 20 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/rc/keymaps/rc-ati-x10.c b/drivers/media/rc/keymaps/rc-ati-x10.c
-index df8968eb1f..b924265b32 100644
---- a/drivers/media/rc/keymaps/rc-ati-x10.c
-+++ b/drivers/media/rc/keymaps/rc-ati-x10.c
-@@ -57,6 +57,11 @@ static struct rc_map_table ati_x10[] = {
- 	{ 0x0b, KEY_CHANNELUP },  /* CH + */
- 	{ 0x0c, KEY_CHANNELDOWN },/* CH - */
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 58b7bba..99a55e6 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -462,104 +462,124 @@ out:
+ 	return ret;
+ }
  
-+	/*
-+	 * We could use KEY_NUMERIC_x for these, but the X11 protocol
-+	 * has problems with keycodes greater than 255, so avoid those high
-+	 * keycodes in default maps.
-+	 */
- 	{ 0x0d, KEY_1 },
- 	{ 0x0e, KEY_2 },
- 	{ 0x0f, KEY_3 },
-@@ -67,39 +72,44 @@ static struct rc_map_table ati_x10[] = {
- 	{ 0x14, KEY_8 },
- 	{ 0x15, KEY_9 },
- 	{ 0x16, KEY_MENU },       /* "menu": DVD root menu */
-+				  /* KEY_NUMERIC_STAR? */
- 	{ 0x17, KEY_0 },
--	{ 0x18, KEY_KPENTER },    /* "check": DVD setup menu */
-+	{ 0x18, KEY_SETUP },      /* "check": DVD setup menu */
-+				  /* KEY_NUMERIC_POUND? */
+-/* Reqeust buffers */
+-static int vidioc_reqbufs(struct file *file, void *priv,
+-					  struct v4l2_requestbuffers *reqbufs)
++static int reqbufs_output(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx,
++				struct v4l2_requestbuffers *reqbufs)
+ {
+-	struct s5p_mfc_dev *dev = video_drvdata(file);
+-	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
+ 	int ret = 0;
  
- 	/* DVD navigation buttons */
- 	{ 0x19, KEY_C },
- 	{ 0x1a, KEY_UP },         /* up */
- 	{ 0x1b, KEY_D },
+-	if (reqbufs->memory != V4L2_MEMORY_MMAP) {
+-		mfc_err("Only V4L2_MEMORY_MAP is supported\n");
+-		return -EINVAL;
+-	}
+-	if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+-		/* Can only request buffers after an instance has been opened.*/
+-		if (ctx->state == MFCINST_INIT) {
+-			ctx->src_bufs_cnt = 0;
+-			if (reqbufs->count == 0) {
+-				mfc_debug(2, "Freeing buffers\n");
+-				s5p_mfc_clock_on();
+-				ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
+-				s5p_mfc_clock_off();
+-				return ret;
+-			}
+-			/* Decoding */
+-			if (ctx->output_state != QUEUE_FREE) {
+-				mfc_err("Bufs have already been requested\n");
+-				return -EINVAL;
+-			}
+-			s5p_mfc_clock_on();
+-			ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
+-			s5p_mfc_clock_off();
+-			if (ret) {
+-				mfc_err("vb2_reqbufs on output failed\n");
+-				return ret;
+-			}
+-			mfc_debug(2, "vb2_reqbufs: %d\n", ret);
+-			ctx->output_state = QUEUE_BUFS_REQUESTED;
++	s5p_mfc_clock_on();
++
++	if (reqbufs->count == 0) {
++		mfc_debug(2, "Freeing buffers\n");
++		ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
++		if (ret)
++			goto out;
++		ctx->src_bufs_cnt = 0;
++	} else if (ctx->output_state == QUEUE_FREE) {
++		/* Can only request buffers after the instance
++		 * has been opened.
++		 */
++		WARN_ON(ctx->src_bufs_cnt != 0);
++		if (ctx->state != MFCINST_INIT) {
++			mfc_err("Reqbufs called in an invalid state\n");
++			ret = -EINVAL;
++			goto out;
+ 		}
+-	} else if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
++
++		mfc_debug(2, "Allocating %d buffers for OUTPUT queue\n",
++				reqbufs->count);
++		ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
++		if (ret)
++			goto out;
++
++		ctx->output_state = QUEUE_BUFS_REQUESTED;
++	} else {
++		mfc_err("Buffers have already been requested\n");
++		ret = -EINVAL;
++	}
++out:
++	s5p_mfc_clock_off();
++	if (ret)
++		mfc_err("Failed allocating buffers for OUTPUT queue\n");
++	return ret;
++}
++
++static int reqbufs_capture(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx,
++				struct v4l2_requestbuffers *reqbufs)
++{
++	int ret = 0;
++
++	s5p_mfc_clock_on();
++
++	if (reqbufs->count == 0) {
++		mfc_debug(2, "Freeing buffers\n");
++		ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
++		if (ret)
++			goto out;
++		s5p_mfc_hw_call(dev->mfc_ops, release_codec_buffers, ctx);
+ 		ctx->dst_bufs_cnt = 0;
+-		if (reqbufs->count == 0) {
+-			mfc_debug(2, "Freeing buffers\n");
+-			s5p_mfc_clock_on();
+-			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
+-			s5p_mfc_clock_off();
+-			return ret;
+-		}
+-		if (ctx->capture_state != QUEUE_FREE) {
+-			mfc_err("Bufs have already been requested\n");
+-			return -EINVAL;
+-		}
+-		ctx->capture_state = QUEUE_BUFS_REQUESTED;
+-		s5p_mfc_clock_on();
++	} else if (ctx->capture_state == QUEUE_FREE) {
++		WARN_ON(ctx->dst_bufs_cnt != 0);
++		mfc_debug(2, "Allocating %d buffers for CAPTURE queue\n",
++				reqbufs->count);
+ 		ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
+-		s5p_mfc_clock_off();
+-		if (ret) {
+-			mfc_err("vb2_reqbufs on capture failed\n");
+-			return ret;
+-		}
+-		if (reqbufs->count < ctx->pb_count) {
+-			mfc_err("Not enough buffers allocated\n");
+-			reqbufs->count = 0;
+-			s5p_mfc_clock_on();
+-			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
+-			s5p_mfc_clock_off();
+-			return -ENOMEM;
+-		}
++		if (ret)
++			goto out;
++
++		ctx->capture_state = QUEUE_BUFS_REQUESTED;
+ 		ctx->total_dpb_count = reqbufs->count;
++
+ 		ret = s5p_mfc_hw_call(dev->mfc_ops, alloc_codec_buffers, ctx);
+ 		if (ret) {
+ 			mfc_err("Failed to allocate decoding buffers\n");
+ 			reqbufs->count = 0;
+-			s5p_mfc_clock_on();
+-			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
+-			s5p_mfc_clock_off();
+-			return -ENOMEM;
+-		}
+-		if (ctx->dst_bufs_cnt == ctx->total_dpb_count) {
+-			ctx->capture_state = QUEUE_BUFS_MMAPED;
+-		} else {
+-			mfc_err("Not all buffers passed to buf_init\n");
+-			reqbufs->count = 0;
+-			s5p_mfc_clock_on();
+-			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
+-			s5p_mfc_hw_call(dev->mfc_ops, release_codec_buffers,
+-					ctx);
+-			s5p_mfc_clock_off();
+-			return -ENOMEM;
++			vb2_reqbufs(&ctx->vq_dst, reqbufs);
++			ret = -ENOMEM;
++			ctx->capture_state = QUEUE_FREE;
++			goto out;
+ 		}
++
++		WARN_ON(ctx->dst_bufs_cnt != ctx->total_dpb_count);
++		ctx->capture_state = QUEUE_BUFS_MMAPED;
++
+ 		if (s5p_mfc_ctx_ready(ctx))
+ 			set_work_bit_irqsave(ctx);
+ 		s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
+-		s5p_mfc_wait_for_done_ctx(ctx,
+-					S5P_MFC_R2H_CMD_INIT_BUFFERS_RET, 0);
++		s5p_mfc_wait_for_done_ctx(ctx, S5P_MFC_R2H_CMD_INIT_BUFFERS_RET,
++					  0);
++	} else {
++		mfc_err("Buffers have already been requested\n");
++		ret = -EINVAL;
+ 	}
++out:
++	s5p_mfc_clock_off();
++	if (ret)
++		mfc_err("Failed allocating buffers for CAPTURE queue\n");
+ 	return ret;
+ }
  
--	{ 0x1c, KEY_COFFEE },     /* "timer" */
-+	{ 0x1c, KEY_PROPS },      /* "timer" Should be Data On Screen */
-+				  /* Symbol is "circle nailed to box" */
- 	{ 0x1d, KEY_LEFT },       /* left */
- 	{ 0x1e, KEY_OK },         /* "OK" */
- 	{ 0x1f, KEY_RIGHT },      /* right */
--	{ 0x20, KEY_FRONT },      /* "max" */
--
-+	{ 0x20, KEY_SCREEN },     /* "max" (X11 warning: 0x177) */
-+				  /* Should be AC View Toggle, but
-+				     that's not in <input/input.h>.
-+				     KEY_ZOOM (0x174)? */
- 	{ 0x21, KEY_E },
- 	{ 0x22, KEY_DOWN },       /* down */
- 	{ 0x23, KEY_F },
- 	/* Play/stop/pause buttons */
- 	{ 0x24, KEY_REWIND },     /* (<<) Rewind */
--	{ 0x25, KEY_PLAY },       /* ( >) Play */
--	{ 0x26, KEY_FORWARD },    /* (>>) Fast forward */
-+	{ 0x25, KEY_PLAY },       /* ( >) Play (KEY_PLAYCD?) */
-+	{ 0x26, KEY_FASTFORWARD }, /* (>>) Fast forward */
- 
- 	{ 0x27, KEY_RECORD },     /* ( o) red */
--	{ 0x28, KEY_STOP },       /* ([]) Stop */
--	{ 0x29, KEY_PAUSE },      /* ('') Pause */
-+	{ 0x28, KEY_STOPCD },     /* ([]) Stop  (KEY_STOP is something else!) */
-+	{ 0x29, KEY_PAUSE },      /* ('') Pause (KEY_PAUSECD?) */
- 
- 	/* Extra keys, not on the original ATI remote */
- 	{ 0x2a, KEY_NEXT },       /* (>+) */
- 	{ 0x2b, KEY_PREVIOUS },   /* (<-) */
--	{ 0x2d, KEY_INFO },       /* PLAYING */
-+	{ 0x2d, KEY_INFO },       /* PLAYING  (X11 warning: 0x166) */
- 	{ 0x2e, KEY_HOME },       /* TOP */
- 	{ 0x2f, KEY_END },        /* END */
--	{ 0x30, KEY_SELECT },     /* SELECT */
-+	{ 0x30, KEY_SELECT },     /* SELECT  (X11 warning: 0x161) */
- };
- 
- static struct rc_map_list ati_x10_map = {
++/* Reqeust buffers */
++static int vidioc_reqbufs(struct file *file, void *priv,
++					  struct v4l2_requestbuffers *reqbufs)
++{
++	struct s5p_mfc_dev *dev = video_drvdata(file);
++	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
++
++	if (reqbufs->memory != V4L2_MEMORY_MMAP) {
++		mfc_err("Only V4L2_MEMORY_MAP is supported\n");
++		return -EINVAL;
++	}
++
++	if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		return reqbufs_output(dev, ctx, reqbufs);
++	} else if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
++		return reqbufs_capture(dev, ctx, reqbufs);
++	} else {
++		mfc_err("Invalid type requested\n");
++		return -EINVAL;
++	}
++}
++
+ /* Query buffer */
+ static int vidioc_querybuf(struct file *file, void *priv,
+ 						   struct v4l2_buffer *buf)
 -- 
-1.9.2
+1.7.9.5
 
