@@ -1,78 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:53589 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933179AbaEPNl0 (ORCPT
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:49932 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753516AbaESMdM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:41:26 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 28/49] media: davinci: vpif_display: use vb2_ops_wait_prepare/finish helper functions
-Date: Fri, 16 May 2014 19:03:34 +0530
-Message-Id: <1400247235-31434-31-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+	Mon, 19 May 2014 08:33:12 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, posciak@chromium.org, avnd.kiran@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH 00/10] Re-send MFC patches
+Date: Mon, 19 May 2014 18:02:56 +0530
+Message-Id: <1400502786-4826-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+These patches for s5p-mfc are completed review and
+accepted. These are rebased onto [1] and fixed conflicts
+for merging.
 
-this patch makes use of vb2_ops_wait_prepare/finish helper functions.
+[1] http://git.linuxtv.org/cgit.cgi/kdebski/media_tree_2.git/?h=for-3.16-2
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif_capture.c |   21 +--------------------
- 1 file changed, 1 insertion(+), 20 deletions(-)
+Arun Kumar K (3):
+  [media] s5p-mfc: Update scratch buffer size for MPEG4
+  [media] s5p-mfc: Move INIT_BUFFER_OPTIONS from v7 to v6
+  [media] s5p-mfc: Rename IS_MFCV7 macro
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 484d858..8572efe 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -224,24 +224,6 @@ static void vpif_buf_cleanup(struct vb2_buffer *vb)
- 
- }
- 
--static void vpif_wait_prepare(struct vb2_queue *vq)
--{
--	struct channel_obj *ch = vb2_get_drv_priv(vq);
--	struct common_obj *common;
--
--	common = &ch->common[VPIF_VIDEO_INDEX];
--	mutex_unlock(&common->lock);
--}
--
--static void vpif_wait_finish(struct vb2_queue *vq)
--{
--	struct channel_obj *ch = vb2_get_drv_priv(vq);
--	struct common_obj *common;
--
--	common = &ch->common[VPIF_VIDEO_INDEX];
--	mutex_lock(&common->lock);
--}
--
- static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct vpif_capture_config *vpif_config_data =
-@@ -374,8 +356,6 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
- 
- static struct vb2_ops video_qops = {
- 	.queue_setup		= vpif_buffer_queue_setup,
--	.wait_prepare		= vpif_wait_prepare,
--	.wait_finish		= vpif_wait_finish,
- 	.buf_prepare		= vpif_buffer_prepare,
- 	.start_streaming	= vpif_start_streaming,
- 	.stop_streaming		= vpif_stop_streaming,
-@@ -1977,6 +1957,7 @@ static int vpif_probe_complete(void)
- 		q->buf_struct_size = sizeof(struct vpif_cap_buffer);
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 1;
-+		q->lock = &common->lock;
- 
- 		err = vb2_queue_init(q);
- 		if (err) {
+Kiran AVND (2):
+  [media] s5p-mfc: Update scratch buffer size for VP8 encoder
+  [media] s5p-mfc: Add variants to access mfc registers
+
+Pawel Osciak (5):
+  [media] s5p-mfc: Copy timestamps only when a frame is produced.
+  [media] s5p-mfc: Fixes for decode REQBUFS.
+  [media] s5p-mfc: Extract open/close MFC instance commands.
+  [media] s5p-mfc: Don't allocate codec buffers on STREAMON.
+  [media] s5p-mfc: Don't try to resubmit VP8 bitstream buffer for
+    decode.
+
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h    |    4 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v7.h    |    5 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        |   35 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    3 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |   62 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h   |    3 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  216 +++----
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   20 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.c    |    6 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |  254 ++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |  703 +++++++++++++++--------
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |    7 +-
+ 12 files changed, 904 insertions(+), 414 deletions(-)
+
 -- 
 1.7.9.5
 
