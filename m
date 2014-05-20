@@ -1,92 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-153.synserver.de ([212.40.185.153]:1439 "EHLO
-	smtp-out-151.synserver.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754537AbaE3TRV (ORCPT
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:48488 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751868AbaETKRU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 May 2014 15:17:21 -0400
-Message-ID: <5388CB1B.3090802@metafoo.de>
-Date: Fri, 30 May 2014 20:16:59 +0200
-From: Lars-Peter Clausen <lars@metafoo.de>
-MIME-Version: 1.0
-To: David Daney <ddaney.cavm@gmail.com>
-CC: abdoulaye berthe <berthe.ab@gmail.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Alexandre Courbot <gnurou@gmail.com>, m@bues.ch,
-	"linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Linux MIPS Mailing List <linux-mips@linux-mips.org>,
-	"linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
-	Linux-sh list <linux-sh@vger.kernel.org>,
-	linux-wireless <linux-wireless@vger.kernel.org>,
-	patches@opensource.wolfsonmicro.com,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	"linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-samsungsoc@vger.kernel.org, spear-devel@list.st.com,
-	platform-driver-x86@vger.kernel.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	driverdevel <devel@driverdev.osuosl.org>
-Subject: Re: [PATCH 2/2] gpio: gpiolib: set gpiochip_remove retval to void
-References: <20140530094025.3b78301e@canb.auug.org.au>        <1401449454-30895-1-git-send-email-berthe.ab@gmail.com>        <1401449454-30895-2-git-send-email-berthe.ab@gmail.com> <CAMuHMdV6AtjD2aqO3buzj8Eo7A7xc_+ROYnxEi2sdjMaqFiAuA@mail.gmail.com> <5388C0F1.90503@gmail.com>
-In-Reply-To: <5388C0F1.90503@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 20 May 2014 06:17:20 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, s.nawrocki@samsung.com, posciak@chromium.org,
+	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH 1/3] [media] s5p-mfc: Remove duplicate function s5p_mfc_reload_firmware
+Date: Tue, 20 May 2014 15:47:07 +0530
+Message-Id: <1400581029-3475-2-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1400581029-3475-1-git-send-email-arun.kk@samsung.com>
+References: <1400581029-3475-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/30/2014 07:33 PM, David Daney wrote:
-> On 05/30/2014 04:39 AM, Geert Uytterhoeven wrote:
->> On Fri, May 30, 2014 at 1:30 PM, abdoulaye berthe <berthe.ab@gmail.com>
->> wrote:
->>> --- a/drivers/gpio/gpiolib.c
->>> +++ b/drivers/gpio/gpiolib.c
->>> @@ -1263,10 +1263,9 @@ static void gpiochip_irqchip_remove(struct
->>> gpio_chip *gpiochip);
->>>    *
->>>    * A gpio_chip with any GPIOs still requested may not be removed.
->>>    */
->>> -int gpiochip_remove(struct gpio_chip *chip)
->>> +void gpiochip_remove(struct gpio_chip *chip)
->>>   {
->>>          unsigned long   flags;
->>> -       int             status = 0;
->>>          unsigned        id;
->>>
->>>          acpi_gpiochip_remove(chip);
->>> @@ -1278,24 +1277,15 @@ int gpiochip_remove(struct gpio_chip *chip)
->>>          of_gpiochip_remove(chip);
->>>
->>>          for (id = 0; id < chip->ngpio; id++) {
->>> -               if (test_bit(FLAG_REQUESTED, &chip->desc[id].flags)) {
->>> -                       status = -EBUSY;
->>> -                       break;
->>> -               }
->>> -       }
->>> -       if (status == 0) {
->>> -               for (id = 0; id < chip->ngpio; id++)
->>> -                       chip->desc[id].chip = NULL;
->>> -
->>> -               list_del(&chip->list);
->>> +               if (test_bit(FLAG_REQUESTED, &chip->desc[id].flags))
->>> +                       panic("gpio: removing gpiochip with gpios still
->>> requested\n");
->>
->> panic?
->
-> NACK to the patch for this reason.  The strongest thing you should do here
-> is WARN.
->
-> That said, I am not sure why we need this whole patch set in the first place.
+The function s5p_mfc_reload_firmware is exactly same as
+s5p_mfc_load_firmware. So removing the duplicate function.
 
-Well, what currently happens when you remove a device that is a provider of 
-a gpio_chip which is still in use, is that the kernel crashes. Probably with 
-a rather cryptic error message. So this patch doesn't really change the 
-behavior, but makes it more explicit what is actually wrong. And even if you 
-replace the panic() by a WARN() it will again just crash slightly later.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c      |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c |   33 -------------------------
+ 2 files changed, 1 insertion(+), 34 deletions(-)
 
-This is a design flaw in the GPIO subsystem that needs to be fixed.
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 9ed0985..8da4c23 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -162,7 +162,7 @@ static void s5p_mfc_watchdog_worker(struct work_struct *work)
+ 	/* Double check if there is at least one instance running.
+ 	 * If no instance is in memory than no firmware should be present */
+ 	if (dev->num_inst > 0) {
+-		ret = s5p_mfc_reload_firmware(dev);
++		ret = s5p_mfc_load_firmware(dev);
+ 		if (ret) {
+ 			mfc_err("Failed to reload FW\n");
+ 			goto unlock;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index 6c3f8f7..c97c7c8 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -107,39 +107,6 @@ int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev)
+ 	return 0;
+ }
+ 
+-/* Reload firmware to MFC */
+-int s5p_mfc_reload_firmware(struct s5p_mfc_dev *dev)
+-{
+-	struct firmware *fw_blob;
+-	int err;
+-
+-	/* Firmare has to be present as a separate file or compiled
+-	 * into kernel. */
+-	mfc_debug_enter();
+-
+-	err = request_firmware((const struct firmware **)&fw_blob,
+-				     dev->variant->fw_name, dev->v4l2_dev.dev);
+-	if (err != 0) {
+-		mfc_err("Firmware is not present in the /lib/firmware directory nor compiled in kernel\n");
+-		return -EINVAL;
+-	}
+-	if (fw_blob->size > dev->fw_size) {
+-		mfc_err("MFC firmware is too big to be loaded\n");
+-		release_firmware(fw_blob);
+-		return -ENOMEM;
+-	}
+-	if (!dev->fw_virt_addr) {
+-		mfc_err("MFC firmware is not allocated\n");
+-		release_firmware(fw_blob);
+-		return -EINVAL;
+-	}
+-	memcpy(dev->fw_virt_addr, fw_blob->data, fw_blob->size);
+-	wmb();
+-	release_firmware(fw_blob);
+-	mfc_debug_leave();
+-	return 0;
+-}
+-
+ /* Release firmware memory */
+ int s5p_mfc_release_firmware(struct s5p_mfc_dev *dev)
+ {
+-- 
+1.7.9.5
 
-- Lars
