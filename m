@@ -1,74 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback3.mail.ru ([94.100.176.58]:42844 "EHLO
-	fallback3.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932101AbaENRAi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 May 2014 13:00:38 -0400
-Received: from f388.i.mail.ru (f388.i.mail.ru [185.5.136.59])
-	by fallback3.mail.ru (mPOP.Fallback_MX) with ESMTP id 5D4CE1154CC04
-	for <linux-media@vger.kernel.org>; Wed, 14 May 2014 21:00:22 +0400 (MSK)
-From: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
-To: =?UTF-8?B?U3lsd2VzdGVyIE5hd3JvY2tp?= <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?B?TWF1cm8gQ2FydmFsaG8gQ2hlaGFi?= <m.chehab@samsung.com>,
-	=?UTF-8?B?U2hhd24gR3Vv?= <shawn.guo@freescale.com>,
-	devicetree@vger.kernel.org,
-	=?UTF-8?B?U2FzY2hhIEhhdWVy?= <kernel@pengutronix.de>
-Subject: =?UTF-8?B?UmU6IFtQQVRDSCAzLzNdIG1lZGlhOiBteDItZW1tYXBycDogQWRkIGRldmlj?=
- =?UTF-8?B?ZXRyZWUgc3VwcG9ydA==?=
-Mime-Version: 1.0
-Date: Wed, 14 May 2014 20:59:54 +0400
-Reply-To: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
-Message-ID: <1400086794.204219517@f388.i.mail.ru>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
-In-Reply-To: <53734A1F.7080905@samsung.com>
-References: <1399015119-24000-1-git-send-email-shc_work@mail.ru>
- <1400001829.645600850@f332.i.mail.ru>
- <53734A1F.7080905@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:57362 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751461AbaETPK4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 May 2014 11:10:56 -0400
+Message-ID: <537B7073.6010003@iki.fi>
+Date: Tue, 20 May 2014 18:10:43 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Dan Carpenter <dan.carpenter@oracle.com>
+CC: kbuild@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [linuxtv-samsung:for-v3.16 45/81] drivers/media/dvb-frontends/si2168.c:47
+ si2168_cmd_execute() warn: add some parenthesis here?
+References: <20140505190256.GP4963@mwanda> <5367FA1E.9030800@iki.fi> <20140520120141.GE17724@mwanda>
+In-Reply-To: <20140520120141.GE17724@mwanda>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V2VkLCAxNCBNYXkgMjAxNCAxMjo0OTowMyArMDIwMCDQvtGCIFN5bHdlc3RlciBOYXdyb2NraSA8
-cy5uYXdyb2NraUBzYW1zdW5nLmNvbT46Cj4gT24gMTMvMDUvMTQgMTk6MjMsIEFsZXhhbmRlciBT
-aGl5YW4gd3JvdGU6Cj4gPiBUdWUsIDEzIE1heSAyMDE0IDE5OjA5OjMwICswMjAwINC+0YIgU3ls
-d2VzdGVyIE5hd3JvY2tpIDxzLm5hd3JvY2tpQHNhbXN1bmcuY29tPjoKPiA+PiA+IEhpLAo+ID4+
-ID4gCj4gPj4gPiBPbiAwMi8wNS8xNCAwOToxOCwgQWxleGFuZGVyIFNoaXlhbiB3cm90ZToKPiA+
-Pj4gPiA+IFRoaXMgcGF0Y2ggYWRkcyBkZXZpY2V0cmVlIHN1cHBvcnQgZm9yIHRoZSBGcmVlc2Nh
-bGUgZW5oYW5jZWQgTXVsdGltZWRpYQo+ID4+PiA+ID4gQWNjZWxlcmF0b3IgKGVNTUEpIHZpZGVv
-IFByZS1wcm9jZXNzb3IgKFByUCkuCj4gPj4+ID4gPiAKPiA+Pj4gPiA+IFNpZ25lZC1vZmYtYnk6
-IEFsZXhhbmRlciBTaGl5YW4gPHNoY193b3JrQG1haWwucnU+Cj4gPj4+ID4gPiAtLS0KPiA+Pj4g
-PiA+ICAuLi4vZGV2aWNldHJlZS9iaW5kaW5ncy9tZWRpYS9mc2wtaW14LWVtbWFwcnAudHh0ICAg
-ICB8IDE5ICsrKysrKysrKysrKysrKysrKysKPiA+Pj4gPiA+ICBkcml2ZXJzL21lZGlhL3BsYXRm
-b3JtL214Ml9lbW1hcHJwLmMgICAgICAgICAgICAgICAgICB8ICA4ICsrKysrKysrCj4gPj4+ID4g
-PiAgMiBmaWxlcyBjaGFuZ2VkLCAyNyBpbnNlcnRpb25zKCspCj4gPj4+ID4gPiAgY3JlYXRlIG1v
-ZGUgMTAwNjQ0IERvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9tZWRpYS9mc2wtaW14
-LWVtbWFwcnAudHh0Cj4gPj4+ID4gPiAKPiA+Pj4gPiA+IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0
-aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvZnNsLWlteC1lbW1hcHJwLnR4dCBiL0RvY3Vt
-ZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9tZWRpYS9mc2wtaW14LWVtbWFwcnAudHh0Cj4g
-Pj4+ID4gPiBuZXcgZmlsZSBtb2RlIDEwMDY0NAo+ID4+PiA+ID4gaW5kZXggMDAwMDAwMC4uOWU4
-MjM4Zgo+ID4+PiA+ID4gLS0tIC9kZXYvbnVsbAo+ID4+PiA+ID4gKysrIGIvRG9jdW1lbnRhdGlv
-bi9kZXZpY2V0cmVlL2JpbmRpbmdzL21lZGlhL2ZzbC1pbXgtZW1tYXBycC50eHQKPiA+Pj4gPiA+
-IEBAIC0wLDAgKzEsMTkgQEAKPiA+Pj4gPiA+ICsqIEZyZWVzY2FsZSBlbmhhbmNlZCBNdWx0aW1l
-ZGlhIEFjY2VsZXJhdG9yIChlTU1BKSB2aWRlbyBQcmUtcHJvY2Vzc29yIChQclApCj4gPj4+ID4g
-PiArICBmb3IgaS5NWC4KPiA+Pj4gPiA+ICsKPiA+Pj4gPiA+ICtSZXF1aXJlZCBwcm9wZXJ0aWVz
-Ogo+ID4+PiA+ID4gKy0gY29tcGF0aWJsZSA6IFNoYWxsIGNvbnRhaW4gImZzbCxpbXgyMS1lbW1h
-cHJwIi4KPiA+Pj4gPiA+ICstIHJlZyAgICAgICAgOiBPZmZzZXQgYW5kIGxlbmd0aCBvZiB0aGUg
-cmVnaXN0ZXIgc2V0IGZvciB0aGUgZGV2aWNlLgo+ID4+PiA+ID4gKy0gaW50ZXJydXB0cyA6IFNo
-b3VsZCBjb250YWluIGVNTUEgUHJQIGludGVycnVwdCBudW1iZXIuCj4gPj4+ID4gPiArLSBjbG9j
-a3MgICAgIDogU2hvdWxkIGNvbnRhaW4gdGhlIGFoYiBhbmQgaXBnIGNsb2NrcywgaW4gdGhlIG9y
-ZGVyCj4gPj4+ID4gPiArICAgICAgICAgICAgICAgZGV0ZXJtaW5lZCBieSB0aGUgY2xvY2stbmFt
-ZXMgcHJvcGVydHkuCj4gPj4+ID4gPiArLSBjbG9jay1uYW1lczogU2hvdWxkIGJlICJhaGIiLCAi
-aXBnIi4KPiA+Pj4gPiA+ICsKPiA+Pj4gPiA+ICtFeGFtcGxlOgo+ID4+PiA+ID4gKwllbW1hcHJw
-OiBlbW1hcHJwQDEwMDI2NDAwIHsKPiA+Pj4gPiA+ICsJCWNvbXBhdGlibGUgPSAiZnNsLGlteDI3
-LWVtbWFwcnAiLCAiZnNsLGlteDIxLWVtbWFwcnAiOwo+ID4+ID4gCj4gPj4gPiBJcyAiZnNsLGlt
-eDI3LWVtbWFwcnAiIGNvbXBhdGlibGUgZG9jdW1lbnRlZCBzb21ld2hlcmUgPwo+ID4KPiA+IFRo
-ZSBvdmVyYWxsIHN0cnVjdHVyZSBvZiB0aGUgZU1NQSBtb2R1bGUgaXMgc2xpZ2h0bHkgZGlmZmVy
-ZW50Lgo+ID4gQXMgZm9yIHRoZSBwYXJ0IG9mIHRoZSBQclAsIGFjY29yZGluZyB0byB0aGUgZGF0
-YXNoZWV0IHRoZXkgYXJlIGNvbXBhdGlibGUuCj4gCj4gVGhlbiBjYW4gd2UgcGxlYXNlIGhhdmUg
-YWxsIHRoZSB2YWxpZCBjb21wYXRpYmxlIHN0cmluZ3MgbGlzdGVkIGF0IHRoZQo+ICdjb21wYXRp
-YmxlJyBwcm9wZXJ0eSdzIGRlc2NyaXB0aW9uIGFib3ZlID8gSSB0aGluayBpdCBpcyB1c2VmdWwg
-dG8gaGF2ZQo+IGFuIGluZGljYXRpb24gdG8gd2hpY2ggU29DIGVhY2ggb2YgdGhlbSBhcHBseSBp
-biBkb2N1bWVudGF0aW9uIG9mIHRoZQo+IGJpbmRpbmcuCgpUcmFkaXRpb25hbGx5LCBpLk1YIGRy
-aXZlcnMgdXNlcyB5b3VuZ2VzdCBjaGlwIGZvciBjb21wYXRpYmlsaXR5IHN0cmluZy4KVGhlIGJl
-c3QgZXhhbXBsZSBvZiB0aGlzOiBkcml2ZXJzL2J1cy9pbXgtd2VpbS5jCgotLS0KCg==
+On 05/20/2014 03:01 PM, Dan Carpenter wrote:
+> On Mon, May 05, 2014 at 11:52:46PM +0300, Antti Palosaari wrote:
+>>> 845f3505 Antti Palosaari 2014-04-10  46
+>>> 845f3505 Antti Palosaari 2014-04-10 @47  		if (!(cmd->args[0] >> 7) & 0x01) {
+>>>
+>>> This should be:						if (!((md->args[0] >> 7) & 0x01)) {
+>>> Otherwise it is a precedence error where it does the negate before the
+>>> bitwise AND.
+>>
+>> That was already on my TODO list as daily media build test sparse
+>> warned it already http://hverkuil.home.xs4all.nl/logs/Monday.log
+>>
+>> I am waiting for media/master kernel upgrades from 3.15-rc1 as that
+>> kernel will hang whole machine when em28xx driver used (em28xx
+>> driver is USB bridge for those si2168 and si2157).
+>>
+>
+> Wait, what?  This is a one liner.  I haven't understood the connection
+> with 3.15-rc1?
+
+Current media master, which contains that brand new si2168 driver, is 
+3.15-rc1. That device is implemented as a)
+em28xx driver - USB interface + remote controller
+si2168 driver - DVB-T/T2/C digital TV demodulator
+si2157 driver - RF tuner
+
+For some reason em28xx freezes whole machine when that 3.15-rc1 kernel 
+is used. It is not only that device, but all the other em28xx devices 
+too what I have.
+
+Even it is simple one liner, I tend to test all my patches before pull 
+requesting to media master tree. Sure, I can do it using linus latest 
+tree and then rebase to media master & pull request, but it is all extra 
+work.
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
