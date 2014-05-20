@@ -1,137 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57279 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756156AbaEEVLT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 May 2014 17:11:19 -0400
-Message-ID: <5367FE75.5040208@iki.fi>
-Date: Tue, 06 May 2014 00:11:17 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: CrazyCat <crazycat69@narod.ru>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] cxd2820r: TS clock inversion in config
-References: <6929939.mWPG6Zt5A4@ubuntu>
-In-Reply-To: <6929939.mWPG6Zt5A4@ubuntu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3340 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103AbaETCoa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 May 2014 22:44:30 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4K2iRPu056045
+	for <linux-media@vger.kernel.org>; Tue, 20 May 2014 04:44:29 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 7FACD2A19A6
+	for <linux-media@vger.kernel.org>; Tue, 20 May 2014 04:44:07 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140520024407.7FACD2A19A6@tschai.lan>
+Date: Tue, 20 May 2014 04:44:07 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That patch does more than it says and due to that I don't want it. Just 
-implement cxd2820r clock inversion and nothing more. Put the rest stuff, 
-which does not belong to cxd2820r, to another patch.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Antti
+Results of the daily build of media_tree:
 
+date:		Tue May 20 04:00:16 CEST 2014
+git branch:	test
+git hash:	ba0d342ecc21fbbe2f6c178f4479944d1fb34f3b
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-1.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
-On 05.05.2014 23:46, CrazyCat wrote:
-> TS clock inversion in config.
->
-> Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
->
-> diff --git a/drivers/media/dvb-frontends/cxd2820r.h b/drivers/media/dvb-frontends/cxd2820r.h
-> index 82b3d93..6095dbc 100644
-> --- a/drivers/media/dvb-frontends/cxd2820r.h
-> +++ b/drivers/media/dvb-frontends/cxd2820r.h
-> @@ -52,6 +52,12 @@ struct cxd2820r_config {
->   	 */
->   	u8 ts_mode;
->
-> +	/* TS clock inverted.
-> +	 * Default: 0
-> +	 * Values: 0, 1
-> +	 */
-> +	bool ts_clock_inv;
-> +
->   	/* IF AGC polarity.
->   	 * Default: 0
->   	 * Values: 0, 1
-> diff --git a/drivers/media/dvb-frontends/cxd2820r_c.c b/drivers/media/dvb-frontends/cxd2820r_c.c
-> index 5c6ab49..0f4657e 100644
-> --- a/drivers/media/dvb-frontends/cxd2820r_c.c
-> +++ b/drivers/media/dvb-frontends/cxd2820r_c.c
-> @@ -45,6 +45,7 @@ int cxd2820r_set_frontend_c(struct dvb_frontend *fe)
->   		{ 0x1008b, 0x07, 0xff },
->   		{ 0x1001f, priv->cfg.if_agc_polarity << 7, 0x80 },
->   		{ 0x10070, priv->cfg.ts_mode, 0xff },
-> +		{ 0x10071, !priv->cfg.ts_clock_inv << 4, 0x10 },
->   	};
->
->   	dev_dbg(&priv->i2c->dev, "%s: frequency=%d symbol_rate=%d\n", __func__,
-> diff --git a/drivers/media/dvb-frontends/cxd2820r_t.c b/drivers/media/dvb-frontends/cxd2820r_t.c
-> index fa184ca..9b5a45b 100644
-> --- a/drivers/media/dvb-frontends/cxd2820r_t.c
-> +++ b/drivers/media/dvb-frontends/cxd2820r_t.c
-> @@ -46,6 +46,7 @@ int cxd2820r_set_frontend_t(struct dvb_frontend *fe)
->   		{ 0x00088, 0x01, 0xff },
->
->   		{ 0x00070, priv->cfg.ts_mode, 0xff },
-> +		{ 0x00071, !priv->cfg.ts_clock_inv << 4, 0x10 },
->   		{ 0x000cb, priv->cfg.if_agc_polarity << 6, 0x40 },
->   		{ 0x000a5, 0x00, 0x01 },
->   		{ 0x00082, 0x20, 0x60 },
-> diff --git a/drivers/media/dvb-frontends/cxd2820r_t2.c b/drivers/media/dvb-frontends/cxd2820r_t2.c
-> index 2ba130e..9c0c4f4 100644
-> --- a/drivers/media/dvb-frontends/cxd2820r_t2.c
-> +++ b/drivers/media/dvb-frontends/cxd2820r_t2.c
-> @@ -47,6 +47,7 @@ int cxd2820r_set_frontend_t2(struct dvb_frontend *fe)
->   		{ 0x02083, 0x0a, 0xff },
->   		{ 0x020cb, priv->cfg.if_agc_polarity << 6, 0x40 },
->   		{ 0x02070, priv->cfg.ts_mode, 0xff },
-> +		{ 0x02071, !priv->cfg.ts_clock_inv << 6, 0x40 },
->   		{ 0x020b5, priv->cfg.spec_inv << 4, 0x10 },
->   		{ 0x02567, 0x07, 0x0f },
->   		{ 0x02569, 0x03, 0x03 },
-> diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
-> index ae0f56a..7135a3e 100644
-> --- a/drivers/media/usb/dvb-usb/dw2102.c
-> +++ b/drivers/media/usb/dvb-usb/dw2102.c
-> @@ -1109,6 +1109,7 @@ static struct ds3000_config su3000_ds3000_config = {
->   static struct cxd2820r_config cxd2820r_config = {
->   	.i2c_address = 0x6c, /* (0xd8 >> 1) */
->   	.ts_mode = 0x38,
-> +	.ts_clock_inv = 1,
->   };
->
->   static struct tda18271_config tda18271_config = {
-> @@ -1387,20 +1388,27 @@ static int su3000_frontend_attach(struct dvb_usb_adapter *d)
->
->   static int t220_frontend_attach(struct dvb_usb_adapter *d)
->   {
-> -	u8 obuf[3] = { 0xe, 0x80, 0 };
-> +	u8 obuf[3] = { 0xe, 0x87, 0 };
->   	u8 ibuf[] = { 0 };
->
->   	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
->   		err("command 0x0e transfer failed.");
->
->   	obuf[0] = 0xe;
-> -	obuf[1] = 0x83;
-> +	obuf[1] = 0x86;
-> +	obuf[2] = 1;
-> +
-> +	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-> +		err("command 0x0e transfer failed.");
-> +
-> +	obuf[0] = 0xe;
-> +	obuf[1] = 0x80;
->   	obuf[2] = 0;
->
->   	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
->   		err("command 0x0e transfer failed.");
->
-> -	msleep(100);
-> +	msleep(50);
->
->   	obuf[0] = 0xe;
->   	obuf[1] = 0x80;
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
--- 
-http://palosaari.fi/
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
