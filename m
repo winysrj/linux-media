@@ -1,60 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.horizon.com ([71.41.210.147]:51492 "HELO ns.horizon.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1757829AbaEKLMK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 May 2014 07:12:10 -0400
-Date: 11 May 2014 07:12:09 -0400
-Message-ID: <20140511111209.14512.qmail@ns.horizon.com>
-From: "George Spelvin" <linux@horizon.com>
-To: james.hogan@imgtec.com, linux-media@vger.kernel.org,
-	linux@horizon.com, m.chehab@samsung.com
-Subject: [PATCH 01/10] ati_remote: Check the checksum
-In-Reply-To: <20140511111113.14427.qmail@ns.horizon.com>
+Received: from smtp-outbound-1.vmware.com ([208.91.2.12]:40230 "EHLO
+	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753125AbaETPNm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 May 2014 11:13:42 -0400
+Message-ID: <537B7122.3000508@vmware.com>
+Date: Tue, 20 May 2014 16:13:38 +0100
+From: Thomas Hellstrom <thellstrom@vmware.com>
+MIME-Version: 1.0
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+CC: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	ccross@google.com, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 2/2 with seqcount v3] reservation: add suppport for
+ read-only access using rcu
+References: <20140409144239.26648.57918.stgit@patser> <20140409144831.26648.79163.stgit@patser> <53465A53.1090500@vmware.com> <53466D63.8080808@canonical.com> <53467B93.3000402@vmware.com> <5346B212.8050202@canonical.com> <5347A9FD.2070706@vmware.com> <5347B4E5.6090901@canonical.com> <5347BFC9.3020503@vmware.com> <53482FF1.1090406@canonical.com> <534843EA.6060602@vmware.com> <534B9165.4000101@canonical.com> <534B921B.4080504@vmware.com> <5357A0DE.7030305@canonical.com> <537A0A5D.6090909@vmware.com> <537A1180.2010109@canonical.com>
+In-Reply-To: <537A1180.2010109@canonical.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-An input report is 4 bytes long, but there are only 12 bits
-of actual payload.  The 4 bytes are:
-data[0] = 0x14
-data[1] = data[2] + data[3] + 0xd5 (a checksum byte)
-data[2] = the raw scancode (plus toggle bit in msbit)
-data[3] = channel << 4 (the low 4 bits must be zero)
+On 05/19/2014 03:13 PM, Maarten Lankhorst wrote:
+> op 19-05-14 15:42, Thomas Hellstrom schreef:
+>> Hi, Maarten!
+>>
+>> Some nitpicks, and that krealloc within rcu lock still worries me.
+>> Otherwise looks good.
+>>
+>> /Thomas
+>>
+>>
+>>
+>> On 04/23/2014 12:15 PM, Maarten Lankhorst wrote:
+>>> @@ -55,8 +60,8 @@ int reservation_object_reserve_shared(struct
+>>> reservation_object *obj)
+>>>               kfree(obj->staged);
+>>>               obj->staged = NULL;
+>>>               return 0;
+>>> -        }
+>>> -        max = old->shared_max * 2;
+>>> +        } else
+>>> +            max = old->shared_max * 2;
+>> Perhaps as a separate reformatting patch?
+> I'll fold it in to the patch that added
+> reservation_object_reserve_shared.
+>>> +
+>>> +int reservation_object_get_fences_rcu(struct reservation_object *obj,
+>>> +                      struct fence **pfence_excl,
+>>> +                      unsigned *pshared_count,
+>>> +                      struct fence ***pshared)
+>>> +{
+>>> +    unsigned shared_count = 0;
+>>> +    unsigned retry = 1;
+>>> +    struct fence **shared = NULL, *fence_excl = NULL;
+>>> +    int ret = 0;
+>>> +
+>>> +    while (retry) {
+>>> +        struct reservation_object_list *fobj;
+>>> +        unsigned seq;
+>>> +
+>>> +        seq = read_seqcount_begin(&obj->seq);
+>>> +
+>>> +        rcu_read_lock();
+>>> +
+>>> +        fobj = rcu_dereference(obj->fence);
+>>> +        if (fobj) {
+>>> +            struct fence **nshared;
+>>> +
+>>> +            shared_count = ACCESS_ONCE(fobj->shared_count);
+>> ACCESS_ONCE() shouldn't be needed inside the seqlock?
+> Yes it is, shared_count may be increased, leading to potential
+> different sizes for krealloc and memcpy
+> if the ACCESS_ONCE is removed. I could use shared_max here instead,
+> which stays the same,
+> but it would waste more memory.
 
-Ignore reports with a bad checksum.
+Maarten, Another perhaps ignorant question WRT this,
+Does ACCESS_ONCE() guarantee that the value accessed is read atomically?
 
-Signed-off-by: George Spelvin <linux@horizon.com>
----
- drivers/media/rc/ati_remote.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
-index 2df7c55160..3ddd66a23d 100644
---- a/drivers/media/rc/ati_remote.c
-+++ b/drivers/media/rc/ati_remote.c
-@@ -507,8 +507,9 @@ static void ati_remote_input_report(struct urb *urb)
- 	 */
- 
- 	/* Deal with strange looking inputs */
--	if ( (urb->actual_length != 4) || (data[0] != 0x14) ||
--		((data[3] & 0x0f) != 0x00) ) {
-+	if ( urb->actual_length != 4 || data[0] != 0x14 ||
-+	     data[1] != (unsigned char)(data[2] + data[3] + 0xD5) ||
-+	     (data[3] & 0x0f) != 0x00) {
- 		ati_remote_dump(&urb->dev->dev, data, urb->actual_length);
- 		return;
- 	}
-@@ -524,9 +525,9 @@ static void ati_remote_input_report(struct urb *urb)
- 	remote_num = (data[3] >> 4) & 0x0f;
- 	if (channel_mask & (1 << (remote_num + 1))) {
- 		dbginfo(&ati_remote->interface->dev,
--			"Masked input from channel 0x%02x: data %02x,%02x, "
-+			"Masked input from channel 0x%02x: data %02x, "
- 			"mask= 0x%02lx\n",
--			remote_num, data[1], data[2], channel_mask);
-+			remote_num, data[2], channel_mask);
- 		return;
- 	}
- 
--- 
-1.9.2
-
+/Thomas
