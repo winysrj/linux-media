@@ -1,61 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:49601 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932566AbaEPNlN (ORCPT
+Received: from mail-ee0-f45.google.com ([74.125.83.45]:52403 "EHLO
+	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751741AbaETSD0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:41:13 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 27/49] media: davinci: vpif_capture: drop buf_init() callback
-Date: Fri, 16 May 2014 19:03:32 +0530
-Message-Id: <1400247235-31434-29-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+	Tue, 20 May 2014 14:03:26 -0400
+Message-ID: <537B98E5.6000505@gmail.com>
+Date: Tue, 20 May 2014 20:03:17 +0200
+From: Tomasz Figa <tomasz.figa@gmail.com>
+MIME-Version: 1.0
+To: Arun Kumar K <arun.kk@samsung.com>, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org
+CC: k.debski@samsung.com, s.nawrocki@samsung.com, posciak@chromium.org,
+	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
+Subject: Re: [PATCH 0/3] Support for multiple MFC FW sub-versions
+References: <1400581029-3475-1-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1400581029-3475-1-git-send-email-arun.kk@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi Arun,
 
-this patch drops the buf_init() callback as init
-of buf list is not required.
+On 20.05.2014 12:17, Arun Kumar K wrote:
+> This patchset is for supporting multple firmware sub-versions
+> for MFC. Newer firmwares come with changed interfaces and fixes
+> without any change in the fw version number.
+> So this implementation is as per Tomasz Figa's suggestion [1].
+> [1] http://permalink.gmane.org/gmane.linux.kernel.samsung-soc/31735
+> 
+> Arun Kumar K (3):
+>   [media] s5p-mfc: Remove duplicate function s5p_mfc_reload_firmware
+>   [media] s5p-mfc: Support multiple firmware sub-versions
+>   [media] s5p-mfc: Add init buffer cmd to MFCV6
+> 
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c        |   11 +++---
+>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |   11 +++++-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |   44 ++++++-----------------
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    6 ++--
+>  4 files changed, 30 insertions(+), 42 deletions(-)
+> 
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif_capture.c |   10 ----------
- 1 file changed, 10 deletions(-)
+The whole series looks good.
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index b035c88..484d858 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -242,15 +242,6 @@ static void vpif_wait_finish(struct vb2_queue *vq)
- 	mutex_lock(&common->lock);
- }
- 
--static int vpif_buffer_init(struct vb2_buffer *vb)
--{
--	struct vpif_cap_buffer *buf = to_vpif_buffer(vb);
--
--	INIT_LIST_HEAD(&buf->list);
--
--	return 0;
--}
--
- static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct vpif_capture_config *vpif_config_data =
-@@ -385,7 +376,6 @@ static struct vb2_ops video_qops = {
- 	.queue_setup		= vpif_buffer_queue_setup,
- 	.wait_prepare		= vpif_wait_prepare,
- 	.wait_finish		= vpif_wait_finish,
--	.buf_init		= vpif_buffer_init,
- 	.buf_prepare		= vpif_buffer_prepare,
- 	.start_streaming	= vpif_start_streaming,
- 	.stop_streaming		= vpif_stop_streaming,
--- 
-1.7.9.5
+Reviewed-by: Tomasz Figa <t.figa@samsung.com>
 
+Best regards,
+Tomasz
