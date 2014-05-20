@@ -1,68 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57675 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755120AbaEEIjB (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:28527 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750808AbaETMCI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 May 2014 04:39:01 -0400
-Date: Mon, 5 May 2014 11:38:56 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: DaeSeok Youn <daeseok.youn@gmail.com>
-Cc: m.chehab@samsung.com, linux-dev@sensoray.com,
-	hans.verkuil@cisco.com, linux-media@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] [media] s2255drv: fix memory leak s2255_probe()
-Message-ID: <20140505083856.GZ8753@valkosipuli.retiisi.org.uk>
-References: <1408657.25U3i1DfG3@daeseok-laptop.cloud.net>
- <20140415093305.GE8753@valkosipuli.retiisi.org.uk>
- <CAHb8M2CECG7ydo9L2u5BOcQeq8V3=ydy149kCLkoueo+HbD6fg@mail.gmail.com>
+	Tue, 20 May 2014 08:02:08 -0400
+Date: Tue, 20 May 2014 15:01:41 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: kbuild@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [linuxtv-samsung:for-v3.16 45/81]
+ drivers/media/dvb-frontends/si2168.c:47 si2168_cmd_execute() warn: add some
+ parenthesis here?
+Message-ID: <20140520120141.GE17724@mwanda>
+References: <20140505190256.GP4963@mwanda>
+ <5367FA1E.9030800@iki.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAHb8M2CECG7ydo9L2u5BOcQeq8V3=ydy149kCLkoueo+HbD6fg@mail.gmail.com>
+In-Reply-To: <5367FA1E.9030800@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 15, 2014 at 07:54:43PM +0900, DaeSeok Youn wrote:
-> Hi, Sakari
+On Mon, May 05, 2014 at 11:52:46PM +0300, Antti Palosaari wrote:
+> >845f3505 Antti Palosaari 2014-04-10  46
+> >845f3505 Antti Palosaari 2014-04-10 @47  		if (!(cmd->args[0] >> 7) & 0x01) {
+> >
+> >This should be:						if (!((md->args[0] >> 7) & 0x01)) {
+> >Otherwise it is a precedence error where it does the negate before the
+> >bitwise AND.
 > 
-> 2014-04-15 18:33 GMT+09:00 Sakari Ailus <sakari.ailus@iki.fi>:
-> > Hi Daeseok,
-> >
-> > On Tue, Apr 15, 2014 at 01:49:34PM +0900, Daeseok Youn wrote:
-> >>
-> >> smatch says:
-> >>  drivers/media/usb/s2255/s2255drv.c:2246 s2255_probe() warn:
-> >> possible memory leak of 'dev'
-> >>
-> >> Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
-> >> ---
-> >>  drivers/media/usb/s2255/s2255drv.c |    1 +
-> >>  1 files changed, 1 insertions(+), 0 deletions(-)
-> >>
-> >> diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-> >> index 1d4ba2b..8aca3ef 100644
-> >> --- a/drivers/media/usb/s2255/s2255drv.c
-> >> +++ b/drivers/media/usb/s2255/s2255drv.c
-> >> @@ -2243,6 +2243,7 @@ static int s2255_probe(struct usb_interface *interface,
-> >>       dev->cmdbuf = kzalloc(S2255_CMDBUF_SIZE, GFP_KERNEL);
-> >>       if (dev->cmdbuf == NULL) {
-> >>               s2255_dev_err(&interface->dev, "out of memory\n");
-> >> +             kfree(dev);
-> >>               return -ENOMEM;
-> >>       }
-> >>
-> >
-> > The rest of the function already uses goto and labels for error handling. I
-> > think it'd take adding one more. dev is correctly released in other error
-> > cases.
-> I am not sure that adding a new label for error handling when
-> allocation for dev->cmdbuf is failed.
-> I think it is ok to me. :-) Because I think it is not good adding a
-> new label and use goto statement for this.
+> That was already on my TODO list as daily media build test sparse
+> warned it already http://hverkuil.home.xs4all.nl/logs/Monday.log
+> 
+> I am waiting for media/master kernel upgrades from 3.15-rc1 as that
+> kernel will hang whole machine when em28xx driver used (em28xx
+> driver is USB bridge for those si2168 and si2157).
+> 
 
-I can ack this if you use the same pattern for error handling that's already
-there.
+Wait, what?  This is a one liner.  I haven't understood the connection
+with 3.15-rc1?
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+regards,
+dan carpenter
+
