@@ -1,189 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hm1315-17.locaweb.com.br ([201.76.49.147]:27370 "EHLO
-	hm1315-17.locaweb.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754871AbaEHVbi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 17:31:38 -0400
-Received: from mcbain0006.correio.pw (189.126.112.72) by hm1315-38.locaweb.com.br (PowerMTA(TM) v3.5r15) id hdfrrk0nvfoo for <linux-media@vger.kernel.org>; Thu, 8 May 2014 18:31:36 -0300 (envelope-from <marcio@netopen.com.br>)
-Content-Type: text/plain; charset=windows-1252
-Mime-Version: 1.0 (Mac OS X Mail 7.2 \(1874\))
-Subject: Re: s_ctrl V4l2 device driver does not work
-From: Marcio Campos de Lima <marcio@netopen.com.br>
-In-Reply-To: <Pine.LNX.4.64.1405082259340.14834@axis700.grange>
-Date: Thu, 8 May 2014 18:30:46 -0300
-Cc: linux-arm-kernel@lists.infradead.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <5869970E-84C8-4159-99EB-8C5D63AE72C9@netopen.com.br>
-References: <B43D69CB-FE7A-4168-B203-02A7934215F4@netopen.com.br> <Pine.LNX.4.64.1405082211240.14834@axis700.grange> <E916BA02-89F5-4E34-96A5-1D3EE8F944CF@netopen.com.br> <Pine.LNX.4.64.1405082259340.14834@axis700.grange>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Received: from bombadil.infradead.org ([198.137.202.9]:45958 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751801AbaEUUzt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 May 2014 16:55:49 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: "Reynaldo H. Verdejo Pinochet" <r.verdejo@sisa.samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] dib0700: fix RC support on Hauppauge Nova-TD
+Date: Wed, 21 May 2014 17:55:36 -0300
+Message-Id: <1400705736-1816-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have also tried these settings
+The RC support o Nova-TD is broken, as the RC endpoint there
+is an interrupt endpoint.
 
-#define VIDIOC_AVANCA_ZOOM	(0x009a0000|0x900)+14
-#define VIDIOC_RECUA_ZOOM	(0x009a0000|0x900)+14
-#define VIDIOC_ATIVA_FLASH	(0x009a0000|0x900)+3
-#define VIDIOC_WHITE_BALANCE	(0x009a0000|0x900)+13
+That produces an ugly calltrace at the Kernel logs:
 
-Em 08/05/2014, à(s) 18:01, Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+	WARNING: CPU: 2 PID: 56 at drivers/usb/core/urb.c:450 usb_submit_urb+0x1fd/0x5c0()
+	usb 1-1.2: BOGUS urb xfer, pipe 3 != type 1
+	Modules linked in: rc_dib0700_rc5(OF) dvb_usb_dib0700(OF) dib9000(OF) dib8000(OF) dib7000m(OF) dib0090(OF) dib0070(OF) dib7000p(OF) dib3000mc(OF) dibx000_common(OF) dvb_usb(OF) rc_core(OF) snd_usb_audio snd_usbmidi_lib snd_hwdep snd_rawmidi snd_seq snd_seq_device snd_pcm snd_timer snd soundcore bnep bluetooth 6lowpan_iphc rfkill au0828(OF) xc5000(OF) au8522_dig(OF) au8522_common(OF) tveeprom(OF) dvb_core(OF) nouveau i915 mxm_wmi ttm i2c_algo_bit drm_kms_helper drm r8169 mii i2c_core video wmi [last unloaded: au0828]
+	CPU: 2 PID: 56 Comm: khubd Tainted: GF          O 3.14.2-200.fc20.x86_64 #1
+	Hardware name: SAMSUNG ELECTRONICS CO., LTD. 550P5C/550P7C/SAMSUNG_NP1234567890, BIOS P05ABI.016.130917.dg 09/17/2013
+	 0000000000000000 00000000610866bc ffff880223703860 ffffffff816eec92
+	 ffff8802237038a8 ffff880223703898 ffffffff8108a1bd ffff8800916a2180
+	 ffff8801d5b16000 0000000000000003 0000000000000003 0000000000000020
+	Call Trace:
+	 [<ffffffff816eec92>] dump_stack+0x45/0x56
+	 [<ffffffff8108a1bd>] warn_slowpath_common+0x7d/0xa0
+	 [<ffffffff8108a23c>] warn_slowpath_fmt+0x5c/0x80
+	 [<ffffffff814e3ebd>] usb_submit_urb+0x1fd/0x5c0
+	 [<ffffffffa0445925>] dib0700_rc_setup+0xb5/0x120 [dvb_usb_dib0700]
+	 [<ffffffffa0445a58>] dib0700_probe+0xc8/0x130 [dvb_usb_dib0700]
+	...
 
-> On Thu, 8 May 2014, Marcio Campos de Lima wrote:
-> 
->> Hi Guennadi
->> Thank you very much for your answer.
->> The driver is a modified OV5642.c for the Omnivision OV5642 sensor. The platform is a custom AT91SAM9M10 board with a camera paralell interface.
->> the driver is working quite well (capturing images) apart the set control interface.
-> 
-> So, you're using the atmel-isi camera _host_ driver.
-> 
->> Unfortunately I cannot move to the most current kernel now.
-> 
-> I don't find VIDIOC_AVANCA_ZOOM in the mainline kernel, it seems to be a 
-> part of your modification, so, I don't think I can help you, sorry.
-> 
-> Thanks
-> Guennadi
-> 
->> Thanks again
->> Regards
->> Marcio
->> Em 08/05/2014, à(s) 17:14, Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
->> 
->>> Hi Marcio,
->>> 
->>> Firstly, please direct all V4L related questions to the linux-media list 
->>> (added to CC), secondly, your problem will have much better chances to 
->>> attract attention if you use a current kernel, thirdly, please, specify 
->>> which camera host driver / which ARM platform you're dealing with.
->>> 
->>> Thanks
->>> Guennadi
->>> 
->>> On Thu, 8 May 2014, Marcio Campos de Lima wrote:
->>> 
->>>> Hi
->>>> 
->>>> Can anybody tell me why the set control function is not working in Linux 3.6.9? Thanks.
->>>> 
->>>> —— APPLICATION CALL ——
->>>> struct v4l2_control controle;
->>>>   controle.id = VIDIOC_AVANCA_ZOOM;
->>>>   controle.value = time;
->>>>   if (-1 == xioctl(fd_camera, VIDIOC_S_CTRL,&controle))
->>>> 	{
->>>> 	printf ("%s erro\n",__FUNCTION__);
->>>> 	perror ("erro iotcl");
->>>> 	}
->>>> 
->>>> The ioctl call returns with invalid argument. It is amazing because the first time the ioctl is called it is executed ok. Then no more call is allowed and return the invalid 
->>>> 
->>>> below is the device driver  code I think may be relevant.
->>>> 
->>>> v4l2_ctrl_handler_init(&priv->ctrls, ARRAY_SIZE(ov5642_ctrls));
->>>>   printk ("handler_init\n");
->>>>   v4l2_ctrl_new_std(&priv->ctrls, &ov5642_ctrl_ops,V4L2_CID_ZOOM_RELATIVE, -1000, 1000, 1, 500);
->>>>   v4l2_ctrl_new_std(&priv->ctrls, &ov5642_ctrl_ops,V4L2_CID_FLASH_STROBE, -100, 100, 1, 5);
->>>> 
->>>> 
->>>>   priv->subdev.ctrl_handler=&priv->ctrls;
->>>>   v4l2_i2c_subdev_init(&priv->subdev, client, &ov5642_subdev_ops);
->>>>   return ov5642_video_probe(client);
->>>> 
->>>> static int ov5642_s_ctrl(struct v4l2_ctrl *ctrl)
->>>> {
->>>> 	struct ov5642 *ov5642 =
->>>> 			container_of(ctrl->handler, struct ov5642, ctrls);
->>>> 	struct i2c_client *client = v4l2_get_subdevdata(&ov5642->subdev);
->>>> 	u16 data;
->>>> 	int ret;
->>>> 	printk ("%s: id=%08x val=%d\n",__FUNCTION__, ctrl->id, ctrl->val);
->>>> 	switch (ctrl->id) {
->>>> 	case V4L2_CID_DO_WHITE_BALANCE:
->>>> 		ov5640_set_wb_oem(client, ctrl->val);
->>>> 		break;
->>>> 	case V4L2_CID_EXPOSURE:
->>>> 
->>>> 		break;
->>>> 	case V4L2_CID_GAIN:
->>>> 		/* Gain is controlled by 2 analog stages and a digital stage.
->>>> 		 * Valid values for the 3 stages are
->>>> 		 *
->>>> 		 * Stage                Min     Max     Step
->>>> 		 * ------------------------------------------
->>>> 		 * First analog stage   x1      x2      1
->>>> 		 * Second analog stage  x1      x4      0.125
->>>> 		 * Digital stage        x1      x16     0.125
->>>> 		 *
->>>> 		 * To minimize noise, the gain stages should be used in the
->>>> 		 * second analog stage, first analog stage, digital stage order.
->>>> 		 * Gain from a previous stage should be pushed to its maximum
->>>> 		 * value before the next stage is used.
->>>> 		 */
->>>> 		if (ctrl->val <= 32) {
->>>> 			data = ctrl->val;
->>>> 		} else if (ctrl->val <= 64) {
->>>> 			ctrl->val &= ~1;
->>>> 			data = (1 << 6) | (ctrl->val >> 1);
->>>> 		} else {
->>>> 			ctrl->val &= ~7;
->>>> 			data = ((ctrl->val - 64) << 5) | (1 << 6) | 32;
->>>> 		}
->>>> 		break;
->>>> 	case V4L2_CID_ZOOM_RELATIVE:
->>>> 		if (ctrl->val>0)
->>>> 			avanca_zoom(sysPriv.v4l2_int_device, ctrl->val);
->>>> 		else
->>>> 			recua_zoom(sysPriv.v4l2_int_device, ctrl->val);
->>>> 
->>>> 		break;
->>>> 	case V4L2_CID_BRIGHTNESS:
->>>> 		 ov5640_set_brightness(client, ctrl->val);
->>>> 		 break;
->>>> 	case V4L2_CID_CONTRAST:
->>>> 		ov5640_set_contrast(client, ctrl->val);
->>>> 		break;
->>>> 	case V4L2_CID_FLASH_STROBE:
->>>> 		ativa_flash (sysPriv.v4l2_int_device, ctrl->val);
->>>> 		break;
->>>> 	case V4L2_CID_VFLIP:
->>>> 
->>>> 	case V4L2_CID_TEST_PATTERN:
->>>> 
->>>> 
->>>> 
->>>> 	case V4L2_CID_BLC_AUTO:
->>>> 
->>>> 	case V4L2_CID_BLC_TARGET_LEVEL:
->>>> 
->>>> 	case V4L2_CID_BLC_ANALOG_OFFSET:
->>>> 
->>>> 	case V4L2_CID_BLC_DIGITAL_OFFSET:
->>>> 		return 1;
->>>> 			}
->>>> 
->>>> 	return 0;
->>>> }
->>>> 
->>>> static struct v4l2_ctrl_ops ov5642_ctrl_ops = {
->>>> 	.s_ctrl = ov5642_s_ctrl,
->>>> };
->>>> 
->>>> 
->>>> _______________________________________________
->>>> linux-arm-kernel mailing list
->>>> linux-arm-kernel@lists.infradead.org
->>>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->>>> 
->>> 
->>> ---
->>> Guennadi Liakhovetski, Ph.D.
->>> Freelance Open-Source Software Developer
->>> http://www.open-technology.de/
->> 
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+Fix it by detecting if the endpoint is bulk or interrupt.
+
+Tested with both Hauppauge Nova-TD model 52009 (interrupt) and with a
+		 Prolink Pixelview SBTVD model PV-D231U (bulk).
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/dvb-usb/dib0700.h         |  2 +-
+ drivers/media/usb/dvb-usb/dib0700_core.c    | 41 ++++++++++++++++++++++++-----
+ drivers/media/usb/dvb-usb/dib0700_devices.c |  2 +-
+ 3 files changed, 36 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb/dib0700.h b/drivers/media/usb/dvb-usb/dib0700.h
+index 637b6123f391..927617d95616 100644
+--- a/drivers/media/usb/dvb-usb/dib0700.h
++++ b/drivers/media/usb/dvb-usb/dib0700.h
+@@ -59,7 +59,7 @@ extern int dib0700_set_gpio(struct dvb_usb_device *, enum dib07x0_gpios gpio, u8
+ extern int dib0700_ctrl_clock(struct dvb_usb_device *d, u32 clk_MHz, u8 clock_out_gp3);
+ extern int dib0700_ctrl_rd(struct dvb_usb_device *d, u8 *tx, u8 txlen, u8 *rx, u8 rxlen);
+ extern int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw);
+-extern int dib0700_rc_setup(struct dvb_usb_device *d);
++extern int dib0700_rc_setup(struct dvb_usb_device *d, struct usb_interface *intf);
+ extern int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff);
+ extern struct i2c_algorithm dib0700_i2c_algo;
+ extern int dib0700_identify_state(struct usb_device *udev, struct dvb_usb_device_properties *props,
+diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
+index bf2a908d74cf..2797a7fb2d22 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_core.c
++++ b/drivers/media/usb/dvb-usb/dib0700_core.c
+@@ -754,17 +754,20 @@ resubmit:
+ 	usb_submit_urb(purb, GFP_ATOMIC);
+ }
+ 
+-int dib0700_rc_setup(struct dvb_usb_device *d)
++int dib0700_rc_setup(struct dvb_usb_device *d, struct usb_interface *intf)
+ {
+ 	struct dib0700_state *st = d->priv;
+ 	struct urb *purb;
+-	int ret;
++	const struct usb_endpoint_descriptor *e;
++	int ret, rc_ep = 1;
++	unsigned int pipe = 0;
+ 
+ 	/* Poll-based. Don't initialize bulk mode */
+-	if (st->fw_version < 0x10200)
++	if (st->fw_version < 0x10200 || !intf)
+ 		return 0;
+ 
+ 	/* Starting in firmware 1.20, the RC info is provided on a bulk pipe */
++
+ 	purb = usb_alloc_urb(0, GFP_KERNEL);
+ 	if (purb == NULL) {
+ 		err("rc usb alloc urb failed");
+@@ -779,9 +782,33 @@ int dib0700_rc_setup(struct dvb_usb_device *d)
+ 	}
+ 
+ 	purb->status = -EINPROGRESS;
+-	usb_fill_bulk_urb(purb, d->udev, usb_rcvbulkpipe(d->udev, 1),
+-			  purb->transfer_buffer, RC_MSG_SIZE_V1_20,
+-			  dib0700_rc_urb_completion, d);
++
++	/*
++	 * Some devices like the Hauppauge NovaTD model 52009 use an interrupt
++	 * endpoint, while others use a bulk one.
++	 */
++	e = &intf->altsetting[0].endpoint[rc_ep].desc;
++	if (usb_endpoint_dir_in(e)) {
++		if (usb_endpoint_xfer_bulk(e)) {
++			pipe = usb_rcvbulkpipe(d->udev, rc_ep);
++			usb_fill_bulk_urb(purb, d->udev, pipe,
++					  purb->transfer_buffer, RC_MSG_SIZE_V1_20,
++					  dib0700_rc_urb_completion, d);
++
++		} else if (usb_endpoint_xfer_int(e)) {
++			pipe = usb_rcvintpipe(d->udev, rc_ep);
++			usb_fill_int_urb(purb, d->udev, pipe,
++					  purb->transfer_buffer, RC_MSG_SIZE_V1_20,
++					  dib0700_rc_urb_completion, d, 1);
++		}
++	}
++
++	if (!pipe) {
++		err("There's no endpoint for remote controller");
++		kfree(purb->transfer_buffer);
++		usb_free_urb(purb);
++		return 0;
++	}
+ 
+ 	ret = usb_submit_urb(purb, GFP_ATOMIC);
+ 	if (ret) {
+@@ -820,7 +847,7 @@ static int dib0700_probe(struct usb_interface *intf,
+ 			else
+ 				dev->props.rc.core.bulk_mode = false;
+ 
+-			dib0700_rc_setup(dev);
++			dib0700_rc_setup(dev, intf);
+ 
+ 			return 0;
+ 		}
+diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
+index 829323e42ca0..10e0db8d1850 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
+@@ -514,7 +514,7 @@ static int dib0700_rc_query_old_firmware(struct dvb_usb_device *d)
+ 
+ 	/* info("%d: %2X %2X %2X %2X",dvb_usb_dib0700_ir_proto,(int)key[3-2],(int)key[3-3],(int)key[3-1],(int)key[3]);  */
+ 
+-	dib0700_rc_setup(d); /* reset ir sensor data to prevent false events */
++	dib0700_rc_setup(d, NULL); /* reset ir sensor data to prevent false events */
+ 
+ 	d->last_event = 0;
+ 	switch (d->props.rc.core.protocol) {
+-- 
+1.9.0
 
