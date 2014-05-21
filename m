@@ -1,50 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:41116 "EHLO posteo.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S964856AbaEQRwS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 May 2014 13:52:18 -0400
-Message-ID: <5377A1CC.7020104@posteo.de>
-Date: Sat, 17 May 2014 19:52:12 +0200
-From: Martin Kepplinger <martink@posteo.de>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, gregkh@linuxfoundation.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: m.chehab@samsung.com, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCHv2] staging: media: as102: replace custom dprintk() with
- dev_dbg()
-References: <53776B57.5050504@iki.fi> <1400342738-32652-1-git-send-email-martink@posteo.de> <53779A7F.8020007@iki.fi>
-In-Reply-To: <53779A7F.8020007@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2469 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751500AbaEUCo2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 May 2014 22:44:28 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4L2iO2Q027147
+	for <linux-media@vger.kernel.org>; Wed, 21 May 2014 04:44:26 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DB9762A19A6
+	for <linux-media@vger.kernel.org>; Wed, 21 May 2014 04:44:03 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140521024403.DB9762A19A6@tschai.lan>
+Date: Wed, 21 May 2014 04:44:03 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 2014-05-17 19:21, schrieb Antti Palosaari:
-> On 05/17/2014 07:05 PM, Martin Kepplinger wrote:
->> don't reinvent dev_dbg(). remove dprintk() in as102_drv.c.
->> use the common kernel coding style.
->>
->> Signed-off-by: Martin Kepplinger <martink@posteo.de>
-> 
-> Reviewed-by: Antti Palosaari <crope@iki.fi>
-> 
->> ---
->> this applies to next-20140516. any more suggestions?
->> more cleanup can be done when dprintk() is completely gone.
-> 
-> Do you have the device? I am a bit reluctant patching that driver
-> without any testing as it has happened too many times something has gone
-> totally broken.
-I don't have the device and will, at most, change such style issues.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> 
-> IIRC Devin said it is in staging because of style issues and nothing
-> more. Is that correct?
-I haven't heard anything. A TODO file would help.
+Results of the daily build of media_tree:
 
-> 
-> regards
-> Antti
-> 
+date:		Wed May 21 04:00:19 CEST 2014
+git branch:	test
+git hash:	ba0d342ecc21fbbe2f6c178f4479944d1fb34f3b
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-1.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
