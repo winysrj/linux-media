@@ -1,33 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28422 "EHLO mx1.redhat.com"
+Received: from mail.aswsp.com ([193.34.35.150]:27996 "EHLO mail.aswsp.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755061AbaEHTl3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 May 2014 15:41:29 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id s48JfThu001144
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 8 May 2014 15:41:29 -0400
-Received: from shalem.localdomain.com (vpn1-5-220.ams2.redhat.com [10.36.5.220])
-	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id s48JfS2G029599
-	for <linux-media@vger.kernel.org>; Thu, 8 May 2014 15:41:29 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 0/3] rc_keymaps: Add 3 keymaps for various allwinner android tv
-Date: Thu,  8 May 2014 21:41:24 +0200
-Message-Id: <1399578087-2365-1-git-send-email-hdegoede@redhat.com>
+	id S1752434AbaEUJsZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 May 2014 05:48:25 -0400
+From: Victor Lambret <victor.lambret.ext@parrot.com>
+To: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+CC: Victor Lambret <victor.lambret.ext@parrot.com>
+Subject: [PATCH] videobuf2-core: remove duplicated code
+Date: Wed, 21 May 2014 11:48:43 +0200
+Message-ID: <1400665723-21695-1-git-send-email-victor.lambret.ext@parrot.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+Remove duplicated test of buffer presence at streamon
 
-These patches add keymaps for the remotes found with various allwinner android
-tv boxes. I've checked that these are not duplicate with existing configs.
+Signed-off-by: Victor Lambret <victor.lambret.ext@parrot.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-These tv-boxes can run regular Linux, and that is what these keymaps are
-intended for.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index f9059bb..b731b66 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2067,10 +2067,6 @@ static int vb2_internal_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (!q->num_buffers) {
+-		dprintk(1, "streamon: no buffers have been allocated\n");
+-		return -EINVAL;
+-	}
+ 	if (q->num_buffers < q->min_buffers_needed) {
+ 		dprintk(1, "streamon: need at least %u allocated buffers\n",
+ 				q->min_buffers_needed);
+-- 
+2.0.0.rc2
 
-If there are no objections I'm going to push these in a couple of days.
-
-Regards,
-
-Hans
