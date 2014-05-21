@@ -1,61 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42480 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751786AbaEUUjJ (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:35958 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751137AbaEUSUP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 May 2014 16:39:09 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [PATCH] v4l: vsp1: Remove the unneeded vsp1_video_buffer video field
-Date: Wed, 21 May 2014 22:39:16 +0200
-Message-Id: <1400704756-2521-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 21 May 2014 14:20:15 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Changbing Xiong <cb.xiong@samsung.com>,
+	Trevor G <trevor.forums@gmail.com>,
+	"Reynaldo H. Verdejo Pinochet" <r.verdejo@sisa.samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 7/8] xc5000: Don't use whitespace before tabs
+Date: Wed, 21 May 2014 15:20:01 -0300
+Message-Id: <1400696402-1805-8-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1400696402-1805-1-git-send-email-m.chehab@samsung.com>
+References: <1400696402-1805-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The field is assigned but never read, remove it.
+WARNING: please, no space before tabs
++#define XC_PRODUCT_ID_FW_LOADED ^I0x1388$
 
-This fixes a bug caused by the struct vb2_buffer field not being be the
-very first field of the vsp1_video_buffer buffer structure as required
-by videobuf2.
+WARNING: please, no space before tabs
++#define DK_SECAM_A2LDK3 ^I13$
 
-Cc: stable@vger.kernel.org
-Reported-by: Takanari Hayama <taki@igel.co.jp>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+WARNING: please, no space before tabs
++#define DK_SECAM_A2MONO ^I14$
+
+WARNING: please, no space before tabs
++#define FM_RADIO_INPUT2 ^I21$
+
+WARNING: please, no space before tabs
++#define FM_RADIO_INPUT1 ^I22$
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/platform/vsp1/vsp1_video.c | 2 --
- drivers/media/platform/vsp1/vsp1_video.h | 1 -
- 2 files changed, 3 deletions(-)
+ drivers/media/tuners/xc5000.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-Mauro, this is a bug fix, could it get in v3.16 ?
-
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 8a1253e..677e3aa 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -654,8 +654,6 @@ static int vsp1_video_buffer_prepare(struct vb2_buffer *vb)
- 	if (vb->num_planes < format->num_planes)
- 		return -EINVAL;
+diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
+index da4c29ed48bd..8df92619883f 100644
+--- a/drivers/media/tuners/xc5000.c
++++ b/drivers/media/tuners/xc5000.c
+@@ -77,7 +77,7 @@ struct xc5000_priv {
  
--	buf->video = video;
--
- 	for (i = 0; i < vb->num_planes; ++i) {
- 		buf->addr[i] = vb2_dma_contig_plane_dma_addr(vb, i);
- 		buf->length[i] = vb2_plane_size(vb, i);
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index c04d48f..7284320 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -90,7 +90,6 @@ static inline struct vsp1_pipeline *to_vsp1_pipeline(struct media_entity *e)
- }
+ /* Product id */
+ #define XC_PRODUCT_ID_FW_NOT_LOADED	0x2000
+-#define XC_PRODUCT_ID_FW_LOADED 	0x1388
++#define XC_PRODUCT_ID_FW_LOADED	0x1388
  
- struct vsp1_video_buffer {
--	struct vsp1_video *video;
- 	struct vb2_buffer buf;
- 	struct list_head queue;
+ /* Registers */
+ #define XREG_INIT         0x00
+@@ -164,16 +164,16 @@ struct XC_TV_STANDARD {
+ #define DK_PAL_NICAM		10
+ #define DK_PAL_MONO		11
+ #define DK_SECAM_A2DK1		12
+-#define DK_SECAM_A2LDK3 	13
+-#define DK_SECAM_A2MONO 	14
++#define DK_SECAM_A2LDK3		13
++#define DK_SECAM_A2MONO		14
+ #define L_SECAM_NICAM		15
+ #define LC_SECAM_NICAM		16
+ #define DTV6			17
+ #define DTV8			18
+ #define DTV7_8			19
+ #define DTV7			20
+-#define FM_RADIO_INPUT2 	21
+-#define FM_RADIO_INPUT1 	22
++#define FM_RADIO_INPUT2		21
++#define FM_RADIO_INPUT1		22
+ #define FM_RADIO_INPUT1_MONO	23
  
+ static struct XC_TV_STANDARD xc5000_standard[MAX_TV_STANDARD] = {
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.0
 
