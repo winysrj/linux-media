@@ -1,62 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55935 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750737AbaEAQIA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 May 2014 12:08:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 01/26] omap3isp: stat: Rename IS_COHERENT_BUF to ISP_STAT_USES_DMAENGINE
-Date: Thu, 01 May 2014 18:08:14 +0200
-Message-ID: <5488015.H7sDT3oUL9@avalon>
-In-Reply-To: <20140501111542.GU8753@valkosipuli.retiisi.org.uk>
-References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com> <1747188.f0Jd97RYvh@avalon> <20140501111542.GU8753@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:56215 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751022AbaEUJjJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 May 2014 05:39:09 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N5X00LMT452FO50@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 May 2014 10:39:02 +0100 (BST)
+Received: from [106.116.147.32] by eusync4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0N5X00LG1456DK50@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 May 2014 10:39:07 +0100 (BST)
+Message-id: <537C7439.6080507@samsung.com>
+Date: Wed, 21 May 2014 11:39:05 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR 3.16] exynos4-is driver cleanup
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Mauro,
 
-On Thursday 01 May 2014 14:15:42 Sakari Ailus wrote:
-> On Thu, May 01, 2014 at 12:48:57AM +0200, Laurent Pinchart wrote:
-> > Hi Sakari,
-> > 
-> > On Thursday 01 May 2014 01:45:47 Sakari Ailus wrote:
-> > > Hi Laurent,
-> > > 
-> > > Thanks for the set! I've been looking forward to see this! :)
-> > > 
-> > > On Mon, Apr 21, 2014 at 02:28:47PM +0200, Laurent Pinchart wrote:
-> > > > The macro is meant to test whether the statistics engine uses an
-> > > > external DMA engine to transfer data or supports DMA directly. As both
-> > > > cases will be supported by DMA coherent buffers rename the macro to
-> > > > ISP_STAT_USES_DMAENGINE for improved clarity.
-> > > 
-> > > Both use DMA, but the ISP just implements its own. How about calling the
-> > > macro ISP_STAT_USES_SYSTEM_DMA instead? Up to you.
-> > 
-> > DMA engine is the Linux name for the system DMA engine API. It might
-> > indeed be
->
-> The documentation does not use that term at least. It speaks of DMA mapping
-> instead. The DMA being used for the transfers in that case is OMAP system
-> DMA, not ISP DMA.
+This two patches is the exynos4-is driver cleanup, i.e. removing unused
+code to support non-dt platforms. One of the patches touches arch/arm and
+it has been acked by Mr. Kim.
+Please note this branch includes two patches from my previous pull request
+[1], which I hoped to be merged for 3.15.
 
-DMA mapping and DMA engine are actually two different things. The former 
-manages DMA memory, while the latter handles the DMA engine hardware. Only the 
-former is documented in the kernel at the moment though (but I expect that to 
-change soon).
+[1] https://patchwork.linuxtv.org/patch/23891/
 
-> > slightly generic, but I'm not too sure whether ISP_STAT_USES_SYSTEM_DMA
-> > would be more descriptive. I suppose it depends on the background of the
-> > reader :-) If you insist I can change it.
-> 
-> I think ISP_STAT_USES_SYSTEM_DMA is simply better. Up to you.
+The following changes since commit 491a5efdef074fac14b99e2c85d2fe7a08f9e73d:
 
--- 
+  exynos4-is: Free FIMC-IS CPU memory only when allocated (2014-05-21 11:22:04 +0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/snawrocki/samsung.git for-v3.16-2
+
+for you to fetch changes up to f7c0dfda8531ed4236a5c716b4c044e85f1ec3d0:
+
+  exynos4-is: Remove support for non-dt platforms (2014-05-21 11:22:27 +0200)
+
+----------------------------------------------------------------
+Sylwester Nawrocki (2):
+      ARM: S5PV210: Remove camera support from mach-goni.c
+      exynos4-is: Remove support for non-dt platforms
+
+ Documentation/video4linux/fimc.txt                 |   30 --
+ MAINTAINERS                                        |    1 -
+ arch/arm/mach-s5pv210/mach-goni.c                  |   51 ---
+ drivers/media/platform/exynos4-is/Kconfig          |    3 +-
+ drivers/media/platform/exynos4-is/common.c         |    2 +-
+ drivers/media/platform/exynos4-is/fimc-core.h      |    2 +-
+ drivers/media/platform/exynos4-is/fimc-isp-video.c |    2 +-
+ drivers/media/platform/exynos4-is/fimc-isp.h       |    2 +-
+ drivers/media/platform/exynos4-is/fimc-lite-reg.c  |    2 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c      |    2 +-
+ drivers/media/platform/exynos4-is/fimc-lite.h      |    2 +-
+ drivers/media/platform/exynos4-is/fimc-reg.c       |    2 +-
+ drivers/media/platform/exynos4-is/media-dev.c      |  329 ++------------------
+ drivers/media/platform/exynos4-is/media-dev.h      |    6 +-
+ drivers/media/platform/exynos4-is/mipi-csis.c      |   43 +--
+ include/linux/platform_data/mipi-csis.h            |   28 --
+ include/media/{s5p_fimc.h => exynos-fimc.h}        |   21 --
+ 17 files changed, 50 insertions(+), 478 deletions(-)
+ delete mode 100644 include/linux/platform_data/mipi-csis.h
+ rename include/media/{s5p_fimc.h => exynos-fimc.h} (87%)
+
+--
 Regards,
-
-Laurent Pinchart
-
+Sylwester
