@@ -1,106 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:47381 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756143AbaE2OlD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 May 2014 10:41:03 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [PATCH v3 1/3] v4l: Add test pattern colour component controls
-Date: Thu, 29 May 2014 17:40:46 +0300
-Message-Id: <1401374448-30411-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:35955 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751018AbaEUSUO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 May 2014 14:20:14 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Changbing Xiong <cb.xiong@samsung.com>,
+	Trevor G <trevor.forums@gmail.com>,
+	"Reynaldo H. Verdejo Pinochet" <r.verdejo@sisa.samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 0/8] Fix stream hangs with au0828
+Date: Wed, 21 May 2014 15:19:54 -0300
+Message-Id: <1400696402-1805-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In many cases the test pattern has selectable values for each colour
-component. Implement controls for raw bayer components. Additional controls
-should be defined for colour components that are not covered by these
-controls.
+There are several conditions that make au0828 stream to hang. Those
+were independently detected by me, Reynaldo and Trevor.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/DocBook/media/v4l/controls.xml | 34 ++++++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c         |  4 ++++
- include/uapi/linux/v4l2-controls.h           |  4 ++++
- 3 files changed, 42 insertions(+)
+Trevor kindly provided a code that make this error visible: running
+it ~10-15 times on a loop makes the au0828 to stop sending stream.
+Once it stops, not even removing/reinserting the driver is enough to
+restore its behavior. The device needs to be physically removed, or
+a reset command should be sent via I2C.
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 47198ee..bf23994 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4677,6 +4677,40 @@ interface and may change in the future.</para>
- 	    conversion.
- 	    </entry>
- 	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN_RED</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Test pattern red colour component.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN_GREENR</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Test pattern green (next to red)
-+	    colour component.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN_BLUE</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Test pattern blue colour component.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN_GREENB</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Test pattern green (next to blue)
-+	    colour component.
-+	    </entry>
-+	  </row>
- 	  <row><entry></entry></row>
- 	</tbody>
-       </tgroup>
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 55c6832..a4104a7 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -839,6 +839,10 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_VBLANK:			return "Vertical Blanking";
- 	case V4L2_CID_HBLANK:			return "Horizontal Blanking";
- 	case V4L2_CID_ANALOGUE_GAIN:		return "Analogue Gain";
-+	case V4L2_CID_TEST_PATTERN_RED:		return "Red Pixel Value";
-+	case V4L2_CID_TEST_PATTERN_GREENR:	return "Green (Red) Pixel Value";
-+	case V4L2_CID_TEST_PATTERN_BLUE:	return "Blue Pixel Value";
-+	case V4L2_CID_TEST_PATTERN_GREENB:	return "Green (Blue) Pixel Value";
- 
- 	/* Image processing controls */
- 	case V4L2_CID_IMAGE_PROC_CLASS:		return "Image Processing Controls";
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 2ac5597..5c55a19 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -855,6 +855,10 @@ enum v4l2_jpeg_chroma_subsampling {
- #define V4L2_CID_VBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 1)
- #define V4L2_CID_HBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 2)
- #define V4L2_CID_ANALOGUE_GAIN			(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 3)
-+#define V4L2_CID_TEST_PATTERN_RED		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 4)
-+#define V4L2_CID_TEST_PATTERN_GREENR		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 5)
-+#define V4L2_CID_TEST_PATTERN_BLUE		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 6)
-+#define V4L2_CID_TEST_PATTERN_GREENB		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 7)
- 
- 
- /* Image processing controls */
+On my research, this seems to be due to some hardware bug, caused
+by (at least) two factors:
+	- TS should be stopped before setting the frontend;
+	- xc5000 cannot suspend, if userspace is in a loop of
+	  open/stream/close.
+
+This patch series address both issues.
+
+While here, it also fixes most checkpatch issues at xc5000.
+
+Reynaldo/Trevor,
+
+Please test, and send your tested-by, if this fixes the issue.
+
+Thanks,
+Mauro
+
+Changbing Xiong (1):
+  [media] au0828: Cancel stream-restart operation if frontend is
+    disconnected
+
+Mauro Carvalho Chehab (7):
+  [media] au0828: Improve debug messages for urb_completion
+  [media] Reset au0828 streaming when a new frequency is set
+  xc5000: get rid of positive error codes
+  xc5000: Don't wrap msleep()
+  xc5000: fix CamelCase
+  xc5000: Don't use whitespace before tabs
+  xc5000: delay tuner sleep to 5 seconds
+
+ drivers/media/tuners/xc5000.c         | 302 ++++++++++++++++++----------------
+ drivers/media/usb/au0828/au0828-dvb.c |  57 ++++++-
+ drivers/media/usb/au0828/au0828.h     |   2 +
+ 3 files changed, 210 insertions(+), 151 deletions(-)
+ mode change 100644 => 100755 drivers/media/usb/au0828/au0828-dvb.c
+
 -- 
-1.8.3.2
+1.9.0
 
