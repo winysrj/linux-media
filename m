@@ -1,42 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52639 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751559AbaELWnu (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:35964 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752604AbaEUSUP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 May 2014 18:43:50 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: William Manley <will@williammanley.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v3.16] uvcvideo fixes
-Date: Tue, 13 May 2014 00:43:51 +0200
-Message-ID: <4899575.bHzvdRJlV4@avalon>
-In-Reply-To: <536CD945.1000309@williammanley.net>
-References: <7909686.JGN3j7sPAP@avalon> <536CD945.1000309@williammanley.net>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 21 May 2014 14:20:15 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Changbing Xiong <cb.xiong@samsung.com>,
+	Trevor G <trevor.forums@gmail.com>,
+	"Reynaldo H. Verdejo Pinochet" <r.verdejo@sisa.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [PATCH 1/8] [media] au0828: Cancel stream-restart operation if frontend is disconnected
+Date: Wed, 21 May 2014 15:19:55 -0300
+Message-Id: <1400696402-1805-2-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1400696402-1805-1-git-send-email-m.chehab@samsung.com>
+References: <1400696402-1805-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi William,
+From: Changbing Xiong <cb.xiong@samsung.com>
 
-On Friday 09 May 2014 14:33:57 William Manley wrote:
-> Hi Laurent
-> 
-> Any chance of my patch fixing manual exposure mode for the Logitech
-> C920[1] going in for 3.16?
+X-Patchwork-Delegate: mchehab@redhat.com
+If the tuner is already disconnected, It is meaningless to go on doing the
+stream-restart operation, It is better to cancel this operation.
 
-I know I've been largely unresponsive regarding this patch, and I'm really 
-ashamed for that.
+Signed-off-by: Changbing Xiong <cb.xiong@samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/au0828/au0828-dvb.c | 2 ++
+ 1 file changed, 2 insertions(+)
+ mode change 100644 => 100755 drivers/media/usb/au0828/au0828-dvb.c
 
-I would have liked to get feedback from Logitech on the issue, but they've 
-been mostly silent so far. I'll thus apply your patch even though I'm still 
-bothered by the issue, we can always revisit it later if needed.
-
-> [1]: https://patchwork.linuxtv.org/patch/23047/
-
+diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
+old mode 100644
+new mode 100755
+index 4ae8b1074649..2019e4a168b2
+--- a/drivers/media/usb/au0828/au0828-dvb.c
++++ b/drivers/media/usb/au0828/au0828-dvb.c
+@@ -471,6 +471,8 @@ void au0828_dvb_unregister(struct au0828_dev *dev)
+ 	if (dvb->frontend == NULL)
+ 		return;
+ 
++	cancel_work_sync(&dev->restart_streaming);
++
+ 	dvb_net_release(&dvb->net);
+ 	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_mem);
+ 	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_hw);
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.0
 
