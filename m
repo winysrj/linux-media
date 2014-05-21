@@ -1,105 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:52885 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751487AbaEGEoX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 May 2014 00:44:23 -0400
-Date: Wed, 7 May 2014 10:14:18 +0530
-From: Himangi Saraogi <himangi774@gmail.com>
-To: m.chehab@samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: julia.lawall@lip6.fr
-Subject: [PATCH] timblogiw: Introduce the use of the managed version of
- kzalloc
-Message-ID: <20140507044418.GA3414@himangi-Dell>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:36600 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751786AbaEUJ35 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 May 2014 05:29:57 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, s.nawrocki@samsung.com, posciak@chromium.org,
+	avnd.kiran@samsung.com, sachin.kamat@linaro.org,
+	t.figa@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH v2 3/3] [media] s5p-mfc: Add init buffer cmd to MFCV6
+Date: Wed, 21 May 2014 14:59:31 +0530
+Message-Id: <1400664571-13746-4-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1400664571-13746-1-git-send-email-arun.kk@samsung.com>
+References: <1400664571-13746-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch moves data allocated using kzalloc to managed data allocated
-using devm_kzalloc and cleans now unnecessary kfrees in probe and remove
-functions.The label err_register is removed as it is no longer required.
+Latest MFC v6 firmware requires tile mode and loop filter
+setting to be done as part of Init buffer command, in sync
+with v7. This patch adds this support for new v6 firmware.
 
-The following Coccinelle semantic patch was used for making the change:
-
-@platform@
-identifier p, probefn, removefn;
-@@
-struct platform_driver p = {
-  .probe = probefn,
-  .remove = removefn,
-};
-
-@prb@
-identifier platform.probefn, pdev;
-expression e, e1, e2;
-@@
-probefn(struct platform_device *pdev, ...) {
-  <+...
-- e = kzalloc(e1, e2)
-+ e = devm_kzalloc(&pdev->dev, e1, e2)
-  ...
-?-kfree(e);
-  ...+>
-}
-
-@rem depends on prb@
-identifier platform.removefn;
-expression e;
-@@
-removefn(...) {
-  <...
-- kfree(e);
-  ...>
-}
-
-
-Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+Reviewed-by: Tomasz Figa <t.figa@samsung.com>
 ---
- drivers/media/platform/timblogiw.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/timblogiw.c b/drivers/media/platform/timblogiw.c
-index ccdadd6..fbfdada 100644
---- a/drivers/media/platform/timblogiw.c
-+++ b/drivers/media/platform/timblogiw.c
-@@ -800,7 +800,7 @@ static int timblogiw_probe(struct platform_device *pdev)
- 	if (!pdata->encoder.module_name)
- 		dev_info(&pdev->dev, "Running without decoder\n");
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 4f5e0ea..c1c12f8 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -48,6 +48,8 @@
+ #define WRITEL(data, reg) \
+ 	(WARN_ON_ONCE(!(reg)) ? 0 : writel((data), (reg)))
  
--	lw = kzalloc(sizeof(*lw), GFP_KERNEL);
-+	lw = devm_kzalloc(&pdev->dev, sizeof(*lw), GFP_KERNEL);
- 	if (!lw) {
- 		err = -ENOMEM;
- 		goto err;
-@@ -820,7 +820,7 @@ static int timblogiw_probe(struct platform_device *pdev)
- 	strlcpy(lw->v4l2_dev.name, DRIVER_NAME, sizeof(lw->v4l2_dev.name));
- 	err = v4l2_device_register(NULL, &lw->v4l2_dev);
- 	if (err)
--		goto err_register;
-+		goto err;
++#define IS_MFCV6_V2(dev) (!IS_MFCV7_PLUS(dev) && dev->fw_ver == MFC_FW_V2)
++
+ /* Allocate temporary buffers for decoding */
+ static int s5p_mfc_alloc_dec_temp_buffers_v6(struct s5p_mfc_ctx *ctx)
+ {
+@@ -1352,7 +1354,7 @@ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
+ 		WRITEL(ctx->display_delay, mfc_regs->d_display_delay);
+ 	}
  
- 	lw->video_dev.v4l2_dev = &lw->v4l2_dev;
+-	if (IS_MFCV7_PLUS(dev)) {
++	if (IS_MFCV7_PLUS(dev) || IS_MFCV6_V2(dev)) {
+ 		WRITEL(reg, mfc_regs->d_dec_options);
+ 		reg = 0;
+ 	}
+@@ -1367,7 +1369,7 @@ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
+ 	if (ctx->dst_fmt->fourcc == V4L2_PIX_FMT_NV12MT_16X16)
+ 		reg |= (0x1 << S5P_FIMV_D_OPT_TILE_MODE_SHIFT_V6);
  
-@@ -837,8 +837,6 @@ static int timblogiw_probe(struct platform_device *pdev)
- 
- err_request:
- 	v4l2_device_unregister(&lw->v4l2_dev);
--err_register:
--	kfree(lw);
- err:
- 	dev_err(&pdev->dev, "Failed to register: %d\n", err);
- 
-@@ -853,8 +851,6 @@ static int timblogiw_remove(struct platform_device *pdev)
- 
- 	v4l2_device_unregister(&lw->v4l2_dev);
- 
--	kfree(lw);
--
- 	return 0;
- }
- 
+-	if (IS_MFCV7_PLUS(dev))
++	if (IS_MFCV7_PLUS(dev) || IS_MFCV6_V2(dev))
+ 		WRITEL(reg, mfc_regs->d_init_buffer_options);
+ 	else
+ 		WRITEL(reg, mfc_regs->d_dec_options);
 -- 
-1.9.1
+1.7.9.5
 
