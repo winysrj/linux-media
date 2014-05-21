@@ -1,168 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:34893 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932728AbaEPNh5 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:35965 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752670AbaEUSUP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:37:57 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 08/49] media: davinci: vpif_display: improve start/stop_streaming callbacks
-Date: Fri, 16 May 2014 19:03:13 +0530
-Message-Id: <1400247235-31434-10-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+	Wed, 21 May 2014 14:20:15 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Changbing Xiong <cb.xiong@samsung.com>,
+	Trevor G <trevor.forums@gmail.com>,
+	"Reynaldo H. Verdejo Pinochet" <r.verdejo@sisa.samsung.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 8/8] xc5000: delay tuner sleep to 5 seconds
+Date: Wed, 21 May 2014 15:20:02 -0300
+Message-Id: <1400696402-1805-9-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1400696402-1805-1-git-send-email-m.chehab@samsung.com>
+References: <1400696402-1805-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Some drivers, like au0828 are very sensitive to tuner sleep and may
+break if the sleep happens too fast. Also, by keeping the tuner alive
+for a while could speedup tuning process during channel scan. So,
+change the logic to delay the actual sleep to 5 seconds after its
+command.
 
-this patch drops unnecessary check from start_streaming() callback
-as this is already done in try/s_fmt and some minor code cleanups,
-drops check for vb2_is_streaming() as this check is done by vb2
-itself before calling this callback.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/platform/davinci/vpif_display.c |   59 ++++++++++++++-----------
- 1 file changed, 33 insertions(+), 26 deletions(-)
+ drivers/media/tuners/xc5000.c | 43 ++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 34 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 1b6cbe8..933d28f 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -62,11 +62,18 @@ static struct vpif_config_params config_params = {
- 	.channel_bufsize[1]	= 720 * 576 * 2,
+diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
+index 8df92619883f..2b3d514be672 100644
+--- a/drivers/media/tuners/xc5000.c
++++ b/drivers/media/tuners/xc5000.c
+@@ -25,6 +25,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/videodev2.h>
+ #include <linux/delay.h>
++#include <linux/workqueue.h>
+ #include <linux/dvb/frontend.h>
+ #include <linux/i2c.h>
+ 
+@@ -65,12 +66,18 @@ struct xc5000_priv {
+ 	u16 pll_register_no;
+ 	u8 init_status_supported;
+ 	u8 fw_checksum_supported;
++
++	struct dvb_frontend *fe;
++	struct delayed_work timer_sleep;
  };
  
-+static u8 channel_first_int[VPIF_NUMOBJECTS][2] = { {1, 1} };
+ /* Misc Defines */
+ #define MAX_TV_STANDARD			24
+ #define XC_MAX_I2C_WRITE_LENGTH		64
+ 
++/* Time to suspend after the .sleep callback is called */
++#define XC5000_SLEEP_TIME		5000 /* ms */
 +
- static struct vpif_device vpif_obj = { {NULL} };
- static struct device *vpif_dev;
- static void vpif_calculate_offsets(struct channel_obj *ch);
- static void vpif_config_addr(struct channel_obj *ch, int muxmode);
+ /* Signal Types */
+ #define XC_RF_MODE_AIR			0
+ #define XC_RF_MODE_CABLE		1
+@@ -1096,6 +1103,8 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe, int force)
+ 	u16 pll_lock_status;
+ 	u16 fw_ck;
  
-+static inline struct vpif_disp_buffer *to_vpif_buffer(struct vb2_buffer *vb)
-+{
-+	return container_of(vb, struct vpif_disp_buffer, vb);
-+}
++	cancel_delayed_work(&priv->timer_sleep);
 +
- /**
-  * vpif_buffer_prepare :  callback function for buffer prepare
-  * @vb: ptr to vb2_buffer
-@@ -139,13 +146,15 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
- 	return 0;
- }
+ 	if (force || xc5000_is_firmware_loaded(fe) != 0) {
  
--/*
-- * vpif_buffer_queue: This function adds the buffer to DMA queue
-+/**
-+ * vpif_buffer_queue : Callback function to add buffer to DMA queue
-+ * @vb: ptr to vb2_buffer
-+ *
-+ * This callback fucntion queues the buffer to DMA engine
-  */
- static void vpif_buffer_queue(struct vb2_buffer *vb)
- {
--	struct vpif_disp_buffer *buf = container_of(vb,
--				struct vpif_disp_buffer, vb);
-+	struct vpif_disp_buffer *buf = to_vpif_buffer(vb);
- 	struct channel_obj *ch = vb2_get_drv_priv(vb->vb2_queue);
- 	struct common_obj *common;
- 	unsigned long flags;
-@@ -158,8 +167,11 @@ static void vpif_buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&common->irqlock, flags);
- }
- 
--static u8 channel_first_int[VPIF_NUMOBJECTS][2] = { {1, 1} };
--
-+/**
-+ * vpif_start_streaming : Starts the DMA engine for streaming
-+ * @vb: ptr to vb2_buffer
-+ * @count: number of buffers
-+ */
- static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct vpif_display_config *vpif_config_data =
-@@ -177,16 +189,6 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	ch->field_id = 0;
- 	common->started = 1;
- 
--	if ((ch->vpifparams.std_info.frm_fmt &&
--		((common->fmt.fmt.pix.field != V4L2_FIELD_NONE)
--		&& (common->fmt.fmt.pix.field != V4L2_FIELD_ANY)))
--		|| (!ch->vpifparams.std_info.frm_fmt
--		&& (common->fmt.fmt.pix.field == V4L2_FIELD_NONE))) {
--		vpif_err("conflict in field format and std format\n");
--		ret = -EINVAL;
--		goto err;
--	}
--
- 	/* clock settings */
- 	if (vpif_config_data->set_clock) {
- 		ret = vpif_config_data->set_clock(ch->vpifparams.std_info.
-@@ -220,8 +222,10 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 			    (addr + common->ctop_off),
- 			    (addr + common->cbtm_off));
- 
--	/* Set interrupt for both the fields in VPIF
--	    Register enable channel in VPIF register */
-+	/*
-+	 * Set interrupt for both the fields in VPIF
-+	 * Register enable channel in VPIF register
-+	 */
- 	channel_first_int[VPIF_VIDEO_INDEX][ch->channel_id] = 1;
- 	if (VPIF_CHANNEL2_VIDEO == ch->channel_id) {
- 		channel2_intr_assert();
-@@ -231,8 +235,8 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 			channel2_clipping_enable(1);
- 	}
- 
--	if ((VPIF_CHANNEL3_VIDEO == ch->channel_id)
--		|| (common->started == 2)) {
-+	if (VPIF_CHANNEL3_VIDEO == ch->channel_id ||
-+		common->started == 2) {
- 		channel3_intr_assert();
- 		channel3_intr_enable(1);
- 		enable_channel3(1);
-@@ -251,16 +255,19 @@ err:
+ fw_retry:
+@@ -1164,27 +1173,39 @@ fw_retry:
  	return ret;
  }
  
--/* abort streaming and wait for last buffer */
-+/**
-+ * vpif_stop_streaming : Stop the DMA engine
-+ * @vq: ptr to vb2_queue
-+ *
-+ * This callback stops the DMA engine and any remaining buffers
-+ * in the DMA queue are released.
-+ */
- static void vpif_stop_streaming(struct vb2_queue *vq)
+-static int xc5000_sleep(struct dvb_frontend *fe)
++static void xc5000_do_timer_sleep(struct work_struct *timer_sleep)
  {
- 	struct channel_obj *ch = vb2_get_drv_priv(vq);
- 	struct common_obj *common;
- 	unsigned long flags;
++	struct xc5000_priv *priv =container_of(timer_sleep, struct xc5000_priv,
++					       timer_sleep.work);
++	struct dvb_frontend *fe = priv->fe;
+ 	int ret;
  
--	if (!vb2_is_streaming(vq))
--		return;
+ 	dprintk(1, "%s()\n", __func__);
+ 
+-	/* Avoid firmware reload on slow devices */
+-	if (no_poweroff)
+-		return 0;
 -
- 	common = &ch->common[VPIF_VIDEO_INDEX];
+ 	/* According to Xceive technical support, the "powerdown" register
+ 	   was removed in newer versions of the firmware.  The "supported"
+ 	   way to sleep the tuner is to pull the reset pin low for 10ms */
+ 	ret = xc5000_tuner_reset(fe);
+-	if (ret != 0) {
++	if (ret != 0)
+ 		printk(KERN_ERR
+ 			"xc5000: %s() unable to shutdown tuner\n",
+ 			__func__);
+-		return -EREMOTEIO;
+-	} else
++}
++
++static int xc5000_sleep(struct dvb_frontend *fe)
++{
++	struct xc5000_priv *priv = fe->tuner_priv;
++
++	dprintk(1, "%s()\n", __func__);
++
++	/* Avoid firmware reload on slow devices */
++	if (no_poweroff)
+ 		return 0;
++
++	schedule_delayed_work(&priv->timer_sleep,
++			      msecs_to_jiffies(XC5000_SLEEP_TIME));
++
++	return 0;
+ }
  
- 	/* Disable channel */
-@@ -268,8 +275,8 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
- 		enable_channel2(0);
- 		channel2_intr_enable(0);
- 	}
--	if ((VPIF_CHANNEL3_VIDEO == ch->channel_id) ||
--		(2 == common->started)) {
-+	if (VPIF_CHANNEL3_VIDEO == ch->channel_id ||
-+		2 == common->started) {
- 		enable_channel3(0);
- 		channel3_intr_enable(0);
- 	}
+ static int xc5000_init(struct dvb_frontend *fe)
+@@ -1211,8 +1232,10 @@ static int xc5000_release(struct dvb_frontend *fe)
+ 
+ 	mutex_lock(&xc5000_list_mutex);
+ 
+-	if (priv)
++	if (priv) {
++		cancel_delayed_work(&priv->timer_sleep);
+ 		hybrid_tuner_release_state(priv);
++	}
+ 
+ 	mutex_unlock(&xc5000_list_mutex);
+ 
+@@ -1284,6 +1307,8 @@ struct dvb_frontend *xc5000_attach(struct dvb_frontend *fe,
+ 		/* new tuner instance */
+ 		priv->bandwidth = 6000000;
+ 		fe->tuner_priv = priv;
++		priv->fe = fe;
++		INIT_DELAYED_WORK(&priv->timer_sleep, xc5000_do_timer_sleep);
+ 		break;
+ 	default:
+ 		/* existing tuner instance */
 -- 
-1.7.9.5
+1.9.0
 
