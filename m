@@ -1,54 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:44877 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932428AbaEQMVt (ORCPT
+Received: from mail-ob0-f180.google.com ([209.85.214.180]:42556 "EHLO
+	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753635AbaEVXLi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 May 2014 08:21:49 -0400
-Date: Sat, 17 May 2014 09:21:12 -0300
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH v2] media: stk1160: Avoid stack-allocated buffer for
- control URBs
-Message-ID: <20140517122112.GA704@arch.cereza>
-References: <1397737700-1081-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <536CAF29.4030200@xs4all.nl>
+	Thu, 22 May 2014 19:11:38 -0400
+Received: by mail-ob0-f180.google.com with SMTP id va2so4523649obc.25
+        for <linux-media@vger.kernel.org>; Thu, 22 May 2014 16:11:38 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <536CAF29.4030200@xs4all.nl>
+Date: Thu, 22 May 2014 16:11:38 -0700
+Message-ID: <CADadk9FjRgvBqO4FMpz8UrBAh8pV8t4SZnKPVBwyjHzBUw+0=Q@mail.gmail.com>
+Subject: [PATCH] Staging: Media: sn9c102: Fixed a pointer declaration coding
+ style issue
+From: Chaitanya <c@24.io>
+To: Luca Risolia <luca.risolia@studio.unibo.it>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Fixed the ERROR thrown off by checkpatch.pl.
 
-On 09 May 12:34 PM, Hans Verkuil wrote:
-> On 04/17/2014 02:28 PM, Ezequiel Garcia wrote:
-> > Currently stk1160_read_reg() uses a stack-allocated char to get the
-> > read control value. This is wrong because usb_control_msg() requires
-> > a kmalloc-ed buffer.
-> > 
-> > This commit fixes such issue by kmalloc'ating a 1-byte buffer to receive
-> > the read value.
-> > 
-> > While here, let's remove the urb_buf array which was meant for a similar
-> > purpose, but never really used.
-> 
-> Rather than allocating and freeing a buffer for every read_reg I would allocate
-> this buffer in the probe function.
-> 
-> That way this allocation is done only once.
-> 
+Signed-off-by: Chaitanya Hazarey <c@24.io>
+---
+ drivers/staging/media/sn9c102/sn9c102_tas5130d1b.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-Hm... sorry for being so stubborn, but I've just noticed that having a
-shared buffer would require adding a spinlock to protect it, where the current
-proposal doesn't need it.
+diff --git a/drivers/staging/media/sn9c102/sn9c102_tas5130d1b.c
+b/drivers/staging/media/sn9c102/sn9c102_tas5130d1b.c
+index a30bbc4..725de85 100644
+--- a/drivers/staging/media/sn9c102/sn9c102_tas5130d1b.c
++++ b/drivers/staging/media/sn9c102/sn9c102_tas5130d1b.c
+@@ -23,7 +23,7 @@
+ #include "sn9c102_devtable.h"
 
-Do you still think that's the right thing to do?
 
-Thanks!
+-static int tas5130d1b_init(struct sn9c102_device* cam)
++static int tas5130d1b_init(struct sn9c102_device *cam)
+ {
+  int err;
+
+@@ -36,8 +36,8 @@ static int tas5130d1b_init(struct sn9c102_device* cam)
+ }
+
+
+-static int tas5130d1b_set_ctrl(struct sn9c102_device* cam,
+-       const struct v4l2_control* ctrl)
++static int tas5130d1b_set_ctrl(struct sn9c102_device *cam,
++       const struct v4l2_control *ctrl)
+ {
+  int err = 0;
+
+@@ -56,10 +56,10 @@ static int tas5130d1b_set_ctrl(struct sn9c102_device* cam,
+ }
+
+
+-static int tas5130d1b_set_crop(struct sn9c102_device* cam,
+-       const struct v4l2_rect* rect)
++static int tas5130d1b_set_crop(struct sn9c102_device *cam,
++       const struct v4l2_rect *rect)
+ {
+- struct sn9c102_sensor* s = sn9c102_get_sensor(cam);
++ struct sn9c102_sensor *s = sn9c102_get_sensor(cam);
+  u8 h_start = (u8)(rect->left - s->cropcap.bounds.left) + 104,
+    v_start = (u8)(rect->top - s->cropcap.bounds.top) + 12;
+  int err = 0;
+@@ -76,8 +76,8 @@ static int tas5130d1b_set_crop(struct sn9c102_device* cam,
+ }
+
+
+-static int tas5130d1b_set_pix_format(struct sn9c102_device* cam,
+-     const struct v4l2_pix_format* pix)
++static int tas5130d1b_set_pix_format(struct sn9c102_device *cam,
++     const struct v4l2_pix_format *pix)
+ {
+  int err = 0;
+
+@@ -146,7 +146,7 @@ static const struct sn9c102_sensor tas5130d1b = {
+ };
+
+
+-int sn9c102_probe_tas5130d1b(struct sn9c102_device* cam)
++int sn9c102_probe_tas5130d1b(struct sn9c102_device *cam)
+ {
+  const struct usb_device_id tas5130d1b_id_table[] = {
+  { USB_DEVICE(0x0c45, 0x6024), },
 -- 
-Ezequiel García, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
+1.9.1
