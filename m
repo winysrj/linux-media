@@ -1,85 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f180.google.com ([209.85.223.180]:35429 "EHLO
-	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751088AbaETXUU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 May 2014 19:20:20 -0400
-Received: by mail-ie0-f180.google.com with SMTP id tp5so1237317ieb.39
-        for <linux-media@vger.kernel.org>; Tue, 20 May 2014 16:20:19 -0700 (PDT)
-Date: Tue, 20 May 2014 17:20:16 -0600
-From: Bjorn Helgaas <bhelgaas@google.com>
-To: Gioh Kim <gioh.kim@lge.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	gunho.lee@lge.com
-Subject: Re: [PATCH] Documentation/dma-buf-sharing.txt: update API
- descriptions
-Message-ID: <20140520232016.GB24638@google.com>
-References: <1400024983-21891-1-git-send-email-gioh.kim@lge.com>
+Received: from cantor2.suse.de ([195.135.220.15]:54159 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751295AbaEWIuz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 May 2014 04:50:55 -0400
+Date: Fri, 23 May 2014 10:50:50 +0200
+From: Jean Delvare <jdelvare@suse.de>
+To: linux-media@vger.kernel.org
+Cc: Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH] [media] V4L2: soc_camera: add run-time dependencies to
+ R-Car VIN driver
+Message-ID: <20140523105050.632a9cd2@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1400024983-21891-1-git-send-email-gioh.kim@lge.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 14, 2014 at 08:49:43AM +0900, Gioh Kim wrote:
-> Update some descriptions for API arguments and descriptions.
-> 
-> Signed-off-by: Gioh Kim <gioh.kim@lge.com>
+The R-Car Video Input driver is only useful on shmobile unless build
+testing.
 
-I applied this to my "dma-api" branch for v3.16, thanks!
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Cc: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/platform/soc_camera/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-> ---
->  Documentation/dma-buf-sharing.txt |   14 ++++++++------
->  1 file changed, 8 insertions(+), 6 deletions(-)
-> 
-> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-> index 505e711..aadd901 100644
-> --- a/Documentation/dma-buf-sharing.txt
-> +++ b/Documentation/dma-buf-sharing.txt
-> @@ -56,10 +56,10 @@ The dma_buf buffer sharing API usage contains the following steps:
->  				     size_t size, int flags,
->  				     const char *exp_name)
->  
-> -   If this succeeds, dma_buf_export allocates a dma_buf structure, and returns a
-> -   pointer to the same. It also associates an anonymous file with this buffer,
-> -   so it can be exported. On failure to allocate the dma_buf object, it returns
-> -   NULL.
-> +   If this succeeds, dma_buf_export_named allocates a dma_buf structure, and
-> +   returns a pointer to the same. It also associates an anonymous file with this
-> +   buffer, so it can be exported. On failure to allocate the dma_buf object,
-> +   it returns NULL.
->  
->     'exp_name' is the name of exporter - to facilitate information while
->     debugging.
-> @@ -76,7 +76,7 @@ The dma_buf buffer sharing API usage contains the following steps:
->     drivers and/or processes.
->  
->     Interface:
-> -      int dma_buf_fd(struct dma_buf *dmabuf)
-> +      int dma_buf_fd(struct dma_buf *dmabuf, int flags)
->  
->     This API installs an fd for the anonymous file associated with this buffer;
->     returns either 'fd', or error.
-> @@ -157,7 +157,9 @@ to request use of buffer for allocation.
->     "dma_buf->ops->" indirection from the users of this interface.
->  
->     In struct dma_buf_ops, unmap_dma_buf is defined as
-> -      void (*unmap_dma_buf)(struct dma_buf_attachment *, struct sg_table *);
-> +      void (*unmap_dma_buf)(struct dma_buf_attachment *,
-> +                            struct sg_table *,
-> +                            enum dma_data_direction);
->  
->     unmap_dma_buf signifies the end-of-DMA for the attachment provided. Like
->     map_dma_buf, this API also must be implemented by the exporter.
-> -- 
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+--- linux-3.15-rc6.orig/drivers/media/platform/soc_camera/Kconfig	2014-05-23 10:35:06.650728184 +0200
++++ linux-3.15-rc6/drivers/media/platform/soc_camera/Kconfig	2014-05-23 10:36:36.373633190 +0200
+@@ -47,6 +47,7 @@ config VIDEO_PXA27x
+ config VIDEO_RCAR_VIN
+ 	tristate "R-Car Video Input (VIN) support"
+ 	depends on VIDEO_DEV && SOC_CAMERA
++	depends on ARCH_SHMOBILE || COMPILE_TEST
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select SOC_CAMERA_SCALE_CROP
+ 	---help---
+
+
+-- 
+Jean Delvare
+SUSE L3 Support
