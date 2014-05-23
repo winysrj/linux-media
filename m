@@ -1,214 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42020 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932720AbaE2Oyf (ORCPT
+Received: from nasmtp01.atmel.com ([192.199.1.246]:28779 "EHLO
+	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751258AbaEWDMm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 May 2014 10:54:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [PATCH v3 3/3] smiapp: Implement the test pattern control
-Date: Thu, 29 May 2014 16:54:55 +0200
-Message-ID: <2777039.3n5AP3eAS8@avalon>
-In-Reply-To: <1401374448-30411-4-git-send-email-sakari.ailus@linux.intel.com>
-References: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com> <1401374448-30411-4-git-send-email-sakari.ailus@linux.intel.com>
+	Thu, 22 May 2014 23:12:42 -0400
+Message-ID: <537EBCA3.8020701@atmel.com>
+Date: Fri, 23 May 2014 11:12:35 +0800
+From: Josh Wu <josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>,
+	<nicolas.ferre@atmel.com>, <linux-arm-kernel@lists.infradead.org>,
+	<grant.likely@linaro.org>, <galak@codeaurora.org>,
+	<rob@landley.net>, <mark.rutland@arm.com>, <robh+dt@kernel.org>,
+	<ijc+devicetree@hellion.org.uk>, <pawel.moll@arm.com>,
+	<devicetree@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 3/3] [media] atmel-isi: add primary DT support
+References: <1395744087-5753-1-git-send-email-josh.wu@atmel.com> <1395744320-15025-1-git-send-email-josh.wu@atmel.com> <Pine.LNX.4.64.1405182308110.23804@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1405182308110.23804@axis700.grange>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi, Guennadi
 
-Thank you for the patch.
+On 5/19/2014 5:51 AM, Guennadi Liakhovetski wrote:
+> On Tue, 25 Mar 2014, Josh Wu wrote:
+>
+>> This patch add the DT support for Atmel ISI driver.
+>> It use the same v4l2 DT interface that defined in video-interfaces.txt.
+>>
+>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>> Cc: devicetree@vger.kernel.org
+>> ---
+>> v1 --> v2:
+>>   refine the binding document.
+>>   add port node description.
+>>   removed the optional property.
+>>
+>>   .../devicetree/bindings/media/atmel-isi.txt        |   50 ++++++++++++++++++++
+>>   drivers/media/platform/soc_camera/atmel-isi.c      |   31 +++++++++++-
+>>   2 files changed, 79 insertions(+), 2 deletions(-)
+>>   create mode 100644 Documentation/devicetree/bindings/media/atmel-isi.txt
+> [snip]
+>
+>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+>> index f4add0a..d6a1f7b 100644
+>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> [snip]
+>
+>> @@ -885,6 +887,20 @@ static int atmel_isi_remove(struct platform_device *pdev)
+>>   	return 0;
+>>   }
+>>   
+>> +static int atmel_isi_probe_dt(struct atmel_isi *isi,
+>> +			struct platform_device *pdev)
+>> +{
+>> +	struct device_node *node = pdev->dev.of_node;
+>> +
+>> +	/* Default settings for ISI */
+>> +	isi->pdata.full_mode = 1;
+>> +	isi->pdata.mck_hz = ISI_DEFAULT_MCLK_FREQ;
+>> +	isi->pdata.frate = ISI_CFG1_FRATE_CAPTURE_ALL;
+> The above flags eventually should probably partially be added as new
+> driver-specific DT properties, partially derived from DT clock bindings.
+> But I'm ok to have them fixed like this in the initial version.
+>
+>> +	isi->pdata.data_width_flags = ISI_DATAWIDTH_8 | ISI_DATAWIDTH_10;
+> Whereas these flags, I think, should already now be derived from the
+> bus-width standard property?
 
-On Thursday 29 May 2014 17:40:48 Sakari Ailus wrote:
-> Add support for the V4L2_CID_TEST_PATTERN control. When the solid colour
-> mode is selected, additional controls become available for setting the
-> solid four solid colour components.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+yes. I agree.
+
+> v4l2_of_parse_parallel_bus() will extract
+> them for you and I just asked Ben to add a call to
+> v4l2_of_parse_endpoint() to his patch.
+
+Is it better to call v4l2_of_parse_endpoint() in the atmel-isi driver? I 
+think the dt parsing stuff should be done by host driver and sensor 
+driver itself. No need to call v4l2_of_parse_endpoint() in soc-camera.c.
+
+> Consequently you'll have to
+> rearrange bus-width interpretation in isi_camera_try_bus_param() a bit and
+> use OF parsing results there directly if available? Or maybe you find a
+> better way. It would certainly be better to extend your probing code and
+> just use OF results to initialise isi->width_flags, but that might be
+> impossible, because OF parsing would be performed inside
+> soc_camera_host_register() and your isi_camera_try_bus_param() can also be
+> called immediately from it if all required I2C devices are already
+> available?
+
+I am little bit confuse here. I don't see any issue in above case. Since 
+atmel_isi_probe_dt() will always be called earlier then 
+soc_camera_host_register().
+That means when soc_camera_host_register() called 
+isi_camera_try_bus_param(), the isi->width_flags are already initialized 
+in a valid value by atmel_isi_probe_dt().
+Am I missing anything here?
+
+> If your I2C subdevice drivers defer probing until the host has
+> probed, then you could initialise .width_flags after
+> soc_camera_host_register(), but you cannot rely on that.
+
+I tested these two cases without any issue:
+1. In dtb, the i2c sensor dt node probe earlier than atmel-isi dt node.
+     i2c sensor will do a defer probe here as mclk is not found until 
+atmel-isi driver probed and call soc_camera_host_register().
+2. In dtb, the atmel-isi dt node is probed earlier than i2c sensor.
+
+Best Regards,
+Josh Wu
+
+>
+> Thanks
+> Guennadi
 > ---
->  drivers/media/i2c/smiapp/smiapp-core.c | 84 +++++++++++++++++++++++++++++--
->  drivers/media/i2c/smiapp/smiapp.h      |  4 ++
->  2 files changed, 84 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c
-> b/drivers/media/i2c/smiapp/smiapp-core.c index 446c82c..dc82adb 100644
-> --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-> @@ -404,6 +404,16 @@ static void smiapp_update_mbus_formats(struct
-> smiapp_sensor *sensor) pixel_order_str[pixel_order]);
->  }
-> 
-> +static const char * const smiapp_test_patterns[] = {
-> +	"Disabled",
-> +	"Solid Colour",
-> +	"Eight Vertical Colour Bars",
-> +	"Colour Bars With Fade to Grey",
-> +	"Pseudorandom Sequence (PN9)",
-> +};
-> +
-> +static const struct v4l2_ctrl_ops smiapp_ctrl_ops;
-
-Is this needed ?
-
-> +
->  static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
->  {
->  	struct smiapp_sensor *sensor =
-> @@ -477,6 +487,35 @@ static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
-> 
->  		return smiapp_pll_update(sensor);
-> 
-> +	case V4L2_CID_TEST_PATTERN: {
-> +		unsigned int i;
-> +
-> +		for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++)
-> +			v4l2_ctrl_activate(
-> +				sensor->test_data[i],
-> +				ctrl->val ==
-> +				V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR);
-> +
-> +		return smiapp_write(
-> +			sensor, SMIAPP_REG_U16_TEST_PATTERN_MODE, ctrl->val);
-> +	}
-> +
-> +	case V4L2_CID_TEST_PATTERN_RED:
-> +		return smiapp_write(
-> +			sensor, SMIAPP_REG_U16_TEST_DATA_RED, ctrl->val);
-> +
-> +	case V4L2_CID_TEST_PATTERN_GREENR:
-> +		return smiapp_write(
-> +			sensor, SMIAPP_REG_U16_TEST_DATA_GREENR, ctrl->val);
-> +
-> +	case V4L2_CID_TEST_PATTERN_BLUE:
-> +		return smiapp_write(
-> +			sensor, SMIAPP_REG_U16_TEST_DATA_BLUE, ctrl->val);
-> +
-> +	case V4L2_CID_TEST_PATTERN_GREENB:
-> +		return smiapp_write(
-> +			sensor, SMIAPP_REG_U16_TEST_DATA_GREENB, ctrl->val);
-> +
->  	default:
->  		return -EINVAL;
->  	}
-> @@ -489,10 +528,10 @@ static const struct v4l2_ctrl_ops smiapp_ctrl_ops = {
->  static int smiapp_init_controls(struct smiapp_sensor *sensor)
->  {
->  	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
-> -	unsigned int max;
-> +	unsigned int max, i;
->  	int rval;
-> 
-> -	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 7);
-> +	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 12);
->  	if (rval)
->  		return rval;
->  	sensor->pixel_array->ctrl_handler.lock = &sensor->mutex;
-> @@ -535,6 +574,18 @@ static int smiapp_init_controls(struct smiapp_sensor
-> *sensor) &sensor->pixel_array->ctrl_handler, &smiapp_ctrl_ops,
->  		V4L2_CID_PIXEL_RATE, 0, 0, 1, 0);
-> 
-> +	v4l2_ctrl_new_std_menu_items(&sensor->pixel_array->ctrl_handler,
-> +				     &smiapp_ctrl_ops, V4L2_CID_TEST_PATTERN,
-> +				     ARRAY_SIZE(smiapp_test_patterns) - 1,
-> +				     0, 0, smiapp_test_patterns);
-> +
-> +	for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++)
-> +		sensor->test_data[i] =
-> +			v4l2_ctrl_new_std(&sensor->pixel_array->ctrl_handler,
-> +					  &smiapp_ctrl_ops,
-> +					  V4L2_CID_TEST_PATTERN_RED + i,
-> +					  0, 0, 1, 0);
-> +
->  	if (sensor->pixel_array->ctrl_handler.error) {
->  		dev_err(&client->dev,
->  			"pixel array controls initialization failed (%d)\n",
-> @@ -543,6 +594,14 @@ static int smiapp_init_controls(struct smiapp_sensor
-> *sensor) goto error;
->  	}
-> 
-> +	for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++) {
-> +		struct v4l2_ctrl *ctrl = sensor->test_data[i];
-> +
-> +		ctrl->maximum =
-> +			ctrl->default_value =
-> +			ctrl->cur.val = (1 << sensor->csi_format->width) - 1;
-
-I think multiple assignments on the same line are discouraged.
-
-Furthermore, couldn't you move this above and use the right values directly 
-when creating the controls ?
-
-> +	}
-> +
->  	sensor->pixel_array->sd.ctrl_handler =
->  		&sensor->pixel_array->ctrl_handler;
-> 
-> @@ -1670,17 +1729,34 @@ static int smiapp_set_format(struct v4l2_subdev
-> *subdev, if (fmt->pad == ssd->source_pad) {
->  		u32 code = fmt->format.code;
->  		int rval = __smiapp_get_format(subdev, fh, fmt);
-> +		bool range_changed = false;
-> +		unsigned int i;
-> 
->  		if (!rval && subdev == &sensor->src->sd) {
->  			const struct smiapp_csi_data_format *csi_format =
->  				smiapp_validate_csi_data_format(sensor, code);
-> -			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-> +
-> +			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> +				if (csi_format->width !=
-> +				    sensor->csi_format->width)
-> +					range_changed = true;
-> +
->  				sensor->csi_format = csi_format;
-> +			}
-> +
->  			fmt->format.code = csi_format->code;
->  		}
-> 
->  		mutex_unlock(&sensor->mutex);
-> -		return rval;
-> +		if (rval || !range_changed)
-> +			return rval;
-> +
-> +		for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++)
-> +			v4l2_ctrl_modify_range(
-> +				sensor->test_data[i],
-> +				0, (1 << sensor->csi_format->width) - 1, 1, 0);
-> +
-> +		return 0;
->  	}
-> 
->  	/* Sink pad. Width and height are changeable here. */
-> diff --git a/drivers/media/i2c/smiapp/smiapp.h
-> b/drivers/media/i2c/smiapp/smiapp.h index 7cc5aae..874b49f 100644
-> --- a/drivers/media/i2c/smiapp/smiapp.h
-> +++ b/drivers/media/i2c/smiapp/smiapp.h
-> @@ -54,6 +54,8 @@
->  	(1000 +	(SMIAPP_RESET_DELAY_CLOCKS * 1000	\
->  		 + (clk) / 1000 - 1) / ((clk) / 1000))
-> 
-> +#define SMIAPP_COLOUR_COMPONENTS	4
-> +
->  #include "smiapp-limits.h"
-> 
->  struct smiapp_quirk;
-> @@ -241,6 +243,8 @@ struct smiapp_sensor {
->  	/* src controls */
->  	struct v4l2_ctrl *link_freq;
->  	struct v4l2_ctrl *pixel_rate_csi;
-> +	/* test pattern colour components */
-> +	struct v4l2_ctrl *test_data[SMIAPP_COLOUR_COMPONENTS];
->  };
-> 
->  #define to_smiapp_subdev(_sd)				\
-
--- 
-Regards,
-
-Laurent Pinchart
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
