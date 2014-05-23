@@ -1,67 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp22.services.sfr.fr ([93.17.128.10]:46605 "EHLO
-	smtp22.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751825AbaEFSKd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 May 2014 14:10:33 -0400
-Received: from filter.sfr.fr (localhost [79.88.216.129])
-	by msfrf2221.sfr.fr (SMTP Server) with ESMTP id A505F70001AD
-	for <linux-media@vger.kernel.org>; Tue,  6 May 2014 20:10:32 +0200 (CEST)
-Received: from ci5fish (129.216.88.79.rev.sfr.net [79.88.216.129])
-	by msfrf2221.sfr.fr (SMTP Server) with SMTP id 10483700019F
-	for <linux-media@vger.kernel.org>; Tue,  6 May 2014 20:10:32 +0200 (CEST)
-Message-ID: <48E23AB5DEA342678DA681A91751703E@ci5fish>
-From: =?iso-8859-1?b?UmVu6Q==?= <poisson.rene@neuf.fr>
-To: Video 4 Linux <linux-media@vger.kernel.org>
-Subject: Media build failure, missing module
-Date: Tue, 6 May 2014 20:10:20 +0200
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3818 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752282AbaEWJHx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 May 2014 05:07:53 -0400
+Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4N97nHc061064
+	for <linux-media@vger.kernel.org>; Fri, 23 May 2014 11:07:51 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 9B4E22A19A6
+	for <linux-media@vger.kernel.org>; Fri, 23 May 2014 11:07:25 +0200 (CEST)
+Message-ID: <537F0FCD.207@xs4all.nl>
+Date: Fri, 23 May 2014 11:07:25 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset=iso-8859-1;
-	reply-type=original
-Content-Transfer-Encoding: 8bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.16] davinci updates
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there,
+Hi Mauro,
 
-On a newly install OpenMandriva distribution I tried to build the last 
-version of the media tree.
-However the build failed with the following sequence of messages.
+These are cleanup patches for the davinci drivers. A total of about 1200 lines
+of code are removed. Not bad!
 
-...
-patch -s -f -N -p1 -i ../backports/pr_fmt.patch
-The text leading up to this was:
---------------------------
-|diff --git a/drivers/media/usb/gspca/dtcs033.c 
-b/drivers/media/usb/gspca/dtcs033.c
-|index 5e42c71..ba01a3e 100644
-|--- a/drivers/media/usb/gspca/dtcs033.c
-|+++ b/drivers/media/usb/gspca/dtcs033.c
---------------------------
-No file to patch.  Skipping patch.
-1 out of 1 hunk ignored
-make[2]: *** [apply_patches] Error 1
-make[2]: Leaving directory `/home/software/media_build/linux'
-make[1]: *** [allyesconfig] Error 2
-make[1]: Leaving directory `/home/software/media_build/v4l'
-make: *** [allyesconfig] Error 2
-can't select all drivers at ./build line 490.
+Regards,
 
-The reason being the dtcs033 source code is absent in the tree:
-# ls linux/drivers/media/usb/gspca
-autogain_functions.c  finepix.c  jl2005bcd.c  m5602/      ov519.c 
-pac7311.c     sn9c2028.h  spca500.c  spca561.c  stk1135.c  t613.c 
-w996Xcf.c
-benq.c                gl860/     jpeg.h       Makefile    ov534_9.c 
-pac_common.h  sn9c20x.c   spca501.c  sq905.c    stk1135.h  topro.c 
-xirlink_cit.c
-conex.c               gspca.c    Kconfig      mars.c      ov534.c    se401.c 
-sonixb.c    spca505.c  sq905c.c   stv0680.c  tv8532.c  zc3xx.c
-cpia1.c               gspca.h    kinect.c     mr97310a.c  pac207.c   se401.h 
-sonixj.c    spca506.c  sq930x.c   stv06xx/   vc032x.c  zc3xx-reg.h
-etoms.c               jeilinj.c  konica.c     nw80x.c     pac7302.c 
-sn9c2028.c    spca1528.c  spca508.c  stk014.c   sunplus.c  vicam.c
+	Hans
 
-Removing dtcs033 patch from backports/pr_fmt.patch (last one) allows to 
-build media sucessfully.
 
-René
+The following changes since commit e899966f626f1f657a4a7bac736c0b9ae5a243ea:
+
+  Merge tag 'v3.15-rc6' into patchwork (2014-05-21 23:03:15 -0300)
+
+are available in the git repository at:
+
+
+  git://linuxtv.org/hverkuil/media_tree.git davinci
+
+for you to fetch changes up to c1022cd59bb34dbb435cda9a2fc98bb6fb931f61:
+
+  media: davinci: vpif: add Copyright message (2014-05-23 10:12:34 +0200)
+
+----------------------------------------------------------------
+Lad, Prabhakar (49):
+      media: davinci: vpif_display: initialize vb2 queue and DMA context during probe
+      media: davinci: vpif_display: drop buf_init() callback
+      media: davinci: vpif_display: use vb2_ops_wait_prepare/finish helper functions
+      media: davinci: vpif_display: release buffers in case start_streaming() call back fails
+      media: davinci: vpif_display: drop buf_cleanup() callback
+      media: davinci: vpif_display: improve vpif_buffer_prepare() callback
+      media: davinci: vpif_display: improve vpif_buffer_queue_setup() function
+      media: davinci: vpif_display: improve start/stop_streaming callbacks
+      media: davinci: vpif_display: use vb2_fop_mmap/poll
+      media: davinci: vpif_display: use v4l2_fh_open and vb2_fop_release
+      media: davinci: vpif_display: use vb2_ioctl_* helpers
+      media: davinci: vpif_display: drop unused member fbuffers
+      media: davinci: vpif_display: drop reserving memory for device
+      media: davinci: vpif_display: drop unnecessary field memory
+      media: davinci: vpif_display: drop numbuffers field from common_obj
+      media: davinic: vpif_display: drop started member from struct common_obj
+      media: davinci: vpif_display: initialize the video device in single place
+      media: davinci: vpif_display: drop unneeded module params
+      media: davinci: vpif_display: drop cropcap
+      media: davinci: vpif_display: group v4l2_ioctl_ops
+      media: davinci: vpif_display: use SIMPLE_DEV_PM_OPS
+      media: davinci: vpif_display: return -ENODATA for *dv_timings calls
+      media: davinci: vpif_display: return -ENODATA for *std calls
+      media: davinci; vpif_display: fix checkpatch error
+      media: davinci: vpif_display: fix v4l-complinace issues
+      media: davinci: vpif_capture: initalize vb2 queue and DMA context during probe
+      media: davinci: vpif_capture: drop buf_init() callback
+      media: davinci: vpif_capture: use vb2_ops_wait_prepare/finish helper functions
+      media: davinci: vpif_capture: release buffers in case start_streaming() call back fails
+      media: davinci: vpif_capture: drop buf_cleanup() callback
+      media: davinci: vpif_capture: improve vpif_buffer_prepare() callback
+      media: davinci: vpif_capture: improve vpif_buffer_queue_setup() function
+      media: davinci: vpif_capture: improve start/stop_streaming callbacks
+      media: davinci: vpif_capture: use vb2_fop_mmap/poll
+      media: davinci: vpif_capture: use v4l2_fh_open and vb2_fop_release
+      media: davinci: vpif_capture: use vb2_ioctl_* helpers
+      media: davinci: vpif_capture: drop reserving memory for device
+      media: davinci: vpif_capture: drop unnecessary field memory
+      media: davinic: vpif_capture: drop started member from struct common_obj
+      media: davinci: vpif_capture: initialize the video device in single place
+      media: davinci: vpif_capture: drop unneeded module params
+      media: davinci: vpif_capture: drop cropcap
+      media: davinci: vpif_capture: group v4l2_ioctl_ops
+      media: davinci: vpif_capture: use SIMPLE_DEV_PM_OPS
+      media: davinci: vpif_capture: return -ENODATA for *dv_timings calls
+      media: davinci: vpif_capture: return -ENODATA for *std calls
+      media: davinci: vpif_capture: drop check __KERNEL__
+      media: davinci: vpif_capture: fix v4l-complinace issues
+      media: davinci: vpif: add Copyright message
+
+ drivers/media/platform/davinci/vpif_capture.c | 1420 +++++++++++++++++++++--------------------------------------------------------
+ drivers/media/platform/davinci/vpif_capture.h |   39 ---
+ drivers/media/platform/davinci/vpif_display.c | 1196 +++++++++++++++++++----------------------------------------------
+ drivers/media/platform/davinci/vpif_display.h |   44 +--
+ 4 files changed, 746 insertions(+), 1953 deletions(-)
