@@ -1,68 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:60490 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752608AbaECRuI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 May 2014 13:50:08 -0400
-Date: Sat, 3 May 2014 10:49:38 -0700
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: =?utf-8?B?0JDQu9C10LrRgdCw0L3QtNGAINCR0LXRgNGB0LXQvdC10LI=?=
-	<bay@hackerdom.ru>
-Cc: linux-sunxi@googlegroups.com, rdunlap@infradead.org,
-	ijc+devicetree@hellion.org.uk, m.chehab@samsung.com,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v3] sunxi: Add support for consumer infrared devices
-Message-ID: <20140503174938.GB15342@lukather>
-References: <64a9c1e2-4db7-4486-841f-11adde303e32@googlegroups.com>
- <87de0ee4-8501-474c-b955-2fdb019c73cf@googlegroups.com>
+Received: from nasmtp02.atmel.com ([204.2.163.16]:48723 "EHLO
+	SJOEDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751266AbaEWDQm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 May 2014 23:16:42 -0400
+Message-ID: <537EBD46.6030406@atmel.com>
+Date: Fri, 23 May 2014 11:15:18 +0800
+From: Josh Wu <josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XOIedfhf+7KOe/yw"
-Content-Disposition: inline
-In-Reply-To: <87de0ee4-8501-474c-b955-2fdb019c73cf@googlegroups.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>,
+	<nicolas.ferre@atmel.com>, <linux-arm-kernel@lists.infradead.org>,
+	<laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 2/3] [media] atmel-isi: convert the pdata from pointer
+ to structure
+References: <1395744087-5753-1-git-send-email-josh.wu@atmel.com> <1395744087-5753-3-git-send-email-josh.wu@atmel.com> <Pine.LNX.4.64.1405182255540.23804@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1405182255540.23804@axis700.grange>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi, Guennadi
 
---XOIedfhf+7KOe/yw
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 5/19/2014 4:59 AM, Guennadi Liakhovetski wrote:
+> Hi Josh,
+>
+> I'm still waiting for an update of Ben's patches to then also apply yours,
+> but I decided to have a look at yours now to see if I find anything, that
+> might be worth changing. A small note to this one below.
+>
+> On Tue, 25 Mar 2014, Josh Wu wrote:
+>
+>> Now the platform data is initialized by allocation of isi
+>> structure. In the future, we use pdata to store the dt parameters.
+>>
+>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>> ---
+>> v1 --> v2:
+>>   no change.
+>>
+>>   drivers/media/platform/soc_camera/atmel-isi.c |   22 +++++++++++-----------
+>>   1 file changed, 11 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+>> index 9d977c5..f4add0a 100644
+>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> [snip]
+>
+>> @@ -912,7 +912,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+>>   	if (IS_ERR(isi->pclk))
+>>   		return PTR_ERR(isi->pclk);
+>>   
+>> -	isi->pdata = pdata;
+>> +	memcpy(&isi->pdata, pdata, sizeof(struct isi_platform_data));
+> I think it'd be better to use
+>
+> +	memcpy(&isi->pdata, pdata, sizeof(isi->pdata));
+>
+> This way if the type of the pdata changes at any time in the future this
+> line will not have to be changed. If you don't mind I can make this change
+> myself, so you don't have to make a new version just for this.
 
-On Wed, Apr 30, 2014 at 02:06:27AM -0700, =D0=90=D0=BB=D0=B5=D0=BA=D1=81=D0=
-=B0=D0=BD=D0=B4=D1=80 =D0=91=D0=B5=D1=80=D1=81=D0=B5=D0=BD=D0=B5=D0=B2 wrot=
-e:
-> Also setting clock-frequency via DT is not implenented yet for sunxi=20
-> clocks. I can try to add this functionality too.
+Thanks for pointing it out.  I think I will sent out a new version of 
+patch (include bus-width parsing) then I will included with this fix.
 
-The clock frequency should be on the device node, not the clock
-one. On such cases, it's up to the device to call clk_set_rate and not
-to expect the clock to run at the proper frequency.
+Best Regards,
+Josh Wu
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
+>
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
 
---XOIedfhf+7KOe/yw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTZSwyAAoJEBx+YmzsjxAguTEQAI21UyNCz78ab1oHRwttseeO
-fCtOpkURG3oGvQ9i+YFxq+qS7zeyYTxIjJ/fwB9Rt45jaNJZjr0IHsRioTpO3qub
-VsmJrCO8gpOUh5Rjq0uV/a7c2BG3NOwyNOYrCxVwbZfYC51gwZ2beULFq4S5WHva
-mN3aj2diub3YQgdJmGamhynxCf3Ofqy6DSab9dpxur0pWS37lo1X0R39PhyDuJJ+
-qIVJBWentuxXP2oecF2/4Zvrv5iTlMmM/xMug1B/ualkaYg5JwxxgeJHihVVU+fS
-rFnEfgYLIRkzLS3BVBK6BpA3NqlyeFa7iH14wMwv+juSb5T+oqRtRUi9X8s+0p/e
-AgWw6MIGX/KsnkQyyqoHzqlmogA8O29FFl3dQqVyF7m+oO6Yu1T9NarJ+0I5A0P5
-G88Pt/j42tGtqYs1UcdiLdZJhl25bi05MMBM2VD8rk9az8g4rCRq8kZWpYw9HDuV
-oOhu936FVrC57bA+2cQVCtc2SJATLqAK03UZS+itjzEcV1hvP494Am6i9wWzdHuT
-O57t11ZnQ6AztcD6R8jiB6ja7SDBr3yKq6ZsvufkUuE60yl0hly4O0/u5D6gUYsb
-Ag9bTBVxAIUg5C/yZSpEzaxar3sMsXBIAP9ds+ufEwOp3+7cixiSLQhLpoVuyMpa
-NZUfYq1yqyOsBdjPgMVo
-=gztJ
------END PGP SIGNATURE-----
-
---XOIedfhf+7KOe/yw--
