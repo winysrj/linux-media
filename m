@@ -1,71 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58865 "EHLO mail.kapsi.fi"
+Received: from mail.ispras.ru ([83.149.199.45]:55421 "EHLO mail.ispras.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755697AbaEEUw5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 May 2014 16:52:57 -0400
-Message-ID: <5367FA1E.9030800@iki.fi>
-Date: Mon, 05 May 2014 23:52:46 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>, kbuild@01.org
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [linuxtv-samsung:for-v3.16 45/81] drivers/media/dvb-frontends/si2168.c:47
- si2168_cmd_execute() warn: add some parenthesis here?
-References: <20140505190256.GP4963@mwanda>
-In-Reply-To: <20140505190256.GP4963@mwanda>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1750936AbaEWUrS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 May 2014 16:47:18 -0400
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+To: Hans Verkuil <hverkuil@xs4all.nl>, Lubomir Rintel <lkundrak@v3.sk>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	ldv-project@linuxtesting.org
+Subject: [PATCH] [media] usbtv: fix leak at failure path in usbtv_probe()
+Date: Sat, 24 May 2014 00:47:07 +0400
+Message-Id: <1400878027-22954-1-git-send-email-khoroshilov@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05.05.2014 22:02, Dan Carpenter wrote:
->
-> tree:   git://linuxtv.org/snawrocki/samsung.git for-v3.16
-> head:   13b46c7a03adbcc347b77a13ed27066bc92d515c
-> commit: 192292403147877c7d5f737a3cc751ded397aef7 [45/81] [media] em28xx: add [2013:025f] PCTV tripleStick (292e)
->
-> drivers/media/dvb-frontends/si2168.c:47 si2168_cmd_execute() warn: add some parenthesis here?
-> drivers/media/dvb-frontends/si2168.c:47 si2168_cmd_execute() warn: maybe use && instead of &
-> drivers/media/tuners/si2157.c:44 si2157_cmd_execute() warn: add some parenthesis here?
-> drivers/media/tuners/si2157.c:44 si2157_cmd_execute() warn: maybe use && instead of &
->
-> git remote add linuxtv-samsung git://linuxtv.org/snawrocki/samsung.git
-> git remote update linuxtv-samsung
-> git checkout 192292403147877c7d5f737a3cc751ded397aef7
-> vim +47 drivers/media/dvb-frontends/si2168.c
->
-> 845f3505 Antti Palosaari 2014-04-10  31  				goto err_mutex_unlock;
-> 845f3505 Antti Palosaari 2014-04-10  32  			} else if (ret != cmd->rlen) {
-> 845f3505 Antti Palosaari 2014-04-10  33  				ret = -EREMOTEIO;
-> 845f3505 Antti Palosaari 2014-04-10  34  				goto err_mutex_unlock;
-> 845f3505 Antti Palosaari 2014-04-10  35  			}
-> 845f3505 Antti Palosaari 2014-04-10  36
-> 845f3505 Antti Palosaari 2014-04-10  37  			/* firmware ready? */
-> 845f3505 Antti Palosaari 2014-04-10  38  			if ((cmd->args[0] >> 7) & 0x01)
-> 845f3505 Antti Palosaari 2014-04-10  39  				break;
-> 845f3505 Antti Palosaari 2014-04-10  40  		}
-> 845f3505 Antti Palosaari 2014-04-10  41
-> 845f3505 Antti Palosaari 2014-04-10  42  		dev_dbg(&s->client->dev, "%s: cmd execution took %d ms\n",
-> 845f3505 Antti Palosaari 2014-04-10  43  				__func__,
-> 845f3505 Antti Palosaari 2014-04-10  44  				jiffies_to_msecs(jiffies) -
-> 845f3505 Antti Palosaari 2014-04-10  45  				(jiffies_to_msecs(timeout) - TIMEOUT));
-> 845f3505 Antti Palosaari 2014-04-10  46
-> 845f3505 Antti Palosaari 2014-04-10 @47  		if (!(cmd->args[0] >> 7) & 0x01) {
->
-> This should be:						if (!((md->args[0] >> 7) & 0x01)) {
-> Otherwise it is a precedence error where it does the negate before the
-> bitwise AND.
+Error handling code in usbtv_probe() misses usb_put_dev().
 
-That was already on my TODO list as daily media build test sparse warned 
-it already http://hverkuil.home.xs4all.nl/logs/Monday.log
+Found by Linux Driver Verification project (linuxtesting.org).
 
-I am waiting for media/master kernel upgrades from 3.15-rc1 as that 
-kernel will hang whole machine when em28xx driver used (em28xx driver is 
-USB bridge for those si2168 and si2157).
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+---
+ drivers/media/usb/usbtv/usbtv-core.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-regards
-Antti
-
+diff --git a/drivers/media/usb/usbtv/usbtv-core.c b/drivers/media/usb/usbtv/usbtv-core.c
+index 2f87ddfa469f..473fab81b602 100644
+--- a/drivers/media/usb/usbtv/usbtv-core.c
++++ b/drivers/media/usb/usbtv/usbtv-core.c
+@@ -91,6 +91,8 @@ static int usbtv_probe(struct usb_interface *intf,
+ 	return 0;
+ 
+ usbtv_video_fail:
++	usb_set_intfdata(intf, NULL);
++	usb_put_dev(usbtv->udev);
+ 	kfree(usbtv);
+ 
+ 	return ret;
 -- 
-http://palosaari.fi/
+1.8.3.2
+
