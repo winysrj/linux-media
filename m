@@ -1,113 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx3.wp.pl ([212.77.101.10]:31709 "EHLO mx3.wp.pl"
+Received: from mga01.intel.com ([192.55.52.88]:60072 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752106AbaEAHEW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 May 2014 03:04:22 -0400
-Message-ID: <5361F1F3.7070005@wp.pl>
-Date: Thu, 01 May 2014 09:04:19 +0200
-From: Andrzej Hajda <andrzej.hajda@wp.pl>
+	id S1751053AbaEWJkW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 May 2014 05:40:22 -0400
+Message-ID: <537F1783.7060502@linux.intel.com>
+Date: Fri, 23 May 2014 12:40:19 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	open list <linux-kernel@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	David Airlie <airlied@linux.ie>,
-	Inki Dae <inki.dae@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Figa <t.figa@samsung.com>,
-	Tomasz Stansislawski <t.stanislaws@samsung.com>,
-	"moderated list:ARM/S5P EXYNOS AR..."
-	<linux-samsung-soc@vger.kernel.org>,
-	"moderated list:ARM/S5P EXYNOS AR..."
-	<linux-arm-kernel@lists.infradead.org>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC PATCH 0/4] drivers/base: Generic framework for tracking
- internal interfaces
-References: <1398866574-27001-1-git-send-email-a.hajda@samsung.com> <20140430154914.GA898@kroah.com> <53616E31.3050404@wp.pl> <20140430222839.GE26756@n2100.arm.linux.org.uk>
-In-Reply-To: <20140430222839.GE26756@n2100.arm.linux.org.uk>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] v4l: Check pad arguments for [gs]_frame_interval
+References: <1396254188-7277-1-git-send-email-sakari.ailus@linux.intel.com> <26941099.67PAgQvcPC@avalon>
+In-Reply-To: <26941099.67PAgQvcPC@avalon>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Russell King - ARM Linux wrote, On 01.05.2014 00:28:
-> On Wed, Apr 30, 2014 at 11:42:09PM +0200, Andrzej Hajda wrote:
->> The main problem with component framework is that componentization
->> significantly changes every driver and changes it in a way which is not
->> compatible with traditional drivers, so devices which are intended to
->> work with different DRM masters are hard to componentize if some of DRMs
->> are componentized and some not.
-> Many of the problems which the component helpers are designed to solve
-> are those where you need the drm_device structure (or snd_card, or whatever
-> subsystem specific card/device representation structure) pre-created in
-> order to initialise the components.
+Laurent Pinchart wrote:
+> Hi Sakari,
 >
-> In the case of DRM, you can't initialise encoders or connectors without
-> their drm_device structure pre-existing - because these components are
-> attached to the drm_device.
+> Thank you for the patch.
 >
-> Your solution to that is to delay those calls, but the DRM subsystem is
-> not designed to cope like that - it's designed such that when the
-> connector or encoder initialisation functions are called, it is assumed
-> that the driver is initialising its state. (I've raised this point before
-> but you've just fobbed it off in the past.)
+> On Monday 31 March 2014 11:23:08 Sakari Ailus wrote:
+>> VIDIOC_SUBDEV_[GS]_FRAME_INTERVAL IOCTLs argument structs contain the pad
+>> field but the validity check was missing. There should be no implications
+>> security-wise from this since no driver currently uses the pad field in the
+>> struct.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 >
-> Another issue here is that the order of initialisation matters greatly.
-> Take CRTCs for example.  In DRM, the order of attachment of CRTCs defines
-> their identity, changing the order changes their identity, and changes
-> how they are bound to their respective connectors.
->
-The two problems you show here are not a real problems in this framework:
-1. making real device initialization during drm initialization - 
-decision is left
-to driver developer what should be done in probe, what should be done in
-'bind', I guess this is also true for components, at least the framework 
-allows it.
-2. initialization order - if you put initialization into components 
-'bind' function,
-master can choose any order of calls to 'bind'.
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Anyway you can implement the same behaviour as components with
-interface_tracker. Just simple proof of concept, how to convert 
-componentized
-drivers to interface_tracker:
-Components:
-1. you can reuse component_ops
-2. You replace calls of component_add and component_del with calls
-to interface_tracker_ifup(dev, INTERFACE_TRACKER_TYPE_COMPONENT, 
-&specific_component_ops),
-or interface_tracker_ifdown.
-Thats all for components.
+Mauro has already pulled the set which this patch was a part of. Good 
+that no problems were found. Thanks. :-)
 
-Master:
-1. you register callback for tracking all components.
-2. in the callback you check if all components are up, if yes you do the
-same as in component framework initialization, to simplify it
-helper function can be added.
-
-I guess it should work the same way, if there is interest in it I can 
-develop the
-helper next week, I hope.
-
-What is the benefit of interface_tracker:
-1. interface_tracker is more generic - it can track not only components.
-2. you put component initialization code into helper function - sounds 
-like mid-layer removal,
-developer can choose different helper if it suits better.
-
-So from component point of view interface_tracker can be treated as kind 
-of extensions
-of the component framework.
-
-I hope I have answerer all your concerns.
-
-I have holidays till Sunday and I am not sure if I will be able to 
-answer next emails before
-Monday.
-
-Regards
-Andrzej
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
