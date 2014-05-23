@@ -1,84 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:35994 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756322AbaE2MUY (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1117 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751515AbaEWCpO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 May 2014 08:20:24 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/5] dvbdev: add a dvb_detach() macro
-Date: Thu, 29 May 2014 09:20:13 -0300
-Message-Id: <1401366017-19874-2-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1401366017-19874-1-git-send-email-m.chehab@samsung.com>
-References: <1401366017-19874-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Thu, 22 May 2014 22:45:14 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4N2jAXE003025
+	for <linux-media@vger.kernel.org>; Fri, 23 May 2014 04:45:12 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 32B0D2A19A6
+	for <linux-media@vger.kernel.org>; Fri, 23 May 2014 04:44:47 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140523024447.32B0D2A19A6@tschai.lan>
+Date: Fri, 23 May 2014 04:44:47 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The dvb_attach() was unbalanced, as there was no dvb_dettach. Ok,
-on current cases, the dettach is done by dvbdev, but that are some
-future corner cases where we may need to do this before registering
-the frontend.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-So, add a dvb_detach() and use it at dvb_frontend.c.
+Results of the daily build of media_tree:
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-core/dvb_frontend.c | 8 ++++----
- drivers/media/dvb-core/dvbdev.h       | 4 ++++
- 2 files changed, 8 insertions(+), 4 deletions(-)
+date:		Fri May 23 04:00:25 CEST 2014
+git branch:	test
+git hash:	e899966f626f1f657a4a7bac736c0b9ae5a243ea
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-1.slh.1-amd64
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 6ce435ac866f..6cc2631d8f0e 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -2666,20 +2666,20 @@ void dvb_frontend_detach(struct dvb_frontend* fe)
- 
- 	if (fe->ops.release_sec) {
- 		fe->ops.release_sec(fe);
--		symbol_put_addr(fe->ops.release_sec);
-+		dvb_detach(fe->ops.release_sec);
- 	}
- 	if (fe->ops.tuner_ops.release) {
- 		fe->ops.tuner_ops.release(fe);
--		symbol_put_addr(fe->ops.tuner_ops.release);
-+		dvb_detach(fe->ops.tuner_ops.release);
- 	}
- 	if (fe->ops.analog_ops.release) {
- 		fe->ops.analog_ops.release(fe);
--		symbol_put_addr(fe->ops.analog_ops.release);
-+		dvb_detach(fe->ops.analog_ops.release);
- 	}
- 	ptr = (void*)fe->ops.release;
- 	if (ptr) {
- 		fe->ops.release(fe);
--		symbol_put_addr(ptr);
-+		dvb_detach(ptr);
- 	}
- }
- #else
-diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-index 93a9470d3f0c..f96b28e7fc95 100644
---- a/drivers/media/dvb-core/dvbdev.h
-+++ b/drivers/media/dvb-core/dvbdev.h
-@@ -136,11 +136,15 @@ extern int dvb_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 	__r; \
- })
- 
-+#define dvb_detach(FUNC)	symbol_put_addr(FUNC)
-+
- #else
- #define dvb_attach(FUNCTION, ARGS...) ({ \
- 	FUNCTION(ARGS); \
- })
- 
-+#define dvb_detach(FUNC)	{}
-+
- #endif
- 
- #endif /* #ifndef _DVBDEV_H_ */
--- 
-1.9.3
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
