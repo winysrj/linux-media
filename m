@@ -1,495 +1,840 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f175.google.com ([209.85.216.175]:51765 "EHLO
-	mail-qc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751275AbaESWTw (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4008 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752181AbaEWJFu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 May 2014 18:19:52 -0400
-Received: by mail-qc0-f175.google.com with SMTP id w7so10028141qcr.6
-        for <linux-media@vger.kernel.org>; Mon, 19 May 2014 15:19:52 -0700 (PDT)
+	Fri, 23 May 2014 05:05:50 -0400
+Message-ID: <537F0F42.2010009@xs4all.nl>
+Date: Fri, 23 May 2014 11:05:06 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <5377B269.3040103@iki.fi>
-References: <1398187584-26666-1-git-send-email-knightrider@are.ma>
-	<5377B269.3040103@iki.fi>
-Date: Tue, 20 May 2014 07:19:51 +0900
-Message-ID: <CAKnK8-Qd+uN9v6y7kx25Pd0e1cARFv2Gd0V0WyB6VTNEOLL9ZQ@mail.gmail.com>
-Subject: Re: [PATCH] Full DVB driver package for Earthsoft PT3 (ISDB-S/T) cards
-From: =?UTF-8?B?44G744Gh?= <knightrider@are.ma>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>, m.chehab@samsung.com,
-	Hans De Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+CC: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v5 00/49] DaVinci: vpif: upgrade with v4l helpers and
+ v4l compliance fixes
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for the review.
-Inlined questions before going further.
-Best Regards
--Bud
+On 05/16/2014 03:33 PM, Lad, Prabhakar wrote:
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> 
+> Hi,
+> 
+> This patch series upgrades the vpif capture & display
+> driver with the all the helpers provided by v4l, this makes
+> the driver much simpler and cleaner. This also includes few
+> checkpatch issues.
+> 
+> Changes for v2:
+> a> Added a copyright.
+> b> Dropped buf_init() callback from vb2_ops.
+> c> Fixed enabling & disabling of interrupts in case of HD formats.
+> 
+> Changes for v3:
+> a> Fixed review comments pointed by Hans.
+> 
+> Changes for v4: Rebased the patches on media tree.
+> 
+> Changes for v5: Split up the patches
+> 
+> Following is the output of v4l-compliance for capture:
+> ------------------------------------------------------
+> 
+> ./v4l2-compliance -d /dev/video0 -i 0 -s -v --expbuf-device=2
+> 
+> Driver Info:
+>         Driver name   : vpif_capture
+>         Card type     : DA850/OMAP-L138 Video Capture
+>         Bus info      : platform:vpif_capture
+>         Driver version: 3.15.0
+>         Capabilities  : 0x84000001
+>                 Video Capture
+>                 Streaming
+>                 Device Capabilities
+>         Device Caps   : 0x04000001
+>                 Video Capture
+>                 Streaming
+> 
+> Compliance test for device /dev/video0 (not using libv4l2):
+> 
+> Required ioctls:
+>         test VIDIOC_QUERYCAP: OK
+> 
+> Allow for multiple opens:
+>         test second video open: OK
+>         test VIDIOC_QUERYCAP: OK
+>         test VIDIOC_G/S_PRIORITY: OK
+> 
+> Debug ioctls:
+>         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>         test VIDIOC_LOG_STATUS: OK
+> 
+> Input ioctls:
+>         test VIDIOC_G/S_TUNER: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>         test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMINPUT: OK
+>         test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>         Inputs: 1 Audio Inputs: 0 Tuners: 0
+> 
+> Output ioctls:
+>         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+> 
+> Input/Output configuration ioctls:
+>         test VIDIOC_ENUM/G/S/QUERY_STD: OK
+>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>         test VIDIOC_G/S_EDID: OK (Not Supported)
+> 
+> Test input 0:
+> 
+>         Control ioctls:
+>                 test VIDIOC_QUERYCTRL/MENU: OK (Not Supported)
+>                 test VIDIOC_G/S_CTRL: OK (Not Supported)
+>                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>                 Standard Controls: 0 Private Controls: 0
+> 
+>         Format ioctls:
+>                 info: found 1 formats for buftype 1
+>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>                 fail: v4l2-test-formats.cpp(1003): cap->readbuffers
 
-2014-05-18 4:03 GMT+09:00 Antti Palosaari <crope@iki.fi>:
-> Overall tc90522 driver looks very complex and there was multiple issues. One
-> reason of complexiness is that HW algo used. I cannot see any reason why it
-> is used, just change default SW algo and implement things more likely others
-> are doing.
->
->> diff --git a/drivers/media/dvb-frontends/tc90522.c
->> b/drivers/media/dvb-frontends/tc90522.c
->> new file mode 100644
->> index 0000000..a767600
->> --- /dev/null
->> +++ b/drivers/media/dvb-frontends/tc90522.c
->> @@ -0,0 +1,539 @@
->> +/*
->> + * Earthsoft PT3 demodulator frontend Toshiba TC90522XBG
->> OFDM(ISDB-T)/8PSK(ISDB-S)
->
-> That is, or at least should be, general DTV demod driver. So lets call it
-> Toshiba TC90522 or whatever the chipset name is.
+Just set readbuffers to 3, which is what queue_setup uses as well as the
+minimum number of buffers.
 
-FYI, the only document available is SDK from PT3 card maker, Earthsoft.
-No guarantee this driver works in other cards.
+>                 test VIDIOC_G/S_PARM: FAIL
+>                 test VIDIOC_G_FBUF: OK (Not Supported)
+>                 test VIDIOC_G_FMT: OK
+>                 test VIDIOC_TRY_FMT: OK
+>                 test VIDIOC_S_FMT: OK
+>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+> 
+>         Codec ioctls:
+>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> 
+> Buffer ioctls:
+>                 info: test buftype Video Capture
+>         test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>         test VIDIOC_EXPBUF: OK
+>         test read/write: OK (Not Supported)
+>             Video Capture:
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 145.509130s
 
->> +int tc90522_write(struct dvb_frontend *fe, const u8 *data, int len)
->> +{
->> +       struct tc90522 *demod = fe->demodulator_priv;
->> +       struct i2c_msg msg[3];
->> +       u8 buf[6];
->> +
->> +       if (data) {
->> +               msg[0].addr = demod->addr_demod;
->> +               msg[0].buf = (u8 *)data;
->> +               msg[0].flags = 0;                       /* write */
->> +               msg[0].len = len;
->> +
->> +               return i2c_transfer(demod->i2c, msg, 1) == 1 ? 0 :
->> -EREMOTEIO;
->> +       } else {
->> +               u8 addr_tuner = (len >> 8) & 0xff,
->> +                  addr_data = len & 0xff;
->> +               if (len >> 16) {                        /* read tuner
->> without address */
->> +                       buf[0] = TC90522_PASSTHROUGH;
->> +                       buf[1] = (addr_tuner << 1) | 1;
->> +                       msg[0].buf = buf;
->> +                       msg[0].len = 2;
->> +                       msg[0].addr = demod->addr_demod;
->> +                       msg[0].flags = 0;               /* write */
->> +
->> +                       msg[1].buf = buf + 2;
->> +                       msg[1].len = 1;
->> +                       msg[1].addr = demod->addr_demod;
->> +                       msg[1].flags = I2C_M_RD;        /* read */
->> +
->> +                       return i2c_transfer(demod->i2c, msg, 2) == 2 ?
->> buf[2] : -EREMOTEIO;
->> +               } else {                                /* read tuner */
->> +                       buf[0] = TC90522_PASSTHROUGH;
->> +                       buf[1] = addr_tuner << 1;
->> +                       buf[2] = addr_data;
->> +                       msg[0].buf = buf;
->> +                       msg[0].len = 3;
->> +                       msg[0].addr = demod->addr_demod;
->> +                       msg[0].flags = 0;               /* write */
->> +
->> +                       buf[3] = TC90522_PASSTHROUGH;
->> +                       buf[4] = (addr_tuner << 1) | 1;
->> +                       msg[1].buf = buf + 3;
->> +                       msg[1].len = 2;
->> +                       msg[1].addr = demod->addr_demod;
->> +                       msg[1].flags = 0;               /* write */
->> +
->> +                       msg[2].buf = buf + 5;
->> +                       msg[2].len = 1;
->> +                       msg[2].addr = demod->addr_demod;
->> +                       msg[2].flags = I2C_M_RD;        /* read */
->> +
->> +                       return i2c_transfer(demod->i2c, msg, 3) == 3 ?
->> buf[5] : -EREMOTEIO;
->> +               }
->> +       }
->> +}
->
-> That routine is mess. I read it many times without understanding what it
-> does, when and why. It is not register write over I2C as expected. For
-> example parameter named "len" is abused for tuner I2C even that is demod
-> driver...
+This is strange: the sequence number is not updated for each field, but why doesn't
+v4l2-compliance fail on that? If I hack vivi to always return sequence 0 the
+compliance tool immediately fails on that.
 
-Tuners need to read data through demod, and there is no read callback available
-in dvb_frontend.h (only write is provided).
-The above routine provides R/W access.
+Can you find out why v4l2-compliance doesn't fail here? The check happens in
+v4l2-test-buffers.cpp, line 321.
 
->> +int tc90522_write_data(struct dvb_frontend *fe, u8 addr_data, u8 *data,
->> u8 len)
->> +{
->> +       u8 buf[len + 1];
->> +       buf[0] = addr_data;
->> +       memcpy(buf + 1, data, len);
->> +       return tc90522_write(fe, buf, len + 1);
->> +}
->> +
->> +int tc90522_read(struct tc90522 *demod, u8 addr, u8 *buf, u8 buflen)
->> +{
->> +       struct i2c_msg msg[2];
->> +       if (!buf || !buflen)
->> +               return -EINVAL;
->> +
->> +       buf[0] = addr;
->
-> ....
->>
->> +       msg[0].addr = demod->addr_demod;
->> +       msg[0].flags = 0;                       /* write */
->> +       msg[0].buf = buf;
->
-> just give a addr pointer, no need to store it to buf first.
->
->> +       msg[0].len = 1;
->> +
->> +       msg[1].addr = demod->addr_demod;
->> +       msg[1].flags = I2C_M_RD;                /* read */
->> +       msg[1].buf = buf;
->> +       msg[1].len = buflen;
->> +
->> +       return i2c_transfer(demod->i2c, msg, 2) == 2 ? 0 : -EREMOTEIO;
->> +}
->
-> All in all, it looks like demod is using just most typical register access
-> for both register write and read, where first byte is register address and
-> value(s) are after that. Register read is done using repeated START.
->
-> I encourage you to use RegMap API as it covers all that boilerplate stuff -
-> and forces you implement things correctly (no such hack possible done in
-> tc90522_write()).
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 145.549125s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 145.589148s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 145.629106s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 145.669110s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 145.709102s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 145.749099s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 145.789128s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 145.829116s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 145.869105s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 145.909100s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 145.949098s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 145.989086s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 146.029083s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 146.069083s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 146.109074s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 146.149074s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 146.189100s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 146.229077s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 146.269078s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 146.309075s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 146.349070s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 146.389060s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 146.429052s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 146.469053s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 146.509047s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 146.549045s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 146.589072s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 146.629047s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 146.669051s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 146.709046s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 146.749043s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 146.789033s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 146.829023s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 146.869025s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 146.909018s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 146.949029s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 146.989046s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 147.029021s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 147.069024s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 147.109019s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 147.149004s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 147.189006s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 147.228998s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 147.268996s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 147.308996s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 147.349004s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 147.389019s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 147.429000s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 147.468999s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 147.509004s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 147.548979s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 147.588982s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 147.628973s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 147.668976s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 147.708968s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 147.748979s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 147.788991s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 147.828972s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 147.868969s
+>             Video Capture (polling):
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 147.908969s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 147.948952s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 147.988955s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 148.028946s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 148.068946s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 148.108954s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 148.148955s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 148.188973s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 148.228948s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 148.268943s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 148.308949s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 148.348928s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 148.388927s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 148.428918s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 148.468918s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 148.508923s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 148.548919s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 148.588946s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 148.628923s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 148.668917s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 148.708902s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 148.748899s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 148.788901s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 148.828895s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 148.868892s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 148.908897s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 148.948898s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 148.988920s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 149.028892s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 149.068893s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 149.108876s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 149.148873s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 149.188875s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 149.228867s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 149.268875s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 149.308870s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 149.348870s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 149.388870s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 149.428891s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 149.468893s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 149.508849s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 149.548845s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 149.588849s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 149.628842s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 149.668855s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 149.708844s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 149.748846s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 149.788868s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 149.828842s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 149.868826s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 149.908823s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 149.948821s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 149.988821s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 150.028817s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 150.068824s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 150.108818s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 150.148818s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 150.188839s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 150.228808s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 150.268798s
+>         test MMAP: OK
+>                 fail: v4l2-test-buffers.cpp(936): buf.qbuf(q)
+>                 fail: v4l2-test-buffers.cpp(976): setupUserPtr(node, q)
+>         test USERPTR: FAIL
+>             Video Output:
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 165.234735s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 165.268098s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 165.301503s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 165.334846s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 165.368202s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 165.401594s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 165.434960s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 165.468320s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 165.501709s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 165.535041s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 165.568428s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 165.601811s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 165.635146s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 165.668514s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 165.701913s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 165.735260s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 165.768617s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 165.802007s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 165.835367s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 165.868732s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 165.902120s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 165.935451s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 165.968837s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 166.002223s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 166.035566s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 166.068923s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 166.102327s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 166.135667s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 166.169023s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 166.202423s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 166.235785s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 166.269146s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 166.302535s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 166.335862s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 166.369252s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 166.402637s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 166.435978s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 166.469335s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 166.502705s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 166.536087s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 166.569454s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 166.602817s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 166.636177s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 166.669557s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 166.702934s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 166.736280s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 166.769648s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 166.803053s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 166.836396s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 166.869753s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 166.903122s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 166.936499s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 166.969870s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 167.003251s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 167.036591s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 167.069975s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 167.103363s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 167.136702s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 167.170112s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 167.203462s
+>             Video Output (polling):
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 167.236804s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 167.270175s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 167.303533s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 167.336914s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 167.370269s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 167.403661s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 167.436999s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 167.470388s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 167.503774s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 167.537117s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 167.570511s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 167.603874s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 167.637222s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 167.670603s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 167.703944s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 167.737326s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 167.770694s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 167.804083s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 167.837412s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 167.870809s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 167.904185s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 167.937526s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 167.970900s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 168.004285s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 168.037632s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 168.070993s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 168.104382s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 168.137735s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 168.171104s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 168.204492s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 168.237822s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 168.271190s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 168.304596s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 168.337941s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 168.371310s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 168.404665s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 168.438046s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 168.471408s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 168.504794s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 168.538130s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 168.571517s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 168.604904s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 168.638234s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 168.671610s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 168.704984s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 168.738352s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 168.771725s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 168.805080s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 168.838459s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 168.871822s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 168.905165s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 168.938547s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 168.971931s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 169.005319s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 169.038649s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 169.072021s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 169.105420s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 169.138776s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 169.172136s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 169.205492s
+>         test DMABUF: OK
+> 
+> Total: 41, Succeeded: 40, Failed: 1, Warnings: 0
+> 
+> Following is the output of v4l-compliance for display:
+> ------------------------------------------------------
+> 
+> ./v4l2-compliance -d /dev/video2 -o 0 -s -v --expbuf-device=0 
+> 
+> Driver Info:
+>         Driver name   : vpif_capture
+>         Card type     : DA850/OMAP-L138 Video Capture
+>         Bus info      : platform:vpif_capture
+>         Driver version: 3.15.0
+>         Capabilities  : 0x84000001
+>                 Video Capture
+>                 Streaming
+>                 Device Capabilities
+>         Device Caps   : 0x04000001
+>                 Video Capture
+>                 Streaming
+> 
+> Compliance test for device /dev/video2 (not using libv4l2):
+> 
+> Required ioctls:
+>         test VIDIOC_QUERYCAP: OK
+> 
+> Allow for multiple opens:
+>         test second video open: OK
+>         test VIDIOC_QUERYCAP: OK
+>         test VIDIOC_G/S_PRIORITY: OK
+> 
+> Debug ioctls:
+>         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>         test VIDIOC_LOG_STATUS: OK
+> 
+> Input ioctls:
+>         test VIDIOC_G/S_TUNER: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>         test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+>         test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>         Inputs: 0 Audio Inputs: 0 Tuners: 0
+> 
+> Output ioctls:
+>         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMOUTPUT: OK
+>         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>         Outputs: 2 Audio Outputs: 0 Modulators: 0
+> 
+> Input/Output configuration ioctls:
+>         test VIDIOC_ENUM/G/S/QUERY_STD: OK
+>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>         test VIDIOC_G/S_EDID: OK (Not Supported)
+> 
+> Test output 0:
+> 
+>         Control ioctls:
+>                 test VIDIOC_QUERYCTRL/MENU: OK (Not Supported)
+>                 test VIDIOC_G/S_CTRL: OK (Not Supported)
+>                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>                 Standard Controls: 0 Private Controls: 0
+> 
+>         Format ioctls:
+>                 info: found 1 formats for buftype 2
+>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>                 test VIDIOC_G/S_PARM: OK (Not Supported)
+>                 test VIDIOC_G_FBUF: OK (Not Supported)
+>                 test VIDIOC_G_FMT: OK
+>                 test VIDIOC_TRY_FMT: OK
+>                 test VIDIOC_S_FMT: OK
+>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+> 
+>         Codec ioctls:
+>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> 
+> Test output 1:
+> 
+>         Control ioctls:
+>                 test VIDIOC_QUERYCTRL/MENU: OK (Not Supported)
+>                 test VIDIOC_G/S_CTRL: OK (Not Supported)
+>                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>                 Standard Controls: 0 Private Controls: 0
+> 
+>         Format ioctls:
+>                 info: found 1 formats for buftype 2
+>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>                 test VIDIOC_G/S_PARM: OK (Not Supported)
+>                 test VIDIOC_G_FBUF: OK (Not Supported)
+>                 test VIDIOC_G_FMT: OK
+>                 test VIDIOC_TRY_FMT: OK
+>                 test VIDIOC_S_FMT: OK
+>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+> 
+>         Codec ioctls:
+>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> 
+> Buffer ioctls:
+>                 info: test buftype Video Output
+>         test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>         test VIDIOC_EXPBUF: OK
+>         test read/write: OK (Not Supported)
+>             Video Output:
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 203.197959s
 
-Good recommendation. I'll take a look.
+Same problem here: the sequence number is not updated, but v4l2-compliance doesn't
+fail on that error.
 
->> +u32 tc90522_byten(const u8 *data, u32 n)
->> +{
->> +       u32 i, val = 0;
->> +
->> +       for (i = 0; i < n; i++) {
->> +               val <<= 8;
->> +               val |= data[i];
->> +       }
->> +       return val;
->> +}
->
-> What is that? Kinda bit reverse? Look from existing bitops if there is such
-> a solution already and if not, add comments what that is for.
+Weird.
 
-changed to:
-u64 tc90522_ntoint(const u8 *data, u8 n)    /* convert n_bytes data
-from stream (network byte order) to integer */
-{                        /* can't use <arpa/inet.h>'s ntoh*() as
-sometimes n = 3,5,... */
-...
+Regards,
 
->> +               ((data[0] >> 4) & 1)                    ||
->> +               tc90522_read(demod, 0xce, data, 2)      ||
->> +               (tc90522_byten(data, 2) == 0)           ||
->> +               tc90522_read(demod, 0xc3, data, 1)      ||
->> +               tc90522_read(demod, 0xc5, data, SIZE);
->
-> Masking return statuses like that does not look good nor clear.
+	Hans
 
-Well, the statuses are not so important here.
-We only want to know & stop if there was an error occured.
-That is enough.
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 203.231346s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 203.264708s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 203.298071s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 203.331432s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 203.364827s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 203.398174s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 203.431543s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 203.464898s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 203.498277s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 203.531648s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 203.565008s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 203.598379s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 203.631754s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 203.665121s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 203.698489s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 203.731843s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 203.765230s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 203.798587s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 203.831955s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 203.865314s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 203.898690s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 203.932065s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 203.965425s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 203.998793s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 204.032169s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 204.065534s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 204.098897s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 204.132256s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 204.165643s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 204.199000s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 204.232370s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 204.265725s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 204.299103s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 204.332478s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 204.365837s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 204.399207s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 204.432567s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 204.465951s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 204.499312s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 204.532670s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 204.566036s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 204.599414s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 204.632785s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 204.666143s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 204.699509s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 204.732891s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 204.766253s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 204.799620s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 204.832980s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 204.866362s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 204.899722s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 204.933083s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 204.966449s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 204.999826s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 205.033190s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 205.066552s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 205.099920s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 205.133306s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 205.166665s
+>             Video Output (polling):
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 205.200056s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 205.233388s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 205.266772s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 205.300162s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 205.333497s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 205.366859s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 205.400264s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 205.433608s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 205.466982s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 205.500359s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 205.533717s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 205.567082s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 205.600470s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 205.633800s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 205.667186s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 205.700572s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 205.733906s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 205.767270s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 205.800678s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 205.834022s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 205.867391s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 205.900772s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 205.934129s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 205.967494s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 206.000884s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 206.034215s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 206.067607s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 206.100983s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 206.134329s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 206.167684s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 206.201087s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 206.234435s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 206.267799s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 206.301192s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 206.334523s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 206.367906s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 206.401293s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 206.434627s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 206.467992s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 206.501374s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 206.534744s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 206.568099s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 206.601470s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 206.634852s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 206.668215s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 206.701605s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 206.734935s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 206.768322s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 206.801707s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 206.835041s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 206.868407s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 206.901811s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 206.935166s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 206.968509s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 207.001907s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 207.035265s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 207.068628s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 207.102016s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 207.135349s
+>                 Buffer: 3 Sequence: 0 Field: Interlaced Timestamp: 207.168734s
+>         test MMAP: OK
+>                 fail: v4l2-test-buffers.cpp(936): buf.qbuf(q)
+>                 fail: v4l2-test-buffers.cpp(976): setupUserPtr(node, q)
+>         test USERPTR: FAIL
+>             Video Output:
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 207.234735s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 207.268098s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 207.301503s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 207.334846s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 207.368202s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 207.401594s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 207.434960s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 207.468320s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 207.501709s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 207.535041s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 207.568428s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 207.601811s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 207.635146s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 207.668514s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 207.701913s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 207.735260s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 207.768617s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 207.802007s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 207.835367s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 207.868732s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 207.902120s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 207.935451s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 207.968837s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 208.002223s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 208.035566s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 208.068923s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 208.102327s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 208.135667s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 208.169023s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 208.202423s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 208.235785s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 208.269146s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 208.302535s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 208.335862s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 208.369252s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 208.402637s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 208.435978s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 208.469335s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 208.502705s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 208.536087s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 208.569454s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 208.602817s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 208.636177s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 208.669557s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 208.702934s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 208.736280s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 208.769648s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 208.803053s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 208.836396s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 208.869753s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 208.903122s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 208.936499s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 208.969870s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 209.003251s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 209.036591s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 209.069975s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 209.103363s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 209.136702s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 209.170112s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 209.203462s
+>             Video Output (polling):
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 209.236804s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 209.270175s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 209.303533s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 209.336914s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 209.370269s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 209.403661s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 209.436999s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 209.470388s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 209.503774s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 209.537117s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 209.570511s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 209.603874s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 209.637222s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 209.670603s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 209.703944s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 209.737326s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 209.770694s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 209.804083s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 209.837412s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 209.870809s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 209.904185s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 209.937526s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 209.970900s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 210.004285s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 210.037632s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 210.070993s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 210.104382s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 210.137735s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 210.171104s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 210.204492s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 210.237822s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 210.271190s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 210.304596s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 210.337941s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 210.371310s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 210.404665s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 210.438046s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 210.471408s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 210.504794s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 210.538130s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 210.571517s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 210.604904s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 210.638234s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 210.671610s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 210.704984s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 210.738352s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 210.771725s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 210.805080s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 210.838459s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 210.871822s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 210.905207s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 210.938547s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 210.971931s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 211.005319s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 211.038649s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 211.072021s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 211.105420s
+>                 Buffer: 0 Sequence: 0 Field: Interlaced Timestamp: 211.138776s
+>                 Buffer: 1 Sequence: 0 Field: Interlaced Timestamp: 211.172136s
+>                 Buffer: 2 Sequence: 0 Field: Interlaced Timestamp: 211.205492s
+>         test DMABUF: OK
+> 
+> Total: 57, Succeeded: 56, Failed: 1, Warnings: 0
+> 
+> 
+> 
+> Lad, Prabhakar (49):
+>   media: davinci: vpif_display: initialize vb2 queue and DMA context
+>     during probe
+>   media: davinci: vpif_display: drop buf_init() callback
+>   media: davinci: vpif_display: use vb2_ops_wait_prepare/finish helper
+>     functions
+>   media: davinci: vpif_display: release buffers in case
+>     start_streaming() call back fails
+>   media: davinci: vpif_display: drop buf_cleanup() callback
+>   media: davinci: vpif_display: improve vpif_buffer_prepare() callback
+>   media: davinci: vpif_display: improve vpif_buffer_queue_setup()
+>     function
+>   media: davinci: vpif_display: improve start/stop_streaming callbacks
+>   media: davinci: vpif_display: use vb2_fop_mmap/poll
+>   media: davinci: vpif_display: use v4l2_fh_open and vb2_fop_release
+>   media: davinci: vpif_display: use vb2_ioctl_* helpers
+>   media: davinci: vpif_display: drop unused member fbuffers
+>   media: davinci: vpif_display: drop reserving memory for device
+>   media: davinci: vpif_display: drop unnecessary field memory
+>   media: davinci: vpif_display: drop numbuffers field from common_obj
+>   media: davinic: vpif_display: drop started member from struct
+>     common_obj
+>   media: davinci: vpif_display: initialize the video device in single
+>     place
+>   media: davinci: vpif_display: drop unneeded module params
+>   media: davinci: vpif_display: drop cropcap
+>   media: davinci: vpif_display: group v4l2_ioctl_ops
+>   media: davinci: vpif_display: use SIMPLE_DEV_PM_OPS
+>   media: davinci: vpif_display: return -ENODATA for *dv_timings calls
+>   media: davinci: vpif_display: return -ENODATA for *std calls
+>   media: davinci; vpif_display: fix checkpatch error
+>   media: davinci: vpif_display: fix v4l-complinace issues
+>   media: davinci: vpif_capture: initalize vb2 queue and DMA context
+>     during probe
+>   media: davinci: vpif_capture: drop buf_init() callback
+>   media: davinci: vpif_capture: use vb2_ops_wait_prepare/finish helper
+>     functions
+>   media: davinci: vpif_capture: release buffers in case
+>     start_streaming() call back fails
+>   media: davinci: vpif_capture: drop buf_cleanup() callback
+>   media: davinci: vpif_capture: improve vpif_buffer_prepare() callback
+>   media: davinci: vpif_capture: improve vpif_buffer_queue_setup()
+>     function
+>   media: davinci: vpif_capture: improve start/stop_streaming callbacks
+>   media: davinci: vpif_capture: use vb2_fop_mmap/poll
+>   media: davinci: vpif_capture: use v4l2_fh_open and vb2_fop_release
+>   media: davinci: vpif_capture: use vb2_ioctl_* helpers
+>   media: davinci: vpif_capture: drop reserving memory for device
+>   media: davinci: vpif_capture: drop unnecessary field memory
+>   media: davinic: vpif_capture: drop started member from struct
+>     common_obj
+>   media: davinci: vpif_capture: initialize the video device in single
+>     place
+>   media: davinci: vpif_capture: drop unneeded module params
+>   media: davinci: vpif_capture: drop cropcap
+>   media: davinci: vpif_capture: group v4l2_ioctl_ops
+>   media: davinci: vpif_capture: use SIMPLE_DEV_PM_OPS
+>   media: davinci: vpif_capture: return -ENODATA for *dv_timings calls
+>   media: davinci: vpif_capture: return -ENODATA for *std calls
+>   media: davinci: vpif_capture: drop check __KERNEL__
+>   media: davinci: vpif_capture: fix v4l-complinace issues
+>   media: davinci: vpif: add Copyright message
+> 
+>  drivers/media/platform/davinci/vpif_capture.c | 1420 +++++++------------------
+>  drivers/media/platform/davinci/vpif_capture.h |   39 -
+>  drivers/media/platform/davinci/vpif_display.c | 1196 ++++++---------------
+>  drivers/media/platform/davinci/vpif_display.h |   44 +-
+>  4 files changed, 746 insertions(+), 1953 deletions(-)
+> 
 
->> +enum tc90522_pwr {
->> +       TC90522_PWR_OFF         = 0x00,
->> +       TC90522_PWR_AMP_ON      = 0x04,
->> +       TC90522_PWR_TUNER_ON    = 0x40,
->> +};
->> +
->> +static enum tc90522_pwr tc90522_pwr = TC90522_PWR_OFF;
->
-> Global static variable for device power management..? That looks very bad.
-> Those variables are shared between all driver instances. That will not work
-> if you have multiple devices having that demod driver!
-
-OK, removed.
-In the next release pt3_pci will instruct when to power on the demod chip.
-
->> +int tc90522_set_powers(struct tc90522 *demod, enum tc90522_pwr pwr)
->> +{
->> +       u8 data = pwr | 0b10011001;
->> +       pr_debug("#%d tuner %s amp %s\n", demod->idx, pwr &
->> TC90522_PWR_TUNER_ON ? "ON" : "OFF", pwr & TC90522_PWR_AMP_ON ? "ON" :
->> "OFF");
->> +       tc90522_pwr = pwr;
->> +       return tc90522_write_data(&demod->fe, 0x1e, &data, 1);
->> +}
->> +
->> +/* dvb_frontend_ops */
->> +int tc90522_get_frontend_algo(struct dvb_frontend *fe)
->> +{
->> +       return DVBFE_ALGO_HW;
->> +}
->> +
->> +int tc90522_sleep(struct dvb_frontend *fe)
->> +{
->> +       struct tc90522 *demod = fe->demodulator_priv;
->> +       pr_debug("#%d %s %s\n", demod->idx, __func__, demod->type ==
->> SYS_ISDBS ? "S" : "T");
->> +       return fe->ops.tuner_ops.sleep(fe);
->
-> :-@ You are simply not allowed to hard code tuner power-management to demod
-> driver, it is no, no, no. Demod driver can have only get IF and set
-> parameters reference to tuner and nothing more.
->
-> You should sleep only demod in that demod sleep().
-> It is DVB core who is responsible of runtime power-management.
->
->> +}
->> +
->> +int tc90522_wakeup(struct dvb_frontend *fe)
->> +{
->> +       struct tc90522 *demod = fe->demodulator_priv;
->> +       pr_debug("#%d %s %s 0x%x\n", demod->idx, __func__, demod->type ==
->> SYS_ISDBS ? "S" : "T", tc90522_pwr);
->> +
->> +       if (!tc90522_pwr)
->> +               return  tc90522_set_powers(demod, TC90522_PWR_TUNER_ON) ||
->> +                       i2c_transfer(demod->i2c, NULL, 0)               ||
->> +                       tc90522_set_powers(demod, TC90522_PWR_TUNER_ON |
->> TC90522_PWR_AMP_ON);
->> +       demod->state = TC90522_IDLE;
->> +       return fe->ops.tuner_ops.init(fe);
->> +}
->
-> power-management is totally wrong here too
->
->> +void tc90522_release(struct dvb_frontend *fe)
->> +{
->> +       struct tc90522 *demod = fe->demodulator_priv;
->> +       pr_debug("#%d %s\n", demod->idx, __func__);
->> +
->> +       if (tc90522_pwr)
->> +               tc90522_set_powers(demod, TC90522_PWR_OFF);
->
-> That belongs to demod driver power-management callback sleep()
->
->> +       tc90522_sleep(fe);
->
-> hmm? PM...
->
->> +       fe->ops.tuner_ops.release(fe);
->> +       kfree(demod);
->> +}
-
-Sounds like your perception is TOTALLY WRONG.
-Remember this chip has 4 independent demods sharing the same power.
-There is only one power available for all 4!
-Turning off 1 demod will shutdown the other 3.
-
-Secondly, in PT3, there is no direct access to the tuners.
-Every control / data is done via demod, including power.
-
->> +int tc90522_read_signal_strength(struct dvb_frontend *fe, u16 *cn)     /*
->> raw C/N */
->> +{
->> +       struct tc90522 *demod = fe->demodulator_priv;
->> +       s64 ret = tc90522_get_cn_raw(demod);
->> +       *cn = ret < 0 ? 0 : ret;
->> +       pr_debug("v3 CN %d (%lld dB)\n", (int)*cn, demod->type ==
->> SYS_ISDBS ? (long long int)tc90522_get_cn_s(*cn) : (long long
->> int)tc90522_get_cn_t(*cn));
->> +       return ret < 0 ? ret : 0;
->> +}
->
-> We have API who supports both CNR and signal strenght. Do not abuse signal
-> strenght for CNR, instead implement as it should.
-
-OK, on DVBv3 stat I changed back .read_signal_strength to .read_snr
-for CNR (digitally modulated SNR)
-though AFAIK (in a strict mean) SNR != CNR.
-
->> +int tc90522_read_status(struct dvb_frontend *fe, fe_status_t *status)
->> +{
->> +       struct tc90522 *demod = fe->demodulator_priv;
->> +       struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->> +       s64 ret = tc90522_get_cn_raw(demod),
->> +           raw = ret < 0 ? 0 : ret;
->> +
->> +       switch (demod->state) {
->> +       case TC90522_IDLE:
->> +       case TC90522_SET_FREQUENCY:
->> +               *status = 0;
->> +               break;
->> +
->> +       case TC90522_SET_MODULATION:
->> +       case TC90522_ABORT:
->> +               *status |= FE_HAS_SIGNAL;
->> +               break;
->> +
->> +       case TC90522_TRACK:
->> +               *status |= FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_LOCK;
->> +               break;
->> +       }
->> +
->> +       c->cnr.len = 1;
->> +       c->cnr.stat[0].svalue = demod->type == SYS_ISDBS ?
->> tc90522_get_cn_s(raw) : tc90522_get_cn_t(raw);
->> +       c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
->> +       pr_debug("v5 CN %lld (%lld dB)\n", raw, c->cnr.stat[0].svalue);
->> +       return ret < 0 ? ret : 0;
->> +}
->
-> So you have decided to add some statistics logic here too. It is good place
-> to update stistics counters, but only on case where SW algo used and DVB
-> core is polling. However, you used HW algo which means that is not polled
-> automatically. Maybe it does not work as it should.
-
-So sorry but so far this works perfectly.
-
->> +/**** ISDB-S ****/
->> +int tc90522_write_id_s(struct dvb_frontend *fe, u16 id)
->> +{
->> +       u8 data[2] = { id >> 8, (u8)id };
->> +       return tc90522_write_data(fe, 0x8f, data, sizeof(data));
->> +}
->
-> Rather useless oneliner function called only from one place. This makes only
-> few lines of code more and bigger binary.
-
-OK, merged to parent function.
-
->> +int tc90522_tune_s(struct dvb_frontend *fe, bool re_tune, unsigned int
->> mode_flags, unsigned int *delay, fe_status_t *status)
->> +{
->> +       struct tc90522 *demod = fe->demodulator_priv;
->> +       struct tmcc_s tmcc;
->> +       int i, ret,
->> +           freq = fe->dtv_property_cache.frequency,
->> +           tsid = fe->dtv_property_cache.stream_id;
->
-> Adding more ints here does not cost anything.
-
-Well, this looks cleaner & smarter on my editor, and checkpatch.pl did
-not complain...
-
->> +
->> +       if (re_tune)
->> +               demod->state = TC90522_SET_FREQUENCY;
->> +
->> +       switch (demod->state) {
->> +       case TC90522_IDLE:
->> +               *delay = msecs_to_jiffies(3000);
->> +               *status = 0;
->> +               return 0;
->> +
->> +       case TC90522_SET_FREQUENCY:
->> +               pr_debug("#%d tsid 0x%x freq %d\n", demod->idx, tsid,
->> freq);
->
-> You must use dev_ functions for logging.
-
-Some maintainers (I forgot their names, maybe you also?) asked to use pr_*.
-And I agreed with them. dev_* is used only in pt3_pci, the PCI bridge driver.
-IMHO pr_* is more suitable. We can change to dev_* if it is a must.
-
-... skip ...
-
->> +               demod->state = TC90522_TRACK;
->> +               /* fallthrough */
->> +
->> +       case TC90522_TRACK:
->> +               *delay = msecs_to_jiffies(3000);
->> +               *status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_LOCK;
->> +               return 0;
->> +
->> +       case TC90522_ABORT:
->> +               *delay = msecs_to_jiffies(3000);
->> +               *status = FE_HAS_SIGNAL;
->> +               return 0;
->> +       }
->> +       return -ERANGE;
->> +}
->
-> That didnt look very correct and I didnt even understand it very well.
-> Basically it is callback which dvb core uses to tune device. However, thee
-> is complex state machine implemented. State machine state is updated by
-> read_status() callback, which is *not* ran by DVB core when that HW aldo is
-> used. How that can work? You need to call FE status from userspace in order
-> to update state machine? If your app does not call status, that does not
-> work at all?
-
-You are WRONG.
-It is dvb-core who runs the iteration.
-
-> And those 3 sec timers are here in order to leave some time for app to read
-> FE status => updates state machine?
-
-User is recommended to do FE_READ_STATUS and check FE_HAS_LOCK status
-to make sure it is tuned correctly.
-
->> +int tc90522_get_tmcc_t(struct tc90522 *demod)
->> +{
->> +       u8 buf;
->> +       bool b = false, retryov, fulock;
->> +
->> +       while (1) {
->> +               if (tc90522_read(demod, 0x80, &buf, 1))
->> +                       return -EBADMSG;
->> +               retryov = buf & 0b10000000 ? true : false;
->> +               fulock  = buf & 0b00001000 ? true : false;
->> +               if (!fulock) {
->> +                       b = true;
->> +                       break;
->> +               } else {
->> +                       if (retryov)
->> +                               break;
->> +               }
->> +               msleep_interruptible(1);
->
-> Weird looking sleep, I have never earlier seen that. Have you looked timers
-> howto from kernel documentation?
->
-> Also, it looks a bit scary what goes to potential infinity loop. If you need
-> some upper limit per time you should use loop implemented by jiffies.
-> Otherwise just use for loop which surely ends.
-
-So far never fails. But OK I will set an upper limit.
-
->> +/**** Common ****/
->> +struct dvb_frontend *tc90522_attach(struct i2c_adapter *i2c, u8 idx,
->> fe_delivery_system_t type, u8 addr_demod)
->> +{
->> +       struct dvb_frontend *fe;
->> +       struct tc90522 *demod = kzalloc(sizeof(struct tc90522),
->> GFP_KERNEL);
->> +       if (!demod)
->> +               return NULL;
->> +
->> +       demod->i2c      = i2c;
->> +       demod->idx      = idx;
->
-> Driver should not need index at all. It could be found from the frontend
-> pointer after registration, but still not needed.
-
-If you read the source thoroughly, you will find that idx is used only
-for debugging.
-We can remove if it is prohibited.
-
->> +       demod->type     = type;
->> +       demod->addr_demod = addr_demod;
->> +       fe = &demod->fe;
->> +       memcpy(&fe->ops, (demod->type == SYS_ISDBS) ? &tc90522_ops_s :
->> &tc90522_ops_t, sizeof(struct dvb_frontend_ops));
->> +       fe->demodulator_priv = demod;
->> +       return fe;
->> +}
->
-> There is some issues as T and S mode driver instances registered to same
-> chip. What happens if you are wathing T and try tune S at same time?
-> (probably T breaks). I am not still sure if it is something that should be
-> fixed.
-
-Nothing wrong. The chip can handle all 2ch T + 2ch S simultaneously.
