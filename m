@@ -1,60 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback7.mail.ru ([94.100.176.135]:36113 "EHLO
-	fallback7.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751511AbaEMRYH (ORCPT
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:45019 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751231AbaEXTcV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 May 2014 13:24:07 -0400
-Received: from f332.i.mail.ru (f332.i.mail.ru [217.69.140.228])
-	by fallback7.mail.ru (mPOP.Fallback_MX) with ESMTP id 4EB50101A85E1
-	for <linux-media@vger.kernel.org>; Tue, 13 May 2014 21:24:04 +0400 (MSK)
-From: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
-To: =?UTF-8?B?U3lsd2VzdGVyIE5hd3JvY2tp?= <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?B?TWF1cm8gQ2FydmFsaG8gQ2hlaGFi?= <m.chehab@samsung.com>,
-	=?UTF-8?B?U2hhd24gR3Vv?= <shawn.guo@freescale.com>,
-	devicetree@vger.kernel.org
-Subject: =?UTF-8?B?UmU6IFtQQVRDSCAzLzNdIG1lZGlhOiBteDItZW1tYXBycDogQWRkIGRldmlj?=
- =?UTF-8?B?ZXRyZWUgc3VwcG9ydA==?=
-Mime-Version: 1.0
-Date: Tue, 13 May 2014 21:23:49 +0400
-Reply-To: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
-Message-ID: <1400001829.645600850@f332.i.mail.ru>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
-In-Reply-To: <537251CA.3070005@samsung.com>
-References: <1399015119-24000-1-git-send-email-shc_work@mail.ru>
- <537251CA.3070005@samsung.com>
+	Sat, 24 May 2014 15:32:21 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N6300LDTFLV4590@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 24 May 2014 15:32:19 -0400 (EDT)
+Date: Sat, 24 May 2014 16:32:14 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.16] davinci updates
+Message-id: <20140524163214.6796f264.m.chehab@samsung.com>
+In-reply-to: <53805338.50301@xs4all.nl>
+References: <537F0FCD.207@xs4all.nl>
+ <20140523194545.4793e1a0.m.chehab@samsung.com> <53805338.50301@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VHVlLCAxMyBNYXkgMjAxNCAxOTowOTozMCArMDIwMCDQvtGCIFN5bHdlc3RlciBOYXdyb2NraSA8
-cy5uYXdyb2NraUBzYW1zdW5nLmNvbT46Cj4gSGksCj4gCj4gT24gMDIvMDUvMTQgMDk6MTgsIEFs
-ZXhhbmRlciBTaGl5YW4gd3JvdGU6Cj4gPiBUaGlzIHBhdGNoIGFkZHMgZGV2aWNldHJlZSBzdXBw
-b3J0IGZvciB0aGUgRnJlZXNjYWxlIGVuaGFuY2VkIE11bHRpbWVkaWEKPiA+IEFjY2VsZXJhdG9y
-IChlTU1BKSB2aWRlbyBQcmUtcHJvY2Vzc29yIChQclApLgo+ID4gCj4gPiBTaWduZWQtb2ZmLWJ5
-OiBBbGV4YW5kZXIgU2hpeWFuIDxzaGNfd29ya0BtYWlsLnJ1Pgo+ID4gLS0tCj4gPiAgLi4uL2Rl
-dmljZXRyZWUvYmluZGluZ3MvbWVkaWEvZnNsLWlteC1lbW1hcHJwLnR4dCAgICAgfCAxOSArKysr
-KysrKysrKysrKysrKysrCj4gPiAgZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9teDJfZW1tYXBycC5j
-ICAgICAgICAgICAgICAgICAgfCAgOCArKysrKysrKwo+ID4gIDIgZmlsZXMgY2hhbmdlZCwgMjcg
-aW5zZXJ0aW9ucygrKQo+ID4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBEb2N1bWVudGF0aW9uL2Rldmlj
-ZXRyZWUvYmluZGluZ3MvbWVkaWEvZnNsLWlteC1lbW1hcHJwLnR4dAo+ID4gCj4gPiBkaWZmIC0t
-Z2l0IGEvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL21lZGlhL2ZzbC1pbXgtZW1t
-YXBycC50eHQgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvZnNsLWlt
-eC1lbW1hcHJwLnR4dAo+ID4gbmV3IGZpbGUgbW9kZSAxMDA2NDQKPiA+IGluZGV4IDAwMDAwMDAu
-LjllODIzOGYKPiA+IC0tLSAvZGV2L251bGwKPiA+ICsrKyBiL0RvY3VtZW50YXRpb24vZGV2aWNl
-dHJlZS9iaW5kaW5ncy9tZWRpYS9mc2wtaW14LWVtbWFwcnAudHh0Cj4gPiBAQCAtMCwwICsxLDE5
-IEBACj4gPiArKiBGcmVlc2NhbGUgZW5oYW5jZWQgTXVsdGltZWRpYSBBY2NlbGVyYXRvciAoZU1N
-QSkgdmlkZW8gUHJlLXByb2Nlc3NvciAoUHJQKQo+ID4gKyAgZm9yIGkuTVguCj4gPiArCj4gPiAr
-UmVxdWlyZWQgcHJvcGVydGllczoKPiA+ICstIGNvbXBhdGlibGUgOiBTaGFsbCBjb250YWluICJm
-c2wsaW14MjEtZW1tYXBycCIuCj4gPiArLSByZWcgICAgICAgIDogT2Zmc2V0IGFuZCBsZW5ndGgg
-b2YgdGhlIHJlZ2lzdGVyIHNldCBmb3IgdGhlIGRldmljZS4KPiA+ICstIGludGVycnVwdHMgOiBT
-aG91bGQgY29udGFpbiBlTU1BIFByUCBpbnRlcnJ1cHQgbnVtYmVyLgo+ID4gKy0gY2xvY2tzICAg
-ICA6IFNob3VsZCBjb250YWluIHRoZSBhaGIgYW5kIGlwZyBjbG9ja3MsIGluIHRoZSBvcmRlcgo+
-ID4gKyAgICAgICAgICAgICAgIGRldGVybWluZWQgYnkgdGhlIGNsb2NrLW5hbWVzIHByb3BlcnR5
-Lgo+ID4gKy0gY2xvY2stbmFtZXM6IFNob3VsZCBiZSAiYWhiIiwgImlwZyIuCj4gPiArCj4gPiAr
-RXhhbXBsZToKPiA+ICsJZW1tYXBycDogZW1tYXBycEAxMDAyNjQwMCB7Cj4gPiArCQljb21wYXRp
-YmxlID0gImZzbCxpbXgyNy1lbW1hcHJwIiwgImZzbCxpbXgyMS1lbW1hcHJwIjsKPiAKPiBJcyAi
-ZnNsLGlteDI3LWVtbWFwcnAiIGNvbXBhdGlibGUgZG9jdW1lbnRlZCBzb21ld2hlcmUgPwoKVGhl
-IG92ZXJhbGwgc3RydWN0dXJlIG9mIHRoZSBlTU1BIG1vZHVsZSBpcyBzbGlnaHRseSBkaWZmZXJl
-bnQuCkFzIGZvciB0aGUgcGFydCBvZiB0aGUgUHJQLCBhY2NvcmRpbmcgdG8gdGhlIGRhdGFzaGVl
-dCB0aGV5IGFyZSBjb21wYXRpYmxlLgoKLi4uCgotLS0KCg==
+Em Sat, 24 May 2014 10:07:20 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+
+> On 05/24/2014 12:45 AM, Mauro Carvalho Chehab wrote:
+> > Em Fri, 23 May 2014 11:07:25 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> >> Hi Mauro,
+> >>
+> >> These are cleanup patches for the davinci drivers. A total of about 1200 lines
+> >> of code are removed. Not bad!
+> >>
+> >> Regards,
+> >>
+> >> 	Hans
+> >>
+> >>
+> >> The following changes since commit e899966f626f1f657a4a7bac736c0b9ae5a243ea:
+> >>
+> >>   Merge tag 'v3.15-rc6' into patchwork (2014-05-21 23:03:15 -0300)
+> >>
+> >> are available in the git repository at:
+> >>
+> >>
+> >>   git://linuxtv.org/hverkuil/media_tree.git davinci
+> >>
+> >> for you to fetch changes up to c1022cd59bb34dbb435cda9a2fc98bb6fb931f61:
+> >>
+> >>   media: davinci: vpif: add Copyright message (2014-05-23 10:12:34 +0200)
+> >>
+> >> ----------------------------------------------------------------
+> >> Lad, Prabhakar (49):
+> >>       media: davinci: vpif_display: initialize vb2 queue and DMA context during probe
+> >>       media: davinci: vpif_display: drop buf_init() callback
+> >>       media: davinci: vpif_display: use vb2_ops_wait_prepare/finish helper functions
+> >>       media: davinci: vpif_display: release buffers in case start_streaming() call back fails
+> >>       media: davinci: vpif_display: drop buf_cleanup() callback
+> >>       media: davinci: vpif_display: improve vpif_buffer_prepare() callback
+> >>       media: davinci: vpif_display: improve vpif_buffer_queue_setup() function
+> >>       media: davinci: vpif_display: improve start/stop_streaming callbacks
+> >>       media: davinci: vpif_display: use vb2_fop_mmap/poll
+> >>       media: davinci: vpif_display: use v4l2_fh_open and vb2_fop_release
+> >>       media: davinci: vpif_display: use vb2_ioctl_* helpers
+> >>       media: davinci: vpif_display: drop unused member fbuffers
+> >>       media: davinci: vpif_display: drop reserving memory for device
+> >>       media: davinci: vpif_display: drop unnecessary field memory
+> >>       media: davinci: vpif_display: drop numbuffers field from common_obj
+> >>       media: davinic: vpif_display: drop started member from struct common_obj
+> >>       media: davinci: vpif_display: initialize the video device in single place
+> >>       media: davinci: vpif_display: drop unneeded module params
+> >>       media: davinci: vpif_display: drop cropcap
+> >>       media: davinci: vpif_display: group v4l2_ioctl_ops
+> >>       media: davinci: vpif_display: use SIMPLE_DEV_PM_OPS
+> >>       media: davinci: vpif_display: return -ENODATA for *dv_timings calls
+> >>       media: davinci: vpif_display: return -ENODATA for *std calls
+> >>       media: davinci; vpif_display: fix checkpatch error
+> >>       media: davinci: vpif_display: fix v4l-complinace issues
+> >>       media: davinci: vpif_capture: initalize vb2 queue and DMA context during probe
+> >>       media: davinci: vpif_capture: drop buf_init() callback
+> >>       media: davinci: vpif_capture: use vb2_ops_wait_prepare/finish helper functions
+> >>       media: davinci: vpif_capture: release buffers in case start_streaming() call back fails
+> >>       media: davinci: vpif_capture: drop buf_cleanup() callback
+> >>       media: davinci: vpif_capture: improve vpif_buffer_prepare() callback
+> >>       media: davinci: vpif_capture: improve vpif_buffer_queue_setup() function
+> >>       media: davinci: vpif_capture: improve start/stop_streaming callbacks
+> >>       media: davinci: vpif_capture: use vb2_fop_mmap/poll
+> >>       media: davinci: vpif_capture: use v4l2_fh_open and vb2_fop_release
+> >>       media: davinci: vpif_capture: use vb2_ioctl_* helpers
+> >>       media: davinci: vpif_capture: drop reserving memory for device
+> >>       media: davinci: vpif_capture: drop unnecessary field memory
+> >>       media: davinic: vpif_capture: drop started member from struct common_obj
+> >>       media: davinci: vpif_capture: initialize the video device in single place
+> > 
+> >>       media: davinci: vpif_capture: drop unneeded module params
+> > 
+> > Enough!
+> > 
+> > I'm tired of guessing why those bad commented are needed and what them are
+> > actually doing.
+> > 
+> > In this particular case:
+> > 
+> > Why those module parameters were needed before, but aren't needed anymore?
+> > What changed? The removal of module parameters is a sort of API change.
+> > 
+> > So, I _DO_ expect them to be very well justified.
+> > 
+> > Please, properly describe _ALL_ patches, or I'll NACK the pull requests.
+> > 
+> > This time, I applied everything up to the patch before this one. On a next
+> > pull request without proper descriptions, I'll likely just stop on the first
+> > patch missing description (or with a crappy one).
+> 
+> Next time you see patches with insufficient commit log text just send them back
+> with 'Changes Requested'. I don't mind since I have a bit of a blind spot for
+> that myself. It's good training for me.
+> 
+> But in this case you accepted the patch ("drop unneeded module params") which
+> really needed a better description (again, blind spot on my side, I should
+> have caught that), 
+
+Sorry, my fault. I was supposed to have reverted the merge of this one
+before pushing at mainstream.
+
+> and then stopped merging the remaining patches. But those
+> remaining patches all have proper commit logs (at least in my view), so I am
+> requesting that you pull in the remaining patches. 
+
+Fair enough. I'll revert changeset b952662f272ae43c1583fac4dcda71ef36c33528,
+and apply the remaining ones, if they're ok and don't depend on it.
+
+> 
+> If you think that the commit logs for the remaining patches isn't good enough,
+> just let me know and I will improve them.
+
+Ok.
+
+> 
+> Regards,
+> 
+> 	Hans
