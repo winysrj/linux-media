@@ -1,64 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f43.google.com ([209.85.160.43]:36600 "EHLO
-	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751786AbaEUJ35 (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1715 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750901AbaEXIZJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 May 2014 05:29:57 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com, posciak@chromium.org,
-	avnd.kiran@samsung.com, sachin.kamat@linaro.org,
-	t.figa@samsung.com, arunkk.samsung@gmail.com
-Subject: [PATCH v2 3/3] [media] s5p-mfc: Add init buffer cmd to MFCV6
-Date: Wed, 21 May 2014 14:59:31 +0530
-Message-Id: <1400664571-13746-4-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1400664571-13746-1-git-send-email-arun.kk@samsung.com>
-References: <1400664571-13746-1-git-send-email-arun.kk@samsung.com>
+	Sat, 24 May 2014 04:25:09 -0400
+Message-ID: <53805742.60206@xs4all.nl>
+Date: Sat, 24 May 2014 10:24:34 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: cron job: media_tree daily build: ERRORS
+References: <20140524023204.702842A19A6@tschai.lan>
+In-Reply-To: <20140524023204.702842A19A6@tschai.lan>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Latest MFC v6 firmware requires tile mode and loop filter
-setting to be done as part of Init buffer command, in sync
-with v7. This patch adds this support for new v6 firmware.
+Hi Sylwester,
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
-Reviewed-by: Tomasz Figa <t.figa@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Can you look at this build error?
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 4f5e0ea..c1c12f8 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -48,6 +48,8 @@
- #define WRITEL(data, reg) \
- 	(WARN_ON_ONCE(!(reg)) ? 0 : writel((data), (reg)))
- 
-+#define IS_MFCV6_V2(dev) (!IS_MFCV7_PLUS(dev) && dev->fw_ver == MFC_FW_V2)
-+
- /* Allocate temporary buffers for decoding */
- static int s5p_mfc_alloc_dec_temp_buffers_v6(struct s5p_mfc_ctx *ctx)
- {
-@@ -1352,7 +1354,7 @@ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
- 		WRITEL(ctx->display_delay, mfc_regs->d_display_delay);
- 	}
- 
--	if (IS_MFCV7_PLUS(dev)) {
-+	if (IS_MFCV7_PLUS(dev) || IS_MFCV6_V2(dev)) {
- 		WRITEL(reg, mfc_regs->d_dec_options);
- 		reg = 0;
- 	}
-@@ -1367,7 +1369,7 @@ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
- 	if (ctx->dst_fmt->fourcc == V4L2_PIX_FMT_NV12MT_16X16)
- 		reg |= (0x1 << S5P_FIMV_D_OPT_TILE_MODE_SHIFT_V6);
- 
--	if (IS_MFCV7_PLUS(dev))
-+	if (IS_MFCV7_PLUS(dev) || IS_MFCV6_V2(dev))
- 		WRITEL(reg, mfc_regs->d_init_buffer_options);
- 	else
- 		WRITEL(reg, mfc_regs->d_dec_options);
--- 
-1.7.9.5
+On 05/24/2014 04:32 AM, Hans Verkuil wrote:
+> This message is generated daily by a cron job that builds media_tree for
+> the kernels and architectures in the list below.
+> 
+> Results of the daily build of media_tree:
+> 
+> date:		Sat May 24 04:00:26 CEST 2014
+> git branch:	test
+> git hash:	12bd10c79bd8f65698660e992b8656e9a48eeca1
+> gcc version:	i686-linux-gcc (GCC) 4.8.2
+> sparse version:	v0.5.0-11-g38d1124
+> host hardware:	x86_64
+> host os:	3.14-1.slh.1-amd64
+> 
+> linux-git-arm-at91: OK
+> linux-git-arm-davinci: OK
+> linux-git-arm-exynos: ERRORS
 
+/home/hans/work/build/media-git/drivers/media/i2c/m5mols/m5mols_capture.c:29:28: fatal error: media/s5p_fimc.h: No such file or directory
+ #include <media/s5p_fimc.h>
+                            ^
+compilation terminated.
+make[5]: *** [drivers/media/i2c/m5mols/m5mols_capture.o] Error 1
+make[5]: *** Waiting for unfinished jobs....
+make[4]: *** [drivers/media/i2c/m5mols] Error 2
+make[4]: *** Waiting for unfinished jobs....
+make[3]: *** [drivers/media/i2c] Error 2
+make[3]: *** Waiting for unfinished jobs....
+make[2]: *** [drivers/media/] Error 2
+make[1]: *** [sub-make] Error 2
+make: *** [all] Error 2
+Sat May 24 04:01:06 CEST 2014
+
+This seems to be caused by commit "exynos4-is: Remove support for non-dt platforms"
+which removed the s5p_fimc.h header. My guess is that s5p_fimc.h has been renamed
+by exynos-fimc.h and this header include was missed.
+
+Regards,
+
+	Hans
