@@ -1,65 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54199 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751662AbaEOPj4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 May 2014 11:39:56 -0400
-Date: Thu, 15 May 2014 10:39:45 -0500
-From: Felipe Balbi <balbi@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Felipe Balbi <balbi@ti.com>, <linux-usb@vger.kernel.org>,
-	<linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.16] UVC gadget driver fixes
-Message-ID: <20140515153945.GC7360@saruman.home>
-Reply-To: <balbi@ti.com>
-References: <42415415.jy6YRrDCiC@avalon>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="da4uJneut+ArUgXk"
-Content-Disposition: inline
-In-Reply-To: <42415415.jy6YRrDCiC@avalon>
+Received: from smtprelay0097.hostedemail.com ([216.40.44.97]:41809 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751231AbaEXTTL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 May 2014 15:19:11 -0400
+Received: from smtprelay.hostedemail.com (ff-bigip1 [10.5.19.254])
+	by smtpgrave06.hostedemail.com (Postfix) with ESMTP id 399111730AE
+	for <linux-media@vger.kernel.org>; Sat, 24 May 2014 19:11:53 +0000 (UTC)
+Message-ID: <1400958648.22191.3.camel@joe-AO725>
+Subject: Re: [PATCH] msi3103: Use time_before_eq()
+From: Joe Perches <joe@perches.com>
+To: Manuel =?ISO-8859-1?Q?Sch=F6lling?= <manuel.schoelling@gmx.de>
+Cc: crope@iki.fi, m.chehab@samsung.com, gregkh@linuxfoundation.org,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Date: Sat, 24 May 2014 12:10:48 -0700
+In-Reply-To: <1400957276-13222-1-git-send-email-manuel.schoelling@gmx.de>
+References: <1400957276-13222-1-git-send-email-manuel.schoelling@gmx.de>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---da4uJneut+ArUgXk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Sat, 2014-05-24 at 20:47 +0200, Manuel Schölling wrote:
+> To be future-proof and for better readability the time comparisons are
+> modified to use time_before_eq() instead of plain, error-prone math.
 
-Hi,
+A couple of unrelated, trivial notes: (repeated a few times)
 
-On Fri, May 09, 2014 at 02:27:34PM +0200, Laurent Pinchart wrote:
-> Hi Felipe,
->=20
-> Could you please pull the following three patches for v3.16 ? They've
-> been reviewed on the linux-media and linux-usb mailing list.
+> diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+[]
+> @@ -208,7 +208,7 @@ static int msi3101_convert_stream_504(struct msi3101_state *s, u8 *dst,
+>  	}
+>  
+>  	/* calculate samping rate and output it in 10 seconds intervals */
 
-ok, are these patches being merged in any other tree ? I don't usually
-take pull requests, only patches, so if these aren't merged anyway, I'll
-cherry-pick them as patches.
+s/samping/sampling/
 
---=20
-balbi
+> -	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
+> +	if (time_before_eq(s->jiffies_next + 10 * HZ, jiffies)) {
+>  		unsigned long jiffies_now = jiffies;
+>  		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
 
---da4uJneut+ArUgXk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Perhaps better to subtract then convert
+instead of convert twice then subtract.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTdN/BAAoJEIaOsuA1yqREg64P/jBX4pcftM83jP9/tBpSRNPk
-OHTttccLb3bgdAAAGpW3xbmG6ecbSd48hxJCTMee/qPRlLOh9MWpSMSOWNFoeJaK
-8UABWrxjLs77NKVTeyv0d9FTQppdLi5Lk43OB1v+JLWwmxen7ZJYYncy/GYWbq3O
-RFqbCnuEjYg47r+YQ54ox0zMulsvCZ0om5+B/4x6aDJMI3Q67ba6sHFqoRJqWBoF
-NOpAamWpdhwd3pmje1yNKso2QDP9156I76HZzTL7m6u1bM+66HAZPNoIKulgkfUu
-O/3rfokZOc5yXBu2dl1DZ9gK3YIbhestGORyQ3ovStBnrxIcDR14x46zx80tNo6h
-QM4797RO7UtE9Yik6KxuMXkn8CByz9N9TeUopBMVb6HNHTrt2xfJMeswBfByQYDZ
-Vy2oYP4/IwUhjL4OI8SBBwUjk/o+sTDKW/Ts6adEvqYw/7rxN+cmWqFqtrZXx6rR
-yd3qCzwv0lQqL7pbv56ZB/dp/kBnimrbk1kSvT0pmuHDg4Z9fby42MOo+o2nLPTY
-j7VqvO0YOHooaiyr6sxgyoslv6L/JvDDZn6deNrD35I/a59WmtQU2lk3v9nW4WGd
-lGXZWfsNNzjUsenwDBQInOftERG+Tj7FaKTAZR7Y2lkyi/41sE6g90sPAR90B42B
-vRUhpw1C4B9rCeWqJc69
-=fLD6
------END PGP SIGNATURE-----
-
---da4uJneut+ArUgXk--
