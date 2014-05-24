@@ -1,92 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51830 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932699AbaE3Xf4 (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1171 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751114AbaEXIHz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 May 2014 19:35:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] V4L2: fix VIDIOC_CREATE_BUFS 32-bit compatibility mode data copy-back
-Date: Sat, 31 May 2014 01:36:16 +0200
-Message-ID: <1502861.x1mpGJtZG6@avalon>
-In-Reply-To: <Pine.LNX.4.64.1405310125260.17582@axis700.grange>
-References: <Pine.LNX.4.64.1405310125260.17582@axis700.grange>
+	Sat, 24 May 2014 04:07:55 -0400
+Message-ID: <53805338.50301@xs4all.nl>
+Date: Sat, 24 May 2014 10:07:20 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.16] davinci updates
+References: <537F0FCD.207@xs4all.nl> <20140523194545.4793e1a0.m.chehab@samsung.com>
+In-Reply-To: <20140523194545.4793e1a0.m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
-
-Thank you for the patch.
-
-On Saturday 31 May 2014 01:26:38 Guennadi Liakhovetski wrote:
-> Similar to an earlier patch,
-
-Could you please mention the commit ID in the commit message ?
-
-> fixing reading user-space data for the
-> VIDIOC_CREATE_BUFS ioctl() in 32-bit compatibility mode, this patch fixes
-> writing back of the possibly modified struct to the user. However, unlike
-> the former bug, this one is much less harmful, because it only results in
-> the kernel failing to write the .type field back to the user, but in fact
-> this is likely unneeded, because the kernel will hardly want to change
-> that field. Therefore this bug is more of a theoretical nature.
+On 05/24/2014 12:45 AM, Mauro Carvalho Chehab wrote:
+> Em Fri, 23 May 2014 11:07:25 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> Hi Mauro,
+>>
+>> These are cleanup patches for the davinci drivers. A total of about 1200 lines
+>> of code are removed. Not bad!
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>
+>> The following changes since commit e899966f626f1f657a4a7bac736c0b9ae5a243ea:
+>>
+>>   Merge tag 'v3.15-rc6' into patchwork (2014-05-21 23:03:15 -0300)
+>>
+>> are available in the git repository at:
+>>
+>>
+>>   git://linuxtv.org/hverkuil/media_tree.git davinci
+>>
+>> for you to fetch changes up to c1022cd59bb34dbb435cda9a2fc98bb6fb931f61:
+>>
+>>   media: davinci: vpif: add Copyright message (2014-05-23 10:12:34 +0200)
+>>
+>> ----------------------------------------------------------------
+>> Lad, Prabhakar (49):
+>>       media: davinci: vpif_display: initialize vb2 queue and DMA context during probe
+>>       media: davinci: vpif_display: drop buf_init() callback
+>>       media: davinci: vpif_display: use vb2_ops_wait_prepare/finish helper functions
+>>       media: davinci: vpif_display: release buffers in case start_streaming() call back fails
+>>       media: davinci: vpif_display: drop buf_cleanup() callback
+>>       media: davinci: vpif_display: improve vpif_buffer_prepare() callback
+>>       media: davinci: vpif_display: improve vpif_buffer_queue_setup() function
+>>       media: davinci: vpif_display: improve start/stop_streaming callbacks
+>>       media: davinci: vpif_display: use vb2_fop_mmap/poll
+>>       media: davinci: vpif_display: use v4l2_fh_open and vb2_fop_release
+>>       media: davinci: vpif_display: use vb2_ioctl_* helpers
+>>       media: davinci: vpif_display: drop unused member fbuffers
+>>       media: davinci: vpif_display: drop reserving memory for device
+>>       media: davinci: vpif_display: drop unnecessary field memory
+>>       media: davinci: vpif_display: drop numbuffers field from common_obj
+>>       media: davinic: vpif_display: drop started member from struct common_obj
+>>       media: davinci: vpif_display: initialize the video device in single place
+>>       media: davinci: vpif_display: drop unneeded module params
+>>       media: davinci: vpif_display: drop cropcap
+>>       media: davinci: vpif_display: group v4l2_ioctl_ops
+>>       media: davinci: vpif_display: use SIMPLE_DEV_PM_OPS
+>>       media: davinci: vpif_display: return -ENODATA for *dv_timings calls
+>>       media: davinci: vpif_display: return -ENODATA for *std calls
+>>       media: davinci; vpif_display: fix checkpatch error
+>>       media: davinci: vpif_display: fix v4l-complinace issues
+>>       media: davinci: vpif_capture: initalize vb2 queue and DMA context during probe
+>>       media: davinci: vpif_capture: drop buf_init() callback
+>>       media: davinci: vpif_capture: use vb2_ops_wait_prepare/finish helper functions
+>>       media: davinci: vpif_capture: release buffers in case start_streaming() call back fails
+>>       media: davinci: vpif_capture: drop buf_cleanup() callback
+>>       media: davinci: vpif_capture: improve vpif_buffer_prepare() callback
+>>       media: davinci: vpif_capture: improve vpif_buffer_queue_setup() function
+>>       media: davinci: vpif_capture: improve start/stop_streaming callbacks
+>>       media: davinci: vpif_capture: use vb2_fop_mmap/poll
+>>       media: davinci: vpif_capture: use v4l2_fh_open and vb2_fop_release
+>>       media: davinci: vpif_capture: use vb2_ioctl_* helpers
+>>       media: davinci: vpif_capture: drop reserving memory for device
+>>       media: davinci: vpif_capture: drop unnecessary field memory
+>>       media: davinic: vpif_capture: drop started member from struct common_obj
+>>       media: davinci: vpif_capture: initialize the video device in single place
+> 
+>>       media: davinci: vpif_capture: drop unneeded module params
+> 
+> Enough!
+> 
+> I'm tired of guessing why those bad commented are needed and what them are
+> actually doing.
+> 
+> In this particular case:
+> 
+> Why those module parameters were needed before, but aren't needed anymore?
+> What changed? The removal of module parameters is a sort of API change.
+> 
+> So, I _DO_ expect them to be very well justified.
+> 
+> Please, properly describe _ALL_ patches, or I'll NACK the pull requests.
+> 
+> This time, I applied everything up to the patch before this one. On a next
+> pull request without proper descriptions, I'll likely just stop on the first
+> patch missing description (or with a crappy one).
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Next time you see patches with insufficient commit log text just send them back
+with 'Changes Requested'. I don't mind since I have a bit of a blind spot for
+that myself. It's good training for me.
 
-> ---
-> 
-> Not tested yet, I'll (try not to forget to) test it next week.
-> 
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 10 ++++++----
->  1 file changed, 6 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index 7e2411c..c86a7e8
-> 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -222,6 +222,9 @@ static int get_v4l2_create32(struct v4l2_create_buffers
-> *kp, struct v4l2_create_
-> 
->  static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32
-> __user *up) {
-> +	if (put_user(kp->type, &up->type))
-> +		return -EFAULT;
-> +
->  	switch (kp->type) {
->  	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
->  	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-> @@ -248,8 +251,7 @@ static int __put_v4l2_format32(struct v4l2_format *kp,
-> struct v4l2_format32 __us
-> 
->  static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32
-> __user *up) {
-> -	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)) ||
-> -		put_user(kp->type, &up->type))
-> +	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)))
->  		return -EFAULT;
->  	return __put_v4l2_format32(kp, up);
->  }
-> @@ -257,8 +259,8 @@ static int put_v4l2_format32(struct v4l2_format *kp,
-> struct v4l2_format32 __user static int put_v4l2_create32(struct
-> v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up) {
->  	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_create_buffers32)) ||
-> -	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32,
-> format.fmt)))
-> -			return -EFAULT;
-> +	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32, format)))
-> +		return -EFAULT;
->  	return __put_v4l2_format32(&kp->format, &up->format);
->  }
+But in this case you accepted the patch ("drop unneeded module params") which
+really needed a better description (again, blind spot on my side, I should
+have caught that), and then stopped merging the remaining patches. But those
+remaining patches all have proper commit logs (at least in my view), so I am
+requesting that you pull in the remaining patches. 
 
--- 
+If you think that the commit logs for the remaining patches isn't good enough,
+just let me know and I will improve them.
+
 Regards,
 
-Laurent Pinchart
-
+	Hans
