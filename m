@@ -1,48 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from isis.lip6.fr ([132.227.60.2]:56482 "EHLO isis.lip6.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753090AbaEZP1k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 11:27:40 -0400
-From: Benoit Taine <benoit.taine@lip6.fr>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: benoit.taine@lip6.fr, Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [PATCH 15/18] Drivers: media: Use kmemdup instead of kmalloc + memcpy
-Date: Mon, 26 May 2014 17:21:24 +0200
-Message-Id: <1401117687-28911-16-git-send-email-benoit.taine@lip6.fr>
-In-Reply-To: <1401117687-28911-1-git-send-email-benoit.taine@lip6.fr>
-References: <1401117687-28911-1-git-send-email-benoit.taine@lip6.fr>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3246 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750794AbaEXVQp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 May 2014 17:16:45 -0400
+Message-ID: <53810C1E.7040509@xs4all.nl>
+Date: Sat, 24 May 2014 23:16:14 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: [GIT PULL FOR v3.16] solo6x10 patches, with description
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This issue was reported by coccicheck using the semantic patch 
-at scripts/coccinelle/api/memdup.cocci
+Hi Mauro,
 
-Signed-off-by: Benoit Taine <benoit.taine@lip6.fr>
----
-Tested by compilation without errors.
+The same solo6x10 patches, but with a proper description.
 
- drivers/media/platform/soc_camera/soc_camera.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+Regards,
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index c8549bf..8646c11 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1346,13 +1346,11 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
- 		return -ENODEV;
- 	}
- 
--	ssdd = kzalloc(sizeof(*ssdd), GFP_KERNEL);
-+	ssdd = kmemdup(&sdesc->subdev_desc, sizeof(*ssdd), GFP_KERNEL);
- 	if (!ssdd) {
- 		ret = -ENOMEM;
- 		goto ealloc;
- 	}
--
--	memcpy(ssdd, &sdesc->subdev_desc, sizeof(*ssdd));
- 	/*
- 	 * In synchronous case we request regulators ourselves in
- 	 * soc_camera_pdrv_probe(), make sure the subdevice driver doesn't try
+	Hans
 
+The following changes since commit 85ac1a1772bb41da895bad83a81f6a62c8f293f6:
+
+  [media] media: stk1160: Avoid stack-allocated buffer for control URBs (2014-05-24 17:12:11 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.16h
+
+for you to fetch changes up to a7b8579b64a0245a3ee33f212175124495e47ad6:
+
+  solo6x10: Kconfig: Add supported card list to the SOLO6X10 knob (2014-05-24 23:10:35 +0200)
+
+----------------------------------------------------------------
+Ismael Luceno (2):
+      solo6x10: Reduce OSD writes to the minimum necessary
+      solo6x10: Kconfig: Add supported card list to the SOLO6X10 knob
+
+ drivers/staging/media/solo6x10/Kconfig            | 12 +++++++++---
+ drivers/staging/media/solo6x10/solo6x10-enc.c     | 31 ++++++++++++++-----------------
+ drivers/staging/media/solo6x10/solo6x10-offsets.h |  2 ++
+ 3 files changed, 25 insertions(+), 20 deletions(-)
