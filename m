@@ -1,164 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49832 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752042AbaEZTuG (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3754 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751113AbaEXCcc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 15:50:06 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Fri, 23 May 2014 22:32:32 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4O2WTvo096131
+	for <linux-media@vger.kernel.org>; Sat, 24 May 2014 04:32:31 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 702842A19A6
+	for <linux-media@vger.kernel.org>; Sat, 24 May 2014 04:32:04 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Julien BERAUD <julien.beraud@parrot.com>,
-	Boris Todorov <boris.st.todorov@gmail.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Enrico <ebutera@users.berlios.de>,
-	Stefan Herbrechtsmeier <sherbrec@cit-ec.uni-bielefeld.de>,
-	Javier Martinez Canillas <martinez.javier@gmail.com>,
-	Chris Whittenburg <whittenburg@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 09/11] omap3isp: ccdc: Add basic support for interlaced video
-Date: Mon, 26 May 2014 21:50:10 +0200
-Message-Id: <1401133812-8745-10-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140524023204.702842A19A6@tschai.lan>
+Date: Sat, 24 May 2014 04:32:04 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When the CCDC input is interlaced enable the alternate field order on
-the CCDC output video node. The field signal polarity is specified
-through platform data.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispccdc.c  | 21 ++++++++++++++++++++-
- drivers/media/platform/omap3isp/ispvideo.c |  6 ++++++
- drivers/media/platform/omap3isp/ispvideo.h |  2 ++
- include/media/omap3isp.h                   |  3 +++
- 4 files changed, 31 insertions(+), 1 deletion(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index 76d4fd7..49d7256 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -1001,6 +1001,9 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
- 	if (pdata && pdata->vs_pol)
- 		syn_mode |= ISPCCDC_SYN_MODE_VDPOL;
- 
-+	if (pdata && pdata->fld_pol)
-+		syn_mode |= ISPCCDC_SYN_MODE_FLDPOL;
-+
- 	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
- 
- 	/* The CCDC_CFG.Y8POS bit is used in YCbCr8 input mode only. The
-@@ -1140,6 +1143,7 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 
- 	omap3isp_configure_bridge(isp, ccdc->input, pdata, shift, bridge);
- 
-+	/* Configure the sync interface. */
- 	ccdc_config_sync_if(ccdc, pdata, depth_out);
- 
- 	syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-@@ -1499,6 +1503,17 @@ static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
- 		return 1;
- 	}
- 
-+	/* When capturing fields in alternate order read the current field
-+	 * identifier and store it in the pipeline.
-+	 */
-+	if (ccdc->formats[CCDC_PAD_SOURCE_OF].field == V4L2_FIELD_ALTERNATE) {
-+		u32 syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC,
-+					     ISPCCDC_SYN_MODE);
-+
-+		pipe->field = syn_mode & ISPCCDC_SYN_MODE_FLDSTAT
-+			    ? V4L2_FIELD_BOTTOM : V4L2_FIELD_TOP;
-+	}
-+
- 	if (ccdc_sbl_wait_idle(ccdc, 1000)) {
- 		dev_info(isp->dev, "CCDC won't become idle!\n");
- 		isp->crashed |= 1U << ccdc->subdev.entity.id;
-@@ -1830,6 +1845,11 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
- 		/* Clamp the input size. */
- 		fmt->width = clamp_t(u32, width, 32, 4096);
- 		fmt->height = clamp_t(u32, height, 32, 4096);
-+
-+		/* Default to progressive field order. */
-+		if (fmt->field == V4L2_FIELD_ANY)
-+			fmt->field = V4L2_FIELD_NONE;
-+
- 		break;
- 
- 	case CCDC_PAD_SOURCE_OF:
-@@ -1885,7 +1905,6 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
- 	 * stored on 2 bytes.
- 	 */
- 	fmt->colorspace = V4L2_COLORSPACE_SRGB;
--	fmt->field = V4L2_FIELD_NONE;
- }
- 
- /*
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 756c162..c38f1d4 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -482,6 +482,11 @@ struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video)
- 	else
- 		buf->vb.v4l2_buf.sequence = atomic_read(&pipe->frame_number);
- 
-+	if (pipe->field != V4L2_FIELD_NONE)
-+		buf->vb.v4l2_buf.sequence /= 2;
-+
-+	buf->vb.v4l2_buf.field = pipe->field;
-+
- 	/* Report pipeline errors to userspace on the capture device side. */
- 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE && pipe->error) {
- 		state = VB2_BUF_STATE_ERROR;
-@@ -1038,6 +1043,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	video->queue = &vfh->queue;
- 	INIT_LIST_HEAD(&video->dmaqueue);
- 	atomic_set(&pipe->frame_number, -1);
-+	pipe->field = vfh->format.fmt.pix.field;
- 
- 	mutex_lock(&video->queue_lock);
- 	ret = vb2_streamon(&vfh->queue, type);
-diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
-index a76124c..0b7efed 100644
---- a/drivers/media/platform/omap3isp/ispvideo.h
-+++ b/drivers/media/platform/omap3isp/ispvideo.h
-@@ -78,6 +78,7 @@ enum isp_pipeline_state {
- 
- /*
-  * struct isp_pipeline - An ISP hardware pipeline
-+ * @field: The field being processed by the pipeline
-  * @error: A hardware error occurred during capture
-  * @entities: Bitmask of entities in the pipeline (indexed by entity ID)
-  */
-@@ -91,6 +92,7 @@ struct isp_pipeline {
- 	u32 entities;
- 	unsigned long l3_ick;
- 	unsigned int max_rate;
-+	enum v4l2_field field;
- 	atomic_t frame_number;
- 	bool do_propagation; /* of frame number */
- 	bool error;
-diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-index c9d06d9..398279d 100644
---- a/include/media/omap3isp.h
-+++ b/include/media/omap3isp.h
-@@ -57,6 +57,8 @@ enum {
-  *		0 - Active high, 1 - Active low
-  * @vs_pol: Vertical synchronization polarity
-  *		0 - Active high, 1 - Active low
-+ * @fld_pol: Field signal polarity
-+ *		0 - Positive, 1 - Negative
-  * @data_pol: Data polarity
-  *		0 - Normal, 1 - One's complement
-  */
-@@ -65,6 +67,7 @@ struct isp_parallel_platform_data {
- 	unsigned int clk_pol:1;
- 	unsigned int hs_pol:1;
- 	unsigned int vs_pol:1;
-+	unsigned int fld_pol:1;
- 	unsigned int data_pol:1;
- };
- 
--- 
-1.8.5.5
+date:		Sat May 24 04:00:26 CEST 2014
+git branch:	test
+git hash:	12bd10c79bd8f65698660e992b8656e9a48eeca1
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-1.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
