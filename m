@@ -1,85 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:20195 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932081AbaE2NOz (ORCPT
+Received: from mail-we0-f171.google.com ([74.125.82.171]:51675 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750713AbaEXEDF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 May 2014 09:14:55 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N6C002ZA7GS3P10@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 29 May 2014 14:14:52 +0100 (BST)
-Message-id: <538732D2.8020205@samsung.com>
-Date: Thu, 29 May 2014 15:14:58 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Pawel Osciak <pawel@osciak.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] videobuf2-dma-contig: allow to vmap contiguous dma
- buffers
-References: <1401113852-27318-1-git-send-email-p.zabel@pengutronix.de>
-In-reply-to: <1401113852-27318-1-git-send-email-p.zabel@pengutronix.de>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+	Sat, 24 May 2014 00:03:05 -0400
+MIME-Version: 1.0
+In-Reply-To: <537F0840.5030105@xs4all.nl>
+References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1400247235-31434-6-git-send-email-prabhakar.csengg@gmail.com> <537F0840.5030105@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sat, 24 May 2014 09:32:32 +0530
+Message-ID: <CA+V-a8uysAhY7bV--C8tOw83=iSRtPf=HSp--Vt-7S2njgR3vg@mail.gmail.com>
+Subject: Re: [PATCH v5 04/49] media: davinci: vpif_display: release buffers in
+ case start_streaming() call back fails
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Hans,
 
-On 2014-05-26 16:17, Philipp Zabel wrote:
-> This allows drivers to vmap contiguous dma buffers so they can inspect the
-> buffer contents with the CPU. This will be needed for the CODA driver's JPEG
-> handling. On CODA960, the header parsing has to be done on the CPU. The
-> hardware modules can only process the entropy coded segment after all
-> registers and tables are set up.
+Thanks for the review.
+
+On Fri, May 23, 2014 at 2:05 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 05/16/2014 03:33 PM, Lad, Prabhakar wrote:
+>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>>
+>> this patch adds support to release the buffer by calling
+>> vb2_buffer_done(), with state marked as VB2_BUF_STATE_QUEUED
+>> if start_streaming() call back fails.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> ---
+>>  drivers/media/platform/davinci/vpif_display.c |   42 +++++++++++++++----------
+>>  1 file changed, 26 insertions(+), 16 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+>> index 8bb9f02..1a17a45 100644
+>> --- a/drivers/media/platform/davinci/vpif_display.c
+>> +++ b/drivers/media/platform/davinci/vpif_display.c
+>> @@ -196,26 +196,16 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+>>       struct channel_obj *ch = vb2_get_drv_priv(vq);
+>>       struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+>>       struct vpif_params *vpif = &ch->vpifparams;
+>> -     unsigned long addr = 0;
+>> -     unsigned long flags;
+>> +     struct vpif_disp_buffer *buf, *tmp;
+>> +     unsigned long addr, flags;
+>>       int ret;
+>>
+>>       spin_lock_irqsave(&common->irqlock, flags);
+>>
+>> -     /* Get the next frame from the buffer queue */
+>> -     common->next_frm = common->cur_frm =
+>> -                         list_entry(common->dma_queue.next,
+>> -                                    struct vpif_disp_buffer, list);
+>> -
+>> -     list_del(&common->cur_frm->list);
+>> -     spin_unlock_irqrestore(&common->irqlock, flags);
+>> -     /* Mark state of the current frame to active */
+>> -     common->cur_frm->vb.state = VB2_BUF_STATE_ACTIVE;
+>> -
+>>       /* Initialize field_id and started member */
+>>       ch->field_id = 0;
+>>       common->started = 1;
+>> -     addr = vb2_dma_contig_plane_dma_addr(&common->cur_frm->vb, 0);
+>> +
+>>       /* Calculate the offset for Y and C data  in the buffer */
+>>       vpif_calculate_offsets(ch);
+>>
+>> @@ -225,7 +215,8 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+>>               || (!ch->vpifparams.std_info.frm_fmt
+>>               && (common->fmt.fmt.pix.field == V4L2_FIELD_NONE))) {
+>>               vpif_err("conflict in field format and std format\n");
+>> -             return -EINVAL;
+>> +             ret = -EINVAL;
+>> +             goto err;
+>>       }
+>>
+>>       /* clock settings */
+>> @@ -234,17 +225,28 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+>>               ycmux_mode, ch->vpifparams.std_info.hd_sd);
+>>               if (ret < 0) {
+>>                       vpif_err("can't set clock\n");
+>> -                     return ret;
+>> +                     goto err;
+>>               }
+>>       }
+>>
+>>       /* set the parameters and addresses */
+>>       ret = vpif_set_video_params(vpif, ch->channel_id + 2);
+>>       if (ret < 0)
+>> -             return ret;
+>> +             goto err;
+>>
+>>       common->started = ret;
+>>       vpif_config_addr(ch, ret);
+>> +     /* Get the next frame from the buffer queue */
+>> +     common->next_frm = common->cur_frm =
+>> +                         list_entry(common->dma_queue.next,
+>> +                                    struct vpif_disp_buffer, list);
+>> +
+>> +     list_del(&common->cur_frm->list);
+>> +     spin_unlock_irqrestore(&common->irqlock, flags);
+>> +     /* Mark state of the current frame to active */
+>> +     common->cur_frm->vb.state = VB2_BUF_STATE_ACTIVE;
 >
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
-> ---
->   drivers/media/v4l2-core/videobuf2-dma-contig.c | 8 ++++++++
->   1 file changed, 8 insertions(+)
+> There is no need to set this, all buffers queued to the driver are always in state
+> ACTIVE. The vb2 core sets that for you. In general drivers never need to change the
+> state manually.
 >
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> index 880be07..6b254b8 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -98,6 +98,9 @@ static void *vb2_dc_vaddr(void *buf_priv)
->   {
->   	struct vb2_dc_buf *buf = buf_priv;
->   
-> +	if (!buf->vaddr && buf->db_attach)
-> +		buf->vaddr = dma_buf_vmap(buf->db_attach->dmabuf);
-> +
->   	return buf->vaddr;
->   }
->   
-> @@ -735,6 +738,7 @@ static int vb2_dc_map_dmabuf(void *mem_priv)
->   
->   	buf->dma_addr = sg_dma_address(sgt->sgl);
->   	buf->dma_sgt = sgt;
-> +	buf->vaddr = NULL;
->   
->   	return 0;
->   }
-> @@ -754,6 +758,10 @@ static void vb2_dc_unmap_dmabuf(void *mem_priv)
->   		return;
->   	}
->   
-> +	if (buf->vaddr) {
-> +		dma_buf_vunmap(buf->db_attach->dmabuf, buf->vaddr);
-> +		buf->vaddr = NULL;
-> +	}
->   	dma_buf_unmap_attachment(buf->db_attach, sgt, buf->dma_dir);
->   
->   	buf->dma_addr = 0;
+> It happens twice in this driver and in both cases the assignment can be removed.
+>
+OK, will drop this.
 
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
-
+Regards,
+--Prabhakar Lad
