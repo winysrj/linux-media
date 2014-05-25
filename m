@@ -1,298 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:35998 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757332AbaE2MUZ (ORCPT
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:17287 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751389AbaEYNUy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 May 2014 08:20:25 -0400
+	Sun, 25 May 2014 09:20:54 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N64000I8T2S6250@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 25 May 2014 09:20:52 -0400 (EDT)
+Date: Sun, 25 May 2014 10:20:47 -0300
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 4/5] dib8000: rename dib8000_attach to dib8000_init
-Date: Thu, 29 May 2014 09:20:16 -0300
-Message-Id: <1401366017-19874-5-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1401366017-19874-1-git-send-email-m.chehab@samsung.com>
-References: <1401366017-19874-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL v2 FOR v3.16] adv7604: ADV7611 and DT support
+Message-id: <20140525102047.2b4f646f.m.chehab@samsung.com>
+In-reply-to: <8637874.bCfaXJPXZf@avalon>
+References: <8637874.bCfaXJPXZf@avalon>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Well, what we call as "foo_attach" is the method that should
-be called by the dvb_attach() macro.
+Em Mon, 28 Apr 2014 21:48:31 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-It should be noticed that the name "dvb_attach" is really a
-bad name and don't express what it does.
+> Hi Mauro,
+> 
+> The following changes since commit 393cbd8dc532c1ebed60719da8d379f50d445f28:
+> 
+>   [media] smiapp: Use %u for printing u32 value (2014-04-23 16:05:06 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/pinchartl/media.git linuxtv/adv7611
+> 
+> for you to fetch changes up to 89d3226804151fb97049ecc2170ea46aaa6f7f60:
+> 
+>   adv7604: Set HPD GPIO direction to output (2014-04-28 21:03:58 +0200)
+> 
+> ----------------------------------------------------------------
+> Lars-Peter Clausen (4):
+>       adv7604: Add missing include to linux/types.h
+>       adv7604: Add support for asynchronous probing
 
-dvb_attach() basically does three things, if the frontend is
-compiled as a module:
-- It lookups for the module that it is known to have the
-  given symbol name and requests such module;
-- It increments the module usage (anonymously - so lsmod
-  doesn't print who loaded the module);
-- after loading the module, it runs the function associated
-  with the dynamic symbol.
+-ENODESCRIPTION. Please add a proper description to each patch.
 
-When compiled as builtin, it just calls the function given to it.
+>       adv7604: Don't put info string arrays on the stack
+>       adv7604: Add adv7611 support
+> 
+> Laurent Pinchart (44):
+>       v4l: Add UYVY10_2X10 and VYUY10_2X10 media bus pixel codes
+>       v4l: Add UYVY10_1X20 and VYUY10_1X20 media bus pixel codes
+>       v4l: Add 12-bit YUV 4:2:0 media bus pixel codes
+>       v4l: Add 12-bit YUV 4:2:2 media bus pixel codes
 
-As dvb_attach() increments refcount, it can't be (easily)
-called more than once for the same module, or the kernel
-will deny to remove the module, because refcount will never
-be zeroed.
+The above 4 patches seem to be already applied. Btw, next time,
+please add a patch description. Among other things, that would
+save me some time to identify that this is duplicated stuff that
+were merged previously via some other pull request.
 
-In other words, the function name given to dvb_attach()
-should be one single symbol that will always be called
-before any other function on that module to be used.
+>       v4l: Add pad-level DV timings subdev operations
 
-For almost all DVB frontends, there's just one function,
-but, on dib8000, there are several exported symbols.
+What do you have against properly documenting a patch?
+Please write some lines describing why this API change is needed,
+and how it was implemented. 
 
-We need to get rid of all those direct calls, because they
-cause compilation breakages when bridge is builtin and
-frontend is module, we'll need to add a new function that
-will be the first one to be called, whatever initialization
-is needed.
+>       ad9389b: Add pad-level DV timings operations
+>       adv7511: Add pad-level DV timings operations
+>       adv7842: Add pad-level DV timings operations
+>       s5p-tv: hdmi: Add pad-level DV timings operations
+>       s5p-tv: hdmiphy: Add pad-level DV timings operations
+>       ths8200: Add pad-level DV timings operations
+>       tvp7002: Add pad-level DV timings operations
 
-So, let's rename this function, in order to prepare for
-a next patch that will add a new attach() function that
-will be the only one exported by this module.
+>       media: bfin_capture: Switch to pad-level DV operations
+>       media: davinci: vpif: Switch to pad-level DV operations
+>       media: staging: davinci: vpfe: Switch to pad-level DV operations
+>       s5p-tv: mixer: Switch to pad-level DV operations
+>       ad9389b: Remove deprecated video-level DV timings operations
+>       adv7511: Remove deprecated video-level DV timings operations
+>       adv7842: Remove deprecated video-level DV timings operations
+>       s5p-tv: hdmi: Remove deprecated video-level DV timings operations
+>       s5p-tv: hdmiphy: Remove deprecated video-level DV timings operation
+>       ths8200: Remove deprecated video-level DV timings operations
+>       tvp7002: Remove deprecated video-level DV timings operations
+>       v4l: Improve readability by not wrapping ioctl number #define's
+>       v4l: Add support for DV timings ioctls on subdev nodes
+>       v4l: Validate fields in the core code for subdev EDID ioctls
+>       adv7604: Add 16-bit read functions for CP and HDMI
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/dib8000.c       |  6 ++---
- drivers/media/dvb-frontends/dib8000.h       |  4 +--
- drivers/media/usb/dvb-usb/dib0700_devices.c | 40 ++++++++++++++---------------
- 3 files changed, 25 insertions(+), 25 deletions(-)
+-ENODESCRIPTION. Please add a proper description to each patch.
 
-diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
-index 1632d78a5479..c1c8c92ce498 100644
---- a/drivers/media/dvb-frontends/dib8000.c
-+++ b/drivers/media/dvb-frontends/dib8000.c
-@@ -4405,12 +4405,12 @@ static const struct dvb_frontend_ops dib8000_ops = {
- 	.read_ucblocks = dib8000_read_unc_blocks,
- };
- 
--struct dvb_frontend *dib8000_attach(struct i2c_adapter *i2c_adap, u8 i2c_addr, struct dib8000_config *cfg)
-+struct dvb_frontend *dib8000_init(struct i2c_adapter *i2c_adap, u8 i2c_addr, struct dib8000_config *cfg)
- {
- 	struct dvb_frontend *fe;
- 	struct dib8000_state *state;
- 
--	dprintk("dib8000_attach");
-+	dprintk("dib8000_init");
- 
- 	state = kzalloc(sizeof(struct dib8000_state), GFP_KERNEL);
- 	if (state == NULL)
-@@ -4467,7 +4467,7 @@ error:
- 	return NULL;
- }
- 
--EXPORT_SYMBOL(dib8000_attach);
-+EXPORT_SYMBOL(dib8000_init);
- 
- MODULE_AUTHOR("Olivier Grenie <Olivier.Grenie@dibcom.fr, " "Patrick Boettcher <pboettcher@dibcom.fr>");
- MODULE_DESCRIPTION("Driver for the DiBcom 8000 ISDB-T demodulator");
-diff --git a/drivers/media/dvb-frontends/dib8000.h b/drivers/media/dvb-frontends/dib8000.h
-index b8c11e52c512..89962d640e4c 100644
---- a/drivers/media/dvb-frontends/dib8000.h
-+++ b/drivers/media/dvb-frontends/dib8000.h
-@@ -40,7 +40,7 @@ struct dib8000_config {
- #define DEFAULT_DIB8000_I2C_ADDRESS 18
- 
- #if IS_ENABLED(CONFIG_DVB_DIB8000)
--extern struct dvb_frontend *dib8000_attach(struct i2c_adapter *i2c_adap, u8 i2c_addr, struct dib8000_config *cfg);
-+extern struct dvb_frontend *dib8000_init(struct i2c_adapter *i2c_adap, u8 i2c_addr, struct dib8000_config *cfg);
- extern struct i2c_adapter *dib8000_get_i2c_master(struct dvb_frontend *, enum dibx000_i2c_interface, int);
- 
- extern int dib8000_i2c_enumeration(struct i2c_adapter *host, int no_of_demods,
-@@ -65,7 +65,7 @@ extern int dib8000_set_slave_frontend(struct dvb_frontend *fe, struct dvb_fronte
- extern int dib8000_remove_slave_frontend(struct dvb_frontend *fe);
- extern struct dvb_frontend *dib8000_get_slave_frontend(struct dvb_frontend *fe, int slave_index);
- #else
--static inline struct dvb_frontend *dib8000_attach(struct i2c_adapter *i2c_adap, u8 i2c_addr, struct dib8000_config *cfg)
-+static inline struct dvb_frontend *dib8000_init(struct i2c_adapter *i2c_adap, u8 i2c_addr, struct dib8000_config *cfg)
- {
- 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
- 	return NULL;
-diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
-index 111dcc4c7140..424832cb4444 100644
---- a/drivers/media/usb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
-@@ -282,7 +282,7 @@ static int stk7700P2_frontend_attach(struct dvb_usb_adapter *adap)
- 					     stk7700d_dib7000p_mt2266_config)
- 		    != 0) {
- 			err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n", __func__);
--			dvb_detach(dib7000p_attach);
-+			dvb_detach(&state->dib7000p_ops);;
- 			return -ENODEV;
- 		}
- 	}
-@@ -316,7 +316,7 @@ static int stk7700d_frontend_attach(struct dvb_usb_adapter *adap)
- 					     stk7700d_dib7000p_mt2266_config)
- 		    != 0) {
- 			err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n", __func__);
--			dvb_detach(dib7000p_attach);
-+			dvb_detach(&state->dib7000p_ops);;
- 			return -ENODEV;
- 		}
- 	}
-@@ -469,7 +469,7 @@ static int stk7700ph_frontend_attach(struct dvb_usb_adapter *adap)
- 				     &stk7700ph_dib7700_xc3028_config) != 0) {
- 		err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n",
- 		    __func__);
--		dvb_detach(dib7000p_attach);
-+		dvb_detach(&state->dib7000p_ops);;
- 		return -ENODEV;
- 	}
- 
-@@ -720,7 +720,7 @@ static int stk7700p_frontend_attach(struct dvb_usb_adapter *adap)
- 		adap->fe_adap[0].fe = state->dib7000p_ops.init(&adap->dev->i2c_adap, 18, &stk7700p_dib7000p_config);
- 		st->is_dib7000pc = 1;
- 	} else {
--		dvb_detach(dib7000p_attach);
-+		dvb_detach(&state->dib7000p_ops);;
- 		memset(&state->dib7000p_ops, 0, sizeof(state->dib7000p_ops));
- 		adap->fe_adap[0].fe = dvb_attach(dib7000m_attach, &adap->dev->i2c_adap, 18, &stk7700p_dib7000m_config);
- 	}
-@@ -1006,7 +1006,7 @@ static int stk7070p_frontend_attach(struct dvb_usb_adapter *adap)
- 				     &dib7070p_dib7000p_config) != 0) {
- 		err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n",
- 		    __func__);
--		dvb_detach(dib7000p_attach);
-+		dvb_detach(&state->dib7000p_ops);;
- 		return -ENODEV;
- 	}
- 
-@@ -1064,7 +1064,7 @@ static int stk7770p_frontend_attach(struct dvb_usb_adapter *adap)
- 				     &dib7770p_dib7000p_config) != 0) {
- 		err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n",
- 		    __func__);
--		dvb_detach(dib7000p_attach);
-+		dvb_detach(&state->dib7000p_ops);;
- 		return -ENODEV;
- 	}
- 
-@@ -1337,7 +1337,7 @@ static int stk807x_frontend_attach(struct dvb_usb_adapter *adap)
- 	dib8000_i2c_enumeration(&adap->dev->i2c_adap, 1, 18,
- 				0x80, 0);
- 
--	adap->fe_adap[0].fe = dvb_attach(dib8000_attach, &adap->dev->i2c_adap, 0x80,
-+	adap->fe_adap[0].fe = dvb_attach(dib8000_init, &adap->dev->i2c_adap, 0x80,
- 			      &dib807x_dib8000_config[0]);
- 
- 	return adap->fe_adap[0].fe == NULL ?  -ENODEV : 0;
-@@ -1366,7 +1366,7 @@ static int stk807xpvr_frontend_attach0(struct dvb_usb_adapter *adap)
- 	/* initialize IC 0 */
- 	dib8000_i2c_enumeration(&adap->dev->i2c_adap, 1, 0x22, 0x80, 0);
- 
--	adap->fe_adap[0].fe = dvb_attach(dib8000_attach, &adap->dev->i2c_adap, 0x80,
-+	adap->fe_adap[0].fe = dvb_attach(dib8000_init, &adap->dev->i2c_adap, 0x80,
- 			      &dib807x_dib8000_config[0]);
- 
- 	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
-@@ -1377,7 +1377,7 @@ static int stk807xpvr_frontend_attach1(struct dvb_usb_adapter *adap)
- 	/* initialize IC 1 */
- 	dib8000_i2c_enumeration(&adap->dev->i2c_adap, 1, 0x12, 0x82, 0);
- 
--	adap->fe_adap[0].fe = dvb_attach(dib8000_attach, &adap->dev->i2c_adap, 0x82,
-+	adap->fe_adap[0].fe = dvb_attach(dib8000_init, &adap->dev->i2c_adap, 0x82,
- 			      &dib807x_dib8000_config[1]);
- 
- 	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
-@@ -1709,7 +1709,7 @@ static int stk809x_frontend_attach(struct dvb_usb_adapter *adap)
- 
- 	dib8000_i2c_enumeration(&adap->dev->i2c_adap, 1, 18, 0x80, 0);
- 
--	adap->fe_adap[0].fe = dvb_attach(dib8000_attach, &adap->dev->i2c_adap, 0x80, &dib809x_dib8000_config[0]);
-+	adap->fe_adap[0].fe = dvb_attach(dib8000_init, &adap->dev->i2c_adap, 0x80, &dib809x_dib8000_config[0]);
- 
- 	return adap->fe_adap[0].fe == NULL ?  -ENODEV : 0;
- }
-@@ -1760,11 +1760,11 @@ static int nim8096md_frontend_attach(struct dvb_usb_adapter *adap)
- 
- 	dib8000_i2c_enumeration(&adap->dev->i2c_adap, 2, 18, 0x80, 0);
- 
--	adap->fe_adap[0].fe = dvb_attach(dib8000_attach, &adap->dev->i2c_adap, 0x80, &dib809x_dib8000_config[0]);
-+	adap->fe_adap[0].fe = dvb_attach(dib8000_init, &adap->dev->i2c_adap, 0x80, &dib809x_dib8000_config[0]);
- 	if (adap->fe_adap[0].fe == NULL)
- 		return -ENODEV;
- 
--	fe_slave = dvb_attach(dib8000_attach, &adap->dev->i2c_adap, 0x82, &dib809x_dib8000_config[1]);
-+	fe_slave = dvb_attach(dib8000_init, &adap->dev->i2c_adap, 0x82, &dib809x_dib8000_config[1]);
- 	dib8000_set_slave_frontend(adap->fe_adap[0].fe, fe_slave);
- 
- 	return fe_slave == NULL ?  -ENODEV : 0;
-@@ -2078,7 +2078,7 @@ static int tfe8096p_frontend_attach(struct dvb_usb_adapter *adap)
- 
- 	dib8000_i2c_enumeration(&adap->dev->i2c_adap, 1, 0x10, 0x80, 1);
- 
--	adap->fe_adap[0].fe = dvb_attach(dib8000_attach,
-+	adap->fe_adap[0].fe = dvb_attach(dib8000_init,
- 			&adap->dev->i2c_adap, 0x80, &tfe8096p_dib8000_config);
- 
- 	return adap->fe_adap[0].fe == NULL ?  -ENODEV : 0;
-@@ -2947,7 +2947,7 @@ static int nim7090_frontend_attach(struct dvb_usb_adapter *adap)
- 
- 	if (state->dib7000p_ops.i2c_enumeration(&adap->dev->i2c_adap, 1, 0x10, &nim7090_dib7000p_config) != 0) {
- 		err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n", __func__);
--		dvb_detach(dib7000p_attach);
-+		dvb_detach(&state->dib7000p_ops);;
- 		return -ENODEV;
- 	}
- 	adap->fe_adap[0].fe = state->dib7000p_ops.init(&adap->dev->i2c_adap, 0x80, &nim7090_dib7000p_config);
-@@ -3000,7 +3000,7 @@ static int tfe7090pvr_frontend0_attach(struct dvb_usb_adapter *adap)
- 	/* initialize IC 0 */
- 	if (state->dib7000p_ops.i2c_enumeration(&adap->dev->i2c_adap, 1, 0x20, &tfe7090pvr_dib7000p_config[0]) != 0) {
- 		err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n", __func__);
--		dvb_detach(dib7000p_attach);
-+		dvb_detach(&state->dib7000p_ops);;
- 		return -ENODEV;
- 	}
- 
-@@ -3030,7 +3030,7 @@ static int tfe7090pvr_frontend1_attach(struct dvb_usb_adapter *adap)
- 	i2c = state->dib7000p_ops.get_i2c_master(adap->dev->adapter[0].fe_adap[0].fe, DIBX000_I2C_INTERFACE_GPIO_6_7, 1);
- 	if (state->dib7000p_ops.i2c_enumeration(i2c, 1, 0x10, &tfe7090pvr_dib7000p_config[1]) != 0) {
- 		err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n", __func__);
--		dvb_detach(dib7000p_attach);
-+		dvb_detach(&state->dib7000p_ops);;
- 		return -ENODEV;
- 	}
- 
-@@ -3105,7 +3105,7 @@ static int tfe7790p_frontend_attach(struct dvb_usb_adapter *adap)
- 				1, 0x10, &tfe7790p_dib7000p_config) != 0) {
- 		err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n",
- 				__func__);
--		dvb_detach(dib7000p_attach);
-+		dvb_detach(&state->dib7000p_ops);;
- 		return -ENODEV;
- 	}
- 	adap->fe_adap[0].fe = state->dib7000p_ops.init(&adap->dev->i2c_adap,
-@@ -3200,7 +3200,7 @@ static int stk7070pd_frontend_attach0(struct dvb_usb_adapter *adap)
- 				     stk7070pd_dib7000p_config) != 0) {
- 		err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n",
- 		    __func__);
--		dvb_detach(dib7000p_attach);
-+		dvb_detach(&state->dib7000p_ops);;
- 		return -ENODEV;
- 	}
- 
-@@ -3275,7 +3275,7 @@ static int novatd_frontend_attach(struct dvb_usb_adapter *adap)
- 					     stk7070pd_dib7000p_config) != 0) {
- 			err("%s: state->dib7000p_ops.i2c_enumeration failed.  Cannot continue\n",
- 			    __func__);
--			dvb_detach(dib7000p_attach);
-+			dvb_detach(&state->dib7000p_ops);;
- 			return -ENODEV;
- 		}
- 	}
-@@ -3503,7 +3503,7 @@ static int pctv340e_frontend_attach(struct dvb_usb_adapter *adap)
- 
- 	if (state->dib7000p_ops.dib7000pc_detection(&adap->dev->i2c_adap) == 0) {
- 		/* Demodulator not found for some reason? */
--		dvb_detach(dib7000p_attach);
-+		dvb_detach(&state->dib7000p_ops);;
- 		return -ENODEV;
- 	}
- 
--- 
-1.9.3
+>       adv7604: Cache register contents when reading multiple bits
+>       adv7604: Remove subdev control handlers
+>       adv7604: Add sink pads
+>       adv7604: Make output format configurable through pad format operations
+>       adv7604: Add pad-level DV timings support
+>       adv7604: Remove deprecated video-level DV timings operations
+>       v4l: subdev: Remove deprecated video-level DV timings operations
+>       adv7604: Inline the to_sd function
+>       adv7604: Store I2C addresses and clients in arrays
+>       adv7604: Replace *_and_or() functions with *_clr_set()
+>       adv7604: Sort headers alphabetically
+>       adv7604: Support hot-plug detect control through a GPIO
+>       adv7604: Specify the default input through platform data
+>       adv7604: Add DT support
+>       adv7604: Add LLC polarity configuration
+>       adv7604: Add endpoint properties to DT bindings
+>       adv7604: Set HPD GPIO direction to output
+> 
+>  Documentation/DocBook/media/v4l/subdev-formats.xml      |  760 ++++++++++++
+>  .../DocBook/media/v4l/vidioc-dv-timings-cap.xml         |   27 +-
+>  .../DocBook/media/v4l/vidioc-enum-dv-timings.xml        |   30 +-
+>  Documentation/devicetree/bindings/media/i2c/adv7604.txt |   70 ++
+>  drivers/media/i2c/ad9389b.c                             |   64 +-
+>  drivers/media/i2c/adv7511.c                             |   66 +-
+>  drivers/media/i2c/adv7604.c                             | 1468 ++++++++++----
+>  drivers/media/i2c/adv7842.c                             |   14 +-
+>  drivers/media/i2c/ths8200.c                             |   10 +
+>  drivers/media/i2c/tvp7002.c                             |    5 +-
+>  drivers/media/platform/blackfin/bfin_capture.c          |    4 +-
+>  drivers/media/platform/davinci/vpif_capture.c           |    4 +-
+>  drivers/media/platform/davinci/vpif_display.c           |    4 +-
+>  drivers/media/platform/s5p-tv/hdmi_drv.c                |   14 +-
+>  drivers/media/platform/s5p-tv/hdmiphy_drv.c             |    9 +-
+>  drivers/media/platform/s5p-tv/mixer_video.c             |    8 +-
+>  drivers/media/v4l2-core/v4l2-subdev.c                   |   51 +-
+>  drivers/staging/media/davinci_vpfe/vpfe_video.c         |    4 +-
+>  include/media/adv7604.h                                 |  124 +-
+>  include/media/v4l2-subdev.h                             |    8 +-
+>  include/uapi/linux/v4l2-mediabus.h                      |   14 +-
+>  include/uapi/linux/v4l2-subdev.h                        |   40 +-
+>  include/uapi/linux/videodev2.h                          |   10 +-
+>  23 files changed, 2188 insertions(+), 620 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> 
 
+There are other patches in this series lacking a proper description.
+
+Please document them.
+
+While here, please remove the 4 already applied patches from this series.
+
+Thanks!
+Mauro.
