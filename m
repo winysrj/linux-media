@@ -1,66 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44897 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753704AbaEOPm3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 May 2014 11:42:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: balbi@ti.com
-Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v3.16] UVC gadget driver fixes
-Date: Thu, 15 May 2014 17:42:25 +0200
-Message-ID: <2017925.GPPhkcUxcb@avalon>
-In-Reply-To: <20140515153945.GC7360@saruman.home>
-References: <42415415.jy6YRrDCiC@avalon> <20140515153945.GC7360@saruman.home>
+Received: from mail-bl2lp0209.outbound.protection.outlook.com ([207.46.163.209]:11381
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751289AbaEYHxB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 May 2014 03:53:01 -0400
+Date: Sun, 25 May 2014 15:52:35 +0800
+From: Shawn Guo <shawn.guo@freescale.com>
+To: Alexander Shiyan <shc_work@mail.ru>
+CC: <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH 2/2] media: mx2_camera: Change Kconfig dependency
+Message-ID: <20140525075234.GA13258@dragon>
+References: <1400907383-32590-1-git-send-email-shc_work@mail.ru>
+ <1400907383-32590-2-git-send-email-shc_work@mail.ru>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart1488096.DMSuZhAq1e"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <1400907383-32590-2-git-send-email-shc_work@mail.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sat, May 24, 2014 at 08:56:23AM +0400, Alexander Shiyan wrote:
+> This patch change MACH_MX27 dependency to SOC_IMX27 for MX2 camera
+> driver, since MACH_MX27 symbol is scheduled for removal.
+> 
+> Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
 
---nextPart1488096.DMSuZhAq1e
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="us-ascii"
+Acked-by: Shawn Guo <shawn.guo@freescale.com>
 
-Hi Felipe,
-
-On Thursday 15 May 2014 10:39:45 Felipe Balbi wrote:
-> On Fri, May 09, 2014 at 02:27:34PM +0200, Laurent Pinchart wrote:
-> > Hi Felipe,
-> >=20
-> > Could you please pull the following three patches for v3.16 ? They'=
-ve
-> > been reviewed on the linux-media and linux-usb mailing list.
->=20
-> ok, are these patches being merged in any other tree ? I don't usuall=
-y
-> take pull requests, only patches, so if these aren't merged anyway, I=
-'ll
-> cherry-pick them as patches.
-
-They're not, so feel free to cherry-pick them.
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
-
---nextPart1488096.DMSuZhAq1e
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQEcBAABAgAGBQJTdOBmAAoJEIkPb2GL7hl1ZskH/1w8kfD2ZO2lHYLSxfEJROcR
-UCBZf0/5jtCTs+Do4oNMC3tqWnIIS1uGFEXHhHeKFZFdXpSsNnQmSBG5o7kndrWr
-p8aSZpmAQKwW8HTIQOqVvOkgfqiCxxlvRuAfab/0hMBc5ra8C/EMJu5qeWOvW6ST
-BNL/WgQMKfJ8jx0bbm8rX3Elm/mYiiUViXtoysWmHNeEuxC1vIFmvyHRsZcCO1GU
-bFfxX88mJpf/VCeHnJdnAfDQ8nHagPdX/V5JgTGVgpD6zzOWwuttDvGCR5m08TdL
-YPaC2eN9imOTedq6RJeeVBmH+SxBe7LLNm+5IMOmgZ6Td96eEi8YDXShAlzkTG0=
-=uQ+p
------END PGP SIGNATURE-----
-
---nextPart1488096.DMSuZhAq1e--
-
+> ---
+>  drivers/media/platform/soc_camera/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+> index 122e03a..fc62897 100644
+> --- a/drivers/media/platform/soc_camera/Kconfig
+> +++ b/drivers/media/platform/soc_camera/Kconfig
+> @@ -63,7 +63,7 @@ config VIDEO_OMAP1
+>  
+>  config VIDEO_MX2
+>  	tristate "i.MX27 Camera Sensor Interface driver"
+> -	depends on VIDEO_DEV && SOC_CAMERA && MACH_MX27
+> +	depends on VIDEO_DEV && SOC_CAMERA && SOC_IMX27
+>  	select VIDEOBUF2_DMA_CONTIG
+>  	---help---
+>  	  This is a v4l2 driver for the i.MX27 Camera Sensor Interface
+> -- 
+> 1.8.5.5
+> 
