@@ -1,65 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:44439 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933029AbaEPNk4 (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2793 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750934AbaEYOPk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:40:56 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 24/49] media: davinci; vpif_display: fix checkpatch error
-Date: Fri, 16 May 2014 19:03:29 +0530
-Message-Id: <1400247235-31434-26-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+	Sun, 25 May 2014 10:15:40 -0400
+Message-ID: <5381FAE7.2080003@xs4all.nl>
+Date: Sun, 25 May 2014 16:15:03 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Arun Kumar K <arun.kk@samsung.com>
+Subject: [PATCH for v3.16] DocBook media: fix typo
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+The reference to v4l2-event-source-change should have been v4l2-event-src-change.
+This caused a failure when building the spec.
 
-this patch fixes following checkpatch warning, and alongside
-renames the DAVINCIHD_DISPLAY_H to VPIF_DISPLAY_H.
+Fixed.
 
-WARNING: Unnecessary space before function pointer arguments
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/davinci/vpif_display.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_display.h b/drivers/media/platform/davinci/vpif_display.h
-index 18cba9a..7b21a76 100644
---- a/drivers/media/platform/davinci/vpif_display.h
-+++ b/drivers/media/platform/davinci/vpif_display.h
-@@ -13,8 +13,8 @@
-  * GNU General Public License for more details.
-  */
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+index f016254..17efa87 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+@@ -167,7 +167,7 @@
+ 	       or the pad index (when used with a subdevice node) from which
+ 	       you want to receive events.</para>
  
--#ifndef DAVINCIHD_DISPLAY_H
--#define DAVINCIHD_DISPLAY_H
-+#ifndef VPIF_DISPLAY_H
-+#define VPIF_DISPLAY_H
- 
- /* Header files */
- #include <media/videobuf2-dma-contig.h>
-@@ -92,7 +92,7 @@ struct common_obj {
- 	u32 cbtm_off;				/* offset of C bottom from the
- 						 * starting of the buffer */
- 	/* Function pointer to set the addresses */
--	void (*set_addr) (unsigned long, unsigned long,
-+	void (*set_addr)(unsigned long, unsigned long,
- 				unsigned long, unsigned long);
- 	u32 height;
- 	u32 width;
-@@ -124,4 +124,4 @@ struct vpif_device {
- 	struct vpif_display_config *config;
- };
- 
--#endif				/* DAVINCIHD_DISPLAY_H */
-+#endif				/* VPIF_DISPLAY_H */
+-              <para>This event has a &v4l2-event-source-change; associated
++              <para>This event has a &v4l2-event-src-change; associated
+ 	      with it. The <structfield>changes</structfield> bitfield denotes
+ 	      what has changed for the subscribed pad. If multiple events
+ 	      occurred before application could dequeue them, then the changes
 -- 
-1.7.9.5
+2.0.0.rc0
 
