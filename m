@@ -1,85 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55893 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42413 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750712AbaEIMRY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 08:17:24 -0400
+	with ESMTP id S1751075AbaEYTyn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 May 2014 15:54:43 -0400
+Received: from avalon.ideasonboard.com (254.20-200-80.adsl-dyn.isp.belgacom.be [80.200.20.254])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 4943C35A40
+	for <linux-media@vger.kernel.org>; Sun, 25 May 2014 21:54:32 +0200 (CEST)
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] smiapp: Return correct return value in smiapp_registered()
-Date: Fri, 09 May 2014 14:17:24 +0200
-Message-ID: <6542492.1vSdmarlZg@avalon>
-In-Reply-To: <1399163517-5220-4-git-send-email-sakari.ailus@iki.fi>
-References: <1399163517-5220-1-git-send-email-sakari.ailus@iki.fi> <1399163517-5220-4-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+Subject: [PATCH] m5mols: Replace missing header
+Date: Sun, 25 May 2014 21:54:55 +0200
+Message-Id: <1401047695-2046-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+The include/media/s5p_fimc.h header has been removed in commit
+49b2f4c56fbf70ca693d6df1c491f0566d516aea ("exynos4-is: Remove support
+for non-dt platforms"). This broke compilation of the m5mols driver.
 
-Thank you for the patch.
+Include the include/media/exynos-fimc.h header instead, which contains
+the S5P_FIMC_TX_END_NOTIFY definition required by the driver.
 
-On Sunday 04 May 2014 03:31:57 Sakari Ailus wrote:
-> Prepare for supporting systems using the Device tree. Should the resources
-> not be available at the time of driver probe(), the EPROBE_DEFER error code
-> must be also returned from its probe function.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/m5mols/m5mols_capture.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+(Resending to linux-media has the original patch seems not to have made it to
+the list for an unknown reason.)
 
-> ---
->  drivers/media/i2c/smiapp/smiapp-core.c |   15 ++++++++-------
->  1 file changed, 8 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c
-> b/drivers/media/i2c/smiapp/smiapp-core.c index e4037c8..3c7be76 100644
-> --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-> @@ -2358,14 +2358,14 @@ static int smiapp_registered(struct v4l2_subdev
-> *subdev) sensor->vana = devm_regulator_get(&client->dev, "vana");
->  	if (IS_ERR(sensor->vana)) {
->  		dev_err(&client->dev, "could not get regulator for vana\n");
-> -		return -ENODEV;
-> +		return PTR_ERR(sensor->vana);
->  	}
-> 
->  	if (!sensor->platform_data->set_xclk) {
->  		sensor->ext_clk = devm_clk_get(&client->dev, "ext_clk");
->  		if (IS_ERR(sensor->ext_clk)) {
->  			dev_err(&client->dev, "could not get clock\n");
-> -			return -ENODEV;
-> +			return PTR_ERR(sensor->ext_clk);
->  		}
-> 
->  		rval = clk_set_rate(sensor->ext_clk,
-> @@ -2374,18 +2374,19 @@ static int smiapp_registered(struct v4l2_subdev
-> *subdev) dev_err(&client->dev,
->  				"unable to set clock freq to %u\n",
->  				sensor->platform_data->ext_clk);
-> -			return -ENODEV;
-> +			return rval;
->  		}
->  	}
-> 
->  	if (gpio_is_valid(sensor->platform_data->xshutdown)) {
-> -		if (devm_gpio_request_one(&client->dev,
-> -					  sensor->platform_data->xshutdown, 0,
-> -					  "SMIA++ xshutdown") != 0) {
-> +		rval = devm_gpio_request_one(
-> +			&client->dev, sensor->platform_data->xshutdown, 0,
-> +			"SMIA++ xshutdown");
-> +		if (rval < 0) {
->  			dev_err(&client->dev,
->  				"unable to acquire reset gpio %d\n",
->  				sensor->platform_data->xshutdown);
-> -			return -ENODEV;
-> +			return rval;
->  		}
->  	}
+This is a regression in Mauro's latest master branch.
 
+diff --git a/drivers/media/i2c/m5mols/m5mols_capture.c b/drivers/media/i2c/m5mols/m5mols_capture.c
+index ab34cce..1a03d02 100644
+--- a/drivers/media/i2c/m5mols/m5mols_capture.c
++++ b/drivers/media/i2c/m5mols/m5mols_capture.c
+@@ -26,7 +26,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/m5mols.h>
+-#include <media/s5p_fimc.h>
++#include <media/exynos-fimc.h>
+ 
+ #include "m5mols.h"
+ #include "m5mols_reg.h"
 -- 
 Regards,
 
