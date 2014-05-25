@@ -1,83 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:61926 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751992AbaEIINA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 04:13:00 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N5A00LS7S5NJG80@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Fri, 09 May 2014 04:12:59 -0400 (EDT)
-Date: Fri, 09 May 2014 05:12:53 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: "Changbing Xiong"@pop3.w2.samsung.net, dheitmueller@kernellabs.com
-Cc: linux-media@vger.kernel.org, Changbing Xiong <cb.xiong@samsung.com>
-Subject: Re: [PATCH] au0828: Cancel stream-restart operation if frontend is
- disconnected
-Message-id: <20140509051253.0417fc38.m.chehab@samsung.com>
-In-reply-to: <1399611251-7746-1-git-send-email-cb.xiong@samsung.com>
-References: <1399611251-7746-1-git-send-email-cb.xiong@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail-lb0-f172.google.com ([209.85.217.172]:33243 "EHLO
+	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751514AbaEYWZ4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 May 2014 18:25:56 -0400
+Received: by mail-lb0-f172.google.com with SMTP id l4so3896893lbv.31
+        for <linux-media@vger.kernel.org>; Sun, 25 May 2014 15:25:54 -0700 (PDT)
+From: Alexander Bersenev <bay@hackerdom.ru>
+To: linux-sunxi@googlegroups.com, david@hardeman.nu,
+	devicetree@vger.kernel.org, galak@codeaurora.org,
+	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
+	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
+	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
+	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
+	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
+	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Alexander Bersenev <bay@hackerdom.ru>
+Subject: [PATCH v8 0/3] ARM: sunxi: Add support for consumer infrared devices
+Date: Mon, 26 May 2014 04:26:42 +0600
+Message-Id: <1401056805-2218-1-git-send-email-bay@hackerdom.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 09 May 2014 12:54:11 +0800
-Changbing Xiong@pop3.w2.samsung.net escreveu:
+This patch introduces Consumer IR(CIR) support for sunxi boards.
 
-> From: Changbing Xiong <cb.xiong@samsung.com>
-> 
-> If the tuner is already disconnected, It is meaningless to go on doing the
-> stream-restart operation, It is better to cancel this operation.
-> 
-> Signed-off-by: Changbing Xiong <cb.xiong@samsung.com>
-> ---
->  drivers/media/usb/au0828/au0828-dvb.c |    2 ++
->  1 file changed, 2 insertions(+)
->  mode change 100644 => 100755 drivers/media/usb/au0828/au0828-dvb.c
-> 
-> diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
-> old mode 100644
-> new mode 100755
-> index 9a6f156..fd8e798
-> --- a/drivers/media/usb/au0828/au0828-dvb.c
-> +++ b/drivers/media/usb/au0828/au0828-dvb.c
-> @@ -403,6 +403,8 @@ void au0828_dvb_unregister(struct au0828_dev *dev)
->  	if (dvb->frontend == NULL)
->  		return;
-> 
-> +	cancel_work_sync(&dev->restart_streaming);
-> +
->  	dvb_net_release(&dvb->net);
->  	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_mem);
->  	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_hw);
+This is based on Alexsey Shestacov's work based on the original driver 
+supplied by Allwinner.
 
-Seems ok on my eyes.
+Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
+Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
 
-Btw, I think we should also call cancel_work_sync() on other
-places. On some tests I did with this frontend last week, things
-sometimes get badly when switching from one channel to another one,
-or doing channel scan.
+---
+Changes since version 1: 
+ - Fix timer memory leaks 
+ - Fix race condition when driver unloads while interrupt handler is active
+ - Support Cubieboard 2(need testing)
 
-This thread could be the culprit. Unfortunately, I can't test it
-ATM, as I'm in a business trip this week.
+Changes since version 2:
+- More reliable keydown events
+- Documentation fixes
+- Rename registers accurding to A20 user manual
+- Remove some includes, order includes alphabetically
+- Use BIT macro
+- Typo fixes
 
-Anyway, from a theoretical perspective, it seems logical that
-call cancel_work_sync() should also be called when:
-	- stop_urb_transfer() is called;
-	- when a new tuning starts.
+Changes since version 3:
+- Split the patch on smaller parts
+- More documentation fixes
+- Add clock-names in DT
+- Use devm_clk_get function to get the clocks
+- Removed gpios property from ir's DT
+- Changed compatible from allwinner,sunxi-ir to allwinner,sun7i-a20-ir in DT
+- Use spin_lock_irq instead spin_lock_irqsave in interrupt handler
+- Add myself in the copyright ;)
+- Coding style and indentation fixes
 
-For the second one, the patch should be somewhat similar to what 
-cx23885_set_frontend_hook() does, e. g. hooking the 
-fe->ops.set_frontend, in order to call cancel_work_sync() before setting
-the frontend parameters for the next frequency to zap. Due to the 
-DVB zigzag algorithm, I suspect that this could even improve channel
-scanning.
+Changes since version 4:
+- Try to fix indentation errors by sending patches with git send-mail
 
-Devin,
+Changes since version 5:
+- More indentation fixes
+- Make patches pass checkpatch with --strict option
+- Replaced magic numbers with defines(patch by Priit Laes)
+- Fixed oops on loading(patch by Hans de Goede)
 
-What do you think?
+Changes since version 6:
+- Removed constants from code
+- Better errrors handling on loading
+- Renamed sunxi-ir.c to sunxi-cir.c
+- Changed description of second commit
+- Order entries in dts and dtsi by register address
+- Code style fixes
 
-Thanks,
-Mauro
+Changes since version 7:
+- Removed a couple of blank lines in code
+- Delay interrupts init until we are ready to handle them
+- Increased the reported duration of each pulse by one
+- Refactored defines
+
+Alexander Bersenev (3):
+  ARM: sunxi: Add documentation for sunxi consumer infrared devices
+  [media] rc: add sunxi-ir driver
+  ARM: sunxi: Add IR controller support in DT on A20
+
+ .../devicetree/bindings/media/sunxi-ir.txt         |  23 ++
+ arch/arm/boot/dts/sun7i-a20-cubieboard2.dts        |   6 +
+ arch/arm/boot/dts/sun7i-a20-cubietruck.dts         |   6 +
+ arch/arm/boot/dts/sun7i-a20.dtsi                   |  32 +++
+ drivers/media/rc/Kconfig                           |  10 +
+ drivers/media/rc/Makefile                          |   1 +
+ drivers/media/rc/sunxi-cir.c                       | 313 +++++++++++++++++++++
+ 7 files changed, 391 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/sunxi-ir.txt
+ create mode 100644 drivers/media/rc/sunxi-cir.c
+
+-- 
+1.9.3
+
