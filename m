@@ -1,138 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:26151 "EHLO
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:8931 "EHLO
 	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751524AbaEWQgL (ORCPT
+	with ESMTP id S1751069AbaEYTQP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 May 2014 12:36:11 -0400
+	Sun, 25 May 2014 15:16:15 -0400
 Received: from uscpsbgm2.samsung.com
  (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N61002Y2CS9SL40@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 23 May 2014 12:36:09 -0400 (EDT)
-Date: Fri, 23 May 2014 13:36:03 -0300
+ 17 2011)) with ESMTP id <0N65009049J29370@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 25 May 2014 15:16:14 -0400 (EDT)
+Date: Sun, 25 May 2014 16:16:09 -0300
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Subject: Re: [GIT PULL FOR v3.16] Various fixes
-Message-id: <20140523133603.7d5e78ff.m.chehab@samsung.com>
-In-reply-to: <537086CE.9000800@xs4all.nl>
-References: <537086CE.9000800@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL 3.16] soc-camera for 3.16: one driver removal,
+ a fix and more
+Message-id: <20140525161609.1aac1403.m.chehab@samsung.com>
+In-reply-to: <Pine.LNX.4.64.1405252004040.7276@axis700.grange>
+References: <Pine.LNX.4.64.1405241326250.1624@axis700.grange>
+ <20140525115540.79c6367f.m.chehab@samsung.com>
+ <Pine.LNX.4.64.1405252004040.7276@axis700.grange>
 MIME-version: 1.0
 Content-type: text/plain; charset=US-ASCII
 Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 12 May 2014 10:31:10 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Em Sun, 25 May 2014 20:05:49 +0200 (CEST)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
 
-> (Updated version of my pull request of May 9th, adding the remaining em28xx patches
-> from Frank.)
+> On Sun, 25 May 2014, Mauro Carvalho Chehab wrote:
 > 
-> Hi Mauro,
+> > Hi Guennadi,
+> > 
+> > Em Sat, 24 May 2014 13:31:37 +0200 (CEST)
+> > Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+> > 
+> > > Hi Mauro,
+> > > 
+> > > I was waiting for DT patches for soc-camera, but they're not yet ready. 
+> > > So, here go 5 patches, including one driver removal, one error-path fix 
+> > > from myself, and a couple more clean up and enhancement patches.
+> > > 
+> > > BTW, the "git request-pull" command issued a warning:
+> > > 
+> > > warn: No match for commit 66635afdc4e26f89fd7bc631f452ada84d6e4f3f found at git://linuxtv.org/gliakhovetski/v4l-dvb.git
+> > > warn: Are you sure you pushed 'HEAD' there?
+> > 
+> > This is actually a fatal error... you forgot to do a git pull ;)
 > 
-> I went through my pending patches queue and managed to go through most of it.
+> Uhm... never had to do it before... I still couldn't generate a pull 
+> request properly, I only managed to do it after I specified an end hash... 
+> So, here's a new version:
 > 
-> Most patches are fairly trivial, but you should take a close look at the
-> videobuf-dma-contig patch from Ma Haijun since you introduced the vm_iomap_memory()
-> change. I reviewed it carefully and tested it and it seems sound to me, but
-> that's one patch that needs an extra pair of eyeballs.
+> The following changes since commit b5c8d48bf8f4273a9fe680bd834f991005c8ab59:
 > 
-> Also note that I tested the saa7134 querybuf patch from Mikhail Domrachev successfully
-> using my signal generator.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> 
-> The following changes since commit 393cbd8dc532c1ebed60719da8d379f50d445f28:
-> 
->   [media] smiapp: Use %u for printing u32 value (2014-04-23 16:05:06 -0300)
+>   Add linux-next specific files for 20140502 (2014-05-02 17:01:07 +1000)
 > 
 > are available in the git repository at:
 > 
->   git://linuxtv.org/hverkuil/media_tree.git for-v3.16d
+>   git://linuxtv.org/gliakhovetski/v4l-dvb.git 66635afdc4e26f89fd7bc631f452ada84d6e4f3f
+
+That doesn't work properly.
+
+Also, it seems that there's something wrong on your tree, as there are
+there even patches for linux-next:
+http://git.linuxtv.org/cgit.cgi/gliakhovetski/v4l-dvb.git/log/?h=for-3.16-1
+
+You should not send me a pull request based on linux-next, as this will
+break compilation.
+
+Instead, if you're needing patches merged via other trees, please
+explicitly tell be, and I'll create a separate topic branch, pushing
+there from the other maintainer's tree. Of course, in this case, it
+should be a branch that the other maintainer will never rebase.
+
+I did something similar to that today, with the OMAP3 patches from
+Laurent.
+
+Regards,
+Mauro
 > 
-> for you to fetch changes up to 87b3628098449bb09e2bebf14bf9ce1978cec524:
+> for you to fetch changes up to 66635afdc4e26f89fd7bc631f452ada84d6e4f3f:
 > 
->   em28xx: move fields wq_trigger and streaming_started from struct em28xx to struct em28xx_audio (2014-05-12 10:27:00 +0200)
+>   media: mx2_camera: Change Kconfig dependency (2014-05-24 13:08:53 +0200)
 > 
 > ----------------------------------------------------------------
-> Alexander Shiyan (1):
->       media: coda: Use full device name for request_irq()
+> Alexander Shiyan (2):
+>       media: mx1_camera: Remove driver
+>       media: mx2_camera: Change Kconfig dependency
 > 
-> Bartlomiej Zolnierkiewicz (1):
->       v4l: ti-vpe: fix devm_ioremap_resource() return value checking
+> Ben Dooks (1):
+>       rcar_vin: copy flags from pdata
 > 
-> Daeseok Youn (1):
->       s2255drv: fix memory leak s2255_probe()
+> Guennadi Liakhovetski (1):
+>       V4L: soc-camera: explicitly free allocated managed memory on error
 > 
-> Dan Carpenter (1):
->       av7110: fix confusing indenting
+> Jean Delvare (1):
+>       V4L2: soc_camera: add run-time dependencies to R-Car VIN driver
 > 
-> Frank Schaefer (24):
->       em28xx: fix indenting in em28xx_usb_probe()
->       em28xx: remove some unused fields from struct em28xx
->       em28xx: remove function em28xx_compression_disable() and its call
->       em28xx: move norm_maxw() and norm_maxh() from em28xx.h to em28xx-video.c
->       em28xx: remove the i2c_set_adapdata() call in em28xx_i2c_register()
->       em28xx: move sub-module data structs to a common place in the main struct
->       em28xx-video: simplify usage of the pointer to struct v4l2_ctrl_handler in em28xx_v4l2_init()
->       em28xx: start moving em28xx-v4l specific data to its own struct
->       em28xx: move struct v4l2_ctrl_handler ctrl_handler from struct em28xx to struct v4l2
->       em28xx: move struct v4l2_clk *clk from struct em28xx to struct v4l2
->       em28xx: move video_device structs from struct em28xx to struct v4l2
->       em28xx: move videobuf2 related data from struct em28xx to struct v4l2
->       em28xx: move v4l2 frame resolutions and scale data from struct em28xx to struct v4l2
->       em28xx: move vinmode and vinctrl data from struct em28xx to struct v4l2
->       em28xx: move TV norm from struct em28xx to struct v4l2
->       em28xx: move struct em28xx_fmt *format from struct em28xx to struct v4l2
->       em28xx: move progressive/interlaced fields from struct em28xx to struct v4l2
->       em28xx: move sensor parameter fields from struct em28xx to struct v4l2
->       em28xx: move capture state tracking fields from struct em28xx to struct v4l2
->       em28xx: move v4l2 user counting fields from struct em28xx to struct v4l2
->       em28xx: move tuner frequency field from struct em28xx to struct v4l2
->       em28xx: remove field tda9887_conf from struct em28xx
->       em28xx: remove field tuner_addr from struct em28xx
->       em28xx: move fields wq_trigger and streaming_started from struct em28xx to struct em28xx_audio
-
-Hans,
-
-Almost all those em28xx patches don't have any description!
-
-Please either enforce with the patch author for them to add a description
-for each patch or add yourself some description for them. 
-
-I'm really annoyed by merging this series, due to that, especially
-when some answers why certain design decisions taken on some of those
-patches are not answered...
-
-For example, on "em28xx: move sensor parameter fields from struct em28xx to struct v4l2",
-
-We have 3 fields being moved to em28xx_v4l2 struct:
--       int sensor_xres, sensor_yres;
--       int sensor_xtal;
-
-But this one was kept there:
-
-+       enum em28xx_sensor em28xx_sensor;       /* camera specific */
-
-I would be expecting, on this particular, changeset, a comment like:
-
-[media] em28xx: move sensor parameter fields from struct em28xx to struct v4l2
-    
-Move camera sensor resolution and xtal out of em28xx common struct,
-as thore are used only by the em28xx v4l2 submodule.
-
-The em28xx_sensor firmware, however, couldn't be moved there because
-*some reason*.
-
-Btw, probably several of those data merging stuff would be better
-handled if merged into a single patch, stating how much memory
-was saved on digital-only devices where all those V4L2-specific
-data are not allocated anymore.
-
-Thanks,
-Mauro
+>  drivers/media/platform/soc_camera/Kconfig      |  16 +-
+>  drivers/media/platform/soc_camera/Makefile     |   1 -
+>  drivers/media/platform/soc_camera/mx1_camera.c | 866 -------------------------
+>  drivers/media/platform/soc_camera/rcar_vin.c   |  12 +-
+>  drivers/media/platform/soc_camera/soc_camera.c |  12 +-
+>  5 files changed, 16 insertions(+), 891 deletions(-)
+>  delete mode 100644 drivers/media/platform/soc_camera/mx1_camera.c
