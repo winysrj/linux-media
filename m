@@ -1,98 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:2684 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751516AbaEHIoS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 May 2014 04:44:18 -0400
-Message-ID: <536B43DC.30802@cisco.com>
-Date: Thu, 08 May 2014 10:44:12 +0200
-From: Hans Verkuil <hansverk@cisco.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-CC: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH] mt9p031: Really disable Black Level Calibration in test
- pattern mode
-References: <1399477255-21207-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1399477255-21207-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1199 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751203AbaEYCo2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 May 2014 22:44:28 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4P2iOd8069931
+	for <linux-media@vger.kernel.org>; Sun, 25 May 2014 04:44:26 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 467D52A19A6
+	for <linux-media@vger.kernel.org>; Sun, 25 May 2014 04:43:58 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140525024358.467D52A19A6@tschai.lan>
+Date: Sun, 25 May 2014 04:43:58 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The patch is correct, but I noticed a pre-existing bug that should be
-fixed. See below.
+Results of the daily build of media_tree:
 
-On 05/07/14 17:40, Laurent Pinchart wrote:
-> The digital side of the Black Level Calibration (BLC) function must be
-> disabled when generating a test pattern to avoid artifacts in the image.
-> The driver disables BLC correctly at the hardware level, but the feature
-> gets reenabled by v4l2_ctrl_handler_setup() the next time the device is
-> powered on.
-> 
-> Fix this by marking the BLC controls as inactive when generating a test
-> pattern, and ignoring control set requests on inactive controls.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/i2c/mt9p031.c | 17 +++++++++++++----
->  1 file changed, 13 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-> index 33daace..9102b23 100644
-> --- a/drivers/media/i2c/mt9p031.c
-> +++ b/drivers/media/i2c/mt9p031.c
-> @@ -655,6 +655,9 @@ static int mt9p031_s_ctrl(struct v4l2_ctrl *ctrl)
->  	u16 data;
->  	int ret;
->  
-> +	if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
-> +		return 0;
-> +
->  	switch (ctrl->id) {
->  	case V4L2_CID_EXPOSURE:
->  		ret = mt9p031_write(client, MT9P031_SHUTTER_WIDTH_UPPER,
-> @@ -709,8 +712,16 @@ static int mt9p031_s_ctrl(struct v4l2_ctrl *ctrl)
->  					MT9P031_READ_MODE_2_ROW_MIR, 0);
->  
->  	case V4L2_CID_TEST_PATTERN:
-> +		/* The digital side of the Black Level Calibration function must
-> +		 * be disabled when generating a test pattern to avoid artifacts
-> +		 * in the image. Activate (deactivate) the BLC-related controls
-> +		 * when the test pattern is enabled (disabled).
-> +		 */
-> +		v4l2_ctrl_activate(mt9p031->blc_auto, ctrl->val == 0);
-> +		v4l2_ctrl_activate(mt9p031->blc_offset, ctrl->val == 0);
-> +
->  		if (!ctrl->val) {
-> -			/* Restore the black level compensation settings. */
-> +			/* Restore the BLC settings. */
->  			if (mt9p031->blc_auto->cur.val != 0) {
->  				ret = mt9p031_s_ctrl(mt9p031->blc_auto);
+date:		Sun May 25 04:00:30 CEST 2014
+git branch:	test
+git hash:	85ac1a1772bb41da895bad83a81f6a62c8f293f6
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-1.slh.1-amd64
 
-This doesn't do what you expect. What you want is to set the blc_auto
-control to the current value, but mt9p031_s_ctrl(mt9p031->blc_auto) will
-set it to the *new* value, which may not be the same. Ditto for doing the
-same for blc_offset.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
-It's best to just call mt9p031_write directly, rather than going through
-mt9p031_s_ctrl.
+Detailed results are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-	Hans
+Full logs are available here:
 
->  				if (ret < 0)
-> @@ -735,9 +746,7 @@ static int mt9p031_s_ctrl(struct v4l2_ctrl *ctrl)
->  		if (ret < 0)
->  			return ret;
->  
-> -		/* Disable digital black level compensation when using a test
-> -		 * pattern.
-> -		 */
-> +		/* Disable digital BLC when generating a test pattern. */
->  		ret = mt9p031_set_mode2(mt9p031, MT9P031_READ_MODE_2_ROW_BLC,
->  					0);
->  		if (ret < 0)
-> 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
