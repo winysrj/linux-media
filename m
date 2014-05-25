@@ -1,55 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f169.google.com ([209.85.128.169]:64190 "EHLO
-	mail-ve0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751445AbaESStJ (ORCPT
+Received: from mail-la0-f48.google.com ([209.85.215.48]:44058 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751621AbaEYW0O (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 May 2014 14:49:09 -0400
-Received: by mail-ve0-f169.google.com with SMTP id jx11so7093645veb.28
-        for <linux-media@vger.kernel.org>; Mon, 19 May 2014 11:49:08 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20140224162951.20485.57579.stgit@patser>
-References: <20140224162607.20485.70967.stgit@patser>
-	<20140224162951.20485.57579.stgit@patser>
-Date: Mon, 19 May 2014 11:49:08 -0700
-Message-ID: <CALAqxLWZvt3yF8kAQz1AnQMOv66qqN8jP_zQiPDpiDcVngAa0g@mail.gmail.com>
-Subject: Re: [PATCH 4/6] android: convert sync to fence api, v5
-From: John Stultz <john.stultz@linaro.org>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: lkml <linux-kernel@vger.kernel.org>, linux-arch@vger.kernel.org,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Colin Cross <ccross@google.com>, linux-media@vger.kernel.org,
-	Rom Lemarchand <romlem@google.com>,
-	Greg Hackmann <ghackmann@google.com>
-Content-Type: text/plain; charset=UTF-8
+	Sun, 25 May 2014 18:26:14 -0400
+Received: by mail-la0-f48.google.com with SMTP id mc6so5241443lab.7
+        for <linux-media@vger.kernel.org>; Sun, 25 May 2014 15:26:13 -0700 (PDT)
+From: Alexander Bersenev <bay@hackerdom.ru>
+To: linux-sunxi@googlegroups.com, david@hardeman.nu,
+	devicetree@vger.kernel.org, galak@codeaurora.org,
+	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
+	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
+	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
+	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
+	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
+	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Alexander Bersenev <bay@hackerdom.ru>
+Subject: [PATCH v8 3/3] ARM: sunxi: Add IR controller support in DT on A20
+Date: Mon, 26 May 2014 04:26:45 +0600
+Message-Id: <1401056805-2218-4-git-send-email-bay@hackerdom.ru>
+In-Reply-To: <1401056805-2218-1-git-send-email-bay@hackerdom.ru>
+References: <1401056805-2218-1-git-send-email-bay@hackerdom.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 24, 2014 at 8:29 AM, Maarten Lankhorst
-<maarten.lankhorst@canonical.com> wrote:
-> Just to show it's easy.
->
-> Android syncpoints can be mapped to a timeline. This removes the need
-> to maintain a separate api for synchronization. I've left the android
-> trace events in place, but the core fence events should already be
-> sufficient for debugging.
->
-> v2:
-> - Call fence_remove_callback in sync_fence_free if not all fences have fired.
-> v3:
-> - Merge Colin Cross' bugfixes, and the android fence merge optimization.
-> v4:
-> - Merge with the upstream fixes.
-> v5:
-> - Fix small style issues pointed out by Thomas Hellstrom.
->
-> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+This patch adds IR controller in A20 Device-Tree:
+- Two IR devices found in A20 user manual
+- Pins for two devices
+- One IR device physically found on Cubieboard 2
+- One IR device physically found on Cubietruck
 
-I ran this through a fairly simple unit test for the Android sw_sync
-interface and it ran fine.  Also since Colin, Rom and Greg didn't seem
-to have major objections last I spoke with them:
+Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
+Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
+---
+ arch/arm/boot/dts/sun7i-a20-cubieboard2.dts |  6 ++++++
+ arch/arm/boot/dts/sun7i-a20-cubietruck.dts  |  6 ++++++
+ arch/arm/boot/dts/sun7i-a20.dtsi            | 32 +++++++++++++++++++++++++++++
+ 3 files changed, 44 insertions(+)
 
-Acked-by: John Stultz <john.stultz@linaro.org>
+diff --git a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
+index feeff64..b44d61b 100644
+--- a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
++++ b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
+@@ -65,6 +65,12 @@
+ 			};
+ 		};
+ 
++		ir0: ir@01c21800 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&ir0_pins_a>;
++			status = "okay";
++		};
++
+ 		uart0: serial@01c28000 {
+ 			pinctrl-names = "default";
+ 			pinctrl-0 = <&uart0_pins_a>;
+diff --git a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
+index e288562..5f5c31d 100644
+--- a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
++++ b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
+@@ -121,6 +121,12 @@
+ 			};
+ 		};
+ 
++		ir0: ir@01c21800 {
++			pinctrl-names = "default";
++			pinctrl-0 = <&ir0_pins_a>;
++			status = "okay";
++		};
++
+ 		uart0: serial@01c28000 {
+ 			pinctrl-names = "default";
+ 			pinctrl-0 = <&uart0_pins_a>;
+diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
+index 0ae2b77..fe1f8ff 100644
+--- a/arch/arm/boot/dts/sun7i-a20.dtsi
++++ b/arch/arm/boot/dts/sun7i-a20.dtsi
+@@ -724,6 +724,20 @@
+ 				allwinner,drive = <2>;
+ 				allwinner,pull = <0>;
+ 			};
++
++			ir0_pins_a: ir0@0 {
++				    allwinner,pins = "PB3","PB4";
++				    allwinner,function = "ir0";
++				    allwinner,drive = <0>;
++				    allwinner,pull = <0>;
++			};
++
++			ir1_pins_a: ir1@0 {
++				    allwinner,pins = "PB22","PB23";
++				    allwinner,function = "ir1";
++				    allwinner,drive = <0>;
++				    allwinner,pull = <0>;
++			};
+ 		};
+ 
+ 		timer@01c20c00 {
+@@ -749,6 +763,24 @@
+ 			interrupts = <0 24 4>;
+ 		};
+ 
++		ir0: ir@01c21800 {
++			compatible = "allwinner,sun7i-a20-ir";
++			clocks = <&apb0_gates 6>, <&ir0_clk>;
++			clock-names = "apb", "ir";
++			interrupts = <0 5 4>;
++			reg = <0x01c21800 0x40>;
++			status = "disabled";
++		};
++
++		ir1: ir@01c21c00 {
++			compatible = "allwinner,sun7i-a20-ir";
++			clocks = <&apb0_gates 7>, <&ir1_clk>;
++			clock-names = "apb", "ir";
++			interrupts = <0 6 4>;
++			reg = <0x01c21c00 0x40>;
++			status = "disabled";
++		};
++
+ 		lradc: lradc@01c22800 {
+ 			compatible = "allwinner,sun4i-lradc-keys";
+ 			reg = <0x01c22800 0x100>;
+-- 
+1.9.3
 
-thanks
--john
