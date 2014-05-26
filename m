@@ -1,52 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43134 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753722AbaEHJFV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 May 2014 05:05:21 -0400
-Date: Thu, 8 May 2014 12:04:47 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: V4L control units
-Message-ID: <20140508090446.GG8753@valkosipuli.retiisi.org.uk>
-References: <536A2DA7.7050803@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <536A2DA7.7050803@iki.fi>
+Received: from isis.lip6.fr ([132.227.60.2]:56482 "EHLO isis.lip6.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752753AbaEZP1h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 May 2014 11:27:37 -0400
+From: Benoit Taine <benoit.taine@lip6.fr>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: benoit.taine@lip6.fr, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH 17/18] drx-j: Use kmemdup instead of kmalloc + memcpy
+Date: Mon, 26 May 2014 17:21:26 +0200
+Message-Id: <1401117687-28911-18-git-send-email-benoit.taine@lip6.fr>
+In-Reply-To: <1401117687-28911-1-git-send-email-benoit.taine@lip6.fr>
+References: <1401117687-28911-1-git-send-email-benoit.taine@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Heippa!
+This issue was reported by coccicheck using the semantic patch 
+at scripts/coccinelle/api/memdup.cocci
 
-On Wed, May 07, 2014 at 03:57:11PM +0300, Antti Palosaari wrote:
-> What is preferred way implement controls that could have some known
-> unit or unknown unit? For example for gain controls, I would like to
-> offer gain in unit of dB (decibel) and also some unknown driver
-> specific unit. Should I two controls, one for each unit?
-> 
-> Like that
-> 
-> V4L2_CID_RF_TUNER_LNA_GAIN_AUTO
-> V4L2_CID_RF_TUNER_LNA_GAIN
-> V4L2_CID_RF_TUNER_LNA_GAIN_dB
+Signed-off-by: Benoit Taine <benoit.taine@lip6.fr>
+---
+Not compile tested.
 
-I suppose that on any single device there would be a single unit to control
-a given... control. Some existing controls do document the unit as well but
-I don't think that's scalable nor preferrable. This way we'd have many
-different controls to control the same thing but just using a different
-unit. The auto control is naturally different. Hans did have a patch to add
-the unit to queryctrl (in the form of QUERY_EXT_CTRL).
+ drivers/media/dvb-frontends/drx39xyj/drxj.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-<URL:http://www.spinics.net/lists/linux-media/msg73136.html>
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index 9482954..3795f65 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -12272,22 +12272,20 @@ struct dvb_frontend *drx39xxj_attach(struct i2c_adapter *i2c)
+ 	if (demod == NULL)
+ 		goto error;
+ 
+-	demod_addr = kmalloc(sizeof(struct i2c_device_addr), GFP_KERNEL);
++	demod_addr = kmemdup(&drxj_default_addr_g,
++			     sizeof(struct i2c_device_addr), GFP_KERNEL);
+ 	if (demod_addr == NULL)
+ 		goto error;
+-	memcpy(demod_addr, &drxj_default_addr_g,
+-	       sizeof(struct i2c_device_addr));
+ 
+-	demod_comm_attr = kmalloc(sizeof(struct drx_common_attr), GFP_KERNEL);
++	demod_comm_attr = kmemdup(&drxj_default_comm_attr_g,
++				  sizeof(struct drx_common_attr), GFP_KERNEL);
+ 	if (demod_comm_attr == NULL)
+ 		goto error;
+-	memcpy(demod_comm_attr, &drxj_default_comm_attr_g,
+-	       sizeof(struct drx_common_attr));
+ 
+-	demod_ext_attr = kmalloc(sizeof(struct drxj_data), GFP_KERNEL);
++	demod_ext_attr = kmemdup(&drxj_data_g, sizeof(struct drxj_data),
++				 GFP_KERNEL);
+ 	if (demod_ext_attr == NULL)
+ 		goto error;
+-	memcpy(demod_ext_attr, &drxj_data_g, sizeof(struct drxj_data));
+ 
+ 	/* setup the state */
+ 	state->i2c = i2c;
 
-I wish we can get these in relatively soon.
-
--- 
-Terveisin,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
