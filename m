@@ -1,110 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f46.google.com ([209.85.213.46]:61583 "EHLO
-	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751689AbaERToy (ORCPT
+Received: from relaycp04.dominioabsoluto.net ([217.116.26.100]:44164 "EHLO
+	relaycp04.dominioabsoluto.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751392AbaEZRqJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 May 2014 15:44:54 -0400
-Received: by mail-yh0-f46.google.com with SMTP id 29so6127123yhl.33
-        for <linux-media@vger.kernel.org>; Sun, 18 May 2014 12:44:53 -0700 (PDT)
-From: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+	Mon, 26 May 2014 13:46:09 -0400
+Received: from smtp.movistar.es (smtp21.acens.net [86.109.99.145])
+	by relaycp04.dominioabsoluto.net (Postfix) with ESMTP id 6534564618
+	for <linux-media@vger.kernel.org>; Mon, 26 May 2014 19:39:41 +0200 (CEST)
+Received: from jar7.dominio (88.3.12.114) by smtp.movistar.es (8.6.122.03) (authenticated as jareguero$telefonica.net)
+        id 5379BC360030328A for linux-media@vger.kernel.org; Mon, 26 May 2014 17:39:41 +0000
+From: Jose Alberto Reguero <jareguero@telefonica.net>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-Subject: [PATCH] solo6x10: Reduce OSD writes to the minimum necessary
-Date: Sun, 18 May 2014 16:44:11 -0300
-Message-Id: <1400442251-7548-1-git-send-email-ismael.luceno@corp.bluecherry.net>
+Subject: Problem with dvbv5-zap
+Date: Mon, 26 May 2014 19:39:38 +0200
+Message-ID: <1575891.R2thD67EOX@jar7.dominio>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
----
- drivers/staging/media/solo6x10/solo6x10-enc.c     | 31 ++++++++++-------------
- drivers/staging/media/solo6x10/solo6x10-offsets.h |  2 ++
- 2 files changed, 16 insertions(+), 17 deletions(-)
+I am trying to use dvbv5-zap but give me an error and exit:
 
-diff --git a/drivers/staging/media/solo6x10/solo6x10-enc.c b/drivers/staging/media/solo6x10/solo6x10-enc.c
-index 94d5735..2db53b6 100644
---- a/drivers/staging/media/solo6x10/solo6x10-enc.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-enc.c
-@@ -134,51 +134,48 @@ static void solo_capture_config(struct solo_dev *solo_dev)
- 	kfree(buf);
- }
- 
-+#define SOLO_OSD_WRITE_SIZE (16 * OSD_TEXT_MAX)
-+
- /* Should be called with enable_lock held */
- int solo_osd_print(struct solo_enc_dev *solo_enc)
- {
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
- 	unsigned char *str = solo_enc->osd_text;
- 	u8 *buf = solo_enc->osd_buf;
--	u32 reg = solo_reg_read(solo_dev, SOLO_VE_OSD_CH);
-+	u32 reg;
- 	const struct font_desc *vga = find_font("VGA8x16");
- 	const unsigned char *vga_data;
--	int len;
- 	int i, j;
- 
- 	if (WARN_ON_ONCE(!vga))
- 		return -ENODEV;
- 
--	len = strlen(str);
--
--	if (len == 0) {
-+	reg = solo_reg_read(solo_dev, SOLO_VE_OSD_CH);
-+	if (!*str) {
- 		/* Disable OSD on this channel */
- 		reg &= ~(1 << solo_enc->ch);
--		solo_reg_write(solo_dev, SOLO_VE_OSD_CH, reg);
--		return 0;
-+		goto out;
- 	}
- 
--	memset(buf, 0, SOLO_EOSD_EXT_SIZE_MAX);
-+	memset(buf, 0, SOLO_OSD_WRITE_SIZE);
- 	vga_data = (const unsigned char *)vga->data;
- 
--	for (i = 0; i < len; i++) {
--		unsigned char c = str[i];
--
-+	for (i = 0; *str; i++, str++) {
- 		for (j = 0; j < 16; j++) {
--			buf[(j * 2) + (i % 2) + (i / 2 * 32)] =
--				bitrev8(vga_data[(c * 16) + j]);
-+			buf[(j << 1) | (i & 1) | ((i & ~1) << 4)] =
-+			    bitrev8(vga_data[(*str << 4) | j]);
- 		}
- 	}
- 
- 	solo_p2m_dma(solo_dev, 1, buf,
--		     SOLO_EOSD_EXT_ADDR +
--		     (solo_enc->ch * SOLO_EOSD_EXT_SIZE(solo_dev)),
--		     SOLO_EOSD_EXT_SIZE(solo_dev), 0, 0);
-+		     SOLO_EOSD_EXT_ADDR_CHAN(solo_dev, solo_enc->ch),
-+		     SOLO_OSD_WRITE_SIZE, 0, 0);
- 
- 	/* Enable OSD on this channel */
- 	reg |= (1 << solo_enc->ch);
--	solo_reg_write(solo_dev, SOLO_VE_OSD_CH, reg);
- 
-+out:
-+	solo_reg_write(solo_dev, SOLO_VE_OSD_CH, reg);
- 	return 0;
- }
- 
-diff --git a/drivers/staging/media/solo6x10/solo6x10-offsets.h b/drivers/staging/media/solo6x10/solo6x10-offsets.h
-index f005dca..13eeb44 100644
---- a/drivers/staging/media/solo6x10/solo6x10-offsets.h
-+++ b/drivers/staging/media/solo6x10/solo6x10-offsets.h
-@@ -35,6 +35,8 @@
- #define SOLO_EOSD_EXT_SIZE_MAX			0x20000
- #define SOLO_EOSD_EXT_AREA(__solo) \
- 	(SOLO_EOSD_EXT_SIZE(__solo) * 32)
-+#define SOLO_EOSD_EXT_ADDR_CHAN(__solo, ch) \
-+	(SOLO_EOSD_EXT_ADDR + SOLO_EOSD_EXT_SIZE(__solo) * (ch))
- 
- #define SOLO_MOTION_EXT_ADDR(__solo) \
- 	(SOLO_EOSD_EXT_ADDR + SOLO_EOSD_EXT_AREA(__solo))
--- 
-1.9.1
+$ dvbv5-zap -a 2 -c Astra-19.2E  -l ENHANCED -I DVBV5 -v  ZDF
+Using LNBf ENHANCED
+        Astra
+        10700 to 11700 MHz
+        Single LO, IF = 9750 MHz
+using demux '/dev/dvb/adapter2/demux0'
+reading channels from file 'Astra-19.2E'
+Device STB0899 Multistandard (/dev/dvb/adapter2/frontend0) capabilities:
+     CAN_2G_MODULATION
+     CAN_FEC_AUTO
+     CAN_INVERSION_AUTO
+     CAN_QPSK
+DVB API Version 5.10, Current v5 delivery system: DVBS
+Supported delivery systems: 
+    [DVBS]
+     DVBS2
+     DSS
+tuning to 11953 Hz
+DiSEqC VOLTAGE: 18
+DiSEqC TONE: OFF
+ERROR    FE_SET_PROPERTY: Invalid argument
+FREQUENCY = 11953
+INVERSION = AUTO
+SYMBOL_RATE = 27500
+INNER_FEC = 3/4
+POLARIZATION = HORIZONTAL
+DELIVERY_SYSTEM = DVBS
+ERROR: dvb_fe_set_parms failed (Invalid argument)
+DiSEqC VOLTAGE: OFF
 
+I try with two cards and the two give me the same error.
+
+Jose alberto
