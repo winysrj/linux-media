@@ -1,97 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3068 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755200AbaEIKek (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 06:34:40 -0400
-Message-ID: <536CAF29.4030200@xs4all.nl>
-Date: Fri, 09 May 2014 12:34:17 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-	linux-media@vger.kernel.org
-CC: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH v2] media: stk1160: Avoid stack-allocated buffer for control
- URBs
-References: <1397737700-1081-1-git-send-email-ezequiel.garcia@free-electrons.com>
-In-Reply-To: <1397737700-1081-1-git-send-email-ezequiel.garcia@free-electrons.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:32499 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751600AbaEZJET (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 May 2014 05:04:19 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N66000BDBV0K050@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 26 May 2014 10:04:12 +0100 (BST)
+Message-id: <5383038C.2060909@samsung.com>
+Date: Mon, 26 May 2014 11:04:12 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] m5mols: Replace missing header
+References: <1401047695-2046-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-reply-to: <1401047695-2046-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ezequiel,
+Hi Laurent,
 
-On 04/17/2014 02:28 PM, Ezequiel Garcia wrote:
-> Currently stk1160_read_reg() uses a stack-allocated char to get the
-> read control value. This is wrong because usb_control_msg() requires
-> a kmalloc-ed buffer.
+On 25/05/14 21:54, Laurent Pinchart wrote:
+> The include/media/s5p_fimc.h header has been removed in commit
+> 49b2f4c56fbf70ca693d6df1c491f0566d516aea ("exynos4-is: Remove support
+> for non-dt platforms"). This broke compilation of the m5mols driver.
 > 
-> This commit fixes such issue by kmalloc'ating a 1-byte buffer to receive
-> the read value.
+> Include the include/media/exynos-fimc.h header instead, which contains
+> the S5P_FIMC_TX_END_NOTIFY definition required by the driver.
 > 
-> While here, let's remove the urb_buf array which was meant for a similar
-> purpose, but never really used.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Rather than allocating and freeing a buffer for every read_reg I would allocate
-this buffer in the probe function.
+Thanks for the fix. I though about adding to this patch:
 
-That way this allocation is done only once.
+Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Regards,
+But it seems the patch is already in Mauro's tree.
 
-	Hans
-
-> 
-> Cc: Alan Stern <stern@rowland.harvard.edu>
-> Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
-> Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 > ---
->  drivers/media/usb/stk1160/stk1160-core.c | 10 +++++++++-
->  drivers/media/usb/stk1160/stk1160.h      |  1 -
->  2 files changed, 9 insertions(+), 2 deletions(-)
+>  drivers/media/i2c/m5mols/m5mols_capture.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/usb/stk1160/stk1160-core.c
-> index 34a26e0..03504dc 100644
-> --- a/drivers/media/usb/stk1160/stk1160-core.c
-> +++ b/drivers/media/usb/stk1160/stk1160-core.c
-> @@ -67,17 +67,25 @@ int stk1160_read_reg(struct stk1160 *dev, u16 reg, u8 *value)
->  {
->  	int ret;
->  	int pipe = usb_rcvctrlpipe(dev->udev, 0);
-> +	u8 *buf;
->  
->  	*value = 0;
-> +
-> +	buf = kmalloc(sizeof(u8), GFP_KERNEL);
-> +	if (!buf)
-> +		return -ENOMEM;
->  	ret = usb_control_msg(dev->udev, pipe, 0x00,
->  			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> -			0x00, reg, value, sizeof(u8), HZ);
-> +			0x00, reg, buf, sizeof(u8), HZ);
->  	if (ret < 0) {
->  		stk1160_err("read failed on reg 0x%x (%d)\n",
->  			reg, ret);
-> +		kfree(buf);
->  		return ret;
->  	}
->  
-> +	*value = *buf;
-> +	kfree(buf);
->  	return 0;
->  }
->  
-> diff --git a/drivers/media/usb/stk1160/stk1160.h b/drivers/media/usb/stk1160/stk1160.h
-> index 05b05b1..abdea48 100644
-> --- a/drivers/media/usb/stk1160/stk1160.h
-> +++ b/drivers/media/usb/stk1160/stk1160.h
-> @@ -143,7 +143,6 @@ struct stk1160 {
->  	int num_alt;
->  
->  	struct stk1160_isoc_ctl isoc_ctl;
-> -	char urb_buf[255];	 /* urb control msg buffer */
->  
->  	/* frame properties */
->  	int width;		  /* current frame width */
+> (Resending to linux-media has the original patch seems not to have made it to
+> the list for an unknown reason.)
 > 
+> This is a regression in Mauro's latest master branch.
+> 
+> diff --git a/drivers/media/i2c/m5mols/m5mols_capture.c b/drivers/media/i2c/m5mols/m5mols_capture.c
+> index ab34cce..1a03d02 100644
+> --- a/drivers/media/i2c/m5mols/m5mols_capture.c
+> +++ b/drivers/media/i2c/m5mols/m5mols_capture.c
+> @@ -26,7 +26,7 @@
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-subdev.h>
+>  #include <media/m5mols.h>
+> -#include <media/s5p_fimc.h>
+> +#include <media/exynos-fimc.h>
+>  
+>  #include "m5mols.h"
+>  #include "m5mols_reg.h"
 
+-- 
+Regards,
+Sylwester
