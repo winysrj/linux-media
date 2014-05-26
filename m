@@ -1,70 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f170.google.com ([209.85.223.170]:47892 "EHLO
-	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933077AbaE3PI7 (ORCPT
+Received: from mail-wg0-f65.google.com ([74.125.82.65]:50117 "EHLO
+	mail-wg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752087AbaEZSAu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 May 2014 11:08:59 -0400
-Received: by mail-ie0-f170.google.com with SMTP id to1so631209ieb.15
-        for <linux-media@vger.kernel.org>; Fri, 30 May 2014 08:08:59 -0700 (PDT)
+	Mon, 26 May 2014 14:00:50 -0400
+Received: by mail-wg0-f65.google.com with SMTP id k14so1536060wgh.4
+        for <linux-media@vger.kernel.org>; Mon, 26 May 2014 11:00:49 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20140530134730.GH2073@valkosipuli.retiisi.org.uk>
-References: <CAHqFTYrnru=b9MhuzRHbY8hk8Y149N2nb3Oj2e8p3cc9NP9bJw@mail.gmail.com>
-	<20140530130446.GG2073@valkosipuli.retiisi.org.uk>
-	<CAHqFTYoQ3NuC6T52nGrNqtVsUiSqmM1KCeGAuu4_WhMGCV1joA@mail.gmail.com>
-	<20140530134730.GH2073@valkosipuli.retiisi.org.uk>
-Date: Fri, 30 May 2014 17:08:59 +0200
-Message-ID: <CAHqFTYoypVCGfXLTmf+yZd=2zgGftPS+RU_rfpa3tjsr-TMsNw@mail.gmail.com>
-Subject: Re: v4l2_device_register_subdev_nodes() clean_up code
-From: Krzysztof Czarnowski <khczarnowski@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
+Reply-To: Husamalsayed@asia.com
+Date: Mon, 26 May 2014 22:00:48 +0400
+Message-ID: <CAKFyHyqE-jAV0G8GqYW7H_3cUYv2iXVQm5a6-m1VNZWRhKVXAg@mail.gmail.com>
+Subject: Your Urgent reply.
+From: HUSAM AL SAYED <Husamalsayed@asia.com>
+To: undisclosed-recipients:;
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> One additional thing: I think sd->devnode should also be set as NULL since
-> sub-devices are no longer created by the driver owning the media device.
-
-Yes, I think you're right.
-
-But there are also other issues with
-v4l2_device_register_subdev_nodes(). I think after checking
-V4L2_SUBDEV_FL_HAS_DEVNODE flag yet another check like so:
-
-if (sd->devnode)
-    continue;  /* or perhaps raising error, TBD */
-
-would be reasonable. Maybe this is not necessary, I don't know, but
-this is cheap and would prevent bad things when a duplicate
-/dev/v4l-subdev node is created for the same subdevice and track is
-lost of the old one.
-
-Actually, I'm trying to make use of v4l2_async_register_subdev()
-protocol and v4l2_device_register_subdev_nodes() doesn't seem to fit
-well. Something like v4l2_device_register_subdev_node() (singular)
-would be nice. But this is probably an idea that's been already
-raised. Anyway in async scenarios I can imagine that nodes
-registration is called twice and it should be made somehow taken care
-of. Regardles that a single subdev node registration is probably
-required for such use cases and it's quite easy to implement.
-
-Anyway, I'll prepare a bug fix patch and maybe another as an
-improvement suggestion.
-Any comments welcome,
-Krzysztof
+Dear Friend,
 
 
+Compliments of the day.This mail May be a surprise to you Because you
+did not give me the permission to do so and Neither do you know me but
+before I tell you about myself I want you to please forgive me for
+sending this mail without your permission I have been in search of
+someone with this last name so when I saw you online, I was pushed to
+contact you and see how best we can assist each other. I am Mr. Husam
+Al Sayed, a Bank Officer here in U.A.E. I believe it is the wish of
+God for me to come across you now. I am having an important business
+discussion I wish to share with you which I  believe will interest
+you, because it is in connection with your last name and you are going
+to benefit from it.
 
-On Fri, May 30, 2014 at 3:47 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> On Fri, May 30, 2014 at 03:27:27PM +0200, Krzysztof Czarnowski wrote:
->> Sure, a moment :-)
->
-> One additional thing: I think sd->devnode should also be set as NULL since
-> sub-devices are no longer created by the driver owning the media device.
->
-> This isn't done in the error path or in v4l2_device_unregister_subdev()
-> currently.
->
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+One Late peter who was among the death victims in the May 27 2006
+Earthquake disaster in Java, Indonesia that killed over 5,000 people.
+He was in Indonesia on a business trip and that was how he met his
+end. My bank management is yet to know about his death, I knew about
+it because he was my friend and I am his account officer.he did not
+mention any Next of Kin/ Heir when the account was opened, and he was
+not married and no children. Last week my Bank Management requested
+that he should give instructions on what to do about his funds,I know
+this will happen and that is why I have been looking for a means to
+handle the situation,
+
+If you are interested send me your private Email Address so that i can
+send you more details of the transaction,
+Thanks for your understanding
+
+I am waiting for your reply.
+
+Best regards,
+
+Mr. Husam Al Sayed
