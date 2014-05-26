@@ -1,62 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50725 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753104AbaEZWQy (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36724 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751517AbaEZU4k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 18:16:54 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH/RFC 0/2] Propert alpha channel support in pixel formats
-Date: Tue, 27 May 2014 00:17:07 +0200
-Message-Id: <1401142629-12856-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Mon, 26 May 2014 16:56:40 -0400
+Message-ID: <5383AA86.5000103@iki.fi>
+Date: Mon, 26 May 2014 23:56:38 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 5/6] v4l: smiapp: Return V4L2_FIELD_NONE from pad-level
+ get/set format
+References: <1401131165-3542-1-git-send-email-laurent.pinchart@ideasonboard.com> <1401131165-3542-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1401131165-3542-6-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Laurent,
 
-This RFC patch series attempts to clean up the current ARGB format mess.
+Laurent Pinchart wrote:
+> The SMIA++ sensors are progressive, always return the field order set to
+> V4L2_FIELD_NONE.
+>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-The core issue is that the existing ARGB formats are ill-defined. The V4L2
-specification doesn't clearly document how the alpha bits should behave.
-Drivers have thus used the same formats in different, incompatible ways, and
-applications now rely on the driver-specific behaviours. In a word, that's a
-mess.
-
-I've discussed the issue in the #v4l channel a couple of days ago and we came
-up to the conclusion that the best (or least painful) way to fix the problem
-is to define new clean XRGB and ARGB formats, and consider the existing
-formats as deprecated (meaning that no new driver should use them, they won't
-disappear in a couple of months, as that would break userspace).
-
-The first patch adds the new XRGB and ARGB formats and documents them. It
-purposely includes no core code to handle backward compatibility for existing
-drivers that may wish to move to the new formats. The reason is that I would
-first like to get feedback on the proposal before working on compat code, and
-I believe we should first implement the compat code in a couple of drivers and
-then see how the approach could be generalized, if possible at all.
-
-The second patch allows using the ALPHA_COMPONENT control on output devices to
-support an ARGB use case documented in the first patch. One possible
-shortcoming of reusing the existing control is that a mem-to-mem driver that
-exposes an output and a capture queue on a single video node through the same
-file handle wouldn't be able to set different alpha component values on the
-two queues. I'm not sure whether that use case is real though, it seems weird
-to me to set a fixed alpha value on one side to request a different fixed
-alpha value on the other side.
-
-Laurent Pinchart (2):
-  v4l: Add ARGB and XRGB pixel formats
-  DocBook: media: Document ALPHA_COMPONENT control usage on output
-    devices
-
- Documentation/DocBook/media/v4l/controls.xml       |  17 +-
- .../DocBook/media/v4l/pixfmt-packed-rgb.xml        | 415 ++++++++++++++++++++-
- include/uapi/linux/videodev2.h                     |   8 +
- 3 files changed, 413 insertions(+), 27 deletions(-)
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
 -- 
 Regards,
 
-Laurent Pinchart
-
+Sakari Ailus
+sakari.ailus@iki.fi
