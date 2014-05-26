@@ -1,58 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50728 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49561 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753123AbaEZWQ4 (ORCPT
+	with ESMTP id S1751726AbaEZTFy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 18:16:56 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+	Mon, 26 May 2014 15:05:54 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH/RFC 2/2] DocBook: media: Document ALPHA_COMPONENT control usage on output devices
-Date: Tue, 27 May 2014 00:17:09 +0200
-Message-Id: <1401142629-12856-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1401142629-12856-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1401142629-12856-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH 3/6] v4l: s5k5baf: Return V4L2_FIELD_NONE from pad-level set format
+Date: Mon, 26 May 2014 21:06:02 +0200
+Message-Id: <1401131165-3542-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1401131165-3542-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1401131165-3542-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extend the V4L2_CID_ALPHA_COMPONENT control for use on output devices,
-to set the alpha component value when the output format doesn't have an
-alpha channel.
+The sensor is progressive, always return the field order set to
+V4L2_FIELD_NONE.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- Documentation/DocBook/media/v4l/controls.xml | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ drivers/media/i2c/s5k5baf.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 47198ee..4dfea27 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -398,14 +398,17 @@ to work.</entry>
- 	  <row id="v4l2-alpha-component">
- 	    <entry><constant>V4L2_CID_ALPHA_COMPONENT</constant></entry>
- 	    <entry>integer</entry>
--	    <entry> Sets the alpha color component on the capture device or on
--	    the capture buffer queue of a mem-to-mem device. When a mem-to-mem
--	    device produces frame format that includes an alpha component
-+	    <entry>Sets the alpha color component. When a capture device (or
-+	    capture queue of a mem-to-mem device) produces a frame format that
-+	    includes an alpha component
- 	    (e.g. <link linkend="rgb-formats">packed RGB image formats</link>)
--	    and the alpha value is not defined by the mem-to-mem input data
--	    this control lets you select the alpha component value of all
--	    pixels. It is applicable to any pixel format that contains an alpha
--	    component.
-+	    and the alpha value is not defined by the device or the mem-to-mem
-+	    input data this control lets you select the alpha component value of
-+	    all pixels. When an output device (or output queue of a mem-to-mem
-+	    device) consumes a frame format that doesn't include an alpha
-+	    component and the device supports alpha channel processing this
-+	    control lets you set the alpha component value of all pixels for
-+	    further processing in the device.
- 	    </entry>
- 	  </row>
- 	  <row>
+diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
+index 2d768ef..564f05f 100644
+--- a/drivers/media/i2c/s5k5baf.c
++++ b/drivers/media/i2c/s5k5baf.c
+@@ -1313,6 +1313,8 @@ static int s5k5baf_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	const struct s5k5baf_pixfmt *pixfmt;
+ 	int ret = 0;
+ 
++	mf->field = V4L2_FIELD_NONE;
++
+ 	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+ 		*v4l2_subdev_get_try_format(fh, fmt->pad) = *mf;
+ 		return 0;
 -- 
 1.8.5.5
 
