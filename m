@@ -1,115 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4664 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752138AbaEPCny (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50725 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753104AbaEZWQy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 May 2014 22:43:54 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4G2ho30077747
-	for <linux-media@vger.kernel.org>; Fri, 16 May 2014 04:43:52 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id C5C7A2A19A4
-	for <linux-media@vger.kernel.org>; Fri, 16 May 2014 04:43:35 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Mon, 26 May 2014 18:16:54 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140516024335.C5C7A2A19A4@tschai.lan>
-Date: Fri, 16 May 2014 04:43:35 +0200 (CEST)
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH/RFC 0/2] Propert alpha channel support in pixel formats
+Date: Tue, 27 May 2014 00:17:07 +0200
+Message-Id: <1401142629-12856-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hello,
 
-Results of the daily build of media_tree:
+This RFC patch series attempts to clean up the current ARGB format mess.
 
-date:		Fri May 16 04:00:15 CEST 2014
-git branch:	test
-git hash:	ba0d342ecc21fbbe2f6c178f4479944d1fb34f3b
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.14-1.slh.1-amd64
+The core issue is that the existing ARGB formats are ill-defined. The V4L2
+specification doesn't clearly document how the alpha bits should behave.
+Drivers have thus used the same formats in different, incompatible ways, and
+applications now rely on the driver-specific behaviours. In a word, that's a
+mess.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+I've discussed the issue in the #v4l channel a couple of days ago and we came
+up to the conclusion that the best (or least painful) way to fix the problem
+is to define new clean XRGB and ARGB formats, and consider the existing
+formats as deprecated (meaning that no new driver should use them, they won't
+disappear in a couple of months, as that would break userspace).
 
-Detailed results are available here:
+The first patch adds the new XRGB and ARGB formats and documents them. It
+purposely includes no core code to handle backward compatibility for existing
+drivers that may wish to move to the new formats. The reason is that I would
+first like to get feedback on the proposal before working on compat code, and
+I believe we should first implement the compat code in a couple of drivers and
+then see how the approach could be generalized, if possible at all.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+The second patch allows using the ALPHA_COMPONENT control on output devices to
+support an ARGB use case documented in the first patch. One possible
+shortcoming of reusing the existing control is that a mem-to-mem driver that
+exposes an output and a capture queue on a single video node through the same
+file handle wouldn't be able to set different alpha component values on the
+two queues. I'm not sure whether that use case is real though, it seems weird
+to me to set a fixed alpha value on one side to request a different fixed
+alpha value on the other side.
 
-Full logs are available here:
+Laurent Pinchart (2):
+  v4l: Add ARGB and XRGB pixel formats
+  DocBook: media: Document ALPHA_COMPONENT control usage on output
+    devices
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+ Documentation/DocBook/media/v4l/controls.xml       |  17 +-
+ .../DocBook/media/v4l/pixfmt-packed-rgb.xml        | 415 ++++++++++++++++++++-
+ include/uapi/linux/videodev2.h                     |   8 +
+ 3 files changed, 413 insertions(+), 27 deletions(-)
 
-The Media Infrastructure API from this daily build is here:
+-- 
+Regards,
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Laurent Pinchart
+
