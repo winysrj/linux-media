@@ -1,56 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp29.i.mail.ru ([94.100.177.89]:33906 "EHLO smtp29.i.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750881AbaE0Hsm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 May 2014 03:48:42 -0400
-From: Alexander Shiyan <shc_work@mail.ru>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Shawn Guo <shawn.guo@freescale.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Alexander Shiyan <shc_work@mail.ru>
-Subject: [PATCH 2/2] media: mx2-emmaprp: Add DT bindings documentation
-Date: Tue, 27 May 2014 11:48:34 +0400
-Message-Id: <1401176914-7358-1-git-send-email-shc_work@mail.ru>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36768 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751624AbaEZVM3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 May 2014 17:12:29 -0400
+Message-ID: <5383AE3A.3010504@iki.fi>
+Date: Tue, 27 May 2014 00:12:26 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+CC: Julien BERAUD <julien.beraud@parrot.com>,
+	Boris Todorov <boris.st.todorov@gmail.com>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Enrico <ebutera@users.berlios.de>,
+	Stefan Herbrechtsmeier <sherbrec@cit-ec.uni-bielefeld.de>,
+	Javier Martinez Canillas <martinez.javier@gmail.com>,
+	Chris Whittenburg <whittenburg@gmail.com>
+Subject: Re: [PATCH 09/11] omap3isp: ccdc: Add basic support for interlaced
+ video
+References: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com> <1401133812-8745-10-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1401133812-8745-10-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds DT binding documentation for the Freescale enhanced
-Multimedia Accelerator (eMMA) video Pre-processor (PrP).
+Hi Laurent,
 
-Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
----
- .../devicetree/bindings/media/fsl-imx-emmaprp.txt    | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
+Laurent Pinchart wrote:
+> When the CCDC input is interlaced enable the alternate field order on
+> the CCDC output video node. The field signal polarity is specified
+> through platform data.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>   drivers/media/platform/omap3isp/ispccdc.c  | 21 ++++++++++++++++++++-
+>   drivers/media/platform/omap3isp/ispvideo.c |  6 ++++++
+>   drivers/media/platform/omap3isp/ispvideo.h |  2 ++
+>   include/media/omap3isp.h                   |  3 +++
+>   4 files changed, 31 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+> index 76d4fd7..49d7256 100644
+> --- a/drivers/media/platform/omap3isp/ispccdc.c
+> +++ b/drivers/media/platform/omap3isp/ispccdc.c
+...
+> @@ -1830,6 +1845,11 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
+>   		/* Clamp the input size. */
+>   		fmt->width = clamp_t(u32, width, 32, 4096);
+>   		fmt->height = clamp_t(u32, height, 32, 4096);
+> +
+> +		/* Default to progressive field order. */
+> +		if (fmt->field == V4L2_FIELD_ANY)
+> +			fmt->field = V4L2_FIELD_NONE;
 
-diff --git a/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt b/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
-new file mode 100644
-index 0000000..d78b1b6
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
-@@ -0,0 +1,20 @@
-+* Freescale enhanced Multimedia Accelerator (eMMA) video Pre-processor (PrP)
-+  for i.MX21 & i.MX27 SoCs.
-+
-+Required properties:
-+- compatible : Shall contain "fsl,imx21-emmaprp" for compatible with
-+               the one integrated on i.MX21 SoC.
-+- reg        : Offset and length of the register set for the device.
-+- interrupts : Should contain eMMA PrP interrupt number.
-+- clocks     : Should contain the ahb and ipg clocks, in the order
-+               determined by the clock-names property.
-+- clock-names: Should be "ahb", "ipg".
-+
-+Example:
-+	emmaprp: emmaprp@10026400 {
-+		compatible = "fsl,imx27-emmaprp", "fsl,imx21-emmaprp";
-+		reg = <0x10026400 0x100>;
-+		interrupts = <51>;
-+		clocks = <&clks 49>, <&clks 68>;
-+		clock-names = "ipg", "ahb";
-+	};
+I think this change would better fit in "omap3isp: Default to 
+progressive field order when setting the format". Then you could omit " 
+when setting the format". :-)
+
 -- 
-1.8.5.5
+Kind regards,
 
+Sakari Ailus
+sakari.ailus@iki.fi
