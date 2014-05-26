@@ -1,56 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1268 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755957AbaELKLq (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50878 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751498AbaEZWqy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 May 2014 06:11:46 -0400
-Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4CABgTP022696
-	for <linux-media@vger.kernel.org>; Mon, 12 May 2014 12:11:44 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0CBBF2A19A4
-	for <linux-media@vger.kernel.org>; Mon, 12 May 2014 12:11:32 +0200 (CEST)
-Message-ID: <53709E53.4060604@xs4all.nl>
-Date: Mon, 12 May 2014 12:11:31 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.16] More fixes
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Mon, 26 May 2014 18:46:54 -0400
+Received: from avalon.ideasonboard.com (30.141-246-81.adsl-dyn.isp.belgacom.be [81.246.141.30])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id CF74835A00
+	for <linux-media@vger.kernel.org>; Tue, 27 May 2014 00:46:42 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] v4l: vsp1: sru: Handle control handler initialization errors
+Date: Tue, 27 May 2014 00:46:49 +0200
+Message-Id: <1401144409-13217-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some more small fixes.
+Bail out when the SRU control handler fails to initialize.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_sru.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index aa0e04c..79efcaf 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -348,6 +348,14 @@ struct vsp1_sru *vsp1_sru_create(struct vsp1_device *vsp1)
+ 	/* Initialize the control handler. */
+ 	v4l2_ctrl_handler_init(&sru->ctrls, 1);
+ 	v4l2_ctrl_new_custom(&sru->ctrls, &sru_intensity_control, NULL);
++
++	if (sru->ctrls.error) {
++		dev_err(vsp1->dev, "sru: failed to initialize controls\n");
++		ret = sru->ctrls.error;
++		v4l2_ctrl_handler_free(&sru->ctrls);
++		return ERR_PTR(ret);
++	}
++
+ 	v4l2_ctrl_handler_setup(&sru->ctrls);
+ 	sru->entity.subdev.ctrl_handler = &sru->ctrls;
+ 
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-The following changes since commit 393cbd8dc532c1ebed60719da8d379f50d445f28:
-
-  [media] smiapp: Use %u for printing u32 value (2014-04-23 16:05:06 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.16e
-
-for you to fetch changes up to 6451fb2f7fdd73edb4cdd47d4ea14d0aec57ab95:
-
-  vb2: fix num_buffers calculation if req->count > VIDEO_MAX_FRAMES (2014-05-12 10:55:26 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (1):
-      v4l2-ioctl: drop spurious newline in string
-
-Laurent Pinchart (1):
-      v4l: vb2: Avoid double WARN_ON when stopping streaming
-
-Philipp Zabel (1):
-      vb2: fix num_buffers calculation if req->count > VIDEO_MAX_FRAMES
-
- drivers/media/v4l2-core/v4l2-ioctl.c     | 2 +-
- drivers/media/v4l2-core/videobuf2-core.c | 9 +++++----
- 2 files changed, 6 insertions(+), 5 deletions(-)
