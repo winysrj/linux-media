@@ -1,55 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bl2on0057.outbound.protection.outlook.com ([65.55.169.57]:57791
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751709AbaELPmr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 May 2014 11:42:47 -0400
-Date: Mon, 12 May 2014 22:09:34 +0800
-From: Shawn Guo <shawn.guo@freescale.com>
-To: Alexander Shiyan <shc_work@mail.ru>
-CC: <linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Sascha Hauer <kernel@pengutronix.de>
-Subject: Re: [PATCH] media: mx1_camera: Remove driver
-Message-ID: <20140512140933.GC8330@dragon>
-References: <1399788551-8218-1-git-send-email-shc_work@mail.ru>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <1399788551-8218-1-git-send-email-shc_work@mail.ru>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49826 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751466AbaEZTuF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 May 2014 15:50:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Julien BERAUD <julien.beraud@parrot.com>,
+	Boris Todorov <boris.st.todorov@gmail.com>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Enrico <ebutera@users.berlios.de>,
+	Stefan Herbrechtsmeier <sherbrec@cit-ec.uni-bielefeld.de>,
+	Javier Martinez Canillas <martinez.javier@gmail.com>,
+	Chris Whittenburg <whittenburg@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 06/11] omap3isp: video: Validate the video node field order
+Date: Mon, 26 May 2014 21:50:07 +0200
+Message-Id: <1401133812-8745-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, May 11, 2014 at 10:09:11AM +0400, Alexander Shiyan wrote:
-> That driver hasn't been really maintained for a long time. It doesn't
-> compile in any way, it includes non-existent headers, has no users,
-> and marked as "broken" more than year. Due to these factors, mx1_camera
-> is now removed from the tree.
-> 
-> Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
-> ---
->  arch/arm/mach-imx/Makefile                      |   3 -
->  arch/arm/mach-imx/devices/Kconfig               |   3 -
->  arch/arm/mach-imx/devices/Makefile              |   1 -
->  arch/arm/mach-imx/devices/devices-common.h      |  10 -
->  arch/arm/mach-imx/devices/platform-mx1-camera.c |  42 --
->  arch/arm/mach-imx/mx1-camera-fiq-ksym.c         |  18 -
->  arch/arm/mach-imx/mx1-camera-fiq.S              |  35 -
->  drivers/media/platform/soc_camera/Kconfig       |  13 -
->  drivers/media/platform/soc_camera/Makefile      |   1 -
->  drivers/media/platform/soc_camera/mx1_camera.c  | 866 ------------------------
->  include/linux/platform_data/camera-mx1.h        |  35 -
->  11 files changed, 1027 deletions(-)
->  delete mode 100644 arch/arm/mach-imx/devices/platform-mx1-camera.c
->  delete mode 100644 arch/arm/mach-imx/mx1-camera-fiq-ksym.c
->  delete mode 100644 arch/arm/mach-imx/mx1-camera-fiq.S
->  delete mode 100644 drivers/media/platform/soc_camera/mx1_camera.c
->  delete mode 100644 include/linux/platform_data/camera-mx1.h
+The field order requested on the video node must match the field order
+at the connected subdevice source pad.
 
-Can this patch be split into arch and driver part?  Recently, arm-soc
-folks do not want to have arch changes go via driver tree, unless that's
-absolutely necessary.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/ispvideo.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Shawn
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 2fe1c46..756c162 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -309,10 +309,11 @@ isp_video_check_format(struct isp_video *video, struct isp_video_fh *vfh)
+ 	    vfh->format.fmt.pix.height != format.fmt.pix.height ||
+ 	    vfh->format.fmt.pix.width != format.fmt.pix.width ||
+ 	    vfh->format.fmt.pix.bytesperline != format.fmt.pix.bytesperline ||
+-	    vfh->format.fmt.pix.sizeimage != format.fmt.pix.sizeimage)
++	    vfh->format.fmt.pix.sizeimage != format.fmt.pix.sizeimage ||
++	    vfh->format.fmt.pix.field != format.fmt.pix.field)
+ 		return -EINVAL;
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ /* -----------------------------------------------------------------------------
+-- 
+1.8.5.5
+
