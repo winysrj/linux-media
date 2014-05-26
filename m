@@ -1,116 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:40468 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756403AbaELMvJ convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49561 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752038AbaEZTFz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 May 2014 08:51:09 -0400
-Received: by mail-pa0-f42.google.com with SMTP id rd3so8561938pab.1
-        for <linux-media@vger.kernel.org>; Mon, 12 May 2014 05:51:09 -0700 (PDT)
-Content-Type: text/plain;
-	charset=utf-8
-Mime-Version: 1.0 (1.0)
-Subject: Re: [PATCH] hdpvr: fix interrupted recording
-From: Ryley Angus <ryleyjangus@gmail.com>
-In-Reply-To: <5370C18C.7040006@xs4all.nl>
-Date: Mon, 12 May 2014 22:51:02 +1000
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Keith Pyle <kpyle@austin.rr.com>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <4318B9B5-95EC-4353-8F9E-939EF37B1EF0@gmail.com>
-References: <5370C18C.7040006@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 26 May 2014 15:05:55 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 4/6] v4l: s5k6a3: Return V4L2_FIELD_NONE from pad-level set format
+Date: Mon, 26 May 2014 21:06:03 +0200
+Message-Id: <1401131165-3542-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1401131165-3542-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1401131165-3542-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry for the late reply. I've been fiddling with the Windows drivers/capture applications and I've haven't been able to reproduce the issue I faced with the Linux driver. Nonetheless, the patch you posted is the only approach so far to avoid interrupted recordings on Linux and the three second delay was plenty with my testing.
+The sensor is progressive, always return the field order set to
+V4L2_FIELD_NONE.
 
-Tested-by: Ryley Angus
-<ryleyjangus@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/s5k6a3.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-> On 12 May 2014, at 10:41 pm, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
-> Ryley, Keith, can you test this one more time and if it works reply with
-> a 'Tested-by' tag that I can add to the patch?
-> 
-> Thanks!
-> 
->    Hans
-> 
-> 
-> This issue was reported by Ryley Angus:
-> 
-> <quote>
-> I record from my satellite set top box using component video and optical
-> audio input. I basically use "cat /dev/video0 > ~/video.ts” or use dd. The
-> box is set to output audio as AC-3 over optical, but most channels are
-> actually output as stereo PCM. When the channel is changed between a PCM
-> channel and (typically to a movie channel) to a channel utilising AC-3,
-> the HD-PVR stops the recording as the set top box momentarily outputs no
-> audio. Changing between PCM channels doesn't cause any issues.
-> 
-> My main problem was that when this happens, cat/dd doesn't actually exit.
-> When going through the hdpvr driver source and the dmesg output, I found
-> the hdpvr driver wasn't actually shutting down the device properly until
-> I manually killed cat/dd.
-> 
-> I've seen references to this issue being a hardware issue from as far back
-> as 2010: http://forums.gbpvr.com/showthread.php?46429-HD-PVR-drops-recording-on-channel-change-Hauppauge-says-too-bad .
-> 
-> I tracked my issue to the file hdpvr-video.c. Specifically:
-> "if (wait_event_interruptible(dev->wait_data, buf->status = BUFSTAT_READY)) {"
-> (line ~450). The device seems to get stuck waiting for the buffer to become
-> ready. But as far as I can tell, when the channel is changed between a PCM
-> and AC-3 broadcast the buffer status will never actually become ready.
-> </quote>
-> 
-> Angus provided a hack to fix this, which I've rewritten.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Reported-by: Ryley Angus <ryleyjangus@gmail.com>
-> ---
-> drivers/media/usb/hdpvr/hdpvr-video.c | 20 +++++++++++++++++---
-> 1 file changed, 17 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
-> index 0500c417..44227da 100644
-> --- a/drivers/media/usb/hdpvr/hdpvr-video.c
-> +++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-> @@ -454,6 +454,8 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
-> 
->        if (buf->status != BUFSTAT_READY &&
->            dev->status != STATUS_DISCONNECTED) {
-> +            int err;
-> +
->            /* return nonblocking */
->            if (file->f_flags & O_NONBLOCK) {
->                if (!ret)
-> @@ -461,11 +463,23 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
->                goto err;
->            }
-> 
-> -            if (wait_event_interruptible(dev->wait_data,
-> -                          buf->status == BUFSTAT_READY)) {
-> -                ret = -ERESTARTSYS;
-> +            err = wait_event_interruptible_timeout(dev->wait_data,
-> +                          buf->status == BUFSTAT_READY,
-> +                          msecs_to_jiffies(3000));
-> +            if (err < 0) {
-> +                ret = err;
->                goto err;
->            }
-> +            if (!err) {
-> +                v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
-> +                    "timeout: restart streaming\n");
-> +                hdpvr_stop_streaming(dev);
-> +                err = hdpvr_start_streaming(dev);
-> +                if (err) {
-> +                    ret = err;
-> +                    goto err;
-> +                }
-> +            }
->        }
-> 
->        if (buf->status != BUFSTAT_READY)
-> -- 
-> 2.0.0.rc0
-> 
+diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
+index 7bc2271..c11a408 100644
+--- a/drivers/media/i2c/s5k6a3.c
++++ b/drivers/media/i2c/s5k6a3.c
+@@ -115,6 +115,7 @@ static void s5k6a3_try_format(struct v4l2_mbus_framefmt *mf)
+ 
+ 	fmt = find_sensor_format(mf);
+ 	mf->code = fmt->code;
++	mf->field = V4L2_FIELD_NONE;
+ 	v4l_bound_align_image(&mf->width, S5K6A3_SENSOR_MIN_WIDTH,
+ 			      S5K6A3_SENSOR_MAX_WIDTH, 0,
+ 			      &mf->height, S5K6A3_SENSOR_MIN_HEIGHT,
+-- 
+1.8.5.5
+
