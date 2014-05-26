@@ -1,80 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58198 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757189AbaEIU7u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 16:59:50 -0400
-Date: Fri, 9 May 2014 13:59:49 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] Fix _IOC_TYPECHECK sparse error
-Message-Id: <20140509135949.feac79f3cb0ed9b13afbfeb4@linux-foundation.org>
-In-Reply-To: <536C873E.8060408@xs4all.nl>
-References: <536C873E.8060408@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36790 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751750AbaEZVSl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 May 2014 17:18:41 -0400
+Message-ID: <5383AFB0.9070703@iki.fi>
+Date: Tue, 27 May 2014 00:18:40 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+CC: Julien BERAUD <julien.beraud@parrot.com>,
+	Boris Todorov <boris.st.todorov@gmail.com>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Enrico <ebutera@users.berlios.de>,
+	Stefan Herbrechtsmeier <sherbrec@cit-ec.uni-bielefeld.de>,
+	Javier Martinez Canillas <martinez.javier@gmail.com>,
+	Chris Whittenburg <whittenburg@gmail.com>
+Subject: Re: [PATCH 00/11] OMAP3 ISP BT.656 support
+References: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 09 May 2014 09:43:58 +0200 Hans Verkuil <hverkuil@xs4all.nl> wrote:
+Hi Laurent,
 
-> Andrew, can you merge this for 3.15 or 3.16 (you decide)? While it fixes a sparse error
-> for the media subsystem, it is not really appropriate to go through our media tree.
-> 
-> Thanks,
-> 
-> 	Hans
-> 
-> 
-> When running sparse over drivers/media/v4l2-core/v4l2-ioctl.c I get these
-> errors:
-> 
-> drivers/media/v4l2-core/v4l2-ioctl.c:2043:9: error: bad integer constant expression
-> drivers/media/v4l2-core/v4l2-ioctl.c:2044:9: error: bad integer constant expression
-> drivers/media/v4l2-core/v4l2-ioctl.c:2045:9: error: bad integer constant expression
-> drivers/media/v4l2-core/v4l2-ioctl.c:2046:9: error: bad integer constant expression
-> 
-> etc.
-> 
-> The root cause of that turns out to be in include/asm-generic/ioctl.h:
-> 
-> #include <uapi/asm-generic/ioctl.h>
-> 
-> /* provoke compile error for invalid uses of size argument */
-> extern unsigned int __invalid_size_argument_for_IOC;
-> #define _IOC_TYPECHECK(t) \
->         ((sizeof(t) == sizeof(t[1]) && \
->           sizeof(t) < (1 << _IOC_SIZEBITS)) ? \
->           sizeof(t) : __invalid_size_argument_for_IOC)
-> 
-> If it is defined as this (as is already done if __KERNEL__ is not defined):
-> 
-> #define _IOC_TYPECHECK(t) (sizeof(t))
-> 
-> then all is well with the world.
-> 
-> This patch allows sparse to work correctly.
-> 
-> --- a/include/asm-generic/ioctl.h
-> +++ b/include/asm-generic/ioctl.h
-> @@ -3,10 +3,15 @@
->  
->  #include <uapi/asm-generic/ioctl.h>
->  
-> +#ifdef __CHECKER__
-> +#define _IOC_TYPECHECK(t) (sizeof(t))
-> +#else
->  /* provoke compile error for invalid uses of size argument */
->  extern unsigned int __invalid_size_argument_for_IOC;
->  #define _IOC_TYPECHECK(t) \
->  	((sizeof(t) == sizeof(t[1]) && \
->  	  sizeof(t) < (1 << _IOC_SIZEBITS)) ? \
->  	  sizeof(t) : __invalid_size_argument_for_IOC)
-> +#endif
-> +
->  #endif /* _ASM_GENERIC_IOCTL_H */
+Laurent Pinchart wrote:
+> Hello,
+>
+> This patch sets implements support for BT.656 and interlaced formats in the
+> OMAP3 ISP driver. Better late than never I suppose, although given how long
+> this has been on my to-do list there's probably no valid excuse.
 
-Can't we use BUILD_BUG_ON() here?  That's neater, more standard and
-BUILD_BUG_ON() already has sparse handling.  
+Thanks!
+
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
