@@ -1,64 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1821 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750750AbaENS0x (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49699 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751343AbaEZTbN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 May 2014 14:26:53 -0400
-Message-ID: <5373B556.5010101@xs4all.nl>
-Date: Wed, 14 May 2014 20:26:30 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v4 1/2] media: davinci: vpif capture: upgrade the driver
- with v4l offerings
-References: <1399885110-9899-1-git-send-email-prabhakar.csengg@gmail.com> <1399885110-9899-2-git-send-email-prabhakar.csengg@gmail.com> <5370997C.1060700@xs4all.nl> <CA+V-a8vMtY32gMy6BWvewL1jafEKuuL5U_J8+BbFfWWsZn0hqg@mail.gmail.com>
-In-Reply-To: <CA+V-a8vMtY32gMy6BWvewL1jafEKuuL5U_J8+BbFfWWsZn0hqg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Mon, 26 May 2014 15:31:13 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [PATCH] tvp5150: Use i2c_smbus_(read|write)_byte_data
+Date: Mon, 26 May 2014 21:31:28 +0200
+Message-Id: <1401132688-5632-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/14/2014 07:28 PM, Prabhakar Lad wrote:
-> Hi Hans,
-> 
-> Thanks for the review.
-> 
-> On Mon, May 12, 2014 at 3:20 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Hi Prabhakar,
->>
->> Thanks for the patch, but I have a few comments...
->>
->> On 05/12/2014 10:58 AM, Lad, Prabhakar wrote:
->>> Buffer ioctls:
->>>         test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->>>                 fail: v4l2-test-buffers.cpp(506): q.has_expbuf()
->>
->> This is weird. I'm not sure why this happens since you seem to have VB2_DMABUF set
->> and also vb2_ioctl_expbuf.
->>
->>>         test VIDIOC_EXPBUF: FAIL
->>>
->>> Total: 38, Succeeded: 35, Failed: 3, Warnings: 0
->>
->> Also test with 'v4l2-compliance -s' (streaming). The '-i' option is available to
->> test streaming from a specific input.
->>
-> BTW the output is with -s option set.
+Replace the custom I2C read/write implementation with SMBUS functions to
+simplify the driver.
 
-Something is wrong. With -s you should see something like this:
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/tvp5150.c | 31 +++++++++++--------------------
+ 1 file changed, 11 insertions(+), 20 deletions(-)
 
-Buffer ioctls:
-        test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-        test VIDIOC_EXPBUF: OK (Not Supported)
-        test read/write: OK
-        test MMAP: OK                                     
-        test USERPTR: OK                                  
-        test DMABUF: Cannot test, specify --expbuf-device
-
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 937e48b..193e7d6 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -56,38 +56,29 @@ static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
+ static int tvp5150_read(struct v4l2_subdev *sd, unsigned char addr)
+ {
+ 	struct i2c_client *c = v4l2_get_subdevdata(sd);
+-	unsigned char buffer[1];
+ 	int rc;
+-	struct i2c_msg msg[] = {
+-		{ .addr = c->addr, .flags = 0,
+-		  .buf = &addr, .len = 1 },
+-		{ .addr = c->addr, .flags = I2C_M_RD,
+-		  .buf = buffer, .len = 1 }
+-	};
+-
+-	rc = i2c_transfer(c->adapter, msg, 2);
+-	if (rc < 0 || rc != 2) {
+-		v4l2_err(sd, "i2c i/o error: rc == %d (should be 2)\n", rc);
+-		return rc < 0 ? rc : -EIO;
++
++	rc = i2c_smbus_read_byte_data(c, addr);
++	if (rc < 0) {
++		v4l2_err(sd, "i2c i/o error: rc == %d\n", rc);
++		return rc;
+ 	}
+ 
+-	v4l2_dbg(2, debug, sd, "tvp5150: read 0x%02x = 0x%02x\n", addr, buffer[0]);
++	v4l2_dbg(2, debug, sd, "tvp5150: read 0x%02x = 0x%02x\n", addr, rc);
+ 
+-	return (buffer[0]);
++	return rc;
+ }
+ 
+ static inline void tvp5150_write(struct v4l2_subdev *sd, unsigned char addr,
+ 				 unsigned char value)
+ {
+ 	struct i2c_client *c = v4l2_get_subdevdata(sd);
+-	unsigned char buffer[2];
+ 	int rc;
+ 
+-	buffer[0] = addr;
+-	buffer[1] = value;
+-	v4l2_dbg(2, debug, sd, "tvp5150: writing 0x%02x 0x%02x\n", buffer[0], buffer[1]);
+-	if (2 != (rc = i2c_master_send(c, buffer, 2)))
+-		v4l2_dbg(0, debug, sd, "i2c i/o error: rc == %d (should be 2)\n", rc);
++	v4l2_dbg(2, debug, sd, "tvp5150: writing 0x%02x 0x%02x\n", addr, value);
++	rc = i2c_smbus_write_byte_data(c, addr, value);
++	if (rc < 0)
++		v4l2_dbg(0, debug, sd, "i2c i/o error: rc == %d\n", rc);
+ }
+ 
+ static void dump_reg_range(struct v4l2_subdev *sd, char *s, u8 init,
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
