@@ -1,129 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:44058 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621AbaEYW0O (ORCPT
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:11086 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751778AbaEZQDS convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 May 2014 18:26:14 -0400
-Received: by mail-la0-f48.google.com with SMTP id mc6so5241443lab.7
-        for <linux-media@vger.kernel.org>; Sun, 25 May 2014 15:26:13 -0700 (PDT)
-From: Alexander Bersenev <bay@hackerdom.ru>
-To: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
-	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
-	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Alexander Bersenev <bay@hackerdom.ru>
-Subject: [PATCH v8 3/3] ARM: sunxi: Add IR controller support in DT on A20
-Date: Mon, 26 May 2014 04:26:45 +0600
-Message-Id: <1401056805-2218-4-git-send-email-bay@hackerdom.ru>
-In-Reply-To: <1401056805-2218-1-git-send-email-bay@hackerdom.ru>
-References: <1401056805-2218-1-git-send-email-bay@hackerdom.ru>
+	Mon, 26 May 2014 12:03:18 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N66000QLV9HD480@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 26 May 2014 12:03:17 -0400 (EDT)
+Date: Mon, 26 May 2014 13:03:11 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Romain Baeriswyl <Romain.Baeriswyl@abilis.com>
+Cc: Christian Ruppert <chrisr@abilis.com>,
+	Ole Ernst <olebowle@gmx.com>, linux-media@vger.kernel.org
+Subject: Re: Linux DVB frontend issue
+Message-id: <20140526130311.3aa335e9.m.chehab@samsung.com>
+In-reply-to: <1586019348.6279.1401113868322.JavaMail.root@abilis.com>
+References: <832879218.6141.1401112530064.JavaMail.root@abilis.com>
+ <1586019348.6279.1401113868322.JavaMail.root@abilis.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds IR controller in A20 Device-Tree:
-- Two IR devices found in A20 user manual
-- Pins for two devices
-- One IR device physically found on Cubieboard 2
-- One IR device physically found on Cubietruck
+Hi Romain,
 
-Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
----
- arch/arm/boot/dts/sun7i-a20-cubieboard2.dts |  6 ++++++
- arch/arm/boot/dts/sun7i-a20-cubietruck.dts  |  6 ++++++
- arch/arm/boot/dts/sun7i-a20.dtsi            | 32 +++++++++++++++++++++++++++++
- 3 files changed, 44 insertions(+)
+Em Mon, 26 May 2014 16:17:48 +0200 (CEST)
+Romain Baeriswyl <Romain.Baeriswyl@abilis.com> escreveu:
 
-diff --git a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
-index feeff64..b44d61b 100644
---- a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
-+++ b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
-@@ -65,6 +65,12 @@
- 			};
- 		};
- 
-+		ir0: ir@01c21800 {
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&ir0_pins_a>;
-+			status = "okay";
-+		};
-+
- 		uart0: serial@01c28000 {
- 			pinctrl-names = "default";
- 			pinctrl-0 = <&uart0_pins_a>;
-diff --git a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
-index e288562..5f5c31d 100644
---- a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
-+++ b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
-@@ -121,6 +121,12 @@
- 			};
- 		};
- 
-+		ir0: ir@01c21800 {
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&ir0_pins_a>;
-+			status = "okay";
-+		};
-+
- 		uart0: serial@01c28000 {
- 			pinctrl-names = "default";
- 			pinctrl-0 = <&uart0_pins_a>;
-diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
-index 0ae2b77..fe1f8ff 100644
---- a/arch/arm/boot/dts/sun7i-a20.dtsi
-+++ b/arch/arm/boot/dts/sun7i-a20.dtsi
-@@ -724,6 +724,20 @@
- 				allwinner,drive = <2>;
- 				allwinner,pull = <0>;
- 			};
-+
-+			ir0_pins_a: ir0@0 {
-+				    allwinner,pins = "PB3","PB4";
-+				    allwinner,function = "ir0";
-+				    allwinner,drive = <0>;
-+				    allwinner,pull = <0>;
-+			};
-+
-+			ir1_pins_a: ir1@0 {
-+				    allwinner,pins = "PB22","PB23";
-+				    allwinner,function = "ir1";
-+				    allwinner,drive = <0>;
-+				    allwinner,pull = <0>;
-+			};
- 		};
- 
- 		timer@01c20c00 {
-@@ -749,6 +763,24 @@
- 			interrupts = <0 24 4>;
- 		};
- 
-+		ir0: ir@01c21800 {
-+			compatible = "allwinner,sun7i-a20-ir";
-+			clocks = <&apb0_gates 6>, <&ir0_clk>;
-+			clock-names = "apb", "ir";
-+			interrupts = <0 5 4>;
-+			reg = <0x01c21800 0x40>;
-+			status = "disabled";
-+		};
-+
-+		ir1: ir@01c21c00 {
-+			compatible = "allwinner,sun7i-a20-ir";
-+			clocks = <&apb0_gates 7>, <&ir1_clk>;
-+			clock-names = "apb", "ir";
-+			interrupts = <0 6 4>;
-+			reg = <0x01c21c00 0x40>;
-+			status = "disabled";
-+		};
-+
- 		lradc: lradc@01c22800 {
- 			compatible = "allwinner,sun4i-lradc-keys";
- 			reg = <0x01c22800 0x100>;
--- 
-1.9.3
+> Dear Mauro,
+> 
+> We are using the Linux DVB frontend module on our platform and 
+> we are facing an issue when having concurrent calls with FE_SET_FRONTEND
+> and FE_GET_FRONTEND ioctl.
+> 
+> Issue is that both ioctls are using the same dtv_property_cache buffer.
+> If a FE_SET_FRONTEND ioctl is interrupted by a FE_GET_FRONTEND then the 
+> dtv_property_cache is overwritten with the result of the FE_GET_FRONTEND. 
+> When the FE_SET_FRONTEND operation resumes, the dtv_property_cache may
+> not be accurate anymore.
+> 
+> Did you already face this issue?
 
+No. Never tried to do it in practice, but I don't think it is even
+possible to have two concurrent ioctl calls ATM, because there is a
+semaphore at dvb_frontend_ioctl() preventing it.
+
+> Up to now I tried, without success, to think on a fix that does not impact
+> too much the existing code.
+> 
+> One solution could be to have one cache for reading properties and one other 
+> cache for writing properties, but this will impact all the drivers below 
+> the DVB frontend.
+> 
+> Do you see another less impacting solution?
+
+Are you sure that the corruption you're seeing is not at userspace
+sharing the same buffer for both ioctl's?
+
+> 
+> Best regards,
+> 
+> Romain Baeriswyl
+> 
+> Abilis Systems 
+> 3, chemin Pré Fleuri
+> CH-1228 Plan-Les-Ouates
+> Geneva
+> 
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
