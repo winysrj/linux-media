@@ -1,88 +1,3967 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fep19.mx.upcmail.net ([62.179.121.39]:63351 "EHLO
-	fep19.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752897AbaEDCJw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 May 2014 22:09:52 -0400
-From: Jonathan McCrohan <jmccrohan@gmail.com>
-To: linux-media@vger.kernel.org,
-	pkg-vdr-dvb-devel@lists.alioth.debian.org
-Cc: Jonathan McCrohan <jmccrohan@gmail.com>
-Subject: [PATCH 0/6] [dvb-apps] Various dvb-apps fixes and enhancements
-Date: Sun,  4 May 2014 02:51:15 +0100
-Message-Id: <1399168281-20626-1-git-send-email-jmccrohan@gmail.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:50017 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752134AbaE0Quz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 May 2014 12:50:55 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Olliver Schinagl <oliver@schinagl.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 08/12] Add Brazil's Sergipe state tables
+Date: Tue, 27 May 2014 13:50:28 -0300
+Message-Id: <1401209432-7327-9-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1401209432-7327-1-git-send-email-m.chehab@samsung.com>
+References: <1401209432-7327-1-git-send-email-m.chehab@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=true
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ dvbv5_isdb-t/br-se-Aquidaba              | 148 +++++++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-Aracaju               | 148 +++++++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-Araua                 |  32 +++++++
+ dvbv5_isdb-t/br-se-AreiaBranca           |  32 +++++++
+ dvbv5_isdb-t/br-se-BarraDosCoqueiros     | 148 +++++++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-Boquim                |  61 +++++++++++++
+ dvbv5_isdb-t/br-se-CampoDoBrito          |  61 +++++++++++++
+ dvbv5_isdb-t/br-se-CanindeDeSaoFrancisco |  32 +++++++
+ dvbv5_isdb-t/br-se-Capela                | 148 +++++++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-Carira                |  32 +++++++
+ dvbv5_isdb-t/br-se-Carmopolis            | 148 +++++++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-Cristinapolis         |  32 +++++++
+ dvbv5_isdb-t/br-se-DivinaPastora         |  32 +++++++
+ dvbv5_isdb-t/br-se-Estancia              |  32 +++++++
+ dvbv5_isdb-t/br-se-FeiraNova             |  32 +++++++
+ dvbv5_isdb-t/br-se-FreiPaulo             | 148 +++++++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-Gararu                |  32 +++++++
+ dvbv5_isdb-t/br-se-GeneralMaynard        | 148 +++++++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-Itabaiana             | 119 +++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-Itabaianinha          |  32 +++++++
+ dvbv5_isdb-t/br-se-Itabi                 |  32 +++++++
+ dvbv5_isdb-t/br-se-ItaporangaDAjuda      | 119 +++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-Japaratuba            | 148 +++++++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-Lagarto               | 148 +++++++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-Laranjeiras           | 148 +++++++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-Macambira             |  61 +++++++++++++
+ dvbv5_isdb-t/br-se-Malhador              |  32 +++++++
+ dvbv5_isdb-t/br-se-Maruim                | 119 +++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-MoitaBonita           |  61 +++++++++++++
+ dvbv5_isdb-t/br-se-MonteAlegreDeSergipe  |  32 +++++++
+ dvbv5_isdb-t/br-se-NossaSenhoraAparecida |  32 +++++++
+ dvbv5_isdb-t/br-se-NossaSenhoraDaGloria  |  32 +++++++
+ dvbv5_isdb-t/br-se-NossaSenhoraDoSocorro | 148 +++++++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-Pedrinhas             |  32 +++++++
+ dvbv5_isdb-t/br-se-PocoRedondo           |  32 +++++++
+ dvbv5_isdb-t/br-se-RiachaoDoDantas       |  32 +++++++
+ dvbv5_isdb-t/br-se-Riachuelo             |  61 +++++++++++++
+ dvbv5_isdb-t/br-se-Ribeiropolis          |  61 +++++++++++++
+ dvbv5_isdb-t/br-se-RosarioDoCatete       | 148 +++++++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-Salgado               |  32 +++++++
+ dvbv5_isdb-t/br-se-SantaLuziaDoIntanhy   |  32 +++++++
+ dvbv5_isdb-t/br-se-SantoAmaroDasBrotas   | 148 +++++++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-SaoCristovao          | 148 +++++++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-se-SaoDomingos           |  32 +++++++
+ dvbv5_isdb-t/br-se-SaoMiguelDoAleixo     |  32 +++++++
+ dvbv5_isdb-t/br-se-TomarDoGeru           |  32 +++++++
+ dvbv5_isdb-t/br-se-Umbauba               |  32 +++++++
+ 47 files changed, 3563 insertions(+)
+ create mode 100644 dvbv5_isdb-t/br-se-Aquidaba
+ create mode 100644 dvbv5_isdb-t/br-se-Aracaju
+ create mode 100644 dvbv5_isdb-t/br-se-Araua
+ create mode 100644 dvbv5_isdb-t/br-se-AreiaBranca
+ create mode 100644 dvbv5_isdb-t/br-se-BarraDosCoqueiros
+ create mode 100644 dvbv5_isdb-t/br-se-Boquim
+ create mode 100644 dvbv5_isdb-t/br-se-CampoDoBrito
+ create mode 100644 dvbv5_isdb-t/br-se-CanindeDeSaoFrancisco
+ create mode 100644 dvbv5_isdb-t/br-se-Capela
+ create mode 100644 dvbv5_isdb-t/br-se-Carira
+ create mode 100644 dvbv5_isdb-t/br-se-Carmopolis
+ create mode 100644 dvbv5_isdb-t/br-se-Cristinapolis
+ create mode 100644 dvbv5_isdb-t/br-se-DivinaPastora
+ create mode 100644 dvbv5_isdb-t/br-se-Estancia
+ create mode 100644 dvbv5_isdb-t/br-se-FeiraNova
+ create mode 100644 dvbv5_isdb-t/br-se-FreiPaulo
+ create mode 100644 dvbv5_isdb-t/br-se-Gararu
+ create mode 100644 dvbv5_isdb-t/br-se-GeneralMaynard
+ create mode 100644 dvbv5_isdb-t/br-se-Itabaiana
+ create mode 100644 dvbv5_isdb-t/br-se-Itabaianinha
+ create mode 100644 dvbv5_isdb-t/br-se-Itabi
+ create mode 100644 dvbv5_isdb-t/br-se-ItaporangaDAjuda
+ create mode 100644 dvbv5_isdb-t/br-se-Japaratuba
+ create mode 100644 dvbv5_isdb-t/br-se-Lagarto
+ create mode 100644 dvbv5_isdb-t/br-se-Laranjeiras
+ create mode 100644 dvbv5_isdb-t/br-se-Macambira
+ create mode 100644 dvbv5_isdb-t/br-se-Malhador
+ create mode 100644 dvbv5_isdb-t/br-se-Maruim
+ create mode 100644 dvbv5_isdb-t/br-se-MoitaBonita
+ create mode 100644 dvbv5_isdb-t/br-se-MonteAlegreDeSergipe
+ create mode 100644 dvbv5_isdb-t/br-se-NossaSenhoraAparecida
+ create mode 100644 dvbv5_isdb-t/br-se-NossaSenhoraDaGloria
+ create mode 100644 dvbv5_isdb-t/br-se-NossaSenhoraDoSocorro
+ create mode 100644 dvbv5_isdb-t/br-se-Pedrinhas
+ create mode 100644 dvbv5_isdb-t/br-se-PocoRedondo
+ create mode 100644 dvbv5_isdb-t/br-se-RiachaoDoDantas
+ create mode 100644 dvbv5_isdb-t/br-se-Riachuelo
+ create mode 100644 dvbv5_isdb-t/br-se-Ribeiropolis
+ create mode 100644 dvbv5_isdb-t/br-se-RosarioDoCatete
+ create mode 100644 dvbv5_isdb-t/br-se-Salgado
+ create mode 100644 dvbv5_isdb-t/br-se-SantaLuziaDoIntanhy
+ create mode 100644 dvbv5_isdb-t/br-se-SantoAmaroDasBrotas
+ create mode 100644 dvbv5_isdb-t/br-se-SaoCristovao
+ create mode 100644 dvbv5_isdb-t/br-se-SaoDomingos
+ create mode 100644 dvbv5_isdb-t/br-se-SaoMiguelDoAleixo
+ create mode 100644 dvbv5_isdb-t/br-se-TomarDoGeru
+ create mode 100644 dvbv5_isdb-t/br-se-Umbauba
 
-The following patch set contains various fixes and enhancements found
-during the packaging of the next version of Debian's dvb-apps package.
-
-A number of these patches have lived as Debian specific patches for a
-long time, however, there is no reason not to upstream them for
-everyone's benefit.
-
-Jon
-
-Jonathan McCrohan (6):
-  dvb-apps: fix typos throughout the dvb-apps tree
-  dvbscan: fix infinite loop parsing arguments
-  dvb-apps: make zap flush stdout after status line
-  dvb-apps: pass LDFLAGS to alevt and lib binaries
-  alevt: fix FTBFS with libpng15
-  dvb-apps: add man pages
-
- Make.rules                            |  5 ++-
- Makefile                              |  1 +
- lib/libdvben50221/en50221_transport.c |  4 +-
- lib/libdvbsec/dvbsec_cfg.h            |  2 +-
- man/Makefile                          | 13 ++++++
- man/atsc_epg.1                        | 35 +++++++++++++++
- man/av7110_loadkeys.1                 | 26 +++++++++++
- man/azap.1                            | 35 +++++++++++++++
- man/czap.1                            | 46 +++++++++++++++++++
- man/dib3000-watch.1                   | 34 ++++++++++++++
- man/dst_test.1                        | 41 +++++++++++++++++
- man/dvbdate.1                         | 38 ++++++++++++++++
- man/dvbnet.1                          | 38 ++++++++++++++++
- man/dvbscan.1                         | 72 +++++++++++++++++++++++++++++
- man/dvbtraffic.1                      | 26 +++++++++++
- man/femon.1                           | 32 +++++++++++++
- man/gnutv.1                           | 79 ++++++++++++++++++++++++++++++++
- man/gotox.1                           | 33 ++++++++++++++
- man/lsdvb.1                           |  9 ++++
- man/scan.1                            | 85 +++++++++++++++++++++++++++++++++++
- man/szap.1                            | 57 +++++++++++++++++++++++
- man/tzap.1                            | 56 +++++++++++++++++++++++
- man/zap.1                             | 44 ++++++++++++++++++
- util/alevt/Makefile                   |  6 +--
- util/alevt/exp-gfx.c                  |  3 +-
- util/dib3000-watch/dib3000-watch.c    |  2 +-
- util/dvbscan/dvbscan.c                |  3 +-
- util/scan/scan.c                      |  2 +-
- util/szap/czap.c                      |  3 +-
- util/szap/szap.c                      |  1 +
- 30 files changed, 818 insertions(+), 13 deletions(-)
- create mode 100644 man/Makefile
- create mode 100644 man/atsc_epg.1
- create mode 100644 man/av7110_loadkeys.1
- create mode 100644 man/azap.1
- create mode 100644 man/czap.1
- create mode 100644 man/dib3000-watch.1
- create mode 100644 man/dst_test.1
- create mode 100644 man/dvbdate.1
- create mode 100644 man/dvbnet.1
- create mode 100644 man/dvbscan.1
- create mode 100644 man/dvbtraffic.1
- create mode 100644 man/femon.1
- create mode 100644 man/gnutv.1
- create mode 100644 man/gotox.1
- create mode 100644 man/lsdvb.1
- create mode 100644 man/scan.1
- create mode 100644 man/szap.1
- create mode 100644 man/tzap.1
- create mode 100644 man/zap.1
-
+diff --git a/dvbv5_isdb-t/br-se-Aquidaba b/dvbv5_isdb-t/br-se-Aquidaba
+new file mode 100644
+index 000000000000..622e871cc158
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Aquidaba
+@@ -0,0 +1,148 @@
++# Channel table for Aquidabã - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2312
++
++# Physical channel 31
++[TV Aperipê]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Aracaju b/dvbv5_isdb-t/br-se-Aracaju
+new file mode 100644
+index 000000000000..4455e7dd5f2e
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Aracaju
+@@ -0,0 +1,148 @@
++# Channel table for Aracaju - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=3
++
++# Physical channel 31
++[TV Aperipê]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Araua b/dvbv5_isdb-t/br-se-Araua
+new file mode 100644
+index 000000000000..94022b327038
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Araua
+@@ -0,0 +1,32 @@
++# Channel table for Arauá - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2313
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-AreiaBranca b/dvbv5_isdb-t/br-se-AreiaBranca
+new file mode 100644
+index 000000000000..37bef0455517
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-AreiaBranca
+@@ -0,0 +1,32 @@
++# Channel table for Areia Branca - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2336
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-BarraDosCoqueiros b/dvbv5_isdb-t/br-se-BarraDosCoqueiros
+new file mode 100644
+index 000000000000..b36e596f2faf
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-BarraDosCoqueiros
+@@ -0,0 +1,148 @@
++# Channel table for Barra dos Coqueiros - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2995
++
++# Physical channel 31
++[TV Aperipê]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Boquim b/dvbv5_isdb-t/br-se-Boquim
+new file mode 100644
+index 000000000000..d1216e350611
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Boquim
+@@ -0,0 +1,61 @@
++# Channel table for Boquim - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2334
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-CampoDoBrito b/dvbv5_isdb-t/br-se-CampoDoBrito
+new file mode 100644
+index 000000000000..19729edbe40a
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-CampoDoBrito
+@@ -0,0 +1,61 @@
++# Channel table for Campo do Brito - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2337
++
++# Physical channel 32
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 581142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 42
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 641142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-CanindeDeSaoFrancisco b/dvbv5_isdb-t/br-se-CanindeDeSaoFrancisco
+new file mode 100644
+index 000000000000..42840be1aa3b
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-CanindeDeSaoFrancisco
+@@ -0,0 +1,32 @@
++# Channel table for Canindé de São Francisco - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=636
++
++# Physical channel 32
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 581142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Capela b/dvbv5_isdb-t/br-se-Capela
+new file mode 100644
+index 000000000000..4fd2e02b062a
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Capela
+@@ -0,0 +1,148 @@
++# Channel table for Capela - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2315
++
++# Physical channel 31
++[TV Aperipê]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Carira b/dvbv5_isdb-t/br-se-Carira
+new file mode 100644
+index 000000000000..4ebfab95bea2
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Carira
+@@ -0,0 +1,32 @@
++# Channel table for Carira - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=1399
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Carmopolis b/dvbv5_isdb-t/br-se-Carmopolis
+new file mode 100644
+index 000000000000..13aa45396ba9
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Carmopolis
+@@ -0,0 +1,148 @@
++# Channel table for Carmópolis - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2316
++
++# Physical channel 31
++[TV Aperipê]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Cristinapolis b/dvbv5_isdb-t/br-se-Cristinapolis
+new file mode 100644
+index 000000000000..4a8a99124295
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Cristinapolis
+@@ -0,0 +1,32 @@
++# Channel table for Cristinápolis - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=909
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-DivinaPastora b/dvbv5_isdb-t/br-se-DivinaPastora
+new file mode 100644
+index 000000000000..150a2d2d9654
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-DivinaPastora
+@@ -0,0 +1,32 @@
++# Channel table for Divina Pastora - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2318
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Estancia b/dvbv5_isdb-t/br-se-Estancia
+new file mode 100644
+index 000000000000..f3ca108e551a
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Estancia
+@@ -0,0 +1,32 @@
++# Channel table for Estância - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=246
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-FeiraNova b/dvbv5_isdb-t/br-se-FeiraNova
+new file mode 100644
+index 000000000000..dd97b9d22c9a
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-FeiraNova
+@@ -0,0 +1,32 @@
++# Channel table for Feira Nova - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2319
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-FreiPaulo b/dvbv5_isdb-t/br-se-FreiPaulo
+new file mode 100644
+index 000000000000..024c66314ccb
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-FreiPaulo
+@@ -0,0 +1,148 @@
++# Channel table for Frei Paulo - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2294
++
++# Physical channel 31
++[TV Aperipê]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 32
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 581142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Gararu b/dvbv5_isdb-t/br-se-Gararu
+new file mode 100644
+index 000000000000..ca125577458c
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Gararu
+@@ -0,0 +1,32 @@
++# Channel table for Gararu - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2295
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-GeneralMaynard b/dvbv5_isdb-t/br-se-GeneralMaynard
+new file mode 100644
+index 000000000000..f895dd5b0bc0
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-GeneralMaynard
+@@ -0,0 +1,148 @@
++# Channel table for General Maynard - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2296
++
++# Physical channel 31
++[TV Aperipê]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Itabaiana b/dvbv5_isdb-t/br-se-Itabaiana
+new file mode 100644
+index 000000000000..99d85bf14a9e
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Itabaiana
+@@ -0,0 +1,119 @@
++# Channel table for Itabaiana - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=644
++
++# Physical channel 32
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 581142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Itabaianinha b/dvbv5_isdb-t/br-se-Itabaianinha
+new file mode 100644
+index 000000000000..e6341ebe7cd6
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Itabaianinha
+@@ -0,0 +1,32 @@
++# Channel table for Itabaianinha - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2300
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Itabi b/dvbv5_isdb-t/br-se-Itabi
+new file mode 100644
+index 000000000000..8bee1597b381
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Itabi
+@@ -0,0 +1,32 @@
++# Channel table for Itabi - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2301
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-ItaporangaDAjuda b/dvbv5_isdb-t/br-se-ItaporangaDAjuda
+new file mode 100644
+index 000000000000..ee7c1415e3bc
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-ItaporangaDAjuda
+@@ -0,0 +1,119 @@
++# Channel table for Itaporanga d´ Ajuda - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2341
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Japaratuba b/dvbv5_isdb-t/br-se-Japaratuba
+new file mode 100644
+index 000000000000..5401eb55c56e
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Japaratuba
+@@ -0,0 +1,148 @@
++# Channel table for Japaratuba - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=845
++
++# Physical channel 31
++[TV Aperipê]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Lagarto b/dvbv5_isdb-t/br-se-Lagarto
+new file mode 100644
+index 000000000000..608d124cc623
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Lagarto
+@@ -0,0 +1,148 @@
++# Channel table for Lagarto - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=234
++
++# Physical channel 31
++[TV Aperipê]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Laranjeiras b/dvbv5_isdb-t/br-se-Laranjeiras
+new file mode 100644
+index 000000000000..df76603cdf64
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Laranjeiras
+@@ -0,0 +1,148 @@
++# Channel table for Laranjeiras - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2339
++
++# Physical channel 31
++[TV Aperipê]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Macambira b/dvbv5_isdb-t/br-se-Macambira
+new file mode 100644
+index 000000000000..aa91bebd114f
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Macambira
+@@ -0,0 +1,61 @@
++# Channel table for Macambira - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2331
++
++# Physical channel 32
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 581142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 42
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 641142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Malhador b/dvbv5_isdb-t/br-se-Malhador
+new file mode 100644
+index 000000000000..1981c4b6bb72
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Malhador
+@@ -0,0 +1,32 @@
++# Channel table for Malhador - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2333
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Maruim b/dvbv5_isdb-t/br-se-Maruim
+new file mode 100644
+index 000000000000..1a4f37a54dc7
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Maruim
+@@ -0,0 +1,119 @@
++# Channel table for Maruim - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2342
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-MoitaBonita b/dvbv5_isdb-t/br-se-MoitaBonita
+new file mode 100644
+index 000000000000..ac474261f5fa
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-MoitaBonita
+@@ -0,0 +1,61 @@
++# Channel table for Moita Bonita - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2320
++
++# Physical channel 32
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 581142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 42
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 641142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-MonteAlegreDeSergipe b/dvbv5_isdb-t/br-se-MonteAlegreDeSergipe
+new file mode 100644
+index 000000000000..1a393a5a0789
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-MonteAlegreDeSergipe
+@@ -0,0 +1,32 @@
++# Channel table for Monte Alegre de Sergipe - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=645
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-NossaSenhoraAparecida b/dvbv5_isdb-t/br-se-NossaSenhoraAparecida
+new file mode 100644
+index 000000000000..67d4b1de4682
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-NossaSenhoraAparecida
+@@ -0,0 +1,32 @@
++# Channel table for Nossa Senhora Aparecida - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2323
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-NossaSenhoraDaGloria b/dvbv5_isdb-t/br-se-NossaSenhoraDaGloria
+new file mode 100644
+index 000000000000..2c45e5e09cc7
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-NossaSenhoraDaGloria
+@@ -0,0 +1,32 @@
++# Channel table for Nossa Senhora da Glória - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=967
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-NossaSenhoraDoSocorro b/dvbv5_isdb-t/br-se-NossaSenhoraDoSocorro
+new file mode 100644
+index 000000000000..6169295240ca
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-NossaSenhoraDoSocorro
+@@ -0,0 +1,148 @@
++# Channel table for Nossa Senhora do Socorro - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2338
++
++# Physical channel 31
++[TV Aperipê]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Pedrinhas b/dvbv5_isdb-t/br-se-Pedrinhas
+new file mode 100644
+index 000000000000..a7072e6609b1
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Pedrinhas
+@@ -0,0 +1,32 @@
++# Channel table for Pedrinhas - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=910
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-PocoRedondo b/dvbv5_isdb-t/br-se-PocoRedondo
+new file mode 100644
+index 000000000000..4524cf740837
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-PocoRedondo
+@@ -0,0 +1,32 @@
++# Channel table for Poço Redondo - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2327
++
++# Physical channel 32
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 581142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-RiachaoDoDantas b/dvbv5_isdb-t/br-se-RiachaoDoDantas
+new file mode 100644
+index 000000000000..b927170cbffc
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-RiachaoDoDantas
+@@ -0,0 +1,32 @@
++# Channel table for Riachão do Dantas - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=329
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Riachuelo b/dvbv5_isdb-t/br-se-Riachuelo
+new file mode 100644
+index 000000000000..9732dcdb9f08
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Riachuelo
+@@ -0,0 +1,61 @@
++# Channel table for Riachuelo - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2340
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Ribeiropolis b/dvbv5_isdb-t/br-se-Ribeiropolis
+new file mode 100644
+index 000000000000..2d5a6589b59b
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Ribeiropolis
+@@ -0,0 +1,61 @@
++# Channel table for Ribeirópolis - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2302
++
++# Physical channel 32
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 581142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 42
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 641142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-RosarioDoCatete b/dvbv5_isdb-t/br-se-RosarioDoCatete
+new file mode 100644
+index 000000000000..72d66005efa3
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-RosarioDoCatete
+@@ -0,0 +1,148 @@
++# Channel table for Rosário do Catete - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2303
++
++# Physical channel 31
++[TV Aperipê]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Salgado b/dvbv5_isdb-t/br-se-Salgado
+new file mode 100644
+index 000000000000..99cd4955101c
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Salgado
+@@ -0,0 +1,32 @@
++# Channel table for Salgado - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=697
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-SantaLuziaDoIntanhy b/dvbv5_isdb-t/br-se-SantaLuziaDoIntanhy
+new file mode 100644
+index 000000000000..c4baaf2d4a65
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-SantaLuziaDoIntanhy
+@@ -0,0 +1,32 @@
++# Channel table for Santa Luzia do Intanhy - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2304
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-SantoAmaroDasBrotas b/dvbv5_isdb-t/br-se-SantoAmaroDasBrotas
+new file mode 100644
+index 000000000000..7de400386128
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-SantoAmaroDasBrotas
+@@ -0,0 +1,148 @@
++# Channel table for Santo Amaro das Brotas - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2305
++
++# Physical channel 31
++[TV Aperipê]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-SaoCristovao b/dvbv5_isdb-t/br-se-SaoCristovao
+new file mode 100644
+index 000000000000..59cbf1781ad9
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-SaoCristovao
+@@ -0,0 +1,148 @@
++# Channel table for São Cristóvão - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=661
++
++# Physical channel 31
++[TV Aperipê]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 33
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 587142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 35
++[TV Atalaia]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 599142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-SaoDomingos b/dvbv5_isdb-t/br-se-SaoDomingos
+new file mode 100644
+index 000000000000..9e7b82ecfe2b
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-SaoDomingos
+@@ -0,0 +1,32 @@
++# Channel table for São Domingos - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=3150
++
++# Physical channel 32
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 581142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-SaoMiguelDoAleixo b/dvbv5_isdb-t/br-se-SaoMiguelDoAleixo
+new file mode 100644
+index 000000000000..346b38ef37cc
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-SaoMiguelDoAleixo
+@@ -0,0 +1,32 @@
++# Channel table for São Miguel do Aleixo - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2307
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-TomarDoGeru b/dvbv5_isdb-t/br-se-TomarDoGeru
+new file mode 100644
+index 000000000000..abfd8232a441
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-TomarDoGeru
+@@ -0,0 +1,32 @@
++# Channel table for Tomar do Geru - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2310
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-se-Umbauba b/dvbv5_isdb-t/br-se-Umbauba
+new file mode 100644
+index 000000000000..e2dbb4e32328
+--- /dev/null
++++ b/dvbv5_isdb-t/br-se-Umbauba
+@@ -0,0 +1,32 @@
++# Channel table for Umbaúba - SE - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=911
++
++# Physical channel 34
++[TV Sergipe]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 593142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
 -- 
-1.9.2
+1.9.3
 
