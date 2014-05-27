@@ -1,35 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp11.acens.net ([86.109.99.135]:35586 "EHLO smtp.movistar.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932081AbaE2NOQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 May 2014 09:14:16 -0400
-From: Jose Alberto Reguero <jareguero@telefonica.net>
+Received: from smtp29.i.mail.ru ([94.100.177.89]:33906 "EHLO smtp29.i.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750881AbaE0Hsm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 May 2014 03:48:42 -0400
+From: Alexander Shiyan <shc_work@mail.ru>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvallo Chehab <m.chehab@samsung.com>
-Subject: [PATCH] dvbv5-zap fix option lnb UNIVERSAL
-Date: Thu, 29 May 2014 15:07:14 +0200
-Message-ID: <1564179.r2h1y4RF0H@jar7.dominio>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: devicetree@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Shawn Guo <shawn.guo@freescale.com>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Alexander Shiyan <shc_work@mail.ru>
+Subject: [PATCH 2/2] media: mx2-emmaprp: Add DT bindings documentation
+Date: Tue, 27 May 2014 11:48:34 +0400
+Message-Id: <1401176914-7358-1-git-send-email-shc_work@mail.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fix the option lnb UNIVERSAL for dvbv5-zap. Without the patch, the option don't work.
+This patch adds DT binding documentation for the Freescale enhanced
+Multimedia Accelerator (eMMA) video Pre-processor (PrP).
 
-Signed-off-by: Jose Alberto Reguero <jose.alberto.reguero@gmail.com>
+Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
+---
+ .../devicetree/bindings/media/fsl-imx-emmaprp.txt    | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
 
-diff --git a/utils/dvb/dvbv5-zap.c b/utils/dvb/dvbv5-zap.c
-index 14e8fd9..085bbf2 100644
---- a/utils/dvb/dvbv5-zap.c
-+++ b/utils/dvb/dvbv5-zap.c
-@@ -773,7 +773,7 @@ int main(int argc, char **argv)
-        parms = dvb_fe_open(args.adapter, args.frontend, args.verbose, args.force_dvbv3);
-        if (!parms)
-                goto err;
--       if (lnb)
-+       if (lnb >= 0)
-                parms->lnb = dvb_sat_get_lnb(lnb);
-        if (args.sat_number > 0)
-                parms->sat_number = args.sat_number % 3;
+diff --git a/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt b/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
+new file mode 100644
+index 0000000..d78b1b6
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/fsl-imx-emmaprp.txt
+@@ -0,0 +1,20 @@
++* Freescale enhanced Multimedia Accelerator (eMMA) video Pre-processor (PrP)
++  for i.MX21 & i.MX27 SoCs.
++
++Required properties:
++- compatible : Shall contain "fsl,imx21-emmaprp" for compatible with
++               the one integrated on i.MX21 SoC.
++- reg        : Offset and length of the register set for the device.
++- interrupts : Should contain eMMA PrP interrupt number.
++- clocks     : Should contain the ahb and ipg clocks, in the order
++               determined by the clock-names property.
++- clock-names: Should be "ahb", "ipg".
++
++Example:
++	emmaprp: emmaprp@10026400 {
++		compatible = "fsl,imx27-emmaprp", "fsl,imx21-emmaprp";
++		reg = <0x10026400 0x100>;
++		interrupts = <51>;
++		clocks = <&clks 49>, <&clks 68>;
++		clock-names = "ipg", "ahb";
++	};
+-- 
+1.8.5.5
 
