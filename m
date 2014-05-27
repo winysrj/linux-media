@@ -1,77 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54377 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751472AbaE0KgL (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2555 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751359AbaE0CoG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 May 2014 06:36:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH/RFC 0/2] Propert alpha channel support in pixel formats
-Date: Tue, 27 May 2014 12:36:30 +0200
-Message-ID: <11776568.dvWb72dmNF@avalon>
-In-Reply-To: <53843C3F.8070204@xs4all.nl>
-References: <1401142629-12856-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <53843C3F.8070204@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 26 May 2014 22:44:06 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4R2i26i060255
+	for <linux-media@vger.kernel.org>; Tue, 27 May 2014 04:44:04 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 91DBF2A19A8
+	for <linux-media@vger.kernel.org>; Tue, 27 May 2014 04:43:33 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140527024333.91DBF2A19A8@tschai.lan>
+Date: Tue, 27 May 2014 04:43:33 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Tuesday 27 May 2014 09:18:23 Hans Verkuil wrote:
-> On 05/27/2014 12:17 AM, Laurent Pinchart wrote:
-> > Hello,
-> > 
-> > This RFC patch series attempts to clean up the current ARGB format mess.
-> > 
-> > The core issue is that the existing ARGB formats are ill-defined. The V4L2
-> > specification doesn't clearly document how the alpha bits should behave.
-> > Drivers have thus used the same formats in different, incompatible ways,
-> > and applications now rely on the driver-specific behaviours. In a word,
-> > that's a mess.
-> > 
-> > I've discussed the issue in the #v4l channel a couple of days ago and we
-> > came up to the conclusion that the best (or least painful) way to fix the
-> > problem is to define new clean XRGB and ARGB formats, and consider the
-> > existing formats as deprecated (meaning that no new driver should use
-> > them, they won't disappear in a couple of months, as that would break
-> > userspace).
-> > 
-> > The first patch adds the new XRGB and ARGB formats and documents them.
-> 
-> Question: should we add all XRGB and ARGB formats even if drivers do not use
-> them? Or just those that are actually used?
+Results of the daily build of media_tree:
 
-The VSP1 driver is going to use them all, so we need them all.
+date:		Tue May 27 04:00:20 CEST 2014
+git branch:	test
+git hash:	26f15c1fff5493fc0771248d5a409f2c7815a53a
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-1.slh.1-amd64
 
-> > It purposely includes no core code to handle backward compatibility for
-> > existing drivers that may wish to move to the new formats. The reason is
-> > that I would first like to get feedback on the proposal before working on
-> > compat code, and I believe we should first implement the compat code in a
-> > couple of drivers and then see how the approach could be generalized, if
-> > possible at all.
-> > 
-> > The second patch allows using the ALPHA_COMPONENT control on output
-> > devices to support an ARGB use case documented in the first patch. One
-> > possible shortcoming of reusing the existing control is that a mem-to-mem
-> > driver that exposes an output and a capture queue on a single video node
-> > through the same file handle wouldn't be able to set different alpha
-> > component values on the two queues. I'm not sure whether that use case is
-> > real though, it seems weird to me to set a fixed alpha value on one side
-> > to request a different fixed alpha value on the other side.
-> 
-> I prefer a CAP_ALPHA_COMPONENT control. It's easy to add a capture-specific
-> control now, it's much harder to change it in the future.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
-What bothers me with this approach is the duplication of otherwise identical 
-controls. As we'll likely need per-pad controls at some point in the future, 
-wouldn't it better to implement a similar way to distinguish between capture 
-and output controls ?
+Detailed results are available here:
 
--- 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Laurent Pinchart
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
