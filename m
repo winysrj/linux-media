@@ -1,47 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:33992 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754538AbaESMd2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 May 2014 08:33:28 -0400
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, posciak@chromium.org, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH 05/10] [media] s5p-mfc: Update scratch buffer size for VP8 encoder
-Date: Mon, 19 May 2014 18:03:01 +0530
-Message-Id: <1400502786-4826-6-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1400502786-4826-1-git-send-email-arun.kk@samsung.com>
-References: <1400502786-4826-1-git-send-email-arun.kk@samsung.com>
+Received: from mout.gmx.net ([212.227.15.15]:57032 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752289AbaE0AEF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 May 2014 20:04:05 -0400
+Received: from [192.168.1.56] ([84.26.254.29]) by mail.gmx.com (mrgmx001) with
+ ESMTPSA (Nemesis) id 0M39zL-1WXXgi44O7-00sxOc for
+ <linux-media@vger.kernel.org>; Tue, 27 May 2014 02:04:04 +0200
+Message-ID: <5383D673.5050101@gmx.net>
+Date: Tue, 27 May 2014 02:04:03 +0200
+From: "P. van Gaans" <w3ird_n3rd@gmx.net>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: MSI Digivox Trio, should I try to hire someone to patch for this
+ device?
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kiran AVND <avnd.kiran@samsung.com>
+http://linuxtv.org/wiki/index.php/MSI_DigiVox_Trio
 
-Scratch buffer size updated for vp8 encoding as per
-the latest v7 firmware. As the new macro increases the
-scratch buffer size, it is backward compatible with the older
-firmware too.
+If you're having a deja-vu, yeah, it's still me. I'm still using this 
+device using my butt-ugly patch by adding:
 
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
- drivers/media/platform/s5p-mfc/regs-mfc-v7.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+{ USB_DEVICE(0xeb1a, 0x2885),    /* MSI Digivox Trio */
+             .driver_info = EM2884_BOARD_TERRATEC_H5 },
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
-index ea5ec2a..5dfa149 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
-@@ -56,6 +56,7 @@
- 			(SZ_1M + ((w) * 144) + (8192 * (h)) + 49216)
- 
- #define S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V7(w, h) \
--			(((w) * 48) + (((w) + 1) / 2 * 128) + 144 + 8192)
-+			(((w) * 48) + 8192 + ((((w) + 1) / 2) * 128) + 144 + \
-+			((((((w) * 16) * ((h) * 16)) * 3) / 2) * 4))
- 
- #endif /*_REGS_MFC_V7_H*/
--- 
-1.7.9.5
+to linux/drivers/media/usb/em28xx/em28xx-cards.c.
 
+It's starting to bug me more and more that I can never update my kernel 
+(well not without hassle anyway). I've written this to the mailinglist 
+before, but with no response.
+
+I just don't have the skill to write this in the neat way it needs to be 
+to be able to go upstream. Should I try to hire someone to do that? If 
+so, any suggestions? Just put an ad up on craigslist or something? Does 
+such a patch have a chance of going upstream? (as that's the whole point 
+- I want to update my kernel again)
+
+It should be really straightforward given that no reverse engineering or 
+anything is needed. It's just what it states above - pretend the Digivox 
+is an H5 and it's done.
+
+Anyone who can tune in on this, please share your thoughts.
+
+Best regards,
+
+P. van Gaans
