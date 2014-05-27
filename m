@@ -1,115 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3923 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750955AbaEVCoP (ORCPT
+Received: from forward18.mail.yandex.net ([95.108.253.143]:54514 "EHLO
+	forward18.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752067AbaE0T4N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 May 2014 22:44:15 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4M2iBID069004
-	for <linux-media@vger.kernel.org>; Thu, 22 May 2014 04:44:13 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 63DBE2A19A6
-	for <linux-media@vger.kernel.org>; Thu, 22 May 2014 04:43:49 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140522024349.63DBE2A19A6@tschai.lan>
-Date: Thu, 22 May 2014 04:43:49 +0200 (CEST)
+	Tue, 27 May 2014 15:56:13 -0400
+From: CrazyCat <crazycat69@narod.ru>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] technisat-sub2: Fix stream curruption on high bitrate
+Date: Tue, 27 May 2014 22:45:36 +0300
+Message-ID: <1823569.HE0xhFUA0K@computer>
+In-Reply-To: <20140525152957.23be9b06.m.chehab@samsung.com>
+References: <3539618.frtlsOTgfg@ubuntu> <20140525152957.23be9b06.m.chehab@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Sunday 25 May 2014 15:29:57 Mauro Carvalho Chehab wrote:
+> Could you please better document this patch? 
 
-Results of the daily build of media_tree:
+Bug "catched" @ new ABS2 satellite (75E). Transponders with bitrate 70-80mbit. Before some european another users report same issue with ~67mbit transponders (S2,8PSK,27500,5/6). So just another bug in this driver :)
 
-date:		Thu May 22 04:00:18 CEST 2014
-git branch:	test
-git hash:	ba0d342ecc21fbbe2f6c178f4479944d1fb34f3b
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.14-1.slh.1-amd64
+> I would be expecting a better description of the problem you faced,
+> the version of the board you have (assuming that different versions
+> might have different minimal intervals) and an lsusb -v output from
+> the board you faced issues, showing what the endpoint descriptors
+> say about that.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+This device have only one hw revision. lsusb -v output:
 
-Detailed results are available here:
+Bus 001 Device 009: ID 14f7:0500 TechniSat Digital GmbH DVB-PC TV Star HD
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  idVendor           0x14f7 TechniSat Digital GmbH
+  idProduct          0x0500 DVB-PC TV Star HD
+  bcdDevice            0.01
+  iManufacturer           1 TechniSat Digital
+  iProduct                2 TechniSat USB device
+  iSerial                 3 0008C9F04C76
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           69
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0
+    bmAttributes         0xc0
+      Self Powered
+    MaxPower              300mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           3
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       1
+      bNumEndpoints           3
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass      0
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0c00  2x 1024 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+Device Qualifier (for other device speed):
+  bLength                10
+  bDescriptorType         6
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  bNumConfigurations      1
+Device Status:     0x0001
+  Self Powered
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+> Btw, if those tables are ok, can't we just retrieve the information
+> directly from the descriptors, instead of hardcoding it, e. g
+> filling it with:
+> 
+>        interval = 1 << (ep->bInterval - 1);
+> 
+> at the board probing time, just like we did at changeset 1b3fd2d34266?
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+good idea :)
