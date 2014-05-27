@@ -1,182 +1,1623 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:59364 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751849AbaE0Tsr (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:49865 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752134AbaE0Qur (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 May 2014 15:48:47 -0400
-Date: Tue, 27 May 2014 21:48:43 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH] [media] mt9v032: Add support for mt9v022 and mt9v024
-In-Reply-To: <1401112985-32338-1-git-send-email-p.zabel@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1405272146260.24747@axis700.grange>
-References: <1401112985-32338-1-git-send-email-p.zabel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Tue, 27 May 2014 12:50:47 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Olliver Schinagl <oliver@schinagl.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 00/12] dvbv5 scan tables for Brazil
+Date: Tue, 27 May 2014 13:50:20 -0300
+Message-Id: <1401209432-7327-1-git-send-email-m.chehab@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+This patch series add the DTV scan tables for Brazilian ISDB-T
+and for the Brazilian Countys that have already digital TV.
 
-On Mon, 26 May 2014, Philipp Zabel wrote:
+In order to avoid too big patches, I split the tables per
+Brazilian state. I hope they'll all be arrive the ML.
 
-> >From the looks of it, mt9v022 and mt9v032 are very similar,
-> as are mt9v024 and mt9v034. With minimal changes it is possible
-> to support mt9v02[24] with the same driver.
+If not, I'm also pushing them on this tree:
+	http://git.linuxtv.org/cgit.cgi/mchehab/dtv-scan-tables.git/
 
-Are you aware of drivers/media/i2c/soc_camera/mt9v022.c? With this patch 
-you'd duplicate support for both mt9v022 and mt9v024, which doesn't look 
-like a good idea to me.
+Regards,
+Mauro
 
-Thanks
-Guennadi
+Mauro Carvalho Chehab (12):
+  Add ISDB-T brazilian channels table
+  Add Brazil's Sao Paulo state tables
+  Add Brazil's Bahia state tables
+  Add Brazil's Rio Grande do Sul state tables
+  Add Brazil's Minas Gerais state tables
+  Add Brazil's Parana state tables
+  Add Brazil's Santa Catarina state tables
+  Add Brazil's Sergipe state tables
+  Add Brazil's Paraiba state tables
+  Add Brazil's Rio de Janeiro state tables
+  Add Brazil's Goias state tables
+  Add Brazil's remaining states tables
 
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/i2c/mt9v032.c | 56 +++++++++++++++++++++++++++++++++------------
->  1 file changed, 42 insertions(+), 14 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-> index 052e754..617b77f 100644
-> --- a/drivers/media/i2c/mt9v032.c
-> +++ b/drivers/media/i2c/mt9v032.c
-> @@ -1,5 +1,5 @@
->  /*
-> - * Driver for MT9V032 CMOS Image Sensor from Micron
-> + * Driver for MT9V022, MT9V024, MT9V032, and MT9V034 CMOS Image Sensors
->   *
->   * Copyright (C) 2010, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->   *
-> @@ -68,6 +68,7 @@
->  #define		MT9V032_CHIP_CONTROL_MASTER_MODE	(1 << 3)
->  #define		MT9V032_CHIP_CONTROL_DOUT_ENABLE	(1 << 7)
->  #define		MT9V032_CHIP_CONTROL_SEQUENTIAL		(1 << 8)
-> +#define		MT9V024_CHIP_CONTROL_DEF_PIX_CORRECT	(1 << 9)
->  #define MT9V032_SHUTTER_WIDTH1				0x08
->  #define MT9V032_SHUTTER_WIDTH2				0x09
->  #define MT9V032_SHUTTER_WIDTH_CONTROL			0x0a
-> @@ -133,8 +134,12 @@
->  #define MT9V032_THERMAL_INFO				0xc1
->  
->  enum mt9v032_model {
-> -	MT9V032_MODEL_V032_COLOR,
-> -	MT9V032_MODEL_V032_MONO,
-> +	MT9V032_MODEL_V022_COLOR,	/* MT9V022IX7ATC */
-> +	MT9V032_MODEL_V022_MONO,	/* MT9V022IX7ATM */
-> +	MT9V032_MODEL_V024_COLOR,	/* MT9V024IA7XTC */
-> +	MT9V032_MODEL_V024_MONO,	/* MT9V024IA7XTM */
-> +	MT9V032_MODEL_V032_COLOR,	/* MT9V032C12STM */
-> +	MT9V032_MODEL_V032_MONO,	/* MT9V032C12STC */
->  	MT9V032_MODEL_V034_COLOR,
->  	MT9V032_MODEL_V034_MONO,
->  };
-> @@ -160,14 +165,14 @@ struct mt9v032_model_info {
->  };
->  
->  static const struct mt9v032_model_version mt9v032_versions[] = {
-> -	{ MT9V032_CHIP_ID_REV1, "MT9V032 rev1/2" },
-> -	{ MT9V032_CHIP_ID_REV3, "MT9V032 rev3" },
-> -	{ MT9V034_CHIP_ID_REV1, "MT9V034 rev1" },
-> +	{ MT9V032_CHIP_ID_REV1, "MT9V022/MT9V032 rev1/2" },
-> +	{ MT9V032_CHIP_ID_REV3, "MT9V022/MT9V032 rev3" },
-> +	{ MT9V034_CHIP_ID_REV1, "MT9V024/MT9V034 rev1" },
->  };
->  
->  static const struct mt9v032_model_data mt9v032_model_data[] = {
->  	{
-> -		/* MT9V032 revisions 1/2/3 */
-> +		/* MT9V022, MT9V032 revisions 1/2/3 */
->  		.min_row_time = 660,
->  		.min_hblank = MT9V032_HORIZONTAL_BLANKING_MIN,
->  		.min_vblank = MT9V032_VERTICAL_BLANKING_MIN,
-> @@ -176,7 +181,7 @@ static const struct mt9v032_model_data mt9v032_model_data[] = {
->  		.max_shutter = MT9V032_TOTAL_SHUTTER_WIDTH_MAX,
->  		.pclk_reg = MT9V032_PIXEL_CLOCK,
->  	}, {
-> -		/* MT9V034 */
-> +		/* MT9V024, MT9V034 */
->  		.min_row_time = 690,
->  		.min_hblank = MT9V034_HORIZONTAL_BLANKING_MIN,
->  		.min_vblank = MT9V034_VERTICAL_BLANKING_MIN,
-> @@ -188,6 +193,22 @@ static const struct mt9v032_model_data mt9v032_model_data[] = {
->  };
->  
->  static const struct mt9v032_model_info mt9v032_models[] = {
-> +	[MT9V032_MODEL_V022_COLOR] = {
-> +		.data = &mt9v032_model_data[0],
-> +		.color = true,
-> +	},
-> +	[MT9V032_MODEL_V022_MONO] = {
-> +		.data = &mt9v032_model_data[0],
-> +		.color = false,
-> +	},
-> +	[MT9V032_MODEL_V024_COLOR] = {
-> +		.data = &mt9v032_model_data[1],
-> +		.color = true,
-> +	},
-> +	[MT9V032_MODEL_V024_MONO] = {
-> +		.data = &mt9v032_model_data[1],
-> +		.color = false,
-> +	},
->  	[MT9V032_MODEL_V032_COLOR] = {
->  		.data = &mt9v032_model_data[0],
->  		.color = true,
-> @@ -415,7 +436,6 @@ static int mt9v032_s_stream(struct v4l2_subdev *subdev, int enable)
->  	struct i2c_client *client = v4l2_get_subdevdata(subdev);
->  	struct mt9v032 *mt9v032 = to_mt9v032(subdev);
->  	struct v4l2_rect *crop = &mt9v032->crop;
-> -	unsigned int read_mode;
->  	unsigned int hbin;
->  	unsigned int vbin;
->  	int ret;
-> @@ -426,11 +446,9 @@ static int mt9v032_s_stream(struct v4l2_subdev *subdev, int enable)
->  	/* Configure the window size and row/column bin */
->  	hbin = fls(mt9v032->hratio) - 1;
->  	vbin = fls(mt9v032->vratio) - 1;
-> -	read_mode = mt9v032_read(client, MT9V032_READ_MODE);
-> -	read_mode &= ~0xff; /* bits 0x300 are reserved, on MT9V024 */
-> -	read_mode |= hbin << MT9V032_READ_MODE_COLUMN_BIN_SHIFT |
-> -		     vbin << MT9V032_READ_MODE_ROW_BIN_SHIFT;
-> -	ret = mt9v032_write(client, MT9V032_READ_MODE, read_mode);
-> +	ret = mt9v032_write(client, MT9V032_READ_MODE,
-> +			    hbin << MT9V032_READ_MODE_COLUMN_BIN_SHIFT |
-> +			    vbin << MT9V032_READ_MODE_ROW_BIN_SHIFT);
->  	if (ret < 0)
->  		return ret;
->  
-> @@ -902,6 +920,12 @@ static int mt9v032_probe(struct i2c_client *client,
->  	mt9v032->pdata = pdata;
->  	mt9v032->model = (const void *)did->driver_data;
->  
-> +	/* Keep defective pixel correction enabled on MT9V024 */
-> +	ret = mt9v032_read(client, MT9V032_CHIP_CONTROL);
-> +	if (ret < 0)
-> +		return ret;
-> +	mt9v032->chip_control = ret & MT9V024_CHIP_CONTROL_DEF_PIX_CORRECT;
-> +
->  	v4l2_ctrl_handler_init(&mt9v032->ctrls, 10);
->  
->  	v4l2_ctrl_new_std(&mt9v032->ctrls, &mt9v032_ctrl_ops,
-> @@ -1015,6 +1039,10 @@ static int mt9v032_remove(struct i2c_client *client)
->  }
->  
->  static const struct i2c_device_id mt9v032_id[] = {
-> +	{ "mt9v022", (kernel_ulong_t)&mt9v032_models[MT9V032_MODEL_V022_COLOR] },
-> +	{ "mt9v022m", (kernel_ulong_t)&mt9v032_models[MT9V032_MODEL_V022_MONO] },
-> +	{ "mt9v024", (kernel_ulong_t)&mt9v032_models[MT9V032_MODEL_V024_COLOR] },
-> +	{ "mt9v024m", (kernel_ulong_t)&mt9v032_models[MT9V032_MODEL_V024_MONO] },
->  	{ "mt9v032", (kernel_ulong_t)&mt9v032_models[MT9V032_MODEL_V032_COLOR] },
->  	{ "mt9v032m", (kernel_ulong_t)&mt9v032_models[MT9V032_MODEL_V032_MONO] },
->  	{ "mt9v034", (kernel_ulong_t)&mt9v032_models[MT9V032_MODEL_V034_COLOR] },
-> -- 
-> 2.0.0.rc2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+ dvbv5_isdb-t/br-Brazil                       | 1446 ++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-ac-Bujari                    |   90 ++
+ dvbv5_isdb-t/br-ac-PortoAcre                 |   90 ++
+ dvbv5_isdb-t/br-ac-RioBranco                 |   90 ++
+ dvbv5_isdb-t/br-ac-SenadorGuiomard           |   61 ++
+ dvbv5_isdb-t/br-al-Arapiraca                 |   32 +
+ dvbv5_isdb-t/br-al-Craibas                   |   32 +
+ dvbv5_isdb-t/br-al-Maceio                    |  119 +++
+ dvbv5_isdb-t/br-al-Piranhas                  |   32 +
+ dvbv5_isdb-t/br-al-RioLargo                  |   90 ++
+ dvbv5_isdb-t/br-al-SaoMiguelDosCampos        |   90 ++
+ dvbv5_isdb-t/br-am-CareiroDaVarzea           |  206 ++++
+ dvbv5_isdb-t/br-am-Iranduba                  |  177 ++++
+ dvbv5_isdb-t/br-am-Manaquiri                 |  177 ++++
+ dvbv5_isdb-t/br-am-Manaus                    |  322 ++++++
+ dvbv5_isdb-t/br-am-Parintins                 |   32 +
+ dvbv5_isdb-t/br-ap-Macapa                    |  148 +++
+ dvbv5_isdb-t/br-ap-Santana                   |  148 +++
+ dvbv5_isdb-t/br-ba-Alagoinhas                |   61 ++
+ dvbv5_isdb-t/br-ba-Alcobaca                  |   32 +
+ dvbv5_isdb-t/br-ba-Amargosa                  |   32 +
+ dvbv5_isdb-t/br-ba-AmeliaRodrigues           |  206 ++++
+ dvbv5_isdb-t/br-ba-Anguera                   |   61 ++
+ dvbv5_isdb-t/br-ba-AntonioCardoso            |   61 ++
+ dvbv5_isdb-t/br-ba-Aracatu                   |   32 +
+ dvbv5_isdb-t/br-ba-Barra                     |   32 +
+ dvbv5_isdb-t/br-ba-BarraDoChoca              |   61 ++
+ dvbv5_isdb-t/br-ba-Barreiras                 |   61 ++
+ dvbv5_isdb-t/br-ba-BeloCampo                 |   61 ++
+ dvbv5_isdb-t/br-ba-Biritinga                 |   32 +
+ dvbv5_isdb-t/br-ba-BomJesusDaLapa            |   32 +
+ dvbv5_isdb-t/br-ba-Brumado                   |   32 +
+ dvbv5_isdb-t/br-ba-Caetite                   |   32 +
+ dvbv5_isdb-t/br-ba-Camacari                  |  177 ++++
+ dvbv5_isdb-t/br-ba-CampoFormoso              |   32 +
+ dvbv5_isdb-t/br-ba-Candeal                   |   61 ++
+ dvbv5_isdb-t/br-ba-Candeias                  |  177 ++++
+ dvbv5_isdb-t/br-ba-CandidoSales              |   32 +
+ dvbv5_isdb-t/br-ba-Caraibas                  |   32 +
+ dvbv5_isdb-t/br-ba-ConceicaoDaFeira          |   32 +
+ dvbv5_isdb-t/br-ba-ConceicaoDoJacuipe        |   32 +
+ dvbv5_isdb-t/br-ba-CoracaoDeMaria            |   61 ++
+ dvbv5_isdb-t/br-ba-CruzDasAlmas              |  235 +++++
+ dvbv5_isdb-t/br-ba-DiasDAvila                |  177 ++++
+ dvbv5_isdb-t/br-ba-EntreRios                 |   32 +
+ dvbv5_isdb-t/br-ba-Eunapolis                 |   32 +
+ dvbv5_isdb-t/br-ba-FeiraDeSantana            |   61 ++
+ dvbv5_isdb-t/br-ba-Guanambi                  |   32 +
+ dvbv5_isdb-t/br-ba-Ichu                      |   32 +
+ dvbv5_isdb-t/br-ba-Ilheus                    |   32 +
+ dvbv5_isdb-t/br-ba-Inhambupe                 |   32 +
+ dvbv5_isdb-t/br-ba-Ipecaeta                  |   61 ++
+ dvbv5_isdb-t/br-ba-Irara                     |   61 ++
+ dvbv5_isdb-t/br-ba-Irece                     |   61 ++
+ dvbv5_isdb-t/br-ba-Itabuna                   |   32 +
+ dvbv5_isdb-t/br-ba-Itamaraju                 |   61 ++
+ dvbv5_isdb-t/br-ba-Itambe                    |   32 +
+ dvbv5_isdb-t/br-ba-Itaparica                 |  148 +++
+ dvbv5_isdb-t/br-ba-Itapetinga                |   32 +
+ dvbv5_isdb-t/br-ba-Jacobina                  |   32 +
+ dvbv5_isdb-t/br-ba-Jaguaquara                |   32 +
+ dvbv5_isdb-t/br-ba-Jaguaripe                 |  148 +++
+ dvbv5_isdb-t/br-ba-Jequie                    |   32 +
+ dvbv5_isdb-t/br-ba-Juazeiro                  |   90 ++
+ dvbv5_isdb-t/br-ba-LauroDeFreitas            |  177 ++++
+ dvbv5_isdb-t/br-ba-LuisEduardoMagalhaes      |   32 +
+ dvbv5_isdb-t/br-ba-MadreDeDeus               |  177 ++++
+ dvbv5_isdb-t/br-ba-Maragogipe                |  148 +++
+ dvbv5_isdb-t/br-ba-MataDeSaoJoao             |  177 ++++
+ dvbv5_isdb-t/br-ba-Nazare                    |  177 ++++
+ dvbv5_isdb-t/br-ba-PauloAfonso               |   32 +
+ dvbv5_isdb-t/br-ba-Piripa                    |   32 +
+ dvbv5_isdb-t/br-ba-Planalto                  |   32 +
+ dvbv5_isdb-t/br-ba-Pocoes                    |   32 +
+ dvbv5_isdb-t/br-ba-Pojuca                    |  177 ++++
+ dvbv5_isdb-t/br-ba-PortoSeguro               |   32 +
+ dvbv5_isdb-t/br-ba-PresidenteJanioQuadros    |   32 +
+ dvbv5_isdb-t/br-ba-RafaelJambeiro            |   32 +
+ dvbv5_isdb-t/br-ba-SalinasDaMargarida        |  177 ++++
+ dvbv5_isdb-t/br-ba-Salvador                  |  177 ++++
+ dvbv5_isdb-t/br-ba-SantaBarbara              |   61 ++
+ dvbv5_isdb-t/br-ba-SantaCruzCabralia         |   32 +
+ dvbv5_isdb-t/br-ba-SantaMariaDaVitoria       |   32 +
+ dvbv5_isdb-t/br-ba-Santanopolis              |   61 ++
+ dvbv5_isdb-t/br-ba-SantoAmaro                |  177 ++++
+ dvbv5_isdb-t/br-ba-SantoAntonioDeJesus       |  177 ++++
+ dvbv5_isdb-t/br-ba-SantoEstevao              |   61 ++
+ dvbv5_isdb-t/br-ba-SaoFranciscoDoConde       |  177 ++++
+ dvbv5_isdb-t/br-ba-SaoGoncaloDosCampos       |   61 ++
+ dvbv5_isdb-t/br-ba-SaoSebastiaoDoPasse       |  206 ++++
+ dvbv5_isdb-t/br-ba-SenhorDoBonfim            |   32 +
+ dvbv5_isdb-t/br-ba-SerraPreta                |   61 ++
+ dvbv5_isdb-t/br-ba-Serrinha                  |   32 +
+ dvbv5_isdb-t/br-ba-SimoesFilho               |  177 ++++
+ dvbv5_isdb-t/br-ba-Tanquinho                 |   61 ++
+ dvbv5_isdb-t/br-ba-TeixeiraDeFreitas         |   61 ++
+ dvbv5_isdb-t/br-ba-Teofilandia               |   32 +
+ dvbv5_isdb-t/br-ba-Tremedal                  |   32 +
+ dvbv5_isdb-t/br-ba-VeraCruz                  |  177 ++++
+ dvbv5_isdb-t/br-ba-VitoriaDaConquista        |   61 ++
+ dvbv5_isdb-t/br-ba-Xiquexique                |   32 +
+ dvbv5_isdb-t/br-ce-Acarape                   |   32 +
+ dvbv5_isdb-t/br-ce-Aquiraz                   |  264 +++++
+ dvbv5_isdb-t/br-ce-Aurora                    |   61 ++
+ dvbv5_isdb-t/br-ce-Caninde                   |   32 +
+ dvbv5_isdb-t/br-ce-Fortaleza                 |  264 +++++
+ dvbv5_isdb-t/br-ce-Horizonte                 |  235 +++++
+ dvbv5_isdb-t/br-ce-Maracanau                 |  235 +++++
+ dvbv5_isdb-t/br-ce-MaranguapeItapebussu      |  264 +++++
+ dvbv5_isdb-t/br-ce-Pacajus                   |  235 +++++
+ dvbv5_isdb-t/br-df-Brasilia                  |  322 ++++++
+ dvbv5_isdb-t/br-df-BrasiliaGama              |   61 ++
+ dvbv5_isdb-t/br-es-CachoeiroDoItapemirim     |   61 ++
+ dvbv5_isdb-t/br-es-Colatina                  |   61 ++
+ dvbv5_isdb-t/br-es-Guarapari                 |  206 ++++
+ dvbv5_isdb-t/br-es-Linhares                  |   32 +
+ dvbv5_isdb-t/br-es-SaoMateus                 |   32 +
+ dvbv5_isdb-t/br-es-Vitoria                   |  235 +++++
+ dvbv5_isdb-t/br-go-AguasLindasDeGoias        |  264 +++++
+ dvbv5_isdb-t/br-go-Alexania                  |   32 +
+ dvbv5_isdb-t/br-go-Anapolis                  |   90 ++
+ dvbv5_isdb-t/br-go-AparecidaDeGoiania        |  235 +++++
+ dvbv5_isdb-t/br-go-CaldasNovas               |   32 +
+ dvbv5_isdb-t/br-go-Catalao                   |   32 +
+ dvbv5_isdb-t/br-go-Cristalina                |   32 +
+ dvbv5_isdb-t/br-go-Formosa                   |  177 ++++
+ dvbv5_isdb-t/br-go-Goianesia                 |   32 +
+ dvbv5_isdb-t/br-go-Goiania                   |  235 +++++
+ dvbv5_isdb-t/br-go-Guapo                     |  148 +++
+ dvbv5_isdb-t/br-go-Inhumas                   |   32 +
+ dvbv5_isdb-t/br-go-Itumbiara                 |   32 +
+ dvbv5_isdb-t/br-go-Jatai                     |   61 ++
+ dvbv5_isdb-t/br-go-Luziania                  |   61 ++
+ dvbv5_isdb-t/br-go-PlanaltinaDeGoias         |  264 +++++
+ dvbv5_isdb-t/br-go-RioVerde                  |   61 ++
+ dvbv5_isdb-t/br-go-SantaHelenaDeGoias        |   32 +
+ dvbv5_isdb-t/br-go-SantoAntonioDoDescoberto  |  235 +++++
+ dvbv5_isdb-t/br-go-SaoLuisDeMontesBelos      |   32 +
+ dvbv5_isdb-t/br-go-SenadorCanedo             |  235 +++++
+ dvbv5_isdb-t/br-go-ValparaisoDeGoias         |  206 ++++
+ dvbv5_isdb-t/br-ma-Alcantara                 |  206 ++++
+ dvbv5_isdb-t/br-ma-Axixa                     |  206 ++++
+ dvbv5_isdb-t/br-ma-CachoeiraGrande           |  206 ++++
+ dvbv5_isdb-t/br-ma-Caxias                    |   32 +
+ dvbv5_isdb-t/br-ma-HumbertoDeCampos          |  206 ++++
+ dvbv5_isdb-t/br-ma-Imperatriz                |   32 +
+ dvbv5_isdb-t/br-ma-Morros                    |  206 ++++
+ dvbv5_isdb-t/br-ma-PacoDoLumiar              |  206 ++++
+ dvbv5_isdb-t/br-ma-PresidenteJuscelino       |  206 ++++
+ dvbv5_isdb-t/br-ma-PrimeiraCruz              |  206 ++++
+ dvbv5_isdb-t/br-ma-Raposa                    |  206 ++++
+ dvbv5_isdb-t/br-ma-Rosario                   |  206 ++++
+ dvbv5_isdb-t/br-ma-SaoJoseDeRibamar          |  206 ++++
+ dvbv5_isdb-t/br-ma-SaoLuis                   |  206 ++++
+ dvbv5_isdb-t/br-ma-Timon                     |  177 ++++
+ dvbv5_isdb-t/br-mg-AguaComprida              |  119 +++
+ dvbv5_isdb-t/br-mg-Alfenas                   |   32 +
+ dvbv5_isdb-t/br-mg-Almenara                  |   32 +
+ dvbv5_isdb-t/br-mg-Andradas                  |   32 +
+ dvbv5_isdb-t/br-mg-Araguari                  |   61 ++
+ dvbv5_isdb-t/br-mg-Arapora                   |   32 +
+ dvbv5_isdb-t/br-mg-Araxa                     |   90 ++
+ dvbv5_isdb-t/br-mg-Arinos                    |   32 +
+ dvbv5_isdb-t/br-mg-Barbacena                 |   32 +
+ dvbv5_isdb-t/br-mg-Barroso                   |   32 +
+ dvbv5_isdb-t/br-mg-BeloHorizonte             |  264 +++++
+ dvbv5_isdb-t/br-mg-Betim                     |  264 +++++
+ dvbv5_isdb-t/br-mg-BordaDaMata               |   61 ++
+ dvbv5_isdb-t/br-mg-Campanha                  |   32 +
+ dvbv5_isdb-t/br-mg-Caratinga                 |   32 +
+ dvbv5_isdb-t/br-mg-Cataguases                |   32 +
+ dvbv5_isdb-t/br-mg-Claraval                  |   32 +
+ dvbv5_isdb-t/br-mg-CoronelFabriciano         |   32 +
+ dvbv5_isdb-t/br-mg-Curvelo                   |   32 +
+ dvbv5_isdb-t/br-mg-Diamantina                |   32 +
+ dvbv5_isdb-t/br-mg-Divinopolis               |   90 ++
+ dvbv5_isdb-t/br-mg-Fronteira                 |   32 +
+ dvbv5_isdb-t/br-mg-Frutal                    |   32 +
+ dvbv5_isdb-t/br-mg-GovernadorValadares       |   90 ++
+ dvbv5_isdb-t/br-mg-Guanhaes                  |   32 +
+ dvbv5_isdb-t/br-mg-Guaxupe                   |   61 ++
+ dvbv5_isdb-t/br-mg-Ibirite                   |  119 +++
+ dvbv5_isdb-t/br-mg-Ipatinga                  |   61 ++
+ dvbv5_isdb-t/br-mg-Itabira                   |   32 +
+ dvbv5_isdb-t/br-mg-Itajuba                   |   32 +
+ dvbv5_isdb-t/br-mg-Itapagipe                 |   32 +
+ dvbv5_isdb-t/br-mg-Ituiutaba                 |   61 ++
+ dvbv5_isdb-t/br-mg-Janauba                   |   32 +
+ dvbv5_isdb-t/br-mg-Januaria                  |   32 +
+ dvbv5_isdb-t/br-mg-JuizDeFora                |   90 ++
+ dvbv5_isdb-t/br-mg-Manhuacu                  |   61 ++
+ dvbv5_isdb-t/br-mg-Mariana                   |   32 +
+ dvbv5_isdb-t/br-mg-MonteSiao                 |   32 +
+ dvbv5_isdb-t/br-mg-MontesClaros              |   61 ++
+ dvbv5_isdb-t/br-mg-Muriae                    |   32 +
+ dvbv5_isdb-t/br-mg-Oliveira                  |   32 +
+ dvbv5_isdb-t/br-mg-OuroFino                  |   32 +
+ dvbv5_isdb-t/br-mg-Paracatu                  |   32 +
+ dvbv5_isdb-t/br-mg-Passos                    |   61 ++
+ dvbv5_isdb-t/br-mg-PatosDeMinas              |   90 ++
+ dvbv5_isdb-t/br-mg-Periquito                 |   32 +
+ dvbv5_isdb-t/br-mg-Pirapora                  |   32 +
+ dvbv5_isdb-t/br-mg-Planura                   |   61 ++
+ dvbv5_isdb-t/br-mg-PocosDeCaldas             |   61 ++
+ dvbv5_isdb-t/br-mg-PousoAlegre               |  119 +++
+ dvbv5_isdb-t/br-mg-SantaRitaDoSapucai        |   61 ++
+ dvbv5_isdb-t/br-mg-SaoJoaoDelRei             |   32 +
+ dvbv5_isdb-t/br-mg-SaoLourenco               |   32 +
+ dvbv5_isdb-t/br-mg-SaoSebastiaoDoParaiso     |   32 +
+ dvbv5_isdb-t/br-mg-SeteLagoas                |   90 ++
+ dvbv5_isdb-t/br-mg-TeofiloOtoni              |   61 ++
+ dvbv5_isdb-t/br-mg-Timoteo                   |   32 +
+ dvbv5_isdb-t/br-mg-TresCoracoes              |   32 +
+ dvbv5_isdb-t/br-mg-TresPontas                |   32 +
+ dvbv5_isdb-t/br-mg-Uberaba                   |  177 ++++
+ dvbv5_isdb-t/br-mg-Uberlandia                |  177 ++++
+ dvbv5_isdb-t/br-mg-Varginha                  |   32 +
+ dvbv5_isdb-t/br-ms-Anastacio                 |   32 +
+ dvbv5_isdb-t/br-ms-Aquidauana                |   32 +
+ dvbv5_isdb-t/br-ms-CampoGrande               |  206 ++++
+ dvbv5_isdb-t/br-ms-Corumba                   |   32 +
+ dvbv5_isdb-t/br-ms-Dourados                  |   61 ++
+ dvbv5_isdb-t/br-ms-Ladario                   |   32 +
+ dvbv5_isdb-t/br-ms-NovaAndradina             |   32 +
+ dvbv5_isdb-t/br-ms-Paranaiba                 |   32 +
+ dvbv5_isdb-t/br-ms-PontaPora                 |   32 +
+ dvbv5_isdb-t/br-ms-Rochedo                   |   32 +
+ dvbv5_isdb-t/br-ms-Sidrolandia               |   61 ++
+ dvbv5_isdb-t/br-ms-TresLagoas                |   32 +
+ dvbv5_isdb-t/br-mt-AltaFloresta              |   32 +
+ dvbv5_isdb-t/br-mt-Cuiaba                    |  206 ++++
+ dvbv5_isdb-t/br-mt-Rondonopolis              |   90 ++
+ dvbv5_isdb-t/br-mt-Sinop                     |   32 +
+ dvbv5_isdb-t/br-mt-Sorriso                   |   32 +
+ dvbv5_isdb-t/br-mt-TangaraDaSerra            |   32 +
+ dvbv5_isdb-t/br-pa-Abaetetuba                |   90 ++
+ dvbv5_isdb-t/br-pa-Afua                      |   32 +
+ dvbv5_isdb-t/br-pa-Barcarena                 |  148 +++
+ dvbv5_isdb-t/br-pa-Belem                     |  264 +++++
+ dvbv5_isdb-t/br-pa-Belterra                  |   32 +
+ dvbv5_isdb-t/br-pa-Castanhal                 |   32 +
+ dvbv5_isdb-t/br-pa-Maraba                    |   32 +
+ dvbv5_isdb-t/br-pa-Moju                      |  119 +++
+ dvbv5_isdb-t/br-pa-PontaDePedras             |  148 +++
+ dvbv5_isdb-t/br-pa-Santarem                  |   32 +
+ dvbv5_isdb-t/br-pb-AlagoaGrande              |   32 +
+ dvbv5_isdb-t/br-pb-Alagoinha                 |   32 +
+ dvbv5_isdb-t/br-pb-Aparecida                 |   32 +
+ dvbv5_isdb-t/br-pb-Bayeux                    |  206 ++++
+ dvbv5_isdb-t/br-pb-BomJesus                  |   32 +
+ dvbv5_isdb-t/br-pb-Cabedelo                  |  206 ++++
+ dvbv5_isdb-t/br-pb-CachoeiraDosIndios        |   32 +
+ dvbv5_isdb-t/br-pb-CacimbaDeDentro           |   32 +
+ dvbv5_isdb-t/br-pb-Cajazeiras                |   32 +
+ dvbv5_isdb-t/br-pb-CaldasBrandao             |   32 +
+ dvbv5_isdb-t/br-pb-CampinaGrande             |   32 +
+ dvbv5_isdb-t/br-pb-Catingueira               |   32 +
+ dvbv5_isdb-t/br-pb-Condado                   |   32 +
+ dvbv5_isdb-t/br-pb-Cuitegi                   |   32 +
+ dvbv5_isdb-t/br-pb-Desterro                  |   32 +
+ dvbv5_isdb-t/br-pb-Guarabira                 |   61 ++
+ dvbv5_isdb-t/br-pb-Gurinhem                  |   32 +
+ dvbv5_isdb-t/br-pb-Imaculada                 |   32 +
+ dvbv5_isdb-t/br-pb-Itabaiana                 |   32 +
+ dvbv5_isdb-t/br-pb-Jacarau                   |   61 ++
+ dvbv5_isdb-t/br-pb-JoaoPessoa                |  264 +++++
+ dvbv5_isdb-t/br-pb-Juripiranga               |   90 ++
+ dvbv5_isdb-t/br-pb-LagoaSeca                 |   32 +
+ dvbv5_isdb-t/br-pb-Lucena                    |  119 +++
+ dvbv5_isdb-t/br-pb-MaeDAgua                  |   32 +
+ dvbv5_isdb-t/br-pb-Mamanguape                |  119 +++
+ dvbv5_isdb-t/br-pb-Marizopolis               |   32 +
+ dvbv5_isdb-t/br-pb-Massaranduba              |   32 +
+ dvbv5_isdb-t/br-pb-Matinhas                  |   32 +
+ dvbv5_isdb-t/br-pb-Matureia                  |   32 +
+ dvbv5_isdb-t/br-pb-Mulungu                   |   32 +
+ dvbv5_isdb-t/br-pb-OlhoDAgua                 |   32 +
+ dvbv5_isdb-t/br-pb-Patos                     |   32 +
+ dvbv5_isdb-t/br-pb-Pilar                     |   32 +
+ dvbv5_isdb-t/br-pb-Piloezinhos               |   32 +
+ dvbv5_isdb-t/br-pb-Puxinana                  |   32 +
+ dvbv5_isdb-t/br-pb-RioTinto                  |   32 +
+ dvbv5_isdb-t/br-pb-SantaRita                 |  148 +++
+ dvbv5_isdb-t/br-pb-SantaTeresinha            |   32 +
+ dvbv5_isdb-t/br-pb-SaoFrancisco              |   32 +
+ dvbv5_isdb-t/br-pb-SaoJoseDePiranhas         |   32 +
+ dvbv5_isdb-t/br-pb-SaoMamede                 |   32 +
+ dvbv5_isdb-t/br-pb-Sape                      |  206 ++++
+ dvbv5_isdb-t/br-pb-Sousa                     |   32 +
+ dvbv5_isdb-t/br-pb-Teixeira                  |   32 +
+ dvbv5_isdb-t/br-pe-Agrestina                 |   32 +
+ dvbv5_isdb-t/br-pe-Altinho                   |   32 +
+ dvbv5_isdb-t/br-pe-Bezerros                  |   32 +
+ dvbv5_isdb-t/br-pe-Camaragibe                |  206 ++++
+ dvbv5_isdb-t/br-pe-Caruaru                   |   32 +
+ dvbv5_isdb-t/br-pe-Garanhuns                 |   32 +
+ dvbv5_isdb-t/br-pe-Jupi                      |   32 +
+ dvbv5_isdb-t/br-pe-Limoeiro                  |  148 +++
+ dvbv5_isdb-t/br-pe-Petrolina                 |   90 ++
+ dvbv5_isdb-t/br-pe-Recife                    |  206 ++++
+ dvbv5_isdb-t/br-pe-SaoLourencoDaMata         |  206 ++++
+ dvbv5_isdb-t/br-pi-Teresina                  |  177 ++++
+ dvbv5_isdb-t/br-pr-AltoParana                |   32 +
+ dvbv5_isdb-t/br-pr-AltoPiquiri               |   61 ++
+ dvbv5_isdb-t/br-pr-Antonina                  |   90 ++
+ dvbv5_isdb-t/br-pr-Apucarana                 |   90 ++
+ dvbv5_isdb-t/br-pr-Arapongas                 |  177 ++++
+ dvbv5_isdb-t/br-pr-AssisChateaubriand        |   61 ++
+ dvbv5_isdb-t/br-pr-BoaVistaDaAparecida       |   32 +
+ dvbv5_isdb-t/br-pr-Cafelandia                |   90 ++
+ dvbv5_isdb-t/br-pr-Cambe                     |  177 ++++
+ dvbv5_isdb-t/br-pr-CampoLargo                |  322 ++++++
+ dvbv5_isdb-t/br-pr-CampoMourao               |   61 ++
+ dvbv5_isdb-t/br-pr-Carambei                  |   90 ++
+ dvbv5_isdb-t/br-pr-Cascavel                  |  119 +++
+ dvbv5_isdb-t/br-pr-CeuAzul                   |   61 ++
+ dvbv5_isdb-t/br-pr-Cianorte                  |   32 +
+ dvbv5_isdb-t/br-pr-Colombo                   |  322 ++++++
+ dvbv5_isdb-t/br-pr-Corbelia                  |   90 ++
+ dvbv5_isdb-t/br-pr-CornelioProcopio          |  177 ++++
+ dvbv5_isdb-t/br-pr-Curitiba                  |  322 ++++++
+ dvbv5_isdb-t/br-pr-Florestopolis             |   90 ++
+ dvbv5_isdb-t/br-pr-FozDoIguacu               |   61 ++
+ dvbv5_isdb-t/br-pr-FranciscoBeltrao          |   61 ++
+ dvbv5_isdb-t/br-pr-Guaraniacu                |   32 +
+ dvbv5_isdb-t/br-pr-Guarapuava                |   61 ++
+ dvbv5_isdb-t/br-pr-Guaratuba                 |   32 +
+ dvbv5_isdb-t/br-pr-HonorioSerpa              |   32 +
+ dvbv5_isdb-t/br-pr-Ibema                     |   90 ++
+ dvbv5_isdb-t/br-pr-Ibipora                   |  148 +++
+ dvbv5_isdb-t/br-pr-Imbituva                  |   32 +
+ dvbv5_isdb-t/br-pr-Irati                     |   61 ++
+ dvbv5_isdb-t/br-pr-Ivaipora                  |   32 +
+ dvbv5_isdb-t/br-pr-Jacarezinho               |   32 +
+ dvbv5_isdb-t/br-pr-Japira                    |   32 +
+ dvbv5_isdb-t/br-pr-Jataizinho                |  119 +++
+ dvbv5_isdb-t/br-pr-Lapa                      |   32 +
+ dvbv5_isdb-t/br-pr-Londrina                  |  177 ++++
+ dvbv5_isdb-t/br-pr-Maringa                   |  119 +++
+ dvbv5_isdb-t/br-pr-Matinhos                  |   32 +
+ dvbv5_isdb-t/br-pr-MoreiraSales              |   90 ++
+ dvbv5_isdb-t/br-pr-NovaAurora                |  119 +++
+ dvbv5_isdb-t/br-pr-Paranagua                 |   90 ++
+ dvbv5_isdb-t/br-pr-Paranavai                 |   61 ++
+ dvbv5_isdb-t/br-pr-PatoBranco                |   61 ++
+ dvbv5_isdb-t/br-pr-Perola                    |   32 +
+ dvbv5_isdb-t/br-pr-PontaGrossa               |   90 ++
+ dvbv5_isdb-t/br-pr-PontalDoParana            |   32 +
+ dvbv5_isdb-t/br-pr-Porecatu                  |   32 +
+ dvbv5_isdb-t/br-pr-PrimeiroDeMaio            |   32 +
+ dvbv5_isdb-t/br-pr-RioNegro                  |   32 +
+ dvbv5_isdb-t/br-pr-Rolandia                  |  177 ++++
+ dvbv5_isdb-t/br-pr-Sarandi                   |   90 ++
+ dvbv5_isdb-t/br-pr-Sertanopolis              |   90 ++
+ dvbv5_isdb-t/br-pr-TeixeiraSoares            |   32 +
+ dvbv5_isdb-t/br-pr-TelemacoBorba             |   32 +
+ dvbv5_isdb-t/br-pr-Toledo                    |  119 +++
+ dvbv5_isdb-t/br-pr-TresBarrasDoParana        |   32 +
+ dvbv5_isdb-t/br-pr-Tupassi                   |   90 ++
+ dvbv5_isdb-t/br-pr-Ubirata                   |   90 ++
+ dvbv5_isdb-t/br-pr-Umuarama                  |  119 +++
+ dvbv5_isdb-t/br-pr-Vere                      |   61 ++
+ dvbv5_isdb-t/br-rj-AngraDosReis              |   32 +
+ dvbv5_isdb-t/br-rj-Araruama                  |  264 +++++
+ dvbv5_isdb-t/br-rj-ArraialDoCabo             |   61 ++
+ dvbv5_isdb-t/br-rj-BarraMansa                |  148 +++
+ dvbv5_isdb-t/br-rj-CaboFrio                  |   90 ++
+ dvbv5_isdb-t/br-rj-CamposDosGoytacazes       |   61 ++
+ dvbv5_isdb-t/br-rj-DuqueDeCaxias             |  351 +++++++
+ dvbv5_isdb-t/br-rj-Itaguai                   |  148 +++
+ dvbv5_isdb-t/br-rj-Itaperuna                 |   32 +
+ dvbv5_isdb-t/br-rj-Itatiaia                  |   61 ++
+ dvbv5_isdb-t/br-rj-Macae                     |   32 +
+ dvbv5_isdb-t/br-rj-Marica                    |  264 +++++
+ dvbv5_isdb-t/br-rj-NovaFriburgo              |   61 ++
+ dvbv5_isdb-t/br-rj-NovaIguacu                |  206 ++++
+ dvbv5_isdb-t/br-rj-Queimados                 |  264 +++++
+ dvbv5_isdb-t/br-rj-Quissama                  |   32 +
+ dvbv5_isdb-t/br-rj-Resende                   |   61 ++
+ dvbv5_isdb-t/br-rj-RioBonito                 |   32 +
+ dvbv5_isdb-t/br-rj-RioDasOstras              |   32 +
+ dvbv5_isdb-t/br-rj-RioDeJaneiro              |  380 +++++++
+ dvbv5_isdb-t/br-rj-SaoGoncalo                |  351 +++++++
+ dvbv5_isdb-t/br-rj-SaoJoaoDaBarra            |   61 ++
+ dvbv5_isdb-t/br-rj-SaoJoaoDeMeriti           |  351 +++++++
+ dvbv5_isdb-t/br-rj-SaoPedroDaAldeia          |   61 ++
+ dvbv5_isdb-t/br-rj-Saquarema                 |  177 ++++
+ dvbv5_isdb-t/br-rj-SilvaJardim               |   32 +
+ dvbv5_isdb-t/br-rj-TrajanoDeMorais           |   32 +
+ dvbv5_isdb-t/br-rj-TresRios                  |   32 +
+ dvbv5_isdb-t/br-rj-VoltaRedonda              |  119 +++
+ dvbv5_isdb-t/br-rn-Extremoz                  |  119 +++
+ dvbv5_isdb-t/br-rn-Macaiba                   |  119 +++
+ dvbv5_isdb-t/br-rn-Mossoro                   |   32 +
+ dvbv5_isdb-t/br-rn-Natal                     |  119 +++
+ dvbv5_isdb-t/br-rn-SaoJoseDeMipibu           |  119 +++
+ dvbv5_isdb-t/br-rn-SenadorEloiDeSousa        |  119 +++
+ dvbv5_isdb-t/br-ro-Ariquemes                 |   32 +
+ dvbv5_isdb-t/br-ro-Cacoal                    |   32 +
+ dvbv5_isdb-t/br-ro-Jiparana                  |   61 ++
+ dvbv5_isdb-t/br-ro-PimentaBueno              |   32 +
+ dvbv5_isdb-t/br-ro-PortoVelho                |  235 +++++
+ dvbv5_isdb-t/br-rr-BoaVista                  |   61 ++
+ dvbv5_isdb-t/br-rs-Alegrete                  |   61 ++
+ dvbv5_isdb-t/br-rs-ArroioDoSal               |   90 ++
+ dvbv5_isdb-t/br-rs-Bage                      |   61 ++
+ dvbv5_isdb-t/br-rs-BentoGoncalves            |   32 +
+ dvbv5_isdb-t/br-rs-CachoeiraDoSul            |   61 ++
+ dvbv5_isdb-t/br-rs-Camaqua                   |   32 +
+ dvbv5_isdb-t/br-rs-CampoBom                  |  206 ++++
+ dvbv5_isdb-t/br-rs-Candelaria                |   61 ++
+ dvbv5_isdb-t/br-rs-Canela                    |   32 +
+ dvbv5_isdb-t/br-rs-Cangucu                   |   32 +
+ dvbv5_isdb-t/br-rs-CapaoDaCanoa              |   32 +
+ dvbv5_isdb-t/br-rs-CapaoDoLeao               |   32 +
+ dvbv5_isdb-t/br-rs-Carazinho                 |   32 +
+ dvbv5_isdb-t/br-rs-CarlosBarbosa             |   32 +
+ dvbv5_isdb-t/br-rs-CaxiasDoSul               |   61 ++
+ dvbv5_isdb-t/br-rs-Cidreira                  |   61 ++
+ dvbv5_isdb-t/br-rs-CruzAlta                  |   32 +
+ dvbv5_isdb-t/br-rs-DomPedroDeAlcantara       |   32 +
+ dvbv5_isdb-t/br-rs-Erechim                   |   61 ++
+ dvbv5_isdb-t/br-rs-Estrela                   |   32 +
+ dvbv5_isdb-t/br-rs-Farroupilha               |   61 ++
+ dvbv5_isdb-t/br-rs-Feliz                     |   32 +
+ dvbv5_isdb-t/br-rs-FloresDaCunha             |   32 +
+ dvbv5_isdb-t/br-rs-Gramado                   |   32 +
+ dvbv5_isdb-t/br-rs-Ijui                      |   32 +
+ dvbv5_isdb-t/br-rs-Lajeado                   |   32 +
+ dvbv5_isdb-t/br-rs-MonteAlegreDosCampos      |   61 ++
+ dvbv5_isdb-t/br-rs-Montenegro                |  235 +++++
+ dvbv5_isdb-t/br-rs-MorroRedondo              |   32 +
+ dvbv5_isdb-t/br-rs-NovaPetropolis            |   32 +
+ dvbv5_isdb-t/br-rs-NovaSantaRita             |  206 ++++
+ dvbv5_isdb-t/br-rs-NovoHamburgo              |  264 +++++
+ dvbv5_isdb-t/br-rs-Osorio                    |  148 +++
+ dvbv5_isdb-t/br-rs-PalmaresDoSul             |   32 +
+ dvbv5_isdb-t/br-rs-ParaisoDoSul              |   32 +
+ dvbv5_isdb-t/br-rs-PassoFundo                |   61 ++
+ dvbv5_isdb-t/br-rs-Pelotas                   |   61 ++
+ dvbv5_isdb-t/br-rs-PicadaCafe                |   32 +
+ dvbv5_isdb-t/br-rs-PortoAlegre               |  264 +++++
+ dvbv5_isdb-t/br-rs-RioGrande                 |   61 ++
+ dvbv5_isdb-t/br-rs-RioGrandeCassino          |   32 +
+ dvbv5_isdb-t/br-rs-SalvadorDoSul             |  148 +++
+ dvbv5_isdb-t/br-rs-Sananduva                 |   32 +
+ dvbv5_isdb-t/br-rs-SantaCruzDoSul            |   90 ++
+ dvbv5_isdb-t/br-rs-SantaMaria                |   61 ++
+ dvbv5_isdb-t/br-rs-SantaRosa                 |   32 +
+ dvbv5_isdb-t/br-rs-SantanaDoLivramento       |   32 +
+ dvbv5_isdb-t/br-rs-SantoAngelo               |   61 ++
+ dvbv5_isdb-t/br-rs-SantoAntonioDaPatrulha    |  264 +++++
+ dvbv5_isdb-t/br-rs-SaoBorja                  |   32 +
+ dvbv5_isdb-t/br-rs-SaoGabriel                |   32 +
+ dvbv5_isdb-t/br-rs-SaoJoseDoNorte            |   61 ++
+ dvbv5_isdb-t/br-rs-SaoSepe                   |   61 ++
+ dvbv5_isdb-t/br-rs-Sapiranga                 |   32 +
+ dvbv5_isdb-t/br-rs-Sertao                    |   61 ++
+ dvbv5_isdb-t/br-rs-Taquara                   |   32 +
+ dvbv5_isdb-t/br-rs-TerraDeAreia              |   90 ++
+ dvbv5_isdb-t/br-rs-Torres                    |   32 +
+ dvbv5_isdb-t/br-rs-Tramandai                 |   90 ++
+ dvbv5_isdb-t/br-rs-TresCachoeiras            |   32 +
+ dvbv5_isdb-t/br-rs-TresCoroas                |   32 +
+ dvbv5_isdb-t/br-rs-TresDeMaio                |   32 +
+ dvbv5_isdb-t/br-rs-Triunfo                   |  235 +++++
+ dvbv5_isdb-t/br-rs-Tucunduva                 |   32 +
+ dvbv5_isdb-t/br-rs-Uruguaiana                |   61 ++
+ dvbv5_isdb-t/br-rs-Vacaria                   |   61 ++
+ dvbv5_isdb-t/br-rs-VenancioAires             |   32 +
+ dvbv5_isdb-t/br-rs-VilaNovaDoSul             |   32 +
+ dvbv5_isdb-t/br-rs-Xangrila                  |   90 ++
+ dvbv5_isdb-t/br-sc-Agronomica                |   61 ++
+ dvbv5_isdb-t/br-sc-AguasMornas               |   32 +
+ dvbv5_isdb-t/br-sc-AntonioCarlos             |  264 +++++
+ dvbv5_isdb-t/br-sc-Ararangua                 |   32 +
+ dvbv5_isdb-t/br-sc-Aurora                    |   61 ++
+ dvbv5_isdb-t/br-sc-BalnearioCamboriu         |   90 ++
+ dvbv5_isdb-t/br-sc-BarraVelha                |   32 +
+ dvbv5_isdb-t/br-sc-Blumenau                  |  119 +++
+ dvbv5_isdb-t/br-sc-Brusque                   |   90 ++
+ dvbv5_isdb-t/br-sc-Cacador                   |   32 +
+ dvbv5_isdb-t/br-sc-Canoinhas                 |   32 +
+ dvbv5_isdb-t/br-sc-CapaoAlto                 |   61 ++
+ dvbv5_isdb-t/br-sc-CapivariDeBaixo           |   61 ++
+ dvbv5_isdb-t/br-sc-Chapeco                   |   90 ++
+ dvbv5_isdb-t/br-sc-Concordia                 |   32 +
+ dvbv5_isdb-t/br-sc-CorreiaPinto              |   32 +
+ dvbv5_isdb-t/br-sc-Corupa                    |   32 +
+ dvbv5_isdb-t/br-sc-Criciuma                  |   90 ++
+ dvbv5_isdb-t/br-sc-Florianopolis             |  264 +++++
+ dvbv5_isdb-t/br-sc-FlorianopolisCanasvieiras |  206 ++++
+ dvbv5_isdb-t/br-sc-FlorianopolisIngleses     |   90 ++
+ dvbv5_isdb-t/br-sc-Garopaba                  |  119 +++
+ dvbv5_isdb-t/br-sc-Garuva                    |  119 +++
+ dvbv5_isdb-t/br-sc-Gaspar                    |   32 +
+ dvbv5_isdb-t/br-sc-GovernadorCelsoRamos      |  235 +++++
+ dvbv5_isdb-t/br-sc-Guabiruba                 |   61 ++
+ dvbv5_isdb-t/br-sc-Guaramirim                |   32 +
+ dvbv5_isdb-t/br-sc-HervalDOeste              |   61 ++
+ dvbv5_isdb-t/br-sc-Icara                     |   61 ++
+ dvbv5_isdb-t/br-sc-Itajai                    |   32 +
+ dvbv5_isdb-t/br-sc-Itapema                   |   32 +
+ dvbv5_isdb-t/br-sc-Itapoa                    |   61 ++
+ dvbv5_isdb-t/br-sc-JaraguaDoSul              |   32 +
+ dvbv5_isdb-t/br-sc-Joacaba                   |   61 ++
+ dvbv5_isdb-t/br-sc-Joinville                 |  148 +++
+ dvbv5_isdb-t/br-sc-Lages                     |   61 ++
+ dvbv5_isdb-t/br-sc-Laguna                    |   32 +
+ dvbv5_isdb-t/br-sc-Laurentino                |   61 ++
+ dvbv5_isdb-t/br-sc-Lontras                   |   61 ++
+ dvbv5_isdb-t/br-sc-Mafra                     |   32 +
+ dvbv5_isdb-t/br-sc-Massaranduba              |   32 +
+ dvbv5_isdb-t/br-sc-Navegantes                |   61 ++
+ dvbv5_isdb-t/br-sc-NovaVeneza                |   90 ++
+ dvbv5_isdb-t/br-sc-Painel                    |   61 ++
+ dvbv5_isdb-t/br-sc-PassoDeTorres             |   32 +
+ dvbv5_isdb-t/br-sc-Penha                     |   32 +
+ dvbv5_isdb-t/br-sc-Picarras                  |  119 +++
+ dvbv5_isdb-t/br-sc-RioDoSul                  |   61 ++
+ dvbv5_isdb-t/br-sc-RioNegrinho               |   32 +
+ dvbv5_isdb-t/br-sc-SantaRosaDoSul            |   32 +
+ dvbv5_isdb-t/br-sc-SantoAmaroDaImperatriz    |  264 +++++
+ dvbv5_isdb-t/br-sc-SaoBentoDoSul             |   32 +
+ dvbv5_isdb-t/br-sc-Schroeder                 |   32 +
+ dvbv5_isdb-t/br-sc-Sombrio                   |   32 +
+ dvbv5_isdb-t/br-sc-Tijucas                   |  148 +++
+ dvbv5_isdb-t/br-sc-Tubarao                   |   61 ++
+ dvbv5_isdb-t/br-se-Aquidaba                  |  148 +++
+ dvbv5_isdb-t/br-se-Aracaju                   |  148 +++
+ dvbv5_isdb-t/br-se-Araua                     |   32 +
+ dvbv5_isdb-t/br-se-AreiaBranca               |   32 +
+ dvbv5_isdb-t/br-se-BarraDosCoqueiros         |  148 +++
+ dvbv5_isdb-t/br-se-Boquim                    |   61 ++
+ dvbv5_isdb-t/br-se-CampoDoBrito              |   61 ++
+ dvbv5_isdb-t/br-se-CanindeDeSaoFrancisco     |   32 +
+ dvbv5_isdb-t/br-se-Capela                    |  148 +++
+ dvbv5_isdb-t/br-se-Carira                    |   32 +
+ dvbv5_isdb-t/br-se-Carmopolis                |  148 +++
+ dvbv5_isdb-t/br-se-Cristinapolis             |   32 +
+ dvbv5_isdb-t/br-se-DivinaPastora             |   32 +
+ dvbv5_isdb-t/br-se-Estancia                  |   32 +
+ dvbv5_isdb-t/br-se-FeiraNova                 |   32 +
+ dvbv5_isdb-t/br-se-FreiPaulo                 |  148 +++
+ dvbv5_isdb-t/br-se-Gararu                    |   32 +
+ dvbv5_isdb-t/br-se-GeneralMaynard            |  148 +++
+ dvbv5_isdb-t/br-se-Itabaiana                 |  119 +++
+ dvbv5_isdb-t/br-se-Itabaianinha              |   32 +
+ dvbv5_isdb-t/br-se-Itabi                     |   32 +
+ dvbv5_isdb-t/br-se-ItaporangaDAjuda          |  119 +++
+ dvbv5_isdb-t/br-se-Japaratuba                |  148 +++
+ dvbv5_isdb-t/br-se-Lagarto                   |  148 +++
+ dvbv5_isdb-t/br-se-Laranjeiras               |  148 +++
+ dvbv5_isdb-t/br-se-Macambira                 |   61 ++
+ dvbv5_isdb-t/br-se-Malhador                  |   32 +
+ dvbv5_isdb-t/br-se-Maruim                    |  119 +++
+ dvbv5_isdb-t/br-se-MoitaBonita               |   61 ++
+ dvbv5_isdb-t/br-se-MonteAlegreDeSergipe      |   32 +
+ dvbv5_isdb-t/br-se-NossaSenhoraAparecida     |   32 +
+ dvbv5_isdb-t/br-se-NossaSenhoraDaGloria      |   32 +
+ dvbv5_isdb-t/br-se-NossaSenhoraDoSocorro     |  148 +++
+ dvbv5_isdb-t/br-se-Pedrinhas                 |   32 +
+ dvbv5_isdb-t/br-se-PocoRedondo               |   32 +
+ dvbv5_isdb-t/br-se-RiachaoDoDantas           |   32 +
+ dvbv5_isdb-t/br-se-Riachuelo                 |   61 ++
+ dvbv5_isdb-t/br-se-Ribeiropolis              |   61 ++
+ dvbv5_isdb-t/br-se-RosarioDoCatete           |  148 +++
+ dvbv5_isdb-t/br-se-Salgado                   |   32 +
+ dvbv5_isdb-t/br-se-SantaLuziaDoIntanhy       |   32 +
+ dvbv5_isdb-t/br-se-SantoAmaroDasBrotas       |  148 +++
+ dvbv5_isdb-t/br-se-SaoCristovao              |  148 +++
+ dvbv5_isdb-t/br-se-SaoDomingos               |   32 +
+ dvbv5_isdb-t/br-se-SaoMiguelDoAleixo         |   32 +
+ dvbv5_isdb-t/br-se-TomarDoGeru               |   32 +
+ dvbv5_isdb-t/br-se-Umbauba                   |   32 +
+ dvbv5_isdb-t/br-sp-Aguai                     |   32 +
+ dvbv5_isdb-t/br-sp-AguasDeLindoia            |   61 ++
+ dvbv5_isdb-t/br-sp-AguasDeSaoPedro           |   61 ++
+ dvbv5_isdb-t/br-sp-Agudos                    |  119 +++
+ dvbv5_isdb-t/br-sp-Americana                 |  264 +++++
+ dvbv5_isdb-t/br-sp-AmericoBrasiliense        |  119 +++
+ dvbv5_isdb-t/br-sp-Amparo                    |   61 ++
+ dvbv5_isdb-t/br-sp-Andradina                 |   61 ++
+ dvbv5_isdb-t/br-sp-Aparecida                 |  177 ++++
+ dvbv5_isdb-t/br-sp-AparecidaDOeste           |   32 +
+ dvbv5_isdb-t/br-sp-Apiai                     |   32 +
+ dvbv5_isdb-t/br-sp-Aracatuba                 |  119 +++
+ dvbv5_isdb-t/br-sp-Araraquara                |  119 +++
+ dvbv5_isdb-t/br-sp-Araras                    |   32 +
+ dvbv5_isdb-t/br-sp-Arealva                   |   90 ++
+ dvbv5_isdb-t/br-sp-Assis                     |   90 ++
+ dvbv5_isdb-t/br-sp-Atibaia                   |   61 ++
+ dvbv5_isdb-t/br-sp-Auriflama                 |   61 ++
+ dvbv5_isdb-t/br-sp-BarraBonita               |   61 ++
+ dvbv5_isdb-t/br-sp-Barretos                  |  119 +++
+ dvbv5_isdb-t/br-sp-Batatais                  |   32 +
+ dvbv5_isdb-t/br-sp-Bauru                     |  148 +++
+ dvbv5_isdb-t/br-sp-Bebedouro                 |   90 ++
+ dvbv5_isdb-t/br-sp-Bertioga                  |  177 ++++
+ dvbv5_isdb-t/br-sp-Birigui                   |  119 +++
+ dvbv5_isdb-t/br-sp-Boituva                   |  119 +++
+ dvbv5_isdb-t/br-sp-Botucatu                  |   32 +
+ dvbv5_isdb-t/br-sp-BragancaPaulista          |   61 ++
+ dvbv5_isdb-t/br-sp-Brodowski                 |  119 +++
+ dvbv5_isdb-t/br-sp-CachoeiraPaulista         |   90 ++
+ dvbv5_isdb-t/br-sp-Cajamar                   |  351 +++++++
+ dvbv5_isdb-t/br-sp-Cajati                    |   32 +
+ dvbv5_isdb-t/br-sp-Cajobi                    |   61 ++
+ dvbv5_isdb-t/br-sp-Campinas                  |  235 +++++
+ dvbv5_isdb-t/br-sp-CampoLimpoPaulista        |   90 ++
+ dvbv5_isdb-t/br-sp-CamposDoJordao            |   90 ++
+ dvbv5_isdb-t/br-sp-Capivari                  |   32 +
+ dvbv5_isdb-t/br-sp-Caraguatatuba             |  119 +++
+ dvbv5_isdb-t/br-sp-Carapicuiba               |  670 ++++++++++++
+ dvbv5_isdb-t/br-sp-CassiaDosCoqueiros        |   32 +
+ dvbv5_isdb-t/br-sp-Catanduva                 |   61 ++
+ dvbv5_isdb-t/br-sp-Colina                    |   90 ++
+ dvbv5_isdb-t/br-sp-Colombia                  |   61 ++
+ dvbv5_isdb-t/br-sp-Cravinhos                 |  148 +++
+ dvbv5_isdb-t/br-sp-CristaisPaulista          |   90 ++
+ dvbv5_isdb-t/br-sp-Cruzeiro                  |   61 ++
+ dvbv5_isdb-t/br-sp-Cubatao                   |  206 ++++
+ dvbv5_isdb-t/br-sp-Diadema                   |  670 ++++++++++++
+ dvbv5_isdb-t/br-sp-Dracena                   |   32 +
+ dvbv5_isdb-t/br-sp-Dumont                    |  119 +++
+ dvbv5_isdb-t/br-sp-Eldorado                  |   32 +
+ dvbv5_isdb-t/br-sp-EmbuDasArtes              |  525 ++++++++++
+ dvbv5_isdb-t/br-sp-EstivaGerbi               |   32 +
+ dvbv5_isdb-t/br-sp-EstrelaDOeste             |   61 ++
+ dvbv5_isdb-t/br-sp-Fernandopolis             |   61 ++
+ dvbv5_isdb-t/br-sp-FerrazDeVasconcelos       |  525 ++++++++++
+ dvbv5_isdb-t/br-sp-Franca                    |   90 ++
+ dvbv5_isdb-t/br-sp-FrancoDaRocha             |  583 +++++++++++
+ dvbv5_isdb-t/br-sp-Garca                     |   32 +
+ dvbv5_isdb-t/br-sp-Guapiacu                  |   90 ++
+ dvbv5_isdb-t/br-sp-GuaraniDOeste             |   32 +
+ dvbv5_isdb-t/br-sp-Guaratingueta             |  177 ++++
+ dvbv5_isdb-t/br-sp-Guaruja                   |  177 ++++
+ dvbv5_isdb-t/br-sp-Guarulhos                 |  699 +++++++++++++
+ dvbv5_isdb-t/br-sp-Guzolandia                |   61 ++
+ dvbv5_isdb-t/br-sp-Hortolandia               |  264 +++++
+ dvbv5_isdb-t/br-sp-Iacanga                   |   61 ++
+ dvbv5_isdb-t/br-sp-Ibate                     |  119 +++
+ dvbv5_isdb-t/br-sp-Ibitinga                  |   61 ++
+ dvbv5_isdb-t/br-sp-Ibiuna                    |   32 +
+ dvbv5_isdb-t/br-sp-IgaracuDoTiete            |   61 ++
+ dvbv5_isdb-t/br-sp-Iguape                    |   32 +
+ dvbv5_isdb-t/br-sp-IlhaComprida              |   32 +
+ dvbv5_isdb-t/br-sp-IlhaSolteira              |   32 +
+ dvbv5_isdb-t/br-sp-Ilhabela                  |  119 +++
+ dvbv5_isdb-t/br-sp-Indaiatuba                |  235 +++++
+ dvbv5_isdb-t/br-sp-Ipero                     |   90 ++
+ dvbv5_isdb-t/br-sp-Itanhaem                  |   61 ++
+ dvbv5_isdb-t/br-sp-Itapetininga              |   90 ++
+ dvbv5_isdb-t/br-sp-Itapeva                   |   61 ++
+ dvbv5_isdb-t/br-sp-Itapevi                   |  496 +++++++++
+ dvbv5_isdb-t/br-sp-Itapolis                  |   32 +
+ dvbv5_isdb-t/br-sp-Itaquaquecetuba           |  612 +++++++++++
+ dvbv5_isdb-t/br-sp-Itu                       |   61 ++
+ dvbv5_isdb-t/br-sp-Jaborandi                 |   90 ++
+ dvbv5_isdb-t/br-sp-Jaboticabal               |   32 +
+ dvbv5_isdb-t/br-sp-Jacarei                   |  177 ++++
+ dvbv5_isdb-t/br-sp-Jaci                      |   32 +
+ dvbv5_isdb-t/br-sp-Jacupiranga               |   32 +
+ dvbv5_isdb-t/br-sp-Jaguariuna                |  206 ++++
+ dvbv5_isdb-t/br-sp-Jales                     |   32 +
+ dvbv5_isdb-t/br-sp-Jandira                   |  496 +++++++++
+ dvbv5_isdb-t/br-sp-Jardinopolis              |  119 +++
+ dvbv5_isdb-t/br-sp-Jau                       |   61 ++
+ dvbv5_isdb-t/br-sp-Jeriquara                 |   32 +
+ dvbv5_isdb-t/br-sp-JoseBonifacio             |  119 +++
+ dvbv5_isdb-t/br-sp-Jundiai                   |   90 ++
+ dvbv5_isdb-t/br-sp-Leme                      |   32 +
+ dvbv5_isdb-t/br-sp-LencoisPaulista           |   61 ++
+ dvbv5_isdb-t/br-sp-Limeira                   |  119 +++
+ dvbv5_isdb-t/br-sp-Lins                      |   61 ++
+ dvbv5_isdb-t/br-sp-Lorena                    |  177 ++++
+ dvbv5_isdb-t/br-sp-LuizAntonio               |   32 +
+ dvbv5_isdb-t/br-sp-Macatuba                  |   32 +
+ dvbv5_isdb-t/br-sp-MarabaPaulista            |   32 +
+ dvbv5_isdb-t/br-sp-Marilia                   |   90 ++
+ dvbv5_isdb-t/br-sp-Matao                     |   32 +
+ dvbv5_isdb-t/br-sp-MiranteDoParanapanema     |   90 ++
+ dvbv5_isdb-t/br-sp-Mirassol                  |  119 +++
+ dvbv5_isdb-t/br-sp-Mococa                    |   61 ++
+ dvbv5_isdb-t/br-sp-MogiDasCruzes             |  525 ++++++++++
+ dvbv5_isdb-t/br-sp-Mogiguacu                 |   61 ++
+ dvbv5_isdb-t/br-sp-Mongagua                  |  119 +++
+ dvbv5_isdb-t/br-sp-MonteAzulPaulista         |   61 ++
+ dvbv5_isdb-t/br-sp-NevesPaulista             |   90 ++
+ dvbv5_isdb-t/br-sp-NovoHorizonte             |   32 +
+ dvbv5_isdb-t/br-sp-Nuporanga                 |   32 +
+ dvbv5_isdb-t/br-sp-Orlandia                  |   61 ++
+ dvbv5_isdb-t/br-sp-Ourinhos                  |   90 ++
+ dvbv5_isdb-t/br-sp-Paraibuna                 |   32 +
+ dvbv5_isdb-t/br-sp-PariqueraAcu              |   32 +
+ dvbv5_isdb-t/br-sp-Paulinia                  |  264 +++++
+ dvbv5_isdb-t/br-sp-Pederneiras               |   61 ++
+ dvbv5_isdb-t/br-sp-Pedregulho                |   32 +
+ dvbv5_isdb-t/br-sp-Penapolis                 |   32 +
+ dvbv5_isdb-t/br-sp-Peruibe                   |   90 ++
+ dvbv5_isdb-t/br-sp-Piedade                   |   32 +
+ dvbv5_isdb-t/br-sp-Pindamonhangaba           |   90 ++
+ dvbv5_isdb-t/br-sp-Piquete                   |   90 ++
+ dvbv5_isdb-t/br-sp-Piracicaba                |  119 +++
+ dvbv5_isdb-t/br-sp-Pirangi                   |   32 +
+ dvbv5_isdb-t/br-sp-Pirassununga              |   61 ++
+ dvbv5_isdb-t/br-sp-Pitangueiras              |   61 ++
+ dvbv5_isdb-t/br-sp-Poa                       |  525 ++++++++++
+ dvbv5_isdb-t/br-sp-Pontal                    |   61 ++
+ dvbv5_isdb-t/br-sp-PortoFeliz                |   32 +
+ dvbv5_isdb-t/br-sp-PortoFerreira             |   61 ++
+ dvbv5_isdb-t/br-sp-PraiaGrande               |  148 +++
+ dvbv5_isdb-t/br-sp-PresidenteBernardes       |   90 ++
+ dvbv5_isdb-t/br-sp-PresidentePrudente        |   90 ++
+ dvbv5_isdb-t/br-sp-PresidenteVenceslau       |   32 +
+ dvbv5_isdb-t/br-sp-RedencaoDaSerra           |   32 +
+ dvbv5_isdb-t/br-sp-Reginopolis               |   32 +
+ dvbv5_isdb-t/br-sp-Registro                  |   61 ++
+ dvbv5_isdb-t/br-sp-Restinga                  |   90 ++
+ dvbv5_isdb-t/br-sp-RibeiraoCorrente          |   61 ++
+ dvbv5_isdb-t/br-sp-RibeiraoPreto             |  177 ++++
+ dvbv5_isdb-t/br-sp-RioClaro                  |   61 ++
+ dvbv5_isdb-t/br-sp-Roseira                   |  148 +++
+ dvbv5_isdb-t/br-sp-SalesOliveira             |   90 ++
+ dvbv5_isdb-t/br-sp-Salto                     |   61 ++
+ dvbv5_isdb-t/br-sp-SantaBarbaraDOeste        |   90 ++
+ dvbv5_isdb-t/br-sp-SantaCruzDaConceicao      |   32 +
+ dvbv5_isdb-t/br-sp-SantaCruzDaEsperanca      |   90 ++
+ dvbv5_isdb-t/br-sp-SantaCruzDasPalmeiras     |   61 ++
+ dvbv5_isdb-t/br-sp-SantaGertrudes            |   61 ++
+ dvbv5_isdb-t/br-sp-SantaLucia                |  119 +++
+ dvbv5_isdb-t/br-sp-SantaRitaDoPassaQuatro    |   61 ++
+ dvbv5_isdb-t/br-sp-SantaRosaDeViterbo        |   32 +
+ dvbv5_isdb-t/br-sp-SantoAnastacio            |   90 ++
+ dvbv5_isdb-t/br-sp-SantoAndre                |  699 +++++++++++++
+ dvbv5_isdb-t/br-sp-Santos                    |  177 ++++
+ dvbv5_isdb-t/br-sp-SaoCarlos                 |   90 ++
+ dvbv5_isdb-t/br-sp-SaoJoaoDaBoaVista         |   32 +
+ dvbv5_isdb-t/br-sp-SaoJoseDaBelaVista        |   32 +
+ dvbv5_isdb-t/br-sp-SaoJoseDoRioPardo         |   32 +
+ dvbv5_isdb-t/br-sp-SaoJoseDoRioPreto         |  119 +++
+ dvbv5_isdb-t/br-sp-SaoJoseDosCampos          |  231 ++++
+ dvbv5_isdb-t/br-sp-SaoPaulo                  |  728 +++++++++++++
+ dvbv5_isdb-t/br-sp-SaoPedro                  |   32 +
+ dvbv5_isdb-t/br-sp-SaoRoque                  |   32 +
+ dvbv5_isdb-t/br-sp-SaoSebastiao              |  119 +++
+ dvbv5_isdb-t/br-sp-SaoSimao                  |   32 +
+ dvbv5_isdb-t/br-sp-SaoVicente                |  148 +++
+ dvbv5_isdb-t/br-sp-SerraAzul                 |   90 ++
+ dvbv5_isdb-t/br-sp-Serrana                   |  119 +++
+ dvbv5_isdb-t/br-sp-Sertaozinho               |   90 ++
+ dvbv5_isdb-t/br-sp-SeteBarras                |   32 +
+ dvbv5_isdb-t/br-sp-Sorocaba                  |  119 +++
+ dvbv5_isdb-t/br-sp-Sumare                    |  264 +++++
+ dvbv5_isdb-t/br-sp-Suzano                    |  554 ++++++++++
+ dvbv5_isdb-t/br-sp-Taiacu                    |   32 +
+ dvbv5_isdb-t/br-sp-Taiuva                    |   32 +
+ dvbv5_isdb-t/br-sp-Tambau                    |   61 ++
+ dvbv5_isdb-t/br-sp-Tanabi                    |   32 +
+ dvbv5_isdb-t/br-sp-Taquaritinga              |   32 +
+ dvbv5_isdb-t/br-sp-Tatui                     |   61 ++
+ dvbv5_isdb-t/br-sp-Taubate                   |   90 ++
+ dvbv5_isdb-t/br-sp-TerraRoxa                 |   32 +
+ dvbv5_isdb-t/br-sp-Tupa                      |   61 ++
+ dvbv5_isdb-t/br-sp-TupiPaulista              |   32 +
+ dvbv5_isdb-t/br-sp-Ubatuba                   |   61 ++
+ dvbv5_isdb-t/br-sp-Valinhos                  |  235 +++++
+ dvbv5_isdb-t/br-sp-VarzeaPaulista            |   90 ++
+ dvbv5_isdb-t/br-sp-Viradouro                 |   32 +
+ dvbv5_isdb-t/br-sp-Votorantim                |   90 ++
+ dvbv5_isdb-t/br-sp-Votuporanga               |   90 ++
+ dvbv5_isdb-t/br-to-Aragominas                |   32 +
+ dvbv5_isdb-t/br-to-Araguaina                 |   32 +
+ dvbv5_isdb-t/br-to-Babaculandia              |   32 +
+ dvbv5_isdb-t/br-to-BrejinhoDeNazare          |   61 ++
+ dvbv5_isdb-t/br-to-ChapadaDeAreia            |   61 ++
+ dvbv5_isdb-t/br-to-Darcinopolis              |   32 +
+ dvbv5_isdb-t/br-to-Fatima                    |   61 ++
+ dvbv5_isdb-t/br-to-Filadelfia                |   32 +
+ dvbv5_isdb-t/br-to-Gurupi                    |   32 +
+ dvbv5_isdb-t/br-to-MiracemaDoTocantins       |   61 ++
+ dvbv5_isdb-t/br-to-Miranorte                 |   61 ++
+ dvbv5_isdb-t/br-to-MonteSantoDoTocantins     |   61 ++
+ dvbv5_isdb-t/br-to-OliveiraDeFatima          |   61 ++
+ dvbv5_isdb-t/br-to-Palmas                    |   90 ++
+ dvbv5_isdb-t/br-to-ParaisoDoTocantins        |   61 ++
+ dvbv5_isdb-t/br-to-PortoNacional             |   61 ++
+ 788 files changed, 74360 insertions(+)
+ create mode 100644 dvbv5_isdb-t/br-Brazil
+ create mode 100644 dvbv5_isdb-t/br-ac-Bujari
+ create mode 100644 dvbv5_isdb-t/br-ac-PortoAcre
+ create mode 100644 dvbv5_isdb-t/br-ac-RioBranco
+ create mode 100644 dvbv5_isdb-t/br-ac-SenadorGuiomard
+ create mode 100644 dvbv5_isdb-t/br-al-Arapiraca
+ create mode 100644 dvbv5_isdb-t/br-al-Craibas
+ create mode 100644 dvbv5_isdb-t/br-al-Maceio
+ create mode 100644 dvbv5_isdb-t/br-al-Piranhas
+ create mode 100644 dvbv5_isdb-t/br-al-RioLargo
+ create mode 100644 dvbv5_isdb-t/br-al-SaoMiguelDosCampos
+ create mode 100644 dvbv5_isdb-t/br-am-CareiroDaVarzea
+ create mode 100644 dvbv5_isdb-t/br-am-Iranduba
+ create mode 100644 dvbv5_isdb-t/br-am-Manaquiri
+ create mode 100644 dvbv5_isdb-t/br-am-Manaus
+ create mode 100644 dvbv5_isdb-t/br-am-Parintins
+ create mode 100644 dvbv5_isdb-t/br-ap-Macapa
+ create mode 100644 dvbv5_isdb-t/br-ap-Santana
+ create mode 100644 dvbv5_isdb-t/br-ba-Alagoinhas
+ create mode 100644 dvbv5_isdb-t/br-ba-Alcobaca
+ create mode 100644 dvbv5_isdb-t/br-ba-Amargosa
+ create mode 100644 dvbv5_isdb-t/br-ba-AmeliaRodrigues
+ create mode 100644 dvbv5_isdb-t/br-ba-Anguera
+ create mode 100644 dvbv5_isdb-t/br-ba-AntonioCardoso
+ create mode 100644 dvbv5_isdb-t/br-ba-Aracatu
+ create mode 100644 dvbv5_isdb-t/br-ba-Barra
+ create mode 100644 dvbv5_isdb-t/br-ba-BarraDoChoca
+ create mode 100644 dvbv5_isdb-t/br-ba-Barreiras
+ create mode 100644 dvbv5_isdb-t/br-ba-BeloCampo
+ create mode 100644 dvbv5_isdb-t/br-ba-Biritinga
+ create mode 100644 dvbv5_isdb-t/br-ba-BomJesusDaLapa
+ create mode 100644 dvbv5_isdb-t/br-ba-Brumado
+ create mode 100644 dvbv5_isdb-t/br-ba-Caetite
+ create mode 100644 dvbv5_isdb-t/br-ba-Camacari
+ create mode 100644 dvbv5_isdb-t/br-ba-CampoFormoso
+ create mode 100644 dvbv5_isdb-t/br-ba-Candeal
+ create mode 100644 dvbv5_isdb-t/br-ba-Candeias
+ create mode 100644 dvbv5_isdb-t/br-ba-CandidoSales
+ create mode 100644 dvbv5_isdb-t/br-ba-Caraibas
+ create mode 100644 dvbv5_isdb-t/br-ba-ConceicaoDaFeira
+ create mode 100644 dvbv5_isdb-t/br-ba-ConceicaoDoJacuipe
+ create mode 100644 dvbv5_isdb-t/br-ba-CoracaoDeMaria
+ create mode 100644 dvbv5_isdb-t/br-ba-CruzDasAlmas
+ create mode 100644 dvbv5_isdb-t/br-ba-DiasDAvila
+ create mode 100644 dvbv5_isdb-t/br-ba-EntreRios
+ create mode 100644 dvbv5_isdb-t/br-ba-Eunapolis
+ create mode 100644 dvbv5_isdb-t/br-ba-FeiraDeSantana
+ create mode 100644 dvbv5_isdb-t/br-ba-Guanambi
+ create mode 100644 dvbv5_isdb-t/br-ba-Ichu
+ create mode 100644 dvbv5_isdb-t/br-ba-Ilheus
+ create mode 100644 dvbv5_isdb-t/br-ba-Inhambupe
+ create mode 100644 dvbv5_isdb-t/br-ba-Ipecaeta
+ create mode 100644 dvbv5_isdb-t/br-ba-Irara
+ create mode 100644 dvbv5_isdb-t/br-ba-Irece
+ create mode 100644 dvbv5_isdb-t/br-ba-Itabuna
+ create mode 100644 dvbv5_isdb-t/br-ba-Itamaraju
+ create mode 100644 dvbv5_isdb-t/br-ba-Itambe
+ create mode 100644 dvbv5_isdb-t/br-ba-Itaparica
+ create mode 100644 dvbv5_isdb-t/br-ba-Itapetinga
+ create mode 100644 dvbv5_isdb-t/br-ba-Jacobina
+ create mode 100644 dvbv5_isdb-t/br-ba-Jaguaquara
+ create mode 100644 dvbv5_isdb-t/br-ba-Jaguaripe
+ create mode 100644 dvbv5_isdb-t/br-ba-Jequie
+ create mode 100644 dvbv5_isdb-t/br-ba-Juazeiro
+ create mode 100644 dvbv5_isdb-t/br-ba-LauroDeFreitas
+ create mode 100644 dvbv5_isdb-t/br-ba-LuisEduardoMagalhaes
+ create mode 100644 dvbv5_isdb-t/br-ba-MadreDeDeus
+ create mode 100644 dvbv5_isdb-t/br-ba-Maragogipe
+ create mode 100644 dvbv5_isdb-t/br-ba-MataDeSaoJoao
+ create mode 100644 dvbv5_isdb-t/br-ba-Nazare
+ create mode 100644 dvbv5_isdb-t/br-ba-PauloAfonso
+ create mode 100644 dvbv5_isdb-t/br-ba-Piripa
+ create mode 100644 dvbv5_isdb-t/br-ba-Planalto
+ create mode 100644 dvbv5_isdb-t/br-ba-Pocoes
+ create mode 100644 dvbv5_isdb-t/br-ba-Pojuca
+ create mode 100644 dvbv5_isdb-t/br-ba-PortoSeguro
+ create mode 100644 dvbv5_isdb-t/br-ba-PresidenteJanioQuadros
+ create mode 100644 dvbv5_isdb-t/br-ba-RafaelJambeiro
+ create mode 100644 dvbv5_isdb-t/br-ba-SalinasDaMargarida
+ create mode 100644 dvbv5_isdb-t/br-ba-Salvador
+ create mode 100644 dvbv5_isdb-t/br-ba-SantaBarbara
+ create mode 100644 dvbv5_isdb-t/br-ba-SantaCruzCabralia
+ create mode 100644 dvbv5_isdb-t/br-ba-SantaMariaDaVitoria
+ create mode 100644 dvbv5_isdb-t/br-ba-Santanopolis
+ create mode 100644 dvbv5_isdb-t/br-ba-SantoAmaro
+ create mode 100644 dvbv5_isdb-t/br-ba-SantoAntonioDeJesus
+ create mode 100644 dvbv5_isdb-t/br-ba-SantoEstevao
+ create mode 100644 dvbv5_isdb-t/br-ba-SaoFranciscoDoConde
+ create mode 100644 dvbv5_isdb-t/br-ba-SaoGoncaloDosCampos
+ create mode 100644 dvbv5_isdb-t/br-ba-SaoSebastiaoDoPasse
+ create mode 100644 dvbv5_isdb-t/br-ba-SenhorDoBonfim
+ create mode 100644 dvbv5_isdb-t/br-ba-SerraPreta
+ create mode 100644 dvbv5_isdb-t/br-ba-Serrinha
+ create mode 100644 dvbv5_isdb-t/br-ba-SimoesFilho
+ create mode 100644 dvbv5_isdb-t/br-ba-Tanquinho
+ create mode 100644 dvbv5_isdb-t/br-ba-TeixeiraDeFreitas
+ create mode 100644 dvbv5_isdb-t/br-ba-Teofilandia
+ create mode 100644 dvbv5_isdb-t/br-ba-Tremedal
+ create mode 100644 dvbv5_isdb-t/br-ba-VeraCruz
+ create mode 100644 dvbv5_isdb-t/br-ba-VitoriaDaConquista
+ create mode 100644 dvbv5_isdb-t/br-ba-Xiquexique
+ create mode 100644 dvbv5_isdb-t/br-ce-Acarape
+ create mode 100644 dvbv5_isdb-t/br-ce-Aquiraz
+ create mode 100644 dvbv5_isdb-t/br-ce-Aurora
+ create mode 100644 dvbv5_isdb-t/br-ce-Caninde
+ create mode 100644 dvbv5_isdb-t/br-ce-Fortaleza
+ create mode 100644 dvbv5_isdb-t/br-ce-Horizonte
+ create mode 100644 dvbv5_isdb-t/br-ce-Maracanau
+ create mode 100644 dvbv5_isdb-t/br-ce-MaranguapeItapebussu
+ create mode 100644 dvbv5_isdb-t/br-ce-Pacajus
+ create mode 100644 dvbv5_isdb-t/br-df-Brasilia
+ create mode 100644 dvbv5_isdb-t/br-df-BrasiliaGama
+ create mode 100644 dvbv5_isdb-t/br-es-CachoeiroDoItapemirim
+ create mode 100644 dvbv5_isdb-t/br-es-Colatina
+ create mode 100644 dvbv5_isdb-t/br-es-Guarapari
+ create mode 100644 dvbv5_isdb-t/br-es-Linhares
+ create mode 100644 dvbv5_isdb-t/br-es-SaoMateus
+ create mode 100644 dvbv5_isdb-t/br-es-Vitoria
+ create mode 100644 dvbv5_isdb-t/br-go-AguasLindasDeGoias
+ create mode 100644 dvbv5_isdb-t/br-go-Alexania
+ create mode 100644 dvbv5_isdb-t/br-go-Anapolis
+ create mode 100644 dvbv5_isdb-t/br-go-AparecidaDeGoiania
+ create mode 100644 dvbv5_isdb-t/br-go-CaldasNovas
+ create mode 100644 dvbv5_isdb-t/br-go-Catalao
+ create mode 100644 dvbv5_isdb-t/br-go-Cristalina
+ create mode 100644 dvbv5_isdb-t/br-go-Formosa
+ create mode 100644 dvbv5_isdb-t/br-go-Goianesia
+ create mode 100644 dvbv5_isdb-t/br-go-Goiania
+ create mode 100644 dvbv5_isdb-t/br-go-Guapo
+ create mode 100644 dvbv5_isdb-t/br-go-Inhumas
+ create mode 100644 dvbv5_isdb-t/br-go-Itumbiara
+ create mode 100644 dvbv5_isdb-t/br-go-Jatai
+ create mode 100644 dvbv5_isdb-t/br-go-Luziania
+ create mode 100644 dvbv5_isdb-t/br-go-PlanaltinaDeGoias
+ create mode 100644 dvbv5_isdb-t/br-go-RioVerde
+ create mode 100644 dvbv5_isdb-t/br-go-SantaHelenaDeGoias
+ create mode 100644 dvbv5_isdb-t/br-go-SantoAntonioDoDescoberto
+ create mode 100644 dvbv5_isdb-t/br-go-SaoLuisDeMontesBelos
+ create mode 100644 dvbv5_isdb-t/br-go-SenadorCanedo
+ create mode 100644 dvbv5_isdb-t/br-go-ValparaisoDeGoias
+ create mode 100644 dvbv5_isdb-t/br-ma-Alcantara
+ create mode 100644 dvbv5_isdb-t/br-ma-Axixa
+ create mode 100644 dvbv5_isdb-t/br-ma-CachoeiraGrande
+ create mode 100644 dvbv5_isdb-t/br-ma-Caxias
+ create mode 100644 dvbv5_isdb-t/br-ma-HumbertoDeCampos
+ create mode 100644 dvbv5_isdb-t/br-ma-Imperatriz
+ create mode 100644 dvbv5_isdb-t/br-ma-Morros
+ create mode 100644 dvbv5_isdb-t/br-ma-PacoDoLumiar
+ create mode 100644 dvbv5_isdb-t/br-ma-PresidenteJuscelino
+ create mode 100644 dvbv5_isdb-t/br-ma-PrimeiraCruz
+ create mode 100644 dvbv5_isdb-t/br-ma-Raposa
+ create mode 100644 dvbv5_isdb-t/br-ma-Rosario
+ create mode 100644 dvbv5_isdb-t/br-ma-SaoJoseDeRibamar
+ create mode 100644 dvbv5_isdb-t/br-ma-SaoLuis
+ create mode 100644 dvbv5_isdb-t/br-ma-Timon
+ create mode 100644 dvbv5_isdb-t/br-mg-AguaComprida
+ create mode 100644 dvbv5_isdb-t/br-mg-Alfenas
+ create mode 100644 dvbv5_isdb-t/br-mg-Almenara
+ create mode 100644 dvbv5_isdb-t/br-mg-Andradas
+ create mode 100644 dvbv5_isdb-t/br-mg-Araguari
+ create mode 100644 dvbv5_isdb-t/br-mg-Arapora
+ create mode 100644 dvbv5_isdb-t/br-mg-Araxa
+ create mode 100644 dvbv5_isdb-t/br-mg-Arinos
+ create mode 100644 dvbv5_isdb-t/br-mg-Barbacena
+ create mode 100644 dvbv5_isdb-t/br-mg-Barroso
+ create mode 100644 dvbv5_isdb-t/br-mg-BeloHorizonte
+ create mode 100644 dvbv5_isdb-t/br-mg-Betim
+ create mode 100644 dvbv5_isdb-t/br-mg-BordaDaMata
+ create mode 100644 dvbv5_isdb-t/br-mg-Campanha
+ create mode 100644 dvbv5_isdb-t/br-mg-Caratinga
+ create mode 100644 dvbv5_isdb-t/br-mg-Cataguases
+ create mode 100644 dvbv5_isdb-t/br-mg-Claraval
+ create mode 100644 dvbv5_isdb-t/br-mg-CoronelFabriciano
+ create mode 100644 dvbv5_isdb-t/br-mg-Curvelo
+ create mode 100644 dvbv5_isdb-t/br-mg-Diamantina
+ create mode 100644 dvbv5_isdb-t/br-mg-Divinopolis
+ create mode 100644 dvbv5_isdb-t/br-mg-Fronteira
+ create mode 100644 dvbv5_isdb-t/br-mg-Frutal
+ create mode 100644 dvbv5_isdb-t/br-mg-GovernadorValadares
+ create mode 100644 dvbv5_isdb-t/br-mg-Guanhaes
+ create mode 100644 dvbv5_isdb-t/br-mg-Guaxupe
+ create mode 100644 dvbv5_isdb-t/br-mg-Ibirite
+ create mode 100644 dvbv5_isdb-t/br-mg-Ipatinga
+ create mode 100644 dvbv5_isdb-t/br-mg-Itabira
+ create mode 100644 dvbv5_isdb-t/br-mg-Itajuba
+ create mode 100644 dvbv5_isdb-t/br-mg-Itapagipe
+ create mode 100644 dvbv5_isdb-t/br-mg-Ituiutaba
+ create mode 100644 dvbv5_isdb-t/br-mg-Janauba
+ create mode 100644 dvbv5_isdb-t/br-mg-Januaria
+ create mode 100644 dvbv5_isdb-t/br-mg-JuizDeFora
+ create mode 100644 dvbv5_isdb-t/br-mg-Manhuacu
+ create mode 100644 dvbv5_isdb-t/br-mg-Mariana
+ create mode 100644 dvbv5_isdb-t/br-mg-MonteSiao
+ create mode 100644 dvbv5_isdb-t/br-mg-MontesClaros
+ create mode 100644 dvbv5_isdb-t/br-mg-Muriae
+ create mode 100644 dvbv5_isdb-t/br-mg-Oliveira
+ create mode 100644 dvbv5_isdb-t/br-mg-OuroFino
+ create mode 100644 dvbv5_isdb-t/br-mg-Paracatu
+ create mode 100644 dvbv5_isdb-t/br-mg-Passos
+ create mode 100644 dvbv5_isdb-t/br-mg-PatosDeMinas
+ create mode 100644 dvbv5_isdb-t/br-mg-Periquito
+ create mode 100644 dvbv5_isdb-t/br-mg-Pirapora
+ create mode 100644 dvbv5_isdb-t/br-mg-Planura
+ create mode 100644 dvbv5_isdb-t/br-mg-PocosDeCaldas
+ create mode 100644 dvbv5_isdb-t/br-mg-PousoAlegre
+ create mode 100644 dvbv5_isdb-t/br-mg-SantaRitaDoSapucai
+ create mode 100644 dvbv5_isdb-t/br-mg-SaoJoaoDelRei
+ create mode 100644 dvbv5_isdb-t/br-mg-SaoLourenco
+ create mode 100644 dvbv5_isdb-t/br-mg-SaoSebastiaoDoParaiso
+ create mode 100644 dvbv5_isdb-t/br-mg-SeteLagoas
+ create mode 100644 dvbv5_isdb-t/br-mg-TeofiloOtoni
+ create mode 100644 dvbv5_isdb-t/br-mg-Timoteo
+ create mode 100644 dvbv5_isdb-t/br-mg-TresCoracoes
+ create mode 100644 dvbv5_isdb-t/br-mg-TresPontas
+ create mode 100644 dvbv5_isdb-t/br-mg-Uberaba
+ create mode 100644 dvbv5_isdb-t/br-mg-Uberlandia
+ create mode 100644 dvbv5_isdb-t/br-mg-Varginha
+ create mode 100644 dvbv5_isdb-t/br-ms-Anastacio
+ create mode 100644 dvbv5_isdb-t/br-ms-Aquidauana
+ create mode 100644 dvbv5_isdb-t/br-ms-CampoGrande
+ create mode 100644 dvbv5_isdb-t/br-ms-Corumba
+ create mode 100644 dvbv5_isdb-t/br-ms-Dourados
+ create mode 100644 dvbv5_isdb-t/br-ms-Ladario
+ create mode 100644 dvbv5_isdb-t/br-ms-NovaAndradina
+ create mode 100644 dvbv5_isdb-t/br-ms-Paranaiba
+ create mode 100644 dvbv5_isdb-t/br-ms-PontaPora
+ create mode 100644 dvbv5_isdb-t/br-ms-Rochedo
+ create mode 100644 dvbv5_isdb-t/br-ms-Sidrolandia
+ create mode 100644 dvbv5_isdb-t/br-ms-TresLagoas
+ create mode 100644 dvbv5_isdb-t/br-mt-AltaFloresta
+ create mode 100644 dvbv5_isdb-t/br-mt-Cuiaba
+ create mode 100644 dvbv5_isdb-t/br-mt-Rondonopolis
+ create mode 100644 dvbv5_isdb-t/br-mt-Sinop
+ create mode 100644 dvbv5_isdb-t/br-mt-Sorriso
+ create mode 100644 dvbv5_isdb-t/br-mt-TangaraDaSerra
+ create mode 100644 dvbv5_isdb-t/br-pa-Abaetetuba
+ create mode 100644 dvbv5_isdb-t/br-pa-Afua
+ create mode 100644 dvbv5_isdb-t/br-pa-Barcarena
+ create mode 100644 dvbv5_isdb-t/br-pa-Belem
+ create mode 100644 dvbv5_isdb-t/br-pa-Belterra
+ create mode 100644 dvbv5_isdb-t/br-pa-Castanhal
+ create mode 100644 dvbv5_isdb-t/br-pa-Maraba
+ create mode 100644 dvbv5_isdb-t/br-pa-Moju
+ create mode 100644 dvbv5_isdb-t/br-pa-PontaDePedras
+ create mode 100644 dvbv5_isdb-t/br-pa-Santarem
+ create mode 100644 dvbv5_isdb-t/br-pb-AlagoaGrande
+ create mode 100644 dvbv5_isdb-t/br-pb-Alagoinha
+ create mode 100644 dvbv5_isdb-t/br-pb-Aparecida
+ create mode 100644 dvbv5_isdb-t/br-pb-Bayeux
+ create mode 100644 dvbv5_isdb-t/br-pb-BomJesus
+ create mode 100644 dvbv5_isdb-t/br-pb-Cabedelo
+ create mode 100644 dvbv5_isdb-t/br-pb-CachoeiraDosIndios
+ create mode 100644 dvbv5_isdb-t/br-pb-CacimbaDeDentro
+ create mode 100644 dvbv5_isdb-t/br-pb-Cajazeiras
+ create mode 100644 dvbv5_isdb-t/br-pb-CaldasBrandao
+ create mode 100644 dvbv5_isdb-t/br-pb-CampinaGrande
+ create mode 100644 dvbv5_isdb-t/br-pb-Catingueira
+ create mode 100644 dvbv5_isdb-t/br-pb-Condado
+ create mode 100644 dvbv5_isdb-t/br-pb-Cuitegi
+ create mode 100644 dvbv5_isdb-t/br-pb-Desterro
+ create mode 100644 dvbv5_isdb-t/br-pb-Guarabira
+ create mode 100644 dvbv5_isdb-t/br-pb-Gurinhem
+ create mode 100644 dvbv5_isdb-t/br-pb-Imaculada
+ create mode 100644 dvbv5_isdb-t/br-pb-Itabaiana
+ create mode 100644 dvbv5_isdb-t/br-pb-Jacarau
+ create mode 100644 dvbv5_isdb-t/br-pb-JoaoPessoa
+ create mode 100644 dvbv5_isdb-t/br-pb-Juripiranga
+ create mode 100644 dvbv5_isdb-t/br-pb-LagoaSeca
+ create mode 100644 dvbv5_isdb-t/br-pb-Lucena
+ create mode 100644 dvbv5_isdb-t/br-pb-MaeDAgua
+ create mode 100644 dvbv5_isdb-t/br-pb-Mamanguape
+ create mode 100644 dvbv5_isdb-t/br-pb-Marizopolis
+ create mode 100644 dvbv5_isdb-t/br-pb-Massaranduba
+ create mode 100644 dvbv5_isdb-t/br-pb-Matinhas
+ create mode 100644 dvbv5_isdb-t/br-pb-Matureia
+ create mode 100644 dvbv5_isdb-t/br-pb-Mulungu
+ create mode 100644 dvbv5_isdb-t/br-pb-OlhoDAgua
+ create mode 100644 dvbv5_isdb-t/br-pb-Patos
+ create mode 100644 dvbv5_isdb-t/br-pb-Pilar
+ create mode 100644 dvbv5_isdb-t/br-pb-Piloezinhos
+ create mode 100644 dvbv5_isdb-t/br-pb-Puxinana
+ create mode 100644 dvbv5_isdb-t/br-pb-RioTinto
+ create mode 100644 dvbv5_isdb-t/br-pb-SantaRita
+ create mode 100644 dvbv5_isdb-t/br-pb-SantaTeresinha
+ create mode 100644 dvbv5_isdb-t/br-pb-SaoFrancisco
+ create mode 100644 dvbv5_isdb-t/br-pb-SaoJoseDePiranhas
+ create mode 100644 dvbv5_isdb-t/br-pb-SaoMamede
+ create mode 100644 dvbv5_isdb-t/br-pb-Sape
+ create mode 100644 dvbv5_isdb-t/br-pb-Sousa
+ create mode 100644 dvbv5_isdb-t/br-pb-Teixeira
+ create mode 100644 dvbv5_isdb-t/br-pe-Agrestina
+ create mode 100644 dvbv5_isdb-t/br-pe-Altinho
+ create mode 100644 dvbv5_isdb-t/br-pe-Bezerros
+ create mode 100644 dvbv5_isdb-t/br-pe-Camaragibe
+ create mode 100644 dvbv5_isdb-t/br-pe-Caruaru
+ create mode 100644 dvbv5_isdb-t/br-pe-Garanhuns
+ create mode 100644 dvbv5_isdb-t/br-pe-Jupi
+ create mode 100644 dvbv5_isdb-t/br-pe-Limoeiro
+ create mode 100644 dvbv5_isdb-t/br-pe-Petrolina
+ create mode 100644 dvbv5_isdb-t/br-pe-Recife
+ create mode 100644 dvbv5_isdb-t/br-pe-SaoLourencoDaMata
+ create mode 100644 dvbv5_isdb-t/br-pi-Teresina
+ create mode 100644 dvbv5_isdb-t/br-pr-AltoParana
+ create mode 100644 dvbv5_isdb-t/br-pr-AltoPiquiri
+ create mode 100644 dvbv5_isdb-t/br-pr-Antonina
+ create mode 100644 dvbv5_isdb-t/br-pr-Apucarana
+ create mode 100644 dvbv5_isdb-t/br-pr-Arapongas
+ create mode 100644 dvbv5_isdb-t/br-pr-AssisChateaubriand
+ create mode 100644 dvbv5_isdb-t/br-pr-BoaVistaDaAparecida
+ create mode 100644 dvbv5_isdb-t/br-pr-Cafelandia
+ create mode 100644 dvbv5_isdb-t/br-pr-Cambe
+ create mode 100644 dvbv5_isdb-t/br-pr-CampoLargo
+ create mode 100644 dvbv5_isdb-t/br-pr-CampoMourao
+ create mode 100644 dvbv5_isdb-t/br-pr-Carambei
+ create mode 100644 dvbv5_isdb-t/br-pr-Cascavel
+ create mode 100644 dvbv5_isdb-t/br-pr-CeuAzul
+ create mode 100644 dvbv5_isdb-t/br-pr-Cianorte
+ create mode 100644 dvbv5_isdb-t/br-pr-Colombo
+ create mode 100644 dvbv5_isdb-t/br-pr-Corbelia
+ create mode 100644 dvbv5_isdb-t/br-pr-CornelioProcopio
+ create mode 100644 dvbv5_isdb-t/br-pr-Curitiba
+ create mode 100644 dvbv5_isdb-t/br-pr-Florestopolis
+ create mode 100644 dvbv5_isdb-t/br-pr-FozDoIguacu
+ create mode 100644 dvbv5_isdb-t/br-pr-FranciscoBeltrao
+ create mode 100644 dvbv5_isdb-t/br-pr-Guaraniacu
+ create mode 100644 dvbv5_isdb-t/br-pr-Guarapuava
+ create mode 100644 dvbv5_isdb-t/br-pr-Guaratuba
+ create mode 100644 dvbv5_isdb-t/br-pr-HonorioSerpa
+ create mode 100644 dvbv5_isdb-t/br-pr-Ibema
+ create mode 100644 dvbv5_isdb-t/br-pr-Ibipora
+ create mode 100644 dvbv5_isdb-t/br-pr-Imbituva
+ create mode 100644 dvbv5_isdb-t/br-pr-Irati
+ create mode 100644 dvbv5_isdb-t/br-pr-Ivaipora
+ create mode 100644 dvbv5_isdb-t/br-pr-Jacarezinho
+ create mode 100644 dvbv5_isdb-t/br-pr-Japira
+ create mode 100644 dvbv5_isdb-t/br-pr-Jataizinho
+ create mode 100644 dvbv5_isdb-t/br-pr-Lapa
+ create mode 100644 dvbv5_isdb-t/br-pr-Londrina
+ create mode 100644 dvbv5_isdb-t/br-pr-Maringa
+ create mode 100644 dvbv5_isdb-t/br-pr-Matinhos
+ create mode 100644 dvbv5_isdb-t/br-pr-MoreiraSales
+ create mode 100644 dvbv5_isdb-t/br-pr-NovaAurora
+ create mode 100644 dvbv5_isdb-t/br-pr-Paranagua
+ create mode 100644 dvbv5_isdb-t/br-pr-Paranavai
+ create mode 100644 dvbv5_isdb-t/br-pr-PatoBranco
+ create mode 100644 dvbv5_isdb-t/br-pr-Perola
+ create mode 100644 dvbv5_isdb-t/br-pr-PontaGrossa
+ create mode 100644 dvbv5_isdb-t/br-pr-PontalDoParana
+ create mode 100644 dvbv5_isdb-t/br-pr-Porecatu
+ create mode 100644 dvbv5_isdb-t/br-pr-PrimeiroDeMaio
+ create mode 100644 dvbv5_isdb-t/br-pr-RioNegro
+ create mode 100644 dvbv5_isdb-t/br-pr-Rolandia
+ create mode 100644 dvbv5_isdb-t/br-pr-Sarandi
+ create mode 100644 dvbv5_isdb-t/br-pr-Sertanopolis
+ create mode 100644 dvbv5_isdb-t/br-pr-TeixeiraSoares
+ create mode 100644 dvbv5_isdb-t/br-pr-TelemacoBorba
+ create mode 100644 dvbv5_isdb-t/br-pr-Toledo
+ create mode 100644 dvbv5_isdb-t/br-pr-TresBarrasDoParana
+ create mode 100644 dvbv5_isdb-t/br-pr-Tupassi
+ create mode 100644 dvbv5_isdb-t/br-pr-Ubirata
+ create mode 100644 dvbv5_isdb-t/br-pr-Umuarama
+ create mode 100644 dvbv5_isdb-t/br-pr-Vere
+ create mode 100644 dvbv5_isdb-t/br-rj-AngraDosReis
+ create mode 100644 dvbv5_isdb-t/br-rj-Araruama
+ create mode 100644 dvbv5_isdb-t/br-rj-ArraialDoCabo
+ create mode 100644 dvbv5_isdb-t/br-rj-BarraMansa
+ create mode 100644 dvbv5_isdb-t/br-rj-CaboFrio
+ create mode 100644 dvbv5_isdb-t/br-rj-CamposDosGoytacazes
+ create mode 100644 dvbv5_isdb-t/br-rj-DuqueDeCaxias
+ create mode 100644 dvbv5_isdb-t/br-rj-Itaguai
+ create mode 100644 dvbv5_isdb-t/br-rj-Itaperuna
+ create mode 100644 dvbv5_isdb-t/br-rj-Itatiaia
+ create mode 100644 dvbv5_isdb-t/br-rj-Macae
+ create mode 100644 dvbv5_isdb-t/br-rj-Marica
+ create mode 100644 dvbv5_isdb-t/br-rj-NovaFriburgo
+ create mode 100644 dvbv5_isdb-t/br-rj-NovaIguacu
+ create mode 100644 dvbv5_isdb-t/br-rj-Queimados
+ create mode 100644 dvbv5_isdb-t/br-rj-Quissama
+ create mode 100644 dvbv5_isdb-t/br-rj-Resende
+ create mode 100644 dvbv5_isdb-t/br-rj-RioBonito
+ create mode 100644 dvbv5_isdb-t/br-rj-RioDasOstras
+ create mode 100644 dvbv5_isdb-t/br-rj-RioDeJaneiro
+ create mode 100644 dvbv5_isdb-t/br-rj-SaoGoncalo
+ create mode 100644 dvbv5_isdb-t/br-rj-SaoJoaoDaBarra
+ create mode 100644 dvbv5_isdb-t/br-rj-SaoJoaoDeMeriti
+ create mode 100644 dvbv5_isdb-t/br-rj-SaoPedroDaAldeia
+ create mode 100644 dvbv5_isdb-t/br-rj-Saquarema
+ create mode 100644 dvbv5_isdb-t/br-rj-SilvaJardim
+ create mode 100644 dvbv5_isdb-t/br-rj-TrajanoDeMorais
+ create mode 100644 dvbv5_isdb-t/br-rj-TresRios
+ create mode 100644 dvbv5_isdb-t/br-rj-VoltaRedonda
+ create mode 100644 dvbv5_isdb-t/br-rn-Extremoz
+ create mode 100644 dvbv5_isdb-t/br-rn-Macaiba
+ create mode 100644 dvbv5_isdb-t/br-rn-Mossoro
+ create mode 100644 dvbv5_isdb-t/br-rn-Natal
+ create mode 100644 dvbv5_isdb-t/br-rn-SaoJoseDeMipibu
+ create mode 100644 dvbv5_isdb-t/br-rn-SenadorEloiDeSousa
+ create mode 100644 dvbv5_isdb-t/br-ro-Ariquemes
+ create mode 100644 dvbv5_isdb-t/br-ro-Cacoal
+ create mode 100644 dvbv5_isdb-t/br-ro-Jiparana
+ create mode 100644 dvbv5_isdb-t/br-ro-PimentaBueno
+ create mode 100644 dvbv5_isdb-t/br-ro-PortoVelho
+ create mode 100644 dvbv5_isdb-t/br-rr-BoaVista
+ create mode 100644 dvbv5_isdb-t/br-rs-Alegrete
+ create mode 100644 dvbv5_isdb-t/br-rs-ArroioDoSal
+ create mode 100644 dvbv5_isdb-t/br-rs-Bage
+ create mode 100644 dvbv5_isdb-t/br-rs-BentoGoncalves
+ create mode 100644 dvbv5_isdb-t/br-rs-CachoeiraDoSul
+ create mode 100644 dvbv5_isdb-t/br-rs-Camaqua
+ create mode 100644 dvbv5_isdb-t/br-rs-CampoBom
+ create mode 100644 dvbv5_isdb-t/br-rs-Candelaria
+ create mode 100644 dvbv5_isdb-t/br-rs-Canela
+ create mode 100644 dvbv5_isdb-t/br-rs-Cangucu
+ create mode 100644 dvbv5_isdb-t/br-rs-CapaoDaCanoa
+ create mode 100644 dvbv5_isdb-t/br-rs-CapaoDoLeao
+ create mode 100644 dvbv5_isdb-t/br-rs-Carazinho
+ create mode 100644 dvbv5_isdb-t/br-rs-CarlosBarbosa
+ create mode 100644 dvbv5_isdb-t/br-rs-CaxiasDoSul
+ create mode 100644 dvbv5_isdb-t/br-rs-Cidreira
+ create mode 100644 dvbv5_isdb-t/br-rs-CruzAlta
+ create mode 100644 dvbv5_isdb-t/br-rs-DomPedroDeAlcantara
+ create mode 100644 dvbv5_isdb-t/br-rs-Erechim
+ create mode 100644 dvbv5_isdb-t/br-rs-Estrela
+ create mode 100644 dvbv5_isdb-t/br-rs-Farroupilha
+ create mode 100644 dvbv5_isdb-t/br-rs-Feliz
+ create mode 100644 dvbv5_isdb-t/br-rs-FloresDaCunha
+ create mode 100644 dvbv5_isdb-t/br-rs-Gramado
+ create mode 100644 dvbv5_isdb-t/br-rs-Ijui
+ create mode 100644 dvbv5_isdb-t/br-rs-Lajeado
+ create mode 100644 dvbv5_isdb-t/br-rs-MonteAlegreDosCampos
+ create mode 100644 dvbv5_isdb-t/br-rs-Montenegro
+ create mode 100644 dvbv5_isdb-t/br-rs-MorroRedondo
+ create mode 100644 dvbv5_isdb-t/br-rs-NovaPetropolis
+ create mode 100644 dvbv5_isdb-t/br-rs-NovaSantaRita
+ create mode 100644 dvbv5_isdb-t/br-rs-NovoHamburgo
+ create mode 100644 dvbv5_isdb-t/br-rs-Osorio
+ create mode 100644 dvbv5_isdb-t/br-rs-PalmaresDoSul
+ create mode 100644 dvbv5_isdb-t/br-rs-ParaisoDoSul
+ create mode 100644 dvbv5_isdb-t/br-rs-PassoFundo
+ create mode 100644 dvbv5_isdb-t/br-rs-Pelotas
+ create mode 100644 dvbv5_isdb-t/br-rs-PicadaCafe
+ create mode 100644 dvbv5_isdb-t/br-rs-PortoAlegre
+ create mode 100644 dvbv5_isdb-t/br-rs-RioGrande
+ create mode 100644 dvbv5_isdb-t/br-rs-RioGrandeCassino
+ create mode 100644 dvbv5_isdb-t/br-rs-SalvadorDoSul
+ create mode 100644 dvbv5_isdb-t/br-rs-Sananduva
+ create mode 100644 dvbv5_isdb-t/br-rs-SantaCruzDoSul
+ create mode 100644 dvbv5_isdb-t/br-rs-SantaMaria
+ create mode 100644 dvbv5_isdb-t/br-rs-SantaRosa
+ create mode 100644 dvbv5_isdb-t/br-rs-SantanaDoLivramento
+ create mode 100644 dvbv5_isdb-t/br-rs-SantoAngelo
+ create mode 100644 dvbv5_isdb-t/br-rs-SantoAntonioDaPatrulha
+ create mode 100644 dvbv5_isdb-t/br-rs-SaoBorja
+ create mode 100644 dvbv5_isdb-t/br-rs-SaoGabriel
+ create mode 100644 dvbv5_isdb-t/br-rs-SaoJoseDoNorte
+ create mode 100644 dvbv5_isdb-t/br-rs-SaoSepe
+ create mode 100644 dvbv5_isdb-t/br-rs-Sapiranga
+ create mode 100644 dvbv5_isdb-t/br-rs-Sertao
+ create mode 100644 dvbv5_isdb-t/br-rs-Taquara
+ create mode 100644 dvbv5_isdb-t/br-rs-TerraDeAreia
+ create mode 100644 dvbv5_isdb-t/br-rs-Torres
+ create mode 100644 dvbv5_isdb-t/br-rs-Tramandai
+ create mode 100644 dvbv5_isdb-t/br-rs-TresCachoeiras
+ create mode 100644 dvbv5_isdb-t/br-rs-TresCoroas
+ create mode 100644 dvbv5_isdb-t/br-rs-TresDeMaio
+ create mode 100644 dvbv5_isdb-t/br-rs-Triunfo
+ create mode 100644 dvbv5_isdb-t/br-rs-Tucunduva
+ create mode 100644 dvbv5_isdb-t/br-rs-Uruguaiana
+ create mode 100644 dvbv5_isdb-t/br-rs-Vacaria
+ create mode 100644 dvbv5_isdb-t/br-rs-VenancioAires
+ create mode 100644 dvbv5_isdb-t/br-rs-VilaNovaDoSul
+ create mode 100644 dvbv5_isdb-t/br-rs-Xangrila
+ create mode 100644 dvbv5_isdb-t/br-sc-Agronomica
+ create mode 100644 dvbv5_isdb-t/br-sc-AguasMornas
+ create mode 100644 dvbv5_isdb-t/br-sc-AntonioCarlos
+ create mode 100644 dvbv5_isdb-t/br-sc-Ararangua
+ create mode 100644 dvbv5_isdb-t/br-sc-Aurora
+ create mode 100644 dvbv5_isdb-t/br-sc-BalnearioCamboriu
+ create mode 100644 dvbv5_isdb-t/br-sc-BarraVelha
+ create mode 100644 dvbv5_isdb-t/br-sc-Blumenau
+ create mode 100644 dvbv5_isdb-t/br-sc-Brusque
+ create mode 100644 dvbv5_isdb-t/br-sc-Cacador
+ create mode 100644 dvbv5_isdb-t/br-sc-Canoinhas
+ create mode 100644 dvbv5_isdb-t/br-sc-CapaoAlto
+ create mode 100644 dvbv5_isdb-t/br-sc-CapivariDeBaixo
+ create mode 100644 dvbv5_isdb-t/br-sc-Chapeco
+ create mode 100644 dvbv5_isdb-t/br-sc-Concordia
+ create mode 100644 dvbv5_isdb-t/br-sc-CorreiaPinto
+ create mode 100644 dvbv5_isdb-t/br-sc-Corupa
+ create mode 100644 dvbv5_isdb-t/br-sc-Criciuma
+ create mode 100644 dvbv5_isdb-t/br-sc-Florianopolis
+ create mode 100644 dvbv5_isdb-t/br-sc-FlorianopolisCanasvieiras
+ create mode 100644 dvbv5_isdb-t/br-sc-FlorianopolisIngleses
+ create mode 100644 dvbv5_isdb-t/br-sc-Garopaba
+ create mode 100644 dvbv5_isdb-t/br-sc-Garuva
+ create mode 100644 dvbv5_isdb-t/br-sc-Gaspar
+ create mode 100644 dvbv5_isdb-t/br-sc-GovernadorCelsoRamos
+ create mode 100644 dvbv5_isdb-t/br-sc-Guabiruba
+ create mode 100644 dvbv5_isdb-t/br-sc-Guaramirim
+ create mode 100644 dvbv5_isdb-t/br-sc-HervalDOeste
+ create mode 100644 dvbv5_isdb-t/br-sc-Icara
+ create mode 100644 dvbv5_isdb-t/br-sc-Itajai
+ create mode 100644 dvbv5_isdb-t/br-sc-Itapema
+ create mode 100644 dvbv5_isdb-t/br-sc-Itapoa
+ create mode 100644 dvbv5_isdb-t/br-sc-JaraguaDoSul
+ create mode 100644 dvbv5_isdb-t/br-sc-Joacaba
+ create mode 100644 dvbv5_isdb-t/br-sc-Joinville
+ create mode 100644 dvbv5_isdb-t/br-sc-Lages
+ create mode 100644 dvbv5_isdb-t/br-sc-Laguna
+ create mode 100644 dvbv5_isdb-t/br-sc-Laurentino
+ create mode 100644 dvbv5_isdb-t/br-sc-Lontras
+ create mode 100644 dvbv5_isdb-t/br-sc-Mafra
+ create mode 100644 dvbv5_isdb-t/br-sc-Massaranduba
+ create mode 100644 dvbv5_isdb-t/br-sc-Navegantes
+ create mode 100644 dvbv5_isdb-t/br-sc-NovaVeneza
+ create mode 100644 dvbv5_isdb-t/br-sc-Painel
+ create mode 100644 dvbv5_isdb-t/br-sc-PassoDeTorres
+ create mode 100644 dvbv5_isdb-t/br-sc-Penha
+ create mode 100644 dvbv5_isdb-t/br-sc-Picarras
+ create mode 100644 dvbv5_isdb-t/br-sc-RioDoSul
+ create mode 100644 dvbv5_isdb-t/br-sc-RioNegrinho
+ create mode 100644 dvbv5_isdb-t/br-sc-SantaRosaDoSul
+ create mode 100644 dvbv5_isdb-t/br-sc-SantoAmaroDaImperatriz
+ create mode 100644 dvbv5_isdb-t/br-sc-SaoBentoDoSul
+ create mode 100644 dvbv5_isdb-t/br-sc-Schroeder
+ create mode 100644 dvbv5_isdb-t/br-sc-Sombrio
+ create mode 100644 dvbv5_isdb-t/br-sc-Tijucas
+ create mode 100644 dvbv5_isdb-t/br-sc-Tubarao
+ create mode 100644 dvbv5_isdb-t/br-se-Aquidaba
+ create mode 100644 dvbv5_isdb-t/br-se-Aracaju
+ create mode 100644 dvbv5_isdb-t/br-se-Araua
+ create mode 100644 dvbv5_isdb-t/br-se-AreiaBranca
+ create mode 100644 dvbv5_isdb-t/br-se-BarraDosCoqueiros
+ create mode 100644 dvbv5_isdb-t/br-se-Boquim
+ create mode 100644 dvbv5_isdb-t/br-se-CampoDoBrito
+ create mode 100644 dvbv5_isdb-t/br-se-CanindeDeSaoFrancisco
+ create mode 100644 dvbv5_isdb-t/br-se-Capela
+ create mode 100644 dvbv5_isdb-t/br-se-Carira
+ create mode 100644 dvbv5_isdb-t/br-se-Carmopolis
+ create mode 100644 dvbv5_isdb-t/br-se-Cristinapolis
+ create mode 100644 dvbv5_isdb-t/br-se-DivinaPastora
+ create mode 100644 dvbv5_isdb-t/br-se-Estancia
+ create mode 100644 dvbv5_isdb-t/br-se-FeiraNova
+ create mode 100644 dvbv5_isdb-t/br-se-FreiPaulo
+ create mode 100644 dvbv5_isdb-t/br-se-Gararu
+ create mode 100644 dvbv5_isdb-t/br-se-GeneralMaynard
+ create mode 100644 dvbv5_isdb-t/br-se-Itabaiana
+ create mode 100644 dvbv5_isdb-t/br-se-Itabaianinha
+ create mode 100644 dvbv5_isdb-t/br-se-Itabi
+ create mode 100644 dvbv5_isdb-t/br-se-ItaporangaDAjuda
+ create mode 100644 dvbv5_isdb-t/br-se-Japaratuba
+ create mode 100644 dvbv5_isdb-t/br-se-Lagarto
+ create mode 100644 dvbv5_isdb-t/br-se-Laranjeiras
+ create mode 100644 dvbv5_isdb-t/br-se-Macambira
+ create mode 100644 dvbv5_isdb-t/br-se-Malhador
+ create mode 100644 dvbv5_isdb-t/br-se-Maruim
+ create mode 100644 dvbv5_isdb-t/br-se-MoitaBonita
+ create mode 100644 dvbv5_isdb-t/br-se-MonteAlegreDeSergipe
+ create mode 100644 dvbv5_isdb-t/br-se-NossaSenhoraAparecida
+ create mode 100644 dvbv5_isdb-t/br-se-NossaSenhoraDaGloria
+ create mode 100644 dvbv5_isdb-t/br-se-NossaSenhoraDoSocorro
+ create mode 100644 dvbv5_isdb-t/br-se-Pedrinhas
+ create mode 100644 dvbv5_isdb-t/br-se-PocoRedondo
+ create mode 100644 dvbv5_isdb-t/br-se-RiachaoDoDantas
+ create mode 100644 dvbv5_isdb-t/br-se-Riachuelo
+ create mode 100644 dvbv5_isdb-t/br-se-Ribeiropolis
+ create mode 100644 dvbv5_isdb-t/br-se-RosarioDoCatete
+ create mode 100644 dvbv5_isdb-t/br-se-Salgado
+ create mode 100644 dvbv5_isdb-t/br-se-SantaLuziaDoIntanhy
+ create mode 100644 dvbv5_isdb-t/br-se-SantoAmaroDasBrotas
+ create mode 100644 dvbv5_isdb-t/br-se-SaoCristovao
+ create mode 100644 dvbv5_isdb-t/br-se-SaoDomingos
+ create mode 100644 dvbv5_isdb-t/br-se-SaoMiguelDoAleixo
+ create mode 100644 dvbv5_isdb-t/br-se-TomarDoGeru
+ create mode 100644 dvbv5_isdb-t/br-se-Umbauba
+ create mode 100644 dvbv5_isdb-t/br-sp-Aguai
+ create mode 100644 dvbv5_isdb-t/br-sp-AguasDeLindoia
+ create mode 100644 dvbv5_isdb-t/br-sp-AguasDeSaoPedro
+ create mode 100644 dvbv5_isdb-t/br-sp-Agudos
+ create mode 100644 dvbv5_isdb-t/br-sp-Americana
+ create mode 100644 dvbv5_isdb-t/br-sp-AmericoBrasiliense
+ create mode 100644 dvbv5_isdb-t/br-sp-Amparo
+ create mode 100644 dvbv5_isdb-t/br-sp-Andradina
+ create mode 100644 dvbv5_isdb-t/br-sp-Aparecida
+ create mode 100644 dvbv5_isdb-t/br-sp-AparecidaDOeste
+ create mode 100644 dvbv5_isdb-t/br-sp-Apiai
+ create mode 100644 dvbv5_isdb-t/br-sp-Aracatuba
+ create mode 100644 dvbv5_isdb-t/br-sp-Araraquara
+ create mode 100644 dvbv5_isdb-t/br-sp-Araras
+ create mode 100644 dvbv5_isdb-t/br-sp-Arealva
+ create mode 100644 dvbv5_isdb-t/br-sp-Assis
+ create mode 100644 dvbv5_isdb-t/br-sp-Atibaia
+ create mode 100644 dvbv5_isdb-t/br-sp-Auriflama
+ create mode 100644 dvbv5_isdb-t/br-sp-BarraBonita
+ create mode 100644 dvbv5_isdb-t/br-sp-Barretos
+ create mode 100644 dvbv5_isdb-t/br-sp-Batatais
+ create mode 100644 dvbv5_isdb-t/br-sp-Bauru
+ create mode 100644 dvbv5_isdb-t/br-sp-Bebedouro
+ create mode 100644 dvbv5_isdb-t/br-sp-Bertioga
+ create mode 100644 dvbv5_isdb-t/br-sp-Birigui
+ create mode 100644 dvbv5_isdb-t/br-sp-Boituva
+ create mode 100644 dvbv5_isdb-t/br-sp-Botucatu
+ create mode 100644 dvbv5_isdb-t/br-sp-BragancaPaulista
+ create mode 100644 dvbv5_isdb-t/br-sp-Brodowski
+ create mode 100644 dvbv5_isdb-t/br-sp-CachoeiraPaulista
+ create mode 100644 dvbv5_isdb-t/br-sp-Cajamar
+ create mode 100644 dvbv5_isdb-t/br-sp-Cajati
+ create mode 100644 dvbv5_isdb-t/br-sp-Cajobi
+ create mode 100644 dvbv5_isdb-t/br-sp-Campinas
+ create mode 100644 dvbv5_isdb-t/br-sp-CampoLimpoPaulista
+ create mode 100644 dvbv5_isdb-t/br-sp-CamposDoJordao
+ create mode 100644 dvbv5_isdb-t/br-sp-Capivari
+ create mode 100644 dvbv5_isdb-t/br-sp-Caraguatatuba
+ create mode 100644 dvbv5_isdb-t/br-sp-Carapicuiba
+ create mode 100644 dvbv5_isdb-t/br-sp-CassiaDosCoqueiros
+ create mode 100644 dvbv5_isdb-t/br-sp-Catanduva
+ create mode 100644 dvbv5_isdb-t/br-sp-Colina
+ create mode 100644 dvbv5_isdb-t/br-sp-Colombia
+ create mode 100644 dvbv5_isdb-t/br-sp-Cravinhos
+ create mode 100644 dvbv5_isdb-t/br-sp-CristaisPaulista
+ create mode 100644 dvbv5_isdb-t/br-sp-Cruzeiro
+ create mode 100644 dvbv5_isdb-t/br-sp-Cubatao
+ create mode 100644 dvbv5_isdb-t/br-sp-Diadema
+ create mode 100644 dvbv5_isdb-t/br-sp-Dracena
+ create mode 100644 dvbv5_isdb-t/br-sp-Dumont
+ create mode 100644 dvbv5_isdb-t/br-sp-Eldorado
+ create mode 100644 dvbv5_isdb-t/br-sp-EmbuDasArtes
+ create mode 100644 dvbv5_isdb-t/br-sp-EstivaGerbi
+ create mode 100644 dvbv5_isdb-t/br-sp-EstrelaDOeste
+ create mode 100644 dvbv5_isdb-t/br-sp-Fernandopolis
+ create mode 100644 dvbv5_isdb-t/br-sp-FerrazDeVasconcelos
+ create mode 100644 dvbv5_isdb-t/br-sp-Franca
+ create mode 100644 dvbv5_isdb-t/br-sp-FrancoDaRocha
+ create mode 100644 dvbv5_isdb-t/br-sp-Garca
+ create mode 100644 dvbv5_isdb-t/br-sp-Guapiacu
+ create mode 100644 dvbv5_isdb-t/br-sp-GuaraniDOeste
+ create mode 100644 dvbv5_isdb-t/br-sp-Guaratingueta
+ create mode 100644 dvbv5_isdb-t/br-sp-Guaruja
+ create mode 100644 dvbv5_isdb-t/br-sp-Guarulhos
+ create mode 100644 dvbv5_isdb-t/br-sp-Guzolandia
+ create mode 100644 dvbv5_isdb-t/br-sp-Hortolandia
+ create mode 100644 dvbv5_isdb-t/br-sp-Iacanga
+ create mode 100644 dvbv5_isdb-t/br-sp-Ibate
+ create mode 100644 dvbv5_isdb-t/br-sp-Ibitinga
+ create mode 100644 dvbv5_isdb-t/br-sp-Ibiuna
+ create mode 100644 dvbv5_isdb-t/br-sp-IgaracuDoTiete
+ create mode 100644 dvbv5_isdb-t/br-sp-Iguape
+ create mode 100644 dvbv5_isdb-t/br-sp-IlhaComprida
+ create mode 100644 dvbv5_isdb-t/br-sp-IlhaSolteira
+ create mode 100644 dvbv5_isdb-t/br-sp-Ilhabela
+ create mode 100644 dvbv5_isdb-t/br-sp-Indaiatuba
+ create mode 100644 dvbv5_isdb-t/br-sp-Ipero
+ create mode 100644 dvbv5_isdb-t/br-sp-Itanhaem
+ create mode 100644 dvbv5_isdb-t/br-sp-Itapetininga
+ create mode 100644 dvbv5_isdb-t/br-sp-Itapeva
+ create mode 100644 dvbv5_isdb-t/br-sp-Itapevi
+ create mode 100644 dvbv5_isdb-t/br-sp-Itapolis
+ create mode 100644 dvbv5_isdb-t/br-sp-Itaquaquecetuba
+ create mode 100644 dvbv5_isdb-t/br-sp-Itu
+ create mode 100644 dvbv5_isdb-t/br-sp-Jaborandi
+ create mode 100644 dvbv5_isdb-t/br-sp-Jaboticabal
+ create mode 100644 dvbv5_isdb-t/br-sp-Jacarei
+ create mode 100644 dvbv5_isdb-t/br-sp-Jaci
+ create mode 100644 dvbv5_isdb-t/br-sp-Jacupiranga
+ create mode 100644 dvbv5_isdb-t/br-sp-Jaguariuna
+ create mode 100644 dvbv5_isdb-t/br-sp-Jales
+ create mode 100644 dvbv5_isdb-t/br-sp-Jandira
+ create mode 100644 dvbv5_isdb-t/br-sp-Jardinopolis
+ create mode 100644 dvbv5_isdb-t/br-sp-Jau
+ create mode 100644 dvbv5_isdb-t/br-sp-Jeriquara
+ create mode 100644 dvbv5_isdb-t/br-sp-JoseBonifacio
+ create mode 100644 dvbv5_isdb-t/br-sp-Jundiai
+ create mode 100644 dvbv5_isdb-t/br-sp-Leme
+ create mode 100644 dvbv5_isdb-t/br-sp-LencoisPaulista
+ create mode 100644 dvbv5_isdb-t/br-sp-Limeira
+ create mode 100644 dvbv5_isdb-t/br-sp-Lins
+ create mode 100644 dvbv5_isdb-t/br-sp-Lorena
+ create mode 100644 dvbv5_isdb-t/br-sp-LuizAntonio
+ create mode 100644 dvbv5_isdb-t/br-sp-Macatuba
+ create mode 100644 dvbv5_isdb-t/br-sp-MarabaPaulista
+ create mode 100644 dvbv5_isdb-t/br-sp-Marilia
+ create mode 100644 dvbv5_isdb-t/br-sp-Matao
+ create mode 100644 dvbv5_isdb-t/br-sp-MiranteDoParanapanema
+ create mode 100644 dvbv5_isdb-t/br-sp-Mirassol
+ create mode 100644 dvbv5_isdb-t/br-sp-Mococa
+ create mode 100644 dvbv5_isdb-t/br-sp-MogiDasCruzes
+ create mode 100644 dvbv5_isdb-t/br-sp-Mogiguacu
+ create mode 100644 dvbv5_isdb-t/br-sp-Mongagua
+ create mode 100644 dvbv5_isdb-t/br-sp-MonteAzulPaulista
+ create mode 100644 dvbv5_isdb-t/br-sp-NevesPaulista
+ create mode 100644 dvbv5_isdb-t/br-sp-NovoHorizonte
+ create mode 100644 dvbv5_isdb-t/br-sp-Nuporanga
+ create mode 100644 dvbv5_isdb-t/br-sp-Orlandia
+ create mode 100644 dvbv5_isdb-t/br-sp-Ourinhos
+ create mode 100644 dvbv5_isdb-t/br-sp-Paraibuna
+ create mode 100644 dvbv5_isdb-t/br-sp-PariqueraAcu
+ create mode 100644 dvbv5_isdb-t/br-sp-Paulinia
+ create mode 100644 dvbv5_isdb-t/br-sp-Pederneiras
+ create mode 100644 dvbv5_isdb-t/br-sp-Pedregulho
+ create mode 100644 dvbv5_isdb-t/br-sp-Penapolis
+ create mode 100644 dvbv5_isdb-t/br-sp-Peruibe
+ create mode 100644 dvbv5_isdb-t/br-sp-Piedade
+ create mode 100644 dvbv5_isdb-t/br-sp-Pindamonhangaba
+ create mode 100644 dvbv5_isdb-t/br-sp-Piquete
+ create mode 100644 dvbv5_isdb-t/br-sp-Piracicaba
+ create mode 100644 dvbv5_isdb-t/br-sp-Pirangi
+ create mode 100644 dvbv5_isdb-t/br-sp-Pirassununga
+ create mode 100644 dvbv5_isdb-t/br-sp-Pitangueiras
+ create mode 100644 dvbv5_isdb-t/br-sp-Poa
+ create mode 100644 dvbv5_isdb-t/br-sp-Pontal
+ create mode 100644 dvbv5_isdb-t/br-sp-PortoFeliz
+ create mode 100644 dvbv5_isdb-t/br-sp-PortoFerreira
+ create mode 100644 dvbv5_isdb-t/br-sp-PraiaGrande
+ create mode 100644 dvbv5_isdb-t/br-sp-PresidenteBernardes
+ create mode 100644 dvbv5_isdb-t/br-sp-PresidentePrudente
+ create mode 100644 dvbv5_isdb-t/br-sp-PresidenteVenceslau
+ create mode 100644 dvbv5_isdb-t/br-sp-RedencaoDaSerra
+ create mode 100644 dvbv5_isdb-t/br-sp-Reginopolis
+ create mode 100644 dvbv5_isdb-t/br-sp-Registro
+ create mode 100644 dvbv5_isdb-t/br-sp-Restinga
+ create mode 100644 dvbv5_isdb-t/br-sp-RibeiraoCorrente
+ create mode 100644 dvbv5_isdb-t/br-sp-RibeiraoPreto
+ create mode 100644 dvbv5_isdb-t/br-sp-RioClaro
+ create mode 100644 dvbv5_isdb-t/br-sp-Roseira
+ create mode 100644 dvbv5_isdb-t/br-sp-SalesOliveira
+ create mode 100644 dvbv5_isdb-t/br-sp-Salto
+ create mode 100644 dvbv5_isdb-t/br-sp-SantaBarbaraDOeste
+ create mode 100644 dvbv5_isdb-t/br-sp-SantaCruzDaConceicao
+ create mode 100644 dvbv5_isdb-t/br-sp-SantaCruzDaEsperanca
+ create mode 100644 dvbv5_isdb-t/br-sp-SantaCruzDasPalmeiras
+ create mode 100644 dvbv5_isdb-t/br-sp-SantaGertrudes
+ create mode 100644 dvbv5_isdb-t/br-sp-SantaLucia
+ create mode 100644 dvbv5_isdb-t/br-sp-SantaRitaDoPassaQuatro
+ create mode 100644 dvbv5_isdb-t/br-sp-SantaRosaDeViterbo
+ create mode 100644 dvbv5_isdb-t/br-sp-SantoAnastacio
+ create mode 100644 dvbv5_isdb-t/br-sp-SantoAndre
+ create mode 100644 dvbv5_isdb-t/br-sp-Santos
+ create mode 100644 dvbv5_isdb-t/br-sp-SaoCarlos
+ create mode 100644 dvbv5_isdb-t/br-sp-SaoJoaoDaBoaVista
+ create mode 100644 dvbv5_isdb-t/br-sp-SaoJoseDaBelaVista
+ create mode 100644 dvbv5_isdb-t/br-sp-SaoJoseDoRioPardo
+ create mode 100644 dvbv5_isdb-t/br-sp-SaoJoseDoRioPreto
+ create mode 100644 dvbv5_isdb-t/br-sp-SaoJoseDosCampos
+ create mode 100644 dvbv5_isdb-t/br-sp-SaoPaulo
+ create mode 100644 dvbv5_isdb-t/br-sp-SaoPedro
+ create mode 100644 dvbv5_isdb-t/br-sp-SaoRoque
+ create mode 100644 dvbv5_isdb-t/br-sp-SaoSebastiao
+ create mode 100644 dvbv5_isdb-t/br-sp-SaoSimao
+ create mode 100644 dvbv5_isdb-t/br-sp-SaoVicente
+ create mode 100644 dvbv5_isdb-t/br-sp-SerraAzul
+ create mode 100644 dvbv5_isdb-t/br-sp-Serrana
+ create mode 100644 dvbv5_isdb-t/br-sp-Sertaozinho
+ create mode 100644 dvbv5_isdb-t/br-sp-SeteBarras
+ create mode 100644 dvbv5_isdb-t/br-sp-Sorocaba
+ create mode 100644 dvbv5_isdb-t/br-sp-Sumare
+ create mode 100644 dvbv5_isdb-t/br-sp-Suzano
+ create mode 100644 dvbv5_isdb-t/br-sp-Taiacu
+ create mode 100644 dvbv5_isdb-t/br-sp-Taiuva
+ create mode 100644 dvbv5_isdb-t/br-sp-Tambau
+ create mode 100644 dvbv5_isdb-t/br-sp-Tanabi
+ create mode 100644 dvbv5_isdb-t/br-sp-Taquaritinga
+ create mode 100644 dvbv5_isdb-t/br-sp-Tatui
+ create mode 100644 dvbv5_isdb-t/br-sp-Taubate
+ create mode 100644 dvbv5_isdb-t/br-sp-TerraRoxa
+ create mode 100644 dvbv5_isdb-t/br-sp-Tupa
+ create mode 100644 dvbv5_isdb-t/br-sp-TupiPaulista
+ create mode 100644 dvbv5_isdb-t/br-sp-Ubatuba
+ create mode 100644 dvbv5_isdb-t/br-sp-Valinhos
+ create mode 100644 dvbv5_isdb-t/br-sp-VarzeaPaulista
+ create mode 100644 dvbv5_isdb-t/br-sp-Viradouro
+ create mode 100644 dvbv5_isdb-t/br-sp-Votorantim
+ create mode 100644 dvbv5_isdb-t/br-sp-Votuporanga
+ create mode 100644 dvbv5_isdb-t/br-to-Aragominas
+ create mode 100644 dvbv5_isdb-t/br-to-Araguaina
+ create mode 100644 dvbv5_isdb-t/br-to-Babaculandia
+ create mode 100644 dvbv5_isdb-t/br-to-BrejinhoDeNazare
+ create mode 100644 dvbv5_isdb-t/br-to-ChapadaDeAreia
+ create mode 100644 dvbv5_isdb-t/br-to-Darcinopolis
+ create mode 100644 dvbv5_isdb-t/br-to-Fatima
+ create mode 100644 dvbv5_isdb-t/br-to-Filadelfia
+ create mode 100644 dvbv5_isdb-t/br-to-Gurupi
+ create mode 100644 dvbv5_isdb-t/br-to-MiracemaDoTocantins
+ create mode 100644 dvbv5_isdb-t/br-to-Miranorte
+ create mode 100644 dvbv5_isdb-t/br-to-MonteSantoDoTocantins
+ create mode 100644 dvbv5_isdb-t/br-to-OliveiraDeFatima
+ create mode 100644 dvbv5_isdb-t/br-to-Palmas
+ create mode 100644 dvbv5_isdb-t/br-to-ParaisoDoTocantins
+ create mode 100644 dvbv5_isdb-t/br-to-PortoNacional
+
+-- 
+1.9.3
+
