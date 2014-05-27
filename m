@@ -1,142 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f181.google.com ([209.85.213.181]:65060 "EHLO
-	mail-ig0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751149AbaE2WOh (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2392 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751803AbaE0HEK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 May 2014 18:14:37 -0400
-Message-ID: <5387B149.20408@gmail.com>
-Date: Thu, 29 May 2014 15:14:33 -0700
-From: David Daney <ddaney.cavm@gmail.com>
+	Tue, 27 May 2014 03:04:10 -0400
+Message-ID: <538438C5.1090600@xs4all.nl>
+Date: Tue, 27 May 2014 09:03:33 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: abdoulaye berthe <berthe.ab@gmail.com>
-CC: linus.walleij@linaro.org, gnurou@gmail.com, m@bues.ch,
-	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-mips@linux-mips.org,
-	linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
-	linux-wireless@vger.kernel.org,
-	patches@opensource.wolfsonmicro.com, linux-input@vger.kernel.org,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-samsungsoc@vger.kernel.org, spear-devel@list.st.com,
-	platform-driver-x86@vger.kernel.org, netdev@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH] gpio: removes all usage of gpiochip_remove retval
-References: <1401400492-26175-1-git-send-email-berthe.ab@gmail.com>
-In-Reply-To: <1401400492-26175-1-git-send-email-berthe.ab@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Richie <searchfgold67899@live.com>, linux-usb@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: 1d6b:0001 [MSI A55M-P33] No webcam functionality with Zoran Microelectronics,
+ Ltd Digital Camera EX-20 DSC
+References: <BLU436-SMTP93884884267098D387F74FF23A0@phx.gbl>
+In-Reply-To: <BLU436-SMTP93884884267098D387F74FF23A0@phx.gbl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/29/2014 02:54 PM, abdoulaye berthe wrote:
+On 05/27/2014 03:34 AM, Richie wrote:
+> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1322380
+> 
+> [1.] One line summary of the problem:
+> 
+> 1d6b:0001 [MSI A55M-P33] No webcam functionality with Zoran Microelectronics, 
+> Ltd Digital Camera EX-20 DSC
+> 
+> [2.] Full description of the problem/report: 
+> 
+> No software recognizes the webcam and this is not a regression. dmesg reports 
+> the following additional output after plugging the camera. You can see where I 
+> change the camera to "PC Mode" (in order to use the webcam, users must do this 
+> from the camera) at [ 691.147589]. The device is turned off at [ 1094.746444]:
+> 
+> [ 688.796908] usb 4-2: new full-speed USB device number 2 using ohci-pci
+> [ 688.965802] usb 4-2: New USB device found, idVendor=0595, idProduct=2002
+> [ 688.965807] usb 4-2: New USB device strings: Mfr=4, Product=5, 
+> SerialNumber=6
+> [ 688.965809] usb 4-2: Product: COACH DSC
+> [ 688.965811] usb 4-2: Manufacturer: ZORAN
+> [ 688.965813] usb 4-2: SerialNumber: ZORAN01234567
+> [ 689.012630] usb-storage 4-2:1.0: USB Mass Storage device detected
+> [ 689.021168] scsi6 : usb-storage 4-2:1.0
+> [ 689.021266] usbcore: registered new interface driver usb-storage
+> [ 690.030971] scsi 6:0:0:0: Direct-Access ZORAN COACH6 (I62) 1.10 PQ: 0 ANSI: 
+> 0 CCS
+> [ 690.036147] sd 6:0:0:0: Attached scsi generic sg3 type 0
+> [ 690.044964] sd 6:0:0:0: [sdc] 3962629 512-byte logical blocks: (2.02 GB/1.88 
+> GiB)
+> [ 690.054977] sd 6:0:0:0: [sdc] Write Protect is off
+> [ 690.054984] sd 6:0:0:0: [sdc] Mode Sense: 00 06 00 00
+> [ 690.064965] sd 6:0:0:0: [sdc] No Caching mode page found
+> [ 690.064971] sd 6:0:0:0: [sdc] Assuming drive cache: write through
+> [ 690.108960] sd 6:0:0:0: [sdc] No Caching mode page found
+> [ 690.108966] sd 6:0:0:0: [sdc] Assuming drive cache: write through
+> [ 690.156970] sdc:
+> [ 690.210974] sd 6:0:0:0: [sdc] No Caching mode page found
+> [ 690.210980] sd 6:0:0:0: [sdc] Assuming drive cache: write through
+> [ 690.210985] sd 6:0:0:0: [sdc] Attached SCSI removable disk
+> [ 691.147589] usb 4-2: USB disconnect, device number 2
+> [ 691.793364] usb 4-2: new full-speed USB device number 3 using ohci-pci
+> [ 691.962202] usb 4-2: New USB device found, idVendor=0595, idProduct=4343
+> [ 691.962207] usb 4-2: New USB device strings: Mfr=7, Product=8, 
+> SerialNumber=9
+> [ 691.962209] usb 4-2: Product: COACH DSC
+> [ 691.962211] usb 4-2: Manufacturer: ZORAN
+> [ 691.962213] usb 4-2: SerialNumber: ZORAN00000001
+> [ 691.964262] usb-storage 4-2:1.0: USB Mass Storage device detected
+> [ 691.965410] usb-storage: probe of 4-2:1.0 failed with error -5
+> [ 692.053929] Linux video capture interface: v2.00
+> [ 692.091447] zr364xx 4-2:1.0: Zoran 364xx compatible webcam plugged
+> [ 692.091453] zr364xx 4-2:1.0: model 0595:4343 detected
+> [ 692.091461] usb 4-2: 320x240 mode selected
+> [ 692.094356] usb 4-2: Zoran 364xx controlling device video0
 
-Did you forget a changelog explaining why this is either needed, or even 
-a good idea?  I joined the conversation late and don't know why you are 
-doing this.
+Clearly the webcam is recognized and a /dev/video0 node is created.
+Please check that /dev/video0 exists. Try e.g. v4l2-ctl -D -d /dev/video0,
+it should list it as using the zr364xx driver.
 
-Thanks,
-David Daney
+So what exactly doesn't work?
 
+Regards,
 
+	Hans
 
-> Signed-off-by: abdoulaye berthe <berthe.ab@gmail.com>
-> ---
->   arch/arm/common/scoop.c                        | 10 ++--------
->   arch/mips/txx9/generic/setup.c                 |  4 ++--
->   arch/powerpc/platforms/83xx/mcu_mpc8349emitx.c |  3 ++-
->   arch/sh/boards/mach-x3proto/gpio.c             |  6 ++----
->   drivers/bcma/driver_gpio.c                     |  3 ++-
->   drivers/gpio/gpio-74x164.c                     |  8 +++-----
->   drivers/gpio/gpio-adnp.c                       |  9 +--------
->   drivers/gpio/gpio-adp5520.c                    |  8 +-------
->   drivers/gpio/gpio-adp5588.c                    |  6 +-----
->   drivers/gpio/gpio-amd8111.c                    |  3 +--
->   drivers/gpio/gpio-arizona.c                    |  3 ++-
->   drivers/gpio/gpio-cs5535.c                     |  8 +-------
->   drivers/gpio/gpio-da9052.c                     |  3 ++-
->   drivers/gpio/gpio-da9055.c                     |  3 ++-
->   drivers/gpio/gpio-dwapb.c                      |  2 +-
->   drivers/gpio/gpio-em.c                         |  5 +----
->   drivers/gpio/gpio-f7188x.c                     | 18 ++----------------
->   drivers/gpio/gpio-generic.c                    |  3 ++-
->   drivers/gpio/gpio-grgpio.c                     |  4 +---
->   drivers/gpio/gpio-ich.c                        |  9 +--------
->   drivers/gpio/gpio-it8761e.c                    |  6 +-----
->   drivers/gpio/gpio-janz-ttl.c                   |  8 +-------
->   drivers/gpio/gpio-kempld.c                     |  3 ++-
->   drivers/gpio/gpio-lp3943.c                     |  3 ++-
->   drivers/gpio/gpio-lynxpoint.c                  |  5 +----
->   drivers/gpio/gpio-max730x.c                    | 12 ++++--------
->   drivers/gpio/gpio-max732x.c                    |  7 +------
->   drivers/gpio/gpio-mc33880.c                    | 11 +++--------
->   drivers/gpio/gpio-mc9s08dz60.c                 |  3 ++-
->   drivers/gpio/gpio-mcp23s08.c                   | 26 +++++++-------------------
->   drivers/gpio/gpio-ml-ioh.c                     |  8 ++------
->   drivers/gpio/gpio-msm-v2.c                     |  5 +----
->   drivers/gpio/gpio-mxc.c                        |  2 +-
->   drivers/gpio/gpio-octeon.c                     |  3 ++-
->   drivers/gpio/gpio-palmas.c                     |  3 ++-
->   drivers/gpio/gpio-pca953x.c                    |  7 +------
->   drivers/gpio/gpio-pcf857x.c                    |  4 +---
->   drivers/gpio/gpio-pch.c                        | 10 ++--------
->   drivers/gpio/gpio-rc5t583.c                    |  3 ++-
->   drivers/gpio/gpio-rcar.c                       |  5 +----
->   drivers/gpio/gpio-rdc321x.c                    |  7 ++-----
->   drivers/gpio/gpio-sch.c                        | 16 +++-------------
->   drivers/gpio/gpio-sch311x.c                    |  6 ++----
->   drivers/gpio/gpio-sodaville.c                  |  4 +---
->   drivers/gpio/gpio-stmpe.c                      |  8 +-------
->   drivers/gpio/gpio-sx150x.c                     |  7 ++-----
->   drivers/gpio/gpio-syscon.c                     |  3 ++-
->   drivers/gpio/gpio-tb10x.c                      |  5 +----
->   drivers/gpio/gpio-tc3589x.c                    |  8 +-------
->   drivers/gpio/gpio-timberdale.c                 |  5 +----
->   drivers/gpio/gpio-tps6586x.c                   |  3 ++-
->   drivers/gpio/gpio-tps65910.c                   |  3 ++-
->   drivers/gpio/gpio-tps65912.c                   |  3 ++-
->   drivers/gpio/gpio-ts5500.c                     |  6 +++---
->   drivers/gpio/gpio-twl4030.c                    |  4 +---
->   drivers/gpio/gpio-twl6040.c                    |  3 ++-
->   drivers/gpio/gpio-ucb1400.c                    |  2 +-
->   drivers/gpio/gpio-viperboard.c                 | 10 +++-------
->   drivers/gpio/gpio-vx855.c                      |  3 +--
->   drivers/gpio/gpio-wm831x.c                     |  3 ++-
->   drivers/gpio/gpio-wm8350.c                     |  3 ++-
->   drivers/gpio/gpio-wm8994.c                     |  3 ++-
->   drivers/hid/hid-cp2112.c                       |  6 ++----
->   drivers/input/keyboard/adp5588-keys.c          |  4 +---
->   drivers/input/keyboard/adp5589-keys.c          |  4 +---
->   drivers/input/touchscreen/ad7879.c             | 10 +++-------
->   drivers/leds/leds-pca9532.c                    | 10 ++--------
->   drivers/leds/leds-tca6507.c                    |  7 ++-----
->   drivers/media/dvb-frontends/cxd2820r_core.c    | 10 +++-------
->   drivers/mfd/asic3.c                            |  3 ++-
->   drivers/mfd/htc-i2cpld.c                       |  8 +-------
->   drivers/mfd/sm501.c                            | 17 +++--------------
->   drivers/mfd/tc6393xb.c                         | 13 ++++---------
->   drivers/mfd/ucb1x00-core.c                     |  8 ++------
->   drivers/pinctrl/pinctrl-abx500.c               | 15 +++------------
->   drivers/pinctrl/pinctrl-adi2.c                 |  9 ++++-----
->   drivers/pinctrl/pinctrl-as3722.c               | 11 ++---------
->   drivers/pinctrl/pinctrl-baytrail.c             |  5 +----
->   drivers/pinctrl/pinctrl-coh901.c               | 10 ++--------
->   drivers/pinctrl/pinctrl-exynos5440.c           |  6 +-----
->   drivers/pinctrl/pinctrl-msm.c                  | 11 ++---------
->   drivers/pinctrl/pinctrl-nomadik.c              |  2 +-
->   drivers/pinctrl/pinctrl-rockchip.c             | 16 ++++------------
->   drivers/pinctrl/pinctrl-samsung.c              | 14 ++++----------
->   drivers/pinctrl/pinctrl-sunxi.c                |  3 +--
->   drivers/pinctrl/sh-pfc/gpio.c                  |  9 +++------
->   drivers/pinctrl/spear/pinctrl-plgpio.c         |  3 +--
->   drivers/pinctrl/vt8500/pinctrl-wmt.c           |  9 ++-------
->   drivers/platform/x86/intel_pmic_gpio.c         |  3 +--
->   drivers/ssb/driver_gpio.c                      |  3 ++-
->   drivers/staging/vme/devices/vme_pio2_gpio.c    |  4 +---
->   drivers/tty/serial/max310x.c                   | 10 ++++------
->   drivers/video/fbdev/via/via-gpio.c             | 10 +++-------
->   sound/soc/codecs/wm5100.c                      |  5 +----
->   sound/soc/codecs/wm8903.c                      |  6 +-----
->   sound/soc/codecs/wm8962.c                      |  5 +----
->   sound/soc/codecs/wm8996.c                      |  6 +-----
->   97 files changed, 182 insertions(+), 460 deletions(-)
->
-[...]
+> [ 692.094672] usbcore: registered new interface driver zr364xx
+> [ 1094.746444] hub 4-0:1.0: port 2 disabled by hub (EMI?), re-enabling...
+> [ 1094.746451] usb 4-2: USB disconnect, device number 3
+> [ 1094.747395] zr364xx 4-2:1.0: Zoran 364xx webcam unplugged
+
