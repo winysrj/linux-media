@@ -1,43 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49562 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752019AbaEZTFy (ORCPT
+Received: from forward6l.mail.yandex.net ([84.201.143.139]:55044 "EHLO
+	forward6l.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753513AbaE0TuL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 15:05:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sangwook Lee <sangwook.lee@linaro.org>
-Subject: [PATCH 2/6] v4l: s5k4ecgx: Return V4L2_FIELD_NONE from pad-level set format
-Date: Mon, 26 May 2014 21:06:01 +0200
-Message-Id: <1401131165-3542-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1401131165-3542-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1401131165-3542-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 27 May 2014 15:50:11 -0400
+From: CrazyCat <crazycat69@narod.ru>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] cxd2820r: TS clock inversion in config
+Date: Tue, 27 May 2014 22:50:04 +0300
+Message-ID: <2125164.jknRnQdD0S@computer>
+In-Reply-To: <5367FE75.5040208@iki.fi>
+References: <6929939.mWPG6Zt5A4@ubuntu> <5367FE75.5040208@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sensor is progressive, always return the field order set to
-V4L2_FIELD_NONE.
+This specific cxd2820r option need for Geniatech T220
+https://patchwork.linuxtv.org/patch/23836/
 
-Cc: Sangwook Lee <sangwook.lee@linaro.org>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/s5k4ecgx.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/i2c/s5k4ecgx.c b/drivers/media/i2c/s5k4ecgx.c
-index 2750de6..1fcc76f 100644
---- a/drivers/media/i2c/s5k4ecgx.c
-+++ b/drivers/media/i2c/s5k4ecgx.c
-@@ -594,6 +594,7 @@ static int s5k4ecgx_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 	pf = s5k4ecgx_try_fmt(sd, &fmt->format);
- 	s5k4ecgx_try_frame_size(&fmt->format, &fsize);
- 	fmt->format.colorspace = V4L2_COLORSPACE_JPEG;
-+	fmt->format.field = V4L2_FIELD_NONE;
- 
- 	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
- 		if (fh) {
--- 
-1.8.5.5
+On Tuesday 06 May 2014 00:11:17 you wrote:
+> That patch does more than it says and due to that I don't want it. Just 
+> implement cxd2820r clock inversion and nothing more. Put the rest stuff, 
+> which does not belong to cxd2820r, to another patch.
 
