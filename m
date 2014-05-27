@@ -1,383 +1,2988 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:61856 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750858AbaETKEn (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:49860 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752126AbaE0Qur (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 May 2014 06:04:43 -0400
-Received: by mail-wi0-f182.google.com with SMTP id r20so624126wiv.3
-        for <linux-media@vger.kernel.org>; Tue, 20 May 2014 03:04:42 -0700 (PDT)
-Date: Tue, 20 May 2014 12:04:38 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: "Lin, Mengdong" <mengdong.lin@intel.com>
-Cc: "Vetter, Daniel" <daniel.vetter@intel.com>,
-	"Takashi Iwai (tiwai@suse.de)" <tiwai@suse.de>,
-	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
-	"intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>,
-	"Yang, Libin" <libin.yang@intel.com>,
-	"Nikkanen, Kimmo" <kimmo.nikkanen@intel.com>,
-	"Koul, Vinod" <vinod.koul@intel.com>,
-	"Babu, Ramesh" <ramesh.babu@intel.com>,
-	"Shankar, Uma" <uma.shankar@intel.com>,
-	"Girdwood, Liam R" <liam.r.girdwood@intel.com>,
-	Greg KH <greg@kroah.com>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [Intel-gfx] [RFC] set up an sync channel between audio and
- display driver (i.e. ALSA and DRM)
-Message-ID: <20140520100438.GN8790@phenom.ffwll.local>
-References: <F46914AEC2663F4A9BB62374E5EEF8F82B447059@SHSMSX101.ccr.corp.intel.com>
- <20140520100204.GM8790@phenom.ffwll.local>
+	Tue, 27 May 2014 12:50:47 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Olliver Schinagl <oliver@schinagl.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 09/12] Add Brazil's Paraiba state tables
+Date: Tue, 27 May 2014 13:50:29 -0300
+Message-Id: <1401209432-7327-10-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1401209432-7327-1-git-send-email-m.chehab@samsung.com>
+References: <1401209432-7327-1-git-send-email-m.chehab@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20140520100204.GM8790@phenom.ffwll.local>
+Content-Type: text/plain; charset=true
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Also adding dri-devel and linux-media. Please don't forget these lists for
-the next round.
--Daniel
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ dvbv5_isdb-t/br-pb-AlagoaGrande       |  32 +++++
+ dvbv5_isdb-t/br-pb-Alagoinha          |  32 +++++
+ dvbv5_isdb-t/br-pb-Aparecida          |  32 +++++
+ dvbv5_isdb-t/br-pb-Bayeux             | 206 ++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-pb-BomJesus           |  32 +++++
+ dvbv5_isdb-t/br-pb-Cabedelo           | 206 ++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-pb-CachoeiraDosIndios |  32 +++++
+ dvbv5_isdb-t/br-pb-CacimbaDeDentro    |  32 +++++
+ dvbv5_isdb-t/br-pb-Cajazeiras         |  32 +++++
+ dvbv5_isdb-t/br-pb-CaldasBrandao      |  32 +++++
+ dvbv5_isdb-t/br-pb-CampinaGrande      |  32 +++++
+ dvbv5_isdb-t/br-pb-Catingueira        |  32 +++++
+ dvbv5_isdb-t/br-pb-Condado            |  32 +++++
+ dvbv5_isdb-t/br-pb-Cuitegi            |  32 +++++
+ dvbv5_isdb-t/br-pb-Desterro           |  32 +++++
+ dvbv5_isdb-t/br-pb-Guarabira          |  61 ++++++++
+ dvbv5_isdb-t/br-pb-Gurinhem           |  32 +++++
+ dvbv5_isdb-t/br-pb-Imaculada          |  32 +++++
+ dvbv5_isdb-t/br-pb-Itabaiana          |  32 +++++
+ dvbv5_isdb-t/br-pb-Jacarau            |  61 ++++++++
+ dvbv5_isdb-t/br-pb-JoaoPessoa         | 264 ++++++++++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-pb-Juripiranga        |  90 ++++++++++++
+ dvbv5_isdb-t/br-pb-LagoaSeca          |  32 +++++
+ dvbv5_isdb-t/br-pb-Lucena             | 119 +++++++++++++++
+ dvbv5_isdb-t/br-pb-MaeDAgua           |  32 +++++
+ dvbv5_isdb-t/br-pb-Mamanguape         | 119 +++++++++++++++
+ dvbv5_isdb-t/br-pb-Marizopolis        |  32 +++++
+ dvbv5_isdb-t/br-pb-Massaranduba       |  32 +++++
+ dvbv5_isdb-t/br-pb-Matinhas           |  32 +++++
+ dvbv5_isdb-t/br-pb-Matureia           |  32 +++++
+ dvbv5_isdb-t/br-pb-Mulungu            |  32 +++++
+ dvbv5_isdb-t/br-pb-OlhoDAgua          |  32 +++++
+ dvbv5_isdb-t/br-pb-Patos              |  32 +++++
+ dvbv5_isdb-t/br-pb-Pilar              |  32 +++++
+ dvbv5_isdb-t/br-pb-Piloezinhos        |  32 +++++
+ dvbv5_isdb-t/br-pb-Puxinana           |  32 +++++
+ dvbv5_isdb-t/br-pb-RioTinto           |  32 +++++
+ dvbv5_isdb-t/br-pb-SantaRita          | 148 +++++++++++++++++++
+ dvbv5_isdb-t/br-pb-SantaTeresinha     |  32 +++++
+ dvbv5_isdb-t/br-pb-SaoFrancisco       |  32 +++++
+ dvbv5_isdb-t/br-pb-SaoJoseDePiranhas  |  32 +++++
+ dvbv5_isdb-t/br-pb-SaoMamede          |  32 +++++
+ dvbv5_isdb-t/br-pb-Sape               | 206 ++++++++++++++++++++++++++
+ dvbv5_isdb-t/br-pb-Sousa              |  32 +++++
+ dvbv5_isdb-t/br-pb-Teixeira           |  32 +++++
+ 45 files changed, 2600 insertions(+)
+ create mode 100644 dvbv5_isdb-t/br-pb-AlagoaGrande
+ create mode 100644 dvbv5_isdb-t/br-pb-Alagoinha
+ create mode 100644 dvbv5_isdb-t/br-pb-Aparecida
+ create mode 100644 dvbv5_isdb-t/br-pb-Bayeux
+ create mode 100644 dvbv5_isdb-t/br-pb-BomJesus
+ create mode 100644 dvbv5_isdb-t/br-pb-Cabedelo
+ create mode 100644 dvbv5_isdb-t/br-pb-CachoeiraDosIndios
+ create mode 100644 dvbv5_isdb-t/br-pb-CacimbaDeDentro
+ create mode 100644 dvbv5_isdb-t/br-pb-Cajazeiras
+ create mode 100644 dvbv5_isdb-t/br-pb-CaldasBrandao
+ create mode 100644 dvbv5_isdb-t/br-pb-CampinaGrande
+ create mode 100644 dvbv5_isdb-t/br-pb-Catingueira
+ create mode 100644 dvbv5_isdb-t/br-pb-Condado
+ create mode 100644 dvbv5_isdb-t/br-pb-Cuitegi
+ create mode 100644 dvbv5_isdb-t/br-pb-Desterro
+ create mode 100644 dvbv5_isdb-t/br-pb-Guarabira
+ create mode 100644 dvbv5_isdb-t/br-pb-Gurinhem
+ create mode 100644 dvbv5_isdb-t/br-pb-Imaculada
+ create mode 100644 dvbv5_isdb-t/br-pb-Itabaiana
+ create mode 100644 dvbv5_isdb-t/br-pb-Jacarau
+ create mode 100644 dvbv5_isdb-t/br-pb-JoaoPessoa
+ create mode 100644 dvbv5_isdb-t/br-pb-Juripiranga
+ create mode 100644 dvbv5_isdb-t/br-pb-LagoaSeca
+ create mode 100644 dvbv5_isdb-t/br-pb-Lucena
+ create mode 100644 dvbv5_isdb-t/br-pb-MaeDAgua
+ create mode 100644 dvbv5_isdb-t/br-pb-Mamanguape
+ create mode 100644 dvbv5_isdb-t/br-pb-Marizopolis
+ create mode 100644 dvbv5_isdb-t/br-pb-Massaranduba
+ create mode 100644 dvbv5_isdb-t/br-pb-Matinhas
+ create mode 100644 dvbv5_isdb-t/br-pb-Matureia
+ create mode 100644 dvbv5_isdb-t/br-pb-Mulungu
+ create mode 100644 dvbv5_isdb-t/br-pb-OlhoDAgua
+ create mode 100644 dvbv5_isdb-t/br-pb-Patos
+ create mode 100644 dvbv5_isdb-t/br-pb-Pilar
+ create mode 100644 dvbv5_isdb-t/br-pb-Piloezinhos
+ create mode 100644 dvbv5_isdb-t/br-pb-Puxinana
+ create mode 100644 dvbv5_isdb-t/br-pb-RioTinto
+ create mode 100644 dvbv5_isdb-t/br-pb-SantaRita
+ create mode 100644 dvbv5_isdb-t/br-pb-SantaTeresinha
+ create mode 100644 dvbv5_isdb-t/br-pb-SaoFrancisco
+ create mode 100644 dvbv5_isdb-t/br-pb-SaoJoseDePiranhas
+ create mode 100644 dvbv5_isdb-t/br-pb-SaoMamede
+ create mode 100644 dvbv5_isdb-t/br-pb-Sape
+ create mode 100644 dvbv5_isdb-t/br-pb-Sousa
+ create mode 100644 dvbv5_isdb-t/br-pb-Teixeira
 
-On Tue, May 20, 2014 at 12:02:04PM +0200, Daniel Vetter wrote:
-> Adding Greg just as an fyi since we've chatted briefly about the avsink
-> bus. Comments below.
-> -Daniel
-> 
-> On Tue, May 20, 2014 at 02:52:19AM +0000, Lin, Mengdong wrote:
-> > This RFC is based on previous discussion to set up a generic communication channel between display and audio driver and
-> > an internal design of Intel MCG/VPG HDMI audio driver. It's still an initial draft and your advice would be appreciated
-> > to improve the design.
-> > 
-> > The basic idea is to create a new avsink module and let both drm and alsa depend on it.
-> > This new module provides a framework and APIs for synchronization between the display and audio driver.
-> > 
-> > 1. Display/Audio Client
-> > 
-> > The avsink core provides APIs to create, register and lookup a display/audio client.
-> > A specific display driver (eg. i915) or audio driver (eg. HD-Audio driver) can create a client, add some resources
-> > objects (shared power wells, display outputs, and audio inputs, register ops) to the client, and then register this
-> > client to avisink core. The peer driver can look up a registered client by a name or type, or both. If a client gives
-> > a valid peer client name on registration, avsink core will bind the two clients as peer for each other. And we
-> > expect a display client and an audio client to be peers for each other in a system.
-> > 
-> > int avsink_new_client ( const char *name,
-> >                             int type,   /* client type, display or audio */
-> >                             struct module *module,
-> >                             void *context,
-> >                             const char *peer_name,
-> >                             struct avsink_client **client_ret);
-> > 
-> > int avsink_free_client (struct avsink_client *client);
-> 
-> 
-> Hm, my idea was to create a new avsink bus and let vga drivers register
-> devices on that thing and audio drivers register as drivers. There's a bit
-> more work involved in creating a full-blown bus, but it has a lot of
-> upsides:
-> - Established infrastructure for matching drivers (i.e. audio drivers)
->   against devices (i.e. avsinks exported by gfx drivers).
-> - Module refcounting.
-> - power domain handling and well-integrated into runtime pm.
-> - Allows integration into componentized device framework since we're
->   dealing with a real struct device.
-> - Better decoupling between gfx and audio side since registration is done
->   at runtime.
-> - We can attach drv private date which the audio driver needs.
-> 
-> > int avsink_register_client(struct avsink_client *client);
-> > int avisink_unregister_client(int client_handle);
-> > 
-> > struct avsink_client *avsink_lookup_client(const char *name, int type);
-> > 
-> > struct avsink_client {
-> >          const char *name;  /* client name */
-> >          int type; /* client type*/
-> >          void *context;
-> >          struct module *module;  /* top-level module for locking */
-> > 
-> >          struct avsink_client *peer;      /* peer client */
-> > 
-> >          /* shared power wells */
-> >          struct avsink_power_well *power_well;
-> 
-> We need to have an struct power_domain here so that we can do proper
-> runtime pm. But like I've said above I think we actually want a full blown
-> struct device.
-> 
-> >          int num_power_wells;
-> > 
-> >          /* endpoints, display outputs or audio inputs */
-> >          struct avsink_endpoint * endpoint;
-> >          int num_endpints;
-> > 
-> >          struct avsink_registers_ops *reg_ops; /* ops to access registers of a client */
-> >          void *private_data;
-> >          ...
-> > };
-> 
-> I think you're indeed implementing a full blown bus here ;-)
-> 
-> avsink->client = bus devices/childern
-> avsink->peer = driver for all this stuff
-> avsink->power_well = runtime pm support for the avsink bus
-> avsink->reg_ops = driver bind/unbind support
-> 
-> > On system boots, the avsink module is loaded before the display and audio driver module. And the display and audio
-> > driver may be loaded on parallel.
-> > * If a specific display driver (eg. i915) supports avsink, it can create a display client, add power wells and display
-> >   outputs to the client, and then register the display client to the avsink core. Then it may look up if there is any
-> >   audio client registered, by name or type, and may find an audio client registered by some audio driver.
-> > 
-> > * If an audio driver supports avsink, it usually should look up a registered display client by name or type at first,
-> >   because it may need the shared power well in GPU and check the display outputs' name to bind the audio inputs. If
-> >   the display client is not registered yet, the audio driver can choose to wait (maybe in a work queue) or return
-> >   -EAGAIN for a deferred probe. After the display client is found, the audio driver can register an audio client with
-> >   the display client's name as the peer name, the avsink core will bind the display and audio clients to each other.
-> > 
-> > Open question:
-> > If the display or audio driver is disabled by the black list, shall we introduce a time out to avoid waiting for the
-> > other client registered endlessly?
-> 
-> If the hdmi/dp side is a separate audio instance then we can just defer
-> forever I think. If that's not the case (i.e. other audio outputs are also
-> in the same alsa instance) then we need to be able to handle runtime
-> loading of the gfx driver.
-> 
-> Both cases would work easier I think if we have a real bus and
-> driver<->device matching.
-> 
-> > 2. Shared power wells (optional)
-> > 
-> > The audio and display devices, maybe only part of them, may share a common power well (e.g. for Intel Haswell and
-> > Broadwell). If so, the driver that controls the power well should define a power well object, implement the get/put ops,
-> > and add it to its avsink client before registering the client to avsink core. Then the peer client can look up this
-> > power well by its name, and get/put this power well as a user.
-> > 
-> > A client can have multiple power well objects.
-> > 
-> > struct avsink_power_well {
-> >          const char *name; /* name of the power well */
-> >          void *context;   /* parameter of get/put ops, maybe device pointer for this power well */
-> >          struct avsink_power_well_ops *ops
-> > };
-> > 
-> > struct avsink_power_well_ops {
-> >          int (*get)(void *context);
-> >          int (*put)(void *context);
-> > };
-> > 
-> > API:
-> > int avsink_new_power(struct avsink_client *client,
-> >                    const char *power_name,
-> >                    void * power_context,
-> >                    struct avsink_power_well_ops *ops,
-> >                    struct avsink_power_well **power_ret);
-> > 
-> > struct avsink_power_well *avisnk_lookup_power(const char *name);
-> > 
-> > int avsink_get_power(struct avsink_power_well *power);  /* Reqesut the power */
-> > int avsink_put_power(struct avsink_power_well *power);    /* Release the power */
-> > 
-> > For example, the i915 display driver can create a device for the shared power well in Haswell GPU, implement its PM
-> > functions, and use the device pointer as the context when creating the power well object, like below
-> > 
-> > struct avsink_power_well_ops i915_power_well_ops = {
-> >          .get = pm_runtime_get_sync;
-> >          .put = pm_runtime_put_sync;
-> > };
-> > ...
-> > avsink_new_power ( display_client,
-> >                    "i915_display_power_well",
-> >                    pdev,  /* pointer of the power well device */
-> >                    &i915_power_well_ops,
-> >                    ...)
-> > 
-> > Power domain is not used here since a single device seems enough to represent a power well.
-> 
-> Imo the point of the avsink stuff is _not_ to reinvent the wheel again. A
-> real struct device per endpoint + runtime pm should be able to do
-> everything we want.
-> 
-> > 3. Display output and audio input endpoints
-> > 
-> > A display client should register the display output endpoints and its audio peer client should register the audio input
-> > endpoints. A client can have multiple endpoints. The avsink core will bind an audio input and a display output as peer
-> > to each other. This is to allow the audio and display driver to synchronize with each other for each display pipeline.
-> > 
-> > All endpoints should be added to a client before the client is registered to avsink core. Dynamic endpoints are not
-> > supported now.
-> > 
-> > A display out here represents a physical HDMI/DP output port. And as long as it's usable in the system (i.e. physically
-> > connected to the HDMP/DP port on the machine board), the display output should be registered not matter the port is
-> > connected to an external display device or not. And if HW and display driver can support DP1.2 daisy chain (multiple DP
-> > display devices can be connected to a single port), multiple static displays outputs should be defined for the DP port
-> > according to the HW capability. The port & display device number can be indicated by the name (e.g. "i915_DDI_B",
-> > "i915_DDI_B_DEV0", "i915_DDI_B_DEV1", or "i915_DDI_B_DEV2"), defined by the display driver.
-> > 
-> > The audio driver can check the endpoints of its peer display client and use an display endpoint's name, or a presumed
-> > display endpoint name, as peer name when registering an audio endpoint, thus the avsink core will bind the two display
-> > and audio endpoints as peers.
-> > 
-> > struct avsink_endpoint {
-> >          const char *name;  /*name of the endpoint */
-> >          int type;            /* DISPLAY_OUTPUT or AUDIO_INPUT */
-> >          void *context;           /* private data, used as parameter of the ops */
-> >          struct avsink_endpoint_ops *ops;
-> > 
-> >          struct avsink_endpoint *peer; /* peer endpoint */
-> > };
-> > 
-> > struct avsink_endpoint_ops {
-> >          int (*get_caps) (enum had_caps_list query_element,
-> >                             void *capabilities,
-> >                             void *context);
-> >          int (*set_caps) (enum had_caps_list set_element,
-> >                             void *capabilities,
-> >                             void *context);
-> >          int (*event_handler) (enum avsink_event_type event_type, void *context);
-> > };
-> 
-> Ok, this is confusing since get/set_caps are implemented by the gfx side.
-> The event handler otoh is implemented by the audio side. This needs to be
-> split up.
-> 
-> With a full device model the set/get stuff would be attached to the device
-> while the event handler would be part of the driver.
-> 
-> > API:
-> > int avsink_new_endpoint (struct avsink_client *client,
-> >                             const char *name,
-> >                             int type, /* DISPLAY_OUTPUT or AUDIO_INPUT*/
-> >                             void *context,
-> >                             const char *peer_name, /* can be NULL if no clue */
-> >                             avsink_endpoint_ops *ops,
-> >                             struct avsink_endpoint **endpoint_ret);
-> > 
-> > int avsink_endpoint_get_caps(struct avsink_endpoint *endpoint,
-> >                             enum avsink_caps_list t get_element,
-> >                             void *capabilities);
-> > int avsink_endpoint_set_caps(struct avsink_endpoint *endpoint,
-> >                             enum had_caps_list set_element,
-> >                             void *capabilities);
-> > 
-> > int avsink_endpoint_post_event(struct avsink_endpoint *endpoint,
-> >                             enum avsink_event_type event_type);
-> > 
-> > 4. Get/Set caps on an endpoint
-> > 
-> > The display or audio driver can get or set capabilities on an endpoint. Depending on the capability ID, the avsink core
-> > will call get_caps/set_caps ops of this endpoint, or call get_caps/set_caps ops of its peer endpoint and return the
-> > result to the caller.
-> > 
-> > enum avsink_caps_list {
-> >          /* capabilities for display output endpoints */
-> >          AVSINK_GET_DISPLAY_ELD = 1,
-> >          AVSINK_GET_DISPLAY_TYPE, /* HDMI or DisplayPort */
-> >          AVSINK_GET_DISPLAY_NAME, /* Hope to use display device name under /sys/class/drm, like "card0-DP-1", for user
-> >                                      * space to figure out which HDMI/DP output on the drm side corresponds to which audio
-> >                                        * stream device on the alsa side */
-> >          AVSINK_GET_DISPLAY_SAMPLING_FREQ,      /* HDMI TMDS clock or DP link symbol clock, for audio driver to
-> >                                                          * program N value
-> >                                                         */
-> >          AVSINK_GET_DISPLAY_HDCP_STATUS,
-> >          AVSINK_GET_DISPLAY_AUDIO_STATUS, /* Whether audio is enabled */
-> >          AVSINK_SET_DISPLAY_ENABLE_AUDIO, /* Enable audio */
-> >          AVSINK_SET_DISPLAY_DISABLE_AUDIO,         /* Disable audio */
-> >          AVSINK_SET_DISPLAY_ENABLE_AUDIO_INT, /* Enable audio interrupt */
-> >          AVSINK_SET_DISPLAY_DISABLE_AUDIO_INT,         /* Disable audio interrupt */
-> > 
-> >          /* capabilities for audio input endpoints */
-> >          AVSINK_GET_AUDIO_IS_BUSY,  /* Whether there is an active audio streaming */
-> >          OTHERS_TBD,
-> > };
-> 
-> I really don't like caps based apis. It's imo much better to have specific
-> set/get functions. Also a lot of this could be passed to more specific
-> event handlers directly (like the eld or the sampling freq).
-> 
-> If you have a void* somewhere in your interface you're throwing out an
-> awful lot of safety checks gcc provides. Which is not good.
-> 
-> > For example, the audio driver can query ELD info on an audio input endpoint by using caps AVSINK_GET_DISPLAY_ELD, and
-> > avsink core will call get_caps() on the peer display output endpoint and return the ELD info to the audio driver.
-> > 
-> > Some audio driver may only use part of these caps. E.g. HD-Audio driver can use bus commands instead of the ops to
-> > control the audio on gfx side, so it doesn't use caps like ENABLE/DISABLE_AUDIO or ENABLE/DISABLE_AUDIO.
-> > 
-> > When the display driver want to disable a display pipeline for hot-plug, mode change or power saving, it can use caps
-> > AVSINK_GET_AUDIO_IS_BUSY to check if the audio input is busy (active streaming) on this display pipeline. And if audio
-> > is busy, the display driver can choose to wait or go ahead to disable display pipeline anyway. For the latter case, the
-> > audio input endpoint will be notified by an event and should abort audio streaming.
-> > 
-> > 5. Event handling of endpoints
-> > 
-> > A driver can post events on an endpoint. Depending on the event type, the avsink core will call the endpoint's event
-> > handler or pass the event to its peer endpoint and trigger the peer's event handler function if defined.
-> > 
-> > int avsink_endpoint_post_event(struct avsink_endpoint *endpoint,
-> >                                      enum avsink_event_type event_type);
-> > 
-> > Now we only defined event types which should be handled by the audio input endpoints. The event types can be extended
-> > in the future.
-> > 
-> > enum avsink_event_type {
-> >         AVSINK_EVENT_DISPLAY_DISABLE = 1,  /* The display pipeline is disabled for hot-plug, mode change or
-> >                                                          * suspend. Audio driver should stop any active streaming.
-> >                                                         */
-> >         AVSINK_EVENT_DISPLAY_ENABLE,                   /* The display pipeline is enabled after hot-plug, mode change or
-> >                                                          * resume. Audio driver can restore previously interrupted streaming
-> >                                                          */
-> >         AVSINK_EVENT_DISPLAY_MODE_CHANGE,   /* Display mode change event. At this time, the new display mode is
-> >                                                          * configured but the display pipeline is not enabled yet. Audio driver
-> >                                                         * can do some configurations such as programing N value */
-> >         AVSINK_EVENT_DISPLAY_AUDIO_BUFFER_DONE,         /* Audio Buffer done interrupts. Only for audio drivers if DMA and
-> >                                                          * interrupt are handled by GPU
-> >                                                         */
-> >         AVSINK_EVENT_DISPLAY_AUDIO_BUFFER_UNDERRUN,       /* Audio Buffer under run interrupts. Only for audio drivers if
-> >                                                                   * DMA and interrupt are handled by GPU
-> >                                                                  */
-> > };
-> > 
-> > So for a display driver, it can post an event on a display output endpoint and get processed by the peer audio input
-> > endpoint. Or it can also directly post an event on a peer audio input endpoint, by using the 'peer' pointer on a
-> > display output endpoint.
-> 
-> Again I don't like the enumeration, much better to have a bunch of
-> specific callbacks. They can also supply interesting information to the
-> driver directly if instead of audio driver needing to jump through a few
-> get/set hooks.
-> 
-> > 6. Display register operation (optional)
-> > 
-> > Some audio driver needs to access GPU audio registers. The register ops are provided by the peer display client.
-> > 
-> > struct avsink_registers_ops {
-> >          int (*read_register) (uint32_t reg_addr, uint32_t *data, void *context);
-> >          int (*write_register) (uint32_t reg_addr, uint32_t data, void *context);
-> >          int (*read_modify_register) (uint32_t reg_addr, uint32_t data, uint32_t mask, void *context);
-> > 
-> > int avsink_define_reg_ops (struct avsink_client *client, struct avsink_registers_ops *ops);
-> > 
-> > And avsink core provides API for the audio driver to access the display registers:
-> > 
-> > int avsink_read_display_register(struct avsink_client *client , uint32_t offset, uint32_t *data);
-> > int avsink_write_display_register(struct avsink_client *client , uint32_t offset, uint32_t data);
-> > int avsink_read_modify_display_register(struct avsink_client *client, uint32_t offset, uint32_t data, uint32_t mask);
-> > 
-> > If the client is an audio client, the avsink core will find it peer display client and call its register ops;
-> > and if the client is a display client, the avsink core will just call its own register ops.
-> 
-> Oh dear. Where do we need this? Imo this is really horrible, but if we
-> indeed need this then a struct device is better - we can attach mmio
-> resources to devices and let the audio side remap them as best as they see
-> fit.
-> -Daniel
-> -- 
-> Daniel Vetter
-> Software Engineer, Intel Corporation
-> +41 (0) 79 365 57 48 - http://blog.ffwll.ch
-
+diff --git a/dvbv5_isdb-t/br-pb-AlagoaGrande b/dvbv5_isdb-t/br-pb-AlagoaGrande
+new file mode 100644
+index 000000000000..7197e264be8f
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-AlagoaGrande
+@@ -0,0 +1,32 @@
++# Channel table for Alagoa Grande - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=960
++
++# Physical channel 22
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 521142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Alagoinha b/dvbv5_isdb-t/br-pb-Alagoinha
+new file mode 100644
+index 000000000000..e80659dee413
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Alagoinha
+@@ -0,0 +1,32 @@
++# Channel table for Alagoinha - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=3234
++
++# Physical channel 20
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 509142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Aparecida b/dvbv5_isdb-t/br-pb-Aparecida
+new file mode 100644
+index 000000000000..07205791da1b
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Aparecida
+@@ -0,0 +1,32 @@
++# Channel table for Aparecida - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=3262
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Bayeux b/dvbv5_isdb-t/br-pb-Bayeux
+new file mode 100644
+index 000000000000..67c4d79833ca
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Bayeux
+@@ -0,0 +1,206 @@
++# Channel table for Bayeux - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2624
++
++# Physical channel 17
++[TV Correio]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 491142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 19
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 503142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 23
++[TV Arapuan]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 527142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 31
++[TV Tambaú]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[TV Aparecida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Senado, TV Assembleia PB, TV Câmara]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 47
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 671142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-BomJesus b/dvbv5_isdb-t/br-pb-BomJesus
+new file mode 100644
+index 000000000000..afc65025f91b
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-BomJesus
+@@ -0,0 +1,32 @@
++# Channel table for Bom Jesus - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2813
++
++# Physical channel 19
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 503142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Cabedelo b/dvbv5_isdb-t/br-pb-Cabedelo
+new file mode 100644
+index 000000000000..600d9c9b88ab
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Cabedelo
+@@ -0,0 +1,206 @@
++# Channel table for Cabedelo - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=3238
++
++# Physical channel 17
++[TV Correio]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 491142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 19
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 503142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 23
++[TV Arapuan]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 527142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 31
++[TV Tambaú]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[TV Aparecida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Senado, TV Assembleia PB, TV Câmara]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 47
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 671142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-CachoeiraDosIndios b/dvbv5_isdb-t/br-pb-CachoeiraDosIndios
+new file mode 100644
+index 000000000000..d5bb4be28fd7
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-CachoeiraDosIndios
+@@ -0,0 +1,32 @@
++# Channel table for Cachoeira dos Índios - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2820
++
++# Physical channel 19
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 503142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-CacimbaDeDentro b/dvbv5_isdb-t/br-pb-CacimbaDeDentro
+new file mode 100644
+index 000000000000..4bf1a6cc84aa
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-CacimbaDeDentro
+@@ -0,0 +1,32 @@
++# Channel table for Cacimba de Dentro - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2687
++
++# Physical channel 22
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 521142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Cajazeiras b/dvbv5_isdb-t/br-pb-Cajazeiras
+new file mode 100644
+index 000000000000..f0d748dba2a2
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Cajazeiras
+@@ -0,0 +1,32 @@
++# Channel table for Cajazeiras - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=689
++
++# Physical channel 19
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 503142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-CaldasBrandao b/dvbv5_isdb-t/br-pb-CaldasBrandao
+new file mode 100644
+index 000000000000..84bff4279e88
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-CaldasBrandao
+@@ -0,0 +1,32 @@
++# Channel table for Caldas Brandão - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=1784
++
++# Physical channel 22
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 521142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-CampinaGrande b/dvbv5_isdb-t/br-pb-CampinaGrande
+new file mode 100644
+index 000000000000..6bb5d7a2976f
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-CampinaGrande
+@@ -0,0 +1,32 @@
++# Channel table for Campina Grande - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=116
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Catingueira b/dvbv5_isdb-t/br-pb-Catingueira
+new file mode 100644
+index 000000000000..c01ecfd5674e
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Catingueira
+@@ -0,0 +1,32 @@
++# Channel table for Catingueira - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2832
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Condado b/dvbv5_isdb-t/br-pb-Condado
+new file mode 100644
+index 000000000000..26c97330470e
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Condado
+@@ -0,0 +1,32 @@
++# Channel table for Condado - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2458
++
++# Physical channel 19
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 503142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Cuitegi b/dvbv5_isdb-t/br-pb-Cuitegi
+new file mode 100644
+index 000000000000..5aacb9d54af8
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Cuitegi
+@@ -0,0 +1,32 @@
++# Channel table for Cuitegi - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=3115
++
++# Physical channel 20
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 509142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Desterro b/dvbv5_isdb-t/br-pb-Desterro
+new file mode 100644
+index 000000000000..724306429195
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Desterro
+@@ -0,0 +1,32 @@
++# Channel table for Desterro - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2814
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Guarabira b/dvbv5_isdb-t/br-pb-Guarabira
+new file mode 100644
+index 000000000000..51a5d2af2c69
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Guarabira
+@@ -0,0 +1,61 @@
++# Channel table for Guarabira - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=691
++
++# Physical channel 20
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 509142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 47
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 671142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Gurinhem b/dvbv5_isdb-t/br-pb-Gurinhem
+new file mode 100644
+index 000000000000..a683ec7a77d6
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Gurinhem
+@@ -0,0 +1,32 @@
++# Channel table for Gurinhém - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2686
++
++# Physical channel 22
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 521142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Imaculada b/dvbv5_isdb-t/br-pb-Imaculada
+new file mode 100644
+index 000000000000..76b6e784f35e
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Imaculada
+@@ -0,0 +1,32 @@
++# Channel table for Imaculada - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2460
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Itabaiana b/dvbv5_isdb-t/br-pb-Itabaiana
+new file mode 100644
+index 000000000000..d7f855a547fa
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Itabaiana
+@@ -0,0 +1,32 @@
++# Channel table for Itabaiana - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2466
++
++# Physical channel 22
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 521142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Jacarau b/dvbv5_isdb-t/br-pb-Jacarau
+new file mode 100644
+index 000000000000..a87f1a5c8eb3
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Jacarau
+@@ -0,0 +1,61 @@
++# Channel table for Jacaraú - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2540
++
++# Physical channel 20
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 509142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 47
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 671142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-JoaoPessoa b/dvbv5_isdb-t/br-pb-JoaoPessoa
+new file mode 100644
+index 000000000000..ea7f64600142
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-JoaoPessoa
+@@ -0,0 +1,264 @@
++# Channel table for João Pessoa - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=151
++
++# Physical channel 17
++[TV Correio]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 491142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 19
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 503142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 23
++[TV Arapuan]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 527142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 31
++[TV Tambaú]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[TV Aparecida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Senado, TV Assembleia PB, TV Câmara]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 47
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 671142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 55
++[TV Canção Nova]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 719142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 61
++[TV Câmara, TV Câmara João Pessoa]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 755142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Juripiranga b/dvbv5_isdb-t/br-pb-Juripiranga
+new file mode 100644
+index 000000000000..e0d224a11b3a
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Juripiranga
+@@ -0,0 +1,90 @@
++# Channel table for Juripiranga - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2641
++
++# Physical channel 20
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 509142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 22
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 521142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-LagoaSeca b/dvbv5_isdb-t/br-pb-LagoaSeca
+new file mode 100644
+index 000000000000..3ee14548faf8
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-LagoaSeca
+@@ -0,0 +1,32 @@
++# Channel table for Lagoa Seca - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=3022
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Lucena b/dvbv5_isdb-t/br-pb-Lucena
+new file mode 100644
+index 000000000000..cb8a9da01b11
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Lucena
+@@ -0,0 +1,119 @@
++# Channel table for Lucena - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=3027
++
++# Physical channel 17
++[TV Correio]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 491142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 19
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 503142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 23
++[TV Arapuan]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 527142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[TV Aparecida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-MaeDAgua b/dvbv5_isdb-t/br-pb-MaeDAgua
+new file mode 100644
+index 000000000000..5f7d74f9426f
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-MaeDAgua
+@@ -0,0 +1,32 @@
++# Channel table for Mãe d´ Água - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2840
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Mamanguape b/dvbv5_isdb-t/br-pb-Mamanguape
+new file mode 100644
+index 000000000000..012c281c6797
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Mamanguape
+@@ -0,0 +1,119 @@
++# Channel table for Mamanguape - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=1456
++
++# Physical channel 17
++[TV Correio]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 491142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 19
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 503142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 23
++[TV Arapuan]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 527142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 31
++[TV Tambaú]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Marizopolis b/dvbv5_isdb-t/br-pb-Marizopolis
+new file mode 100644
+index 000000000000..ecb7c9297d55
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Marizopolis
+@@ -0,0 +1,32 @@
++# Channel table for Marizópolis - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=3264
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Massaranduba b/dvbv5_isdb-t/br-pb-Massaranduba
+new file mode 100644
+index 000000000000..669251714e35
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Massaranduba
+@@ -0,0 +1,32 @@
++# Channel table for Massaranduba - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=3023
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Matinhas b/dvbv5_isdb-t/br-pb-Matinhas
+new file mode 100644
+index 000000000000..18343551a6de
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Matinhas
+@@ -0,0 +1,32 @@
++# Channel table for Matinhas - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2836
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Matureia b/dvbv5_isdb-t/br-pb-Matureia
+new file mode 100644
+index 000000000000..465446ee205e
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Matureia
+@@ -0,0 +1,32 @@
++# Channel table for Maturéia - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=946
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Mulungu b/dvbv5_isdb-t/br-pb-Mulungu
+new file mode 100644
+index 000000000000..862f58f344cf
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Mulungu
+@@ -0,0 +1,32 @@
++# Channel table for Mulungu - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2537
++
++# Physical channel 20
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 509142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-OlhoDAgua b/dvbv5_isdb-t/br-pb-OlhoDAgua
+new file mode 100644
+index 000000000000..cd1eba00bc1b
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-OlhoDAgua
+@@ -0,0 +1,32 @@
++# Channel table for Olho d´ Água - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2809
++
++# Physical channel 19
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 503142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Patos b/dvbv5_isdb-t/br-pb-Patos
+new file mode 100644
+index 000000000000..97af84758307
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Patos
+@@ -0,0 +1,32 @@
++# Channel table for Patos - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=688
++
++# Physical channel 19
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 503142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Pilar b/dvbv5_isdb-t/br-pb-Pilar
+new file mode 100644
+index 000000000000..e4ab31fbb997
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Pilar
+@@ -0,0 +1,32 @@
++# Channel table for Pilar - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2462
++
++# Physical channel 22
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 521142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Piloezinhos b/dvbv5_isdb-t/br-pb-Piloezinhos
+new file mode 100644
+index 000000000000..468920f7d1eb
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Piloezinhos
+@@ -0,0 +1,32 @@
++# Channel table for Pilõezinhos - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2556
++
++# Physical channel 20
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 509142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Puxinana b/dvbv5_isdb-t/br-pb-Puxinana
+new file mode 100644
+index 000000000000..6edbc052bbe7
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Puxinana
+@@ -0,0 +1,32 @@
++# Channel table for Puxinanã - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=3024
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-RioTinto b/dvbv5_isdb-t/br-pb-RioTinto
+new file mode 100644
+index 000000000000..b18605dd5fae
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-RioTinto
+@@ -0,0 +1,32 @@
++# Channel table for Rio Tinto - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=948
++
++# Physical channel 19
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 503142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-SantaRita b/dvbv5_isdb-t/br-pb-SantaRita
+new file mode 100644
+index 000000000000..867969e7f67a
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-SantaRita
+@@ -0,0 +1,148 @@
++# Channel table for Santa Rita - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2538
++
++# Physical channel 17
++[TV Correio]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 491142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 19
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 503142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 23
++[TV Arapuan]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 527142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 31
++[TV Tambaú]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 47
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 671142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-SantaTeresinha b/dvbv5_isdb-t/br-pb-SantaTeresinha
+new file mode 100644
+index 000000000000..5e3460fd22fb
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-SantaTeresinha
+@@ -0,0 +1,32 @@
++# Channel table for Santa Teresinha - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2956
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-SaoFrancisco b/dvbv5_isdb-t/br-pb-SaoFrancisco
+new file mode 100644
+index 000000000000..f3b71d0a71d5
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-SaoFrancisco
+@@ -0,0 +1,32 @@
++# Channel table for São Francisco - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2643
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-SaoJoseDePiranhas b/dvbv5_isdb-t/br-pb-SaoJoseDePiranhas
+new file mode 100644
+index 000000000000..8c6fe0492020
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-SaoJoseDePiranhas
+@@ -0,0 +1,32 @@
++# Channel table for São José de Piranhas - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2792
++
++# Physical channel 19
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 503142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-SaoMamede b/dvbv5_isdb-t/br-pb-SaoMamede
+new file mode 100644
+index 000000000000..a0be08ea40da
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-SaoMamede
+@@ -0,0 +1,32 @@
++# Channel table for São Mamede - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2910
++
++# Physical channel 19
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 503142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Sape b/dvbv5_isdb-t/br-pb-Sape
+new file mode 100644
+index 000000000000..788780bd0ebf
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Sape
+@@ -0,0 +1,206 @@
++# Channel table for Sapé - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=1427
++
++# Physical channel 17
++[TV Correio]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 491142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 19
++[TV Cabo Branco]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 503142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 23
++[TV Arapuan]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 527142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 31
++[TV Tambaú]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 575142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 38
++[TV Aparecida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 617142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 41
++[TV Senado, TV Assembleia PB, TV Câmara]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 635142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
++# Physical channel 47
++[Rede Vida]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 671142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Sousa b/dvbv5_isdb-t/br-pb-Sousa
+new file mode 100644
+index 000000000000..fb15fe6d5c52
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Sousa
+@@ -0,0 +1,32 @@
++# Channel table for Sousa - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=1767
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
+diff --git a/dvbv5_isdb-t/br-pb-Teixeira b/dvbv5_isdb-t/br-pb-Teixeira
+new file mode 100644
+index 000000000000..d936a3b754d7
+--- /dev/null
++++ b/dvbv5_isdb-t/br-pb-Teixeira
+@@ -0,0 +1,32 @@
++# Channel table for Teixeira - PB - Brazil
++# Source: http://portalbsd.com.br/novo/terrestres_channels.php?channels=2465
++
++# Physical channel 21
++[TV Paraíba]
++	DELIVERY_SYSTEM = ISDBT
++	BANDWIDTH_HZ = 6000000
++	FREQUENCY = 515142857
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	INVERSION = AUTO
++	GUARD_INTERVAL = AUTO
++	TRANSMISSION_MODE = AUTO
++	ISDBT_LAYER_ENABLED = 7
++	ISDBT_SOUND_BROADCASTING = 0
++	ISDBT_SB_SUBCHANNEL_ID = 0
++	ISDBT_SB_SEGMENT_IDX = 0
++	ISDBT_SB_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_FEC = AUTO
++	ISDBT_LAYERA_MODULATION = QAM/AUTO
++	ISDBT_LAYERA_SEGMENT_COUNT = 0
++	ISDBT_LAYERA_TIME_INTERLEAVING = 0
++	ISDBT_LAYERB_FEC = AUTO
++	ISDBT_LAYERB_MODULATION = QAM/AUTO
++	ISDBT_LAYERB_SEGMENT_COUNT = 0
++	ISDBT_LAYERB_TIME_INTERLEAVING = 0
++	ISDBT_LAYERC_FEC = AUTO
++	ISDBT_LAYERC_MODULATION = QAM/AUTO
++	ISDBT_LAYERC_SEGMENT_COUNT = 0
++	ISDBT_LAYERC_TIME_INTERLEAVING = 0
++
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+1.9.3
+
