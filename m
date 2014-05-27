@@ -1,153 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.horizon.com ([71.41.210.147]:62982 "HELO ns.horizon.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1757832AbaEKLOT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 May 2014 07:14:19 -0400
-Date: 11 May 2014 07:14:18 -0400
-Message-ID: <20140511111418.14709.qmail@ns.horizon.com>
-From: "George Spelvin" <linux@horizon.com>
-To: james.hogan@imgtec.com, linux-media@vger.kernel.org,
-	linux@horizon.com, m.chehab@samsung.com
-Subject: [PATCH 04/10] ati_remote: Generalize KIND_ACCEL to accept diagonals
-In-Reply-To: <20140511111113.14427.qmail@ns.horizon.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54377 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751472AbaE0KgL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 May 2014 06:36:11 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH/RFC 0/2] Propert alpha channel support in pixel formats
+Date: Tue, 27 May 2014 12:36:30 +0200
+Message-ID: <11776568.dvWb72dmNF@avalon>
+In-Reply-To: <53843C3F.8070204@xs4all.nl>
+References: <1401142629-12856-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <53843C3F.8070204@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rather than having special code cases for diagonal mouse
-movements, extend the general purpose code used for the
-cardinal directions to handle arbitrary (x,y) deltas.
+Hi Hans,
 
-The deltas themselves are stored in translation table's "code"
-field; this is also progress toward the goal of eliminating
-the "value" element entirely.
+On Tuesday 27 May 2014 09:18:23 Hans Verkuil wrote:
+> On 05/27/2014 12:17 AM, Laurent Pinchart wrote:
+> > Hello,
+> > 
+> > This RFC patch series attempts to clean up the current ARGB format mess.
+> > 
+> > The core issue is that the existing ARGB formats are ill-defined. The V4L2
+> > specification doesn't clearly document how the alpha bits should behave.
+> > Drivers have thus used the same formats in different, incompatible ways,
+> > and applications now rely on the driver-specific behaviours. In a word,
+> > that's a mess.
+> > 
+> > I've discussed the issue in the #v4l channel a couple of days ago and we
+> > came up to the conclusion that the best (or least painful) way to fix the
+> > problem is to define new clean XRGB and ARGB formats, and consider the
+> > existing formats as deprecated (meaning that no new driver should use
+> > them, they won't disappear in a couple of months, as that would break
+> > userspace).
+> > 
+> > The first patch adds the new XRGB and ARGB formats and documents them.
+> 
+> Question: should we add all XRGB and ARGB formats even if drivers do not use
+> them? Or just those that are actually used?
 
-Signed-off-by: George Spelvin <linux@horizon.com>
----
- drivers/media/rc/ati_remote.c | 71 ++++++++++++++-----------------------------
- 1 file changed, 23 insertions(+), 48 deletions(-)
+The VSP1 driver is going to use them all, so we need them all.
 
-diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
-index 933d614475..ba5c1bba53 100644
---- a/drivers/media/rc/ati_remote.c
-+++ b/drivers/media/rc/ati_remote.c
-@@ -281,11 +281,7 @@ struct ati_remote {
- #define KIND_END        0
- #define KIND_LITERAL    1   /* Simply pass to input system */
- #define KIND_FILTERED   2   /* Add artificial key-up events, drop keyrepeats */
--#define KIND_LU         3   /* Directional keypad diagonals - left up, */
--#define KIND_RU         4   /*   right up,  */
--#define KIND_LD         5   /*   left down, */
--#define KIND_RD         6   /*   right down */
--#define KIND_ACCEL      7   /* Directional keypad - left, right, up, down.*/
-+#define KIND_ACCEL      3   /* Directional keypad - left, right, up, down.*/
- 
- /* Translation table from hardware messages to input events. */
- static const struct {
-@@ -295,16 +291,17 @@ static const struct {
- 	unsigned short code;
- 	signed char value;
- }  ati_remote_tbl[] = {
--	/* Directional control pad axes */
--	{KIND_ACCEL,   0x70, EV_REL, REL_X, -1},   /* left */
--	{KIND_ACCEL,   0x71, EV_REL, REL_X, 1},    /* right */
--	{KIND_ACCEL,   0x72, EV_REL, REL_Y, -1},   /* up */
--	{KIND_ACCEL,   0x73, EV_REL, REL_Y, 1},    /* down */
-+	/* Directional control pad axes.  Code is xxyy */
-+	{KIND_ACCEL,   0x70, EV_REL, 0xff00, 0},	/* left */
-+	{KIND_ACCEL,   0x71, EV_REL, 0x0100, 0},	/* right */
-+	{KIND_ACCEL,   0x72, EV_REL, 0x00ff, 0},	/* up */
-+	{KIND_ACCEL,   0x73, EV_REL, 0x0001, 0},	/* down */
-+
- 	/* Directional control pad diagonals */
--	{KIND_LU,      0x74, EV_REL, 0, 0},        /* left up */
--	{KIND_RU,      0x75, EV_REL, 0, 0},        /* right up */
--	{KIND_LD,      0x77, EV_REL, 0, 0},        /* left down */
--	{KIND_RD,      0x76, EV_REL, 0, 0},        /* right down */
-+	{KIND_ACCEL,   0x74, EV_REL, 0xffff, 0},	/* left up */
-+	{KIND_ACCEL,   0x75, EV_REL, 0x01ff, 0},	/* right up */
-+	{KIND_ACCEL,   0x77, EV_REL, 0xff01, 0},	/* left down */
-+	{KIND_ACCEL,   0x76, EV_REL, 0x0101, 0},	/* right down */
- 
- 	/* "Mouse button" buttons */
- 	{KIND_LITERAL, 0x78, EV_KEY, BTN_LEFT, 1}, /* left btn down */
-@@ -493,7 +490,6 @@ static void ati_remote_input_report(struct urb *urb)
- 	unsigned char *data= ati_remote->inbuf;
- 	struct input_dev *dev = ati_remote->idev;
- 	int index = -1;
--	int acc;
- 	int remote_num;
- 	unsigned char scancode;
- 	u32 wheel_keycode = KEY_RESERVED;
-@@ -573,10 +569,8 @@ static void ati_remote_input_report(struct urb *urb)
- 		input_sync(dev);
- 
- 		ati_remote->old_jiffies = jiffies;
--		return;
--	}
- 
--	if (index < 0 || ati_remote_tbl[index].kind == KIND_FILTERED) {
-+	} else if (index < 0 || ati_remote_tbl[index].kind == KIND_FILTERED) {
- 		unsigned long now = jiffies;
- 
- 		/* Filter duplicate events which happen "too close" together. */
-@@ -636,46 +630,27 @@ static void ati_remote_input_report(struct urb *urb)
- 			ati_remote_tbl[index].code, 0);
- 		input_sync(dev);
- 
--	} else {
-+	} else if (ati_remote_tbl[index].kind == KIND_ACCEL) {
-+		signed char dx = ati_remote_tbl[index].code >> 8;
-+		signed char dy = ati_remote_tbl[index].code & 255;
- 
- 		/*
- 		 * Other event kinds are from the directional control pad, and
- 		 * have an acceleration factor applied to them.  Without this
- 		 * acceleration, the control pad is mostly unusable.
- 		 */
--		acc = ati_remote_compute_accel(ati_remote);
--
--		switch (ati_remote_tbl[index].kind) {
--		case KIND_ACCEL:
--			input_event(dev, ati_remote_tbl[index].type,
--				ati_remote_tbl[index].code,
--				ati_remote_tbl[index].value * acc);
--			break;
--		case KIND_LU:
--			input_report_rel(dev, REL_X, -acc);
--			input_report_rel(dev, REL_Y, -acc);
--			break;
--		case KIND_RU:
--			input_report_rel(dev, REL_X, acc);
--			input_report_rel(dev, REL_Y, -acc);
--			break;
--		case KIND_LD:
--			input_report_rel(dev, REL_X, -acc);
--			input_report_rel(dev, REL_Y, acc);
--			break;
--		case KIND_RD:
--			input_report_rel(dev, REL_X, acc);
--			input_report_rel(dev, REL_Y, acc);
--			break;
--		default:
--			dev_dbg(&ati_remote->interface->dev,
--				"ati_remote kind=%d\n",
--				ati_remote_tbl[index].kind);
--		}
-+		int acc = ati_remote_compute_accel(ati_remote);
-+		if (dx)
-+			input_report_rel(dev, REL_X, dx * acc);
-+		if (dy)
-+			input_report_rel(dev, REL_Y, dy * acc);
- 		input_sync(dev);
- 
- 		ati_remote->old_jiffies = jiffies;
- 		ati_remote->old_data = data[2];
-+	} else {
-+		dev_dbg(&ati_remote->interface->dev, "ati_remote kind=%d\n",
-+			ati_remote_tbl[index].kind);
- 	}
- }
- 
+> > It purposely includes no core code to handle backward compatibility for
+> > existing drivers that may wish to move to the new formats. The reason is
+> > that I would first like to get feedback on the proposal before working on
+> > compat code, and I believe we should first implement the compat code in a
+> > couple of drivers and then see how the approach could be generalized, if
+> > possible at all.
+> > 
+> > The second patch allows using the ALPHA_COMPONENT control on output
+> > devices to support an ARGB use case documented in the first patch. One
+> > possible shortcoming of reusing the existing control is that a mem-to-mem
+> > driver that exposes an output and a capture queue on a single video node
+> > through the same file handle wouldn't be able to set different alpha
+> > component values on the two queues. I'm not sure whether that use case is
+> > real though, it seems weird to me to set a fixed alpha value on one side
+> > to request a different fixed alpha value on the other side.
+> 
+> I prefer a CAP_ALPHA_COMPONENT control. It's easy to add a capture-specific
+> control now, it's much harder to change it in the future.
+
+What bothers me with this approach is the duplication of otherwise identical 
+controls. As we'll likely need per-pad controls at some point in the future, 
+wouldn't it better to implement a similar way to distinguish between capture 
+and output controls ?
+
 -- 
-1.9.2
+Regards,
+
+Laurent Pinchart
 
