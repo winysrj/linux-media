@@ -1,55 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:18548 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751876AbaENObn (ORCPT
+Received: from bay004-omc2s6.hotmail.com ([65.54.190.81]:49881 "EHLO
+	BAY004-OMC2S6.hotmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751917AbaE0SAc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 May 2014 10:31:43 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N5K0050UJ0TA920@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 14 May 2014 23:31:41 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: arun.kk@samsung.com, Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH] v4l: Fix documentation of V4L2_PIX_FMT_H264_MVC and VP8 pixel
- formats
-Date: Wed, 14 May 2014 16:31:09 +0200
-Message-id: <1400077869-17573-1-git-send-email-k.debski@samsung.com>
+	Tue, 27 May 2014 14:00:32 -0400
+Message-ID: <BAY177-W35986CA25EA77648947BDDF23A0@phx.gbl>
+From: Richie Gress <searchfgold67899@live.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: 1d6b:0001 [MSI A55M-P33] No webcam functionality with Zoran
+ Microelectronics, Ltd Digital Camera EX-20 DSC
+Date: Tue, 27 May 2014 13:55:20 -0400
+In-Reply-To: <538438C5.1090600@xs4all.nl>
+References: <BLU436-SMTP93884884267098D387F74FF23A0@phx.gbl>,<538438C5.1090600@xs4all.nl>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The 'Code' column in the documentation should provide the real fourcc
-code that is used. Changed the documentation to provide the fourcc
-defined in videodev2.h
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
----
- Documentation/DocBook/media/v4l/pixfmt.xml |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index ea514d6..91dcbc8 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -772,7 +772,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
- 	  </row>
- 	  <row id="V4L2-PIX-FMT-H264-MVC">
- 		<entry><constant>V4L2_PIX_FMT_H264_MVC</constant></entry>
--		<entry>'MVC'</entry>
-+		<entry>'M264'</entry>
- 		<entry>H264 MVC video elementary stream.</entry>
- 	  </row>
- 	  <row id="V4L2-PIX-FMT-H263">
-@@ -812,7 +812,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
- 	  </row>
- 	  <row id="V4L2-PIX-FMT-VP8">
- 		<entry><constant>V4L2_PIX_FMT_VP8</constant></entry>
--		<entry>'VP8'</entry>
-+		<entry>'VP80'</entry>
- 		<entry>VP8 video elementary stream.</entry>
- 	  </row>
- 	</tbody>
--- 
-1.7.9.5
+> Date: Tue, 27 May 2014 09:03:33 +0200
+> From: hverkuil@xs4all.nl
+> To: searchfgold67899@live.com; linux-usb@vger.kernel.org; linux-media@vger.kernel.org
+> Subject: Re: 1d6b:0001 [MSI A55M-P33] No webcam functionality with Zoran Microelectronics, Ltd Digital Camera EX-20 DSC
+> 
+> On 05/27/2014 03:34 AM, Richie wrote:
+>> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1322380
+>> 
+>> [1.] One line summary of the problem:
+>> 
+>> 1d6b:0001 [MSI A55M-P33] No webcam functionality with Zoran Microelectronics, 
+>> Ltd Digital Camera EX-20 DSC
+>> 
+>> [2.] Full description of the problem/report: 
+>> 
+>> No software recognizes the webcam and this is not a regression. dmesg reports 
+>> the following additional output after plugging the camera. You can see where I 
+>> change the camera to "PC Mode" (in order to use the webcam, users must do this 
+>> from the camera) at [ 691.147589]. The device is turned off at [ 1094.746444]:
+>> 
+>> [ 688.796908] usb 4-2: new full-speed USB device number 2 using ohci-pci
+>> [ 688.965802] usb 4-2: New USB device found, idVendor=0595, idProduct=2002
+>> [ 688.965807] usb 4-2: New USB device strings: Mfr=4, Product=5, 
+>> SerialNumber=6
+>> [ 688.965809] usb 4-2: Product: COACH DSC
+>> [ 688.965811] usb 4-2: Manufacturer: ZORAN
+>> [ 688.965813] usb 4-2: SerialNumber: ZORAN01234567
+>> [ 689.012630] usb-storage 4-2:1.0: USB Mass Storage device detected
+>> [ 689.021168] scsi6 : usb-storage 4-2:1.0
+>> [ 689.021266] usbcore: registered new interface driver usb-storage
+>> [ 690.030971] scsi 6:0:0:0: Direct-Access ZORAN COACH6 (I62) 1.10 PQ: 0 ANSI: 
+>> 0 CCS
+>> [ 690.036147] sd 6:0:0:0: Attached scsi generic sg3 type 0
+>> [ 690.044964] sd 6:0:0:0: [sdc] 3962629 512-byte logical blocks: (2.02 GB/1.88 
+>> GiB)
+>> [ 690.054977] sd 6:0:0:0: [sdc] Write Protect is off
+>> [ 690.054984] sd 6:0:0:0: [sdc] Mode Sense: 00 06 00 00
+>> [ 690.064965] sd 6:0:0:0: [sdc] No Caching mode page found
+>> [ 690.064971] sd 6:0:0:0: [sdc] Assuming drive cache: write through
+>> [ 690.108960] sd 6:0:0:0: [sdc] No Caching mode page found
+>> [ 690.108966] sd 6:0:0:0: [sdc] Assuming drive cache: write through
+>> [ 690.156970] sdc:
+>> [ 690.210974] sd 6:0:0:0: [sdc] No Caching mode page found
+>> [ 690.210980] sd 6:0:0:0: [sdc] Assuming drive cache: write through
+>> [ 690.210985] sd 6:0:0:0: [sdc] Attached SCSI removable disk
+>> [ 691.147589] usb 4-2: USB disconnect, device number 2
+>> [ 691.793364] usb 4-2: new full-speed USB device number 3 using ohci-pci
+>> [ 691.962202] usb 4-2: New USB device found, idVendor=0595, idProduct=4343
+>> [ 691.962207] usb 4-2: New USB device strings: Mfr=7, Product=8, 
+>> SerialNumber=9
+>> [ 691.962209] usb 4-2: Product: COACH DSC
+>> [ 691.962211] usb 4-2: Manufacturer: ZORAN
+>> [ 691.962213] usb 4-2: SerialNumber: ZORAN00000001
+>> [ 691.964262] usb-storage 4-2:1.0: USB Mass Storage device detected
+>> [ 691.965410] usb-storage: probe of 4-2:1.0 failed with error -5
+>> [ 692.053929] Linux video capture interface: v2.00
+>> [ 692.091447] zr364xx 4-2:1.0: Zoran 364xx compatible webcam plugged
+>> [ 692.091453] zr364xx 4-2:1.0: model 0595:4343 detected
+>> [ 692.091461] usb 4-2: 320x240 mode selected
+>> [ 692.094356] usb 4-2: Zoran 364xx controlling device video0
+> 
+> Clearly the webcam is recognized and a /dev/video0 node is created.
+> Please check that /dev/video0 exists. Try e.g. v4l2-ctl -D -d /dev/video0,
+> it should list it as using the zr364xx driver.
+> 
+> So what exactly doesn't work?
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>> [ 692.094672] usbcore: registered new interface driver zr364xx
+>> [ 1094.746444] hub 4-0:1.0: port 2 disabled by hub (EMI?), re-enabling...
+>> [ 1094.746451] usb 4-2: USB disconnect, device number 3
+>> [ 1094.747395] zr364xx 4-2:1.0: Zoran 364xx webcam unplugged
+> 
 
+Yes, it does seem to be using the zr364xx driver:
+
+$ v4l2-ctl -D -d /dev/video0
+Driver Info (not using libv4l2):
+        Driver name   : Zoran 364xx
+        Card type     : COACH DSC
+        Bus info      : 4-1
+        Driver version: 3.15.0
+        Capabilities  : 0x85000001
+                Video Capture
+                Read/Write
+                Streaming
+                Device Capabilities
+        Device Caps   : 0x05000001
+                Video Capture
+                Read/Write
+                Streaming
+
+The exact problem is that while the camera is recognized as a camera by software like Skype, Kamoso, and Cheese, there is no picture, just black. A "320x240 mode" was mentioned... perhaps that resolution is just too small to use by the software?
+
+ - Richard
+ 		 	   		  
