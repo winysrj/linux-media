@@ -1,115 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1027 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753926AbaEQCn7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 22:43:59 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4H2htcP016955
-	for <linux-media@vger.kernel.org>; Sat, 17 May 2014 04:43:57 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id A3CC72A19A4
-	for <linux-media@vger.kernel.org>; Sat, 17 May 2014 04:43:39 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140517024339.A3CC72A19A4@tschai.lan>
-Date: Sat, 17 May 2014 04:43:39 +0200 (CEST)
+Received: from mga02.intel.com ([134.134.136.20]:27044 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752074AbaE1MTS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 May 2014 08:19:18 -0400
+Message-ID: <5385D3BA.90201@linux.intel.com>
+Date: Wed, 28 May 2014 15:16:58 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] smiapp: Add driver-specific control class, test pattern
+ controls
+References: <1401194628-31679-1-git-send-email-sakari.ailus@linux.intel.com> <1401267638-7606-1-git-send-email-sakari.ailus@linux.intel.com> <1867765.dyDJbEnErb@avalon>
+In-Reply-To: <1867765.dyDJbEnErb@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Laurent,
 
-Results of the daily build of media_tree:
+Laurent Pinchart wrote:
+> Hi Sakari,
+>
+> Thank you for the patch.
+>
+> On Wednesday 28 May 2014 12:00:38 Sakari Ailus wrote:
+>> Add smiapp driver specific control sub-class for test pattern controls. More
+>> controls are expected since a fair amount of the standard functionality is
+>> still unsupported. There are sensor model specific functionality as well
+>> and expectedly thus also sensor specific controls. So reserve 128 controls
+>> for this driver.
+>>
+>> This patch also adds test pattern controls for the four colour components.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> ---
+>> This patch comes before the previous patch I sent to the thread. I missed
+>> this when sending it.
+>>
+>>   include/uapi/linux/smiapp.h        | 34 ++++++++++++++++++++++++++++++++++
+>>   include/uapi/linux/v4l2-controls.h |  4 ++++
+>>   2 files changed, 38 insertions(+)
+>>   create mode 100644 include/uapi/linux/smiapp.h
+>>
+>> diff --git a/include/uapi/linux/smiapp.h b/include/uapi/linux/smiapp.h
+>> new file mode 100644
+>> index 0000000..116fc69
+>> --- /dev/null
+>> +++ b/include/uapi/linux/smiapp.h
+>> @@ -0,0 +1,34 @@
+>> +/*
+>> + * include/media/smiapp.h
+>> + *
+>> + * Generic driver for SMIA/SMIA++ compliant camera modules
+>> + *
+>> + * Copyright (C) 2014 Intel Corporation
+>> + * Contact: Sakari Ailus <sakari.ailus@iki.fi>
+>> + *
+>> + * This program is free software; you can redistribute it and/or
+>> + * modify it under the terms of the GNU General Public License
+>> + * version 2 as published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful, but
+>> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+>> + * General Public License for more details.
+>> + *
+>> + */
+>> +
+>> +#ifndef __UAPI_LINUX_SMIAPP_H_
+>> +#define __UAPI_LINUX_SMIAPP_H_
+>> +
+>> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_DISABLED			0
+>> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR		1
+>> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS		2
+>> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS_GREY		3
+>> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_PN9			4
+>> +
+>> +#define V4L2_CID_SMIAPP_TEST_PATTERN_RED	(V4L2_CID_USER_SMIAPP_BASE |
+>> 0x01)
+>> +#define V4L2_CID_SMIAPP_TEST_PATTERN_GREENR	(V4L2_CID_USER_SMIAPP_BASE |
+>> 0x02)
+>> +#define V4L2_CID_SMIAPP_TEST_PATTERN_BLUE	(V4L2_CID_USER_SMIAPP_BASE |
+>> 0x03)
+>> +#define V4L2_CID_SMIAPP_TEST_PATTERN_GREENB	(V4L2_CID_USER_SMIAPP_BASE |
+>> 0x04)
+>
+> Wouldn't it make sense to create a standard test pattern color control instead
+> ? Several sensors can control the test pattern color in a way or another. Some
+> of them might need more than one color though, so I'm not sure how much
+> standardization would be possible.
 
-date:		Sat May 17 04:00:19 CEST 2014
-git branch:	test
-git hash:	ba0d342ecc21fbbe2f6c178f4479944d1fb34f3b
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.14-1.slh.1-amd64
+Now that you mention it, I'd guess many raw bayer sensors can set 
+colours for the test pattern (or image). The menu control has no 
+standardised values so I didn't think of standardising controls that 
+depend on it.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+I'll update the patches (and add a new one for the standard controls).
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
