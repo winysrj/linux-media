@@ -1,95 +1,253 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.horizon.com ([71.41.210.147]:18438 "HELO ns.horizon.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1757719AbaEKLRi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 May 2014 07:17:38 -0400
-Date: 11 May 2014 07:17:37 -0400
-Message-ID: <20140511111737.15065.qmail@ns.horizon.com>
-From: "George Spelvin" <linux@horizon.com>
-To: james.hogan@imgtec.com, linux-media@vger.kernel.org,
-	linux@horizon.com, m.chehab@samsung.com
-Subject: [PATCH 09/10] ati_remote: Add comments to keycode table
-In-Reply-To: <20140511111113.14427.qmail@ns.horizon.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4826 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752166AbaE1JJY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 May 2014 05:09:24 -0400
+Message-ID: <5385A798.8060707@xs4all.nl>
+Date: Wed, 28 May 2014 11:08:40 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] smiapp: Implement the test pattern control
+References: <1401194628-31679-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1401194628-31679-1-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A more detailed description of what the buttons look like and
-their intended function makes it easier for people to maintain
-this code without access to the hardware.
+On 05/27/14 14:43, Sakari Ailus wrote:
+> Add support for the V4L2_CID_TEST_PATTERN control. When the solid colour
+> mode is selected, additional controls become available for setting the
+> solid four solid colour components.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/i2c/smiapp/smiapp-core.c | 120 +++++++++++++++++++++++++++++++--
+>  drivers/media/i2c/smiapp/smiapp.h      |   4 ++
+>  2 files changed, 120 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+> index 446c82c..025342c 100644
+> --- a/drivers/media/i2c/smiapp/smiapp-core.c
+> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+> @@ -32,6 +32,7 @@
+>  #include <linux/gpio.h>
+>  #include <linux/module.h>
+>  #include <linux/slab.h>
+> +#include <linux/smiapp.h>
+>  #include <linux/regulator/consumer.h>
+>  #include <linux/v4l2-mediabus.h>
+>  #include <media/v4l2-device.h>
+> @@ -404,6 +405,52 @@ static void smiapp_update_mbus_formats(struct smiapp_sensor *sensor)
+>  		pixel_order_str[pixel_order]);
+>  }
+>  
+> +static const char * const smiapp_test_patterns[] = {
+> +	"Disabled",
+> +	"Solid colour",
+> +	"Eight vertical colour bars",
+> +	"Colour bars with fade to grey",
+> +	"Pseudorandom sequence (PN9)",
+> +};
 
-Signed-off-by: George Spelvin <linux@horizon.com>
----
- drivers/media/rc/keymaps/rc-ati-x10.c | 33 +++++++++++++++++++++++----------
- 1 file changed, 23 insertions(+), 10 deletions(-)
+Capitalize the strings (same rules as are used for book titles in english).
 
-diff --git a/drivers/media/rc/keymaps/rc-ati-x10.c b/drivers/media/rc/keymaps/rc-ati-x10.c
-index 4e2cbbafe9..df8968eb1f 100644
---- a/drivers/media/rc/keymaps/rc-ati-x10.c
-+++ b/drivers/media/rc/keymaps/rc-ati-x10.c
-@@ -26,6 +26,17 @@
- #include <linux/module.h>
- #include <media/rc-map.h>
- 
-+/*
-+ * Intended usage comments below are from vendor-supplied
-+ * Source: ATI REMOTE WONDER™ Installation Guide
-+ * http://www2.ati.com/manuals/remctrl.pdf
-+ *
-+ * Scancodes were in strict left-right, top-bottom order on the
-+ * original ATI Remote Wonder, but were moved on later models.
-+ *
-+ * Keys A-F are intended to be user-programmable.
-+ */
-+
- static struct rc_map_table ati_x10[] = {
- 	/* keyboard - Above the cursor pad */
- 	{ 0x00, KEY_A },
-@@ -35,9 +46,11 @@ static struct rc_map_table ati_x10[] = {
- 	{ 0x03, KEY_TV },         /* TV */
- 	{ 0x04, KEY_DVD },        /* DVD */
- 	{ 0x05, KEY_WWW },        /* WEB */
--	{ 0x06, KEY_BOOKMARKS },  /* "book" */
--	{ 0x07, KEY_EDIT },       /* "hand" */
--	/* Below the cursor pad */
-+	{ 0x06, KEY_BOOKMARKS },  /* "book": Open Mdeia Library */
-+	{ 0x07, KEY_EDIT },       /* "hand": Toggle left mouse button (grab) */
-+
-+	/* Mouse emulation pad goes here, handled by driver separately */
-+
- 	{ 0x09, KEY_VOLUMEDOWN }, /* VOL + */
- 	{ 0x08, KEY_VOLUMEUP },   /* VOL - */
- 	{ 0x0a, KEY_MUTE },       /* MUTE  */
-@@ -53,9 +66,9 @@ static struct rc_map_table ati_x10[] = {
- 	{ 0x13, KEY_7 },
- 	{ 0x14, KEY_8 },
- 	{ 0x15, KEY_9 },
--	{ 0x16, KEY_MENU },       /* "menu" */
-+	{ 0x16, KEY_MENU },       /* "menu": DVD root menu */
- 	{ 0x17, KEY_0 },
--	{ 0x18, KEY_KPENTER },    /* "check" */
-+	{ 0x18, KEY_KPENTER },    /* "check": DVD setup menu */
- 
- 	/* DVD navigation buttons */
- 	{ 0x19, KEY_C },
-@@ -72,13 +85,13 @@ static struct rc_map_table ati_x10[] = {
- 	{ 0x22, KEY_DOWN },       /* down */
- 	{ 0x23, KEY_F },
- 	/* Play/stop/pause buttons */
--	{ 0x24, KEY_REWIND },     /* (<<) */
--	{ 0x25, KEY_PLAY },       /* ( >) */
--	{ 0x26, KEY_FORWARD },    /* (>>) */
-+	{ 0x24, KEY_REWIND },     /* (<<) Rewind */
-+	{ 0x25, KEY_PLAY },       /* ( >) Play */
-+	{ 0x26, KEY_FORWARD },    /* (>>) Fast forward */
- 
- 	{ 0x27, KEY_RECORD },     /* ( o) red */
--	{ 0x28, KEY_STOP },       /* ([]) */
--	{ 0x29, KEY_PAUSE },      /* ('') */
-+	{ 0x28, KEY_STOP },       /* ([]) Stop */
-+	{ 0x29, KEY_PAUSE },      /* ('') Pause */
- 
- 	/* Extra keys, not on the original ATI remote */
- 	{ 0x2a, KEY_NEXT },       /* (>+) */
--- 
-1.9.2
+> +
+> +static const struct v4l2_ctrl_ops smiapp_ctrl_ops;
+> +
+> +static struct v4l2_ctrl_config
+> +smiapp_test_pattern_colours[SMIAPP_COLOUR_COMPONENTS] = {
+> +	{
+> +		&smiapp_ctrl_ops,
+> +		V4L2_CID_SMIAPP_TEST_PATTERN_RED,
+> +		"Solid red pixel value",
+> +		V4L2_CTRL_TYPE_INTEGER,
+> +		0, 0, 1, 0,
+> +		V4L2_CTRL_FLAG_INACTIVE, 0, NULL, NULL, 0
+> +	},
+> +	{
+> +		&smiapp_ctrl_ops,
+> +		V4L2_CID_SMIAPP_TEST_PATTERN_GREENR,
+> +		"Solid green (red) pixel value",
+> +		V4L2_CTRL_TYPE_INTEGER,
+> +		0, 0, 1, 0,
+> +		V4L2_CTRL_FLAG_INACTIVE, 0, NULL, NULL, 0
+> +	},
+> +	{
+> +		&smiapp_ctrl_ops,
+> +		V4L2_CID_SMIAPP_TEST_PATTERN_BLUE,
+> +		"Solid blue pixel value",
+> +		V4L2_CTRL_TYPE_INTEGER,
+> +		0, 0, 1, 0,
+> +		V4L2_CTRL_FLAG_INACTIVE, 0, NULL, NULL, 0
+> +	},
+> +	{
+> +		&smiapp_ctrl_ops,
+> +		V4L2_CID_SMIAPP_TEST_PATTERN_GREENB,
+> +		"Solid green (blue) pixel value",
+> +		V4L2_CTRL_TYPE_INTEGER,
+> +		0, 0, 1, 0,
+> +		V4L2_CTRL_FLAG_INACTIVE, 0, NULL, NULL, 0
+> +	},
+> +};
+
+Ditto for the control names.
+
+After that you can add my:
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
+> +
+>  static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
+>  {
+>  	struct smiapp_sensor *sensor =
+> @@ -477,6 +524,35 @@ static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
+>  
+>  		return smiapp_pll_update(sensor);
+>  
+> +	case V4L2_CID_TEST_PATTERN: {
+> +		unsigned int i;
+> +
+> +		for (i = 0; i < ARRAY_SIZE(smiapp_test_pattern_colours); i++)
+> +			v4l2_ctrl_activate(
+> +				sensor->test_data[i],
+> +				ctrl->val ==
+> +				V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR);
+> +
+> +		return smiapp_write(
+> +			sensor, SMIAPP_REG_U16_TEST_PATTERN_MODE, ctrl->val);
+> +	}
+> +
+> +	case V4L2_CID_SMIAPP_TEST_PATTERN_RED:
+> +		return smiapp_write(
+> +			sensor, SMIAPP_REG_U16_TEST_DATA_RED, ctrl->val);
+> +
+> +	case V4L2_CID_SMIAPP_TEST_PATTERN_GREENR:
+> +		return smiapp_write(
+> +			sensor, SMIAPP_REG_U16_TEST_DATA_GREENR, ctrl->val);
+> +
+> +	case V4L2_CID_SMIAPP_TEST_PATTERN_BLUE:
+> +		return smiapp_write(
+> +			sensor, SMIAPP_REG_U16_TEST_DATA_BLUE, ctrl->val);
+> +
+> +	case V4L2_CID_SMIAPP_TEST_PATTERN_GREENB:
+> +		return smiapp_write(
+> +			sensor, SMIAPP_REG_U16_TEST_DATA_GREENB, ctrl->val);
+> +
+>  	default:
+>  		return -EINVAL;
+>  	}
+> @@ -489,10 +565,10 @@ static const struct v4l2_ctrl_ops smiapp_ctrl_ops = {
+>  static int smiapp_init_controls(struct smiapp_sensor *sensor)
+>  {
+>  	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
+> -	unsigned int max;
+> +	unsigned int max, i;
+>  	int rval;
+>  
+> -	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 7);
+> +	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 12);
+>  	if (rval)
+>  		return rval;
+>  	sensor->pixel_array->ctrl_handler.lock = &sensor->mutex;
+> @@ -535,6 +611,17 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
+>  		&sensor->pixel_array->ctrl_handler, &smiapp_ctrl_ops,
+>  		V4L2_CID_PIXEL_RATE, 0, 0, 1, 0);
+>  
+> +	v4l2_ctrl_new_std_menu_items(&sensor->pixel_array->ctrl_handler,
+> +				     &smiapp_ctrl_ops, V4L2_CID_TEST_PATTERN,
+> +				     ARRAY_SIZE(smiapp_test_patterns) - 1,
+> +				     0, 0, smiapp_test_patterns);
+> +
+> +	for (i = 0; i < ARRAY_SIZE(smiapp_test_pattern_colours); i++)
+> +		sensor->test_data[i] =
+> +			v4l2_ctrl_new_custom(&sensor->pixel_array->ctrl_handler,
+> +					     &smiapp_test_pattern_colours[i],
+> +					     NULL);
+> +
+>  	if (sensor->pixel_array->ctrl_handler.error) {
+>  		dev_err(&client->dev,
+>  			"pixel array controls initialization failed (%d)\n",
+> @@ -543,6 +630,14 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
+>  		goto error;
+>  	}
+>  
+> +	for (i = 0; i < ARRAY_SIZE(smiapp_test_pattern_colours); i++) {
+> +		struct v4l2_ctrl *ctrl = sensor->test_data[i];
+> +
+> +		ctrl->maximum =
+> +			ctrl->default_value =
+> +			ctrl->cur.val = (1 << sensor->csi_format->width) - 1;
+> +	}
+> +
+>  	sensor->pixel_array->sd.ctrl_handler =
+>  		&sensor->pixel_array->ctrl_handler;
+>  
+> @@ -1670,17 +1765,34 @@ static int smiapp_set_format(struct v4l2_subdev *subdev,
+>  	if (fmt->pad == ssd->source_pad) {
+>  		u32 code = fmt->format.code;
+>  		int rval = __smiapp_get_format(subdev, fh, fmt);
+> +		bool range_changed = false;
+> +		unsigned int i;
+>  
+>  		if (!rval && subdev == &sensor->src->sd) {
+>  			const struct smiapp_csi_data_format *csi_format =
+>  				smiapp_validate_csi_data_format(sensor, code);
+> -			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+> +
+> +			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+> +				if (csi_format->width !=
+> +				    sensor->csi_format->width)
+> +					range_changed = true;
+> +
+>  				sensor->csi_format = csi_format;
+> +			}
+> +
+>  			fmt->format.code = csi_format->code;
+>  		}
+>  
+>  		mutex_unlock(&sensor->mutex);
+> -		return rval;
+> +		if (rval || !range_changed)
+> +			return rval;
+> +
+> +		for (i = 0; i < ARRAY_SIZE(smiapp_test_pattern_colours); i++)
+> +			v4l2_ctrl_modify_range(
+> +				sensor->test_data[i],
+> +				0, (1 << sensor->csi_format->width) - 1, 1, 0);
+> +
+> +		return 0;
+>  	}
+>  
+>  	/* Sink pad. Width and height are changeable here. */
+> diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+> index 7cc5aae..874b49f 100644
+> --- a/drivers/media/i2c/smiapp/smiapp.h
+> +++ b/drivers/media/i2c/smiapp/smiapp.h
+> @@ -54,6 +54,8 @@
+>  	(1000 +	(SMIAPP_RESET_DELAY_CLOCKS * 1000	\
+>  		 + (clk) / 1000 - 1) / ((clk) / 1000))
+>  
+> +#define SMIAPP_COLOUR_COMPONENTS	4
+> +
+>  #include "smiapp-limits.h"
+>  
+>  struct smiapp_quirk;
+> @@ -241,6 +243,8 @@ struct smiapp_sensor {
+>  	/* src controls */
+>  	struct v4l2_ctrl *link_freq;
+>  	struct v4l2_ctrl *pixel_rate_csi;
+> +	/* test pattern colour components */
+> +	struct v4l2_ctrl *test_data[SMIAPP_COLOUR_COMPONENTS];
+>  };
+>  
+>  #define to_smiapp_subdev(_sd)				\
+> 
 
