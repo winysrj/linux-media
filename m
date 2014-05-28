@@ -1,85 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:47844 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933029AbaEPNkw (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33676 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752098AbaE1LQV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:40:52 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 23/49] media: davinci: vpif_display: return -ENODATA for *std calls
-Date: Fri, 16 May 2014 19:03:28 +0530
-Message-Id: <1400247235-31434-25-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+	Wed, 28 May 2014 07:16:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] mt9v032: register v4l2 asynchronous subdevice
+Date: Wed, 28 May 2014 13:16:40 +0200
+Message-ID: <14598510.Vt3YXH2eJa@avalon>
+In-Reply-To: <1401112645-14884-1-git-send-email-p.zabel@pengutronix.de>
+References: <1401112645-14884-1-git-send-email-p.zabel@pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi Philipp,
 
-this patch adds supports to return -ENODATA to *std calls
-if the selected output does not support it.
+Thank you for the patch.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif_display.c |   25 ++++++++++++++++++++++++-
- 1 file changed, 24 insertions(+), 1 deletion(-)
+On Monday 26 May 2014 15:57:25 Philipp Zabel wrote:
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index f51b5be..f581e7a 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -715,14 +715,26 @@ static int vpif_try_fmt_vid_out(struct file *file, void *priv,
- 
- static int vpif_s_std(struct file *file, void *priv, v4l2_std_id std_id)
- {
-+	struct vpif_display_config *config = vpif_dev->platform_data;
- 	struct video_device *vdev = video_devdata(file);
- 	struct channel_obj *ch = video_get_drvdata(vdev);
- 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
--	int ret = 0;
-+	struct vpif_display_chan_config *chan_cfg;
-+	struct v4l2_output output;
-+	int ret;
-+
-+	if (config->chan_config[ch->channel_id].outputs == NULL)
-+		return -ENODATA;
-+
-+	chan_cfg = &config->chan_config[ch->channel_id];
-+	output = chan_cfg->outputs[ch->output_idx].output;
-+	if (output.capabilities != V4L2_OUT_CAP_STD)
-+		return -ENODATA;
- 
- 	if (vb2_is_busy(&common->buffer_queue))
- 		return -EBUSY;
- 
-+
- 	if (!(std_id & VPIF_V4L2_STD))
- 		return -EINVAL;
- 
-@@ -754,8 +766,19 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id std_id)
- 
- static int vpif_g_std(struct file *file, void *priv, v4l2_std_id *std)
- {
-+	struct vpif_display_config *config = vpif_dev->platform_data;
- 	struct video_device *vdev = video_devdata(file);
- 	struct channel_obj *ch = video_get_drvdata(vdev);
-+	struct vpif_display_chan_config *chan_cfg;
-+	struct v4l2_output output;
-+
-+	if (config->chan_config[ch->channel_id].outputs == NULL)
-+		return -ENODATA;
-+
-+	chan_cfg = &config->chan_config[ch->channel_id];
-+	output = chan_cfg->outputs[ch->output_idx].output;
-+	if (output.capabilities != V4L2_OUT_CAP_STD)
-+		return -ENODATA;
- 
- 	*std = ch->video.stdid;
- 	return 0;
+Now that Mauro starts to enforce commit message, I'll need to ask you to 
+provide one :-)
+
+> ---
+>  drivers/media/i2c/mt9v032.c | 5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+> index 29d8d8f..ded97c2 100644
+> --- a/drivers/media/i2c/mt9v032.c
+> +++ b/drivers/media/i2c/mt9v032.c
+> @@ -985,6 +985,11 @@ static int mt9v032_probe(struct i2c_client *client,
+> 
+>  	mt9v032->pad.flags = MEDIA_PAD_FL_SOURCE;
+>  	ret = media_entity_init(&mt9v032->subdev.entity, 1, &mt9v032->pad, 0);
+> +	if (ret < 0)
+> +		return ret;
+
+That's not correct. You need to free the control handler here.
+
+> +
+> +	mt9v032->subdev.dev = &client->dev;
+> +	ret = v4l2_async_register_subdev(&mt9v032->subdev);
+
+Don't you also need to call v4l2_async_unregister_subdev() in the remove 
+function ?
+
+> 
+>  	if (ret < 0)
+>  		v4l2_ctrl_handler_free(&mt9v032->ctrls);
+
+And you need to cleanup the media entity here. A dedicated error code block at 
+the end of the function with appropriate goto statements seems to be needed.
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
