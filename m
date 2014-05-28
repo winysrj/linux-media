@@ -1,191 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:53299 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753497AbaEPNkK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:40:10 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 16/49] media: davinic: vpif_display: drop started member from struct common_obj
-Date: Fri, 16 May 2014 19:03:21 +0530
-Message-Id: <1400247235-31434-18-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:34245 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750780AbaE1KHB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 May 2014 06:07:01 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [PATCH v2 2/2] smiapp: Implement the test pattern control
+Date: Wed, 28 May 2014 13:06:52 +0300
+Message-Id: <1401271612-19949-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <5385A798.8060707@xs4all.nl>
+References: <5385A798.8060707@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Add support for the V4L2_CID_TEST_PATTERN control. When the solid colour
+mode is selected, additional controls become available for setting the
+solid four solid colour components.
 
-the started member was indicating whether streaming was started
-or not, this can be determined by vb2 offering, this patch replaces
-the started member from struct common_obj with appropriate vb2 calls.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/davinci/vpif_display.c |   42 ++++++++++---------------
- drivers/media/platform/davinci/vpif_display.h |    2 --
- 2 files changed, 17 insertions(+), 27 deletions(-)
+since v1:
+- Capitalised the first letters in menu item and custom control words.
 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 5ea2db8..aa487a6 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -62,6 +62,10 @@ static struct vpif_config_params config_params = {
- 	.channel_bufsize[1]	= 720 * 576 * 2,
- };
- 
-+
-+/* Is set to 1 in case of SDTV formats, 2 in case of HDTV formats. */
-+static int ycmux_mode;
-+
- static u8 channel_first_int[VPIF_NUMOBJECTS][2] = { {1, 1} };
- 
- static struct vpif_device vpif_obj = { {NULL} };
-@@ -185,9 +189,8 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 
- 	spin_lock_irqsave(&common->irqlock, flags);
- 
--	/* Initialize field_id and started member */
-+	/* Initialize field_id */
- 	ch->field_id = 0;
--	common->started = 1;
- 
- 	/* clock settings */
- 	if (vpif_config_data->set_clock) {
-@@ -204,7 +207,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	if (ret < 0)
- 		goto err;
- 
--	common->started = ret;
-+	ycmux_mode = ret;
- 	vpif_config_addr(ch, ret);
- 	/* Get the next frame from the buffer queue */
- 	common->next_frm = common->cur_frm =
-@@ -235,8 +238,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 			channel2_clipping_enable(1);
- 	}
- 
--	if (VPIF_CHANNEL3_VIDEO == ch->channel_id ||
--		common->started == 2) {
-+	if (VPIF_CHANNEL3_VIDEO == ch->channel_id || ycmux_mode == 2) {
- 		channel3_intr_assert();
- 		channel3_intr_enable(1);
- 		enable_channel3(1);
-@@ -275,12 +277,10 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
- 		enable_channel2(0);
- 		channel2_intr_enable(0);
- 	}
--	if (VPIF_CHANNEL3_VIDEO == ch->channel_id ||
--		2 == common->started) {
-+	if (VPIF_CHANNEL3_VIDEO == ch->channel_id || ycmux_mode == 2) {
- 		enable_channel3(0);
- 		channel3_intr_enable(0);
- 	}
--	common->started = 0;
- 
- 	/* release all active buffers */
- 	spin_lock_irqsave(&common->irqlock, flags);
-@@ -392,8 +392,6 @@ static irqreturn_t vpif_channel_isr(int irq, void *dev_id)
- 	for (i = 0; i < VPIF_NUMOBJECTS; i++) {
- 		common = &ch->common[i];
- 		/* If streaming is started in this channel */
--		if (0 == common->started)
--			continue;
- 
- 		if (1 == ch->vpifparams.std_info.frm_fmt) {
- 			spin_lock(&common->irqlock);
-@@ -704,10 +702,8 @@ static int vpif_s_fmt_vid_out(struct file *file, void *priv,
- 	struct v4l2_pix_format *pixfmt;
- 	int ret = 0;
- 
--	if (common->started) {
--		vpif_dbg(1, debug, "Streaming in progress\n");
-+	if (vb2_is_busy(&common->buffer_queue))
- 		return -EBUSY;
--	}
- 
- 	pixfmt = &fmt->fmt.pix;
- 	/* Check for valid field format */
-@@ -747,13 +743,12 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id std_id)
- 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
- 	int ret = 0;
- 
-+	if (vb2_is_busy(&common->buffer_queue))
-+		return -EBUSY;
-+
- 	if (!(std_id & VPIF_V4L2_STD))
- 		return -EINVAL;
- 
--	if (common->started) {
--		vpif_err("streaming in progress\n");
--		return -EBUSY;
--	}
- 
- 	/* Call encoder subdevice function to set the standard */
- 	ch->video.stdid = std_id;
-@@ -920,16 +915,14 @@ static int vpif_s_output(struct file *file, void *priv, unsigned int i)
- 	struct vpif_display_chan_config *chan_cfg;
- 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
- 
-+	if (vb2_is_busy(&common->buffer_queue))
-+		return -EBUSY;
-+
- 	chan_cfg = &config->chan_config[ch->channel_id];
- 
- 	if (i >= chan_cfg->output_count)
- 		return -EINVAL;
- 
--	if (common->started) {
--		vpif_err("Streaming in progress\n");
--		return -EBUSY;
--	}
--
- 	return vpif_set_output(config, ch, i);
+ drivers/media/i2c/smiapp/smiapp-core.c | 120 +++++++++++++++++++++++++++++++--
+ drivers/media/i2c/smiapp/smiapp.h      |   4 ++
+ 2 files changed, 120 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 446c82c..eeaa91e 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -32,6 +32,7 @@
+ #include <linux/gpio.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
++#include <linux/smiapp.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/v4l2-mediabus.h>
+ #include <media/v4l2-device.h>
+@@ -404,6 +405,52 @@ static void smiapp_update_mbus_formats(struct smiapp_sensor *sensor)
+ 		pixel_order_str[pixel_order]);
  }
  
-@@ -1223,7 +1216,6 @@ static int vpif_probe_complete(void)
- 		for (k = 0; k < VPIF_NUMOBJECTS; k++) {
- 			common = &ch->common[k];
- 			common->io_usrs = 0;
--			common->started = 0;
- 			spin_lock_init(&common->irqlock);
- 			mutex_init(&common->lock);
- 			common->set_addr = NULL;
-@@ -1488,7 +1480,7 @@ static int vpif_suspend(struct device *dev)
- 				channel2_intr_enable(0);
- 			}
- 			if (ch->channel_id == VPIF_CHANNEL3_VIDEO ||
--					common->started == 2) {
-+				ycmux_mode == 2) {
- 				enable_channel3(0);
- 				channel3_intr_enable(0);
- 			}
-@@ -1518,7 +1510,7 @@ static int vpif_resume(struct device *dev)
- 				channel2_intr_enable(1);
- 			}
- 			if (ch->channel_id == VPIF_CHANNEL3_VIDEO ||
--					common->started == 2) {
-+					ycmux_mode == 2) {
- 				enable_channel3(1);
- 				channel3_intr_enable(1);
- 			}
-diff --git a/drivers/media/platform/davinci/vpif_display.h b/drivers/media/platform/davinci/vpif_display.h
-index e21a343..029e0c5 100644
---- a/drivers/media/platform/davinci/vpif_display.h
-+++ b/drivers/media/platform/davinci/vpif_display.h
-@@ -85,8 +85,6 @@ struct common_obj {
- 						 * structure */
- 	u32 io_usrs;				/* number of users performing
- 						 * IO */
--	u8 started;				/* Indicates whether streaming
--						 * started */
- 	u32 ytop_off;				/* offset of Y top from the
- 						 * starting of the buffer */
- 	u32 ybtm_off;				/* offset of Y bottom from the
++static const char * const smiapp_test_patterns[] = {
++	"Disabled",
++	"Solid Colour",
++	"Eight Vertical Colour Bars",
++	"Colour Bars With Fade to Grey",
++	"Pseudorandom Sequence (PN9)",
++};
++
++static const struct v4l2_ctrl_ops smiapp_ctrl_ops;
++
++static struct v4l2_ctrl_config
++smiapp_test_pattern_colours[SMIAPP_COLOUR_COMPONENTS] = {
++	{
++		&smiapp_ctrl_ops,
++		V4L2_CID_SMIAPP_TEST_PATTERN_RED,
++		"Solid Red Pixel Value",
++		V4L2_CTRL_TYPE_INTEGER,
++		0, 0, 1, 0,
++		V4L2_CTRL_FLAG_INACTIVE, 0, NULL, NULL, 0
++	},
++	{
++		&smiapp_ctrl_ops,
++		V4L2_CID_SMIAPP_TEST_PATTERN_GREENR,
++		"Solid Green (Red) Pixel Value",
++		V4L2_CTRL_TYPE_INTEGER,
++		0, 0, 1, 0,
++		V4L2_CTRL_FLAG_INACTIVE, 0, NULL, NULL, 0
++	},
++	{
++		&smiapp_ctrl_ops,
++		V4L2_CID_SMIAPP_TEST_PATTERN_BLUE,
++		"Solid Blue Pixel Value",
++		V4L2_CTRL_TYPE_INTEGER,
++		0, 0, 1, 0,
++		V4L2_CTRL_FLAG_INACTIVE, 0, NULL, NULL, 0
++	},
++	{
++		&smiapp_ctrl_ops,
++		V4L2_CID_SMIAPP_TEST_PATTERN_GREENB,
++		"Solid Green (Blue) Pixel Value",
++		V4L2_CTRL_TYPE_INTEGER,
++		0, 0, 1, 0,
++		V4L2_CTRL_FLAG_INACTIVE, 0, NULL, NULL, 0
++	},
++};
++
+ static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct smiapp_sensor *sensor =
+@@ -477,6 +524,35 @@ static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
+ 
+ 		return smiapp_pll_update(sensor);
+ 
++	case V4L2_CID_TEST_PATTERN: {
++		unsigned int i;
++
++		for (i = 0; i < ARRAY_SIZE(smiapp_test_pattern_colours); i++)
++			v4l2_ctrl_activate(
++				sensor->test_data[i],
++				ctrl->val ==
++				V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR);
++
++		return smiapp_write(
++			sensor, SMIAPP_REG_U16_TEST_PATTERN_MODE, ctrl->val);
++	}
++
++	case V4L2_CID_SMIAPP_TEST_PATTERN_RED:
++		return smiapp_write(
++			sensor, SMIAPP_REG_U16_TEST_DATA_RED, ctrl->val);
++
++	case V4L2_CID_SMIAPP_TEST_PATTERN_GREENR:
++		return smiapp_write(
++			sensor, SMIAPP_REG_U16_TEST_DATA_GREENR, ctrl->val);
++
++	case V4L2_CID_SMIAPP_TEST_PATTERN_BLUE:
++		return smiapp_write(
++			sensor, SMIAPP_REG_U16_TEST_DATA_BLUE, ctrl->val);
++
++	case V4L2_CID_SMIAPP_TEST_PATTERN_GREENB:
++		return smiapp_write(
++			sensor, SMIAPP_REG_U16_TEST_DATA_GREENB, ctrl->val);
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -489,10 +565,10 @@ static const struct v4l2_ctrl_ops smiapp_ctrl_ops = {
+ static int smiapp_init_controls(struct smiapp_sensor *sensor)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
+-	unsigned int max;
++	unsigned int max, i;
+ 	int rval;
+ 
+-	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 7);
++	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 12);
+ 	if (rval)
+ 		return rval;
+ 	sensor->pixel_array->ctrl_handler.lock = &sensor->mutex;
+@@ -535,6 +611,17 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
+ 		&sensor->pixel_array->ctrl_handler, &smiapp_ctrl_ops,
+ 		V4L2_CID_PIXEL_RATE, 0, 0, 1, 0);
+ 
++	v4l2_ctrl_new_std_menu_items(&sensor->pixel_array->ctrl_handler,
++				     &smiapp_ctrl_ops, V4L2_CID_TEST_PATTERN,
++				     ARRAY_SIZE(smiapp_test_patterns) - 1,
++				     0, 0, smiapp_test_patterns);
++
++	for (i = 0; i < ARRAY_SIZE(smiapp_test_pattern_colours); i++)
++		sensor->test_data[i] =
++			v4l2_ctrl_new_custom(&sensor->pixel_array->ctrl_handler,
++					     &smiapp_test_pattern_colours[i],
++					     NULL);
++
+ 	if (sensor->pixel_array->ctrl_handler.error) {
+ 		dev_err(&client->dev,
+ 			"pixel array controls initialization failed (%d)\n",
+@@ -543,6 +630,14 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
+ 		goto error;
+ 	}
+ 
++	for (i = 0; i < ARRAY_SIZE(smiapp_test_pattern_colours); i++) {
++		struct v4l2_ctrl *ctrl = sensor->test_data[i];
++
++		ctrl->maximum =
++			ctrl->default_value =
++			ctrl->cur.val = (1 << sensor->csi_format->width) - 1;
++	}
++
+ 	sensor->pixel_array->sd.ctrl_handler =
+ 		&sensor->pixel_array->ctrl_handler;
+ 
+@@ -1670,17 +1765,34 @@ static int smiapp_set_format(struct v4l2_subdev *subdev,
+ 	if (fmt->pad == ssd->source_pad) {
+ 		u32 code = fmt->format.code;
+ 		int rval = __smiapp_get_format(subdev, fh, fmt);
++		bool range_changed = false;
++		unsigned int i;
+ 
+ 		if (!rval && subdev == &sensor->src->sd) {
+ 			const struct smiapp_csi_data_format *csi_format =
+ 				smiapp_validate_csi_data_format(sensor, code);
+-			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
++
++			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
++				if (csi_format->width !=
++				    sensor->csi_format->width)
++					range_changed = true;
++
+ 				sensor->csi_format = csi_format;
++			}
++
+ 			fmt->format.code = csi_format->code;
+ 		}
+ 
+ 		mutex_unlock(&sensor->mutex);
+-		return rval;
++		if (rval || !range_changed)
++			return rval;
++
++		for (i = 0; i < ARRAY_SIZE(smiapp_test_pattern_colours); i++)
++			v4l2_ctrl_modify_range(
++				sensor->test_data[i],
++				0, (1 << sensor->csi_format->width) - 1, 1, 0);
++
++		return 0;
+ 	}
+ 
+ 	/* Sink pad. Width and height are changeable here. */
+diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+index 7cc5aae..874b49f 100644
+--- a/drivers/media/i2c/smiapp/smiapp.h
++++ b/drivers/media/i2c/smiapp/smiapp.h
+@@ -54,6 +54,8 @@
+ 	(1000 +	(SMIAPP_RESET_DELAY_CLOCKS * 1000	\
+ 		 + (clk) / 1000 - 1) / ((clk) / 1000))
+ 
++#define SMIAPP_COLOUR_COMPONENTS	4
++
+ #include "smiapp-limits.h"
+ 
+ struct smiapp_quirk;
+@@ -241,6 +243,8 @@ struct smiapp_sensor {
+ 	/* src controls */
+ 	struct v4l2_ctrl *link_freq;
+ 	struct v4l2_ctrl *pixel_rate_csi;
++	/* test pattern colour components */
++	struct v4l2_ctrl *test_data[SMIAPP_COLOUR_COMPONENTS];
+ };
+ 
+ #define to_smiapp_subdev(_sd)				\
 -- 
-1.7.9.5
+1.8.3.2
 
