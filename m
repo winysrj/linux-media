@@ -1,57 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relaycp04.dominioabsoluto.net ([217.116.26.100]:44164 "EHLO
-	relaycp04.dominioabsoluto.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751392AbaEZRqJ (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:23167 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751363AbaE1KVI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 13:46:09 -0400
-Received: from smtp.movistar.es (smtp21.acens.net [86.109.99.145])
-	by relaycp04.dominioabsoluto.net (Postfix) with ESMTP id 6534564618
-	for <linux-media@vger.kernel.org>; Mon, 26 May 2014 19:39:41 +0200 (CEST)
-Received: from jar7.dominio (88.3.12.114) by smtp.movistar.es (8.6.122.03) (authenticated as jareguero$telefonica.net)
-        id 5379BC360030328A for linux-media@vger.kernel.org; Mon, 26 May 2014 17:39:41 +0000
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: linux-media@vger.kernel.org
-Subject: Problem with dvbv5-zap
-Date: Mon, 26 May 2014 19:39:38 +0200
-Message-ID: <1575891.R2thD67EOX@jar7.dominio>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 28 May 2014 06:21:08 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N6A00K644R5JF10@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 May 2014 11:21:05 +0100 (BST)
+Content-transfer-encoding: 8BIT
+Message-id: <5385B88B.6040005@samsung.com>
+Date: Wed, 28 May 2014 12:20:59 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: Alexander Shiyan <shc_work@mail.ru>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Shawn Guo <shawn.guo@freescale.com>,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: Re: [PATCH 1/2] media: mx2-emmaprp: Add devicetree support
+References: <1401176878-7318-1-git-send-email-shc_work@mail.ru>
+ <5385B07E.5090709@samsung.com> <1401271373.216160251@f395.i.mail.ru>
+In-reply-to: <1401271373.216160251@f395.i.mail.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am trying to use dvbv5-zap but give me an error and exit:
+On 28/05/14 12:02, Alexander Shiyan wrote:
+> Wed, 28 May 2014 11:46:38 +0200 от Sylwester Nawrocki <s.nawrocki@samsung.com>:
+>> On 27/05/14 09:47, Alexander Shiyan wrote:
+>>> This patch adds devicetree support for the Freescale enhanced Multimedia
+>>> Accelerator (eMMA) video Pre-processor (PrP).
+>>>
+>>> Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
+> ...
+>
+>> Could you also fix the remaining checkpatch warnings:
+>>
+>>
+>> WARNING: Use a single space after To:
+>> #35: 
+>> To:	linux-media@vger.kernel.org
+>>
+>> WARNING: Use a single space after Cc:
+>> #36: 
+>> Cc:	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+>>
+>> ERROR: DOS line endings
+>> #67: FILE: drivers/media/platform/mx2_emmaprp.c:21:
+>> +#include <linux/of.h>^M$
+> ...
+>> [PATCH 1_2] media: mx2-emmaprp: Add devicetree support.eml has style problems, please review.
+> 
+> ...support.eml ?
+> 
+> All of these warnings is a result of email export.
 
-$ dvbv5-zap -a 2 -c Astra-19.2E  -l ENHANCED -I DVBV5 -v  ZDF
-Using LNBf ENHANCED
-        Astra
-        10700 to 11700 MHz
-        Single LO, IF = 9750 MHz
-using demux '/dev/dvb/adapter2/demux0'
-reading channels from file 'Astra-19.2E'
-Device STB0899 Multistandard (/dev/dvb/adapter2/frontend0) capabilities:
-     CAN_2G_MODULATION
-     CAN_FEC_AUTO
-     CAN_INVERSION_AUTO
-     CAN_QPSK
-DVB API Version 5.10, Current v5 delivery system: DVBS
-Supported delivery systems: 
-    [DVBS]
-     DVBS2
-     DSS
-tuning to 11953 Hz
-DiSEqC VOLTAGE: 18
-DiSEqC TONE: OFF
-ERROR    FE_SET_PROPERTY: Invalid argument
-FREQUENCY = 11953
-INVERSION = AUTO
-SYMBOL_RATE = 27500
-INNER_FEC = 3/4
-POLARIZATION = HORIZONTAL
-DELIVERY_SYSTEM = DVBS
-ERROR: dvb_fe_set_parms failed (Invalid argument)
-DiSEqC VOLTAGE: OFF
+Indeed, sorry about that, should have used my usual script
+to check it. This patch is fine then.
 
-I try with two cards and the two give me the same error.
-
-Jose alberto
+--
+Thanks,
+Sylwester
