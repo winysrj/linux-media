@@ -1,36 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:35713 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752142AbaEDKHh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 May 2014 06:07:37 -0400
-Received: by mail-wg0-f52.google.com with SMTP id l18so5302194wgh.23
-        for <linux-media@vger.kernel.org>; Sun, 04 May 2014 03:07:36 -0700 (PDT)
-From: Alessandro Miceli <angelofsky1980@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Alessandro Miceli <angelofsky1980@gmail.com>
-Subject: [PATCH] DVB-USB-V2: added entry for Sveon STV20 device (RTL2832u+FC0012 tuner)
-Date: Sun,  4 May 2014 12:07:07 +0200
-Message-Id: <1399198027-23294-1-git-send-email-angelofsky1980@gmail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39653 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752995AbaE1OKy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 May 2014 10:10:54 -0400
+Message-ID: <1401286252.3054.43.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH] [media] mt9v032: register v4l2 asynchronous subdevice
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Date: Wed, 28 May 2014 16:10:52 +0200
+In-Reply-To: <14598510.Vt3YXH2eJa@avalon>
+References: <1401112645-14884-1-git-send-email-p.zabel@pengutronix.de>
+	 <14598510.Vt3YXH2eJa@avalon>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c |    2 ++
- 1 file changed, 2 insertions(+)
+Hi Laurent,
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index dcbd392..0b63c3f 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1537,6 +1537,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
- 		&rtl2832u_props, "Crypto ReDi PC 50 A", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_KYE, 0x707f,
- 		&rtl2832u_props, "Genius TVGo DVB-T03", NULL) },
-+	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV20_RTL2832U,
-+		&rtl2832u_props, "Sveon STV20", NULL) },
- 
- 	/* RTL2832P devices: */
- 	{ DVB_USB_DEVICE(USB_VID_HANFTEK, 0x0131,
--- 
-1.7.9.5
+Am Mittwoch, den 28.05.2014, 13:16 +0200 schrieb Laurent Pinchart:
+> Hi Philipp,
+> 
+> Thank you for the patch.
+> 
+> On Monday 26 May 2014 15:57:25 Philipp Zabel wrote:
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> 
+> Now that Mauro starts to enforce commit message, I'll need to ask you to 
+> provide one :-)
+
+My bad, I'll fix this up as you suggest and add a commit message.
+
+> > ---
+> >  drivers/media/i2c/mt9v032.c | 5 +++++
+> >  1 file changed, 5 insertions(+)
+> > 
+> > diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+> > index 29d8d8f..ded97c2 100644
+> > --- a/drivers/media/i2c/mt9v032.c
+> > +++ b/drivers/media/i2c/mt9v032.c
+> > @@ -985,6 +985,11 @@ static int mt9v032_probe(struct i2c_client *client,
+> > 
+> >  	mt9v032->pad.flags = MEDIA_PAD_FL_SOURCE;
+> >  	ret = media_entity_init(&mt9v032->subdev.entity, 1, &mt9v032->pad, 0);
+> > +	if (ret < 0)
+> > +		return ret;
+> 
+> That's not correct. You need to free the control handler here.
+> 
+> > +
+> > +	mt9v032->subdev.dev = &client->dev;
+> > +	ret = v4l2_async_register_subdev(&mt9v032->subdev);
+> 
+> Don't you also need to call v4l2_async_unregister_subdev() in the remove 
+> function ?
+> 
+> > 
+> >  	if (ret < 0)
+> >  		v4l2_ctrl_handler_free(&mt9v032->ctrls);
+> 
+> And you need to cleanup the media entity here. A dedicated error code block at 
+> the end of the function with appropriate goto statements seems to be needed.
+
+regards
+Philipp
 
