@@ -1,80 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:9343 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932538AbaEEOPS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 May 2014 10:15:18 -0400
-Message-id: <53679CE7.3070202@samsung.com>
-Date: Mon, 05 May 2014 16:15:03 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-doc@vger.kernel.org, t.figa@samsung.com,
-	kyungmin.park@samsung.com, m.szyprowski@samsung.com,
-	robh+dt@kernel.org, arnd@arndb.de, grant.likely@linaro.org,
-	kgene.kim@samsung.com, rdunlap@infradead.org, ben-linux@fluff.org
-Subject: Re: [PATCH 0/2] Add support for sii9234 chip
-References: <1397216910-15904-1-git-send-email-t.stanislaws@samsung.com>
- <20140503231726.GA20212@kroah.com>
-In-reply-to: <20140503231726.GA20212@kroah.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34004 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753273AbaE1MUa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 May 2014 08:20:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] smiapp: Add driver-specific control class, test pattern controls
+Date: Wed, 28 May 2014 14:20:50 +0200
+Message-ID: <8546276.JFbZmZjli4@avalon>
+In-Reply-To: <5385D3BA.90201@linux.intel.com>
+References: <1401194628-31679-1-git-send-email-sakari.ailus@linux.intel.com> <1867765.dyDJbEnErb@avalon> <5385D3BA.90201@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/04/2014 01:17 AM, Greg KH wrote:
-> On Fri, Apr 11, 2014 at 01:48:28PM +0200, Tomasz Stanislawski wrote:
->> Hi everyone,
->> This patchset adds support for sii9234 HD Mobile Link Bridge.  The chip is used
->> to convert HDMI signal into MHL.  The driver enables HDMI output on Trats and
->> Trats2 boards.
->>
->> The code is based on the driver [1] developed by:
->>        Adam Hampson <ahampson@sta.samsung.com>
->>        Erik Gilling <konkers@android.com>
->> with additional contributions from:
->>        Shankar Bandal <shankar.b@samsung.com>
->>        Dharam Kumar <dharam.kr@samsung.com>
->>
->> The drivers architecture was greatly simplified and transformed into a form
->> accepted (hopefully) by opensource community.  The main differences from
->> original code are:
->> * using single I2C client instead of 4 subclients
->> * remove all logic non-related to establishing HDMI link
->> * simplify error handling
->> * rewrite state machine in interrupt handler
->> * wakeup and discovery triggered by an extcon event
->> * integrate with Device Tree
->>
->> For now, the driver is added to drivers/misc/ directory because it has neigher
->> userspace nor kernel interface.  The chip is capable of receiving and
->> processing CEC events, so the driver may export an input device in /dev/ in the
->> future.  However CEC could be also handled by HDMI driver.
->>
->> I kindly ask for suggestions about the best location for this driver.
+Hi Sakari,
+
+On Wednesday 28 May 2014 15:16:58 Sakari Ailus wrote:
+> Laurent Pinchart wrote:
+> > On Wednesday 28 May 2014 12:00:38 Sakari Ailus wrote:
+> >> Add smiapp driver specific control sub-class for test pattern controls.
+> >> More controls are expected since a fair amount of the standard
+> >> functionality is still unsupported. There are sensor model specific
+> >> functionality as well and expectedly thus also sensor specific controls.
+> >> So reserve 128 controls for this driver.
+> >> 
+> >> This patch also adds test pattern controls for the four colour
+> >> components.
+> >> 
+> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >> ---
+> >> This patch comes before the previous patch I sent to the thread. I missed
+> >> this when sending it.
+> >> 
+> >>   include/uapi/linux/smiapp.h        | 34 +++++++++++++++++++++++++++++++
+> >>   include/uapi/linux/v4l2-controls.h |  4 ++++
+> >>   2 files changed, 38 insertions(+)
+> >>   create mode 100644 include/uapi/linux/smiapp.h
+> >> 
+> >> diff --git a/include/uapi/linux/smiapp.h b/include/uapi/linux/smiapp.h
+> >> new file mode 100644
+> >> index 0000000..116fc69
+> >> --- /dev/null
+> >> +++ b/include/uapi/linux/smiapp.h
+> >> @@ -0,0 +1,34 @@
+> >> +/*
+> >> + * include/media/smiapp.h
+> >> + *
+> >> + * Generic driver for SMIA/SMIA++ compliant camera modules
+> >> + *
+> >> + * Copyright (C) 2014 Intel Corporation
+> >> + * Contact: Sakari Ailus <sakari.ailus@iki.fi>
+> >> + *
+> >> + * This program is free software; you can redistribute it and/or
+> >> + * modify it under the terms of the GNU General Public License
+> >> + * version 2 as published by the Free Software Foundation.
+> >> + *
+> >> + * This program is distributed in the hope that it will be useful, but
+> >> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> >> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> >> + * General Public License for more details.
+> >> + *
+> >> + */
+> >> +
+> >> +#ifndef __UAPI_LINUX_SMIAPP_H_
+> >> +#define __UAPI_LINUX_SMIAPP_H_
+> >> +
+> >> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_DISABLED			0
+> >> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR		1
+> >> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS		2
+> >> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS_GREY		3
+> >> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_PN9			4
+> >> +
+> >> +#define V4L2_CID_SMIAPP_TEST_PATTERN_RED	(V4L2_CID_USER_SMIAPP_BASE |
+> >> 0x01)
+> >> +#define V4L2_CID_SMIAPP_TEST_PATTERN_GREENR	(V4L2_CID_USER_SMIAPP_BASE |
+> >> 0x02)
+> >> +#define V4L2_CID_SMIAPP_TEST_PATTERN_BLUE	(V4L2_CID_USER_SMIAPP_BASE |
+> >> 0x03)
+> >> +#define V4L2_CID_SMIAPP_TEST_PATTERN_GREENB	(V4L2_CID_USER_SMIAPP_BASE |
+> >> 0x04)
+> > 
+> > Wouldn't it make sense to create a standard test pattern color control
+> > instead ? Several sensors can control the test pattern color in a way or
+> > another. Some of them might need more than one color though, so I'm not
+> > sure how much standardization would be possible.
 > 
-> It really is an extcon driver, so why not put it in drivers/extcon?  And
-> that might solve any build issues you have if you don't select extcon in
-> your .config file and try to build this code :)
+> Now that you mention it, I'd guess many raw bayer sensors can set
+> colours for the test pattern (or image). The menu control has no
+> standardised values so I didn't think of standardising controls that
+> depend on it.
 > 
-> thanks,
+> I'll update the patches (and add a new one for the standard controls).
 
-Hi Greg,
-Thank you for your comments.
+The color format might differ between devices though, some might not be able 
+to differentiate between Gr and Gb for the test pattern. A standard test 
+pattern color control should thus be flexible in the color format I suppose.
 
-As I understand, drivers/extcon contains only extcon providers.
-This driver is an extcon client, so mentioned location may not be adequate.
-
-I am surprised that there are no comments about this driver.
-Sii9234 chip is present on many exynos based boards/phones
-and HDMI subsystem will not work without this code.
-
+-- 
 Regards,
-Tomasz Stanislawski
 
-> 
-> greg k-h
-> 
+Laurent Pinchart
 
