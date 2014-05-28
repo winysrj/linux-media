@@ -1,73 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4459 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757134AbaEIRNf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 13:13:35 -0400
-Message-ID: <536D0CA4.60209@xs4all.nl>
-Date: Fri, 09 May 2014 19:13:08 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>,
-	Jiri Kosina <jkosina@suse.cz>
-CC: Dan Carpenter <dan.carpenter@oracle.com>, hans.verkuil@cisco.com,
-	m.chehab@samsung.com, ext-eero.nurkkala@nokia.com,
-	nils.faerber@kernelconcepts.de, joni.lapilainen@gmail.com,
-	freemangordon@abv.bg, sre@ring0.de, Greg KH <greg@kroah.com>,
-	linux-media@vger.kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v2] radio-bcm2048.c: fix wrong overflow check
-References: <20140422125726.GA30238@mwanda> <alpine.LNX.2.00.1405051534090.3969@pobox.suse.cz> <201405091810.18289@pali>
-In-Reply-To: <201405091810.18289@pali>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1665 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752891AbaE1Cnv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 May 2014 22:43:51 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4S2hlZF093703
+	for <linux-media@vger.kernel.org>; Wed, 28 May 2014 04:43:49 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E0C482A19A8
+	for <linux-media@vger.kernel.org>; Wed, 28 May 2014 04:43:17 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140528024317.E0C482A19A8@tschai.lan>
+Date: Wed, 28 May 2014 04:43:17 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/09/2014 06:10 PM, Pali Rohár wrote:
-> On Monday 05 May 2014 15:34:29 Jiri Kosina wrote:
->> On Tue, 22 Apr 2014, Dan Carpenter wrote:
->>> From: Pali Rohár <pali.rohar@gmail.com>
->>>
->>> This patch fixes an off by one check in
->>> bcm2048_set_region().
->>>
->>> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
->>> Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
->>> Signed-off-by: Pavel Machek <pavel@ucw.cz>
->>> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->>> ---
->>> v2: Send it to the correct list.  Re-work the changelog.
->>>
->>> This patch has been floating around for four months but
->>> Pavel and Pali are knuckle-heads and don't know how to use
->>> get_maintainer.pl so they never send it to linux-media.
->>>
->>> Also Pali doesn't give reporter credit and Pavel steals
->>> authorship credit.
->>>
->>> Also when you try explain to them about how to send patches
->>> correctly they complain that they have been trying but it
->>> is too much work so now I have to do it.  During the past
->>> four months thousands of other people have been able to
->>> send patches in the correct format to the correct list but
->>> it is too difficult for Pavel and Pali...  *sigh*.
->>
->> Seems like it's not in linux-next as of today, so I am taking
->> it now. Thanks,
-> 
-> I still do not see this patch in torvalds branch... So what is 
-> needed to include this security buffer overflow patch into 
-> mainline & stable kernels?
-> 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Today I collected a pile of pending patches including this one and
-posted a pull request on the linux-media mailinglist. Once Mauro picks
-it up it will appear in our tree and then linux-next. He's been
-travelling for the past two weeks, so he'll have a sizable backlog.
+Results of the daily build of media_tree:
 
-Just be patient, it's not forgotten.
+date:		Wed May 28 04:00:17 CEST 2014
+git branch:	test
+git hash:	26f15c1fff5493fc0771248d5a409f2c7815a53a
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-1.slh.1-amd64
 
-Regards,
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
-	Hans
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
