@@ -1,42 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:12832 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932782AbaE2PKn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 May 2014 11:10:43 -0400
-Message-ID: <53874EBE.9040108@linux.intel.com>
-Date: Thu, 29 May 2014 18:14:06 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from mail-yk0-f174.google.com ([209.85.160.174]:56325 "EHLO
+	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932191AbaE1O3W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 May 2014 10:29:22 -0400
+Received: by mail-yk0-f174.google.com with SMTP id 9so8394084ykp.19
+        for <linux-media@vger.kernel.org>; Wed, 28 May 2014 07:29:21 -0700 (PDT)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [PATCH v3 3/3] smiapp: Implement the test pattern control
-References: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com> <1401374448-30411-4-git-send-email-sakari.ailus@linux.intel.com> <2777039.3n5AP3eAS8@avalon>
-In-Reply-To: <2777039.3n5AP3eAS8@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAC8M0Eu7AyMJxyo-knwXdeJEy_UAYMs=ufE+oDK-kwHWrqvPQg@mail.gmail.com>
+References: <CAC8M0EtVTh+EmDaJa-Xmtm17x8VK6ozzw2A56Et_aj_m8ZFdpw@mail.gmail.com>
+	<537CF2C4.6030302@iki.fi>
+	<CAC8M0EsCjtc2+uPEQ=n36h_w4OEjoZOaHViAQgF_0MshgF2TJw@mail.gmail.com>
+	<CALzAhNU50EFaZ83_+=4GYHN-rBdHPEMU3zufbqXroCJSJctmTw@mail.gmail.com>
+	<CAC8M0Eu7AyMJxyo-knwXdeJEy_UAYMs=ufE+oDK-kwHWrqvPQg@mail.gmail.com>
+Date: Wed, 28 May 2014 10:29:21 -0400
+Message-ID: <CALzAhNX-m83z_odrt3=BiX-1zxQsH=N7H72DWSfEPtUqxtXYyA@mail.gmail.com>
+Subject: Re: am i in the right list?
+From: Steven Toth <stoth@kernellabs.com>
+To: Michael Durkin <kc7noa@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
->> @@ -543,6 +594,14 @@ static int smiapp_init_controls(struct smiapp_sensor
->> *sensor) goto error;
->>   	}
+On Tue, May 27, 2014 at 8:18 PM, Michael Durkin <kc7noa@gmail.com> wrote:
+> what's the process tree like when its looked at?
+>
+> 1d5c:2000
+>
+> On Thu, May 22, 2014 at 8:44 AM, Steven Toth <stoth@kernellabs.com> wrote:
+>>> Should i email Hans Verkuil or would he see this already ?
+>>> Fresco Logic FL2000 USB to VGA adapter
 >>
->> +	for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++) {
->> +		struct v4l2_ctrl *ctrl = sensor->test_data[i];
->> +
->> +		ctrl->maximum =
->> +			ctrl->default_value =
->> +			ctrl->cur.val = (1 << sensor->csi_format->width) - 1;
->
-> I think multiple assignments on the same line are discouraged.
->
-> Furthermore, couldn't you move this above and use the right values directly
-> when creating the controls ?
+>> He would have seen this already.
 
-Good point. There might have been a reason to do this in a past version 
-of the patch but it no longer exists.
+I'm not sure I understand your question but let me take a shot at what
+I think you mean. I think you mean, how does a developer someone go
+about creating a driver for a new product?
+
+1. They announce their intensions on the mailing-list (here), just to
+check that no other developer is actively working the same driver.
+This isn't mandatory, but can often avoid cases where multiple people
+are working on the same end-goal.
+
+2. Wait a week, anyone interested will likely comment very quickly, if
+they are already working on something. If you get little or no
+feedback then nobody is working in that area.
+
+3. Assuming nobody is working on it (as in your case), go ahead and
+start development - or hire someone to engineer the driver on your
+behalf.
+
+:)
 
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
++1.646.355.8490
