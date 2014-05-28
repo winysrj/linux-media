@@ -1,64 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1715 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750901AbaEXIZJ (ORCPT
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:57440 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753609AbaE1Ppp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 May 2014 04:25:09 -0400
-Message-ID: <53805742.60206@xs4all.nl>
-Date: Sat, 24 May 2014 10:24:34 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: cron job: media_tree daily build: ERRORS
-References: <20140524023204.702842A19A6@tschai.lan>
-In-Reply-To: <20140524023204.702842A19A6@tschai.lan>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 28 May 2014 11:45:45 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N6A00HMTJS8VV90@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 May 2014 11:45:44 -0400 (EDT)
+Date: Wed, 28 May 2014 12:45:38 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Michael Durkin <kc7noa@gmail.com>
+Cc: Steven Toth <stoth@kernellabs.com>, Antti Palosaari <crope@iki.fi>,
+	Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: am i in the right list?
+Message-id: <20140528124538.74282a22.m.chehab@samsung.com>
+In-reply-to: <CAC8M0EuVpN9NLg50H9+h0qX1h8SFM4UZM3otPjmsDUT9+Zt9=Q@mail.gmail.com>
+References: <CAC8M0EtVTh+EmDaJa-Xmtm17x8VK6ozzw2A56Et_aj_m8ZFdpw@mail.gmail.com>
+ <537CF2C4.6030302@iki.fi>
+ <CAC8M0EsCjtc2+uPEQ=n36h_w4OEjoZOaHViAQgF_0MshgF2TJw@mail.gmail.com>
+ <CALzAhNU50EFaZ83_+=4GYHN-rBdHPEMU3zufbqXroCJSJctmTw@mail.gmail.com>
+ <CAC8M0Eu7AyMJxyo-knwXdeJEy_UAYMs=ufE+oDK-kwHWrqvPQg@mail.gmail.com>
+ <CALzAhNX-m83z_odrt3=BiX-1zxQsH=N7H72DWSfEPtUqxtXYyA@mail.gmail.com>
+ <CAC8M0EuVpN9NLg50H9+h0qX1h8SFM4UZM3otPjmsDUT9+Zt9=Q@mail.gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Em Wed, 28 May 2014 08:09:55 -0700
+Michael Durkin <kc7noa@gmail.com> escreveu:
 
-Can you look at this build error?
-
-On 05/24/2014 04:32 AM, Hans Verkuil wrote:
-> This message is generated daily by a cron job that builds media_tree for
-> the kernels and architectures in the list below.
+> Then i guess it will not be supported any time soon .... its been for
+> sale for almost a year.
+> Im a stay at home dad, not a developer. The chance of me paying some
+> one to write code is next to nill ....
 > 
-> Results of the daily build of media_tree:
+> Thank you for the response  ....
+
+Back to your original question, I'm not sure if this is the right ML...
+the device you pointed is a VGA adapter? If so, this is not the right
+ML. This one is for webcams, TV, capture devices and video out devices.
+
+AFAICT, VGA adapters are handled by Xorg people.
+
 > 
-> date:		Sat May 24 04:00:26 CEST 2014
-> git branch:	test
-> git hash:	12bd10c79bd8f65698660e992b8656e9a48eeca1
-> gcc version:	i686-linux-gcc (GCC) 4.8.2
-> sparse version:	v0.5.0-11-g38d1124
-> host hardware:	x86_64
-> host os:	3.14-1.slh.1-amd64
-> 
-> linux-git-arm-at91: OK
-> linux-git-arm-davinci: OK
-> linux-git-arm-exynos: ERRORS
-
-/home/hans/work/build/media-git/drivers/media/i2c/m5mols/m5mols_capture.c:29:28: fatal error: media/s5p_fimc.h: No such file or directory
- #include <media/s5p_fimc.h>
-                            ^
-compilation terminated.
-make[5]: *** [drivers/media/i2c/m5mols/m5mols_capture.o] Error 1
-make[5]: *** Waiting for unfinished jobs....
-make[4]: *** [drivers/media/i2c/m5mols] Error 2
-make[4]: *** Waiting for unfinished jobs....
-make[3]: *** [drivers/media/i2c] Error 2
-make[3]: *** Waiting for unfinished jobs....
-make[2]: *** [drivers/media/] Error 2
-make[1]: *** [sub-make] Error 2
-make: *** [all] Error 2
-Sat May 24 04:01:06 CEST 2014
-
-This seems to be caused by commit "exynos4-is: Remove support for non-dt platforms"
-which removed the s5p_fimc.h header. My guess is that s5p_fimc.h has been renamed
-by exynos-fimc.h and this header include was missed.
-
-Regards,
-
-	Hans
+> On Wed, May 28, 2014 at 7:29 AM, Steven Toth <stoth@kernellabs.com> wrote:
+> > On Tue, May 27, 2014 at 8:18 PM, Michael Durkin <kc7noa@gmail.com> wrote:
+> >> what's the process tree like when its looked at?
+> >>
+> >> 1d5c:2000
+> >>
+> >> On Thu, May 22, 2014 at 8:44 AM, Steven Toth <stoth@kernellabs.com> wrote:
+> >>>> Should i email Hans Verkuil or would he see this already ?
+> >>>> Fresco Logic FL2000 USB to VGA adapter
+> >>>
+> >>> He would have seen this already.
+> >
+> > I'm not sure I understand your question but let me take a shot at what
+> > I think you mean. I think you mean, how does a developer someone go
+> > about creating a driver for a new product?
+> >
+> > 1. They announce their intensions on the mailing-list (here), just to
+> > check that no other developer is actively working the same driver.
+> > This isn't mandatory, but can often avoid cases where multiple people
+> > are working on the same end-goal.
+> >
+> > 2. Wait a week, anyone interested will likely comment very quickly, if
+> > they are already working on something. If you get little or no
+> > feedback then nobody is working in that area.
+> >
+> > 3. Assuming nobody is working on it (as in your case), go ahead and
+> > start development - or hire someone to engineer the driver on your
+> > behalf.
+> >
+> > :)
+> >
+> > --
+> > Steven Toth - Kernel Labs
+> > http://www.kernellabs.com
+> > +1.646.355.8490
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
