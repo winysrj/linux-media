@@ -1,46 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:32827 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753791AbaE1OhW (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.131]:50297 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752293AbaE1KIa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 May 2014 10:37:22 -0400
-Message-ID: <1401287840.3054.63.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v2] [media] mt9v032: fix hblank calculation
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Wed, 28 May 2014 06:08:30 -0400
+Date: Wed, 28 May 2014 12:07:57 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	linux-media@vger.kernel.org
-Date: Wed, 28 May 2014 16:37:20 +0200
-In-Reply-To: <63696231.uYod94i5s6@avalon>
-References: <1401112551-21046-1-git-send-email-p.zabel@pengutronix.de>
-	 <63696231.uYod94i5s6@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Subject: Re: [RFC PATCH] [media] mt9v032: Add support for mt9v022 and mt9v024
+In-Reply-To: <1401270626.3054.13.camel@paszta.hi.pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1405281155440.27831@axis700.grange>
+References: <1401112985-32338-1-git-send-email-p.zabel@pengutronix.de>
+ <Pine.LNX.4.64.1405272146260.24747@axis700.grange>
+ <1401270626.3054.13.camel@paszta.hi.pengutronix.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Wed, 28 May 2014, Philipp Zabel wrote:
 
-Am Mittwoch, den 28.05.2014, 13:12 +0200 schrieb Laurent Pinchart:
-> Hi Philipp,
+> Hi Guennadi,
 > 
-> Thank you for the patch.
-> 
-> On Monday 26 May 2014 15:55:51 Philipp Zabel wrote:
-> > Since (min_row_time - crop->width) can be negative, we have to do a signed
-> > comparison here. Otherwise max_t casts the negative value to unsigned int
-> > and sets min_hblank to that invalid value.
+> Am Dienstag, den 27.05.2014, 21:48 +0200 schrieb Guennadi Liakhovetski:
+> > Hi Philipp,
 > > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > On Mon, 26 May 2014, Philipp Zabel wrote:
+> > 
+> > > >From the looks of it, mt9v022 and mt9v032 are very similar,
+> > > as are mt9v024 and mt9v034. With minimal changes it is possible
+> > > to support mt9v02[24] with the same driver.
+> > 
+> > Are you aware of drivers/media/i2c/soc_camera/mt9v022.c?
 > 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Yes. Unfortunately this driver can't be used in a system without
+> soc_camera. It uses soc_camera helpers and doesn't implement pad ops
+> among others.
+
+As I mentioned many times, this compatibility is a matter of someone just 
+needing and finally doing this. If you need this, please, extend the 
+mt9v022 driver to also work with non soc-camera hosts, if you need any 
+help - please feel free to ask, I can send you my conversion code, that 
+I've done for ov772x, but never managed to finalise testing, 
+unfortunately.
+
+> > With this patch you'd duplicate support for both mt9v022 and mt9v024,
+> > which doesn't look like a good idea to me.
 > 
-> and applied to my tree. Do you see a need to fasttrack this to v3.16 or can it 
-> be applied to v3.17 ? Should I CC stable ?
+> While this is true, given that the mt9v02x/3x sensors are so similar,
+> the support is already duplicated in all but name.
+> Would you suggest we should try to merge the mt9v032 and mt9v022
+> drivers?
 
-Thank you, no need to fasttrack this from my side.
+Out of 3 options:
 
-regards
-Philipp
+1. extend mt9v022 to work with non soc-camera hosts
+2. extend mt9v032 to also support mt9v022 and mt9v024
+3. merge both mt9v022 and mt9v032 drivers
 
+option 2 seems the worst to me. I'm ok with either 1 or 3, whereas 3 is 
+more difficult than 1.
+
+Thanks
+Guennadi
