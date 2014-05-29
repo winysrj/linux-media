@@ -1,72 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:36439 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932662AbaEPNhO (ORCPT
+Received: from mail.redembedded.com ([82.219.14.93]:29614 "EHLO
+	mail1.redembedded.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756104AbaE2PU5 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 May 2014 09:37:14 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v5 05/49] media: davinci: vpif_display: drop buf_cleanup() callback
-Date: Fri, 16 May 2014 19:03:10 +0530
-Message-Id: <1400247235-31434-7-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1400247235-31434-1-git-send-email-prabhakar.csengg@gmail.com>
+	Thu, 29 May 2014 11:20:57 -0400
+Received: from exmail.redembedded.com ([10.82.128.38]:55354)
+	by mail1.redembedded.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.76)
+	(envelope-from <robert.barker@redembedded.com>)
+	id 1Wq28L-0001ct-DE
+	for linux-media@vger.kernel.org; Thu, 29 May 2014 16:20:45 +0100
+Message-ID: <53875055.2020907@redembedded.com>
+Date: Thu, 29 May 2014 16:20:53 +0100
+From: Rob Barker <robert.barker@redembedded.com>
+MIME-Version: 1.0
+To: <linux-media@vger.kernel.org>
+Subject: [PATCH] v4l-utils: libdvbv5: Find other TS in NIT pointer fix
+Content-Type: text/plain; charset=US-ASCII;
+	format=flowed
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+dvb_scan_add_entry() is modified to return the pointer to the newly
+created entry (the last in the list), so the add_update_nit_ functions
+now modify the correct element, instead of the penultimate one.  This
+fixes the finding of other TS in NIT scan feature.
 
-this patch drops buf_cleanup() callback as this callback
-is never called with buffer state active.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Rob Barker <robert.barker@redembedded.com>
 ---
- drivers/media/platform/davinci/vpif_display.c |   21 ---------------------
- 1 file changed, 21 deletions(-)
+diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
+index 297ac59..9a7997b 100644
+--- a/lib/libdvbv5/dvb-scan.c
++++ b/lib/libdvbv5/dvb-scan.c
+@@ -741,7 +741,7 @@ struct dvb_entry *dvb_scan_add_entry(struct
+dvb_v5_fe_parms *parms,
+                                 n, freq);
+                         entry->next = new_entry;
+                         new_entry->next = NULL;
+-                       return entry;
++                       return new_entry;
+                 }
+         }
 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 1a17a45..9999b9c 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -167,26 +167,6 @@ static void vpif_buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&common->irqlock, flags);
- }
- 
--/*
-- * vpif_buf_cleanup: This function is called from the videobuf2 layer to
-- * free memory allocated to the buffers
-- */
--static void vpif_buf_cleanup(struct vb2_buffer *vb)
--{
--	struct vpif_disp_buffer *buf = container_of(vb,
--					struct vpif_disp_buffer, vb);
--	struct channel_obj *ch = vb2_get_drv_priv(vb->vb2_queue);
--	struct common_obj *common;
--	unsigned long flags;
--
--	common = &ch->common[VPIF_VIDEO_INDEX];
--
--	spin_lock_irqsave(&common->irqlock, flags);
--	if (vb->state == VB2_BUF_STATE_ACTIVE)
--		list_del_init(&buf->list);
--	spin_unlock_irqrestore(&common->irqlock, flags);
--}
--
- static u8 channel_first_int[VPIF_NUMOBJECTS][2] = { {1, 1} };
- 
- static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
-@@ -336,7 +316,6 @@ static struct vb2_ops video_qops = {
- 	.buf_prepare		= vpif_buffer_prepare,
- 	.start_streaming	= vpif_start_streaming,
- 	.stop_streaming		= vpif_stop_streaming,
--	.buf_cleanup		= vpif_buf_cleanup,
- 	.buf_queue		= vpif_buffer_queue,
- };
- 
--- 
-1.7.9.5
+--
+Rob Barker
+Red Embedded
 
+This E-mail and any attachments hereto are strictly confidential and intended solely for the addressee. If you are not the intended addressee please notify the sender by return and delete the message.
+
+You must not disclose, forward or copy this E-mail or attachments to any third party without the prior consent of the sender.
+
+Red Embedded Consulting, Company Number 06688270 Registered in England: The Waterfront, Salts Mill Rd, Saltaire, BD17 7EZ
