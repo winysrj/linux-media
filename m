@@ -1,157 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailapp01.imgtec.com ([195.59.15.196]:31013 "EHLO
-	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751991AbaEMV6B (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:35994 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756322AbaE2MUY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 May 2014 17:58:01 -0400
-Message-ID: <537291B2.4070700@imgtec.com>
-Date: Tue, 13 May 2014 22:42:10 +0100
-From: James Hogan <james.hogan@imgtec.com>
-MIME-Version: 1.0
-To: Alexander Bersenev <bay@hackerdom.ru>,
-	<linux-sunxi@googlegroups.com>, <david@hardeman.nu>,
-	<devicetree@vger.kernel.org>, <galak@codeaurora.org>,
-	<grant.likely@linaro.org>, <ijc+devicetree@hellion.org.uk>,
-	<linux-arm-kernel@lists.infradead.org>, <linux@arm.linux.org.uk>,
-	<m.chehab@samsung.com>, <mark.rutland@arm.com>,
-	<maxime.ripard@free-electrons.com>, <pawel.moll@arm.com>,
-	<rdunlap@infradead.org>, <robh+dt@kernel.org>, <sean@mess.org>,
-	<srinivas.kandagatla@st.com>, <wingrime@linux-sunxi.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-media@vger.kernel.org>
-Subject: Re: [PATCH v6 2/3] ARM: sunxi: Add driver for sunxi IR controller
-References: <1400006342-2968-1-git-send-email-bay@hackerdom.ru> <1400006342-2968-3-git-send-email-bay@hackerdom.ru>
-In-Reply-To: <1400006342-2968-3-git-send-email-bay@hackerdom.ru>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+	Thu, 29 May 2014 08:20:24 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 1/5] dvbdev: add a dvb_detach() macro
+Date: Thu, 29 May 2014 09:20:13 -0300
+Message-Id: <1401366017-19874-2-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1401366017-19874-1-git-send-email-m.chehab@samsung.com>
+References: <1401366017-19874-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alexander,
+The dvb_attach() was unbalanced, as there was no dvb_dettach. Ok,
+on current cases, the dettach is done by dvbdev, but that are some
+future corner cases where we may need to do this before registering
+the frontend.
 
-Just a few probe error handling suggestions...
+So, add a dvb_detach() and use it at dvb_frontend.c.
 
-On 13/05/14 19:39, Alexander Bersenev wrote:
-> +static int sunxi_ir_probe(struct platform_device *pdev)
-> +{
-> +	int ret = 0;
-> +	unsigned long tmp = 0;
-> +
-> +	struct device *dev = &pdev->dev;
-> +	struct device_node *dn = dev->of_node;
-> +	struct resource *res;
-> +	struct sunxi_ir *ir;
-> +
-> +	ir = devm_kzalloc(dev, sizeof(struct sunxi_ir), GFP_KERNEL);
-> +	if (!ir)
-> +		return -ENOMEM;
-> +
-> +	/* Clock */
-> +	ir->apb_clk = devm_clk_get(dev, "apb");
-> +	if (IS_ERR(ir->apb_clk)) {
-> +		dev_err(dev, "failed to get a apb clock.\n");
-> +		return -EINVAL;
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-core/dvb_frontend.c | 8 ++++----
+ drivers/media/dvb-core/dvbdev.h       | 4 ++++
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-Does it make sense to return PTR_ERR(ir->apb_clk) here?
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 6ce435ac866f..6cc2631d8f0e 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -2666,20 +2666,20 @@ void dvb_frontend_detach(struct dvb_frontend* fe)
+ 
+ 	if (fe->ops.release_sec) {
+ 		fe->ops.release_sec(fe);
+-		symbol_put_addr(fe->ops.release_sec);
++		dvb_detach(fe->ops.release_sec);
+ 	}
+ 	if (fe->ops.tuner_ops.release) {
+ 		fe->ops.tuner_ops.release(fe);
+-		symbol_put_addr(fe->ops.tuner_ops.release);
++		dvb_detach(fe->ops.tuner_ops.release);
+ 	}
+ 	if (fe->ops.analog_ops.release) {
+ 		fe->ops.analog_ops.release(fe);
+-		symbol_put_addr(fe->ops.analog_ops.release);
++		dvb_detach(fe->ops.analog_ops.release);
+ 	}
+ 	ptr = (void*)fe->ops.release;
+ 	if (ptr) {
+ 		fe->ops.release(fe);
+-		symbol_put_addr(ptr);
++		dvb_detach(ptr);
+ 	}
+ }
+ #else
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index 93a9470d3f0c..f96b28e7fc95 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -136,11 +136,15 @@ extern int dvb_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 	__r; \
+ })
+ 
++#define dvb_detach(FUNC)	symbol_put_addr(FUNC)
++
+ #else
+ #define dvb_attach(FUNCTION, ARGS...) ({ \
+ 	FUNCTION(ARGS); \
+ })
+ 
++#define dvb_detach(FUNC)	{}
++
+ #endif
+ 
+ #endif /* #ifndef _DVBDEV_H_ */
+-- 
+1.9.3
 
-> +	}
-> +	ir->clk = devm_clk_get(dev, "ir");
-> +	if (IS_ERR(ir->clk)) {
-> +		dev_err(dev, "failed to get a ir clock.\n");
-> +		return -EINVAL;
-
-and here
-
-> +	}
-> +
-> +	ret = clk_set_rate(ir->clk, SUNXI_IR_BASE_CLK);
-> +	if (ret) {
-> +		dev_err(dev, "set ir base clock failed!\n");
-> +		return -EINVAL;
-
-return ret?
-
-> +	}
-> +
-> +	if (clk_prepare_enable(ir->apb_clk)) {
-> +		dev_err(dev, "try to enable apb_ir_clk failed\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (clk_prepare_enable(ir->clk)) {
-> +		dev_err(dev, "try to enable ir_clk failed\n");
-> +		ret = -EINVAL;
-> +		goto exit_clkdisable_apb_clk;
-> +	}
-> +
-> +	/* IO */
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +
-> +	ir->base = devm_ioremap_resource(dev, res);
-> +	if (IS_ERR(ir->base)) {
-> +		dev_err(dev, "failed to map registers\n");
-> +		ret = -ENOMEM;
-
-PTR_ERR again?
-
-> +		goto exit_clkdisable_clk;
-> +	}
-> +
-> +	/* IRQ */
-> +	ir->irq = platform_get_irq(pdev, 0);
-> +	if (ir->irq < 0) {
-> +		dev_err(dev, "no irq resource\n");
-> +		ret = -EINVAL;
-
-ret = ir->irq?
-
-> +		goto exit_clkdisable_clk;
-> +	}
-> +
-> +	ret = devm_request_irq(dev, ir->irq, sunxi_ir_irq, 0, SUNXI_IR_DEV, ir);
-> +	if (ret) {
-> +		dev_err(dev, "failed request irq\n");
-> +		ret = -EINVAL;
-
-necessary?
-
-> +		goto exit_clkdisable_clk;
-> +	}
-> +
-> +	ir->rc = rc_allocate_device();
-> +
-> +	if (!ir->rc) {
-> +		dev_err(dev, "failed to allocate device\n");
-> +		ret = -ENOMEM;
-> +		goto exit_clkdisable_clk;
-> +	}
-> +
-> +	ir->rc->priv = ir;
-> +	ir->rc->input_name = SUNXI_IR_DEV;
-> +	ir->rc->input_phys = "sunxi-ir/input0";
-> +	ir->rc->input_id.bustype = BUS_HOST;
-> +	ir->rc->input_id.vendor = 0x0001;
-> +	ir->rc->input_id.product = 0x0001;
-> +	ir->rc->input_id.version = 0x0100;
-> +	ir->map_name = of_get_property(dn, "linux,rc-map-name", NULL);
-> +	ir->rc->map_name = ir->map_name ?: RC_MAP_EMPTY;
-> +	ir->rc->dev.parent = dev;
-> +	ir->rc->driver_type = RC_DRIVER_IR_RAW;
-> +	rc_set_allowed_protocols(ir->rc, RC_BIT_ALL);
-> +	ir->rc->rx_resolution = SUNXI_IR_SAMPLE;
-> +	ir->rc->timeout = MS_TO_NS(SUNXI_IR_TIMEOUT);
-> +	ir->rc->driver_name = SUNXI_IR_DEV;
-> +
-> +	ret = rc_register_device(ir->rc);
-> +	if (ret) {
-> +		dev_err(dev, "failed to register rc device\n");
-> +		ret = -EINVAL;
-
-same again
-
-> +		goto exit_free_dev;
-> +	}
-> +
-
-Cheers
-James
