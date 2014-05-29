@@ -1,25 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from isis.lip6.fr ([132.227.60.2]:56482 "EHLO isis.lip6.fr"
+Received: from mga03.intel.com ([143.182.124.21]:12832 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752966AbaEZP3T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 May 2014 11:29:19 -0400
-From: Benoit Taine <benoit.taine@lip6.fr>
-To: linux-media@vger.kernel.org
-Cc: benoit.taine@lip6.fr, dri-devel@lists.freedesktop.org,
-	devel@driverdev.osuosl.org, netdev@vger.kernel.org,
-	linux-wireless@vger.kernel.org, wcn36xx@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org,
-	usb-storage@lists.one-eyed-alien.net, linux-scsi@vger.kernel.org,
-	DL-MPTFusionLinux@lsi.com, linux-input@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [PATCH 0/18] Use kmemdup instead of kmalloc + memcpy
-Date: Mon, 26 May 2014 17:21:09 +0200
-Message-Id: <1401117687-28911-1-git-send-email-benoit.taine@lip6.fr>
+	id S932782AbaE2PKn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 May 2014 11:10:43 -0400
+Message-ID: <53874EBE.9040108@linux.intel.com>
+Date: Thu, 29 May 2014 18:14:06 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [PATCH v3 3/3] smiapp: Implement the test pattern control
+References: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com> <1401374448-30411-4-git-send-email-sakari.ailus@linux.intel.com> <2777039.3n5AP3eAS8@avalon>
+In-Reply-To: <2777039.3n5AP3eAS8@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These patches enhance kernel style usage, and allows smaller code while
-preventing accidental code edits to produce overflows.
+Laurent Pinchart wrote:
+>> @@ -543,6 +594,14 @@ static int smiapp_init_controls(struct smiapp_sensor
+>> *sensor) goto error;
+>>   	}
+>>
+>> +	for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++) {
+>> +		struct v4l2_ctrl *ctrl = sensor->test_data[i];
+>> +
+>> +		ctrl->maximum =
+>> +			ctrl->default_value =
+>> +			ctrl->cur.val = (1 << sensor->csi_format->width) - 1;
+>
+> I think multiple assignments on the same line are discouraged.
+>
+> Furthermore, couldn't you move this above and use the right values directly
+> when creating the controls ?
 
-The semantic patch at scripts/coccinelle/api/memdup.cocci was used to
-detect and edit this situation.
+Good point. There might have been a reason to do this in a past version 
+of the patch but it no longer exists.
+
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
