@@ -1,72 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:58755 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932392AbaEKUZg (ORCPT
+Received: from mail.redembedded.com ([82.219.14.93]:43459 "EHLO
+	mail1.redembedded.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756218AbaE2PW1 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 May 2014 16:25:36 -0400
-Received: by mail-ee0-f44.google.com with SMTP id c41so4036441eek.17
-        for <linux-media@vger.kernel.org>; Sun, 11 May 2014 13:25:34 -0700 (PDT)
-Message-ID: <536FDCD3.5030301@googlemail.com>
-Date: Sun, 11 May 2014 22:25:55 +0200
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+	Thu, 29 May 2014 11:22:27 -0400
+Received: from exmail.redembedded.com ([10.82.128.38]:62765)
+	by mail1.redembedded.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.76)
+	(envelope-from <robert.barker@redembedded.com>)
+	id 1Wq1bn-0001JA-MF
+	for linux-media@vger.kernel.org; Thu, 29 May 2014 15:47:07 +0100
+Message-ID: <53874874.90402@redembedded.com>
+Date: Thu, 29 May 2014 15:47:16 +0100
+From: Rob Barker <robert.barker@redembedded.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, m.chehab@samsung.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/5] em28xx: fix i2c_set_adapdata() call in em28xx_i2c_register()
-References: <1395493263-2158-1-git-send-email-fschaefer.oss@googlemail.com> <1395493263-2158-2-git-send-email-fschaefer.oss@googlemail.com> <536C948B.8080106@xs4all.nl>
-In-Reply-To: <536C948B.8080106@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: <linux-media@vger.kernel.org>
+Subject: [PATCH] v4l-utils: libdvbv5: fix compilation issue
+Content-Type: text/plain; charset=US-ASCII;
+	format=flowed
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Removed unnecessary header file to fix issue with some compilers.
 
-Hi Hans,
+Signed-off-by: Rob Barker <robert.barker@redembedded.com>
+---
 
-Am 09.05.2014 10:40, schrieb Hans Verkuil:
-> Hi Frank,
->
-> I've got a comment about this patch:
->
-> On 03/22/2014 02:01 PM, Frank Schäfer wrote:
->> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->> ---
->>  drivers/media/usb/em28xx/em28xx-i2c.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
->> index ba6433c..04e8577 100644
->> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
->> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
->> @@ -939,7 +939,7 @@ int em28xx_i2c_register(struct em28xx *dev, unsigned bus,
->>  	dev->i2c_bus[bus].algo_type = algo_type;
->>  	dev->i2c_bus[bus].dev = dev;
->>  	dev->i2c_adap[bus].algo_data = &dev->i2c_bus[bus];
->> -	i2c_set_adapdata(&dev->i2c_adap[bus], &dev->v4l2_dev);
->> +	i2c_set_adapdata(&dev->i2c_adap[bus], dev);
-> As far as I can see nobody is calling i2c_get_adapdata. Should this line be removed
-> altogether?
->
-> If it is used somewhere, can you point me that?
-Good catch.
-Indeed, nobody is using it anymore so it can removed instead.
-Drop this patch, I will send a new one in a minute.
+diff --git a/lib/include/libdvbv5/descriptors.h
+b/lib/include/libdvbv5/descriptors.h
+index 94d85a9..cda958e 100644
+--- a/lib/include/libdvbv5/descriptors.h
++++ b/lib/include/libdvbv5/descriptors.h
+@@ -26,7 +26,6 @@
+  #ifndef _DESCRIPTORS_H
+  #define _DESCRIPTORS_H
 
-> I'm taking the other patches from this series (using the v2 version of patch 4/5) since
-> those look fine.
-Thanks !
+-#include <arpa/inet.h>
+  #include <unistd.h>
+  #include <stdint.h>
+--
+Rob Barker
+Red Embedded
 
-Regards,
-Frank
+This E-mail and any attachments hereto are strictly confidential and intended solely for the addressee. If you are not the intended addressee please notify the sender by return and delete the message.
 
+You must not disclose, forward or copy this E-mail or attachments to any third party without the prior consent of the sender.
 
->
-> Regards,
->
-> 	Hans
->
->>  
->>  	retval = i2c_add_adapter(&dev->i2c_adap[bus]);
->>  	if (retval < 0) {
->>
-
+Red Embedded Consulting, Company Number 06688270 Registered in England: The Waterfront, Salts Mill Rd, Saltaire, BD17 7EZ
