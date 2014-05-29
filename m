@@ -1,124 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f53.google.com ([209.85.213.53]:58653 "EHLO
-	mail-yh0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750712AbaEIMi6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 08:38:58 -0400
-Received: by mail-yh0-f53.google.com with SMTP id i57so1387104yha.12
-        for <linux-media@vger.kernel.org>; Fri, 09 May 2014 05:38:57 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <536C3403.8010402@cevel.net>
-References: <536C3403.8010402@cevel.net>
-Date: Fri, 9 May 2014 08:38:57 -0400
-Message-ID: <CALzAhNVtyhmt8cCapu2oK5pGkJY2zNTaf6Ws26Sn9kZxgAddew@mail.gmail.com>
-Subject: Re: Support for Elgato Game Capture HD / MStar MST3367CMK
-From: Steven Toth <stoth@kernellabs.com>
-To: tolga@cevel.net
-Cc: Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mga02.intel.com ([134.134.136.20]:10777 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757366AbaE2Olb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 May 2014 10:41:31 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [PATCH v3 3/3] smiapp: Implement the test pattern control
+Date: Thu, 29 May 2014 17:40:48 +0300
+Message-Id: <1401374448-30411-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 8, 2014 at 9:48 PM, Tolga Cakir <tolga@cevel.net> wrote:
-> Hello everyone!
+Add support for the V4L2_CID_TEST_PATTERN control. When the solid colour
+mode is selected, additional controls become available for setting the
+solid four solid colour components.
 
-Hi Tolga!
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 84 ++++++++++++++++++++++++++++++++--
+ drivers/media/i2c/smiapp/smiapp.h      |  4 ++
+ 2 files changed, 84 insertions(+), 4 deletions(-)
 
->
-> Over the past weeks, I've been busy capturing USB packets between the Elgato
-> Game Capture HD and my PC. It's using the MStar MST3367CMK chip, which seems
-> to have proprietary Linux support available only for hardware vendors in
-> form of an SDK. Problem is, that this SDK is strictly kept under an NDA,
-> making it kinda impossible for us to get our hands on.
-
-Thanks for raising the subject.
-
-While your comment is true, it would have been more appropriate to the
-development community to say that it truly uses the Fujitsu USB
-encoder, a fujitsu USB API along with a series of smaller subsystems
-for HDMI receivers and transmitters. Your capture logs indicate
-(largely) interaction with the Fujitsu USB bridge + integral encoder.
-The distinction is important.
-
-We outlined the architecture of the device (along with the brief tear
-down) here: http://www.kernellabs.com/blog/?p=1959
-
->
-> So, I got my hands dirty and have found some very good stuff! First of all,
-> in contrast to many sources, the Elgato Game Capture HD outputs compressed
-> video and audio via USB! It's already encoded, so there is no need for
-> reencoding, this will save CPU power. For testing purposes, I've only tried
-> capturing 720p data for now, but this should be more than enough.
-
-Have you posted any source code? I don't see any in the zips or on github.
-
-Paging through a 600MB usb capture to find an occasional comment
-(assuming you have inserted them) doesn't encourage me to contribute.
-
->
-> Basically, we need to read raw USB traffic, write an MPEG-TS file header,
-> put in the raw USB data and close the file. I'm not super experienced in C /
-> kernel development (especially V4L), but I'll give my best to get this
-> project forward. My next step is getting a prototype working with libusb in
-> userland; after that's done, I'll try porting it over to kernel / V4L
->
-> Project page can be found here:
-> https://github.com/tolga9009/elgato-gchd
-
-I must be missing something. your repo contains a LICENSE file and
-README. Did you forget to checking a homebrew datasheet or working
-sample source code?
-
->
-> USB logs and docs:
-> v1.0 as 7zip: https://docs.google.com/file/d/0B29z6-xPIPLEQVBMTWZHbUswYjg
-> v1.0 as rar: https://docs.google.com/file/d/0B29z6-xPIPLEcENMWnh1MklPdTQ
-> v1.0 as zip: https://docs.google.com/file/d/0B29z6-xPIPLEQWtibWk3T3AtVjA
-
-Ahh, thank you for circulating the datasheets and images from our blog
-post, you are most welcome! The internet is a wonderful thing, I'm
-glad you found them useful.
-
->
-> Is anyone interested in getting involved / taking over? Overall, it seems
-> doable and not too complex. I'd be happy about any help! Also, if you need
-> more information, just ask me. I'll provide you everything I have about this
-> little device.
-
-How about instead of some usb dumps, pictures and pdfs, a working
-program and a description of the device protocol? This would help.
-
-I spent a few days late 2012 with the usb analyzer and brought
-together a primitive collection of personal notes on the API. Sadly
-I'm struggling to locate them currently. From memory, the device has
-an odd protocol which isn't exactly obvious. Its firmware like, not
-i2c based. You don't appear to control the HDMI rx/tx silicon by hand,
-the fijutsu firmware does this via firmware APIs. you would think,
-YAY! firmware API, easy, surprisingly not. A lot of byte guess to be
-done. If you have any significant homebrew documentation on the byte
-sequences that control the device, this would help.
-
-Part of the problem is that the device also streams (with the
-windows/osx drivers I was using) permanently on, making it difficult
-to see the wood from the noise. So, even when you are not 'using it',
-its streaming payload via USB to the host. Urgh. I hope they've fixed
-this.
-
-The device outputs native ISO13818 TS packets which are easily
-playable in VLC as is. I don't even think you need to add a header,
-unless you are electing to create an updated PMT.
-
-I have datasheets and/or source on everything except the fujitsu
-encoder, sorry - I can't share.
-
-Keep going with your project, this should be a fun to follow. libusb
-is easy to work with, you should have the device running in no time.
-
-If you can make the device run at both 720p and 1080i then you should
-find enough variance in the protocol bytes, build that into your app,
-to be useful for some people.
-
-- Steve
-
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 446c82c..dc82adb 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -404,6 +404,16 @@ static void smiapp_update_mbus_formats(struct smiapp_sensor *sensor)
+ 		pixel_order_str[pixel_order]);
+ }
+ 
++static const char * const smiapp_test_patterns[] = {
++	"Disabled",
++	"Solid Colour",
++	"Eight Vertical Colour Bars",
++	"Colour Bars With Fade to Grey",
++	"Pseudorandom Sequence (PN9)",
++};
++
++static const struct v4l2_ctrl_ops smiapp_ctrl_ops;
++
+ static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct smiapp_sensor *sensor =
+@@ -477,6 +487,35 @@ static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
+ 
+ 		return smiapp_pll_update(sensor);
+ 
++	case V4L2_CID_TEST_PATTERN: {
++		unsigned int i;
++
++		for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++)
++			v4l2_ctrl_activate(
++				sensor->test_data[i],
++				ctrl->val ==
++				V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR);
++
++		return smiapp_write(
++			sensor, SMIAPP_REG_U16_TEST_PATTERN_MODE, ctrl->val);
++	}
++
++	case V4L2_CID_TEST_PATTERN_RED:
++		return smiapp_write(
++			sensor, SMIAPP_REG_U16_TEST_DATA_RED, ctrl->val);
++
++	case V4L2_CID_TEST_PATTERN_GREENR:
++		return smiapp_write(
++			sensor, SMIAPP_REG_U16_TEST_DATA_GREENR, ctrl->val);
++
++	case V4L2_CID_TEST_PATTERN_BLUE:
++		return smiapp_write(
++			sensor, SMIAPP_REG_U16_TEST_DATA_BLUE, ctrl->val);
++
++	case V4L2_CID_TEST_PATTERN_GREENB:
++		return smiapp_write(
++			sensor, SMIAPP_REG_U16_TEST_DATA_GREENB, ctrl->val);
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -489,10 +528,10 @@ static const struct v4l2_ctrl_ops smiapp_ctrl_ops = {
+ static int smiapp_init_controls(struct smiapp_sensor *sensor)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
+-	unsigned int max;
++	unsigned int max, i;
+ 	int rval;
+ 
+-	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 7);
++	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 12);
+ 	if (rval)
+ 		return rval;
+ 	sensor->pixel_array->ctrl_handler.lock = &sensor->mutex;
+@@ -535,6 +574,18 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
+ 		&sensor->pixel_array->ctrl_handler, &smiapp_ctrl_ops,
+ 		V4L2_CID_PIXEL_RATE, 0, 0, 1, 0);
+ 
++	v4l2_ctrl_new_std_menu_items(&sensor->pixel_array->ctrl_handler,
++				     &smiapp_ctrl_ops, V4L2_CID_TEST_PATTERN,
++				     ARRAY_SIZE(smiapp_test_patterns) - 1,
++				     0, 0, smiapp_test_patterns);
++
++	for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++)
++		sensor->test_data[i] =
++			v4l2_ctrl_new_std(&sensor->pixel_array->ctrl_handler,
++					  &smiapp_ctrl_ops,
++					  V4L2_CID_TEST_PATTERN_RED + i,
++					  0, 0, 1, 0);
++
+ 	if (sensor->pixel_array->ctrl_handler.error) {
+ 		dev_err(&client->dev,
+ 			"pixel array controls initialization failed (%d)\n",
+@@ -543,6 +594,14 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
+ 		goto error;
+ 	}
+ 
++	for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++) {
++		struct v4l2_ctrl *ctrl = sensor->test_data[i];
++
++		ctrl->maximum =
++			ctrl->default_value =
++			ctrl->cur.val = (1 << sensor->csi_format->width) - 1;
++	}
++
+ 	sensor->pixel_array->sd.ctrl_handler =
+ 		&sensor->pixel_array->ctrl_handler;
+ 
+@@ -1670,17 +1729,34 @@ static int smiapp_set_format(struct v4l2_subdev *subdev,
+ 	if (fmt->pad == ssd->source_pad) {
+ 		u32 code = fmt->format.code;
+ 		int rval = __smiapp_get_format(subdev, fh, fmt);
++		bool range_changed = false;
++		unsigned int i;
+ 
+ 		if (!rval && subdev == &sensor->src->sd) {
+ 			const struct smiapp_csi_data_format *csi_format =
+ 				smiapp_validate_csi_data_format(sensor, code);
+-			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
++
++			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
++				if (csi_format->width !=
++				    sensor->csi_format->width)
++					range_changed = true;
++
+ 				sensor->csi_format = csi_format;
++			}
++
+ 			fmt->format.code = csi_format->code;
+ 		}
+ 
+ 		mutex_unlock(&sensor->mutex);
+-		return rval;
++		if (rval || !range_changed)
++			return rval;
++
++		for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++)
++			v4l2_ctrl_modify_range(
++				sensor->test_data[i],
++				0, (1 << sensor->csi_format->width) - 1, 1, 0);
++
++		return 0;
+ 	}
+ 
+ 	/* Sink pad. Width and height are changeable here. */
+diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+index 7cc5aae..874b49f 100644
+--- a/drivers/media/i2c/smiapp/smiapp.h
++++ b/drivers/media/i2c/smiapp/smiapp.h
+@@ -54,6 +54,8 @@
+ 	(1000 +	(SMIAPP_RESET_DELAY_CLOCKS * 1000	\
+ 		 + (clk) / 1000 - 1) / ((clk) / 1000))
+ 
++#define SMIAPP_COLOUR_COMPONENTS	4
++
+ #include "smiapp-limits.h"
+ 
+ struct smiapp_quirk;
+@@ -241,6 +243,8 @@ struct smiapp_sensor {
+ 	/* src controls */
+ 	struct v4l2_ctrl *link_freq;
+ 	struct v4l2_ctrl *pixel_rate_csi;
++	/* test pattern colour components */
++	struct v4l2_ctrl *test_data[SMIAPP_COLOUR_COMPONENTS];
+ };
+ 
+ #define to_smiapp_subdev(_sd)				\
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+1.8.3.2
+
