@@ -1,47 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39933 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755533AbaEIPcX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 11:32:23 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] vb2: drop queued buffers while q->start_streaming_called is still set
-Date: Fri,  9 May 2014 17:32:20 +0200
-Message-Id: <1399649540-20943-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mga09.intel.com ([134.134.136.24]:49793 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757048AbaE2PFB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 May 2014 11:05:01 -0400
+Message-ID: <53874D6B.9000402@linux.intel.com>
+Date: Thu, 29 May 2014 18:08:27 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [PATCH v3 2/3] smiapp: Add driver-specific test pattern menu
+ item definitions
+References: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com> <1401374448-30411-3-git-send-email-sakari.ailus@linux.intel.com> <2661194.GTh768bpeF@avalon>
+In-Reply-To: <2661194.GTh768bpeF@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Otherwise yet another warning will trigger in vb2_buffer_done.
+Laurent Pinchart wrote:
+>> diff --git a/include/uapi/linux/smiapp.h b/include/uapi/linux/smiapp.h
+>> new file mode 100644
+>> index 0000000..53938f4
+>> --- /dev/null
+>> +++ b/include/uapi/linux/smiapp.h
+>> @@ -0,0 +1,29 @@
+>> +/*
+>> + * include/uapi/linux/smiapp.h
+>> + *
+>> + * Generic driver for SMIA/SMIA++ compliant camera modules
+>> + *
+>> + * Copyright (C) 2014 Intel Corporation
+>> + * Contact: Sakari Ailus <sakari.ailus@iki.fi>
+>> + *
+>> + * This program is free software; you can redistribute it and/or
+>> + * modify it under the terms of the GNU General Public License
+>> + * version 2 as published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful, but
+>> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+>> + * General Public License for more details.
+>> + *
+>> + */
+>> +
+>> +#ifndef __UAPI_LINUX_SMIAPP_H_
+>> +#define __UAPI_LINUX_SMIAPP_H_
+>> +
+>> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_DISABLED			0
+>> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR		1
+>> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS		2
+>> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS_GREY		3
+>> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_PN9			4
+>
+> Out of curiosity, what's PN9 ?
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+It's a sequence of pseudo-random binary numbers, e.g.:
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 4d4f6ba..bdca528 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2088,8 +2088,6 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	if (q->start_streaming_called)
- 		call_void_qop(q, stop_streaming, q);
- 	q->streaming = 0;
--	q->start_streaming_called = 0;
--	q->queued_count = 0;
- 
- 	if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
- 		for (i = 0; i < q->num_buffers; ++i)
-@@ -2098,6 +2096,8 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 		/* Must be zero now */
- 		WARN_ON(atomic_read(&q->owned_by_drv_count));
- 	}
-+	q->start_streaming_called = 0;
-+	q->queued_count = 0;
- 
- 	/*
- 	 * Remove all buffers from videobuf's list...
+<URL:http://en.wikipedia.org/wiki/Pseudorandom_binary_sequence>
+
+9 is the order of the polynomial.
+
 -- 
-2.0.0.rc0
-
+Sakari Ailus
+sakari.ailus@linux.intel.com
