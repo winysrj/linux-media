@@ -1,59 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3770 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751076AbaEIM5j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 May 2014 08:57:39 -0400
-Message-ID: <536CD0A9.4020904@xs4all.nl>
-Date: Fri, 09 May 2014 14:57:13 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41982 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932940AbaE2OsT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 May 2014 10:48:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [PATCH v3 2/3] smiapp: Add driver-specific test pattern menu item definitions
+Date: Thu, 29 May 2014 16:48:40 +0200
+Message-ID: <2661194.GTh768bpeF@avalon>
+In-Reply-To: <1401374448-30411-3-git-send-email-sakari.ailus@linux.intel.com>
+References: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com> <1401374448-30411-3-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>, Antti Palosaari <crope@iki.fi>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: V4L control units
-References: <536A2DA7.7050803@iki.fi> <20140508090446.GG8753@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20140508090446.GG8753@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/08/2014 11:04 AM, Sakari Ailus wrote:
-> Heippa!
+On Thursday 29 May 2014 17:40:47 Sakari Ailus wrote:
+> Add numeric definitions for menu items used in the smiapp driver's test
+> pattern menu.
 > 
-> On Wed, May 07, 2014 at 03:57:11PM +0300, Antti Palosaari wrote:
->> What is preferred way implement controls that could have some known
->> unit or unknown unit? For example for gain controls, I would like to
->> offer gain in unit of dB (decibel) and also some unknown driver
->> specific unit. Should I two controls, one for each unit?
->>
->> Like that
->>
->> V4L2_CID_RF_TUNER_LNA_GAIN_AUTO
->> V4L2_CID_RF_TUNER_LNA_GAIN
->> V4L2_CID_RF_TUNER_LNA_GAIN_dB
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  include/uapi/linux/smiapp.h | 29 +++++++++++++++++++++++++++++
+>  1 file changed, 29 insertions(+)
+>  create mode 100644 include/uapi/linux/smiapp.h
 > 
-> I suppose that on any single device there would be a single unit to control
-> a given... control. Some existing controls do document the unit as well but
-> I don't think that's scalable nor preferrable. This way we'd have many
-> different controls to control the same thing but just using a different
-> unit. The auto control is naturally different. Hans did have a patch to add
-> the unit to queryctrl (in the form of QUERY_EXT_CTRL).
+> diff --git a/include/uapi/linux/smiapp.h b/include/uapi/linux/smiapp.h
+> new file mode 100644
+> index 0000000..53938f4
+> --- /dev/null
+> +++ b/include/uapi/linux/smiapp.h
+> @@ -0,0 +1,29 @@
+> +/*
+> + * include/uapi/linux/smiapp.h
+> + *
+> + * Generic driver for SMIA/SMIA++ compliant camera modules
+> + *
+> + * Copyright (C) 2014 Intel Corporation
+> + * Contact: Sakari Ailus <sakari.ailus@iki.fi>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + */
+> +
+> +#ifndef __UAPI_LINUX_SMIAPP_H_
+> +#define __UAPI_LINUX_SMIAPP_H_
+> +
+> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_DISABLED			0
+> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR		1
+> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS		2
+> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS_GREY		3
+> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_PN9			4
 
-Well, that's going to be dropped again. There were too many comments about
-that during the mini-summit and it was not critical for me.
+Out of curiosity, what's PN9 ?
 
-> 
-> <URL:http://www.spinics.net/lists/linux-media/msg73136.html>
-> 
-> I wish we can get these in relatively soon.
+> +
+> +#endif /* __UAPI_LINUX_SMIAPP_H_ */
 
-Sakari, I think you will have to push this if you want this done.
-
-One interesting thing to look at: the AVB IEEE 1722.1 standard has extensive
-support for all sorts of units. I don't know if you have access to the standard
-document, but it might be interesting to look at what they do there.
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
+
