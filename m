@@ -1,110 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:60484 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752193AbaECRuG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 May 2014 13:50:06 -0400
-Date: Sat, 3 May 2014 10:45:20 -0700
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Alexander Bersenev <bay@hackerdom.ru>
-Cc: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	pawel.moll@arm.com, rdunlap@infradead.org, robh+dt@kernel.org,
-	sean@mess.org, srinivas.kandagatla@st.com,
-	wingrime@linux-sunxi.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v5 1/3] ARM: sunxi: Add documentation for sunxi consumer
- infrared devices
-Message-ID: <20140503174520.GA15342@lukather>
-References: <1398871010-30681-1-git-send-email-bay@hackerdom.ru>
- <1398871010-30681-2-git-send-email-bay@hackerdom.ru>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="huq684BweRXVnRxX"
-Content-Disposition: inline
-In-Reply-To: <1398871010-30681-2-git-send-email-bay@hackerdom.ru>
+Received: from mga01.intel.com ([192.55.52.88]:23186 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756245AbaE2PRO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 May 2014 11:17:14 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [PATCH v3.1 3/3] smiapp: Implement the test pattern control
+Date: Thu, 29 May 2014 18:16:54 +0300
+Message-Id: <1401376614-7525-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1401374448-30411-4-git-send-email-sakari.ailus@linux.intel.com>
+References: <1401374448-30411-4-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add support for the V4L2_CID_TEST_PATTERN control. When the solid colour
+mode is selected, additional controls become available for setting the
+solid four solid colour components.
 
---huq684BweRXVnRxX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+since v3:
+- Remove redundant definition of smiapp_ctrl_ops.
 
-On Wed, Apr 30, 2014 at 09:16:48PM +0600, Alexander Bersenev wrote:
-> This patch adds documentation for Device-Tree bindings for sunxi IR
-> controller.
->=20
-> Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-> Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
-> ---
->  .../devicetree/bindings/media/sunxi-ir.txt         | 23 ++++++++++++++++=
-++++++
->  1 file changed, 23 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/sunxi-ir.txt
->=20
-> diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Docum=
-entation/devicetree/bindings/media/sunxi-ir.txt
-> new file mode 100644
-> index 0000000..d502cf4
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-> @@ -0,0 +1,23 @@
-> +Device-Tree bindings for SUNXI IR controller found in sunXi SoC family
-> +
-> +Required properties:
-> +- compatible	    : should be "allwinner,sun7i-a20-ir";
-> +- clocks	    : list of clock specifiers, corresponding to
-> +		      entries in clock-names property;
-> +- clock-names	    : should contain "apb0_ir0" and "ir0" entries;
-> +- interrupts	    : should contain IR IRQ number;
-> +- reg		    : should contain IO map address for IR.
-> +
-> +Optional properties:
-> +- linux,rc-map-name : Remote control map name.
-> +
-> +Example:
-> +
-> +ir0: ir@01c21800 {
-> +       	compatible =3D "allwinner,sun7i-a20-ir";
-> +       	clocks =3D <&apb0_gates 6>, <&ir0_clk>;
-> +       	clock-names =3D "apb0_ir0", "ir0";
+- Initialise min, max and default in control creation time.
 
-Most of the time, we use something like "apb" and "ir". The names
-being generic, if there ever comes a time where you have a second
-controller, you don't have to do anything confusing or inconsistent.
+ drivers/media/i2c/smiapp/smiapp-core.c | 75 ++++++++++++++++++++++++++++++++--
+ drivers/media/i2c/smiapp/smiapp.h      |  4 ++
+ 2 files changed, 75 insertions(+), 4 deletions(-)
 
-Thanks!
-Maxime
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 446c82c..4ac7780 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -404,6 +404,14 @@ static void smiapp_update_mbus_formats(struct smiapp_sensor *sensor)
+ 		pixel_order_str[pixel_order]);
+ }
+ 
++static const char * const smiapp_test_patterns[] = {
++	"Disabled",
++	"Solid Colour",
++	"Eight Vertical Colour Bars",
++	"Colour Bars With Fade to Grey",
++	"Pseudorandom Sequence (PN9)",
++};
++
+ static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct smiapp_sensor *sensor =
+@@ -477,6 +485,35 @@ static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
+ 
+ 		return smiapp_pll_update(sensor);
+ 
++	case V4L2_CID_TEST_PATTERN: {
++		unsigned int i;
++
++		for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++)
++			v4l2_ctrl_activate(
++				sensor->test_data[i],
++				ctrl->val ==
++				V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR);
++
++		return smiapp_write(
++			sensor, SMIAPP_REG_U16_TEST_PATTERN_MODE, ctrl->val);
++	}
++
++	case V4L2_CID_TEST_PATTERN_RED:
++		return smiapp_write(
++			sensor, SMIAPP_REG_U16_TEST_DATA_RED, ctrl->val);
++
++	case V4L2_CID_TEST_PATTERN_GREENR:
++		return smiapp_write(
++			sensor, SMIAPP_REG_U16_TEST_DATA_GREENR, ctrl->val);
++
++	case V4L2_CID_TEST_PATTERN_BLUE:
++		return smiapp_write(
++			sensor, SMIAPP_REG_U16_TEST_DATA_BLUE, ctrl->val);
++
++	case V4L2_CID_TEST_PATTERN_GREENB:
++		return smiapp_write(
++			sensor, SMIAPP_REG_U16_TEST_DATA_GREENB, ctrl->val);
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -489,10 +526,10 @@ static const struct v4l2_ctrl_ops smiapp_ctrl_ops = {
+ static int smiapp_init_controls(struct smiapp_sensor *sensor)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
+-	unsigned int max;
++	unsigned int max, i;
+ 	int rval;
+ 
+-	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 7);
++	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 12);
+ 	if (rval)
+ 		return rval;
+ 	sensor->pixel_array->ctrl_handler.lock = &sensor->mutex;
+@@ -535,6 +572,19 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
+ 		&sensor->pixel_array->ctrl_handler, &smiapp_ctrl_ops,
+ 		V4L2_CID_PIXEL_RATE, 0, 0, 1, 0);
+ 
++	v4l2_ctrl_new_std_menu_items(&sensor->pixel_array->ctrl_handler,
++				     &smiapp_ctrl_ops, V4L2_CID_TEST_PATTERN,
++				     ARRAY_SIZE(smiapp_test_patterns) - 1,
++				     0, 0, smiapp_test_patterns);
++
++	for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++)
++		sensor->test_data[i] =
++			v4l2_ctrl_new_std(
++				&sensor->pixel_array->ctrl_handler,
++				&smiapp_ctrl_ops, V4L2_CID_TEST_PATTERN_RED + i,
++				0, (1 << sensor->csi_format->width) - 1, 1,
++				(1 << sensor->csi_format->width) - 1);
++
+ 	if (sensor->pixel_array->ctrl_handler.error) {
+ 		dev_err(&client->dev,
+ 			"pixel array controls initialization failed (%d)\n",
+@@ -1670,17 +1720,34 @@ static int smiapp_set_format(struct v4l2_subdev *subdev,
+ 	if (fmt->pad == ssd->source_pad) {
+ 		u32 code = fmt->format.code;
+ 		int rval = __smiapp_get_format(subdev, fh, fmt);
++		bool range_changed = false;
++		unsigned int i;
+ 
+ 		if (!rval && subdev == &sensor->src->sd) {
+ 			const struct smiapp_csi_data_format *csi_format =
+ 				smiapp_validate_csi_data_format(sensor, code);
+-			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
++
++			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
++				if (csi_format->width !=
++				    sensor->csi_format->width)
++					range_changed = true;
++
+ 				sensor->csi_format = csi_format;
++			}
++
+ 			fmt->format.code = csi_format->code;
+ 		}
+ 
+ 		mutex_unlock(&sensor->mutex);
+-		return rval;
++		if (rval || !range_changed)
++			return rval;
++
++		for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++)
++			v4l2_ctrl_modify_range(
++				sensor->test_data[i],
++				0, (1 << sensor->csi_format->width) - 1, 1, 0);
++
++		return 0;
+ 	}
+ 
+ 	/* Sink pad. Width and height are changeable here. */
+diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+index 7cc5aae..874b49f 100644
+--- a/drivers/media/i2c/smiapp/smiapp.h
++++ b/drivers/media/i2c/smiapp/smiapp.h
+@@ -54,6 +54,8 @@
+ 	(1000 +	(SMIAPP_RESET_DELAY_CLOCKS * 1000	\
+ 		 + (clk) / 1000 - 1) / ((clk) / 1000))
+ 
++#define SMIAPP_COLOUR_COMPONENTS	4
++
+ #include "smiapp-limits.h"
+ 
+ struct smiapp_quirk;
+@@ -241,6 +243,8 @@ struct smiapp_sensor {
+ 	/* src controls */
+ 	struct v4l2_ctrl *link_freq;
+ 	struct v4l2_ctrl *pixel_rate_csi;
++	/* test pattern colour components */
++	struct v4l2_ctrl *test_data[SMIAPP_COLOUR_COMPONENTS];
+ };
+ 
+ #define to_smiapp_subdev(_sd)				\
+-- 
+1.8.3.2
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
-
---huq684BweRXVnRxX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTZSswAAoJEBx+YmzsjxAg5gYP/2lsQUHZgbQkji8OwT4EDdzy
-JSsE8bmWB+YZjkD0GHMKEn5RUqxt0VCNiNngpKAFwT0A8n3HFN5AlCo3ZZz70RyN
-88l5R2pfq/ftzhDJE+Pp8Q5ToQ+XR2k4CmEA5UpdMsJ8+stxNRlaKOnYIPfnK1Wj
-Hmi9xSyJZ1Nz6sdw7fxy051lmPiWWSvrmVjh6OqAxGte+Odw5lz0fiosNv9VpJo6
-8luskf+PHPAk5clbTqd7RyZ//sGB9r6htc5ybeh5ql4OJ1Yp/ntWs/yhZ3Sn3iyA
-V6vgGNEmdsJleWOeN0on3/cccTFLnDkWNQXYOQDPGx573WTtWoSwW94nJICFe0Hl
-8P1ZTvwD3bVrAebdWEGa6yAJ1vETU5heTFCY2llO0JZLaeCL6DaSU2f8fjWHJOp+
-7g2zAdISKm9qaPRdVF/K1Hdt2flp8TWAq4sxZUer7eTGab6NYGrGmG4cATpBhcDr
-ZGcYmGjoC7kswPP5frVg7q+6r3RWu1r+BA9ZqdJGHHZjrHrINANLyn1uybKPTTgB
-h2RuKVdfIm4DvMIMaiVE8x4dK/NjXa2Y4ptdG20eNVaxIuPQ9gAZN878Pdf4u7Iu
-B/jAqkE4r3lVfjarMyHMSKx1yjXKgjBujhCj0J1eveiLWCOeg+MLIzUGNQoyjlPO
-vfI/90NAa3X3SlyoQ8tY
-=B/uK
------END PGP SIGNATURE-----
-
---huq684BweRXVnRxX--
