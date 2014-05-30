@@ -1,239 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:34245 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750780AbaE1KHB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 May 2014 06:07:01 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [PATCH v2 2/2] smiapp: Implement the test pattern control
-Date: Wed, 28 May 2014 13:06:52 +0300
-Message-Id: <1401271612-19949-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <5385A798.8060707@xs4all.nl>
-References: <5385A798.8060707@xs4all.nl>
+Received: from mout.kundenserver.de ([212.227.126.131]:52153 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933923AbaE3Qss (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 May 2014 12:48:48 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id 3C64640BD9
+	for <linux-media@vger.kernel.org>; Fri, 30 May 2014 18:48:46 +0200 (CEST)
+Date: Fri, 30 May 2014 18:48:46 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL 3.16 v2] soc-camera for 3.16: one driver removal, a fix
+ and more
+Message-ID: <Pine.LNX.4.64.1405301847120.14311@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for the V4L2_CID_TEST_PATTERN control. When the solid colour
-mode is selected, additional controls become available for setting the
-solid four solid colour components.
+Hi Mauro,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-since v1:
-- Capitalised the first letters in menu item and custom control words.
+This time based on your media-next tree. Also using git 1.9.3 instead of 
+2.0.0 solved my pull-request problem.
 
- drivers/media/i2c/smiapp/smiapp-core.c | 120 +++++++++++++++++++++++++++++++--
- drivers/media/i2c/smiapp/smiapp.h      |   4 ++
- 2 files changed, 120 insertions(+), 4 deletions(-)
+The following changes since commit 656111f4b9cbc5a9b86cc2d6ac54dea0855209f0:
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 446c82c..eeaa91e 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -32,6 +32,7 @@
- #include <linux/gpio.h>
- #include <linux/module.h>
- #include <linux/slab.h>
-+#include <linux/smiapp.h>
- #include <linux/regulator/consumer.h>
- #include <linux/v4l2-mediabus.h>
- #include <media/v4l2-device.h>
-@@ -404,6 +405,52 @@ static void smiapp_update_mbus_formats(struct smiapp_sensor *sensor)
- 		pixel_order_str[pixel_order]);
- }
- 
-+static const char * const smiapp_test_patterns[] = {
-+	"Disabled",
-+	"Solid Colour",
-+	"Eight Vertical Colour Bars",
-+	"Colour Bars With Fade to Grey",
-+	"Pseudorandom Sequence (PN9)",
-+};
-+
-+static const struct v4l2_ctrl_ops smiapp_ctrl_ops;
-+
-+static struct v4l2_ctrl_config
-+smiapp_test_pattern_colours[SMIAPP_COLOUR_COMPONENTS] = {
-+	{
-+		&smiapp_ctrl_ops,
-+		V4L2_CID_SMIAPP_TEST_PATTERN_RED,
-+		"Solid Red Pixel Value",
-+		V4L2_CTRL_TYPE_INTEGER,
-+		0, 0, 1, 0,
-+		V4L2_CTRL_FLAG_INACTIVE, 0, NULL, NULL, 0
-+	},
-+	{
-+		&smiapp_ctrl_ops,
-+		V4L2_CID_SMIAPP_TEST_PATTERN_GREENR,
-+		"Solid Green (Red) Pixel Value",
-+		V4L2_CTRL_TYPE_INTEGER,
-+		0, 0, 1, 0,
-+		V4L2_CTRL_FLAG_INACTIVE, 0, NULL, NULL, 0
-+	},
-+	{
-+		&smiapp_ctrl_ops,
-+		V4L2_CID_SMIAPP_TEST_PATTERN_BLUE,
-+		"Solid Blue Pixel Value",
-+		V4L2_CTRL_TYPE_INTEGER,
-+		0, 0, 1, 0,
-+		V4L2_CTRL_FLAG_INACTIVE, 0, NULL, NULL, 0
-+	},
-+	{
-+		&smiapp_ctrl_ops,
-+		V4L2_CID_SMIAPP_TEST_PATTERN_GREENB,
-+		"Solid Green (Blue) Pixel Value",
-+		V4L2_CTRL_TYPE_INTEGER,
-+		0, 0, 1, 0,
-+		V4L2_CTRL_FLAG_INACTIVE, 0, NULL, NULL, 0
-+	},
-+};
-+
- static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct smiapp_sensor *sensor =
-@@ -477,6 +524,35 @@ static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
- 
- 		return smiapp_pll_update(sensor);
- 
-+	case V4L2_CID_TEST_PATTERN: {
-+		unsigned int i;
-+
-+		for (i = 0; i < ARRAY_SIZE(smiapp_test_pattern_colours); i++)
-+			v4l2_ctrl_activate(
-+				sensor->test_data[i],
-+				ctrl->val ==
-+				V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR);
-+
-+		return smiapp_write(
-+			sensor, SMIAPP_REG_U16_TEST_PATTERN_MODE, ctrl->val);
-+	}
-+
-+	case V4L2_CID_SMIAPP_TEST_PATTERN_RED:
-+		return smiapp_write(
-+			sensor, SMIAPP_REG_U16_TEST_DATA_RED, ctrl->val);
-+
-+	case V4L2_CID_SMIAPP_TEST_PATTERN_GREENR:
-+		return smiapp_write(
-+			sensor, SMIAPP_REG_U16_TEST_DATA_GREENR, ctrl->val);
-+
-+	case V4L2_CID_SMIAPP_TEST_PATTERN_BLUE:
-+		return smiapp_write(
-+			sensor, SMIAPP_REG_U16_TEST_DATA_BLUE, ctrl->val);
-+
-+	case V4L2_CID_SMIAPP_TEST_PATTERN_GREENB:
-+		return smiapp_write(
-+			sensor, SMIAPP_REG_U16_TEST_DATA_GREENB, ctrl->val);
-+
- 	default:
- 		return -EINVAL;
- 	}
-@@ -489,10 +565,10 @@ static const struct v4l2_ctrl_ops smiapp_ctrl_ops = {
- static int smiapp_init_controls(struct smiapp_sensor *sensor)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
--	unsigned int max;
-+	unsigned int max, i;
- 	int rval;
- 
--	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 7);
-+	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 12);
- 	if (rval)
- 		return rval;
- 	sensor->pixel_array->ctrl_handler.lock = &sensor->mutex;
-@@ -535,6 +611,17 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
- 		&sensor->pixel_array->ctrl_handler, &smiapp_ctrl_ops,
- 		V4L2_CID_PIXEL_RATE, 0, 0, 1, 0);
- 
-+	v4l2_ctrl_new_std_menu_items(&sensor->pixel_array->ctrl_handler,
-+				     &smiapp_ctrl_ops, V4L2_CID_TEST_PATTERN,
-+				     ARRAY_SIZE(smiapp_test_patterns) - 1,
-+				     0, 0, smiapp_test_patterns);
-+
-+	for (i = 0; i < ARRAY_SIZE(smiapp_test_pattern_colours); i++)
-+		sensor->test_data[i] =
-+			v4l2_ctrl_new_custom(&sensor->pixel_array->ctrl_handler,
-+					     &smiapp_test_pattern_colours[i],
-+					     NULL);
-+
- 	if (sensor->pixel_array->ctrl_handler.error) {
- 		dev_err(&client->dev,
- 			"pixel array controls initialization failed (%d)\n",
-@@ -543,6 +630,14 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
- 		goto error;
- 	}
- 
-+	for (i = 0; i < ARRAY_SIZE(smiapp_test_pattern_colours); i++) {
-+		struct v4l2_ctrl *ctrl = sensor->test_data[i];
-+
-+		ctrl->maximum =
-+			ctrl->default_value =
-+			ctrl->cur.val = (1 << sensor->csi_format->width) - 1;
-+	}
-+
- 	sensor->pixel_array->sd.ctrl_handler =
- 		&sensor->pixel_array->ctrl_handler;
- 
-@@ -1670,17 +1765,34 @@ static int smiapp_set_format(struct v4l2_subdev *subdev,
- 	if (fmt->pad == ssd->source_pad) {
- 		u32 code = fmt->format.code;
- 		int rval = __smiapp_get_format(subdev, fh, fmt);
-+		bool range_changed = false;
-+		unsigned int i;
- 
- 		if (!rval && subdev == &sensor->src->sd) {
- 			const struct smiapp_csi_data_format *csi_format =
- 				smiapp_validate_csi_data_format(sensor, code);
--			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-+
-+			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-+				if (csi_format->width !=
-+				    sensor->csi_format->width)
-+					range_changed = true;
-+
- 				sensor->csi_format = csi_format;
-+			}
-+
- 			fmt->format.code = csi_format->code;
- 		}
- 
- 		mutex_unlock(&sensor->mutex);
--		return rval;
-+		if (rval || !range_changed)
-+			return rval;
-+
-+		for (i = 0; i < ARRAY_SIZE(smiapp_test_pattern_colours); i++)
-+			v4l2_ctrl_modify_range(
-+				sensor->test_data[i],
-+				0, (1 << sensor->csi_format->width) - 1, 1, 0);
-+
-+		return 0;
- 	}
- 
- 	/* Sink pad. Width and height are changeable here. */
-diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
-index 7cc5aae..874b49f 100644
---- a/drivers/media/i2c/smiapp/smiapp.h
-+++ b/drivers/media/i2c/smiapp/smiapp.h
-@@ -54,6 +54,8 @@
- 	(1000 +	(SMIAPP_RESET_DELAY_CLOCKS * 1000	\
- 		 + (clk) / 1000 - 1) / ((clk) / 1000))
- 
-+#define SMIAPP_COLOUR_COMPONENTS	4
-+
- #include "smiapp-limits.h"
- 
- struct smiapp_quirk;
-@@ -241,6 +243,8 @@ struct smiapp_sensor {
- 	/* src controls */
- 	struct v4l2_ctrl *link_freq;
- 	struct v4l2_ctrl *pixel_rate_csi;
-+	/* test pattern colour components */
-+	struct v4l2_ctrl *test_data[SMIAPP_COLOUR_COMPONENTS];
- };
- 
- #define to_smiapp_subdev(_sd)				\
--- 
-1.8.3.2
+  Merge branch 'topic/omap3isp' into to_next (2014-05-25 18:38:38 -0300)
 
+are available in the git repository at:
+
+
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.16-1
+
+for you to fetch changes up to 3ad8677298049933a1a76648645bd50e295ee0e5:
+
+  V4L2: soc_camera: Add run-time dependencies to sh_mobile drivers (2014-05-30 18:45:07 +0200)
+
+----------------------------------------------------------------
+Alexander Shiyan (2):
+      media: mx1_camera: Remove driver
+      media: mx2_camera: Change Kconfig dependency
+
+Ben Dooks (1):
+      rcar_vin: copy flags from pdata
+
+Guennadi Liakhovetski (1):
+      V4L: soc-camera: explicitly free allocated managed memory on error
+
+Jean Delvare (2):
+      V4L2: soc_camera: add run-time dependencies to R-Car VIN driver
+      V4L2: soc_camera: Add run-time dependencies to sh_mobile drivers
+
+ drivers/media/platform/soc_camera/Kconfig      |  18 +-
+ drivers/media/platform/soc_camera/Makefile     |   1 -
+ drivers/media/platform/soc_camera/mx1_camera.c | 866 -------------------------
+ drivers/media/platform/soc_camera/rcar_vin.c   |  12 +-
+ drivers/media/platform/soc_camera/soc_camera.c |  12 +-
+ 5 files changed, 18 insertions(+), 891 deletions(-)
+ delete mode 100644 drivers/media/platform/soc_camera/mx1_camera.c
+
+Thanks
+Guennadi
