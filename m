@@ -1,108 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:23805 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750739AbaEGHUP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 May 2014 03:20:15 -0400
-Message-id: <5369DEB1.2060803@samsung.com>
-Date: Wed, 07 May 2014 09:20:17 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com
-Subject: Re: [PATCH/RFC v3 5/5] media: Add registration helpers for V4L2 flash
- sub-devices
-References: <1397228216-6657-1-git-send-email-j.anaszewski@samsung.com>
- <1397228216-6657-6-git-send-email-j.anaszewski@samsung.com>
- <20140416182141.GG8753@valkosipuli.retiisi.org.uk>
- <534F9044.6080508@samsung.com>
- <20140423152435.GJ8753@valkosipuli.retiisi.org.uk>
- <535E3A95.6010206@samsung.com>
- <20140502110651.GX8753@valkosipuli.retiisi.org.uk>
- <536884D9.4050104@samsung.com>
- <20140506091059.GB8753@valkosipuli.retiisi.org.uk>
-In-reply-to: <20140506091059.GB8753@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mail-ig0-f172.google.com ([209.85.213.172]:61291 "EHLO
+	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755432AbaE3Mo0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 May 2014 08:44:26 -0400
+Received: by mail-ig0-f172.google.com with SMTP id uy17so728770igb.17
+        for <linux-media@vger.kernel.org>; Fri, 30 May 2014 05:44:26 -0700 (PDT)
+MIME-Version: 1.0
+Date: Fri, 30 May 2014 14:44:26 +0200
+Message-ID: <CAHqFTYrnru=b9MhuzRHbY8hk8Y149N2nb3Oj2e8p3cc9NP9bJw@mail.gmail.com>
+Subject: v4l2_device_register_subdev_nodes() clean_up code
+From: Krzysztof Czarnowski <khczarnowski@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/06/2014 11:10 AM, Sakari Ailus wrote:
-> Hi Jacek,
->
-> On Tue, May 06, 2014 at 08:44:41AM +0200, Jacek Anaszewski wrote:
->> Hi Sakari,
->>
->> On 05/02/2014 01:06 PM, Sakari Ailus wrote:
->>
->>>>>> [...]
->>>>>>>> +static inline enum led_brightness v4l2_flash_intensity_to_led_brightness(
->>>>>>>> +					struct led_ctrl *config,
->>>>>>>> +					u32 intensity)
->>>>>>>
->>>>>>> Fits on a single line.
->>>>>>>
->>>>>>>> +{
->>>>>>>> +	return intensity / config->step;
->>>>>>>
->>>>>>> Shouldn't you first decrement the minimum before the division?
->>>>>>
->>>>>> Brightness level 0 means that led is off. Let's consider following case:
->>>>>>
->>>>>> intensity - 15625
->>>>>> config->step - 15625
->>>>>> intensity / config->step = 1 (the lowest possible current level)
->>>>>
->>>>> In V4L2 controls the minimum is not off, and zero might not be a possible
->>>>> value since minimum isn't divisible by step.
->>>>>
->>>>> I wonder how to best take that into account.
->>>>
->>>> I've assumed that in MODE_TORCH a led is always on. Switching
->>>> the mode to MODE_FLASH or MODE_OFF turns the led off.
->>>> This way we avoid the problem with converting 0 uA value to
->>>> led_brightness, as available torch brightness levels start from
->>>> the minimum current level value and turning the led off is
->>>> accomplished on transition to MODE_OFF or MODE_FLASH, by
->>>> calling brightness_set op with led_brightness = 0.
->>>
->>> I'm not sure if we understood the issue the same way. My concern was that if
->>> the intensity isn't a multiple of step (but intensity - min is), the above
->>> formula won't return a valid result (unless I miss something).
->>>
->>
->> Please note that v4l2_flash_intensity_to_led_brightness is called only
->> from s_ctrl callback, and thus it expects to get the intensity aligned
->> to the step value, so it will always be a multiple of step.
->> Is it possible that s_ctrl callback would be passed a non-aligned
->> control value?
->
-> In a nutshell: value - min is aligned but value is not. Please see
-> validate_new() in drivers/media/v4l2-core/v4l2-ctrls.c .
->
+Hi,
 
-Still, to my mind, value is aligned.
+In "clean_up:" section of v4l2_device_register_subdev_nodes() we have:
 
-Below I execute the calculation steps one by one
-according to the V4L2_CTRL_TYPE_INTEGER case in the
-validate_new function:
+    if (!sd->devnode)
+        break;
 
-c->value = 35000
-
-val = c->value + step / 2;       // 35000 + 15625 / 2 = 42812
-val = clamp(val, min, max);      // val = 42812
-offset = val - min;              // 42812 - 15625 = 27187
-offset = step * (offset / step); // 15625 * (27187 / 15625) = 15625
-c->value = min + offset;         // 15625 + 15625 = 31250
-
-Value is aligned to the nearest step.
-
-Please spot any discrepancies in my way of thinking if there
-are any :)
+Maybe I miss something, but shouldn't it be rather "continue" instead
+of "break"?
 
 Regards,
-Jacek Anaszewski
-
-
+Krzysztof
