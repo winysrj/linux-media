@@ -1,61 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57362 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751461AbaETPK4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 May 2014 11:10:56 -0400
-Message-ID: <537B7073.6010003@iki.fi>
-Date: Tue, 20 May 2014 18:10:43 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: kbuild@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [linuxtv-samsung:for-v3.16 45/81] drivers/media/dvb-frontends/si2168.c:47
- si2168_cmd_execute() warn: add some parenthesis here?
-References: <20140505190256.GP4963@mwanda> <5367FA1E.9030800@iki.fi> <20140520120141.GE17724@mwanda>
-In-Reply-To: <20140520120141.GE17724@mwanda>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-la0-f42.google.com ([209.85.215.42]:56837 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932769AbaE3Lba (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 May 2014 07:31:30 -0400
+From: abdoulaye berthe <berthe.ab@gmail.com>
+To: linus.walleij@linaro.org, gnurou@gmail.com, m@bues.ch,
+	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mips@linux-mips.org,
+	linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
+	linux-wireless@vger.kernel.org,
+	patches@opensource.wolfsonmicro.com, linux-input@vger.kernel.org,
+	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-samsungsoc@vger.kernel.org, spear-devel@list.st.com,
+	platform-driver-x86@vger.kernel.org, netdev@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Cc: abdoulaye berthe <berthe.ab@gmail.com>
+Subject: [PATCH 2/2] gpio: gpiolib: set gpiochip_remove retval to void
+Date: Fri, 30 May 2014 13:30:54 +0200
+Message-Id: <1401449454-30895-2-git-send-email-berthe.ab@gmail.com>
+In-Reply-To: <1401449454-30895-1-git-send-email-berthe.ab@gmail.com>
+References: <20140530094025.3b78301e@canb.auug.org.au>
+ <1401449454-30895-1-git-send-email-berthe.ab@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/20/2014 03:01 PM, Dan Carpenter wrote:
-> On Mon, May 05, 2014 at 11:52:46PM +0300, Antti Palosaari wrote:
->>> 845f3505 Antti Palosaari 2014-04-10  46
->>> 845f3505 Antti Palosaari 2014-04-10 @47  		if (!(cmd->args[0] >> 7) & 0x01) {
->>>
->>> This should be:						if (!((md->args[0] >> 7) & 0x01)) {
->>> Otherwise it is a precedence error where it does the negate before the
->>> bitwise AND.
->>
->> That was already on my TODO list as daily media build test sparse
->> warned it already http://hverkuil.home.xs4all.nl/logs/Monday.log
->>
->> I am waiting for media/master kernel upgrades from 3.15-rc1 as that
->> kernel will hang whole machine when em28xx driver used (em28xx
->> driver is USB bridge for those si2168 and si2157).
->>
->
-> Wait, what?  This is a one liner.  I haven't understood the connection
-> with 3.15-rc1?
+This avoids handling gpiochip remove error in device
+remove handler.
 
-Current media master, which contains that brand new si2168 driver, is 
-3.15-rc1. That device is implemented as a)
-em28xx driver - USB interface + remote controller
-si2168 driver - DVB-T/T2/C digital TV demodulator
-si2157 driver - RF tuner
+Signed-off-by: abdoulaye berthe <berthe.ab@gmail.com>
+---
+ drivers/gpio/gpiolib.c      | 24 +++++++-----------------
+ include/linux/gpio/driver.h |  2 +-
+ 2 files changed, 8 insertions(+), 18 deletions(-)
 
-For some reason em28xx freezes whole machine when that 3.15-rc1 kernel 
-is used. It is not only that device, but all the other em28xx devices 
-too what I have.
-
-Even it is simple one liner, I tend to test all my patches before pull 
-requesting to media master tree. Sure, I can do it using linus latest 
-tree and then rebase to media master & pull request, but it is all extra 
-work.
-
-regards
-Antti
-
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index f48817d..022543f 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -1263,10 +1263,9 @@ static void gpiochip_irqchip_remove(struct gpio_chip *gpiochip);
+  *
+  * A gpio_chip with any GPIOs still requested may not be removed.
+  */
+-int gpiochip_remove(struct gpio_chip *chip)
++void gpiochip_remove(struct gpio_chip *chip)
+ {
+ 	unsigned long	flags;
+-	int		status = 0;
+ 	unsigned	id;
+ 
+ 	acpi_gpiochip_remove(chip);
+@@ -1278,24 +1277,15 @@ int gpiochip_remove(struct gpio_chip *chip)
+ 	of_gpiochip_remove(chip);
+ 
+ 	for (id = 0; id < chip->ngpio; id++) {
+-		if (test_bit(FLAG_REQUESTED, &chip->desc[id].flags)) {
+-			status = -EBUSY;
+-			break;
+-		}
+-	}
+-	if (status == 0) {
+-		for (id = 0; id < chip->ngpio; id++)
+-			chip->desc[id].chip = NULL;
+-
+-		list_del(&chip->list);
++		if (test_bit(FLAG_REQUESTED, &chip->desc[id].flags))
++			panic("gpio: removing gpiochip with gpios still requested\n");
+ 	}
++	for (id = 0; id < chip->ngpio; id++)
++		chip->desc[id].chip = NULL;
+ 
++	list_del(&chip->list);
+ 	spin_unlock_irqrestore(&gpio_lock, flags);
+-
+-	if (status == 0)
+-		gpiochip_unexport(chip);
+-
+-	return status;
++	gpiochip_unexport(chip);
+ }
+ EXPORT_SYMBOL_GPL(gpiochip_remove);
+ 
+diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
+index 1827b43..72ed256 100644
+--- a/include/linux/gpio/driver.h
++++ b/include/linux/gpio/driver.h
+@@ -138,7 +138,7 @@ extern const char *gpiochip_is_requested(struct gpio_chip *chip,
+ 
+ /* add/remove chips */
+ extern int gpiochip_add(struct gpio_chip *chip);
+-extern int __must_check gpiochip_remove(struct gpio_chip *chip);
++void gpiochip_remove(struct gpio_chip *chip);
+ extern struct gpio_chip *gpiochip_find(void *data,
+ 			      int (*match)(struct gpio_chip *chip, void *data));
+ 
 -- 
-http://palosaari.fi/
+1.8.3.2
+
