@@ -1,115 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4299 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752417AbaEKCni (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38576 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751529AbaE3NsE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 May 2014 22:43:38 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s4B2hZAB059608
-	for <linux-media@vger.kernel.org>; Sun, 11 May 2014 04:43:37 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id D87242A19A2
-	for <linux-media@vger.kernel.org>; Sun, 11 May 2014 04:43:26 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140511024326.D87242A19A2@tschai.lan>
-Date: Sun, 11 May 2014 04:43:26 +0200 (CEST)
+	Fri, 30 May 2014 09:48:04 -0400
+Date: Fri, 30 May 2014 16:47:30 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Krzysztof Czarnowski <khczarnowski@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: v4l2_device_register_subdev_nodes() clean_up code
+Message-ID: <20140530134730.GH2073@valkosipuli.retiisi.org.uk>
+References: <CAHqFTYrnru=b9MhuzRHbY8hk8Y149N2nb3Oj2e8p3cc9NP9bJw@mail.gmail.com>
+ <20140530130446.GG2073@valkosipuli.retiisi.org.uk>
+ <CAHqFTYoQ3NuC6T52nGrNqtVsUiSqmM1KCeGAuu4_WhMGCV1joA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHqFTYoQ3NuC6T52nGrNqtVsUiSqmM1KCeGAuu4_WhMGCV1joA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Fri, May 30, 2014 at 03:27:27PM +0200, Krzysztof Czarnowski wrote:
+> Sure, a moment :-)
 
-Results of the daily build of media_tree:
+One additional thing: I think sd->devnode should also be set as NULL since
+sub-devices are no longer created by the driver owning the media device.
 
-date:		Sun May 11 04:00:15 CEST 2014
-git branch:	test
-git hash:	393cbd8dc532c1ebed60719da8d379f50d445f28
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.14-1.slh.1-amd64
+This isn't done in the error path or in v4l2_device_unregister_subdev()
+currently.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
