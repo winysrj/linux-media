@@ -1,115 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4131 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751123AbaFACqB (ORCPT
+Received: from mail-vc0-f171.google.com ([209.85.220.171]:48663 "EHLO
+	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751514AbaEaQbG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 May 2014 22:46:01 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s512jvnQ057261
-	for <linux-media@vger.kernel.org>; Sun, 1 Jun 2014 04:45:59 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id DB8682A1B57
-	for <linux-media@vger.kernel.org>; Sun,  1 Jun 2014 04:45:54 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140601024554.DB8682A1B57@tschai.lan>
-Date: Sun,  1 Jun 2014 04:45:54 +0200 (CEST)
+	Sat, 31 May 2014 12:31:06 -0400
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 9/11 V2] drivers/media: Remove useless return variables
+Date: Sat, 31 May 2014 13:30:52 -0300
+Message-Id: <1401553852-13753-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patch remove variables that are initialized with a constant,
+are never updated, and are only used as parameter of return.
+Return the constant instead of using a variable.
 
-Results of the daily build of media_tree:
+Verified by compilation only.
 
-date:		Sun Jun  1 04:00:21 CEST 2014
-git branch:	test
-git hash:	5ea878796f0a1d9649fe43a6a09df53d3915c0ef
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.14-4.slh.4-amd64
+The coccinelle script that find and fixes this issue is:
+// <smpl>
+@@
+type T;
+constant C;
+identifier ret;
+@@
+- T ret = C;
+... when != ret
+    when strict
+return
+- ret
++ C
+;
+// </smpl>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 
-Detailed results are available here:
+---
+Changes from V1:
+ - Do not remove comment after the definition of return variable
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+ drivers/media/pci/ngene/ngene-core.c      |   11 ++---------
+ drivers/media/usb/cx231xx/cx231xx-video.c |   11 +++++------
+ 2 files changed, 7 insertions(+), 15 deletions(-)
 
-Full logs are available here:
+diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
+index 970e833..826228c 100644
+--- a/drivers/media/pci/ngene/ngene-core.c
++++ b/drivers/media/pci/ngene/ngene-core.c
+@@ -910,7 +910,6 @@ static int AllocateRingBuffers(struct pci_dev *pci_dev,
+ {
+ 	dma_addr_t tmp;
+ 	u32 i, j;
+-	int status = 0;
+ 	u32 SCListMemSize = pRingBuffer->NumBuffers
+ 		* ((Buffer2Length != 0) ? (NUM_SCATTER_GATHER_ENTRIES * 2) :
+ 		    NUM_SCATTER_GATHER_ENTRIES)
+@@ -1010,14 +1009,12 @@ static int AllocateRingBuffers(struct pci_dev *pci_dev,
+ 
+ 	}
+ 
+-	return status;
++	return 0;
+ }
+ 
+ static int FillTSIdleBuffer(struct SRingBufferDescriptor *pIdleBuffer,
+ 			    struct SRingBufferDescriptor *pRingBuffer)
+ {
+-	int status = 0;
+-
+ 	/* Copy pointer to scatter gather list in TSRingbuffer
+ 	   structure for buffer 2
+ 	   Load number of buffer
+@@ -1038,7 +1035,7 @@ static int FillTSIdleBuffer(struct SRingBufferDescriptor *pIdleBuffer,
+ 			pIdleBuffer->Head->ngeneBuffer.Number_of_entries_1;
+ 		Cur = Cur->Next;
+ 	}
+-	return status;
++	return 0;
+ }
+ 
+ static u32 RingBufferSizes[MAX_STREAM] = {
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index 1f87513..cba7fea 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -208,7 +208,7 @@ static inline void get_next_buf(struct cx231xx_dmaqueue *dma_q,
+ static inline int cx231xx_isoc_copy(struct cx231xx *dev, struct urb *urb)
+ {
+ 	struct cx231xx_dmaqueue *dma_q = urb->context;
+-	int i, rc = 1;
++	int i;
+ 	unsigned char *p_buffer;
+ 	u32 bytes_parsed = 0, buffer_size = 0;
+ 	u8 sav_eav = 0;
+@@ -299,13 +299,12 @@ static inline int cx231xx_isoc_copy(struct cx231xx *dev, struct urb *urb)
+ 		bytes_parsed = 0;
+ 
+ 	}
+-	return rc;
++	return 1;
+ }
+ 
+ static inline int cx231xx_bulk_copy(struct cx231xx *dev, struct urb *urb)
+ {
+ 	struct cx231xx_dmaqueue *dma_q = urb->context;
+-	int rc = 1;
+ 	unsigned char *p_buffer;
+ 	u32 bytes_parsed = 0, buffer_size = 0;
+ 	u8 sav_eav = 0;
+@@ -379,7 +378,7 @@ static inline int cx231xx_bulk_copy(struct cx231xx *dev, struct urb *urb)
+ 		bytes_parsed = 0;
+ 
+ 	}
+-	return rc;
++	return 1;
+ }
+ 
+ 
+@@ -1620,7 +1619,7 @@ static int radio_s_tuner(struct file *file, void *priv, const struct v4l2_tuner
+  */
+ static int cx231xx_v4l2_open(struct file *filp)
+ {
+-	int errCode = 0, radio = 0;
++	int radio = 0;
+ 	struct video_device *vdev = video_devdata(filp);
+ 	struct cx231xx *dev = video_drvdata(filp);
+ 	struct cx231xx_fh *fh;
+@@ -1718,7 +1717,7 @@ static int cx231xx_v4l2_open(struct file *filp)
+ 	mutex_unlock(&dev->lock);
+ 	v4l2_fh_add(&fh->fh);
+ 
+-	return errCode;
++	return 0;
+ }
+ 
+ /*
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
