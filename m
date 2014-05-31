@@ -1,45 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bay0-omc2-s7.bay0.hotmail.com ([65.54.190.82]:58860 "EHLO
-	bay0-omc2-s7.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755316AbaEGL0j convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 May 2014 07:26:39 -0400
-Message-ID: <BAY176-W38EDAC885E5441BBA2E0B2A94E0@phx.gbl>
-From: Divneil Wadhawan <divneil@outlook.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: vb2_reqbufs() is not allowing more than VIDEO_MAX_FRAME
-Date: Wed, 7 May 2014 16:56:38 +0530
-In-Reply-To: <536A0709.5090605@xs4all.nl>
-References: <BAY176-W18F88DAF5A1C8B5194F30DA94E0@phx.gbl>,<536A0709.5090605@xs4all.nl>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mout.gmx.net ([212.227.17.21]:55182 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751329AbaEaRkB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 May 2014 13:40:01 -0400
+Received: from shodan ([217.246.204.93]) by mail.gmx.com (mrgmx103) with
+ ESMTPSA (Nemesis) id 0MRocn-1XFNRx0rIv-00Sxhv for
+ <linux-media@vger.kernel.org>; Sat, 31 May 2014 19:40:00 +0200
+From: Dexter Filmore <Dexter.Filmore@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: auto-compile after reboot / compile only specific driver
+Date: Sat, 31 May 2014 19:39:54 +0200
 MIME-Version: 1.0
+Content-Type: multipart/signed;
+  boundary="nextPart2916432.d2LuVp2RmT";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Message-Id: <201405311939.57740.Dexter.Filmore@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans
+--nextPart2916432.d2LuVp2RmT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-> Hmm, I always wondered when this would happen.
+Hi,
 
-:)
+on debian 7 or derivates such as ubuntu 12.04/14.04, how can I automtically=
+=20
+compile the linuxtv drivers against the latest kernel after a kernel update=
+=20
+came in?
 
+Is DKMS suitable here? Has somebody done it and has instructions?
 
-> In theory we could make the number of maximum frames driver specific, but
-> it would be more trouble than it's worth at the moment IMHO.
+What if I only have one specific DVB module only anyway, can I configure th=
+e=20
+src to compile only that?
 
-You mean to say adding a new field in struct vb2_queue.
+Cheers
 
-Hmm, I will nod yes, because, the requirement for me is no more than 64.
+Dex
 
+=2D-=20
+=2D----BEGIN GEEK CODE BLOCK-----
+Version: 3.12
+GCS d--(+)@ s-:+ a C++++ UL++ P+>++ L+++>++++ E-- W++ N o? K-
+w--(---) !O M+ V- PS+ PE Y++ PGP t++(---)@ 5 X+(++) R+(++) tv--(+)@=20
+b++(+++) DI+++ D- G++ e* h>++ r* y?
+=2D-----END GEEK CODE BLOCK------
 
-> Which driver are you using? Is it something that you or someone else is
-> likely to upstream to the linux kernel?
-It's again TSMUXER. There are new data types defined, and some other stuff.
+--nextPart2916432.d2LuVp2RmT
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-I cannot commit on this, however, I am currently seeing this driver.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
+iEYEABECAAYFAlOKE+0ACgkQm6TdMk9WhQ0DIQCg1+ircRcWkjhhVqQqJpRgzf6F
+OwsAoMoVzKF2KQPr7wgu1jNxiwXXHNrs
+=N5/5
+-----END PGP SIGNATURE-----
 
-Regards,
-
-Divneil 		 	   		  
+--nextPart2916432.d2LuVp2RmT--
