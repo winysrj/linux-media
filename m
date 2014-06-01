@@ -1,134 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1491 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751150AbaF0NfQ (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59654 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756583AbaFADjd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jun 2014 09:35:16 -0400
-Message-ID: <53AD72F5.3000903@xs4all.nl>
-Date: Fri, 27 Jun 2014 15:34:45 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Shuah Khan <shuah.kh@samsung.com>, gregkh@linuxfoundation.org,
-	m.chehab@samsung.com, olebowle@gmx.com, ttmesterr@gmail.com,
-	dheitmueller@kernellabs.com, cb.xiong@samsung.com,
-	yongjun_wei@trendmicro.com.cn, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, crope@iki.fi,
-	wade_farnsworth@mentor.com, ricardo.ribalda@gmail.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/4] media: v4l2-core changes to use tuner token
-References: <cover.1403652043.git.shuah.kh@samsung.com> <a73d058a4c04bbcf9716fd41fce844675629f8d9.1403652043.git.shuah.kh@samsung.com>
-In-Reply-To: <a73d058a4c04bbcf9716fd41fce844675629f8d9.1403652043.git.shuah.kh@samsung.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sat, 31 May 2014 23:39:33 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 18/18] v4l: vsp1: bru: Make the background color configurable
+Date: Sun,  1 Jun 2014 05:39:37 +0200
+Message-Id: <1401593977-30660-19-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah,
+Expose the background color to userspace through the V4L2_CID_BG_COLOR
+control.
 
-On 06/25/2014 01:57 AM, Shuah Khan wrote:
-> Add a new field tuner_tkn to struct video_device. Drivers can
-> create tuner token using devm_token_create() and initialize
-> the tuner_tkn when frontend is registered with the dvb-core.
-> This change enables drivers to provide a token devres for tuner
-> access control.
->
-> Change v4l2-core to lock tuner token for exclusive access to
-> tuner function for analog TV function use. When Tuner token is
-> present, v4l2_open() calls devm_token_lock() to lock the token.
-> If token is busy, -EBUSY is returned to the user-space.
->
-> Tuner token is unlocked in error paths in v4l2_open(). This token
-> is held as long as the v4l2 device is open and unlocked from
-> v4l2_release().
->
-> Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
-> ---
->   drivers/media/v4l2-core/v4l2-dev.c |   23 ++++++++++++++++++++++-
->   include/media/v4l2-dev.h           |    1 +
->   2 files changed, 23 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index 634d863..8dff809 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -26,6 +26,7 @@
->   #include <linux/kmod.h>
->   #include <linux/slab.h>
->   #include <asm/uaccess.h>
-> +#include <linux/token_devres.h>
->
->   #include <media/v4l2-common.h>
->   #include <media/v4l2-device.h>
-> @@ -445,6 +446,17 @@ static int v4l2_open(struct inode *inode, struct file *filp)
->   		mutex_unlock(&videodev_lock);
->   		return -ENODEV;
->   	}
-> +	/* check if tuner is busy first */
-> +	if (vdev->tuner_tkn && vdev->dev_parent) {
-> +		ret = devm_token_lock(vdev->dev_parent, vdev->tuner_tkn);
-> +		if (ret) {
-> +			mutex_unlock(&videodev_lock);
-> +			dev_info(vdev->dev_parent, "v4l2: Tuner is busy\n");
-> +			return ret;
-> +		}
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_bru.c | 51 ++++++++++++++++++++++++++++++----
+ drivers/media/platform/vsp1/vsp1_bru.h |  3 ++
+ 2 files changed, 49 insertions(+), 5 deletions(-)
 
-If I understand this correctly, then this will make it impossible to open
-the same video node twice since devm_token_lock will return EBUSY the
-second time. Ditto for DVB as far as I could tell. That is certainly not
-what you want, at least not for V4L.
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index 86b32bc..a0c1984 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -38,6 +38,32 @@ static inline void vsp1_bru_write(struct vsp1_bru *bru, u32 reg, u32 data)
+ }
+ 
+ /* -----------------------------------------------------------------------------
++ * Controls
++ */
++
++static int bru_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct vsp1_bru *bru =
++		container_of(ctrl->handler, struct vsp1_bru, ctrls);
++
++	if (!vsp1_entity_is_streaming(&bru->entity))
++		return 0;
++
++	switch (ctrl->id) {
++	case V4L2_CID_BG_COLOR:
++		vsp1_bru_write(bru, VI6_BRU_VIRRPF_COL, ctrl->val |
++			       (0xff << VI6_BRU_VIRRPF_COL_A_SHIFT));
++		break;
++	}
++
++	return 0;
++}
++
++static const struct v4l2_ctrl_ops bru_ctrl_ops = {
++	.s_ctrl = bru_s_ctrl,
++};
++
++/* -----------------------------------------------------------------------------
+  * V4L2 Subdevice Core Operations
+  */
+ 
+@@ -48,6 +74,11 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	struct v4l2_mbus_framefmt *format;
+ 	unsigned int flags;
+ 	unsigned int i;
++	int ret;
++
++	ret = vsp1_entity_set_streaming(&bru->entity, enable);
++	if (ret < 0)
++		return ret;
+ 
+ 	if (!enable)
+ 		return 0;
+@@ -68,15 +99,11 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
+ 		       flags & V4L2_PIX_FMT_FLAG_PREMUL_ALPHA ?
+ 		       0 : VI6_BRU_INCTRL_NRM);
+ 
+-	/* Set the background position to cover the whole output image and
+-	 * set its color to opaque black.
+-	 */
++	/* Set the background position to cover the whole output image. */
+ 	vsp1_bru_write(bru, VI6_BRU_VIRRPF_SIZE,
+ 		       (format->width << VI6_BRU_VIRRPF_SIZE_HSIZE_SHIFT) |
+ 		       (format->height << VI6_BRU_VIRRPF_SIZE_VSIZE_SHIFT));
+ 	vsp1_bru_write(bru, VI6_BRU_VIRRPF_LOC, 0);
+-	vsp1_bru_write(bru, VI6_BRU_VIRRPF_COL,
+-		       0xff << VI6_BRU_VIRRPF_COL_A_SHIFT);
+ 
+ 	/* Route BRU input 1 as SRC input to the ROP unit and configure the ROP
+ 	 * unit with a NOP operation to make BRU input 1 available as the
+@@ -407,5 +434,19 @@ struct vsp1_bru *vsp1_bru_create(struct vsp1_device *vsp1)
+ 
+ 	vsp1_entity_init_formats(subdev, NULL);
+ 
++	/* Initialize the control handler. */
++	v4l2_ctrl_handler_init(&bru->ctrls, 1);
++	v4l2_ctrl_new_std(&bru->ctrls, &bru_ctrl_ops, V4L2_CID_BG_COLOR,
++			  0, 0xffffff, 1, 0);
++
++	bru->entity.subdev.ctrl_handler = &bru->ctrls;
++
++	if (bru->ctrls.error) {
++		dev_err(vsp1->dev, "bru: failed to initialize controls\n");
++		ret = bru->ctrls.error;
++		vsp1_entity_destroy(&bru->entity);
++		return ERR_PTR(ret);
++	}
++
+ 	return bru;
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.h b/drivers/media/platform/vsp1/vsp1_bru.h
+index 5b03479..16b1c65 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.h
++++ b/drivers/media/platform/vsp1/vsp1_bru.h
+@@ -14,6 +14,7 @@
+ #define __VSP1_BRU_H__
+ 
+ #include <media/media-entity.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-subdev.h>
+ 
+ #include "vsp1_entity.h"
+@@ -27,6 +28,8 @@ struct vsp1_rwpf;
+ struct vsp1_bru {
+ 	struct vsp1_entity entity;
+ 
++	struct v4l2_ctrl_handler ctrls;
++
+ 	struct {
+ 		struct vsp1_rwpf *rpf;
+ 		struct v4l2_rect compose;
+-- 
+1.8.5.5
 
-In V4L2 the rules for tuner ownership are complicated, especially if the
-tuner has a radio mode as well, see this presentation (the last two slides):
-
-http://linuxtv.org/downloads/presentations/media_ws_2012_EU/ambiguities2.odp
-
-Regards,
-
-	Hans
-
-> +		dev_info(vdev->dev_parent, "v4l2: Tuner is locked\n");
-> +	}
-> +
->   	/* and increase the device refcount */
->   	video_get(vdev);
->   	mutex_unlock(&videodev_lock);
-> @@ -459,8 +471,13 @@ static int v4l2_open(struct inode *inode, struct file *filp)
->   		printk(KERN_DEBUG "%s: open (%d)\n",
->   			video_device_node_name(vdev), ret);
->   	/* decrease the refcount in case of an error */
-> -	if (ret)
-> +	if (ret) {
->   		video_put(vdev);
-> +		if (vdev->tuner_tkn && vdev->dev_parent) {
-> +			devm_token_unlock(vdev->dev_parent, vdev->tuner_tkn);
-> +			dev_info(vdev->dev_parent, "v4l2: Tuner is unlocked\n");
-> +		}
-> +	}
->   	return ret;
->   }
->
-> @@ -479,6 +496,10 @@ static int v4l2_release(struct inode *inode, struct file *filp)
->   	/* decrease the refcount unconditionally since the release()
->   	   return value is ignored. */
->   	video_put(vdev);
-> +	if (vdev->tuner_tkn && vdev->dev_parent) {
-> +		devm_token_unlock(vdev->dev_parent, vdev->tuner_tkn);
-> +		dev_info(vdev->dev_parent, "v4l2: Tuner is unlocked\n");
-> +	}
->   	return ret;
->   }
->
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index eec6e46..1676349 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -141,6 +141,7 @@ struct video_device
->   	/* serialization lock */
->   	DECLARE_BITMAP(disable_locking, BASE_VIDIOC_PRIVATE);
->   	struct mutex *lock;
-> +	char *tuner_tkn;
->   };
->
->   #define media_entity_to_video_device(__e) \
->
