@@ -1,116 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4631 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754024AbaFQCoG (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59653 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755761AbaFADj3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 22:44:06 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5H2i2t7085595
-	for <linux-media@vger.kernel.org>; Tue, 17 Jun 2014 04:44:04 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 84A4D2A1FCC
-	for <linux-media@vger.kernel.org>; Tue, 17 Jun 2014 04:43:48 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Sat, 31 May 2014 23:39:29 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140617024348.84A4D2A1FCC@tschai.lan>
-Date: Tue, 17 Jun 2014 04:43:48 +0200 (CEST)
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 12/18] v4l: vsp1: wpf: Clear RPF to WPF association at stream off time
+Date: Sun,  1 Jun 2014 05:39:31 +0200
+Message-Id: <1401593977-30660-13-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The VSP1 stores the video pipelines' input (RPF) to output (WPF)
+mappings in a WPF register. An RPF must never be associated with
+multiple WPFs, even if all of those WPFs but one are unused, otherwise
+the hardware won't function properly.
 
-Results of the daily build of media_tree:
+The driver doesn't ensure this correctly as it never clears the
+mappings. An RPF used with one WPF and later with a different WPF will
+lead to malfunction, as it will be associated with two WPFs. Clear the
+mappings at stream off time to fix this.
 
-date:		Tue Jun 17 04:00:18 CEST 2014
-git branch:	test
-git hash:	f7a27ff1fb77e114d1059a5eb2ed1cffdc508ce8
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-14-gf11dd94
-host hardware:	x86_64
-host os:	3.14-5.slh.5-amd64
+Reported-by: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_wpf.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-i686: OK
-linux-3.16-rc1-i686: ERRORS
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-x86_64: OK
-linux-3.16-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: ERRORS
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index 591f09c..d330865 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -54,6 +54,7 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ 
+ 	if (!enable) {
+ 		vsp1_write(vsp1, VI6_WPF_IRQ_ENB(wpf->entity.index), 0);
++		vsp1_wpf_write(wpf, VI6_WPF_SRCRPF, 0);
+ 		return 0;
+ 	}
+ 
+-- 
+1.8.5.5
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
