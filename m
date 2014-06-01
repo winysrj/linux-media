@@ -1,97 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from outrelay06.libero.it ([212.52.84.110]:43741 "EHLO
-	outrelay06.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752851AbaF0UV5 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59654 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756651AbaFADj3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jun 2014 16:21:57 -0400
-Message-ID: <53A16E6603332939@outrelay06.libero.it> (added by
-	    postmaster@outrelay06.libero.it)
-Reply-To: <mrsjacquelinemurchi@gmail.com>
-From: "Frau Jacqueline Benett-Baggs Murchie"
-	<mrsjacquelinegt_2010@libero.it>
-Subject: KANN ICH DEPONIEREN 18.000.000,00 GBP IN IHREM KONTO ?
-Date: Sat, 28 Jun 2014 01:51:42 +0530
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Sat, 31 May 2014 23:39:29 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 13/18] v4l: vsp1: Switch to XRGB formats
+Date: Sun,  1 Jun 2014 05:39:32 +0200
+Message-Id: <1401593977-30660-14-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guten Tag ,
+The driver ignores the alpha component on output video nodes and
+hardcodes the alpha component to 0 on capture video nodes. Make this
+explicit by exposing XRGB formats.
 
+Compatibility with existing userspace applications is handled by
+selecting the XRGB format corresponding to the requested old RGB format.
 
-  Bitte nehmen Sie meine aufrichtigen Entschuldigungen an, wenn meine E-mail Ihre
- pers?nliche Ethik nicht trifft.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 26 ++++++++++++++++++++++----
+ 1 file changed, 22 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index b5bce10..415989c 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -51,11 +51,11 @@ static const struct vsp1_format_info vsp1_video_formats[] = {
+ 	  VI6_FMT_RGB_332, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+ 	  1, { 8, 0, 0 }, false, false, 1, 1 },
+-	{ V4L2_PIX_FMT_RGB444, V4L2_MBUS_FMT_ARGB8888_1X32,
++	{ V4L2_PIX_FMT_XRGB444, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_XRGB_4444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS,
+ 	  1, { 16, 0, 0 }, false, false, 1, 1 },
+-	{ V4L2_PIX_FMT_RGB555, V4L2_MBUS_FMT_ARGB8888_1X32,
++	{ V4L2_PIX_FMT_XRGB555, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_XRGB_1555, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS,
+ 	  1, { 16, 0, 0 }, false, false, 1, 1 },
+@@ -71,10 +71,10 @@ static const struct vsp1_format_info vsp1_video_formats[] = {
+ 	  VI6_FMT_RGB_888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+ 	  1, { 24, 0, 0 }, false, false, 1, 1 },
+-	{ V4L2_PIX_FMT_BGR32, V4L2_MBUS_FMT_ARGB8888_1X32,
++	{ V4L2_PIX_FMT_XBGR32, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS,
+ 	  1, { 32, 0, 0 }, false, false, 1, 1 },
+-	{ V4L2_PIX_FMT_RGB32, V4L2_MBUS_FMT_ARGB8888_1X32,
++	{ V4L2_PIX_FMT_XRGB32, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+ 	  1, { 32, 0, 0 }, false, false, 1, 1 },
+@@ -181,11 +181,29 @@ static int __vsp1_video_try_format(struct vsp1_video *video,
+ 				   struct v4l2_pix_format_mplane *pix,
+ 				   const struct vsp1_format_info **fmtinfo)
+ {
++	static const u32 xrgb_formats[][2] = {
++		{ V4L2_PIX_FMT_RGB444, V4L2_PIX_FMT_XRGB444 },
++		{ V4L2_PIX_FMT_RGB555, V4L2_PIX_FMT_XRGB555 },
++		{ V4L2_PIX_FMT_BGR32, V4L2_PIX_FMT_XBGR32 },
++		{ V4L2_PIX_FMT_RGB32, V4L2_PIX_FMT_XRGB32 },
++	};
++
+ 	const struct vsp1_format_info *info;
+ 	unsigned int width = pix->width;
+ 	unsigned int height = pix->height;
+ 	unsigned int i;
+ 
++	/* Backward compatibility: replace deprecated RGB formats by their XRGB
++	 * equivalent. This selects the format older userspace applications want
++	 * while still exposing the new format.
++	 */
++	for (i = 0; i < ARRAY_SIZE(xrgb_formats); ++i) {
++		if (xrgb_formats[i][0] == pix->pixelformat) {
++			pix->pixelformat = xrgb_formats[i][1];
++			break;
++		}
++	}
++
+ 	/* Retrieve format information and select the default format if the
+ 	 * requested format isn't supported.
+ 	 */
+-- 
+1.8.5.5
 
-  F?r ich wei?, dass dies wie ein vollst?ndiges Eindringen zu Ihrer Ruhe scheinen
- kann, aber zurzeit ,dies ist meine Option f?r Kommunikation zu Ihnen.
-  Dies k?nnte fremd oder wahrscheinlich unwahr scheinen,wegen der Hoehe von
- Ausschuss E-mail,die wir t?glich empfangen, aber ich glaube, dass dies noch der
- echteste Weg ist, einen wahren Charakter zu kontaktieren.Ich heisse Frau
- Jacqueline Benett-Baggs Murchie {Eine Vereinigten Staaten von amerikanischer
- Frau},eine Witwe zu Sp?tem Herrn Benett-Baggs Murchie {Mein Ehemann hat mit
- einem ?l refinary Lukoil in Russland f?r 31 Jahre gearbeitet} Vor seinem
- tragischen Tod in Japan 11. M?rz. 2011.
-
-
-  Mein Ehemann war auf einer Gesch?ftsreise nach Japan Wenn der h?ssliche
- Vorfall, der ihn von mir weggenommen hat, gestreikt hat. Hier ist eine
- Verbindung f?r Fotos der Katastrophe {http://www.boston.com/bigpicture/2011/03/massive_earthquake_hits_japan.h
- tml}Ich
- bin 74years alt und leide an lange Zeit Krebs von der Speiser?hre. Ich bin jetzt
- im Krankenhaus {NCI Hospital PT 13717, Jalan BBN 2/1, Putra Nilai, Negeri
- Sembilan, 71800], Malaysia.
-
-
-  Von allen Anzeigen verschlechtert sich meine Bedingung wirklich und es ist
- ziemlich offensichtlich, dass ich mehr als zwei Monate {gem?? medizinischen
- Berichten von einem Arzt}nicht leben werde.Dies ist, weil die Krebsphase zu
- einer sehr schlechten Phase erreichen hat.Mein sp?ter Ehemann war sehr
- wohlhabend und reich und nach seinem Tod,ich habe alle sein Gesch?ft und
- Reichtum geerbt.
-
-
-  Mein Ehemann hat die Summe von ?18.000.000,00 GBP mit einer Bank in Schottland
- deponiert, Mein Ehemann und ich haben geplant, dieses Geld Zu Benutzen, Und
- ?ffnungs-h?he Eine Gewebefirma Vor Dem Japan Tsunami Krise. Mein Ehemann hat
- mich der Nutznie?er des Treuhandverm?gens genannt, weil wir keine Kinder gehabt
- haben.
-  Da ich nichts habe, f?r mehr zu leben.Der Arzt hat mir geraten,dass ich f?r
- mehr als zwei Monate nicht leben kann,so habe ich mich jetzt entschieden, Teil
- von diesem Reichtum zu teilen,zur Entwicklung von dem wenigen privilegierten
- Leute in Europa beizutragen,da dies die Wunsch von meinem Ehemann Herrn
- Benett-Baggs Murchie bevor seinem Tod ist.
-
-
-  Ich habe Behandlung f?r meinen ?sophagealen Krebs erlebt. Ich habe, da meine
- F?higkeit verloren hat, zu reden, und meine ?rzte haben mir erz?hlt, dass ich
- nur ein paar Wochen habe, zu leben.Des meines Ehemanns Familienwunsch mich
- Verstorbene Um diesen Reichtum zu erlangen. Ich kann mit der Qual nicht leben,
- von dieser riesigen Verantwortung zu welchem des meines sp?ten Ehemanns
- Familienmitglieds anzuvertrauen Weil sie Ungl?ubigen sind. Ich will diesen
- Fonds, zu WOHLT?TIGKEITEN ORGANISATIONEN verteilt zu werden. Bitte, Ich will
- Sie, mir Vertreter zu helfen, als der Nutznie?er, die Fonds von der Bank zu
- sammeln und verteilen Sie zu Wohlt?tigkeit.
-
-
-  Ich bete ehrlich,dass dieses Geld,wenn es zu Ihnen ?berweist ist,sollen Sie
- versichern,dass es f?r den gesagten Zweck benutzt werden muss.Weil ich darauf
- gekommen bin,dass jene Reichtumerwerbung ohne Christus zu erfahren, ist
- Eitelkeit auf Eitelkeit.F?r Ihre Hilfe,habe ich 30% von diesem gesamten Geld
- {?18.000.000,00}f?r Sie gelegt, auf Grund Ihrer pers?nlichen Bem?hung, die Sie
- f?r Ihren pers?nlichen Gebrauch sofort das Geld auf Sie ?berweist ist,
- abziehenwerden.Zuletzt,ich bete und hoffe, dass wenn das Geld schlie?lich auf
- Sie ?berweisen ist, werden Sie es umsichtig gem?? meinem Willen und Gott
- benutzen {der 70% vom Geld zum wenigen privilegierten in Europa zu spenden}.
-
-
-
-
- Ihres in Christus.
-
-
- Frau Jacqueline Benett-Baggs Murchie
- E-MAIL : mrsjacquelinemurchi@gmail.com
