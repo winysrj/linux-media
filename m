@@ -1,147 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.bendigoit.com.au ([203.16.224.4]:45341 "EHLO
-	smtp1.bendigoit.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932827AbaFLJxp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 05:53:45 -0400
-From: James Harper <james.harper@ejbdigital.com.au>
-To: James Harper <james.harper@ejbdigital.com.au>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: [PATCH] vmalloc_sg: make sure all pages in vmalloc area are really DMA-ready
-Date: Thu, 12 Jun 2014 19:53:38 +1000
-Message-Id: <1402566818-4790-1-git-send-email-james.harper@ejbdigital.com.au>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33328 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751929AbaFAKbM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jun 2014 06:31:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Subject: Re: [PATCH 00/18] Renesas VSP1: alpha support
+Date: Sun, 01 Jun 2014 12:31:34 +0200
+Message-ID: <1409168.f26fuVjbja@avalon>
+In-Reply-To: <CAMuHMdURhVeY_PCgiJREzwqjdTfpqfm8O+N-oR0M2hA7v5TuAg@mail.gmail.com>
+References: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CAMuHMdX4nG942paYrZ1Nqm2scK8k_3YphbqeFqn8hksdfF9ivg@mail.gmail.com> <CAMuHMdURhVeY_PCgiJREzwqjdTfpqfm8O+N-oR0M2hA7v5TuAg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch originally written by Konrad. Rebased on current linux media tree.
+Hi Geert,
 
-Under Xen, vmalloc_32() isn't guaranteed to return pages which are really
-under 4G in machine physical addresses (only in virtual pseudo-physical
-addresses).  To work around this, implement a vmalloc variant which
-allocates each page with dma_alloc_coherent() to guarantee that each
-page is suitable for the device in question.
+On Sunday 01 June 2014 10:56:27 Geert Uytterhoeven wrote:
+> On Sun, Jun 1, 2014 at 10:51 AM, Geert Uytterhoeven wrote:
+> > On Sun, Jun 1, 2014 at 5:39 AM, Laurent Pinchart wrote:
+> >> The first two patch add new pixel formats for alpha and non-alpha RGB,
+> >> and extend usage of the ALPHA_COMPONENT control to output devices. They
+> >> have already been posted separately, for the rationale please see
+> >> https://www.mail-archive.com/linux-media@vger.kernel.org/msg75449.html.
+> > 
+> > mail-archive.com seems to be down.
+> > Do you have a link to another archiver?
+> 
+> I assume www.spinics.net/lists/linux-media/msg76846.html ?
 
-Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Signed-off-by: James Harper <james.harper@ejbdigital.com.au>
----
- drivers/media/v4l2-core/videobuf-dma-sg.c | 62 +++++++++++++++++++++++++++++--
- include/media/videobuf-dma-sg.h           |  3 ++
- 2 files changed, 61 insertions(+), 4 deletions(-)
+That's correct.
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
-index 828e7c1..3c8cc02 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -211,13 +211,36 @@ EXPORT_SYMBOL_GPL(videobuf_dma_init_user);
- int videobuf_dma_init_kernel(struct videobuf_dmabuf *dma, int direction,
- 			     int nr_pages)
- {
-+	int i;
-+
- 	dprintk(1, "init kernel [%d pages]\n", nr_pages);
- 
- 	dma->direction = direction;
--	dma->vaddr = vmalloc_32(nr_pages << PAGE_SHIFT);
-+	dma->vaddr_pages = kcalloc(nr_pages, sizeof(*dma->vaddr_pages),
-+				   GFP_KERNEL);
-+	if (!dma->vaddr_pages)
-+		return -ENOMEM;
-+
-+	dma->dma_addr = kcalloc(nr_pages, sizeof(*dma->dma_addr), GFP_KERNEL);
-+	if (!dma->dma_addr) {
-+		kfree(dma->vaddr_pages);
-+		return -ENOMEM;
-+	}
-+	for (i = 0; i < nr_pages; i++) {
-+		void *addr;
-+
-+		addr = dma_alloc_coherent(dma->dev, PAGE_SIZE,
-+					  &(dma->dma_addr[i]), GFP_KERNEL);
-+		if (addr == NULL)
-+			goto out_free_pages;
-+
-+		dma->vaddr_pages[i] = virt_to_page(addr);
-+	}
-+	dma->vaddr = vmap(dma->vaddr_pages, nr_pages, VM_MAP | VM_IOREMAP,
-+			  PAGE_KERNEL);
- 	if (NULL == dma->vaddr) {
- 		dprintk(1, "vmalloc_32(%d pages) failed\n", nr_pages);
--		return -ENOMEM;
-+		goto out_free_pages;
- 	}
- 
- 	dprintk(1, "vmalloc is at addr 0x%08lx, size=%d\n",
-@@ -228,6 +251,19 @@ int videobuf_dma_init_kernel(struct videobuf_dmabuf *dma, int direction,
- 	dma->nr_pages = nr_pages;
- 
- 	return 0;
-+out_free_pages:
-+	while (i > 0) {
-+		void *addr = page_address(dma->vaddr_pages[i]);
-+		dma_free_coherent(dma->dev, PAGE_SIZE, addr, dma->dma_addr[i]);
-+		i--;
-+	}
-+	kfree(dma->dma_addr);
-+	dma->dma_addr = NULL;
-+	kfree(dma->vaddr_pages);
-+	dma->vaddr_pages = NULL;
-+
-+	return -ENOMEM;
-+
- }
- EXPORT_SYMBOL_GPL(videobuf_dma_init_kernel);
- 
-@@ -322,8 +358,21 @@ int videobuf_dma_free(struct videobuf_dmabuf *dma)
- 		dma->pages = NULL;
- 	}
- 
--	vfree(dma->vaddr);
--	dma->vaddr = NULL;
-+	if (dma->dma_addr) {
-+		for (i = 0; i < dma->nr_pages; i++) {
-+			void *addr;
-+
-+			addr = page_address(dma->vaddr_pages[i]);
-+			dma_free_coherent(dma->dev, PAGE_SIZE, addr,
-+					  dma->dma_addr[i]);
-+		}
-+		kfree(dma->dma_addr);
-+		dma->dma_addr = NULL;
-+		kfree(dma->vaddr_pages);
-+		dma->vaddr_pages = NULL;
-+		vunmap(dma->vaddr);
-+		dma->vaddr = NULL;
-+	}
- 
- 	if (dma->bus_addr)
- 		dma->bus_addr = 0;
-@@ -461,6 +510,11 @@ static int __videobuf_iolock(struct videobuf_queue *q,
- 
- 	MAGIC_CHECK(mem->magic, MAGIC_SG_MEM);
- 
-+	if (!mem->dma.dev)
-+		mem->dma.dev = q->dev;
-+	else
-+		WARN_ON(mem->dma.dev != q->dev);
-+
- 	switch (vb->memory) {
- 	case V4L2_MEMORY_MMAP:
- 	case V4L2_MEMORY_USERPTR:
-diff --git a/include/media/videobuf-dma-sg.h b/include/media/videobuf-dma-sg.h
-index d8fb601..fb6fd4d8 100644
---- a/include/media/videobuf-dma-sg.h
-+++ b/include/media/videobuf-dma-sg.h
-@@ -53,6 +53,9 @@ struct videobuf_dmabuf {
- 
- 	/* for kernel buffers */
- 	void                *vaddr;
-+	struct page         **vaddr_pages;
-+	dma_addr_t          *dma_addr;
-+	struct device       *dev;
- 
- 	/* for overlay buffers (pci-pci dma) */
- 	dma_addr_t          bus_addr;
 -- 
-2.0.0
+Regards,
+
+Laurent Pinchart
 
