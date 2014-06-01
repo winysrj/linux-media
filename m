@@ -1,93 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59654 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756651AbaFADj3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 May 2014 23:39:29 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 13/18] v4l: vsp1: Switch to XRGB formats
-Date: Sun,  1 Jun 2014 05:39:32 +0200
-Message-Id: <1401593977-30660-14-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-we0-f172.google.com ([74.125.82.172]:64186 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753296AbaFAM20 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jun 2014 08:28:26 -0400
+Received: by mail-we0-f172.google.com with SMTP id k48so3999954wev.31
+        for <linux-media@vger.kernel.org>; Sun, 01 Jun 2014 05:28:25 -0700 (PDT)
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+To: Michael Krufky <mkrufky@linuxtv.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: usb: dvb-usb-v2: mxl111sf.c:  Cleaning up uninitialized variables
+Date: Sun,  1 Jun 2014 14:29:19 +0200
+Message-Id: <1401625759-14610-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver ignores the alpha component on output video nodes and
-hardcodes the alpha component to 0 on capture video nodes. Make this
-explicit by exposing XRGB formats.
+There is a risk that the variable will be used without being initialized.
 
-Compatibility with existing userspace applications is handled by
-selecting the XRGB format corresponding to the requested old RGB format.
+This was largely found by using a static code analysis program called cppcheck.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
 ---
- drivers/media/platform/vsp1/vsp1_video.c | 26 ++++++++++++++++++++++----
- 1 file changed, 22 insertions(+), 4 deletions(-)
+ drivers/media/usb/dvb-usb-v2/mxl111sf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index b5bce10..415989c 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -51,11 +51,11 @@ static const struct vsp1_format_info vsp1_video_formats[] = {
- 	  VI6_FMT_RGB_332, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
- 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
- 	  1, { 8, 0, 0 }, false, false, 1, 1 },
--	{ V4L2_PIX_FMT_RGB444, V4L2_MBUS_FMT_ARGB8888_1X32,
-+	{ V4L2_PIX_FMT_XRGB444, V4L2_MBUS_FMT_ARGB8888_1X32,
- 	  VI6_FMT_XRGB_4444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
- 	  VI6_RPF_DSWAP_P_WDS,
- 	  1, { 16, 0, 0 }, false, false, 1, 1 },
--	{ V4L2_PIX_FMT_RGB555, V4L2_MBUS_FMT_ARGB8888_1X32,
-+	{ V4L2_PIX_FMT_XRGB555, V4L2_MBUS_FMT_ARGB8888_1X32,
- 	  VI6_FMT_XRGB_1555, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
- 	  VI6_RPF_DSWAP_P_WDS,
- 	  1, { 16, 0, 0 }, false, false, 1, 1 },
-@@ -71,10 +71,10 @@ static const struct vsp1_format_info vsp1_video_formats[] = {
- 	  VI6_FMT_RGB_888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
- 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
- 	  1, { 24, 0, 0 }, false, false, 1, 1 },
--	{ V4L2_PIX_FMT_BGR32, V4L2_MBUS_FMT_ARGB8888_1X32,
-+	{ V4L2_PIX_FMT_XBGR32, V4L2_MBUS_FMT_ARGB8888_1X32,
- 	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS,
- 	  1, { 32, 0, 0 }, false, false, 1, 1 },
--	{ V4L2_PIX_FMT_RGB32, V4L2_MBUS_FMT_ARGB8888_1X32,
-+	{ V4L2_PIX_FMT_XRGB32, V4L2_MBUS_FMT_ARGB8888_1X32,
- 	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
- 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
- 	  1, { 32, 0, 0 }, false, false, 1, 1 },
-@@ -181,11 +181,29 @@ static int __vsp1_video_try_format(struct vsp1_video *video,
- 				   struct v4l2_pix_format_mplane *pix,
- 				   const struct vsp1_format_info **fmtinfo)
+diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+index c7304fa..b8a707e 100644
+--- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
++++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+@@ -129,7 +129,7 @@ int mxl111sf_write_reg_mask(struct mxl111sf_state *state,
+ 				   u8 addr, u8 mask, u8 data)
  {
-+	static const u32 xrgb_formats[][2] = {
-+		{ V4L2_PIX_FMT_RGB444, V4L2_PIX_FMT_XRGB444 },
-+		{ V4L2_PIX_FMT_RGB555, V4L2_PIX_FMT_XRGB555 },
-+		{ V4L2_PIX_FMT_BGR32, V4L2_PIX_FMT_XBGR32 },
-+		{ V4L2_PIX_FMT_RGB32, V4L2_PIX_FMT_XRGB32 },
-+	};
-+
- 	const struct vsp1_format_info *info;
- 	unsigned int width = pix->width;
- 	unsigned int height = pix->height;
- 	unsigned int i;
+ 	int ret;
+-	u8 val;
++	u8 val = 0;
  
-+	/* Backward compatibility: replace deprecated RGB formats by their XRGB
-+	 * equivalent. This selects the format older userspace applications want
-+	 * while still exposing the new format.
-+	 */
-+	for (i = 0; i < ARRAY_SIZE(xrgb_formats); ++i) {
-+		if (xrgb_formats[i][0] == pix->pixelformat) {
-+			pix->pixelformat = xrgb_formats[i][1];
-+			break;
-+		}
-+	}
-+
- 	/* Retrieve format information and select the default format if the
- 	 * requested format isn't supported.
- 	 */
+ 	if (mask != 0xff) {
+ 		ret = mxl111sf_read_reg(state, addr, &val);
 -- 
-1.8.5.5
+1.7.10.4
 
