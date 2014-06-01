@@ -1,79 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f47.google.com ([209.85.160.47]:46297 "EHLO
-	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753324AbaFGV5W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:22 -0400
-Received: by mail-pb0-f47.google.com with SMTP id rp16so3919239pbb.34
-        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:21 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59654 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756754AbaFADjc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 May 2014 23:39:32 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 21/43] imx-drm: ipu-v3: Add ipu_bits_per_pixel()
-Date: Sat,  7 Jun 2014 14:56:23 -0700
-Message-Id: <1402178205-22697-22-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 17/18] v4l: vsp1: bru: Support non-premultiplied colors at the BRU output
+Date: Sun,  1 Jun 2014 05:39:36 +0200
+Message-Id: <1401593977-30660-18-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add simple conversion from pixelformat to total bits-per-pixel.
+The BRU outputs premultiplied colors, enable color data normalization
+when the format configured at the output of the pipeline isn't
+premultiplied.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/staging/imx-drm/ipu-v3/ipu-common.c |   27 +++++++++++++++++++++++++++
- include/linux/platform_data/imx-ipu-v3.h    |    1 +
- 2 files changed, 28 insertions(+)
+ drivers/media/platform/vsp1/vsp1_bru.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-index de66d02..8a03ad2 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-@@ -606,6 +606,33 @@ int ipu_stride_to_bytes(u32 pixel_stride, u32 pixelformat)
- }
- EXPORT_SYMBOL_GPL(ipu_stride_to_bytes);
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index d8d49fb..86b32bc 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -43,8 +43,10 @@ static inline void vsp1_bru_write(struct vsp1_bru *bru, u32 reg, u32 data)
  
-+/*
-+ * Standard bpp from pixel format.
-+ */
-+int ipu_bits_per_pixel(u32 pixelformat)
-+{
-+	switch (pixelformat) {
-+	case V4L2_PIX_FMT_YUV420:
-+	case V4L2_PIX_FMT_YVU420:
-+		return 12;
-+	case V4L2_PIX_FMT_RGB565:
-+	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_UYVY:
-+		return 16;
-+	case V4L2_PIX_FMT_BGR24:
-+	case V4L2_PIX_FMT_RGB24:
-+		return 24;
-+	case V4L2_PIX_FMT_BGR32:
-+	case V4L2_PIX_FMT_RGB32:
-+		return 32;
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_bits_per_pixel);
-+
- int ipu_degrees_to_rot_mode(enum ipu_rotate_mode *mode, int degrees,
- 			    bool hflip, bool vflip)
+ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
  {
-diff --git a/include/linux/platform_data/imx-ipu-v3.h b/include/linux/platform_data/imx-ipu-v3.h
-index 75a6a5d..49e69a9 100644
---- a/include/linux/platform_data/imx-ipu-v3.h
-+++ b/include/linux/platform_data/imx-ipu-v3.h
-@@ -510,6 +510,7 @@ enum ipu_color_space ipu_drm_fourcc_to_colorspace(u32 drm_fourcc);
- enum ipu_color_space ipu_pixelformat_to_colorspace(u32 pixelformat);
- enum ipu_color_space ipu_mbus_code_to_colorspace(u32 mbus_code);
- int ipu_stride_to_bytes(u32 pixel_stride, u32 pixelformat);
-+int ipu_bits_per_pixel(u32 pixelformat);
- bool ipu_pixelformat_is_planar(u32 pixelformat);
- int ipu_degrees_to_rot_mode(enum ipu_rotate_mode *mode, int degrees,
- 			    bool hflip, bool vflip);
++	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&subdev->entity);
+ 	struct vsp1_bru *bru = to_bru(subdev);
+ 	struct v4l2_mbus_framefmt *format;
++	unsigned int flags;
+ 	unsigned int i;
+ 
+ 	if (!enable)
+@@ -58,8 +60,13 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	 * to sane default values for now.
+ 	 */
+ 
+-	/* Disable both color data normalization and dithering. */
+-	vsp1_bru_write(bru, VI6_BRU_INCTRL, 0);
++	/* Disable dithering and enable color data normalization unless the
++	 * format at the pipeline output is premultiplied.
++	 */
++	flags = pipe->output ? pipe->output->video.format.flags : 0;
++	vsp1_bru_write(bru, VI6_BRU_INCTRL,
++		       flags & V4L2_PIX_FMT_FLAG_PREMUL_ALPHA ?
++		       0 : VI6_BRU_INCTRL_NRM);
+ 
+ 	/* Set the background position to cover the whole output image and
+ 	 * set its color to opaque black.
 -- 
-1.7.9.5
+1.8.5.5
 
