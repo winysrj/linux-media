@@ -1,119 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f179.google.com ([209.85.213.179]:34744 "EHLO
-	mail-ig0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933059AbaFSSw5 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59653 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756698AbaFADja (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jun 2014 14:52:57 -0400
-MIME-Version: 1.0
-In-Reply-To: <20140619181918.GA24155@kroah.com>
-References: <20140618102957.15728.43525.stgit@patser>
-	<20140618103653.15728.4942.stgit@patser>
-	<20140619011327.GC10921@kroah.com>
-	<CAF6AEGv4Ms+zsrEtpA10bGq04LnRjzVb925co49eVxh4ugkd=A@mail.gmail.com>
-	<20140619170059.GA1224@kroah.com>
-	<CAF6AEGuXKw1w=outX+QgFE2XZxV8c6pyhORL+mRp4uZR8Jnq7g@mail.gmail.com>
-	<20140619181918.GA24155@kroah.com>
-Date: Thu, 19 Jun 2014 14:52:56 -0400
-Message-ID: <CAF6AEGu0fE0+=WPZ4WNprUGmz=hxTFson_MYfQbJe_uV+kOkUQ@mail.gmail.com>
-Subject: Re: [REPOST PATCH 1/8] fence: dma-buf cross-device synchronization (v17)
-From: Rob Clark <robdclark@gmail.com>
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-arch@vger.kernel.org,
-	Thomas Hellstrom <thellstrom@vmware.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Colin Cross <ccross@google.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Sat, 31 May 2014 23:39:30 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 14/18] v4l: vsp1: Add alpha channel support to the memory ports
+Date: Sun,  1 Jun 2014 05:39:33 +0200
+Message-Id: <1401593977-30660-15-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 19, 2014 at 2:19 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
-> On Thu, Jun 19, 2014 at 01:45:30PM -0400, Rob Clark wrote:
->> On Thu, Jun 19, 2014 at 1:00 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
->> > On Thu, Jun 19, 2014 at 10:00:18AM -0400, Rob Clark wrote:
->> >> On Wed, Jun 18, 2014 at 9:13 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
->> >> > On Wed, Jun 18, 2014 at 12:36:54PM +0200, Maarten Lankhorst wrote:
->> >> >> +#define CREATE_TRACE_POINTS
->> >> >> +#include <trace/events/fence.h>
->> >> >> +
->> >> >> +EXPORT_TRACEPOINT_SYMBOL(fence_annotate_wait_on);
->> >> >> +EXPORT_TRACEPOINT_SYMBOL(fence_emit);
->> >> >
->> >> > Are you really willing to live with these as tracepoints for forever?
->> >> > What is the use of them in debugging?  Was it just for debugging the
->> >> > fence code, or for something else?
->> >> >
->> >> >> +/**
->> >> >> + * fence_context_alloc - allocate an array of fence contexts
->> >> >> + * @num:     [in]    amount of contexts to allocate
->> >> >> + *
->> >> >> + * This function will return the first index of the number of fences allocated.
->> >> >> + * The fence context is used for setting fence->context to a unique number.
->> >> >> + */
->> >> >> +unsigned fence_context_alloc(unsigned num)
->> >> >> +{
->> >> >> +     BUG_ON(!num);
->> >> >> +     return atomic_add_return(num, &fence_context_counter) - num;
->> >> >> +}
->> >> >> +EXPORT_SYMBOL(fence_context_alloc);
->> >> >
->> >> > EXPORT_SYMBOL_GPL()?  Same goes for all of the exports in here.
->> >> > Traditionally all of the driver core exports have been with this
->> >> > marking, any objection to making that change here as well?
->> >>
->> >> tbh, I prefer EXPORT_SYMBOL()..  well, I'd prefer even more if there
->> >> wasn't even a need for EXPORT_SYMBOL_GPL(), but sadly it is a fact of
->> >> life.  We already went through this debate once with dma-buf.  We
->> >> aren't going to change $evil_vendor's mind about non-gpl modules.  The
->> >> only result will be a more flugly convoluted solution (ie. use syncpt
->> >> EXPORT_SYMBOL() on top of fence EXPORT_SYMBOL_GPL()) just as a
->> >> workaround, with the result that no-one benefits.
->> >
->> > It has been proven that using _GPL() exports have caused companies to
->> > release their code "properly" over the years, so as these really are
->> > Linux-only apis, please change them to be marked this way, it helps
->> > everyone out in the end.
->>
->> Well, maybe that is the true in some cases.  But it certainly didn't
->> work out that way for dma-buf.  And I think the end result is worse.
->>
->> I don't really like coming down on the side of EXPORT_SYMBOL() instead
->> of EXPORT_SYMBOL_GPL(), but if we do use EXPORT_SYMBOL_GPL() then the
->> result will only be creative workarounds using the _GPL symbols
->> indirectly by whatever is available via EXPORT_SYMBOL().  I don't
->> really see how that will be better.
->
-> You are saying that you _know_ companies will violate our license, so
-> you should just "give up"?  And how do you know people aren't working on
-> preventing those "indirect" usages as well?  :)
+Support ARGB formats on the RPF side by reading the alpha component from
+memory and on the WPF side by writing it to memory.
 
-Well, all I know is what happened with dmabuf.  This seems like the
-exact same scenario (same vendor, same driver, same use-case).
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_rpf.c   |  8 ++++--
+ drivers/media/platform/vsp1/vsp1_video.c | 49 +++++++++++++++++++++-----------
+ drivers/media/platform/vsp1/vsp1_video.h |  2 ++
+ drivers/media/platform/vsp1/vsp1_wpf.c   |  2 ++
+ 4 files changed, 41 insertions(+), 20 deletions(-)
 
-Not really sure how we could completely prevent indirect usage, given
-that drm core and many of the drivers are dual MIT/GPL.   (But ofc,
-IANAL.)
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index 9b3fc70..2824f53 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -101,10 +101,12 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ 		       (rpf->location.left << VI6_RPF_LOC_HCOORD_SHIFT) |
+ 		       (rpf->location.top << VI6_RPF_LOC_VCOORD_SHIFT));
+ 
+-	/* Disable alpha, mask and color key. Set the alpha channel to a fixed
+-	 * value of 255.
++	/* Use the alpha channel (extended to 8 bits) when available or a
++	 * hardcoded 255 value otherwise. Disable color keying.
+ 	 */
+-	vsp1_rpf_write(rpf, VI6_RPF_ALPH_SEL, VI6_RPF_ALPH_SEL_ASEL_FIXED);
++	vsp1_rpf_write(rpf, VI6_RPF_ALPH_SEL, VI6_RPF_ALPH_SEL_AEXT_EXT |
++		       (fmtinfo->alpha ? VI6_RPF_ALPH_SEL_ASEL_PACKED
++				       : VI6_RPF_ALPH_SEL_ASEL_FIXED));
+ 	vsp1_rpf_write(rpf, VI6_RPF_VRTCOL_SET,
+ 		       255 << VI6_RPF_VRTCOL_SET_LAYA_SHIFT);
+ 	vsp1_rpf_write(rpf, VI6_RPF_MSK_CTRL, 0);
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 415989c..cc22264 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -50,70 +50,85 @@ static const struct vsp1_format_info vsp1_video_formats[] = {
+ 	{ V4L2_PIX_FMT_RGB332, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_RGB_332, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  1, { 8, 0, 0 }, false, false, 1, 1 },
++	  1, { 8, 0, 0 }, false, false, 1, 1, false },
++	{ V4L2_PIX_FMT_ARGB444, V4L2_MBUS_FMT_ARGB8888_1X32,
++	  VI6_FMT_ARGB_4444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
++	  VI6_RPF_DSWAP_P_WDS,
++	  1, { 16, 0, 0 }, false, false, 1, 1, true },
+ 	{ V4L2_PIX_FMT_XRGB444, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_XRGB_4444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS,
+-	  1, { 16, 0, 0 }, false, false, 1, 1 },
++	  1, { 16, 0, 0 }, false, false, 1, 1, true },
++	{ V4L2_PIX_FMT_ARGB555, V4L2_MBUS_FMT_ARGB8888_1X32,
++	  VI6_FMT_ARGB_1555, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
++	  VI6_RPF_DSWAP_P_WDS,
++	  1, { 16, 0, 0 }, false, false, 1, 1, true },
+ 	{ V4L2_PIX_FMT_XRGB555, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_XRGB_1555, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS,
+-	  1, { 16, 0, 0 }, false, false, 1, 1 },
++	  1, { 16, 0, 0 }, false, false, 1, 1, false },
+ 	{ V4L2_PIX_FMT_RGB565, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_RGB_565, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS,
+-	  1, { 16, 0, 0 }, false, false, 1, 1 },
++	  1, { 16, 0, 0 }, false, false, 1, 1, false },
+ 	{ V4L2_PIX_FMT_BGR24, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_BGR_888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  1, { 24, 0, 0 }, false, false, 1, 1 },
++	  1, { 24, 0, 0 }, false, false, 1, 1, false },
+ 	{ V4L2_PIX_FMT_RGB24, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_RGB_888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  1, { 24, 0, 0 }, false, false, 1, 1 },
++	  1, { 24, 0, 0 }, false, false, 1, 1, false },
++	{ V4L2_PIX_FMT_ABGR32, V4L2_MBUS_FMT_ARGB8888_1X32,
++	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS,
++	  1, { 32, 0, 0 }, false, false, 1, 1, true },
+ 	{ V4L2_PIX_FMT_XBGR32, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS,
+-	  1, { 32, 0, 0 }, false, false, 1, 1 },
++	  1, { 32, 0, 0 }, false, false, 1, 1, false },
++	{ V4L2_PIX_FMT_ARGB32, V4L2_MBUS_FMT_ARGB8888_1X32,
++	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
++	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
++	  1, { 32, 0, 0 }, false, false, 1, 1, true },
+ 	{ V4L2_PIX_FMT_XRGB32, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  1, { 32, 0, 0 }, false, false, 1, 1 },
++	  1, { 32, 0, 0 }, false, false, 1, 1, false },
+ 	{ V4L2_PIX_FMT_UYVY, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  1, { 16, 0, 0 }, false, false, 2, 1 },
++	  1, { 16, 0, 0 }, false, false, 2, 1, false },
+ 	{ V4L2_PIX_FMT_VYUY, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  1, { 16, 0, 0 }, false, true, 2, 1 },
++	  1, { 16, 0, 0 }, false, true, 2, 1, false },
+ 	{ V4L2_PIX_FMT_YUYV, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  1, { 16, 0, 0 }, true, false, 2, 1 },
++	  1, { 16, 0, 0 }, true, false, 2, 1, false },
+ 	{ V4L2_PIX_FMT_YVYU, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  1, { 16, 0, 0 }, true, true, 2, 1 },
++	  1, { 16, 0, 0 }, true, true, 2, 1, false },
+ 	{ V4L2_PIX_FMT_NV12M, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_Y_UV_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  2, { 8, 16, 0 }, false, false, 2, 2 },
++	  2, { 8, 16, 0 }, false, false, 2, 2, false },
+ 	{ V4L2_PIX_FMT_NV21M, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_Y_UV_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  2, { 8, 16, 0 }, false, true, 2, 2 },
++	  2, { 8, 16, 0 }, false, true, 2, 2, false },
+ 	{ V4L2_PIX_FMT_NV16M, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_Y_UV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  2, { 8, 16, 0 }, false, false, 2, 1 },
++	  2, { 8, 16, 0 }, false, false, 2, 1, false },
+ 	{ V4L2_PIX_FMT_NV61M, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_Y_UV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  2, { 8, 16, 0 }, false, true, 2, 1 },
++	  2, { 8, 16, 0 }, false, true, 2, 1, false },
+ 	{ V4L2_PIX_FMT_YUV420M, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_Y_U_V_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  3, { 8, 8, 8 }, false, false, 2, 2 },
++	  3, { 8, 8, 8 }, false, false, 2, 2, false },
+ };
+ 
+ /*
+diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
+index cb5d9ef..4dad110 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.h
++++ b/drivers/media/platform/vsp1/vsp1_video.h
+@@ -33,6 +33,7 @@ struct vsp1_video;
+  * @swap_uv: the U and V components are swapped (V comes before U)
+  * @hsub: horizontal subsampling factor
+  * @vsub: vertical subsampling factor
++ * @alpha: has an alpha channel
+  */
+ struct vsp1_format_info {
+ 	u32 fourcc;
+@@ -45,6 +46,7 @@ struct vsp1_format_info {
+ 	bool swap_uv;
+ 	unsigned int hsub;
+ 	unsigned int vsub;
++	bool alpha;
+ };
+ 
+ enum vsp1_pipeline_state {
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index d330865..a2ba107 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -99,6 +99,8 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ 
+ 		outfmt = fmtinfo->hwfmt << VI6_WPF_OUTFMT_WRFMT_SHIFT;
+ 
++		if (fmtinfo->alpha)
++			outfmt |= VI6_WPF_OUTFMT_PXA;
+ 		if (fmtinfo->swap_yc)
+ 			outfmt |= VI6_WPF_OUTFMT_SPYCS;
+ 		if (fmtinfo->swap_uv)
+-- 
+1.8.5.5
 
-> Sorry, I'm not going to give up here, again, it has proven to work in
-> the past in changing the ways of _very_ large companies, why stop now?
-
-In the general case, I would agree.  But in this specific case, I am
-not very optimistic.
-
-That said, it isn't really my loss if it is _GPL()..  I don't have to
-use or support that particular driver.  But given that we have some
-history from the same debate with dma-buf, I think it is pretty easy
-to infer the result from making fence EXPORT_SYMBOL_GPL().
-
-BR,
--R
-
-> thanks,
->
-> greg k-h
