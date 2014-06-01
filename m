@@ -1,215 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta03.emeryville.ca.mail.comcast.net ([76.96.30.32]:49048 "EHLO
-	qmta03.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752423AbaFYAEK (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59653 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751861AbaFADjX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 20:04:10 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: gregkh@linuxfoundation.org, m.chehab@samsung.com, olebowle@gmx.com,
-	ttmesterr@gmail.com, dheitmueller@kernellabs.com,
-	cb.xiong@samsung.com, yongjun_wei@trendmicro.com.cn,
-	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	crope@iki.fi, wade_farnsworth@mentor.com, ricardo.ribalda@gmail.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
-Subject: [PATCH 4/4] media: au0828 changes to use token devres for tuner access
-Date: Tue, 24 Jun 2014 17:57:31 -0600
-Message-Id: <191ed75e7a6aafd9e2f85c642b08a963a9d1be1f.1403652043.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1403652043.git.shuah.kh@samsung.com>
-References: <cover.1403652043.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1403652043.git.shuah.kh@samsung.com>
-References: <cover.1403652043.git.shuah.kh@samsung.com>
+	Sat, 31 May 2014 23:39:23 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 04/18] v4l: Add premultiplied alpha flag for pixel formats
+Date: Sun,  1 Jun 2014 05:39:23 +0200
+Message-Id: <1401593977-30660-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-au0828 is changed to use token devres as a large locking
-for exclusive access to tuner function. A new tuner_tkn
-field is added to struct au0828_dev. Tuner token is created
-from au0828 probe() and destroyed from disconnect().
+When set, the new V4L2_PIX_FMT_FLAG_PREMUL_ALPHA flag indicates that the
+pixel values are premultiplied by the alpha channel value.
 
-Two new routines au0828_create_token_resources() and
-au0828_destroy_token_resources() create and destroy the
-tuner token.
-
-au0828-dvb exports the tuner token to dvb-frontend when
-it registers the digital frontend using the tuner_tkn
-field in struct dvb_frontend.
-
-au0828-video exports the tuner token to v4l2-core when
-it registers the analog function using tuner_tkn field
-in struct video_device.
-
-Before this change:
-
-- digital tv app disrupts an active analog app when it
-  tries to use the tuner
-  e.g:  tvtime analog video stream stops when kaffeine starts
-- analog tv app disrupts another analog app when it tries to
-  use the tuner
-  e.g: tvtime audio glitches when xawtv starts and vice versa.
-- analog tv app disrupts an active digital app when it tries
-  to use the tuner
-  e.g: kaffeine digital stream stops when tvtime starts
-- digital tv app disrupts another digital tv app when it tries
-  to use the tuner
-  e.g: kaffeine digital stream stops when vlc starts and vice
-  versa
-
-After this change:
-- digital tv app detects tuner is busy without disrupting
-  the active app.
-- analog tv app detects tuner is busy without disrupting
-  the active analog app.
-- analog tv app detects tuner is busy without disrupting
-  the active digital app.
-- digital tv app detects tuner is busy without disrupting
-  the active digital app.
-
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/usb/au0828/au0828-core.c  |   42 +++++++++++++++++++++++++++++++
- drivers/media/usb/au0828/au0828-dvb.c   |    1 +
- drivers/media/usb/au0828/au0828-video.c |    4 +++
- drivers/media/usb/au0828/au0828.h       |    4 +++
- 4 files changed, 51 insertions(+)
+ Documentation/DocBook/media/v4l/pixfmt.xml | 28 +++++++++++++++++++++++++++-
+ Documentation/DocBook/media/v4l/v4l2.xml   |  2 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c       |  5 +++--
+ include/uapi/linux/videodev2.h             |  8 +++++++-
+ 4 files changed, 38 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index ab45a6f..df04a99 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -125,6 +125,37 @@ static int recv_control_msg(struct au0828_dev *dev, u16 request, u32 value,
- 	return status;
- }
- 
-+/* interfaces to create and destroy token resources */
-+static int au0828_create_token_resources(struct au0828_dev *dev)
-+{
-+	int rc = 0, len;
-+	char buf[64];
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 8c56cacd..c8e1487 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -135,6 +135,12 @@ extended fields were set to zero. On return drivers must set the
+ <constant>V4L2_PIX_FMT_PRIV_MAGIC</constant> and all the extended field to
+ applicable values.</para></entry>
+ 	</row>
++	<row>
++	  <entry>__u32</entry>
++	  <entry><structfield>flags</structfield></entry>
++	    <entry>Flags set by the application or driver, see <xref
++linkend="format-flags" />.</entry>
++	</row>
+       </tbody>
+     </tgroup>
+   </table>
+@@ -220,9 +226,15 @@ codes can be used.</entry>
+           and the number of valid entries in the
+           <structfield>plane_fmt</structfield> array.</entry>
+         </row>
++	<row>
++	  <entry>__u8</entry>
++	  <entry><structfield>flags</structfield></entry>
++	  <entry>Flags set by the application or driver, see <xref
++linkend="format-flags" />.</entry>
++	</row>
+         <row>
+           <entry>__u8</entry>
+-          <entry><structfield>reserved[11]</structfield></entry>
++          <entry><structfield>reserved[10]</structfield></entry>
+           <entry>Reserved for future extensions. Should be zeroed by the
+            application.</entry>
+         </row>
+@@ -1079,4 +1091,18 @@ concatenated to form the JPEG stream. </para>
+ 	</tbody>
+       </tgroup>
+     </table>
 +
-+	/* create token devres for tuner */
-+	len = snprintf(buf, sizeof(buf),
-+		"tuner:%s-%s-%d",
-+		dev_name(&dev->usbdev->dev),
-+		dev->usbdev->bus->bus_name,
-+		dev->board.tuner_addr);
-+
-+	dev->tuner_tkn = devm_kzalloc(&dev->usbdev->dev, len + 1, GFP_KERNEL);
-+	if (!dev->tuner_tkn)
-+		return -ENOMEM;
-+
-+	strcpy(dev->tuner_tkn, buf);
-+	rc = devm_token_create(&dev->usbdev->dev, dev->tuner_tkn);
-+	if (rc)
-+		return rc;
-+
-+	pr_info("au0828_create_token_resources(): Tuner token created\n");
-+	return rc;
-+}
-+
-+static void au0828_destroy_token_resources(struct au0828_dev *dev)
-+{
-+	devm_token_destroy(&dev->usbdev->dev, dev->tuner_tkn);
-+}
-+
- static void au0828_usb_release(struct au0828_dev *dev)
- {
- 	/* I2C */
-@@ -154,6 +185,8 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
- 	/* Digital TV */
- 	au0828_dvb_unregister(dev);
++    <table frame="none" pgwide="1" id="format-flags">
++      <title>Format Flags</title>
++      <tgroup cols="3">
++	&cs-def;
++	<tbody valign="top">
++	  <row>
++	    <entry><constant>V4L2_PIX_FMT_FLAG_PREMUL_ALPHA</constant></entry>
++	    <entry>0x00000001</entry>
++	    <entry>The pixel values are premultiplied by the alpha channel value.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
+   </section>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index d0a48be..f2f81f0 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -155,7 +155,7 @@ applications. -->
+ 	<revnumber>3.16</revnumber>
+ 	<date>2014-05-27</date>
+ 	<authorinitials>lp</authorinitials>
+-	<revremark>Extended &v4l2-pix-format;.
++	<revremark>Extended &v4l2-pix-format;. Added format flags.
+ 	</revremark>
+       </revision>
  
-+	au0828_destroy_token_resources(dev);
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 01b4588..5a25159 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -256,7 +256,8 @@ static void v4l_print_format(const void *arg, bool write_only)
+ 		pix = &p->fmt.pix;
+ 		pr_cont(", width=%u, height=%u, "
+ 			"pixelformat=%c%c%c%c, field=%s, "
+-			"bytesperline=%u, sizeimage=%u, colorspace=%d\n",
++			"bytesperline=%u, sizeimage=%u, colorspace=%d, "
++			"flags %u\n",
+ 			pix->width, pix->height,
+ 			(pix->pixelformat & 0xff),
+ 			(pix->pixelformat >>  8) & 0xff,
+@@ -264,7 +265,7 @@ static void v4l_print_format(const void *arg, bool write_only)
+ 			(pix->pixelformat >> 24) & 0xff,
+ 			prt_names(pix->field, v4l2_field_names),
+ 			pix->bytesperline, pix->sizeimage,
+-			pix->colorspace);
++			pix->colorspace, pix->flags);
+ 		break;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 2656a94..7861b50 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -288,6 +288,7 @@ struct v4l2_pix_format {
+ 	__u32          		sizeimage;
+ 	__u32			colorspace;	/* enum v4l2_colorspace */
+ 	__u32			priv;		/* private data, depends on pixelformat */
++	__u32			flags;		/* format flags (V4L2_PIX_FMT_FLAG_*) */
+ };
+ 
+ /*      Pixel format         FOURCC                          depth  Description  */
+@@ -452,6 +453,9 @@ struct v4l2_pix_format {
+ /* priv field value to indicates that subsequent fields are valid. */
+ #define V4L2_PIX_FMT_PRIV_MAGIC		0xdeadbeef
+ 
++/* Flags */
++#define V4L2_PIX_FMT_FLAG_PREMUL_ALPHA	0x00000001
 +
- 	usb_set_intfdata(interface, NULL);
- 	mutex_lock(&dev->mutex);
- 	dev->usbdev = NULL;
-@@ -213,6 +246,13 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 	dev->usbdev = usbdev;
- 	dev->boardnr = id->driver_info;
+ /*
+  *	F O R M A T   E N U M E R A T I O N
+  */
+@@ -1726,6 +1730,7 @@ struct v4l2_plane_pix_format {
+  * @colorspace:		enum v4l2_colorspace; supplemental to pixelformat
+  * @plane_fmt:		per-plane information
+  * @num_planes:		number of planes for this format
++ * @flags:		format flags (V4L2_PIX_FMT_FLAG_*)
+  */
+ struct v4l2_pix_format_mplane {
+ 	__u32				width;
+@@ -1736,7 +1741,8 @@ struct v4l2_pix_format_mplane {
  
-+	/* create token resources */
-+	if (au0828_create_token_resources(dev)) {
-+		mutex_unlock(&dev->lock);
-+		kfree(dev);
-+		return -ENOMEM;
-+	}
-+
- #ifdef CONFIG_VIDEO_AU0828_V4L2
- 	dev->v4l2_dev.release = au0828_usb_v4l2_release;
+ 	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
+ 	__u8				num_planes;
+-	__u8				reserved[11];
++	__u8				flags;
++	__u8				reserved[10];
+ } __attribute__ ((packed));
  
-@@ -221,6 +261,7 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 	if (retval) {
- 		pr_err("%s() v4l2_device_register failed\n",
- 		       __func__);
-+		au0828_destroy_token_resources(dev);
- 		mutex_unlock(&dev->lock);
- 		kfree(dev);
- 		return retval;
-@@ -230,6 +271,7 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 	if (retval) {
- 		pr_err("%s() v4l2_ctrl_handler_init failed\n",
- 		       __func__);
-+		au0828_destroy_token_resources(dev);
- 		mutex_unlock(&dev->lock);
- 		kfree(dev);
- 		return retval;
-diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
-index d8b5d94..1195d29 100755
---- a/drivers/media/usb/au0828/au0828-dvb.c
-+++ b/drivers/media/usb/au0828/au0828-dvb.c
-@@ -412,6 +412,7 @@ static int dvb_register(struct au0828_dev *dev)
- 		goto fail_adapter;
- 	}
- 	dvb->adapter.priv = dev;
-+	dvb->frontend->tuner_tkn = dev->tuner_tkn;
- 
- 	/* register frontend */
- 	result = dvb_register_frontend(&dvb->adapter, dvb->frontend);
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 385894a..0b50bda 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -2018,6 +2018,9 @@ int au0828_analog_register(struct au0828_dev *dev,
- 	dev->vdev->lock = &dev->lock;
- 	set_bit(V4L2_FL_USE_FH_PRIO, &dev->vdev->flags);
- 	strcpy(dev->vdev->name, "au0828a video");
-+	/* is there another way v4l2 core can get struct device ?? */
-+	dev->vdev->dev_parent = &dev->usbdev->dev;
-+	dev->vdev->tuner_tkn = dev->tuner_tkn;
- 
- 	/* Setup the VBI device */
- 	*dev->vbi_dev = au0828_video_template;
-@@ -2025,6 +2028,7 @@ int au0828_analog_register(struct au0828_dev *dev,
- 	dev->vbi_dev->lock = &dev->lock;
- 	set_bit(V4L2_FL_USE_FH_PRIO, &dev->vbi_dev->flags);
- 	strcpy(dev->vbi_dev->name, "au0828a vbi");
-+	dev->vbi_dev->tuner_tkn = dev->tuner_tkn;
- 
- 	/* Register the v4l2 device */
- 	video_set_drvdata(dev->vdev, dev);
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index 7112b9d..11bc933 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -23,6 +23,7 @@
- #include <linux/i2c.h>
- #include <linux/i2c-algo-bit.h>
- #include <media/tveeprom.h>
-+#include <linux/token_devres.h>
- 
- /* Analog */
- #include <linux/videodev2.h>
-@@ -198,6 +199,9 @@ struct au0828_dev {
- 	struct au0828_board	board;
- 	u8			ctrlmsg[64];
- 
-+	/* token resources */
-+	char *tuner_tkn; /* tuner token id */
-+
- 	/* I2C */
- 	struct i2c_adapter		i2c_adap;
- 	struct i2c_algorithm		i2c_algo;
+ /**
 -- 
-1.7.10.4
+1.8.5.5
 
