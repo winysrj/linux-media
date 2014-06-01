@@ -1,63 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:52153 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933923AbaE3Qss (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4131 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751123AbaFACqB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 May 2014 12:48:48 -0400
+	Sat, 31 May 2014 22:46:01 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s512jvnQ057261
+	for <linux-media@vger.kernel.org>; Sun, 1 Jun 2014 04:45:59 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
 Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id 3C64640BD9
-	for <linux-media@vger.kernel.org>; Fri, 30 May 2014 18:48:46 +0200 (CEST)
-Date: Fri, 30 May 2014 18:48:46 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL 3.16 v2] soc-camera for 3.16: one driver removal, a fix
- and more
-Message-ID: <Pine.LNX.4.64.1405301847120.14311@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	by tschai.lan (Postfix) with ESMTPSA id DB8682A1B57
+	for <linux-media@vger.kernel.org>; Sun,  1 Jun 2014 04:45:54 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140601024554.DB8682A1B57@tschai.lan>
+Date: Sun,  1 Jun 2014 04:45:54 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This time based on your media-next tree. Also using git 1.9.3 instead of 
-2.0.0 solved my pull-request problem.
+Results of the daily build of media_tree:
 
-The following changes since commit 656111f4b9cbc5a9b86cc2d6ac54dea0855209f0:
+date:		Sun Jun  1 04:00:21 CEST 2014
+git branch:	test
+git hash:	5ea878796f0a1d9649fe43a6a09df53d3915c0ef
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-4.slh.4-amd64
 
-  Merge branch 'topic/omap3isp' into to_next (2014-05-25 18:38:38 -0300)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
-are available in the git repository at:
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.16-1
+Full logs are available here:
 
-for you to fetch changes up to 3ad8677298049933a1a76648645bd50e295ee0e5:
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-  V4L2: soc_camera: Add run-time dependencies to sh_mobile drivers (2014-05-30 18:45:07 +0200)
+The Media Infrastructure API from this daily build is here:
 
-----------------------------------------------------------------
-Alexander Shiyan (2):
-      media: mx1_camera: Remove driver
-      media: mx2_camera: Change Kconfig dependency
-
-Ben Dooks (1):
-      rcar_vin: copy flags from pdata
-
-Guennadi Liakhovetski (1):
-      V4L: soc-camera: explicitly free allocated managed memory on error
-
-Jean Delvare (2):
-      V4L2: soc_camera: add run-time dependencies to R-Car VIN driver
-      V4L2: soc_camera: Add run-time dependencies to sh_mobile drivers
-
- drivers/media/platform/soc_camera/Kconfig      |  18 +-
- drivers/media/platform/soc_camera/Makefile     |   1 -
- drivers/media/platform/soc_camera/mx1_camera.c | 866 -------------------------
- drivers/media/platform/soc_camera/rcar_vin.c   |  12 +-
- drivers/media/platform/soc_camera/soc_camera.c |  12 +-
- 5 files changed, 18 insertions(+), 891 deletions(-)
- delete mode 100644 drivers/media/platform/soc_camera/mx1_camera.c
-
-Thanks
-Guennadi
+http://www.xs4all.nl/~hverkuil/spec/media.html
