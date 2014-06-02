@@ -1,48 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f44.google.com ([209.85.160.44]:34317 "EHLO
-	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753365AbaFGV5d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:33 -0400
-Received: by mail-pb0-f44.google.com with SMTP id rq2so3913365pbb.17
-        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:33 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 31/43] ARM: dts: imx6qdl: Flesh out MIPI CSI2 receiver node
-Date: Sat,  7 Jun 2014 14:56:33 -0700
-Message-Id: <1402178205-22697-32-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1577 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751442AbaFBI21 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jun 2014 04:28:27 -0400
+Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s528SNPH054158
+	for <linux-media@vger.kernel.org>; Mon, 2 Jun 2014 10:28:25 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0FD902A1B59
+	for <linux-media@vger.kernel.org>; Mon,  2 Jun 2014 10:28:18 +0200 (CEST)
+Message-ID: <538C35A2.8030307@xs4all.nl>
+Date: Mon, 02 Jun 2014 10:28:18 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [RFC ATTN] Cropping, composing, scaling and S_FMT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add mode device info to the MIPI CSI2 receiver node: compatible string,
-interrupt sources, clocks.
+During the media mini-summit I went through all 8 combinations of cropping,
+composing and scaling (i.e. none of these features is present, or only cropping,
+only composing, etc.).
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/boot/dts/imx6qdl.dtsi |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+In particular I showed what I thought should happen if you change a crop rectangle,
+compose rectangle or the format rectangle (VIDIOC_S_FMT).
 
-diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
-index d793cd6..00130a8 100644
---- a/arch/arm/boot/dts/imx6qdl.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl.dtsi
-@@ -1011,8 +1011,13 @@
- 				status = "disabled";
- 			};
- 
--			mipi_csi: mipi@021dc000 {
-+			mipi_csi2: mipi@021dc000 {
-+				compatible = "fsl,imx6-mipi-csi2";
- 				reg = <0x021dc000 0x4000>;
-+				interrupts = <0 100 0x04>, <0 101 0x04>;
-+				clocks = <&clks 138>, <&clks 208>;
-+				clock-names = "dphy_clk", "cfg_clk";
-+				status = "disabled";
- 			};
- 
- 			mipi_dsi: mipi@021e0000 {
--- 
-1.7.9.5
+In my proposal the format rectangle would increase in size if you attempt to set
+the compose rectangle wholly or partially outside the current format rectangle.
+Most (all?) of the developers present didn't like that and I was asked to take
+another look at that.
 
+After looking at this some more I realized that there was no need for this and
+it is OK to constrain a compose rectangle to the current format rectangle. All
+you need to do if you want to place the compose rectangle outside of the format
+rectangle is to just change the format rectangle first. If the driver supports
+composition then increasing the format rectangle will not change anything else,
+so that is a safe operation without side-effects.
+
+However, changing the crop rectangle *can* change the format rectangle. In the
+simple case of hardware that just supports cropping this is obvious, since
+the crop and format rectangles must always be of the same size, so changing
+one will change the other. But if you throw in a scaler as well, you usually
+still have such constraints based on the scaler capabilities.
+
+So assuming a scaler that can only scale 4 times (or less) up or down in each
+direction, then setting a crop rectangle of 240x160 will require that the
+format rectangle has a width in the range of 240/4 - 240*4 (60-960) and a
+height in the range of 160/4 - 160*4 (40-640). Anything outside of that will
+have to be corrected.
+
+In my opinion this is valid behavior, and the specification also clearly
+specifies in the VIDIOC_S_CROP and VIDIOC_S_SELECTION documentation that the
+format may change after changing the crop rectangle.
+
+Note that for output streams the role of crop and compose is swapped. So for
+output streams it is the crop rectangle that will always be constrained by
+the format rectangle, and it is the compose rectangle that might change the
+format rectangle based on scaler constraints.
+
+I think this makes sense and unless there are comments this is what I plan
+to implement in my vivi rewrite which supports all these crop/compose/scale
+combinations.
+
+Regards,
+
+	Hans
