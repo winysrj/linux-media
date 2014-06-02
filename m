@@ -1,43 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:59054 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754926AbaFPKPS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 06:15:18 -0400
-Date: Mon, 16 Jun 2014 11:15:05 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Denis Carikli <denis@eukrea.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-	Eric =?iso-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>
-Subject: Re: [PATCH v14 02/10] imx-drm: Add RGB666 support for parallel
-	display.
-Message-ID: <20140616101505.GX23430@n2100.arm.linux.org.uk>
-References: <1402913484-25910-1-git-send-email-denis@eukrea.com> <1402913484-25910-2-git-send-email-denis@eukrea.com>
+Received: from dms.physics.ubc.ca ([142.103.234.17]:40345 "EHLO
+	dms.phas.ubc.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753334AbaFBTue (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jun 2014 15:50:34 -0400
+Message-ID: <538CD58B.4030603@phas.ubc.ca>
+Date: Mon, 02 Jun 2014 12:50:35 -0700
+From: Ovidiu Toader <ovi@phas.ubc.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1402913484-25910-2-git-send-email-denis@eukrea.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+CC: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] staging/media/rtl2832u_sdr: fix coding style problems
+ by adding blank lines
+References: <538B8651.6020801@phas.ubc.ca> <20140602102158.GX15585@mwanda>
+In-Reply-To: <20140602102158.GX15585@mwanda>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 16, 2014 at 12:11:16PM +0200, Denis Carikli wrote:
-> Signed-off-by: Denis Carikli <denis@eukrea.com>
-> Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+On 06/02/14 03:21, Dan Carpenter wrote:
+> Send the patch inline, not as an attachment.
+> 
+> Read the first paragraph.
+> https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/tree/Documentation/email-clients.txt
+> 
+> The subject should say something about adding blank lines.
+Thanks for the feedback and sorry for the inconvenience.
+Take 2:
 
-As I said probably around v10 time, I already have this patch queued,
-and I was going to send it to Greg before the previous merge window,
-but due to the number of patches I was already carrying, it was lost
-amongst the trees.
+This minor patch fixes all WARNING:SPACING style warnings in rtl2832_sdr.c
 
--- 
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
+The new version of the file pleases checkpatch.pl when run with "--ignore LONG_LINE".
+
+Signed-off-by: Ovidiu Toader <ovi@phas.ubc.ca>
+---
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index 093df6b..3b80637 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -348,6 +348,7 @@ static unsigned int rtl2832_sdr_convert_stream(struct rtl2832_sdr_state *s,
+ 		/* convert u8 to u16 */
+ 		unsigned int i;
+ 		u16 *u16dst = dst;
++
+ 		for (i = 0; i < src_len; i++)
+ 			*u16dst++ = (src[i] << 8) | (src[i] >> 0);
+ 		dst_len = 2 * src_len;
+@@ -359,6 +360,7 @@ static unsigned int rtl2832_sdr_convert_stream(struct rtl2832_sdr_state *s,
+ 	if (unlikely(time_is_before_jiffies(s->jiffies_next))) {
+ #define MSECS 10000UL
+ 		unsigned int samples = s->sample - s->sample_measured;
++
+ 		s->jiffies_next = jiffies + msecs_to_jiffies(MSECS);
+ 		s->sample_measured = s->sample;
+ 		dev_dbg(&s->udev->dev,
+@@ -560,11 +562,13 @@ static int rtl2832_sdr_alloc_urbs(struct rtl2832_sdr_state *s)
+ static void rtl2832_sdr_cleanup_queued_bufs(struct rtl2832_sdr_state *s)
+ {
+ 	unsigned long flags = 0;
++
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	spin_lock_irqsave(&s->queued_bufs_lock, flags);
+ 	while (!list_empty(&s->queued_bufs)) {
+ 		struct rtl2832_sdr_frame_buf *buf;
++
+ 		buf = list_entry(s->queued_bufs.next,
+ 				struct rtl2832_sdr_frame_buf, list);
+ 		list_del(&buf->list);
+@@ -577,6 +581,7 @@ static void rtl2832_sdr_cleanup_queued_bufs(struct rtl2832_sdr_state *s)
+ static void rtl2832_sdr_release_sec(struct dvb_frontend *fe)
+ {
+ 	struct rtl2832_sdr_state *s = fe->sec_priv;
++
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	mutex_lock(&s->vb_queue_lock);
+@@ -598,6 +603,7 @@ static int rtl2832_sdr_querycap(struct file *file, void *fh,
+ 		struct v4l2_capability *cap)
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
++
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
+@@ -615,6 +621,7 @@ static int rtl2832_sdr_queue_setup(struct vb2_queue *vq,
+ 		unsigned int *nplanes, unsigned int sizes[], void *alloc_ctxs[])
+ {
+ 	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vq);
++
+ 	dev_dbg(&s->udev->dev, "%s: *nbuffers=%d\n", __func__, *nbuffers);
+ 
+ 	/* Need at least 8 buffers */
+@@ -665,6 +672,7 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
+ 	u8 buf[4], u8tmp1, u8tmp2;
+ 	u64 u64tmp;
+ 	u32 u32tmp;
++
+ 	dev_dbg(&s->udev->dev, "%s: f_adc=%u\n", __func__, s->f_adc);
+ 
+ 	if (!test_bit(POWER_ON, &s->flags))
+@@ -987,6 +995,7 @@ static int rtl2832_sdr_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vq);
+ 	int ret;
++
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	if (!s->udev)
+@@ -1035,6 +1044,7 @@ err:
+ static void rtl2832_sdr_stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vq);
++
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	mutex_lock(&s->v4l2_lock);
+@@ -1068,6 +1078,7 @@ static int rtl2832_sdr_g_tuner(struct file *file, void *priv,
+ 		struct v4l2_tuner *v)
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
++
+ 	dev_dbg(&s->udev->dev, "%s: index=%d type=%d\n",
+ 			__func__, v->index, v->type);
+ 
+@@ -1094,6 +1105,7 @@ static int rtl2832_sdr_s_tuner(struct file *file, void *priv,
+ 		const struct v4l2_tuner *v)
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
++
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	if (v->index > 1)
+@@ -1105,6 +1117,7 @@ static int rtl2832_sdr_enum_freq_bands(struct file *file, void *priv,
+ 		struct v4l2_frequency_band *band)
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
++
+ 	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d index=%d\n",
+ 			__func__, band->tuner, band->type, band->index);
+ 
+@@ -1130,6 +1143,7 @@ static int rtl2832_sdr_g_frequency(struct file *file, void *priv,
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
+ 	int ret  = 0;
++
+ 	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d\n",
+ 			__func__, f->tuner, f->type);
+ 
+@@ -1193,6 +1207,7 @@ static int rtl2832_sdr_enum_fmt_sdr_cap(struct file *file, void *priv,
+ 		struct v4l2_fmtdesc *f)
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
++
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	if (f->index >= NUM_FORMATS)
+@@ -1208,6 +1223,7 @@ static int rtl2832_sdr_g_fmt_sdr_cap(struct file *file, void *priv,
+ 		struct v4l2_format *f)
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
++
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	f->fmt.sdr.pixelformat = s->pixelformat;
+@@ -1222,6 +1238,7 @@ static int rtl2832_sdr_s_fmt_sdr_cap(struct file *file, void *priv,
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
+ 	struct vb2_queue *q = &s->vb_queue;
+ 	int i;
++
+ 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
+ 			(char *)&f->fmt.sdr.pixelformat);
+ 
+@@ -1247,6 +1264,7 @@ static int rtl2832_sdr_try_fmt_sdr_cap(struct file *file, void *priv,
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
+ 	int i;
++
+ 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
+ 			(char *)&f->fmt.sdr.pixelformat);
+ 
+@@ -1316,6 +1334,7 @@ static int rtl2832_sdr_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	struct dvb_frontend *fe = s->fe;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
++
+ 	dev_dbg(&s->udev->dev,
+ 			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
+ 			__func__, ctrl->id, ctrl->name, ctrl->val,
+@@ -1329,6 +1348,7 @@ static int rtl2832_sdr_s_ctrl(struct v4l2_ctrl *ctrl)
+ 			/* Round towards the closest legal value */
+ 			s32 val = s->f_adc + s->bandwidth->step / 2;
+ 			u32 offset;
++
+ 			val = clamp(val, s->bandwidth->minimum, s->bandwidth->maximum);
+ 			offset = val - s->bandwidth->minimum;
+ 			offset = s->bandwidth->step * (offset / s->bandwidth->step);
+-- 1.9.1 
