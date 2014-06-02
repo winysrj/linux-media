@@ -1,68 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3437 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752603AbaF0Je2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jun 2014 05:34:28 -0400
-Message-ID: <53AD3A9C.3070404@xs4all.nl>
-Date: Fri, 27 Jun 2014 11:34:20 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org
-CC: linux-sh@vger.kernel.org
-Subject: Re: [PATCH v2 02/23] DocBook: media: Document ALPHA_COMPONENT control
- usage on output devices
-References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1403567669-18539-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1403567669-18539-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41753 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751639AbaFBPJo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jun 2014 11:09:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/3] media-ctl: libv4l2subdev: Add DV timings support
+Date: Mon,  2 Jun 2014 17:10:02 +0200
+Message-Id: <1401721804-30133-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1401721804-30133-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1401721804-30133-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Expose the pad-level get caps, query, get and set DV timings ioctls.
 
-Regards,
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ utils/media-ctl/libv4l2subdev.c | 72 +++++++++++++++++++++++++++++++++++++++++
+ utils/media-ctl/v4l2subdev.h    | 53 ++++++++++++++++++++++++++++++
+ 2 files changed, 125 insertions(+)
 
-	Hans
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 14daffa..8015330 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -189,6 +189,78 @@ int v4l2_subdev_set_selection(struct media_entity *entity,
+ 	return 0;
+ }
+ 
++int v4l2_subdev_get_dv_timings_caps(struct media_entity *entity,
++	struct v4l2_dv_timings_cap *caps)
++{
++	unsigned int pad = caps->pad;
++	int ret;
++
++	ret = v4l2_subdev_open(entity);
++	if (ret < 0)
++		return ret;
++
++	memset(caps, 0, sizeof(*caps));
++	caps->pad = pad;
++
++	ret = ioctl(entity->fd, VIDIOC_SUBDEV_DV_TIMINGS_CAP, caps);
++	if (ret < 0)
++		return -errno;
++
++	return 0;
++}
++
++int v4l2_subdev_query_dv_timings(struct media_entity *entity,
++	struct v4l2_dv_timings *timings)
++{
++	int ret;
++
++	ret = v4l2_subdev_open(entity);
++	if (ret < 0)
++		return ret;
++
++	memset(timings, 0, sizeof(*timings));
++
++	ret = ioctl(entity->fd, VIDIOC_SUBDEV_QUERY_DV_TIMINGS, timings);
++	if (ret < 0)
++		return -errno;
++
++	return 0;
++}
++
++int v4l2_subdev_get_dv_timings(struct media_entity *entity,
++	struct v4l2_dv_timings *timings)
++{
++	int ret;
++
++	ret = v4l2_subdev_open(entity);
++	if (ret < 0)
++		return ret;
++
++	memset(timings, 0, sizeof(*timings));
++
++	ret = ioctl(entity->fd, VIDIOC_SUBDEV_G_DV_TIMINGS, timings);
++	if (ret < 0)
++		return -errno;
++
++	return 0;
++}
++
++int v4l2_subdev_set_dv_timings(struct media_entity *entity,
++	struct v4l2_dv_timings *timings)
++{
++	int ret;
++
++	ret = v4l2_subdev_open(entity);
++	if (ret < 0)
++		return ret;
++
++	ret = ioctl(entity->fd, VIDIOC_SUBDEV_S_DV_TIMINGS, timings);
++	if (ret < 0)
++		return -errno;
++
++	return 0;
++}
++
+ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+ 				   struct v4l2_fract *interval)
+ {
+diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+index c2ca1e5..1cb53ff 100644
+--- a/utils/media-ctl/v4l2subdev.h
++++ b/utils/media-ctl/v4l2subdev.h
+@@ -132,6 +132,59 @@ int v4l2_subdev_set_selection(struct media_entity *entity,
+ 	enum v4l2_subdev_format_whence which);
+ 
+ /**
++ * @brief Query the digital video capabilities of a pad.
++ * @param entity - subdev-device media entity.
++ * @param cap - capabilities to be filled.
++ *
++ * Retrieve the digital video capabilities of the @a entity pad specified by
++ * @a cap.pad and store it in the @a cap structure.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int v4l2_subdev_get_dv_timings_caps(struct media_entity *entity,
++	struct v4l2_dv_timings_cap *caps);
++
++/**
++ * @brief Query the digital video timings of a sub-device
++ * @param entity - subdev-device media entity.
++ * @param timings timings to be filled.
++ *
++ * Retrieve the detected digital video timings for the currently selected input
++ * of @a entity and store them in the @a timings structure.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int v4l2_subdev_query_dv_timings(struct media_entity *entity,
++	struct v4l2_dv_timings *timings);
++
++/**
++ * @brief Get the current digital video timings of a sub-device
++ * @param entity - subdev-device media entity.
++ * @param timings timings to be filled.
++ *
++ * Retrieve the current digital video timings for the currently selected input
++ * of @a entity and store them in the @a timings structure.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int v4l2_subdev_get_dv_timings(struct media_entity *entity,
++	struct v4l2_dv_timings *timings);
++
++/**
++ * @brief Set the digital video timings of a sub-device
++ * @param entity - subdev-device media entity.
++ * @param timings timings to be set.
++ *
++ * Set the digital video timings of @a entity to @a timings. The driver is
++ * allowed to modify the requested format, in which case @a timings is updated
++ * with the modifications.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int v4l2_subdev_set_dv_timings(struct media_entity *entity,
++	struct v4l2_dv_timings *timings);
++
++/**
+  * @brief Retrieve the frame interval on a sub-device.
+  * @param entity - subdev-device media entity.
+  * @param interval - frame interval to be filled.
+-- 
+1.8.5.5
 
-On 06/24/2014 01:54 AM, Laurent Pinchart wrote:
-> Extend the V4L2_CID_ALPHA_COMPONENT control for use on output devices,
-> to set the alpha component value when the output format doesn't have an
-> alpha channel.
->
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->   Documentation/DocBook/media/v4l/controls.xml | 17 ++++++++++-------
->   1 file changed, 10 insertions(+), 7 deletions(-)
->
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index 47198ee..4dfea27 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -398,14 +398,17 @@ to work.</entry>
->   	  <row id="v4l2-alpha-component">
->   	    <entry><constant>V4L2_CID_ALPHA_COMPONENT</constant></entry>
->   	    <entry>integer</entry>
-> -	    <entry> Sets the alpha color component on the capture device or on
-> -	    the capture buffer queue of a mem-to-mem device. When a mem-to-mem
-> -	    device produces frame format that includes an alpha component
-> +	    <entry>Sets the alpha color component. When a capture device (or
-> +	    capture queue of a mem-to-mem device) produces a frame format that
-> +	    includes an alpha component
->   	    (e.g. <link linkend="rgb-formats">packed RGB image formats</link>)
-> -	    and the alpha value is not defined by the mem-to-mem input data
-> -	    this control lets you select the alpha component value of all
-> -	    pixels. It is applicable to any pixel format that contains an alpha
-> -	    component.
-> +	    and the alpha value is not defined by the device or the mem-to-mem
-> +	    input data this control lets you select the alpha component value of
-> +	    all pixels. When an output device (or output queue of a mem-to-mem
-> +	    device) consumes a frame format that doesn't include an alpha
-> +	    component and the device supports alpha channel processing this
-> +	    control lets you set the alpha component value of all pixels for
-> +	    further processing in the device.
->   	    </entry>
->   	  </row>
->   	  <row>
->
