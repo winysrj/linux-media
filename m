@@ -1,228 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44440 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753324AbaFMQJH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jun 2014 12:09:07 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 10/30] [media] coda: Use mem-to-mem ioctl helpers
-Date: Fri, 13 Jun 2014 18:08:36 +0200
-Message-Id: <1402675736-15379-11-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+Received: from userp1040.oracle.com ([156.151.31.81]:19920 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751024AbaFBVdU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jun 2014 17:33:20 -0400
+Date: Tue, 3 Jun 2014 00:33:01 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Ovidiu Toader <ovi@phas.ubc.ca>
+Cc: devel@driverdev.osuosl.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH] staging/media/rtl2832u_sdr: fix coding style problems by
+ adding blank lines
+Message-ID: <20140602200316.GB15585@mwanda>
+References: <538B8651.6020801@phas.ubc.ca>
+ <20140602102158.GX15585@mwanda>
+ <538CD58B.4030603@phas.ubc.ca>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <538CD58B.4030603@phas.ubc.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the mem2mem helpers introduced to get rid of some duplicated code.
+On Mon, Jun 02, 2014 at 12:50:35PM -0700, Ovidiu Toader wrote:
+> On 06/02/14 03:21, Dan Carpenter wrote:
+> > Send the patch inline, not as an attachment.
+> > 
+> > Read the first paragraph.
+> > https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/tree/Documentation/email-clients.txt
+> > 
+> > The subject should say something about adding blank lines.
+> Thanks for the feedback and sorry for the inconvenience.
+> Take 2:
+> 
+> This minor patch fixes all WARNING:SPACING style warnings in rtl2832_sdr.c
+> 
+> The new version of the file pleases checkpatch.pl when run with "--ignore LONG_LINE".
+> 
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 113 ++++++------------------------------------
- 1 file changed, 14 insertions(+), 99 deletions(-)
+Better but not quite right.  You understand that the email *is* the
+changelog?  So now it has our conversation saved in the changelog for
+all time.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index fe94acd..52a429f 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -782,22 +782,6 @@ static int coda_s_fmt_vid_out(struct file *file, void *priv,
- 	return ret;
- }
- 
--static int coda_reqbufs(struct file *file, void *priv,
--			struct v4l2_requestbuffers *reqbufs)
--{
--	struct coda_ctx *ctx = fh_to_ctx(priv);
--
--	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
--}
--
--static int coda_querybuf(struct file *file, void *priv,
--			 struct v4l2_buffer *buf)
--{
--	struct coda_ctx *ctx = fh_to_ctx(priv);
--
--	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
--}
--
- static int coda_qbuf(struct file *file, void *priv,
- 		     struct v4l2_buffer *buf)
- {
-@@ -806,14 +790,6 @@ static int coda_qbuf(struct file *file, void *priv,
- 	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
- }
- 
--static int coda_expbuf(struct file *file, void *priv,
--		       struct v4l2_exportbuffer *eb)
--{
--	struct coda_ctx *ctx = fh_to_ctx(priv);
--
--	return v4l2_m2m_expbuf(file, ctx->m2m_ctx, eb);
--}
--
- static bool coda_buf_is_end_of_stream(struct coda_ctx *ctx,
- 				      struct v4l2_buffer *buf)
- {
-@@ -846,40 +822,6 @@ static int coda_dqbuf(struct file *file, void *priv,
- 	return ret;
- }
- 
--static int coda_create_bufs(struct file *file, void *priv,
--			    struct v4l2_create_buffers *create)
--{
--	struct coda_ctx *ctx = fh_to_ctx(priv);
--
--	return v4l2_m2m_create_bufs(file, ctx->m2m_ctx, create);
--}
--
--static int coda_streamon(struct file *file, void *priv,
--			 enum v4l2_buf_type type)
--{
--	struct coda_ctx *ctx = fh_to_ctx(priv);
--
--	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
--}
--
--static int coda_streamoff(struct file *file, void *priv,
--			  enum v4l2_buf_type type)
--{
--	struct coda_ctx *ctx = fh_to_ctx(priv);
--	int ret;
--
--	/*
--	 * This indirectly calls __vb2_queue_cancel, which dequeues all buffers.
--	 * We therefore have to lock it against running hardware in this context,
--	 * which still needs the buffers.
--	 */
--	mutex_lock(&ctx->buffer_mutex);
--	ret = v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
--	mutex_unlock(&ctx->buffer_mutex);
--
--	return ret;
--}
--
- static int coda_g_selection(struct file *file, void *fh,
- 			    struct v4l2_selection *s)
- {
-@@ -1041,16 +983,16 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
- 	.vidioc_try_fmt_vid_out	= coda_try_fmt_vid_out,
- 	.vidioc_s_fmt_vid_out	= coda_s_fmt_vid_out,
- 
--	.vidioc_reqbufs		= coda_reqbufs,
--	.vidioc_querybuf	= coda_querybuf,
-+	.vidioc_reqbufs		= v4l2_m2m_ioctl_reqbufs,
-+	.vidioc_querybuf	= v4l2_m2m_ioctl_querybuf,
- 
- 	.vidioc_qbuf		= coda_qbuf,
--	.vidioc_expbuf		= coda_expbuf,
-+	.vidioc_expbuf		= v4l2_m2m_ioctl_expbuf,
- 	.vidioc_dqbuf		= coda_dqbuf,
--	.vidioc_create_bufs	= coda_create_bufs,
-+	.vidioc_create_bufs	= v4l2_m2m_ioctl_create_bufs,
- 
--	.vidioc_streamon	= coda_streamon,
--	.vidioc_streamoff	= coda_streamoff,
-+	.vidioc_streamon	= v4l2_m2m_ioctl_streamon,
-+	.vidioc_streamoff	= v4l2_m2m_ioctl_streamoff,
- 
- 	.vidioc_g_selection	= coda_g_selection,
- 
-@@ -1731,18 +1673,6 @@ static void coda_buf_queue(struct vb2_buffer *vb)
- 	}
- }
- 
--static void coda_wait_prepare(struct vb2_queue *q)
--{
--	struct coda_ctx *ctx = vb2_get_drv_priv(q);
--	coda_unlock(ctx);
--}
--
--static void coda_wait_finish(struct vb2_queue *q)
--{
--	struct coda_ctx *ctx = vb2_get_drv_priv(q);
--	coda_lock(ctx);
--}
--
- static void coda_parabuf_write(struct coda_ctx *ctx, int index, u32 value)
- {
- 	struct coda_dev *dev = ctx->dev;
-@@ -2701,10 +2631,10 @@ static struct vb2_ops coda_qops = {
- 	.queue_setup		= coda_queue_setup,
- 	.buf_prepare		= coda_buf_prepare,
- 	.buf_queue		= coda_buf_queue,
--	.wait_prepare		= coda_wait_prepare,
--	.wait_finish		= coda_wait_finish,
- 	.start_streaming	= coda_start_streaming,
- 	.stop_streaming		= coda_stop_streaming,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
- };
- 
- static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
-@@ -2827,6 +2757,7 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->ops = &coda_qops;
- 	src_vq->mem_ops = &vb2_dma_contig_memops;
- 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	src_vq->lock = &ctx->dev->dev_mutex;
- 
- 	ret = vb2_queue_init(src_vq);
- 	if (ret)
-@@ -2839,6 +2770,7 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->ops = &coda_qops;
- 	dst_vq->mem_ops = &vb2_dma_contig_memops;
- 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	dst_vq->lock = &ctx->dev->dev_mutex;
- 
- 	return vb2_queue_init(dst_vq);
- }
-@@ -2907,6 +2839,8 @@ static int coda_open(struct file *file)
- 			 __func__, ret);
- 		goto err_ctx_init;
- 	}
-+	ctx->fh.m2m_ctx = ctx->m2m_ctx;
-+
- 	ret = coda_ctrls_setup(ctx);
- 	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "failed to setup coda controls\n");
-@@ -3006,32 +2940,13 @@ static int coda_release(struct file *file)
- 	return 0;
- }
- 
--static unsigned int coda_poll(struct file *file,
--				 struct poll_table_struct *wait)
--{
--	struct coda_ctx *ctx = fh_to_ctx(file->private_data);
--	int ret;
--
--	coda_lock(ctx);
--	ret = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
--	coda_unlock(ctx);
--	return ret;
--}
--
--static int coda_mmap(struct file *file, struct vm_area_struct *vma)
--{
--	struct coda_ctx *ctx = fh_to_ctx(file->private_data);
--
--	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
--}
--
- static const struct v4l2_file_operations coda_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= coda_open,
- 	.release	= coda_release,
--	.poll		= coda_poll,
-+	.poll		= v4l2_m2m_fop_poll,
- 	.unlocked_ioctl	= video_ioctl2,
--	.mmap		= coda_mmap,
-+	.mmap		= v4l2_m2m_fop_mmap,
- };
- 
- static void coda_finish_decode(struct coda_ctx *ctx)
--- 
-2.0.0.rc2
+https://www.google.com/search?q=how+to+send+a+v2+patch
+
+regards,
+dan carpenter
 
