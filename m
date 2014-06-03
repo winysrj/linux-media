@@ -1,26 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:36424 "EHLO posteo.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752486AbaF3Kjt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jun 2014 06:39:49 -0400
-Message-ID: <53B13E4B.2080603@posteo.de>
-Date: Mon, 30 Jun 2014 12:39:07 +0200
-From: Martin Kepplinger <martink@posteo.de>
-MIME-Version: 1.0
-To: Zhang Rui <rui.zhang@intel.com>
-CC: "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-	"lenb@kernel.org" <lenb@kernel.org>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [BUG] rc1 rc2 rc3 not bootable - black screen after kernel loading
-References: <53A6E72A.9090000@posteo.de>	 <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>	 <53A81BF7.3030207@posteo.de> <1403529246.4686.6.camel@rzhang1-toshiba>	 <53A83DC7.1010606@posteo.de> <1403882067.16305.124.camel@rzhang1-toshiba>	 <53ADB359.4010401@posteo.de> <53ADCB24.9030206@posteo.de>	 <53ADECDA.60600@posteo.de> <53B11749.3020902@posteo.de>	 <1404116299.8366.0.camel@rzhang1-toshiba> <1404116444.8366.1.camel@rzhang1-toshiba> <53B12723.4080902@posteo.de>
-In-Reply-To: <53B12723.4080902@posteo.de>
-Content-Type: text/plain; charset=UTF-8
+Received: from smtp205.alice.it ([82.57.200.101]:48096 "EHLO smtp205.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932186AbaFCN7d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Jun 2014 09:59:33 -0400
+Date: Tue, 3 Jun 2014 15:59:30 +0200
+From: Antonio Ospite <ao2@ao2.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ao2@ao2.it>, Gregor Jasny <gjasny@googlemail.com>
+Subject: Re: [PATCH] libv4lconvert: Fix a regression when converting from
+ Y10B
+Message-Id: <20140603155930.f72e14f4aab39ec49bdb1b71@ao2.it>
+In-Reply-To: <1401803326-31942-1-git-send-email-ao2@ao2.it>
+References: <1401803326-31942-1-git-send-email-ao2@ao2.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-back to aaeb2554337217dfa4eac2fcc90da7be540b9a73 as the first bad
-commit. why is this not revertable exactly? how can I show a complete
-list of commits this merge introduces?
+On Tue,  3 Jun 2014 15:48:46 +0200
+Antonio Ospite <ao2@ao2.it> wrote:
+
+> Fix a regression introduced in commit
+> efc29f1764a30808ebf7b3e1d9bfa27b909bf641 (libv4lconvert: Reject too
+> short source buffer before accessing it).
+> 
+> The old code:
+> 
+> case V4L2_PIX_FMT_Y10BPACK:
+> 	...
+> 	if (result == 0 && src_size < (width * height * 10 / 8)) {
+> 		V4LCONVERT_ERR("short y10b data frame\n");
+> 		errno = EPIPE;
+> 		result = -1;
+> 	}
+> 	...
+> 
+> meant to say "If the conversion was *successful* _but_ the frame size
+> was invalid, then take the error path", but in
+> efc29f1764a30808ebf7b3e1d9bfa27b909bf641 this (maybe weird) logic was
+> misunderstood and the v4lconvert_convert_pixfmt() was made to return an
+                    ^^^
+Dear committer, you can remove this "the", if you feel like it :)
+
+Thanks,
+   Antonio
+
+-- 
+Antonio Ospite
+http://ao2.it
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
