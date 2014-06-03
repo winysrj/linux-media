@@ -1,29 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from akmo.kz ([212.154.234.163]:41922 "EHLO akmo.kz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933609AbaFIXvU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jun 2014 19:51:20 -0400
-Message-Id: <201406092346.s59JjpZf010708@akmo.kz>
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47576 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751875AbaFCKkd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 06:40:33 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 0/2] v4l-utils: Add missing v4l2-mediabus.h header
+Date: Tue, 03 Jun 2014 12:40:59 +0200
+Message-ID: <3433266.HJNPOlTexz@avalon>
+In-Reply-To: <538D99DE.8040602@xs4all.nl>
+References: <1401756292-27676-1-git-send-email-laurent.pinchart@ideasonboard.com> <7921712.MU9v3dyUpo@avalon> <538D99DE.8040602@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Description: Mail message body
-Subject: Urgent Notification Free Lotto Award(Reference:WIN-37-14-29-14)
-To: Recipients <zein@sumutprov.go.id>
-From: "Info" <zein@sumutprov.go.id>
-Date: Mon, 09 Jun 2014 16:46:18 -0700
-Reply-To: freel261@aol.com
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From claim´s processing office.
-Free Lotto Lottery Award Notification
-Confirmation Ticket No: 33-48-19-H5H
-Reference:WIN-37-14-29-14
-You have won( 1 Million Euros )in the Free Lotto Lottery Award 2014 held in Madrid Spain
-This email was sent to notify you officially as you are advise to contact the claim´s processing office with your details immediately for claim,
-Contact Person: Martinez Adela
-Contact Email: freelottoaward066@gmail.com
-Signed (Announcer)
-Director, Cooperate HR and Communication.
-FREE LOTTO LOTTERY AWARD
+Hi Hans,
+
+On Tuesday 03 June 2014 11:48:14 Hans Verkuil wrote:
+> On 06/03/14 11:46, Laurent Pinchart wrote:
+> > On Tuesday 03 June 2014 08:52:29 Hans Verkuil wrote:
+> >> On 06/03/2014 02:44 AM, Laurent Pinchart wrote:
+> >>> Hello,
+> >>> 
+> >>> This patch set adds the missing v4l2-mediabus.h header, required by
+> >>> media-ctl. Please see individual patches for details, they're pretty
+> >>> straightforward.
+> >> 
+> >> Nack.
+> >> 
+> >> The kernel headers used in v4l-utils are installed via 'make
+> >> sync-with-kernel'. So these headers shouldn't be edited, instead
+> >> Makefile.am should be updated. In particular, that's where the missing
+> >> header should be added.
+> > 
+> > I had seen mentions of sync-with-kernel and for some reason thought it was
+> > a script. As I couldn't find it in the repository I decided to sync the
+> > headers manually :-/
+> > 
+> > Thanks for fixing the problem. By the way, what would you think about
+> > modifying sync-with-kernel to use installed kernel headers ?
+> 
+> Patches are welcome!
+> 
+> :-)
+
+Patch sent :-)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
