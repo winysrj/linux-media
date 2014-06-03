@@ -1,165 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp209.alice.it ([82.57.200.105]:29492 "EHLO smtp209.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752337AbaFXNgL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 09:36:11 -0400
-Date: Tue, 24 Jun 2014 15:35:58 +0200
-From: Antonio Ospite <ao2@ao2.it>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org, Alexander Sosna <alexander@xxor.de>
-Subject: Re: [RFC 1/2] gspca: provide a mechanism to select a specific
- transfer endpoint
-Message-Id: <20140624153558.c0a933633fdb8bb20977918a@ao2.it>
-In-Reply-To: <53A2F36F.9090308@redhat.com>
-References: <53450D76.2010405@redhat.com>
-	<1401913499-6475-1-git-send-email-ao2@ao2.it>
-	<1401913499-6475-2-git-send-email-ao2@ao2.it>
-	<53A2F36F.9090308@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50174 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932238AbaFCMcb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Jun 2014 08:32:31 -0400
+Date: Tue, 3 Jun 2014 15:32:24 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/3] media-ctl: libv4l2subdev: Add DV timings support
+Message-ID: <20140603123224.GI2073@valkosipuli.retiisi.org.uk>
+References: <1401721804-30133-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1401721804-30133-2-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1401721804-30133-2-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 19 Jun 2014 16:27:59 +0200
-Hans de Goede <hdegoede@redhat.com> wrote:
+Hi Laurent,
 
-> Hi Antonio,
+On Mon, Jun 02, 2014 at 05:10:02PM +0200, Laurent Pinchart wrote:
+> Expose the pad-level get caps, query, get and set DV timings ioctls.
 > 
-> Thanks for working on this.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  utils/media-ctl/libv4l2subdev.c | 72 +++++++++++++++++++++++++++++++++++++++++
+>  utils/media-ctl/v4l2subdev.h    | 53 ++++++++++++++++++++++++++++++
+>  2 files changed, 125 insertions(+)
 > 
-> On 06/04/2014 10:24 PM, Antonio Ospite wrote:
-> > Add a xfer_ep_index field to struct gspca_dev, and change alt_xfer() so
-> > that it accepts a parameter which represents a specific endpoint to look
-> > for.
-> > 
-> > If a subdriver wants to specify a value for gspca_dev->xfer_ep_index it
-> > can do that in its sd_config() callback.
-> > 
-> > Signed-off-by: Antonio Ospite <ao2@ao2.it>
-> > ---
-> > 
-> > I am not sure if it is OK to specify an endpoint _index_ or if it would be
-> > better to specify the endpoint address directly (in Kinect 0x81 is for video
-> > data and 0x82 is for depth data).
-> >
-> > Hans, any comment on that?
-> 
-> I think it would be better to use the endpoint address directly for this,
-> relying on the order in which the endpoints are listed in the descriptor
-> feels wrong to me.
->
+> diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+> index 14daffa..8015330 100644
+> --- a/utils/media-ctl/libv4l2subdev.c
+> +++ b/utils/media-ctl/libv4l2subdev.c
+> @@ -189,6 +189,78 @@ int v4l2_subdev_set_selection(struct media_entity *entity,
+>  	return 0;
+>  }
+>  
+> +int v4l2_subdev_get_dv_timings_caps(struct media_entity *entity,
+> +	struct v4l2_dv_timings_cap *caps)
+> +{
+> +	unsigned int pad = caps->pad;
+> +	int ret;
+> +
+> +	ret = v4l2_subdev_open(entity);
+> +	if (ret < 0)
+> +		return ret;
 
-I see.
-
-If I declare the new field as __u8 (same type of a bEndpointAddress), I
-could mark an invalid ep address with ~(USB_ENDPOINT_DIR_MASK | 
-USB_ENDPOINT_NUMBER_MASK) in gspca_dev_probe2(), instead of using an
-int set to -1; how does that sound?
-
-> Other then that this patch looks good.
-> 
-> Regards,
-> 
-> Hans
-> 
-> 
-> > 
-> > Thanks,
-> >    Antonio
-> > 
-> >  drivers/media/usb/gspca/gspca.c | 20 ++++++++++++++------
-> >  drivers/media/usb/gspca/gspca.h |  1 +
-> >  2 files changed, 15 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
-> > index f3a7ace..7e5226c 100644
-> > --- a/drivers/media/usb/gspca/gspca.c
-> > +++ b/drivers/media/usb/gspca/gspca.c
-> > @@ -603,10 +603,13 @@ static void gspca_stream_off(struct gspca_dev *gspca_dev)
-> >  }
-> >  
-> >  /*
-> > - * look for an input transfer endpoint in an alternate setting
-> > + * look for an input transfer endpoint in an alternate setting.
-> > + *
-> > + * If xfer_ep_index is negative, return the first valid one found, otherwise
-> > + * look for exactly the one in position xfer_ep.
-> >   */
-> >  static struct usb_host_endpoint *alt_xfer(struct usb_host_interface *alt,
-> > -					  int xfer)
-> > +					  int xfer, int xfer_ep_index)
-> >  {
-> >  	struct usb_host_endpoint *ep;
-> >  	int i, attr;
-> > @@ -616,8 +619,10 @@ static struct usb_host_endpoint *alt_xfer(struct usb_host_interface *alt,
-> >  		attr = ep->desc.bmAttributes & USB_ENDPOINT_XFERTYPE_MASK;
-> >  		if (attr == xfer
-> >  		    && ep->desc.wMaxPacketSize != 0
-> > -		    && usb_endpoint_dir_in(&ep->desc))
-> > +		    && usb_endpoint_dir_in(&ep->desc)
-> > +		    && (xfer_ep_index < 0 || i == xfer_ep_index)) {
-> >  			return ep;
-> > +		}
-> >  	}
-> >  	return NULL;
-> >  }
-> > @@ -689,7 +694,7 @@ static int build_isoc_ep_tb(struct gspca_dev *gspca_dev,
-> >  		found = 0;
-> >  		for (j = 0; j < nbalt; j++) {
-> >  			ep = alt_xfer(&intf->altsetting[j],
-> > -				      USB_ENDPOINT_XFER_ISOC);
-> > +				      USB_ENDPOINT_XFER_ISOC, gspca_dev->xfer_ep_index);
-> >  			if (ep == NULL)
-> >  				continue;
-> >  			if (ep->desc.bInterval == 0) {
-> > @@ -862,7 +867,8 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
-> >  	/* if bulk or the subdriver forced an altsetting, get the endpoint */
-> >  	if (gspca_dev->alt != 0) {
-> >  		gspca_dev->alt--;	/* (previous version compatibility) */
-> > -		ep = alt_xfer(&intf->altsetting[gspca_dev->alt], xfer);
-> > +		ep = alt_xfer(&intf->altsetting[gspca_dev->alt], xfer,
-> > +			      gspca_dev->xfer_ep_index);
-> >  		if (ep == NULL) {
-> >  			pr_err("bad altsetting %d\n", gspca_dev->alt);
-> >  			return -EIO;
-> > @@ -904,7 +910,8 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
-> >  		if (!gspca_dev->cam.no_urb_create) {
-> >  			PDEBUG(D_STREAM, "init transfer alt %d", alt);
-> >  			ret = create_urbs(gspca_dev,
-> > -				alt_xfer(&intf->altsetting[alt], xfer));
-> > +				alt_xfer(&intf->altsetting[alt], xfer,
-> > +					 gspca_dev->xfer_ep_index));
-> >  			if (ret < 0) {
-> >  				destroy_urbs(gspca_dev);
-> >  				goto out;
-> > @@ -2030,6 +2037,7 @@ int gspca_dev_probe2(struct usb_interface *intf,
-> >  	}
-> >  	gspca_dev->dev = dev;
-> >  	gspca_dev->iface = intf->cur_altsetting->desc.bInterfaceNumber;
-> > +	gspca_dev->xfer_ep_index = -1;
-> >  
-> >  	/* check if any audio device */
-> >  	if (dev->actconfig->desc.bNumInterfaces != 1) {
-> > diff --git a/drivers/media/usb/gspca/gspca.h b/drivers/media/usb/gspca/gspca.h
-> > index 300642d..92317af 100644
-> > --- a/drivers/media/usb/gspca/gspca.h
-> > +++ b/drivers/media/usb/gspca/gspca.h
-> > @@ -205,6 +205,7 @@ struct gspca_dev {
-> >  	char memory;			/* memory type (V4L2_MEMORY_xxx) */
-> >  	__u8 iface;			/* USB interface number */
-> >  	__u8 alt;			/* USB alternate setting */
-> > +	int xfer_ep_index;		/* index of the USB transfer endpoint */
-> >  	u8 audio;			/* presence of audio device */
-> >  
-> >  	/* (*) These variables are proteced by both usb_lock and queue_lock,
-> > 
-
+In every function v4l2_subdev_open() is called before the ioctl command. How
+about implementing a wrapper which does both, and using that before this
+patch?
 
 -- 
-Antonio Ospite
-http://ao2.it
+Kind regards,
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
