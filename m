@@ -1,78 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52864 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965603AbaFSXin (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jun 2014 19:38:43 -0400
-Date: Thu, 19 Jun 2014 16:42:43 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>, Rob Clark <robdclark@gmail.com>,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-arch@vger.kernel.org,
-	Thomas Hellstrom <thellstrom@vmware.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Colin Cross <ccross@google.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [REPOST PATCH 1/8] fence: dma-buf cross-device synchronization
- (v17)
-Message-ID: <20140619234243.GA8952@kroah.com>
-References: <20140618102957.15728.43525.stgit@patser>
- <20140618103653.15728.4942.stgit@patser>
- <20140619011327.GC10921@kroah.com>
- <CAF6AEGv4Ms+zsrEtpA10bGq04LnRjzVb925co49eVxh4ugkd=A@mail.gmail.com>
- <20140619170059.GA1224@kroah.com>
- <CAKMK7uFa57YjeJCFQhWFr_5cRTTpWxBdJ1qtb5Ojnu-KZpe-Lw@mail.gmail.com>
- <20140619200159.GA27883@kroah.com>
- <53A366B3.8020808@zytor.com>
+Received: from forward3h.mail.yandex.net ([84.201.187.148]:35862 "EHLO
+	forward3h.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932560AbaFCRTW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 13:19:22 -0400
+Received: from smtp4h.mail.yandex.net (smtp4h.mail.yandex.net [84.201.186.21])
+	by forward3h.mail.yandex.net (Yandex) with ESMTP id 6093E13606E2
+	for <linux-media@vger.kernel.org>; Tue,  3 Jun 2014 21:19:17 +0400 (MSK)
+Received: from smtp4h.mail.yandex.net (localhost [127.0.0.1])
+	by smtp4h.mail.yandex.net (Yandex) with ESMTP id 3065A2C3978
+	for <linux-media@vger.kernel.org>; Tue,  3 Jun 2014 21:19:17 +0400 (MSK)
+From: CrazyCat <crazycat69@narod.ru>
+To: linux-media <linux-media@vger.kernel.org>
+Subject: [PATCH]cxd2820r: TS clock inversion in config
+Date: Tue, 03 Jun 2014 20:19:07 +0300
+Message-ID: <5029507.eCaNK20ghe@computer>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <53A366B3.8020808@zytor.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 19, 2014 at 03:39:47PM -0700, H. Peter Anvin wrote:
-> On 06/19/2014 01:01 PM, Greg KH wrote:
-> > On Thu, Jun 19, 2014 at 09:15:36PM +0200, Daniel Vetter wrote:
-> >> On Thu, Jun 19, 2014 at 7:00 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
-> >>>>>> +     BUG_ON(f1->context != f2->context);
-> >>>>>
-> >>>>> Nice, you just crashed the kernel, making it impossible to debug or
-> >>>>> recover :(
-> >>>>
-> >>>> agreed, that should probably be 'if (WARN_ON(...)) return NULL;'
-> >>>>
-> >>>> (but at least I wouldn't expect to hit that under console_lock so you
-> >>>> should at least see the last N lines of the backtrace on the screen
-> >>>> ;-))
-> >>>
-> >>> Lots of devices don't have console screens :)
-> >>
-> >> Aside: This is a pet peeve of mine and recently I've switched to
-> >> rejecting all patch that have a BUG_ON, period.
-> > 
-> > Please do, I have been for a few years now as well for the same reasons
-> > you cite.
-> > 
-> 
-> I'm actually concerned about this trend.  Downgrading things to WARN_ON
-> can allow a security bug in the kernel to continue to exist, for
-> example, or make the error message disappear.
+TS clock inversion in config.
 
-A BUG_ON makes any error message disappear pretty quickly :)
+Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
+---
+ drivers/media/dvb-frontends/cxd2820r.h    | 6 ++++++
+ drivers/media/dvb-frontends/cxd2820r_c.c  | 1 +
+ drivers/media/dvb-frontends/cxd2820r_t.c  | 1 +
+ drivers/media/dvb-frontends/cxd2820r_t2.c | 1 +
+ 4 files changed, 9 insertions(+)
 
-I'm talking about foolish "ASSERT-like" BUG_ON that driver authors like
-to add to their code when writing it to catch things they are messing
-up.  After the code is working, they should be removed, like this one.
+diff --git a/drivers/media/dvb-frontends/cxd2820r.h b/drivers/media/dvb-frontends/cxd2820r.h
+index 82b3d93..6095dbc 100644
+--- a/drivers/media/dvb-frontends/cxd2820r.h
++++ b/drivers/media/dvb-frontends/cxd2820r.h
+@@ -52,6 +52,12 @@ struct cxd2820r_config {
+ 	 */
+ 	u8 ts_mode;
+ 
++	/* TS clock inverted.
++	 * Default: 0
++	 * Values: 0, 1
++	 */
++	bool ts_clock_inv;
++
+ 	/* IF AGC polarity.
+ 	 * Default: 0
+ 	 * Values: 0, 1
+diff --git a/drivers/media/dvb-frontends/cxd2820r_c.c b/drivers/media/dvb-frontends/cxd2820r_c.c
+index 5c6ab49..0f4657e 100644
+--- a/drivers/media/dvb-frontends/cxd2820r_c.c
++++ b/drivers/media/dvb-frontends/cxd2820r_c.c
+@@ -45,6 +45,7 @@ int cxd2820r_set_frontend_c(struct dvb_frontend *fe)
+ 		{ 0x1008b, 0x07, 0xff },
+ 		{ 0x1001f, priv->cfg.if_agc_polarity << 7, 0x80 },
+ 		{ 0x10070, priv->cfg.ts_mode, 0xff },
++		{ 0x10071, !priv->cfg.ts_clock_inv << 4, 0x10 },
+ 	};
+ 
+ 	dev_dbg(&priv->i2c->dev, "%s: frequency=%d symbol_rate=%d\n", __func__,
+diff --git a/drivers/media/dvb-frontends/cxd2820r_t.c b/drivers/media/dvb-frontends/cxd2820r_t.c
+index fa184ca..9b5a45b 100644
+--- a/drivers/media/dvb-frontends/cxd2820r_t.c
++++ b/drivers/media/dvb-frontends/cxd2820r_t.c
+@@ -46,6 +46,7 @@ int cxd2820r_set_frontend_t(struct dvb_frontend *fe)
+ 		{ 0x00088, 0x01, 0xff },
+ 
+ 		{ 0x00070, priv->cfg.ts_mode, 0xff },
++		{ 0x00071, !priv->cfg.ts_clock_inv << 4, 0x10 },
+ 		{ 0x000cb, priv->cfg.if_agc_polarity << 6, 0x40 },
+ 		{ 0x000a5, 0x00, 0x01 },
+ 		{ 0x00082, 0x20, 0x60 },
+diff --git a/drivers/media/dvb-frontends/cxd2820r_t2.c b/drivers/media/dvb-frontends/cxd2820r_t2.c
+index 2ba130e..9c0c4f4 100644
+--- a/drivers/media/dvb-frontends/cxd2820r_t2.c
++++ b/drivers/media/dvb-frontends/cxd2820r_t2.c
+@@ -47,6 +47,7 @@ int cxd2820r_set_frontend_t2(struct dvb_frontend *fe)
+ 		{ 0x02083, 0x0a, 0xff },
+ 		{ 0x020cb, priv->cfg.if_agc_polarity << 6, 0x40 },
+ 		{ 0x02070, priv->cfg.ts_mode, 0xff },
++		{ 0x02071, !priv->cfg.ts_clock_inv << 6, 0x40 },
+ 		{ 0x020b5, priv->cfg.spec_inv << 4, 0x10 },
+ 		{ 0x02567, 0x07, 0x0f },
+ 		{ 0x02569, 0x03, 0x03 },
+-- 
+1.9.1
 
-Don't enforce an api requirement with a kernel crash, warn and return an
-error which the caller should always be checking anyway.
 
-thanks,
-
-greg k-h
