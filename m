@@ -1,69 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:45908 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752245AbaFPM3O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 08:29:14 -0400
-Received: by mail-la0-f50.google.com with SMTP id pv20so1554468lab.23
-        for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 05:29:13 -0700 (PDT)
-Message-ID: <539EE315.8040903@cogentembedded.com>
-Date: Mon, 16 Jun 2014 16:29:09 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49300 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932720AbaFCQKm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 12:10:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: Poll and empty queues
+Date: Tue, 03 Jun 2014 18:11:08 +0200
+Message-ID: <1715728.xzx1A1Sk00@avalon>
+In-Reply-To: <1401806270.13385.13.camel@nicolas-tpx230>
+References: <1401738463.2304.15.camel@nicolas-tpx230> <538D6D81.3000001@xs4all.nl> <1401806270.13385.13.camel@nicolas-tpx230>
 MIME-Version: 1.0
-To: Ben Dooks <ben.dooks@codethink.co.uk>,
-	linux-kernel@lists.codethink.co.uk, linux-sh@vger.kernel.org,
-	linux-media@vger.kernel.org
-CC: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
-	magnus.damm@opensource.se, horms@verge.net.au,
-	ian.molton@codethink.co.uk, william.towle@codethink.co.uk
-Subject: Re: [PATCH 1/9] ARM: lager: enable i2c devices
-References: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk> <1402862194-17743-2-git-send-email-ben.dooks@codethink.co.uk>
-In-Reply-To: <1402862194-17743-2-git-send-email-ben.dooks@codethink.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Hi Nicolas,
 
-On 06/15/2014 11:56 PM, Ben Dooks wrote:
+On Tuesday 03 June 2014 10:37:50 Nicolas Dufresne wrote:
+> Le mardi 03 juin 2014 à 08:38 +0200, Hans Verkuil a écrit :
+> > On 06/02/2014 09:47 PM, Nicolas Dufresne wrote:
+> > > Hi everyone,
+> > > 
+> > > Recently in GStreamer we notice that we where not handling the POLLERR
+> > > flag at all. Though we found that what the code do, and what the doc
+> > > says is slightly ambiguous.
+> > > 
+> > >         "When the application did not call VIDIOC_QBUF or
+> > >         VIDIOC_STREAMON yet the poll() function succeeds, but sets the
+> > >         POLLERR flag in the revents field."
+> > > 
+> > > In our case, we first seen this error with a capture device. How things
+> > > worked is that we first en-queue all allocated buffers. Our
+> > > interpretation was that this would avoid not calling "VIDIOC_QBUF [...]
+> > > yet", and only then we would call VIDIOC_STREAMON. This way, in our
+> > > interpretation we would never get that error.
+> > > 
+> > > Though, this is not what the code does. Looking at videobuf2, if simply
+> > > return this error when the queue is empty.
+> > > 
+> > > /*
+> > >  * There is nothing to wait for if no buffers have already been queued.
+> > >  */
+> > > if (list_empty(&q->queued_list))
+> > > 	return res | POLLERR;
+> > > 
+> > > So basically, we endup in this situation where as soon as all existing
+> > > buffers has been dequeued, we can't rely on the driver to wait for a
+> > > buffer to be queued and then filled again. This basically forces us into
+> > > adding a new user-space mechanism, to wait for buffer to come back. We
+> > > are wandering if this is a bug. If not, maybe it would be nice to
+> > > improve the documentation.
+> > 
+> > Just for my understanding: I assume that gstreamer polls in one process or
+> > thread and does the queuing/dequeuing in a different process/thread, is
+> > that correct?
+> 
+> Yes, in this particular case (polling with queues/thread downstream),
+> the streaming thread do the polling, and then push the buffers. The
+> buffer reach a queue element, which will queued and return. Polling
+> restart at this point. The queue will later pass it downstream from the
+> next streaming thread, and eventually the buffer will be released. For
+> capture device, QBUF will be called upon release.
+> 
+> It is assumed that this call to QBUF should take a finite amount of
+> time. Though, libv4l2 makes this assumption wrong by inter-locking DQBUF
+> and QBUF, clearly a bug, but not strictly related to this thread. Also,
+> as we try and avoid blocking in the DQBUF ioctl, it should not be a
+> problem for us.
+> 
+> > If it was all in one process, then it would make no sense polling for a
+> > buffer to become available if you never queued one.
+> 
+> Not exactly true, the driver may take some time before the buffer we
+> have queued back is filled and available again. The poll/select FD set
+> also have a control pipe, so we can stop the process at any moment. Not
+> polling would mean blocking on an ioctl() which cannot be canceled.
+> 
+> But, without downstream queues (thread), the size of the queue will be
+> negotiated so that the buffer will be released before we go back
+> polling. The queue will never be empty in this case.
+> 
+> > That is probably the reasoning behind what poll does today. That said,
+> > I've always thought it was wrong and that it should be replaced by
+> > something like:
+> >
+> > 	if (!vb2_is_streaming(q))
+> > 		return res | POLLERR;
+> > 
+> > I.e.: only return an error if we're not streaming.
+> 
+> I think it would be easier for user space and closer to what the doc says.
 
-> Add i2c0, i2c1, i2c2 and i2c3 nodes to the Lager reference device tree as
-> these busses all have devices on them that can be probed even if they
-> are no drivers yet.
+I tend to agree, and I'd like to raise a different but related issue.
 
-> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
-> ---
->   arch/arm/boot/dts/r8a7790-lager.dts | 16 ++++++++++++++++
->   1 file changed, 16 insertions(+)
+I've recently run into a problem with a V4L2 device (OMAP4 ISS if you want 
+details) that sometimes crashes during video capture. When this occurs the 
+device is rendered completely unusable, and userspace need to stop the video 
+stream and close the video device node in order to reset the device. That's 
+not ideal, but until I pinpoint the root cause that's what we have to live 
+with.
 
-> diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
-> index dd2fe46..8617755 100644
-> --- a/arch/arm/boot/dts/r8a7790-lager.dts
-> +++ b/arch/arm/boot/dts/r8a7790-lager.dts
-> @@ -317,3 +317,19 @@
->   	cd-gpios = <&gpio3 22 GPIO_ACTIVE_LOW>;
->   	status = "okay";
->   };
-> +
-> +&i2c0	{
-> +	status = "ok";
-> +};
-> +
-> +&i2c1	{
-> +	status = "ok";
-> +};
-> +
-> +&i2c2	{
-> +	status = "ok";
-> +};
-> +
-> +&i2c3	{
-> +	status = "ok";
-> +};
+When the OMAP4 ISS driver detects the error it immediately completes all 
+queued buffers with the V4L2_BUF_FLAG_ERROR flag set, and returns -EIO from 
+all subsequent VIDIOC_QBUF calls. The next few VIDIOC_DQBUF calls will return 
+buffers with the V4L2_BUF_FLAG_ERROR flag set, after which the next 
+VIDIOC_DQBUF call will block in __vb2_wait_for_done_vb() on
 
-    Against which tree is this patch? It has been merged to Simon's 'devel' 
-branch on my request already.
+        ret = wait_event_interruptible(q->done_wq,
+                        !list_empty(&q->done_list) || !q->streaming);
 
-WBR, Sergei
+as the queue is still streaming and the done list stays empty.
+
+(Disclaimer : I'm using gstreamer 0.10 for this project due to TI shipping the 
+OMAP4 H.264 codec for this version only)
+ 
+As gstreamer doesn't handle POLLERR in v4l2src the gst_poll_wait() call in 
+gst_v4l2src_grab_frame() will return success, and the function then proceeds 
+to call gst_v4l2_buffer_pool_dqbuf() which will block. Trying to stop the 
+pipeline at that point just hangs forever on the VIDIOC_DQBUF call.
+
+This kind of fatal error condition should be detected and reported to the 
+application.
+
+If we modified the poll() behaviour to return POLLERR on !vb2_is_streaming() 
+instead of list_empty(&q->queued_list) the poll call would block and stopping 
+the pipeline would be possible.
+
+We would however still miss a mechanism to detect the fatal error and report 
+it to the application. As I'm not too familiar with gstreamer I'd appreciate 
+any help I could get to implement this.
+
+> Though, it's not just about changing that check, there is some more work
+> involved from what I've seen.
+
+What have you seen ? :-)
+
+-- 
+Regards,
+
+Laurent Pinchart
 
