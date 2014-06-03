@@ -1,80 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:16744 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755311AbaFWNOM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jun 2014 09:14:12 -0400
-Message-ID: <1403529246.4686.6.camel@rzhang1-toshiba>
-Subject: Re: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black
- instead of native resolution
-From: Zhang Rui <rui.zhang@intel.com>
-To: Martin Kepplinger <martink@posteo.de>
-Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-	"lenb@kernel.org" <lenb@kernel.org>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Date: Mon, 23 Jun 2014 21:14:06 +0800
-In-Reply-To: <53A81BF7.3030207@posteo.de>
-References: <53A6E72A.9090000@posteo.de>
-	 <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>
-	 <53A81BF7.3030207@posteo.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:32948 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751876AbaFCJgE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 05:36:04 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 2/5] [media] mt9v032: register v4l2 asynchronous subdevice
+Date: Tue,  3 Jun 2014 11:35:52 +0200
+Message-Id: <1401788155-3690-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1401788155-3690-1-git-send-email-p.zabel@pengutronix.de>
+References: <1401788155-3690-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2014-06-23 at 14:22 +0200, Martin Kepplinger wrote:
-> Am 2014-06-23 03:10, schrieb Zhang, Rui:
-> > 
-> > 
-> >> -----Original Message-----
-> >> From: Martin Kepplinger [mailto:martink@posteo.de]
-> >> Sent: Sunday, June 22, 2014 10:25 PM
-> >> To: Zhang, Rui
-> >> Cc: rjw@rjwysocki.net; lenb@kernel.org; linux-acpi@vger.kernel.org;
-> >> linux-kernel@vger.kernel.org
-> >> Subject: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black
-> >> instead of native resolution
-> >> Importance: High
-> >>
-> >> Since 3.16-rc1 my laptop's just goes black while booting, instead of
-> >> switching to native screen resolution and showing me the starting
-> >> system there. It's an Acer TravelMate B113 with i915 driver and
-> >> acer_wmi. It stays black and is unusable.
-> >>
-This looks like a duplicate of
-https://bugzilla.kernel.org/show_bug.cgi?id=78601
+Add support for registering the sensor subdevice using the v4l2-async API.
 
-thanks,
-rui
-> >> Do you have other people complain about that? Bisecting didn't lead to
-> >> a good result. I could be wrong but I somehow suspect the mistake to be
-> >> somewhere in commit 99678ed73a50d2df8b5f3c801e29e9b7a3e5aa85
-> >>
-> > In order to confirm if the problem is introduced by the above commit,
-> > why not checkout the kernel just before and after this commit and see if the problem exists?
-> > 
-> > Thanks,
-> > rui
-> > 
-> So maybe I was wrong. d27050641e9bc056446deb0814e7ba1aa7911f5a is still
-> good and aaeb2554337217dfa4eac2fcc90da7be540b9a73 is the fist bad one.
-> This is a big v4l merge. I added the linux-media list in cc now.
-> 
-> What could be the problem here?
-> 
-> > 
-> >> There is nothing unusual in the kernel log.
-> >>
-> >> This is quite unusual for an -rc2. Hence my question. I'm happy to test
-> >> changes.
-> >>
-> >>                                      martin
-> >> --
-> >> Martin Kepplinger
-> >> e-mail        martink AT posteo DOT at
-> >> chat (XMPP)   martink AT jabber DOT at
-> 
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v1:
+ - Fixed cleanup and error handling
+---
+ drivers/media/i2c/mt9v032.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+index 29d8d8f..83ae8ca6d 100644
+--- a/drivers/media/i2c/mt9v032.c
++++ b/drivers/media/i2c/mt9v032.c
+@@ -985,10 +985,20 @@ static int mt9v032_probe(struct i2c_client *client,
+ 
+ 	mt9v032->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 	ret = media_entity_init(&mt9v032->subdev.entity, 1, &mt9v032->pad, 0);
++	if (ret < 0)
++		goto err_entity;
+ 
++	mt9v032->subdev.dev = &client->dev;
++	ret = v4l2_async_register_subdev(&mt9v032->subdev);
+ 	if (ret < 0)
+-		v4l2_ctrl_handler_free(&mt9v032->ctrls);
++		goto err_async;
++
++	return 0;
+ 
++err_async:
++	media_entity_cleanup(&mt9v032->subdev.entity);
++err_entity:
++	v4l2_ctrl_handler_free(&mt9v032->ctrls);
+ 	return ret;
+ }
+ 
+@@ -997,6 +1007,7 @@ static int mt9v032_remove(struct i2c_client *client)
+ 	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+ 	struct mt9v032 *mt9v032 = to_mt9v032(subdev);
+ 
++	v4l2_async_unregister_subdev(subdev);
+ 	v4l2_ctrl_handler_free(&mt9v032->ctrls);
+ 	v4l2_device_unregister_subdev(subdev);
+ 	media_entity_cleanup(&subdev->entity);
+-- 
+2.0.0.rc2
 
