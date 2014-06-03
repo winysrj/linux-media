@@ -1,377 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56524 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44656 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752319AbaFDPnh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jun 2014 11:43:37 -0400
+	with ESMTP id S1753212AbaFCAoa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jun 2014 20:44:30 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Subject: Re: [PATCH v2 5/5] [media] mt9v032: use regmap
-Date: Wed, 04 Jun 2014 17:44:04 +0200
-Message-ID: <2116541.LBf4Vp52ig@avalon>
-In-Reply-To: <1401788155-3690-6-git-send-email-p.zabel@pengutronix.de>
-References: <1401788155-3690-1-git-send-email-p.zabel@pengutronix.de> <1401788155-3690-6-git-send-email-p.zabel@pengutronix.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/2] Use installed kernel headers instead of raw kernel headers
+Date: Tue,  3 Jun 2014 02:44:51 +0200
+Message-Id: <1401756292-27676-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1401756292-27676-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1401756292-27676-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Kernel headers exported to userspace can contain kernel-specific
+statements (such as __user annotations) that are removed when installing
+the headers with 'make headers_install' in the kernel sources. Only the
+installed headers must be used by userspace. Replace the private copy of
+the raw headers with installed headers.
 
-Thank you for the patch.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/linux/dvb/dmx.h      |  8 +++-----
+ include/linux/dvb/frontend.h |  4 ----
+ include/linux/dvb/video.h    | 12 +++++-------
+ include/linux/fb.h           |  8 +++-----
+ include/linux/ivtv.h         |  6 +++---
+ include/linux/videodev2.h    | 16 +++++++---------
+ 6 files changed, 21 insertions(+), 33 deletions(-)
 
-On Tuesday 03 June 2014 11:35:55 Philipp Zabel wrote:
-> This switches all register accesses to use regmap. It allows to
-> use the regmap cache, tracing, and debug register dump facilities,
-> and removes the need to open code read-modify-writes.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-
-This looks good to me, but I have two small questions:
-
-- How does regmap handle endianness ? It seems to hardcode a big endian byte 
-order, which is fortunately what we need here. I suppose you've successfully 
-tested this patch :-)
-
-- How does regmap handle the register cache ? Will it try to populate it when 
-initialized, or will it only read registers on demand due to a read or an 
-update bits operation ?
-
-> ---
-> This patch was not included before.
-> ---
->  drivers/media/i2c/Kconfig   |   1 +
->  drivers/media/i2c/mt9v032.c | 112 +++++++++++++++++------------------------
->  2 files changed, 46 insertions(+), 67 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> index 441053b..f40b4cf 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -551,6 +551,7 @@ config VIDEO_MT9V032
->  	tristate "Micron MT9V032 sensor support"
->  	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
->  	depends on MEDIA_CAMERA_SUPPORT
-> +	select REGMAP_I2C
->  	---help---
->  	  This is a Video4Linux2 sensor-level driver for the Micron
->  	  MT9V032 752x480 CMOS sensor.
-> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-> index cb7c6df..e756d50 100644
-> --- a/drivers/media/i2c/mt9v032.c
-> +++ b/drivers/media/i2c/mt9v032.c
-> @@ -17,6 +17,7 @@
->  #include <linux/i2c.h>
->  #include <linux/log2.h>
->  #include <linux/mutex.h>
-> +#include <linux/regmap.h>
->  #include <linux/slab.h>
->  #include <linux/videodev2.h>
->  #include <linux/v4l2-mediabus.h>
-> @@ -245,6 +246,7 @@ struct mt9v032 {
->  	struct mutex power_lock;
->  	int power_count;
-> 
-> +	struct regmap *regmap;
->  	struct clk *clk;
-> 
->  	struct mt9v032_platform_data *pdata;
-> @@ -252,7 +254,6 @@ struct mt9v032 {
->  	const struct mt9v032_model_version *version;
-> 
->  	u32 sysclk;
-> -	u16 chip_control;
->  	u16 aec_agc;
->  	u16 hblank;
->  	struct {
-> @@ -266,40 +267,10 @@ static struct mt9v032 *to_mt9v032(struct v4l2_subdev
-> *sd) return container_of(sd, struct mt9v032, subdev);
->  }
-> 
-> -static int mt9v032_read(struct i2c_client *client, const u8 reg)
-> -{
-> -	s32 data = i2c_smbus_read_word_swapped(client, reg);
-> -	dev_dbg(&client->dev, "%s: read 0x%04x from 0x%02x\n", __func__,
-> -		data, reg);
-> -	return data;
-> -}
-> -
-> -static int mt9v032_write(struct i2c_client *client, const u8 reg,
-> -			 const u16 data)
-> -{
-> -	dev_dbg(&client->dev, "%s: writing 0x%04x to 0x%02x\n", __func__,
-> -		data, reg);
-> -	return i2c_smbus_write_word_swapped(client, reg, data);
-> -}
-> -
-> -static int mt9v032_set_chip_control(struct mt9v032 *mt9v032, u16 clear, u16
-> set) -{
-> -	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
-> -	u16 value = (mt9v032->chip_control & ~clear) | set;
-> -	int ret;
-> -
-> -	ret = mt9v032_write(client, MT9V032_CHIP_CONTROL, value);
-> -	if (ret < 0)
-> -		return ret;
-> -
-> -	mt9v032->chip_control = value;
-> -	return 0;
-> -}
-> -
->  static int
->  mt9v032_update_aec_agc(struct mt9v032 *mt9v032, u16 which, int enable)
->  {
-> -	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
-> +	struct regmap *map = mt9v032->regmap;
->  	u16 value = mt9v032->aec_agc;
->  	int ret;
-> 
-> @@ -308,7 +279,7 @@ mt9v032_update_aec_agc(struct mt9v032 *mt9v032, u16
-> which, int enable) else
->  		value &= ~which;
-> 
-> -	ret = mt9v032_write(client, MT9V032_AEC_AGC_ENABLE, value);
-> +	ret = regmap_write(map, MT9V032_AEC_AGC_ENABLE, value);
->  	if (ret < 0)
->  		return ret;
-> 
-> @@ -319,7 +290,6 @@ mt9v032_update_aec_agc(struct mt9v032 *mt9v032, u16
-> which, int enable) static int
->  mt9v032_update_hblank(struct mt9v032 *mt9v032)
->  {
-> -	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
->  	struct v4l2_rect *crop = &mt9v032->crop;
->  	unsigned int min_hblank = mt9v032->model->data->min_hblank;
->  	unsigned int hblank;
-> @@ -330,12 +300,13 @@ mt9v032_update_hblank(struct mt9v032 *mt9v032)
->  			   min_hblank);
->  	hblank = max_t(unsigned int, mt9v032->hblank, min_hblank);
-> 
-> -	return mt9v032_write(client, MT9V032_HORIZONTAL_BLANKING, hblank);
-> +	return regmap_write(mt9v032->regmap, MT9V032_HORIZONTAL_BLANKING,
-> +			    hblank);
->  }
-> 
->  static int mt9v032_power_on(struct mt9v032 *mt9v032)
->  {
-> -	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
-> +	struct regmap *map = mt9v032->regmap;
->  	unsigned long rate;
->  	int ret;
-> 
-> @@ -350,7 +321,7 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
->  	udelay(1);
-> 
->  	/* Reset the chip and stop data read out */
-> -	ret = mt9v032_write(client, MT9V032_RESET, 1);
-> +	ret = regmap_write(map, MT9V032_RESET, 1);
->  	if (ret < 0)
->  		return ret;
-> 
-> @@ -358,7 +329,7 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
->  	rate = clk_get_rate(mt9v032->clk);
->  	ndelay(DIV_ROUND_UP(15 * 125000000, rate >> 3));
-> 
-> -	return mt9v032_write(client, MT9V032_CHIP_CONTROL, 0);
-> +	return regmap_write(map, MT9V032_CHIP_CONTROL, 0);
->  }
-> 
->  static void mt9v032_power_off(struct mt9v032 *mt9v032)
-> @@ -368,7 +339,7 @@ static void mt9v032_power_off(struct mt9v032 *mt9v032)
-> 
->  static int __mt9v032_set_power(struct mt9v032 *mt9v032, bool on)
->  {
-> -	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
-> +	struct regmap *map = mt9v032->regmap;
->  	int ret;
-> 
->  	if (!on) {
-> @@ -382,14 +353,14 @@ static int __mt9v032_set_power(struct mt9v032
-> *mt9v032, bool on)
-> 
->  	/* Configure the pixel clock polarity */
->  	if (mt9v032->pdata && mt9v032->pdata->clk_pol) {
-> -		ret = mt9v032_write(client, mt9v032->model->data->pclk_reg,
-> +		ret = regmap_write(map, mt9v032->model->data->pclk_reg,
->  				MT9V032_PIXEL_CLOCK_INV_PXL_CLK);
->  		if (ret < 0)
->  			return ret;
->  	}
-> 
->  	/* Disable the noise correction algorithm and restore the controls. */
-> -	ret = mt9v032_write(client, MT9V032_ROW_NOISE_CORR_CONTROL, 0);
-> +	ret = regmap_write(map, MT9V032_ROW_NOISE_CORR_CONTROL, 0);
->  	if (ret < 0)
->  		return ret;
-> 
-> @@ -433,43 +404,39 @@ static int mt9v032_s_stream(struct v4l2_subdev
-> *subdev, int enable) const u16 mode = MT9V032_CHIP_CONTROL_MASTER_MODE
-> 
->  		       | MT9V032_CHIP_CONTROL_DOUT_ENABLE
->  		       | MT9V032_CHIP_CONTROL_SEQUENTIAL;
-> 
-> -	struct i2c_client *client = v4l2_get_subdevdata(subdev);
->  	struct mt9v032 *mt9v032 = to_mt9v032(subdev);
->  	struct v4l2_rect *crop = &mt9v032->crop;
-> -	unsigned int read_mode;
-> +	struct regmap *map = mt9v032->regmap;
->  	unsigned int hbin;
->  	unsigned int vbin;
->  	int ret;
-> 
->  	if (!enable)
-> -		return mt9v032_set_chip_control(mt9v032, mode, 0);
-> +		return regmap_update_bits(map, MT9V032_CHIP_CONTROL, mode, 0);
-> 
->  	/* Configure the window size and row/column bin */
->  	hbin = fls(mt9v032->hratio) - 1;
->  	vbin = fls(mt9v032->vratio) - 1;
-> -	read_mode = mt9v032_read(client, MT9V032_READ_MODE);
-> -	if (read_mode < 0)
-> -		return read_mode;
-> -	read_mode &= MT9V032_READ_MODE_RESERVED;
-> -	read_mode |= hbin << MT9V032_READ_MODE_COLUMN_BIN_SHIFT |
-> -		     vbin << MT9V032_READ_MODE_ROW_BIN_SHIFT;
-> -	ret = mt9v032_write(client, MT9V032_READ_MODE, read_mode);
-> +	ret = regmap_update_bits(map, MT9V032_READ_MODE,
-> +				 ~MT9V032_READ_MODE_RESERVED,
-> +				 hbin << MT9V032_READ_MODE_COLUMN_BIN_SHIFT |
-> +				 vbin << MT9V032_READ_MODE_ROW_BIN_SHIFT);
->  	if (ret < 0)
->  		return ret;
-> 
-> -	ret = mt9v032_write(client, MT9V032_COLUMN_START, crop->left);
-> +	ret = regmap_write(map, MT9V032_COLUMN_START, crop->left);
->  	if (ret < 0)
->  		return ret;
-> 
-> -	ret = mt9v032_write(client, MT9V032_ROW_START, crop->top);
-> +	ret = regmap_write(map, MT9V032_ROW_START, crop->top);
->  	if (ret < 0)
->  		return ret;
-> 
-> -	ret = mt9v032_write(client, MT9V032_WINDOW_WIDTH, crop->width);
-> +	ret = regmap_write(map, MT9V032_WINDOW_WIDTH, crop->width);
->  	if (ret < 0)
->  		return ret;
-> 
-> -	ret = mt9v032_write(client, MT9V032_WINDOW_HEIGHT, crop->height);
-> +	ret = regmap_write(map, MT9V032_WINDOW_HEIGHT, crop->height);
->  	if (ret < 0)
->  		return ret;
-> 
-> @@ -478,7 +445,7 @@ static int mt9v032_s_stream(struct v4l2_subdev *subdev,
-> int enable) return ret;
-> 
->  	/* Switch to master "normal" mode */
-> -	return mt9v032_set_chip_control(mt9v032, 0, mode);
-> +	return regmap_update_bits(map, MT9V032_CHIP_CONTROL, mode, mode);
->  }
-> 
->  static int mt9v032_enum_mbus_code(struct v4l2_subdev *subdev,
-> @@ -660,7 +627,7 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
->  {
->  	struct mt9v032 *mt9v032 =
->  			container_of(ctrl->handler, struct mt9v032, ctrls);
-> -	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
-> +	struct regmap *map = mt9v032->regmap;
->  	u32 freq;
->  	u16 data;
-> 
-> @@ -670,23 +637,23 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
->  					      ctrl->val);
-> 
->  	case V4L2_CID_GAIN:
-> -		return mt9v032_write(client, MT9V032_ANALOG_GAIN, ctrl->val);
-> +		return regmap_write(map, MT9V032_ANALOG_GAIN, ctrl->val);
-> 
->  	case V4L2_CID_EXPOSURE_AUTO:
->  		return mt9v032_update_aec_agc(mt9v032, MT9V032_AEC_ENABLE,
->  					      !ctrl->val);
-> 
->  	case V4L2_CID_EXPOSURE:
-> -		return mt9v032_write(client, MT9V032_TOTAL_SHUTTER_WIDTH,
-> -				     ctrl->val);
-> +		return regmap_write(map, MT9V032_TOTAL_SHUTTER_WIDTH,
-> +				    ctrl->val);
-> 
->  	case V4L2_CID_HBLANK:
->  		mt9v032->hblank = ctrl->val;
->  		return mt9v032_update_hblank(mt9v032);
-> 
->  	case V4L2_CID_VBLANK:
-> -		return mt9v032_write(client, MT9V032_VERTICAL_BLANKING,
-> -				     ctrl->val);
-> +		return regmap_write(map, MT9V032_VERTICAL_BLANKING,
-> +				    ctrl->val);
-> 
->  	case V4L2_CID_PIXEL_RATE:
->  	case V4L2_CID_LINK_FREQ:
-> @@ -723,7 +690,7 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
-> 
->  			     | MT9V032_TEST_PATTERN_FLIP;
-> 
->  			break;
->  		}
-> -		return mt9v032_write(client, MT9V032_TEST_PATTERN, data);
-> +		return regmap_write(map, MT9V032_TEST_PATTERN, data);
->  	}
-> 
->  	return 0;
-> @@ -791,7 +758,7 @@ static int mt9v032_registered(struct v4l2_subdev
-> *subdev) struct i2c_client *client = v4l2_get_subdevdata(subdev);
->  	struct mt9v032 *mt9v032 = to_mt9v032(subdev);
->  	unsigned int i;
-> -	s32 version;
-> +	u32 version;
->  	int ret;
-> 
->  	dev_info(&client->dev, "Probing MT9V032 at address 0x%02x\n",
-> @@ -804,10 +771,10 @@ static int mt9v032_registered(struct v4l2_subdev
-> *subdev) }
-> 
->  	/* Read and check the sensor version */
-> -	version = mt9v032_read(client, MT9V032_CHIP_VERSION);
-> -	if (version < 0) {
-> +	ret = regmap_read(mt9v032->regmap, MT9V032_CHIP_VERSION, &version);
-> +	if (ret < 0) {
->  		dev_err(&client->dev, "Failed reading chip version\n");
-> -		return version;
-> +		return ret;
->  	}
-> 
->  	for (i = 0; i < ARRAY_SIZE(mt9v032_versions); ++i) {
-> @@ -894,6 +861,13 @@ static const struct v4l2_subdev_internal_ops
-> mt9v032_subdev_internal_ops = { .close = mt9v032_close,
->  };
-> 
-> +static const struct regmap_config mt9v032_regmap_config = {
-> +	.reg_bits = 8,
-> +	.val_bits = 16,
-> +	.max_register = 0xff,
-> +	.cache_type = REGCACHE_RBTREE,
-> +};
-> +
->  /*
-> ---------------------------------------------------------------------------
-> -- * Driver initialization and probing
->   */
-> @@ -917,6 +891,10 @@ static int mt9v032_probe(struct i2c_client *client,
->  	if (!mt9v032)
->  		return -ENOMEM;
-> 
-> +	mt9v032->regmap = devm_regmap_init_i2c(client, &mt9v032_regmap_config);
-> +	if (IS_ERR(mt9v032->regmap))
-> +		return PTR_ERR(mt9v032->regmap);
-> +
->  	mt9v032->clk = devm_clk_get(&client->dev, NULL);
->  	if (IS_ERR(mt9v032->clk))
->  		return PTR_ERR(mt9v032->clk);
-
+diff --git a/include/linux/dvb/dmx.h b/include/linux/dvb/dmx.h
+index b4fb650..4ed210a 100644
+--- a/include/linux/dvb/dmx.h
++++ b/include/linux/dvb/dmx.h
+@@ -21,13 +21,11 @@
+  *
+  */
+ 
+-#ifndef _UAPI_DVBDMX_H_
+-#define _UAPI_DVBDMX_H_
++#ifndef _DVBDMX_H_
++#define _DVBDMX_H_
+ 
+ #include <linux/types.h>
+-#ifndef __KERNEL__
+ #include <time.h>
+-#endif
+ 
+ 
+ #define DMX_FILTER_SIZE 16
+@@ -152,4 +150,4 @@ struct dmx_stc {
+ #define DMX_ADD_PID              _IOW('o', 51, __u16)
+ #define DMX_REMOVE_PID           _IOW('o', 52, __u16)
+ 
+-#endif /* _UAPI_DVBDMX_H_ */
++#endif /* _DVBDMX_H_ */
+diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+index c56d77c..5cb498d 100644
+--- a/include/linux/dvb/frontend.h
++++ b/include/linux/dvb/frontend.h
+@@ -197,7 +197,6 @@ typedef enum fe_transmit_mode {
+ 	TRANSMISSION_MODE_C3780,
+ } fe_transmit_mode_t;
+ 
+-#if defined(__DVB_CORE__) || !defined (__KERNEL__)
+ typedef enum fe_bandwidth {
+ 	BANDWIDTH_8_MHZ,
+ 	BANDWIDTH_7_MHZ,
+@@ -207,7 +206,6 @@ typedef enum fe_bandwidth {
+ 	BANDWIDTH_10_MHZ,
+ 	BANDWIDTH_1_712_MHZ,
+ } fe_bandwidth_t;
+-#endif
+ 
+ typedef enum fe_guard_interval {
+ 	GUARD_INTERVAL_1_32,
+@@ -239,7 +237,6 @@ enum fe_interleaving {
+ 	INTERLEAVING_720,
+ };
+ 
+-#if defined(__DVB_CORE__) || !defined (__KERNEL__)
+ struct dvb_qpsk_parameters {
+ 	__u32		symbol_rate;  /* symbol rate in Symbols per second */
+ 	fe_code_rate_t	fec_inner;    /* forward error correction (see above) */
+@@ -282,7 +279,6 @@ struct dvb_frontend_event {
+ 	fe_status_t status;
+ 	struct dvb_frontend_parameters parameters;
+ };
+-#endif
+ 
+ /* S2API Commands */
+ #define DTV_UNDEFINED		0
+diff --git a/include/linux/dvb/video.h b/include/linux/dvb/video.h
+index d3d14a5..4bb276c 100644
+--- a/include/linux/dvb/video.h
++++ b/include/linux/dvb/video.h
+@@ -21,14 +21,12 @@
+  *
+  */
+ 
+-#ifndef _UAPI_DVBVIDEO_H_
+-#define _UAPI_DVBVIDEO_H_
++#ifndef _DVBVIDEO_H_
++#define _DVBVIDEO_H_
+ 
+ #include <linux/types.h>
+-#ifndef __KERNEL__
+ #include <stdint.h>
+ #include <time.h>
+-#endif
+ 
+ typedef enum {
+ 	VIDEO_FORMAT_4_3,     /* Select 4:3 format */
+@@ -154,7 +152,7 @@ struct video_status {
+ 
+ 
+ struct video_still_picture {
+-	char __user *iFrame;        /* pointer to a single iframe in memory */
++	char *iFrame;        /* pointer to a single iframe in memory */
+ 	__s32 size;
+ };
+ 
+@@ -187,7 +185,7 @@ typedef struct video_spu {
+ 
+ typedef struct video_spu_palette {      /* SPU Palette information */
+ 	int length;
+-	__u8 __user *palette;
++	__u8 *palette;
+ } video_spu_palette_t;
+ 
+ 
+@@ -271,4 +269,4 @@ typedef __u16 video_attributes_t;
+ #define VIDEO_COMMAND     	   _IOWR('o', 59, struct video_command)
+ #define VIDEO_TRY_COMMAND 	   _IOWR('o', 60, struct video_command)
+ 
+-#endif /* _UAPI_DVBVIDEO_H_ */
++#endif /* _DVBVIDEO_H_ */
+diff --git a/include/linux/fb.h b/include/linux/fb.h
+index fb795c3..1b3b239 100644
+--- a/include/linux/fb.h
++++ b/include/linux/fb.h
+@@ -1,5 +1,5 @@
+-#ifndef _UAPI_LINUX_FB_H
+-#define _UAPI_LINUX_FB_H
++#ifndef _LINUX_FB_H
++#define _LINUX_FB_H
+ 
+ #include <linux/types.h>
+ #include <linux/i2c.h>
+@@ -16,9 +16,7 @@
+ #define FBIOGETCMAP		0x4604
+ #define FBIOPUTCMAP		0x4605
+ #define FBIOPAN_DISPLAY		0x4606
+-#ifndef __KERNEL__
+ #define FBIO_CURSOR            _IOWR('F', 0x08, struct fb_cursor)
+-#endif
+ /* 0x4607-0x460B are defined below */
+ /* #define FBIOGET_MONITORSPEC	0x460C */
+ /* #define FBIOPUT_MONITORSPEC	0x460D */
+@@ -399,4 +397,4 @@ struct fb_cursor {
+ #endif
+ 
+ 
+-#endif /* _UAPI_LINUX_FB_H */
++#endif /* _LINUX_FB_H */
+diff --git a/include/linux/ivtv.h b/include/linux/ivtv.h
+index 42bf725..120e82c 100644
+--- a/include/linux/ivtv.h
++++ b/include/linux/ivtv.h
+@@ -21,7 +21,7 @@
+ #ifndef __LINUX_IVTV_H__
+ #define __LINUX_IVTV_H__
+ 
+-#include <linux/compiler.h>
++
+ #include <linux/types.h>
+ #include <linux/videodev2.h>
+ 
+@@ -49,9 +49,9 @@
+ struct ivtv_dma_frame {
+ 	enum v4l2_buf_type type; /* V4L2_BUF_TYPE_VIDEO_OUTPUT */
+ 	__u32 pixelformat;	 /* 0 == same as destination */
+-	void __user *y_source;   /* if NULL and type == V4L2_BUF_TYPE_VIDEO_OUTPUT,
++	void *y_source;   /* if NULL and type == V4L2_BUF_TYPE_VIDEO_OUTPUT,
+ 				    then just switch to user DMA YUV output mode */
+-	void __user *uv_source;  /* Unused for RGB pixelformats */
++	void *uv_source;  /* Unused for RGB pixelformats */
+ 	struct v4l2_rect src;
+ 	struct v4l2_rect dst;
+ 	__u32 src_width;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 168ff50..e9a5547 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -53,13 +53,11 @@
+  *              Hans Verkuil <hverkuil@xs4all.nl>
+  *		et al.
+  */
+-#ifndef _UAPI__LINUX_VIDEODEV2_H
+-#define _UAPI__LINUX_VIDEODEV2_H
++#ifndef __LINUX_VIDEODEV2_H
++#define __LINUX_VIDEODEV2_H
+ 
+-#ifndef __KERNEL__
+ #include <sys/time.h>
+-#endif
+-#include <linux/compiler.h>
++
+ #include <linux/ioctl.h>
+ #include <linux/types.h>
+ #include <linux/v4l2-common.h>
+@@ -766,16 +764,16 @@ struct v4l2_framebuffer {
+ 
+ struct v4l2_clip {
+ 	struct v4l2_rect        c;
+-	struct v4l2_clip	__user *next;
++	struct v4l2_clip	*next;
+ };
+ 
+ struct v4l2_window {
+ 	struct v4l2_rect        w;
+ 	__u32			field;	 /* enum v4l2_field */
+ 	__u32			chromakey;
+-	struct v4l2_clip	__user *clips;
++	struct v4l2_clip	*clips;
+ 	__u32			clipcount;
+-	void			__user *bitmap;
++	void			*bitmap;
+ 	__u8                    global_alpha;
+ };
+ 
+@@ -2010,4 +2008,4 @@ struct v4l2_create_buffers {
+ 
+ #define BASE_VIDIOC_PRIVATE	192		/* 192-255 are private */
+ 
+-#endif /* _UAPI__LINUX_VIDEODEV2_H */
++#endif /* __LINUX_VIDEODEV2_H */
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.5.5
 
