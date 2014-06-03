@@ -1,61 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:59054 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751415AbaFXVf4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 17:35:56 -0400
-Received: from uscpsbgex2.samsung.com
- (u123.gpu85.samsung.co.kr [203.254.195.123]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N7O00FIYZZU0Q40@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 24 Jun 2014 17:35:54 -0400 (EDT)
-Received: from sisasmtp.sisa.samsung.com ([105.144.21.115])
- by usmmp1.samsung.com
- (Oracle Communications Messaging Server 7u4-27.01(7.0.4.27.0) 64bit (built Aug
- 30 2012)) with ESMTP id <0N7O002E5ZZU6E90@usmmp1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 24 Jun 2014 17:35:54 -0400 (EDT)
-From: "Reynaldo H. Verdejo Pinochet" <r.verdejo@sisa.samsung.com>
-To: linux-media@vger.kernel.org
-Cc: "Reynaldo H. Verdejo Pinochet" <r.verdejo@sisa.samsung.com>
-Subject: [PATCH][libdvbv5] dvb-sat: add universal Ku band (extended) LNBF def
-Date: Tue, 24 Jun 2014 17:35:40 -0400
-Message-id: <1403645740-16050-1-git-send-email-r.verdejo@sisa.samsung.com>
-MIME-version: 1.0
-Content-type: text/plain
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1750 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752351AbaFCGjN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 02:39:13 -0400
+Message-ID: <538D6D81.3000001@xs4all.nl>
+Date: Tue, 03 Jun 2014 08:38:57 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Poll and empty queues
+References: <1401738463.2304.15.camel@nicolas-tpx230>
+In-Reply-To: <1401738463.2304.15.camel@nicolas-tpx230>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These are quite common and off the shelf, universal
-Ku band LBNFs. They started been used in Europe
-after the lunch of the Astra 1E and can be found
-pretty much everywhere.
+Hi Nicholas,
 
-Signed-off-by: Reynaldo H. Verdejo Pinochet <r.verdejo@sisa.samsung.com>
----
- lib/libdvbv5/dvb-sat.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+On 06/02/2014 09:47 PM, Nicolas Dufresne wrote:
+> Hi everyone,
+> 
+> Recently in GStreamer we notice that we where not handling the POLLERR
+> flag at all. Though we found that what the code do, and what the doc
+> says is slightly ambiguous.
+> 
+>         "When the application did not call VIDIOC_QBUF or
+>         VIDIOC_STREAMON yet the poll() function succeeds, but sets the
+>         POLLERR flag in the revents field."
+>         
+> In our case, we first seen this error with a capture device. How things
+> worked is that we first en-queue all allocated buffers. Our
+> interpretation was that this would avoid not calling "VIDIOC_QBUF [...]
+> yet", and only then we would call VIDIOC_STREAMON. This way, in our
+> interpretation we would never get that error.
+> 
+> Though, this is not what the code does. Looking at videobuf2, if simply
+> return this error when the queue is empty.
+> 
+> 	/*
+> 	 * There is nothing to wait for if no buffers have already been queued.
+> 	 */
+> 	if (list_empty(&q->queued_list))
+> 		return res | POLLERR;
+> 
+> So basically, we endup in this situation where as soon as all existing
+> buffers has been dequeued, we can't rely on the driver to wait for a
+> buffer to be queued and then filled again. This basically forces us into
+> adding a new user-space mechanism, to wait for buffer to come back. We
+> are wandering if this is a bug. If not, maybe it would be nice to
+> improve the documentation.
 
-diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
-index df2ffcd..4c7d2cd 100644
---- a/lib/libdvbv5/dvb-sat.c
-+++ b/lib/libdvbv5/dvb-sat.c
-@@ -44,6 +44,16 @@ static const struct dvb_sat_lnb lnb[] = {
- 		.freqrange = {
- 			{ 12200, 12700 }
- 		}
-+    }, {
-+        .name = "Astra 1E, European Universal Ku (extended)",
-+        .alias = "EXTENDEDU",
-+		.lowfreq = 9750,
-+		.highfreq = 10600,
-+		.rangeswitch = 11700,
-+		.freqrange = {
-+			{ 10700, 11700 },
-+			{ 11700, 12750 },
-+		}
- 	}, {
- 		.name = "Standard",
- 		.alias = "STANDARD",
--- 
-2.0.0
+Just for my understanding: I assume that gstreamer polls in one process or
+thread and does the queuing/dequeuing in a different process/thread, is that
+correct?
 
+If it was all in one process, then it would make no sense polling for a
+buffer to become available if you never queued one.
+
+That is probably the reasoning behind what poll does today. That said, I've
+always thought it was wrong and that it should be replaced by something like:
+
+	if (!vb2_is_streaming(q))
+		return res | POLLERR;
+
+I.e.: only return an error if we're not streaming.
+
+Regards,
+
+	Hans
