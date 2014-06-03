@@ -1,40 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33043 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756246AbaFLRGq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 13:06:46 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [RFC PATCH 22/26] [media] v4l2-subdev: Export v4l2_subdev_fops
-Date: Thu, 12 Jun 2014 19:06:36 +0200
-Message-Id: <1402592800-2925-23-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49586 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932714AbaFCRKc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 13:10:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/3] media-ctl: libv4l2subdev: Add DV timings support
+Date: Tue, 03 Jun 2014 19:10:58 +0200
+Message-ID: <1895886.LJyZrLTVV4@avalon>
+In-Reply-To: <20140603123224.GI2073@valkosipuli.retiisi.org.uk>
+References: <1401721804-30133-1-git-send-email-laurent.pinchart@ideasonboard.com> <1401721804-30133-2-git-send-email-laurent.pinchart@ideasonboard.com> <20140603123224.GI2073@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is needed by the imx-ipuv3-csi driver when compiled as a module.
+Hi Sakari,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/v4l2-core/v4l2-subdev.c | 1 +
- 1 file changed, 1 insertion(+)
+On Tuesday 03 June 2014 15:32:24 Sakari Ailus wrote:
+> On Mon, Jun 02, 2014 at 05:10:02PM +0200, Laurent Pinchart wrote:
+> > Expose the pad-level get caps, query, get and set DV timings ioctls.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  utils/media-ctl/libv4l2subdev.c | 72 ++++++++++++++++++++++++++++++++++++
+> >  utils/media-ctl/v4l2subdev.h    | 53 ++++++++++++++++++++++++++++++
+> >  2 files changed, 125 insertions(+)
+> > 
+> > diff --git a/utils/media-ctl/libv4l2subdev.c
+> > b/utils/media-ctl/libv4l2subdev.c index 14daffa..8015330 100644
+> > --- a/utils/media-ctl/libv4l2subdev.c
+> > +++ b/utils/media-ctl/libv4l2subdev.c
+> > @@ -189,6 +189,78 @@ int v4l2_subdev_set_selection(struct media_entity
+> > *entity,
+> >  	return 0;
+> >  }
+> > 
+> > +int v4l2_subdev_get_dv_timings_caps(struct media_entity *entity,
+> > +	struct v4l2_dv_timings_cap *caps)
+> > +{
+> > +	unsigned int pad = caps->pad;
+> > +	int ret;
+> > +
+> > +	ret = v4l2_subdev_open(entity);
+> > +	if (ret < 0)
+> > +		return ret;
+> 
+> In every function v4l2_subdev_open() is called before the ioctl command. How
+> about implementing a wrapper which does both, and using that before this
+> patch?
 
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index aea84ac..c4dc495 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -406,6 +406,7 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
- 	.release = subdev_close,
- 	.poll = subdev_poll,
- };
-+EXPORT_SYMBOL_GPL(v4l2_subdev_fops);
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
- int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
+I'm not too fond of the current subdev API. Subdevs are opened implicitly but 
+must be closed explicitly. Implicit open is of course easy, but the unbalanced 
+API makes me feel uneasy. I'm open to ideas for better alternatives :-)
+
 -- 
-2.0.0.rc2
+Regards,
+
+Laurent Pinchart
 
