@@ -1,109 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:45633 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752048AbaFINwP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jun 2014 09:52:15 -0400
-Received: from uscpsbgex1.samsung.com
- (u122.gpu85.samsung.co.kr [203.254.195.122]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N6W00HMYMJ1GI40@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 09 Jun 2014 09:52:13 -0400 (EDT)
-From: Thiago Santos <ts.santos@sisa.samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Thiago Santos <ts.santos@sisa.samsung.com>
-Subject: [PATCH/RFC v2 2/2] libv4l2: release the lock before doing a DQBUF
-Date: Mon, 09 Jun 2014 10:51:56 -0300
-Message-id: <1402321916-22111-3-git-send-email-ts.santos@sisa.samsung.com>
-In-reply-to: <1402321916-22111-1-git-send-email-ts.santos@sisa.samsung.com>
-References: <1402321916-22111-1-git-send-email-ts.santos@sisa.samsung.com>
-MIME-version: 1.0
-Content-type: text/plain
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51538 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932164AbaFCXpx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 19:45:53 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: Poll and empty queues
+Date: Wed, 04 Jun 2014 01:46:19 +0200
+Message-ID: <1796797.iEz1prGJi5@avalon>
+In-Reply-To: <1401817194.13385.49.camel@nicolas-tpx230>
+References: <1401738463.2304.15.camel@nicolas-tpx230> <1715728.xzx1A1Sk00@avalon> <1401817194.13385.49.camel@nicolas-tpx230>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In blocking mode, if there are no buffers available the DQBUF will block
-waiting for a QBUF to be called but it will block holding the streaming
-lock which will prevent any QBUF from happening, causing a deadlock.
+Hi Nicolas,
 
-Can be tested with: v4l2grab -t -b -s 2000
+On Tuesday 03 June 2014 13:39:54 Nicolas Dufresne wrote:
+> Le mardi 03 juin 2014 à 18:11 +0200, Laurent Pinchart a écrit :
+> > On Tuesday 03 June 2014 10:37:50 Nicolas Dufresne wrote:
+> >> Le mardi 03 juin 2014 à 08:38 +0200, Hans Verkuil a écrit :
+> >>> On 06/02/2014 09:47 PM, Nicolas Dufresne wrote:
+> >>>> Hi everyone,
+> >>>> 
+> >>>> Recently in GStreamer we notice that we where not handling the
+> >>>> POLLERR flag at all. Though we found that what the code do, and what
+> >>>> the doc says is slightly ambiguous.
+> >>>> 
+> >>>>         "When the application did not call VIDIOC_QBUF or
+> >>>>         VIDIOC_STREAMON yet the poll() function succeeds, but sets
+> >>>>         the POLLERR flag in the revents field."
+> >>>> 
+> >>>> In our case, we first seen this error with a capture device. How
+> >>>> things worked is that we first en-queue all allocated buffers. Our
+> >>>> interpretation was that this would avoid not calling "VIDIOC_QBUF
+> >>>> [...] yet", and only then we would call VIDIOC_STREAMON. This way,
+> >>>> in our interpretation we would never get that error.
+> >>>> 
+> >>>> Though, this is not what the code does. Looking at videobuf2, if
+> >>>> simply return this error when the queue is empty.
+> >>>> 
+> >>>> /*
+> >>>>  * There is nothing to wait for if no buffers have already been
+> >>>>  queued.
+> >>>>  */
+> >>>> if (list_empty(&q->queued_list))
+> >>>> 	return res | POLLERR;
+> >>>> 
+> >>>> So basically, we endup in this situation where as soon as all
+> >>>> existing buffers has been dequeued, we can't rely on the driver to
+> >>>> wait for a buffer to be queued and then filled again. This basically
+> >>>> forces us into adding a new user-space mechanism, to wait for buffer
+> >>>> to come back. We are wandering if this is a bug. If not, maybe it
+> >>>> would be nice to improve the documentation.
+> >>> 
+> >>> Just for my understanding: I assume that gstreamer polls in one
+> >>> process or thread and does the queuing/dequeuing in a different
+> >>> process/thread, is that correct?
+> >> 
+> >> Yes, in this particular case (polling with queues/thread downstream),
+> >> the streaming thread do the polling, and then push the buffers. The
+> >> buffer reach a queue element, which will queued and return. Polling
+> >> restart at this point. The queue will later pass it downstream from the
+> >> next streaming thread, and eventually the buffer will be released. For
+> >> capture device, QBUF will be called upon release.
+> >> 
+> >> It is assumed that this call to QBUF should take a finite amount of
+> >> time. Though, libv4l2 makes this assumption wrong by inter-locking DQBUF
+> >> and QBUF, clearly a bug, but not strictly related to this thread. Also,
+> >> as we try and avoid blocking in the DQBUF ioctl, it should not be a
+> >> problem for us.
+> >> 
+> >>> If it was all in one process, then it would make no sense polling for
+> >>> a buffer to become available if you never queued one.
+> >> 
+> >> Not exactly true, the driver may take some time before the buffer we
+> >> have queued back is filled and available again. The poll/select FD set
+> >> also have a control pipe, so we can stop the process at any moment. Not
+> >> polling would mean blocking on an ioctl() which cannot be canceled.
+> >> 
+> >> But, without downstream queues (thread), the size of the queue will be
+> >> negotiated so that the buffer will be released before we go back
+> >> polling. The queue will never be empty in this case.
+> >> 
+> >>> That is probably the reasoning behind what poll does today. That said,
+> >>> I've always thought it was wrong and that it should be replaced by
+> >>> something like:
+> >>> 
+> >>> 	if (!vb2_is_streaming(q))
+> >>> 		return res | POLLERR;
+> >>> 
+> >>> I.e.: only return an error if we're not streaming.
+> >> 
+> >> I think it would be easier for user space and closer to what the doc
+> >> says.
+> > 
+> > I tend to agree, and I'd like to raise a different but related issue.
+> > 
+> > I've recently run into a problem with a V4L2 device (OMAP4 ISS if you want
+> > details) that sometimes crashes during video capture. When this occurs the
+> > device is rendered completely unusable, and userspace need to stop the
+> > video stream and close the video device node in order to reset the
+> > device. That's not ideal, but until I pinpoint the root cause that's what
+> > we have to live with.
+> > 
+> > When the OMAP4 ISS driver detects the error it immediately completes all
+> > queued buffers with the V4L2_BUF_FLAG_ERROR flag set, and returns -EIO
+> > from all subsequent VIDIOC_QBUF calls. The next few VIDIOC_DQBUF calls
+> > will return buffers with the V4L2_BUF_FLAG_ERROR flag set, after which the
+> > next VIDIOC_DQBUF call will block in __vb2_wait_for_done_vb() on
+> > 
+> >         ret = wait_event_interruptible(q->done_wq,
+> >                         !list_empty(&q->done_list) || !q->streaming);
+> > 
+> > as the queue is still streaming and the done list stays empty.
+> > 
+> > (Disclaimer : I'm using gstreamer 0.10 for this project due to TI shipping
+> > the OMAP4 H.264 codec for this version only)
+> 
+> Nod, nothing I can help with. This is a very similar problem to out-of-tree
+> kernel drivers. We need to teach vendors to upstream in gst-plugins-bad,
+> otherwise it becomes un-maintain.
 
-Signed-off-by: Thiago Santos <ts.santos@sisa.samsung.com>
----
- lib/libv4l2/libv4l2-priv.h |  1 +
- lib/libv4l2/libv4l2.c      | 13 ++++++++++++-
- 2 files changed, 13 insertions(+), 1 deletion(-)
+In this specific case the code depends on the unmaintained TI OMAP4 BSP 
+kernel, so it wouldn't have helped much :-/
 
-diff --git a/lib/libv4l2/libv4l2-priv.h b/lib/libv4l2/libv4l2-priv.h
-index 585273c..ff4c8d2 100644
---- a/lib/libv4l2/libv4l2-priv.h
-+++ b/lib/libv4l2/libv4l2-priv.h
-@@ -92,6 +92,7 @@ struct v4l2_dev_info {
- 	unsigned char *frame_pointers[V4L2_MAX_NO_FRAMES];
- 	int frame_sizes[V4L2_MAX_NO_FRAMES];
- 	int frame_queued; /* 1 status bit per frame */
-+	int frame_info_generation;
- 	/* mapping tracking of our fake (converting mmap) frame buffers */
- 	unsigned char frame_map_count[V4L2_MAX_NO_FRAMES];
- 	/* buffer when doing conversion and using read() for read() */
-diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
-index c4d69f7..1dcf34d 100644
---- a/lib/libv4l2/libv4l2.c
-+++ b/lib/libv4l2/libv4l2.c
-@@ -282,7 +282,7 @@ static int v4l2_dequeue_and_convert(int index, struct v4l2_buffer *buf,
- 		unsigned char *dest, int dest_size)
- {
- 	const int max_tries = V4L2_IGNORE_FIRST_FRAME_ERRORS + 1;
--	int result, tries = max_tries;
-+	int result, tries = max_tries, frame_info_gen;
- 
- 	/* Make sure we have the real v4l2 buffers mapped */
- 	result = v4l2_map_buffers(index);
-@@ -290,9 +290,12 @@ static int v4l2_dequeue_and_convert(int index, struct v4l2_buffer *buf,
- 		return result;
- 
- 	do {
-+		frame_info_gen = devices[index].frame_info_generation;
-+		pthread_mutex_unlock(&devices[index].stream_lock);
- 		result = devices[index].dev_ops->ioctl(
- 				devices[index].dev_ops_priv,
- 				devices[index].fd, VIDIOC_DQBUF, buf);
-+		pthread_mutex_lock(&devices[index].stream_lock);
- 		if (result) {
- 			if (errno != EAGAIN) {
- 				int saved_err = errno;
-@@ -305,6 +308,11 @@ static int v4l2_dequeue_and_convert(int index, struct v4l2_buffer *buf,
- 
- 		devices[index].frame_queued &= ~(1 << buf->index);
- 
-+		if (frame_info_gen != devices[index].frame_info_generation) {
-+			errno = -EINVAL;
-+			return -1;
-+		}
-+
- 		result = v4lconvert_convert(devices[index].convert,
- 				&devices[index].src_fmt, &devices[index].dest_fmt,
- 				devices[index].frame_pointers[buf->index],
-@@ -839,6 +847,7 @@ int v4l2_dup(int fd)
- 
- static int v4l2_check_buffer_change_ok(int index)
- {
-+	devices[index].frame_info_generation++;
- 	v4l2_unmap_buffers(index);
- 
- 	/* Check if the app itself still is using the stream */
-@@ -1294,9 +1303,11 @@ no_capture_request:
- 		}
- 
- 		if (!v4l2_needs_conversion(index)) {
-+			pthread_mutex_unlock(&devices[index].stream_lock);
- 			result = devices[index].dev_ops->ioctl(
- 					devices[index].dev_ops_priv,
- 					fd, VIDIOC_DQBUF, buf);
-+			pthread_mutex_lock(&devices[index].stream_lock);
- 			if (result) {
- 				saved_err = errno;
- 				V4L2_PERROR("dequeuing buf");
+> > As gstreamer doesn't handle POLLERR in v4l2src the gst_poll_wait() call in
+> > gst_v4l2src_grab_frame() will return success, and the function then
+> > proceeds to call gst_v4l2_buffer_pool_dqbuf() which will block. Trying to
+> > stop the pipeline at that point just hangs forever on the VIDIOC_DQBUF
+> > call.
+>
+> This is what I'm working on right now, don't expect a fix for 0.10, it has
+> been un-maintained for 2 years now.
+
+I know I'm on my own. Or mostly, there are still very helpful gstreamer 
+developers who I want to thank for helping me (they will know who they are 
+:-)).
+
+> For the reference:
+> 
+> https://bugzilla.gnome.org/show_bug.cgi?id=731015
+
+Thank you.
+
+> > This kind of fatal error condition should be detected and reported to the
+> > application.
+> > 
+> > If we modified the poll() behaviour to return POLLERR on
+> > !vb2_is_streaming() instead of list_empty(&q->queued_list) the poll call
+> > would block and stopping the pipeline would be possible.
+> > 
+> > We would however still miss a mechanism to detect the fatal error and
+> > report it to the application. As I'm not too familiar with gstreamer I'd
+> > appreciate any help I could get to implement this.
+> 
+> It might not be the appropriate list but oh well ...
+> 
+> GStreamer abstract polling through GstPoll (reason: special features and
+> multi-platform). To detect the POLLERR, simply keep the GstPollFD
+> structure around in the object, and call gst_poll_fd_has_error(poll,
+> pollfd), you can read errno as usual. If you change the kernel as we
+> said, this code should never be reached, hence shall be a fatal error
+> (return GST_FLOW_ERROR and GST_ELEMENT_ERROR so application is notified
+> and can handle it).
+> 
+> It would indeed be a good mechanism to trigger fatal run-time error in
+> my opinion. We would need to document values of errno that make sense I
+> suppose. The ERROR flag is clearly documented as a mechanism for
+> recoverable errors.
+
+Thanks a lot for the information. I'll give this a try and will post RFC 
+patches to the linux-media list, CC'ing you.
+
+> >> Though, it's not just about changing that check, there is some more work
+> >> involved from what I've seen.
+> > 
+> > What have you seen ? :-)
+> 
+> My bad, miss-read the next statement:
+> 
+>         if (list_empty(&q->done_list))
+>         		poll_wait(file, &q->done_wq, wait);
+> 
+> Nothing complex to do indeed.
+
 -- 
-2.0.0
+Regards,
+
+Laurent Pinchart
 
