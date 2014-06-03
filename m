@@ -1,60 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:25233 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750991AbaFMCGP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 22:06:15 -0400
-Date: Fri, 13 Jun 2014 10:04:27 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org,
+Received: from userp1040.oracle.com ([156.151.31.81]:17825 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751740AbaFCGHQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 02:07:16 -0400
+Date: Tue, 3 Jun 2014 09:06:22 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Ovidiu Toader <ovi@phas.ubc.ca>
+Cc: Antti Palosaari <crope@iki.fi>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Michal Simek <monstr@monstr.eu>, kbuild-all@01.org
-Subject: [xlnx:master-next 164/499]
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1090:7: error:
- 'VIDIOC_SUBDEV_G_EDID32' undeclared
-Message-ID: <539a5c2b.iI/OMhR4k7lMdM53%fengguang.wu@intel.com>
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] staging/media/rtl2832u_sdr: fix coding style problems
+ by adding blank lines
+Message-ID: <20140603060303.GX17724@mwanda>
+References: <538D18EE.6070509@phas.ubc.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+In-Reply-To: <538D18EE.6070509@phas.ubc.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://git.xilinx.com/linux-xlnx master-next
-head:   f9d391370402f7428cd12e7aaa5c8ab768ba5332
-commit: b3640ef37e11cbe388be747b0eb46be3c4cac239 [164/499] v4l2: add VIDIOC_G/S_EDID support to the v4l2 core
-config: make ARCH=x86_64 allmodconfig
+On Mon, Jun 02, 2014 at 05:38:06PM -0700, Ovidiu Toader wrote:
+> This minor patch fixes all WARNING:SPACING style warnings in rtl2832_sdr.c
+> 
+> The new version of the file pleases checkpatch.pl when run with "--ignore LONG_LINE".
+> 
 
-All error/warnings:
+Looks good.  Thanks.
 
-   drivers/media/v4l2-core/v4l2-compat-ioctl32.c: In function 'v4l2_compat_ioctl32':
->> drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1090:7: error: 'VIDIOC_SUBDEV_G_EDID32' undeclared (first use in this function)
-     case VIDIOC_SUBDEV_G_EDID32:
-          ^
-   drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1090:7: note: each undeclared identifier is reported only once for each function it appears in
->> drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1091:7: error: 'VIDIOC_SUBDEV_S_EDID32' undeclared (first use in this function)
-     case VIDIOC_SUBDEV_S_EDID32:
-          ^
+regards,
+dan carpenter
 
-vim +/VIDIOC_SUBDEV_G_EDID32 +1090 drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-
-2150158b drivers/media/video/v4l2-compat-ioctl32.c     Guennadi Liakhovetski 2011-09-28  1084  	case VIDIOC_CREATE_BUFS32:
-2150158b drivers/media/video/v4l2-compat-ioctl32.c     Guennadi Liakhovetski 2011-09-28  1085  	case VIDIOC_PREPARE_BUF32:
-5d7758ee drivers/media/video/v4l2-compat-ioctl32.c     Hans Verkuil          2012-05-15  1086  	case VIDIOC_ENUM_DV_TIMINGS:
-5d7758ee drivers/media/video/v4l2-compat-ioctl32.c     Hans Verkuil          2012-05-15  1087  	case VIDIOC_QUERY_DV_TIMINGS:
-5d7758ee drivers/media/video/v4l2-compat-ioctl32.c     Hans Verkuil          2012-05-15  1088  	case VIDIOC_DV_TIMINGS_CAP:
-82b655bf drivers/media/video/v4l2-compat-ioctl32.c     Hans Verkuil          2012-07-05  1089  	case VIDIOC_ENUM_FREQ_BANDS:
-ed45ce2c drivers/media/v4l2-core/v4l2-compat-ioctl32.c Hans Verkuil          2012-08-10 @1090  	case VIDIOC_SUBDEV_G_EDID32:
-ed45ce2c drivers/media/v4l2-core/v4l2-compat-ioctl32.c Hans Verkuil          2012-08-10 @1091  	case VIDIOC_SUBDEV_S_EDID32:
-0d0fbf81 drivers/media/video/compat_ioctl32.c          Arnd Bergmann         2006-01-09  1092  		ret = do_video_ioctl(file, cmd, arg);
-0d0fbf81 drivers/media/video/compat_ioctl32.c          Arnd Bergmann         2006-01-09  1093  		break;
-0d0fbf81 drivers/media/video/compat_ioctl32.c          Arnd Bergmann         2006-01-09  1094  
-
-:::::: The code at line 1090 was first introduced by commit
-:::::: ed45ce2cc0b31cb442685934b627916f83d1d7c6 [media] v4l2-subdev: add support for the new edid ioctls
-
-:::::: TO: Hans Verkuil <hans.verkuil@cisco.com>
-:::::: CC: Mauro Carvalho Chehab <mchehab@redhat.com>
-
----
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
