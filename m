@@ -1,70 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:51139 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753610AbaFKOgV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jun 2014 10:36:21 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: gregkh@linuxfoundation.org
-Cc: Tony Lindgren <tony@atomide.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, arm@kernel.org
-Subject: [PATCH] [media] staging: allow omap4iss to be modular
-Date: Wed, 11 Jun 2014 16:35:38 +0200
-Message-ID: <5192928.MkINji4uKU@wuerfel>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44657 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932221AbaFCAoa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jun 2014 20:44:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/2] Add the missing v4l2-mediabus.h kernel header
+Date: Tue,  3 Jun 2014 02:44:52 +0200
+Message-Id: <1401756292-27676-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1401756292-27676-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1401756292-27676-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The OMAP4 camera support depends on I2C and VIDEO_V4L2, both
-of which can be loadable modules. This causes build failures
-if we want the camera driver to be built-in.
+media-ctl requires a recent v4l2-mediabus.h header. Add the latest
+mainline kernel version of the header.
 
-This can be solved by turning the option into "tristate",
-which unfortunately causes another problem, because the
-driver incorrectly calls a platform-internal interface
-for omap4_ctrl_pad_readl/omap4_ctrl_pad_writel.
-To work around that, we can export those symbols, but
-that isn't really the correct solution, as we should not
-have dependencies on platform code this way.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
-This is one of just two patches we currently need to get
-'make allmodconfig' to build again on ARM.
+ include/linux/v4l2-mediabus.h | 147 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 147 insertions(+)
+ create mode 100644 include/linux/v4l2-mediabus.h
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 751f354..05d2d98 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -190,11 +190,13 @@ u32 omap4_ctrl_pad_readl(u16 offset)
- {
- 	return readl_relaxed(OMAP4_CTRL_PAD_REGADDR(offset));
- }
-+EXPORT_SYMBOL_GPL(omap4_ctrl_pad_readl);
- 
- void omap4_ctrl_pad_writel(u32 val, u16 offset)
- {
- 	writel_relaxed(val, OMAP4_CTRL_PAD_REGADDR(offset));
- }
-+EXPORT_SYMBOL_GPL(omap4_ctrl_pad_writel);
- 
- #ifdef CONFIG_ARCH_OMAP3
- 
-diff --git a/drivers/staging/media/omap4iss/Kconfig b/drivers/staging/media/omap4iss/Kconfig
-index 78b0fba..0c3e3c1 100644
---- a/drivers/staging/media/omap4iss/Kconfig
-+++ b/drivers/staging/media/omap4iss/Kconfig
-@@ -1,5 +1,5 @@
- config VIDEO_OMAP4
--	bool "OMAP 4 Camera support"
-+	tristate "OMAP 4 Camera support"
- 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C && ARCH_OMAP4
- 	select VIDEOBUF2_DMA_CONTIG
- 	---help---
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+new file mode 100644
+index 0000000..1445e85
+--- /dev/null
++++ b/include/linux/v4l2-mediabus.h
+@@ -0,0 +1,147 @@
++/*
++ * Media Bus API header
++ *
++ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __LINUX_V4L2_MEDIABUS_H
++#define __LINUX_V4L2_MEDIABUS_H
++
++#include <linux/types.h>
++#include <linux/videodev2.h>
++
++/*
++ * These pixel codes uniquely identify data formats on the media bus. Mostly
++ * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
++ * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
++ * data format is fixed. Additionally, "2X8" means that one pixel is transferred
++ * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
++ * transferred over the bus: "LE" means that the least significant bits are
++ * transferred first, "BE" means that the most significant bits are transferred
++ * first, and "PADHI" and "PADLO" define which bits - low or high, in the
++ * incomplete high byte, are filled with padding bits.
++ *
++ * The pixel codes are grouped by type, bus_width, bits per component, samples
++ * per pixel and order of subsamples. Numerical values are sorted using generic
++ * numerical sort order (8 thus comes before 10).
++ *
++ * As their value can't change when a new pixel code is inserted in the
++ * enumeration, the pixel codes are explicitly given a numerical value. The next
++ * free values for each category are listed below, update them when inserting
++ * new pixel codes.
++ */
++enum v4l2_mbus_pixelcode {
++	V4L2_MBUS_FMT_FIXED = 0x0001,
++
++	/* RGB - next is 0x100e */
++	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE = 0x1001,
++	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE = 0x1002,
++	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE = 0x1003,
++	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE = 0x1004,
++	V4L2_MBUS_FMT_BGR565_2X8_BE = 0x1005,
++	V4L2_MBUS_FMT_BGR565_2X8_LE = 0x1006,
++	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
++	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
++	V4L2_MBUS_FMT_RGB666_1X18 = 0x1009,
++	V4L2_MBUS_FMT_RGB888_1X24 = 0x100a,
++	V4L2_MBUS_FMT_RGB888_2X12_BE = 0x100b,
++	V4L2_MBUS_FMT_RGB888_2X12_LE = 0x100c,
++	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
++
++	/* YUV (including grey) - next is 0x2024 */
++	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
++	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
++	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
++	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
++	V4L2_MBUS_FMT_YUYV8_1_5X8 = 0x2004,
++	V4L2_MBUS_FMT_YVYU8_1_5X8 = 0x2005,
++	V4L2_MBUS_FMT_UYVY8_2X8 = 0x2006,
++	V4L2_MBUS_FMT_VYUY8_2X8 = 0x2007,
++	V4L2_MBUS_FMT_YUYV8_2X8 = 0x2008,
++	V4L2_MBUS_FMT_YVYU8_2X8 = 0x2009,
++	V4L2_MBUS_FMT_Y10_1X10 = 0x200a,
++	V4L2_MBUS_FMT_UYVY10_2X10 = 0x2018,
++	V4L2_MBUS_FMT_VYUY10_2X10 = 0x2019,
++	V4L2_MBUS_FMT_YUYV10_2X10 = 0x200b,
++	V4L2_MBUS_FMT_YVYU10_2X10 = 0x200c,
++	V4L2_MBUS_FMT_Y12_1X12 = 0x2013,
++	V4L2_MBUS_FMT_UYVY8_1X16 = 0x200f,
++	V4L2_MBUS_FMT_VYUY8_1X16 = 0x2010,
++	V4L2_MBUS_FMT_YUYV8_1X16 = 0x2011,
++	V4L2_MBUS_FMT_YVYU8_1X16 = 0x2012,
++	V4L2_MBUS_FMT_YDYUYDYV8_1X16 = 0x2014,
++	V4L2_MBUS_FMT_UYVY10_1X20 = 0x201a,
++	V4L2_MBUS_FMT_VYUY10_1X20 = 0x201b,
++	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
++	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
++	V4L2_MBUS_FMT_YUV10_1X30 = 0x2016,
++	V4L2_MBUS_FMT_AYUV8_1X32 = 0x2017,
++	V4L2_MBUS_FMT_UYVY12_2X12 = 0x201c,
++	V4L2_MBUS_FMT_VYUY12_2X12 = 0x201d,
++	V4L2_MBUS_FMT_YUYV12_2X12 = 0x201e,
++	V4L2_MBUS_FMT_YVYU12_2X12 = 0x201f,
++	V4L2_MBUS_FMT_UYVY12_1X24 = 0x2020,
++	V4L2_MBUS_FMT_VYUY12_1X24 = 0x2021,
++	V4L2_MBUS_FMT_YUYV12_1X24 = 0x2022,
++	V4L2_MBUS_FMT_YVYU12_1X24 = 0x2023,
++
++	/* Bayer - next is 0x3019 */
++	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
++	V4L2_MBUS_FMT_SGBRG8_1X8 = 0x3013,
++	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
++	V4L2_MBUS_FMT_SRGGB8_1X8 = 0x3014,
++	V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 = 0x3015,
++	V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8 = 0x3016,
++	V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8 = 0x3017,
++	V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8 = 0x3018,
++	V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8 = 0x300b,
++	V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8 = 0x300c,
++	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 0x3009,
++	V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8 = 0x300d,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 0x3006,
++	V4L2_MBUS_FMT_SBGGR10_1X10 = 0x3007,
++	V4L2_MBUS_FMT_SGBRG10_1X10 = 0x300e,
++	V4L2_MBUS_FMT_SGRBG10_1X10 = 0x300a,
++	V4L2_MBUS_FMT_SRGGB10_1X10 = 0x300f,
++	V4L2_MBUS_FMT_SBGGR12_1X12 = 0x3008,
++	V4L2_MBUS_FMT_SGBRG12_1X12 = 0x3010,
++	V4L2_MBUS_FMT_SGRBG12_1X12 = 0x3011,
++	V4L2_MBUS_FMT_SRGGB12_1X12 = 0x3012,
++
++	/* JPEG compressed formats - next is 0x4002 */
++	V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
++
++	/* Vendor specific formats - next is 0x5002 */
++
++	/* S5C73M3 sensor specific interleaved UYVY and JPEG */
++	V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 = 0x5001,
++
++	/* HSV - next is 0x6002 */
++	V4L2_MBUS_FMT_AHSV8888_1X32 = 0x6001,
++};
++
++/**
++ * struct v4l2_mbus_framefmt - frame format on the media bus
++ * @width:	frame width
++ * @height:	frame height
++ * @code:	data format code (from enum v4l2_mbus_pixelcode)
++ * @field:	used interlacing type (from enum v4l2_field)
++ * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
++ */
++struct v4l2_mbus_framefmt {
++	__u32			width;
++	__u32			height;
++	__u32			code;
++	__u32			field;
++	__u32			colorspace;
++	__u32			reserved[7];
++};
++
++#endif
+-- 
+1.8.5.5
 
