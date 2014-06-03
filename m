@@ -1,128 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:7116 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755061AbaFCM13 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Jun 2014 08:27:29 -0400
-Message-ID: <538DBF2E.9070908@linux.intel.com>
-Date: Tue, 03 Jun 2014 15:27:26 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from dms.physics.ubc.ca ([142.103.234.17]:53753 "EHLO
+	dms.phas.ubc.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933257AbaFCAiF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jun 2014 20:38:05 -0400
+Message-ID: <538D18EE.6070509@phas.ubc.ca>
+Date: Mon, 02 Jun 2014 17:38:06 -0700
+From: Ovidiu Toader <ovi@phas.ubc.ca>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 1/3] v4l: Add test pattern colour component controls
-References: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com> <1559123.5XHCoOtRWQ@avalon> <53887960.3050003@xs4all.nl> <2201153.BLlnLr5VnQ@avalon>
-In-Reply-To: <2201153.BLlnLr5VnQ@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Dan Carpenter <dan.carpenter@oracle.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org, linux-media@vger.kernel.org
+Subject: [PATCH v2] staging/media/rtl2832u_sdr: fix coding style problems
+ by adding blank lines
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This minor patch fixes all WARNING:SPACING style warnings in rtl2832_sdr.c
 
-Laurent Pinchart wrote:
-> Hi Hans,
->
-> On Friday 30 May 2014 14:28:16 Hans Verkuil wrote:
->> On 05/29/2014 05:01 PM, Laurent Pinchart wrote:
->>> On Thursday 29 May 2014 17:58:59 Sakari Ailus wrote:
->>>> Laurent Pinchart wrote:
->>>>> On Thursday 29 May 2014 17:40:46 Sakari Ailus wrote:
->>>>>> In many cases the test pattern has selectable values for each colour
->>>>>> component. Implement controls for raw bayer components. Additional
->>>>>> controls should be defined for colour components that are not covered
->>>>>> by these controls.
->>>>>>
->>>>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>>>>> ---
->>>>>>
->>>>>>   Documentation/DocBook/media/v4l/controls.xml | 34 ++++++++++++++++++++
->>>>>>   drivers/media/v4l2-core/v4l2-ctrls.c         |  4 ++++
->>>>>>   include/uapi/linux/v4l2-controls.h           |  4 ++++
->>>>>>   3 files changed, 42 insertions(+)
->>>>>>
->>>>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
->>>>>> b/Documentation/DocBook/media/v4l/controls.xml index 47198ee..bf23994
->>>>>> 100644
->>>>>> --- a/Documentation/DocBook/media/v4l/controls.xml
->>>>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
->>>>>> @@ -4677,6 +4677,40 @@ interface and may change in the future.</para>
->>>>>>    	    conversion.
->>>>>>    	    </entry>
->>>>>>    	  </row>
->>>>>> +	  <row>
->>>>>> +	    <entry
->>>>>> spanname="id"><constant>V4L2_CID_TEST_PATTERN_RED</constant></entry>
->>>>>> +       <entry>integer</entry>
->>>>>> +	  </row>
->>>>>> +	  <row>
->>>>>> +	    <entry spanname="descr">Test pattern red colour component.
->>>>>> +	    </entry>
->>>>>> +	  </row>
->>>>>> +	  <row>
->>>>>> +	    <entry
->>>>>> spanname="id"><constant>V4L2_CID_TEST_PATTERN_GREENR</constant></entry>
->>>>>> +	    <entry>integer</entry>
->>>>>> +	  </row>
->>>>>> +	  <row>
->>>>>> +	    <entry spanname="descr">Test pattern green (next to red)
->>>>>> +	    colour component.
->>>>>
->>>>> What about non-Bayer RGB sensors ? Should they use the GREENR or the
->>>>> GREENB control for the green component ? Or a different control ?
->>>>
->>>> A different one. It should be simply green. I could add it to the same
->>>> patch if you wish.
->>>>
->>>>> I'm wondering whether we shouldn't have a single test pattern color
->>>>> control and create a color type using Hans' complex controls API.
->>>>
->>>> A raw bayer four-pixel value, you mean?
->>>
->>> Yes. I'll let Hans comment on that.
->>
->> Why would you need the complex control API for that? It would fit in a s32,
->> and certainly in a s64.
->
-> It wouldn't fit in a s32 when using more than 8 bits per component. s64 would
-> be an option, until we reach 16 bits per component (or more than 4
-> components).
->
->> We have done something similar to this in the past (V4L2_CID_BG_COLOR).
->>
->> The main problem is that the interpretation of the s32 value has to be
->> clearly defined. And if different sensors might have different min/max
->> values for each component, then it becomes messy to use a single control.
->
-> The interpretation would depend on both the sensor and the color format.
->
->> My feeling is that it is better to go with separate controls, one for each
->> component.
->
-> What bothers me is that we'll need to add lots of controls, for each
-> component. There's 4 controls for Bayer, one additional green control for RGB,
-> 3 controls for YUV, ... That's already 8 controls to support the common
-> Bayer/RGB/YUV formats. As colors can be used for different purposes (test
+The new version of the file pleases checkpatch.pl when run with "--ignore LONG_LINE".
 
-Three if you make colour controls, and three more control types.
+Signed-off-by: Ovidiu Toader <ovi@phas.ubc.ca>
+---
+Changes since v1:
+ * made commit brief description clearer
 
-Something to consider as well is that these controls are commonly used 
-by test programs and you'd need to implement support for each new colour 
-specific control type in the test programs such as yavta.
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-I'm not sure if implementing three new control types for that purpose 
-only makes sense. Do you expect to see much use for such control types 
-outside the test patterns?
-
-> pattern with possibly more than one color, background color, ...) that would
-> increase the complexity beyond my comfort zone.
-
-I think that where they exist, such, likely device specific, controls 
-wouldn't make it to the list of standard controls anyway. The test 
-patterns typically are quite simple after all.
-
--- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index 093df6b..3b80637 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -348,6 +348,7 @@ static unsigned int rtl2832_sdr_convert_stream(struct rtl2832_sdr_state *s,
+ 		/* convert u8 to u16 */
+ 		unsigned int i;
+ 		u16 *u16dst = dst;
++
+ 		for (i = 0; i < src_len; i++)
+ 			*u16dst++ = (src[i] << 8) | (src[i] >> 0);
+ 		dst_len = 2 * src_len;
+@@ -359,6 +360,7 @@ static unsigned int rtl2832_sdr_convert_stream(struct rtl2832_sdr_state *s,
+ 	if (unlikely(time_is_before_jiffies(s->jiffies_next))) {
+ #define MSECS 10000UL
+ 		unsigned int samples = s->sample - s->sample_measured;
++
+ 		s->jiffies_next = jiffies + msecs_to_jiffies(MSECS);
+ 		s->sample_measured = s->sample;
+ 		dev_dbg(&s->udev->dev,
+@@ -560,11 +562,13 @@ static int rtl2832_sdr_alloc_urbs(struct rtl2832_sdr_state *s)
+ static void rtl2832_sdr_cleanup_queued_bufs(struct rtl2832_sdr_state *s)
+ {
+ 	unsigned long flags = 0;
++
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	spin_lock_irqsave(&s->queued_bufs_lock, flags);
+ 	while (!list_empty(&s->queued_bufs)) {
+ 		struct rtl2832_sdr_frame_buf *buf;
++
+ 		buf = list_entry(s->queued_bufs.next,
+ 				struct rtl2832_sdr_frame_buf, list);
+ 		list_del(&buf->list);
+@@ -577,6 +581,7 @@ static void rtl2832_sdr_cleanup_queued_bufs(struct rtl2832_sdr_state *s)
+ static void rtl2832_sdr_release_sec(struct dvb_frontend *fe)
+ {
+ 	struct rtl2832_sdr_state *s = fe->sec_priv;
++
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	mutex_lock(&s->vb_queue_lock);
+@@ -598,6 +603,7 @@ static int rtl2832_sdr_querycap(struct file *file, void *fh,
+ 		struct v4l2_capability *cap)
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
++
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
+@@ -615,6 +621,7 @@ static int rtl2832_sdr_queue_setup(struct vb2_queue *vq,
+ 		unsigned int *nplanes, unsigned int sizes[], void *alloc_ctxs[])
+ {
+ 	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vq);
++
+ 	dev_dbg(&s->udev->dev, "%s: *nbuffers=%d\n", __func__, *nbuffers);
+ 
+ 	/* Need at least 8 buffers */
+@@ -665,6 +672,7 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
+ 	u8 buf[4], u8tmp1, u8tmp2;
+ 	u64 u64tmp;
+ 	u32 u32tmp;
++
+ 	dev_dbg(&s->udev->dev, "%s: f_adc=%u\n", __func__, s->f_adc);
+ 
+ 	if (!test_bit(POWER_ON, &s->flags))
+@@ -987,6 +995,7 @@ static int rtl2832_sdr_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vq);
+ 	int ret;
++
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	if (!s->udev)
+@@ -1035,6 +1044,7 @@ err:
+ static void rtl2832_sdr_stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vq);
++
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	mutex_lock(&s->v4l2_lock);
+@@ -1068,6 +1078,7 @@ static int rtl2832_sdr_g_tuner(struct file *file, void *priv,
+ 		struct v4l2_tuner *v)
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
++
+ 	dev_dbg(&s->udev->dev, "%s: index=%d type=%d\n",
+ 			__func__, v->index, v->type);
+ 
+@@ -1094,6 +1105,7 @@ static int rtl2832_sdr_s_tuner(struct file *file, void *priv,
+ 		const struct v4l2_tuner *v)
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
++
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	if (v->index > 1)
+@@ -1105,6 +1117,7 @@ static int rtl2832_sdr_enum_freq_bands(struct file *file, void *priv,
+ 		struct v4l2_frequency_band *band)
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
++
+ 	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d index=%d\n",
+ 			__func__, band->tuner, band->type, band->index);
+ 
+@@ -1130,6 +1143,7 @@ static int rtl2832_sdr_g_frequency(struct file *file, void *priv,
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
+ 	int ret  = 0;
++
+ 	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d\n",
+ 			__func__, f->tuner, f->type);
+ 
+@@ -1193,6 +1207,7 @@ static int rtl2832_sdr_enum_fmt_sdr_cap(struct file *file, void *priv,
+ 		struct v4l2_fmtdesc *f)
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
++
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	if (f->index >= NUM_FORMATS)
+@@ -1208,6 +1223,7 @@ static int rtl2832_sdr_g_fmt_sdr_cap(struct file *file, void *priv,
+ 		struct v4l2_format *f)
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
++
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+ 	f->fmt.sdr.pixelformat = s->pixelformat;
+@@ -1222,6 +1238,7 @@ static int rtl2832_sdr_s_fmt_sdr_cap(struct file *file, void *priv,
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
+ 	struct vb2_queue *q = &s->vb_queue;
+ 	int i;
++
+ 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
+ 			(char *)&f->fmt.sdr.pixelformat);
+ 
+@@ -1247,6 +1264,7 @@ static int rtl2832_sdr_try_fmt_sdr_cap(struct file *file, void *priv,
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
+ 	int i;
++
+ 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
+ 			(char *)&f->fmt.sdr.pixelformat);
+ 
+@@ -1316,6 +1334,7 @@ static int rtl2832_sdr_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	struct dvb_frontend *fe = s->fe;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
++
+ 	dev_dbg(&s->udev->dev,
+ 			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
+ 			__func__, ctrl->id, ctrl->name, ctrl->val,
+@@ -1329,6 +1348,7 @@ static int rtl2832_sdr_s_ctrl(struct v4l2_ctrl *ctrl)
+ 			/* Round towards the closest legal value */
+ 			s32 val = s->f_adc + s->bandwidth->step / 2;
+ 			u32 offset;
++
+ 			val = clamp(val, s->bandwidth->minimum, s->bandwidth->maximum);
+ 			offset = val - s->bandwidth->minimum;
+ 			offset = s->bandwidth->step * (offset / s->bandwidth->step);
+-- 1.9.1 
