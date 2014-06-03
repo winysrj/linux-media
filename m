@@ -1,28 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [191.239.5.206] ([191.239.5.206]:1040 "EHLO mail.vps.com"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751871AbaFEL6k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Jun 2014 07:58:40 -0400
-Message-ID: <9abeb6c9228e5b2a7ec4f24060463122.squirrel@191.239.5.206>
-Date: Wed, 4 Jun 2014 19:05:57 -0000
-Subject: GOOD DAY,
-From: "YAO YUTA" <yuta_yao@yahoo.com.hk>
-Reply-To: yao.yuta@yahoo.com.hk
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1994 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752525AbaFCGsk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 02:48:40 -0400
+Message-ID: <538D6FBC.9010405@xs4all.nl>
+Date: Tue, 03 Jun 2014 08:48:28 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: undisclosed-recipients:;
+To: Dexter Filmore <Dexter.Filmore@gmx.de>, linux-media@vger.kernel.org
+Subject: Re: Is this a user discussion list anyway?
+References: <201406021747.58888.Dexter.Filmore@gmx.de>
+In-Reply-To: <201406021747.58888.Dexter.Filmore@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 06/02/2014 05:47 PM, Dexter Filmore wrote:
+> Is this the place to ask questions related to linux-media? I see mostly 
+> development messages, is there a more appropriate place?
 
+If there is no dedicated mailinglist for your capture device, then this
+list is the fallback. So feel free to ask your question here.
 
+Regards,
 
-My name is Mr Yao Yuta from Hong Kong, I want you to be my partner in a
-business project.
-
-If Interested Contact me back via my email address.
-
-Thank you,
-Mr. Yao Yuta.
+	Hans
 
