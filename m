@@ -1,44 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f173.google.com ([209.85.223.173]:33532 "EHLO
-	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751346AbaFAI42 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jun 2014 04:56:28 -0400
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3968 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752525AbaFCGwm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 02:52:42 -0400
+Message-ID: <538D70AD.8090800@xs4all.nl>
+Date: Tue, 03 Jun 2014 08:52:29 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CAMuHMdX4nG942paYrZ1Nqm2scK8k_3YphbqeFqn8hksdfF9ivg@mail.gmail.com>
-References: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-	<CAMuHMdX4nG942paYrZ1Nqm2scK8k_3YphbqeFqn8hksdfF9ivg@mail.gmail.com>
-Date: Sun, 1 Jun 2014 10:56:27 +0200
-Message-ID: <CAMuHMdURhVeY_PCgiJREzwqjdTfpqfm8O+N-oR0M2hA7v5TuAg@mail.gmail.com>
-Subject: Re: [PATCH 00/18] Renesas VSP1: alpha support
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux-sh list <linux-sh@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+CC: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 0/2] v4l-utils: Add missing v4l2-mediabus.h header
+References: <1401756292-27676-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1401756292-27676-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 1, 2014 at 10:51 AM, Geert Uytterhoeven
-<geert@linux-m68k.org> wrote:
-> On Sun, Jun 1, 2014 at 5:39 AM, Laurent Pinchart
-> <laurent.pinchart+renesas@ideasonboard.com> wrote:
->> The first two patch add new pixel formats for alpha and non-alpha RGB, and
->> extend usage of the ALPHA_COMPONENT control to output devices. They have
->> already been posted separately, for the rationale please see
->> https://www.mail-archive.com/linux-media@vger.kernel.org/msg75449.html.
->
-> mail-archive.com seems to be down.
-> Do you have a link to another archiver?
+On 06/03/2014 02:44 AM, Laurent Pinchart wrote:
+> Hello,
+> 
+> This patch set adds the missing v4l2-mediabus.h header, required by media-ctl.
+> Please see individual patches for details, they're pretty straightforward.
 
-I assume www.spinics.net/lists/linux-media/msg76846.html ?
+Nack.
 
-Gr{oetje,eeting}s,
+The kernel headers used in v4l-utils are installed via 'make sync-with-kernel'.
+So these headers shouldn't be edited, instead Makefile.am should be updated.
+In particular, that's where the missing header should be added.
 
-                        Geert
+Regards,
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+	Hans
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+> Laurent Pinchart (2):
+>   Use installed kernel headers instead of raw kernel headers
+>   Add the missing v4l2-mediabus.h kernel header
+> 
+>  include/linux/dvb/dmx.h       |   8 +--
+>  include/linux/dvb/frontend.h  |   4 --
+>  include/linux/dvb/video.h     |  12 ++--
+>  include/linux/fb.h            |   8 +--
+>  include/linux/ivtv.h          |   6 +-
+>  include/linux/v4l2-mediabus.h | 147 ++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/videodev2.h     |  16 ++---
+>  7 files changed, 168 insertions(+), 33 deletions(-)
+>  create mode 100644 include/linux/v4l2-mediabus.h
+> 
+
