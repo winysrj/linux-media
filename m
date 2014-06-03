@@ -1,40 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:51501 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751936AbaFPMdf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 08:33:35 -0400
-Received: by mail-la0-f45.google.com with SMTP id hr17so561461lab.4
-        for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 05:33:34 -0700 (PDT)
-Message-ID: <539EE41D.3050206@cogentembedded.com>
-Date: Mon, 16 Jun 2014 16:33:33 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Received: from c.ponzo.net ([69.12.221.20]:48036 "EHLO c.ponzo.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751200AbaFCBtJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Jun 2014 21:49:09 -0400
+Message-ID: <538D2392.6030301@ponzo.net>
+Date: Mon, 02 Jun 2014 18:23:30 -0700
+From: Scott Doty <scott@ponzo.net>
 MIME-Version: 1.0
-To: Ben Dooks <ben.dooks@codethink.co.uk>,
-	linux-kernel@lists.codethink.co.uk, linux-sh@vger.kernel.org,
-	linux-media@vger.kernel.org
-CC: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
-	magnus.damm@opensource.se, horms@verge.net.au,
-	ian.molton@codethink.co.uk, william.towle@codethink.co.uk
-Subject: Re: [PATCH 2/9] ARM: lager: add i2c1, i2c2 pins
-References: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk> <1402862194-17743-3-git-send-email-ben.dooks@codethink.co.uk>
-In-Reply-To: <1402862194-17743-3-git-send-email-ben.dooks@codethink.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: hdpvr troubles
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Hello Mr. Hans and mailing list,
 
-On 06/15/2014 11:56 PM, Ben Dooks wrote:
+In a nutshell, I'm having some hdpvr trouble:
 
-> Add pinctrl definitions for i2c1 and i2c2 busses on the Lager board
-> to ensure these are setup correctly at initialisation time. The i2c0
-> and i2c3 busses are connected to single function pins.
+I'm using vlc to view the stream.  Kernel 3.9.11 works pretty well,
+including giving me AC3 5.1 audio from the optical input to the
+Hauppauge device.  The only problem I've run across is the device
+hanging when I change channels, but I've learned to live with that. 
+(Though naturally it would be nice to fix. :) )
 
-> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+However, every kernel I've tried after 3.9.11 seems to have trouble with
+the audio.  I get silence, and pulseaudio reports there is only stereo. 
+I've taken a couple of of snapshots of pavucontrol so you can see what I
+mean:
 
-    Likewise, this as been already merged by Simon.
+   http://imgur.com/a/SIwc7
 
-WBR, Sergei
+I even tried a git bisect to try to narrow down where things went awry,
+but ran out of time to pursue the question.  But as far as I can tell,
+3.9.11 is as far as I can go before my system won't use the device properly.
+
+I see the conversation in the archives from around the middle of May,
+where Hans was working with Ryley and Keith, but I'm not sure if I
+should apply that patch or not.  I would love to make this work,
+including submitting a patch if someone could outline where the problem
+might be.
+
+Thank you in advance for any help you can provide, and please let me
+know if I can send any more information. :)
+
+ -Scott
+Bus 008 Device 003: ID 2040:4903 Hauppauge HS PVR
 
