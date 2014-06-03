@@ -1,121 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:32961 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751962AbaFCJgM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 05:36:12 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 4/5] [media] mt9v032: add support for mt9v022 and mt9v024
-Date: Tue,  3 Jun 2014 11:35:54 +0200
-Message-Id: <1401788155-3690-5-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1401788155-3690-1-git-send-email-p.zabel@pengutronix.de>
-References: <1401788155-3690-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mga01.intel.com ([192.55.52.88]:7116 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755061AbaFCM13 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Jun 2014 08:27:29 -0400
+Message-ID: <538DBF2E.9070908@linux.intel.com>
+Date: Tue, 03 Jun 2014 15:27:26 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 1/3] v4l: Add test pattern colour component controls
+References: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com> <1559123.5XHCoOtRWQ@avalon> <53887960.3050003@xs4all.nl> <2201153.BLlnLr5VnQ@avalon>
+In-Reply-To: <2201153.BLlnLr5VnQ@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From the looks of it, mt9v022 and mt9v032 are very similar,
-as are mt9v024 and mt9v034. With minimal changes it is possible
-to support mt9v02[24] with the same driver.
+Hi Laurent,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v1:
- - Removed code changes for fault pixel correction bit on mt9v02x
----
- drivers/media/i2c/mt9v032.c | 40 ++++++++++++++++++++++++++++++++--------
- 1 file changed, 32 insertions(+), 8 deletions(-)
+Laurent Pinchart wrote:
+> Hi Hans,
+>
+> On Friday 30 May 2014 14:28:16 Hans Verkuil wrote:
+>> On 05/29/2014 05:01 PM, Laurent Pinchart wrote:
+>>> On Thursday 29 May 2014 17:58:59 Sakari Ailus wrote:
+>>>> Laurent Pinchart wrote:
+>>>>> On Thursday 29 May 2014 17:40:46 Sakari Ailus wrote:
+>>>>>> In many cases the test pattern has selectable values for each colour
+>>>>>> component. Implement controls for raw bayer components. Additional
+>>>>>> controls should be defined for colour components that are not covered
+>>>>>> by these controls.
+>>>>>>
+>>>>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>>>>> ---
+>>>>>>
+>>>>>>   Documentation/DocBook/media/v4l/controls.xml | 34 ++++++++++++++++++++
+>>>>>>   drivers/media/v4l2-core/v4l2-ctrls.c         |  4 ++++
+>>>>>>   include/uapi/linux/v4l2-controls.h           |  4 ++++
+>>>>>>   3 files changed, 42 insertions(+)
+>>>>>>
+>>>>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+>>>>>> b/Documentation/DocBook/media/v4l/controls.xml index 47198ee..bf23994
+>>>>>> 100644
+>>>>>> --- a/Documentation/DocBook/media/v4l/controls.xml
+>>>>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>>>>>> @@ -4677,6 +4677,40 @@ interface and may change in the future.</para>
+>>>>>>    	    conversion.
+>>>>>>    	    </entry>
+>>>>>>    	  </row>
+>>>>>> +	  <row>
+>>>>>> +	    <entry
+>>>>>> spanname="id"><constant>V4L2_CID_TEST_PATTERN_RED</constant></entry>
+>>>>>> +       <entry>integer</entry>
+>>>>>> +	  </row>
+>>>>>> +	  <row>
+>>>>>> +	    <entry spanname="descr">Test pattern red colour component.
+>>>>>> +	    </entry>
+>>>>>> +	  </row>
+>>>>>> +	  <row>
+>>>>>> +	    <entry
+>>>>>> spanname="id"><constant>V4L2_CID_TEST_PATTERN_GREENR</constant></entry>
+>>>>>> +	    <entry>integer</entry>
+>>>>>> +	  </row>
+>>>>>> +	  <row>
+>>>>>> +	    <entry spanname="descr">Test pattern green (next to red)
+>>>>>> +	    colour component.
+>>>>>
+>>>>> What about non-Bayer RGB sensors ? Should they use the GREENR or the
+>>>>> GREENB control for the green component ? Or a different control ?
+>>>>
+>>>> A different one. It should be simply green. I could add it to the same
+>>>> patch if you wish.
+>>>>
+>>>>> I'm wondering whether we shouldn't have a single test pattern color
+>>>>> control and create a color type using Hans' complex controls API.
+>>>>
+>>>> A raw bayer four-pixel value, you mean?
+>>>
+>>> Yes. I'll let Hans comment on that.
+>>
+>> Why would you need the complex control API for that? It would fit in a s32,
+>> and certainly in a s64.
+>
+> It wouldn't fit in a s32 when using more than 8 bits per component. s64 would
+> be an option, until we reach 16 bits per component (or more than 4
+> components).
+>
+>> We have done something similar to this in the past (V4L2_CID_BG_COLOR).
+>>
+>> The main problem is that the interpretation of the s32 value has to be
+>> clearly defined. And if different sensors might have different min/max
+>> values for each component, then it becomes messy to use a single control.
+>
+> The interpretation would depend on both the sensor and the color format.
+>
+>> My feeling is that it is better to go with separate controls, one for each
+>> component.
+>
+> What bothers me is that we'll need to add lots of controls, for each
+> component. There's 4 controls for Bayer, one additional green control for RGB,
+> 3 controls for YUV, ... That's already 8 controls to support the common
+> Bayer/RGB/YUV formats. As colors can be used for different purposes (test
 
-diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-index d969663..cb7c6df 100644
---- a/drivers/media/i2c/mt9v032.c
-+++ b/drivers/media/i2c/mt9v032.c
-@@ -1,5 +1,5 @@
- /*
-- * Driver for MT9V032 CMOS Image Sensor from Micron
-+ * Driver for MT9V022, MT9V024, MT9V032, and MT9V034 CMOS Image Sensors
-  *
-  * Copyright (C) 2010, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-  *
-@@ -134,8 +134,12 @@
- #define MT9V032_THERMAL_INFO				0xc1
- 
- enum mt9v032_model {
--	MT9V032_MODEL_V032_COLOR,
--	MT9V032_MODEL_V032_MONO,
-+	MT9V032_MODEL_V022_COLOR,	/* MT9V022IX7ATC */
-+	MT9V032_MODEL_V022_MONO,	/* MT9V022IX7ATM */
-+	MT9V032_MODEL_V024_COLOR,	/* MT9V024IA7XTC */
-+	MT9V032_MODEL_V024_MONO,	/* MT9V024IA7XTM */
-+	MT9V032_MODEL_V032_COLOR,	/* MT9V032C12STM */
-+	MT9V032_MODEL_V032_MONO,	/* MT9V032C12STC */
- 	MT9V032_MODEL_V034_COLOR,
- 	MT9V032_MODEL_V034_MONO,
- };
-@@ -161,14 +165,14 @@ struct mt9v032_model_info {
- };
- 
- static const struct mt9v032_model_version mt9v032_versions[] = {
--	{ MT9V032_CHIP_ID_REV1, "MT9V032 rev1/2" },
--	{ MT9V032_CHIP_ID_REV3, "MT9V032 rev3" },
--	{ MT9V034_CHIP_ID_REV1, "MT9V034 rev1" },
-+	{ MT9V032_CHIP_ID_REV1, "MT9V022/MT9V032 rev1/2" },
-+	{ MT9V032_CHIP_ID_REV3, "MT9V022/MT9V032 rev3" },
-+	{ MT9V034_CHIP_ID_REV1, "MT9V024/MT9V034 rev1" },
- };
- 
- static const struct mt9v032_model_data mt9v032_model_data[] = {
- 	{
--		/* MT9V032 revisions 1/2/3 */
-+		/* MT9V022, MT9V032 revisions 1/2/3 */
- 		.min_row_time = 660,
- 		.min_hblank = MT9V032_HORIZONTAL_BLANKING_MIN,
- 		.min_vblank = MT9V032_VERTICAL_BLANKING_MIN,
-@@ -177,7 +181,7 @@ static const struct mt9v032_model_data mt9v032_model_data[] = {
- 		.max_shutter = MT9V032_TOTAL_SHUTTER_WIDTH_MAX,
- 		.pclk_reg = MT9V032_PIXEL_CLOCK,
- 	}, {
--		/* MT9V034 */
-+		/* MT9V024, MT9V034 */
- 		.min_row_time = 690,
- 		.min_hblank = MT9V034_HORIZONTAL_BLANKING_MIN,
- 		.min_vblank = MT9V034_VERTICAL_BLANKING_MIN,
-@@ -189,6 +193,22 @@ static const struct mt9v032_model_data mt9v032_model_data[] = {
- };
- 
- static const struct mt9v032_model_info mt9v032_models[] = {
-+	[MT9V032_MODEL_V022_COLOR] = {
-+		.data = &mt9v032_model_data[0],
-+		.color = true,
-+	},
-+	[MT9V032_MODEL_V022_MONO] = {
-+		.data = &mt9v032_model_data[0],
-+		.color = false,
-+	},
-+	[MT9V032_MODEL_V024_COLOR] = {
-+		.data = &mt9v032_model_data[1],
-+		.color = true,
-+	},
-+	[MT9V032_MODEL_V024_MONO] = {
-+		.data = &mt9v032_model_data[1],
-+		.color = false,
-+	},
- 	[MT9V032_MODEL_V032_COLOR] = {
- 		.data = &mt9v032_model_data[0],
- 		.color = true,
-@@ -1022,6 +1042,10 @@ static int mt9v032_remove(struct i2c_client *client)
- }
- 
- static const struct i2c_device_id mt9v032_id[] = {
-+	{ "mt9v022", (kernel_ulong_t)&mt9v032_models[MT9V032_MODEL_V022_COLOR] },
-+	{ "mt9v022m", (kernel_ulong_t)&mt9v032_models[MT9V032_MODEL_V022_MONO] },
-+	{ "mt9v024", (kernel_ulong_t)&mt9v032_models[MT9V032_MODEL_V024_COLOR] },
-+	{ "mt9v024m", (kernel_ulong_t)&mt9v032_models[MT9V032_MODEL_V024_MONO] },
- 	{ "mt9v032", (kernel_ulong_t)&mt9v032_models[MT9V032_MODEL_V032_COLOR] },
- 	{ "mt9v032m", (kernel_ulong_t)&mt9v032_models[MT9V032_MODEL_V032_MONO] },
- 	{ "mt9v034", (kernel_ulong_t)&mt9v032_models[MT9V032_MODEL_V034_COLOR] },
+Three if you make colour controls, and three more control types.
+
+Something to consider as well is that these controls are commonly used 
+by test programs and you'd need to implement support for each new colour 
+specific control type in the test programs such as yavta.
+
+I'm not sure if implementing three new control types for that purpose 
+only makes sense. Do you expect to see much use for such control types 
+outside the test patterns?
+
+> pattern with possibly more than one color, background color, ...) that would
+> increase the complexity beyond my comfort zone.
+
+I think that where they exist, such, likely device specific, controls 
+wouldn't make it to the list of standard controls anyway. The test 
+patterns typically are quite simple after all.
+
 -- 
-2.0.0.rc2
+Kind regards,
 
+Sakari Ailus
+sakari.ailus@linux.intel.com
