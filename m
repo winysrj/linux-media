@@ -1,100 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:22138 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755260AbaFUKxy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jun 2014 06:53:54 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N7I0053JM9TSJA0@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Sat, 21 Jun 2014 06:53:53 -0400 (EDT)
-Date: Sat, 21 Jun 2014 07:53:48 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Gregor Jasny <gjasny@googlemail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Time for v4l-utils 1.2 release?
-Message-id: <20140621075348.50b8a47d.m.chehab@samsung.com>
-In-reply-to: <53A5213D.7010202@xs4all.nl>
-References: <53A49A11.2010502@googlemail.com> <53A4B097.3050802@xs4all.nl>
- <20140620192946.39765ec3.m.chehab@samsung.com> <53A5213D.7010202@xs4all.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56203 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751629AbaFDOuF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jun 2014 10:50:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH v2 3/5] [media] mt9v032: do not clear reserved bits in read mode register
+Date: Wed, 04 Jun 2014 16:50:33 +0200
+Message-ID: <2863074.Pbof0Rv7H7@avalon>
+In-Reply-To: <1401788155-3690-4-git-send-email-p.zabel@pengutronix.de>
+References: <1401788155-3690-1-git-send-email-p.zabel@pengutronix.de> <1401788155-3690-4-git-send-email-p.zabel@pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 21 Jun 2014 08:07:57 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Philipp,
 
-> On 06/21/2014 12:29 AM, Mauro Carvalho Chehab wrote:
-> > Em Sat, 21 Jun 2014 00:07:19 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> >> On 06/20/2014 10:31 PM, Gregor Jasny wrote:
-> >>> Hello,
-> >>>
-> >>> It's been 11 months since the 1.0.0 release. What do you think about
-> >>> releasing HEAD? Do you have any pending commits?
-> >>
-> >> I've got two patches from Laurent pending that ensure that the 'installed
-> >> kernel headers' are used. I plan on processing those on Monday. After that
-> >> I think it's OK to do a release.
-> >>
-> >> Mauro, did you look at my email where I suggest to remove three apps from
-> >> contrib? If you agree with that, then I can do that Monday as well.
-> > 
-> > Well, I don't remember about such email, nor I was able to find on a quick
-> > look.
+Thank you for the patch.
+
+On Tuesday 03 June 2014 11:35:53 Philipp Zabel wrote:
+> The read mode register bits 8 and 9 are set and marked as reserved.
+> Don't clear them.
 > 
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg76120.html
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and applied to my tree.
+
+> ---
+> Changes since v1:
+>  - Add MT9V032_READ_MODE_RESERVED #define
+> ---
+>  drivers/media/i2c/mt9v032.c | 12 +++++++++---
+>  1 file changed, 9 insertions(+), 3 deletions(-)
 > 
-> Marked with ATTN as well!
+> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+> index 83ae8ca6d..d969663 100644
+> --- a/drivers/media/i2c/mt9v032.c
+> +++ b/drivers/media/i2c/mt9v032.c
+> @@ -87,6 +87,7 @@
+>  #define		MT9V032_READ_MODE_COLUMN_FLIP		(1 << 5)
+>  #define		MT9V032_READ_MODE_DARK_COLUMNS		(1 << 6)
+>  #define		MT9V032_READ_MODE_DARK_ROWS		(1 << 7)
+> +#define		MT9V032_READ_MODE_RESERVED		0x0300
+>  #define MT9V032_PIXEL_OPERATION_MODE			0x0f
+>  #define		MT9V034_PIXEL_OPERATION_MODE_HDR	(1 << 0)
+>  #define		MT9V034_PIXEL_OPERATION_MODE_COLOR	(1 << 1)
+> @@ -415,6 +416,7 @@ static int mt9v032_s_stream(struct v4l2_subdev *subdev,
+> int enable) struct i2c_client *client = v4l2_get_subdevdata(subdev);
+>  	struct mt9v032 *mt9v032 = to_mt9v032(subdev);
+>  	struct v4l2_rect *crop = &mt9v032->crop;
+> +	unsigned int read_mode;
+>  	unsigned int hbin;
+>  	unsigned int vbin;
+>  	int ret;
+> @@ -425,9 +427,13 @@ static int mt9v032_s_stream(struct v4l2_subdev *subdev,
+> int enable) /* Configure the window size and row/column bin */
+>  	hbin = fls(mt9v032->hratio) - 1;
+>  	vbin = fls(mt9v032->vratio) - 1;
+> -	ret = mt9v032_write(client, MT9V032_READ_MODE,
+> -			    hbin << MT9V032_READ_MODE_COLUMN_BIN_SHIFT |
+> -			    vbin << MT9V032_READ_MODE_ROW_BIN_SHIFT);
+> +	read_mode = mt9v032_read(client, MT9V032_READ_MODE);
+> +	if (read_mode < 0)
+> +		return read_mode;
+> +	read_mode &= MT9V032_READ_MODE_RESERVED;
+> +	read_mode |= hbin << MT9V032_READ_MODE_COLUMN_BIN_SHIFT |
+> +		     vbin << MT9V032_READ_MODE_ROW_BIN_SHIFT;
+> +	ret = mt9v032_write(client, MT9V032_READ_MODE, read_mode);
+>  	if (ret < 0)
+>  		return ret;
 
-Well, from my side, feel free to drop those 3 utilities. If you drop v4lgrab,
-you'll need to check the DocBook Makefile scripts, as it used to have some
-automation to include it at the media DocBook. 
+-- 
+Regards,
 
-I think that this was removed in the past, but it doesn't hurt to
-double-check.
+Laurent Pinchart
 
-> > 
-> > What apps are you planning to remove?
-> > 
-> > Btw, I think it could be a good idea to be able to install some of those
-> > stuff under contrib to a separate package. I had to do a quick hack
-> > in order to install v4l2grab on a Tizen package, in order to be able to
-> > test a card there (as was needing to do some tests via CLI).
-> 
-> What does v4l2grab offer that v4l2-ctl doesn't? I would be much more inclined
-> to remove v4l2grab.
-
-I never used v4l2-ctl for streaming (didn't even know/remember) that it was
-capable of doing that ;) 
-
-Looking at --help-streaming, though, one thing that it is not clear there
-is what's the format of the output, when --stream-to= is used. 
-
-Btw, I think that one big miss on v4l2-ctl is the lack of a man page witch
-would have an EXAMPLES section explaining things like that.
-
-One of the advantages of v4l2grab is that it takes per-frame snapshots, instead
-of writing a stream file. Those snapshots help to identify, for example, if
-there are interlacing issues on a frame, or if some frames have some other
-problems.
-
-Also, v4l2grab is a good example of how to use libv4l, and it is enclosed
-at DocBook (not sure if we're using automation to allow including
-the latest version of it):
-	http://linuxtv.org/downloads/v4l-dvb-apis/v4l2grab-example.html
-
-So, I don't think we should remove it.
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
