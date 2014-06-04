@@ -1,74 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:46029 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757478AbaFZBHV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jun 2014 21:07:21 -0400
-Received: by mail-pb0-f53.google.com with SMTP id uo5so2376235pbc.26
-        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 18:07:21 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 08/28] gpu: ipu-v3: smfc: Add ipu_smfc_set_watermark()
-Date: Wed, 25 Jun 2014 18:05:35 -0700
-Message-Id: <1403744755-24944-9-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58406 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751009AbaFDQ7H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jun 2014 12:59:07 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 1/2] [media] mt9v032: register v4l2 asynchronous subdevice
+Date: Wed,  4 Jun 2014 18:57:02 +0200
+Message-Id: <1401901023-18213-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds ipu_smfc_set_watermark() which programs a channel's SMFC FIFO
-levels at which the watermark signal is set and cleared.
+Add support for registering the sensor subdevice using the v4l2-async API.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/gpu/ipu-v3/ipu-smfc.c |   20 ++++++++++++++++++++
- include/video/imx-ipu-v3.h    |    1 +
- 2 files changed, 21 insertions(+)
+Changes since v1:
+ - Simplified error path, call media_entity_cleanup even
+   if media_entity_init failed.
+---
+ drivers/media/i2c/mt9v032.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/gpu/ipu-v3/ipu-smfc.c b/drivers/gpu/ipu-v3/ipu-smfc.c
-index a6429ca..6ca9b43 100644
---- a/drivers/gpu/ipu-v3/ipu-smfc.c
-+++ b/drivers/gpu/ipu-v3/ipu-smfc.c
-@@ -80,6 +80,26 @@ int ipu_smfc_map_channel(struct ipu_smfc *smfc, int csi_id, int mipi_id)
- }
- EXPORT_SYMBOL_GPL(ipu_smfc_map_channel);
+diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+index 6c97dc1..cbd3546 100644
+--- a/drivers/media/i2c/mt9v032.c
++++ b/drivers/media/i2c/mt9v032.c
+@@ -1010,10 +1010,19 @@ static int mt9v032_probe(struct i2c_client *client,
  
-+int ipu_smfc_set_watermark(struct ipu_smfc *smfc, u32 set_level, u32 clr_level)
-+{
-+	struct ipu_smfc_priv *priv = smfc->priv;
-+	unsigned long flags;
-+	u32 val, shift;
-+
-+	spin_lock_irqsave(&priv->lock, flags);
-+
-+	shift = smfc->chno * 6 + (smfc->chno > 1 ? 4 : 0);
-+	val = readl(priv->base + SMFC_WMC);
-+	val &= ~(0x3f << shift);
-+	val |= ((clr_level << 3) | set_level) << shift;
-+	writel(val, priv->base + SMFC_WMC);
-+
-+	spin_unlock_irqrestore(&priv->lock, flags);
+ 	mt9v032->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 	ret = media_entity_init(&mt9v032->subdev.entity, 1, &mt9v032->pad, 0);
++	if (ret < 0)
++		goto err;
+ 
++	mt9v032->subdev.dev = &client->dev;
++	ret = v4l2_async_register_subdev(&mt9v032->subdev);
+ 	if (ret < 0)
+-		v4l2_ctrl_handler_free(&mt9v032->ctrls);
++		goto err;
 +
 +	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_smfc_set_watermark);
-+
- int ipu_smfc_enable(struct ipu_smfc *smfc)
- {
- 	struct ipu_smfc_priv *priv = smfc->priv;
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 27fb980..e69b247 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -297,6 +297,7 @@ int ipu_smfc_enable(struct ipu_smfc *smfc);
- int ipu_smfc_disable(struct ipu_smfc *smfc);
- int ipu_smfc_map_channel(struct ipu_smfc *smfc, int csi_id, int mipi_id);
- int ipu_smfc_set_burstsize(struct ipu_smfc *smfc, int burstsize);
-+int ipu_smfc_set_watermark(struct ipu_smfc *smfc, u32 set_level, u32 clr_level);
  
- #define IPU_CPMEM_WORD(word, ofs, size) ((((word) * 160 + (ofs)) << 8) | (size))
++err:
++	media_entity_cleanup(&mt9v032->subdev.entity);
++	v4l2_ctrl_handler_free(&mt9v032->ctrls);
+ 	return ret;
+ }
  
+@@ -1022,6 +1031,7 @@ static int mt9v032_remove(struct i2c_client *client)
+ 	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+ 	struct mt9v032 *mt9v032 = to_mt9v032(subdev);
+ 
++	v4l2_async_unregister_subdev(subdev);
+ 	v4l2_ctrl_handler_free(&mt9v032->ctrls);
+ 	v4l2_device_unregister_subdev(subdev);
+ 	media_entity_cleanup(&subdev->entity);
 -- 
-1.7.9.5
+2.0.0.rc2
 
