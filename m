@@ -1,116 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3405 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932442AbaFRCYV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jun 2014 22:24:21 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5I2OHNx096200
-	for <linux-media@vger.kernel.org>; Wed, 18 Jun 2014 04:24:19 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id B71732A1FCD
-	for <linux-media@vger.kernel.org>; Wed, 18 Jun 2014 04:24:02 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140618022402.B71732A1FCD@tschai.lan>
-Date: Wed, 18 Jun 2014 04:24:02 +0200 (CEST)
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:10337 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752925AbaFDXxR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jun 2014 19:53:17 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N6O007U250R4P80@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 04 Jun 2014 19:53:15 -0400 (EDT)
+Date: Wed, 04 Jun 2014 20:53:10 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Joerg Roedel <joro@8bytes.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v3.16] Migrate the OMAP3 ISP driver to videobuf2
+Message-id: <20140604205310.2dbb469b.m.chehab@samsung.com>
+In-reply-to: <1490830.vhB1M3oxv4@avalon>
+References: <1490830.vhB1M3oxv4@avalon>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Joerg,
 
-Results of the daily build of media_tree:
+I have one topic branch here that depends on your branch:
+ 	git://git.kernel.org/pub/scm/linux/kernel/git/joro/iommu.git arm/omap
 
-date:		Wed Jun 18 04:00:19 CEST 2014
-git branch:	test
-git hash:	2ac6f6305efef8c10994be48b20723cc70654189
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-14-gf11dd94
-host hardware:	x86_64
-host os:	3.14-5.slh.5-amd64
+Did you send already a pull request for Linus? If not, when are you planning
+to do?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12-i686: ERRORS
-linux-3.13-i686: ERRORS
-linux-3.14-i686: ERRORS
-linux-3.15-i686: ERRORS
-linux-3.16-rc1-i686: ERRORS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12-x86_64: ERRORS
-linux-3.13-x86_64: ERRORS
-linux-3.14-x86_64: ERRORS
-linux-3.15-x86_64: ERRORS
-linux-3.16-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+My intention is to send my pull request after yours ;)
 
-Detailed results are available here:
+Thanks!
+Mauro
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Em Thu, 08 May 2014 15:19:02 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> Hi Mauro,
+> 
+> The following changes since commit 286f600bc890347f7ec7bd50d33210d53a9095a3:
+> 
+>   iommu/omap: Fix map protection value handling (2014-04-16 16:30:18 +0200)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/pinchartl/media.git omap3isp/videobuf2
+> 
+> for you to fetch changes up to 04930b353d8ee711d223a94ec644b5433a53e135:
+> 
+>   omap3isp: Rename isp_buffer isp_addr field to dma (2014-05-03 00:58:48 
+> +0200)
+> 
+> The series depends on patches for the OMAP IOMMU driver. I've asked Joerg 
+> Roedel to merge them in his tree and provide a stable branch, you can find it 
+> at
+> 
+> 	git://git.kernel.org/pub/scm/linux/kernel/git/joro/iommu.git arm/omap
+> 
+> The branch will be merged in v3.16.
+> 
+> The series also has a runtime dependency on commit 
+> 59f0f119e85cfb173db518328b55efbac4087c9f ("arm: dma-mapping: Fix mapping size 
+> value") that has been merged in v3.15-rc3. It would thus be nice if you could 
+> merge v3.15-rc3 in the master branch first, to avoid git bisection breakages.
+> 
+> ----------------------------------------------------------------
+> Laurent Pinchart (26):
+>       omap3isp: stat: Rename IS_COHERENT_BUF to ISP_STAT_USES_DMAENGINE
+>       omap3isp: stat: Remove impossible WARN_ON
+>       omap3isp: stat: Share common code for buffer allocation
+>       omap3isp: stat: Merge dma_addr and iommu_addr fields
+>       omap3isp: stat: Store sg table in ispstat_buffer
+>       omap3isp: stat: Use the DMA API
+>       omap3isp: ccdc: Use the DMA API for LSC
+>       omap3isp: ccdc: Use the DMA API for FPC
+>       omap3isp: video: Set the buffer bytesused field at completion time
+>       omap3isp: queue: Move IOMMU handling code to the queue
+>       omap3isp: queue: Use sg_table structure
+>       omap3isp: queue: Merge the prepare and sglist functions
+>       omap3isp: queue: Inline the ispmmu_v(un)map functions
+>       omap3isp: queue: Allocate kernel buffers with dma_alloc_coherent
+>       omap3isp: queue: Fix the dma_map_sg() return value check
+>       omap3isp: queue: Map PFNMAP buffers to device
+>       omap3isp: queue: Use sg_alloc_table_from_pages()
+>       omap3isp: Use the ARM DMA IOMMU-aware operations
+>       omap3isp: queue: Don't build scatterlist for kernel buffer
+>       omap3isp: Move queue mutex to isp_video structure
+>       omap3isp: Move queue irqlock to isp_video structure
+>       omap3isp: Move buffer irqlist to isp_buffer structure
+>       omap3isp: Cancel all queued buffers when stopping the video stream
+>       v4l: vb2: Add a function to discard all DONE buffers
+>       omap3isp: Move to videobuf2
+>       omap3isp: Rename isp_buffer isp_addr field to dma
+> 
+>  drivers/media/platform/Kconfig                |    4 +-
+>  drivers/media/platform/omap3isp/Makefile      |    2 +-
+>  drivers/media/platform/omap3isp/isp.c         |  108 ++-
+>  drivers/media/platform/omap3isp/isp.h         |    8 +-
+>  drivers/media/platform/omap3isp/ispccdc.c     |  107 ++-
+>  drivers/media/platform/omap3isp/ispccdc.h     |   16 +-
+>  drivers/media/platform/omap3isp/ispccp2.c     |    4 +-
+>  drivers/media/platform/omap3isp/ispcsi2.c     |    4 +-
+>  drivers/media/platform/omap3isp/isph3a_aewb.c |    2 +-
+>  drivers/media/platform/omap3isp/isph3a_af.c   |    2 +-
+>  drivers/media/platform/omap3isp/isppreview.c  |    8 +-
+>  drivers/media/platform/omap3isp/ispqueue.c    | 1161 ------------------------
+>  drivers/media/platform/omap3isp/ispqueue.h    |  188 ------
+>  drivers/media/platform/omap3isp/ispresizer.c  |    8 +-
+>  drivers/media/platform/omap3isp/ispstat.c     |  197 +++---
+>  drivers/media/platform/omap3isp/ispstat.h     |    3 +-
+>  drivers/media/platform/omap3isp/ispvideo.c    |  325 ++++-----
+>  drivers/media/platform/omap3isp/ispvideo.h    |   29 +-
+>  drivers/media/v4l2-core/videobuf2-core.c      |   24 +
+>  drivers/staging/media/omap4iss/iss_video.c    |    2 +-
+>  include/media/videobuf2-core.h                |    1 +
+>  21 files changed, 458 insertions(+), 1745 deletions(-)
+>  delete mode 100644 drivers/media/platform/omap3isp/ispqueue.c
+>  delete mode 100644 drivers/media/platform/omap3isp/ispqueue.h
+> 
