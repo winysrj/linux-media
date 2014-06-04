@@ -1,42 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f68.google.com ([209.85.215.68]:47359 "EHLO
-	mail-la0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755845AbaFSWWL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jun 2014 18:22:11 -0400
-Received: by mail-la0-f68.google.com with SMTP id gf5so595704lab.3
-        for <linux-media@vger.kernel.org>; Thu, 19 Jun 2014 15:22:09 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 19 Jun 2014 15:22:09 -0700
-Message-ID: <CAExOOV+KQNxd__m3SUq8Hpq=dsTYHtN3SxyaB21HZpKt72Qn3g@mail.gmail.com>
-Subject: 
-From: Ray Jender <rayjender00@gmail.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55954 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753548AbaFDOFW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jun 2014 10:05:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Subject: [PATCH/RFC 1/2] v4l: vb2: Don't return POLLERR during transient buffer underruns
+Date: Wed,  4 Jun 2014 16:05:43 +0200
+Message-Id: <1401890744-22683-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1401890744-22683-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1401890744-22683-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Is there someone willing to assist me in finding out why
-my video configuration will not work?
+The V4L2 specification states that
 
-I am using a Sony HDR-SR11 as a webcam.  Camorama does show
-video.  Other video tools recognize it.  Skype does not
-recognize it.
+"When the application did not call VIDIOC_QBUF or VIDIOC_STREAMON yet
+the poll() function succeeds, but sets the POLLERR flag in the revents
+field."
 
-Yahoo messenger shows video once I changed the video preference
-to Composite.
+The vb2_poll() function sets POLLERR when the queued buffers list is
+empty, regardless of whether this is caused by the stream not being
+active yet, or by a transient buffer underrun.
 
-The driver I am using is stk1160 on Ubuntu 12.04
+Bring the implementation in line with the specification by returning
+POLLERR only when the queue is not streaming. Buffer underruns during
+streaming are not treated specially anymore and just result in poll()
+blocking until the next event.
 
-In WebRTC (https://appear.in),  stk1160 does show in the Firefox drop
-down menu for
-camera and microphone, but after I select it, it says it cannot
-connect.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/videobuf2-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-I'd appreciate a helping hand.  Just beware I know little to nothing
-about how a web video is created and sent and what is needed to do
-that.
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 11d31bf..5f38774 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -1984,9 +1984,9 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	}
+ 
+ 	/*
+-	 * There is nothing to wait for if no buffers have already been queued.
++	 * There is nothing to wait for if the queue isn't streaming.
+ 	 */
+-	if (list_empty(&q->queued_list))
++	if (!vb2_is_streaming(q))
+ 		return res | POLLERR;
+ 
+ 	poll_wait(file, &q->done_wq, wait);
+-- 
+1.8.5.5
 
-Thanks and I appreciate your help.
-
-Ray
