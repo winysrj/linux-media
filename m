@@ -1,150 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from s3.sipsolutions.net ([5.9.151.49]:51437 "EHLO sipsolutions.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754043AbaFIK3d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Jun 2014 06:29:33 -0400
-Message-ID: <1402309768.17674.6.camel@jlt4.sipsolutions.net>
-Subject: Re: non-working UVC device 058f:5608
-From: Johannes Berg <johannes@sipsolutions.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-	Mathias Nyman <mathias.nyman@intel.com>
-Date: Mon, 09 Jun 2014 12:29:28 +0200
-In-Reply-To: <1402309657.17674.5.camel@jlt4.sipsolutions.net>
-References: <1402177903.8442.9.camel@jlt4.sipsolutions.net>
-	 <1404177.cR0nfxENUh@avalon> <1402299186.4148.3.camel@jlt4.sipsolutions.net>
-	 <17531102.o7hyOUhSH7@avalon>
-	 <1402307959.17674.3.camel@jlt4.sipsolutions.net>
-	 <1402309657.17674.5.camel@jlt4.sipsolutions.net>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2609 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752110AbaFDCoP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 22:44:15 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s542iBsV073423
+	for <linux-media@vger.kernel.org>; Wed, 4 Jun 2014 04:44:13 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 9D10B2A1B59
+	for <linux-media@vger.kernel.org>; Wed,  4 Jun 2014 04:44:04 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140604024404.9D10B2A1B59@tschai.lan>
+Date: Wed,  4 Jun 2014 04:44:04 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2014-06-09 at 12:27 +0200, Johannes Berg wrote:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Here we go - log + tracing:
-> log: http://p.sipsolutions.net/d5926c43d531e3af.txt
-> trace: http://johannes.sipsolutions.net/files/xhci.trace.dat.xz
+Results of the daily build of media_tree:
 
-Oh, and this was the kernel diff to commit
-963649d735c8b6eb0f97e82c54f02426ff3f1f45:
+date:		Wed Jun  4 04:00:50 CEST 2014
+git branch:	test
+git hash:	5ea878796f0a1d9649fe43a6a09df53d3915c0ef
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-4.slh.4-amd64
 
-diff --git a/drivers/usb/host/xhci-dbg.c b/drivers/usb/host/xhci-dbg.c
-index eb009a4..00621cb 100644
---- a/drivers/usb/host/xhci-dbg.c
-+++ b/drivers/usb/host/xhci-dbg.c
-@@ -20,6 +20,8 @@
-  * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
-+#define DEBUG
-+
- #include "xhci.h"
- 
- #define XHCI_INIT_VALUE 0x0
-diff --git a/drivers/usb/host/xhci-hub.c b/drivers/usb/host/xhci-hub.c
-index 6231ce6..70b09cd 100644
---- a/drivers/usb/host/xhci-hub.c
-+++ b/drivers/usb/host/xhci-hub.c
-@@ -20,6 +20,8 @@
-  * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
-+#define DEBUG
-+
- 
- #include <linux/slab.h>
- #include <asm/unaligned.h>
-@@ -287,7 +289,7 @@ static int xhci_stop_device(struct xhci_hcd *xhci, int slot_id, int suspend)
- 		if (virt_dev->eps[i].ring && virt_dev->eps[i].ring->dequeue) {
- 			struct xhci_command *command;
- 			command = xhci_alloc_command(xhci, false, false,
--						     GFP_NOIO);
-+						     GFP_ATOMIC);
- 			if (!command) {
- 				spin_unlock_irqrestore(&xhci->lock, flags);
- 				xhci_free_command(xhci, cmd);
-diff --git a/drivers/usb/host/xhci-mem.c b/drivers/usb/host/xhci-mem.c
-index 8056d90..2ceed51 100644
---- a/drivers/usb/host/xhci-mem.c
-+++ b/drivers/usb/host/xhci-mem.c
-@@ -20,6 +20,8 @@
-  * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
-+#define DEBUG
-+
- #include <linux/usb.h>
- #include <linux/pci.h>
- #include <linux/slab.h>
-diff --git a/drivers/usb/host/xhci-mvebu.c b/drivers/usb/host/xhci-mvebu.c
-index 1eefc98..4b289d6 100644
---- a/drivers/usb/host/xhci-mvebu.c
-+++ b/drivers/usb/host/xhci-mvebu.c
-@@ -7,6 +7,8 @@
-  * version 2 as published by the Free Software Foundation.
-  */
- 
-+#define DEBUG
-+
- #include <linux/io.h>
- #include <linux/mbus.h>
- #include <linux/of.h>
-diff --git a/drivers/usb/host/xhci-pci.c b/drivers/usb/host/xhci-pci.c
-index e20520f..aae5dc9 100644
---- a/drivers/usb/host/xhci-pci.c
-+++ b/drivers/usb/host/xhci-pci.c
-@@ -20,6 +20,8 @@
-  * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
-+#define DEBUG
-+
- #include <linux/pci.h>
- #include <linux/slab.h>
- #include <linux/module.h>
-diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
-index 29d8adb..2149b0c 100644
---- a/drivers/usb/host/xhci-plat.c
-+++ b/drivers/usb/host/xhci-plat.c
-@@ -11,6 +11,8 @@
-  * version 2 as published by the Free Software Foundation.
-  */
- 
-+#define DEBUG
-+
- #include <linux/clk.h>
- #include <linux/dma-mapping.h>
- #include <linux/module.h>
-diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
-index d67ff71..a7eda28 100644
---- a/drivers/usb/host/xhci-ring.c
-+++ b/drivers/usb/host/xhci-ring.c
-@@ -64,6 +64,8 @@
-  *   endpoint rings; it generates events on the event ring for these.
-  */
- 
-+#define DEBUG
-+
- #include <linux/scatterlist.h>
- #include <linux/slab.h>
- #include "xhci.h"
-diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-index 2b8d9a2..fd350b7 100644
---- a/drivers/usb/host/xhci.c
-+++ b/drivers/usb/host/xhci.c
-@@ -20,6 +20,8 @@
-  * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
-+#define DEBUG
-+
- #include <linux/pci.h>
- #include <linux/irq.h>
- #include <linux/log2.h>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
+Detailed results are available here:
 
-johannes
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
