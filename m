@@ -1,78 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3394 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754948AbaFPJtG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 05:49:06 -0400
-Message-ID: <539EBD6F.1040704@xs4all.nl>
-Date: Mon, 16 Jun 2014 11:48:31 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58938 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754272AbaFDXqD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jun 2014 19:46:03 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH v2 5/5] [media] mt9v032: use regmap
+Date: Thu, 05 Jun 2014 01:46:30 +0200
+Message-ID: <31156187.YWNhTMUHSc@avalon>
+In-Reply-To: <1401900328.3447.41.camel@paszta.hi.pengutronix.de>
+References: <1401788155-3690-1-git-send-email-p.zabel@pengutronix.de> <2116541.LBf4Vp52ig@avalon> <1401900328.3447.41.camel@paszta.hi.pengutronix.de>
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Dan Carpenter <dan.carpenter@oracle.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [patch v2] [media] davinci: vpif: missing unlocks on error
-References: <CA+V-a8vhEyNdQRqNrzRV=t-D+uh6rCEY5-qLjTOWDfHwUai1Kg@mail.gmail.com> <20140612070145.GA18563@mwanda> <CA+V-a8tGf8EAVV=OGEofJczN09X5FKPqLa8G+ZMg=j72rpDyCA@mail.gmail.com>
-In-Reply-To: <CA+V-a8tGf8EAVV=OGEofJczN09X5FKPqLa8G+ZMg=j72rpDyCA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prabhakar,
+Hi Philipp,
 
-Are you going to make a pull request for this, or shall I take it? Should it be applied
-to 3.16?
+On Wednesday 04 June 2014 18:45:28 Philipp Zabel wrote:
+> Am Mittwoch, den 04.06.2014, 17:44 +0200 schrieb Laurent Pinchart:
+> > On Tuesday 03 June 2014 11:35:55 Philipp Zabel wrote:
+> > > This switches all register accesses to use regmap. It allows to
+> > > use the regmap cache, tracing, and debug register dump facilities,
+> > > and removes the need to open code read-modify-writes.
+> > > 
+> > > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > 
+> > This looks good to me, but I have two small questions:
+> > 
+> > - How does regmap handle endianness ? It seems to hardcode a big endian
+> > byte order, which is fortunately what we need here.
+> 
+> We could set regmap_config->val_format_endian = REGMAP_ENDIAN_BIG.
+> This defaults to big endian unless the regmap_bus says otherwise
+> (regmap-i2c doesn't).
 
+OK, thank you for the information.
+
+> > I suppose you've successfully tested this patch :-)
+> 
+> Yes.
+> 
+> > - How does regmap handle the register cache ? Will it try to populate it
+> > when initialized, or will it only read registers on demand due to a read
+> > or an update bits operation ?
+> 
+> That depends on the cache implementation. regcache-rbtree has a
+> cache_present bitmap per node. As long as the corresponding bit is not
+> set, regcache_read will return -ENOENT and regmap_read will then do an
+> actual register read (and store the result in the cache).
+> 
+> regcache-flat doesn't have this at all, so it would be necessary to
+> provide initial register values in the driver or explicitly read back
+> from the hardware during initialization. This is also be possible with
+> the rbtree cache.
+
+That sounds good to me. I'll apply your rebased version.
+
+-- 
 Regards,
 
-	Hans
-
-On 06/13/2014 08:13 PM, Prabhakar Lad wrote:
-> On Thu, Jun 12, 2014 at 8:01 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
->> We recently changed some locking around so we need some new unlocks on
->> the error paths.
->>
->> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> 
-> Applied!
-> 
-> Thanks,
-> --Prabhakar Lad
-> 
->> ---
->> v2: move the unlock so the list_for_each_entry_safe() loop is protected
->>
->> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
->> index a7ed164..1e4ec69 100644
->> --- a/drivers/media/platform/davinci/vpif_capture.c
->> +++ b/drivers/media/platform/davinci/vpif_capture.c
->> @@ -269,6 +269,7 @@ err:
->>                 list_del(&buf->list);
->>                 vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
->>         }
->> +       spin_unlock_irqrestore(&common->irqlock, flags);
->>
->>         return ret;
->>  }
->> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
->> index 5bb085b..b431b58 100644
->> --- a/drivers/media/platform/davinci/vpif_display.c
->> +++ b/drivers/media/platform/davinci/vpif_display.c
->> @@ -233,6 +233,7 @@ err:
->>                 list_del(&buf->list);
->>                 vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
->>         }
->> +       spin_unlock_irqrestore(&common->irqlock, flags);
->>
->>         return ret;
->>  }
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Laurent Pinchart
 
