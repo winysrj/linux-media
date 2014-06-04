@@ -1,147 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2751 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933236AbaFLLyq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 07:54:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55956 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751508AbaFDOFX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jun 2014 10:05:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv4 PATCH 26/34] v4l2-ctrls/v4l2-controls.h: add MD controls
-Date: Thu, 12 Jun 2014 13:52:58 +0200
-Message-Id: <9db872d06f8e7930acbcd4e6f4aac034eda05347.1402573818.git.hans.verkuil@cisco.com>
-In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
-References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Subject: [PATCH/RFC 2/2] v4l: vb2: Add fatal error condition flag
+Date: Wed,  4 Jun 2014 16:05:44 +0200
+Message-Id: <1401890744-22683-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1401890744-22683-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1401890744-22683-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+When a fatal error occurs that render the device unusable, the only
+options for a driver to signal the error condition to userspace is to
+set the V4L2_BUF_FLAG_ERROR flag when dequeuing buffers and to return an
+error from the buffer prepare handler when queuing buffers.
 
-Add the 'Detect' control class and the new motion detection controls.
-Those controls will be used by the solo6x10 and go7007 drivers.
+The buffer error flag indicates a transient error and can't be used by
+applications to detect fatal errors. Returning an error from vb2_qbuf()
+is thus the only real indication that a fatal error occured. However,
+this is difficult to handle for multithreaded applications that requeue
+buffers from a thread other than the control thread. In particular the
+poll() call in the control thread will not notify userspace of the
+error.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+This patch adds an explicit mechanism to report fatal errors to
+userspace. Applications can call the vb2_queue_error() function to
+signal a fatal error. From this moment on, buffer preparation will
+return -EIO to userspace, and vb2_poll() will set the POLLERR flag and
+return immediately. The error flag is cleared when cancelling the queue,
+either at stream off time (through vb2_streamoff) or when releasing the
+queue with vb2_queue_release().
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 27 +++++++++++++++++++++++++++
- include/uapi/linux/v4l2-controls.h   | 17 +++++++++++++++++
- 2 files changed, 44 insertions(+)
+ drivers/media/video/videobuf2-core.c | 41 +++++++++++++++++++++++++++++++++---
+ include/media/videobuf2-core.h       |  3 +++
+ 2 files changed, 41 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 5aaf15e..5c3b8de 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -462,6 +462,13 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"RGB full range (0-255)",
- 		NULL,
- 	};
-+	static const char * const detect_md_mode[] = {
-+		"Disabled",
-+		"Global",
-+		"Threshold Grid",
-+		"Region Grid",
-+		NULL,
-+	};
- 
- 
- 	switch (id) {
-@@ -553,6 +560,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 	case V4L2_CID_DV_TX_RGB_RANGE:
- 	case V4L2_CID_DV_RX_RGB_RANGE:
- 		return dv_rgb_range;
-+	case V4L2_CID_DETECT_MD_MODE:
-+		return detect_md_mode;
- 
- 	default:
- 		return NULL;
-@@ -874,6 +883,15 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_RF_TUNER_BANDWIDTH_AUTO:	return "Bandwidth, Auto";
- 	case V4L2_CID_RF_TUNER_BANDWIDTH:	return "Bandwidth";
- 	case V4L2_CID_RF_TUNER_PLL_LOCK:	return "PLL Lock";
-+
-+	/* Detection controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
-+	case V4L2_CID_DETECT_CLASS:		return "Detection Controls";
-+	case V4L2_CID_DETECT_MD_MODE:		return "Motion Detection Mode";
-+	case V4L2_CID_DETECT_MD_GLOBAL_THRESHOLD: return "MD Global Threshold";
-+	case V4L2_CID_DETECT_MD_THRESHOLD_GRID:	return "MD Threshold Grid";
-+	case V4L2_CID_DETECT_MD_REGION_GRID:	return "MD Region Grid";
-+
- 	default:
- 		return NULL;
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 5f38774..76e3456 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -1295,6 +1295,12 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		call_qop(q, wait_finish, q);
  	}
-@@ -992,6 +1010,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_TEST_PATTERN:
- 	case V4L2_CID_TUNE_DEEMPHASIS:
- 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
-+	case V4L2_CID_DETECT_MD_MODE:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_LINK_FREQ:
-@@ -1018,6 +1037,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_DV_CLASS:
- 	case V4L2_CID_FM_RX_CLASS:
- 	case V4L2_CID_RF_TUNER_CLASS:
-+	case V4L2_CID_DETECT_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-@@ -1063,6 +1083,12 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 		*type = V4L2_CTRL_TYPE_INTEGER64;
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 		break;
-+	case V4L2_CID_DETECT_MD_REGION_GRID:
-+		*type = V4L2_CTRL_TYPE_U8;
-+		break;
-+	case V4L2_CID_DETECT_MD_THRESHOLD_GRID:
-+		*type = V4L2_CTRL_TYPE_U16;
-+		break;
- 	default:
- 		*type = V4L2_CTRL_TYPE_INTEGER;
- 		break;
-@@ -1103,6 +1129,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_RF_TUNER_MIXER_GAIN:
- 	case V4L2_CID_RF_TUNER_IF_GAIN:
- 	case V4L2_CID_RF_TUNER_BANDWIDTH:
-+	case V4L2_CID_DETECT_MD_GLOBAL_THRESHOLD:
- 		*flags |= V4L2_CTRL_FLAG_SLIDER;
- 		break;
- 	case V4L2_CID_PAN_RELATIVE:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 2ac5597..db526d1 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -61,6 +61,7 @@
- #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
- #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
- #define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
-+#define V4L2_CTRL_CLASS_DETECT		0x00a30000	/* Detection controls */
  
- /* User-class control IDs */
++	if (q->error) {
++		dprintk(1, "qbuf: fatal error occured on queue\n");
++		ret = -EIO;
++		goto unlock;
++	}
++
+ 	if (q->fileio) {
+ 		dprintk(1, "qbuf: file io in progress\n");
+ 		ret = -EBUSY;
+@@ -1393,6 +1399,11 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+ 			return -EINVAL;
+ 		}
  
-@@ -914,4 +915,20 @@ enum v4l2_deemphasis {
- #define V4L2_CID_RF_TUNER_IF_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 62)
- #define V4L2_CID_RF_TUNER_PLL_LOCK			(V4L2_CID_RF_TUNER_CLASS_BASE + 91)
++		if (q->error) {
++			dprintk(1, "Queue in error state, will not wait for buffers\n");
++			return -EIO;
++		}
++
+ 		if (!list_empty(&q->done_list)) {
+ 			/*
+ 			 * Found a buffer that we were waiting for.
+@@ -1418,7 +1429,8 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+ 		 */
+ 		dprintk(3, "Will sleep waiting for buffers\n");
+ 		ret = wait_event_interruptible(q->done_wq,
+-				!list_empty(&q->done_list) || !q->streaming);
++				!list_empty(&q->done_list) || !q->streaming ||
++				q->error);
  
+ 		/*
+ 		 * We need to reevaluate both conditions again after reacquiring
+@@ -1602,6 +1614,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	if (q->streaming)
+ 		call_qop(q, stop_streaming, q);
+ 	q->streaming = 0;
++	q->error = 0;
+ 
+ 	/*
+ 	 * Remove all buffers from videobuf's list...
+@@ -1623,6 +1636,27 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ }
+ 
+ /**
++ * vb2_queue_error() - signal a fatal error on the queue
++ * @q:		videobuf2 queue
++ *
++ * Flag that a fatal unrecoverable error occured and wake up all processes
++ * waiting on the queue. Polling will now set POLLERR and queuing and dequeuing
++ * buffers will return -EIO.
++ *
++ * The error flag will be cleared when cancelling the queue, either from
++ * vb2_streamoff or vb2_queue_release. Drivers should thus not call this
++ * function before starting the stream, otherwise the error flag will remain set
++ * until the queue is released when closing the device node.
++ */
++void vb2_queue_error(struct vb2_queue *q)
++{
++	q->error = 1;
 +
-+/*  Detection-class control IDs defined by V4L2 */
-+#define V4L2_CID_DETECT_CLASS_BASE		(V4L2_CTRL_CLASS_DETECT | 0x900)
-+#define V4L2_CID_DETECT_CLASS			(V4L2_CTRL_CLASS_DETECT | 1)
++	wake_up_all(&q->done_wq);
++}
++EXPORT_SYMBOL_GPL(vb2_queue_error);
 +
-+#define V4L2_CID_DETECT_MD_MODE			(V4L2_CID_DETECT_CLASS_BASE + 1)
-+enum v4l2_detect_md_mode {
-+	V4L2_DETECT_MD_MODE_DISABLED		= 0,
-+	V4L2_DETECT_MD_MODE_GLOBAL		= 1,
-+	V4L2_DETECT_MD_MODE_THRESHOLD_GRID	= 2,
-+	V4L2_DETECT_MD_MODE_REGION_GRID		= 3,
-+};
-+#define V4L2_CID_DETECT_MD_GLOBAL_THRESHOLD	(V4L2_CID_DETECT_CLASS_BASE + 2)
-+#define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
-+#define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
-+
- #endif
++/**
+  * vb2_streamon - start streaming
+  * @q:		videobuf2 queue
+  * @type:	type argument passed from userspace to vidioc_streamon handler
+@@ -1984,9 +2018,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	}
+ 
+ 	/*
+-	 * There is nothing to wait for if the queue isn't streaming.
++	 * There is nothing to wait for if the queue isn't streaming or if the
++	 * error flag is set.
+ 	 */
+-	if (!vb2_is_streaming(q))
++	if (!vb2_is_streaming(q) || q->error)
+ 		return res | POLLERR;
+ 
+ 	poll_wait(file, &q->done_wq, wait);
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index d173206..352e6ca 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -302,6 +302,7 @@ struct vb2_ops {
+  * @done_wq:	waitqueue for processes waiting for buffers ready to be dequeued
+  * @alloc_ctx:	memory type/allocator-specific contexts for each plane
+  * @streaming:	current streaming state
++ * @error:	a fatal error occured on the queue
+  * @fileio:	file io emulator internal data, used only if emulator is active
+  */
+ struct vb2_queue {
+@@ -330,6 +331,7 @@ struct vb2_queue {
+ 	unsigned int			plane_sizes[VIDEO_MAX_PLANES];
+ 
+ 	unsigned int			streaming:1;
++	unsigned int			error:1;
+ 
+ 	struct vb2_fileio_data		*fileio;
+ };
+@@ -349,6 +351,7 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
+ int __must_check vb2_queue_init(struct vb2_queue *q);
+ 
+ void vb2_queue_release(struct vb2_queue *q);
++void vb2_queue_error(struct vb2_queue *q);
+ 
+ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
+ int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb);
 -- 
-2.0.0.rc0
+1.8.5.5
 
