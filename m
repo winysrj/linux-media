@@ -1,236 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33034 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756232AbaFLRGq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 13:06:46 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [RFC PATCH 19/26] [media] imx-ipuv3-csi: Add support for temporarily stopping the stream on sync loss
-Date: Thu, 12 Jun 2014 19:06:33 +0200
-Message-Id: <1402592800-2925-20-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:46263 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751058AbaFELGZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jun 2014 07:06:25 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N6P00IBX06OII20@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 05 Jun 2014 07:06:24 -0400 (EDT)
+Date: Thu, 05 Jun 2014 08:06:20 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC ATTN] Cropping, composing, scaling and S_FMT
+Message-id: <20140605080620.53c6a803.m.chehab@samsung.com>
+In-reply-to: <53901A41.70804@xs4all.nl>
+References: <538C35A2.8030307@xs4all.nl>
+ <20140604154012.13ddd6a9.m.chehab@samsung.com> <53901A41.70804@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch allows to receive sync lock notifications from
-the source subdevice and temporarily pauses the stream until
-the source can lock onto its signal again.
+Em Thu, 05 Jun 2014 09:20:33 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/imx/imx-ipuv3-csi.c | 160 +++++++++++++++++++++++++++++
- 1 file changed, 160 insertions(+)
+> On 06/04/2014 08:40 PM, Mauro Carvalho Chehab wrote:
+> > Em Mon, 02 Jun 2014 10:28:18 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> >> During the media mini-summit I went through all 8 combinations of cropping,
+> >> composing and scaling (i.e. none of these features is present, or only cropping,
+> >> only composing, etc.).
+> >>
+> >> In particular I showed what I thought should happen if you change a crop rectangle,
+> >> compose rectangle or the format rectangle (VIDIOC_S_FMT).
+> >>
+> >> In my proposal the format rectangle would increase in size if you attempt to set
+> >> the compose rectangle wholly or partially outside the current format rectangle.
+> >> Most (all?) of the developers present didn't like that and I was asked to take
+> >> another look at that.
+> >>
+> >> After looking at this some more I realized that there was no need for this and
+> >> it is OK to constrain a compose rectangle to the current format rectangle. All
+> >> you need to do if you want to place the compose rectangle outside of the format
+> >> rectangle is to just change the format rectangle first. If the driver supports
+> >> composition then increasing the format rectangle will not change anything else,
+> >> so that is a safe operation without side-effects.
+> > 
+> > Good!
+> > 
+> >> However, changing the crop rectangle *can* change the format rectangle. In the
+> >> simple case of hardware that just supports cropping this is obvious, since
+> >> the crop and format rectangles must always be of the same size, so changing
+> >> one will change the other.
+> > 
+> > True, but, in such case, I'm in doubt if it is worth to implement crop API
+> > support, as just format API support is enough. The drawback is that
+> > userspace won't know how to differentiate between:
+> > 
+> > 1) scaler, no-crop, where changing the format changes the scaler;
+> > 2) crop, no scaler, where changing the format changes the crop region.
+> > 
+> > That could easily be fixed with a new caps flag, to announce if a device 
+> > has scaler or not.
+> 
+> Erm, the format just specifies a size, crop specifies a rectangle. You can't
+> use S_FMT to specify the crop rectangle.
 
-diff --git a/drivers/media/platform/imx/imx-ipuv3-csi.c b/drivers/media/platform/imx/imx-ipuv3-csi.c
-index 0dd40a4..ab22cad 100644
---- a/drivers/media/platform/imx/imx-ipuv3-csi.c
-+++ b/drivers/media/platform/imx/imx-ipuv3-csi.c
-@@ -17,6 +17,7 @@
- #include <linux/moduleparam.h>
- #include <linux/interrupt.h>
- #include <linux/videodev2.h>
-+#include <linux/workqueue.h>
- #include <linux/version.h>
- #include <linux/device.h>
- #include <linux/kernel.h>
-@@ -260,6 +261,7 @@ struct ipucsi {
- 	struct v4l2_mbus_framefmt	format_mbus[2];
- 	struct ipu_media_link		*link;
- 	struct v4l2_fh			fh;
-+	bool				paused;
- };
- 
- static struct ipucsi_buffer *to_ipucsi_vb(struct vb2_buffer *vb)
-@@ -443,6 +445,159 @@ static inline void ipucsi_set_inactive_buffer(struct ipucsi *ipucsi,
- 	ipu_idmac_select_buffer(ipucsi->ipuch, bufptr);
- }
- 
-+int ipucsi_resume_stream(struct ipucsi *ipucsi)
-+{
-+	struct ipucsi_buffer *buf;
-+	struct vb2_buffer *vb;
-+	unsigned long flags;
-+	dma_addr_t eba;
-+
-+	if (!ipucsi->paused)
-+		return 0;
-+
-+	spin_lock_irqsave(&ipucsi->lock, flags);
-+
-+	if (list_empty(&ipucsi->capture)) {
-+		spin_unlock_irqrestore(&ipucsi->lock, flags);
-+		return -EAGAIN;
-+	}
-+
-+	buf = list_first_entry(&ipucsi->capture, struct ipucsi_buffer, queue);
-+	vb = &buf->vb;
-+
-+	ipu_idmac_set_double_buffer(ipucsi->ipuch, 1);
-+
-+	eba = vb2_dma_contig_plane_dma_addr(vb, 0);
-+	if (ipucsi->ilo < 0)
-+		eba -= ipucsi->ilo;
-+
-+	ipu_cpmem_set_buffer(ipu_get_cpmem(ipucsi->ipuch), 0, eba);
-+
-+	ipu_idmac_select_buffer(ipucsi->ipuch, 0);
-+
-+	/*
-+	 * Point the inactive buffer address to the next queued buffer,
-+	 * if available. Otherwise, prepare to reuse the currently active
-+	 * buffer, unless ipucsi_videobuf_queue gets called in time.
-+	 */
-+	if (!list_is_singular(&ipucsi->capture)) {
-+		buf = list_entry(ipucsi->capture.next->next,
-+				 struct ipucsi_buffer, queue);
-+		vb = &buf->vb;
-+	}
-+
-+	eba = vb2_dma_contig_plane_dma_addr(vb, 0);
-+	if (ipucsi->ilo < 0)
-+		eba -= ipucsi->ilo;
-+
-+	ipu_cpmem_set_buffer(ipu_get_cpmem(ipucsi->ipuch), 1, eba);
-+
-+	ipu_idmac_select_buffer(ipucsi->ipuch, 1);
-+
-+	spin_unlock_irqrestore(&ipucsi->lock, flags);
-+
-+	ipu_smfc_enable(ipucsi->ipu);
-+	ipu_idmac_enable_channel(ipucsi->ipuch);
-+	ipu_csi_enable(ipucsi->ipu, ipucsi->id);
-+
-+	ipucsi->active = buf;
-+	ipucsi->paused = false;
-+
-+	return 0;
-+}
-+
-+static void ipucsi_clear_buffer(struct vb2_buffer *vb, u32 fourcc)
-+{
-+	u32 black, *p, *end;
-+
-+	switch (fourcc) {
-+	case V4L2_PIX_FMT_UYVY:
-+		black = 0x00800080;
-+		break;
-+	case V4L2_PIX_FMT_YUYV:
-+		black = 0x80008000;
-+		break;
-+	default:
-+		black = 0x00000000;
-+		break;
-+	}
-+
-+	p = vb2_plane_vaddr(vb, 0);
-+	end = p + vb2_plane_size(vb, 0) / 4;
-+
-+	while (p < end)
-+		*p++ = black;
-+}
-+
-+int ipucsi_pause_stream(struct ipucsi *ipucsi)
-+{
-+	unsigned long flags;
-+
-+	if (ipucsi->paused)
-+		return 0;
-+
-+	ipu_csi_disable(ipucsi->ipu, ipucsi->id);
-+	ipu_idmac_disable_channel(ipucsi->ipuch);
-+	ipu_smfc_disable(ipucsi->ipu);
-+
-+	ipucsi->paused = true;
-+
-+	/*
-+	 * If there is a previously active frame, clear it to black and mark
-+	 * it as done to hand it off to userspace, unless the list is singular
-+	 */
-+
-+	spin_lock_irqsave(&ipucsi->lock, flags);
-+
-+	if (ipucsi->active && !list_is_singular(&ipucsi->capture)) {
-+		struct ipucsi_buffer *buf = ipucsi->active;
-+
-+		ipucsi->active = NULL;
-+		list_del_init(&buf->queue);
-+
-+		spin_unlock_irqrestore(&ipucsi->lock, flags);
-+
-+		ipucsi_clear_buffer(&buf->vb,
-+				    ipucsi->format.fmt.pix.pixelformat);
-+
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
-+
-+		spin_lock_irqsave(&ipucsi->lock, flags);
-+	}
-+
-+	spin_unlock_irqrestore(&ipucsi->lock, flags);
-+
-+	return 0;
-+}
-+
-+static void ipucsi_v4l2_dev_notify(struct v4l2_subdev *sd,
-+				   unsigned int notification, void *arg)
-+{
-+	if (sd == NULL)
-+		return;
-+
-+	if (notification == V4L2_SUBDEV_SYNC_LOCK_NOTIFY) {
-+		struct media_entity_graph graph;
-+		struct media_entity *entity;
-+		struct ipucsi *ipucsi;
-+		bool lock = *(bool *)arg;
-+
-+		/* Find the CSI (first subdevice entity of the graph) */
-+		media_entity_graph_walk_start(&graph, &sd->entity);
-+		while ((entity = media_entity_graph_walk_next(&graph)) &&
-+		       media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV);
-+		if (!entity)
-+			return;
-+		sd = media_entity_to_v4l2_subdev(entity);
-+		ipucsi = container_of(sd, struct ipucsi, subdev);
-+
-+		if (lock)
-+			ipucsi_resume_stream(ipucsi);
-+		else
-+			ipucsi_pause_stream(ipucsi);
-+	}
-+}
-+
- static irqreturn_t ipucsi_new_frame_handler(int irq, void *context)
- {
- 	struct ipucsi *ipucsi = context;
-@@ -735,6 +890,8 @@ static int ipucsi_videobuf_start_streaming(struct vb2_queue *vq, unsigned int co
- 	ipu_smfc_enable(ipucsi->ipu);
- 	ipu_csi_enable(ipucsi->ipu, ipucsi->id);
- 
-+	ipucsi->paused = false;
-+
- 	ret = v4l2_media_subdev_s_stream(&ipucsi->subdev.entity, 1);
- 	if (ret)
- 		goto free_irq;
-@@ -758,6 +915,8 @@ static int ipucsi_videobuf_stop_streaming(struct vb2_queue *vq)
- 	ipu_idmac_disable_channel(ipucsi->ipuch);
- 	ipu_smfc_disable(ipucsi->ipu);
- 
-+	ipucsi->paused = false;
-+
- 	spin_lock_irqsave(&ipucsi->lock, flags);
- 	while (!list_empty(&ipucsi->capture)) {
- 		struct ipucsi_buffer *buf = list_entry(ipucsi->capture.next,
-@@ -1437,6 +1596,7 @@ static int ipucsi_probe(struct platform_device *pdev)
- 	ipucsi->ipu = ipu;
- 	ipucsi->dev = &pdev->dev;
- 	ipucsi->v4l2_dev = ipu_media_get_v4l2_dev();
-+	ipucsi->v4l2_dev->notify = ipucsi_v4l2_dev_notify;
- 	if (!ipucsi->v4l2_dev)
- 		return -EPROBE_DEFER;
- 
--- 
-2.0.0.rc2
+You said above about the format rectangle, and not about the crop rectangle.
+I think we need first to use a consistent glossary on those discussions ;)
 
+I'm understanding "format rectangle" as the one defined by S_FMT.
+
+> Also, this case of crop and no scaler exists today in various drivers and
+> works as described (I'm sure about vpfe_capture, vino and I believe that there
+> are various exynos drivers as well).
+
+This is confusing, and some drivers actually set both format and crop
+rectangles at the same time, on S_FMT. See, for example, set_res() on:
+	drivers/media/i2c/mt9v011.c
+
+This one explicitly does crop for a random resolution, but there are other
+sensor drivers that have multiple resolutions that are actually doing
+crop instead of scaling, when changing the resolution, and don't implement
+the crop API (I think that this is the case, for example, of ov7670).
+
+This is also the case of the gspca driver, and most of their sub-drivers.
+
+I'd say that there are a lot more sensor drivers doing crop at S_FMT
+than via crop/selection API.
+
+We need to decide what's the best way for apps to set it, and then
+see an strategy to migrate the non-compliant drivers. Whatever
+decision, we'll need to concern about backward compat.
+
+> >> But if you throw in a scaler as well, you usually
+> >> still have such constraints based on the scaler capabilities.
+> >>
+> >> So assuming a scaler that can only scale 4 times (or less) up or down in each
+> >> direction, then setting a crop rectangle of 240x160 will require that the
+> >> format rectangle has a width in the range of 240/4 - 240*4 (60-960) and a
+> >> height in the range of 160/4 - 160*4 (40-640). Anything outside of that will
+> >> have to be corrected.
+> > 
+> > This can be done on two directions, e. g. rounding the crop area or
+> > rounding the scaler area.
+> > 
+> > I is not obvious at all (nor backward compat) to change the format
+> > rectangle when the crop rea is changed.
+> > 
+> > So, the best approach in this case is to round the crop rectangle to fit
+> > into the scaler limits, preserving the format rectangle.
+> 
+> I disagree with that for several reasons:
+> 
+> 1) In the case of no-scaler the format is already changed by s_crop in existing
+> drivers. That can't be changed. So doing something else if there is a scaler is
+> inconsistent behavior.
+
+See above. The inconsistent behavior is already there.
+
+> 2) The spec clearly specifies that changing the crop rectangle may change the
+> format size. It has always said so. From the section "Image Cropping, Insertion
+> and Scaling", "Scaling Adjustments":
+> 
+> "Applications can change the source or the target rectangle first, as they may
+>  prefer a particular image size or a certain area in the video signal. If the
+>  driver has to adjust both to satisfy hardware limitations, the last requested
+>  rectangle shall take priority, and the driver should preferably adjust the
+>  opposite one. The VIDIOC_TRY_FMT ioctl however shall not change the driver
+>  state and therefore only adjust the requested rectangle."
+> 
+> The two following paragraphs actually describe exactly the crop+scaler case and
+> how setting the crop rectangle can change the format size.
+
+The above paragraph is too vague and leaves to several different
+interpretations. 
+
+One could read that "last requested rectangle" simply means that, if 
+userspace calls a rectangle API call (like S_FMT) several times, the
+last one will prevail.
+
+> 3) If an application desires a specific crop rectangle that is possible by the
+> hardware but is changed just because the format size is not suitable, then it
+> is hard (perhaps even impossible) for the application to figure out how to change
+> the format so the crop request can be achieved. That's quite a different situation
+> compared to the compose case where that is easy to decide.
+
+I don't think that this makes it impossible.
+
+See, if an application wants a crop area of (cx, cy), it should take a S_FMT
+resolution (x, y) with an algo that will get the minimal resolution where
+cx >=x and cy >= y condition met.
+
+So, let's say that a sensor supports those resolutions:	
+	(160, 120)
+	(176, 144)
+	(320, 240)
+	(352, 288)
+	(640, 480)
+	(800, 600)
+	(1024, 768)
+	(1280, 1024)
+	(1600, 1200)
+	(2048, 1536)
+
+And one wants a crop area of (100, 80), the format rectangle that
+has more chance for the crop to work is (160, 120).
+
+So, app should set res to (160, 120) and then set crop to (100, 80).
+
+That's is more likely to work than setting a res (2048, 1536) and
+try to crop to (100, 80).
+
+> 4) This is actually how bttv behaves. So this is well-established behavior.
+
+Ok, this is actually a very good point, since the crop API was
+originally added for bttv, back in 2007.
+
+That means that applications implementing the crop API should already
+be expecting the format resolution to change.
+
+Yet, as I pointed, there's a huge number of drivers using S_FMT
+to actually set both crop and format rectangles without implementing
+the crop API.
+
+I really don't think it is worth to change all of them.
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> >>
+> >> In my opinion this is valid behavior, and the specification also clearly
+> >> specifies in the VIDIOC_S_CROP and VIDIOC_S_SELECTION documentation that the
+> >> format may change after changing the crop rectangle.
+> >>
+> >> Note that for output streams the role of crop and compose is swapped. So for
+> >> output streams it is the crop rectangle that will always be constrained by
+> >> the format rectangle, and it is the compose rectangle that might change the
+> >> format rectangle based on scaler constraints.
+> >>
+> >> I think this makes sense and unless there are comments this is what I plan
+> >> to implement in my vivi rewrite which supports all these crop/compose/scale
+> >> combinations.
+> >>
+> >> Regards,
+> >>
+> >> 	Hans
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
