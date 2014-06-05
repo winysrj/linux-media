@@ -1,80 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56012 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753291AbaFDOQD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jun 2014 10:16:03 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Subject: Re: [PATCH v2 2/5] [media] mt9v032: register v4l2 asynchronous subdevice
-Date: Wed, 04 Jun 2014 16:16:30 +0200
-Message-ID: <2505444.YzkDIeOsnF@avalon>
-In-Reply-To: <1401788155-3690-3-git-send-email-p.zabel@pengutronix.de>
-References: <1401788155-3690-1-git-send-email-p.zabel@pengutronix.de> <1401788155-3690-3-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:35495 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750722AbaFEHIZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jun 2014 03:08:25 -0400
+Received: by mail-pb0-f48.google.com with SMTP id rr13so701314pbb.7
+        for <linux-media@vger.kernel.org>; Thu, 05 Jun 2014 00:08:25 -0700 (PDT)
+Date: Thu, 5 Jun 2014 17:07:48 +1000
+From: Vitaly Osipov <vitaly.osipov@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: [PATCH] staging: omap4iss: copy paste error in iss_get_clocks
+Message-ID: <20140605070748.GA651@witts-MacBook-Pro.local>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+It makes more sense to return PTR_ERR(iss->iss_ctrlclk) here. The
+current code looks like an oversight in pasting the block just above
+this one.
 
-Thank you for the patch.
+Signed-off-by: Vitaly Osipov <vitaly.osipov@gmail.com>
+---
+ drivers/staging/media/omap4iss/iss.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Tuesday 03 June 2014 11:35:52 Philipp Zabel wrote:
-> Add support for registering the sensor subdevice using the v4l2-async API.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
-> Changes since v1:
->  - Fixed cleanup and error handling
-> ---
->  drivers/media/i2c/mt9v032.c | 13 ++++++++++++-
->  1 file changed, 12 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-> index 29d8d8f..83ae8ca6d 100644
-> --- a/drivers/media/i2c/mt9v032.c
-> +++ b/drivers/media/i2c/mt9v032.c
-> @@ -985,10 +985,20 @@ static int mt9v032_probe(struct i2c_client *client,
-> 
->  	mt9v032->pad.flags = MEDIA_PAD_FL_SOURCE;
->  	ret = media_entity_init(&mt9v032->subdev.entity, 1, &mt9v032->pad, 0);
-> +	if (ret < 0)
-> +		goto err_entity;
-> 
-> +	mt9v032->subdev.dev = &client->dev;
-> +	ret = v4l2_async_register_subdev(&mt9v032->subdev);
->  	if (ret < 0)
-> -		v4l2_ctrl_handler_free(&mt9v032->ctrls);
-> +		goto err_async;
-> +
-> +	return 0;
-> 
-> +err_async:
-> +	media_entity_cleanup(&mt9v032->subdev.entity);
-
-media_entity_cleanup() can safely be called on an unintialized entity, 
-provided the memory has been zeroed. You could thus merge the err_async and 
-err_entity labels into a single error label.
-
-> +err_entity:
-> +	v4l2_ctrl_handler_free(&mt9v032->ctrls);
->  	return ret;
->  }
-> 
-> @@ -997,6 +1007,7 @@ static int mt9v032_remove(struct i2c_client *client)
->  	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
->  	struct mt9v032 *mt9v032 = to_mt9v032(subdev);
-> 
-> +	v4l2_async_unregister_subdev(subdev);
->  	v4l2_ctrl_handler_free(&mt9v032->ctrls);
->  	v4l2_device_unregister_subdev(subdev);
->  	media_entity_cleanup(&subdev->entity);
-
+diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+index 2e422dd..4a9e444 100644
+--- a/drivers/staging/media/omap4iss/iss.c
++++ b/drivers/staging/media/omap4iss/iss.c
+@@ -1029,7 +1029,7 @@ static int iss_get_clocks(struct iss_device *iss)
+ 	if (IS_ERR(iss->iss_ctrlclk)) {
+ 		dev_err(iss->dev, "Unable to get iss_ctrlclk clock info\n");
+ 		iss_put_clocks(iss);
+-		return PTR_ERR(iss->iss_fck);
++		return PTR_ERR(iss->iss_ctrlclk);
+ 	}
+ 
+ 	return 0;
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
