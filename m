@@ -1,152 +1,400 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f181.google.com ([74.125.82.181]:47250 "EHLO
-	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966224AbaFTUw6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jun 2014 16:52:58 -0400
-Date: Fri, 20 Jun 2014 22:52:54 +0200
-From: Thierry Reding <thierry.reding@gmail.com>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Greg KH <gregkh@linuxfoundation.org>,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-arch@vger.kernel.org,
-	Thomas Hellstrom <thellstrom@vmware.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"Clark, Rob" <robdclark@gmail.com>,
-	Colin Cross <ccross@google.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [REPOST PATCH 4/8] android: convert sync to fence api, v5
-Message-ID: <20140620205252.GC28814@mithrandir>
-References: <20140618102957.15728.43525.stgit@patser>
- <20140618103711.15728.97842.stgit@patser>
- <20140619011556.GE10921@kroah.com>
- <20140619063727.GL5821@phenom.ffwll.local>
- <20140619114825.GB28111@ulmo>
- <CAKMK7uE_B3pCZB9orh5+BJGooNfyEa0APrZqRpXqYu5xfQ0PCQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="R+My9LyyhiUvIEro"
-Content-Disposition: inline
-In-Reply-To: <CAKMK7uE_B3pCZB9orh5+BJGooNfyEa0APrZqRpXqYu5xfQ0PCQ@mail.gmail.com>
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:29204 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751409AbaFEQQP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jun 2014 12:16:15 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N6P000QMEJ1BI60@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 05 Jun 2014 12:16:13 -0400 (EDT)
+Date: Thu, 05 Jun 2014 13:16:09 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Thiago Santos <ts.santos@sisa.samsung.com>
+Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH/RFC 1/2] v4l2grab: Add threaded producer/consumer option
+Message-id: <20140605131609.3701013e.m.chehab@samsung.com>
+In-reply-to: <1401982284-1983-2-git-send-email-ts.santos@sisa.samsung.com>
+References: <1401982284-1983-1-git-send-email-ts.santos@sisa.samsung.com>
+ <1401982284-1983-2-git-send-email-ts.santos@sisa.samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Thu, 05 Jun 2014 12:31:23 -0300
+Thiago Santos <ts.santos@sisa.samsung.com> escreveu:
 
---R+My9LyyhiUvIEro
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Adds options to allow the buffer dqbuf to happen on one thread while
+> the qbuf happens on another. This is useful to test concurrency access to
+> the v4l2 features. To enable this, 3 new options were added:
+> 
+> t: enable threaded mode (off by default and will use the loop)
+> b: enable blocking io mode (off by default
+> s: how much the consumer thread will sleep after reading a buffer, this is to
+>    simulate the time that it takes to process a buffer in a real application
+>    (in ms)
 
-On Thu, Jun 19, 2014 at 02:28:14PM +0200, Daniel Vetter wrote:
-> On Thu, Jun 19, 2014 at 1:48 PM, Thierry Reding
-> <thierry.reding@gmail.com> wrote:
-> >> > With these changes, can we pull the android sync logic out of
-> >> > drivers/staging/ now?
-> >>
-> >> Afaik the google guys never really looked at this and acked it. So I'm=
- not
-> >> sure whether they'll follow along. The other issue I have as the
-> >> maintainer of gfx driver is that I don't want to implement support for=
- two
-> >> different sync object primitives (once for dma-buf and once for android
-> >> syncpts), and my impression thus far has been that even with this we're
-> >> not there.
-> >>
-> >> I'm trying to get our own android guys to upstream their i915 syncpts
-> >> support, but thus far I haven't managed to convince them to throw peop=
-le's
-> >> time at this.
-> >
-> > This has been discussed a fair bit internally recently and some of our
-> > GPU experts have raised concerns that this may result in seriously
-> > degraded performance in our proprietary graphics stack. Now I don't care
-> > very much for the proprietary graphics stack, but by extension I would
-> > assume that the same restrictions are relevant for any open-source
-> > driver as well.
-> >
-> > I'm still trying to fully understand all the implications and at the
-> > same time get some of the people who raised concerns to join in this
-> > discussion. As I understand it the concern is mostly about explicit vs.
-> > implicit synchronization and having this mechanism in the kernel will
-> > implicitly synchronize all accesses to these buffers even in cases where
-> > it's not needed (read vs. write locks, etc.). In one particular instance
-> > it was even mentioned that this kind of implicit synchronization can
-> > lead to deadlocks in some use-cases (this was mentioned for Android
-> > compositing, but I suspect that the same may happen for Wayland or X
-> > compositors).
->=20
-> Well the implicit fences here actually can't deadlock. That's the
-> entire point behind using ww mutexes. I've also heard tons of
-> complaints about implicit enforced syncing (especially from opencl
-> people), but in the end drivers and always expose unsynchronized
-> access for specific cases. We do that in i915 for upload buffers and
-> other fun stuff. This is about shared stuff across different drivers
-> and different processes.
+This is not a full review. Just a comment: as the possible values for -t and
+-b are just 0 or 1, why to require an argument?
 
-Tegra K1 needs to share buffers across different drivers even for very
-basic use-cases since the GPU and display drivers are separate. So while
-I agree that the GPU driver can still use explicit synchronization for
-internal work, things aren't that simple in general.
+IMHO, the better would be to keep thread disabled by default, and use -t to
+enable it, and do the same for -b. To make it clearer when this is called with
+--help, we can even name the long option as "--thread-enable" and 
+"--blockmode-enable".
 
-Let me try to reconstruct the use-case that caused the lock on Android:
-the compositor uses a hardware overlay to display an image. The system
-detects that there's little activity and instructs the compositor to put
-everything into one image and scan out only that (for power efficiency).
-Now with implicit locking the display driver has a lock on the image, so
-the GPU (used for compositing) needs to wait for it before it can
-composite everything into one image. But the display driver cannot
-release the lock on the image until the final image has been composited
-and can be displayed instead.
+Regards,
+Mauro
 
-This may not be technically a deadlock, but it's still a stalemate.
-Unless I'm missing something fundamental about DMA fences and ww mutexes
-I don't see how you can get out of this situation.
-
-Explicit vs. implicit synchronization may also become more of an issue
-as buffers are imported from other sources (such as cameras).
-
-> Finally I've never seen anyone from google or any android product guy
-> push a real driver enabling for syncpts to upstream, and google itself
-> has a bit a history of constantly exchanging their gfx framework for
-> the next best thing. So I really doubt this is worthwhile to pursue in
-> upstream with our essentially eternal api guarantees. At least until
-> we see serious uptake from vendors and gfx driver guys. Unfortunately
-> the Intel android folks are no exception here and haven't pushed
-> anything like this in my direction yet at all. Despite multiple pokes
-> from my side.
->=20
-> So from my side I think we should move ahead with Maarten's work and
-> figure the android side out once there's real interest.
-
-The downside of that is that we may end up with two different ways to
-synchronize buffers if it turns out that we can't make Android (or other
-use-cases) work with DMA fence. However I don't think that justifies
-postponing this patch set indefinitely.
-
-Thierry
-
---R+My9LyyhiUvIEro
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTpJ8kAAoJEN0jrNd/PrOhj/sP/1FHSqAD3KFbXo7Q19dVlGMc
-ROCK8DWKfxwGijJi701I/DK8h2ZdZJKbeDcStaQeKg1fbKGNtBW0KjsVyUm5s76Q
-hhU5dLUb0swCiezMoEDv6tqxCtnTHm/u+fddMHIE3RLAKwBI0E0j+LLlzQYjq7CP
-0vB3w3tz+ha9BO3jHHmVC9oJjQSvHYJFW6gBovsGlymoOCpL7+nQW/IMWWuKMIV7
-7Mk093uQa1gMIyTObHRjnerL7Om+TFeDQixgsRrPainOTjpHZBh0X5EFbdJUS2GG
-G0wv88yXW7/n75liq0LFtirQgEvYS6GajJTLJZeCyKSouGycS74GyTNOI2Wjztlx
-QO5kZl3nVYQlST2qdsp2NgAwvl4cY8bSqqEW35qnLOtppEHyufGNUikZMoiPrCDl
-lu0nFYJWwlg3lDVMfbltFQkkaufaCErd6TTA9RdooMdHigbbp372yTDf2h3gtXQx
-ts6ZX6T8h8qBHWY1/SGQKd2xqYoWdBGj999MAZbwWKCH854ObWqFPGwcrbxoRXLs
-k61AW/nNiBB6SGU0lq/CvYp55fAGTSlLGfJJUIgI+9XNGDN/c1k/uRfvh8QVDTkl
-viI3i+vsVF/k/YbJOOgnGaxHDDy+HnAulBkod60YklfXsm23SDTeSMcuQ7RvuHVp
-FZzdPuBO/4m2YSbuFZe/
-=2k+6
------END PGP SIGNATURE-----
-
---R+My9LyyhiUvIEro--
+> 
+> For example, you can simulate an application that takes 1s to process a buffer
+> with:
+> 
+> v4l2grab -t 1 -b 1 -s 1000
+> 
+> Signed-off-by: Thiago Santos <ts.santos@sisa.samsung.com>
+> ---
+>  contrib/test/Makefile.am |   2 +-
+>  contrib/test/v4l2grab.c  | 265 +++++++++++++++++++++++++++++++++++++++--------
+>  2 files changed, 223 insertions(+), 44 deletions(-)
+> 
+> diff --git a/contrib/test/Makefile.am b/contrib/test/Makefile.am
+> index 80c7665..c2e3860 100644
+> --- a/contrib/test/Makefile.am
+> +++ b/contrib/test/Makefile.am
+> @@ -25,7 +25,7 @@ pixfmt_test_CFLAGS = $(X11_CFLAGS)
+>  pixfmt_test_LDFLAGS = $(X11_LIBS)
+>  
+>  v4l2grab_SOURCES = v4l2grab.c
+> -v4l2grab_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la
+> +v4l2grab_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la -lpthread
+>  
+>  v4l2gl_SOURCES = v4l2gl.c
+>  v4l2gl_LDFLAGS = $(X11_LIBS) $(GL_LIBS) $(GLU_LIBS)
+> diff --git a/contrib/test/v4l2grab.c b/contrib/test/v4l2grab.c
+> index 674cbe7..2fa5bb8 100644
+> --- a/contrib/test/v4l2grab.c
+> +++ b/contrib/test/v4l2grab.c
+> @@ -24,8 +24,10 @@
+>  #include <linux/videodev2.h>
+>  #include "../../lib/include/libv4l2.h"
+>  #include <argp.h>
+> +#include <pthread.h>
+>  
+> -#define CLEAR(x) memset(&(x), 0, sizeof(x))
+> +#define CLEAR_P(x,s) memset((x), 0, s)
+> +#define CLEAR(x) CLEAR_P(&(x), sizeof(x))
+>  
+>  struct buffer {
+>  	void   *start;
+> @@ -46,22 +48,206 @@ static void xioctl(int fh, unsigned long int request, void *arg)
+>  	}
+>  }
+>  
+> +/* Used by the multi thread capture version */
+> +struct buffer_queue {
+> +	struct v4l2_buffer *buffers;
+> +	int buffers_size;
+> +
+> +	int read_pos;
+> +	int write_pos;
+> +	int n_frames;
+> +
+> +	int fd;
+> +
+> +	pthread_mutex_t mutex;
+> +	pthread_cond_t buffer_cond;
+> +};
+> +
+> +/* Gets a buffer and puts it in the buffers list at write position, then
+> + * notifies the consumer that a new buffer is ready to be used */
+> +static void *produce_buffer (void * p)
+> +{
+> +	struct buffer_queue 		*bq;
+> +	fd_set				fds;
+> +	struct timeval			tv;
+> +	int				i;
+> +	struct v4l2_buffer		*buf;
+> +	int				r;
+> +
+> +	bq = p;
+> +
+> +	for (i = 0; i < bq->n_frames; i++) {
+> +		printf ("Prod: %d\n", i);
+> +		buf = &bq->buffers[bq->write_pos % bq->buffers_size];
+> +		do {
+> +			FD_ZERO(&fds);
+> +			FD_SET(bq->fd, &fds);
+> +
+> +			/* Timeout. */
+> +			tv.tv_sec = 2;
+> +			tv.tv_usec = 0;
+> +
+> +			r = select(bq->fd + 1, &fds, NULL, NULL, &tv);
+> +		} while ((r == -1 && (errno == EINTR)));
+> +		if (r == -1) {
+> +			perror("select");
+> +			pthread_exit (NULL);
+> +			return NULL;
+> +		}
+> +
+> +		CLEAR_P(buf, sizeof(struct v4l2_buffer));
+> +		buf->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +		buf->memory = V4L2_MEMORY_MMAP;
+> +		xioctl(bq->fd, VIDIOC_DQBUF, buf);
+> +
+> +		pthread_mutex_lock (&bq->mutex);
+> +		bq->write_pos++;
+> +		printf ("Prod: %d (done)\n", i);
+> +		pthread_cond_signal (&bq->buffer_cond);
+> +		pthread_mutex_unlock (&bq->mutex);
+> +
+> +	}
+> +
+> +	pthread_exit (NULL);
+> +}
+> +
+> +/* will create a separate thread that will produce the buffers and put
+> + * into a circular array while this same thread will get the buffers from
+> + * this array and 'render' them */
+> +static int capture_threads (int fd, struct buffer *buffers, int bufpool_size,
+> +			struct v4l2_format fmt, int n_frames,
+> +			char *out_dir, int sleep_ms)
+> +{
+> +	struct v4l2_buffer		buf;
+> +	unsigned int			i;
+> +	struct buffer_queue		buf_queue;
+> +	pthread_t			producer;
+> +	char				out_name[25 + strlen(out_dir)];
+> +	FILE				*fout;
+> +	struct timespec			sleeptime;
+> +
+> +	if (sleep_ms) {
+> +		sleeptime.tv_sec = sleep_ms / 1000;
+> +		sleeptime.tv_nsec = (sleep_ms % 1000) * 1000000;
+> +	}
+> +
+> +	buf_queue.buffers_size = bufpool_size * 2;
+> +	buf_queue.buffers = calloc(buf_queue.buffers_size,
+> +				   sizeof(struct v4l2_buffer));
+> +	buf_queue.fd = fd;
+> +	buf_queue.read_pos = 0;
+> +	buf_queue.write_pos = 0;
+> +	buf_queue.n_frames = n_frames;
+> +	pthread_mutex_init (&buf_queue.mutex, NULL);
+> +	pthread_cond_init (&buf_queue.buffer_cond, NULL);
+> +
+> +	pthread_create (&producer, NULL, produce_buffer, &buf_queue);
+> +
+> +	for (i = 0; i < n_frames; i++) {
+> +		printf ("Read: %d\n", i);
+> +
+> +		/* wait for a buffer to be available in the queue */
+> +		pthread_mutex_lock (&buf_queue.mutex);
+> +		while (buf_queue.read_pos == buf_queue.write_pos) {
+> +			pthread_cond_wait (&buf_queue.buffer_cond,
+> +					   &buf_queue.mutex);
+> +		}
+> +		pthread_mutex_unlock (&buf_queue.mutex);
+> +
+> +		if (sleep_ms)
+> +			nanosleep (&sleeptime, NULL);
+> +
+> +		sprintf(out_name, "%s/out%03d.ppm", out_dir, i);
+> +		fout = fopen(out_name, "w");
+> +		if (!fout) {
+> +			perror("Cannot open image");
+> +			exit(EXIT_FAILURE);
+> +		}
+> +		fprintf(fout, "P6\n%d %d 255\n",
+> +			fmt.fmt.pix.width, fmt.fmt.pix.height);
+> +		buf = buf_queue.buffers[buf_queue.read_pos %
+> +					buf_queue.buffers_size];
+> +		fwrite(buffers[buf.index].start, buf.bytesused, 1, fout);
+> +		fclose(fout);
+> +
+> +		xioctl(fd, VIDIOC_QBUF, &buf);
+> +
+> +		pthread_mutex_lock (&buf_queue.mutex);
+> +		buf_queue.read_pos++;
+> +		printf ("Read: %d (done)\n", i);
+> +		pthread_cond_signal (&buf_queue.buffer_cond);
+> +		pthread_mutex_unlock (&buf_queue.mutex);
+> +	}
+> +
+> +	pthread_mutex_destroy (&buf_queue.mutex);
+> +	pthread_cond_destroy (&buf_queue.buffer_cond);
+> +	free (buf_queue.buffers);
+> +	return 0;
+> +}
+> +
+> +static int capture_loop (int fd, struct buffer *buffers, struct v4l2_format fmt,
+> +			int n_frames, char *out_dir)
+> +{
+> +	struct v4l2_buffer		buf;
+> +	unsigned int			i;
+> +	struct timeval			tv;
+> +	int				r;
+> +	fd_set				fds;
+> +	FILE				*fout;
+> +	char				out_name[25 + strlen(out_dir)];
+> +
+> +	for (i = 0; i < n_frames; i++) {
+> +		do {
+> +			FD_ZERO(&fds);
+> +			FD_SET(fd, &fds);
+> +
+> +			/* Timeout. */
+> +			tv.tv_sec = 2;
+> +			tv.tv_usec = 0;
+> +
+> +			r = select(fd + 1, &fds, NULL, NULL, &tv);
+> +		} while ((r == -1 && (errno == EINTR)));
+> +		if (r == -1) {
+> +			perror("select");
+> +			return errno;
+> +		}
+> +
+> +		CLEAR(buf);
+> +		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +		buf.memory = V4L2_MEMORY_MMAP;
+> +		xioctl(fd, VIDIOC_DQBUF, &buf);
+> +
+> +		sprintf(out_name, "%s/out%03d.ppm", out_dir, i);
+> +		fout = fopen(out_name, "w");
+> +		if (!fout) {
+> +			perror("Cannot open image");
+> +			exit(EXIT_FAILURE);
+> +		}
+> +		fprintf(fout, "P6\n%d %d 255\n",
+> +			fmt.fmt.pix.width, fmt.fmt.pix.height);
+> +		fwrite(buffers[buf.index].start, buf.bytesused, 1, fout);
+> +		fclose(fout);
+> +
+> +		xioctl(fd, VIDIOC_QBUF, &buf);
+> +	}
+> +	return 0;
+> +}
+> +
+>  static int capture(char *dev_name, int x_res, int y_res, int n_frames,
+> -		   char *out_dir)
+> +		   char *out_dir, int block, int threads, int sleep_ms)
+>  {
+>  	struct v4l2_format		fmt;
+>  	struct v4l2_buffer		buf;
+>  	struct v4l2_requestbuffers	req;
+>  	enum v4l2_buf_type		type;
+> -	fd_set				fds;
+> -	struct timeval			tv;
+> -	int				r, fd = -1;
+> +	int				fd = -1;
+>  	unsigned int			i, n_buffers;
+> -	char				out_name[25 + strlen(out_dir)];
+> -	FILE				*fout;
+>  	struct buffer			*buffers;
+>  
+> -	fd = v4l2_open(dev_name, O_RDWR | O_NONBLOCK, 0);
+> +	if (block)
+> +		fd = v4l2_open(dev_name, O_RDWR, 0);
+> +	else
+> +		fd = v4l2_open(dev_name, O_RDWR | O_NONBLOCK, 0);
+>  	if (fd < 0) {
+>  		perror("Cannot open device");
+>  		exit(EXIT_FAILURE);
+> @@ -119,40 +305,11 @@ static int capture(char *dev_name, int x_res, int y_res, int n_frames,
+>  	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>  
+>  	xioctl(fd, VIDIOC_STREAMON, &type);
+> -	for (i = 0; i < n_frames; i++) {
+> -		do {
+> -			FD_ZERO(&fds);
+> -			FD_SET(fd, &fds);
+> -
+> -			/* Timeout. */
+> -			tv.tv_sec = 2;
+> -			tv.tv_usec = 0;
+> -
+> -			r = select(fd + 1, &fds, NULL, NULL, &tv);
+> -		} while ((r == -1 && (errno == EINTR)));
+> -		if (r == -1) {
+> -			perror("select");
+> -			return errno;
+> -		}
+> -
+> -		CLEAR(buf);
+> -		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> -		buf.memory = V4L2_MEMORY_MMAP;
+> -		xioctl(fd, VIDIOC_DQBUF, &buf);
+> -
+> -		sprintf(out_name, "%s/out%03d.ppm", out_dir, i);
+> -		fout = fopen(out_name, "w");
+> -		if (!fout) {
+> -			perror("Cannot open image");
+> -			exit(EXIT_FAILURE);
+> -		}
+> -		fprintf(fout, "P6\n%d %d 255\n",
+> -			fmt.fmt.pix.width, fmt.fmt.pix.height);
+> -		fwrite(buffers[buf.index].start, buf.bytesused, 1, fout);
+> -		fclose(fout);
+> -
+> -		xioctl(fd, VIDIOC_QBUF, &buf);
+> -	}
+> +	if (threads)
+> +		capture_threads(fd, buffers, 2, fmt, n_frames, out_dir,
+> +				sleep_ms);
+> +	else
+> +		capture_loop(fd, buffers, fmt, n_frames, out_dir);
+>  
+>  	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>  	xioctl(fd, VIDIOC_STREAMOFF, &type);
+> @@ -179,6 +336,9 @@ static const struct argp_option options[] = {
+>  	{"xres",	'x',	"XRES",		0,	"horizontal resolution", 0},
+>  	{"yres",	'y',	"YRES",		0,	"vertical resolution", 0},
+>  	{"n-frames",	'n',	"NFRAMES",	0,	"number of frames to capture", 0},
+> +	{"threads",	't',	"THREADS",	0,	"if different threads should capture and save", 0},
+> +	{"block",	'b',	"BLOCKMODE",	0,	"if blocking mode should be used", 0},
+> +	{"sleep",	's',	"SLEEP",	0,	"how long should the consumer thread sleep to simulate the processing of a buffer (in ms)"},
+>  	{ 0, 0, 0, 0, 0, 0 }
+>  };
+>  
+> @@ -188,6 +348,9 @@ static char	*out_dir = ".";
+>  static int	x_res = 640;
+>  static int	y_res = 480;
+>  static int	n_frames = 20;
+> +static int	threads = 0;
+> +static int	block = 0;
+> +static int	sleep_ms = 0;
+>  
+>  static error_t parse_opt(int k, char *arg, struct argp_state *state)
+>  {
+> @@ -215,6 +378,21 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
+>  		if (val)
+>  			n_frames = val;
+>  		break;
+> +	case 't':
+> +		val = atoi(arg);
+> +		if (val)
+> +			threads = 1;
+> +		break;
+> +	case 'b':
+> +		val = atoi(arg);
+> +		if (val)
+> +			block = 1;
+> +		break;
+> +	case 's':
+> +		val = atoi(arg);
+> +		if (val)
+> +			sleep_ms = val;
+> +		break;
+>  	default:
+>  		return ARGP_ERR_UNKNOWN;
+>  	}
+> @@ -232,5 +410,6 @@ int main(int argc, char **argv)
+>  {
+>  	argp_parse(&argp, argc, argv, 0, 0, 0);
+>  
+> -	return capture(dev_name, x_res, y_res, n_frames, out_dir);
+> +	return capture(dev_name, x_res, y_res, n_frames, out_dir, block,
+> +		       threads, sleep_ms);
+>  }
