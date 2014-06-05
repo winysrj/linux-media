@@ -1,88 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:51987 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092AbaFPLIP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 07:08:15 -0400
-MIME-Version: 1.0
-In-Reply-To: <539EBD6F.1040704@xs4all.nl>
-References: <CA+V-a8vhEyNdQRqNrzRV=t-D+uh6rCEY5-qLjTOWDfHwUai1Kg@mail.gmail.com>
- <20140612070145.GA18563@mwanda> <CA+V-a8tGf8EAVV=OGEofJczN09X5FKPqLa8G+ZMg=j72rpDyCA@mail.gmail.com>
- <539EBD6F.1040704@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 16 Jun 2014 12:07:44 +0100
-Message-ID: <CA+V-a8stc6ZvjA72sPCRQPuad+vaN60wpBU4MLMdvYe_staP+g@mail.gmail.com>
-Subject: Re: [patch v2] [media] davinci: vpif: missing unlocks on error
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	kernel-janitors@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34486 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750840AbaFEMXD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jun 2014 08:23:03 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH/RFC v2 2/2] v4l: vb2: Add fatal error condition flag
+Date: Thu,  5 Jun 2014 14:23:11 +0200
+Message-Id: <1401970991-4421-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1401970991-4421-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1401970991-4421-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+When a fatal error occurs that render the device unusable, the only
+options for a driver to signal the error condition to userspace is to
+set the V4L2_BUF_FLAG_ERROR flag when dequeuing buffers and to return an
+error from the buffer prepare handler when queuing buffers.
 
-On Mon, Jun 16, 2014 at 10:48 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Prabhakar,
->
-> Are you going to make a pull request for this, or shall I take it? Should it be applied
-> to 3.16?
->
-As this is not a critical bug, I was planning to wait for v3.17 as
-v3.16 is almost closed.
+The buffer error flag indicates a transient error and can't be used by
+applications to detect fatal errors. Returning an error from vb2_qbuf()
+is thus the only real indication that a fatal error occurred. However,
+this is difficult to handle for multithreaded applications that requeue
+buffers from a thread other than the control thread. In particular the
+poll() call in the control thread will not notify userspace of the
+error.
 
-Regards,
---Prabhakar Lad
+This patch adds an explicit mechanism to report fatal errors to
+userspace. Applications can call the vb2_queue_error() function to
+signal a fatal error. From this moment on, buffer preparation will
+return -EIO to userspace, and vb2_poll() will set the POLLERR flag and
+return immediately. The error flag is cleared when cancelling the queue,
+either at stream off time (through vb2_streamoff) or when releasing the
+queue with vb2_queue_release().
 
-> Regards,
->
->         Hans
->
-> On 06/13/2014 08:13 PM, Prabhakar Lad wrote:
->> On Thu, Jun 12, 2014 at 8:01 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
->>> We recently changed some locking around so we need some new unlocks on
->>> the error paths.
->>>
->>> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->>
->> Applied!
->>
->> Thanks,
->> --Prabhakar Lad
->>
->>> ---
->>> v2: move the unlock so the list_for_each_entry_safe() loop is protected
->>>
->>> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
->>> index a7ed164..1e4ec69 100644
->>> --- a/drivers/media/platform/davinci/vpif_capture.c
->>> +++ b/drivers/media/platform/davinci/vpif_capture.c
->>> @@ -269,6 +269,7 @@ err:
->>>                 list_del(&buf->list);
->>>                 vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
->>>         }
->>> +       spin_unlock_irqrestore(&common->irqlock, flags);
->>>
->>>         return ret;
->>>  }
->>> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
->>> index 5bb085b..b431b58 100644
->>> --- a/drivers/media/platform/davinci/vpif_display.c
->>> +++ b/drivers/media/platform/davinci/vpif_display.c
->>> @@ -233,6 +233,7 @@ err:
->>>                 list_del(&buf->list);
->>>                 vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
->>>         }
->>> +       spin_unlock_irqrestore(&common->irqlock, flags);
->>>
->>>         return ret;
->>>  }
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 40 +++++++++++++++++++++++++++++---
+ include/media/videobuf2-core.h           |  3 +++
+ 2 files changed, 40 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index fd428e0..c7aa07d 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1582,6 +1582,11 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		return -EINVAL;
+ 	}
+ 
++	if (q->error) {
++		dprintk(1, "fatal error occurred on queue\n");
++		return -EIO;
++	}
++
+ 	vb->state = VB2_BUF_STATE_PREPARING;
+ 	vb->v4l2_buf.timestamp.tv_sec = 0;
+ 	vb->v4l2_buf.timestamp.tv_usec = 0;
+@@ -1877,6 +1882,11 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+ 			return -EINVAL;
+ 		}
+ 
++		if (q->error) {
++			dprintk(1, "Queue in error state, will not wait for buffers\n");
++			return -EIO;
++		}
++
+ 		if (!list_empty(&q->done_list)) {
+ 			/*
+ 			 * Found a buffer that we were waiting for.
+@@ -1902,7 +1912,8 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+ 		 */
+ 		dprintk(3, "will sleep waiting for buffers\n");
+ 		ret = wait_event_interruptible(q->done_wq,
+-				!list_empty(&q->done_list) || !q->streaming);
++				!list_empty(&q->done_list) || !q->streaming ||
++				q->error);
+ 
+ 		/*
+ 		 * We need to reevaluate both conditions again after reacquiring
+@@ -2099,6 +2110,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	q->streaming = 0;
+ 	q->start_streaming_called = 0;
+ 	q->queued_count = 0;
++	q->error = 0;
+ 
+ 	/*
+ 	 * Remove all buffers from videobuf's list...
+@@ -2176,6 +2188,27 @@ static int vb2_internal_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
+ }
+ 
+ /**
++ * vb2_queue_error() - signal a fatal error on the queue
++ * @q:		videobuf2 queue
++ *
++ * Flag that a fatal unrecoverable error has occurred and wake up all processes
++ * waiting on the queue. Polling will now set POLLERR and queuing and dequeuing
++ * buffers will return -EIO.
++ *
++ * The error flag will be cleared when cancelling the queue, either from
++ * vb2_streamoff or vb2_queue_release. Drivers should thus not call this
++ * function before starting the stream, otherwise the error flag will remain set
++ * until the queue is released when closing the device node.
++ */
++void vb2_queue_error(struct vb2_queue *q)
++{
++	q->error = 1;
++
++	wake_up_all(&q->done_wq);
++}
++EXPORT_SYMBOL_GPL(vb2_queue_error);
++
++/**
+  * vb2_streamon - start streaming
+  * @q:		videobuf2 queue
+  * @type:	type argument passed from userspace to vidioc_streamon handler
+@@ -2533,9 +2566,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	}
+ 
+ 	/*
+-	 * There is nothing to wait for if the queue isn't streaming.
++	 * There is nothing to wait for if the queue isn't streaming or if the
++	 * error flag is set.
+ 	 */
+-	if (!vb2_is_streaming(q))
++	if (!vb2_is_streaming(q) || q->error)
+ 		return res | POLLERR;
+ 
+ 	if (list_empty(&q->done_list))
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index bca25dc..5a67f31 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -375,6 +375,7 @@ struct v4l2_fh;
+  * @streaming:	current streaming state
+  * @start_streaming_called: start_streaming() was called successfully and we
+  *		started streaming.
++ * @error:	a fatal error occured on the queue
+  * @fileio:	file io emulator internal data, used only if emulator is active
+  * @threadio:	thread io internal data, used only if thread is active
+  */
+@@ -411,6 +412,7 @@ struct vb2_queue {
+ 
+ 	unsigned int			streaming:1;
+ 	unsigned int			start_streaming_called:1;
++	unsigned int			error:1;
+ 
+ 	struct vb2_fileio_data		*fileio;
+ 	struct vb2_threadio_data	*threadio;
+@@ -443,6 +445,7 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
+ int __must_check vb2_queue_init(struct vb2_queue *q);
+ 
+ void vb2_queue_release(struct vb2_queue *q);
++void vb2_queue_error(struct vb2_queue *q);
+ 
+ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
+ int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb);
+-- 
+1.8.5.5
+
