@@ -1,60 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:37894 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750825AbaFKF4S (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.53]:38372 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750926AbaFEHUl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jun 2014 01:56:18 -0400
-Date: Wed, 11 Jun 2014 07:56:16 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Jiada Wang <jiada_wang@mentor.com>
-Subject: Re: [PATCH 30/43] ARM: dts: imx6: add pin groups for imx6q/dl for
- IPU1 CSI0
-Message-ID: <20140611055616.GB664@pengutronix.de>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
- <1402178205-22697-31-git-send-email-steve_longerbeam@mentor.com>
+	Thu, 5 Jun 2014 03:20:41 -0400
+Message-ID: <53901A41.70804@xs4all.nl>
+Date: Thu, 05 Jun 2014 09:20:33 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1402178205-22697-31-git-send-email-steve_longerbeam@mentor.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC ATTN] Cropping, composing, scaling and S_FMT
+References: <538C35A2.8030307@xs4all.nl> <20140604154012.13ddd6a9.m.chehab@samsung.com>
+In-Reply-To: <20140604154012.13ddd6a9.m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jun 07, 2014 at 02:56:32PM -0700, Steve Longerbeam wrote:
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> Signed-off-by: Jiada Wang <jiada_wang@mentor.com>
-> ---
->  arch/arm/boot/dts/imx6qdl.dtsi |   52 ++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 52 insertions(+)
+On 06/04/2014 08:40 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 02 Jun 2014 10:28:18 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
-> diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
-> index 04c978c..d793cd6 100644
-> --- a/arch/arm/boot/dts/imx6qdl.dtsi
-> +++ b/arch/arm/boot/dts/imx6qdl.dtsi
-> @@ -664,6 +664,58 @@
->  			iomuxc: iomuxc@020e0000 {
->  				compatible = "fsl,imx6dl-iomuxc", "fsl,imx6q-iomuxc";
->  				reg = <0x020e0000 0x4000>;
-> +
-> +				ipu1 {
-> +					pinctrl_ipu1_csi0_d4_d7: ipu1-csi0-d4-d7 {
-> +						fsl,pins = <
-> +							MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04 0x80000000
-> +							MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05 0x80000000
-> +							MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06 0x80000000
-> +							MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07 0x80000000
-> +						>;
-> +					};
+>> During the media mini-summit I went through all 8 combinations of cropping,
+>> composing and scaling (i.e. none of these features is present, or only cropping,
+>> only composing, etc.).
+>>
+>> In particular I showed what I thought should happen if you change a crop rectangle,
+>> compose rectangle or the format rectangle (VIDIOC_S_FMT).
+>>
+>> In my proposal the format rectangle would increase in size if you attempt to set
+>> the compose rectangle wholly or partially outside the current format rectangle.
+>> Most (all?) of the developers present didn't like that and I was asked to take
+>> another look at that.
+>>
+>> After looking at this some more I realized that there was no need for this and
+>> it is OK to constrain a compose rectangle to the current format rectangle. All
+>> you need to do if you want to place the compose rectangle outside of the format
+>> rectangle is to just change the format rectangle first. If the driver supports
+>> composition then increasing the format rectangle will not change anything else,
+>> so that is a safe operation without side-effects.
+> 
+> Good!
+> 
+>> However, changing the crop rectangle *can* change the format rectangle. In the
+>> simple case of hardware that just supports cropping this is obvious, since
+>> the crop and format rectangles must always be of the same size, so changing
+>> one will change the other.
+> 
+> True, but, in such case, I'm in doubt if it is worth to implement crop API
+> support, as just format API support is enough. The drawback is that
+> userspace won't know how to differentiate between:
+> 
+> 1) scaler, no-crop, where changing the format changes the scaler;
+> 2) crop, no scaler, where changing the format changes the crop region.
+> 
+> That could easily be fixed with a new caps flag, to announce if a device 
+> has scaler or not.
 
-We no longer have the pinctrl groups in the SoC dts files. Please put
-them into the boards instead.
+Erm, the format just specifies a size, crop specifies a rectangle. You can't
+use S_FMT to specify the crop rectangle.
 
-Sascha
+Also, this case of crop and no scaler exists today in various drivers and
+works as described (I'm sure about vpfe_capture, vino and I believe that there
+are various exynos drivers as well).
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+> 
+>> But if you throw in a scaler as well, you usually
+>> still have such constraints based on the scaler capabilities.
+>>
+>> So assuming a scaler that can only scale 4 times (or less) up or down in each
+>> direction, then setting a crop rectangle of 240x160 will require that the
+>> format rectangle has a width in the range of 240/4 - 240*4 (60-960) and a
+>> height in the range of 160/4 - 160*4 (40-640). Anything outside of that will
+>> have to be corrected.
+> 
+> This can be done on two directions, e. g. rounding the crop area or
+> rounding the scaler area.
+> 
+> I is not obvious at all (nor backward compat) to change the format
+> rectangle when the crop rea is changed.
+> 
+> So, the best approach in this case is to round the crop rectangle to fit
+> into the scaler limits, preserving the format rectangle.
+
+I disagree with that for several reasons:
+
+1) In the case of no-scaler the format is already changed by s_crop in existing
+drivers. That can't be changed. So doing something else if there is a scaler is
+inconsistent behavior.
+
+2) The spec clearly specifies that changing the crop rectangle may change the
+format size. It has always said so. From the section "Image Cropping, Insertion
+and Scaling", "Scaling Adjustments":
+
+"Applications can change the source or the target rectangle first, as they may
+ prefer a particular image size or a certain area in the video signal. If the
+ driver has to adjust both to satisfy hardware limitations, the last requested
+ rectangle shall take priority, and the driver should preferably adjust the
+ opposite one. The VIDIOC_TRY_FMT ioctl however shall not change the driver
+ state and therefore only adjust the requested rectangle."
+
+The two following paragraphs actually describe exactly the crop+scaler case and
+how setting the crop rectangle can change the format size.
+
+3) If an application desires a specific crop rectangle that is possible by the
+hardware but is changed just because the format size is not suitable, then it
+is hard (perhaps even impossible) for the application to figure out how to change
+the format so the crop request can be achieved. That's quite a different situation
+compared to the compose case where that is easy to decide.
+
+4) This is actually how bttv behaves. So this is well-established behavior.
+
+Regards,
+
+	Hans
+
+> 
+>>
+>> In my opinion this is valid behavior, and the specification also clearly
+>> specifies in the VIDIOC_S_CROP and VIDIOC_S_SELECTION documentation that the
+>> format may change after changing the crop rectangle.
+>>
+>> Note that for output streams the role of crop and compose is swapped. So for
+>> output streams it is the crop rectangle that will always be constrained by
+>> the format rectangle, and it is the compose rectangle that might change the
+>> format rectangle based on scaler constraints.
+>>
+>> I think this makes sense and unless there are comments this is what I plan
+>> to implement in my vivi rewrite which supports all these crop/compose/scale
+>> combinations.
+>>
+>> Regards,
+>>
+>> 	Hans
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
