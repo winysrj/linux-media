@@ -1,83 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f51.google.com ([209.85.160.51]:33594 "EHLO
-	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753342AbaFGV5R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:17 -0400
-Received: by mail-pb0-f51.google.com with SMTP id ma3so3917151pbc.38
-        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:16 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 16/43] imx-drm: ipu-v3: Add __ipu_idmac_reset_current_buffer()
-Date: Sat,  7 Jun 2014 14:56:18 -0700
-Message-Id: <1402178205-22697-17-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:59785 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750809AbaFEMu1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jun 2014 08:50:27 -0400
+Date: Thu, 05 Jun 2014 09:50:20 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for 3.16-rc1] add DT support for vsp1
+Message-id: <20140605095020.2cc862a2.m.chehab@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds __ipu_idmac_reset_current_buffer() that resets a channel's
-internal current buffer pointer so that transfers start from buffer
-0 on the next channel enable.
+Hi Linus,
 
-This operation is required for channel linking to work correctly,
-for instance video capture pipelines that carry out image rotations
-will fail after the first streaming unless this function is called
-for each channel before re-enabling the channels.
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media topic/vsp1
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/imx-drm/ipu-v3/ipu-common.c |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+for Device Tree support for the VSP1 driver.
 
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-index 4839893..07b025f 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-@@ -686,6 +686,25 @@ EXPORT_SYMBOL_GPL(ipu_idmac_put);
- #define tri_cur_buf_mask(ch)		(idma_mask((ch) * 2) * 3)
- #define tri_cur_buf_shift(ch)		(ffs(idma_mask((ch) * 2)) - 1)
- 
-+/*
-+ * This is an undocumented feature, a write one to a channel bit in
-+ * IPU_CHA_CUR_BUF and IPU_CHA_TRIPLE_CUR_BUF will reset the channel's
-+ * internal current buffer pointer so that transfers start from buffer
-+ * 0 on the next channel enable (that's the theory anyway, the imx6 TRM
-+ * only says these are read-only registers). This operation is required
-+ * for channel linking to work correctly, for instance video capture
-+ * pipelines that carry out image rotations will fail after the first
-+ * streaming unless this function is called for each channel before
-+ * re-enabling the channels.
-+ */
-+static void __ipu_idmac_reset_current_buffer(struct ipuv3_channel *channel)
-+{
-+	struct ipu_soc *ipu = channel->ipu;
-+	unsigned int chno = channel->num;
-+
-+	ipu_cm_write(ipu, idma_mask(chno), IPU_CHA_CUR_BUF(chno));
-+}
-+
- void ipu_idmac_set_double_buffer(struct ipuv3_channel *channel,
- 		bool doublebuffer)
- {
-@@ -702,6 +721,8 @@ void ipu_idmac_set_double_buffer(struct ipuv3_channel *channel,
- 		reg &= ~idma_mask(channel->num);
- 	ipu_cm_write(ipu, reg, IPU_CHA_DB_MODE_SEL(channel->num));
- 
-+	__ipu_idmac_reset_current_buffer(channel);
-+
- 	spin_unlock_irqrestore(&ipu->lock, flags);
- }
- EXPORT_SYMBOL_GPL(ipu_idmac_set_double_buffer);
-@@ -901,6 +922,8 @@ int ipu_idmac_disable_channel(struct ipuv3_channel *channel)
- 	val &= ~idma_mask(channel->num);
- 	ipu_idmac_write(ipu, val, IDMAC_CHA_EN(channel->num));
- 
-+	__ipu_idmac_reset_current_buffer(channel);
-+
- 	/* Set channel buffers NOT to be ready */
- 	ipu_cm_write(ipu, 0xf0000000, IPU_GPR); /* write one to clear */
- 
--- 
-1.7.9.5
+Thanks!
+Mauro
+
+-
+
+The following changes since commit ce9c22443e77594531be84ba8d523f4148ba09fe:
+
+  [media] vb2: fix compiler warning (2014-04-23 10:13:57 -0300)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media topic/vsp1
+
+for you to fetch changes up to 0b82fb95d9edf7bdfc6486c67a42dbf9b1e97765:
+
+  [media] v4l: vsp1: Add DT support (2014-04-23 10:21:58 -0300)
+
+----------------------------------------------------------------
+Laurent Pinchart (6):
+      [media] v4l: vsp1: Remove unexisting rt clocks
+      [media] v4l: vsp1: uds: Enable scaling of alpha layer
+      [media] v4l: vsp1: Support multi-input entities
+      [media] v4l: vsp1: Add BRU support
+      [media] v4l: vsp1: Add DT bindings documentation
+      [media] v4l: vsp1: Add DT support
+
+ .../devicetree/bindings/media/renesas,vsp1.txt     |  43 +++
+ drivers/media/platform/vsp1/Makefile               |   2 +-
+ drivers/media/platform/vsp1/vsp1.h                 |   3 +-
+ drivers/media/platform/vsp1/vsp1_bru.c             | 395 +++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_bru.h             |  39 ++
+ drivers/media/platform/vsp1/vsp1_drv.c             | 101 +++---
+ drivers/media/platform/vsp1/vsp1_entity.c          |  57 +--
+ drivers/media/platform/vsp1/vsp1_entity.h          |  24 +-
+ drivers/media/platform/vsp1/vsp1_hsit.c            |   7 +-
+ drivers/media/platform/vsp1/vsp1_lif.c             |   1 -
+ drivers/media/platform/vsp1/vsp1_lut.c             |   1 -
+ drivers/media/platform/vsp1/vsp1_regs.h            |  98 +++++
+ drivers/media/platform/vsp1/vsp1_rpf.c             |   7 +-
+ drivers/media/platform/vsp1/vsp1_rwpf.h            |   4 +
+ drivers/media/platform/vsp1/vsp1_sru.c             |   1 -
+ drivers/media/platform/vsp1/vsp1_uds.c             |   4 +-
+ drivers/media/platform/vsp1/vsp1_video.c           |  26 +-
+ drivers/media/platform/vsp1/vsp1_video.h           |   1 +
+ drivers/media/platform/vsp1/vsp1_wpf.c             |  13 +-
+ 19 files changed, 733 insertions(+), 94 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,vsp1.txt
+ create mode 100644 drivers/media/platform/vsp1/vsp1_bru.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_bru.h
 
