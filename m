@@ -1,95 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp209.alice.it ([82.57.200.105]:52679 "EHLO smtp209.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754748AbaFYIA6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jun 2014 04:00:58 -0400
-Date: Wed, 25 Jun 2014 10:00:39 +0200
-From: Antonio Ospite <ao2@ao2.it>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org, Alexander Sosna <alexander@xxor.de>
-Subject: Re: [RFC 2/2] gspca_kinect: add support for the depth stream
-Message-Id: <20140625100039.24fb87f1967dc226d7d84abc@ao2.it>
-In-Reply-To: <53A2F525.2070504@redhat.com>
-References: <53450D76.2010405@redhat.com>
-	<1401913499-6475-1-git-send-email-ao2@ao2.it>
-	<1401913499-6475-3-git-send-email-ao2@ao2.it>
-	<53A2F525.2070504@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:57809 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752746AbaFEPbf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jun 2014 11:31:35 -0400
+Received: from uscpsbgex2.samsung.com
+ (u123.gpu85.samsung.co.kr [203.254.195.123]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N6P0043PCGM3Z50@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 05 Jun 2014 11:31:34 -0400 (EDT)
+From: Thiago Santos <ts.santos@sisa.samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Thiago Santos <ts.santos@sisa.samsung.com>
+Subject: [PATCH/RFC 0/2] libv4l2: fix deadlock when DQBUF in block mode
+Date: Thu, 05 Jun 2014 12:31:22 -0300
+Message-id: <1401982284-1983-1-git-send-email-ts.santos@sisa.samsung.com>
+MIME-version: 1.0
+Content-type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 19 Jun 2014 16:35:17 +0200
-Hans de Goede <hdegoede@redhat.com> wrote:
+This patchset modifies v4l2grab to allow using 2 threads (one for qbuf and
+another for dqbuf) to simulate multithreaded v4l2 usage.
 
-> Hi,
-> 
-> On 06/04/2014 10:24 PM, Antonio Ospite wrote:
-> > Add support for the depth mode at 10bpp, use a command line parameter to
-> > switch mode.
-> > 
-> > NOTE: this is just a proof-of-concept, the final implementation will
-> > have to expose two v4l2 devices, one for the video stream and one for
-> > the depth stream.
-> 
-> Thanks for the patch. If this is useful for some people I'm willing to
-> merge this until we've a better fix.
->
+This is done to show a issue when using libv4l2 in blocking mode, if a DQBUF
+is issued when there are no buffers available it will block waiting for one but,
+as it blocks holding the stream_lock, a QBUF will never happen and we have
+a deadlock.
 
-I guess adding a command line parameter (depth_mode) and then removing
-it in the future, when a far better alternative is available, is
-acceptable in this case; we also did something like that before for the
-PS3 Eye driver for instance.
+Thiago Santos (2):
+  v4l2grab: Add threaded producer/consumer option
+  libv4l2: release the lock before doing a DQBUF
 
-So I am going to submit this patch set for inclusion.
-
-> > Signed-off-by: Alexander Sosna <alexander@xxor.de>
-> > Signed-off-by: Antonio Ospite <ao2@ao2.it>
-> > ---
-> > 
-> > For now a command line parameter called "depth_mode" is used to select which
-> > mode to activate when loading the driver, this is necessary because gspca is
-> > not quite ready to have a subdriver call gspca_dev_probe() multiple times.
-> > 
-> > The problem seems to be that gspca assumes one video device per USB
-> > _interface_, and so it stores a pointer to gspca_dev as the interface
-> > private data: see usb_set_intfdata(intf, gspca_dev) in
-> > gspca_dev_probe2().
-> > 
-> > If anyone feels brave (do a backup first, etc. etc.), hack the sd_probe()
-> > below to register both the devices: you will get the two v4l nodes and both
-> > streams will work OK, but the kernel will halt when you disconnect the device,
-> > i.e. some problem arises in gspca_disconnect() after the usb_get_intfdata(intf)
-> > call.
-> > 
-> > I am still figuring out the details of the failure sequence, and I'll try to
-> > imagine a way to support the use case "multiple v4l devices on one USB
-> > interface", but this will take some more time.
-> 
-> I believe that support 2 devices would require separating the per video node /
-> stream data and global data into separate structs, and then refactoring everything
-> so that we can have 2 streams on one gspca_dev. If you do this please make it
-> a patch-set with many small patches, rather then 1 or 2 very large patches.
->
-> And then in things like disconnect, loop over the streams and stop both, unregister
-> both nodes, etc.
-> 
-> If you ever decide to add support for controls you will also need to think about what
-> to do with those, but for now I guess you can just register all the controls on the
-> first video-node/stream (which will be the only one for all devices except kinect
-> devices, and the kinect code currently does not have controls.
->
-
-Very useful hints, as always.
-
-Thanks,
-   Antonio
+ contrib/test/Makefile.am |   2 +-
+ contrib/test/v4l2grab.c  | 265 +++++++++++++++++++++++++++++++++++++++--------
+ lib/libv4l2/libv4l2.c    |   2 +
+ 3 files changed, 225 insertions(+), 44 deletions(-)
 
 -- 
-Antonio Ospite
-http://ao2.it
+2.0.0
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
