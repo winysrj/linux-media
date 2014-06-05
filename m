@@ -1,56 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48269 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755046AbaFKLix (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jun 2014 07:38:53 -0400
-Message-ID: <1402486732.4107.128.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH 32/43] ARM: dts: imx: sabrelite: add video capture ports
- and endpoints
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Wed, 11 Jun 2014 13:38:52 +0200
-In-Reply-To: <1402178205-22697-33-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-	 <1402178205-22697-33-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:20510 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751503AbaFEMzm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jun 2014 08:55:42 -0400
+Date: Thu, 05 Jun 2014 09:55:35 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for 3.16-rc1] updates and DT support for adv7604
+Message-id: <20140605095535.7753cb6b.m.chehab@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Samstag, den 07.06.2014, 14:56 -0700 schrieb Steve Longerbeam:
-[...]
-> +&ipu1 {
-> +	status = "okay";
-> +
-> +	v4l2-capture {
-> +		compatible = "fsl,imx6-v4l2-capture";
+Linus,
 
-I'm not happy with adding the simple-bus compatible to the ipu
-device tree node just to instantiate a virtual subdevice. See
-my comment in the following mail. I think it would be better to
-create this platform device from code, not from the device tree
-if something is connected to ipu port@0 or port@1, see below.
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media topic/adv76xx
 
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +		status = "okay";
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <
-> +			&pinctrl_ipu1_csi0_1
-> +			&pinctrl_ipu1_csi0_data_en
-> +		>;
-> +
-> +		/* CSI0 */
-> +		port@0 {
+For adv7604 driver updates, including DT support.
 
-That port really is a property of the IPU itself. I have left
-space for ports 0 and 1 when specifying the IPU output interfaces
-as port 2 (DI0) and 3 (DI1).
+Thanks!
+Mauro
 
-regards
-Philipp
+The following changes since commit e5e749dfa8606343fd7956868038bdde2e656ec1:
+
+  [media] adv7604: Add missing include to linux/types.h (2014-05-25 12:48:47 -0300)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media topic/adv76xx
+
+for you to fetch changes up to 1b5ab8755ec7b6ac83bf8d09c9f908d94e36b9a4:
+
+  [media] adv7604: Add LLC polarity configuration (2014-05-25 13:10:16 -0300)
+
+----------------------------------------------------------------
+Lars-Peter Clausen (3):
+      [media] adv7604: Add support for asynchronous probing
+      [media] adv7604: Don't put info string arrays on the stack
+      [media] adv7604: Add adv7611 support
+
+Laurent Pinchart (18):
+      [media] adv7604: Add 16-bit read functions for CP and HDMI
+      [media] adv7604: Cache register contents when reading multiple bits
+      [media] adv7604: Remove subdev control handlers
+      [media] adv7604: Add sink pads
+      [media] adv7604: Make output format configurable through pad format operations
+      [media] adv7604: Add pad-level DV timings support
+      [media] adv7604: Remove deprecated video-level DV timings operations
+      [media] v4l: subdev: Remove deprecated video-level DV timings operations
+      [media] adv7604: Inline the to_sd function
+      [media] adv7604: Store I2C addresses and clients in arrays
+      [media] adv7604: Replace *_and_or() functions with *_clr_set()
+      [media] adv7604: Sort headers alphabetically
+      [media] adv7604: Support hot-plug detect control through a GPIO
+      [media] adv7604: Specify the default input through platform data
+      [media] adv7604: Add DT support
+      [media] adv7604: Add endpoint properties to DT bindings
+      [media] adv7604: Set HPD GPIO direction to output
+      [media] adv7604: Add LLC polarity configuration
+
+ .../devicetree/bindings/media/i2c/adv7604.txt      |   70 +
+ drivers/media/i2c/adv7604.c                        | 1464 ++++++++++++++------
+ include/media/adv7604.h                            |  122 +-
+ include/media/v4l2-subdev.h                        |    4 -
+ 4 files changed, 1160 insertions(+), 500 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7604.txt
 
