@@ -1,46 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp205.alice.it ([82.57.200.101]:53075 "EHLO smtp205.alice.it"
+Received: from d.mail.sonic.net ([64.142.111.50]:59635 "EHLO d.mail.sonic.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752302AbaFDMEV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jun 2014 08:04:21 -0400
-From: Antonio Ospite <ao2@ao2.it>
-To: Jiri Kosina <trivial@kernel.org>
-Cc: Antonio Ospite <ao2@ao2.it>, Hans de Goede <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 01/12] trivial: drivers/media/usb/gspca/gspca.c: fix the indentation of a comment
-Date: Wed,  4 Jun 2014 14:03:39 +0200
-Message-Id: <1401883430-19492-2-git-send-email-ao2@ao2.it>
-In-Reply-To: <1401883430-19492-1-git-send-email-ao2@ao2.it>
-References: <1401883430-19492-1-git-send-email-ao2@ao2.it>
+	id S1751635AbaFFW4G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Jun 2014 18:56:06 -0400
+Message-ID: <53924400.7030800@ponzo.net>
+Date: Fri, 06 Jun 2014 15:43:12 -0700
+From: Scott Doty <scott@ponzo.net>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: hdpvr troubles
+References: <538D2392.6030301@ponzo.net>
+In-Reply-To: <538D2392.6030301@ponzo.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix indentation of a comment, put it on the same level of the code it
-refers to.
+On 06/02/2014 06:23 PM, Scott Doty wrote:
+> Hello Mr. Hans and mailing list,
+>
+> In a nutshell, I'm having some hdpvr trouble:
+>
+> I'm using vlc to view the stream.  Kernel 3.9.11 works pretty well,
+> including giving me AC3 5.1 audio from the optical input to the
+> Hauppauge device.  The only problem I've run across is the device
+> hanging when I change channels, but I've learned to live with that. 
+> (Though naturally it would be nice to fix. :) )
+>
+> However, every kernel I've tried after 3.9.11 seems to have trouble with
+> the audio.  I get silence, and pulseaudio reports there is only stereo.
+[...]
 
-Signed-off-by: Antonio Ospite <ao2@ao2.it>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/usb/gspca/gspca.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+Did I report this incorrectly?  Sorry if I did.
 
-diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
-index f3a7ace..f4bae98 100644
---- a/drivers/media/usb/gspca/gspca.c
-+++ b/drivers/media/usb/gspca/gspca.c
-@@ -870,9 +870,8 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
- 		ep_tb[0].alt = gspca_dev->alt;
- 		alt_idx = 1;
- 	} else {
--
--	/* else, compute the minimum bandwidth
--	 * and build the endpoint table */
-+		/* else, compute the minimum bandwidth
-+		 * and build the endpoint table */
- 		alt_idx = build_isoc_ep_tb(gspca_dev, intf, ep_tb);
- 		if (alt_idx <= 0) {
- 			pr_err("no transfer endpoint found\n");
--- 
-2.0.0
+ -Scott
 
