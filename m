@@ -1,134 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:42537 "EHLO posteo.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750980AbaF0Tvk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jun 2014 15:51:40 -0400
-Message-ID: <53ADCB24.9030206@posteo.de>
-Date: Fri, 27 Jun 2014 21:51:00 +0200
-From: Martin Kepplinger <martink@posteo.de>
-MIME-Version: 1.0
-To: Zhang Rui <rui.zhang@intel.com>
-CC: "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-	"lenb@kernel.org" <lenb@kernel.org>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black instead
- of native resolution
-References: <53A6E72A.9090000@posteo.de>		 <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>		 <53A81BF7.3030207@posteo.de> <1403529246.4686.6.camel@rzhang1-toshiba>	 <53A83DC7.1010606@posteo.de> <1403882067.16305.124.camel@rzhang1-toshiba> <53ADB359.4010401@posteo.de>
-In-Reply-To: <53ADB359.4010401@posteo.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42319 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751760AbaFFPVW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jun 2014 11:21:22 -0400
+Received: from avalon.ideasonboard.com (unknown [91.178.142.25])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id E45B2363DF
+	for <linux-media@vger.kernel.org>; Fri,  6 Jun 2014 17:20:53 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 3/5] v4l: omap4iss: Use the devm_* managed allocators
+Date: Fri,  6 Jun 2014 17:21:44 +0200
+Message-Id: <1402068106-32677-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1402068106-32677-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1402068106-32677-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 2014-06-27 20:09, schrieb Martin Kepplinger:
-> Am 2014-06-27 17:14, schrieb Zhang Rui:
->> On Mon, 2014-06-23 at 16:46 +0200, Martin Kepplinger wrote:
->>> Am 2014-06-23 15:14, schrieb Zhang Rui:
->>>> On Mon, 2014-06-23 at 14:22 +0200, Martin Kepplinger wrote:
->>>>> Am 2014-06-23 03:10, schrieb Zhang, Rui:
->>>>>>
->>>>>>
->>>>>>> -----Original Message-----
->>>>>>> From: Martin Kepplinger [mailto:martink@posteo.de]
->>>>>>> Sent: Sunday, June 22, 2014 10:25 PM
->>>>>>> To: Zhang, Rui
->>>>>>> Cc: rjw@rjwysocki.net; lenb@kernel.org; linux-acpi@vger.kernel.org;
->>>>>>> linux-kernel@vger.kernel.org
->>>>>>> Subject: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black
->>>>>>> instead of native resolution
->>>>>>> Importance: High
->>>>>>>
->>>>>>> Since 3.16-rc1 my laptop's just goes black while booting, instead of
->>>>>>> switching to native screen resolution and showing me the starting
->>>>>>> system there. It's an Acer TravelMate B113 with i915 driver and
->>>>>>> acer_wmi. It stays black and is unusable.
->>>>>>>
->>>> This looks like a duplicate of
->>>> https://bugzilla.kernel.org/show_bug.cgi?id=78601
->>>>
->>>> thanks,
->>>> rui
->>> I'm not sure about that. I have no problem with v3.15 and the screen
->>> goes black way before a display manager is started. It's right after the
->>> kernel loaded and usually the screen is set to native resolution.
->>>
->>> Bisect told me aaeb2554337217dfa4eac2fcc90da7be540b9a73 as the first bad
->>> one. Although, checking that out and running it, works good. not sure if
->>> that makes sense.
->>>
->> could you please check if the comment in
->> https://bugzilla.kernel.org/show_bug.cgi?id=78601#c5 solves your problem
->> or not?
->>
->> thanks,
->> rui
-> 
-> thanks for checking. This does not change anything though. I tested the
-> following on top of v3.16-rc2 and linus's tree as of today, almost -rc3.
-> 
-> ---
->  drivers/gpu/drm/i915/intel_fbdev.c |    1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/gpu/drm/i915/intel_fbdev.c
-> b/drivers/gpu/drm/i915/intel_fbdev.c
-> index 088fe93..1e2f9ae 100644
-> --- a/drivers/gpu/drm/i915/intel_fbdev.c
-> +++ b/drivers/gpu/drm/i915/intel_fbdev.c
-> @@ -453,7 +453,6 @@ out:
->  }
-> 
->  static struct drm_fb_helper_funcs intel_fb_helper_funcs = {
-> -       .initial_config = intel_fb_initial_config,
->         .gamma_set = intel_crtc_fb_gamma_set,
->         .gamma_get = intel_crtc_fb_gamma_get,
->         .fb_probe = intelfb_create,
-> 
+This simplifies remove and error code paths.
 
-I also tested the following patch from
-http://lists.freedesktop.org/archives/intel-gfx/2014-June/047981.html
-now, with no results. No change in my case :(
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/staging/media/omap4iss/iss.c | 84 ++++--------------------------------
+ 1 file changed, 8 insertions(+), 76 deletions(-)
 
-diff --git a/drivers/gpu/drm/i915/intel_display.c
-b/drivers/gpu/drm/i915/intel_display.c
-index efd3cf5..5aee08e 100644
---- a/drivers/gpu/drm/i915/intel_display.c
-+++ b/drivers/gpu/drm/i915/intel_display.c
-@@ -11087,6 +11087,22 @@ const char *intel_output_name(int output)
-        return names[output];
+diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+index 4a9e444..d548371 100644
+--- a/drivers/staging/media/omap4iss/iss.c
++++ b/drivers/staging/media/omap4iss/iss.c
+@@ -1003,32 +1003,17 @@ static void iss_disable_clocks(struct iss_device *iss)
+ 	clk_disable(iss->iss_fck);
  }
-
-+static bool intel_crt_present(struct drm_device *dev)
-+{
-+       struct drm_i915_private *dev_priv = dev->dev_private;
-+
-+       if (IS_ULT(dev))
-+               return false;
-+
-+       if (IS_CHERRYVIEW(dev))
-+               return false;
-+
-+       if (IS_VALLEYVIEW(dev) && !dev_priv->vbt.int_crt_support)
-+               return false;
-+
-+       return true;
-+}
-+
- static void intel_setup_outputs(struct drm_device *dev)
+ 
+-static void iss_put_clocks(struct iss_device *iss)
+-{
+-	if (iss->iss_fck) {
+-		clk_put(iss->iss_fck);
+-		iss->iss_fck = NULL;
+-	}
+-
+-	if (iss->iss_ctrlclk) {
+-		clk_put(iss->iss_ctrlclk);
+-		iss->iss_ctrlclk = NULL;
+-	}
+-}
+-
+ static int iss_get_clocks(struct iss_device *iss)
  {
-        struct drm_i915_private *dev_priv = dev->dev_private;
-@@ -11095,7 +11111,7 @@ static void intel_setup_outputs(struct
-drm_device *dev)
-
-        intel_lvds_init(dev);
-
--       if (!IS_ULT(dev) && !IS_CHERRYVIEW(dev) &&
-dev_priv->vbt.int_crt_support)
-+       if (intel_crt_present(dev))
-                intel_crt_init(dev);
-
-        if (HAS_DDI(dev)) {
+-	iss->iss_fck = clk_get(iss->dev, "iss_fck");
++	iss->iss_fck = devm_clk_get(iss->dev, "iss_fck");
+ 	if (IS_ERR(iss->iss_fck)) {
+ 		dev_err(iss->dev, "Unable to get iss_fck clock info\n");
+-		iss_put_clocks(iss);
+ 		return PTR_ERR(iss->iss_fck);
+ 	}
+ 
+-	iss->iss_ctrlclk = clk_get(iss->dev, "iss_ctrlclk");
++	iss->iss_ctrlclk = devm_clk_get(iss->dev, "iss_ctrlclk");
+ 	if (IS_ERR(iss->iss_ctrlclk)) {
+ 		dev_err(iss->dev, "Unable to get iss_ctrlclk clock info\n");
+-		iss_put_clocks(iss);
+ 		return PTR_ERR(iss->iss_ctrlclk);
+ 	}
+ 
+@@ -1104,29 +1089,11 @@ static int iss_map_mem_resource(struct platform_device *pdev,
+ {
+ 	struct resource *mem;
+ 
+-	/* request the mem region for the camera registers */
+-
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, res);
+-	if (!mem) {
+-		dev_err(iss->dev, "no mem resource?\n");
+-		return -ENODEV;
+-	}
+-
+-	if (!request_mem_region(mem->start, resource_size(mem), pdev->name)) {
+-		dev_err(iss->dev,
+-			"cannot reserve camera register I/O region\n");
+-		return -ENODEV;
+-	}
+-	iss->res[res] = mem;
+ 
+-	/* map the region */
+-	iss->regs[res] = ioremap_nocache(mem->start, resource_size(mem));
+-	if (!iss->regs[res]) {
+-		dev_err(iss->dev, "cannot map camera register I/O region\n");
+-		return -ENODEV;
+-	}
++	iss->regs[res] = devm_ioremap_resource(iss->dev, mem);
+ 
+-	return 0;
++	return PTR_ERR_OR_ZERO(iss->regs[res]);
+ }
+ 
+ static void iss_unregister_entities(struct iss_device *iss)
+@@ -1389,7 +1356,7 @@ static int iss_probe(struct platform_device *pdev)
+ 	if (pdata == NULL)
+ 		return -EINVAL;
+ 
+-	iss = kzalloc(sizeof(*iss), GFP_KERNEL);
++	iss = devm_kzalloc(&pdev->dev, sizeof(*iss), GFP_KERNEL);
+ 	if (!iss) {
+ 		dev_err(&pdev->dev, "Could not allocate memory\n");
+ 		return -ENOMEM;
+@@ -1456,7 +1423,8 @@ static int iss_probe(struct platform_device *pdev)
+ 		goto error_iss;
+ 	}
+ 
+-	if (request_irq(iss->irq_num, iss_isr, IRQF_SHARED, "OMAP4 ISS", iss)) {
++	if (devm_request_irq(iss->dev, iss->irq_num, iss_isr, IRQF_SHARED,
++			     "OMAP4 ISS", iss)) {
+ 		dev_err(iss->dev, "Unable to request IRQ\n");
+ 		ret = -EINVAL;
+ 		goto error_iss;
+@@ -1465,7 +1433,7 @@ static int iss_probe(struct platform_device *pdev)
+ 	/* Entities */
+ 	ret = iss_initialize_modules(iss);
+ 	if (ret < 0)
+-		goto error_irq;
++		goto error_iss;
+ 
+ 	ret = iss_register_entities(iss);
+ 	if (ret < 0)
+@@ -1477,29 +1445,12 @@ static int iss_probe(struct platform_device *pdev)
+ 
+ error_modules:
+ 	iss_cleanup_modules(iss);
+-error_irq:
+-	free_irq(iss->irq_num, iss);
+ error_iss:
+ 	omap4iss_put(iss);
+ error:
+-	iss_put_clocks(iss);
+-
+-	for (i = 0; i < OMAP4_ISS_MEM_LAST; i++) {
+-		if (iss->regs[i]) {
+-			iounmap(iss->regs[i]);
+-			iss->regs[i] = NULL;
+-		}
+-
+-		if (iss->res[i]) {
+-			release_mem_region(iss->res[i]->start,
+-					   resource_size(iss->res[i]));
+-			iss->res[i] = NULL;
+-		}
+-	}
+ 	platform_set_drvdata(pdev, NULL);
+ 
+ 	mutex_destroy(&iss->iss_mutex);
+-	kfree(iss);
+ 
+ 	return ret;
+ }
+@@ -1507,29 +1458,10 @@ error:
+ static int iss_remove(struct platform_device *pdev)
+ {
+ 	struct iss_device *iss = platform_get_drvdata(pdev);
+-	unsigned int i;
+ 
+ 	iss_unregister_entities(iss);
+ 	iss_cleanup_modules(iss);
+ 
+-	free_irq(iss->irq_num, iss);
+-	iss_put_clocks(iss);
+-
+-	for (i = 0; i < OMAP4_ISS_MEM_LAST; i++) {
+-		if (iss->regs[i]) {
+-			iounmap(iss->regs[i]);
+-			iss->regs[i] = NULL;
+-		}
+-
+-		if (iss->res[i]) {
+-			release_mem_region(iss->res[i]->start,
+-					   resource_size(iss->res[i]));
+-			iss->res[i] = NULL;
+-		}
+-	}
+-
+-	kfree(iss);
+-
+ 	return 0;
+ }
+ 
 -- 
-1.7.10.4
+1.8.5.5
+
