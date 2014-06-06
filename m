@@ -1,63 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f176.google.com ([209.85.214.176]:52484 "EHLO
-	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753211AbaFZQSy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jun 2014 12:18:54 -0400
-Received: by mail-ob0-f176.google.com with SMTP id wm4so4102661obc.21
-        for <linux-media@vger.kernel.org>; Thu, 26 Jun 2014 09:18:53 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41790 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751407AbaFFNl6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jun 2014 09:41:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH/RFC v2 1/2] v4l: vb2: Don't return POLLERR during transient buffer underruns
+Date: Fri, 06 Jun 2014 15:42:28 +0200
+Message-ID: <2394481.2zcs5YKt7z@avalon>
+In-Reply-To: <539190BA.8060006@xs4all.nl>
+References: <1401970991-4421-1-git-send-email-laurent.pinchart@ideasonboard.com> <53918EDB.3090908@redhat.com> <539190BA.8060006@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CA+2YH7urbO6C-a6UMB+1JKN2z7F0CDmqh0184cCzXHbW1ADfXA@mail.gmail.com>
-References: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<CA+2YH7uDVL+s9aY-erktyKeUbmd2=49r=nDZXPRCZ8dcSjmCoA@mail.gmail.com>
-	<CA+2YH7urbO6C-a6UMB+1JKN2z7F0CDmqh0184cCzXHbW1ADfXA@mail.gmail.com>
-Date: Thu, 26 Jun 2014 18:18:53 +0200
-Message-ID: <CA+2YH7sa0MubQKPuGDSVV79UYUzw=Ks-MshenaUA61DJhG7H4Q@mail.gmail.com>
-Subject: Re: [PATCH 00/11] OMAP3 ISP BT.656 support
-From: Enrico <ebutera@users.berlios.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Enric Balletbo Serra <eballetbo@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 24, 2014 at 5:19 PM, Enrico <ebutera@users.berlios.de> wrote:
-> On Tue, May 27, 2014 at 10:38 AM, Enrico <ebutera@users.berlios.de> wrote:
->> On Mon, May 26, 2014 at 9:50 PM, Laurent Pinchart
->> <laurent.pinchart@ideasonboard.com> wrote:
->>> Hello,
->>>
->>> This patch sets implements support for BT.656 and interlaced formats in the
->>> OMAP3 ISP driver. Better late than never I suppose, although given how long
->>> this has been on my to-do list there's probably no valid excuse.
->>
->> Thanks Laurent!
->>
->> I hope to have time soon to test it :)
->
-> Hi Laurent,
->
-> i wanted to try your patches but i'm having a problem (probably not
-> caused by your patches).
->
-> I merged media_tree master and omap3isp branches, applied your patches
-> and added camera platform data in pdata-quirks, but when loading the
-> omap3-isp driver i have:
->
-> omap3isp: clk_set_rate for cam_mclk failed
->
-> The returned value from clk_set_rate is -22 (EINVAL), but i can't see
-> any other debug message to track it down. Any ides?
-> I'm testing it on an igep proton (omap3530 version).
+On Friday 06 June 2014 11:58:18 Hans Verkuil wrote:
+> On 06/06/2014 11:50 AM, Hans de Goede wrote:
+> > Hi,
+> > 
+> > On 06/05/2014 02:23 PM, Laurent Pinchart wrote:
+> >> The V4L2 specification states that
+> >> 
+> >> "When the application did not call VIDIOC_QBUF or VIDIOC_STREAMON yet
+> >> the poll() function succeeds, but sets the POLLERR flag in the revents
+> >> field."
+> >> 
+> >> The vb2_poll() function sets POLLERR when the queued buffers list is
+> >> empty, regardless of whether this is caused by the stream not being
+> >> active yet, or by a transient buffer underrun.
+> >> 
+> >> Bring the implementation in line with the specification by returning
+> >> POLLERR only when the queue is not streaming. Buffer underruns during
+> >> streaming are not treated specially anymore and just result in poll()
+> >> blocking until the next event.
+> > 
+> > After your patch the implementation is still not inline with the spec,
+> > queuing buffers, then starting a thread doing the poll, then doing the
+> > streamon in the main thread will still cause the poll to return POLLERR,
+> > even though buffers are queued, which according to the spec should be
+> > enough for the poll to block.
+> > 
+> > The correct check would be:
+> > 
+> > if (list_empty(&q->queued_list) && !vb2_is_streaming(q))
+> > 
+> > 	eturn res | POLLERR;
+> 
+> Good catch! I should have seen that :-(
 
-Trying it on an igep com module (dm3730) i don't get the clk_set_rate
-error (but there is no tvp hardware connected so i can't go farther).
+I'll update the patch accordingly.
 
-So it must be something different between omap3430/omap3630 clocks, i
-tried to use (CM_CAM_MCLK_HZ / 2) with the omap3530 one but i get the
-same error.
+> v4l2-compliance should certainly be extended to test this as well.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > Regards,
+> > 
+> > Hans
+> > 
+> >> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >> 
+> >>  drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
+> >>  1 file changed, 2 insertions(+), 2 deletions(-)
+> >> 
+> >> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> >> b/drivers/media/v4l2-core/videobuf2-core.c index 349e659..fd428e0 100644
+> >> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> >> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> >> @@ -2533,9 +2533,9 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
+> >> file *file, poll_table *wait)>> 
+> >>  	}
+> >>  	
+> >>  	/*
+> >> 
+> >> -	 * There is nothing to wait for if no buffers have already been 
+queued.
+> >> +	 * There is nothing to wait for if the queue isn't streaming.
+> >> 
+> >>  	 */
+> >> 
+> >> -	if (list_empty(&q->queued_list))
+> >> +	if (!vb2_is_streaming(q))
+> >> 
+> >>  		return res | POLLERR;
+> >>  	
+> >>  	if (list_empty(&q->done_list))
 
-I don't know what else i can try.
+-- 
+Regards,
 
-Enrico
+Laurent Pinchart
+
