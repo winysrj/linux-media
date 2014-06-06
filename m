@@ -1,50 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60591 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751360AbaFXPQH (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:36814 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751660AbaFFQGb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 11:16:07 -0400
-Message-ID: <1403622960.2910.38.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH 18/30] [media] coda: let userspace force IDR frames by
- enabling the keyframe flag in the source buffer
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de
-Date: Tue, 24 Jun 2014 17:16:00 +0200
-In-Reply-To: <539EA9C2.3010704@xs4all.nl>
-References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
-	 <1402675736-15379-19-git-send-email-p.zabel@pengutronix.de>
-	 <539EA9C2.3010704@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+	Fri, 6 Jun 2014 12:06:31 -0400
+Message-ID: <5391E6FE.1060901@codethink.co.uk>
+Date: Fri, 06 Jun 2014 17:06:22 +0100
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+MIME-Version: 1.0
+To: Lars-Peter Clausen <lars@metafoo.de>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Ian Molton <ian.molton@codethink.co.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	William Towle <william.towle@codethink.co.uk>
+Subject: Re: [GIT PULL for 3.16-rc1] updates and DT support for adv7604
+References: <20140605095535.7753cb6b.m.chehab@samsung.com> <5391E304.6030008@codethink.co.uk> <5391E39F.1030402@metafoo.de>
+In-Reply-To: <5391E39F.1030402@metafoo.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Montag, den 16.06.2014, 10:24 +0200 schrieb Hans Verkuil:
-> On 06/13/2014 06:08 PM, Philipp Zabel wrote:
-> > This disables forcing IDR frames at GOP size intervals on CODA7541 and CODA960,
-> > which is only needed to work around a firmware bug on CodaDx6.
-> > Instead, the V4L2_BUF_FLAG_KEYFRAME v4l2 buffer flag is cleared before marking
-> > the source buffer done for dequeueing. Userspace can set it before queueing a
-> > frame to force an IDR frame, to implement VFU (Video Fast Update).
+On 06/06/14 16:51, Lars-Peter Clausen wrote:
+> On 06/06/2014 05:49 PM, Ben Dooks wrote:
+>> On 05/06/14 13:55, Mauro Carvalho Chehab wrote:
+>>> Linus,
+>>>
+>>> Please pull from:
+>>>    git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media
+>>> topic/adv76xx
+>>>
+>>> For adv7604 driver updates, including DT support.
+>>
+>> Can we use the adv7611 for the adv7612 with these?
+>>
 > 
-> I'd like to see an RFC for this feature. Rather than 'misuse' it, I think this
-> should be standardized. I have nothing against using KEYFRAME in order to
-> implement VFU (in fact, I like it!), but it should be documented and well-defined.
+> You can, except that you won't be able to use the second HDMI in. But it
+> should be fairly trivial to add that.
 
-Thanks, I'll prepare a separate RFC for this.
-The other possibility would be to use a V4L2_ENC_CMD for this feature.
+Thanks, we're going to try the rcar_vin driver and the HDMI in on the
+Lager board next week.
 
-One thing I'm not sure about is how to signal to userspace that this
-feature is available when using the KEYFRAME clearing. With encoder
-commands, TRY_COMMAND could be used. But when using the buffer KEYFRAME
-bits, I suppose a flag would have to be introduced somewhere?
-
-regards
-Philipp
-
+-- 
+Ben Dooks				http://www.codethink.co.uk/
+Senior Engineer				Codethink - Providing Genius
