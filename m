@@ -1,55 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48279 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751683AbaFKLjG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jun 2014 07:39:06 -0400
-Message-ID: <1402486744.4107.130.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH 35/43] ARM: dts: imx6qdl: Add simple-bus to ipu
- compatibility
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Wed, 11 Jun 2014 13:39:04 +0200
-In-Reply-To: <1402178205-22697-36-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-	 <1402178205-22697-36-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-vc0-f175.google.com ([209.85.220.175]:37394 "EHLO
+	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750749AbaFFFYl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jun 2014 01:24:41 -0400
+Received: by mail-vc0-f175.google.com with SMTP id lc6so2345655vcb.20
+        for <linux-media@vger.kernel.org>; Thu, 05 Jun 2014 22:24:41 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1401970991-4421-2-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1401970991-4421-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1401970991-4421-2-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Fri, 6 Jun 2014 14:15:41 +0900
+Message-ID: <CAMm-=zABUWU03pMVEWO25C8sT7ih_HKZ0=uvLNAjgU5N9=wxKQ@mail.gmail.com>
+Subject: Re: [PATCH/RFC v2 1/2] v4l: vb2: Don't return POLLERR during
+ transient buffer underruns
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Samstag, den 07.06.2014, 14:56 -0700 schrieb Steve Longerbeam:
-> The IPU can have child devices now, so add "simple-bus" to
-> compatible list to ensure creation of the children.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+On Thu, Jun 5, 2014 at 9:23 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> The V4L2 specification states that
+>
+> "When the application did not call VIDIOC_QBUF or VIDIOC_STREAMON yet
+> the poll() function succeeds, but sets the POLLERR flag in the revents
+> field."
+>
+> The vb2_poll() function sets POLLERR when the queued buffers list is
+> empty, regardless of whether this is caused by the stream not being
+> active yet, or by a transient buffer underrun.
+>
+> Bring the implementation in line with the specification by returning
+> POLLERR only when the queue is not streaming. Buffer underruns during
+> streaming are not treated specially anymore and just result in poll()
+> blocking until the next event.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Acked-by: Pawel Osciak <pawel@osciak.com>
+
 > ---
->  .../bindings/staging/imx-drm/fsl-imx-drm.txt       |    6 ++++--
->  arch/arm/boot/dts/imx6q.dtsi                       |    2 +-
->  arch/arm/boot/dts/imx6qdl.dtsi                     |    2 +-
->  3 files changed, 6 insertions(+), 4 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt b/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
-> index 3be5ce7..dc759e4 100644
-> --- a/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
-> +++ b/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
-> @@ -21,7 +21,9 @@ Freescale i.MX IPUv3
->  ====================
->  
->  Required properties:
-> -- compatible: Should be "fsl,<chip>-ipu"
-> +- compatible: Should be "fsl,<chip>-ipu". The IPU can also have child
-> +  devices, so also must include "simple-bus" to ensure creation of the
-> +  children.
-
-This would be ok if the submodules (CSI, SMFC, IC, DC, DP, etc.) were
-listed as subnodes (which I don't think is a good idea). As it stands,
-this is a misuse of simple-bus, as the IPU does not provide access to
-the subdevices you are going to add through a simple MMIO mapping.
-
-regards
-Philipp
-
+>  drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 349e659..fd428e0 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -2533,9 +2533,9 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+>         }
+>
+>         /*
+> -        * There is nothing to wait for if no buffers have already been queued.
+> +        * There is nothing to wait for if the queue isn't streaming.
+>          */
+> -       if (list_empty(&q->queued_list))
+> +       if (!vb2_is_streaming(q))
+>                 return res | POLLERR;
+>
+>         if (list_empty(&q->done_list))
+> --
+> 1.8.5.5
+>
