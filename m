@@ -1,80 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f47.google.com ([209.85.160.47]:50872 "EHLO
-	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757091AbaFZBH3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jun 2014 21:07:29 -0400
-Received: by mail-pb0-f47.google.com with SMTP id up15so2399332pbc.6
-        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 18:07:28 -0700 (PDT)
+Received: from mail-pd0-f181.google.com ([209.85.192.181]:51257 "EHLO
+	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753320AbaFGV5L (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:11 -0400
+Received: by mail-pd0-f181.google.com with SMTP id z10so3819365pdj.12
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:11 -0700 (PDT)
 From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 17/28] gpu: ipu-v3: Add ipu_idmac_enable_watermark()
-Date: Wed, 25 Jun 2014 18:05:44 -0700
-Message-Id: <1403744755-24944-18-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Dmitry Eremin-Solenikov <dmitry_eremin@mentor.com>
+Subject: [PATCH 11/43] imx-drm: ipu-v3: Add helper function checking if pixfmt is planar
+Date: Sat,  7 Jun 2014 14:56:13 -0700
+Message-Id: <1402178205-22697-12-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds the function ipu_idmac_enable_watermark(), which enables or disables
-watermarking in the IDMAC channel. Enabling watermarking can increase a
-channel's AXI bus arbitration priority.
+Add simple helper function returning true if passed pixel format is one
+of supported planar ones.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Dmitry Eremin-Solenikov <dmitry_eremin@mentor.com>
 ---
- drivers/gpu/ipu-v3/ipu-common.c |   25 +++++++++++++++++++++++++
- include/video/imx-ipu-v3.h      |    1 +
- 2 files changed, 26 insertions(+)
+ drivers/staging/imx-drm/ipu-v3/ipu-common.c |   12 ++++++++++++
+ include/linux/platform_data/imx-ipu-v3.h    |    1 +
+ 2 files changed, 13 insertions(+)
 
-diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
-index 30afef4..7be56b6 100644
---- a/drivers/gpu/ipu-v3/ipu-common.c
-+++ b/drivers/gpu/ipu-v3/ipu-common.c
-@@ -986,6 +986,31 @@ int ipu_idmac_disable_channel(struct ipuv3_channel *channel)
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+index 02577cc..d005ed5 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+@@ -551,6 +551,18 @@ enum ipu_color_space ipu_pixelformat_to_colorspace(u32 pixelformat)
  }
- EXPORT_SYMBOL_GPL(ipu_idmac_disable_channel);
+ EXPORT_SYMBOL_GPL(ipu_pixelformat_to_colorspace);
  
-+/*
-+ * The imx6 rev. D TRM says that enabling the WM feature will increase
-+ * a channel's priority. Refer to Table 36-8 Calculated priority value.
-+ * The sub-module that is the sink or source for the channel must enable
-+ * watermark signal for this to take effect (SMFC_WM for instance).
-+ */
-+void ipu_idmac_enable_watermark(struct ipuv3_channel *channel, bool enable)
++bool ipu_pixelformat_is_planar(u32 pixelformat)
 +{
-+	struct ipu_soc *ipu = channel->ipu;
-+	unsigned long flags;
-+	u32 val;
++	switch (pixelformat) {
++	case V4L2_PIX_FMT_YUV420:
++	case V4L2_PIX_FMT_YVU420:
++		return true;
++	}
 +
-+	spin_lock_irqsave(&ipu->lock, flags);
-+
-+	val = ipu_idmac_read(ipu, IDMAC_WM_EN(channel->num));
-+	if (enable)
-+		val |= 1 << (channel->num % 32);
-+	else
-+		val &= ~(1 << (channel->num % 32));
-+	ipu_idmac_write(ipu, val, IDMAC_WM_EN(channel->num));
-+
-+	spin_unlock_irqrestore(&ipu->lock, flags);
++	return false;
 +}
-+EXPORT_SYMBOL_GPL(ipu_idmac_enable_watermark);
++EXPORT_SYMBOL_GPL(ipu_pixelformat_is_planar);
 +
- static int ipu_memory_reset(struct ipu_soc *ipu)
+ enum ipu_color_space ipu_mbus_code_to_colorspace(u32 mbus_code)
  {
- 	unsigned long timeout;
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 17a0bb8..df9863a 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -196,6 +196,7 @@ void ipu_idmac_put(struct ipuv3_channel *);
- 
- int ipu_idmac_enable_channel(struct ipuv3_channel *channel);
- int ipu_idmac_disable_channel(struct ipuv3_channel *channel);
-+void ipu_idmac_enable_watermark(struct ipuv3_channel *channel, bool enable);
- int ipu_idmac_wait_busy(struct ipuv3_channel *channel, int ms);
- 
- void ipu_idmac_set_double_buffer(struct ipuv3_channel *channel,
+ 	switch (mbus_code & 0xf000) {
+diff --git a/include/linux/platform_data/imx-ipu-v3.h b/include/linux/platform_data/imx-ipu-v3.h
+index ffcfe20..dcf2c57 100644
+--- a/include/linux/platform_data/imx-ipu-v3.h
++++ b/include/linux/platform_data/imx-ipu-v3.h
+@@ -467,6 +467,7 @@ int ipu_cpmem_set_image(struct ipu_ch_param __iomem *cpmem,
+ enum ipu_color_space ipu_drm_fourcc_to_colorspace(u32 drm_fourcc);
+ enum ipu_color_space ipu_pixelformat_to_colorspace(u32 pixelformat);
+ enum ipu_color_space ipu_mbus_code_to_colorspace(u32 mbus_code);
++bool ipu_pixelformat_is_planar(u32 pixelformat);
+ int ipu_degrees_to_rot_mode(enum ipu_rotate_mode *mode, int degrees,
+ 			    bool hflip, bool vflip);
+ int ipu_rot_mode_to_degrees(int *degrees, enum ipu_rotate_mode mode,
 -- 
 1.7.9.5
 
