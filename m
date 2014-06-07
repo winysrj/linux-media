@@ -1,72 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3203 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751816AbaFJMRK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jun 2014 08:17:10 -0400
-Message-ID: <5396F704.3070701@xs4all.nl>
-Date: Tue, 10 Jun 2014 14:16:04 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-CC: laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v3 2/3] smiapp: Add driver-specific test pattern menu
- item definitions
-References: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com> <1401374448-30411-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1401374448-30411-3-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:46297 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753324AbaFGV5W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:22 -0400
+Received: by mail-pb0-f47.google.com with SMTP id rp16so3919239pbb.34
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:21 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 21/43] imx-drm: ipu-v3: Add ipu_bits_per_pixel()
+Date: Sat,  7 Jun 2014 14:56:23 -0700
+Message-Id: <1402178205-22697-22-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/29/14 16:40, Sakari Ailus wrote:
-> Add numeric definitions for menu items used in the smiapp driver's test
-> pattern menu.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Add simple conversion from pixelformat to total bits-per-pixel.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/imx-drm/ipu-v3/ipu-common.c |   27 +++++++++++++++++++++++++++
+ include/linux/platform_data/imx-ipu-v3.h    |    1 +
+ 2 files changed, 28 insertions(+)
 
-> ---
->  include/uapi/linux/smiapp.h | 29 +++++++++++++++++++++++++++++
->  1 file changed, 29 insertions(+)
->  create mode 100644 include/uapi/linux/smiapp.h
-> 
-> diff --git a/include/uapi/linux/smiapp.h b/include/uapi/linux/smiapp.h
-> new file mode 100644
-> index 0000000..53938f4
-> --- /dev/null
-> +++ b/include/uapi/linux/smiapp.h
-> @@ -0,0 +1,29 @@
-> +/*
-> + * include/uapi/linux/smiapp.h
-> + *
-> + * Generic driver for SMIA/SMIA++ compliant camera modules
-> + *
-> + * Copyright (C) 2014 Intel Corporation
-> + * Contact: Sakari Ailus <sakari.ailus@iki.fi>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + */
-> +
-> +#ifndef __UAPI_LINUX_SMIAPP_H_
-> +#define __UAPI_LINUX_SMIAPP_H_
-> +
-> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_DISABLED			0
-> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR		1
-> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS		2
-> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS_GREY		3
-> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_PN9			4
-> +
-> +#endif /* __UAPI_LINUX_SMIAPP_H_ */
-> 
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+index de66d02..8a03ad2 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+@@ -606,6 +606,33 @@ int ipu_stride_to_bytes(u32 pixel_stride, u32 pixelformat)
+ }
+ EXPORT_SYMBOL_GPL(ipu_stride_to_bytes);
+ 
++/*
++ * Standard bpp from pixel format.
++ */
++int ipu_bits_per_pixel(u32 pixelformat)
++{
++	switch (pixelformat) {
++	case V4L2_PIX_FMT_YUV420:
++	case V4L2_PIX_FMT_YVU420:
++		return 12;
++	case V4L2_PIX_FMT_RGB565:
++	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_UYVY:
++		return 16;
++	case V4L2_PIX_FMT_BGR24:
++	case V4L2_PIX_FMT_RGB24:
++		return 24;
++	case V4L2_PIX_FMT_BGR32:
++	case V4L2_PIX_FMT_RGB32:
++		return 32;
++	default:
++		break;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(ipu_bits_per_pixel);
++
+ int ipu_degrees_to_rot_mode(enum ipu_rotate_mode *mode, int degrees,
+ 			    bool hflip, bool vflip)
+ {
+diff --git a/include/linux/platform_data/imx-ipu-v3.h b/include/linux/platform_data/imx-ipu-v3.h
+index 75a6a5d..49e69a9 100644
+--- a/include/linux/platform_data/imx-ipu-v3.h
++++ b/include/linux/platform_data/imx-ipu-v3.h
+@@ -510,6 +510,7 @@ enum ipu_color_space ipu_drm_fourcc_to_colorspace(u32 drm_fourcc);
+ enum ipu_color_space ipu_pixelformat_to_colorspace(u32 pixelformat);
+ enum ipu_color_space ipu_mbus_code_to_colorspace(u32 mbus_code);
+ int ipu_stride_to_bytes(u32 pixel_stride, u32 pixelformat);
++int ipu_bits_per_pixel(u32 pixelformat);
+ bool ipu_pixelformat_is_planar(u32 pixelformat);
+ int ipu_degrees_to_rot_mode(enum ipu_rotate_mode *mode, int degrees,
+ 			    bool hflip, bool vflip);
+-- 
+1.7.9.5
 
