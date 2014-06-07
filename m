@@ -1,54 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:8974 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752913AbaFEPbk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jun 2014 11:31:40 -0400
-Received: from uscpsbgex3.samsung.com
- (u124.gpu85.samsung.co.kr [203.254.195.124]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N6P003W9CGRU940@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 05 Jun 2014 11:31:39 -0400 (EDT)
-From: Thiago Santos <ts.santos@sisa.samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Thiago Santos <ts.santos@sisa.samsung.com>
-Subject: [PATCH/RFC 2/2] libv4l2: release the lock before doing a DQBUF
-Date: Thu, 05 Jun 2014 12:31:24 -0300
-Message-id: <1401982284-1983-3-git-send-email-ts.santos@sisa.samsung.com>
-In-reply-to: <1401982284-1983-1-git-send-email-ts.santos@sisa.samsung.com>
-References: <1401982284-1983-1-git-send-email-ts.santos@sisa.samsung.com>
-MIME-version: 1.0
-Content-type: text/plain
+Received: from mail-lb0-f176.google.com ([209.85.217.176]:58598 "EHLO
+	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752159AbaFGAag (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jun 2014 20:30:36 -0400
+Received: by mail-lb0-f176.google.com with SMTP id p9so1890320lbv.7
+        for <linux-media@vger.kernel.org>; Fri, 06 Jun 2014 17:30:34 -0700 (PDT)
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Martin Bugge <marbugge@cisco.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media: v4l2-core: v4l2-dv-timings.c:  Cleaning up code that putting values to the same variable twice
+Date: Sat,  7 Jun 2014 02:31:28 +0200
+Message-Id: <1402101088-14731-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In blocking mode, if there are no buffers available the DQBUF will block
-waiting for a QBUF to be called but it will block holding the streaming
-lock which will prevent any QBUF from happening, causing a deadlock.
+Instead of putting the same variable twice,
+was rather intended to set this value to two different variable.
 
-Can be tested with: v4l2grab -t 1 -b 1 -s 2000
+This was partly found using a static code analysis program called cppcheck.
 
-Signed-off-by: Thiago Santos <ts.santos@sisa.samsung.com>
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
 ---
- lib/libv4l2/libv4l2.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/v4l2-core/v4l2-dv-timings.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
-index c4d69f7..5589fe0 100644
---- a/lib/libv4l2/libv4l2.c
-+++ b/lib/libv4l2/libv4l2.c
-@@ -290,9 +290,11 @@ static int v4l2_dequeue_and_convert(int index, struct v4l2_buffer *buf,
- 		return result;
- 
- 	do {
-+		pthread_mutex_unlock(&devices[index].stream_lock);
- 		result = devices[index].dev_ops->ioctl(
- 				devices[index].dev_ops_priv,
- 				devices[index].fd, VIDIOC_DQBUF, buf);
-+		pthread_mutex_lock(&devices[index].stream_lock);
- 		if (result) {
- 			if (errno != EAGAIN) {
- 				int saved_err = errno;
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index 48b20df..eb3850c 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -599,10 +599,10 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait)
+ 		aspect.denominator = 9;
+ 	} else if (ratio == 34) {
+ 		aspect.numerator = 4;
+-		aspect.numerator = 3;
++		aspect.denominator = 3;
+ 	} else if (ratio == 68) {
+ 		aspect.numerator = 15;
+-		aspect.numerator = 9;
++		aspect.denominator = 9;
+ 	} else {
+ 		aspect.numerator = hor_landscape + 99;
+ 		aspect.denominator = 100;
 -- 
-2.0.0
+1.7.10.4
 
