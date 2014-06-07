@@ -1,536 +1,414 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59652 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751498AbaFADjU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 May 2014 23:39:20 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Received: from s3.sipsolutions.net ([5.9.151.49]:46254 "EHLO sipsolutions.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753146AbaFGVvr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Jun 2014 17:51:47 -0400
+Message-ID: <1402177903.8442.9.camel@jlt4.sipsolutions.net>
+Subject: non-working UVC device 058f:5608
+From: Johannes Berg <johannes@sipsolutions.net>
 To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 01/18] v4l: Add ARGB and XRGB pixel formats
-Date: Sun,  1 Jun 2014 05:39:20 +0200
-Message-Id: <1401593977-30660-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-uvc-devel@lists.sourceforge.net
+Date: Sat, 07 Jun 2014 23:51:43 +0200
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+I just obtained a new (special-purpose) webcam, and it doesn't seem to
+work at all. On kernel torvals/linux.git next branch, it doesn't even
+really connect, on 3.13 (which I'm running on my laptop) I get errors
+like this:
 
-The existing RGB pixel formats are ill-defined in respect to their alpha
-bits and their meaning is driver dependent. Create new standard ARGB and
-XRGB variants with clearly defined meanings and make the existing
-variants deprecated.
+xhci_hcd 0000:00:14.0: ERROR Transfer event TRB DMA ptr not part of
+current TD
 
-The new pixel formats 4CC values have been selected to match the DRM
-4CCs for the same in-memory formats.
+when running uvccapture. When running e.g. cheese or the like, the
+screen stays blank. uvccapture also reports:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- .../DocBook/media/v4l/pixfmt-packed-rgb.xml        | 415 ++++++++++++++++++++-
- include/uapi/linux/videodev2.h                     |   8 +
- 2 files changed, 403 insertions(+), 20 deletions(-)
+ioctl querycontrol error 22
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-index e1c4f8b..5f1602f 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-@@ -130,9 +130,9 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
- 	    <entry>b<subscript>1</subscript></entry>
- 	    <entry>b<subscript>0</subscript></entry>
- 	  </row>
--	  <row id="V4L2-PIX-FMT-RGB444">
--	    <entry><constant>V4L2_PIX_FMT_RGB444</constant></entry>
--	    <entry>'R444'</entry>
-+	  <row id="V4L2-PIX-FMT-ARGB444">
-+	    <entry><constant>V4L2_PIX_FMT_ARGB444</constant></entry>
-+	    <entry>'AR12'</entry>
- 	    <entry></entry>
- 	    <entry>g<subscript>3</subscript></entry>
- 	    <entry>g<subscript>2</subscript></entry>
-@@ -152,9 +152,31 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
- 	    <entry>r<subscript>1</subscript></entry>
- 	    <entry>r<subscript>0</subscript></entry>
- 	  </row>
--	  <row id="V4L2-PIX-FMT-RGB555">
--	    <entry><constant>V4L2_PIX_FMT_RGB555</constant></entry>
--	    <entry>'RGBO'</entry>
-+	  <row id="V4L2-PIX-FMT-XRGB444">
-+	    <entry><constant>V4L2_PIX_FMT_XRGB444</constant></entry>
-+	    <entry>'XR12'</entry>
-+	    <entry></entry>
-+	    <entry>g<subscript>3</subscript></entry>
-+	    <entry>g<subscript>2</subscript></entry>
-+	    <entry>g<subscript>1</subscript></entry>
-+	    <entry>g<subscript>0</subscript></entry>
-+	    <entry>b<subscript>3</subscript></entry>
-+	    <entry>b<subscript>2</subscript></entry>
-+	    <entry>b<subscript>1</subscript></entry>
-+	    <entry>b<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-ARGB555">
-+	    <entry><constant>V4L2_PIX_FMT_ARGB555</constant></entry>
-+	    <entry>'AR15'</entry>
- 	    <entry></entry>
- 	    <entry>g<subscript>2</subscript></entry>
- 	    <entry>g<subscript>1</subscript></entry>
-@@ -174,6 +196,28 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
- 	    <entry>g<subscript>4</subscript></entry>
- 	    <entry>g<subscript>3</subscript></entry>
- 	  </row>
-+	  <row id="V4L2-PIX-FMT-XRGB555">
-+	    <entry><constant>V4L2_PIX_FMT_XRGB555</constant></entry>
-+	    <entry>'XR15'</entry>
-+	    <entry></entry>
-+	    <entry>g<subscript>2</subscript></entry>
-+	    <entry>g<subscript>1</subscript></entry>
-+	    <entry>g<subscript>0</subscript></entry>
-+	    <entry>b<subscript>4</subscript></entry>
-+	    <entry>b<subscript>3</subscript></entry>
-+	    <entry>b<subscript>2</subscript></entry>
-+	    <entry>b<subscript>1</subscript></entry>
-+	    <entry>b<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>-</entry>
-+	    <entry>r<subscript>4</subscript></entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
-+	    <entry>g<subscript>4</subscript></entry>
-+	    <entry>g<subscript>3</subscript></entry>
-+	  </row>
- 	  <row id="V4L2-PIX-FMT-RGB565">
- 	    <entry><constant>V4L2_PIX_FMT_RGB565</constant></entry>
- 	    <entry>'RGBP'</entry>
-@@ -341,9 +385,9 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
- 	    <entry>b<subscript>1</subscript></entry>
- 	    <entry>b<subscript>0</subscript></entry>
- 	  </row>
--	  <row id="V4L2-PIX-FMT-BGR32">
--	    <entry><constant>V4L2_PIX_FMT_BGR32</constant></entry>
--	    <entry>'BGR4'</entry>
-+	  <row id="V4L2-PIX-FMT-ABGR32">
-+	    <entry><constant>V4L2_PIX_FMT_ABGR32</constant></entry>
-+	    <entry>'AR24'</entry>
- 	    <entry></entry>
- 	    <entry>b<subscript>7</subscript></entry>
- 	    <entry>b<subscript>6</subscript></entry>
-@@ -381,9 +425,49 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
- 	    <entry>a<subscript>1</subscript></entry>
- 	    <entry>a<subscript>0</subscript></entry>
- 	  </row>
--	  <row id="V4L2-PIX-FMT-RGB32">
--	    <entry><constant>V4L2_PIX_FMT_RGB32</constant></entry>
--	    <entry>'RGB4'</entry>
-+	  <row id="V4L2-PIX-FMT-XBGR32">
-+	    <entry><constant>V4L2_PIX_FMT_XBGR32</constant></entry>
-+	    <entry>'XR24'</entry>
-+	    <entry></entry>
-+	    <entry>b<subscript>7</subscript></entry>
-+	    <entry>b<subscript>6</subscript></entry>
-+	    <entry>b<subscript>5</subscript></entry>
-+	    <entry>b<subscript>4</subscript></entry>
-+	    <entry>b<subscript>3</subscript></entry>
-+	    <entry>b<subscript>2</subscript></entry>
-+	    <entry>b<subscript>1</subscript></entry>
-+	    <entry>b<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>g<subscript>7</subscript></entry>
-+	    <entry>g<subscript>6</subscript></entry>
-+	    <entry>g<subscript>5</subscript></entry>
-+	    <entry>g<subscript>4</subscript></entry>
-+	    <entry>g<subscript>3</subscript></entry>
-+	    <entry>g<subscript>2</subscript></entry>
-+	    <entry>g<subscript>1</subscript></entry>
-+	    <entry>g<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>r<subscript>7</subscript></entry>
-+	    <entry>r<subscript>6</subscript></entry>
-+	    <entry>r<subscript>5</subscript></entry>
-+	    <entry>r<subscript>4</subscript></entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-ARGB32">
-+	    <entry><constant>V4L2_PIX_FMT_ARGB32</constant></entry>
-+	    <entry>'AX24'</entry>
- 	    <entry></entry>
- 	    <entry>a<subscript>7</subscript></entry>
- 	    <entry>a<subscript>6</subscript></entry>
-@@ -421,18 +505,76 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
- 	    <entry>b<subscript>1</subscript></entry>
- 	    <entry>b<subscript>0</subscript></entry>
- 	  </row>
-+	  <row id="V4L2-PIX-FMT-XRGB32">
-+	    <entry><constant>V4L2_PIX_FMT_XRGB32</constant></entry>
-+	    <entry>'BX24'</entry>
-+	    <entry></entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	    <entry>-</entry>
-+	    <entry></entry>
-+	    <entry>r<subscript>7</subscript></entry>
-+	    <entry>r<subscript>6</subscript></entry>
-+	    <entry>r<subscript>5</subscript></entry>
-+	    <entry>r<subscript>4</subscript></entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>g<subscript>7</subscript></entry>
-+	    <entry>g<subscript>6</subscript></entry>
-+	    <entry>g<subscript>5</subscript></entry>
-+	    <entry>g<subscript>4</subscript></entry>
-+	    <entry>g<subscript>3</subscript></entry>
-+	    <entry>g<subscript>2</subscript></entry>
-+	    <entry>g<subscript>1</subscript></entry>
-+	    <entry>g<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>b<subscript>7</subscript></entry>
-+	    <entry>b<subscript>6</subscript></entry>
-+	    <entry>b<subscript>5</subscript></entry>
-+	    <entry>b<subscript>4</subscript></entry>
-+	    <entry>b<subscript>3</subscript></entry>
-+	    <entry>b<subscript>2</subscript></entry>
-+	    <entry>b<subscript>1</subscript></entry>
-+	    <entry>b<subscript>0</subscript></entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
- 
--    <para>Bit 7 is the most significant bit. The value of the a = alpha
--bits is undefined when reading from the driver, ignored when writing
--to the driver, except when alpha blending has been negotiated for a
--<link linkend="overlay">Video Overlay</link> or <link linkend="osd">
--Video Output Overlay</link> or when the alpha component has been configured
--for a <link linkend="capture">Video Capture</link> by means of <link
--linkend="v4l2-alpha-component"> <constant>V4L2_CID_ALPHA_COMPONENT
--</constant> </link> control.</para>
-+    <para>Bit 7 is the most significant bit.</para>
-+
-+    <para>The usage and value of the alpha bits (a) in the ARGB and ABGR formats
-+    (collectively referred to as alpha formats) depend on the device type and
-+    hardware operation. <link linkend="capture">Capture</link> devices
-+    (including capture queues of mem-to-mem devices) fill the alpha component in
-+    memory. When the device outputs an alpha channel the alpha component will
-+    have a meaningful value. Otherwise, when the device doesn't output an alpha
-+    channel but can set the alpha bit to a user-configurable value, the <link
-+    linkend="v4l2-alpha-component"><constant>V4L2_CID_ALPHA_COMPONENT</constant>
-+    </link> control is used to specify that alpha value, and the alpha component
-+    of all pixels will be set to the value specified by that control. Otherwise
-+    a corresponding format without an alpha component (XRGB or XBGR) must be
-+    used instead of an alpha format.</para>
-+
-+    <para><link linkend="output">Output</link> devices (including output queues
-+    of mem-to-mem devices and <link linkend="osd">video output overlay</link>
-+    devices) read the alpha component from memory. When the device processes the
-+    alpha channel the alpha component must be filled with meaningful values by
-+    applications. Otherwise a corresponding format without an alpha component
-+    (XRGB or XBGR) must be used instead of an alpha format.</para>
-+
-+    <para>The XRGB and XBGR formats contain undefined bits (-). Applications,
-+    devices and drivers must ignore those bits, for both <link
-+    linkend="capture">capture</link> and <link linkend="output">output</link>
-+    devices.</para>
- 
-     <example>
-       <title><constant>V4L2_PIX_FMT_BGR24</constant> 4 &times; 4 pixel
-@@ -512,6 +654,239 @@ image</title>
-       </formalpara>
-     </example>
- 
-+    <para>Formats defined in <xref linkend="rgb-formats-deprecated"/> are
-+    deprecated and must not be used by new drivers. They are documented here for
-+    reference. The meaning of their alpha bits (a) is ill-defined and
-+    interpreted as in either the corresponding ARGB or XRGB format, depending on
-+    the driver.</para>
-+
-+    <table pgwide="1" frame="none" id="rgb-formats-deprecated">
-+      <title>Deprecated Packed RGB Image Formats</title>
-+      <tgroup cols="37" align="center">
-+	<colspec colname="id" align="left" />
-+	<colspec colname="fourcc" />
-+	<colspec colname="bit" />
-+
-+	<colspec colnum="4" colname="b07" align="center" />
-+	<colspec colnum="5" colname="b06" align="center" />
-+	<colspec colnum="6" colname="b05" align="center" />
-+	<colspec colnum="7" colname="b04" align="center" />
-+	<colspec colnum="8" colname="b03" align="center" />
-+	<colspec colnum="9" colname="b02" align="center" />
-+	<colspec colnum="10" colname="b01" align="center" />
-+	<colspec colnum="11" colname="b00" align="center" />
-+
-+	<colspec colnum="13" colname="b17" align="center" />
-+	<colspec colnum="14" colname="b16" align="center" />
-+	<colspec colnum="15" colname="b15" align="center" />
-+	<colspec colnum="16" colname="b14" align="center" />
-+	<colspec colnum="17" colname="b13" align="center" />
-+	<colspec colnum="18" colname="b12" align="center" />
-+	<colspec colnum="19" colname="b11" align="center" />
-+	<colspec colnum="20" colname="b10" align="center" />
-+
-+	<colspec colnum="22" colname="b27" align="center" />
-+	<colspec colnum="23" colname="b26" align="center" />
-+	<colspec colnum="24" colname="b25" align="center" />
-+	<colspec colnum="25" colname="b24" align="center" />
-+	<colspec colnum="26" colname="b23" align="center" />
-+	<colspec colnum="27" colname="b22" align="center" />
-+	<colspec colnum="28" colname="b21" align="center" />
-+	<colspec colnum="29" colname="b20" align="center" />
-+
-+	<colspec colnum="31" colname="b37" align="center" />
-+	<colspec colnum="32" colname="b36" align="center" />
-+	<colspec colnum="33" colname="b35" align="center" />
-+	<colspec colnum="34" colname="b34" align="center" />
-+	<colspec colnum="35" colname="b33" align="center" />
-+	<colspec colnum="36" colname="b32" align="center" />
-+	<colspec colnum="37" colname="b31" align="center" />
-+	<colspec colnum="38" colname="b30" align="center" />
-+
-+	<spanspec namest="b07" nameend="b00" spanname="b0" />
-+	<spanspec namest="b17" nameend="b10" spanname="b1" />
-+	<spanspec namest="b27" nameend="b20" spanname="b2" />
-+	<spanspec namest="b37" nameend="b30" spanname="b3" />
-+	<thead>
-+	  <row>
-+	    <entry>Identifier</entry>
-+	    <entry>Code</entry>
-+	    <entry>&nbsp;</entry>
-+	    <entry spanname="b0">Byte&nbsp;0 in memory</entry>
-+	    <entry spanname="b1">Byte&nbsp;1</entry>
-+	    <entry spanname="b2">Byte&nbsp;2</entry>
-+	    <entry spanname="b3">Byte&nbsp;3</entry>
-+	  </row>
-+	  <row>
-+	    <entry>&nbsp;</entry>
-+	    <entry>&nbsp;</entry>
-+	    <entry>Bit</entry>
-+	    <entry>7</entry>
-+	    <entry>6</entry>
-+	    <entry>5</entry>
-+	    <entry>4</entry>
-+	    <entry>3</entry>
-+	    <entry>2</entry>
-+	    <entry>1</entry>
-+	    <entry>0</entry>
-+	    <entry>&nbsp;</entry>
-+	    <entry>7</entry>
-+	    <entry>6</entry>
-+	    <entry>5</entry>
-+	    <entry>4</entry>
-+	    <entry>3</entry>
-+	    <entry>2</entry>
-+	    <entry>1</entry>
-+	    <entry>0</entry>
-+	    <entry>&nbsp;</entry>
-+	    <entry>7</entry>
-+	    <entry>6</entry>
-+	    <entry>5</entry>
-+	    <entry>4</entry>
-+	    <entry>3</entry>
-+	    <entry>2</entry>
-+	    <entry>1</entry>
-+	    <entry>0</entry>
-+	    <entry>&nbsp;</entry>
-+	    <entry>7</entry>
-+	    <entry>6</entry>
-+	    <entry>5</entry>
-+	    <entry>4</entry>
-+	    <entry>3</entry>
-+	    <entry>2</entry>
-+	    <entry>1</entry>
-+	    <entry>0</entry>
-+	  </row>
-+	</thead>
-+	<tbody>
-+	  <row id="V4L2-PIX-FMT-RGB444">
-+	    <entry><constant>V4L2_PIX_FMT_RGB444</constant></entry>
-+	    <entry>'R444'</entry>
-+	    <entry></entry>
-+	    <entry>g<subscript>3</subscript></entry>
-+	    <entry>g<subscript>2</subscript></entry>
-+	    <entry>g<subscript>1</subscript></entry>
-+	    <entry>g<subscript>0</subscript></entry>
-+	    <entry>b<subscript>3</subscript></entry>
-+	    <entry>b<subscript>2</subscript></entry>
-+	    <entry>b<subscript>1</subscript></entry>
-+	    <entry>b<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>a<subscript>3</subscript></entry>
-+	    <entry>a<subscript>2</subscript></entry>
-+	    <entry>a<subscript>1</subscript></entry>
-+	    <entry>a<subscript>0</subscript></entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-RGB555">
-+	    <entry><constant>V4L2_PIX_FMT_RGB555</constant></entry>
-+	    <entry>'RGBO'</entry>
-+	    <entry></entry>
-+	    <entry>g<subscript>2</subscript></entry>
-+	    <entry>g<subscript>1</subscript></entry>
-+	    <entry>g<subscript>0</subscript></entry>
-+	    <entry>b<subscript>4</subscript></entry>
-+	    <entry>b<subscript>3</subscript></entry>
-+	    <entry>b<subscript>2</subscript></entry>
-+	    <entry>b<subscript>1</subscript></entry>
-+	    <entry>b<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>a</entry>
-+	    <entry>r<subscript>4</subscript></entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
-+	    <entry>g<subscript>4</subscript></entry>
-+	    <entry>g<subscript>3</subscript></entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-BGR32">
-+	    <entry><constant>V4L2_PIX_FMT_BGR32</constant></entry>
-+	    <entry>'BGR4'</entry>
-+	    <entry></entry>
-+	    <entry>b<subscript>7</subscript></entry>
-+	    <entry>b<subscript>6</subscript></entry>
-+	    <entry>b<subscript>5</subscript></entry>
-+	    <entry>b<subscript>4</subscript></entry>
-+	    <entry>b<subscript>3</subscript></entry>
-+	    <entry>b<subscript>2</subscript></entry>
-+	    <entry>b<subscript>1</subscript></entry>
-+	    <entry>b<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>g<subscript>7</subscript></entry>
-+	    <entry>g<subscript>6</subscript></entry>
-+	    <entry>g<subscript>5</subscript></entry>
-+	    <entry>g<subscript>4</subscript></entry>
-+	    <entry>g<subscript>3</subscript></entry>
-+	    <entry>g<subscript>2</subscript></entry>
-+	    <entry>g<subscript>1</subscript></entry>
-+	    <entry>g<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>r<subscript>7</subscript></entry>
-+	    <entry>r<subscript>6</subscript></entry>
-+	    <entry>r<subscript>5</subscript></entry>
-+	    <entry>r<subscript>4</subscript></entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>a<subscript>7</subscript></entry>
-+	    <entry>a<subscript>6</subscript></entry>
-+	    <entry>a<subscript>5</subscript></entry>
-+	    <entry>a<subscript>4</subscript></entry>
-+	    <entry>a<subscript>3</subscript></entry>
-+	    <entry>a<subscript>2</subscript></entry>
-+	    <entry>a<subscript>1</subscript></entry>
-+	    <entry>a<subscript>0</subscript></entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-RGB32">
-+	    <entry><constant>V4L2_PIX_FMT_RGB32</constant></entry>
-+	    <entry>'RGB4'</entry>
-+	    <entry></entry>
-+	    <entry>a<subscript>7</subscript></entry>
-+	    <entry>a<subscript>6</subscript></entry>
-+	    <entry>a<subscript>5</subscript></entry>
-+	    <entry>a<subscript>4</subscript></entry>
-+	    <entry>a<subscript>3</subscript></entry>
-+	    <entry>a<subscript>2</subscript></entry>
-+	    <entry>a<subscript>1</subscript></entry>
-+	    <entry>a<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>r<subscript>7</subscript></entry>
-+	    <entry>r<subscript>6</subscript></entry>
-+	    <entry>r<subscript>5</subscript></entry>
-+	    <entry>r<subscript>4</subscript></entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>g<subscript>7</subscript></entry>
-+	    <entry>g<subscript>6</subscript></entry>
-+	    <entry>g<subscript>5</subscript></entry>
-+	    <entry>g<subscript>4</subscript></entry>
-+	    <entry>g<subscript>3</subscript></entry>
-+	    <entry>g<subscript>2</subscript></entry>
-+	    <entry>g<subscript>1</subscript></entry>
-+	    <entry>g<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>b<subscript>7</subscript></entry>
-+	    <entry>b<subscript>6</subscript></entry>
-+	    <entry>b<subscript>5</subscript></entry>
-+	    <entry>b<subscript>4</subscript></entry>
-+	    <entry>b<subscript>3</subscript></entry>
-+	    <entry>b<subscript>2</subscript></entry>
-+	    <entry>b<subscript>1</subscript></entry>
-+	    <entry>b<subscript>0</subscript></entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-     <para>A test utility to determine which RGB formats a driver
- actually supports is available from the LinuxTV v4l-dvb repository.
- See &v4l-dvb; for access instructions.</para>
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 168ff50..0125f4d 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -294,7 +294,11 @@ struct v4l2_pix_format {
- /* RGB formats */
- #define V4L2_PIX_FMT_RGB332  v4l2_fourcc('R', 'G', 'B', '1') /*  8  RGB-3-3-2     */
- #define V4L2_PIX_FMT_RGB444  v4l2_fourcc('R', '4', '4', '4') /* 16  xxxxrrrr ggggbbbb */
-+#define V4L2_PIX_FMT_ARGB444 v4l2_fourcc('A', 'R', '1', '2') /* 16  aaaarrrr ggggbbbb */
-+#define V4L2_PIX_FMT_XRGB444 v4l2_fourcc('X', 'R', '1', '2') /* 16  xxxxrrrr ggggbbbb */
- #define V4L2_PIX_FMT_RGB555  v4l2_fourcc('R', 'G', 'B', 'O') /* 16  RGB-5-5-5     */
-+#define V4L2_PIX_FMT_ARGB555 v4l2_fourcc('A', 'R', '1', '5') /* 16  ARGB-1-5-5-5  */
-+#define V4L2_PIX_FMT_XRGB555 v4l2_fourcc('X', 'R', '1', '5') /* 16  XRGB-1-5-5-5  */
- #define V4L2_PIX_FMT_RGB565  v4l2_fourcc('R', 'G', 'B', 'P') /* 16  RGB-5-6-5     */
- #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
- #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16  RGB-5-6-5 BE  */
-@@ -302,7 +306,11 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24  BGR-8-8-8     */
- #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B', '3') /* 24  RGB-8-8-8     */
- #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */
-+#define V4L2_PIX_FMT_ABGR32  v4l2_fourcc('A', 'R', '2', '4') /* 32  BGRA-8-8-8-8  */
-+#define V4L2_PIX_FMT_XBGR32  v4l2_fourcc('X', 'R', '2', '4') /* 32  BGRX-8-8-8-8  */
- #define V4L2_PIX_FMT_RGB32   v4l2_fourcc('R', 'G', 'B', '4') /* 32  RGB-8-8-8-8   */
-+#define V4L2_PIX_FMT_ARGB32  v4l2_fourcc('B', 'A', '2', '4') /* 32  ARGB-8-8-8-8  */
-+#define V4L2_PIX_FMT_XRGB32  v4l2_fourcc('B', 'X', '2', '4') /* 32  XRGB-8-8-8-8  */
- 
- /* Grey formats */
- #define V4L2_PIX_FMT_GREY    v4l2_fourcc('G', 'R', 'E', 'Y') /*  8  Greyscale     */
--- 
-1.8.5.5
+and then the kernel message repeats forever, while I can't even exit
+uvccapture unless I kill it hard, at which point I get
+
+xhci_hcd 0000:00:14.0: Signal while waiting for configure endpoint command
+usb 1-3.4.4.3: Not enough bandwidth for altsetting 0
+
+from the kernel.
+
+
+The device really is detected as UVC, of course:
+
+[ 3423.299311] usb 1-3.4.4.3: new high-speed USB device number 12 using
+xhci_hcd
+[ 3423.426280] usb 1-3.4.4.3: New USB device found, idVendor=058f,
+idProduct=5608
+[ 3423.426286] usb 1-3.4.4.3: New USB device strings: Mfr=3, Product=1, SerialNumber=0
+[ 3423.426290] usb 1-3.4.4.3: Product: USB 2.0 PC Camera
+[ 3423.426293] usb 1-3.4.4.3: Manufacturer: Alcor Micro, Corp.
+[ 3423.432137] uvcvideo: Found UVC 1.00 device USB 2.0 PC Camera
+(058f:5608)
+[ 3423.435383] input: USB 2.0 PC Camera as /devices/pci0000:00/0000:00:14.0/usb1/1-3/1-3.4/1-3.4.4/1-3.4.4.3/1-3.4.4.3:1.0/input/input36
+
+(see also full lsusb below)
+
+I see a device from the same manufacturer has a kernel driver as a
+vendor device but actually being UVC, but this one reports being UVC and
+doesn't really work.
+
+Any thoughts? Just to rule out hardware defects I connected it to my
+windows 7 work machine and it works fine without even installing a
+driver.
+
+I can arrange remote access to the device (maybe as a VM to be able to
+experiment with the kernel more easily?) if anyone wants it.
+
+johannes
+
+lsusb:
+
+Bus 001 Device 012: ID 058f:5608 Alcor Micro Corp. 
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass          239 Miscellaneous Device
+  bDeviceSubClass         2 ?
+  bDeviceProtocol         1 Interface Association
+  bMaxPacketSize0        64
+  idVendor           0x058f Alcor Micro Corp.
+  idProduct          0x5608 
+  bcdDevice            0.03
+  iManufacturer           3 Alcor Micro, Corp.
+  iProduct                1 USB 2.0 PC Camera
+  iSerial                 0 
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength          407
+    bNumInterfaces          2
+    bConfigurationValue     1
+    iConfiguration          0 
+    bmAttributes         0x80
+      (Bus Powered)
+    MaxPower              200mA
+    Interface Association:
+      bLength                 8
+      bDescriptorType        11
+      bFirstInterface         0
+      bInterfaceCount         2
+      bFunctionClass         14 Video
+      bFunctionSubClass       3 Video Interface Collection
+      bFunctionProtocol       0 
+      iFunction               1 USB 2.0 PC Camera
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           1
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      1 Video Control
+      bInterfaceProtocol      0 
+      iInterface              1 USB 2.0 PC Camera
+      VideoControl Interface Descriptor:
+        bLength                13
+        bDescriptorType        36
+        bDescriptorSubtype      1 (HEADER)
+        bcdUVC               1.00
+        wTotalLength           85
+        dwClockFrequency       30.000000MHz
+        bInCollection           1
+        baInterfaceNr( 0)       1
+      VideoControl Interface Descriptor:
+        bLength                18
+        bDescriptorType        36
+        bDescriptorSubtype      2 (INPUT_TERMINAL)
+        bTerminalID             1
+        wTerminalType      0x0201 Camera Sensor
+        bAssocTerminal          0
+        iTerminal               0 
+        wObjectiveFocalLengthMin      0
+        wObjectiveFocalLengthMax      0
+        wOcularFocalLength            0
+        bControlSize                  3
+        bmControls           0x00000000
+      VideoControl Interface Descriptor:
+        bLength                 9
+        bDescriptorType        36
+        bDescriptorSubtype      3 (OUTPUT_TERMINAL)
+        bTerminalID             3
+        wTerminalType      0x0101 USB Streaming
+        bAssocTerminal          0
+        bSourceID               6
+        iTerminal               0 
+      VideoControl Interface Descriptor:
+        bLength                 7
+        bDescriptorType        36
+        bDescriptorSubtype      4 (SELECTOR_UNIT)
+        bUnitID                 4
+        bNrInPins               1
+        baSource( 0)            1
+        iSelector               0 
+      VideoControl Interface Descriptor:
+        bLength                11
+        bDescriptorType        36
+        bDescriptorSubtype      5 (PROCESSING_UNIT)
+      Warning: Descriptor too short
+        bUnitID                 5
+        bSourceID               4
+        wMaxMultiplier      32208
+        bControlSize            2
+        bmControls     0x0000157f
+          Brightness
+          Contrast
+          Hue
+          Saturation
+          Sharpness
+          Gamma
+          White Balance Temperature
+          Backlight Compensation
+          Power Line Frequency
+          White Balance Temperature, Auto
+        iProcessing             0 
+        bmVideoStandards     0x1b
+          None
+          NTSC - 525/60
+          SECAM - 625/50
+          NTSC - 625/50
+      VideoControl Interface Descriptor:
+        bLength                27
+        bDescriptorType        36
+        bDescriptorSubtype      6 (EXTENSION_UNIT)
+        bUnitID                 6
+        guidExtensionCode         {564c97a7-7ea7-904b-8cbf-1c71ec303000}
+        bNumControl            16
+        bNrPins                 1
+        baSourceID( 0)          5
+        bControlSize            2
+        bmControls( 0)       0xff
+        bmControls( 1)       0xff
+        iExtension              0 
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0010  1x 16 bytes
+        bInterval              15
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       0
+      bNumEndpoints           0
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      2 Video Streaming
+      bInterfaceProtocol      0 
+      iInterface              0 
+      VideoStreaming Interface Descriptor:
+        bLength                            14
+        bDescriptorType                    36
+        bDescriptorSubtype                  1 (INPUT_HEADER)
+        bNumFormats                         1
+        wTotalLength                      227
+        bEndPointAddress                  129
+        bmInfo                              0
+        bTerminalLink                       3
+        bStillCaptureMethod                 2
+        bTriggerSupport                     0
+        bTriggerUsage                       0
+        bControlSize                        1
+        bmaControls( 0)                    27
+      VideoStreaming Interface Descriptor:
+        bLength                            27
+        bDescriptorType                    36
+        bDescriptorSubtype                  4 (FORMAT_UNCOMPRESSED)
+        bFormatIndex                        1
+        bNumFrameDescriptors                5
+        guidFormat
+{59555932-0000-1000-8000-00aa00389b71}
+        bBitsPerPixel                      16
+        bDefaultFrameIndex                  1
+        bAspectRatioX                       0
+        bAspectRatioY                       0
+        bmInterlaceFlags                 0x00
+          Interlaced stream or variable: No
+          Fields per frame: 2 fields
+          Field 1 first: No
+          Field pattern: Field 1 only
+          bCopyProtect                      0
+      VideoStreaming Interface Descriptor:
+        bLength                            34
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         1
+        bmCapabilities                   0x00
+          Still image unsupported
+        wWidth                            640
+        wHeight                           480
+        dwMinBitRate                 73728000
+        dwMaxBitRate                147456000
+        dwMaxVideoFrameBufferSize      614400
+        dwDefaultFrameInterval         333332
+        bFrameIntervalType                  2
+        dwFrameInterval( 0)            333332
+        dwFrameInterval( 1)            666666
+      VideoStreaming Interface Descriptor:
+        bLength                            34
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         2
+        bmCapabilities                   0x00
+          Still image unsupported
+        wWidth                            320
+        wHeight                           240
+        dwMinBitRate                 18432000
+        dwMaxBitRate                 36864000
+        dwMaxVideoFrameBufferSize      153600
+        dwDefaultFrameInterval         333332
+        bFrameIntervalType                  2
+        dwFrameInterval( 0)            333332
+        dwFrameInterval( 1)            666666
+      VideoStreaming Interface Descriptor:
+        bLength                            34
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         3
+        bmCapabilities                   0x00
+          Still image unsupported
+        wWidth                            160
+        wHeight                           120
+        dwMinBitRate                  4608000
+        dwMaxBitRate                  9216000
+        dwMaxVideoFrameBufferSize       38400
+        dwDefaultFrameInterval         333332
+        bFrameIntervalType                  2
+        dwFrameInterval( 0)            333332
+        dwFrameInterval( 1)            666666
+      VideoStreaming Interface Descriptor:
+        bLength                            34
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         4
+        bmCapabilities                   0x00
+          Still image unsupported
+        wWidth                            352
+        wHeight                           288
+        dwMinBitRate                 24330240
+        dwMaxBitRate                 48660480
+        dwMaxVideoFrameBufferSize      202752
+        dwDefaultFrameInterval         333332
+        bFrameIntervalType                  2
+        dwFrameInterval( 0)            333332
+        dwFrameInterval( 1)            666666
+      VideoStreaming Interface Descriptor:
+        bLength                            34
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         5
+        bmCapabilities                   0x00
+          Still image unsupported
+        wWidth                            176
+        wHeight                           144
+        dwMinBitRate                  6082560
+        dwMaxBitRate                 12165120
+        dwMaxVideoFrameBufferSize       50688
+        dwDefaultFrameInterval         333332
+        bFrameIntervalType                  2
+        dwFrameInterval( 0)            333332
+        dwFrameInterval( 1)            666666
+      VideoStreaming Interface Descriptor:
+        bLength                            10
+        bDescriptorType                    36
+        bDescriptorSubtype                  3 (STILL_IMAGE_FRAME)
+        bEndpointAddress                    0
+        bNumImageSizePatterns               1
+        wWidth( 0)                        640
+        wHeight( 0)                       480
+        bNumCompressionPatterns             1
+      VideoStreaming Interface Descriptor:
+        bLength                             6
+        bDescriptorType                    36
+        bDescriptorSubtype                 13 (COLORFORMAT)
+        bColorPrimaries                     1 (BT.709,sRGB)
+        bTransferCharacteristics            1 (BT.709)
+        bMatrixCoefficients                 4 (SMPTE 170M (BT.601))
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       1
+      bNumEndpoints           1
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      2 Video Streaming
+      bInterfaceProtocol      0 
+      iInterface              0 
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x1400  3x 1024 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       2
+      bNumEndpoints           1
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      2 Video Streaming
+      bInterfaceProtocol      0 
+      iInterface              0 
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x1400  3x 1024 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       3
+      bNumEndpoints           1
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      2 Video Streaming
+      bInterfaceProtocol      0 
+      iInterface              0 
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x1400  3x 1024 bytes
+        bInterval               1
+Device Qualifier (for other device speed):
+  bLength                10
+  bDescriptorType         6
+  bcdUSB               2.00
+  bDeviceClass          239 Miscellaneous Device
+  bDeviceSubClass         2 ?
+  bDeviceProtocol         1 Interface Association
+  bMaxPacketSize0        64
+  bNumConfigurations      1
+Device Status:     0x0000
+  (Bus Powered)
+
 
