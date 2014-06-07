@@ -1,173 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f172.google.com ([74.125.82.172]:65192 "EHLO
-	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933363AbaFSQeJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jun 2014 12:34:09 -0400
-Received: by mail-we0-f172.google.com with SMTP id u57so2646847wes.3
-        for <linux-media@vger.kernel.org>; Thu, 19 Jun 2014 09:34:08 -0700 (PDT)
-Date: Thu, 19 Jun 2014 18:34:00 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Colin Cross <ccross@google.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	"open list:GENERIC INCLUDE/A..." <linux-arch@vger.kernel.org>,
-	Thomas Hellstrom <thellstrom@vmware.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"Clark, Rob" <robdclark@gmail.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [REPOST PATCH 4/8] android: convert sync to fence api, v5
-Message-ID: <20140619163400.GZ5821@phenom.ffwll.local>
-References: <20140618102957.15728.43525.stgit@patser>
- <20140618103711.15728.97842.stgit@patser>
- <20140619011556.GE10921@kroah.com>
- <20140619063727.GL5821@phenom.ffwll.local>
- <20140619114825.GB28111@ulmo>
- <CAKMK7uE_B3pCZB9orh5+BJGooNfyEa0APrZqRpXqYu5xfQ0PCQ@mail.gmail.com>
- <CAMbhsRTsoUR9J8SwMVfos89rvDpoq_Jun71btAEXSBYS38ppNQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMbhsRTsoUR9J8SwMVfos89rvDpoq_Jun71btAEXSBYS38ppNQ@mail.gmail.com>
+Received: from mail-pb0-f50.google.com ([209.85.160.50]:60169 "EHLO
+	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753357AbaFGV5g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:36 -0400
+Received: by mail-pb0-f50.google.com with SMTP id ma3so3909907pbc.9
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:36 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 34/43] ARM: dts: imx6-sabreauto: add video capture ports and endpoints
+Date: Sat,  7 Jun 2014 14:56:36 -0700
+Message-Id: <1402178205-22697-35-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 19, 2014 at 08:35:29AM -0700, Colin Cross wrote:
-> On Thu, Jun 19, 2014 at 5:28 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> > On Thu, Jun 19, 2014 at 1:48 PM, Thierry Reding
-> > <thierry.reding@gmail.com> wrote:
-> >>> > With these changes, can we pull the android sync logic out of
-> >>> > drivers/staging/ now?
-> >>>
-> >>> Afaik the google guys never really looked at this and acked it. So I'm not
-> >>> sure whether they'll follow along. The other issue I have as the
-> >>> maintainer of gfx driver is that I don't want to implement support for two
-> >>> different sync object primitives (once for dma-buf and once for android
-> >>> syncpts), and my impression thus far has been that even with this we're
-> >>> not there.
-> >>>
-> >>> I'm trying to get our own android guys to upstream their i915 syncpts
-> >>> support, but thus far I haven't managed to convince them to throw people's
-> >>> time at this.
-> >>
-> >> This has been discussed a fair bit internally recently and some of our
-> >> GPU experts have raised concerns that this may result in seriously
-> >> degraded performance in our proprietary graphics stack. Now I don't care
-> >> very much for the proprietary graphics stack, but by extension I would
-> >> assume that the same restrictions are relevant for any open-source
-> >> driver as well.
-> >>
-> >> I'm still trying to fully understand all the implications and at the
-> >> same time get some of the people who raised concerns to join in this
-> >> discussion. As I understand it the concern is mostly about explicit vs.
-> >> implicit synchronization and having this mechanism in the kernel will
-> >> implicitly synchronize all accesses to these buffers even in cases where
-> >> it's not needed (read vs. write locks, etc.). In one particular instance
-> >> it was even mentioned that this kind of implicit synchronization can
-> >> lead to deadlocks in some use-cases (this was mentioned for Android
-> >> compositing, but I suspect that the same may happen for Wayland or X
-> >> compositors).
-> >
-> > Well the implicit fences here actually can't deadlock. That's the
-> > entire point behind using ww mutexes. I've also heard tons of
-> > complaints about implicit enforced syncing (especially from opencl
-> > people), but in the end drivers and always expose unsynchronized
-> > access for specific cases. We do that in i915 for upload buffers and
-> > other fun stuff. This is about shared stuff across different drivers
-> > and different processes.
-> >
-> > I also expect that i915 will loose implicit syncing in a few upcoming
-> > hw modes because explicit syncing is a more natural fit there.
-> >
-> > All that isn't about the discussion at hand imo since no matter what
-> > i915 needs to have on internal representation for a bit of gpu work,
-> > and afaics right now we don't have that. With this patch android
-> > syncpts use Maarten's fences internally, but I can't freely exchange
-> > one for the other. So in i915 I still expect to get stuck with both of
-> > them, which is one too many.
-> >
-> > The other issue (and I haven't dug into details that much) I have with
-> > syncpts are some of the interface choices. Apparently you can commit a
-> > fence after creation (or at least the hw composer interface works like
-> > that) which means userspace can construct deadlocks with android
-> > syncpts if I'm not super careful in my driver. I haven't seen any
-> > generic code to do that, so I presume everyone just blindly trusts
-> > surface-flinger to not do that. Speaks of the average quality of an
-> > android gfx driver if the kernel is less trusted than the compositor
-> > in userspace ...
-> 
-> Android sync is designed not to allow userspace to deadlock the
-> kernel, a sync_pt should only get created by the kernel when it has
-> received a chunk of work that it expects to complete in the near
-> future.  The CONFIG_SW_SYNC_USER driver violates that by allowing
-> userspace to create and signal arbitrary sync points, but that is
-> intended only for testing sync.
+Defines the host v4l2-capture device node and the ADV7180 decoder
+sensor. The host capture device is a child of ipu1. The ADV7180 is
+connected to the host parallel-bus endpoint on CSI0.
 
-Ok, that makes sense. As long as we sufficiently taint the kernel and hide
-the sw_sync framework we should be good. I was confused by the hw composer
-interface spec which seemed to suggest that the fences for a screen update
-completion should be attached before surfaceflinger commits the state. But
-I never looked at an implemention so guess that impression is wrong.
+On the sabreauto, two analog video inputs are routed to the ADV7180,
+composite on Ain1, and composite on Ain3. Those inputs are defined
+via inputs and input-names under the host endpoint node on CSI0.
 
-> > There's a few other things like exposing timestamps (which are tricky
-> > to do right, our driver is littered with wrong attempts) and other
-> > details.
-> 
-> Timestamps are necessary for vsync synchronization to reduce the frame latency.
+Regulators and port expanders are defined which are required for the
+ADV7180 (power pin is via port expander gpio on i2c3). The reset pin
+to the port expander chip (MAX7310) is controlled by a gpio, so define
+the reset-gpios property to control it.
 
-I'm not against timestamps (we have them for drm vblank events too after
-all), just would like for them to be optional. And we need to give
-userspace very clear indication which hw clock the timestamp was based on
-(or whether we're using the clock_monotonic system clock) to make sure
-debug and profiling tools can properly align things. Because hw clocks
-always get out of sync. Last time I've looked at the syncpt ioctls that
-part was missing.
+The sabreauto uses a steering pin to select between the SDA signal on
+i2c3 bus, and a data-in pin for an SPI NOR chip. Use i2cmux to control
+this steering pin. Idle state of the i2cmux selects SPI NOR. This is not
+a classic way to use i2cmux, since one side of the mux selects something
+other than an i2c bus, but it works and is probably the cleanest
+solution. Note that if one thread is attempting to access SPI NOR while
+another thread is accessing i2c3, the SPI NOR access will fail since the
+i2cmux has selected the SDA pin rather than SPI NOR data-in. This couldn't
+be avoided in any case, the board is not designed to allow concurrent
+i2c3 and SPI NOR functions (and the default device-tree does not enable
+SPI NOR anyway).
 
-> > Finally I've never seen anyone from google or any android product guy
-> > push a real driver enabling for syncpts to upstream, and google itself
-> > has a bit a history of constantly exchanging their gfx framework for
-> > the next best thing. So I really doubt this is worthwhile to pursue in
-> > upstream with our essentially eternal api guarantees. At least until
-> > we see serious uptake from vendors and gfx driver guys. Unfortunately
-> > the Intel android folks are no exception here and haven't pushed
-> > anything like this in my direction yet at all. Despite multiple pokes
-> > from my side.
-> 
-> As far as I know, every SoC vendor that supports android is using sync
-> now, but none of them have succeeded in pushing their drivers upstream
-> for a variety of other reasons (interfaces only used by closed source
-> userspaces, KMS/DRM vs ADF, ION, etc.).
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi |  149 ++++++++++++++++++++++++++++++
+ 1 file changed, 149 insertions(+)
 
-Yeah I know, and it double-frustrates me that I haven't yet managed to
-drag our own team into the public. Except for a few bolt-on hacks to make
-deadlines the android driver is the upstream one ...
-
-> > So from my side I think we should move ahead with Maarten's work and
-> > figure the android side out once there's real interest.
-> 
-> As long as that doesn't involve removing the Android sync interfaces
-> from staging until dma fence fds are supported, that's fine with me.
-
-Nah, definitely not asking for that. I'd just like to have a real
-implemention in a real driver merged upstream and the userpsace/kernel ABI
-reviewed a bit before I want to sign up for something we'll need to keep
-working forever. E.g. I also think we should expose the actual waiting
-through poll and friends for neater integration with the usual display
-toolkit event loops. egl shys away from such platform specific stuff, but
-we can do it.
-
-Like I've said I want to have to deal with one fence primitive in the
-lower levels of my driver for scheduling and synchronization and all that.
-The fence proposal fits the bill from my pov since the implicit
-synchronization with dma-bufs is optional. But the integration with
-android syncpts seems to not yet be there really.
--Daniel
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index 009abd6..27ac698 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -17,6 +17,39 @@
+ 		reg = <0x10000000 0x80000000>;
+ 	};
+ 
++	regulators {
++		compatible = "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		reg_2p5v: regulator@0 {
++			compatible = "regulator-fixed";
++			reg = <0>;
++			regulator-name = "2P5V";
++			regulator-min-microvolt = <2500000>;
++			regulator-max-microvolt = <2500000>;
++			regulator-always-on;
++		};
++
++		reg_3p3v: regulator@1 {
++			compatible = "regulator-fixed";
++			reg = <1>;
++			regulator-name = "3P3V";
++			regulator-min-microvolt = <3300000>;
++			regulator-max-microvolt = <3300000>;
++			regulator-always-on;
++		};
++
++		reg_2p8v: regulator@2 {
++			compatible = "regulator-fixed";
++			reg = <2>;
++			regulator-name = "2P8V";
++			regulator-min-microvolt = <2800000>;
++			regulator-max-microvolt = <2800000>;
++			regulator-always-on;
++		};
++	};
++
+ 	leds {
+ 		compatible = "gpio-leds";
+ 		pinctrl-names = "default";
+@@ -43,6 +76,66 @@
+ 		default-brightness-level = <7>;
+ 		status = "okay";
+ 	};
++
++	i2cmux {
++		compatible = "i2c-mux-gpio";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_i2c3mux>;
++		mux-gpios = <&gpio5 4 0>;
++		i2c-parent = <&i2c3>;
++		idle-state = <0>;
++
++		i2c@1 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <1>;
++
++			camera: adv7180@21 {
++				compatible = "adi,adv7180";
++				reg = <0x21>;
++				DOVDD-supply = <&reg_3p3v>;
++				AVDD-supply = <&reg_3p3v>;
++				DVDD-supply = <&reg_3p3v>;
++				PVDD-supply = <&reg_3p3v>;
++				pwdn-gpio = <&port_exp_b 2 0>;
++				interrupt-parent = <&gpio1>;
++				interrupts = <27 0x8>;
++
++				port {
++					adv7180_1: endpoint {
++						remote-endpoint = <&csi0>;
++						bus-width = <16>;
++					};
++				};
++			};
++
++			port_exp_a: gpio_pca953x@30 {
++				compatible = "maxim,max7310";
++				gpio-controller;
++				#gpio-cells = <2>;
++				reg = <0x30>;
++				reset-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
++			};
++
++			port_exp_b: gpio_pca953x@32 {
++				compatible = "maxim,max7310";
++				gpio-controller;
++				#gpio-cells = <2>;
++				reg = <0x32>;
++				reset-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
++			};
++
++			port_exp_c: gpio_pca953x@34 {
++				compatible = "maxim,max7310";
++				gpio-controller;
++				#gpio-cells = <2>;
++				reg = <0x34>;
++				reset-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
++			};
++		};
++	};
+ };
+ 
+ &ecspi1 {
+@@ -182,6 +275,13 @@
+ 	};
+ };
+ 
++&i2c3 {
++	status = "okay";
++	clock-frequency = <400000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c3>;
++};
++
+ &iomuxc {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_hog>;
+@@ -192,6 +292,7 @@
+ 				MX6QDL_PAD_NANDF_CS2__GPIO6_IO15 0x80000000
+ 				MX6QDL_PAD_SD2_DAT2__GPIO1_IO13  0x80000000
+ 				MX6QDL_PAD_GPIO_18__SD3_VSELECT 0x17059
++				MX6QDL_PAD_SD2_DAT0__GPIO1_IO15 0x80000000
+ 			>;
+ 		};
+ 
+@@ -265,6 +366,19 @@
+ 			>;
+ 		};
+ 
++		pinctrl_i2c3: i2c3grp {
++			fsl,pins = <
++				MX6QDL_PAD_GPIO_3__I2C3_SCL	0x4001b8b1
++				MX6QDL_PAD_EIM_D18__I2C3_SDA	0x4001b8b1
++			>;
++		};
++
++		pinctrl_i2c3mux: i2c3muxgrp {
++			fsl,pins = <
++				MX6QDL_PAD_EIM_A24__GPIO5_IO04 0x80000000
++			>;
++		};
++
+ 		pinctrl_pwm3: pwm1grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
+@@ -456,3 +570,38 @@
+ 				0x0000c000 0x1404a38e 0x00000000>;
+ 	};
+ };
++
++&ipu1 {
++	status = "okay";
++
++	v4l2-capture {
++		compatible = "fsl,imx6-v4l2-capture";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		status = "okay";
++		pinctrl-names = "default";
++		pinctrl-0 = <
++			&pinctrl_ipu1_csi0_d4_d7
++			&pinctrl_ipu1_csi0_1
++		>;
++
++		/* CSI0 */
++		port@0 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0>;
++
++			/* Parallel bus */
++			csi0: endpoint@0 {
++				reg = <0>;
++				remote-endpoint = <&adv7180_1>;
++				bus-width = <16>;
++				data-shift = <4>; /* Lines 19:4 used */
++
++				inputs = <0x00 0x02>;
++				input-names = "ADV7180 Composite on Ain1",
++						"ADV7180 Composite on Ain3";
++			};
++		};
++	};
++};
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+1.7.9.5
+
