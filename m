@@ -1,408 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33052 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756264AbaFLRGr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 13:06:47 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Received: from mail-pb0-f44.google.com ([209.85.160.44]:42486 "EHLO
+	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753330AbaFGV5K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:10 -0400
+Received: by mail-pb0-f44.google.com with SMTP id rq2so3912858pbb.3
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:10 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [RFC PATCH 26/26] ARM: dts: imx6qdl: Add mipi_ipu1/2 multiplexers, mipi_csi, and their connections
-Date: Thu, 12 Jun 2014 19:06:40 +0200
-Message-Id: <1402592800-2925-27-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 10/43] imx-drm: ipu-v3: Add rotation mode conversion utilities
+Date: Sat,  7 Jun 2014 14:56:12 -0700
+Message-Id: <1402178205-22697-11-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the device tree graph connecting the input multiplexers
-to the IPU CSIs and the MIPI-CSI2 gasket on i.MX6. The MIPI_IPU multiplexers
-are added as children of the iomuxc-gpr syscon device node.
-On i.MX6Q/D two two-input multiplexers in front of IPU1 CSI0 and IPU2 CSI1
-allow to select between CSI0/1 parallel input pads and the MIPI CSI-2 virtual
-channels 0/3.
-On i.MX6DL/S two five-input multiplexers in front of IPU1 CSI0 and IPU1 CSI1
-allow to select between CSI0/1 parallel input pads and any of the four MIPI
-CSI-2 virtual channels.
+Add two functions:
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+- ipu_degrees_to_rot_mode(): converts a degrees, hflip, and vflip setting
+  to an IPU rotation mode.
+- ipu_rot_mode_to_degrees(): converts an IPU rotation mode with given hflip
+  and vflip settings to degrees.
+
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- arch/arm/boot/dts/imx6dl.dtsi  | 182 +++++++++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/imx6q.dtsi   | 118 ++++++++++++++++++++++++++
- arch/arm/boot/dts/imx6qdl.dtsi |   8 ++
- 3 files changed, 308 insertions(+)
+ drivers/staging/imx-drm/ipu-v3/ipu-common.c |   64 +++++++++++++++++++++++++++
+ include/linux/platform_data/imx-ipu-v3.h    |    4 ++
+ 2 files changed, 68 insertions(+)
 
-diff --git a/arch/arm/boot/dts/imx6dl.dtsi b/arch/arm/boot/dts/imx6dl.dtsi
-index 5c5f574..619c7ce 100644
---- a/arch/arm/boot/dts/imx6dl.dtsi
-+++ b/arch/arm/boot/dts/imx6dl.dtsi
-@@ -110,3 +110,185 @@
- 		      "di0_sel", "di1_sel",
- 		      "di0", "di1";
- };
-+
-+&gpr {
-+	ipu_csi0_mux {
-+		compatible = "video-multiplexer";
-+		reg = <0x34>;
-+		bit-mask = <0x7>;
-+		bit-shift = <0>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			ipu_csi0_mux_from_mipi_csi0: endpoint {
-+				remote-endpoint = <&mipi_csi0_to_ipu_csi0_mux>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			ipu_csi0_mux_from_mipi_csi1: endpoint {
-+				remote-endpoint = <&mipi_csi1_to_ipu_csi0_mux>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			ipu_csi0_mux_from_mipi_csi2: endpoint {
-+				remote-endpoint = <&mipi_csi2_to_ipu_csi0_mux>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
-+
-+			ipu_csi0_mux_from_mipi_csi3: endpoint {
-+				remote-endpoint = <&mipi_csi3_to_ipu_csi0_mux>;
-+			};
-+		};
-+
-+		csi0: port@4 {
-+			reg = <4>;
-+		};
-+
-+		port@5 {
-+			reg = <5>;
-+
-+			ipu_csi0_mux_to_ipu1_csi0: endpoint {
-+				remote-endpoint = <&ipu1_csi0_from_ipu_csi0_mux>;
-+			};
-+		};
-+	};
-+
-+	ipu_csi1_mux {
-+		compatible = "video-multiplexer";
-+		reg = <0x34>;
-+		bit-mask = <0x7>;
-+		bit-shift = <0>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			ipu_csi1_mux_from_mipi_csi0: endpoint {
-+				remote-endpoint = <&mipi_csi0_to_ipu_csi1_mux>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			ipu_csi1_mux_from_mipi_csi1: endpoint {
-+				remote-endpoint = <&mipi_csi1_to_ipu_csi1_mux>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			ipu_csi1_mux_from_mipi_csi2: endpoint {
-+				remote-endpoint = <&mipi_csi2_to_ipu_csi1_mux>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
-+
-+			ipu_csi1_mux_from_mipi_csi3: endpoint {
-+				remote-endpoint = <&mipi_csi3_to_ipu_csi1_mux>;
-+			};
-+		};
-+
-+		csi1: port@4 {
-+			reg = <4>;
-+		};
-+
-+		port@5 {
-+			reg = <5>;
-+
-+			ipu_csi1_mux_to_ipu1_csi1: endpoint {
-+				remote-endpoint = <&ipu1_csi1_from_ipu_csi1_mux>;
-+			};
-+		};
-+	};
-+};
-+
-+&ipu1_csi0 {
-+	ipu1_csi0_from_ipu_csi0_mux: endpoint {
-+		remote-endpoint = <&ipu_csi0_mux_to_ipu1_csi0>;
-+	};
-+};
-+
-+&ipu1_csi1 {
-+	ipu1_csi1_from_ipu_csi1_mux: endpoint {
-+		remote-endpoint = <&ipu_csi1_mux_to_ipu1_csi1>;
-+	};
-+};
-+
-+&mipi_csi {
-+	port@0 {
-+		reg = <0>;
-+	};
-+
-+	port@1 {
-+		reg = <1>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		mipi_csi0_to_ipu_csi0_mux: endpoint@0 {
-+			remote-endpoint = <&ipu_csi0_mux_from_mipi_csi0>;
-+		};
-+
-+		mipi_csi0_to_ipu_csi1_mux: endpoint@1 {
-+			remote-endpoint = <&ipu_csi1_mux_from_mipi_csi0>;
-+		};
-+	};
-+
-+	port@2 {
-+		reg = <2>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		mipi_csi1_to_ipu_csi0_mux: endpoint@0 {
-+			remote-endpoint = <&ipu_csi0_mux_from_mipi_csi1>;
-+		};
-+
-+		mipi_csi1_to_ipu_csi1_mux: endpoint@1 {
-+			remote-endpoint = <&ipu_csi1_mux_from_mipi_csi1>;
-+		};
-+	};
-+
-+	port@3 {
-+		reg = <3>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		mipi_csi2_to_ipu_csi0_mux: endpoint@0 {
-+			remote-endpoint = <&ipu_csi0_mux_from_mipi_csi2>;
-+		};
-+
-+		mipi_csi2_to_ipu_csi1_mux: endpoint@1 {
-+			remote-endpoint = <&ipu_csi1_mux_from_mipi_csi2>;
-+		};
-+	};
-+
-+	port@4 {
-+		reg = <4>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		mipi_csi3_to_ipu_csi0_mux: endpoint@0 {
-+			remote-endpoint = <&ipu_csi0_mux_from_mipi_csi3>;
-+		};
-+
-+		mipi_csi3_to_ipu_csi1_mux: endpoint@1 {
-+			remote-endpoint = <&ipu_csi1_mux_from_mipi_csi3>;
-+		};
-+	};
-+};
-diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
-index 919a18a..bac825e 100644
---- a/arch/arm/boot/dts/imx6q.dtsi
-+++ b/arch/arm/boot/dts/imx6q.dtsi
-@@ -159,10 +159,18 @@
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+index 9c29e19..02577cc 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+@@ -564,6 +564,70 @@ enum ipu_color_space ipu_mbus_code_to_colorspace(u32 mbus_code)
+ }
+ EXPORT_SYMBOL_GPL(ipu_mbus_code_to_colorspace);
  
- 			ipu2_csi0: port@0 {
- 				reg = <0>;
++int ipu_degrees_to_rot_mode(enum ipu_rotate_mode *mode, int degrees,
++			    bool hflip, bool vflip)
++{
++	u32 r90, vf, hf;
 +
-+				ipu2_csi0_from_csi2ipu: endpoint {
-+					remote-endpoint = <&csi2ipu_to_ipu2_csi0>;
-+				};
- 			};
++	switch (degrees) {
++	case 0:
++		vf = hf = r90 = 0;
++		break;
++	case 90:
++		vf = hf = 0;
++		r90 = 1;
++		break;
++	case 180:
++		vf = hf = 1;
++		r90 = 0;
++		break;
++	case 270:
++		vf = hf = r90 = 1;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	hf ^= (u32)hflip;
++	vf ^= (u32)vflip;
++
++	*mode = (enum ipu_rotate_mode)((r90 << 2) | (hf << 1) | vf);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(ipu_degrees_to_rot_mode);
++
++int ipu_rot_mode_to_degrees(int *degrees, enum ipu_rotate_mode mode,
++			    bool hflip, bool vflip)
++{
++	u32 r90, vf, hf;
++
++	r90 = ((u32)mode >> 2) & 0x1;
++	hf = ((u32)mode >> 1) & 0x1;
++	vf = ((u32)mode >> 0) & 0x1;
++	hf ^= (u32)hflip;
++	vf ^= (u32)vflip;
++
++	switch ((enum ipu_rotate_mode)((r90 << 2) | (hf << 1) | vf)) {
++	case IPU_ROTATE_NONE:
++		*degrees = 0;
++		break;
++	case IPU_ROTATE_90_RIGHT:
++		*degrees = 90;
++		break;
++	case IPU_ROTATE_180:
++		*degrees = 180;
++		break;
++	case IPU_ROTATE_90_LEFT:
++		*degrees = 270;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(ipu_rot_mode_to_degrees);
++
+ struct ipuv3_channel *ipu_idmac_get(struct ipu_soc *ipu, unsigned num)
+ {
+ 	struct ipuv3_channel *channel;
+diff --git a/include/linux/platform_data/imx-ipu-v3.h b/include/linux/platform_data/imx-ipu-v3.h
+index 21226a2..ffcfe20 100644
+--- a/include/linux/platform_data/imx-ipu-v3.h
++++ b/include/linux/platform_data/imx-ipu-v3.h
+@@ -467,6 +467,10 @@ int ipu_cpmem_set_image(struct ipu_ch_param __iomem *cpmem,
+ enum ipu_color_space ipu_drm_fourcc_to_colorspace(u32 drm_fourcc);
+ enum ipu_color_space ipu_pixelformat_to_colorspace(u32 pixelformat);
+ enum ipu_color_space ipu_mbus_code_to_colorspace(u32 mbus_code);
++int ipu_degrees_to_rot_mode(enum ipu_rotate_mode *mode, int degrees,
++			    bool hflip, bool vflip);
++int ipu_rot_mode_to_degrees(int *degrees, enum ipu_rotate_mode mode,
++			    bool hflip, bool vflip);
  
- 			ipu2_csi1: port@1 {
- 				reg = <1>;
-+
-+				ipu2_csi1_from_mipi_ipu2_mux: endpoint {
-+					remote-endpoint = <&mipi_ipu2_mux_to_ipu2_csi1>;
-+				};
- 			};
- 
- 			ipu2_di0: port@2 {
-@@ -238,6 +246,78 @@
- 	};
- };
- 
-+&gpr {
-+	mipi_ipu1_mux {
-+		compatible = "video-multiplexer";
-+		reg = <0x04>;
-+		bit-mask = <1>;
-+		bit-shift = <19>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			mipi_ipu1_mux_from_mipi_csi0: endpoint {
-+				remote-endpoint = <&mipi_csi0_to_mipi_ipu1_mux>;
-+			};
-+		};
-+
-+		csi0: port@1 {
-+			reg = <1>;
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			mipi_ipu1_mux_to_ipu1_csi0: endpoint {
-+				remote-endpoint = <&ipu1_csi0_from_mipi_ipu1_mux>;
-+			};
-+		};
-+	};
-+
-+	mipi_ipu2_mux {
-+		compatible = "video-multiplexer";
-+		reg = <0x04>;
-+		bit-mask = <1>;
-+		bit-shift = <20>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			mipi_ipu2_mux_from_mipi_csi3: endpoint {
-+				remote-endpoint = <&mipi_csi3_to_mipi_ipu2_mux>;
-+			};
-+		};
-+
-+		csi1: port@1 {
-+			reg = <1>;
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			mipi_ipu2_mux_to_ipu2_csi1: endpoint {
-+				remote-endpoint = <&ipu2_csi1_from_mipi_ipu2_mux>;
-+			};
-+		};
-+	};
-+};
-+
-+&ipu1_csi1 {
-+	ipu1_csi1_from_mipi_csi1: endpoint {
-+		remote-endpoint = <&mipi_csi1_to_ipu1_csi1>;
-+	};
-+};
-+
-+&ipu2_csi0 {
-+	ipu2_csi0_from_mipi_csi2: endpoint {
-+		remote-endpoint = <&mipi_csi2_to_ipu2_csi0>;
-+	};
-+};
-+
- &ldb {
- 	clocks = <&clks 33>, <&clks 34>,
- 		 <&clks 39>, <&clks 40>, <&clks 41>, <&clks 42>,
-@@ -283,6 +363,44 @@
- 	};
- };
- 
-+&mipi_csi {
-+	port@0 {
-+		reg = <0>;
-+	};
-+
-+	port@1 {
-+		reg = <1>;
-+
-+		mipi_csi0_to_mipi_ipu1_mux: endpoint {
-+			remote-endpoint = <&mipi_ipu1_mux_from_mipi_csi0>;
-+		};
-+	};
-+
-+	port@2 {
-+		reg = <2>;
-+
-+		mipi_csi1_to_ipu1_csi1: endpoint {
-+			remote-endpoint = <&ipu1_csi1_from_mipi_csi1>;
-+		};
-+	};
-+
-+	port@3 {
-+		reg = <3>;
-+
-+		mipi_csi2_to_ipu2_csi0: endpoint {
-+			remote-endpoint = <&ipu2_csi0_from_mipi_csi2>;
-+		};
-+	};
-+
-+	port@4 {
-+		reg = <4>;
-+
-+		mipi_csi3_to_mipi_ipu2_mux: endpoint {
-+			remote-endpoint = <&mipi_ipu2_mux_from_mipi_csi3>;
-+		};
-+	};
-+};
-+
- &mipi_dsi {
- 	port@2 {
- 		reg = <2>;
-diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
-index 27303d6..e2f8924 100644
---- a/arch/arm/boot/dts/imx6qdl.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl.dtsi
-@@ -659,6 +659,8 @@
- 			gpr: iomuxc-gpr@020e0000 {
- 				compatible = "fsl,imx6q-iomuxc-gpr", "syscon";
- 				reg = <0x020e0000 0x38>;
-+				#address-cells = <1>;
-+				#size-cells = <0>;
- 			};
- 
- 			iomuxc: iomuxc@020e0000 {
-@@ -961,6 +963,8 @@
- 
- 			mipi_csi: mipi@021dc000 {
- 				reg = <0x021dc000 0x4000>;
-+				#address-cells = <1>;
-+				#size-cells = <0>;
- 			};
- 
- 			mipi_dsi: mipi@021e0000 {
-@@ -1049,6 +1053,10 @@
- 
- 			ipu1_csi0: port@0 {
- 				reg = <0>;
-+
-+				ipu1_csi0_from_mipi_ipu1_mux: endpoint {
-+					remote-endpoint = <&mipi_ipu1_mux_to_ipu1_csi0>;
-+				};
- 			};
- 
- 			ipu1_csi1: port@1 {
+ static inline void ipu_cpmem_set_burstsize(struct ipu_ch_param __iomem *p,
+ 		int burstsize)
 -- 
-2.0.0.rc2
+1.7.9.5
 
