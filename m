@@ -1,116 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2077 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753282AbaF3CpL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Jun 2014 22:45:11 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5U2j71k057525
-	for <linux-media@vger.kernel.org>; Mon, 30 Jun 2014 04:45:09 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id ED2A02A1FCF
-	for <linux-media@vger.kernel.org>; Mon, 30 Jun 2014 04:44:57 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:60456 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753320AbaFGV5J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:09 -0400
+Received: by mail-pd0-f175.google.com with SMTP id z10so3805935pdj.6
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:09 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140630024457.ED2A02A1FCF@tschai.lan>
-Date: Mon, 30 Jun 2014 04:44:57 +0200 (CEST)
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 09/43] imx-drm: ipu-v3: Add ipu_mbus_code_to_colorspace()
+Date: Sat,  7 Jun 2014 14:56:11 -0700
+Message-Id: <1402178205-22697-10-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Add ipu_mbus_code_to_colorspace() to find ipu_color_space from a
+media bus pixel format code.
 
-Results of the daily build of media_tree:
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/imx-drm/ipu-v3/ipu-common.c |   13 +++++++++++++
+ include/linux/platform_data/imx-ipu-v3.h    |    1 +
+ 2 files changed, 14 insertions(+)
 
-date:		Mon Jun 30 04:00:17 CEST 2014
-git branch:	test
-git hash:	b5b620584b9c4644b85e932895a742e0c192d66c
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-14-gf11dd94
-host hardware:	x86_64
-host os:	3.14-5.slh.5-amd64
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+index 3d7e28d..9c29e19 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+@@ -551,6 +551,19 @@ enum ipu_color_space ipu_pixelformat_to_colorspace(u32 pixelformat)
+ }
+ EXPORT_SYMBOL_GPL(ipu_pixelformat_to_colorspace);
+ 
++enum ipu_color_space ipu_mbus_code_to_colorspace(u32 mbus_code)
++{
++	switch (mbus_code & 0xf000) {
++	case 0x1000:
++		return IPUV3_COLORSPACE_RGB;
++	case 0x2000:
++		return IPUV3_COLORSPACE_YUV;
++	default:
++		return IPUV3_COLORSPACE_UNKNOWN;
++	}
++}
++EXPORT_SYMBOL_GPL(ipu_mbus_code_to_colorspace);
++
+ struct ipuv3_channel *ipu_idmac_get(struct ipu_soc *ipu, unsigned num)
+ {
+ 	struct ipuv3_channel *channel;
+diff --git a/include/linux/platform_data/imx-ipu-v3.h b/include/linux/platform_data/imx-ipu-v3.h
+index b4bc549..21226a2 100644
+--- a/include/linux/platform_data/imx-ipu-v3.h
++++ b/include/linux/platform_data/imx-ipu-v3.h
+@@ -466,6 +466,7 @@ int ipu_cpmem_set_image(struct ipu_ch_param __iomem *cpmem,
+ 
+ enum ipu_color_space ipu_drm_fourcc_to_colorspace(u32 drm_fourcc);
+ enum ipu_color_space ipu_pixelformat_to_colorspace(u32 pixelformat);
++enum ipu_color_space ipu_mbus_code_to_colorspace(u32 mbus_code);
+ 
+ static inline void ipu_cpmem_set_burstsize(struct ipu_ch_param __iomem *p,
+ 		int burstsize)
+-- 
+1.7.9.5
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
