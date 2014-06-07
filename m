@@ -1,95 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44465 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752101AbaFMQJJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jun 2014 12:09:09 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:59618 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753365AbaFGV5i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:38 -0400
+Received: by mail-pd0-f171.google.com with SMTP id y13so3808678pdi.2
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:38 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 16/30] [media] coda: add h.264 deblocking filter controls
-Date: Fri, 13 Jun 2014 18:08:42 +0200
-Message-Id: <1402675736-15379-17-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 36/43] gpio: pca953x: Add reset-gpios property
+Date: Sat,  7 Jun 2014 14:56:38 -0700
+Message-Id: <1402178205-22697-37-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds controls for the h.264 deblocking loop filter.
+Add optional reset-gpios property. If present, de-assert the
+specified reset gpio pin to bring the chip out of reset.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/platform/coda.c | 33 ++++++++++++++++++++++++++++++++-
- 1 file changed, 32 insertions(+), 1 deletion(-)
+ drivers/gpio/gpio-pca953x.c |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index fa7eafb..4b84d16 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -161,6 +161,9 @@ struct coda_params {
- 	u8			h264_inter_qp;
- 	u8			h264_min_qp;
- 	u8			h264_max_qp;
-+	u8			h264_deblk_enabled;
-+	u8			h264_deblk_alpha;
-+	u8			h264_deblk_beta;
- 	u8			mpeg4_intra_qp;
- 	u8			mpeg4_inter_qp;
- 	u8			gop_size;
-@@ -2380,7 +2383,17 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 			coda_write(dev, CODA9_STD_H264, CODA_CMD_ENC_SEQ_COD_STD);
- 		else
- 			coda_write(dev, CODA_STD_H264, CODA_CMD_ENC_SEQ_COD_STD);
--		coda_write(dev, 0, CODA_CMD_ENC_SEQ_264_PARA);
-+		if (ctx->params.h264_deblk_enabled) {
-+			value = ((ctx->params.h264_deblk_alpha &
-+				  CODA_264PARAM_DEBLKFILTEROFFSETALPHA_MASK) <<
-+				 CODA_264PARAM_DEBLKFILTEROFFSETALPHA_OFFSET) |
-+				((ctx->params.h264_deblk_beta &
-+				  CODA_264PARAM_DEBLKFILTEROFFSETBETA_MASK) <<
-+				 CODA_264PARAM_DEBLKFILTEROFFSETBETA_OFFSET);
-+		} else {
-+			value = 1 << CODA_264PARAM_DISABLEDEBLK_OFFSET;
-+		}
-+		coda_write(dev, value, CODA_CMD_ENC_SEQ_264_PARA);
- 		break;
- 	default:
- 		v4l2_err(v4l2_dev,
-@@ -2691,6 +2704,16 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP:
- 		ctx->params.h264_max_qp = ctrl->val;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA:
-+		ctx->params.h264_deblk_alpha = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA:
-+		ctx->params.h264_deblk_beta = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE:
-+		ctx->params.h264_deblk_enabled = (ctrl->val ==
-+				V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED);
-+		break;
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:
- 		ctx->params.mpeg4_intra_qp = ctrl->val;
- 		break;
-@@ -2745,6 +2768,14 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_H264_MAX_QP, 0, 51, 1, 51);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA, 0, 15, 1, 0);
-+	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA, 0, 15, 1, 0);
-+	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE,
-+		V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED, 0x0,
-+		V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED);
-+	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP, 1, 31, 1, 2);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP, 1, 31, 1, 2);
+diff --git a/drivers/gpio/gpio-pca953x.c b/drivers/gpio/gpio-pca953x.c
+index d550d8e..6e212f7 100644
+--- a/drivers/gpio/gpio-pca953x.c
++++ b/drivers/gpio/gpio-pca953x.c
+@@ -22,6 +22,7 @@
+ #include <linux/slab.h>
+ #ifdef CONFIG_OF_GPIO
+ #include <linux/of_platform.h>
++#include <linux/of_gpio.h>
+ #endif
+ 
+ #define PCA953X_INPUT		0
+@@ -98,6 +99,11 @@ struct pca953x_chip {
+ 	struct gpio_chip gpio_chip;
+ 	const char *const *names;
+ 	int	chip_type;
++
++#ifdef CONFIG_OF_GPIO
++	enum of_gpio_flags reset_gpio_flags;
++	int reset_gpio;
++#endif
+ };
+ 
+ static int pca953x_read_single(struct pca953x_chip *chip, int reg, u32 *val,
+@@ -735,6 +741,26 @@ static int pca953x_probe(struct i2c_client *client,
+ 		/* If I2C node has no interrupts property, disable GPIO interrupts */
+ 		if (of_find_property(client->dev.of_node, "interrupts", NULL) == NULL)
+ 			irq_base = -1;
++
++		/* see if we need to de-assert a reset pin */
++		ret = of_get_named_gpio_flags(client->dev.of_node,
++					      "reset-gpios", 0,
++					      &chip->reset_gpio_flags);
++		if (gpio_is_valid(ret)) {
++			chip->reset_gpio = ret;
++			ret = devm_gpio_request_one(&client->dev,
++						    chip->reset_gpio,
++						    GPIOF_DIR_OUT,
++						    "pca953x_reset");
++			if (ret == 0) {
++				/* bring chip out of reset */
++				dev_info(&client->dev, "releasing reset\n");
++				gpio_set_value(chip->reset_gpio,
++					       (chip->reset_gpio_flags ==
++						OF_GPIO_ACTIVE_LOW) ? 1 : 0);
++			}
++		} else if (ret == -EPROBE_DEFER)
++			return ret;
+ #endif
+ 	}
+ 
 -- 
-2.0.0.rc2
+1.7.9.5
 
