@@ -1,124 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp209.alice.it ([82.57.200.105]:29814 "EHLO smtp209.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751726AbaFROk5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jun 2014 10:40:57 -0400
-Date: Wed, 18 Jun 2014 16:40:44 +0200
-From: Antonio Ospite <ao2@ao2.it>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org, Gregor Jasny <gjasny@googlemail.com>
-Subject: Re: [PATCH RESEND] libv4lconvert: Fix a regression when converting
- from Y10B
-Message-Id: <20140618164044.2a4d4d7984f074d021f480ed@ao2.it>
-In-Reply-To: <53A19B31.5020602@redhat.com>
-References: <20140603155930.f72e14f4aab39ec49bdb1b71@ao2.it>
-	<1402930841-14755-1-git-send-email-ao2@ao2.it>
-	<53A17B4C.3010005@redhat.com>
-	<53A17C02.1080702@redhat.com>
-	<20140618152309.d16b3e703dc77fa9ca3551a8@ao2.it>
-	<53A19B31.5020602@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:47526 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753146AbaFGV5F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:05 -0400
+Received: by mail-pd0-f171.google.com with SMTP id y13so3830525pdi.30
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:05 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 05/43] imx-drm: ipu-v3: Map IOMUXC registers
+Date: Sat,  7 Jun 2014 14:56:07 -0700
+Message-Id: <1402178205-22697-6-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 18 Jun 2014 15:59:13 +0200
-Hans de Goede <hdegoede@redhat.com> wrote:
+Map the IOMUXC registers, which will be needed by ipu-csi for mux
+control.
 
-> Hi,
-> 
-> On 06/18/2014 03:23 PM, Antonio Ospite wrote:
-> > On Wed, 18 Jun 2014 13:46:10 +0200
-> > Hans de Goede <hdegoede@redhat.com> wrote:
-> > 
-> >> Hi,
-> >>
-> >> On 06/18/2014 01:43 PM, Hans de Goede wrote:
-> >>> Hi,
-> >>>
-> >>> On 06/16/2014 05:00 PM, Antonio Ospite wrote:
-[...]
-> >>> Why print a message here at all in the != 0 case? In the old code before commit
-> >>> efc29f1764 you did not print an error when v4lconvert_y10b_to_... failed, so
-> >>> I assume that that already does a V4LCONVERT_ERR in that case. So why do it a
-> >>> second time with a less precise error message here?
-> >>>
-> > 
-> > The one from v4lconvert_oom_error(), yes, which is generic, it does not
-> > tell _where_ the failure was.
-> >  
-> >>> So I believe that the proper fix would be to just remove the entire block instead
-> >>> of flipping the test and keeping the V4LCONVERT_ERR. Please send a new version
-> >>> with this fixed, then I'll merge it asap.
-> >>
-> >> Scrap that, I decided I might just as well fix this bit myself, so I've just
-> >> pushed an updated patch completely removing the second check from the
-> >> V4L2_PIX_FMT_Y10BPACK case.
-> >>
-> > 
-> > The rationale behind leaving the message was:
-> >   1. The conversion routines are called even in the case of short
-> >      frames (BTW that is true for any format, not just for Y10B).
-> >   2. The conversion routines from Y10B are not "in place", they
-> >      allocate a temporary buffer, so they may fail themselves.
-> 
-> Right, and this already does a V4LCONVERT_ERR, which will override any
-> error msg stored earlier.
->
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/imx-drm/ipu-v3/ipu-common.c |    8 ++++++++
+ drivers/staging/imx-drm/ipu-v3/ipu-prv.h    |    4 ++++
+ 2 files changed, 12 insertions(+)
 
-I see now, I was overlooking how V4LCONVERT_ERR() works.
-
-> > with this in mind I saw the second message as an _additional_ error
-> > indication to the user (useful in case of short frame _and_ conversion
-> > failure) rather than a less precise one. However, you are right that
-> > this additional error message was not in the original code before
-> > efc29f1764, so your patch is perfectly fine by me.
-> > 
-> > Thanks for merging it.
-> > 
-> > BTW, comments about 1.?
-> > What's the idea behind calling the conversion routines even for short
-> > frames?
-> 
-> For short frames the higher layer (libv4l2) will retry up to 3 times and then
-> just return whatever it did get. The src_size is the amount of available bytes
-> in the source buffer, the actual source buffer is pre-allocated and is always
-> large enough, so in case of 3 consecutive short frames we convert whatever we
-> did get + whatever data there was already in the buffer for the rest of the
-> frame and return that to the user.
-> 
-> This is useful since if the vsync timing is off between bridge and sensor,
-> we often miss some lines at the bottom. So by converting what ever we do get we
-> end up returning a frame with a mostly complete picture + 2 lines of garbage at
-> the bottom at 1/3th of the framerate because of the retries.
-> 
-> Ideally this would never happen, but it does and in this case actually showing
-> the broken picture and allowing the user to take a screenshot of this and
-> attach it to a bug report makes things a whole lot easier to debug. And in this
-> case the camera is even still somewhat usable by the user this way.
-> 
-> Likewise in other cases where the driver consistently feeds us short frames,
-> it can be quite helpful to actually see the contents of the short frame
-> for debugging purposes.
-> 
-> Regards,
-> 
-> Hans
->
-
-Thanks for the explanation.
-
-Ciao,
-   Antonio
-
-P.S. can we please have commit fff7e0eaae9734aa1f0a4e0fadef0d8c5c41b1e8
-cherry-picked in the stable-1.0 branch?
-
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+index 2d95a7c..635dafe 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+@@ -1196,6 +1196,14 @@ static int ipu_probe(struct platform_device *pdev)
+ 	if (!ipu->cm_reg || !ipu->idmac_reg || !ipu->cpmem_base)
+ 		return -ENOMEM;
+ 
++	ipu->gp_reg = syscon_regmap_lookup_by_compatible(
++		"fsl,imx6q-iomuxc-gpr");
++	if (IS_ERR(ipu->gp_reg)) {
++		ret = PTR_ERR(ipu->gp_reg);
++		dev_err(&pdev->dev, "failed to map iomuxc regs with %d\n", ret);
++		return ret;
++	}
++
+ 	ipu->clk = devm_clk_get(&pdev->dev, "bus");
+ 	if (IS_ERR(ipu->clk)) {
+ 		ret = PTR_ERR(ipu->clk);
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-prv.h b/drivers/staging/imx-drm/ipu-v3/ipu-prv.h
+index 9e4cf4b..90c0c50 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-prv.h
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-prv.h
+@@ -21,6 +21,9 @@ struct ipu_soc;
+ #include <linux/device.h>
+ #include <linux/clk.h>
+ #include <linux/platform_device.h>
++#include <linux/regmap.h>
++#include <linux/mfd/syscon.h>
++#include <linux/mfd/syscon/imx6q-iomuxc-gpr.h>
+ 
+ #include <linux/platform_data/imx-ipu-v3.h>
+ 
+@@ -163,6 +166,7 @@ struct ipu_soc {
+ 	void __iomem		*cm_reg;
+ 	void __iomem		*idmac_reg;
+ 	struct ipu_ch_param __iomem	*cpmem_base;
++	struct regmap		*gp_reg;
+ 
+ 	int			id;
+ 	int			usecount;
 -- 
-Antonio Ospite
-http://ao2.it
+1.7.9.5
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
