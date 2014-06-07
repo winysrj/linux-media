@@ -1,73 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:48546 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751066AbaFWNKi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jun 2014 09:10:38 -0400
-Date: Mon, 23 Jun 2014 15:08:51 +0200
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Alexander Bersenev <bay@hackerdom.ru>
-Cc: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	pawel.moll@arm.com, rdunlap@infradead.org, robh+dt@kernel.org,
-	sean@mess.org, srinivas.kandagatla@st.com,
-	wingrime@linux-sunxi.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v10 4/5] ARM: sunxi: Add IR controllers on A20 to dtsi
-Message-ID: <20140623130851.GD19730@lukather>
-References: <1403348646-31091-1-git-send-email-bay@hackerdom.ru>
- <1403348646-31091-5-git-send-email-bay@hackerdom.ru>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7HhoQoqNsng1reXT"
-Content-Disposition: inline
-In-Reply-To: <1403348646-31091-5-git-send-email-bay@hackerdom.ru>
+Received: from mail-pb0-f50.google.com ([209.85.160.50]:43414 "EHLO
+	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753324AbaFGV5P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:15 -0400
+Received: by mail-pb0-f50.google.com with SMTP id ma3so3885192pbc.37
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:14 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 14/43] imx-drm: ipu-v3: Add ipu_idmac_clear_buffer()
+Date: Sat,  7 Jun 2014 14:56:16 -0700
+Message-Id: <1402178205-22697-15-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add the reverse of ipu_idmac_select_buffer(), that is, clear a buffer
+ready status in a channel.
 
---7HhoQoqNsng1reXT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/imx-drm/ipu-v3/ipu-common.c |   28 +++++++++++++++++++++++++++
+ include/linux/platform_data/imx-ipu-v3.h    |    1 +
+ 2 files changed, 29 insertions(+)
 
-On Sat, Jun 21, 2014 at 05:04:05PM +0600, Alexander Bersenev wrote:
-> This patch adds records for two IR controllers on A20
->=20
-> Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-> Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+index 3ff55da..fd15eae 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+@@ -798,6 +798,34 @@ void ipu_idmac_select_buffer(struct ipuv3_channel *channel, u32 buf_num)
+ }
+ EXPORT_SYMBOL_GPL(ipu_idmac_select_buffer);
+ 
++void ipu_idmac_clear_buffer(struct ipuv3_channel *channel, u32 buf_num)
++{
++	struct ipu_soc *ipu = channel->ipu;
++	unsigned int chno = channel->num;
++	unsigned long flags;
++
++	spin_lock_irqsave(&ipu->lock, flags);
++
++	ipu_cm_write(ipu, 0xF0300000, IPU_GPR); /* write one to clear */
++	switch (buf_num) {
++	case 0:
++		ipu_cm_write(ipu, idma_mask(chno), IPU_CHA_BUF0_RDY(chno));
++		break;
++	case 1:
++		ipu_cm_write(ipu, idma_mask(chno), IPU_CHA_BUF1_RDY(chno));
++		break;
++	case 2:
++		ipu_cm_write(ipu, idma_mask(chno), IPU_CHA_BUF2_RDY(chno));
++		break;
++	default:
++		break;
++	}
++	ipu_cm_write(ipu, 0x0, IPU_GPR); /* write one to set */
++
++	spin_unlock_irqrestore(&ipu->lock, flags);
++}
++EXPORT_SYMBOL_GPL(ipu_idmac_clear_buffer);
++
+ int ipu_idmac_enable_channel(struct ipuv3_channel *channel)
+ {
+ 	struct ipu_soc *ipu = channel->ipu;
+diff --git a/include/linux/platform_data/imx-ipu-v3.h b/include/linux/platform_data/imx-ipu-v3.h
+index 0128667..480c30d 100644
+--- a/include/linux/platform_data/imx-ipu-v3.h
++++ b/include/linux/platform_data/imx-ipu-v3.h
+@@ -199,6 +199,7 @@ int ipu_idmac_wait_busy(struct ipuv3_channel *channel, int ms);
+ void ipu_idmac_set_double_buffer(struct ipuv3_channel *channel,
+ 		bool doublebuffer);
+ void ipu_idmac_select_buffer(struct ipuv3_channel *channel, u32 buf_num);
++void ipu_idmac_clear_buffer(struct ipuv3_channel *channel, u32 buf_num);
+ bool ipu_idmac_buffer_is_ready(struct ipuv3_channel *channel, u32 buf_num);
+ 
+ /*
+-- 
+1.7.9.5
 
-Applied, thanks.
-
-Maxime
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
-
---7HhoQoqNsng1reXT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTqCbjAAoJEBx+YmzsjxAgansQAJAJkczQFVnm5tbY91NHYuAv
-1UT+ia5Zg88dAgN6jbLYCJENcM1AuEMQ0fGMUulz9P8QtBviIz63u38XUc/YUEZP
-AIc07soXJ65DvIq6LNIdoDEg2/sBCFGukxi5lJoMuhupmOgyAP+ycCy/gVD7dRWC
-5Ok9OQwzeNjB6R9FRch17jiPpYIu6WIDhAzr7J7kEqVANtdp5qNqiw2kDGFump4g
-YF0jqh+vmVfTmDhNTDkg9JBIXJpVicz8Wg3HFNnqOditoOPd9BArh2oqlmUcTMU6
-0tv4i063+d60ZhViVLyHkBkLF+npTfnTrAo/3k6O56BsCSwrOdb9Cwke0cE17yZ5
-JuFErqHa//HNpUd3PohC6MfMt4FRqpGyg3tcbkC7P9H/j+lo/9EZIsybhRCwj0Kk
-Q9V2oz+OeWljj/v2H9zfDzf7Lmmoa3J4bIXfHC4Jk1iQMN8ydI4nGj0FNOJ2fJR9
-Fnt1rYdLdUjmXEgCMBA2sLMBQHdoRp7yNr1z37qsFfLCAZObVGlCnZ6qQVcAlMSZ
-xcTX7ZSF/hnW2ZEqabdFjew7syh63604GNyd9xbeWdxoF3sZMeYqdo6mOgZbOtvP
-7ngaDoTs0Z3Zci+cg+gwEW8Hmo27O5Lc/JVS/2qK3UtnQrKPM+5KbZJIg8wbZWiv
-ESrMe3DxfUuLsNWdHwAu
-=Go7l
------END PGP SIGNATURE-----
-
---7HhoQoqNsng1reXT--
