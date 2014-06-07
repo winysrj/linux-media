@@ -1,243 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f50.google.com ([209.85.160.50]:60169 "EHLO
-	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753357AbaFGV5g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:36 -0400
-Received: by mail-pb0-f50.google.com with SMTP id ma3so3909907pbc.9
-        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:36 -0700 (PDT)
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:47729 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753146AbaFGV5A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:00 -0400
+Received: by mail-pb0-f43.google.com with SMTP id up15so3901203pbc.2
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:56:59 -0700 (PDT)
 From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
 Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 34/43] ARM: dts: imx6-sabreauto: add video capture ports and endpoints
-Date: Sat,  7 Jun 2014 14:56:36 -0700
-Message-Id: <1402178205-22697-35-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+Subject: [PATCH 00/43] i.MX6 Video capture
+Date: Sat,  7 Jun 2014 14:56:02 -0700
+Message-Id: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Defines the host v4l2-capture device node and the ADV7180 decoder
-sensor. The host capture device is a child of ipu1. The ADV7180 is
-connected to the host parallel-bus endpoint on CSI0.
+Hi all,
 
-On the sabreauto, two analog video inputs are routed to the ADV7180,
-composite on Ain1, and composite on Ain3. Those inputs are defined
-via inputs and input-names under the host endpoint node on CSI0.
+This patch set adds video capture support for the Freescale i.MX6 SOC.
 
-Regulators and port expanders are defined which are required for the
-ADV7180 (power pin is via port expander gpio on i2c3). The reset pin
-to the port expander chip (MAX7310) is controlled by a gpio, so define
-the reset-gpios property to control it.
+It is a from-scratch standardized driver that works with community
+v4l2 utilities, such as v4l2-ctl, v4l2-cap, and the v4l2src gstreamer
+plugin. It uses the latest v4l2 interfaces (subdev, videobuf2).
+Please see Documentation/video4linux/mx6_camera.txt for it's full list
+of features!
 
-The sabreauto uses a steering pin to select between the SDA signal on
-i2c3 bus, and a data-in pin for an SPI NOR chip. Use i2cmux to control
-this steering pin. Idle state of the i2cmux selects SPI NOR. This is not
-a classic way to use i2cmux, since one side of the mux selects something
-other than an i2c bus, but it works and is probably the cleanest
-solution. Note that if one thread is attempting to access SPI NOR while
-another thread is accessing i2c3, the SPI NOR access will fail since the
-i2cmux has selected the SDA pin rather than SPI NOR data-in. This couldn't
-be avoided in any case, the board is not designed to allow concurrent
-i2c3 and SPI NOR functions (and the default device-tree does not enable
-SPI NOR anyway).
+The first 38 patches:
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi |  149 ++++++++++++++++++++++++++++++
- 1 file changed, 149 insertions(+)
+- prepare the ipu-v3 driver for video capture support. The current driver
+  contains only video display functionality to support the imx DRM drivers.
+  At some point ipu-v3 should be moved out from under staging/imx-drm since
+  it will no longer only support DRM.
 
-diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-index 009abd6..27ac698 100644
---- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-@@ -17,6 +17,39 @@
- 		reg = <0x10000000 0x80000000>;
- 	};
- 
-+	regulators {
-+		compatible = "simple-bus";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		reg_2p5v: regulator@0 {
-+			compatible = "regulator-fixed";
-+			reg = <0>;
-+			regulator-name = "2P5V";
-+			regulator-min-microvolt = <2500000>;
-+			regulator-max-microvolt = <2500000>;
-+			regulator-always-on;
-+		};
-+
-+		reg_3p3v: regulator@1 {
-+			compatible = "regulator-fixed";
-+			reg = <1>;
-+			regulator-name = "3P3V";
-+			regulator-min-microvolt = <3300000>;
-+			regulator-max-microvolt = <3300000>;
-+			regulator-always-on;
-+		};
-+
-+		reg_2p8v: regulator@2 {
-+			compatible = "regulator-fixed";
-+			reg = <2>;
-+			regulator-name = "2P8V";
-+			regulator-min-microvolt = <2800000>;
-+			regulator-max-microvolt = <2800000>;
-+			regulator-always-on;
-+		};
-+	};
-+
- 	leds {
- 		compatible = "gpio-leds";
- 		pinctrl-names = "default";
-@@ -43,6 +76,66 @@
- 		default-brightness-level = <7>;
- 		status = "okay";
- 	};
-+
-+	i2cmux {
-+		compatible = "i2c-mux-gpio";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_i2c3mux>;
-+		mux-gpios = <&gpio5 4 0>;
-+		i2c-parent = <&i2c3>;
-+		idle-state = <0>;
-+
-+		i2c@1 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <1>;
-+
-+			camera: adv7180@21 {
-+				compatible = "adi,adv7180";
-+				reg = <0x21>;
-+				DOVDD-supply = <&reg_3p3v>;
-+				AVDD-supply = <&reg_3p3v>;
-+				DVDD-supply = <&reg_3p3v>;
-+				PVDD-supply = <&reg_3p3v>;
-+				pwdn-gpio = <&port_exp_b 2 0>;
-+				interrupt-parent = <&gpio1>;
-+				interrupts = <27 0x8>;
-+
-+				port {
-+					adv7180_1: endpoint {
-+						remote-endpoint = <&csi0>;
-+						bus-width = <16>;
-+					};
-+				};
-+			};
-+
-+			port_exp_a: gpio_pca953x@30 {
-+				compatible = "maxim,max7310";
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+				reg = <0x30>;
-+				reset-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
-+			};
-+
-+			port_exp_b: gpio_pca953x@32 {
-+				compatible = "maxim,max7310";
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+				reg = <0x32>;
-+				reset-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
-+			};
-+
-+			port_exp_c: gpio_pca953x@34 {
-+				compatible = "maxim,max7310";
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+				reg = <0x34>;
-+				reset-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
-+			};
-+		};
-+	};
- };
- 
- &ecspi1 {
-@@ -182,6 +275,13 @@
- 	};
- };
- 
-+&i2c3 {
-+	status = "okay";
-+	clock-frequency = <400000>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_i2c3>;
-+};
-+
- &iomuxc {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_hog>;
-@@ -192,6 +292,7 @@
- 				MX6QDL_PAD_NANDF_CS2__GPIO6_IO15 0x80000000
- 				MX6QDL_PAD_SD2_DAT2__GPIO1_IO13  0x80000000
- 				MX6QDL_PAD_GPIO_18__SD3_VSELECT 0x17059
-+				MX6QDL_PAD_SD2_DAT0__GPIO1_IO15 0x80000000
- 			>;
- 		};
- 
-@@ -265,6 +366,19 @@
- 			>;
- 		};
- 
-+		pinctrl_i2c3: i2c3grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_GPIO_3__I2C3_SCL	0x4001b8b1
-+				MX6QDL_PAD_EIM_D18__I2C3_SDA	0x4001b8b1
-+			>;
-+		};
-+
-+		pinctrl_i2c3mux: i2c3muxgrp {
-+			fsl,pins = <
-+				MX6QDL_PAD_EIM_A24__GPIO5_IO04 0x80000000
-+			>;
-+		};
-+
- 		pinctrl_pwm3: pwm1grp {
- 			fsl,pins = <
- 				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
-@@ -456,3 +570,38 @@
- 				0x0000c000 0x1404a38e 0x00000000>;
- 	};
- };
-+
-+&ipu1 {
-+	status = "okay";
-+
-+	v4l2-capture {
-+		compatible = "fsl,imx6-v4l2-capture";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		status = "okay";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <
-+			&pinctrl_ipu1_csi0_d4_d7
-+			&pinctrl_ipu1_csi0_1
-+		>;
-+
-+		/* CSI0 */
-+		port@0 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <0>;
-+
-+			/* Parallel bus */
-+			csi0: endpoint@0 {
-+				reg = <0>;
-+				remote-endpoint = <&adv7180_1>;
-+				bus-width = <16>;
-+				data-shift = <4>; /* Lines 19:4 used */
-+
-+				inputs = <0x00 0x02>;
-+				input-names = "ADV7180 Composite on Ain1",
-+						"ADV7180 Composite on Ain3";
-+			};
-+		};
-+	};
-+};
+- Adds the device tree nodes and OF graph bindings for video capture support
+  on sabrelite, sabresd, and sabreauto reference platforms.
+
+The new i.MX6 capture host interface driver is at patch 39.
+
+To support the sensors found on the sabrelite, sabresd, and sabreauto,
+three patches add sensor subdev's for parallel OV5642, MIPI CSI-2 OV5640,
+and the ADV7180 decoder chip, beginning at patch 40.
+
+There is an existing adv7180 subdev driver under drivers/media/i2c, but
+it needs some extra functionality to work on the sabreauto. It will need
+OF graph bindings support and gpio for a power-on pin on the sabreauto.
+It would also need to send a new subdev notification to take advantage
+of decoder status change handling provided by the host driver. This
+feature makes it possible to correctly handle "hot" (while streaming)
+signal lock/unlock and autodetected video standard changes.
+
+Usage notes are found in Documentation/video4linux/mx6_camera.txt for the
+above three reference platforms.
+
+The driver source is under drivers/staging/media/imx6/capture/.
+
+
+Steve Longerbeam (43):
+  imx-drm: ipu-v3: Move imx-ipu-v3.h to include/linux/platform_data/
+  ARM: dts: imx6qdl: Add ipu aliases
+  imx-drm: ipu-v3: Add ipu_get_num()
+  imx-drm: ipu-v3: Add solo/dual-lite IPU device type
+  imx-drm: ipu-v3: Map IOMUXC registers
+  imx-drm: ipu-v3: Add functions to set CSI/IC source muxes
+  imx-drm: ipu-v3: Rename and add IDMAC channels
+  imx-drm: ipu-v3: Add units required for video capture
+  imx-drm: ipu-v3: Add ipu_mbus_code_to_colorspace()
+  imx-drm: ipu-v3: Add rotation mode conversion utilities
+  imx-drm: ipu-v3: Add helper function checking if pixfmt is planar
+  imx-drm: ipu-v3: Move IDMAC channel names to imx-ipu-v3.h
+  imx-drm: ipu-v3: Add ipu_idmac_buffer_is_ready()
+  imx-drm: ipu-v3: Add ipu_idmac_clear_buffer()
+  imx-drm: ipu-v3: Add ipu_idmac_current_buffer()
+  imx-drm: ipu-v3: Add __ipu_idmac_reset_current_buffer()
+  imx-drm: ipu-v3: Add ipu_stride_to_bytes()
+  imx-drm: ipu-v3: Add ipu_idmac_enable_watermark()
+  imx-drm: ipu-v3: Add ipu_idmac_lock_enable()
+  imx-drm: ipu-v3: Add idmac channel linking support
+  imx-drm: ipu-v3: Add ipu_bits_per_pixel()
+  imx-drm: ipu-v3: Add ipu-cpmem unit
+  imx-drm: ipu-cpmem: Add ipu_cpmem_set_block_mode()
+  imx-drm: ipu-cpmem: Add ipu_cpmem_set_axi_id()
+  imx-drm: ipu-cpmem: Add ipu_cpmem_set_rotation()
+  imx-drm: ipu-cpmem: Add second buffer support to ipu_cpmem_set_image()
+  imx-drm: ipu-v3: Add more planar formats support
+  imx-drm: ipu-cpmem: Add ipu_cpmem_dump()
+  imx-drm: ipu-v3: Add ipu_dump()
+  ARM: dts: imx6: add pin groups for imx6q/dl for IPU1 CSI0
+  ARM: dts: imx6qdl: Flesh out MIPI CSI2 receiver node
+  ARM: dts: imx: sabrelite: add video capture ports and endpoints
+  ARM: dts: imx6-sabresd: add video capture ports and endpoints
+  ARM: dts: imx6-sabreauto: add video capture ports and endpoints
+  ARM: dts: imx6qdl: Add simple-bus to ipu compatibility
+  gpio: pca953x: Add reset-gpios property
+  ARM: imx6q: clk: Add video 27m clock
+  media: imx6: Add device tree binding documentation
+  media: Add new camera interface driver for i.MX6
+  media: imx6: Add support for MIPI CSI-2 OV5640
+  media: imx6: Add support for Parallel OV5642
+  media: imx6: Add support for ADV7180 Video Decoder
+  ARM: imx_v6_v7_defconfig: Enable video4linux drivers
+
+ .../devicetree/bindings/clock/imx6q-clock.txt      |    1 +
+ Documentation/devicetree/bindings/media/imx6.txt   |  433 ++
+ .../bindings/staging/imx-drm/fsl-imx-drm.txt       |    6 +-
+ .../devicetree/bindings/vendor-prefixes.txt        |    1 +
+ Documentation/video4linux/mx6_camera.txt           |  188 +
+ arch/arm/boot/dts/imx6q.dtsi                       |    3 +-
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi           |  149 +
+ arch/arm/boot/dts/imx6qdl-sabrelite.dtsi           |   91 +
+ arch/arm/boot/dts/imx6qdl-sabresd.dtsi             |  116 +
+ arch/arm/boot/dts/imx6qdl.dtsi                     |   62 +-
+ arch/arm/configs/imx_v6_v7_defconfig               |    4 +
+ arch/arm/mach-imx/clk-imx6q.c                      |    3 +-
+ drivers/gpio/gpio-pca953x.c                        |   26 +
+ drivers/staging/imx-drm/imx-hdmi.c                 |    2 +-
+ drivers/staging/imx-drm/imx-tve.c                  |    2 +-
+ drivers/staging/imx-drm/ipu-v3/Makefile            |    3 +-
+ drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h        |  326 --
+ drivers/staging/imx-drm/ipu-v3/ipu-common.c        | 1151 ++++--
+ drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c         |  814 ++++
+ drivers/staging/imx-drm/ipu-v3/ipu-csi.c           |  821 ++++
+ drivers/staging/imx-drm/ipu-v3/ipu-dc.c            |    2 +-
+ drivers/staging/imx-drm/ipu-v3/ipu-di.c            |    2 +-
+ drivers/staging/imx-drm/ipu-v3/ipu-dmfc.c          |    2 +-
+ drivers/staging/imx-drm/ipu-v3/ipu-dp.c            |    2 +-
+ drivers/staging/imx-drm/ipu-v3/ipu-ic.c            |  835 ++++
+ drivers/staging/imx-drm/ipu-v3/ipu-irt.c           |  103 +
+ drivers/staging/imx-drm/ipu-v3/ipu-prv.h           |  126 +-
+ drivers/staging/imx-drm/ipu-v3/ipu-smfc.c          |  348 ++
+ drivers/staging/imx-drm/ipuv3-crtc.c               |    2 +-
+ drivers/staging/imx-drm/ipuv3-plane.c              |   18 +-
+ drivers/staging/media/Kconfig                      |    2 +
+ drivers/staging/media/Makefile                     |    1 +
+ drivers/staging/media/imx6/Kconfig                 |   25 +
+ drivers/staging/media/imx6/Makefile                |    1 +
+ drivers/staging/media/imx6/capture/Kconfig         |   33 +
+ drivers/staging/media/imx6/capture/Makefile        |    7 +
+ drivers/staging/media/imx6/capture/adv7180.c       | 1298 ++++++
+ drivers/staging/media/imx6/capture/mipi-csi2.c     |  322 ++
+ drivers/staging/media/imx6/capture/mx6-camif.c     | 2235 ++++++++++
+ drivers/staging/media/imx6/capture/mx6-camif.h     |  197 +
+ drivers/staging/media/imx6/capture/mx6-encode.c    |  775 ++++
+ drivers/staging/media/imx6/capture/mx6-preview.c   |  748 ++++
+ drivers/staging/media/imx6/capture/ov5640-mipi.c   | 2158 ++++++++++
+ drivers/staging/media/imx6/capture/ov5642.c        | 4258 ++++++++++++++++++++
+ include/linux/platform_data/imx-ipu-v3.h           |  425 ++
+ include/media/imx6.h                               |   18 +
+ 46 files changed, 17340 insertions(+), 805 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/imx6.txt
+ create mode 100644 Documentation/video4linux/mx6_camera.txt
+ delete mode 100644 drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
+ create mode 100644 drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c
+ create mode 100644 drivers/staging/imx-drm/ipu-v3/ipu-csi.c
+ create mode 100644 drivers/staging/imx-drm/ipu-v3/ipu-ic.c
+ create mode 100644 drivers/staging/imx-drm/ipu-v3/ipu-irt.c
+ create mode 100644 drivers/staging/imx-drm/ipu-v3/ipu-smfc.c
+ create mode 100644 drivers/staging/media/imx6/Kconfig
+ create mode 100644 drivers/staging/media/imx6/Makefile
+ create mode 100644 drivers/staging/media/imx6/capture/Kconfig
+ create mode 100644 drivers/staging/media/imx6/capture/Makefile
+ create mode 100644 drivers/staging/media/imx6/capture/adv7180.c
+ create mode 100644 drivers/staging/media/imx6/capture/mipi-csi2.c
+ create mode 100644 drivers/staging/media/imx6/capture/mx6-camif.c
+ create mode 100644 drivers/staging/media/imx6/capture/mx6-camif.h
+ create mode 100644 drivers/staging/media/imx6/capture/mx6-encode.c
+ create mode 100644 drivers/staging/media/imx6/capture/mx6-preview.c
+ create mode 100644 drivers/staging/media/imx6/capture/ov5640-mipi.c
+ create mode 100644 drivers/staging/media/imx6/capture/ov5642.c
+ create mode 100644 include/linux/platform_data/imx-ipu-v3.h
+ create mode 100644 include/media/imx6.h
+
 -- 
 1.7.9.5
 
