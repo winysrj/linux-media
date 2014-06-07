@@ -1,98 +1,468 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta09.emeryville.ca.mail.comcast.net ([76.96.30.96]:51039 "EHLO
-	qmta09.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752205AbaFXX5v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 19:57:51 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: gregkh@linuxfoundation.org, m.chehab@samsung.com, olebowle@gmx.com,
-	ttmesterr@gmail.com, dheitmueller@kernellabs.com,
-	cb.xiong@samsung.com, yongjun_wei@trendmicro.com.cn,
-	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	crope@iki.fi, wade_farnsworth@mentor.com, ricardo.ribalda@gmail.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
-Subject: [PATCH 0/4] media: tuner large grain locking
-Date: Tue, 24 Jun 2014 17:57:27 -0600
-Message-Id: <cover.1403652043.git.shuah.kh@samsung.com>
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:59050 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753365AbaFGV5l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:41 -0400
+Received: by mail-pd0-f169.google.com with SMTP id w10so3814795pde.28
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:40 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 38/43] media: imx6: Add device tree binding documentation
+Date: Sat,  7 Jun 2014 14:56:40 -0700
+Message-Id: <1402178205-22697-39-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a managed token resource that can be created at device level
-which can be used as a large grain lock by diverse group of drivers
-such as the media drivers that share a resource.
+Add device tree binding documentation for i.MX6 media devices.
 
-Token resource manages a unique named string resource which is
-derived from common bus_name, and hardware address fields from
-the struct device.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ Documentation/devicetree/bindings/media/imx6.txt |  433 ++++++++++++++++++++++
+ 1 file changed, 433 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/imx6.txt
 
-au0828 is changed to use token devres as a large locking
-for exclusive access to tuner function. A new tuner_tkn
-field is added to struct au0828_dev. Tuner token is created
-from au0828 probe() and destroyed from disconnect().
-
-Two new routines au0828_create_token_resources() and
-au0828_destroy_token_resources() create and destroy the
-tuner token.
-
-au0828-dvb exports the tuner token to dvb-frontend when
-it registers the digital frontend using the tuner_tkn
-field in struct dvb_frontend.
-
-au0828-video exports the tuner token to v4l2-core when
-it registers the analog function using tuner_tkn field
-in struct video_device.
-
-Before this change:
-
-- digital tv app disrupts an active analog app when it
-  tries to use the tuner
-  e.g:  tvtime analog video stream stops when kaffeine starts
-- analog tv app disrupts another analog app when it tries to
-  use the tuner
-  e.g: tvtime audio glitches when xawtv starts and vice versa.
-- analog tv app disrupts an active digital app when it tries
-  to use the tuner
-  e.g: kaffeine digital stream stops when tvtime starts
-- digital tv app disrupts another digital tv app when it tries
-  to use the tuner
-  e.g: kaffeine digital stream stops when vlc starts and vice
-  versa
-
-After this change:
-- digital tv app detects tuner is busy without disrupting
-  the active app.
-- analog tv app detects tuner is busy without disrupting
-  the active analog app.
-- analog tv app detects tuner is busy without disrupting
-  the active digital app.
-- digital tv app detects tuner is busy without disrupting
-  the active digital app.
-
-Requesting feedback on any use-cases I missed and overall
-approach to solving the contention between media functions.
-
-Shuah Khan (4):
-  drivers/base: add managed token dev resource
-  media: dvb-fe changes to use tuner token
-  media: v4l2-core changes to use tuner token
-  media: au0828 changes to use token devres for tuner access
-
- drivers/base/Makefile                   |    2 +-
- drivers/base/token_devres.c             |  134 +++++++++++++++++++++++++++++++
- drivers/media/dvb-core/dvb_frontend.c   |   21 +++++
- drivers/media/dvb-core/dvb_frontend.h   |    1 +
- drivers/media/usb/au0828/au0828-core.c  |   42 ++++++++++
- drivers/media/usb/au0828/au0828-dvb.c   |    1 +
- drivers/media/usb/au0828/au0828-video.c |    4 +
- drivers/media/usb/au0828/au0828.h       |    4 +
- drivers/media/v4l2-core/v4l2-dev.c      |   23 +++++-
- include/linux/token_devres.h            |   19 +++++
- include/media/v4l2-dev.h                |    1 +
- 11 files changed, 250 insertions(+), 2 deletions(-)
- create mode 100644 drivers/base/token_devres.c
- create mode 100644 include/linux/token_devres.h
-
+diff --git a/Documentation/devicetree/bindings/media/imx6.txt b/Documentation/devicetree/bindings/media/imx6.txt
+new file mode 100644
+index 0000000..0a4d170
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/imx6.txt
+@@ -0,0 +1,433 @@
++Freescale i.MX6 Video Capture
++
++v4l2-capture node
++-----------------
++
++This is the imx6 camera host interface node, and must be a child node
++of ipu1 and/or ipu2. The host node does not require reg or interrupt
++properties because it uses the facilities of its parent IPU. Only a
++compatible property is required.
++
++Required properties:
++- compatible	: "fsl,imx6-v4l2-capture";
++
++mipi_csi2 node
++--------------
++
++This is the device node for the MIPI CSI-2 Receiver, required for MIPI
++CSi-2 sensors.
++
++Required properties:
++- compatible	: "fsl,imx6-mipi-csi2";
++- reg           : physical base address and length of the register set;
++- clocks	: the MIPI CSI-2 receiver requires two clocks: hsi_tx
++                  (the DPHY clock, 138) and video_27m (208);
++- clock-names	: must contain "dphy_clk" followed by "cfg_clk";
++
++Optional properties:
++- interrupts	: must contain two level-triggered interrupts,
++                  in order: 100 and 101;
++
++
++Device tree nodes of the image sensors' controlled directly by the imx6
++camera host interface driver must be child nodes of their corresponding
++I2C bus controller node. The data link of these image sensors must be
++specified using the common video interfaces bindings, defined in
++video-interfaces.txt.
++
++The port nodes correspond to the IPU CSI to which sensor endpoints are
++connected, so the reg property specifies the CSI number (0 or 1).
++
++The reg property for endpoint nodes are ignored except for MIPI CSI-2
++endpoints, in which case the reg property specifies the virtual
++channel number the remote sensor is transmitting data over.
++
++Video capture is supported with the following imx6-based reference
++platforms:
++
++
++SabreLite with OV5642
++---------------------
++
++The OV5642 module is connected to CSI0 on IPU1 (the first IPU on imx6
++quad SabreLite). It's i2c bus connects to i2c bus 2, so the ov5642
++sensor node must be a child of i2c2.
++
++OV5642 Required properties:
++- compatible	: "ovti,ov5642";
++- clocks        : the OV5642 system clock (cko2, 200);
++- clock-names	: must be "xclk";
++- reg           : must be 0x3c;
++- xclk          : the system clock frequency, must be 24000000;
++- reset-gpios   : must be <&gpio1 8 0>;
++- pwdn-gpios    : must be <&gpio1 6 0>;
++
++OV5642 Endpoint Required properties:
++- remote-endpoint : must connect to camera interface endpoint on CSI0;
++- bus-width       : must be 12;
++- hsync-active    : must be 1;
++- vsync-active    : must be 1;
++
++The following is an example devicetree configuration for SabreLite:
++
++&i2c2 {
++	status = "okay";
++	clock-frequency = <100000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c2>;
++
++	camera: ov5642@3c {
++		compatible = "ovti,ov5642";
++		clocks = <&clks 200>;
++		clock-names = "xclk";
++		reg = <0x3c>;
++		xclk = <24000000>;
++		reset-gpios = <&gpio1 8 0>;
++		pwdn-gpios = <&gpio1 6 0>;
++		gp-gpios = <&gpio1 16 0>;
++
++		port {
++			ov5642_1: endpoint {
++				remote-endpoint = <&csi0>;
++				bus-width = <12>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++			};
++		};
++	};
++};
++
++&ipu1 {
++	status = "okay";
++
++	v4l2-capture {
++		compatible = "fsl,imx6-v4l2-capture";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		status = "okay";
++		pinctrl-names = "default";
++		pinctrl-0 = <
++			&pinctrl_ipu1_csi0_1
++			&pinctrl_ipu1_csi0_data_en
++		>;
++
++		/* CSI0 */
++		port@0 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0>;
++
++			/* Parallel bus */
++			csi0: endpoint@0 {
++				reg = <0>;
++				remote-endpoint = <&ov5642_1>;
++				bus-width = <12>;
++				data-shift = <8>; /* Lines 19:8 used */
++				hsync-active = <1>;
++				vync-active = <1>;
++			};
++		};
++	};
++};
++
++
++
++SabreAuto with ADV7180
++----------------------
++
++On the SabreAuto, an on-board ADV7180 SD decoder is connected via a
++parallel bus on IPU1 CSI0.
++
++Two analog video inputs are routed to the ADV7180 on the SabreAuto,
++composite on Ain1, and composite on Ain3. Those inputs are defined
++via inputs and input-names properties under the host endpoint node
++on CSI0.
++
++Regulators and port expanders are required for the ADV7180 (power pin
++is via port expander gpio on i2c3). The reset pin to the port expander
++chip (MAX7310) is controlled by a gpio, so a reset-gpios property must
++be defined under the port expander node to control it.
++
++The sabreauto uses a steering pin to select between the SDA signal on
++i2c3 bus, and a data-in pin for an SPI NOR chip. i2cmux can be used to
++control this steering pin. Idle state of the i2cmux selects SPI NOR.
++This is not classic way to use i2cmux, since one side of the mux selects
++something other than an i2c bus, but it works and is probably the cleanest
++solution. Note that if one thread is attempting to access SPI NOR while
++another thread is accessing i2c3, the SPI NOR access will fail since the
++i2cmux has selected the SDA pin rather than SPI NOR data-in. This couldn't
++be avoided in any case, the board is not designed to allow concurrent
++i2c3 and SPI NOR functions (and the default device-tree does not enable
++SPI NOR anyway).
++
++Host Interface Endpoint Required Properties:
++- inputs        : list of input mux values, must be 0x00 followed by
++                  0x02 on SabreAuto;
++- input-names   : names of the inputs;
++
++ADV7180 Required properties:
++- compatible    : "adi,adv7180";
++- reg           : must be 0x21;
++
++ADV7180 Optional properties:
++- DOVDD-supply  : DOVDD regulator supply;
++- AVDD-supply   : AVDD regulator supply;
++- DVDD-supply   : DVDD regulator supply;
++- PVDD-supply   : PVDD regulator supply;
++- pwdn-gpio     : gpio to control ADV7180 power pin, must be
++                  <&port_exp_b 2 0> on SabreAuto;
++- interrupts    : interrupt from ADV7180, must be <27 0x8> on SabreAuto;
++- interrupt-parent : must be <&gpio1> on SabreAuto;
++
++ADV7180 Endpoint Required properties:
++- remote-endpoint : must connect to camera interface endpoint on CSI0;
++- bus-width       : must be 16;
++
++
++The following is an example devicetree configuration for SabreAuto:
++
++/ {
++	i2cmux {
++		compatible = "i2c-mux-gpio";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_i2c3mux>;
++		mux-gpios = <&gpio5 4 0>;
++		i2c-parent = <&i2c3>;
++		idle-state = <0>;
++
++		i2c@1 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <1>;
++
++			camera: adv7180@21 {
++				compatible = "adi,adv7180";
++				reg = <0x21>;
++				DOVDD-supply = <&reg_3p3v>;
++				AVDD-supply = <&reg_3p3v>;
++				DVDD-supply = <&reg_3p3v>;
++				PVDD-supply = <&reg_3p3v>;
++				pwdn-gpio = <&port_exp_b 2 0>;
++				interrupt-parent = <&gpio1>;
++				interrupts = <27 0x8>;
++
++				port {
++					adv7180_1: endpoint {
++						remote-endpoint = <&csi0>;
++						bus-width = <16>;
++					};
++				};
++			};
++
++			port_exp_b: gpio_pca953x@32 {
++				compatible = "maxim,max7310";
++				gpio-controller;
++				#gpio-cells = <2>;
++				reg = <0x32>;
++				reset-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
++			};
++
++		};
++	};
++};
++
++&ipu1 {
++	status = "okay";
++
++	v4l2-capture {
++		compatible = "fsl,imx6-v4l2-capture";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		status = "okay";
++		pinctrl-names = "default";
++		pinctrl-0 = <
++			&pinctrl_ipu1_csi0_d4_d7
++			&pinctrl_ipu1_csi0_1
++		>;
++
++		/* CSI0 */
++		port@0 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0>;
++
++			/* Parallel bus */
++			csi0: endpoint@0 {
++				reg = <0>;
++				remote-endpoint = <&adv7180_1>;
++				bus-width = <16>;
++				data-shift = <4>; /* Lines 19:4 used */
++
++				inputs = <0x00 0x02>;
++				input-names = "ADV7180 Composite on Ain1",
++						"ADV7180 Composite on Ain3";
++			};
++		};
++	};
++};
++
++
++
++SabreSD with OV5642 and MIPI CSI-2 OV5640
++-----------------------------------------
++
++On the SabreSD, two camera sensors are supported: a parallel interface
++OV5642 on IPU1 CSI0, and a MIPI CSi-2 OV5640 on IPU1 CSI1. The OV5642
++connects to i2c bus 1 (i2c1) and the OV5640 to i2c bus 2 (i2c2).
++
++The mipi_csi2 receiver node must be enabled and connected via
++remote-endpoint to the OV5640 MIPI CSI-2 endpoint.
++
++OV5642 properties are as described above on SabreLite.
++
++OV5640 Required properties:
++- compatible	: "ovti,ov5640_mipi";
++- clocks        : the OV5640 system clock (cko, 201);
++- clock-names	: must be "xclk";
++- reg           : must be 0x3c;
++- xclk          : the system clock frequency, must be 24000000;
++- reset-gpios   : must be <&gpio1 20 1>;
++- pwdn-gpios    : must be <&gpio1 19 0>;
++
++OV5640 Optional properties:
++- DOVDD-supply  : DOVDD regulator supply;
++- AVDD-supply   : AVDD regulator supply;
++- DVDD-supply   : DVDD regulator supply;
++
++OV5640 MIPI CSI-2 Endpoint Required properties:
++- remote-endpoint : must connect to camera interface virtual channel 0
++                    endpoint on CSI1;
++- reg             : must be 1;
++- data-lanes      : must be <0 1>;
++- clock-lanes     : must be <2>;
++
++
++The following is an example devicetree configuration for SabreSD:
++
++&i2c1 {
++	clock-frequency = <100000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c1>;
++	status = "okay";
++
++	camera: ov5642@3c {
++		compatible = "ovti,ov5642";
++		clocks = <&clks 201>;
++		clock-names = "xclk";
++		reg = <0x3c>;
++		xclk = <24000000>;
++		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
++		AVDD-supply = <&vgen5_reg>;  /* 2.8v, rev C board is VGEN3
++						rev B board is VGEN5 */
++		DVDD-supply = <&vgen2_reg>;  /* 1.5v*/
++		pwdn-gpios = <&gpio1 16 GPIO_ACTIVE_LOW>;   /* SD1_DAT0 */
++		reset-gpios = <&gpio1 17 GPIO_ACTIVE_HIGH>; /* SD1_DAT1 */
++
++		port {
++			ov5642_1: endpoint {
++				remote-endpoint = <&csi0>;
++				bus-width = <12>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++			};
++		};
++	};
++};
++
++&i2c2 {
++	clock-frequency = <100000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c2>;
++	status = "okay";
++
++	mipi_camera: ov5640@3c {
++		compatible = "ovti,ov5640_mipi";
++		reg = <0x3c>;
++		clocks = <&clks 201>;
++		clock-names = "xclk";
++		xclk = <24000000>;
++		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
++		AVDD-supply = <&vgen5_reg>;  /* 2.8v, rev C board is VGEN3
++						rev B board is VGEN5 */
++		DVDD-supply = <&vgen2_reg>;  /* 1.5v*/
++		pwdn-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>; /* SD1_DAT2 */
++		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>; /* SD1_CLK */
++
++		port {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			ov5640_1: endpoint@1 {
++				reg = <1>;
++				remote-endpoint = <&csi1_vc0>;
++				data-lanes = <0 1>;
++				clock-lanes = <2>;
++			};
++		};
++	};
++};
++
++&mipi_csi2 {
++	status = "okay";
++	#address-cells = <1>;
++	#size-cells = <0>;
++
++	port {
++		mipi_csi2_0: endpoint {
++			remote-endpoint = <&ov5640_1>;
++			data-lanes = <0 1>;
++			clock-lanes = <2>;
++		};
++	};
++};
++
++&ipu1 { /* IPU1 */
++	status = "okay";
++
++	v4l2-capture {
++		compatible = "fsl,imx6-v4l2-capture";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		status = "okay";
++		pinctrl-names = "default";
++		pinctrl-0 = <
++			&pinctrl_ipu1_csi0_2
++		>;
++
++		/* CSI0 */
++		port@0 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0>;
++
++			/* Parallel bus */
++			csi0: endpoint@0 {
++				reg = <0>;
++				remote-endpoint = <&ov5642_1>;
++				bus-width = <8>;
++				data-shift = <12>; /* Lines 19:12 used */
++				hsync-active = <1>;
++				vsync-active = <1>;
++			};
++		};
++
++		/* CSI1 */
++		port@1 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <1>;
++
++			/* MIPI CSI-2 virtual channel 0 */
++			csi1_vc0: endpoint@0 {
++				reg = <0>;
++				remote-endpoint = <&ov5640_1>;
++				data-lanes = <0 1>;
++				clock-lanes = <2>;
++			};
++		};
++	};
++};
++
++
 -- 
-1.7.10.4
+1.7.9.5
 
