@@ -1,42 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f45.google.com ([209.85.213.45]:58636 "EHLO
-	mail-yh0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754025AbaFUUpF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jun 2014 16:45:05 -0400
-Received: by mail-yh0-f45.google.com with SMTP id t59so3904650yho.18
-        for <linux-media@vger.kernel.org>; Sat, 21 Jun 2014 13:45:04 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <6a19b39b-a20a-45b7-b889-611a39bf0325@email.android.com>
-References: <CAGoCfiyeHbYYTSYY_VPEXJ4z8668w6LdjprW1+FbMJCOoCekwA@mail.gmail.com>
-	<6a19b39b-a20a-45b7-b889-611a39bf0325@email.android.com>
-Date: Sat, 21 Jun 2014 16:45:04 -0400
-Message-ID: <CALzAhNV09XiqVnNOtA=e0wNM=11riXG8hDhzA8gixqKPNmh5nw@mail.gmail.com>
-Subject: Re: Best way to add subdev that doesn't use I2C or SPI?
-From: Steven Toth <stoth@kernellabs.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:52167 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753330AbaFGV5N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:13 -0400
+Received: by mail-pd0-f175.google.com with SMTP id z10so3833627pdj.20
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:13 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 13/43] imx-drm: ipu-v3: Add ipu_idmac_buffer_is_ready()
+Date: Sat,  7 Jun 2014 14:56:15 -0700
+Message-Id: <1402178205-22697-14-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>Any suggestions welcome (and in particular if you can point me to an
->>example case where this is already being done).
+Add ipu_idmac_buffer_is_ready(), returns true if the given buffer in
+the given channel is set ready (owned by IPU), or false if not ready
+(owned by CPU core).
 
-I'm not aware of any subdevs of that type.
+Support has been added for third buffer, there is no support yet for
+triple-buffering in idmac channels, but this function checks
+buffer-ready for third buffer in case this support is added later.
 
-Depending on the nature of the registers in the sub-dev silicon, and
-its mode of operation, it may fit into a virtual i2c device model
-pretty easily. Convert the usb control messages into i2c read writes
-in the implementation of the subdev, and implement a virtual i2c
-master in the bridge, converting the register reads/writes back into
-direct bridge dependent messages. Use i2c as a bus abstraction.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/imx-drm/ipu-v3/ipu-common.c |   26 +++++++++++++++++++++++++-
+ drivers/staging/imx-drm/ipu-v3/ipu-prv.h    |    1 +
+ include/linux/platform_data/imx-ipu-v3.h    |    1 +
+ 3 files changed, 27 insertions(+), 1 deletion(-)
 
-The subdev looks like an i2c device. The bridge translates.
-
-- Steve
-
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+index d005ed5..3ff55da 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+@@ -682,7 +682,7 @@ void ipu_idmac_put(struct ipuv3_channel *channel)
+ }
+ EXPORT_SYMBOL_GPL(ipu_idmac_put);
+ 
+-#define idma_mask(ch)			(1 << (ch & 0x1f))
++#define idma_mask(ch)			(1 << ((ch) & 0x1f))
+ 
+ void ipu_idmac_set_double_buffer(struct ipuv3_channel *channel,
+ 		bool doublebuffer)
+@@ -756,6 +756,30 @@ int ipu_module_disable(struct ipu_soc *ipu, u32 mask)
+ }
+ EXPORT_SYMBOL_GPL(ipu_module_disable);
+ 
++bool ipu_idmac_buffer_is_ready(struct ipuv3_channel *channel, u32 buf_num)
++{
++	struct ipu_soc *ipu = channel->ipu;
++	unsigned long flags;
++	u32 reg = 0;
++
++	spin_lock_irqsave(&ipu->lock, flags);
++	switch (buf_num) {
++	case 0:
++		reg = ipu_cm_read(ipu, IPU_CHA_BUF0_RDY(channel->num));
++		break;
++	case 1:
++		reg = ipu_cm_read(ipu, IPU_CHA_BUF1_RDY(channel->num));
++		break;
++	case 2:
++		reg = ipu_cm_read(ipu, IPU_CHA_BUF2_RDY(channel->num));
++		break;
++	}
++	spin_unlock_irqrestore(&ipu->lock, flags);
++
++	return ((reg & idma_mask(channel->num)) != 0);
++}
++EXPORT_SYMBOL_GPL(ipu_idmac_buffer_is_ready);
++
+ void ipu_idmac_select_buffer(struct ipuv3_channel *channel, u32 buf_num)
+ {
+ 	struct ipu_soc *ipu = channel->ipu;
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-prv.h b/drivers/staging/imx-drm/ipu-v3/ipu-prv.h
+index 104e296..43ac6c3 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-prv.h
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-prv.h
+@@ -71,6 +71,7 @@ struct ipu_soc;
+ #define IPU_DISP_TASK_STAT		IPU_CM_REG(0x0254)
+ #define IPU_CHA_BUF0_RDY(ch)		IPU_CM_REG(0x0268 + 4 * ((ch) / 32))
+ #define IPU_CHA_BUF1_RDY(ch)		IPU_CM_REG(0x0270 + 4 * ((ch) / 32))
++#define IPU_CHA_BUF2_RDY(ch)		IPU_CM_REG(0x0288 + 4 * ((ch) / 32))
+ #define IPU_ALT_CHA_BUF0_RDY(ch)	IPU_CM_REG(0x0278 + 4 * ((ch) / 32))
+ #define IPU_ALT_CHA_BUF1_RDY(ch)	IPU_CM_REG(0x0280 + 4 * ((ch) / 32))
+ 
+diff --git a/include/linux/platform_data/imx-ipu-v3.h b/include/linux/platform_data/imx-ipu-v3.h
+index 65ff5ce..0128667 100644
+--- a/include/linux/platform_data/imx-ipu-v3.h
++++ b/include/linux/platform_data/imx-ipu-v3.h
+@@ -199,6 +199,7 @@ int ipu_idmac_wait_busy(struct ipuv3_channel *channel, int ms);
+ void ipu_idmac_set_double_buffer(struct ipuv3_channel *channel,
+ 		bool doublebuffer);
+ void ipu_idmac_select_buffer(struct ipuv3_channel *channel, u32 buf_num);
++bool ipu_idmac_buffer_is_ready(struct ipuv3_channel *channel, u32 buf_num);
+ 
+ /*
+  * IPU Display Controller (dc) functions
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+1.7.9.5
+
