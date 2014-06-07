@@ -1,116 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta04.emeryville.ca.mail.comcast.net ([76.96.30.40]:58100 "EHLO
-	qmta04.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753807AbaFXX54 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 19:57:56 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: gregkh@linuxfoundation.org, m.chehab@samsung.com, olebowle@gmx.com,
-	ttmesterr@gmail.com, dheitmueller@kernellabs.com,
-	cb.xiong@samsung.com, yongjun_wei@trendmicro.com.cn,
-	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	crope@iki.fi, wade_farnsworth@mentor.com, ricardo.ribalda@gmail.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
-Subject: [PATCH 3/4] media: v4l2-core changes to use tuner token
-Date: Tue, 24 Jun 2014 17:57:30 -0600
-Message-Id: <a73d058a4c04bbcf9716fd41fce844675629f8d9.1403652043.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1403652043.git.shuah.kh@samsung.com>
-References: <cover.1403652043.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1403652043.git.shuah.kh@samsung.com>
-References: <cover.1403652043.git.shuah.kh@samsung.com>
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:63889 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753367AbaFGV5e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:34 -0400
+Received: by mail-pd0-f169.google.com with SMTP id w10so3833478pde.14
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:34 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 32/43] ARM: dts: imx: sabrelite: add video capture ports and endpoints
+Date: Sat,  7 Jun 2014 14:56:34 -0700
+Message-Id: <1402178205-22697-33-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new field tuner_tkn to struct video_device. Drivers can
-create tuner token using devm_token_create() and initialize
-the tuner_tkn when frontend is registered with the dvb-core.
-This change enables drivers to provide a token devres for tuner
-access control.
+Defines the host v4l2-capture device node and an OV5642 camera sensor
+node on i2c2. The host capture device is a child of ipu1. An OV5642
+parallel-bus endpoint is defined that connects to the host parallel-bus
+endpoint on CSI0, using the OF graph bindings described in
+Documentation/devicetree/bindings/media/video-interfaces.txt.
 
-Change v4l2-core to lock tuner token for exclusive access to
-tuner function for analog TV function use. When Tuner token is
-present, v4l2_open() calls devm_token_lock() to lock the token.
-If token is busy, -EBUSY is returned to the user-space.
+Note there is a pin conflict with GPIO6. This pin functions as a power
+input pin to the OV5642, but ENET requires it to wake-up the ARM cores
+on normal RX and TX packet done events (see 6261c4c8). So by default,
+capture is disabled, enable by uncommenting __OV5642_CAPTURE__ macro.
+Ethernet will still work just not quite as well.
 
-Tuner token is unlocked in error paths in v4l2_open(). This token
-is held as long as the v4l2 device is open and unlocked from
-v4l2_release().
-
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/v4l2-core/v4l2-dev.c |   23 ++++++++++++++++++++++-
- include/media/v4l2-dev.h           |    1 +
- 2 files changed, 23 insertions(+), 1 deletion(-)
+ .../devicetree/bindings/vendor-prefixes.txt        |    1 +
+ arch/arm/boot/dts/imx6qdl-sabrelite.dtsi           |   91 ++++++++++++++++++++
+ 2 files changed, 92 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 634d863..8dff809 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -26,6 +26,7 @@
- #include <linux/kmod.h>
- #include <linux/slab.h>
- #include <asm/uaccess.h>
-+#include <linux/token_devres.h>
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index abc3080..90d19f8 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -90,6 +90,7 @@ nvidia	NVIDIA
+ nxp	NXP Semiconductors
+ onnn	ON Semiconductor Corp.
+ opencores	OpenCores.org
++ovti	OmniVision Technologies, Inc
+ panasonic	Panasonic Corporation
+ phytec	PHYTEC Messtechnik GmbH
+ picochip	Picochip Ltd
+diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+index 3bec128..ea5bd9c 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+@@ -12,6 +12,15 @@
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/input.h>
  
- #include <media/v4l2-common.h>
- #include <media/v4l2-device.h>
-@@ -445,6 +446,17 @@ static int v4l2_open(struct inode *inode, struct file *filp)
- 		mutex_unlock(&videodev_lock);
- 		return -ENODEV;
- 	}
-+	/* check if tuner is busy first */
-+	if (vdev->tuner_tkn && vdev->dev_parent) {
-+		ret = devm_token_lock(vdev->dev_parent, vdev->tuner_tkn);
-+		if (ret) {
-+			mutex_unlock(&videodev_lock);
-+			dev_info(vdev->dev_parent, "v4l2: Tuner is busy\n");
-+			return ret;
-+		}
-+		dev_info(vdev->dev_parent, "v4l2: Tuner is locked\n");
-+	}
++/*
++ * Uncomment the following macro to enable OV5642 video capture
++ * support. There is a pin conflict for GPIO6 between ENET wake-up
++ * interrupt function and power-down pin function for the OV5642.
++ * ENET will still work when enabling OV5642 capture, just not
++ * quite as well.
++ */
++/* #define __OV5642_CAPTURE__ */
 +
- 	/* and increase the device refcount */
- 	video_get(vdev);
- 	mutex_unlock(&videodev_lock);
-@@ -459,8 +471,13 @@ static int v4l2_open(struct inode *inode, struct file *filp)
- 		printk(KERN_DEBUG "%s: open (%d)\n",
- 			video_device_node_name(vdev), ret);
- 	/* decrease the refcount in case of an error */
--	if (ret)
-+	if (ret) {
- 		video_put(vdev);
-+		if (vdev->tuner_tkn && vdev->dev_parent) {
-+			devm_token_unlock(vdev->dev_parent, vdev->tuner_tkn);
-+			dev_info(vdev->dev_parent, "v4l2: Tuner is unlocked\n");
-+		}
-+	}
- 	return ret;
- }
- 
-@@ -479,6 +496,10 @@ static int v4l2_release(struct inode *inode, struct file *filp)
- 	/* decrease the refcount unconditionally since the release()
- 	   return value is ignored. */
- 	video_put(vdev);
-+	if (vdev->tuner_tkn && vdev->dev_parent) {
-+		devm_token_unlock(vdev->dev_parent, vdev->tuner_tkn);
-+		dev_info(vdev->dev_parent, "v4l2: Tuner is unlocked\n");
-+	}
- 	return ret;
- }
- 
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index eec6e46..1676349 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -141,6 +141,7 @@ struct video_device
- 	/* serialization lock */
- 	DECLARE_BITMAP(disable_locking, BASE_VIDIOC_PRIVATE);
- 	struct mutex *lock;
-+	char *tuner_tkn;
+ / {
+ 	memory {
+ 		reg = <0x10000000 0x40000000>;
+@@ -164,8 +173,10 @@
+ 	txd1-skew-ps = <0>;
+ 	txd2-skew-ps = <0>;
+ 	txd3-skew-ps = <0>;
++#ifndef __OV5642_CAPTURE__
+ 	interrupts-extended = <&gpio1 6 IRQ_TYPE_LEVEL_HIGH>,
+ 			      <&intc 0 119 IRQ_TYPE_LEVEL_HIGH>;
++#endif
+ 	status = "okay";
  };
  
- #define media_entity_to_video_device(__e) \
+@@ -193,6 +204,12 @@
+ 			fsl,pins = <
+ 				/* SGTL5000 sys_mclk */
+ 				MX6QDL_PAD_GPIO_0__CCM_CLKO1    0x030b0
++#ifdef __OV5642_CAPTURE__
++				MX6QDL_PAD_SD1_DAT0__GPIO1_IO16 0x80000000
++				MX6QDL_PAD_GPIO_6__GPIO1_IO06 0x80000000
++				MX6QDL_PAD_GPIO_8__GPIO1_IO08 0x80000000
++				MX6QDL_PAD_GPIO_3__CCM_CLKO2 0x80000000
++#endif
+ 			>;
+ 		};
+ 
+@@ -233,7 +250,9 @@
+ 				MX6QDL_PAD_RGMII_RX_CTL__RGMII_RX_CTL	0x1b0b0
+ 				/* Phy reset */
+ 				MX6QDL_PAD_EIM_D23__GPIO3_IO23		0x000b0
++#ifndef __OV5642_CAPTURE__
+ 				MX6QDL_PAD_GPIO_6__ENET_IRQ		0x000b1
++#endif
+ 			>;
+ 		};
+ 
+@@ -261,6 +280,13 @@
+ 			>;
+ 		};
+ 
++		pinctrl_i2c2: i2c2grp {
++			fsl,pins = <
++				MX6QDL_PAD_KEY_COL3__I2C2_SCL           0x4001b8b1
++				MX6QDL_PAD_KEY_ROW3__I2C2_SDA           0x4001b8b1
++			>;
++		};
++
+ 		pinctrl_pwm1: pwm1grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_SD1_DAT3__PWM1_OUT 0x1b0b1
+@@ -421,3 +447,68 @@
+ 	vmmc-supply = <&reg_3p3v>;
+ 	status = "okay";
+ };
++
++#ifdef __OV5642_CAPTURE__
++
++&i2c2 {
++	status = "okay";
++	clock-frequency = <100000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c2>;
++
++	camera: ov5642@3c {
++		compatible = "ovti,ov5642";
++		clocks = <&clks 200>;
++		clock-names = "xclk";
++		reg = <0x3c>;
++		xclk = <24000000>;
++		reset-gpios = <&gpio1 8 0>;
++		pwdn-gpios = <&gpio1 6 0>;
++		gp-gpios = <&gpio1 16 0>;
++
++		port {
++			/* With 1 endpoint per port no need for addresses. */
++			ov5642_1: endpoint {
++				remote-endpoint = <&csi0>;
++				bus-width = <12>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++			};
++		};
++	};
++};
++
++&ipu1 {
++	status = "okay";
++
++	v4l2-capture {
++		compatible = "fsl,imx6-v4l2-capture";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		status = "okay";
++		pinctrl-names = "default";
++		pinctrl-0 = <
++			&pinctrl_ipu1_csi0_1
++			&pinctrl_ipu1_csi0_data_en
++		>;
++
++		/* CSI0 */
++		port@0 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0>;
++
++			/* Parallel bus */
++			csi0: endpoint@0 {
++				reg = <0>;
++				remote-endpoint = <&ov5642_1>;
++				bus-width = <12>;
++				data-shift = <8>; /* Lines 19:8 used */
++				hsync-active = <1>;
++				vync-active = <1>;
++			};
++		};
++	};
++};
++
++#endif /* __OV5642_CAPTURE__ */
 -- 
-1.7.10.4
+1.7.9.5
 
