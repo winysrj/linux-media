@@ -1,251 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4913 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933675AbaFLL7w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 07:59:52 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:51008 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753374AbaFGV5h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:37 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rq2so3909538pbb.19
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:37 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv4 PATCH 08/34] v4l2-ctrls: rewrite copy routines to operate on union v4l2_ctrl_ptr.
-Date: Thu, 12 Jun 2014 13:52:40 +0200
-Message-Id: <6abf4c9ef44a5fa6478cca7fa28a4b10a37d646d.1402573818.git.hans.verkuil@cisco.com>
-In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
-References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 35/43] ARM: dts: imx6qdl: Add simple-bus to ipu compatibility
+Date: Sat,  7 Jun 2014 14:56:37 -0700
+Message-Id: <1402178205-22697-36-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The IPU can have child devices now, so add "simple-bus" to
+compatible list to ensure creation of the children.
 
-In order to implement array support and (for the future) configuration stores
-we need to have more generic copy routines that all operate on the v4l2_ctrl_ptr
-union. So instead of e.g. using ctrl->cur.string it uses ptr.p_char. This makes
-e.g. cur_to_user generic so it can be used to copy any v4l2_ctrl_ptr value to
-userspace, not just the (hardcoded) current value.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 129 +++++++++++++++--------------------
- 1 file changed, 56 insertions(+), 73 deletions(-)
+ .../bindings/staging/imx-drm/fsl-imx-drm.txt       |    6 ++++--
+ arch/arm/boot/dts/imx6q.dtsi                       |    2 +-
+ arch/arm/boot/dts/imx6qdl.dtsi                     |    2 +-
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 09e2c3a..e7e0bea 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1304,48 +1304,64 @@ static const struct v4l2_ctrl_type_ops std_type_ops = {
- 	.validate = std_validate,
- };
+diff --git a/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt b/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
+index 3be5ce7..dc759e4 100644
+--- a/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
++++ b/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
+@@ -21,7 +21,9 @@ Freescale i.MX IPUv3
+ ====================
  
--/* Helper function: copy the current control value back to the caller */
--static int cur_to_user(struct v4l2_ext_control *c,
--		       struct v4l2_ctrl *ctrl)
-+/* Helper function: copy the given control value back to the caller */
-+static int ptr_to_user(struct v4l2_ext_control *c,
-+		       struct v4l2_ctrl *ctrl,
-+		       union v4l2_ctrl_ptr ptr)
- {
- 	u32 len;
- 
- 	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_to_user(c->ptr, ctrl->cur.p, ctrl->elem_size);
-+		return copy_to_user(c->ptr, ptr.p, ctrl->elem_size);
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_STRING:
--		len = strlen(ctrl->cur.string);
-+		len = strlen(ptr.p_char);
- 		if (c->size < len + 1) {
- 			c->size = len + 1;
- 			return -ENOSPC;
- 		}
--		return copy_to_user(c->string, ctrl->cur.string,
--						len + 1) ? -EFAULT : 0;
-+		return copy_to_user(c->string, ptr.p_char, len + 1) ?
-+								-EFAULT : 0;
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		c->value64 = ctrl->cur.val64;
-+		c->value64 = *ptr.p_s64;
- 		break;
- 	default:
--		c->value = ctrl->cur.val;
-+		c->value = *ptr.p_s32;
- 		break;
- 	}
- 	return 0;
- }
- 
--/* Helper function: copy the caller-provider value as the new control value */
--static int user_to_new(struct v4l2_ext_control *c,
-+/* Helper function: copy the current control value back to the caller */
-+static int cur_to_user(struct v4l2_ext_control *c,
- 		       struct v4l2_ctrl *ctrl)
- {
-+	return ptr_to_user(c, ctrl, ctrl->p_cur);
-+}
-+
-+/* Helper function: copy the new control value back to the caller */
-+static int new_to_user(struct v4l2_ext_control *c,
-+		       struct v4l2_ctrl *ctrl)
-+{
-+	return ptr_to_user(c, ctrl, ctrl->p_new);
-+}
-+
-+/* Helper function: copy the caller-provider value to the given control value */
-+static int user_to_ptr(struct v4l2_ext_control *c,
-+		       struct v4l2_ctrl *ctrl,
-+		       union v4l2_ctrl_ptr ptr)
-+{
- 	int ret;
- 	u32 size;
- 
- 	ctrl->is_new = 1;
- 	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_from_user(ctrl->p, c->ptr, ctrl->elem_size);
-+		return copy_from_user(ptr.p, c->ptr, ctrl->elem_size);
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		ctrl->val64 = c->value64;
-+		*ptr.p_s64 = c->value64;
- 		break;
- 	case V4L2_CTRL_TYPE_STRING:
- 		size = c->size;
-@@ -1353,83 +1369,64 @@ static int user_to_new(struct v4l2_ext_control *c,
- 			return -ERANGE;
- 		if (size > ctrl->maximum + 1)
- 			size = ctrl->maximum + 1;
--		ret = copy_from_user(ctrl->string, c->string, size);
-+		ret = copy_from_user(ptr.p_char, c->string, size);
- 		if (!ret) {
--			char last = ctrl->string[size - 1];
-+			char last = ptr.p_char[size - 1];
- 
--			ctrl->string[size - 1] = 0;
-+			ptr.p_char[size - 1] = 0;
- 			/* If the string was longer than ctrl->maximum,
- 			   then return an error. */
--			if (strlen(ctrl->string) == ctrl->maximum && last)
-+			if (strlen(ptr.p_char) == ctrl->maximum && last)
- 				return -ERANGE;
- 		}
- 		return ret ? -EFAULT : 0;
- 	default:
--		ctrl->val = c->value;
-+		*ptr.p_s32 = c->value;
- 		break;
- 	}
- 	return 0;
- }
- 
--/* Helper function: copy the new control value back to the caller */
--static int new_to_user(struct v4l2_ext_control *c,
-+/* Helper function: copy the caller-provider value as the new control value */
-+static int user_to_new(struct v4l2_ext_control *c,
- 		       struct v4l2_ctrl *ctrl)
- {
--	u32 len;
--
--	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_to_user(c->ptr, ctrl->p, ctrl->elem_size);
-+	return user_to_ptr(c, ctrl, ctrl->p_new);
-+}
- 
-+/* Copy the one value to another. */
-+static void ptr_to_ptr(struct v4l2_ctrl *ctrl,
-+		       union v4l2_ctrl_ptr from, union v4l2_ctrl_ptr to)
-+{
-+	if (ctrl == NULL)
-+		return;
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_STRING:
--		len = strlen(ctrl->string);
--		if (c->size < len + 1) {
--			c->size = ctrl->maximum + 1;
--			return -ENOSPC;
--		}
--		return copy_to_user(c->string, ctrl->string,
--						len + 1) ? -EFAULT : 0;
-+		/* strings are always 0-terminated */
-+		strcpy(to.p_char, from.p_char);
-+		break;
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		c->value64 = ctrl->val64;
-+		*to.p_s64 = *from.p_s64;
- 		break;
- 	default:
--		c->value = ctrl->val;
-+		if (ctrl->is_ptr)
-+			memcpy(to.p, from.p, ctrl->elem_size);
-+		else
-+			*to.p_s32 = *from.p_s32;
- 		break;
- 	}
--	return 0;
- }
- 
- /* Copy the new value to the current value. */
- static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
- {
--	bool changed = false;
-+	bool changed;
- 
- 	if (ctrl == NULL)
- 		return;
-+	changed = !ctrl->type_ops->equal(ctrl, ctrl->p_cur, ctrl->p_new);
-+	ptr_to_ptr(ctrl, ctrl->p_new, ctrl->p_cur);
- 
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_BUTTON:
--		changed = true;
--		break;
--	case V4L2_CTRL_TYPE_STRING:
--		/* strings are always 0-terminated */
--		changed = strcmp(ctrl->string, ctrl->cur.string);
--		strcpy(ctrl->cur.string, ctrl->string);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER64:
--		changed = ctrl->val64 != ctrl->cur.val64;
--		ctrl->cur.val64 = ctrl->val64;
--		break;
--	default:
--		if (ctrl->is_ptr) {
--			changed = memcmp(ctrl->p, ctrl->cur.p, ctrl->elem_size);
--			memcpy(ctrl->cur.p, ctrl->p, ctrl->elem_size);
--		} else {
--			changed = ctrl->val != ctrl->cur.val;
--			ctrl->cur.val = ctrl->val;
--		}
--		break;
--	}
- 	if (ch_flags & V4L2_EVENT_CTRL_CH_FLAGS) {
- 		/* Note: CH_FLAGS is only set for auto clusters. */
- 		ctrl->flags &=
-@@ -1458,21 +1455,7 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
- {
- 	if (ctrl == NULL)
- 		return;
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_STRING:
--		/* strings are always 0-terminated */
--		strcpy(ctrl->string, ctrl->cur.string);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER64:
--		ctrl->val64 = ctrl->cur.val64;
--		break;
--	default:
--		if (ctrl->is_ptr)
--			memcpy(ctrl->p, ctrl->cur.p, ctrl->elem_size);
--		else
--			ctrl->val = ctrl->cur.val;
--		break;
--	}
-+	ptr_to_ptr(ctrl, ctrl->p_cur, ctrl->p_new);
- }
- 
- /* Return non-zero if one or more of the controls in the cluster has a new
+ Required properties:
+-- compatible: Should be "fsl,<chip>-ipu"
++- compatible: Should be "fsl,<chip>-ipu". The IPU can also have child
++  devices, so also must include "simple-bus" to ensure creation of the
++  children.
+ - reg: should be register base and length as documented in the
+   datasheet
+ - interrupts: Should contain sync interrupt and error interrupt,
+@@ -39,7 +41,7 @@ example:
+ ipu: ipu@18000000 {
+ 	#address-cells = <1>;
+ 	#size-cells = <0>;
+-	compatible = "fsl,imx53-ipu";
++	compatible = "fsl,imx53-ipu", "simple-bus";
+ 	reg = <0x18000000 0x080000000>;
+ 	interrupts = <11 10>;
+ 	resets = <&src 2>;
+diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
+index c7544f0..50e2a32 100644
+--- a/arch/arm/boot/dts/imx6q.dtsi
++++ b/arch/arm/boot/dts/imx6q.dtsi
+@@ -149,7 +149,7 @@
+ 		ipu2: ipu@02800000 {
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+-			compatible = "fsl,imx6q-ipu";
++			compatible = "fsl,imx6q-ipu", "simple-bus";
+ 			reg = <0x02800000 0x400000>;
+ 			interrupts = <0 8 IRQ_TYPE_LEVEL_HIGH>,
+ 				     <0 7 IRQ_TYPE_LEVEL_HIGH>;
+diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+index 00130a8..089a84a 100644
+--- a/arch/arm/boot/dts/imx6qdl.dtsi
++++ b/arch/arm/boot/dts/imx6qdl.dtsi
+@@ -1096,7 +1096,7 @@
+ 		ipu1: ipu@02400000 {
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+-			compatible = "fsl,imx6q-ipu";
++			compatible = "fsl,imx6q-ipu", "simple-bus";
+ 			reg = <0x02400000 0x400000>;
+ 			interrupts = <0 6 IRQ_TYPE_LEVEL_HIGH>,
+ 				     <0 5 IRQ_TYPE_LEVEL_HIGH>;
 -- 
-2.0.0.rc0
+1.7.9.5
 
