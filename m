@@ -1,120 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44451 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753402AbaFMQJI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jun 2014 12:09:08 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:47790 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753292AbaFGV5U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:20 -0400
+Received: by mail-pd0-f175.google.com with SMTP id z10so3833677pdj.20
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:19 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 13/30] [media] coda: split firmware version check out of coda_hw_init
-Date: Fri, 13 Jun 2014 18:08:39 +0200
-Message-Id: <1402675736-15379-14-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 19/43] imx-drm: ipu-v3: Add ipu_idmac_lock_enable()
+Date: Sat,  7 Jun 2014 14:56:21 -0700
+Message-Id: <1402178205-22697-20-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds a new function coda_check_firmware that does the firmware
-version checks so that this can be done only once from coda_probe
-instead of every time the runtime pm framework resumes the coda.
+Adds ipu_idmac_lock_enable(), which enables or disables channel
+burst locking.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/platform/coda.c | 42 +++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 37 insertions(+), 5 deletions(-)
+ drivers/staging/imx-drm/ipu-v3/ipu-common.c |   69 +++++++++++++++++++++++++++
+ include/linux/platform_data/imx-ipu-v3.h    |    1 +
+ 2 files changed, 70 insertions(+)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index f39f693..b2e8e0e 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -3247,7 +3247,6 @@ static bool coda_firmware_supported(u32 vernum)
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+index 8c5b8d3..dfa6cf3 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+@@ -757,6 +757,75 @@ void ipu_idmac_set_double_buffer(struct ipuv3_channel *channel,
+ }
+ EXPORT_SYMBOL_GPL(ipu_idmac_set_double_buffer);
  
- static int coda_hw_init(struct coda_dev *dev)
- {
--	u16 product, major, minor, release;
- 	u32 data;
- 	u16 *p;
- 	int i, ret;
-@@ -3328,17 +3327,40 @@ static int coda_hw_init(struct coda_dev *dev)
- 	coda_write(dev, data, CODA_REG_BIT_CODE_RESET);
- 	coda_write(dev, CODA_REG_RUN_ENABLE, CODA_REG_BIT_CODE_RUN);
- 
--	/* Load firmware */
-+	clk_disable_unprepare(dev->clk_ahb);
-+	clk_disable_unprepare(dev->clk_per);
++static const struct {
++	int chnum;
++	u32 reg;
++	int shift;
++} idmac_lock_en_info[] = {
++	{ .chnum =  5, .reg = IDMAC_CH_LOCK_EN_1, .shift =  0, },
++	{ .chnum = 11, .reg = IDMAC_CH_LOCK_EN_1, .shift =  2, },
++	{ .chnum = 12, .reg = IDMAC_CH_LOCK_EN_1, .shift =  4, },
++	{ .chnum = 14, .reg = IDMAC_CH_LOCK_EN_1, .shift =  6, },
++	{ .chnum = 15, .reg = IDMAC_CH_LOCK_EN_1, .shift =  8, },
++	{ .chnum = 20, .reg = IDMAC_CH_LOCK_EN_1, .shift = 10, },
++	{ .chnum = 21, .reg = IDMAC_CH_LOCK_EN_1, .shift = 12, },
++	{ .chnum = 22, .reg = IDMAC_CH_LOCK_EN_1, .shift = 14, },
++	{ .chnum = 23, .reg = IDMAC_CH_LOCK_EN_1, .shift = 16, },
++	{ .chnum = 27, .reg = IDMAC_CH_LOCK_EN_1, .shift = 18, },
++	{ .chnum = 28, .reg = IDMAC_CH_LOCK_EN_1, .shift = 20, },
++	{ .chnum = 45, .reg = IDMAC_CH_LOCK_EN_2, .shift =  0, },
++	{ .chnum = 46, .reg = IDMAC_CH_LOCK_EN_2, .shift =  2, },
++	{ .chnum = 47, .reg = IDMAC_CH_LOCK_EN_2, .shift =  4, },
++	{ .chnum = 48, .reg = IDMAC_CH_LOCK_EN_2, .shift =  6, },
++	{ .chnum = 49, .reg = IDMAC_CH_LOCK_EN_2, .shift =  8, },
++	{ .chnum = 50, .reg = IDMAC_CH_LOCK_EN_2, .shift = 10, },
++};
++
++int ipu_idmac_lock_enable(struct ipuv3_channel *channel, int num_bursts)
++{
++	struct ipu_soc *ipu = channel->ipu;
++	unsigned long flags;
++	u32 bursts, regval;
++	int i;
++
++	switch (num_bursts) {
++	case 0:
++	case 1:
++		bursts = 0x00; /* locking disabled */
++		break;
++	case 2:
++		bursts = 0x01;
++		break;
++	case 4:
++		bursts = 0x02;
++		break;
++	case 8:
++		bursts = 0x03;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	for (i = 0; i < ARRAY_SIZE(idmac_lock_en_info); i++) {
++		if (channel->num == idmac_lock_en_info[i].chnum)
++			break;
++	}
++	if (i >= ARRAY_SIZE(idmac_lock_en_info))
++		return -EINVAL;
++
++	spin_lock_irqsave(&ipu->lock, flags);
++
++	regval = ipu_idmac_read(ipu, idmac_lock_en_info[i].reg);
++	regval &= ~(0x03 << idmac_lock_en_info[i].shift);
++	regval |= (bursts << idmac_lock_en_info[i].shift);
++	ipu_idmac_write(ipu, regval, idmac_lock_en_info[i].reg);
++
++	spin_unlock_irqrestore(&ipu->lock, flags);
 +
 +	return 0;
-+
-+err_clk_ahb:
-+	clk_disable_unprepare(dev->clk_per);
-+err_clk_per:
-+	return ret;
 +}
++EXPORT_SYMBOL_GPL(ipu_idmac_lock_enable);
 +
-+static int coda_check_firmware(struct coda_dev *dev)
-+{
-+	u16 product, major, minor, release;
-+	u32 data;
-+	int ret;
-+
-+	ret = clk_prepare_enable(dev->clk_per);
-+	if (ret)
-+		goto err_clk_per;
-+
-+	ret = clk_prepare_enable(dev->clk_ahb);
-+	if (ret)
-+		goto err_clk_ahb;
-+
- 	coda_write(dev, 0, CODA_CMD_FIRMWARE_VERNUM);
- 	coda_write(dev, CODA_REG_BIT_BUSY_FLAG, CODA_REG_BIT_BUSY);
- 	coda_write(dev, 0, CODA_REG_BIT_RUN_INDEX);
- 	coda_write(dev, 0, CODA_REG_BIT_RUN_COD_STD);
- 	coda_write(dev, CODA_COMMAND_FIRMWARE_GET, CODA_REG_BIT_RUN_COMMAND);
- 	if (coda_wait_timeout(dev)) {
--		clk_disable_unprepare(dev->clk_per);
--		clk_disable_unprepare(dev->clk_ahb);
- 		v4l2_err(&dev->v4l2_dev, "firmware get command error\n");
--		return -EIO;
-+		ret = -EIO;
-+		goto err_run_cmd;
- 	}
+ int ipu_module_enable(struct ipu_soc *ipu, u32 mask)
+ {
+ 	unsigned long lock_flags;
+diff --git a/include/linux/platform_data/imx-ipu-v3.h b/include/linux/platform_data/imx-ipu-v3.h
+index d1def4d..949beec 100644
+--- a/include/linux/platform_data/imx-ipu-v3.h
++++ b/include/linux/platform_data/imx-ipu-v3.h
+@@ -203,6 +203,7 @@ void ipu_idmac_clear_buffer(struct ipuv3_channel *channel, u32 buf_num);
+ bool ipu_idmac_buffer_is_ready(struct ipuv3_channel *channel, u32 buf_num);
+ int ipu_idmac_current_buffer(struct ipuv3_channel *channel);
+ void ipu_idmac_enable_watermark(struct ipuv3_channel *channel, bool enable);
++int ipu_idmac_lock_enable(struct ipuv3_channel *channel, int num_bursts);
  
- 	if (dev->devtype->product == CODA_960) {
-@@ -3378,6 +3400,8 @@ static int coda_hw_init(struct coda_dev *dev)
- 
- 	return 0;
- 
-+err_run_cmd:
-+	clk_disable_unprepare(dev->clk_ahb);
- err_clk_ahb:
- 	clk_disable_unprepare(dev->clk_per);
- err_clk_per:
-@@ -3418,6 +3442,10 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
- 			return;
- 		}
- 
-+		ret = coda_check_firmware(dev);
-+		if (ret < 0)
-+			return;
-+
- 		pm_runtime_put_sync(&dev->plat_dev->dev);
- 	} else {
- 		/*
-@@ -3429,6 +3457,10 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
- 			v4l2_err(&dev->v4l2_dev, "HW initialization failed\n");
- 			return;
- 		}
-+
-+		ret = coda_check_firmware(dev);
-+		if (ret < 0)
-+			return;
- 	}
- 
- 	dev->vfd.fops	= &coda_fops,
+ /*
+  * IPU Display Controller (dc) functions
 -- 
-2.0.0.rc2
+1.7.9.5
 
