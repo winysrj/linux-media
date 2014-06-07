@@ -1,45 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:64068 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754933AbaFRWbk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jun 2014 18:31:40 -0400
-From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org,
-	Heinrich Schuchardt <xypron.glpk@gmx.de>
-Subject: [PATCH 1/1] [media] v4l: omap4iss: configuration using uninitialized variable
-Date: Thu, 19 Jun 2014 00:31:27 +0200
-Message-Id: <1403130687-28598-1-git-send-email-xypron.glpk@gmx.de>
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:60437 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753311AbaFGV5C (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:02 -0400
+Received: by mail-pd0-f182.google.com with SMTP id r10so3811289pdi.13
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:01 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 02/43] ARM: dts: imx6qdl: Add ipu aliases
+Date: Sat,  7 Jun 2014 14:56:04 -0700
+Message-Id: <1402178205-22697-3-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Variable reg is not initialized.
-Random values are written to OMAP4 ISS registers if !ctx->eof_enabled.
+Add ipu0 (and ipu1 for quad) aliases to ipu1/ipu2 nodes respectively.
 
-Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/staging/media/omap4iss/iss_csi2.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/imx6q.dtsi   |    1 +
+ arch/arm/boot/dts/imx6qdl.dtsi |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
-index bf8a657..9ae4871 100644
---- a/drivers/staging/media/omap4iss/iss_csi2.c
-+++ b/drivers/staging/media/omap4iss/iss_csi2.c
-@@ -317,7 +317,7 @@ static void csi2_ctx_enable(struct iss_csi2_device *csi2, u8 ctxnum, u8 enable)
- static void csi2_ctx_config(struct iss_csi2_device *csi2,
- 			    struct iss_csi2_ctx_cfg *ctx)
- {
--	u32 reg;
-+	u32 reg = 0;
+diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
+index addd3f8..c7544f0 100644
+--- a/arch/arm/boot/dts/imx6q.dtsi
++++ b/arch/arm/boot/dts/imx6q.dtsi
+@@ -15,6 +15,7 @@
+ / {
+ 	aliases {
+ 		spi4 = &ecspi5;
++		ipu1 = &ipu2;
+ 	};
  
- 	/* Set up CSI2_CTx_CTRL1 */
- 	if (ctx->eof_enabled)
+ 	cpus {
+diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+index eca0971..04c978c 100644
+--- a/arch/arm/boot/dts/imx6qdl.dtsi
++++ b/arch/arm/boot/dts/imx6qdl.dtsi
+@@ -43,6 +43,7 @@
+ 		spi3 = &ecspi4;
+ 		usbphy0 = &usbphy1;
+ 		usbphy1 = &usbphy2;
++		ipu0 = &ipu1;
+ 	};
+ 
+ 	intc: interrupt-controller@00a01000 {
 -- 
-2.0.0
+1.7.9.5
 
