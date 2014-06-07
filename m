@@ -1,42 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:57809 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752746AbaFEPbf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jun 2014 11:31:35 -0400
-Received: from uscpsbgex2.samsung.com
- (u123.gpu85.samsung.co.kr [203.254.195.123]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N6P0043PCGM3Z50@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 05 Jun 2014 11:31:34 -0400 (EDT)
-From: Thiago Santos <ts.santos@sisa.samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Thiago Santos <ts.santos@sisa.samsung.com>
-Subject: [PATCH/RFC 0/2] libv4l2: fix deadlock when DQBUF in block mode
-Date: Thu, 05 Jun 2014 12:31:22 -0300
-Message-id: <1401982284-1983-1-git-send-email-ts.santos@sisa.samsung.com>
-MIME-version: 1.0
-Content-type: text/plain
+Received: from mail-hk1lp0126.outbound.protection.outlook.com ([207.46.51.126]:32960
+	"EHLO APAC01-HK1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752299AbaFGCEU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jun 2014 22:04:20 -0400
+From: James Harper <james@ejbdigital.com.au>
+To: =?iso-8859-1?Q?Ren=E9?= <poisson.rene@neuf.fr>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: fusion hdtv dual express 2
+Date: Sat, 7 Jun 2014 02:04:11 +0000
+Message-ID: <0a5548fd6c404008bb16a6aaf36e551e@SIXPR04MB304.apcprd04.prod.outlook.com>
+References: <262b1efa828c406c82691ee6b5a34656@SIXPR04MB304.apcprd04.prod.outlook.com>
+ <499085CD3245488F996F556AFD77977C@ci5fish>
+In-Reply-To: <499085CD3245488F996F556AFD77977C@ci5fish>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset modifies v4l2grab to allow using 2 threads (one for qbuf and
-another for dqbuf) to simulate multithreaded v4l2 usage.
+> Hi James,
+> 
+> The first basic thing you should look at is if the dvb device has got all
+> its pieces.
+> A dvb adapter has, sort of, 4 sub-devices:
+> [me@home ~]$ ll /dev/dvb/adapter2
+> total 0
+> crw-rw----+ 1 root video 212, 12 Jun  5 12:31 demux0
+> crw-rw----+ 1 root video 212, 13 Jun  5 12:31 dvr0
+> crw-rw----+ 1 root video 212, 15 Jun  5 12:31 frontend0
+> crw-rw----+ 1 root video 212, 14 Jun  5 12:31 net0
+> 
+> From your post you might miss the demux while the front-end is working.
+> 
 
-This is done to show a issue when using libv4l2 in blocking mode, if a DQBUF
-is issued when there are no buffers available it will block waiting for one but,
-as it blocks holding the stream_lock, a QBUF will never happen and we have
-a deadlock.
+ls -al /dev/dvb/adapter1/
+total 0
+drwxr-xr-x 2 root root     120 Jun  7 10:08 .
+drwxr-xr-x 5 root root     100 Jun  7 10:08 ..
+crw-rw---T 1 root video 212, 5 Jun  7 10:08 demux0
+crw-rw---T 1 root video 212, 6 Jun  7 10:08 dvr0
+crw-rw---T 1 root video 212, 4 Jun  7 10:08 frontend0
+crw-rw---T 1 root video 212, 7 Jun  7 10:08 net0
 
-Thiago Santos (2):
-  v4l2grab: Add threaded producer/consumer option
-  libv4l2: release the lock before doing a DQBUF
+same for adapter2 (adapter0 is an existing usb dvb-t adapter)
 
- contrib/test/Makefile.am |   2 +-
- contrib/test/v4l2grab.c  | 265 +++++++++++++++++++++++++++++++++++++++--------
- lib/libv4l2/libv4l2.c    |   2 +
- 3 files changed, 225 insertions(+), 44 deletions(-)
+I think all the pieces are there, they just aren't connected up internally correctly. If I deliberately put in a wrong i2c address for the tuner (starts of at 0x12 and is reprogrammed to 0x80 in the usb version, which is what I've copied) then I get an error, so it can definitely see the tuner. And if I tune an incorrect frequency I never get lock or anything so I think that much is working. And my original post shows it can see a stream with no errors, and if I put the incorrect code rate in (eg 2_3 instead of 3_4) then it sees lots of errors.
 
--- 
-2.0.0
+So suppose that the demux is what's wrong, how could I debug that further?
 
+Is there a block diagram somewhere that explains how the various dvb components feed into each other?
+
+Thanks
+
+James
