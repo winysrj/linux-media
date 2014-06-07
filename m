@@ -1,88 +1,311 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44533 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751433AbaFMQJN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jun 2014 12:09:13 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:57345 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753295AbaFGV52 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:28 -0400
+Received: by mail-pd0-f171.google.com with SMTP id y13so3830717pdi.30
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:28 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 01/30] [media] coda: fix decoder I/P/B frame detection
-Date: Fri, 13 Jun 2014 18:08:27 +0200
-Message-Id: <1402675736-15379-2-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Dmitry Eremin-Solenikov <dmitry_eremin@mentor.com>,
+	Mohsin Kazmi <mohsin_kazmi@mentor.com>
+Subject: [PATCH 27/43] imx-drm: ipu-v3: Add more planar formats support
+Date: Sat,  7 Jun 2014 14:56:29 -0700
+Message-Id: <1402178205-22697-28-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently the rotator unit is used to copy decoded frames out into buffers
-provided by videobuf2. Since the CODA reports the I/P/B frame type of the
-last decoded frame, and this frame will be copied out in a later device_run,
-depending on display order, we have to store the frame type until such time.
-This patch also adds the B-frame type.
+Adds support for the following planar and partial-planar formats:
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+YUV422
+NV12
+NV21
+NV16
+NV61
+
+Signed-off-by: Dmitry Eremin-Solenikov <dmitry_eremin@mentor.com>
+Signed-off-by: Mohsin Kazmi <mohsin_kazmi@mentor.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/platform/coda.c | 22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ drivers/staging/imx-drm/ipu-v3/ipu-common.c |   26 +++++
+ drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c  |  146 +++++++++++++++++++++++++--
+ 2 files changed, 166 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index b178379..a69fa3b 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -209,6 +209,7 @@ struct coda_ctx {
- 	struct coda_aux_buf		psbuf;
- 	struct coda_aux_buf		slicebuf;
- 	struct coda_aux_buf		internal_frames[CODA_MAX_FRAMEBUFFERS];
-+	u32				frame_types[CODA_MAX_FRAMEBUFFERS];
- 	struct coda_aux_buf		workbuf;
- 	int				num_internal_frames;
- 	int				idx;
-@@ -2693,15 +2694,6 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 
- 	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
- 
--	val = coda_read(dev, CODA_RET_DEC_PIC_TYPE);
--	if ((val & 0x7) == 0) {
--		dst_buf->v4l2_buf.flags |= V4L2_BUF_FLAG_KEYFRAME;
--		dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_PFRAME;
--	} else {
--		dst_buf->v4l2_buf.flags |= V4L2_BUF_FLAG_PFRAME;
--		dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_KEYFRAME;
--	}
--
- 	val = coda_read(dev, CODA_RET_DEC_PIC_ERR_MB);
- 	if (val > 0)
- 		v4l2_err(&dev->v4l2_dev,
-@@ -2748,6 +2740,14 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 	} else if (decoded_idx < 0 || decoded_idx >= ctx->num_internal_frames) {
- 		v4l2_err(&dev->v4l2_dev,
- 			 "decoded frame index out of range: %d\n", decoded_idx);
-+	} else {
-+		val = coda_read(dev, CODA_RET_DEC_PIC_TYPE) & 0x7;
-+		if (val == 0)
-+			ctx->frame_types[decoded_idx] = V4L2_BUF_FLAG_KEYFRAME;
-+		else if (val == 1)
-+			ctx->frame_types[decoded_idx] = V4L2_BUF_FLAG_PFRAME;
-+		else
-+			ctx->frame_types[decoded_idx] = V4L2_BUF_FLAG_BFRAME;
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+index b9d759d..2ee6370 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+@@ -80,6 +80,12 @@ enum ipu_color_space ipu_drm_fourcc_to_colorspace(u32 drm_fourcc)
+ 	case DRM_FORMAT_UYVY:
+ 	case DRM_FORMAT_YUV420:
+ 	case DRM_FORMAT_YVU420:
++	case DRM_FORMAT_YUV422:
++	case DRM_FORMAT_YVU422:
++	case DRM_FORMAT_NV12:
++	case DRM_FORMAT_NV21:
++	case DRM_FORMAT_NV16:
++	case DRM_FORMAT_NV61:
+ 		return IPUV3_COLORSPACE_YUV;
+ 	default:
+ 		return IPUV3_COLORSPACE_UNKNOWN;
+@@ -92,8 +98,13 @@ enum ipu_color_space ipu_pixelformat_to_colorspace(u32 pixelformat)
+ 	switch (pixelformat) {
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
++	case V4L2_PIX_FMT_YUV422P:
+ 	case V4L2_PIX_FMT_UYVY:
+ 	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV16:
++	case V4L2_PIX_FMT_NV61:
+ 		return IPUV3_COLORSPACE_YUV;
+ 	case V4L2_PIX_FMT_RGB32:
+ 	case V4L2_PIX_FMT_BGR32:
+@@ -112,6 +123,11 @@ bool ipu_pixelformat_is_planar(u32 pixelformat)
+ 	switch (pixelformat) {
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
++	case V4L2_PIX_FMT_YUV422P:
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV16:
++	case V4L2_PIX_FMT_NV61:
+ 		return true;
  	}
  
- 	if (display_idx == -1) {
-@@ -2770,6 +2770,10 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		dst_buf = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
- 		dst_buf->v4l2_buf.sequence = ctx->osequence++;
+@@ -137,6 +153,11 @@ int ipu_stride_to_bytes(u32 pixel_stride, u32 pixelformat)
+ 	switch (pixelformat) {
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
++	case V4L2_PIX_FMT_YUV422P:
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV16:
++	case V4L2_PIX_FMT_NV61:
+ 		/*
+ 		 * for the planar YUV formats, the stride passed to
+ 		 * cpmem must be the stride in bytes of the Y plane.
+@@ -170,10 +191,15 @@ int ipu_bits_per_pixel(u32 pixelformat)
+ 	switch (pixelformat) {
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV21:
+ 		return 12;
++	case V4L2_PIX_FMT_YUV422P:
+ 	case V4L2_PIX_FMT_RGB565:
+ 	case V4L2_PIX_FMT_YUYV:
+ 	case V4L2_PIX_FMT_UYVY:
++	case V4L2_PIX_FMT_NV16:
++	case V4L2_PIX_FMT_NV61:
+ 		return 16;
+ 	case V4L2_PIX_FMT_BGR24:
+ 	case V4L2_PIX_FMT_RGB24:
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c b/drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c
+index 70e90b40..1ee5e11 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c
+@@ -191,8 +191,18 @@ static int v4l2_pix_fmt_to_drm_fourcc(u32 pixelformat)
+ 		return DRM_FORMAT_YUYV;
+ 	case V4L2_PIX_FMT_YUV420:
+ 		return DRM_FORMAT_YUV420;
++	case V4L2_PIX_FMT_YUV422P:
++		return DRM_FORMAT_YUV422;
+ 	case V4L2_PIX_FMT_YVU420:
+ 		return DRM_FORMAT_YVU420;
++	case V4L2_PIX_FMT_NV12:
++		return DRM_FORMAT_NV12;
++	case V4L2_PIX_FMT_NV21:
++		return DRM_FORMAT_NV21;
++	case V4L2_PIX_FMT_NV16:
++		return DRM_FORMAT_NV16;
++	case V4L2_PIX_FMT_NV61:
++		return DRM_FORMAT_NV61;
+ 	}
  
-+		dst_buf->v4l2_buf.flags &= ~(V4L2_BUF_FLAG_KEYFRAME |
-+					     V4L2_BUF_FLAG_PFRAME);
-+		dst_buf->v4l2_buf.flags |= ctx->frame_types[ctx->display_idx];
+ 	return -EINVAL;
+@@ -391,6 +401,7 @@ void ipu_cpmem_set_yuv_planar_full(struct ipuv3_channel *ch,
+ {
+ 	switch (pixel_format) {
+ 	case V4L2_PIX_FMT_YUV420:
++	case V4L2_PIX_FMT_YUV422P:
+ 		ipu_ch_param_write_field(ch, IPU_FIELD_SLUV, (stride / 2) - 1);
+ 		ipu_ch_param_write_field(ch, IPU_FIELD_UBO, u_offset / 8);
+ 		ipu_ch_param_write_field(ch, IPU_FIELD_VBO, v_offset / 8);
+@@ -400,6 +411,18 @@ void ipu_cpmem_set_yuv_planar_full(struct ipuv3_channel *ch,
+ 		ipu_ch_param_write_field(ch, IPU_FIELD_UBO, v_offset / 8);
+ 		ipu_ch_param_write_field(ch, IPU_FIELD_VBO, u_offset / 8);
+ 		break;
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV16:
++		ipu_ch_param_write_field(ch, IPU_FIELD_SLUV, stride - 1);
++		ipu_ch_param_write_field(ch, IPU_FIELD_UBO, u_offset / 8);
++		ipu_ch_param_write_field(ch, IPU_FIELD_VBO, u_offset / 8);
++		break;
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV61:
++		ipu_ch_param_write_field(ch, IPU_FIELD_SLUV, stride - 1);
++		ipu_ch_param_write_field(ch, IPU_FIELD_UBO, v_offset / 8);
++		ipu_ch_param_write_field(ch, IPU_FIELD_VBO, v_offset / 8);
++		break;
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(ipu_cpmem_set_yuv_planar_full);
+@@ -419,6 +442,25 @@ void ipu_cpmem_set_yuv_planar(struct ipuv3_channel *ch,
+ 		ipu_cpmem_set_yuv_planar_full(ch, pixel_format, stride,
+ 					      u_offset, v_offset);
+ 		break;
++	case V4L2_PIX_FMT_YUV422P:
++		uv_stride = stride / 2;
++		u_offset = stride * height;
++		v_offset = u_offset + (uv_stride * height);
++		ipu_cpmem_set_yuv_planar_full(ch, pixel_format, stride,
++					      u_offset, v_offset);
++		break;
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV16:
++		u_offset = stride * height;
++		ipu_cpmem_set_yuv_planar_full(ch, pixel_format, stride,
++					      u_offset, 0);
++		break;
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV61:
++		v_offset = stride * height;
++		ipu_cpmem_set_yuv_planar_full(ch, pixel_format, stride,
++					      0, v_offset);
++		break;
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(ipu_cpmem_set_yuv_planar);
+@@ -472,11 +514,20 @@ static const struct ipu_rgb def_bgr_16 = {
+ };
+ 
+ #define Y_OFFSET(pix, x, y)	((x) + pix->width * (y))
+-#define U_OFFSET(pix, x, y)	((pix->width * pix->height) + \
+-					(pix->width * (y) / 4) + (x) / 2)
+-#define V_OFFSET(pix, x, y)	((pix->width * pix->height) + \
+-					(pix->width * pix->height / 4) + \
+-					(pix->width * (y) / 4) + (x) / 2)
++#define U_OFFSET(pix, x, y)	((pix->width * pix->height) +		\
++				 (pix->width * (y) / 4) + (x) / 2)
++#define V_OFFSET(pix, x, y)	((pix->width * pix->height) +		\
++				 (pix->width * pix->height / 4) +	\
++				 (pix->width * (y) / 4) + (x) / 2)
++#define U2_OFFSET(pix, x, y)	((pix->width * pix->height) +		\
++				 (pix->width * (y) / 2) + (x) / 2)
++#define V2_OFFSET(pix, x, y)	((pix->width * pix->height) +		\
++				 (pix->width * pix->height / 2) +	\
++				 (pix->width * (y) / 2) + (x) / 2)
++#define UV_OFFSET(pix, x, y)	((pix->width * pix->height) +	\
++				 (pix->width * (y) / 2) + (x))
++#define UV2_OFFSET(pix, x, y)	((pix->width * pix->height) +	\
++				 (pix->width * y) + (x))
+ 
+ int ipu_cpmem_set_fmt(struct ipuv3_channel *ch, u32 drm_fourcc)
+ {
+@@ -488,6 +539,27 @@ int ipu_cpmem_set_fmt(struct ipuv3_channel *ch, u32 drm_fourcc)
+ 		/* burst size */
+ 		ipu_ch_param_write_field(ch, IPU_FIELD_NPB, 31);
+ 		break;
++	case DRM_FORMAT_YUV422:
++	case DRM_FORMAT_YVU422:
++		/* pix format */
++		ipu_ch_param_write_field(ch, IPU_FIELD_PFS, 1);
++		/* burst size */
++		ipu_ch_param_write_field(ch, IPU_FIELD_NPB, 31);
++		break;
++	case DRM_FORMAT_NV12:
++	case DRM_FORMAT_NV21:
++		/* pix format */
++		ipu_ch_param_write_field(ch, IPU_FIELD_PFS, 4);
++		/* burst size */
++		ipu_ch_param_write_field(ch, IPU_FIELD_NPB, 31);
++		break;
++	case DRM_FORMAT_NV16:
++	case DRM_FORMAT_NV61:
++		/* pix format */
++		ipu_ch_param_write_field(ch, IPU_FIELD_PFS, 3);
++		/* burst size */
++		ipu_ch_param_write_field(ch, IPU_FIELD_NPB, 31);
++		break;
+ 	case DRM_FORMAT_UYVY:
+ 		/* bits/pixel */
+ 		ipu_ch_param_write_field(ch, IPU_FIELD_BPP, 3);
+@@ -556,7 +628,69 @@ int ipu_cpmem_set_image(struct ipuv3_channel *ch, struct ipu_image *image)
+ 				    image->rect.top) - y_offset;
+ 
+ 		ipu_cpmem_set_yuv_planar_full(ch, pix->pixelformat,
+-				pix->bytesperline, u_offset, v_offset);
++					      pix->bytesperline,
++					      u_offset, v_offset);
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + y_offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + y_offset);
++		break;
++	case V4L2_PIX_FMT_YUV422P:
++		y_offset = Y_OFFSET(pix, image->rect.left, image->rect.top);
++		u_offset = U2_OFFSET(pix, image->rect.left,
++				     image->rect.top) - y_offset;
++		v_offset = V2_OFFSET(pix, image->rect.left,
++				     image->rect.top) - y_offset;
 +
- 		vb2_set_plane_payload(dst_buf, 0, width * height * 3 / 2);
- 
- 		v4l2_m2m_buf_done(dst_buf, success ? VB2_BUF_STATE_DONE :
++		ipu_cpmem_set_yuv_planar_full(ch, pix->pixelformat,
++					      pix->bytesperline,
++					      u_offset, v_offset);
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + y_offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + y_offset);
++		break;
++	case V4L2_PIX_FMT_NV12:
++		y_offset = Y_OFFSET(pix, image->rect.left, image->rect.top);
++		u_offset = UV_OFFSET(pix, image->rect.left,
++				     image->rect.top) - y_offset;
++		v_offset = 0;
++
++		ipu_cpmem_set_yuv_planar_full(ch, pix->pixelformat,
++					      pix->bytesperline,
++					      u_offset, v_offset);
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + y_offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + y_offset);
++		break;
++	case V4L2_PIX_FMT_NV21:
++		y_offset = Y_OFFSET(pix, image->rect.left, image->rect.top);
++		u_offset = 0;
++		v_offset = UV_OFFSET(pix, image->rect.left,
++				     image->rect.top) - y_offset;
++
++		ipu_cpmem_set_yuv_planar_full(ch, pix->pixelformat,
++					      pix->bytesperline,
++					      u_offset, v_offset);
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + y_offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + y_offset);
++		break;
++	case V4L2_PIX_FMT_NV16:
++		y_offset = Y_OFFSET(pix, image->rect.left, image->rect.top);
++		u_offset = UV2_OFFSET(pix, image->rect.left,
++				      image->rect.top) - y_offset;
++		v_offset = 0;
++
++		ipu_cpmem_set_yuv_planar_full(ch, pix->pixelformat,
++					      pix->bytesperline,
++					      u_offset, v_offset);
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + y_offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + y_offset);
++		break;
++	case V4L2_PIX_FMT_NV61:
++		y_offset = Y_OFFSET(pix, image->rect.left, image->rect.top);
++		u_offset = 0;
++		v_offset = UV2_OFFSET(pix, image->rect.left,
++				      image->rect.top) - y_offset;
++
++		ipu_cpmem_set_yuv_planar_full(ch, pix->pixelformat,
++					      pix->bytesperline,
++					      u_offset, v_offset);
+ 		ipu_cpmem_set_buffer(ch, 0, image->phys0 + y_offset);
+ 		ipu_cpmem_set_buffer(ch, 1, image->phys1 + y_offset);
+ 		break;
 -- 
-2.0.0.rc2
+1.7.9.5
 
