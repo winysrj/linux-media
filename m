@@ -1,60 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1lp0145.outbound.protection.outlook.com ([207.46.163.145]:56630
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752833AbaFYCaD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 22:30:03 -0400
-Date: Wed, 25 Jun 2014 10:29:41 +0800
-From: Shawn Guo <shawn.guo@linaro.org>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-CC: Denis Carikli <denis@eukrea.com>, <arm@kernel.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Eric =?iso-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
-	<linux-arm-kernel@lists.infradead.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	<devel@driverdev.osuosl.org>,
-	"Mauro Carvalho Chehab" <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	<dri-devel@lists.freedesktop.org>, David Airlie <airlied@linux.ie>
-Subject: Re: [PATCH v14 05/10] ARM: dts: imx5*, imx6*: correct
- display-timings nodes.
-Message-ID: <20140625022939.GA5732@dragon>
-References: <1402913484-25910-1-git-send-email-denis@eukrea.com>
- <1402913484-25910-5-git-send-email-denis@eukrea.com>
- <20140624150158.GS32514@n2100.arm.linux.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20140624150158.GS32514@n2100.arm.linux.org.uk>
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:43393 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753357AbaFGV51 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:27 -0400
+Received: by mail-pb0-f42.google.com with SMTP id md12so3891849pbc.15
+        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:27 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 26/43] imx-drm: ipu-cpmem: Add second buffer support to ipu_cpmem_set_image()
+Date: Sat,  7 Jun 2014 14:56:28 -0700
+Message-Id: <1402178205-22697-27-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 24, 2014 at 04:01:58PM +0100, Russell King - ARM Linux wrote:
-> On Mon, Jun 16, 2014 at 12:11:19PM +0200, Denis Carikli wrote:
-> > The imx-drm driver can't use the de-active and
-> > pixelclk-active display-timings properties yet.
-> > 
-> > Instead the data-enable and the pixel data clock
-> > polarity are hardcoded in the imx-drm driver.
-> > 
-> > So theses properties are now set to keep
-> > the same behaviour when imx-drm will start
-> > using them.
-> > 
-> > Signed-off-by: Denis Carikli <denis@eukrea.com>
-> 
-> This patch needs either an ack from the arm-soc/iMX maintainers, or
-> they need to merge it.  As there's little positive agreement on the
-> series, I can understand why there's reluctance to merge it.
-> 
-> So, can we start having some acks from people please, or at least
-> commitments to merge this patch when the others are deemed to be
-> acceptable.  If not, can we have explanations why this should not
-> be merged.
+Add a second buffer physaddr to struct ipu_image, for double-buffering
+support.
 
-I will be happy to merge dts change through IMX tree once the
-binding/diver part gets accepted/applied.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c |   32 ++++++++++++++--------------
+ include/linux/platform_data/imx-ipu-v3.h   |    3 ++-
+ 2 files changed, 18 insertions(+), 17 deletions(-)
 
-Shawn
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c b/drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c
+index bd76a38..70e90b40 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c
+@@ -535,7 +535,7 @@ EXPORT_SYMBOL_GPL(ipu_cpmem_set_fmt);
+ int ipu_cpmem_set_image(struct ipuv3_channel *ch, struct ipu_image *image)
+ {
+ 	struct v4l2_pix_format *pix = &image->pix;
+-	int y_offset, u_offset, v_offset;
++	int offset, y_offset, u_offset, v_offset;
+ 
+ 	pr_debug("%s: resolution: %dx%d stride: %d\n",
+ 		 __func__, pix->width, pix->height,
+@@ -557,30 +557,30 @@ int ipu_cpmem_set_image(struct ipuv3_channel *ch, struct ipu_image *image)
+ 
+ 		ipu_cpmem_set_yuv_planar_full(ch, pix->pixelformat,
+ 				pix->bytesperline, u_offset, v_offset);
+-		ipu_cpmem_set_buffer(ch, 0, image->phys + y_offset);
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + y_offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + y_offset);
+ 		break;
+ 	case V4L2_PIX_FMT_UYVY:
+ 	case V4L2_PIX_FMT_YUYV:
+-		ipu_cpmem_set_buffer(ch, 0, image->phys +
+-				     image->rect.left * 2 +
+-				     image->rect.top * image->pix.bytesperline);
++	case V4L2_PIX_FMT_RGB565:
++		offset = image->rect.left * 2 +
++			image->rect.top * pix->bytesperline;
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + offset);
+ 		break;
+ 	case V4L2_PIX_FMT_RGB32:
+ 	case V4L2_PIX_FMT_BGR32:
+-		ipu_cpmem_set_buffer(ch, 0, image->phys +
+-				     image->rect.left * 4 +
+-				     image->rect.top * image->pix.bytesperline);
+-		break;
+-	case V4L2_PIX_FMT_RGB565:
+-		ipu_cpmem_set_buffer(ch, 0, image->phys +
+-				     image->rect.left * 2 +
+-				     image->rect.top * image->pix.bytesperline);
++		offset = image->rect.left * 4 +
++			image->rect.top * pix->bytesperline;
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + offset);
+ 		break;
+ 	case V4L2_PIX_FMT_RGB24:
+ 	case V4L2_PIX_FMT_BGR24:
+-		ipu_cpmem_set_buffer(ch, 0, image->phys +
+-				     image->rect.left * 3 +
+-				     image->rect.top * image->pix.bytesperline);
++		offset = image->rect.left * 3 +
++			image->rect.top * pix->bytesperline;
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + offset);
+ 		break;
+ 	default:
+ 		return -EINVAL;
+diff --git a/include/linux/platform_data/imx-ipu-v3.h b/include/linux/platform_data/imx-ipu-v3.h
+index 53aab16..4575657 100644
+--- a/include/linux/platform_data/imx-ipu-v3.h
++++ b/include/linux/platform_data/imx-ipu-v3.h
+@@ -219,7 +219,8 @@ struct ipu_rgb {
+ struct ipu_image {
+ 	struct v4l2_pix_format pix;
+ 	struct v4l2_rect rect;
+-	dma_addr_t phys;
++	dma_addr_t phys0;
++	dma_addr_t phys1;
+ };
+ 
+ void ipu_cpmem_zero(struct ipuv3_channel *ch);
+-- 
+1.7.9.5
+
