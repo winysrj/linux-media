@@ -1,110 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.47]:33736 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751661AbaFECnF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jun 2014 22:43:05 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id B439B2A1C5F
-	for <linux-media@vger.kernel.org>; Thu,  5 Jun 2014 04:42:56 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140605024256.B439B2A1C5F@tschai.lan>
-Date: Thu,  5 Jun 2014 04:42:56 +0200 (CEST)
+Received: from bombadil.infradead.org ([198.137.202.9]:50494 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753518AbaFHQzK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jun 2014 12:55:10 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 1/8] au8522: move input_mode out one level
+Date: Sun,  8 Jun 2014 13:54:51 -0300
+Message-Id: <1402246498-2532-2-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1402246498-2532-1-git-send-email-m.chehab@samsung.com>
+References: <1402246498-2532-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The input mode is used not only inside the setup_decoder_defaults()
+but also at au8522_*_mode routines.
 
-Results of the daily build of media_tree:
+So, move it one level up. As an advantage, we can now group the
+function that sets the input into just one.
 
-date:		Thu Jun  5 04:00:28 CEST 2014
-git branch:	test
-git hash:	5ea878796f0a1d9649fe43a6a09df53d3915c0ef
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.14-5.slh.3-amd64
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/au8522_decoder.c | 93 ++++++++++++++++++++--------
+ 1 file changed, 67 insertions(+), 26 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
+index 23a0d05ba426..21d204914524 100644
+--- a/drivers/media/dvb-frontends/au8522_decoder.c
++++ b/drivers/media/dvb-frontends/au8522_decoder.c
+@@ -346,7 +346,7 @@ static void setup_decoder_defaults(struct au8522_state *state, u8 input_mode)
+ 	au8522_writereg(state, AU8522_REG436H, 0x3c);
+ }
+ 
+-static void au8522_setup_cvbs_mode(struct au8522_state *state)
++static void au8522_setup_cvbs_mode(struct au8522_state *state, u8 input_mode)
+ {
+ 	/* here we're going to try the pre-programmed route */
+ 	au8522_writereg(state, AU8522_MODULE_CLOCK_CONTROL_REG0A3H,
+@@ -358,16 +358,16 @@ static void au8522_setup_cvbs_mode(struct au8522_state *state)
+ 	/* Enable clamping control */
+ 	au8522_writereg(state, AU8522_CLAMPING_CONTROL_REG083H, 0x00);
+ 
+-	au8522_writereg(state, AU8522_INPUT_CONTROL_REG081H,
+-			AU8522_INPUT_CONTROL_REG081H_CVBS_CH1);
++	au8522_writereg(state, AU8522_INPUT_CONTROL_REG081H, input_mode);
+ 
+-	setup_decoder_defaults(state, AU8522_INPUT_CONTROL_REG081H_CVBS_CH1);
++	setup_decoder_defaults(state, input_mode);
+ 
+ 	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
+ 			AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
+ }
+ 
+-static void au8522_setup_cvbs_tuner_mode(struct au8522_state *state)
++static void au8522_setup_cvbs_tuner_mode(struct au8522_state *state,
++					 u8 input_mode)
+ {
+ 	/* here we're going to try the pre-programmed route */
+ 	au8522_writereg(state, AU8522_MODULE_CLOCK_CONTROL_REG0A3H,
+@@ -384,24 +384,22 @@ static void au8522_setup_cvbs_tuner_mode(struct au8522_state *state)
+ 	au8522_writereg(state, AU8522_PGA_CONTROL_REG082H, 0x10);
+ 
+ 	/* Set input mode to CVBS on channel 4 with SIF audio input enabled */
+-	au8522_writereg(state, AU8522_INPUT_CONTROL_REG081H,
+-			AU8522_INPUT_CONTROL_REG081H_CVBS_CH4_SIF);
++	au8522_writereg(state, AU8522_INPUT_CONTROL_REG081H, input_mode);
+ 
+-	setup_decoder_defaults(state,
+-			       AU8522_INPUT_CONTROL_REG081H_CVBS_CH4_SIF);
++	setup_decoder_defaults(state, input_mode);
+ 
+ 	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
+ 			AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
+ }
+ 
+-static void au8522_setup_svideo_mode(struct au8522_state *state)
++static void au8522_setup_svideo_mode(struct au8522_state *state,
++				     u8 input_mode)
+ {
+ 	au8522_writereg(state, AU8522_MODULE_CLOCK_CONTROL_REG0A3H,
+ 			AU8522_MODULE_CLOCK_CONTROL_REG0A3H_SVIDEO);
+ 
+ 	/* Set input to Y on Channe1, C on Channel 3 */
+-	au8522_writereg(state, AU8522_INPUT_CONTROL_REG081H,
+-			AU8522_INPUT_CONTROL_REG081H_SVIDEO_CH13);
++	au8522_writereg(state, AU8522_INPUT_CONTROL_REG081H, input_mode);
+ 
+ 	/* PGA in automatic mode */
+ 	au8522_writereg(state, AU8522_PGA_CONTROL_REG082H, 0x00);
+@@ -409,8 +407,7 @@ static void au8522_setup_svideo_mode(struct au8522_state *state)
+ 	/* Enable clamping control */
+ 	au8522_writereg(state, AU8522_CLAMPING_CONTROL_REG083H, 0x00);
+ 
+-	setup_decoder_defaults(state,
+-			       AU8522_INPUT_CONTROL_REG081H_SVIDEO_CH13);
++	setup_decoder_defaults(state, input_mode);
+ 
+ 	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
+ 			AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
+@@ -558,10 +555,8 @@ static int au8522_s_stream(struct v4l2_subdev *sd, int enable)
+ 	return 0;
+ }
+ 
+-static int au8522_reset(struct v4l2_subdev *sd, u32 val)
++static int __au8522_reset(struct au8522_state *state)
+ {
+-	struct au8522_state *state = to_state(sd);
+-
+ 	state->operational_mode = AU8522_ANALOG_MODE;
+ 
+ 	/* Clear out any state associated with the digital side of the
+@@ -574,23 +569,69 @@ static int au8522_reset(struct v4l2_subdev *sd, u32 val)
+ 	return 0;
+ }
+ 
++static int au8522_reset(struct v4l2_subdev *sd, u32 val)
++{
++	struct au8522_state *state = to_state(sd);
++
++	return __au8522_reset(state);
++}
++
++static void au8522_video_set(struct au8522_state *state)
++
++{
++	u8 input_mode;
++
++	__au8522_reset(state);
++
++	switch (state->vid_input) {
++	case AU8522_COMPOSITE_CH1:
++		input_mode = AU8522_INPUT_CONTROL_REG081H_CVBS_CH1;
++		au8522_setup_cvbs_mode(state, input_mode);
++		break;
++	case AU8522_COMPOSITE_CH2:
++		input_mode = AU8522_INPUT_CONTROL_REG081H_CVBS_CH2;
++		au8522_setup_cvbs_mode(state, input_mode);
++		break;
++	case AU8522_COMPOSITE_CH3:
++		input_mode = AU8522_INPUT_CONTROL_REG081H_CVBS_CH3;
++		au8522_setup_cvbs_mode(state, input_mode);
++		break;
++	case AU8522_COMPOSITE_CH4:
++		input_mode = AU8522_INPUT_CONTROL_REG081H_CVBS_CH4;
++		au8522_setup_cvbs_mode(state, input_mode);
++		break;
++	case AU8522_SVIDEO_CH13:
++		input_mode = AU8522_INPUT_CONTROL_REG081H_SVIDEO_CH13;
++		au8522_setup_svideo_mode(state, input_mode);
++		break;
++	case AU8522_SVIDEO_CH24:
++		input_mode = AU8522_INPUT_CONTROL_REG081H_SVIDEO_CH24;
++		au8522_setup_svideo_mode(state, input_mode);
++		break;
++	default:
++	case AU8522_COMPOSITE_CH4_SIF:
++		input_mode = AU8522_INPUT_CONTROL_REG081H_CVBS_CH4_SIF;
++		au8522_setup_cvbs_tuner_mode(state, input_mode);
++		break;
++	}
++}
++
+ static int au8522_s_video_routing(struct v4l2_subdev *sd,
+ 					u32 input, u32 output, u32 config)
+ {
+ 	struct au8522_state *state = to_state(sd);
+ 
+-	au8522_reset(sd, 0);
+-
+-	if (input == AU8522_COMPOSITE_CH1) {
+-		au8522_setup_cvbs_mode(state);
+-	} else if (input == AU8522_SVIDEO_CH13) {
+-		au8522_setup_svideo_mode(state);
+-	} else if (input == AU8522_COMPOSITE_CH4_SIF) {
+-		au8522_setup_cvbs_tuner_mode(state);
+-	} else {
++	switch(input) {
++	case AU8522_COMPOSITE_CH1:
++	case AU8522_SVIDEO_CH13:
++	case AU8522_COMPOSITE_CH4_SIF:
++		state->vid_input = input;
++		break;
++	default:
+ 		printk(KERN_ERR "au8522 mode not currently supported\n");
+ 		return -EINVAL;
+ 	}
++	au8522_video_set(state);
+ 	return 0;
+ }
+ 
+-- 
+1.9.3
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
