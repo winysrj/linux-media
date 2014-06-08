@@ -1,138 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33014 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756132AbaFLRGp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 13:06:45 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: [RFC PATCH 11/26] [media] v4l2: subdev: Add v4l2_device_register_subdev_node function
-Date: Thu, 12 Jun 2014 19:06:25 +0200
-Message-Id: <1402592800-2925-12-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+Received: from bombadil.infradead.org ([198.137.202.9]:50489 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753438AbaFHQzK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jun 2014 12:55:10 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 8/8] au0828: don't hardcode height/width
+Date: Sun,  8 Jun 2014 13:54:58 -0300
+Message-Id: <1402246498-2532-9-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1402246498-2532-1-git-send-email-m.chehab@samsung.com>
+References: <1402246498-2532-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sascha Hauer <s.hauer@pengutronix.de>
+While this device doesn't have a scaler (or have it disabled),
+the screen dimentions are a function of the standard. Ok, right
+now, only 480 lines standards are implemented, although it
+supports other ones. Yet, let's calculate the size, to make
+easier to add more standards latter.
 
-We currently only have a function that registers all subdev
-device nodes for a v4l2 device at once. This assumes that
-there is a point when all subdevices are known and that all
-subdevices are needed to make a functional device. With the
-advent of asynchronous subdevices this may no longer be the
-case, so add a function which registers a single subdevice for
-a given v4l2 device only and let v4l2_device_register_subdev_nodes
-use this function.
-
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/v4l2-core/v4l2-device.c | 63 ++++++++++++++++++++---------------
- include/media/v4l2-device.h           |  5 +++
- 2 files changed, 42 insertions(+), 26 deletions(-)
+ drivers/media/usb/au0828/au0828-video.c | 20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 02d1b63..4211163 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -205,9 +205,43 @@ static void v4l2_device_release_subdev_node(struct video_device *vdev)
- 	kfree(vdev);
- }
- 
--int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
-+int v4l2_device_register_subdev_node(struct v4l2_device *v4l2_dev,
-+		struct v4l2_subdev *sd)
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 85d83ca5a4cd..385894a1ff68 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -791,7 +791,7 @@ static int au0828_i2s_init(struct au0828_dev *dev)
+ static int au0828_analog_stream_enable(struct au0828_dev *d)
  {
- 	struct video_device *vdev;
-+	int err;
-+
-+	if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
-+		return 0;
-+
-+	vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
-+	if (!vdev)
-+		return -ENOMEM;
-+
-+	video_set_drvdata(vdev, sd);
-+	strlcpy(vdev->name, sd->name, sizeof(vdev->name));
-+	vdev->v4l2_dev = v4l2_dev;
-+	vdev->fops = &v4l2_subdev_fops;
-+	vdev->release = v4l2_device_release_subdev_node;
-+	vdev->ctrl_handler = sd->ctrl_handler;
-+	err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
-+				      sd->owner);
-+	if (err < 0) {
-+		kfree(vdev);
-+		return err;
-+	}
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	sd->entity.info.v4l.major = VIDEO_MAJOR;
-+	sd->entity.info.v4l.minor = vdev->minor;
-+#endif
-+	sd->devnode = vdev;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_node);
-+
-+int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
-+{
- 	struct v4l2_subdev *sd;
- 	int err;
+ 	struct usb_interface *iface;
+-	int ret;
++	int ret, h, w;
  
-@@ -215,32 +249,9 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
- 	 * V4L2_SUBDEV_FL_HAS_DEVNODE flag.
- 	 */
- 	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
--		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
--			continue;
--
--		vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
--		if (!vdev) {
--			err = -ENOMEM;
--			goto clean_up;
--		}
--
--		video_set_drvdata(vdev, sd);
--		strlcpy(vdev->name, sd->name, sizeof(vdev->name));
--		vdev->v4l2_dev = v4l2_dev;
--		vdev->fops = &v4l2_subdev_fops;
--		vdev->release = v4l2_device_release_subdev_node;
--		vdev->ctrl_handler = sd->ctrl_handler;
--		err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
--					      sd->owner);
--		if (err < 0) {
--			kfree(vdev);
-+		err = v4l2_device_register_subdev_node(v4l2_dev, sd);
-+		if (err)
- 			goto clean_up;
--		}
--#if defined(CONFIG_MEDIA_CONTROLLER)
--		sd->entity.info.v4l.major = VIDEO_MAJOR;
--		sd->entity.info.v4l.minor = vdev->minor;
--#endif
--		sd->devnode = vdev;
+ 	dprintk(1, "au0828_analog_stream_enable called\n");
+ 
+@@ -806,20 +806,21 @@ static int au0828_analog_stream_enable(struct au0828_dev *d)
+ 		}
  	}
+ 
+-	/* FIXME: size should be calculated using d->width, d->height */
++	h = d->height / 2 + 2;
++	w = d->width * 2;
+ 
+ 	au0828_writereg(d, AU0828_SENSORCTRL_VBI_103, 0x00);
+ 	au0828_writereg(d, 0x106, 0x00);
+ 	/* set x position */
+ 	au0828_writereg(d, 0x110, 0x00);
+ 	au0828_writereg(d, 0x111, 0x00);
+-	au0828_writereg(d, 0x114, 0xa0);
+-	au0828_writereg(d, 0x115, 0x05);
++	au0828_writereg(d, 0x114, w & 0xff);
++	au0828_writereg(d, 0x115, w >> 8);
+ 	/* set y position */
+ 	au0828_writereg(d, 0x112, 0x00);
+ 	au0828_writereg(d, 0x113, 0x00);
+-	au0828_writereg(d, 0x116, 0xf2);
+-	au0828_writereg(d, 0x117, 0x00);
++	au0828_writereg(d, 0x116, h & 0xff);
++	au0828_writereg(d, 0x117, h >> 8);
+ 	au0828_writereg(d, AU0828_SENSORCTRL_100, 0xb3);
+ 
  	return 0;
+@@ -1725,6 +1726,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
+ 		dev->vid_timeout_running = 0;
+ 		del_timer_sync(&dev->vid_timeout);
  
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index c9b1593..512cc4b 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -120,6 +120,11 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd);
- int __must_check
- v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev);
++		au0828_analog_stream_disable(dev);
+ 		v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 0);
+ 		rc = au0828_stream_interrupt(dev);
+ 		if (rc != 0)
+@@ -1930,7 +1932,8 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 	struct usb_endpoint_descriptor *endpoint;
+ 	int i, ret;
  
-+/* Register a single device node for a subdev of a v4l2 device. */
-+int __must_check
-+v4l2_device_register_subdev_node(struct v4l2_device *v4l2_dev,
-+				struct v4l2_subdev *sd);
-+
- /* Iterate over all subdevs. */
- #define v4l2_device_for_each_subdev(sd, v4l2_dev)			\
- 	list_for_each_entry(sd, &(v4l2_dev)->subdevs, list)
+-	dprintk(1, "au0828_analog_register called!\n");
++	dprintk(1, "au0828_analog_register called for intf#%d!\n",
++		interface->cur_altsetting->desc.bInterfaceNumber);
+ 
+ 	/* set au0828 usb interface0 to as5 */
+ 	retval = usb_set_interface(dev->usbdev,
+@@ -1954,6 +1957,9 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 			dev->max_pkt_size = (tmp & 0x07ff) *
+ 				(((tmp & 0x1800) >> 11) + 1);
+ 			dev->isoc_in_endpointaddr = endpoint->bEndpointAddress;
++			dprintk(1,
++				"Found isoc endpoint 0x%02x, max size = %d\n",
++				dev->isoc_in_endpointaddr, dev->max_pkt_size);
+ 		}
+ 	}
+ 	if (!(dev->isoc_in_endpointaddr)) {
 -- 
-2.0.0.rc2
+1.9.3
 
