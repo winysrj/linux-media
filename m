@@ -1,63 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:49153 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751530AbaFEUsk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jun 2014 16:48:40 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: devel@driverdev.osuosl.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
-	Florian Schilhabel <florian.c.schilhabel@googlemail.com>,
-	Henk de Groot <pe1dnn@amsat.org>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Larry Finger <Larry.Finger@lwfinger.net>,
-	Luca Risolia <luca.risolia@studio.unibo.it>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Tuomas Tynkkynen <tuomas.tynkkynen@iki.fi>,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org
-Subject: [PATCH 0/5] randconfig build fixes for staging
-Date: Thu,  5 Jun 2014 22:48:10 +0200
-Message-Id: <1402001295-1980118-1-git-send-email-arnd@arndb.de>
+Received: from mail-la0-f52.google.com ([209.85.215.52]:37423 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753681AbaFHSJn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jun 2014 14:09:43 -0400
+Received: by mail-la0-f52.google.com with SMTP id s18so2577306lam.39
+        for <linux-media@vger.kernel.org>; Sun, 08 Jun 2014 11:09:42 -0700 (PDT)
+From: Alexander Bersenev <bay@hackerdom.ru>
+To: linux-sunxi@googlegroups.com, david@hardeman.nu,
+	devicetree@vger.kernel.org, galak@codeaurora.org,
+	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
+	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
+	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
+	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
+	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
+	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Alexander Bersenev <bay@hackerdom.ru>
+Subject: [PATCH v9 3/5] ARM: sunxi: Add pins for IR controller on A20 to dtsi
+Date: Mon,  9 Jun 2014 00:08:11 +0600
+Message-Id: <1402250893-5412-4-git-send-email-bay@hackerdom.ru>
+In-Reply-To: <1402250893-5412-1-git-send-email-bay@hackerdom.ru>
+References: <1402250893-5412-1-git-send-email-bay@hackerdom.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Greg,
+This patch adds pins for two IR controllers on A20
 
-Here are a couple of simple fixes from my backlog of ARM
-randconfig bugs. Nothing urgent, they can probably all go
-into next for 3.17 after the merge window, but see for
-yourself.
+Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
+Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
+---
+ arch/arm/boot/dts/sun7i-a20.dtsi | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-	Arnd
-
-Arnd Bergmann (5):
-  staging: lirc: remove sa1100 support
-  staging/iio: IIO_SIMPLE_DUMMY_BUFFER neds IIO_BUFFER
-  staging: sn9c102 depends on USB
-  staging: wlags49_h2: avoid PROFILE_ALL_BRANCHES warnings
-  staging: rtl8712, rtl8712: avoid lots of build warnings
-
- drivers/staging/iio/Kconfig                    |   9 +-
- drivers/staging/media/lirc/lirc_sir.c          | 301 +------------------------
- drivers/staging/media/sn9c102/Kconfig          |   2 +-
- drivers/staging/rtl8192u/ieee80211/ieee80211.h |  10 +-
- drivers/staging/rtl8712/ieee80211.h            |   4 +-
- drivers/staging/wlags49_h2/wl_internal.h       |   4 +-
- 6 files changed, 17 insertions(+), 313 deletions(-)
-
+diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
+index 0ae2b77..c057c3e 100644
+--- a/arch/arm/boot/dts/sun7i-a20.dtsi
++++ b/arch/arm/boot/dts/sun7i-a20.dtsi
+@@ -724,6 +724,20 @@
+ 				allwinner,drive = <2>;
+ 				allwinner,pull = <0>;
+ 			};
++
++			ir0_pins_a: ir0@0 {
++				    allwinner,pins = "PB3","PB4";
++				    allwinner,function = "ir0";
++				    allwinner,drive = <0>;
++				    allwinner,pull = <0>;
++			};
++
++			ir1_pins_a: ir1@0 {
++				    allwinner,pins = "PB22","PB23";
++				    allwinner,function = "ir1";
++				    allwinner,drive = <0>;
++				    allwinner,pull = <0>;
++			};
+ 		};
+ 
+ 		timer@01c20c00 {
 -- 
-1.8.3.2
+1.9.3
 
-Cc: Florian Schilhabel <florian.c.schilhabel@googlemail.com>
-Cc: Henk de Groot <pe1dnn@amsat.org>
-Cc: Jarod Wilson <jarod@wilsonet.com>
-Cc: Jonathan Cameron <jic23@kernel.org>
-Cc: Larry Finger <Larry.Finger@lwfinger.net>
-Cc: Luca Risolia <luca.risolia@studio.unibo.it>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Tuomas Tynkkynen <tuomas.tynkkynen@iki.fi>
-Cc: linux-iio@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: linux-usb@vger.kernel.org
