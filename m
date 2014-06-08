@@ -1,53 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:34188 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753972AbaFXOFR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 10:05:17 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1WzRLX-0003ZU-NI
-	for linux-media@vger.kernel.org; Tue, 24 Jun 2014 16:05:15 +0200
-Received: from 80-218-111-224.dclient.hispeed.ch ([80.218.111.224])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 24 Jun 2014 16:05:15 +0200
-Received: from dave.mueller by 80-218-111-224.dclient.hispeed.ch with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 24 Jun 2014 16:05:15 +0200
-To: linux-media@vger.kernel.org
-From: Dave =?utf-8?b?TcO8bGxlcg==?= <dave.mueller@gmx.ch>
-Subject: Re: [RFC PATCH 14/26] [media] Add i.MX SoC wide media device driver
-Date: Tue, 24 Jun 2014 14:05:03 +0000 (UTC)
-Message-ID: <loom.20140624T155859-446@post.gmane.org>
-References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de> <1402592800-2925-15-git-send-email-p.zabel@pengutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail-la0-f43.google.com ([209.85.215.43]:49879 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753619AbaFHSJv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jun 2014 14:09:51 -0400
+Received: by mail-la0-f43.google.com with SMTP id mc6so2574450lab.2
+        for <linux-media@vger.kernel.org>; Sun, 08 Jun 2014 11:09:50 -0700 (PDT)
+From: Alexander Bersenev <bay@hackerdom.ru>
+To: linux-sunxi@googlegroups.com, david@hardeman.nu,
+	devicetree@vger.kernel.org, galak@codeaurora.org,
+	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
+	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
+	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
+	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
+	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
+	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Alexander Bersenev <bay@hackerdom.ru>
+Subject: [PATCH v9 4/5] ARM: sunxi: Add IR controllers on A20 to dtsi
+Date: Mon,  9 Jun 2014 00:08:12 +0600
+Message-Id: <1402250893-5412-5-git-send-email-bay@hackerdom.ru>
+In-Reply-To: <1402250893-5412-1-git-send-email-bay@hackerdom.ru>
+References: <1402250893-5412-1-git-send-email-bay@hackerdom.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello again
+This patch adds records for two IR controllers on A20
 
-Philipp Zabel <p.zabel@pengutronix.de> writes:
+Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
+Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
+---
+ arch/arm/boot/dts/sun7i-a20.dtsi | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-> +struct media_device *ipu_find_media_device(void)
-> +{
-> +	return &ipu_media->mdev;
-> +}
-> +EXPORT_SYMBOL_GPL(ipu_find_media_device);
-
-Where is ipu_find_media_device() being called?
-
-> +int ipu_media_device_register(struct device *dev)
-> +{
-
-[snip]
-
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(ipu_media_device_register);
-
-Where is ipu_media_device_register() being called?
-
+diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
+index c057c3e..fe1f8ff 100644
+--- a/arch/arm/boot/dts/sun7i-a20.dtsi
++++ b/arch/arm/boot/dts/sun7i-a20.dtsi
+@@ -763,6 +763,24 @@
+ 			interrupts = <0 24 4>;
+ 		};
+ 
++		ir0: ir@01c21800 {
++			compatible = "allwinner,sun7i-a20-ir";
++			clocks = <&apb0_gates 6>, <&ir0_clk>;
++			clock-names = "apb", "ir";
++			interrupts = <0 5 4>;
++			reg = <0x01c21800 0x40>;
++			status = "disabled";
++		};
++
++		ir1: ir@01c21c00 {
++			compatible = "allwinner,sun7i-a20-ir";
++			clocks = <&apb0_gates 7>, <&ir1_clk>;
++			clock-names = "apb", "ir";
++			interrupts = <0 6 4>;
++			reg = <0x01c21c00 0x40>;
++			status = "disabled";
++		};
++
+ 		lradc: lradc@01c22800 {
+ 			compatible = "allwinner,sun4i-lradc-keys";
+ 			reg = <0x01c22800 0x100>;
+-- 
+1.9.3
 
