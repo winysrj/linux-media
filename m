@@ -1,55 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41578 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750929AbaFKNL6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jun 2014 09:11:58 -0400
-Message-ID: <1402492315.4107.147.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH 05/43] imx-drm: ipu-v3: Map IOMUXC registers
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Wed, 11 Jun 2014 15:11:55 +0200
-In-Reply-To: <1402178205-22697-6-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-	 <1402178205-22697-6-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:50495 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753503AbaFHQzK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jun 2014 12:55:10 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 4/8] au8522: cleanup s-video settings at setup_decoder_defaults()
+Date: Sun,  8 Jun 2014 13:54:54 -0300
+Message-Id: <1402246498-2532-5-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1402246498-2532-1-git-send-email-m.chehab@samsung.com>
+References: <1402246498-2532-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Samstag, den 07.06.2014, 14:56 -0700 schrieb Steve Longerbeam:
-> Map the IOMUXC registers, which will be needed by ipu-csi for mux
-> control.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> ---
->  drivers/staging/imx-drm/ipu-v3/ipu-common.c |    8 ++++++++
->  drivers/staging/imx-drm/ipu-v3/ipu-prv.h    |    4 ++++
->  2 files changed, 12 insertions(+)
-> 
-> diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-> index 2d95a7c..635dafe 100644
-> --- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-> +++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-> @@ -1196,6 +1196,14 @@ static int ipu_probe(struct platform_device *pdev)
->  	if (!ipu->cm_reg || !ipu->idmac_reg || !ipu->cpmem_base)
->  		return -ENOMEM;
->  
-> +	ipu->gp_reg = syscon_regmap_lookup_by_compatible(
-> +		"fsl,imx6q-iomuxc-gpr");
-> +	if (IS_ERR(ipu->gp_reg)) {
-> +		ret = PTR_ERR(ipu->gp_reg);
-> +		dev_err(&pdev->dev, "failed to map iomuxc regs with %d\n", ret);
-> +		return ret;
-> +	}
-> +
+setup_decoder_defaults() doesn't really care about the input
+port. All it needs to know is if the input port is s-video or
+not.
 
-This will break i.MX5. The IPU core driver shouldn't touch those
-registers anyway.
+As the caller function already knows that, just pass a boolean
+instead.
 
-regards
-Philipp
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/au8522_decoder.c | 21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
+index 53f6dea6b3cb..569922232eb8 100644
+--- a/drivers/media/dvb-frontends/au8522_decoder.c
++++ b/drivers/media/dvb-frontends/au8522_decoder.c
+@@ -220,7 +220,7 @@ static void setup_vbi(struct au8522_state *state, int aud_input)
+ 
+ }
+ 
+-static void setup_decoder_defaults(struct au8522_state *state, u8 input_mode)
++static void setup_decoder_defaults(struct au8522_state *state, bool is_svideo)
+ {
+ 	int i;
+ 	int filter_coef_type;
+@@ -237,13 +237,10 @@ static void setup_decoder_defaults(struct au8522_state *state, u8 input_mode)
+ 	/* Other decoder registers */
+ 	au8522_writereg(state, AU8522_TVDEC_INT_MASK_REG010H, 0x00);
+ 
+-	if (input_mode == 0x23) {
+-		/* S-Video input mapping */
++	if (is_svideo)
+ 		au8522_writereg(state, AU8522_VIDEO_MODE_REG011H, 0x04);
+-	} else {
+-		/* All other modes (CVBS/ATVRF etc.) */
++	else
+ 		au8522_writereg(state, AU8522_VIDEO_MODE_REG011H, 0x00);
+-	}
+ 
+ 	au8522_writereg(state, AU8522_TVDEC_PGA_REG012H,
+ 			AU8522_TVDEC_PGA_REG012H_CVBS);
+@@ -275,8 +272,7 @@ static void setup_decoder_defaults(struct au8522_state *state, u8 input_mode)
+ 			AU8522_TVDEC_COMB_HDIF_THR2_REG06AH_CVBS);
+ 	au8522_writereg(state, AU8522_TVDEC_COMB_HDIF_THR3_REG06BH,
+ 			AU8522_TVDEC_COMB_HDIF_THR3_REG06BH_CVBS);
+-	if (input_mode == AU8522_INPUT_CONTROL_REG081H_SVIDEO_CH13 ||
+-	    input_mode == AU8522_INPUT_CONTROL_REG081H_SVIDEO_CH24) {
++	if (is_svideo) {
+ 		au8522_writereg(state, AU8522_TVDEC_COMB_DCDIF_THR1_REG06CH,
+ 				AU8522_TVDEC_COMB_DCDIF_THR1_REG06CH_SVIDEO);
+ 		au8522_writereg(state, AU8522_TVDEC_COMB_DCDIF_THR2_REG06DH,
+@@ -317,8 +313,7 @@ static void setup_decoder_defaults(struct au8522_state *state, u8 input_mode)
+ 
+ 	setup_vbi(state, 0);
+ 
+-	if (input_mode == AU8522_INPUT_CONTROL_REG081H_SVIDEO_CH13 ||
+-	    input_mode == AU8522_INPUT_CONTROL_REG081H_SVIDEO_CH24) {
++	if (is_svideo) {
+ 		/* Despite what the table says, for the HVR-950q we still need
+ 		   to be in CVBS mode for the S-Video input (reason unknown). */
+ 		/* filter_coef_type = 3; */
+@@ -360,7 +355,7 @@ static void au8522_setup_cvbs_mode(struct au8522_state *state, u8 input_mode)
+ 
+ 	au8522_writereg(state, AU8522_INPUT_CONTROL_REG081H, input_mode);
+ 
+-	setup_decoder_defaults(state, input_mode);
++	setup_decoder_defaults(state, false);
+ 
+ 	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
+ 			AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
+@@ -386,7 +381,7 @@ static void au8522_setup_cvbs_tuner_mode(struct au8522_state *state,
+ 	/* Set input mode to CVBS on channel 4 with SIF audio input enabled */
+ 	au8522_writereg(state, AU8522_INPUT_CONTROL_REG081H, input_mode);
+ 
+-	setup_decoder_defaults(state, input_mode);
++	setup_decoder_defaults(state, false);
+ 
+ 	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
+ 			AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
+@@ -407,7 +402,7 @@ static void au8522_setup_svideo_mode(struct au8522_state *state,
+ 	/* Enable clamping control */
+ 	au8522_writereg(state, AU8522_CLAMPING_CONTROL_REG083H, 0x00);
+ 
+-	setup_decoder_defaults(state, input_mode);
++	setup_decoder_defaults(state, true);
+ 
+ 	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
+ 			AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
+-- 
+1.9.3
 
