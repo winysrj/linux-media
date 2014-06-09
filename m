@@ -1,28 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f195.google.com ([209.85.216.195]:52923 "EHLO
-	mail-qc0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752671AbaFLGr1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 02:47:27 -0400
-Received: by mail-qc0-f195.google.com with SMTP id o8so387022qcw.2
-        for <linux-media@vger.kernel.org>; Wed, 11 Jun 2014 23:47:26 -0700 (PDT)
+Received: from aserp1040.oracle.com ([141.146.126.69]:48563 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752169AbaFIPW0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jun 2014 11:22:26 -0400
+Date: Mon, 9 Jun 2014 18:21:08 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [patch] [media] cx18: remove duplicate CX18_ALSA_DBGFLG_WARN define
+Message-ID: <20140609152108.GP9600@mwanda>
 MIME-Version: 1.0
-Date: Thu, 12 Jun 2014 14:47:23 +0800
-Message-ID: <CAGwTRRU4NMwZ5GGY7rMrAhOEcaMbFo+MJ=LcF_UO=bjh_5Gogw@mail.gmail.com>
-Subject: color box, display box, corrugated box, color card, blister card,
- color sleeve, hang tag, label
-From: Jinghao Printing - CHINA <collapsetyu@gmail.com>
-To: undisclosed-recipients:;
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, this is David Wu from Shanghai, China.
-We are a printing company, we can print color box, corrugated box,
-label, hang tag etc.
-Please let me know if you need these.
+The CX18_ALSA_DBGFLG_WARN is cut and pasted twice and we can delete the
+second instance.
 
-I will send you the website then.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Best regards,
-David Wu
+diff --git a/drivers/media/pci/cx18/cx18-alsa.h b/drivers/media/pci/cx18/cx18-alsa.h
+index 447da37..2718be2 100644
+--- a/drivers/media/pci/cx18/cx18-alsa.h
++++ b/drivers/media/pci/cx18/cx18-alsa.h
+@@ -49,7 +49,6 @@ static inline void snd_cx18_unlock(struct snd_cx18_card *cxsc)
+ }
+ 
+ #define CX18_ALSA_DBGFLG_WARN  (1 << 0)
+-#define CX18_ALSA_DBGFLG_WARN  (1 << 0)
+ #define CX18_ALSA_DBGFLG_INFO  (1 << 1)
+ 
+ #define CX18_ALSA_DEBUG(x, type, fmt, args...) \
