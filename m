@@ -1,39 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58097 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753911AbaFIVtK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jun 2014 17:49:10 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] au0828: add missing tuner Kconfig dependency
-Date: Mon,  9 Jun 2014 18:49:01 -0300
-Message-Id: <1402350541-20396-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-ob0-f172.google.com ([209.85.214.172]:37697 "EHLO
+	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933461AbaFIPz5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jun 2014 11:55:57 -0400
+From: Pranith Kumar <bobby.prani@gmail.com>
+To: trivial@kernel.org, Alexey Klimov <klimov.linux@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org (open list:MR800 AVERMEDIA U...),
+	linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH 5/6] update reference, kerneltrap.org no longer works
+Date: Mon,  9 Jun 2014 11:55:25 -0400
+Message-Id: <1402329327-6766-5-git-send-email-bobby.prani@gmail.com>
+In-Reply-To: <1402329327-6766-1-git-send-email-bobby.prani@gmail.com>
+References: <1402329327-6766-1-git-send-email-bobby.prani@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The analog part of au0828 is missing the tuner Kconfig dependency.
-That makes the device to not work while in analog mode.
+kerneltrap.org no longer works, update to a working reference
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Pranith Kumar <bobby.prani@gmail.com>
 ---
- drivers/media/usb/au0828/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/radio/radio-mr800.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/au0828/Kconfig b/drivers/media/usb/au0828/Kconfig
-index 953a37c613b1..fe48403eadd0 100644
---- a/drivers/media/usb/au0828/Kconfig
-+++ b/drivers/media/usb/au0828/Kconfig
-@@ -20,6 +20,7 @@ config VIDEO_AU0828_V4L2
- 	bool "Auvitek AU0828 v4l2 analog video support"
- 	depends on VIDEO_AU0828 && VIDEO_V4L2
- 	select DVB_AU8522_V4L if MEDIA_SUBDRV_AUTOSELECT
-+	select VIDEO_TUNER
- 	default y
- 	---help---
- 	  This is a video4linux driver for Auvitek's USB device.
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index a360227..f476071 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -32,7 +32,7 @@
+  * achievements (specifications given).
+  * Also, Faidon Liambotis <paravoid@debian.org> wrote nice driver for this radio
+  * in 2007. He allowed to use his driver to improve current mr800 radio driver.
+- * http://kerneltrap.org/mailarchive/linux-usb-devel/2007/10/11/342492
++ * http://www.spinics.net/lists/linux-usb-devel/msg10109.html
+  *
+  * Version 0.01:	First working version.
+  * 			It's required to blacklist AverMedia USB Radio
 -- 
-1.9.3
+1.9.1
 
