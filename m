@@ -1,225 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:20623 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751953AbaFDLWI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jun 2014 07:22:08 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 1/1] v4l: subdev: Unify argument validation across IOCTLs
-Date: Wed,  4 Jun 2014 14:22:03 +0300
-Message-Id: <1401880923-31660-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:45133 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755576AbaFIJSs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jun 2014 05:18:48 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N6W00JK59V6QT70@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 09 Jun 2014 10:18:42 +0100 (BST)
+Message-id: <53957BED.5070707@samsung.com>
+Date: Mon, 09 Jun 2014 11:18:37 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Nikhil Devshatwar <niksdevice@gmail.com>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de
+Subject: Re: V4L2 endpoint parser doesn't support empty ports
+References: <CAO-sSBvUGw56E15j9h_T+mBkF6Veu4GwFqTzPmA_qZAei3r90g@mail.gmail.com>
+In-reply-to: <CAO-sSBvUGw56E15j9h_T+mBkF6Veu4GwFqTzPmA_qZAei3r90g@mail.gmail.com>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Separate validation of different argument types. There's no reason to do
-this separately for every IOCTL.
+Hi Nikhil,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
-since v1:
-- Declare rval in the beginning of subdev_do_ioctl().
+On 09/06/14 10:22, Nikhil Devshatwar wrote:
+> Hi everyboady,
+> 
+> When using V4l2 endpoint framework for parsing device tree nodes,
+> 
+> I don't find any API which can allow me to iterate over all the
+> endpoints in a specific port
+> 
+> Currectly we have v4l2_of_get_next_endpoint which can be used to
+> iterate over all the endpoints
+> under that device_node
+> 
+> Typically, SoCs have multiple video ports in a video IP
+> We want a way to iterate over only the endpoints which belong to a certain port
+> It isn't possible with this
+> 
+> Also, Ideally, all the port definitions are in DTSI file whereas the
+> endpoints would be defined
+> in a DTS file overriding the port nodes
+> 
+> So it is quite possible that we have some ports where nothing is connected,
+> v4l2_of_get_next_endpoint fails as soon as it gets the empty endpoint
+> 
+> 2 questions
+> => Should we modify the v4l2_of_get_next_endpoint function to ignore
+> empty endpoints?
 
- drivers/media/v4l2-core/v4l2-subdev.c | 120 +++++++++++++++++++++-------------
- 1 file changed, 74 insertions(+), 46 deletions(-)
+Laurent addressed this issue with patch: https://patchwork.linuxtv.org/patch/22927
+I'm not sure what kernel version you are using. Such changes are already
+in Linus' tree, however git history might not be straightforward due
+to merge conflict resolutions. See commit 3c83e61 
+"Merge branch 'v4l_for_linus' of git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media"
 
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 058c1a6..d096ef0 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -126,6 +126,55 @@ static int subdev_close(struct file *file)
- 	return 0;
- }
- 
-+static int check_format(struct v4l2_subdev *sd,
-+			struct v4l2_subdev_format *format)
-+{
-+	if (format->which != V4L2_SUBDEV_FORMAT_TRY &&
-+	    format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+		return -EINVAL;
-+
-+	if (format->pad >= sd->entity.num_pads)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int check_crop(struct v4l2_subdev *sd, struct v4l2_subdev_crop *crop)
-+{
-+	if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
-+	    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+		return -EINVAL;
-+
-+	if (crop->pad >= sd->entity.num_pads)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int check_selection(struct v4l2_subdev *sd,
-+			   struct v4l2_subdev_selection *sel)
-+{
-+	if (sel->which != V4L2_SUBDEV_FORMAT_TRY &&
-+	    sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+		return -EINVAL;
-+
-+	if (sel->pad >= sd->entity.num_pads)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int check_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
-+{
-+	if (edid->pad >= sd->entity.num_pads)
-+		return -EINVAL;
-+
-+	if (edid->blocks && edid->edid == NULL)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- {
- 	struct video_device *vdev = video_devdata(file);
-@@ -134,6 +183,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
- 	struct v4l2_subdev_fh *subdev_fh = to_v4l2_subdev_fh(vfh);
- #endif
-+	int rval;
- 
- 	switch (cmd) {
- 	case VIDIOC_QUERYCTRL:
-@@ -203,12 +253,9 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_SUBDEV_G_FMT: {
- 		struct v4l2_subdev_format *format = arg;
- 
--		if (format->which != V4L2_SUBDEV_FORMAT_TRY &&
--		    format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
--			return -EINVAL;
--
--		if (format->pad >= sd->entity.num_pads)
--			return -EINVAL;
-+		rval = check_format(sd, format);
-+		if (rval)
-+			return rval;
- 
- 		return v4l2_subdev_call(sd, pad, get_fmt, subdev_fh, format);
- 	}
-@@ -216,12 +263,9 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_SUBDEV_S_FMT: {
- 		struct v4l2_subdev_format *format = arg;
- 
--		if (format->which != V4L2_SUBDEV_FORMAT_TRY &&
--		    format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
--			return -EINVAL;
--
--		if (format->pad >= sd->entity.num_pads)
--			return -EINVAL;
-+		rval = check_format(sd, format);
-+		if (rval)
-+			return rval;
- 
- 		return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh, format);
- 	}
-@@ -229,14 +273,10 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_SUBDEV_G_CROP: {
- 		struct v4l2_subdev_crop *crop = arg;
- 		struct v4l2_subdev_selection sel;
--		int rval;
--
--		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
--		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
--			return -EINVAL;
- 
--		if (crop->pad >= sd->entity.num_pads)
--			return -EINVAL;
-+		rval = check_crop(sd, crop);
-+		if (rval)
-+			return rval;
- 
- 		rval = v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
- 		if (rval != -ENOIOCTLCMD)
-@@ -258,14 +298,10 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_SUBDEV_S_CROP: {
- 		struct v4l2_subdev_crop *crop = arg;
- 		struct v4l2_subdev_selection sel;
--		int rval;
--
--		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
--		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
--			return -EINVAL;
- 
--		if (crop->pad >= sd->entity.num_pads)
--			return -EINVAL;
-+		rval = check_crop(sd, crop);
-+		if (rval)
-+			return rval;
- 
- 		rval = v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
- 		if (rval != -ENOIOCTLCMD)
-@@ -336,12 +372,9 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_SUBDEV_G_SELECTION: {
- 		struct v4l2_subdev_selection *sel = arg;
- 
--		if (sel->which != V4L2_SUBDEV_FORMAT_TRY &&
--		    sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
--			return -EINVAL;
--
--		if (sel->pad >= sd->entity.num_pads)
--			return -EINVAL;
-+		rval = check_selection(sd, sel);
-+		if (rval)
-+			return rval;
- 
- 		return v4l2_subdev_call(
- 			sd, pad, get_selection, subdev_fh, sel);
-@@ -350,12 +383,9 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_SUBDEV_S_SELECTION: {
- 		struct v4l2_subdev_selection *sel = arg;
- 
--		if (sel->which != V4L2_SUBDEV_FORMAT_TRY &&
--		    sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
--			return -EINVAL;
--
--		if (sel->pad >= sd->entity.num_pads)
--			return -EINVAL;
-+		rval = check_selection(sd, sel);
-+		if (rval)
-+			return rval;
- 
- 		return v4l2_subdev_call(
- 			sd, pad, set_selection, subdev_fh, sel);
-@@ -364,10 +394,9 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_G_EDID: {
- 		struct v4l2_subdev_edid *edid = arg;
- 
--		if (edid->pad >= sd->entity.num_pads)
--			return -EINVAL;
--		if (edid->blocks && edid->edid == NULL)
--			return -EINVAL;
-+		rval = check_edid(sd, edid);
-+		if (rval)
-+			return rval;
- 
- 		return v4l2_subdev_call(sd, pad, get_edid, edid);
- 	}
-@@ -375,10 +404,9 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_S_EDID: {
- 		struct v4l2_subdev_edid *edid = arg;
- 
--		if (edid->pad >= sd->entity.num_pads)
--			return -EINVAL;
--		if (edid->blocks && edid->edid == NULL)
--			return -EINVAL;
-+		rval = check_edid(sd, edid);
-+		if (rval)
-+			return rval;
- 
- 		return v4l2_subdev_call(sd, pad, set_edid, edid);
- 	}
--- 
-1.8.3.2
+> => Does it make sense to create a new function which can iterate over
+> a specific port?
 
+The 'port' node can have only 'endpoint' subnodes, so once you get hold
+of the port node it should be as easy as iterating over its children ?
+
+--
+Regards,
+Sylwester
