@@ -1,49 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41752 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751905AbaFBPJn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jun 2014 11:09:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 0/3] v4l-utils: media-ctl: Add DV timings support
-Date: Mon,  2 Jun 2014 17:10:01 +0200
-Message-Id: <1401721804-30133-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from s3.sipsolutions.net ([5.9.151.49]:51349 "EHLO sipsolutions.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752475AbaFIJ7Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Jun 2014 05:59:24 -0400
+Message-ID: <1402307959.17674.3.camel@jlt4.sipsolutions.net>
+Subject: Re: non-working UVC device 058f:5608
+From: Johannes Berg <johannes@sipsolutions.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+	Mathias Nyman <mathias.nyman@intel.com>
+Date: Mon, 09 Jun 2014 11:59:19 +0200
+In-Reply-To: <17531102.o7hyOUhSH7@avalon>
+References: <1402177903.8442.9.camel@jlt4.sipsolutions.net>
+	 <1404177.cR0nfxENUh@avalon> <1402299186.4148.3.camel@jlt4.sipsolutions.net>
+	 <17531102.o7hyOUhSH7@avalon>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Mon, 2014-06-09 at 11:25 +0200, Laurent Pinchart wrote:
 
-This patch set adds support for the subdev DV timings ioctls to the media-ctl
-utility, allowing DV timings to be configured in media controller pipelines.
+> > Indeed, that works! Interestingly, it works neither on a USB3 port
+> > directly, nor on a USB2 hub behind the USB3 port.
+> 
+> I would thus be tempted to classify this as an XHCI controller issue. linux-
+> usb should be the right list to get help. I've CC'ed Mathias Nyman, the XHCI 
+> maintainer.
 
-The first patch adds wrappers around the DV timings ioctls to libv4l2subdev in
-a pretty straightforward way. The second patch refactors the media-ctl flag
-printing code to avoid later duplication. The third patch is the interesting
-part, adding DV timings support to the media-ctl utility.
+Yeah, I tend to agree.
 
-With this series applied DV timings are added to the output when printing
-formats with the existing -p argument. A new --set-dv argument allows
-configuring DV timings on a pad, by querying the current timings and applying
-them unmodified. This is enough to configure pipelines that include HDMI
-receivers with the timings detected at the HDMI input. Support for fully
-manual timings configuration from the command line can be added later when
-needed.
+> Johannes, could you enable USB debugging in the linus/master kernel and 
+> provide a kernel log ?
 
-Laurent Pinchart (3):
-  media-ctl: libv4l2subdev: Add DV timings support
-  media-ctl: Move flags printing code to a new print_flags function
-  media-ctl: Add DV timings support
+Sure. Note that linus/next is having even more issues with this device,
+to the point where I couldn't even get the lsusb I pasted into the first
+email. I used 3.13 (because I had it installed on the system in
+question) to get that.
 
- utils/media-ctl/libv4l2subdev.c |  72 +++++++++++++
- utils/media-ctl/media-ctl.c     | 222 ++++++++++++++++++++++++++++++++++++----
- utils/media-ctl/options.c       |   9 +-
- utils/media-ctl/options.h       |   3 +-
- utils/media-ctl/v4l2subdev.h    |  53 ++++++++++
- 5 files changed, 338 insertions(+), 21 deletions(-)
+It was also throwing an autosuspend warning:
+http://mid.gmane.org/1402177014.8442.1.camel@jlt4.sipsolutions.net
 
--- 
-Regards,
+I'll try to get some logs (wasn't there tracing added to xhci too? will
+check)
 
-Laurent Pinchart
+johannes
 
