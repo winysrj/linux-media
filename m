@@ -1,113 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from serv03.imset.org ([176.31.106.97]:43515 "EHLO serv03.imset.org"
+Received: from s3.sipsolutions.net ([5.9.151.49]:51437 "EHLO sipsolutions.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757619AbaFSIZx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jun 2014 04:25:53 -0400
-Message-ID: <53A29E8F.7050608@dest-unreach.be>
-Date: Thu, 19 Jun 2014 10:25:51 +0200
-From: Niels Laukens <niels@dest-unreach.be>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-CC: James Hogan <james.hogan@imgtec.com>,
-	=?ISO-8859-1?Q?David_H=E4rdem?= =?ISO-8859-1?Q?an?=
-	<david@hardeman.nu>,
-	=?ISO-8859-1?Q?Antti_Sepp=E4l?= =?ISO-8859-1?Q?=E4?=
-	<a.seppala@gmail.com>
-Subject: [PATCH 2/2] drivers/media/rc/ir-nec-decode : add toggle feature (2/2)
-References: <53A29E5A.9030304@dest-unreach.be>
-In-Reply-To: <53A29E5A.9030304@dest-unreach.be>
-Content-Type: text/plain; charset=ISO-8859-1
+	id S1754043AbaFIK3d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Jun 2014 06:29:33 -0400
+Message-ID: <1402309768.17674.6.camel@jlt4.sipsolutions.net>
+Subject: Re: non-working UVC device 058f:5608
+From: Johannes Berg <johannes@sipsolutions.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+	Mathias Nyman <mathias.nyman@intel.com>
+Date: Mon, 09 Jun 2014 12:29:28 +0200
+In-Reply-To: <1402309657.17674.5.camel@jlt4.sipsolutions.net>
+References: <1402177903.8442.9.camel@jlt4.sipsolutions.net>
+	 <1404177.cR0nfxENUh@avalon> <1402299186.4148.3.camel@jlt4.sipsolutions.net>
+	 <17531102.o7hyOUhSH7@avalon>
+	 <1402307959.17674.3.camel@jlt4.sipsolutions.net>
+	 <1402309657.17674.5.camel@jlt4.sipsolutions.net>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From a8fca4a8c37cb35ea4527a708a6894745f81c661 Mon Sep 17 00:00:00 2001
-From: Niels Laukens <niels.laukens@vrt.be>
-Date: Thu, 19 Jun 2014 10:06:00 +0200
-Subject: [PATCH 2/2] drivers/media/rc/ir-nec-decode : add toggle feature (2/2)
+On Mon, 2014-06-09 at 12:27 +0200, Johannes Berg wrote:
 
-Fixes indentation. Kept as separate patch to keep patch 1/2 more to the point.
+> Here we go - log + tracing:
+> log: http://p.sipsolutions.net/d5926c43d531e3af.txt
+> trace: http://johannes.sipsolutions.net/files/xhci.trace.dat.xz
 
-Signed-off-by: Niels Laukens <niels@dest-unreach.be>
----
- drivers/media/rc/ir-nec-decoder.c | 61 ++++++++++++++++++++-------------------
- 1 file changed, 32 insertions(+), 29 deletions(-)
+Oh, and this was the kernel diff to commit
+963649d735c8b6eb0f97e82c54f02426ff3f1f45:
 
-diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
-index 1f2482a..ff8b5d7 100644
---- a/drivers/media/rc/ir-nec-decoder.c
-+++ b/drivers/media/rc/ir-nec-decoder.c
-@@ -161,38 +161,41 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 			break;
+diff --git a/drivers/usb/host/xhci-dbg.c b/drivers/usb/host/xhci-dbg.c
+index eb009a4..00621cb 100644
+--- a/drivers/usb/host/xhci-dbg.c
++++ b/drivers/usb/host/xhci-dbg.c
+@@ -20,6 +20,8 @@
+  * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
  
- 		if (!data->nec_repeat) {
--		address     = bitrev8((data->bits >> 24) & 0xff);
--		not_address = bitrev8((data->bits >> 16) & 0xff);
--		command	    = bitrev8((data->bits >>  8) & 0xff);
--		not_command = bitrev8((data->bits >>  0) & 0xff);
--
--		if ((command ^ not_command) != 0xff) {
--			IR_dprintk(1, "NEC checksum error: received 0x%08x\n",
--				   data->bits);
--			send_32bits = true;
--		}
-+			address     = bitrev8((data->bits >> 24) & 0xff);
-+			not_address = bitrev8((data->bits >> 16) & 0xff);
-+			command	    = bitrev8((data->bits >>  8) & 0xff);
-+			not_command = bitrev8((data->bits >>  0) & 0xff);
++#define DEBUG
 +
-+			if ((command ^ not_command) != 0xff) {
-+				IR_dprintk(1, "NEC checksum error: received 0x%08x\n",
-+					   data->bits);
-+				send_32bits = true;
-+			}
+ #include "xhci.h"
  
--		if (send_32bits) {
--			/* NEC transport, but modified protocol, used by at
--			 * least Apple and TiVo remotes */
--			scancode = data->bits;
--			IR_dprintk(1, "NEC (modified) scancode 0x%08x\n", scancode);
--		} else if ((address ^ not_address) != 0xff) {
--			/* Extended NEC */
--			scancode = address     << 16 |
--				   not_address <<  8 |
--				   command;
--			IR_dprintk(1, "NEC (Ext) scancode 0x%06x\n", scancode);
--		} else {
--			/* Normal NEC */
--			scancode = address << 8 | command;
--			IR_dprintk(1, "NEC scancode 0x%04x\n", scancode);
--		}
-+			if (send_32bits) {
-+				/* NEC transport, but modified protocol, used
-+				 * by at least Apple and TiVo remotes */
-+				scancode = data->bits;
-+				IR_dprintk(1, "NEC (modified) scancode 0x%08x\n",
-+					   scancode);
-+			} else if ((address ^ not_address) != 0xff) {
-+				/* Extended NEC */
-+				scancode = address     << 16 |
-+					   not_address <<  8 |
-+					   command;
-+				IR_dprintk(1, "NEC (Ext) scancode 0x%06x\n",
-+					   scancode);
-+			} else {
-+				/* Normal NEC */
-+				scancode = address << 8 | command;
-+				IR_dprintk(1, "NEC scancode 0x%04x\n",
-+					   scancode);
-+			}
+ #define XHCI_INIT_VALUE 0x0
+diff --git a/drivers/usb/host/xhci-hub.c b/drivers/usb/host/xhci-hub.c
+index 6231ce6..70b09cd 100644
+--- a/drivers/usb/host/xhci-hub.c
++++ b/drivers/usb/host/xhci-hub.c
+@@ -20,6 +20,8 @@
+  * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
  
--		if (data->is_nec_x)
--			data->necx_repeat = true;
-+			if (data->is_nec_x)
-+				data->necx_repeat = true;
++#define DEBUG
++
  
--		rc_keydown(dev, scancode, !dev->last_toggle);
-+			rc_keydown(dev, scancode, !dev->last_toggle);
- 		}
+ #include <linux/slab.h>
+ #include <asm/unaligned.h>
+@@ -287,7 +289,7 @@ static int xhci_stop_device(struct xhci_hcd *xhci, int slot_id, int suspend)
+ 		if (virt_dev->eps[i].ring && virt_dev->eps[i].ring->dequeue) {
+ 			struct xhci_command *command;
+ 			command = xhci_alloc_command(xhci, false, false,
+-						     GFP_NOIO);
++						     GFP_ATOMIC);
+ 			if (!command) {
+ 				spin_unlock_irqrestore(&xhci->lock, flags);
+ 				xhci_free_command(xhci, cmd);
+diff --git a/drivers/usb/host/xhci-mem.c b/drivers/usb/host/xhci-mem.c
+index 8056d90..2ceed51 100644
+--- a/drivers/usb/host/xhci-mem.c
++++ b/drivers/usb/host/xhci-mem.c
+@@ -20,6 +20,8 @@
+  * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
  
- 		data->state = STATE_INACTIVE;
--- 1.8.5.2 (Apple Git-48) 
++#define DEBUG
++
+ #include <linux/usb.h>
+ #include <linux/pci.h>
+ #include <linux/slab.h>
+diff --git a/drivers/usb/host/xhci-mvebu.c b/drivers/usb/host/xhci-mvebu.c
+index 1eefc98..4b289d6 100644
+--- a/drivers/usb/host/xhci-mvebu.c
++++ b/drivers/usb/host/xhci-mvebu.c
+@@ -7,6 +7,8 @@
+  * version 2 as published by the Free Software Foundation.
+  */
+ 
++#define DEBUG
++
+ #include <linux/io.h>
+ #include <linux/mbus.h>
+ #include <linux/of.h>
+diff --git a/drivers/usb/host/xhci-pci.c b/drivers/usb/host/xhci-pci.c
+index e20520f..aae5dc9 100644
+--- a/drivers/usb/host/xhci-pci.c
++++ b/drivers/usb/host/xhci-pci.c
+@@ -20,6 +20,8 @@
+  * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++#define DEBUG
++
+ #include <linux/pci.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
+diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
+index 29d8adb..2149b0c 100644
+--- a/drivers/usb/host/xhci-plat.c
++++ b/drivers/usb/host/xhci-plat.c
+@@ -11,6 +11,8 @@
+  * version 2 as published by the Free Software Foundation.
+  */
+ 
++#define DEBUG
++
+ #include <linux/clk.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/module.h>
+diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
+index d67ff71..a7eda28 100644
+--- a/drivers/usb/host/xhci-ring.c
++++ b/drivers/usb/host/xhci-ring.c
+@@ -64,6 +64,8 @@
+  *   endpoint rings; it generates events on the event ring for these.
+  */
+ 
++#define DEBUG
++
+ #include <linux/scatterlist.h>
+ #include <linux/slab.h>
+ #include "xhci.h"
+diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
+index 2b8d9a2..fd350b7 100644
+--- a/drivers/usb/host/xhci.c
++++ b/drivers/usb/host/xhci.c
+@@ -20,6 +20,8 @@
+  * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++#define DEBUG
++
+ #include <linux/pci.h>
+ #include <linux/irq.h>
+ #include <linux/log2.h>
+
+
+johannes
 
