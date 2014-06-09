@@ -1,68 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56931 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750851AbaFYJxl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jun 2014 05:53:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Pawel Osciak <posciak@chromium.org>
-Cc: Vincent Palatin <vpalatin@chromium.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	linux-kernel@vger.kernel.org, Olof Johansson <olofj@chromium.org>,
-	Zach Kuznia <zork@chromium.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH v2] V4L: uvcvideo: Add support for relative pan/tilt controls
-Date: Wed, 25 Jun 2014 11:54:30 +0200
-Message-ID: <8119752.rPOQIYa4Af@avalon>
-In-Reply-To: <CACHYQ-rSk6etrX8RXF4w7aA_LJ9nzGtfJMOjhBOg49BZ4gaWgw@mail.gmail.com>
-References: <539FDC4F.4030000@redhat.com> <1403016348-10129-1-git-send-email-vpalatin@chromium.org> <CACHYQ-rSk6etrX8RXF4w7aA_LJ9nzGtfJMOjhBOg49BZ4gaWgw@mail.gmail.com>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:55327 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751388AbaFIURi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jun 2014 16:17:38 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1400787733.16407.21.camel@x220>
+References: <1400787733.16407.21.camel@x220>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 9 Jun 2014 21:17:07 +0100
+Message-ID: <CA+V-a8swG6V+LgDYDxY7u-sqQ_vCqvTxdaQi=bH2=s=O5YTcQA@mail.gmail.com>
+Subject: Re: [PATCH] [media] dm644x_ccdc: remove check for CONFIG_DM644X_VIDEO_PORT_ENABLE
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pawel,
+Hi Paul,
 
-On Wednesday 25 June 2014 11:46:24 Pawel Osciak wrote:
-> On Tue, Jun 17, 2014 at 11:45 PM, Vincent Palatin wrote:
-> > Map V4L2_CID_TILT_RELATIVE and V4L2_CID_PAN_RELATIVE to the standard UVC
-> > CT_PANTILT_RELATIVE_CONTROL terminal control request.
-> > 
-> > Tested by plugging a Logitech ConferenceCam C3000e USB camera
-> > and controlling pan/tilt from the userspace using the VIDIOC_S_CTRL ioctl.
-> > Verified that it can pan and tilt at the same time in both directions.
-> > 
-> > Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
-> > 
-> > Change-Id: I7b70b228e5c0126683f5f0be34ffd2807f5783dc
-> > ---
-> > 
-> > Changes
-> > v2: fix control request name in description.
-> 
-> The patch looks good, but I have a more general comment for everyone to
-> consider. This doesn't match the expected functionality of
-> controls V4L2_CID_PAN/TILT_RELATIVE. This is basically an on/off switch for
-> pan/tilt, which once enabled will keep going until turned off (or I'm
-> guessing until the maximum pan/tilt is reached), while the controls are
-> supposed to expose an ability to turn the camera by a specified amount.
-> Here the amount will also be ignored...
+Thanks for the patch.
 
-I agree with you here, and this mismatch between the V4L and UVC controls is 
-the reason why I haven't implemented relative pan/tilt support.
+On Thu, May 22, 2014 at 8:42 PM, Paul Bolle <pebolle@tiscali.nl> wrote:
+> A check for CONFIG_DM644X_VIDEO_PORT_ENABLE was added in v2.6.32. The
+> related Kconfig symbol was never added so this check has always
+> evaluated to false. Remove that check.
+>
+Applied.
 
-> Given that this is a standard UVC control, perhaps we need new V4L2
-> controls for it, as I'm assuming we can't change the meaning of existing
-> controls?
+Thanks,
+--Prabhakar Lad
 
-We could extend the meaning of the controls to cover the UVC behaviour in a 
-device-specific fashion, but that would be confusing for applications, so new 
-controls might be a better idea.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+> ---
+> Untested.
+>
+> Related, trivial, cleanup: make ccdc_enable_vport() a oneliner.
+>
+>  drivers/media/platform/davinci/dm644x_ccdc.c | 5 -----
+>  1 file changed, 5 deletions(-)
+>
+> diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
+> index 30fa08405d61..07e98df3d867 100644
+> --- a/drivers/media/platform/davinci/dm644x_ccdc.c
+> +++ b/drivers/media/platform/davinci/dm644x_ccdc.c
+> @@ -581,13 +581,8 @@ void ccdc_config_raw(void)
+>              config_params->alaw.enable)
+>                 syn_mode |= CCDC_DATA_PACK_ENABLE;
+>
+> -#ifdef CONFIG_DM644X_VIDEO_PORT_ENABLE
+> -       /* enable video port */
+> -       val = CCDC_ENABLE_VIDEO_PORT;
+> -#else
+>         /* disable video port */
+>         val = CCDC_DISABLE_VIDEO_PORT;
+> -#endif
+>
+>         if (config_params->data_sz == CCDC_DATA_8BITS)
+>                 val |= (CCDC_DATA_10BITS & CCDC_FMTCFG_VPIN_MASK)
+> --
+> 1.9.0
+>
