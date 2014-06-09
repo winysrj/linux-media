@@ -1,69 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:32954 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751962AbaFCJgH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 05:36:07 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 3/5] [media] mt9v032: do not clear reserved bits in read mode register
-Date: Tue,  3 Jun 2014 11:35:53 +0200
-Message-Id: <1401788155-3690-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1401788155-3690-1-git-send-email-p.zabel@pengutronix.de>
-References: <1401788155-3690-1-git-send-email-p.zabel@pengutronix.de>
+Received: from smtp1.bendigoit.com.au ([203.16.224.4]:56025 "EHLO
+	smtp1.bendigoit.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753102AbaFIAnL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jun 2014 20:43:11 -0400
+From: James Harper <james.harper@ejbdigital.com.au>
+To: james.harper@ejbdigital.com.au
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] Fix regression in some dib0700 based devices.
+Date: Mon,  9 Jun 2014 10:24:20 +1000
+Message-Id: <1402273460-10509-1-git-send-email-james.harper@ejbdigital.com.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The read mode register bits 8 and 9 are set and marked as reserved.
-Don't clear them.
+Fix regression in some dib0700 based devices.
+Set size_of_priv, and don't call dvb_detach unnecessarily.
+This resolves the oops(s) for my "Leadtek Winfast DTV Dongle (STK7700P based)"
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: James Harper <james.harper@ejbdigital.com.au>
 ---
-Changes since v1:
- - Add MT9V032_READ_MODE_RESERVED #define
----
- drivers/media/i2c/mt9v032.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ drivers/media/usb/dvb-usb/dib0700_devices.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-index 83ae8ca6d..d969663 100644
---- a/drivers/media/i2c/mt9v032.c
-+++ b/drivers/media/i2c/mt9v032.c
-@@ -87,6 +87,7 @@
- #define		MT9V032_READ_MODE_COLUMN_FLIP		(1 << 5)
- #define		MT9V032_READ_MODE_DARK_COLUMNS		(1 << 6)
- #define		MT9V032_READ_MODE_DARK_ROWS		(1 << 7)
-+#define		MT9V032_READ_MODE_RESERVED		0x0300
- #define MT9V032_PIXEL_OPERATION_MODE			0x0f
- #define		MT9V034_PIXEL_OPERATION_MODE_HDR	(1 << 0)
- #define		MT9V034_PIXEL_OPERATION_MODE_COLOR	(1 << 1)
-@@ -415,6 +416,7 @@ static int mt9v032_s_stream(struct v4l2_subdev *subdev, int enable)
- 	struct i2c_client *client = v4l2_get_subdevdata(subdev);
- 	struct mt9v032 *mt9v032 = to_mt9v032(subdev);
- 	struct v4l2_rect *crop = &mt9v032->crop;
-+	unsigned int read_mode;
- 	unsigned int hbin;
- 	unsigned int vbin;
- 	int ret;
-@@ -425,9 +427,13 @@ static int mt9v032_s_stream(struct v4l2_subdev *subdev, int enable)
- 	/* Configure the window size and row/column bin */
- 	hbin = fls(mt9v032->hratio) - 1;
- 	vbin = fls(mt9v032->vratio) - 1;
--	ret = mt9v032_write(client, MT9V032_READ_MODE,
--			    hbin << MT9V032_READ_MODE_COLUMN_BIN_SHIFT |
--			    vbin << MT9V032_READ_MODE_ROW_BIN_SHIFT);
-+	read_mode = mt9v032_read(client, MT9V032_READ_MODE);
-+	if (read_mode < 0)
-+		return read_mode;
-+	read_mode &= MT9V032_READ_MODE_RESERVED;
-+	read_mode |= hbin << MT9V032_READ_MODE_COLUMN_BIN_SHIFT |
-+		     vbin << MT9V032_READ_MODE_ROW_BIN_SHIFT;
-+	ret = mt9v032_write(client, MT9V032_READ_MODE, read_mode);
- 	if (ret < 0)
- 		return ret;
+diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
+index d067bb7..25355fa 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
+@@ -721,7 +721,6 @@ static int stk7700p_frontend_attach(struct dvb_usb_adapter *adap)
+ 		adap->fe_adap[0].fe = state->dib7000p_ops.init(&adap->dev->i2c_adap, 18, &stk7700p_dib7000p_config);
+ 		st->is_dib7000pc = 1;
+ 	} else {
+-		dvb_detach(&state->dib7000p_ops);
+ 		memset(&state->dib7000p_ops, 0, sizeof(state->dib7000p_ops));
+ 		adap->fe_adap[0].fe = dvb_attach(dib7000m_attach, &adap->dev->i2c_adap, 18, &stk7700p_dib7000m_config);
+ 	}
+@@ -3788,6 +3787,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
+ 
+ 				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
+ 			}},
++				.size_of_priv     = sizeof(struct dib0700_adapter_state),
+ 			},
+ 		},
  
 -- 
-2.0.0.rc2
+2.0.0
 
