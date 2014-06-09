@@ -1,91 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from c.ponzo.net ([69.12.221.20]:57622 "EHLO c.ponzo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755904AbaFPVKO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 17:10:14 -0400
-Message-ID: <539F5D35.70201@ponzo.net>
-Date: Mon, 16 Jun 2014 14:10:13 -0700
-From: Scott Doty <scott@ponzo.net>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCHv2 for v3.16] hdpvr: fix two audio bugs
-References: <539EDE3D.7070704@xs4all.nl>
-In-Reply-To: <539EDE3D.7070704@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:45627 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751611AbaFINwK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jun 2014 09:52:10 -0400
+Received: from uscpsbgex3.samsung.com
+ (u124.gpu85.samsung.co.kr [203.254.195.124]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N6W00HMIMIWB540@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 09 Jun 2014 09:52:08 -0400 (EDT)
+From: Thiago Santos <ts.santos@sisa.samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Thiago Santos <ts.santos@sisa.samsung.com>
+Subject: [PATCH/RFC v2 0/2] libv4l2: fix deadlock when DQBUF in block mode
+Date: Mon, 09 Jun 2014 10:51:54 -0300
+Message-id: <1402321916-22111-1-git-send-email-ts.santos@sisa.samsung.com>
+MIME-version: 1.0
+Content-type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/16/2014 05:08 AM, Hans Verkuil wrote:
-> Scott,
->
-> Here is the correct version :-) Can you verify that it works for you?
->
-> Regards,
->
-> 	Hans
->
-> When the audio encoding is changed the driver calls hdpvr_set_audio
-> with the current opt->audio_input value. However, that should have
-> been opt->audio_input + 1. So changing the audio encoding inadvertently
-> changes the input as well. This bug has always been there.
->
-> The second bug was introduced in kernel 3.10 and that broke the
-> default_audio_input module option handling: the audio encoding was
-> never switched to AC3 if default_audio_input was set to 2 (SPDIF input).
->
-> In addition, since starting with 3.10 the audio encoding is always set
-> at the start the first bug now always happens when the driver is loaded.
-> In the past this bug would only surface if the user would change the
-> audio encoding after the driver was loaded.
->
-> Also fixes a small trivial typo (bufffer -> buffer).
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Reported-by: Scott Doty <scott@corp.sonic.net>
-> Cc: stable@vger.kernel.org      # for v3.10 and up
-> ---
->  drivers/media/usb/hdpvr/hdpvr-video.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
-> index 0500c417..6bce01a 100644
-> --- a/drivers/media/usb/hdpvr/hdpvr-video.c
-> +++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-> @@ -82,7 +82,7 @@ static void hdpvr_read_bulk_callback(struct urb *urb)
->  }
->  
->  /*=========================================================================*/
-> -/* bufffer bits */
-> +/* buffer bits */
->  
->  /* function expects dev->io_mutex to be hold by caller */
->  int hdpvr_cancel_queue(struct hdpvr_device *dev)
-> @@ -926,7 +926,7 @@ static int hdpvr_s_ctrl(struct v4l2_ctrl *ctrl)
->  	case V4L2_CID_MPEG_AUDIO_ENCODING:
->  		if (dev->flags & HDPVR_FLAG_AC3_CAP) {
->  			opt->audio_codec = ctrl->val;
-> -			return hdpvr_set_audio(dev, opt->audio_input,
-> +			return hdpvr_set_audio(dev, opt->audio_input + 1,
->  					      opt->audio_codec);
->  		}
->  		return 0;
-> @@ -1198,7 +1198,7 @@ int hdpvr_register_videodev(struct hdpvr_device *dev, struct device *parent,
->  	v4l2_ctrl_new_std_menu(hdl, &hdpvr_ctrl_ops,
->  		V4L2_CID_MPEG_AUDIO_ENCODING,
->  		ac3 ? V4L2_MPEG_AUDIO_ENCODING_AC3 : V4L2_MPEG_AUDIO_ENCODING_AAC,
-> -		0x7, V4L2_MPEG_AUDIO_ENCODING_AAC);
-> +		0x7, ac3 ? dev->options.audio_codec : V4L2_MPEG_AUDIO_ENCODING_AAC);
->  	v4l2_ctrl_new_std_menu(hdl, &hdpvr_ctrl_ops,
->  		V4L2_CID_MPEG_VIDEO_ENCODING,
->  		V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC, 0x3,
+Hello,
 
+thanks for the reviews and comments. I updated the example as suggested by
+Mauro and reimplemented the deadlock fix as suggested by Hans. Here is the
+second version of those patches.
 
-This did the trick!  Now my 5.1 audio is back -- and as a bonus, the
-device now resets properly after a channel change.
+Thiago Santos (2):
+  v4l2grab: Add threaded producer/consumer option
+  libv4l2: release the lock before doing a DQBUF
 
-Thank you very much!  Woo hoo! :)
+ contrib/test/Makefile.am   |   2 +-
+ contrib/test/v4l2grab.c    | 261 +++++++++++++++++++++++++++++++++++++--------
+ lib/libv4l2/libv4l2-priv.h |   1 +
+ lib/libv4l2/libv4l2.c      |  13 ++-
+ 4 files changed, 232 insertions(+), 45 deletions(-)
 
- -Scott
+-- 
+2.0.0
 
