@@ -1,63 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41857 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751887AbaFFNwo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jun 2014 09:52:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v3 1/2] v4l: vb2: Don't return POLLERR during transient buffer underruns
-Date: Fri,  6 Jun 2014 15:53:09 +0200
-Message-Id: <1402062790-17690-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1402062790-17690-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1402062790-17690-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:52929 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933776AbaFIPwW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jun 2014 11:52:22 -0400
+From: Pranith Kumar <bobby.prani@gmail.com>
+To: trivial@rustcorp.com.au, Alexey Klimov <klimov.linux@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org (open list:MR800 AVERMEDIA U...),
+	linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH 5/6] update reference, kerneltrap.org no longer works
+Date: Mon,  9 Jun 2014 11:51:27 -0400
+Message-Id: <1402329088-4802-5-git-send-email-bobby.prani@gmail.com>
+In-Reply-To: <1402329088-4802-1-git-send-email-bobby.prani@gmail.com>
+References: <1402329088-4802-1-git-send-email-bobby.prani@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2 specification states that
+kerneltrap.org no longer works, update to a working reference
 
-"When the application did not call VIDIOC_QBUF or VIDIOC_STREAMON yet
-the poll() function succeeds, but sets the POLLERR flag in the revents
-field."
-
-The vb2_poll() function sets POLLERR when the queued buffers list is
-empty, regardless of whether this is caused by the stream not being
-active yet, or by a transient buffer underrun.
-
-Bring the implementation in line with the specification by returning
-POLLERR if no buffer has been queued only when the queue is not
-streaming. Buffer underruns during streaming are not treated specially
-anymore and just result in poll() blocking until the next event.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pawel Osciak <pawel@osciak.com>
+Signed-off-by: Pranith Kumar <bobby.prani@gmail.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/media/radio/radio-mr800.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 349e659..a05f355 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2533,9 +2533,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	}
- 
- 	/*
--	 * There is nothing to wait for if no buffers have already been queued.
-+	 * There is nothing to wait for if no buffer has been queued and the
-+	 * queue isn't streaming.
- 	 */
--	if (list_empty(&q->queued_list))
-+	if (list_empty(&q->queued_list) && !vb2_is_streaming(q))
- 		return res | POLLERR;
- 
- 	if (list_empty(&q->done_list))
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index a360227..f476071 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -32,7 +32,7 @@
+  * achievements (specifications given).
+  * Also, Faidon Liambotis <paravoid@debian.org> wrote nice driver for this radio
+  * in 2007. He allowed to use his driver to improve current mr800 radio driver.
+- * http://kerneltrap.org/mailarchive/linux-usb-devel/2007/10/11/342492
++ * http://www.spinics.net/lists/linux-usb-devel/msg10109.html
+  *
+  * Version 0.01:	First working version.
+  * 			It's required to blacklist AverMedia USB Radio
 -- 
-1.8.5.5
+1.9.1
 
