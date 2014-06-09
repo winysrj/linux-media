@@ -1,20 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from akmo.kz ([212.154.234.163]:50426 "EHLO akmo.kz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966182AbaFTSkz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jun 2014 14:40:55 -0400
-Message-Id: <201406201838.s5KDEIFR028706@akmo.kz>
-Content-Type: text/plain; charset=US-ASCII
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: Santander Finance We offer all purpose loan at 3% interest rate
-To: Recipients <asisten4@sumutprov.go.id>
-From: "Santander Finance " <asisten4@sumutprov.go.id>
-Date: Fri, 20 Jun 2014 01:46:19 -0700
-Reply-To: santafinance@aol.com
+Received: from bombadil.infradead.org ([198.137.202.9]:58097 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753911AbaFIVtK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jun 2014 17:49:10 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] au0828: add missing tuner Kconfig dependency
+Date: Mon,  9 Jun 2014 18:49:01 -0300
+Message-Id: <1402350541-20396-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We offer all purpose loan at 3% interest rate. Contact Us for more details by Email:santanderfinancegroup@gmail.com
+The analog part of au0828 is missing the tuner Kconfig dependency.
+That makes the device to not work while in analog mode.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/au0828/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/usb/au0828/Kconfig b/drivers/media/usb/au0828/Kconfig
+index 953a37c613b1..fe48403eadd0 100644
+--- a/drivers/media/usb/au0828/Kconfig
++++ b/drivers/media/usb/au0828/Kconfig
+@@ -20,6 +20,7 @@ config VIDEO_AU0828_V4L2
+ 	bool "Auvitek AU0828 v4l2 analog video support"
+ 	depends on VIDEO_AU0828 && VIDEO_V4L2
+ 	select DVB_AU8522_V4L if MEDIA_SUBDRV_AUTOSELECT
++	select VIDEO_TUNER
+ 	default y
+ 	---help---
+ 	  This is a video4linux driver for Auvitek's USB device.
+-- 
+1.9.3
+
