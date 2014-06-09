@@ -1,44 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay003.isp.belgacom.be ([195.238.6.53]:7421 "EHLO
-	mailrelay003.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751460AbaF1K67 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Jun 2014 06:58:59 -0400
-From: Fabian Frederick <fabf@skynet.be>
-To: linux-kernel@vger.kernel.org
-Cc: Fabian Frederick <fabf@skynet.be>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 1/1] drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c: remove unnecessary null test before usb_free_urb
-Date: Sat, 28 Jun 2014 12:57:39 +0200
-Message-Id: <1403953059-32444-1-git-send-email-fabf@skynet.be>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60455 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754774AbaFIJYc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jun 2014 05:24:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Johannes Berg <johannes@sipsolutions.net>
+Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+	Mathias Nyman <mathias.nyman@intel.com>
+Subject: Re: non-working UVC device 058f:5608
+Date: Mon, 09 Jun 2014 11:25:01 +0200
+Message-ID: <17531102.o7hyOUhSH7@avalon>
+In-Reply-To: <1402299186.4148.3.camel@jlt4.sipsolutions.net>
+References: <1402177903.8442.9.camel@jlt4.sipsolutions.net> <1404177.cR0nfxENUh@avalon> <1402299186.4148.3.camel@jlt4.sipsolutions.net>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix checkpatch warning:
-WARNING: usb_free_urb(NULL) is safe this check is probably not required
+Hi Johannes,
 
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
----
- drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+On Monday 09 June 2014 09:33:06 Johannes Berg wrote:
+> Hi Laurent,
+> 
+> Thanks for the quick reply!
 
-diff --git a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-index f8a60c1..f166ffc 100644
---- a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-+++ b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-@@ -791,8 +791,7 @@ static void ttusb_free_iso_urbs(struct ttusb *ttusb)
- 	int i;
- 
- 	for (i = 0; i < ISO_BUF_COUNT; i++)
--		if (ttusb->iso_urb[i])
--			usb_free_urb(ttusb->iso_urb[i]);
-+		usb_free_urb(ttusb->iso_urb[i]);
- 
- 	pci_free_consistent(NULL,
- 			    ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF *
+You're welcome.
+
+> > > and then the kernel message repeats forever, while I can't even exit
+> > > uvccapture unless I kill it hard, at which point I get
+> > > 
+> > > xhci_hcd 0000:00:14.0: Signal while waiting for configure endpoint
+> > > command
+> > > usb 1-3.4.4.3: Not enough bandwidth for altsetting 0
+> > > 
+> > > from the kernel.
+> > 
+> > This looks like low-level USB issues, CC'ing the linux-usb mailing list.
+> 
+> Ok.
+> 
+> > > Any thoughts? Just to rule out hardware defects I connected it to my
+> > > windows 7 work machine and it works fine without even installing a
+> > > driver.
+> > 
+> > Could you try connecting it to an EHCI controller instead of XHCI on a
+> > Linux machine ?
+> 
+> Indeed, that works! Interestingly, it works neither on a USB3 port
+> directly, nor on a USB2 hub behind the USB3 port.
+
+I would thus be tempted to classify this as an XHCI controller issue. linux-
+usb should be the right list to get help. I've CC'ed Mathias Nyman, the XHCI 
+maintainer.
+
+Johannes, could you enable USB debugging in the linus/master kernel and 
+provide a kernel log ?
+
 -- 
-1.8.4.5
+Regards,
+
+Laurent Pinchart
 
