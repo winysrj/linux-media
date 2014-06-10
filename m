@@ -1,50 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:43058 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753054AbaFDPDu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jun 2014 11:03:50 -0400
-Message-ID: <1401894225.3447.17.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v2 1/5] [media] mt9v032: reset is self clearing
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Date: Wed, 04 Jun 2014 17:03:45 +0200
-In-Reply-To: <2378157.AyxZjdgtXs@avalon>
-References: <1401788155-3690-1-git-send-email-p.zabel@pengutronix.de>
-	 <1401788155-3690-2-git-send-email-p.zabel@pengutronix.de>
-	 <2378157.AyxZjdgtXs@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp2-g21.free.fr ([212.27.42.2]:45755 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752055AbaFJK0M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jun 2014 06:26:12 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v13 06/10] drm: drm_display_mode: add signal polarity flags
+Date: Tue, 10 Jun 2014 12:25:47 +0200
+Message-Id: <1402395951-7988-6-git-send-email-denis@eukrea.com>
+In-Reply-To: <1402395951-7988-1-git-send-email-denis@eukrea.com>
+References: <1402395951-7988-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+We need a way to pass signal polarity informations
+  between DRM panels, and the display drivers.
 
-Am Mittwoch, den 04.06.2014, 16:49 +0200 schrieb Laurent Pinchart:
-> Hi Philipp,
-> 
-> Thank you for the patch.
-> 
-> On Tuesday 03 June 2014 11:35:51 Philipp Zabel wrote:
-> > According to the publicly available MT9V032 data sheet, the reset bits are
-> > self clearing and the reset register always reads 0. The reset will be
-> > asserted for 15 SYSCLK cycles. Instead of writing 0 to the register, wait
-> > using ndelay.
-> 
-> On the other hand, revision D of the datasheet states on page 71 ("Appendix A 
-> - Serial Configurations, Figure 46: Stand-Alone Topology") that the typical 
-> configuration of the sensor includes issuing a soft reset with 
-> 
-> 4. Issue a soft reset (set R0x0C[0] = 1 followed by R0x0C[0] = 0.
-> 
-> I wonder whether it wouldn't be safer to keep the register write. Do you see 
-> any adverse effect of keeping it ?
+To do that, a pol_flags field was added to drm_display_mode.
 
-No, writing 0 doesn't have any effect. Since the datasheet suggests
-doing this, let's just drop this patch and keep the code as is.
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+---
+ChangeLog v12->v13:
+- Added Docbook documentation for pol_flags the struct field.
+- Removed the _PRESERVE	defines: it was used by patches
+  against the imx_drm driver. Now theses patches have been
+  adapted not to require that defines.
+ChangeLog v11->v12:
+- Rebased: This patch now applies against drm_modes.h
+- Rebased: It now uses the new DRM_MODE_FLAG_POL_DE flags defines names
 
-regards
-Philipp
+ChangeLog v10->v11:
+- Since the imx-drm won't be able to retrive its regulators
+  from the device tree when using display-timings nodes,
+  and that I was told that the drm simple-panel driver 
+  already supported that, I then, instead, added what was
+  lacking to make the eukrea displays work with the
+  drm-simple-panel driver.
+
+  That required a way to get back the display polarity
+  informations from the imx-drm driver without affecting
+  userspace.
+---
+ Documentation/DocBook/drm.tmpl |   30 ++++++++++++++++++++++++++++++
+ include/drm/drm_modes.h        |    6 ++++++
+ 2 files changed, 36 insertions(+)
+
+diff --git a/Documentation/DocBook/drm.tmpl b/Documentation/DocBook/drm.tmpl
+index c526d81..29c0e5a 100644
+--- a/Documentation/DocBook/drm.tmpl
++++ b/Documentation/DocBook/drm.tmpl
+@@ -2292,6 +2292,36 @@ void intel_crt_init(struct drm_device *dev)
+             and <structfield>height_mm</structfield> fields are only used internally
+             during EDID parsing and should not be set when creating modes manually.
+           </para>
++          <para>
++            The <structfield>pol_flags</structfield> value represents the display
++            signal polarity flags, it can be a combination of
++            <variablelist>
++              <varlistentry>
++                <term>DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE</term>
++                 <listitem><para>
++                     drive pixel data on falling edge, sample data on rising edge.
++                 </para></listitem>
++              </varlistentry>
++              <varlistentry>
++                <term>DRM_MODE_FLAG_POL_PIXDATA_POSEDGE</term>
++                <listitem><para>
++                  Drive pixel data on rising edge, sample data on falling edge.
++                </para></listitem>
++              </varlistentry>
++              <varlistentry>
++                <term>DRM_MODE_FLAG_POL_DE_LOW</term>
++                <listitem><para>
++                  data-enable pulse is active low
++                </para></listitem>
++              </varlistentry>
++              <varlistentry>
++                <term>DRM_MODE_FLAG_POL_DE_HIGH</term>
++                <listitem><para>
++                  data-enable pulse is active low
++                </para></listitem>
++              </varlistentry>
++            </variablelist>
++          </para>
+         </listitem>
+         <listitem>
+           <synopsis>int (*mode_valid)(struct drm_connector *connector,
+diff --git a/include/drm/drm_modes.h b/include/drm/drm_modes.h
+index 91d0582..c5cbe31 100644
+--- a/include/drm/drm_modes.h
++++ b/include/drm/drm_modes.h
+@@ -93,6 +93,11 @@ enum drm_mode_status {
+ 
+ #define DRM_MODE_FLAG_3D_MAX	DRM_MODE_FLAG_3D_SIDE_BY_SIDE_HALF
+ 
++#define DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE	BIT(1)
++#define DRM_MODE_FLAG_POL_PIXDATA_POSEDGE	BIT(2)
++#define DRM_MODE_FLAG_POL_DE_LOW		BIT(3)
++#define DRM_MODE_FLAG_POL_DE_HIGH		BIT(4)
++
+ struct drm_display_mode {
+ 	/* Header */
+ 	struct list_head head;
+@@ -144,6 +149,7 @@ struct drm_display_mode {
+ 	int vrefresh;		/* in Hz */
+ 	int hsync;		/* in kHz */
+ 	enum hdmi_picture_aspect picture_aspect_ratio;
++	unsigned int pol_flags;
+ };
+ 
+ /* mode specified on the command line */
+-- 
+1.7.9.5
 
