@@ -1,144 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59653 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755761AbaFADjZ (ORCPT
+Received: from mail-we0-f171.google.com ([74.125.82.171]:36670 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750740AbaFJP5j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 May 2014 23:39:25 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 06/18] v4l: vsp1: Cleanup video nodes at removal time
-Date: Sun,  1 Jun 2014 05:39:25 +0200
-Message-Id: <1401593977-30660-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Tue, 10 Jun 2014 11:57:39 -0400
+Received: by mail-we0-f171.google.com with SMTP id q58so4046455wes.2
+        for <linux-media@vger.kernel.org>; Tue, 10 Jun 2014 08:57:37 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1401374448-30411-3-git-send-email-sakari.ailus@linux.intel.com>
+References: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com> <1401374448-30411-3-git-send-email-sakari.ailus@linux.intel.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 10 Jun 2014 16:57:07 +0100
+Message-ID: <CA+V-a8vUrB3nUxfiZgjkjpQZh-r8z-mavPesJ4-fPhC=AaExKw@mail.gmail.com>
+Subject: Re: [PATCH v3 2/3] smiapp: Add driver-specific test pattern menu item definitions
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Video nodes created and initialized in the RPF and WPF init code paths
-are never unregistered, and the related resources (videobuf alloc
-context and media entity) never released.
+Hi Sakari,
 
-Fix this by storing a pointer to the vsp1_video object in vsp1_entity
-and calling vsp1_video_cleanup() from vsp1_entity_destroy(). This also
-allows simplifying the init error code paths.
+On Thu, May 29, 2014 at 3:40 PM, Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+> Add numeric definitions for menu items used in the smiapp driver's test
+> pattern menu.
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  include/uapi/linux/smiapp.h | 29 +++++++++++++++++++++++++++++
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_entity.c |  3 +++
- drivers/media/platform/vsp1/vsp1_entity.h |  3 +++
- drivers/media/platform/vsp1/vsp1_rpf.c    | 12 ++++++------
- drivers/media/platform/vsp1/vsp1_wpf.c    | 12 ++++++------
- 4 files changed, 18 insertions(+), 12 deletions(-)
+Don't you need to add an entry in Kbuild file for this ?
 
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index 4416783..ceac0d7 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -20,6 +20,7 @@
- 
- #include "vsp1.h"
- #include "vsp1_entity.h"
-+#include "vsp1_video.h"
- 
- /* -----------------------------------------------------------------------------
-  * V4L2 Subdevice Operations
-@@ -185,6 +186,8 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
- 
- void vsp1_entity_destroy(struct vsp1_entity *entity)
- {
-+	if (entity->video)
-+		vsp1_video_cleanup(entity->video);
- 	if (entity->subdev.ctrl_handler)
- 		v4l2_ctrl_handler_free(entity->subdev.ctrl_handler);
- 	media_entity_cleanup(&entity->subdev.entity);
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index 7afbd8a..f0257f6 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -18,6 +18,7 @@
- #include <media/v4l2-subdev.h>
- 
- struct vsp1_device;
-+struct vsp1_video;
- 
- enum vsp1_entity_type {
- 	VSP1_ENTITY_BRU,
-@@ -68,6 +69,8 @@ struct vsp1_entity {
- 
- 	struct v4l2_subdev subdev;
- 	struct v4l2_mbus_framefmt *formats;
-+
-+	struct vsp1_video *video;
- };
- 
- static inline struct vsp1_entity *to_vsp1_entity(struct v4l2_subdev *subdev)
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index c3d9864..9b3fc70 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -205,7 +205,9 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
- 
- 	ret = vsp1_video_init(video, &rpf->entity);
- 	if (ret < 0)
--		goto error_video;
-+		goto error;
-+
-+	rpf->entity.video = video;
- 
- 	/* Connect the video device to the RPF. */
- 	ret = media_entity_create_link(&rpf->video.video.entity, 0,
-@@ -214,13 +216,11 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
- 				       MEDIA_LNK_FL_ENABLED |
- 				       MEDIA_LNK_FL_IMMUTABLE);
- 	if (ret < 0)
--		goto error_link;
-+		goto error;
- 
- 	return rpf;
- 
--error_link:
--	vsp1_video_cleanup(video);
--error_video:
--	media_entity_cleanup(&rpf->entity.subdev.entity);
-+error:
-+	vsp1_entity_destroy(&rpf->entity);
- 	return ERR_PTR(ret);
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 1294340..36c4793 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -216,7 +216,9 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
- 
- 	ret = vsp1_video_init(video, &wpf->entity);
- 	if (ret < 0)
--		goto error_video;
-+		goto error;
-+
-+	wpf->entity.video = video;
- 
- 	/* Connect the video device to the WPF. All connections are immutable
- 	 * except for the WPF0 source link if a LIF is present.
-@@ -229,15 +231,13 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
- 				       RWPF_PAD_SOURCE,
- 				       &wpf->video.video.entity, 0, flags);
- 	if (ret < 0)
--		goto error_link;
-+		goto error;
- 
- 	wpf->entity.sink = &wpf->video.video.entity;
- 
- 	return wpf;
- 
--error_link:
--	vsp1_video_cleanup(video);
--error_video:
--	media_entity_cleanup(&wpf->entity.subdev.entity);
-+error:
-+	vsp1_entity_destroy(&wpf->entity);
- 	return ERR_PTR(ret);
- }
--- 
-1.8.5.5
+Regards,
+--Prabhakar Lad
 
+>  1 file changed, 29 insertions(+)
+>  create mode 100644 include/uapi/linux/smiapp.h
+>
+> diff --git a/include/uapi/linux/smiapp.h b/include/uapi/linux/smiapp.h
+> new file mode 100644
+> index 0000000..53938f4
+> --- /dev/null
+> +++ b/include/uapi/linux/smiapp.h
+> @@ -0,0 +1,29 @@
+> +/*
+> + * include/uapi/linux/smiapp.h
+> + *
+> + * Generic driver for SMIA/SMIA++ compliant camera modules
+> + *
+> + * Copyright (C) 2014 Intel Corporation
+> + * Contact: Sakari Ailus <sakari.ailus@iki.fi>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + */
+> +
+> +#ifndef __UAPI_LINUX_SMIAPP_H_
+> +#define __UAPI_LINUX_SMIAPP_H_
+> +
+> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_DISABLED                 0
+> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR             1
+> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS              2
+> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS_GREY         3
+> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_PN9                      4
+> +
+> +#endif /* __UAPI_LINUX_SMIAPP_H_ */
+> --
+> 1.8.3.2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
