@@ -1,133 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpfb1-g21.free.fr ([212.27.42.9]:47656 "EHLO
-	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755060AbaFPKMK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 06:12:10 -0400
-Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
-	by smtpfb1-g21.free.fr (Postfix) with ESMTP id 300BF2D8F3
-	for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 12:12:06 +0200 (CEST)
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	Denis Carikli <denis@eukrea.com>
-Subject: [PATCH v14 06/10] drm: drm_display_mode: add signal polarity flags
-Date: Mon, 16 Jun 2014 12:11:20 +0200
-Message-Id: <1402913484-25910-6-git-send-email-denis@eukrea.com>
-In-Reply-To: <1402913484-25910-1-git-send-email-denis@eukrea.com>
-References: <1402913484-25910-1-git-send-email-denis@eukrea.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2822 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754361AbaFJCnH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jun 2014 22:43:07 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5A2h369050966
+	for <linux-media@vger.kernel.org>; Tue, 10 Jun 2014 04:43:05 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 14B7F2A1FCB
+	for <linux-media@vger.kernel.org>; Tue, 10 Jun 2014 04:43:00 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140610024300.14B7F2A1FCB@tschai.lan>
+Date: Tue, 10 Jun 2014 04:43:00 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We need a way to pass signal polarity informations
-  between DRM panels, and the display drivers.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-To do that, a pol_flags field was added to drm_display_mode.
+Results of the daily build of media_tree:
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
----
-ChangeLog v13->v14:
-- Fixed DRM_MODE_FLAG_POL_DE_HIGH's description.
-ChangeLog v12->v13:
-- Added Docbook documentation for pol_flags the struct field.
-- Removed the _PRESERVE	defines: it was used by patches
-  against the imx_drm driver. Now theses patches have been
-  adapted not to require that defines.
-ChangeLog v11->v12:
-- Rebased: This patch now applies against drm_modes.h
-- Rebased: It now uses the new DRM_MODE_FLAG_POL_DE flags defines names
+date:		Tue Jun 10 04:00:19 CEST 2014
+git branch:	test
+git hash:	5ea878796f0a1d9649fe43a6a09df53d3915c0ef
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
-ChangeLog v10->v11:
-- Since the imx-drm won't be able to retrive its regulators
-  from the device tree when using display-timings nodes,
-  and that I was told that the drm simple-panel driver 
-  already supported that, I then, instead, added what was
-  lacking to make the eukrea displays work with the
-  drm-simple-panel driver.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
-  That required a way to get back the display polarity
-  informations from the imx-drm driver without affecting
-  userspace.
----
- Documentation/DocBook/drm.tmpl |   30 ++++++++++++++++++++++++++++++
- include/drm/drm_modes.h        |    6 ++++++
- 2 files changed, 36 insertions(+)
+Detailed results are available here:
 
-diff --git a/Documentation/DocBook/drm.tmpl b/Documentation/DocBook/drm.tmpl
-index 7df3134..22d435f 100644
---- a/Documentation/DocBook/drm.tmpl
-+++ b/Documentation/DocBook/drm.tmpl
-@@ -2292,6 +2292,36 @@ void intel_crt_init(struct drm_device *dev)
-             and <structfield>height_mm</structfield> fields are only used internally
-             during EDID parsing and should not be set when creating modes manually.
-           </para>
-+          <para>
-+            The <structfield>pol_flags</structfield> value represents the display
-+            signal polarity flags, it can be a combination of
-+            <variablelist>
-+              <varlistentry>
-+                <term>DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE</term>
-+                 <listitem><para>
-+                     drive pixel data on falling edge, sample data on rising edge.
-+                 </para></listitem>
-+              </varlistentry>
-+              <varlistentry>
-+                <term>DRM_MODE_FLAG_POL_PIXDATA_POSEDGE</term>
-+                <listitem><para>
-+                  Drive pixel data on rising edge, sample data on falling edge.
-+                </para></listitem>
-+              </varlistentry>
-+              <varlistentry>
-+                <term>DRM_MODE_FLAG_POL_DE_LOW</term>
-+                <listitem><para>
-+                  data-enable pulse is active low
-+                </para></listitem>
-+              </varlistentry>
-+              <varlistentry>
-+                <term>DRM_MODE_FLAG_POL_DE_HIGH</term>
-+                <listitem><para>
-+                  data-enable pulse is active high
-+                </para></listitem>
-+              </varlistentry>
-+            </variablelist>
-+          </para>
-         </listitem>
-         <listitem>
-           <synopsis>int (*mode_valid)(struct drm_connector *connector,
-diff --git a/include/drm/drm_modes.h b/include/drm/drm_modes.h
-index 91d0582..c5cbe31 100644
---- a/include/drm/drm_modes.h
-+++ b/include/drm/drm_modes.h
-@@ -93,6 +93,11 @@ enum drm_mode_status {
- 
- #define DRM_MODE_FLAG_3D_MAX	DRM_MODE_FLAG_3D_SIDE_BY_SIDE_HALF
- 
-+#define DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE	BIT(1)
-+#define DRM_MODE_FLAG_POL_PIXDATA_POSEDGE	BIT(2)
-+#define DRM_MODE_FLAG_POL_DE_LOW		BIT(3)
-+#define DRM_MODE_FLAG_POL_DE_HIGH		BIT(4)
-+
- struct drm_display_mode {
- 	/* Header */
- 	struct list_head head;
-@@ -144,6 +149,7 @@ struct drm_display_mode {
- 	int vrefresh;		/* in Hz */
- 	int hsync;		/* in kHz */
- 	enum hdmi_picture_aspect picture_aspect_ratio;
-+	unsigned int pol_flags;
- };
- 
- /* mode specified on the command line */
--- 
-1.7.9.5
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
