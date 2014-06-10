@@ -1,144 +1,300 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49550 "EHLO mail.kapsi.fi"
+Received: from smtp2-g21.free.fr ([212.27.42.2]:46106 "EHLO smtp2-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751161AbaFLV2B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 17:28:01 -0400
-Message-ID: <539A1B5A.60804@iki.fi>
-Date: Fri, 13 Jun 2014 00:27:54 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1752077AbaFJK0T (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jun 2014 06:26:19 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: =?UTF-8?q?=5BPATCH=20v13=2009/10=5D=20ARM=3A=20dts=3A=20mbimx51sd=3A=20Add=20display=20support=2E?=
+Date: Tue, 10 Jun 2014 12:25:50 +0200
+Message-Id: <1402395951-7988-9-git-send-email-denis@eukrea.com>
+In-Reply-To: <1402395951-7988-1-git-send-email-denis@eukrea.com>
+References: <1402395951-7988-1-git-send-email-denis@eukrea.com>
 MIME-Version: 1.0
-To: Jason.Dong@ite.com.tw, tephra@gmail.com
-CC: sebastian_ml@gmx.net, linux-media@vger.kernel.org
-Subject: Re: AF9033 / IT913X: Avermedia A835B(1835) only works sporadically
-References: <20140610125059.GA1930@wolfgang>	<97D30D57D08C2C49A26A3312F17290483B008B5E@TPEMAIL2.internal.ite.com.tw> <CAM187nBbeZJyG-4K+N4nicaYjcvrgXB5u10J7gHOp=xrbO9Bkg@mail.gmail.com> <97D30D57D08C2C49A26A3312F17290483B008D96@TPEMAIL2.internal.ite.com.tw>
-In-Reply-To: <97D30D57D08C2C49A26A3312F17290483B008D96@TPEMAIL2.internal.ite.com.tw>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka,
+The CMO-QVGA, DVI-SVGA and DVI-VGA are added.
 
-The reason is that Avermedia has programmed wrong tuner ID to device 
-eeprom. For one IT9135BX device I have it is set 0x38 (whilst Windows 
-driver programs 0x60), no idea how others. That same issues was for 
-AF9015 too, where I added USB ID based overrides for certain Avermedia 
-models. I think I will do same for AF9035 driver.
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+---
+ChangeLog v10->v13:
+- Rebased
+- Removed enable-active-high in reg_lcd_3v3: its GPIO
+  already has the GPIO_ACTIVE_HIGH flag.
+  Without this removal, the display was off at boot
+  and powering it off and on was necessary to get an
+  image on it after the boot.
+  
+ChangeLog v10->v11:
+- Now uses the drm-panel instead of the display-timings.
+  This is to get regulator support, which is lacking in
+  the imx-drm driver when using the display-timings.
 
-regards
-Antti
+ChangeLog v9->v10:
+- Rebased
+- Now enables the cmo-qvga regulator at boot.
 
+ChangeLog v8->v9:
+- Removed the Cc. They are now set in git-send-email directly.
+- updated pixelclk-active after the following patch:
+  "imx-drm: Match ipu_di_signal_cfg's clk_pol with its description."
 
-On 06/11/2014 11:11 AM, Jason.Dong@ite.com.tw wrote:
-> Dear David,
->
-> The RF performance of ITE9137 BX + IE9133 dongle is a little worse than single tuner.
-> As our test resolut, the RF performances should be -80db and -82db for dual tuners and single tuner.
-> There is an issue in hardware design if the reception capability is too worse.
->
-> We don’t need to change the firmware for dual tuners. I think there are some problems in af9033 driver of kernel v3.15.
->
-> BRs,
-> Jason
->
-> -----Original Message-----
-> From: David Shirley [mailto:tephra@gmail.com]
-> Sent: Wednesday, June 11, 2014 3:00 PM
-> To: Jason Dong (董志堅)
-> Cc: sebastian_ml@gmx.net; linux-media@vger.kernel.org
-> Subject: Re: AF9033 / IT913X: Avermedia A835B(1835) only works sporadically
->
-> Hey Jason,
->
-> Do we know if that RF problem exists in 3.14.5? Using the IT913X driver?
->
-> I have a Leadtek Winfast Dual Dongle (0413:6a05 - dual usb - ITE9137 BX + IE9133) which is being extremely painful (random signal locks, tzap reports ok signal strength for one tuner but poor for the other, random signal dropouts (ie working fine, then progressively getting more and more blips in visual/audio from stream)).
->
-> I dont think its signal strength related because 3x Leadtek Winfast Gold dongles (AF9013) all work (until they stop tuning and cold reboot is required)
->
-> I suspect something about the firmware is at fault, I have tried to talk to Antti - but he must be busy. I have tried three different dvb-usb-it9135-02.fw firmwares, and they don't seem to make a huge difference (newest doesn't create /dev/dvb bits)...
->
-> Does a BX (v2) 9137 require yet another firmware image?
->
-> If I use the AF9035 kernel driver it doesn't tune at all. But does detect the tuners...
->
-> Sorry to threadjack - but seeing your @ite.com.tw I thought I would ask while I can :)
->
-> Regards
-> David
->
-> On 11 June 2014 15:31,  <Jason.Dong@ite.com.tw> wrote:
->> Dear Sebastian,
->>
->> There is a RF performance issue in the af9033 driver of kernel 3.15. It is no problem in the it913x driver of kernel 3.14.
->> There were some initial sequences not correct after the it913x driver was integrated into af9033 driver.
->>
->> BRs,
->> Jason
->>
->> -----Original Message-----
->> From: linux-media-owner@vger.kernel.org
->> [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Sebastian
->> Kemper
->> Sent: Tuesday, June 10, 2014 8:51 PM
->> To: linux-media@vger.kernel.org
->> Subject: AF9033 / IT913X: Avermedia A835B(1835) only works
->> sporadically
->>
->> Hello list,
->>
->> I have an "Avermedia A835B(1835)" USB DVB-T stick (07ca:1835) which works only (very) sporadically. It's pure luck as far as I can see.
->> I can't reproduce how to get it working. There are no special steps that I can take to guarantee that it'll work once I plug it in.
->>
->> I'd rate my chances of having the device actually working between 5
->> and
->> 10 percent.
->>
->> In the log everything looks fine, apart from the messages at the bottom about the device not being able to get a lock on a channel.
->>
->> Reception here is really good, so there's no problem with signal strength. When loading the device in Windows 7 64 bit it always finds a lock.
->>
->> Has anybody any idea? Thanks for any suggestions!
->>
->> Jun 10 14:18:07 meiner kernel: usb 1-2: new high-speed USB device number 2 using xhci_hcd Jun 10 14:18:07 meiner kernel: WARNING: You are using an experimental version of the media stack.
->> Jun 10 14:18:07 meiner kernel:  As the driver is backported to an
->> older kernel, it doesn't offer Jun 10 14:18:07 meiner kernel:  enough quality for its usage in production.
->> Jun 10 14:18:07 meiner kernel:  Use it with care.
->> Jun 10 14:18:07 meiner kernel: Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
->> Jun 10 14:18:07 meiner kernel:
->> bfd0306462fdbc5e0a8c6999aef9dde0f9745399 [media] v4l: Document
->> timestamp buffer flag behaviour Jun 10 14:18:07 meiner kernel:
->> 309f4d62eda0e864c2d4eef536cc82e41931c3c5 [media] v4l: Copy timestamp
->> source flags to destination on m2m devices Jun 10 14:18:07 meiner kernel:  599b08929efe9b90e44b504454218a120bb062a0 [media] exynos-gsc, m2m-deinterlace, mx2_emmaprp: Copy v4l2_buffer data from src to dst Jun 10 14:18:07 meiner kernel:  experimental: a60b303c3e347297a25f0a203f0ff11a8efc818c experimental/ngene: Support DuoFlex C/C2/T/T2 (V3) Jun 10 14:18:07 meiner kernel:  v4l-dvb-saa716x: 052c468e33be00a3d4d9b93da3581ffa861bb288 saa716x: IO memory of upper PHI1 regions is mapped in saa716x_ff driver.
->> Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_af9035: prechip_version=83 chip_version=02 chip_type=9135 Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: found a 'Avermedia A835B(1835)' in cold state Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: downloading firmware from file 'dvb-usb-it9135-02.fw'
->> Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_af9035: firmware version=3.42.3.3 Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: found a 'Avermedia A835B(1835)' in warm state Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer Jun 10 14:18:07 meiner kernel: DVB: registering new adapter (Avermedia A835B(1835)) Jun 10 14:18:07 meiner kernel: i2c i2c-0: af9033: firmware version: LINK=0.0.0.0 OFDM=3.29.3.3 Jun 10 14:18:07 meiner kernel: usb 1-2: DVB: registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
->> Jun 10 14:18:07 meiner kernel: i2c i2c-0: tuner_it913x: ITE Tech IT913X successfully attached Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: 'Avermedia A835B(1835)' successfully initialized and connected Jun 10 14:18:07 meiner kernel: usbcore: registered new interface driver dvb_usb_af9035 Jun 10 14:18:28 meiner vdr: [1653] VDR version 2.0.4 started Jun 10 14:18:28 meiner vdr: [1653] switched to user 'vdr'
->> Jun 10 14:18:28 meiner vdr: [1653] codeset is 'UTF-8' - known Jun 10
->> 14:18:28 meiner vdr: [1653] loading plugin:
->> /usr/lib64/vdr/plugins/libvdr-softhddevice.so.2.0.0
->> Jun 10 14:18:28 meiner vdr: New default svdrp port 6419!
->> Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/setup.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/sources.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/diseqc.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/scr.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/channels.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/timers.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/commands.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/reccmds.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/svdrphosts.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/remote.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/keymacros.conf Jun 10 14:18:29 meiner vdr: [1653] DVB API version is 0x050A (VDR was built with 0x050A) Jun 10 14:18:29 meiner vdr: [1653] frontend 0/0 provides DVB-T with QPSK,QAM16,QAM64 ("Afatech AF9033 (DVB-T)") Jun 10 14:18:29 meiner vdr: [1653] found 1 DVB device Jun 10 14:18:29 meiner vdr: 
-[1653] initializing plugin: softhddevice (0.6.1rc1): Ein Software und GPU emulieres HD-Gerät Jun 10 14:18:29 meiner vdr: [1653] setting primary device to 2 Jun 10 14:18:29 meiner vdr: [1653] SVDRP listening on port 6419 Jun 10 14:18:29 meiner vdr: [1653] setting current skin to "lcars"
->> Jun 10 14:18:29 meiner vdr: [1653] loading
->> /etc/vdr/themes/lcars-default.theme
->> Jun 10 14:18:29 meiner vdr: [1653] starting plugin: softhddevice Jun 10 14:18:30 meiner vdr: [1653] switching to channel 2 Jun 10 14:18:30 meiner lircd-0.9.0[1219]: accepted new client on /var/run/lirc/lircd Jun 10 14:18:30 meiner lircd-0.9.0[1219]: zotac initializing '/dev/usb/hiddev0'
->> Jun 10 14:18:31 meiner kernel: nvidia 0000:02:00.0: irq 46 for
->> MSI/MSI-X Jun 10 14:18:31 meiner vdr: [1653] connect from 127.0.0.1,
->> port 59159 - accepted Jun 10 14:18:31 meiner vdr: [1653] closing SVDRP
->> connection Jun 10 14:18:31 meiner vdrwatchdog[1702]: Starting
->> vdrwatchdog Jun 10 14:18:39 meiner vdr: [1674] frontend 0/0 timed out
->> while tuning to channel 2, tp 818 Jun 10 14:19:43 meiner vdr: [1674]
->> frontend 0/0 timed out while tuning to channel 2, tp 818
->>
->> Kind regards,
->> Sebatian
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media"
->> in the body of a message to majordomo@vger.kernel.org More majordomo
->> info at  http://vger.kernel.org/majordomo-info.html
-> N�����r��y���b�X��ǧv�^�)޺{.n�+����{���bj)���w*jg��������ݢj/���z�ޖ��2�ޙ���&�)ߡ�a�����G���h��j:+v���w�٥
->
+ChangeLog v7->v8:
+- Rebased the patch: added the now required imx-drm node.
+- Adapted the svga clock-frequency value in order to still
+  be able to display an image after the following commit:
+  "imx-drm: ipu-v3: more inteligent DI clock selection"
 
+ChangeLog v6->v7:
+- Shrinked even more the Cc list.
+- Since the pingrp headers were removed, the references
+  to it where replaced by the actual pins.
+- Added the targets to arch/arm/boot/dts/Makefile
 
+ChangeLog v5->v6:
+- Reordered the Cc list.
+
+ChangeLog v3->v5:
+- Updated to new GPIO defines.
+- Updated to new licenses checkpatch requirements.
+- one whitespace cleanup.
+
+ChangeLog v2->v3:
+- Splitted out from the patch that added support for the cpuimx51/mbimxsd51 boards.
+- This patch now only adds display support.
+- Added some interested people in the Cc list, and removed some people that
+  might be annoyed by the receiving of that patch which is unrelated to their
+  subsystem.
+- rebased and reworked the dts displays addition.
+- Also rebased and reworked the fsl,pins usage.
+---
+ arch/arm/boot/dts/Makefile                         |    3 ++
+ .../imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts  |   40 ++++++++++++++++
+ .../imx51-eukrea-mbimxsd51-baseboard-dvi-svga.dts  |   28 +++++++++++
+ .../imx51-eukrea-mbimxsd51-baseboard-dvi-vga.dts   |   28 +++++++++++
+ .../boot/dts/imx51-eukrea-mbimxsd51-baseboard.dts  |   49 ++++++++++++++++++++
+ 5 files changed, 148 insertions(+)
+ create mode 100644 arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts
+ create mode 100644 arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-dvi-svga.dts
+ create mode 100644 arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-dvi-vga.dts
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 0f1e8be..f0ec7b7 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -177,6 +177,9 @@ dtb-$(CONFIG_ARCH_MXC) += \
+ 	imx51-babbage.dtb \
+ 	imx51-digi-connectcore-jsk.dtb \
+ 	imx51-eukrea-mbimxsd51-baseboard.dtb \
++	imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dtb \
++	imx51-eukrea-mbimxsd51-baseboard-dvi-svga.dtb \
++	imx51-eukrea-mbimxsd51-baseboard-dvi-vga.dtb \
+ 	imx53-ard.dtb \
+ 	imx53-m53evk.dtb \
+ 	imx53-mba53.dtb \
+diff --git a/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts
+new file mode 100644
+index 0000000..d273d09
+--- /dev/null
++++ b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts
+@@ -0,0 +1,40 @@
++/*
++ * Copyright 2013 Eukréa Electromatique <denis@eukrea.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "imx51-eukrea-mbimxsd51-baseboard.dts"
++
++/ {
++	model = "Eukrea MBIMXSD51 with the CMO-QVGA Display";
++	compatible = "eukrea,mbimxsd51-baseboard-cmo-qvga", "eukrea,mbimxsd51-baseboard", "eukrea,cpuimx51", "fsl,imx51";
++
++	panel: panel {
++		compatible = "eukrea,mbimxsd51-cmo-qvga", "simple-panel";
++		power-supply = <&reg_lcd_3v3>;
++	};
++
++	reg_lcd_3v3: lcd-en {
++		compatible = "regulator-fixed";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_reg_lcd_3v3>;
++		regulator-name = "lcd-3v3";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		gpio = <&gpio3 13 GPIO_ACTIVE_HIGH>;
++		regulator-boot-on;
++	};
++};
++
++&display {
++	status = "okay";
++	fsl,panel = <&panel>;
++};
+diff --git a/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-dvi-svga.dts b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-dvi-svga.dts
+new file mode 100644
+index 0000000..323ebf4
+--- /dev/null
++++ b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-dvi-svga.dts
+@@ -0,0 +1,28 @@
++/*
++ * Copyright 2013 Eukréa Electromatique <denis@eukrea.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "imx51-eukrea-mbimxsd51-baseboard.dts"
++
++/ {
++	model = "Eukrea MBIMXSD51 with the DVI-SVGA Display";
++	compatible = "eukrea,mbimxsd51-baseboard-dvi-svga", "eukrea,mbimxsd51-baseboard", "eukrea,cpuimx51", "fsl,imx51";
++
++	panel: panel {
++		compatible = "eukrea,mbimxsd51-dvi-svga", "simple-panel";
++	};
++};
++
++&display {
++	status = "okay";
++	fsl,panel = <&panel>;
++};
+diff --git a/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-dvi-vga.dts b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-dvi-vga.dts
+new file mode 100644
+index 0000000..f065500
+--- /dev/null
++++ b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-dvi-vga.dts
+@@ -0,0 +1,28 @@
++/*
++ * Copyright 2013 Eukréa Electromatique <denis@eukrea.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "imx51-eukrea-mbimxsd51-baseboard.dts"
++
++/ {
++	model = "Eukrea MBIMXSD51 with the DVI-VGA Display";
++	compatible = "eukrea,mbimxsd51-baseboard-dvi-vga", "eukrea,mbimxsd51-baseboard", "eukrea,cpuimx51", "fsl,imx51";
++
++	panel: panel {
++		compatible = "eukrea,mbimxsd51-dvi-vga", "simple-panel";
++	};
++};
++
++&display {
++	status = "okay";
++	fsl,panel = <&panel>;
++};
+diff --git a/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard.dts b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard.dts
+index 75e66c9..02ff24a 100644
+--- a/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard.dts
++++ b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard.dts
+@@ -32,6 +32,20 @@
+ 		};
+ 	};
+ 
++	display: display@di0 {
++		compatible = "fsl,imx-parallel-display";
++		interface-pix-fmt = "rgb666";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ipu_disp1>;
++		status = "disabled";
++
++		port {
++			display0_in: endpoint {
++				remote-endpoint = <&ipu_di0_disp0>;
++			};
++		};
++	};
++
+ 	gpio_keys {
+ 		compatible = "gpio-keys";
+ 		pinctrl-names = "default";
+@@ -222,6 +236,37 @@
+ 			>;
+ 		};
+ 
++		pinctrl_ipu_disp1: ipudisp1grp {
++			fsl,pins = <
++				MX51_PAD_DISP1_DAT0__DISP1_DAT0	  0x5
++				MX51_PAD_DISP1_DAT1__DISP1_DAT1	  0x5
++				MX51_PAD_DISP1_DAT2__DISP1_DAT2	  0x5
++				MX51_PAD_DISP1_DAT3__DISP1_DAT3	  0x5
++				MX51_PAD_DISP1_DAT4__DISP1_DAT4	  0x5
++				MX51_PAD_DISP1_DAT5__DISP1_DAT5	  0x5
++				MX51_PAD_DISP1_DAT6__DISP1_DAT6	  0x5
++				MX51_PAD_DISP1_DAT7__DISP1_DAT7	  0x5
++				MX51_PAD_DISP1_DAT8__DISP1_DAT8   0x5
++				MX51_PAD_DISP1_DAT9__DISP1_DAT9	  0x5
++				MX51_PAD_DISP1_DAT10__DISP1_DAT10 0x5
++				MX51_PAD_DISP1_DAT11__DISP1_DAT11 0x5
++				MX51_PAD_DISP1_DAT12__DISP1_DAT12 0x5
++				MX51_PAD_DISP1_DAT13__DISP1_DAT13 0x5
++				MX51_PAD_DISP1_DAT14__DISP1_DAT14 0x5
++				MX51_PAD_DISP1_DAT15__DISP1_DAT15 0x5
++				MX51_PAD_DISP1_DAT16__DISP1_DAT16 0x5
++				MX51_PAD_DISP1_DAT17__DISP1_DAT17 0x5
++				MX51_PAD_DISP1_DAT18__DISP1_DAT18 0x5
++				MX51_PAD_DISP1_DAT19__DISP1_DAT19 0x5
++				MX51_PAD_DISP1_DAT20__DISP1_DAT20 0x5
++				MX51_PAD_DISP1_DAT21__DISP1_DAT21 0x5
++				MX51_PAD_DISP1_DAT22__DISP1_DAT22 0x5
++				MX51_PAD_DISP1_DAT23__DISP1_DAT23 0x5
++				MX51_PAD_DI1_PIN2__DI1_PIN2       0x5
++				MX51_PAD_DI1_PIN3__DI1_PIN3       0x5
++			>;
++		};
++
+ 		pinctrl_reg_lcd_3v3: reg_lcd_3v3 {
+ 			fsl,pins = <
+ 				MX51_PAD_CSI1_D9__GPIO3_13 0x1f5
+@@ -253,6 +298,10 @@
+ 	};
+ };
+ 
++&ipu_di0_disp0 {
++	remote-endpoint = <&display0_in>;
++};
++
+ &ssi2 {
+ 	codec-handle = <&tlv320aic23>;
+ 	fsl,mode = "i2s-slave";
 -- 
-http://palosaari.fi/
+1.7.9.5
+
