@@ -1,205 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0228.hostedemail.com ([216.40.44.228]:50786 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754617AbaFWNm2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jun 2014 09:42:28 -0400
-From: Joe Perches <joe@perches.com>
-To: linux-kernel@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from smtp2-g21.free.fr ([212.27.42.2]:45791 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752068AbaFJK0M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jun 2014 06:26:12 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 07/22] media: Use pci_zalloc_consistent
-Date: Mon, 23 Jun 2014 06:41:35 -0700
-Message-Id: <a7fe4c3fb2422b3c2eaaebe4772c36469906a303.1403530604.git.joe@perches.com>
-In-Reply-To: <cover.1403530604.git.joe@perches.com>
-References: <cover.1403530604.git.joe@perches.com>
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v13 07/10] imx-drm: Use drm_display_mode timings flags.
+Date: Tue, 10 Jun 2014 12:25:48 +0200
+Message-Id: <1402395951-7988-7-git-send-email-denis@eukrea.com>
+In-Reply-To: <1402395951-7988-1-git-send-email-denis@eukrea.com>
+References: <1402395951-7988-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the now unnecessary memset too.
+The previous hardware behaviour was kept if the
+flags are not set.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Denis Carikli <denis@eukrea.com>
 ---
- drivers/media/common/saa7146/saa7146_core.c       | 15 ++++++---------
- drivers/media/common/saa7146/saa7146_fops.c       |  5 +++--
- drivers/media/pci/bt8xx/bt878.c                   | 16 ++++------------
- drivers/media/pci/ngene/ngene-core.c              |  7 +++----
- drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c | 11 +++--------
- drivers/media/usb/ttusb-dec/ttusb_dec.c           | 11 +++--------
- 6 files changed, 22 insertions(+), 43 deletions(-)
+ChangeLog v12->v13:
+- This patch doesn't need the DRM_MODE_FLAG_POL_*_PRESERVE flags anymore.
+- code cleanup to improve readability:
+  - ENABLE_POL_PRESERVE is now gone
+  - Less modifications in ipu_di_init_sync_panel
+  - more readable modifications in int ipu_crtc_mode_set
+ChangeLog v11->v12:
+- Rebased: It now uses the following new flags defines names:
+  CLK_POL, ENABLE_POL
+- The inversions in ipuv3-crtc.c are now fixed.
+- ipuv3-crtc.c was still using mode->private_flags
+  from the previous versions of this patchset, that's now fixed.
 
-diff --git a/drivers/media/common/saa7146/saa7146_core.c b/drivers/media/common/saa7146/saa7146_core.c
-index 34b0d0d..97afee6 100644
---- a/drivers/media/common/saa7146/saa7146_core.c
-+++ b/drivers/media/common/saa7146/saa7146_core.c
-@@ -421,23 +421,20 @@ static int saa7146_init_one(struct pci_dev *pci, const struct pci_device_id *ent
- 	err = -ENOMEM;
+ChangeLog v10->v11:
+- This patch was splitted-out and adapted from:
+  "Prepare imx-drm for extra display-timings retrival."
+- The display-timings dt specific part was removed.
+- The flags names were changed to use the DRM ones from:
+  "drm: drm_display_mode: add signal polarity flags"
+---
+ drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h |    4 ++--
+ drivers/staging/imx-drm/ipu-v3/ipu-di.c     |    2 ++
+ drivers/staging/imx-drm/ipuv3-crtc.c        |   18 ++++++++++++++++--
+ 3 files changed, 20 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h b/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
+index 015e3bf..94b0d8e 100644
+--- a/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
++++ b/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
+@@ -43,10 +43,10 @@ struct ipu_di_signal_cfg {
+ 	unsigned clksel_en:1;
+ 	unsigned clkidle_en:1;
+ 	unsigned data_pol:1;	/* true = inverted */
+-	unsigned clk_pol:1;
+-	unsigned enable_pol:1;
+ 	unsigned Hsync_pol:1;	/* true = active high */
+ 	unsigned Vsync_pol:1;
++	u8 clk_pol;
++	u8 enable_pol;
  
- 	/* get memory for various stuff */
--	dev->d_rps0.cpu_addr = pci_alloc_consistent(pci, SAA7146_RPS_MEM,
--						    &dev->d_rps0.dma_handle);
-+	dev->d_rps0.cpu_addr = pci_zalloc_consistent(pci, SAA7146_RPS_MEM,
-+						     &dev->d_rps0.dma_handle);
- 	if (!dev->d_rps0.cpu_addr)
- 		goto err_free_irq;
--	memset(dev->d_rps0.cpu_addr, 0x0, SAA7146_RPS_MEM);
+ 	u16 width;
+ 	u16 height;
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-di.c b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
+index 0ce3f52..faf08e2 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-di.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
+@@ -597,6 +597,8 @@ int ipu_di_init_sync_panel(struct ipu_di *di, struct ipu_di_signal_cfg *sig)
  
--	dev->d_rps1.cpu_addr = pci_alloc_consistent(pci, SAA7146_RPS_MEM,
--						    &dev->d_rps1.dma_handle);
-+	dev->d_rps1.cpu_addr = pci_zalloc_consistent(pci, SAA7146_RPS_MEM,
-+						     &dev->d_rps1.dma_handle);
- 	if (!dev->d_rps1.cpu_addr)
- 		goto err_free_rps0;
--	memset(dev->d_rps1.cpu_addr, 0x0, SAA7146_RPS_MEM);
+ 	if (sig->clk_pol == CLK_POL_POSEDGE)
+ 		di_gen |= DI_GEN_POLARITY_DISP_CLK;
++	else if (sig->clk_pol == CLK_POL_NEGEDGE)
++		di_gen &= ~DI_GEN_POLARITY_DISP_CLK;
  
--	dev->d_i2c.cpu_addr = pci_alloc_consistent(pci, SAA7146_RPS_MEM,
--						   &dev->d_i2c.dma_handle);
-+	dev->d_i2c.cpu_addr = pci_zalloc_consistent(pci, SAA7146_RPS_MEM,
-+						    &dev->d_i2c.dma_handle);
- 	if (!dev->d_i2c.cpu_addr)
- 		goto err_free_rps1;
--	memset(dev->d_i2c.cpu_addr, 0x0, SAA7146_RPS_MEM);
+ 	ipu_di_write(di, di_gen, DI_GENERAL);
  
- 	/* the rest + print status message */
+diff --git a/drivers/staging/imx-drm/ipuv3-crtc.c b/drivers/staging/imx-drm/ipuv3-crtc.c
+index ba9eea3..10b46b5 100644
+--- a/drivers/staging/imx-drm/ipuv3-crtc.c
++++ b/drivers/staging/imx-drm/ipuv3-crtc.c
+@@ -165,8 +165,22 @@ static int ipu_crtc_mode_set(struct drm_crtc *crtc,
+ 	if (mode->flags & DRM_MODE_FLAG_PVSYNC)
+ 		sig_cfg.Vsync_pol = 1;
  
-diff --git a/drivers/media/common/saa7146/saa7146_fops.c b/drivers/media/common/saa7146/saa7146_fops.c
-index eda01bc..a776a80 100644
---- a/drivers/media/common/saa7146/saa7146_fops.c
-+++ b/drivers/media/common/saa7146/saa7146_fops.c
-@@ -520,14 +520,15 @@ int saa7146_vv_init(struct saa7146_dev* dev, struct saa7146_ext_vv *ext_vv)
- 	   configuration data) */
- 	dev->ext_vv_data = ext_vv;
- 
--	vv->d_clipping.cpu_addr = pci_alloc_consistent(dev->pci, SAA7146_CLIPPING_MEM, &vv->d_clipping.dma_handle);
-+	vv->d_clipping.cpu_addr =
-+		pci_zalloc_consistent(dev->pci, SAA7146_CLIPPING_MEM,
-+				      &vv->d_clipping.dma_handle);
- 	if( NULL == vv->d_clipping.cpu_addr ) {
- 		ERR("out of memory. aborting.\n");
- 		kfree(vv);
- 		v4l2_ctrl_handler_free(hdl);
- 		return -1;
- 	}
--	memset(vv->d_clipping.cpu_addr, 0x0, SAA7146_CLIPPING_MEM);
- 
- 	saa7146_video_uops.init(dev,vv);
- 	if (dev->ext_vv_data->capabilities & V4L2_CAP_VBI_CAPTURE)
-diff --git a/drivers/media/pci/bt8xx/bt878.c b/drivers/media/pci/bt8xx/bt878.c
-index d0c281f..1176583 100644
---- a/drivers/media/pci/bt8xx/bt878.c
-+++ b/drivers/media/pci/bt8xx/bt878.c
-@@ -101,28 +101,20 @@ static int bt878_mem_alloc(struct bt878 *bt)
- 	if (!bt->buf_cpu) {
- 		bt->buf_size = 128 * 1024;
- 
--		bt->buf_cpu =
--		    pci_alloc_consistent(bt->dev, bt->buf_size,
--					 &bt->buf_dma);
--
-+		bt->buf_cpu = pci_zalloc_consistent(bt->dev, bt->buf_size,
-+						    &bt->buf_dma);
- 		if (!bt->buf_cpu)
- 			return -ENOMEM;
--
--		memset(bt->buf_cpu, 0, bt->buf_size);
- 	}
- 
- 	if (!bt->risc_cpu) {
- 		bt->risc_size = PAGE_SIZE;
--		bt->risc_cpu =
--		    pci_alloc_consistent(bt->dev, bt->risc_size,
--					 &bt->risc_dma);
--
-+		bt->risc_cpu = pci_zalloc_consistent(bt->dev, bt->risc_size,
-+						     &bt->risc_dma);
- 		if (!bt->risc_cpu) {
- 			bt878_mem_free(bt);
- 			return -ENOMEM;
- 		}
--
--		memset(bt->risc_cpu, 0, bt->risc_size);
- 	}
- 
- 	return 0;
-diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
-index 970e833..37dc149 100644
---- a/drivers/media/pci/ngene/ngene-core.c
-+++ b/drivers/media/pci/ngene/ngene-core.c
-@@ -1078,12 +1078,11 @@ static int AllocCommonBuffers(struct ngene *dev)
- 	dev->ngenetohost = dev->FWInterfaceBuffer + 256;
- 	dev->EventBuffer = dev->FWInterfaceBuffer + 512;
- 
--	dev->OverflowBuffer = pci_alloc_consistent(dev->pci_dev,
--						   OVERFLOW_BUFFER_SIZE,
--						   &dev->PAOverflowBuffer);
-+	dev->OverflowBuffer = pci_zalloc_consistent(dev->pci_dev,
-+						    OVERFLOW_BUFFER_SIZE,
-+						    &dev->PAOverflowBuffer);
- 	if (!dev->OverflowBuffer)
- 		return -ENOMEM;
--	memset(dev->OverflowBuffer, 0, OVERFLOW_BUFFER_SIZE);
- 
- 	for (i = STREAM_VIDEOIN1; i < MAX_STREAM; i++) {
- 		int type = dev->card_info->io_type[i];
-diff --git a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-index f8a60c1..0d3194a 100644
---- a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-+++ b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-@@ -804,11 +804,9 @@ static int ttusb_alloc_iso_urbs(struct ttusb *ttusb)
- {
- 	int i;
- 
--	ttusb->iso_buffer = pci_alloc_consistent(NULL,
--						 ISO_FRAME_SIZE *
--						 FRAMES_PER_ISO_BUF *
--						 ISO_BUF_COUNT,
--						 &ttusb->iso_dma_handle);
-+	ttusb->iso_buffer = pci_zalloc_consistent(NULL,
-+						  ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF * ISO_BUF_COUNT,
-+						  &ttusb->iso_dma_handle);
- 
- 	if (!ttusb->iso_buffer) {
- 		dprintk("%s: pci_alloc_consistent - not enough memory\n",
-@@ -816,9 +814,6 @@ static int ttusb_alloc_iso_urbs(struct ttusb *ttusb)
- 		return -ENOMEM;
- 	}
- 
--	memset(ttusb->iso_buffer, 0,
--	       ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF * ISO_BUF_COUNT);
--
- 	for (i = 0; i < ISO_BUF_COUNT; i++) {
- 		struct urb *urb;
- 
-diff --git a/drivers/media/usb/ttusb-dec/ttusb_dec.c b/drivers/media/usb/ttusb-dec/ttusb_dec.c
-index 29724af..15ab584 100644
---- a/drivers/media/usb/ttusb-dec/ttusb_dec.c
-+++ b/drivers/media/usb/ttusb-dec/ttusb_dec.c
-@@ -1151,11 +1151,9 @@ static int ttusb_dec_alloc_iso_urbs(struct ttusb_dec *dec)
- 
- 	dprintk("%s\n", __func__);
- 
--	dec->iso_buffer = pci_alloc_consistent(NULL,
--					       ISO_FRAME_SIZE *
--					       (FRAMES_PER_ISO_BUF *
--						ISO_BUF_COUNT),
--					       &dec->iso_dma_handle);
-+	dec->iso_buffer = pci_zalloc_consistent(NULL,
-+						ISO_FRAME_SIZE * (FRAMES_PER_ISO_BUF * ISO_BUF_COUNT),
-+						&dec->iso_dma_handle);
- 
- 	if (!dec->iso_buffer) {
- 		dprintk("%s: pci_alloc_consistent - not enough memory\n",
-@@ -1163,9 +1161,6 @@ static int ttusb_dec_alloc_iso_urbs(struct ttusb_dec *dec)
- 		return -ENOMEM;
- 	}
- 
--	memset(dec->iso_buffer, 0,
--	       ISO_FRAME_SIZE * (FRAMES_PER_ISO_BUF * ISO_BUF_COUNT));
--
- 	for (i = 0; i < ISO_BUF_COUNT; i++) {
- 		struct urb *urb;
- 
+-	sig_cfg.enable_pol = ENABLE_POL_HIGH;
+-	sig_cfg.clk_pol = CLK_POL_NEGEDGE;
++	if (mode->pol_flags & DRM_MODE_FLAG_POL_PIXDATA_POSEDGE)
++		sig_cfg.clk_pol = CLK_POL_POSEDGE;
++	else if (mode->pol_flags & DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE)
++		sig_cfg.clk_pol = CLK_POL_NEGEDGE;
++	else
++		/* If no PIXDATA flags were set, keep the old behaviour */
++		sig_cfg.clk_pol = CLK_POL_NEGEDGE;
++
++	if (mode->pol_flags & DRM_MODE_FLAG_POL_DE_HIGH)
++		sig_cfg.enable_pol = ENABLE_POL_HIGH;
++	else if (mode->pol_flags & DRM_MODE_FLAG_POL_DE_LOW)
++		sig_cfg.enable_pol = ENABLE_POL_LOW;
++	else
++		/* If no DE flags were set, keep the old behaviour */
++		sig_cfg.enable_pol = ENABLE_POL_HIGH;
++
+ 	sig_cfg.width = mode->hdisplay;
+ 	sig_cfg.height = mode->vdisplay;
+ 	sig_cfg.pixel_fmt = out_pixel_fmt;
 -- 
-1.8.1.2.459.gbcd45b4.dirty
+1.7.9.5
 
