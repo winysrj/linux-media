@@ -1,106 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35434 "EHLO mail.kapsi.fi"
+Received: from smtp2-g21.free.fr ([212.27.42.2]:46152 "EHLO smtp2-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752160AbaFOWFM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jun 2014 18:05:12 -0400
-Message-ID: <539E1895.3030803@iki.fi>
-Date: Mon, 16 Jun 2014 01:05:09 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: David Shirley <tephra@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: Leadtek WinFast DTV Dongle Dual
-References: <CAM187nBS5NZgOEyXUzR6OjmGuQpoiEfAbtqL2-2fj_oURmfudA@mail.gmail.com>
-In-Reply-To: <CAM187nBS5NZgOEyXUzR6OjmGuQpoiEfAbtqL2-2fj_oURmfudA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1752055AbaFJK0T (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jun 2014 06:26:19 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v13 10/10] ARM: dts: mbimx51sd: Add CMO-QVGA backlight support.
+Date: Tue, 10 Jun 2014 12:25:51 +0200
+Message-Id: <1402395951-7988-10-git-send-email-denis@eukrea.com>
+In-Reply-To: <1402395951-7988-1-git-send-email-denis@eukrea.com>
+References: <1402395951-7988-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/06/2014 02:54 AM, David Shirley wrote:
-> Hi All,
->
-> Recently purchased one of these (0413:6a05), the instructions @
-> http://www.linuxtv.org/wiki/index.php/Leadtek_WinFast_DTV_Dual_Dongle
-> appear to be wrong.
->
-> Running 3.14.5 I didn't need to patch
-> drivers/media/usb/dvb-usb-v2/af9035.c, however the tuner wouldn't work
-> (it would be detected, but not able to tune)
->
-> After a lot of stuffing around, I ended up patching it913x.c instead
-> and everything is working well, here is my dmesg output:
->
-> [    3.981516] usb 3-2: new high-speed USB device number 2 using xhci_hcd
-> [    4.149345] usb 3-2: New USB device found, idVendor=0413, idProduct=6a05
-> [    4.149355] usb 3-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-> [    4.149361] usb 3-2: Product: WinFast DTV Dongle Dual
-> [    4.149366] usb 3-2: Manufacturer: Leadtek
-> [  380.529378] it913x: Chip Version=02 Chip Type=9135
-> [  380.530913] it913x: Remote propriety (raw) modeit913x: Dual mode=3
-> Tuner Type=38
-> [  380.531310] it913x: Unknown tuner ID applying default 0x60it913x:
-> Chip Version=02 Chip Type=9135
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+---
+ChangeLog v11->v13:
+- No changes
+ChangeLog v9->v11:
+- Now uses the drm-panel instead of the display-timings.
 
-1) Older Leadtek was using V1 chips as seen on Wiki log. That device was 
-added about ~9 months ago, Kernel 3.13.
-2) It says "Unknown tuner ID applying default 0x60". Unfortunately it 
-does not say which was the ID driver fixes. This makes me wonder if it 
-is 0x38 which was used for V1 devices and it is not working due to wrong ID.
-3) I don't have any IT9135 V2 dual device (single V1 & V2 and dual V1). 
-So I cannot even make any tests.
+ChangeLog v8->v9:
+- Removed the Cc. They are now set in git-send-email directly.
+- The backlight is now on at boot.
 
-> [  380.637528] usb 3-2: dvb_usb_v2: found a 'Leadtek WinFast DTV
-> Dongle Dual' in cold state
-> [  380.638195] usb 3-2: dvb_usb_v2: downloading firmware from file
-> 'dvb-usb-it9135-02.fw'
-> [  380.638598] it913x: FRM Starting Firmware Download
-> [  381.130961] it913x: FRM Firmware Download Completed - Resetting
-> Deviceit913x: Chip Version=02 Chip Type=9135
-> [  381.164104] it913x: Firmware Version 52887808<6>
-> [  381.226204] usb 3-2: dvb_usb_v2: found a 'Leadtek WinFast DTV
-> Dongle Dual' in warm state
-> [  381.226300] usb 3-2: dvb_usb_v2: will pass the complete MPEG2
-> transport stream to the software demuxer
-> [  381.226519] DVB: registering new adapter (Leadtek WinFast DTV Dongle Dual)
-> [  381.231125] it913x-fe: ADF table value       :00
-> [  381.234465] it913x-fe: Crystal Frequency :12000000 Adc Frequency
-> :20250000 ADC X2: 01
-> [  381.262283] it913x-fe: Tuner LNA type :60
-> [  381.493014] usb 3-2: DVB: registering adapter 0 frontend 0 (Leadtek
-> WinFast DTV Dongle Dual_1)...
-> [  381.493251] usb 3-2: dvb_usb_v2: will pass the complete MPEG2
-> transport stream to the software demuxer
-> [  381.493446] DVB: registering new adapter (Leadtek WinFast DTV Dongle Dual)
-> [  381.494234] it913x-fe: ADF table value       :00
-> [  381.519335] it913x-fe: Crystal Frequency :12000000 Adc Frequency
-> :20250000 ADC X2: 01
-> [  381.750290] it913x-fe: Tuner LNA type :60
-> [  382.280671] usb 3-2: DVB: registering adapter 1 frontend 0 (Leadtek
-> WinFast DTV Dongle Dual_2)...
-> [  382.304097] IR keymap rc-it913x-v2 not found
-> [  382.304282] input: Leadtek WinFast DTV Dongle Dual as
-> /devices/pci0000:00/0000:00:14.0/usb3/3-2/rc/rc0/input9
-> [  382.304443] rc0: Leadtek WinFast DTV Dongle Dual as
-> /devices/pci0000:00/0000:00:14.0/usb3/3-2/rc/rc0
-> [  382.304453] usb 3-2: dvb_usb_v2: schedule remote query interval to 250 msecs
-> [  382.304462] usb 3-2: dvb_usb_v2: 'Leadtek WinFast DTV Dongle Dual'
-> successfully initialized and connected
-> [  382.304551] usbcore: registered new interface driver dvb_usb_it913x
->
-> My kernel config:
-> CONFIG_DVB_USB_V2=m
-> CONFIG_DVB_USB_IT913X=m
-> CONFIG_DVB_IT913X_FE=m
->
-> Do you want the output when it was using the af9035 driver?
+ChangeLog v6->v7:
+- Shrinked even more the Cc list.
 
-AF9035 debug could be nice to see. Or any other debug which shows tuner 
-ID. I suspect overriding tuner ID with correct ID 0x60 will make this 
-device working. Like I did for these devices:
-https://patchwork.linuxtv.org/patch/24340/
+ChangeLog v5->v6:
+- Reordered the Cc list.
 
-regards
-Antti
+ChangeLog v3->v5:
+- Updated to the new GPIO defines.
 
+ChangeLog v2->v3:
+- Splitted out from the patch that added support for the cpuimx51/mbimxsd51 boards.
+- This patch now only adds backlight support.
+- Added some interested people in the Cc list, and removed some people that
+  might be annoyed by the receiving of that patch which is unrelated to their
+  subsystem.
+---
+ .../imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts  |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts
+index d273d09..6e36dae 100644
+--- a/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts
++++ b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts
+@@ -17,9 +17,19 @@
+ 	model = "Eukrea MBIMXSD51 with the CMO-QVGA Display";
+ 	compatible = "eukrea,mbimxsd51-baseboard-cmo-qvga", "eukrea,mbimxsd51-baseboard", "eukrea,cpuimx51", "fsl,imx51";
+ 
++	backlight: backlight {
++		compatible = "gpio-backlight";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_backlight_1>;
++		gpios = <&gpio3 4 GPIO_ACTIVE_HIGH>;
++		default-brightness-level = <1>;
++		default-on;
++	};
++
+ 	panel: panel {
+ 		compatible = "eukrea,mbimxsd51-cmo-qvga", "simple-panel";
+ 		power-supply = <&reg_lcd_3v3>;
++		backlight = <&backlight>;
+ 	};
+ 
+ 	reg_lcd_3v3: lcd-en {
 -- 
-http://palosaari.fi/
+1.7.9.5
+
