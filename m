@@ -1,212 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:41578 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965546AbaFRLHV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jun 2014 07:07:21 -0400
-Subject: [REPOST PATCH 6/8] dma-buf: add poll support, v3
-To: gregkh@linuxfoundation.org
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-arch@vger.kernel.org, thellstrom@vmware.com,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
-	thierry.reding@gmail.com, ccross@google.com, daniel@ffwll.ch,
-	sumit.semwal@linaro.org, linux-media@vger.kernel.org
-Date: Wed, 18 Jun 2014 12:37:23 +0200
-Message-ID: <20140618103723.15728.65924.stgit@patser>
-In-Reply-To: <20140618102957.15728.43525.stgit@patser>
-References: <20140618102957.15728.43525.stgit@patser>
+Received: from mout.gmx.net ([212.227.17.22]:65090 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750888AbaFJMui (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jun 2014 08:50:38 -0400
+Received: from wolfgang ([88.27.195.166]) by mail.gmx.com (mrgmx102) with
+ ESMTPSA (Nemesis) id 0Ldbqw-1WTDyA2Hxa-00igaU for
+ <linux-media@vger.kernel.org>; Tue, 10 Jun 2014 14:50:36 +0200
+Date: Tue, 10 Jun 2014 14:50:59 +0200
+From: Sebastian Kemper <sebastian_ml@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: AF9033 / IT913X: Avermedia A835B(1835) only works sporadically
+Message-ID: <20140610125059.GA1930@wolfgang>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks to Fengguang Wu for spotting a missing static cast.
+Hello list,
 
-v2:
-- Kill unused variable need_shared.
-v3:
-- Clarify the BUG() in dma_buf_release some more. (Rob Clark)
+I have an "Avermedia A835B(1835)" USB DVB-T stick (07ca:1835) which
+works only (very) sporadically. It's pure luck as far as I can see.
+I can't reproduce how to get it working. There are no special steps that
+I can take to guarantee that it'll work once I plug it in.
 
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
----
- drivers/base/dma-buf.c  |  108 +++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/dma-buf.h |   12 +++++
- 2 files changed, 120 insertions(+)
+I'd rate my chances of having the device actually working between 5 and
+10 percent.
 
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-index cd40ca22911f..25e8c4165936 100644
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -30,6 +30,7 @@
- #include <linux/export.h>
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
-+#include <linux/poll.h>
- #include <linux/reservation.h>
- 
- static inline int is_dma_buf_file(struct file *);
-@@ -52,6 +53,16 @@ static int dma_buf_release(struct inode *inode, struct file *file)
- 
- 	BUG_ON(dmabuf->vmapping_counter);
- 
-+	/*
-+	 * Any fences that a dma-buf poll can wait on should be signaled
-+	 * before releasing dma-buf. This is the responsibility of each
-+	 * driver that uses the reservation objects.
-+	 *
-+	 * If you hit this BUG() it means someone dropped their ref to the
-+	 * dma-buf while still having pending operation to the buffer.
-+	 */
-+	BUG_ON(dmabuf->cb_shared.active || dmabuf->cb_excl.active);
-+
- 	dmabuf->ops->release(dmabuf);
- 
- 	mutex_lock(&db_list.lock);
-@@ -108,10 +119,103 @@ static loff_t dma_buf_llseek(struct file *file, loff_t offset, int whence)
- 	return base + offset;
- }
- 
-+static void dma_buf_poll_cb(struct fence *fence, struct fence_cb *cb)
-+{
-+	struct dma_buf_poll_cb_t *dcb = (struct dma_buf_poll_cb_t *)cb;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&dcb->poll->lock, flags);
-+	wake_up_locked_poll(dcb->poll, dcb->active);
-+	dcb->active = 0;
-+	spin_unlock_irqrestore(&dcb->poll->lock, flags);
-+}
-+
-+static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
-+{
-+	struct dma_buf *dmabuf;
-+	struct reservation_object *resv;
-+	unsigned long events;
-+
-+	dmabuf = file->private_data;
-+	if (!dmabuf || !dmabuf->resv)
-+		return POLLERR;
-+
-+	resv = dmabuf->resv;
-+
-+	poll_wait(file, &dmabuf->poll, poll);
-+
-+	events = poll_requested_events(poll) & (POLLIN | POLLOUT);
-+	if (!events)
-+		return 0;
-+
-+	ww_mutex_lock(&resv->lock, NULL);
-+
-+	if (resv->fence_excl && (!(events & POLLOUT) ||
-+				 resv->fence_shared_count == 0)) {
-+		struct dma_buf_poll_cb_t *dcb = &dmabuf->cb_excl;
-+		unsigned long pevents = POLLIN;
-+
-+		if (resv->fence_shared_count == 0)
-+			pevents |= POLLOUT;
-+
-+		spin_lock_irq(&dmabuf->poll.lock);
-+		if (dcb->active) {
-+			dcb->active |= pevents;
-+			events &= ~pevents;
-+		} else
-+			dcb->active = pevents;
-+		spin_unlock_irq(&dmabuf->poll.lock);
-+
-+		if (events & pevents) {
-+			if (!fence_add_callback(resv->fence_excl,
-+						&dcb->cb, dma_buf_poll_cb))
-+				events &= ~pevents;
-+			else
-+				/*
-+				 * No callback queued, wake up any additional
-+				 * waiters.
-+				 */
-+				dma_buf_poll_cb(NULL, &dcb->cb);
-+		}
-+	}
-+
-+	if ((events & POLLOUT) && resv->fence_shared_count > 0) {
-+		struct dma_buf_poll_cb_t *dcb = &dmabuf->cb_shared;
-+		int i;
-+
-+		/* Only queue a new callback if no event has fired yet */
-+		spin_lock_irq(&dmabuf->poll.lock);
-+		if (dcb->active)
-+			events &= ~POLLOUT;
-+		else
-+			dcb->active = POLLOUT;
-+		spin_unlock_irq(&dmabuf->poll.lock);
-+
-+		if (!(events & POLLOUT))
-+			goto out;
-+
-+		for (i = 0; i < resv->fence_shared_count; ++i)
-+			if (!fence_add_callback(resv->fence_shared[i],
-+						&dcb->cb, dma_buf_poll_cb)) {
-+				events &= ~POLLOUT;
-+				break;
-+			}
-+
-+		/* No callback queued, wake up any additional waiters. */
-+		if (i == resv->fence_shared_count)
-+			dma_buf_poll_cb(NULL, &dcb->cb);
-+	}
-+
-+out:
-+	ww_mutex_unlock(&resv->lock);
-+	return events;
-+}
-+
- static const struct file_operations dma_buf_fops = {
- 	.release	= dma_buf_release,
- 	.mmap		= dma_buf_mmap_internal,
- 	.llseek		= dma_buf_llseek,
-+	.poll		= dma_buf_poll,
- };
- 
- /*
-@@ -171,6 +275,10 @@ struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
- 	dmabuf->ops = ops;
- 	dmabuf->size = size;
- 	dmabuf->exp_name = exp_name;
-+	init_waitqueue_head(&dmabuf->poll);
-+	dmabuf->cb_excl.poll = dmabuf->cb_shared.poll = &dmabuf->poll;
-+	dmabuf->cb_excl.active = dmabuf->cb_shared.active = 0;
-+
- 	if (!resv) {
- 		resv = (struct reservation_object *)&dmabuf[1];
- 		reservation_object_init(resv);
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index fd7def2e0ae2..694e1fe1c4b4 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -30,6 +30,8 @@
- #include <linux/list.h>
- #include <linux/dma-mapping.h>
- #include <linux/fs.h>
-+#include <linux/fence.h>
-+#include <linux/wait.h>
- 
- struct device;
- struct dma_buf;
-@@ -130,6 +132,16 @@ struct dma_buf {
- 	struct list_head list_node;
- 	void *priv;
- 	struct reservation_object *resv;
-+
-+	/* poll support */
-+	wait_queue_head_t poll;
-+
-+	struct dma_buf_poll_cb_t {
-+		struct fence_cb cb;
-+		wait_queue_head_t *poll;
-+
-+		unsigned long active;
-+	} cb_excl, cb_shared;
- };
- 
- /**
+In the log everything looks fine, apart from the messages at the bottom
+about the device not being able to get a lock on a channel.
 
+Reception here is really good, so there's no problem with signal
+strength. When loading the device in Windows 7 64 bit it always finds a
+lock.
+
+Has anybody any idea? Thanks for any suggestions!
+
+Jun 10 14:18:07 meiner kernel: usb 1-2: new high-speed USB device number 2 using xhci_hcd
+Jun 10 14:18:07 meiner kernel: WARNING: You are using an experimental version of the media stack.
+Jun 10 14:18:07 meiner kernel: 	As the driver is backported to an older kernel, it doesn't offer
+Jun 10 14:18:07 meiner kernel: 	enough quality for its usage in production.
+Jun 10 14:18:07 meiner kernel: 	Use it with care.
+Jun 10 14:18:07 meiner kernel: Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
+Jun 10 14:18:07 meiner kernel: 	bfd0306462fdbc5e0a8c6999aef9dde0f9745399 [media] v4l: Document timestamp buffer flag behaviour
+Jun 10 14:18:07 meiner kernel: 	309f4d62eda0e864c2d4eef536cc82e41931c3c5 [media] v4l: Copy timestamp source flags to destination on m2m devices
+Jun 10 14:18:07 meiner kernel: 	599b08929efe9b90e44b504454218a120bb062a0 [media] exynos-gsc, m2m-deinterlace, mx2_emmaprp: Copy v4l2_buffer data from src to dst
+Jun 10 14:18:07 meiner kernel: 	experimental: a60b303c3e347297a25f0a203f0ff11a8efc818c experimental/ngene: Support DuoFlex C/C2/T/T2 (V3)
+Jun 10 14:18:07 meiner kernel: 	v4l-dvb-saa716x: 052c468e33be00a3d4d9b93da3581ffa861bb288 saa716x: IO memory of upper PHI1 regions is mapped in saa716x_ff driver.
+Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_af9035: prechip_version=83 chip_version=02 chip_type=9135
+Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: found a 'Avermedia A835B(1835)' in cold state
+Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: downloading firmware from file 'dvb-usb-it9135-02.fw'
+Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_af9035: firmware version=3.42.3.3
+Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: found a 'Avermedia A835B(1835)' in warm state
+Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
+Jun 10 14:18:07 meiner kernel: DVB: registering new adapter (Avermedia A835B(1835))
+Jun 10 14:18:07 meiner kernel: i2c i2c-0: af9033: firmware version: LINK=0.0.0.0 OFDM=3.29.3.3
+Jun 10 14:18:07 meiner kernel: usb 1-2: DVB: registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
+Jun 10 14:18:07 meiner kernel: i2c i2c-0: tuner_it913x: ITE Tech IT913X successfully attached
+Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: 'Avermedia A835B(1835)' successfully initialized and connected
+Jun 10 14:18:07 meiner kernel: usbcore: registered new interface driver dvb_usb_af9035
+Jun 10 14:18:28 meiner vdr: [1653] VDR version 2.0.4 started
+Jun 10 14:18:28 meiner vdr: [1653] switched to user 'vdr'
+Jun 10 14:18:28 meiner vdr: [1653] codeset is 'UTF-8' - known
+Jun 10 14:18:28 meiner vdr: [1653] loading plugin: /usr/lib64/vdr/plugins/libvdr-softhddevice.so.2.0.0
+Jun 10 14:18:28 meiner vdr: New default svdrp port 6419!
+Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/setup.conf
+Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/sources.conf
+Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/diseqc.conf
+Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/scr.conf
+Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/channels.conf
+Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/timers.conf
+Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/commands.conf
+Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/reccmds.conf
+Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/svdrphosts.conf
+Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/remote.conf
+Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/keymacros.conf
+Jun 10 14:18:29 meiner vdr: [1653] DVB API version is 0x050A (VDR was built with 0x050A)
+Jun 10 14:18:29 meiner vdr: [1653] frontend 0/0 provides DVB-T with QPSK,QAM16,QAM64 ("Afatech AF9033 (DVB-T)")
+Jun 10 14:18:29 meiner vdr: [1653] found 1 DVB device
+Jun 10 14:18:29 meiner vdr: [1653] initializing plugin: softhddevice (0.6.1rc1): Ein Software und GPU emulieres HD-Gerät
+Jun 10 14:18:29 meiner vdr: [1653] setting primary device to 2
+Jun 10 14:18:29 meiner vdr: [1653] SVDRP listening on port 6419
+Jun 10 14:18:29 meiner vdr: [1653] setting current skin to "lcars"
+Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/themes/lcars-default.theme
+Jun 10 14:18:29 meiner vdr: [1653] starting plugin: softhddevice
+Jun 10 14:18:30 meiner vdr: [1653] switching to channel 2
+Jun 10 14:18:30 meiner lircd-0.9.0[1219]: accepted new client on /var/run/lirc/lircd
+Jun 10 14:18:30 meiner lircd-0.9.0[1219]: zotac initializing '/dev/usb/hiddev0'
+Jun 10 14:18:31 meiner kernel: nvidia 0000:02:00.0: irq 46 for MSI/MSI-X
+Jun 10 14:18:31 meiner vdr: [1653] connect from 127.0.0.1, port 59159 - accepted
+Jun 10 14:18:31 meiner vdr: [1653] closing SVDRP connection
+Jun 10 14:18:31 meiner vdrwatchdog[1702]: Starting vdrwatchdog
+Jun 10 14:18:39 meiner vdr: [1674] frontend 0/0 timed out while tuning to channel 2, tp 818
+Jun 10 14:19:43 meiner vdr: [1674] frontend 0/0 timed out while tuning to channel 2, tp 818
+
+Kind regards,
+Sebatian
