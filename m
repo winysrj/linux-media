@@ -1,124 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61312 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932222AbaFKPCm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jun 2014 11:02:42 -0400
-Date: Wed, 11 Jun 2014 08:02:32 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Nishanth Menon <nm@ti.com>, gregkh@linuxfoundation.org,
+Received: from smtp2-g21.free.fr ([212.27.42.2]:45475 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752055AbaFJK0G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jun 2014 06:26:06 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, arm@kernel.org
-Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
-Message-ID: <20140611150231.GB17845@atomide.com>
-References: <5192928.MkINji4uKU@wuerfel>
- <53986ABC.4070302@ti.com>
- <7948240.P51u2omQa4@wuerfel>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7948240.P51u2omQa4@wuerfel>
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v13 05/10] ARM: dts: imx5*, imx6*: correct display-timings nodes.
+Date: Tue, 10 Jun 2014 12:25:46 +0200
+Message-Id: <1402395951-7988-5-git-send-email-denis@eukrea.com>
+In-Reply-To: <1402395951-7988-1-git-send-email-denis@eukrea.com>
+References: <1402395951-7988-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Arnd Bergmann <arnd@arndb.de> [140611 07:51]:
-> On Wednesday 11 June 2014 09:42:04 Nishanth Menon wrote:
-> > On 06/11/2014 09:35 AM, Arnd Bergmann wrote:
-> > > The OMAP4 camera support depends on I2C and VIDEO_V4L2, both
-> > > of which can be loadable modules. This causes build failures
-> > > if we want the camera driver to be built-in.
-> > > 
-> > > This can be solved by turning the option into "tristate",
-> > > which unfortunately causes another problem, because the
-> > > driver incorrectly calls a platform-internal interface
-> > > for omap4_ctrl_pad_readl/omap4_ctrl_pad_writel.
-> > > To work around that, we can export those symbols, but
-> > > that isn't really the correct solution, as we should not
-> > > have dependencies on platform code this way.
-> > > 
-> > > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > > ---
-> > > This is one of just two patches we currently need to get
-> > > 'make allmodconfig' to build again on ARM.
-> > > 
-> > > diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-> > > index 751f354..05d2d98 100644
-> > > --- a/arch/arm/mach-omap2/control.c
-> > > +++ b/arch/arm/mach-omap2/control.c
-> > > @@ -190,11 +190,13 @@ u32 omap4_ctrl_pad_readl(u16 offset)
-> > >  {
-> > >  	return readl_relaxed(OMAP4_CTRL_PAD_REGADDR(offset));
-> > >  }
-> > > +EXPORT_SYMBOL_GPL(omap4_ctrl_pad_readl);
-> > >  
-> > >  void omap4_ctrl_pad_writel(u32 val, u16 offset)
-> > >  {
-> > >  	writel_relaxed(val, OMAP4_CTRL_PAD_REGADDR(offset));
-> > >  }
-> > > +EXPORT_SYMBOL_GPL(omap4_ctrl_pad_writel);
-> > >  
-> > >  #ifdef CONFIG_ARCH_OMAP3
-> > >  
-> > > diff --git a/drivers/staging/media/omap4iss/Kconfig b/drivers/staging/media/omap4iss/Kconfig
-> > > index 78b0fba..0c3e3c1 100644
-> > > --- a/drivers/staging/media/omap4iss/Kconfig
-> > > +++ b/drivers/staging/media/omap4iss/Kconfig
-> > > @@ -1,5 +1,5 @@
-> > >  config VIDEO_OMAP4
-> > > -	bool "OMAP 4 Camera support"
-> > > +	tristate "OMAP 4 Camera support"
-> > >  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C && ARCH_OMAP4
-> > >  	select VIDEOBUF2_DMA_CONTIG
-> > >  	---help---
-> > > 
-> > 
-> > This was discussed in detail here:
-> > http://marc.info/?t=140198692500001&r=1&w=2
-> > Direct dependency from a staging driver to mach-omap2 driver is not
-> > something we'd like, right?
-> 
-> So it was decided to just leave ARM allmodconfig broken?
-> 
-> Why not at least do this instead?
-> 
-> 8<----
-> From 3a965f4fd5a6b3ef4a66aa4e7c916cfd34fd5706 Mon Sep 17 00:00:00 2001
-> From: Arnd Bergmann <arnd@arndb.de>
-> Date: Tue, 21 Jan 2014 09:32:43 +0100
-> Subject: [PATCH] [media] staging: tighten omap4iss dependencies
-> 
-> The OMAP4 camera support depends on I2C and VIDEO_V4L2, both
-> of which can be loadable modules. This causes build failures
-> if we want the camera driver to be built-in.
-> 
-> This can be solved by turning the option into "tristate",
-> which unfortunately causes another problem, because the
-> driver incorrectly calls a platform-internal interface
-> for omap4_ctrl_pad_readl/omap4_ctrl_pad_writel.
-> 
-> Instead, this patch just forbids the invalid configurations
-> and ensures that the driver can only be built if all its
-> dependencies are built-in.
+The imx-drm driver can't use the de-active and
+pixelclk-active display-timings properties yet.
+
+Instead the data-enable and the pixel data clock
+polarity are hardcoded in the imx-drm driver.
+
+So theses properties are now set to keep
+the same behaviour when imx-drm will start
+using them.
+
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+---
+ChangeLog v10->v11:
+- imx53-tx53-x03x.dts change was removed because it 
+  already had the correct setting.
+ChangeLog v9->v10:
+- New patch that was splitted out of:
+  "staging imx-drm: Use de-active and pixelclk-active
+  display-timings."
+---
+ arch/arm/boot/dts/imx51-babbage.dts       |    2 ++
+ arch/arm/boot/dts/imx53-m53evk.dts        |    2 ++
+ arch/arm/boot/dts/imx6qdl-gw53xx.dtsi     |    2 ++
+ arch/arm/boot/dts/imx6qdl-gw54xx.dtsi     |    2 ++
+ arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi |    2 ++
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi  |    2 ++
+ arch/arm/boot/dts/imx6qdl-sabrelite.dtsi  |    2 ++
+ arch/arm/boot/dts/imx6qdl-sabresd.dtsi    |    2 ++
+ 8 files changed, 16 insertions(+)
+
+diff --git a/arch/arm/boot/dts/imx51-babbage.dts b/arch/arm/boot/dts/imx51-babbage.dts
+index ee51a10..b64a9e3 100644
+--- a/arch/arm/boot/dts/imx51-babbage.dts
++++ b/arch/arm/boot/dts/imx51-babbage.dts
+@@ -56,6 +56,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
  
-Makes sense to me if the media people are OK with this:
+diff --git a/arch/arm/boot/dts/imx53-m53evk.dts b/arch/arm/boot/dts/imx53-m53evk.dts
+index 4b036b4..d03ced7 100644
+--- a/arch/arm/boot/dts/imx53-m53evk.dts
++++ b/arch/arm/boot/dts/imx53-m53evk.dts
+@@ -41,6 +41,8 @@
+ 					vfront-porch = <9>;
+ 					vsync-len = <3>;
+ 					vsync-active = <1>;
++					de-active = <1>;
++					pixelclk-active = <0>;
+ 				};
+ 			};
+ 		};
+diff --git a/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
+index d3125f0..7f993d6 100644
+--- a/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
+@@ -512,6 +512,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+index 532347f..e06cf9e 100644
+--- a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+@@ -534,6 +534,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi b/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
+index 4c4b175..bcf5178 100644
+--- a/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
+@@ -353,6 +353,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index 009abd6..230bbc6 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -405,6 +405,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+index 6df6127..9f6b406 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+@@ -353,6 +353,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+index e446192..3297779 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+@@ -494,6 +494,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+-- 
+1.7.9.5
 
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> 
-> diff --git a/drivers/staging/media/omap4iss/Kconfig b/drivers/staging/media/omap4iss/Kconfig
-> index 78b0fba..8afc6fe 100644
-> --- a/drivers/staging/media/omap4iss/Kconfig
-> +++ b/drivers/staging/media/omap4iss/Kconfig
-> @@ -1,6 +1,6 @@
->  config VIDEO_OMAP4
->  	bool "OMAP 4 Camera support"
-> -	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C && ARCH_OMAP4
-> +	depends on VIDEO_V4L2=y && VIDEO_V4L2_SUBDEV_API && I2C=y && ARCH_OMAP4
->  	select VIDEOBUF2_DMA_CONTIG
->  	---help---
->  	  Driver for an OMAP 4 ISS controller.
-> 
