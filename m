@@ -1,55 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:29493 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752900AbaFLPPm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 11:15:42 -0400
-Date: Thu, 12 Jun 2014 08:15:35 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, arm@kernel.org
-Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
-Message-ID: <20140612151534.GF17845@atomide.com>
-References: <5192928.MkINji4uKU@wuerfel>
- <20140611144754.GA17845@atomide.com>
- <2207210.T6NoNSQSCo@avalon>
+Received: from mga14.intel.com ([192.55.52.115]:22222 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752544AbaFKGep (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jun 2014 02:34:45 -0400
+Message-ID: <5397F87E.4020107@linux.intel.com>
+Date: Wed, 11 Jun 2014 09:34:38 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2207210.T6NoNSQSCo@avalon>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v3 2/3] smiapp: Add driver-specific test pattern menu
+ item definitions
+References: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com> <1401374448-30411-3-git-send-email-sakari.ailus@linux.intel.com> <CA+V-a8vUrB3nUxfiZgjkjpQZh-r8z-mavPesJ4-fPhC=AaExKw@mail.gmail.com>
+In-Reply-To: <CA+V-a8vUrB3nUxfiZgjkjpQZh-r8z-mavPesJ4-fPhC=AaExKw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140612 07:52]:
-> On Wednesday 11 June 2014 07:47:54 Tony Lindgren wrote:
-> > 
-> > These should just use either pinctrl-single.c instead for muxing.
-> > Or if they are not mux registers, we do have the syscon mapping
-> > available in omap4.dtsi that pbias-regulator.c is already using.
-> > 
-> > Laurent, got any better ideas?
-> 
-> The ISS driver needs to write a single register, which contains several 
-> independent fields. They thus need to be controlled by a single driver. Some 
-> of them might be considered to be related to pinmuxing (although I disagree on 
-> that), others are certainly not about muxing (there are clock gate bits for 
-> instance).
-> 
-> Using the syscon mapping seems like the best option. I'll give it a try.
+Hi Prabhakar,
 
-OK if it's not strictly pinctrl related then let's not use
-pinctrl-single,bits for it. You may be able to implement one or more
-framework drivers for it for pinctrl/regulator/clock/transceiver
-whatever that register is doing.
+Thanks for the review! :-)
 
-In any case it's best to have that handling in a separate helper driver
-somewhere as it's a separate piece of hardware from the camera module.
-If it does not fit into any existing frameworks then it's best to have
-it in a separate driver with the camera driver.
+Prabhakar Lad wrote:
+> Hi Sakari,
+>
+> On Thu, May 29, 2014 at 3:40 PM, Sakari Ailus
+> <sakari.ailus@linux.intel.com> wrote:
+>> Add numeric definitions for menu items used in the smiapp driver's test
+>> pattern menu.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> ---
+>>   include/uapi/linux/smiapp.h | 29 +++++++++++++++++++++++++++++
+>
+> Don't you need to add an entry in Kbuild file for this ?
 
-Regards,
+Good poing. I'll send v3.1 for this one as well.
 
-Tony
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
