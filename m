@@ -1,102 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:54798 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751146AbaFLVb4 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58562 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750825AbaFKGS6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 17:31:56 -0400
-Date: Thu, 12 Jun 2014 18:31:43 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for 3.16-rc1] OMAP3 updates
-Message-id: <20140612183143.57763619.m.chehab@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Wed, 11 Jun 2014 02:18:58 -0400
+Date: Wed, 11 Jun 2014 08:18:56 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH 08/43] imx-drm: ipu-v3: Add units required for video
+ capture
+Message-ID: <20140611061856.GC664@pengutronix.de>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+ <1402178205-22697-9-git-send-email-steve_longerbeam@mentor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1402178205-22697-9-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+On Sat, Jun 07, 2014 at 02:56:10PM -0700, Steve Longerbeam wrote:
+> Adds the following new IPU units:
+> 
+> - Camera Sensor Interface (csi)
+> - Sensor Multi FIFO Controller (smfc)
+> - Image Converter (ic)
+> - Image Rotator (irt)
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  drivers/staging/imx-drm/ipu-v3/Makefile     |    3 +-
+>  drivers/staging/imx-drm/ipu-v3/ipu-common.c |   67 ++-
+>  drivers/staging/imx-drm/ipu-v3/ipu-csi.c    |  821 ++++++++++++++++++++++++++
+>  drivers/staging/imx-drm/ipu-v3/ipu-ic.c     |  835 +++++++++++++++++++++++++++
+>  drivers/staging/imx-drm/ipu-v3/ipu-irt.c    |  103 ++++
+>  drivers/staging/imx-drm/ipu-v3/ipu-prv.h    |   24 +
+>  drivers/staging/imx-drm/ipu-v3/ipu-smfc.c   |  348 +++++++++++
+>  include/linux/platform_data/imx-ipu-v3.h    |  151 +++++
+>  8 files changed, 2350 insertions(+), 2 deletions(-)
+>  create mode 100644 drivers/staging/imx-drm/ipu-v3/ipu-csi.c
+>  create mode 100644 drivers/staging/imx-drm/ipu-v3/ipu-ic.c
+>  create mode 100644 drivers/staging/imx-drm/ipu-v3/ipu-irt.c
+>  create mode 100644 drivers/staging/imx-drm/ipu-v3/ipu-smfc.c
+> 
+> diff --git a/drivers/staging/imx-drm/ipu-v3/Makefile b/drivers/staging/imx-drm/ipu-v3/Makefile
+> index 28ed72e..79c0c88 100644
+> --- a/drivers/staging/imx-drm/ipu-v3/Makefile
+> +++ b/drivers/staging/imx-drm/ipu-v3/Makefile
+> @@ -1,3 +1,4 @@
+>  obj-$(CONFIG_DRM_IMX_IPUV3_CORE) += imx-ipu-v3.o
+>  
+> -imx-ipu-v3-objs := ipu-common.o ipu-dc.o ipu-di.o ipu-dp.o ipu-dmfc.o
+> +imx-ipu-v3-objs := ipu-common.o ipu-csi.o ipu-dc.o ipu-di.o \
+> +	ipu-dp.o ipu-dmfc.o ipu-ic.o ipu-irt.o ipu-smfc.o
+> diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+> index 1c606b5..3d7e28d 100644
+> --- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+> +++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
+> @@ -834,6 +834,10 @@ struct ipu_devtype {
+>  	unsigned long cpmem_ofs;
+>  	unsigned long srm_ofs;
+>  	unsigned long tpm_ofs;
+> +	unsigned long csi0_ofs;
+> +	unsigned long csi1_ofs;
+> +	unsigned long smfc_ofs;
+> +	unsigned long ic_ofs;
+>  	unsigned long disp0_ofs;
+>  	unsigned long disp1_ofs;
+>  	unsigned long dc_tmpl_ofs;
+> @@ -873,8 +877,12 @@ static struct ipu_devtype ipu_type_imx6q = {
+>  	.cpmem_ofs = 0x00300000,
+>  	.srm_ofs = 0x00340000,
+>  	.tpm_ofs = 0x00360000,
+> +	.csi0_ofs = 0x00230000,
+> +	.csi1_ofs = 0x00238000,
+>  	.disp0_ofs = 0x00240000,
+>  	.disp1_ofs = 0x00248000,
+> +	.smfc_ofs =  0x00250000,
+> +	.ic_ofs = 0x00220000,
+>  	.dc_tmpl_ofs = 0x00380000,
+>  	.vdi_ofs = 0x00268000,
+>  	.type = IPUV3H,
+> @@ -915,8 +923,44 @@ static int ipu_submodules_init(struct ipu_soc *ipu,
+>  	struct device *dev = &pdev->dev;
+>  	const struct ipu_devtype *devtype = ipu->devtype;
+>  
+> +	ret = ipu_csi_init(ipu, dev, 0, ipu_base + devtype->csi0_ofs,
+> +			   IPU_CONF_CSI0_EN, ipu_clk);
+> +	if (ret) {
+> +		unit = "csi0";
+> +		goto err_csi_0;
+> +	}
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media topic/omap3isp
+Please be nice to other SoCs. You set csi0_ofs for i.MX6, but not for
+i.MX5. For i.MX5 you silently initialize the CSI with bogus register
+offsets. Either test for _ofs == 0 before initializing it or add the
+correct values for i.MX51/53 (preferred).
 
-For some driver improvements on OMAP3. This series depend on some iommu
-patches already merged.
+> +int ipu_csi_set_src(struct ipu_csi *csi, u32 vc, bool select_mipi_csi2)
+> +{
+> +	struct ipu_soc *ipu = csi->ipu;
+> +	int ipu_id = ipu_get_num(ipu);
+> +	u32 val, bit;
+> +
+> +	/*
+> +	 * Set the muxes that choose between mipi-csi2 and parallel inputs
+> +	 * to the CSI's.
+> +	 */
+> +	if (csi->ipu->ipu_type == IPUV3HDL) {
+> +		/*
+> +		 * On D/L, the mux is in GPR13. The TRM is unclear,
+> +		 * but it appears the mux allows selecting the MIPI
+> +		 * CSI-2 virtual channel number to route to the CSIs.
+> +		 */
+> +		bit = GPR13_IPUV3HDL_CSI_MUX_CTL_SHIFT + csi->id * 3;
+> +		val = select_mipi_csi2 ? vc << bit : 4 << bit;
+> +		regmap_update_bits(ipu->gp_reg, IOMUXC_GPR13,
+> +				   0x7 << bit, val);
+> +	} else if (csi->ipu->ipu_type == IPUV3H) {
+> +		/*
+> +		 * For Q/D, the mux only exists on IPU0-CSI0 and IPU1-CSI1,
+> +		 * and the routed virtual channel numbers are fixed at 0 and
+> +		 * 3 respectively.
+> +		 */
+> +		if ((ipu_id == 0 && csi->id == 0) ||
+> +		    (ipu_id == 1 && csi->id == 1)) {
+> +			bit = GPR1_IPU_CSI_MUX_CTL_SHIFT + csi->ipu->id;
+> +			val = select_mipi_csi2 ? 0 : 1 << bit;
+> +			regmap_update_bits(ipu->gp_reg, IOMUXC_GPR1,
+> +					   0x1 << bit, val);
+> +		}
+> +	} else {
+> +		dev_err(csi->ipu->dev,
+> +			"ERROR: %s: unsupported CPU version!\n",
+> +			__func__);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/*
+> +	 * there is another mux in the IPU config register that
+> +	 * must be set as well
+> +	 */
+> +	ipu_set_csi_src_mux(ipu, csi->id, select_mipi_csi2);
 
-Thanks,
-Mauro
+This is not a property of the IPU but how the IPU is integrated into the
+SoC. I'm unsure this should be integrated like this, it sounds more like
+a job for mediactrl.
 
-The following changes since commit 85ac1a1772bb41da895bad83a81f6a62c8f293f6:
+> +#include <linux/types.h>
+> +#include <linux/init.h>
+> +#include <linux/errno.h>
+> +#include <linux/spinlock.h>
+> +#include <linux/videodev2.h>
+> +#include <linux/bitrev.h>
+> +#include <linux/io.h>
+> +#include <linux/err.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/clk.h>
+> +#include <linux/clk-provider.h>
+> +#include <linux/clkdev.h>
 
-  [media] media: stk1160: Avoid stack-allocated buffer for control URBs (2014-05-24 17:12:11 -0300)
+Please clean up the include list. There is nothing used from
+clk-provider.h for example.
 
-are available in the git repository at:
+> +static int init_csc(struct ipu_ic *ic,
+> +		    enum ipu_color_space in_format,
+> +		    enum ipu_color_space out_format,
+> +		    int csc_index);
+> +static int calc_resize_coeffs(struct ipu_ic *ic,
+> +			      u32 in_size, u32 out_size,
+> +			      u32 *resize_coeff,
+> +			      u32 *downsize_coeff);
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media topic/omap3isp
+Please reorder functions to get rid of static function declarations.
 
-for you to fetch changes up to 21d8582d480443574d6a8811e25ccb65dff974d5:
+Sascha
 
-  [media] omap3isp: Rename isp_buffer isp_addr field to dma (2014-05-25 11:40:09 -0300)
-
-----------------------------------------------------------------
-Laurent Pinchart (26):
-      [media] omap3isp: stat: Rename IS_COHERENT_BUF to ISP_STAT_USES_DMAENGINE
-      [media] omap3isp: stat: Remove impossible WARN_ON
-      [media] omap3isp: stat: Share common code for buffer allocation
-      [media] omap3isp: stat: Merge dma_addr and iommu_addr fields
-      [media] omap3isp: stat: Store sg table in ispstat_buffer
-      [media] omap3isp: stat: Use the DMA API
-      [media] omap3isp: ccdc: Use the DMA API for LSC
-      [media] omap3isp: ccdc: Use the DMA API for FPC
-      [media] omap3isp: video: Set the buffer bytesused field at completion time
-      [media] omap3isp: queue: Move IOMMU handling code to the queue
-      [media] omap3isp: queue: Use sg_table structure
-      [media] omap3isp: queue: Merge the prepare and sglist functions
-      [media] omap3isp: queue: Inline the ispmmu_v(un)map functions
-      [media] omap3isp: queue: Allocate kernel buffers with dma_alloc_coherent
-      [media] omap3isp: queue: Fix the dma_map_sg() return value check
-      [media] omap3isp: queue: Map PFNMAP buffers to device
-      [media] omap3isp: queue: Use sg_alloc_table_from_pages()
-      [media] omap3isp: Use the ARM DMA IOMMU-aware operations
-      [media] omap3isp: queue: Don't build scatterlist for kernel buffer
-      [media] omap3isp: Move queue mutex to isp_video structure
-      [media] omap3isp: Move queue irqlock to isp_video structure
-      [media] omap3isp: Move buffer irqlist to isp_buffer structure
-      [media] omap3isp: Cancel all queued buffers when stopping the video stream
-      [media] v4l: vb2: Add a function to discard all DONE buffers
-      [media] omap3isp: Move to videobuf2
-      [media] omap3isp: Rename isp_buffer isp_addr field to dma
-
-Mauro Carvalho Chehab (1):
-      Merge branch 'arm/omap' of git://git.kernel.org/.../joro/iommu into topic/omap3isp
-
- drivers/iommu/omap-iommu.c                    |   31 +-
- drivers/iommu/omap-iopgtable.h                |    3 -
- drivers/media/platform/Kconfig                |    4 +-
- drivers/media/platform/omap3isp/Makefile      |    2 +-
- drivers/media/platform/omap3isp/isp.c         |  108 ++-
- drivers/media/platform/omap3isp/isp.h         |    8 +-
- drivers/media/platform/omap3isp/ispccdc.c     |  107 ++-
- drivers/media/platform/omap3isp/ispccdc.h     |   16 +-
- drivers/media/platform/omap3isp/ispccp2.c     |    4 +-
- drivers/media/platform/omap3isp/ispcsi2.c     |    4 +-
- drivers/media/platform/omap3isp/isph3a_aewb.c |    2 +-
- drivers/media/platform/omap3isp/isph3a_af.c   |    2 +-
- drivers/media/platform/omap3isp/isppreview.c  |    8 +-
- drivers/media/platform/omap3isp/ispqueue.c    | 1161 -------------------------
- drivers/media/platform/omap3isp/ispqueue.h    |  188 ----
- drivers/media/platform/omap3isp/ispresizer.c  |    8 +-
- drivers/media/platform/omap3isp/ispstat.c     |  197 ++---
- drivers/media/platform/omap3isp/ispstat.h     |    3 +-
- drivers/media/platform/omap3isp/ispvideo.c    |  325 +++----
- drivers/media/platform/omap3isp/ispvideo.h    |   29 +-
- drivers/media/v4l2-core/videobuf2-core.c      |   24 +
- drivers/staging/media/omap4iss/iss_video.c    |    2 +-
- include/media/videobuf2-core.h                |    1 +
- 23 files changed, 470 insertions(+), 1767 deletions(-)
- delete mode 100644 drivers/media/platform/omap3isp/ispqueue.c
- delete mode 100644 drivers/media/platform/omap3isp/ispqueue.h
-
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
