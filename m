@@ -1,120 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54847 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751062AbaF2TRY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Jun 2014 15:17:24 -0400
-Message-ID: <53B0663B.9080806@iki.fi>
-Date: Sun, 29 Jun 2014 22:17:15 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Anil Belur <askb23@gmail.com>, m.chehab@samsung.com,
-	gregkh@linuxfoundation.org
-CC: devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/1] staging: media: msi3101: sdr-msi3101.c - replace
- with time_before_eq()
-References: <1404019216-4726-1-git-send-email-askb23@gmail.com>
-In-Reply-To: <1404019216-4726-1-git-send-email-askb23@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42165 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755626AbaFKLWi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jun 2014 07:22:38 -0400
+Message-ID: <1402485756.4107.111.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH 06/43] imx-drm: ipu-v3: Add functions to set CSI/IC
+ source muxes
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Wed, 11 Jun 2014 13:22:36 +0200
+In-Reply-To: <1402178205-22697-7-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+	 <1402178205-22697-7-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
-That is already fixed by someone else and patch is somewhere Mauro or 
-Hans queue.
+Am Samstag, den 07.06.2014, 14:56 -0700 schrieb Steve Longerbeam:
+> Adds two new functions, ipu_set_csi_src_mux() and ipu_set_ic_src_mux(),
+> that select the inputs to the CSI and IC respectively. Both muxes are
+> programmed in the IPU_CONF register.
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
 
 regards
-Antti
+Philipp
 
-On 06/29/2014 08:20 AM, Anil Belur wrote:
-> From: Anil Belur <askb23@gmail.com>
->
-> - this fix replaces jiffies interval comparision with safer function to
->    avoid any overflow and wrap around ?
->
-> Signed-off-by: Anil Belur <askb23@gmail.com>
-> ---
->   drivers/staging/media/msi3101/sdr-msi3101.c | 16 ++++++++++++----
->   1 file changed, 12 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-> index 08d0d09..b828857 100644
-> --- a/drivers/staging/media/msi3101/sdr-msi3101.c
-> +++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-> @@ -180,6 +180,7 @@ static int msi3101_convert_stream_504(struct msi3101_state *s, u8 *dst,
->   {
->   	int i, i_max, dst_len = 0;
->   	u32 sample_num[3];
-> +	unsigned long expires;
->
->   	/* There could be 1-3 1024 bytes URB frames */
->   	i_max = src_len / 1024;
-> @@ -208,7 +209,8 @@ static int msi3101_convert_stream_504(struct msi3101_state *s, u8 *dst,
->   	}
->
->   	/* calculate samping rate and output it in 10 seconds intervals */
-> -	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
-> +	expires = s->jiffies_next + msecs_to_jiffies(10000);
-> +	if (time_before_eq(expires, jiffies)) {
->   		unsigned long jiffies_now = jiffies;
->   		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
->   		unsigned int samples = sample_num[i_max - 1] - s->sample;
-> @@ -332,6 +334,7 @@ static int msi3101_convert_stream_384(struct msi3101_state *s, u8 *dst,
->   {
->   	int i, i_max, dst_len = 0;
->   	u32 sample_num[3];
-> +	unsigned long expires;
->
->   	/* There could be 1-3 1024 bytes URB frames */
->   	i_max = src_len / 1024;
-> @@ -360,7 +363,8 @@ static int msi3101_convert_stream_384(struct msi3101_state *s, u8 *dst,
->   	}
->
->   	/* calculate samping rate and output it in 10 seconds intervals */
-> -	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
-> +	expires = s->jiffies_next + msecs_to_jiffies(10000);
-> +	if (time_before_eq(expires, jiffies)) {
->   		unsigned long jiffies_now = jiffies;
->   		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
->   		unsigned int samples = sample_num[i_max - 1] - s->sample;
-> @@ -397,6 +401,7 @@ static int msi3101_convert_stream_336(struct msi3101_state *s, u8 *dst,
->   {
->   	int i, i_max, dst_len = 0;
->   	u32 sample_num[3];
-> +	unsigned long expires;
->
->   	/* There could be 1-3 1024 bytes URB frames */
->   	i_max = src_len / 1024;
-> @@ -425,7 +430,8 @@ static int msi3101_convert_stream_336(struct msi3101_state *s, u8 *dst,
->   	}
->
->   	/* calculate samping rate and output it in 10 seconds intervals */
-> -	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
-> +	expires = s->jiffies_next + msecs_to_jiffies(10000);
-> +	if (time_before_eq(expires, jiffies)) {
->   		unsigned long jiffies_now = jiffies;
->   		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
->   		unsigned int samples = sample_num[i_max - 1] - s->sample;
-> @@ -460,6 +466,7 @@ static int msi3101_convert_stream_252(struct msi3101_state *s, u8 *dst,
->   {
->   	int i, i_max, dst_len = 0;
->   	u32 sample_num[3];
-> +	unsigned long expires;
->
->   	/* There could be 1-3 1024 bytes URB frames */
->   	i_max = src_len / 1024;
-> @@ -488,7 +495,8 @@ static int msi3101_convert_stream_252(struct msi3101_state *s, u8 *dst,
->   	}
->
->   	/* calculate samping rate and output it in 10 seconds intervals */
-> -	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
-> +	expires = s->jiffies_next + msecs_to_jiffies(10000);
-> +	if (time_before_eq(expires, jiffies)) {
->   		unsigned long jiffies_now = jiffies;
->   		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
->   		unsigned int samples = sample_num[i_max - 1] - s->sample;
->
-
--- 
-http://palosaari.fi/
