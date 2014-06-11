@@ -1,105 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:35243 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752341AbaFWIp4 (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2760 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751619AbaFKCnt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jun 2014 04:45:56 -0400
-Message-ID: <53A7E93B.4060007@canonical.com>
-Date: Mon, 23 Jun 2014 10:45:47 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-MIME-Version: 1.0
-To: Thierry Reding <thierry.reding@gmail.com>,
-	Daniel Vetter <daniel@ffwll.ch>
-CC: Greg KH <gregkh@linuxfoundation.org>, linux-arch@vger.kernel.org,
-	Thomas Hellstrom <thellstrom@vmware.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"Clark, Rob" <robdclark@gmail.com>,
-	Colin Cross <ccross@google.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [REPOST PATCH 4/8] android: convert sync to fence api, v5
-References: <20140618102957.15728.43525.stgit@patser> <20140618103711.15728.97842.stgit@patser> <20140619011556.GE10921@kroah.com> <20140619063727.GL5821@phenom.ffwll.local> <20140619114825.GB28111@ulmo> <CAKMK7uE_B3pCZB9orh5+BJGooNfyEa0APrZqRpXqYu5xfQ0PCQ@mail.gmail.com> <20140620205252.GC28814@mithrandir>
-In-Reply-To: <20140620205252.GC28814@mithrandir>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Tue, 10 Jun 2014 22:43:49 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5B2hig5022908
+	for <linux-media@vger.kernel.org>; Wed, 11 Jun 2014 04:43:46 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 39B6C2A1FCB
+	for <linux-media@vger.kernel.org>; Wed, 11 Jun 2014 04:43:39 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140611024339.39B6C2A1FCB@tschai.lan>
+Date: Wed, 11 Jun 2014 04:43:39 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-op 20-06-14 22:52, Thierry Reding schreef:
-> On Thu, Jun 19, 2014 at 02:28:14PM +0200, Daniel Vetter wrote:
->> On Thu, Jun 19, 2014 at 1:48 PM, Thierry Reding
->> <thierry.reding@gmail.com> wrote:
->>>>> With these changes, can we pull the android sync logic out of
->>>>> drivers/staging/ now?
->>>> Afaik the google guys never really looked at this and acked it. So I'm not
->>>> sure whether they'll follow along. The other issue I have as the
->>>> maintainer of gfx driver is that I don't want to implement support for two
->>>> different sync object primitives (once for dma-buf and once for android
->>>> syncpts), and my impression thus far has been that even with this we're
->>>> not there.
->>>>
->>>> I'm trying to get our own android guys to upstream their i915 syncpts
->>>> support, but thus far I haven't managed to convince them to throw people's
->>>> time at this.
->>> This has been discussed a fair bit internally recently and some of our
->>> GPU experts have raised concerns that this may result in seriously
->>> degraded performance in our proprietary graphics stack. Now I don't care
->>> very much for the proprietary graphics stack, but by extension I would
->>> assume that the same restrictions are relevant for any open-source
->>> driver as well.
->>>
->>> I'm still trying to fully understand all the implications and at the
->>> same time get some of the people who raised concerns to join in this
->>> discussion. As I understand it the concern is mostly about explicit vs.
->>> implicit synchronization and having this mechanism in the kernel will
->>> implicitly synchronize all accesses to these buffers even in cases where
->>> it's not needed (read vs. write locks, etc.). In one particular instance
->>> it was even mentioned that this kind of implicit synchronization can
->>> lead to deadlocks in some use-cases (this was mentioned for Android
->>> compositing, but I suspect that the same may happen for Wayland or X
->>> compositors).
->> Well the implicit fences here actually can't deadlock. That's the
->> entire point behind using ww mutexes. I've also heard tons of
->> complaints about implicit enforced syncing (especially from opencl
->> people), but in the end drivers and always expose unsynchronized
->> access for specific cases. We do that in i915 for upload buffers and
->> other fun stuff. This is about shared stuff across different drivers
->> and different processes.
-> Tegra K1 needs to share buffers across different drivers even for very
-> basic use-cases since the GPU and display drivers are separate. So while
-> I agree that the GPU driver can still use explicit synchronization for
-> internal work, things aren't that simple in general.
->
-> Let me try to reconstruct the use-case that caused the lock on Android:
-> the compositor uses a hardware overlay to display an image. The system
-> detects that there's little activity and instructs the compositor to put
-> everything into one image and scan out only that (for power efficiency).
-> Now with implicit locking the display driver has a lock on the image, so
-> the GPU (used for compositing) needs to wait for it before it can
-> composite everything into one image. But the display driver cannot
-> release the lock on the image until the final image has been composited
-> and can be displayed instead.
->
-> This may not be technically a deadlock, but it's still a stalemate.
-> Unless I'm missing something fundamental about DMA fences and ww mutexes
-> I don't see how you can get out of this situation.
-This sounds like a case for implicit shared fences. ;-) Reading and scanning out would
-only wait for the last 'exclusive' fence, not on each other.
+Results of the daily build of media_tree:
 
-But in drivers/drm I can encounter a similar issue, people expect to be able to
-overwrite the contents of the currently displayed buffer, so I 'solved' it by not adding
-a fence on the buffer, only by waiting for buffer idle before page flipping.
-The rationale is that the buffer is pinned internally, and the backing storage cannot
-go away until dma_buf_unmap_attachment is called. So when you render to the
-current front buffer without queuing a page flip you get exactly what you expect. ;-)
+date:		Wed Jun 11 04:00:25 CEST 2014
+git branch:	test
+git hash:	5ea878796f0a1d9649fe43a6a09df53d3915c0ef
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
-> Explicit vs. implicit synchronization may also become more of an issue
-> as buffers are imported from other sources (such as cameras).
-Yeah, but the kernel space primitives would in both cases be the same, so drivers don't need to implement 2 separate fencing mechanisms for that. :-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
-~Maarten
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
