@@ -1,67 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58938 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754272AbaFDXqD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jun 2014 19:46:03 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Subject: Re: [PATCH v2 5/5] [media] mt9v032: use regmap
-Date: Thu, 05 Jun 2014 01:46:30 +0200
-Message-ID: <31156187.YWNhTMUHSc@avalon>
-In-Reply-To: <1401900328.3447.41.camel@paszta.hi.pengutronix.de>
-References: <1401788155-3690-1-git-send-email-p.zabel@pengutronix.de> <2116541.LBf4Vp52ig@avalon> <1401900328.3447.41.camel@paszta.hi.pengutronix.de>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4110 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752571AbaFKIZ2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jun 2014 04:25:28 -0400
+Message-ID: <5398122F.3060402@xs4all.nl>
+Date: Wed, 11 Jun 2014 10:24:15 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Scott Doty <scott@ponzo.net>
+CC: linux-media@vger.kernel.org, ryleyjangus@gmail.com,
+	kpyle@austin.rr.com
+Subject: Re: hdpvr troubles
+References: <538D2392.6030301@ponzo.net>
+In-Reply-To: <538D2392.6030301@ponzo.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
-
-On Wednesday 04 June 2014 18:45:28 Philipp Zabel wrote:
-> Am Mittwoch, den 04.06.2014, 17:44 +0200 schrieb Laurent Pinchart:
-> > On Tuesday 03 June 2014 11:35:55 Philipp Zabel wrote:
-> > > This switches all register accesses to use regmap. It allows to
-> > > use the regmap cache, tracing, and debug register dump facilities,
-> > > and removes the need to open code read-modify-writes.
-> > > 
-> > > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > 
-> > This looks good to me, but I have two small questions:
-> > 
-> > - How does regmap handle endianness ? It seems to hardcode a big endian
-> > byte order, which is fortunately what we need here.
+On 06/03/14 03:23, Scott Doty wrote:
+> Hello Mr. Hans and mailing list,
 > 
-> We could set regmap_config->val_format_endian = REGMAP_ENDIAN_BIG.
-> This defaults to big endian unless the regmap_bus says otherwise
-> (regmap-i2c doesn't).
-
-OK, thank you for the information.
-
-> > I suppose you've successfully tested this patch :-)
+> In a nutshell, I'm having some hdpvr trouble:
 > 
-> Yes.
+> I'm using vlc to view the stream.  Kernel 3.9.11 works pretty well,
+> including giving me AC3 5.1 audio from the optical input to the
+> Hauppauge device.  The only problem I've run across is the device
+> hanging when I change channels, but I've learned to live with that. 
+> (Though naturally it would be nice to fix. :) )
 > 
-> > - How does regmap handle the register cache ? Will it try to populate it
-> > when initialized, or will it only read registers on demand due to a read
-> > or an update bits operation ?
+> However, every kernel I've tried after 3.9.11 seems to have trouble with
+> the audio.  I get silence, and pulseaudio reports there is only stereo. 
+> I've taken a couple of of snapshots of pavucontrol so you can see what I
+> mean:
 > 
-> That depends on the cache implementation. regcache-rbtree has a
-> cache_present bitmap per node. As long as the corresponding bit is not
-> set, regcache_read will return -ENOENT and regmap_read will then do an
-> actual register read (and store the result in the cache).
+>    http://imgur.com/a/SIwc7
 > 
-> regcache-flat doesn't have this at all, so it would be necessary to
-> provide initial register values in the driver or explicitly read back
-> from the hardware during initialization. This is also be possible with
-> the rbtree cache.
+> I even tried a git bisect to try to narrow down where things went awry,
+> but ran out of time to pursue the question.  But as far as I can tell,
+> 3.9.11 is as far as I can go before my system won't use the device properly.
+> 
+> I see the conversation in the archives from around the middle of May,
+> where Hans was working with Ryley and Keith, but I'm not sure if I
+> should apply that patch or not.  I would love to make this work,
+> including submitting a patch if someone could outline where the problem
+> might be.
+> 
+> Thank you in advance for any help you can provide, and please let me
+> know if I can send any more information. :)
 
-That sounds good to me. I'll apply your rebased version.
+You can certainly try this patch:
 
--- 
+https://patchwork.linuxtv.org/patch/23890/
+
+Nobody else reported audio problems other than the issue this patch tries
+to resolve. However, that problem most likely has been with hdpvr since
+the very beginning.
+
+There were some major changes made to the driver in 3.10, so that makes me
+suspect that something might have broken. Odd though that I didn't see any
+reports about that.
+
+Keith, Ryley, if you run v4l2-ctl -D, what is the version number that is
+reported?
+
+If it is >= 3.10, then can you test with vlc as well?
+
 Regards,
 
-Laurent Pinchart
-
+	Hans
