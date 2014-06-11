@@ -1,132 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47310 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753398AbaFWXyI (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:60357 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753971AbaFKJow (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jun 2014 19:54:08 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH v2 12/23] v4l: vsp1: Setup control handler automatically at stream on time
-Date: Tue, 24 Jun 2014 01:54:18 +0200
-Message-Id: <1403567669-18539-13-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Wed, 11 Jun 2014 05:44:52 -0400
+MIME-Version: 1.0
+In-Reply-To: <20140611073108.GE16443@mwanda>
+References: <20140611073108.GE16443@mwanda>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 11 Jun 2014 10:44:20 +0100
+Message-ID: <CA+V-a8vhEyNdQRqNrzRV=t-D+uh6rCEY5-qLjTOWDfHwUai1Kg@mail.gmail.com>
+Subject: Re: [patch] [media] davinci: vpif: missing unlocks on error
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When setting a control directly on a subdev node the VSP1 driver doesn't
-guarantee that the device is powered on. This leads to crashes when the
-control handlers writes to hardware registers. One easy way to fix this
-is to ensure that the device gets powered on when a subdev node is
-opened. However, this consumes power unnecessarily, as there's no need
-to power the device on when setting formats on the pipeline.
-Furthermore, control handler setup at entity init time suffers from the
-same problem as the device isn't powered on easier.
+Hi Dan,
 
-Fix this by extend the entity base object to setup the control handler
-automatically when starting the stream. Entities must then skip writing
-to registers in the set control handler when not streaming, which can be
-tested with the new vsp1_entity_is_streaming() helper function.
+Thanks for the patch.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_entity.c | 39 +++++++++++++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_entity.h |  7 ++++++
- 2 files changed, 46 insertions(+)
+On Wed, Jun 11, 2014 at 8:31 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> We recently changed some locking around so we need some new unlocks on
+> the error paths.
+>
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+> Please review this one carefully.  I don't know if the unlock should go
+> before or after the list_for_each_entry_safe() loop.
+>
+Yes the unlock should go after the list_for_each_entry_safe() loop
+please respin another version fixing it.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index ceac0d7..79af71d 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -22,6 +22,41 @@
- #include "vsp1_entity.h"
- #include "vsp1_video.h"
- 
-+bool vsp1_entity_is_streaming(struct vsp1_entity *entity)
-+{
-+	bool streaming;
-+
-+	mutex_lock(&entity->lock);
-+	streaming = entity->streaming;
-+	mutex_unlock(&entity->lock);
-+
-+	return streaming;
-+}
-+
-+int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
-+{
-+	int ret;
-+
-+	mutex_lock(&entity->lock);
-+	entity->streaming = streaming;
-+	mutex_unlock(&entity->lock);
-+
-+	if (!streaming)
-+		return 0;
-+
-+	if (!entity->subdev.ctrl_handler)
-+		return 0;
-+
-+	ret = v4l2_ctrl_handler_setup(entity->subdev.ctrl_handler);
-+	if (ret < 0) {
-+		mutex_lock(&entity->lock);
-+		entity->streaming = false;
-+		mutex_unlock(&entity->lock);
-+	}
-+
-+	return ret;
-+}
-+
- /* -----------------------------------------------------------------------------
-  * V4L2 Subdevice Operations
-  */
-@@ -158,6 +193,8 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
- 	if (i == ARRAY_SIZE(vsp1_routes))
- 		return -EINVAL;
- 
-+	mutex_init(&entity->lock);
-+
- 	entity->vsp1 = vsp1;
- 	entity->source_pad = num_pads - 1;
- 
-@@ -191,4 +228,6 @@ void vsp1_entity_destroy(struct vsp1_entity *entity)
- 	if (entity->subdev.ctrl_handler)
- 		v4l2_ctrl_handler_free(entity->subdev.ctrl_handler);
- 	media_entity_cleanup(&entity->subdev.entity);
-+
-+	mutex_destroy(&entity->lock);
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index f0257f6..aa20aaa 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -14,6 +14,7 @@
- #define __VSP1_ENTITY_H__
- 
- #include <linux/list.h>
-+#include <linux/mutex.h>
- 
- #include <media/v4l2-subdev.h>
- 
-@@ -71,6 +72,9 @@ struct vsp1_entity {
- 	struct v4l2_mbus_framefmt *formats;
- 
- 	struct vsp1_video *video;
-+
-+	struct mutex lock;		/* Protects the streaming field */
-+	bool streaming;
- };
- 
- static inline struct vsp1_entity *to_vsp1_entity(struct v4l2_subdev *subdev)
-@@ -92,4 +96,7 @@ vsp1_entity_get_pad_format(struct vsp1_entity *entity,
- void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
- 			      struct v4l2_subdev_fh *fh);
- 
-+bool vsp1_entity_is_streaming(struct vsp1_entity *entity);
-+int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming);
-+
- #endif /* __VSP1_ENTITY_H__ */
--- 
-1.8.5.5
+Thanks,
+--Prabhakar Lad
 
+> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+> index a7ed164..2c08fbd 100644
+> --- a/drivers/media/platform/davinci/vpif_capture.c
+> +++ b/drivers/media/platform/davinci/vpif_capture.c
+> @@ -265,6 +265,8 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+>         return 0;
+>
+>  err:
+> +       spin_unlock_irqrestore(&common->irqlock, flags);
+> +
+>         list_for_each_entry_safe(buf, tmp, &common->dma_queue, list) {
+>                 list_del(&buf->list);
+>                 vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
+> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+> index 5bb085b..b7b2bdf 100644
+> --- a/drivers/media/platform/davinci/vpif_display.c
+> +++ b/drivers/media/platform/davinci/vpif_display.c
+> @@ -229,6 +229,8 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+>         return 0;
+>
+>  err:
+> +       spin_unlock_irqrestore(&common->irqlock, flags);
+> +
+>         list_for_each_entry_safe(buf, tmp, &common->dma_queue, list) {
+>                 list_del(&buf->list);
+>                 vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
