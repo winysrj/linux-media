@@ -1,35 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:54300 "EHLO
-	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751888AbaF0Rjv (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:37894 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750825AbaFKF4S (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jun 2014 13:39:51 -0400
-Date: Fri, 27 Jun 2014 10:44:00 -0700
-From: Greg KH <greg@kroah.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: stable@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [git:media_tree/master] [media] saa7134: fix regression with
- tvtime
-Message-ID: <20140627174400.GA1368@kroah.com>
-References: <E1WkFfc-0005NC-OA@www.linuxtv.org>
- <53AD9081.9090605@xs4all.nl>
+	Wed, 11 Jun 2014 01:56:18 -0400
+Date: Wed, 11 Jun 2014 07:56:16 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Jiada Wang <jiada_wang@mentor.com>
+Subject: Re: [PATCH 30/43] ARM: dts: imx6: add pin groups for imx6q/dl for
+ IPU1 CSI0
+Message-ID: <20140611055616.GB664@pengutronix.de>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+ <1402178205-22697-31-git-send-email-steve_longerbeam@mentor.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <53AD9081.9090605@xs4all.nl>
+In-Reply-To: <1402178205-22697-31-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 27, 2014 at 05:40:49PM +0200, Hans Verkuil wrote:
-> Is this in the queue for v3.14 and 3.15? I haven't seen any email about it
-> being added to either of those kernels, but the patch should have been mailed
-> to the stable mailinglist. It has been merged into 3.16.
+On Sat, Jun 07, 2014 at 02:56:32PM -0700, Steve Longerbeam wrote:
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> Signed-off-by: Jiada Wang <jiada_wang@mentor.com>
+> ---
+>  arch/arm/boot/dts/imx6qdl.dtsi |   52 ++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 52 insertions(+)
 > 
-> Was it perhaps missed somehow?
+> diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+> index 04c978c..d793cd6 100644
+> --- a/arch/arm/boot/dts/imx6qdl.dtsi
+> +++ b/arch/arm/boot/dts/imx6qdl.dtsi
+> @@ -664,6 +664,58 @@
+>  			iomuxc: iomuxc@020e0000 {
+>  				compatible = "fsl,imx6dl-iomuxc", "fsl,imx6q-iomuxc";
+>  				reg = <0x020e0000 0x4000>;
+> +
+> +				ipu1 {
+> +					pinctrl_ipu1_csi0_d4_d7: ipu1-csi0-d4-d7 {
+> +						fsl,pins = <
+> +							MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04 0x80000000
+> +							MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05 0x80000000
+> +							MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06 0x80000000
+> +							MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07 0x80000000
+> +						>;
+> +					};
 
-It's in my "to-apply" queue for stable patches, which right now is over
-233 patches long.  It is not lost and will gotten to soon.
+We no longer have the pinctrl groups in the SoC dts files. Please put
+them into the boards instead.
 
-thanks,
+Sascha
 
-greg k-h
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
