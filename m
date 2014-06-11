@@ -1,55 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp205.alice.it ([82.57.200.101]:48096 "EHLO smtp205.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932186AbaFCN7d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Jun 2014 09:59:33 -0400
-Date: Tue, 3 Jun 2014 15:59:30 +0200
-From: Antonio Ospite <ao2@ao2.it>
-To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ao2@ao2.it>, Gregor Jasny <gjasny@googlemail.com>
-Subject: Re: [PATCH] libv4lconvert: Fix a regression when converting from
- Y10B
-Message-Id: <20140603155930.f72e14f4aab39ec49bdb1b71@ao2.it>
-In-Reply-To: <1401803326-31942-1-git-send-email-ao2@ao2.it>
-References: <1401803326-31942-1-git-send-email-ao2@ao2.it>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:48269 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755046AbaFKLix (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jun 2014 07:38:53 -0400
+Message-ID: <1402486732.4107.128.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH 32/43] ARM: dts: imx: sabrelite: add video capture ports
+ and endpoints
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Wed, 11 Jun 2014 13:38:52 +0200
+In-Reply-To: <1402178205-22697-33-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+	 <1402178205-22697-33-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue,  3 Jun 2014 15:48:46 +0200
-Antonio Ospite <ao2@ao2.it> wrote:
+Am Samstag, den 07.06.2014, 14:56 -0700 schrieb Steve Longerbeam:
+[...]
+> +&ipu1 {
+> +	status = "okay";
+> +
+> +	v4l2-capture {
+> +		compatible = "fsl,imx6-v4l2-capture";
 
-> Fix a regression introduced in commit
-> efc29f1764a30808ebf7b3e1d9bfa27b909bf641 (libv4lconvert: Reject too
-> short source buffer before accessing it).
-> 
-> The old code:
-> 
-> case V4L2_PIX_FMT_Y10BPACK:
-> 	...
-> 	if (result == 0 && src_size < (width * height * 10 / 8)) {
-> 		V4LCONVERT_ERR("short y10b data frame\n");
-> 		errno = EPIPE;
-> 		result = -1;
-> 	}
-> 	...
-> 
-> meant to say "If the conversion was *successful* _but_ the frame size
-> was invalid, then take the error path", but in
-> efc29f1764a30808ebf7b3e1d9bfa27b909bf641 this (maybe weird) logic was
-> misunderstood and the v4lconvert_convert_pixfmt() was made to return an
-                    ^^^
-Dear committer, you can remove this "the", if you feel like it :)
+I'm not happy with adding the simple-bus compatible to the ipu
+device tree node just to instantiate a virtual subdevice. See
+my comment in the following mail. I think it would be better to
+create this platform device from code, not from the device tree
+if something is connected to ipu port@0 or port@1, see below.
 
-Thanks,
-   Antonio
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +		status = "okay";
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <
+> +			&pinctrl_ipu1_csi0_1
+> +			&pinctrl_ipu1_csi0_data_en
+> +		>;
+> +
+> +		/* CSI0 */
+> +		port@0 {
 
--- 
-Antonio Ospite
-http://ao2.it
+That port really is a property of the IPU itself. I have left
+space for ports 0 and 1 when specifying the IPU output interfaces
+as port 2 (DI0) and 3 (DI1).
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
+regards
+Philipp
+
