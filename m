@@ -1,36 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50463 "EHLO mail.kapsi.fi"
+Received: from comal.ext.ti.com ([198.47.26.152]:46290 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754332AbaFLAXN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jun 2014 20:23:13 -0400
-Message-ID: <5398F2ED.4080309@iki.fi>
-Date: Thu, 12 Jun 2014 03:23:09 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1751965AbaFKOmm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jun 2014 10:42:42 -0400
+Message-ID: <53986ABC.4070302@ti.com>
+Date: Wed, 11 Jun 2014 09:42:04 -0500
+From: Nishanth Menon <nm@ti.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	=?ISO-8859-1?Q?Frank_?= =?ISO-8859-1?Q?Sch=E4fer?=
-	<fschaefer.oss@googlemail.com>, LMML <linux-media@vger.kernel.org>
-Subject: em28xx submit of urb 0 failed (error=-27)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Arnd Bergmann <arnd@arndb.de>, <gregkh@linuxfoundation.org>
+CC: Tony Lindgren <tony@atomide.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<linux-omap@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <arm@kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
+References: <5192928.MkINji4uKU@wuerfel>
+In-Reply-To: <5192928.MkINji4uKU@wuerfel>
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do you have any idea about that bug?
-kernel: submit of urb 0 failed (error=-27)
+On 06/11/2014 09:35 AM, Arnd Bergmann wrote:
+> The OMAP4 camera support depends on I2C and VIDEO_V4L2, both
+> of which can be loadable modules. This causes build failures
+> if we want the camera driver to be built-in.
+> 
+> This can be solved by turning the option into "tristate",
+> which unfortunately causes another problem, because the
+> driver incorrectly calls a platform-internal interface
+> for omap4_ctrl_pad_readl/omap4_ctrl_pad_writel.
+> To work around that, we can export those symbols, but
+> that isn't really the correct solution, as we should not
+> have dependencies on platform code this way.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+> This is one of just two patches we currently need to get
+> 'make allmodconfig' to build again on ARM.
+> 
+> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+> index 751f354..05d2d98 100644
+> --- a/arch/arm/mach-omap2/control.c
+> +++ b/arch/arm/mach-omap2/control.c
+> @@ -190,11 +190,13 @@ u32 omap4_ctrl_pad_readl(u16 offset)
+>  {
+>  	return readl_relaxed(OMAP4_CTRL_PAD_REGADDR(offset));
+>  }
+> +EXPORT_SYMBOL_GPL(omap4_ctrl_pad_readl);
+>  
+>  void omap4_ctrl_pad_writel(u32 val, u16 offset)
+>  {
+>  	writel_relaxed(val, OMAP4_CTRL_PAD_REGADDR(offset));
+>  }
+> +EXPORT_SYMBOL_GPL(omap4_ctrl_pad_writel);
+>  
+>  #ifdef CONFIG_ARCH_OMAP3
+>  
+> diff --git a/drivers/staging/media/omap4iss/Kconfig b/drivers/staging/media/omap4iss/Kconfig
+> index 78b0fba..0c3e3c1 100644
+> --- a/drivers/staging/media/omap4iss/Kconfig
+> +++ b/drivers/staging/media/omap4iss/Kconfig
+> @@ -1,5 +1,5 @@
+>  config VIDEO_OMAP4
+> -	bool "OMAP 4 Camera support"
+> +	tristate "OMAP 4 Camera support"
+>  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C && ARCH_OMAP4
+>  	select VIDEOBUF2_DMA_CONTIG
+>  	---help---
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-https://bugzilla.kernel.org/show_bug.cgi?id=72891
-
-I have seen it recently very often when I try start streaming DVB. When 
-it happens, device is unusable. I have feeling that it could be coming 
-from recent 28xx big changes where it was modularised. IIRC I reported 
-that at the time and Mauro added error number printing to log entry. 
-Anyhow, it is very annoying and occurs very often. And people have 
-started pinging me as I have added very many DVB devices to em28xx.
-
-regards
-Antti
-
+This was discussed in detail here:
+http://marc.info/?t=140198692500001&r=1&w=2
+Direct dependency from a staging driver to mach-omap2 driver is not
+something we'd like, right?
 
 -- 
-http://palosaari.fi/
+Regards,
+Nishanth Menon
