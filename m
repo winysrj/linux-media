@@ -1,39 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4787 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754896AbaFPJY4 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:48265 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751208AbaFKLid (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 05:24:56 -0400
-Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5G9OqjQ004220
-	for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 11:24:54 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0980E2A1FCC
-	for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 11:24:40 +0200 (CEST)
-Message-ID: <539EB7D7.3000003@xs4all.nl>
-Date: Mon, 16 Jun 2014 11:24:39 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [RFC ATTN] Remove vbi-test.c, v4lgrab.c and qv4l2-qt3 from v4l-utils
-Content-Type: text/plain; charset=UTF-8
+	Wed, 11 Jun 2014 07:38:33 -0400
+Message-ID: <1402486711.4107.127.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH 31/43] ARM: dts: imx6qdl: Flesh out MIPI CSI2 receiver
+ node
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Wed, 11 Jun 2014 13:38:31 +0200
+In-Reply-To: <1402178205-22697-32-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+	 <1402178205-22697-32-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Is there any objection if the vbi-test.c and v4lgrab.c utilities are removed from
-the v4l-utils.git? The v4lgrab.c is a v4l1 capture utility that no longer works
-since CONFIG_VIDEO_V4L1_COMPAT no longer exists.
+Am Samstag, den 07.06.2014, 14:56 -0700 schrieb Steve Longerbeam:
+> Add mode device info to the MIPI CSI2 receiver node: compatible string,
+> interrupt sources, clocks.
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  arch/arm/boot/dts/imx6qdl.dtsi |    7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+> index d793cd6..00130a8 100644
+> --- a/arch/arm/boot/dts/imx6qdl.dtsi
+> +++ b/arch/arm/boot/dts/imx6qdl.dtsi
+> @@ -1011,8 +1011,13 @@
+>  				status = "disabled";
+>  			};
+>  
+> -			mipi_csi: mipi@021dc000 {
+> +			mipi_csi2: mipi@021dc000 {
+> +				compatible = "fsl,imx6-mipi-csi2";
+>  				reg = <0x021dc000 0x4000>;
+> +				interrupts = <0 100 0x04>, <0 101 0x04>;
+> +				clocks = <&clks 138>, <&clks 208>;
 
-vbi-test.c just prints the vbi parameters, which 'v4l2-ctl --get-fmt-vbi' also
-does. If we want to keep this, then I'll just remove the CONFIG_VIDEO_V4L1_COMPAT
-parts of the code, keeping just the v4l2 API code.
+clk 138 is hsi_tx_clk_root, gated by the mipi_core_cfg gate bit.
+All MIPI CSI input clocks are also gated by mipi_core_cfg, so this
+will work just as well. But maybe add a comment?
 
-I would also like to remove the Qt3 version of qv4l2 (contrib qv4l2-qt3). It
-doesn't build anyway, and nobody is using qt3 anymore.
+> +				clock-names = "dphy_clk", "cfg_clk";
 
-Regards,
+It is a bit confusing, though.
 
-	Hans
+The i.MX6DL and i.MX6Q TRMs lists the following gateable input clocks,
+all gated by the mipi_core_cfg bit:
+- ac_clk_125m from ahb_clk_root,
+- ips_clk and ips_clk_s from ipg_clk_root
+- cfg_clk and pll_refclk from video_27m_clk_root
+
+Which one is "dphy_clk"?
+
+regards
+Philipp
+
