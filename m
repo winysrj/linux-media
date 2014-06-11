@@ -1,79 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:49000 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752577AbaFMHxe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jun 2014 03:53:34 -0400
-Date: Fri, 13 Jun 2014 00:53:25 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, arm@kernel.org
-Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
-Message-ID: <20140613075325.GO17845@atomide.com>
-References: <5192928.MkINji4uKU@wuerfel>
- <1689719.caqIIBS1Wn@avalon>
- <20140613053044.GG17845@atomide.com>
- <1830688.7p3Fp6u7a2@avalon>
+Received: from bear.ext.ti.com ([192.94.94.41]:42805 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754394AbaFKOyJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jun 2014 10:54:09 -0400
+Message-ID: <53986D6D.8060804@ti.com>
+Date: Wed, 11 Jun 2014 09:53:33 -0500
+From: Nishanth Menon <nm@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1830688.7p3Fp6u7a2@avalon>
+To: Arnd Bergmann <arnd@arndb.de>
+CC: <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<linux-omap@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <arm@kernel.org>
+Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
+References: <5192928.MkINji4uKU@wuerfel> <53986ABC.4070302@ti.com> <7948240.P51u2omQa4@wuerfel>
+In-Reply-To: <7948240.P51u2omQa4@wuerfel>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140612 23:48]:
-> On Thursday 12 June 2014 22:30:44 Tony Lindgren wrote:
-> > 
-> > 1. They live in separate hardware modules that can be clocked separately
+On 06/11/2014 09:49 AM, Arnd Bergmann wrote:
+> On Wednesday 11 June 2014 09:42:04 Nishanth Menon wrote:
+>> On 06/11/2014 09:35 AM, Arnd Bergmann wrote:
+>>> The OMAP4 camera support depends on I2C and VIDEO_V4L2, both
+>>> of which can be loadable modules. This causes build failures
+>>> if we want the camera driver to be built-in.
+>>>
+>>> This can be solved by turning the option into "tristate",
+>>> which unfortunately causes another problem, because the
+>>> driver incorrectly calls a platform-internal interface
+>>> for omap4_ctrl_pad_readl/omap4_ctrl_pad_writel.
+>>> To work around that, we can export those symbols, but
+>>> that isn't really the correct solution, as we should not
+>>> have dependencies on platform code this way.
+>>>
+>>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>>> ---
+>>> This is one of just two patches we currently need to get
+>>> 'make allmodconfig' to build again on ARM.
+>>>
+>>> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+>>> index 751f354..05d2d98 100644
+>>> --- a/arch/arm/mach-omap2/control.c
+>>> +++ b/arch/arm/mach-omap2/control.c
+>>> @@ -190,11 +190,13 @@ u32 omap4_ctrl_pad_readl(u16 offset)
+>>>  {
+>>>  	return readl_relaxed(OMAP4_CTRL_PAD_REGADDR(offset));
+>>>  }
+>>> +EXPORT_SYMBOL_GPL(omap4_ctrl_pad_readl);
+>>>  
+>>>  void omap4_ctrl_pad_writel(u32 val, u16 offset)
+>>>  {
+>>>  	writel_relaxed(val, OMAP4_CTRL_PAD_REGADDR(offset));
+>>>  }
+>>> +EXPORT_SYMBOL_GPL(omap4_ctrl_pad_writel);
+>>>  
+>>>  #ifdef CONFIG_ARCH_OMAP3
+>>>  
+>>> diff --git a/drivers/staging/media/omap4iss/Kconfig b/drivers/staging/media/omap4iss/Kconfig
+>>> index 78b0fba..0c3e3c1 100644
+>>> --- a/drivers/staging/media/omap4iss/Kconfig
+>>> +++ b/drivers/staging/media/omap4iss/Kconfig
+>>> @@ -1,5 +1,5 @@
+>>>  config VIDEO_OMAP4
+>>> -	bool "OMAP 4 Camera support"
+>>> +	tristate "OMAP 4 Camera support"
+>>>  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C && ARCH_OMAP4
+>>>  	select VIDEOBUF2_DMA_CONTIG
+>>>  	---help---
+>>>
+>>
+>> This was discussed in detail here:
+>> http://marc.info/?t=140198692500001&r=1&w=2
+>> Direct dependency from a staging driver to mach-omap2 driver is not
+>> something we'd like, right?
 > 
-> Actually I don't think that's true. The CSI2 PHY is part of the camera device, 
-> with all its registers but the one above in the camera device register space. 
-> For some weird reason a couple of bits were pushed to the control module, but 
-> that doesn't make the CSI2 PHY itself a separate device.
-
-Yes they are separate. Anything in the system control module is
-a separate hardware module from the other devices. So in this case
-the CSI2 PHY is part of the system control module, not the camera
-module.
-
-> > 2. Doing a read-back to flush a posted write in one hardware module most
-> >    likely won't flush the write to other and that can lead into hard to
-> >    find mysterious bugs
+> So it was decided to just leave ARM allmodconfig broken?
 > 
-> The OMAP4 ISS driver can just read back the CAMERA_RX register, can't it ?
-
-Right, but you would have to do readbacks both from the phy register and
-camera register to ensure writes get written. It's best to keep the
-logic completely separate especially considering that they can be
-clocked separately.
-
-> > 3. If we ever have a common system control module driver, we need to
-> >    rewrite all the system control module register tinkering in the drivers
+> Why not at least do this instead?
 > 
-> Sure, but that's already the case today, as the OMAP4 ISS driver already 
-> accesses the control module register directly. I won't make that worse :-)
-
-Well it's in staging for a reason :)
- 
-> > So it's best to try to use an existing framework for it. That avoids tons of
-> > pain later on ;)
+> 8<----
+> From 3a965f4fd5a6b3ef4a66aa4e7c916cfd34fd5706 Mon Sep 17 00:00:00 2001
+> From: Arnd Bergmann <arnd@arndb.de>
+> Date: Tue, 21 Jan 2014 09:32:43 +0100
+> Subject: [PATCH] [media] staging: tighten omap4iss dependencies
 > 
-> I agree, but I don't think the PHY framework would be the right abstraction. 
-> As explained above the CSI2 PHY is part of the OMAP4 ISS, so modeling its 
-> single control module register as a PHY would be a hack. 
+> The OMAP4 camera support depends on I2C and VIDEO_V4L2, both
+> of which can be loadable modules. This causes build failures
+> if we want the camera driver to be built-in.
+> 
+> This can be solved by turning the option into "tristate",
+> which unfortunately causes another problem, because the
+> driver incorrectly calls a platform-internal interface
+> for omap4_ctrl_pad_readl/omap4_ctrl_pad_writel.
+> 
+> Instead, this patch just forbids the invalid configurations
+> and ensures that the driver can only be built if all its
+> dependencies are built-in.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> 
+> diff --git a/drivers/staging/media/omap4iss/Kconfig b/drivers/staging/media/omap4iss/Kconfig
+> index 78b0fba..8afc6fe 100644
+> --- a/drivers/staging/media/omap4iss/Kconfig
+> +++ b/drivers/staging/media/omap4iss/Kconfig
+> @@ -1,6 +1,6 @@
+>  config VIDEO_OMAP4
+>  	bool "OMAP 4 Camera support"
+> -	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C && ARCH_OMAP4
+> +	depends on VIDEO_V4L2=y && VIDEO_V4L2_SUBDEV_API && I2C=y && ARCH_OMAP4
+>  	select VIDEOBUF2_DMA_CONTIG
+>  	---help---
+>  	  Driver for an OMAP 4 ISS controller.
+> 
 
-Well that register belongs to the system control module, not the
-camera module. It's not like the camera IO space is out of registers
-or something! :)
+I am ok with this if Tony and Laurent have no issues. Considering that
+Laurent was working on coverting iss driver to dt, the detailed
+discussion could take place at that point in time.
 
-We're already handling similar control module phy cases, see for
-example drivers/phy/phy-omap-control.c. Maybe you have most of the
-code already there?
-
+-- 
 Regards,
-
-Tony
-
+Nishanth Menon
