@@ -1,104 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:34984 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932324AbaFZBHg (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52836 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754063AbaFKLVi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jun 2014 21:07:36 -0400
-Received: by mail-pb0-f41.google.com with SMTP id ma3so2408275pbc.28
-        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 18:07:35 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 25/28] gpu: ipu-cpmem: Add second buffer support to ipu_cpmem_set_image()
-Date: Wed, 25 Jun 2014 18:05:52 -0700
-Message-Id: <1403744755-24944-26-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+	Wed, 11 Jun 2014 07:21:38 -0400
+Message-ID: <1402485696.4107.107.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH 00/43] i.MX6 Video capture
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Wed, 11 Jun 2014 13:21:36 +0200
+In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a second buffer physaddr to struct ipu_image, for double-buffering
-support.
+Hi Steve,
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/gpu/ipu-v3/ipu-cpmem.c |   32 ++++++++++++++++----------------
- include/video/imx-ipu-v3.h     |    3 ++-
- 2 files changed, 18 insertions(+), 17 deletions(-)
+Am Samstag, den 07.06.2014, 14:56 -0700 schrieb Steve Longerbeam:
+> Hi all,
+> 
+> This patch set adds video capture support for the Freescale i.MX6 SOC.
+>
+> It is a from-scratch standardized driver that works with community
+> v4l2 utilities, such as v4l2-ctl, v4l2-cap, and the v4l2src gstreamer
+> plugin. It uses the latest v4l2 interfaces (subdev, videobuf2).
+> Please see Documentation/video4linux/mx6_camera.txt for it's full list
+> of features!
 
-diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
-index f52e4b4..cfe2f53 100644
---- a/drivers/gpu/ipu-v3/ipu-cpmem.c
-+++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
-@@ -538,7 +538,7 @@ EXPORT_SYMBOL_GPL(ipu_cpmem_set_fmt);
- int ipu_cpmem_set_image(struct ipuv3_channel *ch, struct ipu_image *image)
- {
- 	struct v4l2_pix_format *pix = &image->pix;
--	int y_offset, u_offset, v_offset;
-+	int offset, y_offset, u_offset, v_offset;
- 
- 	pr_debug("%s: resolution: %dx%d stride: %d\n",
- 		 __func__, pix->width, pix->height,
-@@ -560,30 +560,30 @@ int ipu_cpmem_set_image(struct ipuv3_channel *ch, struct ipu_image *image)
- 
- 		ipu_cpmem_set_yuv_planar_full(ch, pix->pixelformat,
- 				pix->bytesperline, u_offset, v_offset);
--		ipu_cpmem_set_buffer(ch, 0, image->phys + y_offset);
-+		ipu_cpmem_set_buffer(ch, 0, image->phys0 + y_offset);
-+		ipu_cpmem_set_buffer(ch, 1, image->phys1 + y_offset);
- 		break;
- 	case V4L2_PIX_FMT_UYVY:
- 	case V4L2_PIX_FMT_YUYV:
--		ipu_cpmem_set_buffer(ch, 0, image->phys +
--				     image->rect.left * 2 +
--				     image->rect.top * image->pix.bytesperline);
-+	case V4L2_PIX_FMT_RGB565:
-+		offset = image->rect.left * 2 +
-+			image->rect.top * pix->bytesperline;
-+		ipu_cpmem_set_buffer(ch, 0, image->phys0 + offset);
-+		ipu_cpmem_set_buffer(ch, 1, image->phys1 + offset);
- 		break;
- 	case V4L2_PIX_FMT_RGB32:
- 	case V4L2_PIX_FMT_BGR32:
--		ipu_cpmem_set_buffer(ch, 0, image->phys +
--				     image->rect.left * 4 +
--				     image->rect.top * image->pix.bytesperline);
--		break;
--	case V4L2_PIX_FMT_RGB565:
--		ipu_cpmem_set_buffer(ch, 0, image->phys +
--				     image->rect.left * 2 +
--				     image->rect.top * image->pix.bytesperline);
-+		offset = image->rect.left * 4 +
-+			image->rect.top * pix->bytesperline;
-+		ipu_cpmem_set_buffer(ch, 0, image->phys0 + offset);
-+		ipu_cpmem_set_buffer(ch, 1, image->phys1 + offset);
- 		break;
- 	case V4L2_PIX_FMT_RGB24:
- 	case V4L2_PIX_FMT_BGR24:
--		ipu_cpmem_set_buffer(ch, 0, image->phys +
--				     image->rect.left * 3 +
--				     image->rect.top * image->pix.bytesperline);
-+		offset = image->rect.left * 3 +
-+			image->rect.top * pix->bytesperline;
-+		ipu_cpmem_set_buffer(ch, 0, image->phys0 + offset);
-+		ipu_cpmem_set_buffer(ch, 1, image->phys1 + offset);
- 		break;
- 	default:
- 		return -EINVAL;
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 3d3cea0..542652f 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -221,7 +221,8 @@ struct ipu_rgb {
- struct ipu_image {
- 	struct v4l2_pix_format pix;
- 	struct v4l2_rect rect;
--	dma_addr_t phys;
-+	dma_addr_t phys0;
-+	dma_addr_t phys1;
- };
- 
- void ipu_cpmem_zero(struct ipuv3_channel *ch);
--- 
-1.7.9.5
+That's quite a series to digest! I'll quickly go over the points that
+jumped at me and then look at the core code (especially 08/43 and 39/43)
+in detail.
+
+> The first 38 patches:
+> 
+> - prepare the ipu-v3 driver for video capture support. The current driver
+>   contains only video display functionality to support the imx DRM drivers.
+>   At some point ipu-v3 should be moved out from under staging/imx-drm since
+>   it will no longer only support DRM.
+
+The move out of staging is now merged into drm-next with
+c1a6e9fe82b46159af8cc4cf34fb51ee47862f05.
+After this is merged into mainline, there should be no need to push i.MX
+capture support through staging. It would be helpful if you could rebase
+on top of that.
+
+> - Adds the device tree nodes and OF graph bindings for video capture support
+>   on sabrelite, sabresd, and sabreauto reference platforms.
+
+I disagree with the way you organized the device tree, I'll comment in
+the relevant patches.
+
+> The new i.MX6 capture host interface driver is at patch 39.
+> 
+> To support the sensors found on the sabrelite, sabresd, and sabreauto,
+> three patches add sensor subdev's for parallel OV5642, MIPI CSI-2 OV5640,
+> and the ADV7180 decoder chip, beginning at patch 40.
+
+Please don't introduce i.MX6-only sensor drivers. Those should live
+under drivers/media/i2c and not be i.MX specific.
+
+regards
+Philipp
 
