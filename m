@@ -1,49 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f52.google.com ([209.85.216.52]:35428 "EHLO
-	mail-qa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750953AbaFPNWI (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4833 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751797AbaFKUdp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 09:22:08 -0400
-Received: by mail-qa0-f52.google.com with SMTP id w8so7262065qac.25
-        for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 06:22:08 -0700 (PDT)
+	Wed, 11 Jun 2014 16:33:45 -0400
+Message-ID: <5398BD1A.2000705@xs4all.nl>
+Date: Wed, 11 Jun 2014 22:33:30 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <539E9F25.7030504@ladisch.de>
-References: <1402762571-6316-1-git-send-email-m.chehab@samsung.com>
-	<1402762571-6316-2-git-send-email-m.chehab@samsung.com>
-	<539E9F25.7030504@ladisch.de>
-Date: Mon, 16 Jun 2014 09:22:08 -0400
-Message-ID: <CAGoCfiw3du9rXFvDfsUYLu4Ru6mbdWa+LtAyYupXosM0n-71NA@mail.gmail.com>
-Subject: Re: [alsa-devel] [PATCH 1/3] sound: Add a quirk to enforce period_bytes
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Clemens Ladisch <clemens@ladisch.de>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Takashi Iwai <tiwai@suse.de>, alsa-devel@alsa-project.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=UTF-8
+To: Scott Doty <scott@ponzo.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: hdpvr troubles
+References: <538D2392.6030301@ponzo.net> <5398122F.3060402@xs4all.nl> <5398B15C.9040409@ponzo.net>
+In-Reply-To: <5398B15C.9040409@ponzo.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> This looks like a workaround for a userspace bug that would affect all
-> USB audio devices.  What period/buffer sizes are xawtv/tvtime trying to
-> use?
+On 06/11/2014 09:43 PM, Scott Doty wrote:
+> On 06/11/2014 01:24 AM, Hans Verkuil wrote:
+>> On 06/03/14 03:23, Scott Doty wrote:
+>>> Hello Mr. Hans and mailing list,
+>>>
+>>> In a nutshell, I'm having some hdpvr trouble:
+>>>
+>>> I'm using vlc to view the stream.  Kernel 3.9.11 works pretty well,
+>>> including giving me AC3 5.1 audio from the optical input to the
+>>> Hauppauge device.  The only problem I've run across is the device
+>>> hanging when I change channels, but I've learned to live with that. 
+>>> (Though naturally it would be nice to fix. :) )
+>>>
+>>> However, every kernel I've tried after 3.9.11 seems to have trouble with
+>>> the audio.  I get silence, and pulseaudio reports there is only stereo. 
+>>> I've taken a couple of of snapshots of pavucontrol so you can see what I
+>>> mean:
+>>>
+>>>    http://imgur.com/a/SIwc7
+>>>
+>>> I even tried a git bisect to try to narrow down where things went awry,
+>>> but ran out of time to pursue the question.  But as far as I can tell,
+>>> 3.9.11 is as far as I can go before my system won't use the device properly.
+>>>
+>>> I see the conversation in the archives from around the middle of May,
+>>> where Hans was working with Ryley and Keith, but I'm not sure if I
+>>> should apply that patch or not.  I would love to make this work,
+>>> including submitting a patch if someone could outline where the problem
+>>> might be.
+>>>
+>>> Thank you in advance for any help you can provide, and please let me
+>>> know if I can send any more information. :)
+>> You can certainly try this patch:
+>>
+>> https://patchwork.linuxtv.org/patch/23890/
+>>
+>> Nobody else reported audio problems other than the issue this patch tries
+>> to resolve. However, that problem most likely has been with hdpvr since
+>> the very beginning.
+>>
+>> There were some major changes made to the driver in 3.10, so that makes me
+>> suspect that something might have broken. Odd though that I didn't see any
+>> reports about that.
+>>
+>> Keith, Ryley, if you run v4l2-ctl -D, what is the version number that is
+>> reported?
+>>
+>> If it is >= 3.10, then can you test with vlc as well?
+> 
+> Just tried the patch with 3.14.5, and it didn't solve the problem.
+> 
+> I'm not sure what's different about my system than other folks', unless
+> they aren't using the optical input?
+> 
+> Indeed, it acts just like the driver isn't properly honoring
+> "default_audio_input=2".  (For S/PDIF).  Thinking that might be a clue,
+> I hooked up stereo through the RCA jacks.  With "default_audio_input=2",
+> I did hear some crackling sounds -- but nothing intelligible, and I'm
+> having a hard time reproducing that.  With "default_audio_input=0", I
+> get clear stereo sound from the RCA jacks.
 
-I have similar concerns, although I don't know what the right solution
-is.  For example, the last time Mauro tweaked the latency in tvtime,
-it broke support for all cx231xx devices (note that tvtime and xawtv
-share essentially the same ALSA code):
+Ah, you never mentioned that you used the default_audio_input module option.
+I looked at that and that did indeed break in 3.10. You probably need to
+do 'v4l2-ctl -c audio_encoding=4'. In 3.9 selecting default_audio_input=2
+would also switch to AC3 audio encoding, but in 3.10 that is reset a bit
+later to AAC.
 
-http://git.linuxtv.org/cgit.cgi/tvtime.git/commit/?id=3d58ba563bfcc350c180b59a94cec746ccad6ebe
+But by selecting it manually it should work again. Let me know if I am
+correct and if so, then I'll make a patch for this to fix this behavior.
 
-It seems like there is definitely something wrong with the
-latency/period selection in both applications, but we need some
-insight from people who are better familiar with the ALSA subsystem
-for advice on the "right" way to do low latency audio capture (i.e.
-properly negotiating minimal latency in a way that works with all
-devices).
+Regards,
 
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+	Hans
