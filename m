@@ -1,78 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44478 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753411AbaFMQJK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jun 2014 12:09:10 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Received: from mga03.intel.com ([143.182.124.21]:56047 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753807AbaFKGgd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jun 2014 02:36:33 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 18/30] [media] coda: let userspace force IDR frames by enabling the keyframe flag in the source buffer
-Date: Fri, 13 Jun 2014 18:08:44 +0200
-Message-Id: <1402675736-15379-19-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+Cc: prabhakar.csengg@gmail.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com
+Subject: [PATCH v3.1 2/4] smiapp: Add driver-specific test pattern menu item definitions
+Date: Wed, 11 Jun 2014 09:36:28 +0300
+Message-Id: <1402468588-27792-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1401374448-30411-3-git-send-email-sakari.ailus@linux.intel.com>
+References: <1401374448-30411-3-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This disables forcing IDR frames at GOP size intervals on CODA7541 and CODA960,
-which is only needed to work around a firmware bug on CodaDx6.
-Instead, the V4L2_BUF_FLAG_KEYFRAME v4l2 buffer flag is cleared before marking
-the source buffer done for dequeueing. Userspace can set it before queueing a
-frame to force an IDR frame, to implement VFU (Video Fast Update).
+Add numeric definitions for menu items used in the smiapp driver's test
+pattern menu.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/coda.c | 18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+since v3:
+- Add Kbuild entry for the header
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 11e059d..cf75112 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1264,22 +1264,22 @@ static void coda_prepare_encode(struct coda_ctx *ctx)
- 	 * frame as IDR. This is a problem for some decoders that can't
- 	 * recover when a frame is lost.
- 	 */
--	if (src_buf->v4l2_buf.sequence % ctx->params.gop_size) {
--		src_buf->v4l2_buf.flags |= V4L2_BUF_FLAG_PFRAME;
--		src_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_KEYFRAME;
--	} else {
-+	if ((src_buf->v4l2_buf.sequence % ctx->params.gop_size) == 0)
- 		src_buf->v4l2_buf.flags |= V4L2_BUF_FLAG_KEYFRAME;
-+	if (src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_KEYFRAME)
- 		src_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_PFRAME;
--	}
-+	else
-+		src_buf->v4l2_buf.flags |= V4L2_BUF_FLAG_PFRAME;
- 
- 	if (dev->devtype->product == CODA_960)
- 		coda_set_gdi_regs(ctx);
- 
- 	/*
--	 * Copy headers at the beginning of the first frame for H.264 only.
--	 * In MPEG4 they are already copied by the coda.
-+	 * Copy headers in front of the first frame and forced I frames for
-+	 * H.264 only. In MPEG4 they are already copied by the CODA.
- 	 */
--	if (src_buf->v4l2_buf.sequence == 0) {
-+	if (src_buf->v4l2_buf.sequence == 0 ||
-+	    src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_KEYFRAME) {
- 		pic_stream_buffer_addr =
- 			vb2_dma_contig_plane_dma_addr(dst_buf, 0) +
- 			ctx->vpu_header_size[0] +
-@@ -3245,6 +3245,8 @@ static void coda_finish_encode(struct coda_ctx *ctx)
- 		src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
- 
-+	/* Clear keyframe flag so userspace can misuse it to force an IDR frame */
-+	src_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_KEYFRAME;
- 	v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
- 
- 	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+ include/uapi/linux/Kbuild   |  1 +
+ include/uapi/linux/smiapp.h | 29 +++++++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+)
+ create mode 100644 include/uapi/linux/smiapp.h
+
+diff --git a/include/uapi/linux/Kbuild b/include/uapi/linux/Kbuild
+index 6929571..a3ee163 100644
+--- a/include/uapi/linux/Kbuild
++++ b/include/uapi/linux/Kbuild
+@@ -352,6 +352,7 @@ header-y += serio.h
+ header-y += shm.h
+ header-y += signal.h
+ header-y += signalfd.h
++header-y += smiapp.h
+ header-y += snmp.h
+ header-y += sock_diag.h
+ header-y += socket.h
+diff --git a/include/uapi/linux/smiapp.h b/include/uapi/linux/smiapp.h
+new file mode 100644
+index 0000000..53938f4
+--- /dev/null
++++ b/include/uapi/linux/smiapp.h
+@@ -0,0 +1,29 @@
++/*
++ * include/uapi/linux/smiapp.h
++ *
++ * Generic driver for SMIA/SMIA++ compliant camera modules
++ *
++ * Copyright (C) 2014 Intel Corporation
++ * Contact: Sakari Ailus <sakari.ailus@iki.fi>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ */
++
++#ifndef __UAPI_LINUX_SMIAPP_H_
++#define __UAPI_LINUX_SMIAPP_H_
++
++#define V4L2_SMIAPP_TEST_PATTERN_MODE_DISABLED			0
++#define V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR		1
++#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS		2
++#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS_GREY		3
++#define V4L2_SMIAPP_TEST_PATTERN_MODE_PN9			4
++
++#endif /* __UAPI_LINUX_SMIAPP_H_ */
 -- 
-2.0.0.rc2
+1.8.3.2
 
