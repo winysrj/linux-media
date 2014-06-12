@@ -1,129 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4254 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933277AbaFLLyo (ORCPT
+Received: from smtp1.bendigoit.com.au ([203.16.224.4]:45341 "EHLO
+	smtp1.bendigoit.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932827AbaFLJxp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 07:54:44 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv4 PATCH 13/34] v4l2-ctrls: type_ops can handle array elements.
-Date: Thu, 12 Jun 2014 13:52:45 +0200
-Message-Id: <0e7fbc721c59823391dcfca50d79e651b45ed90b.1402573818.git.hans.verkuil@cisco.com>
-In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
-References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+	Thu, 12 Jun 2014 05:53:45 -0400
+From: James Harper <james.harper@ejbdigital.com.au>
+To: James Harper <james.harper@ejbdigital.com.au>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: [PATCH] vmalloc_sg: make sure all pages in vmalloc area are really DMA-ready
+Date: Thu, 12 Jun 2014 19:53:38 +1000
+Message-Id: <1402566818-4790-1-git-send-email-james.harper@ejbdigital.com.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Patch originally written by Konrad. Rebased on current linux media tree.
 
-Extend the control type operations to handle N-dimensional array elements.
+Under Xen, vmalloc_32() isn't guaranteed to return pages which are really
+under 4G in machine physical addresses (only in virtual pseudo-physical
+addresses).  To work around this, implement a vmalloc variant which
+allocates each page with dma_alloc_coherent() to guarantee that each
+page is suitable for the device in question.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Signed-off-by: James Harper <james.harper@ejbdigital.com.au>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 40 ++++++++++++++++++++----------------
- 1 file changed, 22 insertions(+), 18 deletions(-)
+ drivers/media/v4l2-core/videobuf-dma-sg.c | 62 +++++++++++++++++++++++++++++--
+ include/media/videobuf-dma-sg.h           |  3 ++
+ 2 files changed, 61 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 6ed2d56..f6ac927 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1169,14 +1169,16 @@ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
- 	case V4L2_CTRL_TYPE_BUTTON:
- 		return false;
- 	case V4L2_CTRL_TYPE_STRING:
-+		idx *= ctrl->elem_size;
- 		/* strings are always 0-terminated */
--		return !strcmp(ptr1.p_char, ptr2.p_char);
-+		return !strcmp(ptr1.p_char + idx, ptr2.p_char + idx);
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		return *ptr1.p_s64 == *ptr2.p_s64;
-+		return ptr1.p_s64[idx] == ptr2.p_s64[idx];
- 	default:
--		if (ctrl->is_ptr)
--			return !memcmp(ptr1.p, ptr2.p, ctrl->elem_size);
--		return *ptr1.p_s32 == *ptr2.p_s32;
-+		if (ctrl->is_int)
-+			return ptr1.p_s32[idx] == ptr2.p_s32[idx];
-+		idx *= ctrl->elem_size;
-+		return !memcmp(ptr1.p + idx, ptr2.p + idx, ctrl->elem_size);
- 	}
- }
- 
-@@ -1185,18 +1187,19 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
+diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
+index 828e7c1..3c8cc02 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
+@@ -211,13 +211,36 @@ EXPORT_SYMBOL_GPL(videobuf_dma_init_user);
+ int videobuf_dma_init_kernel(struct videobuf_dmabuf *dma, int direction,
+ 			     int nr_pages)
  {
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_STRING:
--		memset(ptr.p_char, ' ', ctrl->minimum);
--		ptr.p_char[ctrl->minimum] = '\0';
-+		idx *= ctrl->elem_size;
-+		memset(ptr.p_char + idx, ' ', ctrl->minimum);
-+		ptr.p_char[idx + ctrl->minimum] = '\0';
- 		break;
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		*ptr.p_s64 = ctrl->default_value;
-+		ptr.p_s64[idx] = ctrl->default_value;
- 		break;
- 	case V4L2_CTRL_TYPE_INTEGER:
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
- 	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_BITMASK:
- 	case V4L2_CTRL_TYPE_BOOLEAN:
--		*ptr.p_s32 = ctrl->default_value;
-+		ptr.p_s32[idx] = ctrl->default_value;
- 		break;
- 	default:
- 		break;
-@@ -1264,36 +1267,37 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
++	int i;
++
+ 	dprintk(1, "init kernel [%d pages]\n", nr_pages);
  
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER:
--		return ROUND_TO_RANGE(*ptr.p_s32, u32, ctrl);
-+		return ROUND_TO_RANGE(ptr.p_s32[idx], u32, ctrl);
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		return ROUND_TO_RANGE(*ptr.p_s64, u64, ctrl);
-+		return ROUND_TO_RANGE(ptr.p_s64[idx], u64, ctrl);
+ 	dma->direction = direction;
+-	dma->vaddr = vmalloc_32(nr_pages << PAGE_SHIFT);
++	dma->vaddr_pages = kcalloc(nr_pages, sizeof(*dma->vaddr_pages),
++				   GFP_KERNEL);
++	if (!dma->vaddr_pages)
++		return -ENOMEM;
++
++	dma->dma_addr = kcalloc(nr_pages, sizeof(*dma->dma_addr), GFP_KERNEL);
++	if (!dma->dma_addr) {
++		kfree(dma->vaddr_pages);
++		return -ENOMEM;
++	}
++	for (i = 0; i < nr_pages; i++) {
++		void *addr;
++
++		addr = dma_alloc_coherent(dma->dev, PAGE_SIZE,
++					  &(dma->dma_addr[i]), GFP_KERNEL);
++		if (addr == NULL)
++			goto out_free_pages;
++
++		dma->vaddr_pages[i] = virt_to_page(addr);
++	}
++	dma->vaddr = vmap(dma->vaddr_pages, nr_pages, VM_MAP | VM_IOREMAP,
++			  PAGE_KERNEL);
+ 	if (NULL == dma->vaddr) {
+ 		dprintk(1, "vmalloc_32(%d pages) failed\n", nr_pages);
+-		return -ENOMEM;
++		goto out_free_pages;
+ 	}
  
- 	case V4L2_CTRL_TYPE_BOOLEAN:
--		*ptr.p_s32 = !!*ptr.p_s32;
-+		ptr.p_s32[idx] = !!ptr.p_s32[idx];
- 		return 0;
+ 	dprintk(1, "vmalloc is at addr 0x%08lx, size=%d\n",
+@@ -228,6 +251,19 @@ int videobuf_dma_init_kernel(struct videobuf_dmabuf *dma, int direction,
+ 	dma->nr_pages = nr_pages;
  
- 	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
--		if (*ptr.p_s32 < ctrl->minimum || *ptr.p_s32 > ctrl->maximum)
-+		if (ptr.p_s32[idx] < ctrl->minimum || ptr.p_s32[idx] > ctrl->maximum)
- 			return -ERANGE;
--		if (ctrl->menu_skip_mask & (1 << *ptr.p_s32))
-+		if (ctrl->menu_skip_mask & (1 << ptr.p_s32[idx]))
- 			return -EINVAL;
- 		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
--		    ctrl->qmenu[*ptr.p_s32][0] == '\0')
-+		    ctrl->qmenu[ptr.p_s32[idx]][0] == '\0')
- 			return -EINVAL;
- 		return 0;
+ 	return 0;
++out_free_pages:
++	while (i > 0) {
++		void *addr = page_address(dma->vaddr_pages[i]);
++		dma_free_coherent(dma->dev, PAGE_SIZE, addr, dma->dma_addr[i]);
++		i--;
++	}
++	kfree(dma->dma_addr);
++	dma->dma_addr = NULL;
++	kfree(dma->vaddr_pages);
++	dma->vaddr_pages = NULL;
++
++	return -ENOMEM;
++
+ }
+ EXPORT_SYMBOL_GPL(videobuf_dma_init_kernel);
  
- 	case V4L2_CTRL_TYPE_BITMASK:
--		*ptr.p_s32 &= ctrl->maximum;
-+		ptr.p_s32[idx] &= ctrl->maximum;
- 		return 0;
+@@ -322,8 +358,21 @@ int videobuf_dma_free(struct videobuf_dmabuf *dma)
+ 		dma->pages = NULL;
+ 	}
  
- 	case V4L2_CTRL_TYPE_BUTTON:
- 	case V4L2_CTRL_TYPE_CTRL_CLASS:
--		*ptr.p_s32 = 0;
-+		ptr.p_s32[idx] = 0;
- 		return 0;
+-	vfree(dma->vaddr);
+-	dma->vaddr = NULL;
++	if (dma->dma_addr) {
++		for (i = 0; i < dma->nr_pages; i++) {
++			void *addr;
++
++			addr = page_address(dma->vaddr_pages[i]);
++			dma_free_coherent(dma->dev, PAGE_SIZE, addr,
++					  dma->dma_addr[i]);
++		}
++		kfree(dma->dma_addr);
++		dma->dma_addr = NULL;
++		kfree(dma->vaddr_pages);
++		dma->vaddr_pages = NULL;
++		vunmap(dma->vaddr);
++		dma->vaddr = NULL;
++	}
  
- 	case V4L2_CTRL_TYPE_STRING:
--		len = strlen(ptr.p_char);
-+		idx *= ctrl->elem_size;
-+		len = strlen(ptr.p_char + idx);
- 		if (len < ctrl->minimum)
- 			return -ERANGE;
- 		if ((len - ctrl->minimum) % ctrl->step)
+ 	if (dma->bus_addr)
+ 		dma->bus_addr = 0;
+@@ -461,6 +510,11 @@ static int __videobuf_iolock(struct videobuf_queue *q,
+ 
+ 	MAGIC_CHECK(mem->magic, MAGIC_SG_MEM);
+ 
++	if (!mem->dma.dev)
++		mem->dma.dev = q->dev;
++	else
++		WARN_ON(mem->dma.dev != q->dev);
++
+ 	switch (vb->memory) {
+ 	case V4L2_MEMORY_MMAP:
+ 	case V4L2_MEMORY_USERPTR:
+diff --git a/include/media/videobuf-dma-sg.h b/include/media/videobuf-dma-sg.h
+index d8fb601..fb6fd4d8 100644
+--- a/include/media/videobuf-dma-sg.h
++++ b/include/media/videobuf-dma-sg.h
+@@ -53,6 +53,9 @@ struct videobuf_dmabuf {
+ 
+ 	/* for kernel buffers */
+ 	void                *vaddr;
++	struct page         **vaddr_pages;
++	dma_addr_t          *dma_addr;
++	struct device       *dev;
+ 
+ 	/* for overlay buffers (pci-pci dma) */
+ 	dma_addr_t          bus_addr;
 -- 
-2.0.0.rc0
+2.0.0
 
