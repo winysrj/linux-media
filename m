@@ -1,126 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:52848 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757949AbaFSLvm (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57043 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751279AbaFLXpo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jun 2014 07:51:42 -0400
-Date: Thu, 19 Jun 2014 13:48:26 +0200
-From: Thierry Reding <thierry.reding@gmail.com>
-To: Greg KH <gregkh@linuxfoundation.org>,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-arch@vger.kernel.org, thellstrom@vmware.com,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
-	ccross@google.com, sumit.semwal@linaro.org,
-	linux-media@vger.kernel.org
-Subject: Re: [REPOST PATCH 4/8] android: convert sync to fence api, v5
-Message-ID: <20140619114825.GB28111@ulmo>
-References: <20140618102957.15728.43525.stgit@patser>
- <20140618103711.15728.97842.stgit@patser>
- <20140619011556.GE10921@kroah.com>
- <20140619063727.GL5821@phenom.ffwll.local>
+	Thu, 12 Jun 2014 19:45:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Denis Carikli <denis@eukrea.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Eric =?ISO-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v13 06/10] drm: drm_display_mode: add signal polarity flags
+Date: Fri, 13 Jun 2014 01:46:17 +0200
+Message-ID: <1420822.gvkeme0UiB@avalon>
+In-Reply-To: <1402395951-7988-6-git-send-email-denis@eukrea.com>
+References: <1402395951-7988-1-git-send-email-denis@eukrea.com> <1402395951-7988-6-git-send-email-denis@eukrea.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gatW/ieO32f1wygP"
-Content-Disposition: inline
-In-Reply-To: <20140619063727.GL5821@phenom.ffwll.local>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Denis,
 
---gatW/ieO32f1wygP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thank you for the patch.
 
-On Thu, Jun 19, 2014 at 08:37:27AM +0200, Daniel Vetter wrote:
-> On Wed, Jun 18, 2014 at 06:15:56PM -0700, Greg KH wrote:
-> > On Wed, Jun 18, 2014 at 12:37:11PM +0200, Maarten Lankhorst wrote:
-> > > Just to show it's easy.
-> > >=20
-> > > Android syncpoints can be mapped to a timeline. This removes the need
-> > > to maintain a separate api for synchronization. I've left the android
-> > > trace events in place, but the core fence events should already be
-> > > sufficient for debugging.
-> > >=20
-> > > v2:
-> > > - Call fence_remove_callback in sync_fence_free if not all fences hav=
-e fired.
-> > > v3:
-> > > - Merge Colin Cross' bugfixes, and the android fence merge optimizati=
-on.
-> > > v4:
-> > > - Merge with the upstream fixes.
-> > > v5:
-> > > - Fix small style issues pointed out by Thomas Hellstrom.
-> > >=20
-> > > Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-> > > Acked-by: John Stultz <john.stultz@linaro.org>
-> > > ---
-> > >  drivers/staging/android/Kconfig      |    1=20
-> > >  drivers/staging/android/Makefile     |    2=20
-> > >  drivers/staging/android/sw_sync.c    |    6=20
-> > >  drivers/staging/android/sync.c       |  913 +++++++++++-------------=
-----------
-> > >  drivers/staging/android/sync.h       |   79 ++-
-> > >  drivers/staging/android/sync_debug.c |  247 +++++++++
-> > >  drivers/staging/android/trace/sync.h |   12=20
-> > >  7 files changed, 609 insertions(+), 651 deletions(-)
-> > >  create mode 100644 drivers/staging/android/sync_debug.c
-> >=20
-> > With these changes, can we pull the android sync logic out of
-> > drivers/staging/ now?
->=20
-> Afaik the google guys never really looked at this and acked it. So I'm not
-> sure whether they'll follow along. The other issue I have as the
-> maintainer of gfx driver is that I don't want to implement support for two
-> different sync object primitives (once for dma-buf and once for android
-> syncpts), and my impression thus far has been that even with this we're
-> not there.
->=20
-> I'm trying to get our own android guys to upstream their i915 syncpts
-> support, but thus far I haven't managed to convince them to throw people's
-> time at this.
+On Tuesday 10 June 2014 12:25:47 Denis Carikli wrote:
+> We need a way to pass signal polarity informations
+>   between DRM panels, and the display drivers.
+> 
+> To do that, a pol_flags field was added to drm_display_mode.
+> 
+> Signed-off-by: Denis Carikli <denis@eukrea.com>
+> ---
+> ChangeLog v12->v13:
+> - Added Docbook documentation for pol_flags the struct field.
+> - Removed the _PRESERVE	defines: it was used by patches
+>   against the imx_drm driver. Now theses patches have been
+>   adapted not to require that defines.
+> ChangeLog v11->v12:
+> - Rebased: This patch now applies against drm_modes.h
+> - Rebased: It now uses the new DRM_MODE_FLAG_POL_DE flags defines names
+> 
+> ChangeLog v10->v11:
+> - Since the imx-drm won't be able to retrive its regulators
+>   from the device tree when using display-timings nodes,
+>   and that I was told that the drm simple-panel driver
+>   already supported that, I then, instead, added what was
+>   lacking to make the eukrea displays work with the
+>   drm-simple-panel driver.
+> 
+>   That required a way to get back the display polarity
+>   informations from the imx-drm driver without affecting
+>   userspace.
+> ---
+>  Documentation/DocBook/drm.tmpl |   30 ++++++++++++++++++++++++++++++
+>  include/drm/drm_modes.h        |    6 ++++++
+>  2 files changed, 36 insertions(+)
+> 
+> diff --git a/Documentation/DocBook/drm.tmpl b/Documentation/DocBook/drm.tmpl
+> index c526d81..29c0e5a 100644
+> --- a/Documentation/DocBook/drm.tmpl
+> +++ b/Documentation/DocBook/drm.tmpl
+> @@ -2292,6 +2292,36 @@ void intel_crt_init(struct drm_device *dev)
+>              and <structfield>height_mm</structfield> fields are only used
+> internally during EDID parsing and should not be set when creating modes
+> manually. </para>
+> +          <para>
+> +            The <structfield>pol_flags</structfield> value represents the
+> display
+> +            signal polarity flags, it can be a combination of
+> +            <variablelist>
+> +              <varlistentry>
+> +                <term>DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE</term>
+> +                 <listitem><para>
+> +                     drive pixel data on falling edge, sample data on
+> rising edge.
+> +                 </para></listitem>
+> +              </varlistentry>
+> +              <varlistentry>
+> +                <term>DRM_MODE_FLAG_POL_PIXDATA_POSEDGE</term>
+> +                <listitem><para>
+> +                  Drive pixel data on rising edge, sample data on falling
+> edge.
+> +                </para></listitem>
+> +              </varlistentry>
+> +              <varlistentry>
+> +                <term>DRM_MODE_FLAG_POL_DE_LOW</term>
+> +                <listitem><para>
+> +                  data-enable pulse is active low
+> +                </para></listitem>
+> +              </varlistentry>
+> +              <varlistentry>
+> +                <term>DRM_MODE_FLAG_POL_DE_HIGH</term>
+> +                <listitem><para>
+> +                  data-enable pulse is active low
 
-This has been discussed a fair bit internally recently and some of our
-GPU experts have raised concerns that this may result in seriously
-degraded performance in our proprietary graphics stack. Now I don't care
-very much for the proprietary graphics stack, but by extension I would
-assume that the same restrictions are relevant for any open-source
-driver as well.
+I assume you mean active high here.
 
-I'm still trying to fully understand all the implications and at the
-same time get some of the people who raised concerns to join in this
-discussion. As I understand it the concern is mostly about explicit vs.
-implicit synchronization and having this mechanism in the kernel will
-implicitly synchronize all accesses to these buffers even in cases where
-it's not needed (read vs. write locks, etc.). In one particular instance
-it was even mentioned that this kind of implicit synchronization can
-lead to deadlocks in some use-cases (this was mentioned for Android
-compositing, but I suspect that the same may happen for Wayland or X
-compositors).
+> +                </para></listitem>
+> +              </varlistentry>
+> +            </variablelist>
+> +          </para>
+>          </listitem>
+>          <listitem>
+>            <synopsis>int (*mode_valid)(struct drm_connector *connector,
+> diff --git a/include/drm/drm_modes.h b/include/drm/drm_modes.h
+> index 91d0582..c5cbe31 100644
+> --- a/include/drm/drm_modes.h
+> +++ b/include/drm/drm_modes.h
+> @@ -93,6 +93,11 @@ enum drm_mode_status {
+> 
+>  #define DRM_MODE_FLAG_3D_MAX	DRM_MODE_FLAG_3D_SIDE_BY_SIDE_HALF
+> 
+> +#define DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE	BIT(1)
+> +#define DRM_MODE_FLAG_POL_PIXDATA_POSEDGE	BIT(2)
+> +#define DRM_MODE_FLAG_POL_DE_LOW		BIT(3)
+> +#define DRM_MODE_FLAG_POL_DE_HIGH		BIT(4)
+> +
+>  struct drm_display_mode {
+>  	/* Header */
+>  	struct list_head head;
+> @@ -144,6 +149,7 @@ struct drm_display_mode {
+>  	int vrefresh;		/* in Hz */
+>  	int hsync;		/* in kHz */
+>  	enum hdmi_picture_aspect picture_aspect_ratio;
+> +	unsigned int pol_flags;
+>  };
+> 
+>  /* mode specified on the command line */
 
-Thierry
+-- 
+Regards,
 
---gatW/ieO32f1wygP
-Content-Type: application/pgp-signature
+Laurent Pinchart
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTos4JAAoJEN0jrNd/PrOh+H0P/jtiabvudLyPpDql5VmWtVG+
-Sbzos2XB2Q4JHWVrC42Exeettc9k2CfgV9MhOYTyqyFMmRlO9ReomvpmUAZ1UiZT
-ppcO4xHkuEAOfpnkLCMvOFjDh2RiD2NNFANiPbRXMdDwzlD7RRGa7z6r3gbmuuGX
-aoaz0tdko1MaOCLqHaHVRHxb4lLM4edCw4KzgDQBbbdTFL4ikEuN0g9K6N3zMyUm
-OOoiivg0R8t+c+jaDVK9xM9DDnirX1yQB/M4e7rTk1GY4Y5MmtU+o9BqO4QVrsql
-Qe+UpS/OYEzxU8EacFYius15cyEl6u1ExLDcFjoN//4yXNVx3pTzXf6+ZdT/3P5T
-GK+/fWBto5bWh7/Jme04cM4e4MFHDED9F2zwMO74O7dsbXf/qSgpZr+yY7ADza4B
-JOI2z1NNd9bzwWeA2FV3lsEv+DHQM5fCrAFsDyhHu7vcB09RJ+ycc253C/kURlyT
-FNoN4vZxwtD0PwQeqo+e8lfYkZFOqxQwmNW3QzbstSUswFCBE2mRFGawKAHCGto5
-sP7sqenyYPD4CQXFN1XVYGKVhAiwAyiQKoZaS6LX9v5+6yVGBsgOiph7Bce8O1hb
-sL6JQ6VqpMqYI6Ff+AA7KkRWNpjOiIBR5Hu5qrc0dE/K1Zt3O6YoeDS907tjsz2H
-sUx2YWeML5JghjpGZApT
-=P7uv
------END PGP SIGNATURE-----
-
---gatW/ieO32f1wygP--
