@@ -1,64 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60113 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755910AbaFLOZW (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4913 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933675AbaFLL7w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 10:25:22 -0400
-Date: Thu, 12 Jun 2014 07:25:15 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>, arm@kernel.org,
-	linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
-Message-ID: <20140612142515.GA7653@kroah.com>
-References: <5192928.MkINji4uKU@wuerfel>
- <7948240.P51u2omQa4@wuerfel>
- <2046469.GckHavNRr1@avalon>
- <7460455.eZRbtzsNrd@wuerfel>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7460455.eZRbtzsNrd@wuerfel>
+	Thu, 12 Jun 2014 07:59:52 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 08/34] v4l2-ctrls: rewrite copy routines to operate on union v4l2_ctrl_ptr.
+Date: Thu, 12 Jun 2014 13:52:40 +0200
+Message-Id: <6abf4c9ef44a5fa6478cca7fa28a4b10a37d646d.1402573818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 12, 2014 at 04:15:32PM +0200, Arnd Bergmann wrote:
-> On Thursday 12 June 2014 16:12:17 Laurent Pinchart wrote:
-> > > From 3a965f4fd5a6b3ef4a66aa4e7c916cfd34fd5706 Mon Sep 17 00:00:00 2001
-> > > From: Arnd Bergmann <arnd@arndb.de>
-> > > Date: Tue, 21 Jan 2014 09:32:43 +0100
-> > > Subject: [PATCH] [media] staging: tighten omap4iss dependencies
-> > > 
-> > > The OMAP4 camera support depends on I2C and VIDEO_V4L2, both
-> > > of which can be loadable modules. This causes build failures
-> > > if we want the camera driver to be built-in.
-> > > 
-> > > This can be solved by turning the option into "tristate",
-> > > which unfortunately causes another problem, because the
-> > > driver incorrectly calls a platform-internal interface
-> > > for omap4_ctrl_pad_readl/omap4_ctrl_pad_writel.
-> > > 
-> > > Instead, this patch just forbids the invalid configurations
-> > > and ensures that the driver can only be built if all its
-> > > dependencies are built-in.
-> > > 
-> > > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > 
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > Should I take this in my tree for v3.17 or would you like to fast-track it ?
-> > 
-> 
-> I'd actually like to see it in 3.15 as a stable backport if possible,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-It's not stable material, sorry.
+In order to implement array support and (for the future) configuration stores
+we need to have more generic copy routines that all operate on the v4l2_ctrl_ptr
+union. So instead of e.g. using ctrl->cur.string it uses ptr.p_char. This makes
+e.g. cur_to_user generic so it can be used to copy any v4l2_ctrl_ptr value to
+userspace, not just the (hardcoded) current value.
 
-> but definitely in 3.16. What is the normal path for staging/media
-> but fix patches?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 129 +++++++++++++++--------------------
+ 1 file changed, 56 insertions(+), 73 deletions(-)
 
-Through Mauro's tree.
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 09e2c3a..e7e0bea 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1304,48 +1304,64 @@ static const struct v4l2_ctrl_type_ops std_type_ops = {
+ 	.validate = std_validate,
+ };
+ 
+-/* Helper function: copy the current control value back to the caller */
+-static int cur_to_user(struct v4l2_ext_control *c,
+-		       struct v4l2_ctrl *ctrl)
++/* Helper function: copy the given control value back to the caller */
++static int ptr_to_user(struct v4l2_ext_control *c,
++		       struct v4l2_ctrl *ctrl,
++		       union v4l2_ctrl_ptr ptr)
+ {
+ 	u32 len;
+ 
+ 	if (ctrl->is_ptr && !ctrl->is_string)
+-		return copy_to_user(c->ptr, ctrl->cur.p, ctrl->elem_size);
++		return copy_to_user(c->ptr, ptr.p, ctrl->elem_size);
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_STRING:
+-		len = strlen(ctrl->cur.string);
++		len = strlen(ptr.p_char);
+ 		if (c->size < len + 1) {
+ 			c->size = len + 1;
+ 			return -ENOSPC;
+ 		}
+-		return copy_to_user(c->string, ctrl->cur.string,
+-						len + 1) ? -EFAULT : 0;
++		return copy_to_user(c->string, ptr.p_char, len + 1) ?
++								-EFAULT : 0;
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		c->value64 = ctrl->cur.val64;
++		c->value64 = *ptr.p_s64;
+ 		break;
+ 	default:
+-		c->value = ctrl->cur.val;
++		c->value = *ptr.p_s32;
+ 		break;
+ 	}
+ 	return 0;
+ }
+ 
+-/* Helper function: copy the caller-provider value as the new control value */
+-static int user_to_new(struct v4l2_ext_control *c,
++/* Helper function: copy the current control value back to the caller */
++static int cur_to_user(struct v4l2_ext_control *c,
+ 		       struct v4l2_ctrl *ctrl)
+ {
++	return ptr_to_user(c, ctrl, ctrl->p_cur);
++}
++
++/* Helper function: copy the new control value back to the caller */
++static int new_to_user(struct v4l2_ext_control *c,
++		       struct v4l2_ctrl *ctrl)
++{
++	return ptr_to_user(c, ctrl, ctrl->p_new);
++}
++
++/* Helper function: copy the caller-provider value to the given control value */
++static int user_to_ptr(struct v4l2_ext_control *c,
++		       struct v4l2_ctrl *ctrl,
++		       union v4l2_ctrl_ptr ptr)
++{
+ 	int ret;
+ 	u32 size;
+ 
+ 	ctrl->is_new = 1;
+ 	if (ctrl->is_ptr && !ctrl->is_string)
+-		return copy_from_user(ctrl->p, c->ptr, ctrl->elem_size);
++		return copy_from_user(ptr.p, c->ptr, ctrl->elem_size);
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		ctrl->val64 = c->value64;
++		*ptr.p_s64 = c->value64;
+ 		break;
+ 	case V4L2_CTRL_TYPE_STRING:
+ 		size = c->size;
+@@ -1353,83 +1369,64 @@ static int user_to_new(struct v4l2_ext_control *c,
+ 			return -ERANGE;
+ 		if (size > ctrl->maximum + 1)
+ 			size = ctrl->maximum + 1;
+-		ret = copy_from_user(ctrl->string, c->string, size);
++		ret = copy_from_user(ptr.p_char, c->string, size);
+ 		if (!ret) {
+-			char last = ctrl->string[size - 1];
++			char last = ptr.p_char[size - 1];
+ 
+-			ctrl->string[size - 1] = 0;
++			ptr.p_char[size - 1] = 0;
+ 			/* If the string was longer than ctrl->maximum,
+ 			   then return an error. */
+-			if (strlen(ctrl->string) == ctrl->maximum && last)
++			if (strlen(ptr.p_char) == ctrl->maximum && last)
+ 				return -ERANGE;
+ 		}
+ 		return ret ? -EFAULT : 0;
+ 	default:
+-		ctrl->val = c->value;
++		*ptr.p_s32 = c->value;
+ 		break;
+ 	}
+ 	return 0;
+ }
+ 
+-/* Helper function: copy the new control value back to the caller */
+-static int new_to_user(struct v4l2_ext_control *c,
++/* Helper function: copy the caller-provider value as the new control value */
++static int user_to_new(struct v4l2_ext_control *c,
+ 		       struct v4l2_ctrl *ctrl)
+ {
+-	u32 len;
+-
+-	if (ctrl->is_ptr && !ctrl->is_string)
+-		return copy_to_user(c->ptr, ctrl->p, ctrl->elem_size);
++	return user_to_ptr(c, ctrl, ctrl->p_new);
++}
+ 
++/* Copy the one value to another. */
++static void ptr_to_ptr(struct v4l2_ctrl *ctrl,
++		       union v4l2_ctrl_ptr from, union v4l2_ctrl_ptr to)
++{
++	if (ctrl == NULL)
++		return;
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_STRING:
+-		len = strlen(ctrl->string);
+-		if (c->size < len + 1) {
+-			c->size = ctrl->maximum + 1;
+-			return -ENOSPC;
+-		}
+-		return copy_to_user(c->string, ctrl->string,
+-						len + 1) ? -EFAULT : 0;
++		/* strings are always 0-terminated */
++		strcpy(to.p_char, from.p_char);
++		break;
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		c->value64 = ctrl->val64;
++		*to.p_s64 = *from.p_s64;
+ 		break;
+ 	default:
+-		c->value = ctrl->val;
++		if (ctrl->is_ptr)
++			memcpy(to.p, from.p, ctrl->elem_size);
++		else
++			*to.p_s32 = *from.p_s32;
+ 		break;
+ 	}
+-	return 0;
+ }
+ 
+ /* Copy the new value to the current value. */
+ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
+ {
+-	bool changed = false;
++	bool changed;
+ 
+ 	if (ctrl == NULL)
+ 		return;
++	changed = !ctrl->type_ops->equal(ctrl, ctrl->p_cur, ctrl->p_new);
++	ptr_to_ptr(ctrl, ctrl->p_new, ctrl->p_cur);
+ 
+-	switch (ctrl->type) {
+-	case V4L2_CTRL_TYPE_BUTTON:
+-		changed = true;
+-		break;
+-	case V4L2_CTRL_TYPE_STRING:
+-		/* strings are always 0-terminated */
+-		changed = strcmp(ctrl->string, ctrl->cur.string);
+-		strcpy(ctrl->cur.string, ctrl->string);
+-		break;
+-	case V4L2_CTRL_TYPE_INTEGER64:
+-		changed = ctrl->val64 != ctrl->cur.val64;
+-		ctrl->cur.val64 = ctrl->val64;
+-		break;
+-	default:
+-		if (ctrl->is_ptr) {
+-			changed = memcmp(ctrl->p, ctrl->cur.p, ctrl->elem_size);
+-			memcpy(ctrl->cur.p, ctrl->p, ctrl->elem_size);
+-		} else {
+-			changed = ctrl->val != ctrl->cur.val;
+-			ctrl->cur.val = ctrl->val;
+-		}
+-		break;
+-	}
+ 	if (ch_flags & V4L2_EVENT_CTRL_CH_FLAGS) {
+ 		/* Note: CH_FLAGS is only set for auto clusters. */
+ 		ctrl->flags &=
+@@ -1458,21 +1455,7 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
+ {
+ 	if (ctrl == NULL)
+ 		return;
+-	switch (ctrl->type) {
+-	case V4L2_CTRL_TYPE_STRING:
+-		/* strings are always 0-terminated */
+-		strcpy(ctrl->string, ctrl->cur.string);
+-		break;
+-	case V4L2_CTRL_TYPE_INTEGER64:
+-		ctrl->val64 = ctrl->cur.val64;
+-		break;
+-	default:
+-		if (ctrl->is_ptr)
+-			memcpy(ctrl->p, ctrl->cur.p, ctrl->elem_size);
+-		else
+-			ctrl->val = ctrl->cur.val;
+-		break;
+-	}
++	ptr_to_ptr(ctrl, ctrl->p_cur, ctrl->p_new);
+ }
+ 
+ /* Return non-zero if one or more of the controls in the cluster has a new
+-- 
+2.0.0.rc0
 
-greg k-h
