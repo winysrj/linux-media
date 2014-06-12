@@ -1,80 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp205.alice.it ([82.57.200.101]:16901 "EHLO smtp205.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932153AbaFCNsy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Jun 2014 09:48:54 -0400
-From: Antonio Ospite <ao2@ao2.it>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2314 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933216AbaFLLyn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jun 2014 07:54:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ao2@ao2.it>, Gregor Jasny <gjasny@googlemail.com>
-Subject: [PATCH] libv4lconvert: Fix a regression when converting from Y10B
-Date: Tue,  3 Jun 2014 15:48:46 +0200
-Message-Id: <1401803326-31942-1-git-send-email-ao2@ao2.it>
+Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 16/34] v4l2-ctrl: fix error return of copy_to/from_user.
+Date: Thu, 12 Jun 2014 13:52:48 +0200
+Message-Id: <9ea9d9d31524ca60945a374c9bbcac1c38371a50.1402573818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix a regression introduced in commit
-efc29f1764a30808ebf7b3e1d9bfa27b909bf641 (libv4lconvert: Reject too
-short source buffer before accessing it).
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The old code:
+copy_to/from_user returns the number of bytes not copied, it does not
+return a 'normal' linux error code.
 
-case V4L2_PIX_FMT_Y10BPACK:
-	...
-	if (result == 0 && src_size < (width * height * 10 / 8)) {
-		V4LCONVERT_ERR("short y10b data frame\n");
-		errno = EPIPE;
-		result = -1;
-	}
-	...
-
-meant to say "If the conversion was *successful* _but_ the frame size
-was invalid, then take the error path", but in
-efc29f1764a30808ebf7b3e1d9bfa27b909bf641 this (maybe weird) logic was
-misunderstood and the v4lconvert_convert_pixfmt() was made to return an
-error even in the case of a successful conversion from Y10B.
-
-Fix the check, and now print only the message letting the errno and the
-result from the conversion routines to be propagated to the caller.
-
-Signed-off-by: Antonio Ospite <ao2@ao2.it>
-Cc: Gregor Jasny <gjasny@googlemail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-Hi,
-
-the regression affects only the users of the gspca-kinect driver when using
-the IR stream.
-
-I think this should be cherry-picked in stable-1.0 too.
-
-BTW Gregor, in efc29f1764a30808ebf7b3e1d9bfa27b909bf641 you say "Reject too
-short source buffer before accessing it" but the code only does "result = -1"
-and then still calls the conversion routines, so it's not actually *rejecting*
-the frames, am I missing anything?
-
-Thanks,
-   Antonio
-
- lib/libv4lconvert/libv4lconvert.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
-
-diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-index c49d30d..50d6906 100644
---- a/lib/libv4lconvert/libv4lconvert.c
-+++ b/lib/libv4lconvert/libv4lconvert.c
-@@ -1052,11 +1052,8 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
- 							   width, height);
- 			break;
- 		}
--		if (result == 0) {
-+		if (result != 0)
- 			V4LCONVERT_ERR("y10b conversion failed\n");
--			errno = EPIPE;
--			result = -1;
--		}
- 		break;
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index e6e33b3..1086ae3 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1326,7 +1326,8 @@ static int ptr_to_user(struct v4l2_ext_control *c,
+ 	u32 len;
  
- 	case V4L2_PIX_FMT_RGB565:
+ 	if (ctrl->is_ptr && !ctrl->is_string)
+-		return copy_to_user(c->ptr, ptr.p, c->size);
++		return copy_to_user(c->ptr, ptr.p, c->size) ?
++		       -EFAULT : 0;
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_STRING:
+@@ -1336,7 +1337,7 @@ static int ptr_to_user(struct v4l2_ext_control *c,
+ 			return -ENOSPC;
+ 		}
+ 		return copy_to_user(c->string, ptr.p_char, len + 1) ?
+-								-EFAULT : 0;
++		       -EFAULT : 0;
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		c->value64 = *ptr.p_s64;
+ 		break;
+@@ -1373,7 +1374,7 @@ static int user_to_ptr(struct v4l2_ext_control *c,
+ 	if (ctrl->is_ptr && !ctrl->is_string) {
+ 		unsigned idx;
+ 
+-		ret = copy_from_user(ptr.p, c->ptr, c->size);
++		ret = copy_from_user(ptr.p, c->ptr, c->size) ? -EFAULT : 0;
+ 		if (ret || !ctrl->is_array)
+ 			return ret;
+ 		for (idx = c->size / ctrl->elem_size; idx < ctrl->elems; idx++)
+@@ -1391,7 +1392,7 @@ static int user_to_ptr(struct v4l2_ext_control *c,
+ 			return -ERANGE;
+ 		if (size > ctrl->maximum + 1)
+ 			size = ctrl->maximum + 1;
+-		ret = copy_from_user(ptr.p_char, c->string, size);
++		ret = copy_from_user(ptr.p_char, c->string, size) ? -EFAULT : 0;
+ 		if (!ret) {
+ 			char last = ptr.p_char[size - 1];
+ 
+@@ -1401,7 +1402,7 @@ static int user_to_ptr(struct v4l2_ext_control *c,
+ 			if (strlen(ptr.p_char) == ctrl->maximum && last)
+ 				return -ERANGE;
+ 		}
+-		return ret ? -EFAULT : 0;
++		return ret;
+ 	default:
+ 		*ptr.p_s32 = c->value;
+ 		break;
 -- 
-2.0.0
+2.0.0.rc0
 
