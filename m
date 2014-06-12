@@ -1,93 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:40950 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752749AbaFLLvN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 07:51:13 -0400
-To: Niels Laukens <niels@dest-unreach.be>
-Subject: Re: [BUG & PATCH] media/rc/ir-nec-decode : phantom keypress
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 8bit
-Date: Thu, 12 Jun 2014 13:51:11 +0200
-From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, James Hogan <james.hogan@imgtec.com>,
-	=?UTF-8?Q?Antti_Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-In-Reply-To: <53998D69.60901@dest-unreach.be>
-References: <538994CB.6020205@dest-unreach.be>
- <53980DF8.5040206@dest-unreach.be>
- <330c58e7d7849824b812db007c03b08d@hardeman.nu>
- <53998D69.60901@dest-unreach.be>
-Message-ID: <754858effccb1d52ebec59f91f860c26@hardeman.nu>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1790 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933273AbaFLLyn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jun 2014 07:54:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 23/34] v4l2-ctrls/videodev2.h: add u8 and u16 types.
+Date: Thu, 12 Jun 2014 13:52:55 +0200
+Message-Id: <fa4484719563d70f7cb5e1bc017069ea73d1d086.1402573818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2014-06-12 13:22, Niels Laukens wrote:
-> On 2014-06-12 12:42, David Härdeman wrote:
->> Hi,
-> 
-> Hi, thanks for the response
-> 
-> 
->> the problem with triggering a keypress as soon as 32 bits have been
->> received (i.e. before the trailing silence is detected)
-> 
-> Just for clarity: this patch does wait for the trailing silence. It 
-> does
-> NOT wait for the trailing silence to have (at least) a specific length.
-> (The pulse event is only fired after the pulse has ended, because the
-> length of the pulse needs to be known)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-True.
+These are needed by the upcoming patches for the motion detection
+matrices.
 
-Interpret "trailing silence" above as "silence long enough to indicate 
-end of message" :)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 45 ++++++++++++++++++++++++++++++++----
+ include/media/v4l2-ctrls.h           |  4 ++++
+ include/uapi/linux/videodev2.h       |  4 ++++
+ 3 files changed, 49 insertions(+), 4 deletions(-)
 
->> is that it would
->> cause phantom keypresses on some other protocols (I'm thinking of 
->> NEC48,
->> which does exist in the wild).
-> 
-> I don't think the current code is able to decode NEC48.
-
-No, but it would still be nice not to interpret a NEC48 signal as NEC32.
-
-> Is NEC48 recognizable in some other way than just being longer?
-
-IIRC, no.
-
-> In that case, the alternative would be to start a timer when the
-> TRAILING_SPACE is entered, and trigger the key-event after, say 2 
-> bit-times.
-
-Another alternative is fix the driver to implement a timeout so that 
-"unreasonable" values are not generated (I saw a 240550us space in your 
-log).
-
-That's basically what the filtering version of the raw interface does 
-(cf. the use of dev->timeout in ir_raw_event_store_with_filter()).
-
-And it's what most of the popular hardware does. For instance, the 
-mceusb hardware will send a USB packet with timings including that 
-trailing silence. And the decoder can only do their work once a packet 
-has arrived (which will contain a number of samples). That also 
-demonstrates a potential problem with your suggested approach (i.e. 
-timings can be buffered so calls to the decoders are not necessarily 
-"real-time").
-
->> Now, the question is why the trailing silence isn't generated within a
->> reasonable time. Which hardware decoder do you use?
-> 
-> I use the IR receiver built in to the TBS6281 DVB-T tuner card. I also
-> have a TBS6982 DVB-S card, but I guess it's the same hardware.
-
-Which driver?
-
-> It also depends on what "reasonable" means. I've found 300+ms, which is
-> unusable long.
-
-Agreed...
-
-//David
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 1086ae3..adf5485 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1174,6 +1174,10 @@ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		return !strcmp(ptr1.p_char + idx, ptr2.p_char + idx);
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		return ptr1.p_s64[idx] == ptr2.p_s64[idx];
++	case V4L2_CTRL_TYPE_U8:
++		return ptr1.p_u8[idx] == ptr2.p_u8[idx];
++	case V4L2_CTRL_TYPE_U16:
++		return ptr1.p_u16[idx] == ptr2.p_u16[idx];
+ 	default:
+ 		if (ctrl->is_int)
+ 			return ptr1.p_s32[idx] == ptr2.p_s32[idx];
+@@ -1201,6 +1205,12 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+ 		ptr.p_s32[idx] = ctrl->default_value;
+ 		break;
++	case V4L2_CTRL_TYPE_U8:
++		ptr.p_u8[idx] = ctrl->default_value;
++		break;
++	case V4L2_CTRL_TYPE_U16:
++		ptr.p_u16[idx] = ctrl->default_value;
++		break;
+ 	default:
+ 		idx *= ctrl->elem_size;
+ 		memset(ptr.p + idx, 0, ctrl->elem_size);
+@@ -1242,6 +1252,12 @@ static void std_log(const struct v4l2_ctrl *ctrl)
+ 	case V4L2_CTRL_TYPE_STRING:
+ 		pr_cont("%s", ptr.p_char);
+ 		break;
++	case V4L2_CTRL_TYPE_U8:
++		pr_cont("%u", (unsigned)*ptr.p_u8);
++		break;
++	case V4L2_CTRL_TYPE_U16:
++		pr_cont("%u", (unsigned)*ptr.p_u16);
++		break;
+ 	default:
+ 		pr_cont("unknown type %d", ctrl->type);
+ 		break;
+@@ -1272,6 +1288,10 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		return ROUND_TO_RANGE(ptr.p_s32[idx], u32, ctrl);
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		return ROUND_TO_RANGE(ptr.p_s64[idx], u64, ctrl);
++	case V4L2_CTRL_TYPE_U8:
++		return ROUND_TO_RANGE(ptr.p_u8[idx], u8, ctrl);
++	case V4L2_CTRL_TYPE_U16:
++		return ROUND_TO_RANGE(ptr.p_u16[idx], u16, ctrl);
+ 
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+ 		ptr.p_s32[idx] = !!ptr.p_s32[idx];
+@@ -1502,6 +1522,8 @@ static int check_range(enum v4l2_ctrl_type type,
+ 		if (step != 1 || max > 1 || min < 0)
+ 			return -ERANGE;
+ 		/* fall through */
++	case V4L2_CTRL_TYPE_U8:
++	case V4L2_CTRL_TYPE_U16:
+ 	case V4L2_CTRL_TYPE_INTEGER:
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		if (step == 0 || min > max || def < min || def > max)
+@@ -1803,12 +1825,25 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	}
+ 	is_array = nr_of_dims > 0;
+ 
+-	if (type == V4L2_CTRL_TYPE_INTEGER64)
++	/* Prefill elem_size for all types handled by std_type_ops */
++	switch (type) {
++	case V4L2_CTRL_TYPE_INTEGER64:
+ 		elem_size = sizeof(s64);
+-	else if (type == V4L2_CTRL_TYPE_STRING)
++		break;
++	case V4L2_CTRL_TYPE_STRING:
+ 		elem_size = max + 1;
+-	else if (type < V4L2_CTRL_COMPOUND_TYPES)
+-		elem_size = sizeof(s32);
++		break;
++	case V4L2_CTRL_TYPE_U8:
++		elem_size = sizeof(u8);
++		break;
++	case V4L2_CTRL_TYPE_U16:
++		elem_size = sizeof(u16);
++		break;
++	default:
++		if (type < V4L2_CTRL_COMPOUND_TYPES)
++			elem_size = sizeof(s32);
++		break;
++	}
+ 	tot_ctrl_size = elem_size * elems;
+ 
+ 	/* Sanity checks */
+@@ -3148,6 +3183,8 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+ 	case V4L2_CTRL_TYPE_MENU:
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+ 	case V4L2_CTRL_TYPE_BITMASK:
++	case V4L2_CTRL_TYPE_U8:
++	case V4L2_CTRL_TYPE_U16:
+ 		if (ctrl->is_array)
+ 			return -EINVAL;
+ 		ret = check_range(ctrl->type, min, max, step, def);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 7915b1125..c630345 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -39,12 +39,16 @@ struct poll_table_struct;
+ /** union v4l2_ctrl_ptr - A pointer to a control value.
+  * @p_s32:	Pointer to a 32-bit signed value.
+  * @p_s64:	Pointer to a 64-bit signed value.
++ * @p_u8:	Pointer to a 8-bit unsigned value.
++ * @p_u16:	Pointer to a 16-bit unsigned value.
+  * @p_char:	Pointer to a string.
+  * @p:		Pointer to a compound value.
+  */
+ union v4l2_ctrl_ptr {
+ 	s32 *p_s32;
+ 	s64 *p_s64;
++	u8 *p_u8;
++	u16 *p_u16;
+ 	char *p_char;
+ 	void *p;
+ };
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 7d94adc..93ae827 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1254,6 +1254,8 @@ struct v4l2_ext_control {
+ 		__s32 value;
+ 		__s64 value64;
+ 		char *string;
++		__u8 *p_u8;
++		__u16 *p_u16;
+ 		void *ptr;
+ 	};
+ } __attribute__ ((packed));
+@@ -1284,6 +1286,8 @@ enum v4l2_ctrl_type {
+ 
+ 	/* Compound types are >= 0x0100 */
+ 	V4L2_CTRL_COMPOUND_TYPES     = 0x0100,
++	V4L2_CTRL_TYPE_U8	     = 0x0100,
++	V4L2_CTRL_TYPE_U16	     = 0x0101,
+ };
+ 
+ /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+-- 
+2.0.0.rc0
 
