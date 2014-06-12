@@ -1,444 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33022 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756171AbaFLRGp (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4052 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933236AbaFLLyl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 13:06:45 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+	Thu, 12 Jun 2014 07:54:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Lucas Stach <l.stach@pengutronix.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [RFC PATCH 08/26] [media] imx-ipu: add ipu media common code
-Date: Thu, 12 Jun 2014 19:06:22 +0200
-Message-Id: <1402592800-2925-9-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 14/34] v4l2-ctrls: add array support.
+Date: Thu, 12 Jun 2014 13:52:46 +0200
+Message-Id: <cabd1863eee3d1d144145cd71a03536aab6f8595.1402573818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sascha Hauer <s.hauer@pengutronix.de>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add video4linux API routines common to IPU scaler, overlay, and deinterlacer
-drivers.
+Finish the userspace-facing array support.
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/Kconfig       |   2 +
- drivers/media/platform/Makefile      |   1 +
- drivers/media/platform/imx/Kconfig   |   2 +
- drivers/media/platform/imx/Makefile  |   1 +
- drivers/media/platform/imx/imx-ipu.c | 313 +++++++++++++++++++++++++++++++++++
- drivers/media/platform/imx/imx-ipu.h |  35 ++++
- 6 files changed, 354 insertions(+)
- create mode 100644 drivers/media/platform/imx/Kconfig
- create mode 100644 drivers/media/platform/imx/Makefile
- create mode 100644 drivers/media/platform/imx/imx-ipu.c
- create mode 100644 drivers/media/platform/imx/imx-ipu.h
+ drivers/media/v4l2-core/v4l2-ctrls.c | 109 ++++++++++++++++++++---------------
+ 1 file changed, 63 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 20f1655..8e9c26c 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -29,6 +29,8 @@ config VIDEO_VIA_CAMERA
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index f6ac927..b3ab8a9 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1202,6 +1202,8 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		ptr.p_s32[idx] = ctrl->default_value;
+ 		break;
+ 	default:
++		idx *= ctrl->elem_size;
++		memset(ptr.p + idx, 0, ctrl->elem_size);
+ 		break;
+ 	}
+ }
+@@ -1324,7 +1326,7 @@ static int ptr_to_user(struct v4l2_ext_control *c,
+ 	u32 len;
  
- source "drivers/media/platform/davinci/Kconfig"
+ 	if (ctrl->is_ptr && !ctrl->is_string)
+-		return copy_to_user(c->ptr, ptr.p, ctrl->elem_size);
++		return copy_to_user(c->ptr, ptr.p, c->size);
  
-+source "drivers/media/platform/imx/Kconfig"
-+
- source "drivers/media/platform/omap/Kconfig"
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_STRING:
+@@ -1368,8 +1370,16 @@ static int user_to_ptr(struct v4l2_ext_control *c,
+ 	u32 size;
  
- source "drivers/media/platform/blackfin/Kconfig"
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index e5269da..ba114c0 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -48,6 +48,7 @@ obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
- obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
- 
- obj-y	+= davinci/
-+obj-y	+= imx/
- 
- obj-$(CONFIG_ARCH_OMAP)	+= omap/
- 
-diff --git a/drivers/media/platform/imx/Kconfig b/drivers/media/platform/imx/Kconfig
-new file mode 100644
-index 0000000..a90c973
---- /dev/null
-+++ b/drivers/media/platform/imx/Kconfig
-@@ -0,0 +1,2 @@
-+config VIDEO_IMX_IPU_COMMON
-+	tristate
-diff --git a/drivers/media/platform/imx/Makefile b/drivers/media/platform/imx/Makefile
-new file mode 100644
-index 0000000..5de119c
---- /dev/null
-+++ b/drivers/media/platform/imx/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_VIDEO_IMX_IPU_COMMON)	+= imx-ipu.o
-diff --git a/drivers/media/platform/imx/imx-ipu.c b/drivers/media/platform/imx/imx-ipu.c
-new file mode 100644
-index 0000000..c1b8637
---- /dev/null
-+++ b/drivers/media/platform/imx/imx-ipu.c
-@@ -0,0 +1,313 @@
-+/*
-+ * i.MX IPUv3 common v4l2 support
-+ *
-+ * Copyright (C) 2011 Sascha Hauer, Pengutronix
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+#include <linux/module.h>
-+#include <media/v4l2-common.h>
-+#include <media/v4l2-dev.h>
-+#include <media/v4l2-ioctl.h>
+ 	ctrl->is_new = 1;
+-	if (ctrl->is_ptr && !ctrl->is_string)
+-		return copy_from_user(ptr.p, c->ptr, ctrl->elem_size);
++	if (ctrl->is_ptr && !ctrl->is_string) {
++		unsigned idx;
 +
-+#include "imx-ipu.h"
-+
-+static struct ipu_fmt ipu_fmt_yuv[] = {
-+	{
-+		.fourcc = V4L2_PIX_FMT_YUV420,
-+		.name = "YUV 4:2:0 planar, YCbCr",
-+		.bytes_per_pixel = 1,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_YVU420,
-+		.name = "YUV 4:2:0 planar, YCrCb",
-+		.bytes_per_pixel = 1,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_YUV422P,
-+		.name = "YUV 4:2:2 planar, YCbCr",
-+		.bytes_per_pixel = 1,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_NV12,
-+		.name = "YUV 4:2:0 partial interleaved, YCbCr",
-+		.bytes_per_pixel = 1,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_UYVY,
-+		.name = "4:2:2, packed, UYVY",
-+		.bytes_per_pixel = 2,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_YUYV,
-+		.name = "4:2:2, packed, YUYV",
-+		.bytes_per_pixel = 2,
-+	},
-+};
-+
-+static struct ipu_fmt ipu_fmt_rgb[] = {
-+	{
-+		.fourcc = V4L2_PIX_FMT_RGB32,
-+		.name = "RGB888",
-+		.bytes_per_pixel = 4,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_RGB24,
-+		.name = "RGB24",
-+		.bytes_per_pixel = 3,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_BGR24,
-+		.name = "BGR24",
-+		.bytes_per_pixel = 3,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_RGB565,
-+		.name = "RGB565",
-+		.bytes_per_pixel = 2,
-+	},
-+	{
-+		.fourcc = V4L2_PIX_FMT_BGR32,
-+		.name = "BGR888",
-+		.bytes_per_pixel = 4,
-+	},
-+};
-+
-+struct ipu_fmt *ipu_find_fmt_yuv(unsigned int pixelformat)
-+{
-+	struct ipu_fmt *fmt;
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(ipu_fmt_yuv); i++) {
-+		fmt = &ipu_fmt_yuv[i];
-+		if (fmt->fourcc == pixelformat)
-+			return fmt;
++		ret = copy_from_user(ptr.p, c->ptr, c->size);
++		if (ret || !ctrl->is_array)
++			return ret;
++		for (idx = c->size / ctrl->elem_size; idx < ctrl->elems; idx++)
++			ctrl->type_ops->init(ctrl, idx, ptr);
++		return 0;
 +	}
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+@@ -1412,21 +1422,7 @@ static void ptr_to_ptr(struct v4l2_ctrl *ctrl,
+ {
+ 	if (ctrl == NULL)
+ 		return;
+-	switch (ctrl->type) {
+-	case V4L2_CTRL_TYPE_STRING:
+-		/* strings are always 0-terminated */
+-		strcpy(to.p_char, from.p_char);
+-		break;
+-	case V4L2_CTRL_TYPE_INTEGER64:
+-		*to.p_s64 = *from.p_s64;
+-		break;
+-	default:
+-		if (ctrl->is_ptr)
+-			memcpy(to.p, from.p, ctrl->elem_size);
+-		else
+-			*to.p_s32 = *from.p_s32;
+-		break;
+-	}
++	memcpy(to.p, from.p, ctrl->elems * ctrl->elem_size);
+ }
+ 
+ /* Copy the new value to the current value. */
+@@ -1478,15 +1474,19 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
+ static int cluster_changed(struct v4l2_ctrl *master)
+ {
+ 	bool changed = false;
++	unsigned idx;
+ 	int i;
+ 
+ 	for (i = 0; i < master->ncontrols; i++) {
+ 		struct v4l2_ctrl *ctrl = master->cluster[i];
++		bool ctrl_changed = false;
+ 
+ 		if (ctrl == NULL)
+ 			continue;
+-		ctrl->has_changed = !ctrl->type_ops->equal(ctrl, 0,
++		for (idx = 0; !ctrl_changed && idx < ctrl->elems; idx++)
++			ctrl_changed = !ctrl->type_ops->equal(ctrl, idx,
+ 				ctrl->p_cur, ctrl->p_new);
++		ctrl->has_changed = ctrl_changed;
+ 		changed |= ctrl->has_changed;
+ 	}
+ 	return changed;
+@@ -1533,26 +1533,32 @@ static int validate_new(const struct v4l2_ctrl *ctrl,
+ 			struct v4l2_ext_control *c)
+ {
+ 	union v4l2_ctrl_ptr ptr;
+-
+-	switch (ctrl->type) {
+-	case V4L2_CTRL_TYPE_INTEGER:
+-	case V4L2_CTRL_TYPE_INTEGER_MENU:
+-	case V4L2_CTRL_TYPE_MENU:
+-	case V4L2_CTRL_TYPE_BITMASK:
+-	case V4L2_CTRL_TYPE_BOOLEAN:
+-	case V4L2_CTRL_TYPE_BUTTON:
+-	case V4L2_CTRL_TYPE_CTRL_CLASS:
+-		ptr.p_s32 = &c->value;
+-		return ctrl->type_ops->validate(ctrl, 0, ptr);
+-
+-	case V4L2_CTRL_TYPE_INTEGER64:
+-		ptr.p_s64 = &c->value64;
+-		return ctrl->type_ops->validate(ctrl, 0, ptr);
+-
+-	default:
+-		ptr.p = c->ptr;
+-		return ctrl->type_ops->validate(ctrl, 0, ptr);
++	unsigned idx;
++	int err = 0;
 +
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(ipu_find_fmt_yuv);
++	if (!ctrl->is_ptr) {
++		switch (ctrl->type) {
++		case V4L2_CTRL_TYPE_INTEGER:
++		case V4L2_CTRL_TYPE_INTEGER_MENU:
++		case V4L2_CTRL_TYPE_MENU:
++		case V4L2_CTRL_TYPE_BITMASK:
++		case V4L2_CTRL_TYPE_BOOLEAN:
++		case V4L2_CTRL_TYPE_BUTTON:
++		case V4L2_CTRL_TYPE_CTRL_CLASS:
++			ptr.p_s32 = &c->value;
++			return ctrl->type_ops->validate(ctrl, 0, ptr);
 +
-+struct ipu_fmt *ipu_find_fmt_rgb(unsigned int pixelformat)
-+{
-+	struct ipu_fmt *fmt;
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(ipu_fmt_rgb); i++) {
-+		fmt = &ipu_fmt_rgb[i];
-+		if (fmt->fourcc == pixelformat)
-+			return fmt;
++		case V4L2_CTRL_TYPE_INTEGER64:
++			ptr.p_s64 = &c->value64;
++			return ctrl->type_ops->validate(ctrl, 0, ptr);
++		default:
++			break;
++		}
+ 	}
++	ptr.p = c->ptr;
++	for (idx = 0; !err && idx < c->size / ctrl->elem_size; idx++)
++		err = ctrl->type_ops->validate(ctrl, idx, ptr);
++	return err;
+ }
+ 
+ static inline u32 node2id(struct list_head *node)
+@@ -1781,6 +1787,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	unsigned elems = 1;
+ 	bool is_array;
+ 	unsigned tot_ctrl_size;
++	unsigned idx;
+ 	void *data;
+ 	int err;
+ 
+@@ -1881,8 +1888,10 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		ctrl->p_new.p = &ctrl->val;
+ 		ctrl->p_cur.p = &ctrl->cur.val;
+ 	}
+-	ctrl->type_ops->init(ctrl, 0, ctrl->p_cur);
+-	ctrl->type_ops->init(ctrl, 0, ctrl->p_new);
++	for (idx = 0; idx < elems; idx++) {
++		ctrl->type_ops->init(ctrl, idx, ctrl->p_cur);
++		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
 +	}
+ 
+ 	if (handler_new_ref(hdl, ctrl)) {
+ 		kfree(ctrl);
+@@ -2578,12 +2587,17 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ 			have_clusters = true;
+ 		if (ctrl->cluster[0] != ctrl)
+ 			ref = find_ref_lock(hdl, ctrl->cluster[0]->id);
+-		if (ctrl->is_ptr && !ctrl->is_string && c->size < ctrl->elem_size) {
+-			if (get) {
+-				c->size = ctrl->elem_size;
+-				return -ENOSPC;
++		if (ctrl->is_ptr && !ctrl->is_string) {
++			unsigned tot_size = ctrl->elems * ctrl->elem_size;
 +
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(ipu_find_fmt_rgb);
-+
-+static struct ipu_fmt *ipu_find_fmt(unsigned long pixelformat)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	fmt = ipu_find_fmt_yuv(pixelformat);
-+	if (fmt)
-+		return fmt;
-+	fmt = ipu_find_fmt_rgb(pixelformat);
-+
-+	return fmt;
-+}
-+EXPORT_SYMBOL_GPL(ipu_find_fmt);
-+
-+int ipu_try_fmt(struct file *file, void *fh,
-+		struct v4l2_format *f)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	v4l_bound_align_image(&f->fmt.pix.width, 8, 4096, 2,
-+			      &f->fmt.pix.height, 2, 4096, 1, 0);
-+
-+	f->fmt.pix.field = V4L2_FIELD_NONE;
-+
-+	fmt = ipu_find_fmt(f->fmt.pix.pixelformat);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	f->fmt.pix.bytesperline = f->fmt.pix.width * fmt->bytes_per_pixel;
-+	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline * f->fmt.pix.height;
-+	if (fmt->fourcc == V4L2_PIX_FMT_YUV420 ||
-+	    fmt->fourcc == V4L2_PIX_FMT_YVU420 ||
-+	    fmt->fourcc == V4L2_PIX_FMT_NV12)
-+		f->fmt.pix.sizeimage = f->fmt.pix.sizeimage * 3 / 2;
-+	else if (fmt->fourcc == V4L2_PIX_FMT_YUV422P)
-+		f->fmt.pix.sizeimage *= 2;
-+
-+	f->fmt.pix.priv = 0;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_try_fmt);
-+
-+int ipu_try_fmt_rgb(struct file *file, void *fh,
-+		struct v4l2_format *f)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	fmt = ipu_find_fmt_rgb(f->fmt.pix.pixelformat);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	return ipu_try_fmt(file, fh, f);
-+}
-+EXPORT_SYMBOL_GPL(ipu_try_fmt_rgb);
-+
-+int ipu_try_fmt_yuv(struct file *file, void *fh,
-+		struct v4l2_format *f)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	fmt = ipu_find_fmt_yuv(f->fmt.pix.pixelformat);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	return ipu_try_fmt(file, fh, f);
-+}
-+EXPORT_SYMBOL_GPL(ipu_try_fmt_yuv);
-+
-+int ipu_enum_fmt_rgb(struct file *file, void *fh,
-+		struct v4l2_fmtdesc *f)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	if (f->index >= ARRAY_SIZE(ipu_fmt_rgb))
-+		return -EINVAL;
-+
-+	fmt = &ipu_fmt_rgb[f->index];
-+
-+	strlcpy(f->description, fmt->name, sizeof(f->description));
-+	f->pixelformat = fmt->fourcc;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_enum_fmt_rgb);
-+
-+int ipu_enum_fmt_yuv(struct file *file, void *fh,
-+		struct v4l2_fmtdesc *f)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	if (f->index >= ARRAY_SIZE(ipu_fmt_yuv))
-+		return -EINVAL;
-+
-+	fmt = &ipu_fmt_yuv[f->index];
-+
-+	strlcpy(f->description, fmt->name, sizeof(f->description));
-+	f->pixelformat = fmt->fourcc;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_enum_fmt_yuv);
-+
-+int ipu_enum_fmt(struct file *file, void *fh,
-+		struct v4l2_fmtdesc *f)
-+{
-+	struct ipu_fmt *fmt;
-+	int index = f->index;
-+
-+	if (index >= ARRAY_SIZE(ipu_fmt_yuv)) {
-+		index -= ARRAY_SIZE(ipu_fmt_yuv);
-+		if (index >= ARRAY_SIZE(ipu_fmt_rgb))
-+			return -EINVAL;
-+		fmt = &ipu_fmt_rgb[index];
-+	} else {
-+		fmt = &ipu_fmt_yuv[index];
-+	}
-+
-+	strlcpy(f->description, fmt->name, sizeof(f->description));
-+	f->pixelformat = fmt->fourcc;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_enum_fmt);
-+
-+int ipu_s_fmt(struct file *file, void *fh,
-+		struct v4l2_format *f, struct v4l2_pix_format *pix)
-+{
++			if (c->size < tot_size) {
++				if (get) {
++					c->size = tot_size;
++					return -ENOSPC;
++				}
++				return -EFAULT;
+ 			}
+-			return -EFAULT;
++			c->size = tot_size;
+ 		}
+ 		/* Store the ref to the master control of the cluster */
+ 		h->mref = ref;
+@@ -3123,7 +3137,7 @@ EXPORT_SYMBOL(v4l2_ctrl_notify);
+ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+ 			s64 min, s64 max, u64 step, s64 def)
+ {
+-	int ret = check_range(ctrl->type, min, max, step, def);
 +	int ret;
-+
-+	ret = ipu_try_fmt(file, fh, f);
-+	if (ret)
-+		return ret;
-+
-+	pix->width = f->fmt.pix.width;
-+	pix->height = f->fmt.pix.height;
-+	pix->pixelformat = f->fmt.pix.pixelformat;
-+	pix->bytesperline = f->fmt.pix.bytesperline;
-+	pix->sizeimage = f->fmt.pix.sizeimage;
-+	pix->colorspace = f->fmt.pix.colorspace;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_s_fmt);
-+
-+int ipu_s_fmt_rgb(struct file *file, void *fh,
-+		struct v4l2_format *f, struct v4l2_pix_format *pix)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	fmt = ipu_find_fmt_rgb(f->fmt.pix.pixelformat);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	return ipu_s_fmt(file, fh, f, pix);
-+}
-+EXPORT_SYMBOL_GPL(ipu_s_fmt_rgb);
-+
-+int ipu_s_fmt_yuv(struct file *file, void *fh,
-+		struct v4l2_format *f, struct v4l2_pix_format *pix)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	fmt = ipu_find_fmt_yuv(f->fmt.pix.pixelformat);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	return ipu_s_fmt(file, fh, f, pix);
-+}
-+EXPORT_SYMBOL_GPL(ipu_s_fmt_yuv);
-+
-+int ipu_g_fmt(struct v4l2_format *f, struct v4l2_pix_format *pix)
-+{
-+	f->fmt.pix.field = V4L2_FIELD_NONE;
-+	f->fmt.pix.pixelformat = pix->pixelformat;
-+	f->fmt.pix.bytesperline = pix->bytesperline;
-+	f->fmt.pix.width = pix->width;
-+	f->fmt.pix.height = pix->height;
-+	f->fmt.pix.sizeimage = pix->sizeimage;
-+	f->fmt.pix.colorspace = pix->colorspace;
-+	f->fmt.pix.priv = 0;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_g_fmt);
-+
-+int ipu_enum_framesizes(struct file *file, void *fh,
-+			struct v4l2_frmsizeenum *fsize)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	if (fsize->index != 0)
-+		return -EINVAL;
-+
-+	fmt = ipu_find_fmt(fsize->pixel_format);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	fsize->type = V4L2_FRMSIZE_TYPE_CONTINUOUS;
-+	fsize->stepwise.min_width = 1;
-+	fsize->stepwise.min_height = 1;
-+	fsize->stepwise.max_width = 4096;
-+	fsize->stepwise.max_height = 4096;
-+	fsize->stepwise.step_width = fsize->stepwise.step_height = 1;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_enum_framesizes);
-+
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/platform/imx/imx-ipu.h b/drivers/media/platform/imx/imx-ipu.h
-new file mode 100644
-index 0000000..51c0982
---- /dev/null
-+++ b/drivers/media/platform/imx/imx-ipu.h
-@@ -0,0 +1,35 @@
-+#ifndef __MEDIA_IMX_IPU_H
-+#define __MEDIA_IMX_IPU_H
-+#include <linux/videodev2.h>
-+
-+struct ipu_fmt {
-+	u32 fourcc;
-+	const char *name;
-+	int bytes_per_pixel;
-+};
-+
-+int ipu_enum_fmt(struct file *file, void *fh,
-+		struct v4l2_fmtdesc *f);
-+int ipu_enum_fmt_rgb(struct file *file, void *fh,
-+		struct v4l2_fmtdesc *f);
-+int ipu_enum_fmt_yuv(struct file *file, void *fh,
-+		struct v4l2_fmtdesc *f);
-+struct ipu_fmt *ipu_find_fmt_rgb(unsigned int pixelformat);
-+struct ipu_fmt *ipu_find_fmt_yuv(unsigned int pixelformat);
-+int ipu_try_fmt(struct file *file, void *fh,
-+		struct v4l2_format *f);
-+int ipu_try_fmt_rgb(struct file *file, void *fh,
-+		struct v4l2_format *f);
-+int ipu_try_fmt_yuv(struct file *file, void *fh,
-+		struct v4l2_format *f);
-+int ipu_s_fmt(struct file *file, void *fh,
-+		struct v4l2_format *f, struct v4l2_pix_format *pix);
-+int ipu_s_fmt_rgb(struct file *file, void *fh,
-+		struct v4l2_format *f, struct v4l2_pix_format *pix);
-+int ipu_s_fmt_yuv(struct file *file, void *fh,
-+		struct v4l2_format *f, struct v4l2_pix_format *pix);
-+int ipu_g_fmt(struct v4l2_format *f, struct v4l2_pix_format *pix);
-+int ipu_enum_framesizes(struct file *file, void *fh,
-+			struct v4l2_frmsizeenum *fsize);
-+
-+#endif /* __MEDIA_IMX_IPU_H */
+ 	struct v4l2_ext_control c;
+ 
+ 	switch (ctrl->type) {
+@@ -3133,6 +3147,9 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+ 	case V4L2_CTRL_TYPE_MENU:
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+ 	case V4L2_CTRL_TYPE_BITMASK:
++		if (ctrl->is_array)
++			return -EINVAL;
++		ret = check_range(ctrl->type, min, max, step, def);
+ 		if (ret)
+ 			return ret;
+ 		break;
 -- 
-2.0.0.rc2
+2.0.0.rc0
 
