@@ -1,438 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:41792 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966138AbaFRLJY (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2751 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933236AbaFLLyq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jun 2014 07:09:24 -0400
-Subject: [REPOST PATCH 7/8] reservation: update api and add some helpers
-To: gregkh@linuxfoundation.org
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-arch@vger.kernel.org, thellstrom@vmware.com,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
-	thierry.reding@gmail.com, ccross@google.com, daniel@ffwll.ch,
-	sumit.semwal@linaro.org, linux-media@vger.kernel.org
-Date: Wed, 18 Jun 2014 12:37:29 +0200
-Message-ID: <20140618103729.15728.12953.stgit@patser>
-In-Reply-To: <20140618102957.15728.43525.stgit@patser>
-References: <20140618102957.15728.43525.stgit@patser>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	Thu, 12 Jun 2014 07:54:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 26/34] v4l2-ctrls/v4l2-controls.h: add MD controls
+Date: Thu, 12 Jun 2014 13:52:58 +0200
+Message-Id: <9db872d06f8e7930acbcd4e6f4aac034eda05347.1402573818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the list of shared fences to a struct, and return it in
-reservation_object_get_list().
-Add reservation_object_get_excl to get the exclusive fence.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add reservation_object_reserve_shared(), which reserves space
-in the reservation_object for 1 more shared fence.
+Add the 'Detect' control class and the new motion detection controls.
+Those controls will be used by the solo6x10 and go7007 drivers.
 
-reservation_object_add_shared_fence() and
-reservation_object_add_excl_fence() are used to assign a new
-fence to a reservation_object pointer, to complete a reservation.
-
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-
-Changes since v1:
-- Add reservation_object_get_excl, reorder code a bit.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/base/dma-buf.c      |   35 +++++++---
- drivers/base/fence.c        |    4 +
- drivers/base/reservation.c  |  156 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/fence.h       |    6 ++
- include/linux/reservation.h |   56 ++++++++++++++-
- 5 files changed, 236 insertions(+), 21 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 27 +++++++++++++++++++++++++++
+ include/uapi/linux/v4l2-controls.h   | 17 +++++++++++++++++
+ 2 files changed, 44 insertions(+)
 
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-index 25e8c4165936..cb8379dfeed5 100644
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -134,7 +134,10 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
- {
- 	struct dma_buf *dmabuf;
- 	struct reservation_object *resv;
-+	struct reservation_object_list *fobj;
-+	struct fence *fence_excl;
- 	unsigned long events;
-+	unsigned shared_count;
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 5aaf15e..5c3b8de 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -462,6 +462,13 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"RGB full range (0-255)",
+ 		NULL,
+ 	};
++	static const char * const detect_md_mode[] = {
++		"Disabled",
++		"Global",
++		"Threshold Grid",
++		"Region Grid",
++		NULL,
++	};
  
- 	dmabuf = file->private_data;
- 	if (!dmabuf || !dmabuf->resv)
-@@ -150,12 +153,18 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
  
- 	ww_mutex_lock(&resv->lock, NULL);
+ 	switch (id) {
+@@ -553,6 +560,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 	case V4L2_CID_DV_TX_RGB_RANGE:
+ 	case V4L2_CID_DV_RX_RGB_RANGE:
+ 		return dv_rgb_range;
++	case V4L2_CID_DETECT_MD_MODE:
++		return detect_md_mode;
  
--	if (resv->fence_excl && (!(events & POLLOUT) ||
--				 resv->fence_shared_count == 0)) {
-+	fobj = resv->fence;
-+	if (!fobj)
-+		goto out;
+ 	default:
+ 		return NULL;
+@@ -874,6 +883,15 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_RF_TUNER_BANDWIDTH_AUTO:	return "Bandwidth, Auto";
+ 	case V4L2_CID_RF_TUNER_BANDWIDTH:	return "Bandwidth";
+ 	case V4L2_CID_RF_TUNER_PLL_LOCK:	return "PLL Lock";
 +
-+	shared_count = fobj->shared_count;
-+	fence_excl = resv->fence_excl;
++	/* Detection controls */
++	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
++	case V4L2_CID_DETECT_CLASS:		return "Detection Controls";
++	case V4L2_CID_DETECT_MD_MODE:		return "Motion Detection Mode";
++	case V4L2_CID_DETECT_MD_GLOBAL_THRESHOLD: return "MD Global Threshold";
++	case V4L2_CID_DETECT_MD_THRESHOLD_GRID:	return "MD Threshold Grid";
++	case V4L2_CID_DETECT_MD_REGION_GRID:	return "MD Region Grid";
 +
-+	if (fence_excl && (!(events & POLLOUT) || shared_count == 0)) {
- 		struct dma_buf_poll_cb_t *dcb = &dmabuf->cb_excl;
- 		unsigned long pevents = POLLIN;
- 
--		if (resv->fence_shared_count == 0)
-+		if (shared_count == 0)
- 			pevents |= POLLOUT;
- 
- 		spin_lock_irq(&dmabuf->poll.lock);
-@@ -167,19 +176,20 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
- 		spin_unlock_irq(&dmabuf->poll.lock);
- 
- 		if (events & pevents) {
--			if (!fence_add_callback(resv->fence_excl,
--						&dcb->cb, dma_buf_poll_cb))
-+			if (!fence_add_callback(fence_excl, &dcb->cb,
-+						       dma_buf_poll_cb)) {
- 				events &= ~pevents;
--			else
-+			} else {
- 				/*
- 				 * No callback queued, wake up any additional
- 				 * waiters.
- 				 */
- 				dma_buf_poll_cb(NULL, &dcb->cb);
-+			}
- 		}
+ 	default:
+ 		return NULL;
  	}
+@@ -992,6 +1010,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_TEST_PATTERN:
+ 	case V4L2_CID_TUNE_DEEMPHASIS:
+ 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
++	case V4L2_CID_DETECT_MD_MODE:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_LINK_FREQ:
+@@ -1018,6 +1037,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_DV_CLASS:
+ 	case V4L2_CID_FM_RX_CLASS:
+ 	case V4L2_CID_RF_TUNER_CLASS:
++	case V4L2_CID_DETECT_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+@@ -1063,6 +1083,12 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 		*type = V4L2_CTRL_TYPE_INTEGER64;
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 		break;
++	case V4L2_CID_DETECT_MD_REGION_GRID:
++		*type = V4L2_CTRL_TYPE_U8;
++		break;
++	case V4L2_CID_DETECT_MD_THRESHOLD_GRID:
++		*type = V4L2_CTRL_TYPE_U16;
++		break;
+ 	default:
+ 		*type = V4L2_CTRL_TYPE_INTEGER;
+ 		break;
+@@ -1103,6 +1129,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_RF_TUNER_MIXER_GAIN:
+ 	case V4L2_CID_RF_TUNER_IF_GAIN:
+ 	case V4L2_CID_RF_TUNER_BANDWIDTH:
++	case V4L2_CID_DETECT_MD_GLOBAL_THRESHOLD:
+ 		*flags |= V4L2_CTRL_FLAG_SLIDER;
+ 		break;
+ 	case V4L2_CID_PAN_RELATIVE:
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 2ac5597..db526d1 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -61,6 +61,7 @@
+ #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
+ #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
+ #define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
++#define V4L2_CTRL_CLASS_DETECT		0x00a30000	/* Detection controls */
  
--	if ((events & POLLOUT) && resv->fence_shared_count > 0) {
-+	if ((events & POLLOUT) && shared_count > 0) {
- 		struct dma_buf_poll_cb_t *dcb = &dmabuf->cb_shared;
- 		int i;
+ /* User-class control IDs */
  
-@@ -194,15 +204,18 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
- 		if (!(events & POLLOUT))
- 			goto out;
+@@ -914,4 +915,20 @@ enum v4l2_deemphasis {
+ #define V4L2_CID_RF_TUNER_IF_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 62)
+ #define V4L2_CID_RF_TUNER_PLL_LOCK			(V4L2_CID_RF_TUNER_CLASS_BASE + 91)
  
--		for (i = 0; i < resv->fence_shared_count; ++i)
--			if (!fence_add_callback(resv->fence_shared[i],
--						&dcb->cb, dma_buf_poll_cb)) {
-+		for (i = 0; i < shared_count; ++i) {
-+			struct fence *fence = fobj->shared[i];
 +
-+			if (!fence_add_callback(fence, &dcb->cb,
-+						dma_buf_poll_cb)) {
- 				events &= ~POLLOUT;
- 				break;
- 			}
-+		}
- 
- 		/* No callback queued, wake up any additional waiters. */
--		if (i == resv->fence_shared_count)
-+		if (i == shared_count)
- 			dma_buf_poll_cb(NULL, &dcb->cb);
- 	}
- 
-diff --git a/drivers/base/fence.c b/drivers/base/fence.c
-index 752a2dfa505f..74d1f7bcb467 100644
---- a/drivers/base/fence.c
-+++ b/drivers/base/fence.c
-@@ -170,7 +170,7 @@ void release_fence(struct kref *kref)
- 	if (fence->ops->release)
- 		fence->ops->release(fence);
- 	else
--		kfree(fence);
-+		free_fence(fence);
- }
- EXPORT_SYMBOL(release_fence);
- 
-@@ -448,7 +448,7 @@ static void seqno_release(struct fence *fence)
- 	if (f->ops->release)
- 		f->ops->release(fence);
- 	else
--		kfree(f);
-+		free_fence(fence);
- }
- 
- static long seqno_wait(struct fence *fence, bool intr, signed long timeout)
-diff --git a/drivers/base/reservation.c b/drivers/base/reservation.c
-index a73fbf3b8e56..e6166723a9ae 100644
---- a/drivers/base/reservation.c
-+++ b/drivers/base/reservation.c
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (C) 2012-2013 Canonical Ltd
-+ * Copyright (C) 2012-2014 Canonical Ltd (Maarten Lankhorst)
-  *
-  * Based on bo.c which bears the following copyright notice,
-  * but is dual licensed:
-@@ -37,3 +37,157 @@
- 
- DEFINE_WW_CLASS(reservation_ww_class);
- EXPORT_SYMBOL(reservation_ww_class);
++/*  Detection-class control IDs defined by V4L2 */
++#define V4L2_CID_DETECT_CLASS_BASE		(V4L2_CTRL_CLASS_DETECT | 0x900)
++#define V4L2_CID_DETECT_CLASS			(V4L2_CTRL_CLASS_DETECT | 1)
 +
-+/*
-+ * Reserve space to add a shared fence to a reservation_object,
-+ * must be called with obj->lock held.
-+ */
-+int reservation_object_reserve_shared(struct reservation_object *obj)
-+{
-+	struct reservation_object_list *fobj, *old;
-+	u32 max;
-+
-+	old = reservation_object_get_list(obj);
-+
-+	if (old && old->shared_max) {
-+		if (old->shared_count < old->shared_max) {
-+			/* perform an in-place update */
-+			kfree(obj->staged);
-+			obj->staged = NULL;
-+			return 0;
-+		} else
-+			max = old->shared_max * 2;
-+	} else
-+		max = 4;
-+
-+	/*
-+	 * resize obj->staged or allocate if it doesn't exist,
-+	 * noop if already correct size
-+	 */
-+	fobj = krealloc(obj->staged, offsetof(typeof(*fobj), shared[max]),
-+			GFP_KERNEL);
-+	if (!fobj)
-+		return -ENOMEM;
-+
-+	obj->staged = fobj;
-+	fobj->shared_max = max;
-+	return 0;
-+}
-+EXPORT_SYMBOL(reservation_object_reserve_shared);
-+
-+static void
-+reservation_object_add_shared_inplace(struct reservation_object *obj,
-+				      struct reservation_object_list *fobj,
-+				      struct fence *fence)
-+{
-+	u32 i;
-+
-+	for (i = 0; i < fobj->shared_count; ++i) {
-+		if (fobj->shared[i]->context == fence->context) {
-+			struct fence *old_fence = fobj->shared[i];
-+
-+			fence_get(fence);
-+
-+			fobj->shared[i] = fence;
-+
-+			fence_put(old_fence);
-+			return;
-+		}
-+	}
-+
-+	fence_get(fence);
-+	fobj->shared[fobj->shared_count] = fence;
-+	/*
-+	 * make the new fence visible before incrementing
-+	 * fobj->shared_count
-+	 */
-+	smp_wmb();
-+	fobj->shared_count++;
-+}
-+
-+static void
-+reservation_object_add_shared_replace(struct reservation_object *obj,
-+				      struct reservation_object_list *old,
-+				      struct reservation_object_list *fobj,
-+				      struct fence *fence)
-+{
-+	unsigned i;
-+
-+	fence_get(fence);
-+
-+	if (!old) {
-+		fobj->shared[0] = fence;
-+		fobj->shared_count = 1;
-+		goto done;
-+	}
-+
-+	/*
-+	 * no need to bump fence refcounts, rcu_read access
-+	 * requires the use of kref_get_unless_zero, and the
-+	 * references from the old struct are carried over to
-+	 * the new.
-+	 */
-+	fobj->shared_count = old->shared_count;
-+
-+	for (i = 0; i < old->shared_count; ++i) {
-+		if (fence && old->shared[i]->context == fence->context) {
-+			fence_put(old->shared[i]);
-+			fobj->shared[i] = fence;
-+			fence = NULL;
-+		} else
-+			fobj->shared[i] = old->shared[i];
-+	}
-+	if (fence)
-+		fobj->shared[fobj->shared_count++] = fence;
-+
-+done:
-+	obj->fence = fobj;
-+	kfree(old);
-+}
-+
-+/*
-+ * Add a fence to a shared slot, obj->lock must be held, and
-+ * reservation_object_reserve_shared_fence has been called.
-+ */
-+void reservation_object_add_shared_fence(struct reservation_object *obj,
-+					 struct fence *fence)
-+{
-+	struct reservation_object_list *old, *fobj = obj->staged;
-+
-+	old = reservation_object_get_list(obj);
-+	obj->staged = NULL;
-+
-+	if (!fobj) {
-+		BUG_ON(old->shared_count == old->shared_max);
-+		reservation_object_add_shared_inplace(obj, old, fence);
-+	} else
-+		reservation_object_add_shared_replace(obj, old, fobj, fence);
-+}
-+EXPORT_SYMBOL(reservation_object_add_shared_fence);
-+
-+void reservation_object_add_excl_fence(struct reservation_object *obj,
-+				       struct fence *fence)
-+{
-+	struct fence *old_fence = obj->fence_excl;
-+	struct reservation_object_list *old;
-+	u32 i = 0;
-+
-+	old = reservation_object_get_list(obj);
-+	if (old) {
-+		i = old->shared_count;
-+		old->shared_count = 0;
-+	}
-+
-+	if (fence)
-+		fence_get(fence);
-+
-+	obj->fence_excl = fence;
-+
-+	/* inplace update, no shared fences */
-+	while (i--)
-+		fence_put(old->shared[i]);
-+
-+	if (old_fence)
-+		fence_put(old_fence);
-+}
-+EXPORT_SYMBOL(reservation_object_add_excl_fence);
-diff --git a/include/linux/fence.h b/include/linux/fence.h
-index 65f2a01ee7e4..d13b5ab61726 100644
---- a/include/linux/fence.h
-+++ b/include/linux/fence.h
-@@ -31,6 +31,7 @@
- #include <linux/kref.h>
- #include <linux/sched.h>
- #include <linux/printk.h>
-+#include <linux/slab.h>
- 
- struct fence;
- struct fence_ops;
-@@ -191,6 +192,11 @@ static inline void fence_get(struct fence *fence)
- 
- extern void release_fence(struct kref *kref);
- 
-+static inline void free_fence(struct fence *fence)
-+{
-+	kfree(fence);
-+}
-+
- /**
-  * fence_put - decreases refcount of the fence
-  * @fence:	[in]	fence to reduce refcount of
-diff --git a/include/linux/reservation.h b/include/linux/reservation.h
-index f3f57460a205..2affe67dea6e 100644
---- a/include/linux/reservation.h
-+++ b/include/linux/reservation.h
-@@ -45,36 +45,78 @@
- 
- extern struct ww_class reservation_ww_class;
- 
-+struct reservation_object_list {
-+	u32 shared_count, shared_max;
-+	struct fence *shared[];
++#define V4L2_CID_DETECT_MD_MODE			(V4L2_CID_DETECT_CLASS_BASE + 1)
++enum v4l2_detect_md_mode {
++	V4L2_DETECT_MD_MODE_DISABLED		= 0,
++	V4L2_DETECT_MD_MODE_GLOBAL		= 1,
++	V4L2_DETECT_MD_MODE_THRESHOLD_GRID	= 2,
++	V4L2_DETECT_MD_MODE_REGION_GRID		= 3,
 +};
++#define V4L2_CID_DETECT_MD_GLOBAL_THRESHOLD	(V4L2_CID_DETECT_CLASS_BASE + 2)
++#define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
++#define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
 +
- struct reservation_object {
- 	struct ww_mutex lock;
- 
- 	struct fence *fence_excl;
--	struct fence **fence_shared;
--	u32 fence_shared_count, fence_shared_max;
-+	struct reservation_object_list *fence;
-+	struct reservation_object_list *staged;
- };
- 
-+#define reservation_object_assert_held(obj) \
-+	lockdep_assert_held(&(obj)->lock.base)
-+
- static inline void
- reservation_object_init(struct reservation_object *obj)
- {
- 	ww_mutex_init(&obj->lock, &reservation_ww_class);
- 
--	obj->fence_shared_count = obj->fence_shared_max = 0;
--	obj->fence_shared = NULL;
- 	obj->fence_excl = NULL;
-+	obj->fence = NULL;
-+	obj->staged = NULL;
- }
- 
- static inline void
- reservation_object_fini(struct reservation_object *obj)
- {
- 	int i;
-+	struct reservation_object_list *fobj;
- 
-+	/*
-+	 * This object should be dead and all references must have
-+	 * been released to it.
-+	 */
- 	if (obj->fence_excl)
- 		fence_put(obj->fence_excl);
--	for (i = 0; i < obj->fence_shared_count; ++i)
--		fence_put(obj->fence_shared[i]);
--	kfree(obj->fence_shared);
-+
-+	fobj = obj->fence;
-+	if (fobj) {
-+		for (i = 0; i < fobj->shared_count; ++i)
-+			fence_put(fobj->shared[i]);
-+
-+		kfree(fobj);
-+	}
-+	kfree(obj->staged);
- 
- 	ww_mutex_destroy(&obj->lock);
- }
- 
-+static inline struct reservation_object_list *
-+reservation_object_get_list(struct reservation_object *obj)
-+{
-+	reservation_object_assert_held(obj);
-+
-+	return obj->fence;
-+}
-+
-+static inline struct fence *
-+reservation_object_get_excl(struct reservation_object *obj)
-+{
-+	reservation_object_assert_held(obj);
-+
-+	return obj->fence_excl;
-+}
-+
-+int reservation_object_reserve_shared(struct reservation_object *obj);
-+void reservation_object_add_shared_fence(struct reservation_object *obj,
-+					 struct fence *fence);
-+
-+void reservation_object_add_excl_fence(struct reservation_object *obj,
-+				       struct fence *fence);
-+
- #endif /* _LINUX_RESERVATION_H */
+ #endif
+-- 
+2.0.0.rc0
 
