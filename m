@@ -1,134 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1323 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933268AbaFLLzN (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53717 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753035AbaFLQJx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 07:55:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 12 Jun 2014 12:09:53 -0400
+Received: from valkosipuli.retiisi.org.uk (vihersipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::84:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 63E8260095
+	for <linux-media@vger.kernel.org>; Thu, 12 Jun 2014 19:09:51 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv4 PATCH 22/34] v4l2-controls.txt: update to the new way of accessing controls.
-Date: Thu, 12 Jun 2014 13:52:54 +0200
-Message-Id: <9b7abc6a3594af24e2762d4bdbed631585a62342.1402573818.git.hans.verkuil@cisco.com>
-In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
-References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+Subject: [PATCH 4/5] v4l: ctrls: Unlocked variants of v4l2_ctrl_s_ctrl{,_int64}()
+Date: Thu, 12 Jun 2014 19:09:42 +0300
+Message-Id: <1402589383-28165-5-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1402589383-28165-1-git-send-email-sakari.ailus@iki.fi>
+References: <1402589383-28165-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-The way current and new values are accessed has changed. Update the
-document to bring it up to date with the code.
+Implement unlocked variants of v4l2_ctrl_s_ctrl() and
+v4l2_ctrl_s_ctrl_int64(). As drivers need to set controls as they access
+driver internal state elsewhere than in the control framework unlocked
+variants of these functions become handy.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/video4linux/v4l2-controls.txt | 61 ++++++++++++++++++-----------
- 1 file changed, 38 insertions(+), 23 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c |   26 ++++++++++++++++++++------
+ include/media/v4l2-ctrls.h           |   27 +++++++++++++++++++++++++--
+ 2 files changed, 45 insertions(+), 8 deletions(-)
 
-diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
-index c9ee9a7..0f84ce8 100644
---- a/Documentation/video4linux/v4l2-controls.txt
-+++ b/Documentation/video4linux/v4l2-controls.txt
-@@ -77,9 +77,9 @@ Basic usage for V4L2 and sub-device drivers
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 7324ef0..36228b4 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2848,27 +2848,41 @@ int v4l2_subdev_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *control)
+ }
+ EXPORT_SYMBOL(v4l2_subdev_s_ctrl);
  
-   Where foo->v4l2_dev is of type struct v4l2_device.
- 
--  Finally, remove all control functions from your v4l2_ioctl_ops:
--  vidioc_queryctrl, vidioc_querymenu, vidioc_g_ctrl, vidioc_s_ctrl,
--  vidioc_g_ext_ctrls, vidioc_try_ext_ctrls and vidioc_s_ext_ctrls.
-+  Finally, remove all control functions from your v4l2_ioctl_ops (if any):
-+  vidioc_queryctrl, vidioc_query_ext_ctrl, vidioc_querymenu, vidioc_g_ctrl,
-+  vidioc_s_ctrl, vidioc_g_ext_ctrls, vidioc_try_ext_ctrls and vidioc_s_ext_ctrls.
-   Those are now no longer needed.
- 
- 1.3.2) For sub-device drivers do this:
-@@ -258,8 +258,8 @@ The new control value has already been validated, so all you need to do is
- to actually update the hardware registers.
- 
- You're done! And this is sufficient for most of the drivers we have. No need
--to do any validation of control values, or implement QUERYCTRL/QUERYMENU. And
--G/S_CTRL as well as G/TRY/S_EXT_CTRLS are automatically supported.
-+to do any validation of control values, or implement QUERYCTRL, QUERY_EXT_CTRL
-+and QUERYMENU. And G/S_CTRL as well as G/TRY/S_EXT_CTRLS are automatically supported.
- 
- 
- ==============================================================================
-@@ -288,30 +288,45 @@ of v4l2_device.
- Accessing Control Values
- ========================
- 
--The v4l2_ctrl struct contains these two unions:
-+The following union is used inside the control framework to access control
-+values:
- 
--	/* The current control value. */
--	union {
-+union v4l2_ctrl_ptr {
-+	s32 *p_s32;
-+	s64 *p_s64;
-+	char *p_char;
-+	void *p;
-+};
+-int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
++int __v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
+ {
+ 	struct v4l2_ext_control c;
++	int rval;
 +
-+The v4l2_ctrl struct contains these fields that can be used to access both
-+current and new values:
++	lockdep_assert_held(ctrl->handler->lock);
+ 
+ 	/* It's a driver bug if this happens. */
+ 	WARN_ON(!type_is_int(ctrl));
+ 	c.value = val;
+-	return set_ctrl_lock(NULL, ctrl, &c);
++	rval = set_ctrl(NULL, ctrl, &c, 0);
++	if (!rval)
++		cur_to_user(&c, ctrl);
 +
-+	s32 val;
-+	struct {
- 		s32 val;
--		s64 val64;
--		char *string;
- 	} cur;
++	return rval;
+ }
+-EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
++EXPORT_SYMBOL(__v4l2_ctrl_s_ctrl);
  
--	/* The new control value. */
--	union {
--		s32 val;
--		s64 val64;
--		char *string;
--	};
- 
--Within the control ops you can freely use these. The val and val64 speak for
--themselves. The string pointers point to character buffers of length
-+	union v4l2_ctrl_ptr p_new;
-+	union v4l2_ctrl_ptr p_cur;
+-int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
++int __v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
+ {
+ 	struct v4l2_ext_control c;
++	int rval;
 +
-+If the control has a simple s32 type type, then:
++	lockdep_assert_held(ctrl->handler->lock);
+ 
+ 	/* It's a driver bug if this happens. */
+ 	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
+ 	c.value64 = val;
+-	return set_ctrl_lock(NULL, ctrl, &c);
++	rval = set_ctrl(NULL, ctrl, &c, 0);
++	if (!rval)
++		cur_to_user(&c, ctrl);
 +
-+	&ctrl->val == ctrl->p_new.p_s32
-+	&ctrl->cur.val == ctrl->p_cur.p_s32
++	return rval;
+ }
+-EXPORT_SYMBOL(v4l2_ctrl_s_ctrl_int64);
++EXPORT_SYMBOL(__v4l2_ctrl_s_ctrl_int64);
+ 
+ void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void *priv)
+ {
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 371c4f1..00c1778 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -619,6 +619,8 @@ void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void
+   */
+ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
+ 
++/** __v4l2_ctrl_s_ctrl() - Unlocked variant of v4l2_ctrl_s_ctrl(). */
++int __v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
+ /** v4l2_ctrl_s_ctrl() - Helper function to set the control's value from within a driver.
+   * @ctrl:	The control.
+   * @val:	The new value.
+@@ -629,7 +631,16 @@ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
+   *
+   * This function is for integer type controls only.
+   */
+-int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
++static inline int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
++{
++	int rval;
 +
-+For all other types use ctrl->p_cur.p<something>. Basically the val
-+and cur.val fields can be considered an alias since these are used so often.
++	v4l2_ctrl_lock(ctrl);
++	rval = __v4l2_ctrl_s_ctrl(ctrl, val);
++	v4l2_ctrl_unlock(ctrl);
 +
-+Within the control ops you can freely use these. The val and cur.val speak for
-+themselves. The p_char pointers point to character buffers of length
- ctrl->maximum + 1, and are always 0-terminated.
++	return rval;
++}
  
--In most cases 'cur' contains the current cached control value. When you create
--a new control this value is made identical to the default value. After calling
--v4l2_ctrl_handler_setup() this value is passed to the hardware. It is generally
--a good idea to call this function.
-+Unless the control is marked volatile the p_cur field points to the the
-+current cached control value. When you create a new control this value is made
-+identical to the default value. After calling v4l2_ctrl_handler_setup() this
-+value is passed to the hardware. It is generally a good idea to call this
-+function.
+ /** v4l2_ctrl_g_ctrl_int64() - Helper function to get a 64-bit control's value from within a driver.
+   * @ctrl:	The control.
+@@ -642,6 +653,9 @@ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
+   */
+ s64 v4l2_ctrl_g_ctrl_int64(struct v4l2_ctrl *ctrl);
  
- Whenever a new value is set that new value is automatically cached. This means
- that most drivers do not need to implement the g_volatile_ctrl() op. The
-@@ -363,7 +378,7 @@ You can also take the handler lock yourself:
++/** __v4l2_ctrl_s_ctrl_int64() - Unlocked variant of v4l2_ctrl_s_ctrl_int64(). */
++int __v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val);
++
+ /** v4l2_ctrl_s_ctrl_int64() - Helper function to set a 64-bit control's value from within a driver.
+   * @ctrl:	The control.
+   * @val:	The new value.
+@@ -652,7 +666,16 @@ s64 v4l2_ctrl_g_ctrl_int64(struct v4l2_ctrl *ctrl);
+   *
+   * This function is for 64-bit integer type controls only.
+   */
+-int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val);
++static inline int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
++{
++	int rval;
++
++	v4l2_ctrl_lock(ctrl);
++	rval = __v4l2_ctrl_s_ctrl_int64(ctrl, val);
++	v4l2_ctrl_unlock(ctrl);
++
++	return rval;
++}
  
- 	mutex_lock(&state->ctrl_handler.lock);
- 	pr_info("String value is '%s'\n", ctrl1->p_cur.p_char);
--	printk(KERN_INFO "Integer value is '%s'\n", ctrl2->cur.val);
-+	pr_info("Integer value is '%s'\n", ctrl2->cur.val);
- 	mutex_unlock(&state->ctrl_handler.lock);
- 
- 
+ /* Internal helper functions that deal with control events. */
+ extern const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops;
 -- 
-2.0.0.rc0
+1.7.10.4
 
