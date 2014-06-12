@@ -1,100 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:54190 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752899AbaFPRQG (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33031 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756207AbaFLRGp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 13:16:06 -0400
-Received: by mail-we0-f174.google.com with SMTP id u57so6132722wes.33
-        for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 10:16:04 -0700 (PDT)
-Message-ID: <539F2652.8030201@gmail.com>
-Date: Mon, 16 Jun 2014 23:16:02 +0600
-From: "Alexander E. Patrakov" <patrakov@gmail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Clemens Ladisch <clemens@ladisch.de>, Takashi Iwai <tiwai@suse.de>,
-	alsa-devel@alsa-project.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [alsa-devel] [PATCH 1/3] sound: Add a quirk to enforce period_bytes
-References: <1402762571-6316-1-git-send-email-m.chehab@samsung.com> <1402762571-6316-2-git-send-email-m.chehab@samsung.com> <539E9F25.7030504@ladisch.de> <20140616112110.3f509262.m.chehab@samsung.com> <539F017C.90408@gmail.com> <20140616132428.78edf63c.m.chehab@samsung.com>
-In-Reply-To: <20140616132428.78edf63c.m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 12 Jun 2014 13:06:45 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: [RFC PATCH 17/26] [media] ipuv3-csi: Pass ipucsi to v4l2_media_subdev_s_power
+Date: Thu, 12 Jun 2014 19:06:31 +0200
+Message-Id: <1402592800-2925-18-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-16.06.2014 22:24, Mauro Carvalho Chehab wrote:
-> Em Mon, 16 Jun 2014 20:38:52 +0600
-> "Alexander E. Patrakov" <patrakov@gmail.com> escreveu:
->
->> 16.06.2014 20:21, Mauro Carvalho Chehab wrote:
->>> Both xawtv and tvtime use the same code for audio:
->>> 	http://git.linuxtv.org/cgit.cgi/xawtv3.git/tree/common/alsa_stream.c
->>>
->>> There's an algorithm there that gets the period size form both the
->>> capture and the playback cards, trying to find a minimum period that
->>> would work properly for both.
->>
->> I don't see any adaptive resampler (similar to what module-loopback does
->> in pulseaudio) there.
->
-> Are you referring to changing the sample rate? This doesn't
-> affect my test scenario, as the playback interface supports the
-> only PCM format/rate used by the TV card (48kHz, 16 bits/sample, stereo):
->
-> Codec: Realtek ALC269VC
-> Default PCM:
->      rates [0x5f0]: 32000 44100 48000 88200 96000 192000
->      bits [0xe]: 16 20 24
->      formats [0x1]: PCM
+From: Sascha Hauer <s.hauer@pengutronix.de>
 
-No, it doesn't. The card only pretends to give out samples at 48000 Hz, 
-but, due to the imperfect quartz, actually gives them out at something 
-like 48010 or 47990 Hz (if we take the Realtek's idea of 48 kHz as the 
-source of truth), and that even changes slightly due to thermal issues. 
-The goal here is to measure the actual sample rate and to resample from 
-it to 48 kHz. The "alsaloop" program (part of alsa-utils), when compiled 
-with libsamplerate, does exactly that. If GPLv2+ is OK for you, you can 
-copy the code.
+Makes it easier to access ipucsi from v4l2_media_subdev_s_power which
+is needed in subsequent patches.
 
->> Without that, or dynamically controlling the audio
->> capture clock PLL in the tuner, xruns are unavoidable when transferring
->> data between two unrelated cards.
->
-> What do you mean by dynamically controlling the audio capture clock PLL
-> in the tuner? That doesn't make any sense to me.
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+---
+ drivers/media/platform/imx/imx-ipuv3-csi.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-Some chips (e.g. SAA7133) have a register that allows fine-tuning the 
-actual rate at which they sample the sound (while applications still 
-think that it is nominally at 32 kHz). This register is not exposed at 
-the ALSA level, but exposed as the "audio_clock_tweak" parameter of the 
-saa7134 module. Linux applications normally don't use this register, but 
-Windows uses this register as follows.
-
-The official TV playback application, found on the CD with drivers, 
-captures samples from the card into its buffer, and plays from the other 
-end of the buffer concurrently. If there are, on average for a few 
-seconds, too few samples in the buffer, it means that they are consumed 
-faster than they arrive, and so the SAA chip is told to produce them a 
-bit faster. If they accumulate too much, the SAA chip is told to produce 
-them slower. That's it.
-
->
-> The xc5000 tuner used on this TV device doesn't provide any mechanism
-> to control audio PLL. It just sends the audio samples to au0828 via a
-> I2S bus. All the audio control is done by the USB bridge at au0828,
-> and that is pretty much limited. The only control that au0828 accepts
-> is the control of the URB buffers (e. g., number of URB packets and
-> URB size).
-
-OK, as you can't tweak the PLL, you have to resample. The idea is, 
-again, simple. Record samples to a buffer if you can, and play them 
-through a variable-rate resampler concurrently if you can. You can use 
-poll() to figure out the "if you can" part. If samples accumulate too 
-much or if the buffer becomes too empty, change the resampling ratio 
-slightly in order to compensate. As I said, the code is here:
-
-http://git.alsa-project.org/?p=alsa-utils.git;a=tree;f=alsaloop
-
+diff --git a/drivers/media/platform/imx/imx-ipuv3-csi.c b/drivers/media/platform/imx/imx-ipuv3-csi.c
+index dfa2daa..e75d7f5 100644
+--- a/drivers/media/platform/imx/imx-ipuv3-csi.c
++++ b/drivers/media/platform/imx/imx-ipuv3-csi.c
+@@ -1080,8 +1080,9 @@ disable:
+ 	return ret;
+ }
+ 
+-int v4l2_media_subdev_s_power(struct media_entity *entity, int enable)
++int v4l2_media_subdev_s_power(struct ipucsi *ipucsi, int enable)
+ {
++	struct media_entity *entity = &ipucsi->subdev.entity;
+ 	struct media_entity_graph graph;
+ 	struct media_entity *first;
+ 	struct v4l2_subdev *sd;
+@@ -1131,7 +1132,7 @@ static int ipucsi_open(struct file *file)
+ 		goto out;
+ 
+ 	if (v4l2_fh_is_singular_file(file))
+-		ret = v4l2_media_subdev_s_power(&ipucsi->subdev.entity, 1);
++		ret = v4l2_media_subdev_s_power(ipucsi, 1);
+ 
+ out:
+ 	mutex_unlock(&ipucsi->mutex);
+@@ -1144,7 +1145,7 @@ static int ipucsi_release(struct file *file)
+ 
+ 	mutex_lock(&ipucsi->mutex);
+ 	if (v4l2_fh_is_singular_file(file)) {
+-		v4l2_media_subdev_s_power(&ipucsi->subdev.entity, 0);
++		v4l2_media_subdev_s_power(ipucsi, 0);
+ 
+ 		vb2_fop_release(file);
+ 	} else {
 -- 
-Alexander E. Patrakov
+2.0.0.rc2
+
