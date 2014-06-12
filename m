@@ -1,48 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4903 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754426AbaFPIOM (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:31637 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755884AbaFLOaX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 04:14:12 -0400
-Received: from tschai.lan (173-38-208-170.cisco.com [173.38.208.170])
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5G8E8tj095905
-	for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 10:14:10 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id A361A2A1FCC
-	for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 10:13:55 +0200 (CEST)
-Message-ID: <539EA743.8070103@xs4all.nl>
-Date: Mon, 16 Jun 2014 10:13:55 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 12 Jun 2014 10:30:23 -0400
+Date: Thu, 12 Jun 2014 17:30:02 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: crope@iki.fi
+Cc: linux-media@vger.kernel.org
+Subject: re: [media] dvb_usb_v2: use dev_* logging macros
+Message-ID: <20140612143002.GC13103@mwanda>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] DocBook media: fix small typo
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-know -> known
+Hello Antti Palosaari,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/io.xml | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This is a semi-automatic email about new static checker warnings.
 
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index a086a5d..8c4ee74 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -1066,7 +1066,7 @@ state, in the application domain so to say.</entry>
- 	  <entry>Drivers set or clear this flag when calling the
- <constant>VIDIOC_DQBUF</constant> ioctl. It may be set by video
- capture devices when the buffer contains a compressed image which is a
--key frame (or field), &ie; can be decompressed on its own. Also know as
-+key frame (or field), &ie; can be decompressed on its own. Also known as
- an I-frame.  Applications can set this bit when <structfield>type</structfield>
- refers to an output stream.</entry>
- 	  </row>
--- 
-2.0.0
+The patch d10d1b9ac97b: "[media] dvb_usb_v2: use dev_* logging
+macros" from Jun 26, 2012, leads to the following Smatch complaint:
 
+drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c:31 dvb_usb_v2_generic_io()
+	 error: we previously assumed 'd' could be null (see line 29)
+
+drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c
+    28	
+    29		if (!d || !wbuf || !wlen || !d->props->generic_bulk_ctrl_endpoint ||
+                    ^^
+Old check.
+
+    30				!d->props->generic_bulk_ctrl_endpoint_response) {
+    31			dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, -EINVAL);
+                                ^^^^^^^^^^^^^
+New dereference.
+
+    32			return -EINVAL;
+    33		}
+
+regards,
+dan carpenter
