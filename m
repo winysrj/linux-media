@@ -1,79 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:16201 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751313AbaFPPFv (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2044 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755430AbaFLCrL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 11:05:51 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N7900HD2OLQOX40@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 16 Jun 2014 11:05:50 -0400 (EDT)
-Date: Mon, 16 Jun 2014 12:05:44 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Clemens Ladisch <clemens@ladisch.de>, Takashi Iwai <tiwai@suse.de>,
-	alsa-devel@alsa-project.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [alsa-devel] [PATCH 1/3] sound: Add a quirk to enforce period_bytes
-Message-id: <20140616120544.10ef75f4.m.chehab@samsung.com>
-In-reply-to: <CAGoCfiw3du9rXFvDfsUYLu4Ru6mbdWa+LtAyYupXosM0n-71NA@mail.gmail.com>
-References: <1402762571-6316-1-git-send-email-m.chehab@samsung.com>
- <1402762571-6316-2-git-send-email-m.chehab@samsung.com>
- <539E9F25.7030504@ladisch.de>
- <CAGoCfiw3du9rXFvDfsUYLu4Ru6mbdWa+LtAyYupXosM0n-71NA@mail.gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Wed, 11 Jun 2014 22:47:11 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5C2l7Hu078689
+	for <linux-media@vger.kernel.org>; Thu, 12 Jun 2014 04:47:09 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E9FD92A1FCB
+	for <linux-media@vger.kernel.org>; Thu, 12 Jun 2014 04:47:00 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140612024700.E9FD92A1FCB@tschai.lan>
+Date: Thu, 12 Jun 2014 04:47:00 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 16 Jun 2014 09:22:08 -0400
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> > This looks like a workaround for a userspace bug that would affect all
-> > USB audio devices.  What period/buffer sizes are xawtv/tvtime trying to
-> > use?
-> 
-> I have similar concerns, although I don't know what the right solution
-> is.  For example, the last time Mauro tweaked the latency in tvtime,
-> it broke support for all cx231xx devices (note that tvtime and xawtv
-> share essentially the same ALSA code):
-> 
-> http://git.linuxtv.org/cgit.cgi/tvtime.git/commit/?id=3d58ba563bfcc350c180b59a94cec746ccad6ebe
-> 
-> It seems like there is definitely something wrong with the
-> latency/period selection in both applications, but we need some
-> insight from people who are better familiar with the ALSA subsystem
-> for advice on the "right" way to do low latency audio capture (i.e.
-> properly negotiating minimal latency in a way that works with all
-> devices).
+Results of the daily build of media_tree:
 
-Well, I suspect that the issue is at Kernel level.
+date:		Thu Jun 12 04:00:29 CEST 2014
+git branch:	test
+git hash:	5ea878796f0a1d9649fe43a6a09df53d3915c0ef
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-11-g38d1124
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
-Let's see the au0828 case:
-	48 kHz, 2 bytes/sample, 2 channels, 256 maxpacksize, 1 ms URB
-interval (bInterval = 1).
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	v0.5.0-11-g38d1124
+sparse: ERRORS
 
-In this case, there is 192 bytes per 1ms period.	
+Detailed results are available here:
 
-Let's assume that the period was set to 3456, with corresponds to
-a latency of 18 ms.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-In this case, as NUM_URBS = 12, it means that the transfer buffer
-will be set to its maximum value of 3072 bytes per URB pack (12 * 256),
-and the URB transfer_callback will be called on every 16 ms.
+Full logs are available here:
 
-So, what happens is:
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-	- after 16 ms, the first 3072 bytes arrive. The next
-	  packet will take another 16ms to arrive;
-	- after 2 ms, underrun, as the period_size was not
-	  filled yet.
+The Media Infrastructure API from this daily build is here:
 
-The thing is that any latency that between 16 ms and 32 ms
-are invalid, as the URB settings won't support it.
-
-Regards,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/media.html
