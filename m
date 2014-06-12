@@ -1,31 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:50392 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750827AbaFXCSB (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33005 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753215AbaFLRGo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jun 2014 22:18:01 -0400
-Date: Tue, 24 Jun 2014 11:17:57 +0900
-From: Simon Horman <horms@verge.net.au>
-To: Ben Dooks <ben.dooks@codethink.co.uk>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	magnus.damm@opensource.se, linux-kernel@lists.codethink.co.uk
-Subject: Re: resend: device tree updates for r8a7790 vin
-Message-ID: <20140624021757.GH29948@verge.net.au>
-References: <1403557832-32225-1-git-send-email-ben.dooks@codethink.co.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1403557832-32225-1-git-send-email-ben.dooks@codethink.co.uk>
+	Thu, 12 Jun 2014 13:06:44 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [RFC PATCH 04/26] gpu: ipu-v3: Add ipu_cpmem_get_buffer function
+Date: Thu, 12 Jun 2014 19:06:18 +0200
+Message-Id: <1402592800-2925-5-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 23, 2014 at 10:10:30PM +0100, Ben Dooks wrote:
-> I've gone through and hopefully cleaned up Sergei's issues.
-> 
-> Is there any chance Simon could queue these in his tree?
+This is needed for imx-ipu-vout to extract the buffer address from a
+saved CPMEM block.
 
-At this stage my main question is about the status of the driver
-and more specifically the binding(s).
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ include/video/imx-ipu-v3.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-I don't seem to be able to find renesas,vin-r8a7790 in
-next-20140623. Have the driver changes been queued up elsewhere?
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 77a82f5..e8764dc 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -268,6 +268,15 @@ static inline void ipu_cpmem_set_buffer(struct ipu_ch_param __iomem *p,
+ 		ipu_ch_param_write_field(p, IPU_FIELD_EBA0, buf >> 3);
+ }
+ 
++static inline dma_addr_t ipu_cpmem_get_buffer(struct ipu_ch_param __iomem *p,
++		int bufnum)
++{
++	if (bufnum)
++		return ipu_ch_param_read_field(p, IPU_FIELD_EBA1) << 3;
++	else
++		return ipu_ch_param_read_field(p, IPU_FIELD_EBA0) << 3;
++}
++
+ static inline void ipu_cpmem_set_resolution(struct ipu_ch_param __iomem *p,
+ 		int xres, int yres)
+ {
+-- 
+2.0.0.rc2
+
