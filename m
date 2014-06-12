@@ -1,114 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4993 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751017AbaFMCrN (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3253 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933278AbaFLLyq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 22:47:13 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5D2l9lg047715
-	for <linux-media@vger.kernel.org>; Fri, 13 Jun 2014 04:47:11 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0C9E52A1FCB
-	for <linux-media@vger.kernel.org>; Fri, 13 Jun 2014 04:47:02 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Thu, 12 Jun 2014 07:54:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140613024702.0C9E52A1FCB@tschai.lan>
-Date: Fri, 13 Jun 2014 04:47:02 +0200 (CEST)
+Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 24/34] DocBook media: document new u8 and u16 control types.
+Date: Thu, 12 Jun 2014 13:52:56 +0200
+Message-Id: <3c18c7c79a46b5333f98e60a643e390e998950d3.1402573818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+These types are needed for the upcoming Motion Detection matrix
+controls, so document them.
 
-date:		Fri Jun 13 04:00:30 CEST 2014
-git branch:	test
-git hash:	f7a27ff1fb77e114d1059a5eb2ed1cffdc508ce8
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-14-gf11dd94
-host hardware:	x86_64
-host os:	3.14-5.slh.5-amd64
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 14 +++++++++++++
+ .../DocBook/media/v4l/vidioc-queryctrl.xml         | 23 +++++++++++++++++++++-
+ 2 files changed, 36 insertions(+), 1 deletion(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: ERRORS
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index 2a157b3..c5bdbfc 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -186,6 +186,20 @@ type <constant>V4L2_CTRL_TYPE_STRING</constant>.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
++	    <entry>__u8 *</entry>
++	    <entry><structfield>p_u8</structfield></entry>
++	    <entry>A pointer to a matrix control of unsigned 8-bit values.
++Valid if this control is of type <constant>V4L2_CTRL_TYPE_U8</constant>.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>__u16 *</entry>
++	    <entry><structfield>p_u16</structfield></entry>
++	    <entry>A pointer to a matrix control of unsigned 16-bit values.
++Valid if this control is of type <constant>V4L2_CTRL_TYPE_U16</constant>.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
+ 	    <entry>void *</entry>
+ 	    <entry><structfield>ptr</structfield></entry>
+ 	    <entry>A pointer to a compound type which can be an N-dimensional array and/or a
+diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+index 30c4e8a..0dcb0af 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+@@ -289,7 +289,8 @@ accepts values 0-511 and the driver reports 0-65535, step should be
+ 	    <entry>The default value of a
+ <constant>V4L2_CTRL_TYPE_INTEGER</constant>, <constant>_INTEGER64</constant>,
+ <constant>_BOOLEAN</constant>, <constant>_BITMASK</constant>,
+-<constant>_MENU</constant> or <constant>_INTEGER_MENU</constant> control.
++<constant>_MENU</constant>, <constant>_INTEGER_MENU</constant>,
++<constant>_U8</constant> or <constant>_U16</constant> control.
+ Not valid for other types of controls.
+ Note that drivers reset controls to their default value only when the
+ driver is first loaded, never afterwards.
+@@ -510,6 +511,26 @@ ioctl returns the name of the control class and this control type.
+ Older drivers which do not support this feature return an
+ &EINVAL;.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_CTRL_TYPE_U8</constant></entry>
++	    <entry>any</entry>
++	    <entry>any</entry>
++	    <entry>any</entry>
++	    <entry>An unsigned 8-bit valued control ranging from minimum to
++maximum inclusive. The step value indicates the increment between
++values which are actually different on the hardware. This type is only used
++in array controls.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_CTRL_TYPE_U16</constant></entry>
++	    <entry>any</entry>
++	    <entry>any</entry>
++	    <entry>any</entry>
++	    <entry>An unsigned 16-bit valued control ranging from minimum to
++maximum inclusive. The step value indicates the increment between
++values which are actually different on the hardware. This type is only used
++in array controls.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+-- 
+2.0.0.rc0
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
