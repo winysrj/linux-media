@@ -1,89 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from forward3h.mail.yandex.net ([84.201.187.148]:35862 "EHLO
-	forward3h.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932560AbaFCRTW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 13:19:22 -0400
-Received: from smtp4h.mail.yandex.net (smtp4h.mail.yandex.net [84.201.186.21])
-	by forward3h.mail.yandex.net (Yandex) with ESMTP id 6093E13606E2
-	for <linux-media@vger.kernel.org>; Tue,  3 Jun 2014 21:19:17 +0400 (MSK)
-Received: from smtp4h.mail.yandex.net (localhost [127.0.0.1])
-	by smtp4h.mail.yandex.net (Yandex) with ESMTP id 3065A2C3978
-	for <linux-media@vger.kernel.org>; Tue,  3 Jun 2014 21:19:17 +0400 (MSK)
-From: CrazyCat <crazycat69@narod.ru>
-To: linux-media <linux-media@vger.kernel.org>
-Subject: [PATCH]cxd2820r: TS clock inversion in config
-Date: Tue, 03 Jun 2014 20:19:07 +0300
-Message-ID: <5029507.eCaNK20ghe@computer>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54503 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752898AbaFLOvg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jun 2014 10:51:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, arm@kernel.org
+Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
+Date: Thu, 12 Jun 2014 16:52:10 +0200
+Message-ID: <2207210.T6NoNSQSCo@avalon>
+In-Reply-To: <20140611144754.GA17845@atomide.com>
+References: <5192928.MkINji4uKU@wuerfel> <20140611144754.GA17845@atomide.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-TS clock inversion in config.
+Hi Tony,
 
-Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
----
- drivers/media/dvb-frontends/cxd2820r.h    | 6 ++++++
- drivers/media/dvb-frontends/cxd2820r_c.c  | 1 +
- drivers/media/dvb-frontends/cxd2820r_t.c  | 1 +
- drivers/media/dvb-frontends/cxd2820r_t2.c | 1 +
- 4 files changed, 9 insertions(+)
+On Wednesday 11 June 2014 07:47:54 Tony Lindgren wrote:
+> * Arnd Bergmann <arnd@arndb.de> [140611 07:37]:
+> > The OMAP4 camera support depends on I2C and VIDEO_V4L2, both
+> > of which can be loadable modules. This causes build failures
+> > if we want the camera driver to be built-in.
+> 
+> That's good news, but let's not fix it this way.
+> 
+> > This can be solved by turning the option into "tristate",
+> > which unfortunately causes another problem, because the
+> > driver incorrectly calls a platform-internal interface
+> > for omap4_ctrl_pad_readl/omap4_ctrl_pad_writel.
+> > To work around that, we can export those symbols, but
+> > that isn't really the correct solution, as we should not
+> > have dependencies on platform code this way.
+> > 
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> > ---
+> > This is one of just two patches we currently need to get
+> > 'make allmodconfig' to build again on ARM.
+> > 
+> > diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+> > index 751f354..05d2d98 100644
+> > --- a/arch/arm/mach-omap2/control.c
+> > +++ b/arch/arm/mach-omap2/control.c
+> > @@ -190,11 +190,13 @@ u32 omap4_ctrl_pad_readl(u16 offset)
+> >  {
+> >  	return readl_relaxed(OMAP4_CTRL_PAD_REGADDR(offset));
+> >  }
+> > +EXPORT_SYMBOL_GPL(omap4_ctrl_pad_readl);
+> > 
+> >  void omap4_ctrl_pad_writel(u32 val, u16 offset)
+> >  {
+> >  	writel_relaxed(val, OMAP4_CTRL_PAD_REGADDR(offset));
+> >  }
+> > +EXPORT_SYMBOL_GPL(omap4_ctrl_pad_writel);
+> > 
+> >  #ifdef CONFIG_ARCH_OMAP3
+> 
+> Exporting these will likely cause immediate misuse in other
+> drivers all over the place.
+> 
+> These should just use either pinctrl-single.c instead for muxing.
+> Or if they are not mux registers, we do have the syscon mapping
+> available in omap4.dtsi that pbias-regulator.c is already using.
+> 
+> Laurent, got any better ideas?
 
-diff --git a/drivers/media/dvb-frontends/cxd2820r.h b/drivers/media/dvb-frontends/cxd2820r.h
-index 82b3d93..6095dbc 100644
---- a/drivers/media/dvb-frontends/cxd2820r.h
-+++ b/drivers/media/dvb-frontends/cxd2820r.h
-@@ -52,6 +52,12 @@ struct cxd2820r_config {
- 	 */
- 	u8 ts_mode;
- 
-+	/* TS clock inverted.
-+	 * Default: 0
-+	 * Values: 0, 1
-+	 */
-+	bool ts_clock_inv;
-+
- 	/* IF AGC polarity.
- 	 * Default: 0
- 	 * Values: 0, 1
-diff --git a/drivers/media/dvb-frontends/cxd2820r_c.c b/drivers/media/dvb-frontends/cxd2820r_c.c
-index 5c6ab49..0f4657e 100644
---- a/drivers/media/dvb-frontends/cxd2820r_c.c
-+++ b/drivers/media/dvb-frontends/cxd2820r_c.c
-@@ -45,6 +45,7 @@ int cxd2820r_set_frontend_c(struct dvb_frontend *fe)
- 		{ 0x1008b, 0x07, 0xff },
- 		{ 0x1001f, priv->cfg.if_agc_polarity << 7, 0x80 },
- 		{ 0x10070, priv->cfg.ts_mode, 0xff },
-+		{ 0x10071, !priv->cfg.ts_clock_inv << 4, 0x10 },
- 	};
- 
- 	dev_dbg(&priv->i2c->dev, "%s: frequency=%d symbol_rate=%d\n", __func__,
-diff --git a/drivers/media/dvb-frontends/cxd2820r_t.c b/drivers/media/dvb-frontends/cxd2820r_t.c
-index fa184ca..9b5a45b 100644
---- a/drivers/media/dvb-frontends/cxd2820r_t.c
-+++ b/drivers/media/dvb-frontends/cxd2820r_t.c
-@@ -46,6 +46,7 @@ int cxd2820r_set_frontend_t(struct dvb_frontend *fe)
- 		{ 0x00088, 0x01, 0xff },
- 
- 		{ 0x00070, priv->cfg.ts_mode, 0xff },
-+		{ 0x00071, !priv->cfg.ts_clock_inv << 4, 0x10 },
- 		{ 0x000cb, priv->cfg.if_agc_polarity << 6, 0x40 },
- 		{ 0x000a5, 0x00, 0x01 },
- 		{ 0x00082, 0x20, 0x60 },
-diff --git a/drivers/media/dvb-frontends/cxd2820r_t2.c b/drivers/media/dvb-frontends/cxd2820r_t2.c
-index 2ba130e..9c0c4f4 100644
---- a/drivers/media/dvb-frontends/cxd2820r_t2.c
-+++ b/drivers/media/dvb-frontends/cxd2820r_t2.c
-@@ -47,6 +47,7 @@ int cxd2820r_set_frontend_t2(struct dvb_frontend *fe)
- 		{ 0x02083, 0x0a, 0xff },
- 		{ 0x020cb, priv->cfg.if_agc_polarity << 6, 0x40 },
- 		{ 0x02070, priv->cfg.ts_mode, 0xff },
-+		{ 0x02071, !priv->cfg.ts_clock_inv << 6, 0x40 },
- 		{ 0x020b5, priv->cfg.spec_inv << 4, 0x10 },
- 		{ 0x02567, 0x07, 0x0f },
- 		{ 0x02569, 0x03, 0x03 },
+The ISS driver needs to write a single register, which contains several 
+independent fields. They thus need to be controlled by a single driver. Some 
+of them might be considered to be related to pinmuxing (although I disagree on 
+that), others are certainly not about muxing (there are clock gate bits for 
+instance).
+
+Using the syscon mapping seems like the best option. I'll give it a try.
+
 -- 
-1.9.1
+Regards,
 
+Laurent Pinchart
 
