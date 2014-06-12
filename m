@@ -1,76 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from forward6l.mail.yandex.net ([84.201.143.139]:47989 "EHLO
-	forward6l.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932762AbaFCRWz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 13:22:55 -0400
-Received: from smtp3o.mail.yandex.net (smtp3o.mail.yandex.net [37.140.190.28])
-	by forward6l.mail.yandex.net (Yandex) with ESMTP id D7D0914E1103
-	for <linux-media@vger.kernel.org>; Tue,  3 Jun 2014 21:22:53 +0400 (MSK)
-Received: from smtp3o.mail.yandex.net (localhost [127.0.0.1])
-	by smtp3o.mail.yandex.net (Yandex) with ESMTP id 8D50D1E1A65
-	for <linux-media@vger.kernel.org>; Tue,  3 Jun 2014 21:22:53 +0400 (MSK)
-From: CrazyCat <crazycat69@narod.ru>
-To: linux-media <linux-media@vger.kernel.org>
-Subject: [PATCH] dw2102: Geniatech T220 init fixed
-Date: Tue, 03 Jun 2014 20:22:44 +0300
-Message-ID: <3646158.R7eJSyhLvT@computer>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:29493 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752900AbaFLPPm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jun 2014 11:15:42 -0400
+Date: Thu, 12 Jun 2014 08:15:35 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, arm@kernel.org
+Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
+Message-ID: <20140612151534.GF17845@atomide.com>
+References: <5192928.MkINji4uKU@wuerfel>
+ <20140611144754.GA17845@atomide.com>
+ <2207210.T6NoNSQSCo@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2207210.T6NoNSQSCo@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Geniatech T220 init fixed - reset cmd from windows driver and fixed TS bus config for cxd2820r.
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140612 07:52]:
+> On Wednesday 11 June 2014 07:47:54 Tony Lindgren wrote:
+> > 
+> > These should just use either pinctrl-single.c instead for muxing.
+> > Or if they are not mux registers, we do have the syscon mapping
+> > available in omap4.dtsi that pbias-regulator.c is already using.
+> > 
+> > Laurent, got any better ideas?
+> 
+> The ISS driver needs to write a single register, which contains several 
+> independent fields. They thus need to be controlled by a single driver. Some 
+> of them might be considered to be related to pinmuxing (although I disagree on 
+> that), others are certainly not about muxing (there are clock gate bits for 
+> instance).
+> 
+> Using the syscon mapping seems like the best option. I'll give it a try.
 
-Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
----
- drivers/media/usb/dvb-usb/dw2102.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+OK if it's not strictly pinctrl related then let's not use
+pinctrl-single,bits for it. You may be able to implement one or more
+framework drivers for it for pinctrl/regulator/clock/transceiver
+whatever that register is doing.
 
-diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
-index ae0f56a..7135a3e 100644
---- a/drivers/media/usb/dvb-usb/dw2102.c
-+++ b/drivers/media/usb/dvb-usb/dw2102.c
-@@ -1109,6 +1109,7 @@ static struct ds3000_config su3000_ds3000_config = {
- static struct cxd2820r_config cxd2820r_config = {
- 	.i2c_address = 0x6c, /* (0xd8 >> 1) */
- 	.ts_mode = 0x38,
-+	.ts_clock_inv = 1,
- };
- 
- static struct tda18271_config tda18271_config = {
-@@ -1387,20 +1388,27 @@ static int su3000_frontend_attach(struct dvb_usb_adapter *d)
- 
- static int t220_frontend_attach(struct dvb_usb_adapter *d)
- {
--	u8 obuf[3] = { 0xe, 0x80, 0 };
-+	u8 obuf[3] = { 0xe, 0x87, 0 };
- 	u8 ibuf[] = { 0 };
- 
- 	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
- 		err("command 0x0e transfer failed.");
- 
- 	obuf[0] = 0xe;
--	obuf[1] = 0x83;
-+	obuf[1] = 0x86;
-+	obuf[2] = 1;
-+
-+	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-+		err("command 0x0e transfer failed.");
-+
-+	obuf[0] = 0xe;
-+	obuf[1] = 0x80;
- 	obuf[2] = 0;
- 
- 	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
- 		err("command 0x0e transfer failed.");
- 
--	msleep(100);
-+	msleep(50);
- 
- 	obuf[0] = 0xe;
- 	obuf[1] = 0x80;
--- 
-1.9.1
+In any case it's best to have that handling in a separate helper driver
+somewhere as it's a separate piece of hardware from the camera module.
+If it does not fit into any existing frameworks then it's best to have
+it in a separate driver with the camera driver.
 
+Regards,
 
+Tony
