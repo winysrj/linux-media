@@ -1,114 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1308 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752424AbaFGCnt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jun 2014 22:43:49 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s572hkn8076167
-	for <linux-media@vger.kernel.org>; Sat, 7 Jun 2014 04:43:47 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id A6D812A1C5F
-	for <linux-media@vger.kernel.org>; Sat,  7 Jun 2014 04:43:41 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1323 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933268AbaFLLzN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jun 2014 07:55:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140607024341.A6D812A1C5F@tschai.lan>
-Date: Sat,  7 Jun 2014 04:43:41 +0200 (CEST)
+Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 22/34] v4l2-controls.txt: update to the new way of accessing controls.
+Date: Thu, 12 Jun 2014 13:52:54 +0200
+Message-Id: <9b7abc6a3594af24e2762d4bdbed631585a62342.1402573818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+The way current and new values are accessed has changed. Update the
+document to bring it up to date with the code.
 
-date:		Sat Jun  7 04:00:38 CEST 2014
-git branch:	test
-git hash:	5ea878796f0a1d9649fe43a6a09df53d3915c0ef
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.14-5.slh.3-amd64
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ Documentation/video4linux/v4l2-controls.txt | 61 ++++++++++++++++++-----------
+ 1 file changed, 38 insertions(+), 23 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+index c9ee9a7..0f84ce8 100644
+--- a/Documentation/video4linux/v4l2-controls.txt
++++ b/Documentation/video4linux/v4l2-controls.txt
+@@ -77,9 +77,9 @@ Basic usage for V4L2 and sub-device drivers
+ 
+   Where foo->v4l2_dev is of type struct v4l2_device.
+ 
+-  Finally, remove all control functions from your v4l2_ioctl_ops:
+-  vidioc_queryctrl, vidioc_querymenu, vidioc_g_ctrl, vidioc_s_ctrl,
+-  vidioc_g_ext_ctrls, vidioc_try_ext_ctrls and vidioc_s_ext_ctrls.
++  Finally, remove all control functions from your v4l2_ioctl_ops (if any):
++  vidioc_queryctrl, vidioc_query_ext_ctrl, vidioc_querymenu, vidioc_g_ctrl,
++  vidioc_s_ctrl, vidioc_g_ext_ctrls, vidioc_try_ext_ctrls and vidioc_s_ext_ctrls.
+   Those are now no longer needed.
+ 
+ 1.3.2) For sub-device drivers do this:
+@@ -258,8 +258,8 @@ The new control value has already been validated, so all you need to do is
+ to actually update the hardware registers.
+ 
+ You're done! And this is sufficient for most of the drivers we have. No need
+-to do any validation of control values, or implement QUERYCTRL/QUERYMENU. And
+-G/S_CTRL as well as G/TRY/S_EXT_CTRLS are automatically supported.
++to do any validation of control values, or implement QUERYCTRL, QUERY_EXT_CTRL
++and QUERYMENU. And G/S_CTRL as well as G/TRY/S_EXT_CTRLS are automatically supported.
+ 
+ 
+ ==============================================================================
+@@ -288,30 +288,45 @@ of v4l2_device.
+ Accessing Control Values
+ ========================
+ 
+-The v4l2_ctrl struct contains these two unions:
++The following union is used inside the control framework to access control
++values:
+ 
+-	/* The current control value. */
+-	union {
++union v4l2_ctrl_ptr {
++	s32 *p_s32;
++	s64 *p_s64;
++	char *p_char;
++	void *p;
++};
++
++The v4l2_ctrl struct contains these fields that can be used to access both
++current and new values:
++
++	s32 val;
++	struct {
+ 		s32 val;
+-		s64 val64;
+-		char *string;
+ 	} cur;
+ 
+-	/* The new control value. */
+-	union {
+-		s32 val;
+-		s64 val64;
+-		char *string;
+-	};
+ 
+-Within the control ops you can freely use these. The val and val64 speak for
+-themselves. The string pointers point to character buffers of length
++	union v4l2_ctrl_ptr p_new;
++	union v4l2_ctrl_ptr p_cur;
++
++If the control has a simple s32 type type, then:
++
++	&ctrl->val == ctrl->p_new.p_s32
++	&ctrl->cur.val == ctrl->p_cur.p_s32
++
++For all other types use ctrl->p_cur.p<something>. Basically the val
++and cur.val fields can be considered an alias since these are used so often.
++
++Within the control ops you can freely use these. The val and cur.val speak for
++themselves. The p_char pointers point to character buffers of length
+ ctrl->maximum + 1, and are always 0-terminated.
+ 
+-In most cases 'cur' contains the current cached control value. When you create
+-a new control this value is made identical to the default value. After calling
+-v4l2_ctrl_handler_setup() this value is passed to the hardware. It is generally
+-a good idea to call this function.
++Unless the control is marked volatile the p_cur field points to the the
++current cached control value. When you create a new control this value is made
++identical to the default value. After calling v4l2_ctrl_handler_setup() this
++value is passed to the hardware. It is generally a good idea to call this
++function.
+ 
+ Whenever a new value is set that new value is automatically cached. This means
+ that most drivers do not need to implement the g_volatile_ctrl() op. The
+@@ -363,7 +378,7 @@ You can also take the handler lock yourself:
+ 
+ 	mutex_lock(&state->ctrl_handler.lock);
+ 	pr_info("String value is '%s'\n", ctrl1->p_cur.p_char);
+-	printk(KERN_INFO "Integer value is '%s'\n", ctrl2->cur.val);
++	pr_info("Integer value is '%s'\n", ctrl2->cur.val);
+ 	mutex_unlock(&state->ctrl_handler.lock);
+ 
+ 
+-- 
+2.0.0.rc0
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
