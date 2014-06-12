@@ -1,97 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:38715 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752015AbaFOT46 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33037 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756238AbaFLRGq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jun 2014 15:56:58 -0400
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-sh@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
-	magnus.damm@opensource.se, horms@verge.net.au,
-	ian.molton@codethink.co.uk, william.towle@codethink.co.uk,
-	Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: [PATCH 5/9] rcar_vin: copy flags from pdata
-Date: Sun, 15 Jun 2014 20:56:30 +0100
-Message-Id: <1402862194-17743-6-git-send-email-ben.dooks@codethink.co.uk>
-In-Reply-To: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
-References: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
+	Thu, 12 Jun 2014 13:06:46 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [RFC PATCH 20/26] [media] imx-ipuv3-csi: Export sync lock event to userspace
+Date: Thu, 12 Jun 2014 19:06:34 +0200
+Message-Id: <1402592800-2925-21-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The platform data is a single word, so simply copy
-it into the device's private data structure than
-keeping a copy of the pointer.
-
-This will make changing to device-tree binding
-easier as it is one allocation instead of two.
-
-Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/soc_camera/rcar_vin.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/media/platform/imx/imx-ipuv3-csi.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index e594230..7c4299d 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -126,13 +126,13 @@ struct rcar_vin_priv {
- 	int				sequence;
- 	/* State of the VIN module in capturing mode */
- 	enum rcar_vin_state		state;
--	struct rcar_vin_platform_data	*pdata;
- 	struct soc_camera_host		ici;
- 	struct list_head		capture;
- #define MAX_BUFFER_NUM			3
- 	struct vb2_buffer		*queue_buf[MAX_BUFFER_NUM];
- 	struct vb2_alloc_ctx		*alloc_ctx;
- 	enum v4l2_field			field;
-+	unsigned int			pdata_flags;
- 	unsigned int			vb_count;
- 	unsigned int			nr_hw_slots;
- 	bool				request_to_stop;
-@@ -275,12 +275,12 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 		break;
- 	case V4L2_MBUS_FMT_YUYV8_2X8:
- 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
--		vnmc |= priv->pdata->flags & RCAR_VIN_BT656 ?
-+		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
- 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
- 		break;
- 	case V4L2_MBUS_FMT_YUYV10_2X10:
- 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
--		vnmc |= priv->pdata->flags & RCAR_VIN_BT656 ?
-+		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
- 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
- 		break;
- 	default:
-@@ -797,7 +797,7 @@ static int rcar_vin_set_bus_param(struct soc_camera_device *icd)
- 	/* Make choises, based on platform preferences */
- 	if ((common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH) &&
- 	    (common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)) {
--		if (priv->pdata->flags & RCAR_VIN_HSYNC_ACTIVE_LOW)
-+		if (priv->pdata_flags & RCAR_VIN_HSYNC_ACTIVE_LOW)
- 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_HIGH;
- 		else
- 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_LOW;
-@@ -805,7 +805,7 @@ static int rcar_vin_set_bus_param(struct soc_camera_device *icd)
+diff --git a/drivers/media/platform/imx/imx-ipuv3-csi.c b/drivers/media/platform/imx/imx-ipuv3-csi.c
+index ab22cad..86fadd0 100644
+--- a/drivers/media/platform/imx/imx-ipuv3-csi.c
++++ b/drivers/media/platform/imx/imx-ipuv3-csi.c
+@@ -43,12 +43,19 @@
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-event.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-of.h>
  
- 	if ((common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH) &&
- 	    (common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)) {
--		if (priv->pdata->flags & RCAR_VIN_VSYNC_ACTIVE_LOW)
-+		if (priv->pdata_flags & RCAR_VIN_VSYNC_ACTIVE_LOW)
- 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_HIGH;
- 		else
- 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_LOW;
-@@ -1445,7 +1445,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	priv->ici.drv_name = dev_name(&pdev->dev);
- 	priv->ici.ops = &rcar_vin_host_ops;
+ #define DRIVER_NAME "imx-ipuv3-camera"
  
--	priv->pdata = pdata;
-+	priv->pdata_flags = pdata->flags;
- 	priv->chip = pdev->id_entry->driver_data;
- 	spin_lock_init(&priv->lock);
- 	INIT_LIST_HEAD(&priv->capture);
++#define V4L2_EVENT_SYNC_LOCK	(V4L2_EVENT_PRIVATE_START | 0x200)
++
++struct v4l2_event_sync_lock {
++	__u8 lock;
++} __attribute__ ((packed));
++
+ /* CMOS Sensor Interface Registers */
+ #define CSI_SENS_CONF		0x0000
+ #define CSI_SENS_FRM_SIZE	0x0004
+@@ -579,6 +586,7 @@ static void ipucsi_v4l2_dev_notify(struct v4l2_subdev *sd,
+ 	if (notification == V4L2_SUBDEV_SYNC_LOCK_NOTIFY) {
+ 		struct media_entity_graph graph;
+ 		struct media_entity *entity;
++		struct v4l2_event event;
+ 		struct ipucsi *ipucsi;
+ 		bool lock = *(bool *)arg;
+ 
+@@ -595,6 +603,11 @@ static void ipucsi_v4l2_dev_notify(struct v4l2_subdev *sd,
+ 			ipucsi_resume_stream(ipucsi);
+ 		else
+ 			ipucsi_pause_stream(ipucsi);
++
++		memset(&event, 0, sizeof(event));
++		event.type = V4L2_EVENT_SYNC_LOCK;
++		((struct v4l2_event_sync_lock *)event.u.data)->lock = lock;
++		v4l2_event_queue(&ipucsi->vdev, &event);
+ 	}
+ }
+ 
+@@ -1378,6 +1391,14 @@ static int ipucsi_enum_framesizes(struct file *file, void *fh,
+ 	return 0;
+ }
+ 
++static int ipucsi_subscribe_event(struct v4l2_fh *fh,
++				  const struct v4l2_event_subscription *sub)
++{
++	if (sub->type == V4L2_EVENT_SYNC_LOCK)
++		return v4l2_event_subscribe(fh, sub, 0, NULL);
++	return -EINVAL;
++}
++
+ static const struct v4l2_ioctl_ops ipucsi_capture_ioctl_ops = {
+ 	.vidioc_querycap		= ipucsi_querycap,
+ 
+@@ -1397,6 +1418,9 @@ static const struct v4l2_ioctl_ops ipucsi_capture_ioctl_ops = {
+ 	.vidioc_streamoff		= vb2_ioctl_streamoff,
+ 
+ 	.vidioc_enum_framesizes		= ipucsi_enum_framesizes,
++
++	.vidioc_subscribe_event		= ipucsi_subscribe_event,
++	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ };
+ 
+ static int ipucsi_subdev_s_ctrl(struct v4l2_ctrl *ctrl)
 -- 
-2.0.0
+2.0.0.rc2
 
