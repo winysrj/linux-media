@@ -1,55 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47310 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753051AbaFWXyC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jun 2014 19:54:02 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:56134 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750777AbaFLXMa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jun 2014 19:12:30 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH v2 05/23] v4l: vb2: Fix stream start and buffer completion race
-Date: Tue, 24 Jun 2014 01:54:11 +0200
-Message-Id: <1403567669-18539-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] af9035: override tuner for AVerMedia A835B devices
+Date: Fri, 13 Jun 2014 02:12:24 +0300
+Message-Id: <1402614744-15723-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-videobuf2 stores the driver streaming state internally in the queue in
-the start_streaming_called variable. The state is set right after the
-driver start_stream operation returns, and checked in the
-vb2_buffer_done() function, typically called from the frame completion
-interrupt handler. A race condition exists if the hardware finishes
-processing the first frame before the start_stream operation returns.
+Tuner ID set into EEPROM is wrong, which causes driver to select
+wrong tuner profile. That leads device non-working. Fix issue by
+overriding known bad tuner IDs with suitable default value.
 
-Fix this by setting start_streaming_called to 1 before calling the
-start_stream operation, and resetting it to 0 if the operation fails.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/media/usb/dvb-usb-v2/af9035.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 7c4489c..1d67e95 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1750,12 +1750,14 @@ static int vb2_start_streaming(struct vb2_queue *q)
- 		__enqueue_in_driver(vb);
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 021e4d3..204a91a 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -773,6 +773,25 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 		addr += 0x10; /* shift for the 2nd tuner params */
+ 	}
  
- 	/* Tell the driver to start streaming */
-+	q->start_streaming_called = 1;
- 	ret = call_qop(q, start_streaming, q,
- 		       atomic_read(&q->owned_by_drv_count));
--	q->start_streaming_called = ret == 0;
- 	if (!ret)
- 		return 0;
- 
-+	q->start_streaming_called = 0;
++	/*
++	 * These AVerMedia devices has a bad EEPROM content :-(
++	 * Override some wrong values here.
++	 */
++	if (le16_to_cpu(d->udev->descriptor.idVendor) == USB_VID_AVERMEDIA) {
++		switch (le16_to_cpu(d->udev->descriptor.idProduct)) {
++		case USB_PID_AVERMEDIA_A835B_1835:
++		case USB_PID_AVERMEDIA_A835B_2835:
++		case USB_PID_AVERMEDIA_A835B_3835:
++			dev_info(&d->udev->dev,
++				 "%s: overriding tuner from %02x to %02x\n",
++				 KBUILD_MODNAME, state->af9033_config[0].tuner,
++				 AF9033_TUNER_IT9135_60);
 +
- 	dprintk(1, "driver refused to start streaming\n");
- 	if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
- 		unsigned i;
++			state->af9033_config[0].tuner = AF9033_TUNER_IT9135_60;
++			break;
++		}
++	}
++
+ skip_eeprom:
+ 	/* get demod clock */
+ 	ret = af9035_rd_reg(d, 0x00d800, &tmp);
 -- 
-1.8.5.5
+1.9.3
 
