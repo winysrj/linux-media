@@ -1,35 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from serv03.imset.org ([176.31.106.97]:52438 "EHLO serv03.imset.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757454AbaFSL7u (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jun 2014 07:59:50 -0400
-Message-ID: <53A2D0B5.4050003@dest-unreach.be>
-Date: Thu, 19 Jun 2014 13:59:49 +0200
-From: Niels Laukens <niels@dest-unreach.be>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] drivers/media/rc/ir-nec-decode : add toggle feature
-References: <53A29E5A.9030304@dest-unreach.be> <53A29E79.2000304@dest-unreach.be> <20140619090540.GC13952@hardeman.nu>
-In-Reply-To: <20140619090540.GC13952@hardeman.nu>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33043 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756246AbaFLRGq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jun 2014 13:06:46 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [RFC PATCH 22/26] [media] v4l2-subdev: Export v4l2_subdev_fops
+Date: Thu, 12 Jun 2014 19:06:36 +0200
+Message-Id: <1402592800-2925-23-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2014-06-19 11:05, David Härdeman wrote:
-> On Thu, Jun 19, 2014 at 10:25:29AM +0200, Niels Laukens wrote:
->> Made the distinction between repeated key presses, and a single long
->> press. The NEC-protocol does not have a toggle-bit (cfr RC5/RC6), but
->> has specific repeat-codes.
-> 
-> Not all NEC remotes use repeat codes. Some just transmit the full code
-> at fixed intervals...IIRC, Pioneer remotes is (was?) one example... 
+This is needed by the imx-ipuv3-csi driver when compiled as a module.
 
-A way to cover this, is to make this mechanism optional, and
-auto-activate as soon as a repeat code is seen. But that will only work
-reliably with a single (type of) remote per system. Is this a better
-solution?
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/v4l2-core/v4l2-subdev.c | 1 +
+ 1 file changed, 1 insertion(+)
 
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index aea84ac..c4dc495 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -406,6 +406,7 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
+ 	.release = subdev_close,
+ 	.poll = subdev_poll,
+ };
++EXPORT_SYMBOL_GPL(v4l2_subdev_fops);
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
+-- 
+2.0.0.rc2
 
-Niels
