@@ -1,27 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f68.google.com ([209.85.215.68]:35340 "EHLO
-	mail-la0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752085AbaFARPo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jun 2014 13:15:44 -0400
-Received: by mail-la0-f68.google.com with SMTP id hr17so702654lab.3
-        for <linux-media@vger.kernel.org>; Sun, 01 Jun 2014 10:15:42 -0700 (PDT)
-MIME-Version: 1.0
-Reply-To: jamila.tayeb@yahoo.com
-Date: Sun, 1 Jun 2014 10:15:42 -0700
-Message-ID: <CAHZ5EYBMZ2cCUQ7KJsu1nPBr5i0hCGQY=HJFkg=JNTdJ808QRg@mail.gmail.com>
-Subject: Hello,
-From: Jamila Tayeb El Safi <jamila.tayeb@yahoo.com>
-To: undisclosed-recipients:;
-Content-Type: text/plain; charset=UTF-8
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4817 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755739AbaFLLyd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jun 2014 07:54:33 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 02/34] v4l2-ctrls: use pr_info/cont instead of printk.
+Date: Thu, 12 Jun 2014 13:52:34 +0200
+Message-Id: <e6ead703ffe42c995c08902e4d899e2d9f9156e9.1402573818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-How are you today? My name is Jamila Tayeb. I saw your email on my
-search for a nice and trusted person so i decided to write to you. I
-will like you to write and tell me more about your Self, from there i
-will reply you with more of my details and pictures. I will be waiting
-to receive from you. Have a nice day.
-Best regard.
-Yours sincerely
-Jamila Tayeb
+From: Hans Verkuil <hans.verkuil@cisco.com>
+
+Codingstyle fix.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index e132fa2..365884b 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2068,45 +2068,45 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
+ 	if (ctrl->type == V4L2_CTRL_TYPE_CTRL_CLASS)
+ 		return;
+ 
+-	printk(KERN_INFO "%s%s%s: ", prefix, colon, ctrl->name);
++	pr_info("%s%s%s: ", prefix, colon, ctrl->name);
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER:
+-		printk(KERN_CONT "%d", ctrl->cur.val);
++		pr_cont("%d", ctrl->cur.val);
+ 		break;
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+-		printk(KERN_CONT "%s", ctrl->cur.val ? "true" : "false");
++		pr_cont("%s", ctrl->cur.val ? "true" : "false");
+ 		break;
+ 	case V4L2_CTRL_TYPE_MENU:
+-		printk(KERN_CONT "%s", ctrl->qmenu[ctrl->cur.val]);
++		pr_cont("%s", ctrl->qmenu[ctrl->cur.val]);
+ 		break;
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+-		printk(KERN_CONT "%lld", ctrl->qmenu_int[ctrl->cur.val]);
++		pr_cont("%lld", ctrl->qmenu_int[ctrl->cur.val]);
+ 		break;
+ 	case V4L2_CTRL_TYPE_BITMASK:
+-		printk(KERN_CONT "0x%08x", ctrl->cur.val);
++		pr_cont("0x%08x", ctrl->cur.val);
+ 		break;
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		printk(KERN_CONT "%lld", ctrl->cur.val64);
++		pr_cont("%lld", ctrl->cur.val64);
+ 		break;
+ 	case V4L2_CTRL_TYPE_STRING:
+-		printk(KERN_CONT "%s", ctrl->cur.string);
++		pr_cont("%s", ctrl->cur.string);
+ 		break;
+ 	default:
+-		printk(KERN_CONT "unknown type %d", ctrl->type);
++		pr_cont("unknown type %d", ctrl->type);
+ 		break;
+ 	}
+ 	if (ctrl->flags & (V4L2_CTRL_FLAG_INACTIVE |
+ 			   V4L2_CTRL_FLAG_GRABBED |
+ 			   V4L2_CTRL_FLAG_VOLATILE)) {
+ 		if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
+-			printk(KERN_CONT " inactive");
++			pr_cont(" inactive");
+ 		if (ctrl->flags & V4L2_CTRL_FLAG_GRABBED)
+-			printk(KERN_CONT " grabbed");
++			pr_cont(" grabbed");
+ 		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE)
+-			printk(KERN_CONT " volatile");
++			pr_cont(" volatile");
+ 	}
+-	printk(KERN_CONT "\n");
++	pr_cont("\n");
+ }
+ 
+ /* Log all controls owned by the handler */
+-- 
+2.0.0.rc0
+
