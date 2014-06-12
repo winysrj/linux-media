@@ -1,114 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2468 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751926AbaFOCn1 (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3880 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755759AbaFLLyd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jun 2014 22:43:27 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5F2hN54042726
-	for <linux-media@vger.kernel.org>; Sun, 15 Jun 2014 04:43:25 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 58E072A1FCB
-	for <linux-media@vger.kernel.org>; Sun, 15 Jun 2014 04:43:12 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Thu, 12 Jun 2014 07:54:33 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140615024312.58E072A1FCB@tschai.lan>
-Date: Sun, 15 Jun 2014 04:43:12 +0200 (CEST)
+Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 03/34] videodev2.h: add initial support for compound controls.
+Date: Thu, 12 Jun 2014 13:52:35 +0200
+Message-Id: <f04e680dfdbbe16892b9f57e0e1805df145105ed.1402573818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+Compound controls are controls that can be used for compound and array
+types. This allows for more compound data structures to be used with the
+control framework.
 
-date:		Sun Jun 15 04:00:18 CEST 2014
-git branch:	test
-git hash:	f7a27ff1fb77e114d1059a5eb2ed1cffdc508ce8
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-14-gf11dd94
-host hardware:	x86_64
-host os:	3.14-5.slh.5-amd64
+The existing V4L2_CTRL_FLAG_NEXT_CTRL flag will only enumerate non-compound
+controls, so a new V4L2_CTRL_FLAG_NEXT_COMPOUND flag is added to enumerate
+compound controls. Set both flags to enumerate any control (compound or not).
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: ERRORS
+Compound control types will start at V4L2_CTRL_COMPOUND_TYPES. In addition, any
+control that uses the new 'ptr' field or the existing 'string' field will have
+flag V4L2_CTRL_FLAG_HAS_PAYLOAD set.
 
-Detailed results are available here:
+While not strictly necessary, adding that flag makes life for applications
+a lot simpler. If the flag is not set, then the control value is set
+through the value or value64 fields of struct v4l2_ext_control, otherwise
+a pointer points to the value.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ include/uapi/linux/videodev2.h | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-Full logs are available here:
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 168ff50..438c4a6 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1254,6 +1254,7 @@ struct v4l2_ext_control {
+ 		__s32 value;
+ 		__s64 value64;
+ 		char *string;
++		void *ptr;
+ 	};
+ } __attribute__ ((packed));
+ 
+@@ -1278,7 +1279,10 @@ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
+ 	V4L2_CTRL_TYPE_STRING        = 7,
+ 	V4L2_CTRL_TYPE_BITMASK       = 8,
+-	V4L2_CTRL_TYPE_INTEGER_MENU = 9,
++	V4L2_CTRL_TYPE_INTEGER_MENU  = 9,
++
++	/* Compound types are >= 0x0100 */
++	V4L2_CTRL_COMPOUND_TYPES     = 0x0100,
+ };
+ 
+ /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+@@ -1314,9 +1318,11 @@ struct v4l2_querymenu {
+ #define V4L2_CTRL_FLAG_SLIDER 		0x0020
+ #define V4L2_CTRL_FLAG_WRITE_ONLY 	0x0040
+ #define V4L2_CTRL_FLAG_VOLATILE		0x0080
++#define V4L2_CTRL_FLAG_HAS_PAYLOAD	0x0100
+ 
+-/*  Query flag, to be ORed with the control ID */
++/*  Query flags, to be ORed with the control ID */
+ #define V4L2_CTRL_FLAG_NEXT_CTRL	0x80000000
++#define V4L2_CTRL_FLAG_NEXT_COMPOUND	0x40000000
+ 
+ /*  User-class control IDs defined by V4L2 */
+ #define V4L2_CID_MAX_CTRLS		1024
+-- 
+2.0.0.rc0
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
