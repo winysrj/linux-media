@@ -1,103 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:43393 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753357AbaFGV51 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:27 -0400
-Received: by mail-pb0-f42.google.com with SMTP id md12so3891849pbc.15
-        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:27 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2821 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933268AbaFLLyv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jun 2014 07:54:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 26/43] imx-drm: ipu-cpmem: Add second buffer support to ipu_cpmem_set_image()
-Date: Sat,  7 Jun 2014 14:56:28 -0700
-Message-Id: <1402178205-22697-27-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 27/34] DocBook media: document new motion detection controls.
+Date: Thu, 12 Jun 2014 13:52:59 +0200
+Message-Id: <538b8e77a4df915ef8b2bbb3d2c71421c2e0fa10.1402573818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a second buffer physaddr to struct ipu_image, for double-buffering
-support.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Document the 'Detect' control class and the new Motion Detection controls.
+Those controls will be used by the solo6x10 and go7007 drivers.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c |   32 ++++++++++++++--------------
- include/linux/platform_data/imx-ipu-v3.h   |    3 ++-
- 2 files changed, 18 insertions(+), 17 deletions(-)
+ Documentation/DocBook/media/v4l/controls.xml | 96 ++++++++++++++++++++++++++++
+ 1 file changed, 96 insertions(+)
 
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c b/drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c
-index bd76a38..70e90b40 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c
-@@ -535,7 +535,7 @@ EXPORT_SYMBOL_GPL(ipu_cpmem_set_fmt);
- int ipu_cpmem_set_image(struct ipuv3_channel *ch, struct ipu_image *image)
- {
- 	struct v4l2_pix_format *pix = &image->pix;
--	int y_offset, u_offset, v_offset;
-+	int offset, y_offset, u_offset, v_offset;
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index e7b8b72..cc0087e 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -5055,6 +5055,102 @@ defines possible values for de-emphasis. Here they are:</entry>
+         </tbody>
+       </tgroup>
+       </table>
++    </section>
++
++    <section id="detect-controls">
++      <title>Detect Control Reference</title>
++
++      <para>The Detect class includes controls for common features of
++      various motion or object detection capable devices.</para>
++
++      <table pgwide="1" frame="none" id="detect-control-id">
++      <title>Detect Control IDs</title>
++
++      <tgroup cols="4">
++        <colspec colname="c1" colwidth="1*" />
++        <colspec colname="c2" colwidth="6*" />
++        <colspec colname="c3" colwidth="2*" />
++        <colspec colname="c4" colwidth="6*" />
++        <spanspec namest="c1" nameend="c2" spanname="id" />
++        <spanspec namest="c2" nameend="c4" spanname="descr" />
++        <thead>
++          <row>
++            <entry spanname="id" align="left">ID</entry>
++            <entry align="left">Type</entry>
++          </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++          </row>
++        </thead>
++        <tbody valign="top">
++          <row><entry></entry></row>
++          <row>
++            <entry spanname="id"><constant>V4L2_CID_DETECT_CLASS</constant>&nbsp;</entry>
++            <entry>class</entry>
++          </row><row><entry spanname="descr">The Detect class
++descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
++description of this control class.</entry>
++          </row>
++          <row>
++            <entry spanname="id"><constant>V4L2_CID_DETECT_MD_MODE</constant>&nbsp;</entry>
++            <entry>menu</entry>
++          </row><row><entry spanname="descr">Sets the motion detection mode.</entry>
++          </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_DETECT_MD_MODE_DISABLED</constant>
++		  </entry><entry>Disable motion detection.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_DETECT_MD_MODE_GLOBAL</constant>
++		  </entry><entry>Use a single motion detection threshold.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_DETECT_MD_MODE_THRESHOLD_GRID</constant>
++		  </entry><entry>The image is divided into a grid, each cell with its own
++		  motion detection threshold. These thresholds are set through the
++		  <constant>V4L2_CID_DETECT_MD_THRESHOLD_GRID</constant> matrix control.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_DETECT_MD_MODE_REGION_GRID</constant>
++		  </entry><entry>The image is divided into a grid, each cell with its own
++		  region value that specifies which per-region motion detection thresholds
++		  should be used. Each region has its own thresholds. How these per-region
++		  thresholds are set up is driver-specific. The region values for the grid are set
++		  through the <constant>V4L2_CID_DETECT_MD_REGION_GRID</constant> matrix
++		  control.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++          <row>
++	    <entry spanname="id"><constant>V4L2_CID_DETECT_MD_GLOBAL_THRESHOLD</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the global motion detection threshold to be
++	  used with the <constant>V4L2_DETECT_MD_MODE_GLOBAL</constant> motion detection mode.</entry>
++          </row>
++          <row>
++	    <entry spanname="id"><constant>V4L2_CID_DETECT_MD_THRESHOLD_GRID</constant>&nbsp;</entry>
++	    <entry>__u16 matrix</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the motion detection thresholds for each cell in the grid.
++	  To be used with the <constant>V4L2_DETECT_MD_MODE_THRESHOLD_GRID</constant>
++	  motion detection mode. Matrix element (0, 0) represents the cell at the top-left of the
++	  grid.</entry>
++          </row>
++          <row>
++	    <entry spanname="id"><constant>V4L2_CID_DETECT_MD_REGION_GRID</constant>&nbsp;</entry>
++	    <entry>__u8 matrix</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the motion detection region value for each cell in the grid.
++	  To be used with the <constant>V4L2_DETECT_MD_MODE_REGION_GRID</constant>
++	  motion detection mode. Matrix element (0, 0) represents the cell at the top-left of the
++	  grid.</entry>
++          </row>
++        </tbody>
++      </tgroup>
++      </table>
  
- 	pr_debug("%s: resolution: %dx%d stride: %d\n",
- 		 __func__, pix->width, pix->height,
-@@ -557,30 +557,30 @@ int ipu_cpmem_set_image(struct ipuv3_channel *ch, struct ipu_image *image)
+       </section>
  
- 		ipu_cpmem_set_yuv_planar_full(ch, pix->pixelformat,
- 				pix->bytesperline, u_offset, v_offset);
--		ipu_cpmem_set_buffer(ch, 0, image->phys + y_offset);
-+		ipu_cpmem_set_buffer(ch, 0, image->phys0 + y_offset);
-+		ipu_cpmem_set_buffer(ch, 1, image->phys1 + y_offset);
- 		break;
- 	case V4L2_PIX_FMT_UYVY:
- 	case V4L2_PIX_FMT_YUYV:
--		ipu_cpmem_set_buffer(ch, 0, image->phys +
--				     image->rect.left * 2 +
--				     image->rect.top * image->pix.bytesperline);
-+	case V4L2_PIX_FMT_RGB565:
-+		offset = image->rect.left * 2 +
-+			image->rect.top * pix->bytesperline;
-+		ipu_cpmem_set_buffer(ch, 0, image->phys0 + offset);
-+		ipu_cpmem_set_buffer(ch, 1, image->phys1 + offset);
- 		break;
- 	case V4L2_PIX_FMT_RGB32:
- 	case V4L2_PIX_FMT_BGR32:
--		ipu_cpmem_set_buffer(ch, 0, image->phys +
--				     image->rect.left * 4 +
--				     image->rect.top * image->pix.bytesperline);
--		break;
--	case V4L2_PIX_FMT_RGB565:
--		ipu_cpmem_set_buffer(ch, 0, image->phys +
--				     image->rect.left * 2 +
--				     image->rect.top * image->pix.bytesperline);
-+		offset = image->rect.left * 4 +
-+			image->rect.top * pix->bytesperline;
-+		ipu_cpmem_set_buffer(ch, 0, image->phys0 + offset);
-+		ipu_cpmem_set_buffer(ch, 1, image->phys1 + offset);
- 		break;
- 	case V4L2_PIX_FMT_RGB24:
- 	case V4L2_PIX_FMT_BGR24:
--		ipu_cpmem_set_buffer(ch, 0, image->phys +
--				     image->rect.left * 3 +
--				     image->rect.top * image->pix.bytesperline);
-+		offset = image->rect.left * 3 +
-+			image->rect.top * pix->bytesperline;
-+		ipu_cpmem_set_buffer(ch, 0, image->phys0 + offset);
-+		ipu_cpmem_set_buffer(ch, 1, image->phys1 + offset);
- 		break;
- 	default:
- 		return -EINVAL;
-diff --git a/include/linux/platform_data/imx-ipu-v3.h b/include/linux/platform_data/imx-ipu-v3.h
-index 53aab16..4575657 100644
---- a/include/linux/platform_data/imx-ipu-v3.h
-+++ b/include/linux/platform_data/imx-ipu-v3.h
-@@ -219,7 +219,8 @@ struct ipu_rgb {
- struct ipu_image {
- 	struct v4l2_pix_format pix;
- 	struct v4l2_rect rect;
--	dma_addr_t phys;
-+	dma_addr_t phys0;
-+	dma_addr_t phys1;
- };
- 
- void ipu_cpmem_zero(struct ipuv3_channel *ch);
 -- 
-1.7.9.5
+2.0.0.rc0
 
