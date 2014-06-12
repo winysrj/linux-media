@@ -1,51 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:44418 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750940AbaFZU4s (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1744 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933212AbaFLMJp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jun 2014 16:56:48 -0400
-Date: Thu, 26 Jun 2014 21:56:31 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Denis Carikli <denis@eukrea.com>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>, devel@driverdev.osuosl.org,
-	Eric =?iso-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
-	David Airlie <airlied@linux.ie>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH v14 04/10] imx-drm: use defines for clock polarity
-	settings
-Message-ID: <20140626205631.GB32514@n2100.arm.linux.org.uk>
-References: <1402913484-25910-1-git-send-email-denis@eukrea.com> <1402913484-25910-4-git-send-email-denis@eukrea.com> <20140625044845.GK5918@pengutronix.de> <53AA9A0F.605@eukrea.com>
+	Thu, 12 Jun 2014 08:09:45 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5CC9fZA084904
+	for <linux-media@vger.kernel.org>; Thu, 12 Jun 2014 14:09:43 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [10.54.92.107] (173-38-208-169.cisco.com [173.38.208.169])
+	by tschai.lan (Postfix) with ESMTPSA id 8DBFD2A1FCB
+	for <linux-media@vger.kernel.org>; Thu, 12 Jun 2014 14:09:34 +0200 (CEST)
+Message-ID: <53999849.1090105@xs4all.nl>
+Date: Thu, 12 Jun 2014 14:08:41 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <53AA9A0F.605@eukrea.com>
+To: linux-media <linux-media@vger.kernel.org>
+Subject: [ATTN] Please review/check the REVIEWv4 compound control patch series
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 25, 2014 at 11:44:47AM +0200, Denis Carikli wrote:
-> On 06/25/2014 06:48 AM, Sascha Hauer wrote:
->>> +#define ENABLE_POL_LOW		0
->>> +#define ENABLE_POL_HIGH		1
->>
->> Adding defines without a proper namespace (IPU_) outside a driver
->> private header file is not nice. Anyway, instead of adding the
->> defines ...
-> Fixed in "imx-drm: use defines for clock polarity settings" and in  
-> "imx-drm: Use drm_display_mode timings flags.".
+Mauro & anyone else with an interest,
 
-Denis, can you send just this one updated patch, so I can update the
-one I have here with this change.  Once you've done that, I'll send
-the first four off to Greg.
+I'd appreciate it if this patch series was reviewed, in particular
+with respect to the handling of multi-dimensional arrays:
 
-Thanks.
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg75929.html
 
--- 
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
+This patch series incorporates all comments from the REVIEWv3 series
+except for two (see the cover letter of the patch series for details),
+
+If support for arrays with more than 8 dimensions is really needed,
+then I would like to know asap so I can implement that in time for
+3.17.
+
+Regards,
+
+	Hans
