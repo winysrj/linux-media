@@ -1,110 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48117 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754280AbaFCMUg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 08:20:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 1/3] v4l: Add test pattern colour component controls
-Date: Tue, 03 Jun 2014 14:21:02 +0200
-Message-ID: <2201153.BLlnLr5VnQ@avalon>
-In-Reply-To: <53887960.3050003@xs4all.nl>
-References: <1401374448-30411-1-git-send-email-sakari.ailus@linux.intel.com> <1559123.5XHCoOtRWQ@avalon> <53887960.3050003@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2701 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755802AbaFLLyi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jun 2014 07:54:38 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 11/34] v4l2-ctrls: prepare for array support
+Date: Thu, 12 Jun 2014 13:52:43 +0200
+Message-Id: <b948cc68f6bf1557b8141564e488f96287992201.1402573818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Friday 30 May 2014 14:28:16 Hans Verkuil wrote:
-> On 05/29/2014 05:01 PM, Laurent Pinchart wrote:
-> > On Thursday 29 May 2014 17:58:59 Sakari Ailus wrote:
-> >> Laurent Pinchart wrote:
-> >>> On Thursday 29 May 2014 17:40:46 Sakari Ailus wrote:
-> >>>> In many cases the test pattern has selectable values for each colour
-> >>>> component. Implement controls for raw bayer components. Additional
-> >>>> controls should be defined for colour components that are not covered
-> >>>> by these controls.
-> >>>> 
-> >>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >>>> ---
-> >>>> 
-> >>>>  Documentation/DocBook/media/v4l/controls.xml | 34 ++++++++++++++++++++
-> >>>>  drivers/media/v4l2-core/v4l2-ctrls.c         |  4 ++++
-> >>>>  include/uapi/linux/v4l2-controls.h           |  4 ++++
-> >>>>  3 files changed, 42 insertions(+)
-> >>>> 
-> >>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
-> >>>> b/Documentation/DocBook/media/v4l/controls.xml index 47198ee..bf23994
-> >>>> 100644
-> >>>> --- a/Documentation/DocBook/media/v4l/controls.xml
-> >>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> >>>> @@ -4677,6 +4677,40 @@ interface and may change in the future.</para>
-> >>>>   	    conversion.
-> >>>>   	    </entry>
-> >>>>   	  </row>
-> >>>> +	  <row>
-> >>>> +	    <entry
-> >>>> spanname="id"><constant>V4L2_CID_TEST_PATTERN_RED</constant></entry>
-> >>>> +       <entry>integer</entry>
-> >>>> +	  </row>
-> >>>> +	  <row>
-> >>>> +	    <entry spanname="descr">Test pattern red colour component.
-> >>>> +	    </entry>
-> >>>> +	  </row>
-> >>>> +	  <row>
-> >>>> +	    <entry
-> >>>> spanname="id"><constant>V4L2_CID_TEST_PATTERN_GREENR</constant></entry>
-> >>>> +	    <entry>integer</entry>
-> >>>> +	  </row>
-> >>>> +	  <row>
-> >>>> +	    <entry spanname="descr">Test pattern green (next to red)
-> >>>> +	    colour component.
-> >>> 
-> >>> What about non-Bayer RGB sensors ? Should they use the GREENR or the
-> >>> GREENB control for the green component ? Or a different control ?
-> >> 
-> >> A different one. It should be simply green. I could add it to the same
-> >> patch if you wish.
-> >> 
-> >>> I'm wondering whether we shouldn't have a single test pattern color
-> >>> control and create a color type using Hans' complex controls API.
-> >> 
-> >> A raw bayer four-pixel value, you mean?
-> > 
-> > Yes. I'll let Hans comment on that.
-> 
-> Why would you need the complex control API for that? It would fit in a s32,
-> and certainly in a s64.
+Add dims, nr_of_dims and elems fields to the core control structures in preparation
+for N-dimensional array support.
 
-It wouldn't fit in a s32 when using more than 8 bits per component. s64 would 
-be an option, until we reach 16 bits per component (or more than 4 
-components).
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 33 ++++++++++++++++++++++++---------
+ include/media/v4l2-ctrls.h           |  8 ++++++++
+ 2 files changed, 32 insertions(+), 9 deletions(-)
 
-> We have done something similar to this in the past (V4L2_CID_BG_COLOR).
-> 
-> The main problem is that the interpretation of the s32 value has to be
-> clearly defined. And if different sensors might have different min/max
-> values for each component, then it becomes messy to use a single control.
-
-The interpretation would depend on both the sensor and the color format.
-
-> My feeling is that it is better to go with separate controls, one for each
-> component.
-
-What bothers me is that we'll need to add lots of controls, for each 
-component. There's 4 controls for Bayer, one additional green control for RGB, 
-3 controls for YUV, ... That's already 8 controls to support the common 
-Bayer/RGB/YUV formats. As colors can be used for different purposes (test 
-pattern with possibly more than one color, background color, ...) that would 
-increase the complexity beyond my comfort zone.
-
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 4b10571..e6c98a7 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1759,18 +1759,27 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 			const struct v4l2_ctrl_type_ops *type_ops,
+ 			u32 id, const char *name, enum v4l2_ctrl_type type,
+ 			s64 min, s64 max, u64 step, s64 def,
+-			u32 elem_size,
++			const u32 dims[V4L2_CTRL_MAX_DIMS], u32 elem_size,
+ 			u32 flags, const char * const *qmenu,
+ 			const s64 *qmenu_int, void *priv)
+ {
+ 	struct v4l2_ctrl *ctrl;
+ 	unsigned sz_extra;
++	unsigned nr_of_dims = 0;
++	unsigned elems = 1;
+ 	void *data;
+ 	int err;
+ 
+ 	if (hdl->error)
+ 		return NULL;
+ 
++	while (dims && dims[nr_of_dims]) {
++		elems *= dims[nr_of_dims];
++		nr_of_dims++;
++		if (nr_of_dims == V4L2_CTRL_MAX_DIMS)
++			break;
++	}
++
+ 	if (type == V4L2_CTRL_TYPE_INTEGER64)
+ 		elem_size = sizeof(s64);
+ 	else if (type == V4L2_CTRL_TYPE_STRING)
+@@ -1828,6 +1837,10 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	ctrl->is_string = type == V4L2_CTRL_TYPE_STRING;
+ 	ctrl->is_ptr = type >= V4L2_CTRL_COMPOUND_TYPES || ctrl->is_string;
+ 	ctrl->is_int = !ctrl->is_ptr && type != V4L2_CTRL_TYPE_INTEGER64;
++	ctrl->elems = elems;
++	ctrl->nr_of_dims = nr_of_dims;
++	if (nr_of_dims)
++		memcpy(ctrl->dims, dims, nr_of_dims * sizeof(dims[0]));
+ 	ctrl->elem_size = elem_size;
+ 	if (type == V4L2_CTRL_TYPE_MENU)
+ 		ctrl->qmenu = qmenu;
+@@ -1892,8 +1905,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
+ 
+ 	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->type_ops, cfg->id, name,
+ 			type, min, max,
+-			is_menu ? cfg->menu_skip_mask : step,
+-			def, cfg->elem_size,
++			is_menu ? cfg->menu_skip_mask : step, def,
++			cfg->dims, cfg->elem_size,
+ 			flags, qmenu, qmenu_int, priv);
+ 	if (ctrl)
+ 		ctrl->is_private = cfg->is_private;
+@@ -1918,7 +1931,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, type,
+-			     min, max, step, def, 0,
++			     min, max, step, def, NULL, 0,
+ 			     flags, NULL, NULL, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std);
+@@ -1951,7 +1964,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, type,
+-			     0, max, mask, def, 0,
++			     0, max, mask, def, NULL, 0,
+ 			     flags, qmenu, qmenu_int, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
+@@ -1983,8 +1996,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, type,
+-			     0, max, mask, def,
+-			     0, flags, qmenu, NULL, NULL);
++			     0, max, mask, def, NULL, 0,
++			     flags, qmenu, NULL, NULL);
+ 
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std_menu_items);
+@@ -2008,7 +2021,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, type,
+-			     0, max, 0, def, 0,
++			     0, max, 0, def, NULL, 0,
+ 			     flags, NULL, qmenu_int, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_int_menu);
+@@ -2354,7 +2367,9 @@ int v4l2_query_ext_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_query_ext_ctr
+ 	if (ctrl->is_ptr)
+ 		qc->flags |= V4L2_CTRL_FLAG_HAS_PAYLOAD;
+ 	qc->elem_size = ctrl->elem_size;
+-	qc->elems = 1;
++	qc->elems = ctrl->elems;
++	qc->nr_of_dims = ctrl->nr_of_dims;
++	memcpy(qc->dims, ctrl->dims, qc->nr_of_dims * sizeof(qc->dims[0]));
+ 	qc->minimum = ctrl->minimum;
+ 	qc->maximum = ctrl->maximum;
+ 	qc->default_value = ctrl->default_value;
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index eb69c52..d30da09 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -129,7 +129,10 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+   * @maximum:	The control's maximum value.
+   * @default_value: The control's default value.
+   * @step:	The control's step value for non-menu controls.
++  * @elems:	The number of elements in the N-dimensional array.
+   * @elem_size:	The size in bytes of the control.
++  * @dims:	The size of each dimension.
++  * @nr_of_dims:The number of dimensions in @dims.
+   * @menu_skip_mask: The control's skip mask for menu controls. This makes it
+   *		easy to skip menu items that are not valid. If bit X is set,
+   *		then menu item X is skipped. Of course, this only works for
+@@ -176,7 +179,10 @@ struct v4l2_ctrl {
+ 	const char *name;
+ 	enum v4l2_ctrl_type type;
+ 	s64 minimum, maximum, default_value;
++	u32 elems;
+ 	u32 elem_size;
++	u32 dims[V4L2_CTRL_MAX_DIMS];
++	u32 nr_of_dims;
+ 	union {
+ 		u64 step;
+ 		u64 menu_skip_mask;
+@@ -255,6 +261,7 @@ struct v4l2_ctrl_handler {
+   * @max:	The control's maximum value.
+   * @step:	The control's step value for non-menu controls.
+   * @def: 	The control's default value.
++  * @dims:	The size of each dimension.
+   * @elem_size:	The size in bytes of the control.
+   * @flags:	The control's flags.
+   * @menu_skip_mask: The control's skip mask for menu controls. This makes it
+@@ -280,6 +287,7 @@ struct v4l2_ctrl_config {
+ 	s64 max;
+ 	u64 step;
+ 	s64 def;
++	u32 dims[V4L2_CTRL_MAX_DIMS];
+ 	u32 elem_size;
+ 	u32 flags;
+ 	u64 menu_skip_mask;
 -- 
-Regards,
-
-Laurent Pinchart
+2.0.0.rc0
 
