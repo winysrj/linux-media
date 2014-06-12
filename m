@@ -1,111 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:55352 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751478AbaFPNZE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 09:25:04 -0400
-Date: Mon, 16 Jun 2014 15:24:19 +0200
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Alexander Bersenev <bay@hackerdom.ru>
-Cc: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	pawel.moll@arm.com, rdunlap@infradead.org, robh+dt@kernel.org,
-	sean@mess.org, srinivas.kandagatla@st.com,
-	wingrime@linux-sunxi.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v9 4/5] ARM: sunxi: Add IR controllers on A20 to dtsi
-Message-ID: <20140616132419.GA9757@lukather>
-References: <1402250893-5412-1-git-send-email-bay@hackerdom.ru>
- <1402250893-5412-5-git-send-email-bay@hackerdom.ru>
+Received: from vader.hardeman.nu ([95.142.160.32]:41295 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752800AbaFLMmw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jun 2014 08:42:52 -0400
+To: Niels Laukens <niels@dest-unreach.be>
+Subject: Re: [BUG & PATCH] media/rc/ir-nec-decode : phantom keypress
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cNdxnHkX5QqsyA0e"
-Content-Disposition: inline
-In-Reply-To: <1402250893-5412-5-git-send-email-bay@hackerdom.ru>
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
+Date: Thu, 12 Jun 2014 14:42:50 +0200
+From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, James Hogan <james.hogan@imgtec.com>,
+	=?UTF-8?Q?Antti_Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+In-Reply-To: <5399992E.8050502@dest-unreach.be>
+References: <538994CB.6020205@dest-unreach.be>
+ <53980DF8.5040206@dest-unreach.be>
+ <330c58e7d7849824b812db007c03b08d@hardeman.nu>
+ <53998D69.60901@dest-unreach.be>
+ <754858effccb1d52ebec59f91f860c26@hardeman.nu>
+ <5399992E.8050502@dest-unreach.be>
+Message-ID: <0eaab4efe2fc37126f2bb444d7f3d507@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 2014-06-12 14:12, Niels Laukens wrote:
+> On 2014-06-12 13:51, David Härdeman wrote:
+>> On 2014-06-12 13:22, Niels Laukens wrote:
+>>> In that case, the alternative would be to start a timer when the
+>>> TRAILING_SPACE is entered, and trigger the key-event after, say 2
+>>> bit-times.
+>> 
+>> Another alternative is fix the driver to implement a timeout so that
+>> "unreasonable" values are not generated (I saw a 240550us space in 
+>> your
+>> log).
+> 
+> OK, that sounds like a good way to solve this as well.
+> I'm very new to this subsystem, so I don't know what layer should
+> perform what function.
 
---cNdxnHkX5QqsyA0e
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'm not 100% sure that would be the right fix, but I think so. Haven't 
+looked at the driver.
 
-Hi,
+>>>> Now, the question is why the trailing silence isn't generated
+>>>> within a reasonable time. Which hardware decoder do you use?
+>>> 
+>>> I use the IR receiver built in to the TBS6281 DVB-T tuner card. I
+>>> also have a TBS6982 DVB-S card, but I guess it's the same hardware.
+>> 
+>> Which driver?
+> 
+> I think it's the out-of-tree saa716x_tbs_dvb driver:
+> 
+> [    7.670565] input: saa716x IR (TurboSight TBS 6281) as
+> /devices/pci0000:00/0000:00:1c.0/0000:02:00.0/rc/rc0/input6
+> [    7.671156] rc0: saa716x IR (TurboSight TBS 6281) as
+> /devices/pci0000:00/0000:00:1c.0/0000:02:00.0/rc/rc0
 
-On Mon, Jun 09, 2014 at 12:08:12AM +0600, Alexander Bersenev wrote:
-> This patch adds records for two IR controllers on A20
->=20
-> Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-> Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
-> ---
->  arch/arm/boot/dts/sun7i-a20.dtsi | 18 ++++++++++++++++++
->  1 file changed, 18 insertions(+)
->=20
-> diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a=
-20.dtsi
-> index c057c3e..fe1f8ff 100644
-> --- a/arch/arm/boot/dts/sun7i-a20.dtsi
-> +++ b/arch/arm/boot/dts/sun7i-a20.dtsi
-> @@ -763,6 +763,24 @@
->  			interrupts =3D <0 24 4>;
->  		};
-> =20
-> +		ir0: ir@01c21800 {
-> +			compatible =3D "allwinner,sun7i-a20-ir";
-> +			clocks =3D <&apb0_gates 6>, <&ir0_clk>;
-> +			clock-names =3D "apb", "ir";
-> +			interrupts =3D <0 5 4>;
-> +			reg =3D <0x01c21800 0x40>;
-> +			status =3D "disabled";
-> +		};
-> +
-> +		ir1: ir@01c21c00 {
-> +			compatible =3D "allwinner,sun7i-a20-ir";
-> +			clocks =3D <&apb0_gates 7>, <&ir1_clk>;
-> +			clock-names =3D "apb", "ir";
-> +			interrupts =3D <0 6 4>;
-> +			reg =3D <0x01c21c00 0x40>;
-> +			status =3D "disabled";
-> +		};
-> +
->  		lradc: lradc@01c22800 {
->  			compatible =3D "allwinner,sun4i-lradc-keys";
->  			reg =3D <0x01c22800 0x100>;
+Could you paste the output from lsmod?
 
-I'm fine with this patch, but it doesn't apply, since the above node
-doesn't exist. Please rebase on top of v3.16-rc1 and resend the patch.
+Where did you get the driver? Is it this one?
+http://www.tbsdtv.com/download/document/common/tbs-linux-drivers_v140425.zip
 
-Maxime
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
+>> And it's what most of the popular hardware does.
+> 
+> So I'll have to rework this patch to function at this lower level, and
+> try to upstream it to TBS. Thank you for your time!
+> 
+> 
+>> For instance, the
+>> mceusb hardware will send a USB packet with timings including that
+>> trailing silence. And the decoder can only do their work once a packet
+>> has arrived (which will contain a number of samples). That also
+>> demonstrates a potential problem with your suggested approach (i.e.
+>> timings can be buffered so calls to the decoders are not necessarily
+>> "real-time").
+> 
+> I see what you mean, but I don't see how the proposed patch fails in
+> this sense. Or were you referring to the proposal of adding a timer at
+> the ir-nec-decoder level?
 
---cNdxnHkX5QqsyA0e
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Yes. The ir-nec-decoder timer doesn't know what the hardware is up to so 
+it could timeout because it didn't get more data in time while at the 
+same time the driver is buffering data...
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTnvADAAoJEBx+YmzsjxAgrvIP/ivUAegnXZuO7abzCG8lZ1gU
-FdLXWuoyU8ONZ3RQm2gdPvxECugIySP3n8U3VExhCY/k2zW2IkIEUPUqRfvo80EU
-LQvkGvXqJBK7iXUOxxP7zbyPaBnHwZpt7rnzXqw1+0fXLe0ulTkYv89efmnukzkA
-yLMIK72qnaKGKEd28Zj7kL+DqvCOi62VMOa0djpx07k20Eepln6gCG4rPsRkymjP
-vf4qXHd3UlZUlpZ0Cp8HrCOStajOfCI2rwdV2JnAxHNd76MrddM/G0huWfP5viAz
-pfdC6KdsuNzhIjnaP76zqV9kauQuDHr7j9sqNa6wFGod4MjM0MiXh8lyreohpknG
-bF3pD9QHHamOy7D596Ti8OnOWRkpBp/w5BzIpB2l0hCBV7yLQiHurkVSMtava60E
-HLZB1cuqkmaXYSwa3seUIhixV5g3+jIqJPVas6w81bJv8+PeV/xaNfFEqtHcnPgc
-e1NrB/lAr+9/gcqxZZqMCV0NLKobHpjZuR4jLj2NL2n+82c27FBBU/PR94iur82S
-Xb3Qe7UDT+dD7j1NS5Yd0DhrSrfIwjA7LpgTq7lDbYpwZ3nCdms/Rwo3+mu/Jq9f
-2YYswRz/naYPOAIMvJCEzAfsJzLchbos/u8ndKNwRiQZJErlsGogf61N2FrhK1ci
-zRpar6kTkTLKPJUhto3S
-=skBL
------END PGP SIGNATURE-----
-
---cNdxnHkX5QqsyA0e--
