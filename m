@@ -1,140 +1,416 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from doortje.mesa.nl ([83.161.67.157]:53444 "EHLO mesa.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752899AbaFPVRS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 17:17:18 -0400
-Date: Mon, 16 Jun 2014 23:17:11 +0200
-From: "Marcel J.E. Mol" <marcel@mesa.nl>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33049 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756270AbaFLRGr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jun 2014 13:06:47 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: marcel@mesa.nl
-Subject: [PATCH] [v4l-utils] keytable: add support for XMP IR protocol
-Message-ID: <20140616211711.GA2343@joshua.mesa.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: [RFC PATCH 24/26] [media] imx: Add video switch
+Date: Thu, 12 Jun 2014 19:06:38 +0200
+Message-Id: <1402592800-2925-25-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This driver can handle SoC internal and extern video bus multiplexers,
+controlled either by register bit fields or by GPIO.
 
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- utils/keytable/keytable.c | 26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+ drivers/media/platform/imx/Kconfig            |   8 +
+ drivers/media/platform/imx/Makefile           |   1 +
+ drivers/media/platform/imx/imx-video-switch.c | 347 ++++++++++++++++++++++++++
+ 3 files changed, 356 insertions(+)
+ create mode 100644 drivers/media/platform/imx/imx-video-switch.c
 
-diff --git a/utils/keytable/keytable.c b/utils/keytable/keytable.c
-index 065ac3b..ba98cd3 100644
---- a/utils/keytable/keytable.c
-+++ b/utils/keytable/keytable.c
-@@ -86,6 +86,7 @@ enum ir_protocols {
- 	LIRC		= 1 << 5,
- 	SANYO		= 1 << 6,
- 	RC_5_SZ		= 1 << 7,
-+	XMP		= 1 << 8,
- 	OTHER		= 1 << 31,
- };
+diff --git a/drivers/media/platform/imx/Kconfig b/drivers/media/platform/imx/Kconfig
+index 8431441..ffced1c 100644
+--- a/drivers/media/platform/imx/Kconfig
++++ b/drivers/media/platform/imx/Kconfig
+@@ -11,6 +11,14 @@ config MEDIA_IMX_IPU
+ 	  This driver provides core support for the i.MX IPUv3 contained in
+ 	  i.MX5 and i.MX6 SoCs.
  
-@@ -110,7 +111,7 @@ static const char doc[] = "\nAllows get/set IR keycode/scancode tables\n"
- 	"  SYSDEV   - the ir class as found at /sys/class/rc\n"
- 	"  TABLE    - a file with a set of scancode=keycode value pairs\n"
- 	"  SCANKEY  - a set of scancode1=keycode1,scancode2=keycode2.. value pairs\n"
--	"  PROTOCOL - protocol name (nec, rc-5, rc-6, jvc, sony, sanyo, rc-5-sz, lirc, other) to be enabled\n"
-+	"  PROTOCOL - protocol name (nec, rc-5, rc-6, jvc, sony, sanyo, rc-5-sz, lirc, xmp, other) to be enabled\n"
- 	"  DELAY    - Delay before repeating a keystroke\n"
- 	"  PERIOD   - Period to repeat a keystroke\n"
- 	"  CFGFILE  - configuration file that associates a driver/table name with a keymap file\n"
-@@ -234,6 +235,8 @@ static error_t parse_keyfile(char *fname, char **table)
- 							ch_proto |= SANYO;
- 						else if (!strcasecmp(p,"rc-5-sz"))
- 							ch_proto |= RC_5_SZ;
-+						else if (!strcasecmp(p,"xmp"))
-+							ch_proto |= XMP;
- 						else if (!strcasecmp(p,"other") || !strcasecmp(p,"unknown"))
- 							ch_proto |= OTHER;
- 						else {
-@@ -471,6 +474,8 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
- 				ch_proto |= LIRC;
- 			else if (!strcasecmp(p,"rc-5-sz"))
- 				ch_proto |= RC_5_SZ;
-+			else if (!strcasecmp(p,"xmp"))
-+				ch_proto |= XMP;
- 			else
- 				goto err_inval;
- 			p = strtok(NULL, ",;");
-@@ -744,6 +749,8 @@ static enum ir_protocols v1_get_hw_protocols(char *name)
- 			proto |= SANYO;
- 		else if (!strcmp(p, "rc-5-sz"))
- 			proto |= RC_5_SZ;
-+		else if (!strcmp(p, "xmp"))
-+			proto |= XMP;
- 		else
- 			proto |= OTHER;
- 
-@@ -790,6 +797,9 @@ static int v1_set_hw_protocols(struct rc_device *rc_dev)
- 	if (rc_dev->current & RC_5_SZ)
- 		fprintf(fp, "rc-5-sz ");
- 
-+	if (rc_dev->current & XMP)
-+		fprintf(fp, "xmp ");
++config MEDIA_IMX_VIDEO_SWITCH
++	tristate "i.MX Video Bus Multiplexer"
++	depends on VIDEO_V4L2_SUBDEV_API
++	help
++	  This driver provides support for SoC internal video bus multiplexers
++	  controlled by register bitfields as well as external multiplexers
++	  controller by a GPIO.
 +
- 	if (rc_dev->current & OTHER)
- 		fprintf(fp, "unknown ");
+ config VIDEO_IMX_IPU_COMMON
+ 	tristate
  
-@@ -921,6 +931,8 @@ static enum ir_protocols v2_get_protocols(struct rc_device *rc_dev, char *name)
- 			proto = LIRC;
- 		else if (!strcmp(p, "rc-5-sz"))
- 			proto = RC_5_SZ;
-+		else if (!strcmp(p, "xmp"))
-+			proto = XMP;
- 		else
- 			proto = OTHER;
- 
-@@ -977,6 +989,9 @@ static int v2_set_protocols(struct rc_device *rc_dev)
- 	if (rc_dev->current & RC_5_SZ)
- 		fprintf(fp, "+rc-5-sz\n");
- 
-+	if (rc_dev->current & XMP)
-+		fprintf(fp, "+xmp\n");
+diff --git a/drivers/media/platform/imx/Makefile b/drivers/media/platform/imx/Makefile
+index 49d8fab..d972674 100644
+--- a/drivers/media/platform/imx/Makefile
++++ b/drivers/media/platform/imx/Makefile
+@@ -1,4 +1,5 @@
+ obj-$(CONFIG_MEDIA_IMX)			+= imx-media.o
++obj-$(CONFIG_MEDIA_IMX_VIDEO_SWITCH)	+= imx-video-switch.o
+ obj-$(CONFIG_VIDEO_IMX_IPU_COMMON)	+= imx-ipu.o
+ obj-$(CONFIG_VIDEO_IMX_IPU_CSI)		+= imx-ipuv3-csi.o
+ obj-$(CONFIG_VIDEO_IMX_IPU_SCALER)	+= imx-ipu-scaler.o
+diff --git a/drivers/media/platform/imx/imx-video-switch.c b/drivers/media/platform/imx/imx-video-switch.c
+new file mode 100644
+index 0000000..7a5f64f
+--- /dev/null
++++ b/drivers/media/platform/imx/imx-video-switch.c
+@@ -0,0 +1,347 @@
++/*
++ * devicetree probed mediacontrol multiplexer.
++ *
++ * Copyright (C) 2013 Sascha Hauer, Pengutronix
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
 +
- 	if (rc_dev->current & OTHER)
- 		fprintf(fp, "+unknown\n");
- 
-@@ -1006,6 +1021,8 @@ static void show_proto(	enum ir_protocols proto)
- 		fprintf (stderr, "LIRC ");
- 	if (proto & RC_5_SZ)
- 		fprintf (stderr, "RC-5-SZ ");
-+	if (proto & XMP)
-+		fprintf (stderr, "XMP ");
- 	if (proto & OTHER)
- 		fprintf (stderr, "other ");
- }
-@@ -1128,6 +1145,10 @@ static int get_attribs(struct rc_device *rc_dev, char *sysfs_name)
- 			rc_dev->supported |= SONY;
- 			if (v1_get_sw_enabled_protocol(cur->name))
- 				rc_dev->current |= SONY;
-+		} else if (strstr(cur->name, "/xmp_decoder")) {
-+			rc_dev->supported |= XMP;
-+			if (v1_get_sw_enabled_protocol(cur->name))
-+				rc_dev->current |= XMP;
- 		}
- 	}
- 
-@@ -1159,6 +1180,9 @@ static int set_proto(struct rc_device *rc_dev)
- 		if (rc_dev->supported & SONY)
- 			rc += v1_set_sw_enabled_protocol(rc_dev, "/sony_decoder",
- 						      rc_dev->current & SONY);
-+		if (rc_dev->supported & XMP)
-+			rc += v1_set_sw_enabled_protocol(rc_dev, "/xmp_decoder",
-+						      rc_dev->current & XMP);
- 	} else {
- 		rc = v1_set_hw_protocols(rc_dev);
- 	}
++#include <linux/err.h>
++#include <linux/gpio.h>
++#include <linux/mfd/syscon.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_gpio.h>
++#include <linux/platform_device.h>
++#include <linux/regmap.h>
++#include <linux/of_graph.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-of.h>
++
++#include <media/imx.h> /* for ipu_media_entity_create_link */
++
++enum {
++	PAD_INPUT0,
++	PAD_INPUT1,
++	PAD_OUTPUT,
++	PAD_NUM,
++};
++
++struct vidsw {
++	struct device *dev;
++	struct v4l2_subdev subdev;
++	struct media_pad pads[PAD_NUM];
++	struct v4l2_mbus_framefmt format_mbus[PAD_NUM];
++	struct v4l2_of_endpoint endpoint[PAD_NUM - 1];
++	struct regmap_field *field;
++	unsigned int gpio;
++	int streaming;
++	int active;
++};
++
++#define to_vidsw(sd) container_of(sd, struct vidsw, subdev)
++
++static int vidsw_link_setup(struct media_entity *entity,
++		const struct media_pad *local,
++		const struct media_pad *remote, u32 flags)
++{
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
++	struct vidsw *vidsw = to_vidsw(sd);
++
++	dev_dbg(vidsw->dev, "link setup %s -> %s", remote->entity->name,
++		local->entity->name);
++
++	if (vidsw->streaming)
++		return -EBUSY;
++
++	if (!(flags & MEDIA_LNK_FL_ENABLED)) {
++		if (local->index == vidsw->active) {
++			dev_dbg(vidsw->dev, "going inactive\n");
++			vidsw->active = -1;
++		}
++		return 0;
++	}
++
++	if (vidsw->active >= 0) {
++		if (vidsw->active == local->index)
++			return 0;
++		else
++			return -EBUSY;
++	}
++
++	vidsw->active = local->index;
++
++	dev_dbg(vidsw->dev, "setting %d active\n", vidsw->active);
++
++	if (vidsw->field)
++		regmap_field_write(vidsw->field, vidsw->active);
++	else if (gpio_is_valid(vidsw->gpio))
++		gpio_set_value(vidsw->gpio, vidsw->active);
++
++	return 0;
++}
++
++static struct media_entity_operations vidsw_ops = {
++	.link_setup = vidsw_link_setup,
++};
++
++static int vidsw_async_init(struct vidsw *vidsw, struct device_node *node)
++{
++	struct v4l2_of_endpoint endpoint;
++	struct device_node *rp, *port;
++	u32 portno;
++	int numports;
++	int ret;
++
++	numports = PAD_NUM;
++
++	vidsw->pads[PAD_INPUT0].flags = MEDIA_PAD_FL_SINK;
++	vidsw->pads[PAD_INPUT1].flags = MEDIA_PAD_FL_SINK;
++	vidsw->pads[PAD_OUTPUT].flags = MEDIA_PAD_FL_SOURCE;
++
++	ret = media_entity_init(&vidsw->subdev.entity, numports, vidsw->pads, 0);
++	if (ret < 0)
++		return ret;
++
++	vidsw->subdev.entity.ops = &vidsw_ops;
++
++	rp = NULL;
++
++	while (1) {
++		rp = of_graph_get_next_endpoint(node, rp);
++		if (!rp)
++			break;
++
++		port = of_get_parent(rp);
++		if (!port)
++			return -EINVAL;
++
++		portno = 0;
++		of_property_read_u32(port, "reg", &portno);
++
++		v4l2_of_parse_endpoint(rp, &endpoint);
++		of_node_put(rp);
++
++		if (portno > 1)
++			break;
++
++		vidsw->endpoint[portno] = endpoint;
++
++		/* FIXME */
++		ipu_media_entity_create_link(&vidsw->subdev, portno, rp, 0);
++	}
++
++	return 0;
++}
++
++static int vidsw_registered(struct v4l2_subdev *sd)
++{
++	return 0;
++}
++
++int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg)
++{
++	struct vidsw *vidsw = container_of(sd, struct vidsw, subdev);
++
++	dev_dbg(vidsw->dev, "reporting configration %d\n", vidsw->active);
++
++	/* Mirror the input side on the output side */
++	cfg->type = vidsw->endpoint[vidsw->active].bus_type;
++	if (cfg->type == V4L2_MBUS_PARALLEL || cfg->type == V4L2_MBUS_BT656)
++		cfg->flags = vidsw->endpoint[vidsw->active].bus.parallel.flags;
++
++	return 0;
++}
++
++static const struct v4l2_subdev_video_ops vidsw_subdev_video_ops = {
++	.g_mbus_config = vidsw_g_mbus_config,
++};
++
++static struct v4l2_mbus_framefmt *
++__vidsw_get_pad_format(struct vidsw *vidsw, struct v4l2_subdev_fh *fh,
++		       unsigned int pad, u32 which)
++{
++	switch (which) {
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_format(fh, pad);
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &vidsw->format_mbus[pad];
++	default:
++		return NULL;
++	}
++}
++
++static int vidsw_get_format(struct v4l2_subdev *sd,
++			    struct v4l2_subdev_fh *fh,
++			    struct v4l2_subdev_format *sdformat)
++{
++	struct vidsw *vidsw = container_of(sd, struct vidsw, subdev);
++
++	sdformat->format = *__vidsw_get_pad_format(vidsw, fh, sdformat->pad,
++						   sdformat->which);
++	return 0;
++}
++
++static int vidsw_set_format(struct v4l2_subdev *sd,
++			    struct v4l2_subdev_fh *fh,
++			    struct v4l2_subdev_format *sdformat)
++{
++	struct vidsw *vidsw = container_of(sd, struct vidsw, subdev);
++	struct v4l2_mbus_framefmt *mbusformat;
++
++	if (sdformat->pad >= PAD_NUM)
++		return -EINVAL;
++
++	mbusformat = __vidsw_get_pad_format(vidsw, fh, sdformat->pad,
++					    sdformat->which);
++	if (!mbusformat)
++		return -EINVAL;
++
++	/* Output pad mirrors active input pad, no limitations on input pads */
++	if (sdformat->pad == PAD_OUTPUT && vidsw->active >= 0)
++		*mbusformat = vidsw->format_mbus[vidsw->active];
++	else
++		*mbusformat = sdformat->format;
++
++	sdformat->format = *mbusformat;
++
++	return 0;
++}
++
++static struct v4l2_subdev_pad_ops vidsw_pad_ops = {
++	.get_fmt = vidsw_get_format,
++	.set_fmt = vidsw_set_format,
++};
++
++static struct v4l2_subdev_ops vidsw_subdev_ops = {
++	.pad = &vidsw_pad_ops,
++	.video = &vidsw_subdev_video_ops,
++};
++
++static struct v4l2_subdev_internal_ops vidsw_internal_ops = {
++	.registered = vidsw_registered,
++};
++
++static int of_get_reg_field(struct device_node *node, struct reg_field *field)
++{
++	u32 bit_mask;
++	int ret;
++
++	ret = of_property_read_u32(node, "reg", &field->reg);
++	if (ret < 0)
++		return ret;
++
++	ret = of_property_read_u32(node, "bit-mask", &bit_mask);
++	if (ret < 0)
++		return ret;
++
++	ret = of_property_read_u32(node, "bit-shift", &field->lsb);
++	if (ret < 0)
++		return ret;
++
++	field->msb = field->lsb + ffs(bit_mask) - 1;
++
++	return 0;
++}
++
++static int vidsw_probe(struct platform_device *pdev)
++{
++	struct device_node *np = pdev->dev.of_node;
++	struct reg_field field;
++	struct vidsw *vidsw;
++	struct regmap *map;
++	int num_pads;
++	int ret;
++
++	vidsw = devm_kzalloc(&pdev->dev, sizeof(*vidsw), GFP_KERNEL);
++	if (!vidsw)
++		return -ENOMEM;
++
++	platform_set_drvdata(pdev, vidsw);
++
++	v4l2_subdev_init(&vidsw->subdev, &vidsw_subdev_ops);
++	vidsw->subdev.internal_ops = &vidsw_internal_ops;
++	snprintf(vidsw->subdev.name, sizeof(vidsw->subdev.name), "%s",
++			np->name);
++	vidsw->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	vidsw->subdev.dev = &pdev->dev;
++	vidsw->dev = &pdev->dev;
++	vidsw->active = -1;
++
++	num_pads = of_get_child_count(np);
++	if (num_pads < 2) {
++		dev_err(&pdev->dev, "Not enough ports %d\n", num_pads);
++		return -EINVAL;
++	}
++
++	ret = of_get_reg_field(np, &field);
++	if (ret == 0) {
++		map = syscon_node_to_regmap(np->parent);
++		if (!map) {
++			dev_err(&pdev->dev, "Failed to get syscon register map\n");
++			return PTR_ERR(map);
++		}
++
++		vidsw->field = devm_regmap_field_alloc(&pdev->dev, map, field);
++		if (IS_ERR(vidsw->field)) {
++			dev_err(&pdev->dev, "Failed to allocate regmap field\n");
++			return PTR_ERR(vidsw->field);
++		}
++	} else {
++		vidsw->gpio = of_get_named_gpio_flags(np, "gpios", 0,
++						    NULL);
++		ret = gpio_request_one(vidsw->gpio,
++				       GPIOF_OUT_INIT_LOW, np->name);
++		if (ret < 0) {
++			dev_warn(&pdev->dev,
++				 "could not request control gpio %d: %d\n",
++				 vidsw->gpio, ret);
++			vidsw->gpio = -1;
++		}
++	}
++
++	ret = vidsw_async_init(vidsw, np);
++	if (ret)
++		return ret;
++
++	ret = v4l2_async_register_subdev(&vidsw->subdev);
++	if (ret)
++		return ret;
++
++	return 0;
++}
++
++static int vidsw_remove(struct platform_device *pdev)
++{
++	/* FIXME */
++
++	return -EBUSY;
++}
++
++static const struct of_device_id vidsw_dt_ids[] = {
++	{ .compatible = "video-multiplexer", },
++	{ /* sentinel */ }
++};
++
++static struct platform_driver vidsw_driver = {
++	.probe		= vidsw_probe,
++	.remove		= vidsw_remove,
++	.driver		= {
++		.of_match_table = vidsw_dt_ids,
++		.name	= "video-multiplexer",
++		.owner	= THIS_MODULE,
++	},
++};
++
++module_platform_driver(vidsw_driver);
++
++MODULE_DESCRIPTION("i.MX video stream multiplexer");
++MODULE_AUTHOR("Sascha Hauer, Pengutronix");
++MODULE_LICENSE("GPL");
 -- 
-1.9.3
+2.0.0.rc2
 
-
--- 
-     ======--------         Marcel J.E. Mol                MESA Consulting B.V.
-    =======---------        ph. +31-(0)6-54724868          P.O. Box 112
-    =======---------        marcel@mesa.nl                 2630 AC  Nootdorp
-__==== www.mesa.nl ---____U_n_i_x______I_n_t_e_r_n_e_t____ The Netherlands ____
- They couldn't think of a number,           Linux user 1148  --  counter.li.org
-    so they gave me a name!  -- Rupert Hine  --  www.ruperthine.com
