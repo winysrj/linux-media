@@ -1,99 +1,408 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:65090 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750888AbaFJMui (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jun 2014 08:50:38 -0400
-Received: from wolfgang ([88.27.195.166]) by mail.gmx.com (mrgmx102) with
- ESMTPSA (Nemesis) id 0Ldbqw-1WTDyA2Hxa-00igaU for
- <linux-media@vger.kernel.org>; Tue, 10 Jun 2014 14:50:36 +0200
-Date: Tue, 10 Jun 2014 14:50:59 +0200
-From: Sebastian Kemper <sebastian_ml@gmx.net>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33052 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756264AbaFLRGr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jun 2014 13:06:47 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Subject: AF9033 / IT913X: Avermedia A835B(1835) only works sporadically
-Message-ID: <20140610125059.GA1930@wolfgang>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [RFC PATCH 26/26] ARM: dts: imx6qdl: Add mipi_ipu1/2 multiplexers, mipi_csi, and their connections
+Date: Thu, 12 Jun 2014 19:06:40 +0200
+Message-Id: <1402592800-2925-27-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello list,
+This patch adds the device tree graph connecting the input multiplexers
+to the IPU CSIs and the MIPI-CSI2 gasket on i.MX6. The MIPI_IPU multiplexers
+are added as children of the iomuxc-gpr syscon device node.
+On i.MX6Q/D two two-input multiplexers in front of IPU1 CSI0 and IPU2 CSI1
+allow to select between CSI0/1 parallel input pads and the MIPI CSI-2 virtual
+channels 0/3.
+On i.MX6DL/S two five-input multiplexers in front of IPU1 CSI0 and IPU1 CSI1
+allow to select between CSI0/1 parallel input pads and any of the four MIPI
+CSI-2 virtual channels.
 
-I have an "Avermedia A835B(1835)" USB DVB-T stick (07ca:1835) which
-works only (very) sporadically. It's pure luck as far as I can see.
-I can't reproduce how to get it working. There are no special steps that
-I can take to guarantee that it'll work once I plug it in.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ arch/arm/boot/dts/imx6dl.dtsi  | 182 +++++++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/imx6q.dtsi   | 118 ++++++++++++++++++++++++++
+ arch/arm/boot/dts/imx6qdl.dtsi |   8 ++
+ 3 files changed, 308 insertions(+)
 
-I'd rate my chances of having the device actually working between 5 and
-10 percent.
+diff --git a/arch/arm/boot/dts/imx6dl.dtsi b/arch/arm/boot/dts/imx6dl.dtsi
+index 5c5f574..619c7ce 100644
+--- a/arch/arm/boot/dts/imx6dl.dtsi
++++ b/arch/arm/boot/dts/imx6dl.dtsi
+@@ -110,3 +110,185 @@
+ 		      "di0_sel", "di1_sel",
+ 		      "di0", "di1";
+ };
++
++&gpr {
++	ipu_csi0_mux {
++		compatible = "video-multiplexer";
++		reg = <0x34>;
++		bit-mask = <0x7>;
++		bit-shift = <0>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			ipu_csi0_mux_from_mipi_csi0: endpoint {
++				remote-endpoint = <&mipi_csi0_to_ipu_csi0_mux>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			ipu_csi0_mux_from_mipi_csi1: endpoint {
++				remote-endpoint = <&mipi_csi1_to_ipu_csi0_mux>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			ipu_csi0_mux_from_mipi_csi2: endpoint {
++				remote-endpoint = <&mipi_csi2_to_ipu_csi0_mux>;
++			};
++		};
++
++		port@3 {
++			reg = <3>;
++
++			ipu_csi0_mux_from_mipi_csi3: endpoint {
++				remote-endpoint = <&mipi_csi3_to_ipu_csi0_mux>;
++			};
++		};
++
++		csi0: port@4 {
++			reg = <4>;
++		};
++
++		port@5 {
++			reg = <5>;
++
++			ipu_csi0_mux_to_ipu1_csi0: endpoint {
++				remote-endpoint = <&ipu1_csi0_from_ipu_csi0_mux>;
++			};
++		};
++	};
++
++	ipu_csi1_mux {
++		compatible = "video-multiplexer";
++		reg = <0x34>;
++		bit-mask = <0x7>;
++		bit-shift = <0>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			ipu_csi1_mux_from_mipi_csi0: endpoint {
++				remote-endpoint = <&mipi_csi0_to_ipu_csi1_mux>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			ipu_csi1_mux_from_mipi_csi1: endpoint {
++				remote-endpoint = <&mipi_csi1_to_ipu_csi1_mux>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			ipu_csi1_mux_from_mipi_csi2: endpoint {
++				remote-endpoint = <&mipi_csi2_to_ipu_csi1_mux>;
++			};
++		};
++
++		port@3 {
++			reg = <3>;
++
++			ipu_csi1_mux_from_mipi_csi3: endpoint {
++				remote-endpoint = <&mipi_csi3_to_ipu_csi1_mux>;
++			};
++		};
++
++		csi1: port@4 {
++			reg = <4>;
++		};
++
++		port@5 {
++			reg = <5>;
++
++			ipu_csi1_mux_to_ipu1_csi1: endpoint {
++				remote-endpoint = <&ipu1_csi1_from_ipu_csi1_mux>;
++			};
++		};
++	};
++};
++
++&ipu1_csi0 {
++	ipu1_csi0_from_ipu_csi0_mux: endpoint {
++		remote-endpoint = <&ipu_csi0_mux_to_ipu1_csi0>;
++	};
++};
++
++&ipu1_csi1 {
++	ipu1_csi1_from_ipu_csi1_mux: endpoint {
++		remote-endpoint = <&ipu_csi1_mux_to_ipu1_csi1>;
++	};
++};
++
++&mipi_csi {
++	port@0 {
++		reg = <0>;
++	};
++
++	port@1 {
++		reg = <1>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		mipi_csi0_to_ipu_csi0_mux: endpoint@0 {
++			remote-endpoint = <&ipu_csi0_mux_from_mipi_csi0>;
++		};
++
++		mipi_csi0_to_ipu_csi1_mux: endpoint@1 {
++			remote-endpoint = <&ipu_csi1_mux_from_mipi_csi0>;
++		};
++	};
++
++	port@2 {
++		reg = <2>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		mipi_csi1_to_ipu_csi0_mux: endpoint@0 {
++			remote-endpoint = <&ipu_csi0_mux_from_mipi_csi1>;
++		};
++
++		mipi_csi1_to_ipu_csi1_mux: endpoint@1 {
++			remote-endpoint = <&ipu_csi1_mux_from_mipi_csi1>;
++		};
++	};
++
++	port@3 {
++		reg = <3>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		mipi_csi2_to_ipu_csi0_mux: endpoint@0 {
++			remote-endpoint = <&ipu_csi0_mux_from_mipi_csi2>;
++		};
++
++		mipi_csi2_to_ipu_csi1_mux: endpoint@1 {
++			remote-endpoint = <&ipu_csi1_mux_from_mipi_csi2>;
++		};
++	};
++
++	port@4 {
++		reg = <4>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		mipi_csi3_to_ipu_csi0_mux: endpoint@0 {
++			remote-endpoint = <&ipu_csi0_mux_from_mipi_csi3>;
++		};
++
++		mipi_csi3_to_ipu_csi1_mux: endpoint@1 {
++			remote-endpoint = <&ipu_csi1_mux_from_mipi_csi3>;
++		};
++	};
++};
+diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
+index 919a18a..bac825e 100644
+--- a/arch/arm/boot/dts/imx6q.dtsi
++++ b/arch/arm/boot/dts/imx6q.dtsi
+@@ -159,10 +159,18 @@
+ 
+ 			ipu2_csi0: port@0 {
+ 				reg = <0>;
++
++				ipu2_csi0_from_csi2ipu: endpoint {
++					remote-endpoint = <&csi2ipu_to_ipu2_csi0>;
++				};
+ 			};
+ 
+ 			ipu2_csi1: port@1 {
+ 				reg = <1>;
++
++				ipu2_csi1_from_mipi_ipu2_mux: endpoint {
++					remote-endpoint = <&mipi_ipu2_mux_to_ipu2_csi1>;
++				};
+ 			};
+ 
+ 			ipu2_di0: port@2 {
+@@ -238,6 +246,78 @@
+ 	};
+ };
+ 
++&gpr {
++	mipi_ipu1_mux {
++		compatible = "video-multiplexer";
++		reg = <0x04>;
++		bit-mask = <1>;
++		bit-shift = <19>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			mipi_ipu1_mux_from_mipi_csi0: endpoint {
++				remote-endpoint = <&mipi_csi0_to_mipi_ipu1_mux>;
++			};
++		};
++
++		csi0: port@1 {
++			reg = <1>;
++		};
++
++		port@2 {
++			reg = <2>;
++
++			mipi_ipu1_mux_to_ipu1_csi0: endpoint {
++				remote-endpoint = <&ipu1_csi0_from_mipi_ipu1_mux>;
++			};
++		};
++	};
++
++	mipi_ipu2_mux {
++		compatible = "video-multiplexer";
++		reg = <0x04>;
++		bit-mask = <1>;
++		bit-shift = <20>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			mipi_ipu2_mux_from_mipi_csi3: endpoint {
++				remote-endpoint = <&mipi_csi3_to_mipi_ipu2_mux>;
++			};
++		};
++
++		csi1: port@1 {
++			reg = <1>;
++		};
++
++		port@2 {
++			reg = <2>;
++
++			mipi_ipu2_mux_to_ipu2_csi1: endpoint {
++				remote-endpoint = <&ipu2_csi1_from_mipi_ipu2_mux>;
++			};
++		};
++	};
++};
++
++&ipu1_csi1 {
++	ipu1_csi1_from_mipi_csi1: endpoint {
++		remote-endpoint = <&mipi_csi1_to_ipu1_csi1>;
++	};
++};
++
++&ipu2_csi0 {
++	ipu2_csi0_from_mipi_csi2: endpoint {
++		remote-endpoint = <&mipi_csi2_to_ipu2_csi0>;
++	};
++};
++
+ &ldb {
+ 	clocks = <&clks 33>, <&clks 34>,
+ 		 <&clks 39>, <&clks 40>, <&clks 41>, <&clks 42>,
+@@ -283,6 +363,44 @@
+ 	};
+ };
+ 
++&mipi_csi {
++	port@0 {
++		reg = <0>;
++	};
++
++	port@1 {
++		reg = <1>;
++
++		mipi_csi0_to_mipi_ipu1_mux: endpoint {
++			remote-endpoint = <&mipi_ipu1_mux_from_mipi_csi0>;
++		};
++	};
++
++	port@2 {
++		reg = <2>;
++
++		mipi_csi1_to_ipu1_csi1: endpoint {
++			remote-endpoint = <&ipu1_csi1_from_mipi_csi1>;
++		};
++	};
++
++	port@3 {
++		reg = <3>;
++
++		mipi_csi2_to_ipu2_csi0: endpoint {
++			remote-endpoint = <&ipu2_csi0_from_mipi_csi2>;
++		};
++	};
++
++	port@4 {
++		reg = <4>;
++
++		mipi_csi3_to_mipi_ipu2_mux: endpoint {
++			remote-endpoint = <&mipi_ipu2_mux_from_mipi_csi3>;
++		};
++	};
++};
++
+ &mipi_dsi {
+ 	port@2 {
+ 		reg = <2>;
+diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+index 27303d6..e2f8924 100644
+--- a/arch/arm/boot/dts/imx6qdl.dtsi
++++ b/arch/arm/boot/dts/imx6qdl.dtsi
+@@ -659,6 +659,8 @@
+ 			gpr: iomuxc-gpr@020e0000 {
+ 				compatible = "fsl,imx6q-iomuxc-gpr", "syscon";
+ 				reg = <0x020e0000 0x38>;
++				#address-cells = <1>;
++				#size-cells = <0>;
+ 			};
+ 
+ 			iomuxc: iomuxc@020e0000 {
+@@ -961,6 +963,8 @@
+ 
+ 			mipi_csi: mipi@021dc000 {
+ 				reg = <0x021dc000 0x4000>;
++				#address-cells = <1>;
++				#size-cells = <0>;
+ 			};
+ 
+ 			mipi_dsi: mipi@021e0000 {
+@@ -1049,6 +1053,10 @@
+ 
+ 			ipu1_csi0: port@0 {
+ 				reg = <0>;
++
++				ipu1_csi0_from_mipi_ipu1_mux: endpoint {
++					remote-endpoint = <&mipi_ipu1_mux_to_ipu1_csi0>;
++				};
+ 			};
+ 
+ 			ipu1_csi1: port@1 {
+-- 
+2.0.0.rc2
 
-In the log everything looks fine, apart from the messages at the bottom
-about the device not being able to get a lock on a channel.
-
-Reception here is really good, so there's no problem with signal
-strength. When loading the device in Windows 7 64 bit it always finds a
-lock.
-
-Has anybody any idea? Thanks for any suggestions!
-
-Jun 10 14:18:07 meiner kernel: usb 1-2: new high-speed USB device number 2 using xhci_hcd
-Jun 10 14:18:07 meiner kernel: WARNING: You are using an experimental version of the media stack.
-Jun 10 14:18:07 meiner kernel: 	As the driver is backported to an older kernel, it doesn't offer
-Jun 10 14:18:07 meiner kernel: 	enough quality for its usage in production.
-Jun 10 14:18:07 meiner kernel: 	Use it with care.
-Jun 10 14:18:07 meiner kernel: Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
-Jun 10 14:18:07 meiner kernel: 	bfd0306462fdbc5e0a8c6999aef9dde0f9745399 [media] v4l: Document timestamp buffer flag behaviour
-Jun 10 14:18:07 meiner kernel: 	309f4d62eda0e864c2d4eef536cc82e41931c3c5 [media] v4l: Copy timestamp source flags to destination on m2m devices
-Jun 10 14:18:07 meiner kernel: 	599b08929efe9b90e44b504454218a120bb062a0 [media] exynos-gsc, m2m-deinterlace, mx2_emmaprp: Copy v4l2_buffer data from src to dst
-Jun 10 14:18:07 meiner kernel: 	experimental: a60b303c3e347297a25f0a203f0ff11a8efc818c experimental/ngene: Support DuoFlex C/C2/T/T2 (V3)
-Jun 10 14:18:07 meiner kernel: 	v4l-dvb-saa716x: 052c468e33be00a3d4d9b93da3581ffa861bb288 saa716x: IO memory of upper PHI1 regions is mapped in saa716x_ff driver.
-Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_af9035: prechip_version=83 chip_version=02 chip_type=9135
-Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: found a 'Avermedia A835B(1835)' in cold state
-Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: downloading firmware from file 'dvb-usb-it9135-02.fw'
-Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_af9035: firmware version=3.42.3.3
-Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: found a 'Avermedia A835B(1835)' in warm state
-Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
-Jun 10 14:18:07 meiner kernel: DVB: registering new adapter (Avermedia A835B(1835))
-Jun 10 14:18:07 meiner kernel: i2c i2c-0: af9033: firmware version: LINK=0.0.0.0 OFDM=3.29.3.3
-Jun 10 14:18:07 meiner kernel: usb 1-2: DVB: registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
-Jun 10 14:18:07 meiner kernel: i2c i2c-0: tuner_it913x: ITE Tech IT913X successfully attached
-Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: 'Avermedia A835B(1835)' successfully initialized and connected
-Jun 10 14:18:07 meiner kernel: usbcore: registered new interface driver dvb_usb_af9035
-Jun 10 14:18:28 meiner vdr: [1653] VDR version 2.0.4 started
-Jun 10 14:18:28 meiner vdr: [1653] switched to user 'vdr'
-Jun 10 14:18:28 meiner vdr: [1653] codeset is 'UTF-8' - known
-Jun 10 14:18:28 meiner vdr: [1653] loading plugin: /usr/lib64/vdr/plugins/libvdr-softhddevice.so.2.0.0
-Jun 10 14:18:28 meiner vdr: New default svdrp port 6419!
-Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/setup.conf
-Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/sources.conf
-Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/diseqc.conf
-Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/scr.conf
-Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/channels.conf
-Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/timers.conf
-Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/commands.conf
-Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/reccmds.conf
-Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/svdrphosts.conf
-Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/remote.conf
-Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/keymacros.conf
-Jun 10 14:18:29 meiner vdr: [1653] DVB API version is 0x050A (VDR was built with 0x050A)
-Jun 10 14:18:29 meiner vdr: [1653] frontend 0/0 provides DVB-T with QPSK,QAM16,QAM64 ("Afatech AF9033 (DVB-T)")
-Jun 10 14:18:29 meiner vdr: [1653] found 1 DVB device
-Jun 10 14:18:29 meiner vdr: [1653] initializing plugin: softhddevice (0.6.1rc1): Ein Software und GPU emulieres HD-Gerät
-Jun 10 14:18:29 meiner vdr: [1653] setting primary device to 2
-Jun 10 14:18:29 meiner vdr: [1653] SVDRP listening on port 6419
-Jun 10 14:18:29 meiner vdr: [1653] setting current skin to "lcars"
-Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/themes/lcars-default.theme
-Jun 10 14:18:29 meiner vdr: [1653] starting plugin: softhddevice
-Jun 10 14:18:30 meiner vdr: [1653] switching to channel 2
-Jun 10 14:18:30 meiner lircd-0.9.0[1219]: accepted new client on /var/run/lirc/lircd
-Jun 10 14:18:30 meiner lircd-0.9.0[1219]: zotac initializing '/dev/usb/hiddev0'
-Jun 10 14:18:31 meiner kernel: nvidia 0000:02:00.0: irq 46 for MSI/MSI-X
-Jun 10 14:18:31 meiner vdr: [1653] connect from 127.0.0.1, port 59159 - accepted
-Jun 10 14:18:31 meiner vdr: [1653] closing SVDRP connection
-Jun 10 14:18:31 meiner vdrwatchdog[1702]: Starting vdrwatchdog
-Jun 10 14:18:39 meiner vdr: [1674] frontend 0/0 timed out while tuning to channel 2, tp 818
-Jun 10 14:19:43 meiner vdr: [1674] frontend 0/0 timed out while tuning to channel 2, tp 818
-
-Kind regards,
-Sebatian
