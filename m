@@ -1,60 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34550 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751551AbaFVKse (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Jun 2014 06:48:34 -0400
-Received: from dlelxv90.itg.ti.com ([172.17.2.17])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id s5MAmXFw016229
-	for <linux-media@vger.kernel.org>; Sun, 22 Jun 2014 05:48:33 -0500
-Received: from DLEE71.ent.ti.com (dlee71.ent.ti.com [157.170.170.114])
-	by dlelxv90.itg.ti.com (8.14.3/8.13.8) with ESMTP id s5MAmXYl002198
-	for <linux-media@vger.kernel.org>; Sun, 22 Jun 2014 05:48:33 -0500
-From: Nikhil Devshatwar <nikhil.nd@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: Nikhil Devshatwar <nikhil.nd@ti.com>
-Subject: [[PATCH]] vb2: verify data_offset only if nonzero bytesused
-Date: Sun, 22 Jun 2014 16:17:45 +0530
-Message-ID: <1403434065-22994-1-git-send-email-nikhil.nd@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1854 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933274AbaFLLyo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jun 2014 07:54:44 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 20/34] DocBook media: improve control section.
+Date: Thu, 12 Jun 2014 13:52:52 +0200
+Message-Id: <d6eaed1379937affcbdf0366c9a3d4ddb065d5f7.1402573818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-verify_planes would fail if the user space fills up the data_offset field
-and bytesused is left as zero. Correct this.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Checking for data_offset > bytesused is not correct as it might fail some of
-the valid use cases. e.g. when working with SEQ_TB buffers, for bottom field,
-data_offset can be high but it can have less bytesused.
+Improve the control section:
 
-The real check should be to verify that all the bytesused after data_offset
-fit withing the length of the plane.
+- Clarify the handling of private controls
+- Explain the V4L2_CTRL_FLAG_INACTIVE flag
+- Remove obsolete text regarding missing control event (we have them
+  today) and the incorrect V4L2_CTRL_FLAG_DISABLED reference.
+- Add a code example on how to enumerate over user controls.
 
-Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ Documentation/DocBook/media/v4l/controls.xml | 74 +++++++++++++++++++++-------
+ 1 file changed, 55 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 7c4489c..9a0ccb6 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -587,12 +587,9 @@ static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 			       ? b->m.planes[plane].length
- 			       : vb->v4l2_planes[plane].length;
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 00cf0a7..73bae13 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -13,6 +13,19 @@ correctly with any device.</para>
+     <para>All controls are accessed using an ID value. V4L2 defines
+ several IDs for specific purposes. Drivers can also implement their
+ own custom controls using <constant>V4L2_CID_PRIVATE_BASE</constant>
++<footnote><para>The use of <constant>V4L2_CID_PRIVATE_BASE</constant>
++is problematic because different drivers may use the same
++<constant>V4L2_CID_PRIVATE_BASE</constant> ID for different controls.
++This makes it hard to programatically set such controls since the meaning
++of the control with that ID is driver dependent. In order to resolve this
++drivers use unique IDs and the <constant>V4L2_CID_PRIVATE_BASE</constant>
++IDs are mapped to those unique IDs by the kernel. Consider these
++<constant>V4L2_CID_PRIVATE_BASE</constant> IDs as aliases to the real
++IDs.</para>
++<para>Many applications today still use the <constant>V4L2_CID_PRIVATE_BASE</constant>
++IDs instead of using &VIDIOC-QUERYCTRL; with the <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant>
++flag to enumerate all IDs, so support for <constant>V4L2_CID_PRIVATE_BASE</constant>
++is still around.</para></footnote>
+ and higher values. The pre-defined control IDs have the prefix
+ <constant>V4L2_CID_</constant>, and are listed in <xref
+ linkend="control-id" />. The ID is used when querying the attributes of
+@@ -31,25 +44,22 @@ the current video input or output, tuner or modulator, or audio input
+ or output. Different in the sense of other bounds, another default and
+ current value, step size or other menu items. A control with a certain
+ <emphasis>custom</emphasis> ID can also change name and
+-type.<footnote>
+-	<para>It will be more convenient for applications if drivers
+-make use of the <constant>V4L2_CTRL_FLAG_DISABLED</constant> flag, but
+-that was never required.</para>
+-      </footnote> Control values are stored globally, they do not
++type.</para>
++
++    <para>If a control is not applicable to the current configuration
++of the device (for example, it doesn't apply to the current video input)
++drivers set the <constant>V4L2_CTRL_FLAG_INACTIVE</constant> flag.</para>
++
++    <para>Control values are stored globally, they do not
+ change when switching except to stay within the reported bounds. They
+ also do not change &eg; when the device is opened or closed, when the
+ tuner radio frequency is changed or generally never without
+-application request. Since V4L2 specifies no event mechanism, panel
+-applications intended to cooperate with other panel applications (be
+-they built into a larger application, as a TV viewer) may need to
+-regularly poll control values to update their user
+-interface.<footnote>
+-	<para>Applications could call an ioctl to request events.
+-After another process called &VIDIOC-S-CTRL; or another ioctl changing
+-shared properties the &func-select; function would indicate
+-readability until any ioctl (querying the properties) is
+-called.</para>
+-      </footnote></para>
++application request.</para>
++
++    <para>V4L2 specifies an event mechanism to notify applications
++when controls change value (see &VIDIOC-SUBSCRIBE-EVENT;, event
++<constant>V4L2_EVENT_CTRL</constant>), panel applications might want to make
++use of that in order to always reflect the correct control value.</para>
  
--			if (b->m.planes[plane].bytesused > length)
--				return -EINVAL;
--
--			if (b->m.planes[plane].data_offset > 0 &&
--			    b->m.planes[plane].data_offset >=
--			    b->m.planes[plane].bytesused)
-+			if (b->m.planes[plane].bytesused > 0 &&
-+			    b->m.planes[plane].data_offset +
-+			    b->m.planes[plane].bytesused > length)
- 				return -EINVAL;
- 		}
- 	} else {
+     <para>
+       All controls use machine endianness.
+@@ -434,8 +444,8 @@ Drivers must implement <constant>VIDIOC_QUERYCTRL</constant>,
+ controls, <constant>VIDIOC_QUERYMENU</constant> when it has one or
+ more menu type controls.</para>
+ 
+-    <example>
+-      <title>Enumerating all controls</title>
++    <example id="enum_all_controls">
++      <title>Enumerating all user controls</title>
+ 
+       <programlisting>
+ &v4l2-queryctrl; queryctrl;
+@@ -501,6 +511,32 @@ for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;
+     </example>
+ 
+     <example>
++      <title>Enumerating all user controls (alternative)</title>
++	<programlisting>
++memset(&amp;queryctrl, 0, sizeof(queryctrl));
++
++queryctrl.id = V4L2_CTRL_CLASS_USER | V4L2_CTRL_FLAG_NEXT_CTRL;
++while (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
++	if (V4L2_CTRL_ID2CLASS(queryctrl.id) != V4L2_CTRL_CLASS_USER)
++		break;
++	if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED)
++		continue;
++
++	printf("Control %s\n", queryctrl.name);
++
++	if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
++		enumerate_menu();
++
++	queryctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
++}
++if (errno != EINVAL) {
++	perror("VIDIOC_QUERYCTRL");
++	exit(EXIT_FAILURE);
++}
++</programlisting>
++    </example>
++
++    <example>
+       <title>Changing controls</title>
+ 
+       <programlisting>
+@@ -699,7 +735,7 @@ ID based on a control ID.</para>
+ <constant>VIDIOC_QUERYCTRL</constant> will fail when used in
+ combination with <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant>. In
+ that case the old method of enumerating control should be used (see
+-1.8). But if it is supported, then it is guaranteed to enumerate over
++<xref linkend="enum_all_controls" />). But if it is supported, then it is guaranteed to enumerate over
+ all controls, including driver-private controls.</para>
+     </section>
+ 
 -- 
-1.7.9.5
+2.0.0.rc0
 
