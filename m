@@ -1,56 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56134 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750777AbaFLXMa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 19:12:30 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44557 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753444AbaFMQJO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Jun 2014 12:09:14 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] af9035: override tuner for AVerMedia A835B devices
-Date: Fri, 13 Jun 2014 02:12:24 +0300
-Message-Id: <1402614744-15723-1-git-send-email-crope@iki.fi>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 29/30] [media] coda: increase frame stride to 16 for h.264
+Date: Fri, 13 Jun 2014 18:08:55 +0200
+Message-Id: <1402675736-15379-30-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tuner ID set into EEPROM is wrong, which causes driver to select
-wrong tuner profile. That leads device non-working. Fix issue by
-overriding known bad tuner IDs with suitable default value.
+When encoding into h.264, the input frame stride needs to be a multiple of 16.
+During allocation of the input buffers, it may not be known yet whether the
+encoder should create h.264 or not. Assume the worst and always use a frame
+stride that is a multiple of 16.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/usb/dvb-usb-v2/af9035.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/media/platform/coda.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 021e4d3..204a91a 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -773,6 +773,25 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 		addr += 0x10; /* shift for the 2nd tuner params */
- 	}
- 
-+	/*
-+	 * These AVerMedia devices has a bad EEPROM content :-(
-+	 * Override some wrong values here.
-+	 */
-+	if (le16_to_cpu(d->udev->descriptor.idVendor) == USB_VID_AVERMEDIA) {
-+		switch (le16_to_cpu(d->udev->descriptor.idProduct)) {
-+		case USB_PID_AVERMEDIA_A835B_1835:
-+		case USB_PID_AVERMEDIA_A835B_2835:
-+		case USB_PID_AVERMEDIA_A835B_3835:
-+			dev_info(&d->udev->dev,
-+				 "%s: overriding tuner from %02x to %02x\n",
-+				 KBUILD_MODNAME, state->af9033_config[0].tuner,
-+				 AF9033_TUNER_IT9135_60);
-+
-+			state->af9033_config[0].tuner = AF9033_TUNER_IT9135_60;
-+			break;
-+		}
-+	}
-+
- skip_eeprom:
- 	/* get demod clock */
- 	ret = af9035_rd_reg(d, 0x00d800, &tmp);
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index c65047f..aabd639d 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -687,8 +687,8 @@ static int coda_try_fmt(struct coda_ctx *ctx, struct coda_codec *codec,
+ 	switch (f->fmt.pix.pixelformat) {
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
+-		/* Frame stride must be multiple of 8 */
+-		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 8);
++		/* Frame stride must be multiple of 8, but 16 for h.264 */
++		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 16);
+ 		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
+ 					f->fmt.pix.height * 3 / 2;
+ 		break;
 -- 
-1.9.3
+2.0.0.rc2
 
