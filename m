@@ -1,114 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4043 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753187AbaFHCnj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 22:43:39 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s582hZwt092032
-	for <linux-media@vger.kernel.org>; Sun, 8 Jun 2014 04:43:37 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 9C6C92A1FCA
-	for <linux-media@vger.kernel.org>; Sun,  8 Jun 2014 04:43:34 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140608024334.9C6C92A1FCA@tschai.lan>
-Date: Sun,  8 Jun 2014 04:43:34 +0200 (CEST)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55789 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751468AbaFMLKT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Jun 2014 07:10:19 -0400
+Date: Fri, 13 Jun 2014 04:10:12 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, arm@kernel.org
+Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
+Message-ID: <20140613111011.GT17845@atomide.com>
+References: <5192928.MkINji4uKU@wuerfel>
+ <1830688.7p3Fp6u7a2@avalon>
+ <20140613075325.GO17845@atomide.com>
+ <1709586.iO4riM1soY@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1709586.iO4riM1soY@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140613 03:30]:
+> Hi Tony,
+> 
+> On Friday 13 June 2014 00:53:25 Tony Lindgren wrote:
+> > * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140612 23:48]:
+> > > On Thursday 12 June 2014 22:30:44 Tony Lindgren wrote:
+> > > > 1. They live in separate hardware modules that can be clocked separately
+> > > 
+> > > Actually I don't think that's true. The CSI2 PHY is part of the camera
+> > > device, with all its registers but the one above in the camera device
+> > > register space. For some weird reason a couple of bits were pushed to the
+> > > control module, but that doesn't make the CSI2 PHY itself a separate
+> > > device.
+> > 
+> > Yes they are separate. Anything in the system control module is
+> > a separate hardware module from the other devices. So in this case
+> > the CSI2 PHY is part of the system control module, not the camera
+> > module.
+> 
+> Section 8.2.3 ("ISS CSI2 PHY") of the OMAP4460 TRM (revision AA) documents the 
+> CSI2 PHY is being part of the ISS, with three PHY registers in the ISS 
+> register space (not counting the PHY interrupt and status bits in several 
+> other ISS registers) and one register in the system control module register 
+> space. It's far from clear which power domain(s) is (are) involved.
 
-Results of the daily build of media_tree:
+OK I see. The register in the system control module just contains some
+pin and clock related resources for the phy.
+ 
+> > > > 2. Doing a read-back to flush a posted write in one hardware module most
+> > > >    likely won't flush the write to other and that can lead into hard to
+> > > >    find mysterious bugs
+> > > 
+> > > The OMAP4 ISS driver can just read back the CAMERA_RX register, can't it ?
+> > 
+> > Right, but you would have to do readbacks both from the phy register and
+> > camera register to ensure writes get written. It's best to keep the
+> > logic completely separate especially considering that they can be
+> > clocked separately.
+> > 
+> > > > 3. If we ever have a common system control module driver, we need to
+> > > >    rewrite all the system control module register tinkering in the
+> > > >    drivers
+> > > 
+> > > Sure, but that's already the case today, as the OMAP4 ISS driver already
+> > > accesses the control module register directly. I won't make that worse :-)
+> > 
+> > Well it's in staging for a reason :)
+> > 
+> > > > So it's best to try to use an existing framework for it. That avoids
+> > > > tons of pain later on ;)
+> > > 
+> > > I agree, but I don't think the PHY framework would be the right
+> > > abstraction. As explained above the CSI2 PHY is part of the OMAP4 ISS, so
+> > > modeling its single control module register as a PHY would be a hack.
+> > 
+> > Well that register belongs to the system control module, not the
+> > camera module. It's not like the camera IO space is out of registers
+> > or something! :)
+> 
+> The PHY has 3 registers in the ISS I/O space and one register in the control 
+> module I/O space. I have no idea why they've split it that way. The clock 
+> enable bits are especially "interested", the source clock (CAM_PHY_CTRL_FCLK) 
+> comes from the ISS as documented in section 8.1.1 ("ISS Integration"), is 
+> gated by the control module (the gated clock is called CTRLCLK) and then goes 
+> back to the ISS CSI2 PHY (it's mentioned in the CSI2 PHY "REGISTER1" 
+> documentation).
+> 
+> > We're already handling similar control module phy cases, see for
+> > example drivers/phy/phy-omap-control.c. Maybe you have most of the
+> > code already there?
+> 
+> I'm afraid not. For PHYs that are in the system control module that solution 
+> is perfectly fine, but the CSI2 PHY isn't (or at least not all of it).
+> 
+> I would be fine with writing a separate PHY driver if the PHY was completely 
+> separate. As the documentation doesn't make it clear which part of the 
+> hardware belongs to which module, matching the software implementation with an 
+> unknown hardware implementation would be pretty difficult :-)
 
-date:		Sun Jun  8 04:00:25 CEST 2014
-git branch:	test
-git hash:	5ea878796f0a1d9649fe43a6a09df53d3915c0ef
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-11-g38d1124
-host hardware:	x86_64
-host os:	3.14-5.slh.5-amd64
+Yeah it seems the phy driver would still have to use the pin resources
+in the system control module.
+ 
+> If you have a couple of minutes to spare and can look at the CSI2 PHY 
+> documentation in the TRM, you might be more successful than me figuring out 
+> how the hardware is implemented.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0-11-g38d1124
-sparse: ERRORS
+Took a look and it seems the phy is split into two parts. So probably
+using the syscon mapping for the register in scm are is a good start.
+At least then there's some protection from drivers tinkering directly
+with the system control modules.
 
-Detailed results are available here:
+Maybe s	ee what drivers/regulator/pbias-regulator.c is doing with
+syscon to see if that works? Moving that to some phy driver later on
+should be trivial if needed :)
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Regards,
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Tony
