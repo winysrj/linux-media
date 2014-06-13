@@ -1,155 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.comexp.ru ([78.110.60.213]:35616 "EHLO mail.comexp.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753873AbaF0N2Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jun 2014 09:28:25 -0400
-Message-ID: <1403870630.2767.3.camel@madomr-fc.comexp.ru>
-Subject: [PATCH 1/2] saa7134: add new card BeholdTV H7 (rev. 7191)
-From: Mikhail Domrachev <mihail.domrychev@comexp.ru>
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Date: Fri, 27 Jun 2014 16:03:50 +0400
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4993 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751017AbaFMCrN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jun 2014 22:47:13 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5D2l9lg047715
+	for <linux-media@vger.kernel.org>; Fri, 13 Jun 2014 04:47:11 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0C9E52A1FCB
+	for <linux-media@vger.kernel.org>; Fri, 13 Jun 2014 04:47:02 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140613024702.0C9E52A1FCB@tschai.lan>
+Date: Fri, 13 Jun 2014 04:47:02 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-New revision of the H7 card has a tuner xc5000C instead of xc5000.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Mikhail Domrachev <mihail.domrychev@comexp.ru>
----
- Documentation/video4linux/CARDLIST.saa7134 |  1 +
- drivers/media/pci/saa7134/saa7134-cards.c  | 37 ++++++++++++++++++++++++++++++
- drivers/media/pci/saa7134/saa7134-dvb.c    |  1 +
- drivers/media/pci/saa7134/saa7134-input.c  |  1 +
- drivers/media/pci/saa7134/saa7134.h        |  1 +
- 5 files changed, 41 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/Documentation/video4linux/CARDLIST.saa7134 b/Documentation/video4linux/CARDLIST.saa7134
-index 8df17d0..1a067d7 100644
---- a/Documentation/video4linux/CARDLIST.saa7134
-+++ b/Documentation/video4linux/CARDLIST.saa7134
-@@ -191,3 +191,4 @@
- 190 -> Asus My Cinema PS3-100                   [1043:48cd]
- 191 -> Hawell HW-9004V1
- 192 -> AverMedia AverTV Satellite Hybrid+FM A706 [1461:2055]
-+193 -> Beholder BeholdTV H7 (rev. 7191)          [5ace:7191]
-diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
-index 6e4bdb9..376feb5 100644
---- a/drivers/media/pci/saa7134/saa7134-cards.c
-+++ b/drivers/media/pci/saa7134/saa7134-cards.c
-@@ -5827,6 +5827,34 @@ struct saa7134_board saa7134_boards[] = {
- 			.gpio = 0x0000800,
- 		},
- 	},
-+	[SAA7134_BOARD_BEHOLD_H7_7191] = {
-+		.name           = "Beholder BeholdTV H7 (rev. 7191)",
-+		.audio_clock    = 0x00187de7,
-+		.tuner_type     = TUNER_XC5000C,
-+		.radio_type     = UNSET,
-+		.tuner_addr     = ADDR_UNSET,
-+		.radio_addr     = ADDR_UNSET,
-+		.mpeg           = SAA7134_MPEG_DVB,
-+		.ts_type	= SAA7134_MPEG_TS_PARALLEL,
-+		.inputs         = { {
-+			.name = name_tv,
-+			.vmux = 2,
-+			.amux = TV,
-+			.tv   = 1,
-+		}, {
-+			.name = name_comp1,
-+			.vmux = 0,
-+			.amux = LINE1,
-+		}, {
-+			.name = name_svideo,
-+			.vmux = 9,
-+			.amux = LINE1,
-+		} },
-+		.radio = {
-+			.name = name_radio,
-+			.amux = TV,
-+		},
-+	},
- 
- };
- 
-@@ -7035,6 +7063,12 @@ struct pci_device_id saa7134_pci_tbl[] = {
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
- 		.subvendor    = 0x5ace, /* Beholder Intl. Ltd. */
-+		.subdevice    = 0x7191,
-+		.driver_data  = SAA7134_BOARD_BEHOLD_H7_7191,
-+	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x5ace, /* Beholder Intl. Ltd. */
- 		.subdevice    = 0x7090,
- 		.driver_data  = SAA7134_BOARD_BEHOLD_A7,
- 	}, {
-@@ -7176,6 +7210,7 @@ static int saa7134_xc5000_callback(struct saa7134_dev *dev,
- 	switch (dev->board) {
- 	case SAA7134_BOARD_BEHOLD_X7:
- 	case SAA7134_BOARD_BEHOLD_H7:
-+	case SAA7134_BOARD_BEHOLD_H7_7191:
- 	case SAA7134_BOARD_BEHOLD_A7:
- 		if (command == XC5000_TUNER_RESET) {
- 		/* Down and UP pheripherial RESET pin for reset all chips */
-@@ -7348,6 +7383,7 @@ int saa7134_tuner_callback(void *priv, int component, int command, int arg)
- 		case TUNER_XC2028:
- 			return saa7134_xc2028_callback(dev, command, arg);
- 		case TUNER_XC5000:
-+		case TUNER_XC5000C:
- 			return saa7134_xc5000_callback(dev, command, arg);
- 		}
- 	} else {
-@@ -7606,6 +7642,7 @@ int saa7134_board_init1(struct saa7134_dev *dev)
- 	case SAA7134_BOARD_BEHOLD_H6:
- 	case SAA7134_BOARD_BEHOLD_X7:
- 	case SAA7134_BOARD_BEHOLD_H7:
-+	case SAA7134_BOARD_BEHOLD_H7_7191:
- 	case SAA7134_BOARD_BEHOLD_A7:
- 	case SAA7134_BOARD_KWORLD_PC150U:
- 		dev->has_remote = SAA7134_REMOTE_I2C;
-diff --git a/drivers/media/pci/saa7134/saa7134-dvb.c b/drivers/media/pci/saa7134/saa7134-dvb.c
-index 73ffbab..89d2a66 100644
---- a/drivers/media/pci/saa7134/saa7134-dvb.c
-+++ b/drivers/media/pci/saa7134/saa7134-dvb.c
-@@ -1734,6 +1734,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 		}
- 		break;
- 	case SAA7134_BOARD_BEHOLD_H7:
-+	case SAA7134_BOARD_BEHOLD_H7_7191:
- 		fe0->dvb.frontend = dvb_attach(zl10353_attach,
- 						&behold_x7_config,
- 						&dev->i2c_adap);
-diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
-index 6f43126..1d89a3f 100644
---- a/drivers/media/pci/saa7134/saa7134-input.c
-+++ b/drivers/media/pci/saa7134/saa7134-input.c
-@@ -986,6 +986,7 @@ void saa7134_probe_i2c_ir(struct saa7134_dev *dev)
- 	case SAA7134_BOARD_BEHOLD_H6:
- 	case SAA7134_BOARD_BEHOLD_X7:
- 	case SAA7134_BOARD_BEHOLD_H7:
-+	case SAA7134_BOARD_BEHOLD_H7_7191:
- 	case SAA7134_BOARD_BEHOLD_A7:
- 		dev->init_data.name = "BeholdTV";
- 		dev->init_data.get_key = get_key_beholdm6xx;
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index e47edd4..9b61e7e 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -338,6 +338,7 @@ struct saa7134_card_ir {
- #define SAA7134_BOARD_ASUSTeK_PS3_100      190
- #define SAA7134_BOARD_HAWELL_HW_9004V1      191
- #define SAA7134_BOARD_AVERMEDIA_A706		192
-+#define SAA7134_BOARD_BEHOLD_H7_7191		193
- 
- #define SAA7134_MAXBOARDS 32
- #define SAA7134_INPUT_MAX 8
--- 
-1.9.3
+date:		Fri Jun 13 04:00:30 CEST 2014
+git branch:	test
+git hash:	f7a27ff1fb77e114d1059a5eb2ed1cffdc508ce8
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-14-gf11dd94
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: ERRORS
 
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
