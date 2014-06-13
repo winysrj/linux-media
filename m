@@ -1,54 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f43.google.com ([209.85.219.43]:54609 "EHLO
-	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754368AbaFXPTI (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44543 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752101AbaFMQJN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 11:19:08 -0400
-Received: by mail-oa0-f43.google.com with SMTP id o6so503165oag.30
-        for <linux-media@vger.kernel.org>; Tue, 24 Jun 2014 08:19:08 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CA+2YH7uDVL+s9aY-erktyKeUbmd2=49r=nDZXPRCZ8dcSjmCoA@mail.gmail.com>
-References: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<CA+2YH7uDVL+s9aY-erktyKeUbmd2=49r=nDZXPRCZ8dcSjmCoA@mail.gmail.com>
-Date: Tue, 24 Jun 2014 17:19:08 +0200
-Message-ID: <CA+2YH7urbO6C-a6UMB+1JKN2z7F0CDmqh0184cCzXHbW1ADfXA@mail.gmail.com>
-Subject: Re: [PATCH 00/11] OMAP3 ISP BT.656 support
-From: Enrico <ebutera@users.berlios.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Enric Balletbo Serra <eballetbo@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 13 Jun 2014 12:09:13 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 28/30] [media] coda: round up internal frames to multiples of macroblock size for h.264
+Date: Fri, 13 Jun 2014 18:08:54 +0200
+Message-Id: <1402675736-15379-29-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 27, 2014 at 10:38 AM, Enrico <ebutera@users.berlios.de> wrote:
-> On Mon, May 26, 2014 at 9:50 PM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
->> Hello,
->>
->> This patch sets implements support for BT.656 and interlaced formats in the
->> OMAP3 ISP driver. Better late than never I suppose, although given how long
->> this has been on my to-do list there's probably no valid excuse.
->
-> Thanks Laurent!
->
-> I hope to have time soon to test it :)
+CODA7541 only supports encoding h.264 frames with width and height that are
+multiples of the macroblock size.
 
-Hi Laurent,
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 25 ++++++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
-i wanted to try your patches but i'm having a problem (probably not
-caused by your patches).
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 2b997bd..c65047f 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -1798,15 +1798,21 @@ static void coda_free_framebuffers(struct coda_ctx *ctx)
+ static int coda_alloc_framebuffers(struct coda_ctx *ctx, struct coda_q_data *q_data, u32 fourcc)
+ {
+ 	struct coda_dev *dev = ctx->dev;
+-	int height = q_data->height;
++	int width, height;
+ 	dma_addr_t paddr;
+ 	int ysize;
+ 	int ret;
+ 	int i;
+ 
+-	if (ctx->codec && ctx->codec->src_fourcc == V4L2_PIX_FMT_H264)
+-		height = round_up(height, 16);
+-	ysize = round_up(q_data->width, 8) * height;
++	if (ctx->codec && (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264 ||
++	     ctx->codec->dst_fourcc == V4L2_PIX_FMT_H264)) {
++		width = round_up(q_data->width, 16);
++		height = round_up(q_data->height, 16);
++	} else {
++		width = round_up(q_data->width, 8);
++		height = q_data->height;
++	}
++	ysize = width * height;
+ 
+ 	/* Allocate frame buffers */
+ 	for (i = 0; i < ctx->num_internal_frames; i++) {
+@@ -2429,7 +2435,16 @@ static int coda_start_encoding(struct coda_ctx *ctx)
+ 		value = (q_data_src->width & CODADX6_PICWIDTH_MASK) << CODADX6_PICWIDTH_OFFSET;
+ 		value |= (q_data_src->height & CODADX6_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
+ 		break;
+-	default:
++	case CODA_7541:
++		if (dst_fourcc == V4L2_PIX_FMT_H264) {
++			value = (round_up(q_data_src->width, 16) &
++				 CODA7_PICWIDTH_MASK) << CODA7_PICWIDTH_OFFSET;
++			value |= (round_up(q_data_src->height, 16) &
++				  CODA7_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
++			break;
++		}
++		/* fallthrough */
++	case CODA_960:
+ 		value = (q_data_src->width & CODA7_PICWIDTH_MASK) << CODA7_PICWIDTH_OFFSET;
+ 		value |= (q_data_src->height & CODA7_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
+ 	}
+-- 
+2.0.0.rc2
 
-I merged media_tree master and omap3isp branches, applied your patches
-and added camera platform data in pdata-quirks, but when loading the
-omap3-isp driver i have:
-
-omap3isp: clk_set_rate for cam_mclk failed
-
-The returned value from clk_set_rate is -22 (EINVAL), but i can't see
-any other debug message to track it down. Any ides?
-I'm testing it on an igep proton (omap3530 version).
-
-Thanks,
-
-Enrico
