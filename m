@@ -1,129 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp205.alice.it ([82.57.200.101]:54772 "EHLO smtp205.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966540AbaFRNXX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jun 2014 09:23:23 -0400
-Date: Wed, 18 Jun 2014 15:23:09 +0200
-From: Antonio Ospite <ao2@ao2.it>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org, Gregor Jasny <gjasny@googlemail.com>
-Subject: Re: [PATCH RESEND] libv4lconvert: Fix a regression when converting
- from Y10B
-Message-Id: <20140618152309.d16b3e703dc77fa9ca3551a8@ao2.it>
-In-Reply-To: <53A17C02.1080702@redhat.com>
-References: <20140603155930.f72e14f4aab39ec49bdb1b71@ao2.it>
-	<1402930841-14755-1-git-send-email-ao2@ao2.it>
-	<53A17B4C.3010005@redhat.com>
-	<53A17C02.1080702@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44548 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753443AbaFMQJO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Jun 2014 12:09:14 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 30/30] [media] coda: export auxiliary buffers via debugfs
+Date: Fri, 13 Jun 2014 18:08:56 +0200
+Message-Id: <1402675736-15379-31-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 18 Jun 2014 13:46:10 +0200
-Hans de Goede <hdegoede@redhat.com> wrote:
+This patch exports all auxiliary buffers, including SRAM, as debugfs binary
+blobs for debugging purposes. It shows, for example, that psbuf currently
+doesn't seem to be used at all on CODA7541, and that slicebuf and workbuf
+usage is far from the maximum. It can also be used to validate SRAM size
+allocation.
 
-> Hi,
-> 
-> On 06/18/2014 01:43 PM, Hans de Goede wrote:
-> > Hi,
-> > 
-> > On 06/16/2014 05:00 PM, Antonio Ospite wrote:
-> >> Fix a regression introduced in commit
-> >> efc29f1764a30808ebf7b3e1d9bfa27b909bf641 (libv4lconvert: Reject too
-> >> short source buffer before accessing it).
-> >>
-> >> The old code:
-> >>
-> >> case V4L2_PIX_FMT_Y10BPACK:
-> >> 	...
-> >> 	if (result == 0 && src_size < (width * height * 10 / 8)) {
-> >> 		V4LCONVERT_ERR("short y10b data frame\n");
-> >> 		errno = EPIPE;
-> >> 		result = -1;
-> >> 	}
-> >> 	...
-> >>
-> >> meant to say "If the conversion was *successful* _but_ the frame size
-> >> was invalid, then take the error path", but in
-> >> efc29f1764a30808ebf7b3e1d9bfa27b909bf641 this (maybe weird) logic was
-> >> misunderstood and v4lconvert_convert_pixfmt() was made to return an
-> >> error even in the case of a successful conversion from Y10B.
-> >>
-> >> Fix the check, and now print only the message letting the errno and the
-> >> result from the conversion routines to be propagated to the caller.
-> >>
-> >> Signed-off-by: Antonio Ospite <ao2@ao2.it>
-> >> Cc: Gregor Jasny <gjasny@googlemail.com>
-> > 
-> > Thanks for the patch, but: ...
-> > 
-> >> ---
-> >>  lib/libv4lconvert/libv4lconvert.c | 5 +----
-> >>  1 file changed, 1 insertion(+), 4 deletions(-)
-> >>
-> >> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-> >> index c49d30d..50d6906 100644
-> >> --- a/lib/libv4lconvert/libv4lconvert.c
-> >> +++ b/lib/libv4lconvert/libv4lconvert.c
-> >> @@ -1052,11 +1052,8 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
-> >>  							   width, height);
-> >>  			break;
-> >>  		}
-> >> -		if (result == 0) {
-> >> +		if (result != 0)
-> >>  			V4LCONVERT_ERR("y10b conversion failed\n");
-> >> -			errno = EPIPE;
-> >> -			result = -1;
-> >> -		}
-> >>  		break;
-> >>  
-> >>  	case V4L2_PIX_FMT_RGB565:
-> > 
-> > Why print a message here at all in the != 0 case? In the old code before commit
-> > efc29f1764 you did not print an error when v4lconvert_y10b_to_... failed, so
-> > I assume that that already does a V4LCONVERT_ERR in that case. So why do it a
-> > second time with a less precise error message here?
-> >
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 64 +++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 53 insertions(+), 11 deletions(-)
 
-The one from v4lconvert_oom_error(), yes, which is generic, it does not
-tell _where_ the failure was.
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index aabd639d..0b90087 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -12,6 +12,7 @@
+  */
  
-> > So I believe that the proper fix would be to just remove the entire block instead
-> > of flipping the test and keeping the V4LCONVERT_ERR. Please send a new version
-> > with this fixed, then I'll merge it asap.
-> 
-> Scrap that, I decided I might just as well fix this bit myself, so I've just
-> pushed an updated patch completely removing the second check from the
-> V4L2_PIX_FMT_Y10BPACK case.
-> 
-
-The rationale behind leaving the message was:
-  1. The conversion routines are called even in the case of short
-     frames (BTW that is true for any format, not just for Y10B).
-  2. The conversion routines from Y10B are not "in place", they
-     allocate a temporary buffer, so they may fail themselves.
-
-with this in mind I saw the second message as an _additional_ error
-indication to the user (useful in case of short frame _and_ conversion
-failure) rather than a less precise one. However, you are right that
-this additional error message was not in the original code before
-efc29f1764, so your patch is perfectly fine by me.
-
-Thanks for merging it.
-
-BTW, comments about 1.?
-What's the idea behind calling the conversion routines even for short
-frames?
-
-Ciao ciao,
-   Antonio
-
+ #include <linux/clk.h>
++#include <linux/debugfs.h>
+ #include <linux/delay.h>
+ #include <linux/firmware.h>
+ #include <linux/genalloc.h>
+@@ -129,6 +130,8 @@ struct coda_aux_buf {
+ 	void			*vaddr;
+ 	dma_addr_t		paddr;
+ 	u32			size;
++	struct debugfs_blob_wrapper blob;
++	struct dentry		*dentry;
+ };
+ 
+ struct coda_dev {
+@@ -156,6 +159,7 @@ struct coda_dev {
+ 	struct vb2_alloc_ctx	*alloc_ctx;
+ 	struct list_head	instances;
+ 	unsigned long		instance_mask;
++	struct dentry		*debugfs_root;
+ };
+ 
+ struct coda_params {
+@@ -259,6 +263,7 @@ struct coda_ctx {
+ 	u32				frm_dis_flg;
+ 	u32				frame_mem_ctrl;
+ 	int				display_idx;
++	struct dentry			*debugfs_entry;
+ };
+ 
+ static const u8 coda_filler_nal[14] = { 0x00, 0x00, 0x00, 0x01, 0x0c, 0xff,
+@@ -1758,7 +1763,8 @@ static void coda_parabuf_write(struct coda_ctx *ctx, int index, u32 value)
+ }
+ 
+ static int coda_alloc_aux_buf(struct coda_dev *dev,
+-			      struct coda_aux_buf *buf, size_t size)
++			      struct coda_aux_buf *buf, size_t size,
++			      const char *name, struct dentry *parent)
+ {
+ 	buf->vaddr = dma_alloc_coherent(&dev->plat_dev->dev, size, &buf->paddr,
+ 					GFP_KERNEL);
+@@ -1767,13 +1773,23 @@ static int coda_alloc_aux_buf(struct coda_dev *dev,
+ 
+ 	buf->size = size;
+ 
++	if (name && parent) {
++		buf->blob.data = buf->vaddr;
++		buf->blob.size = size;
++		buf->dentry = debugfs_create_blob(name, 0644, parent, &buf->blob);
++		if (!buf->dentry)
++			dev_warn(&dev->plat_dev->dev,
++				 "failed to create debugfs entry %s\n", name);
++	}
++
+ 	return 0;
+ }
+ 
+ static inline int coda_alloc_context_buf(struct coda_ctx *ctx,
+-					 struct coda_aux_buf *buf, size_t size)
++					 struct coda_aux_buf *buf, size_t size,
++					 const char *name)
+ {
+-	return coda_alloc_aux_buf(ctx->dev, buf, size);
++	return coda_alloc_aux_buf(ctx->dev, buf, size, name, ctx->debugfs_entry);
+ }
+ 
+ static void coda_free_aux_buf(struct coda_dev *dev,
+@@ -1785,6 +1801,7 @@ static void coda_free_aux_buf(struct coda_dev *dev,
+ 		buf->vaddr = NULL;
+ 		buf->size = 0;
+ 	}
++	debugfs_remove(buf->dentry);
+ }
+ 
+ static void coda_free_framebuffers(struct coda_ctx *ctx)
+@@ -1817,12 +1834,16 @@ static int coda_alloc_framebuffers(struct coda_ctx *ctx, struct coda_q_data *q_d
+ 	/* Allocate frame buffers */
+ 	for (i = 0; i < ctx->num_internal_frames; i++) {
+ 		size_t size;
++		char *name;
+ 
+ 		size = ysize + ysize / 2;
+ 		if (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264 &&
+ 		    dev->devtype->product != CODA_DX6)
+ 			size += ysize / 4;
+-		ret = coda_alloc_context_buf(ctx, &ctx->internal_frames[i], size);
++		name = kasprintf(GFP_KERNEL, "fb%d", i);
++		ret = coda_alloc_context_buf(ctx, &ctx->internal_frames[i],
++					     size, name);
++		kfree(name);
+ 		if (ret < 0) {
+ 			coda_free_framebuffers(ctx);
+ 			return ret;
+@@ -2046,7 +2067,7 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
+ 		/* worst case slice size */
+ 		size = (DIV_ROUND_UP(q_data->width, 16) *
+ 			DIV_ROUND_UP(q_data->height, 16)) * 3200 / 8 + 512;
+-		ret = coda_alloc_context_buf(ctx, &ctx->slicebuf, size);
++		ret = coda_alloc_context_buf(ctx, &ctx->slicebuf, size, "slicebuf");
+ 		if (ret < 0) {
+ 			v4l2_err(&dev->v4l2_dev, "failed to allocate %d byte slice buffer",
+ 				 ctx->slicebuf.size);
+@@ -2055,14 +2076,14 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
+ 	}
+ 
+ 	if (dev->devtype->product == CODA_7541) {
+-		ret = coda_alloc_context_buf(ctx, &ctx->psbuf, CODA7_PS_BUF_SIZE);
++		ret = coda_alloc_context_buf(ctx, &ctx->psbuf, CODA7_PS_BUF_SIZE, "psbuf");
+ 		if (ret < 0) {
+ 			v4l2_err(&dev->v4l2_dev, "failed to allocate psmem buffer");
+ 			goto err;
+ 		}
+ 	}
+ 
+-	ret = coda_alloc_context_buf(ctx, &ctx->workbuf, size);
++	ret = coda_alloc_context_buf(ctx, &ctx->workbuf, size, "workbuf");
+ 	if (ret < 0) {
+ 		v4l2_err(&dev->v4l2_dev, "failed to allocate %d byte context buffer",
+ 			 ctx->workbuf.size);
+@@ -2948,6 +2969,7 @@ static int coda_open(struct file *file)
+ {
+ 	struct coda_dev *dev = video_drvdata(file);
+ 	struct coda_ctx *ctx = NULL;
++	char *name;
+ 	int ret;
+ 	int idx;
+ 
+@@ -2962,6 +2984,10 @@ static int coda_open(struct file *file)
+ 	}
+ 	set_bit(idx, &dev->instance_mask);
+ 
++	name = kasprintf(GFP_KERNEL, "context%d", idx);
++	ctx->debugfs_entry = debugfs_create_dir(name, dev->debugfs_root);
++	kfree(name);
++
+ 	init_completion(&ctx->completion);
+ 	INIT_WORK(&ctx->pic_run_work, coda_pic_run_work);
+ 	INIT_WORK(&ctx->seq_end_work, coda_seq_end_work);
+@@ -3013,7 +3039,8 @@ static int coda_open(struct file *file)
+ 
+ 	ctx->fh.ctrl_handler = &ctx->ctrls;
+ 
+-	ret = coda_alloc_context_buf(ctx, &ctx->parabuf, CODA_PARA_BUF_SIZE);
++	ret = coda_alloc_context_buf(ctx, &ctx->parabuf, CODA_PARA_BUF_SIZE,
++				     "parabuf");
+ 	if (ret < 0) {
+ 		v4l2_err(&dev->v4l2_dev, "failed to allocate parabuf");
+ 		goto err_dma_alloc;
+@@ -3074,6 +3101,8 @@ static int coda_release(struct file *file)
+ 	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "Releasing instance %p\n",
+ 		 ctx);
+ 
++	debugfs_remove_recursive(ctx->debugfs_entry);
++
+ 	/* If this instance is running, call .job_abort and wait for it to end */
+ 	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+ 
+@@ -3606,7 +3635,8 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
+ 	}
+ 
+ 	/* allocate auxiliary per-device code buffer for the BIT processor */
+-	ret = coda_alloc_aux_buf(dev, &dev->codebuf, fw->size);
++	ret = coda_alloc_aux_buf(dev, &dev->codebuf, fw->size, "codebuf",
++				 dev->debugfs_root);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "failed to allocate code buffer\n");
+ 		return;
+@@ -3842,11 +3872,16 @@ static int coda_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
+ 
++	dev->debugfs_root = debugfs_create_dir("coda", NULL);
++	if (!dev->debugfs_root)
++		dev_warn(&pdev->dev, "failed to create debugfs root\n");
++
+ 	/* allocate auxiliary per-device buffers for the BIT processor */
+ 	switch (dev->devtype->product) {
+ 	case CODA_DX6:
+ 		ret = coda_alloc_aux_buf(dev, &dev->workbuf,
+-					 CODADX6_WORK_BUF_SIZE);
++					 CODADX6_WORK_BUF_SIZE, "workbuf",
++					 dev->debugfs_root);
+ 		if (ret < 0) {
+ 			dev_err(&pdev->dev, "failed to allocate work buffer\n");
+ 			v4l2_device_unregister(&dev->v4l2_dev);
+@@ -3862,7 +3897,8 @@ static int coda_probe(struct platform_device *pdev)
+ 	}
+ 	if (dev->tempbuf.size) {
+ 		ret = coda_alloc_aux_buf(dev, &dev->tempbuf,
+-					 dev->tempbuf.size);
++					 dev->tempbuf.size, "tempbuf",
++					 dev->debugfs_root);
+ 		if (ret < 0) {
+ 			dev_err(&pdev->dev, "failed to allocate temp buffer\n");
+ 			v4l2_device_unregister(&dev->v4l2_dev);
+@@ -3887,6 +3923,11 @@ static int coda_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
+ 
++	dev->iram.blob.data = dev->iram.vaddr;
++	dev->iram.blob.size = dev->iram.size;
++	dev->iram.dentry = debugfs_create_blob("iram", 0644, dev->debugfs_root,
++					       &dev->iram.blob);
++
+ 	dev->workqueue = alloc_workqueue("coda", WQ_UNBOUND | WQ_MEM_RECLAIM, 1);
+ 	if (!dev->workqueue) {
+ 		dev_err(&pdev->dev, "unable to alloc workqueue\n");
+@@ -3918,6 +3959,7 @@ static int coda_remove(struct platform_device *pdev)
+ 	coda_free_aux_buf(dev, &dev->codebuf);
+ 	coda_free_aux_buf(dev, &dev->tempbuf);
+ 	coda_free_aux_buf(dev, &dev->workbuf);
++	debugfs_remove_recursive(dev->debugfs_root);
+ 	return 0;
+ }
+ 
 -- 
-Antonio Ospite
-http://ao2.it
+2.0.0.rc2
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
