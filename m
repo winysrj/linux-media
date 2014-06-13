@@ -1,60 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3435 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933293AbaFLLys (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44592 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753208AbaFMQJU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 07:54:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 13 Jun 2014 12:09:20 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv4 PATCH 32/34] solo6x10: fix 'dma from stack' warning.
-Date: Thu, 12 Jun 2014 13:53:04 +0200
-Message-Id: <8b48fc59f6220e08aeb6780cf6d14f7fb8a344e8.1402573818.git.hans.verkuil@cisco.com>
-In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
-References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 02/30] [media] coda: fix readback of CODA_RET_DEC_SEQ_FRAME_NEED
+Date: Fri, 13 Jun 2014 18:08:28 +0200
+Message-Id: <1402675736-15379-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Previously we'd add one to this value, allocating one additional, superfluous
+internal buffer.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/staging/media/solo6x10/solo6x10-disp.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/media/platform/coda.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/solo6x10/solo6x10-disp.c b/drivers/staging/media/solo6x10/solo6x10-disp.c
-index 44d98b8..b529a96 100644
---- a/drivers/staging/media/solo6x10/solo6x10-disp.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-disp.c
-@@ -213,19 +213,21 @@ int solo_set_motion_threshold(struct solo_dev *solo_dev, u8 ch, u16 val)
- int solo_set_motion_block(struct solo_dev *solo_dev, u8 ch,
- 		const u16 *thresholds)
- {
-+	const unsigned size = sizeof(u16) * 64;
- 	u32 off = SOLO_MOT_FLAG_AREA + ch * SOLO_MOT_THRESH_SIZE * 2;
--	u16 buf[64];
-+	u16 *buf;
- 	int x, y;
- 	int ret = 0;
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index a69fa3b..453ac4b 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -1889,7 +1889,7 @@ static int coda_start_decoding(struct coda_ctx *ctx)
+ 	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "%s instance %d now: %dx%d\n",
+ 		 __func__, ctx->idx, width, height);
  
--	memset(buf, 0, sizeof(buf));
-+	buf = kzalloc(size, GFP_KERNEL);
- 	for (y = 0; y < SOLO_MOTION_SZ; y++) {
- 		for (x = 0; x < SOLO_MOTION_SZ; x++)
- 			buf[x] = cpu_to_le16(thresholds[y * SOLO_MOTION_SZ + x]);
- 		ret |= solo_p2m_dma(solo_dev, 1, buf,
--			SOLO_MOTION_EXT_ADDR(solo_dev) + off + y * sizeof(buf),
--			sizeof(buf), 0, 0);
-+			SOLO_MOTION_EXT_ADDR(solo_dev) + off + y * size,
-+			size, 0, 0);
- 	}
-+	kfree(buf);
- 	return ret;
- }
- 
+-	ctx->num_internal_frames = coda_read(dev, CODA_RET_DEC_SEQ_FRAME_NEED) + 1;
++	ctx->num_internal_frames = coda_read(dev, CODA_RET_DEC_SEQ_FRAME_NEED);
+ 	if (ctx->num_internal_frames > CODA_MAX_FRAMEBUFFERS) {
+ 		v4l2_err(&dev->v4l2_dev,
+ 			 "not enough framebuffers to decode (%d < %d)\n",
 -- 
-2.0.0.rc0
+2.0.0.rc2
 
