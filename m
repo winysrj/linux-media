@@ -1,232 +1,310 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4052 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933236AbaFLLyl (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44444 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753388AbaFMQJH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 07:54:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 13 Jun 2014 12:09:07 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv4 PATCH 14/34] v4l2-ctrls: add array support.
-Date: Thu, 12 Jun 2014 13:52:46 +0200
-Message-Id: <cabd1863eee3d1d144145cd71a03536aab6f8595.1402573818.git.hans.verkuil@cisco.com>
-In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
-References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 11/30] [media] coda: use ctx->fh.m2m_ctx instead of ctx->m2m_ctx
+Date: Fri, 13 Jun 2014 18:08:37 +0200
+Message-Id: <1402675736-15379-12-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+v4l2_fh already contains a mem2mem context pointer. Use it.
 
-Finish the userspace-facing array support.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 109 ++++++++++++++++++++---------------
- 1 file changed, 63 insertions(+), 46 deletions(-)
+ drivers/media/platform/coda.c | 70 +++++++++++++++++++++----------------------
+ 1 file changed, 34 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index f6ac927..b3ab8a9 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1202,6 +1202,8 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
- 		ptr.p_s32[idx] = ctrl->default_value;
- 		break;
- 	default:
-+		idx *= ctrl->elem_size;
-+		memset(ptr.p + idx, 0, ctrl->elem_size);
- 		break;
- 	}
- }
-@@ -1324,7 +1326,7 @@ static int ptr_to_user(struct v4l2_ext_control *c,
- 	u32 len;
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 52a429f..8321243 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -213,7 +213,6 @@ struct coda_ctx {
+ 	struct coda_codec		*codec;
+ 	enum v4l2_colorspace		colorspace;
+ 	struct coda_params		params;
+-	struct v4l2_m2m_ctx		*m2m_ctx;
+ 	struct v4l2_ctrl_handler	ctrls;
+ 	struct v4l2_fh			fh;
+ 	int				gopcounter;
+@@ -554,7 +553,7 @@ static int coda_enum_fmt_vid_cap(struct file *file, void *priv,
+ 	struct coda_q_data *q_data_src;
  
- 	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_to_user(c->ptr, ptr.p, ctrl->elem_size);
-+		return copy_to_user(c->ptr, ptr.p, c->size);
+ 	/* If the source format is already fixed, only list matching formats */
+-	src_vq = v4l2_m2m_get_vq(ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
++	src_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+ 	if (vb2_is_streaming(src_vq)) {
+ 		q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
  
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_STRING:
-@@ -1368,8 +1370,16 @@ static int user_to_ptr(struct v4l2_ext_control *c,
- 	u32 size;
+@@ -578,7 +577,7 @@ static int coda_g_fmt(struct file *file, void *priv,
+ 	struct coda_q_data *q_data;
+ 	struct coda_ctx *ctx = fh_to_ctx(priv);
  
- 	ctrl->is_new = 1;
--	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_from_user(ptr.p, c->ptr, ctrl->elem_size);
-+	if (ctrl->is_ptr && !ctrl->is_string) {
-+		unsigned idx;
-+
-+		ret = copy_from_user(ptr.p, c->ptr, c->size);
-+		if (ret || !ctrl->is_array)
-+			return ret;
-+		for (idx = c->size / ctrl->elem_size; idx < ctrl->elems; idx++)
-+			ctrl->type_ops->init(ctrl, idx, ptr);
-+		return 0;
-+	}
+-	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
++	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
+ 	if (!vq)
+ 		return -EINVAL;
  
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER64:
-@@ -1412,21 +1422,7 @@ static void ptr_to_ptr(struct v4l2_ctrl *ctrl,
+@@ -669,7 +668,7 @@ static int coda_try_fmt_vid_cap(struct file *file, void *priv,
+ 	 * If the source format is already fixed, try to find a codec that
+ 	 * converts to the given destination format
+ 	 */
+-	src_vq = v4l2_m2m_get_vq(ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
++	src_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+ 	if (vb2_is_streaming(src_vq)) {
+ 		struct coda_q_data *q_data_src;
+ 
+@@ -723,7 +722,7 @@ static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
+ 	struct coda_q_data *q_data;
+ 	struct vb2_queue *vq;
+ 
+-	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
++	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
+ 	if (!vq)
+ 		return -EINVAL;
+ 
+@@ -787,7 +786,7 @@ static int coda_qbuf(struct file *file, void *priv,
  {
- 	if (ctrl == NULL)
- 		return;
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_STRING:
--		/* strings are always 0-terminated */
--		strcpy(to.p_char, from.p_char);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER64:
--		*to.p_s64 = *from.p_s64;
--		break;
--	default:
--		if (ctrl->is_ptr)
--			memcpy(to.p, from.p, ctrl->elem_size);
--		else
--			*to.p_s32 = *from.p_s32;
--		break;
--	}
-+	memcpy(to.p, from.p, ctrl->elems * ctrl->elem_size);
+ 	struct coda_ctx *ctx = fh_to_ctx(priv);
+ 
+-	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
++	return v4l2_m2m_qbuf(file, ctx->fh.m2m_ctx, buf);
  }
  
- /* Copy the new value to the current value. */
-@@ -1478,15 +1474,19 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
- static int cluster_changed(struct v4l2_ctrl *master)
+ static bool coda_buf_is_end_of_stream(struct coda_ctx *ctx,
+@@ -795,7 +794,7 @@ static bool coda_buf_is_end_of_stream(struct coda_ctx *ctx,
  {
- 	bool changed = false;
-+	unsigned idx;
- 	int i;
+ 	struct vb2_queue *src_vq;
  
- 	for (i = 0; i < master->ncontrols; i++) {
- 		struct v4l2_ctrl *ctrl = master->cluster[i];
-+		bool ctrl_changed = false;
+-	src_vq = v4l2_m2m_get_vq(ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
++	src_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
  
- 		if (ctrl == NULL)
- 			continue;
--		ctrl->has_changed = !ctrl->type_ops->equal(ctrl, 0,
-+		for (idx = 0; !ctrl_changed && idx < ctrl->elems; idx++)
-+			ctrl_changed = !ctrl->type_ops->equal(ctrl, idx,
- 				ctrl->p_cur, ctrl->p_new);
-+		ctrl->has_changed = ctrl_changed;
- 		changed |= ctrl->has_changed;
- 	}
- 	return changed;
-@@ -1533,26 +1533,32 @@ static int validate_new(const struct v4l2_ctrl *ctrl,
- 			struct v4l2_ext_control *c)
+ 	return ((ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG) &&
+ 		(buf->sequence == (ctx->qsequence - 1)));
+@@ -807,7 +806,7 @@ static int coda_dqbuf(struct file *file, void *priv,
+ 	struct coda_ctx *ctx = fh_to_ctx(priv);
+ 	int ret;
+ 
+-	ret = v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
++	ret = v4l2_m2m_dqbuf(file, ctx->fh.m2m_ctx, buf);
+ 
+ 	/* If this is the last capture buffer, emit an end-of-stream event */
+ 	if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+@@ -920,7 +919,7 @@ static int coda_enum_framesizes(struct file *file, void *fh,
+ 	 * If the source format is already fixed, try to find a codec that
+ 	 * converts to the given destination format
+ 	 */
+-	src_vq = v4l2_m2m_get_vq(ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
++	src_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+ 	if (vb2_is_streaming(src_vq)) {
+ 		q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+ 
+@@ -1096,11 +1095,11 @@ static void coda_fill_bitstream(struct coda_ctx *ctx)
  {
- 	union v4l2_ctrl_ptr ptr;
--
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_INTEGER:
--	case V4L2_CTRL_TYPE_INTEGER_MENU:
--	case V4L2_CTRL_TYPE_MENU:
--	case V4L2_CTRL_TYPE_BITMASK:
--	case V4L2_CTRL_TYPE_BOOLEAN:
--	case V4L2_CTRL_TYPE_BUTTON:
--	case V4L2_CTRL_TYPE_CTRL_CLASS:
--		ptr.p_s32 = &c->value;
--		return ctrl->type_ops->validate(ctrl, 0, ptr);
--
--	case V4L2_CTRL_TYPE_INTEGER64:
--		ptr.p_s64 = &c->value64;
--		return ctrl->type_ops->validate(ctrl, 0, ptr);
--
--	default:
--		ptr.p = c->ptr;
--		return ctrl->type_ops->validate(ctrl, 0, ptr);
-+	unsigned idx;
-+	int err = 0;
-+
-+	if (!ctrl->is_ptr) {
-+		switch (ctrl->type) {
-+		case V4L2_CTRL_TYPE_INTEGER:
-+		case V4L2_CTRL_TYPE_INTEGER_MENU:
-+		case V4L2_CTRL_TYPE_MENU:
-+		case V4L2_CTRL_TYPE_BITMASK:
-+		case V4L2_CTRL_TYPE_BOOLEAN:
-+		case V4L2_CTRL_TYPE_BUTTON:
-+		case V4L2_CTRL_TYPE_CTRL_CLASS:
-+			ptr.p_s32 = &c->value;
-+			return ctrl->type_ops->validate(ctrl, 0, ptr);
-+
-+		case V4L2_CTRL_TYPE_INTEGER64:
-+			ptr.p_s64 = &c->value64;
-+			return ctrl->type_ops->validate(ctrl, 0, ptr);
-+		default:
-+			break;
-+		}
+ 	struct vb2_buffer *src_buf;
+ 
+-	while (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) > 0) {
+-		src_buf = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
++	while (v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) > 0) {
++		src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+ 
+ 		if (coda_bitstream_try_queue(ctx, src_buf)) {
+-			src_buf = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
++			src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+ 			v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
+ 		} else {
+ 			break;
+@@ -1140,7 +1139,7 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
+ 	u32 stridey, height;
+ 	u32 picture_y, picture_cb, picture_cr;
+ 
+-	dst_buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
++	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+ 	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+ 
+ 	if (ctx->params.rot_mode & CODA_ROT_90) {
+@@ -1161,7 +1160,7 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
+ 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
+ 			 "bitstream payload: %d, skipping\n",
+ 			 coda_get_bitstream_payload(ctx));
+-		v4l2_m2m_job_finish(ctx->dev->m2m_dev, ctx->m2m_ctx);
++		v4l2_m2m_job_finish(ctx->dev->m2m_dev, ctx->fh.m2m_ctx);
+ 		return -EAGAIN;
  	}
-+	ptr.p = c->ptr;
-+	for (idx = 0; !err && idx < c->size / ctrl->elem_size; idx++)
-+		err = ctrl->type_ops->validate(ctrl, idx, ptr);
-+	return err;
+ 
+@@ -1170,7 +1169,7 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
+ 		int ret = coda_start_decoding(ctx);
+ 		if (ret < 0) {
+ 			v4l2_err(&dev->v4l2_dev, "failed to start decoding\n");
+-			v4l2_m2m_job_finish(ctx->dev->m2m_dev, ctx->m2m_ctx);
++			v4l2_m2m_job_finish(ctx->dev->m2m_dev, ctx->fh.m2m_ctx);
+ 			return -EAGAIN;
+ 		} else {
+ 			ctx->initialized = 1;
+@@ -1243,8 +1242,8 @@ static void coda_prepare_encode(struct coda_ctx *ctx)
+ 	u32 pic_stream_buffer_addr, pic_stream_buffer_size;
+ 	u32 dst_fourcc;
+ 
+-	src_buf = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
+-	dst_buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
++	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
++	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+ 	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+ 	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+ 	dst_fourcc = q_data_dst->fourcc;
+@@ -1457,7 +1456,7 @@ static void coda_pic_run_work(struct work_struct *work)
+ 	mutex_unlock(&dev->coda_mutex);
+ 	mutex_unlock(&ctx->buffer_mutex);
+ 
+-	v4l2_m2m_job_finish(ctx->dev->m2m_dev, ctx->m2m_ctx);
++	v4l2_m2m_job_finish(ctx->dev->m2m_dev, ctx->fh.m2m_ctx);
  }
  
- static inline u32 node2id(struct list_head *node)
-@@ -1781,6 +1787,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	unsigned elems = 1;
- 	bool is_array;
- 	unsigned tot_ctrl_size;
-+	unsigned idx;
- 	void *data;
- 	int err;
- 
-@@ -1881,8 +1888,10 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		ctrl->p_new.p = &ctrl->val;
- 		ctrl->p_cur.p = &ctrl->cur.val;
+ static int coda_job_ready(void *m2m_priv)
+@@ -1469,14 +1468,14 @@ static int coda_job_ready(void *m2m_priv)
+ 	 * and 1 frame are needed. In the decoder case,
+ 	 * the compressed frame can be in the bitstream.
+ 	 */
+-	if (!v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) &&
++	if (!v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) &&
+ 	    ctx->inst_type != CODA_INST_DECODER) {
+ 		v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+ 			 "not ready: not enough video buffers.\n");
+ 		return 0;
  	}
--	ctrl->type_ops->init(ctrl, 0, ctrl->p_cur);
--	ctrl->type_ops->init(ctrl, 0, ctrl->p_new);
-+	for (idx = 0; idx < elems; idx++) {
-+		ctrl->type_ops->init(ctrl, idx, ctrl->p_cur);
-+		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
-+	}
  
- 	if (handler_new_ref(hdl, ctrl)) {
- 		kfree(ctrl);
-@@ -2578,12 +2587,17 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 			have_clusters = true;
- 		if (ctrl->cluster[0] != ctrl)
- 			ref = find_ref_lock(hdl, ctrl->cluster[0]->id);
--		if (ctrl->is_ptr && !ctrl->is_string && c->size < ctrl->elem_size) {
--			if (get) {
--				c->size = ctrl->elem_size;
--				return -ENOSPC;
-+		if (ctrl->is_ptr && !ctrl->is_string) {
-+			unsigned tot_size = ctrl->elems * ctrl->elem_size;
-+
-+			if (c->size < tot_size) {
-+				if (get) {
-+					c->size = tot_size;
-+					return -ENOSPC;
-+				}
-+				return -EFAULT;
+-	if (!v4l2_m2m_num_dst_bufs_ready(ctx->m2m_ctx)) {
++	if (!v4l2_m2m_num_dst_bufs_ready(ctx->fh.m2m_ctx)) {
+ 		v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+ 			 "not ready: not enough video capture buffers.\n");
+ 		return 0;
+@@ -1665,11 +1664,11 @@ static void coda_buf_queue(struct vb2_buffer *vb)
  			}
--			return -EFAULT;
-+			c->size = tot_size;
  		}
- 		/* Store the ref to the master control of the cluster */
- 		h->mref = ref;
-@@ -3123,7 +3137,7 @@ EXPORT_SYMBOL(v4l2_ctrl_notify);
- int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
- 			s64 min, s64 max, u64 step, s64 def)
- {
--	int ret = check_range(ctrl->type, min, max, step, def);
-+	int ret;
- 	struct v4l2_ext_control c;
+ 		mutex_lock(&ctx->bitstream_mutex);
+-		v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
++		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
+ 		coda_fill_bitstream(ctx);
+ 		mutex_unlock(&ctx->bitstream_mutex);
+ 	} else {
+-		v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
++		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
+ 	}
+ }
  
- 	switch (ctrl->type) {
-@@ -3133,6 +3147,9 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
- 	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
- 	case V4L2_CTRL_TYPE_BITMASK:
-+		if (ctrl->is_array)
-+			return -EINVAL;
-+		ret = check_range(ctrl->type, min, max, step, def);
- 		if (ret)
- 			return ret;
- 		break;
+@@ -2264,7 +2263,7 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 
+ 	/* Allow decoder device_run with no new buffers queued */
+ 	if (ctx->inst_type == CODA_INST_DECODER)
+-		v4l2_m2m_set_src_buffered(ctx->m2m_ctx, true);
++		v4l2_m2m_set_src_buffered(ctx->fh.m2m_ctx, true);
+ 
+ 	ctx->gopcounter = ctx->params.gop_size - 1;
+ 	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+@@ -2312,7 +2311,7 @@ static int coda_start_encoding(struct coda_ctx *ctx)
+ 	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+ 	dst_fourcc = q_data_dst->fourcc;
+ 
+-	buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
++	buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+ 	bitstream_buf = vb2_dma_contig_plane_dma_addr(buf, 0);
+ 	bitstream_size = q_data_dst->sizeimage;
+ 
+@@ -2523,7 +2522,7 @@ static int coda_start_encoding(struct coda_ctx *ctx)
+ 	}
+ 
+ 	/* Save stream headers */
+-	buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
++	buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+ 	switch (dst_fourcc) {
+ 	case V4L2_PIX_FMT_H264:
+ 		/*
+@@ -2830,16 +2829,15 @@ static int coda_open(struct file *file)
+ 		goto err_clk_ahb;
+ 
+ 	set_default_params(ctx);
+-	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx,
++	ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx,
+ 					 &coda_queue_init);
+-	if (IS_ERR(ctx->m2m_ctx)) {
+-		ret = PTR_ERR(ctx->m2m_ctx);
++	if (IS_ERR(ctx->fh.m2m_ctx)) {
++		ret = PTR_ERR(ctx->fh.m2m_ctx);
+ 
+ 		v4l2_err(&dev->v4l2_dev, "%s return error (%d)\n",
+ 			 __func__, ret);
+ 		goto err_ctx_init;
+ 	}
+-	ctx->fh.m2m_ctx = ctx->m2m_ctx;
+ 
+ 	ret = coda_ctrls_setup(ctx);
+ 	if (ret) {
+@@ -2885,7 +2883,7 @@ err_dma_writecombine:
+ err_dma_alloc:
+ 	v4l2_ctrl_handler_free(&ctx->ctrls);
+ err_ctrls_setup:
+-	v4l2_m2m_ctx_release(ctx->m2m_ctx);
++	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+ err_ctx_init:
+ 	clk_disable_unprepare(dev->clk_ahb);
+ err_clk_ahb:
+@@ -2908,7 +2906,7 @@ static int coda_release(struct file *file)
+ 		 ctx);
+ 
+ 	/* If this instance is running, call .job_abort and wait for it to end */
+-	v4l2_m2m_ctx_release(ctx->m2m_ctx);
++	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+ 
+ 	/* In case the instance was not running, we still need to call SEQ_END */
+ 	if (ctx->initialized) {
+@@ -2962,7 +2960,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 	int success;
+ 	u32 val;
+ 
+-	dst_buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
++	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+ 
+ 	/* Update kfifo out pointer from coda bitstream read pointer */
+ 	coda_kfifo_sync_from_device(ctx);
+@@ -3102,7 +3100,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 	/* If a frame was copied out, return it */
+ 	if (ctx->display_idx >= 0 &&
+ 	    ctx->display_idx < ctx->num_internal_frames) {
+-		dst_buf = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
++		dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+ 		dst_buf->v4l2_buf.sequence = ctx->osequence++;
+ 
+ 		dst_buf->v4l2_buf.flags &= ~(V4L2_BUF_FLAG_KEYFRAME |
+@@ -3134,8 +3132,8 @@ static void coda_finish_encode(struct coda_ctx *ctx)
+ 	struct coda_dev *dev = ctx->dev;
+ 	u32 wr_ptr, start_ptr;
+ 
+-	src_buf = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
+-	dst_buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
++	src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
++	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+ 
+ 	/* Get results from the coda */
+ 	start_ptr = coda_read(dev, CODA_CMD_ENC_PIC_BB_START);
+@@ -3173,7 +3171,7 @@ static void coda_finish_encode(struct coda_ctx *ctx)
+ 
+ 	v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
+ 
+-	dst_buf = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
++	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+ 	v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
+ 
+ 	ctx->gopcounter--;
 -- 
-2.0.0.rc0
+2.0.0.rc2
 
