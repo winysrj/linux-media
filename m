@@ -1,39 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43627 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752726AbaFSBLJ (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44455 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751433AbaFMQJI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jun 2014 21:11:09 -0400
-Date: Wed, 18 Jun 2014 18:15:07 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-arch@vger.kernel.org, thellstrom@vmware.com,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
-	thierry.reding@gmail.com, ccross@google.com, daniel@ffwll.ch,
-	sumit.semwal@linaro.org, linux-media@vger.kernel.org
-Subject: Re: [REPOST PATCH 1/8] fence: dma-buf cross-device synchronization
- (v17)
-Message-ID: <20140619011507.GD10921@kroah.com>
-References: <20140618102957.15728.43525.stgit@patser>
- <20140618103653.15728.4942.stgit@patser>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20140618103653.15728.4942.stgit@patser>
+	Fri, 13 Jun 2014 12:09:08 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 14/30] [media] coda: select GENERIC_ALLOCATOR
+Date: Fri, 13 Jun 2014 18:08:40 +0200
+Message-Id: <1402675736-15379-15-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 18, 2014 at 12:36:54PM +0200, Maarten Lankhorst wrote:
-> + * This program is distributed in the hope that it will be useful, but WITHOUT
-> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-> + * more details.
+The driver uses the genalloc API, which doesn't have stubs in
+case GENERIC_ALLOCATOR is disabled.
 
-I don't like this paragraph in all of the files, but if you insist that
-some lawyer wants it there, I'll live with it...
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-> + * You should have received a copy of the GNU General Public License along with
-> + * this program.  If not, see <http://www.gnu.org/licenses/>.
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 20f1655..1d2ac9d 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -140,6 +140,7 @@ config VIDEO_CODA
+ 	select SRAM
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
++	select GENERIC_ALLOCATOR
+ 	---help---
+ 	   Coda is a range of video codec IPs that supports
+ 	   H.264, MPEG-4, and other video formats.
+-- 
+2.0.0.rc2
 
-That's just not needed at all and is fluff.  Please remove.
