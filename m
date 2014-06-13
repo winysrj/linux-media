@@ -1,56 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f42.google.com ([209.85.216.42]:38198 "EHLO
-	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752229AbaFUB6U (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44541 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753434AbaFMQJN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jun 2014 21:58:20 -0400
-Received: by mail-qa0-f42.google.com with SMTP id dc16so3891452qab.29
-        for <linux-media@vger.kernel.org>; Fri, 20 Jun 2014 18:58:19 -0700 (PDT)
-MIME-Version: 1.0
-Date: Fri, 20 Jun 2014 21:58:19 -0400
-Message-ID: <CAGoCfiyeHbYYTSYY_VPEXJ4z8668w6LdjprW1+FbMJCOoCekwA@mail.gmail.com>
-Subject: Best way to add subdev that doesn't use I2C or SPI?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 13 Jun 2014 12:09:13 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 26/30] [media] coda: add bytesperline to queue data
+Date: Fri, 13 Jun 2014 18:08:52 +0200
+Message-Id: <1402675736-15379-27-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+bytesperline is calculated in multiple places, store it in the coda_q_data
+structure. This will be more useful later when adding JPEG support.
 
-I'm in the process of adding support for a new video decoder.  However
-in this case it's an IP block on a USB bridge as opposed to the
-typical case which is an I2C device.  Changing registers for the
-subdev is the same mechanism as changing registers in the rest of the
-bridge (a specific region of registers is allocated for the video
-decoder).
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-Doing a subdev driver seems like the logical approach to keep the
-video decoder related routines separate from the rest of the bridge.
-It also allows the reuse of the code if we find other cases where the
-IP block is present in other devices.  However I'm not really sure
-what the mechanics are for creating a subdev that isn't really an I2C
-device.
-
-I think we've had similar cases with the Conexant parts where the Mako
-was actually a block on the main bridge (i.e. cx23885/7/8, cx231xx).
-But in that case the cx25840 subdev just issues I2C commands and
-leverages the fact that you can talk to the parts over I2C even though
-they're really on-chip.
-
-Are there any other cases today where we have a subdev that uses
-traditional register access routines provided by the bridge driver to
-read/write the video decoder registers?  In this case I would want to
-reuse the register read/write routines provided by the bridge, which
-ultimately are send as USB control messages.
-
-Any suggestions welcome (and in particular if you can point me to an
-example case where this is already being done).
-
-Thanks in advance,
-
-Devin
-
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index e71898e..0697436 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -119,6 +119,7 @@ struct coda_devtype {
+ struct coda_q_data {
+ 	unsigned int		width;
+ 	unsigned int		height;
++	unsigned int		bytesperline;
+ 	unsigned int		sizeimage;
+ 	unsigned int		fourcc;
+ 	struct v4l2_rect	rect;
+@@ -640,10 +641,7 @@ static int coda_g_fmt(struct file *file, void *priv,
+ 	f->fmt.pix.pixelformat	= q_data->fourcc;
+ 	f->fmt.pix.width	= q_data->width;
+ 	f->fmt.pix.height	= q_data->height;
+-	if (coda_format_is_yuv(f->fmt.pix.pixelformat))
+-		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 2);
+-	else /* encoded formats h.264/mpeg4 */
+-		f->fmt.pix.bytesperline = 0;
++	f->fmt.pix.bytesperline = q_data->bytesperline;
+ 
+ 	f->fmt.pix.sizeimage	= q_data->sizeimage;
+ 	f->fmt.pix.colorspace	= ctx->colorspace;
+@@ -791,6 +789,7 @@ static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
+ 	q_data->fourcc = f->fmt.pix.pixelformat;
+ 	q_data->width = f->fmt.pix.width;
+ 	q_data->height = f->fmt.pix.height;
++	q_data->bytesperline = f->fmt.pix.bytesperline;
+ 	q_data->sizeimage = f->fmt.pix.sizeimage;
+ 	q_data->rect.left = 0;
+ 	q_data->rect.top = 0;
+@@ -1403,14 +1402,16 @@ static void coda_prepare_encode(struct coda_ctx *ctx)
+ 	switch (q_data_src->fourcc) {
+ 	case V4L2_PIX_FMT_YVU420:
+ 		/* Switch Cb and Cr for YVU420 format */
+-		picture_cr = picture_y + q_data_src->width * q_data_src->height;
+-		picture_cb = picture_cr + q_data_src->width / 2 *
++		picture_cr = picture_y + q_data_src->bytesperline *
++				q_data_src->height;
++		picture_cb = picture_cr + q_data_src->bytesperline / 2 *
+ 				q_data_src->height / 2;
+ 		break;
+ 	case V4L2_PIX_FMT_YUV420:
+ 	default:
+-		picture_cb = picture_y + q_data_src->width * q_data_src->height;
+-		picture_cr = picture_cb + q_data_src->width / 2 *
++		picture_cb = picture_y + q_data_src->bytesperline *
++				q_data_src->height;
++		picture_cr = picture_cb + q_data_src->bytesperline / 2 *
+ 				q_data_src->height / 2;
+ 		break;
+ 	}
+@@ -2587,10 +2588,12 @@ static int coda_start_encoding(struct coda_ctx *ctx)
+ 	}
+ 
+ 	coda_write(dev, ctx->num_internal_frames, CODA_CMD_SET_FRAME_BUF_NUM);
+-	coda_write(dev, round_up(q_data_src->width, 8), CODA_CMD_SET_FRAME_BUF_STRIDE);
+-	if (dev->devtype->product == CODA_7541)
+-		coda_write(dev, round_up(q_data_src->width, 8),
++	coda_write(dev, q_data_src->bytesperline,
++			CODA_CMD_SET_FRAME_BUF_STRIDE);
++	if (dev->devtype->product == CODA_7541) {
++		coda_write(dev, q_data_src->bytesperline,
+ 				CODA7_CMD_SET_FRAME_SOURCE_BUF_STRIDE);
++	}
+ 	if (dev->devtype->product != CODA_DX6) {
+ 		coda_write(dev, ctx->iram_info.buf_bit_use,
+ 				CODA7_CMD_SET_FRAME_AXI_BIT_ADDR);
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+2.0.0.rc2
+
