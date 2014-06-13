@@ -1,109 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f52.google.com ([209.85.160.52]:54753 "EHLO
-	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757607AbaFZBHZ (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44478 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753411AbaFMQJK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jun 2014 21:07:25 -0400
-Received: by mail-pb0-f52.google.com with SMTP id rq2so2386197pbb.25
-        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 18:07:24 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
+	Fri, 13 Jun 2014 12:09:10 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 12/28] gpu: ipu-v3: Move IDMAC channel names to imx-ipu-v3.h
-Date: Wed, 25 Jun 2014 18:05:39 -0700
-Message-Id: <1403744755-24944-13-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 18/30] [media] coda: let userspace force IDR frames by enabling the keyframe flag in the source buffer
+Date: Fri, 13 Jun 2014 18:08:44 +0200
+Message-Id: <1402675736-15379-19-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the IDMAC channel names to imx-ipu-v3.h, to make the names
-available outside IPU. Add a couple new channels in the process
-(async display BG/FG, channels 24 and 29).
+This disables forcing IDR frames at GOP size intervals on CODA7541 and CODA960,
+which is only needed to work around a firmware bug on CodaDx6.
+Instead, the V4L2_BUF_FLAG_KEYFRAME v4l2 buffer flag is cleared before marking
+the source buffer done for dequeueing. Userspace can set it before queueing a
+frame to force an IDR frame, to implement VFU (Video Fast Update).
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/gpu/ipu-v3/ipu-prv.h |   25 -------------------------
- include/video/imx-ipu-v3.h   |   30 ++++++++++++++++++++++++++++++
- 2 files changed, 30 insertions(+), 25 deletions(-)
+ drivers/media/platform/coda.c | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/gpu/ipu-v3/ipu-prv.h b/drivers/gpu/ipu-v3/ipu-prv.h
-index 8e0bc1d..90fc02a 100644
---- a/drivers/gpu/ipu-v3/ipu-prv.h
-+++ b/drivers/gpu/ipu-v3/ipu-prv.h
-@@ -24,31 +24,6 @@ struct ipu_soc;
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 11e059d..cf75112 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -1264,22 +1264,22 @@ static void coda_prepare_encode(struct coda_ctx *ctx)
+ 	 * frame as IDR. This is a problem for some decoders that can't
+ 	 * recover when a frame is lost.
+ 	 */
+-	if (src_buf->v4l2_buf.sequence % ctx->params.gop_size) {
+-		src_buf->v4l2_buf.flags |= V4L2_BUF_FLAG_PFRAME;
+-		src_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_KEYFRAME;
+-	} else {
++	if ((src_buf->v4l2_buf.sequence % ctx->params.gop_size) == 0)
+ 		src_buf->v4l2_buf.flags |= V4L2_BUF_FLAG_KEYFRAME;
++	if (src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_KEYFRAME)
+ 		src_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_PFRAME;
+-	}
++	else
++		src_buf->v4l2_buf.flags |= V4L2_BUF_FLAG_PFRAME;
  
- #include <video/imx-ipu-v3.h>
+ 	if (dev->devtype->product == CODA_960)
+ 		coda_set_gdi_regs(ctx);
  
--#define IPUV3_CHANNEL_CSI0			 0
--#define IPUV3_CHANNEL_CSI1			 1
--#define IPUV3_CHANNEL_CSI2			 2
--#define IPUV3_CHANNEL_CSI3			 3
--#define IPUV3_CHANNEL_VDI_MEM_IC_VF              5
--#define IPUV3_CHANNEL_MEM_IC_PP                 11
--#define IPUV3_CHANNEL_MEM_IC_PRP_VF             12
--#define IPUV3_CHANNEL_G_MEM_IC_PRP_VF           14
--#define IPUV3_CHANNEL_G_MEM_IC_PP               15
--#define IPUV3_CHANNEL_IC_PRP_ENC_MEM            20
--#define IPUV3_CHANNEL_IC_PRP_VF_MEM             21
--#define IPUV3_CHANNEL_IC_PP_MEM                 22
--#define IPUV3_CHANNEL_MEM_BG_SYNC		23
--#define IPUV3_CHANNEL_MEM_FG_SYNC		27
--#define IPUV3_CHANNEL_MEM_DC_SYNC		28
--#define IPUV3_CHANNEL_MEM_FG_SYNC_ALPHA		31
--#define IPUV3_CHANNEL_MEM_DC_ASYNC		41
--#define IPUV3_CHANNEL_MEM_ROT_ENC		45
--#define IPUV3_CHANNEL_MEM_ROT_VF		46
--#define IPUV3_CHANNEL_MEM_ROT_PP		47
--#define IPUV3_CHANNEL_ROT_ENC_MEM		48
--#define IPUV3_CHANNEL_ROT_VF_MEM		49
--#define IPUV3_CHANNEL_ROT_PP_MEM		50
--#define IPUV3_CHANNEL_MEM_BG_SYNC_ALPHA		51
--
- #define IPU_MCU_T_DEFAULT	8
- #define IPU_CM_IDMAC_REG_OFS	0x00008000
- #define IPU_CM_IC_REG_OFS	0x00020000
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 20776cf..44e337b 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -135,6 +135,36 @@ enum ipu_channel_irq {
- 	IPU_IRQ_EOS = 192,
- };
+ 	/*
+-	 * Copy headers at the beginning of the first frame for H.264 only.
+-	 * In MPEG4 they are already copied by the coda.
++	 * Copy headers in front of the first frame and forced I frames for
++	 * H.264 only. In MPEG4 they are already copied by the CODA.
+ 	 */
+-	if (src_buf->v4l2_buf.sequence == 0) {
++	if (src_buf->v4l2_buf.sequence == 0 ||
++	    src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_KEYFRAME) {
+ 		pic_stream_buffer_addr =
+ 			vb2_dma_contig_plane_dma_addr(dst_buf, 0) +
+ 			ctx->vpu_header_size[0] +
+@@ -3245,6 +3245,8 @@ static void coda_finish_encode(struct coda_ctx *ctx)
+ 		src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+ 	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
  
-+/*
-+ * Enumeration of IDMAC channels
-+ */
-+#define IPUV3_CHANNEL_CSI0			 0
-+#define IPUV3_CHANNEL_CSI1			 1
-+#define IPUV3_CHANNEL_CSI2			 2
-+#define IPUV3_CHANNEL_CSI3			 3
-+#define IPUV3_CHANNEL_VDI_MEM_IC_VF		 5
-+#define IPUV3_CHANNEL_MEM_IC_PP			11
-+#define IPUV3_CHANNEL_MEM_IC_PRP_VF		12
-+#define IPUV3_CHANNEL_G_MEM_IC_PRP_VF		14
-+#define IPUV3_CHANNEL_G_MEM_IC_PP		15
-+#define IPUV3_CHANNEL_IC_PRP_ENC_MEM		20
-+#define IPUV3_CHANNEL_IC_PRP_VF_MEM		21
-+#define IPUV3_CHANNEL_IC_PP_MEM			22
-+#define IPUV3_CHANNEL_MEM_BG_SYNC		23
-+#define IPUV3_CHANNEL_MEM_BG_ASYNC		24
-+#define IPUV3_CHANNEL_MEM_FG_SYNC		27
-+#define IPUV3_CHANNEL_MEM_DC_SYNC		28
-+#define IPUV3_CHANNEL_MEM_FG_ASYNC		29
-+#define IPUV3_CHANNEL_MEM_FG_SYNC_ALPHA		31
-+#define IPUV3_CHANNEL_MEM_DC_ASYNC		41
-+#define IPUV3_CHANNEL_MEM_ROT_ENC		45
-+#define IPUV3_CHANNEL_MEM_ROT_VF		46
-+#define IPUV3_CHANNEL_MEM_ROT_PP		47
-+#define IPUV3_CHANNEL_ROT_ENC_MEM		48
-+#define IPUV3_CHANNEL_ROT_VF_MEM		49
-+#define IPUV3_CHANNEL_ROT_PP_MEM		50
-+#define IPUV3_CHANNEL_MEM_BG_SYNC_ALPHA		51
-+
- int ipu_map_irq(struct ipu_soc *ipu, int irq);
- int ipu_idmac_channel_irq(struct ipu_soc *ipu, struct ipuv3_channel *channel,
- 		enum ipu_channel_irq irq);
++	/* Clear keyframe flag so userspace can misuse it to force an IDR frame */
++	src_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_KEYFRAME;
+ 	v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
+ 
+ 	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
 -- 
-1.7.9.5
+2.0.0.rc2
 
