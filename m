@@ -1,41 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vae.nstda.or.th ([203.185.133.102]:32984 "EHLO vae.nstda.or.th"
+Received: from mail.kapsi.fi ([217.30.184.167]:53463 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933692AbaFJHnM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jun 2014 03:43:12 -0400
-Date: Tue, 10 Jun 2014 00:30:41 -0700 (PDT)
-From: ADMIN <pattaya@nstda.or.th>
-Reply-To: ADMIN <647812717@qq.com>
-Message-ID: <1818743320.8680411.1402385441924.JavaMail.root@nstda.or.th>
-Subject: Dear user
+	id S1754455AbaFNAta (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Jun 2014 20:49:30 -0400
+Message-ID: <539B9C17.3000809@iki.fi>
+Date: Sat, 14 Jun 2014 03:49:27 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+To: Daniel Mayer <danielmayer@arcor.de>
+CC: linux-media@vger.kernel.org, m.chehab@samsung.com
+Subject: Re: WG: Patch pctv452e.c: Suppress annoying dmesg-SPAM
+References: <029901cf7c4c$7a4d78d0$6ee86a70$@arcor.de>
+In-Reply-To: <029901cf7c4c$7a4d78d0$6ee86a70$@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Moikka Daniel,
 
-Dear user
+On 05/31/2014 12:16 AM, Daniel Mayer wrote:
+> Hi,
+> attached micro-patch removes the text output of an error-message of the
+> PCTV452e-driver. The error messages "I2C error: [.]" do not help any user of
+> the kernel, so whatever causes the error, it does not hamper the function of
+> my TT-3600 USB receiver.
+> So: Just remove the entries in the dmesg, for it is quite spam-like.
+> Perhaps someone with deeper knowledge could have a look up the background of
+> this message and fix it?
+> Thanks,
+> Daniel
+>
+> (resent as plain-text; sorry)
+>
 
-Your email has exceeded 2 GB created by the webmaster, you are currently
-running at 2.30GB, you cannot send or receive new message until you verify
-you email account.
+That is not proper fix, it just hides it by removing proper error logging.
 
-Please enter your details below to verify your account :
-
-(1) E-mail:
-(2) Name:
-(3) Password:
-(4) Confirm Password:
-
-thank you
-System Administrator.
+I debugged real reason earlier:
+http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/50491
 
 
+I have got even hardware, but I am totally overloaded so I have to 
+prioritize things. I am happy to see if someone fixes it properly.
 
+regards
+Antti
 
----
-Disclaimer:
-
-This e-mail and any files transmitted with it may contain confidential and proprietary information of the National Science and Technology Development Agency (NSTDA), Thailand. They are intended solely for the use of the addressed individuals or entities. If you are not the intended recipient, you are required to immediately delete this e-mail and its contents from your system. Any disclosure, distribution, or action based upon the contents of this e-mail is strictly prohibited. Any views or opinions presented in this e-mail are solely those of the sender and do not necessarily represent those of NSTDA. NSTDA does not accept any responsibility for the content of this message or the consequences of any actions taken on the basis of the information provided. NSTDA accepts no liability for any damage caused by any virus or malware which may be inserted in this e-mail during transmission.
+-- 
+http://palosaari.fi/
