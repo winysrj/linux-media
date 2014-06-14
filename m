@@ -1,223 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:46263 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751058AbaFELGZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jun 2014 07:06:25 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N6P00IBX06OII20@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 05 Jun 2014 07:06:24 -0400 (EDT)
-Date: Thu, 05 Jun 2014 08:06:20 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFC ATTN] Cropping, composing, scaling and S_FMT
-Message-id: <20140605080620.53c6a803.m.chehab@samsung.com>
-In-reply-to: <53901A41.70804@xs4all.nl>
-References: <538C35A2.8030307@xs4all.nl>
- <20140604154012.13ddd6a9.m.chehab@samsung.com> <53901A41.70804@xs4all.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from x1.w4w.guest.it ([77.95.174.1]:56446 "EHLO x1.w4w.guest.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754799AbaFNRfn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Jun 2014 13:35:43 -0400
+Received: from [185.5.61.116] (helo=[192.168.1.33])
+	by x1.w4w.guest.it with esmtpsa (TLSv1:DHE-RSA-AES128-SHA:128)
+	(Exim 4.82)
+	(envelope-from <danjde@msw.it>)
+	id 1WvrcJ-0006q5-A2
+	for linux-media@vger.kernel.org; Sat, 14 Jun 2014 19:19:47 +0200
+Message-ID: <539C8431.10205@msw.it>
+Date: Sat, 14 Jun 2014 19:19:45 +0200
+From: Davide Marchi <danjde@msw.it>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Usb-dvb Pinnacle PCTV 200e
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 05 Jun 2014 09:20:33 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi friends,
 
-> On 06/04/2014 08:40 PM, Mauro Carvalho Chehab wrote:
-> > Em Mon, 02 Jun 2014 10:28:18 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> >> During the media mini-summit I went through all 8 combinations of cropping,
-> >> composing and scaling (i.e. none of these features is present, or only cropping,
-> >> only composing, etc.).
-> >>
-> >> In particular I showed what I thought should happen if you change a crop rectangle,
-> >> compose rectangle or the format rectangle (VIDIOC_S_FMT).
-> >>
-> >> In my proposal the format rectangle would increase in size if you attempt to set
-> >> the compose rectangle wholly or partially outside the current format rectangle.
-> >> Most (all?) of the developers present didn't like that and I was asked to take
-> >> another look at that.
-> >>
-> >> After looking at this some more I realized that there was no need for this and
-> >> it is OK to constrain a compose rectangle to the current format rectangle. All
-> >> you need to do if you want to place the compose rectangle outside of the format
-> >> rectangle is to just change the format rectangle first. If the driver supports
-> >> composition then increasing the format rectangle will not change anything else,
-> >> so that is a safe operation without side-effects.
-> > 
-> > Good!
-> > 
-> >> However, changing the crop rectangle *can* change the format rectangle. In the
-> >> simple case of hardware that just supports cropping this is obvious, since
-> >> the crop and format rectangles must always be of the same size, so changing
-> >> one will change the other.
-> > 
-> > True, but, in such case, I'm in doubt if it is worth to implement crop API
-> > support, as just format API support is enough. The drawback is that
-> > userspace won't know how to differentiate between:
-> > 
-> > 1) scaler, no-crop, where changing the format changes the scaler;
-> > 2) crop, no scaler, where changing the format changes the crop region.
-> > 
-> > That could easily be fixed with a new caps flag, to announce if a device 
-> > has scaler or not.
-> 
-> Erm, the format just specifies a size, crop specifies a rectangle. You can't
-> use S_FMT to specify the crop rectangle.
+I've a Pinnacle PCTV 200e on Ubuntu LTS 14.04, kernel Linux 
+3.13.0-24-generic
+#47-Ubuntu SMP Fri May 2 23:31:42 UTC 2014 i686 i686 i686 GNU/Linux:
 
-You said above about the format rectangle, and not about the crop rectangle.
-I think we need first to use a consistent glossary on those discussions ;)
+lsusb:
+#Bus 001 Device 004: ID 2304:020e Pinnacle Systems, Inc. PCTV 200e
 
-I'm understanding "format rectangle" as the one defined by S_FMT.
+dmesg:
+[ 5287.516227] usb 1-8: new high-speed USB device number 4 using ehci-pci
+[ 5287.649014] usb 1-8: New USB device found, idVendor=2304, idProduct=020e
+[ 5287.649026] usb 1-8: New USB device strings: Mfr=1, Product=2, 
+SerialNumber=3
+[ 5287.649034] usb 1-8: Product: DVB-T
+[ 5287.649041] usb 1-8: Manufacturer: Pinnacle Systems, Inc.
+[ 5287.649048] usb 1-8: SerialNumber: 0C22175D0319C8EA
 
-> Also, this case of crop and no scaler exists today in various drivers and
-> works as described (I'm sure about vpfe_capture, vino and I believe that there
-> are various exynos drivers as well).
+I've seen the page:
+http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_200e#Development_ToDo_List 
 
-This is confusing, and some drivers actually set both format and crop
-rectangles at the same time, on S_FMT. See, for example, set_res() on:
-	drivers/media/i2c/mt9v011.c
 
-This one explicitly does crop for a random resolution, but there are other
-sensor drivers that have multiple resolutions that are actually doing
-crop instead of scaling, when changing the resolution, and don't implement
-the crop API (I think that this is the case, for example, of ov7670).
+I've installed headers and source kernel but for kernel 3.13.0-24 I 
+don't know exactly what to do;
 
-This is also the case of the gspca driver, and most of their sub-drivers.
+could you suggest if is it possible, how to give up Pinnacle PCTV 200e 
+on Linux?
+many many thanks
 
-I'd say that there are a lot more sensor drivers doing crop at S_FMT
-than via crop/selection API.
+Davide
+Italy
 
-We need to decide what's the best way for apps to set it, and then
-see an strategy to migrate the non-compliant drivers. Whatever
-decision, we'll need to concern about backward compat.
+-- 
+firma
 
-> >> But if you throw in a scaler as well, you usually
-> >> still have such constraints based on the scaler capabilities.
-> >>
-> >> So assuming a scaler that can only scale 4 times (or less) up or down in each
-> >> direction, then setting a crop rectangle of 240x160 will require that the
-> >> format rectangle has a width in the range of 240/4 - 240*4 (60-960) and a
-> >> height in the range of 160/4 - 160*4 (40-640). Anything outside of that will
-> >> have to be corrected.
-> > 
-> > This can be done on two directions, e. g. rounding the crop area or
-> > rounding the scaler area.
-> > 
-> > I is not obvious at all (nor backward compat) to change the format
-> > rectangle when the crop rea is changed.
-> > 
-> > So, the best approach in this case is to round the crop rectangle to fit
-> > into the scaler limits, preserving the format rectangle.
-> 
-> I disagree with that for several reasons:
-> 
-> 1) In the case of no-scaler the format is already changed by s_crop in existing
-> drivers. That can't be changed. So doing something else if there is a scaler is
-> inconsistent behavior.
-
-See above. The inconsistent behavior is already there.
-
-> 2) The spec clearly specifies that changing the crop rectangle may change the
-> format size. It has always said so. From the section "Image Cropping, Insertion
-> and Scaling", "Scaling Adjustments":
-> 
-> "Applications can change the source or the target rectangle first, as they may
->  prefer a particular image size or a certain area in the video signal. If the
->  driver has to adjust both to satisfy hardware limitations, the last requested
->  rectangle shall take priority, and the driver should preferably adjust the
->  opposite one. The VIDIOC_TRY_FMT ioctl however shall not change the driver
->  state and therefore only adjust the requested rectangle."
-> 
-> The two following paragraphs actually describe exactly the crop+scaler case and
-> how setting the crop rectangle can change the format size.
-
-The above paragraph is too vague and leaves to several different
-interpretations. 
-
-One could read that "last requested rectangle" simply means that, if 
-userspace calls a rectangle API call (like S_FMT) several times, the
-last one will prevail.
-
-> 3) If an application desires a specific crop rectangle that is possible by the
-> hardware but is changed just because the format size is not suitable, then it
-> is hard (perhaps even impossible) for the application to figure out how to change
-> the format so the crop request can be achieved. That's quite a different situation
-> compared to the compose case where that is easy to decide.
-
-I don't think that this makes it impossible.
-
-See, if an application wants a crop area of (cx, cy), it should take a S_FMT
-resolution (x, y) with an algo that will get the minimal resolution where
-cx >=x and cy >= y condition met.
-
-So, let's say that a sensor supports those resolutions:	
-	(160, 120)
-	(176, 144)
-	(320, 240)
-	(352, 288)
-	(640, 480)
-	(800, 600)
-	(1024, 768)
-	(1280, 1024)
-	(1600, 1200)
-	(2048, 1536)
-
-And one wants a crop area of (100, 80), the format rectangle that
-has more chance for the crop to work is (160, 120).
-
-So, app should set res to (160, 120) and then set crop to (100, 80).
-
-That's is more likely to work than setting a res (2048, 1536) and
-try to crop to (100, 80).
-
-> 4) This is actually how bttv behaves. So this is well-established behavior.
-
-Ok, this is actually a very good point, since the crop API was
-originally added for bttv, back in 2007.
-
-That means that applications implementing the crop API should already
-be expecting the format resolution to change.
-
-Yet, as I pointed, there's a huge number of drivers using S_FMT
-to actually set both crop and format rectangles without implementing
-the crop API.
-
-I really don't think it is worth to change all of them.
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> >>
-> >> In my opinion this is valid behavior, and the specification also clearly
-> >> specifies in the VIDIOC_S_CROP and VIDIOC_S_SELECTION documentation that the
-> >> format may change after changing the crop rectangle.
-> >>
-> >> Note that for output streams the role of crop and compose is swapped. So for
-> >> output streams it is the crop rectangle that will always be constrained by
-> >> the format rectangle, and it is the compose rectangle that might change the
-> >> format rectangle based on scaler constraints.
-> >>
-> >> I think this makes sense and unless there are comments this is what I plan
-> >> to implement in my vivi rewrite which supports all these crop/compose/scale
-> >> combinations.
-> >>
-> >> Regards,
-> >>
-> >> 	Hans
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cosmogoniA <http://www.cosmogonia.org/>
+noprovarenofareononfarenonc'èprovare
