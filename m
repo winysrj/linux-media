@@ -1,69 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-hk1lp0124.outbound.protection.outlook.com ([207.46.51.124]:36416
-	"EHLO APAC01-HK1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753138AbaFHB3v convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 21:29:51 -0400
-From: James Harper <james@ejbdigital.com.au>
-To: =?iso-8859-1?Q?Ren=E9?= <poisson.rene@neuf.fr>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: fusion hdtv dual express 2 (working, kind of)
-Date: Sun, 8 Jun 2014 01:29:43 +0000
-Message-ID: <c48e37ce86984e7a9e0822c9745aaa9e@SIXPR04MB304.apcprd04.prod.outlook.com>
-References: <c01bd13c8e7241339365ecd0785fc3c4@SIXPR04MB304.apcprd04.prod.outlook.com>
- <2406CE434D5342D8B36CACED1EB791F6@ci5fish>
-In-Reply-To: <2406CE434D5342D8B36CACED1EB791F6@ci5fish>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:57460 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754705AbaFNMpK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Jun 2014 08:45:10 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N7500B2CSR96K20@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 14 Jun 2014 08:45:09 -0400 (EDT)
+Date: Sat, 14 Jun 2014 09:45:04 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: em28xx submit of urb 0 failed (error=-27)
+Message-id: <20140614094504.6b5695f4.m.chehab@samsung.com>
+In-reply-to: <5398F646.70102@iki.fi>
+References: <5398F2ED.4080309@iki.fi> <5398F646.70102@iki.fi>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Hi,
-> I don't use mythtv myself so I can't help you troubleshooting using this
-> program. But the symptoms you describe (high pitch sound, degraded video)
-> make me think of missing packets in the received stream. May be you might
-> use vlc in maximum verbosity mode to get information about the stream as it
-> is really received by the device.
-> I suggest  you store the output of stderr  in a file to examine it
-> afterwards because your system my have difficulties to cope with the output
-> rate.
-> Given your tuning parameters the command line shall look like:
-> vlc -vvv -I dummy
-> dvb://frequency=550500000 --dvb-adapter=2 --dvb-bandwidth=7 --dvb-
-> transmission=8
->  --dvb-guard=1/16 --dvb-code-rate-hp=3/4 --no-video --no-audio 2> dttv.log
+Em Thu, 12 Jun 2014 03:37:26 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
+
+> I just ran blind scan using w_scan and it interrupted scanning, with 
+> following error (ioctl DMX_SET_FILTER failed: 27 File too large).
 > 
-> Wait about one minute, ^C and watch the log. You may, before issue "grep
-> discontinuity ddtv.log" to see if there are a lot of missing packets.
-> However, continuity counters are modulo 16 so is the number of missing
-> packets ...
-
-[0x7f239c003c68] ts demux warning: discontinuity received 0x2 instead of 0x1 (pid=2841)
-[0x7f239c003c68] ts demux warning: discontinuity received 0x3 instead of 0x2 (pid=2840)
-[0x7f239c003c68] ts demux warning: discontinuity received 0xc instead of 0xb (pid=2845)
-[0x7f239c003c68] ts demux error: libdvbpsi (PSI decoder): TS discontinuity (received 4, expected 3) for PID 18
-[0x7f239c003c68] ts demux warning: discontinuity received 0x4 instead of 0x3 (pid=2841)
-[0x7f239c003c68] ts demux warning: discontinuity received 0xe instead of 0x5 (pid=2840)
-[0x7f239c003c68] ts demux warning: discontinuity received 0x6 instead of 0x2 (pid=2840)
-[0x7f239c003c68] ts demux error: libdvbpsi (PSI decoder): TS discontinuity (received 8, expected 6) for PID 18
-[0x7f239c003c68] ts demux warning: discontinuity received 0x8 instead of 0x7 (pid=2841)
-[0x7f239c003c68] ts demux warning: discontinuity received 0x5 instead of 0x8 (pid=2840)
-[0x7f239c003c68] ts demux warning: discontinuity received 0xa instead of 0x9 (pid=2841)
-
-Looks like a problem!
-
-So if I'm getting signal around 50000, Verror=0, and BlockError=0 then would I be right in thinking the tuner and everything like that is hooked up correctly, and that my problem is not related to signal quality but to something a bit further along?
-
-Next I guess I'll crank up the debug in the kernel modules. I'll probably figure out something on my own but if you had any tips on which would be best to enable it would be much appreciated!
-
+> 602000: (time: 00:58.973)
+>          (0.308sec): SCL (0x1F)
+>          (0.308sec) signal
+>          (0.308sec) lock
+>          signal ok:	QAM_AUTO f = 602000 kHz I999B8C999D999T999G999Y999 
+> (0:0:0)
+>          initial PAT lookup..
+> start_filter:1644: ERROR: ioctl DMX_SET_FILTER failed: 27 File too large
 > 
-> PS: I am not a developer but I can help you with dvb if you have specific
-> questions in that domain, just reply to me, I'll do my best to help.
+> regards
+> Antti
+> 
+> 
+> On 06/12/2014 03:23 AM, Antti Palosaari wrote:
+> > Do you have any idea about that bug?
+> > kernel: submit of urb 0 failed (error=-27)
+> >
+> > https://bugzilla.kernel.org/show_bug.cgi?id=72891
+> >
+> > I have seen it recently very often when I try start streaming DVB. When
+> > it happens, device is unusable. I have feeling that it could be coming
+> > from recent 28xx big changes where it was modularised. IIRC I reported
+> > that at the time and Mauro added error number printing to log entry.
+> > Anyhow, it is very annoying and occurs very often. And people have
+> > started pinging me as I have added very many DVB devices to em28xx.
 
-Your help so far is greatly appreciated!
+Well, according with USB documentation (Documentation/usb/URB.txt),
+EFBIG means:
+- Too many requested ISO frames
 
-Thanks
+Perhaps the logic that calculates the number of URBs has a bug. In
+the past, the URB size was hardcoded. Nowadays, em28xx dynamically
+calculate it based on the USB descriptors, and the endpoints found.
 
-James
+>From what I know, different versions of em28xx chips have different
+max limits. We need to identify on what chip version this error is
+occurring, and reduce the number of ISOC frames there (with will
+reduce the max bandwidth supported by such chip).
+
+Regards,
+Mauro
