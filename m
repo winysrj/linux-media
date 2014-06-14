@@ -1,124 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f41.google.com ([209.85.219.41]:61171 "EHLO
-	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756717AbaFSC0m (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39845 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754729AbaFNP3V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jun 2014 22:26:42 -0400
-Received: by mail-oa0-f41.google.com with SMTP id l6so3872975oag.28
-        for <linux-media@vger.kernel.org>; Wed, 18 Jun 2014 19:26:41 -0700 (PDT)
+	Sat, 14 Jun 2014 11:29:21 -0400
+Received: from avalon.localnet (unknown [91.178.211.37])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5530235A3C
+	for <linux-media@vger.kernel.org>; Sat, 14 Jun 2014 17:28:45 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.16] OMAP4 ISS fix
+Date: Sat, 14 Jun 2014 17:29:57 +0200
+Message-ID: <4297622.KRtW0DhXJI@avalon>
 MIME-Version: 1.0
-In-Reply-To: <53A23FC4.5010302@gmx.de>
-References: <1403128945-28298-1-git-send-email-xypron.glpk@gmx.de>
-	<CAGXu5jKLoRkKuu8T=im6oEhn3WmXjZPwFXEbaPT6SeL29XrS0g@mail.gmail.com>
-	<53A23FC4.5010302@gmx.de>
-Date: Wed, 18 Jun 2014 19:26:41 -0700
-Message-ID: <CAGXu5jLJGpPhycff9OSMGu6wduLGQWhsu2mkGeM7R0O9CQZ7pg@mail.gmail.com>
-Subject: Re: [PATCH 1/1] media: dib9000: avoid out of bound access
-From: Kees Cook <keescook@chromium.org>
-To: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 18, 2014 at 6:41 PM, Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
-> On 19.06.2014 01:50, Kees Cook wrote:
->>
->> On Wed, Jun 18, 2014 at 3:02 PM, Heinrich Schuchardt <xypron.glpk@gmx.de>
->> wrote:
->>>
->>> The current test to avoid out of bound access to mb[] is insufficient.
->>> For len = 19 non-existent mb[10] will be accessed.
->>>
->>> A check in the for loop is insufficient to avoid out of bound access in
->>> dib9000_mbx_send_attr.
->>>
->>> Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
->>> ---
->>>   drivers/media/dvb-frontends/dib9000.c | 5 ++++-
->>>   1 file changed, 4 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/media/dvb-frontends/dib9000.c
->>> b/drivers/media/dvb-frontends/dib9000.c
->>> index e540cfb..6a71917 100644
->>> --- a/drivers/media/dvb-frontends/dib9000.c
->>> +++ b/drivers/media/dvb-frontends/dib9000.c
->>> @@ -1040,10 +1040,13 @@ static int dib9000_risc_apb_access_write(struct
->>> dib9000_state *state, u32 addres
->>>          if (address >= 1024 || !state->platform.risc.fw_is_running)
->>>                  return -EINVAL;
->>>
->>> +       if (len > 18)
->>> +               return -EINVAL;
->>> +
->>>          /* dprintk( "APB access thru wr fw %d %x", address, attribute);
->>> */
->>>
->>>          mb[0] = (unsigned short)address;
->>> -       for (i = 0; i < len && i < 20; i += 2)
->>> +       for (i = 0; i < len; i += 2)
->>>                  mb[1 + (i / 2)] = (b[i] << 8 | b[i + 1]);
->>
->>
->> Good catch on the mb[] access! However, I think there is still more to
->> fix since b[i + 1] can read past the end of b: Say b is defined as "u8
->> b[3]". Passing len 3 means the second loop, with i==2 will access b[2]
->> and b[3], the latter is out of range.
->
->
-> b[] and len are provided by the caller of dib9000_risc_apb_access_write.
-> dib9000_risc_apb_access_write cannot verify if the length of b[] matches len
-> at all.
->
-> Currently dib9000_risc_apb_access_write cannot handle odd values of len.
-> This holds even true if b[] has been padded with zero to an even length: For
-> odd values of len the last byte is not passed to dib9000_mbx_send_attr.
->
-> What is left unclear is how odd values of len should be handled correctly:
->
-> Should the caller provide a b[] padded with 0 to the next even number of
-> bytes,
-> or should dib9000_risc_apb_access_write take care not to read more then len
-> bytes,
-> or should odd values of len cause an error EINVAL.
->
-> From what I read in the coding one source of the value of len is
-> tuner_attach(), which is called from outside the dib9000 driver.
+Hi Mauro,
 
-How about:
+Please pull the following fix for v3.16. It fixes a build breakage due to the 
+OMAP4 ISS driver.
 
-for (i = 0; i < len; i += 2) {
-    u16 val = b[i] << 8;
-    if (i + 1 < len)
-         val |= b[i + 1];
-    mb[1 + (i / 2)] = val;
+The following changes since commit f7a27ff1fb77e114d1059a5eb2ed1cffdc508ce8:
 
-That's defensive, and would have the same effect of callers doing the padding.
+  [media] xc5000: delay tuner sleep to 5 seconds (2014-05-25 17:50:16 -0300)
 
--Kees
+are available in the git repository at:
 
->
-> Heinrich
->
->
->>
->> -Kees
->>
->>>
->>>          dib9000_mbx_send_attr(state, OUT_MSG_BRIDGE_APB_W, mb, 1 + len /
->>> 2, attribute);
->>> --
->>> 2.0.0
->>>
->>
->>
->>
->
+  git://linuxtv.org/pinchartl/media.git omap4iss/next
 
+for you to fetch changes up to 00084ddf4f7d0d83007f179a4aedccabcdef69a4:
 
+  staging: tighten omap4iss dependencies (2014-06-14 17:28:01 +0200)
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      staging: tighten omap4iss dependencies
+
+ drivers/staging/media/omap4iss/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 -- 
-Kees Cook
-Chrome OS Security
+Regards,
+
+Laurent Pinchart
+
