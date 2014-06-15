@@ -1,96 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4817 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755739AbaFLLyd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 07:54:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:37790 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750792AbaFOJTZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jun 2014 05:19:25 -0400
+Received: from 85-23-164-3.bb.dnainternet.fi ([85.23.164.3] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1Ww6ax-0005f2-LG
+	for linux-media@vger.kernel.org; Sun, 15 Jun 2014 12:19:23 +0300
+Message-ID: <539D651A.30505@iki.fi>
+Date: Sun, 15 Jun 2014 12:19:22 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv4 PATCH 02/34] v4l2-ctrls: use pr_info/cont instead of printk.
-Date: Thu, 12 Jun 2014 13:52:34 +0200
-Message-Id: <e6ead703ffe42c995c08902e4d899e2d9f9156e9.1402573818.git.hans.verkuil@cisco.com>
-In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
-References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+Subject: Re: [PATCH] rtl28xxu: add [1b80:d3b0] Sveon STV21
+References: <20140612062245.GA1668@wolfgang>
+In-Reply-To: <20140612062245.GA1668@wolfgang>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Codingstyle fix.
+Mauro, please pick that from patchwork, I am not going to PULL request it.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index e132fa2..365884b 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -2068,45 +2068,45 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
- 	if (ctrl->type == V4L2_CTRL_TYPE_CTRL_CLASS)
- 		return;
- 
--	printk(KERN_INFO "%s%s%s: ", prefix, colon, ctrl->name);
-+	pr_info("%s%s%s: ", prefix, colon, ctrl->name);
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER:
--		printk(KERN_CONT "%d", ctrl->cur.val);
-+		pr_cont("%d", ctrl->cur.val);
- 		break;
- 	case V4L2_CTRL_TYPE_BOOLEAN:
--		printk(KERN_CONT "%s", ctrl->cur.val ? "true" : "false");
-+		pr_cont("%s", ctrl->cur.val ? "true" : "false");
- 		break;
- 	case V4L2_CTRL_TYPE_MENU:
--		printk(KERN_CONT "%s", ctrl->qmenu[ctrl->cur.val]);
-+		pr_cont("%s", ctrl->qmenu[ctrl->cur.val]);
- 		break;
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
--		printk(KERN_CONT "%lld", ctrl->qmenu_int[ctrl->cur.val]);
-+		pr_cont("%lld", ctrl->qmenu_int[ctrl->cur.val]);
- 		break;
- 	case V4L2_CTRL_TYPE_BITMASK:
--		printk(KERN_CONT "0x%08x", ctrl->cur.val);
-+		pr_cont("0x%08x", ctrl->cur.val);
- 		break;
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		printk(KERN_CONT "%lld", ctrl->cur.val64);
-+		pr_cont("%lld", ctrl->cur.val64);
- 		break;
- 	case V4L2_CTRL_TYPE_STRING:
--		printk(KERN_CONT "%s", ctrl->cur.string);
-+		pr_cont("%s", ctrl->cur.string);
- 		break;
- 	default:
--		printk(KERN_CONT "unknown type %d", ctrl->type);
-+		pr_cont("unknown type %d", ctrl->type);
- 		break;
- 	}
- 	if (ctrl->flags & (V4L2_CTRL_FLAG_INACTIVE |
- 			   V4L2_CTRL_FLAG_GRABBED |
- 			   V4L2_CTRL_FLAG_VOLATILE)) {
- 		if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
--			printk(KERN_CONT " inactive");
-+			pr_cont(" inactive");
- 		if (ctrl->flags & V4L2_CTRL_FLAG_GRABBED)
--			printk(KERN_CONT " grabbed");
-+			pr_cont(" grabbed");
- 		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE)
--			printk(KERN_CONT " volatile");
-+			pr_cont(" volatile");
- 	}
--	printk(KERN_CONT "\n");
-+	pr_cont("\n");
- }
- 
- /* Log all controls owned by the handler */
+regards
+Antti
+
+
+On 06/12/2014 09:22 AM, Sebastian Kemper wrote:
+> Added Sveon STV21 device based on Realtek RTL2832U and FC0013 tuner
+>
+> Signed-off-by: Sebastian Kemper <sebastian_ml@gmx.net>
+> ---
+>
+> diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+> index 11d2bea..b518ada 100644
+> --- a/drivers/media/dvb-core/dvb-usb-ids.h
+> +++ b/drivers/media/dvb-core/dvb-usb-ids.h
+> @@ -363,6 +363,7 @@
+>   #define USB_PID_TVWAY_PLUS				0x0002
+>   #define USB_PID_SVEON_STV20				0xe39d
+>   #define USB_PID_SVEON_STV20_RTL2832U			0xd39d
+> +#define USB_PID_SVEON_STV21				0xd3b0
+>   #define USB_PID_SVEON_STV22				0xe401
+>   #define USB_PID_SVEON_STV22_IT9137			0xe411
+>   #define USB_PID_AZUREWAVE_AZ6027			0x3275
+> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> index a676e44..5f8ff0f 100644
+> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> @@ -1541,6 +1541,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
+>   		&rtl2832u_props, "Peak DVB-T USB", NULL) },
+>   	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV20_RTL2832U,
+>   		&rtl2832u_props, "Sveon STV20", NULL) },
+> +	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV21,
+> +		&rtl2832u_props, "Sveon STV21", NULL) },
+>   	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV27,
+>   		&rtl2832u_props, "Sveon STV27", NULL) },
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
 -- 
-2.0.0.rc0
-
+http://palosaari.fi/
