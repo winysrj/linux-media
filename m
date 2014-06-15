@@ -1,79 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57665 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753849AbaFXO43 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 10:56:29 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 22/29] [media] coda: add sequence counter offset
-Date: Tue, 24 Jun 2014 16:56:04 +0200
-Message-Id: <1403621771-11636-23-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
-References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:42803 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750743AbaFOJr3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jun 2014 05:47:29 -0400
+Message-ID: <539D6BA8.6010802@iki.fi>
+Date: Sun, 15 Jun 2014 12:47:20 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: =?UTF-8?B?TWFudWVsIFNjaMO2bGxpbmc=?= <manuel.schoelling@gmx.de>
+CC: m.chehab@samsung.com, gregkh@linuxfoundation.org,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH] msi3103: Use time_before_eq()
+References: <1401021579-22481-1-git-send-email-manuel.schoelling@gmx.de>
+In-Reply-To: <1401021579-22481-1-git-send-email-manuel.schoelling@gmx.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The coda h.264 decoder also counts PIC_RUNs where no frame was decoded but
-a frame was rotated out / marked as ready to be displayed. This causes an
-offset between the incoming encoded frame's sequence number and the decode
-sequence number returned by the coda. This patch introduces a sequence
-counter offset variable to keep track of the difference.
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+Mauro, pick that from patchwork to 3.16. I am not going to PULL request it.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 6e65ab9..4548c84 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -222,6 +222,7 @@ struct coda_ctx {
- 	u32				isequence;
- 	u32				qsequence;
- 	u32				osequence;
-+	u32				sequence_offset;
- 	struct coda_q_data		q_data[2];
- 	enum coda_inst_type		inst_type;
- 	struct coda_codec		*codec;
-@@ -2620,6 +2621,7 @@ static void coda_stop_streaming(struct vb2_queue *q)
- 		ctx->streamon_cap = 0;
- 
- 		ctx->osequence = 0;
-+		ctx->sequence_offset = 0;
- 	}
- 
- 	if (!ctx->streamon_out && !ctx->streamon_cap) {
-@@ -3125,7 +3127,9 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 
- 	if (decoded_idx == -1) {
- 		/* no frame was decoded, but we might have a display frame */
--		if (display_idx < 0 && ctx->display_idx < 0)
-+		if (display_idx >= 0 && display_idx < ctx->num_internal_frames)
-+			ctx->sequence_offset++;
-+		else if (ctx->display_idx < 0)
- 			ctx->prescan_failed = true;
- 	} else if (decoded_idx == -2) {
- 		/* no frame was decoded, we still return the remaining buffers */
-@@ -3137,10 +3141,11 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 				      struct coda_timestamp, list);
- 		list_del(&ts->list);
- 		val = coda_read(dev, CODA_RET_DEC_PIC_FRAME_NUM) - 1;
-+		val -= ctx->sequence_offset;
- 		if (val != ts->sequence) {
- 			v4l2_err(&dev->v4l2_dev,
--				 "sequence number mismatch (%d != %d)\n",
--				 val, ts->sequence);
-+				 "sequence number mismatch (%d(%d) != %d)\n",
-+				 val, ctx->sequence_offset, ts->sequence);
- 		}
- 		ctx->frame_timestamps[decoded_idx] = *ts;
- 		kfree(ts);
+regards
+Antti
+
+
+On 05/25/2014 03:39 PM, Manuel Schölling wrote:
+> To be future-proof and for better readability the time comparisons are
+> modified to use time_before_eq() instead of plain, error-prone math.
+>
+> Signed-off-by: Manuel Schölling <manuel.schoelling@gmx.de>
+> ---
+>   drivers/staging/media/msi3101/sdr-msi3101.c |   28 +++++++++++++--------------
+>   1 file changed, 14 insertions(+), 14 deletions(-)
+>
+> diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+> index 65d351f..7a0a8ca 100644
+> --- a/drivers/staging/media/msi3101/sdr-msi3101.c
+> +++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+> @@ -207,10 +207,10 @@ static int msi3101_convert_stream_504(struct msi3101_state *s, u8 *dst,
+>   		dst_len += 1008;
+>   	}
+>
+> -	/* calculate samping rate and output it in 10 seconds intervals */
+> -	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
+> +	/* calculate sampling rate and output it in 10 seconds intervals */
+> +	if (time_before_eq(s->jiffies_next + 10 * HZ, jiffies)) {
+>   		unsigned long jiffies_now = jiffies;
+> -		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
+> +		unsigned long msecs = jiffies_to_msecs(jiffies_now - s->jiffies_next);
+>   		unsigned int samples = sample_num[i_max - 1] - s->sample;
+>   		s->jiffies_next = jiffies_now;
+>   		s->sample = sample_num[i_max - 1];
+> @@ -265,7 +265,7 @@ static int msi3101_convert_stream_504_u8(struct msi3101_state *s, u8 *dst,
+>   		dst_len += 1008;
+>   	}
+>
+> -	/* calculate samping rate and output it in 10 seconds intervals */
+> +	/* calculate sampling rate and output it in 10 seconds intervals */
+>   	if (unlikely(time_is_before_jiffies(s->jiffies_next))) {
+>   #define MSECS 10000UL
+>   		unsigned int samples = sample_num[i_max - 1] - s->sample;
+> @@ -359,10 +359,10 @@ static int msi3101_convert_stream_384(struct msi3101_state *s, u8 *dst,
+>   		dst_len += 984;
+>   	}
+>
+> -	/* calculate samping rate and output it in 10 seconds intervals */
+> -	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
+> +	/* calculate sampling rate and output it in 10 seconds intervals */
+> +	if (time_before_eq(s->jiffies_next + 10 * HZ, jiffies)) {
+>   		unsigned long jiffies_now = jiffies;
+> -		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
+> +		unsigned long msecs = jiffies_to_msecs(jiffies_now - s->jiffies_next);
+>   		unsigned int samples = sample_num[i_max - 1] - s->sample;
+>   		s->jiffies_next = jiffies_now;
+>   		s->sample = sample_num[i_max - 1];
+> @@ -424,10 +424,10 @@ static int msi3101_convert_stream_336(struct msi3101_state *s, u8 *dst,
+>   		dst_len += 1008;
+>   	}
+>
+> -	/* calculate samping rate and output it in 10 seconds intervals */
+> -	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
+> +	/* calculate sampling rate and output it in 10 seconds intervals */
+> +	if (time_before_eq(s->jiffies_next + 10 * HZ, jiffies)) {
+>   		unsigned long jiffies_now = jiffies;
+> -		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
+> +		unsigned long msecs = jiffies_to_msecs(jiffies_now - s->jiffies_next);
+>   		unsigned int samples = sample_num[i_max - 1] - s->sample;
+>   		s->jiffies_next = jiffies_now;
+>   		s->sample = sample_num[i_max - 1];
+> @@ -487,10 +487,10 @@ static int msi3101_convert_stream_252(struct msi3101_state *s, u8 *dst,
+>   		dst_len += 1008;
+>   	}
+>
+> -	/* calculate samping rate and output it in 10 seconds intervals */
+> -	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
+> +	/* calculate sampling rate and output it in 10 seconds intervals */
+> +	if (time_before_eq(s->jiffies_next + 10 * HZ, jiffies)) {
+>   		unsigned long jiffies_now = jiffies;
+> -		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
+> +		unsigned long msecs = jiffies_to_msecs(jiffies_now - s->jiffies_next);
+>   		unsigned int samples = sample_num[i_max - 1] - s->sample;
+>   		s->jiffies_next = jiffies_now;
+>   		s->sample = sample_num[i_max - 1];
+> @@ -560,7 +560,7 @@ static int msi3101_convert_stream_252_u16(struct msi3101_state *s, u8 *dst,
+>   		dst_len += 1008;
+>   	}
+>
+> -	/* calculate samping rate and output it in 10 seconds intervals */
+> +	/* calculate sampling rate and output it in 10 seconds intervals */
+>   	if (unlikely(time_is_before_jiffies(s->jiffies_next))) {
+>   #define MSECS 10000UL
+>   		unsigned int samples = sample_num[i_max - 1] - s->sample;
+>
+
+
 -- 
-2.0.0
-
+http://palosaari.fi/
