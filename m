@@ -1,120 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57622 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753579AbaFXO40 (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:38995 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750981AbaFOT7n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 10:56:26 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 13/29] [media] coda: split firmware version check out of coda_hw_init
-Date: Tue, 24 Jun 2014 16:55:55 +0200
-Message-Id: <1403621771-11636-14-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
-References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+	Sun, 15 Jun 2014 15:59:43 -0400
+Message-ID: <539DFB28.8050505@codethink.co.uk>
+Date: Sun, 15 Jun 2014 20:59:36 +0100
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+CC: linux-media@vger.kernel.org
+Subject: Re: soc_camera and device-tree
+References: <87ppibtes8.fsf@free.fr> <Pine.LNX.4.64.1406142256010.23099@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1406142256010.23099@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds a new function coda_check_firmware that does the firmware
-version checks so that this can be done only once from coda_probe
-instead of every time the runtime pm framework resumes the coda.
+On 14/06/14 21:58, Guennadi Liakhovetski wrote:
+> Hi Robert,
+> 
+> On Sat, 14 Jun 2014, Robert Jarzmik wrote:
+> 
+>> Hi Guennadi,
+>>
+>> I'm slowly converting all of my drivers to device-tree.
+>> In the process, I met ... soc_camera.
+>>
+>> I converted mt9m111.c and pxa_camera.c, but now I need the linking
+>> soc_camera. And I don't have a clear idea on how it should be done.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 42 +++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 37 insertions(+), 5 deletions(-)
+New series is on the list. Let me know if there are any issues.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index bd243ed..c93e9bf 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -3194,7 +3194,6 @@ static bool coda_firmware_supported(u32 vernum)
- 
- static int coda_hw_init(struct coda_dev *dev)
- {
--	u16 product, major, minor, release;
- 	u32 data;
- 	u16 *p;
- 	int i, ret;
-@@ -3275,17 +3274,40 @@ static int coda_hw_init(struct coda_dev *dev)
- 	coda_write(dev, data, CODA_REG_BIT_CODE_RESET);
- 	coda_write(dev, CODA_REG_RUN_ENABLE, CODA_REG_BIT_CODE_RUN);
- 
--	/* Load firmware */
-+	clk_disable_unprepare(dev->clk_ahb);
-+	clk_disable_unprepare(dev->clk_per);
-+
-+	return 0;
-+
-+err_clk_ahb:
-+	clk_disable_unprepare(dev->clk_per);
-+err_clk_per:
-+	return ret;
-+}
-+
-+static int coda_check_firmware(struct coda_dev *dev)
-+{
-+	u16 product, major, minor, release;
-+	u32 data;
-+	int ret;
-+
-+	ret = clk_prepare_enable(dev->clk_per);
-+	if (ret)
-+		goto err_clk_per;
-+
-+	ret = clk_prepare_enable(dev->clk_ahb);
-+	if (ret)
-+		goto err_clk_ahb;
-+
- 	coda_write(dev, 0, CODA_CMD_FIRMWARE_VERNUM);
- 	coda_write(dev, CODA_REG_BIT_BUSY_FLAG, CODA_REG_BIT_BUSY);
- 	coda_write(dev, 0, CODA_REG_BIT_RUN_INDEX);
- 	coda_write(dev, 0, CODA_REG_BIT_RUN_COD_STD);
- 	coda_write(dev, CODA_COMMAND_FIRMWARE_GET, CODA_REG_BIT_RUN_COMMAND);
- 	if (coda_wait_timeout(dev)) {
--		clk_disable_unprepare(dev->clk_per);
--		clk_disable_unprepare(dev->clk_ahb);
- 		v4l2_err(&dev->v4l2_dev, "firmware get command error\n");
--		return -EIO;
-+		ret = -EIO;
-+		goto err_run_cmd;
- 	}
- 
- 	if (dev->devtype->product == CODA_960) {
-@@ -3325,6 +3347,8 @@ static int coda_hw_init(struct coda_dev *dev)
- 
- 	return 0;
- 
-+err_run_cmd:
-+	clk_disable_unprepare(dev->clk_ahb);
- err_clk_ahb:
- 	clk_disable_unprepare(dev->clk_per);
- err_clk_per:
-@@ -3365,6 +3389,10 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
- 			return;
- 		}
- 
-+		ret = coda_check_firmware(dev);
-+		if (ret < 0)
-+			return;
-+
- 		pm_runtime_put_sync(&dev->plat_dev->dev);
- 	} else {
- 		/*
-@@ -3376,6 +3404,10 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
- 			v4l2_err(&dev->v4l2_dev, "HW initialization failed\n");
- 			return;
- 		}
-+
-+		ret = coda_check_firmware(dev);
-+		if (ret < 0)
-+			return;
- 	}
- 
- 	dev->vfd.fops	= &coda_fops,
+I am pushing the series up to git.codethink.co.uk.
+
+	http://git.codethink.co.uk/linux.git bjdooks/v315/vin-of
+
 -- 
-2.0.0
-
+Ben Dooks				http://www.codethink.co.uk/
+Senior Engineer				Codethink - Providing Genius
