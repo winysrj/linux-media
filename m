@@ -1,57 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-hk1lp0126.outbound.protection.outlook.com ([207.46.51.126]:32960
-	"EHLO APAC01-HK1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752299AbaFGCEU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jun 2014 22:04:20 -0400
-From: James Harper <james@ejbdigital.com.au>
-To: =?iso-8859-1?Q?Ren=E9?= <poisson.rene@neuf.fr>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: fusion hdtv dual express 2
-Date: Sat, 7 Jun 2014 02:04:11 +0000
-Message-ID: <0a5548fd6c404008bb16a6aaf36e551e@SIXPR04MB304.apcprd04.prod.outlook.com>
-References: <262b1efa828c406c82691ee6b5a34656@SIXPR04MB304.apcprd04.prod.outlook.com>
- <499085CD3245488F996F556AFD77977C@ci5fish>
-In-Reply-To: <499085CD3245488F996F556AFD77977C@ci5fish>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:38696 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750981AbaFOT4x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jun 2014 15:56:53 -0400
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-sh@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
+	magnus.damm@opensource.se, horms@verge.net.au,
+	ian.molton@codethink.co.uk, william.towle@codethink.co.uk,
+	Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: [PATCH 4/9] adv7180: add of match table
+Date: Sun, 15 Jun 2014 20:56:29 +0100
+Message-Id: <1402862194-17743-5-git-send-email-ben.dooks@codethink.co.uk>
+In-Reply-To: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
+References: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Hi James,
-> 
-> The first basic thing you should look at is if the dvb device has got all
-> its pieces.
-> A dvb adapter has, sort of, 4 sub-devices:
-> [me@home ~]$ ll /dev/dvb/adapter2
-> total 0
-> crw-rw----+ 1 root video 212, 12 Jun  5 12:31 demux0
-> crw-rw----+ 1 root video 212, 13 Jun  5 12:31 dvr0
-> crw-rw----+ 1 root video 212, 15 Jun  5 12:31 frontend0
-> crw-rw----+ 1 root video 212, 14 Jun  5 12:31 net0
-> 
-> From your post you might miss the demux while the front-end is working.
-> 
+Add a proper of match id for use when the device is being bound via
+device tree, to avoid having to use the i2c old-style binding of the
+device.
 
-ls -al /dev/dvb/adapter1/
-total 0
-drwxr-xr-x 2 root root     120 Jun  7 10:08 .
-drwxr-xr-x 5 root root     100 Jun  7 10:08 ..
-crw-rw---T 1 root video 212, 5 Jun  7 10:08 demux0
-crw-rw---T 1 root video 212, 6 Jun  7 10:08 dvr0
-crw-rw---T 1 root video 212, 4 Jun  7 10:08 frontend0
-crw-rw---T 1 root video 212, 7 Jun  7 10:08 net0
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+---
 
-same for adapter2 (adapter0 is an existing usb dvb-t adapter)
+Since original submission:
+	- Fixed of_match_table typo
+---
+ drivers/media/i2c/adv7180.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-I think all the pieces are there, they just aren't connected up internally correctly. If I deliberately put in a wrong i2c address for the tuner (starts of at 0x12 and is reprogrammed to 0x80 in the usb version, which is what I've copied) then I get an error, so it can definitely see the tuner. And if I tune an incorrect frequency I never get lock or anything so I think that much is working. And my original post shows it can see a stream with no errors, and if I put the incorrect code rate in (eg 2_3 instead of 3_4) then it sees lots of errors.
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 821178d..46e47a0 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -25,6 +25,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
++#include <linux/of.h>
+ #include <media/v4l2-ioctl.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+@@ -710,11 +711,21 @@ static SIMPLE_DEV_PM_OPS(adv7180_pm_ops, adv7180_suspend, adv7180_resume);
+ 
+ MODULE_DEVICE_TABLE(i2c, adv7180_id);
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id adv7180_of_id[] = {
++	{ .compatible = "adi,adv7180", },
++	{ },
++};
++
++MODULE_DEVICE_TABLE(of, adv7180_of_id)
++#endif
++
+ static struct i2c_driver adv7180_driver = {
+ 	.driver = {
+ 		   .owner = THIS_MODULE,
+ 		   .name = KBUILD_MODNAME,
+ 		   .pm = ADV7180_PM_OPS,
++		   .of_match_table = of_match_ptr(adv7180_of_id),
+ 		   },
+ 	.probe = adv7180_probe,
+ 	.remove = adv7180_remove,
+-- 
+2.0.0
 
-So suppose that the demux is what's wrong, how could I debug that further?
-
-Is there a block diagram somewhere that explains how the various dvb components feed into each other?
-
-Thanks
-
-James
