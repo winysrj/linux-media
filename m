@@ -1,62 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:52841 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755253AbaFKLVy (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:38715 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752015AbaFOT46 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jun 2014 07:21:54 -0400
-Message-ID: <1402485712.4107.108.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH 02/43] ARM: dts: imx6qdl: Add ipu aliases
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Wed, 11 Jun 2014 13:21:52 +0200
-In-Reply-To: <1402178205-22697-3-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-	 <1402178205-22697-3-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sun, 15 Jun 2014 15:56:58 -0400
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-sh@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
+	magnus.damm@opensource.se, horms@verge.net.au,
+	ian.molton@codethink.co.uk, william.towle@codethink.co.uk,
+	Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: [PATCH 5/9] rcar_vin: copy flags from pdata
+Date: Sun, 15 Jun 2014 20:56:30 +0100
+Message-Id: <1402862194-17743-6-git-send-email-ben.dooks@codethink.co.uk>
+In-Reply-To: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
+References: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Samstag, den 07.06.2014, 14:56 -0700 schrieb Steve Longerbeam:
-> Add ipu0 (and ipu1 for quad) aliases to ipu1/ipu2 nodes respectively.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> ---
->  arch/arm/boot/dts/imx6q.dtsi   |    1 +
->  arch/arm/boot/dts/imx6qdl.dtsi |    1 +
->  2 files changed, 2 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
-> index addd3f8..c7544f0 100644
-> --- a/arch/arm/boot/dts/imx6q.dtsi
-> +++ b/arch/arm/boot/dts/imx6q.dtsi
-> @@ -15,6 +15,7 @@
->  / {
->  	aliases {
->  		spi4 = &ecspi5;
-> +		ipu1 = &ipu2;
->  	};
->  
->  	cpus {
-> diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
-> index eca0971..04c978c 100644
-> --- a/arch/arm/boot/dts/imx6qdl.dtsi
-> +++ b/arch/arm/boot/dts/imx6qdl.dtsi
-> @@ -43,6 +43,7 @@
->  		spi3 = &ecspi4;
->  		usbphy0 = &usbphy1;
->  		usbphy1 = &usbphy2;
-> +		ipu0 = &ipu1;
->  	};
->  
->  	intc: interrupt-controller@00a01000 {
+The platform data is a single word, so simply copy
+it into the device's private data structure than
+keeping a copy of the pointer.
 
-That could be useful, although I think those aliases are supposed to be
-in alphabetic order.
+This will make changing to device-tree binding
+easier as it is one allocation instead of two.
 
-regards
-Philipp
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+---
+ drivers/media/platform/soc_camera/rcar_vin.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index e594230..7c4299d 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -126,13 +126,13 @@ struct rcar_vin_priv {
+ 	int				sequence;
+ 	/* State of the VIN module in capturing mode */
+ 	enum rcar_vin_state		state;
+-	struct rcar_vin_platform_data	*pdata;
+ 	struct soc_camera_host		ici;
+ 	struct list_head		capture;
+ #define MAX_BUFFER_NUM			3
+ 	struct vb2_buffer		*queue_buf[MAX_BUFFER_NUM];
+ 	struct vb2_alloc_ctx		*alloc_ctx;
+ 	enum v4l2_field			field;
++	unsigned int			pdata_flags;
+ 	unsigned int			vb_count;
+ 	unsigned int			nr_hw_slots;
+ 	bool				request_to_stop;
+@@ -275,12 +275,12 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 		break;
+ 	case V4L2_MBUS_FMT_YUYV8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+-		vnmc |= priv->pdata->flags & RCAR_VIN_BT656 ?
++		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
+ 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+ 		break;
+ 	case V4L2_MBUS_FMT_YUYV10_2X10:
+ 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+-		vnmc |= priv->pdata->flags & RCAR_VIN_BT656 ?
++		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
+ 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+ 		break;
+ 	default:
+@@ -797,7 +797,7 @@ static int rcar_vin_set_bus_param(struct soc_camera_device *icd)
+ 	/* Make choises, based on platform preferences */
+ 	if ((common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH) &&
+ 	    (common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)) {
+-		if (priv->pdata->flags & RCAR_VIN_HSYNC_ACTIVE_LOW)
++		if (priv->pdata_flags & RCAR_VIN_HSYNC_ACTIVE_LOW)
+ 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_HIGH;
+ 		else
+ 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_LOW;
+@@ -805,7 +805,7 @@ static int rcar_vin_set_bus_param(struct soc_camera_device *icd)
+ 
+ 	if ((common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH) &&
+ 	    (common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)) {
+-		if (priv->pdata->flags & RCAR_VIN_VSYNC_ACTIVE_LOW)
++		if (priv->pdata_flags & RCAR_VIN_VSYNC_ACTIVE_LOW)
+ 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_HIGH;
+ 		else
+ 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_LOW;
+@@ -1445,7 +1445,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	priv->ici.drv_name = dev_name(&pdev->dev);
+ 	priv->ici.ops = &rcar_vin_host_ops;
+ 
+-	priv->pdata = pdata;
++	priv->pdata_flags = pdata->flags;
+ 	priv->chip = pdev->id_entry->driver_data;
+ 	spin_lock_init(&priv->lock);
+ 	INIT_LIST_HEAD(&priv->capture);
+-- 
+2.0.0
 
