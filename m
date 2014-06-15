@@ -1,50 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53463 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754455AbaFNAta (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jun 2014 20:49:30 -0400
-Message-ID: <539B9C17.3000809@iki.fi>
-Date: Sat, 14 Jun 2014 03:49:27 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Daniel Mayer <danielmayer@arcor.de>
-CC: linux-media@vger.kernel.org, m.chehab@samsung.com
-Subject: Re: WG: Patch pctv452e.c: Suppress annoying dmesg-SPAM
-References: <029901cf7c4c$7a4d78d0$6ee86a70$@arcor.de>
-In-Reply-To: <029901cf7c4c$7a4d78d0$6ee86a70$@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:38764 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752097AbaFOT5I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jun 2014 15:57:08 -0400
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-sh@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
+	magnus.damm@opensource.se, horms@verge.net.au,
+	ian.molton@codethink.co.uk, william.towle@codethink.co.uk,
+	Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: [PATCH 9/9] ARM: lager: add vin1 node
+Date: Sun, 15 Jun 2014 20:56:34 +0100
+Message-Id: <1402862194-17743-10-git-send-email-ben.dooks@codethink.co.uk>
+In-Reply-To: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
+References: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka Daniel,
+Add device-tree for vin1 (composite video in) on the
+lager board.
 
-On 05/31/2014 12:16 AM, Daniel Mayer wrote:
-> Hi,
-> attached micro-patch removes the text output of an error-message of the
-> PCTV452e-driver. The error messages "I2C error: [.]" do not help any user of
-> the kernel, so whatever causes the error, it does not hamper the function of
-> my TT-3600 USB receiver.
-> So: Just remove the entries in the dmesg, for it is quite spam-like.
-> Perhaps someone with deeper knowledge could have a look up the background of
-> this message and fix it?
-> Thanks,
-> Daniel
->
-> (resent as plain-text; sorry)
->
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+---
+ arch/arm/boot/dts/r8a7790-lager.dts | 38 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-That is not proper fix, it just hides it by removing proper error logging.
-
-I debugged real reason earlier:
-http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/50491
-
-
-I have got even hardware, but I am totally overloaded so I have to 
-prioritize things. I am happy to see if someone fixes it properly.
-
-regards
-Antti
-
+diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
+index 4805c9f..8ecb294 100644
+--- a/arch/arm/boot/dts/r8a7790-lager.dts
++++ b/arch/arm/boot/dts/r8a7790-lager.dts
+@@ -214,6 +214,11 @@
+ 		renesas,groups = "i2c2";
+ 		renesas,function = "i2c2";
+ 	};
++
++	vin1_pins: vin {
++		renesas,groups = "vin1_data8", "vin1_clk";
++		renesas,function = "vin1";
++	};
+ };
+ 
+ &ether {
+@@ -342,8 +347,41 @@
+ 	status = "ok";
+ 	pinctrl-0 = <&i2c2_pins>;
+ 	pinctrl-names = "default";
++
++	composite-in@20 {
++		compatible = "adi,adv7180";
++		reg = <0x20>;
++		remote = <&vin1>;
++
++		port {
++			adv7180: endpoint {
++				bus-width = <8>;
++				remote-endpoint = <&vin1ep0>;
++			};
++		};
++	};
++
+ };
+ 
+ &i2c3	{
+ 	status = "ok";
+ };
++
++/* composite video input */
++&vin1 {
++	pinctrl-0 = <&vin1_pins>;
++	pinctrl-names = "default";
++
++	status = "ok";
++
++	port {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		vin1ep0: endpoint {
++			remote-endpoint = <&adv7180>;
++			bus-width = <8>;
++		};
++	};
++};
++
 -- 
-http://palosaari.fi/
+2.0.0
+
