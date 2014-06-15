@@ -1,90 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:41295 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752800AbaFLMmw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 08:42:52 -0400
-To: Niels Laukens <niels@dest-unreach.be>
-Subject: Re: [BUG & PATCH] media/rc/ir-nec-decode : phantom keypress
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 8bit
-Date: Thu, 12 Jun 2014 14:42:50 +0200
-From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, James Hogan <james.hogan@imgtec.com>,
-	=?UTF-8?Q?Antti_Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-In-Reply-To: <5399992E.8050502@dest-unreach.be>
-References: <538994CB.6020205@dest-unreach.be>
- <53980DF8.5040206@dest-unreach.be>
- <330c58e7d7849824b812db007c03b08d@hardeman.nu>
- <53998D69.60901@dest-unreach.be>
- <754858effccb1d52ebec59f91f860c26@hardeman.nu>
- <5399992E.8050502@dest-unreach.be>
-Message-ID: <0eaab4efe2fc37126f2bb444d7f3d507@hardeman.nu>
+Received: from smtp04.smtpout.orange.fr ([80.12.242.126]:20644 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751933AbaFOURj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jun 2014 16:17:39 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: g.liakhovetski@gmx.de, devicetree@vger.kernel.org
+Cc: linux-media@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH 1/2] media: mt9m111: add device-tree suppport
+Date: Sun, 15 Jun 2014 22:17:31 +0200
+Message-Id: <1402863452-30365-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2014-06-12 14:12, Niels Laukens wrote:
-> On 2014-06-12 13:51, David Härdeman wrote:
->> On 2014-06-12 13:22, Niels Laukens wrote:
->>> In that case, the alternative would be to start a timer when the
->>> TRAILING_SPACE is entered, and trigger the key-event after, say 2
->>> bit-times.
->> 
->> Another alternative is fix the driver to implement a timeout so that
->> "unreasonable" values are not generated (I saw a 240550us space in 
->> your
->> log).
-> 
-> OK, that sounds like a good way to solve this as well.
-> I'm very new to this subsystem, so I don't know what layer should
-> perform what function.
+Add device-tree support for mt9m111 camera sensor.
 
-I'm not 100% sure that would be the right fix, but I think so. Haven't 
-looked at the driver.
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/i2c/soc_camera/mt9m111.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
->>>> Now, the question is why the trailing silence isn't generated
->>>> within a reasonable time. Which hardware decoder do you use?
->>> 
->>> I use the IR receiver built in to the TBS6281 DVB-T tuner card. I
->>> also have a TBS6982 DVB-S card, but I guess it's the same hardware.
->> 
->> Which driver?
-> 
-> I think it's the out-of-tree saa716x_tbs_dvb driver:
-> 
-> [    7.670565] input: saa716x IR (TurboSight TBS 6281) as
-> /devices/pci0000:00/0000:00:1c.0/0000:02:00.0/rc/rc0/input6
-> [    7.671156] rc0: saa716x IR (TurboSight TBS 6281) as
-> /devices/pci0000:00/0000:00:1c.0/0000:02:00.0/rc/rc0
-
-Could you paste the output from lsmod?
-
-Where did you get the driver? Is it this one?
-http://www.tbsdtv.com/download/document/common/tbs-linux-drivers_v140425.zip
-
-
->> And it's what most of the popular hardware does.
-> 
-> So I'll have to rework this patch to function at this lower level, and
-> try to upstream it to TBS. Thank you for your time!
-> 
-> 
->> For instance, the
->> mceusb hardware will send a USB packet with timings including that
->> trailing silence. And the decoder can only do their work once a packet
->> has arrived (which will contain a number of samples). That also
->> demonstrates a potential problem with your suggested approach (i.e.
->> timings can be buffered so calls to the decoders are not necessarily
->> "real-time").
-> 
-> I see what you mean, but I don't see how the proposed patch fails in
-> this sense. Or were you referring to the proposal of adding a timer at
-> the ir-nec-decoder level?
-
-Yes. The ir-nec-decoder timer doesn't know what the hardware is up to so 
-it could timeout because it didn't get more data in time while at the 
-same time the driver is buffering data...
-
+diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
+index ccf5940..7d283ea 100644
+--- a/drivers/media/i2c/soc_camera/mt9m111.c
++++ b/drivers/media/i2c/soc_camera/mt9m111.c
+@@ -923,6 +923,12 @@ done:
+ 	return ret;
+ }
+ 
++static int of_get_mt9m111_platform_data(struct device *dev,
++					struct soc_camera_subdev_desc *desc)
++{
++	return 0;
++}
++
+ static int mt9m111_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *did)
+ {
+@@ -931,6 +937,15 @@ static int mt9m111_probe(struct i2c_client *client,
+ 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	int ret;
+ 
++	if (client->dev.of_node) {
++		ssdd = devm_kzalloc(&client->dev, sizeof(*ssdd), GFP_KERNEL);
++		if (!ssdd)
++			return -ENOMEM;
++		client->dev.platform_data = ssdd;
++		ret = of_get_mt9m111_platform_data(&client->dev, ssdd);
++		if (ret < 0)
++			return ret;
++	}
+ 	if (!ssdd) {
+ 		dev_err(&client->dev, "mt9m111: driver needs platform data\n");
+ 		return -EINVAL;
+@@ -1015,6 +1030,11 @@ static int mt9m111_remove(struct i2c_client *client)
+ 
+ 	return 0;
+ }
++static const struct of_device_id mt9m111_of_match[] = {
++	{ .compatible = "micron,mt9m111", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, mt9m111_of_match);
+ 
+ static const struct i2c_device_id mt9m111_id[] = {
+ 	{ "mt9m111", 0 },
+@@ -1025,6 +1045,7 @@ MODULE_DEVICE_TABLE(i2c, mt9m111_id);
+ static struct i2c_driver mt9m111_i2c_driver = {
+ 	.driver = {
+ 		.name = "mt9m111",
++		.of_match_table = of_match_ptr(mt9m111_of_match),
+ 	},
+ 	.probe		= mt9m111_probe,
+ 	.remove		= mt9m111_remove,
+-- 
+2.0.0.rc2
 
