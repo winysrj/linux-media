@@ -1,116 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2563 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752344AbaF0CpF (ORCPT
+Received: from smtp04.smtpout.orange.fr ([80.12.242.126]:39128 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751969AbaFOURk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jun 2014 22:45:05 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5R2j126036695
-	for <linux-media@vger.kernel.org>; Fri, 27 Jun 2014 04:45:03 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2A9662A1FCD
-	for <linux-media@vger.kernel.org>; Fri, 27 Jun 2014 04:44:56 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140627024456.2A9662A1FCD@tschai.lan>
-Date: Fri, 27 Jun 2014 04:44:56 +0200 (CEST)
+	Sun, 15 Jun 2014 16:17:40 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: g.liakhovetski@gmx.de, devicetree@vger.kernel.org
+Cc: linux-media@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH 2/2] media: mt9m111: add device-tree documentation
+Date: Sun, 15 Jun 2014 22:17:32 +0200
+Message-Id: <1402863452-30365-2-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1402863452-30365-1-git-send-email-robert.jarzmik@free.fr>
+References: <1402863452-30365-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Add documentation for the Micron mt9m111 image sensor.
 
-Results of the daily build of media_tree:
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ .../devicetree/bindings/media/i2c/mt9m111.txt      | 28 ++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9m111.txt
 
-date:		Fri Jun 27 04:00:19 CEST 2014
-git branch:	test
-git hash:	b5b620584b9c4644b85e932895a742e0c192d66c
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-14-gf11dd94
-host hardware:	x86_64
-host os:	3.14-5.slh.5-amd64
+diff --git a/Documentation/devicetree/bindings/media/i2c/mt9m111.txt b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
+new file mode 100644
+index 0000000..ed5a334
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
+@@ -0,0 +1,28 @@
++Micron 1.3Mp CMOS Digital Image Sensor
++
++The Micron MT9M111 is a CMOS active pixel digital image sensor with an active
++array size of 1280H x 1024V. It is programmable through a simple two-wire serial
++interface.
++
++Required Properties:
++- compatible: value should be "micron,mt9m111"
++
++For further reading on port node refer to
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	i2c_master {
++		mt9m111@5d {
++			compatible = "micron,mt9m111";
++			reg = <0x5d>;
++
++			remote = <&pxa_camera>;
++			port {
++				mt9m111_1: endpoint {
++					bus-width = <8>;
++					remote-endpoint = <&pxa_camera>;
++				};
++			};
++		};
++	};
+-- 
+2.0.0.rc2
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-i686: OK
-linux-3.16-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-x86_64: OK
-linux-3.16-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
