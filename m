@@ -1,95 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:54832 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751111AbaF3ODI (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:38659 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750981AbaFOT4n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jun 2014 10:03:08 -0400
-Message-id: <53B16E16.7080200@samsung.com>
-Date: Mon, 30 Jun 2014 16:03:02 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Kukjin Kim <kgene.kim@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 16/17] [media] exynos4-is: removes s5pc100 related fimc
- codes
-References: <1404163947-3105-1-git-send-email-kgene.kim@samsung.com>
- <1404163947-3105-17-git-send-email-kgene.kim@samsung.com>
-In-reply-to: <1404163947-3105-17-git-send-email-kgene.kim@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Sun, 15 Jun 2014 15:56:43 -0400
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-sh@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
+	magnus.damm@opensource.se, horms@verge.net.au,
+	ian.molton@codethink.co.uk, william.towle@codethink.co.uk,
+	Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: [PATCH 1/9] ARM: lager: enable i2c devices
+Date: Sun, 15 Jun 2014 20:56:26 +0100
+Message-Id: <1402862194-17743-2-git-send-email-ben.dooks@codethink.co.uk>
+In-Reply-To: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
+References: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30/06/14 23:32, Kukjin Kim wrote:
-> This patch removes s5pc100 related fimc codes because of no more support
-> S5PC100 SoC in mainline.
+Add i2c0, i2c1, i2c2 and i2c3 nodes to the Lager reference device tree as
+these busses all have devices on them that can be probed even if they
+are no drivers yet.
 
-I have applied this patch to my tree. It's also fine if you would like to
-merge the whole series together. In such case feel free to add:
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+---
+ arch/arm/boot/dts/r8a7790-lager.dts | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-
-Please let me know if you want me to drop this patch from the media tree.
-
---
-Regards,
-Sylwester
-
-> Signed-off-by: Kukjin Kim <kgene.kim@samsung.com>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  Documentation/video4linux/fimc.txt            |    2 +-
->  drivers/media/platform/exynos4-is/fimc-core.c |   15 ---------------
->  2 files changed, 1 insertion(+), 16 deletions(-)
-> 
-> diff --git a/Documentation/video4linux/fimc.txt b/Documentation/video4linux/fimc.txt
-> index e0c6b8b..1441fcf 100644
-> --- a/Documentation/video4linux/fimc.txt
-> +++ b/Documentation/video4linux/fimc.txt
-> @@ -15,7 +15,7 @@ drivers/media/platform/exynos4-is directory.
->  1. Supported SoCs
->  =================
->  
-> -S5PC100 (mem-to-mem only), S5PV210, EXYNOS4210
-> +S5PV210, EXYNOS4210
->  
->  2. Supported features
->  =====================
-> diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
-> index b70fd99..5c800b4 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-core.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-core.c
-> @@ -1204,18 +1204,6 @@ static const struct fimc_variant fimc2_variant_s5pv210 = {
->  	.pix_limit	 = &s5p_pix_limit[2],
->  };
->  
-> -/* S5PC100 */
-> -static const struct fimc_drvdata fimc_drvdata_s5p = {
-> -	.variant = {
-> -		[0] = &fimc0_variant_s5p,
-> -		[1] = &fimc0_variant_s5p,
-> -		[2] = &fimc2_variant_s5p,
-> -	},
-> -	.num_entities	= 3,
-> -	.lclk_frequency = 133000000UL,
-> -	.out_buf_count	= 4,
-> -};
-> -
->  /* S5PV210, S5PC110 */
->  static const struct fimc_drvdata fimc_drvdata_s5pv210 = {
->  	.variant = {
-> @@ -1251,9 +1239,6 @@ static const struct fimc_drvdata fimc_drvdata_exynos4x12 = {
->  
->  static const struct platform_device_id fimc_driver_ids[] = {
->  	{
-> -		.name		= "s5p-fimc",
-> -		.driver_data	= (unsigned long)&fimc_drvdata_s5p,
-> -	}, {
->  		.name		= "s5pv210-fimc",
->  		.driver_data	= (unsigned long)&fimc_drvdata_s5pv210,
->  	}, {
+diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
+index dd2fe46..8617755 100644
+--- a/arch/arm/boot/dts/r8a7790-lager.dts
++++ b/arch/arm/boot/dts/r8a7790-lager.dts
+@@ -317,3 +317,19 @@
+ 	cd-gpios = <&gpio3 22 GPIO_ACTIVE_LOW>;
+ 	status = "okay";
+ };
++
++&i2c0	{
++	status = "ok";
++};
++
++&i2c1	{
++	status = "ok";
++};
++
++&i2c2	{
++	status = "ok";
++};
++
++&i2c3	{
++	status = "ok";
++};
+-- 
+2.0.0
 
