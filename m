@@ -1,116 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33008 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756077AbaFLRGo (ORCPT
+Received: from top.free-electrons.com ([176.31.233.9]:55377 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752082AbaFPNZF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 13:06:44 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: [RFC PATCH 05/26] gpu: ipu-v3: Add support for partial interleaved YCbCr 4:2:0 (NV12) format
-Date: Thu, 12 Jun 2014 19:06:19 +0200
-Message-Id: <1402592800-2925-6-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+	Mon, 16 Jun 2014 09:25:05 -0400
+Date: Mon, 16 Jun 2014 15:24:49 +0200
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Alexander Bersenev <bay@hackerdom.ru>
+Cc: linux-sunxi@googlegroups.com, david@hardeman.nu,
+	devicetree@vger.kernel.org, galak@codeaurora.org,
+	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
+	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
+	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
+	pawel.moll@arm.com, rdunlap@infradead.org, robh+dt@kernel.org,
+	sean@mess.org, srinivas.kandagatla@st.com,
+	wingrime@linux-sunxi.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v9 3/5] ARM: sunxi: Add pins for IR controller on A20 to
+ dtsi
+Message-ID: <20140616132449.GB9757@lukather>
+References: <1402250893-5412-1-git-send-email-bay@hackerdom.ru>
+ <1402250893-5412-4-git-send-email-bay@hackerdom.ru>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="St7VIuEGZ6dlpu13"
+Content-Disposition: inline
+In-Reply-To: <1402250893-5412-4-git-send-email-bay@hackerdom.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <philipp.zabel@gmail.com>
 
-The partial interleaved format consists of two planes, one with 8-bit
-luma (Y) values, and one with alternating 8-bit chroma (CbCr) values.
-This format can be produced by CODA960 VPU and VDOA.
+--St7VIuEGZ6dlpu13
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
----
- drivers/gpu/ipu-v3/ipu-common.c | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+Hi,
 
-diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
-index 94b9e8e..7a0b377 100644
---- a/drivers/gpu/ipu-v3/ipu-common.c
-+++ b/drivers/gpu/ipu-v3/ipu-common.c
-@@ -260,6 +260,11 @@ void ipu_cpmem_set_yuv_planar_full(struct ipu_ch_param __iomem *p,
- 		ipu_ch_param_write_field(p, IPU_FIELD_UBO, v_offset / 8);
- 		ipu_ch_param_write_field(p, IPU_FIELD_VBO, u_offset / 8);
- 		break;
-+	case V4L2_PIX_FMT_NV12:
-+		ipu_ch_param_write_field(p, IPU_FIELD_SLUV, stride - 1);
-+		ipu_ch_param_write_field(p, IPU_FIELD_UBO, u_offset / 8);
-+		ipu_ch_param_write_field(p, IPU_FIELD_VBO, u_offset / 8);
-+		break;
- 	}
- }
- EXPORT_SYMBOL_GPL(ipu_cpmem_set_yuv_planar_full);
-@@ -279,6 +284,11 @@ void ipu_cpmem_set_yuv_planar(struct ipu_ch_param __iomem *p, u32 pixel_format,
- 		ipu_cpmem_set_yuv_planar_full(p, pixel_format, stride,
- 				u_offset, v_offset);
- 		break;
-+	case V4L2_PIX_FMT_NV12:
-+		u_offset = v_offset = stride * height;
-+		ipu_cpmem_set_yuv_planar_full(p, pixel_format, stride,
-+				u_offset, v_offset);
-+		break;
- 	}
- }
- EXPORT_SYMBOL_GPL(ipu_cpmem_set_yuv_planar);
-@@ -348,6 +358,10 @@ int ipu_cpmem_set_fmt(struct ipu_ch_param __iomem *cpmem, u32 drm_fourcc)
- 		/* burst size */
- 		ipu_ch_param_write_field(cpmem, IPU_FIELD_NPB, 63);
- 		break;
-+	case DRM_FORMAT_NV12:
-+		ipu_ch_param_write_field(cpmem, IPU_FIELD_PFS, 4);
-+		ipu_ch_param_write_field(cpmem, IPU_FIELD_NPB, 63);
-+		break;
- 	case DRM_FORMAT_UYVY:
- 		/* bits/pixel */
- 		ipu_ch_param_write_field(cpmem, IPU_FIELD_BPP, 3);
-@@ -433,6 +447,8 @@ static int v4l2_pix_fmt_to_drm_fourcc(u32 pixelformat)
- 		return DRM_FORMAT_YUV420;
- 	case V4L2_PIX_FMT_YVU420:
- 		return DRM_FORMAT_YVU420;
-+	case V4L2_PIX_FMT_NV12:
-+		return DRM_FORMAT_NV12;
- 	}
- 
- 	return -EINVAL;
-@@ -458,6 +474,7 @@ enum ipu_color_space ipu_drm_fourcc_to_colorspace(u32 drm_fourcc)
- 	case DRM_FORMAT_UYVY:
- 	case DRM_FORMAT_YUV420:
- 	case DRM_FORMAT_YVU420:
-+	case DRM_FORMAT_NV12:
- 		return IPUV3_COLORSPACE_YUV;
- 	default:
- 		return IPUV3_COLORSPACE_UNKNOWN;
-@@ -494,6 +511,19 @@ int ipu_cpmem_set_image(struct ipu_ch_param __iomem *cpmem,
- 				pix->bytesperline, u_offset, v_offset);
- 		ipu_cpmem_set_buffer(cpmem, 0, image->phys + y_offset);
- 		break;
-+	case V4L2_PIX_FMT_NV12:
-+		y_offset = Y_OFFSET(pix, image->rect.left, image->rect.top);
-+		u_offset = U_OFFSET(pix, image->rect.left,
-+				image->rect.top) - y_offset;
-+
-+		ipu_cpmem_set_yuv_planar_full(cpmem, pix->pixelformat,
-+				pix->bytesperline, u_offset, u_offset);
-+		ipu_cpmem_set_buffer(cpmem, 0, image->phys + y_offset);
-+		break;
-+		ipu_cpmem_set_yuv_planar_full(cpmem, pix->pixelformat,
-+				pix->bytesperline, u_offset, v_offset);
-+		ipu_cpmem_set_buffer(cpmem, 0, image->phys + y_offset);
-+		break;
- 	case V4L2_PIX_FMT_UYVY:
- 	case V4L2_PIX_FMT_YUYV:
- 		ipu_cpmem_set_buffer(cpmem, 0, image->phys +
-@@ -551,6 +581,7 @@ enum ipu_color_space ipu_pixelformat_to_colorspace(u32 pixelformat)
- 	case V4L2_PIX_FMT_YVU420:
- 	case V4L2_PIX_FMT_UYVY:
- 	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_NV12:
- 		return IPUV3_COLORSPACE_YUV;
- 	case V4L2_PIX_FMT_RGB32:
- 	case V4L2_PIX_FMT_BGR32:
--- 
-2.0.0.rc2
+On Mon, Jun 09, 2014 at 12:08:11AM +0600, Alexander Bersenev wrote:
+> This patch adds pins for two IR controllers on A20
+>=20
+> Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
+> Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
 
+Applied, thanks.
+
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
+
+--St7VIuEGZ6dlpu13
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTnvAhAAoJEBx+YmzsjxAg78wQALqdlNEEd22q4vzzKXpjUEUT
+X2PtTcd9fyVq5Y0SSXEO+1kGHe2fr2QmGrbxdmYoYA+o9r56PYTkYz+LCFcJWV8C
+Dzv4+H1+UFUwxm9IdyV1x1rkynTKLbEEx/xz0REHNJzA7ezDHIFLKh15/bE9wv32
+J+8x8mHEU+WSa10ygMRMFfJtLyu+2R6mPLYYvHLitxx5QyO56U5lbRcBetcGjnHW
+1SAo9UGZ6/ABguhwmWP/RuukWRgp1IGPC4xYt7gN2GF/euihnCohpzKx8KsrY5jf
+YqVsiSwAlzm1mLVbyG7odjeh9/mK6gO39jwKg7v8EeMptbd4mePmwS4uoc4V6LKT
+sTZwt12j/XT3sMU1ysMYaSICYx7caGONrAETORUsZSp4QY7C7/jhokxcEAlFAM+L
+kQL/cvolFV0J2yqaGyTgegpCAWGtyIQ7jVyXetDS0RKY2p3RVF8XOcfyv/EB5YDZ
+uPYG9rklAhobs2CocFHuigsHuJH5YCfyO+d8R4vNFjH+RdW+pky1jvHzdF4wMIbk
+DpWBX19JH7ynat7gdIpW4swv0/lnp8txlOzaGBrQhBTkNzGw5gNZo0LHyrgJriwe
+vcM1WOkXWvZeu1EITL4I8Jbvd0SFWs0aW68QZfeZgtBjchVHFId5p0oQ17yDfp68
+e80FbgHbzvZnAx0Cmovy
+=F9+U
+-----END PGP SIGNATURE-----
+
+--St7VIuEGZ6dlpu13--
