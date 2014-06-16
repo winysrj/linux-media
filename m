@@ -1,79 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1344 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754948AbaFPKGT (ORCPT
+Received: from smtpfb1-g21.free.fr ([212.27.42.9]:47656 "EHLO
+	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755060AbaFPKMK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 06:06:19 -0400
-Message-ID: <539EC188.4010601@xs4all.nl>
-Date: Mon, 16 Jun 2014 12:06:00 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] Add patch to allow compilation on versions < 3.5 with
- CONFIG_OF
-References: <1402587904-9321-1-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1402587904-9321-1-git-send-email-dheitmueller@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Mon, 16 Jun 2014 06:12:10 -0400
+Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
+	by smtpfb1-g21.free.fr (Postfix) with ESMTP id 300BF2D8F3
+	for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 12:12:06 +0200 (CEST)
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v14 06/10] drm: drm_display_mode: add signal polarity flags
+Date: Mon, 16 Jun 2014 12:11:20 +0200
+Message-Id: <1402913484-25910-6-git-send-email-denis@eukrea.com>
+In-Reply-To: <1402913484-25910-1-git-send-email-denis@eukrea.com>
+References: <1402913484-25910-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/12/2014 05:45 PM, Devin Heitmueller wrote:
-> Support for Open Firmware was introduced in the V4L2 tree, but
-> it depends on features only found in 3.5+.  Add a patch to disable
-> the support for earlier kernels.
-> 
-> Tested on Ubuntu 10.04 with kernel 3.2.0-030200-generic (which has
-> CONFIG_OF enabled by default).
+We need a way to pass signal polarity informations
+  between DRM panels, and the display drivers.
 
-Doesn't this produce compiler warnings since the static v4l2_of_parse_*
-functions are now never called?
+To do that, a pol_flags field was added to drm_display_mode.
 
-I would patch v4l2-core/Makefile instead to just never compile v4l2-of.o.
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+---
+ChangeLog v13->v14:
+- Fixed DRM_MODE_FLAG_POL_DE_HIGH's description.
+ChangeLog v12->v13:
+- Added Docbook documentation for pol_flags the struct field.
+- Removed the _PRESERVE	defines: it was used by patches
+  against the imx_drm driver. Now theses patches have been
+  adapted not to require that defines.
+ChangeLog v11->v12:
+- Rebased: This patch now applies against drm_modes.h
+- Rebased: It now uses the new DRM_MODE_FLAG_POL_DE flags defines names
 
-Regards,
+ChangeLog v10->v11:
+- Since the imx-drm won't be able to retrive its regulators
+  from the device tree when using display-timings nodes,
+  and that I was told that the drm simple-panel driver 
+  already supported that, I then, instead, added what was
+  lacking to make the eukrea displays work with the
+  drm-simple-panel driver.
 
-	Hans
+  That required a way to get back the display polarity
+  informations from the imx-drm driver without affecting
+  userspace.
+---
+ Documentation/DocBook/drm.tmpl |   30 ++++++++++++++++++++++++++++++
+ include/drm/drm_modes.h        |    6 ++++++
+ 2 files changed, 36 insertions(+)
 
-> 
-> Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
-> ---
->  backports/backports.txt           |  1 +
->  backports/v3.4_openfirmware.patch | 13 +++++++++++++
->  2 files changed, 14 insertions(+)
->  create mode 100644 backports/v3.4_openfirmware.patch
-> 
-> diff --git a/backports/backports.txt b/backports/backports.txt
-> index 281c263..08908e6 100644
-> --- a/backports/backports.txt
-> +++ b/backports/backports.txt
-> @@ -43,6 +43,7 @@ add v3.6_i2c_add_mux_adapter.patch
->  
->  [3.4.255]
->  add v3.4_i2c_add_mux_adapter.patch
-> +add v3.4_openfirmware.patch
->  
->  [3.2.255]
->  add v3.2_devnode_uses_mode_t.patch
-> diff --git a/backports/v3.4_openfirmware.patch b/backports/v3.4_openfirmware.patch
-> new file mode 100644
-> index 0000000..f0a8d36
-> --- /dev/null
-> +++ b/backports/v3.4_openfirmware.patch
-> @@ -0,0 +1,13 @@
-> +--- a/drivers/media/v4l2-core/v4l2-of.c	2014-06-11 17:05:02.000000000 -0700
-> ++++ b/drivers/media/v4l2-core/v4l2-of.c	2014-06-11 17:05:34.000000000 -0700
-> +@@ -1,3 +1,5 @@
-> ++/* Depends on symbols not present until kernel 3.5 */
-> ++#if 0
-> + /*
-> +  * V4L2 OF binding parsing library
-> +  *
-> +@@ -142,3 +144,4 @@
-> + 	return 0;
-> + }
-> + EXPORT_SYMBOL(v4l2_of_parse_endpoint);
-> ++#endif
-> 
+diff --git a/Documentation/DocBook/drm.tmpl b/Documentation/DocBook/drm.tmpl
+index 7df3134..22d435f 100644
+--- a/Documentation/DocBook/drm.tmpl
++++ b/Documentation/DocBook/drm.tmpl
+@@ -2292,6 +2292,36 @@ void intel_crt_init(struct drm_device *dev)
+             and <structfield>height_mm</structfield> fields are only used internally
+             during EDID parsing and should not be set when creating modes manually.
+           </para>
++          <para>
++            The <structfield>pol_flags</structfield> value represents the display
++            signal polarity flags, it can be a combination of
++            <variablelist>
++              <varlistentry>
++                <term>DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE</term>
++                 <listitem><para>
++                     drive pixel data on falling edge, sample data on rising edge.
++                 </para></listitem>
++              </varlistentry>
++              <varlistentry>
++                <term>DRM_MODE_FLAG_POL_PIXDATA_POSEDGE</term>
++                <listitem><para>
++                  Drive pixel data on rising edge, sample data on falling edge.
++                </para></listitem>
++              </varlistentry>
++              <varlistentry>
++                <term>DRM_MODE_FLAG_POL_DE_LOW</term>
++                <listitem><para>
++                  data-enable pulse is active low
++                </para></listitem>
++              </varlistentry>
++              <varlistentry>
++                <term>DRM_MODE_FLAG_POL_DE_HIGH</term>
++                <listitem><para>
++                  data-enable pulse is active high
++                </para></listitem>
++              </varlistentry>
++            </variablelist>
++          </para>
+         </listitem>
+         <listitem>
+           <synopsis>int (*mode_valid)(struct drm_connector *connector,
+diff --git a/include/drm/drm_modes.h b/include/drm/drm_modes.h
+index 91d0582..c5cbe31 100644
+--- a/include/drm/drm_modes.h
++++ b/include/drm/drm_modes.h
+@@ -93,6 +93,11 @@ enum drm_mode_status {
+ 
+ #define DRM_MODE_FLAG_3D_MAX	DRM_MODE_FLAG_3D_SIDE_BY_SIDE_HALF
+ 
++#define DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE	BIT(1)
++#define DRM_MODE_FLAG_POL_PIXDATA_POSEDGE	BIT(2)
++#define DRM_MODE_FLAG_POL_DE_LOW		BIT(3)
++#define DRM_MODE_FLAG_POL_DE_HIGH		BIT(4)
++
+ struct drm_display_mode {
+ 	/* Header */
+ 	struct list_head head;
+@@ -144,6 +149,7 @@ struct drm_display_mode {
+ 	int vrefresh;		/* in Hz */
+ 	int hsync;		/* in kHz */
+ 	enum hdmi_picture_aspect picture_aspect_ratio;
++	unsigned int pol_flags;
+ };
+ 
+ /* mode specified on the command line */
+-- 
+1.7.9.5
 
