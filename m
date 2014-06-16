@@ -1,88 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:44478 "EHLO posteo.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755103AbaFWOrL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jun 2014 10:47:11 -0400
-Message-ID: <53A83DC7.1010606@posteo.de>
-Date: Mon, 23 Jun 2014 16:46:31 +0200
-From: Martin Kepplinger <martink@posteo.de>
-MIME-Version: 1.0
-To: Zhang Rui <rui.zhang@intel.com>
-CC: "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-	"lenb@kernel.org" <lenb@kernel.org>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black instead
- of native resolution
-References: <53A6E72A.9090000@posteo.de>	 <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>	 <53A81BF7.3030207@posteo.de> <1403529246.4686.6.camel@rzhang1-toshiba>
-In-Reply-To: <1403529246.4686.6.camel@rzhang1-toshiba>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4326 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752154AbaFPCnf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jun 2014 22:43:35 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5G2hVGw006448
+	for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 04:43:33 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 210332A1FCC
+	for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 04:43:19 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140616024319.210332A1FCC@tschai.lan>
+Date: Mon, 16 Jun 2014 04:43:19 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 2014-06-23 15:14, schrieb Zhang Rui:
-> On Mon, 2014-06-23 at 14:22 +0200, Martin Kepplinger wrote:
->> Am 2014-06-23 03:10, schrieb Zhang, Rui:
->>>
->>>
->>>> -----Original Message-----
->>>> From: Martin Kepplinger [mailto:martink@posteo.de]
->>>> Sent: Sunday, June 22, 2014 10:25 PM
->>>> To: Zhang, Rui
->>>> Cc: rjw@rjwysocki.net; lenb@kernel.org; linux-acpi@vger.kernel.org;
->>>> linux-kernel@vger.kernel.org
->>>> Subject: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black
->>>> instead of native resolution
->>>> Importance: High
->>>>
->>>> Since 3.16-rc1 my laptop's just goes black while booting, instead of
->>>> switching to native screen resolution and showing me the starting
->>>> system there. It's an Acer TravelMate B113 with i915 driver and
->>>> acer_wmi. It stays black and is unusable.
->>>>
-> This looks like a duplicate of
-> https://bugzilla.kernel.org/show_bug.cgi?id=78601
-> 
-> thanks,
-> rui
-I'm not sure about that. I have no problem with v3.15 and the screen
-goes black way before a display manager is started. It's right after the
-kernel loaded and usually the screen is set to native resolution.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Bisect told me aaeb2554337217dfa4eac2fcc90da7be540b9a73 as the first bad
-one. Although, checking that out and running it, works good. not sure if
-that makes sense.
+Results of the daily build of media_tree:
 
->>>> Do you have other people complain about that? Bisecting didn't lead to
->>>> a good result. I could be wrong but I somehow suspect the mistake to be
->>>> somewhere in commit 99678ed73a50d2df8b5f3c801e29e9b7a3e5aa85
->>>>
->>> In order to confirm if the problem is introduced by the above commit,
->>> why not checkout the kernel just before and after this commit and see if the problem exists?
->>>
->>> Thanks,
->>> rui
->>>
->> So maybe I was wrong. d27050641e9bc056446deb0814e7ba1aa7911f5a is still
->> good and aaeb2554337217dfa4eac2fcc90da7be540b9a73 is the fist bad one.
->> This is a big v4l merge. I added the linux-media list in cc now.
->>
->> What could be the problem here?
->>
->>>
->>>> There is nothing unusual in the kernel log.
->>>>
->>>> This is quite unusual for an -rc2. Hence my question. I'm happy to test
->>>> changes.
->>>>
->>>>                                      martin
->>>> --
->>>> Martin Kepplinger
->>>> e-mail        martink AT posteo DOT at
->>>> chat (XMPP)   martink AT jabber DOT at
->>
-> 
-> 
+date:		Mon Jun 16 04:00:14 CEST 2014
+git branch:	test
+git hash:	f7a27ff1fb77e114d1059a5eb2ed1cffdc508ce8
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-14-gf11dd94
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
