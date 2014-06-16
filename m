@@ -1,74 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f178.google.com ([209.85.213.178]:37837 "EHLO
-	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965518AbaFTIYQ (ORCPT
+Received: from mail-lb0-f173.google.com ([209.85.217.173]:38401 "EHLO
+	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752863AbaFPOi5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jun 2014 04:24:16 -0400
-Received: by mail-ig0-f178.google.com with SMTP id hn18so268369igb.11
-        for <linux-media@vger.kernel.org>; Fri, 20 Jun 2014 01:24:15 -0700 (PDT)
+	Mon, 16 Jun 2014 10:38:57 -0400
+Received: by mail-lb0-f173.google.com with SMTP id s7so2895163lbd.4
+        for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 07:38:56 -0700 (PDT)
+Message-ID: <539F017C.90408@gmail.com>
+Date: Mon, 16 Jun 2014 20:38:52 +0600
+From: "Alexander E. Patrakov" <patrakov@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <53A366B3.8020808@zytor.com>
-References: <20140618102957.15728.43525.stgit@patser>
-	<20140618103653.15728.4942.stgit@patser>
-	<20140619011327.GC10921@kroah.com>
-	<CAF6AEGv4Ms+zsrEtpA10bGq04LnRjzVb925co49eVxh4ugkd=A@mail.gmail.com>
-	<20140619170059.GA1224@kroah.com>
-	<CAKMK7uFa57YjeJCFQhWFr_5cRTTpWxBdJ1qtb5Ojnu-KZpe-Lw@mail.gmail.com>
-	<20140619200159.GA27883@kroah.com>
-	<53A366B3.8020808@zytor.com>
-Date: Fri, 20 Jun 2014 10:24:15 +0200
-Message-ID: <CAKMK7uGXHoUfWOGMH9EzbuZHKxLdLznUXLfq=USs6T=jkryYgg@mail.gmail.com>
-Subject: Re: [REPOST PATCH 1/8] fence: dma-buf cross-device synchronization (v17)
-From: Daniel Vetter <daniel@ffwll.ch>
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>,
-	Rob Clark <robdclark@gmail.com>,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	"open list:GENERIC INCLUDE/A..." <linux-arch@vger.kernel.org>,
-	Thomas Hellstrom <thellstrom@vmware.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Colin Cross <ccross@google.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Clemens Ladisch <clemens@ladisch.de>
+CC: Takashi Iwai <tiwai@suse.de>, alsa-devel@alsa-project.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [alsa-devel] [PATCH 1/3] sound: Add a quirk to enforce period_bytes
+References: <1402762571-6316-1-git-send-email-m.chehab@samsung.com> <1402762571-6316-2-git-send-email-m.chehab@samsung.com> <539E9F25.7030504@ladisch.de> <20140616112110.3f509262.m.chehab@samsung.com>
+In-Reply-To: <20140616112110.3f509262.m.chehab@samsung.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 20, 2014 at 12:39 AM, H. Peter Anvin <hpa@zytor.com> wrote:
->>> Aside: This is a pet peeve of mine and recently I've switched to
->>> rejecting all patch that have a BUG_ON, period.
->>
->> Please do, I have been for a few years now as well for the same reasons
->> you cite.
->>
+16.06.2014 20:21, Mauro Carvalho Chehab wrote:
+> Both xawtv and tvtime use the same code for audio:
+> 	http://git.linuxtv.org/cgit.cgi/xawtv3.git/tree/common/alsa_stream.c
 >
-> I'm actually concerned about this trend.  Downgrading things to WARN_ON
-> can allow a security bug in the kernel to continue to exist, for
-> example, or make the error message disappear.
->
-> I am wondering if the right thing here isn't to have a user (command
-> line?) settable policy as to how to proceed on an assert violation,
-> instead of hardcoding it at compile time.
+> There's an algorithm there that gets the period size form both the
+> capture and the playback cards, trying to find a minimum period that
+> would work properly for both.
 
-I should clarify: If it smells like the issue is a failure of our
-ioctl/syscall validation code to catch crap, BUG_ON is the right
-choice. And fundamentally I've had this rule since 1-2 years now, the
-only recent change I've done is switch my scripts from warning by
-default if there's a new BUG_ON to rejecting by default. Mostly
-because I'm lazy and let too many BUG_ONs pass through by default.
+I don't see any adaptive resampler (similar to what module-loopback does 
+in pulseaudio) there. Without that, or dynamically controlling the audio 
+capture clock PLL in the tuner, xruns are unavoidable when transferring 
+data between two unrelated cards.
 
-Also if you add a new interface to i915 I'll make damn sure you supply
-a full set of nasty testcases to abuse the ioctl hard. In the end it's
-a tradeoff and overall I don't think I'm compromising security with my
-current set of rules.
+So, until any further evidence appears, I think it is a common bug in 
+these audio codes.
 
-Also, people don't (yet) terribly care about data integrity as soon as
-their data has passed once through a gpu.
--Daniel
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+Alexander E. Patrakov
