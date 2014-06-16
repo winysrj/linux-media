@@ -1,96 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:57491 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752611AbaFKH7V (ORCPT
+Received: from smtpfb1-g21.free.fr ([212.27.42.9]:47491 "EHLO
+	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754976AbaFPKLp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jun 2014 03:59:21 -0400
-Received: by mail-wi0-f171.google.com with SMTP id n15so4434235wiw.4
-        for <linux-media@vger.kernel.org>; Wed, 11 Jun 2014 00:59:20 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1402468588-27792-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1401374448-30411-3-git-send-email-sakari.ailus@linux.intel.com> <1402468588-27792-1-git-send-email-sakari.ailus@linux.intel.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Wed, 11 Jun 2014 08:58:50 +0100
-Message-ID: <CA+V-a8uHaPPS-7Cq+XwyDKBSsJaa6CpNpJZTV2dLeMqEp0UgHg@mail.gmail.com>
-Subject: Re: [PATCH v3.1 2/4] smiapp: Add driver-specific test pattern menu
- item definitions
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
+	Mon, 16 Jun 2014 06:11:45 -0400
+Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
+	by smtpfb1-g21.free.fr (Postfix) with ESMTP id 2DDFB77D27E
+	for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 12:11:37 +0200 (CEST)
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v14 02/10] imx-drm: Add RGB666 support for parallel display.
+Date: Mon, 16 Jun 2014 12:11:16 +0200
+Message-Id: <1402913484-25910-2-git-send-email-denis@eukrea.com>
+In-Reply-To: <1402913484-25910-1-git-send-email-denis@eukrea.com>
+References: <1402913484-25910-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 11, 2014 at 7:36 AM, Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
-> Add numeric definitions for menu items used in the smiapp driver's test
-> pattern menu.
->
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ChangeLog v13->v14:
+- Rebased
+ChangeLog v9->v13:
+- Rebased
+ChangeLog v8->v9:
+- Rebased.
+- Added Philipp Zabel's ack.
+- Shortened the patch title.
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+ChangeLog v8->v9:
+- Removed the Cc. They are now set in git-send-email directly.
+- Rebased.
 
-Regards,
---Prabhakar Lad
+ChangeLog v7->v8:
+- Shrinked even more the Cc list.
 
-> ---
-> since v3:
-> - Add Kbuild entry for the header
->
->  include/uapi/linux/Kbuild   |  1 +
->  include/uapi/linux/smiapp.h | 29 +++++++++++++++++++++++++++++
->  2 files changed, 30 insertions(+)
->  create mode 100644 include/uapi/linux/smiapp.h
->
-> diff --git a/include/uapi/linux/Kbuild b/include/uapi/linux/Kbuild
-> index 6929571..a3ee163 100644
-> --- a/include/uapi/linux/Kbuild
-> +++ b/include/uapi/linux/Kbuild
-> @@ -352,6 +352,7 @@ header-y += serio.h
->  header-y += shm.h
->  header-y += signal.h
->  header-y += signalfd.h
-> +header-y += smiapp.h
->  header-y += snmp.h
->  header-y += sock_diag.h
->  header-y += socket.h
-> diff --git a/include/uapi/linux/smiapp.h b/include/uapi/linux/smiapp.h
-> new file mode 100644
-> index 0000000..53938f4
-> --- /dev/null
-> +++ b/include/uapi/linux/smiapp.h
-> @@ -0,0 +1,29 @@
-> +/*
-> + * include/uapi/linux/smiapp.h
-> + *
-> + * Generic driver for SMIA/SMIA++ compliant camera modules
-> + *
-> + * Copyright (C) 2014 Intel Corporation
-> + * Contact: Sakari Ailus <sakari.ailus@iki.fi>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + */
-> +
-> +#ifndef __UAPI_LINUX_SMIAPP_H_
-> +#define __UAPI_LINUX_SMIAPP_H_
-> +
-> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_DISABLED                 0
-> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_SOLID_COLOUR             1
-> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS              2
-> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_COLOUR_BARS_GREY         3
-> +#define V4L2_SMIAPP_TEST_PATTERN_MODE_PN9                      4
-> +
-> +#endif /* __UAPI_LINUX_SMIAPP_H_ */
-> --
-> 1.8.3.2
->
+ChangeLog v6->v7:
+- Shrinked even more the Cc list.
+
+ChangeLog v5->v6:
+- Remove people not concerned by this patch from the Cc list.
+
+ChangeLog v3->v5:
+- Use the correct RGB order.
+
+ChangeLog v2->v3:
+- Added some interested people in the Cc list.
+- Removed the commit message long desciption that was just a copy of the short
+  description.
+- Rebased the patch.
+- Fixed a copy-paste error in the ipu_dc_map_clear parameter.
+---
+ .../bindings/staging/imx-drm/fsl-imx-drm.txt       |    4 ++--
+ drivers/gpu/ipu-v3/ipu-dc.c                        |    9 +++++++++
+ drivers/staging/imx-drm/parallel-display.c         |    2 ++
+ 3 files changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt b/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
+index e75f0e5..c0eb95a 100644
+--- a/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
++++ b/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
+@@ -60,8 +60,8 @@ Required properties:
+ - compatible: Should be "fsl,imx-parallel-display"
+ Optional properties:
+ - interface_pix_fmt: How this display is connected to the
+-  display interface. Currently supported types: "rgb24", "rgb565", "bgr666"
+-  and "lvds666".
++  display interface. Currently supported types: "rgb24", "rgb565", "bgr666",
++  "rgb666" and "lvds666".
+ - edid: verbatim EDID data block describing attached display.
+ - ddc: phandle describing the i2c bus handling the display data
+   channel
+diff --git a/drivers/gpu/ipu-v3/ipu-dc.c b/drivers/gpu/ipu-v3/ipu-dc.c
+index 2326c75..100d410 100644
+--- a/drivers/gpu/ipu-v3/ipu-dc.c
++++ b/drivers/gpu/ipu-v3/ipu-dc.c
+@@ -93,6 +93,7 @@ enum ipu_dc_map {
+ 	IPU_DC_MAP_BGR666,
+ 	IPU_DC_MAP_LVDS666,
+ 	IPU_DC_MAP_BGR24,
++	IPU_DC_MAP_RGB666,
+ };
+ 
+ struct ipu_dc {
+@@ -161,6 +162,8 @@ static int ipu_pixfmt_to_map(u32 fmt)
+ 		return IPU_DC_MAP_LVDS666;
+ 	case V4L2_PIX_FMT_BGR24:
+ 		return IPU_DC_MAP_BGR24;
++	case V4L2_PIX_FMT_RGB666:
++		return IPU_DC_MAP_RGB666;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -452,6 +455,12 @@ int ipu_dc_init(struct ipu_soc *ipu, struct device *dev,
+ 	ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 1, 15, 0xff); /* green */
+ 	ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 0, 23, 0xff); /* blue */
+ 
++	/* rgb666 */
++	ipu_dc_map_clear(priv, IPU_DC_MAP_RGB666);
++	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 0, 5, 0xfc); /* blue */
++	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 1, 11, 0xfc); /* green */
++	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 2, 17, 0xfc); /* red */
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/staging/imx-drm/parallel-display.c b/drivers/staging/imx-drm/parallel-display.c
+index b567832..64b34336 100644
+--- a/drivers/staging/imx-drm/parallel-display.c
++++ b/drivers/staging/imx-drm/parallel-display.c
+@@ -218,6 +218,8 @@ static int imx_pd_bind(struct device *dev, struct device *master, void *data)
+ 			imxpd->interface_pix_fmt = V4L2_PIX_FMT_RGB565;
+ 		else if (!strcmp(fmt, "bgr666"))
+ 			imxpd->interface_pix_fmt = V4L2_PIX_FMT_BGR666;
++		else if (!strcmp(fmt, "rgb666"))
++			imxpd->interface_pix_fmt = V4L2_PIX_FMT_RGB666;
+ 		else if (!strcmp(fmt, "lvds666"))
+ 			imxpd->interface_pix_fmt = v4l2_fourcc('L', 'V', 'D', '6');
+ 	}
+-- 
+1.7.9.5
+
