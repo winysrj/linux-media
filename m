@@ -1,100 +1,392 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1225 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751091AbaF0Mx7 (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4169 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754976AbaFPJpx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jun 2014 08:53:59 -0400
-Message-ID: <53AD6949.4070403@xs4all.nl>
-Date: Fri, 27 Jun 2014 14:53:29 +0200
+	Mon, 16 Jun 2014 05:45:53 -0400
+Message-ID: <539EBCB4.6070102@xs4all.nl>
+Date: Mon, 16 Jun 2014 11:45:24 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Bernhard Praschinger <shadowlord@utanet.at>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: MJPEG-tools user list <mjpeg-users@lists.sourceforge.net>,
-	kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	dan.carpenter@oracle.com
-Subject: Re: [Mjpeg-users] [patch] [media] zoran: remove duplicate ZR050_MO_COMP
- define
-References: <20140609152135.GQ9600@mwanda> <5399E357.3040203@utanet.at>
-In-Reply-To: <5399E357.3040203@utanet.at>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+To: Thiago Santos <ts.santos@sisa.samsung.com>,
+	linux-media@vger.kernel.org
+CC: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH/RFC v2 1/2] v4l2grab: Add threaded producer/consumer option
+References: <1402321916-22111-1-git-send-email-ts.santos@sisa.samsung.com> <1402321916-22111-2-git-send-email-ts.santos@sisa.samsung.com>
+In-Reply-To: <1402321916-22111-2-git-send-email-ts.santos@sisa.samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bernhard,
+On 06/09/2014 03:51 PM, Thiago Santos wrote:
+> Adds options to allow the buffer dqbuf to happen on one thread while
+> the qbuf happens on another. This is useful to test concurrency access to
+> the v4l2 features. To enable this, 3 new options were added:
+> 
+> t: enable threaded mode (off by default and will use the loop)
+> b: enable blocking io mode (off by default
+> s: how much the consumer thread will sleep after reading a buffer, this is to
+>    simulate the time that it takes to process a buffer in a real application
+>    (in ms)
+> 
+> For example, you can simulate an application that takes 1s to process a buffer
+> with:
+> 
+> v4l2grab -t -b -s 1000
 
-On 06/12/2014 07:28 PM, Bernhard Praschinger wrote:
-> Hallo
->
-> More than 15 years have passed since the first working module for a
-> zoran chipset based PCI card existed. Well not included into the
-> Linux kernel at that time. According to my experience, the driver
-> started to make problems when 64 Bit and more than 2GB Ram became
-> popular. In May 2011 there was a patch available that made the cards
-> working in machines with more than 2GB Ram, and AMD&Intel x64
-> architectures. According to my information that patch did not make it
-> into the linux kernel (the Patch was for the Linux 2.6.38 Kernel)
+Is there a reason why you want to use v4l2grab instead of v4l2-ctl? My guess is
+that is was just easier to add it there. I'm not so keen about this, I'd much
+rather see this being added to v4l2-ctl, ideally for both capture, output and
+m2m devices.
 
-As far as I know it works fine on machines with a lot of memory, at
-least the last time I tested it it was OK (with a 3.<something> kernel).
-
-> So people spend time looking at code that does not work (well it
-> compiles and does not cause troubles), and send patches the world
-> will never honor.
-
-I'll honor them. I still have zoran hardware and it is on my todo list
-of drivers to update to the latest frameworks.
-
-> I haven't had a question related to a zoran based card's in years. So
-> I'm quite sure there are not much users out there that use a zoran
-> based video cards in a up to date environment.
->
-> Because of that I would really suggest that somebody removes the whole zoran driver from the linux kernel.
-
-It's not blocking new development, so there is no need to remove it.
-Besides, I have zoran hardware, so even if it is blocking new developments
-I should be able to fix it.
+I'll commit the second patch since HdG Acked it.
 
 Regards,
 
 	Hans
 
->
-> Dan Carpenter wrote:
->> The ZR050_MO_COMP define is cut and pasted twice so we can delete the
->> second instance.
->>
->> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->>
->> diff --git a/drivers/media/pci/zoran/zr36050.h b/drivers/media/pci/zoran/zr36050.h
->> index 9f52f0c..ea083ad 100644
->> --- a/drivers/media/pci/zoran/zr36050.h
->> +++ b/drivers/media/pci/zoran/zr36050.h
->> @@ -126,7 +126,6 @@ struct zr36050 {
->>   /* zr36050 mode register bits */
->>
->>   #define ZR050_MO_COMP                0x80
->> -#define ZR050_MO_COMP                0x80
->>   #define ZR050_MO_ATP                 0x40
->>   #define ZR050_MO_PASS2               0x20
->>   #define ZR050_MO_TLM                 0x10
->>
->> ------------------------------------------------------------------------------
->> HPCC Systems Open Source Big Data Platform from LexisNexis Risk Solutions
->> Find What Matters Most in Your Big Data with HPCC Systems
->> Open Source. Fast. Scalable. Simple. Ideal for Dirty Data.
->> Leverages Graph Analysis for Fast Processing & Easy Data Exploration
->> http://p.sf.net/sfu/hpccsystems
->> _______________________________________________
->> Mjpeg-users mailing list
->> Mjpeg-users@lists.sourceforge.net
->> https://lists.sourceforge.net/lists/listinfo/mjpeg-users
->
-> Kind Regards
-> Bernhard Praschinger
-> Docwriter, probably the last mjpegtools maintainer
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Signed-off-by: Thiago Santos <ts.santos@sisa.samsung.com>
+> ---
+>  contrib/test/Makefile.am |   2 +-
+>  contrib/test/v4l2grab.c  | 261 +++++++++++++++++++++++++++++++++++++++--------
+>  2 files changed, 219 insertions(+), 44 deletions(-)
+> 
+> diff --git a/contrib/test/Makefile.am b/contrib/test/Makefile.am
+> index 80c7665..c2e3860 100644
+> --- a/contrib/test/Makefile.am
+> +++ b/contrib/test/Makefile.am
+> @@ -25,7 +25,7 @@ pixfmt_test_CFLAGS = $(X11_CFLAGS)
+>  pixfmt_test_LDFLAGS = $(X11_LIBS)
+>  
+>  v4l2grab_SOURCES = v4l2grab.c
+> -v4l2grab_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la
+> +v4l2grab_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la -lpthread
+>  
+>  v4l2gl_SOURCES = v4l2gl.c
+>  v4l2gl_LDFLAGS = $(X11_LIBS) $(GL_LIBS) $(GLU_LIBS)
+> diff --git a/contrib/test/v4l2grab.c b/contrib/test/v4l2grab.c
+> index 674cbe7..3e1be3d 100644
+> --- a/contrib/test/v4l2grab.c
+> +++ b/contrib/test/v4l2grab.c
+> @@ -24,8 +24,10 @@
+>  #include <linux/videodev2.h>
+>  #include "../../lib/include/libv4l2.h"
+>  #include <argp.h>
+> +#include <pthread.h>
+>  
+> -#define CLEAR(x) memset(&(x), 0, sizeof(x))
+> +#define CLEAR_P(x,s) memset((x), 0, s)
+> +#define CLEAR(x) CLEAR_P(&(x), sizeof(x))
+>  
+>  struct buffer {
+>  	void   *start;
+> @@ -46,22 +48,206 @@ static void xioctl(int fh, unsigned long int request, void *arg)
+>  	}
+>  }
+>  
+> +/* Used by the multi thread capture version */
+> +struct buffer_queue {
+> +	struct v4l2_buffer *buffers;
+> +	int buffers_size;
+> +
+> +	int read_pos;
+> +	int write_pos;
+> +	int n_frames;
+> +
+> +	int fd;
+> +
+> +	pthread_mutex_t mutex;
+> +	pthread_cond_t buffer_cond;
+> +};
+> +
+> +/* Gets a buffer and puts it in the buffers list at write position, then
+> + * notifies the consumer that a new buffer is ready to be used */
+> +static void *produce_buffer (void * p)
+> +{
+> +	struct buffer_queue 		*bq;
+> +	fd_set				fds;
+> +	struct timeval			tv;
+> +	int				i;
+> +	struct v4l2_buffer		*buf;
+> +	int				r;
+> +
+> +	bq = p;
+> +
+> +	for (i = 0; i < bq->n_frames; i++) {
+> +		printf ("Prod: %d\n", i);
+> +		buf = &bq->buffers[bq->write_pos % bq->buffers_size];
+> +		do {
+> +			FD_ZERO(&fds);
+> +			FD_SET(bq->fd, &fds);
+> +
+> +			/* Timeout. */
+> +			tv.tv_sec = 2;
+> +			tv.tv_usec = 0;
+> +
+> +			r = select(bq->fd + 1, &fds, NULL, NULL, &tv);
+> +		} while ((r == -1 && (errno == EINTR)));
+> +		if (r == -1) {
+> +			perror("select");
+> +			pthread_exit (NULL);
+> +			return NULL;
+> +		}
+> +
+> +		CLEAR_P(buf, sizeof(struct v4l2_buffer));
+> +		buf->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +		buf->memory = V4L2_MEMORY_MMAP;
+> +		xioctl(bq->fd, VIDIOC_DQBUF, buf);
+> +
+> +		pthread_mutex_lock (&bq->mutex);
+> +		bq->write_pos++;
+> +		printf ("Prod: %d (done)\n", i);
+> +		pthread_cond_signal (&bq->buffer_cond);
+> +		pthread_mutex_unlock (&bq->mutex);
+> +
+> +	}
+> +
+> +	pthread_exit (NULL);
+> +}
+> +
+> +/* will create a separate thread that will produce the buffers and put
+> + * into a circular array while this same thread will get the buffers from
+> + * this array and 'render' them */
+> +static int capture_threads (int fd, struct buffer *buffers, int bufpool_size,
+> +			struct v4l2_format fmt, int n_frames,
+> +			char *out_dir, int sleep_ms)
+> +{
+> +	struct v4l2_buffer		buf;
+> +	unsigned int			i;
+> +	struct buffer_queue		buf_queue;
+> +	pthread_t			producer;
+> +	char				out_name[25 + strlen(out_dir)];
+> +	FILE				*fout;
+> +	struct timespec			sleeptime;
+> +
+> +	if (sleep_ms) {
+> +		sleeptime.tv_sec = sleep_ms / 1000;
+> +		sleeptime.tv_nsec = (sleep_ms % 1000) * 1000000;
+> +	}
+> +
+> +	buf_queue.buffers_size = bufpool_size * 2;
+> +	buf_queue.buffers = calloc(buf_queue.buffers_size,
+> +				   sizeof(struct v4l2_buffer));
+> +	buf_queue.fd = fd;
+> +	buf_queue.read_pos = 0;
+> +	buf_queue.write_pos = 0;
+> +	buf_queue.n_frames = n_frames;
+> +	pthread_mutex_init (&buf_queue.mutex, NULL);
+> +	pthread_cond_init (&buf_queue.buffer_cond, NULL);
+> +
+> +	pthread_create (&producer, NULL, produce_buffer, &buf_queue);
+> +
+> +	for (i = 0; i < n_frames; i++) {
+> +		printf ("Read: %d\n", i);
+> +
+> +		/* wait for a buffer to be available in the queue */
+> +		pthread_mutex_lock (&buf_queue.mutex);
+> +		while (buf_queue.read_pos == buf_queue.write_pos) {
+> +			pthread_cond_wait (&buf_queue.buffer_cond,
+> +					   &buf_queue.mutex);
+> +		}
+> +		pthread_mutex_unlock (&buf_queue.mutex);
+> +
+> +		if (sleep_ms)
+> +			nanosleep (&sleeptime, NULL);
+> +
+> +		sprintf(out_name, "%s/out%03d.ppm", out_dir, i);
+> +		fout = fopen(out_name, "w");
+> +		if (!fout) {
+> +			perror("Cannot open image");
+> +			exit(EXIT_FAILURE);
+> +		}
+> +		fprintf(fout, "P6\n%d %d 255\n",
+> +			fmt.fmt.pix.width, fmt.fmt.pix.height);
+> +		buf = buf_queue.buffers[buf_queue.read_pos %
+> +					buf_queue.buffers_size];
+> +		fwrite(buffers[buf.index].start, buf.bytesused, 1, fout);
+> +		fclose(fout);
+> +
+> +		xioctl(fd, VIDIOC_QBUF, &buf);
+> +
+> +		pthread_mutex_lock (&buf_queue.mutex);
+> +		buf_queue.read_pos++;
+> +		printf ("Read: %d (done)\n", i);
+> +		pthread_cond_signal (&buf_queue.buffer_cond);
+> +		pthread_mutex_unlock (&buf_queue.mutex);
+> +	}
+> +
+> +	pthread_mutex_destroy (&buf_queue.mutex);
+> +	pthread_cond_destroy (&buf_queue.buffer_cond);
+> +	free (buf_queue.buffers);
+> +	return 0;
+> +}
+> +
+> +static int capture_loop (int fd, struct buffer *buffers, struct v4l2_format fmt,
+> +			int n_frames, char *out_dir)
+> +{
+> +	struct v4l2_buffer		buf;
+> +	unsigned int			i;
+> +	struct timeval			tv;
+> +	int				r;
+> +	fd_set				fds;
+> +	FILE				*fout;
+> +	char				out_name[25 + strlen(out_dir)];
+> +
+> +	for (i = 0; i < n_frames; i++) {
+> +		do {
+> +			FD_ZERO(&fds);
+> +			FD_SET(fd, &fds);
+> +
+> +			/* Timeout. */
+> +			tv.tv_sec = 2;
+> +			tv.tv_usec = 0;
+> +
+> +			r = select(fd + 1, &fds, NULL, NULL, &tv);
+> +		} while ((r == -1 && (errno == EINTR)));
+> +		if (r == -1) {
+> +			perror("select");
+> +			return errno;
+> +		}
+> +
+> +		CLEAR(buf);
+> +		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +		buf.memory = V4L2_MEMORY_MMAP;
+> +		xioctl(fd, VIDIOC_DQBUF, &buf);
+> +
+> +		sprintf(out_name, "%s/out%03d.ppm", out_dir, i);
+> +		fout = fopen(out_name, "w");
+> +		if (!fout) {
+> +			perror("Cannot open image");
+> +			exit(EXIT_FAILURE);
+> +		}
+> +		fprintf(fout, "P6\n%d %d 255\n",
+> +			fmt.fmt.pix.width, fmt.fmt.pix.height);
+> +		fwrite(buffers[buf.index].start, buf.bytesused, 1, fout);
+> +		fclose(fout);
+> +
+> +		xioctl(fd, VIDIOC_QBUF, &buf);
+> +	}
+> +	return 0;
+> +}
+> +
+>  static int capture(char *dev_name, int x_res, int y_res, int n_frames,
+> -		   char *out_dir)
+> +		   char *out_dir, int block, int threads, int sleep_ms)
+>  {
+>  	struct v4l2_format		fmt;
+>  	struct v4l2_buffer		buf;
+>  	struct v4l2_requestbuffers	req;
+>  	enum v4l2_buf_type		type;
+> -	fd_set				fds;
+> -	struct timeval			tv;
+> -	int				r, fd = -1;
+> +	int				fd = -1;
+>  	unsigned int			i, n_buffers;
+> -	char				out_name[25 + strlen(out_dir)];
+> -	FILE				*fout;
+>  	struct buffer			*buffers;
+>  
+> -	fd = v4l2_open(dev_name, O_RDWR | O_NONBLOCK, 0);
+> +	if (block)
+> +		fd = v4l2_open(dev_name, O_RDWR, 0);
+> +	else
+> +		fd = v4l2_open(dev_name, O_RDWR | O_NONBLOCK, 0);
+>  	if (fd < 0) {
+>  		perror("Cannot open device");
+>  		exit(EXIT_FAILURE);
+> @@ -119,40 +305,11 @@ static int capture(char *dev_name, int x_res, int y_res, int n_frames,
+>  	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>  
+>  	xioctl(fd, VIDIOC_STREAMON, &type);
+> -	for (i = 0; i < n_frames; i++) {
+> -		do {
+> -			FD_ZERO(&fds);
+> -			FD_SET(fd, &fds);
+> -
+> -			/* Timeout. */
+> -			tv.tv_sec = 2;
+> -			tv.tv_usec = 0;
+> -
+> -			r = select(fd + 1, &fds, NULL, NULL, &tv);
+> -		} while ((r == -1 && (errno == EINTR)));
+> -		if (r == -1) {
+> -			perror("select");
+> -			return errno;
+> -		}
+> -
+> -		CLEAR(buf);
+> -		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> -		buf.memory = V4L2_MEMORY_MMAP;
+> -		xioctl(fd, VIDIOC_DQBUF, &buf);
+> -
+> -		sprintf(out_name, "%s/out%03d.ppm", out_dir, i);
+> -		fout = fopen(out_name, "w");
+> -		if (!fout) {
+> -			perror("Cannot open image");
+> -			exit(EXIT_FAILURE);
+> -		}
+> -		fprintf(fout, "P6\n%d %d 255\n",
+> -			fmt.fmt.pix.width, fmt.fmt.pix.height);
+> -		fwrite(buffers[buf.index].start, buf.bytesused, 1, fout);
+> -		fclose(fout);
+> -
+> -		xioctl(fd, VIDIOC_QBUF, &buf);
+> -	}
+> +	if (threads)
+> +		capture_threads(fd, buffers, 2, fmt, n_frames, out_dir,
+> +				sleep_ms);
+> +	else
+> +		capture_loop(fd, buffers, fmt, n_frames, out_dir);
+>  
+>  	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>  	xioctl(fd, VIDIOC_STREAMOFF, &type);
+> @@ -179,6 +336,9 @@ static const struct argp_option options[] = {
+>  	{"xres",	'x',	"XRES",		0,	"horizontal resolution", 0},
+>  	{"yres",	'y',	"YRES",		0,	"vertical resolution", 0},
+>  	{"n-frames",	'n',	"NFRAMES",	0,	"number of frames to capture", 0},
+> +	{"thread-enable", 't',	"THREADS",	0,	"if different threads should capture and save", 0},
+> +	{"blockmode-enable", 'b', "BLOCKMODE",	0,	"if blocking mode should be used", 0},
+> +	{"sleep-time",	's',	"SLEEP",	0,	"how long should the consumer thread sleep to simulate the processing of a buffer (in ms)"},
+>  	{ 0, 0, 0, 0, 0, 0 }
+>  };
+>  
+> @@ -188,6 +348,9 @@ static char	*out_dir = ".";
+>  static int	x_res = 640;
+>  static int	y_res = 480;
+>  static int	n_frames = 20;
+> +static int	threads = 0;
+> +static int	block = 0;
+> +static int	sleep_ms = 0;
+>  
+>  static error_t parse_opt(int k, char *arg, struct argp_state *state)
+>  {
+> @@ -215,6 +378,17 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
+>  		if (val)
+>  			n_frames = val;
+>  		break;
+> +	case 't':
+> +		threads = 1;
+> +		break;
+> +	case 'b':
+> +		block = 1;
+> +		break;
+> +	case 's':
+> +		val = atoi(arg);
+> +		if (val)
+> +			sleep_ms = val;
+> +		break;
+>  	default:
+>  		return ARGP_ERR_UNKNOWN;
+>  	}
+> @@ -232,5 +406,6 @@ int main(int argc, char **argv)
+>  {
+>  	argp_parse(&argp, argc, argv, 0, 0, 0);
+>  
+> -	return capture(dev_name, x_res, y_res, n_frames, out_dir);
+> +	return capture(dev_name, x_res, y_res, n_frames, out_dir, block,
+> +		       threads, sleep_ms);
+>  }
+> 
+
