@@ -1,110 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50495 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753503AbaFHQzK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jun 2014 12:55:10 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 4/8] au8522: cleanup s-video settings at setup_decoder_defaults()
-Date: Sun,  8 Jun 2014 13:54:54 -0300
-Message-Id: <1402246498-2532-5-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1402246498-2532-1-git-send-email-m.chehab@samsung.com>
-References: <1402246498-2532-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3759 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751113AbaFPKr4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jun 2014 06:47:56 -0400
+Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5GAlrK2065053
+	for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 12:47:55 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 64EFA2A1FCC
+	for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 12:47:40 +0200 (CEST)
+Message-ID: <539ECB4C.4050404@xs4all.nl>
+Date: Mon, 16 Jun 2014 12:47:40 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.16] Two fixes
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-setup_decoder_defaults() doesn't really care about the input
-port. All it needs to know is if the input port is s-video or
-not.
+Two bug fixes that should go to 3.16 (the dv-timings.c fix even for 3.12 and up).
 
-As the caller function already knows that, just pass a boolean
-instead.
+Regards,
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/au8522_decoder.c | 21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+	Hans
 
-diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
-index 53f6dea6b3cb..569922232eb8 100644
---- a/drivers/media/dvb-frontends/au8522_decoder.c
-+++ b/drivers/media/dvb-frontends/au8522_decoder.c
-@@ -220,7 +220,7 @@ static void setup_vbi(struct au8522_state *state, int aud_input)
- 
- }
- 
--static void setup_decoder_defaults(struct au8522_state *state, u8 input_mode)
-+static void setup_decoder_defaults(struct au8522_state *state, bool is_svideo)
- {
- 	int i;
- 	int filter_coef_type;
-@@ -237,13 +237,10 @@ static void setup_decoder_defaults(struct au8522_state *state, u8 input_mode)
- 	/* Other decoder registers */
- 	au8522_writereg(state, AU8522_TVDEC_INT_MASK_REG010H, 0x00);
- 
--	if (input_mode == 0x23) {
--		/* S-Video input mapping */
-+	if (is_svideo)
- 		au8522_writereg(state, AU8522_VIDEO_MODE_REG011H, 0x04);
--	} else {
--		/* All other modes (CVBS/ATVRF etc.) */
-+	else
- 		au8522_writereg(state, AU8522_VIDEO_MODE_REG011H, 0x00);
--	}
- 
- 	au8522_writereg(state, AU8522_TVDEC_PGA_REG012H,
- 			AU8522_TVDEC_PGA_REG012H_CVBS);
-@@ -275,8 +272,7 @@ static void setup_decoder_defaults(struct au8522_state *state, u8 input_mode)
- 			AU8522_TVDEC_COMB_HDIF_THR2_REG06AH_CVBS);
- 	au8522_writereg(state, AU8522_TVDEC_COMB_HDIF_THR3_REG06BH,
- 			AU8522_TVDEC_COMB_HDIF_THR3_REG06BH_CVBS);
--	if (input_mode == AU8522_INPUT_CONTROL_REG081H_SVIDEO_CH13 ||
--	    input_mode == AU8522_INPUT_CONTROL_REG081H_SVIDEO_CH24) {
-+	if (is_svideo) {
- 		au8522_writereg(state, AU8522_TVDEC_COMB_DCDIF_THR1_REG06CH,
- 				AU8522_TVDEC_COMB_DCDIF_THR1_REG06CH_SVIDEO);
- 		au8522_writereg(state, AU8522_TVDEC_COMB_DCDIF_THR2_REG06DH,
-@@ -317,8 +313,7 @@ static void setup_decoder_defaults(struct au8522_state *state, u8 input_mode)
- 
- 	setup_vbi(state, 0);
- 
--	if (input_mode == AU8522_INPUT_CONTROL_REG081H_SVIDEO_CH13 ||
--	    input_mode == AU8522_INPUT_CONTROL_REG081H_SVIDEO_CH24) {
-+	if (is_svideo) {
- 		/* Despite what the table says, for the HVR-950q we still need
- 		   to be in CVBS mode for the S-Video input (reason unknown). */
- 		/* filter_coef_type = 3; */
-@@ -360,7 +355,7 @@ static void au8522_setup_cvbs_mode(struct au8522_state *state, u8 input_mode)
- 
- 	au8522_writereg(state, AU8522_INPUT_CONTROL_REG081H, input_mode);
- 
--	setup_decoder_defaults(state, input_mode);
-+	setup_decoder_defaults(state, false);
- 
- 	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
- 			AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
-@@ -386,7 +381,7 @@ static void au8522_setup_cvbs_tuner_mode(struct au8522_state *state,
- 	/* Set input mode to CVBS on channel 4 with SIF audio input enabled */
- 	au8522_writereg(state, AU8522_INPUT_CONTROL_REG081H, input_mode);
- 
--	setup_decoder_defaults(state, input_mode);
-+	setup_decoder_defaults(state, false);
- 
- 	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
- 			AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
-@@ -407,7 +402,7 @@ static void au8522_setup_svideo_mode(struct au8522_state *state,
- 	/* Enable clamping control */
- 	au8522_writereg(state, AU8522_CLAMPING_CONTROL_REG083H, 0x00);
- 
--	setup_decoder_defaults(state, input_mode);
-+	setup_decoder_defaults(state, true);
- 
- 	au8522_writereg(state, AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H,
- 			AU8522_SYSTEM_MODULE_CONTROL_0_REG0A4H_CVBS);
--- 
-1.9.3
+The following changes since commit f7a27ff1fb77e114d1059a5eb2ed1cffdc508ce8:
 
+  [media] xc5000: delay tuner sleep to 5 seconds (2014-05-25 17:50:16 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.16a
+
+for you to fetch changes up to b3d14fb591e647056f111e1dabf13f542fdcc211:
+
+  saa7134: use unlocked_ioctl instead of ioctl. (2014-06-16 12:37:41 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      saa7134: use unlocked_ioctl instead of ioctl.
+
+Rickard Strandqvist (1):
+      media: v4l2-core: v4l2-dv-timings.c: Cleaning up code wrong value used in aspect ratio.
+
+ drivers/media/pci/saa7134/saa7134-empress.c | 2 +-
+ drivers/media/v4l2-core/v4l2-dv-timings.c   | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
