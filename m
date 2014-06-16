@@ -1,83 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f50.google.com ([209.85.160.50]:35327 "EHLO
-	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753324AbaFGV5S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:18 -0400
-Received: by mail-pb0-f50.google.com with SMTP id ma3so3885214pbc.37
-        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:17 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 17/43] imx-drm: ipu-v3: Add ipu_stride_to_bytes()
-Date: Sat,  7 Jun 2014 14:56:19 -0700
-Message-Id: <1402178205-22697-18-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail-la0-f50.google.com ([209.85.215.50]:45908 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752245AbaFPM3O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jun 2014 08:29:14 -0400
+Received: by mail-la0-f50.google.com with SMTP id pv20so1554468lab.23
+        for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 05:29:13 -0700 (PDT)
+Message-ID: <539EE315.8040903@cogentembedded.com>
+Date: Mon, 16 Jun 2014 16:29:09 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+To: Ben Dooks <ben.dooks@codethink.co.uk>,
+	linux-kernel@lists.codethink.co.uk, linux-sh@vger.kernel.org,
+	linux-media@vger.kernel.org
+CC: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
+	magnus.damm@opensource.se, horms@verge.net.au,
+	ian.molton@codethink.co.uk, william.towle@codethink.co.uk
+Subject: Re: [PATCH 1/9] ARM: lager: enable i2c devices
+References: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk> <1402862194-17743-2-git-send-email-ben.dooks@codethink.co.uk>
+In-Reply-To: <1402862194-17743-2-git-send-email-ben.dooks@codethink.co.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds ipu_stride_to_bytes(), which converts a pixel stride to bytes,
-suitable for passing to cpmem.
+Hello.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/imx-drm/ipu-v3/ipu-common.c |   30 +++++++++++++++++++++++++++
- include/linux/platform_data/imx-ipu-v3.h    |    1 +
- 2 files changed, 31 insertions(+)
+On 06/15/2014 11:56 PM, Ben Dooks wrote:
 
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-index 07b025f..32a51d6 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-@@ -576,6 +576,36 @@ enum ipu_color_space ipu_mbus_code_to_colorspace(u32 mbus_code)
- }
- EXPORT_SYMBOL_GPL(ipu_mbus_code_to_colorspace);
- 
-+int ipu_stride_to_bytes(u32 pixel_stride, u32 pixelformat)
-+{
-+	switch (pixelformat) {
-+	case V4L2_PIX_FMT_YUV420:
-+	case V4L2_PIX_FMT_YVU420:
-+		/*
-+		 * for the planar YUV formats, the stride passed to
-+		 * cpmem must be the stride in bytes of the Y plane.
-+		 * And all the planar YUV formats have an 8-bit
-+		 * Y component.
-+		 */
-+		return (8 * pixel_stride) >> 3;
-+	case V4L2_PIX_FMT_RGB565:
-+	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_UYVY:
-+		return (16 * pixel_stride) >> 3;
-+	case V4L2_PIX_FMT_BGR24:
-+	case V4L2_PIX_FMT_RGB24:
-+		return (24 * pixel_stride) >> 3;
-+	case V4L2_PIX_FMT_BGR32:
-+	case V4L2_PIX_FMT_RGB32:
-+		return (32 * pixel_stride) >> 3;
-+	default:
-+		break;
-+	}
-+
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL_GPL(ipu_stride_to_bytes);
-+
- int ipu_degrees_to_rot_mode(enum ipu_rotate_mode *mode, int degrees,
- 			    bool hflip, bool vflip)
- {
-diff --git a/include/linux/platform_data/imx-ipu-v3.h b/include/linux/platform_data/imx-ipu-v3.h
-index 6f2c408..681b9fd 100644
---- a/include/linux/platform_data/imx-ipu-v3.h
-+++ b/include/linux/platform_data/imx-ipu-v3.h
-@@ -500,6 +500,7 @@ int ipu_cpmem_set_image(struct ipu_ch_param __iomem *cpmem,
- enum ipu_color_space ipu_drm_fourcc_to_colorspace(u32 drm_fourcc);
- enum ipu_color_space ipu_pixelformat_to_colorspace(u32 pixelformat);
- enum ipu_color_space ipu_mbus_code_to_colorspace(u32 mbus_code);
-+int ipu_stride_to_bytes(u32 pixel_stride, u32 pixelformat);
- bool ipu_pixelformat_is_planar(u32 pixelformat);
- int ipu_degrees_to_rot_mode(enum ipu_rotate_mode *mode, int degrees,
- 			    bool hflip, bool vflip);
--- 
-1.7.9.5
+> Add i2c0, i2c1, i2c2 and i2c3 nodes to the Lager reference device tree as
+> these busses all have devices on them that can be probed even if they
+> are no drivers yet.
+
+> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+> ---
+>   arch/arm/boot/dts/r8a7790-lager.dts | 16 ++++++++++++++++
+>   1 file changed, 16 insertions(+)
+
+> diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
+> index dd2fe46..8617755 100644
+> --- a/arch/arm/boot/dts/r8a7790-lager.dts
+> +++ b/arch/arm/boot/dts/r8a7790-lager.dts
+> @@ -317,3 +317,19 @@
+>   	cd-gpios = <&gpio3 22 GPIO_ACTIVE_LOW>;
+>   	status = "okay";
+>   };
+> +
+> +&i2c0	{
+> +	status = "ok";
+> +};
+> +
+> +&i2c1	{
+> +	status = "ok";
+> +};
+> +
+> +&i2c2	{
+> +	status = "ok";
+> +};
+> +
+> +&i2c3	{
+> +	status = "ok";
+> +};
+
+    Against which tree is this patch? It has been merged to Simon's 'devel' 
+branch on my request already.
+
+WBR, Sergei
 
