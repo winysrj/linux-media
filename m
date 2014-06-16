@@ -1,66 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 216-82-208-22.static.grandenetworks.net ([216.82.208.22]:48385
-	"EHLO mx1.mthode.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932593AbaFTP7u (ORCPT
+Received: from cpsmtpb-ews10.kpnxchange.com ([213.75.39.15]:55891 "EHLO
+	cpsmtpb-ews10.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751127AbaFPMyB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jun 2014 11:59:50 -0400
-Received: from [10.6.185.150] (unknown [10.0.3.43])
-	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mx1.mthode.org (Postfix) with ESMTPSA id 264DB18084
-	for <linux-media@vger.kernel.org>; Fri, 20 Jun 2014 11:59:48 -0400 (EDT)
-In-Reply-To: <CALzAhNWzndgGCptiaZXAsVw4jyG5ANngO6m9BsL7te0sHDGqCg@mail.gmail.com>
-References: <53A3CB23.2000209@gentoo.org> <CALzAhNUb_J+tcqaaRLm_x=pAVDNWZp6EFuPBGKiS4VMiVtRwag@mail.gmail.com> <08c06a97-d24b-4eeb-9c3e-d7a923ec1ea1@email.android.com> <CALzAhNWzndgGCptiaZXAsVw4jyG5ANngO6m9BsL7te0sHDGqCg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain;
- charset=UTF-8
-Subject: Re: pvrusb2 has a new device (wintv-hvr-1955)
-From: Matthew Thode <prometheanfire@gentoo.org>
-Date: Fri, 20 Jun 2014 10:59:42 -0500
-To: Linux-Media <linux-media@vger.kernel.org>
-Message-ID: <2ea4e837-a037-43ab-a7ad-f6be82462c20@email.android.com>
+	Mon, 16 Jun 2014 08:54:01 -0400
+Message-ID: <1402922329.30599.10.camel@x220>
+Subject: Re: [PATCH] [media] sms: Remove CONFIG_ prefix from Kconfig symbols
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Martin Walch <walch.martin@web.de>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Date: Mon, 16 Jun 2014 14:38:49 +0200
+In-Reply-To: <1397663263.28548.13.camel@x220>
+References: <3513955.N5RNgL3hPx@tacticalops>
+	 <1383420054.4378.3.camel@x220.thuisdomein>
+	 <20131102174047.70c24ed8@samsung.com> <1392122724.13064.18.camel@x220>
+	 <1397663263.28548.13.camel@x220>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On June 20, 2014 10:55:47 AM CDT, Steven Toth <stoth@kernellabs.com> wrote:
->>>> Just bought a wintv-hvr-1955 (sold as a wintv-hvr-1950)
->>>> 160111 LF
->>>> Rev B1|7
->>>
->>>Talk to Hauppauge, they've already announced that they have a working
->>>Linux driver.
->>
->> I talked to them and they did say that the driver hasn't been
->upstreamed, also gave me some hardware info.  They wouldn't give me a
->driver/firmware that worked though and offered to RMA for an older
->device.
->
->They'd previously announced publicly that the driver was available
->under NDA for a superset product (HVR-1975):
->
->Slashgear picked up the PR.
->
->http://www.slashgear.com/hauppauge-wintv-hvr-1975-usb-tv-receiver-offers-multi-format-support-27318809/
->
->"There are both 32-bit and 64-bit drivers for wider computer support,
->and for Linux users, driver support is provided under an NDA."
->
->^^^ I suggest you ask them, they do have a solution.
->
->>
->> The demodulator is a Si2177, can't find anything about it in the
->kernel though.
->
->Correct.
->
->>
->> They also mentioned a LG3306a, wasn't able to find anything on it
->(might have misheard a character).
->
->LGDT3306
->
->- Steve
+On Wed, 2014-04-16 at 17:47 +0200, Paul Bolle wrote:
+> Remove the CONFIG_ prefix from two Kconfig symbols in a dependency for
+> SMS_SIANO_DEBUGFS. This prefix is invalid inside Kconfig files.
+> 
+> Note that the current (common sense) dependency on SMS_USB_DRV and
+> SMS_SDIO_DRV being equal ensures that SMS_SIANO_DEBUGFS will not
+> violate its constraints. These constraint are that:
+> - it should only be built if SMS_USB_DRV is set;
+> - it can't be builtin if USB support is modular.
+> 
+> So drop the dependency on SMS_USB_DRV, as it is unneeded.
+> 
+> Fixes: 6c84b214284e ("[media] sms: fix randconfig building error")
+> Reported-by: Martin Walch <walch.martin@web.de>
+> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+> ---
+> This is not runtime tested, as I don't have the hardware.
+> 
+> A matrix of the three cases in which this symbol can be set, to aid
+> review and to see whether I actually understood the constraints:
+> 
+> USB  SMS_USB_DRV  SMS_SDIO_DRV  SMS_SIANO_MDTV  SMS_SIANO_DEBUGFS
+> m    m            m             m               y 
+> y    m            m             m               y 
+> y    y            y             y               y 
+> 
+> By the way, I found myself staring at the entries in this file for quite
+> some time. Perhaps things would have been easier to understand if
+> SMS_USB_DRV and SMS_SDIO_DRV both selected SMS_SIANO_MDTV. But I didn't
+> dare to test that idea.
 
-Ah, thanks.  They didn't mention that an NDA was needed, I'll ask about it.
--- Matthew Thode (prometheanfire)
+This can still be seen in v3.16-rc1 and in next-20140616.
+
+Debugfs for smsdvb has been unbuildable since v3.12. That problem has
+been reported even before v3.12 was released. Does no one care and can
+it be removed?
+
+>  drivers/media/common/siano/Kconfig | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/common/siano/Kconfig b/drivers/media/common/siano/Kconfig
+> index f953d33ee151..4bfbd5f463d1 100644
+> --- a/drivers/media/common/siano/Kconfig
+> +++ b/drivers/media/common/siano/Kconfig
+> @@ -22,8 +22,7 @@ config SMS_SIANO_DEBUGFS
+>  	bool "Enable debugfs for smsdvb"
+>  	depends on SMS_SIANO_MDTV
+>  	depends on DEBUG_FS
+> -	depends on SMS_USB_DRV
+> -	depends on CONFIG_SMS_USB_DRV = CONFIG_SMS_SDIO_DRV
+> +	depends on SMS_USB_DRV = SMS_SDIO_DRV
+>  
+>  	---help---
+>  	  Choose Y to enable visualizing a dump of the frontend
+
+
+Paul Bolle
+
