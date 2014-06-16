@@ -1,53 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4143 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751843AbaFFJ4O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jun 2014 05:56:14 -0400
-Message-ID: <53919025.1060407@xs4all.nl>
-Date: Fri, 06 Jun 2014 11:55:49 +0200
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2603 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752152AbaFPIFs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jun 2014 04:05:48 -0400
+Message-ID: <539EA536.7020604@xs4all.nl>
+Date: Mon, 16 Jun 2014 10:05:10 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Pawel Osciak <pawel@osciak.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH/RFC v2 2/2] v4l: vb2: Add fatal error condition flag
-References: <1401970991-4421-1-git-send-email-laurent.pinchart@ideasonboard.com> <2013428.7yG2aMynBj@avalon> <53918A8B.1040308@xs4all.nl> <1435470.qABIAKhMXR@avalon>
-In-Reply-To: <1435470.qABIAKhMXR@avalon>
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH 07/30] [media] coda: add selection API support for h.264
+ decoder
+References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de> <1402675736-15379-8-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1402675736-15379-8-git-send-email-p.zabel@pengutronix.de>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/06/2014 11:46 AM, Laurent Pinchart wrote:
-> Hi Hans,
+On 06/13/2014 06:08 PM, Philipp Zabel wrote:
+> The h.264 decoder produces capture frames that are a multiple of the macroblock
+> size (16 pixels). To inform userspace about invalid pixel data at the edges,
+> use the active and padded composing rectangles on the capture queue.
+> The cropping information is obtained from the h.264 sequence parameter set.
 > 
-> On Friday 06 June 2014 11:31:55 Hans Verkuil wrote:
->> On 06/06/2014 11:19 AM, Laurent Pinchart wrote:
->>> Hi Pawel,
->>>
->>> On Friday 06 June 2014 14:31:15 Pawel Osciak wrote:
->>>> Hi Laurent,
->>>> Thanks for the patch. Did you test this to work in fileio mode? Looks
->>>> like it should, but would like to make sure.
->>>
->>> No, I haven't tested it. The OMAP4 ISS driver, which is my test target for
->>> this patch, doesn't support fileio mode. Adding VB2_READ would be easy,
->>> but the driver requires configuring the format on the file handle used for
->>> streaming, so I can't just run cat /dev/video*.
->>
->> Just test with vivi.
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/media/platform/coda.c | 87 +++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 87 insertions(+)
 > 
-> But vivi doesn't call the new vb2_queue_error() function. I understand that 
-> your vivi rework would make that easier as you now have an error control. 
-> Should I hack something similar in the existing vivi driver ? Any pointer ?
-> 
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index 10cc031..7e4df82 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -119,6 +119,7 @@ struct coda_q_data {
+>  	unsigned int		height;
+>  	unsigned int		sizeimage;
+>  	unsigned int		fourcc;
+> +	struct v4l2_rect	rect;
+>  };
+>  
+>  struct coda_aux_buf {
+> @@ -737,6 +738,10 @@ static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
+>  	q_data->width = f->fmt.pix.width;
+>  	q_data->height = f->fmt.pix.height;
+>  	q_data->sizeimage = f->fmt.pix.sizeimage;
+> +	q_data->rect.left = 0;
+> +	q_data->rect.top = 0;
+> +	q_data->rect.width = f->fmt.pix.width;
+> +	q_data->rect.height = f->fmt.pix.height;
+>  
+>  	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+>  		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
+> @@ -873,6 +878,43 @@ static int coda_streamoff(struct file *file, void *priv,
+>  	return ret;
+>  }
+>  
+> +static int coda_g_selection(struct file *file, void *fh,
+> +			    struct v4l2_selection *s)
+> +{
+> +	struct coda_ctx *ctx = fh_to_ctx(fh);
+> +	struct coda_q_data *q_data;
+> +
+> +	switch (s->target) {
+> +	case V4L2_SEL_TGT_CROP:
+> +		q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
 
-Just hack it in for testing. E.g. call it when the button control is pressed
-(see vivi_s_ctrl).
+There is no check against s->type: CROP is only supported for output
+buffers and should return -EINVAL for capture buffers and the reverse
+for COMPOSE.
+
+> +		s->r = q_data->rect;
+> +		break;
+> +	case V4L2_SEL_TGT_CROP_DEFAULT:
+> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+> +		q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+> +		s->r.left = 0;
+> +		s->r.top = 0;
+> +		s->r.width = q_data->width;
+> +		s->r.height = q_data->height;
+> +		break;
+> +	case V4L2_SEL_TGT_COMPOSE:
+> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+> +		q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+> +		s->r = q_data->rect;
+> +		break;
+> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+> +	case V4L2_SEL_TGT_COMPOSE_PADDED:
+> +		q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+> +		s->r.left = 0;
+> +		s->r.top = 0;
+> +		s->r.width = q_data->width;
+> +		s->r.height = q_data->height;
+> +		break;
+
+Add:
+
+	default:
+		return -EINVAL;
 
 Regards,
 
 	Hans
+
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static int coda_try_decoder_cmd(struct file *file, void *fh,
+>  				struct v4l2_decoder_cmd *dc)
+>  {
+> @@ -951,6 +993,8 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
+>  	.vidioc_streamon	= coda_streamon,
+>  	.vidioc_streamoff	= coda_streamoff,
+>  
+> +	.vidioc_g_selection	= coda_g_selection,
+> +
+>  	.vidioc_try_decoder_cmd	= coda_try_decoder_cmd,
+>  	.vidioc_decoder_cmd	= coda_decoder_cmd,
+>  
+> @@ -1506,6 +1550,10 @@ static void set_default_params(struct coda_ctx *ctx)
+>  	ctx->q_data[V4L2_M2M_DST].width = max_w;
+>  	ctx->q_data[V4L2_M2M_DST].height = max_h;
+>  	ctx->q_data[V4L2_M2M_DST].sizeimage = CODA_MAX_FRAME_SIZE;
+> +	ctx->q_data[V4L2_M2M_SRC].rect.width = max_w;
+> +	ctx->q_data[V4L2_M2M_SRC].rect.height = max_h;
+> +	ctx->q_data[V4L2_M2M_DST].rect.width = max_w;
+> +	ctx->q_data[V4L2_M2M_DST].rect.height = max_h;
+>  
+>  	if (ctx->dev->devtype->product == CODA_960)
+>  		coda_set_tiled_map_type(ctx, GDI_LINEAR_FRAME_MAP);
+> @@ -2033,6 +2081,21 @@ static int coda_start_decoding(struct coda_ctx *ctx)
+>  		return -EINVAL;
+>  	}
+>  
+> +	if (src_fourcc == V4L2_PIX_FMT_H264) {
+> +		u32 left_right;
+> +		u32 top_bottom;
+> +
+> +		left_right = coda_read(dev, CODA_RET_DEC_SEQ_CROP_LEFT_RIGHT);
+> +		top_bottom = coda_read(dev, CODA_RET_DEC_SEQ_CROP_TOP_BOTTOM);
+> +
+> +		q_data_dst->rect.left = (left_right >> 10) & 0x3ff;
+> +		q_data_dst->rect.top = (top_bottom >> 10) & 0x3ff;
+> +		q_data_dst->rect.width = width - q_data_dst->rect.left -
+> +					 (left_right & 0x3ff);
+> +		q_data_dst->rect.height = height - q_data_dst->rect.top -
+> +					  (top_bottom & 0x3ff);
+> +	}
+> +
+>  	ret = coda_alloc_framebuffers(ctx, q_data_dst, src_fourcc);
+>  	if (ret < 0)
+>  		return ret;
+> @@ -2939,6 +3002,30 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+>  
+>  	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+>  
+> +	/* frame crop information */
+> +	if (src_fourcc == V4L2_PIX_FMT_H264) {
+> +		u32 left_right;
+> +		u32 top_bottom;
+> +
+> +		left_right = coda_read(dev, CODA_RET_DEC_PIC_CROP_LEFT_RIGHT);
+> +		top_bottom = coda_read(dev, CODA_RET_DEC_PIC_CROP_TOP_BOTTOM);
+> +
+> +		if (left_right == 0xffffffff && top_bottom == 0xffffffff) {
+> +			/* Keep current crop information */
+> +		} else {
+> +			struct v4l2_rect *rect = &q_data_dst->rect;
+> +
+> +			rect->left = left_right >> 16 & 0xffff;
+> +			rect->top = top_bottom >> 16 & 0xffff;
+> +			rect->width = width - rect->left -
+> +				      (left_right & 0xffff);
+> +			rect->height = height - rect->top -
+> +				       (top_bottom & 0xffff);
+> +		}
+> +	} else {
+> +		/* no cropping */
+> +	}
+> +
+>  	val = coda_read(dev, CODA_RET_DEC_PIC_ERR_MB);
+>  	if (val > 0)
+>  		v4l2_err(&dev->v4l2_dev,
+> 
+
