@@ -1,69 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:40050 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753731AbaFHSJR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jun 2014 14:09:17 -0400
-Received: by mail-lb0-f181.google.com with SMTP id q8so2529792lbi.26
-        for <linux-media@vger.kernel.org>; Sun, 08 Jun 2014 11:09:15 -0700 (PDT)
-From: Alexander Bersenev <bay@hackerdom.ru>
-To: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
-	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
-	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Alexander Bersenev <bay@hackerdom.ru>
-Subject: [PATCH v9 1/5] ARM: sunxi: Add documentation for sunxi consumer infrared devices
-Date: Mon,  9 Jun 2014 00:08:09 +0600
-Message-Id: <1402250893-5412-2-git-send-email-bay@hackerdom.ru>
-In-Reply-To: <1402250893-5412-1-git-send-email-bay@hackerdom.ru>
-References: <1402250893-5412-1-git-send-email-bay@hackerdom.ru>
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:16201 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751313AbaFPPFv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jun 2014 11:05:51 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N7900HD2OLQOX40@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 16 Jun 2014 11:05:50 -0400 (EDT)
+Date: Mon, 16 Jun 2014 12:05:44 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Clemens Ladisch <clemens@ladisch.de>, Takashi Iwai <tiwai@suse.de>,
+	alsa-devel@alsa-project.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [alsa-devel] [PATCH 1/3] sound: Add a quirk to enforce period_bytes
+Message-id: <20140616120544.10ef75f4.m.chehab@samsung.com>
+In-reply-to: <CAGoCfiw3du9rXFvDfsUYLu4Ru6mbdWa+LtAyYupXosM0n-71NA@mail.gmail.com>
+References: <1402762571-6316-1-git-send-email-m.chehab@samsung.com>
+ <1402762571-6316-2-git-send-email-m.chehab@samsung.com>
+ <539E9F25.7030504@ladisch.de>
+ <CAGoCfiw3du9rXFvDfsUYLu4Ru6mbdWa+LtAyYupXosM0n-71NA@mail.gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds documentation for Device-Tree bindings for sunxi IR
-controller.
+Em Mon, 16 Jun 2014 09:22:08 -0400
+Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
 
-Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
----
- .../devicetree/bindings/media/sunxi-ir.txt         | 23 ++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sunxi-ir.txt
+> > This looks like a workaround for a userspace bug that would affect all
+> > USB audio devices.  What period/buffer sizes are xawtv/tvtime trying to
+> > use?
+> 
+> I have similar concerns, although I don't know what the right solution
+> is.  For example, the last time Mauro tweaked the latency in tvtime,
+> it broke support for all cx231xx devices (note that tvtime and xawtv
+> share essentially the same ALSA code):
+> 
+> http://git.linuxtv.org/cgit.cgi/tvtime.git/commit/?id=3d58ba563bfcc350c180b59a94cec746ccad6ebe
+> 
+> It seems like there is definitely something wrong with the
+> latency/period selection in both applications, but we need some
+> insight from people who are better familiar with the ALSA subsystem
+> for advice on the "right" way to do low latency audio capture (i.e.
+> properly negotiating minimal latency in a way that works with all
+> devices).
 
-diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-new file mode 100644
-index 0000000..014dd8b
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-@@ -0,0 +1,23 @@
-+Device-Tree bindings for SUNXI IR controller found in sunXi SoC family
-+
-+Required properties:
-+- compatible	    : should be "allwinner,sun7i-a20-ir";
-+- clocks	    : list of clock specifiers, corresponding to
-+		      entries in clock-names property;
-+- clock-names	    : should contain "apb" and "ir" entries;
-+- interrupts	    : should contain IR IRQ number;
-+- reg		    : should contain IO map address for IR.
-+
-+Optional properties:
-+- linux,rc-map-name : Remote control map name.
-+
-+Example:
-+
-+ir0: ir@01c21800 {
-+	compatible = "allwinner,sun7i-a20-ir";
-+	clocks = <&apb0_gates 6>, <&ir0_clk>;
-+	clock-names = "apb", "ir";
-+	interrupts = <0 5 1>;
-+	reg = <0x01C21800 0x40>;
-+	linux,rc-map-name = "rc-rc6-mce";
-+};
--- 
-1.9.3
+Well, I suspect that the issue is at Kernel level.
 
+Let's see the au0828 case:
+	48 kHz, 2 bytes/sample, 2 channels, 256 maxpacksize, 1 ms URB
+interval (bInterval = 1).
+
+In this case, there is 192 bytes per 1ms period.	
+
+Let's assume that the period was set to 3456, with corresponds to
+a latency of 18 ms.
+
+In this case, as NUM_URBS = 12, it means that the transfer buffer
+will be set to its maximum value of 3072 bytes per URB pack (12 * 256),
+and the URB transfer_callback will be called on every 16 ms.
+
+So, what happens is:
+
+	- after 16 ms, the first 3072 bytes arrive. The next
+	  packet will take another 16ms to arrive;
+	- after 2 ms, underrun, as the period_size was not
+	  filled yet.
+
+The thing is that any latency that between 16 ms and 32 ms
+are invalid, as the URB settings won't support it.
+
+Regards,
+Mauro
