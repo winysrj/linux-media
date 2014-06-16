@@ -1,70 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:42204 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934568AbaFULEe (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1297 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751216AbaFPMGS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jun 2014 07:04:34 -0400
-Received: by mail-lb0-f178.google.com with SMTP id 10so2944048lbg.23
-        for <linux-media@vger.kernel.org>; Sat, 21 Jun 2014 04:04:32 -0700 (PDT)
-From: Alexander Bersenev <bay@hackerdom.ru>
-To: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
-	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
-	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Alexander Bersenev <bay@hackerdom.ru>
-Subject: [PATCH v10 1/5] ARM: sunxi: Add documentation for sunxi consumer infrared devices
-Date: Sat, 21 Jun 2014 17:04:02 +0600
-Message-Id: <1403348646-31091-2-git-send-email-bay@hackerdom.ru>
-In-Reply-To: <1403348646-31091-1-git-send-email-bay@hackerdom.ru>
-References: <1403348646-31091-1-git-send-email-bay@hackerdom.ru>
+	Mon, 16 Jun 2014 08:06:18 -0400
+Message-ID: <539EDDA5.8020108@xs4all.nl>
+Date: Mon, 16 Jun 2014 14:05:57 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Scott Doty <scott@ponzo.net>
+Subject: Re: [PATCH for v3.16] hdpvr: fix two audio bugs
+References: <539EDD60.5020400@xs4all.nl>
+In-Reply-To: <539EDD60.5020400@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds documentation for Device-Tree bindings for sunxi IR
-controller.
+On 06/16/2014 02:04 PM, Hans Verkuil wrote:
+> Scott,
+> 
+> Please verify that this solves your problem. It worked for me.
 
-Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
----
- .../devicetree/bindings/media/sunxi-ir.txt         |   23 ++++++++++++++++++++
- 1 files changed, 23 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/sunxi-ir.txt
+Never mind, I'll repost the right patch in a minute.
 
-diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-new file mode 100644
-index 0000000..014dd8b
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-@@ -0,0 +1,23 @@
-+Device-Tree bindings for SUNXI IR controller found in sunXi SoC family
-+
-+Required properties:
-+- compatible	    : should be "allwinner,sun7i-a20-ir";
-+- clocks	    : list of clock specifiers, corresponding to
-+		      entries in clock-names property;
-+- clock-names	    : should contain "apb" and "ir" entries;
-+- interrupts	    : should contain IR IRQ number;
-+- reg		    : should contain IO map address for IR.
-+
-+Optional properties:
-+- linux,rc-map-name : Remote control map name.
-+
-+Example:
-+
-+ir0: ir@01c21800 {
-+	compatible = "allwinner,sun7i-a20-ir";
-+	clocks = <&apb0_gates 6>, <&ir0_clk>;
-+	clock-names = "apb", "ir";
-+	interrupts = <0 5 1>;
-+	reg = <0x01C21800 0x40>;
-+	linux,rc-map-name = "rc-rc6-mce";
-+};
--- 
-1.7.1
+	Hans
+
+> 
+> 	Hans
+> 
+> 
+> When the audio encoding is changed the driver calls hdpvr_set_audio
+> with the current opt->audio_input value. However, that should have
+> been opt->audio_input + 1. So changing the audio encoding inadvertently
+> changes the input as well. This bug has always been there.
+> 
+> The second bug was introduced in kernel 3.10 and that broke the
+> default_audio_input module option handling: the audio encoding was
+> never switched to AC3 if default_audio_input was set to 2 (SPDIF input).
+> 
+> In addition, since starting with 3.10 the audio encoding is always set
+> at the start the first bug now always happens when the driver is loaded.
+> In the past this bug would only surface if the user would change the
+> audio encoding after the driver was loaded.
+> 
+> Also fixes a small trivial typo (bufffer -> buffer).
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Reported-by: Scott Doty <scott@corp.sonic.net>
+> Cc: stable@vger.kernel.org      # for v3.10 and up
+> ---
+>  drivers/media/usb/hdpvr/hdpvr-video.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+> index 0500c417..59f1dd4 100644
+> --- a/drivers/media/usb/hdpvr/hdpvr-video.c
+> +++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+> @@ -82,7 +82,7 @@ static void hdpvr_read_bulk_callback(struct urb *urb)
+>  }
+>  
+>  /*=========================================================================*/
+> -/* bufffer bits */
+> +/* buffer bits */
+>  
+>  /* function expects dev->io_mutex to be hold by caller */
+>  int hdpvr_cancel_queue(struct hdpvr_device *dev)
+> 
 
