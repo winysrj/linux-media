@@ -1,135 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8277 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752160AbaFQGMn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jun 2014 02:12:43 -0400
-Message-ID: <539FDC4F.4030000@redhat.com>
-Date: Tue, 17 Jun 2014 08:12:31 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Vincent Palatin <vpalatin@chromium.org>,
+Received: from smtpfb2-g21.free.fr ([212.27.42.10]:33465 "EHLO
+	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755071AbaFPKMG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jun 2014 06:12:06 -0400
+Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
+	by smtpfb2-g21.free.fr (Postfix) with ESMTP id 5F3D7D1A770
+	for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 12:12:03 +0200 (CEST)
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-CC: linux-kernel@vger.kernel.org, Olof Johansson <olofj@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Zach Kuznia <zork@chromium.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH] V4L: uvcvideo: Add support for relative pan/tilt controls
-References: <1402965480-19560-1-git-send-email-vpalatin@chromium.org>
-In-Reply-To: <1402965480-19560-1-git-send-email-vpalatin@chromium.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v14 07/10] imx-drm: Use drm_display_mode timings flags.
+Date: Mon, 16 Jun 2014 12:11:21 +0200
+Message-Id: <1402913484-25910-7-git-send-email-denis@eukrea.com>
+In-Reply-To: <1402913484-25910-1-git-send-email-denis@eukrea.com>
+References: <1402913484-25910-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The previous hardware behaviour was kept if the
+flags are not set.
 
-On 06/17/2014 02:38 AM, Vincent Palatin wrote:
-> Map V4L2_CID_TILT_RELATIVE and V4L2_CID_PAN_RELATIVE to the standard UVC
-> CT_PANTILT_ABSOLUTE_CONTROL terminal control request.
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+---
+ChangeLog v13->v14:
+- Rebased
 
-s/ABSOLUTE/RELATIVE in the commit message here.
+ChangeLog v12->v13:
+- This patch doesn't need the DRM_MODE_FLAG_POL_*_PRESERVE flags anymore.
+- code cleanup to improve readability:
+  - ENABLE_POL_PRESERVE is now gone
+  - Less modifications in ipu_di_init_sync_panel
+  - more readable modifications in int ipu_crtc_mode_set
+ChangeLog v11->v12:
+- Rebased: It now uses the following new flags defines names:
+  CLK_POL, ENABLE_POL
+- The inversions in ipuv3-crtc.c are now fixed.
+- ipuv3-crtc.c was still using mode->private_flags
+  from the previous versions of this patchset, that's now fixed.
 
-Otherwise looks good to me.
+ChangeLog v10->v11:
+- This patch was splitted-out and adapted from:
+  "Prepare imx-drm for extra display-timings retrival."
+- The display-timings dt specific part was removed.
+- The flags names were changed to use the DRM ones from:
+  "drm: drm_display_mode: add signal polarity flags"
+---
+ drivers/gpu/ipu-v3/ipu-di.c          |    2 ++
+ drivers/staging/imx-drm/ipuv3-crtc.c |   18 ++++++++++++++++--
+ include/video/imx-ipu-v3.h           |    4 ++--
+ 3 files changed, 20 insertions(+), 4 deletions(-)
 
-Regards,
+diff --git a/drivers/gpu/ipu-v3/ipu-di.c b/drivers/gpu/ipu-v3/ipu-di.c
+index d00f357..1a1e116 100644
+--- a/drivers/gpu/ipu-v3/ipu-di.c
++++ b/drivers/gpu/ipu-v3/ipu-di.c
+@@ -597,6 +597,8 @@ int ipu_di_init_sync_panel(struct ipu_di *di, struct ipu_di_signal_cfg *sig)
+ 
+ 	if (sig->clk_pol == CLK_POL_POSEDGE)
+ 		di_gen |= DI_GEN_POLARITY_DISP_CLK;
++	else if (sig->clk_pol == CLK_POL_NEGEDGE)
++		di_gen &= ~DI_GEN_POLARITY_DISP_CLK;
+ 
+ 	ipu_di_write(di, di_gen, DI_GENERAL);
+ 
+diff --git a/drivers/staging/imx-drm/ipuv3-crtc.c b/drivers/staging/imx-drm/ipuv3-crtc.c
+index 7fec438..7fdf575 100644
+--- a/drivers/staging/imx-drm/ipuv3-crtc.c
++++ b/drivers/staging/imx-drm/ipuv3-crtc.c
+@@ -165,8 +165,22 @@ static int ipu_crtc_mode_set(struct drm_crtc *crtc,
+ 	if (mode->flags & DRM_MODE_FLAG_PVSYNC)
+ 		sig_cfg.Vsync_pol = 1;
+ 
+-	sig_cfg.enable_pol = ENABLE_POL_HIGH;
+-	sig_cfg.clk_pol = CLK_POL_NEGEDGE;
++	if (mode->pol_flags & DRM_MODE_FLAG_POL_PIXDATA_POSEDGE)
++		sig_cfg.clk_pol = CLK_POL_POSEDGE;
++	else if (mode->pol_flags & DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE)
++		sig_cfg.clk_pol = CLK_POL_NEGEDGE;
++	else
++		/* If no PIXDATA flags were set, keep the old behaviour */
++		sig_cfg.clk_pol = CLK_POL_NEGEDGE;
++
++	if (mode->pol_flags & DRM_MODE_FLAG_POL_DE_HIGH)
++		sig_cfg.enable_pol = ENABLE_POL_HIGH;
++	else if (mode->pol_flags & DRM_MODE_FLAG_POL_DE_LOW)
++		sig_cfg.enable_pol = ENABLE_POL_LOW;
++	else
++		/* If no DE flags were set, keep the old behaviour */
++		sig_cfg.enable_pol = ENABLE_POL_HIGH;
++
+ 	sig_cfg.width = mode->hdisplay;
+ 	sig_cfg.height = mode->vdisplay;
+ 	sig_cfg.pixel_fmt = out_pixel_fmt;
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 8888305..e660522 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -43,10 +43,10 @@ struct ipu_di_signal_cfg {
+ 	unsigned clksel_en:1;
+ 	unsigned clkidle_en:1;
+ 	unsigned data_pol:1;	/* true = inverted */
+-	unsigned clk_pol:1;
+-	unsigned enable_pol:1;
+ 	unsigned Hsync_pol:1;	/* true = active high */
+ 	unsigned Vsync_pol:1;
++	u8 clk_pol;
++	u8 enable_pol;
+ 
+ 	u16 width;
+ 	u16 height;
+-- 
+1.7.9.5
 
-Hans
-
-
-> 
-> Tested by plugging a Logitech ConferenceCam C3000e USB camera
-> and controlling pan/tilt from the userspace using the VIDIOC_S_CTRL ioctl.
-> Verified that it can pan and tilt at the same time in both directions.
-> 
-> Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
-> 
-> Change-Id: I7b70b228e5c0126683f5f0be34ffd2807f5783dc
-> ---
->  drivers/media/usb/uvc/uvc_ctrl.c | 58 +++++++++++++++++++++++++++++++++++++---
->  1 file changed, 55 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
-> index 0eb82106..af18120 100644
-> --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
-> @@ -309,9 +309,8 @@ static struct uvc_control_info uvc_ctrls[] = {
->  		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
->  		.index		= 12,
->  		.size		= 4,
-> -		.flags		= UVC_CTRL_FLAG_SET_CUR | UVC_CTRL_FLAG_GET_MIN
-> -				| UVC_CTRL_FLAG_GET_MAX | UVC_CTRL_FLAG_GET_RES
-> -				| UVC_CTRL_FLAG_GET_DEF
-> +		.flags		= UVC_CTRL_FLAG_SET_CUR
-> +				| UVC_CTRL_FLAG_GET_RANGE
->  				| UVC_CTRL_FLAG_AUTO_UPDATE,
->  	},
->  	{
-> @@ -391,6 +390,35 @@ static void uvc_ctrl_set_zoom(struct uvc_control_mapping *mapping,
->  	data[2] = min((int)abs(value), 0xff);
->  }
->  
-> +static __s32 uvc_ctrl_get_rel_speed(struct uvc_control_mapping *mapping,
-> +	__u8 query, const __u8 *data)
-> +{
-> +	int first = mapping->offset / 8;
-> +	__s8 rel = (__s8)data[first];
-> +
-> +	switch (query) {
-> +	case UVC_GET_CUR:
-> +		return (rel == 0) ? 0 : (rel > 0 ? data[first+1]
-> +						 : -data[first+1]);
-> +	case UVC_GET_MIN:
-> +		return -data[first+1];
-> +	case UVC_GET_MAX:
-> +	case UVC_GET_RES:
-> +	case UVC_GET_DEF:
-> +	default:
-> +		return data[first+1];
-> +	}
-> +}
-> +
-> +static void uvc_ctrl_set_rel_speed(struct uvc_control_mapping *mapping,
-> +	__s32 value, __u8 *data)
-> +{
-> +	int first = mapping->offset / 8;
-> +
-> +	data[first] = value == 0 ? 0 : (value > 0) ? 1 : 0xff;
-> +	data[first+1] = min_t(int, abs(value), 0xff);
-> +}
-> +
->  static struct uvc_control_mapping uvc_ctrl_mappings[] = {
->  	{
->  		.id		= V4L2_CID_BRIGHTNESS,
-> @@ -677,6 +705,30 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
->  		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
->  	},
->  	{
-> +		.id		= V4L2_CID_PAN_RELATIVE,
-> +		.name		= "Pan (Relative)",
-> +		.entity		= UVC_GUID_UVC_CAMERA,
-> +		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
-> +		.size		= 16,
-> +		.offset		= 0,
-> +		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
-> +		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
-> +		.get		= uvc_ctrl_get_rel_speed,
-> +		.set		= uvc_ctrl_set_rel_speed,
-> +	},
-> +	{
-> +		.id		= V4L2_CID_TILT_RELATIVE,
-> +		.name		= "Tilt (Relative)",
-> +		.entity		= UVC_GUID_UVC_CAMERA,
-> +		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
-> +		.size		= 16,
-> +		.offset		= 16,
-> +		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
-> +		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
-> +		.get		= uvc_ctrl_get_rel_speed,
-> +		.set		= uvc_ctrl_set_rel_speed,
-> +	},
-> +	{
->  		.id		= V4L2_CID_PRIVACY,
->  		.name		= "Privacy",
->  		.entity		= UVC_GUID_UVC_CAMERA,
-> 
