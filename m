@@ -1,106 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:61729 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751161AbaFKHA2 convert rfc822-to-8bit (ORCPT
+Received: from smtpfb1-g21.free.fr ([212.27.42.9]:47731 "EHLO
+	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755060AbaFPKMh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jun 2014 03:00:28 -0400
-Received: by mail-wg0-f48.google.com with SMTP id n12so8314547wgh.7
-        for <linux-media@vger.kernel.org>; Wed, 11 Jun 2014 00:00:26 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <97D30D57D08C2C49A26A3312F17290483B008B5E@TPEMAIL2.internal.ite.com.tw>
-References: <20140610125059.GA1930@wolfgang>
-	<97D30D57D08C2C49A26A3312F17290483B008B5E@TPEMAIL2.internal.ite.com.tw>
-Date: Wed, 11 Jun 2014 17:00:26 +1000
-Message-ID: <CAM187nBbeZJyG-4K+N4nicaYjcvrgXB5u10J7gHOp=xrbO9Bkg@mail.gmail.com>
-Subject: Re: AF9033 / IT913X: Avermedia A835B(1835) only works sporadically
-From: David Shirley <tephra@gmail.com>
-To: Jason.Dong@ite.com.tw
-Cc: sebastian_ml@gmx.net, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 16 Jun 2014 06:12:37 -0400
+Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
+	by smtpfb1-g21.free.fr (Postfix) with ESMTP id 68E892CB9F
+	for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 12:12:34 +0200 (CEST)
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v14 05/10] ARM: dts: imx5*, imx6*: correct display-timings nodes.
+Date: Mon, 16 Jun 2014 12:11:19 +0200
+Message-Id: <1402913484-25910-5-git-send-email-denis@eukrea.com>
+In-Reply-To: <1402913484-25910-1-git-send-email-denis@eukrea.com>
+References: <1402913484-25910-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Jason,
+The imx-drm driver can't use the de-active and
+pixelclk-active display-timings properties yet.
 
-Do we know if that RF problem exists in 3.14.5? Using the IT913X driver?
+Instead the data-enable and the pixel data clock
+polarity are hardcoded in the imx-drm driver.
 
-I have a Leadtek Winfast Dual Dongle (0413:6a05 - dual usb - ITE9137
-BX + IE9133) which is being extremely painful (random signal locks,
-tzap reports ok signal strength for one tuner but poor for the other,
-random signal dropouts (ie working fine, then progressively getting
-more and more blips in visual/audio from stream)).
+So theses properties are now set to keep
+the same behaviour when imx-drm will start
+using them.
 
-I dont think its signal strength related because 3x Leadtek Winfast
-Gold dongles (AF9013) all work (until they stop tuning and cold reboot
-is required)
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+---
+ChangeLog v13->v14:
+- None
+ChangeLog v10->v11:
+- imx53-tx53-x03x.dts change was removed because it 
+  already had the correct setting.
+ChangeLog v9->v10:
+- New patch that was splitted out of:
+  "staging imx-drm: Use de-active and pixelclk-active
+  display-timings."
+---
+ arch/arm/boot/dts/imx51-babbage.dts       |    2 ++
+ arch/arm/boot/dts/imx53-m53evk.dts        |    2 ++
+ arch/arm/boot/dts/imx6qdl-gw53xx.dtsi     |    2 ++
+ arch/arm/boot/dts/imx6qdl-gw54xx.dtsi     |    2 ++
+ arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi |    2 ++
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi  |    2 ++
+ arch/arm/boot/dts/imx6qdl-sabrelite.dtsi  |    2 ++
+ arch/arm/boot/dts/imx6qdl-sabresd.dtsi    |    2 ++
+ 8 files changed, 16 insertions(+)
 
-I suspect something about the firmware is at fault, I have tried to
-talk to Antti - but he must be busy. I have tried three different
-dvb-usb-it9135-02.fw firmwares, and they don't seem to make a huge
-difference (newest doesn't create /dev/dvb bits)...
+diff --git a/arch/arm/boot/dts/imx51-babbage.dts b/arch/arm/boot/dts/imx51-babbage.dts
+index ee51a10..b64a9e3 100644
+--- a/arch/arm/boot/dts/imx51-babbage.dts
++++ b/arch/arm/boot/dts/imx51-babbage.dts
+@@ -56,6 +56,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 
+diff --git a/arch/arm/boot/dts/imx53-m53evk.dts b/arch/arm/boot/dts/imx53-m53evk.dts
+index 4b036b4..d03ced7 100644
+--- a/arch/arm/boot/dts/imx53-m53evk.dts
++++ b/arch/arm/boot/dts/imx53-m53evk.dts
+@@ -41,6 +41,8 @@
+ 					vfront-porch = <9>;
+ 					vsync-len = <3>;
+ 					vsync-active = <1>;
++					de-active = <1>;
++					pixelclk-active = <0>;
+ 				};
+ 			};
+ 		};
+diff --git a/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
+index d3125f0..7f993d6 100644
+--- a/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
+@@ -512,6 +512,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+index 532347f..e06cf9e 100644
+--- a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+@@ -534,6 +534,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi b/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
+index 4c4b175..bcf5178 100644
+--- a/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
+@@ -353,6 +353,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index 009abd6..230bbc6 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -405,6 +405,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+index 6df6127..9f6b406 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+@@ -353,6 +353,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+index e446192..3297779 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+@@ -494,6 +494,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+-- 
+1.7.9.5
 
-Does a BX (v2) 9137 require yet another firmware image?
-
-If I use the AF9035 kernel driver it doesn't tune at all. But does
-detect the tuners...
-
-Sorry to threadjack - but seeing your @ite.com.tw I thought I would
-ask while I can :)
-
-Regards
-David
-
-On 11 June 2014 15:31,  <Jason.Dong@ite.com.tw> wrote:
-> Dear Sebastian,
->
-> There is a RF performance issue in the af9033 driver of kernel 3.15. It is no problem in the it913x driver of kernel 3.14.
-> There were some initial sequences not correct after the it913x driver was integrated into af9033 driver.
->
-> BRs,
-> Jason
->
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Sebastian Kemper
-> Sent: Tuesday, June 10, 2014 8:51 PM
-> To: linux-media@vger.kernel.org
-> Subject: AF9033 / IT913X: Avermedia A835B(1835) only works sporadically
->
-> Hello list,
->
-> I have an "Avermedia A835B(1835)" USB DVB-T stick (07ca:1835) which works only (very) sporadically. It's pure luck as far as I can see.
-> I can't reproduce how to get it working. There are no special steps that I can take to guarantee that it'll work once I plug it in.
->
-> I'd rate my chances of having the device actually working between 5 and
-> 10 percent.
->
-> In the log everything looks fine, apart from the messages at the bottom about the device not being able to get a lock on a channel.
->
-> Reception here is really good, so there's no problem with signal strength. When loading the device in Windows 7 64 bit it always finds a lock.
->
-> Has anybody any idea? Thanks for any suggestions!
->
-> Jun 10 14:18:07 meiner kernel: usb 1-2: new high-speed USB device number 2 using xhci_hcd Jun 10 14:18:07 meiner kernel: WARNING: You are using an experimental version of the media stack.
-> Jun 10 14:18:07 meiner kernel:  As the driver is backported to an older kernel, it doesn't offer
-> Jun 10 14:18:07 meiner kernel:  enough quality for its usage in production.
-> Jun 10 14:18:07 meiner kernel:  Use it with care.
-> Jun 10 14:18:07 meiner kernel: Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
-> Jun 10 14:18:07 meiner kernel:  bfd0306462fdbc5e0a8c6999aef9dde0f9745399 [media] v4l: Document timestamp buffer flag behaviour
-> Jun 10 14:18:07 meiner kernel:  309f4d62eda0e864c2d4eef536cc82e41931c3c5 [media] v4l: Copy timestamp source flags to destination on m2m devices
-> Jun 10 14:18:07 meiner kernel:  599b08929efe9b90e44b504454218a120bb062a0 [media] exynos-gsc, m2m-deinterlace, mx2_emmaprp: Copy v4l2_buffer data from src to dst
-> Jun 10 14:18:07 meiner kernel:  experimental: a60b303c3e347297a25f0a203f0ff11a8efc818c experimental/ngene: Support DuoFlex C/C2/T/T2 (V3)
-> Jun 10 14:18:07 meiner kernel:  v4l-dvb-saa716x: 052c468e33be00a3d4d9b93da3581ffa861bb288 saa716x: IO memory of upper PHI1 regions is mapped in saa716x_ff driver.
-> Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_af9035: prechip_version=83 chip_version=02 chip_type=9135 Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: found a 'Avermedia A835B(1835)' in cold state Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: downloading firmware from file 'dvb-usb-it9135-02.fw'
-> Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_af9035: firmware version=3.42.3.3 Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: found a 'Avermedia A835B(1835)' in warm state Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer Jun 10 14:18:07 meiner kernel: DVB: registering new adapter (Avermedia A835B(1835)) Jun 10 14:18:07 meiner kernel: i2c i2c-0: af9033: firmware version: LINK=0.0.0.0 OFDM=3.29.3.3 Jun 10 14:18:07 meiner kernel: usb 1-2: DVB: registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
-> Jun 10 14:18:07 meiner kernel: i2c i2c-0: tuner_it913x: ITE Tech IT913X successfully attached Jun 10 14:18:07 meiner kernel: usb 1-2: dvb_usb_v2: 'Avermedia A835B(1835)' successfully initialized and connected Jun 10 14:18:07 meiner kernel: usbcore: registered new interface driver dvb_usb_af9035 Jun 10 14:18:28 meiner vdr: [1653] VDR version 2.0.4 started Jun 10 14:18:28 meiner vdr: [1653] switched to user 'vdr'
-> Jun 10 14:18:28 meiner vdr: [1653] codeset is 'UTF-8' - known Jun 10 14:18:28 meiner vdr: [1653] loading plugin: /usr/lib64/vdr/plugins/libvdr-softhddevice.so.2.0.0
-> Jun 10 14:18:28 meiner vdr: New default svdrp port 6419!
-> Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/setup.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/sources.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/diseqc.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/scr.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/channels.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/timers.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/commands.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/reccmds.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/svdrphosts.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/remote.conf Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/keymacros.conf Jun 10 14:18:29 meiner vdr: [1653] DVB API version is 0x050A (VDR was built with 0x050A) Jun 10 14:18:29 meiner vdr: [1653] frontend 0/0 provides DVB-T with QPSK,QAM16,QAM64 ("Afatech AF9033 (DVB-T)") Jun 10 14:18:29 meiner vdr: [1653] found 1 DVB device Jun 10 14:18:29 meiner vdr: [1653] initializing plugin: softhddevice (0.6.1rc1): Ein Software und GPU emulieres HD-Gerät Jun 10 14:18:29 meiner vdr: [1653] setting primary device to 2 Jun 10 14:18:29 meiner vdr: [1653] SVDRP listening on port 6419 Jun 10 14:18:29 meiner vdr: [1653] setting current skin to "lcars"
-> Jun 10 14:18:29 meiner vdr: [1653] loading /etc/vdr/themes/lcars-default.theme
-> Jun 10 14:18:29 meiner vdr: [1653] starting plugin: softhddevice Jun 10 14:18:30 meiner vdr: [1653] switching to channel 2 Jun 10 14:18:30 meiner lircd-0.9.0[1219]: accepted new client on /var/run/lirc/lircd Jun 10 14:18:30 meiner lircd-0.9.0[1219]: zotac initializing '/dev/usb/hiddev0'
-> Jun 10 14:18:31 meiner kernel: nvidia 0000:02:00.0: irq 46 for MSI/MSI-X Jun 10 14:18:31 meiner vdr: [1653] connect from 127.0.0.1, port 59159 - accepted Jun 10 14:18:31 meiner vdr: [1653] closing SVDRP connection Jun 10 14:18:31 meiner vdrwatchdog[1702]: Starting vdrwatchdog Jun 10 14:18:39 meiner vdr: [1674] frontend 0/0 timed out while tuning to channel 2, tp 818 Jun 10 14:19:43 meiner vdr: [1674] frontend 0/0 timed out while tuning to channel 2, tp 818
->
-> Kind regards,
-> Sebatian
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in the body of a message to majordomo@vger.kernel.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
