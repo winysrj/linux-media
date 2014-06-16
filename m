@@ -1,84 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:41501 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932176AbaFZBH2 (ORCPT
+Received: from smtpfb2-g21.free.fr ([212.27.42.10]:33395 "EHLO
+	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754976AbaFPKLm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jun 2014 21:07:28 -0400
-Received: by mail-pb0-f45.google.com with SMTP id rr13so2399616pbb.18
-        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 18:07:28 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 16/28] gpu: ipu-v3: Add ipu_stride_to_bytes()
-Date: Wed, 25 Jun 2014 18:05:43 -0700
-Message-Id: <1403744755-24944-17-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+	Mon, 16 Jun 2014 06:11:42 -0400
+Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
+	by smtpfb2-g21.free.fr (Postfix) with ESMTP id EAA58D1B258
+	for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 12:11:37 +0200 (CEST)
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v14 01/10] [media] v4l2: add new V4L2_PIX_FMT_RGB666 pixel format.
+Date: Mon, 16 Jun 2014 12:11:15 +0200
+Message-Id: <1402913484-25910-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds ipu_stride_to_bytes(), which converts a pixel stride to bytes,
-suitable for passing to cpmem.
+That new macro is needed by the imx_drm staging driver
+  for supporting the QVGA display of the eukrea-cpuimx51 board.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/gpu/ipu-v3/ipu-common.c |   30 ++++++++++++++++++++++++++++++
- include/video/imx-ipu-v3.h      |    1 +
- 2 files changed, 31 insertions(+)
+ChangeLog v13->v14:
+- None
+ChangeLog v10->v13:
+- No changes
+ChangeLog v9->v10:
+- Rebased on top of:
+  "211e7f2 [media] DocBook media: drop the old incorrect packed RGB table"
+- Added Philipp Zabel's Ack.
 
-diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
-index 7701974..30afef4 100644
---- a/drivers/gpu/ipu-v3/ipu-common.c
-+++ b/drivers/gpu/ipu-v3/ipu-common.c
-@@ -576,6 +576,36 @@ enum ipu_color_space ipu_mbus_code_to_colorspace(u32 mbus_code)
- }
- EXPORT_SYMBOL_GPL(ipu_mbus_code_to_colorspace);
- 
-+int ipu_stride_to_bytes(u32 pixel_stride, u32 pixelformat)
-+{
-+	switch (pixelformat) {
-+	case V4L2_PIX_FMT_YUV420:
-+	case V4L2_PIX_FMT_YVU420:
-+		/*
-+		 * for the planar YUV formats, the stride passed to
-+		 * cpmem must be the stride in bytes of the Y plane.
-+		 * And all the planar YUV formats have an 8-bit
-+		 * Y component.
-+		 */
-+		return (8 * pixel_stride) >> 3;
-+	case V4L2_PIX_FMT_RGB565:
-+	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_UYVY:
-+		return (16 * pixel_stride) >> 3;
-+	case V4L2_PIX_FMT_BGR24:
-+	case V4L2_PIX_FMT_RGB24:
-+		return (24 * pixel_stride) >> 3;
-+	case V4L2_PIX_FMT_BGR32:
-+	case V4L2_PIX_FMT_RGB32:
-+		return (32 * pixel_stride) >> 3;
-+	default:
-+		break;
-+	}
-+
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL_GPL(ipu_stride_to_bytes);
-+
- int ipu_degrees_to_rot_mode(enum ipu_rotate_mode *mode, int degrees,
- 			    bool hflip, bool vflip)
- {
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 9ed1c75..17a0bb8 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -480,6 +480,7 @@ int ipu_cpmem_set_image(struct ipu_ch_param __iomem *cpmem,
- enum ipu_color_space ipu_drm_fourcc_to_colorspace(u32 drm_fourcc);
- enum ipu_color_space ipu_pixelformat_to_colorspace(u32 pixelformat);
- enum ipu_color_space ipu_mbus_code_to_colorspace(u32 mbus_code);
-+int ipu_stride_to_bytes(u32 pixel_stride, u32 pixelformat);
- bool ipu_pixelformat_is_planar(u32 pixelformat);
- int ipu_degrees_to_rot_mode(enum ipu_rotate_mode *mode, int degrees,
- 			    bool hflip, bool vflip);
+ChangeLog v8->v9:
+- Removed the Cc. They are now set in git-send-email directly.
+
+ChangeLog v7->v8:
+- Added Mauro Carvalho Chehab back to the list of Cc
+
+ChangeLog v6->v7:
+- Shrinked even more the Cc list.
+ChangeLog v5->v6:
+- Remove people not concerned by this patch from the Cc list.
+
+ChangeLog v3->v4:
+- Added Laurent Pinchart's Ack.
+
+ChangeLog v2->v3:
+- Added some interested people in the Cc list.
+- Added Mauro Carvalho Chehab's Ack.
+- Added documentation.
+---
+ .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |   39 ++++++++++++++++++++
+ include/uapi/linux/videodev2.h                     |    1 +
+ 2 files changed, 40 insertions(+)
+
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+index e1c4f8b..88a7fe1 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+@@ -279,6 +279,45 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+ 	    <entry></entry>
+ 	    <entry></entry>
+ 	  </row>
++	  <row id="V4L2-PIX-FMT-RGB666">
++	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
++	    <entry>'RGBH'</entry>
++	    <entry></entry>
++	    <entry>r<subscript>5</subscript></entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry>g<subscript>5</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>b<subscript>5</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
+ 	  <row id="V4L2-PIX-FMT-BGR24">
+ 	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
+ 	    <entry>'BGR3'</entry>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 168ff50..08cac01 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -299,6 +299,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
+ #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16  RGB-5-6-5 BE  */
+ #define V4L2_PIX_FMT_BGR666  v4l2_fourcc('B', 'G', 'R', 'H') /* 18  BGR-6-6-6	  */
++#define V4L2_PIX_FMT_RGB666  v4l2_fourcc('R', 'G', 'B', 'H') /* 18  RGB-6-6-6	  */
+ #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24  BGR-8-8-8     */
+ #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B', '3') /* 24  RGB-8-8-8     */
+ #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */
 -- 
 1.7.9.5
 
