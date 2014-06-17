@@ -1,81 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:41185 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932276AbaFZBHc (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4631 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754024AbaFQCoG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jun 2014 21:07:32 -0400
-Received: by mail-pa0-f46.google.com with SMTP id eu11so2431445pac.33
-        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 18:07:32 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
+	Mon, 16 Jun 2014 22:44:06 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5H2i2t7085595
+	for <linux-media@vger.kernel.org>; Tue, 17 Jun 2014 04:44:04 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 84A4D2A1FCC
+	for <linux-media@vger.kernel.org>; Tue, 17 Jun 2014 04:43:48 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 21/28] staging: imx-drm: Convert to new ipu_cpmem API
-Date: Wed, 25 Jun 2014 18:05:48 -0700
-Message-Id: <1403744755-24944-22-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140617024348.84A4D2A1FCC@tschai.lan>
+Date: Tue, 17 Jun 2014 04:43:48 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ipu_cpmem_*() calls now take a channel pointer instead of a
-pointer into cpmem for that channel.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/imx-drm/ipuv3-plane.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/staging/imx-drm/ipuv3-plane.c b/drivers/staging/imx-drm/ipuv3-plane.c
-index 6f393a1..6ffe1bb 100644
---- a/drivers/staging/imx-drm/ipuv3-plane.c
-+++ b/drivers/staging/imx-drm/ipuv3-plane.c
-@@ -62,7 +62,6 @@ static inline int calc_bandwidth(int width, int height, unsigned int vref)
- int ipu_plane_set_base(struct ipu_plane *ipu_plane, struct drm_framebuffer *fb,
- 		       int x, int y)
- {
--	struct ipu_ch_param __iomem *cpmem;
- 	struct drm_gem_cma_object *cma_obj;
- 	unsigned long eba;
- 
-@@ -75,13 +74,12 @@ int ipu_plane_set_base(struct ipu_plane *ipu_plane, struct drm_framebuffer *fb,
- 	dev_dbg(ipu_plane->base.dev->dev, "phys = %pad, x = %d, y = %d",
- 		&cma_obj->paddr, x, y);
- 
--	cpmem = ipu_get_cpmem(ipu_plane->ipu_ch);
--	ipu_cpmem_set_stride(cpmem, fb->pitches[0]);
-+	ipu_cpmem_set_stride(ipu_plane->ipu_ch, fb->pitches[0]);
- 
- 	eba = cma_obj->paddr + fb->offsets[0] +
- 	      fb->pitches[0] * y + (fb->bits_per_pixel >> 3) * x;
--	ipu_cpmem_set_buffer(cpmem, 0, eba);
--	ipu_cpmem_set_buffer(cpmem, 1, eba);
-+	ipu_cpmem_set_buffer(ipu_plane->ipu_ch, 0, eba);
-+	ipu_cpmem_set_buffer(ipu_plane->ipu_ch, 1, eba);
- 
- 	/* cache offsets for subsequent pageflips */
- 	ipu_plane->x = x;
-@@ -97,7 +95,6 @@ int ipu_plane_mode_set(struct ipu_plane *ipu_plane, struct drm_crtc *crtc,
- 		       uint32_t src_x, uint32_t src_y,
- 		       uint32_t src_w, uint32_t src_h)
- {
--	struct ipu_ch_param __iomem *cpmem;
- 	struct device *dev = ipu_plane->base.dev->dev;
- 	int ret;
- 
-@@ -175,10 +172,9 @@ int ipu_plane_mode_set(struct ipu_plane *ipu_plane, struct drm_crtc *crtc,
- 		return ret;
- 	}
- 
--	cpmem = ipu_get_cpmem(ipu_plane->ipu_ch);
--	ipu_ch_param_zero(cpmem);
--	ipu_cpmem_set_resolution(cpmem, src_w, src_h);
--	ret = ipu_cpmem_set_fmt(cpmem, fb->pixel_format);
-+	ipu_cpmem_zero(ipu_plane->ipu_ch);
-+	ipu_cpmem_set_resolution(ipu_plane->ipu_ch, src_w, src_h);
-+	ret = ipu_cpmem_set_fmt(ipu_plane->ipu_ch, fb->pixel_format);
- 	if (ret < 0) {
- 		dev_err(dev, "unsupported pixel format 0x%08x\n",
- 			fb->pixel_format);
--- 
-1.7.9.5
+date:		Tue Jun 17 04:00:18 CEST 2014
+git branch:	test
+git hash:	f7a27ff1fb77e114d1059a5eb2ed1cffdc508ce8
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-14-gf11dd94
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-i686: OK
+linux-3.16-rc1-i686: ERRORS
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-x86_64: OK
+linux-3.16-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
