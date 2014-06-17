@@ -1,46 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2935 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966070AbaFTWH4 (ORCPT
+Received: from mail-lb0-f170.google.com ([209.85.217.170]:38025 "EHLO
+	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932892AbaFQTC4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jun 2014 18:07:56 -0400
-Message-ID: <53A4B097.3050802@xs4all.nl>
-Date: Sat, 21 Jun 2014 00:07:19 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 17 Jun 2014 15:02:56 -0400
+Received: by mail-lb0-f170.google.com with SMTP id 10so3194123lbg.1
+        for <linux-media@vger.kernel.org>; Tue, 17 Jun 2014 12:02:55 -0700 (PDT)
+Message-ID: <53A090E2.100@cogentembedded.com>
+Date: Tue, 17 Jun 2014 23:02:58 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-To: Gregor Jasny <gjasny@googlemail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Time for v4l-utils 1.2 release?
-References: <53A49A11.2010502@googlemail.com>
-In-Reply-To: <53A49A11.2010502@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Ben Dooks <ben.dooks@codethink.co.uk>,
+	linux-kernel@lists.codethink.co.uk, linux-sh@vger.kernel.org,
+	linux-media@vger.kernel.org
+CC: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
+	magnus.damm@opensource.se, horms@verge.net.au,
+	ian.molton@codethink.co.uk, william.towle@codethink.co.uk
+Subject: Re: [PATCH 9/9] ARM: lager: add vin1 node
+References: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk> <1402862194-17743-10-git-send-email-ben.dooks@codethink.co.uk>
+In-Reply-To: <1402862194-17743-10-git-send-email-ben.dooks@codethink.co.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/20/2014 10:31 PM, Gregor Jasny wrote:
-> Hello,
-> 
-> It's been 11 months since the 1.0.0 release. What do you think about
-> releasing HEAD? Do you have any pending commits?
+Hello.
 
-I've got two patches from Laurent pending that ensure that the 'installed
-kernel headers' are used. I plan on processing those on Monday. After that
-I think it's OK to do a release.
+On 06/15/2014 11:56 PM, Ben Dooks wrote:
 
-Mauro, did you look at my email where I suggest to remove three apps from
-contrib? If you agree with that, then I can do that Monday as well.
+> Add device-tree for vin1 (composite video in) on the
+> lager board.
 
-Regards,
+    Several white space nits.
 
-	Hans
+> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+> ---
+>   arch/arm/boot/dts/r8a7790-lager.dts | 38 +++++++++++++++++++++++++++++++++++++
+>   1 file changed, 38 insertions(+)
 
-> Mauro, you tried to re-license the DVB library. What's the status there?
-> 
-> Thanks,
-> Gregor
-> 
+> diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
+> index 4805c9f..8ecb294 100644
+> --- a/arch/arm/boot/dts/r8a7790-lager.dts
+> +++ b/arch/arm/boot/dts/r8a7790-lager.dts
+[...]
+> @@ -342,8 +347,41 @@
+>   	status = "ok";
+>   	pinctrl-0 = <&i2c2_pins>;
+>   	pinctrl-names = "default";
+> +
+> +	composite-in@20 {
+> +		compatible = "adi,adv7180";
+> +		reg = <0x20>;
+> +		remote = <&vin1>;
+> +
+> +		port {
+> +			adv7180: endpoint {
+> +				bus-width = <8>;
+> +				remote-endpoint = <&vin1ep0>;
+> +			};
+> +		};
+> +	};
+> +
+
+   Empty line not needed here...
+
+>   };
+>
+>   &i2c3	{
+>   	status = "ok";
+>   };
+> +
+> +/* composite video input */
+> +&vin1 {
+> +	pinctrl-0 = <&vin1_pins>;
+> +	pinctrl-names = "default";
+> +
+> +	status = "ok";
+> +
+> +	port {
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +
+> +		vin1ep0: endpoint {
+> +			remote-endpoint = <&adv7180>;
+> +			bus-width = <8>;
+> +		};
+> +	};
+> +};
+> +
+
+    Here as well...
+
+WBR, Sergei
 
