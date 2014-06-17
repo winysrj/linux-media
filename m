@@ -1,48 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback7.mail.ru ([94.100.181.128]:38362 "EHLO
-	fallback7.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751836AbaF0Iea (ORCPT
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:42342 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753255AbaFQAi1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jun 2014 04:34:30 -0400
-Received: from f106.i.mail.ru (f106.i.mail.ru [94.100.178.75])
-	by fallback7.mail.ru (mPOP.Fallback_MX) with ESMTP id 49105108425E5
-	for <linux-media@vger.kernel.org>; Fri, 27 Jun 2014 12:33:11 +0400 (MSK)
-From: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
-To: =?UTF-8?B?UGF1bCBCb2xsZQ==?= <pebolle@tiscali.nl>
-Cc: =?UTF-8?B?R3Vlbm5hZGkgTGlha2hvdmV0c2tp?= <g.liakhovetski@gmx.de>,
-	=?UTF-8?B?TWF1cm8gQ2FydmFsaG8gQ2hlaGFi?= <m.chehab@samsung.com>,
+	Mon, 16 Jun 2014 20:38:27 -0400
+Received: by mail-ie0-f201.google.com with SMTP id lx4so1274519iec.2
+        for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 17:38:26 -0700 (PDT)
+From: Vincent Palatin <vpalatin@chromium.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	linux-media@vger.kernel.org
-Subject: =?UTF-8?B?UmU6IEtjb25maWcgc3ltYm9sIE1YMV9WSURFTw==?=
-Mime-Version: 1.0
-Date: Fri, 27 Jun 2014 12:32:52 +0400
-Reply-To: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
-Message-ID: <1403857972.234516314@f106.i.mail.ru>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
-In-Reply-To: <1403857099.2048.15.camel@x220>
-References: <1403857099.2048.15.camel@x220>
+Cc: linux-kernel@vger.kernel.org, Olof Johansson <olofj@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Zach Kuznia <zork@chromium.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Vincent Palatin <vpalatin@chromium.org>
+Subject: [PATCH] V4L: uvcvideo: Add support for relative pan/tilt controls
+Date: Mon, 16 Jun 2014 17:38:00 -0700
+Message-Id: <1402965480-19560-1-git-send-email-vpalatin@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RnJpLCAyNyBKdW4gMjAxNCAxMDoxODoxOSArMDIwMCDQvtGCIFBhdWwgQm9sbGUgPHBlYm9sbGVA
-dGlzY2FsaS5ubD46Cj4gQWxleGFuZGVyLAo+IAo+IFlvdXIgcGF0Y2ggIlttZWRpYV0gbWVkaWE6
-IG14MV9jYW1lcmE6IFJlbW92ZSBkcml2ZXIiIGxhbmRlZCBpbiB0b2RheSdzCj4gbGludXgtbmV4
-dCAoaWUsIG5leHQtMjAxNDA2MjcpLCBhcyBjb21taXQgOTBiMDU1ODk4ZTlkLiBJdCBpcyBhcmNo
-aXZlZAo+IGF0IGh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtbWVkaWEvbXNnNzY3
-NjQuaHRtbCAuCj4gCj4gSXQgcmVtb3ZlcyB0aGUgS2NvbmZpZyBzeW1ib2xzIE1YMV9WSURFTyBl
-biBWSURFT19NWDEuIEl0IG9ubHkgcmVtb3Zlcwo+IHRoZSBjb2RlIGRlcGVuZGluZyBvbiBWSURF
-T19NWDEgKGllLCBpbgo+IGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc29jX2NhbWVyYSkuCj4gCj4g
-QSBwcmV2aW91cyB2ZXJzaW9uIG9mIHRoYXQgcGF0Y2ggaXMgYXJjaGl2ZWQgYXQKPiBodHRwOi8v
-d3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LW1lZGlhL21zZzc2NDMyLmh0bWwgLiAoUGxlYXNl
-LCBuZXh0Cj4gdGltZSB5b3Ugc3VibWl0IGEgc2Vjb25kIHZlcnNpb24gb2YgYSBwYXRjaCBtYXJr
-IGl0IGFzIGEgdjIgYW5kIGFkZCBzb21lCj4gaW5mbyBiZWxvdyB0aGUgLS0tIG1hcmtlciBhYm91
-dCB0aGUgZGlmZmVyZW5jZXMgdG8gdGhlIGZpcnN0IHZlcnNpb24uKQo+IFRoYXQgcHJldmlvdXMg
-dmVyc2lvbiByZW1vdmVkIHRoZSBjb2RlIGRlcGVuZGluZyBvbiBib3RoIHN5bWJvbHMuIEJ1dCBh
-Cj4gcXVpY2sgZ2xhbmNlIGF0IHRoZSBkaXNjdXNzaW9uIGFib3V0IHRoYXQgcGF0Y2ggc2hvd3Mg
-dGhhdCB5b3Ugd2VyZQo+IGFza2VkIHRvIG5vdCByZW1vdmUgdGhlIGNvZGUgZGVwZW5kaW5nIG9u
-IE1YMV9WSURFTyAoaWUsIGluCj4gYXJjaC9hcm0vbWFjaC1pbXgvKS4KPiAKPiBXb3VsZCB5b3Ug
-cGVyaGFwcyBrbm93IHdoZXRoZXIgYSBwYXRjaCB0byByZW1vdmUgdGhlIGFyY2gvYXJtL21hY2gt
-aW14Lwo+IGNvZGUgaXMgcGVuZGluZyBzb21ld2hlcmU/CgpQYXRjaCB0byByZW1vdmUgTVgxX1ZJ
-REVPIHBhcnQgZnJvbSBhcmNoL2FybS9tYWNoLWlteCBpcyBzY2hlZHVsZWQuCkkgZXhwZWN0IHRv
-IHVwZGF0ZSB0aGUgU2hhd24gZ2l0IHJlcG9zaXRvcnkgdG8gdGhlIGxpbnV4LW5leHQgYnJhbmNo
-LgoKLS0tCgo=
+Map V4L2_CID_TILT_RELATIVE and V4L2_CID_PAN_RELATIVE to the standard UVC
+CT_PANTILT_ABSOLUTE_CONTROL terminal control request.
+
+Tested by plugging a Logitech ConferenceCam C3000e USB camera
+and controlling pan/tilt from the userspace using the VIDIOC_S_CTRL ioctl.
+Verified that it can pan and tilt at the same time in both directions.
+
+Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
+
+Change-Id: I7b70b228e5c0126683f5f0be34ffd2807f5783dc
+---
+ drivers/media/usb/uvc/uvc_ctrl.c | 58 +++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 55 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+index 0eb82106..af18120 100644
+--- a/drivers/media/usb/uvc/uvc_ctrl.c
++++ b/drivers/media/usb/uvc/uvc_ctrl.c
+@@ -309,9 +309,8 @@ static struct uvc_control_info uvc_ctrls[] = {
+ 		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
+ 		.index		= 12,
+ 		.size		= 4,
+-		.flags		= UVC_CTRL_FLAG_SET_CUR | UVC_CTRL_FLAG_GET_MIN
+-				| UVC_CTRL_FLAG_GET_MAX | UVC_CTRL_FLAG_GET_RES
+-				| UVC_CTRL_FLAG_GET_DEF
++		.flags		= UVC_CTRL_FLAG_SET_CUR
++				| UVC_CTRL_FLAG_GET_RANGE
+ 				| UVC_CTRL_FLAG_AUTO_UPDATE,
+ 	},
+ 	{
+@@ -391,6 +390,35 @@ static void uvc_ctrl_set_zoom(struct uvc_control_mapping *mapping,
+ 	data[2] = min((int)abs(value), 0xff);
+ }
+ 
++static __s32 uvc_ctrl_get_rel_speed(struct uvc_control_mapping *mapping,
++	__u8 query, const __u8 *data)
++{
++	int first = mapping->offset / 8;
++	__s8 rel = (__s8)data[first];
++
++	switch (query) {
++	case UVC_GET_CUR:
++		return (rel == 0) ? 0 : (rel > 0 ? data[first+1]
++						 : -data[first+1]);
++	case UVC_GET_MIN:
++		return -data[first+1];
++	case UVC_GET_MAX:
++	case UVC_GET_RES:
++	case UVC_GET_DEF:
++	default:
++		return data[first+1];
++	}
++}
++
++static void uvc_ctrl_set_rel_speed(struct uvc_control_mapping *mapping,
++	__s32 value, __u8 *data)
++{
++	int first = mapping->offset / 8;
++
++	data[first] = value == 0 ? 0 : (value > 0) ? 1 : 0xff;
++	data[first+1] = min_t(int, abs(value), 0xff);
++}
++
+ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+ 	{
+ 		.id		= V4L2_CID_BRIGHTNESS,
+@@ -677,6 +705,30 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+ 		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
+ 	},
+ 	{
++		.id		= V4L2_CID_PAN_RELATIVE,
++		.name		= "Pan (Relative)",
++		.entity		= UVC_GUID_UVC_CAMERA,
++		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
++		.size		= 16,
++		.offset		= 0,
++		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
++		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
++		.get		= uvc_ctrl_get_rel_speed,
++		.set		= uvc_ctrl_set_rel_speed,
++	},
++	{
++		.id		= V4L2_CID_TILT_RELATIVE,
++		.name		= "Tilt (Relative)",
++		.entity		= UVC_GUID_UVC_CAMERA,
++		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
++		.size		= 16,
++		.offset		= 16,
++		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
++		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
++		.get		= uvc_ctrl_get_rel_speed,
++		.set		= uvc_ctrl_set_rel_speed,
++	},
++	{
+ 		.id		= V4L2_CID_PRIVACY,
+ 		.name		= "Privacy",
+ 		.entity		= UVC_GUID_UVC_CAMERA,
+-- 
+2.0.0.526.g5318336
+
