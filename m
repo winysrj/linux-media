@@ -1,136 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59654 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756583AbaFADjd (ORCPT
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:41985 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932973AbaFQOqE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 May 2014 23:39:33 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 18/18] v4l: vsp1: bru: Make the background color configurable
-Date: Sun,  1 Jun 2014 05:39:37 +0200
-Message-Id: <1401593977-30660-19-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Tue, 17 Jun 2014 10:46:04 -0400
+Received: by mail-yh0-f74.google.com with SMTP id b6so1037990yha.1
+        for <linux-media@vger.kernel.org>; Tue, 17 Jun 2014 07:46:03 -0700 (PDT)
+From: Vincent Palatin <vpalatin@chromium.org>
+To: Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Olof Johansson <olofj@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Zach Kuznia <zork@chromium.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Vincent Palatin <vpalatin@chromium.org>
+Subject: [PATCH v2] V4L: uvcvideo: Add support for relative pan/tilt controls
+Date: Tue, 17 Jun 2014 07:45:48 -0700
+Message-Id: <1403016348-10129-1-git-send-email-vpalatin@chromium.org>
+In-Reply-To: <539FDC4F.4030000@redhat.com>
+References: <539FDC4F.4030000@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Expose the background color to userspace through the V4L2_CID_BG_COLOR
-control.
+Map V4L2_CID_TILT_RELATIVE and V4L2_CID_PAN_RELATIVE to the standard UVC
+CT_PANTILT_RELATIVE_CONTROL terminal control request.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Tested by plugging a Logitech ConferenceCam C3000e USB camera
+and controlling pan/tilt from the userspace using the VIDIOC_S_CTRL ioctl.
+Verified that it can pan and tilt at the same time in both directions.
+
+Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
+
+Change-Id: I7b70b228e5c0126683f5f0be34ffd2807f5783dc
 ---
- drivers/media/platform/vsp1/vsp1_bru.c | 51 ++++++++++++++++++++++++++++++----
- drivers/media/platform/vsp1/vsp1_bru.h |  3 ++
- 2 files changed, 49 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index 86b32bc..a0c1984 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -38,6 +38,32 @@ static inline void vsp1_bru_write(struct vsp1_bru *bru, u32 reg, u32 data)
+Changes
+v2: fix control request name in description.
+
+ drivers/media/usb/uvc/uvc_ctrl.c | 58 +++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 55 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+index 0eb82106..af18120 100644
+--- a/drivers/media/usb/uvc/uvc_ctrl.c
++++ b/drivers/media/usb/uvc/uvc_ctrl.c
+@@ -309,9 +309,8 @@ static struct uvc_control_info uvc_ctrls[] = {
+ 		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
+ 		.index		= 12,
+ 		.size		= 4,
+-		.flags		= UVC_CTRL_FLAG_SET_CUR | UVC_CTRL_FLAG_GET_MIN
+-				| UVC_CTRL_FLAG_GET_MAX | UVC_CTRL_FLAG_GET_RES
+-				| UVC_CTRL_FLAG_GET_DEF
++		.flags		= UVC_CTRL_FLAG_SET_CUR
++				| UVC_CTRL_FLAG_GET_RANGE
+ 				| UVC_CTRL_FLAG_AUTO_UPDATE,
+ 	},
+ 	{
+@@ -391,6 +390,35 @@ static void uvc_ctrl_set_zoom(struct uvc_control_mapping *mapping,
+ 	data[2] = min((int)abs(value), 0xff);
  }
  
- /* -----------------------------------------------------------------------------
-+ * Controls
-+ */
-+
-+static int bru_s_ctrl(struct v4l2_ctrl *ctrl)
++static __s32 uvc_ctrl_get_rel_speed(struct uvc_control_mapping *mapping,
++	__u8 query, const __u8 *data)
 +{
-+	struct vsp1_bru *bru =
-+		container_of(ctrl->handler, struct vsp1_bru, ctrls);
++	int first = mapping->offset / 8;
++	__s8 rel = (__s8)data[first];
 +
-+	if (!vsp1_entity_is_streaming(&bru->entity))
-+		return 0;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_BG_COLOR:
-+		vsp1_bru_write(bru, VI6_BRU_VIRRPF_COL, ctrl->val |
-+			       (0xff << VI6_BRU_VIRRPF_COL_A_SHIFT));
-+		break;
++	switch (query) {
++	case UVC_GET_CUR:
++		return (rel == 0) ? 0 : (rel > 0 ? data[first+1]
++						 : -data[first+1]);
++	case UVC_GET_MIN:
++		return -data[first+1];
++	case UVC_GET_MAX:
++	case UVC_GET_RES:
++	case UVC_GET_DEF:
++	default:
++		return data[first+1];
 +	}
-+
-+	return 0;
 +}
 +
-+static const struct v4l2_ctrl_ops bru_ctrl_ops = {
-+	.s_ctrl = bru_s_ctrl,
-+};
++static void uvc_ctrl_set_rel_speed(struct uvc_control_mapping *mapping,
++	__s32 value, __u8 *data)
++{
++	int first = mapping->offset / 8;
 +
-+/* -----------------------------------------------------------------------------
-  * V4L2 Subdevice Core Operations
-  */
- 
-@@ -48,6 +74,11 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
- 	struct v4l2_mbus_framefmt *format;
- 	unsigned int flags;
- 	unsigned int i;
-+	int ret;
++	data[first] = value == 0 ? 0 : (value > 0) ? 1 : 0xff;
++	data[first+1] = min_t(int, abs(value), 0xff);
++}
 +
-+	ret = vsp1_entity_set_streaming(&bru->entity, enable);
-+	if (ret < 0)
-+		return ret;
- 
- 	if (!enable)
- 		return 0;
-@@ -68,15 +99,11 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
- 		       flags & V4L2_PIX_FMT_FLAG_PREMUL_ALPHA ?
- 		       0 : VI6_BRU_INCTRL_NRM);
- 
--	/* Set the background position to cover the whole output image and
--	 * set its color to opaque black.
--	 */
-+	/* Set the background position to cover the whole output image. */
- 	vsp1_bru_write(bru, VI6_BRU_VIRRPF_SIZE,
- 		       (format->width << VI6_BRU_VIRRPF_SIZE_HSIZE_SHIFT) |
- 		       (format->height << VI6_BRU_VIRRPF_SIZE_VSIZE_SHIFT));
- 	vsp1_bru_write(bru, VI6_BRU_VIRRPF_LOC, 0);
--	vsp1_bru_write(bru, VI6_BRU_VIRRPF_COL,
--		       0xff << VI6_BRU_VIRRPF_COL_A_SHIFT);
- 
- 	/* Route BRU input 1 as SRC input to the ROP unit and configure the ROP
- 	 * unit with a NOP operation to make BRU input 1 available as the
-@@ -407,5 +434,19 @@ struct vsp1_bru *vsp1_bru_create(struct vsp1_device *vsp1)
- 
- 	vsp1_entity_init_formats(subdev, NULL);
- 
-+	/* Initialize the control handler. */
-+	v4l2_ctrl_handler_init(&bru->ctrls, 1);
-+	v4l2_ctrl_new_std(&bru->ctrls, &bru_ctrl_ops, V4L2_CID_BG_COLOR,
-+			  0, 0xffffff, 1, 0);
-+
-+	bru->entity.subdev.ctrl_handler = &bru->ctrls;
-+
-+	if (bru->ctrls.error) {
-+		dev_err(vsp1->dev, "bru: failed to initialize controls\n");
-+		ret = bru->ctrls.error;
-+		vsp1_entity_destroy(&bru->entity);
-+		return ERR_PTR(ret);
-+	}
-+
- 	return bru;
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.h b/drivers/media/platform/vsp1/vsp1_bru.h
-index 5b03479..16b1c65 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.h
-+++ b/drivers/media/platform/vsp1/vsp1_bru.h
-@@ -14,6 +14,7 @@
- #define __VSP1_BRU_H__
- 
- #include <media/media-entity.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-subdev.h>
- 
- #include "vsp1_entity.h"
-@@ -27,6 +28,8 @@ struct vsp1_rwpf;
- struct vsp1_bru {
- 	struct vsp1_entity entity;
- 
-+	struct v4l2_ctrl_handler ctrls;
-+
- 	struct {
- 		struct vsp1_rwpf *rpf;
- 		struct v4l2_rect compose;
+ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+ 	{
+ 		.id		= V4L2_CID_BRIGHTNESS,
+@@ -677,6 +705,30 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+ 		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
+ 	},
+ 	{
++		.id		= V4L2_CID_PAN_RELATIVE,
++		.name		= "Pan (Relative)",
++		.entity		= UVC_GUID_UVC_CAMERA,
++		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
++		.size		= 16,
++		.offset		= 0,
++		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
++		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
++		.get		= uvc_ctrl_get_rel_speed,
++		.set		= uvc_ctrl_set_rel_speed,
++	},
++	{
++		.id		= V4L2_CID_TILT_RELATIVE,
++		.name		= "Tilt (Relative)",
++		.entity		= UVC_GUID_UVC_CAMERA,
++		.selector	= UVC_CT_PANTILT_RELATIVE_CONTROL,
++		.size		= 16,
++		.offset		= 16,
++		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
++		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
++		.get		= uvc_ctrl_get_rel_speed,
++		.set		= uvc_ctrl_set_rel_speed,
++	},
++	{
+ 		.id		= V4L2_CID_PRIVACY,
+ 		.name		= "Privacy",
+ 		.entity		= UVC_GUID_UVC_CAMERA,
 -- 
-1.8.5.5
+2.0.0.526.g5318336
 
