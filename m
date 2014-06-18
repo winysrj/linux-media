@@ -1,71 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:50299 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932317AbaFZBHf (ORCPT
+Received: from adelie.canonical.com ([91.189.90.139]:41584 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965546AbaFRLHZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jun 2014 21:07:35 -0400
-Received: by mail-pd0-f176.google.com with SMTP id ft15so2321461pdb.7
-        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 18:07:34 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 24/28] gpu: ipu-cpmem: Add ipu_cpmem_set_rotation()
-Date: Wed, 25 Jun 2014 18:05:51 -0700
-Message-Id: <1403744755-24944-25-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+	Wed, 18 Jun 2014 07:07:25 -0400
+Subject: [REPOST PATCH 5/8] reservation: add support for fences to enable
+ cross-device synchronisation
+To: gregkh@linuxfoundation.org
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-arch@vger.kernel.org, thellstrom@vmware.com,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
+	thierry.reding@gmail.com, ccross@google.com, daniel@ffwll.ch,
+	sumit.semwal@linaro.org, linux-media@vger.kernel.org
+Date: Wed, 18 Jun 2014 12:37:17 +0200
+Message-ID: <20140618103717.15728.58471.stgit@patser>
+In-Reply-To: <20140618102957.15728.43525.stgit@patser>
+References: <20140618102957.15728.43525.stgit@patser>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds ipu_cpmem_set_rotation().
-
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Reviewed-by: Rob Clark <robdclark@gmail.com>
 ---
- drivers/gpu/ipu-v3/ipu-cpmem.c |   10 ++++++++++
- include/video/imx-ipu-v3.h     |    2 ++
- 2 files changed, 12 insertions(+)
+ include/linux/reservation.h |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
-index 2d1b376..f52e4b4 100644
---- a/drivers/gpu/ipu-v3/ipu-cpmem.c
-+++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
-@@ -64,6 +64,7 @@ struct ipu_cpmem {
- #define IPU_FIELD_BNDM		IPU_CPMEM_WORD(0, 114, 3)
- #define IPU_FIELD_BM		IPU_CPMEM_WORD(0, 117, 2)
- #define IPU_FIELD_ROT		IPU_CPMEM_WORD(0, 119, 1)
-+#define IPU_FIELD_ROT_HF_VF	IPU_CPMEM_WORD(0, 119, 3)
- #define IPU_FIELD_HF		IPU_CPMEM_WORD(0, 120, 1)
- #define IPU_FIELD_VF		IPU_CPMEM_WORD(0, 121, 1)
- #define IPU_FIELD_THE		IPU_CPMEM_WORD(0, 122, 1)
-@@ -273,6 +274,15 @@ void ipu_cpmem_set_block_mode(struct ipuv3_channel *ch)
- }
- EXPORT_SYMBOL_GPL(ipu_cpmem_set_block_mode);
+diff --git a/include/linux/reservation.h b/include/linux/reservation.h
+index 813dae960ebd..f3f57460a205 100644
+--- a/include/linux/reservation.h
++++ b/include/linux/reservation.h
+@@ -6,7 +6,7 @@
+  * Copyright (C) 2012 Texas Instruments
+  *
+  * Authors:
+- * Rob Clark <rob.clark@linaro.org>
++ * Rob Clark <robdclark@gmail.com>
+  * Maarten Lankhorst <maarten.lankhorst@canonical.com>
+  * Thomas Hellstrom <thellstrom-at-vmware-dot-com>
+  *
+@@ -40,22 +40,40 @@
+ #define _LINUX_RESERVATION_H
  
-+void ipu_cpmem_set_rotation(struct ipuv3_channel *ch,
-+			    enum ipu_rotate_mode rot)
-+{
-+	u32 temp_rot = bitrev8(rot) >> 5;
+ #include <linux/ww_mutex.h>
++#include <linux/fence.h>
++#include <linux/slab.h>
+ 
+ extern struct ww_class reservation_ww_class;
+ 
+ struct reservation_object {
+ 	struct ww_mutex lock;
 +
-+	ipu_ch_param_write_field(ch, IPU_FIELD_ROT_HF_VF, temp_rot);
-+}
-+EXPORT_SYMBOL_GPL(ipu_cpmem_set_rotation);
-+
- int ipu_cpmem_set_format_rgb(struct ipuv3_channel *ch,
- 			     const struct ipu_rgb *rgb)
++	struct fence *fence_excl;
++	struct fence **fence_shared;
++	u32 fence_shared_count, fence_shared_max;
+ };
+ 
+ static inline void
+ reservation_object_init(struct reservation_object *obj)
  {
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 066b10d..3d3cea0 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -233,6 +233,8 @@ void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride);
- void ipu_cpmem_set_axi_id(struct ipuv3_channel *ch, u32 id);
- void ipu_cpmem_set_burstsize(struct ipuv3_channel *ch, int burstsize);
- void ipu_cpmem_set_block_mode(struct ipuv3_channel *ch);
-+void ipu_cpmem_set_rotation(struct ipuv3_channel *ch,
-+			    enum ipu_rotate_mode rot);
- int ipu_cpmem_set_format_rgb(struct ipuv3_channel *ch,
- 			     const struct ipu_rgb *rgb);
- int ipu_cpmem_set_format_passthrough(struct ipuv3_channel *ch, int width);
--- 
-1.7.9.5
+ 	ww_mutex_init(&obj->lock, &reservation_ww_class);
++
++	obj->fence_shared_count = obj->fence_shared_max = 0;
++	obj->fence_shared = NULL;
++	obj->fence_excl = NULL;
+ }
+ 
+ static inline void
+ reservation_object_fini(struct reservation_object *obj)
+ {
++	int i;
++
++	if (obj->fence_excl)
++		fence_put(obj->fence_excl);
++	for (i = 0; i < obj->fence_shared_count; ++i)
++		fence_put(obj->fence_shared[i]);
++	kfree(obj->fence_shared);
++
+ 	ww_mutex_destroy(&obj->lock);
+ }
+ 
 
