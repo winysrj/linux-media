@@ -1,34 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from astaromail.nku.edu.tr ([193.255.68.1]:50657 "EHLO
-	posta3.nku.edu.tr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752679AbaFIKpf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jun 2014 06:45:35 -0400
-Date: Mon, 9 Jun 2014 13:28:44 +0300 (EEST)
-From: Webmail update <ndagdeviren@nku.edu.tr>
-Reply-To: Webmail update <livewood08@gmail.com>
-Message-ID: <1839356743.4871842.1402309724971.JavaMail.zimbra@nku.edu.tr>
-Subject: =?utf-8?Q?Kedves_felhaszn=C3=A1l=C3=B3k_e-mailben;?=
+Received: from dehamd003.servertools24.de ([31.47.254.18]:50761 "EHLO
+	dehamd003.servertools24.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756381AbaFRIVW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jun 2014 04:21:22 -0400
+Message-ID: <53A14C00.4060107@ladisch.de>
+Date: Wed, 18 Jun 2014 10:21:20 +0200
+From: Clemens Ladisch <clemens@ladisch.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Takashi Iwai <tiwai@suse.de>, alsa-devel@alsa-project.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [alsa-devel] [PATCH 1/3] sound: Add a quirk to enforce period_bytes
+References: <1402762571-6316-1-git-send-email-m.chehab@samsung.com> <1402762571-6316-2-git-send-email-m.chehab@samsung.com> <539E9F25.7030504@ladisch.de> <20140616112110.3f509262.m.chehab@samsung.com>
+In-Reply-To: <20140616112110.3f509262.m.chehab@samsung.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Mauro Carvalho Chehab wrote:
+> Both xawtv and tvtime use the same code for audio:
+> 	http://git.linuxtv.org/cgit.cgi/xawtv3.git/tree/common/alsa_stream.c
+>
+> There's an algorithm there that gets the period size form both the
+> capture and the playback cards, trying to find a minimum period that
+> would work properly for both.
 
-Kedves felhasználók e-mailben;
+Why are you trying to match period sizes?  The sample clocks won't be
+synchronized anyway, so it is not possible to force them to happen at
+the same time.
 
-Túllépte 23432 box set
-Web Service / Admin, és akkor nem lesz probléma a küldő és
-fogadhat e-maileket, amíg újra ellenőrizni. Kérjük, frissítse kattintva
-linkre, és töltse ki az adatokat, hogy ellenőrizze a számla
-Kérjük, kövesse az alábbi linkre, és majd másolja és illessze be a böngésző
-jelölőnégyzetet.
+Please note that for playback devices, the latency is the same as the
+buffer length, while for capture device, the latency is the same as the
+_period_ length.  Therefore, it does not make sense to put an upper
+limit on the size of the capture buffer.
 
-http://mailupdattwre322.jigsy.com/
-Figyelem!
-Ha nem, csak korlátozott hozzáférést az e-mail postafiókját. ha
-frissíteni? számla frissül három napon belül
-Értesítés a számla véglegesen be kell zárni.
-Tisztelettel,
-rendszergazda
+I do not think it is a good idea to stop the capture device when it
+overruns.
+
+
+Regards,
+Clemens
