@@ -1,116 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3429 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751745AbaF1CpH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jun 2014 22:45:07 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5S2j3G4050771
-	for <linux-media@vger.kernel.org>; Sat, 28 Jun 2014 04:45:05 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 1AEB72A1FCD
-	for <linux-media@vger.kernel.org>; Sat, 28 Jun 2014 04:44:57 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140628024457.1AEB72A1FCD@tschai.lan>
-Date: Sat, 28 Jun 2014 04:44:57 +0200 (CEST)
+Received: from mx1.redhat.com ([209.132.183.28]:64763 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965572AbaFRLnU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jun 2014 07:43:20 -0400
+Message-ID: <53A17B4C.3010005@redhat.com>
+Date: Wed, 18 Jun 2014 13:43:08 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Antonio Ospite <ao2@ao2.it>, linux-media@vger.kernel.org
+CC: Gregor Jasny <gjasny@googlemail.com>
+Subject: Re: [PATCH RESEND] libv4lconvert: Fix a regression when converting
+ from Y10B
+References: <20140603155930.f72e14f4aab39ec49bdb1b71@ao2.it> <1402930841-14755-1-git-send-email-ao2@ao2.it>
+In-Reply-To: <1402930841-14755-1-git-send-email-ao2@ao2.it>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+On 06/16/2014 05:00 PM, Antonio Ospite wrote:
+> Fix a regression introduced in commit
+> efc29f1764a30808ebf7b3e1d9bfa27b909bf641 (libv4lconvert: Reject too
+> short source buffer before accessing it).
+> 
+> The old code:
+> 
+> case V4L2_PIX_FMT_Y10BPACK:
+> 	...
+> 	if (result == 0 && src_size < (width * height * 10 / 8)) {
+> 		V4LCONVERT_ERR("short y10b data frame\n");
+> 		errno = EPIPE;
+> 		result = -1;
+> 	}
+> 	...
+> 
+> meant to say "If the conversion was *successful* _but_ the frame size
+> was invalid, then take the error path", but in
+> efc29f1764a30808ebf7b3e1d9bfa27b909bf641 this (maybe weird) logic was
+> misunderstood and v4lconvert_convert_pixfmt() was made to return an
+> error even in the case of a successful conversion from Y10B.
+> 
+> Fix the check, and now print only the message letting the errno and the
+> result from the conversion routines to be propagated to the caller.
+> 
+> Signed-off-by: Antonio Ospite <ao2@ao2.it>
+> Cc: Gregor Jasny <gjasny@googlemail.com>
 
-date:		Sat Jun 28 04:00:21 CEST 2014
-git branch:	test
-git hash:	b5b620584b9c4644b85e932895a742e0c192d66c
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-14-gf11dd94
-host hardware:	x86_64
-host os:	3.14-5.slh.5-amd64
+Thanks for the patch, but: ...
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+> ---
+>  lib/libv4lconvert/libv4lconvert.c | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
+> 
+> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+> index c49d30d..50d6906 100644
+> --- a/lib/libv4lconvert/libv4lconvert.c
+> +++ b/lib/libv4lconvert/libv4lconvert.c
+> @@ -1052,11 +1052,8 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+>  							   width, height);
+>  			break;
+>  		}
+> -		if (result == 0) {
+> +		if (result != 0)
+>  			V4LCONVERT_ERR("y10b conversion failed\n");
+> -			errno = EPIPE;
+> -			result = -1;
+> -		}
+>  		break;
+>  
+>  	case V4L2_PIX_FMT_RGB565:
 
-Detailed results are available here:
+Why print a message here at all in the != 0 case? In the old code before commit
+efc29f1764 you did not print an error when v4lconvert_y10b_to_... failed, so
+I assume that that already does a V4LCONVERT_ERR in that case. So why do it a
+second time with a less precise error message here?
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+So I believe that the proper fix would be to just remove the entire block instead
+of flipping the test and keeping the V4LCONVERT_ERR. Please send a new version
+with this fixed, then I'll merge it asap.
 
-Full logs are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Hans
