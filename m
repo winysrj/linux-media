@@ -1,51 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp03.smtpout.orange.fr ([80.12.242.125]:29803 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751419AbaFYTdE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jun 2014 15:33:04 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "g.liakhovetski\@gmx.de" <g.liakhovetski@gmx.de>,
-	"devicetree\@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 2/2] media: soc_camera: pxa_camera device-tree support
-References: <1403389307-17489-1-git-send-email-robert.jarzmik@free.fr>
-	<1403389307-17489-2-git-send-email-robert.jarzmik@free.fr>
-	<20140625102801.GA14495@leverpostej>
-Date: Wed, 25 Jun 2014 21:32:58 +0200
-In-Reply-To: <20140625102801.GA14495@leverpostej> (Mark Rutland's message of
-	"Wed, 25 Jun 2014 11:28:01 +0100")
-Message-ID: <878uok9445.fsf@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mout.gmx.net ([212.227.17.22]:64161 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755400AbaFRV2W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jun 2014 17:28:22 -0400
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Heinrich Schuchardt <xypron.glpk@gmx.de>
+Subject: [PATCH 1/1] media: saa7134: remove if based on uninitialized variable
+Date: Wed, 18 Jun 2014 23:28:10 +0200
+Message-Id: <1403126890-28049-1-git-send-email-xypron.glpk@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mark Rutland <mark.rutland@arm.com> writes:
+Variable b is not initialized.
+Only with a small chance it has random value 0xFF.
+Remove if statement based on this value.
 
-> On Sat, Jun 21, 2014 at 11:21:47PM +0100, Robert Jarzmik wrote:
->> @@ -1650,6 +1651,64 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
->>  	.set_bus_param	= pxa_camera_set_bus_param,
->>  };
->>  
->> +static int pxa_camera_pdata_from_dt(struct device *dev,
->> +				    struct pxa_camera_dev *pcdev)
->> +{
->> +	int err = 0;
->> +	struct device_node *np = dev->of_node;
->> +	struct v4l2_of_endpoint ep;
->> +
->> +	err = of_property_read_u32(np, "clock-frequency",
->> +				   (u32 *)&pcdev->mclk);
->
-> That cast is either unnecessary or this code is broken.
-Mmm maybe ...
-As a clock rate is an unsigned long by design, where is the
-of_property_read_ulong() function ?
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/media/pci/saa7134/saa7134-input.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-> Use a temporary u32 if the types don't match.
-If there's no of_*() function available, let's do that.
-
+diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
+index 6f43126..1c56f2ab 100644
+--- a/drivers/media/pci/saa7134/saa7134-input.c
++++ b/drivers/media/pci/saa7134/saa7134-input.c
+@@ -132,10 +132,6 @@ static int get_key_flydvb_trio(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 	if (0x40000 & ~gpio)
+ 		return 0; /* No button press */
+ 
+-	/* No button press - only before first key pressed */
+-	if (b == 0xFF)
+-		return 0;
+-
+ 	/* poll IR chip */
+ 	/* weak up the IR chip */
+ 	b = 0;
 -- 
-Robert
+2.0.0
+
