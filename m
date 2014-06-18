@@ -1,48 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44538 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753431AbaFMQJN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jun 2014 12:09:13 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 04/30] [media] coda: fix internal framebuffer allocation size
-Date: Fri, 13 Jun 2014 18:08:30 +0200
-Message-Id: <1402675736-15379-5-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mout.gmx.net ([212.227.15.15]:62187 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751376AbaFRWCm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jun 2014 18:02:42 -0400
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
+	Kees Cook <keescook@chromium.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Heinrich Schuchardt <xypron.glpk@gmx.de>
+Subject: [PATCH 1/1] media: dib9000: avoid out of bound access
+Date: Thu, 19 Jun 2014 00:02:25 +0200
+Message-Id: <1403128945-28298-1-git-send-email-xypron.glpk@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This error was introduced by 5677e3b04d3b3961200aa2bb9cc715e709eafeb9
-"[media] coda: update CODA7541 to firmware 1.4.50".
+The current test to avoid out of bound access to mb[] is insufficient.
+For len = 19 non-existent mb[10] will be accessed.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+A check in the for loop is insufficient to avoid out of bound access in
+dib9000_mbx_send_attr.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- drivers/media/platform/coda.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/dvb-frontends/dib9000.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 544360e..0384c9b 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1527,10 +1527,10 @@ static int coda_alloc_framebuffers(struct coda_ctx *ctx, struct coda_q_data *q_d
- 	for (i = 0; i < ctx->num_internal_frames; i++) {
- 		size_t size;
+diff --git a/drivers/media/dvb-frontends/dib9000.c b/drivers/media/dvb-frontends/dib9000.c
+index e540cfb..6a71917 100644
+--- a/drivers/media/dvb-frontends/dib9000.c
++++ b/drivers/media/dvb-frontends/dib9000.c
+@@ -1040,10 +1040,13 @@ static int dib9000_risc_apb_access_write(struct dib9000_state *state, u32 addres
+ 	if (address >= 1024 || !state->platform.risc.fw_is_running)
+ 		return -EINVAL;
  
--		size = q_data->sizeimage;
-+		size = ysize + ysize / 2;
- 		if (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264 &&
- 		    dev->devtype->product != CODA_DX6)
--			ctx->internal_frames[i].size += ysize/4;
-+			size += ysize / 4;
- 		ret = coda_alloc_context_buf(ctx, &ctx->internal_frames[i], size);
- 		if (ret < 0) {
- 			coda_free_framebuffers(ctx);
++	if (len > 18)
++		return -EINVAL;
++
+ 	/* dprintk( "APB access thru wr fw %d %x", address, attribute); */
+ 
+ 	mb[0] = (unsigned short)address;
+-	for (i = 0; i < len && i < 20; i += 2)
++	for (i = 0; i < len; i += 2)
+ 		mb[1 + (i / 2)] = (b[i] << 8 | b[i + 1]);
+ 
+ 	dib9000_mbx_send_attr(state, OUT_MSG_BRIDGE_APB_W, mb, 1 + len / 2, attribute);
 -- 
-2.0.0.rc2
+2.0.0
 
