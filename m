@@ -1,65 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:41811 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753169AbaFYIoK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jun 2014 04:44:10 -0400
-Date: Wed, 25 Jun 2014 09:43:27 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Denis Carikli <denis@eukrea.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Eric =?iso-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>
-Subject: Re: [PATCH v14 04/10] imx-drm: use defines for clock polarity
-	settings
-Message-ID: <20140625084327.GD32514@n2100.arm.linux.org.uk>
-References: <1402913484-25910-1-git-send-email-denis@eukrea.com> <1402913484-25910-4-git-send-email-denis@eukrea.com> <20140625044845.GK5918@pengutronix.de>
+Received: from mx1.redhat.com ([209.132.183.28]:12343 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933954AbaFRLqQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jun 2014 07:46:16 -0400
+Message-ID: <53A17C02.1080702@redhat.com>
+Date: Wed, 18 Jun 2014 13:46:10 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20140625044845.GK5918@pengutronix.de>
+To: Antonio Ospite <ao2@ao2.it>, linux-media@vger.kernel.org
+CC: Gregor Jasny <gjasny@googlemail.com>
+Subject: Re: [PATCH RESEND] libv4lconvert: Fix a regression when converting
+ from Y10B
+References: <20140603155930.f72e14f4aab39ec49bdb1b71@ao2.it> <1402930841-14755-1-git-send-email-ao2@ao2.it> <53A17B4C.3010005@redhat.com>
+In-Reply-To: <53A17B4C.3010005@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 25, 2014 at 06:48:45AM +0200, Sascha Hauer wrote:
-> On Mon, Jun 16, 2014 at 12:11:18PM +0200, Denis Carikli wrote:
-> > +
-> >  /*
-> >   * Bitfield of Display Interface signal polarities.
-> >   */
-> > @@ -37,7 +43,7 @@ struct ipu_di_signal_cfg {
-> >  	unsigned clksel_en:1;
-> >  	unsigned clkidle_en:1;
-> >  	unsigned data_pol:1;	/* true = inverted */
-> > -	unsigned clk_pol:1;	/* true = rising edge */
-> > +	unsigned clk_pol:1;
-> >  	unsigned enable_pol:1;
-> >  	unsigned Hsync_pol:1;	/* true = active high */
-> >  	unsigned Vsync_pol:1;
+Hi,
+
+On 06/18/2014 01:43 PM, Hans de Goede wrote:
+> Hi,
 > 
-> ...can we rename the flags to more meaningful names instead?
+> On 06/16/2014 05:00 PM, Antonio Ospite wrote:
+>> Fix a regression introduced in commit
+>> efc29f1764a30808ebf7b3e1d9bfa27b909bf641 (libv4lconvert: Reject too
+>> short source buffer before accessing it).
+>>
+>> The old code:
+>>
+>> case V4L2_PIX_FMT_Y10BPACK:
+>> 	...
+>> 	if (result == 0 && src_size < (width * height * 10 / 8)) {
+>> 		V4LCONVERT_ERR("short y10b data frame\n");
+>> 		errno = EPIPE;
+>> 		result = -1;
+>> 	}
+>> 	...
+>>
+>> meant to say "If the conversion was *successful* _but_ the frame size
+>> was invalid, then take the error path", but in
+>> efc29f1764a30808ebf7b3e1d9bfa27b909bf641 this (maybe weird) logic was
+>> misunderstood and v4lconvert_convert_pixfmt() was made to return an
+>> error even in the case of a successful conversion from Y10B.
+>>
+>> Fix the check, and now print only the message letting the errno and the
+>> result from the conversion routines to be propagated to the caller.
+>>
+>> Signed-off-by: Antonio Ospite <ao2@ao2.it>
+>> Cc: Gregor Jasny <gjasny@googlemail.com>
 > 
-> 	unsigned clk_pol_rising_edge:1;
-> 	unsigned enable_pol_high:1;
-> 	unsigned hsync_active_high:1;
-> 	unsigned vsync_active_high:1;
+> Thanks for the patch, but: ...
+> 
+>> ---
+>>  lib/libv4lconvert/libv4lconvert.c | 5 +----
+>>  1 file changed, 1 insertion(+), 4 deletions(-)
+>>
+>> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+>> index c49d30d..50d6906 100644
+>> --- a/lib/libv4lconvert/libv4lconvert.c
+>> +++ b/lib/libv4lconvert/libv4lconvert.c
+>> @@ -1052,11 +1052,8 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+>>  							   width, height);
+>>  			break;
+>>  		}
+>> -		if (result == 0) {
+>> +		if (result != 0)
+>>  			V4LCONVERT_ERR("y10b conversion failed\n");
+>> -			errno = EPIPE;
+>> -			result = -1;
+>> -		}
+>>  		break;
+>>  
+>>  	case V4L2_PIX_FMT_RGB565:
+> 
+> Why print a message here at all in the != 0 case? In the old code before commit
+> efc29f1764 you did not print an error when v4lconvert_y10b_to_... failed, so
+> I assume that that already does a V4LCONVERT_ERR in that case. So why do it a
+> second time with a less precise error message here?
+> 
+> So I believe that the proper fix would be to just remove the entire block instead
+> of flipping the test and keeping the V4LCONVERT_ERR. Please send a new version
+> with this fixed, then I'll merge it asap.
 
-Now look at patch 7, where these become tri-state:
-- don't change
-- rising edge/active high
-- falling edge/active low
+Scrap that, I decided I might just as well fix this bit myself, so I've just
+pushed an updated patch completely removing the second check from the
+V4L2_PIX_FMT_Y10BPACK case.
 
-So your suggestion is not a good idea.
+Regards,
 
--- 
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
+Hans
