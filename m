@@ -1,76 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:35372 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751336AbaFLVfQ (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1483 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964840AbaFRJXX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 17:35:16 -0400
-Received: by mail-pa0-f51.google.com with SMTP id ey11so1376901pad.24
-        for <linux-media@vger.kernel.org>; Thu, 12 Jun 2014 14:35:15 -0700 (PDT)
-Message-ID: <539A1D12.1040808@boundarydevices.com>
-Date: Thu, 12 Jun 2014 14:35:14 -0700
-From: Troy Kisky <troy.kisky@boundarydevices.com>
-MIME-Version: 1.0
-To: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-	linux-media@vger.kernel.org, Russell King <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 00/43] i.MX6 Video capture
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>	 <1402485696.4107.107.camel@paszta.hi.pengutronix.de>	 <5398FC95.1070504@mentor.com> <1402591841.3444.136.camel@paszta.hi.pengutronix.de> <539A1627.5010602@mentor.com>
-In-Reply-To: <539A1627.5010602@mentor.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Wed, 18 Jun 2014 05:23:23 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5I9NJH9060485
+	for <linux-media@vger.kernel.org>; Wed, 18 Jun 2014 11:23:21 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0EC402A1FCD
+	for <linux-media@vger.kernel.org>; Wed, 18 Jun 2014 11:23:04 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140618092304.0EC402A1FCD@tschai.lan>
+Date: Wed, 18 Jun 2014 11:23:04 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 6/12/2014 2:05 PM, Steve Longerbeam wrote:
-> On 06/12/2014 09:50 AM, Philipp Zabel wrote:
->> Hi Steve,
->>
->> [Added Russell to Cc: because of the question how to send IPU core 
->>  patches to drm-next]
->>
->> Am Mittwoch, den 11.06.2014, 18:04 -0700 schrieb Steve Longerbeam:
->>> Hi Philipp and Sascha,
->>>
->>> First of all, thanks for the detailed review.
->>
->> You are welcome. I am tasked to prepare our own capture drivers for
->> mainline submission, but they are not quite there yet. I'd be very
->> interested in getting this worked out together, especially since we
->> seem to be interested in orthogonal features (we had no use for the
->> preview and and encoder IC tasks or MIPI CSI-2 so far, but we need
->> media controller support
-> 
-> Ok. Yes, we definitely need preview and MIPI CSI-2, and adding IC to the
-> capture path is nice too, since it allows userland to select arbitrary user
-> resolutions, pixel format color space, and also rotation controls. The
-> capture driver decides whether to include the IC in the capture pipeline
-> based on user format and rotation control. I.e. if user colorspace is
-> different from what the sensor can output, IC CSC is required. If user
-> resolution is different from the selected capture cropping rectangle,
-> IC resizer is required, and finally if user requests rotation, the IC
-> rotation unit is required. If none of those are true, the capture driver
-> decides to exclude the IC from the pipeline and send raw sensor frames
-> (well, after cropping anyway) directly to memory via the SMFC.
-> 
-> So in our driver, the decision to link the IC in a pipeline is made
-> internally by the driver and is not a decision exported to userland.
-> 
-> My plan was to add media device framework support, but only after basic
-> video capture is in place. Our driver is full featured in terms of basic
-> capture support, and it works on all three reference platforms. But I
-> agree it needs to convert subdev's to media entities and allow some of
-> them to be linked via the media controller API.
-> 
-> But only some linkages make sense to me. As I explain above, if the IC were
-> to be made a media entity, I think it's linkage should be made internally
-> by the capture driver, and this should not be controllable by userspace.
-> 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-What if 2 cameras on different CSIs on the same IPU want to use the IC.
-Is it 1st come 1st server? Or, both routed to memory, and a separate
-memory convert? Is the 1st pipeline shut down and restarted in this mode?
+Results of the daily build of media_tree:
 
+date:		Wed Jun 18 10:38:55 CEST 2014
+git branch:	test
+git hash:	2ac6f6305efef8c10994be48b20723cc70654189
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-14-gf11dd94
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-i686: OK
+linux-3.16-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-x86_64: OK
+linux-3.16-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
