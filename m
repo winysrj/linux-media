@@ -1,289 +1,438 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33027 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753117AbaFLRGp (ORCPT
+Received: from adelie.canonical.com ([91.189.90.139]:41792 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966138AbaFRLJY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 13:06:45 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [RFC PATCH 14/26] [media] Add i.MX SoC wide media device driver
-Date: Thu, 12 Jun 2014 19:06:28 +0200
-Message-Id: <1402592800-2925-15-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+	Wed, 18 Jun 2014 07:09:24 -0400
+Subject: [REPOST PATCH 7/8] reservation: update api and add some helpers
+To: gregkh@linuxfoundation.org
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-arch@vger.kernel.org, thellstrom@vmware.com,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
+	thierry.reding@gmail.com, ccross@google.com, daniel@ffwll.ch,
+	sumit.semwal@linaro.org, linux-media@vger.kernel.org
+Date: Wed, 18 Jun 2014 12:37:29 +0200
+Message-ID: <20140618103729.15728.12953.stgit@patser>
+In-Reply-To: <20140618102957.15728.43525.stgit@patser>
+References: <20140618102957.15728.43525.stgit@patser>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver registers a single, SoC wide media device, which all entities
-in the media graph can be registered with via OF graph bindings.
+Move the list of shared fences to a struct, and return it in
+reservation_object_get_list().
+Add reservation_object_get_excl to get the exclusive fence.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Add reservation_object_reserve_shared(), which reserves space
+in the reservation_object for 1 more shared fence.
+
+reservation_object_add_shared_fence() and
+reservation_object_add_excl_fence() are used to assign a new
+fence to a reservation_object pointer, to complete a reservation.
+
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+
+Changes since v1:
+- Add reservation_object_get_excl, reorder code a bit.
 ---
- drivers/media/platform/Kconfig         |   2 +
- drivers/media/platform/imx/Kconfig     |  13 +++
- drivers/media/platform/imx/Makefile    |   1 +
- drivers/media/platform/imx/imx-media.c | 174 +++++++++++++++++++++++++++++++++
- include/media/imx.h                    |  25 +++++
- 5 files changed, 215 insertions(+)
- create mode 100644 drivers/media/platform/imx/imx-media.c
- create mode 100644 include/media/imx.h
+ drivers/base/dma-buf.c      |   35 +++++++---
+ drivers/base/fence.c        |    4 +
+ drivers/base/reservation.c  |  156 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/fence.h       |    6 ++
+ include/linux/reservation.h |   56 ++++++++++++++-
+ 5 files changed, 236 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 8e9c26c..3fe7e28 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -35,6 +35,8 @@ source "drivers/media/platform/omap/Kconfig"
+diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+index 25e8c4165936..cb8379dfeed5 100644
+--- a/drivers/base/dma-buf.c
++++ b/drivers/base/dma-buf.c
+@@ -134,7 +134,10 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
+ {
+ 	struct dma_buf *dmabuf;
+ 	struct reservation_object *resv;
++	struct reservation_object_list *fobj;
++	struct fence *fence_excl;
+ 	unsigned long events;
++	unsigned shared_count;
  
- source "drivers/media/platform/blackfin/Kconfig"
+ 	dmabuf = file->private_data;
+ 	if (!dmabuf || !dmabuf->resv)
+@@ -150,12 +153,18 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
  
-+source "drivers/media/platform/imx/Kconfig"
-+
- config VIDEO_SH_VOU
- 	tristate "SuperH VOU video output driver"
- 	depends on MEDIA_CAMERA_SUPPORT
-diff --git a/drivers/media/platform/imx/Kconfig b/drivers/media/platform/imx/Kconfig
-index 506326a..d2f1693 100644
---- a/drivers/media/platform/imx/Kconfig
-+++ b/drivers/media/platform/imx/Kconfig
-@@ -1,3 +1,16 @@
-+config MEDIA_IMX
-+	tristate "Multimedia Support for Freescale i.MX"
-+	depends on MEDIA_CONTROLLER
-+	---help---
-+	  This driver provides a SoC wide media controller device that all
-+	  multimedia components in i.MX5 and i.MX6 SoCs can register with.
-+
-+config MEDIA_IMX_IPU
-+	tristate "i.MX Image Processing Unit (v3) core driver"
-+	---help---
-+	  This driver provides core support for the i.MX IPUv3 contained in
-+	  i.MX5 and i.MX6 SoCs.
-+
- config VIDEO_IMX_IPU_COMMON
- 	tristate
+ 	ww_mutex_lock(&resv->lock, NULL);
  
-diff --git a/drivers/media/platform/imx/Makefile b/drivers/media/platform/imx/Makefile
-index 5c9da82..60f451a 100644
---- a/drivers/media/platform/imx/Makefile
-+++ b/drivers/media/platform/imx/Makefile
-@@ -1,3 +1,4 @@
-+obj-$(CONFIG_MEDIA_IMX)			+= imx-media.o
- obj-$(CONFIG_VIDEO_IMX_IPU_COMMON)	+= imx-ipu.o
- obj-$(CONFIG_VIDEO_IMX_IPU_SCALER)	+= imx-ipu-scaler.o
- obj-$(CONFIG_VIDEO_IMX_IPU_VDIC)	+= imx-ipu-vdic.o
-diff --git a/drivers/media/platform/imx/imx-media.c b/drivers/media/platform/imx/imx-media.c
-new file mode 100644
-index 0000000..ae63c49
---- /dev/null
-+++ b/drivers/media/platform/imx/imx-media.c
-@@ -0,0 +1,174 @@
-+#include <linux/module.h>
-+#include <linux/export.h>
-+#include <linux/types.h>
-+#include <linux/init.h>
-+#include <linux/err.h>
-+#include <linux/spinlock.h>
-+#include <linux/delay.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <linux/irq.h>
-+#include <linux/of_device.h>
-+#include <linux/of_graph.h>
-+#include <media/media-device.h>
-+#include <media/v4l2-device.h>
-+#include <video/imx-ipu-v3.h>
+-	if (resv->fence_excl && (!(events & POLLOUT) ||
+-				 resv->fence_shared_count == 0)) {
++	fobj = resv->fence;
++	if (!fobj)
++		goto out;
 +
-+struct ipu_media_controller {
-+	struct v4l2_device v4l2_dev;
-+	struct media_device mdev;
-+};
++	shared_count = fobj->shared_count;
++	fence_excl = resv->fence_excl;
 +
-+static struct ipu_media_controller *ipu_media;
++	if (fence_excl && (!(events & POLLOUT) || shared_count == 0)) {
+ 		struct dma_buf_poll_cb_t *dcb = &dmabuf->cb_excl;
+ 		unsigned long pevents = POLLIN;
+ 
+-		if (resv->fence_shared_count == 0)
++		if (shared_count == 0)
+ 			pevents |= POLLOUT;
+ 
+ 		spin_lock_irq(&dmabuf->poll.lock);
+@@ -167,19 +176,20 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
+ 		spin_unlock_irq(&dmabuf->poll.lock);
+ 
+ 		if (events & pevents) {
+-			if (!fence_add_callback(resv->fence_excl,
+-						&dcb->cb, dma_buf_poll_cb))
++			if (!fence_add_callback(fence_excl, &dcb->cb,
++						       dma_buf_poll_cb)) {
+ 				events &= ~pevents;
+-			else
++			} else {
+ 				/*
+ 				 * No callback queued, wake up any additional
+ 				 * waiters.
+ 				 */
+ 				dma_buf_poll_cb(NULL, &dcb->cb);
++			}
+ 		}
+ 	}
+ 
+-	if ((events & POLLOUT) && resv->fence_shared_count > 0) {
++	if ((events & POLLOUT) && shared_count > 0) {
+ 		struct dma_buf_poll_cb_t *dcb = &dmabuf->cb_shared;
+ 		int i;
+ 
+@@ -194,15 +204,18 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
+ 		if (!(events & POLLOUT))
+ 			goto out;
+ 
+-		for (i = 0; i < resv->fence_shared_count; ++i)
+-			if (!fence_add_callback(resv->fence_shared[i],
+-						&dcb->cb, dma_buf_poll_cb)) {
++		for (i = 0; i < shared_count; ++i) {
++			struct fence *fence = fobj->shared[i];
 +
-+struct media_device *ipu_find_media_device(void)
++			if (!fence_add_callback(fence, &dcb->cb,
++						dma_buf_poll_cb)) {
+ 				events &= ~POLLOUT;
+ 				break;
+ 			}
++		}
+ 
+ 		/* No callback queued, wake up any additional waiters. */
+-		if (i == resv->fence_shared_count)
++		if (i == shared_count)
+ 			dma_buf_poll_cb(NULL, &dcb->cb);
+ 	}
+ 
+diff --git a/drivers/base/fence.c b/drivers/base/fence.c
+index 752a2dfa505f..74d1f7bcb467 100644
+--- a/drivers/base/fence.c
++++ b/drivers/base/fence.c
+@@ -170,7 +170,7 @@ void release_fence(struct kref *kref)
+ 	if (fence->ops->release)
+ 		fence->ops->release(fence);
+ 	else
+-		kfree(fence);
++		free_fence(fence);
+ }
+ EXPORT_SYMBOL(release_fence);
+ 
+@@ -448,7 +448,7 @@ static void seqno_release(struct fence *fence)
+ 	if (f->ops->release)
+ 		f->ops->release(fence);
+ 	else
+-		kfree(f);
++		free_fence(fence);
+ }
+ 
+ static long seqno_wait(struct fence *fence, bool intr, signed long timeout)
+diff --git a/drivers/base/reservation.c b/drivers/base/reservation.c
+index a73fbf3b8e56..e6166723a9ae 100644
+--- a/drivers/base/reservation.c
++++ b/drivers/base/reservation.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (C) 2012-2013 Canonical Ltd
++ * Copyright (C) 2012-2014 Canonical Ltd (Maarten Lankhorst)
+  *
+  * Based on bo.c which bears the following copyright notice,
+  * but is dual licensed:
+@@ -37,3 +37,157 @@
+ 
+ DEFINE_WW_CLASS(reservation_ww_class);
+ EXPORT_SYMBOL(reservation_ww_class);
++
++/*
++ * Reserve space to add a shared fence to a reservation_object,
++ * must be called with obj->lock held.
++ */
++int reservation_object_reserve_shared(struct reservation_object *obj)
 +{
-+	return &ipu_media->mdev;
-+}
-+EXPORT_SYMBOL_GPL(ipu_find_media_device);
++	struct reservation_object_list *fobj, *old;
++	u32 max;
 +
-+struct ipu_media_link {
-+	struct v4l2_async_notifier	asn;
-+	struct v4l2_async_subdev	asd;
-+	struct v4l2_async_subdev	*asdp;
-+	struct v4l2_subdev		*sd;
-+	int padno;
-+	struct device_node		*endpoint;
-+	u32				media_link_flags;
-+};
++	old = reservation_object_get_list(obj);
 +
-+static int ipu_media_bound(struct v4l2_async_notifier *notifier,
-+			   struct v4l2_subdev *sd,
-+			   struct v4l2_async_subdev *asd)
-+{
-+	struct ipu_media_controller *im = ipu_media;
-+	struct ipu_media_link *link = container_of(notifier,
-+						   struct ipu_media_link, asn);
-+	struct device_node *np, *rp;
-+	uint32_t portno = 0;
-+	int ret;
++	if (old && old->shared_max) {
++		if (old->shared_count < old->shared_max) {
++			/* perform an in-place update */
++			kfree(obj->staged);
++			obj->staged = NULL;
++			return 0;
++		} else
++			max = old->shared_max * 2;
++	} else
++		max = 4;
 +
-+	if ((sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE)) {
-+		ret = v4l2_device_register_subdev_node(&im->v4l2_dev, sd);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	np = link->endpoint;
-+	rp = of_graph_get_remote_port(np);
-+	of_property_read_u32(rp, "reg", &portno);
-+
-+	ret = media_entity_create_link(&sd->entity, portno, &link->sd->entity,
-+			link->padno, link->media_link_flags);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static void ipu_media_unbind(struct v4l2_async_notifier *notifier,
-+			     struct v4l2_subdev *sd,
-+			     struct v4l2_async_subdev *asd)
-+{
-+	if ((sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE)) {
-+		video_unregister_device(sd->devnode);
-+		kfree(sd->devnode);
-+	}
-+}
-+
-+struct ipu_media_link *ipu_media_entity_create_link(struct v4l2_subdev *sd,
-+		int padno, struct device_node *endpoint,
-+		u32 media_link_flags)
-+{
-+	struct ipu_media_controller *im = ipu_media;
-+	struct ipu_media_link *link;
-+	int ret;
-+	struct device_node *rpp;
-+
-+	rpp = of_graph_get_remote_port_parent(endpoint);
-+	if (!rpp)
-+		return ERR_PTR(-EINVAL);
-+
-+	pr_info("%s: link on %s pad %d endpoint: %s remotenodeparent: %s\n",
-+		__func__, sd->name, padno, endpoint->full_name, rpp->full_name);
-+	if (!im)
-+		return ERR_PTR(-ENODEV);
-+
-+	link = kzalloc(sizeof(*link), GFP_KERNEL);
-+	if (!link)
-+		return ERR_PTR(-ENOMEM);
-+
-+	link->sd = sd;
-+	link->padno = padno;
-+	link->endpoint = endpoint;
-+	link->media_link_flags = media_link_flags;
-+
-+	link->asd.match_type = V4L2_ASYNC_MATCH_OF;
-+	link->asd.match.of.node = rpp;
-+
-+	link->asdp = &link->asd;
-+
-+	link->asn.bound = ipu_media_bound;
-+	link->asn.unbind = ipu_media_unbind;
-+	link->asn.subdevs = &link->asdp;
-+	link->asn.num_subdevs = 1;
-+	link->asn.v4l2_dev = &im->v4l2_dev;
-+
-+	ret = v4l2_async_notifier_register(&im->v4l2_dev, &link->asn);
-+	if (ret) {
-+		kfree(link);
-+		return ERR_PTR(ret);
-+	}
-+
-+	return link;
-+}
-+EXPORT_SYMBOL_GPL(ipu_media_entity_create_link);
-+
-+void ipu_media_entity_remove_link(struct ipu_media_link *link)
-+{
-+	v4l2_async_notifier_unregister(&link->asn);
-+
-+	kfree(link);
-+}
-+EXPORT_SYMBOL_GPL(ipu_media_entity_remove_link);
-+
-+struct v4l2_device *ipu_media_get_v4l2_dev(void)
-+{
-+	if (!ipu_media)
-+		return NULL;
-+
-+	return &ipu_media->v4l2_dev;
-+}
-+EXPORT_SYMBOL_GPL(ipu_media_get_v4l2_dev);
-+
-+int ipu_media_device_register(struct device *dev)
-+{
-+	struct media_device *mdev;
-+	int ret;
-+
-+	if (ipu_media)
-+		return 0;
-+
-+	ipu_media = devm_kzalloc(dev, sizeof(*ipu_media), GFP_KERNEL);
-+	if (!ipu_media)
++	/*
++	 * resize obj->staged or allocate if it doesn't exist,
++	 * noop if already correct size
++	 */
++	fobj = krealloc(obj->staged, offsetof(typeof(*fobj), shared[max]),
++			GFP_KERNEL);
++	if (!fobj)
 +		return -ENOMEM;
 +
-+	mdev = &ipu_media->mdev;
-+
-+	mdev->dev = dev;
-+
-+	strlcpy(mdev->model, "i.MX IPUv3", sizeof(mdev->model));
-+
-+	ret = media_device_register(mdev);
-+	if (ret)
-+		return ret;
-+
-+	ipu_media->v4l2_dev.mdev = mdev;
-+
-+	ret = v4l2_device_register(mdev->dev, &ipu_media->v4l2_dev);
-+	if (ret)
-+		return ret;
-+
++	obj->staged = fobj;
++	fobj->shared_max = max;
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(ipu_media_device_register);
-diff --git a/include/media/imx.h b/include/media/imx.h
-new file mode 100644
-index 0000000..42be5f4
---- /dev/null
-+++ b/include/media/imx.h
-@@ -0,0 +1,25 @@
-+struct v4l2_subdev;
-+struct device_node;
-+struct ipu_media_link;
-+struct v4l2_device;
-+struct media_device;
-+struct device;
++EXPORT_SYMBOL(reservation_object_reserve_shared);
 +
-+struct ipu_media_link *ipu_media_entity_create_link(struct v4l2_subdev *sd,
-+		int padno, struct device_node *remote_node,
-+		u32 media_link_flags);
-+
-+void ipu_media_entity_remove_link(struct ipu_media_link *link);
-+
-+struct v4l2_device *ipu_media_get_v4l2_dev(void);
-+
-+struct media_device *ipu_find_media_device(void);
-+
-+#ifdef CONFIG_MEDIA_IMX
-+int ipu_media_device_register(struct device *dev);
-+#else
-+static inline int ipu_media_device_register(struct device *dev)
++static void
++reservation_object_add_shared_inplace(struct reservation_object *obj,
++				      struct reservation_object_list *fobj,
++				      struct fence *fence)
 +{
-+	return 0;
++	u32 i;
++
++	for (i = 0; i < fobj->shared_count; ++i) {
++		if (fobj->shared[i]->context == fence->context) {
++			struct fence *old_fence = fobj->shared[i];
++
++			fence_get(fence);
++
++			fobj->shared[i] = fence;
++
++			fence_put(old_fence);
++			return;
++		}
++	}
++
++	fence_get(fence);
++	fobj->shared[fobj->shared_count] = fence;
++	/*
++	 * make the new fence visible before incrementing
++	 * fobj->shared_count
++	 */
++	smp_wmb();
++	fobj->shared_count++;
 +}
-+#endif
--- 
-2.0.0.rc2
++
++static void
++reservation_object_add_shared_replace(struct reservation_object *obj,
++				      struct reservation_object_list *old,
++				      struct reservation_object_list *fobj,
++				      struct fence *fence)
++{
++	unsigned i;
++
++	fence_get(fence);
++
++	if (!old) {
++		fobj->shared[0] = fence;
++		fobj->shared_count = 1;
++		goto done;
++	}
++
++	/*
++	 * no need to bump fence refcounts, rcu_read access
++	 * requires the use of kref_get_unless_zero, and the
++	 * references from the old struct are carried over to
++	 * the new.
++	 */
++	fobj->shared_count = old->shared_count;
++
++	for (i = 0; i < old->shared_count; ++i) {
++		if (fence && old->shared[i]->context == fence->context) {
++			fence_put(old->shared[i]);
++			fobj->shared[i] = fence;
++			fence = NULL;
++		} else
++			fobj->shared[i] = old->shared[i];
++	}
++	if (fence)
++		fobj->shared[fobj->shared_count++] = fence;
++
++done:
++	obj->fence = fobj;
++	kfree(old);
++}
++
++/*
++ * Add a fence to a shared slot, obj->lock must be held, and
++ * reservation_object_reserve_shared_fence has been called.
++ */
++void reservation_object_add_shared_fence(struct reservation_object *obj,
++					 struct fence *fence)
++{
++	struct reservation_object_list *old, *fobj = obj->staged;
++
++	old = reservation_object_get_list(obj);
++	obj->staged = NULL;
++
++	if (!fobj) {
++		BUG_ON(old->shared_count == old->shared_max);
++		reservation_object_add_shared_inplace(obj, old, fence);
++	} else
++		reservation_object_add_shared_replace(obj, old, fobj, fence);
++}
++EXPORT_SYMBOL(reservation_object_add_shared_fence);
++
++void reservation_object_add_excl_fence(struct reservation_object *obj,
++				       struct fence *fence)
++{
++	struct fence *old_fence = obj->fence_excl;
++	struct reservation_object_list *old;
++	u32 i = 0;
++
++	old = reservation_object_get_list(obj);
++	if (old) {
++		i = old->shared_count;
++		old->shared_count = 0;
++	}
++
++	if (fence)
++		fence_get(fence);
++
++	obj->fence_excl = fence;
++
++	/* inplace update, no shared fences */
++	while (i--)
++		fence_put(old->shared[i]);
++
++	if (old_fence)
++		fence_put(old_fence);
++}
++EXPORT_SYMBOL(reservation_object_add_excl_fence);
+diff --git a/include/linux/fence.h b/include/linux/fence.h
+index 65f2a01ee7e4..d13b5ab61726 100644
+--- a/include/linux/fence.h
++++ b/include/linux/fence.h
+@@ -31,6 +31,7 @@
+ #include <linux/kref.h>
+ #include <linux/sched.h>
+ #include <linux/printk.h>
++#include <linux/slab.h>
+ 
+ struct fence;
+ struct fence_ops;
+@@ -191,6 +192,11 @@ static inline void fence_get(struct fence *fence)
+ 
+ extern void release_fence(struct kref *kref);
+ 
++static inline void free_fence(struct fence *fence)
++{
++	kfree(fence);
++}
++
+ /**
+  * fence_put - decreases refcount of the fence
+  * @fence:	[in]	fence to reduce refcount of
+diff --git a/include/linux/reservation.h b/include/linux/reservation.h
+index f3f57460a205..2affe67dea6e 100644
+--- a/include/linux/reservation.h
++++ b/include/linux/reservation.h
+@@ -45,36 +45,78 @@
+ 
+ extern struct ww_class reservation_ww_class;
+ 
++struct reservation_object_list {
++	u32 shared_count, shared_max;
++	struct fence *shared[];
++};
++
+ struct reservation_object {
+ 	struct ww_mutex lock;
+ 
+ 	struct fence *fence_excl;
+-	struct fence **fence_shared;
+-	u32 fence_shared_count, fence_shared_max;
++	struct reservation_object_list *fence;
++	struct reservation_object_list *staged;
+ };
+ 
++#define reservation_object_assert_held(obj) \
++	lockdep_assert_held(&(obj)->lock.base)
++
+ static inline void
+ reservation_object_init(struct reservation_object *obj)
+ {
+ 	ww_mutex_init(&obj->lock, &reservation_ww_class);
+ 
+-	obj->fence_shared_count = obj->fence_shared_max = 0;
+-	obj->fence_shared = NULL;
+ 	obj->fence_excl = NULL;
++	obj->fence = NULL;
++	obj->staged = NULL;
+ }
+ 
+ static inline void
+ reservation_object_fini(struct reservation_object *obj)
+ {
+ 	int i;
++	struct reservation_object_list *fobj;
+ 
++	/*
++	 * This object should be dead and all references must have
++	 * been released to it.
++	 */
+ 	if (obj->fence_excl)
+ 		fence_put(obj->fence_excl);
+-	for (i = 0; i < obj->fence_shared_count; ++i)
+-		fence_put(obj->fence_shared[i]);
+-	kfree(obj->fence_shared);
++
++	fobj = obj->fence;
++	if (fobj) {
++		for (i = 0; i < fobj->shared_count; ++i)
++			fence_put(fobj->shared[i]);
++
++		kfree(fobj);
++	}
++	kfree(obj->staged);
+ 
+ 	ww_mutex_destroy(&obj->lock);
+ }
+ 
++static inline struct reservation_object_list *
++reservation_object_get_list(struct reservation_object *obj)
++{
++	reservation_object_assert_held(obj);
++
++	return obj->fence;
++}
++
++static inline struct fence *
++reservation_object_get_excl(struct reservation_object *obj)
++{
++	reservation_object_assert_held(obj);
++
++	return obj->fence_excl;
++}
++
++int reservation_object_reserve_shared(struct reservation_object *obj);
++void reservation_object_add_shared_fence(struct reservation_object *obj,
++					 struct fence *fence);
++
++void reservation_object_add_excl_fence(struct reservation_object *obj,
++				       struct fence *fence);
++
+ #endif /* _LINUX_RESERVATION_H */
 
