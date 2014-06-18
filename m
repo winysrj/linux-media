@@ -1,57 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48260 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753999AbaFLAha (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jun 2014 20:37:30 -0400
-Message-ID: <5398F646.70102@iki.fi>
-Date: Thu, 12 Jun 2014 03:37:26 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from kirsty.vergenet.net ([202.4.237.240]:33826 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932671AbaFRHbW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jun 2014 03:31:22 -0400
+Date: Wed, 18 Jun 2014 16:31:19 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Ben Dooks <ben.dooks@codethink.co.uk>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	linux-kernel@lists.codethink.co.uk, linux-sh@vger.kernel.org,
+	linux-media@vger.kernel.org, robert.jarzmik@free.fr,
+	g.liakhovetski@gmx.de, magnus.damm@opensource.se,
+	ian.molton@codethink.co.uk, william.towle@codethink.co.uk
+Subject: Re: [PATCH 2/9] ARM: lager: add i2c1, i2c2 pins
+Message-ID: <20140618073119.GB14968@verge.net.au>
+References: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
+ <1402862194-17743-3-git-send-email-ben.dooks@codethink.co.uk>
+ <539EE41D.3050206@cogentembedded.com>
+ <53A13F69.2020809@codethink.co.uk>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	=?ISO-8859-1?Q?Frank_?= =?ISO-8859-1?Q?Sch=E4fer?=
-	<fschaefer.oss@googlemail.com>, LMML <linux-media@vger.kernel.org>
-Subject: Re: em28xx submit of urb 0 failed (error=-27)
-References: <5398F2ED.4080309@iki.fi>
-In-Reply-To: <5398F2ED.4080309@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53A13F69.2020809@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I just ran blind scan using w_scan and it interrupted scanning, with 
-following error (ioctl DMX_SET_FILTER failed: 27 File too large).
+On Wed, Jun 18, 2014 at 08:27:37AM +0100, Ben Dooks wrote:
+> On 16/06/14 13:33, Sergei Shtylyov wrote:
+> > Hello.
+> > 
+> > On 06/15/2014 11:56 PM, Ben Dooks wrote:
+> > 
+> >> Add pinctrl definitions for i2c1 and i2c2 busses on the Lager board
+> >> to ensure these are setup correctly at initialisation time. The i2c0
+> >> and i2c3 busses are connected to single function pins.
+> > 
+> >> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+> > 
+> >    Likewise, this as been already merged by Simon.
+> 
+> Ah, they had not been merged when I took the branch for this around
+> -rc8 time. I will look at changing the necessary bits for the vin
+> in the DT and re-sub them as a new series for Simon to look at merging.
 
-602000: (time: 00:58.973)
-         (0.308sec): SCL (0x1F)
-         (0.308sec) signal
-         (0.308sec) lock
-         signal ok:	QAM_AUTO f = 602000 kHz I999B8C999D999T999G999Y999 
-(0:0:0)
-         initial PAT lookup..
-start_filter:1644: ERROR: ioctl DMX_SET_FILTER failed: 27 File too large
-
-regards
-Antti
-
-
-On 06/12/2014 03:23 AM, Antti Palosaari wrote:
-> Do you have any idea about that bug?
-> kernel: submit of urb 0 failed (error=-27)
->
-> https://bugzilla.kernel.org/show_bug.cgi?id=72891
->
-> I have seen it recently very often when I try start streaming DVB. When
-> it happens, device is unusable. I have feeling that it could be coming
-> from recent 28xx big changes where it was modularised. IIRC I reported
-> that at the time and Mauro added error number printing to log entry.
-> Anyhow, it is very annoying and occurs very often. And people have
-> started pinging me as I have added very many DVB devices to em28xx.
->
-> regards
-> Antti
->
->
-
-
--- 
-http://palosaari.fi/
+Thanks, Ben.
