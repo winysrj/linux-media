@@ -1,60 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f52.google.com ([209.85.213.52]:55893 "EHLO
-	mail-yh0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934916AbaFTPzs (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43641 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752628AbaFSBL5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jun 2014 11:55:48 -0400
-Received: by mail-yh0-f52.google.com with SMTP id a41so2987552yho.11
-        for <linux-media@vger.kernel.org>; Fri, 20 Jun 2014 08:55:47 -0700 (PDT)
+	Wed, 18 Jun 2014 21:11:57 -0400
+Date: Wed, 18 Jun 2014 18:15:56 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-arch@vger.kernel.org, thellstrom@vmware.com,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
+	thierry.reding@gmail.com, ccross@google.com, daniel@ffwll.ch,
+	sumit.semwal@linaro.org, linux-media@vger.kernel.org
+Subject: Re: [REPOST PATCH 4/8] android: convert sync to fence api, v5
+Message-ID: <20140619011556.GE10921@kroah.com>
+References: <20140618102957.15728.43525.stgit@patser>
+ <20140618103711.15728.97842.stgit@patser>
 MIME-Version: 1.0
-In-Reply-To: <08c06a97-d24b-4eeb-9c3e-d7a923ec1ea1@email.android.com>
-References: <53A3CB23.2000209@gentoo.org>
-	<CALzAhNUb_J+tcqaaRLm_x=pAVDNWZp6EFuPBGKiS4VMiVtRwag@mail.gmail.com>
-	<08c06a97-d24b-4eeb-9c3e-d7a923ec1ea1@email.android.com>
-Date: Fri, 20 Jun 2014 11:55:47 -0400
-Message-ID: <CALzAhNWzndgGCptiaZXAsVw4jyG5ANngO6m9BsL7te0sHDGqCg@mail.gmail.com>
-Subject: Re: pvrusb2 has a new device (wintv-hvr-1955)
-From: Steven Toth <stoth@kernellabs.com>
-To: Matthew Thode <prometheanfire@gentoo.org>
-Cc: Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140618103711.15728.97842.stgit@patser>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>> Just bought a wintv-hvr-1955 (sold as a wintv-hvr-1950)
->>> 160111 LF
->>> Rev B1|7
->>
->>Talk to Hauppauge, they've already announced that they have a working
->>Linux driver.
->
-> I talked to them and they did say that the driver hasn't been upstreamed, also gave me some hardware info.  They wouldn't give me a driver/firmware that worked though and offered to RMA for an older device.
+On Wed, Jun 18, 2014 at 12:37:11PM +0200, Maarten Lankhorst wrote:
+> Just to show it's easy.
+> 
+> Android syncpoints can be mapped to a timeline. This removes the need
+> to maintain a separate api for synchronization. I've left the android
+> trace events in place, but the core fence events should already be
+> sufficient for debugging.
+> 
+> v2:
+> - Call fence_remove_callback in sync_fence_free if not all fences have fired.
+> v3:
+> - Merge Colin Cross' bugfixes, and the android fence merge optimization.
+> v4:
+> - Merge with the upstream fixes.
+> v5:
+> - Fix small style issues pointed out by Thomas Hellstrom.
+> 
+> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+> Acked-by: John Stultz <john.stultz@linaro.org>
+> ---
+>  drivers/staging/android/Kconfig      |    1 
+>  drivers/staging/android/Makefile     |    2 
+>  drivers/staging/android/sw_sync.c    |    6 
+>  drivers/staging/android/sync.c       |  913 +++++++++++-----------------------
+>  drivers/staging/android/sync.h       |   79 ++-
+>  drivers/staging/android/sync_debug.c |  247 +++++++++
+>  drivers/staging/android/trace/sync.h |   12 
+>  7 files changed, 609 insertions(+), 651 deletions(-)
+>  create mode 100644 drivers/staging/android/sync_debug.c
 
-They'd previously announced publicly that the driver was available
-under NDA for a superset product (HVR-1975):
+With these changes, can we pull the android sync logic out of
+drivers/staging/ now?
 
-Slashgear picked up the PR.
+thanks,
 
-http://www.slashgear.com/hauppauge-wintv-hvr-1975-usb-tv-receiver-offers-multi-format-support-27318809/
-
-"There are both 32-bit and 64-bit drivers for wider computer support,
-and for Linux users, driver support is provided under an NDA."
-
-^^^ I suggest you ask them, they do have a solution.
-
->
-> The demodulator is a Si2177, can't find anything about it in the kernel though.
-
-Correct.
-
->
-> They also mentioned a LG3306a, wasn't able to find anything on it (might have misheard a character).
-
-LGDT3306
-
-- Steve
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
-+1.646.355.8490
+greg k-h
