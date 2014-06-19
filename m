@@ -1,44 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57669 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752643AbaFXO43 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 10:56:29 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
+Received: from vader.hardeman.nu ([95.142.160.32]:42324 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757743AbaFSJFm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jun 2014 05:05:42 -0400
+Date: Thu, 19 Jun 2014 11:05:40 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Niels Laukens <niels@dest-unreach.be>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 23/29] [media] coda: use prescan_failed variable to stop stream after a timeout
-Date: Tue, 24 Jun 2014 16:56:05 +0200
-Message-Id: <1403621771-11636-24-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
-References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+	linux-media@vger.kernel.org, James Hogan <james.hogan@imgtec.com>,
+	Antti =?iso-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>
+Subject: Re: [PATCH 1/2] drivers/media/rc/ir-nec-decode : add toggle feature
+Message-ID: <20140619090540.GC13952@hardeman.nu>
+References: <53A29E5A.9030304@dest-unreach.be>
+ <53A29E79.2000304@dest-unreach.be>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53A29E79.2000304@dest-unreach.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This variable should be renamed to hold instead (temporarily stopping streaming
-until new data is fed into the bitstream buffer).
+On Thu, Jun 19, 2014 at 10:25:29AM +0200, Niels Laukens wrote:
+>Made the distinction between repeated key presses, and a single long
+>press. The NEC-protocol does not have a toggle-bit (cfr RC5/RC6), but
+>has specific repeat-codes.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 2 ++
- 1 file changed, 2 insertions(+)
+Not all NEC remotes use repeat codes. Some just transmit the full code
+at fixed intervals...IIRC, Pioneer remotes is (was?) one example... 
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 4548c84..cded081 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1423,6 +1423,8 @@ static void coda_pic_run_work(struct work_struct *work)
- 
- 	if (!wait_for_completion_timeout(&ctx->completion, msecs_to_jiffies(1000))) {
- 		dev_err(&dev->plat_dev->dev, "CODA PIC_RUN timeout\n");
-+
-+		ctx->prescan_failed = true;
- 	} else if (!ctx->aborting) {
- 		if (ctx->inst_type == CODA_INST_DECODER)
- 			coda_finish_decode(ctx);
--- 
-2.0.0
-
+>This patch identifies a repeat code, and skips the scancode calculations
+>and the rc_keydown() in that case. In the case of a full code, it makes
+>sure that the rc_keydown() is regarded as a new event by using the
+>toggle feature.
