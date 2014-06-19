@@ -1,79 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp04.smtpout.orange.fr ([80.12.242.126]:20644 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751933AbaFOURj (ORCPT
+Received: from mail-we0-f179.google.com ([74.125.82.179]:35481 "EHLO
+	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754272AbaFSGhg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jun 2014 16:17:39 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: g.liakhovetski@gmx.de, devicetree@vger.kernel.org
-Cc: linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH 1/2] media: mt9m111: add device-tree suppport
-Date: Sun, 15 Jun 2014 22:17:31 +0200
-Message-Id: <1402863452-30365-1-git-send-email-robert.jarzmik@free.fr>
+	Thu, 19 Jun 2014 02:37:36 -0400
+Received: by mail-we0-f179.google.com with SMTP id w62so1825151wes.24
+        for <linux-media@vger.kernel.org>; Wed, 18 Jun 2014 23:37:35 -0700 (PDT)
+Date: Thu, 19 Jun 2014 08:37:27 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-arch@vger.kernel.org, thellstrom@vmware.com,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
+	thierry.reding@gmail.com, ccross@google.com, daniel@ffwll.ch,
+	sumit.semwal@linaro.org, linux-media@vger.kernel.org
+Subject: Re: [REPOST PATCH 4/8] android: convert sync to fence api, v5
+Message-ID: <20140619063727.GL5821@phenom.ffwll.local>
+References: <20140618102957.15728.43525.stgit@patser>
+ <20140618103711.15728.97842.stgit@patser>
+ <20140619011556.GE10921@kroah.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140619011556.GE10921@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device-tree support for mt9m111 camera sensor.
+On Wed, Jun 18, 2014 at 06:15:56PM -0700, Greg KH wrote:
+> On Wed, Jun 18, 2014 at 12:37:11PM +0200, Maarten Lankhorst wrote:
+> > Just to show it's easy.
+> > 
+> > Android syncpoints can be mapped to a timeline. This removes the need
+> > to maintain a separate api for synchronization. I've left the android
+> > trace events in place, but the core fence events should already be
+> > sufficient for debugging.
+> > 
+> > v2:
+> > - Call fence_remove_callback in sync_fence_free if not all fences have fired.
+> > v3:
+> > - Merge Colin Cross' bugfixes, and the android fence merge optimization.
+> > v4:
+> > - Merge with the upstream fixes.
+> > v5:
+> > - Fix small style issues pointed out by Thomas Hellstrom.
+> > 
+> > Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+> > Acked-by: John Stultz <john.stultz@linaro.org>
+> > ---
+> >  drivers/staging/android/Kconfig      |    1 
+> >  drivers/staging/android/Makefile     |    2 
+> >  drivers/staging/android/sw_sync.c    |    6 
+> >  drivers/staging/android/sync.c       |  913 +++++++++++-----------------------
+> >  drivers/staging/android/sync.h       |   79 ++-
+> >  drivers/staging/android/sync_debug.c |  247 +++++++++
+> >  drivers/staging/android/trace/sync.h |   12 
+> >  7 files changed, 609 insertions(+), 651 deletions(-)
+> >  create mode 100644 drivers/staging/android/sync_debug.c
+> 
+> With these changes, can we pull the android sync logic out of
+> drivers/staging/ now?
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/i2c/soc_camera/mt9m111.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+Afaik the google guys never really looked at this and acked it. So I'm not
+sure whether they'll follow along. The other issue I have as the
+maintainer of gfx driver is that I don't want to implement support for two
+different sync object primitives (once for dma-buf and once for android
+syncpts), and my impression thus far has been that even with this we're
+not there.
 
-diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
-index ccf5940..7d283ea 100644
---- a/drivers/media/i2c/soc_camera/mt9m111.c
-+++ b/drivers/media/i2c/soc_camera/mt9m111.c
-@@ -923,6 +923,12 @@ done:
- 	return ret;
- }
- 
-+static int of_get_mt9m111_platform_data(struct device *dev,
-+					struct soc_camera_subdev_desc *desc)
-+{
-+	return 0;
-+}
-+
- static int mt9m111_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *did)
- {
-@@ -931,6 +937,15 @@ static int mt9m111_probe(struct i2c_client *client,
- 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 	int ret;
- 
-+	if (client->dev.of_node) {
-+		ssdd = devm_kzalloc(&client->dev, sizeof(*ssdd), GFP_KERNEL);
-+		if (!ssdd)
-+			return -ENOMEM;
-+		client->dev.platform_data = ssdd;
-+		ret = of_get_mt9m111_platform_data(&client->dev, ssdd);
-+		if (ret < 0)
-+			return ret;
-+	}
- 	if (!ssdd) {
- 		dev_err(&client->dev, "mt9m111: driver needs platform data\n");
- 		return -EINVAL;
-@@ -1015,6 +1030,11 @@ static int mt9m111_remove(struct i2c_client *client)
- 
- 	return 0;
- }
-+static const struct of_device_id mt9m111_of_match[] = {
-+	{ .compatible = "micron,mt9m111", },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, mt9m111_of_match);
- 
- static const struct i2c_device_id mt9m111_id[] = {
- 	{ "mt9m111", 0 },
-@@ -1025,6 +1045,7 @@ MODULE_DEVICE_TABLE(i2c, mt9m111_id);
- static struct i2c_driver mt9m111_i2c_driver = {
- 	.driver = {
- 		.name = "mt9m111",
-+		.of_match_table = of_match_ptr(mt9m111_of_match),
- 	},
- 	.probe		= mt9m111_probe,
- 	.remove		= mt9m111_remove,
+I'm trying to get our own android guys to upstream their i915 syncpts
+support, but thus far I haven't managed to convince them to throw people's
+time at this.
+
+It looks like a step into the right direction, but until I have the proof
+in the form of i915 patches that I won't have to support 2 gfx fencing
+frameworks I'm opposed to de-staging android syncpts. Ofc someone else
+could do that too, but besides i915 I don't see a full-fledged (modeset
+side only kinda doesn't count) upstream gfx driver shipping on android.
+-Daniel
 -- 
-2.0.0.rc2
-
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
