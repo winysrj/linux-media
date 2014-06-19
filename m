@@ -1,468 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f169.google.com ([209.85.192.169]:59050 "EHLO
-	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753365AbaFGV5l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:41 -0400
-Received: by mail-pd0-f169.google.com with SMTP id w10so3814795pde.28
-        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:40 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 38/43] media: imx6: Add device tree binding documentation
-Date: Sat,  7 Jun 2014 14:56:40 -0700
-Message-Id: <1402178205-22697-39-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mout.kundenserver.de ([212.227.17.13]:63365 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755097AbaFSH2Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jun 2014 03:28:16 -0400
+Date: Thu, 19 Jun 2014 09:28:10 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Ben Dooks <ben.dooks@codethink.co.uk>
+cc: linux-kernel@lists.codethink.co.uk, linux-sh@vger.kernel.org,
+	linux-media@vger.kernel.org, robert.jarzmik@free.fr,
+	magnus.damm@opensource.se, horms@verge.net.au,
+	ian.molton@codethink.co.uk, william.towle@codethink.co.uk
+Subject: Re: [PATCH 7/9] soc_camera: add support for dt binding soc_camera
+ drivers
+In-Reply-To: <1402862194-17743-8-git-send-email-ben.dooks@codethink.co.uk>
+Message-ID: <Pine.LNX.4.64.1406190927110.22703@axis700.grange>
+References: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
+ <1402862194-17743-8-git-send-email-ben.dooks@codethink.co.uk>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree binding documentation for i.MX6 media devices.
+Hi Ben,
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- Documentation/devicetree/bindings/media/imx6.txt |  433 ++++++++++++++++++++++
- 1 file changed, 433 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/imx6.txt
+Thanks for an update.
 
-diff --git a/Documentation/devicetree/bindings/media/imx6.txt b/Documentation/devicetree/bindings/media/imx6.txt
-new file mode 100644
-index 0000000..0a4d170
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/imx6.txt
-@@ -0,0 +1,433 @@
-+Freescale i.MX6 Video Capture
-+
-+v4l2-capture node
-+-----------------
-+
-+This is the imx6 camera host interface node, and must be a child node
-+of ipu1 and/or ipu2. The host node does not require reg or interrupt
-+properties because it uses the facilities of its parent IPU. Only a
-+compatible property is required.
-+
-+Required properties:
-+- compatible	: "fsl,imx6-v4l2-capture";
-+
-+mipi_csi2 node
-+--------------
-+
-+This is the device node for the MIPI CSI-2 Receiver, required for MIPI
-+CSi-2 sensors.
-+
-+Required properties:
-+- compatible	: "fsl,imx6-mipi-csi2";
-+- reg           : physical base address and length of the register set;
-+- clocks	: the MIPI CSI-2 receiver requires two clocks: hsi_tx
-+                  (the DPHY clock, 138) and video_27m (208);
-+- clock-names	: must contain "dphy_clk" followed by "cfg_clk";
-+
-+Optional properties:
-+- interrupts	: must contain two level-triggered interrupts,
-+                  in order: 100 and 101;
-+
-+
-+Device tree nodes of the image sensors' controlled directly by the imx6
-+camera host interface driver must be child nodes of their corresponding
-+I2C bus controller node. The data link of these image sensors must be
-+specified using the common video interfaces bindings, defined in
-+video-interfaces.txt.
-+
-+The port nodes correspond to the IPU CSI to which sensor endpoints are
-+connected, so the reg property specifies the CSI number (0 or 1).
-+
-+The reg property for endpoint nodes are ignored except for MIPI CSI-2
-+endpoints, in which case the reg property specifies the virtual
-+channel number the remote sensor is transmitting data over.
-+
-+Video capture is supported with the following imx6-based reference
-+platforms:
-+
-+
-+SabreLite with OV5642
-+---------------------
-+
-+The OV5642 module is connected to CSI0 on IPU1 (the first IPU on imx6
-+quad SabreLite). It's i2c bus connects to i2c bus 2, so the ov5642
-+sensor node must be a child of i2c2.
-+
-+OV5642 Required properties:
-+- compatible	: "ovti,ov5642";
-+- clocks        : the OV5642 system clock (cko2, 200);
-+- clock-names	: must be "xclk";
-+- reg           : must be 0x3c;
-+- xclk          : the system clock frequency, must be 24000000;
-+- reset-gpios   : must be <&gpio1 8 0>;
-+- pwdn-gpios    : must be <&gpio1 6 0>;
-+
-+OV5642 Endpoint Required properties:
-+- remote-endpoint : must connect to camera interface endpoint on CSI0;
-+- bus-width       : must be 12;
-+- hsync-active    : must be 1;
-+- vsync-active    : must be 1;
-+
-+The following is an example devicetree configuration for SabreLite:
-+
-+&i2c2 {
-+	status = "okay";
-+	clock-frequency = <100000>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_i2c2>;
-+
-+	camera: ov5642@3c {
-+		compatible = "ovti,ov5642";
-+		clocks = <&clks 200>;
-+		clock-names = "xclk";
-+		reg = <0x3c>;
-+		xclk = <24000000>;
-+		reset-gpios = <&gpio1 8 0>;
-+		pwdn-gpios = <&gpio1 6 0>;
-+		gp-gpios = <&gpio1 16 0>;
-+
-+		port {
-+			ov5642_1: endpoint {
-+				remote-endpoint = <&csi0>;
-+				bus-width = <12>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+			};
-+		};
-+	};
-+};
-+
-+&ipu1 {
-+	status = "okay";
-+
-+	v4l2-capture {
-+		compatible = "fsl,imx6-v4l2-capture";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		status = "okay";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <
-+			&pinctrl_ipu1_csi0_1
-+			&pinctrl_ipu1_csi0_data_en
-+		>;
-+
-+		/* CSI0 */
-+		port@0 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <0>;
-+
-+			/* Parallel bus */
-+			csi0: endpoint@0 {
-+				reg = <0>;
-+				remote-endpoint = <&ov5642_1>;
-+				bus-width = <12>;
-+				data-shift = <8>; /* Lines 19:8 used */
-+				hsync-active = <1>;
-+				vync-active = <1>;
-+			};
-+		};
-+	};
-+};
-+
-+
-+
-+SabreAuto with ADV7180
-+----------------------
-+
-+On the SabreAuto, an on-board ADV7180 SD decoder is connected via a
-+parallel bus on IPU1 CSI0.
-+
-+Two analog video inputs are routed to the ADV7180 on the SabreAuto,
-+composite on Ain1, and composite on Ain3. Those inputs are defined
-+via inputs and input-names properties under the host endpoint node
-+on CSI0.
-+
-+Regulators and port expanders are required for the ADV7180 (power pin
-+is via port expander gpio on i2c3). The reset pin to the port expander
-+chip (MAX7310) is controlled by a gpio, so a reset-gpios property must
-+be defined under the port expander node to control it.
-+
-+The sabreauto uses a steering pin to select between the SDA signal on
-+i2c3 bus, and a data-in pin for an SPI NOR chip. i2cmux can be used to
-+control this steering pin. Idle state of the i2cmux selects SPI NOR.
-+This is not classic way to use i2cmux, since one side of the mux selects
-+something other than an i2c bus, but it works and is probably the cleanest
-+solution. Note that if one thread is attempting to access SPI NOR while
-+another thread is accessing i2c3, the SPI NOR access will fail since the
-+i2cmux has selected the SDA pin rather than SPI NOR data-in. This couldn't
-+be avoided in any case, the board is not designed to allow concurrent
-+i2c3 and SPI NOR functions (and the default device-tree does not enable
-+SPI NOR anyway).
-+
-+Host Interface Endpoint Required Properties:
-+- inputs        : list of input mux values, must be 0x00 followed by
-+                  0x02 on SabreAuto;
-+- input-names   : names of the inputs;
-+
-+ADV7180 Required properties:
-+- compatible    : "adi,adv7180";
-+- reg           : must be 0x21;
-+
-+ADV7180 Optional properties:
-+- DOVDD-supply  : DOVDD regulator supply;
-+- AVDD-supply   : AVDD regulator supply;
-+- DVDD-supply   : DVDD regulator supply;
-+- PVDD-supply   : PVDD regulator supply;
-+- pwdn-gpio     : gpio to control ADV7180 power pin, must be
-+                  <&port_exp_b 2 0> on SabreAuto;
-+- interrupts    : interrupt from ADV7180, must be <27 0x8> on SabreAuto;
-+- interrupt-parent : must be <&gpio1> on SabreAuto;
-+
-+ADV7180 Endpoint Required properties:
-+- remote-endpoint : must connect to camera interface endpoint on CSI0;
-+- bus-width       : must be 16;
-+
-+
-+The following is an example devicetree configuration for SabreAuto:
-+
-+/ {
-+	i2cmux {
-+		compatible = "i2c-mux-gpio";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_i2c3mux>;
-+		mux-gpios = <&gpio5 4 0>;
-+		i2c-parent = <&i2c3>;
-+		idle-state = <0>;
-+
-+		i2c@1 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <1>;
-+
-+			camera: adv7180@21 {
-+				compatible = "adi,adv7180";
-+				reg = <0x21>;
-+				DOVDD-supply = <&reg_3p3v>;
-+				AVDD-supply = <&reg_3p3v>;
-+				DVDD-supply = <&reg_3p3v>;
-+				PVDD-supply = <&reg_3p3v>;
-+				pwdn-gpio = <&port_exp_b 2 0>;
-+				interrupt-parent = <&gpio1>;
-+				interrupts = <27 0x8>;
-+
-+				port {
-+					adv7180_1: endpoint {
-+						remote-endpoint = <&csi0>;
-+						bus-width = <16>;
-+					};
-+				};
-+			};
-+
-+			port_exp_b: gpio_pca953x@32 {
-+				compatible = "maxim,max7310";
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+				reg = <0x32>;
-+				reset-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
-+			};
-+
-+		};
-+	};
-+};
-+
-+&ipu1 {
-+	status = "okay";
-+
-+	v4l2-capture {
-+		compatible = "fsl,imx6-v4l2-capture";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		status = "okay";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <
-+			&pinctrl_ipu1_csi0_d4_d7
-+			&pinctrl_ipu1_csi0_1
-+		>;
-+
-+		/* CSI0 */
-+		port@0 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <0>;
-+
-+			/* Parallel bus */
-+			csi0: endpoint@0 {
-+				reg = <0>;
-+				remote-endpoint = <&adv7180_1>;
-+				bus-width = <16>;
-+				data-shift = <4>; /* Lines 19:4 used */
-+
-+				inputs = <0x00 0x02>;
-+				input-names = "ADV7180 Composite on Ain1",
-+						"ADV7180 Composite on Ain3";
-+			};
-+		};
-+	};
-+};
-+
-+
-+
-+SabreSD with OV5642 and MIPI CSI-2 OV5640
-+-----------------------------------------
-+
-+On the SabreSD, two camera sensors are supported: a parallel interface
-+OV5642 on IPU1 CSI0, and a MIPI CSi-2 OV5640 on IPU1 CSI1. The OV5642
-+connects to i2c bus 1 (i2c1) and the OV5640 to i2c bus 2 (i2c2).
-+
-+The mipi_csi2 receiver node must be enabled and connected via
-+remote-endpoint to the OV5640 MIPI CSI-2 endpoint.
-+
-+OV5642 properties are as described above on SabreLite.
-+
-+OV5640 Required properties:
-+- compatible	: "ovti,ov5640_mipi";
-+- clocks        : the OV5640 system clock (cko, 201);
-+- clock-names	: must be "xclk";
-+- reg           : must be 0x3c;
-+- xclk          : the system clock frequency, must be 24000000;
-+- reset-gpios   : must be <&gpio1 20 1>;
-+- pwdn-gpios    : must be <&gpio1 19 0>;
-+
-+OV5640 Optional properties:
-+- DOVDD-supply  : DOVDD regulator supply;
-+- AVDD-supply   : AVDD regulator supply;
-+- DVDD-supply   : DVDD regulator supply;
-+
-+OV5640 MIPI CSI-2 Endpoint Required properties:
-+- remote-endpoint : must connect to camera interface virtual channel 0
-+                    endpoint on CSI1;
-+- reg             : must be 1;
-+- data-lanes      : must be <0 1>;
-+- clock-lanes     : must be <2>;
-+
-+
-+The following is an example devicetree configuration for SabreSD:
-+
-+&i2c1 {
-+	clock-frequency = <100000>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_i2c1>;
-+	status = "okay";
-+
-+	camera: ov5642@3c {
-+		compatible = "ovti,ov5642";
-+		clocks = <&clks 201>;
-+		clock-names = "xclk";
-+		reg = <0x3c>;
-+		xclk = <24000000>;
-+		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
-+		AVDD-supply = <&vgen5_reg>;  /* 2.8v, rev C board is VGEN3
-+						rev B board is VGEN5 */
-+		DVDD-supply = <&vgen2_reg>;  /* 1.5v*/
-+		pwdn-gpios = <&gpio1 16 GPIO_ACTIVE_LOW>;   /* SD1_DAT0 */
-+		reset-gpios = <&gpio1 17 GPIO_ACTIVE_HIGH>; /* SD1_DAT1 */
-+
-+		port {
-+			ov5642_1: endpoint {
-+				remote-endpoint = <&csi0>;
-+				bus-width = <12>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+			};
-+		};
-+	};
-+};
-+
-+&i2c2 {
-+	clock-frequency = <100000>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_i2c2>;
-+	status = "okay";
-+
-+	mipi_camera: ov5640@3c {
-+		compatible = "ovti,ov5640_mipi";
-+		reg = <0x3c>;
-+		clocks = <&clks 201>;
-+		clock-names = "xclk";
-+		xclk = <24000000>;
-+		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
-+		AVDD-supply = <&vgen5_reg>;  /* 2.8v, rev C board is VGEN3
-+						rev B board is VGEN5 */
-+		DVDD-supply = <&vgen2_reg>;  /* 1.5v*/
-+		pwdn-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>; /* SD1_DAT2 */
-+		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>; /* SD1_CLK */
-+
-+		port {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			ov5640_1: endpoint@1 {
-+				reg = <1>;
-+				remote-endpoint = <&csi1_vc0>;
-+				data-lanes = <0 1>;
-+				clock-lanes = <2>;
-+			};
-+		};
-+	};
-+};
-+
-+&mipi_csi2 {
-+	status = "okay";
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+
-+	port {
-+		mipi_csi2_0: endpoint {
-+			remote-endpoint = <&ov5640_1>;
-+			data-lanes = <0 1>;
-+			clock-lanes = <2>;
-+		};
-+	};
-+};
-+
-+&ipu1 { /* IPU1 */
-+	status = "okay";
-+
-+	v4l2-capture {
-+		compatible = "fsl,imx6-v4l2-capture";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		status = "okay";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <
-+			&pinctrl_ipu1_csi0_2
-+		>;
-+
-+		/* CSI0 */
-+		port@0 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <0>;
-+
-+			/* Parallel bus */
-+			csi0: endpoint@0 {
-+				reg = <0>;
-+				remote-endpoint = <&ov5642_1>;
-+				bus-width = <8>;
-+				data-shift = <12>; /* Lines 19:12 used */
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+			};
-+		};
-+
-+		/* CSI1 */
-+		port@1 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <1>;
-+
-+			/* MIPI CSI-2 virtual channel 0 */
-+			csi1_vc0: endpoint@0 {
-+				reg = <0>;
-+				remote-endpoint = <&ov5640_1>;
-+				data-lanes = <0 1>;
-+				clock-lanes = <2>;
-+			};
-+		};
-+	};
-+};
-+
-+
--- 
-1.7.9.5
+On Sun, 15 Jun 2014, Ben Dooks wrote:
 
+> Add initial support for OF based soc-camera devices that may be used
+> by any of the soc-camera drivers. The driver itself will need converting
+> to use OF.
+> 
+> These changes allow the soc-camera driver to do the connecting of any
+> async capable v4l2 device to the soc-camera driver. This has currently
+> been tested on the Renesas Lager board.
+> 
+> It currently only supports one input device per driver as this seems
+> to be the standard connection for these devices.
+
+You ignored most of my comments to the previous version of this your 
+patch. Please, revisit.
+
+Thanks
+Guennadi
+
+> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+> ---
+> 
+> Fixes since v1:
+> 	- Fix i2c mclk name compatible with other drivers
+> 	- Ensure of_node is put after use
+> ---
+>  drivers/media/platform/soc_camera/soc_camera.c | 120 ++++++++++++++++++++++++-
+>  1 file changed, 119 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> index 7fec8cd..eda67d7 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -36,6 +36,7 @@
+>  #include <media/v4l2-common.h>
+>  #include <media/v4l2-ioctl.h>
+>  #include <media/v4l2-dev.h>
+> +#include <media/v4l2-of.h>
+>  #include <media/videobuf-core.h>
+>  #include <media/videobuf2-core.h>
+>  
+> @@ -1581,6 +1582,121 @@ static void scan_async_host(struct soc_camera_host *ici)
+>  #define scan_async_host(ici)		do {} while (0)
+>  #endif
+>  
+> +#ifdef CONFIG_OF
+> +static int soc_of_bind(struct soc_camera_host *ici,
+> +		       struct device_node *ep,
+> +		       struct device_node *remote)
+> +{
+> +	struct soc_camera_device *icd;
+> +	struct soc_camera_desc sdesc = {.host_desc.bus_id = ici->nr,};
+> +	struct soc_camera_async_client *sasc;
+> +	struct soc_camera_async_subdev *sasd;
+> +	struct v4l2_async_subdev **asd_array;
+> +	struct i2c_client *client;
+> +	char clk_name[V4L2_SUBDEV_NAME_SIZE];
+> +	int ret;
+> +
+> +	/* allocate a new subdev and add match info to it */
+> +	sasd = devm_kzalloc(ici->v4l2_dev.dev, sizeof(*sasd), GFP_KERNEL);
+> +	if (!sasd)
+> +		return -ENOMEM;
+> +
+> +	asd_array = devm_kzalloc(ici->v4l2_dev.dev,
+> +				 sizeof(struct v4l2_async_subdev **),
+> +				 GFP_KERNEL);
+> +	if (!asd_array)
+> +		return -ENOMEM;
+> +
+> +	sasd->asd.match.of.node = remote;
+> +	sasd->asd.match_type = V4L2_ASYNC_MATCH_OF;
+> +	asd_array[0] = &sasd->asd;
+> +
+> +	/* Or shall this be managed by the soc-camera device? */
+> +	sasc = devm_kzalloc(ici->v4l2_dev.dev, sizeof(*sasc), GFP_KERNEL);
+> +	if (!sasc)
+> +		return -ENOMEM;
+> +
+> +	/* HACK: just need a != NULL */
+> +	sdesc.host_desc.board_info = ERR_PTR(-ENODATA);
+> +
+> +	ret = soc_camera_dyn_pdev(&sdesc, sasc);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	sasc->sensor = &sasd->asd;
+> +
+> +	icd = soc_camera_add_pdev(sasc);
+> +	if (!icd) {
+> +		platform_device_put(sasc->pdev);
+> +		return -ENOMEM;
+> +	}
+> +
+> +	sasc->notifier.subdevs = asd_array;
+> +	sasc->notifier.num_subdevs = 1;
+> +	sasc->notifier.bound = soc_camera_async_bound;
+> +	sasc->notifier.unbind = soc_camera_async_unbind;
+> +	sasc->notifier.complete = soc_camera_async_complete;
+> +
+> +	icd->sasc = sasc;
+> +	icd->parent = ici->v4l2_dev.dev;
+> +
+> +	client = of_find_i2c_device_by_node(remote);
+> +
+> +	if (client)
+> +		snprintf(clk_name, sizeof(clk_name), "%d-%04x",
+> +			 client->adapter->nr, client->addr);
+> +	else
+> +		snprintf(clk_name, sizeof(clk_name), "of-%s",
+> +			 of_node_full_name(remote));
+> +
+> +	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
+> +	if (IS_ERR(icd->clk)) {
+> +		ret = PTR_ERR(icd->clk);
+> +		goto eclkreg;
+> +	}
+> +
+> +	ret = v4l2_async_notifier_register(&ici->v4l2_dev, &sasc->notifier);
+> +	if (!ret)
+> +		return 0;
+> +
+> +eclkreg:
+> +	icd->clk = NULL;
+> +	platform_device_unregister(sasc->pdev);
+> +	dev_err(ici->v4l2_dev.dev, "group probe failed: %d\n", ret);
+> +
+> +	return ret;
+> +}
+> +
+> +static inline void scan_of_host(struct soc_camera_host *ici)
+> +{
+> +	struct device_node *np = ici->v4l2_dev.dev->of_node;
+> +	struct device_node *epn = NULL;
+> +	struct device_node *ren;
+> +
+> +	while (true) {
+> +		epn = of_graph_get_next_endpoint(np, epn);
+> +		if (!epn)
+> +			break;
+> +
+> +		ren = of_graph_get_remote_port(epn);
+> +		if (!ren) {
+> +			pr_info("%s: no remote for %s\n",
+> +				__func__,  of_node_full_name(epn));
+> +			continue;
+> +		}
+> +
+> +		/* so we now have a remote node to connect */
+> +		soc_of_bind(ici, epn, ren->parent);
+> +
+> +		of_node_put(epn);
+> +		of_node_put(ren);
+> +	}
+> +}
+> +
+> +#else
+> +static inline void scan_of_host(struct soc_camera_host *ici) { }
+> +#endif
+> +
+>  /* Called during host-driver probe */
+>  static int soc_camera_probe(struct soc_camera_host *ici,
+>  			    struct soc_camera_device *icd)
+> @@ -1832,7 +1948,9 @@ int soc_camera_host_register(struct soc_camera_host *ici)
+>  	mutex_init(&ici->host_lock);
+>  	mutex_init(&ici->clk_lock);
+>  
+> -	if (ici->asd_sizes)
+> +	if (ici->v4l2_dev.dev->of_node)
+> +		scan_of_host(ici);
+> +	else if (ici->asd_sizes)
+>  		/*
+>  		 * No OF, host with a list of subdevices. Don't try to mix
+>  		 * modes by initialising some groups statically and some
+> -- 
+> 2.0.0
+> 
