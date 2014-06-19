@@ -1,49 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:55635 "EHLO mout.gmx.net"
+Received: from serv03.imset.org ([176.31.106.97]:43475 "EHLO serv03.imset.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751520AbaFLGWZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 02:22:25 -0400
-Received: from wolfgang ([88.7.218.248]) by mail.gmx.com (mrgmx003) with
- ESMTPSA (Nemesis) id 0MOOdZ-1WrPUg21TR-005mGb for
- <linux-media@vger.kernel.org>; Thu, 12 Jun 2014 08:22:23 +0200
-Date: Thu, 12 Jun 2014 08:22:45 +0200
-From: Sebastian Kemper <sebastian_ml@gmx.net>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] rtl28xxu: add [1b80:d3b0] Sveon STV21
-Message-ID: <20140612062245.GA1668@wolfgang>
+	id S1757720AbaFSIZB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jun 2014 04:25:01 -0400
+Message-ID: <53A29E5A.9030304@dest-unreach.be>
+Date: Thu, 19 Jun 2014 10:24:58 +0200
+From: Niels Laukens <niels@dest-unreach.be>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+CC: James Hogan <james.hogan@imgtec.com>,
+	=?ISO-8859-1?Q?David_H=E4rdem?= =?ISO-8859-1?Q?an?=
+	<david@hardeman.nu>,
+	=?ISO-8859-1?Q?Antti_Sepp=E4l?= =?ISO-8859-1?Q?=E4?=
+	<a.seppala@gmail.com>
+Subject: [PATCH 0/2] drivers/media/rc/ir-nec-decode : add toggle feature
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Added Sveon STV21 device based on Realtek RTL2832U and FC0013 tuner
+Hi,
 
-Signed-off-by: Sebastian Kemper <sebastian_ml@gmx.net>
----
+The IR NEC protocol decoder does not handle repeated key presses very
+well. It is regarded the same as a long key press, an thus triggers the
+auto-repeat functionality, which is not what I expected.
 
-diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
-index 11d2bea..b518ada 100644
---- a/drivers/media/dvb-core/dvb-usb-ids.h
-+++ b/drivers/media/dvb-core/dvb-usb-ids.h
-@@ -363,6 +363,7 @@
- #define USB_PID_TVWAY_PLUS				0x0002
- #define USB_PID_SVEON_STV20				0xe39d
- #define USB_PID_SVEON_STV20_RTL2832U			0xd39d
-+#define USB_PID_SVEON_STV21				0xd3b0
- #define USB_PID_SVEON_STV22				0xe401
- #define USB_PID_SVEON_STV22_IT9137			0xe411
- #define USB_PID_AZUREWAVE_AZ6027			0x3275
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index a676e44..5f8ff0f 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1541,6 +1541,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
- 		&rtl2832u_props, "Peak DVB-T USB", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV20_RTL2832U,
- 		&rtl2832u_props, "Sveon STV20", NULL) },
-+	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV21,
-+		&rtl2832u_props, "Sveon STV21", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV27,
- 		&rtl2832u_props, "Sveon STV27", NULL) },
- 
+The first patch solves the issue; the second patch fixes indentation
+inside the (new) if-block. I kept these 2 separate to make it more clear
+what the functional changes are, and which lines were only indented/reflown.
+
+Niels
