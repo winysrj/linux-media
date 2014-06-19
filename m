@@ -1,59 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:36717 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967160AbaFTMFY (ORCPT
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:42875 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757463AbaFSTNW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jun 2014 08:05:24 -0400
-Message-ID: <1403259897.2144.4.camel@palomino.walls.org>
-Subject: Re: bttv and colorspace
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Fri, 20 Jun 2014 06:24:57 -0400
-In-Reply-To: <53A3DDC7.50909@xs4all.nl>
-References: <53A3DDC7.50909@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 19 Jun 2014 15:13:22 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] media: mt9m111: add device-tree documentation
+References: <1402863452-30365-1-git-send-email-robert.jarzmik@free.fr>
+	<1402863452-30365-2-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.1406190937290.22703@axis700.grange>
+Date: Thu, 19 Jun 2014 21:13:20 +0200
+In-Reply-To: <Pine.LNX.4.64.1406190937290.22703@axis700.grange> (Guennadi
+	Liakhovetski's message of "Thu, 19 Jun 2014 09:38:14 +0200 (CEST)")
+Message-ID: <87bntosofj.fsf@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2014-06-20 at 09:07 +0200, Hans Verkuil wrote:
-> Hi Mauro,
-> 
-> I wonder if you remember anything about the reported broken colorspace handling
-> of bttv. The spec talks about V4L2_COLORSPACE_BT878 where the Y range is 16-253
-> instead of the usual 16-235.
-> 
-> I downloaded a bt878 datasheet and that mentions the normal 16-235 range.
-> 
-> I wonder if this was perhaps a bug in older revisions of the bt878. Do you
-> remember anything about this?
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-I have a Rockwell datasheet for the BrookTree 878/879 that has the Y
-16-253 (16 is the pedestal level) and Cr/Cb 2-253 on page 118.
+> Hi Robert,
+>
+> On Sun, 15 Jun 2014, Robert Jarzmik wrote:
+>
+>> Add documentation for the Micron mt9m111 image sensor.
+>
+> A nitpick: this isn't documentation for the sensor:) This is driver DT 
+> bindings' documentation.
+OK, for V2 (as its twin in pxa_camera).
 
-I will email to you off list.
+Cheers.
 
-Regards,
-Andy 
-
-
->  I plan on doing some tests with my bttv cards
-> next week.
-> 
-> The main reason I'm interested in this is that I am researching the colorspace
-> handling in v4l2 (and how it is defined in the spec). That needs to be nailed
-> down because today nobody really knows how it is supposed to work and it is a
-> complicated topic.
-> 
-> Regards,
-> 
-> 	Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+--
+Robert
