@@ -1,59 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50174 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932238AbaFCMcb (ORCPT
+Received: from mail-oa0-f48.google.com ([209.85.219.48]:56086 "EHLO
+	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933363AbaFSQef (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Jun 2014 08:32:31 -0400
-Date: Tue, 3 Jun 2014 15:32:24 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/3] media-ctl: libv4l2subdev: Add DV timings support
-Message-ID: <20140603123224.GI2073@valkosipuli.retiisi.org.uk>
-References: <1401721804-30133-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1401721804-30133-2-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 19 Jun 2014 12:34:35 -0400
+Received: by mail-oa0-f48.google.com with SMTP id m1so5609252oag.7
+        for <linux-media@vger.kernel.org>; Thu, 19 Jun 2014 09:34:34 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1401721804-30133-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1403189380-25134-1-git-send-email-xypron.glpk@gmx.de>
+References: <CAGXu5jLJGpPhycff9OSMGu6wduLGQWhsu2mkGeM7R0O9CQZ7pg@mail.gmail.com>
+	<1403189380-25134-1-git-send-email-xypron.glpk@gmx.de>
+Date: Thu, 19 Jun 2014 09:34:34 -0700
+Message-ID: <CAGXu5jJCqJpAX0gbyK+GOW2fntr7LTEGHxhEk-dEQrhi9oSX4w@mail.gmail.com>
+Subject: Re: [PATCH 1/1 v2] media: dib9000: avoid out of bound access
+From: Kees Cook <keescook@chromium.org>
+To: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On Mon, Jun 02, 2014 at 05:10:02PM +0200, Laurent Pinchart wrote:
-> Expose the pad-level get caps, query, get and set DV timings ioctls.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+On Thu, Jun 19, 2014 at 7:49 AM, Heinrich Schuchardt <xypron.glpk@gmx.de> wrote:
+> This updated patch also fixes out of bound access to b[].
+>
+> In dib9000_risc_apb_access_write() an out of bound access to mb[].
+>
+> The current test to avoid out of bound access to mb[] is insufficient.
+> For len = 19 non-existent mb[10] will be accessed.
+>
+> For odd values of len b[] is accessed out of bounds.
+>
+> For large values of len an of bound access to mb[] may occur in
+> dib9000_mbx_send_attr.
+>
+> Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 > ---
->  utils/media-ctl/libv4l2subdev.c | 72 +++++++++++++++++++++++++++++++++++++++++
->  utils/media-ctl/v4l2subdev.h    | 53 ++++++++++++++++++++++++++++++
->  2 files changed, 125 insertions(+)
-> 
-> diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-> index 14daffa..8015330 100644
-> --- a/utils/media-ctl/libv4l2subdev.c
-> +++ b/utils/media-ctl/libv4l2subdev.c
-> @@ -189,6 +189,78 @@ int v4l2_subdev_set_selection(struct media_entity *entity,
->  	return 0;
->  }
->  
-> +int v4l2_subdev_get_dv_timings_caps(struct media_entity *entity,
-> +	struct v4l2_dv_timings_cap *caps)
-> +{
-> +	unsigned int pad = caps->pad;
-> +	int ret;
+>  drivers/media/dvb-frontends/dib9000.c | 13 +++++++++----
+>  1 file changed, 9 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/dib9000.c b/drivers/media/dvb-frontends/dib9000.c
+> index e540cfb..f75dec4 100644
+> --- a/drivers/media/dvb-frontends/dib9000.c
+> +++ b/drivers/media/dvb-frontends/dib9000.c
+> @@ -1040,13 +1040,18 @@ static int dib9000_risc_apb_access_write(struct dib9000_state *state, u32 addres
+>         if (address >= 1024 || !state->platform.risc.fw_is_running)
+>                 return -EINVAL;
+>
+> +       if (len > 18)
+> +               return -EINVAL;
 > +
-> +	ret = v4l2_subdev_open(entity);
-> +	if (ret < 0)
-> +		return ret;
+>         /* dprintk( "APB access thru wr fw %d %x", address, attribute); */
+>
+> -       mb[0] = (unsigned short)address;
+> -       for (i = 0; i < len && i < 20; i += 2)
+> -               mb[1 + (i / 2)] = (b[i] << 8 | b[i + 1]);
+> +       mb[0] = (u16)address;
+> +       for (i = 0; i + 1 < len; i += 2)
+> +               mb[1 + i / 2] = b[i] << 8 | b[i + 1];
+> +       if (len & 1)
+> +               mb[1 + len / 2] = b[len - 1] << 8;
+>
+> -       dib9000_mbx_send_attr(state, OUT_MSG_BRIDGE_APB_W, mb, 1 + len / 2, attribute);
+> +       dib9000_mbx_send_attr(state, OUT_MSG_BRIDGE_APB_W, mb, (3 + len) / 2, attribute);
+>         return dib9000_mbx_get_message_attr(state, IN_MSG_END_BRIDGE_APB_RW, mb, &s, attribute) == 1 ? 0 : -EINVAL;
+>  }
+>
+> --
+> 2.0.0
+>
 
-In every function v4l2_subdev_open() is called before the ioctl command. How
-about implementing a wrapper which does both, and using that before this
-patch?
+That looks great, thanks!
+
+Reviewed-by: Kees Cook <keescook@chromium.org>
+
+-Kees
+
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Kees Cook
+Chrome OS Security
