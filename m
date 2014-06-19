@@ -1,48 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34496 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750840AbaFEMYU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jun 2014 08:24:20 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: William Manley <will@williammanley.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v3.16] uvcvideo fixes
-Date: Thu, 05 Jun 2014 14:24:49 +0200
-Message-ID: <56081460.3sCp4kVUKC@avalon>
-In-Reply-To: <53903486.9030804@williammanley.net>
-References: <7909686.JGN3j7sPAP@avalon> <4899575.bHzvdRJlV4@avalon> <53903486.9030804@williammanley.net>
+Received: from mail-ig0-f172.google.com ([209.85.213.172]:37793 "EHLO
+	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757681AbaFSTUv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jun 2014 15:20:51 -0400
+Received: by mail-ig0-f172.google.com with SMTP id hn18so3775343igb.5
+        for <linux-media@vger.kernel.org>; Thu, 19 Jun 2014 12:20:50 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20140619181918.GA24155@kroah.com>
+References: <20140618102957.15728.43525.stgit@patser>
+	<20140618103653.15728.4942.stgit@patser>
+	<20140619011327.GC10921@kroah.com>
+	<CAF6AEGv4Ms+zsrEtpA10bGq04LnRjzVb925co49eVxh4ugkd=A@mail.gmail.com>
+	<20140619170059.GA1224@kroah.com>
+	<CAF6AEGuXKw1w=outX+QgFE2XZxV8c6pyhORL+mRp4uZR8Jnq7g@mail.gmail.com>
+	<20140619181918.GA24155@kroah.com>
+Date: Thu, 19 Jun 2014 21:20:50 +0200
+Message-ID: <CAKMK7uF-TpQpZYgZkt3pt55TNcoB-8dU3NCHYKmswTsC=Ka4rw@mail.gmail.com>
+Subject: Re: [REPOST PATCH 1/8] fence: dma-buf cross-device synchronization (v17)
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Greg KH <gregkh@linuxfoundation.org>,
+	Dave Airlie <airlied@gmail.com>
+Cc: Rob Clark <robdclark@gmail.com>,
+	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	"open list:GENERIC INCLUDE/A..." <linux-arch@vger.kernel.org>,
+	Thomas Hellstrom <thellstrom@vmware.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Colin Cross <ccross@google.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi William,
+On Thu, Jun 19, 2014 at 8:19 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
+>> >> > EXPORT_SYMBOL_GPL()?  Same goes for all of the exports in here.
+>> >> > Traditionally all of the driver core exports have been with this
+>> >> > marking, any objection to making that change here as well?
+>> >>
+>> >> tbh, I prefer EXPORT_SYMBOL()..  well, I'd prefer even more if there
+>> >> wasn't even a need for EXPORT_SYMBOL_GPL(), but sadly it is a fact of
+>> >> life.  We already went through this debate once with dma-buf.  We
+>> >> aren't going to change $evil_vendor's mind about non-gpl modules.  The
+>> >> only result will be a more flugly convoluted solution (ie. use syncpt
+>> >> EXPORT_SYMBOL() on top of fence EXPORT_SYMBOL_GPL()) just as a
+>> >> workaround, with the result that no-one benefits.
+>> >
+>> > It has been proven that using _GPL() exports have caused companies to
+>> > release their code "properly" over the years, so as these really are
+>> > Linux-only apis, please change them to be marked this way, it helps
+>> > everyone out in the end.
+>>
+>> Well, maybe that is the true in some cases.  But it certainly didn't
+>> work out that way for dma-buf.  And I think the end result is worse.
+>>
+>> I don't really like coming down on the side of EXPORT_SYMBOL() instead
+>> of EXPORT_SYMBOL_GPL(), but if we do use EXPORT_SYMBOL_GPL() then the
+>> result will only be creative workarounds using the _GPL symbols
+>> indirectly by whatever is available via EXPORT_SYMBOL().  I don't
+>> really see how that will be better.
+>
+> You are saying that you _know_ companies will violate our license, so
+> you should just "give up"?  And how do you know people aren't working on
+> preventing those "indirect" usages as well?  :)
+>
+> Sorry, I'm not going to give up here, again, it has proven to work in
+> the past in changing the ways of _very_ large companies, why stop now?
 
-On Thursday 05 June 2014 10:12:38 William Manley wrote:
-> On 12/05/14 23:43, Laurent Pinchart wrote:
-> > On Friday 09 May 2014 14:33:57 William Manley wrote:
-> >> Hi Laurent
-> >> 
-> >> Any chance of my patch fixing manual exposure mode for the Logitech
-> >> C920[1] going in for 3.16?
-> > 
-> > I know I've been largely unresponsive regarding this patch, and I'm really
-> > ashamed for that.
-> > 
-> > I would have liked to get feedback from Logitech on the issue, but they've
-> > been mostly silent so far. I'll thus apply your patch even though I'm
-> > still bothered by the issue, we can always revisit it later if needed.
-> 
-> Now the 3.16 merge window is open can you confirm whether this is going
-> in.  I've not seen it appear in linus' tree yet, but I'm not sure what
-> the process is.
-
-The patch had slipped through the cracks, I've just asked Mauro to push it to 
-v3.16.  I'm sorry for the delay, it's my fault :-/
-
+Dave should chime in here since currently dma-buf is _GPL and the
+drm_prime.c wrapper for it is not (and he merged that one, contributed
+from said $vendor). And since we're gfx people everything we do is MIT
+licensed (that's where X is from after all), so _GPL for for drm stuff
+really doesn't make a lot of sense for us. ianal and all that applies.
+-Daniel
 -- 
-Regards,
-
-Laurent Pinchart
-
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
