@@ -1,174 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f43.google.com ([209.85.160.43]:47729 "EHLO
-	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753146AbaFGV5A (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:00 -0400
-Received: by mail-pb0-f43.google.com with SMTP id up15so3901203pbc.2
-        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:56:59 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 00/43] i.MX6 Video capture
-Date: Sat,  7 Jun 2014 14:56:02 -0700
-Message-Id: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49853 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932232AbaFSQ47 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jun 2014 12:56:59 -0400
+Date: Thu, 19 Jun 2014 10:00:59 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Rob Clark <robdclark@gmail.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-arch@vger.kernel.org,
+	Thomas Hellstrom <thellstrom@vmware.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Colin Cross <ccross@google.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [REPOST PATCH 1/8] fence: dma-buf cross-device synchronization
+ (v17)
+Message-ID: <20140619170059.GA1224@kroah.com>
+References: <20140618102957.15728.43525.stgit@patser>
+ <20140618103653.15728.4942.stgit@patser>
+ <20140619011327.GC10921@kroah.com>
+ <CAF6AEGv4Ms+zsrEtpA10bGq04LnRjzVb925co49eVxh4ugkd=A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAF6AEGv4Ms+zsrEtpA10bGq04LnRjzVb925co49eVxh4ugkd=A@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Thu, Jun 19, 2014 at 10:00:18AM -0400, Rob Clark wrote:
+> On Wed, Jun 18, 2014 at 9:13 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
+> > On Wed, Jun 18, 2014 at 12:36:54PM +0200, Maarten Lankhorst wrote:
+> >> +#define CREATE_TRACE_POINTS
+> >> +#include <trace/events/fence.h>
+> >> +
+> >> +EXPORT_TRACEPOINT_SYMBOL(fence_annotate_wait_on);
+> >> +EXPORT_TRACEPOINT_SYMBOL(fence_emit);
+> >
+> > Are you really willing to live with these as tracepoints for forever?
+> > What is the use of them in debugging?  Was it just for debugging the
+> > fence code, or for something else?
+> >
+> >> +/**
+> >> + * fence_context_alloc - allocate an array of fence contexts
+> >> + * @num:     [in]    amount of contexts to allocate
+> >> + *
+> >> + * This function will return the first index of the number of fences allocated.
+> >> + * The fence context is used for setting fence->context to a unique number.
+> >> + */
+> >> +unsigned fence_context_alloc(unsigned num)
+> >> +{
+> >> +     BUG_ON(!num);
+> >> +     return atomic_add_return(num, &fence_context_counter) - num;
+> >> +}
+> >> +EXPORT_SYMBOL(fence_context_alloc);
+> >
+> > EXPORT_SYMBOL_GPL()?  Same goes for all of the exports in here.
+> > Traditionally all of the driver core exports have been with this
+> > marking, any objection to making that change here as well?
+> 
+> tbh, I prefer EXPORT_SYMBOL()..  well, I'd prefer even more if there
+> wasn't even a need for EXPORT_SYMBOL_GPL(), but sadly it is a fact of
+> life.  We already went through this debate once with dma-buf.  We
+> aren't going to change $evil_vendor's mind about non-gpl modules.  The
+> only result will be a more flugly convoluted solution (ie. use syncpt
+> EXPORT_SYMBOL() on top of fence EXPORT_SYMBOL_GPL()) just as a
+> workaround, with the result that no-one benefits.
 
-This patch set adds video capture support for the Freescale i.MX6 SOC.
+It has been proven that using _GPL() exports have caused companies to
+release their code "properly" over the years, so as these really are
+Linux-only apis, please change them to be marked this way, it helps
+everyone out in the end.
 
-It is a from-scratch standardized driver that works with community
-v4l2 utilities, such as v4l2-ctl, v4l2-cap, and the v4l2src gstreamer
-plugin. It uses the latest v4l2 interfaces (subdev, videobuf2).
-Please see Documentation/video4linux/mx6_camera.txt for it's full list
-of features!
+> >> +int __fence_signal(struct fence *fence)
+> >> +{
+> >> +     struct fence_cb *cur, *tmp;
+> >> +     int ret = 0;
+> >> +
+> >> +     if (WARN_ON(!fence))
+> >> +             return -EINVAL;
+> >> +
+> >> +     if (!ktime_to_ns(fence->timestamp)) {
+> >> +             fence->timestamp = ktime_get();
+> >> +             smp_mb__before_atomic();
+> >> +     }
+> >> +
+> >> +     if (test_and_set_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags)) {
+> >> +             ret = -EINVAL;
+> >> +
+> >> +             /*
+> >> +              * we might have raced with the unlocked fence_signal,
+> >> +              * still run through all callbacks
+> >> +              */
+> >> +     } else
+> >> +             trace_fence_signaled(fence);
+> >> +
+> >> +     list_for_each_entry_safe(cur, tmp, &fence->cb_list, node) {
+> >> +             list_del_init(&cur->node);
+> >> +             cur->func(fence, cur);
+> >> +     }
+> >> +     return ret;
+> >> +}
+> >> +EXPORT_SYMBOL(__fence_signal);
+> >
+> > Don't export a function with __ in front of it, you are saying that an
+> > internal function is somehow "valid" for everyone else to call?  Why?
+> > You aren't even documenting the function, so who knows how to use it?
+> 
+> fwiw, the __ versions appear to mainly be concessions for android
+> syncpt.  That is the only user outside of fence.c, and it should stay
+> that way.
 
-The first 38 patches:
+How are you going to "ensure" this?  And where did you document it?
+Please fix this up, it's a horrid way to create a new api.
 
-- prepare the ipu-v3 driver for video capture support. The current driver
-  contains only video display functionality to support the imx DRM drivers.
-  At some point ipu-v3 should be moved out from under staging/imx-drm since
-  it will no longer only support DRM.
+If the android code needs to be fixed to fit into this model, then fix
+it.
 
-- Adds the device tree nodes and OF graph bindings for video capture support
-  on sabrelite, sabresd, and sabreauto reference platforms.
+> >> +void
+> >> +__fence_init(struct fence *fence, const struct fence_ops *ops,
+> >> +          spinlock_t *lock, unsigned context, unsigned seqno)
+> >> +{
+> >> +     BUG_ON(!lock);
+> >> +     BUG_ON(!ops || !ops->wait || !ops->enable_signaling ||
+> >> +            !ops->get_driver_name || !ops->get_timeline_name);
+> >> +
+> >> +     kref_init(&fence->refcount);
+> >> +     fence->ops = ops;
+> >> +     INIT_LIST_HEAD(&fence->cb_list);
+> >> +     fence->lock = lock;
+> >> +     fence->context = context;
+> >> +     fence->seqno = seqno;
+> >> +     fence->flags = 0UL;
+> >> +
+> >> +     trace_fence_init(fence);
+> >> +}
+> >> +EXPORT_SYMBOL(__fence_init);
+> >
+> > Again with the __ exported function...
+> >
+> > I don't even see a fence_init() function anywhere, why the __ ?
+> >
+> 
+> think of it as a 'protected' constructor.. only the derived fence
+> subclass should call.
 
-The new i.MX6 capture host interface driver is at patch 39.
+Where do you say this?  Again, not a good reason, fix up the api please.
 
-To support the sensors found on the sabrelite, sabresd, and sabreauto,
-three patches add sensor subdev's for parallel OV5642, MIPI CSI-2 OV5640,
-and the ADV7180 decoder chip, beginning at patch 40.
+> >> +     kref_get(&fence->refcount);
+> >> +}
+> >
+> > Why is this inline?
+> 
+> performance can be critical.. especially if the driver is using this
+> fence mechanism for internal buffers as well as shared buffers (which
+> is what I'd like to do to avoid having to deal with two different
+> fencing mechanisms for shared vs non-shared buffers), since you could
+> easily have 100's or perhaps 1000's of buffers involved in a submit.
 
-There is an existing adv7180 subdev driver under drivers/media/i2c, but
-it needs some extra functionality to work on the sabreauto. It will need
-OF graph bindings support and gpio for a power-on pin on the sabreauto.
-It would also need to send a new subdev notification to take advantage
-of decoder status change handling provided by the host driver. This
-feature makes it possible to correctly handle "hot" (while streaming)
-signal lock/unlock and autodetected video standard changes.
+"can be".  Did you actually measure it?  Please do so.
 
-Usage notes are found in Documentation/video4linux/mx6_camera.txt for the
-above three reference platforms.
+> The fence stuff does try to inline as much stuff as possible,
+> especially critical-path stuff, for this reason.
 
-The driver source is under drivers/staging/media/imx6/capture/.
+Inlining code doesn't always mean "faster", in fact, on lots of
+processors and with "large" inline functions, the opposite is true.  So
+only do so if you can measure it.
 
+> >> +/**
+> >> + * fence_later - return the chronologically later fence
+> >> + * @f1:      [in]    the first fence from the same context
+> >> + * @f2:      [in]    the second fence from the same context
+> >> + *
+> >> + * Returns NULL if both fences are signaled, otherwise the fence that would be
+> >> + * signaled last. Both fences must be from the same context, since a seqno is
+> >> + * not re-used across contexts.
+> >> + */
+> >> +static inline struct fence *fence_later(struct fence *f1, struct fence *f2)
+> >> +{
+> >> +     BUG_ON(f1->context != f2->context);
+> >
+> > Nice, you just crashed the kernel, making it impossible to debug or
+> > recover :(
+> 
+> agreed, that should probably be 'if (WARN_ON(...)) return NULL;'
+> 
+> (but at least I wouldn't expect to hit that under console_lock so you
+> should at least see the last N lines of the backtrace on the screen
+> ;-))
 
-Steve Longerbeam (43):
-  imx-drm: ipu-v3: Move imx-ipu-v3.h to include/linux/platform_data/
-  ARM: dts: imx6qdl: Add ipu aliases
-  imx-drm: ipu-v3: Add ipu_get_num()
-  imx-drm: ipu-v3: Add solo/dual-lite IPU device type
-  imx-drm: ipu-v3: Map IOMUXC registers
-  imx-drm: ipu-v3: Add functions to set CSI/IC source muxes
-  imx-drm: ipu-v3: Rename and add IDMAC channels
-  imx-drm: ipu-v3: Add units required for video capture
-  imx-drm: ipu-v3: Add ipu_mbus_code_to_colorspace()
-  imx-drm: ipu-v3: Add rotation mode conversion utilities
-  imx-drm: ipu-v3: Add helper function checking if pixfmt is planar
-  imx-drm: ipu-v3: Move IDMAC channel names to imx-ipu-v3.h
-  imx-drm: ipu-v3: Add ipu_idmac_buffer_is_ready()
-  imx-drm: ipu-v3: Add ipu_idmac_clear_buffer()
-  imx-drm: ipu-v3: Add ipu_idmac_current_buffer()
-  imx-drm: ipu-v3: Add __ipu_idmac_reset_current_buffer()
-  imx-drm: ipu-v3: Add ipu_stride_to_bytes()
-  imx-drm: ipu-v3: Add ipu_idmac_enable_watermark()
-  imx-drm: ipu-v3: Add ipu_idmac_lock_enable()
-  imx-drm: ipu-v3: Add idmac channel linking support
-  imx-drm: ipu-v3: Add ipu_bits_per_pixel()
-  imx-drm: ipu-v3: Add ipu-cpmem unit
-  imx-drm: ipu-cpmem: Add ipu_cpmem_set_block_mode()
-  imx-drm: ipu-cpmem: Add ipu_cpmem_set_axi_id()
-  imx-drm: ipu-cpmem: Add ipu_cpmem_set_rotation()
-  imx-drm: ipu-cpmem: Add second buffer support to ipu_cpmem_set_image()
-  imx-drm: ipu-v3: Add more planar formats support
-  imx-drm: ipu-cpmem: Add ipu_cpmem_dump()
-  imx-drm: ipu-v3: Add ipu_dump()
-  ARM: dts: imx6: add pin groups for imx6q/dl for IPU1 CSI0
-  ARM: dts: imx6qdl: Flesh out MIPI CSI2 receiver node
-  ARM: dts: imx: sabrelite: add video capture ports and endpoints
-  ARM: dts: imx6-sabresd: add video capture ports and endpoints
-  ARM: dts: imx6-sabreauto: add video capture ports and endpoints
-  ARM: dts: imx6qdl: Add simple-bus to ipu compatibility
-  gpio: pca953x: Add reset-gpios property
-  ARM: imx6q: clk: Add video 27m clock
-  media: imx6: Add device tree binding documentation
-  media: Add new camera interface driver for i.MX6
-  media: imx6: Add support for MIPI CSI-2 OV5640
-  media: imx6: Add support for Parallel OV5642
-  media: imx6: Add support for ADV7180 Video Decoder
-  ARM: imx_v6_v7_defconfig: Enable video4linux drivers
+Lots of devices don't have console screens :)
 
- .../devicetree/bindings/clock/imx6q-clock.txt      |    1 +
- Documentation/devicetree/bindings/media/imx6.txt   |  433 ++
- .../bindings/staging/imx-drm/fsl-imx-drm.txt       |    6 +-
- .../devicetree/bindings/vendor-prefixes.txt        |    1 +
- Documentation/video4linux/mx6_camera.txt           |  188 +
- arch/arm/boot/dts/imx6q.dtsi                       |    3 +-
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi           |  149 +
- arch/arm/boot/dts/imx6qdl-sabrelite.dtsi           |   91 +
- arch/arm/boot/dts/imx6qdl-sabresd.dtsi             |  116 +
- arch/arm/boot/dts/imx6qdl.dtsi                     |   62 +-
- arch/arm/configs/imx_v6_v7_defconfig               |    4 +
- arch/arm/mach-imx/clk-imx6q.c                      |    3 +-
- drivers/gpio/gpio-pca953x.c                        |   26 +
- drivers/staging/imx-drm/imx-hdmi.c                 |    2 +-
- drivers/staging/imx-drm/imx-tve.c                  |    2 +-
- drivers/staging/imx-drm/ipu-v3/Makefile            |    3 +-
- drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h        |  326 --
- drivers/staging/imx-drm/ipu-v3/ipu-common.c        | 1151 ++++--
- drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c         |  814 ++++
- drivers/staging/imx-drm/ipu-v3/ipu-csi.c           |  821 ++++
- drivers/staging/imx-drm/ipu-v3/ipu-dc.c            |    2 +-
- drivers/staging/imx-drm/ipu-v3/ipu-di.c            |    2 +-
- drivers/staging/imx-drm/ipu-v3/ipu-dmfc.c          |    2 +-
- drivers/staging/imx-drm/ipu-v3/ipu-dp.c            |    2 +-
- drivers/staging/imx-drm/ipu-v3/ipu-ic.c            |  835 ++++
- drivers/staging/imx-drm/ipu-v3/ipu-irt.c           |  103 +
- drivers/staging/imx-drm/ipu-v3/ipu-prv.h           |  126 +-
- drivers/staging/imx-drm/ipu-v3/ipu-smfc.c          |  348 ++
- drivers/staging/imx-drm/ipuv3-crtc.c               |    2 +-
- drivers/staging/imx-drm/ipuv3-plane.c              |   18 +-
- drivers/staging/media/Kconfig                      |    2 +
- drivers/staging/media/Makefile                     |    1 +
- drivers/staging/media/imx6/Kconfig                 |   25 +
- drivers/staging/media/imx6/Makefile                |    1 +
- drivers/staging/media/imx6/capture/Kconfig         |   33 +
- drivers/staging/media/imx6/capture/Makefile        |    7 +
- drivers/staging/media/imx6/capture/adv7180.c       | 1298 ++++++
- drivers/staging/media/imx6/capture/mipi-csi2.c     |  322 ++
- drivers/staging/media/imx6/capture/mx6-camif.c     | 2235 ++++++++++
- drivers/staging/media/imx6/capture/mx6-camif.h     |  197 +
- drivers/staging/media/imx6/capture/mx6-encode.c    |  775 ++++
- drivers/staging/media/imx6/capture/mx6-preview.c   |  748 ++++
- drivers/staging/media/imx6/capture/ov5640-mipi.c   | 2158 ++++++++++
- drivers/staging/media/imx6/capture/ov5642.c        | 4258 ++++++++++++++++++++
- include/linux/platform_data/imx-ipu-v3.h           |  425 ++
- include/media/imx6.h                               |   18 +
- 46 files changed, 17340 insertions(+), 805 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/imx6.txt
- create mode 100644 Documentation/video4linux/mx6_camera.txt
- delete mode 100644 drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
- create mode 100644 drivers/staging/imx-drm/ipu-v3/ipu-cpmem.c
- create mode 100644 drivers/staging/imx-drm/ipu-v3/ipu-csi.c
- create mode 100644 drivers/staging/imx-drm/ipu-v3/ipu-ic.c
- create mode 100644 drivers/staging/imx-drm/ipu-v3/ipu-irt.c
- create mode 100644 drivers/staging/imx-drm/ipu-v3/ipu-smfc.c
- create mode 100644 drivers/staging/media/imx6/Kconfig
- create mode 100644 drivers/staging/media/imx6/Makefile
- create mode 100644 drivers/staging/media/imx6/capture/Kconfig
- create mode 100644 drivers/staging/media/imx6/capture/Makefile
- create mode 100644 drivers/staging/media/imx6/capture/adv7180.c
- create mode 100644 drivers/staging/media/imx6/capture/mipi-csi2.c
- create mode 100644 drivers/staging/media/imx6/capture/mx6-camif.c
- create mode 100644 drivers/staging/media/imx6/capture/mx6-camif.h
- create mode 100644 drivers/staging/media/imx6/capture/mx6-encode.c
- create mode 100644 drivers/staging/media/imx6/capture/mx6-preview.c
- create mode 100644 drivers/staging/media/imx6/capture/ov5640-mipi.c
- create mode 100644 drivers/staging/media/imx6/capture/ov5642.c
- create mode 100644 include/linux/platform_data/imx-ipu-v3.h
- create mode 100644 include/media/imx6.h
+thanks,
 
--- 
-1.7.9.5
-
+greg k-h
