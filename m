@@ -1,65 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dehamd003.servertools24.de ([31.47.254.18]:45808 "EHLO
-	dehamd003.servertools24.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754138AbaFPHjU (ORCPT
+Received: from mail-la0-f53.google.com ([209.85.215.53]:65321 "EHLO
+	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965705AbaFSVuu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 03:39:20 -0400
-Message-ID: <539E9F25.7030504@ladisch.de>
-Date: Mon, 16 Jun 2014 09:39:17 +0200
-From: Clemens Ladisch <clemens@ladisch.de>
+	Thu, 19 Jun 2014 17:50:50 -0400
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Takashi Iwai <tiwai@suse.de>
-CC: alsa-devel@alsa-project.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [alsa-devel] [PATCH 1/3] sound: Add a quirk to enforce period_bytes
-References: <1402762571-6316-1-git-send-email-m.chehab@samsung.com> <1402762571-6316-2-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1402762571-6316-2-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20140619181918.GA24155@kroah.com>
+References: <20140618102957.15728.43525.stgit@patser>
+	<20140618103653.15728.4942.stgit@patser>
+	<20140619011327.GC10921@kroah.com>
+	<CAF6AEGv4Ms+zsrEtpA10bGq04LnRjzVb925co49eVxh4ugkd=A@mail.gmail.com>
+	<20140619170059.GA1224@kroah.com>
+	<CAF6AEGuXKw1w=outX+QgFE2XZxV8c6pyhORL+mRp4uZR8Jnq7g@mail.gmail.com>
+	<20140619181918.GA24155@kroah.com>
+Date: Fri, 20 Jun 2014 07:50:47 +1000
+Message-ID: <CAPM=9tzsT+nah2P-qZ8iKW=aTZJzYgm18mMWyy2-RVkoOSwyjg@mail.gmail.com>
+Subject: Re: [REPOST PATCH 1/8] fence: dma-buf cross-device synchronization (v17)
+From: Dave Airlie <airlied@gmail.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Rob Clark <robdclark@gmail.com>, linux-arch@vger.kernel.org,
+	Thomas Hellstrom <thellstrom@vmware.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Colin Cross <ccross@google.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(CC stable dropped; this is not how to submit stable patches.)
-
-Mauro Carvalho Chehab wrote:
-> The Auvitek 0828 chip, used on HVR950Q actually need two
-> quirks and not just one.
+On 20 June 2014 04:19, Greg KH <gregkh@linuxfoundation.org> wrote:
+> On Thu, Jun 19, 2014 at 01:45:30PM -0400, Rob Clark wrote:
+>> On Thu, Jun 19, 2014 at 1:00 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
+>> > On Thu, Jun 19, 2014 at 10:00:18AM -0400, Rob Clark wrote:
+>> >> On Wed, Jun 18, 2014 at 9:13 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
+>> >> > On Wed, Jun 18, 2014 at 12:36:54PM +0200, Maarten Lankhorst wrote:
+>> >> >> +#define CREATE_TRACE_POINTS
+>> >> >> +#include <trace/events/fence.h>
+>> >> >> +
+>> >> >> +EXPORT_TRACEPOINT_SYMBOL(fence_annotate_wait_on);
+>> >> >> +EXPORT_TRACEPOINT_SYMBOL(fence_emit);
+>> >> >
+>> >> > Are you really willing to live with these as tracepoints for forever?
+>> >> > What is the use of them in debugging?  Was it just for debugging the
+>> >> > fence code, or for something else?
+>> >> >
+>> >> >> +/**
+>> >> >> + * fence_context_alloc - allocate an array of fence contexts
+>> >> >> + * @num:     [in]    amount of contexts to allocate
+>> >> >> + *
+>> >> >> + * This function will return the first index of the number of fences allocated.
+>> >> >> + * The fence context is used for setting fence->context to a unique number.
+>> >> >> + */
+>> >> >> +unsigned fence_context_alloc(unsigned num)
+>> >> >> +{
+>> >> >> +     BUG_ON(!num);
+>> >> >> +     return atomic_add_return(num, &fence_context_counter) - num;
+>> >> >> +}
+>> >> >> +EXPORT_SYMBOL(fence_context_alloc);
+>> >> >
+>> >> > EXPORT_SYMBOL_GPL()?  Same goes for all of the exports in here.
+>> >> > Traditionally all of the driver core exports have been with this
+>> >> > marking, any objection to making that change here as well?
+>> >>
+>> >> tbh, I prefer EXPORT_SYMBOL()..  well, I'd prefer even more if there
+>> >> wasn't even a need for EXPORT_SYMBOL_GPL(), but sadly it is a fact of
+>> >> life.  We already went through this debate once with dma-buf.  We
+>> >> aren't going to change $evil_vendor's mind about non-gpl modules.  The
+>> >> only result will be a more flugly convoluted solution (ie. use syncpt
+>> >> EXPORT_SYMBOL() on top of fence EXPORT_SYMBOL_GPL()) just as a
+>> >> workaround, with the result that no-one benefits.
+>> >
+>> > It has been proven that using _GPL() exports have caused companies to
+>> > release their code "properly" over the years, so as these really are
+>> > Linux-only apis, please change them to be marked this way, it helps
+>> > everyone out in the end.
+>>
+>> Well, maybe that is the true in some cases.  But it certainly didn't
+>> work out that way for dma-buf.  And I think the end result is worse.
+>>
+>> I don't really like coming down on the side of EXPORT_SYMBOL() instead
+>> of EXPORT_SYMBOL_GPL(), but if we do use EXPORT_SYMBOL_GPL() then the
+>> result will only be creative workarounds using the _GPL symbols
+>> indirectly by whatever is available via EXPORT_SYMBOL().  I don't
+>> really see how that will be better.
 >
-> The first one, already implemented, enforces that it won't have
-> channel swaps at the transfers.
+> You are saying that you _know_ companies will violate our license, so
+> you should just "give up"?  And how do you know people aren't working on
+> preventing those "indirect" usages as well?  :)
 >
-> However, for TV applications, like xawtv and tvtime, another quirk
-> is needed, in order to enforce that, at least 2 URB transfer
-> intervals will be needed to fill a buffer.
+> Sorry, I'm not going to give up here, again, it has proven to work in
+> the past in changing the ways of _very_ large companies, why stop now?
 
-> +			period = 2 * MAX_URBS * fp->maxpacksize;
-> +			min_period = period * 90 / 100;
-> +			max_period = period * 110 / 100;
+I've found large companies shipping lots of hw putting pressure on
+other large/small companies seems to be only way this has ever
+happened, we'd like to cover that up and say its some great GPL
+enforcement thing.
 
-I don't quite understand what you mean with "URB transfer interval".
+To be honest, author's choice is how I'd treat this.
 
-All USB audio devices transfer packets in intervals between 125 µs and
-1000 µs.
+Personally I think _GPL is broken by design, and that Linus's initial
+point for them has been so diluted by random lobby groups asking for
+every symbol to be _GPL that they are becoming effectively pointless
+now. I also dislike the fact that the lobby groups don't just bring
+violators to court. I'm also sure someone like the LF could have a
+nice income stream if Linus gave them permission to enforce his
+copyrights.
 
-MAX_URBS is a somewhat random value that is not directly derived from
-either a hardware or software constraint.
+But anyways, has someone checked that iOS or Windows don't have a
+fence interface? so we know that this is a Linux only interface and
+any works using it are derived? Say the nvidia driver isn't a derived
+work now, will using this interface magically translate it into a
+derived work, so we can go sue them? I don't think so.
 
-Are you trying to enforce two packets per URB?
+But its up to Maarten and Rob, and if they say no _GPL then I don't
+think we should be overriding authors intents.
 
-Why are you setting both a minimum and a maximum?
-
-Isn't this affected by the constraints of the playback device?
-
-> Without it, buffer underruns happen when trying to syncronize the
-> audio input from au0828 and the audio playback at the default audio
-> output device.
-
-This looks like a workaround for a userspace bug that would affect all
-USB audio devices.  What period/buffer sizes are xawtv/tvtime trying to
-use?
-
-
-Regards,
-Clemens
+Dave.
