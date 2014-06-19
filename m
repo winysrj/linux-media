@@ -1,157 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57656 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753579AbaFXO43 (ORCPT
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:54638 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932894AbaFSRX1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 10:56:29 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+	Thu, 19 Jun 2014 13:23:27 -0400
+Received: from compute4.internal (compute4.nyi.mail.srv.osa [10.202.2.44])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 5E3BB21410
+	for <linux-media@vger.kernel.org>; Thu, 19 Jun 2014 13:23:26 -0400 (EDT)
+From: Ramakrishnan Muthukrishnan <ram@fastmail.in>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 20/29] [media] coda: add decoder timestamp queue
-Date: Tue, 24 Jun 2014 16:56:02 +0200
-Message-Id: <1403621771-11636-21-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
-References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+Cc: Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>
+Subject: [REVIEW PATCH 4/4] media: Documentation: remove V4L2_FL_USE_FH_PRIO flag.
+Date: Thu, 19 Jun 2014 22:53:00 +0530
+Message-Id: <1403198580-3126-5-git-send-email-ram@fastmail.in>
+In-Reply-To: <1403198580-3126-1-git-send-email-ram@fastmail.in>
+References: <1403198580-3126-1-git-send-email-ram@fastmail.in>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The coda driver advertises timestamp_type V4L2_BUF_FLAG_TIMESTAMP_COPY on
-both queues, so we have to copy timestamps from input v4l2 buffers to the
-corresponding destination v4l2 buffers. Since the h.264 decoder can reorder
-frames, a timestamp queue is needed to keep track of and assign the correct
-timestamp to destination buffers.
+From: Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>
 ---
- drivers/media/platform/coda.c | 50 ++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 49 insertions(+), 1 deletion(-)
+ Documentation/video4linux/v4l2-framework.txt       | 8 +-------
+ Documentation/video4linux/v4l2-pci-skeleton.c      | 5 -----
+ Documentation/zh_CN/video4linux/v4l2-framework.txt | 7 +------
+ 3 files changed, 2 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 0f83166..a929bbd 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -201,6 +201,13 @@ struct gdi_tiled_map {
- #define GDI_LINEAR_FRAME_MAP 0
- };
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 667a433..a11dff0 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -675,11 +675,6 @@ You should also set these fields:
+   video_device is initialized you *do* know which parent PCI device to use and
+   so you set dev_device to the correct PCI device.
  
-+struct coda_timestamp {
-+	struct list_head	list;
-+	u32			sequence;
-+	struct v4l2_timecode	timecode;
-+	struct timeval		timestamp;
-+};
-+
- struct coda_ctx {
- 	struct coda_dev			*dev;
- 	struct mutex			buffer_mutex;
-@@ -235,6 +242,8 @@ struct coda_ctx {
- 	struct coda_aux_buf		slicebuf;
- 	struct coda_aux_buf		internal_frames[CODA_MAX_FRAMEBUFFERS];
- 	u32				frame_types[CODA_MAX_FRAMEBUFFERS];
-+	struct coda_timestamp		frame_timestamps[CODA_MAX_FRAMEBUFFERS];
-+	struct list_head		timestamp_list;
- 	struct coda_aux_buf		workbuf;
- 	int				num_internal_frames;
- 	int				idx;
-@@ -1013,7 +1022,7 @@ static int coda_bitstream_queue(struct coda_ctx *ctx, struct vb2_buffer *src_buf
- 	dma_sync_single_for_device(&ctx->dev->plat_dev->dev, ctx->bitstream.paddr,
- 				   ctx->bitstream.size, DMA_TO_DEVICE);
+-- flags: optional. Set to V4L2_FL_USE_FH_PRIO if you want to let the framework
+-  handle the VIDIOC_G/S_PRIORITY ioctls. This requires that you use struct
+-  v4l2_fh. Eventually this flag will disappear once all drivers use the core
+-  priority handling. But for now it has to be set explicitly.
+-
+ If you use v4l2_ioctl_ops, then you should set .unlocked_ioctl to video_ioctl2
+ in your v4l2_file_operations struct.
  
--	ctx->qsequence++;
-+	src_buf->v4l2_buf.sequence = ctx->qsequence++;
+@@ -909,8 +904,7 @@ struct v4l2_fh
  
- 	return 0;
- }
-@@ -1049,12 +1058,26 @@ static bool coda_bitstream_try_queue(struct coda_ctx *ctx,
- static void coda_fill_bitstream(struct coda_ctx *ctx)
- {
- 	struct vb2_buffer *src_buf;
-+	struct coda_timestamp *ts;
+ struct v4l2_fh provides a way to easily keep file handle specific data
+ that is used by the V4L2 framework. New drivers must use struct v4l2_fh
+-since it is also used to implement priority handling (VIDIOC_G/S_PRIORITY)
+-if the video_device flag V4L2_FL_USE_FH_PRIO is also set.
++since it is also used to implement priority handling (VIDIOC_G/S_PRIORITY).
  
- 	while (v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) > 0) {
- 		src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+ The users of v4l2_fh (in the V4L2 framework, not the driver) know
+ whether a driver uses v4l2_fh as its file->private_data pointer by
+diff --git a/Documentation/video4linux/v4l2-pci-skeleton.c b/Documentation/video4linux/v4l2-pci-skeleton.c
+index 46904fe..006721e 100644
+--- a/Documentation/video4linux/v4l2-pci-skeleton.c
++++ b/Documentation/video4linux/v4l2-pci-skeleton.c
+@@ -883,11 +883,6 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	vdev->v4l2_dev = &skel->v4l2_dev;
+ 	/* Supported SDTV standards, if any */
+ 	vdev->tvnorms = SKEL_TVNORMS;
+-	/* If this bit is set, then the v4l2 core will provide the support
+-	 * for the VIDIOC_G/S_PRIORITY ioctls. This flag will eventually
+-	 * go away once all drivers have been converted to use struct v4l2_fh.
+-	 */
+-	set_bit(V4L2_FL_USE_FH_PRIO, &vdev->flags);
+ 	video_set_drvdata(vdev, skel);
  
- 		if (coda_bitstream_try_queue(ctx, src_buf)) {
-+			/*
-+			 * Source buffer is queued in the bitstream ringbuffer;
-+			 * queue the timestamp and mark source buffer as done
-+			 */
- 			src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-+
-+			ts = kmalloc(sizeof(*ts), GFP_KERNEL);
-+			if (ts) {
-+				ts->sequence = src_buf->v4l2_buf.sequence;
-+				ts->timecode = src_buf->v4l2_buf.timecode;
-+				ts->timestamp = src_buf->v4l2_buf.timestamp;
-+				list_add_tail(&ts->list, &ctx->timestamp_list);
-+			}
-+
- 			v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
- 		} else {
- 			break;
-@@ -2599,6 +2622,14 @@ static void coda_stop_streaming(struct vb2_queue *q)
- 	}
+ 	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
+diff --git a/Documentation/zh_CN/video4linux/v4l2-framework.txt b/Documentation/zh_CN/video4linux/v4l2-framework.txt
+index 0da95db..2b828e6 100644
+--- a/Documentation/zh_CN/video4linux/v4l2-framework.txt
++++ b/Documentation/zh_CN/video4linux/v4l2-framework.txt
+@@ -580,11 +580,6 @@ release()回调必须被设置，且在最后一个 video_device 用户退出之
+   v4l2_device 无法与特定的 PCI 设备关联，所有没有设置父设备。但当
+   video_device 配置后，就知道使用哪个父 PCI 设备了。
  
- 	if (!ctx->streamon_out && !ctx->streamon_cap) {
-+		struct coda_timestamp *ts;
-+
-+		while (!list_empty(&ctx->timestamp_list)) {
-+			ts = list_first_entry(&ctx->timestamp_list,
-+					      struct coda_timestamp, list);
-+			list_del(&ts->list);
-+			kfree(ts);
-+		}
- 		kfifo_init(&ctx->bitstream_fifo,
- 			ctx->bitstream.vaddr, ctx->bitstream.size);
- 		ctx->runcounter = 0;
-@@ -2886,6 +2917,7 @@ static int coda_open(struct file *file)
- 		ctx->bitstream.vaddr, ctx->bitstream.size);
- 	mutex_init(&ctx->bitstream_mutex);
- 	mutex_init(&ctx->buffer_mutex);
-+	INIT_LIST_HEAD(&ctx->timestamp_list);
+-- flags：可选。如果你要让框架处理设置 VIDIOC_G/S_PRIORITY ioctls，
+-  请设置 V4L2_FL_USE_FH_PRIO。这要求你使用 v4l2_fh 结构体。
+-  一旦所有驱动使用了核心的优先级处理，最终这个标志将消失。但现在它
+-  必须被显式设置。
+-
+ 如果你使用 v4l2_ioctl_ops，则应该在 v4l2_file_operations 结构体中
+ 设置 .unlocked_ioctl 指向 video_ioctl2。
  
- 	coda_lock(ctx);
- 	list_add(&ctx->list, &dev->instances);
-@@ -2977,6 +3009,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 	struct coda_q_data *q_data_src;
- 	struct coda_q_data *q_data_dst;
- 	struct vb2_buffer *dst_buf;
-+	struct coda_timestamp *ts;
- 	int width, height;
- 	int decoded_idx;
- 	int display_idx;
-@@ -3098,6 +3131,18 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		v4l2_err(&dev->v4l2_dev,
- 			 "decoded frame index out of range: %d\n", decoded_idx);
- 	} else {
-+		ts = list_first_entry(&ctx->timestamp_list,
-+				      struct coda_timestamp, list);
-+		list_del(&ts->list);
-+		val = coda_read(dev, CODA_RET_DEC_PIC_FRAME_NUM) - 1;
-+		if (val != ts->sequence) {
-+			v4l2_err(&dev->v4l2_dev,
-+				 "sequence number mismatch (%d != %d)\n",
-+				 val, ts->sequence);
-+		}
-+		ctx->frame_timestamps[decoded_idx] = *ts;
-+		kfree(ts);
-+
- 		val = coda_read(dev, CODA_RET_DEC_PIC_TYPE) & 0x7;
- 		if (val == 0)
- 			ctx->frame_types[decoded_idx] = V4L2_BUF_FLAG_KEYFRAME;
-@@ -3131,6 +3176,9 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 					     V4L2_BUF_FLAG_PFRAME |
- 					     V4L2_BUF_FLAG_BFRAME);
- 		dst_buf->v4l2_buf.flags |= ctx->frame_types[ctx->display_idx];
-+		ts = &ctx->frame_timestamps[ctx->display_idx];
-+		dst_buf->v4l2_buf.timecode = ts->timecode;
-+		dst_buf->v4l2_buf.timestamp = ts->timestamp;
+@@ -789,7 +784,7 @@ v4l2_fh 结构体
+ -------------
  
- 		vb2_set_plane_payload(dst_buf, 0, width * height * 3 / 2);
+ v4l2_fh 结构体提供一个保存用于 V4L2 框架的文件句柄特定数据的简单方法。
+-如果 video_device 的 flag 设置了 V4L2_FL_USE_FH_PRIO 标志，新驱动
++如果 video_device 标志，新驱动
+ 必须使用 v4l2_fh 结构体，因为它也用于实现优先级处理（VIDIOC_G/S_PRIORITY）。
  
+ v4l2_fh 的用户（位于 V4l2 框架中，并非驱动）可通过测试
 -- 
 2.0.0
 
