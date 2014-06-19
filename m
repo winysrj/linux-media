@@ -1,79 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:59534 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755910AbaFLO3V (ORCPT
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:42898 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932894AbaFSRXS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 10:29:21 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>, arm@kernel.org,
-	linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
-Date: Thu, 12 Jun 2014 16:28:39 +0200
-Message-ID: <4327970.JdCWevprmq@wuerfel>
-In-Reply-To: <20140612142515.GA7653@kroah.com>
-References: <5192928.MkINji4uKU@wuerfel> <7460455.eZRbtzsNrd@wuerfel> <20140612142515.GA7653@kroah.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 19 Jun 2014 13:23:18 -0400
+Received: from compute2.internal (compute2.nyi.mail.srv.osa [10.202.2.42])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id CD27D20C6E
+	for <linux-media@vger.kernel.org>; Thu, 19 Jun 2014 13:23:15 -0400 (EDT)
+From: Ramakrishnan Muthukrishnan <ram@fastmail.in>
+To: linux-media@vger.kernel.org
+Cc: Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>
+Subject: [REVIEW PATCH 1/4] media: v4l2-core: remove the use of V4L2_FL_USE_FH_PRIO flag.
+Date: Thu, 19 Jun 2014 22:52:57 +0530
+Message-Id: <1403198580-3126-2-git-send-email-ram@fastmail.in>
+In-Reply-To: <1403198580-3126-1-git-send-email-ram@fastmail.in>
+References: <1403198580-3126-1-git-send-email-ram@fastmail.in>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 12 June 2014 07:25:15 Greg KH wrote:
-> On Thu, Jun 12, 2014 at 04:15:32PM +0200, Arnd Bergmann wrote:
-> > On Thursday 12 June 2014 16:12:17 Laurent Pinchart wrote:
-> > > > From 3a965f4fd5a6b3ef4a66aa4e7c916cfd34fd5706 Mon Sep 17 00:00:00 2001
-> > > > From: Arnd Bergmann <arnd@arndb.de>
-> > > > Date: Tue, 21 Jan 2014 09:32:43 +0100
-> > > > Subject: [PATCH] [media] staging: tighten omap4iss dependencies
-> > > > 
-> > > > The OMAP4 camera support depends on I2C and VIDEO_V4L2, both
-> > > > of which can be loadable modules. This causes build failures
-> > > > if we want the camera driver to be built-in.
-> > > > 
-> > > > This can be solved by turning the option into "tristate",
-> > > > which unfortunately causes another problem, because the
-> > > > driver incorrectly calls a platform-internal interface
-> > > > for omap4_ctrl_pad_readl/omap4_ctrl_pad_writel.
-> > > > 
-> > > > Instead, this patch just forbids the invalid configurations
-> > > > and ensures that the driver can only be built if all its
-> > > > dependencies are built-in.
-> > > > 
-> > > > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > > 
-> > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > 
-> > > Should I take this in my tree for v3.17 or would you like to fast-track it ?
-> > > 
-> > 
-> > I'd actually like to see it in 3.15 as a stable backport if possible,
-> 
-> It's not stable material, sorry.
+From: Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>
 
-To clarify, I was talking about second version of the patch,
-not the original one. It just does this:
+Since all the drivers that use `struct v4l2_fh' use the core priority
+checking instead of doing it themselves, this flag can be removed.
 
->  config VIDEO_OMAP4
->       bool "OMAP 4 Camera support"
-> -     depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C && ARCH_OMAP4
-> +     depends on VIDEO_V4L2=y && VIDEO_V4L2_SUBDEV_API && I2C=y && ARCH_OMAP4
->       select VIDEOBUF2_DMA_CONTIG
->       ---help---
->         Driver for an OMAP 4 ISS controller.
+This patch removes the usage of the flag from v4l2-core.
 
-which enforces that configurations that cannot be compiled
-will not be selectable in Kconfig, so we can have allmodconfig
-working. I thought that was ok for -stable.
+Signed-off-by: Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c   |  6 ++----
+ drivers/media/v4l2-core/v4l2-fh.c    | 13 +++++++++----
+ drivers/media/v4l2-core/v4l2-ioctl.c |  9 +++------
+ 3 files changed, 14 insertions(+), 14 deletions(-)
 
-> > but definitely in 3.16. What is the normal path for staging/media
-> > but fix patches?
-> 
-> Through Mauro's tree.
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 634d863..35698aa 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -563,11 +563,9 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	/* vfl_type and vfl_dir independent ioctls */
+ 
+ 	SET_VALID_IOCTL(ops, VIDIOC_QUERYCAP, vidioc_querycap);
+-	if (ops->vidioc_g_priority ||
+-			test_bit(V4L2_FL_USE_FH_PRIO, &vdev->flags))
++	if (ops->vidioc_g_priority)
+ 		set_bit(_IOC_NR(VIDIOC_G_PRIORITY), valid_ioctls);
+-	if (ops->vidioc_s_priority ||
+-			test_bit(V4L2_FL_USE_FH_PRIO, &vdev->flags))
++	if (ops->vidioc_s_priority)
+ 		set_bit(_IOC_NR(VIDIOC_S_PRIORITY), valid_ioctls);
+ 	SET_VALID_IOCTL(ops, VIDIOC_STREAMON, vidioc_streamon);
+ 	SET_VALID_IOCTL(ops, VIDIOC_STREAMOFF, vidioc_streamoff);
+diff --git a/drivers/media/v4l2-core/v4l2-fh.c b/drivers/media/v4l2-core/v4l2-fh.c
+index e57c002..c97067a 100644
+--- a/drivers/media/v4l2-core/v4l2-fh.c
++++ b/drivers/media/v4l2-core/v4l2-fh.c
+@@ -37,6 +37,13 @@ void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
+ 	fh->ctrl_handler = vdev->ctrl_handler;
+ 	INIT_LIST_HEAD(&fh->list);
+ 	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
++	/*
++	 * determine_valid_ioctls() does not know if struct v4l2_fh
++	 * is used by this driver, but here we do. So enable the
++	 * prio ioctls here.
++	 */
++	set_bit(_IOC_NR(VIDIOC_G_PRIORITY), vdev->valid_ioctls);
++	set_bit(_IOC_NR(VIDIOC_S_PRIORITY), vdev->valid_ioctls);
+ 	fh->prio = V4L2_PRIORITY_UNSET;
+ 	init_waitqueue_head(&fh->wait);
+ 	INIT_LIST_HEAD(&fh->available);
+@@ -49,8 +56,7 @@ void v4l2_fh_add(struct v4l2_fh *fh)
+ {
+ 	unsigned long flags;
+ 
+-	if (test_bit(V4L2_FL_USE_FH_PRIO, &fh->vdev->flags))
+-		v4l2_prio_open(fh->vdev->prio, &fh->prio);
++	v4l2_prio_open(fh->vdev->prio, &fh->prio);
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+ 	list_add(&fh->list, &fh->vdev->fh_list);
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+@@ -78,8 +84,7 @@ void v4l2_fh_del(struct v4l2_fh *fh)
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+ 	list_del_init(&fh->list);
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+-	if (test_bit(V4L2_FL_USE_FH_PRIO, &fh->vdev->flags))
+-		v4l2_prio_close(fh->vdev->prio, fh->prio);
++	v4l2_prio_close(fh->vdev->prio, fh->prio);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fh_del);
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 16bffd8..8d4a25d 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2190,7 +2190,6 @@ static long __video_do_ioctl(struct file *file,
+ 	const struct v4l2_ioctl_info *info;
+ 	void *fh = file->private_data;
+ 	struct v4l2_fh *vfh = NULL;
+-	int use_fh_prio = 0;
+ 	int debug = vfd->debug;
+ 	long ret = -ENOTTY;
+ 
+@@ -2200,10 +2199,8 @@ static long __video_do_ioctl(struct file *file,
+ 		return ret;
+ 	}
+ 
+-	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
+ 		vfh = file->private_data;
+-		use_fh_prio = test_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
+-	}
+ 
+ 	if (v4l2_is_known_ioctl(cmd)) {
+ 		info = &v4l2_ioctls[_IOC_NR(cmd)];
+@@ -2212,7 +2209,7 @@ static long __video_do_ioctl(struct file *file,
+ 		    !((info->flags & INFO_FL_CTRL) && vfh && vfh->ctrl_handler))
+ 			goto done;
+ 
+-		if (use_fh_prio && (info->flags & INFO_FL_PRIO)) {
++		if (vfh && (info->flags & INFO_FL_PRIO)) {
+ 			ret = v4l2_prio_check(vfd->prio, vfh->prio);
+ 			if (ret)
+ 				goto done;
+@@ -2237,7 +2234,7 @@ static long __video_do_ioctl(struct file *file,
+ 		ret = -ENOTTY;
+ 	} else {
+ 		ret = ops->vidioc_default(file, fh,
+-			use_fh_prio ? v4l2_prio_check(vfd->prio, vfh->prio) >= 0 : 0,
++			vfh ? v4l2_prio_check(vfd->prio, vfh->prio) >= 0 : 0,
+ 			cmd, arg);
+ 	}
+ 
+-- 
+2.0.0
 
-Ok.
-
-	Arnd
