@@ -1,67 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57911 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750767AbaFCJaf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 05:30:35 -0400
-Message-ID: <1401787831.3434.12.camel@paszta.hi.pengutronix.de>
-Subject: Re: [RFC PATCH] [media] mt9v032: Add support for mt9v022 and mt9v024
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Date: Tue, 03 Jun 2014 11:30:31 +0200
-In-Reply-To: <7046827.ExJCarEAac@avalon>
-References: <1401112985-32338-1-git-send-email-p.zabel@pengutronix.de>
-	 <2161017.E5TWD97cmR@avalon>
-	 <1401287815.3054.60.camel@paszta.hi.pengutronix.de>
-	 <7046827.ExJCarEAac@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mout.gmx.net ([212.227.17.22]:51694 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756435AbaFSOuh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jun 2014 10:50:37 -0400
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+To: Kees Cook <keescook@chromium.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Heinrich Schuchardt <xypron.glpk@gmx.de>
+Subject: [PATCH 1/1 v2] media: dib9000: avoid out of bound access
+Date: Thu, 19 Jun 2014 16:49:40 +0200
+Message-Id: <1403189380-25134-1-git-send-email-xypron.glpk@gmx.de>
+In-Reply-To: <CAGXu5jLJGpPhycff9OSMGu6wduLGQWhsu2mkGeM7R0O9CQZ7pg@mail.gmail.com>
+References: <CAGXu5jLJGpPhycff9OSMGu6wduLGQWhsu2mkGeM7R0O9CQZ7pg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent, Guennadi,
+This updated patch also fixes out of bound access to b[].
 
-Am Mittwoch, den 28.05.2014, 16:44 +0200 schrieb Laurent Pinchart:
-> If you had submitted an entirely new driver for a sensor already supported by 
-> an soc-camera sensor driver, I would have told you to fix the problem on soc-
-> camera side. As you're only expanding hardware support for an existing driver, 
-> it's hard to nack your patch in all fairness :-) I will thus not veto option 
-> 2, even though I would prefer if we fixed the problem once and for all.
->
-> > > > I'm ok with either 1 or 3, whereas 3 is
-> > > > more difficult than 1.
-> > > 
-> > > This topic has been discussed over and over. It indeed "just" requires
-> > > someone to do it, although it might be more complex than that sounds.
-> > > 
-> > > We need to fix the infrastructure to make sensor drivers completely
-> > > unaware of soc-camera. This isn't about extending the mt9v022 driver to
-> > > work with non soc-camera hosts, it's about fixing soc-camera not to
-> > > require any change to sensor drivers. Philipp, if you have time to work
-> > > on that, we can discuss what needs to be done.
+In dib9000_risc_apb_access_write() an out of bound access to mb[].
 
-What steps would need to be taken to make soc_camera work with the
-non-soc_camera drivers in drivers/media/i2c?
-I don't have any soc_camera platform at hand, although I could try to revive
-a PXA270 board.
+The current test to avoid out of bound access to mb[] is insufficient.
+For len = 19 non-existent mb[10] will be accessed.
 
-> > I don't have a use case for soc_camera. Instead of trying to fix it to
-> > use generic sensor drivers, I'd rather use that time to prepare
-> > non-soc_camera capture host support.
-> 
-> Which host would that be, if you can tell ?
+For odd values of len b[] is accessed out of bounds.
 
-Yes, i.MX6.
+For large values of len an of bound access to mb[] may occur in
+dib9000_mbx_send_attr.
 
-> > > On the sensor side, we should have a single driver for the mt9v022, 024
-> > > and 032 sensors. I would vote for merging the two drivers into
-> > > drivers/media/i2c/mt9v032.c, as that one is closer to the goal of not
-> > > being soc-camera specific.
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/media/dvb-frontends/dib9000.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-regards
-Philipp
-
+diff --git a/drivers/media/dvb-frontends/dib9000.c b/drivers/media/dvb-frontends/dib9000.c
+index e540cfb..f75dec4 100644
+--- a/drivers/media/dvb-frontends/dib9000.c
++++ b/drivers/media/dvb-frontends/dib9000.c
+@@ -1040,13 +1040,18 @@ static int dib9000_risc_apb_access_write(struct dib9000_state *state, u32 addres
+ 	if (address >= 1024 || !state->platform.risc.fw_is_running)
+ 		return -EINVAL;
+ 
++	if (len > 18)
++		return -EINVAL;
++
+ 	/* dprintk( "APB access thru wr fw %d %x", address, attribute); */
+ 
+-	mb[0] = (unsigned short)address;
+-	for (i = 0; i < len && i < 20; i += 2)
+-		mb[1 + (i / 2)] = (b[i] << 8 | b[i + 1]);
++	mb[0] = (u16)address;
++	for (i = 0; i + 1 < len; i += 2)
++		mb[1 + i / 2] = b[i] << 8 | b[i + 1];
++	if (len & 1)
++		mb[1 + len / 2] = b[len - 1] << 8;
+ 
+-	dib9000_mbx_send_attr(state, OUT_MSG_BRIDGE_APB_W, mb, 1 + len / 2, attribute);
++	dib9000_mbx_send_attr(state, OUT_MSG_BRIDGE_APB_W, mb, (3 + len) / 2, attribute);
+ 	return dib9000_mbx_get_message_attr(state, IN_MSG_END_BRIDGE_APB_RW, mb, &s, attribute) == 1 ? 0 : -EINVAL;
+ }
+ 
+-- 
+2.0.0
 
