@@ -1,300 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:42314 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753291AbaFGV5V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:21 -0400
-Received: by mail-pd0-f172.google.com with SMTP id fp1so3830138pdb.17
-        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:20 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 20/43] imx-drm: ipu-v3: Add idmac channel linking support
-Date: Sat,  7 Jun 2014 14:56:22 -0700
-Message-Id: <1402178205-22697-21-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52864 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965603AbaFSXin (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jun 2014 19:38:43 -0400
+Date: Thu, 19 Jun 2014 16:42:43 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>, Rob Clark <robdclark@gmail.com>,
+	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-arch@vger.kernel.org,
+	Thomas Hellstrom <thellstrom@vmware.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Colin Cross <ccross@google.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [REPOST PATCH 1/8] fence: dma-buf cross-device synchronization
+ (v17)
+Message-ID: <20140619234243.GA8952@kroah.com>
+References: <20140618102957.15728.43525.stgit@patser>
+ <20140618103653.15728.4942.stgit@patser>
+ <20140619011327.GC10921@kroah.com>
+ <CAF6AEGv4Ms+zsrEtpA10bGq04LnRjzVb925co49eVxh4ugkd=A@mail.gmail.com>
+ <20140619170059.GA1224@kroah.com>
+ <CAKMK7uFa57YjeJCFQhWFr_5cRTTpWxBdJ1qtb5Ojnu-KZpe-Lw@mail.gmail.com>
+ <20140619200159.GA27883@kroah.com>
+ <53A366B3.8020808@zytor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53A366B3.8020808@zytor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add idmac channel linking/unlinking functions for specific IPU
-client use cases. The following linkings are currently needed:
+On Thu, Jun 19, 2014 at 03:39:47PM -0700, H. Peter Anvin wrote:
+> On 06/19/2014 01:01 PM, Greg KH wrote:
+> > On Thu, Jun 19, 2014 at 09:15:36PM +0200, Daniel Vetter wrote:
+> >> On Thu, Jun 19, 2014 at 7:00 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
+> >>>>>> +     BUG_ON(f1->context != f2->context);
+> >>>>>
+> >>>>> Nice, you just crashed the kernel, making it impossible to debug or
+> >>>>> recover :(
+> >>>>
+> >>>> agreed, that should probably be 'if (WARN_ON(...)) return NULL;'
+> >>>>
+> >>>> (but at least I wouldn't expect to hit that under console_lock so you
+> >>>> should at least see the last N lines of the backtrace on the screen
+> >>>> ;-))
+> >>>
+> >>> Lots of devices don't have console screens :)
+> >>
+> >> Aside: This is a pet peeve of mine and recently I've switched to
+> >> rejecting all patch that have a BUG_ON, period.
+> > 
+> > Please do, I have been for a few years now as well for the same reasons
+> > you cite.
+> > 
+> 
+> I'm actually concerned about this trend.  Downgrading things to WARN_ON
+> can allow a security bug in the kernel to continue to exist, for
+> example, or make the error message disappear.
 
-- ipu_link_prp_enc_rot_enc():
+A BUG_ON makes any error message disappear pretty quickly :)
 
-Link IPUV3_CHANNEL_IC_PRP_ENC_MEM to IPUV3_CHANNEL_MEM_ROT_ENC.
+I'm talking about foolish "ASSERT-like" BUG_ON that driver authors like
+to add to their code when writing it to catch things they are messing
+up.  After the code is working, they should be removed, like this one.
 
-- ipu_link_prpvf_rot_prpvf():
+Don't enforce an api requirement with a kernel crash, warn and return an
+error which the caller should always be checking anyway.
 
-Links IPUV3_CHANNEL_IC_PRP_VF_MEM to IPUV3_CHANNEL_MEM_ROT_VF.
+thanks,
 
-- ipu_link_pp_rot_pp():
-
-Links IPUV3_CHANNEL_IC_PP_MEM to IPUV3_CHANNEL_MEM_ROT_PP.
-
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/imx-drm/ipu-v3/ipu-common.c |  159 +++++++++++++++++++++++++++
- drivers/staging/imx-drm/ipu-v3/ipu-prv.h    |   58 ++++++++++
- include/linux/platform_data/imx-ipu-v3.h    |    7 ++
- 3 files changed, 224 insertions(+)
-
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-index dfa6cf3..de66d02 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-@@ -973,6 +973,165 @@ void ipu_idmac_clear_buffer(struct ipuv3_channel *channel, u32 buf_num)
- }
- EXPORT_SYMBOL_GPL(ipu_idmac_clear_buffer);
- 
-+/*
-+ * Links IPUV3_CHANNEL_IC_PRP_ENC_MEM to IPUV3_CHANNEL_MEM_ROT_ENC
-+ */
-+int ipu_link_prp_enc_rot_enc(struct ipu_soc *ipu)
-+{
-+	unsigned long flags;
-+	u32 fs_proc_flow1;
-+	u32 fs_proc_flow2;
-+
-+	spin_lock_irqsave(&ipu->lock, flags);
-+
-+	fs_proc_flow1 = ipu_cm_read(ipu, IPU_FS_PROC_FLOW1);
-+	fs_proc_flow2 = ipu_cm_read(ipu, IPU_FS_PROC_FLOW2);
-+
-+	fs_proc_flow1 &= ~FS_PRPENC_ROT_SRC_SEL_MASK;
-+	fs_proc_flow1 |= (0x07 << FS_PRPENC_ROT_SRC_SEL_OFFSET);
-+
-+	fs_proc_flow2 &= ~FS_PRPENC_DEST_SEL_MASK;
-+	fs_proc_flow2 |= (0x01 << FS_PRPENC_DEST_SEL_OFFSET);
-+
-+	ipu_cm_write(ipu, fs_proc_flow1, IPU_FS_PROC_FLOW1);
-+	ipu_cm_write(ipu, fs_proc_flow2, IPU_FS_PROC_FLOW2);
-+
-+	spin_unlock_irqrestore(&ipu->lock, flags);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_link_prp_enc_rot_enc);
-+
-+/*
-+ * Unlinks IPUV3_CHANNEL_IC_PRP_ENC_MEM from IPUV3_CHANNEL_MEM_ROT_ENC
-+ */
-+int ipu_unlink_prp_enc_rot_enc(struct ipu_soc *ipu)
-+{
-+	unsigned long flags;
-+	u32 fs_proc_flow1;
-+	u32 fs_proc_flow2;
-+
-+	spin_lock_irqsave(&ipu->lock, flags);
-+
-+	fs_proc_flow1 = ipu_cm_read(ipu, IPU_FS_PROC_FLOW1);
-+	fs_proc_flow2 = ipu_cm_read(ipu, IPU_FS_PROC_FLOW2);
-+
-+	fs_proc_flow1 &= ~FS_PRPENC_ROT_SRC_SEL_MASK;
-+	fs_proc_flow2 &= ~FS_PRPENC_DEST_SEL_MASK;
-+
-+	ipu_cm_write(ipu, fs_proc_flow1, IPU_FS_PROC_FLOW1);
-+	ipu_cm_write(ipu, fs_proc_flow2, IPU_FS_PROC_FLOW2);
-+
-+	spin_unlock_irqrestore(&ipu->lock, flags);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_unlink_prp_enc_rot_enc);
-+
-+/*
-+ * Links IPUV3_CHANNEL_IC_PRP_VF_MEM to IPUV3_CHANNEL_MEM_ROT_VF
-+ */
-+int ipu_link_prpvf_rot_prpvf(struct ipu_soc *ipu)
-+{
-+	unsigned long flags;
-+	u32 fs_proc_flow1;
-+	u32 fs_proc_flow2;
-+
-+	spin_lock_irqsave(&ipu->lock, flags);
-+
-+	fs_proc_flow1 = ipu_cm_read(ipu, IPU_FS_PROC_FLOW1);
-+	fs_proc_flow2 = ipu_cm_read(ipu, IPU_FS_PROC_FLOW2);
-+
-+	fs_proc_flow1 &= ~FS_PRPVF_ROT_SRC_SEL_MASK;
-+	fs_proc_flow1 |= (0x08 << FS_PRPVF_ROT_SRC_SEL_OFFSET);
-+
-+	fs_proc_flow2 &= ~FS_PRPVF_DEST_SEL_MASK;
-+	fs_proc_flow2 |= (0x01 << FS_PRPVF_DEST_SEL_OFFSET);
-+
-+	ipu_cm_write(ipu, fs_proc_flow1, IPU_FS_PROC_FLOW1);
-+	ipu_cm_write(ipu, fs_proc_flow2, IPU_FS_PROC_FLOW2);
-+
-+	spin_unlock_irqrestore(&ipu->lock, flags);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_link_prpvf_rot_prpvf);
-+
-+/*
-+ * Unlinks IPUV3_CHANNEL_IC_PRP_VF_MEM from IPUV3_CHANNEL_MEM_ROT_VF
-+ */
-+int ipu_unlink_prpvf_rot_prpvf(struct ipu_soc *ipu)
-+{
-+	unsigned long flags;
-+	u32 fs_proc_flow1;
-+	u32 fs_proc_flow2;
-+
-+	spin_lock_irqsave(&ipu->lock, flags);
-+
-+	fs_proc_flow1 = ipu_cm_read(ipu, IPU_FS_PROC_FLOW1);
-+	fs_proc_flow2 = ipu_cm_read(ipu, IPU_FS_PROC_FLOW2);
-+
-+	fs_proc_flow1 &= ~FS_PRPVF_ROT_SRC_SEL_MASK;
-+	fs_proc_flow2 &= ~FS_PRPVF_DEST_SEL_MASK;
-+
-+	ipu_cm_write(ipu, fs_proc_flow1, IPU_FS_PROC_FLOW1);
-+	ipu_cm_write(ipu, fs_proc_flow2, IPU_FS_PROC_FLOW2);
-+
-+	spin_unlock_irqrestore(&ipu->lock, flags);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_unlink_prpvf_rot_prpvf);
-+
-+/*
-+ * Links IPUV3_CHANNEL_IC_PP_MEM to IPUV3_CHANNEL_MEM_ROT_PP
-+ */
-+int ipu_link_pp_rot_pp(struct ipu_soc *ipu)
-+{
-+	unsigned long flags;
-+	u32 fs_proc_flow1;
-+	u32 fs_proc_flow2;
-+
-+	spin_lock_irqsave(&ipu->lock, flags);
-+
-+	fs_proc_flow1 = ipu_cm_read(ipu, IPU_FS_PROC_FLOW1);
-+	fs_proc_flow2 = ipu_cm_read(ipu, IPU_FS_PROC_FLOW2);
-+
-+	fs_proc_flow1 &= ~FS_PP_ROT_SRC_SEL_MASK;
-+	fs_proc_flow1 |= (0x05 << FS_PP_ROT_SRC_SEL_OFFSET);
-+
-+	fs_proc_flow2 &= ~FS_PP_DEST_SEL_MASK;
-+	fs_proc_flow2 |= (0x03 << FS_PP_DEST_SEL_OFFSET);
-+
-+	ipu_cm_write(ipu, fs_proc_flow1, IPU_FS_PROC_FLOW1);
-+	ipu_cm_write(ipu, fs_proc_flow2, IPU_FS_PROC_FLOW2);
-+
-+	spin_unlock_irqrestore(&ipu->lock, flags);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_link_pp_rot_pp);
-+
-+/*
-+ * Unlinks IPUV3_CHANNEL_IC_PP_MEM from IPUV3_CHANNEL_MEM_ROT_PP
-+ */
-+int ipu_unlink_pp_rot_pp(struct ipu_soc *ipu)
-+{
-+	unsigned long flags;
-+	u32 fs_proc_flow1;
-+	u32 fs_proc_flow2;
-+
-+	spin_lock_irqsave(&ipu->lock, flags);
-+
-+	fs_proc_flow1 = ipu_cm_read(ipu, IPU_FS_PROC_FLOW1);
-+	fs_proc_flow2 = ipu_cm_read(ipu, IPU_FS_PROC_FLOW2);
-+
-+	fs_proc_flow1 &= ~FS_PP_ROT_SRC_SEL_MASK;
-+	fs_proc_flow2 &= ~FS_PP_DEST_SEL_MASK;
-+
-+	ipu_cm_write(ipu, fs_proc_flow1, IPU_FS_PROC_FLOW1);
-+	ipu_cm_write(ipu, fs_proc_flow2, IPU_FS_PROC_FLOW2);
-+
-+	spin_unlock_irqrestore(&ipu->lock, flags);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_unlink_pp_rot_pp);
-+
- int ipu_idmac_enable_channel(struct ipuv3_channel *channel)
- {
- 	struct ipu_soc *ipu = channel->ipu;
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-prv.h b/drivers/staging/imx-drm/ipu-v3/ipu-prv.h
-index 446ed20..d10e624 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-prv.h
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-prv.h
-@@ -83,6 +83,64 @@ struct ipu_soc;
- #define IPU_DI0_COUNTER_RELEASE			(1 << 24)
- #define IPU_DI1_COUNTER_RELEASE			(1 << 25)
- 
-+#define FS_PRPENC_ROT_SRC_SEL_MASK     (0xf << 0)
-+#define FS_PRPENC_ROT_SRC_SEL_OFFSET   0
-+#define FS_PRPVF_ROT_SRC_SEL_MASK      (0xf << 8)
-+#define FS_PRPVF_ROT_SRC_SEL_OFFSET    8
-+#define FS_PP_ROT_SRC_SEL_MASK         (0xf << 16)
-+#define FS_PP_ROT_SRC_SEL_OFFSET       16
-+#define FS_PP_SRC_SEL_MASK             (0xf << 12)
-+#define FS_PP_SRC_SEL_OFFSET           12
-+#define FS_PP_SRC_SEL_VDOA             (1 << 15)
-+#define FS_PRP_SRC_SEL_MASK            (0xf << 24)
-+#define FS_PRP_SRC_SEL_OFFSET          24
-+#define FS_VF_IN_VALID                 (1 << 31)
-+#define FS_ENC_IN_VALID                (1 << 30)
-+#define FS_VDI_SRC_SEL_MASK            (0x3 << 28)
-+#define FS_VDI_SRC_SEL_VDOA            (0x2 << 28)
-+#define FS_VDOA_DEST_SEL_MASK          (0x3 << 16)
-+#define FS_VDOA_DEST_SEL_VDI           (0x2 << 16)
-+#define FS_VDOA_DEST_SEL_IC            (0x1 << 16)
-+#define FS_VDI_SRC_SEL_OFFSET          28
-+
-+#define FS_PRPENC_DEST_SEL_MASK        (0xf << 0)
-+#define FS_PRPENC_DEST_SEL_OFFSET      0
-+#define FS_PRPVF_DEST_SEL_MASK         (0xf << 4)
-+#define FS_PRPVF_DEST_SEL_OFFSET       4
-+#define FS_PRPVF_ROT_DEST_SEL_MASK     (0xf << 8)
-+#define FS_PRPVF_ROT_DEST_SEL_OFFSET   8
-+#define FS_PP_DEST_SEL_MASK            (0xf << 12)
-+#define FS_PP_DEST_SEL_OFFSET          12
-+#define FS_PP_ROT_DEST_SEL_MASK        (0xf << 16)
-+#define FS_PP_ROT_DEST_SEL_OFFSET      16
-+#define FS_PRPENC_ROT_DEST_SEL_MASK    (0xf << 20)
-+#define FS_PRPENC_ROT_DEST_SEL_OFFSET  20
-+
-+#define FS_SMFC0_DEST_SEL_MASK         (0xf << 0)
-+#define FS_SMFC0_DEST_SEL_OFFSET       0
-+#define FS_SMFC1_DEST_SEL_MASK         (0x7 << 4)
-+#define FS_SMFC1_DEST_SEL_OFFSET       4
-+#define FS_SMFC2_DEST_SEL_MASK         (0xf << 7)
-+#define FS_SMFC2_DEST_SEL_OFFSET       7
-+#define FS_SMFC3_DEST_SEL_MASK         (0x7 << 11)
-+#define FS_SMFC3_DEST_SEL_OFFSET       11
-+
-+#define FS_DC1_SRC_SEL_MASK            (0xf << 20)
-+#define FS_DC1_SRC_SEL_OFFSET          20
-+#define FS_DC2_SRC_SEL_MASK            (0xf << 16)
-+#define FS_DC2_SRC_SEL_OFFSET          16
-+#define FS_DP_SYNC0_SRC_SEL_MASK       (0xf << 0)
-+#define FS_DP_SYNC0_SRC_SEL_OFFSET     0
-+#define FS_DP_SYNC1_SRC_SEL_MASK       (0xf << 4)
-+#define FS_DP_SYNC1_SRC_SEL_OFFSET     4
-+#define FS_DP_ASYNC0_SRC_SEL_MASK      (0xf << 8)
-+#define FS_DP_ASYNC0_SRC_SEL_OFFSET    8
-+#define FS_DP_ASYNC1_SRC_SEL_MASK      (0xf << 12)
-+#define FS_DP_ASYNC1_SRC_SEL_OFFSET    12
-+
-+#define FS_AUTO_REF_PER_MASK           0
-+#define FS_AUTO_REF_PER_OFFSET         16
-+
- #define IPU_IDMAC_REG(offset)	(offset)
- 
- #define IDMAC_CONF			IPU_IDMAC_REG(0x0000)
-diff --git a/include/linux/platform_data/imx-ipu-v3.h b/include/linux/platform_data/imx-ipu-v3.h
-index 949beec..75a6a5d 100644
---- a/include/linux/platform_data/imx-ipu-v3.h
-+++ b/include/linux/platform_data/imx-ipu-v3.h
-@@ -205,6 +205,13 @@ int ipu_idmac_current_buffer(struct ipuv3_channel *channel);
- void ipu_idmac_enable_watermark(struct ipuv3_channel *channel, bool enable);
- int ipu_idmac_lock_enable(struct ipuv3_channel *channel, int num_bursts);
- 
-+int ipu_link_prp_enc_rot_enc(struct ipu_soc *ipu);
-+int ipu_unlink_prp_enc_rot_enc(struct ipu_soc *ipu);
-+int ipu_link_prpvf_rot_prpvf(struct ipu_soc *ipu);
-+int ipu_unlink_prpvf_rot_prpvf(struct ipu_soc *ipu);
-+int ipu_link_pp_rot_pp(struct ipu_soc *ipu);
-+int ipu_unlink_pp_rot_pp(struct ipu_soc *ipu);
-+
- /*
-  * IPU Display Controller (dc) functions
-  */
--- 
-1.7.9.5
-
+greg k-h
