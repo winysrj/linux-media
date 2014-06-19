@@ -1,106 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:36696 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753682AbaFHSJF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jun 2014 14:09:05 -0400
-Received: by mail-la0-f46.google.com with SMTP id hz20so2443319lab.33
-        for <linux-media@vger.kernel.org>; Sun, 08 Jun 2014 11:09:03 -0700 (PDT)
-From: Alexander Bersenev <bay@hackerdom.ru>
-To: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
-	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
-	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Alexander Bersenev <bay@hackerdom.ru>
-Subject: [PATCH v9 0/5] ARM: sunxi: Add support for consumer infrared devices
-Date: Mon,  9 Jun 2014 00:08:08 +0600
-Message-Id: <1402250893-5412-1-git-send-email-bay@hackerdom.ru>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50416 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933173AbaFSSPS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jun 2014 14:15:18 -0400
+Date: Thu, 19 Jun 2014 11:19:18 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Rob Clark <robdclark@gmail.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-arch@vger.kernel.org,
+	Thomas Hellstrom <thellstrom@vmware.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Colin Cross <ccross@google.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [REPOST PATCH 1/8] fence: dma-buf cross-device synchronization
+ (v17)
+Message-ID: <20140619181918.GA24155@kroah.com>
+References: <20140618102957.15728.43525.stgit@patser>
+ <20140618103653.15728.4942.stgit@patser>
+ <20140619011327.GC10921@kroah.com>
+ <CAF6AEGv4Ms+zsrEtpA10bGq04LnRjzVb925co49eVxh4ugkd=A@mail.gmail.com>
+ <20140619170059.GA1224@kroah.com>
+ <CAF6AEGuXKw1w=outX+QgFE2XZxV8c6pyhORL+mRp4uZR8Jnq7g@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAF6AEGuXKw1w=outX+QgFE2XZxV8c6pyhORL+mRp4uZR8Jnq7g@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch introduces Consumer IR(CIR) support for sunxi boards.
+On Thu, Jun 19, 2014 at 01:45:30PM -0400, Rob Clark wrote:
+> On Thu, Jun 19, 2014 at 1:00 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
+> > On Thu, Jun 19, 2014 at 10:00:18AM -0400, Rob Clark wrote:
+> >> On Wed, Jun 18, 2014 at 9:13 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
+> >> > On Wed, Jun 18, 2014 at 12:36:54PM +0200, Maarten Lankhorst wrote:
+> >> >> +#define CREATE_TRACE_POINTS
+> >> >> +#include <trace/events/fence.h>
+> >> >> +
+> >> >> +EXPORT_TRACEPOINT_SYMBOL(fence_annotate_wait_on);
+> >> >> +EXPORT_TRACEPOINT_SYMBOL(fence_emit);
+> >> >
+> >> > Are you really willing to live with these as tracepoints for forever?
+> >> > What is the use of them in debugging?  Was it just for debugging the
+> >> > fence code, or for something else?
+> >> >
+> >> >> +/**
+> >> >> + * fence_context_alloc - allocate an array of fence contexts
+> >> >> + * @num:     [in]    amount of contexts to allocate
+> >> >> + *
+> >> >> + * This function will return the first index of the number of fences allocated.
+> >> >> + * The fence context is used for setting fence->context to a unique number.
+> >> >> + */
+> >> >> +unsigned fence_context_alloc(unsigned num)
+> >> >> +{
+> >> >> +     BUG_ON(!num);
+> >> >> +     return atomic_add_return(num, &fence_context_counter) - num;
+> >> >> +}
+> >> >> +EXPORT_SYMBOL(fence_context_alloc);
+> >> >
+> >> > EXPORT_SYMBOL_GPL()?  Same goes for all of the exports in here.
+> >> > Traditionally all of the driver core exports have been with this
+> >> > marking, any objection to making that change here as well?
+> >>
+> >> tbh, I prefer EXPORT_SYMBOL()..  well, I'd prefer even more if there
+> >> wasn't even a need for EXPORT_SYMBOL_GPL(), but sadly it is a fact of
+> >> life.  We already went through this debate once with dma-buf.  We
+> >> aren't going to change $evil_vendor's mind about non-gpl modules.  The
+> >> only result will be a more flugly convoluted solution (ie. use syncpt
+> >> EXPORT_SYMBOL() on top of fence EXPORT_SYMBOL_GPL()) just as a
+> >> workaround, with the result that no-one benefits.
+> >
+> > It has been proven that using _GPL() exports have caused companies to
+> > release their code "properly" over the years, so as these really are
+> > Linux-only apis, please change them to be marked this way, it helps
+> > everyone out in the end.
+> 
+> Well, maybe that is the true in some cases.  But it certainly didn't
+> work out that way for dma-buf.  And I think the end result is worse.
+> 
+> I don't really like coming down on the side of EXPORT_SYMBOL() instead
+> of EXPORT_SYMBOL_GPL(), but if we do use EXPORT_SYMBOL_GPL() then the
+> result will only be creative workarounds using the _GPL symbols
+> indirectly by whatever is available via EXPORT_SYMBOL().  I don't
+> really see how that will be better.
 
-This is based on Alexsey Shestacov's work based on the original driver 
-supplied by Allwinner.
+You are saying that you _know_ companies will violate our license, so
+you should just "give up"?  And how do you know people aren't working on
+preventing those "indirect" usages as well?  :)
 
-Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
+Sorry, I'm not going to give up here, again, it has proven to work in
+the past in changing the ways of _very_ large companies, why stop now?
 
----
-Changes since version 1: 
- - Fix timer memory leaks 
- - Fix race condition when driver unloads while interrupt handler is active
- - Support Cubieboard 2(need testing)
+thanks,
 
-Changes since version 2:
-- More reliable keydown events
-- Documentation fixes
-- Rename registers accurding to A20 user manual
-- Remove some includes, order includes alphabetically
-- Use BIT macro
-- Typo fixes
-
-Changes since version 3:
-- Split the patch on smaller parts
-- More documentation fixes
-- Add clock-names in DT
-- Use devm_clk_get function to get the clocks
-- Removed gpios property from ir's DT
-- Changed compatible from allwinner,sunxi-ir to allwinner,sun7i-a20-ir in DT
-- Use spin_lock_irq instead spin_lock_irqsave in interrupt handler
-- Add myself in the copyright ;)
-- Coding style and indentation fixes
-
-Changes since version 4:
-- Try to fix indentation errors by sending patches with git send-mail
-
-Changes since version 5:
-- More indentation fixes
-- Make patches pass checkpatch with --strict option
-- Replaced magic numbers with defines(patch by Priit Laes)
-- Fixed oops on loading(patch by Hans de Goede)
-
-Changes since version 6:
-- Removed constants from code
-- Better errrors handling on loading
-- Renamed sunxi-ir.c to sunxi-cir.c
-- Changed description of second commit
-- Order entries in dts and dtsi by register address
-- Code style fixes
-
-Changes since version 7:
-- Removed a couple of blank lines in code
-- Delay interrupts init until we are ready to handle them
-- Increased the reported duration of each pulse by one
-- Refactored defines
-
-Changes since version 8:
-- Split the DT patch to three
-- Code style fixes
-
-Alexander Bersenev (5):
-  ARM: sunxi: Add documentation for sunxi consumer infrared devices
-  [media] rc: add sunxi-ir driver
-  ARM: sunxi: Add pins for IR controller on A20 to dtsi
-  ARM: sunxi: Add IR controllers on A20 to dtsi
-  ARM: sunxi: Enable IR controller on cubieboard 2 and cubietruck in dts
-
- .../devicetree/bindings/media/sunxi-ir.txt         |  23 ++
- arch/arm/boot/dts/sun7i-a20-cubieboard2.dts        |   6 +
- arch/arm/boot/dts/sun7i-a20-cubietruck.dts         |   6 +
- arch/arm/boot/dts/sun7i-a20.dtsi                   |  32 +++
- drivers/media/rc/Kconfig                           |  10 +
- drivers/media/rc/Makefile                          |   1 +
- drivers/media/rc/sunxi-cir.c                       | 318 +++++++++++++++++++++
- 7 files changed, 396 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sunxi-ir.txt
- create mode 100644 drivers/media/rc/sunxi-cir.c
-
--- 
-1.9.3
-
+greg k-h
