@@ -1,46 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:34912 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754281AbaF3GpJ (ORCPT
+Received: from 216-82-208-22.static.grandenetworks.net ([216.82.208.22]:48277
+	"EHLO mx1.mthode.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934247AbaFTPc7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jun 2014 02:45:09 -0400
-Date: Mon, 30 Jun 2014 09:45:04 +0300
-From: Sami Laine <laine.j.sami@gmail.com>
-To: ismael.luceno@corp.bluecherry.net
-Cc: m.chehab@samsung.com, gregkh@linuxfoundation.org,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, trivial@kernel.org
-Subject: [PATCH next-20140627] drivers/staging/media/solo6x10: sparse warning
- corrections
-Message-ID: <20140630064503.GA32377@outside>
+	Fri, 20 Jun 2014 11:32:59 -0400
+Received: from [10.6.185.150] (unknown [10.0.3.43])
+	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mx1.mthode.org (Postfix) with ESMTPSA id 8BB5D1807F
+	for <linux-media@vger.kernel.org>; Fri, 20 Jun 2014 11:32:56 -0400 (EDT)
+In-Reply-To: <CALzAhNUb_J+tcqaaRLm_x=pAVDNWZp6EFuPBGKiS4VMiVtRwag@mail.gmail.com>
+References: <53A3CB23.2000209@gentoo.org> <CALzAhNUb_J+tcqaaRLm_x=pAVDNWZp6EFuPBGKiS4VMiVtRwag@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+ charset=UTF-8
+Subject: Re: pvrusb2 has a new device (wintv-hvr-1955)
+From: Matthew Thode <prometheanfire@gentoo.org>
+Date: Fri, 20 Jun 2014 10:31:36 -0500
+To: Linux-Media <linux-media@vger.kernel.org>
+Message-ID: <08c06a97-d24b-4eeb-9c3e-d7a923ec1ea1@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sami Laine <laine.j.sami@gmail.com>
+On June 20, 2014 7:29:42 AM CDT, Steven Toth <stoth@kernellabs.com> wrote:
+>On Fri, Jun 20, 2014 at 1:48 AM, Matthew Thode
+><prometheanfire@gentoo.org> wrote:
+>> Just bought a wintv-hvr-1955 (sold as a wintv-hvr-1950)
+>> 160111 LF
+>> Rev B1|7
+>
+>Talk to Hauppauge, they've already announced that they have a working
+>Linux driver.
 
-Sparse warning correction:
-  CHECK   drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-drivers/staging/media/solo6x10/solo6x10-jpeg.h:113:21: warning: symbol 'jpeg_dqt
-' was not declared. Should it be static?
+I talked to them and they did say that the driver hasn't been upstreamed, also gave me some hardware info.  They wouldn't give me a driver/firmware that worked though and offered to RMA for an older device.
 
-The symbol jpeg_dqt is used just in solo6x10-v4l2-enc.c, so I think it
-makes sense to declare it static, which suppresses the sparse warning.
+The demodulator is a Si2177, can't find anything about it in the kernel though.
 
-Signed-off-by: Sami Laine <laine.j.sami@gmail.com>
----
-diff --git a/drivers/staging/media/solo6x10/solo6x10-jpeg.h b/drivers/staging/me
-index c5218ce..9e41185 100644
---- a/drivers/staging/media/solo6x10/solo6x10-jpeg.h
-+++ b/drivers/staging/media/solo6x10/solo6x10-jpeg.h
-@@ -110,7 +110,7 @@ static const unsigned char jpeg_header[] = {
- /* This is the byte marker for the start of the DQT */
- #define DQT_START      17
- #define DQT_LEN                138
--const unsigned char jpeg_dqt[4][DQT_LEN] = {
-+static const unsigned char jpeg_dqt[4][DQT_LEN] = {
-        {
-                0xff, 0xdb, 0x00, 0x43, 0x00,
-                0x08, 0x06, 0x06, 0x07, 0x06, 0x05, 0x08, 0x07,
+They also mentioned a LG3306a, wasn't able to find anything on it (might have misheard a character).
+-- Matthew Thode (prometheanfire)
