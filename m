@@ -1,72 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4110 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752571AbaFKIZ2 (ORCPT
+Received: from 216-82-208-22.static.grandenetworks.net ([216.82.208.22]:48385
+	"EHLO mx1.mthode.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932593AbaFTP7u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jun 2014 04:25:28 -0400
-Message-ID: <5398122F.3060402@xs4all.nl>
-Date: Wed, 11 Jun 2014 10:24:15 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 20 Jun 2014 11:59:50 -0400
+Received: from [10.6.185.150] (unknown [10.0.3.43])
+	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mx1.mthode.org (Postfix) with ESMTPSA id 264DB18084
+	for <linux-media@vger.kernel.org>; Fri, 20 Jun 2014 11:59:48 -0400 (EDT)
+In-Reply-To: <CALzAhNWzndgGCptiaZXAsVw4jyG5ANngO6m9BsL7te0sHDGqCg@mail.gmail.com>
+References: <53A3CB23.2000209@gentoo.org> <CALzAhNUb_J+tcqaaRLm_x=pAVDNWZp6EFuPBGKiS4VMiVtRwag@mail.gmail.com> <08c06a97-d24b-4eeb-9c3e-d7a923ec1ea1@email.android.com> <CALzAhNWzndgGCptiaZXAsVw4jyG5ANngO6m9BsL7te0sHDGqCg@mail.gmail.com>
 MIME-Version: 1.0
-To: Scott Doty <scott@ponzo.net>
-CC: linux-media@vger.kernel.org, ryleyjangus@gmail.com,
-	kpyle@austin.rr.com
-Subject: Re: hdpvr troubles
-References: <538D2392.6030301@ponzo.net>
-In-Reply-To: <538D2392.6030301@ponzo.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+ charset=UTF-8
+Subject: Re: pvrusb2 has a new device (wintv-hvr-1955)
+From: Matthew Thode <prometheanfire@gentoo.org>
+Date: Fri, 20 Jun 2014 10:59:42 -0500
+To: Linux-Media <linux-media@vger.kernel.org>
+Message-ID: <2ea4e837-a037-43ab-a7ad-f6be82462c20@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/03/14 03:23, Scott Doty wrote:
-> Hello Mr. Hans and mailing list,
-> 
-> In a nutshell, I'm having some hdpvr trouble:
-> 
-> I'm using vlc to view the stream.  Kernel 3.9.11 works pretty well,
-> including giving me AC3 5.1 audio from the optical input to the
-> Hauppauge device.  The only problem I've run across is the device
-> hanging when I change channels, but I've learned to live with that. 
-> (Though naturally it would be nice to fix. :) )
-> 
-> However, every kernel I've tried after 3.9.11 seems to have trouble with
-> the audio.  I get silence, and pulseaudio reports there is only stereo. 
-> I've taken a couple of of snapshots of pavucontrol so you can see what I
-> mean:
-> 
->    http://imgur.com/a/SIwc7
-> 
-> I even tried a git bisect to try to narrow down where things went awry,
-> but ran out of time to pursue the question.  But as far as I can tell,
-> 3.9.11 is as far as I can go before my system won't use the device properly.
-> 
-> I see the conversation in the archives from around the middle of May,
-> where Hans was working with Ryley and Keith, but I'm not sure if I
-> should apply that patch or not.  I would love to make this work,
-> including submitting a patch if someone could outline where the problem
-> might be.
-> 
-> Thank you in advance for any help you can provide, and please let me
-> know if I can send any more information. :)
+On June 20, 2014 10:55:47 AM CDT, Steven Toth <stoth@kernellabs.com> wrote:
+>>>> Just bought a wintv-hvr-1955 (sold as a wintv-hvr-1950)
+>>>> 160111 LF
+>>>> Rev B1|7
+>>>
+>>>Talk to Hauppauge, they've already announced that they have a working
+>>>Linux driver.
+>>
+>> I talked to them and they did say that the driver hasn't been
+>upstreamed, also gave me some hardware info.  They wouldn't give me a
+>driver/firmware that worked though and offered to RMA for an older
+>device.
+>
+>They'd previously announced publicly that the driver was available
+>under NDA for a superset product (HVR-1975):
+>
+>Slashgear picked up the PR.
+>
+>http://www.slashgear.com/hauppauge-wintv-hvr-1975-usb-tv-receiver-offers-multi-format-support-27318809/
+>
+>"There are both 32-bit and 64-bit drivers for wider computer support,
+>and for Linux users, driver support is provided under an NDA."
+>
+>^^^ I suggest you ask them, they do have a solution.
+>
+>>
+>> The demodulator is a Si2177, can't find anything about it in the
+>kernel though.
+>
+>Correct.
+>
+>>
+>> They also mentioned a LG3306a, wasn't able to find anything on it
+>(might have misheard a character).
+>
+>LGDT3306
+>
+>- Steve
 
-You can certainly try this patch:
-
-https://patchwork.linuxtv.org/patch/23890/
-
-Nobody else reported audio problems other than the issue this patch tries
-to resolve. However, that problem most likely has been with hdpvr since
-the very beginning.
-
-There were some major changes made to the driver in 3.10, so that makes me
-suspect that something might have broken. Odd though that I didn't see any
-reports about that.
-
-Keith, Ryley, if you run v4l2-ctl -D, what is the version number that is
-reported?
-
-If it is >= 3.10, then can you test with vlc as well?
-
-Regards,
-
-	Hans
+Ah, thanks.  They didn't mention that an NDA was needed, I'll ask about it.
+-- Matthew Thode (prometheanfire)
