@@ -1,86 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54503 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752898AbaFLOvg (ORCPT
+Received: from mail-yh0-f52.google.com ([209.85.213.52]:55893 "EHLO
+	mail-yh0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934916AbaFTPzs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 10:51:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, arm@kernel.org
-Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
-Date: Thu, 12 Jun 2014 16:52:10 +0200
-Message-ID: <2207210.T6NoNSQSCo@avalon>
-In-Reply-To: <20140611144754.GA17845@atomide.com>
-References: <5192928.MkINji4uKU@wuerfel> <20140611144754.GA17845@atomide.com>
+	Fri, 20 Jun 2014 11:55:48 -0400
+Received: by mail-yh0-f52.google.com with SMTP id a41so2987552yho.11
+        for <linux-media@vger.kernel.org>; Fri, 20 Jun 2014 08:55:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <08c06a97-d24b-4eeb-9c3e-d7a923ec1ea1@email.android.com>
+References: <53A3CB23.2000209@gentoo.org>
+	<CALzAhNUb_J+tcqaaRLm_x=pAVDNWZp6EFuPBGKiS4VMiVtRwag@mail.gmail.com>
+	<08c06a97-d24b-4eeb-9c3e-d7a923ec1ea1@email.android.com>
+Date: Fri, 20 Jun 2014 11:55:47 -0400
+Message-ID: <CALzAhNWzndgGCptiaZXAsVw4jyG5ANngO6m9BsL7te0sHDGqCg@mail.gmail.com>
+Subject: Re: pvrusb2 has a new device (wintv-hvr-1955)
+From: Steven Toth <stoth@kernellabs.com>
+To: Matthew Thode <prometheanfire@gentoo.org>
+Cc: Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tony,
+>>> Just bought a wintv-hvr-1955 (sold as a wintv-hvr-1950)
+>>> 160111 LF
+>>> Rev B1|7
+>>
+>>Talk to Hauppauge, they've already announced that they have a working
+>>Linux driver.
+>
+> I talked to them and they did say that the driver hasn't been upstreamed, also gave me some hardware info.  They wouldn't give me a driver/firmware that worked though and offered to RMA for an older device.
 
-On Wednesday 11 June 2014 07:47:54 Tony Lindgren wrote:
-> * Arnd Bergmann <arnd@arndb.de> [140611 07:37]:
-> > The OMAP4 camera support depends on I2C and VIDEO_V4L2, both
-> > of which can be loadable modules. This causes build failures
-> > if we want the camera driver to be built-in.
-> 
-> That's good news, but let's not fix it this way.
-> 
-> > This can be solved by turning the option into "tristate",
-> > which unfortunately causes another problem, because the
-> > driver incorrectly calls a platform-internal interface
-> > for omap4_ctrl_pad_readl/omap4_ctrl_pad_writel.
-> > To work around that, we can export those symbols, but
-> > that isn't really the correct solution, as we should not
-> > have dependencies on platform code this way.
-> > 
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > ---
-> > This is one of just two patches we currently need to get
-> > 'make allmodconfig' to build again on ARM.
-> > 
-> > diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-> > index 751f354..05d2d98 100644
-> > --- a/arch/arm/mach-omap2/control.c
-> > +++ b/arch/arm/mach-omap2/control.c
-> > @@ -190,11 +190,13 @@ u32 omap4_ctrl_pad_readl(u16 offset)
-> >  {
-> >  	return readl_relaxed(OMAP4_CTRL_PAD_REGADDR(offset));
-> >  }
-> > +EXPORT_SYMBOL_GPL(omap4_ctrl_pad_readl);
-> > 
-> >  void omap4_ctrl_pad_writel(u32 val, u16 offset)
-> >  {
-> >  	writel_relaxed(val, OMAP4_CTRL_PAD_REGADDR(offset));
-> >  }
-> > +EXPORT_SYMBOL_GPL(omap4_ctrl_pad_writel);
-> > 
-> >  #ifdef CONFIG_ARCH_OMAP3
-> 
-> Exporting these will likely cause immediate misuse in other
-> drivers all over the place.
-> 
-> These should just use either pinctrl-single.c instead for muxing.
-> Or if they are not mux registers, we do have the syscon mapping
-> available in omap4.dtsi that pbias-regulator.c is already using.
-> 
-> Laurent, got any better ideas?
+They'd previously announced publicly that the driver was available
+under NDA for a superset product (HVR-1975):
 
-The ISS driver needs to write a single register, which contains several 
-independent fields. They thus need to be controlled by a single driver. Some 
-of them might be considered to be related to pinmuxing (although I disagree on 
-that), others are certainly not about muxing (there are clock gate bits for 
-instance).
+Slashgear picked up the PR.
 
-Using the syscon mapping seems like the best option. I'll give it a try.
+http://www.slashgear.com/hauppauge-wintv-hvr-1975-usb-tv-receiver-offers-multi-format-support-27318809/
+
+"There are both 32-bit and 64-bit drivers for wider computer support,
+and for Linux users, driver support is provided under an NDA."
+
+^^^ I suggest you ask them, they do have a solution.
+
+>
+> The demodulator is a Si2177, can't find anything about it in the kernel though.
+
+Correct.
+
+>
+> They also mentioned a LG3306a, wasn't able to find anything on it (might have misheard a character).
+
+LGDT3306
+
+- Steve
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
++1.646.355.8490
