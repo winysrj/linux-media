@@ -1,34 +1,20 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f51.google.com ([209.85.213.51]:57402 "EHLO
-	mail-yh0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965113AbaFTM3m (ORCPT
+Received: from akmo.kz ([212.154.234.163]:50426 "EHLO akmo.kz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966182AbaFTSkz convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jun 2014 08:29:42 -0400
-Received: by mail-yh0-f51.google.com with SMTP id f10so2726524yha.24
-        for <linux-media@vger.kernel.org>; Fri, 20 Jun 2014 05:29:42 -0700 (PDT)
+	Fri, 20 Jun 2014 14:40:55 -0400
+Message-Id: <201406201838.s5KDEIFR028706@akmo.kz>
+Content-Type: text/plain; charset=US-ASCII
 MIME-Version: 1.0
-In-Reply-To: <53A3CB23.2000209@gentoo.org>
-References: <53A3CB23.2000209@gentoo.org>
-Date: Fri, 20 Jun 2014 08:29:42 -0400
-Message-ID: <CALzAhNUb_J+tcqaaRLm_x=pAVDNWZp6EFuPBGKiS4VMiVtRwag@mail.gmail.com>
-Subject: Re: pvrusb2 has a new device (wintv-hvr-1955)
-From: Steven Toth <stoth@kernellabs.com>
-To: prometheanfire@gentoo.org
-Cc: Mike Isely <isely@pobox.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7BIT
+Content-Description: Mail message body
+Subject: Santander Finance We offer all purpose loan at 3% interest rate
+To: Recipients <asisten4@sumutprov.go.id>
+From: "Santander Finance " <asisten4@sumutprov.go.id>
+Date: Fri, 20 Jun 2014 01:46:19 -0700
+Reply-To: santafinance@aol.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 20, 2014 at 1:48 AM, Matthew Thode
-<prometheanfire@gentoo.org> wrote:
-> Just bought a wintv-hvr-1955 (sold as a wintv-hvr-1950)
-> 160111 LF
-> Rev B1|7
-
-Talk to Hauppauge, they've already announced that they have a working
-Linux driver.
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+We offer all purpose loan at 3% interest rate. Contact Us for more details by Email:santanderfinancegroup@gmail.com
