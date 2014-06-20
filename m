@@ -1,71 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1577 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751442AbaFBI21 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jun 2014 04:28:27 -0400
-Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s528SNPH054158
-	for <linux-media@vger.kernel.org>; Mon, 2 Jun 2014 10:28:25 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0FD902A1B59
-	for <linux-media@vger.kernel.org>; Mon,  2 Jun 2014 10:28:18 +0200 (CEST)
-Message-ID: <538C35A2.8030307@xs4all.nl>
-Date: Mon, 02 Jun 2014 10:28:18 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [RFC ATTN] Cropping, composing, scaling and S_FMT
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:19837 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030220AbaFTW3w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jun 2014 18:29:52 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N7H00A6QNTRXI40@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 20 Jun 2014 18:29:51 -0400 (EDT)
+Date: Fri, 20 Jun 2014 19:29:46 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Gregor Jasny <gjasny@googlemail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Time for v4l-utils 1.2 release?
+Message-id: <20140620192946.39765ec3.m.chehab@samsung.com>
+In-reply-to: <53A4B097.3050802@xs4all.nl>
+References: <53A49A11.2010502@googlemail.com> <53A4B097.3050802@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-During the media mini-summit I went through all 8 combinations of cropping,
-composing and scaling (i.e. none of these features is present, or only cropping,
-only composing, etc.).
+Em Sat, 21 Jun 2014 00:07:19 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-In particular I showed what I thought should happen if you change a crop rectangle,
-compose rectangle or the format rectangle (VIDIOC_S_FMT).
+> On 06/20/2014 10:31 PM, Gregor Jasny wrote:
+> > Hello,
+> > 
+> > It's been 11 months since the 1.0.0 release. What do you think about
+> > releasing HEAD? Do you have any pending commits?
+> 
+> I've got two patches from Laurent pending that ensure that the 'installed
+> kernel headers' are used. I plan on processing those on Monday. After that
+> I think it's OK to do a release.
+> 
+> Mauro, did you look at my email where I suggest to remove three apps from
+> contrib? If you agree with that, then I can do that Monday as well.
 
-In my proposal the format rectangle would increase in size if you attempt to set
-the compose rectangle wholly or partially outside the current format rectangle.
-Most (all?) of the developers present didn't like that and I was asked to take
-another look at that.
+Well, I don't remember about such email, nor I was able to find on a quick
+look.
 
-After looking at this some more I realized that there was no need for this and
-it is OK to constrain a compose rectangle to the current format rectangle. All
-you need to do if you want to place the compose rectangle outside of the format
-rectangle is to just change the format rectangle first. If the driver supports
-composition then increasing the format rectangle will not change anything else,
-so that is a safe operation without side-effects.
+What apps are you planning to remove?
 
-However, changing the crop rectangle *can* change the format rectangle. In the
-simple case of hardware that just supports cropping this is obvious, since
-the crop and format rectangles must always be of the same size, so changing
-one will change the other. But if you throw in a scaler as well, you usually
-still have such constraints based on the scaler capabilities.
-
-So assuming a scaler that can only scale 4 times (or less) up or down in each
-direction, then setting a crop rectangle of 240x160 will require that the
-format rectangle has a width in the range of 240/4 - 240*4 (60-960) and a
-height in the range of 160/4 - 160*4 (40-640). Anything outside of that will
-have to be corrected.
-
-In my opinion this is valid behavior, and the specification also clearly
-specifies in the VIDIOC_S_CROP and VIDIOC_S_SELECTION documentation that the
-format may change after changing the crop rectangle.
-
-Note that for output streams the role of crop and compose is swapped. So for
-output streams it is the crop rectangle that will always be constrained by
-the format rectangle, and it is the compose rectangle that might change the
-format rectangle based on scaler constraints.
-
-I think this makes sense and unless there are comments this is what I plan
-to implement in my vivi rewrite which supports all these crop/compose/scale
-combinations.
+Btw, I think it could be a good idea to be able to install some of those
+stuff under contrib to a separate package. I had to do a quick hack
+in order to install v4l2grab on a Tizen package, in order to be able to
+test a card there (as was needing to do some tests via CLI).
 
 Regards,
-
-	Hans
+Mauro
