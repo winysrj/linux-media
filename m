@@ -1,48 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41856 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751883AbaFFNwo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jun 2014 09:52:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v3 0/2] vb2: Report POLLERR for fatal errors only
-Date: Fri,  6 Jun 2014 15:53:08 +0200
-Message-Id: <1402062790-17690-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-yh0-f51.google.com ([209.85.213.51]:57402 "EHLO
+	mail-yh0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965113AbaFTM3m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jun 2014 08:29:42 -0400
+Received: by mail-yh0-f51.google.com with SMTP id f10so2726524yha.24
+        for <linux-media@vger.kernel.org>; Fri, 20 Jun 2014 05:29:42 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <53A3CB23.2000209@gentoo.org>
+References: <53A3CB23.2000209@gentoo.org>
+Date: Fri, 20 Jun 2014 08:29:42 -0400
+Message-ID: <CALzAhNUb_J+tcqaaRLm_x=pAVDNWZp6EFuPBGKiS4VMiVtRwag@mail.gmail.com>
+Subject: Re: pvrusb2 has a new device (wintv-hvr-1955)
+From: Steven Toth <stoth@kernellabs.com>
+To: prometheanfire@gentoo.org
+Cc: Mike Isely <isely@pobox.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Fri, Jun 20, 2014 at 1:48 AM, Matthew Thode
+<prometheanfire@gentoo.org> wrote:
+> Just bought a wintv-hvr-1955 (sold as a wintv-hvr-1950)
+> 160111 LF
+> Rev B1|7
 
-This patch set modifies the vb2 implementation of the poll() operation to set
-the POLLERR flag for fatal errors only. The rationale and implementation
-details are explained in the individual commit messages.
-
-Changes since v2:
-
-- Return POLLERR when not streaming only when no buffers are queued
-- Tested with vivi and VB2_READ
-
-Changes since v1:
-
-- Rebased on top of the latest media tree master branch
-- Fixed typos
-
-Laurent Pinchart (2):
-  v4l: vb2: Don't return POLLERR during transient buffer underruns
-  v4l: vb2: Add fatal error condition flag
-
- drivers/media/v4l2-core/videobuf2-core.c | 40 +++++++++++++++++++++++++++++---
- include/media/videobuf2-core.h           |  3 +++
- 2 files changed, 40 insertions(+), 3 deletions(-)
+Talk to Hauppauge, they've already announced that they have a working
+Linux driver.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
