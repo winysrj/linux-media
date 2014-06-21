@@ -1,53 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:33148 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934165AbaFJH4q (ORCPT
+Received: from smtp05.smtpout.orange.fr ([80.12.242.127]:56455 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752121AbaFUWUi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jun 2014 03:56:46 -0400
-MIME-Version: 1.0
-In-Reply-To: <20140609151046.GE9600@mwanda>
-References: <20140609151046.GE9600@mwanda>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 10 Jun 2014 08:56:15 +0100
-Message-ID: <CA+V-a8uqoA2pi45K6o3XXnyXL4MMU692uQjE_GdGE=Sfgzf2mg@mail.gmail.com>
-Subject: Re: [patch] [media] davinci: vpfe: dm365: remove duplicate RSZ_LPF_INT_MASK
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+	Sat, 21 Jun 2014 18:20:38 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: g.liakhovetski@gmx.de, devicetree@vger.kernel.org
+Cc: linux-media@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v2 1/2] media: mt8m111: add device-tree suppport
+Date: Sun, 22 Jun 2014 00:19:54 +0200
+Message-Id: <1403389195-17386-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
+Add device-tree support for mt9m111 camera sensor.
 
-Thanks for the patch.
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/i2c/soc_camera/mt9m111.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-On Mon, Jun 9, 2014 at 4:10 PM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> The RSZ_LPF_INT_MASK define is cut and pasted twice so we can remove the
-> second instance.
->
-Applied.
+diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
+index ccf5940..b51e856 100644
+--- a/drivers/media/i2c/soc_camera/mt9m111.c
++++ b/drivers/media/i2c/soc_camera/mt9m111.c
+@@ -931,6 +931,12 @@ static int mt9m111_probe(struct i2c_client *client,
+ 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	int ret;
+ 
++	if (client->dev.of_node) {
++		ssdd = devm_kzalloc(&client->dev, sizeof(*ssdd), GFP_KERNEL);
++		if (!ssdd)
++			return -ENOMEM;
++		client->dev.platform_data = ssdd;
++	}
+ 	if (!ssdd) {
+ 		dev_err(&client->dev, "mt9m111: driver needs platform data\n");
+ 		return -EINVAL;
+@@ -1015,6 +1021,11 @@ static int mt9m111_remove(struct i2c_client *client)
+ 
+ 	return 0;
+ }
++static const struct of_device_id mt9m111_of_match[] = {
++	{ .compatible = "micron,mt9m111", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, mt9m111_of_match);
+ 
+ static const struct i2c_device_id mt9m111_id[] = {
+ 	{ "mt9m111", 0 },
+@@ -1025,6 +1036,7 @@ MODULE_DEVICE_TABLE(i2c, mt9m111_id);
+ static struct i2c_driver mt9m111_i2c_driver = {
+ 	.driver = {
+ 		.name = "mt9m111",
++		.of_match_table = of_match_ptr(mt9m111_of_match),
+ 	},
+ 	.probe		= mt9m111_probe,
+ 	.remove		= mt9m111_remove,
+-- 
+2.0.0.rc2
 
-Regards,
---Prabhakar Lad
-
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->
-> diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.h b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.h
-> index 010fdb2..81176fb 100644
-> --- a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.h
-> +++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.h
-> @@ -479,7 +479,6 @@
->  #define RSZ_TYP_Y_SHIFT                        0
->  #define RSZ_TYP_C_SHIFT                        1
->  #define RSZ_LPF_INT_MASK               0x3f
-> -#define RSZ_LPF_INT_MASK               0x3f
->  #define RSZ_LPF_INT_C_SHIFT            6
->  #define RSZ_H_PHS_MASK                 0x3fff
->  #define RSZ_H_DIF_MASK                 0x3fff
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
