@@ -1,95 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:52093 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755362AbaFSHgv (ORCPT
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:42601 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934660AbaFULEv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jun 2014 03:36:51 -0400
-Date: Thu, 19 Jun 2014 09:36:48 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: devicetree@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] media: mt9m111: add device-tree suppport
-In-Reply-To: <1402863452-30365-1-git-send-email-robert.jarzmik@free.fr>
-Message-ID: <Pine.LNX.4.64.1406190929380.22703@axis700.grange>
-References: <1402863452-30365-1-git-send-email-robert.jarzmik@free.fr>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Sat, 21 Jun 2014 07:04:51 -0400
+Received: by mail-lb0-f181.google.com with SMTP id p9so2926385lbv.40
+        for <linux-media@vger.kernel.org>; Sat, 21 Jun 2014 04:04:50 -0700 (PDT)
+From: Alexander Bersenev <bay@hackerdom.ru>
+To: linux-sunxi@googlegroups.com, david@hardeman.nu,
+	devicetree@vger.kernel.org, galak@codeaurora.org,
+	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
+	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
+	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
+	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
+	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
+	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Alexander Bersenev <bay@hackerdom.ru>
+Subject: [PATCH v10 4/5] ARM: sunxi: Add IR controllers on A20 to dtsi
+Date: Sat, 21 Jun 2014 17:04:05 +0600
+Message-Id: <1403348646-31091-5-git-send-email-bay@hackerdom.ru>
+In-Reply-To: <1403348646-31091-1-git-send-email-bay@hackerdom.ru>
+References: <1403348646-31091-1-git-send-email-bay@hackerdom.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robert,
+This patch adds records for two IR controllers on A20
 
-Thanks for the patch.
+Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
+Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
+---
+ arch/arm/boot/dts/sun7i-a20.dtsi |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
 
-On Sun, 15 Jun 2014, Robert Jarzmik wrote:
+diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
+index 656d7d3..1782375 100644
+--- a/arch/arm/boot/dts/sun7i-a20.dtsi
++++ b/arch/arm/boot/dts/sun7i-a20.dtsi
+@@ -785,6 +785,24 @@
+ 			status = "disabled";
+ 		};
+ 
++		ir0: ir@01c21800 {
++			compatible = "allwinner,sun7i-a20-ir";
++			clocks = <&apb0_gates 6>, <&ir0_clk>;
++			clock-names = "apb", "ir";
++			interrupts = <0 5 4>;
++			reg = <0x01c21800 0x40>;
++			status = "disabled";
++		};
++
++		ir1: ir@01c21c00 {
++			compatible = "allwinner,sun7i-a20-ir";
++			clocks = <&apb0_gates 7>, <&ir1_clk>;
++			clock-names = "apb", "ir";
++			interrupts = <0 6 4>;
++			reg = <0x01c21c00 0x40>;
++			status = "disabled";
++		};
++
+ 		sid: eeprom@01c23800 {
+ 			compatible = "allwinner,sun7i-a20-sid";
+ 			reg = <0x01c23800 0x200>;
+-- 
+1.7.1
 
-> Add device-tree support for mt9m111 camera sensor.
-> 
-> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> ---
->  drivers/media/i2c/soc_camera/mt9m111.c | 21 +++++++++++++++++++++
->  1 file changed, 21 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
-> index ccf5940..7d283ea 100644
-> --- a/drivers/media/i2c/soc_camera/mt9m111.c
-> +++ b/drivers/media/i2c/soc_camera/mt9m111.c
-> @@ -923,6 +923,12 @@ done:
->  	return ret;
->  }
->  
-> +static int of_get_mt9m111_platform_data(struct device *dev,
-> +					struct soc_camera_subdev_desc *desc)
-> +{
-> +	return 0;
-> +}
-
-Why do you need this function? I would just drop it.
-
-> +
->  static int mt9m111_probe(struct i2c_client *client,
->  			 const struct i2c_device_id *did)
->  {
-> @@ -931,6 +937,15 @@ static int mt9m111_probe(struct i2c_client *client,
->  	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
->  	int ret;
->  
-> +	if (client->dev.of_node) {
-> +		ssdd = devm_kzalloc(&client->dev, sizeof(*ssdd), GFP_KERNEL);
-> +		if (!ssdd)
-> +			return -ENOMEM;
-> +		client->dev.platform_data = ssdd;
-> +		ret = of_get_mt9m111_platform_data(&client->dev, ssdd);
-> +		if (ret < 0)
-> +			return ret;
-> +	}
->  	if (!ssdd) {
->  		dev_err(&client->dev, "mt9m111: driver needs platform data\n");
->  		return -EINVAL;
-> @@ -1015,6 +1030,11 @@ static int mt9m111_remove(struct i2c_client *client)
->  
->  	return 0;
->  }
-> +static const struct of_device_id mt9m111_of_match[] = {
-> +	{ .compatible = "micron,mt9m111", },
-
-Not a flaw in this patch, but someone might want to add "micron" to 
-Documentation/devicetree/bindings/vendor-prefixes.txt
-
-> +	{},
-> +};
-> +MODULE_DEVICE_TABLE(of, mt9m111_of_match);
->  
->  static const struct i2c_device_id mt9m111_id[] = {
->  	{ "mt9m111", 0 },
-> @@ -1025,6 +1045,7 @@ MODULE_DEVICE_TABLE(i2c, mt9m111_id);
->  static struct i2c_driver mt9m111_i2c_driver = {
->  	.driver = {
->  		.name = "mt9m111",
-> +		.of_match_table = of_match_ptr(mt9m111_of_match),
->  	},
->  	.probe		= mt9m111_probe,
->  	.remove		= mt9m111_remove,
-> -- 
-> 2.0.0.rc2
-> 
