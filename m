@@ -1,34 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55953 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753585AbaFDOFW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jun 2014 10:05:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Subject: [PATCH/RFC 0/2] vb2: Report POLLERR for fatal errors only
-Date: Wed,  4 Jun 2014 16:05:42 +0200
-Message-Id: <1401890744-22683-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp05.smtpout.orange.fr ([80.12.242.127]:44332 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752472AbaFUWUj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Jun 2014 18:20:39 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: g.liakhovetski@gmx.de, devicetree@vger.kernel.org
+Cc: linux-media@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v2 2/2] media: mt9m111: add device-tree documentation
+Date: Sun, 22 Jun 2014 00:19:55 +0200
+Message-Id: <1403389195-17386-2-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1403389195-17386-1-git-send-email-robert.jarzmik@free.fr>
+References: <1403389195-17386-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Add device-tree bindings documentation for the Micron mt9m111 image
+sensor.
 
-This patch set modifies the vb2 implementation of the poll() operation to set
-the POLLERR flag for fatal errors only. The rationale and implementation
-details are explained in the individual commit messages.
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ .../devicetree/bindings/media/i2c/mt9m111.txt      | 28 ++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9m111.txt
 
-Laurent Pinchart (2):
-  v4l: vb2: Don't return POLLERR during transient buffer underruns
-  v4l: vb2: Add fatal error condition flag
-
- drivers/media/video/videobuf2-core.c | 41 +++++++++++++++++++++++++++++++++---
- include/media/videobuf2-core.h       |  3 +++
- 2 files changed, 41 insertions(+), 3 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/media/i2c/mt9m111.txt b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
+new file mode 100644
+index 0000000..ed5a334
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
+@@ -0,0 +1,28 @@
++Micron 1.3Mp CMOS Digital Image Sensor
++
++The Micron MT9M111 is a CMOS active pixel digital image sensor with an active
++array size of 1280H x 1024V. It is programmable through a simple two-wire serial
++interface.
++
++Required Properties:
++- compatible: value should be "micron,mt9m111"
++
++For further reading on port node refer to
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	i2c_master {
++		mt9m111@5d {
++			compatible = "micron,mt9m111";
++			reg = <0x5d>;
++
++			remote = <&pxa_camera>;
++			port {
++				mt9m111_1: endpoint {
++					bus-width = <8>;
++					remote-endpoint = <&pxa_camera>;
++				};
++			};
++		};
++	};
 -- 
-Regards,
-
-Laurent Pinchart
+2.0.0.rc2
 
