@@ -1,72 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33003 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753117AbaFLRGo (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3095 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758027AbaFUGIg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 13:06:44 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [RFC PATCH 03/26] gpu: ipu-v3: Add function to setup CP channel as interlaced
-Date: Thu, 12 Jun 2014 19:06:17 +0200
-Message-Id: <1402592800-2925-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+	Sat, 21 Jun 2014 02:08:36 -0400
+Message-ID: <53A5213D.7010202@xs4all.nl>
+Date: Sat, 21 Jun 2014 08:07:57 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Gregor Jasny <gjasny@googlemail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Time for v4l-utils 1.2 release?
+References: <53A49A11.2010502@googlemail.com> <53A4B097.3050802@xs4all.nl> <20140620192946.39765ec3.m.chehab@samsung.com>
+In-Reply-To: <20140620192946.39765ec3.m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a function to enable line interlaced buffer scanout
-and writing.
+On 06/21/2014 12:29 AM, Mauro Carvalho Chehab wrote:
+> Em Sat, 21 Jun 2014 00:07:19 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 06/20/2014 10:31 PM, Gregor Jasny wrote:
+>>> Hello,
+>>>
+>>> It's been 11 months since the 1.0.0 release. What do you think about
+>>> releasing HEAD? Do you have any pending commits?
+>>
+>> I've got two patches from Laurent pending that ensure that the 'installed
+>> kernel headers' are used. I plan on processing those on Monday. After that
+>> I think it's OK to do a release.
+>>
+>> Mauro, did you look at my email where I suggest to remove three apps from
+>> contrib? If you agree with that, then I can do that Monday as well.
+> 
+> Well, I don't remember about such email, nor I was able to find on a quick
+> look.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/gpu/ipu-v3/ipu-common.c | 19 +++++++++++++++++++
- include/video/imx-ipu-v3.h      |  1 +
- 2 files changed, 20 insertions(+)
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg76120.html
 
-diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
-index a4910d8..94b9e8e 100644
---- a/drivers/gpu/ipu-v3/ipu-common.c
-+++ b/drivers/gpu/ipu-v3/ipu-common.c
-@@ -525,6 +525,25 @@ int ipu_cpmem_set_image(struct ipu_ch_param __iomem *cpmem,
- }
- EXPORT_SYMBOL_GPL(ipu_cpmem_set_image);
- 
-+int ipu_ch_cpmem_set_interlaced_scan(struct ipuv3_channel *channel)
-+{
-+	u32 stride;
-+	struct ipu_soc *ipu = channel->ipu;
-+	struct ipu_ch_param __iomem *p = ipu_get_cpmem(channel);
-+
-+	stride = ipu_ch_param_read_field(p, IPU_FIELD_SL) + 1;
-+	if (stride % 8)
-+		dev_warn(ipu->dev,
-+			 "IDMAC%d's ILO is not 8-byte aligned\n", channel->num);
-+
-+	ipu_ch_param_write_field(p, IPU_FIELD_SO, 1);
-+	ipu_ch_param_write_field(p, IPU_FIELD_ILO, stride / 8);
-+	ipu_ch_param_write_field(p, IPU_FIELD_SL, 2 * stride - 1);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_ch_cpmem_set_interlaced_scan);
-+
- enum ipu_color_space ipu_pixelformat_to_colorspace(u32 pixelformat)
- {
- 	switch (pixelformat) {
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 2d14425..77a82f5 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -320,6 +320,7 @@ void ipu_cpmem_set_yuv_planar_full(struct ipu_ch_param __iomem *p,
- int ipu_cpmem_set_fmt(struct ipu_ch_param __iomem *cpmem, u32 pixelformat);
- int ipu_cpmem_set_image(struct ipu_ch_param __iomem *cpmem,
- 		struct ipu_image *image);
-+int ipu_ch_cpmem_set_interlaced_scan(struct ipuv3_channel *channel);
- 
- enum ipu_color_space ipu_drm_fourcc_to_colorspace(u32 drm_fourcc);
- enum ipu_color_space ipu_pixelformat_to_colorspace(u32 pixelformat);
--- 
-2.0.0.rc2
+Marked with ATTN as well!
+
+> 
+> What apps are you planning to remove?
+> 
+> Btw, I think it could be a good idea to be able to install some of those
+> stuff under contrib to a separate package. I had to do a quick hack
+> in order to install v4l2grab on a Tizen package, in order to be able to
+> test a card there (as was needing to do some tests via CLI).
+
+What does v4l2grab offer that v4l2-ctl doesn't? I would be much more inclined
+to remove v4l2grab.
+
+Regards,
+
+	Hans
 
