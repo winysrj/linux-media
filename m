@@ -1,50 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:54507 "EHLO smtp6-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752887AbaFYI1R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jun 2014 04:27:17 -0400
-Message-ID: <53AA87DE.5030109@eukrea.com>
-Date: Wed, 25 Jun 2014 10:27:10 +0200
-From: Denis Carikli <denis@eukrea.com>
-MIME-Version: 1.0
-To: Thierry Reding <thierry.reding@gmail.com>,
-	=?ISO-8859-1?Q?Eric_B=E9?= =?ISO-8859-1?Q?nard?=
-	<eric@eukrea.com>
-CC: devel@driverdev.osuosl.org, Russell King <linux@arm.linux.org.uk>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	David Airlie <airlied@linux.ie>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	dri-devel@lists.freedesktop.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v14 08/10] drm/panel: Add Eukrea mbimxsd51 displays.
-References: <1402913484-25910-1-git-send-email-denis@eukrea.com> <1402913484-25910-8-git-send-email-denis@eukrea.com> <20140624214926.GA30039@mithrandir> <20140624235639.487429ad@e6520eb> <20140624220404.GA30155@mithrandir>
-In-Reply-To: <20140624220404.GA30155@mithrandir>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:42204 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934568AbaFULEe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Jun 2014 07:04:34 -0400
+Received: by mail-lb0-f178.google.com with SMTP id 10so2944048lbg.23
+        for <linux-media@vger.kernel.org>; Sat, 21 Jun 2014 04:04:32 -0700 (PDT)
+From: Alexander Bersenev <bay@hackerdom.ru>
+To: linux-sunxi@googlegroups.com, david@hardeman.nu,
+	devicetree@vger.kernel.org, galak@codeaurora.org,
+	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
+	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
+	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
+	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
+	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
+	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Alexander Bersenev <bay@hackerdom.ru>
+Subject: [PATCH v10 1/5] ARM: sunxi: Add documentation for sunxi consumer infrared devices
+Date: Sat, 21 Jun 2014 17:04:02 +0600
+Message-Id: <1403348646-31091-2-git-send-email-bay@hackerdom.ru>
+In-Reply-To: <1403348646-31091-1-git-send-email-bay@hackerdom.ru>
+References: <1403348646-31091-1-git-send-email-bay@hackerdom.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/25/2014 12:04 AM, Thierry Reding wrote:
->> because on this very simple display board, we only have DVI LVDS signals
->> without the I2C to detect the display.
->
-> That's unfortunate. In that case perhaps a better approach would be to
-> add a video timings node to the device that provides the DVI output?
-I've just done that.
+This patch adds documentation for Device-Tree bindings for sunxi IR
+controller.
 
-Should I resend now? The goal is to avoid as much as possible extra 
-versions.
+Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
+Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
+---
+ .../devicetree/bindings/media/sunxi-ir.txt         |   23 ++++++++++++++++++++
+ 1 files changed, 23 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/sunxi-ir.txt
 
-Also, as I said before in a response to "[PATCH v14 09/10] ARM: dts: 
-mbimx51sd: Add display support.", the LCD regulator was inverted, it 
-worked while inverted because of a bug which is now fixed by:
-"imx-drm: parallel-display: Fix DPMS default state."
+diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+new file mode 100644
+index 0000000..014dd8b
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+@@ -0,0 +1,23 @@
++Device-Tree bindings for SUNXI IR controller found in sunXi SoC family
++
++Required properties:
++- compatible	    : should be "allwinner,sun7i-a20-ir";
++- clocks	    : list of clock specifiers, corresponding to
++		      entries in clock-names property;
++- clock-names	    : should contain "apb" and "ir" entries;
++- interrupts	    : should contain IR IRQ number;
++- reg		    : should contain IO map address for IR.
++
++Optional properties:
++- linux,rc-map-name : Remote control map name.
++
++Example:
++
++ir0: ir@01c21800 {
++	compatible = "allwinner,sun7i-a20-ir";
++	clocks = <&apb0_gates 6>, <&ir0_clk>;
++	clock-names = "apb", "ir";
++	interrupts = <0 5 1>;
++	reg = <0x01C21800 0x40>;
++	linux,rc-map-name = "rc-rc6-mce";
++};
+-- 
+1.7.1
 
-Right now, I don't have any other changes for this serie beside a simple 
-rebase of "dts: imx5*, imx6*: correct display-timings rebased".
-
-Denis.
