@@ -1,82 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews10.kpnxchange.com ([213.75.39.15]:55891 "EHLO
-	cpsmtpb-ews10.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751127AbaFPMyB (ORCPT
+Received: from mail-yh0-f45.google.com ([209.85.213.45]:58636 "EHLO
+	mail-yh0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754025AbaFUUpF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 08:54:01 -0400
-Message-ID: <1402922329.30599.10.camel@x220>
-Subject: Re: [PATCH] [media] sms: Remove CONFIG_ prefix from Kconfig symbols
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Martin Walch <walch.martin@web.de>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Date: Mon, 16 Jun 2014 14:38:49 +0200
-In-Reply-To: <1397663263.28548.13.camel@x220>
-References: <3513955.N5RNgL3hPx@tacticalops>
-	 <1383420054.4378.3.camel@x220.thuisdomein>
-	 <20131102174047.70c24ed8@samsung.com> <1392122724.13064.18.camel@x220>
-	 <1397663263.28548.13.camel@x220>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sat, 21 Jun 2014 16:45:05 -0400
+Received: by mail-yh0-f45.google.com with SMTP id t59so3904650yho.18
+        for <linux-media@vger.kernel.org>; Sat, 21 Jun 2014 13:45:04 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <6a19b39b-a20a-45b7-b889-611a39bf0325@email.android.com>
+References: <CAGoCfiyeHbYYTSYY_VPEXJ4z8668w6LdjprW1+FbMJCOoCekwA@mail.gmail.com>
+	<6a19b39b-a20a-45b7-b889-611a39bf0325@email.android.com>
+Date: Sat, 21 Jun 2014 16:45:04 -0400
+Message-ID: <CALzAhNV09XiqVnNOtA=e0wNM=11riXG8hDhzA8gixqKPNmh5nw@mail.gmail.com>
+Subject: Re: Best way to add subdev that doesn't use I2C or SPI?
+From: Steven Toth <stoth@kernellabs.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2014-04-16 at 17:47 +0200, Paul Bolle wrote:
-> Remove the CONFIG_ prefix from two Kconfig symbols in a dependency for
-> SMS_SIANO_DEBUGFS. This prefix is invalid inside Kconfig files.
-> 
-> Note that the current (common sense) dependency on SMS_USB_DRV and
-> SMS_SDIO_DRV being equal ensures that SMS_SIANO_DEBUGFS will not
-> violate its constraints. These constraint are that:
-> - it should only be built if SMS_USB_DRV is set;
-> - it can't be builtin if USB support is modular.
-> 
-> So drop the dependency on SMS_USB_DRV, as it is unneeded.
-> 
-> Fixes: 6c84b214284e ("[media] sms: fix randconfig building error")
-> Reported-by: Martin Walch <walch.martin@web.de>
-> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-> ---
-> This is not runtime tested, as I don't have the hardware.
-> 
-> A matrix of the three cases in which this symbol can be set, to aid
-> review and to see whether I actually understood the constraints:
-> 
-> USB  SMS_USB_DRV  SMS_SDIO_DRV  SMS_SIANO_MDTV  SMS_SIANO_DEBUGFS
-> m    m            m             m               y 
-> y    m            m             m               y 
-> y    y            y             y               y 
-> 
-> By the way, I found myself staring at the entries in this file for quite
-> some time. Perhaps things would have been easier to understand if
-> SMS_USB_DRV and SMS_SDIO_DRV both selected SMS_SIANO_MDTV. But I didn't
-> dare to test that idea.
+>>Any suggestions welcome (and in particular if you can point me to an
+>>example case where this is already being done).
 
-This can still be seen in v3.16-rc1 and in next-20140616.
+I'm not aware of any subdevs of that type.
 
-Debugfs for smsdvb has been unbuildable since v3.12. That problem has
-been reported even before v3.12 was released. Does no one care and can
-it be removed?
+Depending on the nature of the registers in the sub-dev silicon, and
+its mode of operation, it may fit into a virtual i2c device model
+pretty easily. Convert the usb control messages into i2c read writes
+in the implementation of the subdev, and implement a virtual i2c
+master in the bridge, converting the register reads/writes back into
+direct bridge dependent messages. Use i2c as a bus abstraction.
 
->  drivers/media/common/siano/Kconfig | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/common/siano/Kconfig b/drivers/media/common/siano/Kconfig
-> index f953d33ee151..4bfbd5f463d1 100644
-> --- a/drivers/media/common/siano/Kconfig
-> +++ b/drivers/media/common/siano/Kconfig
-> @@ -22,8 +22,7 @@ config SMS_SIANO_DEBUGFS
->  	bool "Enable debugfs for smsdvb"
->  	depends on SMS_SIANO_MDTV
->  	depends on DEBUG_FS
-> -	depends on SMS_USB_DRV
-> -	depends on CONFIG_SMS_USB_DRV = CONFIG_SMS_SDIO_DRV
-> +	depends on SMS_USB_DRV = SMS_SDIO_DRV
->  
->  	---help---
->  	  Choose Y to enable visualizing a dump of the frontend
+The subdev looks like an i2c device. The bridge translates.
 
+- Steve
 
-Paul Bolle
-
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
