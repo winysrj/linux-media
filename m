@@ -1,98 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sculptor.uberspace.de ([95.143.172.183]:55459 "EHLO
-	sculptor.uberspace.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751291AbaF3Nur (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:47044 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754806AbaFULRQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jun 2014 09:50:47 -0400
-Message-ID: <53B169A0.5010907@creimer.net>
-Date: Mon, 30 Jun 2014 15:44:00 +0200
-From: Christopher Reimer <linux@creimer.net>
+	Sat, 21 Jun 2014 07:17:16 -0400
+In-Reply-To: <CAGoCfiyeHbYYTSYY_VPEXJ4z8668w6LdjprW1+FbMJCOoCekwA@mail.gmail.com>
+References: <CAGoCfiyeHbYYTSYY_VPEXJ4z8668w6LdjprW1+FbMJCOoCekwA@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] ddbridge: Add IDs for several newer Digital Devices cards
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+ charset=UTF-8
+Subject: Re: Best way to add subdev that doesn't use I2C or SPI?
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Sat, 21 Jun 2014 07:17:07 -0400
+To: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <6a19b39b-a20a-45b7-b889-611a39bf0325@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On June 20, 2014 9:58:19 PM EDT, Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+>Hello,
+>
+>I'm in the process of adding support for a new video decoder.  However
+>in this case it's an IP block on a USB bridge as opposed to the
+>typical case which is an I2C device.  Changing registers for the
+>subdev is the same mechanism as changing registers in the rest of the
+>bridge (a specific region of registers is allocated for the video
+>decoder).
+>
+>Doing a subdev driver seems like the logical approach to keep the
+>video decoder related routines separate from the rest of the bridge.
+>It also allows the reuse of the code if we find other cases where the
+>IP block is present in other devices.  However I'm not really sure
+>what the mechanics are for creating a subdev that isn't really an I2C
+>device.
+>
+>I think we've had similar cases with the Conexant parts where the Mako
+>was actually a block on the main bridge (i.e. cx23885/7/8, cx231xx).
+>But in that case the cx25840 subdev just issues I2C commands and
+>leverages the fact that you can talk to the parts over I2C even though
+>they're really on-chip.
+>
+>Are there any other cases today where we have a subdev that uses
+>traditional register access routines provided by the bridge driver to
+>read/write the video decoder registers?  In this case I would want to
+>reuse the register read/write routines provided by the bridge, which
+>ultimately are send as USB control messages.
+>
+>Any suggestions welcome (and in particular if you can point me to an
+>example case where this is already being done).
+>
+>Thanks in advance,
+>
+>Devin
 
-it's the first time I try to contribute here. So please be gracious.
+cx23888-ir
+cx18-av
+cx18-gpio
 
-This patch adds the necessary IDs for the following dvb cards:
+I have a nonreleased one that uses SPI as well if you need an example of that.
 
-Digital Devices Octopus Mini
-Digital Devices Cine S2 V6.5
-Digital Devices DVBCT V6.1
-Digital Devices Octopus V3
-Mystique SaTiX-S2 V3
-
-All these changes are taken from the official driver package by Digital 
-Devices.
-http://download.digital-devices.de/download/linux/
-
-Signed-off-by: Christopher Reimer <mail@creimer.net>
-
----
-
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c 
-b/drivers/media/pci/ddbridge/ddbridge-core.c
-index fb52bda..da8f848 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -1663,11 +1663,40 @@ static struct ddb_info ddb_octopus_le = {
-      .port_num = 2,
-  };
-
-+static struct ddb_info ddb_octopus_mini = {
-+    .type     = DDB_OCTOPUS,
-+    .name     = "Digital Devices Octopus Mini",
-+    .port_num = 4,
-+};
-+
-  static struct ddb_info ddb_v6 = {
-      .type     = DDB_OCTOPUS,
-      .name     = "Digital Devices Cine S2 V6 DVB adapter",
-      .port_num = 3,
-  };
-+static struct ddb_info ddb_v6_5 = {
-+    .type     = DDB_OCTOPUS,
-+    .name     = "Digital Devices Cine S2 V6.5 DVB adapter",
-+    .port_num = 4,
-+};
-+
-+static struct ddb_info ddb_dvbct = {
-+    .type     = DDB_OCTOPUS,
-+    .name     = "Digital Devices DVBCT V6.1 DVB adapter",
-+    .port_num = 3,
-+};
-+
-+static struct ddb_info ddb_satixS2v3 = {
-+    .type     = DDB_OCTOPUS,
-+    .name     = "Mystique SaTiX-S2 V3 DVB adapter",
-+    .port_num = 3,
-+};
-+
-+static struct ddb_info ddb_octopusv3 = {
-+    .type     = DDB_OCTOPUS,
-+    .name     = "Digital Devices Octopus V3 DVB adapter",
-+    .port_num = 4,
-+};
-
-  #define DDVID 0xdd01 /* Digital Devices Vendor ID */
-
-@@ -1680,8 +1709,12 @@ static const struct pci_device_id ddb_id_tbl[] = {
-      DDB_ID(DDVID, 0x0002, DDVID, 0x0001, ddb_octopus),
-      DDB_ID(DDVID, 0x0003, DDVID, 0x0001, ddb_octopus),
-      DDB_ID(DDVID, 0x0003, DDVID, 0x0002, ddb_octopus_le),
--    DDB_ID(DDVID, 0x0003, DDVID, 0x0010, ddb_octopus),
-+    DDB_ID(DDVID, 0x0003, DDVID, 0x0010, ddb_octopus_mini),
-      DDB_ID(DDVID, 0x0003, DDVID, 0x0020, ddb_v6),
-+    DDB_ID(DDVID, 0x0003, DDVID, 0x0021, ddb_v6_5),
-+    DDB_ID(DDVID, 0x0003, DDVID, 0x0030, ddb_dvbct),
-+    DDB_ID(DDVID, 0x0003, DDVID, 0xdb03, ddb_satixS2v3),
-+    DDB_ID(DDVID, 0x0005, DDVID, 0x0004, ddb_octopusv3),
-      /* in case sub-ids got deleted in flash */
-      DDB_ID(DDVID, 0x0003, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
-      {0}
-
+Regards,
+Andy
