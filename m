@@ -1,92 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33960 "EHLO mx1.redhat.com"
+Received: from pide.tip.net.au ([101.0.96.218]:42606 "EHLO pide.tip.net.au"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750730AbaFFJjC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jun 2014 05:39:02 -0400
-Message-ID: <53918C2C.3070505@redhat.com>
-Date: Fri, 06 Jun 2014 11:38:52 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1750724AbaFVDCI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Jun 2014 23:02:08 -0400
+Received: from e4.eyal.emu.id.au (124-168-208-3.dyn.iinet.net.au [124.168.208.3])
+	(using TLSv1 with cipher ECDHE-RSA-AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by pide.tip.net.au (Postfix) with ESMTPSA id D18A0127227
+	for <linux-media@vger.kernel.org>; Sun, 22 Jun 2014 12:52:17 +1000 (EST)
+Message-ID: <53A644E1.9010209@eyal.emu.id.au>
+Date: Sun, 22 Jun 2014 12:52:17 +1000
+From: Eyal Lebedinsky <eyal@eyal.emu.id.au>
 MIME-Version: 1.0
-To: Thiago Santos <ts.santos@sisa.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH/RFC 2/2] libv4l2: release the lock before doing a DQBUF
-References: <1401982284-1983-1-git-send-email-ts.santos@sisa.samsung.com> <1401982284-1983-3-git-send-email-ts.santos@sisa.samsung.com>
-In-Reply-To: <1401982284-1983-3-git-send-email-ts.santos@sisa.samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: list linux-media <linux-media@vger.kernel.org>
+Subject: DTV2000DS cold vs. warm
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This card was always unreliable, some channels (different each time) fail to tune.
+This was blamed on the card not coming up in "cold" state, and as such not being
+properly initialised.
 
-On 06/05/2014 05:31 PM, Thiago Santos wrote:
-> In blocking mode, if there are no buffers available the DQBUF will block
-> waiting for a QBUF to be called but it will block holding the streaming
-> lock which will prevent any QBUF from happening, causing a deadlock.
-> 
-> Can be tested with: v4l2grab -t 1 -b 1 -s 2000
-> 
-> Signed-off-by: Thiago Santos <ts.santos@sisa.samsung.com>
+So I have some simple questions. Below are the messages from my system. I understand
+that this card has two USB devices which are rather independent (am I right?).
 
-Thanks for catching this, and thanks for the patch fixing it.
+I see that the messages for the two USB devices are not the same. The first block
+says 'found...in cold state' then 'downloading firmware'. The second says
+'found...in warm state'. However both report 'firmware version 4.95.0.0'.
 
-I'm afraid it is not that simple though. Without the lock the app may do the
-following:
+Also, I see the card itself (DTV2000DS) announced as cold/warm, as well as
+later the AF9013 reported  as warm. Is it the card or DTV2000DS or the AF9013
+that have cold/warm states and need firmware download? (I guess I am showing
+my ignorance here).
 
-Control-thread: set_fmt(fmt), requestbuf(x), map buffers, queue buffers, streamon
-Work-thread: dqbuf, process, qbuf, rinse-repeat
-Control-thread: streamoff, requestbuf(0), wait for work thread, unmap buffers.
+Is this how it should be? Or should both devices be found in cold state first?
 
-There is a race here with dqbuf succeeding, but not yet being processed
-while the control-thread is tearing things down.
+[an aside: why the 'remote query interval' message when I specified 'remote=-1'?]
 
-If we hit this race then the v4lconvert_convert call will be passed a no longer
-valid pointer in the form of devices[index].frame_pointers[buf->index] and likewise
-its other parameters may also no longer be accurate (or point to invalid mem
-alltogether).
+TIA
+	Eyal
 
-Fixing this without breaking stuff / causing the risk of regressions is very much
-non trivial. Since this is a race (normally the dqbuf call would return with an
-error because of the streamoff), I believe the best way to fix this is to just
-detect this situation and make v4l2_dequeue_and_convert return an error in this
-case.
+Full boot log:
 
-So I suggest that you respin the patch with the following additions.
-* Add a frame_info_generation variable to struct v4l2_dev_info
-  (below the frame_queued field)
-* In v4l2_check_buffer_change_ok() increment this field *before* calling v4l2_unmap_buffers()
-* Read frame_info_generation into a local variable before dropping the lock for the VIDIOC_DQBUF
-* Check if frame_info_generation is not changed after this line:
-  devices[index].frame_queued &= ~(1 << buf->index);
-* If it is changed set errno to -EINVAL (this is what the kernel does when a streamoff is done
-  while a dqbuf is pending), and return -1.
+usb 4-1: new high-speed USB device number 2 using ehci-pci
+usb 4-1: New USB device found, idVendor=0413, idProduct=6a04
+usb 4-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+usb 4-1: Product: DVB-T 2
+usb 4-1: Manufacturer: Afatech
 
-* You should also unlock + relock around the DQBUF for the non converted case around line 1297
-  in this case no special handling is needed.
+usb 4-1: dvb_usb_v2: found a 'Leadtek WinFast DTV2000DS' in cold state
+usb 4-1: dvb_usb_v2: downloading firmware from file 'dvb-usb-af9015.fw'
+usb 4-1: dvb_usb_v2: found a 'Leadtek WinFast DTV2000DS' in warm state
 
-Regards,
+usb 4-1: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
+DVB: registering new adapter (Leadtek WinFast DTV2000DS)
+i2c i2c-9: af9013: firmware version 4.95.0.0
+usb 4-1: DVB: registering adapter 0 frontend 0 (Afatech AF9013)...
 
-Hans
+usb 4-1: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
+DVB: registering new adapter (Leadtek WinFast DTV2000DS)
+i2c i2c-9: af9013: found a 'Afatech AF9013' in warm state
+i2c i2c-9: af9013: firmware version 4.95.0.0
+usb 4-1: DVB: registering adapter 1 frontend 0 (Afatech AF9013)...
 
+usb 4-1: dvb_usb_v2: schedule remote query interval to 500 msecs
+usb 4-1: dvb_usb_v2: 'Leadtek WinFast DTV2000DS' successfully initialized and connected
+usbcore: registered new interface driver dvb_usb_af9015
 
-> ---
->  lib/libv4l2/libv4l2.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
-> index c4d69f7..5589fe0 100644
-> --- a/lib/libv4l2/libv4l2.c
-> +++ b/lib/libv4l2/libv4l2.c
-> @@ -290,9 +290,11 @@ static int v4l2_dequeue_and_convert(int index, struct v4l2_buffer *buf,
->  		return result;
->  
->  	do {
-> +		pthread_mutex_unlock(&devices[index].stream_lock);
->  		result = devices[index].dev_ops->ioctl(
->  				devices[index].dev_ops_priv,
->  				devices[index].fd, VIDIOC_DQBUF, buf);
-> +		pthread_mutex_lock(&devices[index].stream_lock);
->  		if (result) {
->  			if (errno != EAGAIN) {
->  				int saved_err = errno;
-> 
+-- 
+Eyal Lebedinsky (eyal@eyal.emu.id.au)
