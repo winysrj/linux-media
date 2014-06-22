@@ -1,64 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp05.smtpout.orange.fr ([80.12.242.127]:44332 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752472AbaFUWUj (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:55484 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750977AbaFVMuW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jun 2014 18:20:39 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: g.liakhovetski@gmx.de, devicetree@vger.kernel.org
-Cc: linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v2 2/2] media: mt9m111: add device-tree documentation
-Date: Sun, 22 Jun 2014 00:19:55 +0200
-Message-Id: <1403389195-17386-2-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1403389195-17386-1-git-send-email-robert.jarzmik@free.fr>
-References: <1403389195-17386-1-git-send-email-robert.jarzmik@free.fr>
+	Sun, 22 Jun 2014 08:50:22 -0400
+Received: by mail-wg0-f44.google.com with SMTP id x13so5394199wgg.15
+        for <linux-media@vger.kernel.org>; Sun, 22 Jun 2014 05:50:21 -0700 (PDT)
+From: Gregor Jasny <gjasny@googlemail.com>
+To: linux-media@vger.kernel.org
+Cc: Gregor Jasny <gjasny@googlemail.com>
+Subject: [PATCH 0/2] Clean up public libdvbv5 interface 
+Date: Sun, 22 Jun 2014 14:49:45 +0200
+Message-Id: <1403441387-31604-1-git-send-email-gjasny@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device-tree bindings documentation for the Micron mt9m111 image
-sensor.
+Hi,
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- .../devicetree/bindings/media/i2c/mt9m111.txt      | 28 ++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9m111.txt
+If we want to enable libdvbv5 from v4l-utils by default its
+exported interface should be as clean as possible.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/mt9m111.txt b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-new file mode 100644
-index 0000000..ed5a334
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-@@ -0,0 +1,28 @@
-+Micron 1.3Mp CMOS Digital Image Sensor
-+
-+The Micron MT9M111 is a CMOS active pixel digital image sensor with an active
-+array size of 1280H x 1024V. It is programmable through a simple two-wire serial
-+interface.
-+
-+Required Properties:
-+- compatible: value should be "micron,mt9m111"
-+
-+For further reading on port node refer to
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+
-+	i2c_master {
-+		mt9m111@5d {
-+			compatible = "micron,mt9m111";
-+			reg = <0x5d>;
-+
-+			remote = <&pxa_camera>;
-+			port {
-+				mt9m111_1: endpoint {
-+					bus-width = <8>;
-+					remote-endpoint = <&pxa_camera>;
-+				};
-+			};
-+		};
-+	};
+This series prefixes all functions with _dvb. I omitted
+symbols starting with atsc and isdb.
+
+Thanks,
+Gregor
+
+Gregor Jasny (2):
+  Hide parse_string.h content in shared library interface
+  Prefix exported functions with dvb_
+
+ lib/include/libdvbv5/crc32.h                   |   2 +-
+ lib/include/libdvbv5/desc_extension.h          |   8 +-
+ lib/include/libdvbv5/descriptors.h             |   4 +-
+ lib/include/libdvbv5/dvb-demux.h               |   2 +-
+ lib/include/libdvbv5/dvb-file.h                |  38 +++---
+ lib/include/libdvbv5/dvb-sat.h                 |   4 +-
+ lib/include/libdvbv5/dvb-scan.h                |   6 +-
+ lib/include/libdvbv5/nit.h                     |   3 +-
+ lib/libdvbv5/crc32.c                           |   2 +-
+ lib/libdvbv5/descriptors.c                     |  16 +--
+ lib/libdvbv5/descriptors/desc_ca.c             |   4 +-
+ lib/libdvbv5/descriptors/desc_cable_delivery.c |   4 +-
+ lib/libdvbv5/descriptors/desc_event_extended.c |   2 +-
+ lib/libdvbv5/descriptors/desc_event_short.c    |   2 +-
+ lib/libdvbv5/descriptors/desc_extension.c      |  10 +-
+ lib/libdvbv5/descriptors/desc_sat.c            |   6 +-
+ lib/libdvbv5/dvb-demux.c                       |   2 +-
+ lib/libdvbv5/dvb-file.c                        |  80 ++++++------
+ lib/libdvbv5/dvb-sat.c                         |   6 +-
+ lib/libdvbv5/dvb-scan.c                        | 163 +++++++++++++------------
+ lib/libdvbv5/parse_string.h                    |   8 ++
+ lib/libdvbv5/tables/eit.c                      |  12 +-
+ lib/libdvbv5/tables/nit.c                      |   3 +-
+ utils/dvb/dvb-fe-tool.c                        |   2 +-
+ utils/dvb/dvb-format-convert.c                 |  10 +-
+ utils/dvb/dvbv5-scan.c                         |  24 ++--
+ utils/dvb/dvbv5-zap.c                          |  12 +-
+ 27 files changed, 224 insertions(+), 211 deletions(-)
+
 -- 
-2.0.0.rc2
+1.9.1
 
