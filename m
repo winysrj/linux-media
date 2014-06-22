@@ -1,130 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:42803 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751066AbaFWK6o (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2491 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750935AbaFVCoY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jun 2014 06:58:44 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N7M00CPPBTVS570@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 23 Jun 2014 06:58:43 -0400 (EDT)
-Date: Mon, 23 Jun 2014 07:58:37 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Gregor Jasny <gjasny@googlemail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Time for v4l-utils 1.2 release?
-Message-id: <20140623075837.210fd361.m.chehab@samsung.com>
-In-reply-to: <53A7E3BA.1080100@xs4all.nl>
-References: <53A49A11.2010502@googlemail.com> <53A4B097.3050802@xs4all.nl>
- <20140620192946.39765ec3.m.chehab@samsung.com> <53A5213D.7010202@xs4all.nl>
- <20140621075348.50b8a47d.m.chehab@samsung.com> <53A7E3BA.1080100@xs4all.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Sat, 21 Jun 2014 22:44:24 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5M2iK2m016491
+	for <linux-media@vger.kernel.org>; Sun, 22 Jun 2014 04:44:22 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id A50842A0B1E
+	for <linux-media@vger.kernel.org>; Sun, 22 Jun 2014 04:43:59 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140622024359.A50842A0B1E@tschai.lan>
+Date: Sun, 22 Jun 2014 04:43:59 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 23 Jun 2014 10:22:18 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> On 06/21/2014 12:53 PM, Mauro Carvalho Chehab wrote:
-> > Em Sat, 21 Jun 2014 08:07:57 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> >> On 06/21/2014 12:29 AM, Mauro Carvalho Chehab wrote:
-> >>> Em Sat, 21 Jun 2014 00:07:19 +0200
-> >>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >>>
-> >>>> On 06/20/2014 10:31 PM, Gregor Jasny wrote:
-> >>>>> Hello,
-> >>>>>
-> >>>>> It's been 11 months since the 1.0.0 release. What do you think about
-> >>>>> releasing HEAD? Do you have any pending commits?
-> >>>>
-> >>>> I've got two patches from Laurent pending that ensure that the 'installed
-> >>>> kernel headers' are used. I plan on processing those on Monday. After that
-> >>>> I think it's OK to do a release.
-> >>>>
-> >>>> Mauro, did you look at my email where I suggest to remove three apps from
-> >>>> contrib? If you agree with that, then I can do that Monday as well.
-> >>>
-> >>> Well, I don't remember about such email, nor I was able to find on a quick
-> >>> look.
-> >>
-> >> https://www.mail-archive.com/linux-media@vger.kernel.org/msg76120.html
-> >>
-> >> Marked with ATTN as well!
-> > 
-> > Well, from my side, feel free to drop those 3 utilities. If you drop v4lgrab,
-> > you'll need to check the DocBook Makefile scripts, as it used to have some
-> > automation to include it at the media DocBook. 
-> > 
-> > I think that this was removed in the past, but it doesn't hurt to
-> > double-check.
-> > 
-> >>>
-> >>> What apps are you planning to remove?
-> >>>
-> >>> Btw, I think it could be a good idea to be able to install some of those
-> >>> stuff under contrib to a separate package. I had to do a quick hack
-> >>> in order to install v4l2grab on a Tizen package, in order to be able to
-> >>> test a card there (as was needing to do some tests via CLI).
-> >>
-> >> What does v4l2grab offer that v4l2-ctl doesn't? I would be much more inclined
-> >> to remove v4l2grab.
-> > 
-> > I never used v4l2-ctl for streaming (didn't even know/remember) that it was
-> > capable of doing that ;) 
-> 
-> It was added about a year ago or something like that.
-> 
-> > Looking at --help-streaming, though, one thing that it is not clear there
-> > is what's the format of the output, when --stream-to= is used. 
-> 
-> Completely raw output.
-> 
-> > Btw, I think that one big miss on v4l2-ctl is the lack of a man page witch
-> > would have an EXAMPLES section explaining things like that.
-> 
-> Absolutely. With a bit of luck I might have time for that fairly soon.
-> 
-> > One of the advantages of v4l2grab is that it takes per-frame snapshots, instead
-> > of writing a stream file. Those snapshots help to identify, for example, if
-> > there are interlacing issues on a frame, or if some frames have some other
-> > problems.
-> 
-> You can dump just a single frame as well with v4l2-ctl (--stream-count=1).
+Results of the daily build of media_tree:
 
-It is not the same. What I do with v4l2grab is to ask it to capture
-30 seconds, storing frame by frame. Then, I can see if each frame is
-ok or not.
+date:		Sun Jun 22 04:00:20 CEST 2014
+git branch:	test
+git hash:	1fe3a8fe494463cfe2556a25ae41a1499725c178
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-14-gf11dd94
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
-Btw, capturing just one frame with some webcams with auto bright will
-likely just get a black frame.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-i686: OK
+linux-3.16-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-x86_64: OK
+linux-3.16-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-> 
-> > Also, v4l2grab is a good example of how to use libv4l, and it is enclosed
-> > at DocBook (not sure if we're using automation to allow including
-> > the latest version of it):
-> > 	http://linuxtv.org/downloads/v4l-dvb-apis/v4l2grab-example.html
-> 
-> Isn't capture.c.xml much more useful as example code? I have to admit, I
-> didn't know v4l2grab.c was used as an example.
+Detailed results are available here:
 
-I would prefer to remove capture.c, as it doesn't use libv4l. We do
-want that newer applications would use libv4l.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-> 
-> > 
-> > So, I don't think we should remove it.
-> 
-> No problem.
-> 
-> Regards,
-> 
-> 	Hans
-> 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
