@@ -1,87 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57752 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754192AbaFXO5C (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47311 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753051AbaFWXyH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 10:57:02 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+	Mon, 23 Jun 2014 19:54:07 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 00/29] Initial CODA960 (i.MX6 VPU) support
-Date: Tue, 24 Jun 2014 16:55:42 +0200
-Message-Id: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 11/23] v4l: vsp1: Propagate vsp1_device_get errors to the callers
+Date: Tue, 24 Jun 2014 01:54:17 +0200
+Message-Id: <1403567669-18539-12-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Modify the vsp1_device_get() function to return an error code instead of
+a pointer to the VSP1 device, and use the return value in the callers.
 
-this is a second shot at adding support for the CODA960 Video
-Processing Unit on i.MX6Q/D/DL/S SoCs to the coda driver.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1.h       |  2 +-
+ drivers/media/platform/vsp1/vsp1_drv.c   | 16 ++++++----------
+ drivers/media/platform/vsp1/vsp1_video.c |  4 ++--
+ 3 files changed, 9 insertions(+), 13 deletions(-)
 
-Changes since v1:
- - Dropped force IDR patch.
- - Dropped enum_framesizes for now.
- - Clear B frame flag for decoder I/P/B frame detection.
- - Rewrote g_selection to only allow CROP target on OUTPUT and
-   COMPOSE target on CAPTURE buffers.
- - Use pm_runtime_enabled()
-
-This series contains a few fixes and preparations, the CODA960
-support patch, a rework of the hardware access serialization
-into a single threaded workqueue, some cleanups to use more
-infrastructure that is available in the meantime, runtime PM
-support, a few h.264 related v4l2 controls and fixes, support
-for hard resets via the i.MX system reset controller, and a
-patch that exports internal buffers to debugfs.
-
-regards
-Philipp
-
-Michael Olbrich (2):
-  [media] v4l2-mem2mem: export v4l2_m2m_try_schedule
-  [media] coda: try to schedule a decode run after a stop command
-
-Philipp Zabel (27):
-  [media] coda: fix decoder I/P/B frame detection
-  [media] coda: fix readback of CODA_RET_DEC_SEQ_FRAME_NEED
-  [media] coda: fix h.264 quantization parameter range
-  [media] coda: fix internal framebuffer allocation size
-  [media] coda: simplify IRAM setup
-  [media] coda: Add encoder/decoder support for CODA960
-  [media] coda: remove BUG() in get_q_data
-  [media] coda: add selection API support for h.264 decoder
-  [media] coda: add workqueue to serialize hardware commands
-  [media] coda: Use mem-to-mem ioctl helpers
-  [media] coda: use ctx->fh.m2m_ctx instead of ctx->m2m_ctx
-  [media] coda: Add runtime pm support
-  [media] coda: split firmware version check out of coda_hw_init
-  [media] coda: select GENERIC_ALLOCATOR
-  [media] coda: add h.264 min/max qp controls
-  [media] coda: add h.264 deblocking filter controls
-  [media] coda: add cyclic intra refresh control
-  [media] coda: add decoder timestamp queue
-  [media] coda: alert userspace about macroblock errors
-  [media] coda: add sequence counter offset
-  [media] coda: use prescan_failed variable to stop stream after a
-    timeout
-  [media] coda: add reset control support
-  [media] coda: add bytesperline to queue data
-  [media] coda: allow odd width, but still round up bytesperline
-  [media] coda: round up internal frames to multiples of macroblock size
-    for h.264
-  [media] coda: increase frame stride to 16 for h.264
-  [media] coda: export auxiliary buffers via debugfs
-
- drivers/media/platform/Kconfig         |    1 +
- drivers/media/platform/coda.c          | 1444 ++++++++++++++++++++++----------
- drivers/media/platform/coda.h          |  115 ++-
- drivers/media/v4l2-core/v4l2-mem2mem.c |    3 +-
- include/media/v4l2-mem2mem.h           |    2 +
- 5 files changed, 1140 insertions(+), 425 deletions(-)
-
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index 3cfa393..1246719 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -66,7 +66,7 @@ struct vsp1_device {
+ 	struct media_device media_dev;
+ };
+ 
+-struct vsp1_device *vsp1_device_get(struct vsp1_device *vsp1);
++int vsp1_device_get(struct vsp1_device *vsp1);
+ void vsp1_device_put(struct vsp1_device *vsp1);
+ 
+ static inline u32 vsp1_read(struct vsp1_device *vsp1, u32 reg)
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 0c5e74c..3e6601b 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -345,36 +345,32 @@ static int vsp1_device_init(struct vsp1_device *vsp1)
+  * Increment the VSP1 reference count and initialize the device if the first
+  * reference is taken.
+  *
+- * Return a pointer to the VSP1 device or NULL if an error occurred.
++ * Return 0 on success or a negative error code otherwise.
+  */
+-struct vsp1_device *vsp1_device_get(struct vsp1_device *vsp1)
++int vsp1_device_get(struct vsp1_device *vsp1)
+ {
+-	struct vsp1_device *__vsp1 = vsp1;
+-	int ret;
++	int ret = 0;
+ 
+ 	mutex_lock(&vsp1->lock);
+ 	if (vsp1->ref_count > 0)
+ 		goto done;
+ 
+ 	ret = clk_prepare_enable(vsp1->clock);
+-	if (ret < 0) {
+-		__vsp1 = NULL;
++	if (ret < 0)
+ 		goto done;
+-	}
+ 
+ 	ret = vsp1_device_init(vsp1);
+ 	if (ret < 0) {
+ 		clk_disable_unprepare(vsp1->clock);
+-		__vsp1 = NULL;
+ 		goto done;
+ 	}
+ 
+ done:
+-	if (__vsp1)
++	if (!ret)
+ 		vsp1->ref_count++;
+ 
+ 	mutex_unlock(&vsp1->lock);
+-	return __vsp1;
++	return ret;
+ }
+ 
+ /*
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index a60332e..885ec01 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -955,8 +955,8 @@ static int vsp1_video_open(struct file *file)
+ 
+ 	file->private_data = vfh;
+ 
+-	if (!vsp1_device_get(video->vsp1)) {
+-		ret = -EBUSY;
++	ret = vsp1_device_get(video->vsp1);
++	if (ret < 0) {
+ 		v4l2_fh_del(vfh);
+ 		kfree(vfh);
+ 	}
 -- 
-2.0.0
+1.8.5.5
 
