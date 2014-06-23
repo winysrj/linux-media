@@ -1,25 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail734.megamailservers.com ([69.49.98.44]:42642 "EHLO
-	mail119c7.megamailservers.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751451AbaFVSBa (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47310 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753082AbaFWXyE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Jun 2014 14:01:30 -0400
-Received: from sasktel.net (host19.200-43-77.telecom.net.ar [200.43.77.19])
-	(authenticated bits=0)
-	by mail119c7.megamailservers.com (8.13.6/8.13.1) with ESMTP id s5MHp9L6016157
-	for <linux-media@vger.kernel.org>; Sun, 22 Jun 2014 13:51:23 -0400
-Date: Sun, 22 Jun 2014 19:51:21 +0200
-Subject: 
-Message-ID: <utk3hty0xfr981va7x9hazxr.1403459481795@email.android.com>
-From: "Jeff Tackett" <ljwight@sasktel.net>
-To: "linux media" <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+	Mon, 23 Jun 2014 19:54:04 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 07/23] v4l: vsp1: Release buffers at stream stop
+Date: Tue, 24 Jun 2014 01:54:13 +0200
+Message-Id: <1403567669-18539-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQpHcmVldGluZ3MgbGludXgNCg0KDQoNCmh0dHA6Ly93d3cudmlsbGFyb2NoZWxsZS5jb20vd3At
-aW5jbHVkZXMvY2VydGlmaWNhdGVzL2JvYXQucGhwP2FteXBicWZjZDIzNTNwcg0KDQoNCg0KDQoN
-CmFsZnJlZHRoZWRyYWdvbkB5YWhvby5jb20NCg0K
+videobuf2 expects no buffer to be owned by the driver when the
+stop_stream queue operation returns. As the vsp1 driver fails to do so,
+a warning is generated at stream top time.
+
+Fix this by mark releasing all buffers queued on the IRQ queue in the
+stop_stream operation handler and marking them as erroneous.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index c717e28..9bb156c 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -742,6 +742,7 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct vsp1_video *video = vb2_get_drv_priv(vq);
+ 	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
++	struct vsp1_video_buffer *buffer;
+ 	unsigned long flags;
+ 	int ret;
+ 
+@@ -759,6 +760,8 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
+ 
+ 	/* Remove all buffers from the IRQ queue. */
+ 	spin_lock_irqsave(&video->irqlock, flags);
++	list_for_each_entry(buffer, &video->irqqueue, queue)
++		vb2_buffer_done(&buffer->buf, VB2_BUF_STATE_ERROR);
+ 	INIT_LIST_HEAD(&video->irqqueue);
+ 	spin_unlock_irqrestore(&video->irqlock, flags);
+ }
+-- 
+1.8.5.5
 
