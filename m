@@ -1,49 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33005 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753215AbaFLRGo (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47311 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753665AbaFWXyK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 13:06:44 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+	Mon, 23 Jun 2014 19:54:10 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [RFC PATCH 04/26] gpu: ipu-v3: Add ipu_cpmem_get_buffer function
-Date: Thu, 12 Jun 2014 19:06:18 +0200
-Message-Id: <1402592800-2925-5-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 15/23] v4l: vsp1: wpf: Simplify cast to pipeline structure
+Date: Tue, 24 Jun 2014 01:54:21 +0200
+Message-Id: <1403567669-18539-16-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is needed for imx-ipu-vout to extract the buffer address from a
-saved CPMEM block.
+Use the subdev pointer directly to_vsp1_pipeline() macro instead of
+casting from the subdev to the wpf object and back to the subdev.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- include/video/imx-ipu-v3.h | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/media/platform/vsp1/vsp1_wpf.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 77a82f5..e8764dc 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -268,6 +268,15 @@ static inline void ipu_cpmem_set_buffer(struct ipu_ch_param __iomem *p,
- 		ipu_ch_param_write_field(p, IPU_FIELD_EBA0, buf >> 3);
- }
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index 36c4793..591f09c 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -44,9 +44,8 @@ static inline void vsp1_wpf_write(struct vsp1_rwpf *wpf, u32 reg, u32 data)
  
-+static inline dma_addr_t ipu_cpmem_get_buffer(struct ipu_ch_param __iomem *p,
-+		int bufnum)
-+{
-+	if (bufnum)
-+		return ipu_ch_param_read_field(p, IPU_FIELD_EBA1) << 3;
-+	else
-+		return ipu_ch_param_read_field(p, IPU_FIELD_EBA0) << 3;
-+}
-+
- static inline void ipu_cpmem_set_resolution(struct ipu_ch_param __iomem *p,
- 		int xres, int yres)
+ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
  {
++	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&subdev->entity);
+ 	struct vsp1_rwpf *wpf = to_rwpf(subdev);
+-	struct vsp1_pipeline *pipe =
+-		to_vsp1_pipeline(&wpf->entity.subdev.entity);
+ 	struct vsp1_device *vsp1 = wpf->entity.vsp1;
+ 	const struct v4l2_rect *crop = &wpf->crop;
+ 	unsigned int i;
 -- 
-2.0.0.rc2
+1.8.5.5
 
