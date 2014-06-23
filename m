@@ -1,43 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f172.google.com ([74.125.82.172]:64186 "EHLO
-	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753296AbaFAM20 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jun 2014 08:28:26 -0400
-Received: by mail-we0-f172.google.com with SMTP id k48so3999954wev.31
-        for <linux-media@vger.kernel.org>; Sun, 01 Jun 2014 05:28:25 -0700 (PDT)
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-To: Michael Krufky <mkrufky@linuxtv.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: usb: dvb-usb-v2: mxl111sf.c:  Cleaning up uninitialized variables
-Date: Sun,  1 Jun 2014 14:29:19 +0200
-Message-Id: <1401625759-14610-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Received: from top.free-electrons.com ([176.31.233.9]:51230 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755563AbaFWUck (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jun 2014 16:32:40 -0400
+Date: Mon, 23 Jun 2014 22:27:34 +0200
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: linux-sunxi@googlegroups.com
+Cc: bay@hackerdom.ru, david@hardeman.nu, devicetree@vger.kernel.org,
+	galak@codeaurora.org, grant.likely@linaro.org,
+	ijc+devicetree@hellion.org.uk, james.hogan@imgtec.com,
+	linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk,
+	m.chehab@samsung.com, mark.rutland@arm.com, pawel.moll@arm.com,
+	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
+	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [linux-sunxi] Re: [PATCH v10 4/5] ARM: sunxi: Add IR controllers
+ on A20 to dtsi
+Message-ID: <20140623202734.GN19730@lukather>
+References: <1403348646-31091-1-git-send-email-bay@hackerdom.ru>
+ <1403348646-31091-5-git-send-email-bay@hackerdom.ru>
+ <20140623130851.GD19730@lukather>
+ <7d7d6451-3a26-45dc-aa62-b939fc7889ce@googlegroups.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="RL02At1kLqUPtqvA"
+Content-Disposition: inline
+In-Reply-To: <7d7d6451-3a26-45dc-aa62-b939fc7889ce@googlegroups.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is a risk that the variable will be used without being initialized.
 
-This was largely found by using a static code analysis program called cppcheck.
+--RL02At1kLqUPtqvA
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
----
- drivers/media/usb/dvb-usb-v2/mxl111sf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Mon, Jun 23, 2014 at 01:08:24PM -0700, =D0=90=D0=BB=D0=B5=D0=BA=D1=81=D0=
+=B0=D0=BD=D0=B4=D1=80 =D0=91=D0=B5=D1=80=D1=81=D0=B5=D0=BD=D0=B5=D0=B2 wrot=
+e:
+> Thanks,
+>=20
+> Should I send applied patches in the further versions of this patch set?
 
-diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-index c7304fa..b8a707e 100644
---- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-+++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-@@ -129,7 +129,7 @@ int mxl111sf_write_reg_mask(struct mxl111sf_state *state,
- 				   u8 addr, u8 mask, u8 data)
- {
- 	int ret;
--	u8 val;
-+	u8 val = 0;
- 
- 	if (mask != 0xff) {
- 		ret = mxl111sf_read_reg(state, addr, &val);
--- 
-1.7.10.4
+No, you don't have to.
 
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
+
+--RL02At1kLqUPtqvA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTqI22AAoJEBx+YmzsjxAgtHIP+welE16gbaWWut3XCrNuxOOG
+TETz5zPnbkQDDhg7ccNkFuSwgo/yEXyXPjVMPlFhyv4XoGosagpZy/7u5LdF62xV
+ISyiaTcj+3xLJZ8We5nJ8absRCyBE2pd5h2FIAjy3srCdASdemcq4N8aXAqmAt05
+DqJ9mVcTlss36A55T0q/cu73jfdzISjvaPI+5XPXApj71XWz/hKflkbTN8nETXAA
+Fnh2P2+upAhSZK1JfpnMnJ2Ii80Y26bqRNQNMYbi7eA8Yg9CggHlETsdwUPn6qeM
+hOiFWmTE8xVBUCKlLaXZpP8XiMdi4lfOkQbVvMDoqX9k5whCgcG57bV1Ikbm02+Y
+NSzQgndrut1wXs4skNC2EPe5UcAO/4dj6LO2qfvtU58WzUzXVIL7EXwliWyMy42T
+CZ/4RlIXR7TmAffcsrnfb/iecXQySef0t0HmV/hxxi3hq1jlw6J6+MGzhDrjIvo2
+AZ/zBehyEZWlILpsKkRNCDqGU3zbVXgS8OnQfoD6Xr/t6cLFGLf4buFOPLPiGG5u
+YX6Q4FIK1r9yoYta0d/9e06cXiue3nqs1Jzx4MO2hIdwIZQfxeavAtmrWgcl+wJc
+d3Vw8mLf5k3Lz5QonZjaQX1Q1i4jKSjM8hXZEoLMn677YLnQWA6ccvX7qBGtdcPx
+Ehdws/lmYwWEhm5bKNEn
+=glqK
+-----END PGP SIGNATURE-----
+
+--RL02At1kLqUPtqvA--
