@@ -1,83 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2314 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933216AbaFLLyn (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1661 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752778AbaFWHzP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 07:54:43 -0400
+	Mon, 23 Jun 2014 03:55:15 -0400
+Message-ID: <53A7DD59.4060401@xs4all.nl>
+Date: Mon, 23 Jun 2014 09:55:05 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv4 PATCH 16/34] v4l2-ctrl: fix error return of copy_to/from_user.
-Date: Thu, 12 Jun 2014 13:52:48 +0200
-Message-Id: <9ea9d9d31524ca60945a374c9bbcac1c38371a50.1402573818.git.hans.verkuil@cisco.com>
-In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
-References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+MIME-Version: 1.0
+To: Nikhil Devshatwar <nikhil.nd@ti.com>, linux-media@vger.kernel.org
+Subject: Re: [[PATCH]] vb2: verify data_offset only if nonzero bytesused
+References: <1403434065-22994-1-git-send-email-nikhil.nd@ti.com>
+In-Reply-To: <1403434065-22994-1-git-send-email-nikhil.nd@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 06/22/2014 12:47 PM, Nikhil Devshatwar wrote:
+> verify_planes would fail if the user space fills up the data_offset field
+> and bytesused is left as zero. Correct this.
+> 
+> Checking for data_offset > bytesused is not correct as it might fail some of
+> the valid use cases. e.g. when working with SEQ_TB buffers, for bottom field,
+> data_offset can be high but it can have less bytesused.
+> 
+> The real check should be to verify that all the bytesused after data_offset
+> fit withing the length of the plane.
+> 
+> Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c |    9 +++------
+>  1 file changed, 3 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 7c4489c..9a0ccb6 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -587,12 +587,9 @@ static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+>  			       ? b->m.planes[plane].length
+>  			       : vb->v4l2_planes[plane].length;
+>  
+> -			if (b->m.planes[plane].bytesused > length)
+> -				return -EINVAL;
+> -
+> -			if (b->m.planes[plane].data_offset > 0 &&
+> -			    b->m.planes[plane].data_offset >=
+> -			    b->m.planes[plane].bytesused)
+> +			if (b->m.planes[plane].bytesused > 0 &&
+> +			    b->m.planes[plane].data_offset +
+> +			    b->m.planes[plane].bytesused > length)
 
-copy_to/from_user returns the number of bytes not copied, it does not
-return a 'normal' linux error code.
+Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+bytesused *includes* data_offset. So the effective payload is
+'bytesused - data_offset' starting at offset 'data_offset' from the
+start of the buffer.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index e6e33b3..1086ae3 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1326,7 +1326,8 @@ static int ptr_to_user(struct v4l2_ext_control *c,
- 	u32 len;
- 
- 	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_to_user(c->ptr, ptr.p, c->size);
-+		return copy_to_user(c->ptr, ptr.p, c->size) ?
-+		       -EFAULT : 0;
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_STRING:
-@@ -1336,7 +1337,7 @@ static int ptr_to_user(struct v4l2_ext_control *c,
- 			return -ENOSPC;
- 		}
- 		return copy_to_user(c->string, ptr.p_char, len + 1) ?
--								-EFAULT : 0;
-+		       -EFAULT : 0;
- 	case V4L2_CTRL_TYPE_INTEGER64:
- 		c->value64 = *ptr.p_s64;
- 		break;
-@@ -1373,7 +1374,7 @@ static int user_to_ptr(struct v4l2_ext_control *c,
- 	if (ctrl->is_ptr && !ctrl->is_string) {
- 		unsigned idx;
- 
--		ret = copy_from_user(ptr.p, c->ptr, c->size);
-+		ret = copy_from_user(ptr.p, c->ptr, c->size) ? -EFAULT : 0;
- 		if (ret || !ctrl->is_array)
- 			return ret;
- 		for (idx = c->size / ctrl->elem_size; idx < ctrl->elems; idx++)
-@@ -1391,7 +1392,7 @@ static int user_to_ptr(struct v4l2_ext_control *c,
- 			return -ERANGE;
- 		if (size > ctrl->maximum + 1)
- 			size = ctrl->maximum + 1;
--		ret = copy_from_user(ptr.p_char, c->string, size);
-+		ret = copy_from_user(ptr.p_char, c->string, size) ? -EFAULT : 0;
- 		if (!ret) {
- 			char last = ptr.p_char[size - 1];
- 
-@@ -1401,7 +1402,7 @@ static int user_to_ptr(struct v4l2_ext_control *c,
- 			if (strlen(ptr.p_char) == ctrl->maximum && last)
- 				return -ERANGE;
- 		}
--		return ret ? -EFAULT : 0;
-+		return ret;
- 	default:
- 		*ptr.p_s32 = c->value;
- 		break;
--- 
-2.0.0.rc0
+So your new condition is wrong.
+
+Regards,
+
+	Hans
+
+>  				return -EINVAL;
+>  		}
+>  	} else {
+> 
 
