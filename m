@@ -1,44 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2625 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751000AbaFWIRf (ORCPT
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:39410 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756369AbaFWRZS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jun 2014 04:17:35 -0400
-Message-ID: <53A7E28D.8020009@xs4all.nl>
-Date: Mon, 23 Jun 2014 10:17:17 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 23 Jun 2014 13:25:18 -0400
+Date: Mon, 23 Jun 2014 10:25:12 -0700
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+To: Joe Perches <joe@perches.com>
+Cc: linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-arch@vger.kernel.org, linux-scsi@vger.kernel.org,
+	iss_storagedev@hp.com, linux-rdma@vger.kernel.org,
+	netdev@vger.kernel.org, linux-atm-general@lists.sourceforge.net,
+	linux-wireless@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-crypto@vger.kernel.org, linux-eata@i-connect.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 00/22] Add and use pci_zalloc_consistent
+Message-ID: <20140623172512.GA1390@garbanzo.do-not-panic.com>
+References: <cover.1403530604.git.joe@perches.com>
 MIME-Version: 1.0
-To: Gregor Jasny <gjasny@googlemail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Time for v4l-utils 1.2 release?
-References: <53A49A11.2010502@googlemail.com> <53A4B097.3050802@xs4all.nl>
-In-Reply-To: <53A4B097.3050802@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1403530604.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/21/2014 12:07 AM, Hans Verkuil wrote:
-> On 06/20/2014 10:31 PM, Gregor Jasny wrote:
->> Hello,
->>
->> It's been 11 months since the 1.0.0 release. What do you think about
->> releasing HEAD? Do you have any pending commits?
+On Mon, Jun 23, 2014 at 06:41:28AM -0700, Joe Perches wrote:
+> Adding the helper reduces object code size as well as overall
+> source size line count.
 > 
-> I've got two patches from Laurent pending that ensure that the 'installed
-> kernel headers' are used. I plan on processing those on Monday. After that
-> I think it's OK to do a release.
+> It's also consistent with all the various zalloc mechanisms
+> in the kernel.
 > 
-> Mauro, did you look at my email where I suggest to remove three apps from
-> contrib? If you agree with that, then I can do that Monday as well.
+> Done with a simple cocci script and some typing.
 
-Gregor,
+Awesome, any chance you can paste in the SmPL? Also any chance
+we can get this added to a make coccicheck so that maintainers
+moving forward can use that to ensure that no new code is
+added that uses the old school API?
 
-I'm all done, so you can make a new release whenever you want.
-
-Regards,
-
-	Hans
+  Luis
