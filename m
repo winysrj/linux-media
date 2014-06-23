@@ -1,74 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay011.isp.belgacom.be ([195.238.6.178]:58875 "EHLO
-	mailrelay011.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750714AbaF0Udb (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47310 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753193AbaFWXyG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jun 2014 16:33:31 -0400
-From: Fabian Frederick <fabf@skynet.be>
-To: linux-kernel@vger.kernel.org
-Cc: Fabian Frederick <fabf@skynet.be>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 1/1] drivers/base/dma-buf.c: replace dma_buf_uninit_debugfs by debugfs_remove_recursive
-Date: Fri, 27 Jun 2014 22:32:10 +0200
-Message-Id: <1403901130-8156-1-git-send-email-fabf@skynet.be>
+	Mon, 23 Jun 2014 19:54:06 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 08/23] v4l: vsp1: Fix pipeline stop timeout
+Date: Tue, 24 Jun 2014 01:54:14 +0200
+Message-Id: <1403567669-18539-9-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-null test before debugfs_remove_recursive is not needed so one line function
-dma_buf_uninit_debugfs can be removed.
+If the pipeline was already stopped when stopping the stream, no
+frame end interrupt will be generated and the driver will time out
+waiting for the pipeline to stop.
 
-This patch calls debugfs_remove_recursive under CONFIG_DEBUG_FS
+Fix this by setting the pipeline state to STOPPED when the pipeline is
+idle waiting for frames to process, and to STOPPING at stream stop time
+only when the pipeline is currently RUNNING.
 
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
+ drivers/media/platform/vsp1/vsp1_video.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-This is untested.
-
- drivers/base/dma-buf.c | 13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-index 840c7fa..184c0cb 100644
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -701,12 +701,6 @@ static int dma_buf_init_debugfs(void)
- 	return err;
- }
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 9bb156c..a60332e 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -471,7 +471,8 @@ static int vsp1_pipeline_stop(struct vsp1_pipeline *pipe)
+ 	int ret;
  
--static void dma_buf_uninit_debugfs(void)
--{
--	if (dma_buf_debugfs_dir)
--		debugfs_remove_recursive(dma_buf_debugfs_dir);
--}
--
- int dma_buf_debugfs_create_file(const char *name,
- 				int (*write)(struct seq_file *))
- {
-@@ -722,9 +716,6 @@ static inline int dma_buf_init_debugfs(void)
- {
- 	return 0;
- }
--static inline void dma_buf_uninit_debugfs(void)
--{
--}
- #endif
+ 	spin_lock_irqsave(&pipe->irqlock, flags);
+-	pipe->state = VSP1_PIPELINE_STOPPING;
++	if (pipe->state == VSP1_PIPELINE_RUNNING)
++		pipe->state = VSP1_PIPELINE_STOPPING;
+ 	spin_unlock_irqrestore(&pipe->irqlock, flags);
  
- static int __init dma_buf_init(void)
-@@ -738,6 +729,8 @@ subsys_initcall(dma_buf_init);
+ 	ret = wait_event_timeout(pipe->wq, pipe->state == VSP1_PIPELINE_STOPPED,
+@@ -576,6 +577,7 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
  
- static void __exit dma_buf_deinit(void)
+ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
  {
--	dma_buf_uninit_debugfs();
-+#ifdef CONFIG_DEBUG_FS
-+	debugfs_remove_recursive(dma_buf_debugfs_dir);
-+#endif
- }
- __exitcall(dma_buf_deinit);
++	enum vsp1_pipeline_state state;
+ 	unsigned long flags;
+ 	unsigned int i;
+ 
+@@ -591,11 +593,13 @@ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
+ 
+ 	spin_lock_irqsave(&pipe->irqlock, flags);
+ 
++	state = pipe->state;
++	pipe->state = VSP1_PIPELINE_STOPPED;
++
+ 	/* If a stop has been requested, mark the pipeline as stopped and
+ 	 * return.
+ 	 */
+-	if (pipe->state == VSP1_PIPELINE_STOPPING) {
+-		pipe->state = VSP1_PIPELINE_STOPPED;
++	if (state == VSP1_PIPELINE_STOPPING) {
+ 		wake_up(&pipe->wq);
+ 		goto done;
+ 	}
 -- 
-1.8.4.5
+1.8.5.5
 
