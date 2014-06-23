@@ -1,154 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:34559 "EHLO posteo.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752415AbaF0WP0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jun 2014 18:15:26 -0400
-Message-ID: <53ADECDA.60600@posteo.de>
-Date: Sat, 28 Jun 2014 00:14:50 +0200
-From: Martin Kepplinger <martink@posteo.de>
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:50607 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754239AbaFWVFU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jun 2014 17:05:20 -0400
+Message-ID: <53A89688.6080103@codethink.co.uk>
+Date: Mon, 23 Jun 2014 22:05:12 +0100
+From: Ben Dooks <ben.dooks@codethink.co.uk>
 MIME-Version: 1.0
-To: Zhang Rui <rui.zhang@intel.com>
-CC: "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-	"lenb@kernel.org" <lenb@kernel.org>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black instead
- of native resolution
-References: <53A6E72A.9090000@posteo.de>		 <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>		 <53A81BF7.3030207@posteo.de> <1403529246.4686.6.camel@rzhang1-toshiba>	 <53A83DC7.1010606@posteo.de> <1403882067.16305.124.camel@rzhang1-toshiba> <53ADB359.4010401@posteo.de> <53ADCB24.9030206@posteo.de>
-In-Reply-To: <53ADCB24.9030206@posteo.de>
-Content-Type: text/plain; charset=ISO-8859-15
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-kernel@lists.codethink.co.uk, linux-sh@vger.kernel.org,
+	linux-media@vger.kernel.org, robert.jarzmik@free.fr,
+	magnus.damm@opensource.se, horms@verge.net.au,
+	ian.molton@codethink.co.uk, william.towle@codethink.co.uk
+Subject: Re: [PATCH 7/9] soc_camera: add support for dt binding soc_camera
+ drivers
+References: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk> <1402862194-17743-8-git-send-email-ben.dooks@codethink.co.uk> <Pine.LNX.4.64.1406190927110.22703@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1406190927110.22703@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 2014-06-27 21:51, schrieb Martin Kepplinger:
-> Am 2014-06-27 20:09, schrieb Martin Kepplinger:
->> Am 2014-06-27 17:14, schrieb Zhang Rui:
->>> On Mon, 2014-06-23 at 16:46 +0200, Martin Kepplinger wrote:
->>>> Am 2014-06-23 15:14, schrieb Zhang Rui:
->>>>> On Mon, 2014-06-23 at 14:22 +0200, Martin Kepplinger wrote:
->>>>>> Am 2014-06-23 03:10, schrieb Zhang, Rui:
->>>>>>>
->>>>>>>
->>>>>>>> -----Original Message-----
->>>>>>>> From: Martin Kepplinger [mailto:martink@posteo.de]
->>>>>>>> Sent: Sunday, June 22, 2014 10:25 PM
->>>>>>>> To: Zhang, Rui
->>>>>>>> Cc: rjw@rjwysocki.net; lenb@kernel.org; linux-acpi@vger.kernel.org;
->>>>>>>> linux-kernel@vger.kernel.org
->>>>>>>> Subject: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black
->>>>>>>> instead of native resolution
->>>>>>>> Importance: High
->>>>>>>>
->>>>>>>> Since 3.16-rc1 my laptop's just goes black while booting, instead of
->>>>>>>> switching to native screen resolution and showing me the starting
->>>>>>>> system there. It's an Acer TravelMate B113 with i915 driver and
->>>>>>>> acer_wmi. It stays black and is unusable.
->>>>>>>>
->>>>> This looks like a duplicate of
->>>>> https://bugzilla.kernel.org/show_bug.cgi?id=78601
->>>>>
->>>>> thanks,
->>>>> rui
->>>> I'm not sure about that. I have no problem with v3.15 and the screen
->>>> goes black way before a display manager is started. It's right after the
->>>> kernel loaded and usually the screen is set to native resolution.
->>>>
->>>> Bisect told me aaeb2554337217dfa4eac2fcc90da7be540b9a73 as the first bad
->>>> one. Although, checking that out and running it, works good. not sure if
->>>> that makes sense.
->>>>
->>> could you please check if the comment in
->>> https://bugzilla.kernel.org/show_bug.cgi?id=78601#c5 solves your problem
->>> or not?
->>>
->>> thanks,
->>> rui
+On 19/06/14 08:28, Guennadi Liakhovetski wrote:
+> Hi Ben,
+> 
+> Thanks for an update.
+> 
+> On Sun, 15 Jun 2014, Ben Dooks wrote:
+> 
+>> Add initial support for OF based soc-camera devices that may be used
+>> by any of the soc-camera drivers. The driver itself will need converting
+>> to use OF.
 >>
->> thanks for checking. This does not change anything though. I tested the
->> following on top of v3.16-rc2 and linus's tree as of today, almost -rc3.
+>> These changes allow the soc-camera driver to do the connecting of any
+>> async capable v4l2 device to the soc-camera driver. This has currently
+>> been tested on the Renesas Lager board.
 >>
->> ---
->>  drivers/gpu/drm/i915/intel_fbdev.c |    1 -
->>  1 file changed, 1 deletion(-)
->>
->> diff --git a/drivers/gpu/drm/i915/intel_fbdev.c
->> b/drivers/gpu/drm/i915/intel_fbdev.c
->> index 088fe93..1e2f9ae 100644
->> --- a/drivers/gpu/drm/i915/intel_fbdev.c
->> +++ b/drivers/gpu/drm/i915/intel_fbdev.c
->> @@ -453,7 +453,6 @@ out:
->>  }
->>
->>  static struct drm_fb_helper_funcs intel_fb_helper_funcs = {
->> -       .initial_config = intel_fb_initial_config,
->>         .gamma_set = intel_crtc_fb_gamma_set,
->>         .gamma_get = intel_crtc_fb_gamma_get,
->>         .fb_probe = intelfb_create,
->>
+>> It currently only supports one input device per driver as this seems
+>> to be the standard connection for these devices.
 > 
-> I also tested the following patch from
-> http://lists.freedesktop.org/archives/intel-gfx/2014-June/047981.html
-> now, with no results. No change in my case :(
-> 
-> diff --git a/drivers/gpu/drm/i915/intel_display.c
-> b/drivers/gpu/drm/i915/intel_display.c
-> index efd3cf5..5aee08e 100644
-> --- a/drivers/gpu/drm/i915/intel_display.c
-> +++ b/drivers/gpu/drm/i915/intel_display.c
-> @@ -11087,6 +11087,22 @@ const char *intel_output_name(int output)
->         return names[output];
->  }
-> 
-> +static bool intel_crt_present(struct drm_device *dev)
-> +{
-> +       struct drm_i915_private *dev_priv = dev->dev_private;
-> +
-> +       if (IS_ULT(dev))
-> +               return false;
-> +
-> +       if (IS_CHERRYVIEW(dev))
-> +               return false;
-> +
-> +       if (IS_VALLEYVIEW(dev) && !dev_priv->vbt.int_crt_support)
-> +               return false;
-> +
-> +       return true;
-> +}
-> +
->  static void intel_setup_outputs(struct drm_device *dev)
->  {
->         struct drm_i915_private *dev_priv = dev->dev_private;
-> @@ -11095,7 +11111,7 @@ static void intel_setup_outputs(struct
-> drm_device *dev)
-> 
->         intel_lvds_init(dev);
-> 
-> -       if (!IS_ULT(dev) && !IS_CHERRYVIEW(dev) &&
-> dev_priv->vbt.int_crt_support)
-> +       if (intel_crt_present(dev))
->                 intel_crt_init(dev);
-> 
->         if (HAS_DDI(dev)) {
-> 
-I'm on i686 and also the following from
-https://bugzilla.redhat.com/show_bug.cgi?id=1110968#c16 does not help :(
-this is bad.
+> You ignored most of my comments to the previous version of this your 
+> patch. Please, revisit.
 
----
- arch/x86/kernel/signal.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
---- a/arch/x86/kernel/signal.c	
-+++ a/arch/x86/kernel/signal.c	
-@@ -363,7 +363,7 @@ static int __setup_rt_frame(int sig, struct ksignal
-*ksig,
+Sorry, will go and have a look over this tomorrow.
 
- 		/* Set up to return from userspace.  */
- 		restorer = current->mm->context.vdso +
--			selected_vdso32->sym___kernel_sigreturn;
-+			selected_vdso32->sym___kernel_rt_sigreturn;
- 		if (ksig->ka.sa.sa_flags & SA_RESTORER)
- 			restorer = ksig->ka.sa.sa_restorer;
- 		put_user_ex(restorer, &frame->pretcode);
+
 -- 
+Ben Dooks				http://www.codethink.co.uk/
+Senior Engineer				Codethink - Providing Genius
