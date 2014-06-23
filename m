@@ -1,98 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52661 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752742AbaFLMjS (ORCPT
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:42803 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751066AbaFWK6o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 08:39:18 -0400
-Date: Thu, 12 Jun 2014 15:38:44 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Mon, 23 Jun 2014 06:58:44 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N7M00CPPBTVS570@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jun 2014 06:58:43 -0400 (EDT)
+Date: Mon, 23 Jun 2014 07:58:37 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv4 PATCH 04/34] videodev2.h: add struct
- v4l2_query_ext_ctrl and VIDIOC_QUERY_EXT_CTRL.
-Message-ID: <20140612123843.GO2073@valkosipuli.retiisi.org.uk>
-References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
- <5c0945c0e8a31f17fab4a8d6c5f797b8c70a7a5f.1402573818.git.hans.verkuil@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5c0945c0e8a31f17fab4a8d6c5f797b8c70a7a5f.1402573818.git.hans.verkuil@cisco.com>
+Cc: Gregor Jasny <gjasny@googlemail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Time for v4l-utils 1.2 release?
+Message-id: <20140623075837.210fd361.m.chehab@samsung.com>
+In-reply-to: <53A7E3BA.1080100@xs4all.nl>
+References: <53A49A11.2010502@googlemail.com> <53A4B097.3050802@xs4all.nl>
+ <20140620192946.39765ec3.m.chehab@samsung.com> <53A5213D.7010202@xs4all.nl>
+ <20140621075348.50b8a47d.m.chehab@samsung.com> <53A7E3BA.1080100@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Mon, 23 Jun 2014 10:22:18 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On Thu, Jun 12, 2014 at 01:52:36PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+> On 06/21/2014 12:53 PM, Mauro Carvalho Chehab wrote:
+> > Em Sat, 21 Jun 2014 08:07:57 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> >> On 06/21/2014 12:29 AM, Mauro Carvalho Chehab wrote:
+> >>> Em Sat, 21 Jun 2014 00:07:19 +0200
+> >>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >>>
+> >>>> On 06/20/2014 10:31 PM, Gregor Jasny wrote:
+> >>>>> Hello,
+> >>>>>
+> >>>>> It's been 11 months since the 1.0.0 release. What do you think about
+> >>>>> releasing HEAD? Do you have any pending commits?
+> >>>>
+> >>>> I've got two patches from Laurent pending that ensure that the 'installed
+> >>>> kernel headers' are used. I plan on processing those on Monday. After that
+> >>>> I think it's OK to do a release.
+> >>>>
+> >>>> Mauro, did you look at my email where I suggest to remove three apps from
+> >>>> contrib? If you agree with that, then I can do that Monday as well.
+> >>>
+> >>> Well, I don't remember about such email, nor I was able to find on a quick
+> >>> look.
+> >>
+> >> https://www.mail-archive.com/linux-media@vger.kernel.org/msg76120.html
+> >>
+> >> Marked with ATTN as well!
+> > 
+> > Well, from my side, feel free to drop those 3 utilities. If you drop v4lgrab,
+> > you'll need to check the DocBook Makefile scripts, as it used to have some
+> > automation to include it at the media DocBook. 
+> > 
+> > I think that this was removed in the past, but it doesn't hurt to
+> > double-check.
+> > 
+> >>>
+> >>> What apps are you planning to remove?
+> >>>
+> >>> Btw, I think it could be a good idea to be able to install some of those
+> >>> stuff under contrib to a separate package. I had to do a quick hack
+> >>> in order to install v4l2grab on a Tizen package, in order to be able to
+> >>> test a card there (as was needing to do some tests via CLI).
+> >>
+> >> What does v4l2grab offer that v4l2-ctl doesn't? I would be much more inclined
+> >> to remove v4l2grab.
+> > 
+> > I never used v4l2-ctl for streaming (didn't even know/remember) that it was
+> > capable of doing that ;) 
 > 
-> Add a new struct and ioctl to extend the amount of information you can
-> get for a control.
+> It was added about a year ago or something like that.
 > 
-> The range is now a s64 type, and array dimensions and element size can be
-> reported through nr_of_dims/dims/elems/elem_size.
+> > Looking at --help-streaming, though, one thing that it is not clear there
+> > is what's the format of the output, when --stream-to= is used. 
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  include/uapi/linux/videodev2.h | 20 ++++++++++++++++++++
->  1 file changed, 20 insertions(+)
+> Completely raw output.
 > 
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 438c4a6..7d94adc 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -1269,6 +1269,7 @@ struct v4l2_ext_controls {
->  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
->  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
->  #define V4L2_CTRL_DRIVER_PRIV(id) (((id) & 0xffff) >= 0x1000)
-> +#define V4L2_CTRL_MAX_DIMS	  (8)
->  
->  enum v4l2_ctrl_type {
->  	V4L2_CTRL_TYPE_INTEGER	     = 1,
-> @@ -1298,6 +1299,23 @@ struct v4l2_queryctrl {
->  	__u32		     reserved[2];
->  };
->  
-> +/*  Used in the VIDIOC_QUERY_EXT_CTRL ioctl for querying extended controls */
-> +struct v4l2_query_ext_ctrl {
-> +	__u32		     id;
-> +	__u32		     type;
-> +	char		     name[32];
-> +	__s64		     minimum;
-> +	__s64		     maximum;
-> +	__u64		     step;
-> +	__s64		     default_value;
-> +	__u32                flags;
-> +	__u32                elem_size;
-> +	__u32                elems;
-> +	__u32                nr_of_dims;
-> +	__u32                dims[V4L2_CTRL_MAX_DIMS];
-> +	__u32		     reserved[16];
+> > Btw, I think that one big miss on v4l2-ctl is the lack of a man page witch
+> > would have an EXAMPLES section explaining things like that.
+> 
+> Absolutely. With a bit of luck I might have time for that fairly soon.
+> 
+> > One of the advantages of v4l2grab is that it takes per-frame snapshots, instead
+> > of writing a stream file. Those snapshots help to identify, for example, if
+> > there are interlacing issues on a frame, or if some frames have some other
+> > problems.
+> 
+> You can dump just a single frame as well with v4l2-ctl (--stream-count=1).
 
-Considering that units are going to be added (probably 16 or even 32 bytes),
-I might add even more. Something to be discussed is fractional parts which
-is a related topic.
+It is not the same. What I do with v4l2grab is to ask it to capture
+30 seconds, storing frame by frame. Then, I can see if each frame is
+ok or not.
 
-As you have already 34 patches in your set, perhaps it'd be good to postpone
-these.
+Btw, capturing just one frame with some webcams with auto bright will
+likely just get a black frame.
 
-> +};
-> +
->  /*  Used in the VIDIOC_QUERYMENU ioctl for querying menu items */
->  struct v4l2_querymenu {
->  	__u32		id;
-> @@ -2011,6 +2029,8 @@ struct v4l2_create_buffers {
->     Never use these in applications! */
->  #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
->  
-> +#define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
-> +
->  /* Reminder: when adding new ioctls please add support for them to
->     drivers/media/video/v4l2-compat-ioctl32.c as well! */
->  
+> 
+> > Also, v4l2grab is a good example of how to use libv4l, and it is enclosed
+> > at DocBook (not sure if we're using automation to allow including
+> > the latest version of it):
+> > 	http://linuxtv.org/downloads/v4l-dvb-apis/v4l2grab-example.html
+> 
+> Isn't capture.c.xml much more useful as example code? I have to admit, I
+> didn't know v4l2grab.c was used as an example.
 
--- 
-Regards,
+I would prefer to remove capture.c, as it doesn't use libv4l. We do
+want that newer applications would use libv4l.
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> 
+> > 
+> > So, I don't think we should remove it.
+> 
+> No problem.
+> 
+> Regards,
+> 
+> 	Hans
+> 
