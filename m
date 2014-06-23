@@ -1,72 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:43079 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752783AbaFDPEY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jun 2014 11:04:24 -0400
-Message-ID: <1401894260.3447.18.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v2 2/5] [media] mt9v032: register v4l2 asynchronous
- subdevice
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Date: Wed, 04 Jun 2014 17:04:20 +0200
-In-Reply-To: <2505444.YzkDIeOsnF@avalon>
-References: <1401788155-3690-1-git-send-email-p.zabel@pengutronix.de>
-	 <1401788155-3690-3-git-send-email-p.zabel@pengutronix.de>
-	 <2505444.YzkDIeOsnF@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47311 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753233AbaFWXyG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jun 2014 19:54:06 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 09/23] v4l: vsp1: Fix typos
+Date: Tue, 24 Jun 2014 01:54:15 +0200
+Message-Id: <1403567669-18539-10-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Several macros were mistakenly prefixed with VPS1 instead of VSP1. Fix
+them.
 
-Am Mittwoch, den 04.06.2014, 16:16 +0200 schrieb Laurent Pinchart:
-> Hi Philipp,
-> 
-> Thank you for the patch.
-> 
-> On Tuesday 03 June 2014 11:35:52 Philipp Zabel wrote:
-> > Add support for registering the sensor subdevice using the v4l2-async API.
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> > Changes since v1:
-> >  - Fixed cleanup and error handling
-> > ---
-> >  drivers/media/i2c/mt9v032.c | 13 ++++++++++++-
-> >  1 file changed, 12 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-> > index 29d8d8f..83ae8ca6d 100644
-> > --- a/drivers/media/i2c/mt9v032.c
-> > +++ b/drivers/media/i2c/mt9v032.c
-> > @@ -985,10 +985,20 @@ static int mt9v032_probe(struct i2c_client *client,
-> > 
-> >  	mt9v032->pad.flags = MEDIA_PAD_FL_SOURCE;
-> >  	ret = media_entity_init(&mt9v032->subdev.entity, 1, &mt9v032->pad, 0);
-> > +	if (ret < 0)
-> > +		goto err_entity;
-> > 
-> > +	mt9v032->subdev.dev = &client->dev;
-> > +	ret = v4l2_async_register_subdev(&mt9v032->subdev);
-> >  	if (ret < 0)
-> > -		v4l2_ctrl_handler_free(&mt9v032->ctrls);
-> > +		goto err_async;
-> > +
-> > +	return 0;
-> > 
-> > +err_async:
-> > +	media_entity_cleanup(&mt9v032->subdev.entity);
-> 
-> media_entity_cleanup() can safely be called on an unintialized entity, 
-> provided the memory has been zeroed. You could thus merge the err_async and 
-> err_entity labels into a single error label.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1.h       | 12 ++++++------
+ drivers/media/platform/vsp1/vsp1_drv.c   |  6 +++---
+ drivers/media/platform/vsp1/vsp1_video.h |  2 +-
+ 3 files changed, 10 insertions(+), 10 deletions(-)
 
-Alright, I'll update this patch accordingly.
-
-regards
-Philipp
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index 6ca2cf2..3cfa393 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -36,9 +36,9 @@ struct vsp1_rwpf;
+ struct vsp1_sru;
+ struct vsp1_uds;
+ 
+-#define VPS1_MAX_RPF		5
+-#define VPS1_MAX_UDS		3
+-#define VPS1_MAX_WPF		4
++#define VSP1_MAX_RPF		5
++#define VSP1_MAX_UDS		3
++#define VSP1_MAX_WPF		4
+ 
+ struct vsp1_device {
+ 	struct device *dev;
+@@ -55,10 +55,10 @@ struct vsp1_device {
+ 	struct vsp1_hsit *hst;
+ 	struct vsp1_lif *lif;
+ 	struct vsp1_lut *lut;
+-	struct vsp1_rwpf *rpf[VPS1_MAX_RPF];
++	struct vsp1_rwpf *rpf[VSP1_MAX_RPF];
+ 	struct vsp1_sru *sru;
+-	struct vsp1_uds *uds[VPS1_MAX_UDS];
+-	struct vsp1_rwpf *wpf[VPS1_MAX_WPF];
++	struct vsp1_uds *uds[VSP1_MAX_UDS];
++	struct vsp1_rwpf *wpf[VSP1_MAX_WPF];
+ 
+ 	struct list_head entities;
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index c69ee06..0c5e74c 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -440,19 +440,19 @@ static int vsp1_validate_platform_data(struct platform_device *pdev,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (pdata->rpf_count <= 0 || pdata->rpf_count > VPS1_MAX_RPF) {
++	if (pdata->rpf_count <= 0 || pdata->rpf_count > VSP1_MAX_RPF) {
+ 		dev_err(&pdev->dev, "invalid number of RPF (%u)\n",
+ 			pdata->rpf_count);
+ 		return -EINVAL;
+ 	}
+ 
+-	if (pdata->uds_count <= 0 || pdata->uds_count > VPS1_MAX_UDS) {
++	if (pdata->uds_count <= 0 || pdata->uds_count > VSP1_MAX_UDS) {
+ 		dev_err(&pdev->dev, "invalid number of UDS (%u)\n",
+ 			pdata->uds_count);
+ 		return -EINVAL;
+ 	}
+ 
+-	if (pdata->wpf_count <= 0 || pdata->wpf_count > VPS1_MAX_WPF) {
++	if (pdata->wpf_count <= 0 || pdata->wpf_count > VSP1_MAX_WPF) {
+ 		dev_err(&pdev->dev, "invalid number of WPF (%u)\n",
+ 			pdata->wpf_count);
+ 		return -EINVAL;
+diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
+index 7284320..cb5d9ef 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.h
++++ b/drivers/media/platform/vsp1/vsp1_video.h
+@@ -73,7 +73,7 @@ struct vsp1_pipeline {
+ 
+ 	unsigned int num_video;
+ 	unsigned int num_inputs;
+-	struct vsp1_rwpf *inputs[VPS1_MAX_RPF];
++	struct vsp1_rwpf *inputs[VSP1_MAX_RPF];
+ 	struct vsp1_rwpf *output;
+ 	struct vsp1_entity *bru;
+ 	struct vsp1_entity *lif;
+-- 
+1.8.5.5
 
