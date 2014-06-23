@@ -1,38 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44655 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752756AbaFCAo3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jun 2014 20:44:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 0/2] v4l-utils: Add missing v4l2-mediabus.h header
-Date: Tue,  3 Jun 2014 02:44:50 +0200
-Message-Id: <1401756292-27676-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx02.posteo.de ([89.146.194.165]:56019 "EHLO posteo.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751695AbaFWMW4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jun 2014 08:22:56 -0400
+Message-ID: <53A81BF7.3030207@posteo.de>
+Date: Mon, 23 Jun 2014 14:22:15 +0200
+From: Martin Kepplinger <martink@posteo.de>
+MIME-Version: 1.0
+To: "Zhang, Rui" <rui.zhang@intel.com>
+CC: "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+	"lenb@kernel.org" <lenb@kernel.org>,
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black instead
+ of native resolution
+References: <53A6E72A.9090000@posteo.de> <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>
+In-Reply-To: <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Am 2014-06-23 03:10, schrieb Zhang, Rui:
+> 
+> 
+>> -----Original Message-----
+>> From: Martin Kepplinger [mailto:martink@posteo.de]
+>> Sent: Sunday, June 22, 2014 10:25 PM
+>> To: Zhang, Rui
+>> Cc: rjw@rjwysocki.net; lenb@kernel.org; linux-acpi@vger.kernel.org;
+>> linux-kernel@vger.kernel.org
+>> Subject: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black
+>> instead of native resolution
+>> Importance: High
+>>
+>> Since 3.16-rc1 my laptop's just goes black while booting, instead of
+>> switching to native screen resolution and showing me the starting
+>> system there. It's an Acer TravelMate B113 with i915 driver and
+>> acer_wmi. It stays black and is unusable.
+>>
+>> Do you have other people complain about that? Bisecting didn't lead to
+>> a good result. I could be wrong but I somehow suspect the mistake to be
+>> somewhere in commit 99678ed73a50d2df8b5f3c801e29e9b7a3e5aa85
+>>
+> In order to confirm if the problem is introduced by the above commit,
+> why not checkout the kernel just before and after this commit and see if the problem exists?
+> 
+> Thanks,
+> rui
+> 
+So maybe I was wrong. d27050641e9bc056446deb0814e7ba1aa7911f5a is still
+good and aaeb2554337217dfa4eac2fcc90da7be540b9a73 is the fist bad one.
+This is a big v4l merge. I added the linux-media list in cc now.
 
-This patch set adds the missing v4l2-mediabus.h header, required by media-ctl.
-Please see individual patches for details, they're pretty straightforward.
+What could be the problem here?
 
-Laurent Pinchart (2):
-  Use installed kernel headers instead of raw kernel headers
-  Add the missing v4l2-mediabus.h kernel header
-
- include/linux/dvb/dmx.h       |   8 +--
- include/linux/dvb/frontend.h  |   4 --
- include/linux/dvb/video.h     |  12 ++--
- include/linux/fb.h            |   8 +--
- include/linux/ivtv.h          |   6 +-
- include/linux/v4l2-mediabus.h | 147 ++++++++++++++++++++++++++++++++++++++++++
- include/linux/videodev2.h     |  16 ++---
- 7 files changed, 168 insertions(+), 33 deletions(-)
- create mode 100644 include/linux/v4l2-mediabus.h
-
--- 
-Regards,
-
-Laurent Pinchart
+> 
+>> There is nothing unusual in the kernel log.
+>>
+>> This is quite unusual for an -rc2. Hence my question. I'm happy to test
+>> changes.
+>>
+>>                                      martin
+>> --
+>> Martin Kepplinger
+>> e-mail        martink AT posteo DOT at
+>> chat (XMPP)   martink AT jabber DOT at
 
