@@ -1,80 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:59618 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753365AbaFGV5i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:38 -0400
-Received: by mail-pd0-f171.google.com with SMTP id y13so3808678pdi.2
-        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:38 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 36/43] gpio: pca953x: Add reset-gpios property
-Date: Sat,  7 Jun 2014 14:56:38 -0700
-Message-Id: <1402178205-22697-37-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mga09.intel.com ([134.134.136.24]:16744 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755311AbaFWNOM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jun 2014 09:14:12 -0400
+Message-ID: <1403529246.4686.6.camel@rzhang1-toshiba>
+Subject: Re: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black
+ instead of native resolution
+From: Zhang Rui <rui.zhang@intel.com>
+To: Martin Kepplinger <martink@posteo.de>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+	"lenb@kernel.org" <lenb@kernel.org>,
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Date: Mon, 23 Jun 2014 21:14:06 +0800
+In-Reply-To: <53A81BF7.3030207@posteo.de>
+References: <53A6E72A.9090000@posteo.de>
+	 <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>
+	 <53A81BF7.3030207@posteo.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add optional reset-gpios property. If present, de-assert the
-specified reset gpio pin to bring the chip out of reset.
+On Mon, 2014-06-23 at 14:22 +0200, Martin Kepplinger wrote:
+> Am 2014-06-23 03:10, schrieb Zhang, Rui:
+> > 
+> > 
+> >> -----Original Message-----
+> >> From: Martin Kepplinger [mailto:martink@posteo.de]
+> >> Sent: Sunday, June 22, 2014 10:25 PM
+> >> To: Zhang, Rui
+> >> Cc: rjw@rjwysocki.net; lenb@kernel.org; linux-acpi@vger.kernel.org;
+> >> linux-kernel@vger.kernel.org
+> >> Subject: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black
+> >> instead of native resolution
+> >> Importance: High
+> >>
+> >> Since 3.16-rc1 my laptop's just goes black while booting, instead of
+> >> switching to native screen resolution and showing me the starting
+> >> system there. It's an Acer TravelMate B113 with i915 driver and
+> >> acer_wmi. It stays black and is unusable.
+> >>
+This looks like a duplicate of
+https://bugzilla.kernel.org/show_bug.cgi?id=78601
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/gpio/gpio-pca953x.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+thanks,
+rui
+> >> Do you have other people complain about that? Bisecting didn't lead to
+> >> a good result. I could be wrong but I somehow suspect the mistake to be
+> >> somewhere in commit 99678ed73a50d2df8b5f3c801e29e9b7a3e5aa85
+> >>
+> > In order to confirm if the problem is introduced by the above commit,
+> > why not checkout the kernel just before and after this commit and see if the problem exists?
+> > 
+> > Thanks,
+> > rui
+> > 
+> So maybe I was wrong. d27050641e9bc056446deb0814e7ba1aa7911f5a is still
+> good and aaeb2554337217dfa4eac2fcc90da7be540b9a73 is the fist bad one.
+> This is a big v4l merge. I added the linux-media list in cc now.
+> 
+> What could be the problem here?
+> 
+> > 
+> >> There is nothing unusual in the kernel log.
+> >>
+> >> This is quite unusual for an -rc2. Hence my question. I'm happy to test
+> >> changes.
+> >>
+> >>                                      martin
+> >> --
+> >> Martin Kepplinger
+> >> e-mail        martink AT posteo DOT at
+> >> chat (XMPP)   martink AT jabber DOT at
+> 
 
-diff --git a/drivers/gpio/gpio-pca953x.c b/drivers/gpio/gpio-pca953x.c
-index d550d8e..6e212f7 100644
---- a/drivers/gpio/gpio-pca953x.c
-+++ b/drivers/gpio/gpio-pca953x.c
-@@ -22,6 +22,7 @@
- #include <linux/slab.h>
- #ifdef CONFIG_OF_GPIO
- #include <linux/of_platform.h>
-+#include <linux/of_gpio.h>
- #endif
- 
- #define PCA953X_INPUT		0
-@@ -98,6 +99,11 @@ struct pca953x_chip {
- 	struct gpio_chip gpio_chip;
- 	const char *const *names;
- 	int	chip_type;
-+
-+#ifdef CONFIG_OF_GPIO
-+	enum of_gpio_flags reset_gpio_flags;
-+	int reset_gpio;
-+#endif
- };
- 
- static int pca953x_read_single(struct pca953x_chip *chip, int reg, u32 *val,
-@@ -735,6 +741,26 @@ static int pca953x_probe(struct i2c_client *client,
- 		/* If I2C node has no interrupts property, disable GPIO interrupts */
- 		if (of_find_property(client->dev.of_node, "interrupts", NULL) == NULL)
- 			irq_base = -1;
-+
-+		/* see if we need to de-assert a reset pin */
-+		ret = of_get_named_gpio_flags(client->dev.of_node,
-+					      "reset-gpios", 0,
-+					      &chip->reset_gpio_flags);
-+		if (gpio_is_valid(ret)) {
-+			chip->reset_gpio = ret;
-+			ret = devm_gpio_request_one(&client->dev,
-+						    chip->reset_gpio,
-+						    GPIOF_DIR_OUT,
-+						    "pca953x_reset");
-+			if (ret == 0) {
-+				/* bring chip out of reset */
-+				dev_info(&client->dev, "releasing reset\n");
-+				gpio_set_value(chip->reset_gpio,
-+					       (chip->reset_gpio_flags ==
-+						OF_GPIO_ACTIVE_LOW) ? 1 : 0);
-+			}
-+		} else if (ret == -EPROBE_DEFER)
-+			return ret;
- #endif
- 	}
- 
--- 
-1.7.9.5
 
