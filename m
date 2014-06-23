@@ -1,56 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47576 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751875AbaFCKkd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 06:40:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 0/2] v4l-utils: Add missing v4l2-mediabus.h header
-Date: Tue, 03 Jun 2014 12:40:59 +0200
-Message-ID: <3433266.HJNPOlTexz@avalon>
-In-Reply-To: <538D99DE.8040602@xs4all.nl>
-References: <1401756292-27676-1-git-send-email-laurent.pinchart@ideasonboard.com> <7921712.MU9v3dyUpo@avalon> <538D99DE.8040602@xs4all.nl>
+Received: from mx02.posteo.de ([89.146.194.165]:44478 "EHLO posteo.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755103AbaFWOrL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jun 2014 10:47:11 -0400
+Message-ID: <53A83DC7.1010606@posteo.de>
+Date: Mon, 23 Jun 2014 16:46:31 +0200
+From: Martin Kepplinger <martink@posteo.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Zhang Rui <rui.zhang@intel.com>
+CC: "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+	"lenb@kernel.org" <lenb@kernel.org>,
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black instead
+ of native resolution
+References: <53A6E72A.9090000@posteo.de>	 <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>	 <53A81BF7.3030207@posteo.de> <1403529246.4686.6.camel@rzhang1-toshiba>
+In-Reply-To: <1403529246.4686.6.camel@rzhang1-toshiba>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Tuesday 03 June 2014 11:48:14 Hans Verkuil wrote:
-> On 06/03/14 11:46, Laurent Pinchart wrote:
-> > On Tuesday 03 June 2014 08:52:29 Hans Verkuil wrote:
-> >> On 06/03/2014 02:44 AM, Laurent Pinchart wrote:
-> >>> Hello,
-> >>> 
-> >>> This patch set adds the missing v4l2-mediabus.h header, required by
-> >>> media-ctl. Please see individual patches for details, they're pretty
-> >>> straightforward.
-> >> 
-> >> Nack.
-> >> 
-> >> The kernel headers used in v4l-utils are installed via 'make
-> >> sync-with-kernel'. So these headers shouldn't be edited, instead
-> >> Makefile.am should be updated. In particular, that's where the missing
-> >> header should be added.
-> > 
-> > I had seen mentions of sync-with-kernel and for some reason thought it was
-> > a script. As I couldn't find it in the repository I decided to sync the
-> > headers manually :-/
-> > 
-> > Thanks for fixing the problem. By the way, what would you think about
-> > modifying sync-with-kernel to use installed kernel headers ?
+Am 2014-06-23 15:14, schrieb Zhang Rui:
+> On Mon, 2014-06-23 at 14:22 +0200, Martin Kepplinger wrote:
+>> Am 2014-06-23 03:10, schrieb Zhang, Rui:
+>>>
+>>>
+>>>> -----Original Message-----
+>>>> From: Martin Kepplinger [mailto:martink@posteo.de]
+>>>> Sent: Sunday, June 22, 2014 10:25 PM
+>>>> To: Zhang, Rui
+>>>> Cc: rjw@rjwysocki.net; lenb@kernel.org; linux-acpi@vger.kernel.org;
+>>>> linux-kernel@vger.kernel.org
+>>>> Subject: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black
+>>>> instead of native resolution
+>>>> Importance: High
+>>>>
+>>>> Since 3.16-rc1 my laptop's just goes black while booting, instead of
+>>>> switching to native screen resolution and showing me the starting
+>>>> system there. It's an Acer TravelMate B113 with i915 driver and
+>>>> acer_wmi. It stays black and is unusable.
+>>>>
+> This looks like a duplicate of
+> https://bugzilla.kernel.org/show_bug.cgi?id=78601
 > 
-> Patches are welcome!
+> thanks,
+> rui
+I'm not sure about that. I have no problem with v3.15 and the screen
+goes black way before a display manager is started. It's right after the
+kernel loaded and usually the screen is set to native resolution.
+
+Bisect told me aaeb2554337217dfa4eac2fcc90da7be540b9a73 as the first bad
+one. Although, checking that out and running it, works good. not sure if
+that makes sense.
+
+>>>> Do you have other people complain about that? Bisecting didn't lead to
+>>>> a good result. I could be wrong but I somehow suspect the mistake to be
+>>>> somewhere in commit 99678ed73a50d2df8b5f3c801e29e9b7a3e5aa85
+>>>>
+>>> In order to confirm if the problem is introduced by the above commit,
+>>> why not checkout the kernel just before and after this commit and see if the problem exists?
+>>>
+>>> Thanks,
+>>> rui
+>>>
+>> So maybe I was wrong. d27050641e9bc056446deb0814e7ba1aa7911f5a is still
+>> good and aaeb2554337217dfa4eac2fcc90da7be540b9a73 is the fist bad one.
+>> This is a big v4l merge. I added the linux-media list in cc now.
+>>
+>> What could be the problem here?
+>>
+>>>
+>>>> There is nothing unusual in the kernel log.
+>>>>
+>>>> This is quite unusual for an -rc2. Hence my question. I'm happy to test
+>>>> changes.
+>>>>
+>>>>                                      martin
+>>>> --
+>>>> Martin Kepplinger
+>>>> e-mail        martink AT posteo DOT at
+>>>> chat (XMPP)   martink AT jabber DOT at
+>>
 > 
-> :-)
-
-Patch sent :-)
-
--- 
-Regards,
-
-Laurent Pinchart
+> 
 
