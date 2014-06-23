@@ -1,44 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44592 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753208AbaFMQJU (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47310 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753051AbaFWXyC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jun 2014 12:09:20 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+	Mon, 23 Jun 2014 19:54:02 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 02/30] [media] coda: fix readback of CODA_RET_DEC_SEQ_FRAME_NEED
-Date: Fri, 13 Jun 2014 18:08:28 +0200
-Message-Id: <1402675736-15379-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 05/23] v4l: vb2: Fix stream start and buffer completion race
+Date: Tue, 24 Jun 2014 01:54:11 +0200
+Message-Id: <1403567669-18539-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Previously we'd add one to this value, allocating one additional, superfluous
-internal buffer.
+videobuf2 stores the driver streaming state internally in the queue in
+the start_streaming_called variable. The state is set right after the
+driver start_stream operation returns, and checked in the
+vb2_buffer_done() function, typically called from the frame completion
+interrupt handler. A race condition exists if the hardware finishes
+processing the first frame before the start_stream operation returns.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Fix this by setting start_streaming_called to 1 before calling the
+start_stream operation, and resetting it to 0 if the operation fails.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/platform/coda.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index a69fa3b..453ac4b 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1889,7 +1889,7 @@ static int coda_start_decoding(struct coda_ctx *ctx)
- 	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "%s instance %d now: %dx%d\n",
- 		 __func__, ctx->idx, width, height);
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 7c4489c..1d67e95 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1750,12 +1750,14 @@ static int vb2_start_streaming(struct vb2_queue *q)
+ 		__enqueue_in_driver(vb);
  
--	ctx->num_internal_frames = coda_read(dev, CODA_RET_DEC_SEQ_FRAME_NEED) + 1;
-+	ctx->num_internal_frames = coda_read(dev, CODA_RET_DEC_SEQ_FRAME_NEED);
- 	if (ctx->num_internal_frames > CODA_MAX_FRAMEBUFFERS) {
- 		v4l2_err(&dev->v4l2_dev,
- 			 "not enough framebuffers to decode (%d < %d)\n",
+ 	/* Tell the driver to start streaming */
++	q->start_streaming_called = 1;
+ 	ret = call_qop(q, start_streaming, q,
+ 		       atomic_read(&q->owned_by_drv_count));
+-	q->start_streaming_called = ret == 0;
+ 	if (!ret)
+ 		return 0;
+ 
++	q->start_streaming_called = 0;
++
+ 	dprintk(1, "driver refused to start streaming\n");
+ 	if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
+ 		unsigned i;
 -- 
-2.0.0.rc2
+1.8.5.5
 
