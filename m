@@ -1,190 +1,536 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:38741 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752073AbaFOT5E (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47309 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752012AbaFWXx7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jun 2014 15:57:04 -0400
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-sh@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
-	magnus.damm@opensource.se, horms@verge.net.au,
-	ian.molton@codethink.co.uk, william.towle@codethink.co.uk,
-	Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: [PATCH 7/9] soc_camera: add support for dt binding soc_camera drivers
-Date: Sun, 15 Jun 2014 20:56:32 +0100
-Message-Id: <1402862194-17743-8-git-send-email-ben.dooks@codethink.co.uk>
-In-Reply-To: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
-References: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
+	Mon, 23 Jun 2014 19:53:59 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 01/23] v4l: Add ARGB and XRGB pixel formats
+Date: Tue, 24 Jun 2014 01:54:07 +0200
+Message-Id: <1403567669-18539-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add initial support for OF based soc-camera devices that may be used
-by any of the soc-camera drivers. The driver itself will need converting
-to use OF.
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-These changes allow the soc-camera driver to do the connecting of any
-async capable v4l2 device to the soc-camera driver. This has currently
-been tested on the Renesas Lager board.
+The existing RGB pixel formats are ill-defined in respect to their alpha
+bits and their meaning is driver dependent. Create new standard ARGB and
+XRGB variants with clearly defined meanings and make the existing
+variants deprecated.
 
-It currently only supports one input device per driver as this seems
-to be the standard connection for these devices.
+The new pixel formats 4CC values have been selected to match the DRM
+4CCs for the same in-memory formats.
 
-Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
+ .../DocBook/media/v4l/pixfmt-packed-rgb.xml        | 415 ++++++++++++++++++++-
+ include/uapi/linux/videodev2.h                     |   8 +
+ 2 files changed, 403 insertions(+), 20 deletions(-)
 
-Fixes since v1:
-	- Fix i2c mclk name compatible with other drivers
-	- Ensure of_node is put after use
----
- drivers/media/platform/soc_camera/soc_camera.c | 120 ++++++++++++++++++++++++-
- 1 file changed, 119 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index 7fec8cd..eda67d7 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -36,6 +36,7 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-dev.h>
-+#include <media/v4l2-of.h>
- #include <media/videobuf-core.h>
- #include <media/videobuf2-core.h>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+index e1c4f8b..5f1602f 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+@@ -130,9 +130,9 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+ 	    <entry>b<subscript>1</subscript></entry>
+ 	    <entry>b<subscript>0</subscript></entry>
+ 	  </row>
+-	  <row id="V4L2-PIX-FMT-RGB444">
+-	    <entry><constant>V4L2_PIX_FMT_RGB444</constant></entry>
+-	    <entry>'R444'</entry>
++	  <row id="V4L2-PIX-FMT-ARGB444">
++	    <entry><constant>V4L2_PIX_FMT_ARGB444</constant></entry>
++	    <entry>'AR12'</entry>
+ 	    <entry></entry>
+ 	    <entry>g<subscript>3</subscript></entry>
+ 	    <entry>g<subscript>2</subscript></entry>
+@@ -152,9 +152,31 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+ 	    <entry>r<subscript>1</subscript></entry>
+ 	    <entry>r<subscript>0</subscript></entry>
+ 	  </row>
+-	  <row id="V4L2-PIX-FMT-RGB555">
+-	    <entry><constant>V4L2_PIX_FMT_RGB555</constant></entry>
+-	    <entry>'RGBO'</entry>
++	  <row id="V4L2-PIX-FMT-XRGB444">
++	    <entry><constant>V4L2_PIX_FMT_XRGB444</constant></entry>
++	    <entry>'XR12'</entry>
++	    <entry></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-ARGB555">
++	    <entry><constant>V4L2_PIX_FMT_ARGB555</constant></entry>
++	    <entry>'AR15'</entry>
+ 	    <entry></entry>
+ 	    <entry>g<subscript>2</subscript></entry>
+ 	    <entry>g<subscript>1</subscript></entry>
+@@ -174,6 +196,28 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+ 	    <entry>g<subscript>4</subscript></entry>
+ 	    <entry>g<subscript>3</subscript></entry>
+ 	  </row>
++	  <row id="V4L2-PIX-FMT-XRGB555">
++	    <entry><constant>V4L2_PIX_FMT_XRGB555</constant></entry>
++	    <entry>'XR15'</entry>
++	    <entry></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>-</entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	  </row>
+ 	  <row id="V4L2-PIX-FMT-RGB565">
+ 	    <entry><constant>V4L2_PIX_FMT_RGB565</constant></entry>
+ 	    <entry>'RGBP'</entry>
+@@ -341,9 +385,9 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+ 	    <entry>b<subscript>1</subscript></entry>
+ 	    <entry>b<subscript>0</subscript></entry>
+ 	  </row>
+-	  <row id="V4L2-PIX-FMT-BGR32">
+-	    <entry><constant>V4L2_PIX_FMT_BGR32</constant></entry>
+-	    <entry>'BGR4'</entry>
++	  <row id="V4L2-PIX-FMT-ABGR32">
++	    <entry><constant>V4L2_PIX_FMT_ABGR32</constant></entry>
++	    <entry>'AR24'</entry>
+ 	    <entry></entry>
+ 	    <entry>b<subscript>7</subscript></entry>
+ 	    <entry>b<subscript>6</subscript></entry>
+@@ -381,9 +425,49 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+ 	    <entry>a<subscript>1</subscript></entry>
+ 	    <entry>a<subscript>0</subscript></entry>
+ 	  </row>
+-	  <row id="V4L2-PIX-FMT-RGB32">
+-	    <entry><constant>V4L2_PIX_FMT_RGB32</constant></entry>
+-	    <entry>'RGB4'</entry>
++	  <row id="V4L2-PIX-FMT-XBGR32">
++	    <entry><constant>V4L2_PIX_FMT_XBGR32</constant></entry>
++	    <entry>'XR24'</entry>
++	    <entry></entry>
++	    <entry>b<subscript>7</subscript></entry>
++	    <entry>b<subscript>6</subscript></entry>
++	    <entry>b<subscript>5</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>7</subscript></entry>
++	    <entry>g<subscript>6</subscript></entry>
++	    <entry>g<subscript>5</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>r<subscript>7</subscript></entry>
++	    <entry>r<subscript>6</subscript></entry>
++	    <entry>r<subscript>5</subscript></entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-ARGB32">
++	    <entry><constant>V4L2_PIX_FMT_ARGB32</constant></entry>
++	    <entry>'AX24'</entry>
+ 	    <entry></entry>
+ 	    <entry>a<subscript>7</subscript></entry>
+ 	    <entry>a<subscript>6</subscript></entry>
+@@ -421,18 +505,76 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+ 	    <entry>b<subscript>1</subscript></entry>
+ 	    <entry>b<subscript>0</subscript></entry>
+ 	  </row>
++	  <row id="V4L2-PIX-FMT-XRGB32">
++	    <entry><constant>V4L2_PIX_FMT_XRGB32</constant></entry>
++	    <entry>'BX24'</entry>
++	    <entry></entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry></entry>
++	    <entry>r<subscript>7</subscript></entry>
++	    <entry>r<subscript>6</subscript></entry>
++	    <entry>r<subscript>5</subscript></entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>7</subscript></entry>
++	    <entry>g<subscript>6</subscript></entry>
++	    <entry>g<subscript>5</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>b<subscript>7</subscript></entry>
++	    <entry>b<subscript>6</subscript></entry>
++	    <entry>b<subscript>5</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
  
-@@ -1581,6 +1582,121 @@ static void scan_async_host(struct soc_camera_host *ici)
- #define scan_async_host(ici)		do {} while (0)
- #endif
+-    <para>Bit 7 is the most significant bit. The value of the a = alpha
+-bits is undefined when reading from the driver, ignored when writing
+-to the driver, except when alpha blending has been negotiated for a
+-<link linkend="overlay">Video Overlay</link> or <link linkend="osd">
+-Video Output Overlay</link> or when the alpha component has been configured
+-for a <link linkend="capture">Video Capture</link> by means of <link
+-linkend="v4l2-alpha-component"> <constant>V4L2_CID_ALPHA_COMPONENT
+-</constant> </link> control.</para>
++    <para>Bit 7 is the most significant bit.</para>
++
++    <para>The usage and value of the alpha bits (a) in the ARGB and ABGR formats
++    (collectively referred to as alpha formats) depend on the device type and
++    hardware operation. <link linkend="capture">Capture</link> devices
++    (including capture queues of mem-to-mem devices) fill the alpha component in
++    memory. When the device outputs an alpha channel the alpha component will
++    have a meaningful value. Otherwise, when the device doesn't output an alpha
++    channel but can set the alpha bit to a user-configurable value, the <link
++    linkend="v4l2-alpha-component"><constant>V4L2_CID_ALPHA_COMPONENT</constant>
++    </link> control is used to specify that alpha value, and the alpha component
++    of all pixels will be set to the value specified by that control. Otherwise
++    a corresponding format without an alpha component (XRGB or XBGR) must be
++    used instead of an alpha format.</para>
++
++    <para><link linkend="output">Output</link> devices (including output queues
++    of mem-to-mem devices and <link linkend="osd">video output overlay</link>
++    devices) read the alpha component from memory. When the device processes the
++    alpha channel the alpha component must be filled with meaningful values by
++    applications. Otherwise a corresponding format without an alpha component
++    (XRGB or XBGR) must be used instead of an alpha format.</para>
++
++    <para>The XRGB and XBGR formats contain undefined bits (-). Applications,
++    devices and drivers must ignore those bits, for both <link
++    linkend="capture">capture</link> and <link linkend="output">output</link>
++    devices.</para>
  
-+#ifdef CONFIG_OF
-+static int soc_of_bind(struct soc_camera_host *ici,
-+		       struct device_node *ep,
-+		       struct device_node *remote)
-+{
-+	struct soc_camera_device *icd;
-+	struct soc_camera_desc sdesc = {.host_desc.bus_id = ici->nr,};
-+	struct soc_camera_async_client *sasc;
-+	struct soc_camera_async_subdev *sasd;
-+	struct v4l2_async_subdev **asd_array;
-+	struct i2c_client *client;
-+	char clk_name[V4L2_SUBDEV_NAME_SIZE];
-+	int ret;
-+
-+	/* allocate a new subdev and add match info to it */
-+	sasd = devm_kzalloc(ici->v4l2_dev.dev, sizeof(*sasd), GFP_KERNEL);
-+	if (!sasd)
-+		return -ENOMEM;
-+
-+	asd_array = devm_kzalloc(ici->v4l2_dev.dev,
-+				 sizeof(struct v4l2_async_subdev **),
-+				 GFP_KERNEL);
-+	if (!asd_array)
-+		return -ENOMEM;
-+
-+	sasd->asd.match.of.node = remote;
-+	sasd->asd.match_type = V4L2_ASYNC_MATCH_OF;
-+	asd_array[0] = &sasd->asd;
-+
-+	/* Or shall this be managed by the soc-camera device? */
-+	sasc = devm_kzalloc(ici->v4l2_dev.dev, sizeof(*sasc), GFP_KERNEL);
-+	if (!sasc)
-+		return -ENOMEM;
-+
-+	/* HACK: just need a != NULL */
-+	sdesc.host_desc.board_info = ERR_PTR(-ENODATA);
-+
-+	ret = soc_camera_dyn_pdev(&sdesc, sasc);
-+	if (ret < 0)
-+		return ret;
-+
-+	sasc->sensor = &sasd->asd;
-+
-+	icd = soc_camera_add_pdev(sasc);
-+	if (!icd) {
-+		platform_device_put(sasc->pdev);
-+		return -ENOMEM;
-+	}
-+
-+	sasc->notifier.subdevs = asd_array;
-+	sasc->notifier.num_subdevs = 1;
-+	sasc->notifier.bound = soc_camera_async_bound;
-+	sasc->notifier.unbind = soc_camera_async_unbind;
-+	sasc->notifier.complete = soc_camera_async_complete;
-+
-+	icd->sasc = sasc;
-+	icd->parent = ici->v4l2_dev.dev;
-+
-+	client = of_find_i2c_device_by_node(remote);
-+
-+	if (client)
-+		snprintf(clk_name, sizeof(clk_name), "%d-%04x",
-+			 client->adapter->nr, client->addr);
-+	else
-+		snprintf(clk_name, sizeof(clk_name), "of-%s",
-+			 of_node_full_name(remote));
-+
-+	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
-+	if (IS_ERR(icd->clk)) {
-+		ret = PTR_ERR(icd->clk);
-+		goto eclkreg;
-+	}
-+
-+	ret = v4l2_async_notifier_register(&ici->v4l2_dev, &sasc->notifier);
-+	if (!ret)
-+		return 0;
-+
-+eclkreg:
-+	icd->clk = NULL;
-+	platform_device_unregister(sasc->pdev);
-+	dev_err(ici->v4l2_dev.dev, "group probe failed: %d\n", ret);
-+
-+	return ret;
-+}
-+
-+static inline void scan_of_host(struct soc_camera_host *ici)
-+{
-+	struct device_node *np = ici->v4l2_dev.dev->of_node;
-+	struct device_node *epn = NULL;
-+	struct device_node *ren;
-+
-+	while (true) {
-+		epn = of_graph_get_next_endpoint(np, epn);
-+		if (!epn)
-+			break;
-+
-+		ren = of_graph_get_remote_port(epn);
-+		if (!ren) {
-+			pr_info("%s: no remote for %s\n",
-+				__func__,  of_node_full_name(epn));
-+			continue;
-+		}
-+
-+		/* so we now have a remote node to connect */
-+		soc_of_bind(ici, epn, ren->parent);
-+
-+		of_node_put(epn);
-+		of_node_put(ren);
-+	}
-+}
-+
-+#else
-+static inline void scan_of_host(struct soc_camera_host *ici) { }
-+#endif
-+
- /* Called during host-driver probe */
- static int soc_camera_probe(struct soc_camera_host *ici,
- 			    struct soc_camera_device *icd)
-@@ -1832,7 +1948,9 @@ int soc_camera_host_register(struct soc_camera_host *ici)
- 	mutex_init(&ici->host_lock);
- 	mutex_init(&ici->clk_lock);
+     <example>
+       <title><constant>V4L2_PIX_FMT_BGR24</constant> 4 &times; 4 pixel
+@@ -512,6 +654,239 @@ image</title>
+       </formalpara>
+     </example>
  
--	if (ici->asd_sizes)
-+	if (ici->v4l2_dev.dev->of_node)
-+		scan_of_host(ici);
-+	else if (ici->asd_sizes)
- 		/*
- 		 * No OF, host with a list of subdevices. Don't try to mix
- 		 * modes by initialising some groups statically and some
++    <para>Formats defined in <xref linkend="rgb-formats-deprecated"/> are
++    deprecated and must not be used by new drivers. They are documented here for
++    reference. The meaning of their alpha bits (a) is ill-defined and
++    interpreted as in either the corresponding ARGB or XRGB format, depending on
++    the driver.</para>
++
++    <table pgwide="1" frame="none" id="rgb-formats-deprecated">
++      <title>Deprecated Packed RGB Image Formats</title>
++      <tgroup cols="37" align="center">
++	<colspec colname="id" align="left" />
++	<colspec colname="fourcc" />
++	<colspec colname="bit" />
++
++	<colspec colnum="4" colname="b07" align="center" />
++	<colspec colnum="5" colname="b06" align="center" />
++	<colspec colnum="6" colname="b05" align="center" />
++	<colspec colnum="7" colname="b04" align="center" />
++	<colspec colnum="8" colname="b03" align="center" />
++	<colspec colnum="9" colname="b02" align="center" />
++	<colspec colnum="10" colname="b01" align="center" />
++	<colspec colnum="11" colname="b00" align="center" />
++
++	<colspec colnum="13" colname="b17" align="center" />
++	<colspec colnum="14" colname="b16" align="center" />
++	<colspec colnum="15" colname="b15" align="center" />
++	<colspec colnum="16" colname="b14" align="center" />
++	<colspec colnum="17" colname="b13" align="center" />
++	<colspec colnum="18" colname="b12" align="center" />
++	<colspec colnum="19" colname="b11" align="center" />
++	<colspec colnum="20" colname="b10" align="center" />
++
++	<colspec colnum="22" colname="b27" align="center" />
++	<colspec colnum="23" colname="b26" align="center" />
++	<colspec colnum="24" colname="b25" align="center" />
++	<colspec colnum="25" colname="b24" align="center" />
++	<colspec colnum="26" colname="b23" align="center" />
++	<colspec colnum="27" colname="b22" align="center" />
++	<colspec colnum="28" colname="b21" align="center" />
++	<colspec colnum="29" colname="b20" align="center" />
++
++	<colspec colnum="31" colname="b37" align="center" />
++	<colspec colnum="32" colname="b36" align="center" />
++	<colspec colnum="33" colname="b35" align="center" />
++	<colspec colnum="34" colname="b34" align="center" />
++	<colspec colnum="35" colname="b33" align="center" />
++	<colspec colnum="36" colname="b32" align="center" />
++	<colspec colnum="37" colname="b31" align="center" />
++	<colspec colnum="38" colname="b30" align="center" />
++
++	<spanspec namest="b07" nameend="b00" spanname="b0" />
++	<spanspec namest="b17" nameend="b10" spanname="b1" />
++	<spanspec namest="b27" nameend="b20" spanname="b2" />
++	<spanspec namest="b37" nameend="b30" spanname="b3" />
++	<thead>
++	  <row>
++	    <entry>Identifier</entry>
++	    <entry>Code</entry>
++	    <entry>&nbsp;</entry>
++	    <entry spanname="b0">Byte&nbsp;0 in memory</entry>
++	    <entry spanname="b1">Byte&nbsp;1</entry>
++	    <entry spanname="b2">Byte&nbsp;2</entry>
++	    <entry spanname="b3">Byte&nbsp;3</entry>
++	  </row>
++	  <row>
++	    <entry>&nbsp;</entry>
++	    <entry>&nbsp;</entry>
++	    <entry>Bit</entry>
++	    <entry>7</entry>
++	    <entry>6</entry>
++	    <entry>5</entry>
++	    <entry>4</entry>
++	    <entry>3</entry>
++	    <entry>2</entry>
++	    <entry>1</entry>
++	    <entry>0</entry>
++	    <entry>&nbsp;</entry>
++	    <entry>7</entry>
++	    <entry>6</entry>
++	    <entry>5</entry>
++	    <entry>4</entry>
++	    <entry>3</entry>
++	    <entry>2</entry>
++	    <entry>1</entry>
++	    <entry>0</entry>
++	    <entry>&nbsp;</entry>
++	    <entry>7</entry>
++	    <entry>6</entry>
++	    <entry>5</entry>
++	    <entry>4</entry>
++	    <entry>3</entry>
++	    <entry>2</entry>
++	    <entry>1</entry>
++	    <entry>0</entry>
++	    <entry>&nbsp;</entry>
++	    <entry>7</entry>
++	    <entry>6</entry>
++	    <entry>5</entry>
++	    <entry>4</entry>
++	    <entry>3</entry>
++	    <entry>2</entry>
++	    <entry>1</entry>
++	    <entry>0</entry>
++	  </row>
++	</thead>
++	<tbody>
++	  <row id="V4L2-PIX-FMT-RGB444">
++	    <entry><constant>V4L2_PIX_FMT_RGB444</constant></entry>
++	    <entry>'R444'</entry>
++	    <entry></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>a<subscript>3</subscript></entry>
++	    <entry>a<subscript>2</subscript></entry>
++	    <entry>a<subscript>1</subscript></entry>
++	    <entry>a<subscript>0</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-RGB555">
++	    <entry><constant>V4L2_PIX_FMT_RGB555</constant></entry>
++	    <entry>'RGBO'</entry>
++	    <entry></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>a</entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-BGR32">
++	    <entry><constant>V4L2_PIX_FMT_BGR32</constant></entry>
++	    <entry>'BGR4'</entry>
++	    <entry></entry>
++	    <entry>b<subscript>7</subscript></entry>
++	    <entry>b<subscript>6</subscript></entry>
++	    <entry>b<subscript>5</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>7</subscript></entry>
++	    <entry>g<subscript>6</subscript></entry>
++	    <entry>g<subscript>5</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>r<subscript>7</subscript></entry>
++	    <entry>r<subscript>6</subscript></entry>
++	    <entry>r<subscript>5</subscript></entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>a<subscript>7</subscript></entry>
++	    <entry>a<subscript>6</subscript></entry>
++	    <entry>a<subscript>5</subscript></entry>
++	    <entry>a<subscript>4</subscript></entry>
++	    <entry>a<subscript>3</subscript></entry>
++	    <entry>a<subscript>2</subscript></entry>
++	    <entry>a<subscript>1</subscript></entry>
++	    <entry>a<subscript>0</subscript></entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-RGB32">
++	    <entry><constant>V4L2_PIX_FMT_RGB32</constant></entry>
++	    <entry>'RGB4'</entry>
++	    <entry></entry>
++	    <entry>a<subscript>7</subscript></entry>
++	    <entry>a<subscript>6</subscript></entry>
++	    <entry>a<subscript>5</subscript></entry>
++	    <entry>a<subscript>4</subscript></entry>
++	    <entry>a<subscript>3</subscript></entry>
++	    <entry>a<subscript>2</subscript></entry>
++	    <entry>a<subscript>1</subscript></entry>
++	    <entry>a<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>r<subscript>7</subscript></entry>
++	    <entry>r<subscript>6</subscript></entry>
++	    <entry>r<subscript>5</subscript></entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>7</subscript></entry>
++	    <entry>g<subscript>6</subscript></entry>
++	    <entry>g<subscript>5</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry>b<subscript>7</subscript></entry>
++	    <entry>b<subscript>6</subscript></entry>
++	    <entry>b<subscript>5</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
+     <para>A test utility to determine which RGB formats a driver
+ actually supports is available from the LinuxTV v4l-dvb repository.
+ See &v4l-dvb; for access instructions.</para>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 168ff50..0125f4d 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -294,7 +294,11 @@ struct v4l2_pix_format {
+ /* RGB formats */
+ #define V4L2_PIX_FMT_RGB332  v4l2_fourcc('R', 'G', 'B', '1') /*  8  RGB-3-3-2     */
+ #define V4L2_PIX_FMT_RGB444  v4l2_fourcc('R', '4', '4', '4') /* 16  xxxxrrrr ggggbbbb */
++#define V4L2_PIX_FMT_ARGB444 v4l2_fourcc('A', 'R', '1', '2') /* 16  aaaarrrr ggggbbbb */
++#define V4L2_PIX_FMT_XRGB444 v4l2_fourcc('X', 'R', '1', '2') /* 16  xxxxrrrr ggggbbbb */
+ #define V4L2_PIX_FMT_RGB555  v4l2_fourcc('R', 'G', 'B', 'O') /* 16  RGB-5-5-5     */
++#define V4L2_PIX_FMT_ARGB555 v4l2_fourcc('A', 'R', '1', '5') /* 16  ARGB-1-5-5-5  */
++#define V4L2_PIX_FMT_XRGB555 v4l2_fourcc('X', 'R', '1', '5') /* 16  XRGB-1-5-5-5  */
+ #define V4L2_PIX_FMT_RGB565  v4l2_fourcc('R', 'G', 'B', 'P') /* 16  RGB-5-6-5     */
+ #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
+ #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16  RGB-5-6-5 BE  */
+@@ -302,7 +306,11 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24  BGR-8-8-8     */
+ #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B', '3') /* 24  RGB-8-8-8     */
+ #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */
++#define V4L2_PIX_FMT_ABGR32  v4l2_fourcc('A', 'R', '2', '4') /* 32  BGRA-8-8-8-8  */
++#define V4L2_PIX_FMT_XBGR32  v4l2_fourcc('X', 'R', '2', '4') /* 32  BGRX-8-8-8-8  */
+ #define V4L2_PIX_FMT_RGB32   v4l2_fourcc('R', 'G', 'B', '4') /* 32  RGB-8-8-8-8   */
++#define V4L2_PIX_FMT_ARGB32  v4l2_fourcc('B', 'A', '2', '4') /* 32  ARGB-8-8-8-8  */
++#define V4L2_PIX_FMT_XRGB32  v4l2_fourcc('B', 'X', '2', '4') /* 32  XRGB-8-8-8-8  */
+ 
+ /* Grey formats */
+ #define V4L2_PIX_FMT_GREY    v4l2_fourcc('G', 'R', 'E', 'Y') /*  8  Greyscale     */
 -- 
-2.0.0
+1.8.5.5
 
