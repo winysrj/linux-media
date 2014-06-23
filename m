@@ -1,82 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f172.google.com ([209.85.213.172]:37793 "EHLO
-	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757681AbaFSTUv (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47310 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753775AbaFWXyM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jun 2014 15:20:51 -0400
-Received: by mail-ig0-f172.google.com with SMTP id hn18so3775343igb.5
-        for <linux-media@vger.kernel.org>; Thu, 19 Jun 2014 12:20:50 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20140619181918.GA24155@kroah.com>
-References: <20140618102957.15728.43525.stgit@patser>
-	<20140618103653.15728.4942.stgit@patser>
-	<20140619011327.GC10921@kroah.com>
-	<CAF6AEGv4Ms+zsrEtpA10bGq04LnRjzVb925co49eVxh4ugkd=A@mail.gmail.com>
-	<20140619170059.GA1224@kroah.com>
-	<CAF6AEGuXKw1w=outX+QgFE2XZxV8c6pyhORL+mRp4uZR8Jnq7g@mail.gmail.com>
-	<20140619181918.GA24155@kroah.com>
-Date: Thu, 19 Jun 2014 21:20:50 +0200
-Message-ID: <CAKMK7uF-TpQpZYgZkt3pt55TNcoB-8dU3NCHYKmswTsC=Ka4rw@mail.gmail.com>
-Subject: Re: [REPOST PATCH 1/8] fence: dma-buf cross-device synchronization (v17)
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Greg KH <gregkh@linuxfoundation.org>,
-	Dave Airlie <airlied@gmail.com>
-Cc: Rob Clark <robdclark@gmail.com>,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	"open list:GENERIC INCLUDE/A..." <linux-arch@vger.kernel.org>,
-	Thomas Hellstrom <thellstrom@vmware.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Colin Cross <ccross@google.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Mon, 23 Jun 2014 19:54:12 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 18/23] v4l: vsp1: Add alpha channel support to the memory ports
+Date: Tue, 24 Jun 2014 01:54:24 +0200
+Message-Id: <1403567669-18539-19-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 19, 2014 at 8:19 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
->> >> > EXPORT_SYMBOL_GPL()?  Same goes for all of the exports in here.
->> >> > Traditionally all of the driver core exports have been with this
->> >> > marking, any objection to making that change here as well?
->> >>
->> >> tbh, I prefer EXPORT_SYMBOL()..  well, I'd prefer even more if there
->> >> wasn't even a need for EXPORT_SYMBOL_GPL(), but sadly it is a fact of
->> >> life.  We already went through this debate once with dma-buf.  We
->> >> aren't going to change $evil_vendor's mind about non-gpl modules.  The
->> >> only result will be a more flugly convoluted solution (ie. use syncpt
->> >> EXPORT_SYMBOL() on top of fence EXPORT_SYMBOL_GPL()) just as a
->> >> workaround, with the result that no-one benefits.
->> >
->> > It has been proven that using _GPL() exports have caused companies to
->> > release their code "properly" over the years, so as these really are
->> > Linux-only apis, please change them to be marked this way, it helps
->> > everyone out in the end.
->>
->> Well, maybe that is the true in some cases.  But it certainly didn't
->> work out that way for dma-buf.  And I think the end result is worse.
->>
->> I don't really like coming down on the side of EXPORT_SYMBOL() instead
->> of EXPORT_SYMBOL_GPL(), but if we do use EXPORT_SYMBOL_GPL() then the
->> result will only be creative workarounds using the _GPL symbols
->> indirectly by whatever is available via EXPORT_SYMBOL().  I don't
->> really see how that will be better.
->
-> You are saying that you _know_ companies will violate our license, so
-> you should just "give up"?  And how do you know people aren't working on
-> preventing those "indirect" usages as well?  :)
->
-> Sorry, I'm not going to give up here, again, it has proven to work in
-> the past in changing the ways of _very_ large companies, why stop now?
+Support ARGB formats on the RPF side by reading the alpha component from
+memory and on the WPF side by writing it to memory.
 
-Dave should chime in here since currently dma-buf is _GPL and the
-drm_prime.c wrapper for it is not (and he merged that one, contributed
-from said $vendor). And since we're gfx people everything we do is MIT
-licensed (that's where X is from after all), so _GPL for for drm stuff
-really doesn't make a lot of sense for us. ianal and all that applies.
--Daniel
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_rpf.c   |  8 ++++--
+ drivers/media/platform/vsp1/vsp1_video.c | 49 +++++++++++++++++++++-----------
+ drivers/media/platform/vsp1/vsp1_video.h |  2 ++
+ drivers/media/platform/vsp1/vsp1_wpf.c   |  2 ++
+ 4 files changed, 41 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index 9b3fc70..2824f53 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -101,10 +101,12 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ 		       (rpf->location.left << VI6_RPF_LOC_HCOORD_SHIFT) |
+ 		       (rpf->location.top << VI6_RPF_LOC_VCOORD_SHIFT));
+ 
+-	/* Disable alpha, mask and color key. Set the alpha channel to a fixed
+-	 * value of 255.
++	/* Use the alpha channel (extended to 8 bits) when available or a
++	 * hardcoded 255 value otherwise. Disable color keying.
+ 	 */
+-	vsp1_rpf_write(rpf, VI6_RPF_ALPH_SEL, VI6_RPF_ALPH_SEL_ASEL_FIXED);
++	vsp1_rpf_write(rpf, VI6_RPF_ALPH_SEL, VI6_RPF_ALPH_SEL_AEXT_EXT |
++		       (fmtinfo->alpha ? VI6_RPF_ALPH_SEL_ASEL_PACKED
++				       : VI6_RPF_ALPH_SEL_ASEL_FIXED));
+ 	vsp1_rpf_write(rpf, VI6_RPF_VRTCOL_SET,
+ 		       255 << VI6_RPF_VRTCOL_SET_LAYA_SHIFT);
+ 	vsp1_rpf_write(rpf, VI6_RPF_MSK_CTRL, 0);
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 3dc7d84..4dd4d61 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -50,70 +50,85 @@ static const struct vsp1_format_info vsp1_video_formats[] = {
+ 	{ V4L2_PIX_FMT_RGB332, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_RGB_332, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  1, { 8, 0, 0 }, false, false, 1, 1 },
++	  1, { 8, 0, 0 }, false, false, 1, 1, false },
++	{ V4L2_PIX_FMT_ARGB444, V4L2_MBUS_FMT_ARGB8888_1X32,
++	  VI6_FMT_ARGB_4444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
++	  VI6_RPF_DSWAP_P_WDS,
++	  1, { 16, 0, 0 }, false, false, 1, 1, true },
+ 	{ V4L2_PIX_FMT_XRGB444, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_XRGB_4444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS,
+-	  1, { 16, 0, 0 }, false, false, 1, 1 },
++	  1, { 16, 0, 0 }, false, false, 1, 1, true },
++	{ V4L2_PIX_FMT_ARGB555, V4L2_MBUS_FMT_ARGB8888_1X32,
++	  VI6_FMT_ARGB_1555, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
++	  VI6_RPF_DSWAP_P_WDS,
++	  1, { 16, 0, 0 }, false, false, 1, 1, true },
+ 	{ V4L2_PIX_FMT_XRGB555, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_XRGB_1555, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS,
+-	  1, { 16, 0, 0 }, false, false, 1, 1 },
++	  1, { 16, 0, 0 }, false, false, 1, 1, false },
+ 	{ V4L2_PIX_FMT_RGB565, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_RGB_565, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS,
+-	  1, { 16, 0, 0 }, false, false, 1, 1 },
++	  1, { 16, 0, 0 }, false, false, 1, 1, false },
+ 	{ V4L2_PIX_FMT_BGR24, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_BGR_888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  1, { 24, 0, 0 }, false, false, 1, 1 },
++	  1, { 24, 0, 0 }, false, false, 1, 1, false },
+ 	{ V4L2_PIX_FMT_RGB24, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_RGB_888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  1, { 24, 0, 0 }, false, false, 1, 1 },
++	  1, { 24, 0, 0 }, false, false, 1, 1, false },
++	{ V4L2_PIX_FMT_ABGR32, V4L2_MBUS_FMT_ARGB8888_1X32,
++	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS,
++	  1, { 32, 0, 0 }, false, false, 1, 1, true },
+ 	{ V4L2_PIX_FMT_XBGR32, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS,
+-	  1, { 32, 0, 0 }, false, false, 1, 1 },
++	  1, { 32, 0, 0 }, false, false, 1, 1, false },
++	{ V4L2_PIX_FMT_ARGB32, V4L2_MBUS_FMT_ARGB8888_1X32,
++	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
++	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
++	  1, { 32, 0, 0 }, false, false, 1, 1, true },
+ 	{ V4L2_PIX_FMT_XRGB32, V4L2_MBUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  1, { 32, 0, 0 }, false, false, 1, 1 },
++	  1, { 32, 0, 0 }, false, false, 1, 1, false },
+ 	{ V4L2_PIX_FMT_UYVY, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  1, { 16, 0, 0 }, false, false, 2, 1 },
++	  1, { 16, 0, 0 }, false, false, 2, 1, false },
+ 	{ V4L2_PIX_FMT_VYUY, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  1, { 16, 0, 0 }, false, true, 2, 1 },
++	  1, { 16, 0, 0 }, false, true, 2, 1, false },
+ 	{ V4L2_PIX_FMT_YUYV, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  1, { 16, 0, 0 }, true, false, 2, 1 },
++	  1, { 16, 0, 0 }, true, false, 2, 1, false },
+ 	{ V4L2_PIX_FMT_YVYU, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  1, { 16, 0, 0 }, true, true, 2, 1 },
++	  1, { 16, 0, 0 }, true, true, 2, 1, false },
+ 	{ V4L2_PIX_FMT_NV12M, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_Y_UV_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  2, { 8, 16, 0 }, false, false, 2, 2 },
++	  2, { 8, 16, 0 }, false, false, 2, 2, false },
+ 	{ V4L2_PIX_FMT_NV21M, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_Y_UV_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  2, { 8, 16, 0 }, false, true, 2, 2 },
++	  2, { 8, 16, 0 }, false, true, 2, 2, false },
+ 	{ V4L2_PIX_FMT_NV16M, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_Y_UV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  2, { 8, 16, 0 }, false, false, 2, 1 },
++	  2, { 8, 16, 0 }, false, false, 2, 1, false },
+ 	{ V4L2_PIX_FMT_NV61M, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_Y_UV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  2, { 8, 16, 0 }, false, true, 2, 1 },
++	  2, { 8, 16, 0 }, false, true, 2, 1, false },
+ 	{ V4L2_PIX_FMT_YUV420M, V4L2_MBUS_FMT_AYUV8_1X32,
+ 	  VI6_FMT_Y_U_V_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+-	  3, { 8, 8, 8 }, false, false, 2, 2 },
++	  3, { 8, 8, 8 }, false, false, 2, 2, false },
+ };
+ 
+ /*
+diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
+index cb5d9ef..4dad110 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.h
++++ b/drivers/media/platform/vsp1/vsp1_video.h
+@@ -33,6 +33,7 @@ struct vsp1_video;
+  * @swap_uv: the U and V components are swapped (V comes before U)
+  * @hsub: horizontal subsampling factor
+  * @vsub: vertical subsampling factor
++ * @alpha: has an alpha channel
+  */
+ struct vsp1_format_info {
+ 	u32 fourcc;
+@@ -45,6 +46,7 @@ struct vsp1_format_info {
+ 	bool swap_uv;
+ 	unsigned int hsub;
+ 	unsigned int vsub;
++	bool alpha;
+ };
+ 
+ enum vsp1_pipeline_state {
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index d330865..a2ba107 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -99,6 +99,8 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ 
+ 		outfmt = fmtinfo->hwfmt << VI6_WPF_OUTFMT_WRFMT_SHIFT;
+ 
++		if (fmtinfo->alpha)
++			outfmt |= VI6_WPF_OUTFMT_PXA;
+ 		if (fmtinfo->swap_yc)
+ 			outfmt |= VI6_WPF_OUTFMT_SPYCS;
+ 		if (fmtinfo->swap_uv)
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+1.8.5.5
+
