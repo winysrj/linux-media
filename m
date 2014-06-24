@@ -1,78 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:51230 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755563AbaFWUck (ORCPT
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:40442 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754332AbaFXPCa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jun 2014 16:32:40 -0400
-Date: Mon, 23 Jun 2014 22:27:34 +0200
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: linux-sunxi@googlegroups.com
-Cc: bay@hackerdom.ru, david@hardeman.nu, devicetree@vger.kernel.org,
-	galak@codeaurora.org, grant.likely@linaro.org,
-	ijc+devicetree@hellion.org.uk, james.hogan@imgtec.com,
-	linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk,
-	m.chehab@samsung.com, mark.rutland@arm.com, pawel.moll@arm.com,
-	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
-	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [linux-sunxi] Re: [PATCH v10 4/5] ARM: sunxi: Add IR controllers
- on A20 to dtsi
-Message-ID: <20140623202734.GN19730@lukather>
-References: <1403348646-31091-1-git-send-email-bay@hackerdom.ru>
- <1403348646-31091-5-git-send-email-bay@hackerdom.ru>
- <20140623130851.GD19730@lukather>
- <7d7d6451-3a26-45dc-aa62-b939fc7889ce@googlegroups.com>
+	Tue, 24 Jun 2014 11:02:30 -0400
+Date: Tue, 24 Jun 2014 16:01:58 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Denis Carikli <denis@eukrea.com>, arm@kernel.org,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Eric =?iso-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v14 05/10] ARM: dts: imx5*, imx6*: correct
+	display-timings nodes.
+Message-ID: <20140624150158.GS32514@n2100.arm.linux.org.uk>
+References: <1402913484-25910-1-git-send-email-denis@eukrea.com> <1402913484-25910-5-git-send-email-denis@eukrea.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RL02At1kLqUPtqvA"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <7d7d6451-3a26-45dc-aa62-b939fc7889ce@googlegroups.com>
+In-Reply-To: <1402913484-25910-5-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Jun 16, 2014 at 12:11:19PM +0200, Denis Carikli wrote:
+> The imx-drm driver can't use the de-active and
+> pixelclk-active display-timings properties yet.
+> 
+> Instead the data-enable and the pixel data clock
+> polarity are hardcoded in the imx-drm driver.
+> 
+> So theses properties are now set to keep
+> the same behaviour when imx-drm will start
+> using them.
+> 
+> Signed-off-by: Denis Carikli <denis@eukrea.com>
 
---RL02At1kLqUPtqvA
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This patch needs either an ack from the arm-soc/iMX maintainers, or
+they need to merge it.  As there's little positive agreement on the
+series, I can understand why there's reluctance to merge it.
 
-On Mon, Jun 23, 2014 at 01:08:24PM -0700, =D0=90=D0=BB=D0=B5=D0=BA=D1=81=D0=
-=B0=D0=BD=D0=B4=D1=80 =D0=91=D0=B5=D1=80=D1=81=D0=B5=D0=BD=D0=B5=D0=B2 wrot=
-e:
-> Thanks,
->=20
-> Should I send applied patches in the further versions of this patch set?
+So, can we start having some acks from people please, or at least
+commitments to merge this patch when the others are deemed to be
+acceptable.  If not, can we have explanations why this should not
+be merged.
 
-No, you don't have to.
+Thanks.
 
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
-
---RL02At1kLqUPtqvA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTqI22AAoJEBx+YmzsjxAgtHIP+welE16gbaWWut3XCrNuxOOG
-TETz5zPnbkQDDhg7ccNkFuSwgo/yEXyXPjVMPlFhyv4XoGosagpZy/7u5LdF62xV
-ISyiaTcj+3xLJZ8We5nJ8absRCyBE2pd5h2FIAjy3srCdASdemcq4N8aXAqmAt05
-DqJ9mVcTlss36A55T0q/cu73jfdzISjvaPI+5XPXApj71XWz/hKflkbTN8nETXAA
-Fnh2P2+upAhSZK1JfpnMnJ2Ii80Y26bqRNQNMYbi7eA8Yg9CggHlETsdwUPn6qeM
-hOiFWmTE8xVBUCKlLaXZpP8XiMdi4lfOkQbVvMDoqX9k5whCgcG57bV1Ikbm02+Y
-NSzQgndrut1wXs4skNC2EPe5UcAO/4dj6LO2qfvtU58WzUzXVIL7EXwliWyMy42T
-CZ/4RlIXR7TmAffcsrnfb/iecXQySef0t0HmV/hxxi3hq1jlw6J6+MGzhDrjIvo2
-AZ/zBehyEZWlILpsKkRNCDqGU3zbVXgS8OnQfoD6Xr/t6cLFGLf4buFOPLPiGG5u
-YX6Q4FIK1r9yoYta0d/9e06cXiue3nqs1Jzx4MO2hIdwIZQfxeavAtmrWgcl+wJc
-d3Vw8mLf5k3Lz5QonZjaQX1Q1i4jKSjM8hXZEoLMn677YLnQWA6ccvX7qBGtdcPx
-Ehdws/lmYwWEhm5bKNEn
-=glqK
------END PGP SIGNATURE-----
-
---RL02At1kLqUPtqvA--
+-- 
+FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
+improving, and getting towards what was expected from it.
