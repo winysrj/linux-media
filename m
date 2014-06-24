@@ -1,93 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:61379 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753357AbaFGV5a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:30 -0400
-Received: by mail-pb0-f41.google.com with SMTP id uo5so3917962pbc.14
-        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:30 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 29/43] imx-drm: ipu-v3: Add ipu_dump()
-Date: Sat,  7 Jun 2014 14:56:31 -0700
-Message-Id: <1402178205-22697-30-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:47423 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751222AbaFXVtl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jun 2014 17:49:41 -0400
+Received: by mail-wi0-f172.google.com with SMTP id hi2so6890671wib.17
+        for <linux-media@vger.kernel.org>; Tue, 24 Jun 2014 14:49:40 -0700 (PDT)
+Date: Tue, 24 Jun 2014 23:49:37 +0200
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Denis Carikli <denis@eukrea.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>, devel@driverdev.osuosl.org,
+	Russell King <linux@arm.linux.org.uk>,
+	Eric =?utf-8?Q?B=C3=A9nard?= <eric@eukrea.com>,
+	David Airlie <airlied@linux.ie>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH v14 08/10] drm/panel: Add Eukrea mbimxsd51 displays.
+Message-ID: <20140624214926.GA30039@mithrandir>
+References: <1402913484-25910-1-git-send-email-denis@eukrea.com>
+ <1402913484-25910-8-git-send-email-denis@eukrea.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="b5gNqxB1S1yM7hjW"
+Content-Disposition: inline
+In-Reply-To: <1402913484-25910-8-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds ipu_dump() which dumps IPU register state to debug.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/imx-drm/ipu-v3/ipu-common.c |   41 +++++++++++++++++++++++++++
- include/linux/platform_data/imx-ipu-v3.h    |    1 +
- 2 files changed, 42 insertions(+)
+--b5gNqxB1S1yM7hjW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-index 2ee6370..1526cec 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-@@ -1326,6 +1326,47 @@ static void ipu_irq_exit(struct ipu_soc *ipu)
- 	irq_domain_remove(ipu->domain);
- }
- 
-+void ipu_dump(struct ipu_soc *ipu)
-+{
-+	int i;
-+	dev_dbg(ipu->dev, "IPU_CONF = \t0x%08X\n",
-+		ipu_cm_read(ipu, IPU_CONF));
-+	dev_dbg(ipu->dev, "IDMAC_CONF = \t0x%08X\n",
-+		ipu_idmac_read(ipu, IDMAC_CONF));
-+	dev_dbg(ipu->dev, "IDMAC_CHA_EN1 = \t0x%08X\n",
-+		ipu_idmac_read(ipu, IDMAC_CHA_EN(0)));
-+	dev_dbg(ipu->dev, "IDMAC_CHA_EN2 = \t0x%08X\n",
-+		ipu_idmac_read(ipu, IDMAC_CHA_EN(32)));
-+	dev_dbg(ipu->dev, "IDMAC_CHA_PRI1 = \t0x%08X\n",
-+		ipu_idmac_read(ipu, IDMAC_CHA_PRI(0)));
-+	dev_dbg(ipu->dev, "IDMAC_CHA_PRI2 = \t0x%08X\n",
-+		ipu_idmac_read(ipu, IDMAC_CHA_PRI(32)));
-+	dev_dbg(ipu->dev, "IDMAC_BAND_EN1 = \t0x%08X\n",
-+		ipu_idmac_read(ipu, IDMAC_BAND_EN(0)));
-+	dev_dbg(ipu->dev, "IDMAC_BAND_EN2 = \t0x%08X\n",
-+		ipu_idmac_read(ipu, IDMAC_BAND_EN(32)));
-+	dev_dbg(ipu->dev, "IPU_CHA_DB_MODE_SEL0 = \t0x%08X\n",
-+		ipu_cm_read(ipu, IPU_CHA_DB_MODE_SEL(0)));
-+	dev_dbg(ipu->dev, "IPU_CHA_DB_MODE_SEL1 = \t0x%08X\n",
-+		ipu_cm_read(ipu, IPU_CHA_DB_MODE_SEL(32)));
-+	dev_dbg(ipu->dev, "IPU_CHA_TRB_MODE_SEL0 = \t0x%08X\n",
-+		ipu_cm_read(ipu, IPU_CHA_TRB_MODE_SEL(0)));
-+	dev_dbg(ipu->dev, "IPU_CHA_TRB_MODE_SEL1 = \t0x%08X\n",
-+		ipu_cm_read(ipu, IPU_CHA_TRB_MODE_SEL(32)));
-+	dev_dbg(ipu->dev, "IPU_FS_PROC_FLOW1 = \t0x%08X\n",
-+		ipu_cm_read(ipu, IPU_FS_PROC_FLOW1));
-+	dev_dbg(ipu->dev, "IPU_FS_PROC_FLOW2 = \t0x%08X\n",
-+		ipu_cm_read(ipu, IPU_FS_PROC_FLOW2));
-+	dev_dbg(ipu->dev, "IPU_FS_PROC_FLOW3 = \t0x%08X\n",
-+		ipu_cm_read(ipu, IPU_FS_PROC_FLOW3));
-+	dev_dbg(ipu->dev, "IPU_FS_DISP_FLOW1 = \t0x%08X\n",
-+		ipu_cm_read(ipu, IPU_FS_DISP_FLOW1));
-+	for (i = 0; i < 15; i++)
-+		dev_dbg(ipu->dev, "IPU_INT_CTRL(%d) = \t%08X\n", i,
-+			ipu_cm_read(ipu, IPU_INT_CTRL(i)));
-+}
-+EXPORT_SYMBOL_GPL(ipu_dump);
-+
- static int ipu_probe(struct platform_device *pdev)
- {
- 	const struct of_device_id *of_id =
-diff --git a/include/linux/platform_data/imx-ipu-v3.h b/include/linux/platform_data/imx-ipu-v3.h
-index 811b93b..1698d5d 100644
---- a/include/linux/platform_data/imx-ipu-v3.h
-+++ b/include/linux/platform_data/imx-ipu-v3.h
-@@ -185,6 +185,7 @@ int ipu_idmac_channel_irq(struct ipu_soc *ipu, struct ipuv3_channel *channel,
-  * IPU Common functions
-  */
- int ipu_get_num(struct ipu_soc *ipu);
-+void ipu_dump(struct ipu_soc *ipu);
- 
- /*
-  * IPU Image DMA Controller (idmac) functions
--- 
-1.7.9.5
+On Mon, Jun 16, 2014 at 12:11:22PM +0200, Denis Carikli wrote:
+[...]
+> diff --git a/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-svga.txt b/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-svga.txt
+[...]
+> @@ -0,0 +1,7 @@
+> +Eukrea DVI-SVGA (800x600 pixels) DVI output.
+[...]
+> diff --git a/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-vga.txt b/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-vga.txt
+[...]
+> @@ -0,0 +1,7 @@
+> +Eukrea DVI-VGA (640x480 pixels) DVI output.
 
+DVI outputs shouldn't be using the panel framework and this binding at
+all. DVI usually has the means to determine all of this by itself. Why
+do you need to represent this as a panel in device tree?
+
+Thierry
+
+--b5gNqxB1S1yM7hjW
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTqfJuAAoJEN0jrNd/PrOhlI8QAMDaRzzfXm3U9guoTcbiCsPk
+lK1bKIQWs6XBtbVovlTPX/vzYxiGz/VaGLjploRhN0bHJv28p2lCT1N5zrIA9vPU
+2j5dSzs1TdBSEX7wkj/IaBJxajEKYo212m2jA12nB+YbCRdlF2tq+foxi5sdZ9QF
+s0LFTFy6oGqI0z3UR3DMvyohcPIalY9sqtUzT/yipgqsYhMs93rhq1GOtny/TTmP
+jtLDrhYEXtezNRAbaDSa3F+Fnl33DEknV1/mbEIHFcddu4nBqvgTue2T22ZOHZyN
+hJqmXpUPqYbGaHhGZg4B6t5VZz9FJJYU0TbbHgKko6uMZKgX7CQi66xcRdXYEP7l
+8NhnAGD4h4sF5kWvZoISIgR3Aa3gL3vqtqx22dDqFH6nwMQ50al+c9vm5iLRBca2
+74Q4R9s0u440fNSMiZ++TdTtdj18/RfVky+YYuObBDn7XNkMrCC8nyg1QTKuTXlU
+79Fft/IqvQL2RpuJgURXLcUfyUivPZh0zG7NbS9XIewvm9E9MS5aCqW01tt93GY1
+oyRPbhzJzr23rQpDl4BSz/ndnt11oWELKBCo97UNOxH0GaMsTDnCTOV3rV/rKisJ
+N/WvqZkTM5TSFJyJoAfAMkqqnR6so9PUX7EjnSz+kuVXsnBIt7adCzHOhOhzaJug
+t3LzA7+lPC0z3OrZ5o5F
+=+j5Q
+-----END PGP SIGNATURE-----
+
+--b5gNqxB1S1yM7hjW--
