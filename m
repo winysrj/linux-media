@@ -1,137 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47308 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751242AbaFWXx6 (ORCPT
+Received: from dd19416.kasserver.com ([85.13.139.185]:58981 "EHLO
+	dd19416.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751307AbaFXR0N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jun 2014 19:53:58 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH v2 00/23] Renesas VSP1: alpha support and miscellaneous fixes
-Date: Tue, 24 Jun 2014 01:54:06 +0200
-Message-Id: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Tue, 24 Jun 2014 13:26:13 -0400
+Message-ID: <53A9B31A.80607@herbrechtsmeier.net>
+Date: Tue, 24 Jun 2014 19:19:22 +0200
+From: Stefan Herbrechtsmeier <stefan@herbrechtsmeier.net>
+MIME-Version: 1.0
+To: Enrico <ebutera@users.berlios.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Enric Balletbo Serra <eballetbo@gmail.com>
+Subject: Re: [PATCH 00/11] OMAP3 ISP BT.656 support
+References: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com>	<CA+2YH7uDVL+s9aY-erktyKeUbmd2=49r=nDZXPRCZ8dcSjmCoA@mail.gmail.com> <CA+2YH7urbO6C-a6UMB+1JKN2z7F0CDmqh0184cCzXHbW1ADfXA@mail.gmail.com>
+In-Reply-To: <CA+2YH7urbO6C-a6UMB+1JKN2z7F0CDmqh0184cCzXHbW1ADfXA@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------060306010608070902020009"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This is a multi-part message in MIME format.
+--------------060306010608070902020009
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-This patch set adds alpha support to the Renesas VSP1 driver. The feature is
-split in two parts, support for the alpha component in capture and output
-buffers, and support for premultiplied colors. Each part requires extensions
-to the V4L API.
+Am 24.06.2014 17:19, schrieb Enrico:
+> On Tue, May 27, 2014 at 10:38 AM, Enrico <ebutera@users.berlios.de> wrote:
+>> On Mon, May 26, 2014 at 9:50 PM, Laurent Pinchart
+>> <laurent.pinchart@ideasonboard.com> wrote:
+>>> Hello,
+>>>
+>>> This patch sets implements support for BT.656 and interlaced formats in the
+>>> OMAP3 ISP driver. Better late than never I suppose, although given how long
+>>> this has been on my to-do list there's probably no valid excuse.
+>> Thanks Laurent!
+>>
+>> I hope to have time soon to test it :)
+> i wanted to try your patches but i'm having a problem (probably not
+> caused by your patches).
+>
+> I merged media_tree master and omap3isp branches, applied your patches
+> and added camera platform data in pdata-quirks, but when loading the
+> omap3-isp driver i have:
+>
+> omap3isp: clk_set_rate for cam_mclk failed
+>
+> The returned value from clk_set_rate is -22 (EINVAL), but i can't see
+> any other debug message to track it down. Any ides?
+> I'm testing it on an igep proton (omap3530 version).
+Hi Enrico,
 
-The first two patches add new pixel formats for alpha and non-alpha RGB, and
-extend usage of the ALPHA_COMPONENT control to output devices. They have
-already been posted separately, for the rationale please see
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg75449.html.
+please test the attached patch. It is based on Laurent's patches for the 
+clock and boot testes on an Gumstix Overo with an OMAP3530.
 
-The next two patches add a premultiplied alpha flag to the V4L format API.
-This requires extending the v4l2_pix_format structure first (patch 03/18).
-
-Patch 05/23 fixes a stream condition in videobuf2. It could be merged
-separately.
-
-Patches 06/23 to 16/23 perform general cleanups and fixes to the VSP1 driver.
-Please see individual patches for details. Patch 06/23, in particular, fixes
-a bug introduced in v3.16-rc1, so I'll resubmit it separately for v3.16.
-
-Patch 17/23 switches from the old RGB formats to the new XRGB formats. Patch
-18/23 then adds support for ARGB formats, and patch 19/23 support for the
-alpha component control. Patch 20/23 and 21/23 add support for premultiplied
-colors, and patch 22/23 makes the blending unit background color configurable.
-
-Patch 23/23 finally fixes scaler (UDS) configuration when the alpha layer
-needs to be scaled.
-
-I While I'd of course like to see the VSP1 patches getting reviewed, I expect
-most of the discussions to concentrate on the first four patches. Several
-rounds will likely be needed, and I'd like to get the series in v3.17, so
-let's get started.
-
-Changes since v1:
-
-- Fixed a typo in 15/23
-- Added 05/23 to 07/23 and 23/23
-
-Laurent Pinchart (23):
-  v4l: Add ARGB and XRGB pixel formats
-  DocBook: media: Document ALPHA_COMPONENT control usage on output
-    devices
-  v4l: Support extending the v4l2_pix_format structure
-  v4l: Add premultiplied alpha flag for pixel formats
-  v4l: vb2: Fix stream start and buffer completion race
-  v4l: vsp1: Fix routing cleanup when stopping the stream
-  v4l: vsp1: Release buffers at stream stop
-  v4l: vsp1: Fix pipeline stop timeout
-  v4l: vsp1: Fix typos
-  v4l: vsp1: Cleanup video nodes at removal time
-  v4l: vsp1: Propagate vsp1_device_get errors to the callers
-  v4l: vsp1: Setup control handler automatically at stream on time
-  v4l: vsp1: sru: Fix the intensity control default value
-  v4l: vsp1: sru: Make the intensity controllable during streaming
-  v4l: vsp1: wpf: Simplify cast to pipeline structure
-  v4l: vsp1: wpf: Clear RPF to WPF association at stream off time
-  v4l: vsp1: Switch to XRGB formats
-  v4l: vsp1: Add alpha channel support to the memory ports
-  v4l: vsp1: Add V4L2_CID_ALPHA_COMPONENT control support
-  v4l: vsp1: bru: Support premultiplied alpha at the BRU inputs
-  v4l: vsp1: bru: Support non-premultiplied colors at the BRU output
-  v4l: vsp1: bru: Make the background color configurable
-  v4l: vsp1: uds: Fix scaling of alpha layer
-
- Documentation/DocBook/media/Makefile               |   2 +-
- Documentation/DocBook/media/v4l/controls.xml       |  17 +-
- .../DocBook/media/v4l/pixfmt-packed-rgb.xml        | 415 ++++++++++++++++++++-
- Documentation/DocBook/media/v4l/pixfmt.xml         |  53 ++-
- Documentation/DocBook/media/v4l/v4l2.xml           |   8 +
- .../DocBook/media/v4l/vidioc-querycap.xml          |   6 +
- drivers/media/parport/bw-qcam.c                    |   2 -
- drivers/media/pci/cx18/cx18-ioctl.c                |   1 -
- drivers/media/pci/cx25821/cx25821-video.c          |   3 -
- drivers/media/pci/ivtv/ivtv-ioctl.c                |   3 -
- drivers/media/pci/meye/meye.c                      |   2 -
- drivers/media/pci/saa7134/saa7134-empress.c        |   3 -
- drivers/media/pci/saa7134/saa7134-video.c          |   2 -
- drivers/media/pci/sta2x11/sta2x11_vip.c            |   1 -
- drivers/media/platform/coda.c                      |   2 -
- drivers/media/platform/davinci/vpif_display.c      |   1 -
- drivers/media/platform/mem2mem_testdev.c           |   1 -
- drivers/media/platform/omap/omap_vout.c            |   2 -
- drivers/media/platform/sh_veu.c                    |   2 -
- drivers/media/platform/vino.c                      |   5 -
- drivers/media/platform/vivi.c                      |   1 -
- drivers/media/platform/vsp1/vsp1.h                 |  14 +-
- drivers/media/platform/vsp1/vsp1_bru.c             |  85 ++++-
- drivers/media/platform/vsp1/vsp1_bru.h             |   9 +-
- drivers/media/platform/vsp1/vsp1_drv.c             |  22 +-
- drivers/media/platform/vsp1/vsp1_entity.c          |  42 +++
- drivers/media/platform/vsp1/vsp1_entity.h          |  10 +
- drivers/media/platform/vsp1/vsp1_regs.h            |   2 +
- drivers/media/platform/vsp1/vsp1_rpf.c             |  72 +++-
- drivers/media/platform/vsp1/vsp1_rwpf.h            |   2 +
- drivers/media/platform/vsp1/vsp1_sru.c             | 107 ++++--
- drivers/media/platform/vsp1/vsp1_sru.h             |   1 -
- drivers/media/platform/vsp1/vsp1_uds.c             |  65 ++--
- drivers/media/platform/vsp1/vsp1_uds.h             |   6 +-
- drivers/media/platform/vsp1/vsp1_video.c           | 217 ++++++++---
- drivers/media/platform/vsp1/vsp1_video.h           |  10 +-
- drivers/media/platform/vsp1/vsp1_wpf.c             |  72 +++-
- drivers/media/usb/cx231xx/cx231xx-417.c            |   2 -
- drivers/media/usb/cx231xx/cx231xx-video.c          |   2 -
- drivers/media/usb/gspca/gspca.c                    |   8 +-
- drivers/media/usb/hdpvr/hdpvr-video.c              |   1 -
- drivers/media/usb/stkwebcam/stk-webcam.c           |   2 -
- drivers/media/usb/tlg2300/pd-video.c               |   1 -
- drivers/media/usb/tm6000/tm6000-video.c            |   2 -
- drivers/media/usb/zr364xx/zr364xx.c                |   3 -
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |  19 +-
- drivers/media/v4l2-core/v4l2-ioctl.c               |  66 +++-
- drivers/media/v4l2-core/videobuf2-core.c           |   4 +-
- include/uapi/linux/videodev2.h                     |  31 +-
- 49 files changed, 1139 insertions(+), 270 deletions(-)
-
--- 
 Regards,
+   Stefan
 
-Laurent Pinchart
 
+--------------060306010608070902020009
+Content-Type: text/x-patch;
+ name="0021-ARM-dts-set-ti-set-rate-parent-for-dpll4_m5x2-clock.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0021-ARM-dts-set-ti-set-rate-parent-for-dpll4_m5x2-clock.pat";
+ filename*1="ch"
+
+>From 9f8162ddebf7636e60101f0831d071e73ab6df75 Mon Sep 17 00:00:00 2001
+From: Stefan Herbrechtsmeier <stefan@herbrechtsmeier.net>
+Date: Fri, 13 Jun 2014 18:15:56 +0200
+Subject: [PATCH 21/25] ARM: dts: set 'ti,set-rate-parent' for dpll4_m5x2 clock
+
+Set 'ti,set-rate-parent' property for the dpll4_m5x2_ck clock, which
+is used for the ISP functional clock. This fixes the OMAP3 ISP driver's
+clock rate configuration on OMAP34xx, which needs the rate to be
+propagated properly to the divider node (dpll4_m5_ck).
+
+Signed-off-by: Stefan Herbrechtsmeier <stefan@herbrechtsmeier.net>
+---
+ arch/arm/boot/dts/omap3xxx-clocks.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/omap3xxx-clocks.dtsi b/arch/arm/boot/dts/omap3xxx-clocks.dtsi
+index 25adab1..beeff7c 100644
+--- a/arch/arm/boot/dts/omap3xxx-clocks.dtsi
++++ b/arch/arm/boot/dts/omap3xxx-clocks.dtsi
+@@ -465,6 +465,7 @@
+ 		ti,bit-shift = <0x1e>;
+ 		reg = <0x0d00>;
+ 		ti,set-bit-to-disable;
++		ti,set-rate-parent;
+ 	};
+ 
+ 	dpll4_m6_ck: dpll4_m6_ck {
+-- 
+2.0.0
+
+
+--------------060306010608070902020009--
