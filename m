@@ -1,117 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2453 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933268AbaFLLyn (ORCPT
+Received: from qmta04.emeryville.ca.mail.comcast.net ([76.96.30.40]:58100 "EHLO
+	qmta04.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753807AbaFXX54 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 07:54:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv4 PATCH 18/34] DocBook media: update VIDIOC_G/S/TRY_EXT_CTRLS.
-Date: Thu, 12 Jun 2014 13:52:50 +0200
-Message-Id: <f8654a8eec1e71f2df38d27d6cefb0e9bd600c8f.1402573818.git.hans.verkuil@cisco.com>
-In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
-References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+	Tue, 24 Jun 2014 19:57:56 -0400
+From: Shuah Khan <shuah.kh@samsung.com>
+To: gregkh@linuxfoundation.org, m.chehab@samsung.com, olebowle@gmx.com,
+	ttmesterr@gmail.com, dheitmueller@kernellabs.com,
+	cb.xiong@samsung.com, yongjun_wei@trendmicro.com.cn,
+	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	crope@iki.fi, wade_farnsworth@mentor.com, ricardo.ribalda@gmail.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
+Subject: [PATCH 3/4] media: v4l2-core changes to use tuner token
+Date: Tue, 24 Jun 2014 17:57:30 -0600
+Message-Id: <a73d058a4c04bbcf9716fd41fce844675629f8d9.1403652043.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1403652043.git.shuah.kh@samsung.com>
+References: <cover.1403652043.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1403652043.git.shuah.kh@samsung.com>
+References: <cover.1403652043.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add a new field tuner_tkn to struct video_device. Drivers can
+create tuner token using devm_token_create() and initialize
+the tuner_tkn when frontend is registered with the dvb-core.
+This change enables drivers to provide a token devres for tuner
+access control.
 
-Document the support for the new compound type controls.
+Change v4l2-core to lock tuner token for exclusive access to
+tuner function for analog TV function use. When Tuner token is
+present, v4l2_open() calls devm_token_lock() to lock the token.
+If token is busy, -EBUSY is returned to the user-space.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tuner token is unlocked in error paths in v4l2_open(). This token
+is held as long as the v4l2 device is open and unlocked from
+v4l2_release().
+
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
 ---
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 37 +++++++++++++++++-----
- 1 file changed, 29 insertions(+), 8 deletions(-)
+ drivers/media/v4l2-core/v4l2-dev.c |   23 ++++++++++++++++++++++-
+ include/media/v4l2-dev.h           |    1 +
+ 2 files changed, 23 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-index e9f6735..2a157b3 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-@@ -72,23 +72,30 @@ initialize the <structfield>id</structfield>,
- <structfield>size</structfield> and <structfield>reserved2</structfield> fields
- of each &v4l2-ext-control; and call the
- <constant>VIDIOC_G_EXT_CTRLS</constant> ioctl. String controls controls
--must also set the <structfield>string</structfield> field.</para>
-+must also set the <structfield>string</structfield> field. Controls
-+of compound types (<constant>V4L2_CTRL_FLAG_HAS_PAYLOAD</constant> is set)
-+must set the <structfield>ptr</structfield> field.</para>
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 634d863..8dff809 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -26,6 +26,7 @@
+ #include <linux/kmod.h>
+ #include <linux/slab.h>
+ #include <asm/uaccess.h>
++#include <linux/token_devres.h>
  
-     <para>If the <structfield>size</structfield> is too small to
- receive the control result (only relevant for pointer-type controls
- like strings), then the driver will set <structfield>size</structfield>
- to a valid value and return an &ENOSPC;. You should re-allocate the
--string memory to this new size and try again. It is possible that the
--same issue occurs again if the string has grown in the meantime. It is
-+memory to this new size and try again. For the string type it is possible that
-+the same issue occurs again if the string has grown in the meantime. It is
- recommended to call &VIDIOC-QUERYCTRL; first and use
- <structfield>maximum</structfield>+1 as the new <structfield>size</structfield>
- value. It is guaranteed that that is sufficient memory.
- </para>
- 
-+    <para>N-dimensional arrays are set and retrieved row-by-row. You cannot set a partial
-+array, all elements have to be set or retrieved. The total size is calculated
-+as <structfield>elems</structfield> * <structfield>elem_size</structfield>.
-+These values can be obtained by calling &VIDIOC-QUERY-EXT-CTRL;.</para>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-device.h>
+@@ -445,6 +446,17 @@ static int v4l2_open(struct inode *inode, struct file *filp)
+ 		mutex_unlock(&videodev_lock);
+ 		return -ENODEV;
+ 	}
++	/* check if tuner is busy first */
++	if (vdev->tuner_tkn && vdev->dev_parent) {
++		ret = devm_token_lock(vdev->dev_parent, vdev->tuner_tkn);
++		if (ret) {
++			mutex_unlock(&videodev_lock);
++			dev_info(vdev->dev_parent, "v4l2: Tuner is busy\n");
++			return ret;
++		}
++		dev_info(vdev->dev_parent, "v4l2: Tuner is locked\n");
++	}
 +
-     <para>To change the value of a set of controls applications
- initialize the <structfield>id</structfield>, <structfield>size</structfield>,
- <structfield>reserved2</structfield> and
--<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
-+<structfield>value/value64/string/ptr</structfield> fields of each &v4l2-ext-control; and
- call the <constant>VIDIOC_S_EXT_CTRLS</constant> ioctl. The controls
- will only be set if <emphasis>all</emphasis> control values are
- valid.</para>
-@@ -96,7 +103,7 @@ valid.</para>
-     <para>To check if a set of controls have correct values applications
- initialize the <structfield>id</structfield>, <structfield>size</structfield>,
- <structfield>reserved2</structfield> and
--<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
-+<structfield>value/value64/string/ptr</structfield> fields of each &v4l2-ext-control; and
- call the <constant>VIDIOC_TRY_EXT_CTRLS</constant> ioctl. It is up to
- the driver whether wrong values are automatically adjusted to a valid
- value or if an error is returned.</para>
-@@ -158,19 +165,33 @@ applications must set the array to zero.</entry>
- 	    <entry></entry>
- 	    <entry>__s32</entry>
- 	    <entry><structfield>value</structfield></entry>
--	    <entry>New value or current value.</entry>
-+	    <entry>New value or current value. Valid if this control is not of
-+type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
-+<constant>V4L2_CTRL_FLAG_HAS_PAYLOAD</constant> is not set.</entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
- 	    <entry>__s64</entry>
- 	    <entry><structfield>value64</structfield></entry>
--	    <entry>New value or current value.</entry>
-+	    <entry>New value or current value. Valid if this control is of
-+type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
-+<constant>V4L2_CTRL_FLAG_HAS_PAYLOAD</constant> is not set.</entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
- 	    <entry>char *</entry>
- 	    <entry><structfield>string</structfield></entry>
--	    <entry>A pointer to a string.</entry>
-+	    <entry>A pointer to a string. Valid if this control is of
-+type <constant>V4L2_CTRL_TYPE_STRING</constant>.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>void *</entry>
-+	    <entry><structfield>ptr</structfield></entry>
-+	    <entry>A pointer to a compound type which can be an N-dimensional array and/or a
-+compound type (the control's type is >= <constant>V4L2_CTRL_COMPOUND_TYPES</constant>).
-+Valid if <constant>V4L2_CTRL_FLAG_HAS_PAYLOAD</constant> is set for this control.
-+</entry>
- 	  </row>
- 	</tbody>
-       </tgroup>
+ 	/* and increase the device refcount */
+ 	video_get(vdev);
+ 	mutex_unlock(&videodev_lock);
+@@ -459,8 +471,13 @@ static int v4l2_open(struct inode *inode, struct file *filp)
+ 		printk(KERN_DEBUG "%s: open (%d)\n",
+ 			video_device_node_name(vdev), ret);
+ 	/* decrease the refcount in case of an error */
+-	if (ret)
++	if (ret) {
+ 		video_put(vdev);
++		if (vdev->tuner_tkn && vdev->dev_parent) {
++			devm_token_unlock(vdev->dev_parent, vdev->tuner_tkn);
++			dev_info(vdev->dev_parent, "v4l2: Tuner is unlocked\n");
++		}
++	}
+ 	return ret;
+ }
+ 
+@@ -479,6 +496,10 @@ static int v4l2_release(struct inode *inode, struct file *filp)
+ 	/* decrease the refcount unconditionally since the release()
+ 	   return value is ignored. */
+ 	video_put(vdev);
++	if (vdev->tuner_tkn && vdev->dev_parent) {
++		devm_token_unlock(vdev->dev_parent, vdev->tuner_tkn);
++		dev_info(vdev->dev_parent, "v4l2: Tuner is unlocked\n");
++	}
+ 	return ret;
+ }
+ 
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index eec6e46..1676349 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -141,6 +141,7 @@ struct video_device
+ 	/* serialization lock */
+ 	DECLARE_BITMAP(disable_locking, BASE_VIDIOC_PRIVATE);
+ 	struct mutex *lock;
++	char *tuner_tkn;
+ };
+ 
+ #define media_entity_to_video_device(__e) \
 -- 
-2.0.0.rc0
+1.7.10.4
 
