@@ -1,57 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48285 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754143AbaFKLjk (ORCPT
+Received: from qmta03.emeryville.ca.mail.comcast.net ([76.96.30.32]:49048 "EHLO
+	qmta03.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752423AbaFYAEK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jun 2014 07:39:40 -0400
-Message-ID: <1402486778.4107.131.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH 36/43] gpio: pca953x: Add reset-gpios property
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Wed, 11 Jun 2014 13:39:38 +0200
-In-Reply-To: <1402178205-22697-37-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-	 <1402178205-22697-37-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 24 Jun 2014 20:04:10 -0400
+From: Shuah Khan <shuah.kh@samsung.com>
+To: gregkh@linuxfoundation.org, m.chehab@samsung.com, olebowle@gmx.com,
+	ttmesterr@gmail.com, dheitmueller@kernellabs.com,
+	cb.xiong@samsung.com, yongjun_wei@trendmicro.com.cn,
+	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	crope@iki.fi, wade_farnsworth@mentor.com, ricardo.ribalda@gmail.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org
+Subject: [PATCH 4/4] media: au0828 changes to use token devres for tuner access
+Date: Tue, 24 Jun 2014 17:57:31 -0600
+Message-Id: <191ed75e7a6aafd9e2f85c642b08a963a9d1be1f.1403652043.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1403652043.git.shuah.kh@samsung.com>
+References: <cover.1403652043.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1403652043.git.shuah.kh@samsung.com>
+References: <cover.1403652043.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Samstag, den 07.06.2014, 14:56 -0700 schrieb Steve Longerbeam:
-[...]
->  static int pca953x_read_single(struct pca953x_chip *chip, int reg, u32 *val,
-> @@ -735,6 +741,26 @@ static int pca953x_probe(struct i2c_client *client,
->  		/* If I2C node has no interrupts property, disable GPIO interrupts */
->  		if (of_find_property(client->dev.of_node, "interrupts", NULL) == NULL)
->  			irq_base = -1;
-> +
-> +		/* see if we need to de-assert a reset pin */
-> +		ret = of_get_named_gpio_flags(client->dev.of_node,
-> +					      "reset-gpios", 0,
-> +					      &chip->reset_gpio_flags);
-> +		if (gpio_is_valid(ret)) {
-> +			chip->reset_gpio = ret;
-> +			ret = devm_gpio_request_one(&client->dev,
-> +						    chip->reset_gpio,
-> +						    GPIOF_DIR_OUT,
-> +						    "pca953x_reset");
-> +			if (ret == 0) {
-> +				/* bring chip out of reset */
-> +				dev_info(&client->dev, "releasing reset\n");
+au0828 is changed to use token devres as a large locking
+for exclusive access to tuner function. A new tuner_tkn
+field is added to struct au0828_dev. Tuner token is created
+from au0828 probe() and destroyed from disconnect().
 
-I think dev_dbg would be more appropriate.
+Two new routines au0828_create_token_resources() and
+au0828_destroy_token_resources() create and destroy the
+tuner token.
 
-> +				gpio_set_value(chip->reset_gpio,
-> +					       (chip->reset_gpio_flags ==
-> +						OF_GPIO_ACTIVE_LOW) ? 1 : 0);
-> +			}
+au0828-dvb exports the tuner token to dvb-frontend when
+it registers the digital frontend using the tuner_tkn
+field in struct dvb_frontend.
 
-You could use the gpiod API (include/gpio/consumer.h) here and have it
-do the polarity handling automatically.
+au0828-video exports the tuner token to v4l2-core when
+it registers the analog function using tuner_tkn field
+in struct video_device.
 
-regards
-Philipp
+Before this change:
+
+- digital tv app disrupts an active analog app when it
+  tries to use the tuner
+  e.g:  tvtime analog video stream stops when kaffeine starts
+- analog tv app disrupts another analog app when it tries to
+  use the tuner
+  e.g: tvtime audio glitches when xawtv starts and vice versa.
+- analog tv app disrupts an active digital app when it tries
+  to use the tuner
+  e.g: kaffeine digital stream stops when tvtime starts
+- digital tv app disrupts another digital tv app when it tries
+  to use the tuner
+  e.g: kaffeine digital stream stops when vlc starts and vice
+  versa
+
+After this change:
+- digital tv app detects tuner is busy without disrupting
+  the active app.
+- analog tv app detects tuner is busy without disrupting
+  the active analog app.
+- analog tv app detects tuner is busy without disrupting
+  the active digital app.
+- digital tv app detects tuner is busy without disrupting
+  the active digital app.
+
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+---
+ drivers/media/usb/au0828/au0828-core.c  |   42 +++++++++++++++++++++++++++++++
+ drivers/media/usb/au0828/au0828-dvb.c   |    1 +
+ drivers/media/usb/au0828/au0828-video.c |    4 +++
+ drivers/media/usb/au0828/au0828.h       |    4 +++
+ 4 files changed, 51 insertions(+)
+
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index ab45a6f..df04a99 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -125,6 +125,37 @@ static int recv_control_msg(struct au0828_dev *dev, u16 request, u32 value,
+ 	return status;
+ }
+ 
++/* interfaces to create and destroy token resources */
++static int au0828_create_token_resources(struct au0828_dev *dev)
++{
++	int rc = 0, len;
++	char buf[64];
++
++	/* create token devres for tuner */
++	len = snprintf(buf, sizeof(buf),
++		"tuner:%s-%s-%d",
++		dev_name(&dev->usbdev->dev),
++		dev->usbdev->bus->bus_name,
++		dev->board.tuner_addr);
++
++	dev->tuner_tkn = devm_kzalloc(&dev->usbdev->dev, len + 1, GFP_KERNEL);
++	if (!dev->tuner_tkn)
++		return -ENOMEM;
++
++	strcpy(dev->tuner_tkn, buf);
++	rc = devm_token_create(&dev->usbdev->dev, dev->tuner_tkn);
++	if (rc)
++		return rc;
++
++	pr_info("au0828_create_token_resources(): Tuner token created\n");
++	return rc;
++}
++
++static void au0828_destroy_token_resources(struct au0828_dev *dev)
++{
++	devm_token_destroy(&dev->usbdev->dev, dev->tuner_tkn);
++}
++
+ static void au0828_usb_release(struct au0828_dev *dev)
+ {
+ 	/* I2C */
+@@ -154,6 +185,8 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
+ 	/* Digital TV */
+ 	au0828_dvb_unregister(dev);
+ 
++	au0828_destroy_token_resources(dev);
++
+ 	usb_set_intfdata(interface, NULL);
+ 	mutex_lock(&dev->mutex);
+ 	dev->usbdev = NULL;
+@@ -213,6 +246,13 @@ static int au0828_usb_probe(struct usb_interface *interface,
+ 	dev->usbdev = usbdev;
+ 	dev->boardnr = id->driver_info;
+ 
++	/* create token resources */
++	if (au0828_create_token_resources(dev)) {
++		mutex_unlock(&dev->lock);
++		kfree(dev);
++		return -ENOMEM;
++	}
++
+ #ifdef CONFIG_VIDEO_AU0828_V4L2
+ 	dev->v4l2_dev.release = au0828_usb_v4l2_release;
+ 
+@@ -221,6 +261,7 @@ static int au0828_usb_probe(struct usb_interface *interface,
+ 	if (retval) {
+ 		pr_err("%s() v4l2_device_register failed\n",
+ 		       __func__);
++		au0828_destroy_token_resources(dev);
+ 		mutex_unlock(&dev->lock);
+ 		kfree(dev);
+ 		return retval;
+@@ -230,6 +271,7 @@ static int au0828_usb_probe(struct usb_interface *interface,
+ 	if (retval) {
+ 		pr_err("%s() v4l2_ctrl_handler_init failed\n",
+ 		       __func__);
++		au0828_destroy_token_resources(dev);
+ 		mutex_unlock(&dev->lock);
+ 		kfree(dev);
+ 		return retval;
+diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
+index d8b5d94..1195d29 100755
+--- a/drivers/media/usb/au0828/au0828-dvb.c
++++ b/drivers/media/usb/au0828/au0828-dvb.c
+@@ -412,6 +412,7 @@ static int dvb_register(struct au0828_dev *dev)
+ 		goto fail_adapter;
+ 	}
+ 	dvb->adapter.priv = dev;
++	dvb->frontend->tuner_tkn = dev->tuner_tkn;
+ 
+ 	/* register frontend */
+ 	result = dvb_register_frontend(&dvb->adapter, dvb->frontend);
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 385894a..0b50bda 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -2018,6 +2018,9 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 	dev->vdev->lock = &dev->lock;
+ 	set_bit(V4L2_FL_USE_FH_PRIO, &dev->vdev->flags);
+ 	strcpy(dev->vdev->name, "au0828a video");
++	/* is there another way v4l2 core can get struct device ?? */
++	dev->vdev->dev_parent = &dev->usbdev->dev;
++	dev->vdev->tuner_tkn = dev->tuner_tkn;
+ 
+ 	/* Setup the VBI device */
+ 	*dev->vbi_dev = au0828_video_template;
+@@ -2025,6 +2028,7 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 	dev->vbi_dev->lock = &dev->lock;
+ 	set_bit(V4L2_FL_USE_FH_PRIO, &dev->vbi_dev->flags);
+ 	strcpy(dev->vbi_dev->name, "au0828a vbi");
++	dev->vbi_dev->tuner_tkn = dev->tuner_tkn;
+ 
+ 	/* Register the v4l2 device */
+ 	video_set_drvdata(dev->vdev, dev);
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index 7112b9d..11bc933 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -23,6 +23,7 @@
+ #include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+ #include <media/tveeprom.h>
++#include <linux/token_devres.h>
+ 
+ /* Analog */
+ #include <linux/videodev2.h>
+@@ -198,6 +199,9 @@ struct au0828_dev {
+ 	struct au0828_board	board;
+ 	u8			ctrlmsg[64];
+ 
++	/* token resources */
++	char *tuner_tkn; /* tuner token id */
++
+ 	/* I2C */
+ 	struct i2c_adapter		i2c_adap;
+ 	struct i2c_algorithm		i2c_algo;
+-- 
+1.7.10.4
 
