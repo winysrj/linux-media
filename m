@@ -1,53 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:39599 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756591AbaFXQZZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 12:25:25 -0400
-Message-ID: <53A9A66F.20401@eukrea.com>
-Date: Tue, 24 Jun 2014 18:25:19 +0200
-From: Denis Carikli <denis@eukrea.com>
-MIME-Version: 1.0
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Sascha Hauer <kernel@pengutronix.de>
-CC: Philipp Zabel <p.zabel@pengutronix.de>,
-	=?ISO-8859-1?Q?Eric_B=E9nar?= =?ISO-8859-1?Q?d?=
-	<eric@eukrea.com>, Shawn Guo <shawn.guo@linaro.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49927 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754400AbaFXPHV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jun 2014 11:07:21 -0400
+Message-ID: <1403622429.2910.29.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH 00/30] Initial CODA960 (i.MX6 VPU) support
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>
-Subject: Re: [PATCH v14 04/10] imx-drm: use defines for clock polarity settings
-References: <1402913484-25910-1-git-send-email-denis@eukrea.com> <1402913484-25910-4-git-send-email-denis@eukrea.com> <20140624151323.GU32514@n2100.arm.linux.org.uk>
-In-Reply-To: <20140624151323.GU32514@n2100.arm.linux.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de
+Date: Tue, 24 Jun 2014 17:07:09 +0200
+In-Reply-To: <539EAC3E.3040102@xs4all.nl>
+References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+	 <539EAC3E.3040102@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/24/2014 05:13 PM, Russell King - ARM Linux wrote:
-[...]
-> If you'd like to send me better commit messages for
-> these patches, I'll add them to what I already have:
+Hi Hans,
 
-> 	imx-drm: use defines for clock polarity settings
-The comment of the clk_pol field of the ipu_di_signal_cfg struct was 
-inverted.
-Instead of merely inverting the comment, the values of clk_pol were defined.
+Am Montag, den 16.06.2014, 10:35 +0200 schrieb Hans Verkuil:
+> Hi Philipp,
+> 
+> I went through this patch series and replied with some comments.
 
-> 	imx-drm: add RGB666 support for parallel display.
-This permits to drive parallel displays that expect the RGB666 color format.
->
-> It may also be worth describing the RGB666 format in the commit message
-> for:
->
-> 	v4l2: add new V4L2_PIX_FMT_RGB666 pixel format.
-The RGB666 color format encodes 6 bits for each color(red, green and 
-blue), linearly.
-It looks like this in memory:
-0                17
-RRRRRRGGGGGGBBBBBB
+thank you for the comments. I have dropped the force IDR patch in
+v2 and will send a separate RFC for the VFU / forced keyframe
+support.
+I have also dropped the enum_framesizes patch for now.
 
-Denis.
+> I have two more general questions:
+> 
+> 1) can you post the output of 'v4l2-compliance'?
+
+This is for the v2 series, the previously posted patches still had
+one TRY_FMT(G_FMT) != G_FMT error introduced by the "[media] coda:
+add bytesperline to queue data" patch:
+
+$ v4l2-compliance -d /dev/video8
+Driver Info:
+	Driver name   : coda
+	Card type     : CODA960
+	Bus info      : platform:coda
+	Driver version: 3.16.0
+	Capabilities  : 0x84008003
+		Video Capture
+		Video Output
+		Video Memory-to-Memory
+		Streaming
+		Device Capabilities
+	Device Caps   : 0x04008003
+		Video Capture
+		Video Output
+		Video Memory-to-Memory
+		Streaming
+
+Compliance test for device /dev/video8 (not using libv4l2):
+
+Required ioctls:
+		warn: v4l2-compliance.cpp(366): VIDIOC_QUERYCAP: m2m with video input and output caps
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+		warn: v4l2-compliance.cpp(366): VIDIOC_QUERYCAP: m2m with video input and output caps
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+	Control ioctls:
+		test VIDIOC_QUERYCTRL/MENU: OK
+		test VIDIOC_G/S_CTRL: OK
+		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 19 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK (Not Supported)
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		test VIDIOC_TRY_FMT: OK
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK
+
+Buffer ioctls:
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+	test VIDIOC_EXPBUF: OK
+
+Total: 38, Succeeded: 38, Failed: 0, Warnings: 2
+
+> 2) what would be needed for 'v4l2-compliance -s' to work?
+
+I haven't looked at this in detail yet. v4l2-compliance -s curently fails:
+
+Buffer ioctls:
+		info: test buftype Video Capture
+		info: test buftype Video Output
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+	test VIDIOC_EXPBUF: OK
+	test read/write: OK (Not Supported)
+		fail: v4l2-test-buffers.cpp(859): ret != EINVAL
+	test MMAP: FAIL
+		fail: v4l2-test-buffers.cpp(936): buf.qbuf(q)
+		fail: v4l2-test-buffers.cpp(976): setupUserPtr(node, q)
+	test USERPTR: FAIL
+	test DMABUF: Cannot test, specify --expbuf-device
+
+In principle the h.264 encoder should work, as you can just feed it
+one frame at a time and then pick up the encoded result on the capture
+side.
+
+> For the encoder 'v4l2-compliance -s' will probably work OK, but for
+> the decoder you need to feed v4l2-compliance -s some compressed
+> stream. I assume each buffer should contain a single P/B/I frame?
+
+Yes, for h.264 we currently expect all NAL units for a complete frame
+in the source buffers.
+
+> The v4l2-ctl utility has already support for writing captured data
+> to a file, but it has no support to store the image sizes as well.
+> So if the captured buffers do not all have the same size you cannot
+> 'index' the captured file. If I would add support for that, then I
+> can add support for it to v4l2-compliance as well, allowing you to
+> playback an earlier captured compressed video stream and use that
+> as the compliance test input.
+> 
+> Does this makes sense?
+
+Wouldn't that mean that you had to add a stream parser for every
+supported compressed format? Or are you planning to store an index
+separately?
+
+regards
+Philipp
+
