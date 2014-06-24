@@ -1,78 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42404 "EHLO
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57649 "EHLO
 	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751365AbaFYJqz (ORCPT
+	with ESMTP id S1753807AbaFXO42 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jun 2014 05:46:55 -0400
-Date: Wed, 25 Jun 2014 11:46:28 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Denis Carikli <denis@eukrea.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Eric =?iso-8859-15?Q?B=E9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>
-Subject: Re: [PATCH v14 04/10] imx-drm: use defines for clock polarity
- settings
-Message-ID: <20140625094628.GS15686@pengutronix.de>
-References: <1402913484-25910-1-git-send-email-denis@eukrea.com>
- <1402913484-25910-4-git-send-email-denis@eukrea.com>
- <20140625044845.GK5918@pengutronix.de>
- <20140625084327.GD32514@n2100.arm.linux.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20140625084327.GD32514@n2100.arm.linux.org.uk>
+	Tue, 24 Jun 2014 10:56:28 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Michael Olbrich <m.olbrich@pengutronix.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 18/29] [media] v4l2-mem2mem: export v4l2_m2m_try_schedule
+Date: Tue, 24 Jun 2014 16:56:00 +0200
+Message-Id: <1403621771-11636-19-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 25, 2014 at 09:43:27AM +0100, Russell King - ARM Linux wrote:
-> On Wed, Jun 25, 2014 at 06:48:45AM +0200, Sascha Hauer wrote:
-> > On Mon, Jun 16, 2014 at 12:11:18PM +0200, Denis Carikli wrote:
-> > > +
-> > >  /*
-> > >   * Bitfield of Display Interface signal polarities.
-> > >   */
-> > > @@ -37,7 +43,7 @@ struct ipu_di_signal_cfg {
-> > >  	unsigned clksel_en:1;
-> > >  	unsigned clkidle_en:1;
-> > >  	unsigned data_pol:1;	/* true = inverted */
-> > > -	unsigned clk_pol:1;	/* true = rising edge */
-> > > +	unsigned clk_pol:1;
-> > >  	unsigned enable_pol:1;
-> > >  	unsigned Hsync_pol:1;	/* true = active high */
-> > >  	unsigned Vsync_pol:1;
-> > 
-> > ...can we rename the flags to more meaningful names instead?
-> > 
-> > 	unsigned clk_pol_rising_edge:1;
-> > 	unsigned enable_pol_high:1;
-> > 	unsigned hsync_active_high:1;
-> > 	unsigned vsync_active_high:1;
-> 
-> Now look at patch 7, where these become tri-state:
-> - don't change
-> - rising edge/active high
-> - falling edge/active low
-> 
-> So your suggestion is not a good idea.
+From: Michael Olbrich <m.olbrich@pengutronix.de>
 
-Hm, you're right.
+Some drivers might allow to decode remaining frames from an internal ringbuffer
+after a decoder stop command. Allow those to call v4l2_m2m_try_schedule
+directly.
 
-Still I think we should add a prefix to make the context of the flags
-clear.
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 3 ++-
+ include/media/v4l2-mem2mem.h           | 2 ++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-Sascha
-
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 178ce96..5f5c175 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -208,7 +208,7 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
+  * An example of the above could be an instance that requires more than one
+  * src/dst buffer per transaction.
+  */
+-static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
++void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ {
+ 	struct v4l2_m2m_dev *m2m_dev;
+ 	unsigned long flags_job, flags_out, flags_cap;
+@@ -274,6 +274,7 @@ static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 
+ 	v4l2_m2m_try_run(m2m_dev);
+ }
++EXPORT_SYMBOL(v4l2_m2m_try_schedule);
+ 
+ /**
+  * v4l2_m2m_cancel_job() - cancel pending jobs for the context
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index 12ea5a6..c5f3914 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -95,6 +95,8 @@ void *v4l2_m2m_get_curr_priv(struct v4l2_m2m_dev *m2m_dev);
+ struct vb2_queue *v4l2_m2m_get_vq(struct v4l2_m2m_ctx *m2m_ctx,
+ 				       enum v4l2_buf_type type);
+ 
++void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx);
++
+ void v4l2_m2m_job_finish(struct v4l2_m2m_dev *m2m_dev,
+ 			 struct v4l2_m2m_ctx *m2m_ctx);
+ 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+2.0.0
+
