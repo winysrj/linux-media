@@ -1,131 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:45177 "EHLO posteo.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750862AbaF0SKI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jun 2014 14:10:08 -0400
-Message-ID: <53ADB359.4010401@posteo.de>
-Date: Fri, 27 Jun 2014 20:09:29 +0200
-From: Martin Kepplinger <martink@posteo.de>
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:40373 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751966AbaFXWNW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jun 2014 18:13:22 -0400
+Received: by mail-wg0-f49.google.com with SMTP id y10so1056836wgg.20
+        for <linux-media@vger.kernel.org>; Tue, 24 Jun 2014 15:13:21 -0700 (PDT)
+Date: Wed, 25 Jun 2014 00:13:19 +0200
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Denis Carikli <denis@eukrea.com>, dri-devel@lists.freedesktop.org,
+	devel@driverdev.osuosl.org,
+	Eric =?utf-8?Q?B=C3=A9nard?= <eric@eukrea.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH v14 06/10] drm: drm_display_mode: add signal polarity
+ flags
+Message-ID: <20140624221318.GA30183@mithrandir>
+References: <1402913484-25910-1-git-send-email-denis@eukrea.com>
+ <1402913484-25910-6-git-send-email-denis@eukrea.com>
+ <20140624145745.GR32514@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
-To: Zhang Rui <rui.zhang@intel.com>
-CC: "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
-	"lenb@kernel.org" <lenb@kernel.org>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black instead
- of native resolution
-References: <53A6E72A.9090000@posteo.de>		 <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>		 <53A81BF7.3030207@posteo.de> <1403529246.4686.6.camel@rzhang1-toshiba>	 <53A83DC7.1010606@posteo.de> <1403882067.16305.124.camel@rzhang1-toshiba>
-In-Reply-To: <1403882067.16305.124.camel@rzhang1-toshiba>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="UlVJffcvxoiEqYs2"
+Content-Disposition: inline
+In-Reply-To: <20140624145745.GR32514@n2100.arm.linux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 2014-06-27 17:14, schrieb Zhang Rui:
-> On Mon, 2014-06-23 at 16:46 +0200, Martin Kepplinger wrote:
->> Am 2014-06-23 15:14, schrieb Zhang Rui:
->>> On Mon, 2014-06-23 at 14:22 +0200, Martin Kepplinger wrote:
->>>> Am 2014-06-23 03:10, schrieb Zhang, Rui:
->>>>>
->>>>>
->>>>>> -----Original Message-----
->>>>>> From: Martin Kepplinger [mailto:martink@posteo.de]
->>>>>> Sent: Sunday, June 22, 2014 10:25 PM
->>>>>> To: Zhang, Rui
->>>>>> Cc: rjw@rjwysocki.net; lenb@kernel.org; linux-acpi@vger.kernel.org;
->>>>>> linux-kernel@vger.kernel.org
->>>>>> Subject: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black
->>>>>> instead of native resolution
->>>>>> Importance: High
->>>>>>
->>>>>> Since 3.16-rc1 my laptop's just goes black while booting, instead of
->>>>>> switching to native screen resolution and showing me the starting
->>>>>> system there. It's an Acer TravelMate B113 with i915 driver and
->>>>>> acer_wmi. It stays black and is unusable.
->>>>>>
->>> This looks like a duplicate of
->>> https://bugzilla.kernel.org/show_bug.cgi?id=78601
->>>
->>> thanks,
->>> rui
->> I'm not sure about that. I have no problem with v3.15 and the screen
->> goes black way before a display manager is started. It's right after the
->> kernel loaded and usually the screen is set to native resolution.
->>
->> Bisect told me aaeb2554337217dfa4eac2fcc90da7be540b9a73 as the first bad
->> one. Although, checking that out and running it, works good. not sure if
->> that makes sense.
->>
-> could you please check if the comment in
-> https://bugzilla.kernel.org/show_bug.cgi?id=78601#c5 solves your problem
-> or not?
-> 
-> thanks,
-> rui
 
-thanks for checking. This does not change anything though. I tested the
-following on top of v3.16-rc2 and linus's tree as of today, almost -rc3.
+--UlVJffcvxoiEqYs2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
----
- drivers/gpu/drm/i915/intel_fbdev.c |    1 -
- 1 file changed, 1 deletion(-)
+On Tue, Jun 24, 2014 at 03:57:46PM +0100, Russell King - ARM Linux wrote:
+> On Mon, Jun 16, 2014 at 12:11:20PM +0200, Denis Carikli wrote:
+> > We need a way to pass signal polarity informations
+> >   between DRM panels, and the display drivers.
+> >=20
+> > To do that, a pol_flags field was added to drm_display_mode.
+> >=20
+> > Signed-off-by: Denis Carikli <denis@eukrea.com>
+>=20
+> This patch needs an ack from the DRM people - can someone review it
+> please?  This series has now been round 14 revisions and it's about
+> time it was properly reviewed - or a statement made if it's
+> unacceptable.
 
-diff --git a/drivers/gpu/drm/i915/intel_fbdev.c
-b/drivers/gpu/drm/i915/intel_fbdev.c
-index 088fe93..1e2f9ae 100644
---- a/drivers/gpu/drm/i915/intel_fbdev.c
-+++ b/drivers/gpu/drm/i915/intel_fbdev.c
-@@ -453,7 +453,6 @@ out:
- }
+I didn't follow all of the earlier discussions around this, but it seems
+to me like data-enable polarity and the pixel data edge flags are
+properties of the interface rather than the video mode.
 
- static struct drm_fb_helper_funcs intel_fb_helper_funcs = {
--       .initial_config = intel_fb_initial_config,
-        .gamma_set = intel_crtc_fb_gamma_set,
-        .gamma_get = intel_crtc_fb_gamma_get,
-        .fb_probe = intelfb_create,
--- 
-1.7.10.4
+struct drm_display_mode represents the video timings and I'm not sure if
+it's a good idea to extend it with this type of information.
 
+Maybe we need to add a separate type of device to store these parameters
+(much like we've done for MIPI DSI devices).
 
+Thierry
 
->>>>>> Do you have other people complain about that? Bisecting didn't lead to
->>>>>> a good result. I could be wrong but I somehow suspect the mistake to be
->>>>>> somewhere in commit 99678ed73a50d2df8b5f3c801e29e9b7a3e5aa85
->>>>>>
->>>>> In order to confirm if the problem is introduced by the above commit,
->>>>> why not checkout the kernel just before and after this commit and see if the problem exists?
->>>>>
->>>>> Thanks,
->>>>> rui
->>>>>
->>>> So maybe I was wrong. d27050641e9bc056446deb0814e7ba1aa7911f5a is still
->>>> good and aaeb2554337217dfa4eac2fcc90da7be540b9a73 is the fist bad one.
->>>> This is a big v4l merge. I added the linux-media list in cc now.
->>>>
->>>> What could be the problem here?
->>>>
->>>>>
->>>>>> There is nothing unusual in the kernel log.
->>>>>>
->>>>>> This is quite unusual for an -rc2. Hence my question. I'm happy to test
->>>>>> changes.
->>>>>>
->>>>>>                                      martin
->>>>>> --
->>>>>> Martin Kepplinger
->>>>>> e-mail        martink AT posteo DOT at
->>>>>> chat (XMPP)   martink AT jabber DOT at
->>>>
->>>
->>>
->>
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+--UlVJffcvxoiEqYs2
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTqff+AAoJEN0jrNd/PrOhMDYP/3UoGEBsG+WRM/zNypLJ4tmq
+2PcHJtTEWeaUIT+U0XJxrVRJX3SGqKzwKzsKbeJ9dcTMbfuJQu2A0p3Wp1vlM8l0
+L3gMKRFdpOuE+zagkHGQdE4/RY6CWax4pzGiB6vwvqpA31RK8zn//uv3XynM9z6s
+Qom3yUUkaDEHSzBME0Xf4u/3rpYz6ixeXmPO92ttpxVcGBB9S4r27jwrHDcuwyr9
+w49pqy6pGrm6AyP/HfDNSi5MzWThwpZ0DueMo1fLM3MmxH0PgAdzTFM96oO08qW1
+STDOqHWWR3ZfRZnKr01z9OdmhXB+QyMDQfyeltZcaiBncPODCWY6JXQlp79VbsZ6
+E+XR5LPW3WrtPL2+CD2YskHdUFVNBj8hDuNRy3/TlURm7i+uiaACPm5MraEyVmqQ
+swpF9r6Qo/kbZ2yvVFsz/JCqxgNGWn2TRCLedTcs+S9appxGpqSWxcNt2GhVEGhw
+K0bR4snxmrhsjNY3MMqxFR4e8SMwMHSEf9WWYOUWePIa86rJjHW3ltWjE0qsP8Gc
+RQG7X1+CDciXZaePAMa3grR7C51iUysH8O1qUO90Xyxqq0ghLj2bdJLUKWnBhtzh
+ouWPTUv8e3TRrWJJmH2tctquOuonR2UvupkKSIF6W0IbsiFBWVPWB7639e4TN2gV
+7G3etHyGJYvcaIk9lQrG
+=y5w2
+-----END PGP SIGNATURE-----
+
+--UlVJffcvxoiEqYs2--
