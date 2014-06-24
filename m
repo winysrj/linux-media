@@ -1,114 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:39313 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750822AbaFKAym (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jun 2014 20:54:42 -0400
-Message-ID: <5397A8CD.6090302@mentor.com>
-Date: Tue, 10 Jun 2014 17:54:37 -0700
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>
-CC: David Peverley <pev@audiogeek.co.uk>
-Subject: Re: [PATCH 00/43] i.MX6 Video capture
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com> <53942098.9000109@xs4all.nl> <5395E407.7010100@mentor.com> <53972018.1020102@xs4all.nl>
-In-Reply-To: <53972018.1020102@xs4all.nl>
-Content-Type: text/plain; charset="ISO-8859-1"
+Received: from smtp209.alice.it ([82.57.200.105]:29492 "EHLO smtp209.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752337AbaFXNgL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jun 2014 09:36:11 -0400
+Date: Tue, 24 Jun 2014 15:35:58 +0200
+From: Antonio Ospite <ao2@ao2.it>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-media@vger.kernel.org, Alexander Sosna <alexander@xxor.de>
+Subject: Re: [RFC 1/2] gspca: provide a mechanism to select a specific
+ transfer endpoint
+Message-Id: <20140624153558.c0a933633fdb8bb20977918a@ao2.it>
+In-Reply-To: <53A2F36F.9090308@redhat.com>
+References: <53450D76.2010405@redhat.com>
+	<1401913499-6475-1-git-send-email-ao2@ao2.it>
+	<1401913499-6475-2-git-send-email-ao2@ao2.it>
+	<53A2F36F.9090308@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/10/2014 08:11 AM, Hans Verkuil wrote:
-> On 06/09/2014 06:42 PM, Steve Longerbeam wrote:
->> On 06/08/2014 01:36 AM, Hans Verkuil wrote:
->>> Hi Steve!
->>>
->>> On 06/07/2014 11:56 PM, Steve Longerbeam wrote:
->>>> Hi all,
->>>>
->>>> This patch set adds video capture support for the Freescale i.MX6 SOC.
->>>>
->>>> It is a from-scratch standardized driver that works with community
->>>> v4l2 utilities, such as v4l2-ctl, v4l2-cap, and the v4l2src gstreamer
->>>> plugin. It uses the latest v4l2 interfaces (subdev, videobuf2).
->>>> Please see Documentation/video4linux/mx6_camera.txt for it's full list
->>>> of features!
->>>>
->>>> The first 38 patches:
->>>>
->>>> - prepare the ipu-v3 driver for video capture support. The current driver
->>>>   contains only video display functionality to support the imx DRM drivers.
->>>>   At some point ipu-v3 should be moved out from under staging/imx-drm since
->>>>   it will no longer only support DRM.
->>>>
->>>> - Adds the device tree nodes and OF graph bindings for video capture support
->>>>   on sabrelite, sabresd, and sabreauto reference platforms.
->>>>
->>>> The new i.MX6 capture host interface driver is at patch 39.
->>>>
->>>> To support the sensors found on the sabrelite, sabresd, and sabreauto,
->>>> three patches add sensor subdev's for parallel OV5642, MIPI CSI-2 OV5640,
->>>> and the ADV7180 decoder chip, beginning at patch 40.
->>>>
->>>> There is an existing adv7180 subdev driver under drivers/media/i2c, but
->>>> it needs some extra functionality to work on the sabreauto. It will need
->>>> OF graph bindings support and gpio for a power-on pin on the sabreauto.
->>>> It would also need to send a new subdev notification to take advantage
->>>> of decoder status change handling provided by the host driver. This
->>>> feature makes it possible to correctly handle "hot" (while streaming)
->>>> signal lock/unlock and autodetected video standard changes.
->>> A new V4L2_EVENT_SOURCE_CHANGE event has just been added for that.
->>
->> Hello Hans!
->>
->> Ok, V4L2_EVENT_SOURCE_CHANGE looks promising.
->>
->> But v4l2-framework.txt states that v4l2 events are passed to userland. So
->> I want to make sure this framework will also work internally; that is,
->> the decoder subdev (adv7180) can generate this event and it can be
->> subscribed by the capture host driver. That it can be passed to userland
->> is fine and would be useful, it's not necessary in this case.
+On Thu, 19 Jun 2014 16:27:59 +0200
+Hans de Goede <hdegoede@redhat.com> wrote:
+
+> Hi Antonio,
 > 
-> A subdevice can notify its parent device through v4l2_subdev_notify (see
-> v4l2-device.h). It would be nice if the event API and this notify mechanism
-> were unified or at least be more similar.
+> Thanks for working on this.
 > 
-> It's on my TODO list, but it is fairly far down that list.
+> On 06/04/2014 10:24 PM, Antonio Ospite wrote:
+> > Add a xfer_ep_index field to struct gspca_dev, and change alt_xfer() so
+> > that it accepts a parameter which represents a specific endpoint to look
+> > for.
+> > 
+> > If a subdriver wants to specify a value for gspca_dev->xfer_ep_index it
+> > can do that in its sd_config() callback.
+> > 
+> > Signed-off-by: Antonio Ospite <ao2@ao2.it>
+> > ---
+> > 
+> > I am not sure if it is OK to specify an endpoint _index_ or if it would be
+> > better to specify the endpoint address directly (in Kinect 0x81 is for video
+> > data and 0x82 is for depth data).
+> >
+> > Hans, any comment on that?
 > 
-> Let me know if you are interested to improve this situation. I should be able
-> to give some pointers.
-> 
+> I think it would be better to use the endpoint address directly for this,
+> relying on the order in which the endpoints are listed in the descriptor
+> feels wrong to me.
 >
 
-Hi Hans,
+I see.
 
-It doesn't look possible for subdev's to queue events, since events require
-a v4l2 fh context, so it looks like subdev notifications should stick
-around.
+If I declare the new field as __u8 (same type of a bEndpointAddress), I
+could mark an invalid ep address with ~(USB_ENDPOINT_DIR_MASK | 
+USB_ENDPOINT_NUMBER_MASK) in gspca_dev_probe2(), instead of using an
+int set to -1; how does that sound?
 
-But perhaps subdev notification can be modified to send a struct v4l2_event,
-rather than a u32 notification value. Then at least notify and events can
-share event types instead of duplicating them (such as what I caused by
-introducing this similar decoder status change notification).
+> Other then that this patch looks good.
+> 
+> Regards,
+> 
+> Hans
+> 
+> 
+> > 
+> > Thanks,
+> >    Antonio
+> > 
+> >  drivers/media/usb/gspca/gspca.c | 20 ++++++++++++++------
+> >  drivers/media/usb/gspca/gspca.h |  1 +
+> >  2 files changed, 15 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+> > index f3a7ace..7e5226c 100644
+> > --- a/drivers/media/usb/gspca/gspca.c
+> > +++ b/drivers/media/usb/gspca/gspca.c
+> > @@ -603,10 +603,13 @@ static void gspca_stream_off(struct gspca_dev *gspca_dev)
+> >  }
+> >  
+> >  /*
+> > - * look for an input transfer endpoint in an alternate setting
+> > + * look for an input transfer endpoint in an alternate setting.
+> > + *
+> > + * If xfer_ep_index is negative, return the first valid one found, otherwise
+> > + * look for exactly the one in position xfer_ep.
+> >   */
+> >  static struct usb_host_endpoint *alt_xfer(struct usb_host_interface *alt,
+> > -					  int xfer)
+> > +					  int xfer, int xfer_ep_index)
+> >  {
+> >  	struct usb_host_endpoint *ep;
+> >  	int i, attr;
+> > @@ -616,8 +619,10 @@ static struct usb_host_endpoint *alt_xfer(struct usb_host_interface *alt,
+> >  		attr = ep->desc.bmAttributes & USB_ENDPOINT_XFERTYPE_MASK;
+> >  		if (attr == xfer
+> >  		    && ep->desc.wMaxPacketSize != 0
+> > -		    && usb_endpoint_dir_in(&ep->desc))
+> > +		    && usb_endpoint_dir_in(&ep->desc)
+> > +		    && (xfer_ep_index < 0 || i == xfer_ep_index)) {
+> >  			return ep;
+> > +		}
+> >  	}
+> >  	return NULL;
+> >  }
+> > @@ -689,7 +694,7 @@ static int build_isoc_ep_tb(struct gspca_dev *gspca_dev,
+> >  		found = 0;
+> >  		for (j = 0; j < nbalt; j++) {
+> >  			ep = alt_xfer(&intf->altsetting[j],
+> > -				      USB_ENDPOINT_XFER_ISOC);
+> > +				      USB_ENDPOINT_XFER_ISOC, gspca_dev->xfer_ep_index);
+> >  			if (ep == NULL)
+> >  				continue;
+> >  			if (ep->desc.bInterval == 0) {
+> > @@ -862,7 +867,8 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
+> >  	/* if bulk or the subdriver forced an altsetting, get the endpoint */
+> >  	if (gspca_dev->alt != 0) {
+> >  		gspca_dev->alt--;	/* (previous version compatibility) */
+> > -		ep = alt_xfer(&intf->altsetting[gspca_dev->alt], xfer);
+> > +		ep = alt_xfer(&intf->altsetting[gspca_dev->alt], xfer,
+> > +			      gspca_dev->xfer_ep_index);
+> >  		if (ep == NULL) {
+> >  			pr_err("bad altsetting %d\n", gspca_dev->alt);
+> >  			return -EIO;
+> > @@ -904,7 +910,8 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
+> >  		if (!gspca_dev->cam.no_urb_create) {
+> >  			PDEBUG(D_STREAM, "init transfer alt %d", alt);
+> >  			ret = create_urbs(gspca_dev,
+> > -				alt_xfer(&intf->altsetting[alt], xfer));
+> > +				alt_xfer(&intf->altsetting[alt], xfer,
+> > +					 gspca_dev->xfer_ep_index));
+> >  			if (ret < 0) {
+> >  				destroy_urbs(gspca_dev);
+> >  				goto out;
+> > @@ -2030,6 +2037,7 @@ int gspca_dev_probe2(struct usb_interface *intf,
+> >  	}
+> >  	gspca_dev->dev = dev;
+> >  	gspca_dev->iface = intf->cur_altsetting->desc.bInterfaceNumber;
+> > +	gspca_dev->xfer_ep_index = -1;
+> >  
+> >  	/* check if any audio device */
+> >  	if (dev->actconfig->desc.bNumInterfaces != 1) {
+> > diff --git a/drivers/media/usb/gspca/gspca.h b/drivers/media/usb/gspca/gspca.h
+> > index 300642d..92317af 100644
+> > --- a/drivers/media/usb/gspca/gspca.h
+> > +++ b/drivers/media/usb/gspca/gspca.h
+> > @@ -205,6 +205,7 @@ struct gspca_dev {
+> >  	char memory;			/* memory type (V4L2_MEMORY_xxx) */
+> >  	__u8 iface;			/* USB interface number */
+> >  	__u8 alt;			/* USB alternate setting */
+> > +	int xfer_ep_index;		/* index of the USB transfer endpoint */
+> >  	u8 audio;			/* presence of audio device */
+> >  
+> >  	/* (*) These variables are proteced by both usb_lock and queue_lock,
+> > 
 
-Something like:
 
-/* Send an event to v4l2_device. */
-static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
-       	      	   		      struct v4l2_event *ev,
-				      void *arg)
-{
-        if (sd && sd->v4l2_dev && sd->v4l2_dev->notify)
-                sd->v4l2_dev->notify(sd, ev, arg);
-}
+-- 
+Antonio Ospite
+http://ao2.it
 
-
-Then the parent is free to consume this event internally, and/or queue it
-off to userland via v4l2_event_queue().
-
-Notification values could then completely disappear, replaced with new (or
-existing) event types.
-
-Is that what you had in mind, or something completely different?
-
-Steve
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
