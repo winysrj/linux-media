@@ -1,147 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:40171 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757405AbaFSQMi (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57656 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753579AbaFXO43 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jun 2014 12:12:38 -0400
-Message-ID: <53A30BF0.1060109@canonical.com>
-Date: Thu, 19 Jun 2014 18:12:32 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-MIME-Version: 1.0
-To: Colin Cross <ccross@google.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	"open list:GENERIC INCLUDE/A..." <linux-arch@vger.kernel.org>,
-	thellstrom@vmware.com, lkml <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Rob Clark <robdclark@gmail.com>, thierry.reding@gmail.com,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	"open list:DMA BUFFER SHARIN..." <linux-media@vger.kernel.org>
-CC: daniel@ffwll.ch
-Subject: Re: [REPOST PATCH 4/8] android: convert sync to fence api, v5
-References: <20140618102957.15728.43525.stgit@patser>	<20140618103711.15728.97842.stgit@patser>	<20140619011556.GE10921@kroah.com>	<20140619063727.GL5821@phenom.ffwll.local> <CAMbhsRRZOHuDkW9GzWbBCQiBjdUFv7MtkB_qhx+pofT+38gugQ@mail.gmail.com>
-In-Reply-To: <CAMbhsRRZOHuDkW9GzWbBCQiBjdUFv7MtkB_qhx+pofT+38gugQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Tue, 24 Jun 2014 10:56:29 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 20/29] [media] coda: add decoder timestamp queue
+Date: Tue, 24 Jun 2014 16:56:02 +0200
+Message-Id: <1403621771-11636-21-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-op 19-06-14 17:22, Colin Cross schreef:
-> On Wed, Jun 18, 2014 at 11:37 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
->> On Wed, Jun 18, 2014 at 06:15:56PM -0700, Greg KH wrote:
->>> On Wed, Jun 18, 2014 at 12:37:11PM +0200, Maarten Lankhorst wrote:
->>>> Just to show it's easy.
->>>>
->>>> Android syncpoints can be mapped to a timeline. This removes the need
->>>> to maintain a separate api for synchronization. I've left the android
->>>> trace events in place, but the core fence events should already be
->>>> sufficient for debugging.
->>>>
->>>> v2:
->>>> - Call fence_remove_callback in sync_fence_free if not all fences have fired.
->>>> v3:
->>>> - Merge Colin Cross' bugfixes, and the android fence merge optimization.
->>>> v4:
->>>> - Merge with the upstream fixes.
->>>> v5:
->>>> - Fix small style issues pointed out by Thomas Hellstrom.
->>>>
->>>> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
->>>> Acked-by: John Stultz <john.stultz@linaro.org>
->>>> ---
->>>>  drivers/staging/android/Kconfig      |    1
->>>>  drivers/staging/android/Makefile     |    2
->>>>  drivers/staging/android/sw_sync.c    |    6
->>>>  drivers/staging/android/sync.c       |  913 +++++++++++-----------------------
->>>>  drivers/staging/android/sync.h       |   79 ++-
->>>>  drivers/staging/android/sync_debug.c |  247 +++++++++
->>>>  drivers/staging/android/trace/sync.h |   12
->>>>  7 files changed, 609 insertions(+), 651 deletions(-)
->>>>  create mode 100644 drivers/staging/android/sync_debug.c
->>> With these changes, can we pull the android sync logic out of
->>> drivers/staging/ now?
->> Afaik the google guys never really looked at this and acked it. So I'm not
->> sure whether they'll follow along. The other issue I have as the
->> maintainer of gfx driver is that I don't want to implement support for two
->> different sync object primitives (once for dma-buf and once for android
->> syncpts), and my impression thus far has been that even with this we're
->> not there.
-> We have tested these patches to use dma fences to back the android
-> sync driver and not found any major issues.  However, my understanding
-> is that dma fences are designed for implicit sync, and explicit sync
-> through the android sync driver is bolted on the side to share code.
-> Android is not moving away from explicit sync, but we do wrap all of
-> our userspace sync accesses through libsync
-> (https://android.googlesource.com/platform/system/core/+/master/libsync/sync.c,
-> ignore the sw_sync parts), so if the kernel supported a slightly
-> different userspace explicit sync interface we could adapt to it
-> fairly easily.  All we require is that individual kernel drivers need
-> to be able to accept work alongisde an fd to wait on, and to return an
-> fd that will signal when the work is done, and that userspace has some
-> way to merge two of those fds, wait on an fd, and get some debugging
-> info from an fd.  However, this patch set doesn't do that, it has no
-> way to export a dma fence as an fd except through the android sync
-> driver, so it is not yet ready to fully replace android sync.
->
-Dma fences can be exported as android fences, just didn't see a need for it yet. :-)
-To wait on all implicit fences attached to a dma-buf one could simply poll the dma-buf directly,
-or use something like a android userspace fence.
+The coda driver advertises timestamp_type V4L2_BUF_FLAG_TIMESTAMP_COPY on
+both queues, so we have to copy timestamps from input v4l2 buffers to the
+corresponding destination v4l2 buffers. Since the h.264 decoder can reorder
+frames, a timestamp queue is needed to keep track of and assign the correct
+timestamp to destination buffers.
 
-sync_fence_create takes a sync_pt as function argument, but I kept that to keep source code
-compatibility, not because it uses any sync_pt functions. Here's a patch to create a userspace
-fd for dma-fence instead of a android fence, applied on top of "android: convert sync to fence api".
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 50 ++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 49 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/staging/android/sw_sync.c b/drivers/staging/android/sw_sync.c
-index a76db3ff87cb..afc3c63b0438 100644
---- a/drivers/staging/android/sw_sync.c
-+++ b/drivers/staging/android/sw_sync.c
-@@ -184,7 +184,7 @@ static long sw_sync_ioctl_create_fence(struct sw_sync_timeline *obj,
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 0f83166..a929bbd 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -201,6 +201,13 @@ struct gdi_tiled_map {
+ #define GDI_LINEAR_FRAME_MAP 0
+ };
+ 
++struct coda_timestamp {
++	struct list_head	list;
++	u32			sequence;
++	struct v4l2_timecode	timecode;
++	struct timeval		timestamp;
++};
++
+ struct coda_ctx {
+ 	struct coda_dev			*dev;
+ 	struct mutex			buffer_mutex;
+@@ -235,6 +242,8 @@ struct coda_ctx {
+ 	struct coda_aux_buf		slicebuf;
+ 	struct coda_aux_buf		internal_frames[CODA_MAX_FRAMEBUFFERS];
+ 	u32				frame_types[CODA_MAX_FRAMEBUFFERS];
++	struct coda_timestamp		frame_timestamps[CODA_MAX_FRAMEBUFFERS];
++	struct list_head		timestamp_list;
+ 	struct coda_aux_buf		workbuf;
+ 	int				num_internal_frames;
+ 	int				idx;
+@@ -1013,7 +1022,7 @@ static int coda_bitstream_queue(struct coda_ctx *ctx, struct vb2_buffer *src_buf
+ 	dma_sync_single_for_device(&ctx->dev->plat_dev->dev, ctx->bitstream.paddr,
+ 				   ctx->bitstream.size, DMA_TO_DEVICE);
+ 
+-	ctx->qsequence++;
++	src_buf->v4l2_buf.sequence = ctx->qsequence++;
+ 
+ 	return 0;
+ }
+@@ -1049,12 +1058,26 @@ static bool coda_bitstream_try_queue(struct coda_ctx *ctx,
+ static void coda_fill_bitstream(struct coda_ctx *ctx)
+ {
+ 	struct vb2_buffer *src_buf;
++	struct coda_timestamp *ts;
+ 
+ 	while (v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) > 0) {
+ 		src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+ 
+ 		if (coda_bitstream_try_queue(ctx, src_buf)) {
++			/*
++			 * Source buffer is queued in the bitstream ringbuffer;
++			 * queue the timestamp and mark source buffer as done
++			 */
+ 			src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
++
++			ts = kmalloc(sizeof(*ts), GFP_KERNEL);
++			if (ts) {
++				ts->sequence = src_buf->v4l2_buf.sequence;
++				ts->timecode = src_buf->v4l2_buf.timecode;
++				ts->timestamp = src_buf->v4l2_buf.timestamp;
++				list_add_tail(&ts->list, &ctx->timestamp_list);
++			}
++
+ 			v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
+ 		} else {
+ 			break;
+@@ -2599,6 +2622,14 @@ static void coda_stop_streaming(struct vb2_queue *q)
  	}
  
- 	data.name[sizeof(data.name) - 1] = '\0';
--	fence = sync_fence_create(data.name, pt);
-+	fence = sync_fence_create(data.name, &pt->base);
- 	if (fence == NULL) {
- 		sync_pt_free(pt);
- 		err = -ENOMEM;
-diff --git a/drivers/staging/android/sync.c b/drivers/staging/android/sync.c
-index 70b09b5001ba..c89a6f954e41 100644
---- a/drivers/staging/android/sync.c
-+++ b/drivers/staging/android/sync.c
-@@ -188,7 +188,7 @@ static void fence_check_cb_func(struct fence *f, struct fence_cb *cb)
- }
+ 	if (!ctx->streamon_out && !ctx->streamon_cap) {
++		struct coda_timestamp *ts;
++
++		while (!list_empty(&ctx->timestamp_list)) {
++			ts = list_first_entry(&ctx->timestamp_list,
++					      struct coda_timestamp, list);
++			list_del(&ts->list);
++			kfree(ts);
++		}
+ 		kfifo_init(&ctx->bitstream_fifo,
+ 			ctx->bitstream.vaddr, ctx->bitstream.size);
+ 		ctx->runcounter = 0;
+@@ -2886,6 +2917,7 @@ static int coda_open(struct file *file)
+ 		ctx->bitstream.vaddr, ctx->bitstream.size);
+ 	mutex_init(&ctx->bitstream_mutex);
+ 	mutex_init(&ctx->buffer_mutex);
++	INIT_LIST_HEAD(&ctx->timestamp_list);
  
- /* TODO: implement a create which takes more that one sync_pt */
--struct sync_fence *sync_fence_create(const char *name, struct sync_pt *pt)
-+struct sync_fence *sync_fence_create(const char *name, struct fence *pt)
- {
- 	struct sync_fence *fence;
+ 	coda_lock(ctx);
+ 	list_add(&ctx->list, &dev->instances);
+@@ -2977,6 +3009,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 	struct coda_q_data *q_data_src;
+ 	struct coda_q_data *q_data_dst;
+ 	struct vb2_buffer *dst_buf;
++	struct coda_timestamp *ts;
+ 	int width, height;
+ 	int decoded_idx;
+ 	int display_idx;
+@@ -3098,6 +3131,18 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 		v4l2_err(&dev->v4l2_dev,
+ 			 "decoded frame index out of range: %d\n", decoded_idx);
+ 	} else {
++		ts = list_first_entry(&ctx->timestamp_list,
++				      struct coda_timestamp, list);
++		list_del(&ts->list);
++		val = coda_read(dev, CODA_RET_DEC_PIC_FRAME_NUM) - 1;
++		if (val != ts->sequence) {
++			v4l2_err(&dev->v4l2_dev,
++				 "sequence number mismatch (%d != %d)\n",
++				 val, ts->sequence);
++		}
++		ctx->frame_timestamps[decoded_idx] = *ts;
++		kfree(ts);
++
+ 		val = coda_read(dev, CODA_RET_DEC_PIC_TYPE) & 0x7;
+ 		if (val == 0)
+ 			ctx->frame_types[decoded_idx] = V4L2_BUF_FLAG_KEYFRAME;
+@@ -3131,6 +3176,9 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 					     V4L2_BUF_FLAG_PFRAME |
+ 					     V4L2_BUF_FLAG_BFRAME);
+ 		dst_buf->v4l2_buf.flags |= ctx->frame_types[ctx->display_idx];
++		ts = &ctx->frame_timestamps[ctx->display_idx];
++		dst_buf->v4l2_buf.timecode = ts->timecode;
++		dst_buf->v4l2_buf.timestamp = ts->timestamp;
  
-@@ -199,10 +199,10 @@ struct sync_fence *sync_fence_create(const char *name, struct sync_pt *pt)
- 	fence->num_fences = 1;
- 	atomic_set(&fence->status, 1);
+ 		vb2_set_plane_payload(dst_buf, 0, width * height * 3 / 2);
  
--	fence_get(&pt->base);
--	fence->cbs[0].sync_pt = &pt->base;
-+	fence_get(pt);
-+	fence->cbs[0].sync_pt = pt;
- 	fence->cbs[0].fence = fence;
--	if (fence_add_callback(&pt->base, &fence->cbs[0].cb,
-+	if (fence_add_callback(pt, &fence->cbs[0].cb,
- 			       fence_check_cb_func))
- 		atomic_dec(&fence->status);
- 
-diff --git a/drivers/staging/android/sync.h b/drivers/staging/android/sync.h
-index 66b0f431f63e..3020751f3c5d 100644
---- a/drivers/staging/android/sync.h
-+++ b/drivers/staging/android/sync.h
-@@ -252,7 +252,7 @@ void sync_pt_free(struct sync_pt *pt);
-  * Creates a fence containg @pt.  Once this is called, the fence takes
-  * ownership of @pt.
-  */
--struct sync_fence *sync_fence_create(const char *name, struct sync_pt *pt);
-+struct sync_fence *sync_fence_create(const char *name, struct fence *fence);
- 
- /*
-  * API for sync_fence consumers
+-- 
+2.0.0
 
