@@ -1,134 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpfb2-g21.free.fr ([212.27.42.10]:33395 "EHLO
-	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754976AbaFPKLm (ORCPT
+Received: from mail-la0-f51.google.com ([209.85.215.51]:48722 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752281AbaFXVmq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 06:11:42 -0400
-Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
-	by smtpfb2-g21.free.fr (Postfix) with ESMTP id EAA58D1B258
-	for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 12:11:37 +0200 (CEST)
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	Denis Carikli <denis@eukrea.com>
-Subject: [PATCH v14 01/10] [media] v4l2: add new V4L2_PIX_FMT_RGB666 pixel format.
-Date: Mon, 16 Jun 2014 12:11:15 +0200
-Message-Id: <1402913484-25910-1-git-send-email-denis@eukrea.com>
+	Tue, 24 Jun 2014 17:42:46 -0400
+From: Emil Goode <emilgoode@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Jiri Kosina <jkosina@suse.cz>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org, Emil Goode <emilgoode@gmail.com>
+Subject: [PATCH 1/2] [media] Remove checks of struct member addresses
+Date: Tue, 24 Jun 2014 23:42:27 +0200
+Message-Id: <1403646148-25385-1-git-send-email-emilgoode@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That new macro is needed by the imx_drm staging driver
-  for supporting the QVGA display of the eukrea-cpuimx51 board.
+This removes checks of struct member addresses since they likely result
+in the condition always being true. Also in the stb6100_get_bandwidth
+and tda8261_get_bandwidth functions the pointers frontend_ops and
+tuner_ops are assigned the same addresses twice.
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
-Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Emil Goode <emilgoode@gmail.com>
 ---
-ChangeLog v13->v14:
-- None
-ChangeLog v10->v13:
-- No changes
-ChangeLog v9->v10:
-- Rebased on top of:
-  "211e7f2 [media] DocBook media: drop the old incorrect packed RGB table"
-- Added Philipp Zabel's Ack.
+ drivers/media/dvb-frontends/stb6100_cfg.h  |   30 +++++++-----------------
+ drivers/media/dvb-frontends/stb6100_proc.h |   34 ++++++++--------------------
+ drivers/media/dvb-frontends/stv0367.c      |    9 ++------
+ drivers/media/dvb-frontends/tda8261_cfg.h  |   21 ++++-------------
+ 4 files changed, 25 insertions(+), 69 deletions(-)
 
-ChangeLog v8->v9:
-- Removed the Cc. They are now set in git-send-email directly.
-
-ChangeLog v7->v8:
-- Added Mauro Carvalho Chehab back to the list of Cc
-
-ChangeLog v6->v7:
-- Shrinked even more the Cc list.
-ChangeLog v5->v6:
-- Remove people not concerned by this patch from the Cc list.
-
-ChangeLog v3->v4:
-- Added Laurent Pinchart's Ack.
-
-ChangeLog v2->v3:
-- Added some interested people in the Cc list.
-- Added Mauro Carvalho Chehab's Ack.
-- Added documentation.
----
- .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |   39 ++++++++++++++++++++
- include/uapi/linux/videodev2.h                     |    1 +
- 2 files changed, 40 insertions(+)
-
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-index e1c4f8b..88a7fe1 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-@@ -279,6 +279,45 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
- 	    <entry></entry>
- 	    <entry></entry>
- 	  </row>
-+	  <row id="V4L2-PIX-FMT-RGB666">
-+	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
-+	    <entry>'RGBH'</entry>
-+	    <entry></entry>
-+	    <entry>r<subscript>5</subscript></entry>
-+	    <entry>r<subscript>4</subscript></entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
-+	    <entry>g<subscript>5</subscript></entry>
-+	    <entry>g<subscript>4</subscript></entry>
-+	    <entry></entry>
-+	    <entry>g<subscript>3</subscript></entry>
-+	    <entry>g<subscript>2</subscript></entry>
-+	    <entry>g<subscript>1</subscript></entry>
-+	    <entry>g<subscript>0</subscript></entry>
-+	    <entry>b<subscript>5</subscript></entry>
-+	    <entry>b<subscript>4</subscript></entry>
-+	    <entry>b<subscript>3</subscript></entry>
-+	    <entry>b<subscript>2</subscript></entry>
-+	    <entry></entry>
-+	    <entry>b<subscript>1</subscript></entry>
-+	    <entry>b<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	  </row>
- 	  <row id="V4L2-PIX-FMT-BGR24">
- 	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
- 	    <entry>'BGR3'</entry>
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 168ff50..08cac01 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -299,6 +299,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
- #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16  RGB-5-6-5 BE  */
- #define V4L2_PIX_FMT_BGR666  v4l2_fourcc('B', 'G', 'R', 'H') /* 18  BGR-6-6-6	  */
-+#define V4L2_PIX_FMT_RGB666  v4l2_fourcc('R', 'G', 'B', 'H') /* 18  RGB-6-6-6	  */
- #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24  BGR-8-8-8     */
- #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B', '3') /* 24  RGB-8-8-8     */
- #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */
+diff --git a/drivers/media/dvb-frontends/stb6100_cfg.h b/drivers/media/dvb-frontends/stb6100_cfg.h
+index 6314d18..0e10ad89 100644
+--- a/drivers/media/dvb-frontends/stb6100_cfg.h
++++ b/drivers/media/dvb-frontends/stb6100_cfg.h
+@@ -21,15 +21,11 @@
+ 
+ static int stb6100_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ {
+-	struct dvb_frontend_ops	*frontend_ops = NULL;
+-	struct dvb_tuner_ops	*tuner_ops = NULL;
++	struct dvb_frontend_ops	*frontend_ops = &fe->ops;
++	struct dvb_tuner_ops	*tuner_ops = &frontend_ops->tuner_ops;
+ 	struct tuner_state	t_state;
+ 	int err = 0;
+ 
+-	if (&fe->ops)
+-		frontend_ops = &fe->ops;
+-	if (&frontend_ops->tuner_ops)
+-		tuner_ops = &frontend_ops->tuner_ops;
+ 	if (tuner_ops->get_state) {
+ 		if ((err = tuner_ops->get_state(fe, DVBFE_TUNER_FREQUENCY, &t_state)) < 0) {
+ 			printk("%s: Invalid parameter\n", __func__);
+@@ -42,16 +38,13 @@ static int stb6100_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 
+ static int stb6100_set_frequency(struct dvb_frontend *fe, u32 frequency)
+ {
+-	struct dvb_frontend_ops	*frontend_ops = NULL;
+-	struct dvb_tuner_ops	*tuner_ops = NULL;
++	struct dvb_frontend_ops	*frontend_ops = &fe->ops;
++	struct dvb_tuner_ops	*tuner_ops = &frontend_ops->tuner_ops;
+ 	struct tuner_state	t_state;
+ 	int err = 0;
+ 
+ 	t_state.frequency = frequency;
+-	if (&fe->ops)
+-		frontend_ops = &fe->ops;
+-	if (&frontend_ops->tuner_ops)
+-		tuner_ops = &frontend_ops->tuner_ops;
++
+ 	if (tuner_ops->set_state) {
+ 		if ((err = tuner_ops->set_state(fe, DVBFE_TUNER_FREQUENCY, &t_state)) < 0) {
+ 			printk("%s: Invalid parameter\n", __func__);
+@@ -68,10 +61,6 @@ static int stb6100_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
+ 	struct tuner_state	t_state;
+ 	int err = 0;
+ 
+-	if (&fe->ops)
+-		frontend_ops = &fe->ops;
+-	if (&frontend_ops->tuner_ops)
+-		tuner_ops = &frontend_ops->tuner_ops;
+ 	if (tuner_ops->get_state) {
+ 		if ((err = tuner_ops->get_state(fe, DVBFE_TUNER_BANDWIDTH, &t_state)) < 0) {
+ 			printk("%s: Invalid parameter\n", __func__);
+@@ -84,16 +73,13 @@ static int stb6100_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
+ 
+ static int stb6100_set_bandwidth(struct dvb_frontend *fe, u32 bandwidth)
+ {
+-	struct dvb_frontend_ops	*frontend_ops = NULL;
+-	struct dvb_tuner_ops	*tuner_ops = NULL;
++	struct dvb_frontend_ops	*frontend_ops = &fe->ops;
++	struct dvb_tuner_ops	*tuner_ops = &frontend_ops->tuner_ops;
+ 	struct tuner_state	t_state;
+ 	int err = 0;
+ 
+ 	t_state.bandwidth = bandwidth;
+-	if (&fe->ops)
+-		frontend_ops = &fe->ops;
+-	if (&frontend_ops->tuner_ops)
+-		tuner_ops = &frontend_ops->tuner_ops;
++
+ 	if (tuner_ops->set_state) {
+ 		if ((err = tuner_ops->set_state(fe, DVBFE_TUNER_BANDWIDTH, &t_state)) < 0) {
+ 			printk("%s: Invalid parameter\n", __func__);
+diff --git a/drivers/media/dvb-frontends/stb6100_proc.h b/drivers/media/dvb-frontends/stb6100_proc.h
+index 112163a..bd8a0ec 100644
+--- a/drivers/media/dvb-frontends/stb6100_proc.h
++++ b/drivers/media/dvb-frontends/stb6100_proc.h
+@@ -19,15 +19,11 @@
+ 
+ static int stb6100_get_freq(struct dvb_frontend *fe, u32 *frequency)
+ {
+-	struct dvb_frontend_ops	*frontend_ops = NULL;
+-	struct dvb_tuner_ops	*tuner_ops = NULL;
++	struct dvb_frontend_ops	*frontend_ops = &fe->ops;
++	struct dvb_tuner_ops	*tuner_ops = &frontend_ops->tuner_ops;
+ 	struct tuner_state	state;
+ 	int err = 0;
+ 
+-	if (&fe->ops)
+-		frontend_ops = &fe->ops;
+-	if (&frontend_ops->tuner_ops)
+-		tuner_ops = &frontend_ops->tuner_ops;
+ 	if (tuner_ops->get_state) {
+ 		if (frontend_ops->i2c_gate_ctrl)
+ 			frontend_ops->i2c_gate_ctrl(fe, 1);
+@@ -49,16 +45,13 @@ static int stb6100_get_freq(struct dvb_frontend *fe, u32 *frequency)
+ 
+ static int stb6100_set_freq(struct dvb_frontend *fe, u32 frequency)
+ {
+-	struct dvb_frontend_ops	*frontend_ops = NULL;
+-	struct dvb_tuner_ops	*tuner_ops = NULL;
++	struct dvb_frontend_ops	*frontend_ops = &fe->ops;
++	struct dvb_tuner_ops	*tuner_ops = &frontend_ops->tuner_ops;
+ 	struct tuner_state	state;
+ 	int err = 0;
+ 
+ 	state.frequency = frequency;
+-	if (&fe->ops)
+-		frontend_ops = &fe->ops;
+-	if (&frontend_ops->tuner_ops)
+-		tuner_ops = &frontend_ops->tuner_ops;
++
+ 	if (tuner_ops->set_state) {
+ 		if (frontend_ops->i2c_gate_ctrl)
+ 			frontend_ops->i2c_gate_ctrl(fe, 1);
+@@ -79,15 +72,11 @@ static int stb6100_set_freq(struct dvb_frontend *fe, u32 frequency)
+ 
+ static int stb6100_get_bandw(struct dvb_frontend *fe, u32 *bandwidth)
+ {
+-	struct dvb_frontend_ops	*frontend_ops = NULL;
+-	struct dvb_tuner_ops	*tuner_ops = NULL;
++	struct dvb_frontend_ops	*frontend_ops = &fe->ops;
++	struct dvb_tuner_ops	*tuner_ops = &frontend_ops->tuner_ops;
+ 	struct tuner_state	state;
+ 	int err = 0;
+ 
+-	if (&fe->ops)
+-		frontend_ops = &fe->ops;
+-	if (&frontend_ops->tuner_ops)
+-		tuner_ops = &frontend_ops->tuner_ops;
+ 	if (tuner_ops->get_state) {
+ 		if (frontend_ops->i2c_gate_ctrl)
+ 			frontend_ops->i2c_gate_ctrl(fe, 1);
+@@ -109,16 +98,13 @@ static int stb6100_get_bandw(struct dvb_frontend *fe, u32 *bandwidth)
+ 
+ static int stb6100_set_bandw(struct dvb_frontend *fe, u32 bandwidth)
+ {
+-	struct dvb_frontend_ops	*frontend_ops = NULL;
+-	struct dvb_tuner_ops	*tuner_ops = NULL;
++	struct dvb_frontend_ops	*frontend_ops = &fe->ops;
++	struct dvb_tuner_ops	*tuner_ops = &frontend_ops->tuner_ops;
+ 	struct tuner_state	state;
+ 	int err = 0;
+ 
+ 	state.bandwidth = bandwidth;
+-	if (&fe->ops)
+-		frontend_ops = &fe->ops;
+-	if (&frontend_ops->tuner_ops)
+-		tuner_ops = &frontend_ops->tuner_ops;
++
+ 	if (tuner_ops->set_state) {
+ 		if (frontend_ops->i2c_gate_ctrl)
+ 			frontend_ops->i2c_gate_ctrl(fe, 1);
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index 4587727..59b6e66 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -922,18 +922,13 @@ static int stv0367ter_gate_ctrl(struct dvb_frontend *fe, int enable)
+ 
+ static u32 stv0367_get_tuner_freq(struct dvb_frontend *fe)
+ {
+-	struct dvb_frontend_ops	*frontend_ops = NULL;
+-	struct dvb_tuner_ops	*tuner_ops = NULL;
++	struct dvb_frontend_ops	*frontend_ops = &fe->ops;
++	struct dvb_tuner_ops	*tuner_ops = &frontend_ops->tuner_ops;
+ 	u32 freq = 0;
+ 	int err = 0;
+ 
+ 	dprintk("%s:\n", __func__);
+ 
+-
+-	if (&fe->ops)
+-		frontend_ops = &fe->ops;
+-	if (&frontend_ops->tuner_ops)
+-		tuner_ops = &frontend_ops->tuner_ops;
+ 	if (tuner_ops->get_frequency) {
+ 		err = tuner_ops->get_frequency(fe, &freq);
+ 		if (err < 0) {
+diff --git a/drivers/media/dvb-frontends/tda8261_cfg.h b/drivers/media/dvb-frontends/tda8261_cfg.h
+index 4671074..7de65c3 100644
+--- a/drivers/media/dvb-frontends/tda8261_cfg.h
++++ b/drivers/media/dvb-frontends/tda8261_cfg.h
+@@ -19,15 +19,11 @@
+ 
+ static int tda8261_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ {
+-	struct dvb_frontend_ops	*frontend_ops = NULL;
+-	struct dvb_tuner_ops	*tuner_ops = NULL;
++	struct dvb_frontend_ops	*frontend_ops = &fe->ops;
++	struct dvb_tuner_ops	*tuner_ops = &frontend_ops->tuner_ops;
+ 	struct tuner_state	t_state;
+ 	int err = 0;
+ 
+-	if (&fe->ops)
+-		frontend_ops = &fe->ops;
+-	if (&frontend_ops->tuner_ops)
+-		tuner_ops = &frontend_ops->tuner_ops;
+ 	if (tuner_ops->get_state) {
+ 		if ((err = tuner_ops->get_state(fe, DVBFE_TUNER_FREQUENCY, &t_state)) < 0) {
+ 			printk("%s: Invalid parameter\n", __func__);
+@@ -41,16 +37,13 @@ static int tda8261_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 
+ static int tda8261_set_frequency(struct dvb_frontend *fe, u32 frequency)
+ {
+-	struct dvb_frontend_ops	*frontend_ops = NULL;
+-	struct dvb_tuner_ops	*tuner_ops = NULL;
++	struct dvb_frontend_ops	*frontend_ops = &fe->ops;
++	struct dvb_tuner_ops	*tuner_ops = &frontend_ops->tuner_ops;
+ 	struct tuner_state	t_state;
+ 	int err = 0;
+ 
+ 	t_state.frequency = frequency;
+-	if (&fe->ops)
+-		frontend_ops = &fe->ops;
+-	if (&frontend_ops->tuner_ops)
+-		tuner_ops = &frontend_ops->tuner_ops;
++
+ 	if (tuner_ops->set_state) {
+ 		if ((err = tuner_ops->set_state(fe, DVBFE_TUNER_FREQUENCY, &t_state)) < 0) {
+ 			printk("%s: Invalid parameter\n", __func__);
+@@ -68,10 +61,6 @@ static int tda8261_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
+ 	struct tuner_state	t_state;
+ 	int err = 0;
+ 
+-	if (&fe->ops)
+-		frontend_ops = &fe->ops;
+-	if (&frontend_ops->tuner_ops)
+-		tuner_ops = &frontend_ops->tuner_ops;
+ 	if (tuner_ops->get_state) {
+ 		if ((err = tuner_ops->get_state(fe, DVBFE_TUNER_BANDWIDTH, &t_state)) < 0) {
+ 			printk("%s: Invalid parameter\n", __func__);
 -- 
-1.7.9.5
+1.7.10.4
 
