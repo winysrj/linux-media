@@ -1,31 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53716 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755968AbaFLQJx (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57626 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752899AbaFXO40 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 12:09:53 -0400
-Received: from valkosipuli.retiisi.org.uk (vihersipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::84:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id E624A60093
-	for <linux-media@vger.kernel.org>; Thu, 12 Jun 2014 19:09:50 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Tue, 24 Jun 2014 10:56:26 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 0/5] v4l: ctrls: Unlocked variants of (some) functions for driver's internal use
-Date: Thu, 12 Jun 2014 19:09:38 +0300
-Message-Id: <1402589383-28165-1-git-send-email-sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 14/29] [media] coda: select GENERIC_ALLOCATOR
+Date: Tue, 24 Jun 2014 16:55:56 +0200
+Message-Id: <1403621771-11636-15-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The driver uses the genalloc API, which doesn't have stubs in
+case GENERIC_ALLOCATOR is disabled.
 
-This patchset adds unlocked variants of control framework functions to
-set controls and modify their range. As in many cases the driver internal
-data structures are protected using the same lock the control handler uses,
-thus either forcing to poke the control framework data structures directly
-or releasing the lock which leads to serialisation issues.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-Also use the new unlocked variants in the smiapp driver.
-
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 8108c69..a204e8d 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -142,6 +142,7 @@ config VIDEO_CODA
+ 	select SRAM
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
++	select GENERIC_ALLOCATOR
+ 	---help---
+ 	   Coda is a range of video codec IPs that supports
+ 	   H.264, MPEG-4, and other video formats.
 -- 
-Kind regards,
-Sakari
+2.0.0
 
