@@ -1,41 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 216-82-208-22.static.grandenetworks.net ([216.82.208.22]:48277
-	"EHLO mx1.mthode.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934247AbaFTPc7 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57690 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753926AbaFXO4a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jun 2014 11:32:59 -0400
-Received: from [10.6.185.150] (unknown [10.0.3.43])
-	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mx1.mthode.org (Postfix) with ESMTPSA id 8BB5D1807F
-	for <linux-media@vger.kernel.org>; Fri, 20 Jun 2014 11:32:56 -0400 (EDT)
-In-Reply-To: <CALzAhNUb_J+tcqaaRLm_x=pAVDNWZp6EFuPBGKiS4VMiVtRwag@mail.gmail.com>
-References: <53A3CB23.2000209@gentoo.org> <CALzAhNUb_J+tcqaaRLm_x=pAVDNWZp6EFuPBGKiS4VMiVtRwag@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain;
- charset=UTF-8
-Subject: Re: pvrusb2 has a new device (wintv-hvr-1955)
-From: Matthew Thode <prometheanfire@gentoo.org>
-Date: Fri, 20 Jun 2014 10:31:36 -0500
-To: Linux-Media <linux-media@vger.kernel.org>
-Message-ID: <08c06a97-d24b-4eeb-9c3e-d7a923ec1ea1@email.android.com>
+	Tue, 24 Jun 2014 10:56:30 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 26/29] [media] coda: allow odd width, but still round up bytesperline
+Date: Tue, 24 Jun 2014 16:56:08 +0200
+Message-Id: <1403621771-11636-27-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On June 20, 2014 7:29:42 AM CDT, Steven Toth <stoth@kernellabs.com> wrote:
->On Fri, Jun 20, 2014 at 1:48 AM, Matthew Thode
-><prometheanfire@gentoo.org> wrote:
->> Just bought a wintv-hvr-1955 (sold as a wintv-hvr-1950)
->> 160111 LF
->> Rev B1|7
->
->Talk to Hauppauge, they've already announced that they have a working
->Linux driver.
+Even though the CODA h.264 decoder always decodes complete macroblocks, we can
+set the stride to the corresponding multiple of 16 and use a value smaller than
+that as real width. Unfortunately the same doesn't work for height, as there
+is no vertical linesperframe stride for discontiguous planar YUV frames.
 
-I talked to them and they did say that the driver hasn't been upstreamed, also gave me some hardware info.  They wouldn't give me a driver/firmware that worked though and offered to RMA for an older device.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-The demodulator is a Si2177, can't find anything about it in the kernel though.
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 5c00d6e..cc41ab3 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -740,9 +740,9 @@ static int coda_try_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	/* The h.264 decoder only returns complete 16x16 macroblocks */
+ 	if (codec && codec->src_fourcc == V4L2_PIX_FMT_H264) {
+-		f->fmt.pix.width = round_up(f->fmt.pix.width, 16);
++		f->fmt.pix.width = f->fmt.pix.width;
+ 		f->fmt.pix.height = round_up(f->fmt.pix.height, 16);
+-		f->fmt.pix.bytesperline = f->fmt.pix.width;
++		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 16);
+ 		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
+ 				       f->fmt.pix.height * 3 / 2;
+ 	}
+-- 
+2.0.0
 
-They also mentioned a LG3306a, wasn't able to find anything on it (might have misheard a character).
--- Matthew Thode (prometheanfire)
