@@ -1,75 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55773 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753228AbaFMWlo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jun 2014 18:41:44 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ig0-f194.google.com ([209.85.213.194]:51716 "EHLO
+	mail-ig0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751014AbaFXDNB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jun 2014 23:13:01 -0400
+Received: by mail-ig0-f194.google.com with SMTP id c1so1111942igq.1
+        for <linux-media@vger.kernel.org>; Mon, 23 Jun 2014 20:13:00 -0700 (PDT)
+MIME-Version: 1.0
+Date: Tue, 24 Jun 2014 00:13:00 -0300
+Message-ID: <CAFpGhnP5LY5eOYGB9M3fsWBvXPY2XWj0pfcQy7hiUQYZZ09A1g@mail.gmail.com>
+Subject: TV/RADIO tuner card
+From: =?UTF-8?Q?Ariel_Arg=C3=BCello?= <arieleoar@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 3/3] si2168: firmware download fix
-Date: Sat, 14 Jun 2014 01:41:27 +0300
-Message-Id: <1402699287-21615-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1402699287-21615-1-git-send-email-crope@iki.fi>
-References: <1402699287-21615-1-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-First 8 bytes belonging to firmware image were hard-coded and uploaded
-by the driver mistakenly. Introduce new corrected firmware file and
-remove those 8 bytes from the driver.
+Hi, I request support for the number board of my SAA7130 (philips
+semiconductor chipset) with fmradio card because it isn't listed in
+the v4l2 driver list of Saa7134 module. The Tuner card is Winstars
+WS-TVP7130FM.
 
-New firmware image could be extracted from the PCTV 292e driver CD
-using following command:
+the output of dmesg command is:
 
-$ dd if=/TVC 6.4.8/Driver/PCTV Empia/emOEM.sys ibs=1 skip=1089408 count=2728 of=dvb-demod-si2168-02.fw
-$ md5sum dvb-demod-si2168-02.fw
-d8da7ff67cd56cd8aa4e101aea45e052  dvb-demod-si2168-02.fw
-$ sudo cp dvb-demod-si2168-02.fw /lib/firmware/
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c      | 14 --------------
- drivers/media/dvb-frontends/si2168_priv.h |  2 +-
- 2 files changed, 1 insertion(+), 15 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index f205736..2e3cdcf 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -485,20 +485,6 @@ static int si2168_init(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	cmd.args[0] = 0x05;
--	cmd.args[1] = 0x00;
--	cmd.args[2] = 0xaa;
--	cmd.args[3] = 0x4d;
--	cmd.args[4] = 0x56;
--	cmd.args[5] = 0x40;
--	cmd.args[6] = 0x00;
--	cmd.args[7] = 0x00;
--	cmd.wlen = 8;
--	cmd.rlen = 1;
--	ret = si2168_cmd_execute(s, &cmd);
--	if (ret)
--		goto err;
--
- 	/* cold state - try to download firmware */
- 	dev_info(&s->client->dev, "%s: found a '%s' in cold state\n",
- 			KBUILD_MODNAME, si2168_ops.info.name);
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index 2a343e8..53f7f06 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -22,7 +22,7 @@
- #include <linux/firmware.h>
- #include <linux/i2c-mux.h>
- 
--#define SI2168_FIRMWARE "dvb-demod-si2168-01.fw"
-+#define SI2168_FIRMWARE "dvb-demod-si2168-02.fw"
- 
- /* state struct */
- struct si2168 {
--- 
-1.9.3
-
+[   20.072044] saa7130/34: v4l2 driver version 0, 2, 17 loaded
+[   20.072349] saa7130[0]: found at 0000:02:02.0, rev: 1, irq: 23,
+latency: 32, mmio: 0xf7effc00
+[   20.072362] saa7134: Board is currently unknown. You might try to
+use the card=<nr>
+[   20.072362] saa7134: insmod option to specify which board do you
+have, but this is
+[   20.072362] saa7134: somewhat risky, as might damage your card. It
+is better to ask
+[   20.072362] saa7134: for support at linux-media@vger.kernel.org.
