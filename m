@@ -1,123 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:52252 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751223AbaF3O4j (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57691 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753998AbaFXO4a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jun 2014 10:56:39 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N7Z00BQCLID3N80@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 30 Jun 2014 10:56:37 -0400 (EDT)
-Date: Mon, 30 Jun 2014 11:56:33 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Vincent McIntyre <vincent.mcintyre@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: regression: (repost) firmware loading for dvico dual digital 4
-Message-id: <20140630115633.6c5b5d95.m.chehab@samsung.com>
-In-reply-to: <CAEsFdVOLAE+VzZ0pQv33Ga-vEN4D3=0ktcFjn4ejZ1rR=nww7w@mail.gmail.com>
-References: <CAEsFdVOLAE+VzZ0pQv33Ga-vEN4D3=0ktcFjn4ejZ1rR=nww7w@mail.gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Tue, 24 Jun 2014 10:56:30 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 27/29] [media] coda: round up internal frames to multiples of macroblock size for h.264
+Date: Tue, 24 Jun 2014 16:56:09 +0200
+Message-Id: <1403621771-11636-28-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 30 Jun 2014 23:19:46 +1000
-Vincent McIntyre <vincent.mcintyre@gmail.com> escreveu:
+CODA7541 only supports encoding h.264 frames with width and height that are
+multiples of the macroblock size.
 
-> Hi,
-> 
-> I am reposting this since it got ignored/missed last time around...
-> 
-> On 5/14/14, Vincent McIntyre <vincent.mcintyre@gmail.com> wrote:
-> > Hi,
-> >
-> > Antti asked me to report this.
-> >
-> > I built the latest media_build git on Ubuntu 12.04, with 3.8.0 kernel,
-> > using './build --main-git'.
-> > The attached tarball has the relvant info.
-> >
-> > Without the media_build modules, firmware loads fine (file dmesg.1)
-> > Once I build and install the media_build modules, the firmware no
-> > longer loads. (dmesg.2)
-> >
-> > The firmware loading issue appears to have been reported to ubuntu (a
-> > later kernel, 3.11)  with a possible fix proposed, see
-> > https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1291459
-> >
-> > I can post lspci etc details if people want.
-> >
-> 
-> An updated version of the tar file is attached.
-> 
-> dmesg.1 is from 3.8.0-38 plus media-build modules and shows the
-> firmware loading issue.
-> The media-build HEAD revision was
->   commit e4a8d40f63afa8b0276ea7758d9b4d32e64a964d
->   Author: Hans Verkuil <hans.verkuil@cisco.com>
->   Date:   Wed Jun 18 10:27:51 2014 +0200
-> 
-> dmesg.2 is from 3.8.0-42 with the ubuntu-provided modules and does not
-> show the issue.
-> 
-> The issue occurs in later ubuntu kernels, 3.11 as noted previously
-> and 3.13.0-30.
-> 
-> The OS is ubuntu 12.04 LTS, amd64.
-> 
-> I looked into bisecting this but could not figure out a procedure
-> since the 'build' script tries really hard to use the latest
-> media-build and kernel sources. It looks like one has to run the
-> media-build 'make' against a checkout of the vanilla kernel that
-> roughly corresponds in time (or at least is not from a time later than
-> the current media-build revision that is checked out).
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 25 ++++++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
-> 
-> 
-> Please respond this time
-
-Next time, please add the logs directly at the email, as this makes
-clearer about what's the problem and what driver has the issues.
-
-Anyway, based on this:
-
-[   16.332247] xc2028 0-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
-[   16.344378] cxusb: i2c wr: len=64 is too big!
-
-I suspect that the enclosed patch should fix your issue. Please test. If it
-works, please reply to this email with:
-	Tested-by: your name <your@email>
-
-Cheers,
-Mauro
-
--
-
-cxusb: increase buffer lenght to 80 bytes
-
-As reported by Vincent:
-	[   16.332247] xc2028 0-0061: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
-	[   16.344378] cxusb: i2c wr: len=64 is too big!
-
-64 bytes is too short for firmware load on this device. So, increase it
-to 80 bytes.
-
-Reported-by: Vincent McIntyre <vincent.mcintyre@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-
-diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-index 6acde5ee4324..a22726ccca64 100644
---- a/drivers/media/usb/dvb-usb/cxusb.c
-+++ b/drivers/media/usb/dvb-usb/cxusb.c
-@@ -44,7 +44,7 @@
- #include "atbm8830.h"
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index cc41ab3..9796bfd 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -1746,15 +1746,21 @@ static void coda_free_framebuffers(struct coda_ctx *ctx)
+ static int coda_alloc_framebuffers(struct coda_ctx *ctx, struct coda_q_data *q_data, u32 fourcc)
+ {
+ 	struct coda_dev *dev = ctx->dev;
+-	int height = q_data->height;
++	int width, height;
+ 	dma_addr_t paddr;
+ 	int ysize;
+ 	int ret;
+ 	int i;
  
- /* Max transfer size done by I2C transfer functions */
--#define MAX_XFER_SIZE  64
-+#define MAX_XFER_SIZE  80
+-	if (ctx->codec && ctx->codec->src_fourcc == V4L2_PIX_FMT_H264)
+-		height = round_up(height, 16);
+-	ysize = round_up(q_data->width, 8) * height;
++	if (ctx->codec && (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264 ||
++	     ctx->codec->dst_fourcc == V4L2_PIX_FMT_H264)) {
++		width = round_up(q_data->width, 16);
++		height = round_up(q_data->height, 16);
++	} else {
++		width = round_up(q_data->width, 8);
++		height = q_data->height;
++	}
++	ysize = width * height;
  
- /* debug */
- static int dvb_usb_cxusb_debug;
+ 	/* Allocate frame buffers */
+ 	for (i = 0; i < ctx->num_internal_frames; i++) {
+@@ -2377,7 +2383,16 @@ static int coda_start_encoding(struct coda_ctx *ctx)
+ 		value = (q_data_src->width & CODADX6_PICWIDTH_MASK) << CODADX6_PICWIDTH_OFFSET;
+ 		value |= (q_data_src->height & CODADX6_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
+ 		break;
+-	default:
++	case CODA_7541:
++		if (dst_fourcc == V4L2_PIX_FMT_H264) {
++			value = (round_up(q_data_src->width, 16) &
++				 CODA7_PICWIDTH_MASK) << CODA7_PICWIDTH_OFFSET;
++			value |= (round_up(q_data_src->height, 16) &
++				  CODA7_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
++			break;
++		}
++		/* fallthrough */
++	case CODA_960:
+ 		value = (q_data_src->width & CODA7_PICWIDTH_MASK) << CODA7_PICWIDTH_OFFSET;
+ 		value |= (q_data_src->height & CODA7_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
+ 	}
+-- 
+2.0.0
 
