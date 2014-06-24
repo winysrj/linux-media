@@ -1,170 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpfb1-g21.free.fr ([212.27.42.9]:47731 "EHLO
-	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755060AbaFPKMh (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57595 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752643AbaFXO4Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jun 2014 06:12:37 -0400
-Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
-	by smtpfb1-g21.free.fr (Postfix) with ESMTP id 68E892CB9F
-	for <linux-media@vger.kernel.org>; Mon, 16 Jun 2014 12:12:34 +0200 (CEST)
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	Denis Carikli <denis@eukrea.com>
-Subject: [PATCH v14 05/10] ARM: dts: imx5*, imx6*: correct display-timings nodes.
-Date: Mon, 16 Jun 2014 12:11:19 +0200
-Message-Id: <1402913484-25910-5-git-send-email-denis@eukrea.com>
-In-Reply-To: <1402913484-25910-1-git-send-email-denis@eukrea.com>
-References: <1402913484-25910-1-git-send-email-denis@eukrea.com>
+	Tue, 24 Jun 2014 10:56:24 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 08/29] [media] coda: add selection API support for h.264 decoder
+Date: Tue, 24 Jun 2014 16:55:50 +0200
+Message-Id: <1403621771-11636-9-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The imx-drm driver can't use the de-active and
-pixelclk-active display-timings properties yet.
+The h.264 decoder produces capture frames that are a multiple of the macroblock
+size (16 pixels). To inform userspace about invalid pixel data at the edges,
+use the active and padded composing rectangles on the capture queue.
+The cropping information is obtained from the h.264 sequence parameter set.
 
-Instead the data-enable and the pixel data clock
-polarity are hardcoded in the imx-drm driver.
-
-So theses properties are now set to keep
-the same behaviour when imx-drm will start
-using them.
-
-Signed-off-by: Denis Carikli <denis@eukrea.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
-ChangeLog v13->v14:
-- None
-ChangeLog v10->v11:
-- imx53-tx53-x03x.dts change was removed because it 
-  already had the correct setting.
-ChangeLog v9->v10:
-- New patch that was splitted out of:
-  "staging imx-drm: Use de-active and pixelclk-active
-  display-timings."
+Changes since v1:
+ - Rewrote g_selection to only allow CROP target on OUTPUT and
+   COMPOSE target on CAPTURE buffers.
 ---
- arch/arm/boot/dts/imx51-babbage.dts       |    2 ++
- arch/arm/boot/dts/imx53-m53evk.dts        |    2 ++
- arch/arm/boot/dts/imx6qdl-gw53xx.dtsi     |    2 ++
- arch/arm/boot/dts/imx6qdl-gw54xx.dtsi     |    2 ++
- arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi |    2 ++
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi  |    2 ++
- arch/arm/boot/dts/imx6qdl-sabrelite.dtsi  |    2 ++
- arch/arm/boot/dts/imx6qdl-sabresd.dtsi    |    2 ++
- 8 files changed, 16 insertions(+)
+ drivers/media/platform/coda.c | 94 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 94 insertions(+)
 
-diff --git a/arch/arm/boot/dts/imx51-babbage.dts b/arch/arm/boot/dts/imx51-babbage.dts
-index ee51a10..b64a9e3 100644
---- a/arch/arm/boot/dts/imx51-babbage.dts
-+++ b/arch/arm/boot/dts/imx51-babbage.dts
-@@ -56,6 +56,8 @@
- 				vfront-porch = <7>;
- 				hsync-len = <60>;
- 				vsync-len = <10>;
-+				de-active = <1>;
-+				pixelclk-active = <0>;
- 			};
- 		};
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index f00b2aa..965b0d9 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -119,6 +119,7 @@ struct coda_q_data {
+ 	unsigned int		height;
+ 	unsigned int		sizeimage;
+ 	unsigned int		fourcc;
++	struct v4l2_rect	rect;
+ };
  
-diff --git a/arch/arm/boot/dts/imx53-m53evk.dts b/arch/arm/boot/dts/imx53-m53evk.dts
-index 4b036b4..d03ced7 100644
---- a/arch/arm/boot/dts/imx53-m53evk.dts
-+++ b/arch/arm/boot/dts/imx53-m53evk.dts
-@@ -41,6 +41,8 @@
- 					vfront-porch = <9>;
- 					vsync-len = <3>;
- 					vsync-active = <1>;
-+					de-active = <1>;
-+					pixelclk-active = <0>;
- 				};
- 			};
- 		};
-diff --git a/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
-index d3125f0..7f993d6 100644
---- a/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
-@@ -512,6 +512,8 @@
- 				vfront-porch = <7>;
- 				hsync-len = <60>;
- 				vsync-len = <10>;
-+				de-active = <1>;
-+				pixelclk-active = <0>;
- 			};
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
-index 532347f..e06cf9e 100644
---- a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
-@@ -534,6 +534,8 @@
- 				vfront-porch = <7>;
- 				hsync-len = <60>;
- 				vsync-len = <10>;
-+				de-active = <1>;
-+				pixelclk-active = <0>;
- 			};
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi b/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
-index 4c4b175..bcf5178 100644
---- a/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
-@@ -353,6 +353,8 @@
- 				vfront-porch = <7>;
- 				hsync-len = <60>;
- 				vsync-len = <10>;
-+				de-active = <1>;
-+				pixelclk-active = <0>;
- 			};
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-index 009abd6..230bbc6 100644
---- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-@@ -405,6 +405,8 @@
- 				vfront-porch = <7>;
- 				hsync-len = <60>;
- 				vsync-len = <10>;
-+				de-active = <1>;
-+				pixelclk-active = <0>;
- 			};
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
-index 6df6127..9f6b406 100644
---- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
-@@ -353,6 +353,8 @@
- 				vfront-porch = <7>;
- 				hsync-len = <60>;
- 				vsync-len = <10>;
-+				de-active = <1>;
-+				pixelclk-active = <0>;
- 			};
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
-index e446192..3297779 100644
---- a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
-@@ -494,6 +494,8 @@
- 				vfront-porch = <7>;
- 				hsync-len = <60>;
- 				vsync-len = <10>;
-+				de-active = <1>;
-+				pixelclk-active = <0>;
- 			};
- 		};
- 	};
+ struct coda_aux_buf {
+@@ -735,6 +736,10 @@ static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
+ 	q_data->width = f->fmt.pix.width;
+ 	q_data->height = f->fmt.pix.height;
+ 	q_data->sizeimage = f->fmt.pix.sizeimage;
++	q_data->rect.left = 0;
++	q_data->rect.top = 0;
++	q_data->rect.width = f->fmt.pix.width;
++	q_data->rect.height = f->fmt.pix.height;
+ 
+ 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+ 		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
+@@ -871,6 +876,50 @@ static int coda_streamoff(struct file *file, void *priv,
+ 	return ret;
+ }
+ 
++static int coda_g_selection(struct file *file, void *fh,
++			    struct v4l2_selection *s)
++{
++	struct coda_ctx *ctx = fh_to_ctx(fh);
++	struct coda_q_data *q_data;
++	struct v4l2_rect r, *rsel;
++
++	q_data = get_q_data(ctx, s->type);
++	if (!q_data)
++		return -EINVAL;
++
++	r.left = 0;
++	r.top = 0;
++	r.width = q_data->width;
++	r.height = q_data->height;
++	rsel = &q_data->rect;
++
++	switch (s->target) {
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++		rsel = &r;
++		/* fallthrough */
++	case V4L2_SEL_TGT_CROP:
++		if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++			return -EINVAL;
++		break;
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
++	case V4L2_SEL_TGT_COMPOSE_PADDED:
++		rsel = &r;
++		/* fallthrough */
++	case V4L2_SEL_TGT_COMPOSE:
++	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
++		if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++			return -EINVAL;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	s->r = *rsel;
++
++	return 0;
++}
++
+ static int coda_try_decoder_cmd(struct file *file, void *fh,
+ 				struct v4l2_decoder_cmd *dc)
+ {
+@@ -949,6 +998,8 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
+ 	.vidioc_streamon	= coda_streamon,
+ 	.vidioc_streamoff	= coda_streamoff,
+ 
++	.vidioc_g_selection	= coda_g_selection,
++
+ 	.vidioc_try_decoder_cmd	= coda_try_decoder_cmd,
+ 	.vidioc_decoder_cmd	= coda_decoder_cmd,
+ 
+@@ -1504,6 +1555,10 @@ static void set_default_params(struct coda_ctx *ctx)
+ 	ctx->q_data[V4L2_M2M_DST].width = max_w;
+ 	ctx->q_data[V4L2_M2M_DST].height = max_h;
+ 	ctx->q_data[V4L2_M2M_DST].sizeimage = CODA_MAX_FRAME_SIZE;
++	ctx->q_data[V4L2_M2M_SRC].rect.width = max_w;
++	ctx->q_data[V4L2_M2M_SRC].rect.height = max_h;
++	ctx->q_data[V4L2_M2M_DST].rect.width = max_w;
++	ctx->q_data[V4L2_M2M_DST].rect.height = max_h;
+ 
+ 	if (ctx->dev->devtype->product == CODA_960)
+ 		coda_set_tiled_map_type(ctx, GDI_LINEAR_FRAME_MAP);
+@@ -2031,6 +2086,21 @@ static int coda_start_decoding(struct coda_ctx *ctx)
+ 		return -EINVAL;
+ 	}
+ 
++	if (src_fourcc == V4L2_PIX_FMT_H264) {
++		u32 left_right;
++		u32 top_bottom;
++
++		left_right = coda_read(dev, CODA_RET_DEC_SEQ_CROP_LEFT_RIGHT);
++		top_bottom = coda_read(dev, CODA_RET_DEC_SEQ_CROP_TOP_BOTTOM);
++
++		q_data_dst->rect.left = (left_right >> 10) & 0x3ff;
++		q_data_dst->rect.top = (top_bottom >> 10) & 0x3ff;
++		q_data_dst->rect.width = width - q_data_dst->rect.left -
++					 (left_right & 0x3ff);
++		q_data_dst->rect.height = height - q_data_dst->rect.top -
++					  (top_bottom & 0x3ff);
++	}
++
+ 	ret = coda_alloc_framebuffers(ctx, q_data_dst, src_fourcc);
+ 	if (ret < 0)
+ 		return ret;
+@@ -2937,6 +3007,30 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 
+ 	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+ 
++	/* frame crop information */
++	if (src_fourcc == V4L2_PIX_FMT_H264) {
++		u32 left_right;
++		u32 top_bottom;
++
++		left_right = coda_read(dev, CODA_RET_DEC_PIC_CROP_LEFT_RIGHT);
++		top_bottom = coda_read(dev, CODA_RET_DEC_PIC_CROP_TOP_BOTTOM);
++
++		if (left_right == 0xffffffff && top_bottom == 0xffffffff) {
++			/* Keep current crop information */
++		} else {
++			struct v4l2_rect *rect = &q_data_dst->rect;
++
++			rect->left = left_right >> 16 & 0xffff;
++			rect->top = top_bottom >> 16 & 0xffff;
++			rect->width = width - rect->left -
++				      (left_right & 0xffff);
++			rect->height = height - rect->top -
++				       (top_bottom & 0xffff);
++		}
++	} else {
++		/* no cropping */
++	}
++
+ 	val = coda_read(dev, CODA_RET_DEC_PIC_ERR_MB);
+ 	if (val > 0)
+ 		v4l2_err(&dev->v4l2_dev,
 -- 
-1.7.9.5
+2.0.0
 
