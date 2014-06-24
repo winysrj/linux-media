@@ -1,117 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29277 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751611AbaFIPHK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Jun 2014 11:07:10 -0400
-Message-ID: <5395CD99.3010509@redhat.com>
-Date: Mon, 09 Jun 2014 17:07:05 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Thiago Santos <ts.santos@sisa.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH/RFC v2 2/2] libv4l2: release the lock before doing a DQBUF
-References: <1402321916-22111-1-git-send-email-ts.santos@sisa.samsung.com> <1402321916-22111-3-git-send-email-ts.santos@sisa.samsung.com>
-In-Reply-To: <1402321916-22111-3-git-send-email-ts.santos@sisa.samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4947 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751014AbaFXCpi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jun 2014 22:45:38 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5O2jZII086110
+	for <linux-media@vger.kernel.org>; Tue, 24 Jun 2014 04:45:37 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 7EEAA2A1FCD
+	for <linux-media@vger.kernel.org>; Tue, 24 Jun 2014 04:45:33 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140624024533.7EEAA2A1FCD@tschai.lan>
+Date: Tue, 24 Jun 2014 04:45:33 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 06/09/2014 03:51 PM, Thiago Santos wrote:
-> In blocking mode, if there are no buffers available the DQBUF will block
-> waiting for a QBUF to be called but it will block holding the streaming
-> lock which will prevent any QBUF from happening, causing a deadlock.
-> 
-> Can be tested with: v4l2grab -t -b -s 2000
-> 
-> Signed-off-by: Thiago Santos <ts.santos@sisa.samsung.com>
+Results of the daily build of media_tree:
 
-Looks good now:
+date:		Tue Jun 24 04:00:24 CEST 2014
+git branch:	test
+git hash:	1fe3a8fe494463cfe2556a25ae41a1499725c178
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-14-gf11dd94
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
-Acked-by: Hans de Goede <hdegoede@redhat.com>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-i686: OK
+linux-3.16-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-x86_64: OK
+linux-3.16-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-I'll leave reviewing the 1st patch to someone else. Gregor and/or
-Mauro feel free to push this one.
+Detailed results are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Hans
+Full logs are available here:
 
-> ---
->  lib/libv4l2/libv4l2-priv.h |  1 +
->  lib/libv4l2/libv4l2.c      | 13 ++++++++++++-
->  2 files changed, 13 insertions(+), 1 deletion(-)
-> 
-> diff --git a/lib/libv4l2/libv4l2-priv.h b/lib/libv4l2/libv4l2-priv.h
-> index 585273c..ff4c8d2 100644
-> --- a/lib/libv4l2/libv4l2-priv.h
-> +++ b/lib/libv4l2/libv4l2-priv.h
-> @@ -92,6 +92,7 @@ struct v4l2_dev_info {
->  	unsigned char *frame_pointers[V4L2_MAX_NO_FRAMES];
->  	int frame_sizes[V4L2_MAX_NO_FRAMES];
->  	int frame_queued; /* 1 status bit per frame */
-> +	int frame_info_generation;
->  	/* mapping tracking of our fake (converting mmap) frame buffers */
->  	unsigned char frame_map_count[V4L2_MAX_NO_FRAMES];
->  	/* buffer when doing conversion and using read() for read() */
-> diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
-> index c4d69f7..1dcf34d 100644
-> --- a/lib/libv4l2/libv4l2.c
-> +++ b/lib/libv4l2/libv4l2.c
-> @@ -282,7 +282,7 @@ static int v4l2_dequeue_and_convert(int index, struct v4l2_buffer *buf,
->  		unsigned char *dest, int dest_size)
->  {
->  	const int max_tries = V4L2_IGNORE_FIRST_FRAME_ERRORS + 1;
-> -	int result, tries = max_tries;
-> +	int result, tries = max_tries, frame_info_gen;
->  
->  	/* Make sure we have the real v4l2 buffers mapped */
->  	result = v4l2_map_buffers(index);
-> @@ -290,9 +290,12 @@ static int v4l2_dequeue_and_convert(int index, struct v4l2_buffer *buf,
->  		return result;
->  
->  	do {
-> +		frame_info_gen = devices[index].frame_info_generation;
-> +		pthread_mutex_unlock(&devices[index].stream_lock);
->  		result = devices[index].dev_ops->ioctl(
->  				devices[index].dev_ops_priv,
->  				devices[index].fd, VIDIOC_DQBUF, buf);
-> +		pthread_mutex_lock(&devices[index].stream_lock);
->  		if (result) {
->  			if (errno != EAGAIN) {
->  				int saved_err = errno;
-> @@ -305,6 +308,11 @@ static int v4l2_dequeue_and_convert(int index, struct v4l2_buffer *buf,
->  
->  		devices[index].frame_queued &= ~(1 << buf->index);
->  
-> +		if (frame_info_gen != devices[index].frame_info_generation) {
-> +			errno = -EINVAL;
-> +			return -1;
-> +		}
-> +
->  		result = v4lconvert_convert(devices[index].convert,
->  				&devices[index].src_fmt, &devices[index].dest_fmt,
->  				devices[index].frame_pointers[buf->index],
-> @@ -839,6 +847,7 @@ int v4l2_dup(int fd)
->  
->  static int v4l2_check_buffer_change_ok(int index)
->  {
-> +	devices[index].frame_info_generation++;
->  	v4l2_unmap_buffers(index);
->  
->  	/* Check if the app itself still is using the stream */
-> @@ -1294,9 +1303,11 @@ no_capture_request:
->  		}
->  
->  		if (!v4l2_needs_conversion(index)) {
-> +			pthread_mutex_unlock(&devices[index].stream_lock);
->  			result = devices[index].dev_ops->ioctl(
->  					devices[index].dev_ops_priv,
->  					fd, VIDIOC_DQBUF, buf);
-> +			pthread_mutex_lock(&devices[index].stream_lock);
->  			if (result) {
->  				saved_err = errno;
->  				V4L2_PERROR("dequeuing buf");
-> 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
