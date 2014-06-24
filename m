@@ -1,67 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:49879 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753619AbaFHSJv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jun 2014 14:09:51 -0400
-Received: by mail-la0-f43.google.com with SMTP id mc6so2574450lab.2
-        for <linux-media@vger.kernel.org>; Sun, 08 Jun 2014 11:09:50 -0700 (PDT)
-From: Alexander Bersenev <bay@hackerdom.ru>
-To: linux-sunxi@googlegroups.com, david@hardeman.nu,
-	devicetree@vger.kernel.org, galak@codeaurora.org,
-	grant.likely@linaro.org, ijc+devicetree@hellion.org.uk,
-	james.hogan@imgtec.com, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk, m.chehab@samsung.com, mark.rutland@arm.com,
-	maxime.ripard@free-electrons.com, pawel.moll@arm.com,
-	rdunlap@infradead.org, robh+dt@kernel.org, sean@mess.org,
-	srinivas.kandagatla@st.com, wingrime@linux-sunxi.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Alexander Bersenev <bay@hackerdom.ru>
-Subject: [PATCH v9 4/5] ARM: sunxi: Add IR controllers on A20 to dtsi
-Date: Mon,  9 Jun 2014 00:08:12 +0600
-Message-Id: <1402250893-5412-5-git-send-email-bay@hackerdom.ru>
-In-Reply-To: <1402250893-5412-1-git-send-email-bay@hackerdom.ru>
-References: <1402250893-5412-1-git-send-email-bay@hackerdom.ru>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60541 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753176AbaFXPNT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jun 2014 11:13:19 -0400
+Message-ID: <1403622788.2910.35.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH 08/30] [media] coda: add support for frame size
+ enumeration
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de
+Date: Tue, 24 Jun 2014 17:13:08 +0200
+In-Reply-To: <539EA5EF.1000407@xs4all.nl>
+References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+	 <1402675736-15379-9-git-send-email-p.zabel@pengutronix.de>
+	 <539EA5EF.1000407@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds records for two IR controllers on A20
+Am Montag, den 16.06.2014, 10:08 +0200 schrieb Hans Verkuil:
+> On 06/13/2014 06:08 PM, Philipp Zabel wrote:
+> > This patch adds support for the VIDIOC_ENUM_FRAMESIZES ioctl.
+> > When decoding H.264, the output frame size is rounded up to the
+> > next multiple of the macroblock size (16 pixels).
+> 
+> Why do you need this? Implementing VIDIOC_ENUM_FRAMESIZES for a m2m device
+> seems odd.
 
-Signed-off-by: Alexander Bersenev <bay@hackerdom.ru>
-Signed-off-by: Alexsey Shestacov <wingrime@linux-sunxi.org>
----
- arch/arm/boot/dts/sun7i-a20.dtsi | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+As soon as the OUTPUT side starts streaming, the possible buffer
+dimensions on the CAPTURE side are fixed, but not necessarily the same
+as on the OUTPUT side. Since GStreamer checks ENUM_FRAMESIZES before
+trying to find the possible min/max dimensions via TRY_FMT, I just
+implemented that.
+Right now I could (and probably should) also implement this using just
+TRY_FMT, but the JPEG decoder will also support decoding to half, 1/4
+and 1/8 size, and I'd like to report that to userspace.
 
-diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
-index c057c3e..fe1f8ff 100644
---- a/arch/arm/boot/dts/sun7i-a20.dtsi
-+++ b/arch/arm/boot/dts/sun7i-a20.dtsi
-@@ -763,6 +763,24 @@
- 			interrupts = <0 24 4>;
- 		};
- 
-+		ir0: ir@01c21800 {
-+			compatible = "allwinner,sun7i-a20-ir";
-+			clocks = <&apb0_gates 6>, <&ir0_clk>;
-+			clock-names = "apb", "ir";
-+			interrupts = <0 5 4>;
-+			reg = <0x01c21800 0x40>;
-+			status = "disabled";
-+		};
-+
-+		ir1: ir@01c21c00 {
-+			compatible = "allwinner,sun7i-a20-ir";
-+			clocks = <&apb0_gates 7>, <&ir1_clk>;
-+			clock-names = "apb", "ir";
-+			interrupts = <0 6 4>;
-+			reg = <0x01c21c00 0x40>;
-+			status = "disabled";
-+		};
-+
- 		lradc: lradc@01c22800 {
- 			compatible = "allwinner,sun4i-lradc-keys";
- 			reg = <0x01c22800 0x100>;
--- 
-1.9.3
+I'll postpone this patch for now.
+
+regards
+Philipp
 
