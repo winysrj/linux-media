@@ -1,241 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49610 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932560AbaFCRPr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jun 2014 13:15:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] v4l: subdev: Unify argument validation across IOCTLs
-Date: Tue, 03 Jun 2014 19:16:13 +0200
-Message-ID: <1693642.21y0Pscz7q@avalon>
-In-Reply-To: <1401787516-16545-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1401787516-16545-1-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57632 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753310AbaFXO41 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jun 2014 10:56:27 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 15/29] [media] coda: add h.264 min/max qp controls
+Date: Tue, 24 Jun 2014 16:55:57 +0200
+Message-Id: <1403621771-11636-16-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+If the bitrate control is set, the encoder works in CBR mode, dynamically
+changing the quantization parameters to achieve a constant bitrate.
+With the min/max QP controls the quantization parameters can be limited
+to a given range.
 
-Thank you for the patch.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-On Tuesday 03 June 2014 12:25:16 Sakari Ailus wrote:
-> Separate validation of different argument types. There's no reason to do
-> this separately for every IOCTL.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/v4l2-core/v4l2-subdev.c | 119 ++++++++++++++++++-------------
->  1 file changed, 73 insertions(+), 46 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c
-> b/drivers/media/v4l2-core/v4l2-subdev.c index 058c1a6..496f9bc 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -126,6 +126,55 @@ static int subdev_close(struct file *file)
->  	return 0;
->  }
-> 
-> +static int check_format(struct v4l2_subdev *sd,
-> +			struct v4l2_subdev_format *format)
-> +{
-> +	if (format->which != V4L2_SUBDEV_FORMAT_TRY &&
-> +	    format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-> +		return -EINVAL;
-> +
-> +	if (format->pad >= sd->entity.num_pads)
-> +		return -EINVAL;
-> +
-> +	return 0;
-> +}
-> +
-> +static int check_crop(struct v4l2_subdev *sd, struct v4l2_subdev_crop
-> *crop) +{
-> +	if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
-> +	    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-> +		return -EINVAL;
-> +
-> +	if (crop->pad >= sd->entity.num_pads)
-> +		return -EINVAL;
-> +
-> +	return 0;
-> +}
-> +
-> +static int check_selection(struct v4l2_subdev *sd,
-> +			   struct v4l2_subdev_selection *sel)
-> +{
-> +	if (sel->which != V4L2_SUBDEV_FORMAT_TRY &&
-> +	    sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-> +		return -EINVAL;
-> +
-> +	if (sel->pad >= sd->entity.num_pads)
-> +		return -EINVAL;
-> +
-> +	return 0;
-> +}
-> +
-> +static int check_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid
-> *edid)
-> +{
-> +	if (edid->pad >= sd->entity.num_pads)
-> +		return -EINVAL;
-> +
-> +	if (edid->blocks && edid->edid == NULL)
-> +		return -EINVAL;
-> +
-> +	return 0;
-> +}
-> +
->  static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
-> {
->  	struct video_device *vdev = video_devdata(file);
-> @@ -202,26 +251,20 @@ static long subdev_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg) #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
->  	case VIDIOC_SUBDEV_G_FMT: {
->  		struct v4l2_subdev_format *format = arg;
-> +		int rval = check_format(sd, format);
-
-How about declaring the variable once only at the beginning of the function ?
-
-Apart from that,
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> 
-> -		if (format->which != V4L2_SUBDEV_FORMAT_TRY &&
-> -		    format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-> -			return -EINVAL;
-> -
-> -		if (format->pad >= sd->entity.num_pads)
-> -			return -EINVAL;
-> +		if (rval)
-> +			return rval;
-> 
->  		return v4l2_subdev_call(sd, pad, get_fmt, subdev_fh, format);
->  	}
-> 
->  	case VIDIOC_SUBDEV_S_FMT: {
->  		struct v4l2_subdev_format *format = arg;
-> +		int rval = check_format(sd, format);
-> 
-> -		if (format->which != V4L2_SUBDEV_FORMAT_TRY &&
-> -		    format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-> -			return -EINVAL;
-> -
-> -		if (format->pad >= sd->entity.num_pads)
-> -			return -EINVAL;
-> +		if (rval)
-> +			return rval;
-> 
->  		return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh, format);
->  	}
-> @@ -229,14 +272,10 @@ static long subdev_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg) case VIDIOC_SUBDEV_G_CROP: {
->  		struct v4l2_subdev_crop *crop = arg;
->  		struct v4l2_subdev_selection sel;
-> -		int rval;
-> -
-> -		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
-> -		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-> -			return -EINVAL;
-> +		int rval = check_crop(sd, crop);
-> 
-> -		if (crop->pad >= sd->entity.num_pads)
-> -			return -EINVAL;
-> +		if (rval)
-> +			return rval;
-> 
->  		rval = v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
->  		if (rval != -ENOIOCTLCMD)
-> @@ -258,14 +297,10 @@ static long subdev_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg) case VIDIOC_SUBDEV_S_CROP: {
->  		struct v4l2_subdev_crop *crop = arg;
->  		struct v4l2_subdev_selection sel;
-> -		int rval;
-> -
-> -		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
-> -		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-> -			return -EINVAL;
-> +		int rval = check_crop(sd, crop);
-> 
-> -		if (crop->pad >= sd->entity.num_pads)
-> -			return -EINVAL;
-> +		if (rval)
-> +			return rval;
-> 
->  		rval = v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
->  		if (rval != -ENOIOCTLCMD)
-> @@ -335,13 +370,10 @@ static long subdev_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg)
-> 
->  	case VIDIOC_SUBDEV_G_SELECTION: {
->  		struct v4l2_subdev_selection *sel = arg;
-> +		int rval = check_selection(sd, sel);
-> 
-> -		if (sel->which != V4L2_SUBDEV_FORMAT_TRY &&
-> -		    sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-> -			return -EINVAL;
-> -
-> -		if (sel->pad >= sd->entity.num_pads)
-> -			return -EINVAL;
-> +		if (rval)
-> +			return rval;
-> 
->  		return v4l2_subdev_call(
->  			sd, pad, get_selection, subdev_fh, sel);
-> @@ -349,13 +381,10 @@ static long subdev_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg)
-> 
->  	case VIDIOC_SUBDEV_S_SELECTION: {
->  		struct v4l2_subdev_selection *sel = arg;
-> +		int rval = check_selection(sd, sel);
-> 
-> -		if (sel->which != V4L2_SUBDEV_FORMAT_TRY &&
-> -		    sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-> -			return -EINVAL;
-> -
-> -		if (sel->pad >= sd->entity.num_pads)
-> -			return -EINVAL;
-> +		if (rval)
-> +			return rval;
-> 
->  		return v4l2_subdev_call(
->  			sd, pad, set_selection, subdev_fh, sel);
-> @@ -363,22 +392,20 @@ static long subdev_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg)
-> 
->  	case VIDIOC_G_EDID: {
->  		struct v4l2_subdev_edid *edid = arg;
-> +		int rval = check_edid(sd, edid);
-> 
-> -		if (edid->pad >= sd->entity.num_pads)
-> -			return -EINVAL;
-> -		if (edid->blocks && edid->edid == NULL)
-> -			return -EINVAL;
-> +		if (rval)
-> +			return rval;
-> 
->  		return v4l2_subdev_call(sd, pad, get_edid, edid);
->  	}
-> 
->  	case VIDIOC_S_EDID: {
->  		struct v4l2_subdev_edid *edid = arg;
-> +		int rval = check_edid(sd, edid);
-> 
-> -		if (edid->pad >= sd->entity.num_pads)
-> -			return -EINVAL;
-> -		if (edid->blocks && edid->edid == NULL)
-> -			return -EINVAL;
-> +		if (rval)
-> +			return rval;
-> 
->  		return v4l2_subdev_call(sd, pad, set_edid, edid);
->  	}
-
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index c93e9bf..3697a17 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -159,6 +159,8 @@ struct coda_params {
+ 	u8			rot_mode;
+ 	u8			h264_intra_qp;
+ 	u8			h264_inter_qp;
++	u8			h264_min_qp;
++	u8			h264_max_qp;
+ 	u8			mpeg4_intra_qp;
+ 	u8			mpeg4_inter_qp;
+ 	u8			gop_size;
+@@ -2379,7 +2381,16 @@ static int coda_start_encoding(struct coda_ctx *ctx)
+ 		coda_write(dev, (gamma & CODA_GAMMA_MASK) << CODA_GAMMA_OFFSET,
+ 			   CODA_CMD_ENC_SEQ_RC_GAMMA);
+ 	}
++
++	if (ctx->params.h264_min_qp || ctx->params.h264_max_qp) {
++		coda_write(dev,
++			   ctx->params.h264_min_qp << CODA_QPMIN_OFFSET |
++			   ctx->params.h264_max_qp << CODA_QPMAX_OFFSET,
++			   CODA_CMD_ENC_SEQ_RC_QP_MIN_MAX);
++	}
+ 	if (dev->devtype->product == CODA_960) {
++		if (ctx->params.h264_max_qp)
++			value |= 1 << CODA9_OPTION_RCQPMAX_OFFSET;
+ 		if (CODA_DEFAULT_GAMMA > 0)
+ 			value |= 1 << CODA9_OPTION_GAMMA_OFFSET;
+ 	} else {
+@@ -2389,6 +2400,10 @@ static int coda_start_encoding(struct coda_ctx *ctx)
+ 			else
+ 				value |= 1 << CODA7_OPTION_GAMMA_OFFSET;
+ 		}
++		if (ctx->params.h264_min_qp)
++			value |= 1 << CODA7_OPTION_RCQPMIN_OFFSET;
++		if (ctx->params.h264_max_qp)
++			value |= 1 << CODA7_OPTION_RCQPMAX_OFFSET;
+ 	}
+ 	coda_write(dev, value, CODA_CMD_ENC_SEQ_OPTION);
+ 
+@@ -2616,6 +2631,12 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP:
+ 		ctx->params.h264_inter_qp = ctrl->val;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP:
++		ctx->params.h264_min_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP:
++		ctx->params.h264_max_qp = ctrl->val;
++		break;
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:
+ 		ctx->params.mpeg4_intra_qp = ctrl->val;
+ 		break;
+@@ -2663,6 +2684,12 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
+ 		V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP, 0, 51, 1, 25);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP, 0, 51, 1, 25);
++	if (ctx->dev->devtype->product != CODA_960) {
++		v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
++			V4L2_CID_MPEG_VIDEO_H264_MIN_QP, 0, 51, 1, 12);
++	}
++	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
++		V4L2_CID_MPEG_VIDEO_H264_MAX_QP, 0, 51, 1, 51);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP, 1, 31, 1, 2);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
 -- 
-Regards,
-
-Laurent Pinchart
+2.0.0
 
