@@ -1,46 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f48.google.com ([209.85.160.48]:35495 "EHLO
-	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750722AbaFEHIZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jun 2014 03:08:25 -0400
-Received: by mail-pb0-f48.google.com with SMTP id rr13so701314pbb.7
-        for <linux-media@vger.kernel.org>; Thu, 05 Jun 2014 00:08:25 -0700 (PDT)
-Date: Thu, 5 Jun 2014 17:07:48 +1000
-From: Vitaly Osipov <vitaly.osipov@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: [PATCH] staging: omap4iss: copy paste error in iss_get_clocks
-Message-ID: <20140605070748.GA651@witts-MacBook-Pro.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57658 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752564AbaFXO43 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jun 2014 10:56:29 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 21/29] [media] coda: alert userspace about macroblock errors
+Date: Tue, 24 Jun 2014 16:56:03 +0200
+Message-Id: <1403621771-11636-22-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It makes more sense to return PTR_ERR(iss->iss_ctrlclk) here. The
-current code looks like an oversight in pasting the block just above
-this one.
+If the CODA reports macroblock errors, also set the VB2_BUF_STATE_ERROR flag
+to alert userspace.
 
-Signed-off-by: Vitaly Osipov <vitaly.osipov@gmail.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/staging/media/omap4iss/iss.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/coda.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-index 2e422dd..4a9e444 100644
---- a/drivers/staging/media/omap4iss/iss.c
-+++ b/drivers/staging/media/omap4iss/iss.c
-@@ -1029,7 +1029,7 @@ static int iss_get_clocks(struct iss_device *iss)
- 	if (IS_ERR(iss->iss_ctrlclk)) {
- 		dev_err(iss->dev, "Unable to get iss_ctrlclk clock info\n");
- 		iss_put_clocks(iss);
--		return PTR_ERR(iss->iss_fck);
-+		return PTR_ERR(iss->iss_ctrlclk);
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index a929bbd..6e65ab9 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -243,6 +243,7 @@ struct coda_ctx {
+ 	struct coda_aux_buf		internal_frames[CODA_MAX_FRAMEBUFFERS];
+ 	u32				frame_types[CODA_MAX_FRAMEBUFFERS];
+ 	struct coda_timestamp		frame_timestamps[CODA_MAX_FRAMEBUFFERS];
++	u32				frame_errors[CODA_MAX_FRAMEBUFFERS];
+ 	struct list_head		timestamp_list;
+ 	struct coda_aux_buf		workbuf;
+ 	int				num_internal_frames;
+@@ -3015,6 +3016,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 	int display_idx;
+ 	u32 src_fourcc;
+ 	int success;
++	u32 err_mb;
+ 	u32 val;
+ 
+ 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+@@ -3084,10 +3086,10 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 		/* no cropping */
  	}
  
- 	return 0;
+-	val = coda_read(dev, CODA_RET_DEC_PIC_ERR_MB);
+-	if (val > 0)
++	err_mb = coda_read(dev, CODA_RET_DEC_PIC_ERR_MB);
++	if (err_mb > 0)
+ 		v4l2_err(&dev->v4l2_dev,
+-			 "errors in %d macroblocks\n", val);
++			 "errors in %d macroblocks\n", err_mb);
+ 
+ 	if (dev->devtype->product == CODA_7541) {
+ 		val = coda_read(dev, CODA_RET_DEC_PIC_OPTION);
+@@ -3150,6 +3152,8 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 			ctx->frame_types[decoded_idx] = V4L2_BUF_FLAG_PFRAME;
+ 		else
+ 			ctx->frame_types[decoded_idx] = V4L2_BUF_FLAG_BFRAME;
++
++		ctx->frame_errors[decoded_idx] = err_mb;
+ 	}
+ 
+ 	if (display_idx == -1) {
+@@ -3182,8 +3186,8 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 
+ 		vb2_set_plane_payload(dst_buf, 0, width * height * 3 / 2);
+ 
+-		v4l2_m2m_buf_done(dst_buf, success ? VB2_BUF_STATE_DONE :
+-						     VB2_BUF_STATE_ERROR);
++		v4l2_m2m_buf_done(dst_buf, ctx->frame_errors[display_idx] ?
++				  VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+ 
+ 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
+ 			"job finished: decoding frame (%d) (%s)\n",
 -- 
-1.9.1
+2.0.0
 
