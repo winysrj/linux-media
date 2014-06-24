@@ -1,132 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59653 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756184AbaFADj1 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57622 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753579AbaFXO40 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 May 2014 23:39:27 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+	Tue, 24 Jun 2014 10:56:26 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 08/18] v4l: vsp1: Setup control handler automatically at stream on time
-Date: Sun,  1 Jun 2014 05:39:27 +0200
-Message-Id: <1401593977-30660-9-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 13/29] [media] coda: split firmware version check out of coda_hw_init
+Date: Tue, 24 Jun 2014 16:55:55 +0200
+Message-Id: <1403621771-11636-14-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When setting a control directly on a subdev node the VSP1 driver doesn't
-guarantee that the device is powered on. This leads to crashes when the
-control handlers writes to hardware registers. One easy way to fix this
-is to ensure that the device gets powered on when a subdev node is
-opened. However, this consumes power unnecessarily, as there's no need
-to power the device on when setting formats on the pipeline.
-Furthermore, control handler setup at entity init time suffers from the
-same problem as the device isn't powered on easier.
+This adds a new function coda_check_firmware that does the firmware
+version checks so that this can be done only once from coda_probe
+instead of every time the runtime pm framework resumes the coda.
 
-Fix this by extend the entity base object to setup the control handler
-automatically when starting the stream. Entities must then skip writing
-to registers in the set control handler when not streaming, which can be
-tested with the new vsp1_entity_is_streaming() helper function.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/vsp1/vsp1_entity.c | 39 +++++++++++++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_entity.h |  7 ++++++
- 2 files changed, 46 insertions(+)
+ drivers/media/platform/coda.c | 42 +++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 37 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index ceac0d7..79af71d 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -22,6 +22,41 @@
- #include "vsp1_entity.h"
- #include "vsp1_video.h"
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index bd243ed..c93e9bf 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -3194,7 +3194,6 @@ static bool coda_firmware_supported(u32 vernum)
  
-+bool vsp1_entity_is_streaming(struct vsp1_entity *entity)
-+{
-+	bool streaming;
+ static int coda_hw_init(struct coda_dev *dev)
+ {
+-	u16 product, major, minor, release;
+ 	u32 data;
+ 	u16 *p;
+ 	int i, ret;
+@@ -3275,17 +3274,40 @@ static int coda_hw_init(struct coda_dev *dev)
+ 	coda_write(dev, data, CODA_REG_BIT_CODE_RESET);
+ 	coda_write(dev, CODA_REG_RUN_ENABLE, CODA_REG_BIT_CODE_RUN);
+ 
+-	/* Load firmware */
++	clk_disable_unprepare(dev->clk_ahb);
++	clk_disable_unprepare(dev->clk_per);
 +
-+	mutex_lock(&entity->lock);
-+	streaming = entity->streaming;
-+	mutex_unlock(&entity->lock);
++	return 0;
 +
-+	return streaming;
-+}
-+
-+int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
-+{
-+	int ret;
-+
-+	mutex_lock(&entity->lock);
-+	entity->streaming = streaming;
-+	mutex_unlock(&entity->lock);
-+
-+	if (!streaming)
-+		return 0;
-+
-+	if (!entity->subdev.ctrl_handler)
-+		return 0;
-+
-+	ret = v4l2_ctrl_handler_setup(entity->subdev.ctrl_handler);
-+	if (ret < 0) {
-+		mutex_lock(&entity->lock);
-+		entity->streaming = false;
-+		mutex_unlock(&entity->lock);
-+	}
-+
++err_clk_ahb:
++	clk_disable_unprepare(dev->clk_per);
++err_clk_per:
 +	return ret;
 +}
 +
- /* -----------------------------------------------------------------------------
-  * V4L2 Subdevice Operations
-  */
-@@ -158,6 +193,8 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
- 	if (i == ARRAY_SIZE(vsp1_routes))
- 		return -EINVAL;
- 
-+	mutex_init(&entity->lock);
++static int coda_check_firmware(struct coda_dev *dev)
++{
++	u16 product, major, minor, release;
++	u32 data;
++	int ret;
 +
- 	entity->vsp1 = vsp1;
- 	entity->source_pad = num_pads - 1;
- 
-@@ -191,4 +228,6 @@ void vsp1_entity_destroy(struct vsp1_entity *entity)
- 	if (entity->subdev.ctrl_handler)
- 		v4l2_ctrl_handler_free(entity->subdev.ctrl_handler);
- 	media_entity_cleanup(&entity->subdev.entity);
++	ret = clk_prepare_enable(dev->clk_per);
++	if (ret)
++		goto err_clk_per;
 +
-+	mutex_destroy(&entity->lock);
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index f0257f6..aa20aaa 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -14,6 +14,7 @@
- #define __VSP1_ENTITY_H__
- 
- #include <linux/list.h>
-+#include <linux/mutex.h>
- 
- #include <media/v4l2-subdev.h>
- 
-@@ -71,6 +72,9 @@ struct vsp1_entity {
- 	struct v4l2_mbus_framefmt *formats;
- 
- 	struct vsp1_video *video;
++	ret = clk_prepare_enable(dev->clk_ahb);
++	if (ret)
++		goto err_clk_ahb;
 +
-+	struct mutex lock;		/* Protects the streaming field */
-+	bool streaming;
- };
+ 	coda_write(dev, 0, CODA_CMD_FIRMWARE_VERNUM);
+ 	coda_write(dev, CODA_REG_BIT_BUSY_FLAG, CODA_REG_BIT_BUSY);
+ 	coda_write(dev, 0, CODA_REG_BIT_RUN_INDEX);
+ 	coda_write(dev, 0, CODA_REG_BIT_RUN_COD_STD);
+ 	coda_write(dev, CODA_COMMAND_FIRMWARE_GET, CODA_REG_BIT_RUN_COMMAND);
+ 	if (coda_wait_timeout(dev)) {
+-		clk_disable_unprepare(dev->clk_per);
+-		clk_disable_unprepare(dev->clk_ahb);
+ 		v4l2_err(&dev->v4l2_dev, "firmware get command error\n");
+-		return -EIO;
++		ret = -EIO;
++		goto err_run_cmd;
+ 	}
  
- static inline struct vsp1_entity *to_vsp1_entity(struct v4l2_subdev *subdev)
-@@ -92,4 +96,7 @@ vsp1_entity_get_pad_format(struct vsp1_entity *entity,
- void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
- 			      struct v4l2_subdev_fh *fh);
+ 	if (dev->devtype->product == CODA_960) {
+@@ -3325,6 +3347,8 @@ static int coda_hw_init(struct coda_dev *dev)
  
-+bool vsp1_entity_is_streaming(struct vsp1_entity *entity);
-+int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming);
+ 	return 0;
+ 
++err_run_cmd:
++	clk_disable_unprepare(dev->clk_ahb);
+ err_clk_ahb:
+ 	clk_disable_unprepare(dev->clk_per);
+ err_clk_per:
+@@ -3365,6 +3389,10 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
+ 			return;
+ 		}
+ 
++		ret = coda_check_firmware(dev);
++		if (ret < 0)
++			return;
 +
- #endif /* __VSP1_ENTITY_H__ */
+ 		pm_runtime_put_sync(&dev->plat_dev->dev);
+ 	} else {
+ 		/*
+@@ -3376,6 +3404,10 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
+ 			v4l2_err(&dev->v4l2_dev, "HW initialization failed\n");
+ 			return;
+ 		}
++
++		ret = coda_check_firmware(dev);
++		if (ret < 0)
++			return;
+ 	}
+ 
+ 	dev->vfd.fops	= &coda_fops,
 -- 
-1.8.5.5
+2.0.0
 
