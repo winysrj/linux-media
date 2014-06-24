@@ -1,49 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39845 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754729AbaFNP3V (ORCPT
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:40482 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752966AbaFXPNl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jun 2014 11:29:21 -0400
-Received: from avalon.localnet (unknown [91.178.211.37])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5530235A3C
-	for <linux-media@vger.kernel.org>; Sat, 14 Jun 2014 17:28:45 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.16] OMAP4 ISS fix
-Date: Sat, 14 Jun 2014 17:29:57 +0200
-Message-ID: <4297622.KRtW0DhXJI@avalon>
+	Tue, 24 Jun 2014 11:13:41 -0400
+Date: Tue, 24 Jun 2014 16:13:23 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Denis Carikli <denis@eukrea.com>,
+	Sascha Hauer <kernel@pengutronix.de>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Eric =?iso-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v14 04/10] imx-drm: use defines for clock polarity
+	settings
+Message-ID: <20140624151323.GU32514@n2100.arm.linux.org.uk>
+References: <1402913484-25910-1-git-send-email-denis@eukrea.com> <1402913484-25910-4-git-send-email-denis@eukrea.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1402913484-25910-4-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Mon, Jun 16, 2014 at 12:11:18PM +0200, Denis Carikli wrote:
+> Signed-off-by: Denis Carikli <denis@eukrea.com>
 
-Please pull the following fix for v3.16. It fixes a build breakage due to the 
-OMAP4 ISS driver.
+It would be nice to have a little more explanation in the commit messages
+for these patches.  If you'd like to send me better commit messages for
+these patches, I'll add them to what I already have:
 
-The following changes since commit f7a27ff1fb77e114d1059a5eb2ed1cffdc508ce8:
+	imx-drm: use defines for clock polarity settings
 
-  [media] xc5000: delay tuner sleep to 5 seconds (2014-05-25 17:50:16 -0300)
+	imx-drm: add RGB666 support for parallel display.
 
-are available in the git repository at:
+It may also be worth describing the RGB666 format in the commit message
+for:
 
-  git://linuxtv.org/pinchartl/media.git omap4iss/next
+	v4l2: add new V4L2_PIX_FMT_RGB666 pixel format.
 
-for you to fetch changes up to 00084ddf4f7d0d83007f179a4aedccabcdef69a4:
-
-  staging: tighten omap4iss dependencies (2014-06-14 17:28:01 +0200)
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      staging: tighten omap4iss dependencies
-
- drivers/staging/media/omap4iss/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+And... getting some more acks for these patches would be very useful,
+I think I'd like to see Sascha's ack for these... Sascha?
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
+improving, and getting towards what was expected from it.
