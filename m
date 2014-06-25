@@ -1,83 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:50725 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751212AbaFWVKl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jun 2014 17:10:41 -0400
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Cc: magnus.damm@opensource.se, horms@verge.net.au,
-	linux-kernel@lists.codethink.co.uk,
-	Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: [PATCH 1/2] r8a7790.dtsi: add vin[0-3] nodes
-Date: Mon, 23 Jun 2014 22:10:31 +0100
-Message-Id: <1403557832-32225-2-git-send-email-ben.dooks@codethink.co.uk>
-In-Reply-To: <1403557832-32225-1-git-send-email-ben.dooks@codethink.co.uk>
-References: <1403557832-32225-1-git-send-email-ben.dooks@codethink.co.uk>
+Received: from smtp209.alice.it ([82.57.200.105]:52679 "EHLO smtp209.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754748AbaFYIA6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jun 2014 04:00:58 -0400
+Date: Wed, 25 Jun 2014 10:00:39 +0200
+From: Antonio Ospite <ao2@ao2.it>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-media@vger.kernel.org, Alexander Sosna <alexander@xxor.de>
+Subject: Re: [RFC 2/2] gspca_kinect: add support for the depth stream
+Message-Id: <20140625100039.24fb87f1967dc226d7d84abc@ao2.it>
+In-Reply-To: <53A2F525.2070504@redhat.com>
+References: <53450D76.2010405@redhat.com>
+	<1401913499-6475-1-git-send-email-ao2@ao2.it>
+	<1401913499-6475-3-git-send-email-ao2@ao2.it>
+	<53A2F525.2070504@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add nodes for the four video input channels on the R8A7790.
+On Thu, 19 Jun 2014 16:35:17 +0200
+Hans de Goede <hdegoede@redhat.com> wrote:
 
-Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
----
- arch/arm/boot/dts/r8a7790.dtsi | 36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+> Hi,
+> 
+> On 06/04/2014 10:24 PM, Antonio Ospite wrote:
+> > Add support for the depth mode at 10bpp, use a command line parameter to
+> > switch mode.
+> > 
+> > NOTE: this is just a proof-of-concept, the final implementation will
+> > have to expose two v4l2 devices, one for the video stream and one for
+> > the depth stream.
+> 
+> Thanks for the patch. If this is useful for some people I'm willing to
+> merge this until we've a better fix.
+>
 
-diff --git a/arch/arm/boot/dts/r8a7790.dtsi b/arch/arm/boot/dts/r8a7790.dtsi
-index 7ff2960..a6f083d 100644
---- a/arch/arm/boot/dts/r8a7790.dtsi
-+++ b/arch/arm/boot/dts/r8a7790.dtsi
-@@ -33,6 +33,10 @@
- 		spi2 = &msiof1;
- 		spi3 = &msiof2;
- 		spi4 = &msiof3;
-+		vin0 = &vin0;
-+		vin1 = &vin1;
-+		vin2 = &vin2;
-+		vin3 = &vin3;
- 	};
- 
- 	cpus {
-@@ -462,6 +466,38 @@
- 		status = "disabled";
- 	};
- 
-+	vin0: vin@e6ef0000 {
-+		compatible = "renesas,vin-r8a7790";
-+		clocks = <&mstp8_clks R8A7790_CLK_VIN0>;
-+		reg = <0 0xe6ef0000 0 0x1000>;
-+		interrupts = <0 188 IRQ_TYPE_LEVEL_HIGH>;
-+		status = "disabled";
-+	};
-+
-+	vin1: vin@e6ef1000 {
-+		compatible = "renesas,vin-r8a7790";
-+		clocks = <&mstp8_clks R8A7790_CLK_VIN1>;
-+		reg = <0 0xe6ef1000 0 0x1000>;
-+		interrupts = <0 189 IRQ_TYPE_LEVEL_HIGH>;
-+		status = "disabled";
-+	};
-+
-+	vin2: vin@e6ef2000 {
-+		compatible = "renesas,vin-r8a7790";
-+		clocks = <&mstp8_clks R8A7790_CLK_VIN2>;
-+		reg = <0 0xe6ef2000 0 0x1000>;
-+		interrupts = <0 190 IRQ_TYPE_LEVEL_HIGH>;
-+		status = "disabled";
-+	};
-+
-+	vin3: vin@e6ef3000 {
-+		compatible = "renesas,vin-r8a7790";
-+		clocks = <&mstp8_clks R8A7790_CLK_VIN3>;
-+		reg = <0 0xe6ef3000 0 0x1000>;
-+		interrupts = <0 191 IRQ_TYPE_LEVEL_HIGH>;
-+		status = "disabled";
-+	};
-+
- 	clocks {
- 		#address-cells = <2>;
- 		#size-cells = <2>;
+I guess adding a command line parameter (depth_mode) and then removing
+it in the future, when a far better alternative is available, is
+acceptable in this case; we also did something like that before for the
+PS3 Eye driver for instance.
+
+So I am going to submit this patch set for inclusion.
+
+> > Signed-off-by: Alexander Sosna <alexander@xxor.de>
+> > Signed-off-by: Antonio Ospite <ao2@ao2.it>
+> > ---
+> > 
+> > For now a command line parameter called "depth_mode" is used to select which
+> > mode to activate when loading the driver, this is necessary because gspca is
+> > not quite ready to have a subdriver call gspca_dev_probe() multiple times.
+> > 
+> > The problem seems to be that gspca assumes one video device per USB
+> > _interface_, and so it stores a pointer to gspca_dev as the interface
+> > private data: see usb_set_intfdata(intf, gspca_dev) in
+> > gspca_dev_probe2().
+> > 
+> > If anyone feels brave (do a backup first, etc. etc.), hack the sd_probe()
+> > below to register both the devices: you will get the two v4l nodes and both
+> > streams will work OK, but the kernel will halt when you disconnect the device,
+> > i.e. some problem arises in gspca_disconnect() after the usb_get_intfdata(intf)
+> > call.
+> > 
+> > I am still figuring out the details of the failure sequence, and I'll try to
+> > imagine a way to support the use case "multiple v4l devices on one USB
+> > interface", but this will take some more time.
+> 
+> I believe that support 2 devices would require separating the per video node /
+> stream data and global data into separate structs, and then refactoring everything
+> so that we can have 2 streams on one gspca_dev. If you do this please make it
+> a patch-set with many small patches, rather then 1 or 2 very large patches.
+>
+> And then in things like disconnect, loop over the streams and stop both, unregister
+> both nodes, etc.
+> 
+> If you ever decide to add support for controls you will also need to think about what
+> to do with those, but for now I guess you can just register all the controls on the
+> first video-node/stream (which will be the only one for all devices except kinect
+> devices, and the kinect code currently does not have controls.
+>
+
+Very useful hints, as always.
+
+Thanks,
+   Antonio
+
 -- 
-2.0.0
+Antonio Ospite
+http://ao2.it
 
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
