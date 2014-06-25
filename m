@@ -1,90 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:38764 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752097AbaFOT5I (ORCPT
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:41811 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753169AbaFYIoK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jun 2014 15:57:08 -0400
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-sh@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
-	magnus.damm@opensource.se, horms@verge.net.au,
-	ian.molton@codethink.co.uk, william.towle@codethink.co.uk,
-	Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: [PATCH 9/9] ARM: lager: add vin1 node
-Date: Sun, 15 Jun 2014 20:56:34 +0100
-Message-Id: <1402862194-17743-10-git-send-email-ben.dooks@codethink.co.uk>
-In-Reply-To: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
-References: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
+	Wed, 25 Jun 2014 04:44:10 -0400
+Date: Wed, 25 Jun 2014 09:43:27 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Denis Carikli <denis@eukrea.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Eric =?iso-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v14 04/10] imx-drm: use defines for clock polarity
+	settings
+Message-ID: <20140625084327.GD32514@n2100.arm.linux.org.uk>
+References: <1402913484-25910-1-git-send-email-denis@eukrea.com> <1402913484-25910-4-git-send-email-denis@eukrea.com> <20140625044845.GK5918@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140625044845.GK5918@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device-tree for vin1 (composite video in) on the
-lager board.
+On Wed, Jun 25, 2014 at 06:48:45AM +0200, Sascha Hauer wrote:
+> On Mon, Jun 16, 2014 at 12:11:18PM +0200, Denis Carikli wrote:
+> > +
+> >  /*
+> >   * Bitfield of Display Interface signal polarities.
+> >   */
+> > @@ -37,7 +43,7 @@ struct ipu_di_signal_cfg {
+> >  	unsigned clksel_en:1;
+> >  	unsigned clkidle_en:1;
+> >  	unsigned data_pol:1;	/* true = inverted */
+> > -	unsigned clk_pol:1;	/* true = rising edge */
+> > +	unsigned clk_pol:1;
+> >  	unsigned enable_pol:1;
+> >  	unsigned Hsync_pol:1;	/* true = active high */
+> >  	unsigned Vsync_pol:1;
+> 
+> ...can we rename the flags to more meaningful names instead?
+> 
+> 	unsigned clk_pol_rising_edge:1;
+> 	unsigned enable_pol_high:1;
+> 	unsigned hsync_active_high:1;
+> 	unsigned vsync_active_high:1;
 
-Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
----
- arch/arm/boot/dts/r8a7790-lager.dts | 38 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+Now look at patch 7, where these become tri-state:
+- don't change
+- rising edge/active high
+- falling edge/active low
 
-diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
-index 4805c9f..8ecb294 100644
---- a/arch/arm/boot/dts/r8a7790-lager.dts
-+++ b/arch/arm/boot/dts/r8a7790-lager.dts
-@@ -214,6 +214,11 @@
- 		renesas,groups = "i2c2";
- 		renesas,function = "i2c2";
- 	};
-+
-+	vin1_pins: vin {
-+		renesas,groups = "vin1_data8", "vin1_clk";
-+		renesas,function = "vin1";
-+	};
- };
- 
- &ether {
-@@ -342,8 +347,41 @@
- 	status = "ok";
- 	pinctrl-0 = <&i2c2_pins>;
- 	pinctrl-names = "default";
-+
-+	composite-in@20 {
-+		compatible = "adi,adv7180";
-+		reg = <0x20>;
-+		remote = <&vin1>;
-+
-+		port {
-+			adv7180: endpoint {
-+				bus-width = <8>;
-+				remote-endpoint = <&vin1ep0>;
-+			};
-+		};
-+	};
-+
- };
- 
- &i2c3	{
- 	status = "ok";
- };
-+
-+/* composite video input */
-+&vin1 {
-+	pinctrl-0 = <&vin1_pins>;
-+	pinctrl-names = "default";
-+
-+	status = "ok";
-+
-+	port {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		vin1ep0: endpoint {
-+			remote-endpoint = <&adv7180>;
-+			bus-width = <8>;
-+		};
-+	};
-+};
-+
+So your suggestion is not a good idea.
+
 -- 
-2.0.0
-
+FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
+improving, and getting towards what was expected from it.
