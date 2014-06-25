@@ -1,60 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34481 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750820AbaFEMXB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jun 2014 08:23:01 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH/RFC v2 1/2] v4l: vb2: Don't return POLLERR during transient buffer underruns
-Date: Thu,  5 Jun 2014 14:23:10 +0200
-Message-Id: <1401970991-4421-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1401970991-4421-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1401970991-4421-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp6-g21.free.fr ([212.27.42.6]:54507 "EHLO smtp6-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752887AbaFYI1R (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jun 2014 04:27:17 -0400
+Message-ID: <53AA87DE.5030109@eukrea.com>
+Date: Wed, 25 Jun 2014 10:27:10 +0200
+From: Denis Carikli <denis@eukrea.com>
+MIME-Version: 1.0
+To: Thierry Reding <thierry.reding@gmail.com>,
+	=?ISO-8859-1?Q?Eric_B=E9?= =?ISO-8859-1?Q?nard?=
+	<eric@eukrea.com>
+CC: devel@driverdev.osuosl.org, Russell King <linux@arm.linux.org.uk>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	David Airlie <airlied@linux.ie>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	dri-devel@lists.freedesktop.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v14 08/10] drm/panel: Add Eukrea mbimxsd51 displays.
+References: <1402913484-25910-1-git-send-email-denis@eukrea.com> <1402913484-25910-8-git-send-email-denis@eukrea.com> <20140624214926.GA30039@mithrandir> <20140624235639.487429ad@e6520eb> <20140624220404.GA30155@mithrandir>
+In-Reply-To: <20140624220404.GA30155@mithrandir>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2 specification states that
+On 06/25/2014 12:04 AM, Thierry Reding wrote:
+>> because on this very simple display board, we only have DVI LVDS signals
+>> without the I2C to detect the display.
+>
+> That's unfortunate. In that case perhaps a better approach would be to
+> add a video timings node to the device that provides the DVI output?
+I've just done that.
 
-"When the application did not call VIDIOC_QBUF or VIDIOC_STREAMON yet
-the poll() function succeeds, but sets the POLLERR flag in the revents
-field."
+Should I resend now? The goal is to avoid as much as possible extra 
+versions.
 
-The vb2_poll() function sets POLLERR when the queued buffers list is
-empty, regardless of whether this is caused by the stream not being
-active yet, or by a transient buffer underrun.
+Also, as I said before in a response to "[PATCH v14 09/10] ARM: dts: 
+mbimx51sd: Add display support.", the LCD regulator was inverted, it 
+worked while inverted because of a bug which is now fixed by:
+"imx-drm: parallel-display: Fix DPMS default state."
 
-Bring the implementation in line with the specification by returning
-POLLERR only when the queue is not streaming. Buffer underruns during
-streaming are not treated specially anymore and just result in poll()
-blocking until the next event.
+Right now, I don't have any other changes for this serie beside a simple 
+rebase of "dts: imx5*, imx6*: correct display-timings rebased".
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 349e659..fd428e0 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2533,9 +2533,9 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	}
- 
- 	/*
--	 * There is nothing to wait for if no buffers have already been queued.
-+	 * There is nothing to wait for if the queue isn't streaming.
- 	 */
--	if (list_empty(&q->queued_list))
-+	if (!vb2_is_streaming(q))
- 		return res | POLLERR;
- 
- 	if (list_empty(&q->done_list))
--- 
-1.8.5.5
-
+Denis.
