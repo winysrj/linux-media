@@ -1,21 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.scindia.edu ([210.212.152.37]:7003 "EHLO mail.scindia.edu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752094AbaFIMoI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jun 2014 08:44:08 -0400
-From: Yukti Srivasatava <yuktis@scindia.edu>
-Date: Mon, 9 Jun 2014 17:32:11 +0530
-Subject: Donation to you.
-Message-ID: <94DCFBDBFF05CC4F856FFD1006F85B7401EA8D3B1572@ssf-mail.scindia.edu>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60590 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753181AbaFYWo5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jun 2014 18:44:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Gregor Jasny <gjasny@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Reverted patch in v4l-utils
+Date: Thu, 26 Jun 2014 00:45:47 +0200
+Message-ID: <9493283.4VN14WAqps@avalon>
 MIME-Version: 1.0
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Gregor,
 
+I've realized today that I had pushed a commit named "wip" by mistake to the 
+v4l-utils master branch. As other commits have been pushed on top of that I 
+have decided to revert the offending commit instead of rebasing the tree. 
+Please feel free to rebase and remove both the original commit and the revert 
+if preferred.
 
+Sorry for the inconvenience this have caused.
 
-Funds donated to you. Contact email: mrneiltrotter@rogers.com for details
+-- 
+Regards,
+
+Laurent Pinchart
+
