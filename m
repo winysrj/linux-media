@@ -1,64 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50083 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754798AbaFNQQ1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jun 2014 12:16:27 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Takashi Iwai <tiwai@suse.de>
-Cc: alsa-devel@alsa-project.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	stable@vger.kernel.org
-Subject: [PATCH 3/3] sound: Update au0828 quirks table
-Date: Sat, 14 Jun 2014 13:16:11 -0300
-Message-Id: <1402762571-6316-4-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1402762571-6316-1-git-send-email-m.chehab@samsung.com>
-References: <1402762571-6316-1-git-send-email-m.chehab@samsung.com>
+Received: from mail-bn1lp0145.outbound.protection.outlook.com ([207.46.163.145]:56630
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752833AbaFYCaD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jun 2014 22:30:03 -0400
+Date: Wed, 25 Jun 2014 10:29:41 +0800
+From: Shawn Guo <shawn.guo@linaro.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+CC: Denis Carikli <denis@eukrea.com>, <arm@kernel.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Eric =?iso-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	<devel@driverdev.osuosl.org>,
+	"Mauro Carvalho Chehab" <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	<dri-devel@lists.freedesktop.org>, David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v14 05/10] ARM: dts: imx5*, imx6*: correct
+ display-timings nodes.
+Message-ID: <20140625022939.GA5732@dragon>
+References: <1402913484-25910-1-git-send-email-denis@eukrea.com>
+ <1402913484-25910-5-git-send-email-denis@eukrea.com>
+ <20140624150158.GS32514@n2100.arm.linux.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20140624150158.GS32514@n2100.arm.linux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The au0828 quirks table is currently not in sync with the au0828
-media driver.
+On Tue, Jun 24, 2014 at 04:01:58PM +0100, Russell King - ARM Linux wrote:
+> On Mon, Jun 16, 2014 at 12:11:19PM +0200, Denis Carikli wrote:
+> > The imx-drm driver can't use the de-active and
+> > pixelclk-active display-timings properties yet.
+> > 
+> > Instead the data-enable and the pixel data clock
+> > polarity are hardcoded in the imx-drm driver.
+> > 
+> > So theses properties are now set to keep
+> > the same behaviour when imx-drm will start
+> > using them.
+> > 
+> > Signed-off-by: Denis Carikli <denis@eukrea.com>
+> 
+> This patch needs either an ack from the arm-soc/iMX maintainers, or
+> they need to merge it.  As there's little positive agreement on the
+> series, I can understand why there's reluctance to merge it.
+> 
+> So, can we start having some acks from people please, or at least
+> commitments to merge this patch when the others are deemed to be
+> acceptable.  If not, can we have explanations why this should not
+> be merged.
 
-Syncronize it, as all the au0828 devices with analog TV need the
-same quirks.
+I will be happy to merge dts change through IMX tree once the
+binding/diver part gets accepted/applied.
 
-Cc: stable@vger.kernel.org
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- sound/usb/quirks-table.h | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
-
-diff --git a/sound/usb/quirks-table.h b/sound/usb/quirks-table.h
-index 30add0bfee8e..3f882d996981 100644
---- a/sound/usb/quirks-table.h
-+++ b/sound/usb/quirks-table.h
-@@ -2769,14 +2769,22 @@ YAMAHA_DEVICE(0x7010, "UB99"),
- }
- 
- AU0828_DEVICE(0x2040, 0x7200, "Hauppauge", "HVR-950Q"),
-+AU0828_DEVICE(0x2040, 0x7240, "Hauppauge", "HVR-850"),
- AU0828_DEVICE(0x2040, 0x7210, "Hauppauge", "HVR-950Q"),
- AU0828_DEVICE(0x2040, 0x7217, "Hauppauge", "HVR-950Q"),
- AU0828_DEVICE(0x2040, 0x721b, "Hauppauge", "HVR-950Q"),
- AU0828_DEVICE(0x2040, 0x721e, "Hauppauge", "HVR-950Q"),
- AU0828_DEVICE(0x2040, 0x721f, "Hauppauge", "HVR-950Q"),
--AU0828_DEVICE(0x2040, 0x7240, "Hauppauge", "HVR-850"),
- AU0828_DEVICE(0x2040, 0x7280, "Hauppauge", "HVR-950Q"),
- AU0828_DEVICE(0x0fd9, 0x0008, "Hauppauge", "HVR-950Q"),
-+AU0828_DEVICE(0x2040, 0x7201, "Hauppauge", "HVR-950Q-MXL"),
-+AU0828_DEVICE(0x2040, 0x7211, "Hauppauge", "HVR-950Q-MXL"),
-+AU0828_DEVICE(0x2040, 0x7281, "Hauppauge", "HVR-950Q-MXL"),
-+AU0828_DEVICE(0x05e1, 0x0480, "Hauppauge", "Woodbury"),
-+AU0828_DEVICE(0x2040, 0x8200, "Hauppauge", "Woodbury"),
-+AU0828_DEVICE(0x2040, 0x7260, "Hauppauge", "HVR-950Q"),
-+AU0828_DEVICE(0x2040, 0x7213, "Hauppauge", "HVR-950Q"),
-+AU0828_DEVICE(0x2040, 0x7270, "Hauppauge", "HVR-950Q"),
- 
- /* Digidesign Mbox */
- {
--- 
-1.9.3
-
+Shawn
