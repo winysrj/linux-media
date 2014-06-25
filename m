@@ -1,213 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59653 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752084AbaFADjc (ORCPT
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:49498 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753872AbaFYM7w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 May 2014 23:39:32 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 16/18] v4l: vsp1: bru: Support premultiplied alpha at the BRU inputs
-Date: Sun,  1 Jun 2014 05:39:35 +0200
-Message-Id: <1401593977-30660-17-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1401593977-30660-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Wed, 25 Jun 2014 08:59:52 -0400
+Received: by mail-wi0-f181.google.com with SMTP id n3so2480469wiv.2
+        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 05:59:51 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <53AAB68B.4010806@iki.fi>
+References: <1403615732-9193-1-git-send-email-crope@iki.fi>
+	<CAM187nByJMOmOrYJPKfZ0WyrARSD1+eAyoEOKahDiGyk9no5qw@mail.gmail.com>
+	<53AAB68B.4010806@iki.fi>
+Date: Wed, 25 Jun 2014 22:59:50 +1000
+Message-ID: <CAM187nBPf66kBwx6VCFLeQvJ5spiqsRF8wb7MUm8-ffGQQg0Mw@mail.gmail.com>
+Subject: Re: [PATCH] af9035: override tuner id when bad value set into eeprom
+From: David Shirley <tephra@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Unname <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adjust the BRU blending formula to avoid the multiplication by alpha
-when the corresponding input format is premultiplied. As this requires
-access to the RPFs connected to the BRU inputs from the BRU module,
-store pointers to the RPFs in the BRU structure when validating the
-pipeline.
+With the IT913X driver:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_bru.c   | 27 ++++++++++++-------
- drivers/media/platform/vsp1/vsp1_bru.h   |  6 ++++-
- drivers/media/platform/vsp1/vsp1_video.c | 45 +++++++++++++++++++-------------
- 3 files changed, 50 insertions(+), 28 deletions(-)
+I found that IT9135v2_3.42.3.3_3.29.3.3 wouldn't tune at all and
+IT9135v2_3.40.1.0_3.17.1.0 appeared to be less happy to tune (rightly
+so if the reception from the "kernel driver" (ie the one the script
+ftp's and extracts) is anything to go by)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index f806954..d8d49fb 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -18,6 +18,7 @@
- 
- #include "vsp1.h"
- #include "vsp1_bru.h"
-+#include "vsp1_rwpf.h"
- 
- #define BRU_MIN_SIZE				4U
- #define BRU_MAX_SIZE				8190U
-@@ -40,11 +41,6 @@ static inline void vsp1_bru_write(struct vsp1_bru *bru, u32 reg, u32 data)
-  * V4L2 Subdevice Core Operations
-  */
- 
--static bool bru_is_input_enabled(struct vsp1_bru *bru, unsigned int input)
--{
--	return media_entity_remote_pad(&bru->entity.pads[input]) != NULL;
--}
--
- static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
- {
- 	struct vsp1_bru *bru = to_bru(subdev);
-@@ -84,6 +80,7 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
- 		       VI6_BRU_ROP_AROP(VI6_ROP_NOP));
- 
- 	for (i = 0; i < 4; ++i) {
-+		bool premultiplied = false;
- 		u32 ctrl = 0;
- 
- 		/* Configure all Blend/ROP units corresponding to an enabled BRU
-@@ -91,11 +88,15 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
- 		 * disabled BRU inputs are used in ROP NOP mode to ignore the
- 		 * SRC input.
- 		 */
--		if (bru_is_input_enabled(bru, i))
-+		if (bru->inputs[i].rpf) {
- 			ctrl |= VI6_BRU_CTRL_RBC;
--		else
-+
-+			premultiplied = bru->inputs[i].rpf->video.format.flags
-+				      & V4L2_PIX_FMT_FLAG_PREMUL_ALPHA;
-+		} else {
- 			ctrl |= VI6_BRU_CTRL_CROP(VI6_ROP_NOP)
- 			     |  VI6_BRU_CTRL_AROP(VI6_ROP_NOP);
-+		}
- 
- 		/* Select the virtual RPF as the Blend/ROP unit A DST input to
- 		 * serve as a background color.
-@@ -117,10 +118,18 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
- 		 *
- 		 *	DSTc = DSTc * (1 - SRCa) + SRCc * SRCa
- 		 *	DSTa = DSTa * (1 - SRCa) + SRCa
-+		 *
-+		 * when the SRC input isn't premultiplied, and to
-+		 *
-+		 *	DSTc = DSTc * (1 - SRCa) + SRCc
-+		 *	DSTa = DSTa * (1 - SRCa) + SRCa
-+		 *
-+		 * otherwise.
- 		 */
- 		vsp1_bru_write(bru, VI6_BRU_BLD(i),
- 			       VI6_BRU_BLD_CCMDX_255_SRC_A |
--			       VI6_BRU_BLD_CCMDY_SRC_A |
-+			       (premultiplied ? VI6_BRU_BLD_CCMDY_COEFY :
-+						VI6_BRU_BLD_CCMDY_SRC_A) |
- 			       VI6_BRU_BLD_ACMDX_255_SRC_A |
- 			       VI6_BRU_BLD_ACMDY_COEFY |
- 			       (0xff << VI6_BRU_BLD_COEFY_SHIFT));
-@@ -192,7 +201,7 @@ static struct v4l2_rect *bru_get_compose(struct vsp1_bru *bru,
- 	case V4L2_SUBDEV_FORMAT_TRY:
- 		return v4l2_subdev_get_try_crop(fh, pad);
- 	case V4L2_SUBDEV_FORMAT_ACTIVE:
--		return &bru->compose[pad];
-+		return &bru->inputs[pad].compose;
- 	default:
- 		return NULL;
- 	}
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.h b/drivers/media/platform/vsp1/vsp1_bru.h
-index 3706270..5b03479 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.h
-+++ b/drivers/media/platform/vsp1/vsp1_bru.h
-@@ -19,6 +19,7 @@
- #include "vsp1_entity.h"
- 
- struct vsp1_device;
-+struct vsp1_rwpf;
- 
- #define BRU_PAD_SINK(n)				(n)
- #define BRU_PAD_SOURCE				4
-@@ -26,7 +27,10 @@ struct vsp1_device;
- struct vsp1_bru {
- 	struct vsp1_entity entity;
- 
--	struct v4l2_rect compose[4];
-+	struct {
-+		struct vsp1_rwpf *rpf;
-+		struct v4l2_rect compose;
-+	} inputs[4];
- };
- 
- static inline struct vsp1_bru *to_bru(struct v4l2_subdev *subdev)
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index cc22264..f08b63b 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -334,7 +334,10 @@ static int vsp1_pipeline_validate_branch(struct vsp1_rwpf *input,
- 		 */
- 		if (entity->type == VSP1_ENTITY_BRU) {
- 			struct vsp1_bru *bru = to_bru(&entity->subdev);
--			struct v4l2_rect *rect = &bru->compose[pad->index];
-+			struct v4l2_rect *rect =
-+				&bru->inputs[pad->index].compose;
-+
-+			bru->inputs[pad->index].rpf = input;
- 
- 			input->location.left = rect->left;
- 			input->location.top = rect->top;
-@@ -373,6 +376,26 @@ static int vsp1_pipeline_validate_branch(struct vsp1_rwpf *input,
- 	return 0;
- }
- 
-+static void __vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
-+{
-+	if (pipe->bru) {
-+		struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
-+		unsigned int i;
-+
-+		for (i = 0; i < ARRAY_SIZE(bru->inputs); ++i)
-+			bru->inputs[i].rpf = NULL;
-+	}
-+
-+	INIT_LIST_HEAD(&pipe->entities);
-+	pipe->state = VSP1_PIPELINE_STOPPED;
-+	pipe->buffers_ready = 0;
-+	pipe->num_video = 0;
-+	pipe->num_inputs = 0;
-+	pipe->output = NULL;
-+	pipe->bru = NULL;
-+	pipe->lif = NULL;
-+}
-+
- static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
- 				  struct vsp1_video *video)
- {
-@@ -437,13 +460,7 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
- 	return 0;
- 
- error:
--	INIT_LIST_HEAD(&pipe->entities);
--	pipe->buffers_ready = 0;
--	pipe->num_video = 0;
--	pipe->num_inputs = 0;
--	pipe->output = NULL;
--	pipe->bru = NULL;
--	pipe->lif = NULL;
-+	__vsp1_pipeline_cleanup(pipe);
- 	return ret;
- }
- 
-@@ -474,16 +491,8 @@ static void vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
- 	mutex_lock(&pipe->lock);
- 
- 	/* If we're the last user clean up the pipeline. */
--	if (--pipe->use_count == 0) {
--		INIT_LIST_HEAD(&pipe->entities);
--		pipe->state = VSP1_PIPELINE_STOPPED;
--		pipe->buffers_ready = 0;
--		pipe->num_video = 0;
--		pipe->num_inputs = 0;
--		pipe->output = NULL;
--		pipe->bru = NULL;
--		pipe->lif = NULL;
--	}
-+	if (--pipe->use_count == 0)
-+		__vsp1_pipeline_cleanup(pipe);
- 
- 	mutex_unlock(&pipe->lock);
- }
--- 
-1.8.5.5
+I will retest now that i'm on the AF9035 driver, give me a few days :)
 
+On 25 June 2014 21:46, Antti Palosaari <crope@iki.fi> wrote:
+> On 06/25/2014 01:32 PM, David Shirley wrote:
+>>
+>> Patched vanilla 3.15.1, this is the dmesg:
+>>
+>> Jun 25 20:16:16 crystal kernel: [  136.546403] usb 3-4.1.2: new
+>> high-speed USB device number 9 using xhci_hcd
+>> Jun 25 20:16:16 crystal kernel: [  136.634428] usb 3-4.1.2: New USB
+>> device found, idVendor=0413, idProduct=6a05
+>> Jun 25 20:16:16 crystal kernel: [  136.634435] usb 3-4.1.2: New USB
+>> device strings: Mfr=1, Product=2, SerialNumber=0
+>> Jun 25 20:16:16 crystal kernel: [  136.634438] usb 3-4.1.2: Product:
+>> WinFast DTV Dongle Dual
+>> Jun 25 20:16:16 crystal kernel: [  136.634441] usb 3-4.1.2:
+>> Manufacturer: Leadtek
+>> Jun 25 20:16:16 crystal kernel: [  136.643754] usb 3-4.1.2:
+>> dvb_usb_af9035: prechip_version=83 chip_version=02 chip_type=9135
+>> Jun 25 20:16:16 crystal kernel: [  136.644100] usb 3-4.1.2:
+>> dvb_usb_v2: found a 'Leadtek WinFast DTV Dongle Dual' in cold state
+>> Jun 25 20:16:16 crystal kernel: [  136.644429] usb 3-4.1.2:
+>> dvb_usb_v2: downloading firmware from file 'dvb-usb-it9135-02.fw'
+>> Jun 25 20:16:18 crystal kernel: [  138.553335] usb 3-4.1.2:
+>> dvb_usb_af9035: firmware version=3.39.1.0
+>> Jun 25 20:16:18 crystal kernel: [  138.553350] usb 3-4.1.2:
+>> dvb_usb_v2: found a 'Leadtek WinFast DTV Dongle Dual' in warm state
+>> Jun 25 20:16:18 crystal kernel: [  138.555176] usb 3-4.1.2:
+>> dvb_usb_af9035: [0] overriding tuner from 38 to 60
+>> Jun 25 20:16:18 crystal kernel: [  138.556515] usb 3-4.1.2:
+>> dvb_usb_af9035: [1] overriding tuner from 38 to 60
+>> Jun 25 20:16:18 crystal kernel: [  138.557900] usb 3-4.1.2:
+>> dvb_usb_v2: will pass the complete MPEG2 transport stream to the
+>> software demuxer
+>> Jun 25 20:16:18 crystal kernel: [  138.557957] DVB: registering new
+>> adapter (Leadtek WinFast DTV Dongle Dual)
+>> Jun 25 20:16:18 crystal kernel: [  138.564417] i2c i2c-11: af9033:
+>> firmware version: LINK=0.0.0.0 OFDM=3.9.1.0
+>> Jun 25 20:16:18 crystal kernel: [  138.564446] usb 3-4.1.2: DVB:
+>> registering adapter 2 frontend 0 (Afatech AF9033 (DVB-T))...
+>> Jun 25 20:16:18 crystal kernel: [  138.568091] i2c i2c-11:
+>> tuner_it913x: ITE Tech IT913X successfully attached
+>> Jun 25 20:16:18 crystal kernel: [  138.568110] usb 3-4.1.2:
+>> dvb_usb_v2: will pass the complete MPEG2 transport stream to the
+>> software demuxer
+>> Jun 25 20:16:18 crystal kernel: [  138.568139] DVB: registering new
+>> adapter (Leadtek WinFast DTV Dongle Dual)
+>> Jun 25 20:16:18 crystal kernel: [  138.580208] i2c i2c-11: af9033:
+>> firmware version: LINK=0.0.0.0 OFDM=3.9.1.0
+>> Jun 25 20:16:18 crystal kernel: [  138.580219] usb 3-4.1.2: DVB:
+>> registering adapter 3 frontend 0 (Afatech AF9033 (DVB-T))...
+>> Jun 25 20:16:18 crystal kernel: [  138.580364] i2c i2c-11:
+>> tuner_it913x: ITE Tech IT913X successfully attached
+>> Jun 25 20:16:18 crystal kernel: [  138.591871] Registered IR keymap
+>> rc-empty
+>> Jun 25 20:16:18 crystal kernel: [  138.591995] input: Leadtek WinFast
+>> DTV Dongle Dual as
+>> /devices/pci0000:00/0000:00:14.0/usb3/3-4/3-4.1/3-4.1.2/rc/rc2/input11
+>> Jun 25 20:16:18 crystal kernel: [  138.592069] rc2: Leadtek WinFast
+>> DTV Dongle Dual as
+>> /devices/pci0000:00/0000:00:14.0/usb3/3-4/3-4.1/3-4.1.2/rc/rc2
+>> Jun 25 20:16:18 crystal kernel: [  138.592075] usb 3-4.1.2:
+>> dvb_usb_v2: schedule remote query interval to 500 msecs
+>> Jun 25 20:16:18 crystal kernel: [  138.592078] usb 3-4.1.2:
+>> dvb_usb_v2: 'Leadtek WinFast DTV Dongle Dual' successfully initialized
+>> and connected
+>> Jun 25 20:16:18 crystal kernel: [  138.592113] usbcore: registered new
+>> interface driver dvb_usb_af9035
+>>
+>> I can confirm that this tuner now works on the 9035 driver.
+>>
+>> However, im not sure if its the tuner thats just crap or my signal
+>> strength, as an AF9013 can tune and get ok reception, but this IT913X
+>> can tune but barely maintain a good picture. ITE say this particular
+>> tuner requires 2db more so I guess its feasible my 9013's are right on
+>> the border and the 9137 just cant "do it" :)
+>>
+>> I have a new antenna going in on the weekend so I will report back then!
+>
+>
+> Could you test newer firmwares? I have dumped out those initialization
+> register tables from Windows driver version 12.07.06.1. Newer firmwares are
+> dumped out from Windows driver version 12.10.04.1. Due to that newer
+> firmwares will work better with this driver - you were using the oldest
+> firmware. I have got few reports newer or even newest firmware 3.42.3.3 -
+> 3.29.3.3 works most best.
+>
+> http://palosaari.fi/linux/v4l-dvb/firmware/IT9135/12.10.04.1/
+>
+> If that does not help I have to get IT9135 v2 dual device in order to fix
+> it.
+>
+> regards
+> Antti
+>
+>
+>
+>
+>>
+>> Merci!
+>> D.
+>>
+>> On 24 June 2014 23:15, Antti Palosaari <crope@iki.fi> wrote:
+>>>
+>>> Tuner ID set into EEPROM is wrong in some cases, which causes driver
+>>> to select wrong tuner profile. That leads device non-working. Fix
+>>> issue by overriding known bad tuner IDs with suitable default value.
+>>>
+>>> Cc: stable@vger.kernel.org # v3.15+
+>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>> ---
+>>>   drivers/media/usb/dvb-usb-v2/af9035.c | 40
+>>> +++++++++++++++++++++++++++++------
+>>>   1 file changed, 33 insertions(+), 7 deletions(-)
+>>>
+>>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> b/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> index 021e4d3..7b9b75f 100644
+>>> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> @@ -704,15 +704,41 @@ static int af9035_read_config(struct dvb_usb_device
+>>> *d)
+>>>                  if (ret < 0)
+>>>                          goto err;
+>>>
+>>> -               if (tmp == 0x00)
+>>> -                       dev_dbg(&d->udev->dev,
+>>> -                                       "%s: [%d]tuner not set, using
+>>> default\n",
+>>> -                                       __func__, i);
+>>> -               else
+>>> +               dev_dbg(&d->udev->dev, "%s: [%d]tuner=%02x\n",
+>>> +                               __func__, i, tmp);
+>>> +
+>>> +               /* tuner sanity check */
+>>> +               if (state->chip_type == 0x9135) {
+>>> +                       if (state->chip_version == 0x02) {
+>>> +                               /* IT9135 BX (v2) */
+>>> +                               switch (tmp) {
+>>> +                               case AF9033_TUNER_IT9135_60:
+>>> +                               case AF9033_TUNER_IT9135_61:
+>>> +                               case AF9033_TUNER_IT9135_62:
+>>> +                                       state->af9033_config[i].tuner =
+>>> tmp;
+>>> +                                       break;
+>>> +                               }
+>>> +                       } else {
+>>> +                               /* IT9135 AX (v1) */
+>>> +                               switch (tmp) {
+>>> +                               case AF9033_TUNER_IT9135_38:
+>>> +                               case AF9033_TUNER_IT9135_51:
+>>> +                               case AF9033_TUNER_IT9135_52:
+>>> +                                       state->af9033_config[i].tuner =
+>>> tmp;
+>>> +                                       break;
+>>> +                               }
+>>> +                       }
+>>> +               } else {
+>>> +                       /* AF9035 */
+>>>                          state->af9033_config[i].tuner = tmp;
+>>> +               }
+>>>
+>>> -               dev_dbg(&d->udev->dev, "%s: [%d]tuner=%02x\n",
+>>> -                               __func__, i,
+>>> state->af9033_config[i].tuner);
+>>> +               if (state->af9033_config[i].tuner != tmp) {
+>>> +                       dev_info(&d->udev->dev,
+>>> +                                       "%s: [%d] overriding tuner from
+>>> %02x to %02x\n",
+>>> +                                       KBUILD_MODNAME, i, tmp,
+>>> +                                       state->af9033_config[i].tuner);
+>>> +               }
+>>>
+>>>                  switch (state->af9033_config[i].tuner) {
+>>>                  case AF9033_TUNER_TUA9001:
+>>> --
+>>> 1.9.3
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+> --
+> http://palosaari.fi/
