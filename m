@@ -1,66 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48272 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751683AbaFKLjA (ORCPT
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:35690 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752669AbaFYKas (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jun 2014 07:39:00 -0400
-Message-ID: <1402486738.4107.129.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH 04/43] imx-drm: ipu-v3: Add solo/dual-lite IPU device
- type
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Jiada Wang <jiada_wang@mentor.com>
-Date: Wed, 11 Jun 2014 13:38:58 +0200
-In-Reply-To: <1402178205-22697-5-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-	 <1402178205-22697-5-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 25 Jun 2014 06:30:48 -0400
+Date: Wed, 25 Jun 2014 11:30:42 +0100
+From: Mark Rutland <mark.rutland@arm.com>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 1/2] media: soc_camera: pxa_camera documentation
+ device-tree support
+Message-ID: <20140625103042.GB14495@leverpostej>
+References: <1403389307-17489-1-git-send-email-robert.jarzmik@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1403389307-17489-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Samstag, den 07.06.2014, 14:56 -0700 schrieb Steve Longerbeam:
-> Signed-off-by: Jiada Wang <jiada_wang@mentor.com>
-> ---
->  drivers/staging/imx-drm/ipu-v3/ipu-common.c |   18 ++++++++++++++++++
->  include/linux/platform_data/imx-ipu-v3.h    |    1 +
->  2 files changed, 19 insertions(+)
+On Sat, Jun 21, 2014 at 11:21:46PM +0100, Robert Jarzmik wrote:
+> Add device-tree bindings documentation for pxa_camera driver.
 > 
-> diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-> index f8e8c56..2d95a7c 100644
-> --- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-> +++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-> @@ -829,10 +829,28 @@ static struct ipu_devtype ipu_type_imx6q = {
->  	.type = IPUV3H,
->  };
->  
-> +static struct ipu_devtype ipu_type_imx6dl = {
-> +	.name = "IPUv3HDL",
-> +	.cm_ofs = 0x00200000,
-> +	.cpmem_ofs = 0x00300000,
-> +	.srm_ofs = 0x00340000,
-> +	.tpm_ofs = 0x00360000,
-> +	.csi0_ofs = 0x00230000,
-> +	.csi1_ofs = 0x00238000,
-> +	.disp0_ofs = 0x00240000,
-> +	.disp1_ofs = 0x00248000,
-> +	.smfc_ofs =  0x00250000,
-> +	.ic_ofs = 0x00220000,
-> +	.vdi_ofs = 0x00268000,
-> +	.dc_tmpl_ofs = 0x00380000,
-> +	.type = IPUV3HDL,
-> +};
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> ---
+>  .../devicetree/bindings/media/pxa-camera.txt       | 39 ++++++++++++++++++++++
+>  1 file changed, 39 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/pxa-camera.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/pxa-camera.txt b/Documentation/devicetree/bindings/media/pxa-camera.txt
+> new file mode 100644
+> index 0000000..9835aae
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/pxa-camera.txt
+> @@ -0,0 +1,39 @@
+> +Marvell PXA camera host interface
+> +
+> +Required properties:
+> + - compatible: Should be "marvell,pxa27x-qci"
 
-This just duplicates ipu_type_imx6. Do I understand correctly that this
-new type was added just to account for the different input multiplexer
-setup between i.MX6Q and i.MX6DL outside of the IPU?
+Is that x a wildcard? Or is 'x' part of the name of a particular unit?
 
-This would not be necessary if we describe the multiplexers as separate
-v4l2_subdev entities. The same applies to the following patch 05/43.
+We prefer not to have wildcard compatible strings in DT.
 
-regards
-Philipp
+> + - reg: register base and size
+> + - interrupts: the interrupt number
+> + - any required generic properties defined in video-interfaces.txt
+> +
+> +Optional properties:
+> + - clock-frequency: host interface is driving MCLK, and MCLK rate is this rate
 
+Is MCLK an input or an output of this block?
+
+If the former, why isn't this described as a clock?
+
+> +
+> +Example:
+> +
+> +	pxa_camera: pxa_camera@50000000 {
+> +		compatible = "marvell,pxa27x-qci";
+> +		reg = <0x50000000 0x1000>;
+> +		interrupts = <33>;
+> +
+> +		clocks = <&pxa2xx_clks 24>;
+> +		clock-names = "camera";
+
+These weren't mentioned above. Is the clock input line really called
+"camera"?
+
+Mark.
