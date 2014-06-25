@@ -1,69 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:38674 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750981AbaFOT4r (ORCPT
+Received: from charlotte.tuxdriver.com ([70.61.120.58]:55286 "EHLO
+	smtp.tuxdriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750807AbaFYTpM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jun 2014 15:56:47 -0400
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-sh@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
-	magnus.damm@opensource.se, horms@verge.net.au,
-	ian.molton@codethink.co.uk, william.towle@codethink.co.uk,
-	Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: [PATCH 2/9] ARM: lager: add i2c1, i2c2 pins
-Date: Sun, 15 Jun 2014 20:56:27 +0100
-Message-Id: <1402862194-17743-3-git-send-email-ben.dooks@codethink.co.uk>
-In-Reply-To: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
-References: <1402862194-17743-1-git-send-email-ben.dooks@codethink.co.uk>
+	Wed, 25 Jun 2014 15:45:12 -0400
+Date: Wed, 25 Jun 2014 15:41:12 -0400
+From: "John W. Linville" <linville@tuxdriver.com>
+To: Joe Perches <joe@perches.com>
+Cc: linux-kernel@vger.kernel.org,
+	linux-atm-general@lists.sourceforge.net, netdev@vger.kernel.org,
+	iss_storagedev@hp.com, linux-crypto@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-scsi@vger.kernel.org, linux-eata@i-connect.net,
+	devel@driverdev.osuosl.org, linux-arch@vger.kernel.org
+Subject: Re: [PATCH 00/22] Add and use pci_zalloc_consistent
+Message-ID: <20140625194112.GJ3445@tuxdriver.com>
+References: <cover.1403530604.git.joe@perches.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1403530604.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add pinctrl definitions for i2c1 and i2c2 busses on the Lager board
-to ensure these are setup correctly at initialisation time. The i2c0
-and i2c3 busses are connected to single function pins.
+On Mon, Jun 23, 2014 at 06:41:28AM -0700, Joe Perches wrote:
+> Adding the helper reduces object code size as well as overall
+> source size line count.
+> 
+> It's also consistent with all the various zalloc mechanisms
+> in the kernel.
+> 
+> Done with a simple cocci script and some typing.
+> 
+> Joe Perches (22):
 
-Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
----
- arch/arm/boot/dts/r8a7790-lager.dts | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+>   ipw2100: Use pci_zalloc_consistent
+>   mwl8k: Use pci_zalloc_consistent
+>   rtl818x: Use pci_zalloc_consistent
+>   rtlwifi: Use pci_zalloc_consistent
 
-diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
-index 8617755..4805c9f 100644
---- a/arch/arm/boot/dts/r8a7790-lager.dts
-+++ b/arch/arm/boot/dts/r8a7790-lager.dts
-@@ -204,6 +204,16 @@
- 				 "msiof1_tx";
- 		renesas,function = "msiof1";
- 	};
-+
-+	i2c1_pins: i2c1 {
-+		renesas,groups = "i2c1";
-+		renesas,function = "i2c1";
-+	};
-+
-+	i2c2_pins: i2c2 {
-+		renesas,groups = "i2c2";
-+		renesas,function = "i2c2";
-+	};
- };
- 
- &ether {
-@@ -324,10 +334,14 @@
- 
- &i2c1	{
- 	status = "ok";
-+	pinctrl-0 = <&i2c1_pins>;
-+	pinctrl-names = "default";
- };
- 
- &i2c2	{
- 	status = "ok";
-+	pinctrl-0 = <&i2c2_pins>;
-+	pinctrl-names = "default";
- };
- 
- &i2c3	{
+Sure, fine by me.
+
 -- 
-2.0.0
-
+John W. Linville		Someday the world will need a hero, and you
+linville@tuxdriver.com			might be all we have.  Be ready.
