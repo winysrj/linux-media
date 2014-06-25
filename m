@@ -1,85 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57658 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752564AbaFXO43 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 10:56:29 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 21/29] [media] coda: alert userspace about macroblock errors
-Date: Tue, 24 Jun 2014 16:56:03 +0200
-Message-Id: <1403621771-11636-22-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
-References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+Received: from smtp2-g21.free.fr ([212.27.42.2]:51450 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752199AbaFYJot (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jun 2014 05:44:49 -0400
+Message-ID: <53AA9A0F.605@eukrea.com>
+Date: Wed, 25 Jun 2014 11:44:47 +0200
+From: Denis Carikli <denis@eukrea.com>
+MIME-Version: 1.0
+To: Sascha Hauer <s.hauer@pengutronix.de>
+CC: devel@driverdev.osuosl.org, Russell King <linux@arm.linux.org.uk>,
+	=?ISO-8859-1?Q?Eric_B=E9nard?= <eric@eukrea.com>,
+	David Airlie <airlied@linux.ie>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH v14 04/10] imx-drm: use defines for clock polarity settings
+References: <1402913484-25910-1-git-send-email-denis@eukrea.com> <1402913484-25910-4-git-send-email-denis@eukrea.com> <20140625044845.GK5918@pengutronix.de>
+In-Reply-To: <20140625044845.GK5918@pengutronix.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the CODA reports macroblock errors, also set the VB2_BUF_STATE_ERROR flag
-to alert userspace.
+On 06/25/2014 06:48 AM, Sascha Hauer wrote:
+>> +#define ENABLE_POL_LOW		0
+>> +#define ENABLE_POL_HIGH		1
+>
+> Adding defines without a proper namespace (IPU_) outside a driver
+> private header file is not nice. Anyway, instead of adding the
+> defines ...
+Fixed in "imx-drm: use defines for clock polarity settings" and in 
+"imx-drm: Use drm_display_mode timings flags.".
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index a929bbd..6e65ab9 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -243,6 +243,7 @@ struct coda_ctx {
- 	struct coda_aux_buf		internal_frames[CODA_MAX_FRAMEBUFFERS];
- 	u32				frame_types[CODA_MAX_FRAMEBUFFERS];
- 	struct coda_timestamp		frame_timestamps[CODA_MAX_FRAMEBUFFERS];
-+	u32				frame_errors[CODA_MAX_FRAMEBUFFERS];
- 	struct list_head		timestamp_list;
- 	struct coda_aux_buf		workbuf;
- 	int				num_internal_frames;
-@@ -3015,6 +3016,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 	int display_idx;
- 	u32 src_fourcc;
- 	int success;
-+	u32 err_mb;
- 	u32 val;
- 
- 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
-@@ -3084,10 +3086,10 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		/* no cropping */
- 	}
- 
--	val = coda_read(dev, CODA_RET_DEC_PIC_ERR_MB);
--	if (val > 0)
-+	err_mb = coda_read(dev, CODA_RET_DEC_PIC_ERR_MB);
-+	if (err_mb > 0)
- 		v4l2_err(&dev->v4l2_dev,
--			 "errors in %d macroblocks\n", val);
-+			 "errors in %d macroblocks\n", err_mb);
- 
- 	if (dev->devtype->product == CODA_7541) {
- 		val = coda_read(dev, CODA_RET_DEC_PIC_OPTION);
-@@ -3150,6 +3152,8 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 			ctx->frame_types[decoded_idx] = V4L2_BUF_FLAG_PFRAME;
- 		else
- 			ctx->frame_types[decoded_idx] = V4L2_BUF_FLAG_BFRAME;
-+
-+		ctx->frame_errors[decoded_idx] = err_mb;
- 	}
- 
- 	if (display_idx == -1) {
-@@ -3182,8 +3186,8 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 
- 		vb2_set_plane_payload(dst_buf, 0, width * height * 3 / 2);
- 
--		v4l2_m2m_buf_done(dst_buf, success ? VB2_BUF_STATE_DONE :
--						     VB2_BUF_STATE_ERROR);
-+		v4l2_m2m_buf_done(dst_buf, ctx->frame_errors[display_idx] ?
-+				  VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 
- 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
- 			"job finished: decoding frame (%d) (%s)\n",
--- 
-2.0.0
-
+Denis.
