@@ -1,76 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:56735 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755362AbaFSHiS (ORCPT
+Received: from smtp03.smtpout.orange.fr ([80.12.242.125]:29803 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751419AbaFYTdE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jun 2014 03:38:18 -0400
-Date: Thu, 19 Jun 2014 09:38:14 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: devicetree@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] media: mt9m111: add device-tree documentation
-In-Reply-To: <1402863452-30365-2-git-send-email-robert.jarzmik@free.fr>
-Message-ID: <Pine.LNX.4.64.1406190937290.22703@axis700.grange>
-References: <1402863452-30365-1-git-send-email-robert.jarzmik@free.fr>
- <1402863452-30365-2-git-send-email-robert.jarzmik@free.fr>
+	Wed, 25 Jun 2014 15:33:04 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "g.liakhovetski\@gmx.de" <g.liakhovetski@gmx.de>,
+	"devicetree\@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 2/2] media: soc_camera: pxa_camera device-tree support
+References: <1403389307-17489-1-git-send-email-robert.jarzmik@free.fr>
+	<1403389307-17489-2-git-send-email-robert.jarzmik@free.fr>
+	<20140625102801.GA14495@leverpostej>
+Date: Wed, 25 Jun 2014 21:32:58 +0200
+In-Reply-To: <20140625102801.GA14495@leverpostej> (Mark Rutland's message of
+	"Wed, 25 Jun 2014 11:28:01 +0100")
+Message-ID: <878uok9445.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robert,
+Mark Rutland <mark.rutland@arm.com> writes:
 
-On Sun, 15 Jun 2014, Robert Jarzmik wrote:
+> On Sat, Jun 21, 2014 at 11:21:47PM +0100, Robert Jarzmik wrote:
+>> @@ -1650,6 +1651,64 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
+>>  	.set_bus_param	= pxa_camera_set_bus_param,
+>>  };
+>>  
+>> +static int pxa_camera_pdata_from_dt(struct device *dev,
+>> +				    struct pxa_camera_dev *pcdev)
+>> +{
+>> +	int err = 0;
+>> +	struct device_node *np = dev->of_node;
+>> +	struct v4l2_of_endpoint ep;
+>> +
+>> +	err = of_property_read_u32(np, "clock-frequency",
+>> +				   (u32 *)&pcdev->mclk);
+>
+> That cast is either unnecessary or this code is broken.
+Mmm maybe ...
+As a clock rate is an unsigned long by design, where is the
+of_property_read_ulong() function ?
 
-> Add documentation for the Micron mt9m111 image sensor.
+> Use a temporary u32 if the types don't match.
+If there's no of_*() function available, let's do that.
 
-A nitpick: this isn't documentation for the sensor:) This is driver DT 
-bindings' documentation.
-
-Thanks
-Guennadi
-
-> 
-> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> ---
->  .../devicetree/bindings/media/i2c/mt9m111.txt      | 28 ++++++++++++++++++++++
->  1 file changed, 28 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/mt9m111.txt b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-> new file mode 100644
-> index 0000000..ed5a334
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-> @@ -0,0 +1,28 @@
-> +Micron 1.3Mp CMOS Digital Image Sensor
-> +
-> +The Micron MT9M111 is a CMOS active pixel digital image sensor with an active
-> +array size of 1280H x 1024V. It is programmable through a simple two-wire serial
-> +interface.
-> +
-> +Required Properties:
-> +- compatible: value should be "micron,mt9m111"
-> +
-> +For further reading on port node refer to
-> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +Example:
-> +
-> +	i2c_master {
-> +		mt9m111@5d {
-> +			compatible = "micron,mt9m111";
-> +			reg = <0x5d>;
-> +
-> +			remote = <&pxa_camera>;
-> +			port {
-> +				mt9m111_1: endpoint {
-> +					bus-width = <8>;
-> +					remote-endpoint = <&pxa_camera>;
-> +				};
-> +			};
-> +		};
-> +	};
-> -- 
-> 2.0.0.rc2
-> 
+-- 
+Robert
