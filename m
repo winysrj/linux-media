@@ -1,59 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53732 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S933683AbaFLQKX (ORCPT
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:44263 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754850AbaFZHgT convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 12:10:23 -0400
-Received: from valkosipuli.retiisi.org.uk (vihersipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::84:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 6CD7260097
-	for <linux-media@vger.kernel.org>; Thu, 12 Jun 2014 19:10:21 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Thu, 26 Jun 2014 03:36:19 -0400
+Received: by mail-wg0-f52.google.com with SMTP id b13so3144779wgh.35
+        for <linux-media@vger.kernel.org>; Thu, 26 Jun 2014 00:36:18 -0700 (PDT)
+Received: from [192.168.1.100] ([109.89.128.81])
+        by mx.google.com with ESMTPSA id bx2sm12603215wjb.47.2014.06.26.00.36.18
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Thu, 26 Jun 2014 00:36:18 -0700 (PDT)
+From: =?windows-1252?Q?Thomas_L=E9t=E9?= <bistory@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
+Subject: Terratec Cinergy C (HD ?) support
+Message-Id: <4EC457E3-152C-4A0C-9261-A12AA51A70DB@gmail.com>
+Date: Thu, 26 Jun 2014 09:36:17 +0200
 To: linux-media@vger.kernel.org
-Subject: [PATCH 5/5] smiapp: Set 64-bit integer control using v4l2_ctrl_s_ctrl_int64()
-Date: Thu, 12 Jun 2014 19:09:43 +0300
-Message-Id: <1402589383-28165-6-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1402589383-28165-1-git-send-email-sakari.ailus@iki.fi>
-References: <1402589383-28165-1-git-send-email-sakari.ailus@iki.fi>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.2\))
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Hi everyone !
+I just discovered that Terratec made an other revision of their Cinergy C PCI card (it is a DVB-C lci card). I tried to install it on a debian system with the kernel 3.2.0 and with back port 3.14 without success, I have no device in /dev/dvb.
+The wiki page ( http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_C_DVB-C ) shows a card with a black PCB but mine has a white one. The weird thing is that the box says it supports HDTV so I guess I own a HD version even it is not mentioned on the product name.
 
-Don't manipulate struct v4l2_ctrl directly. Instead, use
-v4l2_ctrl_s_ctrl_int64() to change the values.
+lspci -vnn shows that :
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+04:00.0 Multimedia controller [0480]: InfiniCon Systems Inc. Device [1820:4e35] (rev 01)
+	Subsystem: ATELIER INFORMATIQUES et ELECTRONIQUE ETUDES S.A. Device [1539:1178]
+	Flags: bus master, medium devsel, latency 32, IRQ 8
+	Memory at 90100000 (32-bit, prefetchable) [disabled] [size=4K]
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index c669525..95d3d0e 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -297,8 +297,9 @@ static int smiapp_pll_update(struct smiapp_sensor *sensor)
- 	if (rval < 0)
- 		return rval;
- 
--	sensor->pixel_rate_parray->cur.val64 = pll->vt_pix_clk_freq_hz;
--	sensor->pixel_rate_csi->cur.val64 = pll->pixel_rate_csi;
-+	__v4l2_ctrl_s_ctrl_int64(sensor->pixel_rate_parray,
-+				 pll->vt_pix_clk_freq_hz);
-+	__v4l2_ctrl_s_ctrl_int64(sensor->pixel_rate_csi, pll->pixel_rate_csi);
- 
- 	return 0;
- }
-@@ -471,6 +472,10 @@ static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
- 
- 		return smiapp_pll_update(sensor);
- 
-+	case V4L2_CID_PIXEL_RATE:
-+		/* For v4l2_ctrl_s_ctrl_int64() used internally. */
-+		return 0;
-+
- 	default:
- 		return -EINVAL;
- 	}
--- 
-1.7.10.4
+I found no information on this hardware yet…
 
+I’m currently building latest sources but I don’t think it will help so much.
+
+Do you have any clue that could lead supporting this device on linux ?
+
+Thanks !
