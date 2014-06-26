@@ -1,102 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53731 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S933682AbaFLQKW (ORCPT
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:50299 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932317AbaFZBHf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 12:10:22 -0400
-Received: from valkosipuli.retiisi.org.uk (vihersipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::84:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 2BAA560096
-	for <linux-media@vger.kernel.org>; Thu, 12 Jun 2014 19:10:21 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Wed, 25 Jun 2014 21:07:35 -0400
+Received: by mail-pd0-f176.google.com with SMTP id ft15so2321461pdb.7
+        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 18:07:34 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 3/5] smiapp: Use unlocked __v4l2_ctrl_modify_range()
-Date: Thu, 12 Jun 2014 19:09:41 +0300
-Message-Id: <1402589383-28165-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1402589383-28165-1-git-send-email-sakari.ailus@iki.fi>
-References: <1402589383-28165-1-git-send-email-sakari.ailus@iki.fi>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 24/28] gpu: ipu-cpmem: Add ipu_cpmem_set_rotation()
+Date: Wed, 25 Jun 2014 18:05:51 -0700
+Message-Id: <1403744755-24944-25-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Adds ipu_cpmem_set_rotation().
 
-Instead of modifying the control ranges directly by manipulating struct
-v4l2_ctrl, use __v4l2_ctrl_modify_range() for the purpose.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c |   47 ++++++++++----------------------
- 1 file changed, 15 insertions(+), 32 deletions(-)
+ drivers/gpu/ipu-v3/ipu-cpmem.c |   10 ++++++++++
+ include/video/imx-ipu-v3.h     |    2 ++
+ 2 files changed, 12 insertions(+)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 446c82c..c669525 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -319,13 +319,7 @@ static void __smiapp_update_exposure_limits(struct smiapp_sensor *sensor)
- 		+ sensor->vblank->val
- 		- sensor->limits[SMIAPP_LIMIT_COARSE_INTEGRATION_TIME_MAX_MARGIN];
- 
--	ctrl->maximum = max;
--	if (ctrl->default_value > max)
--		ctrl->default_value = max;
--	if (ctrl->val > max)
--		ctrl->val = max;
--	if (ctrl->cur.val > max)
--		ctrl->cur.val = max;
-+	__v4l2_ctrl_modify_range(ctrl, ctrl->minimum, max, ctrl->step, max);
+diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
+index 2d1b376..f52e4b4 100644
+--- a/drivers/gpu/ipu-v3/ipu-cpmem.c
++++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
+@@ -64,6 +64,7 @@ struct ipu_cpmem {
+ #define IPU_FIELD_BNDM		IPU_CPMEM_WORD(0, 114, 3)
+ #define IPU_FIELD_BM		IPU_CPMEM_WORD(0, 117, 2)
+ #define IPU_FIELD_ROT		IPU_CPMEM_WORD(0, 119, 1)
++#define IPU_FIELD_ROT_HF_VF	IPU_CPMEM_WORD(0, 119, 3)
+ #define IPU_FIELD_HF		IPU_CPMEM_WORD(0, 120, 1)
+ #define IPU_FIELD_VF		IPU_CPMEM_WORD(0, 121, 1)
+ #define IPU_FIELD_THE		IPU_CPMEM_WORD(0, 122, 1)
+@@ -273,6 +274,15 @@ void ipu_cpmem_set_block_mode(struct ipuv3_channel *ch)
  }
+ EXPORT_SYMBOL_GPL(ipu_cpmem_set_block_mode);
  
- /*
-@@ -782,36 +776,25 @@ static void smiapp_update_blanking(struct smiapp_sensor *sensor)
- {
- 	struct v4l2_ctrl *vblank = sensor->vblank;
- 	struct v4l2_ctrl *hblank = sensor->hblank;
-+	int min, max;
- 
--	vblank->minimum =
--		max_t(int,
--		      sensor->limits[SMIAPP_LIMIT_MIN_FRAME_BLANKING_LINES],
--		      sensor->limits[SMIAPP_LIMIT_MIN_FRAME_LENGTH_LINES_BIN] -
--		      sensor->pixel_array->crop[SMIAPP_PA_PAD_SRC].height);
--	vblank->maximum =
--		sensor->limits[SMIAPP_LIMIT_MAX_FRAME_LENGTH_LINES_BIN] -
-+	min = max_t(int,
-+		    sensor->limits[SMIAPP_LIMIT_MIN_FRAME_BLANKING_LINES],
-+		    sensor->limits[SMIAPP_LIMIT_MIN_FRAME_LENGTH_LINES_BIN] -
-+		    sensor->pixel_array->crop[SMIAPP_PA_PAD_SRC].height);
-+	max = sensor->limits[SMIAPP_LIMIT_MAX_FRAME_LENGTH_LINES_BIN] -
- 		sensor->pixel_array->crop[SMIAPP_PA_PAD_SRC].height;
- 
--	vblank->val = clamp_t(int, vblank->val,
--			      vblank->minimum, vblank->maximum);
--	vblank->default_value = vblank->minimum;
--	vblank->val = vblank->val;
--	vblank->cur.val = vblank->val;
--
--	hblank->minimum =
--		max_t(int,
--		      sensor->limits[SMIAPP_LIMIT_MIN_LINE_LENGTH_PCK_BIN] -
--		      sensor->pixel_array->crop[SMIAPP_PA_PAD_SRC].width,
--		      sensor->limits[SMIAPP_LIMIT_MIN_LINE_BLANKING_PCK_BIN]);
--	hblank->maximum =
--		sensor->limits[SMIAPP_LIMIT_MAX_LINE_LENGTH_PCK_BIN] -
-+	__v4l2_ctrl_modify_range(vblank, min, max, vblank->step, min);
++void ipu_cpmem_set_rotation(struct ipuv3_channel *ch,
++			    enum ipu_rotate_mode rot)
++{
++	u32 temp_rot = bitrev8(rot) >> 5;
 +
-+	min = max_t(int,
-+		    sensor->limits[SMIAPP_LIMIT_MIN_LINE_LENGTH_PCK_BIN] -
-+		    sensor->pixel_array->crop[SMIAPP_PA_PAD_SRC].width,
-+		    sensor->limits[SMIAPP_LIMIT_MIN_LINE_BLANKING_PCK_BIN]);
-+	max = sensor->limits[SMIAPP_LIMIT_MAX_LINE_LENGTH_PCK_BIN] -
- 		sensor->pixel_array->crop[SMIAPP_PA_PAD_SRC].width;
- 
--	hblank->val = clamp_t(int, hblank->val,
--			      hblank->minimum, hblank->maximum);
--	hblank->default_value = hblank->minimum;
--	hblank->val = hblank->val;
--	hblank->cur.val = hblank->val;
-+	__v4l2_ctrl_modify_range(hblank, min, max, hblank->step, min);
- 
- 	__smiapp_update_exposure_limits(sensor);
- }
++	ipu_ch_param_write_field(ch, IPU_FIELD_ROT_HF_VF, temp_rot);
++}
++EXPORT_SYMBOL_GPL(ipu_cpmem_set_rotation);
++
+ int ipu_cpmem_set_format_rgb(struct ipuv3_channel *ch,
+ 			     const struct ipu_rgb *rgb)
+ {
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 066b10d..3d3cea0 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -233,6 +233,8 @@ void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride);
+ void ipu_cpmem_set_axi_id(struct ipuv3_channel *ch, u32 id);
+ void ipu_cpmem_set_burstsize(struct ipuv3_channel *ch, int burstsize);
+ void ipu_cpmem_set_block_mode(struct ipuv3_channel *ch);
++void ipu_cpmem_set_rotation(struct ipuv3_channel *ch,
++			    enum ipu_rotate_mode rot);
+ int ipu_cpmem_set_format_rgb(struct ipuv3_channel *ch,
+ 			     const struct ipu_rgb *rgb);
+ int ipu_cpmem_set_format_passthrough(struct ipuv3_channel *ch, int width);
 -- 
-1.7.10.4
+1.7.9.5
 
