@@ -1,56 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55954 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753548AbaFDOFW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jun 2014 10:05:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1827 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754177AbaFZCnr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jun 2014 22:43:47 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5Q2hiZe049141
+	for <linux-media@vger.kernel.org>; Thu, 26 Jun 2014 04:43:46 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id EFB8F2A1FCD
+	for <linux-media@vger.kernel.org>; Thu, 26 Jun 2014 04:43:39 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Subject: [PATCH/RFC 1/2] v4l: vb2: Don't return POLLERR during transient buffer underruns
-Date: Wed,  4 Jun 2014 16:05:43 +0200
-Message-Id: <1401890744-22683-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1401890744-22683-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1401890744-22683-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140626024339.EFB8F2A1FCD@tschai.lan>
+Date: Thu, 26 Jun 2014 04:43:39 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2 specification states that
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-"When the application did not call VIDIOC_QBUF or VIDIOC_STREAMON yet
-the poll() function succeeds, but sets the POLLERR flag in the revents
-field."
+Results of the daily build of media_tree:
 
-The vb2_poll() function sets POLLERR when the queued buffers list is
-empty, regardless of whether this is caused by the stream not being
-active yet, or by a transient buffer underrun.
+date:		Thu Jun 26 04:00:18 CEST 2014
+git branch:	test
+git hash:	1fe3a8fe494463cfe2556a25ae41a1499725c178
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-14-gf11dd94
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
-Bring the implementation in line with the specification by returning
-POLLERR only when the queue is not streaming. Buffer underruns during
-streaming are not treated specially anymore and just result in poll()
-blocking until the next event.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-i686: OK
+linux-3.15-i686: OK
+linux-3.16-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-x86_64: OK
+linux-3.15-x86_64: OK
+linux-3.16-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/videobuf2-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Detailed results are available here:
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 11d31bf..5f38774 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -1984,9 +1984,9 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	}
- 
- 	/*
--	 * There is nothing to wait for if no buffers have already been queued.
-+	 * There is nothing to wait for if the queue isn't streaming.
- 	 */
--	if (list_empty(&q->queued_list))
-+	if (!vb2_is_streaming(q))
- 		return res | POLLERR;
- 
- 	poll_wait(file, &q->done_wq, wait);
--- 
-1.8.5.5
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
