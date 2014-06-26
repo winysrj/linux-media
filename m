@@ -1,58 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51090 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752051AbaFST57 (ORCPT
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:51554 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751857AbaFZJGb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jun 2014 15:57:59 -0400
-Date: Thu, 19 Jun 2014 13:01:59 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Rob Clark <robdclark@gmail.com>,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-arch@vger.kernel.org,
-	Thomas Hellstrom <thellstrom@vmware.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Colin Cross <ccross@google.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
+	Thu, 26 Jun 2014 05:06:31 -0400
+Date: Thu, 26 Jun 2014 10:06:25 +0100
+From: Mark Rutland <mark.rutland@arm.com>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
 	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [REPOST PATCH 1/8] fence: dma-buf cross-device synchronization
- (v17)
-Message-ID: <20140619200159.GA27883@kroah.com>
-References: <20140618102957.15728.43525.stgit@patser>
- <20140618103653.15728.4942.stgit@patser>
- <20140619011327.GC10921@kroah.com>
- <CAF6AEGv4Ms+zsrEtpA10bGq04LnRjzVb925co49eVxh4ugkd=A@mail.gmail.com>
- <20140619170059.GA1224@kroah.com>
- <CAKMK7uFa57YjeJCFQhWFr_5cRTTpWxBdJ1qtb5Ojnu-KZpe-Lw@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] media: soc_camera: pxa_camera documentation
+ device-tree support
+Message-ID: <20140626090625.GK15240@leverpostej>
+References: <1403389307-17489-1-git-send-email-robert.jarzmik@free.fr>
+ <20140625103042.GB14495@leverpostej>
+ <874mz893kw.fsf@free.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAKMK7uFa57YjeJCFQhWFr_5cRTTpWxBdJ1qtb5Ojnu-KZpe-Lw@mail.gmail.com>
+In-Reply-To: <874mz893kw.fsf@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 19, 2014 at 09:15:36PM +0200, Daniel Vetter wrote:
-> On Thu, Jun 19, 2014 at 7:00 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
-> >> >> +     BUG_ON(f1->context != f2->context);
-> >> >
-> >> > Nice, you just crashed the kernel, making it impossible to debug or
-> >> > recover :(
-> >>
-> >> agreed, that should probably be 'if (WARN_ON(...)) return NULL;'
-> >>
-> >> (but at least I wouldn't expect to hit that under console_lock so you
-> >> should at least see the last N lines of the backtrace on the screen
-> >> ;-))
-> >
-> > Lots of devices don't have console screens :)
+On Wed, Jun 25, 2014 at 08:44:31PM +0100, Robert Jarzmik wrote:
+> Mark Rutland <mark.rutland@arm.com> writes:
 > 
-> Aside: This is a pet peeve of mine and recently I've switched to
-> rejecting all patch that have a BUG_ON, period.
+> > On Sat, Jun 21, 2014 at 11:21:46PM +0100, Robert Jarzmik wrote:
+> >> +Required properties:
+> >> + - compatible: Should be "marvell,pxa27x-qci"
+> >
+> > Is that x a wildcard? Or is 'x' part of the name of a particular unit?
+> It's kind of a wildcard for a group of platforms
+> It stands for the 3 PXA27x SoCs I'm aware of : PXA270, PXA271, and PXA272. The
+> difference between them is different core frequency range and embedded RAM.
+> 
+> > We prefer not to have wildcard compatible strings in DT.
+> OK, then let's go for "marvell,pxa270-qci".
 
-Please do, I have been for a few years now as well for the same reasons
-you cite.
+That sounds fine to me.
 
-greg k-h
+> >
+> >> + - reg: register base and size
+> >> + - interrupts: the interrupt number
+> >> + - any required generic properties defined in video-interfaces.txt
+> >> +
+> >> +Optional properties:
+> >> + - clock-frequency: host interface is driving MCLK, and MCLK rate is this rate
+> >
+> > Is MCLK an input or an output of this block?
+> An output clock.
+> 
+> > If the former, why isn't this described as a clock?
+> It's a good point. I'll try to add that too. The little trouble I have is that
+> the PXA clocks are not _yet_ in device-tree. Putting a clock description will
+> make this patch dependant on the clock framework patches [1], right ?
+
+Yes, this will.
+
+> 
+> >> 
+> >> +Example:
+> >> +
+> >> +	pxa_camera: pxa_camera@50000000 {
+> >> +		compatible = "marvell,pxa27x-qci";
+> >> +		reg = <0x50000000 0x1000>;
+> >> +		interrupts = <33>;
+> >> +
+> >> +		clocks = <&pxa2xx_clks 24>;
+> >> +		clock-names = "camera";
+> >
+> > These weren't mentioned above. Is the clock input line really called
+> > "camera"?
+> This is another clock, an input clock, independant of the former one. This is
+> the clock actually fed to make this IP block work. This is dependant on the
+> clock framework patches [1].
+
+Ok. This clock should be mentioned in the properties description above.
+
+Thanks,
+Mark.
