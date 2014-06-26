@@ -1,105 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:42379 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753169AbaFXWEM (ORCPT
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:34984 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932324AbaFZBHg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 18:04:12 -0400
-Received: by mail-wg0-f52.google.com with SMTP id b13so1054972wgh.35
-        for <linux-media@vger.kernel.org>; Tue, 24 Jun 2014 15:04:11 -0700 (PDT)
-Date: Wed, 25 Jun 2014 00:04:07 +0200
-From: Thierry Reding <thierry.reding@gmail.com>
-To: Eric =?utf-8?Q?B=C3=A9nard?= <eric@eukrea.com>
-Cc: Denis Carikli <denis@eukrea.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	devel@driverdev.osuosl.org, Russell King <linux@arm.linux.org.uk>,
-	David Airlie <airlied@linux.ie>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH v14 08/10] drm/panel: Add Eukrea mbimxsd51 displays.
-Message-ID: <20140624220404.GA30155@mithrandir>
-References: <1402913484-25910-1-git-send-email-denis@eukrea.com>
- <1402913484-25910-8-git-send-email-denis@eukrea.com>
- <20140624214926.GA30039@mithrandir>
- <20140624235639.487429ad@e6520eb>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="J2SCkAp4GZ/dPZZf"
-Content-Disposition: inline
-In-Reply-To: <20140624235639.487429ad@e6520eb>
+	Wed, 25 Jun 2014 21:07:36 -0400
+Received: by mail-pb0-f41.google.com with SMTP id ma3so2408275pbc.28
+        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 18:07:35 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 25/28] gpu: ipu-cpmem: Add second buffer support to ipu_cpmem_set_image()
+Date: Wed, 25 Jun 2014 18:05:52 -0700
+Message-Id: <1403744755-24944-26-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add a second buffer physaddr to struct ipu_image, for double-buffering
+support.
 
---J2SCkAp4GZ/dPZZf
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/gpu/ipu-v3/ipu-cpmem.c |   32 ++++++++++++++++----------------
+ include/video/imx-ipu-v3.h     |    3 ++-
+ 2 files changed, 18 insertions(+), 17 deletions(-)
 
-On Tue, Jun 24, 2014 at 11:56:39PM +0200, Eric B=C3=A9nard wrote:
-> Hi Thierry,
->=20
-> Le Tue, 24 Jun 2014 23:49:37 +0200,
-> Thierry Reding <thierry.reding@gmail.com> a =C3=A9crit :
->=20
-> > On Mon, Jun 16, 2014 at 12:11:22PM +0200, Denis Carikli wrote:
-> > [...]
-> > > diff --git a/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51=
--dvi-svga.txt b/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dv=
-i-svga.txt
-> > [...]
-> > > @@ -0,0 +1,7 @@
-> > > +Eukrea DVI-SVGA (800x600 pixels) DVI output.
-> > [...]
-> > > diff --git a/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51=
--dvi-vga.txt b/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi=
--vga.txt
-> > [...]
-> > > @@ -0,0 +1,7 @@
-> > > +Eukrea DVI-VGA (640x480 pixels) DVI output.
-> >=20
-> > DVI outputs shouldn't be using the panel framework and this binding at
-> > all. DVI usually has the means to determine all of this by itself. Why
-> > do you need to represent this as a panel in device tree?
-> >=20
-> because on this very simple display board, we only have DVI LVDS signals
-> without the I2C to detect the display.
+diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
+index f52e4b4..cfe2f53 100644
+--- a/drivers/gpu/ipu-v3/ipu-cpmem.c
++++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
+@@ -538,7 +538,7 @@ EXPORT_SYMBOL_GPL(ipu_cpmem_set_fmt);
+ int ipu_cpmem_set_image(struct ipuv3_channel *ch, struct ipu_image *image)
+ {
+ 	struct v4l2_pix_format *pix = &image->pix;
+-	int y_offset, u_offset, v_offset;
++	int offset, y_offset, u_offset, v_offset;
+ 
+ 	pr_debug("%s: resolution: %dx%d stride: %d\n",
+ 		 __func__, pix->width, pix->height,
+@@ -560,30 +560,30 @@ int ipu_cpmem_set_image(struct ipuv3_channel *ch, struct ipu_image *image)
+ 
+ 		ipu_cpmem_set_yuv_planar_full(ch, pix->pixelformat,
+ 				pix->bytesperline, u_offset, v_offset);
+-		ipu_cpmem_set_buffer(ch, 0, image->phys + y_offset);
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + y_offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + y_offset);
+ 		break;
+ 	case V4L2_PIX_FMT_UYVY:
+ 	case V4L2_PIX_FMT_YUYV:
+-		ipu_cpmem_set_buffer(ch, 0, image->phys +
+-				     image->rect.left * 2 +
+-				     image->rect.top * image->pix.bytesperline);
++	case V4L2_PIX_FMT_RGB565:
++		offset = image->rect.left * 2 +
++			image->rect.top * pix->bytesperline;
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + offset);
+ 		break;
+ 	case V4L2_PIX_FMT_RGB32:
+ 	case V4L2_PIX_FMT_BGR32:
+-		ipu_cpmem_set_buffer(ch, 0, image->phys +
+-				     image->rect.left * 4 +
+-				     image->rect.top * image->pix.bytesperline);
+-		break;
+-	case V4L2_PIX_FMT_RGB565:
+-		ipu_cpmem_set_buffer(ch, 0, image->phys +
+-				     image->rect.left * 2 +
+-				     image->rect.top * image->pix.bytesperline);
++		offset = image->rect.left * 4 +
++			image->rect.top * pix->bytesperline;
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + offset);
+ 		break;
+ 	case V4L2_PIX_FMT_RGB24:
+ 	case V4L2_PIX_FMT_BGR24:
+-		ipu_cpmem_set_buffer(ch, 0, image->phys +
+-				     image->rect.left * 3 +
+-				     image->rect.top * image->pix.bytesperline);
++		offset = image->rect.left * 3 +
++			image->rect.top * pix->bytesperline;
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + offset);
+ 		break;
+ 	default:
+ 		return -EINVAL;
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 3d3cea0..542652f 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -221,7 +221,8 @@ struct ipu_rgb {
+ struct ipu_image {
+ 	struct v4l2_pix_format pix;
+ 	struct v4l2_rect rect;
+-	dma_addr_t phys;
++	dma_addr_t phys0;
++	dma_addr_t phys1;
+ };
+ 
+ void ipu_cpmem_zero(struct ipuv3_channel *ch);
+-- 
+1.7.9.5
 
-That's unfortunate. In that case perhaps a better approach would be to
-add a video timings node to the device that provides the DVI output?
-
-The panel bindings are really for internal panels and should define all
-of their properties. That's also why they need a specific compatible
-string.
-
-What the above two bindings define are really "connectors" with a fixed
-resolution rather than panels.
-
-Thierry
-
---J2SCkAp4GZ/dPZZf
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTqfXUAAoJEN0jrNd/PrOhfzMP/2KnbQR781te8wsWlzDpejFf
-LIaSgQG9t36w3Gl4ZU+ji5dMMfnYimoomxlRK5kglZ8xuiA0I9EsHsor1A71+LKh
-g2byFQBD7a8R2F2NEEM3UJuTSRYaWKp7fHL6yfrgZ+6LWz1GsgEALrYTi1NKjENt
-/vvAYmPo4PqXEG7nvP+iOV7YcL7FwHJTwdvclpsMjxwWSjFqY+7aHULZGeND8wgY
-DCF0xdGlFz3t65F08yUciaFCpJpXDURUEKVnc4wrCB2QvHGUb3CecvDI1bEDWsEB
-e47KwE1vugN6gpCMF+OWYRlGfeQZjyX73Gmh0pPcTR9PUFceVIwOqSb8ulJf6CC7
-OSVWJUa63/DpgxAnLUCm0zVmgeDoyEQ9CX/Knc/t3TSqpaB1ggH+h3egKqAjHEvt
-XkwAk55qJYOONmZMbZ89Hp8LkUlvHYQ7To5FQhtxXv96VY65O5IzW/yV8JNuLmN/
-rDGHtuW6mnMUjhTf1o2j5SdtGIIc8dAyykh5wi+roK5u60RrwWrBMYz2w3e9CY3x
-2lB7blV3IKmNVk+NFK9ML7UQjRXM3OH+0UhVjZf0KqvyL7n0LIW3sdqsWbLx7bzT
-tPvygVzutGfrYIkFTWa8xDV1zVAEv0ayEgJB3ilHvR5W/9w1+TjWj1kuIj80ITxK
-BwSydfcGVt8pEuiEEOyb
-=0HU8
------END PGP SIGNATURE-----
-
---J2SCkAp4GZ/dPZZf--
