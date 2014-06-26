@@ -1,66 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60497 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751098AbaFDQpk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jun 2014 12:45:40 -0400
-Message-ID: <1401900328.3447.41.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v2 5/5] [media] mt9v032: use regmap
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Date: Wed, 04 Jun 2014 18:45:28 +0200
-In-Reply-To: <2116541.LBf4Vp52ig@avalon>
-References: <1401788155-3690-1-git-send-email-p.zabel@pengutronix.de>
-	 <1401788155-3690-6-git-send-email-p.zabel@pengutronix.de>
-	 <2116541.LBf4Vp52ig@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:54206 "EHLO
+	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932185AbaFZBHd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jun 2014 21:07:33 -0400
+Received: by mail-pd0-f177.google.com with SMTP id y10so2302623pdj.8
+        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 18:07:33 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 22/28] gpu: ipu-cpmem: Add ipu_cpmem_set_block_mode()
+Date: Wed, 25 Jun 2014 18:05:49 -0700
+Message-Id: <1403744755-24944-23-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Adds ipu_cpmem_set_block_mode().
 
-Am Mittwoch, den 04.06.2014, 17:44 +0200 schrieb Laurent Pinchart:
-> Hi Philipp,
-> 
-> Thank you for the patch.
-> 
-> On Tuesday 03 June 2014 11:35:55 Philipp Zabel wrote:
-> > This switches all register accesses to use regmap. It allows to
-> > use the regmap cache, tracing, and debug register dump facilities,
-> > and removes the need to open code read-modify-writes.
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> 
-> This looks good to me, but I have two small questions:
-> 
-> - How does regmap handle endianness ? It seems to hardcode a big endian byte 
-> order, which is fortunately what we need here.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/gpu/ipu-v3/ipu-cpmem.c |    6 ++++++
+ include/video/imx-ipu-v3.h     |    1 +
+ 2 files changed, 7 insertions(+)
 
-We could set regmap_config->val_format_endian = REGMAP_ENDIAN_BIG.
-This defaults to big endian unless the regmap_bus says otherwise
-(regmap-i2c doesn't).
-
-> I suppose you've successfully tested this patch :-)
-
-Yes.
-
-> - How does regmap handle the register cache ? Will it try to populate it when 
-> initialized, or will it only read registers on demand due to a read or an 
-> update bits operation ?
-
-That depends on the cache implementation. regcache-rbtree has a
-cache_present bitmap per node. As long as the corresponding bit is not
-set, regcache_read will return -ENOENT and regmap_read will then do an
-actual register read (and store the result in the cache).
-
-regcache-flat doesn't have this at all, so it would be necessary to
-provide initial register values in the driver or explicitly read back
-from the hardware during initialization. This is also be possible with
-the rbtree cache.
-
-regards
-Philipp
+diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
+index 7adfa78..28adf39 100644
+--- a/drivers/gpu/ipu-v3/ipu-cpmem.c
++++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
+@@ -260,6 +260,12 @@ void ipu_cpmem_set_burstsize(struct ipuv3_channel *ch, int burstsize)
+ };
+ EXPORT_SYMBOL_GPL(ipu_cpmem_set_burstsize);
+ 
++void ipu_cpmem_set_block_mode(struct ipuv3_channel *ch)
++{
++	ipu_ch_param_write_field(ch, IPU_FIELD_BM, 1);
++}
++EXPORT_SYMBOL_GPL(ipu_cpmem_set_block_mode);
++
+ int ipu_cpmem_set_format_rgb(struct ipuv3_channel *ch,
+ 			     const struct ipu_rgb *rgb)
+ {
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index a86a98a..6146bc7 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -231,6 +231,7 @@ void ipu_cpmem_set_high_priority(struct ipuv3_channel *ch);
+ void ipu_cpmem_set_buffer(struct ipuv3_channel *ch, int bufnum, dma_addr_t buf);
+ void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride);
+ void ipu_cpmem_set_burstsize(struct ipuv3_channel *ch, int burstsize);
++void ipu_cpmem_set_block_mode(struct ipuv3_channel *ch);
+ int ipu_cpmem_set_format_rgb(struct ipuv3_channel *ch,
+ 			     const struct ipu_rgb *rgb);
+ int ipu_cpmem_set_format_passthrough(struct ipuv3_channel *ch, int width);
+-- 
+1.7.9.5
 
