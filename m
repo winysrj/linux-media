@@ -1,91 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54560 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752898AbaFLPAF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 11:00:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg KH <gregkh@linuxfoundation.org>,
-	linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>,
-	Tony Lindgren <tony@atomide.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>, arm@kernel.org,
-	linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
-Date: Thu, 12 Jun 2014 17:00:40 +0200
-Message-ID: <2967185.eJLTMz7aAr@avalon>
-In-Reply-To: <4327970.JdCWevprmq@wuerfel>
-References: <5192928.MkINji4uKU@wuerfel> <20140612142515.GA7653@kroah.com> <4327970.JdCWevprmq@wuerfel>
+Received: from mail.kapsi.fi ([217.30.184.167]:59764 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932202AbaFZNbK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jun 2014 09:31:10 -0400
+Message-ID: <53AC209B.9030707@iki.fi>
+Date: Thu, 26 Jun 2014 16:31:07 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: David Shirley <tephra@gmail.com>
+CC: Unname <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] af9035: override tuner id when bad value set into eeprom
+References: <1403615732-9193-1-git-send-email-crope@iki.fi>	<CAM187nByJMOmOrYJPKfZ0WyrARSD1+eAyoEOKahDiGyk9no5qw@mail.gmail.com>	<53AAB68B.4010806@iki.fi>	<CAM187nBPf66kBwx6VCFLeQvJ5spiqsRF8wb7MUm8-ffGQQg0Mw@mail.gmail.com> <CAM187nBLCjrZREq3A+mNdAkVPEics_pCVVx0ZNrKjzGeR0kdqA@mail.gmail.com>
+In-Reply-To: <CAM187nBLCjrZREq3A+mNdAkVPEics_pCVVx0ZNrKjzGeR0kdqA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
-
-On Thursday 12 June 2014 16:28:39 Arnd Bergmann wrote:
-> On Thursday 12 June 2014 07:25:15 Greg KH wrote:
-> > On Thu, Jun 12, 2014 at 04:15:32PM +0200, Arnd Bergmann wrote:
-> > > On Thursday 12 June 2014 16:12:17 Laurent Pinchart wrote:
-> > > > > From 3a965f4fd5a6b3ef4a66aa4e7c916cfd34fd5706 Mon Sep 17 00:00:00
-> > > > > 2001
-> > > > > From: Arnd Bergmann <arnd@arndb.de>
-> > > > > Date: Tue, 21 Jan 2014 09:32:43 +0100
-> > > > > Subject: [PATCH] [media] staging: tighten omap4iss dependencies
-> > > > > 
-> > > > > The OMAP4 camera support depends on I2C and VIDEO_V4L2, both
-> > > > > of which can be loadable modules. This causes build failures
-> > > > > if we want the camera driver to be built-in.
-> > > > > 
-> > > > > This can be solved by turning the option into "tristate",
-> > > > > which unfortunately causes another problem, because the
-> > > > > driver incorrectly calls a platform-internal interface
-> > > > > for omap4_ctrl_pad_readl/omap4_ctrl_pad_writel.
-> > > > > 
-> > > > > Instead, this patch just forbids the invalid configurations
-> > > > > and ensures that the driver can only be built if all its
-> > > > > dependencies are built-in.
-> > > > > 
-> > > > > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > > > 
-> > > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > > 
-> > > > Should I take this in my tree for v3.17 or would you like to
-> > > > fast-track it ?> > 
-> > > I'd actually like to see it in 3.15 as a stable backport if possible,
-> > 
-> > It's not stable material, sorry.
-> 
-> To clarify, I was talking about second version of the patch,
-> not the original one. It just does this:
+On 06/26/2014 12:41 PM, David Shirley wrote:
+> As promised results on the 9033 driver (with the patch to fix the
+> tuner id/eeprom thingy):
 >
-> >  config VIDEO_OMAP4
-> >       bool "OMAP 4 Camera support"
-> > -     depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C && ARCH_OMAP4
-> > +     depends on VIDEO_V4L2=y && VIDEO_V4L2_SUBDEV_API && I2C=y &&
-> > ARCH_OMAP4
-> >       select VIDEOBUF2_DMA_CONTIG
-> >       ---help---
-> >         Driver for an OMAP 4 ISS controller.
-> 
-> which enforces that configurations that cannot be compiled
-> will not be selectable in Kconfig, so we can have allmodconfig
-> working. I thought that was ok for -stable.
-> 
-> > > but definitely in 3.16. What is the normal path for staging/media
-> > > but fix patches?
-> > 
-> > Through Mauro's tree.
-> 
-> Ok.
+> 3.42:
+> Jun 26 19:30:56 crystal kernel: [  102.250152] i2c i2c-11: af9033:
+> firmware version: LINK=0.0.0.0 OFDM=3.29.3.3
+> root@crystal:~# tzap -c ~mythtv/channels -a 2 ONE
+> using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
+> reading channels from file '/home/mythtv/channels'
+> tuning to 219500000 Hz
+> video pid 0x0202, audio pid 0x0000
+> status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 07 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 07 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 00 | signal ffff | snr 0078 | ber 00000000 | unc 00000000 |
+> status 07 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 00 | signal ffff | snr 0096 | ber 00000000 | unc 00000000 |
+> ^C
+> root@crystal:~# tzap -c ~mythtv/channels -a 3 ONE
+> using '/dev/dvb/adapter3/frontend0' and '/dev/dvb/adapter3/demux0'
+> reading channels from file '/home/mythtv/channels'
+> tuning to 219500000 Hz
+> video pid 0x0202, audio pid 0x0000
+> status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 07 | signal ffff | snr 0046 | ber 00000000 | unc 00000000 |
+> status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 07 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 00 | signal ffff | snr 0046 | ber 73ffffe3 | unc 0000270f |
+> status 07 | signal ffff | snr 0000 | ber 73ffffe3 | unc 00004e1e |
+> status 00 | signal ffff | snr 0046 | ber 73ffffe3 | unc 0000752d |
+> status 07 | signal ffff | snr 0000 | ber 73ffffe3 | unc 00009c3c |
+> status 00 | signal ffff | snr 0046 | ber ffffffff | unc 0000c34c |
+>
+> 3.40:
+> Jun 26 19:35:06 crystal kernel: [   71.134391] i2c i2c-11: af9033:
+> firmware version: LINK=0.0.0.0 OFDM=3.17.1.0
+> root@crystal:~# tzap -c ~mythtv/channels -a 2 ONE
+> using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
+> reading channels from file '/home/mythtv/channels'
+> tuning to 219500000 Hz
+> video pid 0x0202, audio pid 0x0000
+> status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 07 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 07 | signal ffff | snr 0078 | ber 00000000 | unc 00000000 |
+> status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 01 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 00 | signal ffff | snr 0078 | ber 00000000 | unc 00002685 |
+> status 07 | signal ffff | snr 0000 | ber 00000000 | unc 00004d0a |
+> status 00 | signal ffff | snr 008c | ber 00000000 | unc 0000738f |
+> status 01 | signal ffff | snr 0000 | ber 00000000 | unc 00009a14 |
+> status 00 | signal ffff | snr 0000 | ber 00000000 | unc 0000c099 |
+> status 07 | signal ffff | snr 0078 | ber 00000000 | unc 0000e71e |
+> status 00 | signal ffff | snr 0078 | ber ffffffff | unc 00010e2e |
+> status 1f | signal ffff | snr 0000 | ber ffffffff | unc 0001353e | FE_HAS_LOCK
+> status 00 | signal ffff | snr 0122 | ber ffffffff | unc 00015c4e |
+> status 07 | signal ffff | snr 0078 | ber ffffffff | unc 0001835e |
+> status 00 | signal ffff | snr 000a | ber ffffffff | unc 0001aa6e |
+> status 07 | signal ffff | snr 0000 | ber ffffffff | unc 0001d17e |
+> ^C
+>
+> root@crystal:~# tzap -c ~mythtv/channels -a 3 ONE
+> using '/dev/dvb/adapter3/frontend0' and '/dev/dvb/adapter3/demux0'
+> reading channels from file '/home/mythtv/channels'
+> tuning to 219500000 Hz
+> video pid 0x0202, audio pid 0x0000
+> status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 01 | signal ffff | snr 00aa | ber 00000000 | unc 00000000 |
+> status 00 | signal ffff | snr 0096 | ber 00000000 | unc 00000000 |
+> status 07 | signal ffff | snr 0046 | ber 00000000 | unc 00000000 |
+> status 00 | signal ffff | snr 0046 | ber 00000000 | unc 00000000 |
+> status 01 | signal ffff | snr 0046 | ber 00000000 | unc 00000000 |
+> status 1f | signal ffff | snr 010e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 001e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 07 | signal ffff | snr 00aa | ber 00000000 | unc 0000211c |
+> status 07 | signal ffff | snr 00aa | ber ffffffff | unc 0000482c |
+> status 07 | signal ffff | snr 0000 | ber 76aaaa8d | unc 00006f39 |
+> status 07 | signal ffff | snr 0046 | ber 76aaaa8d | unc 00009646 |
+> status 07 | signal ffff | snr 0046 | ber ffffffff | unc 0000bd56 |
+> status 07 | signal ffff | snr 0000 | ber ffffffff | unc 0000e466 |
+> status 07 | signal ffff | snr 0046 | ber ffffffff | unc 00010b76 |
+> status 1f | signal ffff | snr 0118 | ber ffffffff | unc 00013286 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 00dc | ber ffffffff | unc 00015996 | FE_HAS_LOCK
+> status 07 | signal ffff | snr 00aa | ber ffffffff | unc 000180a6 |
+> status 07 | signal ffff | snr 00aa | ber ffffffff | unc 0001a7b6 |
+> ^C
+>
+>
+> stock kernel driver (ftp/extract from ite.com.tw):
+> Jun 26 19:38:31 crystal kernel: [  276.422317] i2c i2c-11: af9033:
+> firmware version: LINK=0.0.0.0 OFDM=3.9.1.0
+> root@crystal:/lib/firmware# tzap -c ~mythtv/channels -a 2 ONE
+> using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
+> reading channels from file '/home/mythtv/channels'
+> tuning to 219500000 Hz
+> video pid 0x0202, audio pid 0x0000
+> status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 1f | signal ffff | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 00d2 | ber 082496b0 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 00d2 | ber 06a6ca1a | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 00d2 | ber 05336f08 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 00d2 | ber 05c002a6 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 00d2 | ber 03d55fd6 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 00d2 | ber 04a8b336 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 00d2 | ber 05c05148 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 00d2 | ber 06a6470c | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 00d2 | ber 04e7df5c | unc 00000000 | FE_HAS_LOCK
+> ^C
+> root@crystal:/lib/firmware# tzap -c ~mythtv/channels -a 3 ONE
+> using '/dev/dvb/adapter3/frontend0' and '/dev/dvb/adapter3/demux0'
+> reading channels from file '/home/mythtv/channels'
+> tuning to 219500000 Hz
+> video pid 0x0202, audio pid 0x0000
+> status 00 | signal ffff | snr 0000 | ber 00000000 | unc 00000000 |
+> status 1f | signal ffff | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 0104 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> ^C
+>
+> As you can see the stock kernel/download-extract file gives best lock.
+>
+> The 3.42 doesn't lock at all, and the 3.40 has a hard time maintaining the lock.
+>
+> I will retest after new antenna goes on :)
 
-I've applied the patch to my tree and will send a pull request to Mauro for 
-v3.16 as soon as you reach an agreement with Greg on whether I should add CC: 
-stable or not.
+Thank you for testing. Oldest firmware works, but it is not likely how 
+it should perform. Tuner#0 reports SNR 21.0 dB (0.1 * 0xd2 = 21 dec) and 
+tuner#1 29 dB for same signal. 21 dB is too low and bit-error counter 
+(BER) is running all the time. It is likely error correction (FEC) could 
+not fix all errors on long ran and then UNC counter will increase too. 
+When UNC increases there is uncorrected error on stream, which is 
+typically visible on picture or audio.
+
+Did you test old it9135 driver to see how it performs using oldest and 
+best working firmware?
+
+regards
+Antti
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
