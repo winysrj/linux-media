@@ -1,48 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57696 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754007AbaFXO4a (ORCPT
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:44418 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750940AbaFZU4s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jun 2014 10:56:30 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 28/29] [media] coda: increase frame stride to 16 for h.264
-Date: Tue, 24 Jun 2014 16:56:10 +0200
-Message-Id: <1403621771-11636-29-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
-References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+	Thu, 26 Jun 2014 16:56:48 -0400
+Date: Thu, 26 Jun 2014 21:56:31 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Denis Carikli <denis@eukrea.com>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>, devel@driverdev.osuosl.org,
+	Eric =?iso-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
+	David Airlie <airlied@linux.ie>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH v14 04/10] imx-drm: use defines for clock polarity
+	settings
+Message-ID: <20140626205631.GB32514@n2100.arm.linux.org.uk>
+References: <1402913484-25910-1-git-send-email-denis@eukrea.com> <1402913484-25910-4-git-send-email-denis@eukrea.com> <20140625044845.GK5918@pengutronix.de> <53AA9A0F.605@eukrea.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53AA9A0F.605@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When encoding into h.264, the input frame stride needs to be a multiple of 16.
-During allocation of the input buffers, it may not be known yet whether the
-encoder should create h.264 or not. Assume the worst and always use a frame
-stride that is a multiple of 16.
+On Wed, Jun 25, 2014 at 11:44:47AM +0200, Denis Carikli wrote:
+> On 06/25/2014 06:48 AM, Sascha Hauer wrote:
+>>> +#define ENABLE_POL_LOW		0
+>>> +#define ENABLE_POL_HIGH		1
+>>
+>> Adding defines without a proper namespace (IPU_) outside a driver
+>> private header file is not nice. Anyway, instead of adding the
+>> defines ...
+> Fixed in "imx-drm: use defines for clock polarity settings" and in  
+> "imx-drm: Use drm_display_mode timings flags.".
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Denis, can you send just this one updated patch, so I can update the
+one I have here with this change.  Once you've done that, I'll send
+the first four off to Greg.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 9796bfd..ec2b183 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -685,8 +685,8 @@ static int coda_try_fmt(struct coda_ctx *ctx, struct coda_codec *codec,
- 	switch (f->fmt.pix.pixelformat) {
- 	case V4L2_PIX_FMT_YUV420:
- 	case V4L2_PIX_FMT_YVU420:
--		/* Frame stride must be multiple of 8 */
--		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 8);
-+		/* Frame stride must be multiple of 8, but 16 for h.264 */
-+		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 16);
- 		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
- 					f->fmt.pix.height * 3 / 2;
- 		break;
+Thanks.
+
 -- 
-2.0.0
-
+FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
+improving, and getting towards what was expected from it.
