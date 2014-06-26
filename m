@@ -1,81 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44596 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753427AbaFMQJV (ORCPT
+Received: from mail-pb0-f50.google.com ([209.85.160.50]:50554 "EHLO
+	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757489AbaFZBHR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jun 2014 12:09:21 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+	Wed, 25 Jun 2014 21:07:17 -0400
+Received: by mail-pb0-f50.google.com with SMTP id rp16so2401396pbb.23
+        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 18:07:16 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 00/30] Initial CODA960 (i.MX6 VPU) support
-Date: Fri, 13 Jun 2014 18:08:26 +0200
-Message-Id: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 02/28] gpu: ipu-v3: Add ipu_get_num()
+Date: Wed, 25 Jun 2014 18:05:29 -0700
+Message-Id: <1403744755-24944-3-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Adds of-alias id to ipu_soc and retrieve with ipu_get_num().
 
-the following series adds initial support for the CODA960 Video
-Processing Unit on i.MX6Q/D/DL/S SoCs to the coda driver.
+ipu_get_num() is used to select inputs to CSI units in IOMUXC.
+It is also used to select an SMFC channel for video capture.
 
-This series contains a few fixes and preparations, the CODA960
-support patch, a rework of the hardware access serialization
-into a single threaded workqueue, some cleanups to use more
-infrastructure that is available in the meantime, runtime PM
-support, a few h.264 related v4l2 controls and fixes, support
-for hard resets via the i.MX system reset controller, and a
-patch that exports internal buffers to debugfs.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/gpu/ipu-v3/ipu-common.c |    8 ++++++++
+ drivers/gpu/ipu-v3/ipu-prv.h    |    1 +
+ include/video/imx-ipu-v3.h      |    5 +++++
+ 3 files changed, 14 insertions(+)
 
-regards
-Philipp
-
-Michael Olbrich (2):
-  [media] v4l2-mem2mem: export v4l2_m2m_try_schedule
-  [media] coda: try to schedule a decode run after a stop command
-
-Philipp Zabel (28):
-  [media] coda: fix decoder I/P/B frame detection
-  [media] coda: fix readback of CODA_RET_DEC_SEQ_FRAME_NEED
-  [media] coda: fix h.264 quantization parameter range
-  [media] coda: fix internal framebuffer allocation size
-  [media] coda: simplify IRAM setup
-  [media] coda: Add encoder/decoder support for CODA960
-  [media] coda: add selection API support for h.264 decoder
-  [media] coda: add support for frame size enumeration
-  [media] coda: add workqueue to serialize hardware commands
-  [media] coda: Use mem-to-mem ioctl helpers
-  [media] coda: use ctx->fh.m2m_ctx instead of ctx->m2m_ctx
-  [media] coda: Add runtime pm support
-  [media] coda: split firmware version check out of coda_hw_init
-  [media] coda: select GENERIC_ALLOCATOR
-  [media] coda: add h.264 min/max qp controls
-  [media] coda: add h.264 deblocking filter controls
-  [media] coda: add cyclic intra refresh control
-  [media] coda: let userspace force IDR frames by enabling the keyframe
-    flag in the source buffer
-  [media] coda: add decoder timestamp queue
-  [media] coda: alert userspace about macroblock errors
-  [media] coda: add sequence counter offset
-  [media] coda: use prescan_failed variable to stop stream after a
-    timeout
-  [media] coda: add reset control support
-  [media] coda: add bytesperline to queue data
-  [media] coda: allow odd width, but still round up bytesperline
-  [media] coda: round up internal frames to multiples of macroblock size
-    for h.264
-  [media] coda: increase frame stride to 16 for h.264
-  [media] coda: export auxiliary buffers via debugfs
-
- drivers/media/platform/Kconfig         |    1 +
- drivers/media/platform/coda.c          | 1505 +++++++++++++++++++++++---------
- drivers/media/platform/coda.h          |  115 ++-
- drivers/media/v4l2-core/v4l2-mem2mem.c |    3 +-
- include/media/v4l2-mem2mem.h           |    2 +
- 5 files changed, 1197 insertions(+), 429 deletions(-)
-
+diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
+index 04e7b2e..a92f48b 100644
+--- a/drivers/gpu/ipu-v3/ipu-common.c
++++ b/drivers/gpu/ipu-v3/ipu-common.c
+@@ -55,6 +55,12 @@ static inline void ipu_idmac_write(struct ipu_soc *ipu, u32 value,
+ 	writel(value, ipu->idmac_reg + offset);
+ }
+ 
++int ipu_get_num(struct ipu_soc *ipu)
++{
++	return ipu->id;
++}
++EXPORT_SYMBOL_GPL(ipu_get_num);
++
+ void ipu_srm_dp_sync_update(struct ipu_soc *ipu)
+ {
+ 	u32 val;
+@@ -1205,6 +1211,7 @@ static int ipu_probe(struct platform_device *pdev)
+ {
+ 	const struct of_device_id *of_id =
+ 			of_match_device(imx_ipu_dt_ids, &pdev->dev);
++	struct device_node *np = pdev->dev.of_node;
+ 	struct ipu_soc *ipu;
+ 	struct resource *res;
+ 	unsigned long ipu_base;
+@@ -1233,6 +1240,7 @@ static int ipu_probe(struct platform_device *pdev)
+ 		ipu->channel[i].ipu = ipu;
+ 	ipu->devtype = devtype;
+ 	ipu->ipu_type = devtype->type;
++	ipu->id = of_alias_get_id(np, "ipu");
+ 
+ 	spin_lock_init(&ipu->lock);
+ 	mutex_init(&ipu->channel_lock);
+diff --git a/drivers/gpu/ipu-v3/ipu-prv.h b/drivers/gpu/ipu-v3/ipu-prv.h
+index c93f50e..55ae20c 100644
+--- a/drivers/gpu/ipu-v3/ipu-prv.h
++++ b/drivers/gpu/ipu-v3/ipu-prv.h
+@@ -166,6 +166,7 @@ struct ipu_soc {
+ 	void __iomem		*idmac_reg;
+ 	struct ipu_ch_param __iomem	*cpmem_base;
+ 
++	int			id;
+ 	int			usecount;
+ 
+ 	struct clk		*clk;
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 3e43e22..739d204 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -93,6 +93,11 @@ int ipu_idmac_channel_irq(struct ipu_soc *ipu, struct ipuv3_channel *channel,
+ #define IPU_IRQ_VSYNC_PRE_1		(448 + 15)
+ 
+ /*
++ * IPU Common functions
++ */
++int ipu_get_num(struct ipu_soc *ipu);
++
++/*
+  * IPU Image DMA Controller (idmac) functions
+  */
+ struct ipuv3_channel *ipu_idmac_get(struct ipu_soc *ipu, unsigned channel);
 -- 
-2.0.0.rc2
+1.7.9.5
 
