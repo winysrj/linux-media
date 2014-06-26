@@ -1,79 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44514 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753423AbaFMQJM (ORCPT
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:46029 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757478AbaFZBHV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jun 2014 12:09:12 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+	Wed, 25 Jun 2014 21:07:21 -0400
+Received: by mail-pb0-f53.google.com with SMTP id uo5so2376235pbc.26
+        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 18:07:21 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 23/30] [media] coda: add sequence counter offset
-Date: Fri, 13 Jun 2014 18:08:49 +0200
-Message-Id: <1402675736-15379-24-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 08/28] gpu: ipu-v3: smfc: Add ipu_smfc_set_watermark()
+Date: Wed, 25 Jun 2014 18:05:35 -0700
+Message-Id: <1403744755-24944-9-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The coda h.264 decoder also counts PIC_RUNs where no frame was decoded but
-a frame was rotated out / marked as ready to be displayed. This causes an
-offset between the incoming encoded frame's sequence number and the decode
-sequence number returned by the coda. This patch introduces a sequence
-counter offset variable to keep track of the difference.
+Adds ipu_smfc_set_watermark() which programs a channel's SMFC FIFO
+levels at which the watermark signal is set and cleared.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/platform/coda.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/gpu/ipu-v3/ipu-smfc.c |   20 ++++++++++++++++++++
+ include/video/imx-ipu-v3.h    |    1 +
+ 2 files changed, 21 insertions(+)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 93836c8..4641667dbc 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -222,6 +222,7 @@ struct coda_ctx {
- 	u32				isequence;
- 	u32				qsequence;
- 	u32				osequence;
-+	u32				sequence_offset;
- 	struct coda_q_data		q_data[2];
- 	enum coda_inst_type		inst_type;
- 	struct coda_codec		*codec;
-@@ -2674,6 +2675,7 @@ static void coda_stop_streaming(struct vb2_queue *q)
- 		ctx->streamon_cap = 0;
+diff --git a/drivers/gpu/ipu-v3/ipu-smfc.c b/drivers/gpu/ipu-v3/ipu-smfc.c
+index a6429ca..6ca9b43 100644
+--- a/drivers/gpu/ipu-v3/ipu-smfc.c
++++ b/drivers/gpu/ipu-v3/ipu-smfc.c
+@@ -80,6 +80,26 @@ int ipu_smfc_map_channel(struct ipu_smfc *smfc, int csi_id, int mipi_id)
+ }
+ EXPORT_SYMBOL_GPL(ipu_smfc_map_channel);
  
- 		ctx->osequence = 0;
-+		ctx->sequence_offset = 0;
- 	}
++int ipu_smfc_set_watermark(struct ipu_smfc *smfc, u32 set_level, u32 clr_level)
++{
++	struct ipu_smfc_priv *priv = smfc->priv;
++	unsigned long flags;
++	u32 val, shift;
++
++	spin_lock_irqsave(&priv->lock, flags);
++
++	shift = smfc->chno * 6 + (smfc->chno > 1 ? 4 : 0);
++	val = readl(priv->base + SMFC_WMC);
++	val &= ~(0x3f << shift);
++	val |= ((clr_level << 3) | set_level) << shift;
++	writel(val, priv->base + SMFC_WMC);
++
++	spin_unlock_irqrestore(&priv->lock, flags);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(ipu_smfc_set_watermark);
++
+ int ipu_smfc_enable(struct ipu_smfc *smfc)
+ {
+ 	struct ipu_smfc_priv *priv = smfc->priv;
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 27fb980..e69b247 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -297,6 +297,7 @@ int ipu_smfc_enable(struct ipu_smfc *smfc);
+ int ipu_smfc_disable(struct ipu_smfc *smfc);
+ int ipu_smfc_map_channel(struct ipu_smfc *smfc, int csi_id, int mipi_id);
+ int ipu_smfc_set_burstsize(struct ipu_smfc *smfc, int burstsize);
++int ipu_smfc_set_watermark(struct ipu_smfc *smfc, u32 set_level, u32 clr_level);
  
- 	if (!ctx->streamon_out && !ctx->streamon_cap) {
-@@ -3179,7 +3181,9 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ #define IPU_CPMEM_WORD(word, ofs, size) ((((word) * 160 + (ofs)) << 8) | (size))
  
- 	if (decoded_idx == -1) {
- 		/* no frame was decoded, but we might have a display frame */
--		if (display_idx < 0 && ctx->display_idx < 0)
-+		if (display_idx >= 0 && display_idx < ctx->num_internal_frames)
-+			ctx->sequence_offset++;
-+		else if (ctx->display_idx < 0)
- 			ctx->prescan_failed = true;
- 	} else if (decoded_idx == -2) {
- 		/* no frame was decoded, we still return the remaining buffers */
-@@ -3191,10 +3195,11 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 				      struct coda_timestamp, list);
- 		list_del(&ts->list);
- 		val = coda_read(dev, CODA_RET_DEC_PIC_FRAME_NUM) - 1;
-+		val -= ctx->sequence_offset;
- 		if (val != ts->sequence) {
- 			v4l2_err(&dev->v4l2_dev,
--				 "sequence number mismatch (%d != %d)\n",
--				 val, ts->sequence);
-+				 "sequence number mismatch (%d(%d) != %d)\n",
-+				 val, ctx->sequence_offset, ts->sequence);
- 		}
- 		ctx->frame_timestamps[decoded_idx] = *ts;
- 		kfree(ts);
 -- 
-2.0.0.rc2
+1.7.9.5
 
