@@ -1,133 +1,296 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from HC210-202-87-179.vdslpro.static.apol.com.tw ([210.202.87.179]:48754
-	"EHLO ironport.internal.ite.com.tw" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751127AbaFKFlx (ORCPT
+Received: from mail-pb0-f44.google.com ([209.85.160.44]:56586 "EHLO
+	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932307AbaFZBHh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jun 2014 01:41:53 -0400
-From: <Jason.Dong@ite.com.tw>
-To: <sebastian_ml@gmx.net>, <linux-media@vger.kernel.org>
-Subject: RE: AF9033 / IT913X: Avermedia A835B(1835) only works sporadically
-Date: Wed, 11 Jun 2014 05:31:47 +0000
-Message-ID: <97D30D57D08C2C49A26A3312F17290483B008B5E@TPEMAIL2.internal.ite.com.tw>
-References: <20140610125059.GA1930@wolfgang>
-In-Reply-To: <20140610125059.GA1930@wolfgang>
-Content-Language: zh-TW
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+	Wed, 25 Jun 2014 21:07:37 -0400
+Received: by mail-pb0-f44.google.com with SMTP id md12so2421196pbc.3
+        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 18:07:36 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Dmitry Eremin-Solenikov <dmitry_eremin@mentor.com>,
+	Mohsin Kazmi <mohsin_kazmi@mentor.com>
+Subject: [PATCH 26/28] gpu: ipu-v3: Add more planar formats support
+Date: Wed, 25 Jun 2014 18:05:53 -0700
+Message-Id: <1403744755-24944-27-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RGVhciBTZWJhc3RpYW4sDQoNClRoZXJlIGlzIGEgUkYgcGVyZm9ybWFuY2UgaXNzdWUgaW4gdGhl
-IGFmOTAzMyBkcml2ZXIgb2Yga2VybmVsIDMuMTUuIEl0IGlzIG5vIHByb2JsZW0gaW4gdGhlIGl0
-OTEzeCBkcml2ZXIgb2Yga2VybmVsIDMuMTQuDQpUaGVyZSB3ZXJlIHNvbWUgaW5pdGlhbCBzZXF1
-ZW5jZXMgbm90IGNvcnJlY3QgYWZ0ZXIgdGhlIGl0OTEzeCBkcml2ZXIgd2FzIGludGVncmF0ZWQg
-aW50byBhZjkwMzMgZHJpdmVyLg0KDQpCUnMsDQpKYXNvbg0KDQotLS0tLU9yaWdpbmFsIE1lc3Nh
-Z2UtLS0tLQ0KRnJvbTogbGludXgtbWVkaWEtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86
-bGludXgtbWVkaWEtb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgU2ViYXN0aWFu
-IEtlbXBlcg0KU2VudDogVHVlc2RheSwgSnVuZSAxMCwgMjAxNCA4OjUxIFBNDQpUbzogbGludXgt
-bWVkaWFAdmdlci5rZXJuZWwub3JnDQpTdWJqZWN0OiBBRjkwMzMgLyBJVDkxM1g6IEF2ZXJtZWRp
-YSBBODM1QigxODM1KSBvbmx5IHdvcmtzIHNwb3JhZGljYWxseQ0KDQpIZWxsbyBsaXN0LA0KDQpJ
-IGhhdmUgYW4gIkF2ZXJtZWRpYSBBODM1QigxODM1KSIgVVNCIERWQi1UIHN0aWNrICgwN2NhOjE4
-MzUpIHdoaWNoIHdvcmtzIG9ubHkgKHZlcnkpIHNwb3JhZGljYWxseS4gSXQncyBwdXJlIGx1Y2sg
-YXMgZmFyIGFzIEkgY2FuIHNlZS4NCkkgY2FuJ3QgcmVwcm9kdWNlIGhvdyB0byBnZXQgaXQgd29y
-a2luZy4gVGhlcmUgYXJlIG5vIHNwZWNpYWwgc3RlcHMgdGhhdCBJIGNhbiB0YWtlIHRvIGd1YXJh
-bnRlZSB0aGF0IGl0J2xsIHdvcmsgb25jZSBJIHBsdWcgaXQgaW4uDQoNCkknZCByYXRlIG15IGNo
-YW5jZXMgb2YgaGF2aW5nIHRoZSBkZXZpY2UgYWN0dWFsbHkgd29ya2luZyBiZXR3ZWVuIDUgYW5k
-DQoxMCBwZXJjZW50Lg0KDQpJbiB0aGUgbG9nIGV2ZXJ5dGhpbmcgbG9va3MgZmluZSwgYXBhcnQg
-ZnJvbSB0aGUgbWVzc2FnZXMgYXQgdGhlIGJvdHRvbSBhYm91dCB0aGUgZGV2aWNlIG5vdCBiZWlu
-ZyBhYmxlIHRvIGdldCBhIGxvY2sgb24gYSBjaGFubmVsLg0KDQpSZWNlcHRpb24gaGVyZSBpcyBy
-ZWFsbHkgZ29vZCwgc28gdGhlcmUncyBubyBwcm9ibGVtIHdpdGggc2lnbmFsIHN0cmVuZ3RoLiBX
-aGVuIGxvYWRpbmcgdGhlIGRldmljZSBpbiBXaW5kb3dzIDcgNjQgYml0IGl0IGFsd2F5cyBmaW5k
-cyBhIGxvY2suDQoNCkhhcyBhbnlib2R5IGFueSBpZGVhPyBUaGFua3MgZm9yIGFueSBzdWdnZXN0
-aW9ucyENCg0KSnVuIDEwIDE0OjE4OjA3IG1laW5lciBrZXJuZWw6IHVzYiAxLTI6IG5ldyBoaWdo
-LXNwZWVkIFVTQiBkZXZpY2UgbnVtYmVyIDIgdXNpbmcgeGhjaV9oY2QgSnVuIDEwIDE0OjE4OjA3
-IG1laW5lciBrZXJuZWw6IFdBUk5JTkc6IFlvdSBhcmUgdXNpbmcgYW4gZXhwZXJpbWVudGFsIHZl
-cnNpb24gb2YgdGhlIG1lZGlhIHN0YWNrLg0KSnVuIDEwIDE0OjE4OjA3IG1laW5lciBrZXJuZWw6
-IAlBcyB0aGUgZHJpdmVyIGlzIGJhY2twb3J0ZWQgdG8gYW4gb2xkZXIga2VybmVsLCBpdCBkb2Vz
-bid0IG9mZmVyDQpKdW4gMTAgMTQ6MTg6MDcgbWVpbmVyIGtlcm5lbDogCWVub3VnaCBxdWFsaXR5
-IGZvciBpdHMgdXNhZ2UgaW4gcHJvZHVjdGlvbi4NCkp1biAxMCAxNDoxODowNyBtZWluZXIga2Vy
-bmVsOiAJVXNlIGl0IHdpdGggY2FyZS4NCkp1biAxMCAxNDoxODowNyBtZWluZXIga2VybmVsOiBM
-YXRlc3QgZ2l0IHBhdGNoZXMgKG5lZWRlZCBpZiB5b3UgcmVwb3J0IGEgYnVnIHRvIGxpbnV4LW1l
-ZGlhQHZnZXIua2VybmVsLm9yZyk6DQpKdW4gMTAgMTQ6MTg6MDcgbWVpbmVyIGtlcm5lbDogCWJm
-ZDAzMDY0NjJmZGJjNWUwYThjNjk5OWFlZjlkZGUwZjk3NDUzOTkgW21lZGlhXSB2NGw6IERvY3Vt
-ZW50IHRpbWVzdGFtcCBidWZmZXIgZmxhZyBiZWhhdmlvdXINCkp1biAxMCAxNDoxODowNyBtZWlu
-ZXIga2VybmVsOiAJMzA5ZjRkNjJlZGEwZTg2NGMyZDRlZWY1MzZjYzgyZTQxOTMxYzNjNSBbbWVk
-aWFdIHY0bDogQ29weSB0aW1lc3RhbXAgc291cmNlIGZsYWdzIHRvIGRlc3RpbmF0aW9uIG9uIG0y
-bSBkZXZpY2VzDQpKdW4gMTAgMTQ6MTg6MDcgbWVpbmVyIGtlcm5lbDogCTU5OWIwODkyOWVmZTli
-OTBlNDRiNTA0NDU0MjE4YTEyMGJiMDYyYTAgW21lZGlhXSBleHlub3MtZ3NjLCBtMm0tZGVpbnRl
-cmxhY2UsIG14Ml9lbW1hcHJwOiBDb3B5IHY0bDJfYnVmZmVyIGRhdGEgZnJvbSBzcmMgdG8gZHN0
-DQpKdW4gMTAgMTQ6MTg6MDcgbWVpbmVyIGtlcm5lbDogCWV4cGVyaW1lbnRhbDogYTYwYjMwM2Mz
-ZTM0NzI5N2EyNWYwYTIwM2YwZmYxMWE4ZWZjODE4YyBleHBlcmltZW50YWwvbmdlbmU6IFN1cHBv
-cnQgRHVvRmxleCBDL0MyL1QvVDIgKFYzKQ0KSnVuIDEwIDE0OjE4OjA3IG1laW5lciBrZXJuZWw6
-IAl2NGwtZHZiLXNhYTcxNng6IDA1MmM0NjhlMzNiZTAwYTNkNGQ5YjkzZGEzNTgxZmZhODYxYmIy
-ODggc2FhNzE2eDogSU8gbWVtb3J5IG9mIHVwcGVyIFBISTEgcmVnaW9ucyBpcyBtYXBwZWQgaW4g
-c2FhNzE2eF9mZiBkcml2ZXIuDQpKdW4gMTAgMTQ6MTg6MDcgbWVpbmVyIGtlcm5lbDogdXNiIDEt
-MjogZHZiX3VzYl9hZjkwMzU6IHByZWNoaXBfdmVyc2lvbj04MyBjaGlwX3ZlcnNpb249MDIgY2hp
-cF90eXBlPTkxMzUgSnVuIDEwIDE0OjE4OjA3IG1laW5lciBrZXJuZWw6IHVzYiAxLTI6IGR2Yl91
-c2JfdjI6IGZvdW5kIGEgJ0F2ZXJtZWRpYSBBODM1QigxODM1KScgaW4gY29sZCBzdGF0ZSBKdW4g
-MTAgMTQ6MTg6MDcgbWVpbmVyIGtlcm5lbDogdXNiIDEtMjogZHZiX3VzYl92MjogZG93bmxvYWRp
-bmcgZmlybXdhcmUgZnJvbSBmaWxlICdkdmItdXNiLWl0OTEzNS0wMi5mdycNCkp1biAxMCAxNDox
-ODowNyBtZWluZXIga2VybmVsOiB1c2IgMS0yOiBkdmJfdXNiX2FmOTAzNTogZmlybXdhcmUgdmVy
-c2lvbj0zLjQyLjMuMyBKdW4gMTAgMTQ6MTg6MDcgbWVpbmVyIGtlcm5lbDogdXNiIDEtMjogZHZi
-X3VzYl92MjogZm91bmQgYSAnQXZlcm1lZGlhIEE4MzVCKDE4MzUpJyBpbiB3YXJtIHN0YXRlIEp1
-biAxMCAxNDoxODowNyBtZWluZXIga2VybmVsOiB1c2IgMS0yOiBkdmJfdXNiX3YyOiB3aWxsIHBh
-c3MgdGhlIGNvbXBsZXRlIE1QRUcyIHRyYW5zcG9ydCBzdHJlYW0gdG8gdGhlIHNvZnR3YXJlIGRl
-bXV4ZXIgSnVuIDEwIDE0OjE4OjA3IG1laW5lciBrZXJuZWw6IERWQjogcmVnaXN0ZXJpbmcgbmV3
-IGFkYXB0ZXIgKEF2ZXJtZWRpYSBBODM1QigxODM1KSkgSnVuIDEwIDE0OjE4OjA3IG1laW5lciBr
-ZXJuZWw6IGkyYyBpMmMtMDogYWY5MDMzOiBmaXJtd2FyZSB2ZXJzaW9uOiBMSU5LPTAuMC4wLjAg
-T0ZETT0zLjI5LjMuMyBKdW4gMTAgMTQ6MTg6MDcgbWVpbmVyIGtlcm5lbDogdXNiIDEtMjogRFZC
-OiByZWdpc3RlcmluZyBhZGFwdGVyIDAgZnJvbnRlbmQgMCAoQWZhdGVjaCBBRjkwMzMgKERWQi1U
-KSkuLi4NCkp1biAxMCAxNDoxODowNyBtZWluZXIga2VybmVsOiBpMmMgaTJjLTA6IHR1bmVyX2l0
-OTEzeDogSVRFIFRlY2ggSVQ5MTNYIHN1Y2Nlc3NmdWxseSBhdHRhY2hlZCBKdW4gMTAgMTQ6MTg6
-MDcgbWVpbmVyIGtlcm5lbDogdXNiIDEtMjogZHZiX3VzYl92MjogJ0F2ZXJtZWRpYSBBODM1Qigx
-ODM1KScgc3VjY2Vzc2Z1bGx5IGluaXRpYWxpemVkIGFuZCBjb25uZWN0ZWQgSnVuIDEwIDE0OjE4
-OjA3IG1laW5lciBrZXJuZWw6IHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2
-ZXIgZHZiX3VzYl9hZjkwMzUgSnVuIDEwIDE0OjE4OjI4IG1laW5lciB2ZHI6IFsxNjUzXSBWRFIg
-dmVyc2lvbiAyLjAuNCBzdGFydGVkIEp1biAxMCAxNDoxODoyOCBtZWluZXIgdmRyOiBbMTY1M10g
-c3dpdGNoZWQgdG8gdXNlciAndmRyJw0KSnVuIDEwIDE0OjE4OjI4IG1laW5lciB2ZHI6IFsxNjUz
-XSBjb2Rlc2V0IGlzICdVVEYtOCcgLSBrbm93biBKdW4gMTAgMTQ6MTg6MjggbWVpbmVyIHZkcjog
-WzE2NTNdIGxvYWRpbmcgcGx1Z2luOiAvdXNyL2xpYjY0L3Zkci9wbHVnaW5zL2xpYnZkci1zb2Z0
-aGRkZXZpY2Uuc28uMi4wLjANCkp1biAxMCAxNDoxODoyOCBtZWluZXIgdmRyOiBOZXcgZGVmYXVs
-dCBzdmRycCBwb3J0IDY0MTkhDQpKdW4gMTAgMTQ6MTg6MjkgbWVpbmVyIHZkcjogWzE2NTNdIGxv
-YWRpbmcgL2V0Yy92ZHIvc2V0dXAuY29uZiBKdW4gMTAgMTQ6MTg6MjkgbWVpbmVyIHZkcjogWzE2
-NTNdIGxvYWRpbmcgL2V0Yy92ZHIvc291cmNlcy5jb25mIEp1biAxMCAxNDoxODoyOSBtZWluZXIg
-dmRyOiBbMTY1M10gbG9hZGluZyAvZXRjL3Zkci9kaXNlcWMuY29uZiBKdW4gMTAgMTQ6MTg6Mjkg
-bWVpbmVyIHZkcjogWzE2NTNdIGxvYWRpbmcgL2V0Yy92ZHIvc2NyLmNvbmYgSnVuIDEwIDE0OjE4
-OjI5IG1laW5lciB2ZHI6IFsxNjUzXSBsb2FkaW5nIC9ldGMvdmRyL2NoYW5uZWxzLmNvbmYgSnVu
-IDEwIDE0OjE4OjI5IG1laW5lciB2ZHI6IFsxNjUzXSBsb2FkaW5nIC9ldGMvdmRyL3RpbWVycy5j
-b25mIEp1biAxMCAxNDoxODoyOSBtZWluZXIgdmRyOiBbMTY1M10gbG9hZGluZyAvZXRjL3Zkci9j
-b21tYW5kcy5jb25mIEp1biAxMCAxNDoxODoyOSBtZWluZXIgdmRyOiBbMTY1M10gbG9hZGluZyAv
-ZXRjL3Zkci9yZWNjbWRzLmNvbmYgSnVuIDEwIDE0OjE4OjI5IG1laW5lciB2ZHI6IFsxNjUzXSBs
-b2FkaW5nIC9ldGMvdmRyL3N2ZHJwaG9zdHMuY29uZiBKdW4gMTAgMTQ6MTg6MjkgbWVpbmVyIHZk
-cjogWzE2NTNdIGxvYWRpbmcgL2V0Yy92ZHIvcmVtb3RlLmNvbmYgSnVuIDEwIDE0OjE4OjI5IG1l
-aW5lciB2ZHI6IFsxNjUzXSBsb2FkaW5nIC9ldGMvdmRyL2tleW1hY3Jvcy5jb25mIEp1biAxMCAx
-NDoxODoyOSBtZWluZXIgdmRyOiBbMTY1M10gRFZCIEFQSSB2ZXJzaW9uIGlzIDB4MDUwQSAoVkRS
-IHdhcyBidWlsdCB3aXRoIDB4MDUwQSkgSnVuIDEwIDE0OjE4OjI5IG1laW5lciB2ZHI6IFsxNjUz
-XSBmcm9udGVuZCAwLzAgcHJvdmlkZXMgRFZCLVQgd2l0aCBRUFNLLFFBTTE2LFFBTTY0ICgiQWZh
-dGVjaCBBRjkwMzMgKERWQi1UKSIpIEp1biAxMCAxNDoxODoyOSBtZWluZXIgdmRyOiBbMTY1M10g
-Zm91bmQgMSBEVkIgZGV2aWNlIEp1biAxMCAxNDoxODoyOSBtZWluZXIgdmRyOiBbMTY1M10gaW5p
-dGlhbGl6aW5nIHBsdWdpbjogc29mdGhkZGV2aWNlICgwLjYuMXJjMSk6IEVpbiBTb2Z0d2FyZSB1
-bmQgR1BVIGVtdWxpZXJlcyBIRC1HZXLDpHQgSnVuIDEwIDE0OjE4OjI5IG1laW5lciB2ZHI6IFsx
-NjUzXSBzZXR0aW5nIHByaW1hcnkgZGV2aWNlIHRvIDIgSnVuIDEwIDE0OjE4OjI5IG1laW5lciB2
-ZHI6IFsxNjUzXSBTVkRSUCBsaXN0ZW5pbmcgb24gcG9ydCA2NDE5IEp1biAxMCAxNDoxODoyOSBt
-ZWluZXIgdmRyOiBbMTY1M10gc2V0dGluZyBjdXJyZW50IHNraW4gdG8gImxjYXJzIg0KSnVuIDEw
-IDE0OjE4OjI5IG1laW5lciB2ZHI6IFsxNjUzXSBsb2FkaW5nIC9ldGMvdmRyL3RoZW1lcy9sY2Fy
-cy1kZWZhdWx0LnRoZW1lDQpKdW4gMTAgMTQ6MTg6MjkgbWVpbmVyIHZkcjogWzE2NTNdIHN0YXJ0
-aW5nIHBsdWdpbjogc29mdGhkZGV2aWNlIEp1biAxMCAxNDoxODozMCBtZWluZXIgdmRyOiBbMTY1
-M10gc3dpdGNoaW5nIHRvIGNoYW5uZWwgMiBKdW4gMTAgMTQ6MTg6MzAgbWVpbmVyIGxpcmNkLTAu
-OS4wWzEyMTldOiBhY2NlcHRlZCBuZXcgY2xpZW50IG9uIC92YXIvcnVuL2xpcmMvbGlyY2QgSnVu
-IDEwIDE0OjE4OjMwIG1laW5lciBsaXJjZC0wLjkuMFsxMjE5XTogem90YWMgaW5pdGlhbGl6aW5n
-ICcvZGV2L3VzYi9oaWRkZXYwJw0KSnVuIDEwIDE0OjE4OjMxIG1laW5lciBrZXJuZWw6IG52aWRp
-YSAwMDAwOjAyOjAwLjA6IGlycSA0NiBmb3IgTVNJL01TSS1YIEp1biAxMCAxNDoxODozMSBtZWlu
-ZXIgdmRyOiBbMTY1M10gY29ubmVjdCBmcm9tIDEyNy4wLjAuMSwgcG9ydCA1OTE1OSAtIGFjY2Vw
-dGVkIEp1biAxMCAxNDoxODozMSBtZWluZXIgdmRyOiBbMTY1M10gY2xvc2luZyBTVkRSUCBjb25u
-ZWN0aW9uIEp1biAxMCAxNDoxODozMSBtZWluZXIgdmRyd2F0Y2hkb2dbMTcwMl06IFN0YXJ0aW5n
-IHZkcndhdGNoZG9nIEp1biAxMCAxNDoxODozOSBtZWluZXIgdmRyOiBbMTY3NF0gZnJvbnRlbmQg
-MC8wIHRpbWVkIG91dCB3aGlsZSB0dW5pbmcgdG8gY2hhbm5lbCAyLCB0cCA4MTggSnVuIDEwIDE0
-OjE5OjQzIG1laW5lciB2ZHI6IFsxNjc0XSBmcm9udGVuZCAwLzAgdGltZWQgb3V0IHdoaWxlIHR1
-bmluZyB0byBjaGFubmVsIDIsIHRwIDgxOA0KDQpLaW5kIHJlZ2FyZHMsDQpTZWJhdGlhbg0KLS0N
-ClRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmli
-ZSBsaW51eC1tZWRpYSIgaW4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2Vy
-Lmtlcm5lbC5vcmcgTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9y
-Zy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+Adds support for the following planar and partial-planar formats:
+
+YUV422
+NV12
+NV21
+NV16
+NV61
+
+Signed-off-by: Dmitry Eremin-Solenikov <dmitry_eremin@mentor.com>
+Signed-off-by: Mohsin Kazmi <mohsin_kazmi@mentor.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/gpu/ipu-v3/ipu-common.c |   21 ++++++
+ drivers/gpu/ipu-v3/ipu-cpmem.c  |  146 +++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 161 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
+index 81930f3..115572e 100644
+--- a/drivers/gpu/ipu-v3/ipu-common.c
++++ b/drivers/gpu/ipu-v3/ipu-common.c
+@@ -80,6 +80,12 @@ enum ipu_color_space ipu_drm_fourcc_to_colorspace(u32 drm_fourcc)
+ 	case DRM_FORMAT_UYVY:
+ 	case DRM_FORMAT_YUV420:
+ 	case DRM_FORMAT_YVU420:
++	case DRM_FORMAT_YUV422:
++	case DRM_FORMAT_YVU422:
++	case DRM_FORMAT_NV12:
++	case DRM_FORMAT_NV21:
++	case DRM_FORMAT_NV16:
++	case DRM_FORMAT_NV61:
+ 		return IPUV3_COLORSPACE_YUV;
+ 	default:
+ 		return IPUV3_COLORSPACE_UNKNOWN;
+@@ -92,8 +98,13 @@ enum ipu_color_space ipu_pixelformat_to_colorspace(u32 pixelformat)
+ 	switch (pixelformat) {
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
++	case V4L2_PIX_FMT_YUV422P:
+ 	case V4L2_PIX_FMT_UYVY:
+ 	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV16:
++	case V4L2_PIX_FMT_NV61:
+ 		return IPUV3_COLORSPACE_YUV;
+ 	case V4L2_PIX_FMT_RGB32:
+ 	case V4L2_PIX_FMT_BGR32:
+@@ -112,6 +123,11 @@ bool ipu_pixelformat_is_planar(u32 pixelformat)
+ 	switch (pixelformat) {
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
++	case V4L2_PIX_FMT_YUV422P:
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV16:
++	case V4L2_PIX_FMT_NV61:
+ 		return true;
+ 	}
+ 
+@@ -137,6 +153,11 @@ int ipu_stride_to_bytes(u32 pixel_stride, u32 pixelformat)
+ 	switch (pixelformat) {
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
++	case V4L2_PIX_FMT_YUV422P:
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV16:
++	case V4L2_PIX_FMT_NV61:
+ 		/*
+ 		 * for the planar YUV formats, the stride passed to
+ 		 * cpmem must be the stride in bytes of the Y plane.
+diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
+index cfe2f53..45a014e 100644
+--- a/drivers/gpu/ipu-v3/ipu-cpmem.c
++++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
+@@ -193,8 +193,18 @@ static int v4l2_pix_fmt_to_drm_fourcc(u32 pixelformat)
+ 		return DRM_FORMAT_YUYV;
+ 	case V4L2_PIX_FMT_YUV420:
+ 		return DRM_FORMAT_YUV420;
++	case V4L2_PIX_FMT_YUV422P:
++		return DRM_FORMAT_YUV422;
+ 	case V4L2_PIX_FMT_YVU420:
+ 		return DRM_FORMAT_YVU420;
++	case V4L2_PIX_FMT_NV12:
++		return DRM_FORMAT_NV12;
++	case V4L2_PIX_FMT_NV21:
++		return DRM_FORMAT_NV21;
++	case V4L2_PIX_FMT_NV16:
++		return DRM_FORMAT_NV16;
++	case V4L2_PIX_FMT_NV61:
++		return DRM_FORMAT_NV61;
+ 	}
+ 
+ 	return -EINVAL;
+@@ -394,6 +404,7 @@ void ipu_cpmem_set_yuv_planar_full(struct ipuv3_channel *ch,
+ {
+ 	switch (pixel_format) {
+ 	case V4L2_PIX_FMT_YUV420:
++	case V4L2_PIX_FMT_YUV422P:
+ 		ipu_ch_param_write_field(ch, IPU_FIELD_SLUV, (stride / 2) - 1);
+ 		ipu_ch_param_write_field(ch, IPU_FIELD_UBO, u_offset / 8);
+ 		ipu_ch_param_write_field(ch, IPU_FIELD_VBO, v_offset / 8);
+@@ -403,6 +414,18 @@ void ipu_cpmem_set_yuv_planar_full(struct ipuv3_channel *ch,
+ 		ipu_ch_param_write_field(ch, IPU_FIELD_UBO, v_offset / 8);
+ 		ipu_ch_param_write_field(ch, IPU_FIELD_VBO, u_offset / 8);
+ 		break;
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV16:
++		ipu_ch_param_write_field(ch, IPU_FIELD_SLUV, stride - 1);
++		ipu_ch_param_write_field(ch, IPU_FIELD_UBO, u_offset / 8);
++		ipu_ch_param_write_field(ch, IPU_FIELD_VBO, u_offset / 8);
++		break;
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV61:
++		ipu_ch_param_write_field(ch, IPU_FIELD_SLUV, stride - 1);
++		ipu_ch_param_write_field(ch, IPU_FIELD_UBO, v_offset / 8);
++		ipu_ch_param_write_field(ch, IPU_FIELD_VBO, v_offset / 8);
++		break;
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(ipu_cpmem_set_yuv_planar_full);
+@@ -422,6 +445,25 @@ void ipu_cpmem_set_yuv_planar(struct ipuv3_channel *ch,
+ 		ipu_cpmem_set_yuv_planar_full(ch, pixel_format, stride,
+ 					      u_offset, v_offset);
+ 		break;
++	case V4L2_PIX_FMT_YUV422P:
++		uv_stride = stride / 2;
++		u_offset = stride * height;
++		v_offset = u_offset + (uv_stride * height);
++		ipu_cpmem_set_yuv_planar_full(ch, pixel_format, stride,
++					      u_offset, v_offset);
++		break;
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV16:
++		u_offset = stride * height;
++		ipu_cpmem_set_yuv_planar_full(ch, pixel_format, stride,
++					      u_offset, 0);
++		break;
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV61:
++		v_offset = stride * height;
++		ipu_cpmem_set_yuv_planar_full(ch, pixel_format, stride,
++					      0, v_offset);
++		break;
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(ipu_cpmem_set_yuv_planar);
+@@ -475,11 +517,20 @@ static const struct ipu_rgb def_bgr_16 = {
+ };
+ 
+ #define Y_OFFSET(pix, x, y)	((x) + pix->width * (y))
+-#define U_OFFSET(pix, x, y)	((pix->width * pix->height) + \
+-					(pix->width * (y) / 4) + (x) / 2)
+-#define V_OFFSET(pix, x, y)	((pix->width * pix->height) + \
+-					(pix->width * pix->height / 4) + \
+-					(pix->width * (y) / 4) + (x) / 2)
++#define U_OFFSET(pix, x, y)	((pix->width * pix->height) +		\
++				 (pix->width * (y) / 4) + (x) / 2)
++#define V_OFFSET(pix, x, y)	((pix->width * pix->height) +		\
++				 (pix->width * pix->height / 4) +	\
++				 (pix->width * (y) / 4) + (x) / 2)
++#define U2_OFFSET(pix, x, y)	((pix->width * pix->height) +		\
++				 (pix->width * (y) / 2) + (x) / 2)
++#define V2_OFFSET(pix, x, y)	((pix->width * pix->height) +		\
++				 (pix->width * pix->height / 2) +	\
++				 (pix->width * (y) / 2) + (x) / 2)
++#define UV_OFFSET(pix, x, y)	((pix->width * pix->height) +	\
++				 (pix->width * (y) / 2) + (x))
++#define UV2_OFFSET(pix, x, y)	((pix->width * pix->height) +	\
++				 (pix->width * y) + (x))
+ 
+ int ipu_cpmem_set_fmt(struct ipuv3_channel *ch, u32 drm_fourcc)
+ {
+@@ -491,6 +542,27 @@ int ipu_cpmem_set_fmt(struct ipuv3_channel *ch, u32 drm_fourcc)
+ 		/* burst size */
+ 		ipu_ch_param_write_field(ch, IPU_FIELD_NPB, 31);
+ 		break;
++	case DRM_FORMAT_YUV422:
++	case DRM_FORMAT_YVU422:
++		/* pix format */
++		ipu_ch_param_write_field(ch, IPU_FIELD_PFS, 1);
++		/* burst size */
++		ipu_ch_param_write_field(ch, IPU_FIELD_NPB, 31);
++		break;
++	case DRM_FORMAT_NV12:
++	case DRM_FORMAT_NV21:
++		/* pix format */
++		ipu_ch_param_write_field(ch, IPU_FIELD_PFS, 4);
++		/* burst size */
++		ipu_ch_param_write_field(ch, IPU_FIELD_NPB, 31);
++		break;
++	case DRM_FORMAT_NV16:
++	case DRM_FORMAT_NV61:
++		/* pix format */
++		ipu_ch_param_write_field(ch, IPU_FIELD_PFS, 3);
++		/* burst size */
++		ipu_ch_param_write_field(ch, IPU_FIELD_NPB, 31);
++		break;
+ 	case DRM_FORMAT_UYVY:
+ 		/* bits/pixel */
+ 		ipu_ch_param_write_field(ch, IPU_FIELD_BPP, 3);
+@@ -559,7 +631,69 @@ int ipu_cpmem_set_image(struct ipuv3_channel *ch, struct ipu_image *image)
+ 				    image->rect.top) - y_offset;
+ 
+ 		ipu_cpmem_set_yuv_planar_full(ch, pix->pixelformat,
+-				pix->bytesperline, u_offset, v_offset);
++					      pix->bytesperline,
++					      u_offset, v_offset);
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + y_offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + y_offset);
++		break;
++	case V4L2_PIX_FMT_YUV422P:
++		y_offset = Y_OFFSET(pix, image->rect.left, image->rect.top);
++		u_offset = U2_OFFSET(pix, image->rect.left,
++				     image->rect.top) - y_offset;
++		v_offset = V2_OFFSET(pix, image->rect.left,
++				     image->rect.top) - y_offset;
++
++		ipu_cpmem_set_yuv_planar_full(ch, pix->pixelformat,
++					      pix->bytesperline,
++					      u_offset, v_offset);
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + y_offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + y_offset);
++		break;
++	case V4L2_PIX_FMT_NV12:
++		y_offset = Y_OFFSET(pix, image->rect.left, image->rect.top);
++		u_offset = UV_OFFSET(pix, image->rect.left,
++				     image->rect.top) - y_offset;
++		v_offset = 0;
++
++		ipu_cpmem_set_yuv_planar_full(ch, pix->pixelformat,
++					      pix->bytesperline,
++					      u_offset, v_offset);
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + y_offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + y_offset);
++		break;
++	case V4L2_PIX_FMT_NV21:
++		y_offset = Y_OFFSET(pix, image->rect.left, image->rect.top);
++		u_offset = 0;
++		v_offset = UV_OFFSET(pix, image->rect.left,
++				     image->rect.top) - y_offset;
++
++		ipu_cpmem_set_yuv_planar_full(ch, pix->pixelformat,
++					      pix->bytesperline,
++					      u_offset, v_offset);
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + y_offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + y_offset);
++		break;
++	case V4L2_PIX_FMT_NV16:
++		y_offset = Y_OFFSET(pix, image->rect.left, image->rect.top);
++		u_offset = UV2_OFFSET(pix, image->rect.left,
++				      image->rect.top) - y_offset;
++		v_offset = 0;
++
++		ipu_cpmem_set_yuv_planar_full(ch, pix->pixelformat,
++					      pix->bytesperline,
++					      u_offset, v_offset);
++		ipu_cpmem_set_buffer(ch, 0, image->phys0 + y_offset);
++		ipu_cpmem_set_buffer(ch, 1, image->phys1 + y_offset);
++		break;
++	case V4L2_PIX_FMT_NV61:
++		y_offset = Y_OFFSET(pix, image->rect.left, image->rect.top);
++		u_offset = 0;
++		v_offset = UV2_OFFSET(pix, image->rect.left,
++				      image->rect.top) - y_offset;
++
++		ipu_cpmem_set_yuv_planar_full(ch, pix->pixelformat,
++					      pix->bytesperline,
++					      u_offset, v_offset);
+ 		ipu_cpmem_set_buffer(ch, 0, image->phys0 + y_offset);
+ 		ipu_cpmem_set_buffer(ch, 1, image->phys1 + y_offset);
+ 		break;
+-- 
+1.7.9.5
+
