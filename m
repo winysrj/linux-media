@@ -1,104 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65332 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751072AbaFMFav (ORCPT
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:54753 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757607AbaFZBHZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jun 2014 01:30:51 -0400
-Date: Thu, 12 Jun 2014 22:30:44 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, arm@kernel.org
-Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
-Message-ID: <20140613053044.GG17845@atomide.com>
-References: <5192928.MkINji4uKU@wuerfel>
- <2207210.T6NoNSQSCo@avalon>
- <20140612151534.GF17845@atomide.com>
- <1689719.caqIIBS1Wn@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1689719.caqIIBS1Wn@avalon>
+	Wed, 25 Jun 2014 21:07:25 -0400
+Received: by mail-pb0-f52.google.com with SMTP id rq2so2386197pbb.25
+        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 18:07:24 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 12/28] gpu: ipu-v3: Move IDMAC channel names to imx-ipu-v3.h
+Date: Wed, 25 Jun 2014 18:05:39 -0700
+Message-Id: <1403744755-24944-13-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140612 08:32]:
-> Hi Tony,
-> 
-> On Thursday 12 June 2014 08:15:35 Tony Lindgren wrote:
-> > * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140612 07:52]:
-> > > On Wednesday 11 June 2014 07:47:54 Tony Lindgren wrote:
-> > > > These should just use either pinctrl-single.c instead for muxing.
-> > > > Or if they are not mux registers, we do have the syscon mapping
-> > > > available in omap4.dtsi that pbias-regulator.c is already using.
-> > > > 
-> > > > Laurent, got any better ideas?
-> > > 
-> > > The ISS driver needs to write a single register, which contains several
-> > > independent fields. They thus need to be controlled by a single driver.
-> > > Some of them might be considered to be related to pinmuxing (although I
-> > > disagree on that), others are certainly not about muxing (there are clock
-> > > gate bits for instance).
-> > > 
-> > > Using the syscon mapping seems like the best option. I'll give it a try.
-> > 
-> > OK if it's not strictly pinctrl related then let's not use
-> > pinctrl-single,bits for it. You may be able to implement one or more
-> > framework drivers for it for pinctrl/regulator/clock/transceiver
-> > whatever that register is doing.
-> > 
-> > In any case it's best to have that handling in a separate helper driver
-> > somewhere as it's a separate piece of hardware from the camera module.
-> > If it does not fit into any existing frameworks then it's best to have
-> > it in a separate driver with the camera driver.
-> 
-> The register contains the following fields that control the two CSI2 PHYs 
-> (PHY1 and PHY2).
-> 
-> 31    CAMERARX_CSI22_LANEENABLE2   PHY2 Lane 2 (CSI22_DX2, CSI22_DY2) Enable
-> 30    CAMERARX_CSI22_LANEENABLE1   PHY2 Lane 1 (CSI22_DX1, CSI22_DY1) Enable
-> 29    CAMERARX_CSI22_LANEENABLE0   PHY2 Lane 0 (CSI22_DX0, CSI22_DY0) Enable
-> 28    CAMERARX_CSI21_LANEENABLE4   PHY1 Lane 4 (CSI21_DX4, CSI21_DY4) Enable
-> 27    CAMERARX_CSI21_LANEENABLE3   PHY1 Lane 3 (CSI21_DX3, CSI21_DY3) Enable
-> 26    CAMERARX_CSI21_LANEENABLE2   PHY1 Lane 2 (CSI21_DX2, CSI21_DY2) Enable
-> 25    CAMERARX_CSI21_LANEENABLE1   PHY1 Lane 1 (CSI21_DX1, CSI21_DY1) Enable
-> 24    CAMERARX_CSI21_LANEENABLE0   PHY1 Lane 0 (CSI21_DX0, CSI21_DY0) Enable
-> 21    CAMERARX_CSI22_CTRLCLKEN     PHY2 Clock Enable
-> 20:19 CAMERARX_CSI22_CAMMODE       PHY2 Mode (CCP2, CSI1, CSI2)
-> 18    CAMERARX_CSI21_CTRLCLKEN     PHY1 Clock Enable
-> 17:16 CAMERARX_CSI21_CAMMODE       PHY1 Mode (CCP2, CSI1, CSI2)
-> 
-> Bits 18 and 21 could be exposed through CCF. Bits 24 to 31 enable/disable the 
-> CSI2 lanes, so it could be argued that they could be exposed through the 
-> pinctrl framework. However, they need to be configured independently, possibly 
-> at runtime. I'm thus not sure pinctrl would be a good idea. Bits 17:16 and 
-> 20:19 don't fit in existing frameworks.
+Move the IDMAC channel names to imx-ipu-v3.h, to make the names
+available outside IPU. Add a couple new channels in the process
+(async display BG/FG, channels 24 and 29).
 
-OK thanks for the info. Sounds like drivers/phy might be the right location
-for it then and then the phy driver can use the syscon regmap.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/gpu/ipu-v3/ipu-prv.h |   25 -------------------------
+ include/video/imx-ipu-v3.h   |   30 ++++++++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+), 25 deletions(-)
+
+diff --git a/drivers/gpu/ipu-v3/ipu-prv.h b/drivers/gpu/ipu-v3/ipu-prv.h
+index 8e0bc1d..90fc02a 100644
+--- a/drivers/gpu/ipu-v3/ipu-prv.h
++++ b/drivers/gpu/ipu-v3/ipu-prv.h
+@@ -24,31 +24,6 @@ struct ipu_soc;
  
-> Given that this register is specific to the ISS, I think handling it as a 
-> separate device through a separate driver would only complicate the 
-> implementation without any real benefit.
+ #include <video/imx-ipu-v3.h>
+ 
+-#define IPUV3_CHANNEL_CSI0			 0
+-#define IPUV3_CHANNEL_CSI1			 1
+-#define IPUV3_CHANNEL_CSI2			 2
+-#define IPUV3_CHANNEL_CSI3			 3
+-#define IPUV3_CHANNEL_VDI_MEM_IC_VF              5
+-#define IPUV3_CHANNEL_MEM_IC_PP                 11
+-#define IPUV3_CHANNEL_MEM_IC_PRP_VF             12
+-#define IPUV3_CHANNEL_G_MEM_IC_PRP_VF           14
+-#define IPUV3_CHANNEL_G_MEM_IC_PP               15
+-#define IPUV3_CHANNEL_IC_PRP_ENC_MEM            20
+-#define IPUV3_CHANNEL_IC_PRP_VF_MEM             21
+-#define IPUV3_CHANNEL_IC_PP_MEM                 22
+-#define IPUV3_CHANNEL_MEM_BG_SYNC		23
+-#define IPUV3_CHANNEL_MEM_FG_SYNC		27
+-#define IPUV3_CHANNEL_MEM_DC_SYNC		28
+-#define IPUV3_CHANNEL_MEM_FG_SYNC_ALPHA		31
+-#define IPUV3_CHANNEL_MEM_DC_ASYNC		41
+-#define IPUV3_CHANNEL_MEM_ROT_ENC		45
+-#define IPUV3_CHANNEL_MEM_ROT_VF		46
+-#define IPUV3_CHANNEL_MEM_ROT_PP		47
+-#define IPUV3_CHANNEL_ROT_ENC_MEM		48
+-#define IPUV3_CHANNEL_ROT_VF_MEM		49
+-#define IPUV3_CHANNEL_ROT_PP_MEM		50
+-#define IPUV3_CHANNEL_MEM_BG_SYNC_ALPHA		51
+-
+ #define IPU_MCU_T_DEFAULT	8
+ #define IPU_CM_IDMAC_REG_OFS	0x00008000
+ #define IPU_CM_IC_REG_OFS	0x00020000
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 20776cf..44e337b 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -135,6 +135,36 @@ enum ipu_channel_irq {
+ 	IPU_IRQ_EOS = 192,
+ };
+ 
++/*
++ * Enumeration of IDMAC channels
++ */
++#define IPUV3_CHANNEL_CSI0			 0
++#define IPUV3_CHANNEL_CSI1			 1
++#define IPUV3_CHANNEL_CSI2			 2
++#define IPUV3_CHANNEL_CSI3			 3
++#define IPUV3_CHANNEL_VDI_MEM_IC_VF		 5
++#define IPUV3_CHANNEL_MEM_IC_PP			11
++#define IPUV3_CHANNEL_MEM_IC_PRP_VF		12
++#define IPUV3_CHANNEL_G_MEM_IC_PRP_VF		14
++#define IPUV3_CHANNEL_G_MEM_IC_PP		15
++#define IPUV3_CHANNEL_IC_PRP_ENC_MEM		20
++#define IPUV3_CHANNEL_IC_PRP_VF_MEM		21
++#define IPUV3_CHANNEL_IC_PP_MEM			22
++#define IPUV3_CHANNEL_MEM_BG_SYNC		23
++#define IPUV3_CHANNEL_MEM_BG_ASYNC		24
++#define IPUV3_CHANNEL_MEM_FG_SYNC		27
++#define IPUV3_CHANNEL_MEM_DC_SYNC		28
++#define IPUV3_CHANNEL_MEM_FG_ASYNC		29
++#define IPUV3_CHANNEL_MEM_FG_SYNC_ALPHA		31
++#define IPUV3_CHANNEL_MEM_DC_ASYNC		41
++#define IPUV3_CHANNEL_MEM_ROT_ENC		45
++#define IPUV3_CHANNEL_MEM_ROT_VF		46
++#define IPUV3_CHANNEL_MEM_ROT_PP		47
++#define IPUV3_CHANNEL_ROT_ENC_MEM		48
++#define IPUV3_CHANNEL_ROT_VF_MEM		49
++#define IPUV3_CHANNEL_ROT_PP_MEM		50
++#define IPUV3_CHANNEL_MEM_BG_SYNC_ALPHA		51
++
+ int ipu_map_irq(struct ipu_soc *ipu, int irq);
+ int ipu_idmac_channel_irq(struct ipu_soc *ipu, struct ipuv3_channel *channel,
+ 		enum ipu_channel_irq irq);
+-- 
+1.7.9.5
 
-Even though it's one register, it shoud still be treated separately from
-the camera driver. The problems with keeping the register access to the
-control module in the camera driver are at least following:
-
-1. They live in separate hardware modules that can be clocked separately
-
-2. Doing a read-back to flush a posted write in one hardware module most
-   likely won't flush the write to other and that can lead into hard to
-   find mysterious bugs
-
-3. If we ever have a common system control module driver, we need to
-   rewrite all the system control module register tinkering in the drivers
-
-So it's best to try to use an existing framework for it. That avoids
-tons of pain later on ;)
-
-Regards,
-
-Tony
