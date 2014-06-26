@@ -1,114 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2121 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753722AbaFNCnx (ORCPT
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:58624 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757629AbaFZBH0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jun 2014 22:43:53 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5E2hoCk001104
-	for <linux-media@vger.kernel.org>; Sat, 14 Jun 2014 04:43:52 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E210F2A1FCB
-	for <linux-media@vger.kernel.org>; Sat, 14 Jun 2014 04:43:40 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Wed, 25 Jun 2014 21:07:26 -0400
+Received: by mail-pd0-f182.google.com with SMTP id y13so2313186pdi.41
+        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 18:07:26 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140614024340.E210F2A1FCB@tschai.lan>
-Date: Sat, 14 Jun 2014 04:43:40 +0200 (CEST)
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 14/28] gpu: ipu-v3: Add ipu_idmac_clear_buffer()
+Date: Wed, 25 Jun 2014 18:05:41 -0700
+Message-Id: <1403744755-24944-15-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Add the reverse of ipu_idmac_select_buffer(), that is, clear a buffer
+ready status in a channel.
 
-Results of the daily build of media_tree:
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/gpu/ipu-v3/ipu-common.c |   28 ++++++++++++++++++++++++++++
+ include/video/imx-ipu-v3.h      |    1 +
+ 2 files changed, 29 insertions(+)
 
-date:		Sat Jun 14 04:00:46 CEST 2014
-git branch:	test
-git hash:	f7a27ff1fb77e114d1059a5eb2ed1cffdc508ce8
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-14-gf11dd94
-host hardware:	x86_64
-host os:	3.14-5.slh.5-amd64
+diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
+index 35442f20..63f2cf2 100644
+--- a/drivers/gpu/ipu-v3/ipu-common.c
++++ b/drivers/gpu/ipu-v3/ipu-common.c
+@@ -807,6 +807,34 @@ void ipu_idmac_select_buffer(struct ipuv3_channel *channel, u32 buf_num)
+ }
+ EXPORT_SYMBOL_GPL(ipu_idmac_select_buffer);
+ 
++void ipu_idmac_clear_buffer(struct ipuv3_channel *channel, u32 buf_num)
++{
++	struct ipu_soc *ipu = channel->ipu;
++	unsigned int chno = channel->num;
++	unsigned long flags;
++
++	spin_lock_irqsave(&ipu->lock, flags);
++
++	ipu_cm_write(ipu, 0xF0300000, IPU_GPR); /* write one to clear */
++	switch (buf_num) {
++	case 0:
++		ipu_cm_write(ipu, idma_mask(chno), IPU_CHA_BUF0_RDY(chno));
++		break;
++	case 1:
++		ipu_cm_write(ipu, idma_mask(chno), IPU_CHA_BUF1_RDY(chno));
++		break;
++	case 2:
++		ipu_cm_write(ipu, idma_mask(chno), IPU_CHA_BUF2_RDY(chno));
++		break;
++	default:
++		break;
++	}
++	ipu_cm_write(ipu, 0x0, IPU_GPR); /* write one to set */
++
++	spin_unlock_irqrestore(&ipu->lock, flags);
++}
++EXPORT_SYMBOL_GPL(ipu_idmac_clear_buffer);
++
+ int ipu_idmac_enable_channel(struct ipuv3_channel *channel)
+ {
+ 	struct ipu_soc *ipu = channel->ipu;
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index aeb8e63..9ed1c75 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -203,6 +203,7 @@ void ipu_idmac_set_double_buffer(struct ipuv3_channel *channel,
+ int ipu_idmac_get_current_buffer(struct ipuv3_channel *channel);
+ bool ipu_idmac_buffer_is_ready(struct ipuv3_channel *channel, u32 buf_num);
+ void ipu_idmac_select_buffer(struct ipuv3_channel *channel, u32 buf_num);
++void ipu_idmac_clear_buffer(struct ipuv3_channel *channel, u32 buf_num);
+ 
+ /*
+  * IPU Display Controller (dc) functions
+-- 
+1.7.9.5
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-i686: OK
-linux-3.15-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-x86_64: OK
-linux-3.15-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
