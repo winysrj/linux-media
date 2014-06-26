@@ -1,87 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:33123 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751554AbaFEXyQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jun 2014 19:54:16 -0400
-Received: by mail-wi0-f177.google.com with SMTP id f8so37939wiw.4
-        for <linux-media@vger.kernel.org>; Thu, 05 Jun 2014 16:54:15 -0700 (PDT)
-MIME-Version: 1.0
-Date: Fri, 6 Jun 2014 09:54:15 +1000
-Message-ID: <CAM187nBS5NZgOEyXUzR6OjmGuQpoiEfAbtqL2-2fj_oURmfudA@mail.gmail.com>
-Subject: Leadtek WinFast DTV Dongle Dual
-From: David Shirley <tephra@gmail.com>
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:38125 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757590AbaFZBHV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jun 2014 21:07:21 -0400
+Received: by mail-pb0-f42.google.com with SMTP id ma3so2420662pbc.29
+        for <linux-media@vger.kernel.org>; Wed, 25 Jun 2014 18:07:20 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 07/28] gpu: ipu-v3: smfc: Convert to per-channel
+Date: Wed, 25 Jun 2014 18:05:34 -0700
+Message-Id: <1403744755-24944-8-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+Convert the smfc object to be specific to a single smfc channel.
+Add ipu_smfc_{get|put} to retrieve and release a single smfc channel
+for exclusive use, and add use counter to ipu_smfc_{enable|disable}.
 
-Recently purchased one of these (0413:6a05), the instructions @
-http://www.linuxtv.org/wiki/index.php/Leadtek_WinFast_DTV_Dual_Dongle
-appear to be wrong.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/gpu/ipu-v3/ipu-smfc.c |  132 +++++++++++++++++++++++++++++++++--------
+ include/video/imx-ipu-v3.h    |   10 ++--
+ 2 files changed, 112 insertions(+), 30 deletions(-)
 
-Running 3.14.5 I didn't need to patch
-drivers/media/usb/dvb-usb-v2/af9035.c, however the tuner wouldn't work
-(it would be detected, but not able to tune)
+diff --git a/drivers/gpu/ipu-v3/ipu-smfc.c b/drivers/gpu/ipu-v3/ipu-smfc.c
+index 87ac624d..a6429ca 100644
+--- a/drivers/gpu/ipu-v3/ipu-smfc.c
++++ b/drivers/gpu/ipu-v3/ipu-smfc.c
+@@ -21,9 +21,18 @@
+ 
+ #include "ipu-prv.h"
+ 
++struct ipu_smfc {
++	struct ipu_smfc_priv *priv;
++	int chno;
++	bool inuse;
++};
++
+ struct ipu_smfc_priv {
+ 	void __iomem *base;
+ 	spinlock_t lock;
++	struct ipu_soc *ipu;
++	struct ipu_smfc channel[4];
++	int use_count;
+ };
+ 
+ /*SMFC Registers */
+@@ -31,75 +40,146 @@ struct ipu_smfc_priv {
+ #define SMFC_WMC	0x0004
+ #define SMFC_BS		0x0008
+ 
+-int ipu_smfc_set_burstsize(struct ipu_soc *ipu, int channel, int burstsize)
++int ipu_smfc_set_burstsize(struct ipu_smfc *smfc, int burstsize)
+ {
+-	struct ipu_smfc_priv *smfc = ipu->smfc_priv;
++	struct ipu_smfc_priv *priv = smfc->priv;
+ 	unsigned long flags;
+ 	u32 val, shift;
+ 
+-	spin_lock_irqsave(&smfc->lock, flags);
++	spin_lock_irqsave(&priv->lock, flags);
+ 
+-	shift = channel * 4;
+-	val = readl(smfc->base + SMFC_BS);
++	shift = smfc->chno * 4;
++	val = readl(priv->base + SMFC_BS);
+ 	val &= ~(0xf << shift);
+ 	val |= burstsize << shift;
+-	writel(val, smfc->base + SMFC_BS);
++	writel(val, priv->base + SMFC_BS);
+ 
+-	spin_unlock_irqrestore(&smfc->lock, flags);
++	spin_unlock_irqrestore(&priv->lock, flags);
+ 
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(ipu_smfc_set_burstsize);
+ 
+-int ipu_smfc_map_channel(struct ipu_soc *ipu, int channel, int csi_id, int mipi_id)
++int ipu_smfc_map_channel(struct ipu_smfc *smfc, int csi_id, int mipi_id)
+ {
+-	struct ipu_smfc_priv *smfc = ipu->smfc_priv;
++	struct ipu_smfc_priv *priv = smfc->priv;
+ 	unsigned long flags;
+ 	u32 val, shift;
+ 
+-	spin_lock_irqsave(&smfc->lock, flags);
++	spin_lock_irqsave(&priv->lock, flags);
+ 
+-	shift = channel * 3;
+-	val = readl(smfc->base + SMFC_MAP);
++	shift = smfc->chno * 3;
++	val = readl(priv->base + SMFC_MAP);
+ 	val &= ~(0x7 << shift);
+ 	val |= ((csi_id << 2) | mipi_id) << shift;
+-	writel(val, smfc->base + SMFC_MAP);
++	writel(val, priv->base + SMFC_MAP);
+ 
+-	spin_unlock_irqrestore(&smfc->lock, flags);
++	spin_unlock_irqrestore(&priv->lock, flags);
+ 
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(ipu_smfc_map_channel);
+ 
+-int ipu_smfc_enable(struct ipu_soc *ipu)
++int ipu_smfc_enable(struct ipu_smfc *smfc)
+ {
+-	return ipu_module_enable(ipu, IPU_CONF_SMFC_EN);
++	struct ipu_smfc_priv *priv = smfc->priv;
++	unsigned long flags;
++
++	spin_lock_irqsave(&priv->lock, flags);
++
++	if (!priv->use_count)
++		ipu_module_enable(priv->ipu, IPU_CONF_SMFC_EN);
++
++	priv->use_count++;
++
++	spin_unlock_irqrestore(&priv->lock, flags);
++
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(ipu_smfc_enable);
+ 
+-int ipu_smfc_disable(struct ipu_soc *ipu)
++int ipu_smfc_disable(struct ipu_smfc *smfc)
+ {
+-	return ipu_module_disable(ipu, IPU_CONF_SMFC_EN);
++	struct ipu_smfc_priv *priv = smfc->priv;
++	unsigned long flags;
++
++	spin_lock_irqsave(&priv->lock, flags);
++
++	priv->use_count--;
++
++	if (!priv->use_count)
++		ipu_module_disable(priv->ipu, IPU_CONF_SMFC_EN);
++
++	if (priv->use_count < 0)
++		priv->use_count = 0;
++
++	spin_unlock_irqrestore(&priv->lock, flags);
++
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(ipu_smfc_disable);
+ 
++struct ipu_smfc *ipu_smfc_get(struct ipu_soc *ipu, unsigned int chno)
++{
++	struct ipu_smfc_priv *priv = ipu->smfc_priv;
++	struct ipu_smfc *smfc, *ret;
++	unsigned long flags;
++
++	if (chno >= 4)
++		return ERR_PTR(-EINVAL);
++
++	smfc = &priv->channel[chno];
++	ret = smfc;
++
++	spin_lock_irqsave(&priv->lock, flags);
++
++	if (smfc->inuse) {
++		ret = ERR_PTR(-EBUSY);
++		goto unlock;
++	}
++
++	smfc->inuse = true;
++unlock:
++	spin_unlock_irqrestore(&priv->lock, flags);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(ipu_smfc_get);
++
++void ipu_smfc_put(struct ipu_smfc *smfc)
++{
++	struct ipu_smfc_priv *priv = smfc->priv;
++	unsigned long flags;
++
++	spin_lock_irqsave(&priv->lock, flags);
++	smfc->inuse = false;
++	spin_unlock_irqrestore(&priv->lock, flags);
++}
++EXPORT_SYMBOL_GPL(ipu_smfc_put);
++
+ int ipu_smfc_init(struct ipu_soc *ipu, struct device *dev,
+ 		  unsigned long base)
+ {
+-	struct ipu_smfc_priv *smfc;
++	struct ipu_smfc_priv *priv;
++	int i;
+ 
+-	smfc = devm_kzalloc(dev, sizeof(*smfc), GFP_KERNEL);
+-	if (!smfc)
++	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
++	if (!priv)
+ 		return -ENOMEM;
+ 
+-	ipu->smfc_priv = smfc;
+-	spin_lock_init(&smfc->lock);
++	ipu->smfc_priv = priv;
++	spin_lock_init(&priv->lock);
++	priv->ipu = ipu;
+ 
+-	smfc->base = devm_ioremap(dev, base, PAGE_SIZE);
+-	if (!smfc->base)
++	priv->base = devm_ioremap(dev, base, PAGE_SIZE);
++	if (!priv->base)
+ 		return -ENOMEM;
+ 
+-	pr_debug("%s: ioremap 0x%08lx -> %p\n", __func__, base, smfc->base);
++	for (i = 0; i < 4; i++) {
++		priv->channel[i].priv = priv;
++		priv->channel[i].chno = i;
++	}
++
++	pr_debug("%s: ioremap 0x%08lx -> %p\n", __func__, base, priv->base);
+ 
+ 	return 0;
+ }
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 580a88c..27fb980 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -291,10 +291,12 @@ void ipu_ic_dump(struct ipu_ic *ic);
+ /*
+  * IPU Sensor Multiple FIFO Controller (SMFC) functions
+  */
+-int ipu_smfc_enable(struct ipu_soc *ipu);
+-int ipu_smfc_disable(struct ipu_soc *ipu);
+-int ipu_smfc_map_channel(struct ipu_soc *ipu, int channel, int csi_id, int mipi_id);
+-int ipu_smfc_set_burstsize(struct ipu_soc *ipu, int channel, int burstsize);
++struct ipu_smfc *ipu_smfc_get(struct ipu_soc *ipu, unsigned int chno);
++void ipu_smfc_put(struct ipu_smfc *smfc);
++int ipu_smfc_enable(struct ipu_smfc *smfc);
++int ipu_smfc_disable(struct ipu_smfc *smfc);
++int ipu_smfc_map_channel(struct ipu_smfc *smfc, int csi_id, int mipi_id);
++int ipu_smfc_set_burstsize(struct ipu_smfc *smfc, int burstsize);
+ 
+ #define IPU_CPMEM_WORD(word, ofs, size) ((((word) * 160 + (ofs)) << 8) | (size))
+ 
+-- 
+1.7.9.5
 
-After a lot of stuffing around, I ended up patching it913x.c instead
-and everything is working well, here is my dmesg output:
-
-[    3.981516] usb 3-2: new high-speed USB device number 2 using xhci_hcd
-[    4.149345] usb 3-2: New USB device found, idVendor=0413, idProduct=6a05
-[    4.149355] usb 3-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-[    4.149361] usb 3-2: Product: WinFast DTV Dongle Dual
-[    4.149366] usb 3-2: Manufacturer: Leadtek
-[  380.529378] it913x: Chip Version=02 Chip Type=9135
-[  380.530913] it913x: Remote propriety (raw) modeit913x: Dual mode=3
-Tuner Type=38
-[  380.531310] it913x: Unknown tuner ID applying default 0x60it913x:
-Chip Version=02 Chip Type=9135
-[  380.637528] usb 3-2: dvb_usb_v2: found a 'Leadtek WinFast DTV
-Dongle Dual' in cold state
-[  380.638195] usb 3-2: dvb_usb_v2: downloading firmware from file
-'dvb-usb-it9135-02.fw'
-[  380.638598] it913x: FRM Starting Firmware Download
-[  381.130961] it913x: FRM Firmware Download Completed - Resetting
-Deviceit913x: Chip Version=02 Chip Type=9135
-[  381.164104] it913x: Firmware Version 52887808<6>
-[  381.226204] usb 3-2: dvb_usb_v2: found a 'Leadtek WinFast DTV
-Dongle Dual' in warm state
-[  381.226300] usb 3-2: dvb_usb_v2: will pass the complete MPEG2
-transport stream to the software demuxer
-[  381.226519] DVB: registering new adapter (Leadtek WinFast DTV Dongle Dual)
-[  381.231125] it913x-fe: ADF table value       :00
-[  381.234465] it913x-fe: Crystal Frequency :12000000 Adc Frequency
-:20250000 ADC X2: 01
-[  381.262283] it913x-fe: Tuner LNA type :60
-[  381.493014] usb 3-2: DVB: registering adapter 0 frontend 0 (Leadtek
-WinFast DTV Dongle Dual_1)...
-[  381.493251] usb 3-2: dvb_usb_v2: will pass the complete MPEG2
-transport stream to the software demuxer
-[  381.493446] DVB: registering new adapter (Leadtek WinFast DTV Dongle Dual)
-[  381.494234] it913x-fe: ADF table value       :00
-[  381.519335] it913x-fe: Crystal Frequency :12000000 Adc Frequency
-:20250000 ADC X2: 01
-[  381.750290] it913x-fe: Tuner LNA type :60
-[  382.280671] usb 3-2: DVB: registering adapter 1 frontend 0 (Leadtek
-WinFast DTV Dongle Dual_2)...
-[  382.304097] IR keymap rc-it913x-v2 not found
-[  382.304282] input: Leadtek WinFast DTV Dongle Dual as
-/devices/pci0000:00/0000:00:14.0/usb3/3-2/rc/rc0/input9
-[  382.304443] rc0: Leadtek WinFast DTV Dongle Dual as
-/devices/pci0000:00/0000:00:14.0/usb3/3-2/rc/rc0
-[  382.304453] usb 3-2: dvb_usb_v2: schedule remote query interval to 250 msecs
-[  382.304462] usb 3-2: dvb_usb_v2: 'Leadtek WinFast DTV Dongle Dual'
-successfully initialized and connected
-[  382.304551] usbcore: registered new interface driver dvb_usb_it913x
-
-My kernel config:
-CONFIG_DVB_USB_V2=m
-CONFIG_DVB_USB_IT913X=m
-CONFIG_DVB_IT913X_FE=m
-
-Do you want the output when it was using the af9035 driver?
-
-Regards
-David
