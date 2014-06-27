@@ -1,168 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3444 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933289AbaFLLyr (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4687 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753002AbaF0JOt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 07:54:47 -0400
+	Fri, 27 Jun 2014 05:14:49 -0400
+Message-ID: <53AD35EE.2090604@xs4all.nl>
+Date: Fri, 27 Jun 2014 11:14:22 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv4 PATCH 31/34] solo6x10: implement the motion detection event.
-Date: Thu, 12 Jun 2014 13:53:03 +0200
-Message-Id: <8db9c32d3ab89ee9333047bbff3f059982571a6a.1402573818.git.hans.verkuil@cisco.com>
-In-Reply-To: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-References: <1402573986-20794-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
-References: <971e25ca71923ba77526326f998227fdfb30f216.1402573818.git.hans.verkuil@cisco.com>
+MIME-Version: 1.0
+To: Philipp Zabel <p.zabel@pengutronix.de>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH 00/30] Initial CODA960 (i.MX6 VPU) support
+References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>	 <539EAC3E.3040102@xs4all.nl> <1403622429.2910.29.camel@paszta.hi.pengutronix.de>
+In-Reply-To: <1403622429.2910.29.camel@paszta.hi.pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Use the new motion detection event.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 68 ++++++++++++++++++----
- drivers/staging/media/solo6x10/solo6x10.h          |  7 +--
- 2 files changed, 60 insertions(+), 15 deletions(-)
+On 06/24/2014 05:07 PM, Philipp Zabel wrote:
+> Hi Hans,
+>
+> Am Montag, den 16.06.2014, 10:35 +0200 schrieb Hans Verkuil:
+>> Hi Philipp,
+>>
+>> I went through this patch series and replied with some comments.
+>
+> thank you for the comments. I have dropped the force IDR patch in
+> v2 and will send a separate RFC for the VFU / forced keyframe
+> support.
+> I have also dropped the enum_framesizes patch for now.
+>
+>> I have two more general questions:
+>>
+>> 1) can you post the output of 'v4l2-compliance'?
+>
+> This is for the v2 series, the previously posted patches still had
+> one TRY_FMT(G_FMT) != G_FMT error introduced by the "[media] coda:
+> add bytesperline to queue data" patch:
+>
+> $ v4l2-compliance -d /dev/video8
+> Driver Info:
+> 	Driver name   : coda
+> 	Card type     : CODA960
+> 	Bus info      : platform:coda
+> 	Driver version: 3.16.0
+> 	Capabilities  : 0x84008003
+> 		Video Capture
+> 		Video Output
+> 		Video Memory-to-Memory
 
-diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-index 67b40a4..ab0b1a6 100644
---- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-@@ -243,6 +243,8 @@ static int solo_enc_on(struct solo_enc_dev *solo_enc)
- 	if (solo_enc->bw_weight > solo_dev->enc_bw_remain)
- 		return -EBUSY;
- 	solo_enc->sequence = 0;
-+	solo_enc->motion_last_state = false;
-+	solo_enc->frames_since_last_motion = 0;
- 	solo_dev->enc_bw_remain -= solo_enc->bw_weight;
- 
- 	if (solo_enc->type == SOLO_ENC_TYPE_EXT)
-@@ -544,15 +546,6 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
- 	const vop_header *vh = enc_buf->vh;
- 	int ret;
- 
--	/* Check for motion flags */
--	vb->v4l2_buf.flags &= ~(V4L2_BUF_FLAG_MOTION_ON |
--				V4L2_BUF_FLAG_MOTION_DETECTED);
--	if (solo_is_motion_on(solo_enc)) {
--		vb->v4l2_buf.flags |= V4L2_BUF_FLAG_MOTION_ON;
--		if (enc_buf->motion)
--			vb->v4l2_buf.flags |= V4L2_BUF_FLAG_MOTION_DETECTED;
--	}
--
- 	switch (solo_enc->fmt) {
- 	case V4L2_PIX_FMT_MPEG4:
- 	case V4L2_PIX_FMT_H264:
-@@ -564,9 +557,49 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
- 	}
- 
- 	if (!ret) {
-+		bool send_event = false;
-+
- 		vb->v4l2_buf.sequence = solo_enc->sequence++;
- 		vb->v4l2_buf.timestamp.tv_sec = vop_sec(vh);
- 		vb->v4l2_buf.timestamp.tv_usec = vop_usec(vh);
-+
-+		/* Check for motion flags */
-+		if (solo_is_motion_on(solo_enc)) {
-+			/* It takes a few frames for the hardware to detect
-+			 * motion. Once it does it clears the motion detection
-+			 * register and it takes again a few frames before
-+			 * motion is seen. This means in practice that when the
-+			 * motion field is 1, it will go back to 0 for the next
-+			 * frame. This leads to motion detection event being
-+			 * sent all the time, which is not what we want.
-+			 * Instead wait a few frames before deciding that the
-+			 * motion has halted. After some experimentation it
-+			 * turns out that waiting for 5 frames works well.
-+			 */
-+			if (enc_buf->motion == 0 &&
-+			    solo_enc->motion_last_state &&
-+			    solo_enc->frames_since_last_motion++ > 5)
-+				send_event = true;
-+			else if (enc_buf->motion) {
-+				solo_enc->frames_since_last_motion = 0;
-+				send_event = !solo_enc->motion_last_state;
-+			}
-+		}
-+
-+		if (send_event) {
-+			struct v4l2_event ev = {
-+				.type = V4L2_EVENT_MOTION_DET,
-+				.u.motion_det = {
-+					.flags = V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ,
-+					.frame_sequence = vb->v4l2_buf.sequence,
-+					.region_mask = enc_buf->motion ? 1 : 0,
-+				},
-+			};
-+
-+			solo_enc->motion_last_state = enc_buf->motion;
-+			solo_enc->frames_since_last_motion = 0;
-+			v4l2_event_queue(solo_enc->vfd, &ev);
-+		}
- 	}
- 
- 	vb2_buffer_done(vb, ret ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
-@@ -1121,6 +1154,21 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
- 	return 0;
- }
- 
-+static int solo_subscribe_event(struct v4l2_fh *fh,
-+				const struct v4l2_event_subscription *sub)
-+{
-+
-+	switch (sub->type) {
-+	case V4L2_EVENT_CTRL:
-+		return v4l2_ctrl_subscribe_event(fh, sub);
-+	case V4L2_EVENT_MOTION_DET:
-+		/* Allow for up to 30 events (1 second for NTSC) to be
-+		 * stored. */
-+		return v4l2_event_subscribe(fh, sub, 30, NULL);
-+	}
-+	return -EINVAL;
-+}
-+
- static const struct v4l2_file_operations solo_enc_fops = {
- 	.owner			= THIS_MODULE,
- 	.open			= v4l2_fh_open,
-@@ -1159,7 +1207,7 @@ static const struct v4l2_ioctl_ops solo_enc_ioctl_ops = {
- 	.vidioc_g_parm			= solo_g_parm,
- 	/* Logging and events */
- 	.vidioc_log_status		= v4l2_ctrl_log_status,
--	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
-+	.vidioc_subscribe_event		= solo_subscribe_event,
- 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
- };
- 
-diff --git a/drivers/staging/media/solo6x10/solo6x10.h b/drivers/staging/media/solo6x10/solo6x10.h
-index 19cb56b..35f9486 100644
---- a/drivers/staging/media/solo6x10/solo6x10.h
-+++ b/drivers/staging/media/solo6x10/solo6x10.h
-@@ -96,11 +96,6 @@
- 
- #define SOLO_DEFAULT_QP			3
- 
--#ifndef V4L2_BUF_FLAG_MOTION_ON
--#define V4L2_BUF_FLAG_MOTION_ON		0x10000
--#define V4L2_BUF_FLAG_MOTION_DETECTED	0x20000
--#endif
--
- #define SOLO_CID_CUSTOM_BASE		(V4L2_CID_USER_BASE | 0xf000)
- #define V4L2_CID_MOTION_TRACE		(SOLO_CID_CUSTOM_BASE+2)
- #define V4L2_CID_OSD_TEXT		(SOLO_CID_CUSTOM_BASE+3)
-@@ -168,6 +163,8 @@ struct solo_enc_dev {
- 	u16			motion_thresh;
- 	bool			motion_global;
- 	bool			motion_enabled;
-+	bool			motion_last_state;
-+	u8			frames_since_last_motion;
- 	u16			width;
- 	u16			height;
- 
--- 
-2.0.0.rc0
+This is wrong, m2m devices should only set the VIDEO_M2M capability, it shouldn't be combined with
+CAPTURE and OUTPUT.
 
+> 		Streaming
+> 		Device Capabilities
+> 	Device Caps   : 0x04008003
+> 		Video Capture
+> 		Video Output
+> 		Video Memory-to-Memory
+> 		Streaming
+>
+> Compliance test for device /dev/video8 (not using libv4l2):
+>
+> Required ioctls:
+> 		warn: v4l2-compliance.cpp(366): VIDIOC_QUERYCAP: m2m with video input and output caps
+
+This should be an error, not a warning. I'll update that in v4l2-compliance.
+
+In the very beginning when m2m devices were introduced they were marked as capture+output
+devices, but some applications scan video devices for those that have the CAPTURE cap set
+(quite reasonable), and they would also match such m2m devices. Quite soon we realized
+that this was a problem and we introduced the m2m cap.
+
+> 	test VIDIOC_QUERYCAP: OK
+>
+> Allow for multiple opens:
+> 	test second video open: OK
+> 		warn: v4l2-compliance.cpp(366): VIDIOC_QUERYCAP: m2m with video input and output caps
+> 	test VIDIOC_QUERYCAP: OK
+> 	test VIDIOC_G/S_PRIORITY: OK
+>
+> Debug ioctls:
+> 	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+> 	test VIDIOC_LOG_STATUS: OK (Not Supported)
+>
+> Input ioctls:
+> 	test VIDIOC_G/S_TUNER: OK (Not Supported)
+> 	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+> 	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+> 	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+> 	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+> 	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+> 	Inputs: 0 Audio Inputs: 0 Tuners: 0
+>
+> Output ioctls:
+> 	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+> 	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+> 	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+> 	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+> 	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+> 	Outputs: 0 Audio Outputs: 0 Modulators: 0
+>
+> Input/Output configuration ioctls:
+> 	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+> 	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+> 	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+> 	test VIDIOC_G/S_EDID: OK (Not Supported)
+>
+> 	Control ioctls:
+> 		test VIDIOC_QUERYCTRL/MENU: OK
+> 		test VIDIOC_G/S_CTRL: OK
+> 		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+> 		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+> 		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+> 		Standard Controls: 19 Private Controls: 0
+>
+> 	Format ioctls:
+> 		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+> 		test VIDIOC_G/S_PARM: OK (Not Supported)
+> 		test VIDIOC_G_FBUF: OK (Not Supported)
+> 		test VIDIOC_G_FMT: OK
+> 		test VIDIOC_TRY_FMT: OK
+> 		test VIDIOC_S_FMT: OK
+> 		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>
+> 	Codec ioctls:
+> 		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+> 		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+> 		test VIDIOC_(TRY_)DECODER_CMD: OK
+>
+> Buffer ioctls:
+> 	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+> 	test VIDIOC_EXPBUF: OK
+>
+> Total: 38, Succeeded: 38, Failed: 0, Warnings: 2
+>
+>> 2) what would be needed for 'v4l2-compliance -s' to work?
+>
+> I haven't looked at this in detail yet. v4l2-compliance -s curently fails:
+>
+> Buffer ioctls:
+> 		info: test buftype Video Capture
+> 		info: test buftype Video Output
+> 	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+> 	test VIDIOC_EXPBUF: OK
+> 	test read/write: OK (Not Supported)
+> 		fail: v4l2-test-buffers.cpp(859): ret != EINVAL
+
+This test tries to create a buffer with a sizeimage that is only half of
+what the current format is. It expects an error based on the assumption
+that this driver cannot change format mid-stream. If this is the case
+for your driver, then you need to put a sanity check in queue_setup, if
+this is allowed for your driver, then try commenting out this check.
+
+> 	test MMAP: FAIL
+> 		fail: v4l2-test-buffers.cpp(936): buf.qbuf(q)
+> 		fail: v4l2-test-buffers.cpp(976): setupUserPtr(node, q)
+> 	test USERPTR: FAIL
+
+This is a real bug: you added VB2_USERPTR to the io_modes field of the
+vb2 queues, but you are using videobuf2-dma-contig.h, which make userptr
+support impossible since that requires scatter-gather DMA. Just drop the
+VB2_USERPTR from io_modes.
+
+> 	test DMABUF: Cannot test, specify --expbuf-device
+>
+> In principle the h.264 encoder should work, as you can just feed it
+> one frame at a time and then pick up the encoded result on the capture
+> side.
+>
+>> For the encoder 'v4l2-compliance -s' will probably work OK, but for
+>> the decoder you need to feed v4l2-compliance -s some compressed
+>> stream. I assume each buffer should contain a single P/B/I frame?
+>
+> Yes, for h.264 we currently expect all NAL units for a complete frame
+> in the source buffers.
+>
+>> The v4l2-ctl utility has already support for writing captured data
+>> to a file, but it has no support to store the image sizes as well.
+>> So if the captured buffers do not all have the same size you cannot
+>> 'index' the captured file. If I would add support for that, then I
+>> can add support for it to v4l2-compliance as well, allowing you to
+>> playback an earlier captured compressed video stream and use that
+>> as the compliance test input.
+>>
+>> Does this makes sense?
+>
+> Wouldn't that mean that you had to add a stream parser for every
+> supported compressed format? Or are you planning to store an index
+> separately?
+
+Most likely I would store a separate index file.
+
+Regards,
+
+	Hans
