@@ -1,64 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33031 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756207AbaFLRGp (ORCPT
+Received: from fallback7.mail.ru ([94.100.181.128]:38362 "EHLO
+	fallback7.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751836AbaF0Iea (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 13:06:45 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: [RFC PATCH 17/26] [media] ipuv3-csi: Pass ipucsi to v4l2_media_subdev_s_power
-Date: Thu, 12 Jun 2014 19:06:31 +0200
-Message-Id: <1402592800-2925-18-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 27 Jun 2014 04:34:30 -0400
+Received: from f106.i.mail.ru (f106.i.mail.ru [94.100.178.75])
+	by fallback7.mail.ru (mPOP.Fallback_MX) with ESMTP id 49105108425E5
+	for <linux-media@vger.kernel.org>; Fri, 27 Jun 2014 12:33:11 +0400 (MSK)
+From: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
+To: =?UTF-8?B?UGF1bCBCb2xsZQ==?= <pebolle@tiscali.nl>
+Cc: =?UTF-8?B?R3Vlbm5hZGkgTGlha2hvdmV0c2tp?= <g.liakhovetski@gmx.de>,
+	=?UTF-8?B?TWF1cm8gQ2FydmFsaG8gQ2hlaGFi?= <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: =?UTF-8?B?UmU6IEtjb25maWcgc3ltYm9sIE1YMV9WSURFTw==?=
+Mime-Version: 1.0
+Date: Fri, 27 Jun 2014 12:32:52 +0400
+Reply-To: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
+Message-ID: <1403857972.234516314@f106.i.mail.ru>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
+In-Reply-To: <1403857099.2048.15.camel@x220>
+References: <1403857099.2048.15.camel@x220>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sascha Hauer <s.hauer@pengutronix.de>
-
-Makes it easier to access ipucsi from v4l2_media_subdev_s_power which
-is needed in subsequent patches.
-
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
----
- drivers/media/platform/imx/imx-ipuv3-csi.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/platform/imx/imx-ipuv3-csi.c b/drivers/media/platform/imx/imx-ipuv3-csi.c
-index dfa2daa..e75d7f5 100644
---- a/drivers/media/platform/imx/imx-ipuv3-csi.c
-+++ b/drivers/media/platform/imx/imx-ipuv3-csi.c
-@@ -1080,8 +1080,9 @@ disable:
- 	return ret;
- }
- 
--int v4l2_media_subdev_s_power(struct media_entity *entity, int enable)
-+int v4l2_media_subdev_s_power(struct ipucsi *ipucsi, int enable)
- {
-+	struct media_entity *entity = &ipucsi->subdev.entity;
- 	struct media_entity_graph graph;
- 	struct media_entity *first;
- 	struct v4l2_subdev *sd;
-@@ -1131,7 +1132,7 @@ static int ipucsi_open(struct file *file)
- 		goto out;
- 
- 	if (v4l2_fh_is_singular_file(file))
--		ret = v4l2_media_subdev_s_power(&ipucsi->subdev.entity, 1);
-+		ret = v4l2_media_subdev_s_power(ipucsi, 1);
- 
- out:
- 	mutex_unlock(&ipucsi->mutex);
-@@ -1144,7 +1145,7 @@ static int ipucsi_release(struct file *file)
- 
- 	mutex_lock(&ipucsi->mutex);
- 	if (v4l2_fh_is_singular_file(file)) {
--		v4l2_media_subdev_s_power(&ipucsi->subdev.entity, 0);
-+		v4l2_media_subdev_s_power(ipucsi, 0);
- 
- 		vb2_fop_release(file);
- 	} else {
--- 
-2.0.0.rc2
-
+RnJpLCAyNyBKdW4gMjAxNCAxMDoxODoxOSArMDIwMCDQvtGCIFBhdWwgQm9sbGUgPHBlYm9sbGVA
+dGlzY2FsaS5ubD46Cj4gQWxleGFuZGVyLAo+IAo+IFlvdXIgcGF0Y2ggIlttZWRpYV0gbWVkaWE6
+IG14MV9jYW1lcmE6IFJlbW92ZSBkcml2ZXIiIGxhbmRlZCBpbiB0b2RheSdzCj4gbGludXgtbmV4
+dCAoaWUsIG5leHQtMjAxNDA2MjcpLCBhcyBjb21taXQgOTBiMDU1ODk4ZTlkLiBJdCBpcyBhcmNo
+aXZlZAo+IGF0IGh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtbWVkaWEvbXNnNzY3
+NjQuaHRtbCAuCj4gCj4gSXQgcmVtb3ZlcyB0aGUgS2NvbmZpZyBzeW1ib2xzIE1YMV9WSURFTyBl
+biBWSURFT19NWDEuIEl0IG9ubHkgcmVtb3Zlcwo+IHRoZSBjb2RlIGRlcGVuZGluZyBvbiBWSURF
+T19NWDEgKGllLCBpbgo+IGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc29jX2NhbWVyYSkuCj4gCj4g
+QSBwcmV2aW91cyB2ZXJzaW9uIG9mIHRoYXQgcGF0Y2ggaXMgYXJjaGl2ZWQgYXQKPiBodHRwOi8v
+d3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LW1lZGlhL21zZzc2NDMyLmh0bWwgLiAoUGxlYXNl
+LCBuZXh0Cj4gdGltZSB5b3Ugc3VibWl0IGEgc2Vjb25kIHZlcnNpb24gb2YgYSBwYXRjaCBtYXJr
+IGl0IGFzIGEgdjIgYW5kIGFkZCBzb21lCj4gaW5mbyBiZWxvdyB0aGUgLS0tIG1hcmtlciBhYm91
+dCB0aGUgZGlmZmVyZW5jZXMgdG8gdGhlIGZpcnN0IHZlcnNpb24uKQo+IFRoYXQgcHJldmlvdXMg
+dmVyc2lvbiByZW1vdmVkIHRoZSBjb2RlIGRlcGVuZGluZyBvbiBib3RoIHN5bWJvbHMuIEJ1dCBh
+Cj4gcXVpY2sgZ2xhbmNlIGF0IHRoZSBkaXNjdXNzaW9uIGFib3V0IHRoYXQgcGF0Y2ggc2hvd3Mg
+dGhhdCB5b3Ugd2VyZQo+IGFza2VkIHRvIG5vdCByZW1vdmUgdGhlIGNvZGUgZGVwZW5kaW5nIG9u
+IE1YMV9WSURFTyAoaWUsIGluCj4gYXJjaC9hcm0vbWFjaC1pbXgvKS4KPiAKPiBXb3VsZCB5b3Ug
+cGVyaGFwcyBrbm93IHdoZXRoZXIgYSBwYXRjaCB0byByZW1vdmUgdGhlIGFyY2gvYXJtL21hY2gt
+aW14Lwo+IGNvZGUgaXMgcGVuZGluZyBzb21ld2hlcmU/CgpQYXRjaCB0byByZW1vdmUgTVgxX1ZJ
+REVPIHBhcnQgZnJvbSBhcmNoL2FybS9tYWNoLWlteCBpcyBzY2hlZHVsZWQuCkkgZXhwZWN0IHRv
+IHVwZGF0ZSB0aGUgU2hhd24gZ2l0IHJlcG9zaXRvcnkgdG8gdGhlIGxpbnV4LW5leHQgYnJhbmNo
+LgoKLS0tCgo=
