@@ -1,55 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f49.google.com ([209.85.219.49]:36961 "EHLO
-	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752445AbaFSF0f (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2629 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752845AbaF0OPv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jun 2014 01:26:35 -0400
-Received: by mail-oa0-f49.google.com with SMTP id i7so4038569oag.8
-        for <linux-media@vger.kernel.org>; Wed, 18 Jun 2014 22:26:35 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20140619045438.GA14497@kroah.com>
-References: <20140618102957.15728.43525.stgit@patser> <20140618103653.15728.4942.stgit@patser>
- <20140619011653.GF10921@kroah.com> <CAF6AEGtzv0+PoMwSfK=NTYAO=bxsnS2BcwLxLNmLqnGTEUV8ng@mail.gmail.com>
- <CAO_48GF_hb5PZFwEmx8vsy+gW=Mq=cnEq8H4W74hCdz9qg0+SQ@mail.gmail.com> <20140619045438.GA14497@kroah.com>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Thu, 19 Jun 2014 10:56:15 +0530
-Message-ID: <CAO_48GE8t0zT2p=JCYvgYPQKhw6QiGEA-ufzKqZUirQLQs+nqw@mail.gmail.com>
-Subject: Re: [REPOST PATCH 1/8] fence: dma-buf cross-device synchronization (v17)
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Rob Clark <robdclark@gmail.com>,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-arch <linux-arch@vger.kernel.org>,
-	Thomas Hellstrom <thellstrom@vmware.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Colin Cross <ccross@google.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 27 Jun 2014 10:15:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: it@sca-uk.com, =stoth@kernellabs.com
+Subject: [PATCH 0/2] cx23885: add support for Hauppauge ImpactVCB-e
+Date: Fri, 27 Jun 2014 16:15:40 +0200
+Message-Id: <1403878542-1230-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 19 June 2014 10:24, Greg KH <gregkh@linuxfoundation.org> wrote:
-> On Thu, Jun 19, 2014 at 09:57:35AM +0530, Sumit Semwal wrote:
->> Hi Greg,
->>
+This has been sitting in my queue for some time now. I've cleaned it
+up and it should be ready for 3.17.
 
->> >>
->> >> Who is going to sign up to maintain this code?  (hint, it's not me...)
->> >
->> > that would be Sumit (dma-buf tree)..
->> >
->> > probably we should move fence/reservation/dma-buf into drivers/dma-buf
->> > (or something approximately like that)
->> Yes, that would be me - it might be better to create a new directory
->> as suggested above (drivers/dma-buf).
->
-> That's fine with me, there is going to be more than just one file in
-> there, right?  :)
->
-> greg k-h
-Certainly atleast 3 :)
+The main problem was related to inconsistent use of UNSET and
+TUNER_ABSENT to denote an absent tuner (as is the case of this new
+Hauppauge device). So the first patch cleans that up first.
 
-~sumit
+Regards,
+
+        Hans
+
