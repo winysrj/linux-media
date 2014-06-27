@@ -1,100 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44462 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753406AbaFMQJJ (ORCPT
+Received: from mailrelay011.isp.belgacom.be ([195.238.6.178]:58875 "EHLO
+	mailrelay011.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750714AbaF0Udb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jun 2014 12:09:09 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 15/30] [media] coda: add h.264 min/max qp controls
-Date: Fri, 13 Jun 2014 18:08:41 +0200
-Message-Id: <1402675736-15379-16-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402675736-15379-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 27 Jun 2014 16:33:31 -0400
+From: Fabian Frederick <fabf@skynet.be>
+To: linux-kernel@vger.kernel.org
+Cc: Fabian Frederick <fabf@skynet.be>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 1/1] drivers/base/dma-buf.c: replace dma_buf_uninit_debugfs by debugfs_remove_recursive
+Date: Fri, 27 Jun 2014 22:32:10 +0200
+Message-Id: <1403901130-8156-1-git-send-email-fabf@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the bitrate control is set, the encoder works in CBR mode, dynamically
-changing the quantization parameters to achieve a constant bitrate.
-With the min/max QP controls the quantization parameters can be limited
-to a given range.
+null test before debugfs_remove_recursive is not needed so one line function
+dma_buf_uninit_debugfs can be removed.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+This patch calls debugfs_remove_recursive under CONFIG_DEBUG_FS
+
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 ---
- drivers/media/platform/coda.c | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index b2e8e0e..fa7eafb 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -159,6 +159,8 @@ struct coda_params {
- 	u8			rot_mode;
- 	u8			h264_intra_qp;
- 	u8			h264_inter_qp;
-+	u8			h264_min_qp;
-+	u8			h264_max_qp;
- 	u8			mpeg4_intra_qp;
- 	u8			mpeg4_inter_qp;
- 	u8			gop_size;
-@@ -2433,7 +2435,16 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 		coda_write(dev, (gamma & CODA_GAMMA_MASK) << CODA_GAMMA_OFFSET,
- 			   CODA_CMD_ENC_SEQ_RC_GAMMA);
- 	}
-+
-+	if (ctx->params.h264_min_qp || ctx->params.h264_max_qp) {
-+		coda_write(dev,
-+			   ctx->params.h264_min_qp << CODA_QPMIN_OFFSET |
-+			   ctx->params.h264_max_qp << CODA_QPMAX_OFFSET,
-+			   CODA_CMD_ENC_SEQ_RC_QP_MIN_MAX);
-+	}
- 	if (dev->devtype->product == CODA_960) {
-+		if (ctx->params.h264_max_qp)
-+			value |= 1 << CODA9_OPTION_RCQPMAX_OFFSET;
- 		if (CODA_DEFAULT_GAMMA > 0)
- 			value |= 1 << CODA9_OPTION_GAMMA_OFFSET;
- 	} else {
-@@ -2443,6 +2454,10 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 			else
- 				value |= 1 << CODA7_OPTION_GAMMA_OFFSET;
- 		}
-+		if (ctx->params.h264_min_qp)
-+			value |= 1 << CODA7_OPTION_RCQPMIN_OFFSET;
-+		if (ctx->params.h264_max_qp)
-+			value |= 1 << CODA7_OPTION_RCQPMAX_OFFSET;
- 	}
- 	coda_write(dev, value, CODA_CMD_ENC_SEQ_OPTION);
+This is untested.
+
+ drivers/base/dma-buf.c | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+index 840c7fa..184c0cb 100644
+--- a/drivers/base/dma-buf.c
++++ b/drivers/base/dma-buf.c
+@@ -701,12 +701,6 @@ static int dma_buf_init_debugfs(void)
+ 	return err;
+ }
  
-@@ -2670,6 +2685,12 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP:
- 		ctx->params.h264_inter_qp = ctrl->val;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP:
-+		ctx->params.h264_min_qp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP:
-+		ctx->params.h264_max_qp = ctrl->val;
-+		break;
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:
- 		ctx->params.mpeg4_intra_qp = ctrl->val;
- 		break;
-@@ -2717,6 +2738,12 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
- 		V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP, 0, 51, 1, 25);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP, 0, 51, 1, 25);
-+	if (ctx->dev->devtype->product != CODA_960) {
-+		v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+			V4L2_CID_MPEG_VIDEO_H264_MIN_QP, 0, 51, 1, 12);
-+	}
-+	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_MPEG_VIDEO_H264_MAX_QP, 0, 51, 1, 51);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP, 1, 31, 1, 2);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+-static void dma_buf_uninit_debugfs(void)
+-{
+-	if (dma_buf_debugfs_dir)
+-		debugfs_remove_recursive(dma_buf_debugfs_dir);
+-}
+-
+ int dma_buf_debugfs_create_file(const char *name,
+ 				int (*write)(struct seq_file *))
+ {
+@@ -722,9 +716,6 @@ static inline int dma_buf_init_debugfs(void)
+ {
+ 	return 0;
+ }
+-static inline void dma_buf_uninit_debugfs(void)
+-{
+-}
+ #endif
+ 
+ static int __init dma_buf_init(void)
+@@ -738,6 +729,8 @@ subsys_initcall(dma_buf_init);
+ 
+ static void __exit dma_buf_deinit(void)
+ {
+-	dma_buf_uninit_debugfs();
++#ifdef CONFIG_DEBUG_FS
++	debugfs_remove_recursive(dma_buf_debugfs_dir);
++#endif
+ }
+ __exitcall(dma_buf_deinit);
 -- 
-2.0.0.rc2
+1.8.4.5
 
