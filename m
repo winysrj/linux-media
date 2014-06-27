@@ -1,104 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:52167 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753330AbaFGV5N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jun 2014 17:57:13 -0400
-Received: by mail-pd0-f175.google.com with SMTP id z10so3833627pdj.20
-        for <linux-media@vger.kernel.org>; Sat, 07 Jun 2014 14:57:13 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 13/43] imx-drm: ipu-v3: Add ipu_idmac_buffer_is_ready()
-Date: Sat,  7 Jun 2014 14:56:15 -0700
-Message-Id: <1402178205-22697-14-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1402178205-22697-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3909 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752872AbaF0IN1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Jun 2014 04:13:27 -0400
+Message-ID: <53AD279E.6030101@xs4all.nl>
+Date: Fri, 27 Jun 2014 10:13:18 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: [GIT PULL FOR v3.16] Two 3.16 fixes
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add ipu_idmac_buffer_is_ready(), returns true if the given buffer in
-the given channel is set ready (owned by IPU), or false if not ready
-(owned by CPU core).
+The davinci bug was introduced in 3.16, the hdpvr bug in 3.10.
 
-Support has been added for third buffer, there is no support yet for
-triple-buffering in idmac channels, but this function checks
-buffer-ready for third buffer in case this support is added later.
+Regards,
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/imx-drm/ipu-v3/ipu-common.c |   26 +++++++++++++++++++++++++-
- drivers/staging/imx-drm/ipu-v3/ipu-prv.h    |    1 +
- include/linux/platform_data/imx-ipu-v3.h    |    1 +
- 3 files changed, 27 insertions(+), 1 deletion(-)
+	Hans
 
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-common.c b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-index d005ed5..3ff55da 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-common.c
-@@ -682,7 +682,7 @@ void ipu_idmac_put(struct ipuv3_channel *channel)
- }
- EXPORT_SYMBOL_GPL(ipu_idmac_put);
- 
--#define idma_mask(ch)			(1 << (ch & 0x1f))
-+#define idma_mask(ch)			(1 << ((ch) & 0x1f))
- 
- void ipu_idmac_set_double_buffer(struct ipuv3_channel *channel,
- 		bool doublebuffer)
-@@ -756,6 +756,30 @@ int ipu_module_disable(struct ipu_soc *ipu, u32 mask)
- }
- EXPORT_SYMBOL_GPL(ipu_module_disable);
- 
-+bool ipu_idmac_buffer_is_ready(struct ipuv3_channel *channel, u32 buf_num)
-+{
-+	struct ipu_soc *ipu = channel->ipu;
-+	unsigned long flags;
-+	u32 reg = 0;
-+
-+	spin_lock_irqsave(&ipu->lock, flags);
-+	switch (buf_num) {
-+	case 0:
-+		reg = ipu_cm_read(ipu, IPU_CHA_BUF0_RDY(channel->num));
-+		break;
-+	case 1:
-+		reg = ipu_cm_read(ipu, IPU_CHA_BUF1_RDY(channel->num));
-+		break;
-+	case 2:
-+		reg = ipu_cm_read(ipu, IPU_CHA_BUF2_RDY(channel->num));
-+		break;
-+	}
-+	spin_unlock_irqrestore(&ipu->lock, flags);
-+
-+	return ((reg & idma_mask(channel->num)) != 0);
-+}
-+EXPORT_SYMBOL_GPL(ipu_idmac_buffer_is_ready);
-+
- void ipu_idmac_select_buffer(struct ipuv3_channel *channel, u32 buf_num)
- {
- 	struct ipu_soc *ipu = channel->ipu;
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-prv.h b/drivers/staging/imx-drm/ipu-v3/ipu-prv.h
-index 104e296..43ac6c3 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-prv.h
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-prv.h
-@@ -71,6 +71,7 @@ struct ipu_soc;
- #define IPU_DISP_TASK_STAT		IPU_CM_REG(0x0254)
- #define IPU_CHA_BUF0_RDY(ch)		IPU_CM_REG(0x0268 + 4 * ((ch) / 32))
- #define IPU_CHA_BUF1_RDY(ch)		IPU_CM_REG(0x0270 + 4 * ((ch) / 32))
-+#define IPU_CHA_BUF2_RDY(ch)		IPU_CM_REG(0x0288 + 4 * ((ch) / 32))
- #define IPU_ALT_CHA_BUF0_RDY(ch)	IPU_CM_REG(0x0278 + 4 * ((ch) / 32))
- #define IPU_ALT_CHA_BUF1_RDY(ch)	IPU_CM_REG(0x0280 + 4 * ((ch) / 32))
- 
-diff --git a/include/linux/platform_data/imx-ipu-v3.h b/include/linux/platform_data/imx-ipu-v3.h
-index 65ff5ce..0128667 100644
---- a/include/linux/platform_data/imx-ipu-v3.h
-+++ b/include/linux/platform_data/imx-ipu-v3.h
-@@ -199,6 +199,7 @@ int ipu_idmac_wait_busy(struct ipuv3_channel *channel, int ms);
- void ipu_idmac_set_double_buffer(struct ipuv3_channel *channel,
- 		bool doublebuffer);
- void ipu_idmac_select_buffer(struct ipuv3_channel *channel, u32 buf_num);
-+bool ipu_idmac_buffer_is_ready(struct ipuv3_channel *channel, u32 buf_num);
- 
- /*
-  * IPU Display Controller (dc) functions
--- 
-1.7.9.5
+The following changes since commit b5b620584b9c4644b85e932895a742e0c192d66c:
 
+   [media] technisat-sub2: Fix stream curruption on high bitrate (2014-06-26 09:20:18 -0300)
+
+are available in the git repository at:
+
+   git://linuxtv.org/hverkuil/media_tree.git for-v3.16b
+
+for you to fetch changes up to ce8c2bc1e2c90fcc1f7a919846db5a11c32e0516:
+
+   hdpvr: fix two audio bugs (2014-06-27 10:11:38 +0200)
+
+----------------------------------------------------------------
+Dan Carpenter (1):
+       davinci: vpif: missing unlocks on error
+
+Hans Verkuil (1):
+       hdpvr: fix two audio bugs
+
+  drivers/media/platform/davinci/vpif_capture.c | 1 +
+  drivers/media/platform/davinci/vpif_display.c | 1 +
+  drivers/media/usb/hdpvr/hdpvr-video.c         | 6 +++---
+  3 files changed, 5 insertions(+), 3 deletions(-)
