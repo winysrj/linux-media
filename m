@@ -1,107 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60023 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751300AbaFMK3B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jun 2014 06:29:01 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, arm@kernel.org
-Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
-Date: Fri, 13 Jun 2014 12:29:34 +0200
-Message-ID: <1709586.iO4riM1soY@avalon>
-In-Reply-To: <20140613075325.GO17845@atomide.com>
-References: <5192928.MkINji4uKU@wuerfel> <1830688.7p3Fp6u7a2@avalon> <20140613075325.GO17845@atomide.com>
+Received: from mx02.posteo.de ([89.146.194.165]:34559 "EHLO posteo.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752415AbaF0WP0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Jun 2014 18:15:26 -0400
+Message-ID: <53ADECDA.60600@posteo.de>
+Date: Sat, 28 Jun 2014 00:14:50 +0200
+From: Martin Kepplinger <martink@posteo.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Zhang Rui <rui.zhang@intel.com>
+CC: "rjw@rjwysocki.net" <rjw@rjwysocki.net>,
+	"lenb@kernel.org" <lenb@kernel.org>,
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black instead
+ of native resolution
+References: <53A6E72A.9090000@posteo.de>		 <744357E9AAD1214791ACBA4B0B90926301379B97@SHSMSX101.ccr.corp.intel.com>		 <53A81BF7.3030207@posteo.de> <1403529246.4686.6.camel@rzhang1-toshiba>	 <53A83DC7.1010606@posteo.de> <1403882067.16305.124.camel@rzhang1-toshiba> <53ADB359.4010401@posteo.de> <53ADCB24.9030206@posteo.de>
+In-Reply-To: <53ADCB24.9030206@posteo.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tony,
-
-On Friday 13 June 2014 00:53:25 Tony Lindgren wrote:
-> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140612 23:48]:
-> > On Thursday 12 June 2014 22:30:44 Tony Lindgren wrote:
-> > > 1. They live in separate hardware modules that can be clocked separately
-> > 
-> > Actually I don't think that's true. The CSI2 PHY is part of the camera
-> > device, with all its registers but the one above in the camera device
-> > register space. For some weird reason a couple of bits were pushed to the
-> > control module, but that doesn't make the CSI2 PHY itself a separate
-> > device.
+Am 2014-06-27 21:51, schrieb Martin Kepplinger:
+> Am 2014-06-27 20:09, schrieb Martin Kepplinger:
+>> Am 2014-06-27 17:14, schrieb Zhang Rui:
+>>> On Mon, 2014-06-23 at 16:46 +0200, Martin Kepplinger wrote:
+>>>> Am 2014-06-23 15:14, schrieb Zhang Rui:
+>>>>> On Mon, 2014-06-23 at 14:22 +0200, Martin Kepplinger wrote:
+>>>>>> Am 2014-06-23 03:10, schrieb Zhang, Rui:
+>>>>>>>
+>>>>>>>
+>>>>>>>> -----Original Message-----
+>>>>>>>> From: Martin Kepplinger [mailto:martink@posteo.de]
+>>>>>>>> Sent: Sunday, June 22, 2014 10:25 PM
+>>>>>>>> To: Zhang, Rui
+>>>>>>>> Cc: rjw@rjwysocki.net; lenb@kernel.org; linux-acpi@vger.kernel.org;
+>>>>>>>> linux-kernel@vger.kernel.org
+>>>>>>>> Subject: [BUG] rc1 and rc2: Laptop unusable: on boot,screen black
+>>>>>>>> instead of native resolution
+>>>>>>>> Importance: High
+>>>>>>>>
+>>>>>>>> Since 3.16-rc1 my laptop's just goes black while booting, instead of
+>>>>>>>> switching to native screen resolution and showing me the starting
+>>>>>>>> system there. It's an Acer TravelMate B113 with i915 driver and
+>>>>>>>> acer_wmi. It stays black and is unusable.
+>>>>>>>>
+>>>>> This looks like a duplicate of
+>>>>> https://bugzilla.kernel.org/show_bug.cgi?id=78601
+>>>>>
+>>>>> thanks,
+>>>>> rui
+>>>> I'm not sure about that. I have no problem with v3.15 and the screen
+>>>> goes black way before a display manager is started. It's right after the
+>>>> kernel loaded and usually the screen is set to native resolution.
+>>>>
+>>>> Bisect told me aaeb2554337217dfa4eac2fcc90da7be540b9a73 as the first bad
+>>>> one. Although, checking that out and running it, works good. not sure if
+>>>> that makes sense.
+>>>>
+>>> could you please check if the comment in
+>>> https://bugzilla.kernel.org/show_bug.cgi?id=78601#c5 solves your problem
+>>> or not?
+>>>
+>>> thanks,
+>>> rui
+>>
+>> thanks for checking. This does not change anything though. I tested the
+>> following on top of v3.16-rc2 and linus's tree as of today, almost -rc3.
+>>
+>> ---
+>>  drivers/gpu/drm/i915/intel_fbdev.c |    1 -
+>>  1 file changed, 1 deletion(-)
+>>
+>> diff --git a/drivers/gpu/drm/i915/intel_fbdev.c
+>> b/drivers/gpu/drm/i915/intel_fbdev.c
+>> index 088fe93..1e2f9ae 100644
+>> --- a/drivers/gpu/drm/i915/intel_fbdev.c
+>> +++ b/drivers/gpu/drm/i915/intel_fbdev.c
+>> @@ -453,7 +453,6 @@ out:
+>>  }
+>>
+>>  static struct drm_fb_helper_funcs intel_fb_helper_funcs = {
+>> -       .initial_config = intel_fb_initial_config,
+>>         .gamma_set = intel_crtc_fb_gamma_set,
+>>         .gamma_get = intel_crtc_fb_gamma_get,
+>>         .fb_probe = intelfb_create,
+>>
 > 
-> Yes they are separate. Anything in the system control module is
-> a separate hardware module from the other devices. So in this case
-> the CSI2 PHY is part of the system control module, not the camera
-> module.
-
-Section 8.2.3 ("ISS CSI2 PHY") of the OMAP4460 TRM (revision AA) documents the 
-CSI2 PHY is being part of the ISS, with three PHY registers in the ISS 
-register space (not counting the PHY interrupt and status bits in several 
-other ISS registers) and one register in the system control module register 
-space. It's far from clear which power domain(s) is (are) involved.
-
-> > > 2. Doing a read-back to flush a posted write in one hardware module most
-> > >    likely won't flush the write to other and that can lead into hard to
-> > >    find mysterious bugs
-> > 
-> > The OMAP4 ISS driver can just read back the CAMERA_RX register, can't it ?
+> I also tested the following patch from
+> http://lists.freedesktop.org/archives/intel-gfx/2014-June/047981.html
+> now, with no results. No change in my case :(
 > 
-> Right, but you would have to do readbacks both from the phy register and
-> camera register to ensure writes get written. It's best to keep the
-> logic completely separate especially considering that they can be
-> clocked separately.
+> diff --git a/drivers/gpu/drm/i915/intel_display.c
+> b/drivers/gpu/drm/i915/intel_display.c
+> index efd3cf5..5aee08e 100644
+> --- a/drivers/gpu/drm/i915/intel_display.c
+> +++ b/drivers/gpu/drm/i915/intel_display.c
+> @@ -11087,6 +11087,22 @@ const char *intel_output_name(int output)
+>         return names[output];
+>  }
 > 
-> > > 3. If we ever have a common system control module driver, we need to
-> > >    rewrite all the system control module register tinkering in the
-> > >    drivers
-> > 
-> > Sure, but that's already the case today, as the OMAP4 ISS driver already
-> > accesses the control module register directly. I won't make that worse :-)
+> +static bool intel_crt_present(struct drm_device *dev)
+> +{
+> +       struct drm_i915_private *dev_priv = dev->dev_private;
+> +
+> +       if (IS_ULT(dev))
+> +               return false;
+> +
+> +       if (IS_CHERRYVIEW(dev))
+> +               return false;
+> +
+> +       if (IS_VALLEYVIEW(dev) && !dev_priv->vbt.int_crt_support)
+> +               return false;
+> +
+> +       return true;
+> +}
+> +
+>  static void intel_setup_outputs(struct drm_device *dev)
+>  {
+>         struct drm_i915_private *dev_priv = dev->dev_private;
+> @@ -11095,7 +11111,7 @@ static void intel_setup_outputs(struct
+> drm_device *dev)
 > 
-> Well it's in staging for a reason :)
+>         intel_lvds_init(dev);
 > 
-> > > So it's best to try to use an existing framework for it. That avoids
-> > > tons of pain later on ;)
-> > 
-> > I agree, but I don't think the PHY framework would be the right
-> > abstraction. As explained above the CSI2 PHY is part of the OMAP4 ISS, so
-> > modeling its single control module register as a PHY would be a hack.
+> -       if (!IS_ULT(dev) && !IS_CHERRYVIEW(dev) &&
+> dev_priv->vbt.int_crt_support)
+> +       if (intel_crt_present(dev))
+>                 intel_crt_init(dev);
 > 
-> Well that register belongs to the system control module, not the
-> camera module. It's not like the camera IO space is out of registers
-> or something! :)
+>         if (HAS_DDI(dev)) {
+> 
+I'm on i686 and also the following from
+https://bugzilla.redhat.com/show_bug.cgi?id=1110968#c16 does not help :(
+this is bad.
 
-The PHY has 3 registers in the ISS I/O space and one register in the control 
-module I/O space. I have no idea why they've split it that way. The clock 
-enable bits are especially "interested", the source clock (CAM_PHY_CTRL_FCLK) 
-comes from the ISS as documented in section 8.1.1 ("ISS Integration"), is 
-gated by the control module (the gated clock is called CTRLCLK) and then goes 
-back to the ISS CSI2 PHY (it's mentioned in the CSI2 PHY "REGISTER1" 
-documentation).
+---
+ arch/x86/kernel/signal.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+--- a/arch/x86/kernel/signal.c	
++++ a/arch/x86/kernel/signal.c	
+@@ -363,7 +363,7 @@ static int __setup_rt_frame(int sig, struct ksignal
+*ksig,
 
-> We're already handling similar control module phy cases, see for
-> example drivers/phy/phy-omap-control.c. Maybe you have most of the
-> code already there?
-
-I'm afraid not. For PHYs that are in the system control module that solution 
-is perfectly fine, but the CSI2 PHY isn't (or at least not all of it).
-
-I would be fine with writing a separate PHY driver if the PHY was completely 
-separate. As the documentation doesn't make it clear which part of the 
-hardware belongs to which module, matching the software implementation with an 
-unknown hardware implementation would be pretty difficult :-)
-
-If you have a couple of minutes to spare and can look at the CSI2 PHY 
-documentation in the TRM, you might be more successful than me figuring out 
-how the hardware is implemented.
-
+ 		/* Set up to return from userspace.  */
+ 		restorer = current->mm->context.vdso +
+-			selected_vdso32->sym___kernel_sigreturn;
++			selected_vdso32->sym___kernel_rt_sigreturn;
+ 		if (ksig->ka.sa.sa_flags & SA_RESTORER)
+ 			restorer = ksig->ka.sa.sa_restorer;
+ 		put_user_ex(restorer, &frame->pretcode);
 -- 
-Regards,
-
-Laurent Pinchart
-
