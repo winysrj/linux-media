@@ -1,77 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33032 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756208AbaFLRGq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jun 2014 13:06:46 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: [RFC PATCH 18/26] [media] ipuv3-csi: make subdev controls available on video device
-Date: Thu, 12 Jun 2014 19:06:32 +0200
-Message-Id: <1402592800-2925-19-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail.comexp.ru ([78.110.60.213]:35616 "EHLO mail.comexp.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753873AbaF0N2Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Jun 2014 09:28:25 -0400
+Message-ID: <1403870630.2767.3.camel@madomr-fc.comexp.ru>
+Subject: [PATCH 1/2] saa7134: add new card BeholdTV H7 (rev. 7191)
+From: Mikhail Domrachev <mihail.domrychev@comexp.ru>
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Date: Fri, 27 Jun 2014 16:03:50 +0400
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sascha Hauer <s.hauer@pengutronix.de>
+New revision of the H7 card has a tuner xc5000C instead of xc5000.
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Mikhail Domrachev <mihail.domrychev@comexp.ru>
 ---
- drivers/media/platform/imx/imx-ipuv3-csi.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ Documentation/video4linux/CARDLIST.saa7134 |  1 +
+ drivers/media/pci/saa7134/saa7134-cards.c  | 37 ++++++++++++++++++++++++++++++
+ drivers/media/pci/saa7134/saa7134-dvb.c    |  1 +
+ drivers/media/pci/saa7134/saa7134-input.c  |  1 +
+ drivers/media/pci/saa7134/saa7134.h        |  1 +
+ 5 files changed, 41 insertions(+)
 
-diff --git a/drivers/media/platform/imx/imx-ipuv3-csi.c b/drivers/media/platform/imx/imx-ipuv3-csi.c
-index e75d7f5..0dd40a4 100644
---- a/drivers/media/platform/imx/imx-ipuv3-csi.c
-+++ b/drivers/media/platform/imx/imx-ipuv3-csi.c
-@@ -250,6 +250,7 @@ struct ipucsi {
- 	struct v4l2_format		format;
- 	struct ipucsi_format		ipucsifmt;
- 	struct v4l2_ctrl_handler	ctrls;
-+	struct v4l2_ctrl_handler	ctrls_vdev;
- 	struct v4l2_ctrl		*ctrl_test_pattern;
- 	struct media_pad		media_pad;
- 	struct media_pipeline		pipe;
-@@ -1096,12 +1097,19 @@ int v4l2_media_subdev_s_power(struct ipucsi *ipucsi, int enable)
- 		goto disable;
- 	}
+diff --git a/Documentation/video4linux/CARDLIST.saa7134 b/Documentation/video4linux/CARDLIST.saa7134
+index 8df17d0..1a067d7 100644
+--- a/Documentation/video4linux/CARDLIST.saa7134
++++ b/Documentation/video4linux/CARDLIST.saa7134
+@@ -191,3 +191,4 @@
+ 190 -> Asus My Cinema PS3-100                   [1043:48cd]
+ 191 -> Hawell HW-9004V1
+ 192 -> AverMedia AverTV Satellite Hybrid+FM A706 [1461:2055]
++193 -> Beholder BeholdTV H7 (rev. 7191)          [5ace:7191]
+diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
+index 6e4bdb9..376feb5 100644
+--- a/drivers/media/pci/saa7134/saa7134-cards.c
++++ b/drivers/media/pci/saa7134/saa7134-cards.c
+@@ -5827,6 +5827,34 @@ struct saa7134_board saa7134_boards[] = {
+ 			.gpio = 0x0000800,
+ 		},
+ 	},
++	[SAA7134_BOARD_BEHOLD_H7_7191] = {
++		.name           = "Beholder BeholdTV H7 (rev. 7191)",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_XC5000C,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.mpeg           = SAA7134_MPEG_DVB,
++		.ts_type	= SAA7134_MPEG_TS_PARALLEL,
++		.inputs         = { {
++			.name = name_tv,
++			.vmux = 2,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 0,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 9,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = TV,
++		},
++	},
  
-+	v4l2_ctrl_handler_init(&ipucsi->ctrls_vdev, 1);
-+
- 	while (!ret && (entity = media_entity_graph_walk_next(&graph))) {
- 		if (media_entity_type(entity) == MEDIA_ENT_T_V4L2_SUBDEV) {
- 			sd = media_entity_to_v4l2_subdev(entity);
- 			ret = v4l2_subdev_call(sd, core, s_power, 1);
- 			if (ret == -ENOIOCTLCMD)
- 				ret = 0;
-+
-+			ret = v4l2_ctrl_add_handler(&ipucsi->ctrls_vdev,
-+						    sd->ctrl_handler, NULL);
-+			if (ret)
-+				return ret;
+ };
+ 
+@@ -7035,6 +7063,12 @@ struct pci_device_id saa7134_pci_tbl[] = {
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace, /* Beholder Intl. Ltd. */
++		.subdevice    = 0x7191,
++		.driver_data  = SAA7134_BOARD_BEHOLD_H7_7191,
++	}, {
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++		.subvendor    = 0x5ace, /* Beholder Intl. Ltd. */
+ 		.subdevice    = 0x7090,
+ 		.driver_data  = SAA7134_BOARD_BEHOLD_A7,
+ 	}, {
+@@ -7176,6 +7210,7 @@ static int saa7134_xc5000_callback(struct saa7134_dev *dev,
+ 	switch (dev->board) {
+ 	case SAA7134_BOARD_BEHOLD_X7:
+ 	case SAA7134_BOARD_BEHOLD_H7:
++	case SAA7134_BOARD_BEHOLD_H7_7191:
+ 	case SAA7134_BOARD_BEHOLD_A7:
+ 		if (command == XC5000_TUNER_RESET) {
+ 		/* Down and UP pheripherial RESET pin for reset all chips */
+@@ -7348,6 +7383,7 @@ int saa7134_tuner_callback(void *priv, int component, int command, int arg)
+ 		case TUNER_XC2028:
+ 			return saa7134_xc2028_callback(dev, command, arg);
+ 		case TUNER_XC5000:
++		case TUNER_XC5000C:
+ 			return saa7134_xc5000_callback(dev, command, arg);
  		}
- 	}
- 
-@@ -1147,6 +1155,8 @@ static int ipucsi_release(struct file *file)
- 	if (v4l2_fh_is_singular_file(file)) {
- 		v4l2_media_subdev_s_power(ipucsi, 0);
- 
-+		v4l2_ctrl_handler_free(&ipucsi->ctrls_vdev);
-+
- 		vb2_fop_release(file);
  	} else {
- 		v4l2_fh_release(file);
-@@ -1320,6 +1330,7 @@ static int ipucsi_video_device_init(struct platform_device *pdev,
- 	vdev->minor	= -1;
- 	vdev->release	= video_device_release_empty;
- 	vdev->lock	= &ipucsi->mutex;
-+	vdev->ctrl_handler = &ipucsi->ctrls_vdev;
- 	vdev->queue	= &ipucsi->vb2_vidq;
+@@ -7606,6 +7642,7 @@ int saa7134_board_init1(struct saa7134_dev *dev)
+ 	case SAA7134_BOARD_BEHOLD_H6:
+ 	case SAA7134_BOARD_BEHOLD_X7:
+ 	case SAA7134_BOARD_BEHOLD_H7:
++	case SAA7134_BOARD_BEHOLD_H7_7191:
+ 	case SAA7134_BOARD_BEHOLD_A7:
+ 	case SAA7134_BOARD_KWORLD_PC150U:
+ 		dev->has_remote = SAA7134_REMOTE_I2C;
+diff --git a/drivers/media/pci/saa7134/saa7134-dvb.c b/drivers/media/pci/saa7134/saa7134-dvb.c
+index 73ffbab..89d2a66 100644
+--- a/drivers/media/pci/saa7134/saa7134-dvb.c
++++ b/drivers/media/pci/saa7134/saa7134-dvb.c
+@@ -1734,6 +1734,7 @@ static int dvb_init(struct saa7134_dev *dev)
+ 		}
+ 		break;
+ 	case SAA7134_BOARD_BEHOLD_H7:
++	case SAA7134_BOARD_BEHOLD_H7_7191:
+ 		fe0->dvb.frontend = dvb_attach(zl10353_attach,
+ 						&behold_x7_config,
+ 						&dev->i2c_adap);
+diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
+index 6f43126..1d89a3f 100644
+--- a/drivers/media/pci/saa7134/saa7134-input.c
++++ b/drivers/media/pci/saa7134/saa7134-input.c
+@@ -986,6 +986,7 @@ void saa7134_probe_i2c_ir(struct saa7134_dev *dev)
+ 	case SAA7134_BOARD_BEHOLD_H6:
+ 	case SAA7134_BOARD_BEHOLD_X7:
+ 	case SAA7134_BOARD_BEHOLD_H7:
++	case SAA7134_BOARD_BEHOLD_H7_7191:
+ 	case SAA7134_BOARD_BEHOLD_A7:
+ 		dev->init_data.name = "BeholdTV";
+ 		dev->init_data.get_key = get_key_beholdm6xx;
+diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
+index e47edd4..9b61e7e 100644
+--- a/drivers/media/pci/saa7134/saa7134.h
++++ b/drivers/media/pci/saa7134/saa7134.h
+@@ -338,6 +338,7 @@ struct saa7134_card_ir {
+ #define SAA7134_BOARD_ASUSTeK_PS3_100      190
+ #define SAA7134_BOARD_HAWELL_HW_9004V1      191
+ #define SAA7134_BOARD_AVERMEDIA_A706		192
++#define SAA7134_BOARD_BEHOLD_H7_7191		193
  
- 	video_set_drvdata(vdev, ipucsi);
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
 -- 
-2.0.0.rc2
+1.9.3
+
+
 
