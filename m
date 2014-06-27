@@ -1,847 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1278 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751874AbaF0Mgs (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3971 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753090AbaF0I6r (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jun 2014 08:36:48 -0400
-Message-ID: <53AD6558.9050403@xs4all.nl>
-Date: Fri, 27 Jun 2014 14:36:40 +0200
+	Fri, 27 Jun 2014 04:58:47 -0400
+Message-ID: <53AD322B.8030201@xs4all.nl>
+Date: Fri, 27 Jun 2014 10:58:19 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org
-CC: linux-sh@vger.kernel.org
-Subject: Re: [PATCH v2 03/23] v4l: Support extending the v4l2_pix_format structure
-References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1403567669-18539-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1403567669-18539-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH v2 08/29] [media] coda: add selection API support for
+ h.264 decoder
+References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de> <1403621771-11636-9-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1403621771-11636-9-git-send-email-p.zabel@pengutronix.de>
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-Some comments below...
-
-On 06/24/2014 01:54 AM, Laurent Pinchart wrote:
-> The v4l2_pix_format structure has no reserved field. It is embedded in
-> the v4l2_framebuffer structure which has no reserved fields either, and
-> in the v4l2_format structure which has reserved fields that were not
-> previously required to be zeroed out by applications.
->
-> To allow extending v4l2_pix_format, inline it in the v4l2_framebuffer
-> structure, and use the priv field as a magic value to indicate that the
-> application has set all v4l2_pix_format extended fields and zeroed all
-> reserved fields following the v4l2_pix_format field in the v4l2_format
-> structure.
->
-> The availability of this API extension is reported to userspace through
-> the new V4L2_CAP_EXT_PIX_FORMAT capability flag. Just checking that the
-> priv field is still set to the magic value at [GS]_FMT return wouldn't
-> be enough, as older kernels don't zero the priv field on return.
->
-> To simplify the internal API towards drivers zero the extended fields
-> and set the priv field to the magic value for applications not aware of
-> the extensions.
->
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->   Documentation/DocBook/media/Makefile               |  2 +-
->   Documentation/DocBook/media/v4l/pixfmt.xml         | 25 +++++++--
->   Documentation/DocBook/media/v4l/v4l2.xml           |  8 +++
->   .../DocBook/media/v4l/vidioc-querycap.xml          |  6 +++
->   drivers/media/parport/bw-qcam.c                    |  2 -
->   drivers/media/pci/cx18/cx18-ioctl.c                |  1 -
->   drivers/media/pci/cx25821/cx25821-video.c          |  3 --
->   drivers/media/pci/ivtv/ivtv-ioctl.c                |  3 --
->   drivers/media/pci/meye/meye.c                      |  2 -
->   drivers/media/pci/saa7134/saa7134-empress.c        |  3 --
->   drivers/media/pci/saa7134/saa7134-video.c          |  2 -
->   drivers/media/pci/sta2x11/sta2x11_vip.c            |  1 -
->   drivers/media/platform/coda.c                      |  2 -
->   drivers/media/platform/davinci/vpif_display.c      |  1 -
->   drivers/media/platform/mem2mem_testdev.c           |  1 -
->   drivers/media/platform/omap/omap_vout.c            |  2 -
->   drivers/media/platform/sh_veu.c                    |  2 -
->   drivers/media/platform/vino.c                      |  5 --
->   drivers/media/platform/vivi.c                      |  1 -
->   drivers/media/usb/cx231xx/cx231xx-417.c            |  2 -
->   drivers/media/usb/cx231xx/cx231xx-video.c          |  2 -
->   drivers/media/usb/gspca/gspca.c                    |  8 +--
->   drivers/media/usb/hdpvr/hdpvr-video.c              |  1 -
->   drivers/media/usb/stkwebcam/stk-webcam.c           |  2 -
->   drivers/media/usb/tlg2300/pd-video.c               |  1 -
->   drivers/media/usb/tm6000/tm6000-video.c            |  2 -
->   drivers/media/usb/zr364xx/zr364xx.c                |  3 --
->   drivers/media/v4l2-core/v4l2-compat-ioctl32.c      | 19 +++++--
->   drivers/media/v4l2-core/v4l2-ioctl.c               | 61 ++++++++++++++++++++--
->   include/uapi/linux/videodev2.h                     | 15 +++++-
->   30 files changed, 126 insertions(+), 62 deletions(-)
->
-> diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
-> index 1d27f0a..494da94 100644
-> --- a/Documentation/DocBook/media/Makefile
-> +++ b/Documentation/DocBook/media/Makefile
-> @@ -174,7 +174,7 @@ FILENAME = \
->   DOCUMENTED = \
->   	-e "s/\(enum *\)v4l2_mpeg_cx2341x_video_\([a-z]*_spatial_filter_type\)/\1<link linkend=\"\2\">v4l2_mpeg_cx2341x_video_\2<\/link>/g" \
->   	-e "s/\(\(enum\|struct\) *\)\(v4l2_[a-zA-Z0-9_]*\)/\1<link linkend=\"\3\">\3<\/link>/g" \
-> -	-e "s/\(V4L2_PIX_FMT_[A-Z0-9_]\+\) /<link linkend=\"\1\">\1<\/link> /g" \
-> +	-e "s/\(V4L2_PIX_FMT_[A-Z0-9_]\+\)\(\s\+v4l2_fourcc\)/<link linkend=\"\1\">\1<\/link>\2/g" \
->   	-e ":a;s/\(linkend=\".*\)_\(.*\">\)/\1-\2/;ta" \
->   	-e "s/v4l2\-mpeg\-vbi\-ITV0/v4l2-mpeg-vbi-itv0-1/g"
->
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-> index 91dcbc8..8c56cacd 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-> @@ -112,9 +112,28 @@ see <xref linkend="colorspaces" />.</entry>
->   	<row>
->   	  <entry>__u32</entry>
->   	  <entry><structfield>priv</structfield></entry>
-> -	  <entry>Reserved for custom (driver defined) additional
-> -information about formats. When not used drivers and applications must
-> -set this field to zero.</entry>
-> +	  <entry><para>This field indicates whether the remaining fields of the
-> +<structname>v4l2_pix_format</structname> structure, also called the extended
-> +fields, are valid. When set to <constant>V4L2_PIX_FMT_PRIV_MAGIC</constant>, it
-> +indicates that the extended fields have been correctly initialized. When set to
-> +any other value it indicates that the extended fields contain undefined values.
-> +</para>
-> +<para>Applications that wish to use the pixel format extended fields must first
-> +ensure that the feature is supported by querying the device for the
-> +<link linkend="querycap"><constant>V4L2_CAP_EXT_PIX_FORMAT</constant></link>
-> +capability. If the capability isn't set the pixel format extended fields are not
-> +supported and using the extended fields will lead to undefined results.</para>
-> +<para>To use the extended fields, applications must set the
-> +<structfield>priv</structfield> field to
-> +<constant>V4L2_PIX_FMT_PRIV_MAGIC</constant>, initialize all the extended fields
-> +and zero the unused bytes of the <structname>v4l2_format</structname>
-> +<structfield>raw_data</structfield> field.</para>
-> +<para>When the <structfield>priv</structfield> field isn't set to
-> +<constant>V4L2_PIX_FMT_PRIV_MAGIC</constant> drivers must act as if all the
-> +extended fields were set to zero. On return drivers must set the
-> +<structfield>priv</structfield> field to
-> +<constant>V4L2_PIX_FMT_PRIV_MAGIC</constant> and all the extended field to
-
-s/field/fields/
-
-> +applicable values.</para></entry>
->   	</row>
->         </tbody>
->       </tgroup>
-> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-> index b445161..d0a48be 100644
-> --- a/Documentation/DocBook/media/v4l/v4l2.xml
-> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
-> @@ -152,6 +152,14 @@ structs, ioctls) must be noted in more detail in the history chapter
->   applications. -->
->
->         <revision>
-> +	<revnumber>3.16</revnumber>
-> +	<date>2014-05-27</date>
-> +	<authorinitials>lp</authorinitials>
-> +	<revremark>Extended &v4l2-pix-format;.
-> +	</revremark>
-> +      </revision>
-> +
-> +      <revision>
->   	<revnumber>3.15</revnumber>
->   	<date>2014-02-03</date>
->   	<authorinitials>hv, ap</authorinitials>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> index 370d49d..d0c5e60 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> @@ -302,6 +302,12 @@ modulator programming see
->   <link linkend="sdr">SDR Capture</link> interface.</entry>
->   	  </row>
->   	  <row>
-> +	    <entry><constant>V4L2_CAP_EXT_PIX_FORMAT</constant></entry>
-> +	    <entry>0x00200000</entry>
-> +	    <entry>The device supports the &v4l2-pix-format; extended
-> +fields.</entry>
-> +	  </row>
-> +	  <row>
->   	    <entry><constant>V4L2_CAP_READWRITE</constant></entry>
->   	    <entry>0x01000000</entry>
->   	    <entry>The device supports the <link
-> diff --git a/drivers/media/parport/bw-qcam.c b/drivers/media/parport/bw-qcam.c
-> index 416507a..67fff38 100644
-> --- a/drivers/media/parport/bw-qcam.c
-> +++ b/drivers/media/parport/bw-qcam.c
-> @@ -759,7 +759,6 @@ static int qcam_g_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *f
->   	pix->sizeimage = pix->width * pix->height;
->   	/* Just a guess */
->   	pix->colorspace = V4L2_COLORSPACE_SRGB;
-> -	pix->priv = 0;
->   	return 0;
->   }
->
-> @@ -785,7 +784,6 @@ static int qcam_try_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format
->   	pix->sizeimage = pix->width * pix->height;
->   	/* Just a guess */
->   	pix->colorspace = V4L2_COLORSPACE_SRGB;
-> -	pix->priv = 0;
->   	return 0;
->   }
->
-> diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
-> index fefb2cd..6f2b590 100644
-> --- a/drivers/media/pci/cx18/cx18-ioctl.c
-> +++ b/drivers/media/pci/cx18/cx18-ioctl.c
-> @@ -156,7 +156,6 @@ static int cx18_g_fmt_vid_cap(struct file *file, void *fh,
->   	pixfmt->height = cx->cxhdl.height;
->   	pixfmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
->   	pixfmt->field = V4L2_FIELD_INTERLACED;
-> -	pixfmt->priv = 0;
->   	if (id->type == CX18_ENC_STREAM_TYPE_YUV) {
->   		pixfmt->pixelformat = s->pixelformat;
->   		pixfmt->sizeimage = s->vb_bytes_per_frame;
-> diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
-> index d270819..c7ae087 100644
-> --- a/drivers/media/pci/cx25821/cx25821-video.c
-> +++ b/drivers/media/pci/cx25821/cx25821-video.c
-> @@ -576,7 +576,6 @@ static int cx25821_vidioc_g_fmt_vid_cap(struct file *file, void *priv,
->   	f->fmt.pix.bytesperline = (chan->width * chan->fmt->depth) >> 3;
->   	f->fmt.pix.sizeimage = chan->height * f->fmt.pix.bytesperline;
->   	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
-> -	f->fmt.pix.priv = 0;
->
->   	return 0;
->   }
-> @@ -615,7 +614,6 @@ static int cx25821_vidioc_try_fmt_vid_cap(struct file *file, void *priv,
->   	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
->   	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
->   	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
-> -	f->fmt.pix.priv = 0;
->
->   	return 0;
->   }
-> @@ -867,7 +865,6 @@ static int cx25821_vidioc_try_fmt_vid_out(struct file *file, void *priv,
->   	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
->   	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
->   	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
-> -	f->fmt.pix.priv = 0;
->   	return 0;
->   }
->
-> diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
-> index b3667a0..3e0cb77 100644
-> --- a/drivers/media/pci/ivtv/ivtv-ioctl.c
-> +++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
-> @@ -351,7 +351,6 @@ static int ivtv_g_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *f
->   	pixfmt->height = itv->cxhdl.height;
->   	pixfmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
->   	pixfmt->field = V4L2_FIELD_INTERLACED;
-> -	pixfmt->priv = 0;
->   	if (id->type == IVTV_ENC_STREAM_TYPE_YUV) {
->   		pixfmt->pixelformat = V4L2_PIX_FMT_HM12;
->   		/* YUV size is (Y=(h*720) + UV=(h*(720/2))) */
-> @@ -418,7 +417,6 @@ static int ivtv_g_fmt_vid_out(struct file *file, void *fh, struct v4l2_format *f
->   	pixfmt->height = itv->main_rect.height;
->   	pixfmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
->   	pixfmt->field = V4L2_FIELD_INTERLACED;
-> -	pixfmt->priv = 0;
->   	if (id->type == IVTV_DEC_STREAM_TYPE_YUV) {
->   		switch (itv->yuv_info.lace_mode & IVTV_YUV_MODE_MASK) {
->   		case IVTV_YUV_MODE_INTERLACED:
-> @@ -1384,7 +1382,6 @@ static int ivtv_g_fbuf(struct file *file, void *fh, struct v4l2_framebuffer *fb)
->   	fb->fmt.bytesperline = fb->fmt.width;
->   	fb->fmt.colorspace = V4L2_COLORSPACE_SMPTE170M;
->   	fb->fmt.field = V4L2_FIELD_INTERLACED;
-> -	fb->fmt.priv = 0;
->   	if (fb->fmt.pixelformat != V4L2_PIX_FMT_PAL8)
->   		fb->fmt.bytesperline *= 2;
->   	if (fb->fmt.pixelformat == V4L2_PIX_FMT_RGB32 ||
-> diff --git a/drivers/media/pci/meye/meye.c b/drivers/media/pci/meye/meye.c
-> index 54d5c82..4e7fba0 100644
-> --- a/drivers/media/pci/meye/meye.c
-> +++ b/drivers/media/pci/meye/meye.c
-> @@ -1166,7 +1166,6 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *fh,
->   	f->fmt.pix.sizeimage = f->fmt.pix.height *
->   			       f->fmt.pix.bytesperline;
->   	f->fmt.pix.colorspace = 0;
-> -	f->fmt.pix.priv = 0;
->
->   	return 0;
->   }
-> @@ -1232,7 +1231,6 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *fh,
->   	f->fmt.pix.sizeimage = f->fmt.pix.height *
->   			       f->fmt.pix.bytesperline;
->   	f->fmt.pix.colorspace = 0;
-> -	f->fmt.pix.priv = 0;
->
->   	return 0;
->   }
-> diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
-> index e65c760..ab020fa 100644
-> --- a/drivers/media/pci/saa7134/saa7134-empress.c
-> +++ b/drivers/media/pci/saa7134/saa7134-empress.c
-> @@ -130,7 +130,6 @@ static int empress_g_fmt_vid_cap(struct file *file, void *priv,
->   	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
->   	f->fmt.pix.sizeimage    = TS_PACKET_SIZE * dev->ts.nr_packets;
->   	f->fmt.pix.bytesperline = 0;
-> -	f->fmt.pix.priv = 0;
->
->   	return 0;
->   }
-> @@ -148,7 +147,6 @@ static int empress_s_fmt_vid_cap(struct file *file, void *priv,
->   	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
->   	f->fmt.pix.sizeimage    = TS_PACKET_SIZE * dev->ts.nr_packets;
->   	f->fmt.pix.bytesperline = 0;
-> -	f->fmt.pix.priv = 0;
->
->   	return 0;
->   }
-> @@ -166,7 +164,6 @@ static int empress_try_fmt_vid_cap(struct file *file, void *priv,
->   	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
->   	f->fmt.pix.sizeimage    = TS_PACKET_SIZE * dev->ts.nr_packets;
->   	f->fmt.pix.bytesperline = 0;
-> -	f->fmt.pix.priv = 0;
->
->   	return 0;
->   }
-> diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-> index d375999..0cfa2ca 100644
-> --- a/drivers/media/pci/saa7134/saa7134-video.c
-> +++ b/drivers/media/pci/saa7134/saa7134-video.c
-> @@ -1235,7 +1235,6 @@ static int saa7134_g_fmt_vid_cap(struct file *file, void *priv,
->   	f->fmt.pix.sizeimage =
->   		f->fmt.pix.height * f->fmt.pix.bytesperline;
->   	f->fmt.pix.colorspace   = V4L2_COLORSPACE_SMPTE170M;
-> -	f->fmt.pix.priv = 0;
->   	return 0;
->   }
->
-> @@ -1315,7 +1314,6 @@ static int saa7134_try_fmt_vid_cap(struct file *file, void *priv,
->   	f->fmt.pix.sizeimage =
->   		f->fmt.pix.height * f->fmt.pix.bytesperline;
->   	f->fmt.pix.colorspace   = V4L2_COLORSPACE_SMPTE170M;
-> -	f->fmt.pix.priv = 0;
->
->   	return 0;
->   }
-> diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
-> index d2abd3b..e264460 100644
-> --- a/drivers/media/pci/sta2x11/sta2x11_vip.c
-> +++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
-> @@ -640,7 +640,6 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
->   	f->fmt.pix.bytesperline = f->fmt.pix.width * 2;
->   	f->fmt.pix.sizeimage = f->fmt.pix.width * 2 * f->fmt.pix.height;
->   	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
-> -	f->fmt.pix.priv = 0;
->   	return 0;
->   }
->
-> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> index b178379..5488660 100644
-> --- a/drivers/media/platform/coda.c
-> +++ b/drivers/media/platform/coda.c
-> @@ -613,8 +613,6 @@ static int coda_try_fmt(struct coda_ctx *ctx, struct coda_codec *codec,
->   		BUG();
->   	}
->
-> -	f->fmt.pix.priv = 0;
-> -
->   	return 0;
->   }
->
-> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-> index 5bb085b..042607a 100644
-> --- a/drivers/media/platform/davinci/vpif_display.c
-> +++ b/drivers/media/platform/davinci/vpif_display.c
-> @@ -648,7 +648,6 @@ static int vpif_try_fmt_vid_out(struct file *file, void *priv,
->   	pixfmt->width = common->fmt.fmt.pix.width;
->   	pixfmt->height = common->fmt.fmt.pix.height;
->   	pixfmt->sizeimage = pixfmt->bytesperline * pixfmt->height * 2;
-> -	pixfmt->priv = 0;
->
->   	return 0;
->   }
-> diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
-> index 0714070..c1b03cf 100644
-> --- a/drivers/media/platform/mem2mem_testdev.c
-> +++ b/drivers/media/platform/mem2mem_testdev.c
-> @@ -532,7 +532,6 @@ static int vidioc_try_fmt(struct v4l2_format *f, struct m2mtest_fmt *fmt)
->   	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
->   	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
->   	f->fmt.pix.field = V4L2_FIELD_NONE;
-> -	f->fmt.pix.priv = 0;
->
->   	return 0;
->   }
-> diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
-> index 9a726ea..2d177fa 100644
-> --- a/drivers/media/platform/omap/omap_vout.c
-> +++ b/drivers/media/platform/omap/omap_vout.c
-> @@ -165,7 +165,6 @@ static int omap_vout_try_format(struct v4l2_pix_format *pix)
->
->   	pix->pixelformat = omap_formats[ifmt].pixelformat;
->   	pix->field = V4L2_FIELD_ANY;
-> -	pix->priv = 0;
->
->   	switch (pix->pixelformat) {
->   	case V4L2_PIX_FMT_YUYV:
-> @@ -1896,7 +1895,6 @@ static int __init omap_vout_setup_video_data(struct omap_vout_device *vout)
->   	pix->field = V4L2_FIELD_ANY;
->   	pix->bytesperline = pix->width * 2;
->   	pix->sizeimage = pix->bytesperline * pix->height;
-> -	pix->priv = 0;
->   	pix->colorspace = V4L2_COLORSPACE_JPEG;
->
->   	vout->bpp = RGB565_BPP;
-> diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
-> index 744e43b..8dc279d 100644
-> --- a/drivers/media/platform/sh_veu.c
-> +++ b/drivers/media/platform/sh_veu.c
-> @@ -425,7 +425,6 @@ static int sh_veu_g_fmt(struct sh_veu_file *veu_file, struct v4l2_format *f)
->   	pix->bytesperline	= vfmt->bytesperline;
->   	pix->sizeimage		= vfmt->bytesperline * pix->height *
->   		vfmt->fmt->depth / vfmt->fmt->ydepth;
-> -	pix->priv		= 0;
->   	dev_dbg(veu->dev, "%s(): type: %d, size %u @ %ux%u, fmt %x\n", __func__,
->   		f->type, pix->sizeimage, pix->width, pix->height, pix->pixelformat);
->
-> @@ -473,7 +472,6 @@ static int sh_veu_try_fmt(struct v4l2_format *f, const struct sh_veu_format *fmt
->
->   	pix->pixelformat	= fmt->fourcc;
->   	pix->colorspace		= sh_veu_4cc2cspace(pix->pixelformat);
-> -	pix->priv		= 0;
->
->   	pr_debug("%s(): type: %d, size %u\n", __func__, f->type, pix->sizeimage);
->
-> diff --git a/drivers/media/platform/vino.c b/drivers/media/platform/vino.c
-> index 470d353..91d44ea1 100644
-> --- a/drivers/media/platform/vino.c
-> +++ b/drivers/media/platform/vino.c
-> @@ -3147,7 +3147,6 @@ static int vino_try_fmt_vid_cap(struct file *file, void *__fh,
->   	pf->colorspace =
->   		vino_data_formats[tempvcs.data_format].colorspace;
->
-> -	pf->priv = 0;
->   	return 0;
->   }
->
-> @@ -3175,8 +3174,6 @@ static int vino_g_fmt_vid_cap(struct file *file, void *__fh,
->   	pf->colorspace =
->   		vino_data_formats[vcs->data_format].colorspace;
->
-> -	pf->priv = 0;
-> -
->   	spin_unlock_irqrestore(&vino_drvdata->input_lock, flags);
->   	return 0;
->   }
-> @@ -3219,8 +3216,6 @@ static int vino_s_fmt_vid_cap(struct file *file, void *__fh,
->   	pf->colorspace =
->   		vino_data_formats[vcs->data_format].colorspace;
->
-> -	pf->priv = 0;
-> -
->   	spin_unlock_irqrestore(&vino_drvdata->input_lock, flags);
->   	return 0;
->   }
-> diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-> index d00bf3d..23480e7 100644
-> --- a/drivers/media/platform/vivi.c
-> +++ b/drivers/media/platform/vivi.c
-> @@ -1014,7 +1014,6 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
->   		f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
->   	else
->   		f->fmt.pix.colorspace = V4L2_COLORSPACE_SRGB;
-> -	f->fmt.pix.priv = 0;
->   	return 0;
->   }
->
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
-> index 30a0c69..7982440 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-417.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-417.c
-> @@ -1563,7 +1563,6 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
->   	f->fmt.pix.width = dev->ts1.width;
->   	f->fmt.pix.height = dev->ts1.height;
->   	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
-> -	f->fmt.pix.priv = 0;
->   	dprintk(1, "VIDIOC_G_FMT: w: %d, h: %d\n",
->   		dev->ts1.width, dev->ts1.height);
->   	dprintk(3, "exit vidioc_g_fmt_vid_cap()\n");
-> @@ -1582,7 +1581,6 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
->   	f->fmt.pix.sizeimage = mpeglines * mpeglinesize;
->   	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
->   	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
-> -	f->fmt.pix.priv = 0;
->   	dprintk(1, "VIDIOC_TRY_FMT: w: %d, h: %d\n",
->   		dev->ts1.width, dev->ts1.height);
->   	dprintk(3, "exit vidioc_try_fmt_vid_cap()\n");
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-> index 1f87513..8f489fa 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-video.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-> @@ -886,7 +886,6 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
->   	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
->
->   	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
-> -	f->fmt.pix.priv = 0;
->
->   	return 0;
->   }
-> @@ -931,7 +930,6 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
->   	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline * height;
->   	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
->   	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
-> -	f->fmt.pix.priv = 0;
->
->   	return 0;
->   }
-> diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
-> index f3a7ace..1b3d7bf 100644
-> --- a/drivers/media/usb/gspca/gspca.c
-> +++ b/drivers/media/usb/gspca/gspca.c
-> @@ -1102,8 +1102,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
->   	struct gspca_dev *gspca_dev = video_drvdata(file);
->
->   	fmt->fmt.pix = gspca_dev->pixfmt;
-> -	/* some drivers use priv internally, zero it before giving it to
-> -	   userspace */
-> +	/* some drivers use priv internally, zero it before giving it back to
-> +	   the core */
->   	fmt->fmt.pix.priv = 0;
->   	return 0;
->   }
-> @@ -1139,8 +1139,8 @@ static int try_fmt_vid_cap(struct gspca_dev *gspca_dev,
->   		fmt->fmt.pix.height = h;
->   		gspca_dev->sd_desc->try_fmt(gspca_dev, fmt);
->   	}
-> -	/* some drivers use priv internally, zero it before giving it to
-> -	   userspace */
-> +	/* some drivers use priv internally, zero it before giving it back to
-> +	   the core */
->   	fmt->fmt.pix.priv = 0;
->   	return mode;			/* used when s_fmt */
->   }
-> diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
-> index 0500c417..cf9a21e 100644
-> --- a/drivers/media/usb/hdpvr/hdpvr-video.c
-> +++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-> @@ -1022,7 +1022,6 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *_fh,
->   	f->fmt.pix.pixelformat	= V4L2_PIX_FMT_MPEG;
->   	f->fmt.pix.sizeimage	= dev->bulk_in_size;
->   	f->fmt.pix.bytesperline	= 0;
-> -	f->fmt.pix.priv		= 0;
->   	if (f->fmt.pix.width == 720) {
->   		/* SDTV formats */
->   		f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
-> diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-> index be77482..adfa832 100644
-> --- a/drivers/media/usb/stkwebcam/stk-webcam.c
-> +++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-> @@ -923,7 +923,6 @@ static int stk_vidioc_g_fmt_vid_cap(struct file *filp,
->   		pix_format->bytesperline = 2 * pix_format->width;
->   	pix_format->sizeimage = pix_format->bytesperline
->   				* pix_format->height;
-> -	pix_format->priv = 0;
->   	return 0;
->   }
->
-> @@ -967,7 +966,6 @@ static int stk_try_fmt_vid_cap(struct file *filp,
->   		fmtd->fmt.pix.bytesperline = 2 * fmtd->fmt.pix.width;
->   	fmtd->fmt.pix.sizeimage = fmtd->fmt.pix.bytesperline
->   		* fmtd->fmt.pix.height;
-> -	fmtd->fmt.pix.priv = 0;
->   	return 0;
->   }
->
-> diff --git a/drivers/media/usb/tlg2300/pd-video.c b/drivers/media/usb/tlg2300/pd-video.c
-> index 8df668d..8cd7f02 100644
-> --- a/drivers/media/usb/tlg2300/pd-video.c
-> +++ b/drivers/media/usb/tlg2300/pd-video.c
-> @@ -1321,7 +1321,6 @@ static void init_video_context(struct running_context *context)
->   				.bytesperline	= 720 * 2,
->   				.sizeimage	= 720 * 576 * 2,
->   				.colorspace	= V4L2_COLORSPACE_SMPTE170M,
-> -				.priv		= 0
->   			};
->   }
->
-> diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
-> index e6b3d5d..1626e9b 100644
-> --- a/drivers/media/usb/tm6000/tm6000-video.c
-> +++ b/drivers/media/usb/tm6000/tm6000-video.c
-> @@ -918,7 +918,6 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
->   		(f->fmt.pix.width * fh->fmt->depth) >> 3;
->   	f->fmt.pix.sizeimage =
->   		f->fmt.pix.height * f->fmt.pix.bytesperline;
-> -	f->fmt.pix.priv = 0;
->
->   	return 0;
->   }
-> @@ -959,7 +958,6 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
->   	f->fmt.pix.width &= ~0x01;
->
->   	f->fmt.pix.field = field;
-> -	f->fmt.pix.priv = 0;
->
->   	f->fmt.pix.bytesperline =
->   		(f->fmt.pix.width * fmt->depth) >> 3;
-> diff --git a/drivers/media/usb/zr364xx/zr364xx.c b/drivers/media/usb/zr364xx/zr364xx.c
-> index 74d56df..0f63954 100644
-> --- a/drivers/media/usb/zr364xx/zr364xx.c
-> +++ b/drivers/media/usb/zr364xx/zr364xx.c
-> @@ -806,7 +806,6 @@ static int zr364xx_vidioc_try_fmt_vid_cap(struct file *file, void *priv,
->   	f->fmt.pix.bytesperline = f->fmt.pix.width * 2;
->   	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
->   	f->fmt.pix.colorspace = V4L2_COLORSPACE_JPEG;
-> -	f->fmt.pix.priv = 0;
->   	DBG("%s: V4L2_PIX_FMT_%s (%d) ok!\n", __func__,
->   	    decode_fourcc(f->fmt.pix.pixelformat, pixelformat_name),
->   	    f->fmt.pix.field);
-> @@ -829,7 +828,6 @@ static int zr364xx_vidioc_g_fmt_vid_cap(struct file *file, void *priv,
->   	f->fmt.pix.bytesperline = f->fmt.pix.width * 2;
->   	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
->   	f->fmt.pix.colorspace = V4L2_COLORSPACE_JPEG;
-> -	f->fmt.pix.priv = 0;
->   	return 0;
->   }
->
-> @@ -866,7 +864,6 @@ static int zr364xx_vidioc_s_fmt_vid_cap(struct file *file, void *priv,
->   	f->fmt.pix.bytesperline = f->fmt.pix.width * 2;
->   	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
->   	f->fmt.pix.colorspace = V4L2_COLORSPACE_JPEG;
-> -	f->fmt.pix.priv = 0;
->   	cam->vb_vidq.field = f->fmt.pix.field;
->
->   	if (f->fmt.pix.width == 160 && f->fmt.pix.height == 120)
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index 7e2411c..cca6c2f 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -540,7 +540,16 @@ struct v4l2_framebuffer32 {
->   	__u32			capability;
->   	__u32			flags;
->   	compat_caddr_t 		base;
-> -	struct v4l2_pix_format	fmt;
-> +	struct {
-> +		__u32		width;
-> +		__u32		height;
-> +		__u32		pixelformat;
-> +		__u32		field;
-> +		__u32		bytesperline;
-> +		__u32		sizeimage;
-> +		__u32		colorspace;
-> +		__u32		priv;
-> +	} fmt;
->   };
->
->   static int get_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_framebuffer32 __user *up)
-> @@ -550,10 +559,10 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
->   	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_framebuffer32)) ||
->   		get_user(tmp, &up->base) ||
->   		get_user(kp->capability, &up->capability) ||
-> -		get_user(kp->flags, &up->flags))
-> +		get_user(kp->flags, &up->flags) ||
-> +		copy_from_user(&kp->fmt, &up->fmt, sizeof(up->fmt)))
->   			return -EFAULT;
->   	kp->base = compat_ptr(tmp);
-> -	get_v4l2_pix_format(&kp->fmt, &up->fmt);
->   	return 0;
->   }
->
-> @@ -564,9 +573,9 @@ static int put_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
->   	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_framebuffer32)) ||
->   		put_user(tmp, &up->base) ||
->   		put_user(kp->capability, &up->capability) ||
-> -		put_user(kp->flags, &up->flags))
-> +		put_user(kp->flags, &up->flags) ||
-> +		copy_to_user(&up->fmt, &kp->fmt, sizeof(up->fmt)))
->   			return -EFAULT;
-> -	put_v4l2_pix_format(&kp->fmt, &up->fmt);
->   	return 0;
->   }
->
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 16bffd8..01b4588 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -959,13 +959,48 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
->   	return -EINVAL;
->   }
->
-> +static void v4l_sanitize_format(struct v4l2_format *fmt)
-> +{
-> +	unsigned int offset;
-> +
-> +	/*
-> +	 * The v4l2_pix_format structure has been extended with fields that were
-> +	 * not previously required to be set to zero by applications. The priv
-> +	 * field, when set to a magic value, indicates the the extended fields
-> +	 * are valid. Otherwise they will contain undefined values. To simplify
-> +	 * the API towards drivers zero the extended fields and set the priv
-> +	 * field to the magic value when the extended pixel format structure
-> +	 * isn't used by applications.
-> +	 */
-> +
-> +	if (fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
-> +	    fmt->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> +		return;
-> +
-> +	if (fmt->fmt.pix.priv == V4L2_PIX_FMT_PRIV_MAGIC)
-> +		return;
-> +
-> +	fmt->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
-> +
-> +	offset = offsetof(struct v4l2_pix_format, priv)
-> +	       + sizeof(fmt->fmt.pix.priv);
-> +	memset(((void *)&fmt->fmt.pix) + offset, 0,
-> +	       sizeof(fmt->fmt.pix) - offset);
-> +}
-> +
->   static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
->   				struct file *file, void *fh, void *arg)
->   {
->   	struct v4l2_capability *cap = (struct v4l2_capability *)arg;
-> +	int ret;
->
->   	cap->version = LINUX_VERSION_CODE;
-> -	return ops->vidioc_querycap(file, fh, cap);
-> +
-> +	ret = ops->vidioc_querycap(file, fh, cap);
-> +
-> +	cap->capabilities |= V4L2_CAP_EXT_PIX_FORMAT;
-> +
-> +	return ret;
->   }
->
->   static int v4l_s_input(const struct v4l2_ioctl_ops *ops,
-> @@ -1089,12 +1124,17 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
->   	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
->   	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
->   	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
-> +	int ret;
-> +
-> +	v4l_sanitize_format(p);
-
-Note: before g_fmt is called all fields after 'type' are zeroed.
-So it is enough to just set priv to the magic value here.
-
->
->   	switch (p->type) {
->   	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
->   		if (unlikely(!is_rx || !is_vid || !ops->vidioc_g_fmt_vid_cap))
->   			break;
-> -		return ops->vidioc_g_fmt_vid_cap(file, fh, arg);
-> +		ret = ops->vidioc_g_fmt_vid_cap(file, fh, arg);
-> +		p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
-
-v4l_sanitize_format already sets priv to PRIV_MAGIC, so there is no need to do it
-again.
-
-> +		return ret;
->   	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
->   		if (unlikely(!is_rx || !is_vid || !ops->vidioc_g_fmt_vid_cap_mplane))
->   			break;
-> @@ -1114,7 +1154,9 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
->   	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
->   		if (unlikely(!is_tx || !is_vid || !ops->vidioc_g_fmt_vid_out))
->   			break;
-> -		return ops->vidioc_g_fmt_vid_out(file, fh, arg);
-> +		ret = ops->vidioc_g_fmt_vid_out(file, fh, arg);
-> +		p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
-
-Ditto.
-
-> +		return ret;
->   	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
->   		if (unlikely(!is_tx || !is_vid || !ops->vidioc_g_fmt_vid_out_mplane))
->   			break;
-> @@ -1502,7 +1544,18 @@ static int v4l_create_bufs(const struct v4l2_ioctl_ops *ops,
->   	struct v4l2_create_buffers *create = arg;
->   	int ret = check_fmt(file, create->format.type);
->
-> -	return ret ? ret : ops->vidioc_create_bufs(file, fh, create);
-> +	if (ret)
-> +		return ret;
-> +
-> +	v4l_sanitize_format(&create->format);
-> +
-> +	ret = ops->vidioc_create_bufs(file, fh, create);
-> +
-> +	if (create->format.type == V4L2_BUF_TYPE_VIDEO_CAPTURE ||
-> +	    create->format.type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> +		create->format.fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
-
-Ditto.
-
-> +
-> +	return ret;
->   }
-
-Shouldn't v4l_sanitize_format also be called for s/try_fmt? It makes much more
-sense there.
-
->
->   static int v4l_prepare_buf(const struct v4l2_ioctl_ops *ops,
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 0125f4d..2656a94 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -268,6 +268,7 @@ struct v4l2_capability {
->   #define V4L2_CAP_MODULATOR		0x00080000  /* has a modulator */
->
->   #define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
-> +#define V4L2_CAP_EXT_PIX_FORMAT		0x00200000  /* Supports the extended pixel format */
->
->   #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
->   #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
-> @@ -448,6 +449,9 @@ struct v4l2_pix_format {
->   #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
->   #define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
->
-> +/* priv field value to indicates that subsequent fields are valid. */
-> +#define V4L2_PIX_FMT_PRIV_MAGIC		0xdeadbeef
-
-Hmm, 'deadbeef' is used quite a lot (git grep deadbeef), perhaps we should
-use another magic number. E.g. 'feedcafe' or something like that.
-
-> +
->   /*
->    *	F O R M A T   E N U M E R A T I O N
->    */
-> @@ -752,7 +756,16 @@ struct v4l2_framebuffer {
->   /* FIXME: in theory we should pass something like PCI device + memory
->    * region + offset instead of some physical address */
->   	void                    *base;
-> -	struct v4l2_pix_format	fmt;
-> +	struct {
-> +		__u32		width;
-> +		__u32		height;
-> +		__u32		pixelformat;
-> +		__u32		field;		/* enum v4l2_field */
-> +		__u32		bytesperline;	/* for padding, zero if unused */
-> +		__u32		sizeimage;
-> +		__u32		colorspace;	/* enum v4l2_colorspace */
-> +		__u32		priv;		/* private data, depends on pixelformat */
-
-Let's change the comment to '/* Reserved field, set to 0. */.
-Ditto in the documentation. 'priv' has never been used for anything framebuffer
-related, so that whole 'private data' concept that priv was once used for should
-be eradicated.
-
-Note that DocBook should be updated as well w.r.t. the v4l2_framebuffer struct.
-
-> +	} fmt;
->   };
->   /*  Flags for the 'capability' field. Read only */
->   #define V4L2_FBUF_CAP_EXTERNOVERLAY	0x0001
->
-
-I would like to see this patch split in two: first adapt try/s_fmt in v4l2-ioctl.c to
-set priv to 0 and all drivers to drop the zeroing of priv (since that's now no
-longer necessary to do explicitly).
-
-The next patch would introduce support for the extended pix format.
-
-That way all the driver 'priv = 0' patches would be in their own trivial patch.
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 Regards,
 
 	Hans
+
+On 06/24/2014 04:55 PM, Philipp Zabel wrote:
+> The h.264 decoder produces capture frames that are a multiple of the macroblock
+> size (16 pixels). To inform userspace about invalid pixel data at the edges,
+> use the active and padded composing rectangles on the capture queue.
+> The cropping information is obtained from the h.264 sequence parameter set.
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+> Changes since v1:
+>   - Rewrote g_selection to only allow CROP target on OUTPUT and
+>     COMPOSE target on CAPTURE buffers.
+> ---
+>   drivers/media/platform/coda.c | 94 +++++++++++++++++++++++++++++++++++++++++++
+>   1 file changed, 94 insertions(+)
+>
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index f00b2aa..965b0d9 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -119,6 +119,7 @@ struct coda_q_data {
+>   	unsigned int		height;
+>   	unsigned int		sizeimage;
+>   	unsigned int		fourcc;
+> +	struct v4l2_rect	rect;
+>   };
+>
+>   struct coda_aux_buf {
+> @@ -735,6 +736,10 @@ static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
+>   	q_data->width = f->fmt.pix.width;
+>   	q_data->height = f->fmt.pix.height;
+>   	q_data->sizeimage = f->fmt.pix.sizeimage;
+> +	q_data->rect.left = 0;
+> +	q_data->rect.top = 0;
+> +	q_data->rect.width = f->fmt.pix.width;
+> +	q_data->rect.height = f->fmt.pix.height;
+>
+>   	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+>   		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
+> @@ -871,6 +876,50 @@ static int coda_streamoff(struct file *file, void *priv,
+>   	return ret;
+>   }
+>
+> +static int coda_g_selection(struct file *file, void *fh,
+> +			    struct v4l2_selection *s)
+> +{
+> +	struct coda_ctx *ctx = fh_to_ctx(fh);
+> +	struct coda_q_data *q_data;
+> +	struct v4l2_rect r, *rsel;
+> +
+> +	q_data = get_q_data(ctx, s->type);
+> +	if (!q_data)
+> +		return -EINVAL;
+> +
+> +	r.left = 0;
+> +	r.top = 0;
+> +	r.width = q_data->width;
+> +	r.height = q_data->height;
+> +	rsel = &q_data->rect;
+> +
+> +	switch (s->target) {
+> +	case V4L2_SEL_TGT_CROP_DEFAULT:
+> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+> +		rsel = &r;
+> +		/* fallthrough */
+> +	case V4L2_SEL_TGT_CROP:
+> +		if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +			return -EINVAL;
+> +		break;
+> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+> +	case V4L2_SEL_TGT_COMPOSE_PADDED:
+> +		rsel = &r;
+> +		/* fallthrough */
+> +	case V4L2_SEL_TGT_COMPOSE:
+> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+> +		if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> +			return -EINVAL;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	s->r = *rsel;
+> +
+> +	return 0;
+> +}
+> +
+>   static int coda_try_decoder_cmd(struct file *file, void *fh,
+>   				struct v4l2_decoder_cmd *dc)
+>   {
+> @@ -949,6 +998,8 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
+>   	.vidioc_streamon	= coda_streamon,
+>   	.vidioc_streamoff	= coda_streamoff,
+>
+> +	.vidioc_g_selection	= coda_g_selection,
+> +
+>   	.vidioc_try_decoder_cmd	= coda_try_decoder_cmd,
+>   	.vidioc_decoder_cmd	= coda_decoder_cmd,
+>
+> @@ -1504,6 +1555,10 @@ static void set_default_params(struct coda_ctx *ctx)
+>   	ctx->q_data[V4L2_M2M_DST].width = max_w;
+>   	ctx->q_data[V4L2_M2M_DST].height = max_h;
+>   	ctx->q_data[V4L2_M2M_DST].sizeimage = CODA_MAX_FRAME_SIZE;
+> +	ctx->q_data[V4L2_M2M_SRC].rect.width = max_w;
+> +	ctx->q_data[V4L2_M2M_SRC].rect.height = max_h;
+> +	ctx->q_data[V4L2_M2M_DST].rect.width = max_w;
+> +	ctx->q_data[V4L2_M2M_DST].rect.height = max_h;
+>
+>   	if (ctx->dev->devtype->product == CODA_960)
+>   		coda_set_tiled_map_type(ctx, GDI_LINEAR_FRAME_MAP);
+> @@ -2031,6 +2086,21 @@ static int coda_start_decoding(struct coda_ctx *ctx)
+>   		return -EINVAL;
+>   	}
+>
+> +	if (src_fourcc == V4L2_PIX_FMT_H264) {
+> +		u32 left_right;
+> +		u32 top_bottom;
+> +
+> +		left_right = coda_read(dev, CODA_RET_DEC_SEQ_CROP_LEFT_RIGHT);
+> +		top_bottom = coda_read(dev, CODA_RET_DEC_SEQ_CROP_TOP_BOTTOM);
+> +
+> +		q_data_dst->rect.left = (left_right >> 10) & 0x3ff;
+> +		q_data_dst->rect.top = (top_bottom >> 10) & 0x3ff;
+> +		q_data_dst->rect.width = width - q_data_dst->rect.left -
+> +					 (left_right & 0x3ff);
+> +		q_data_dst->rect.height = height - q_data_dst->rect.top -
+> +					  (top_bottom & 0x3ff);
+> +	}
+> +
+>   	ret = coda_alloc_framebuffers(ctx, q_data_dst, src_fourcc);
+>   	if (ret < 0)
+>   		return ret;
+> @@ -2937,6 +3007,30 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+>
+>   	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+>
+> +	/* frame crop information */
+> +	if (src_fourcc == V4L2_PIX_FMT_H264) {
+> +		u32 left_right;
+> +		u32 top_bottom;
+> +
+> +		left_right = coda_read(dev, CODA_RET_DEC_PIC_CROP_LEFT_RIGHT);
+> +		top_bottom = coda_read(dev, CODA_RET_DEC_PIC_CROP_TOP_BOTTOM);
+> +
+> +		if (left_right == 0xffffffff && top_bottom == 0xffffffff) {
+> +			/* Keep current crop information */
+> +		} else {
+> +			struct v4l2_rect *rect = &q_data_dst->rect;
+> +
+> +			rect->left = left_right >> 16 & 0xffff;
+> +			rect->top = top_bottom >> 16 & 0xffff;
+> +			rect->width = width - rect->left -
+> +				      (left_right & 0xffff);
+> +			rect->height = height - rect->top -
+> +				       (top_bottom & 0xffff);
+> +		}
+> +	} else {
+> +		/* no cropping */
+> +	}
+> +
+>   	val = coda_read(dev, CODA_RET_DEC_PIC_ERR_MB);
+>   	if (val > 0)
+>   		v4l2_err(&dev->v4l2_dev,
+>
