@@ -1,42 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:64161 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755400AbaFRV2W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jun 2014 17:28:22 -0400
-From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Heinrich Schuchardt <xypron.glpk@gmx.de>
-Subject: [PATCH 1/1] media: saa7134: remove if based on uninitialized variable
-Date: Wed, 18 Jun 2014 23:28:10 +0200
-Message-Id: <1403126890-28049-1-git-send-email-xypron.glpk@gmx.de>
+Received: from cpsmtpb-ews04.kpnxchange.com ([213.75.39.7]:56672 "EHLO
+	cpsmtpb-ews04.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752873AbaF0ISW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Jun 2014 04:18:22 -0400
+Message-ID: <1403857099.2048.15.camel@x220>
+Subject: Kconfig symbol MX1_VIDEO
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Alexander Shiyan <shc_work@mail.ru>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Date: Fri, 27 Jun 2014 10:18:19 +0200
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Variable b is not initialized.
-Only with a small chance it has random value 0xFF.
-Remove if statement based on this value.
+Alexander,
 
-Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
----
- drivers/media/pci/saa7134/saa7134-input.c | 4 ----
- 1 file changed, 4 deletions(-)
+Your patch "[media] media: mx1_camera: Remove driver" landed in today's
+linux-next (ie, next-20140627), as commit 90b055898e9d. It is archived
+at http://www.spinics.net/lists/linux-media/msg76764.html .
 
-diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
-index 6f43126..1c56f2ab 100644
---- a/drivers/media/pci/saa7134/saa7134-input.c
-+++ b/drivers/media/pci/saa7134/saa7134-input.c
-@@ -132,10 +132,6 @@ static int get_key_flydvb_trio(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 	if (0x40000 & ~gpio)
- 		return 0; /* No button press */
- 
--	/* No button press - only before first key pressed */
--	if (b == 0xFF)
--		return 0;
--
- 	/* poll IR chip */
- 	/* weak up the IR chip */
- 	b = 0;
--- 
-2.0.0
+It removes the Kconfig symbols MX1_VIDEO en VIDEO_MX1. It only removes
+the code depending on VIDEO_MX1 (ie, in
+drivers/media/platform/soc_camera).
+
+A previous version of that patch is archived at
+http://www.spinics.net/lists/linux-media/msg76432.html . (Please, next
+time you submit a second version of a patch mark it as a v2 and add some
+info below the --- marker about the differences to the first version.)
+That previous version removed the code depending on both symbols. But a
+quick glance at the discussion about that patch shows that you were
+asked to not remove the code depending on MX1_VIDEO (ie, in
+arch/arm/mach-imx/).
+
+Would you perhaps know whether a patch to remove the arch/arm/mach-imx/
+code is pending somewhere?
+
+
+Paul Bolle
 
