@@ -1,176 +1,227 @@
-Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <giovanni.nervi@yahoo.com>) id 1Wi8Z0-0005B8-F6
-	for linux-dvb@linuxtv.org; Wed, 07 May 2014 22:35:40 +0200
-Received: from nm41.bullet.mail.ne1.yahoo.com ([98.138.120.48])
-	by mail.tu-berlin.de (exim-4.72/mailfrontend-5) with smtp
-	for <linux-dvb@linuxtv.org>
-	id 1Wi8Yy-0004Ia-7T; Wed, 07 May 2014 22:35:38 +0200
-Message-ID: <1399494755.83198.YahooMailBasic@web120705.mail.ne1.yahoo.com>
-Date: Wed, 7 May 2014 13:32:35 -0700 (PDT)
-From: Giovanni <giovanni.nervi@yahoo.com>
-To: linux-dvb@linuxtv.org
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2924 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752606AbaF0IpP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Jun 2014 04:45:15 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5R8jB5r077426
+	for <linux-media@vger.kernel.org>; Fri, 27 Jun 2014 10:45:13 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [10.61.83.144] (173-38-208-169.cisco.com [173.38.208.169])
+	by tschai.lan (Postfix) with ESMTPSA id 6ACD32A1FCD
+	for <linux-media@vger.kernel.org>; Fri, 27 Jun 2014 10:45:05 +0200 (CEST)
+Message-ID: <53AD2F16.2010102@xs4all.nl>
+Date: Fri, 27 Jun 2014 10:45:10 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Subject: [linux-dvb] [PATCH] TerraTec Cinergy Hybrid T USB XS with
-	demodulator MT352 is not detect by em28xx
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.17] Patches for 3.17
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Mauro,
 
-I have Terratec Cinergy Hybrid T USB XS 00cd:0042, I'm trying to make it work with kernel 3.14.3 but I have a problem.
-With old kernel 2.6 this device was working, but now I thought there is a little misconfiguration in driver em28xx.
+For the most part these patches are a bunch of cleanups and fixes for 3.17.
 
-I looking information on this link http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_Hybrid_T_USB_XS 
-and my device can have ZL10353 or MT352 demulator, my device has MT352 and has a Em2880 usb bridge.
+In addition the deprecated sn9c102 driver is removed and the V4L2_FL_USE_FH_PRIO
+is removed now that all drivers using struct v4l2_fh use the core prio support.
 
-Here the dmesg with original kernel 3.14.3
+Regards,
 
-[  670.727877] usb 3-1: new high-speed USB device number 5 using xhci_hcd
-[  670.865134] usb 3-1: New USB device found, idVendor=0ccd, idProduct=0042
-[  670.865147] usb 3-1: New USB device strings: Mfr=2, Product=1, SerialNumber=0
-[  670.865154] usb 3-1: Product: Cinergy Hybrid T USB XS
-[  670.865160] usb 3-1: Manufacturer: TerraTec Electronic GmbH
-[  670.900385] em28xx: New device TerraTec Electronic GmbH Cinergy Hybrid T USB XS @ 480 Mbps (0ccd:0042, interface 0, class 0)
-[  670.900391] em28xx: Video interface 0 found: isoc
-[  670.900393] em28xx: DVB interface 0 found: isoc
-[  670.900431] em28xx: chip ID is em2882/3
-[  671.070669] em2882/3 #0: EEPROM ID = 1a eb 67 95, EEPROM hash = 0x303d5d95
-[  671.070677] em2882/3 #0: EEPROM info:
-[  671.070681] em2882/3 #0:     AC97 audio (5 sample rates)
-[  671.070684] em2882/3 #0:     500mA max power
-[  671.070689] em2882/3 #0:     Table at offset 0x06, strings=0x329e, 0x346a, 0x0000
-[  671.070696] em2882/3 #0: Identified as Terratec Cinnergy Hybrid T USB XS (em2882) (card=55)
-[  671.070701] em2882/3 #0: analog set to isoc mode.
-[  671.070704] em2882/3 #0: dvb set to isoc mode.
-[  671.070823] usbcore: registered new interface driver em28xx
-[  671.082716] em2882/3 #0: Binding DVB extension
-[  671.140861] em2882/3 #0: /2: dvb frontend not attached. Can't attach xc3028
-[  671.140875] em28xx: Registered (Em28xx dvb Extension) extension
-[  671.144670] em2882/3 #0: Registering input extension
-[  671.145161] Registered IR keymap rc-terratec-cinergy-xs
-[  671.145394] input: em28xx IR (em2882/3 #0) as /devices/pci0000:00/0000:00:14.0/usb3/3-1/rc/rc0/input22
-[  671.145823] rc0: em28xx IR (em2882/3 #0) as /devices/pci0000:00/0000:00:14.0/usb3/3-1/rc/rc0
-[  671.145927] em2882/3 #0: Input extension successfully initalized
-[  671.145933] em28xx: Registered (Em28xx Input Extension) extension
+	Hans
 
-I have firmware 2.7 in /lib/firmware, but the problem is not the firmware.
+The following changes since commit b5b620584b9c4644b85e932895a742e0c192d66c:
 
-in the source file drivers/media/usb/em28xx/em28xx-cards.c
-my device is configured as
+   [media] technisat-sub2: Fix stream curruption on high bitrate (2014-06-26 09:20:18 -0300)
 
-        { USB_DEVICE(0x0ccd, 0x0042),
-                        .driver_info = EM2882_BOARD_TERRATEC_HYBRID_XS },
+are available in the git repository at:
 
-but for this configuration in drivers/media/usb/em28xx/em28xx-dvb.c only zl10353 
-is tried to attach for dvb adapter, in my case there is an issue.
+   git://linuxtv.org/hverkuil/media_tree.git for-v3.17a
 
-        case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900:
-        case EM2882_BOARD_TERRATEC_HYBRID_XS:
-        case EM2880_BOARD_EMPIRE_DUAL_TV:
-                dvb->fe[0] = dvb_attach(zl10353_attach,
-                                           &em28xx_zl10353_xc3028_no_i2c_gate,
-                                           &dev->i2c_adap[dev->def_i2c_bus]);
-                if (em28xx_attach_xc3028(0x61, dev) < 0) {
-                        result = -EINVAL;
-                        goto out_free;
-                }
-                break;
+for you to fetch changes up to 485f9441f2845bb83da6a31e90357d23b293e032:
 
-I tried this patch
+   media: Documentation: remove V4L2_FL_USE_FH_PRIO flag. (2014-06-27 10:25:10 +0200)
 
---- /usr/src/linux-3.14.3/drivers/media/usb/em28xx/em28xx-cards.c.orig   2014-05-06 16:59:58.000000000 +0200
-+++ /usr/src/linux-3.14.3/drivers/media/usb/em28xx/em28xx-cards.c   2014-05-07 15:18:31.719524453 +0200
-@@ -2233,7 +2233,7 @@
-        { USB_DEVICE(0x0ccd, 0x005e),
-                        .driver_info = EM2882_BOARD_TERRATEC_HYBRID_XS },
-        { USB_DEVICE(0x0ccd, 0x0042),
--                       .driver_info = EM2882_BOARD_TERRATEC_HYBRID_XS },
-+                       .driver_info = EM2880_BOARD_TERRATEC_HYBRID_XS },
-        { USB_DEVICE(0x0ccd, 0x0043),
-                        .driver_info = EM2870_BOARD_TERRATEC_XS },
-        { USB_DEVICE(0x0ccd, 0x008e),   /* Cinergy HTC USB XS Rev. 1 */
+----------------------------------------------------------------
+Alan (1):
+       dvb-frontends: Add static
 
+Alexey Khoroshilov (1):
+       tlg2300: fix leak at failure path in poseidon_probe()
 
-so my device became a EM2880_BOARD_TERRATEC_HYBRID_XS and in em28xx-dvb.c also MT352 is tried to attach
+Anthony DeStefano (2):
+       staging: rtl2832_sdr: fixup checkpatch/style issues
+       staging: solo6x10: fix for sparse warning message
 
-        case EM2880_BOARD_TERRATEC_HYBRID_XS:
-        case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
-        case EM2881_BOARD_PINNACLE_HYBRID_PRO:
-        case EM2882_BOARD_DIKOM_DK300:
-        case EM2882_BOARD_KWORLD_VS_DVBT:
-                dvb->fe[0] = dvb_attach(zl10353_attach,
-                                           &em28xx_zl10353_xc3028_no_i2c_gate,
-                                           &dev->i2c_adap[dev->def_i2c_bus]);
-                if (dvb->fe[0] == NULL) {
-                        /* This board could have either a zl10353 or a mt352.
-                           If the chip id isn't for zl10353, try mt352 */
-                        dvb->fe[0] = dvb_attach(mt352_attach,
-                                                   &terratec_xs_mt352_cfg,
-                                                   &dev->i2c_adap[dev->def_i2c_bus]);
-                }
+Benoit Taine (1):
+       drx-j: Use kmemdup instead of kmalloc + memcpy
 
-                if (em28xx_attach_xc3028(0x61, dev) < 0) {
-                        result = -EINVAL;
-                        goto out_free;
-                }
-                break;
+Dan Carpenter (1):
+       cx18: remove duplicate CX18_ALSA_DBGFLG_WARN define
 
-and I have this output in dmesg
+Hans Verkuil (3):
+       em28xx: add MSI Digivox Trio support
+       DocBook media: fix small typo
+       sn9c102: remove deprecated driver
 
-[   78.668320] usb 3-1: new high-speed USB device number 3 using xhci_hcd
-[   78.805565] usb 3-1: New USB device found, idVendor=0ccd, idProduct=0042
-[   78.805578] usb 3-1: New USB device strings: Mfr=2, Product=1, SerialNumber=0
-[   78.805585] usb 3-1: Product: Cinergy Hybrid T USB XS
-[   78.805591] usb 3-1: Manufacturer: TerraTec Electronic GmbH
-[   78.806257] em28xx: New device TerraTec Electronic GmbH Cinergy Hybrid T USB XS @ 480 Mbps (0ccd:0042, interface 0, class 0)
-[   78.806266] em28xx: Video interface 0 found: isoc
-[   78.806269] em28xx: DVB interface 0 found: isoc
-[   78.806314] em28xx: chip ID is em2882/3
-[   78.959082] em2882/3 #0: EEPROM ID = 1a eb 67 95, EEPROM hash = 0x303d5d95
-[   78.959091] em2882/3 #0: EEPROM info:
-[   78.959094] em2882/3 #0:     AC97 audio (5 sample rates)
-[   78.959097] em2882/3 #0:     500mA max power
-[   78.959102] em2882/3 #0:     Table at offset 0x06, strings=0x329e, 0x346a, 0x0000
-[   78.959108] em2882/3 #0: Identified as Terratec Hybrid XS (card=11)
-[   78.959113] em2882/3 #0: analog set to isoc mode.
-[   78.959116] em2882/3 #0: dvb set to isoc mode.
-[   78.959444] em28xx audio device (0ccd:0042): interface 1, class 1
-[   78.959513] em2882/3 #0: Binding DVB extension
-[   78.997430] xc2028 7-0061: creating new instance
-[   78.997435] xc2028 7-0061: type set to XCeive xc2028/xc3028 tuner
-[   78.997440] em2882/3 #0: em2882/3 #0/2: xc3028 attached
-[   78.997442] DVB: registering new adapter (em2882/3 #0)
-[   78.997449] usb 3-1: DVB: registering adapter 0 frontend 0 (Zarlink MT352 DVB-T)...
-[   78.997536] xc2028 7-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-[   78.997891] em2882/3 #0: DVB extension successfully initialized
-[   78.997894] em2882/3 #0: Registering input extension
-[   78.997966] Registered IR keymap rc-terratec-cinergy-xs
-[   78.998072] input: em28xx IR (em2882/3 #0) as /devices/pci0000:00/0000:00:14.0/usb3/3-1/rc/rc0/input21
-[   78.998143] rc0: em28xx IR (em2882/3 #0) as /devices/pci0000:00/0000:00:14.0/usb3/3-1/rc/rc0
-[   78.998212] em2882/3 #0: Input extension successfully initalized
+Lars-Peter Clausen (1):
+       adv7604: Update recommended writes for the adv7611
 
-and dvb adapter is working without problems.
+Ovidiu Toader (1):
+       staging/media/rtl2832u_sdr: fix coding style problems by adding blank lines
 
-Could you submit my patch?
-Thank you and Regards
-Giovanni
+Paul Bolle (1):
+       dm644x_ccdc: remove check for CONFIG_DM644X_VIDEO_PORT_ENABLE
 
+Peter Senna Tschudin (2):
+       drivers/media/usb/usbvision/usbvision-core.c: Remove useless return variables
+       drivers/media: Remove useless return variables
 
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Philipp Zabel (2):
+       mem2mem: make queue lock in v4l2_m2m_poll interruptible
+       videobuf2-dma-contig: allow to vmap contiguous dma buffers
+
+Pranith Kumar (1):
+       update reference, kerneltrap.org no longer works
+
+Ramakrishnan Muthukrishnan (4):
+       media: v4l2-core: remove the use of V4L2_FL_USE_FH_PRIO flag.
+       media: remove the setting of the flag V4L2_FL_USE_FH_PRIO.
+       media: v4l2-dev.h: remove V4L2_FL_USE_FH_PRIO flag.
+       media: Documentation: remove V4L2_FL_USE_FH_PRIO flag.
+
+Rickard Strandqvist (1):
+       media: usb: dvb-usb-v2: mxl111sf.c: Cleaning up uninitialized variables
+
+  Documentation/DocBook/media/v4l/io.xml             |    2 +-
+  Documentation/video4linux/v4l2-framework.txt       |    8 +-
+  Documentation/video4linux/v4l2-pci-skeleton.c      |    5 -
+  Documentation/zh_CN/video4linux/v4l2-framework.txt |    7 +-
+  MAINTAINERS                                        |    9 -
+  drivers/media/common/saa7146/saa7146_fops.c        |    1 -
+  drivers/media/dvb-frontends/drx39xyj/drxj.c        |   14 +-
+  drivers/media/dvb-frontends/tda18271c2dd_maps.h    |    8 +-
+  drivers/media/i2c/adv7604.c                        |    5 +-
+  drivers/media/parport/bw-qcam.c                    |    1 -
+  drivers/media/parport/c-qcam.c                     |    1 -
+  drivers/media/parport/pms.c                        |    1 -
+  drivers/media/parport/w9966.c                      |    1 -
+  drivers/media/pci/bt8xx/bttv-driver.c              |    1 -
+  drivers/media/pci/cx18/cx18-alsa.h                 |    1 -
+  drivers/media/pci/cx18/cx18-streams.c              |    1 -
+  drivers/media/pci/cx25821/cx25821-video.c          |    1 -
+  drivers/media/pci/cx88/cx88-core.c                 |    1 -
+  drivers/media/pci/ivtv/ivtv-streams.c              |    1 -
+  drivers/media/pci/meye/meye.c                      |    1 -
+  drivers/media/pci/ngene/ngene-core.c               |    7 +-
+  drivers/media/pci/saa7134/saa7134-core.c           |    1 -
+  drivers/media/pci/saa7134/saa7134-empress.c        |    1 -
+  drivers/media/pci/sta2x11/sta2x11_vip.c            |    1 -
+  drivers/media/platform/arv.c                       |    1 -
+  drivers/media/platform/blackfin/bfin_capture.c     |    1 -
+  drivers/media/platform/davinci/dm644x_ccdc.c       |    5 -
+  drivers/media/platform/davinci/vpbe_display.c      |    1 -
+  drivers/media/platform/davinci/vpfe_capture.c      |    1 -
+  drivers/media/platform/davinci/vpif_capture.c      |    1 -
+  drivers/media/platform/davinci/vpif_display.c      |    1 -
+  drivers/media/platform/s3c-camif/camif-capture.c   |    1 -
+  drivers/media/platform/s5p-tv/mixer_video.c        |    2 -
+  drivers/media/platform/vivi.c                      |    1 -
+  drivers/media/radio/dsbr100.c                      |    1 -
+  drivers/media/radio/radio-cadet.c                  |    1 -
+  drivers/media/radio/radio-isa.c                    |    1 -
+  drivers/media/radio/radio-keene.c                  |    1 -
+  drivers/media/radio/radio-ma901.c                  |    1 -
+  drivers/media/radio/radio-miropcm20.c              |    1 -
+  drivers/media/radio/radio-mr800.c                  |    3 +-
+  drivers/media/radio/radio-raremono.c               |    1 -
+  drivers/media/radio/radio-sf16fmi.c                |    1 -
+  drivers/media/radio/radio-si476x.c                 |    1 -
+  drivers/media/radio/radio-tea5764.c                |    1 -
+  drivers/media/radio/radio-tea5777.c                |    1 -
+  drivers/media/radio/radio-timb.c                   |    1 -
+  drivers/media/radio/si470x/radio-si470x-usb.c      |    1 -
+  drivers/media/radio/si4713/radio-platform-si4713.c |    1 -
+  drivers/media/radio/si4713/radio-usb-si4713.c      |    1 -
+  drivers/media/radio/tea575x.c                      |    1 -
+  drivers/media/tuners/r820t.c                       |    2 +-
+  drivers/media/usb/au0828/au0828-video.c            |    2 -
+  drivers/media/usb/cpia2/cpia2_v4l.c                |    1 -
+  drivers/media/usb/cx231xx/cx231xx-417.c            |    1 -
+  drivers/media/usb/cx231xx/cx231xx-video.c          |   12 +-
+  drivers/media/usb/dvb-usb-v2/mxl111sf.c            |    2 +-
+  drivers/media/usb/em28xx/em28xx-cards.c            |    2 +
+  drivers/media/usb/em28xx/em28xx-video.c            |    1 -
+  drivers/media/usb/gspca/gspca.c                    |    1 -
+  drivers/media/usb/hdpvr/hdpvr-video.c              |    1 -
+  drivers/media/usb/pwc/pwc-if.c                     |    1 -
+  drivers/media/usb/s2255/s2255drv.c                 |    1 -
+  drivers/media/usb/stk1160/stk1160-v4l.c            |    1 -
+  drivers/media/usb/stkwebcam/stk-webcam.c           |    1 -
+  drivers/media/usb/tlg2300/pd-main.c                |    2 +
+  drivers/media/usb/tlg2300/pd-radio.c               |    1 -
+  drivers/media/usb/tm6000/tm6000-video.c            |    1 -
+  drivers/media/usb/usbtv/usbtv-video.c              |    1 -
+  drivers/media/usb/usbvision/usbvision-core.c       |   16 +-
+  drivers/media/usb/uvc/uvc_driver.c                 |    1 -
+  drivers/media/usb/zr364xx/zr364xx.c                |    1 -
+  drivers/media/v4l2-core/v4l2-dev.c                 |    6 +-
+  drivers/media/v4l2-core/v4l2-fh.c                  |   13 +-
+  drivers/media/v4l2-core/v4l2-ioctl.c               |    9 +-
+  drivers/media/v4l2-core/v4l2-mem2mem.c             |    8 +-
+  drivers/media/v4l2-core/videobuf2-dma-contig.c     |    8 +
+  drivers/staging/media/Kconfig                      |    2 -
+  drivers/staging/media/Makefile                     |    1 -
+  drivers/staging/media/davinci_vpfe/vpfe_video.c    |    1 -
+  drivers/staging/media/go7007/go7007-v4l2.c         |    1 -
+  drivers/staging/media/msi3101/sdr-msi3101.c        |    1 -
+  drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c   |   47 +-
+  drivers/staging/media/sn9c102/Kconfig              |   17 -
+  drivers/staging/media/sn9c102/Makefile             |   15 -
+  drivers/staging/media/sn9c102/sn9c102.h            |  214 -----
+  drivers/staging/media/sn9c102/sn9c102.txt          |  592 -------------
+  drivers/staging/media/sn9c102/sn9c102_config.h     |   86 --
+  drivers/staging/media/sn9c102/sn9c102_core.c       | 3465 --------------------------------------------------------------------------
+  drivers/staging/media/sn9c102/sn9c102_devtable.h   |  145 ----
+  drivers/staging/media/sn9c102/sn9c102_hv7131d.c    |  269 ------
+  drivers/staging/media/sn9c102/sn9c102_hv7131r.c    |  369 --------
+  drivers/staging/media/sn9c102/sn9c102_mi0343.c     |  352 --------
+  drivers/staging/media/sn9c102/sn9c102_mi0360.c     |  453 ----------
+  drivers/staging/media/sn9c102/sn9c102_mt9v111.c    |  260 ------
+  drivers/staging/media/sn9c102/sn9c102_ov7630.c     |  634 --------------
+  drivers/staging/media/sn9c102/sn9c102_ov7660.c     |  546 ------------
+  drivers/staging/media/sn9c102/sn9c102_pas106b.c    |  308 -------
+  drivers/staging/media/sn9c102/sn9c102_pas202bcb.c  |  340 --------
+  drivers/staging/media/sn9c102/sn9c102_sensor.h     |  307 -------
+  drivers/staging/media/sn9c102/sn9c102_tas5110c1b.c |  154 ----
+  drivers/staging/media/sn9c102/sn9c102_tas5110d.c   |  119 ---
+  drivers/staging/media/sn9c102/sn9c102_tas5130d1b.c |  165 ----
+  drivers/staging/media/solo6x10/solo6x10-jpeg.h     |    2 +-
+  drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c |    1 -
+  drivers/staging/media/solo6x10/solo6x10-v4l2.c     |    1 -
+  include/media/v4l2-dev.h                           |    2 -
+  107 files changed, 104 insertions(+), 8975 deletions(-)
+  delete mode 100644 drivers/staging/media/sn9c102/Kconfig
+  delete mode 100644 drivers/staging/media/sn9c102/Makefile
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102.h
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102.txt
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102_config.h
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102_core.c
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102_devtable.h
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102_hv7131d.c
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102_hv7131r.c
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102_mi0343.c
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102_mi0360.c
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102_mt9v111.c
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102_ov7630.c
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102_ov7660.c
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102_pas106b.c
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102_pas202bcb.c
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102_sensor.h
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102_tas5110c1b.c
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102_tas5110d.c
+  delete mode 100644 drivers/staging/media/sn9c102/sn9c102_tas5130d1b.c
