@@ -1,85 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp04.smtpout.orange.fr ([80.12.242.126]:58156 "EHLO
+Received: from smtp04.smtpout.orange.fr ([80.12.242.126]:30310 "EHLO
 	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751291AbaF2OUp (ORCPT
+	with ESMTP id S1750978AbaF2OUo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Jun 2014 10:20:45 -0400
+	Sun, 29 Jun 2014 10:20:44 -0400
 From: Robert Jarzmik <robert.jarzmik@free.fr>
 To: g.liakhovetski@gmx.de, devicetree@vger.kernel.org,
 	Mark Rutland <mark.rutland@arm.com>
 Cc: linux-media@vger.kernel.org,
 	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v3 2/2] media: soc_camera: pxa_camera documentation device-tree support
-Date: Sun, 29 Jun 2014 16:20:00 +0200
-Message-Id: <1404051600-20838-2-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1404051600-20838-1-git-send-email-robert.jarzmik@free.fr>
-References: <1404051600-20838-1-git-send-email-robert.jarzmik@free.fr>
+Subject: [PATCH v3 1/2] media: soc_camera: pxa_camera device-tree support
+Date: Sun, 29 Jun 2014 16:19:59 +0200
+Message-Id: <1404051600-20838-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device-tree bindings documentation for pxa_camera driver.
+Add device-tree support to pxa_camera host driver.
 
 Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 
 ---
 Since V1: Mark's review
+          - tmp u32 to long conversion for clock rate
+          - use device-tree clock binding for mclk output clock
           - wildcard pxa27x becomes pxa270
-          - clock name "camera" becomes "ciclk"
-          - add mclk clock provider
 ---
- .../devicetree/bindings/media/pxa-camera.txt       | 43 ++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/pxa-camera.txt
+ drivers/media/platform/soc_camera/pxa_camera.c | 80 +++++++++++++++++++++++++-
+ 1 file changed, 78 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/pxa-camera.txt b/Documentation/devicetree/bindings/media/pxa-camera.txt
-new file mode 100644
-index 0000000..11f5b5d
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/pxa-camera.txt
-@@ -0,0 +1,43 @@
-+Marvell PXA camera host interface
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index d4df305..e76c2ab 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -34,6 +34,7 @@
+ #include <media/videobuf-dma-sg.h>
+ #include <media/soc_camera.h>
+ #include <media/soc_mediabus.h>
++#include <media/v4l2-of.h>
+ 
+ #include <linux/videodev2.h>
+ 
+@@ -1650,6 +1651,67 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
+ 	.set_bus_param	= pxa_camera_set_bus_param,
+ };
+ 
++static int pxa_camera_pdata_from_dt(struct device *dev,
++				    struct pxa_camera_dev *pcdev)
++{
++	int err = 0;
++	u32 mclk_rate = 0;
++	struct device_node *np = dev->of_node;
++	struct v4l2_of_endpoint ep;
 +
-+Required properties:
-+ - compatible: Should be "marvell,pxa270-qci"
-+ - reg: register base and size
-+ - interrupts: the interrupt number
-+ - any required generic properties defined in video-interfaces.txt
++	err = of_property_read_u32(np, "clock-frequency",
++				   &mclk_rate);
++	if (!err) {
++		pcdev->platform_flags |= PXA_CAMERA_MCLK_EN;
++		pcdev->mclk = mclk_rate;
++	}
 +
-+Optional properties:
-+ - clocks: input clock (see clock-bindings.txt)
-+ - clock-output-names: should contain the name of the clock driving the
-+                       sensor master clock MCLK
-+ - clock-frequency: host interface is driving MCLK, and MCLK rate is this rate
++	np = of_graph_get_next_endpoint(np, NULL);
++	if (!np) {
++		dev_err(dev, "could not find endpoint\n");
++		return -EINVAL;
++	}
 +
-+Example:
++	err = v4l2_of_parse_endpoint(np, &ep);
++	if (err) {
++		dev_err(dev, "could not parse endpoint\n");
++		return err;
++	}
 +
-+	pxa_camera: pxa_camera@50000000 {
-+		compatible = "marvell,pxa270-qci";
-+		reg = <0x50000000 0x1000>;
-+		interrupts = <33>;
-+
-+		clocks = <&pxa2xx_clks 24>;
-+		clock-names = "ciclk";
-+		clock-frequency = <50000000>;
-+		clock-output-names = "qci_mclk";
-+
-+		status = "okay";
-+
-+		port {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			/* Parallel bus endpoint */
-+			qci: endpoint@0 {
-+				reg = <0>;		/* Local endpoint # */
-+				remote-endpoint = <&mt9m111_1>;
-+				bus-width = <8>;	/* Used data lines */
-+				hsync-active = <0>;	/* Active low */
-+				vsync-active = <0>;	/* Active low */
-+				pclk-sample = <1>;	/* Rising */
-+			};
-+		};
++	switch (ep.bus.parallel.bus_width) {
++	case 4:
++		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_4;
++		break;
++	case 5:
++		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_5;
++		break;
++	case 8:
++		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_8;
++		break;
++	case 9:
++		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_9;
++		break;
++	case 10:
++		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_10;
++		break;
++	default:
++		break;
 +	};
++
++	if (ep.bus.parallel.flags & V4L2_MBUS_MASTER)
++		pcdev->platform_flags |= PXA_CAMERA_MASTER;
++	if (ep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
++		pcdev->platform_flags |= PXA_CAMERA_HSP;
++	if (ep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
++		pcdev->platform_flags |= PXA_CAMERA_VSP;
++	if (ep.bus.parallel.flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
++		pcdev->platform_flags |= PXA_CAMERA_PCLK_EN | PXA_CAMERA_PCP;
++	if (ep.bus.parallel.flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
++		pcdev->platform_flags |= PXA_CAMERA_PCLK_EN;
++
++	return 0;
++}
++
+ static int pxa_camera_probe(struct platform_device *pdev)
+ {
+ 	struct pxa_camera_dev *pcdev;
+@@ -1676,7 +1738,15 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 	pcdev->res = res;
+ 
+ 	pcdev->pdata = pdev->dev.platform_data;
+-	pcdev->platform_flags = pcdev->pdata->flags;
++	if (&pdev->dev.of_node && !pcdev->pdata) {
++		err = pxa_camera_pdata_from_dt(&pdev->dev, pcdev);
++	} else {
++		pcdev->platform_flags = pcdev->pdata->flags;
++		pcdev->mclk = pcdev->pdata->mclk_10khz * 10000;
++	}
++	if (err < 0)
++		return err;
++
+ 	if (!(pcdev->platform_flags & (PXA_CAMERA_DATAWIDTH_8 |
+ 			PXA_CAMERA_DATAWIDTH_9 | PXA_CAMERA_DATAWIDTH_10))) {
+ 		/*
+@@ -1693,7 +1763,6 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 		pcdev->width_flags |= 1 << 8;
+ 	if (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_10)
+ 		pcdev->width_flags |= 1 << 9;
+-	pcdev->mclk = pcdev->pdata->mclk_10khz * 10000;
+ 	if (!pcdev->mclk) {
+ 		dev_warn(&pdev->dev,
+ 			 "mclk == 0! Please, fix your platform data. "
+@@ -1799,10 +1868,17 @@ static const struct dev_pm_ops pxa_camera_pm = {
+ 	.resume		= pxa_camera_resume,
+ };
+ 
++static const struct of_device_id pxa_camera_of_match[] = {
++	{ .compatible = "marvell,pxa270-qci", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, pxa_camera_of_match);
++
+ static struct platform_driver pxa_camera_driver = {
+ 	.driver		= {
+ 		.name	= PXA_CAM_DRV_NAME,
+ 		.pm	= &pxa_camera_pm,
++		.of_match_table = of_match_ptr(pxa_camera_of_match),
+ 	},
+ 	.probe		= pxa_camera_probe,
+ 	.remove		= pxa_camera_remove,
 -- 
 2.0.0.rc2
 
