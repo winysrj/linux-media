@@ -1,163 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55956 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751508AbaFDOFX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jun 2014 10:05:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2341 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750856AbaF2CpU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Jun 2014 22:45:20 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s5T2jGMi056616
+	for <linux-media@vger.kernel.org>; Sun, 29 Jun 2014 04:45:18 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id C1FE92A1FCD
+	for <linux-media@vger.kernel.org>; Sun, 29 Jun 2014 04:45:07 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Subject: [PATCH/RFC 2/2] v4l: vb2: Add fatal error condition flag
-Date: Wed,  4 Jun 2014 16:05:44 +0200
-Message-Id: <1401890744-22683-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1401890744-22683-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1401890744-22683-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140629024507.C1FE92A1FCD@tschai.lan>
+Date: Sun, 29 Jun 2014 04:45:07 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When a fatal error occurs that render the device unusable, the only
-options for a driver to signal the error condition to userspace is to
-set the V4L2_BUF_FLAG_ERROR flag when dequeuing buffers and to return an
-error from the buffer prepare handler when queuing buffers.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The buffer error flag indicates a transient error and can't be used by
-applications to detect fatal errors. Returning an error from vb2_qbuf()
-is thus the only real indication that a fatal error occured. However,
-this is difficult to handle for multithreaded applications that requeue
-buffers from a thread other than the control thread. In particular the
-poll() call in the control thread will not notify userspace of the
-error.
+Results of the daily build of media_tree:
 
-This patch adds an explicit mechanism to report fatal errors to
-userspace. Applications can call the vb2_queue_error() function to
-signal a fatal error. From this moment on, buffer preparation will
-return -EIO to userspace, and vb2_poll() will set the POLLERR flag and
-return immediately. The error flag is cleared when cancelling the queue,
-either at stream off time (through vb2_streamoff) or when releasing the
-queue with vb2_queue_release().
+date:		Sun Jun 29 04:00:18 CEST 2014
+git branch:	test
+git hash:	b5b620584b9c4644b85e932895a742e0c192d66c
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-14-gf11dd94
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/videobuf2-core.c | 41 +++++++++++++++++++++++++++++++++---
- include/media/videobuf2-core.h       |  3 +++
- 2 files changed, 41 insertions(+), 3 deletions(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 5f38774..76e3456 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -1295,6 +1295,12 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 		call_qop(q, wait_finish, q);
- 	}
- 
-+	if (q->error) {
-+		dprintk(1, "qbuf: fatal error occured on queue\n");
-+		ret = -EIO;
-+		goto unlock;
-+	}
-+
- 	if (q->fileio) {
- 		dprintk(1, "qbuf: file io in progress\n");
- 		ret = -EBUSY;
-@@ -1393,6 +1399,11 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
- 			return -EINVAL;
- 		}
- 
-+		if (q->error) {
-+			dprintk(1, "Queue in error state, will not wait for buffers\n");
-+			return -EIO;
-+		}
-+
- 		if (!list_empty(&q->done_list)) {
- 			/*
- 			 * Found a buffer that we were waiting for.
-@@ -1418,7 +1429,8 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
- 		 */
- 		dprintk(3, "Will sleep waiting for buffers\n");
- 		ret = wait_event_interruptible(q->done_wq,
--				!list_empty(&q->done_list) || !q->streaming);
-+				!list_empty(&q->done_list) || !q->streaming ||
-+				q->error);
- 
- 		/*
- 		 * We need to reevaluate both conditions again after reacquiring
-@@ -1602,6 +1614,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	if (q->streaming)
- 		call_qop(q, stop_streaming, q);
- 	q->streaming = 0;
-+	q->error = 0;
- 
- 	/*
- 	 * Remove all buffers from videobuf's list...
-@@ -1623,6 +1636,27 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- }
- 
- /**
-+ * vb2_queue_error() - signal a fatal error on the queue
-+ * @q:		videobuf2 queue
-+ *
-+ * Flag that a fatal unrecoverable error occured and wake up all processes
-+ * waiting on the queue. Polling will now set POLLERR and queuing and dequeuing
-+ * buffers will return -EIO.
-+ *
-+ * The error flag will be cleared when cancelling the queue, either from
-+ * vb2_streamoff or vb2_queue_release. Drivers should thus not call this
-+ * function before starting the stream, otherwise the error flag will remain set
-+ * until the queue is released when closing the device node.
-+ */
-+void vb2_queue_error(struct vb2_queue *q)
-+{
-+	q->error = 1;
-+
-+	wake_up_all(&q->done_wq);
-+}
-+EXPORT_SYMBOL_GPL(vb2_queue_error);
-+
-+/**
-  * vb2_streamon - start streaming
-  * @q:		videobuf2 queue
-  * @type:	type argument passed from userspace to vidioc_streamon handler
-@@ -1984,9 +2018,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	}
- 
- 	/*
--	 * There is nothing to wait for if the queue isn't streaming.
-+	 * There is nothing to wait for if the queue isn't streaming or if the
-+	 * error flag is set.
- 	 */
--	if (!vb2_is_streaming(q))
-+	if (!vb2_is_streaming(q) || q->error)
- 		return res | POLLERR;
- 
- 	poll_wait(file, &q->done_wq, wait);
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index d173206..352e6ca 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -302,6 +302,7 @@ struct vb2_ops {
-  * @done_wq:	waitqueue for processes waiting for buffers ready to be dequeued
-  * @alloc_ctx:	memory type/allocator-specific contexts for each plane
-  * @streaming:	current streaming state
-+ * @error:	a fatal error occured on the queue
-  * @fileio:	file io emulator internal data, used only if emulator is active
-  */
- struct vb2_queue {
-@@ -330,6 +331,7 @@ struct vb2_queue {
- 	unsigned int			plane_sizes[VIDEO_MAX_PLANES];
- 
- 	unsigned int			streaming:1;
-+	unsigned int			error:1;
- 
- 	struct vb2_fileio_data		*fileio;
- };
-@@ -349,6 +351,7 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
- int __must_check vb2_queue_init(struct vb2_queue *q);
- 
- void vb2_queue_release(struct vb2_queue *q);
-+void vb2_queue_error(struct vb2_queue *q);
- 
- int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
- int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb);
--- 
-1.8.5.5
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
