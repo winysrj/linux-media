@@ -1,117 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:55716 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751204AbaGHXtf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 19:49:35 -0400
-Received: by mail-yh0-f74.google.com with SMTP id b6so952286yha.1
-        for <linux-media@vger.kernel.org>; Tue, 08 Jul 2014 16:49:34 -0700 (PDT)
-From: Vincent Palatin <vpalatin@chromium.org>
-To: Hans de Goede <hdegoede@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Olof Johansson <olofj@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Zach Kuznia <zork@chromium.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Vincent Palatin <vpalatin@chromium.org>
-Subject: [PATCH 1/2] [media] V4L: Add camera pan/tilt speed controls
-Date: Tue,  8 Jul 2014 16:49:26 -0700
-Message-Id: <1404863367-20413-1-git-send-email-vpalatin@chromium.org>
-In-Reply-To: <CAP_ceTxk=OE3UVhNKk+WV7EG3E9Z0cOH4tZBU210Awa15OOjgw@mail.gmail.com>
-References: <CAP_ceTxk=OE3UVhNKk+WV7EG3E9Z0cOH4tZBU210Awa15OOjgw@mail.gmail.com>
+Received: from smtp.gentoo.org ([140.211.166.183]:55556 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756492AbaGAT4F (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Jul 2014 15:56:05 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org, crope@iki.fi
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH 1/4] get_dvb_firmware: Add firmware extractor for si2165
+Date: Tue,  1 Jul 2014 21:55:15 +0200
+Message-Id: <1404244518-8636-2-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1404244518-8636-1-git-send-email-zzam@gentoo.org>
+References: <1404244518-8636-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_CID_PAN_SPEED and V4L2_CID_TILT_SPEED controls allow to move the
-camera by setting its rotation speed around its axis.
-
-Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 ---
- Documentation/DocBook/media/v4l/compat.xml   | 10 ++++++++++
- Documentation/DocBook/media/v4l/controls.xml | 21 +++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c         |  2 ++
- include/uapi/linux/v4l2-controls.h           |  2 ++
- 4 files changed, 35 insertions(+)
+ Documentation/dvb/get_dvb_firmware | 33 ++++++++++++++++++++++++++++++++-
+ 1 file changed, 32 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index eee6f0f..21910e9 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2545,6 +2545,16 @@ fields changed from _s32 to _u32.
-       </orderedlist>
-     </section>
+diff --git a/Documentation/dvb/get_dvb_firmware b/Documentation/dvb/get_dvb_firmware
+index d91b8be..26c623d 100755
+--- a/Documentation/dvb/get_dvb_firmware
++++ b/Documentation/dvb/get_dvb_firmware
+@@ -29,7 +29,7 @@ use IO::Handle;
+ 		"af9015", "ngene", "az6027", "lme2510_lg", "lme2510c_s7395",
+ 		"lme2510c_s7395_old", "drxk", "drxk_terratec_h5",
+ 		"drxk_hauppauge_hvr930c", "tda10071", "it9135", "drxk_pctv",
+-		"drxk_terratec_htc_stick", "sms1xxx_hcw");
++		"drxk_terratec_htc_stick", "sms1xxx_hcw", "si2165");
  
-+    <section>
-+      <title>V4L2 in Linux 3.17</title>
-+      <orderedlist>
-+	<listitem>
-+	  <para>Added <constant>V4L2_CID_PAN_SPEED</constant> and
-+ <constant>V4L2_CID_TILT_SPEED</constant> camera controls.</para>
-+	</listitem>
-+      </orderedlist>
-+    </section>
+ # Check args
+ syntax() if (scalar(@ARGV) != 1);
+@@ -783,6 +783,37 @@ sub sms1xxx_hcw {
+     $allfiles;
+ }
+ 
++sub si2165 {
++    my $sourcefile = "model_111xxx_122xxx_driver_6_0_119_31191_WHQL.zip";
++    my $url = "http://www.hauppauge.de/files/drivers/";
++    my $hash = "76633e7c76b0edee47c3ba18ded99336";
++    my $fwfile = "dvb-demod-si2165.fw";
++    my $tmpdir = tempdir(DIR => "/tmp", CLEANUP => 1);
 +
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
- 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 47198ee..cdf97f0 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3914,6 +3914,27 @@ by exposure, white balance or focus controls.</entry>
- 	  </row>
- 	  <row><entry></entry></row>
- 
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PAN_SPEED</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row><row><entry spanname="descr">This control turns the
-+camera horizontally at the specific speed. The unit is undefined. A
-+positive value moves the camera to the right (clockwise when viewed
-+from above), a negative value to the left. A value of zero does not
-+cause or stop the motion.</entry>
-+	  </row>
-+	  <row><entry></entry></row>
++    checkstandard();
 +
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_TILT_SPEED</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row><row><entry spanname="descr">This control turns the
-+camera vertically at the specified speed. The unit is undefined. A
-+positive value moves the camera up, a negative value down. A value of
-+zero does not cause or stop the motion.</entry>
-+	  </row>
-+	  <row><entry></entry></row>
++    wgetfile($sourcefile, $url . $sourcefile);
++    verify($sourcefile, $hash);
++    unzip($sourcefile, $tmpdir);
++    extract("$tmpdir/Driver10/Hcw10bda.sys", 0x80788, 0x81E08-0x80788, "$tmpdir/fw1");
 +
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 55c6832..57ddaf4 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -787,6 +787,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_AUTO_FOCUS_STOP:		return "Auto Focus, Stop";
- 	case V4L2_CID_AUTO_FOCUS_STATUS:	return "Auto Focus, Status";
- 	case V4L2_CID_AUTO_FOCUS_RANGE:		return "Auto Focus, Range";
-+	case V4L2_CID_PAN_SPEED:		return "Pan, Speed";
-+	case V4L2_CID_TILT_SPEED:		return "Tilt, Speed";
- 
- 	/* FM Radio Modulator control */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 2ac5597..5576044 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -745,6 +745,8 @@ enum v4l2_auto_focus_range {
- 	V4L2_AUTO_FOCUS_RANGE_INFINITY		= 3,
- };
- 
-+#define V4L2_CID_PAN_SPEED			(V4L2_CID_CAMERA_CLASS_BASE+32)
-+#define V4L2_CID_TILT_SPEED			(V4L2_CID_CAMERA_CLASS_BASE+33)
- 
- /* FM Modulator class control IDs */
++    delzero("$tmpdir/fw1","$tmpdir/fw1-1");
++    #verify("$tmpdir/fw1","5e0909858fdf0b5b09ad48b9fe622e70");
++
++    my $CRC="\x0A\xCC";
++    my $BLOCKS_MAIN="\x27";
++    open FW,">$fwfile";
++    print FW "\x01\x00"; # just a version id for the driver itself
++    print FW "\x9A"; # fw version
++    print FW "\x00"; # padding
++    print FW "$BLOCKS_MAIN"; # number of blocks of main part
++    print FW "\x00"; # padding
++    print FW "$CRC"; # 16bit crc value of main part
++    appendfile(FW,"$tmpdir/fw1");
++
++    "$fwfile";
++}
++
+ # ---------------------------------------------------------------
+ # Utilities
  
 -- 
-2.0.0.526.g5318336
+2.0.0
 
