@@ -1,82 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:59289 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758264AbaGWP3S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 11:29:18 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 1/8] [media] coda: move coda driver into its own directory
-Date: Wed, 23 Jul 2014 17:28:38 +0200
-Message-Id: <1406129325-10771-2-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1406129325-10771-1-git-send-email-p.zabel@pengutronix.de>
-References: <1406129325-10771-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:56478 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751303AbaGATHM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Jul 2014 15:07:12 -0400
+Message-ID: <53B306DD.6060204@iki.fi>
+Date: Tue, 01 Jul 2014 22:07:09 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org
+CC: xpert-reactos@gmx.de
+Subject: Re: [PATCH 1/3] si2165: Add demod driver for DVB-T only
+References: <1398543680-21374-1-git-send-email-zzam@gentoo.org> <5376C5FA.5040701@iki.fi> <53B3056D.9020102@gentoo.org>
+In-Reply-To: <53B3056D.9020102@gentoo.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The coda driver has grown significantly and will continue to grow.
-Move the coda driver into its own directory so it can be split.
-Rename coda.h to coda_regs.h as it contains the register defines.
+Moikka Matthias!
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/Makefile                       | 2 +-
- drivers/media/platform/coda/Makefile                  | 3 +++
- drivers/media/platform/{coda.c => coda/coda-common.c} | 2 +-
- drivers/media/platform/{coda.h => coda/coda_regs.h}   | 0
- 4 files changed, 5 insertions(+), 2 deletions(-)
- create mode 100644 drivers/media/platform/coda/Makefile
- rename drivers/media/platform/{coda.c => coda/coda-common.c} (99%)
- rename drivers/media/platform/{coda.h => coda/coda_regs.h} (100%)
+On 07/01/2014 10:01 PM, Matthias Schwarzott wrote:
+> On 17.05.2014 04:14, Antti Palosaari wrote:
 
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index e5269da..4ac4c91 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -22,7 +22,7 @@ obj-$(CONFIG_VIDEO_MEM2MEM_TESTDEV) += mem2mem_testdev.o
- obj-$(CONFIG_VIDEO_TI_VPE)		+= ti-vpe/
- 
- obj-$(CONFIG_VIDEO_MX2_EMMAPRP)		+= mx2_emmaprp.o
--obj-$(CONFIG_VIDEO_CODA) 		+= coda.o
-+obj-$(CONFIG_VIDEO_CODA) 		+= coda/
- 
- obj-$(CONFIG_VIDEO_SH_VEU)		+= sh_veu.o
- 
-diff --git a/drivers/media/platform/coda/Makefile b/drivers/media/platform/coda/Makefile
-new file mode 100644
-index 0000000..13d9ad6
---- /dev/null
-+++ b/drivers/media/platform/coda/Makefile
-@@ -0,0 +1,3 @@
-+coda-objs := coda-common.o
-+
-+obj-$(CONFIG_VIDEO_CODA) += coda.o
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda/coda-common.c
-similarity index 99%
-rename from drivers/media/platform/coda.c
-rename to drivers/media/platform/coda/coda-common.c
-index 3edbef6..1f68201 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -38,7 +38,7 @@
- #include <media/videobuf2-core.h>
- #include <media/videobuf2-dma-contig.h>
- 
--#include "coda.h"
-+#include "coda_regs.h"
- 
- #define CODA_NAME		"coda"
- 
-diff --git a/drivers/media/platform/coda.h b/drivers/media/platform/coda/coda_regs.h
-similarity index 100%
-rename from drivers/media/platform/coda.h
-rename to drivers/media/platform/coda/coda_regs.h
+>> That driver could be a little bit modern in a following ways:
+>> 1) dynamic debugs
+>> 2) I2C client driver model
+>> 3) RegMap API
+>> 4) I2C mux adapter for tuner I2C bus / gate
+>>
+>> Maybe 30% less LOC.
+>>
+>> regards
+>> Antti
+>
+> I hope to reduce LOC by using register data tables instead of long
+> chains of register writes. But mixing 8 bits and larger writes makes
+> this complicated.
+> 1) I could also write the larger registers byte by byte -> bad performance.
+> 2) store them byte by byte and let the register array write function
+> collect them.
+> 3) store them together with a size indicator -> wasted space when always
+> reserving 32bits for the value and normally using only 8bits.
+>
+> I will send the next version later.
+
+Just send your current driver out and improve it later in order to go 
+ahead. There is many devices waiting that driver... :D
+
+regards
+Antti
+
 -- 
-2.0.1
-
+http://palosaari.fi/
