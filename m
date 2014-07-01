@@ -1,1710 +1,744 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:57747 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752054AbaGGQck (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jul 2014 12:32:40 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH 1/9] s5p-jpeg: Add support for Exynos3250 SoC
-Date: Mon, 07 Jul 2014 18:32:02 +0200
-Message-id: <1404750730-22996-2-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1404750730-22996-1-git-send-email-j.anaszewski@samsung.com>
-References: <1404750730-22996-1-git-send-email-j.anaszewski@samsung.com>
+Received: from adelie.canonical.com ([91.189.90.139]:60366 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757927AbaGAK6f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jul 2014 06:58:35 -0400
+Subject: [PATCH v2 9/9] reservation: add suppport for read-only access using
+ rcu
+To: gregkh@linuxfoundation.org
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-arch@vger.kernel.org, thellstrom@vmware.com,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
+	thierry.reding@gmail.com, ccross@google.com, daniel@ffwll.ch,
+	sumit.semwal@linaro.org, linux-media@vger.kernel.org
+Date: Tue, 01 Jul 2014 12:58:00 +0200
+Message-ID: <20140701105800.12718.18636.stgit@patser>
+In-Reply-To: <20140701103432.12718.82795.stgit@patser>
+References: <20140701103432.12718.82795.stgit@patser>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for jpeg codec on Exynos3250 SoC to
-the s5p-jpeg driver. Supported raw formats are: YUYV, YVYU, UYVY,
-VYUY, RGB565, RGB565X, RGB32, NV12, NV21. The support includes
-also scaling and cropping features.
+This adds some extra functions to deal with rcu.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+reservation_object_get_fences_rcu() will obtain the list of shared
+and exclusive fences without obtaining the ww_mutex.
+
+reservation_object_wait_timeout_rcu() will wait on all fences of the
+reservation_object, without obtaining the ww_mutex.
+
+reservation_object_test_signaled_rcu() will test if all fences of the
+reservation_object are signaled without using the ww_mutex.
+
+reservation_object_get_excl and reservation_object_get_list require
+the reservation object to be held, updating requires
+write_seqcount_begin/end. If only the exclusive fence is needed,
+rcu_dereference followed by fence_get_rcu can be used, if the shared
+fences are needed it's recommended to use the supplied functions.
+
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Reviewed-By: Thomas Hellstrom <thellstrom@vmware.com>
 ---
- drivers/media/platform/s5p-jpeg/Makefile           |    2 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c        |  533 +++++++++++++++++++-
- drivers/media/platform/s5p-jpeg/jpeg-core.h        |   33 +-
- .../media/platform/s5p-jpeg/jpeg-hw-exynos3250.c   |  486 ++++++++++++++++++
- .../media/platform/s5p-jpeg/jpeg-hw-exynos3250.h   |   60 +++
- drivers/media/platform/s5p-jpeg/jpeg-regs.h        |  247 ++++++++-
- 6 files changed, 1341 insertions(+), 20 deletions(-)
- create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c
- create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.h
+ drivers/dma-buf/dma-buf.c     |   47 ++++--
+ drivers/dma-buf/fence.c       |    2 
+ drivers/dma-buf/reservation.c |  336 ++++++++++++++++++++++++++++++++++++++---
+ include/linux/fence.h         |   17 ++
+ include/linux/reservation.h   |   52 ++++--
+ 5 files changed, 400 insertions(+), 54 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/Makefile b/drivers/media/platform/s5p-jpeg/Makefile
-index a1a9169..9e5f214 100644
---- a/drivers/media/platform/s5p-jpeg/Makefile
-+++ b/drivers/media/platform/s5p-jpeg/Makefile
-@@ -1,2 +1,2 @@
--s5p-jpeg-objs := jpeg-core.o jpeg-hw-exynos4.o jpeg-hw-s5p.o
-+s5p-jpeg-objs := jpeg-core.o jpeg-hw-exynos3250.o jpeg-hw-exynos4.o jpeg-hw-s5p.o
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG) += s5p-jpeg.o
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 0dcb796..7d604f2 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1,6 +1,6 @@
- /* linux/drivers/media/platform/s5p-jpeg/jpeg-core.c
-  *
-- * Copyright (c) 2011-2013 Samsung Electronics Co., Ltd.
-+ * Copyright (c) 2011-2014 Samsung Electronics Co., Ltd.
-  *		http://www.samsung.com
-  *
-  * Author: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-@@ -32,6 +32,7 @@
- #include "jpeg-core.h"
- #include "jpeg-hw-s5p.h"
- #include "jpeg-hw-exynos4.h"
-+#include "jpeg-hw-exynos3250.h"
- #include "jpeg-regs.h"
+diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+index cb8379dfeed5..f3014c448e1e 100644
+--- a/drivers/dma-buf/dma-buf.c
++++ b/drivers/dma-buf/dma-buf.c
+@@ -137,7 +137,7 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
+ 	struct reservation_object_list *fobj;
+ 	struct fence *fence_excl;
+ 	unsigned long events;
+-	unsigned shared_count;
++	unsigned shared_count, seq;
  
- static struct s5p_jpeg_fmt sjpeg_formats[] = {
-@@ -41,6 +42,7 @@ static struct s5p_jpeg_fmt sjpeg_formats[] = {
- 		.flags		= SJPEG_FMT_FLAG_ENC_CAPTURE |
- 				  SJPEG_FMT_FLAG_DEC_OUTPUT |
- 				  SJPEG_FMT_FLAG_S5P |
-+				  SJPEG_FMT_FLAG_EXYNOS3250 |
- 				  SJPEG_FMT_FLAG_EXYNOS4,
- 	},
- 	{
-@@ -70,6 +72,19 @@ static struct s5p_jpeg_fmt sjpeg_formats[] = {
- 		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_422,
- 	},
- 	{
-+		.name		= "YUV 4:2:2 packed, YCbYCr",
-+		.fourcc		= V4L2_PIX_FMT_YUYV,
-+		.depth		= 16,
-+		.colplanes	= 1,
-+		.h_align	= 2,
-+		.v_align	= 0,
-+		.flags		= SJPEG_FMT_FLAG_ENC_OUTPUT |
-+				  SJPEG_FMT_FLAG_DEC_CAPTURE |
-+				  SJPEG_FMT_FLAG_EXYNOS3250 |
-+				  SJPEG_FMT_NON_RGB,
-+		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_422,
-+	},
-+	{
- 		.name		= "YUV 4:2:2 packed, YCrYCb",
- 		.fourcc		= V4L2_PIX_FMT_YVYU,
- 		.depth		= 16,
-@@ -83,6 +98,45 @@ static struct s5p_jpeg_fmt sjpeg_formats[] = {
- 		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_422,
- 	},
- 	{
-+		.name		= "YUV 4:2:2 packed, YCrYCb",
-+		.fourcc		= V4L2_PIX_FMT_YVYU,
-+		.depth		= 16,
-+		.colplanes	= 1,
-+		.h_align	= 2,
-+		.v_align	= 0,
-+		.flags		= SJPEG_FMT_FLAG_ENC_OUTPUT |
-+				  SJPEG_FMT_FLAG_DEC_CAPTURE |
-+				  SJPEG_FMT_FLAG_EXYNOS3250 |
-+				  SJPEG_FMT_NON_RGB,
-+		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_422,
-+	},
-+	{
-+		.name		= "YUV 4:2:2 packed, YCrYCb",
-+		.fourcc		= V4L2_PIX_FMT_UYVY,
-+		.depth		= 16,
-+		.colplanes	= 1,
-+		.h_align	= 2,
-+		.v_align	= 0,
-+		.flags		= SJPEG_FMT_FLAG_ENC_OUTPUT |
-+				  SJPEG_FMT_FLAG_DEC_CAPTURE |
-+				  SJPEG_FMT_FLAG_EXYNOS3250 |
-+				  SJPEG_FMT_NON_RGB,
-+		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_422,
-+	},
-+	{
-+		.name		= "YUV 4:2:2 packed, YCrYCb",
-+		.fourcc		= V4L2_PIX_FMT_VYUY,
-+		.depth		= 16,
-+		.colplanes	= 1,
-+		.h_align	= 2,
-+		.v_align	= 0,
-+		.flags		= SJPEG_FMT_FLAG_ENC_OUTPUT |
-+				  SJPEG_FMT_FLAG_DEC_CAPTURE |
-+				  SJPEG_FMT_FLAG_EXYNOS3250 |
-+				  SJPEG_FMT_NON_RGB,
-+		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_422,
-+	},
-+	{
- 		.name		= "RGB565",
- 		.fourcc		= V4L2_PIX_FMT_RGB565,
- 		.depth		= 16,
-@@ -100,6 +154,32 @@ static struct s5p_jpeg_fmt sjpeg_formats[] = {
- 		.fourcc		= V4L2_PIX_FMT_RGB565,
- 		.depth		= 16,
- 		.colplanes	= 1,
-+		.h_align	= 2,
-+		.v_align	= 0,
-+		.flags		= SJPEG_FMT_FLAG_ENC_OUTPUT |
-+				  SJPEG_FMT_FLAG_DEC_CAPTURE |
-+				  SJPEG_FMT_FLAG_EXYNOS3250 |
-+				  SJPEG_FMT_RGB,
-+		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_444,
-+	},
-+	{
-+		.name		= "RGB565X",
-+		.fourcc		= V4L2_PIX_FMT_RGB565X,
-+		.depth		= 16,
-+		.colplanes	= 1,
-+		.h_align	= 2,
-+		.v_align	= 0,
-+		.flags		= SJPEG_FMT_FLAG_ENC_OUTPUT |
-+				  SJPEG_FMT_FLAG_DEC_CAPTURE |
-+				  SJPEG_FMT_FLAG_EXYNOS3250 |
-+				  SJPEG_FMT_RGB,
-+		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_444,
-+	},
-+	{
-+		.name		= "RGB565",
-+		.fourcc		= V4L2_PIX_FMT_RGB565,
-+		.depth		= 16,
-+		.colplanes	= 1,
- 		.h_align	= 0,
- 		.v_align	= 0,
- 		.flags		= SJPEG_FMT_FLAG_ENC_OUTPUT |
-@@ -121,6 +201,19 @@ static struct s5p_jpeg_fmt sjpeg_formats[] = {
- 		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_444,
- 	},
- 	{
-+		.name		= "ARGB8888, 32 bpp",
-+		.fourcc		= V4L2_PIX_FMT_RGB32,
-+		.depth		= 32,
-+		.colplanes	= 1,
-+		.h_align	= 2,
-+		.v_align	= 0,
-+		.flags		= SJPEG_FMT_FLAG_ENC_OUTPUT |
-+				  SJPEG_FMT_FLAG_DEC_CAPTURE |
-+				  SJPEG_FMT_FLAG_EXYNOS3250 |
-+				  SJPEG_FMT_RGB,
-+		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_444,
-+	},
-+	{
- 		.name		= "YUV 4:4:4 planar, Y/CbCr",
- 		.fourcc		= V4L2_PIX_FMT_NV24,
- 		.depth		= 24,
-@@ -190,9 +283,23 @@ static struct s5p_jpeg_fmt sjpeg_formats[] = {
- 		.fourcc		= V4L2_PIX_FMT_NV12,
- 		.depth		= 12,
- 		.colplanes	= 2,
-+		.h_align	= 3,
-+		.v_align	= 3,
-+		.flags		= SJPEG_FMT_FLAG_ENC_OUTPUT |
-+				  SJPEG_FMT_FLAG_DEC_CAPTURE |
-+				  SJPEG_FMT_FLAG_EXYNOS3250 |
-+				  SJPEG_FMT_NON_RGB,
-+		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_420,
-+	},
-+	{
-+		.name		= "YUV 4:2:0 planar, Y/CbCr",
-+		.fourcc		= V4L2_PIX_FMT_NV12,
-+		.depth		= 12,
-+		.colplanes	= 2,
- 		.h_align	= 4,
- 		.v_align	= 4,
--		.flags		= SJPEG_FMT_FLAG_DEC_CAPTURE |
-+		.flags		= SJPEG_FMT_FLAG_ENC_OUTPUT |
-+				  SJPEG_FMT_FLAG_DEC_CAPTURE |
- 				  SJPEG_FMT_FLAG_S5P |
- 				  SJPEG_FMT_NON_RGB,
- 		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_420,
-@@ -202,10 +309,24 @@ static struct s5p_jpeg_fmt sjpeg_formats[] = {
- 		.fourcc		= V4L2_PIX_FMT_NV21,
- 		.depth		= 12,
- 		.colplanes	= 2,
-+		.h_align	= 3,
-+		.v_align	= 3,
-+		.flags		= SJPEG_FMT_FLAG_ENC_OUTPUT |
-+				  SJPEG_FMT_FLAG_DEC_CAPTURE |
-+				  SJPEG_FMT_FLAG_EXYNOS3250 |
-+				  SJPEG_FMT_NON_RGB,
-+		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_420,
-+	},
-+	{
-+		.name		= "YUV 4:2:0 planar, Y/CrCb",
-+		.fourcc		= V4L2_PIX_FMT_NV21,
-+		.depth		= 12,
-+		.colplanes	= 2,
- 		.h_align	= 1,
- 		.v_align	= 1,
- 		.flags		= SJPEG_FMT_FLAG_ENC_OUTPUT |
- 				  SJPEG_FMT_FLAG_DEC_CAPTURE |
-+				  SJPEG_FMT_FLAG_EXYNOS3250 |
- 				  SJPEG_FMT_FLAG_EXYNOS4 |
- 				  SJPEG_FMT_NON_RGB,
- 		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_420,
-@@ -224,6 +345,19 @@ static struct s5p_jpeg_fmt sjpeg_formats[] = {
- 		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_420,
- 	},
- 	{
-+		.name		= "YUV 4:2:0 contiguous 3-planar, Y/Cb/Cr",
-+		.fourcc		= V4L2_PIX_FMT_YUV420,
-+		.depth		= 12,
-+		.colplanes	= 3,
-+		.h_align	= 4,
-+		.v_align	= 4,
-+		.flags		= SJPEG_FMT_FLAG_ENC_OUTPUT |
-+				  SJPEG_FMT_FLAG_DEC_CAPTURE |
-+				  SJPEG_FMT_FLAG_EXYNOS3250 |
-+				  SJPEG_FMT_NON_RGB,
-+		.subsampling	= V4L2_JPEG_CHROMA_SUBSAMPLING_420,
-+	},
-+	{
- 		.name		= "Gray",
- 		.fourcc		= V4L2_PIX_FMT_GREY,
- 		.depth		= 8,
-@@ -457,6 +591,16 @@ static int exynos4x12_decoded_subsampling[] = {
- 	V4L2_JPEG_CHROMA_SUBSAMPLING_420,
- };
+ 	dmabuf = file->private_data;
+ 	if (!dmabuf || !dmabuf->resv)
+@@ -151,14 +151,20 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
+ 	if (!events)
+ 		return 0;
  
-+static int exynos3250_decoded_subsampling[] = {
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_444,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_422,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_420,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY,
-+	-1,
-+	-1,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_411,
-+};
+-	ww_mutex_lock(&resv->lock, NULL);
++retry:
++	seq = read_seqcount_begin(&resv->seq);
++	rcu_read_lock();
+ 
+-	fobj = resv->fence;
+-	if (!fobj)
+-		goto out;
+-
+-	shared_count = fobj->shared_count;
+-	fence_excl = resv->fence_excl;
++	fobj = rcu_dereference(resv->fence);
++	if (fobj)
++		shared_count = fobj->shared_count;
++	else
++		shared_count = 0;
++	fence_excl = rcu_dereference(resv->fence_excl);
++	if (read_seqcount_retry(&resv->seq, seq)) {
++		rcu_read_unlock();
++		goto retry;
++	}
+ 
+ 	if (fence_excl && (!(events & POLLOUT) || shared_count == 0)) {
+ 		struct dma_buf_poll_cb_t *dcb = &dmabuf->cb_excl;
+@@ -176,14 +182,20 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
+ 		spin_unlock_irq(&dmabuf->poll.lock);
+ 
+ 		if (events & pevents) {
+-			if (!fence_add_callback(fence_excl, &dcb->cb,
++			if (!fence_get_rcu(fence_excl)) {
++				/* force a recheck */
++				events &= ~pevents;
++				dma_buf_poll_cb(NULL, &dcb->cb);
++			} else if (!fence_add_callback(fence_excl, &dcb->cb,
+ 						       dma_buf_poll_cb)) {
+ 				events &= ~pevents;
++				fence_put(fence_excl);
+ 			} else {
+ 				/*
+ 				 * No callback queued, wake up any additional
+ 				 * waiters.
+ 				 */
++				fence_put(fence_excl);
+ 				dma_buf_poll_cb(NULL, &dcb->cb);
+ 			}
+ 		}
+@@ -205,13 +217,26 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
+ 			goto out;
+ 
+ 		for (i = 0; i < shared_count; ++i) {
+-			struct fence *fence = fobj->shared[i];
++			struct fence *fence = rcu_dereference(fobj->shared[i]);
+ 
++			if (!fence_get_rcu(fence)) {
++				/*
++				 * fence refcount dropped to zero, this means
++				 * that fobj has been freed
++				 *
++				 * call dma_buf_poll_cb and force a recheck!
++				 */
++				events &= ~POLLOUT;
++				dma_buf_poll_cb(NULL, &dcb->cb);
++				break;
++			}
+ 			if (!fence_add_callback(fence, &dcb->cb,
+ 						dma_buf_poll_cb)) {
++				fence_put(fence);
+ 				events &= ~POLLOUT;
+ 				break;
+ 			}
++			fence_put(fence);
+ 		}
+ 
+ 		/* No callback queued, wake up any additional waiters. */
+@@ -220,7 +245,7 @@ static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
+ 	}
+ 
+ out:
+-	ww_mutex_unlock(&resv->lock);
++	rcu_read_unlock();
+ 	return events;
+ }
+ 
+diff --git a/drivers/dma-buf/fence.c b/drivers/dma-buf/fence.c
+index 948bf00d955e..4222cb2aa96a 100644
+--- a/drivers/dma-buf/fence.c
++++ b/drivers/dma-buf/fence.c
+@@ -184,7 +184,7 @@ EXPORT_SYMBOL(fence_release);
+ 
+ void fence_free(struct fence *fence)
+ {
+-	kfree(fence);
++	kfree_rcu(fence, rcu);
+ }
+ EXPORT_SYMBOL(fence_free);
+ 
+diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+index e6166723a9ae..3c97c8fa8d02 100644
+--- a/drivers/dma-buf/reservation.c
++++ b/drivers/dma-buf/reservation.c
+@@ -38,6 +38,11 @@
+ DEFINE_WW_CLASS(reservation_ww_class);
+ EXPORT_SYMBOL(reservation_ww_class);
+ 
++struct lock_class_key reservation_seqcount_class;
++EXPORT_SYMBOL(reservation_seqcount_class);
 +
- static inline struct s5p_jpeg_ctx *ctrl_to_ctx(struct v4l2_ctrl *c)
++const char reservation_seqcount_string[] = "reservation_seqcount";
++EXPORT_SYMBOL(reservation_seqcount_string);
+ /*
+  * Reserve space to add a shared fence to a reservation_object,
+  * must be called with obj->lock held.
+@@ -82,27 +87,37 @@ reservation_object_add_shared_inplace(struct reservation_object *obj,
  {
- 	return container_of(c->handler, struct s5p_jpeg_ctx, ctrl_handler);
-@@ -471,14 +615,21 @@ static int s5p_jpeg_to_user_subsampling(struct s5p_jpeg_ctx *ctx)
- {
- 	WARN_ON(ctx->subsampling > 3);
+ 	u32 i;
  
--	if (ctx->jpeg->variant->version == SJPEG_S5P) {
-+	switch (ctx->jpeg->variant->version) {
-+	case SJPEG_S5P:
- 		if (ctx->subsampling > 2)
- 			return V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
- 		return ctx->subsampling;
--	} else {
-+	case SJPEG_EXYNOS3250:
-+		if (ctx->subsampling > 3)
-+			return V4L2_JPEG_CHROMA_SUBSAMPLING_411;
-+		return exynos3250_decoded_subsampling[ctx->subsampling];
-+	case SJPEG_EXYNOS4:
- 		if (ctx->subsampling > 2)
- 			return V4L2_JPEG_CHROMA_SUBSAMPLING_420;
- 		return exynos4x12_decoded_subsampling[ctx->subsampling];
-+	default:
-+		return V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
++	fence_get(fence);
++
++	preempt_disable();
++	write_seqcount_begin(&obj->seq);
++
+ 	for (i = 0; i < fobj->shared_count; ++i) {
+-		if (fobj->shared[i]->context == fence->context) {
+-			struct fence *old_fence = fobj->shared[i];
++		struct fence *old_fence;
+ 
+-			fence_get(fence);
++		old_fence = rcu_dereference_protected(fobj->shared[i],
++						reservation_object_held(obj));
+ 
+-			fobj->shared[i] = fence;
++		if (old_fence->context == fence->context) {
++			/* memory barrier is added by write_seqcount_begin */
++			RCU_INIT_POINTER(fobj->shared[i], fence);
++			write_seqcount_end(&obj->seq);
++			preempt_enable();
+ 
+ 			fence_put(old_fence);
+ 			return;
+ 		}
  	}
+ 
+-	fence_get(fence);
+-	fobj->shared[fobj->shared_count] = fence;
+ 	/*
+-	 * make the new fence visible before incrementing
+-	 * fobj->shared_count
++	 * memory barrier is added by write_seqcount_begin,
++	 * fobj->shared_count is protected by this lock too
+ 	 */
+-	smp_wmb();
++	RCU_INIT_POINTER(fobj->shared[fobj->shared_count], fence);
+ 	fobj->shared_count++;
++
++	write_seqcount_end(&obj->seq);
++	preempt_enable();
  }
  
-@@ -646,6 +797,7 @@ static int s5p_jpeg_open(struct file *file)
- 							FMT_TYPE_OUTPUT);
- 		cap_fmt = s5p_jpeg_find_format(ctx, V4L2_PIX_FMT_YUYV,
- 							FMT_TYPE_CAPTURE);
-+		ctx->scale_factor = EXYNOS3250_DEC_SCALE_FACTOR_8_8;
- 	}
+ static void
+@@ -112,11 +127,12 @@ reservation_object_add_shared_replace(struct reservation_object *obj,
+ 				      struct fence *fence)
+ {
+ 	unsigned i;
++	struct fence *old_fence = NULL;
  
- 	ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(jpeg->m2m_dev, ctx, queue_init);
-@@ -1229,6 +1381,101 @@ static int s5p_jpeg_s_fmt_vid_out(struct file *file, void *priv,
- 	return s5p_jpeg_s_fmt(fh_to_ctx(priv), f);
+ 	fence_get(fence);
+ 
+ 	if (!old) {
+-		fobj->shared[0] = fence;
++		RCU_INIT_POINTER(fobj->shared[0], fence);
+ 		fobj->shared_count = 1;
+ 		goto done;
+ 	}
+@@ -130,19 +146,38 @@ reservation_object_add_shared_replace(struct reservation_object *obj,
+ 	fobj->shared_count = old->shared_count;
+ 
+ 	for (i = 0; i < old->shared_count; ++i) {
+-		if (fence && old->shared[i]->context == fence->context) {
+-			fence_put(old->shared[i]);
+-			fobj->shared[i] = fence;
+-			fence = NULL;
++		struct fence *check;
++
++		check = rcu_dereference_protected(old->shared[i],
++						reservation_object_held(obj));
++
++		if (!old_fence && check->context == fence->context) {
++			old_fence = check;
++			RCU_INIT_POINTER(fobj->shared[i], fence);
+ 		} else
+-			fobj->shared[i] = old->shared[i];
++			RCU_INIT_POINTER(fobj->shared[i], check);
++	}
++	if (!old_fence) {
++		RCU_INIT_POINTER(fobj->shared[fobj->shared_count], fence);
++		fobj->shared_count++;
+ 	}
+-	if (fence)
+-		fobj->shared[fobj->shared_count++] = fence;
+ 
+ done:
+-	obj->fence = fobj;
+-	kfree(old);
++	preempt_disable();
++	write_seqcount_begin(&obj->seq);
++	/*
++	 * RCU_INIT_POINTER can be used here,
++	 * seqcount provides the necessary barriers
++	 */
++	RCU_INIT_POINTER(obj->fence, fobj);
++	write_seqcount_end(&obj->seq);
++	preempt_enable();
++
++	if (old)
++		kfree_rcu(old, rcu);
++
++	if (old_fence)
++		fence_put(old_fence);
  }
  
-+static int exynos3250_jpeg_try_downscale(struct s5p_jpeg_ctx *ctx,
-+				   struct v4l2_rect *r)
+ /*
+@@ -158,7 +193,7 @@ void reservation_object_add_shared_fence(struct reservation_object *obj,
+ 	obj->staged = NULL;
+ 
+ 	if (!fobj) {
+-		BUG_ON(old->shared_count == old->shared_max);
++		BUG_ON(old->shared_count >= old->shared_max);
+ 		reservation_object_add_shared_inplace(obj, old, fence);
+ 	} else
+ 		reservation_object_add_shared_replace(obj, old, fobj, fence);
+@@ -168,26 +203,275 @@ EXPORT_SYMBOL(reservation_object_add_shared_fence);
+ void reservation_object_add_excl_fence(struct reservation_object *obj,
+ 				       struct fence *fence)
+ {
+-	struct fence *old_fence = obj->fence_excl;
++	struct fence *old_fence = reservation_object_get_excl(obj);
+ 	struct reservation_object_list *old;
+ 	u32 i = 0;
+ 
+ 	old = reservation_object_get_list(obj);
+-	if (old) {
++	if (old)
+ 		i = old->shared_count;
+-		old->shared_count = 0;
+-	}
+ 
+ 	if (fence)
+ 		fence_get(fence);
+ 
+-	obj->fence_excl = fence;
++	preempt_disable();
++	write_seqcount_begin(&obj->seq);
++	/* write_seqcount_begin provides the necessary memory barrier */
++	RCU_INIT_POINTER(obj->fence_excl, fence);
++	if (old)
++		old->shared_count = 0;
++	write_seqcount_end(&obj->seq);
++	preempt_enable();
+ 
+ 	/* inplace update, no shared fences */
+ 	while (i--)
+-		fence_put(old->shared[i]);
++		fence_put(rcu_dereference_protected(old->shared[i],
++						reservation_object_held(obj)));
+ 
+ 	if (old_fence)
+ 		fence_put(old_fence);
+ }
+ EXPORT_SYMBOL(reservation_object_add_excl_fence);
++
++int reservation_object_get_fences_rcu(struct reservation_object *obj,
++				      struct fence **pfence_excl,
++				      unsigned *pshared_count,
++				      struct fence ***pshared)
 +{
-+	int w_ratio, h_ratio, scale_factor, cur_ratio, i;
++	unsigned shared_count = 0;
++	unsigned retry = 1;
++	struct fence **shared = NULL, *fence_excl = NULL;
++	int ret = 0;
 +
-+	w_ratio = ctx->out_q.w / r->width;
-+	h_ratio = ctx->out_q.h / r->height;
++	while (retry) {
++		struct reservation_object_list *fobj;
++		unsigned seq;
 +
-+	scale_factor = w_ratio > h_ratio ? w_ratio : h_ratio;
-+	scale_factor = clamp_val(scale_factor, 1, 8);
++		seq = read_seqcount_begin(&obj->seq);
 +
-+	/* Align scale ratio to the nearest power of 2 */
-+	for (i = 0; i <= 3; ++i) {
-+		cur_ratio = 1 << i;
-+		if (scale_factor <= cur_ratio) {
-+			ctx->scale_factor = cur_ratio;
++		rcu_read_lock();
++
++		fobj = rcu_dereference(obj->fence);
++		if (fobj) {
++			struct fence **nshared;
++			size_t sz = sizeof(*shared) * fobj->shared_max;
++
++			nshared = krealloc(shared, sz,
++					   GFP_NOWAIT | __GFP_NOWARN);
++			if (!nshared) {
++				rcu_read_unlock();
++				nshared = krealloc(shared, sz, GFP_KERNEL);
++				if (nshared) {
++					shared = nshared;
++					continue;
++				}
++
++				ret = -ENOMEM;
++				shared_count = 0;
++				break;
++			}
++			shared = nshared;
++			memcpy(shared, fobj->shared, sz);
++			shared_count = fobj->shared_count;
++		} else
++			shared_count = 0;
++		fence_excl = rcu_dereference(obj->fence_excl);
++
++		retry = read_seqcount_retry(&obj->seq, seq);
++		if (retry)
++			goto unlock;
++
++		if (!fence_excl || fence_get_rcu(fence_excl)) {
++			unsigned i;
++
++			for (i = 0; i < shared_count; ++i) {
++				if (fence_get_rcu(shared[i]))
++					continue;
++
++				/* uh oh, refcount failed, abort and retry */
++				while (i--)
++					fence_put(shared[i]);
++
++				if (fence_excl) {
++					fence_put(fence_excl);
++					fence_excl = NULL;
++				}
++
++				retry = 1;
++				break;
++			}
++		} else
++			retry = 1;
++
++unlock:
++		rcu_read_unlock();
++	}
++	*pshared_count = shared_count;
++	if (shared_count)
++		*pshared = shared;
++	else {
++		*pshared = NULL;
++		kfree(shared);
++	}
++	*pfence_excl = fence_excl;
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(reservation_object_get_fences_rcu);
++
++long reservation_object_wait_timeout_rcu(struct reservation_object *obj,
++					 bool wait_all, bool intr,
++					 unsigned long timeout)
++{
++	struct fence *fence;
++	unsigned seq, shared_count, i = 0;
++	long ret = timeout;
++
++retry:
++	fence = NULL;
++	shared_count = 0;
++	seq = read_seqcount_begin(&obj->seq);
++	rcu_read_lock();
++
++	if (wait_all) {
++		struct reservation_object_list *fobj = rcu_dereference(obj->fence);
++
++		if (fobj)
++			shared_count = fobj->shared_count;
++
++		if (read_seqcount_retry(&obj->seq, seq))
++			goto unlock_retry;
++
++		for (i = 0; i < shared_count; ++i) {
++			struct fence *lfence = rcu_dereference(fobj->shared[i]);
++
++			if (test_bit(FENCE_FLAG_SIGNALED_BIT, &lfence->flags))
++				continue;
++
++			if (!fence_get_rcu(lfence))
++				goto unlock_retry;
++
++			if (fence_is_signaled(lfence)) {
++				fence_put(lfence);
++				continue;
++			}
++
++			fence = lfence;
 +			break;
 +		}
 +	}
 +
-+	r->width = round_down(ctx->out_q.w / ctx->scale_factor, 2);
-+	r->height = round_down(ctx->out_q.h / ctx->scale_factor, 2);
++	if (!shared_count) {
++		struct fence *fence_excl = rcu_dereference(obj->fence_excl);
 +
-+	ctx->crop_rect.width = r->width;
-+	ctx->crop_rect.height = r->height;
-+	ctx->crop_rect.left = 0;
-+	ctx->crop_rect.top = 0;
++		if (read_seqcount_retry(&obj->seq, seq))
++			goto unlock_retry;
 +
-+	ctx->crop_altered = true;
++		if (fence_excl &&
++		    !test_bit(FENCE_FLAG_SIGNALED_BIT, &fence_excl->flags)) {
++			if (!fence_get_rcu(fence_excl))
++				goto unlock_retry;
 +
-+	return 0;
-+}
-+
-+/* Return 1 if rectangle a is enclosed in rectangle b, or 0 otherwise. */
-+static int enclosed_rectangle(struct v4l2_rect *a, struct v4l2_rect *b)
-+{
-+	if (a->left < b->left || a->top < b->top)
-+		return 0;
-+	if (a->left + a->width > b->left + b->width)
-+		return 0;
-+	if (a->top + a->height > b->top + b->height)
-+		return 0;
-+
-+	return 1;
-+}
-+
-+static int exynos3250_jpeg_try_crop(struct s5p_jpeg_ctx *ctx,
-+				   struct v4l2_rect *r)
-+{
-+	struct v4l2_rect base_rect;
-+	int w_step, h_step;
-+
-+	switch (ctx->cap_q.fmt->fourcc) {
-+	case V4L2_PIX_FMT_NV12:
-+	case V4L2_PIX_FMT_NV21:
-+		w_step = 1;
-+		h_step = 2;
-+		break;
-+	case V4L2_PIX_FMT_YUV420:
-+		w_step = 2;
-+		h_step = 2;
-+		break;
-+	default:
-+		w_step = 1;
-+		h_step = 1;
-+		break;
-+	}
-+
-+	base_rect.top = 0;
-+	base_rect.left = 0;
-+	base_rect.width = ctx->out_q.w;
-+	base_rect.height = ctx->out_q.h;
-+
-+	r->width = round_down(r->width, w_step);
-+	r->height = round_down(r->height, h_step);
-+	r->left = round_down(r->left, 2);
-+	r->top = round_down(r->top, 2);
-+
-+	if (!enclosed_rectangle(r, &base_rect))
-+		return -EINVAL;
-+
-+	ctx->crop_rect.left = r->left;
-+	ctx->crop_rect.top = r->top;
-+	ctx->crop_rect.width = r->width;
-+	ctx->crop_rect.height = r->height;
-+
-+	ctx->crop_altered = true;
-+
-+	return 0;
-+}
-+
-+/*
-+ * V4L2 controls
-+ */
-+
- static int s5p_jpeg_g_selection(struct file *file, void *priv,
- 			 struct v4l2_selection *s)
- {
-@@ -1264,6 +1511,30 @@ static int s5p_jpeg_g_selection(struct file *file, void *priv,
- /*
-  * V4L2 controls
-  */
-+static int s5p_jpeg_s_selection(struct file *file, void *fh,
-+				  struct v4l2_selection *s)
-+{
-+	struct s5p_jpeg_ctx *ctx = fh_to_ctx(file->private_data);
-+	struct v4l2_rect *rect = &s->r;
-+	int ret = -EINVAL;
-+
-+	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	if (s->target == V4L2_SEL_TGT_COMPOSE) {
-+		if (ctx->mode != S5P_JPEG_DECODE)
-+			return -EINVAL;
-+		if (ctx->jpeg->variant->version == SJPEG_EXYNOS3250)
-+			ret = exynos3250_jpeg_try_downscale(ctx, rect);
-+	} else if (s->target == V4L2_SEL_TGT_CROP) {
-+		if (ctx->mode != S5P_JPEG_ENCODE)
-+			return -EINVAL;
-+		if (ctx->jpeg->variant->version == SJPEG_EXYNOS3250)
-+			ret = exynos3250_jpeg_try_crop(ctx, rect);
-+	}
-+
-+	return ret;
-+}
- 
- static int s5p_jpeg_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- {
-@@ -1414,6 +1685,7 @@ static const struct v4l2_ioctl_ops s5p_jpeg_ioctl_ops = {
- 	.vidioc_streamoff		= v4l2_m2m_ioctl_streamoff,
- 
- 	.vidioc_g_selection		= s5p_jpeg_g_selection,
-+	.vidioc_s_selection		= s5p_jpeg_s_selection,
- };
- 
- /*
-@@ -1604,6 +1876,135 @@ static void exynos4_jpeg_device_run(void *priv)
- 	spin_unlock_irqrestore(&ctx->jpeg->slock, flags);
- }
- 
-+static void exynos3250_jpeg_set_img_addr(struct s5p_jpeg_ctx *ctx)
-+{
-+	struct s5p_jpeg *jpeg = ctx->jpeg;
-+	struct s5p_jpeg_fmt *fmt;
-+	struct vb2_buffer *vb;
-+	struct s5p_jpeg_addr jpeg_addr;
-+	u32 pix_size;
-+
-+	pix_size = ctx->cap_q.w * ctx->cap_q.h;
-+
-+	if (ctx->mode == S5P_JPEG_ENCODE) {
-+		vb = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
-+		fmt = ctx->out_q.fmt;
-+	} else {
-+		vb = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
-+		fmt = ctx->cap_q.fmt;
-+	}
-+
-+	jpeg_addr.y = vb2_dma_contig_plane_dma_addr(vb, 0);
-+
-+	if (fmt->colplanes == 2) {
-+		jpeg_addr.cb = jpeg_addr.y + pix_size;
-+	} else if (fmt->colplanes == 3) {
-+		jpeg_addr.cb = jpeg_addr.y + pix_size;
-+		if (fmt->fourcc == V4L2_PIX_FMT_YUV420)
-+			jpeg_addr.cr = jpeg_addr.cb + pix_size / 4;
-+		else
-+			jpeg_addr.cr = jpeg_addr.cb + pix_size / 2;
-+	}
-+
-+	exynos3250_jpeg_imgadr(jpeg->regs, &jpeg_addr);
-+}
-+
-+static void exynos3250_jpeg_set_jpeg_addr(struct s5p_jpeg_ctx *ctx)
-+{
-+	struct s5p_jpeg *jpeg = ctx->jpeg;
-+	struct vb2_buffer *vb;
-+	unsigned int jpeg_addr = 0;
-+
-+	if (ctx->mode == S5P_JPEG_ENCODE)
-+		vb = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
-+	else
-+		vb = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
-+
-+	jpeg_addr = vb2_dma_contig_plane_dma_addr(vb, 0);
-+	exynos3250_jpeg_jpgadr(jpeg->regs, jpeg_addr);
-+}
-+
-+static void exynos3250_jpeg_device_run(void *priv)
-+{
-+	struct s5p_jpeg_ctx *ctx = priv;
-+	struct s5p_jpeg *jpeg = ctx->jpeg;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ctx->jpeg->slock, flags);
-+
-+	exynos3250_jpeg_reset(jpeg->regs);
-+	exynos3250_jpeg_set_dma_num(jpeg->regs);
-+	exynos3250_jpeg_poweron(jpeg->regs);
-+	exynos3250_jpeg_clk_set(jpeg->regs);
-+	exynos3250_jpeg_proc_mode(jpeg->regs, ctx->mode);
-+
-+	if (ctx->mode == S5P_JPEG_ENCODE) {
-+		exynos3250_jpeg_input_raw_fmt(jpeg->regs,
-+					      ctx->out_q.fmt->fourcc);
-+		exynos3250_jpeg_dri(jpeg->regs, ctx->restart_interval);
-+
-+		/*
-+		 * JPEG IP allows storing 4 quantization tables
-+		 * We fill table 0 for luma and table 1 for chroma
-+		 */
-+		s5p_jpeg_set_qtbl_lum(jpeg->regs, ctx->compr_quality);
-+		s5p_jpeg_set_qtbl_chr(jpeg->regs, ctx->compr_quality);
-+		/* use table 0 for Y */
-+		exynos3250_jpeg_qtbl(jpeg->regs, 1, 0);
-+		/* use table 1 for Cb and Cr*/
-+		exynos3250_jpeg_qtbl(jpeg->regs, 2, 1);
-+		exynos3250_jpeg_qtbl(jpeg->regs, 3, 1);
-+
-+		/* Y, Cb, Cr use Huffman table 0 */
-+		exynos3250_jpeg_htbl_ac(jpeg->regs, 1);
-+		exynos3250_jpeg_htbl_dc(jpeg->regs, 1);
-+		exynos3250_jpeg_htbl_ac(jpeg->regs, 2);
-+		exynos3250_jpeg_htbl_dc(jpeg->regs, 2);
-+		exynos3250_jpeg_htbl_ac(jpeg->regs, 3);
-+		exynos3250_jpeg_htbl_dc(jpeg->regs, 3);
-+
-+		exynos3250_jpeg_set_x(jpeg->regs, ctx->crop_rect.width);
-+		exynos3250_jpeg_set_y(jpeg->regs, ctx->crop_rect.height);
-+		exynos3250_jpeg_stride(jpeg->regs, ctx->out_q.fmt->fourcc,
-+								ctx->out_q.w);
-+		exynos3250_jpeg_offset(jpeg->regs, ctx->crop_rect.left,
-+							ctx->crop_rect.top);
-+		exynos3250_jpeg_set_img_addr(ctx);
-+		exynos3250_jpeg_set_jpeg_addr(ctx);
-+		exynos3250_jpeg_subsampling_mode(jpeg->regs, ctx->subsampling);
-+
-+		/* ultimately comes from sizeimage from userspace */
-+		exynos3250_jpeg_enc_stream_bound(jpeg->regs, ctx->cap_q.size);
-+
-+		if (ctx->out_q.fmt->fourcc == V4L2_PIX_FMT_RGB565 ||
-+		    ctx->out_q.fmt->fourcc == V4L2_PIX_FMT_RGB565X ||
-+		    ctx->out_q.fmt->fourcc == V4L2_PIX_FMT_RGB32)
-+			exynos3250_jpeg_set_y16(jpeg->regs, true);
-+	} else {
-+		exynos3250_jpeg_set_img_addr(ctx);
-+		exynos3250_jpeg_set_jpeg_addr(ctx);
-+		exynos3250_jpeg_stride(jpeg->regs, ctx->cap_q.fmt->fourcc,
-+								ctx->cap_q.w);
-+		exynos3250_jpeg_offset(jpeg->regs, 0, 0);
-+		exynos3250_jpeg_dec_scaling_ratio(jpeg->regs,
-+							ctx->scale_factor);
-+		exynos3250_jpeg_dec_stream_size(jpeg->regs, ctx->out_q.size);
-+		exynos3250_jpeg_output_raw_fmt(jpeg->regs,
-+						ctx->cap_q.fmt->fourcc);
-+	}
-+
-+	exynos3250_jpeg_interrupts_enable(jpeg->regs);
-+
-+	/* JPEG RGB to YCbCr conversion matrix */
-+	exynos3250_jpeg_coef(jpeg->regs, ctx->mode);
-+
-+	exynos3250_jpeg_set_timer(jpeg->regs, EXYNOS3250_IRQ_TIMEOUT);
-+	jpeg->irq_status = 0;
-+	exynos3250_jpeg_start(jpeg->regs);
-+
-+	spin_unlock_irqrestore(&ctx->jpeg->slock, flags);
-+}
-+
- static int s5p_jpeg_job_ready(void *priv)
- {
- 	struct s5p_jpeg_ctx *ctx = priv;
-@@ -1621,8 +2022,14 @@ static struct v4l2_m2m_ops s5p_jpeg_m2m_ops = {
- 	.device_run	= s5p_jpeg_device_run,
- 	.job_ready	= s5p_jpeg_job_ready,
- 	.job_abort	= s5p_jpeg_job_abort,
--}
--;
-+};
-+
-+static struct v4l2_m2m_ops exynos3250_jpeg_m2m_ops = {
-+	.device_run	= exynos3250_jpeg_device_run,
-+	.job_ready	= s5p_jpeg_job_ready,
-+	.job_abort	= s5p_jpeg_job_abort,
-+};
-+
- static struct v4l2_m2m_ops exynos4_jpeg_m2m_ops = {
- 	.device_run	= exynos4_jpeg_device_run,
- 	.job_ready	= s5p_jpeg_job_ready,
-@@ -1895,6 +2302,70 @@ static irqreturn_t exynos4_jpeg_irq(int irq, void *priv)
- 	return IRQ_HANDLED;
- }
- 
-+static irqreturn_t exynos3250_jpeg_irq(int irq, void *dev_id)
-+{
-+	struct s5p_jpeg *jpeg = dev_id;
-+	struct s5p_jpeg_ctx *curr_ctx;
-+	struct vb2_buffer *src_buf, *dst_buf;
-+	unsigned long payload_size = 0;
-+	enum vb2_buffer_state state = VB2_BUF_STATE_DONE;
-+	bool interrupt_timeout = false;
-+	u32 irq_status;
-+
-+	spin_lock(&jpeg->slock);
-+
-+	irq_status = exynos3250_jpeg_get_timer_status(jpeg->regs);
-+	if (irq_status & EXYNOS3250_TIMER_INT_STAT) {
-+		exynos3250_jpeg_clear_timer_status(jpeg->regs);
-+		interrupt_timeout = true;
-+		dev_err(jpeg->dev, "Interrupt timeout occurred.\n");
-+	}
-+
-+	irq_status = exynos3250_jpeg_get_int_status(jpeg->regs);
-+	exynos3250_jpeg_clear_int_status(jpeg->regs, irq_status);
-+
-+	jpeg->irq_status |= irq_status;
-+
-+	curr_ctx = v4l2_m2m_get_curr_priv(jpeg->m2m_dev);
-+
-+	if (!curr_ctx)
-+		goto exit_unlock;
-+
-+	if ((irq_status & EXYNOS3250_HEADER_STAT) &&
-+	    (curr_ctx->mode == S5P_JPEG_DECODE)) {
-+		exynos3250_jpeg_rstart(jpeg->regs);
-+		goto exit_unlock;
-+	}
-+
-+	if (jpeg->irq_status & (EXYNOS3250_JPEG_DONE |
-+				EXYNOS3250_WDMA_DONE |
-+				EXYNOS3250_RDMA_DONE |
-+				EXYNOS3250_RESULT_STAT))
-+		payload_size = exynos3250_jpeg_compressed_size(jpeg->regs);
-+	else if (interrupt_timeout)
-+		state = VB2_BUF_STATE_ERROR;
-+	else
-+		goto exit_unlock;
-+
-+	src_buf = v4l2_m2m_src_buf_remove(curr_ctx->fh.m2m_ctx);
-+	dst_buf = v4l2_m2m_dst_buf_remove(curr_ctx->fh.m2m_ctx);
-+
-+	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
-+	dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
-+
-+	v4l2_m2m_buf_done(src_buf, state);
-+	if (curr_ctx->mode == S5P_JPEG_ENCODE)
-+		vb2_set_plane_payload(dst_buf, 0, payload_size);
-+	v4l2_m2m_buf_done(dst_buf, state);
-+	v4l2_m2m_job_finish(jpeg->m2m_dev, curr_ctx->fh.m2m_ctx);
-+
-+	curr_ctx->subsampling =
-+			exynos3250_jpeg_get_subsampling_mode(jpeg->regs);
-+exit_unlock:
-+	spin_unlock(&jpeg->slock);
-+	return IRQ_HANDLED;
-+}
-+
- static void *jpeg_get_drv_data(struct device *dev);
- 
- /*
-@@ -1950,6 +2421,15 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
- 	}
- 	dev_dbg(&pdev->dev, "clock source %p\n", jpeg->clk);
- 
-+	if (jpeg->variant->has_sclk) {
-+		jpeg->sclk = clk_get(&pdev->dev, "sclk-jpeg");
-+		if (IS_ERR(jpeg->sclk)) {
-+			dev_err(&pdev->dev, "cannot get clock\n");
-+			ret = PTR_ERR(jpeg->sclk);
-+			return ret;
++			if (fence_is_signaled(fence_excl))
++				fence_put(fence_excl);
++			else
++				fence = fence_excl;
 +		}
 +	}
 +
- 	/* v4l2 device */
- 	ret = v4l2_device_register(&pdev->dev, &jpeg->v4l2_dev);
- 	if (ret) {
-@@ -2057,6 +2537,8 @@ device_register_rollback:
- 
- clk_get_rollback:
- 	clk_put(jpeg->clk);
-+	if (jpeg->variant->has_sclk)
-+		clk_put(jpeg->sclk);
- 
- 	return ret;
- }
-@@ -2075,10 +2557,15 @@ static int s5p_jpeg_remove(struct platform_device *pdev)
- 	v4l2_m2m_release(jpeg->m2m_dev);
- 	v4l2_device_unregister(&jpeg->v4l2_dev);
- 
--	if (!pm_runtime_status_suspended(&pdev->dev))
-+	if (!pm_runtime_status_suspended(&pdev->dev)) {
- 		clk_disable_unprepare(jpeg->clk);
-+		if (jpeg->variant->has_sclk)
-+			clk_disable_unprepare(jpeg->sclk);
++	rcu_read_unlock();
++	if (fence) {
++		ret = fence_wait_timeout(fence, intr, ret);
++		fence_put(fence);
++		if (ret > 0 && wait_all && (i + 1 < shared_count))
++			goto retry;
 +	}
- 
- 	clk_put(jpeg->clk);
-+	if (jpeg->variant->has_sclk)
-+		clk_put(jpeg->sclk);
- 
- 	return 0;
- }
-@@ -2088,6 +2575,8 @@ static int s5p_jpeg_runtime_suspend(struct device *dev)
- 	struct s5p_jpeg *jpeg = dev_get_drvdata(dev);
- 
- 	clk_disable_unprepare(jpeg->clk);
-+	if (jpeg->variant->has_sclk)
-+		clk_disable_unprepare(jpeg->sclk);
- 
- 	return 0;
- }
-@@ -2102,15 +2591,24 @@ static int s5p_jpeg_runtime_resume(struct device *dev)
- 	if (ret < 0)
- 		return ret;
- 
-+	if (jpeg->variant->has_sclk) {
-+		ret = clk_prepare_enable(jpeg->sclk);
-+		if (ret < 0)
-+			return ret;
++	return ret;
++
++unlock_retry:
++	rcu_read_unlock();
++	goto retry;
++}
++EXPORT_SYMBOL_GPL(reservation_object_wait_timeout_rcu);
++
++
++static inline int
++reservation_object_test_signaled_single(struct fence *passed_fence)
++{
++	struct fence *fence, *lfence = passed_fence;
++	int ret = 1;
++
++	if (!test_bit(FENCE_FLAG_SIGNALED_BIT, &lfence->flags)) {
++		int ret;
++
++		fence = fence_get_rcu(lfence);
++		if (!fence)
++			return -1;
++
++		ret = !!fence_is_signaled(fence);
++		fence_put(fence);
++	}
++	return ret;
++}
++
++bool reservation_object_test_signaled_rcu(struct reservation_object *obj,
++					  bool test_all)
++{
++	unsigned seq, shared_count;
++	int ret = true;
++
++retry:
++	shared_count = 0;
++	seq = read_seqcount_begin(&obj->seq);
++	rcu_read_lock();
++
++	if (test_all) {
++		unsigned i;
++
++		struct reservation_object_list *fobj = rcu_dereference(obj->fence);
++
++		if (fobj)
++			shared_count = fobj->shared_count;
++
++		if (read_seqcount_retry(&obj->seq, seq))
++			goto unlock_retry;
++
++		for (i = 0; i < shared_count; ++i) {
++			struct fence *fence = rcu_dereference(fobj->shared[i]);
++
++			ret = reservation_object_test_signaled_single(fence);
++			if (ret < 0)
++				goto unlock_retry;
++			else if (!ret)
++				break;
++		}
++
++		/*
++		 * There could be a read_seqcount_retry here, but nothing cares
++		 * about whether it's the old or newer fence pointers that are
++		 * signaled. That race could still have happened after checking
++		 * read_seqcount_retry. If you care, use ww_mutex_lock.
++		 */
 +	}
 +
- 	spin_lock_irqsave(&jpeg->slock, flags);
- 
- 	/*
--	 * JPEG IP allows storing two Huffman tables for each component
-+	 * JPEG IP allows storing two Huffman tables for each component.
- 	 * We fill table 0 for each component and do this here only
--	 * for S5PC210 device as Exynos4x12 requires programming its
--	 * Huffman tables each time the encoding process is initialized.
-+	 * for S5PC210 and Exynos3250 SoCs. Exynos4x12 SoC requires
-+	 * programming its Huffman tables each time the encoding process
-+	 * is initialized, and thus it is accomplished in the device_run
-+	 * callback of m2m_ops.
- 	 */
--	if (jpeg->variant->version == SJPEG_S5P) {
-+	if (jpeg->variant->version == SJPEG_S5P ||
-+	    jpeg->variant->version == SJPEG_EXYNOS3250) {
- 		s5p_jpeg_set_hdctbl(jpeg->regs);
- 		s5p_jpeg_set_hdctblg(jpeg->regs);
- 		s5p_jpeg_set_hactbl(jpeg->regs);
-@@ -2150,6 +2648,14 @@ static struct s5p_jpeg_variant s5p_jpeg_drvdata = {
- 	.fmt_ver_flag	= SJPEG_FMT_FLAG_S5P,
- };
- 
-+static struct s5p_jpeg_variant exynos3250_jpeg_drvdata = {
-+	.version	= SJPEG_EXYNOS3250,
-+	.jpeg_irq	= exynos3250_jpeg_irq,
-+	.m2m_ops	= &exynos3250_jpeg_m2m_ops,
-+	.has_sclk	= true,
-+	.fmt_ver_flag	= SJPEG_FMT_FLAG_EXYNOS3250,
-+};
++	if (!shared_count) {
++		struct fence *fence_excl = rcu_dereference(obj->fence_excl);
 +
- static struct s5p_jpeg_variant exynos4_jpeg_drvdata = {
- 	.version	= SJPEG_EXYNOS4,
- 	.jpeg_irq	= exynos4_jpeg_irq,
-@@ -2162,8 +2668,11 @@ static const struct of_device_id samsung_jpeg_match[] = {
- 		.compatible = "samsung,s5pv210-jpeg",
- 		.data = &s5p_jpeg_drvdata,
- 	}, {
-+		.compatible = "samsung,exynos3250-jpeg",
-+		.data = &exynos3250_jpeg_drvdata,
-+	}, {
- 		.compatible = "samsung,exynos4210-jpeg",
--		.data = &s5p_jpeg_drvdata,
-+		.data = &exynos4_jpeg_drvdata,
- 	}, {
- 		.compatible = "samsung,exynos4212-jpeg",
- 		.data = &exynos4_jpeg_drvdata,
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-index 3e47863..de3228e 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-@@ -35,6 +35,8 @@
- #define S5P_JPEG_COEF32			0x6e
- #define S5P_JPEG_COEF33			0x13
- 
-+#define EXYNOS3250_IRQ_TIMEOUT		0x10000000
++		if (read_seqcount_retry(&obj->seq, seq))
++			goto unlock_retry;
 +
- /* a selection of JPEG markers */
- #define TEM				0x01
- #define SOF0				0xc0
-@@ -49,9 +51,10 @@
- #define SJPEG_FMT_FLAG_DEC_CAPTURE	(1 << 2)
- #define SJPEG_FMT_FLAG_DEC_OUTPUT	(1 << 3)
- #define SJPEG_FMT_FLAG_S5P		(1 << 4)
--#define SJPEG_FMT_FLAG_EXYNOS4		(1 << 5)
--#define SJPEG_FMT_RGB			(1 << 6)
--#define SJPEG_FMT_NON_RGB		(1 << 7)
-+#define SJPEG_FMT_FLAG_EXYNOS3250	(1 << 5)
-+#define SJPEG_FMT_FLAG_EXYNOS4		(1 << 6)
-+#define SJPEG_FMT_RGB			(1 << 7)
-+#define SJPEG_FMT_NON_RGB		(1 << 8)
- 
- #define S5P_JPEG_ENCODE		0
- #define S5P_JPEG_DECODE		1
-@@ -65,8 +68,9 @@
- 
- /* Version numbers */
- 
--#define SJPEG_S5P	1
--#define SJPEG_EXYNOS4	2
-+#define SJPEG_S5P		1
-+#define SJPEG_EXYNOS3250	2
-+#define SJPEG_EXYNOS4		3
- 
- enum exynos4_jpeg_result {
- 	OK_ENC_OR_DEC,
-@@ -95,8 +99,13 @@ enum  exynos4_jpeg_img_quality_level {
-  * @regs:		JPEG IP registers mapping
-  * @irq:		JPEG IP irq
-  * @clk:		JPEG IP clock
-+ * @sclk:		Exynos3250 JPEG IP special clock
-  * @dev:		JPEG IP struct device
-  * @alloc_ctx:		videobuf2 memory allocator's context
-+ * @variant:		driver variant to be used
-+ * @irq_status		interrupt flags set during single encode/decode
-+			operation
++		if (fence_excl) {
++			ret = reservation_object_test_signaled_single(fence_excl);
++			if (ret < 0)
++				goto unlock_retry;
++		}
++	}
 +
-  */
- struct s5p_jpeg {
- 	struct mutex		lock;
-@@ -111,9 +120,11 @@ struct s5p_jpeg {
- 	unsigned int		irq;
- 	enum exynos4_jpeg_result irq_ret;
- 	struct clk		*clk;
-+	struct clk		*sclk;
- 	struct device		*dev;
- 	void			*alloc_ctx;
- 	struct s5p_jpeg_variant *variant;
-+	u32			irq_status;
- };
++	rcu_read_unlock();
++	return ret;
++
++unlock_retry:
++	rcu_read_unlock();
++	goto retry;
++}
++EXPORT_SYMBOL_GPL(reservation_object_test_signaled_rcu);
+diff --git a/include/linux/fence.h b/include/linux/fence.h
+index b935cc650123..d174585b874b 100644
+--- a/include/linux/fence.h
++++ b/include/linux/fence.h
+@@ -28,6 +28,7 @@
+ #include <linux/kref.h>
+ #include <linux/sched.h>
+ #include <linux/printk.h>
++#include <linux/rcupdate.h>
  
- struct s5p_jpeg_variant {
-@@ -121,6 +132,7 @@ struct s5p_jpeg_variant {
- 	unsigned int		fmt_ver_flag;
- 	struct v4l2_m2m_ops	*m2m_ops;
- 	irqreturn_t		(*jpeg_irq)(int irq, void *priv);
-+	unsigned int		has_sclk:1;
- };
+ struct fence;
+ struct fence_ops;
+@@ -37,6 +38,7 @@ struct fence_cb;
+  * struct fence - software synchronization primitive
+  * @refcount: refcount for this fence
+  * @ops: fence_ops associated with this fence
++ * @rcu: used for releasing fence with kfree_rcu
+  * @cb_list: list of all callbacks to call
+  * @lock: spin_lock_irqsave used for locking
+  * @context: execution context this fence belongs to, returned by
+@@ -70,6 +72,7 @@ struct fence_cb;
+ struct fence {
+ 	struct kref refcount;
+ 	const struct fence_ops *ops;
++	struct rcu_head rcu;
+ 	struct list_head cb_list;
+ 	spinlock_t *lock;
+ 	unsigned context, seqno;
+@@ -192,6 +195,20 @@ static inline struct fence *fence_get(struct fence *fence)
+ }
  
  /**
-@@ -164,9 +176,15 @@ struct s5p_jpeg_q_data {
-  * @jpeg:		JPEG IP device for this context
-  * @mode:		compression (encode) operation or decompression (decode)
-  * @compr_quality:	destination image quality in compression (encode) mode
-+ * @restart_interval:	JPEG restart interval for JPEG encoding
-+ * @subsampling:	subsampling of a raw format or a JPEG
-  * @out_q:		source (output) queue information
-- * @cap_fmt:		destination (capture) queue queue information
-+ * @cap_q:		destination (capture) queue queue information
-+ * @scale_factor:	scale factor for JPEG decoding
-+ * @crop_rect:		a rectangle representing crop area of the output buffer
-+ * @fh:			V4L2 file handle
-  * @hdr_parsed:		set if header has been parsed during decompression
-+ * @crop_altered:	set if crop rectangle has been altered by the user space
-  * @ctrl_handler:	controls handler
++ * fence_get_rcu - get a fence from a reservation_object_list with rcu read lock
++ * @fence:	[in]	fence to increase refcount of
++ *
++ * Function returns NULL if no refcount could be obtained, or the fence.
++ */
++static inline struct fence *fence_get_rcu(struct fence *fence)
++{
++	if (kref_get_unless_zero(&fence->refcount))
++		return fence;
++	else
++		return NULL;
++}
++
++/**
+  * fence_put - decreases refcount of the fence
+  * @fence:	[in]	fence to reduce refcount of
   */
- struct s5p_jpeg_ctx {
-@@ -177,8 +195,11 @@ struct s5p_jpeg_ctx {
- 	unsigned short		subsampling;
- 	struct s5p_jpeg_q_data	out_q;
- 	struct s5p_jpeg_q_data	cap_q;
-+	unsigned int		scale_factor;
-+	struct v4l2_rect	crop_rect;
- 	struct v4l2_fh		fh;
- 	bool			hdr_parsed;
-+	bool			crop_altered;
- 	struct v4l2_ctrl_handler ctrl_handler;
+diff --git a/include/linux/reservation.h b/include/linux/reservation.h
+index 2affe67dea6e..5a0b64cf68b4 100644
+--- a/include/linux/reservation.h
++++ b/include/linux/reservation.h
+@@ -42,22 +42,29 @@
+ #include <linux/ww_mutex.h>
+ #include <linux/fence.h>
+ #include <linux/slab.h>
++#include <linux/seqlock.h>
++#include <linux/rcupdate.h>
+ 
+ extern struct ww_class reservation_ww_class;
++extern struct lock_class_key reservation_seqcount_class;
++extern const char reservation_seqcount_string[];
+ 
+ struct reservation_object_list {
++	struct rcu_head rcu;
+ 	u32 shared_count, shared_max;
+-	struct fence *shared[];
++	struct fence __rcu *shared[];
  };
  
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c
-new file mode 100644
-index 0000000..d38aad4
---- /dev/null
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c
-@@ -0,0 +1,486 @@
-+/* linux/drivers/media/platform/exynos3250-jpeg/jpeg-hw.h
-+ *
-+ * Copyright (c) 2014 Samsung Electronics Co., Ltd.
-+ *		http://www.samsung.com
-+ *
-+ * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/io.h>
-+#include <linux/videodev2.h>
-+#include <linux/delay.h>
-+
-+#include "jpeg-core.h"
-+#include "jpeg-regs.h"
-+#include "jpeg-hw-exynos3250.h"
-+
-+void exynos3250_jpeg_reset(void __iomem *regs)
-+{
-+	u32 reg = 0;
-+	int count = 1000;
-+
-+	writel(1, regs + EXYNOS3250_SW_RESET);
-+	/* no other way but polling for when JPEG IP becomes operational */
-+	while (reg != 0 && --count > 0) {
-+		udelay(1);
-+		cpu_relax();
-+		reg = readl(regs + EXYNOS3250_SW_RESET);
-+	}
-+
-+	reg = 0;
-+	count = 1000;
-+
-+	while (reg != 1 && --count > 0) {
-+		writel(1, regs + EXYNOS3250_JPGDRI);
-+		udelay(1);
-+		cpu_relax();
-+		reg = readl(regs + EXYNOS3250_JPGDRI);
-+	}
-+
-+	writel(0, regs + EXYNOS3250_JPGDRI);
-+}
-+
-+void exynos3250_jpeg_poweron(void __iomem *regs)
-+{
-+	writel(EXYNOS3250_POWER_ON, regs + EXYNOS3250_JPGCLKCON);
-+}
-+
-+void exynos3250_jpeg_set_dma_num(void __iomem *regs)
-+{
-+	writel(((EXYNOS3250_DMA_MO_COUNT << EXYNOS3250_WDMA_ISSUE_NUM_SHIFT) &
-+			EXYNOS3250_WDMA_ISSUE_NUM_MASK) |
-+	       ((EXYNOS3250_DMA_MO_COUNT << EXYNOS3250_RDMA_ISSUE_NUM_SHIFT) &
-+			EXYNOS3250_RDMA_ISSUE_NUM_MASK) |
-+	       ((EXYNOS3250_DMA_MO_COUNT << EXYNOS3250_ISSUE_GATHER_NUM_SHIFT) &
-+			EXYNOS3250_ISSUE_GATHER_NUM_MASK),
-+		regs + EXYNOS3250_DMA_ISSUE_NUM);
-+}
-+
-+void exynos3250_jpeg_clk_set(void __iomem *base)
-+{
-+	u32 reg;
-+
-+	reg = readl(base + EXYNOS3250_JPGCMOD) & ~EXYNOS3250_HALF_EN_MASK;
-+
-+	writel(reg | EXYNOS3250_HALF_EN, base + EXYNOS3250_JPGCMOD);
-+}
-+
-+void exynos3250_jpeg_input_raw_fmt(void __iomem *regs, unsigned int fmt)
-+{
-+	u32 reg;
-+
-+	reg = readl(regs + EXYNOS3250_JPGCMOD) &
-+			EXYNOS3250_MODE_Y16_MASK;
-+
-+	switch (fmt) {
-+	case V4L2_PIX_FMT_RGB32:
-+		reg |= EXYNOS3250_MODE_SEL_ARGB8888;
-+		break;
-+	case V4L2_PIX_FMT_BGR32:
-+		reg |= EXYNOS3250_MODE_SEL_ARGB8888 | EXYNOS3250_SRC_SWAP_RGB;
-+		break;
-+	case V4L2_PIX_FMT_RGB565:
-+		reg |= EXYNOS3250_MODE_SEL_RGB565;
-+		break;
-+	case V4L2_PIX_FMT_RGB565X:
-+		reg |= EXYNOS3250_MODE_SEL_RGB565 | EXYNOS3250_SRC_SWAP_RGB;
-+		break;
-+	case V4L2_PIX_FMT_YUYV:
-+		reg |= EXYNOS3250_MODE_SEL_422_1P_LUM_CHR;
-+		break;
-+	case V4L2_PIX_FMT_YVYU:
-+		reg |= EXYNOS3250_MODE_SEL_422_1P_LUM_CHR |
-+			EXYNOS3250_SRC_SWAP_UV;
-+		break;
-+	case V4L2_PIX_FMT_UYVY:
-+		reg |= EXYNOS3250_MODE_SEL_422_1P_CHR_LUM;
-+		break;
-+	case V4L2_PIX_FMT_VYUY:
-+		reg |= EXYNOS3250_MODE_SEL_422_1P_CHR_LUM |
-+			EXYNOS3250_SRC_SWAP_UV;
-+		break;
-+	case V4L2_PIX_FMT_NV12:
-+		reg |= EXYNOS3250_MODE_SEL_420_2P | EXYNOS3250_SRC_NV12;
-+		break;
-+	case V4L2_PIX_FMT_NV21:
-+		reg |= EXYNOS3250_MODE_SEL_420_2P | EXYNOS3250_SRC_NV21;
-+		break;
-+	case V4L2_PIX_FMT_YUV420:
-+		reg |= EXYNOS3250_MODE_SEL_420_3P;
-+		break;
-+	default:
-+		break;
-+
-+	}
-+
-+	writel(reg, regs + EXYNOS3250_JPGCMOD);
-+}
-+
-+void exynos3250_jpeg_set_y16(void __iomem *regs, bool y16)
-+{
-+	u32 reg;
-+
-+	reg = readl(regs + EXYNOS3250_JPGCMOD);
-+	if (y16)
-+		reg |= EXYNOS3250_MODE_Y16;
-+	else
-+		reg &= ~EXYNOS3250_MODE_Y16_MASK;
-+	writel(reg, regs + EXYNOS3250_JPGCMOD);
-+}
-+
-+void exynos3250_jpeg_proc_mode(void __iomem *regs, unsigned int mode)
-+{
-+	u32 reg, m;
-+
-+	if (mode == S5P_JPEG_ENCODE)
-+		m = EXYNOS3250_PROC_MODE_COMPR;
-+	else
-+		m = EXYNOS3250_PROC_MODE_DECOMPR;
-+	reg = readl(regs + EXYNOS3250_JPGMOD);
-+	reg &= ~EXYNOS3250_PROC_MODE_MASK;
-+	reg |= m;
-+	writel(reg, regs + EXYNOS3250_JPGMOD);
-+}
-+
-+void exynos3250_jpeg_subsampling_mode(void __iomem *regs, unsigned int mode)
-+{
-+	u32 reg, m = 0;
-+
-+	switch (mode) {
-+	case V4L2_JPEG_CHROMA_SUBSAMPLING_444:
-+		m = EXYNOS3250_SUBSAMPLING_MODE_444;
-+		break;
-+	case V4L2_JPEG_CHROMA_SUBSAMPLING_422:
-+		m = EXYNOS3250_SUBSAMPLING_MODE_422;
-+		break;
-+	case V4L2_JPEG_CHROMA_SUBSAMPLING_420:
-+		m = EXYNOS3250_SUBSAMPLING_MODE_420;
-+		break;
-+	}
-+
-+	reg = readl(regs + EXYNOS3250_JPGMOD);
-+	reg &= ~EXYNOS3250_SUBSAMPLING_MODE_MASK;
-+	reg |= m;
-+	writel(reg, regs + EXYNOS3250_JPGMOD);
-+}
-+
-+unsigned int exynos3250_jpeg_get_subsampling_mode(void __iomem *regs)
-+{
-+	return readl(regs + EXYNOS3250_JPGMOD) &
-+				EXYNOS3250_SUBSAMPLING_MODE_MASK;
-+}
-+
-+void exynos3250_jpeg_dri(void __iomem *regs, unsigned int dri)
-+{
-+	u32 reg;
-+
-+	reg = dri & EXYNOS3250_JPGDRI_MASK;
-+	writel(reg, regs + EXYNOS3250_JPGDRI);
-+}
-+
-+void exynos3250_jpeg_qtbl(void __iomem *regs, unsigned int t, unsigned int n)
-+{
-+	unsigned long reg;
-+
-+	reg = readl(regs + EXYNOS3250_QHTBL);
-+	reg &= ~EXYNOS3250_QT_NUM_MASK(t);
-+	reg |= (n << EXYNOS3250_QT_NUM_SHIFT(t)) &
-+					EXYNOS3250_QT_NUM_MASK(t);
-+	writel(reg, regs + EXYNOS3250_QHTBL);
-+}
-+
-+void exynos3250_jpeg_htbl_ac(void __iomem *regs, unsigned int t)
-+{
-+	unsigned long reg;
-+
-+	reg = readl(regs + EXYNOS3250_QHTBL);
-+	reg &= ~EXYNOS3250_HT_NUM_AC_MASK(t);
-+	/* this driver uses table 0 for all color components */
-+	reg |= (0 << EXYNOS3250_HT_NUM_AC_SHIFT(t)) &
-+					EXYNOS3250_HT_NUM_AC_MASK(t);
-+	writel(reg, regs + EXYNOS3250_QHTBL);
-+}
-+
-+void exynos3250_jpeg_htbl_dc(void __iomem *regs, unsigned int t)
-+{
-+	unsigned long reg;
-+
-+	reg = readl(regs + EXYNOS3250_QHTBL);
-+	reg &= ~EXYNOS3250_HT_NUM_DC_MASK(t);
-+	/* this driver uses table 0 for all color components */
-+	reg |= (0 << EXYNOS3250_HT_NUM_DC_SHIFT(t)) &
-+					EXYNOS3250_HT_NUM_DC_MASK(t);
-+	writel(reg, regs + EXYNOS3250_QHTBL);
-+}
-+
-+void exynos3250_jpeg_set_y(void __iomem *regs, unsigned int y)
-+{
-+	u32 reg;
-+
-+	reg = y & EXYNOS3250_JPGY_MASK;
-+	writel(reg, regs + EXYNOS3250_JPGY);
-+}
-+
-+void exynos3250_jpeg_set_x(void __iomem *regs, unsigned int x)
-+{
-+	u32 reg;
-+
-+	reg = x & EXYNOS3250_JPGX_MASK;
-+	writel(reg, regs + EXYNOS3250_JPGX);
-+}
-+
-+unsigned int exynos3250_jpeg_get_y(void __iomem *regs)
-+{
-+	return readl(regs + EXYNOS3250_JPGY);
-+}
-+
-+unsigned int exynos3250_jpeg_get_x(void __iomem *regs)
-+{
-+	return readl(regs + EXYNOS3250_JPGX);
-+}
-+
-+void exynos3250_jpeg_interrupts_enable(void __iomem *regs)
-+{
-+	u32 reg;
-+
-+	reg = readl(regs + EXYNOS3250_JPGINTSE);
-+	reg |= (EXYNOS3250_JPEG_DONE_EN |
-+		EXYNOS3250_WDMA_DONE_EN |
-+		EXYNOS3250_RDMA_DONE_EN |
-+		EXYNOS3250_ENC_STREAM_INT_EN |
-+		EXYNOS3250_CORE_DONE_EN |
-+		EXYNOS3250_ERR_INT_EN |
-+		EXYNOS3250_HEAD_INT_EN);
-+	writel(reg, regs + EXYNOS3250_JPGINTSE);
-+}
-+
-+void exynos3250_jpeg_enc_stream_bound(void __iomem *regs, unsigned int size)
-+{
-+	u32 reg;
-+
-+	reg = size & EXYNOS3250_ENC_STREAM_BOUND_MASK;
-+	writel(reg, regs + EXYNOS3250_ENC_STREAM_BOUND);
-+}
-+
-+void exynos3250_jpeg_output_raw_fmt(void __iomem *regs, unsigned int fmt)
-+{
-+	u32 reg;
-+
-+	switch (fmt) {
-+	case V4L2_PIX_FMT_RGB32:
-+		reg = EXYNOS3250_OUT_FMT_ARGB8888;
-+		break;
-+	case V4L2_PIX_FMT_BGR32:
-+		reg = EXYNOS3250_OUT_FMT_ARGB8888 | EXYNOS3250_OUT_SWAP_RGB;
-+		break;
-+	case V4L2_PIX_FMT_RGB565:
-+		reg = EXYNOS3250_OUT_FMT_RGB565;
-+		break;
-+	case V4L2_PIX_FMT_RGB565X:
-+		reg = EXYNOS3250_OUT_FMT_RGB565 | EXYNOS3250_OUT_SWAP_RGB;
-+		break;
-+	case V4L2_PIX_FMT_YUYV:
-+		reg = EXYNOS3250_OUT_FMT_422_1P_LUM_CHR;
-+		break;
-+	case V4L2_PIX_FMT_YVYU:
-+		reg = EXYNOS3250_OUT_FMT_422_1P_LUM_CHR |
-+			EXYNOS3250_OUT_SWAP_UV;
-+		break;
-+	case V4L2_PIX_FMT_UYVY:
-+		reg = EXYNOS3250_OUT_FMT_422_1P_CHR_LUM;
-+		break;
-+	case V4L2_PIX_FMT_VYUY:
-+		reg = EXYNOS3250_OUT_FMT_422_1P_CHR_LUM |
-+			EXYNOS3250_OUT_SWAP_UV;
-+		break;
-+	case V4L2_PIX_FMT_NV12:
-+		reg = EXYNOS3250_OUT_FMT_420_2P | EXYNOS3250_OUT_NV12;
-+		break;
-+	case V4L2_PIX_FMT_NV21:
-+		reg = EXYNOS3250_OUT_FMT_420_2P | EXYNOS3250_OUT_NV21;
-+		break;
-+	case V4L2_PIX_FMT_YUV420:
-+		reg = EXYNOS3250_OUT_FMT_420_3P;
-+		break;
-+	default:
-+		reg = 0;
-+		break;
-+	}
-+
-+	writel(reg, regs + EXYNOS3250_OUTFORM);
-+}
-+
-+void exynos3250_jpeg_jpgadr(void __iomem *regs, unsigned int addr)
-+{
-+	writel(addr, regs + EXYNOS3250_JPG_JPGADR);
-+}
-+
-+void exynos3250_jpeg_imgadr(void __iomem *regs, struct s5p_jpeg_addr *img_addr)
-+{
-+	writel(img_addr->y, regs + EXYNOS3250_LUMA_BASE);
-+	writel(img_addr->cb, regs + EXYNOS3250_CHROMA_BASE);
-+	writel(img_addr->cr, regs + EXYNOS3250_CHROMA_CR_BASE);
-+}
-+
-+void exynos3250_jpeg_stride(void __iomem *regs, unsigned int img_fmt,
-+			    unsigned int width)
-+{
-+	u32 reg_luma = 0, reg_cr = 0, reg_cb = 0;
-+
-+	switch (img_fmt) {
-+	case V4L2_PIX_FMT_RGB32:
-+		reg_luma = 4 * width;
-+		break;
-+	case V4L2_PIX_FMT_RGB565:
-+	case V4L2_PIX_FMT_RGB565X:
-+	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_YVYU:
-+	case V4L2_PIX_FMT_UYVY:
-+	case V4L2_PIX_FMT_VYUY:
-+		reg_luma = 2 * width;
-+		break;
-+	case V4L2_PIX_FMT_NV12:
-+	case V4L2_PIX_FMT_NV21:
-+		reg_luma = width;
-+		reg_cb = reg_luma;
-+		break;
-+	case V4L2_PIX_FMT_YUV420:
-+		reg_luma = width;
-+		reg_cb = reg_cr = reg_luma / 2;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	writel(reg_luma, regs + EXYNOS3250_LUMA_STRIDE);
-+	writel(reg_cb, regs + EXYNOS3250_CHROMA_STRIDE);
-+	writel(reg_cr, regs + EXYNOS3250_CHROMA_CR_STRIDE);
-+}
-+
-+void exynos3250_jpeg_offset(void __iomem *regs, unsigned int x_offset,
-+				unsigned int y_offset)
-+{
-+	u32 reg;
-+
-+	reg = (y_offset << EXYNOS3250_LUMA_YY_OFFSET_SHIFT) &
-+			EXYNOS3250_LUMA_YY_OFFSET_MASK;
-+	reg |= (x_offset << EXYNOS3250_LUMA_YX_OFFSET_SHIFT) &
-+			EXYNOS3250_LUMA_YX_OFFSET_MASK;
-+
-+	writel(reg, regs + EXYNOS3250_LUMA_XY_OFFSET);
-+
-+	reg = (y_offset << EXYNOS3250_CHROMA_YY_OFFSET_SHIFT) &
-+			EXYNOS3250_CHROMA_YY_OFFSET_MASK;
-+	reg |= (x_offset << EXYNOS3250_CHROMA_YX_OFFSET_SHIFT) &
-+			EXYNOS3250_CHROMA_YX_OFFSET_MASK;
-+
-+	writel(reg, regs + EXYNOS3250_CHROMA_XY_OFFSET);
-+
-+	reg = (y_offset << EXYNOS3250_CHROMA_CR_YY_OFFSET_SHIFT) &
-+			EXYNOS3250_CHROMA_CR_YY_OFFSET_MASK;
-+	reg |= (x_offset << EXYNOS3250_CHROMA_CR_YX_OFFSET_SHIFT) &
-+			EXYNOS3250_CHROMA_CR_YX_OFFSET_MASK;
-+
-+	writel(reg, regs + EXYNOS3250_CHROMA_CR_XY_OFFSET);
-+}
-+
-+void exynos3250_jpeg_coef(void __iomem *base, unsigned int mode)
-+{
-+	if (mode == S5P_JPEG_ENCODE) {
-+		writel(EXYNOS3250_JPEG_ENC_COEF1,
-+					base + EXYNOS3250_JPG_COEF(1));
-+		writel(EXYNOS3250_JPEG_ENC_COEF2,
-+					base + EXYNOS3250_JPG_COEF(2));
-+		writel(EXYNOS3250_JPEG_ENC_COEF3,
-+					base + EXYNOS3250_JPG_COEF(3));
-+	} else {
-+		writel(EXYNOS3250_JPEG_DEC_COEF1,
-+					base + EXYNOS3250_JPG_COEF(1));
-+		writel(EXYNOS3250_JPEG_DEC_COEF2,
-+					base + EXYNOS3250_JPG_COEF(2));
-+		writel(EXYNOS3250_JPEG_DEC_COEF3,
-+					base + EXYNOS3250_JPG_COEF(3));
-+	}
-+}
-+
-+void exynos3250_jpeg_start(void __iomem *regs)
-+{
-+	writel(1, regs + EXYNOS3250_JSTART);
-+}
-+
-+void exynos3250_jpeg_rstart(void __iomem *regs)
-+{
-+	writel(1, regs + EXYNOS3250_JRSTART);
-+}
-+
-+unsigned int exynos3250_jpeg_get_int_status(void __iomem *regs)
-+{
-+	return readl(regs + EXYNOS3250_JPGINTST);
-+}
-+
-+void exynos3250_jpeg_clear_int_status(void __iomem *regs,
-+						unsigned int value)
-+{
-+	return writel(value, regs + EXYNOS3250_JPGINTST);
-+}
-+
-+unsigned int exynos3250_jpeg_operating(void __iomem *regs)
-+{
-+	return readl(regs + S5P_JPGOPR) & EXYNOS3250_JPGOPR_MASK;
-+}
-+
-+unsigned int exynos3250_jpeg_compressed_size(void __iomem *regs)
-+{
-+	return readl(regs + EXYNOS3250_JPGCNT) & EXYNOS3250_JPGCNT_MASK;
-+}
-+
-+void exynos3250_jpeg_dec_stream_size(void __iomem *regs,
-+						unsigned int size)
-+{
-+	writel(size & EXYNOS3250_DEC_STREAM_MASK,
-+				regs + EXYNOS3250_DEC_STREAM_SIZE);
-+}
-+
-+void exynos3250_jpeg_dec_scaling_ratio(void __iomem *regs,
-+						unsigned int sratio)
-+{
-+	switch (sratio) {
-+	case 1:
-+		sratio = EXYNOS3250_DEC_SCALE_FACTOR_8_8;
-+		break;
-+	case 2:
-+		sratio = EXYNOS3250_DEC_SCALE_FACTOR_4_8;
-+		break;
-+	case 4:
-+		sratio = EXYNOS3250_DEC_SCALE_FACTOR_2_8;
-+		break;
-+	case 8:
-+		sratio = EXYNOS3250_DEC_SCALE_FACTOR_1_8;
-+		break;
-+	}
-+
-+	writel(sratio & EXYNOS3250_DEC_SCALE_FACTOR_MASK,
-+				regs + EXYNOS3250_DEC_SCALING_RATIO);
-+}
-+
-+void exynos3250_jpeg_set_timer(void __iomem *regs, unsigned int time_value)
-+{
-+	time_value &= EXYNOS3250_TIMER_INIT_MASK;
-+
-+	writel(EXYNOS3250_TIMER_INT_STAT | time_value,
-+					regs + EXYNOS3250_TIMER_SE);
-+}
-+
-+unsigned int exynos3250_jpeg_get_timer_status(void __iomem *regs)
-+{
-+	return readl(regs + EXYNOS3250_TIMER_ST);
-+}
-+
-+void exynos3250_jpeg_clear_timer_status(void __iomem *regs)
-+{
-+	writel(EXYNOS3250_TIMER_INT_STAT, regs + EXYNOS3250_TIMER_ST);
-+}
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.h b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.h
-new file mode 100644
-index 0000000..b6e3be8
---- /dev/null
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.h
-@@ -0,0 +1,60 @@
-+/* linux/drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.h
-+ *
-+ * Copyright (c) 2014 Samsung Electronics Co., Ltd.
-+ *		http://www.samsung.com
-+ *
-+ * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef JPEG_HW_EXYNOS3250_H_
-+#define JPEG_HW_EXYNOS3250_H_
-+
-+#include <linux/io.h>
-+#include <linux/videodev2.h>
-+
-+#include "jpeg-regs.h"
-+
-+void exynos3250_jpeg_reset(void __iomem *regs);
-+void exynos3250_jpeg_poweron(void __iomem *regs);
-+void exynos3250_jpeg_set_dma_num(void __iomem *regs);
-+void exynos3250_jpeg_clk_set(void __iomem *base);
-+void exynos3250_jpeg_input_raw_fmt(void __iomem *regs, unsigned int fmt);
-+void exynos3250_jpeg_output_raw_fmt(void __iomem *regs, unsigned int fmt);
-+void exynos3250_jpeg_set_y16(void __iomem *regs, bool y16);
-+void exynos3250_jpeg_proc_mode(void __iomem *regs, unsigned int mode);
-+void exynos3250_jpeg_subsampling_mode(void __iomem *regs, unsigned int mode);
-+unsigned int exynos3250_jpeg_get_subsampling_mode(void __iomem *regs);
-+void exynos3250_jpeg_dri(void __iomem *regs, unsigned int dri);
-+void exynos3250_jpeg_qtbl(void __iomem *regs, unsigned int t, unsigned int n);
-+void exynos3250_jpeg_htbl_ac(void __iomem *regs, unsigned int t);
-+void exynos3250_jpeg_htbl_dc(void __iomem *regs, unsigned int t);
-+void exynos3250_jpeg_set_y(void __iomem *regs, unsigned int y);
-+void exynos3250_jpeg_set_x(void __iomem *regs, unsigned int x);
-+void exynos3250_jpeg_interrupts_enable(void __iomem *regs);
-+void exynos3250_jpeg_enc_stream_bound(void __iomem *regs, unsigned int size);
-+void exynos3250_jpeg_outform_raw(void __iomem *regs, unsigned long format);
-+void exynos3250_jpeg_jpgadr(void __iomem *regs, unsigned int addr);
-+void exynos3250_jpeg_imgadr(void __iomem *regs, struct s5p_jpeg_addr *img_addr);
-+void exynos3250_jpeg_stride(void __iomem *regs, unsigned int img_fmt,
-+			    unsigned int width);
-+void exynos3250_jpeg_offset(void __iomem *regs, unsigned int x_offset,
-+				unsigned int y_offset);
-+void exynos3250_jpeg_coef(void __iomem *base, unsigned int mode);
-+void exynos3250_jpeg_start(void __iomem *regs);
-+void exynos3250_jpeg_rstart(void __iomem *regs);
-+unsigned int exynos3250_jpeg_get_int_status(void __iomem *regs);
-+void exynos3250_jpeg_clear_int_status(void __iomem *regs,
-+						unsigned int value);
-+unsigned int exynos3250_jpeg_operating(void __iomem *regs);
-+unsigned int exynos3250_jpeg_compressed_size(void __iomem *regs);
-+void exynos3250_jpeg_dec_stream_size(void __iomem *regs, unsigned int size);
-+void exynos3250_jpeg_dec_scaling_ratio(void __iomem *regs, unsigned int sratio);
-+void exynos3250_jpeg_set_timer(void __iomem *regs, unsigned int time_value);
-+unsigned int exynos3250_jpeg_get_timer_status(void __iomem *regs);
-+void exynos3250_jpeg_set_timer_status(void __iomem *regs);
-+void exynos3250_jpeg_clear_timer_status(void __iomem *regs);
-+
-+#endif /* JPEG_HW_EXYNOS3250_H_ */
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-regs.h b/drivers/media/platform/s5p-jpeg/jpeg-regs.h
-index 57fb05b..050fc44 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-regs.h
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-regs.h
-@@ -2,7 +2,7 @@
-  *
-  * Register definition file for Samsung JPEG codec driver
-  *
-- * Copyright (c) 2011-2013 Samsung Electronics Co., Ltd.
-+ * Copyright (c) 2011-2014 Samsung Electronics Co., Ltd.
-  *		http://www.samsung.com
-  *
-  * Author: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-@@ -373,5 +373,250 @@
- /* JPEG AC chrominance (values) Huffman table register */
- #define EXYNOS4_HUFF_TBL_HACCV	0x310
+ struct reservation_object {
+ 	struct ww_mutex lock;
++	seqcount_t seq;
  
-+/* Register and bit definitions for Exynos 3250 */
-+
-+/* JPEG mode register */
-+#define EXYNOS3250_JPGMOD			0x00
-+#define EXYNOS3250_PROC_MODE_MASK		(0x1 << 3)
-+#define EXYNOS3250_PROC_MODE_DECOMPR		(0x1 << 3)
-+#define EXYNOS3250_PROC_MODE_COMPR		(0x0 << 3)
-+#define EXYNOS3250_SUBSAMPLING_MODE_MASK	(0x7 << 0)
-+#define EXYNOS3250_SUBSAMPLING_MODE_444		(0x0 << 0)
-+#define EXYNOS3250_SUBSAMPLING_MODE_422		(0x1 << 0)
-+#define EXYNOS3250_SUBSAMPLING_MODE_420		(0x2 << 0)
-+#define EXYNOS3250_SUBSAMPLING_MODE_411		(0x6 << 0)
-+#define EXYNOS3250_SUBSAMPLING_MODE_GRAY	(0x3 << 0)
-+
-+/* JPEG operation status register */
-+#define EXYNOS3250_JPGOPR			0x04
-+#define EXYNOS3250_JPGOPR_MASK			0x01
-+
-+/* Quantization and Huffman tables register */
-+#define EXYNOS3250_QHTBL			0x08
-+#define EXYNOS3250_QT_NUM_SHIFT(t)		((((t) - 1) << 1) + 8)
-+#define EXYNOS3250_QT_NUM_MASK(t)		(0x3 << EXYNOS3250_QT_NUM_SHIFT(t))
-+
-+/* Huffman tables */
-+#define EXYNOS3250_HT_NUM_AC_SHIFT(t)		(((t) << 1) - 1)
-+#define EXYNOS3250_HT_NUM_AC_MASK(t)		(0x1 << EXYNOS3250_HT_NUM_AC_SHIFT(t))
-+
-+#define EXYNOS3250_HT_NUM_DC_SHIFT(t)		(((t) - 1) << 1)
-+#define EXYNOS3250_HT_NUM_DC_MASK(t)		(0x1 << EXYNOS3250_HT_NUM_DC_SHIFT(t))
-+
-+/* JPEG restart interval register */
-+#define EXYNOS3250_JPGDRI			0x0c
-+#define EXYNOS3250_JPGDRI_MASK			0xffff
-+
-+/* JPEG vertical resolution register */
-+#define EXYNOS3250_JPGY				0x10
-+#define EXYNOS3250_JPGY_MASK			0xffff
-+
-+/* JPEG horizontal resolution register */
-+#define EXYNOS3250_JPGX				0x14
-+#define EXYNOS3250_JPGX_MASK			0xffff
-+
-+/* JPEG byte count register */
-+#define EXYNOS3250_JPGCNT			0x18
-+#define EXYNOS3250_JPGCNT_MASK			0xffffff
-+
-+/* JPEG interrupt mask register */
-+#define EXYNOS3250_JPGINTSE			0x1c
-+#define EXYNOS3250_JPEG_DONE_EN			(1 << 11)
-+#define EXYNOS3250_WDMA_DONE_EN			(1 << 10)
-+#define EXYNOS3250_RDMA_DONE_EN			(1 << 9)
-+#define EXYNOS3250_ENC_STREAM_INT_EN		(1 << 8)
-+#define EXYNOS3250_CORE_DONE_EN			(1 << 5)
-+#define EXYNOS3250_ERR_INT_EN			(1 << 4)
-+#define EXYNOS3250_HEAD_INT_EN			(1 << 3)
-+
-+/* JPEG interrupt status register */
-+#define EXYNOS3250_JPGINTST			0x20
-+#define EXYNOS3250_JPEG_DONE			(1 << 11)
-+#define EXYNOS3250_WDMA_DONE			(1 << 10)
-+#define EXYNOS3250_RDMA_DONE			(1 << 9)
-+#define EXYNOS3250_ENC_STREAM_STAT		(1 << 8)
-+#define EXYNOS3250_RESULT_STAT			(1 << 5)
-+#define EXYNOS3250_STREAM_STAT			(1 << 4)
-+#define EXYNOS3250_HEADER_STAT			(1 << 3)
-+
-+/*
-+ * Base address of the luma component DMA buffer
-+ * of the raw input or output image.
-+ */
-+#define EXYNOS3250_LUMA_BASE			0x100
-+#define EXYNOS3250_SRC_TILE_EN_MASK		0x100
-+
-+/* Stride of source or destination luma raw image buffer */
-+#define EXYNOS3250_LUMA_STRIDE			0x104
-+
-+/* Horizontal/vertical offset of active region in luma raw image buffer */
-+#define EXYNOS3250_LUMA_XY_OFFSET		0x108
-+#define EXYNOS3250_LUMA_YY_OFFSET_SHIFT		18
-+#define EXYNOS3250_LUMA_YY_OFFSET_MASK		(0x1fff << EXYNOS3250_LUMA_YY_OFFSET_SHIFT)
-+#define EXYNOS3250_LUMA_YX_OFFSET_SHIFT		2
-+#define EXYNOS3250_LUMA_YX_OFFSET_MASK		(0x1fff << EXYNOS3250_LUMA_YX_OFFSET_SHIFT)
-+
-+/*
-+ * Base address of the chroma(Cb) component DMA buffer
-+ * of the raw input or output image.
-+ */
-+#define EXYNOS3250_CHROMA_BASE			0x10c
-+
-+/* Stride of source or destination chroma(Cb) raw image buffer */
-+#define EXYNOS3250_CHROMA_STRIDE		0x110
-+
-+/* Horizontal/vertical offset of active region in chroma(Cb) raw image buffer */
-+#define EXYNOS3250_CHROMA_XY_OFFSET		0x114
-+#define EXYNOS3250_CHROMA_YY_OFFSET_SHIFT	18
-+#define EXYNOS3250_CHROMA_YY_OFFSET_MASK	(0x1fff << EXYNOS3250_CHROMA_YY_OFFSET_SHIFT)
-+#define EXYNOS3250_CHROMA_YX_OFFSET_SHIFT	2
-+#define EXYNOS3250_CHROMA_YX_OFFSET_MASK	(0x1fff << EXYNOS3250_CHROMA_YX_OFFSET_SHIFT)
-+
-+/*
-+ * Base address of the chroma(Cr) component DMA buffer
-+ * of the raw input or output image.
-+ */
-+#define EXYNOS3250_CHROMA_CR_BASE		0x118
-+
-+/* Stride of source or destination chroma(Cr) raw image buffer */
-+#define EXYNOS3250_CHROMA_CR_STRIDE		0x11c
-+
-+/* Horizontal/vertical offset of active region in chroma(Cb) raw image buffer */
-+#define EXYNOS3250_CHROMA_CR_XY_OFFSET		0x120
-+#define EXYNOS3250_CHROMA_CR_YY_OFFSET_SHIFT	18
-+#define EXYNOS3250_CHROMA_CR_YY_OFFSET_MASK	(0x1fff << EXYNOS3250_CHROMA_CR_YY_OFFSET_SHIFT)
-+#define EXYNOS3250_CHROMA_CR_YX_OFFSET_SHIFT	2
-+#define EXYNOS3250_CHROMA_CR_YX_OFFSET_MASK	(0x1fff << EXYNOS3250_CHROMA_CR_YX_OFFSET_SHIFT)
-+
-+/* Raw image data r/w address register */
-+#define EXYNOS3250_JPG_IMGADR			0x50
-+
-+/* Source or destination JPEG file DMA buffer address */
-+#define EXYNOS3250_JPG_JPGADR			0x124
-+
-+/* Coefficients for RGB-to-YCbCr converter register */
-+#define EXYNOS3250_JPG_COEF(n)			(0x128 + (((n) - 1) << 2))
-+#define EXYNOS3250_COEF_SHIFT(j)		((3 - (j)) << 3)
-+#define EXYNOS3250_COEF_MASK(j)			(0xff << EXYNOS3250_COEF_SHIFT(j))
-+
-+/* Raw input format setting */
-+#define EXYNOS3250_JPGCMOD			0x134
-+#define EXYNOS3250_SRC_TILE_EN			(0x1 << 10)
-+#define EXYNOS3250_SRC_NV_MASK			(0x1 << 9)
-+#define EXYNOS3250_SRC_NV12			(0x0 << 9)
-+#define EXYNOS3250_SRC_NV21			(0x1 << 9)
-+#define EXYNOS3250_SRC_BIG_ENDIAN_MASK		(0x1 << 8)
-+#define EXYNOS3250_SRC_BIG_ENDIAN		(0x1 << 8)
-+#define EXYNOS3250_MODE_SEL_MASK		(0x7 << 5)
-+#define EXYNOS3250_MODE_SEL_420_2P		(0x0 << 5)
-+#define EXYNOS3250_MODE_SEL_422_1P_LUM_CHR	(0x1 << 5)
-+#define EXYNOS3250_MODE_SEL_RGB565		(0x2 << 5)
-+#define EXYNOS3250_MODE_SEL_422_1P_CHR_LUM	(0x3 << 5)
-+#define EXYNOS3250_MODE_SEL_ARGB8888		(0x4 << 5)
-+#define EXYNOS3250_MODE_SEL_420_3P		(0x5 << 5)
-+#define EXYNOS3250_SRC_SWAP_RGB			(0x1 << 3)
-+#define EXYNOS3250_SRC_SWAP_UV			(0x1 << 2)
-+#define EXYNOS3250_MODE_Y16_MASK		(0x1 << 1)
-+#define EXYNOS3250_MODE_Y16			(0x1 << 1)
-+#define EXYNOS3250_HALF_EN_MASK			(0x1 << 0)
-+#define EXYNOS3250_HALF_EN			(0x1 << 0)
-+
-+/* Power on/off and clock down control */
-+#define EXYNOS3250_JPGCLKCON			0x138
-+#define EXYNOS3250_CLK_DOWN_READY		(0x1 << 1)
-+#define EXYNOS3250_POWER_ON			(0x1 << 0)
-+
-+/* Start compression or decompression */
-+#define EXYNOS3250_JSTART			0x13c
-+
-+/* Restart decompression after header analysis */
-+#define EXYNOS3250_JRSTART			0x140
-+
-+/* JPEG SW reset register */
-+#define EXYNOS3250_SW_RESET			0x144
-+
-+/* JPEG timer setting register */
-+#define EXYNOS3250_TIMER_SE			0x148
-+#define EXYNOS3250_TIMER_INT_EN_SHIFT		31
-+#define EXYNOS3250_TIMER_INT_EN			(1 << EXYNOS3250_TIMER_INT_EN_SHIFT)
-+#define EXYNOS3250_TIMER_INIT_MASK		0x7fffffff
-+
-+/* JPEG timer status register */
-+#define EXYNOS3250_TIMER_ST			0x14c
-+#define EXYNOS3250_TIMER_INT_STAT_SHIFT		31
-+#define EXYNOS3250_TIMER_INT_STAT		(1 << EXYNOS3250_TIMER_INT_STAT_SHIFT)
-+#define EXYNOS3250_TIMER_CNT_SHIFT		0
-+#define EXYNOS3250_TIMER_CNT_MASK		0x7fffffff
-+
-+/* Command status register */
-+#define EXYNOS3250_COMSTAT			0x150
-+#define EXYNOS3250_CUR_PROC_MODE		(0x1 << 1)
-+#define EXYNOS3250_CUR_COM_MODE			(0x1 << 0)
-+
-+/* JPEG decompression output format register */
-+#define EXYNOS3250_OUTFORM			0x154
-+#define EXYNOS3250_OUT_ALPHA_MASK		(0xff << 24)
-+#define EXYNOS3250_OUT_TILE_EN			(0x1 << 10)
-+#define EXYNOS3250_OUT_NV_MASK			(0x1 << 9)
-+#define EXYNOS3250_OUT_NV12			(0x0 << 9)
-+#define EXYNOS3250_OUT_NV21			(0x1 << 9)
-+#define EXYNOS3250_OUT_BIG_ENDIAN_MASK		(0x1 << 8)
-+#define EXYNOS3250_OUT_BIG_ENDIAN		(0x1 << 8)
-+#define EXYNOS3250_OUT_SWAP_RGB			(0x1 << 7)
-+#define EXYNOS3250_OUT_SWAP_UV			(0x1 << 6)
-+#define EXYNOS3250_OUT_FMT_MASK			(0x7 << 0)
-+#define EXYNOS3250_OUT_FMT_420_2P		(0x0 << 0)
-+#define EXYNOS3250_OUT_FMT_422_1P_LUM_CHR	(0x1 << 0)
-+#define EXYNOS3250_OUT_FMT_422_1P_CHR_LUM	(0x3 << 0)
-+#define EXYNOS3250_OUT_FMT_420_3P		(0x4 << 0)
-+#define EXYNOS3250_OUT_FMT_RGB565		(0x5 << 0)
-+#define EXYNOS3250_OUT_FMT_ARGB8888		(0x6 << 0)
-+
-+/* Input JPEG stream byte size for decompression */
-+#define EXYNOS3250_DEC_STREAM_SIZE		0x158
-+#define EXYNOS3250_DEC_STREAM_MASK		0x1fffffff
-+
-+/* The upper bound of the byte size of output compressed stream */
-+#define EXYNOS3250_ENC_STREAM_BOUND		0x15c
-+#define EXYNOS3250_ENC_STREAM_BOUND_MASK	0xffffc0
-+
-+/* Scale-down ratio when decoding */
-+#define EXYNOS3250_DEC_SCALING_RATIO		0x160
-+#define EXYNOS3250_DEC_SCALE_FACTOR_MASK	0x3
-+#define EXYNOS3250_DEC_SCALE_FACTOR_8_8		0x0
-+#define EXYNOS3250_DEC_SCALE_FACTOR_4_8		0x1
-+#define EXYNOS3250_DEC_SCALE_FACTOR_2_8		0x2
-+#define EXYNOS3250_DEC_SCALE_FACTOR_1_8		0x3
-+
-+/* Error check */
-+#define EXYNOS3250_CRC_RESULT			0x164
-+
-+/* RDMA and WDMA operation status register */
-+#define EXYNOS3250_DMA_OPER_STATUS		0x168
-+#define EXYNOS3250_WDMA_OPER_STATUS		(0x1 << 1)
-+#define EXYNOS3250_RDMA_OPER_STATUS		(0x1 << 0)
-+
-+/* DMA issue gathering number and issue number settings */
-+#define EXYNOS3250_DMA_ISSUE_NUM		0x16c
-+#define EXYNOS3250_WDMA_ISSUE_NUM_SHIFT		16
-+#define EXYNOS3250_WDMA_ISSUE_NUM_MASK		(0x7 << EXYNOS3250_WDMA_ISSUE_NUM_SHIFT)
-+#define EXYNOS3250_RDMA_ISSUE_NUM_SHIFT		8
-+#define EXYNOS3250_RDMA_ISSUE_NUM_MASK		(0x7 << EXYNOS3250_RDMA_ISSUE_NUM_SHIFT)
-+#define EXYNOS3250_ISSUE_GATHER_NUM_SHIFT	0
-+#define EXYNOS3250_ISSUE_GATHER_NUM_MASK	(0x7 << EXYNOS3250_ISSUE_GATHER_NUM_SHIFT)
-+#define EXYNOS3250_DMA_MO_COUNT			0x7
-+
-+/* Version register */
-+#define EXYNOS3250_VERSION			0x1fc
-+
-+/* RGB <-> YUV conversion coefficients */
-+#define EXYNOS3250_JPEG_ENC_COEF1		0x01352e1e
-+#define EXYNOS3250_JPEG_ENC_COEF2		0x00b0ae83
-+#define EXYNOS3250_JPEG_ENC_COEF3		0x020cdc13
-+
-+#define EXYNOS3250_JPEG_DEC_COEF1		0x04a80199
-+#define EXYNOS3250_JPEG_DEC_COEF2		0x04a9a064
-+#define EXYNOS3250_JPEG_DEC_COEF3		0x04a80102
-+
- #endif /* JPEG_REGS_H_ */
+-	struct fence *fence_excl;
+-	struct reservation_object_list *fence;
++	struct fence __rcu *fence_excl;
++	struct reservation_object_list __rcu *fence;
+ 	struct reservation_object_list *staged;
+ };
  
--- 
-1.7.9.5
++#define reservation_object_held(obj) lockdep_is_held(&(obj)->lock.base)
+ #define reservation_object_assert_held(obj) \
+ 	lockdep_assert_held(&(obj)->lock.base)
+ 
+@@ -66,8 +73,9 @@ reservation_object_init(struct reservation_object *obj)
+ {
+ 	ww_mutex_init(&obj->lock, &reservation_ww_class);
+ 
+-	obj->fence_excl = NULL;
+-	obj->fence = NULL;
++	__seqcount_init(&obj->seq, reservation_seqcount_string, &reservation_seqcount_class);
++	RCU_INIT_POINTER(obj->fence, NULL);
++	RCU_INIT_POINTER(obj->fence_excl, NULL);
+ 	obj->staged = NULL;
+ }
+ 
+@@ -76,18 +84,20 @@ reservation_object_fini(struct reservation_object *obj)
+ {
+ 	int i;
+ 	struct reservation_object_list *fobj;
++	struct fence *excl;
+ 
+ 	/*
+ 	 * This object should be dead and all references must have
+-	 * been released to it.
++	 * been released to it, so no need to be protected with rcu.
+ 	 */
+-	if (obj->fence_excl)
+-		fence_put(obj->fence_excl);
++	excl = rcu_dereference_protected(obj->fence_excl, 1);
++	if (excl)
++		fence_put(excl);
+ 
+-	fobj = obj->fence;
++	fobj = rcu_dereference_protected(obj->fence, 1);
+ 	if (fobj) {
+ 		for (i = 0; i < fobj->shared_count; ++i)
+-			fence_put(fobj->shared[i]);
++			fence_put(rcu_dereference_protected(fobj->shared[i], 1));
+ 
+ 		kfree(fobj);
+ 	}
+@@ -99,17 +109,15 @@ reservation_object_fini(struct reservation_object *obj)
+ static inline struct reservation_object_list *
+ reservation_object_get_list(struct reservation_object *obj)
+ {
+-	reservation_object_assert_held(obj);
+-
+-	return obj->fence;
++	return rcu_dereference_protected(obj->fence,
++					 reservation_object_held(obj));
+ }
+ 
+ static inline struct fence *
+ reservation_object_get_excl(struct reservation_object *obj)
+ {
+-	reservation_object_assert_held(obj);
+-
+-	return obj->fence_excl;
++	return rcu_dereference_protected(obj->fence_excl,
++					 reservation_object_held(obj));
+ }
+ 
+ int reservation_object_reserve_shared(struct reservation_object *obj);
+@@ -119,4 +127,16 @@ void reservation_object_add_shared_fence(struct reservation_object *obj,
+ void reservation_object_add_excl_fence(struct reservation_object *obj,
+ 				       struct fence *fence);
+ 
++int reservation_object_get_fences_rcu(struct reservation_object *obj,
++				      struct fence **pfence_excl,
++				      unsigned *pshared_count,
++				      struct fence ***pshared);
++
++long reservation_object_wait_timeout_rcu(struct reservation_object *obj,
++					 bool wait_all, bool intr,
++					 unsigned long timeout);
++
++bool reservation_object_test_signaled_rcu(struct reservation_object *obj,
++					  bool test_all);
++
+ #endif /* _LINUX_RESERVATION_H */
 
