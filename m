@@ -1,1553 +1,1461 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1311 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754204AbaG3OX2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jul 2014 10:23:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv1 04/12] vivid: add the control handling code
-Date: Wed, 30 Jul 2014 16:23:07 +0200
-Message-Id: <1406730195-64365-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1406730195-64365-1-git-send-email-hverkuil@xs4all.nl>
-References: <1406730195-64365-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp.gentoo.org ([140.211.166.183]:52818 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751508AbaGATBH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Jul 2014 15:01:07 -0400
+Message-ID: <53B3056D.9020102@gentoo.org>
+Date: Tue, 01 Jul 2014 21:01:01 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+CC: xpert-reactos@gmx.de
+Subject: Re: [PATCH 1/3] si2165: Add demod driver for DVB-T only
+References: <1398543680-21374-1-git-send-email-zzam@gentoo.org> <5376C5FA.5040701@iki.fi>
+In-Reply-To: <5376C5FA.5040701@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 17.05.2014 04:14, Antti Palosaari wrote:
+> Sorry for the late review. I think that will be skipped over 2.16 as too
+> late...
+> 
+> There is also many other DTV drivers coming from Earthsoft PT3 support
+> waiting for review. Anyone else willing to review? I wonder how we could
+> improve situation, we are simply lack of reviewers. Mike, Devin, Mauro?
+> 
+> 
+> 
+> On 04/26/2014 11:21 PM, Matthias Schwarzott wrote:
+>> DVB-T was tested  with 8MHz BW channels in germany
+>> This driver is the simplest possible, it uses automatic mode for all
+>> parameters (TPS).
+>>
+>> Firmware file can be extracted via get_dvb_firmware.
+>>
+>> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+>> ---
+>>   Documentation/dvb/get_dvb_firmware        |  33 +-
+>>   drivers/media/dvb-frontends/Kconfig       |   9 +
+>>   drivers/media/dvb-frontends/Makefile      |   1 +
+>>   drivers/media/dvb-frontends/si2165.c      | 890
+>> ++++++++++++++++++++++++++++++
+>>   drivers/media/dvb-frontends/si2165.h      |  61 ++
+>>   drivers/media/dvb-frontends/si2165_priv.h |  23 +
+>>   6 files changed, 1016 insertions(+), 1 deletion(-)
+>>   create mode 100644 drivers/media/dvb-frontends/si2165.c
+>>   create mode 100644 drivers/media/dvb-frontends/si2165.h
+>>   create mode 100644 drivers/media/dvb-frontends/si2165_priv.h
+>>
+>> diff --git a/Documentation/dvb/get_dvb_firmware
+>> b/Documentation/dvb/get_dvb_firmware
+>> index d91b8be..26c623d 100755
+>> --- a/Documentation/dvb/get_dvb_firmware
+>> +++ b/Documentation/dvb/get_dvb_firmware
+>> @@ -29,7 +29,7 @@ use IO::Handle;
+>>           "af9015", "ngene", "az6027", "lme2510_lg", "lme2510c_s7395",
+>>           "lme2510c_s7395_old", "drxk", "drxk_terratec_h5",
+>>           "drxk_hauppauge_hvr930c", "tda10071", "it9135", "drxk_pctv",
+>> -        "drxk_terratec_htc_stick", "sms1xxx_hcw");
+>> +        "drxk_terratec_htc_stick", "sms1xxx_hcw", "si2165");
+>>
+>>   # Check args
+>>   syntax() if (scalar(@ARGV) != 1);
+>> @@ -783,6 +783,37 @@ sub sms1xxx_hcw {
+>>       $allfiles;
+>>   }
+>>
+>> +sub si2165 {
+>> +    my $sourcefile =
+>> "model_111xxx_122xxx_driver_6_0_119_31191_WHQL.zip";
+>> +    my $url = "http://www.hauppauge.de/files/drivers/";
+>> +    my $hash = "76633e7c76b0edee47c3ba18ded99336";
+>> +    my $fwfile = "dvb-demod-si2165.fw";
+>> +    my $tmpdir = tempdir(DIR => "/tmp", CLEANUP => 1);
+>> +
+>> +    checkstandard();
+>> +
+>> +    wgetfile($sourcefile, $url . $sourcefile);
+>> +    verify($sourcefile, $hash);
+>> +    unzip($sourcefile, $tmpdir);
+>> +    extract("$tmpdir/Driver10/Hcw10bda.sys", 0x80788,
+>> 0x81E08-0x80788, "$tmpdir/fw1");
+>> +
+>> +    delzero("$tmpdir/fw1","$tmpdir/fw1-1");
+>> +    #verify("$tmpdir/fw1","5e0909858fdf0b5b09ad48b9fe622e70");
+>> +
+>> +    my $CRC="\x0A\xCC";
+>> +    my $BLOCKS_MAIN="\x27";
+>> +    open FW,">$fwfile";
+>> +    print FW "\x01\x00"; # just a version id for the driver itself
+>> +    print FW "\x9A"; # fw version
+>> +    print FW "\x00"; # padding
+>> +    print FW "$BLOCKS_MAIN"; # number of blocks of main part
+>> +    print FW "\x00"; # padding
+>> +    print FW "$CRC"; # 16bit crc value of main part
+>> +    appendfile(FW,"$tmpdir/fw1");
+>> +
+>> +    "$fwfile";
+>> +}
+>> +
+>>   # ---------------------------------------------------------------
+>>   # Utilities
+> 
+> Separate that firmware extractor to own patch.
+> 
+done
 
-The vivid-ctrls code sets up and processes the various V4L2 controls
-that are needed by this driver.
+>>
+>> diff --git a/drivers/media/dvb-frontends/Kconfig
+>> b/drivers/media/dvb-frontends/Kconfig
+>> index 1469d44..0da53c2 100644
+>> --- a/drivers/media/dvb-frontends/Kconfig
+>> +++ b/drivers/media/dvb-frontends/Kconfig
+>> @@ -63,6 +63,15 @@ config DVB_TDA18271C2DD
+>>
+>>         Say Y when you want to support this tuner.
+>>
+>> +config DVB_SI2165
+>> +    tristate "Silicon Labs si2165 based"
+>> +    depends on DVB_CORE && I2C
+>> +    default m if !MEDIA_SUBDRV_AUTOSELECT
+>> +    help
+>> +      A DVB-C/T demodulator.
+>> +
+>> +      Say Y when you want to support this frontend.
+>> +
+>>   comment "DVB-S (satellite) frontends"
+>>       depends on DVB_CORE
+>>
+>> diff --git a/drivers/media/dvb-frontends/Makefile
+>> b/drivers/media/dvb-frontends/Makefile
+>> index dda0bee..595dd8d 100644
+>> --- a/drivers/media/dvb-frontends/Makefile
+>> +++ b/drivers/media/dvb-frontends/Makefile
+>> @@ -100,6 +100,7 @@ obj-$(CONFIG_DVB_STV0367) += stv0367.o
+>>   obj-$(CONFIG_DVB_CXD2820R) += cxd2820r.o
+>>   obj-$(CONFIG_DVB_DRXK) += drxk.o
+>>   obj-$(CONFIG_DVB_TDA18271C2DD) += tda18271c2dd.o
+>> +obj-$(CONFIG_DVB_SI2165) += si2165.o
+>>   obj-$(CONFIG_DVB_A8293) += a8293.o
+>>   obj-$(CONFIG_DVB_TDA10071) += tda10071.o
+>>   obj-$(CONFIG_DVB_RTL2830) += rtl2830.o
+>> diff --git a/drivers/media/dvb-frontends/si2165.c
+>> b/drivers/media/dvb-frontends/si2165.c
+>> new file mode 100644
+>> index 0000000..3e69a32
+>> --- /dev/null
+>> +++ b/drivers/media/dvb-frontends/si2165.c
+>> @@ -0,0 +1,890 @@
+>> +/*
+>> +    Driver for Silicon Labs SI2165 DVB-C/-T Demodulator
+>> +
+>> +    Copyright (C) 2013-2014 Matthias Schwarzott <zzam@gentoo.org>
+>> +
+>> +    This program is free software; you can redistribute it and/or modify
+>> +    it under the terms of the GNU General Public License as published by
+>> +    the Free Software Foundation; either version 2 of the License, or
+>> +    (at your option) any later version.
+>> +
+>> +    This program is distributed in the hope that it will be useful,
+>> +    but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> +    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> +    GNU General Public License for more details.
+>> +
+>> +    References:
+>> +   
+>> http://www.silabs.com/Support%20Documents/TechnicalDocs/Si2165-short.pdf
+>> +*/
+>> +
+>> +#include <linux/delay.h>
+>> +#include <linux/errno.h>
+>> +#include <linux/init.h>
+>> +#include <linux/kernel.h>
+>> +#include <linux/module.h>
+>> +#include <linux/string.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/firmware.h>
+>> +
+>> +#include "dvb_frontend.h"
+>> +#include "dvb_math.h"
+>> +#include "si2165_priv.h"
+>> +#include "si2165.h"
+>> +
+>> +/* Hauppauge WinTV-HVR-930C-HD 1113xx uses 16.000 MHz xtal */
+>> +
+>> +struct si2165_state {
+>> +    struct i2c_adapter *i2c;
+>> +
+>> +    struct dvb_frontend frontend;
+>> +
+>> +    struct si2165_config config;
+>> +
+>> +    /* chip revision */
+>> +    u8 revcode;
+>> +    /* chip type */
+>> +    u8 chip_type;
+>> +
+>> +    /* calculated by xtal and div settings */
+>> +    u32 fvco_hz;
+>> +    u32 sys_clk;
+>> +    u32 adc_clk;
+>> +
+>> +    /* depends on adc_clk and Ovr mode */
+>> +    u32 fe_clk;
+>> +
+>> +    bool m_has_dvbc;
+>> +    bool m_has_dvbt;
+> 
+> m_ prefix is for Hungarian notation of member variables. It is not
+> suitable for Kernel style.
+> 
+removed. I only use this part of hungarian notation. Sometimes its bad
+to switch between C and C++ :)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivid/vivid-ctrls.c | 1474 ++++++++++++++++++++++++++++
- drivers/media/platform/vivid/vivid-ctrls.h |   34 +
- 2 files changed, 1508 insertions(+)
- create mode 100644 drivers/media/platform/vivid/vivid-ctrls.c
- create mode 100644 drivers/media/platform/vivid/vivid-ctrls.h
+> 
+>> +    bool firmware_loaded;
+>> +};
+>> +
+>> +#define DEBUG_OTHER    0x01
+>> +#define DEBUG_I2C_WRITE    0x02
+>> +#define DEBUG_I2C_READ    0x04
+>> +#define DEBUG_REG_READ    0x08
+>> +#define DEBUG_REG_WRITE    0x10
+>> +#define DEBUG_FW_LOAD    0x20
+>> +
+>> +static int debug = 0x00;
+>> +
+>> +#define dprintk(args...) \
+>> +    do { \
+>> +        if (debug & DEBUG_OTHER) \
+>> +            printk(KERN_DEBUG "si2165: " args); \
+>> +    } while (0)
+>> +
+>> +#define deb_i2c_write(args...) \
+>> +    do { \
+>> +        if (debug & DEBUG_I2C_WRITE) \
+>> +            printk(KERN_DEBUG "si2165: i2c write: " args); \
+>> +    } while (0)
+>> +
+>> +#define deb_i2c_read(args...) \
+>> +    do { \
+>> +        if (debug & DEBUG_I2C_READ) \
+>> +            printk(KERN_DEBUG "si2165: i2c read: " args); \
+>> +    } while (0)
+>> +
+>> +#define deb_readreg(args...) \
+>> +    do { \
+>> +        if (debug & DEBUG_REG_READ) \
+>> +            printk(KERN_DEBUG "si2165: reg read: " args); \
+>> +    } while (0)
+>> +
+>> +#define deb_writereg(args...) \
+>> +    do { \
+>> +        if (debug & DEBUG_REG_WRITE) \
+>> +            printk(KERN_DEBUG "si2165: reg write: " args); \
+>> +    } while (0)
+>> +
+>> +#define deb_fw_load(args...) \
+>> +    do { \
+>> +        if (debug & DEBUG_FW_LOAD) \
+>> +            printk(KERN_DEBUG "si2165: fw load: " args); \
+>> +    } while (0)
+> 
+> Could you consider kernel dynamic debugs which are todays norm? See for
+> example si2168 driver as a example. IMHO it is not hard requirement, but
+> still...
+> 
+TODO
 
-diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
-new file mode 100644
-index 0000000..20fbcb1
---- /dev/null
-+++ b/drivers/media/platform/vivid/vivid-ctrls.c
-@@ -0,0 +1,1474 @@
-+/*
-+ * vivid-ctrls.c - control support functions.
-+ *
-+ * Copyright 2014 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ *
-+ * This program is free software; you may redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <linux/errno.h>
-+#include <linux/kernel.h>
-+#include <linux/videodev2.h>
-+#include <media/v4l2-event.h>
-+#include <media/v4l2-common.h>
-+
-+#include "vivid-core.h"
-+#include "vivid-vid-cap.h"
-+#include "vivid-vid-out.h"
-+#include "vivid-vid-common.h"
-+#include "vivid-radio-common.h"
-+#include "vivid-osd.h"
-+#include "vivid-ctrls.h"
-+
-+#define VIVID_CID_CUSTOM_BASE		(V4L2_CID_USER_BASE | 0xf000)
-+#define VIVID_CID_BUTTON		(VIVID_CID_CUSTOM_BASE + 0)
-+#define VIVID_CID_BOOLEAN		(VIVID_CID_CUSTOM_BASE + 1)
-+#define VIVID_CID_INTEGER		(VIVID_CID_CUSTOM_BASE + 2)
-+#define VIVID_CID_INTEGER64		(VIVID_CID_CUSTOM_BASE + 3)
-+#define VIVID_CID_MENU			(VIVID_CID_CUSTOM_BASE + 4)
-+#define VIVID_CID_STRING		(VIVID_CID_CUSTOM_BASE + 5)
-+#define VIVID_CID_BITMASK		(VIVID_CID_CUSTOM_BASE + 6)
-+#define VIVID_CID_INTMENU		(VIVID_CID_CUSTOM_BASE + 7)
-+
-+#define VIVID_CID_IMAGE_PROC_BASE	(V4L2_CTRL_CLASS_IMAGE_PROC | 0xf000)
-+#define VIVID_CID_OSD_TEXT_MODE		(VIVID_CID_IMAGE_PROC_BASE + 0)
-+#define VIVID_CID_HOR_MOVEMENT		(VIVID_CID_IMAGE_PROC_BASE + 1)
-+#define VIVID_CID_VERT_MOVEMENT		(VIVID_CID_IMAGE_PROC_BASE + 2)
-+#define VIVID_CID_SHOW_BORDER		(VIVID_CID_IMAGE_PROC_BASE + 4)
-+#define VIVID_CID_SHOW_SQUARE		(VIVID_CID_IMAGE_PROC_BASE + 5)
-+#define VIVID_CID_INSERT_SAV		(VIVID_CID_IMAGE_PROC_BASE + 6)
-+#define VIVID_CID_INSERT_EAV		(VIVID_CID_IMAGE_PROC_BASE + 7)
-+#define VIVID_CID_VBI_CAP_INTERLACED	(VIVID_CID_IMAGE_PROC_BASE + 8)
-+
-+#define VIVID_CID_HFLIP			(VIVID_CID_IMAGE_PROC_BASE + 20)
-+#define VIVID_CID_VFLIP			(VIVID_CID_IMAGE_PROC_BASE + 21)
-+#define VIVID_CID_STD_ASPECT_RATIO	(VIVID_CID_IMAGE_PROC_BASE + 22)
-+#define VIVID_CID_DV_TIMINGS_ASPECT_RATIO	(VIVID_CID_IMAGE_PROC_BASE + 23)
-+#define VIVID_CID_TSTAMP_SRC		(VIVID_CID_IMAGE_PROC_BASE + 24)
-+#define VIVID_CID_COLORSPACE		(VIVID_CID_IMAGE_PROC_BASE + 25)
-+#define VIVID_CID_LIMITED_RGB_RANGE	(VIVID_CID_IMAGE_PROC_BASE + 26)
-+#define VIVID_CID_ALPHA_MODE		(VIVID_CID_IMAGE_PROC_BASE + 27)
-+#define VIVID_CID_HAS_CROP_CAP		(VIVID_CID_IMAGE_PROC_BASE + 28)
-+#define VIVID_CID_HAS_COMPOSE_CAP	(VIVID_CID_IMAGE_PROC_BASE + 29)
-+#define VIVID_CID_HAS_SCALER_CAP	(VIVID_CID_IMAGE_PROC_BASE + 30)
-+#define VIVID_CID_HAS_CROP_OUT		(VIVID_CID_IMAGE_PROC_BASE + 31)
-+#define VIVID_CID_HAS_COMPOSE_OUT	(VIVID_CID_IMAGE_PROC_BASE + 32)
-+#define VIVID_CID_HAS_SCALER_OUT	(VIVID_CID_IMAGE_PROC_BASE + 33)
-+#define VIVID_CID_LOOP_VIDEO		(VIVID_CID_IMAGE_PROC_BASE + 34)
-+#define VIVID_CID_SEQ_WRAP		(VIVID_CID_IMAGE_PROC_BASE + 35)
-+#define VIVID_CID_TIME_WRAP		(VIVID_CID_IMAGE_PROC_BASE + 36)
-+#define VIVID_CID_MAX_EDID_BLOCKS	(VIVID_CID_IMAGE_PROC_BASE + 37)
-+#define VIVID_CID_PERCENTAGE_FILL	(VIVID_CID_IMAGE_PROC_BASE + 38)
-+
-+#define VIVID_CID_STD_SIGNAL_MODE	(VIVID_CID_IMAGE_PROC_BASE + 60)
-+#define VIVID_CID_STANDARD		(VIVID_CID_IMAGE_PROC_BASE + 61)
-+#define VIVID_CID_DV_TIMINGS_SIGNAL_MODE	(VIVID_CID_IMAGE_PROC_BASE + 62)
-+#define VIVID_CID_DV_TIMINGS		(VIVID_CID_IMAGE_PROC_BASE + 63)
-+#define VIVID_CID_PERC_DROPPED		(VIVID_CID_IMAGE_PROC_BASE + 64)
-+#define VIVID_CID_DISCONNECT		(VIVID_CID_IMAGE_PROC_BASE + 65)
-+#define VIVID_CID_DQBUF_ERROR		(VIVID_CID_IMAGE_PROC_BASE + 66)
-+#define VIVID_CID_QUEUE_SETUP_ERROR	(VIVID_CID_IMAGE_PROC_BASE + 67)
-+#define VIVID_CID_BUF_PREPARE_ERROR	(VIVID_CID_IMAGE_PROC_BASE + 68)
-+#define VIVID_CID_START_STR_ERROR	(VIVID_CID_IMAGE_PROC_BASE + 69)
-+#define VIVID_CID_QUEUE_ERROR		(VIVID_CID_IMAGE_PROC_BASE + 70)
-+#define VIVID_CID_CLEAR_FB		(VIVID_CID_IMAGE_PROC_BASE + 71)
-+
-+#define VIVID_CID_FM_RX_BASE		(V4L2_CTRL_CLASS_FM_RX | 0xf000)
-+#define VIVID_CID_RADIO_SEEK_MODE	(VIVID_CID_FM_RX_BASE + 0)
-+#define VIVID_CID_RADIO_SEEK_PROG_LIM	(VIVID_CID_FM_RX_BASE + 1)
-+#define VIVID_CID_RADIO_RX_RDS_RBDS	(VIVID_CID_FM_RX_BASE + 2)
-+#define VIVID_CID_RADIO_RX_RDS_BLOCKIO	(VIVID_CID_FM_RX_BASE + 3)
-+
-+#define VIVID_CID_FM_TX_BASE		(V4L2_CTRL_CLASS_FM_TX | 0xf000)
-+#define VIVID_CID_RADIO_TX_RDS_BLOCKIO	(VIVID_CID_FM_TX_BASE + 4)
-+
-+
-+/* General User Controls */
-+
-+static int vivid_user_gen_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct vivid_dev *dev = container_of(ctrl->handler, struct vivid_dev, ctrl_hdl_user_gen);
-+
-+	switch (ctrl->id) {
-+	case VIVID_CID_DISCONNECT:
-+		v4l2_info(&dev->v4l2_dev, "disconnect\n");
-+		clear_bit(V4L2_FL_REGISTERED, &dev->vid_cap_dev.flags);
-+		clear_bit(V4L2_FL_REGISTERED, &dev->vid_out_dev.flags);
-+		clear_bit(V4L2_FL_REGISTERED, &dev->vbi_cap_dev.flags);
-+		clear_bit(V4L2_FL_REGISTERED, &dev->vbi_out_dev.flags);
-+		clear_bit(V4L2_FL_REGISTERED, &dev->sdr_cap_dev.flags);
-+		clear_bit(V4L2_FL_REGISTERED, &dev->radio_rx_dev.flags);
-+		clear_bit(V4L2_FL_REGISTERED, &dev->radio_tx_dev.flags);
-+		break;
-+	case VIVID_CID_CLEAR_FB:
-+		vivid_clear_fb(dev);
-+		break;
-+	case VIVID_CID_BUTTON:
-+		dev->button_pressed = 30;
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops vivid_user_gen_ctrl_ops = {
-+	.s_ctrl = vivid_user_gen_s_ctrl,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_button = {
-+	.ops = &vivid_user_gen_ctrl_ops,
-+	.id = VIVID_CID_BUTTON,
-+	.name = "Button",
-+	.type = V4L2_CTRL_TYPE_BUTTON,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_boolean = {
-+	.ops = &vivid_user_gen_ctrl_ops,
-+	.id = VIVID_CID_BOOLEAN,
-+	.name = "Boolean",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.min = 0,
-+	.max = 1,
-+	.step = 1,
-+	.def = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_int32 = {
-+	.ops = &vivid_user_gen_ctrl_ops,
-+	.id = VIVID_CID_INTEGER,
-+	.name = "Integer 32 Bits",
-+	.type = V4L2_CTRL_TYPE_INTEGER,
-+	.min = 0xffffffff80000000ULL,
-+	.max = 0x7fffffff,
-+	.step = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_int64 = {
-+	.ops = &vivid_user_gen_ctrl_ops,
-+	.id = VIVID_CID_INTEGER64,
-+	.name = "Integer 64 Bits",
-+	.type = V4L2_CTRL_TYPE_INTEGER64,
-+	.min = 0x8000000000000000ULL,
-+	.max = 0x7fffffffffffffffLL,
-+	.step = 1,
-+};
-+
-+static const char * const vivid_ctrl_menu_strings[] = {
-+	"Menu Item 0 (Skipped)",
-+	"Menu Item 1",
-+	"Menu Item 2 (Skipped)",
-+	"Menu Item 3",
-+	"Menu Item 4",
-+	"Menu Item 5 (Skipped)",
-+	NULL,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_menu = {
-+	.ops = &vivid_user_gen_ctrl_ops,
-+	.id = VIVID_CID_MENU,
-+	.name = "Menu",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.min = 1,
-+	.max = 4,
-+	.def = 3,
-+	.menu_skip_mask = 0x04,
-+	.qmenu = vivid_ctrl_menu_strings,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_string = {
-+	.ops = &vivid_user_gen_ctrl_ops,
-+	.id = VIVID_CID_STRING,
-+	.name = "String",
-+	.type = V4L2_CTRL_TYPE_STRING,
-+	.min = 2,
-+	.max = 4,
-+	.step = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_bitmask = {
-+	.ops = &vivid_user_gen_ctrl_ops,
-+	.id = VIVID_CID_BITMASK,
-+	.name = "Bitmask",
-+	.type = V4L2_CTRL_TYPE_BITMASK,
-+	.def = 0x80002000,
-+	.min = 0,
-+	.max = 0x80402010,
-+	.step = 0,
-+};
-+
-+static const s64 vivid_ctrl_int_menu_values[] = {
-+	1, 1, 2, 3, 5, 8, 13, 21, 42,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_int_menu = {
-+	.ops = &vivid_user_gen_ctrl_ops,
-+	.id = VIVID_CID_INTMENU,
-+	.name = "Integer Menu",
-+	.type = V4L2_CTRL_TYPE_INTEGER_MENU,
-+	.min = 1,
-+	.max = 8,
-+	.def = 4,
-+	.menu_skip_mask = 0x02,
-+	.qmenu_int = vivid_ctrl_int_menu_values,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_disconnect = {
-+	.ops = &vivid_user_gen_ctrl_ops,
-+	.id = VIVID_CID_DISCONNECT,
-+	.name = "Disconnect",
-+	.type = V4L2_CTRL_TYPE_BUTTON,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_clear_fb = {
-+	.ops = &vivid_user_gen_ctrl_ops,
-+	.id = VIVID_CID_CLEAR_FB,
-+	.name = "Clear Framebuffer",
-+	.type = V4L2_CTRL_TYPE_BUTTON,
-+};
-+
-+
-+/* Video User Controls */
-+
-+static int vivid_user_vid_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct vivid_dev *dev = container_of(ctrl->handler, struct vivid_dev, ctrl_hdl_user_vid);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_AUTOGAIN:
-+		dev->gain->val = dev->jiffies_vid_cap & 0xff;
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static int vivid_user_vid_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct vivid_dev *dev = container_of(ctrl->handler, struct vivid_dev, ctrl_hdl_user_vid);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_BRIGHTNESS:
-+		dev->input_brightness[dev->input] = ctrl->val - dev->input * 128;
-+		tpg_s_brightness(&dev->tpg, dev->input_brightness[dev->input]);
-+		break;
-+	case V4L2_CID_CONTRAST:
-+		tpg_s_contrast(&dev->tpg, ctrl->val);
-+		break;
-+	case V4L2_CID_SATURATION:
-+		tpg_s_saturation(&dev->tpg, ctrl->val);
-+		break;
-+	case V4L2_CID_HUE:
-+		tpg_s_hue(&dev->tpg, ctrl->val);
-+		break;
-+	case V4L2_CID_HFLIP:
-+		dev->hflip = ctrl->val;
-+		tpg_s_hflip(&dev->tpg, dev->sensor_hflip ^ dev->hflip);
-+		break;
-+	case V4L2_CID_VFLIP:
-+		dev->vflip = ctrl->val;
-+		tpg_s_vflip(&dev->tpg, dev->sensor_vflip ^ dev->vflip);
-+		break;
-+	case V4L2_CID_ALPHA_COMPONENT:
-+		tpg_s_alpha_component(&dev->tpg, ctrl->val);
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops vivid_user_vid_ctrl_ops = {
-+	.g_volatile_ctrl = vivid_user_vid_g_volatile_ctrl,
-+	.s_ctrl = vivid_user_vid_s_ctrl,
-+};
-+
-+
-+/* Video Capture Controls */
-+
-+static int vivid_vid_cap_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct vivid_dev *dev = container_of(ctrl->handler, struct vivid_dev, ctrl_hdl_vid_cap);
-+	unsigned i;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_TEST_PATTERN:
-+		vivid_update_quality(dev);
-+		tpg_s_pattern(&dev->tpg, ctrl->val);
-+		break;
-+	case VIVID_CID_COLORSPACE:
-+		tpg_s_colorspace(&dev->tpg, ctrl->val);
-+		vivid_send_source_change(dev, TV);
-+		vivid_send_source_change(dev, SVID);
-+		vivid_send_source_change(dev, HDMI);
-+		vivid_send_source_change(dev, WEBCAM);
-+		break;
-+	case V4L2_CID_DV_RX_RGB_RANGE:
-+		if (!vivid_is_hdmi_cap(dev))
-+			break;
-+		tpg_s_rgb_range(&dev->tpg, ctrl->val);
-+		break;
-+	case VIVID_CID_LIMITED_RGB_RANGE:
-+		tpg_s_real_rgb_range(&dev->tpg, ctrl->val ?
-+				V4L2_DV_RGB_RANGE_LIMITED : V4L2_DV_RGB_RANGE_FULL);
-+		break;
-+	case VIVID_CID_ALPHA_MODE:
-+		tpg_s_alpha_mode(&dev->tpg, ctrl->val);
-+		break;
-+	case VIVID_CID_HOR_MOVEMENT:
-+		tpg_s_mv_hor_mode(&dev->tpg, ctrl->val);
-+		break;
-+	case VIVID_CID_VERT_MOVEMENT:
-+		tpg_s_mv_vert_mode(&dev->tpg, ctrl->val);
-+		break;
-+	case VIVID_CID_OSD_TEXT_MODE:
-+		dev->osd_mode = ctrl->val;
-+		break;
-+	case VIVID_CID_PERCENTAGE_FILL:
-+		tpg_s_perc_fill(&dev->tpg, ctrl->val);
-+		for (i = 0; i < VIDEO_MAX_FRAME; i++)
-+			dev->must_blank[i] = ctrl->val < 100;
-+		break;
-+	case VIVID_CID_INSERT_SAV:
-+		tpg_s_insert_sav(&dev->tpg, ctrl->val);
-+		break;
-+	case VIVID_CID_INSERT_EAV:
-+		tpg_s_insert_eav(&dev->tpg, ctrl->val);
-+		break;
-+	case VIVID_CID_HFLIP:
-+		dev->sensor_hflip = ctrl->val;
-+		tpg_s_hflip(&dev->tpg, dev->sensor_hflip ^ dev->hflip);
-+		break;
-+	case VIVID_CID_VFLIP:
-+		dev->sensor_vflip = ctrl->val;
-+		tpg_s_vflip(&dev->tpg, dev->sensor_vflip ^ dev->vflip);
-+		break;
-+	case VIVID_CID_HAS_CROP_CAP:
-+		dev->has_crop_cap = ctrl->val;
-+		vivid_update_format_cap(dev, true);
-+		break;
-+	case VIVID_CID_HAS_COMPOSE_CAP:
-+		dev->has_compose_cap = ctrl->val;
-+		vivid_update_format_cap(dev, true);
-+		break;
-+	case VIVID_CID_HAS_SCALER_CAP:
-+		dev->has_scaler_cap = ctrl->val;
-+		vivid_update_format_cap(dev, true);
-+		break;
-+	case VIVID_CID_SHOW_BORDER:
-+		tpg_s_show_border(&dev->tpg, ctrl->val);
-+		break;
-+	case VIVID_CID_SHOW_SQUARE:
-+		tpg_s_show_square(&dev->tpg, ctrl->val);
-+		break;
-+	case VIVID_CID_STD_ASPECT_RATIO:
-+		dev->std_aspect_ratio = ctrl->val;
-+		tpg_s_video_aspect(&dev->tpg, vivid_get_video_aspect(dev));
-+		break;
-+	case VIVID_CID_DV_TIMINGS_SIGNAL_MODE:
-+		dev->dv_timings_signal_mode = dev->ctrl_dv_timings_signal_mode->val;
-+		if (dev->dv_timings_signal_mode == SELECTED_DV_TIMINGS)
-+			dev->query_dv_timings = dev->ctrl_dv_timings->val;
-+		v4l2_ctrl_activate(dev->ctrl_dv_timings,
-+				dev->dv_timings_signal_mode == SELECTED_DV_TIMINGS);
-+		vivid_update_quality(dev);
-+		vivid_send_source_change(dev, HDMI);
-+		break;
-+	case VIVID_CID_DV_TIMINGS_ASPECT_RATIO:
-+		dev->dv_timings_aspect_ratio = ctrl->val;
-+		tpg_s_video_aspect(&dev->tpg, vivid_get_video_aspect(dev));
-+		break;
-+	case VIVID_CID_TSTAMP_SRC:
-+		dev->tstamp_src_is_soe = ctrl->val;
-+		dev->vb_vid_cap_q.timestamp_flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+		if (dev->tstamp_src_is_soe)
-+			dev->vb_vid_cap_q.timestamp_flags |= V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
-+		break;
-+	case VIVID_CID_MAX_EDID_BLOCKS:
-+		dev->edid_max_blocks = ctrl->val;
-+		if (dev->edid_blocks > dev->edid_max_blocks)
-+			dev->edid_blocks = dev->edid_max_blocks;
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops vivid_vid_cap_ctrl_ops = {
-+	.s_ctrl = vivid_vid_cap_s_ctrl,
-+};
-+
-+static const char * const vivid_ctrl_hor_movement_strings[] = {
-+	"Move Left Fast",
-+	"Move Left",
-+	"Move Left Slow",
-+	"No Movement",
-+	"Move Right Slow",
-+	"Move Right",
-+	"Move Right Fast",
-+	NULL,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_hor_movement = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_HOR_MOVEMENT,
-+	.name = "Horizontal Movement",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.max = TPG_MOVE_POS_FAST,
-+	.def = TPG_MOVE_NONE,
-+	.qmenu = vivid_ctrl_hor_movement_strings,
-+};
-+
-+static const char * const vivid_ctrl_vert_movement_strings[] = {
-+	"Move Up Fast",
-+	"Move Up",
-+	"Move Up Slow",
-+	"No Movement",
-+	"Move Down Slow",
-+	"Move Down",
-+	"Move Down Fast",
-+	NULL,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_vert_movement = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_VERT_MOVEMENT,
-+	.name = "Vertical Movement",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.max = TPG_MOVE_POS_FAST,
-+	.def = TPG_MOVE_NONE,
-+	.qmenu = vivid_ctrl_vert_movement_strings,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_show_border = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_SHOW_BORDER,
-+	.name = "Show Border",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_show_square = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_SHOW_SQUARE,
-+	.name = "Show Square",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
-+
-+static const char * const vivid_ctrl_osd_mode_strings[] = {
-+	"All",
-+	"Counters Only",
-+	"None",
-+	NULL,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_osd_mode = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_OSD_TEXT_MODE,
-+	.name = "OSD Text Mode",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.max = 2,
-+	.qmenu = vivid_ctrl_osd_mode_strings,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_perc_fill = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_PERCENTAGE_FILL,
-+	.name = "Fill Percentage of Frame",
-+	.type = V4L2_CTRL_TYPE_INTEGER,
-+	.min = 0,
-+	.max = 100,
-+	.def = 100,
-+	.step = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_insert_sav = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_INSERT_SAV,
-+	.name = "Insert SAV Code in Image",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_insert_eav = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_INSERT_EAV,
-+	.name = "Insert EAV Code in Image",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_hflip = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_HFLIP,
-+	.name = "Sensor Flipped Horizontally",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_vflip = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_VFLIP,
-+	.name = "Sensor Flipped Vertically",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_has_crop_cap = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_HAS_CROP_CAP,
-+	.name = "Enable Capture Cropping",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.def = 1,
-+	.step = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_has_compose_cap = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_HAS_COMPOSE_CAP,
-+	.name = "Enable Capture Composing",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.def = 1,
-+	.step = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_has_scaler_cap = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_HAS_SCALER_CAP,
-+	.name = "Enable Capture Scaler",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.def = 1,
-+	.step = 1,
-+};
-+
-+static const char * const vivid_ctrl_tstamp_src_strings[] = {
-+	"End of Frame",
-+	"Start of Exposure",
-+	NULL,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_tstamp_src = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_TSTAMP_SRC,
-+	.name = "Timestamp Source",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.max = 1,
-+	.qmenu = vivid_ctrl_tstamp_src_strings,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_std_aspect_ratio = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_STD_ASPECT_RATIO,
-+	.name = "Standard Aspect Ratio",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.min = 1,
-+	.max = 3,
-+	.def = 1,
-+	.qmenu = tpg_aspect_strings,
-+};
-+
-+static const char * const vivid_ctrl_dv_timings_signal_mode_strings[] = {
-+	"Current DV Timings",
-+	"No Signal",
-+	"No Lock",
-+	"Out of Range",
-+	"Selected DV Timings",
-+	"Cycle Through All DV Timings",
-+	"Custom DV Timings",
-+	NULL,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_dv_timings_signal_mode = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_DV_TIMINGS_SIGNAL_MODE,
-+	.name = "DV Timings Signal Mode",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.max = 5,
-+	.qmenu = vivid_ctrl_dv_timings_signal_mode_strings,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_dv_timings_aspect_ratio = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_DV_TIMINGS_ASPECT_RATIO,
-+	.name = "DV Timings Aspect Ratio",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.max = 2,
-+	.qmenu = tpg_aspect_strings,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_max_edid_blocks = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_MAX_EDID_BLOCKS,
-+	.name = "Maximum EDID Blocks",
-+	.type = V4L2_CTRL_TYPE_INTEGER,
-+	.min = 1,
-+	.max = 256,
-+	.def = 2,
-+	.step = 1,
-+};
-+
-+static const char * const vivid_ctrl_colorspace_strings[] = {
-+	"",
-+	"SMPTE 170M",
-+	"SMPTE 240M",
-+	"REC 709",
-+	"", /* Skip Bt878 entry */
-+	"470 System M",
-+	"470 System BG",
-+	"", /* Skip JPEG entry */
-+	"sRGB",
-+	NULL,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_colorspace = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_COLORSPACE,
-+	.name = "Colorspace",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.min = 1,
-+	.max = 8,
-+	.menu_skip_mask = (1 << 4) | (1 << 7),
-+	.def = 8,
-+	.qmenu = vivid_ctrl_colorspace_strings,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_alpha_mode = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_ALPHA_MODE,
-+	.name = "Apply Alpha To Red Only",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_limited_rgb_range = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_LIMITED_RGB_RANGE,
-+	.name = "Limited RGB Range (16-235)",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
-+
-+
-+/* VBI Capture Control */
-+
-+static int vivid_vbi_cap_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct vivid_dev *dev = container_of(ctrl->handler, struct vivid_dev, ctrl_hdl_vbi_cap);
-+
-+	switch (ctrl->id) {
-+	case VIVID_CID_VBI_CAP_INTERLACED:
-+		dev->vbi_cap_interlaced = ctrl->val;
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops vivid_vbi_cap_ctrl_ops = {
-+	.s_ctrl = vivid_vbi_cap_s_ctrl,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_vbi_cap_interlaced = {
-+	.ops = &vivid_vbi_cap_ctrl_ops,
-+	.id = VIVID_CID_VBI_CAP_INTERLACED,
-+	.name = "Interlaced VBI Format",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
-+
-+
-+/* Video Output Controls */
-+
-+static int vivid_vid_out_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct vivid_dev *dev = container_of(ctrl->handler, struct vivid_dev, ctrl_hdl_vid_out);
-+	struct v4l2_bt_timings *bt = &dev->dv_timings_out.bt;
-+
-+	switch (ctrl->id) {
-+	case VIVID_CID_HAS_CROP_OUT:
-+		dev->has_crop_out = ctrl->val;
-+		vivid_update_format_out(dev);
-+		break;
-+	case VIVID_CID_HAS_COMPOSE_OUT:
-+		dev->has_compose_out = ctrl->val;
-+		vivid_update_format_out(dev);
-+		break;
-+	case VIVID_CID_HAS_SCALER_OUT:
-+		dev->has_scaler_out = ctrl->val;
-+		vivid_update_format_out(dev);
-+		break;
-+	case V4L2_CID_DV_TX_MODE:
-+		dev->dvi_d_out = ctrl->val == V4L2_DV_TX_MODE_DVI_D;
-+		if (!vivid_is_hdmi_out(dev))
-+			break;
-+		if (!dev->dvi_d_out && (bt->standards & V4L2_DV_BT_STD_CEA861)) {
-+			if (bt->width == 720 && bt->height <= 576)
-+				dev->colorspace_out = V4L2_COLORSPACE_SMPTE170M;
-+			else
-+				dev->colorspace_out = V4L2_COLORSPACE_REC709;
-+		} else {
-+			dev->colorspace_out = V4L2_COLORSPACE_SRGB;
-+		}
-+		if (dev->loop_video)
-+			vivid_send_source_change(dev, HDMI);
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops vivid_vid_out_ctrl_ops = {
-+	.s_ctrl = vivid_vid_out_s_ctrl,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_has_crop_out = {
-+	.ops = &vivid_vid_out_ctrl_ops,
-+	.id = VIVID_CID_HAS_CROP_OUT,
-+	.name = "Enable Output Cropping",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.def = 1,
-+	.step = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_has_compose_out = {
-+	.ops = &vivid_vid_out_ctrl_ops,
-+	.id = VIVID_CID_HAS_COMPOSE_OUT,
-+	.name = "Enable Output Composing",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.def = 1,
-+	.step = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_has_scaler_out = {
-+	.ops = &vivid_vid_out_ctrl_ops,
-+	.id = VIVID_CID_HAS_SCALER_OUT,
-+	.name = "Enable Output Scaler",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.def = 1,
-+	.step = 1,
-+};
-+
-+
-+/* Streaming Controls */
-+
-+static int vivid_streaming_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct vivid_dev *dev = container_of(ctrl->handler, struct vivid_dev, ctrl_hdl_streaming);
-+	struct timeval tv;
-+
-+	switch (ctrl->id) {
-+	case VIVID_CID_DQBUF_ERROR:
-+		dev->dqbuf_error = true;
-+		break;
-+	case VIVID_CID_PERC_DROPPED:
-+		dev->perc_dropped_buffers = ctrl->val;
-+		break;
-+	case VIVID_CID_QUEUE_SETUP_ERROR:
-+		dev->queue_setup_error = true;
-+		break;
-+	case VIVID_CID_BUF_PREPARE_ERROR:
-+		dev->buf_prepare_error = true;
-+		break;
-+	case VIVID_CID_START_STR_ERROR:
-+		dev->start_streaming_error = true;
-+		break;
-+	case VIVID_CID_QUEUE_ERROR:
-+		if (dev->vb_vid_cap_q.start_streaming_called)
-+			vb2_queue_error(&dev->vb_vid_cap_q);
-+		if (dev->vb_vbi_cap_q.start_streaming_called)
-+			vb2_queue_error(&dev->vb_vbi_cap_q);
-+		if (dev->vb_vid_out_q.start_streaming_called)
-+			vb2_queue_error(&dev->vb_vid_out_q);
-+		if (dev->vb_vbi_out_q.start_streaming_called)
-+			vb2_queue_error(&dev->vb_vbi_out_q);
-+		if (dev->vb_sdr_cap_q.start_streaming_called)
-+			vb2_queue_error(&dev->vb_sdr_cap_q);
-+		break;
-+	case VIVID_CID_SEQ_WRAP:
-+		dev->seq_wrap = ctrl->val;
-+		break;
-+	case VIVID_CID_TIME_WRAP:
-+		dev->time_wrap = ctrl->val;
-+		if (ctrl->val == 0) {
-+			dev->time_wrap_offset = 0;
-+			break;
-+		}
-+		v4l2_get_timestamp(&tv);
-+		dev->time_wrap_offset = -tv.tv_sec - 16;
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops vivid_streaming_ctrl_ops = {
-+	.s_ctrl = vivid_streaming_s_ctrl,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_dqbuf_error = {
-+	.ops = &vivid_streaming_ctrl_ops,
-+	.id = VIVID_CID_DQBUF_ERROR,
-+	.name = "Inject V4L2_BUF_FLAG_ERROR",
-+	.type = V4L2_CTRL_TYPE_BUTTON,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_perc_dropped = {
-+	.ops = &vivid_streaming_ctrl_ops,
-+	.id = VIVID_CID_PERC_DROPPED,
-+	.name = "Percentage of Dropped Buffers",
-+	.type = V4L2_CTRL_TYPE_INTEGER,
-+	.min = 0,
-+	.max = 100,
-+	.step = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_queue_setup_error = {
-+	.ops = &vivid_streaming_ctrl_ops,
-+	.id = VIVID_CID_QUEUE_SETUP_ERROR,
-+	.name = "Inject VIDIOC_REQBUFS Error",
-+	.type = V4L2_CTRL_TYPE_BUTTON,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_buf_prepare_error = {
-+	.ops = &vivid_streaming_ctrl_ops,
-+	.id = VIVID_CID_BUF_PREPARE_ERROR,
-+	.name = "Inject VIDIOC_QBUF Error",
-+	.type = V4L2_CTRL_TYPE_BUTTON,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_start_streaming_error = {
-+	.ops = &vivid_streaming_ctrl_ops,
-+	.id = VIVID_CID_START_STR_ERROR,
-+	.name = "Inject VIDIOC_STREAMON Error",
-+	.type = V4L2_CTRL_TYPE_BUTTON,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_queue_error = {
-+	.ops = &vivid_streaming_ctrl_ops,
-+	.id = VIVID_CID_QUEUE_ERROR,
-+	.name = "Inject Fatal Streaming Error",
-+	.type = V4L2_CTRL_TYPE_BUTTON,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_seq_wrap = {
-+	.ops = &vivid_streaming_ctrl_ops,
-+	.id = VIVID_CID_SEQ_WRAP,
-+	.name = "Wrap Sequence Number",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_time_wrap = {
-+	.ops = &vivid_streaming_ctrl_ops,
-+	.id = VIVID_CID_TIME_WRAP,
-+	.name = "Wrap Timestamp",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
-+
-+
-+/* SDTV Capture Controls */
-+
-+static int vivid_sdtv_cap_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct vivid_dev *dev = container_of(ctrl->handler, struct vivid_dev, ctrl_hdl_sdtv_cap);
-+
-+	switch (ctrl->id) {
-+	case VIVID_CID_STD_SIGNAL_MODE:
-+		dev->std_signal_mode = dev->ctrl_std_signal_mode->val;
-+		if (dev->std_signal_mode == SELECTED_STD)
-+			dev->query_std = vivid_standard[dev->ctrl_standard->val];
-+		v4l2_ctrl_activate(dev->ctrl_standard, dev->std_signal_mode == SELECTED_STD);
-+		vivid_update_quality(dev);
-+		vivid_send_source_change(dev, TV);
-+		vivid_send_source_change(dev, SVID);
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops vivid_sdtv_cap_ctrl_ops = {
-+	.s_ctrl = vivid_sdtv_cap_s_ctrl,
-+};
-+
-+static const char * const vivid_ctrl_std_signal_mode_strings[] = {
-+	"Current Standard",
-+	"No Signal",
-+	"No Lock",
-+	"",
-+	"Selected Standard",
-+	"Cycle Through All Standards",
-+	NULL,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_std_signal_mode = {
-+	.ops = &vivid_sdtv_cap_ctrl_ops,
-+	.id = VIVID_CID_STD_SIGNAL_MODE,
-+	.name = "Standard Signal Mode",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.max = 5,
-+	.menu_skip_mask = 1 << 3,
-+	.qmenu = vivid_ctrl_std_signal_mode_strings,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_standard = {
-+	.ops = &vivid_sdtv_cap_ctrl_ops,
-+	.id = VIVID_CID_STANDARD,
-+	.name = "Standard",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.max = 14,
-+	.qmenu = vivid_ctrl_standard_strings,
-+};
-+
-+
-+
-+/* Radio Receiver Controls */
-+
-+static int vivid_radio_rx_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct vivid_dev *dev = container_of(ctrl->handler, struct vivid_dev, ctrl_hdl_radio_rx);
-+
-+	switch (ctrl->id) {
-+	case VIVID_CID_RADIO_SEEK_MODE:
-+		dev->radio_rx_hw_seek_mode = ctrl->val;
-+		break;
-+	case VIVID_CID_RADIO_SEEK_PROG_LIM:
-+		dev->radio_rx_hw_seek_prog_lim = ctrl->val;
-+		break;
-+	case VIVID_CID_RADIO_RX_RDS_RBDS:
-+		dev->rds_gen.use_rbds = ctrl->val;
-+		break;
-+	case VIVID_CID_RADIO_RX_RDS_BLOCKIO:
-+		dev->radio_rx_rds_controls = ctrl->val;
-+		dev->radio_rx_caps &= ~V4L2_CAP_READWRITE;
-+		dev->radio_rx_rds_use_alternates = false;
-+		if (!dev->radio_rx_rds_controls) {
-+			dev->radio_rx_caps |= V4L2_CAP_READWRITE;
-+			__v4l2_ctrl_s_ctrl(dev->radio_rx_rds_pty, 0);
-+			__v4l2_ctrl_s_ctrl(dev->radio_rx_rds_ta, 0);
-+			__v4l2_ctrl_s_ctrl(dev->radio_rx_rds_tp, 0);
-+			__v4l2_ctrl_s_ctrl(dev->radio_rx_rds_ms, 0);
-+			__v4l2_ctrl_s_ctrl_string(dev->radio_rx_rds_psname, "");
-+			__v4l2_ctrl_s_ctrl_string(dev->radio_rx_rds_radiotext, "");
-+		}
-+		v4l2_ctrl_activate(dev->radio_rx_rds_pty, dev->radio_rx_rds_controls);
-+		v4l2_ctrl_activate(dev->radio_rx_rds_psname, dev->radio_rx_rds_controls);
-+		v4l2_ctrl_activate(dev->radio_rx_rds_radiotext, dev->radio_rx_rds_controls);
-+		v4l2_ctrl_activate(dev->radio_rx_rds_ta, dev->radio_rx_rds_controls);
-+		v4l2_ctrl_activate(dev->radio_rx_rds_tp, dev->radio_rx_rds_controls);
-+		v4l2_ctrl_activate(dev->radio_rx_rds_ms, dev->radio_rx_rds_controls);
-+		break;
-+	case V4L2_CID_RDS_RECEPTION:
-+		dev->radio_rx_rds_enabled = ctrl->val;
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops vivid_radio_rx_ctrl_ops = {
-+	.s_ctrl = vivid_radio_rx_s_ctrl,
-+};
-+
-+static const char * const vivid_ctrl_radio_rds_mode_strings[] = {
-+	"Block I/O",
-+	"Controls",
-+	NULL,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_radio_rx_rds_blockio = {
-+	.ops = &vivid_radio_rx_ctrl_ops,
-+	.id = VIVID_CID_RADIO_RX_RDS_BLOCKIO,
-+	.name = "RDS Rx I/O Mode",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.qmenu = vivid_ctrl_radio_rds_mode_strings,
-+	.max = 1,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_radio_rx_rds_rbds = {
-+	.ops = &vivid_radio_rx_ctrl_ops,
-+	.id = VIVID_CID_RADIO_RX_RDS_RBDS,
-+	.name = "Generate RBDS Instead of RDS",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
-+
-+static const char * const vivid_ctrl_radio_hw_seek_mode_strings[] = {
-+	"Bounded",
-+	"Wrap Around",
-+	"Both",
-+	NULL,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_radio_hw_seek_mode = {
-+	.ops = &vivid_radio_rx_ctrl_ops,
-+	.id = VIVID_CID_RADIO_SEEK_MODE,
-+	.name = "Radio HW Seek Mode",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.max = 2,
-+	.qmenu = vivid_ctrl_radio_hw_seek_mode_strings,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_radio_hw_seek_prog_lim = {
-+	.ops = &vivid_radio_rx_ctrl_ops,
-+	.id = VIVID_CID_RADIO_SEEK_PROG_LIM,
-+	.name = "Radio Programmable HW Seek",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
-+
-+
-+/* Radio Transmitter Controls */
-+
-+static int vivid_radio_tx_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct vivid_dev *dev = container_of(ctrl->handler, struct vivid_dev, ctrl_hdl_radio_tx);
-+
-+	switch (ctrl->id) {
-+	case VIVID_CID_RADIO_TX_RDS_BLOCKIO:
-+		dev->radio_tx_rds_controls = ctrl->val;
-+		dev->radio_tx_caps &= ~V4L2_CAP_READWRITE;
-+		if (!dev->radio_tx_rds_controls)
-+			dev->radio_tx_caps |= V4L2_CAP_READWRITE;
-+		break;
-+	case V4L2_CID_RDS_TX_PTY:
-+		if (dev->radio_rx_rds_controls)
-+			v4l2_ctrl_s_ctrl(dev->radio_rx_rds_pty, ctrl->val);
-+		break;
-+	case V4L2_CID_RDS_TX_PS_NAME:
-+		if (dev->radio_rx_rds_controls)
-+			v4l2_ctrl_s_ctrl_string(dev->radio_rx_rds_psname, ctrl->p_new.p_char);
-+		break;
-+	case V4L2_CID_RDS_TX_RADIO_TEXT:
-+		if (dev->radio_rx_rds_controls)
-+			v4l2_ctrl_s_ctrl_string(dev->radio_rx_rds_radiotext, ctrl->p_new.p_char);
-+		break;
-+	case V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT:
-+		if (dev->radio_rx_rds_controls)
-+			v4l2_ctrl_s_ctrl(dev->radio_rx_rds_ta, ctrl->val);
-+		break;
-+	case V4L2_CID_RDS_TX_TRAFFIC_PROGRAM:
-+		if (dev->radio_rx_rds_controls)
-+			v4l2_ctrl_s_ctrl(dev->radio_rx_rds_tp, ctrl->val);
-+		break;
-+	case V4L2_CID_RDS_TX_MUSIC_SPEECH:
-+		if (dev->radio_rx_rds_controls)
-+			v4l2_ctrl_s_ctrl(dev->radio_rx_rds_ms, ctrl->val);
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops vivid_radio_tx_ctrl_ops = {
-+	.s_ctrl = vivid_radio_tx_s_ctrl,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_radio_tx_rds_blockio = {
-+	.ops = &vivid_radio_tx_ctrl_ops,
-+	.id = VIVID_CID_RADIO_TX_RDS_BLOCKIO,
-+	.name = "RDS Tx I/O Mode",
-+	.type = V4L2_CTRL_TYPE_MENU,
-+	.qmenu = vivid_ctrl_radio_rds_mode_strings,
-+	.max = 1,
-+	.def = 1,
-+};
-+
-+
-+
-+/* Video Loop Control */
-+
-+static int vivid_loop_out_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct vivid_dev *dev = container_of(ctrl->handler, struct vivid_dev, ctrl_hdl_loop_out);
-+
-+	switch (ctrl->id) {
-+	case VIVID_CID_LOOP_VIDEO:
-+		dev->loop_video = ctrl->val;
-+		vivid_update_quality(dev);
-+		vivid_send_source_change(dev, SVID);
-+		vivid_send_source_change(dev, HDMI);
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops vivid_loop_out_ctrl_ops = {
-+	.s_ctrl = vivid_loop_out_s_ctrl,
-+};
-+
-+static const struct v4l2_ctrl_config vivid_ctrl_loop_video = {
-+	.ops = &vivid_loop_out_ctrl_ops,
-+	.id = VIVID_CID_LOOP_VIDEO,
-+	.name = "Loop Video",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
-+
-+
-+
-+int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
-+		bool show_ccs_out, bool no_error_inj,
-+		bool has_sdtv, bool has_hdmi)
-+{
-+	struct v4l2_ctrl_handler *hdl_user_gen = &dev->ctrl_hdl_user_gen;
-+	struct v4l2_ctrl_handler *hdl_user_vid = &dev->ctrl_hdl_user_vid;
-+	struct v4l2_ctrl_handler *hdl_user_aud = &dev->ctrl_hdl_user_aud;
-+	struct v4l2_ctrl_handler *hdl_streaming = &dev->ctrl_hdl_streaming;
-+	struct v4l2_ctrl_handler *hdl_sdtv_cap = &dev->ctrl_hdl_sdtv_cap;
-+	struct v4l2_ctrl_handler *hdl_loop_out = &dev->ctrl_hdl_loop_out;
-+	struct v4l2_ctrl_handler *hdl_vid_cap = &dev->ctrl_hdl_vid_cap;
-+	struct v4l2_ctrl_handler *hdl_vid_out = &dev->ctrl_hdl_vid_out;
-+	struct v4l2_ctrl_handler *hdl_vbi_cap = &dev->ctrl_hdl_vbi_cap;
-+	struct v4l2_ctrl_handler *hdl_vbi_out = &dev->ctrl_hdl_vbi_out;
-+	struct v4l2_ctrl_handler *hdl_radio_rx = &dev->ctrl_hdl_radio_rx;
-+	struct v4l2_ctrl_handler *hdl_radio_tx = &dev->ctrl_hdl_radio_tx;
-+	struct v4l2_ctrl_handler *hdl_sdr_cap = &dev->ctrl_hdl_sdr_cap;
-+	struct v4l2_ctrl_config vivid_ctrl_dv_timings = {
-+		.ops = &vivid_vid_cap_ctrl_ops,
-+		.id = VIVID_CID_DV_TIMINGS,
-+		.name = "DV Timings",
-+		.type = V4L2_CTRL_TYPE_MENU,
-+	};
-+	int i;
-+
-+	v4l2_ctrl_handler_init(hdl_user_gen, 10);
-+	v4l2_ctrl_handler_init(hdl_user_vid, 9);
-+	v4l2_ctrl_handler_init(hdl_user_aud, 2);
-+	v4l2_ctrl_handler_init(hdl_streaming, 8);
-+	v4l2_ctrl_handler_init(hdl_sdtv_cap, 2);
-+	v4l2_ctrl_handler_init(hdl_loop_out, 1);
-+	v4l2_ctrl_handler_init(hdl_vid_cap, 55);
-+	v4l2_ctrl_handler_init(hdl_vid_out, 26);
-+	v4l2_ctrl_handler_init(hdl_vbi_cap, 21);
-+	v4l2_ctrl_handler_init(hdl_vbi_out, 19);
-+	v4l2_ctrl_handler_init(hdl_radio_rx, 17);
-+	v4l2_ctrl_handler_init(hdl_radio_tx, 17);
-+	v4l2_ctrl_handler_init(hdl_sdr_cap, 18);
-+
-+	/* User Controls */
-+	dev->volume = v4l2_ctrl_new_std(hdl_user_aud, NULL,
-+		V4L2_CID_AUDIO_VOLUME, 0, 255, 1, 200);
-+	dev->mute = v4l2_ctrl_new_std(hdl_user_aud, NULL,
-+		V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
-+	if (dev->has_vid_cap) {
-+		dev->brightness = v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
-+			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
-+		for (i = 0; i < MAX_INPUTS; i++)
-+			dev->input_brightness[i] = 128;
-+		dev->contrast = v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
-+			V4L2_CID_CONTRAST, 0, 255, 1, 128);
-+		dev->saturation = v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
-+			V4L2_CID_SATURATION, 0, 255, 1, 128);
-+		dev->hue = v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
-+			V4L2_CID_HUE, -128, 128, 1, 0);
-+		v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
-+			V4L2_CID_HFLIP, 0, 1, 1, 0);
-+		v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
-+			V4L2_CID_VFLIP, 0, 1, 1, 0);
-+		dev->autogain = v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
-+			V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
-+		dev->gain = v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
-+			V4L2_CID_GAIN, 0, 255, 1, 100);
-+		dev->alpha = v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
-+			V4L2_CID_ALPHA_COMPONENT, 0, 255, 1, 0);
-+	}
-+	dev->button = v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_button, NULL);
-+	dev->int32 = v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_int32, NULL);
-+	dev->int64 = v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_int64, NULL);
-+	dev->boolean = v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_boolean, NULL);
-+	dev->menu = v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_menu, NULL);
-+	dev->string = v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_string, NULL);
-+	dev->bitmask = v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_bitmask, NULL);
-+	dev->int_menu = v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_int_menu, NULL);
-+
-+	if (dev->has_vid_cap) {
-+		/* Image Processing Controls */
-+		dev->test_pattern = v4l2_ctrl_new_std_menu_items(hdl_vid_cap,
-+			&vivid_vid_cap_ctrl_ops, V4L2_CID_TEST_PATTERN,
-+			TPG_PAT_NOISE, 0, 0, tpg_pattern_strings);
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_perc_fill, NULL);
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_hor_movement, NULL);
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_vert_movement, NULL);
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_osd_mode, NULL);
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_show_border, NULL);
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_show_square, NULL);
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_hflip, NULL);
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_vflip, NULL);
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_insert_sav, NULL);
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_insert_eav, NULL);
-+		if (show_ccs_cap) {
-+			dev->ctrl_has_crop_cap = v4l2_ctrl_new_custom(hdl_vid_cap,
-+				&vivid_ctrl_has_crop_cap, NULL);
-+			dev->ctrl_has_compose_cap = v4l2_ctrl_new_custom(hdl_vid_cap,
-+				&vivid_ctrl_has_compose_cap, NULL);
-+			dev->ctrl_has_scaler_cap = v4l2_ctrl_new_custom(hdl_vid_cap,
-+				&vivid_ctrl_has_scaler_cap, NULL);
-+		}
-+
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_tstamp_src, NULL);
-+		dev->colorspace = v4l2_ctrl_new_custom(hdl_vid_cap,
-+			&vivid_ctrl_colorspace, NULL);
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_alpha_mode, NULL);
-+	}
-+
-+	if (dev->has_vid_out && show_ccs_out) {
-+		dev->ctrl_has_crop_out = v4l2_ctrl_new_custom(hdl_vid_out,
-+			&vivid_ctrl_has_crop_out, NULL);
-+		dev->ctrl_has_compose_out = v4l2_ctrl_new_custom(hdl_vid_out,
-+			&vivid_ctrl_has_compose_out, NULL);
-+		dev->ctrl_has_scaler_out = v4l2_ctrl_new_custom(hdl_vid_out,
-+			&vivid_ctrl_has_scaler_out, NULL);
-+	}
-+
-+	/*
-+	 * Testing this driver with v4l2-compliance will trigger the error
-+	 * injection controls, and after that nothing will work as expected.
-+	 * So we have a module option to drop these error injecting controls
-+	 * allowing us to run v4l2_compliance again.
-+	 */
-+	if (!no_error_inj) {
-+		v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_disconnect, NULL);
-+		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_dqbuf_error, NULL);
-+		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_perc_dropped, NULL);
-+		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_queue_setup_error, NULL);
-+		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_buf_prepare_error, NULL);
-+		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_start_streaming_error, NULL);
-+		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_queue_error, NULL);
-+		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_seq_wrap, NULL);
-+		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_time_wrap, NULL);
-+	}
-+
-+	if (has_sdtv && (dev->has_vid_cap || dev->has_vbi_cap)) {
-+		if (dev->has_vid_cap)
-+			v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_std_aspect_ratio, NULL);
-+		dev->ctrl_std_signal_mode = v4l2_ctrl_new_custom(hdl_sdtv_cap,
-+			&vivid_ctrl_std_signal_mode, NULL);
-+		dev->ctrl_standard = v4l2_ctrl_new_custom(hdl_sdtv_cap,
-+			&vivid_ctrl_standard, NULL);
-+		if (dev->ctrl_std_signal_mode)
-+			v4l2_ctrl_cluster(2, &dev->ctrl_std_signal_mode);
-+		if (dev->has_raw_vbi_cap)
-+			v4l2_ctrl_new_custom(hdl_vbi_cap, &vivid_ctrl_vbi_cap_interlaced, NULL);
-+	}
-+
-+	if (has_hdmi && dev->has_vid_cap) {
-+		dev->ctrl_dv_timings_signal_mode = v4l2_ctrl_new_custom(hdl_vid_cap,
-+					&vivid_ctrl_dv_timings_signal_mode, NULL);
-+
-+		vivid_ctrl_dv_timings.max = dev->query_dv_timings_size - 1;
-+		vivid_ctrl_dv_timings.qmenu =
-+			(const char * const *)dev->query_dv_timings_qmenu;
-+		dev->ctrl_dv_timings = v4l2_ctrl_new_custom(hdl_vid_cap,
-+			&vivid_ctrl_dv_timings, NULL);
-+		if (dev->ctrl_dv_timings_signal_mode)
-+			v4l2_ctrl_cluster(2, &dev->ctrl_dv_timings_signal_mode);
-+
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_dv_timings_aspect_ratio, NULL);
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_max_edid_blocks, NULL);
-+		dev->real_rgb_range_cap = v4l2_ctrl_new_custom(hdl_vid_cap,
-+			&vivid_ctrl_limited_rgb_range, NULL);
-+		dev->rgb_range_cap = v4l2_ctrl_new_std_menu(hdl_vid_cap,
-+			&vivid_vid_cap_ctrl_ops,
-+			V4L2_CID_DV_RX_RGB_RANGE, V4L2_DV_RGB_RANGE_FULL,
-+			0, V4L2_DV_RGB_RANGE_AUTO);
-+	}
-+	if (has_hdmi && dev->has_vid_out) {
-+		/*
-+		 * We aren't doing anything with this at the moment, but
-+		 * HDMI outputs typically have this controls.
-+		 */
-+		dev->ctrl_tx_rgb_range = v4l2_ctrl_new_std_menu(hdl_vid_out, NULL,
-+			V4L2_CID_DV_TX_RGB_RANGE, V4L2_DV_RGB_RANGE_FULL,
-+			0, V4L2_DV_RGB_RANGE_AUTO);
-+		dev->ctrl_tx_mode = v4l2_ctrl_new_std_menu(hdl_vid_out, NULL,
-+			V4L2_CID_DV_TX_MODE, V4L2_DV_TX_MODE_HDMI,
-+			0, V4L2_DV_TX_MODE_HDMI);
-+	}
-+	if ((dev->has_vid_cap && dev->has_vid_out) ||
-+	    (dev->has_vbi_cap && dev->has_vbi_out))
-+		v4l2_ctrl_new_custom(hdl_loop_out, &vivid_ctrl_loop_video, NULL);
-+
-+	if (dev->has_fb)
-+		v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_clear_fb, NULL);
-+
-+	if (dev->has_radio_rx) {
-+		v4l2_ctrl_new_custom(hdl_radio_rx, &vivid_ctrl_radio_hw_seek_mode, NULL);
-+		v4l2_ctrl_new_custom(hdl_radio_rx, &vivid_ctrl_radio_hw_seek_prog_lim, NULL);
-+		v4l2_ctrl_new_custom(hdl_radio_rx, &vivid_ctrl_radio_rx_rds_blockio, NULL);
-+		v4l2_ctrl_new_custom(hdl_radio_rx, &vivid_ctrl_radio_rx_rds_rbds, NULL);
-+		v4l2_ctrl_new_std(hdl_radio_rx, &vivid_radio_rx_ctrl_ops,
-+			V4L2_CID_RDS_RECEPTION, 0, 1, 1, 1);
-+		dev->radio_rx_rds_pty = v4l2_ctrl_new_std(hdl_radio_rx,
-+			&vivid_radio_rx_ctrl_ops,
-+			V4L2_CID_RDS_RX_PTY, 0, 31, 1, 0);
-+		dev->radio_rx_rds_psname = v4l2_ctrl_new_std(hdl_radio_rx,
-+			&vivid_radio_rx_ctrl_ops,
-+			V4L2_CID_RDS_RX_PS_NAME, 0, 8, 8, 0);
-+		dev->radio_rx_rds_radiotext = v4l2_ctrl_new_std(hdl_radio_rx,
-+			&vivid_radio_rx_ctrl_ops,
-+			V4L2_CID_RDS_RX_RADIO_TEXT, 0, 64, 64, 0);
-+		dev->radio_rx_rds_ta = v4l2_ctrl_new_std(hdl_radio_rx,
-+			&vivid_radio_rx_ctrl_ops,
-+			V4L2_CID_RDS_RX_TRAFFIC_ANNOUNCEMENT, 0, 1, 1, 0);
-+		dev->radio_rx_rds_tp = v4l2_ctrl_new_std(hdl_radio_rx,
-+			&vivid_radio_rx_ctrl_ops,
-+			V4L2_CID_RDS_RX_TRAFFIC_PROGRAM, 0, 1, 1, 0);
-+		dev->radio_rx_rds_ms = v4l2_ctrl_new_std(hdl_radio_rx,
-+			&vivid_radio_rx_ctrl_ops,
-+			V4L2_CID_RDS_RX_MUSIC_SPEECH, 0, 1, 1, 1);
-+	}
-+	if (dev->has_radio_tx) {
-+		v4l2_ctrl_new_custom(hdl_radio_tx,
-+			&vivid_ctrl_radio_tx_rds_blockio, NULL);
-+		dev->radio_tx_rds_pi = v4l2_ctrl_new_std(hdl_radio_tx,
-+			&vivid_radio_tx_ctrl_ops,
-+			V4L2_CID_RDS_TX_PI, 0, 0xffff, 1, 0x8088);
-+		dev->radio_tx_rds_pty = v4l2_ctrl_new_std(hdl_radio_tx,
-+			&vivid_radio_tx_ctrl_ops,
-+			V4L2_CID_RDS_TX_PTY, 0, 31, 1, 3);
-+		dev->radio_tx_rds_psname = v4l2_ctrl_new_std(hdl_radio_tx,
-+			&vivid_radio_tx_ctrl_ops,
-+			V4L2_CID_RDS_TX_PS_NAME, 0, 8, 8, 0);
-+		if (dev->radio_tx_rds_psname)
-+			v4l2_ctrl_s_ctrl_string(dev->radio_tx_rds_psname, "VIVID-TX");
-+		dev->radio_tx_rds_radiotext = v4l2_ctrl_new_std(hdl_radio_tx,
-+			&vivid_radio_tx_ctrl_ops,
-+			V4L2_CID_RDS_TX_RADIO_TEXT, 0, 64 * 2, 64, 0);
-+		if (dev->radio_tx_rds_radiotext)
-+			v4l2_ctrl_s_ctrl_string(dev->radio_tx_rds_radiotext,
-+			       "This is a VIVID default Radio Text template text, change at will");
-+		dev->radio_tx_rds_mono_stereo = v4l2_ctrl_new_std(hdl_radio_tx,
-+			&vivid_radio_tx_ctrl_ops,
-+			V4L2_CID_RDS_TX_MONO_STEREO, 0, 1, 1, 1);
-+		dev->radio_tx_rds_art_head = v4l2_ctrl_new_std(hdl_radio_tx,
-+			&vivid_radio_tx_ctrl_ops,
-+			V4L2_CID_RDS_TX_ARTIFICIAL_HEAD, 0, 1, 1, 0);
-+		dev->radio_tx_rds_compressed = v4l2_ctrl_new_std(hdl_radio_tx,
-+			&vivid_radio_tx_ctrl_ops,
-+			V4L2_CID_RDS_TX_COMPRESSED, 0, 1, 1, 0);
-+		dev->radio_tx_rds_dyn_pty = v4l2_ctrl_new_std(hdl_radio_tx,
-+			&vivid_radio_tx_ctrl_ops,
-+			V4L2_CID_RDS_TX_DYNAMIC_PTY, 0, 1, 1, 0);
-+		dev->radio_tx_rds_ta = v4l2_ctrl_new_std(hdl_radio_tx,
-+			&vivid_radio_tx_ctrl_ops,
-+			V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT, 0, 1, 1, 0);
-+		dev->radio_tx_rds_tp = v4l2_ctrl_new_std(hdl_radio_tx,
-+			&vivid_radio_tx_ctrl_ops,
-+			V4L2_CID_RDS_TX_TRAFFIC_PROGRAM, 0, 1, 1, 1);
-+		dev->radio_tx_rds_ms = v4l2_ctrl_new_std(hdl_radio_tx,
-+			&vivid_radio_tx_ctrl_ops,
-+			V4L2_CID_RDS_TX_MUSIC_SPEECH, 0, 1, 1, 1);
-+	}
-+	if (hdl_user_gen->error)
-+		return hdl_user_gen->error;
-+	if (hdl_user_vid->error)
-+		return hdl_user_vid->error;
-+	if (hdl_user_aud->error)
-+		return hdl_user_aud->error;
-+	if (hdl_streaming->error)
-+		return hdl_streaming->error;
-+	if (hdl_sdr_cap->error)
-+		return hdl_sdr_cap->error;
-+	if (hdl_loop_out->error)
-+		return hdl_loop_out->error;
-+
-+	if (dev->autogain)
-+		v4l2_ctrl_auto_cluster(2, &dev->autogain, 0, true);
-+
-+	if (dev->has_vid_cap) {
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_gen, NULL);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_vid, NULL);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_aud, NULL);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_streaming, NULL);
-+		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_sdtv_cap, NULL);
-+		if (hdl_vid_cap->error)
-+			return hdl_vid_cap->error;
-+		dev->vid_cap_dev.ctrl_handler = hdl_vid_cap;
-+	}
-+	if (dev->has_vid_out) {
-+		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_gen, NULL);
-+		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_aud, NULL);
-+		v4l2_ctrl_add_handler(hdl_vid_out, hdl_streaming, NULL);
-+		v4l2_ctrl_add_handler(hdl_vid_out, hdl_loop_out, NULL);
-+		if (hdl_vid_out->error)
-+			return hdl_vid_out->error;
-+		dev->vid_out_dev.ctrl_handler = hdl_vid_out;
-+	}
-+	if (dev->has_vbi_cap) {
-+		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_user_gen, NULL);
-+		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_streaming, NULL);
-+		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_sdtv_cap, NULL);
-+		if (hdl_vbi_cap->error)
-+			return hdl_vbi_cap->error;
-+		dev->vbi_cap_dev.ctrl_handler = hdl_vbi_cap;
-+	}
-+	if (dev->has_vbi_out) {
-+		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_user_gen, NULL);
-+		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_streaming, NULL);
-+		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_loop_out, NULL);
-+		if (hdl_vbi_out->error)
-+			return hdl_vbi_out->error;
-+		dev->vbi_out_dev.ctrl_handler = hdl_vbi_out;
-+	}
-+	if (dev->has_radio_rx) {
-+		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_gen, NULL);
-+		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_aud, NULL);
-+		if (hdl_radio_rx->error)
-+			return hdl_radio_rx->error;
-+		dev->radio_rx_dev.ctrl_handler = hdl_radio_rx;
-+	}
-+	if (dev->has_radio_tx) {
-+		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_gen, NULL);
-+		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_aud, NULL);
-+		if (hdl_radio_tx->error)
-+			return hdl_radio_tx->error;
-+		dev->radio_tx_dev.ctrl_handler = hdl_radio_tx;
-+	}
-+	if (dev->has_sdr_cap) {
-+		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_user_gen, NULL);
-+		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_streaming, NULL);
-+		if (hdl_sdr_cap->error)
-+			return hdl_sdr_cap->error;
-+		dev->sdr_cap_dev.ctrl_handler = hdl_sdr_cap;
-+	}
-+	return 0;
-+}
-+
-+void vivid_free_controls(struct vivid_dev *dev)
-+{
-+	v4l2_ctrl_handler_free(&dev->ctrl_hdl_vid_cap);
-+	v4l2_ctrl_handler_free(&dev->ctrl_hdl_vid_out);
-+	v4l2_ctrl_handler_free(&dev->ctrl_hdl_vbi_cap);
-+	v4l2_ctrl_handler_free(&dev->ctrl_hdl_vbi_out);
-+	v4l2_ctrl_handler_free(&dev->ctrl_hdl_radio_rx);
-+	v4l2_ctrl_handler_free(&dev->ctrl_hdl_radio_tx);
-+	v4l2_ctrl_handler_free(&dev->ctrl_hdl_sdr_cap);
-+	v4l2_ctrl_handler_free(&dev->ctrl_hdl_user_gen);
-+	v4l2_ctrl_handler_free(&dev->ctrl_hdl_user_vid);
-+	v4l2_ctrl_handler_free(&dev->ctrl_hdl_user_aud);
-+	v4l2_ctrl_handler_free(&dev->ctrl_hdl_streaming);
-+	v4l2_ctrl_handler_free(&dev->ctrl_hdl_sdtv_cap);
-+	v4l2_ctrl_handler_free(&dev->ctrl_hdl_loop_out);
-+}
-diff --git a/drivers/media/platform/vivid/vivid-ctrls.h b/drivers/media/platform/vivid/vivid-ctrls.h
-new file mode 100644
-index 0000000..9bcca9d
---- /dev/null
-+++ b/drivers/media/platform/vivid/vivid-ctrls.h
-@@ -0,0 +1,34 @@
-+/*
-+ * vivid-ctrls.h - control support functions.
-+ *
-+ * Copyright 2014 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ *
-+ * This program is free software; you may redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef _VIVID_CTRLS_H_
-+#define _VIVID_CTRLS_H_
-+
-+enum vivid_hw_seek_modes {
-+	VIVID_HW_SEEK_BOUNDED,
-+	VIVID_HW_SEEK_WRAP,
-+	VIVID_HW_SEEK_BOTH,
-+};
-+
-+int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
-+		bool show_ccs_out, bool no_error_inj,
-+		bool has_sdtv, bool has_hdmi);
-+void vivid_free_controls(struct vivid_dev *dev);
-+
-+#endif
--- 
-2.0.1
+>> +
+>> +static int si2165_write(struct si2165_state *state, const u16 reg,
+>> +               const u8 *src, const int count)
+>> +{
+>> +    int ret;
+>> +    struct i2c_msg msg;
+>> +    u8 buf[2 + 4]; /* write a maximum of 4 bytes of data */
+> 
+> Here should be empty line between variable definitions and code. IIRC
+> latest checkpatch.pl catch that.
+> 
+done.
+The version from git://linuxtv.org/media_tree.git does not have this
+warning.
 
+>> +    if (count + 2 > sizeof(buf)) {
+>> +        dev_warn(&state->i2c->dev,
+>> +              "%s: i2c wr reg=%04x: count=%d is too big!\n",
+>> +              KBUILD_MODNAME, reg, count);
+>> +        return -EINVAL;
+>> +    }
+>> +    buf[0] = reg >> 8;
+>> +    buf[1] = reg & 0xff;
+>> +    memcpy(buf + 2, src, count);
+>> +
+>> +    msg.addr = state->config.i2c_addr;
+>> +    msg.flags = 0;
+>> +    msg.buf = buf;
+>> +    msg.len = count + 2;
+>> +
+>> +    if (debug & DEBUG_I2C_WRITE) {
+>> +        int i;
+>> +        deb_i2c_write("reg: 0x%04x, data:", reg);
+>> +        for (i = 0; i < count; i++)
+>> +            printk(KERN_CONT " %02x", src[i]);
+>> +        printk(KERN_CONT "\n");
+>> +    }
+>> +
+>> +    ret = i2c_transfer(state->i2c, &msg, 1);
+>> +
+>> +    if (ret != 1) {
+>> +        dev_err(&state->i2c->dev, "%s: ret == %d\n", __func__, ret);
+>> +        return -EREMOTEIO;
+>> +    }
+> 
+> Could be nice to return error from i2c_transfer().
+> 
+done.
+
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static int si2165_read(struct si2165_state *state,
+>> +               const u16 reg, u8 *val, const size_t count)
+> 
+> You used int on si2165_write(), try to make decision which one is
+> correct and keep it.
+> 
+changed to int.
+
+>> +{
+>> +    int ret;
+>> +    u8 reg_buf[] = { reg >> 8, reg & 0xff };
+>> +    struct i2c_msg msg[] = {
+>> +        { .addr = state->config.i2c_addr,
+>> +          .flags = 0, .buf = reg_buf, .len = 2 },
+>> +        { .addr = state->config.i2c_addr,
+>> +          .flags = I2C_M_RD, .buf = val, .len = count },
+>> +    };
+>> +
+>> +    ret = i2c_transfer(state->i2c, msg, 2);
+>> +
+>> +    if (ret != 2) {
+>> +        dev_err(&state->i2c->dev, "%s: error (addr %02x reg %04x
+>> error (ret == %i)\n",
+>> +            __func__, state->config.i2c_addr, reg, ret);
+>> +        if (ret < 0)
+>> +            return ret;
+>> +        else
+>> +            return -EREMOTEIO;
+>> +    }
+>> +
+>> +    if (debug & DEBUG_I2C_READ) {
+>> +        int i;
+>> +        deb_i2c_read("reg: 0x%04x, data:", reg);
+>> +        for (i = 0; i < count; i++)
+>> +            printk(KERN_CONT " %02x", val[i]);
+>> +        printk(KERN_CONT "\n");
+>> +    }
+> 
+> There is formatter %pH (or something like) for that.
+> 
+Done, it is "%*ph".
+
+>> +    return 0;
+>> +}
+>> +
+>> +static int si2165_readreg8(struct si2165_state *state,
+>> +               const u16 reg, u8 *val)
+>> +{
+>> +    int ret;
+>> +    ret = si2165_read(state, reg, val, 1);
+>> +    deb_readreg("R(0x%04x)=0x%02x\n", reg, *val);
+>> +    return ret;
+>> +}
+>> +
+>> +static int si2165_readreg16(struct si2165_state *state,
+>> +               const u16 reg, u16 *val)
+>> +{
+>> +    u8 buf[2];
+>> +    int ret = si2165_read(state, reg, buf, 2);
+>> +    *val = buf[0] | buf[1] << 8;
+>> +    deb_readreg("R(0x%04x)=0x%04x\n", reg, *val);
+>> +    return ret;
+>> +}
+>> +
+>> +#if 0
+>> +static int si2165_readreg24(struct si2165_state *state,
+>> +               const u16 reg, u32 *val)
+>> +{
+>> +    u8 buf[3];
+>> +    int ret = si2165_read(state, reg, buf, 3);
+>> +    *val = buf[0] | buf[1] << 8 | buf[2] << 16;
+>> +    deb_readreg("R(0x%04x)=0x%06x\n", reg, *val);
+>> +    return ret;
+>> +}
+>> +
+>> +static int si2165_readreg32(struct si2165_state *state,
+>> +               const u16 reg, u32 *val)
+>> +{
+>> +    u8 buf[4];
+>> +    int ret = si2165_read(state, reg, buf, 4);
+>> +    *val = buf[0] | buf[1] << 8 | buf[2] << 16 | buf[3] << 24;
+>> +    deb_readreg("R(0x%04x)=0x%08x\n", reg, *val);
+>> +    return ret;
+>> +}
+>> +#endif
+> 
+> Personally, I don't like presenting shorthand functions for multi-byte
+> readings like that. But if you think it is good then leave it.
+> 
+This is for combining the read bytes to correct order.
+>> +
+>> +
+>> +static int si2165_writereg8(struct si2165_state *state, const u16
+>> reg, u8 val)
+>> +{
+>> +    return si2165_write(state, reg, &val, 1);
+>> +}
+>> +
+>> +static int si2165_writereg16(struct si2165_state *state, const u16
+>> reg, u16 val)
+>> +{
+>> +    u8 buf[2] = { val & 0xff, (val >> 8) & 0xff };
+>> +    return si2165_write(state, reg, buf, 2);
+>> +}
+>> +
+>> +static int si2165_writereg24(struct si2165_state *state, const u16
+>> reg, u32 val)
+>> +{
+>> +    u8 buf[3] = { val & 0xff, (val >> 8) & 0xff, (val >> 16) & 0xff };
+>> +    return si2165_write(state, reg, buf, 3);
+>> +}
+>> +
+>> +static int si2165_writereg32(struct si2165_state *state, const u16
+>> reg, u32 val)
+>> +{
+>> +    u8 buf[4] = {
+>> +        val & 0xff,
+>> +        (val >> 8) & 0xff,
+>> +        (val >> 16) & 0xff,
+>> +        (val >> 24) & 0xff
+>> +    };
+>> +    return si2165_write(state, reg, buf, 4);
+>> +}
+>> +
+>> +static int si2165_writereg_mask8(struct si2165_state *state, const
+>> u16 reg,
+>> +                 u8 val, u8 mask)
+>> +{
+>> +    int ret;
+>> +    u8 tmp;
+>> +
+>> +    if (mask != 0xff) {
+>> +        ret = si2165_readreg8(state, reg, &tmp);
+>> +        if (ret < 0)
+>> +            goto err;
+>> +
+>> +        val &= mask;
+>> +        tmp &= ~mask;
+>> +        val |= tmp;
+>> +    }
+>> +
+>> +    ret = si2165_writereg8(state, reg, val);
+>> +err:
+>> +    return ret;
+>> +}
+>> +
+>> +static int si2165_get_tune_settings(struct dvb_frontend *fe,
+>> +                    struct dvb_frontend_tune_settings *s)
+>> +{
+>> +    s->min_delay_ms = 1000;
+>> +    return 0;
+>> +}
+>> +
+>> +static int si2165_init_pll(struct si2165_state *state)
+>> +{
+>> +    u8 ref_freq_MHz = state->config.ref_freq_MHz;
+> 
+> 1MHz is quite big reference frequency step?
+It was because short datasheet of si2165 says: "4, 16, 20, 24, or 27 MHz
+clock/crystal reference"
+I thought 1MHz precision is enough.
+The two devices I currently support both use a 16MHz chrystal.
+But I wanted to have it because the followup device (930C-HD with
+vid=0xb131) has in the inf file: "24MHz clock from Si2158 to Si2165 demod".
+Now I changed it to 1Hz precision as some other drivers do.
+
+> 
+>> +    /* u8 val; */
+> 
+> excessive comment
+removed.
+> 
+>> +    u8 divr = 1; /* 1..7 */
+>> +    u8 divp = 1; /* only 1 or 4 */
+>> +    u8 divn = 56; /* 1..63 */
+>> +
+> 
+> excessive newline
+removed.
+> 
+>> +    u8 divm = 8;
+>> +    u8 divl = 12;
+>> +    u8 buf[4];
+>> +
+>> +    /* ref_freq / divr must be between 4 and 16 MHz */
+>> +    if (ref_freq_MHz > 16)
+>> +        divr = 2;
+>> +
+>> +    /* now select divn and divp such that fvco is in 1624..1824 MHz */
+>> +    if (1624 * divr > ref_freq_MHz * 2 * 63)
+>> +        divp = 4;
+>> +
+>> +    /* to get exactly the same as the windows driver does */
+>> +    if (ref_freq_MHz == 16)
+>> +        divn = 56;
+>> +    else {
+>> +        /* is this already correct regarding rounding? */
+>> +        divn = 1624 * divr / (ref_freq_MHz * 2 * divp);
+>> +    }
+> 
+> That logic does not look correct. PLL dividers are usually calculated in
+> a order:
+> 1) calculate reference divider (divREF)
+> 2) calculate output divider (divOUT)
+> 3) calculate VCO freq (fVCO = fOUT * divOUT)
+> 4) calculate N & NF, pllN = fVCO * divREF / fREF;
+> 
+> N = interger part, NF = fractional part. NF only when PLL is Fractional N.
+> 
+> Biggest thing looks wrong is that: IF (fREF == 16MHz) THEN pllN = 56.
+> 
+that was just modifying the value in the valid range to yield exactly
+the same result and not just a valid one.
+
+For now I return the exact same values as windows hardcoded. The
+calculation still is there.
+
+> 
+> There should be parenthesis for none or both conditions. checkpatch.pl?
+> 
+Removed them.
+It did not say anything about this.
+
+> 
+>> +
+>> +    /* adc_clk and sys_clk depend on xtal and pll settings */
+>> +    /* only calculate once as long as the pll settings are not
+>> modified */
+>> +    if (state->adc_clk == 0) {
+>> +        u32 fvco_hz = ref_freq_MHz * 1000000ull / divr
+>> +                * 2 * divn * divp;
+>> +        state->adc_clk = fvco_hz / (divm * 4);
+>> +        state->sys_clk = fvco_hz / (divl * 2);
+>> +    }
+>> +
+>> +    /* write pll registers 0x00a0..0x00a3 at once */
+>> +    buf[0] = divl;
+>> +    buf[1] = divm;
+>> +    buf[2] = (divn & 0x3f) | ((divp == 1) ? 0x40 : 0x00) | 0x80;
+>> +    buf[3] = divr;
+>> +    si2165_write(state, 0x00a0 /* first pll reg */, buf, 4);
+> 
+> That kinf of comments in a parameter list do not look typical for kernel
+> style.
+> 
+I changed it.
+>> +
+>> +    return 0;
+>> +}
+> 
+> Also that function is called from init(), maybe you could inline all
+> that stuff to that function instead.
+> 
+I tried to keep the functions somewhat easy to overview.
+
+>> +
+>> +static bool si2165_wait_init_done(struct si2165_state *state)
+>> +{
+>> +    int ret = false;
+>> +    u8 val;
+>> +    int i;
+>> +    for (i = 0; i < 10; i++) {
+>> +        si2165_readreg8(state, 0x0054 /* init_done */, &val);
+>> +        if (val == 0x01) {
+>> +            ret = true;
+>> +            break;
+>> +        }
+>> +        msleep(1);
+> 
+> Too small msleep(), see timers howto. Also checkpatch.pl should be able
+> to find that too, you haven't ran it.
+> 
+well, this was not listed.
+I don't yet know exactly how to solve it here.
+Datasheet says to either poll or wait for around 5ms (depending on
+sys_clk, but I have no clue about the dependency).
+
+checkpatch had only these kind of warnings:
+  WARNING: line over 80 characters
+  WARNING: msleep < 20ms can sleep for up to 20ms; see
+Documentation/timers/timers-howto.txt
+  WARNING: Prefer [subsystem eg: netdev]_cont([subsystem]dev, ... then
+dev_cont(dev, ... then pr_cont(...  to printk(KERN_CONT ...
+  WARNING: Prefer [subsystem eg: netdev]_dbg([subsystem]dev, ... then
+dev_dbg(dev, ... then pr_debug(...  to printk(KERN_DEBUG ...
+  WARNING: suspect code indent for conditional statements (8, 18)
+
+yeah, I replace msleep by usleep_range.
+
+>> +    }
+>> +    return ret;
+>> +}
+> 
+> Whole function is called from one place and it is very trivial, so that
+> function is mostly reduntant. Move logic to where it is now called.
+> Also, use jiffies for timeouts like that. See si2168 for example.
+> 
+> 
+>> +
+>> +static int si2165_upload_firmware_block(struct si2165_state *state,
+>> const u8 *data, u32 len, u32 *poffset, u32 block_count)
+>> +{
+>> +    u8 buf_ctrl[4] = { 0x00, 0x00, 0x00, 0xc0 };
+>> +    u8 wordcount;
+>> +    u32 cur_block = 0;
+>> +    u32 offset = poffset ? *poffset : 0;
+>> +    if (len < 4)
+>> +        return -EINVAL;
+>> +    if (len % 4 != 0)
+>> +        return -EINVAL;
+>> +
+>> +    deb_fw_load("si2165_upload_firmware_block called with len=0x%x
+>> offset=0x%x blockcount=0x%x\n",
+>> +                len, offset, block_count);
+>> +    while (offset+12 <= len && cur_block < block_count) {
+>> +        deb_fw_load("si2165_upload_firmware_block in while len=0x%x
+>> offset=0x%x cur_block=0x%x blockcount=0x%x\n",
+>> +                    len, offset, cur_block, block_count);
+>> +        wordcount = data[offset];
+>> +        if (wordcount < 1 || data[offset+1] || data[offset+2] ||
+>> data[offset+3]) {
+>> +            dev_warn(&state->i2c->dev, "%s: bad fw data[0..3] = %02x
+>> %02x %02x %02x\n", KBUILD_MODNAME, data[0], data[1], data[2], data[3]);
+>> +            return -EINVAL;
+>> +        }
+>> +
+>> +        if (offset + 8 + wordcount * 4 > len) {
+>> +            dev_warn(&state->i2c->dev, "%s: len is too small for
+>> block len=%d, wordcount=%d\n", KBUILD_MODNAME, len, wordcount);
+>> +            return -EINVAL;
+>> +        }
+>> +
+>> +        buf_ctrl[0] = wordcount - 1;
+>> +
+>> +        si2165_write(state, 0x0364, buf_ctrl, 4);
+>> +        si2165_write(state, 0x0368, data+offset+4, 4);
+> 
+> CodingStyle. That driver has a lot of coding style mistakes ==> you must
+> run checkpatch.pl and fix all.
+> 
+>> +
+>> +        offset += 8;
+>> +
+>> +        while (wordcount > 0) {
+>> +            si2165_write(state, 0x36c, data+offset, 4);
+>> +            wordcount--;
+>> +            offset += 4;
+>> +        }
+>> +        cur_block++;
+>> +    }
+>> +
+>> +    deb_fw_load("si2165_upload_firmware_block after while len=0x%x
+>> offset=0x%x cur_block=0x%x blockcount=0x%x\n",
+>> +                len, offset, cur_block, block_count);
+>> +
+>> +    if (poffset)
+>> +        *poffset = offset;
+>> +
+>> +    deb_fw_load("si2165_upload_firmware_block returned offset=0x%x\n",
+>> +                offset);
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static int si2165_upload_firmware(struct si2165_state *state)
+>> +{
+>> +    /* int ret; */
+>> +    u8 val[3];
+>> +    u16 val16;
+>> +    int ret;
+>> +
+>> +    const struct firmware *fw = NULL;
+>> +    u8 *fw_file = SI2165_FIRMWARE;
+>> +    const u8 *data;
+>> +    u32 len;
+>> +    u32 offset;
+>> +    u8 patch_version;
+>> +    u8 block_count;
+>> +    u16 crc_expected;
+>> +
+>> +    /* request the firmware, this will block and timeout */
+>> +    ret = request_firmware(&fw, fw_file, state->i2c->dev.parent);
+>> +    if (ret) {
+>> +        dev_warn(&state->i2c->dev, "%s: firmare file '%s' not found\n",
+>> +                KBUILD_MODNAME, fw_file);
+>> +        goto err;
+>> +    }
+>> +
+>> +    data = fw->data;
+>> +    len = fw->size;
+>> +
+>> +    dev_info(&state->i2c->dev, "%s: downloading firmware from file
+>> '%s' size=%d\n",
+>> +            KBUILD_MODNAME, fw_file, len);
+>> +
+>> +    if (len % 4 != 0) {
+>> +        dev_warn(&state->i2c->dev, "%s: firmware size is not multiple
+>> of 4\n",
+>> +                KBUILD_MODNAME);
+>> +        ret = -EINVAL;
+>> +        goto err;
+>> +    }
+>> +
+>> +    /* check header (8 bytes) */
+>> +    if (len < 8) {
+>> +        dev_warn(&state->i2c->dev, "%s: firmware header is missing\n",
+>> +                KBUILD_MODNAME);
+>> +        ret = -EINVAL;
+>> +        goto err;
+>> +    }
+>> +
+>> +    if (data[0] != 1 || data[1] != 0) {
+>> +        dev_warn(&state->i2c->dev, "%s: firmware file version is
+>> wrong\n",
+>> +                KBUILD_MODNAME);
+>> +        ret = -EINVAL;
+>> +        goto err;
+>> +    }
+>> +
+>> +    patch_version = data[2];
+>> +    block_count = data[4];
+>> +    crc_expected = data[7] << 8 | data[6];
+>> +
+>> +    /* start uploading fw */
+>> +    si2165_writereg8(state, 0x0341 /*
+>> boot_done,rst_wdog_error,wdog_error */, 0x00);
+>> +    si2165_writereg8(state, 0x00c0 /* rst_all */, 0x00);
+>> +    si2165_readreg8(state, 0x0341 /*
+>> boot_done,rst_wdog_error,wdog_error */, val); /* returned 0x01 */
+>> +
+>> +    si2165_readreg8(state, 0x035c /* en_rst_error */, val); /*
+>> returned 0x03 */
+>> +    si2165_readreg8(state, 0x035c /* en_rst_error */, val); /*
+>> returned 0x03 */
+>> +    si2165_writereg8(state, 0x035c /* en_rst_error */, 0x02);
+>> +
+>> +    /* start right after the header */
+>> +    offset = 8;
+>> +
+>> +    dev_info(&state->i2c->dev, "%s: si2165_upload_firmware extracted
+>> patch_version=0x%02x, block_count=0x%02x, crc_expected=0x%04x\n",
+>> +                KBUILD_MODNAME, patch_version, block_count,
+>> crc_expected);
+>> +
+>> +    ret = si2165_upload_firmware_block(state, data, len, &offset, 1);
+>> +
+>> +    si2165_writereg8(state, 0x0344 /* patch_version */, patch_version);
+>> +
+>> +    ret = si2165_writereg8(state, 0x0379 /* rst_crc */, 0x01);
+>> +    if (ret)
+>> +        return ret;
+>> +
+>> +    ret = si2165_upload_firmware_block(state, data, len, &offset,
+>> block_count);
+>> +
+>> +    if (ret) {
+>> +        dev_err(&state->i2c->dev, "%s: firmare could not be uploaded\n",
+>> +                KBUILD_MODNAME);
+>> +        goto err;
+>> +    }
+>> +
+>> +    ret = si2165_readreg16(state, 0x037a /* crc */, &val16); /*
+>> returned 0xcc0a */
+>> +    if (ret)
+>> +        goto err;
+>> +
+>> +    if (val16 != crc_expected) {
+>> +        dev_err(&state->i2c->dev, "%s: firmware crc mismatch %04x !=
+>> %04x\n", KBUILD_MODNAME, val16, crc_expected);
+>> +        ret = -EINVAL;
+>> +        goto err;
+>> +    }
+>> +
+>> +    ret = si2165_upload_firmware_block(state, data, len, &offset, 5);
+>> +    if (ret)
+>> +        goto err;
+>> +
+>> +    if (len != offset) {
+>> +        dev_err(&state->i2c->dev, "%s: firmare len mismatch %04x !=
+>> %04x\n", KBUILD_MODNAME, len, offset);
+>> +        ret = -EINVAL;
+>> +        goto err;
+>> +    }
+>> +
+>> +    /* reset watchdog error register, using auto return value
+>> rst_wdog_error */
+>> +    si2165_writereg_mask8(state, 0x0341 /*
+>> boot_done,rst_wdog_error,wdog_error */, 0x02, 0x02);
+>> +
+>> +    /* enable reset on error */
+>> +    si2165_writereg_mask8(state, 0x035c /* en_rst_error */, 0x01, 0x01);
+>> +
+>> +    dev_info(&state->i2c->dev, "%s: fw load finished\n",
+>> KBUILD_MODNAME);
+>> +
+>> +    ret = 0;
+>> +    state->firmware_loaded = true;
+>> +err:
+>> +    if (fw) {
+>> +        release_firmware(fw);
+>> +        fw = NULL;
+>> +    }
+>> +
+>> +    return ret;
+>> +}
+> 
+> 
+> That firmware downloading looks overall very long a also a bit complex.
+> I didn't looked it through carefully. Maybe you could take a look to
+> si2168 or af9035 to see if that could be shorten.
+> 
+> 
+>> +
+>> +static int si2165_init_dsp(struct si2165_state *state)
+>> +{
+>> +    u8 val;
+>> +    u8 patch_version = 0x00;
+>> +
+>> +    si2165_readreg8(state, 0x0344 /* patch_version */,
+>> &patch_version); /* returned 0x00 */
+>> +
+>> +    si2165_writereg8(state, 0x00cb, 0x00);
+>> +    if (patch_version == 0x00)
+>> +        si2165_writereg8(state, 0x0344 /* patch_version */, 0x00);
+>> +
+>> +    si2165_writereg32(state, 0x0348 /* dsp_addr_jump */, 0xf4000000);
+>> +    si2165_readreg8(state, 0x0341 /*
+>> boot_done,rst_wdog_error,wdog_error */, &val); /* returned 0x01 */
+>> +
+>> +    if (patch_version == 0x00)
+>> +        si2165_upload_firmware(state);
+>> +
+>> +    return 0;
+>> +}
+> 
+> Maybe that trivial function could be integrated to where it is called.
+>
+inlined
+
+>> +
+>> +static int si2165_init(struct dvb_frontend *fe)
+>> +{
+>> +    struct si2165_state *state = fe->demodulator_priv;
+>> +    u8 val;
+>> +
+>> +    dprintk("%s: called\n", __func__);
+>> +
+>> +    /* powerup */
+>> +    si2165_writereg8(state, 0x0000 /* chip_mode */,
+>> state->config.chip_mode);
+>> +    si2165_writereg8(state, 0x0104 /* dsp_clock_enable */, 0x01);
+>> +    si2165_readreg8(state, 0x0000 /* chip_mode */, &val);
+>> +    if (val != state->config.chip_mode) {
+>> +        dev_err(&state->i2c->dev, "%s: could not set chip_mode\n",
+>> +            KBUILD_MODNAME);
+>> +        return -EINVAL;
+>> +    }
+>> +
+>> +    si2165_writereg8(state, 0x018b /* agc_if_tri */, 0x00);
+>> +    si2165_writereg8(state, 0x0190 /* agc_if_slr */, 0x01);
+>> +    si2165_readreg8(state, 0x0170 /* agc2_{freeze,pola,buftype} */,
+>> &val); /* returned 0x00 */
+>> +    si2165_writereg8(state, 0x0170 /* agc2_{freeze,pola,buftype} */,
+>> 0x00);
+>> +    si2165_readreg8(state, 0x0170 /* agc2_{freeze,pola,buftype} */,
+>> &val); /* returned 0x00 */
+>> +    si2165_writereg8(state, 0x0170 /* agc2_{freeze,pola,buftype} */,
+>> 0x00);
+>> +    si2165_writereg8(state, 0x0171 /* agc2_clkdiv */, 0x07);
+>> +    si2165_writereg8(state, 0x0646 /* rssi_pad_ctrl */, 0x00);
+>> +    si2165_readreg8(state, 0x0641 /*
+>> en_rssi,start_rssi,rssi_update_time */, &val); /* returned 0x00 */
+>> +    si2165_writereg8(state, 0x0641 /*
+>> en_rssi,start_rssi,rssi_update_time */, 0x00);
+>> +    si2165_writereg8(state, 0x00e0 /* adc_sampling_mode */, 0x00);
+>> +
+>> +    si2165_init_pll(state);
+>> +
+>> +    si2165_writereg8(state, 0x0050 /* chip_init */, 0x01);
+>> +    si2165_writereg8(state, 0x0096 /* start_init */, 0x01);
+>> +    if (!si2165_wait_init_done(state)) {
+>> +        dev_err(&state->i2c->dev, "%s: init_done was not set\n",
+>> +            KBUILD_MODNAME);
+>> +        return -EINVAL;
+>> +    }
+>> +
+>> +    si2165_writereg8(state, 0x0050 /* chip_init */, 0x00);
+>> +
+>> +    si2165_writereg16(state, 0x0470 /* ber_pkt */, 0x7530);
+>> +
+>> +    si2165_init_dsp(state);
+>> +
+>> +    si2165_writereg8(state, 0x012a /* adc_ri1 */, 0x46);
+>> +    si2165_writereg8(state, 0x012c /* adc_ri3 */, 0x00);
+>> +    si2165_writereg8(state, 0x012e /* adc_ri5 */, 0x0a);
+>> +    si2165_writereg8(state, 0x012f /* adc_ri6 */, 0xff);
+>> +    si2165_writereg8(state, 0x0123 /* adc_ri8 */, 0x70);
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static int si2165_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+>> +{
+>> +    struct si2165_state *state = fe->demodulator_priv;
+>> +    u8 val = enable ? 0x01 : 0x00;
+>> +    return si2165_writereg8(state, 0x0001 /* i2c passthru */, val);
+>> +}
+>> +
+>> +static int si2165_sleep(struct dvb_frontend *fe)
+>> +{
+>> +    struct si2165_state *state = fe->demodulator_priv;
+>> +    dprintk("%s: called\n", __func__);
+>> +    si2165_writereg8(state, 0x0104 /* dsp clock enable */, 0x00);
+>> +    si2165_writereg8(state, 0x0000 /* chip mode */, SI2165_MODE_OFF);
+>> +    return 0;
+>> +}
+>> +
+>> +static int si2165_read_status(struct dvb_frontend *fe, fe_status_t
+>> *status)
+>> +{
+>> +    u8 fec_lock = 0;
+>> +    struct si2165_state *state = fe->demodulator_priv;
+>> +
+>> +    if (!state->m_has_dvbt)
+>> +        return -EINVAL;
+>> +
+>> +    /* seq1 */
+>> +    si2165_readreg8(state, 0x4e0 /* fec_lock */, &fec_lock);
+>> +    *status = 0;
+>> +    if (fec_lock & 0x01) {
+>> +        *status |= FE_HAS_SIGNAL;
+>> +        *status |= FE_HAS_CARRIER;
+>> +        *status |= FE_HAS_VITERBI;
+>> +        *status |= FE_HAS_SYNC;
+>> +        *status |= FE_HAS_LOCK;
+>> +    }
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static int si2165_set_parameters(struct dvb_frontend *fe)
+>> +{
+>> +    struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+>> +    struct si2165_state *state = fe->demodulator_priv;
+>> +    u8 val[3];
+>> +    u32 IF;
+>> +    u32 dvb_rate = 0;
+>> +
+>> +    dprintk("%s: called\n", __func__);
+>> +
+>> +    if (!fe->ops.tuner_ops.get_if_frequency) {
+>> +        pr_err("Error: get_if_frequency() not defined at tuner. Can't
+>> work without it!\n");
+> 
+> You should use dev_ not pr_.
+> 
+replaced.
+
+>> +        return -EINVAL;
+>> +    }
+>> +
+>> +    /* If Oversampling mode Ovr4 is used */
+>> +    state->fe_clk = state->adc_clk;
+>> +
+>> +    if (state->fe_clk == 0) {
+>> +        pr_err("Error: fe_clk is 0\n");
+>> +        return -EINVAL;
+>> +    }
+>> +
+>> +    if (!state->m_has_dvbt)
+>> +        return -EINVAL;
+>> +
+>> +    if (p->bandwidth_hz > 0)
+>> +        dvb_rate = p->bandwidth_hz * 8 / 7;
+>> +    else
+>> +        dvb_rate = 8 * 8 / 7;
+>> +
+>> +    si2165_writereg8(state, 0x00ec /* standard */, 0x01);
+>> +    si2165_writereg8(state, 0x00a0 /* pll_divl */, 0x0c);
+>> +
+>> +    si2165_readreg8(state, 0x00e0 /* adc_sampling_mode */, val); /*
+>> returned 0x00 */
+>> +    si2165_writereg32(state, 0x00e8 /* if_freq_shift */, 0x00000000);
+>> +    si2165_writereg8(state, 0x08f8 /* unknown_wr8 */, 0x00);
+>> +    si2165_readreg8(state, 0x04e4 /* ts_output_mode */, val); /*
+>> returned 0x21 */
+>> +    si2165_writereg8(state, 0x04e4 /* ts_output_mode */, 0x20);
+>> +    si2165_writereg16(state, 0x04ef /* ts_data_tri */, 0x00fe);
+>> +    si2165_writereg24(state, 0x04f4 /* ts_data0-3_slr */, 0x555555);
+>> +    si2165_readreg8(state, 0x04e4 /* ts_output_mode */, val); /*
+>> returned 0x20 */
+>> +    si2165_writereg8(state, 0x04e4 /* ts_output_mode */, 0x20);
+>> +    si2165_readreg8(state, 0x04e5 /* ts_clock */, val); /* returned
+>> 0x03 */
+>> +    si2165_writereg8(state, 0x04e5 /* ts_clock */, 0x03);
+>> +    si2165_readreg8(state, 0x04e5 /* ts_clock */, val); /* returned
+>> 0x03 */
+>> +    si2165_writereg8(state, 0x04e5 /* ts_clock */, 0x01);
+>> +    si2165_writereg16(state, 0x0308 /* bandwidth */, 0x0320);
+>> +    si2165_writereg32(state, 0x00e4 /* oversamp */, 0x03100000);
+>> +    si2165_writereg8(state, 0x031c /* impulsive_noise_remover */, 0x01);
+>> +    si2165_writereg8(state, 0x00cb /* unknown_wr8 */, 0x00);
+>> +    si2165_writereg8(state, 0x016e /* agc2_min */, 0x41);
+>> +    si2165_writereg8(state, 0x016c /* agc2_kacq */, 0x0e);
+>> +    si2165_writereg8(state, 0x016d /* agc2_kloc */, 0x10);
+>> +    si2165_writereg8(state, 0x015b /* agc_unfreeze_thr */, 0x03);
+>> +    si2165_writereg8(state, 0x0150 /* agc_crestf_dbx8 */, 0x78);
+>> +    si2165_writereg8(state, 0x01a0 /* aaf_crestf_dbx8 */, 0x78);
+>> +    si2165_writereg8(state, 0x01c8 /* aci_crestf_dbx8 */, 0x68);
+>> +    si2165_writereg16(state, 0x030c /* freq_sync_range */, 0x0064);
+>> +    si2165_readreg8(state, 0x0387 /* gp_reg0 */, val); /* returned
+>> 0x00 */
+>> +    si2165_writereg8(state, 0x0387 /* gp_reg0 */, 0x00);
+>> +    si2165_writereg32(state, 0x0348 /* dsp_addr_jump */, 0xf4000000);
+>> +    si2165_readreg8(state, 0x0341 /*
+>> boot_done,rst_wdog_error,wdog_error */, val); /* returned 0x01 */
+>> +    si2165_writereg8(state, 0x0341 /*
+>> boot_done,rst_wdog_error,wdog_error */, 0x00);
+>> +    si2165_writereg8(state, 0x00c0 /* rst_all */, 0x00);
+>> +    si2165_writereg32(state, 0x0384 /* gp_reg0 */, 0x00000000);
+>> +    si2165_writereg8(state, 0x02e0 /* start_synchro */, 0x01);
+>> +    si2165_readreg8(state, 0x0341 /*
+>> boot_done,rst_wdog_error,wdog_error */, val); /* returned 0x01 */
+>> +    si2165_readreg8(state, 0x0341 /*
+>> boot_done,rst_wdog_error,wdog_error */, val); /* returned 0x01 */
+>> +    si2165_writereg8(state, 0x0341 /*
+>> boot_done,rst_wdog_error,wdog_error */, 0x00);
+>> +    si2165_writereg8(state, 0x00c0 /* rst_all */, 0x00);
+>> +    si2165_writereg32(state, 0x0384 /* gp_reg0 */, 0x00000000);
+>> +    si2165_writereg8(state, 0x02e0 /* start_synchro */, 0x01);
+>> +    si2165_readreg8(state, 0x0341 /*
+>> boot_done,rst_wdog_error,wdog_error */, val); /* returned 0x01 */
+>> +    si2165_readreg8(state, 0x0118 /* dvb-c standard support */, val);
+>> /* returned 0x07 */
+>> +    si2165_readreg8(state, 0x0023 /* hardware_rev */, val); /*
+>> returned 0x03 */
+>> +    si2165_writereg8(state, 0x018b /* agc_if_tri */, 0x00);
+>> +    si2165_writereg8(state, 0x08f8 /* unknown_wr8 */, 0x00);
+>> +    si2165_readreg8(state, 0x04e4 /* ts_output_mode */, val); /*
+>> returned 0x20 */
+>> +    si2165_writereg8(state, 0x04e4 /* ts_output_mode */, 0x20);
+>> +    si2165_writereg16(state, 0x04ef /* ts_data_tri */, 0x00fe);
+>> +    si2165_writereg24(state, 0x04f4 /* ts_data0-3_slr */, 0x555555);
+>> +    si2165_readreg8(state, 0x04e4 /* ts_output_mode */, val); /*
+>> returned 0x20 */
+>> +    si2165_writereg8(state, 0x04e4 /* ts_output_mode */, 0x20);
+>> +    si2165_readreg8(state, 0x04e5 /* ts_clock */, val); /* returned
+>> 0x01 */
+>> +    si2165_writereg8(state, 0x04e5 /* ts_clock */, 0x01);
+>> +    si2165_readreg8(state, 0x04e5 /* ts_clock */, val); /* returned
+>> 0x01 */
+>> +    si2165_writereg8(state, 0x04e5 /* ts_clock */, 0x01);
+> 
+> OK, maybe those own functions for 8/16/24/32 are fine as there is that
+> many cases.
+> 
+>> +
+>> +    if (dvb_rate == 0) {
+>> +        pr_err("Error: dvb_rate is 0\n");
+>> +        return -EINVAL;
+>> +    }
+> 
+> Dead code. Please check all the other error checks too and consider if
+> those are really needed or not. It is good idea to check all needed
+> parameters just beginning of function and jump out before any I/O if
+> invalid params.
+> 
+removed.
+
+>> +
+>> +    if (fe->ops.tuner_ops.set_params) {
+>> +        if (fe->ops.i2c_gate_ctrl)
+>> +            fe->ops.i2c_gate_ctrl(fe, 1);
+>> +        fe->ops.tuner_ops.set_params(fe);
+>> +        if (fe->ops.i2c_gate_ctrl)
+>> +            fe->ops.i2c_gate_ctrl(fe, 0);
+>> +    }
+> 
+> Get the rid of those i2c_gate_ctrl() stuff. It is tuner who is
+> responsible of calling those. Even better if you could implement proper
+> I2C adapder (I2C mux) which handles gating transparently.
+> 
+removed the call to i2c_gate_ctrl.
+
+>> +
+>> +    {
+>> +        s64 if_freq_shift;
+> Is signed needed?
+> 
+yes, the register is defined signed. And in some cases signed numbers
+need to be written.
+For example a spectrum inversion in some cases is handled by multiplying
+this freq_shift by -1.
+
+>> +        u32 reg_value;
+>> +        fe->ops.tuner_ops.get_if_frequency(fe, &IF);
+>> +
+>> +        if_freq_shift = IF;
+>> +        if_freq_shift <<= 29;
+>> +        if (state->fe_clk > 0)
+> Can that clock be zero at all?
+not if the code is correct
+
+> 
+>> +            if_freq_shift /= (u64)state->fe_clk;
+>> +        reg_value = ((u32)if_freq_shift) & 0x1fffffff;
+> 
+> Just thinking what happens here. So you have a signed number, which is
+> cast to unsigned and masked to X bit len. I think there is no need for
+> signed at all.
+> 1) s_if = u_if;
+> 2) s_if <<= 29;
+> 3) s_if /= clk;
+> 4) u_32tmp = s_if;
+> 5) u_32val = u_32tmp & 0x1fffffff;
+> 
+Not yet, but see comment above.
+> 
+>> +
+>> +        si2165_writereg32(state, 0x00e8 /* if_freq_shift */, reg_value);
+>> +    }
+>> +
+>> +    si2165_readreg8(state, 0x0341 /*
+>> boot_done,rst_wdog_error,wdog_error */, val); /* returned 0x01 */
+>> +    si2165_writereg8(state, 0x0341 /*
+>> boot_done,rst_wdog_error,wdog_error */, 0x00);
+>> +    si2165_writereg8(state, 0x00c0 /* rst_all */, 0x00);
+>> +    si2165_writereg32(state, 0x0384 /* gp_reg0 */, 0x00000000);
+>> +    si2165_writereg8(state, 0x02e0 /* start_synchro */, 0x01);
+>> +    si2165_readreg8(state, 0x0341 /*
+>> boot_done,rst_wdog_error,wdog_error */, val); /* returned 0x01 */
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static void si2165_release(struct dvb_frontend *fe)
+>> +{
+>> +    struct si2165_state *state = fe->demodulator_priv;
+>> +    dprintk("%s: called\n", __func__);
+>> +    kfree(state);
+>> +}
+>> +
+>> +static struct dvb_frontend_ops si2165_ops = {
+>> +    .info = {
+>> +        .name            = "SI2165",
+> 
+> Nit, but that chip is Si2165 not SI2165. Same everywhere.
+> Also use full name "Silicon Labs Si2165" as that string is shown to
+> application and user.
+> 
+> Also, delsys are missing.
+> 
+delsys is filled in later in preparation for si2161 support.
+> 
+>> +        .caps =    FE_CAN_FEC_1_2 |
+>> +            FE_CAN_FEC_2_3 |
+>> +            FE_CAN_FEC_3_4 |
+>> +            FE_CAN_FEC_5_6 |
+>> +            FE_CAN_FEC_7_8 |
+>> +            FE_CAN_FEC_AUTO |
+>> +            FE_CAN_QPSK |
+>> +            FE_CAN_QAM_16 |
+>> +            FE_CAN_QAM_32 |
+>> +            FE_CAN_QAM_64 |
+>> +            FE_CAN_QAM_128 |
+>> +            FE_CAN_QAM_256 |
+>> +            FE_CAN_QAM_AUTO |
+>> +            FE_CAN_TRANSMISSION_MODE_AUTO |
+>> +            FE_CAN_GUARD_INTERVAL_AUTO |
+>> +            FE_CAN_HIERARCHY_AUTO |
+>> +            FE_CAN_MUTE_TS |
+>> +            FE_CAN_TRANSMISSION_MODE_AUTO |
+>> +            FE_CAN_RECOVER
+>> +    },
+>> +
+>> +    .get_tune_settings = si2165_get_tune_settings,
+>> +
+>> +    .init = si2165_init,
+>> +    .sleep = si2165_sleep,
+>> +
+>> +    .i2c_gate_ctrl     = si2165_i2c_gate_ctrl,
+>> +
+>> +    .set_frontend      = si2165_set_parameters,
+>> +    .read_status       = si2165_read_status,
+>> +
+>> +    .release = si2165_release,
+>> +};
+>> +
+>> +struct dvb_frontend *si2165_attach(const struct si2165_config
+>> *config, struct i2c_adapter *i2c)
+>> +{
+>> +    struct si2165_state *state = NULL;
+>> +    int n;
+>> +
+>> +    if (config == NULL)
+>> +        goto error;
+>> +
+>> +    /* allocate memory for the internal state */
+>> +    state = kzalloc(sizeof(struct si2165_state), GFP_KERNEL);
+>> +    if (state == NULL)
+>> +        goto error;
+>> +
+>> +    /* setup the state */
+>> +    state->i2c = i2c;
+>> +    state->config = *config;
+>> +
+>> +    if (state->config.ref_freq_MHz < 4 || state->config.ref_freq_MHz
+>> > 27) {
+>> +        dev_info(&state->i2c->dev, "%s: ref_freq of %d MHz not
+>> supported by this driver\n",
+>> +             KBUILD_MODNAME, state->config.ref_freq_MHz);
+>> +        goto error;
+>> +    }
+> 
+> That is error case, dev_err.
+changed.
+> 
+>> +
+>> +    /* create dvb_frontend */
+>> +    memcpy(&state->frontend.ops, &si2165_ops,
+>> +        sizeof(struct dvb_frontend_ops));
+>> +    state->frontend.demodulator_priv = state;
+> 
+>> +
+>> +    /* powerup */
+>> +    if (si2165_writereg8(state, 0x0000 /* chip_mode */,
+>> state->config.chip_mode) < 0)
+>> +          goto error;
+> 
+> That kind of functionality is not allowed inside if () condition.
+> Checkpatch.pl should complain that too.
+fixed. It apparently here does not warn here.
+
+> 
+> Do you really need powerup chip to read chip ID?
+Yes, only the mode and i2c gate register can be accessed without powerup.
+
+> 
+>> +
+>> +    if (si2165_readreg8(state, 0x0023 /* rev code */,
+>> &state->revcode) < 0)
+>> +          goto error;
+> 
+> Bail out immediately if wrong rev.
+At least the device should be powered down before.
+
+> 
+>> +
+>> +    if (si2165_readreg8(state, 0x0118 /* chip type */,
+>> &state->chip_type) < 0)
+>> +          goto error;
+>> +
+> 
+> Bail out immediately if wrong type.
+> 
+>> +    /* powerdown */
+>> +    if (si2165_writereg8(state, 0x0000 /* chip_mode */,
+>> SI2165_MODE_OFF) < 0)
+>> +          goto error;
+>> +
+>> +    dev_info(&state->i2c->dev, "%s: hardware revision 0x%02x, chip
+>> type 0x%02x\n",
+>> +         KBUILD_MODNAME, state->revcode, state->chip_type);
+>> +
+>> +    if (state->revcode != 0x03) {
+>> +        dev_err(&state->i2c->dev, "%s: Unsupported hardware
+>> revision.\n",
+>> +            KBUILD_MODNAME);
+>> +        goto error;
+>> +    }
+>> +
+>> +    /* It is a guess that register 0x0118 (chip type?) can be used to
+>> +     * differ between si2161, si2163 and si2165
+>> +     * Only si2165 has been tested.
+>> +     */
+>> +    if (state->chip_type == 0x07) {
+>> +        state->m_has_dvbt = true;
+>> +        state->m_has_dvbc = true;
+>> +        strcpy(state->frontend.ops.info.name, "SI2165");
+>> +    } else {
+>> +        dev_err(&state->i2c->dev, "%s: Unsupported Chip type.\n",
+>> +            KBUILD_MODNAME);
+>> +        goto error;
+>> +    }
+>> +
+>> +    n = 0;
+>> +    if (state->m_has_dvbt) {
+>> +        state->frontend.ops.delsys[n++] = SYS_DVBT;
+>> +        strlcat(state->frontend.ops.info.name, " DVB-T",
+>> +            sizeof(state->frontend.ops.info.name));
+>> +    }
+>> +    if (state->m_has_dvbc)
+>> +        dev_warn(&state->i2c->dev, "%s: DVB-C is not yet supported.\n",
+>> +               KBUILD_MODNAME);
+>> +
+>> +    return &state->frontend;
+>> +
+>> +error:
+>> +    kfree(state);
+>> +    return NULL;
+>> +}
+>> +EXPORT_SYMBOL(si2165_attach);
+>> +
+>> +module_param(debug, int, 0644);
+>> +MODULE_PARM_DESC(debug, "Turn on/off frontend debugging
+>> (default:off).");
+>> +
+>> +MODULE_DESCRIPTION("Silicon Labs si2165 DVB-C/-T Demodulator driver");
+>> +MODULE_AUTHOR("Matthias Schwarzott <zzam@gentoo.org>");
+>> +MODULE_LICENSE("GPL");
+>> +MODULE_FIRMWARE(SI2165_FIRMWARE);
+>> diff --git a/drivers/media/dvb-frontends/si2165.h
+>> b/drivers/media/dvb-frontends/si2165.h
+>> new file mode 100644
+>> index 0000000..cdc12e7
+>> --- /dev/null
+>> +++ b/drivers/media/dvb-frontends/si2165.h
+>> @@ -0,0 +1,61 @@
+>> +/*
+>> +    Driver for Silicon Labs SI2165 DVB-C/-T Demodulator
+>> +
+>> +    Copyright (C) 2013-2014 Matthias Schwarzott <zzam@gentoo.org>
+>> +
+>> +    This program is free software; you can redistribute it and/or modify
+>> +    it under the terms of the GNU General Public License as published by
+>> +    the Free Software Foundation; either version 2 of the License, or
+>> +    (at your option) any later version.
+>> +
+>> +    This program is distributed in the hope that it will be useful,
+>> +    but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> +    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> +    GNU General Public License for more details.
+>> +
+>> +    References:
+>> +   
+>> http://www.silabs.com/Support%20Documents/TechnicalDocs/Si2165-short.pdf
+>> +*/
+>> +
+>> +#ifndef _DVB_SI2165_H
+>> +#define _DVB_SI2165_H
+>> +
+>> +#include <linux/dvb/frontend.h>
+>> +
+>> +#if IS_ENABLED(CONFIG_DVB_SI2165)
+>> +
+>> +enum {
+>> +    SI2165_MODE_OFF = 0x00,
+>> +    SI2165_MODE_PLL_EXT = 0x20,
+>> +    SI2165_MODE_PLL_XTAL = 0x21
+>> +};
+>> +
+>> +struct si2165_config {
+>> +    /* i2c addr
+>> +     * possible values: 0x64,0x65,0x66,0x67 */
+>> +    u8 i2c_addr;
+>> +
+>> +    /* external clock or XTAL */
+>> +    u8 chip_mode;
+>> +
+>> +    /* frequency of external clock or xtal in Mhz
+>> +     * possible values: 4,16,20,24,27 in
+>> +     */
+>> +    u8 ref_freq_MHz;
+>> +};
+>> +
+>> +/* Addresses: 0x64,0x65,0x66,0x67 */
+>> +struct dvb_frontend *si2165_attach(
+>> +    const struct si2165_config *config,
+>> +    struct i2c_adapter *i2c);
+>> +#else
+>> +static inline struct dvb_frontend *si2165_attach(
+>> +    const struct si2165_config *config,
+>> +    struct i2c_adapter *i2c)
+>> +{
+>> +    pr_warn("%s: driver disabled by Kconfig\n", __func__);
+>> +    return NULL;
+>> +}
+>> +#endif /* CONFIG_DVB_SI2165 */
+>> +
+>> +#endif /* _DVB_SI2165_H */
+>> diff --git a/drivers/media/dvb-frontends/si2165_priv.h
+>> b/drivers/media/dvb-frontends/si2165_priv.h
+>> new file mode 100644
+>> index 0000000..d4cc93f
+>> --- /dev/null
+>> +++ b/drivers/media/dvb-frontends/si2165_priv.h
+>> @@ -0,0 +1,23 @@
+>> +/*
+>> +    Driver for Silicon Labs SI2165 DVB-C/-T Demodulator
+>> +
+>> +    Copyright (C) 2013-2014 Matthias Schwarzott <zzam@gentoo.org>
+>> +
+>> +    This program is free software; you can redistribute it and/or modify
+>> +    it under the terms of the GNU General Public License as published by
+>> +    the Free Software Foundation; either version 2 of the License, or
+>> +    (at your option) any later version.
+>> +
+>> +    This program is distributed in the hope that it will be useful,
+>> +    but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> +    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> +    GNU General Public License for more details.
+>> +
+>> +*/
+>> +
+>> +#ifndef _DVB_SI2165_PRIV
+>> +#define _DVB_SI2165_PRIV
+>> +
+>> +#define SI2165_FIRMWARE "dvb-demod-si2165.fw"
+>> +
+>> +#endif /* _DVB_SI2165_PRIV */
+>>
+> 
+> There is almost none I/O error checks, but it is not so big issue.
+> 
+> That driver could be a little bit modern in a following ways:
+> 1) dynamic debugs
+> 2) I2C client driver model
+> 3) RegMap API
+> 4) I2C mux adapter for tuner I2C bus / gate
+> 
+> Maybe 30% less LOC.
+> 
+> regards
+> Antti
+
+I hope to reduce LOC by using register data tables instead of long
+chains of register writes. But mixing 8 bits and larger writes makes
+this complicated.
+1) I could also write the larger registers byte by byte -> bad performance.
+2) store them byte by byte and let the register array write function
+collect them.
+3) store them together with a size indicator -> wasted space when always
+reserving 32bits for the value and normally using only 8bits.
+
+I will send the next version later.
+
+Regards
+Matthias
