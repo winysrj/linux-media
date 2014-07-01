@@ -1,74 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:60237 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751656AbaGHQsh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jul 2014 12:48:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/8] v4l2-ioctl: clips, clipcount and bitmap should not be zeroed.
-Date: Tue,  8 Jul 2014 18:31:12 +0200
-Message-Id: <1404837078-15608-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1404837078-15608-1-git-send-email-hverkuil@xs4all.nl>
-References: <1404837078-15608-1-git-send-email-hverkuil@xs4all.nl>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:34418 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932330AbaGARxL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jul 2014 13:53:11 -0400
+Message-ID: <1404237187.19382.78.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH v2 06/29] [media] coda: Add encoder/decoder support for
+ CODA960
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de
+Date: Tue, 01 Jul 2014 19:53:07 +0200
+In-Reply-To: <1403626611.10756.11.camel@mpb-nicolas>
+References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+	 <1403621771-11636-7-git-send-email-p.zabel@pengutronix.de>
+	 <1403626611.10756.11.camel@mpb-nicolas>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Nicolas,
 
-Otherwise you cannot get the current clip and bitmap information from
-an overlay.
+Am Dienstag, den 24.06.2014, 12:16 -0400 schrieb Nicolas Dufresne:
+[...]
+> > @@ -2908,6 +3183,7 @@ static void coda_timeout(struct work_struct *work)
+> >  static u32 coda_supported_firmwares[] = {
+> >  	CODA_FIRMWARE_VERNUM(CODA_DX6, 2, 2, 5),
+> >  	CODA_FIRMWARE_VERNUM(CODA_7541, 1, 4, 50),
+> > +	CODA_FIRMWARE_VERNUM(CODA_960, 2, 1, 5),
+> 
+> Where can we find these firmwares ?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+The firmware images are distributed with an EULA in Freescale's BSPs
+that can be downloaded from their website. The file you are looking for
+is vpu_fw_imx6q.bin (for i.MX6Q/D) or vpu_fw_imx6d.bin (for i.MX6DL/S).
+This has to be stripped of the 16-byte header and must be reordered to
+fit the CODA memory access pattern by reversing the order of each set of
+four 16-bit values (imagine little-endian 64-bit values made of four
+16-bit wide bytes).
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index f81b9aa..0e90349 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1090,6 +1090,30 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
- 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
- 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
- 
-+	/*
-+	 * fmt can't be cleared for these overlay types due to the 'clips'
-+	 * 'clipcount' and 'bitmap' pointers in struct v4l2_window.
-+	 * Those are provided by the user. So handle these two overlay types
-+	 * first, and then just do a simple memset for the other types.
-+	 */
-+	switch (p->type) {
-+	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY: {
-+		struct v4l2_clip *clips = p->fmt.win.clips;
-+		u32 clipcount = p->fmt.win.clipcount;
-+		void *bitmap = p->fmt.win.bitmap;
-+
-+		memset(&p->fmt, 0, sizeof(p->fmt));
-+		p->fmt.win.clips = clips;
-+		p->fmt.win.clipcount = clipcount;
-+		p->fmt.win.bitmap = bitmap;
-+		break;
-+	}
-+	default:
-+		memset(&p->fmt, 0, sizeof(p->fmt));
-+		break;
-+	}
-+
- 	switch (p->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_g_fmt_vid_cap))
-@@ -2046,7 +2070,7 @@ struct v4l2_ioctl_info {
- static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_QUERYCAP, v4l_querycap, v4l_print_querycap, 0),
- 	IOCTL_INFO_FNC(VIDIOC_ENUM_FMT, v4l_enum_fmt, v4l_print_fmtdesc, INFO_FL_CLEAR(v4l2_fmtdesc, type)),
--	IOCTL_INFO_FNC(VIDIOC_G_FMT, v4l_g_fmt, v4l_print_format, INFO_FL_CLEAR(v4l2_format, type)),
-+	IOCTL_INFO_FNC(VIDIOC_G_FMT, v4l_g_fmt, v4l_print_format, 0),
- 	IOCTL_INFO_FNC(VIDIOC_S_FMT, v4l_s_fmt, v4l_print_format, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_REQBUFS, v4l_reqbufs, v4l_print_requestbuffers, INFO_FL_PRIO | INFO_FL_QUEUE),
- 	IOCTL_INFO_FNC(VIDIOC_QUERYBUF, v4l_querybuf, v4l_print_buffer, INFO_FL_QUEUE | INFO_FL_CLEAR(v4l2_buffer, length)),
--- 
-2.0.0
+regards
+Philipp
 
