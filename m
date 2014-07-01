@@ -1,213 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:8475 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761312AbaGRLXp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 07:23:45 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N8W00JG8NND4320@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 18 Jul 2014 12:23:37 +0100 (BST)
-Message-id: <53C903C0.6080106@samsung.com>
-Date: Fri, 18 Jul 2014 13:23:44 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Nikhil Devshatwar <nikhil.nd@ti.com>
-Subject: Re: [PATCH] vb2: fix bytesused == 0 handling
-References: <53C79D04.6040205@xs4all.nl>
-In-reply-to: <53C79D04.6040205@xs4all.nl>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mail-oa0-f49.google.com ([209.85.219.49]:36408 "EHLO
+	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757470AbaGAJDh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jul 2014 05:03:37 -0400
+Received: by mail-oa0-f49.google.com with SMTP id i7so10136936oag.36
+        for <linux-media@vger.kernel.org>; Tue, 01 Jul 2014 02:03:36 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20140701083941.GA14914@minime.bse>
+References: <CANtDUYzhibHAis3Qg=nj=nbYf+NeUqS8GJ7kMm4nYZHOSBOBxA@mail.gmail.com>
+	<20140701083941.GA14914@minime.bse>
+Date: Tue, 1 Jul 2014 12:03:36 +0300
+Message-ID: <CANtDUYw5-a+QsuLVL2g-Y=enh=fzT9Ksh5Zh-xZ7p8WhOcCL9A@mail.gmail.com>
+Subject: Re: bt878A card with 16 inputs
+From: =?UTF-8?B?VmzEg2R1xaMgRnLEg8WjaW1hbg==?=
+	<fratiman.vladut@gmail.com>
+To: =?UTF-8?B?VmzEg2R1xaMgRnLEg8WjaW1hbg==?=
+	<fratiman.vladut@gmail.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Thanks for reply!
+After few testings, best result right now is this:
+modprobe bttv gbuffers=16 card=125,125 pll=1,1 bttv_gpio=1 radio=0,0
+tuner=0,0 gpiomask=0x00b8ff
+With this parameters, dmesg show this output:
+[81622.722734] bttv: Bt8xx card found (0)
+[81622.722749] bttv: 0: Bt878 (rev 17) at 0000:12:0c.0, irq: 22,
+latency: 132, mmio: 0xd0000000
+[81622.722762] bttv: 0: using: MATRIX Vision Sigma-SQ [card=125,insmod option]
+[81622.722909] bttv: 0: tuner type=0
+[81622.731506] bttv: 0: audio absent, no audio device found!
+[81622.739205] bttv: 0: Setting PLL: 28636363 => 35468950 (needs up to 100ms)
+[81622.756024] bttv: PLL set ok
+[81622.756090] bttv: 0: registered device video0
+[81622.756133] bttv: 0: registered device vbi0
+[81622.759232] bttv: Bt8xx card found (1)
+[81622.759247] bttv: 1: Bt878 (rev 17) at 0000:12:0d.0, irq: 23,
+latency: 132, mmio: 0xd0002000
+[81622.759261] bttv: 1: using: MATRIX Vision Sigma-SQ [card=125,insmod option]
+[81622.759430] bttv: 1: tuner type=0
+[81622.768076] bttv: 1: audio absent, no audio device found!
+[81622.775495] bttv: 1: Setting PLL: 28636363 => 35468950 (needs up to 100ms)
+[81622.788014] bttv: PLL set ok
+[81622.788078] bttv: 1: registered device video1
+[81622.788574] bttv: 1: registered device vbi1
 
-On 2014-07-17 11:53, Hans Verkuil wrote:
-> The original report from Nikhil was that if data_offset > 0 and bytesused == 0,
-> then the check in __verify_length() would fail, even though the spec says that
-> if bytes_used == 0, then it will be replaced by the actual length of the
-> buffer.
->
-> After digging into it a bit more I realized that there were several other
-> things wrong:
->
-> - in __verify_length() it would use the application-provided length value
->    for USERPTR and the vb2 core length for other memory models, but it
->    should have used the application-provided length as well for DMABUF.
->
-> - in __fill_vb2_buffer() on the other hand it would replace bytesused == 0
->    by the application-provided length, even for MMAP buffers where the
->    length is determined by the vb2 core.
->
-> - in __fill_vb2_buffer() it tries to figure out if all the planes have
->    bytesused == 0 before it will decide to replace bytesused by length.
->    However, the spec makes no such provision, and it makes for convoluted
->    code. So just replace any bytesused == 0 by the proper length.
->    The idea behind this was that you could use bytesused to signal empty
->    planes, something that is currently not supported. But that is better
->    done in the future by using one of the reserved fields in strucy v4l2_plane.
->
-> This patch fixes all these issues.
->
-> Regards,
->
-> 	Hans
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Reported-by: Nikhil Devshatwar <nikhil.nd@ti.com>
-> Cc: Nikhil Devshatwar <nikhil.nd@ti.com>
+In zoneminder i can see each channel on both device but when config
+two monitors on same device they look same output.
+At this stage i don't know if is an bug from zoneminder (probably not)
+or is something related to card driver.
+This is my post on zoneminder forum:
+http://www.zoneminder.com/forums/viewtopic.php?p=85049#p85049
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+So, from here, how can enable gpio output to get data values?
+How can do an high resolution scan?
+Sorry, i'm not very familiar with this subject but i want to help to
+find an solution, and maybe an driver for this card.
 
-> ---
->   drivers/media/v4l2-core/videobuf2-core.c | 78 ++++++++++++++++----------------
->   1 file changed, 38 insertions(+), 40 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 7c4489c..f255c14 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -576,6 +576,7 @@ static int __verify_planes_array(struct vb2_buffer *vb, const struct v4l2_buffer
->   static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->   {
->   	unsigned int length;
-> +	unsigned int bytesused;
->   	unsigned int plane;
->   
->   	if (!V4L2_TYPE_IS_OUTPUT(b->type))
-> @@ -583,21 +584,24 @@ static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->   
->   	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
->   		for (plane = 0; plane < vb->num_planes; ++plane) {
-> -			length = (b->memory == V4L2_MEMORY_USERPTR)
-> +			length = (b->memory == V4L2_MEMORY_USERPTR ||
-> +				  b->memory == V4L2_MEMORY_DMABUF)
->   			       ? b->m.planes[plane].length
->   			       : vb->v4l2_planes[plane].length;
-> +			bytesused = b->m.planes[plane].bytesused
-> +				  ? b->m.planes[plane].bytesused : length;
->   
->   			if (b->m.planes[plane].bytesused > length)
->   				return -EINVAL;
->   
->   			if (b->m.planes[plane].data_offset > 0 &&
-> -			    b->m.planes[plane].data_offset >=
-> -			    b->m.planes[plane].bytesused)
-> +			    b->m.planes[plane].data_offset >= bytesused)
->   				return -EINVAL;
->   		}
->   	} else {
->   		length = (b->memory == V4L2_MEMORY_USERPTR)
->   		       ? b->length : vb->v4l2_planes[0].length;
-> +		bytesused = b->bytesused ? b->bytesused : length;
->   
->   		if (b->bytesused > length)
->   			return -EINVAL;
-> @@ -1234,35 +1238,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->   	unsigned int plane;
->   
->   	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
-> -		/* Fill in driver-provided information for OUTPUT types */
-> -		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-> -			bool bytesused_is_used;
-> -
-> -			/* Check if bytesused == 0 for all planes */
-> -			for (plane = 0; plane < vb->num_planes; ++plane)
-> -				if (b->m.planes[plane].bytesused)
-> -					break;
-> -			bytesused_is_used = plane < vb->num_planes;
-> -
-> -			/*
-> -			 * Will have to go up to b->length when API starts
-> -			 * accepting variable number of planes.
-> -			 *
-> -			 * If bytesused_is_used is false, then fall back to the
-> -			 * full buffer size. In that case userspace clearly
-> -			 * never bothered to set it and it's a safe assumption
-> -			 * that they really meant to use the full plane sizes.
-> -			 */
-> -			for (plane = 0; plane < vb->num_planes; ++plane) {
-> -				struct v4l2_plane *pdst = &v4l2_planes[plane];
-> -				struct v4l2_plane *psrc = &b->m.planes[plane];
-> -
-> -				pdst->bytesused = bytesused_is_used ?
-> -					psrc->bytesused : psrc->length;
-> -				pdst->data_offset = psrc->data_offset;
-> -			}
-> -		}
-> -
->   		if (b->memory == V4L2_MEMORY_USERPTR) {
->   			for (plane = 0; plane < vb->num_planes; ++plane) {
->   				v4l2_planes[plane].m.userptr =
-> @@ -1279,6 +1254,28 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->   					b->m.planes[plane].length;
->   			}
->   		}
-> +
-> +		/* Fill in driver-provided information for OUTPUT types */
-> +		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-> +			/*
-> +			 * Will have to go up to b->length when API starts
-> +			 * accepting variable number of planes.
-> +			 *
-> +			 * If bytesused == 0 for the output buffer, then fall
-> +			 * back to the full buffer size. In that case
-> +			 * userspace clearly never bothered to set it and
-> +			 * it's a safe assumption that they really meant to
-> +			 * use the full plane sizes.
-> +			 */
-> +			for (plane = 0; plane < vb->num_planes; ++plane) {
-> +				struct v4l2_plane *pdst = &v4l2_planes[plane];
-> +				struct v4l2_plane *psrc = &b->m.planes[plane];
-> +
-> +				pdst->bytesused = psrc->bytesused ?
-> +					psrc->bytesused : pdst->length;
-> +				pdst->data_offset = psrc->data_offset;
-> +			}
-> +		}
->   	} else {
->   		/*
->   		 * Single-planar buffers do not use planes array,
-> @@ -1286,15 +1283,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->   		 * In videobuf we use our internal V4l2_planes struct for
->   		 * single-planar buffers as well, for simplicity.
->   		 *
-> -		 * If bytesused == 0, then fall back to the full buffer size
-> -		 * as that's a sensible default.
-> +		 * If bytesused == 0 for the output buffer, then fall back
-> +		 * to the full buffer size as that's a sensible default.
->   		 */
-> -		if (V4L2_TYPE_IS_OUTPUT(b->type))
-> -			v4l2_planes[0].bytesused =
-> -				b->bytesused ? b->bytesused : b->length;
-> -		else
-> -			v4l2_planes[0].bytesused = 0;
-> -
->   		if (b->memory == V4L2_MEMORY_USERPTR) {
->   			v4l2_planes[0].m.userptr = b->m.userptr;
->   			v4l2_planes[0].length = b->length;
-> @@ -1304,6 +1295,13 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->   			v4l2_planes[0].m.fd = b->m.fd;
->   			v4l2_planes[0].length = b->length;
->   		}
-> +
-> +		if (V4L2_TYPE_IS_OUTPUT(b->type))
-> +			v4l2_planes[0].bytesused = b->bytesused ?
-> +				b->bytesused : v4l2_planes[0].length;
-> +		else
-> +			v4l2_planes[0].bytesused = 0;
-> +
->   	}
->   
->   	/* Zero flags that the vb2 core handles */
-
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
-
+Fratiman Vladut
