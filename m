@@ -1,100 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:21966 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754226AbaGHNDv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 09:03:51 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N8E00CI39MDTX80@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 08 Jul 2014 22:03:49 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com,
-	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH 1/3] s5p-mfc: Fix selective sclk_mfc init
-Date: Tue, 08 Jul 2014 15:03:25 +0200
-Message-id: <1404824605-5872-1-git-send-email-j.anaszewski@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41408 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751513AbaGANJL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jul 2014 09:09:11 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
+Subject: Re: [PATCH v2 07/23] v4l: vsp1: Release buffers at stream stop
+Date: Tue, 01 Jul 2014 09:16:53 +0200
+Message-ID: <1952390.dyG8uLsand@avalon>
+In-Reply-To: <53A9686D.5040508@cogentembedded.com>
+References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1403567669-18539-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <53A9686D.5040508@cogentembedded.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fc906b6d "Remove special clock usage in driver" removed
-initialization of MFC special clock, arguing that there's
-no need to do it explicitly, since it's one of MFC gate clock's
-dependencies and gets enabled along with it. However, there's
-no promise of keeping this hierarchy across Exynos SoC
-releases, therefore this approach fails to provide a stable,
-portable solution.
+Hi Sergei,
 
-Out of all MFC versions, only v6 doesn't use special clock at all.
+On Tuesday 24 June 2014 16:00:45 Sergei Shtylyov wrote:
+> Hello.
+> 
+> On 06/24/2014 03:54 AM, Laurent Pinchart wrote:
+> > videobuf2 expects no buffer to be owned by the driver when the
+> > stop_stream queue operation returns. As the vsp1 driver fails to do so,
+> > a warning is generated at stream top time.
+> > 
+> > Fix this by mark releasing all buffers queued on the IRQ queue in the
+> 
+> Mark releasing?
 
-Signed-off-by: Mateusz Zalega <m.zalega@samsung.com>
-Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_pm.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+I'll fix that, thank you.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-index 11d5f1d..cc562fc 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-@@ -21,6 +21,8 @@
- #include "s5p_mfc_pm.h"
- 
- #define MFC_GATE_CLK_NAME	"mfc"
-+#define MFC_CLK_NAME		"sclk-mfc"
-+#define MFC_CLK_RATE		(200 * 1000000)
- 
- #define CLK_DEBUG
- 
-@@ -50,6 +52,23 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
- 		goto err_p_ip_clk;
- 	}
- 
-+	if (dev->variant->version != MFC_VERSION_V6) {
-+		pm->clock = clk_get(&dev->plat_dev->dev, MFC_CLK_NAME);
-+		if (IS_ERR(pm->clock)) {
-+			mfc_err("Failed to get gating clock control\n");
-+			ret = PTR_ERR(pm->clock);
-+			goto err_s_clk;
-+		}
-+
-+		clk_set_rate(pm->clock, MFC_CLK_RATE);
-+		ret = clk_prepare_enable(pm->clock);
-+		if (ret) {
-+			mfc_err("Failed to enable MFC core operating clock\n");
-+			ret = PTR_ERR(pm->clock);
-+			goto err_s_clk;
-+		}
-+	}
-+
- 	atomic_set(&pm->power, 0);
- #ifdef CONFIG_PM_RUNTIME
- 	pm->device = &dev->plat_dev->dev;
-@@ -59,6 +78,9 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
- 	atomic_set(&clk_ref, 0);
- #endif
- 	return 0;
-+
-+err_s_clk:
-+	clk_put(pm->clock);
- err_p_ip_clk:
- 	clk_put(pm->clock_gate);
- err_g_ip_clk:
-@@ -67,6 +89,10 @@ err_g_ip_clk:
- 
- void s5p_mfc_final_pm(struct s5p_mfc_dev *dev)
- {
-+	if (dev->variant->version != MFC_VERSION_V6) {
-+		clk_disable_unprepare(pm->clock);
-+		clk_put(pm->clock);
-+	}
- 	clk_unprepare(pm->clock_gate);
- 	clk_put(pm->clock_gate);
- #ifdef CONFIG_PM_RUNTIME
+> > stop_stream operation handler and marking them as erroneous.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
