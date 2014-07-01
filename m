@@ -1,52 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:46478 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751162AbaGGQhz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jul 2014 12:37:55 -0400
-From: Ian Molton <ian.molton@codethink.co.uk>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@lists.codethink.co.uk, ian.molton@codethink.co.uk,
-	g.liakhovetski@gmx.de, m.chehab@samsung.com
-Subject: [PATCH 2/4] media: rcar_vin: Ensure all in-flight buffers are returned to error state before stopping.
-Date: Mon,  7 Jul 2014 17:37:47 +0100
-Message-Id: <1404751069-5666-3-git-send-email-ian.molton@codethink.co.uk>
-In-Reply-To: <1404751069-5666-1-git-send-email-ian.molton@codethink.co.uk>
-References: <1404751069-5666-1-git-send-email-ian.molton@codethink.co.uk>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42365 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758296AbaGAQXc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jul 2014 12:23:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH] Update sync-with-kernel to use installed kernel headers
+Date: Tue, 01 Jul 2014 18:24:26 +0200
+Message-ID: <5125392.NizmyE01KQ@avalon>
+In-Reply-To: <20140701143038.GZ2073@valkosipuli.retiisi.org.uk>
+References: <1401792019-20723-1-git-send-email-laurent.pinchart@ideasonboard.com> <20140701143038.GZ2073@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Videobuf2 complains about buffers that are still marked ACTIVE (in use by the driver) following a call to stop_streaming().
+Hi Sakari,
 
-This patch returns all active buffers to state ERROR prior to stopping.
+Thank you for the review.
 
-Note: this introduces a (non fatal) race condition as the stream is not guaranteed to be stopped at this point.
+On Tuesday 01 July 2014 17:30:38 Sakari Ailus wrote:
+> On Tue, Jun 03, 2014 at 12:40:19PM +0200, Laurent Pinchart wrote:
+> > diff --git a/Makefile.am b/Makefile.am
+> > index 11baed1..35d0030 100644
+> > --- a/Makefile.am
+> > +++ b/Makefile.am
+> > @@ -12,31 +12,32 @@ EXTRA_DIST = include COPYING.libv4l README.libv4l
+> > README.lib-multi-threading> 
+> >  # custom targets
+> > 
+> >  sync-with-kernel:
+> > -	@if [ ! -f $(KERNEL_DIR)/include/uapi/linux/videodev2.h -o \
+> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/fb.h -o \
+> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/v4l2-controls.h -o \
+> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/v4l2-common.h -o \
+> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/v4l2-subdev.h -o \
+> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/v4l2-mediabus.h -o \
+> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/ivtv.h -o \
+> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/dvb/frontend.h -o \
+> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/dvb/dmx.h -o \
+> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/dvb/audio.h -o \
+> > -	      ! -f $(KERNEL_DIR)/include/uapi/linux/dvb/video.h ]; then \
+> > +	@if [ ! -f $(KERNEL_DIR)/usr/include/linux/videodev2.h -o \
+> 
+> Shouldn't you use $(INSTALL_HDR_PATH) instead of $(KERNEL_DIR)/usr? If the
+> user sets that, the headers won't be installed under usr.
 
-Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
----
- drivers/media/platform/soc_camera/rcar_vin.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+INSTALL_HDR_PATH is only set when running make headers_install in the kernel 
+tree, not when running make sync-with-kernel in the media built tree. If we 
+want to support syncing with kernel headers installed elsewhere we should add 
+a new option to this Makefile. I haven't done so as the need isn't clear to 
+me.
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 7154500..06ce705 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -513,8 +513,14 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct rcar_vin_priv *priv = ici->priv;
- 	struct list_head *buf_head, *tmp;
-+	int i;
- 
- 	spin_lock_irq(&priv->lock);
-+
-+	for (i = 0; i < vq->num_buffers; ++i)
-+		if (vq->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
-+			vb2_buffer_done(vq->bufs[i], VB2_BUF_STATE_ERROR);
-+
- 	list_for_each_safe(buf_head, tmp, &priv->capture)
- 		list_del_init(buf_head);
- 	spin_unlock_irq(&priv->lock);
 -- 
-1.9.1
+Regards,
+
+Laurent Pinchart
 
