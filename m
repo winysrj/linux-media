@@ -1,45 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0049.hostedemail.com ([216.40.44.49]:33394 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755141AbaGIVVR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Jul 2014 17:21:17 -0400
-Message-ID: <1404940868.932.168.camel@joe-AO725>
-Subject: Re: [PATCH v1 1/5] seq_file: provide an analogue of print_hex_dump()
-From: Joe Perches <joe@perches.com>
-To: Marek Vasut <marex@denx.de>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Tadeusz Struk <tadeusz.struk@intel.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Helge Deller <deller@gmx.de>,
-	Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>,
-	linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>,
-	qat-linux@intel.com, linux-crypto@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Wed, 09 Jul 2014 14:21:08 -0700
-In-Reply-To: <201407092239.30561.marex@denx.de>
-References: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1404919470-26668-2-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <201407092239.30561.marex@denx.de>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from gateway11.websitewelcome.com ([69.93.164.12]:47353 "EHLO
+	gateway11.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757382AbaGATPN convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Jul 2014 15:15:13 -0400
+Received: from gator3086.hostgator.com (gator3086.hostgator.com [50.87.144.121])
+	by gateway11.websitewelcome.com (Postfix) with ESMTP id 3CCBE198917CD
+	for <linux-media@vger.kernel.org>; Tue,  1 Jul 2014 13:30:28 -0500 (CDT)
+From: "Charlie X. Liu" <charlie@sensoray.com>
+To: =?UTF-8?Q?'Daniel_Gl=C3=B6ckner'?= <daniel-gl@gmx.net>,
+	=?UTF-8?B?J1ZsxINkdcWjIEZyxIPFo2ltYW4n?=
+	<fratiman.vladut@gmail.com>
+Cc: <linux-media@vger.kernel.org>
+References: <CANtDUYzhibHAis3Qg=nj=nbYf+NeUqS8GJ7kMm4nYZHOSBOBxA@mail.gmail.com> <20140701083941.GA14914@minime.bse>
+In-Reply-To: <20140701083941.GA14914@minime.bse>
+Subject: RE: bt878A card with 16 inputs
+Date: Tue, 1 Jul 2014 11:30:21 -0700
+Message-ID: <000b01cf955a$8466d240$8d3476c0$@com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Content-Language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2014-07-09 at 22:39 +0200, Marek Vasut wrote:
-> The above function looks like almost verbatim copy of print_hex_dump(). The only 
-> difference I can spot is that it's calling seq_printf() instead of printk(). Can 
-> you not instead generalize print_hex_dump() and based on it's invocation, make 
-> it call either seq_printf() or printk() ?
-
-How do you propose doing that given any seq_<foo> call
-requires a struct seq_file * and print_hex_dump needs
-a KERN_<LEVEL>.
-
-Is there an actual value to it?
+Per: http://www.pcidatabase.com/vendor_details.php?id=542, it's "AVerMediaAverTV WDM AudioCapture (878)". 
+Windows driver is at: http://www.mmnt.net/db/0/0/usftp.clevo.com.tw/888E/Optional . You would be able to get device info from there.
 
 
+-----Original Message-----
+From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Daniel Glöckner
+Sent: Tuesday, July 01, 2014 1:40 AM
+To: Vlăduţ Frăţiman
+Cc: linux-media@vger.kernel.org
+Subject: Re: bt878A card with 16 inputs
+
+Hi,
+
+On Tue, Jul 01, 2014 at 01:30:55AM +0300, Vlăduţ Frăţiman wrote:
+> I have an capture card with two bt878A fusion chip and 16 imputs.
+> Linux don't recognize and cannot get to work. How can do to resolve that?
+
+> With regspy on indows i have this:
+> BT878 Card [0]:
+> 
+> Vendor ID:           0x109e
+> Device ID:           0x036e
+> Subsystem ID:        0x00000000
+
+No Subsystem ID => no automatic recognition possible.
+
+
+> I try't all card numbers when load bttv module but in the best case 
+> only one camera i can see per device on channel 0 (using zoneminder).
+> Because is a tunerless card, probably my problem is to make tuner on 
+> chip to work.
+
+What we need is most likely the GPIO output enable and data values reported by regspy and btspy. They should differ for each input.
+
+It also helps if you make a high resolution scan of both sides of the card and put it online somewhere (don't send it to the list!).
+
+  Daniel
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in the body of a message to majordomo@vger.kernel.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
