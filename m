@@ -1,75 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:35719 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755076AbaGBPwe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jul 2014 11:52:34 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC 5/9] dib8000: Adjust the dBm measure for Mygica S870
-Date: Wed,  2 Jul 2014 12:52:19 -0300
-Message-Id: <1404316343-23856-6-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1404316343-23856-1-git-send-email-m.chehab@samsung.com>
-References: <1404316343-23856-1-git-send-email-m.chehab@samsung.com>
+Received: from adelie.canonical.com ([91.189.90.139]:60168 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752804AbaGAK5k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jul 2014 06:57:40 -0400
+Subject: [PATCH v2 0/9] Updated fence patch series
+To: gregkh@linuxfoundation.org
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-arch@vger.kernel.org, thellstrom@vmware.com,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
+	thierry.reding@gmail.com, ccross@google.com, daniel@ffwll.ch,
+	sumit.semwal@linaro.org, linux-media@vger.kernel.org
+Date: Tue, 01 Jul 2014 12:57:02 +0200
+Message-ID: <20140701103432.12718.82795.stgit@patser>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With Mygica S870, there's a difference of ~10dB to ~13dB when
-compared with the current scale.
+So after some more hacking I've moved dma-buf to its own subdirectory,
+drivers/dma-buf and applied the fence patches to its new place. I believe that the
+first patch should be applied regardless, and the rest should be ready now.
+:-)
 
-I suspect that this is because dib8096gp uses a different set of
-AGC adjust parameters.
+Changes to the fence api:
+- release_fence -> fence_release etc.
+- __fence_init -> fence_init
+- __fence_signal -> fence_signal_locked
+- __fence_is_signaled -> fence_is_signaled_locked
+- Changing BUG_ON to WARN_ON in fence_later, and return NULL if it triggers.
 
-Anyway, better to adjust it, in order to have a more precise measure.
+Android can expose fences to userspace. It's possible to make the new fence
+mechanism expose the same fences to userspace by changing sync_fence_create
+to take a struct fence instead of a struct sync_pt. No other change is needed,
+because only the fence parts of struct sync_pt are used. But because the
+userspace fences are a separate problem and I haven't really looked at it yet
+I feel it should stay in staging, for now.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/dvb-frontends/dib8000.c        | 2 ++
- drivers/media/dvb-frontends/dibx000_common.h | 2 ++
- drivers/media/usb/dvb-usb/dib0700_devices.c  | 2 ++
- 3 files changed, 6 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
-index 3de8934a5b3d..4ecf1a6181cc 100644
---- a/drivers/media/dvb-frontends/dib8000.c
-+++ b/drivers/media/dvb-frontends/dib8000.c
-@@ -4064,6 +4064,8 @@ static int dib8000_get_stats(struct dvb_frontend *fe, fe_status_t stat)
- 	db = interpolate_value(val,
- 			       strength_to_db_table,
- 			       ARRAY_SIZE(strength_to_db_table)) - 131000;
-+	if (state->current_agc)
-+		db += state->current_agc->dbm_adjust;
- 	c->strength.stat[0].svalue = db;
- 
- 	/* UCB/BER/CNR measures require lock */
-diff --git a/drivers/media/dvb-frontends/dibx000_common.h b/drivers/media/dvb-frontends/dibx000_common.h
-index b538e0555c95..76c9b8e9ed44 100644
---- a/drivers/media/dvb-frontends/dibx000_common.h
-+++ b/drivers/media/dvb-frontends/dibx000_common.h
-@@ -111,6 +111,8 @@ struct dibx000_agc_config {
- 		u16 min_thres;
- 		u16 max_thres;
- 	} split;
-+
-+	int dbm_adjust;
- };
- 
- struct dibx000_bandwidth_config {
-diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
-index 501947eaacfe..baffa8fe09ef 100644
---- a/drivers/media/usb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
-@@ -1452,6 +1452,8 @@ static struct dibx000_agc_config dib8090_agc_config[2] = {
- 	.beta_exp = 51,
- 
- 	.perform_agc_softsplit = 0,
-+
-+	.dbm_adjust = 13000, /* Empirical adjust the Signal strength scale */
- 	},
- 	{
- 	.band_caps = BAND_CBAND,
+Maarten Lankhorst (9):
+      dma-buf: move to drivers/dma-buf
+      fence: dma-buf cross-device synchronization (v18)
+      seqno-fence: Hardware dma-buf implementation of fencing (v6)
+      dma-buf: use reservation objects
+      android: convert sync to fence api, v6
+      reservation: add support for fences to enable cross-device synchronisation
+      dma-buf: add poll support, v3
+      reservation: update api and add some helpers
+      reservation: add suppport for read-only access using rcu
+
+
+ Documentation/DocBook/device-drivers.tmpl      |    8 
+ MAINTAINERS                                    |    4 
+ drivers/Makefile                               |    1 
+ drivers/base/Kconfig                           |    9 
+ drivers/base/Makefile                          |    1 
+ drivers/base/dma-buf.c                         |  743 --------------------
+ drivers/base/reservation.c                     |   39 -
+ drivers/dma-buf/Makefile                       |    1 
+ drivers/dma-buf/dma-buf.c                      |  907 ++++++++++++++++++++++++
+ drivers/dma-buf/fence.c                        |  431 +++++++++++
+ drivers/dma-buf/reservation.c                  |  477 +++++++++++++
+ drivers/dma-buf/seqno-fence.c                  |   73 ++
+ drivers/gpu/drm/armada/armada_gem.c            |    2 
+ drivers/gpu/drm/drm_prime.c                    |    8 
+ drivers/gpu/drm/exynos/exynos_drm_dmabuf.c     |    2 
+ drivers/gpu/drm/i915/i915_gem_dmabuf.c         |    3 
+ drivers/gpu/drm/nouveau/nouveau_drm.c          |    1 
+ drivers/gpu/drm/nouveau/nouveau_gem.h          |    1 
+ drivers/gpu/drm/nouveau/nouveau_prime.c        |    7 
+ drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c      |    2 
+ drivers/gpu/drm/radeon/radeon_drv.c            |    2 
+ drivers/gpu/drm/radeon/radeon_prime.c          |    8 
+ drivers/gpu/drm/tegra/gem.c                    |    2 
+ drivers/gpu/drm/ttm/ttm_object.c               |    2 
+ drivers/media/v4l2-core/videobuf2-dma-contig.c |    2 
+ drivers/staging/android/Kconfig                |    1 
+ drivers/staging/android/Makefile               |    2 
+ drivers/staging/android/ion/ion.c              |    3 
+ drivers/staging/android/sw_sync.c              |    6 
+ drivers/staging/android/sync.c                 |  913 ++++++++----------------
+ drivers/staging/android/sync.h                 |   79 +-
+ drivers/staging/android/sync_debug.c           |  247 ++++++
+ drivers/staging/android/trace/sync.h           |   12 
+ include/drm/drmP.h                             |    3 
+ include/linux/dma-buf.h                        |   21 -
+ include/linux/fence.h                          |  360 +++++++++
+ include/linux/reservation.h                    |   82 ++
+ include/linux/seqno-fence.h                    |  116 +++
+ include/trace/events/fence.h                   |  128 +++
+ 39 files changed, 3258 insertions(+), 1451 deletions(-)
+ delete mode 100644 drivers/base/dma-buf.c
+ delete mode 100644 drivers/base/reservation.c
+ create mode 100644 drivers/dma-buf/Makefile
+ create mode 100644 drivers/dma-buf/dma-buf.c
+ create mode 100644 drivers/dma-buf/fence.c
+ create mode 100644 drivers/dma-buf/reservation.c
+ create mode 100644 drivers/dma-buf/seqno-fence.c
+ create mode 100644 drivers/staging/android/sync_debug.c
+ create mode 100644 include/linux/fence.h
+ create mode 100644 include/linux/seqno-fence.h
+ create mode 100644 include/trace/events/fence.h
+
 -- 
-1.9.3
-
+Signature
