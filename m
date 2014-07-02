@@ -1,56 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:65351 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753707AbaGHNzq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 09:55:46 -0400
-Received: from uscpsbgex3.samsung.com
- (u124.gpu85.samsung.co.kr [203.254.195.124]) by usmailout3.samsung.com
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:35699 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752406AbaGBM6O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jul 2014 08:58:14 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N8E00D4OC0XRD20@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 08 Jul 2014 09:55:45 -0400 (EDT)
-Message-id: <53BBF858.30408@samsung.com>
-Date: Tue, 08 Jul 2014 07:55:36 -0600
-From: Shuah Khan <shuah.kh@samsung.com>
-Reply-to: shuah.kh@samsung.com
+ 17 2011)) with ESMTP id <0N83009MU5CSES10@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 02 Jul 2014 13:58:04 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Philipp Zabel' <p.zabel@pengutronix.de>,
+	linux-media@vger.kernel.org
+Cc: 'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
+	'Fabio Estevam' <fabio.estevam@freescale.com>,
+	kernel@pengutronix.de
+References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+ <1403621771-11636-24-git-send-email-p.zabel@pengutronix.de>
+In-reply-to: <1403621771-11636-24-git-send-email-p.zabel@pengutronix.de>
+Subject: RE: [PATCH v2 23/29] [media] coda: use prescan_failed variable to stop
+ stream after a timeout
+Date: Wed, 02 Jul 2014 14:58:13 +0200
+Message-id: <0b3901cf95f5$493770d0$dba65270$%debski@samsung.com>
 MIME-version: 1.0
-To: Antti Palosaari <crope@iki.fi>,
-	"Mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Shuah Khan <shuah.kh@samsung.com>
-Subject: Re: fix PCTV 461e tuner I2C binding
-References: <53BB2E7D.30300@samsung.com> <53BB6947.2090409@iki.fi>
-In-reply-to: <53BB6947.2090409@iki.fi>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-type: text/plain; charset=us-ascii
 Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka Antti,
+Hi,
 
-On 07/07/2014 09:45 PM, Antti Palosaari wrote:
-> Moikka Shuah
->
+> From: Philipp Zabel [mailto:p.zabel@pengutronix.de]
+> Sent: Tuesday, June 24, 2014 4:56 PM
+> To: linux-media@vger.kernel.org
+> Cc: Mauro Carvalho Chehab; Kamil Debski; Fabio Estevam;
+> kernel@pengutronix.de; Philipp Zabel
+> Subject: [PATCH v2 23/29] [media] coda: use prescan_failed variable to
+> stop stream after a timeout
+> 
+> This variable should be renamed to hold instead (temporarily stopping
+> streaming until new data is fed into the bitstream buffer).
 
->> Why are we unregistering i2c devices and dvb in this resume path?
->> Looks incorrect to me.
->
-> I don't know. Original patch I send was a bit different and tuner was
-> removed only during em28xx_dvb_fini()
->
-> https://patchwork.linuxtv.org/patch/22275/
->
+Could you explain this commit message to me? If the name should be changed
+then why isn't it done in this patch or any subsequent patches?
 
-Yes. That's what I suspected. My patch and yours got munged somehow.
-I will send a fix in.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/media/platform/coda.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/media/platform/coda.c
+> b/drivers/media/platform/coda.c index 4548c84..cded081 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -1423,6 +1423,8 @@ static void coda_pic_run_work(struct work_struct
+> *work)
+> 
+>  	if (!wait_for_completion_timeout(&ctx->completion,
+> msecs_to_jiffies(1000))) {
+>  		dev_err(&dev->plat_dev->dev, "CODA PIC_RUN timeout\n");
+> +
+> +		ctx->prescan_failed = true;
+>  	} else if (!ctx->aborting) {
+>  		if (ctx->inst_type == CODA_INST_DECODER)
+>  			coda_finish_decode(ctx);
+> --
+> 2.0.0
 
-btw: thanks for teaching me how to say hello in Finnish
-
--- Shuah
-
-
-
+Best wishes,
 -- 
-Shuah Khan
-Senior Linux Kernel Developer - Open Source Group
-Samsung Research America(Silicon Valley)
-shuah.kh@samsung.com | (970) 672-0658
+Kamil Debski
+Samsung R&D Institute Poland
+
