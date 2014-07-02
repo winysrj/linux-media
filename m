@@ -1,52 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:57447 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751508AbaGZCZs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 22:25:48 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] rc-core: don't use dynamic_pr_debug for IR_dprintk()
-Date: Fri, 25 Jul 2014 23:25:36 -0300
-Message-Id: <1406341536-14418-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-la0-f48.google.com ([209.85.215.48]:58275 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752989AbaGBNuF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jul 2014 09:50:05 -0400
+Received: by mail-la0-f48.google.com with SMTP id el20so6913866lab.7
+        for <linux-media@vger.kernel.org>; Wed, 02 Jul 2014 06:50:03 -0700 (PDT)
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: [PATCH] staging: omap4iss: Fix type of struct iss_device::crashed
+Date: Wed,  2 Jul 2014 15:49:46 +0200
+Message-Id: <1404308986-21761-1-git-send-email-linux@rasmusvillemoes.dk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The hole point of IR_dprintk() is that, once a level is
-given at debug parameter, all enabled IR parsers will show their
-debug messages.
+The crashed member of struct iss_device is documented to be a bitmask,
+but a bool doesn't hold that many (usable) bits. Lines 589 and 659 of
+iss.c strongly suggest that "unsigned int" was meant (the same type as
+struct iss_pipeline::entities). Currently, any crashed entity will be
+blamed on index 0, which is unlikely to be what was intended.
 
-While converting it to dynamic_printk might be a good idea,
-right now it just makes very hard to debug the drivers, as
-one needs to both pass debug=1 or debug=2 to rc-core and
-to use the dynamic printk to enable all the desired lines.
-
-That doesn't make sense!
-
-So, revert to the old way, as a single line is changed,
-and the debug parameter will now work as expected.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 ---
- include/media/rc-core.h | 2 +-
+ drivers/staging/media/omap4iss/iss.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 3047837db1cc..2c7fbca40b69 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -26,7 +26,7 @@ extern int rc_core_debug;
- #define IR_dprintk(level, fmt, ...)				\
- do {								\
- 	if (rc_core_debug >= level)				\
--		pr_debug("%s: " fmt, __func__, ##__VA_ARGS__);	\
-+		printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__);	\
- } while (0)
+diff --git a/drivers/staging/media/omap4iss/iss.h b/drivers/staging/media/omap4iss/iss.h
+index 05cd9bf..734cfee 100644
+--- a/drivers/staging/media/omap4iss/iss.h
++++ b/drivers/staging/media/omap4iss/iss.h
+@@ -97,7 +97,7 @@ struct iss_device {
+ 	u64 raw_dmamask;
  
- enum rc_driver_type {
+ 	struct mutex iss_mutex;	/* For handling ref_count field */
+-	bool crashed;
++	unsigned int crashed;
+ 	int has_context;
+ 	int ref_count;
+ 
 -- 
-1.9.3
+1.9.2
 
