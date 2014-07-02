@@ -1,134 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4255 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753477AbaGWGjz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 02:39:55 -0400
-Message-ID: <53CF58AE.7020806@xs4all.nl>
-Date: Wed, 23 Jul 2014 08:39:42 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: "Monica, Agnes" <Agnes.Monica@analog.com>,
-	"v4l2-library@linuxtv.org" <v4l2-library@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [V4l2-library] FourCC support
-References: <E2B3634EC825DA45A0EB7D5409D69FBE584D03FA@NWD2MBX6.ad.analog.com> <53CE116D.8010404@xs4all.nl> <53CE14CF.9010900@xs4all.nl> <E2B3634EC825DA45A0EB7D5409D69FBE584D1571@NWD2MBX6.ad.analog.com>
-In-Reply-To: <E2B3634EC825DA45A0EB7D5409D69FBE584D1571@NWD2MBX6.ad.analog.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:35713 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754737AbaGBPwd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jul 2014 11:52:33 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH RFC 8/9] dib0700: Optimize the AGC settings for dib8096gp
+Date: Wed,  2 Jul 2014 12:52:22 -0300
+Message-Id: <1404316343-23856-9-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1404316343-23856-1-git-send-email-m.chehab@samsung.com>
+References: <1404316343-23856-1-git-send-email-m.chehab@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/23/2014 07:04 AM, Monica, Agnes wrote:
-> Hi,
-> 
-> It would be good if support exists for full and limited range. 
-> 
-> 1. So can we re-use(map) the existing  colorspace  for our different color format.
+Replicate the settings found at the windows driver for Mygica S870.
+Those should improve tuning with real signals.
 
-Well, no, obviously. You need to propose new colorspace defines. The list of
-colorspace defines is in videodev2.h. the best procedure is to post an RFC to
-the linux-media mailinglist with the new defines that you need and explain why
-you need them. The next step would be to write patches adding those defines
-and updating the DocBook documentation (Documentation/DocBook/media/v4l/pixfmt.xml).
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/dvb-usb/dib0700_devices.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-Contact me first before working on the docbook since I plan on rewriting that
-section.
-
-There is always a chicken-and-egg problem in that a driver actually need to
-use the new defines before they can go in. However, in this case you can try
-to add support for it to e.g. adv7604 and/or adv7511. That might be the fastest
-way of getting it in.
-
-> 2. Or is it a good way to use custom control command. 
-
-Absolutely not. Colorspace handling is done through the colorspace defines. So
-if you need new ones, just add them properly.
-
-For what chip(s) are you developing? Quite a few adv drivers are already in the
-kernel. Perhaps it is wise to coordinate this? In particular, take a look at
-existing drivers like the adv7604 and adv7511.
-
-> 
-> So in future if we come across some specific features with respect to
-> our chip, is it good to use custom control or duplicate the
-> functionality of the existing enums.
-
-First you ask on the mailinglist, then we can give an answer what the best
-approach will be. Abuse of existing APIs will make it very hard if not
-impossible to get such a driver merged in the kernel. So please don't do that.
-In general either proper support should be added to v4l2 for the feature you
-want to add, or it is a driver-specific control or ioctl. But all too often
-what you think is driver specific is really a lot more common than you thought.
-
-But above all, ask first on the mailinglist!
-
-If your goal is to upstream the drivers (I hope so, speaking as one customer of
-Analog), then please avoid taking shortcuts. It will only cause problems later.
-
-I'm happy to help out with pointers, review, etc.
-
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> Monica
-> 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
-> Sent: Tuesday, July 22, 2014 1:08 PM
-> To: Monica, Agnes; v4l2-library@linuxtv.org; linux-media; Lars-Peter Clausen
-> Subject: Re: [V4l2-library] FourCC support
-> 
-> On 07/22/14 09:23, Hans Verkuil wrote:
->> Hi Monica,
->>
->> The v4l2-library is not the best mailinglist for that so I've added 
->> linux-media as well, which is more appropriate. I've also added 
->> Lars-Peter since he does a lot of adv work as well.
->>
->> The short answer is that those colorspaces are not supported at the 
->> moment, but that it is not a problem to add them, provided the driver 
->> you are working on is going to be upstreamed (i.e., we'd like to have 
->> users for the API elements we add).
->>
->> One note of interest: there is currently no API mechanism to tell 
->> userspace if the image data is limited or full range. YCbCr is always 
->> assumed to be limited range and RGB full range. If you need to signal 
->> that, then let me know. A flags field has been added to struct 
->> v4l2_pix_format in the last few days that would allow you to add a 
->> 'ALT_RANGE' flag, telling userspace that the alternate quantization 
->> range is used. This flag doesn't exist yet, but it is no problem to add it.
-> 
-> To prevent any confusion: the colorspace isn't determined by the format fourcc, it's a separate colorspace field using the V4L2_COLORSPACE_* defines. The pixelformat and colorspace are two very different things.
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>
->> Hope this helps,
->>
->> 	Hans
->>
->> On 07/22/14 08:18, Monica, Agnes wrote:
->>> Hi ,
->>>
->>> One of drivers which we are developing supports formats like sYcc , 
->>> AdobeRGB and AdobeYCC601 which was added recently in HDMI spec1.4. So 
->>> can you please tell me how will these formats be supported by fmt.
->>>
->>> Regards,
->>>
->>> Monica
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" 
->> in the body of a message to majordomo@vger.kernel.org More majordomo 
->> info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
+diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
+index baffa8fe09ef..aad725b23feb 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
+@@ -1426,7 +1426,7 @@ static struct dibx000_agc_config dib8090_agc_config[2] = {
+ 	.thlock = 118,
+ 
+ 	.wbd_inv = 0,
+-	.wbd_ref = 3530,
++	.wbd_ref = 958,
+ 	.wbd_sel = 1,
+ 	.wbd_alpha = 5,
+ 
+@@ -1500,11 +1500,11 @@ static struct dibx000_agc_config dib8090_agc_config[2] = {
+ };
+ 
+ static struct dibx000_bandwidth_config dib8090_pll_config_12mhz = {
+-	.internal = 54000,
++	.internal = 60000,
+ 	.sampling = 13500,
+ 
+ 	.pll_prediv = 1,
+-	.pll_ratio = 18,
++	.pll_ratio = 20,
+ 	.pll_range = 3,
+ 	.pll_reset = 1,
+ 	.pll_bypass = 0,
+@@ -1518,7 +1518,7 @@ static struct dibx000_bandwidth_config dib8090_pll_config_12mhz = {
+ 	.sad_cfg = (3 << 14) | (1 << 12) | (599 << 0),
+ 
+ 	.ifreq = (0 << 25) | 0,
+-	.timf = 20199727,
++	.timf = 18179755,
+ 
+ 	.xtal_hz = 12000000,
+ };
+@@ -1559,7 +1559,7 @@ static struct dib8000_config dib809x_dib8000_config[2] = {
+ 	.output_mode = OUTMODE_MPEG2_FIFO,
+ 	.drives = 0x2d98,
+ 	.diversity_delay = 48,
+-	.refclksel = 3,
++	.refclksel = 1,
+ 	}, {
+ 	.output_mpeg2_in_188_bytes = 1,
+ 
+-- 
+1.9.3
 
