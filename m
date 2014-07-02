@@ -1,43 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f180.google.com ([209.85.216.180]:47674 "EHLO
-	mail-qc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756251AbaGISYa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jul 2014 14:24:30 -0400
-Received: by mail-qc0-f180.google.com with SMTP id r5so6996066qcx.11
-        for <linux-media@vger.kernel.org>; Wed, 09 Jul 2014 11:24:29 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46831 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750852AbaGBHzj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jul 2014 03:55:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sasha Levin <sasha.levin@oracle.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+	Katsuya MATSUBARA <matsu@igel.co.jp>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Dave Jones <davej@redhat.com>
+Subject: Re: [PATCH v7] media: vb2: Take queue or device lock in mmap-related vb2 ioctl handlers
+Date: Wed, 02 Jul 2014 09:56:33 +0200
+Message-ID: <10104979.PzNG1tgbGn@avalon>
+In-Reply-To: <53B3A7CB.8020901@xs4all.nl>
+References: <201308061239.27188.hverkuil@xs4all.nl> <2051293.PjTd9YAWz0@avalon> <53B3A7CB.8020901@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1404919470-26668-3-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	<1404919470-26668-3-git-send-email-andriy.shevchenko@linux.intel.com>
-Date: Wed, 9 Jul 2014 14:24:29 -0400
-Message-ID: <CALzAhNUUqJNm=o0YoLqoLEnARJ6L34WpcCYScEx5aDeef4B1nQ@mail.gmail.com>
-Subject: Re: [PATCH v1 2/5] saa7164: convert to seq_hex_dump()
-From: Steven Toth <stoth@kernellabs.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Tadeusz Struk <tadeusz.struk@intel.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Helge Deller <deller@gmx.de>,
-	Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>,
-	linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>,
-	qat-linux@intel.com, linux-crypto@vger.kernel.org,
-	Linux-Media <linux-media@vger.kernel.org>,
-	linux-s390@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 9, 2014 at 11:24 AM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> Instead of custom approach let's use recently added seq_hex_dump() helper.
->
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Hi Hans,
 
-ack
+On Wednesday 02 July 2014 08:33:47 Hans Verkuil wrote:
+> For now it is -ENOTIME for me. It's on my TODO list, but there are a number
+> of other things I want to finish first.
 
-Reviewed-by: Steven Toth <stoth@kernellabs.com>
+No worries, I know how it feels. I just wanted to make sure you hadn't missed 
+my e-mail.
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
+
