@@ -1,56 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1594 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754106AbaGQW1x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 18:27:53 -0400
-Message-ID: <53C84DDE.4000701@xs4all.nl>
-Date: Fri, 18 Jul 2014 00:27:42 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57269 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751484AbaGBFiS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jul 2014 01:38:18 -0400
+Date: Tue, 1 Jul 2014 22:37:58 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-arch@vger.kernel.org, thellstrom@vmware.com,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
+	thierry.reding@gmail.com, ccross@google.com, daniel@ffwll.ch,
+	sumit.semwal@linaro.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 0/9] Updated fence patch series
+Message-ID: <20140702053758.GA7578@kroah.com>
+References: <20140701103432.12718.82795.stgit@patser>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] libv4lconvert: add support for new pixelformats
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140701103432.12718.82795.stgit@patser>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Support for alpha-channel aware pixelformats was added. Recognize those formats
-in libv4lconvert.
+On Tue, Jul 01, 2014 at 12:57:02PM +0200, Maarten Lankhorst wrote:
+> So after some more hacking I've moved dma-buf to its own subdirectory,
+> drivers/dma-buf and applied the fence patches to its new place. I believe that the
+> first patch should be applied regardless, and the rest should be ready now.
+> :-)
+> 
+> Changes to the fence api:
+> - release_fence -> fence_release etc.
+> - __fence_init -> fence_init
+> - __fence_signal -> fence_signal_locked
+> - __fence_is_signaled -> fence_is_signaled_locked
+> - Changing BUG_ON to WARN_ON in fence_later, and return NULL if it triggers.
+> 
+> Android can expose fences to userspace. It's possible to make the new fence
+> mechanism expose the same fences to userspace by changing sync_fence_create
+> to take a struct fence instead of a struct sync_pt. No other change is needed,
+> because only the fence parts of struct sync_pt are used. But because the
+> userspace fences are a separate problem and I haven't really looked at it yet
+> I feel it should stay in staging, for now.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Ok, that's reasonable.
 
-diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-index 7ee7c19..cea65aa 100644
---- a/lib/libv4lconvert/libv4lconvert.c
-+++ b/lib/libv4lconvert/libv4lconvert.c
-@@ -86,6 +86,10 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
- 	{ V4L2_PIX_FMT_RGB565,		16,	 4,	 6,	0 },
- 	{ V4L2_PIX_FMT_BGR32,		32,	 4,	 6,	0 },
- 	{ V4L2_PIX_FMT_RGB32,		32,	 4,	 6,	0 },
-+	{ V4L2_PIX_FMT_XBGR32,		32,	 4,	 6,	0 },
-+	{ V4L2_PIX_FMT_XRGB32,		32,	 4,	 6,	0 },
-+	{ V4L2_PIX_FMT_ABGR32,		32,	 4,	 6,	0 },
-+	{ V4L2_PIX_FMT_ARGB32,		32,	 4,	 6,	0 },
- 	/* yuv 4:2:2 formats */
- 	{ V4L2_PIX_FMT_YUYV,		16,	 5,	 4,	0 },
- 	{ V4L2_PIX_FMT_YVYU,		16,	 5,	 4,	0 },
-@@ -1121,6 +1125,8 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
- 		break;
- 
- 	case V4L2_PIX_FMT_RGB32:
-+	case V4L2_PIX_FMT_XRGB32:
-+	case V4L2_PIX_FMT_ARGB32:
- 		if (src_size < (width * height * 4)) {
- 			V4LCONVERT_ERR("short rgb32 data frame\n");
- 			errno = EPIPE;
-@@ -1143,6 +1149,8 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
- 		break;
- 
- 	case V4L2_PIX_FMT_BGR32:
-+	case V4L2_PIX_FMT_XBGR32:
-+	case V4L2_PIX_FMT_ABGR32:
- 		if (src_size < (width * height * 4)) {
- 			V4LCONVERT_ERR("short bgr32 data frame\n");
- 			errno = EPIPE;
+At first glance, this all looks "sane" to me, any objection from anyone
+if I merge this through my driver-core tree for 3.17?
+
+thanks,
+
+greg k-h
