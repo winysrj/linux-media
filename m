@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f172.google.com ([74.125.82.172]:58346 "EHLO
-	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754882AbaGQU4u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 16:56:50 -0400
-Received: by mail-we0-f172.google.com with SMTP id x48so3606603wes.17
-        for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 13:56:49 -0700 (PDT)
-From: Luis Alves <ljalvs@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: crope@iki.fi, Luis Alves <ljalvs@gmail.com>
-Subject: [PATCH 1/1] si2168: Remove testing for demod presence on probe. If the demod is in sleep mode it will fail.
-Date: Thu, 17 Jul 2014 21:56:44 +0100
-Message-Id: <1405630604-19534-1-git-send-email-ljalvs@gmail.com>
+Received: from ns.pmeerw.net ([87.118.82.44]:57951 "EHLO pmeerw.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753429AbaGDHvx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Jul 2014 03:51:53 -0400
+From: Peter Meerwald <pmeerw@pmeerw.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
+	Peter Meerwald <pmeerw@pmeerw.net>
+Subject: [PATCH] media:platform: OMAP3 camera support needs VIDEOBUF2_DMA_CONTIG
+Date: Fri,  4 Jul 2014 09:51:47 +0200
+Message-Id: <1404460307-6434-1-git-send-email-pmeerw@pmeerw.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Luis Alves <ljalvs@gmail.com>
----
- drivers/media/dvb-frontends/si2168.c | 8 --------
- 1 file changed, 8 deletions(-)
+drivers/built-in.o: In function `isp_video_open':
+/src/linux/drivers/media/platform/omap3isp/ispvideo.c:1253: undefined reference to `vb2_dma_contig_memops'
+drivers/built-in.o: In function `omap3isp_video_init':
+/src/linux/drivers/media/platform/omap3isp/ispvideo.c:1344: undefined reference to `vb2_dma_contig_init_ctx'
+/src/linux/drivers/media/platform/omap3isp/ispvideo.c:1350: undefined reference to `vb2_dma_contig_cleanup_ctx'
+drivers/built-in.o: In function `omap3isp_video_cleanup':
+/src/linux/drivers/media/platform/omap3isp/ispvideo.c:1381: undefined reference to `vb2_dma_contig_cleanup_ctx'
+make: *** [vmlinux] Error 1
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 3fed522..7e45eeab 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -595,7 +595,6 @@ static int si2168_probe(struct i2c_client *client,
- 	struct si2168_config *config = client->dev.platform_data;
- 	struct si2168 *s;
- 	int ret;
--	struct si2168_cmd cmd;
- 
- 	dev_dbg(&client->dev, "%s:\n", __func__);
- 
-@@ -609,13 +608,6 @@ static int si2168_probe(struct i2c_client *client,
- 	s->client = client;
- 	mutex_init(&s->i2c_mutex);
- 
--	/* check if the demod is there */
--	cmd.wlen = 0;
--	cmd.rlen = 1;
--	ret = si2168_cmd_execute(s, &cmd);
--	if (ret)
--		goto err;
--
- 	/* create mux i2c adapter for tuner */
- 	s->adapter = i2c_add_mux_adapter(client->adapter, &client->dev, s,
- 			0, 0, 0, si2168_select, si2168_deselect);
+Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
+---
+
+not sure if this is the right way to fix, at least my kernel compiles
+
+ drivers/media/platform/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 8108c69..e1ff228 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -95,6 +95,7 @@ config VIDEO_OMAP3
+ 	tristate "OMAP 3 Camera support"
+ 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
+ 	select ARM_DMA_USE_IOMMU
++	select VIDEOBUF2_DMA_CONTIG
+ 	select OMAP_IOMMU
+ 	---help---
+ 	  Driver for an OMAP 3 camera controller.
 -- 
 1.9.1
 
