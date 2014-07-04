@@ -1,57 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1949 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754661AbaGWGRT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 02:17:19 -0400
-Message-ID: <53CF5362.2050003@xs4all.nl>
-Date: Wed, 23 Jul 2014 08:17:06 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH for v3.17] vb2: fix videobuf2-core.h comments
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:39631 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753391AbaGDRRK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jul 2014 13:17:10 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [[PATCH v2] 09/14] dib8000: Fix the sleep time at the state machine
+Date: Fri,  4 Jul 2014 14:15:35 -0300
+Message-Id: <1404494140-17777-10-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1404494140-17777-1-git-send-email-m.chehab@samsung.com>
+References: <1404494140-17777-1-git-send-email-m.chehab@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A lot of work was done in vb2 to regulate how drivers and the vb2 core handle
-buffer ownership, but inexplicably the videobuf2-core.h comments were never
-updated. Do so now. The same was true for the replacement of the -ENOBUFS
-mechanism by the min_buffers_needed field.
+msleep() is not too precise: its precision depends on the
+HZ config. As the driver selects precise timings for the
+state machine, change it to usleep_range().
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/dib8000.c | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
+index e4da545680b6..9f40af588441 100644
+--- a/drivers/media/dvb-frontends/dib8000.c
++++ b/drivers/media/dvb-frontends/dib8000.c
+@@ -3607,10 +3607,19 @@ static int dib8000_set_frontend(struct dvb_frontend *fe)
+ 			else if ((time_slave != FE_CALLBACK_TIME_NEVER) && (time_slave > time))
+ 				time = time_slave;
+ 		}
+-		if (time != FE_CALLBACK_TIME_NEVER)
+-			msleep(time / 10);
+-		else
++		if (time == FE_CALLBACK_TIME_NEVER)
+ 			break;
++
++		/*
++		 * Despite dib8000_agc_startup returns time at a 0.1 ms range,
++		 * the actual sleep time depends on CONFIG_HZ. The worse case
++		 * is when CONFIG_HZ=100. In such case, the minimum granularity
++		 * is 10ms. On some real field tests, the tuner sometimes don't
++		 * lock when this timer is lower than 10ms. So, enforce a 10ms
++		 * granularity.
++		 */
++		time = 10 * (time + 99)/100;
++		usleep_range(time * 1000, (time + 1) * 1000);
+ 		exit_condition = 1;
+ 		for (index_frontend = 0; (index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[index_frontend] != NULL); index_frontend++) {
+ 			if (dib8000_get_tune_state(state->fe[index_frontend]) != CT_AGC_STOP) {
+-- 
+1.9.3
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 1a262ae..fc910a6 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -294,15 +294,19 @@ struct vb2_buffer {
-  *			of already queued buffers in count parameter; driver
-  *			can return an error if hardware fails, in that case all
-  *			buffers that have been already given by the @buf_queue
-- *			callback are invalidated.
-- *			If there were not enough queued buffers to start
-- *			streaming, then this callback returns -ENOBUFS, and the
-- *			vb2 core will retry calling @start_streaming when a new
-- *			buffer is queued.
-+ *			callback are to be returned by the driver by calling
-+ *			@vb2_buffer_done(VB2_BUF_STATE_DEQUEUED).
-+ *			If you need a minimum number of buffers before you can
-+ *			start streaming, then set @min_buffers_needed in the
-+ *			vb2_queue structure. If that is non-zero then
-+ *			start_streaming won't be called until at least that
-+ *			many buffers have been queued up by userspace.
-  * @stop_streaming:	called when 'streaming' state must be disabled; driver
-  *			should stop any DMA transactions or wait until they
-  *			finish and give back all buffers it got from buf_queue()
-- *			callback; may use vb2_wait_for_all_buffers() function
-+ *			callback by calling @vb2_buffer_done() with either
-+ *			VB2_BUF_STATE_DONE or VB2_BUF_STATE_ERROR; may use
-+ *			vb2_wait_for_all_buffers() function
-  * @buf_queue:		passes buffer vb to the driver; driver may start
-  *			hardware operation on this buffer; driver should give
-  *			the buffer back by calling vb2_buffer_done() function;
