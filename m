@@ -1,56 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:46476 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751119AbaGGQhz (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:55429 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755546AbaGDHy7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jul 2014 12:37:55 -0400
-From: Ian Molton <ian.molton@codethink.co.uk>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@lists.codethink.co.uk, ian.molton@codethink.co.uk,
-	g.liakhovetski@gmx.de, m.chehab@samsung.com
-Subject: [PATCH 1/4] media: rcar_vin: Dont aggressively retire buffers
-Date: Mon,  7 Jul 2014 17:37:46 +0100
-Message-Id: <1404751069-5666-2-git-send-email-ian.molton@codethink.co.uk>
-In-Reply-To: <1404751069-5666-1-git-send-email-ian.molton@codethink.co.uk>
-References: <1404751069-5666-1-git-send-email-ian.molton@codethink.co.uk>
+	Fri, 4 Jul 2014 03:54:59 -0400
+Message-ID: <53B65DCA.6010803@xs4all.nl>
+Date: Fri, 04 Jul 2014 09:54:50 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Divneil Wadhawan <divneil@outlook.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: No audio support in struct v4l2_subdev_format
+References: <BAY176-W7B3F24A204E68896226E0A9000@phx.gbl>
+In-Reply-To: <BAY176-W7B3F24A204E68896226E0A9000@phx.gbl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-rcar_vin_videobuf_release() is called once per buffer from the buf_cleanup hook.
+On 07/04/2014 08:49 AM, Divneil Wadhawan wrote:
+> Hello,
+> 
+> 
+> There's an HDMIRx subdev I have implemented and I would like the application to read properties of incoming audio.
+> 
+> For the moment, there's no support of it.
+> 
+> Can you share if some work is already done on this but not complete or we do it from scratch?
 
-There is no need to look up the queue and free all buffers at this point.
+To my knowledge nobody has done much if any work on this. Usually the
+audio part is handled by alsa, but it is not clear if support is also
+needed from the V4L2 API. If such support is needed it will most likely
+be in the form of a bunch of new controls.
 
-Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
----
- drivers/media/platform/soc_camera/rcar_vin.c | 12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+Regards,
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index e594230..7154500 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -493,17 +493,11 @@ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
- 		 * to release could be any of the current buffers in use, so
- 		 * release all buffers that are in use by HW
- 		 */
--		for (i = 0; i < MAX_BUFFER_NUM; i++) {
--			if (priv->queue_buf[i]) {
--				vb2_buffer_done(priv->queue_buf[i],
--					VB2_BUF_STATE_ERROR);
--				priv->queue_buf[i] = NULL;
--			}
--		}
--	} else {
--		list_del_init(to_buf_list(vb));
-+		priv->queue_buf[i] = NULL;
- 	}
- 
-+	list_del_init(to_buf_list(vb));
-+
- 	spin_unlock_irq(&priv->lock);
- }
- 
--- 
-1.9.1
-
+	Hans
