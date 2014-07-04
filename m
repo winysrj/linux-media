@@ -1,72 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f169.google.com ([209.85.128.169]:61082 "EHLO
-	mail-ve0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751450AbaGHX2h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 19:28:37 -0400
-Received: by mail-ve0-f169.google.com with SMTP id pa12so6593458veb.0
-        for <linux-media@vger.kernel.org>; Tue, 08 Jul 2014 16:28:36 -0700 (PDT)
+Received: from bay004-omc2s7.hotmail.com ([65.54.190.82]:64259 "EHLO
+	BAY004-OMC2S7.hotmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752409AbaGDLiE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jul 2014 07:38:04 -0400
+Message-ID: <BAY176-W264D5BED6FA556ABDE0763A9000@phx.gbl>
+From: Divneil Wadhawan <divneil@outlook.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: No audio support in struct v4l2_subdev_format
+Date: Fri, 4 Jul 2014 17:08:03 +0530
+In-Reply-To: <53B6840A.20102@xs4all.nl>
+References: <BAY176-W7B3F24A204E68896226E0A9000@phx.gbl>,<53B65DCA.6010803@xs4all.nl>
+ <BAY176-W23C9AA5FB70F17EDEB68F8A9000@phx.gbl>,<53B679C2.7030002@xs4all.nl>
+ <BAY176-W32B9E16B0436D20DF363BEA9000@phx.gbl>,<53B6840A.20102@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-In-Reply-To: <8119752.rPOQIYa4Af@avalon>
-References: <539FDC4F.4030000@redhat.com> <1403016348-10129-1-git-send-email-vpalatin@chromium.org>
- <CACHYQ-rSk6etrX8RXF4w7aA_LJ9nzGtfJMOjhBOg49BZ4gaWgw@mail.gmail.com> <8119752.rPOQIYa4Af@avalon>
-From: Vincent Palatin <vpalatin@chromium.org>
-Date: Tue, 8 Jul 2014 16:28:16 -0700
-Message-ID: <CAP_ceTxk=OE3UVhNKk+WV7EG3E9Z0cOH4tZBU210Awa15OOjgw@mail.gmail.com>
-Subject: Re: [PATCH v2] V4L: uvcvideo: Add support for relative pan/tilt controls
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Pawel Osciak <posciak@chromium.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Olof Johansson <olofj@chromium.org>,
-	Zach Kuznia <zork@chromium.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 25, 2014 at 2:54 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Pawel,
->
-> On Wednesday 25 June 2014 11:46:24 Pawel Osciak wrote:
->> On Tue, Jun 17, 2014 at 11:45 PM, Vincent Palatin wrote:
->> > Map V4L2_CID_TILT_RELATIVE and V4L2_CID_PAN_RELATIVE to the standard UVC
->> > CT_PANTILT_RELATIVE_CONTROL terminal control request.
->> >
->> > Tested by plugging a Logitech ConferenceCam C3000e USB camera
->> > and controlling pan/tilt from the userspace using the VIDIOC_S_CTRL ioctl.
->> > Verified that it can pan and tilt at the same time in both directions.
->> >
->> > Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
->> >
->> > Change-Id: I7b70b228e5c0126683f5f0be34ffd2807f5783dc
->> > ---
->> >
->> > Changes
->> > v2: fix control request name in description.
->>
->> The patch looks good, but I have a more general comment for everyone to
->> consider. This doesn't match the expected functionality of
->> controls V4L2_CID_PAN/TILT_RELATIVE. This is basically an on/off switch for
->> pan/tilt, which once enabled will keep going until turned off (or I'm
->> guessing until the maximum pan/tilt is reached), while the controls are
->> supposed to expose an ability to turn the camera by a specified amount.
->> Here the amount will also be ignored...
->
-> I agree with you here, and this mismatch between the V4L and UVC controls is
-> the reason why I haven't implemented relative pan/tilt support.
->
->> Given that this is a standard UVC control, perhaps we need new V4L2
->> controls for it, as I'm assuming we can't change the meaning of existing
->> controls?
->
-> We could extend the meaning of the controls to cover the UVC behaviour in a
-> device-specific fashion, but that would be confusing for applications, so new
-> controls might be a better idea.
+Hi Hans,
 
-Ok, I will add another patch to create new V4L2_CID_PAN_SPEED /
-V4L2_CID_TILT_SPEED controls.
 
--- 
-Vincent
+
+> It should generate an initial SOURCE_CHANGE event with 'changes' set to
+> V4L2_EVENT_SRC_CH_RESOLUTION. That way the application that just subscribed to this
+> event with V4L2_EVENT_SUB_FL_SEND_INITIAL will get an initial event.
+
+Just checked in 3.10 which I am using, this is for the control events.
+
+So, I will check in detail and in case fits our case, will reuse the part in my code.
+
+
+> I hate to say this, but I have no idea what you mean. Can you show some code?
+
+
+static int hdmirx_evt_add(struct v4l2_subscribed_event *sev, unsigned elems)
+{
+        struct v4l2_fh *fh = sev->fh;
+        struct v4l2_subdev *sd = vdev_to_v4l2_subdev(fh->vdev);
+        struct hdmirx_ctx_s *hdmirx_ctx = v4l2_get_subdevdata(sd);
+
+
+        .......
+
+
+        list_add_tail(&sev->node, &hdmirx_ctx->subs_list);
+
+
+        ........
+
+
+        return 0;
+}
+
+
+static void hdmirx_evt_del(struct v4l2_subscribed_event *sev)
+{
+        struct v4l2_fh *fh = sev->fh;
+        struct v4l2_subdev *sd = vdev_to_v4l2_subdev(fh->vdev);
+        struct hdmirx_ctx_s *hdmirx_ctx = v4l2_get_subdevdata(sd);
+
+
+
+        .............
+
+
+        list_del(&sev->node);
+
+
+        ..........
+
+}
+
+
+
+struct v4l2_subscribed_event_ops hdmirx_event_ops = {
+        .add = hdmirx_status_evt_add,
+        .del = hdmirx_status_evt_del,
+        .replace = v4l2_ctrl_replace,
+        .merge = v4l2_ctrl_merge,
+};
+
+
+
+hdmi_core_subscribe_event()
+
+{
+
+
+
+ ret = v4l2_event_subscribe(fh, sub,
+                     HDMIRX_EVENT_QUEUE_DEPTH, &hdmirx_event_ops);
+
+
+}
+
+
+static const struct v4l2_subdev_core_ops hdmirx_subdev_core_ops = {
+        .ioctl =  xxx
+        .subscribe_event = hdmirx_core_subscribe_event,
+
+...
+
+}
+
+
+v4l2_event_subscribe() takes the 4th arg as the event_ops. ctrl and source_change events are not allowing 
+
+to override ops. It can be like:
+
+int v4l2_ctrl_subdev_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+                                     struct v4l2_event_subscription *sub, xxx )
+
+{
+
+    if (!xxx)
+
+         default ops as open source
+
+
+}
+
+
+
+> But shouldn't that be handled by an alsa driver? That's what someone has to
+> figure out: what goes in alsa and what still has to be provided by V4L2. For HDMI
+> output in e.g. an nvidia card the audio is fully handled by alsa AFAIK.
+
+Okay, I will come back on this later.
+
+Let's see if I can do something better with the event handling.
+
+
+Regards,
+
+Divneil 		 	   		  
