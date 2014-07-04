@@ -1,61 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1932 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754906AbaGRTfS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 15:35:18 -0400
-Message-ID: <53C976E8.9070501@xs4all.nl>
-Date: Fri, 18 Jul 2014 21:35:04 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] v4l: videodev2: add buffer size to SDR format
-References: <1405711769-8463-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1405711769-8463-1-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:39554 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755339AbaGDRPw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jul 2014 13:15:52 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [[PATCH v2] 00/14] Fix ISDB-T tuning issues
+Date: Fri,  4 Jul 2014 14:15:26 -0300
+Message-Id: <1404494140-17777-1-git-send-email-m.chehab@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/18/2014 09:29 PM, Antti Palosaari wrote:
-> Add buffer size field to struct v4l2_sdr_format. It is used for
-> negotiate streaming buffer size between application and driver.
+While testing two dvb devices:
+	- Mygica S870 (dib8096 based);
+	- Pixelview PV-D231U (RN-F)
 
-Yes, that's what I had in mind. Can you provide a DocBook patch as
-well?
+I noticed several bugs:
+- It doesn't lock on any layer with Interleave > 2;
+- It doesn't lock in mode 2 (4 K FFT);
+- ADC OFF settings is wrong, with causes wrong ADC
+  adjustments and cause locking issues;
+- the ADC gain table was not right;
+- There are some troubles when used with CONFIG_HZ = 1000.
 
-This patch:
+This patch series addresses the above bugs. While here, it also
+improves some debug messages and ad a few other improvements.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+For the patches that change the sleep time, I opted to be
+conservative, e. g. to reproduce the worse case (e. g.
+CONFIG_HZ = 100), so enforcing that the minimal state machine
+delays to be 10ms. That assures that no regression will be
+introduced, and that machines configured with HZ equal to
+250, 300 or 1000 will work just like the ones configured with
+HZ equal to 100.
 
-Regards,
+Please notice that the Windows driver for Mygica S870 does a
+different setup than what's there at the Linux driver. While
+I have a patch changing it, I opted to remove it from this patch
+series, as I didn't notice any improvements with the patch here.
+Such patch is already in patchwork:
+	https://patchwork.linuxtv.org/patch/24586/
+and we might resurrect it latter if needed.
 
-	Hans
+Mauro Carvalho Chehab (14):
+  dib8000: Fix handling of interleave bigger than 2
+  dib8000: Fix ADC OFF settings
+  dib8000: Fix alignments at dib8000_tune()
+  dib8000: Fix: add missing 4K mode
+  dib8000: remove a double call for dib8000_get_symbol_duration()
+  dib8000: In auto-search, try first with partial reception enabled
+  dib8000: Restart sad during dib8000_reset
+  dib0700: better document struct init
+  dib8000: Fix the sleep time at the state machine
+  dib0090: Fix the sleep time at the state machine
+  dib8000: use jifies instead of current_kernel_time()
+  dib8000: Update the ADC gain table
+  dib8000: improve debug messages
+  dib8000: improve the message that reports per-layer locks
 
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  include/uapi/linux/videodev2.h | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 25ab057..0dd5ffb 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -1724,10 +1724,12 @@ struct v4l2_pix_format_mplane {
->  /**
->   * struct v4l2_sdr_format - SDR format definition
->   * @pixelformat:	little endian four character code (fourcc)
-> + * @buffersize:		maximum size in bytes required for data
->   */
->  struct v4l2_sdr_format {
->  	__u32				pixelformat;
-> -	__u8				reserved[28];
-> +	__u32				buffersize;
-> +	__u8				reserved[24];
->  } __attribute__ ((packed));
->  
->  /**
-> 
+ drivers/media/dvb-frontends/dib0090.c       |  15 +-
+ drivers/media/dvb-frontends/dib8000.c       | 645 +++++++++++++++-------------
+ drivers/media/usb/dvb-usb/dib0700_devices.c | 148 ++++---
+ 3 files changed, 436 insertions(+), 372 deletions(-)
+
+-- 
+1.9.3
 
