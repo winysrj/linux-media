@@ -1,69 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4201 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750926AbaGYLUS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 07:20:18 -0400
-Message-ID: <53D23D5A.1020700@xs4all.nl>
-Date: Fri, 25 Jul 2014 13:19:54 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-Subject: [PATCH] solo6x10: fix potential null dereference
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:47084 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751906AbaGDS0x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jul 2014 14:26:53 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [[PATCH v2] 04/14] dib8000: Fix: add missing 4K mode
+Date: Fri,  4 Jul 2014 14:15:30 -0300
+Message-Id: <1404494140-17777-5-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1404494140-17777-1-git-send-email-m.chehab@samsung.com>
+References: <1404494140-17777-1-git-send-email-m.chehab@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/pci/solo6x10/solo6x10-disp.c:221 solo_set_motion_block() error: potential null dereference 
-'buf'.  (kzalloc returns null)
+Without that, tuning may fail on 4K modes, as the transmission
+parameter cache will be initialized with a wrong value.
 
-Also propagate this error up the chain.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/dib8000.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-
-diff --git a/drivers/media/pci/solo6x10/solo6x10-disp.c b/drivers/media/pci/solo6x10/solo6x10-disp.c
-index ed88ab4..5ea9cac 100644
---- a/drivers/media/pci/solo6x10/solo6x10-disp.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-disp.c
-@@ -216,6 +216,8 @@ int solo_set_motion_block(struct solo_dev *solo_dev, u8 ch,
- 	int ret = 0;
- 
- 	buf = kzalloc(size, GFP_KERNEL);
-+	if (buf == NULL)
-+		return -ENOMEM;
- 	for (y = 0; y < SOLO_MOTION_SZ; y++) {
- 		for (x = 0; x < SOLO_MOTION_SZ; x++)
- 			buf[x] = cpu_to_le16(thresholds[y * SOLO_MOTION_SZ + x]);
-diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-index 2e07b49..d12083f 100644
---- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-@@ -1137,11 +1137,13 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
- 		solo_enc->motion_enabled = ctrl->val > V4L2_DETECT_MD_MODE_DISABLED;
- 		if (ctrl->val) {
- 			if (solo_enc->motion_global)
--				solo_set_motion_threshold(solo_dev, solo_enc->ch,
-+				err = solo_set_motion_threshold(solo_dev, solo_enc->ch,
- 					solo_enc->motion_thresh);
- 			else
--				solo_set_motion_block(solo_dev, solo_enc->ch,
-+				err = solo_set_motion_block(solo_dev, solo_enc->ch,
- 					solo_enc->md_thresholds->p_cur.p_u16);
-+			if (err)
-+				return err;
- 		}
- 		solo_motion_toggle(solo_enc, ctrl->val);
- 		return 0;
-@@ -1152,8 +1154,7 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
+diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
+index 7751a35a008c..975cbddd71dd 100644
+--- a/drivers/media/dvb-frontends/dib8000.c
++++ b/drivers/media/dvb-frontends/dib8000.c
+@@ -3433,6 +3433,9 @@ static int dib8000_get_frontend(struct dvb_frontend *fe)
+ 	case 1:
+ 		fe->dtv_property_cache.transmission_mode = TRANSMISSION_MODE_2K;
  		break;
- 	case V4L2_CID_OSD_TEXT:
- 		strcpy(solo_enc->osd_text, ctrl->p_new.p_char);
--		err = solo_osd_print(solo_enc);
--		return err;
-+		return solo_osd_print(solo_enc);
++	case 2:
++		fe->dtv_property_cache.transmission_mode = TRANSMISSION_MODE_4K;
++		break;
+ 	case 3:
  	default:
- 		return -EINVAL;
- 	}
+ 		fe->dtv_property_cache.transmission_mode = TRANSMISSION_MODE_8K;
+-- 
+1.9.3
+
