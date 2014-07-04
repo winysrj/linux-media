@@ -1,66 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47777 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752625AbaGVTdH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 15:33:07 -0400
-Message-ID: <53CEBC6F.4050605@iki.fi>
-Date: Tue, 22 Jul 2014 22:33:03 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from bombadil.infradead.org ([198.137.202.9]:39571 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756104AbaGDRPz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jul 2014 13:15:55 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] si2168: Fix a badly solved merge conflict
-References: <1406057133-7657-1-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1406057133-7657-1-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [[PATCH v2] 06/14] dib8000: In auto-search, try first with partial reception enabled
+Date: Fri,  4 Jul 2014 14:15:32 -0300
+Message-Id: <1404494140-17777-7-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1404494140-17777-1-git-send-email-m.chehab@samsung.com>
+References: <1404494140-17777-1-git-send-email-m.chehab@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+TV broadcasters generally use partial reception. So, enable it by
+default in auto-search mode. The driver will latter detect if the
+transmission is on some other mode.
 
-Could you merge it directly from patchwork.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/dib8000.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-regards
-Antti
-
-On 07/22/2014 10:25 PM, Mauro Carvalho Chehab wrote:
-> changeset a733291d6934 didn't merge the fixes well. It ended by
-> restoring some bad logic removed there.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->   drivers/media/dvb-frontends/si2168.c | 14 --------------
->   1 file changed, 14 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-> index 842c4a555d01..02127613eeff 100644
-> --- a/drivers/media/dvb-frontends/si2168.c
-> +++ b/drivers/media/dvb-frontends/si2168.c
-> @@ -381,20 +381,6 @@ static int si2168_init(struct dvb_frontend *fe)
->   	if (ret)
->   		goto err;
->
-> -	cmd.args[0] = 0x05;
-> -	cmd.args[1] = 0x00;
-> -	cmd.args[2] = 0xaa;
-> -	cmd.args[3] = 0x4d;
-> -	cmd.args[4] = 0x56;
-> -	cmd.args[5] = 0x40;
-> -	cmd.args[6] = 0x00;
-> -	cmd.args[7] = 0x00;
-> -	cmd.wlen = 8;
-> -	cmd.rlen = 1;
-> -	ret = si2168_cmd_execute(s, &cmd);
-> -	if (ret)
-> -		goto err;
-> -
->   	chip_id = cmd.args[1] << 24 | cmd.args[2] << 16 | cmd.args[3] << 8 |
->   			cmd.args[4] << 0;
->
->
-
+diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
+index 5943495068a6..c81808d9b4d5 100644
+--- a/drivers/media/dvb-frontends/dib8000.c
++++ b/drivers/media/dvb-frontends/dib8000.c
+@@ -2352,6 +2352,9 @@ static void dib8000_set_isdbt_common_channel(struct dib8000_state *state, u8 seq
+ 	int init_prbs;
+ 	struct dtv_frontend_properties *c = &state->fe[0]->dtv_property_cache;
+ 
++	if (autosearching)
++		c->isdbt_partial_reception = 1;
++
+ 	/* P_mode */
+ 	dib8000_write_word(state, 10, (seq << 4));
+ 
 -- 
-http://palosaari.fi/
+1.9.3
+
