@@ -1,42 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpq5.tb.mail.iss.as9143.net ([212.54.42.168]:34153 "EHLO
-	smtpq5.tb.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754473AbaGRQ1y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 12:27:54 -0400
-Message-ID: <53C94AFF.5080207@grumpydevil.homelinux.org>
-Date: Fri, 18 Jul 2014 18:27:43 +0200
-From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Ren=E9?= <poisson.rene@neuf.fr>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ddbridge -- kernel 3.15.6
-References: <53C920FB.1040501@grumpydevil.homelinux.org><6E594BCC1018445BA338AAABB100405C@ci5fish> <53C92FB6.40300@grumpydevil.homelinux.org> <BAE402E8671443828B8815421BDD81CD@ci5fish> <53C93FCB.6000302@grumpydevil.homelinux.org>
-In-Reply-To: <53C93FCB.6000302@grumpydevil.homelinux.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([198.137.202.9]:39574 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757308AbaGDRPz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jul 2014 13:15:55 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [[PATCH v2] 02/14] dib8000: Fix ADC OFF settings
+Date: Fri,  4 Jul 2014 14:15:28 -0300
+Message-Id: <1404494140-17777-3-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1404494140-17777-1-git-send-email-m.chehab@samsung.com>
+References: <1404494140-17777-1-git-send-email-m.chehab@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18-07-14 17:39, Rudy Zijlstra wrote:
->
->
-> On 18-07-14 17:01, René wrote:
->> To know which modules shall be detected, we need at least the make 
->> and model of the device.
->> If you can read the references on the chips on the board, it would be 
->> great ...
-> I see. What would happen if I build a monolithic kernel with all DVB 
-> modules included?
->
-> I'll check if i can read the chip references...
->
-It's a Digital Devices Cine S2
+The ADC OFF values are wrong. This causes troubles on detecting
+weak signals.
 
-If i made no reading mistakes:
-STV0900B
-Lattice LFE3 - 17EA
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/dib8000.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-The tuners are below soldered shielding with the text "Digital Devices 
-Tuner 1" and "Digitial Devices Tuner 2". As i am not good in soldering, 
-i prefer not to remove the shielding
+diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
+index cf837158f822..cd300ac23935 100644
+--- a/drivers/media/dvb-frontends/dib8000.c
++++ b/drivers/media/dvb-frontends/dib8000.c
+@@ -588,8 +588,8 @@ static int dib8000_set_adc_state(struct dib8000_state *state, enum dibx000_adc_s
+ 		break;
+ 
+ 	case DIBX000_ADC_OFF:	// leave the VBG voltage on
+-		reg_907 |= (1 << 14) | (1 << 13) | (1 << 12);
+-		reg_908 |= (1 << 5) | (1 << 4) | (1 << 3) | (1 << 2);
++		reg_907 = (1 << 13) | (1 << 12);
++		reg_908 = (1 << 6) | (1 << 5) | (1 << 4) | (1 << 3) | (1 << 1);
+ 		break;
+ 
+ 	case DIBX000_VBG_ENABLE:
+-- 
+1.9.3
+
