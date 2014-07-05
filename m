@@ -1,77 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f49.google.com ([209.85.219.49]:35782 "EHLO
-	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760243AbaGYLxQ (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:34656 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752266AbaGEW0j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 07:53:16 -0400
-Received: by mail-oa0-f49.google.com with SMTP id eb12so5350470oac.36
-        for <linux-media@vger.kernel.org>; Fri, 25 Jul 2014 04:53:16 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAPybu_2R9oj7aF1dUOjdGfHfV=LHaTWDp=CGXAZq76qcvJoAvQ@mail.gmail.com>
-References: <53999849.1090105@xs4all.nl> <CAPybu_2R9oj7aF1dUOjdGfHfV=LHaTWDp=CGXAZq76qcvJoAvQ@mail.gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Fri, 25 Jul 2014 13:52:55 +0200
-Message-ID: <CAPybu_2fPc5z2KyiMzX-=VNQHavyR5WQHX2JcyPYMbUKmLMYYQ@mail.gmail.com>
-Subject: Re: [ATTN] Please review/check the REVIEWv4 compound control patch series
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Sat, 5 Jul 2014 18:26:39 -0400
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
+Cc: magnus.damm@opensource.se, horms@verge.net.au,
+	g.liakhovetski@gmx.de, linux-kernel@lists.codethink.co.uk,
+	Ian Molton <ian.molton@codethink.co.uk>,
+	Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: [PATCH 1/6] adv7180: Remove duplicate unregister call
+Date: Sat,  5 Jul 2014 23:26:20 +0100
+Message-Id: <1404599185-12353-2-git-send-email-ben.dooks@codethink.co.uk>
+In-Reply-To: <1404599185-12353-1-git-send-email-ben.dooks@codethink.co.uk>
+References: <1404599185-12353-1-git-send-email-ben.dooks@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans
+From: Ian Molton <ian.molton@codethink.co.uk>
 
+This driver moved over to v4l2_async_unregister_subdev()
+but still retained a call to v4l2_unregister_subdev(). Remove.
 
-Guess it is too late, but just so you know. I have successfully uses
-this patches to implement a dead pixel array list.
+Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+---
+ drivers/media/i2c/adv7180.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Tested-by: Ricardo Ribalda <ricardo.ribalda@gmail.com>
-Thanked-by: Ricardo Ribalda <ricardo.ribalda@gmail.com>  :)
-
-Thanks!
-
-On Thu, Jul 17, 2014 at 3:56 PM, Ricardo Ribalda Delgado
-<ricardo.ribalda@gmail.com> wrote:
-> Hello Hans
->
-> I am planning to test this patchset for dead pixels by the end of this
-> week and the beggining of the next. I am thinking about comparing the
-> performance a list of deadpixels against a list of all pixels with
-> their property (ok pixel, dead pixel, white pixel, slow pixel...)
->
-> Will write back (hopefully) soon
->
-> Regards!
->
-> On Thu, Jun 12, 2014 at 2:08 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Mauro & anyone else with an interest,
->>
->> I'd appreciate it if this patch series was reviewed, in particular
->> with respect to the handling of multi-dimensional arrays:
->>
->> http://www.mail-archive.com/linux-media@vger.kernel.org/msg75929.html
->>
->> This patch series incorporates all comments from the REVIEWv3 series
->> except for two (see the cover letter of the patch series for details),
->>
->> If support for arrays with more than 8 dimensions is really needed,
->> then I would like to know asap so I can implement that in time for
->> 3.17.
->>
->> Regards,
->>
->>         Hans
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
->
-> --
-> Ricardo Ribalda
-
-
-
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index ac1cdbe..821178d 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -663,7 +663,6 @@ static int adv7180_remove(struct i2c_client *client)
+ 	if (state->irq > 0)
+ 		free_irq(client->irq, state);
+ 
+-	v4l2_device_unregister_subdev(sd);
+ 	adv7180_exit_controls(state);
+ 	mutex_destroy(&state->mutex);
+ 	return 0;
 -- 
-Ricardo Ribalda
+2.0.0
+
