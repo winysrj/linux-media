@@ -1,43 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:50798 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754537AbaGWEJn (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:57713 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754661AbaGEItH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 00:09:43 -0400
-From: Zhaowei Yuan <zhaowei.yuan@samsung.com>
-To: linux-media@vger.kernel.org, k.debski@samsung.com,
-	m.chehab@samsung.com, kyungmin.park@samsung.com,
-	jtp.park@samsung.com
-Cc: linux-samsung-soc@vger.kernel.org
-Subject: [PATCH] media: s5p_mfc: remove unnecessary calling to function
- video_devdata()
-Date: Wed, 23 Jul 2014 12:06:12 +0800
-Message-id: <1406088372-5240-1-git-send-email-zhaowei.yuan@samsung.com>
+	Sat, 5 Jul 2014 04:49:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/3] DocBook media: fix incorrect header reference
+Date: Sat,  5 Jul 2014 10:31:05 +0200
+Message-Id: <1404549065-25042-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1404549065-25042-1-git-send-email-hverkuil@xs4all.nl>
+References: <1404549065-25042-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since we have get vdev by calling video_devdata() at the beginning of
-s5p_mfc_open(), we should just use vdev instead of calling video_devdata()
-again in the following code.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Zhaowei Yuan <zhaowei.yuan@samsung.com>
+The text referred to videodev.h when videodev2.h was meant. Fixed.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c |    2 +-
+ Documentation/DocBook/media/v4l/pixfmt.xml | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index d57b306..d508cbc 100755
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -709,7 +709,7 @@ static int s5p_mfc_open(struct file *file)
- 		ret = -ENOMEM;
- 		goto err_alloc;
- 	}
--	v4l2_fh_init(&ctx->fh, video_devdata(file));
-+	v4l2_fh_init(&ctx->fh, vdev);
- 	file->private_data = &ctx->fh;
- 	v4l2_fh_add(&ctx->fh);
- 	ctx->dev = dev;
---
-1.7.9.5
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 91dcbc8..a01f8b5 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -248,7 +248,7 @@ has just as many pad bytes after it as the other rows.</para>
+ 
+     <para>In V4L2 each format has an identifier which looks like
+ <constant>PIX_FMT_XXX</constant>, defined in the <link
+-linkend="videodev">videodev.h</link> header file. These identifiers
++linkend="videodev">videodev2.h</link> header file. These identifiers
+ represent <link linkend="v4l2-fourcc">four character (FourCC) codes</link>
+ which are also listed below, however they are not the same as those
+ used in the Windows world.</para>
+-- 
+2.0.0
 
