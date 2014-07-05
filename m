@@ -1,81 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51607 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753034AbaGKJhE (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:34713 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754957AbaGEW0u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 05:37:04 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 27/32] [media] coda: round up internal frames to multiples of macroblock size for h.264
-Date: Fri, 11 Jul 2014 11:36:38 +0200
-Message-Id: <1405071403-1859-28-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+	Sat, 5 Jul 2014 18:26:50 -0400
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
+Cc: magnus.damm@opensource.se, horms@verge.net.au,
+	g.liakhovetski@gmx.de, linux-kernel@lists.codethink.co.uk,
+	Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: [PATCH 6/6] [PATCH v2] ARM: lager: add vin1 node
+Date: Sat,  5 Jul 2014 23:26:25 +0100
+Message-Id: <1404599185-12353-7-git-send-email-ben.dooks@codethink.co.uk>
+In-Reply-To: <1404599185-12353-1-git-send-email-ben.dooks@codethink.co.uk>
+References: <1404599185-12353-1-git-send-email-ben.dooks@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CODA7541 only supports encoding h.264 frames with width and height that are
-multiples of the macroblock size.
+Add device-tree for vin1 (composite video in) on the
+lager board.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
 ---
- drivers/media/platform/coda.c | 25 ++++++++++++++++++++-----
- 1 file changed, 20 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 2acd715..8d9f849 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1746,15 +1746,21 @@ static void coda_free_framebuffers(struct coda_ctx *ctx)
- static int coda_alloc_framebuffers(struct coda_ctx *ctx, struct coda_q_data *q_data, u32 fourcc)
- {
- 	struct coda_dev *dev = ctx->dev;
--	int height = q_data->height;
-+	int width, height;
- 	dma_addr_t paddr;
- 	int ysize;
- 	int ret;
- 	int i;
+Fixes since v1:
+	- Whitespace fixes as suggested by Sergei
+---
+ arch/arm/boot/dts/r8a7790-lager.dts | 36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
+
+diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
+index 4805c9f..e00543b 100644
+--- a/arch/arm/boot/dts/r8a7790-lager.dts
++++ b/arch/arm/boot/dts/r8a7790-lager.dts
+@@ -214,6 +214,11 @@
+ 		renesas,groups = "i2c2";
+ 		renesas,function = "i2c2";
+ 	};
++
++	vin1_pins: vin {
++		renesas,groups = "vin1_data8", "vin1_clk";
++		renesas,function = "vin1";
++	};
+ };
  
--	if (ctx->codec && ctx->codec->src_fourcc == V4L2_PIX_FMT_H264)
--		height = round_up(height, 16);
--	ysize = round_up(q_data->width, 8) * height;
-+	if (ctx->codec && (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264 ||
-+	     ctx->codec->dst_fourcc == V4L2_PIX_FMT_H264)) {
-+		width = round_up(q_data->width, 16);
-+		height = round_up(q_data->height, 16);
-+	} else {
-+		width = round_up(q_data->width, 8);
-+		height = q_data->height;
-+	}
-+	ysize = width * height;
+ &ether {
+@@ -342,8 +347,39 @@
+ 	status = "ok";
+ 	pinctrl-0 = <&i2c2_pins>;
+ 	pinctrl-names = "default";
++
++	composite-in@20 {
++		compatible = "adi,adv7180";
++		reg = <0x20>;
++		remote = <&vin1>;
++
++		port {
++			adv7180: endpoint {
++				bus-width = <8>;
++				remote-endpoint = <&vin1ep0>;
++			};
++		};
++	};
+ };
  
- 	/* Allocate frame buffers */
- 	for (i = 0; i < ctx->num_internal_frames; i++) {
-@@ -2379,7 +2385,16 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 		value = (q_data_src->width & CODADX6_PICWIDTH_MASK) << CODADX6_PICWIDTH_OFFSET;
- 		value |= (q_data_src->height & CODADX6_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
- 		break;
--	default:
-+	case CODA_7541:
-+		if (dst_fourcc == V4L2_PIX_FMT_H264) {
-+			value = (round_up(q_data_src->width, 16) &
-+				 CODA7_PICWIDTH_MASK) << CODA7_PICWIDTH_OFFSET;
-+			value |= (round_up(q_data_src->height, 16) &
-+				  CODA7_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
-+			break;
-+		}
-+		/* fallthrough */
-+	case CODA_960:
- 		value = (q_data_src->width & CODA7_PICWIDTH_MASK) << CODA7_PICWIDTH_OFFSET;
- 		value |= (q_data_src->height & CODA7_PICHEIGHT_MASK) << CODA_PICHEIGHT_OFFSET;
- 	}
+ &i2c3	{
+ 	status = "ok";
+ };
++
++/* composite video input */
++&vin1 {
++	pinctrl-0 = <&vin1_pins>;
++	pinctrl-names = "default";
++
++	status = "ok";
++
++	port {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		vin1ep0: endpoint {
++			remote-endpoint = <&adv7180>;
++			bus-width = <8>;
++		};
++	};
++};
 -- 
 2.0.0
 
