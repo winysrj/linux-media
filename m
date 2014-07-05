@@ -1,579 +1,303 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1947 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754326AbaG3OXk (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:49631 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754352AbaGEIbP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jul 2014 10:23:40 -0400
+	Sat, 5 Jul 2014 04:31:15 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv1 11/12] vivid: add support for software defined radio
-Date: Wed, 30 Jul 2014 16:23:14 +0200
-Message-Id: <1406730195-64365-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1406730195-64365-1-git-send-email-hverkuil@xs4all.nl>
-References: <1406730195-64365-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/3] DocBook media: fix wrong spacing
+Date: Sat,  5 Jul 2014 10:31:03 +0200
+Message-Id: <1404549065-25042-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This adds support for an SDR capture device. It generates simple
-sinus/cosinus waves. The code for that has been contributed by
-Antti.
+There shouldn't be any spaces after <constant> or before </constant>.
+This leads to ugly results like: 'image size set by VIDIOC_S_FMT .'
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/vivid/vivid-sdr-cap.c | 497 +++++++++++++++++++++++++++
- drivers/media/platform/vivid/vivid-sdr-cap.h |  34 ++
- 2 files changed, 531 insertions(+)
- create mode 100644 drivers/media/platform/vivid/vivid-sdr-cap.c
- create mode 100644 drivers/media/platform/vivid/vivid-sdr-cap.h
+ Documentation/DocBook/media/v4l/selection-api.xml  | 95 +++++++++++-----------
+ .../DocBook/media/v4l/vidioc-g-selection.xml       | 40 +++++----
+ 2 files changed, 66 insertions(+), 69 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
-new file mode 100644
-index 0000000..9e81c8c
---- /dev/null
-+++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
-@@ -0,0 +1,497 @@
-+/*
-+ * vivid-sdr-cap.c - software defined radio support functions.
-+ *
-+ * Copyright 2014 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ *
-+ * This program is free software; you may redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <linux/errno.h>
-+#include <linux/kernel.h>
-+#include <linux/delay.h>
-+#include <linux/kthread.h>
-+#include <linux/freezer.h>
-+#include <linux/videodev2.h>
-+#include <linux/v4l2-dv-timings.h>
-+#include <media/v4l2-common.h>
-+#include <media/v4l2-event.h>
-+#include <media/v4l2-dv-timings.h>
-+
-+#include "vivid-core.h"
-+#include "vivid-ctrls.h"
-+#include "vivid-sdr-cap.h"
-+
-+static const struct v4l2_frequency_band bands_adc[] = {
-+	{
-+		.tuner = 0,
-+		.type = V4L2_TUNER_ADC,
-+		.index = 0,
-+		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   =  300000,
-+		.rangehigh  =  300000,
-+	},
-+	{
-+		.tuner = 0,
-+		.type = V4L2_TUNER_ADC,
-+		.index = 1,
-+		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   =  900001,
-+		.rangehigh  = 2800000,
-+	},
-+	{
-+		.tuner = 0,
-+		.type = V4L2_TUNER_ADC,
-+		.index = 2,
-+		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   = 3200000,
-+		.rangehigh  = 3200000,
-+	},
-+};
-+
-+/* ADC band midpoints */
-+#define BAND_ADC_0 ((bands_adc[0].rangehigh + bands_adc[1].rangelow) / 2)
-+#define BAND_ADC_1 ((bands_adc[1].rangehigh + bands_adc[2].rangelow) / 2)
-+
-+static const struct v4l2_frequency_band bands_fm[] = {
-+	{
-+		.tuner = 1,
-+		.type = V4L2_TUNER_RF,
-+		.index = 0,
-+		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   =    50000000,
-+		.rangehigh  =  2000000000,
-+	},
-+};
-+
-+static void vivid_thread_sdr_cap_tick(struct vivid_dev *dev)
-+{
-+	struct vivid_buffer *sdr_cap_buf = NULL;
-+
-+	dprintk(dev, 1, "SDR Capture Thread Tick\n");
-+
-+	/* Drop a certain percentage of buffers. */
-+	if (dev->perc_dropped_buffers &&
-+	    prandom_u32_max(100) < dev->perc_dropped_buffers)
-+		return;
-+
-+	spin_lock(&dev->slock);
-+	if (!list_empty(&dev->sdr_cap_active)) {
-+		sdr_cap_buf = list_entry(dev->sdr_cap_active.next,
-+					 struct vivid_buffer, list);
-+		list_del(&sdr_cap_buf->list);
-+	}
-+	spin_unlock(&dev->slock);
-+
-+	if (sdr_cap_buf) {
-+		sdr_cap_buf->vb.v4l2_buf.sequence = dev->sdr_cap_seq_count;
-+		vivid_sdr_cap_process(dev, sdr_cap_buf);
-+		v4l2_get_timestamp(&sdr_cap_buf->vb.v4l2_buf.timestamp);
-+		sdr_cap_buf->vb.v4l2_buf.timestamp.tv_sec += dev->time_wrap_offset;
-+		vb2_buffer_done(&sdr_cap_buf->vb, dev->dqbuf_error ?
-+				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
-+		dev->dqbuf_error = false;
-+	}
-+}
-+
-+static int vivid_thread_sdr_cap(void *data)
-+{
-+	struct vivid_dev *dev = data;
-+	u64 samples_since_start;
-+	u64 buffers_since_start;
-+	u64 next_jiffies_since_start;
-+	unsigned long jiffies_since_start;
-+	unsigned long cur_jiffies;
-+
-+	dprintk(dev, 1, "SDR Capture Thread Start\n");
-+
-+	set_freezable();
-+
-+	/* Resets frame counters */
-+	dev->sdr_cap_seq_offset = 0;
-+	if (dev->seq_wrap)
-+		dev->sdr_cap_seq_offset = 0xffffff80U;
-+	dev->jiffies_sdr_cap = jiffies;
-+	dev->sdr_cap_seq_resync = false;
-+
-+	for (;;) {
-+		try_to_freeze();
-+		if (kthread_should_stop())
-+			break;
-+
-+		mutex_lock(&dev->mutex);
-+		cur_jiffies = jiffies;
-+		if (dev->sdr_cap_seq_resync) {
-+			dev->jiffies_sdr_cap = cur_jiffies;
-+			dev->sdr_cap_seq_offset = dev->sdr_cap_seq_count + 1;
-+			dev->sdr_cap_seq_count = 0;
-+			dev->sdr_cap_seq_resync = false;
-+		}
-+		/* Calculate the number of jiffies since we started streaming */
-+		jiffies_since_start = cur_jiffies - dev->jiffies_sdr_cap;
-+		/* Get the number of buffers streamed since the start */
-+		buffers_since_start = (u64)jiffies_since_start * dev->sdr_adc_freq +
-+				      (HZ * SDR_CAP_SAMPLES_PER_BUF) / 2;
-+		do_div(buffers_since_start, HZ * SDR_CAP_SAMPLES_PER_BUF);
-+
-+		/*
-+		 * After more than 0xf0000000 (rounded down to a multiple of
-+		 * 'jiffies-per-day' to ease jiffies_to_msecs calculation)
-+		 * jiffies have passed since we started streaming reset the
-+		 * counters and keep track of the sequence offset.
-+		 */
-+		if (jiffies_since_start > JIFFIES_RESYNC) {
-+			dev->jiffies_sdr_cap = cur_jiffies;
-+			dev->sdr_cap_seq_offset = buffers_since_start;
-+			buffers_since_start = 0;
-+		}
-+		dev->sdr_cap_seq_count = buffers_since_start + dev->sdr_cap_seq_offset;
-+
-+		vivid_thread_sdr_cap_tick(dev);
-+		mutex_unlock(&dev->mutex);
-+
-+		/*
-+		 * Calculate the number of samples streamed since we started,
-+		 * not including the current buffer.
-+		 */
-+		samples_since_start = buffers_since_start * SDR_CAP_SAMPLES_PER_BUF;
-+
-+		/* And the number of jiffies since we started */
-+		jiffies_since_start = jiffies - dev->jiffies_sdr_cap;
-+
-+		/* Increase by the number of samples in one buffer */
-+		samples_since_start += SDR_CAP_SAMPLES_PER_BUF;
-+		/*
-+		 * Calculate when that next buffer is supposed to start
-+		 * in jiffies since we started streaming.
-+		 */
-+		next_jiffies_since_start = samples_since_start * HZ;
-+		do_div(next_jiffies_since_start, dev->sdr_adc_freq);
-+		/* If it is in the past, then just schedule asap */
-+		if (next_jiffies_since_start < jiffies_since_start)
-+			next_jiffies_since_start = jiffies_since_start;
-+
-+		schedule_timeout_interruptible(next_jiffies_since_start -
-+					       jiffies_since_start);
-+	}
-+	dprintk(dev, 1, "SDR Capture Thread End\n");
-+	return 0;
-+}
-+
-+static int sdr_cap_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
-+		       unsigned *nbuffers, unsigned *nplanes,
-+		       unsigned sizes[], void *alloc_ctxs[])
-+{
-+	/* 2 = max 16-bit sample returned */
-+	sizes[0] = SDR_CAP_SAMPLES_PER_BUF * 2;
-+	*nplanes = 1;
-+	return 0;
-+}
-+
-+static int sdr_cap_buf_prepare(struct vb2_buffer *vb)
-+{
-+	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
-+	unsigned size = SDR_CAP_SAMPLES_PER_BUF * 2;
-+
-+	dprintk(dev, 1, "%s\n", __func__);
-+
-+	if (dev->buf_prepare_error) {
-+		/*
-+		 * Error injection: test what happens if buf_prepare() returns
-+		 * an error.
-+		 */
-+		dev->buf_prepare_error = false;
-+		return -EINVAL;
-+	}
-+	if (vb2_plane_size(vb, 0) < size) {
-+		dprintk(dev, 1, "%s data will not fit into plane (%lu < %u)\n",
-+				__func__, vb2_plane_size(vb, 0), size);
-+		return -EINVAL;
-+	}
-+	vb2_set_plane_payload(vb, 0, size);
-+
-+	return 0;
-+}
-+
-+static void sdr_cap_buf_queue(struct vb2_buffer *vb)
-+{
-+	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
-+	struct vivid_buffer *buf = container_of(vb, struct vivid_buffer, vb);
-+
-+	dprintk(dev, 1, "%s\n", __func__);
-+
-+	spin_lock(&dev->slock);
-+	list_add_tail(&buf->list, &dev->sdr_cap_active);
-+	spin_unlock(&dev->slock);
-+}
-+
-+static int sdr_cap_start_streaming(struct vb2_queue *vq, unsigned count)
-+{
-+	struct vivid_dev *dev = vb2_get_drv_priv(vq);
-+	int err = 0;
-+
-+	dprintk(dev, 1, "%s\n", __func__);
-+	dev->sdr_cap_seq_count = 0;
-+	if (dev->start_streaming_error) {
-+		dev->start_streaming_error = false;
-+		err = -EINVAL;
-+	} else if (dev->kthread_sdr_cap == NULL) {
-+		dev->kthread_sdr_cap = kthread_run(vivid_thread_sdr_cap, dev,
-+				"%s-sdr-cap", dev->v4l2_dev.name);
-+
-+		if (IS_ERR(dev->kthread_sdr_cap)) {
-+			v4l2_err(&dev->v4l2_dev, "kernel_thread() failed\n");
-+			err = PTR_ERR(dev->kthread_sdr_cap);
-+			dev->kthread_sdr_cap = NULL;
-+		}
-+	}
-+	if (err) {
-+		struct vivid_buffer *buf, *tmp;
-+
-+		list_for_each_entry_safe(buf, tmp, &dev->sdr_cap_active, list) {
-+			list_del(&buf->list);
-+			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+		}
-+	}
-+	return err;
-+}
-+
-+/* abort streaming and wait for last buffer */
-+static void sdr_cap_stop_streaming(struct vb2_queue *vq)
-+{
-+	struct vivid_dev *dev = vb2_get_drv_priv(vq);
-+
-+	if (dev->kthread_sdr_cap == NULL)
-+		return;
-+
-+	while (!list_empty(&dev->sdr_cap_active)) {
-+		struct vivid_buffer *buf;
-+
-+		buf = list_entry(dev->sdr_cap_active.next, struct vivid_buffer, list);
-+		list_del(&buf->list);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+	}
-+
-+	/* shutdown control thread */
-+	mutex_unlock(&dev->mutex);
-+	kthread_stop(dev->kthread_sdr_cap);
-+	dev->kthread_sdr_cap = NULL;
-+	mutex_lock(&dev->mutex);
-+}
-+
-+const struct vb2_ops vivid_sdr_cap_qops = {
-+	.queue_setup		= sdr_cap_queue_setup,
-+	.buf_prepare		= sdr_cap_buf_prepare,
-+	.buf_queue		= sdr_cap_buf_queue,
-+	.start_streaming	= sdr_cap_start_streaming,
-+	.stop_streaming		= sdr_cap_stop_streaming,
-+	.wait_prepare		= vivid_unlock,
-+	.wait_finish		= vivid_lock,
-+};
-+
-+int vivid_sdr_enum_freq_bands(struct file *file, void *fh, struct v4l2_frequency_band *band)
-+{
-+	switch (band->tuner) {
-+	case 0:
-+		if (band->index >= ARRAY_SIZE(bands_adc))
-+			return -EINVAL;
-+		*band = bands_adc[band->index];
-+		return 0;
-+	case 1:
-+		if (band->index >= ARRAY_SIZE(bands_fm))
-+			return -EINVAL;
-+		*band = bands_fm[band->index];
-+		return 0;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+int vivid_sdr_g_frequency(struct file *file, void *fh, struct v4l2_frequency *vf)
-+{
-+	struct vivid_dev *dev = video_drvdata(file);
-+
-+	switch (vf->tuner) {
-+	case 0:
-+		vf->frequency = dev->sdr_adc_freq;
-+		vf->type = V4L2_TUNER_ADC;
-+		return 0;
-+	case 1:
-+		vf->frequency = dev->sdr_fm_freq;
-+		vf->type = V4L2_TUNER_RF;
-+		return 0;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+int vivid_sdr_s_frequency(struct file *file, void *fh, const struct v4l2_frequency *vf)
-+{
-+	struct vivid_dev *dev = video_drvdata(file);
-+	unsigned freq = vf->frequency;
-+	unsigned band;
-+
-+	switch (vf->tuner) {
-+	case 0:
-+		if (vf->type != V4L2_TUNER_ADC)
-+			return -EINVAL;
-+		if (freq < BAND_ADC_0)
-+			band = 0;
-+		else if (freq < BAND_ADC_1)
-+			band = 1;
-+		else
-+			band = 2;
-+
-+		freq = clamp_t(unsigned, freq,
-+				bands_adc[band].rangelow,
-+				bands_adc[band].rangehigh);
-+
-+		if (vb2_is_streaming(&dev->vb_sdr_cap_q) &&
-+		    freq != dev->sdr_adc_freq) {
-+			/* resync the thread's timings */
-+			dev->sdr_cap_seq_resync = true;
-+		}
-+		dev->sdr_adc_freq = freq;
-+		return 0;
-+	case 1:
-+		if (vf->type != V4L2_TUNER_RF)
-+			return -EINVAL;
-+		dev->sdr_fm_freq = clamp_t(unsigned, freq,
-+				bands_fm[0].rangelow,
-+				bands_fm[0].rangehigh);
-+		return 0;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+int vivid_sdr_g_tuner(struct file *file, void *fh, struct v4l2_tuner *vt)
-+{
-+	switch (vt->index) {
-+	case 0:
-+		strlcpy(vt->name, "ADC", sizeof(vt->name));
-+		vt->type = V4L2_TUNER_ADC;
-+		vt->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
-+		vt->rangelow = bands_adc[0].rangelow;
-+		vt->rangehigh = bands_adc[2].rangehigh;
-+		return 0;
-+	case 1:
-+		strlcpy(vt->name, "RF", sizeof(vt->name));
-+		vt->type = V4L2_TUNER_RF;
-+		vt->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
-+		vt->rangelow = bands_fm[0].rangelow;
-+		vt->rangehigh = bands_fm[0].rangehigh;
-+		return 0;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+int vivid_sdr_s_tuner(struct file *file, void *fh, const struct v4l2_tuner *vt)
-+{
-+	if (vt->index > 1)
-+		return -EINVAL;
-+	return 0;
-+}
-+
-+int vidioc_enum_fmt_sdr_cap(struct file *file, void *fh, struct v4l2_fmtdesc *f)
-+{
-+	if (f->index)
-+		return -EINVAL;
-+	f->pixelformat = V4L2_SDR_FMT_CU8;
-+	strlcpy(f->description, "IQ U8", sizeof(f->description));
-+	return 0;
-+}
-+
-+int vidioc_g_fmt_sdr_cap(struct file *file, void *fh, struct v4l2_format *f)
-+{
-+	f->fmt.sdr.pixelformat = V4L2_SDR_FMT_CU8;
-+	f->fmt.sdr.buffersize = SDR_CAP_SAMPLES_PER_BUF * 2;
-+	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
-+	return 0;
-+}
-+
-+#define FIXP_FRAC    (1 << 15)
-+#define FIXP_PI      ((int)(FIXP_FRAC * 3.141592653589))
-+
-+/* cos() from cx88 driver: cx88-dsp.c */
-+static s32 fixp_cos(unsigned int x)
-+{
-+	u32 t2, t4, t6, t8;
-+	u16 period = x / FIXP_PI;
-+
-+	if (period % 2)
-+		return -fixp_cos(x - FIXP_PI);
-+	x = x % FIXP_PI;
-+	if (x > FIXP_PI/2)
-+		return -fixp_cos(FIXP_PI/2 - (x % (FIXP_PI/2)));
-+	/* Now x is between 0 and FIXP_PI/2.
-+	 * To calculate cos(x) we use it's Taylor polinom. */
-+	t2 = x*x/FIXP_FRAC/2;
-+	t4 = t2*x/FIXP_FRAC*x/FIXP_FRAC/3/4;
-+	t6 = t4*x/FIXP_FRAC*x/FIXP_FRAC/5/6;
-+	t8 = t6*x/FIXP_FRAC*x/FIXP_FRAC/7/8;
-+	return FIXP_FRAC-t2+t4-t6+t8;
-+}
-+
-+static inline s32 fixp_sin(unsigned int x)
-+{
-+	return -fixp_cos(x + (FIXP_PI / 2));
-+}
-+
-+void vivid_sdr_cap_process(struct vivid_dev *dev, struct vivid_buffer *buf)
-+{
-+	u8 *vbuf = vb2_plane_vaddr(&buf->vb, 0);
-+	unsigned long i;
-+	unsigned long plane_size = vb2_plane_size(&buf->vb, 0);
-+	int fixp_src_phase_step, fixp_i, fixp_q;
-+
-+	/*
-+	 * TODO: Generated beep tone goes very crackly when sample rate is
-+	 * increased to ~1Msps or more. That is because of huge rounding error
-+	 * of phase angle caused by used cosine implementation.
-+	 */
-+
-+	/* calculate phase step */
-+	#define BEEP_FREQ 1000 /* 1kHz beep */
-+	fixp_src_phase_step = DIV_ROUND_CLOSEST(2 * FIXP_PI * BEEP_FREQ,
-+			dev->sdr_adc_freq);
-+
-+	for (i = 0; i < plane_size; i += 2) {
-+		dev->sdr_fixp_mod_phase += fixp_cos(dev->sdr_fixp_src_phase);
-+		dev->sdr_fixp_src_phase += fixp_src_phase_step;
-+
-+		/*
-+		 * Transfer phases to [0 / 2xPI] in order to avoid variable
-+		 * overflow and make it suitable for cosine implementation
-+		 * used, which does not support negative angles.
-+		 */
-+		while (dev->sdr_fixp_mod_phase < (0 * FIXP_PI))
-+			dev->sdr_fixp_mod_phase += (2 * FIXP_PI);
-+		while (dev->sdr_fixp_mod_phase > (2 * FIXP_PI))
-+			dev->sdr_fixp_mod_phase -= (2 * FIXP_PI);
-+
-+		while (dev->sdr_fixp_src_phase > (2 * FIXP_PI))
-+			dev->sdr_fixp_src_phase -= (2 * FIXP_PI);
-+
-+		fixp_i = fixp_cos(dev->sdr_fixp_mod_phase);
-+		fixp_q = fixp_sin(dev->sdr_fixp_mod_phase);
-+
-+		/* convert 'fixp float' to u8 */
-+		/* u8 = X * 127.5f + 127.5f; where X is float [-1.0 / +1.0] */
-+		fixp_i = fixp_i * 1275 + FIXP_FRAC * 1275;
-+		fixp_q = fixp_q * 1275 + FIXP_FRAC * 1275;
-+		*vbuf++ = DIV_ROUND_CLOSEST(fixp_i, FIXP_FRAC * 10);
-+		*vbuf++ = DIV_ROUND_CLOSEST(fixp_q, FIXP_FRAC * 10);
-+	}
-+}
-diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.h b/drivers/media/platform/vivid/vivid-sdr-cap.h
-new file mode 100644
-index 0000000..79c1890
---- /dev/null
-+++ b/drivers/media/platform/vivid/vivid-sdr-cap.h
-@@ -0,0 +1,34 @@
-+/*
-+ * vivid-sdr-cap.h - software defined radio support functions.
-+ *
-+ * Copyright 2014 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ *
-+ * This program is free software; you may redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef _VIVID_SDR_CAP_H_
-+#define _VIVID_SDR_CAP_H_
-+
-+int vivid_sdr_enum_freq_bands(struct file *file, void *fh, struct v4l2_frequency_band *band);
-+int vivid_sdr_g_frequency(struct file *file, void *fh, struct v4l2_frequency *vf);
-+int vivid_sdr_s_frequency(struct file *file, void *fh, const struct v4l2_frequency *vf);
-+int vivid_sdr_g_tuner(struct file *file, void *fh, struct v4l2_tuner *vt);
-+int vivid_sdr_s_tuner(struct file *file, void *fh, const struct v4l2_tuner *vt);
-+int vidioc_enum_fmt_sdr_cap(struct file *file, void *fh, struct v4l2_fmtdesc *f);
-+int vidioc_g_fmt_sdr_cap(struct file *file, void *fh, struct v4l2_format *f);
-+void vivid_sdr_cap_process(struct vivid_dev *dev, struct vivid_buffer *buf);
-+
-+extern const struct vb2_ops vivid_sdr_cap_qops;
-+
-+#endif
+diff --git a/Documentation/DocBook/media/v4l/selection-api.xml b/Documentation/DocBook/media/v4l/selection-api.xml
+index 4c238ce..28cbded 100644
+--- a/Documentation/DocBook/media/v4l/selection-api.xml
++++ b/Documentation/DocBook/media/v4l/selection-api.xml
+@@ -86,47 +86,47 @@ selection targets available for a video capture device.  It is recommended to
+ configure the cropping targets before to the composing targets.</para>
+ 
+ <para>The range of coordinates of the top left corner, width and height of
+-areas that can be sampled is given by the <constant> V4L2_SEL_TGT_CROP_BOUNDS
+-</constant> target. It is recommended for the driver developers to put the
+-top/left corner at position <constant> (0,0) </constant>.  The rectangle's
++areas that can be sampled is given by the <constant>V4L2_SEL_TGT_CROP_BOUNDS</constant>
++target. It is recommended for the driver developers to put the
++top/left corner at position <constant>(0,0)</constant>.  The rectangle's
+ coordinates are expressed in pixels.</para>
+ 
+ <para>The top left corner, width and height of the source rectangle, that is
+-the area actually sampled, is given by the <constant> V4L2_SEL_TGT_CROP
+-</constant> target. It uses the same coordinate system as <constant>
+-V4L2_SEL_TGT_CROP_BOUNDS </constant>. The active cropping area must lie
+-completely inside the capture boundaries. The driver may further adjust the
+-requested size and/or position according to hardware limitations.</para>
++the area actually sampled, is given by the <constant>V4L2_SEL_TGT_CROP</constant>
++target. It uses the same coordinate system as <constant>V4L2_SEL_TGT_CROP_BOUNDS</constant>.
++The active cropping area must lie completely inside the capture boundaries. The
++driver may further adjust the requested size and/or position according to hardware
++limitations.</para>
+ 
+ <para>Each capture device has a default source rectangle, given by the
+-<constant> V4L2_SEL_TGT_CROP_DEFAULT </constant> target. This rectangle shall
++<constant>V4L2_SEL_TGT_CROP_DEFAULT</constant> target. This rectangle shall
+ over what the driver writer considers the complete picture.  Drivers shall set
+ the active crop rectangle to the default when the driver is first loaded, but
+ not later.</para>
+ 
+ <para>The composing targets refer to a memory buffer. The limits of composing
+-coordinates are obtained using <constant> V4L2_SEL_TGT_COMPOSE_BOUNDS
+-</constant>.  All coordinates are expressed in pixels. The rectangle's top/left
+-corner must be located at position <constant> (0,0) </constant>. The width and
+-height are equal to the image size set by <constant> VIDIOC_S_FMT </constant>.
++coordinates are obtained using <constant>V4L2_SEL_TGT_COMPOSE_BOUNDS</constant>.
++All coordinates are expressed in pixels. The rectangle's top/left
++corner must be located at position <constant>(0,0)</constant>. The width and
++height are equal to the image size set by <constant>VIDIOC_S_FMT</constant>.
+ </para>
+ 
+ <para>The part of a buffer into which the image is inserted by the hardware is
+-controlled by the <constant> V4L2_SEL_TGT_COMPOSE </constant> target.
++controlled by the <constant>V4L2_SEL_TGT_COMPOSE</constant> target.
+ The rectangle's coordinates are also expressed in the same coordinate system as
+ the bounds rectangle. The composing rectangle must lie completely inside bounds
+ rectangle. The driver must adjust the composing rectangle to fit to the
+ bounding limits. Moreover, the driver can perform other adjustments according
+ to hardware limitations. The application can control rounding behaviour using
+-<link linkend="v4l2-selection-flags"> constraint flags </link>.</para>
++<link linkend="v4l2-selection-flags"> constraint flags</link>.</para>
+ 
+ <para>For capture devices the default composing rectangle is queried using
+-<constant> V4L2_SEL_TGT_COMPOSE_DEFAULT </constant>. It is usually equal to the
++<constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant>. It is usually equal to the
+ bounding rectangle.</para>
+ 
+ <para>The part of a buffer that is modified by the hardware is given by
+-<constant> V4L2_SEL_TGT_COMPOSE_PADDED </constant>. It contains all pixels
+-defined using <constant> V4L2_SEL_TGT_COMPOSE </constant> plus all
++<constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant>. It contains all pixels
++defined using <constant>V4L2_SEL_TGT_COMPOSE</constant> plus all
+ padding data modified by hardware during insertion process. All pixels outside
+ this rectangle <emphasis>must not</emphasis> be changed by the hardware. The
+ content of pixels that lie inside the padded area but outside active area is
+@@ -140,52 +140,51 @@ where the rubbish pixels are located and remove them if needed.</para>
+    <title>Configuration of video output</title>
+ 
+ <para>For output devices targets and ioctls are used similarly to the video
+-capture case. The <emphasis> composing </emphasis> rectangle refers to the
++capture case. The <emphasis>composing</emphasis> rectangle refers to the
+ insertion of an image into a video signal. The cropping rectangles refer to a
+ memory buffer. It is recommended to configure the composing targets before to
+ the cropping targets.</para>
+ 
+ <para>The cropping targets refer to the memory buffer that contains an image to
+ be inserted into a video signal or graphical screen. The limits of cropping
+-coordinates are obtained using <constant> V4L2_SEL_TGT_CROP_BOUNDS </constant>.
++coordinates are obtained using <constant>V4L2_SEL_TGT_CROP_BOUNDS</constant>.
+ All coordinates are expressed in pixels. The top/left corner is always point
+-<constant> (0,0) </constant>.  The width and height is equal to the image size
+-specified using <constant> VIDIOC_S_FMT </constant> ioctl.</para>
++<constant>(0,0)</constant>.  The width and height is equal to the image size
++specified using <constant>VIDIOC_S_FMT</constant> ioctl.</para>
+ 
+ <para>The top left corner, width and height of the source rectangle, that is
+ the area from which image date are processed by the hardware, is given by the
+-<constant> V4L2_SEL_TGT_CROP </constant>. Its coordinates are expressed
++<constant>V4L2_SEL_TGT_CROP</constant>. Its coordinates are expressed
+ in in the same coordinate system as the bounds rectangle. The active cropping
+ area must lie completely inside the crop boundaries and the driver may further
+ adjust the requested size and/or position according to hardware
+ limitations.</para>
+ 
+ <para>For output devices the default cropping rectangle is queried using
+-<constant> V4L2_SEL_TGT_CROP_DEFAULT </constant>. It is usually equal to the
++<constant>V4L2_SEL_TGT_CROP_DEFAULT</constant>. It is usually equal to the
+ bounding rectangle.</para>
+ 
+ <para>The part of a video signal or graphics display where the image is
+-inserted by the hardware is controlled by <constant>
+-V4L2_SEL_TGT_COMPOSE </constant> target.  The rectangle's coordinates
+-are expressed in pixels. The composing rectangle must lie completely inside the
+-bounds rectangle.  The driver must adjust the area to fit to the bounding
+-limits.  Moreover, the driver can perform other adjustments according to
+-hardware limitations. </para>
+-
+-<para>The device has a default composing rectangle, given by the <constant>
+-V4L2_SEL_TGT_COMPOSE_DEFAULT </constant> target. This rectangle shall cover what
++inserted by the hardware is controlled by <constant>V4L2_SEL_TGT_COMPOSE</constant>
++target.  The rectangle's coordinates are expressed in pixels. The composing
++rectangle must lie completely inside the bounds rectangle.  The driver must
++adjust the area to fit to the bounding limits.  Moreover, the driver can
++perform other adjustments according to hardware limitations.</para>
++
++<para>The device has a default composing rectangle, given by the
++<constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant> target. This rectangle shall cover what
+ the driver writer considers the complete picture. It is recommended for the
+-driver developers to put the top/left corner at position <constant> (0,0)
+-</constant>. Drivers shall set the active composing rectangle to the default
++driver developers to put the top/left corner at position <constant>(0,0)</constant>.
++Drivers shall set the active composing rectangle to the default
+ one when the driver is first loaded.</para>
+ 
+ <para>The devices may introduce additional content to video signal other than
+ an image from memory buffers.  It includes borders around an image. However,
+ such a padded area is driver-dependent feature not covered by this document.
+ Driver developers are encouraged to keep padded rectangle equal to active one.
+-The padded target is accessed by the <constant> V4L2_SEL_TGT_COMPOSE_PADDED
+-</constant> identifier.  It must contain all pixels from the <constant>
+-V4L2_SEL_TGT_COMPOSE </constant> target.</para>
++The padded target is accessed by the <constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant>
++identifier.  It must contain all pixels from the <constant>V4L2_SEL_TGT_COMPOSE</constant>
++target.</para>
+ 
+    </section>
+ 
+@@ -194,8 +193,8 @@ V4L2_SEL_TGT_COMPOSE </constant> target.</para>
+      <title>Scaling control</title>
+ 
+ <para>An application can detect if scaling is performed by comparing the width
+-and the height of rectangles obtained using <constant> V4L2_SEL_TGT_CROP
+-</constant> and <constant> V4L2_SEL_TGT_COMPOSE </constant> targets. If
++and the height of rectangles obtained using <constant>V4L2_SEL_TGT_CROP</constant>
++and <constant>V4L2_SEL_TGT_COMPOSE</constant> targets. If
+ these are not equal then the scaling is applied. The application can compute
+ the scaling ratios using these values.</para>
+ 
+@@ -208,7 +207,7 @@ the scaling ratios using these values.</para>
+     <title>Comparison with old cropping API</title>
+ 
+ <para>The selection API was introduced to cope with deficiencies of previous
+-<link linkend="crop"> API </link>, that was designed to control simple capture
++<link linkend="crop"> API</link>, that was designed to control simple capture
+ devices. Later the cropping API was adopted by video output drivers. The ioctls
+ are used to select a part of the display were the video signal is inserted. It
+ should be considered as an API abuse because the described operation is
+@@ -220,7 +219,7 @@ part of an image by abusing V4L2 API.  Cropping a smaller image from a larger
+ one is achieved by setting the field
+ &v4l2-pix-format;<structfield>::bytesperline</structfield>.  Introducing an image offsets
+ could be done by modifying field &v4l2-buffer;<structfield>::m_userptr</structfield>
+-before calling <constant> VIDIOC_QBUF </constant>. Those
++before calling <constant>VIDIOC_QBUF</constant>. Those
+ operations should be avoided because they are not portable (endianness), and do
+ not work for macroblock and Bayer formats and mmap buffers.  The selection API
+ deals with configuration of buffer cropping/composing in a clear, intuitive and
+@@ -229,7 +228,7 @@ and constraints flags are introduced.  Finally, &v4l2-crop; and &v4l2-cropcap;
+ have no reserved fields. Therefore there is no way to extend their functionality.
+ The new &v4l2-selection; provides a lot of place for future
+ extensions.  Driver developers are encouraged to implement only selection API.
+-The former cropping API would be simulated using the new one. </para>
++The former cropping API would be simulated using the new one.</para>
+ 
+   </section>
+ 
+@@ -238,9 +237,9 @@ The former cropping API would be simulated using the new one. </para>
+       <example>
+ 	<title>Resetting the cropping parameters</title>
+ 
+-	<para>(A video capture device is assumed; change <constant>
+-V4L2_BUF_TYPE_VIDEO_CAPTURE </constant> for other devices; change target to
+-<constant> V4L2_SEL_TGT_COMPOSE_* </constant> family to configure composing
++	<para>(A video capture device is assumed; change
++<constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant> for other devices; change target to
++<constant>V4L2_SEL_TGT_COMPOSE_*</constant> family to configure composing
+ area)</para>
+ 
+ 	<programlisting>
+@@ -292,8 +291,8 @@ area)</para>
+ 
+       <example>
+ 	<title>Querying for scaling factors</title>
+-	<para>A video output device is assumed; change <constant>
+-V4L2_BUF_TYPE_VIDEO_OUTPUT </constant> for other devices</para>
++	<para>A video output device is assumed; change
++<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> for other devices</para>
+ 	<programlisting>
+ 
+ 	&v4l2-selection; compose = {
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
+index b11ec75..9c04ac8 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
+@@ -58,17 +58,16 @@
+ 
+     <para>The ioctls are used to query and configure selection rectangles.</para>
+ 
+-<para> To query the cropping (composing) rectangle set &v4l2-selection;
++<para>To query the cropping (composing) rectangle set &v4l2-selection;
+ <structfield> type </structfield> field to the respective buffer type.
+-Do not use multiplanar buffers.  Use <constant> V4L2_BUF_TYPE_VIDEO_CAPTURE
+-</constant> instead of <constant> V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
+-</constant>.  Use <constant> V4L2_BUF_TYPE_VIDEO_OUTPUT </constant> instead of
+-<constant> V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE </constant>.  The next step is
++Do not use multiplanar buffers.  Use <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>
++instead of <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE</constant>.  Use
++<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> instead of
++<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE</constant>.  The next step is
+ setting the value of &v4l2-selection; <structfield>target</structfield> field
+-to <constant> V4L2_SEL_TGT_CROP </constant> (<constant>
+-V4L2_SEL_TGT_COMPOSE </constant>).  Please refer to table <xref
+-linkend="v4l2-selections-common" /> or <xref linkend="selection-api" /> for additional
+-targets.  The <structfield>flags</structfield> and <structfield>reserved
++to <constant>V4L2_SEL_TGT_CROP</constant> (<constant>V4L2_SEL_TGT_COMPOSE</constant>).
++Please refer to table <xref linkend="v4l2-selections-common" /> or <xref linkend="selection-api" />
++for additional targets.  The <structfield>flags</structfield> and <structfield>reserved
+ </structfield> fields of &v4l2-selection; are ignored and they must be filled
+ with zeros.  The driver fills the rest of the structure or
+ returns &EINVAL; if incorrect buffer type or target was used. If cropping
+@@ -77,19 +76,18 @@ always equal to the bounds rectangle.  Finally, the &v4l2-rect;
+ <structfield>r</structfield> rectangle is filled with the current cropping
+ (composing) coordinates. The coordinates are expressed in driver-dependent
+ units. The only exception are rectangles for images in raw formats, whose
+-coordinates are always expressed in pixels.  </para>
++coordinates are always expressed in pixels.</para>
+ 
+-<para> To change the cropping (composing) rectangle set the &v4l2-selection;
++<para>To change the cropping (composing) rectangle set the &v4l2-selection;
+ <structfield>type</structfield> field to the respective buffer type.  Do not
+-use multiplanar buffers.  Use <constant> V4L2_BUF_TYPE_VIDEO_CAPTURE
+-</constant> instead of <constant> V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
+-</constant>.  Use <constant> V4L2_BUF_TYPE_VIDEO_OUTPUT </constant> instead of
+-<constant> V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE </constant>.  The next step is
++use multiplanar buffers.  Use <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>
++instead of <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE</constant>.  Use
++<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> instead of
++<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE</constant>.  The next step is
+ setting the value of &v4l2-selection; <structfield>target</structfield> to
+-<constant>V4L2_SEL_TGT_CROP</constant> (<constant>
+-V4L2_SEL_TGT_COMPOSE </constant>). Please refer to table <xref
+-linkend="v4l2-selections-common" /> or <xref linkend="selection-api" /> for additional
+-targets.  The &v4l2-rect; <structfield>r</structfield> rectangle need to be
++<constant>V4L2_SEL_TGT_CROP</constant> (<constant>V4L2_SEL_TGT_COMPOSE</constant>).
++Please refer to table <xref linkend="v4l2-selections-common" /> or <xref linkend="selection-api" />
++for additional targets.  The &v4l2-rect; <structfield>r</structfield> rectangle need to be
+ set to the desired active area. Field &v4l2-selection; <structfield> reserved
+ </structfield> is ignored and must be filled with zeros.  The driver may adjust
+ coordinates of the requested rectangle. An application may
+@@ -149,8 +147,8 @@ On success the &v4l2-rect; <structfield>r</structfield> field contains
+ the adjusted rectangle. When the parameters are unsuitable the application may
+ modify the cropping (composing) or image parameters and repeat the cycle until
+ satisfactory parameters have been negotiated. If constraints flags have to be
+-violated at then ERANGE is returned. The error indicates that <emphasis> there
+-exist no rectangle </emphasis> that satisfies the constraints.</para>
++violated at then ERANGE is returned. The error indicates that <emphasis>there
++exist no rectangle</emphasis> that satisfies the constraints.</para>
+ 
+   <para>Selection targets and flags are documented in <xref
+   linkend="v4l2-selections-common"/>.</para>
 -- 
-2.0.1
+2.0.0
 
