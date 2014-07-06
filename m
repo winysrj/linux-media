@@ -1,51 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:38511 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751906AbaGDSS1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jul 2014 14:18:27 -0400
-Message-ID: <1404497901.17315.5.camel@mpb-nicolas>
-Subject: UVC driver produce decreasing timestamp
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Received: from ny01.nytud.hu ([193.6.194.1]:34382 "EHLO ny01.nytud.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751492AbaGFSCO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Jul 2014 14:02:14 -0400
+Received: (from oravecz@localhost)
+	by ny01.nytud.hu (8.11.6/8.11.6) id s66HpRN32267
+	for linux-media@vger.kernel.org; Sun, 6 Jul 2014 19:51:27 +0200
+Message-Id: <201407061751.s66HpRN32267@ny01.nytud.hu>
+Subject: HVR 900 (USB ID 2040:6500) loses sound with recent em28xx drivers
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date: Fri, 04 Jul 2014 14:18:21 -0400
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Date: Sun, 6 Jul 2014 19:51:27 +0200 (CEST)
+Reply-To: oravecz@nytud.mta.hu
+From: Oravecz Csaba <oravecz@nytud.mta.hu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi,
 
-I've been trying to solve some timestamp issues with v4l2 in GStreamer
-and tracked down the problem to be the uvc driver giving back
-non-monotonic (sometimes decreasing) timestamp. Here's some traces I
-have captured. It shows the TS as computed by uvc_video_clock_update().
-Notice that before this call the TS are monotonic. This method is far
-from trivial, so any help would be appreciated.
+I see there has been a major rewrite of em28xx (and some related)
+drivers and this card somehow might have fallen victim to it.
+It's been working fairly steadily so far but now sound is gone.
 
-[21967.375107] uvcvideo: Built-in iSight: SOF 3140.137924 y 1435759049 ts 21967.778560 buf ts 21967.338765 (x1 177340416/146/661 x2 179437568/178/692 y1 1000000000 y2 1032119492)
-[21967.426928] uvcvideo: Built-in iSight: SOF 3140.136291 y 1382052758 ts 21967.776903 buf ts 21967.390830 (x1 180748288/198/712 x2 182845440/230/743 y1 1000000000 y2 1031993005)
-[21967.475141] uvcvideo: Built-in iSight: SOF 3140.137893 y 1332485681 ts 21967.779230 buf ts 21967.438749 (x1 184156160/250/762 x2 185991168/278/793 y1 1000000000 y2 1028199123)
-[21967.526930] uvcvideo: Built-in iSight: SOF 3140.137878 y 1282023868 ts 21967.776877 buf ts 21967.490838 (x1 187301888/298/812 x2 189399040/330/843 y1 1000000000 y2 1031987069)
-[21967.566957] uvcvideo: Built-in iSight: SOF 3140.136322 y 1238515894 ts 21967.777348 buf ts 21967.530792 (x1 190185472/342/854 x2 192020480/370/885 y1 1000000000 y2 1028044630)
-[21967.610926] uvcvideo: Built-in iSight: SOF 3140.136337 y 1198142764 ts 21967.776997 buf ts 21967.574767 (x1 192806912/382/896 x2 194904064/414/927 y1 1000000000 y2 1032001038)
-[21967.650930] uvcvideo: Built-in iSight: SOF 3140.137817 y 1158528823 ts 21967.777309 buf ts 21967.614754 (x1 195428352/422/937 x2 197525504/454/968 y1 1000000000 y2 1032079122)
-[21967.694920] uvcvideo: Built-in iSight: SOF 3140.139266 y 1114141225 ts 21967.776985 buf ts 21967.658756 (x1 198311936/466/979 x2 200409088/498/1010 y1 1000000000 y2 1032000549)
-[21967.734945] uvcvideo: Built-in iSight: SOF 3140.139221 y 1074227386 ts 21967.777055 buf ts 21967.698774 (x1 200933376/506/1021 x2 203030528/538/1052 y1 1000000000 y2 1032038054)
-[21967.778916] uvcvideo: Built-in iSight: SOF 3140.137802 y 1030136608 ts 21967.776983 buf ts 21967.738775 (x1 203816960/550/1063 x2 205914112/582/1094 y1 1000000000 y2 1031998733)
-[21967.818956] uvcvideo: Built-in iSight: SOF 3140.136413 y 990110109 ts 21967.776897 buf ts 21967.782775 (x1 206438400/590/1105 x2 208535552/622/1136 y1 1000000000 y2 1032085338)
-[21967.862985] uvcvideo: Built-in iSight: SOF 3140.137756 y 946020732 ts 21967.776868 buf ts 21967.822761 (x1 209321984/634/1146 x2 211156992/662/1177 y1 1000000000 y2 1028060834)
-[21967.902940] uvcvideo: Built-in iSight: SOF 3140.137741 y 906078361 ts 21967.776911 buf ts 21967.866805 (x1 211943424/674/1188 x2 214040576/706/1219 y1 1000000000 y2 1032020244)
-[21967.942962] uvcvideo: Built-in iSight: SOF 3140.137725 y 861471274 ts 21967.776231 buf ts 21967.906780 (x1 214827008/718/1230 x2 216662016/746/1261 y1 1000000000 y2 1028135357)
-[21967.986951] uvcvideo: Built-in iSight: SOF 3140.138961 y 821880474 ts 21967.776661 buf ts 21967.950779 (x1 217448448/758/1272 x2 219545600/790/1303 y1 1000000000 y2 1032046506)
-[21968.026956] uvcvideo: Built-in iSight: SOF 3140.138931 y 777744906 ts 21967.776585 buf ts 21967.990787 (x1 220332032/802/1314 x2 222167040/830/1345 y1 1000000000 y2 1028049728)
-[21968.070933] uvcvideo: Built-in iSight: SOF 3140.137695 y 738230942 ts 21967.777101 buf ts 21968.034766 (x1 222953472/842/1356 x2 225050624/874/1387 y1 1000000000 y2 1031988605)
-[21968.110982] uvcvideo: Built-in iSight: SOF 3140.136535 y 698058220 ts 21967.776936 buf ts 21968.074822 (x1 225574912/882/1397 x2 227672064/914/1428 y1 1000000000 y2 1032008302)
-[21968.154936] uvcvideo: Built-in iSight: SOF 3140.136535 y 654680157 ts 21967.777540 buf ts 21968.118769 (x1 228458496/926/1439 x2 230555648/958/1470 y1 1000000000 y2 1031949703)
-[21968.194962] uvcvideo: Built-in iSight: SOF 3140.136550 y 613663361 ts 21967.776502 buf ts 21968.158787 (x1 231079936/966/1481 x2 233177088/998/1512 y1 1000000000 y2 1032039242)
+There is some conspicuous difference in logs (see below), however, being
+nothing more just a naive end user I have no idea whether it is relevant or not.
 
-cheers,
-Nicolas
+Working 'old' drivers:
+
+[357377.630498] em2882/3 #0: Config register raw data: 0x50
+[357377.631455] em2882/3 #0: AC97 vendor ID = 0xffffffff
+[357377.631875] em2882/3 #0: AC97 features = 0x6a90
+[357377.631880] em2882/3 #0: Empia 202 AC97 audio processor detected
+
+Not working current drivers from git:
+
+nothing like the above just this as far as audio is concerned:
+
+[  432.256779] em28xx audio device (2040:6500): interface 1, class 1
+[  432.256809] em28xx audio device (2040:6500): interface 2, class 1
+...
+[  432.291066] usbcore: registered new interface driver snd-usb-audio
+
+Card seems to be present:
+
+arecord -l:
+card 1: HVR900 [WinTV HVR-900], device 0: USB Audio [USB Audio]
+Subdevices: 1/1
+Subdevice #0: subdevice #0
+
+but gives only these errors with xawtv (i'm not sure these are of any help):
+ALSA lib pcm.c:7843:(snd_pcm_recover) overrun occurred
+ALSA lib pcm.c:7843:(snd_pcm_recover) underrun occurred
+
+and these with tvtime:
+videoinput: Can't mute card.  Post a bug report with your
+videoinput: driver info to http://tvtime.net/
+videoinput: Include this error: 'Invalid argument'
+
+None of these is present with the older drivers (working well e.g.
+in Fedora stock 3.9.5 kernel), when using e.g.
+arecord -D hw:1,0 -f dat | aplay -
+to play the analog sound.
+
+As an added bonus there are nice kernel oops with most recent drivers now
+losing video as well (this problem is not there yet e.g. with 
+Fedora stock 3.14.8 kernel i'm using, 
+there is only the sound issue there, video is ok)
+
+WARNING: CPU: 1 PID: 0 at /home/oravecz/src/kernel/media_build/v4
+l/videobuf2-core.c:1165 vb2_buffer_done+0x1fa/0x220 [videobuf2_core]()
+...
+
+WARNING: CPU: 0 PID: 4706 at /home/oravecz/src/kernel/media_build/v4l/videobuf2-core.c:2091__vb2_queue_cancel+0x180/0x220 [videobuf2_core]()
+...
+
+I can send full logs if needed but perhaps this can already give some hint if
+something might have gone wrong or else I might be blundering something.
+
+best,
+o.cs.
 
