@@ -1,122 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51505 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752677AbaGKJg5 (ORCPT
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:50089 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751317AbaGOOSG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 05:36:57 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 13/32] [media] coda: split firmware version check out of coda_hw_init
-Date: Fri, 11 Jul 2014 11:36:24 +0200
-Message-Id: <1405071403-1859-14-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+	Tue, 15 Jul 2014 10:18:06 -0400
+Message-ID: <53B95102.3030001@gmail.com>
+Date: Sun, 06 Jul 2014 21:37:06 +0800
+From: vv <zhengdi05@gmail.com>
+MIME-Version: 1.0
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	m.chehab@samsung.com, zhengdi05@gmail.com
+Subject: [PATCH]staging: media: lirc_parallel.c: fix coding style
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds a new function coda_check_firmware that does the firmware
-version checks so that this can be done only once from coda_probe
-instead of every time the runtime pm framework resumes the coda.
+>From 9d2c680fb573985588d33e31379d50ef3fb6e2fd Mon Sep 17 00:00:00 2001
+From: Zheng Di <zhengdi05@gmail.com>
+Date: Sun, 6 Jul 2014 20:41:53 +0800
+Subject: [PATCH] staging: media: lirc_parallel.c: fix coding style
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+This patch fix checkpatch:
+WARNING: else is not generally useful after a break or return
+WARNING: line over 80 characters
+
+Signed-off-by: Zheng Di <zhengdi05@gmail.com>
 ---
- drivers/media/platform/coda.c | 42 +++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 37 insertions(+), 5 deletions(-)
+ drivers/staging/media/lirc/lirc_parallel.c |   32
+++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index e4d31b9..d47ab63 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -3197,7 +3197,6 @@ static bool coda_firmware_supported(u32 vernum)
- 
- static int coda_hw_init(struct coda_dev *dev)
- {
--	u16 product, major, minor, release;
- 	u32 data;
- 	u16 *p;
- 	int i, ret;
-@@ -3278,17 +3277,40 @@ static int coda_hw_init(struct coda_dev *dev)
- 	coda_write(dev, data, CODA_REG_BIT_CODE_RESET);
- 	coda_write(dev, CODA_REG_RUN_ENABLE, CODA_REG_BIT_CODE_RUN);
- 
--	/* Load firmware */
-+	clk_disable_unprepare(dev->clk_ahb);
-+	clk_disable_unprepare(dev->clk_per);
+diff --git a/drivers/staging/media/lirc/lirc_parallel.c
+b/drivers/staging/media/lirc/lirc_parallel.c
+index 1394f02..d7eb2a4 100644
+--- a/drivers/staging/media/lirc/lirc_parallel.c
++++ b/drivers/staging/media/lirc/lirc_parallel.c
+@@ -169,23 +169,23 @@ static unsigned int init_lirc_timer(void)
+            newtimer = (1000000*count)/timeelapsed;
+            pr_info("%u Hz timer detected\n", newtimer);
+            return newtimer;
+-       }  else {
+-           newtimer = (1000000*count)/timeelapsed;
+-           if (abs(newtimer - default_timer) > default_timer/10) {
+-               /* bad timer */
+-               pr_notice("bad timer: %u Hz\n", newtimer);
+-               pr_notice("using default timer: %u Hz\n",
+-                     default_timer);
+-               return default_timer;
+-           } else {
+-               pr_info("%u Hz timer detected\n", newtimer);
+-               return newtimer; /* use detected value */
+-           }
+        }
+-   } else {
+-       pr_notice("no timer detected\n");
+-       return 0;
 +
-+	return 0;
++       newtimer = (1000000*count)/timeelapsed;
++       if (abs(newtimer - default_timer) > default_timer/10) {
++           /* bad timer */
++           pr_notice("bad timer: %u Hz\n", newtimer);
++           pr_notice("using default timer: %u Hz\n",
++                 default_timer);
++           return default_timer;
++       }
 +
-+err_clk_ahb:
-+	clk_disable_unprepare(dev->clk_per);
-+err_clk_per:
-+	return ret;
-+}
++       pr_info("%u Hz timer detected\n", newtimer);
++       return newtimer; /* use detected value */
+    }
 +
-+static int coda_check_firmware(struct coda_dev *dev)
-+{
-+	u16 product, major, minor, release;
-+	u32 data;
-+	int ret;
-+
-+	ret = clk_prepare_enable(dev->clk_per);
-+	if (ret)
-+		goto err_clk_per;
-+
-+	ret = clk_prepare_enable(dev->clk_ahb);
-+	if (ret)
-+		goto err_clk_ahb;
-+
- 	coda_write(dev, 0, CODA_CMD_FIRMWARE_VERNUM);
- 	coda_write(dev, CODA_REG_BIT_BUSY_FLAG, CODA_REG_BIT_BUSY);
- 	coda_write(dev, 0, CODA_REG_BIT_RUN_INDEX);
- 	coda_write(dev, 0, CODA_REG_BIT_RUN_COD_STD);
- 	coda_write(dev, CODA_COMMAND_FIRMWARE_GET, CODA_REG_BIT_RUN_COMMAND);
- 	if (coda_wait_timeout(dev)) {
--		clk_disable_unprepare(dev->clk_per);
--		clk_disable_unprepare(dev->clk_ahb);
- 		v4l2_err(&dev->v4l2_dev, "firmware get command error\n");
--		return -EIO;
-+		ret = -EIO;
-+		goto err_run_cmd;
- 	}
- 
- 	if (dev->devtype->product == CODA_960) {
-@@ -3328,6 +3350,8 @@ static int coda_hw_init(struct coda_dev *dev)
- 
- 	return 0;
- 
-+err_run_cmd:
-+	clk_disable_unprepare(dev->clk_ahb);
- err_clk_ahb:
- 	clk_disable_unprepare(dev->clk_per);
- err_clk_per:
-@@ -3368,6 +3392,10 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
- 			return;
- 		}
- 
-+		ret = coda_check_firmware(dev);
-+		if (ret < 0)
-+			return;
-+
- 		pm_runtime_put_sync(&dev->plat_dev->dev);
- 	} else {
- 		/*
-@@ -3379,6 +3407,10 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
- 			v4l2_err(&dev->v4l2_dev, "HW initialization failed\n");
- 			return;
- 		}
-+
-+		ret = coda_check_firmware(dev);
-+		if (ret < 0)
-+			return;
- 	}
- 
- 	dev->vfd.fops	= &coda_fops,
++   pr_notice("no timer detected\n");
++   return 0;
+ }
+
+ static int lirc_claim(void)
+@@ -661,7 +661,7 @@ static int __init lirc_parallel_init(void)
+        goto exit_device_put;
+    }
+    ppdevice = parport_register_device(pport, LIRC_DRIVER_NAME,
+-                      pf, kf, lirc_lirc_irq_handler, 0, NULL);
++                  pf, kf, lirc_lirc_irq_handler, 0, NULL);
+    parport_put_port(pport);
+    if (ppdevice == NULL) {
+        pr_notice("parport_register_device() failed\n");
 -- 
-2.0.0
-
+1.7.9.5
