@@ -1,76 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f177.google.com ([209.85.160.177]:61819 "EHLO
-	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752033AbaGKC1x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jul 2014 22:27:53 -0400
-Received: by mail-yk0-f177.google.com with SMTP id 79so52473ykr.36
-        for <linux-media@vger.kernel.org>; Thu, 10 Jul 2014 19:27:52 -0700 (PDT)
-Date: Thu, 10 Jul 2014 23:26:54 -0300
-From: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] staging/solo6x10: SOLO6X10 should select
- BITREVERSE
-Message-ID: <20140710232654.30f116e7@pirotess.bf.iodev.co.uk>
-In-Reply-To: <1404637121-1253-1-git-send-email-geert@linux-m68k.org>
-References: <1404637121-1253-1-git-send-email-geert@linux-m68k.org>
+Received: from mail-la0-f52.google.com ([209.85.215.52]:43505 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750911AbaGFJAL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jul 2014 05:00:11 -0400
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/6oAjylnzeVJ8Iwq36VL6.Un"; protocol="application/pgp-signature"
+In-Reply-To: <CAMuHMdUmQRk8uVyN-+thbfYWVQPsCRHpyEU3T2PSdtN6GPM-gw@mail.gmail.com>
+References: <1404637121-1253-1-git-send-email-geert@linux-m68k.org>
+	<CAMuHMdUmQRk8uVyN-+thbfYWVQPsCRHpyEU3T2PSdtN6GPM-gw@mail.gmail.com>
+Date: Sun, 6 Jul 2014 11:00:09 +0200
+Message-ID: <CAMuHMdXN6oVQi=4duDL-M-5cke3xDgmdxnW5orEMLJDo+fZPcQ@mail.gmail.com>
+Subject: Re: [PATCH] [media] staging/solo6x10: SOLO6X10 should select BITREVERSE
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	driverdevel <devel@driverdev.osuosl.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	kbuild test robot <fengguang.wu@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/6oAjylnzeVJ8Iwq36VL6.Un
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Sun, Jul 6, 2014 at 10:59 AM, Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+> CC kbuild test robot <fengguang.wu@intel.com>
 
-On Sun,  6 Jul 2014 10:58:41 +0200
-Geert Uytterhoeven <geert@linux-m68k.org> wrote:
-> If CONFIG_SOLO6X10=3Dy, but CONFIG_BITREVERSE=3Dm:
->=20
->     drivers/built-in.o: In function `solo_osd_print':
->     (.text+0x1c7a1f): undefined reference to `byte_rev_table'
->     make: *** [vmlinux] Error 1
->=20
-> Reported-by: kbuild test robot <fengguang.wu@intel.com>
-> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> ---
->  drivers/staging/media/solo6x10/Kconfig | 1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/drivers/staging/media/solo6x10/Kconfig
-> b/drivers/staging/media/solo6x10/Kconfig index
-> 6a1906fa1117..1ce2819efcb4 100644 ---
-> a/drivers/staging/media/solo6x10/Kconfig +++
-> b/drivers/staging/media/solo6x10/Kconfig @@ -1,6 +1,7 @@
->  config SOLO6X10
->  	tristate "Bluecherry / Softlogic 6x10 capture cards
-> (MPEG-4/H.264)" depends on PCI && VIDEO_DEV && SND && I2C
-> +	select BITREVERSE
->  	select FONT_SUPPORT
->  	select FONT_8x16
->  	select VIDEOBUF2_DMA_SG
+Doh, this time for real...
 
-Signed-off-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+> On Sun, Jul 6, 2014 at 10:58 AM, Geert Uytterhoeven
+> <geert@linux-m68k.org> wrote:
+>> If CONFIG_SOLO6X10=y, but CONFIG_BITREVERSE=m:
+>>
+>>     drivers/built-in.o: In function `solo_osd_print':
+>>     (.text+0x1c7a1f): undefined reference to `byte_rev_table'
+>>     make: *** [vmlinux] Error 1
+>>
+>> Reported-by: kbuild test robot <fengguang.wu@intel.com>
+>> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+>> ---
+>>  drivers/staging/media/solo6x10/Kconfig | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/staging/media/solo6x10/Kconfig b/drivers/staging/media/solo6x10/Kconfig
+>> index 6a1906fa1117..1ce2819efcb4 100644
+>> --- a/drivers/staging/media/solo6x10/Kconfig
+>> +++ b/drivers/staging/media/solo6x10/Kconfig
+>> @@ -1,6 +1,7 @@
+>>  config SOLO6X10
+>>         tristate "Bluecherry / Softlogic 6x10 capture cards (MPEG-4/H.264)"
+>>         depends on PCI && VIDEO_DEV && SND && I2C
+>> +       select BITREVERSE
+>>         select FONT_SUPPORT
+>>         select FONT_8x16
+>>         select VIDEOBUF2_DMA_SG
 
---Sig_/6oAjylnzeVJ8Iwq36VL6.Un
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+Gr{oetje,eeting}s,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+                        Geert
 
-iQEcBAEBAgAGBQJTv0tuAAoJEBrCLcBAAV+G+m4H+waEfOYkZhwcuFnI+NyR1l1z
-fbVNn+jg5Vm2pR4kOpGO6l5y01vD3MLciYgWo6jxDNaHRMdTfflrPa1GG2d6jCzM
-AnFVYxSemrG2Dsz92W/bTUMYd+PhHw1cq2ViKwrT0wUKw7rlnNRo1Qdso8caxgf4
-nYo7n/SFliuJoriGZMO3/p+nczTHYn2E98DAx6ti5Uj1ZPkTbovY0WMuoSnfNcYj
-V3oZVJJYnxnDxkxNXNuP1ugg0beTdE+OIKEhU4c2T3k+UQ8luccbN+Z3un2nlHxS
-qBA7pglF7Y+MWLAmRSdU8cIq4L1CWkegdjkBXl5hl/6LnVVRKWDocaD4q+V77N8=
-=jZIq
------END PGP SIGNATURE-----
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
---Sig_/6oAjylnzeVJ8Iwq36VL6.Un--
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
