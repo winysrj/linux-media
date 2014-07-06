@@ -1,66 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1lp0145.outbound.protection.outlook.com ([207.46.163.145]:38815
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752986AbaGWJ5D (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 05:57:03 -0400
-From: Sonic Zhang <sonic.adi@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>
-CC: <linux-media@vger.kernel.org>,
-	<adi-buildroot-devel@lists.sourceforge.net>,
-	Sonic Zhang <sonic.zhang@analog.com>
-Subject: [PATCH 2/3] v4l2: bfin: Ensure delete and reinit list entry on NOMMU architecture
-Date: Wed, 23 Jul 2014 17:57:15 +0800
-Message-ID: <1406109436-23922-2-git-send-email-sonic.adi@gmail.com>
-In-Reply-To: <1406109436-23922-1-git-send-email-sonic.adi@gmail.com>
-References: <1406109436-23922-1-git-send-email-sonic.adi@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:55713 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751674AbaGFCpm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 Jul 2014 22:45:42 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 6F9BA2A1FCF
+	for <linux-media@vger.kernel.org>; Sun,  6 Jul 2014 04:45:32 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140706024532.6F9BA2A1FCF@tschai.lan>
+Date: Sun,  6 Jul 2014 04:45:32 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sonic Zhang <sonic.zhang@analog.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On NOMMU architecture page fault is not triggered if a deleted list entry is
-accessed without reinit.
+Results of the daily build of media_tree:
 
-Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+date:		Sun Jul  6 04:00:29 CEST 2014
+git branch:	test
+git hash:	ff792c85e60727e66774eb3da8129298690eab0c
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-14-gf11dd94
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 2759cb6..4a8c4f0 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -446,7 +446,7 @@ static void bcap_stop_streaming(struct vb2_queue *vq)
- 	while (!list_empty(&bcap_dev->dma_queue)) {
- 		bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
- 						struct bcap_buffer, list);
--		list_del(&bcap_dev->cur_frm->list);
-+		list_del_init(&bcap_dev->cur_frm->list);
- 		vb2_buffer_done(&bcap_dev->cur_frm->vb, VB2_BUF_STATE_ERROR);
- 	}
- }
-@@ -533,7 +533,7 @@ static irqreturn_t bcap_isr(int irq, void *dev_id)
- 		}
- 		bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
- 				struct bcap_buffer, list);
--		list_del(&bcap_dev->cur_frm->list);
-+		list_del_init(&bcap_dev->cur_frm->list);
- 	} else {
- 		/* clear error flag, we will get a new frame */
- 		if (ppi->err)
-@@ -583,7 +583,7 @@ static int bcap_streamon(struct file *file, void *priv,
- 	bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
- 					struct bcap_buffer, list);
- 	/* remove buffer from the dma queue */
--	list_del(&bcap_dev->cur_frm->list);
-+	list_del_init(&bcap_dev->cur_frm->list);
- 	addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->cur_frm->vb, 0);
- 	/* update DMA address */
- 	ppi->ops->update_addr(ppi, (unsigned long)addr);
--- 
-1.8.2.3
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
