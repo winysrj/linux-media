@@ -1,66 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:61172 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759969AbaGYOVN (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:46485 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751183AbaGGQhz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 10:21:13 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+	Mon, 7 Jul 2014 12:37:55 -0400
+From: Ian Molton <ian.molton@codethink.co.uk>
 To: linux-media@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org, j.anaszewski@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org
-Subject: [PATCH v3 1/9] [media] s5p-jpeg: Document sclk-jpeg clock for
- Exynos3250 SoC
-Date: Fri, 25 Jul 2014 16:20:45 +0200
-Message-id: <1406298053-30184-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1406298053-30184-1-git-send-email-s.nawrocki@samsung.com>
-References: <1406298053-30184-1-git-send-email-s.nawrocki@samsung.com>
+Cc: linux-kernel@lists.codethink.co.uk, ian.molton@codethink.co.uk,
+	g.liakhovetski@gmx.de, m.chehab@samsung.com
+Subject: [PATCH 4/4] media: rcar_vin: Clean up rcar_vin_irq
+Date: Mon,  7 Jul 2014 17:37:49 +0100
+Message-Id: <1404751069-5666-5-git-send-email-ian.molton@codethink.co.uk>
+In-Reply-To: <1404751069-5666-1-git-send-email-ian.molton@codethink.co.uk>
+References: <1404751069-5666-1-git-send-email-ian.molton@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+This patch makes the rcar_vin IRQ handler a little more readable.
 
-JPEG IP on Exynos3250 SoC requires enabling two clock gates
-for its operation. This patch documents this requirement.
+Removes an else clause, and simplifies the buffer handling.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
-Cc: devicetree@vger.kernel.org
+Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+Reviewed-by: William Towle <william.towle@codethink.co.uk>
 ---
- .../bindings/media/exynos-jpeg-codec.txt           |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/media/platform/soc_camera/rcar_vin.c | 24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-index 937b755..bf52ed4 100644
---- a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-+++ b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-@@ -3,9 +3,13 @@ Samsung S5P/EXYNOS SoC series JPEG codec
- Required properties:
-
- - compatible	: should be one of:
--		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg";
-+		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg",
-+		  "samsung,exynos3250-jpeg";
- - reg		: address and length of the JPEG codec IP register set;
- - interrupts	: specifies the JPEG codec IP interrupt;
--- clocks	: should contain the JPEG codec IP gate clock specifier, from the
--		  common clock bindings;
--- clock-names	: should contain "jpeg" entry.
-+- clock-names   : should contain:
-+		   - "jpeg" for the core gate clock,
-+		   - "sclk" for the special clock (optional).
-+- clocks	: should contain the clock specifier and clock ID list
-+		  matching entries in the clock-names property; from
-+		  the common clock bindings.
---
-1.7.9.5
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index aeda4e2..a8d2785 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -554,7 +554,6 @@ static irqreturn_t rcar_vin_irq(int irq, void *data)
+ 	struct rcar_vin_priv *priv = data;
+ 	u32 int_status;
+ 	bool can_run = false, hw_stopped;
+-	int slot;
+ 	unsigned int handled = 0;
+ 
+ 	spin_lock(&priv->lock);
+@@ -573,17 +572,22 @@ static irqreturn_t rcar_vin_irq(int irq, void *data)
+ 	hw_stopped = !(ioread32(priv->base + VNMS_REG) & VNMS_CA);
+ 
+ 	if (!priv->request_to_stop) {
++		struct vb2_buffer **q_entry = priv->queue_buf;
++		struct vb2_buffer *vb;
++
+ 		if (is_continuous_transfer(priv))
+-			slot = (ioread32(priv->base + VNMS_REG) &
+-				VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
+-		else
+-			slot = 0;
++			q_entry += (ioread32(priv->base + VNMS_REG) &
++					VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
++
++		vb = *q_entry;
++
++		vb->v4l2_buf.field = priv->field;
++		vb->v4l2_buf.sequence = priv->sequence++;
++		do_gettimeofday(&vb->v4l2_buf.timestamp);
++
++		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
+ 
+-		priv->queue_buf[slot]->v4l2_buf.field = priv->field;
+-		priv->queue_buf[slot]->v4l2_buf.sequence = priv->sequence++;
+-		do_gettimeofday(&priv->queue_buf[slot]->v4l2_buf.timestamp);
+-		vb2_buffer_done(priv->queue_buf[slot], VB2_BUF_STATE_DONE);
+-		priv->queue_buf[slot] = NULL;
++		*q_entry = NULL;
+ 
+ 		if (priv->state != STOPPING)
+ 			can_run = rcar_vin_fill_hw_slot(priv);
+-- 
+1.9.1
 
