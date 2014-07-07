@@ -1,43 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:46637 "EHLO
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:46478 "EHLO
 	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751320AbaGGQke (ORCPT
+	by vger.kernel.org with ESMTP id S1751162AbaGGQhz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jul 2014 12:40:34 -0400
-Message-ID: <53BACD7E.50606@codethink.co.uk>
-Date: Mon, 07 Jul 2014 17:40:30 +0100
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-MIME-Version: 1.0
-To: Ian Molton <ian.molton@codethink.co.uk>,
-	linux-media@vger.kernel.org
-CC: linux-kernel@lists.codethink.co.uk, g.liakhovetski@gmx.de,
-	m.chehab@samsung.com
-Subject: Re: [Linux-kernel] [PATCH 0/4] rcar_vin: fix soc_camera WARN_ON()
- issues.
-References: <1404751069-5666-1-git-send-email-ian.molton@codethink.co.uk>
+	Mon, 7 Jul 2014 12:37:55 -0400
+From: Ian Molton <ian.molton@codethink.co.uk>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@lists.codethink.co.uk, ian.molton@codethink.co.uk,
+	g.liakhovetski@gmx.de, m.chehab@samsung.com
+Subject: [PATCH 2/4] media: rcar_vin: Ensure all in-flight buffers are returned to error state before stopping.
+Date: Mon,  7 Jul 2014 17:37:47 +0100
+Message-Id: <1404751069-5666-3-git-send-email-ian.molton@codethink.co.uk>
 In-Reply-To: <1404751069-5666-1-git-send-email-ian.molton@codethink.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+References: <1404751069-5666-1-git-send-email-ian.molton@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/07/14 17:37, Ian Molton wrote:
-> This patch series provides fixes that allow the rcar_vin driver to function
-> without triggering dozens of warnings from the videobuf2 and soc_camera layers.
-> 
-> Patches 2/3 should probably be merged into a single, atomic change, although
-> patch 2 does not make the existing situation /worse/ in and of itself.
-> 
-> Patch 4 does not change the code logic, but is cleaner and less prone to
-> breakage caused by furtutre modification. Also, more consistent with the use of
-> vb pointers elsewhere in the driver.
-> 
-> Comments welcome!
+Videobuf2 complains about buffers that are still marked ACTIVE (in use by the driver) following a call to stop_streaming().
 
-You should have probably CC:d the original authors
-as well as the linux-sh list and possibly Magnus and
-Horms.
+This patch returns all active buffers to state ERROR prior to stopping.
 
+Note: this introduces a (non fatal) race condition as the stream is not guaranteed to be stopped at this point.
+
+Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+---
+ drivers/media/platform/soc_camera/rcar_vin.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 7154500..06ce705 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -513,8 +513,14 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct rcar_vin_priv *priv = ici->priv;
+ 	struct list_head *buf_head, *tmp;
++	int i;
+ 
+ 	spin_lock_irq(&priv->lock);
++
++	for (i = 0; i < vq->num_buffers; ++i)
++		if (vq->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
++			vb2_buffer_done(vq->bufs[i], VB2_BUF_STATE_ERROR);
++
+ 	list_for_each_safe(buf_head, tmp, &priv->capture)
+ 		list_del_init(buf_head);
+ 	spin_unlock_irq(&priv->lock);
 -- 
-Ben Dooks				http://www.codethink.co.uk/
-Senior Engineer				Codethink - Providing Genius
+1.9.1
+
