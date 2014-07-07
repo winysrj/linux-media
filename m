@@ -1,44 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34190 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756720AbaGNRJW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 13:09:22 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from mailout2.samsung.com ([203.254.224.25]:10423 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752420AbaGGQdv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jul 2014 12:33:51 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 09/18] si2168: Small typo fix (SI2157 -> SI2168)
-Date: Mon, 14 Jul 2014 20:08:50 +0300
-Message-Id: <1405357739-3570-9-git-send-email-crope@iki.fi>
-In-Reply-To: <1405357739-3570-1-git-send-email-crope@iki.fi>
-References: <1405357739-3570-1-git-send-email-crope@iki.fi>
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org
+Subject: [PATCH 8/9] Documentation: devicetree: Document sclk-jpeg clock for
+ exynos3250 SoC
+Date: Mon, 07 Jul 2014 18:32:09 +0200
+Message-id: <1404750730-22996-9-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1404750730-22996-1-git-send-email-j.anaszewski@samsung.com>
+References: <1404750730-22996-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Olli Salonen <olli.salonen@iki.fi>
+JPEG IP on Exynos3250 SoC requires enabling two clock
+gates for its operation. This patch documents this
+requirement.
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
+Cc: devicetree@vger.kernel.org
 ---
- drivers/media/dvb-frontends/si2168_priv.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ .../bindings/media/exynos-jpeg-codec.txt           |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index 53f7f06..97f9d87 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -36,9 +36,9 @@ struct si2168 {
- };
+diff --git a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
+index 937b755..20cd150 100644
+--- a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
++++ b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
+@@ -3,9 +3,12 @@ Samsung S5P/EXYNOS SoC series JPEG codec
+ Required properties:
  
- /* firmare command struct */
--#define SI2157_ARGLEN      30
-+#define SI2168_ARGLEN      30
- struct si2168_cmd {
--	u8 args[SI2157_ARGLEN];
-+	u8 args[SI2168_ARGLEN];
- 	unsigned wlen;
- 	unsigned rlen;
- };
+ - compatible	: should be one of:
+-		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg";
++		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg",
++		  "samsung,exynos3250-jpeg";
+ - reg		: address and length of the JPEG codec IP register set;
+ - interrupts	: specifies the JPEG codec IP interrupt;
+ - clocks	: should contain the JPEG codec IP gate clock specifier, from the
+-		  common clock bindings;
+-- clock-names	: should contain "jpeg" entry.
++		  common clock bindings; for Exynos3250 SoC special clock gate
++		  should be defined as the second element of the clocks array
++- clock-names	: should contain "jpeg" entry and additionally "sclk-jpeg" entry
++		  for Exynos3250 SoC
 -- 
-1.9.3
+1.7.9.5
 
