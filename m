@@ -1,209 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4713 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932114AbaGUNp4 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34271 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751056AbaGGQDh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 09:45:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Eduardo Valentin <edubezval@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/7] v4l2-ctrls: add new RDS TX controls
-Date: Mon, 21 Jul 2014 15:45:37 +0200
-Message-Id: <1405950343-26892-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1405950343-26892-1-git-send-email-hverkuil@xs4all.nl>
-References: <1405950343-26892-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 7 Jul 2014 12:03:37 -0400
+Date: Mon, 7 Jul 2014 19:03:30 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: "LED / flash API integration" related improvements
+Message-ID: <20140707160330.GB16460@valkosipuli.retiisi.org.uk>
+References: <536CE61C.8010205@samsung.com>
+ <20140616085321.GP2073@valkosipuli.retiisi.org.uk>
+ <539ED650.2060509@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <539ED650.2060509@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Jacek,
 
-The si4713 supports several RDS features not yet implemented in the driver.
+I'll promise to reply sooner the next time. Just back from holidays. :-)
 
-This patch adds the missing RDS functionality to the list of RDS controls.
+On Mon, Jun 16, 2014 at 01:34:40PM +0200, Jacek Anaszewski wrote:
+> On 06/16/2014 10:53 AM, Sakari Ailus wrote:
+> >Hi Jacek and others,
+> >
+> >Comments from the LED API folks would be highly appreciated.
+> >
+> >(Cc linux-media as well.)
+> >
+> >My comments below.
+> >
+> >On Fri, May 09, 2014 at 04:28:44PM +0200, Jacek Anaszewski wrote:
+> >>During review of "LED / flash API integration" patch sets two issues
+> >>requiring modifications in the LED subsystem core emerged.
+> >>I would like to consult possible ways of solving them:
+> >>
+> >>1.
+> >>==================================================================
+> >>
+> >>Some LED devices allow to control multiple LEDs independently.
+> >>Currently there is no direct support for this in the LED subsystem
+> >>and existing drivers register separate devices for each LED.
+> >>
+> >>LED / flash API integration effort is a good opportunity to provide
+> >>support for exposing multiple LEDs by a single LED class device.
+> >>
+> >>I would like to add following API:
+> >>
+> >>/**
+> >>  * led_get_sub_leds_number - get the number of exposed LEDs
+> >>  * @led_cdev: the LED to query
+> >>  * @num_leds: number of exposed leds
+> >>  *
+> >>  * Get the number of leds exposed by the device.
+> >>  *
+> >>  * Returns: 0 on success or negative error value on failure
+> >>  */
+> >>int led_get_sub_leds_number(struct led_classdev *led_cdev,
+> >>                         int *num_leds);
+> >>
+> >>/**
+> >>  * led_select_sub_led - select sub led to control
+> >>  * @led_cdev: the LED to set
+> >>  * @led_id: id of the sub led to control
+> >>  *
+> >>  * Set the sub led to be the target of the LED class API calls.
+> >>  * Maximum led_id equals num_leds - 1.
+> >>  *
+> >>  * Returns: 0 on success or negative error value on failure
+> >>  */
+> >>int led_select_sub_led(struct led_classdev *led_cdev,
+> >>                     int led_id);
+> >
+> >Instead of this, how about using an array indexed by LED for the other
+> >functions?
+> >
+> >The problem with this is that often the registers to control LED specific
+> >properties contain the same configuration for another LED. The driver should
+> >thus cache the information until it needs to be applied, and I don't think
+> >configuring everything for every LED separately makes sense for either the
+> >user nor the driver.
+> 
+> The max77693-flash is an example of such a design. It has one register
+> for setting flash timeout and it affects timeout for both leds.
+> The register would have to be written right before strobing the flash,
+> in case the cached timeout value is different from the one in the
+> register (cached on last write operation).
+> The device has also common flash status register. I don't have good
+> idea how to proceed in this case. After strobing the flash for any
+> of the sub-leds the remaining ones will also report that they
+> are strobing at the moment.
 
-The ALT_FREQS control is a compound control containing an array of up
-to 25 (the maximum according to the RDS standard) frequencies. To support
-that the V4L2_CTRL_TYPE_U32 was added.
+That's a good point; it's in the end hardware dependent whether a particular
+property is specific to a controller or a led. It should be possible to find
+that out by using the interface. If we keep things simple, this would mean
+three functions per parameters, set, get and get_n to return the number of
+properties (in this very case probably either 1 or the number of LEDs).
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Eduardo Valentin <edubezval@gmail.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 35 +++++++++++++++++++++++++++++++++++
- include/media/v4l2-ctrls.h           |  2 ++
- include/uapi/linux/v4l2-controls.h   |  9 +++++++++
- include/uapi/linux/videodev2.h       |  2 ++
- 4 files changed, 48 insertions(+)
+Alternatively, as all the interface functions either set or get an integer,
+you could access the properties (timeout, intensity etc.) by an ID. You'd
+need three interface functions in total, not per property.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 1acc7aa..9a22f2c 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -805,6 +805,15 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
- 	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
- 	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
-+	case V4L2_CID_RDS_TX_MONO_STEREO:	return "RDS Stereo";
-+	case V4L2_CID_RDS_TX_ARTIFICIAL_HEAD:	return "RDS Artificial Head";
-+	case V4L2_CID_RDS_TX_COMPRESSED:	return "RDS Compressed";
-+	case V4L2_CID_RDS_TX_DYNAMIC_PTY:	return "RDS Dynamic PTY";
-+	case V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT: return "RDS Traffic Announcement";
-+	case V4L2_CID_RDS_TX_TRAFFIC_PROGRAM:	return "RDS Traffic Program";
-+	case V4L2_CID_RDS_TX_MUSIC_SPEECH:	return "RDS Music";
-+	case V4L2_CID_RDS_TX_ALT_FREQS_ENABLE:	return "RDS Enable Alt Frequencies";
-+	case V4L2_CID_RDS_TX_ALT_FREQS:		return "RDS Alternate Frequencies";
- 	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
- 	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
- 	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
-@@ -946,6 +955,14 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_RF_TUNER_IF_GAIN_AUTO:
- 	case V4L2_CID_RF_TUNER_BANDWIDTH_AUTO:
- 	case V4L2_CID_RF_TUNER_PLL_LOCK:
-+	case V4L2_CID_RDS_TX_MONO_STEREO:
-+	case V4L2_CID_RDS_TX_ARTIFICIAL_HEAD:
-+	case V4L2_CID_RDS_TX_COMPRESSED:
-+	case V4L2_CID_RDS_TX_DYNAMIC_PTY:
-+	case V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT:
-+	case V4L2_CID_RDS_TX_TRAFFIC_PROGRAM:
-+	case V4L2_CID_RDS_TX_MUSIC_SPEECH:
-+	case V4L2_CID_RDS_TX_ALT_FREQS_ENABLE:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -1089,6 +1106,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_DETECT_MD_THRESHOLD_GRID:
- 		*type = V4L2_CTRL_TYPE_U16;
- 		break;
-+	case V4L2_CID_RDS_TX_ALT_FREQS:
-+		*type = V4L2_CTRL_TYPE_U32;
-+		break;
- 	default:
- 		*type = V4L2_CTRL_TYPE_INTEGER;
- 		break;
-@@ -1209,6 +1229,8 @@ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
- 		return ptr1.p_u8[idx] == ptr2.p_u8[idx];
- 	case V4L2_CTRL_TYPE_U16:
- 		return ptr1.p_u16[idx] == ptr2.p_u16[idx];
-+	case V4L2_CTRL_TYPE_U32:
-+		return ptr1.p_u32[idx] == ptr2.p_u32[idx];
- 	default:
- 		if (ctrl->is_int)
- 			return ptr1.p_s32[idx] == ptr2.p_s32[idx];
-@@ -1242,6 +1264,9 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
- 	case V4L2_CTRL_TYPE_U16:
- 		ptr.p_u16[idx] = ctrl->default_value;
- 		break;
-+	case V4L2_CTRL_TYPE_U32:
-+		ptr.p_u32[idx] = ctrl->default_value;
-+		break;
- 	default:
- 		idx *= ctrl->elem_size;
- 		memset(ptr.p + idx, 0, ctrl->elem_size);
-@@ -1289,6 +1314,9 @@ static void std_log(const struct v4l2_ctrl *ctrl)
- 	case V4L2_CTRL_TYPE_U16:
- 		pr_cont("%u", (unsigned)*ptr.p_u16);
- 		break;
-+	case V4L2_CTRL_TYPE_U32:
-+		pr_cont("%u", (unsigned)*ptr.p_u32);
-+		break;
- 	default:
- 		pr_cont("unknown type %d", ctrl->type);
- 		break;
-@@ -1335,6 +1363,8 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
- 		return ROUND_TO_RANGE(ptr.p_u8[idx], u8, ctrl);
- 	case V4L2_CTRL_TYPE_U16:
- 		return ROUND_TO_RANGE(ptr.p_u16[idx], u16, ctrl);
-+	case V4L2_CTRL_TYPE_U32:
-+		return ROUND_TO_RANGE(ptr.p_u32[idx], u32, ctrl);
- 
- 	case V4L2_CTRL_TYPE_BOOLEAN:
- 		ptr.p_s32[idx] = !!ptr.p_s32[idx];
-@@ -1567,6 +1597,7 @@ static int check_range(enum v4l2_ctrl_type type,
- 		/* fall through */
- 	case V4L2_CTRL_TYPE_U8:
- 	case V4L2_CTRL_TYPE_U16:
-+	case V4L2_CTRL_TYPE_U32:
- 	case V4L2_CTRL_TYPE_INTEGER:
- 	case V4L2_CTRL_TYPE_INTEGER64:
- 		if (step == 0 || min > max || def < min || def > max)
-@@ -1882,6 +1913,9 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	case V4L2_CTRL_TYPE_U16:
- 		elem_size = sizeof(u16);
- 		break;
-+	case V4L2_CTRL_TYPE_U32:
-+		elem_size = sizeof(u32);
-+		break;
- 	default:
- 		if (type < V4L2_CTRL_COMPOUND_TYPES)
- 			elem_size = sizeof(s32);
-@@ -3244,6 +3278,7 @@ int __v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
- 	case V4L2_CTRL_TYPE_BITMASK:
- 	case V4L2_CTRL_TYPE_U8:
- 	case V4L2_CTRL_TYPE_U16:
-+	case V4L2_CTRL_TYPE_U32:
- 		if (ctrl->is_array)
- 			return -EINVAL;
- 		ret = check_range(ctrl->type, min, max, step, def);
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 8c4edd6..a674bf7 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -41,6 +41,7 @@ struct poll_table_struct;
-  * @p_s64:	Pointer to a 64-bit signed value.
-  * @p_u8:	Pointer to a 8-bit unsigned value.
-  * @p_u16:	Pointer to a 16-bit unsigned value.
-+ * @p_u32:	Pointer to a 32-bit unsigned value.
-  * @p_char:	Pointer to a string.
-  * @p:		Pointer to a compound value.
-  */
-@@ -49,6 +50,7 @@ union v4l2_ctrl_ptr {
- 	s64 *p_s64;
- 	u8 *p_u8;
- 	u16 *p_u16;
-+	u32 *p_u32;
- 	char *p_char;
- 	void *p;
- };
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index db526d1..a13e6fe 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -757,6 +757,15 @@ enum v4l2_auto_focus_range {
- #define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 3)
- #define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 5)
- #define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 6)
-+#define V4L2_CID_RDS_TX_MONO_STEREO		(V4L2_CID_FM_TX_CLASS_BASE + 7)
-+#define V4L2_CID_RDS_TX_ARTIFICIAL_HEAD		(V4L2_CID_FM_TX_CLASS_BASE + 8)
-+#define V4L2_CID_RDS_TX_COMPRESSED		(V4L2_CID_FM_TX_CLASS_BASE + 9)
-+#define V4L2_CID_RDS_TX_DYNAMIC_PTY		(V4L2_CID_FM_TX_CLASS_BASE + 10)
-+#define V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT	(V4L2_CID_FM_TX_CLASS_BASE + 11)
-+#define V4L2_CID_RDS_TX_TRAFFIC_PROGRAM		(V4L2_CID_FM_TX_CLASS_BASE + 12)
-+#define V4L2_CID_RDS_TX_MUSIC_SPEECH		(V4L2_CID_FM_TX_CLASS_BASE + 13)
-+#define V4L2_CID_RDS_TX_ALT_FREQS_ENABLE	(V4L2_CID_FM_TX_CLASS_BASE + 14)
-+#define V4L2_CID_RDS_TX_ALT_FREQS		(V4L2_CID_FM_TX_CLASS_BASE + 15)
- 
- #define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 64)
- #define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 65)
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index b73e8cd..205ab62 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1281,6 +1281,7 @@ struct v4l2_ext_control {
- 		char *string;
- 		__u8 *p_u8;
- 		__u16 *p_u16;
-+		__u32 *p_u32;
- 		void *ptr;
- 	};
- } __attribute__ ((packed));
-@@ -1313,6 +1314,7 @@ enum v4l2_ctrl_type {
- 	V4L2_CTRL_COMPOUND_TYPES     = 0x0100,
- 	V4L2_CTRL_TYPE_U8	     = 0x0100,
- 	V4L2_CTRL_TYPE_U16	     = 0x0101,
-+	V4L2_CTRL_TYPE_U32	     = 0x0102,
- };
- 
- /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+> >Caching the configuration before applying it should still be done since this
+> >way extra register accesses can be avoided: registers often share different
+> >kind of configurations such as timeout and current as well. The
+> >configuration should be applied once an apply fonction is called.
+> >
+> >>/**
+> >>  * led_get_sub_led - get currently selected sub led
+> >>  * @led_cdev: the LED to set
+> >>  * @led_id: id of currently selected sub led
+> >>  *
+> >>  * Get id of the sub led chosen as the target of LED class
+> >>  * API calls. Maximum led_id equals num_leds - 1.
+> >>  *
+> >>  * Returns: 0 on success or negative error value on failure
+> >>  */
+> >>int led_get_target_led(struct led_classdev *led_cdev,
+> >>                         int* led_id);
+> >>
+> >>The functions functions would be mapped on the sysfs attributes:
+> >>- available_leds - RO
+> >>- sub_led_id - RW
+> >
+> >This kind of interface isn't going to be compatible with existing
+> >applications. If you want to keep the compatibility, the LEDs would probably
+> >need to be exposed as separate devices. If that's not a requirement, I'd use
+> >an array here as well.
+> 
+> I started to implement the interface I proposed but encountered
+> several issues related to led-triggers and led_blink feature.
+> They would require significant modifications, I'd rather avoid.
+> Instead I decided to register separate led class device in
+> the driver for the max77693-flash device, similarly as it
+> is accomplished in the led drivers of the other compound led devices.
+> >
+> >The V4L2 driver would still expose the device as a single sub-device.
+> >Controls that apply to individual LEDs would be array controls.
+> 
+> Have those array controls been already added? If so, could you
+> spot the place where they are implemented, or maybe there
+> are some examples of usage or documentation?
+
+Hans has updated the compound controls patchset and sent a pull request:
+
+<URL:https://patchwork.linuxtv.org/patch/24546/>
+
+Mauro mentioned he'll take a look at the patches tomorrow. Independently of
+when the patchset goes in (I don't think it'll take too long) and in
+whichever form, getting a sound user space interface takes priority over
+getting things in fast IMHO.
+
+> >>The attributes would be created only if the related callbacks
+> >>are registered by the driver.
+> >>
+> >>2.
+> >>==================================================================
+> >>
+> >>The second issue, refers to the work queues being used in the
+> >>brightness_set callbacks of the LED subsystem drivers. It interferes
+> >>with the way how V4L2 Flash controls work, which expect that setting
+> >>flash brightness has immediate effect.
+> >>
+> >>Proposed solutions:
+> >>- move work queues out from the drivers to the LED core.
+> >>- add brightness_set_now callback to be registered by
+> >>   the LED drivers and intended for call by v4l2-flash driver;
+> >>   it wouldn't schedule a work but do the job immediately
+> >
+> >I favour the former, but the latter could be used to leave the existing
+> >callback as a compatibility means until all drivers are converted. This
+> >would probably be more work in total though than doing everything in a
+> >single patchset.
+> >
+> 
+> Actually I am wondering whether avoiding work queue in the led flash
+> class driver really poses a problem. If we register the driver
+> with led_classdev_flash_register, then we explicitly declare
+> that the device is to be used as a flash led, and not as
+> e.g. a HD LED, and thus the torch brightness should be
+> set immediately in the brightness_set callback.
+
+I don't have an issue with that, however it sounds like to me that moving
+the work queue handling to the framework is a worthwhile change
+independently of the flash support changes.
+
 -- 
-2.0.1
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
