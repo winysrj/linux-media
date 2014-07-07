@@ -1,57 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1lp0145.outbound.protection.outlook.com ([207.46.163.145]:4287
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753065AbaG3MRA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jul 2014 08:17:00 -0400
-Date: Wed, 30 Jul 2014 20:16:30 +0800
-From: Shawn Guo <shawn.guo@linaro.org>
-To: Philipp Zabel <philipp.zabel@gmail.com>
-CC: Philipp Zabel <p.zabel@pengutronix.de>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	"Hans Verkuil" <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Sascha Hauer <kernel@pengutronix.de>
-Subject: Re: [PATCH v3 06/32] [media] coda: Add encoder/decoder support for
- CODA960
-Message-ID: <20140730121628.GA22243@dragon>
-References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
- <1405071403-1859-7-git-send-email-p.zabel@pengutronix.de>
- <20140721160128.27eb7428.m.chehab@samsung.com>
- <20140721191944.GK13730@pengutronix.de>
- <1406033433.4496.16.camel@paszta.hi.pengutronix.de>
- <20140729153050.GE6827@dragon>
- <CA+gwMccgFGxpDZFqZR=pEgnnc1z5rit4T+LsVKvp1KrWw7_aJA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <CA+gwMccgFGxpDZFqZR=pEgnnc1z5rit4T+LsVKvp1KrWw7_aJA@mail.gmail.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:57783 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752366AbaGGQdG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jul 2014 12:33:06 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH 4/9] s5p-jpeg: fix g_selection op
+Date: Mon, 07 Jul 2014 18:32:05 +0200
+Message-id: <1404750730-22996-5-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1404750730-22996-1-git-send-email-j.anaszewski@samsung.com>
+References: <1404750730-22996-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 29, 2014 at 07:06:25PM +0200, Philipp Zabel wrote:
-> > I followed the step to generate the firmware v4l-coda960-imx6q, and
-> > tested it on next-20140725 with patch 'ARM: dts: imx6qdl: Enable CODA960
-> > VPU' applied on top of it.  But I got the error of 'Wrong firmwarel' as
-> > below.
-> >
-> > [    2.582837] coda 2040000.vpu: requesting firmware 'v4l-coda960-imx6q.bin' for CODA960
-> > [    2.593344] coda 2040000.vpu: Firmware code revision: 0
-> > [    2.598649] coda 2040000.vpu: Wrong firmware. Hw: CODA960, Fw: (0x0000), Version: 0.0.0
-> 
-> I just tried with the same kernel, and the above download, converted
-> with the program in the referenced mail, and I get this:
-> 
->     coda 2040000.vpu: Firmware code revision: 36350
->     coda 2040000.vpu: Initialized CODA960.
->     coda 2040000.vpu: Unsupported firmware version: 2.1.9
->     coda 2040000.vpu: codec registered as /dev/video0
+V4L2_SEL_TGT_COMPOSE_DEFAULT switch case should select whole
+available area of the image and V4L2_SEL_TGT_COMPOSE
+should apply user settings.
 
-Okay, the reason I'm running into the issue is that I'm using the FSL
-U-Boot which turns off VDDPU at initialization.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-Shawn
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 0854f37..09b59d3 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1505,21 +1505,23 @@ static int s5p_jpeg_g_selection(struct file *file, void *priv,
+ 	case V4L2_SEL_TGT_CROP:
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 	case V4L2_SEL_TGT_CROP_DEFAULT:
+-	case V4L2_SEL_TGT_COMPOSE:
+ 	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+ 		s->r.width = ctx->out_q.w;
+ 		s->r.height = ctx->out_q.h;
++		s->r.left = 0;
++		s->r.top = 0;
+ 		break;
++	case V4L2_SEL_TGT_COMPOSE:
+ 	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+ 	case V4L2_SEL_TGT_COMPOSE_PADDED:
+-		s->r.width = ctx->cap_q.w;
+-		s->r.height = ctx->cap_q.h;
++		s->r.width = ctx->crop_rect.width;
++		s->r.height =  ctx->crop_rect.height;
++		s->r.left = ctx->crop_rect.left;
++		s->r.top = ctx->crop_rect.top;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	s->r.left = 0;
+-	s->r.top = 0;
+ 	return 0;
+ }
+ 
+-- 
+1.7.9.5
+
