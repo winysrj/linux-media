@@ -1,65 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-gw4.li-life.net ([195.225.200.36]:53873 "EHLO
-	SMTP-GW4.li-life.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755560AbaGSRyn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jul 2014 13:54:43 -0400
-Message-ID: <53CAAF9D.6000507@kaiser-linux.li>
-Date: Sat, 19 Jul 2014 19:49:17 +0200
-From: Thomas Kaiser <thomas@kaiser-linux.li>
+Received: from mail-oa0-f53.google.com ([209.85.219.53]:49619 "EHLO
+	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750834AbaGGR14 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jul 2014 13:27:56 -0400
+Received: by mail-oa0-f53.google.com with SMTP id l6so4873642oag.26
+        for <linux-media@vger.kernel.org>; Mon, 07 Jul 2014 10:27:55 -0700 (PDT)
 MIME-Version: 1.0
-To: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ddbridge -- kernel 3.15.6
-References: <53C920FB.1040501@grumpydevil.homelinux.org>
-In-Reply-To: <53C920FB.1040501@grumpydevil.homelinux.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20140702053758.GA7578@kroah.com>
+References: <20140701103432.12718.82795.stgit@patser> <20140702053758.GA7578@kroah.com>
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Mon, 7 Jul 2014 22:57:35 +0530
+Message-ID: <CAO_48GGkhB3wQwcW=DpDR4zO7k8-2tm_aynsDxZ5Q72ffwtx=A@mail.gmail.com>
+Subject: Re: [PATCH v2 0/9] Updated fence patch series
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-arch <linux-arch@vger.kernel.org>,
+	Thomas Hellstrom <thellstrom@vmware.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
+	Rob Clark <robdclark@gmail.com>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Colin Cross <ccross@google.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/18/2014 03:28 PM, Rudy Zijlstra wrote:
-> Dears,
->
-> I have a ddbridge device:
->
-> 03:00.0 Multimedia controller: Device dd01:0003
->           Subsystem: Device dd01:0021
->           Flags: fast devsel, IRQ 17
->           Memory at f0900000 (64-bit, non-prefetchable) [size=64K]
->           Capabilities: [50] Power Management version 3
->           Capabilities: [90] Express Endpoint, MSI 00
->           Capabilities: [100] Vendor Specific Information: ID=0000 Rev=0
-> Len=00c <?>
->           Kernel driver in use: DDBridge
->
-> The kernel recognises as seen in dmesg:
->
-> [    1.811626] Digital Devices PCIE bridge driver, Copyright (C) 2010-11
-> Digital Devices GmbH
-> [    1.813996] pci 0000:01:19.0: enabling device (0000 -> 0002)
-> [    1.816033] DDBridge driver detected: Digital Devices PCIe bridge
-> [    1.816273] HW 0001000d FW 00010004
->
-> But /dev/dvb remains empty, only /dev/ddbridge exists.
->
-> Any pointers are much appreciated
->
-> Cheers
->
->
-> Rudy
+Hi Greg,
 
-Hello Rudy
-
-I use a similar card from Digital Devices with Ubuntu 14.04 and kernel 3.13.0-32-generic. Support for this card was not build into the kernel and I had to compile it myself. I had to use media_build_experimental from Mr. Endriss.
-
-http://linuxtv.org/hg/~endriss/media_build_experimental
-
-Your card should be supported with this version.
-
-Regards, Thomas
-
-
-
-
+On 2 July 2014 11:07, Greg KH <gregkh@linuxfoundation.org> wrote:
+> On Tue, Jul 01, 2014 at 12:57:02PM +0200, Maarten Lankhorst wrote:
+>> So after some more hacking I've moved dma-buf to its own subdirectory,
+>> drivers/dma-buf and applied the fence patches to its new place. I believe that the
+>> first patch should be applied regardless, and the rest should be ready now.
+>> :-)
+>>
+>> Changes to the fence api:
+>> - release_fence -> fence_release etc.
+>> - __fence_init -> fence_init
+>> - __fence_signal -> fence_signal_locked
+>> - __fence_is_signaled -> fence_is_signaled_locked
+>> - Changing BUG_ON to WARN_ON in fence_later, and return NULL if it triggers.
+>>
+>> Android can expose fences to userspace. It's possible to make the new fence
+>> mechanism expose the same fences to userspace by changing sync_fence_create
+>> to take a struct fence instead of a struct sync_pt. No other change is needed,
+>> because only the fence parts of struct sync_pt are used. But because the
+>> userspace fences are a separate problem and I haven't really looked at it yet
+>> I feel it should stay in staging, for now.
+>
+> Ok, that's reasonable.
+>
+> At first glance, this all looks "sane" to me, any objection from anyone
+> if I merge this through my driver-core tree for 3.17?
+>
+Fwiw, Ack from me as well!
+> thanks,
+>
+> greg k-h
+Best regards,
+~Sumit.
