@@ -1,66 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58765 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750903AbaG1HVW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jul 2014 03:21:22 -0400
-Date: Mon, 28 Jul 2014 10:20:44 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Enrico <ebutera@users.sourceforge.net>
-Cc: Michael Dietschi <michael.dietschi@inunum.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: omap3isp with DM3730 not working?!
-Message-ID: <20140728072043.GW16460@valkosipuli.retiisi.org.uk>
-References: <53D12786.5050906@InUnum.com>
- <CA+2YH7v8bQG4K2Gz8aB9_BOHwuK_1nGDxU102S7EBnsMGEuwKA@mail.gmail.com>
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:42801 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753304AbaGGN2n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jul 2014 09:28:43 -0400
+Received: by mail-ie0-f177.google.com with SMTP id rp18so848164iec.22
+        for <linux-media@vger.kernel.org>; Mon, 07 Jul 2014 06:28:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+2YH7v8bQG4K2Gz8aB9_BOHwuK_1nGDxU102S7EBnsMGEuwKA@mail.gmail.com>
+In-Reply-To: <53A7E93B.4060007@canonical.com>
+References: <20140618102957.15728.43525.stgit@patser>
+	<20140618103711.15728.97842.stgit@patser>
+	<20140619011556.GE10921@kroah.com>
+	<20140619063727.GL5821@phenom.ffwll.local>
+	<20140619114825.GB28111@ulmo>
+	<CAKMK7uE_B3pCZB9orh5+BJGooNfyEa0APrZqRpXqYu5xfQ0PCQ@mail.gmail.com>
+	<20140620205252.GC28814@mithrandir>
+	<53A7E93B.4060007@canonical.com>
+Date: Mon, 7 Jul 2014 15:28:42 +0200
+Message-ID: <CAKMK7uE78SP74JGViNpTia=PeV6OnHiePn+0_aG5CVoFWFW4Fg@mail.gmail.com>
+Subject: Re: [REPOST PATCH 4/8] android: convert sync to fence api, v5
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	"open list:GENERIC INCLUDE/A..." <linux-arch@vger.kernel.org>,
+	Thomas Hellstrom <thellstrom@vmware.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"Clark, Rob" <robdclark@gmail.com>,
+	Colin Cross <ccross@google.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enrico and Michael,
+On Mon, Jun 23, 2014 at 10:45 AM, Maarten Lankhorst
+<maarten.lankhorst@canonical.com> wrote:
+> But in drivers/drm I can encounter a similar issue, people expect to be able to
+> overwrite the contents of the currently displayed buffer, so I 'solved' it by not adding
+> a fence on the buffer, only by waiting for buffer idle before page flipping.
+> The rationale is that the buffer is pinned internally, and the backing storage cannot
+> go away until dma_buf_unmap_attachment is called. So when you render to the
+> current front buffer without queuing a page flip you get exactly what you expect. ;-)
 
-On Thu, Jul 24, 2014 at 05:57:30PM +0200, Enrico wrote:
-> On Thu, Jul 24, 2014 at 5:34 PM, Michael Dietschi
-> <michael.dietschi@inunum.com> wrote:
-> > Hello,
-> >
-> > I have built a Poky image for Gumstix Overo and added support for a TVP5151
-> > module like described here http://www.sleepyrobot.com/?p=253.
-> > It does work well with an Overo board which hosts an OMAP3530 SoC. But when
-> > I try with an Overo hosting a DM3730 it does not work: yavta just seems to
-> > wait forever :(
-> >
-> > I did track it down to the point that IRQ0STATUS_CCDC_VD0_IRQ seems never be
-> > set but always IRQ0STATUS_CCDC_VD1_IRQ
+Yeah, scanout buffers are special and imo we should only uses fences
+as barriers just around the flip, but _not_ to prevent frontbuffer in
+general. Userspace is after all allowed to do that (e.g. with the dumb
+bo ioctls). If we'd premanently lock scanout buffers that would indeed
+result in hilarity all over the place, no surprises there. And all
+current drivers with dynamic memory management solve this through
+pinning, but not by restricting write access at all.
 
-VD1 takes place in 2/3 of the frame, and VD0 in the beginning of the last
-line. You could check perhaps if you do get VD0 if you set it to take place
-on the previous line (i.e. the register value being height - 3; please see
-ccdc_configure() in ispccdc.c).
+So I think we can shrug this scenario off as a non-issue of the "don't
+do this" kind ;-) Thierry, is there anything else you've stumbled over
+in the tegra k1 enabling work?
 
-I have to admit I haven't used the parallel interface so perhaps others
-could have more insightful comments on how to debug this.
+I still get the impression that there's an awful lot of
+misunderstandings between the explicit and implicit syncing camps and
+that we need to do a lot more talking for a better understanding ...
 
-> > Can someone please give me a hint?
-> 
-> It's strange that you get the vd1_irq because it should not be set by
-> the driver and never trigger...
-
-Both VD0 and VD1 are used by the omap3isp driver, but in different points of
-the frame.
-
-> Anyway maybe a different pinmux where the camera pins are not setup correctly?
-
-This is unlikely to be at least the source of all issues since VD1 is seen.
-
-Cc Laurent.
-
+Cheers, Daniel
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
