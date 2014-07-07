@@ -1,62 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40811 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932078AbaGORgy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jul 2014 13:36:54 -0400
-Message-ID: <53C566AE.50103@iki.fi>
-Date: Tue, 15 Jul 2014 20:36:46 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: shuah.kh@samsung.com, m.chehab@samsung.com
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: em28xx-dvb unregister i2c tuner and demod after
- fe detach
-References: <1405093525-8745-1-git-send-email-shuah.kh@samsung.com> <53C1971E.3020200@iki.fi> <53C564F4.8010002@samsung.com>
-In-Reply-To: <53C564F4.8010002@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:57825 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751883AbaGGQdg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jul 2014 12:33:36 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH 7/9] s5p-jpeg: add chroma subsampling adjustment for Exynos3250
+Date: Mon, 07 Jul 2014 18:32:08 +0200
+Message-id: <1404750730-22996-8-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1404750730-22996-1-git-send-email-j.anaszewski@samsung.com>
+References: <1404750730-22996-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
+Take into account limitations specific to the Exynos3250 SoC,
+regarding setting chroma subsampling control value.
 
-On 07/15/2014 08:29 PM, Shuah Khan wrote:
-> On 07/12/2014 02:14 PM, Antti Palosaari wrote:
->> Moikka Shuah!
->> I suspect that patch makes no sense. On DVB there is runtime PM
->> controlled by DVB frontend. It wakes up all FE sub-devices when frontend
->> device is opened and sleeps when closed.
->>
->> FE release() is not relevant at all for those sub-devices which are
->> implemented as a proper I2C client. I2C client has own remove() for that.
->>
->> em28xx_dvb_init and em28xx_dvb_fini are counterparts. Those I2C drivers
->> are load on em28xx_dvb_init so logical place for unload is
->> em28xx_dvb_fini.
->>
->> Is there some real use case you need that change?
->>
->> regards
->> Antti
->>
->
-> Hi Antti,
->
-> The reason I made this change is because dvb_frontend_detach()
-> calls release interfaces for fe as well as tuner. So it made
-> sense to move the remove after that is all done. Are you saying
-> fe and tuner release calls aren't relevant when sub-devices
-> implement a proper i2c client? If that is the case then, and
-> there is no chance for these release calls to be invoked when a
-> proper i2c is present, then my patch isn't needed.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |   59 +++++++++++++++++----------
+ 1 file changed, 38 insertions(+), 21 deletions(-)
 
-Yes, that is just case. Proprietary DVB binding model uses attach / 
-release, but I2C binding model has probe / remove. I see no reason use 
-DVB proprietary model, instead drivers should be converted to kernel I2C 
-model.
-
-regards
-Antti
-
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 1ef004b..283249d 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1603,36 +1603,53 @@ static int s5p_jpeg_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+ 	return 0;
+ }
+ 
+-static int s5p_jpeg_try_ctrl(struct v4l2_ctrl *ctrl)
++static int s5p_jpeg_adjust_subs_ctrl(struct s5p_jpeg_ctx *ctx, int *ctrl_val)
+ {
+-	struct s5p_jpeg_ctx *ctx = ctrl_to_ctx(ctrl);
+-	unsigned long flags;
+-	int ret = 0;
+-
+-	spin_lock_irqsave(&ctx->jpeg->slock, flags);
+-
+-	if (ctrl->id == V4L2_CID_JPEG_CHROMA_SUBSAMPLING) {
+-		if (ctx->jpeg->variant->version == SJPEG_S5P)
+-			goto error_free;
++	switch (ctx->jpeg->variant->version) {
++	case SJPEG_S5P:
++		return 0;
++	case SJPEG_EXYNOS3250:
++		/*
++		 * The exynos3250 device can produce JPEG image only
++		 * of 4:4:4 subsampling when given RGB32 source image.
++		 */
++		if (ctx->out_q.fmt->fourcc == V4L2_PIX_FMT_RGB32)
++			*ctrl_val = 0;
++		break;
++	case SJPEG_EXYNOS4:
+ 		/*
+ 		 * The exynos4x12 device requires input raw image fourcc
+ 		 * to be V4L2_PIX_FMT_GREY if gray jpeg format
+ 		 * is to be set.
+ 		 */
+ 		if (ctx->out_q.fmt->fourcc != V4L2_PIX_FMT_GREY &&
+-		    ctrl->val == V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY) {
+-			ret = -EINVAL;
+-			goto error_free;
+-		}
+-		/*
+-		 * The exynos4x12 device requires resulting jpeg subsampling
+-		 * not to be lower than the input raw image subsampling.
+-		 */
+-		if (ctx->out_q.fmt->subsampling > ctrl->val)
+-			ctrl->val = ctx->out_q.fmt->subsampling;
++		    *ctrl_val == V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY)
++			return -EINVAL;
++		break;
+ 	}
+ 
+-error_free:
++	/*
++	 * The exynos4x12 and exynos3250 devices require resulting
++	 * jpeg subsampling not to be lower than the input raw image
++	 * subsampling.
++	 */
++	if (ctx->out_q.fmt->subsampling > *ctrl_val)
++		*ctrl_val = ctx->out_q.fmt->subsampling;
++
++	return 0;
++}
++
++static int s5p_jpeg_try_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct s5p_jpeg_ctx *ctx = ctrl_to_ctx(ctrl);
++	unsigned long flags;
++	int ret = 0;
++
++	spin_lock_irqsave(&ctx->jpeg->slock, flags);
++
++	if (ctrl->id == V4L2_CID_JPEG_CHROMA_SUBSAMPLING)
++		ret = s5p_jpeg_adjust_subs_ctrl(ctx, &ctrl->val);
++
+ 	spin_unlock_irqrestore(&ctx->jpeg->slock, flags);
+ 	return ret;
+ }
 -- 
-http://palosaari.fi/
+1.7.9.5
+
