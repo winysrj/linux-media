@@ -1,45 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51091 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753579AbaGHRAT (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:46518 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751120AbaGGQiE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jul 2014 13:00:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 7 Jul 2014 12:38:04 -0400
+From: Ian Molton <ian.molton@codethink.co.uk>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 6/8] videodev2.h: add V4L2_FIELD_HAS_T_OR_B macro
-Date: Tue,  8 Jul 2014 18:31:16 +0200
-Message-Id: <1404837078-15608-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1404837078-15608-1-git-send-email-hverkuil@xs4all.nl>
-References: <1404837078-15608-1-git-send-email-hverkuil@xs4all.nl>
+Cc: linux-kernel@lists.codethink.co.uk, ian.molton@codethink.co.uk,
+	g.liakhovetski@gmx.de, m.chehab@samsung.com
+Subject: [PATCH 0/4] rcar_vin: fix soc_camera WARN_ON() issues.
+Date: Mon,  7 Jul 2014 17:37:45 +0100
+Message-Id: <1404751069-5666-1-git-send-email-ian.molton@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch series provides fixes that allow the rcar_vin driver to function
+without triggering dozens of warnings from the videobuf2 and soc_camera layers.
 
-Add a macro to test if the field consists of a single top
-or bottom field.
+Patches 2/3 should probably be merged into a single, atomic change, although
+patch 2 does not make the existing situation /worse/ in and of itself.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/videodev2.h | 4 ++++
- 1 file changed, 4 insertions(+)
+Patch 4 does not change the code logic, but is cleaner and less prone to
+breakage caused by furtutre modification. Also, more consistent with the use of
+vb pointers elsewhere in the driver.
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 168ff50..6d4659a 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -124,6 +124,10 @@ enum v4l2_field {
- 	 (field) == V4L2_FIELD_INTERLACED_BT ||\
- 	 (field) == V4L2_FIELD_SEQ_TB ||\
- 	 (field) == V4L2_FIELD_SEQ_BT)
-+#define V4L2_FIELD_HAS_T_OR_B(field)	\
-+	((field) == V4L2_FIELD_BOTTOM ||\
-+	 (field) == V4L2_FIELD_TOP ||\
-+	 (field) == V4L2_FIELD_ALTERNATE)
- 
- enum v4l2_buf_type {
- 	V4L2_BUF_TYPE_VIDEO_CAPTURE        = 1,
--- 
-2.0.0
+Comments welcome!
+
+-Ian
 
