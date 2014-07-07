@@ -1,40 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:24334 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754510AbaGHMxH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 08:53:07 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N8E00FA394HO9A0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 08 Jul 2014 21:53:05 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com,
-	b.zolnierkie@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH 0/3] Add support for Exynos3250 SoC to s5p-mfc driver
-Date: Tue, 08 Jul 2014 14:51:46 +0200
-Message-id: <1404823909-5509-1-git-send-email-j.anaszewski@samsung.com>
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:46637 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751320AbaGGQke (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Jul 2014 12:40:34 -0400
+Message-ID: <53BACD7E.50606@codethink.co.uk>
+Date: Mon, 07 Jul 2014 17:40:30 +0100
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+MIME-Version: 1.0
+To: Ian Molton <ian.molton@codethink.co.uk>,
+	linux-media@vger.kernel.org
+CC: linux-kernel@lists.codethink.co.uk, g.liakhovetski@gmx.de,
+	m.chehab@samsung.com
+Subject: Re: [Linux-kernel] [PATCH 0/4] rcar_vin: fix soc_camera WARN_ON()
+ issues.
+References: <1404751069-5666-1-git-send-email-ian.molton@codethink.co.uk>
+In-Reply-To: <1404751069-5666-1-git-send-email-ian.molton@codethink.co.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds support for MFC codec on Exynos3250
-to the s5p-mfc driver.
+On 07/07/14 17:37, Ian Molton wrote:
+> This patch series provides fixes that allow the rcar_vin driver to function
+> without triggering dozens of warnings from the videobuf2 and soc_camera layers.
+> 
+> Patches 2/3 should probably be merged into a single, atomic change, although
+> patch 2 does not make the existing situation /worse/ in and of itself.
+> 
+> Patch 4 does not change the code logic, but is cleaner and less prone to
+> breakage caused by furtutre modification. Also, more consistent with the use of
+> vb pointers elsewhere in the driver.
+> 
+> Comments welcome!
 
-Thanks,
-Jacek Anaszewski
-
-Jacek Anaszewski (3):
-  s5p-mfc: Fix selective sclk_mfc init
-  ARM: dts: exynos3250 add MFC codec device node
-  Documentation: devicetree: Document exynos3250 SoC related settings
-
- .../devicetree/bindings/media/s5p-mfc.txt          |   10 +++++---
- arch/arm/boot/dts/exynos3250.dtsi                  |   11 +++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_pm.c        |   26 ++++++++++++++++++++
- 3 files changed, 44 insertions(+), 3 deletions(-)
+You should have probably CC:d the original authors
+as well as the linux-sh list and possibly Magnus and
+Horms.
 
 -- 
-1.7.9.5
-
+Ben Dooks				http://www.codethink.co.uk/
+Senior Engineer				Codethink - Providing Genius
