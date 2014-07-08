@@ -1,43 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:38838 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754966AbaG3D7I (ORCPT
+Received: from smtprelay0081.hostedemail.com ([216.40.44.81]:38916 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753293AbaGHT5q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jul 2014 23:59:08 -0400
-From: Zhaowei Yuan <zhaowei.yuan@samsung.com>
-To: linux-media@vger.kernel.org, k.debski@samsung.com,
-	kyungmin.park@samsung.com, jtp.park@samsung.com
-Cc: linux-samsung-soc@vger.kernel.org, m.chehab@samsung.com
-Subject: [PATCH] media: v4l2: make alloction alogthim more robust and flexible
-Date: Wed, 30 Jul 2014 11:55:32 +0800
-Message-id: <1406692532-31800-1-git-send-email-zhaowei.yuan@samsung.com>
+	Tue, 8 Jul 2014 15:57:46 -0400
+Message-ID: <1404849460.932.35.camel@joe-AO725>
+Subject: [PATCH] checkpatch: Warn on break after goto or return with same
+ tab indentation
+From: Joe Perches <joe@perches.com>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Fabian Frederick <fabf@skynet.be>
+Cc: Antti Palosaari <crope@iki.fi>, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, Andy Whitcroft <apw@canonical.com>
+Date: Tue, 08 Jul 2014 12:57:40 -0700
+In-Reply-To: <20140709041215.3e1083201f5a400c37b820b0@skynet.be>
+References: <1404840181-29822-1-git-send-email-fabf@skynet.be>
+	 <53BC3A0E.4060505@iki.fi>
+	 <20140709041215.3e1083201f5a400c37b820b0@skynet.be>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Current algothim relies on the fact that caller will align the
-size to PAGE_SIZE, otherwise order will be decreased to negative
-when remain size is less than PAGE_SIZE, it makes the function
-hard to be migrated.
-This patch sloves the hidden problem.
+Using break; after a goto or return is unnecessary so
+emit a warning when the break is at the same indent level.
 
-Signed-off-by: Zhaowei Yuan <zhaowei.yuan@samsung.com>
+So this emits a warning on:
+
+	switch (foo) {
+	case 1:
+		goto err;
+		break;
+	}
+
+but not on:
+
+	switch (foo) {
+	case 1:
+		if (bar())
+			goto err;
+		break;
+	}
+
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-sg.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> AFAIK there's still no automatic detection of those cases.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index adefc31..40d18aa 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -58,7 +58,7 @@ static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
+There can be now...
 
- 		order = get_order(size);
- 		/* Dont over allocate*/
--		if ((PAGE_SIZE << order) > size)
-+		if (order > 0 && (PAGE_SIZE << order) > size)
- 			order--;
+ scripts/checkpatch.pl | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
- 		pages = NULL;
---
-1.7.9.5
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index 496f9ab..fc22f22 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -2439,6 +2439,16 @@ sub process {
+ 			}
+ 		}
+ 
++# check indentation of a line with a break;
++# if the previous line is a goto or return and is indented the same # of tabs
++		if ($sline =~ /^\+([\t]+)break\s*;\s*$/) {
++			my $tabs = $1;
++			if ($prevline =~ /^\+$tabs(?:goto|return)\b/) {
++				WARN("UNNECESSARY_BREAK",
++				     "break is not useful after a goto or return\n" . $hereprev);
++			}
++		}
++
+ # discourage the addition of CONFIG_EXPERIMENTAL in #if(def).
+ 		if ($line =~ /^\+\s*\#\s*if.*\bCONFIG_EXPERIMENTAL\b/) {
+ 			WARN("CONFIG_EXPERIMENTAL",
+
 
