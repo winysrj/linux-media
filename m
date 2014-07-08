@@ -1,51 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33717 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753960AbaGUJII (ORCPT
+Received: from mailrelay005.isp.belgacom.be ([195.238.6.171]:39396 "EHLO
+	mailrelay005.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754852AbaGHRZV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 05:08:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH for v3.17] v4l2-ioctl: set V4L2_CAP_EXT_PIX_FORMAT for device_caps
-Date: Mon, 21 Jul 2014 11:08:17 +0200
-Message-ID: <2281012.6Hr5CBQnlD@avalon>
-In-Reply-To: <53CCBDE6.7090907@xs4all.nl>
-References: <53CCBDE6.7090907@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 8 Jul 2014 13:25:21 -0400
+From: Fabian Frederick <fabf@skynet.be>
+To: linux-kernel@vger.kernel.org
+Cc: Fabian Frederick <fabf@skynet.be>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 1/1] xc2028: remove unnecessary break after goto
+Date: Tue,  8 Jul 2014 19:25:17 +0200
+Message-Id: <1404840317-29960-1-git-send-email-fabf@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+---
+ drivers/media/tuners/tuner-xc2028.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Thank you for the patch.
-
-On Monday 21 July 2014 09:14:46 Hans Verkuil wrote:
-> V4L2_CAP_EXT_PIX_FORMAT is set for capabilities, but it needs to be set for
-> device_caps as well: device_caps should report all caps relevant to the
-> device node, and this is one of them.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
-> b/drivers/media/v4l2-core/v4l2-ioctl.c index e620387..00ceedf 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1014,6 +1014,7 @@ static int v4l_querycap(const struct v4l2_ioctl_ops
-> *ops, ret = ops->vidioc_querycap(file, fh, cap);
-> 
->  	cap->capabilities |= V4L2_CAP_EXT_PIX_FORMAT;
-> +	cap->device_caps |= V4L2_CAP_EXT_PIX_FORMAT;
-> 
->  	return ret;
->  }
-
+diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
+index 6ef93ee..565eeeb 100644
+--- a/drivers/media/tuners/tuner-xc2028.c
++++ b/drivers/media/tuners/tuner-xc2028.c
+@@ -1489,7 +1489,6 @@ struct dvb_frontend *xc2028_attach(struct dvb_frontend *fe,
+ 	case 0:
+ 		/* memory allocation failure */
+ 		goto fail;
+-		break;
+ 	case 1:
+ 		/* new tuner instance */
+ 		priv->ctrl.max_len = 13;
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.4.5
 
