@@ -1,183 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:20358 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932697AbaGWR5b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 13:57:31 -0400
-Date: Wed, 23 Jul 2014 14:57:24 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Cc: Hauke Mehrtens <hauke@hauke-m.de>,
-	"backports@vger.kernel.org" <backports@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: Removal of regulator framework
-Message-id: <20140723145724.3102ae3a.m.chehab@samsung.com>
-In-reply-to: <CAB=NE6WvY1ZnwogYR0YLuiMUOeRvqeEjhhnLHUpeJjteSTwfGA@mail.gmail.com>
-References: <53CA9A77.6060409@hauke-m.de>
- <CAB=NE6WvY1ZnwogYR0YLuiMUOeRvqeEjhhnLHUpeJjteSTwfGA@mail.gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34955 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753427AbaGHRrx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 13:47:53 -0400
+Date: Tue, 8 Jul 2014 10:52:17 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	"open list:GENERIC INCLUDE/A..." <linux-arch@vger.kernel.org>,
+	Thomas Hellstrom <thellstrom@vmware.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"Clark, Rob" <robdclark@gmail.com>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Colin Cross <ccross@google.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 0/9] Updated fence patch series
+Message-ID: <20140708175217.GA11121@kroah.com>
+References: <20140701103432.12718.82795.stgit@patser>
+ <20140702053758.GA7578@kroah.com>
+ <CAKMK7uHZQjQ2m7KE22kTRVs-NtGguHREk24pSJiLbN7EoQLZ=g@mail.gmail.com>
+ <20140707173052.GA8693@kroah.com>
+ <20140708134427.GG17271@phenom.ffwll.local>
+ <20140708143912.GA3436@kroah.com>
+ <CAO_48GHwJ4EuCKgLmZhEaEQqS9e7EVZP3hsivhRwLCNFhzAQVA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAO_48GHwJ4EuCKgLmZhEaEQqS9e7EVZP3hsivhRwLCNFhzAQVA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 23 Jul 2014 10:13:28 -0700
-"Luis R. Rodriguez" <mcgrof@do-not-panic.com> escreveu:
+On Tue, Jul 08, 2014 at 08:22:11PM +0530, Sumit Semwal wrote:
+> On 8 July 2014 20:09, Greg KH <gregkh@linuxfoundation.org> wrote:
+> > On Tue, Jul 08, 2014 at 03:44:27PM +0200, Daniel Vetter wrote:
+> >> On Mon, Jul 07, 2014 at 10:30:52AM -0700, Greg KH wrote:
+> >> > On Mon, Jul 07, 2014 at 03:23:17PM +0200, Daniel Vetter wrote:
+> >> > > On Wed, Jul 2, 2014 at 7:37 AM, Greg KH <gregkh@linuxfoundation.org> wrote:
+> >> > > >> Android can expose fences to userspace. It's possible to make the new fence
+> >> > > >> mechanism expose the same fences to userspace by changing sync_fence_create
+> >> > > >> to take a struct fence instead of a struct sync_pt. No other change is needed,
+> >> > > >> because only the fence parts of struct sync_pt are used. But because the
+> >> > > >> userspace fences are a separate problem and I haven't really looked at it yet
+> >> > > >> I feel it should stay in staging, for now.
+> >> > > >
+> >> > > > Ok, that's reasonable.
+> >> > > >
+> >> > > > At first glance, this all looks "sane" to me, any objection from anyone
+> >> > > > if I merge this through my driver-core tree for 3.17?
+> >> > >
+> >> > > Ack from my side fwiw.
+> >> >
+> >> > Thanks, I'll queue it up later today.
+> >>
+> >> btw should we add you as a (co)maintainer for driver/core/dma-buf since
+> >> you seem to want to keep a closer tab on what the insane gfx folks are up
+> >> to in there?
+> >
+> > Sure, why not, what's one more maintainership...
+> >
+> > Oh, does that mean you want me to be the one collecting the patches and
+> > forwarding them on to Linus?  If so, that's fine, I can easily do that
+> > as well due to my infrastructure being set up for it.
+> >
+> If you're ok, I could continue to do the collecting / forwarding
+> business - I guess Daniel meant more from the 'not miss patches that
+> need review'!
 
-> On Sat, Jul 19, 2014 at 9:19 AM, Hauke Mehrtens <hauke@hauke-m.de> wrote:
-> > Maintaining the regulator drivers in backports costs some time and I do
-> > not need them. Is anybody using the regulator drivers from backports? I
-> > would like to remove them.
-> 
-> That came simply from collateral of backporting media drivers,
-> eventually I started running into device drivers that used the
-> regulator framework. Since we have tons of media drivers perhaps the
-> more sensible thing to do is to white list a set of media divers that
-> people actually care and then we just nuke both regulator and media
-> drivers that no one cares for. For that though I'd like to ask media
-> folks.
+Hey, I'm more than willing to have other people do the real work of
+collecting / forwarding :)
 
-Hi Luis,
+I'll just review stuff as it floats by, that's not enough of a role to
+put me in "MAINTAINERS" at all.
 
-The drivers that currently use regulators are mostly the ones at
-drivers/media/platform, plus the corresponding I2C drivers for their
-webcam sensors, under drivers/media/i2c.
+thanks,
 
-I think that there's one exception though: em28xx. This driver can use
-some sensor drivers, as it supports a few webcams. This is one of
-the most used USB media driver, as there are lots of USB supported
-on it, supporting 4 types of devices on it: analog TV, capture card,
-digital TV and webcam.
-
-The webcam part of em28xx is not that relevant, as there are very few
-models using it. However, currently, it is not possible to just
-disable webcam support. It shouldn't be hard to make webcam support
-optional on it, as it has already sub-drivers for V4L2, DVB, ALSA and
-remote controller. One additional driver for webcam, that could be
-disabled at the backport tree shouldn't be hard to do. If you want it,
-patches are welcome.
-
-> Here's a list of media drivers I know SUSE does support, in case that
-> helps. Right now backports carries all of drivers/media though.
-> 
->                 drivers/media/common/btcx-risc                  # some
-> code shared by bttv and cx88xx drivers
->                 drivers/media/common/cx2341x
->                 drivers/media/common/saa7146/saa7146
->                 drivers/media/common/saa7146/saa7146_vv
->                 drivers/media/common/tveeprom
->                 drivers/media/i2c/adv7170                       #
-> Analog Devices ADV7170 video encoder driver
->                 drivers/media/i2c/adv7175                       #
-> Analog Devices ADV7175 video encoder driver
->                 drivers/media/i2c/bt819                         #
-> Brooktree-819 video decoder driver
->                 drivers/media/i2c/bt856                         #
-> Brooktree-856A video encoder driver
->                 drivers/media/i2c/cs5345
->                 drivers/media/i2c/cs53l32a                      #
-> cs53l32a (Adaptec AVC-2010 and AVC-2410) i2c ivtv driver
->                 drivers/media/i2c/cx25840/cx25840               #
-> Conexant CX25840 audio/video decoder driver
->                 drivers/media/i2c/ir-kbd-i2c                    #
-> input driver for i2c IR remote controls
->                 drivers/media/i2c/ks0127
->                 drivers/media/i2c/m52790
->                 drivers/media/i2c/msp3400                       #
-> device driver for msp34xx TV sound processor
->                 drivers/media/i2c/saa6588                       #
-> Philips SAA6588 RDS decoder
->                 drivers/media/i2c/saa7110                       #
-> Philips SAA7110 video decoder driver
->                 drivers/media/i2c/saa7115                       #
-> Philips SAA7111/13/14/15/18 video decoder driver
->                 drivers/media/i2c/saa7127                       #
-> Philips SAA7127/SAA7129 video encoder driver
->                 drivers/media/i2c/saa717x
->                 drivers/media/i2c/saa7185                       #
-> Philips SAA7185 video encoder driver
->                 drivers/media/i2c/tda7432                       # bttv
-> driver for the tda7432 audio processor chip
->                 drivers/media/i2c/tda9840
->                 drivers/media/i2c/tea6415c
->                 drivers/media/i2c/tea6420
->                 drivers/media/i2c/tvaudio                       #
-> device driver for various i2c TV sound decoder / audiomux chips
->                 drivers/media/i2c/tvp5150                       #
-> Texas Instruments TVP5150A(M) video decoder driver
->                 drivers/media/i2c/upd64031a
->                 drivers/media/i2c/upd64083
->                 drivers/media/i2c/vp27smpx
->                 drivers/media/i2c/vpx3220                       #
-> vpx3220a/vpx3216b/vpx3214c video encoder driver
->                 drivers/media/i2c/wm8739
->                 drivers/media/i2c/wm8775
->                 drivers/media/pci/bt8xx/bttv
->                 drivers/media/pci/cx88/cx88-alsa
->                 drivers/media/pci/cx88/cx88-blackbird
->                 drivers/media/pci/cx88/cx8800
->                 drivers/media/pci/cx88/cx8802
->                 drivers/media/pci/cx88/cx88xx
->                 drivers/media/pci/ivtv/ivtv
->                 drivers/media/pci/ivtv/ivtvfb
->                 drivers/media/pci/meye/meye
->                 drivers/media/pci/saa7134/saa6752hs             #
-> device driver for saa6752hs MPEG2 encoder
->                 drivers/media/pci/saa7134/saa7134
->                 drivers/media/pci/saa7134/saa7134-alsa
->                 drivers/media/pci/saa7134/saa7134-empress
->                 drivers/media/pci/saa7146/hexium_gemini
->                 drivers/media/pci/saa7146/hexium_orion
->                 drivers/media/pci/saa7146/mxb                   #
-> video4linux-2 driver for the Siemens-Nixdorf 'Multimedia eXtension
-> board'
->                 drivers/media/pci/zoran/videocodec              #
-> Intermediate API module for video codecs
->                 drivers/media/pci/zoran/zr36016
->                 drivers/media/pci/zoran/zr36050
->                 drivers/media/pci/zoran/zr36060
->                 drivers/media/pci/zoran/zr36067
->                 drivers/media/platform/vivi
->                 drivers/media/radio/dsbr100
->                 drivers/media/radio/radio-maxiradio             #
-> Radio driver for the Guillemot Maxi Radio FM2000 radio.
->                 drivers/media/radio/si470x/radio-usb-si470x
->                 drivers/media/radio/tea575x
->                 drivers/media/rc/ati_remote
->                 drivers/media/rc/rc_core
->                 drivers/media/rc/winbond-cir
->                 drivers/media/tuners/mt2060
->                 drivers/media/tuners/mt20xx
->                 drivers/media/tuners/mt2131
->                 drivers/media/tuners/mt2266
->                 drivers/media/tuners/mxl5005s
->                 drivers/media/tuners/mxl5007t
->                 drivers/media/tuners/qt1010
->                 drivers/media/tuners/tda18271
->                 drivers/media/tuners/tda827x
->                 drivers/media/tuners/tda8290
->                 drivers/media/tuners/tda9887
->                 drivers/media/tuners/tea5761
->                 drivers/media/tuners/tea5767
->                 drivers/media/tuners/tuner-simple
->                 drivers/media/tuners/tuner-types
->                 drivers/media/tuners/tuner-xc2028
->                 drivers/media/tuners/xc5000
->                 drivers/media/usb/em28xx/em28xx                 #
-> driver for Empia EM2800/EM2820/2840 USB video capture device
->                 drivers/media/usb/em28xx/em28xx-alsa
->                 drivers/media/usb/usbvision/usbvision
->                 drivers/media/usb/uvc/uvcvideo
->                 drivers/media/v4l2-core/tuner                   #
-> device driver for various TV and TV+FM radio tuners
->                 drivers/media/v4l2-core/v4l2-common
->                 drivers/media/v4l2-core/videobuf-core
->                 drivers/media/v4l2-core/videobuf-dma-sg
->                 drivers/media/v4l2-core/videobuf-vmalloc
->                 drivers/media/v4l2-core/videobuf2_core
->                 drivers/media/v4l2-core/videobuf2_memops
->                 drivers/media/v4l2-core/videobuf2_vmalloc
->                 drivers/media/v4l2-core/videodev                #
-> Device registrar for Video4Linux drivers
-> 
->  Luis
+greg k-h
