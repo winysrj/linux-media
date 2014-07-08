@@ -1,67 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:63837 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751349AbaGZPhE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Jul 2014 11:37:04 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:62737 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754090AbaGHVjP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 17:39:15 -0400
+Received: from uscpsbgex1.samsung.com
+ (u122.gpu85.samsung.co.kr [203.254.195.122]) by mailout1.w2.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9B00LM5SPQTE50@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Sat, 26 Jul 2014 11:37:02 -0400 (EDT)
-Date: Sat, 26 Jul 2014 12:36:58 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Raymond Jender <rayj00@yahoo.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/4] [media] cx23885 now needs to select dib0070
-Message-id: <20140726123658.69fbfc54.m.chehab@samsung.com>
-In-reply-to: <1406387220.80907.YahooMailNeo@web162402.mail.bf1.yahoo.com>
-References: <1406386748-8874-1-git-send-email-m.chehab@samsung.com>
- <1406387220.80907.YahooMailNeo@web162402.mail.bf1.yahoo.com>
+ 17 2011)) with ESMTP id <0N8E00EFHXHEVK00@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 08 Jul 2014 17:39:14 -0400 (EDT)
+Message-id: <53BC64FF.1050901@samsung.com>
+Date: Tue, 08 Jul 2014 15:39:11 -0600
+From: Shuah Khan <shuah.kh@samsung.com>
+Reply-to: shuah.kh@samsung.com
 MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+To: Antti Palosaari <crope@iki.fi>,
+	"Mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Shuah Khan <shuah.kh@samsung.com>
+Subject: Re: fix PCTV 461e tuner I2C binding
+References: <53BB2E7D.30300@samsung.com> <53BB6947.2090409@iki.fi>
+ <53BBF858.30408@samsung.com> <53BC3DC9.7010606@iki.fi>
+In-reply-to: <53BC3DC9.7010606@iki.fi>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 26 Jul 2014 08:07:00 -0700
-Raymond Jender <rayj00@yahoo.com> escreveu:
+On 07/08/2014 12:51 PM, Antti Palosaari wrote:
+> On 07/08/2014 04:55 PM, Shuah Khan wrote:
+>> Moikka Antti,
+>>
+>> On 07/07/2014 09:45 PM, Antti Palosaari wrote:
+>>> Moikka Shuah
+>>>
+>>
+>>>> Why are we unregistering i2c devices and dvb in this resume path?
+>>>> Looks incorrect to me.
+>>>
+>>> I don't know. Original patch I send was a bit different and tuner was
+>>> removed only during em28xx_dvb_fini()
+>>>
+>>> https://patchwork.linuxtv.org/patch/22275/
+>>>
+>>
+>> Yes. That's what I suspected. My patch and yours got munged somehow.
+>> I will send a fix in.
+>
+> There has been merge conflict and that is end result. None has reported
+> that bug so far. Likely it is very rare users suspend/resume these
+> devices as DVB suspend/resume has been largely broken always...
+>
 
-> Get me off this mailing list!!!
+Somebody reported last week on v4l2 irc that suspend/resume not
+working starting 3.15. That's what got me started on looking at
+the code closely.
 
-Only you can do it. You should send an email to mailman at vger.kernel.org,
-asking the daemon to unsubscribe your user.
+It should be fixed anyways. :)
 
-See the "unsubscribe" link at http://vger.kernel.org/vger-lists.html#linux-media
+-- Shuah
 
-Regards,
-Mauro
 
-> 
-> 
-> 
-> On Saturday, July 26, 2014 8:00 AM, Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
->  
-> 
-> 
-> Due to DViCO FusionHDTV DVB-T Dual Express2, we also need to
-> autoselect this tuner.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
-> drivers/media/pci/cx23885/Kconfig | 1 +
-> 1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/pci/cx23885/Kconfig b/drivers/media/pci/cx23885/Kconfig
-> index d1dcb1d2e087..5158133c6535 100644
-> --- a/drivers/media/pci/cx23885/Kconfig
-> +++ b/drivers/media/pci/cx23885/Kconfig
-> @@ -37,6 +37,7 @@ config VIDEO_CX23885
->     select MEDIA_TUNER_TDA8290 if MEDIA_SUBDRV_AUTOSELECT
->     select MEDIA_TUNER_TDA18271 if MEDIA_SUBDRV_AUTOSELECT
->     select MEDIA_TUNER_XC5000 if MEDIA_SUBDRV_AUTOSELECT
-> +    select DVB_TUNER_DIB0070 if MEDIA_SUBDRV_AUTOSELECT
->     ---help---
->       This is a video4linux driver for Conexant 23885 based
->       TV cards.
+-- 
+Shuah Khan
+Senior Linux Kernel Developer - Open Source Group
+Samsung Research America(Silicon Valley)
+shuah.kh@samsung.com | (970) 672-0658
