@@ -1,49 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:43282 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756663AbaGVUMn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 16:12:43 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: crope@iki.fi, m.chehab@samsung.com, linux-media@vger.kernel.org
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 7/8] cx231xx: Add [2013:0259] PCTV QuatroStick 521e
-Date: Tue, 22 Jul 2014 22:12:17 +0200
-Message-Id: <1406059938-21141-8-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1406059938-21141-1-git-send-email-zzam@gentoo.org>
-References: <1406059938-21141-1-git-send-email-zzam@gentoo.org>
+Received: from aserp1040.oracle.com ([141.146.126.69]:46289 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750707AbaGHPLg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 11:11:36 -0400
+Date: Tue, 8 Jul 2014 18:11:10 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Levente Kurusa <lkurusa@redhat.com>
+Cc: Andrey Utkin <andrey.krieger.utkin@gmail.com>,
+	OSUOSL Drivers <devel@driverdev.osuosl.org>,
+	Lisa Nguyen <lisa@xenapiadmin.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Josh Triplett <josh@joshtriplett.org>,
+	prabhakar.csengg@gmail.com,
+	Linux Media <linux-media@vger.kernel.org>,
+	Archana Kumari <archanakumari959@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH] [media] davinci-vpfe: Fix retcode check
+Message-ID: <20140708151110.GQ25880@mwanda>
+References: <1404828488-7649-1-git-send-email-andrey.krieger.utkin@gmail.com>
+ <CAAsK9AFfn45wyQFsOiCAZXZjXfyPLhz3FxyBO5P_q_48s9ce_g@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAsK9AFfn45wyQFsOiCAZXZjXfyPLhz3FxyBO5P_q_48s9ce_g@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The hardware is identical to Hauppauge WinTV 930C-HD (model 1113xx)
+On Tue, Jul 08, 2014 at 04:32:57PM +0200, Levente Kurusa wrote:
+> 2014-07-08 16:08 GMT+02:00 Andrey Utkin <andrey.krieger.utkin@gmail.com>:
+> > Use signed type to check correctly for negative error code. The issue
+> > was reported with static analyser:
+> >
+> > [linux-3.13/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c:270]:
+> > (style) A pointer can not be negative so it is either pointless or an
+> > error to check if it is.
+> >
+> > Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=69071
+> > Reported-by: David Binderman <dcb314@hotmail.com>
+> > Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+> 
+> Hmm, while it is true that get_ipipe_mode returns an int, but
+> the consequent call to regw_ip takes an u32 as its second
+> argument. Did it cause a build warning for you?
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/usb/cx231xx/cx231xx-cards.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+It won't cause a compile warning.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 8857fdd..0085ccd 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -705,7 +705,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		},
- 	},
- 	[CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx] = {
--		.name = "Hauppauge WinTV 930C-HD (1113xx)",
-+		.name = "Hauppauge WinTV 930C-HD (1113xx) / PCTV QuatroStick 521e",
- 		.tuner_type = TUNER_NXP_TDA18271,
- 		.tuner_addr = 0x60,
- 		.tuner_gpio = RDE250_XCV_TUNER,
-@@ -819,6 +819,9 @@ struct usb_device_id cx231xx_id_table[] = {
- 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_EXETER},
- 	{USB_DEVICE(0x2040, 0xc200),
- 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_USBLIVE2},
-+	/* PCTV QuatroStick 521e */
-+	{USB_DEVICE(0x2013, 0x0259),
-+	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx},
- 	{USB_DEVICE_VER(USB_VID_PIXELVIEW, USB_PID_PIXELVIEW_SBTVD, 0x4000, 0x4001),
- 	 .driver_info = CX231XX_BOARD_PV_PLAYTV_USB_HYBRID},
- 	{USB_DEVICE(USB_VID_PIXELVIEW, 0x5014),
--- 
-2.0.0
+> (Can't really
+> check since I don't have ARM cross compilers close-by)
+
+Make a small test program and test.
+
+regards,
+dan carpenter
 
