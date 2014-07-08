@@ -1,37 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50755 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752949AbaGOBJo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 21:09:44 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 08/18] MAINTAINERS: update MSI001 driver location
-Date: Tue, 15 Jul 2014 04:09:11 +0300
-Message-Id: <1405386561-30450-8-git-send-email-crope@iki.fi>
-In-Reply-To: <1405386561-30450-1-git-send-email-crope@iki.fi>
-References: <1405386561-30450-1-git-send-email-crope@iki.fi>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:55094 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753829AbaGHNoT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 09:44:19 -0400
+Received: by mail-wi0-f181.google.com with SMTP id n3so1020143wiv.14
+        for <linux-media@vger.kernel.org>; Tue, 08 Jul 2014 06:44:18 -0700 (PDT)
+Date: Tue, 8 Jul 2014 15:44:27 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	"open list:GENERIC INCLUDE/A..." <linux-arch@vger.kernel.org>,
+	Thomas Hellstrom <thellstrom@vmware.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"Clark, Rob" <robdclark@gmail.com>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Colin Cross <ccross@google.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 0/9] Updated fence patch series
+Message-ID: <20140708134427.GG17271@phenom.ffwll.local>
+References: <20140701103432.12718.82795.stgit@patser>
+ <20140702053758.GA7578@kroah.com>
+ <CAKMK7uHZQjQ2m7KE22kTRVs-NtGguHREk24pSJiLbN7EoQLZ=g@mail.gmail.com>
+ <20140707173052.GA8693@kroah.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140707173052.GA8693@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- MAINTAINERS | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Mon, Jul 07, 2014 at 10:30:52AM -0700, Greg KH wrote:
+> On Mon, Jul 07, 2014 at 03:23:17PM +0200, Daniel Vetter wrote:
+> > On Wed, Jul 2, 2014 at 7:37 AM, Greg KH <gregkh@linuxfoundation.org> wrote:
+> > >> Android can expose fences to userspace. It's possible to make the new fence
+> > >> mechanism expose the same fences to userspace by changing sync_fence_create
+> > >> to take a struct fence instead of a struct sync_pt. No other change is needed,
+> > >> because only the fence parts of struct sync_pt are used. But because the
+> > >> userspace fences are a separate problem and I haven't really looked at it yet
+> > >> I feel it should stay in staging, for now.
+> > >
+> > > Ok, that's reasonable.
+> > >
+> > > At first glance, this all looks "sane" to me, any objection from anyone
+> > > if I merge this through my driver-core tree for 3.17?
+> > 
+> > Ack from my side fwiw.
+> 
+> Thanks, I'll queue it up later today.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 6b7c633..e0bd8b0 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -5891,7 +5891,7 @@ W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
- T:	git git://linuxtv.org/anttip/media_tree.git
- S:	Maintained
--F:	drivers/staging/media/msi3101/msi001*
-+F:	drivers/media/tuners/msi001*
- 
- MSI3101 MEDIA DRIVER
- M:	Antti Palosaari <crope@iki.fi>
+btw should we add you as a (co)maintainer for driver/core/dma-buf since
+you seem to want to keep a closer tab on what the insane gfx folks are up
+to in there?
+-Daniel
 -- 
-1.9.3
-
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
