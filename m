@@ -1,80 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:17663 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752463AbaG0UPz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jul 2014 16:15:55 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9E0072H0AHFL10@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Sun, 27 Jul 2014 16:15:53 -0400 (EDT)
-To: undisclosed-recipients:;
-Received: from recife.lan ([105.144.134.254])
- by ussync3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0N9E005920AFOV60@ussync3.samsung.com> for
- linux-media@vger.kernel.org; Sun, 27 Jul 2014 16:15:53 -0400 (EDT)
-Date: Sun, 27 Jul 2014 17:15:50 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] cx231xx: add support for newer cx231xx devices
-Message-id: <20140727171550.6d36912b.m.chehab@samsung.com>
-In-reply-to: <1406491992-5404-1-git-send-email-m.chehab@samsung.com>
-References: <1406491992-5404-1-git-send-email-m.chehab@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:34643 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753405AbaGHSJv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 14:09:51 -0400
+Received: by mail-wi0-f179.google.com with SMTP id cc10so1473024wib.0
+        for <linux-media@vger.kernel.org>; Tue, 08 Jul 2014 11:09:50 -0700 (PDT)
+Message-ID: <53BC342B.4070801@googlemail.com>
+Date: Tue, 08 Jul 2014 20:10:51 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Rafael Coutinho <rafael.coutinho@phiinnovations.com>,
+	linux-media@vger.kernel.org
+Subject: Re: New v4l2 driver does not allow brightness/contrast control
+References: <CAB0d6EdzyiGFKbjPS4QSwLOvBaWaoRG43K=bwwKVLXyVHYZEmg@mail.gmail.com>
+In-Reply-To: <CAB0d6EdzyiGFKbjPS4QSwLOvBaWaoRG43K=bwwKVLXyVHYZEmg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In time:
 
-Subject should be, instead:
-	mceusb: add support for newer cx231xx devices
+Am 07.07.2014 19:58, schrieb Rafael Coutinho:
+> I have a v4l2 video capture board that using kernel 2.6 with v4l2
+> em28xx driver 3.0.36 allows me to control brightness, contrast etc...
+> However in kernel 3.2 with v4l2 em28xx driver version 3.2.0 it does not.
+>
+> This is what I get from the latest driver:
+> root@android:/ # v4l2-ctl --info
+> Driver Info (not using libv4l2):
+> Driver name   : em28xx
+> Card type     : EM2860/SAA711X Reference Design
+> Bus info      : usb-musb-hdrc.1-1
+> Driver version: 3.2.0
+> Capabilities  : 0x05020051
+> Video Capture
+> VBI Capture
+> Sliced VBI Capture
+> Audio
+> Read/Write
+> Streaming
+> root@android:/ # v4l2-ctl  -d 0 -l
+>                          volume (int)    : min=0 max=31 step=1
+> default=31 value=31 flags=slider
+>                            mute (bool)   : default=1 value=1
+>
+>
+> What could be wrong?
 
-Regards,
-Mauro
+Before kernel 3.10, the brightness (contrast, ...) controls are provided
+by the subdevice drivers.
+With kernel 3.10 I have introduced bridge level image controls, but they
+are currently only used/activated if the subdevice doesn't already
+provide them (as suggested by Mauro).
 
-Em Sun, 27 Jul 2014 17:13:12 -0300
-Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
+Hth,
+Frank Schäfer
 
-> Add support for the si2165-based cx231xx devices:
-> 	[2013:025e] PCTV QuatroStick 522e
-> 	[2013:0259] PCTV QuatroStick 521e
-> 	[2040:b131] Hauppauge WinTV 930C-HD (model 1114xx)
-> 
-> They're similar to the already supported:
-> 	[2040:b130] Hauppauge WinTV 930C-HD (model 1113xx)
-> 
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/rc/mceusb.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-> index b1be81fc6bd7..48a6a0826a77 100644
-> --- a/drivers/media/rc/mceusb.c
-> +++ b/drivers/media/rc/mceusb.c
-> @@ -187,6 +187,7 @@
->  #define VENDOR_CONEXANT		0x0572
->  #define VENDOR_TWISTEDMELON	0x2596
->  #define VENDOR_HAUPPAUGE	0x2040
-> +#define VENDOR_PCTV		0x2013
->  
->  enum mceusb_model_type {
->  	MCE_GEN2 = 0,		/* Most boards */
-> @@ -396,6 +397,13 @@ static struct usb_device_id mceusb_dev_table[] = {
->  	/* Hauppauge WINTV-HVR-HVR 930C-HD - based on cx231xx */
->  	{ USB_DEVICE(VENDOR_HAUPPAUGE, 0xb130),
->  	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
-> +	{ USB_DEVICE(VENDOR_HAUPPAUGE, 0xb131),
-> +	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
-> +	{ USB_DEVICE(VENDOR_PCTV, 0x0259),
-> +	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
-> +	{ USB_DEVICE(VENDOR_PCTV, 0x025e),
-> +	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
-> +
->  	/* Terminating entry */
->  	{ }
->  };
