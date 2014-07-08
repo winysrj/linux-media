@@ -1,49 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:1716 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757315AbaGXBty (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 21:49:54 -0400
-Date: Thu, 24 Jul 2014 09:43:48 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: [linuxtv-media:master 497/499]
- drivers/hid/hid-picolcd_cir.c:117:6: error: 'struct rc_dev' has no member
- named 'allowed_protos'
-Message-ID: <53d064d4.uxPp5GgDNpAKanLo%fengguang.wu@intel.com>
+Received: from aserp1040.oracle.com ([141.146.126.69]:17402 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752108AbaGHPUX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 11:20:23 -0400
+Date: Tue, 8 Jul 2014 18:20:09 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+Cc: linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-media@vger.kernel.org, gregkh@linuxfoundation.org,
+	ismael.luceno@corp.bluecherry.net, m.chehab@samsung.com
+Subject: Re: [PATCH 1/2] solo6x10: expose encoder quantization setting as
+ V4L2 control
+Message-ID: <20140708152009.GR25880@mwanda>
+References: <1404829834-8747-1-git-send-email-andrey.utkin@corp.bluecherry.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+In-Reply-To: <1404829834-8747-1-git-send-email-andrey.utkin@corp.bluecherry.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   1ee70cd7f5da2278445baf1634f7d30d514380f1
-commit: 0dd0e92836cc6469e62600f981c289752ac42ac9 [497/499] [media] rc-core: remove protocol arrays
-config: make ARCH=microblaze allyesconfig
+On Tue, Jul 08, 2014 at 05:30:33PM +0300, Andrey Utkin wrote:
+> solo6*10 boards have configurable quantization parameter which takes
+> values from 0 to 31, inclusively.
+> 
+> This change enables setting it with ioctl VIDIOC_S_CTRL with id
+> V4L2_CID_MPEG_VIDEO_H264_MIN_QP.
 
-All error/warnings:
+Both of these two need signed-off-by lines.
 
-   drivers/hid/hid-picolcd_cir.c: In function 'picolcd_init_cir':
->> drivers/hid/hid-picolcd_cir.c:117:6: error: 'struct rc_dev' has no member named 'allowed_protos'
-     rdev->allowed_protos   = RC_BIT_ALL;
-         ^
+regards,
+dan carpenter
 
-vim +117 drivers/hid/hid-picolcd_cir.c
-
-   111		rdev = rc_allocate_device();
-   112		if (!rdev)
-   113			return -ENOMEM;
-   114	
-   115		rdev->priv             = data;
-   116		rdev->driver_type      = RC_DRIVER_IR_RAW;
- > 117		rdev->allowed_protos   = RC_BIT_ALL;
-   118		rdev->open             = picolcd_cir_open;
-   119		rdev->close            = picolcd_cir_close;
-   120		rdev->input_name       = data->hdev->name;
-
----
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
