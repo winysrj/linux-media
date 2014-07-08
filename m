@@ -1,44 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3611 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753755AbaGQTlY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 15:41:24 -0400
-Message-ID: <53C826DD.1050903@xs4all.nl>
-Date: Thu, 17 Jul 2014 21:41:17 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:64060 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752108AbaGHPmC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 11:42:02 -0400
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: davinci compiler warnings
+In-Reply-To: <CANZNk82w4_EQCJ9TigTymAVjCbQqXVDDQFH4mpZ6W3b3qwj_tA@mail.gmail.com>
+References: <1404828488-7649-1-git-send-email-andrey.krieger.utkin@gmail.com>
+ <CAAsK9AFfn45wyQFsOiCAZXZjXfyPLhz3FxyBO5P_q_48s9ce_g@mail.gmail.com> <CANZNk82w4_EQCJ9TigTymAVjCbQqXVDDQFH4mpZ6W3b3qwj_tA@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 8 Jul 2014 16:41:30 +0100
+Message-ID: <CA+V-a8tcmxovq-bPO9RV9X74w66HgCR9ViBDY7ezX29b6MSgyg@mail.gmail.com>
+Subject: Re: [PATCH] [media] davinci-vpfe: Fix retcode check
+To: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+Cc: Levente Kurusa <lkurusa@redhat.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	OSUOSL Drivers <devel@driverdev.osuosl.org>,
+	Linux Media <linux-media@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Josh Triplett <josh@joshtriplett.org>,
+	Archana Kumari <archanakumari959@gmail.com>,
+	Lisa Nguyen <lisa@xenapiadmin.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Hi Andrey,
 
-Can you take a look at these new warnings? I've just upgraded my compiler for
-the daily build to 4.9.1, so that's probably why they weren't seen before.
+Thanks for the patch!
 
-Regards,
+On Tue, Jul 8, 2014 at 3:58 PM, Andrey Utkin
+<andrey.krieger.utkin@gmail.com> wrote:
+> 2014-07-08 17:32 GMT+03:00 Levente Kurusa <lkurusa@redhat.com>:
+>> Hmm, while it is true that get_ipipe_mode returns an int, but
+>> the consequent call to regw_ip takes an u32 as its second
+>> argument. Did it cause a build warning for you? (Can't really
+>> check since I don't have ARM cross compilers close-by)
+>> If not, then:
+>
+> Cannot say for sure would compiler complain.
+> I also haven't really checked it, and unfortunately even haven't
+> succeeded to make a config that would build that code. But i believe
+> that warning is still better than misbehaviour.
+>
+It wont cause any compile warning.
 
-	Hans
+Applied for v3.17
 
-/home/hans/work/build/media-git/drivers/media/platform/davinci/vpif_display.c: In function 'vpif_remove':
-/home/hans/work/build/media-git/drivers/media/platform/davinci/vpif_display.c:1389:36: warning: iteration 1u invokes undefined behavior [-Waggressive-loop-optimizations]
-   vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
-                                    ^
-/home/hans/work/build/media-git/drivers/media/platform/davinci/vpif_display.c:1385:2: note: containing loop
-  for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
-  ^
-/home/hans/work/build/media-git/drivers/media/platform/davinci/vpif_capture.c: In function 'vpif_remove':
-/home/hans/work/build/media-git/drivers/media/platform/davinci/vpif_capture.c:1581:36: warning: iteration 1u invokes undefined behavior [-Waggressive-loop-optimizations]
-   vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
-                                    ^
-/home/hans/work/build/media-git/drivers/media/platform/davinci/vpif_capture.c:1577:2: note: containing loop
-  for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
-  ^
-/home/hans/work/build/media-git/drivers/media/platform/davinci/vpif_capture.c:1580:23: warning: array subscript is above array bounds [-Warray-bounds]
-   common = &ch->common[i];
-                       ^
+Thanks,
+--Prabhakar Lad
