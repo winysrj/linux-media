@@ -1,29 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3691 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932418AbaGUNqJ (ORCPT
+Received: from mailrelay012.isp.belgacom.be ([195.238.6.179]:32006 "EHLO
+	mailrelay012.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752883AbaGHRUm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 09:46:09 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Eduardo Valentin <edubezval@gmail.com>
-Subject: [PATCH 0/7] si4713/miropcm20: RDS enhancements
-Date: Mon, 21 Jul 2014 15:45:36 +0200
-Message-Id: <1405950343-26892-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 8 Jul 2014 13:20:42 -0400
+From: Fabian Frederick <fabf@skynet.be>
+To: linux-kernel@vger.kernel.org
+Cc: Fabian Frederick <fabf@skynet.be>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 1/1] r820t: remove unnecessary break after goto
+Date: Tue,  8 Jul 2014 19:20:37 +0200
+Message-Id: <1404840037-29692-1-git-send-email-fabf@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds a bunch of missing RDS TX controls and implements
-them in the si4713 driver. It also adds back RDS support to the miropcm20
-driver.
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Cc: Michael Krufky <mkrufky@linuxtv.org>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+---
+ drivers/media/tuners/r820t.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-The Alternate Frequencies control is a u32 array since there can be up to
-25 alternate frequencies. This was also the reason why I am only now posting
-this series since it had to wait for compound control support to go in.
-
-I've tested both drivers with my si4713 and miropcm20 boards.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index 96ccfeb..6906b16 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -2300,7 +2300,6 @@ struct dvb_frontend *r820t_attach(struct dvb_frontend *fe,
+ 	case 0:
+ 		/* memory allocation failure */
+ 		goto err_no_gate;
+-		break;
+ 	case 1:
+ 		/* new tuner instance */
+ 		priv->cfg = cfg;
+-- 
+1.8.4.5
 
