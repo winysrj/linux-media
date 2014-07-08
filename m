@@ -1,116 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54597 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752367AbaG0T1k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jul 2014 15:27:40 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 2/6] cx231xx: Don't let an interface number to go past the array
-Date: Sun, 27 Jul 2014 16:27:28 -0300
-Message-Id: <1406489252-30636-3-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1406489252-30636-1-git-send-email-m.chehab@samsung.com>
-References: <1406489252-30636-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout3.samsung.com ([203.254.224.33]:15478 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754830AbaGHNGi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 09:06:38 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org
+Subject: [PATCH 3/3] Documentation: devicetree: Document exynos3250 SoC related
+ settings
+Date: Tue, 08 Jul 2014 15:05:38 +0200
+Message-id: <1404824738-5944-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On some newer boards, like HVR-930C HD, the information at
-the PCB tables are sometimes higher than the ones actually
-available on the device. That causes the probing code to
-go past the interfaces array.
-
-Add checks to the interface number before going past the
-array.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
+Cc: devicetree@vger.kernel.org
 ---
- drivers/media/usb/cx231xx/cx231xx-cards.c | 42 ++++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 12 deletions(-)
+ .../devicetree/bindings/media/s5p-mfc.txt          |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index d40284536beb..499d395544cd 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -1275,6 +1275,7 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
- 	int nr = 0, ifnum;
- 	int i, isoc_pipe = 0;
- 	char *speed;
-+	u8 idx;
- 	struct usb_interface_assoc_descriptor *assoc_desc;
+diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+index 3e3c5f3..ee9604b 100644
+--- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
++++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+@@ -10,16 +10,20 @@ Required properties:
+   - compatible : value should be either one among the following
+ 	(a) "samsung,mfc-v5" for MFC v5 present in Exynos4 SoCs
+ 	(b) "samsung,mfc-v6" for MFC v6 present in Exynos5 SoCs
+-	(c) "samsung,mfc-v7" for MFC v7 present in Exynos5420 SoC
++	(c) "samsung,mfc-v7" for MFC v7 present in Exynos3250 and Exynos5420 SoC
+ 	(d) "samsung,mfc-v8" for MFC v8 present in Exynos5800 SoC
  
- 	ifnum = interface->altsetting[0].desc.bInterfaceNumber;
-@@ -1394,8 +1395,13 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
- 		goto err_init;
+   - reg : Physical base address of the IP registers and length of memory
+ 	  mapped region.
  
- 	/* compute alternate max packet sizes for video */
--	uif = udev->actconfig->interface[dev->current_pcb_config.
--		       hs_config_info[0].interface_info.video_index + 1];
-+	idx = dev->current_pcb_config.hs_config_info[0].interface_info.video_index + 1;
-+	if (idx >= dev->max_iad_interface_count) {
-+		cx231xx_errdev("Video PCB interface #%d doesn't exist\n", idx);
-+		retval = -ENODEV;
-+		goto err_init;
-+	}
-+	uif = udev->actconfig->interface[idx];
- 
- 	dev->video_mode.end_point_addr = uif->altsetting[0].
- 			endpoint[isoc_pipe].desc.bEndpointAddress;
-@@ -1423,9 +1429,14 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
- 	}
- 
- 	/* compute alternate max packet sizes for vbi */
--	uif = udev->actconfig->interface[dev->current_pcb_config.
--				       hs_config_info[0].interface_info.
--				       vanc_index + 1];
+   - interrupts : MFC interrupt number to the CPU.
+-  - clocks : from common clock binding: handle to mfc clock.
++  - clocks : from common clock binding: handle to mfc clock and for
++	     Exynos3250 SoC special clock gate should be defined
++	     as the second element of the clocks array
 +
-+	idx = dev->current_pcb_config.hs_config_info[0].interface_info.vanc_index + 1;
-+	if (idx >= dev->max_iad_interface_count) {
-+		cx231xx_errdev("VBI PCB interface #%d doesn't exist\n", idx);
-+		retval = -ENODEV;
-+		goto err_vbi_alt;
-+	}
-+	uif = udev->actconfig->interface[idx];
+   - clock-names : from common clock binding: must contain "mfc",
+-		  corresponding to entry in the clocks property.
++		  corresponding to entry in the clocks property and
++		  additionally "sclk-mfc" entry for Exynos3250 SoC
  
- 	dev->vbi_mode.end_point_addr =
- 	    uif->altsetting[0].endpoint[isoc_pipe].desc.
-@@ -1455,9 +1466,13 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
- 	}
- 
- 	/* compute alternate max packet sizes for sliced CC */
--	uif = udev->actconfig->interface[dev->current_pcb_config.
--				       hs_config_info[0].interface_info.
--				       hanc_index + 1];
-+	idx = dev->current_pcb_config.hs_config_info[0].interface_info.hanc_index + 1;
-+	if (idx >= dev->max_iad_interface_count) {
-+		cx231xx_errdev("Sliced CC PCB interface #%d doesn't exist\n", idx);
-+		retval = -ENODEV;
-+		goto err_sliced_cc_alt;
-+	}
-+	uif = udev->actconfig->interface[idx];
- 
- 	dev->sliced_cc_mode.end_point_addr =
- 	    uif->altsetting[0].endpoint[isoc_pipe].desc.
-@@ -1487,10 +1502,13 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
- 
- 	if (dev->current_pcb_config.ts1_source != 0xff) {
- 		/* compute alternate max packet sizes for TS1 */
--		uif = udev->actconfig->interface[dev->current_pcb_config.
--					       hs_config_info[0].
--					       interface_info.
--					       ts1_index + 1];
-+		idx = dev->current_pcb_config.hs_config_info[0].interface_info.ts1_index + 1;
-+		if (idx >= dev->max_iad_interface_count) {
-+			cx231xx_errdev("TS1 PCB interface #%d doesn't exist\n", idx);
-+			retval = -ENODEV;
-+			goto err_ts1_alt;
-+		}
-+		uif = udev->actconfig->interface[idx];
- 
- 		dev->ts1_mode.end_point_addr =
- 		    uif->altsetting[0].endpoint[isoc_pipe].
+   - samsung,mfc-r : Base address of the first memory bank used by MFC
+ 		    for DMA contiguous memory allocation and its size.
 -- 
-1.9.3
+1.7.9.5
 
