@@ -1,66 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52303 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755030AbaGLAh5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 20:37:57 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 2/3] mb86a20s: Fix Interleaving
-Date: Fri, 11 Jul 2014 21:37:47 -0300
-Message-Id: <1405125468-4748-3-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1405125468-4748-1-git-send-email-m.chehab@samsung.com>
-References: <1405125468-4748-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail.kapsi.fi ([217.30.184.167]:49403 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751656AbaGHSv7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Jul 2014 14:51:59 -0400
+Message-ID: <53BC3DC9.7010606@iki.fi>
+Date: Tue, 08 Jul 2014 21:51:53 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: shuah.kh@samsung.com,
+	"Mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: fix PCTV 461e tuner I2C binding
+References: <53BB2E7D.30300@samsung.com> <53BB6947.2090409@iki.fi> <53BBF858.30408@samsung.com>
+In-Reply-To: <53BBF858.30408@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Interleaving code was wrong at mb86a20s: instead, it was looking
-at the Guard Interval. Fix it.
+On 07/08/2014 04:55 PM, Shuah Khan wrote:
+> Moikka Antti,
+>
+> On 07/07/2014 09:45 PM, Antti Palosaari wrote:
+>> Moikka Shuah
+>>
+>
+>>> Why are we unregistering i2c devices and dvb in this resume path?
+>>> Looks incorrect to me.
+>>
+>> I don't know. Original patch I send was a bit different and tuner was
+>> removed only during em28xx_dvb_fini()
+>>
+>> https://patchwork.linuxtv.org/patch/22275/
+>>
+>
+> Yes. That's what I suspected. My patch and yours got munged somehow.
+> I will send a fix in.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/mb86a20s.c | 18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+There has been merge conflict and that is end result. None has reported 
+that bug so far. Likely it is very rare users suspend/resume these 
+devices as DVB suspend/resume has been largely broken always...
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index 2f458bb188c7..2de0e59bd243 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -459,6 +459,9 @@ static int mb86a20s_get_interleaving(struct mb86a20s_state *state,
- 				     unsigned layer)
- {
- 	int rc;
-+	int interleaving[] = {
-+		0, 1, 2, 4, 8
-+	};
- 
- 	static unsigned char reg[] = {
- 		[0] = 0x88,	/* Layer A */
-@@ -475,20 +478,7 @@ static int mb86a20s_get_interleaving(struct mb86a20s_state *state,
- 	if (rc < 0)
- 		return rc;
- 
--	switch ((rc >> 4) & 0x07) {
--	case 1:
--		return GUARD_INTERVAL_1_4;
--	case 2:
--		return GUARD_INTERVAL_1_8;
--	case 3:
--		return GUARD_INTERVAL_1_16;
--	case 4:
--		return GUARD_INTERVAL_1_32;
--
--	default:
--	case 0:
--		return GUARD_INTERVAL_AUTO;
--	}
-+	return interleaving[(rc >> 4) & 0x07];
- }
- 
- static int mb86a20s_get_segment_count(struct mb86a20s_state *state,
+> btw: thanks for teaching me how to say hello in Finnish
+
+:=)
+
+regards
+Antti
+
 -- 
-1.9.3
-
+http://palosaari.fi/
