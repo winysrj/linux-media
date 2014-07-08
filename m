@@ -1,68 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f52.google.com ([209.85.215.52]:43505 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750911AbaGFJAL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jul 2014 05:00:11 -0400
-MIME-Version: 1.0
-In-Reply-To: <CAMuHMdUmQRk8uVyN-+thbfYWVQPsCRHpyEU3T2PSdtN6GPM-gw@mail.gmail.com>
-References: <1404637121-1253-1-git-send-email-geert@linux-m68k.org>
-	<CAMuHMdUmQRk8uVyN-+thbfYWVQPsCRHpyEU3T2PSdtN6GPM-gw@mail.gmail.com>
-Date: Sun, 6 Jul 2014 11:00:09 +0200
-Message-ID: <CAMuHMdXN6oVQi=4duDL-M-5cke3xDgmdxnW5orEMLJDo+fZPcQ@mail.gmail.com>
-Subject: Re: [PATCH] [media] staging/solo6x10: SOLO6X10 should select BITREVERSE
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	driverdevel <devel@driverdev.osuosl.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	kbuild test robot <fengguang.wu@intel.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:37451 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753465AbaGHJlb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Jul 2014 05:41:31 -0400
+From: Ian Molton <ian.molton@codethink.co.uk>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@lists.codethink.co.uk, ian.molton@codethink.co.uk,
+	g.liakhovetski@gmx.de, m.chehab@samsung.com,
+	vladimir.barinov@cogentembedded.com, magnus.damm@gmail.com,
+	horms@verge.net.au, linux-sh@vger.kernel.org
+Subject: [PATCH 2/4] media: rcar_vin: Ensure all in-flight buffers are returned to error state before stopping.
+Date: Tue,  8 Jul 2014 10:41:12 +0100
+Message-Id: <1404812474-7627-3-git-send-email-ian.molton@codethink.co.uk>
+In-Reply-To: <1404812474-7627-1-git-send-email-ian.molton@codethink.co.uk>
+References: <1404812474-7627-1-git-send-email-ian.molton@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 6, 2014 at 10:59 AM, Geert Uytterhoeven
-<geert@linux-m68k.org> wrote:
-> CC kbuild test robot <fengguang.wu@intel.com>
+Videobuf2 complains about buffers that are still marked ACTIVE (in use by the driver) following a call to stop_streaming().
 
-Doh, this time for real...
+This patch returns all active buffers to state ERROR prior to stopping.
 
-> On Sun, Jul 6, 2014 at 10:58 AM, Geert Uytterhoeven
-> <geert@linux-m68k.org> wrote:
->> If CONFIG_SOLO6X10=y, but CONFIG_BITREVERSE=m:
->>
->>     drivers/built-in.o: In function `solo_osd_print':
->>     (.text+0x1c7a1f): undefined reference to `byte_rev_table'
->>     make: *** [vmlinux] Error 1
->>
->> Reported-by: kbuild test robot <fengguang.wu@intel.com>
->> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
->> ---
->>  drivers/staging/media/solo6x10/Kconfig | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/staging/media/solo6x10/Kconfig b/drivers/staging/media/solo6x10/Kconfig
->> index 6a1906fa1117..1ce2819efcb4 100644
->> --- a/drivers/staging/media/solo6x10/Kconfig
->> +++ b/drivers/staging/media/solo6x10/Kconfig
->> @@ -1,6 +1,7 @@
->>  config SOLO6X10
->>         tristate "Bluecherry / Softlogic 6x10 capture cards (MPEG-4/H.264)"
->>         depends on PCI && VIDEO_DEV && SND && I2C
->> +       select BITREVERSE
->>         select FONT_SUPPORT
->>         select FONT_8x16
->>         select VIDEOBUF2_DMA_SG
+Note: this introduces a (non fatal) race condition as the stream is not guaranteed to be stopped at this point.
 
-Gr{oetje,eeting}s,
+Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+---
+ drivers/media/platform/soc_camera/rcar_vin.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-                        Geert
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 7154500..06ce705 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -513,8 +513,14 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct rcar_vin_priv *priv = ici->priv;
+ 	struct list_head *buf_head, *tmp;
++	int i;
+ 
+ 	spin_lock_irq(&priv->lock);
++
++	for (i = 0; i < vq->num_buffers; ++i)
++		if (vq->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
++			vb2_buffer_done(vq->bufs[i], VB2_BUF_STATE_ERROR);
++
+ 	list_for_each_safe(buf_head, tmp, &priv->capture)
+ 		list_del_init(buf_head);
+ 	spin_unlock_irq(&priv->lock);
+-- 
+1.9.1
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
