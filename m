@@ -1,100 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35519 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754973AbaGOBJp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 21:09:45 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 16/18] rtl2832_sdr: put complex U16 format behind module parameter
-Date: Tue, 15 Jul 2014 04:09:19 +0300
-Message-Id: <1405386561-30450-16-git-send-email-crope@iki.fi>
-In-Reply-To: <1405386561-30450-1-git-send-email-crope@iki.fi>
-References: <1405386561-30450-1-git-send-email-crope@iki.fi>
+Received: from mail-la0-f47.google.com ([209.85.215.47]:40091 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750834AbaGHOau (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 10:30:50 -0400
+Received: by mail-la0-f47.google.com with SMTP id s18so3978542lam.6
+        for <linux-media@vger.kernel.org>; Tue, 08 Jul 2014 07:30:48 -0700 (PDT)
+From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+To: linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-media@vger.kernel.org
+Cc: gregkh@linuxfoundation.org, m.chehab@samsung.com,
+	ismael.luceno@corp.bluecherry.net,
+	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+Subject: [PATCH 1/2] solo6x10: expose encoder quantization setting as V4L2 control
+Date: Tue,  8 Jul 2014 17:30:33 +0300
+Message-Id: <1404829834-8747-1-git-send-email-andrey.utkin@corp.bluecherry.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move emulated format behind module parameter as those are not
-supported. Format conversions will be on library eventually.
+solo6*10 boards have configurable quantization parameter which takes
+values from 0 to 31, inclusively.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+This change enables setting it with ioctl VIDIOC_S_CTRL with id
+V4L2_CID_MPEG_VIDEO_H264_MIN_QP.
 ---
- drivers/media/dvb-frontends/rtl2832_sdr.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.c b/drivers/media/dvb-frontends/rtl2832_sdr.c
-index 093df6b..06a66eb 100644
---- a/drivers/media/dvb-frontends/rtl2832_sdr.c
-+++ b/drivers/media/dvb-frontends/rtl2832_sdr.c
-@@ -35,6 +35,10 @@
- #include <linux/jiffies.h>
- #include <linux/math64.h>
- 
-+static bool rtl2832_sdr_emulated_fmt;
-+module_param_named(emulated_formats, rtl2832_sdr_emulated_fmt, bool, 0644);
-+MODULE_PARM_DESC(emulated_formats, "enable emulated formats (disappears in future)");
-+
- #define MAX_BULK_BUFS            (10)
- #define BULK_BUFFER_SIZE         (128 * 512)
- 
-@@ -84,10 +88,10 @@ struct rtl2832_sdr_format {
- 
- static struct rtl2832_sdr_format formats[] = {
- 	{
--		.name		= "IQ U8",
-+		.name		= "Complex U8",
- 		.pixelformat	=  V4L2_SDR_FMT_CU8,
- 	}, {
--		.name		= "IQ U16LE (emulated)",
-+		.name		= "Complex U16LE (emulated)",
- 		.pixelformat	= V4L2_SDR_FMT_CU16LE,
- 	},
- };
-@@ -139,6 +143,7 @@ struct rtl2832_sdr_state {
- 
- 	unsigned int f_adc, f_tuner;
- 	u32 pixelformat;
-+	unsigned int num_formats;
- 
- 	/* Controls */
- 	struct v4l2_ctrl_handler hdl;
-@@ -1195,7 +1200,7 @@ static int rtl2832_sdr_enum_fmt_sdr_cap(struct file *file, void *priv,
- 	struct rtl2832_sdr_state *s = video_drvdata(file);
- 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
- 
--	if (f->index >= NUM_FORMATS)
-+	if (f->index >= s->num_formats)
- 		return -EINVAL;
- 
- 	strlcpy(f->description, formats[f->index].name, sizeof(f->description));
-@@ -1229,7 +1234,7 @@ static int rtl2832_sdr_s_fmt_sdr_cap(struct file *file, void *priv,
- 		return -EBUSY;
- 
- 	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
--	for (i = 0; i < NUM_FORMATS; i++) {
-+	for (i = 0; i < s->num_formats; i++) {
- 		if (formats[i].pixelformat == f->fmt.sdr.pixelformat) {
- 			s->pixelformat = f->fmt.sdr.pixelformat;
- 			return 0;
-@@ -1251,7 +1256,7 @@ static int rtl2832_sdr_try_fmt_sdr_cap(struct file *file, void *priv,
- 			(char *)&f->fmt.sdr.pixelformat);
- 
- 	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
--	for (i = 0; i < NUM_FORMATS; i++) {
-+	for (i = 0; i < s->num_formats; i++) {
- 		if (formats[i].pixelformat == f->fmt.sdr.pixelformat)
- 			return 0;
- 	}
-@@ -1391,6 +1396,9 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 	s->f_adc = bands_adc[0].rangelow;
- 	s->f_tuner = bands_fm[0].rangelow;
- 	s->pixelformat =  V4L2_SDR_FMT_CU8;
-+	s->num_formats = NUM_FORMATS;
-+	if (rtl2832_sdr_emulated_fmt == false)
-+		s->num_formats -= 1;
- 
- 	mutex_init(&s->v4l2_lock);
- 	mutex_init(&s->vb_queue_lock);
+diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+index b8ff113..bf6eb06 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+@@ -1111,6 +1111,9 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
+ 		solo_enc->gop = ctrl->val;
+ 		return 0;
++	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP:
++		solo_enc->qp = ctrl->val;
++		return 0;
+ 	case V4L2_CID_MOTION_THRESHOLD:
+ 		solo_enc->motion_thresh = ctrl->val;
+ 		if (!solo_enc->motion_global || !solo_enc->motion_enabled)
+@@ -1260,6 +1263,8 @@ static struct solo_enc_dev *solo_enc_alloc(struct solo_dev *solo_dev,
+ 			V4L2_CID_SHARPNESS, 0, 15, 1, 0);
+ 	v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
+ 			V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 255, 1, solo_dev->fps);
++	v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
++			V4L2_CID_MPEG_VIDEO_H264_MIN_QP, 0, 31, 1, SOLO_DEFAULT_QP);
+ 	v4l2_ctrl_new_custom(hdl, &solo_motion_threshold_ctrl, NULL);
+ 	v4l2_ctrl_new_custom(hdl, &solo_motion_enable_ctrl, NULL);
+ 	v4l2_ctrl_new_custom(hdl, &solo_osd_text_ctrl, NULL);
 -- 
-1.9.3
+1.8.3.2
 
