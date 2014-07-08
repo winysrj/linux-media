@@ -1,54 +1,19 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:36644 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755100AbaGKSbW (ORCPT
+Received: from blu004-omc2s32.hotmail.com ([65.55.111.107]:62101 "EHLO
+	BLU004-OMC2S32.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753716AbaGHPMX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 14:31:22 -0400
-Message-ID: <53C02D77.4070809@infradead.org>
-Date: Fri, 11 Jul 2014 11:31:19 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
+	Tue, 8 Jul 2014 11:12:23 -0400
+Message-ID: <BLU436-SMTP14318518D3A43AAE056FFB9890C0@phx.gbl>
+Date: Tue, 8 Jul 2014 17:12:17 +0200
+From: Jose <nisko666@hotmail.com>
 MIME-Version: 1.0
-To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
-CC: LKML <linux-kernel@vger.kernel.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	Holger Waechtler <holger@convergence.de>,
-	Oliver Endriss <o.endriss@gmx.de>
-Subject: Re: linux-next: Tree for Jul 11 (media/pci/ttpci/av7110)
-References: <20140711171844.39fcbb50@canb.auug.org.au>
-In-Reply-To: <20140711171844.39fcbb50@canb.auug.org.au>
-Content-Type: text/plain; charset=UTF-8
+To: linux-media@vger.kernel.org
+Subject: DVB-T Freecom 14aa:0160 don't work
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/11/14 00:18, Stephen Rothwell wrote:
-> Hi all,
-> 
-> Changes since 20140710:
-> 
-
-on x86_64:
-
-CONFIG_DVB_AV7110=y
-CONFIG_INPUT_EVDEV=m
-
-drivers/built-in.o: In function `av7110_emit_keyup':
-av7110_ir.c:(.text+0x76b608): undefined reference to `input_event'
-av7110_ir.c:(.text+0x76b61a): undefined reference to `input_event'
-drivers/built-in.o: In function `av7110_emit_key':
-av7110_ir.c:(.text+0x76b6b4): undefined reference to `input_event'
-av7110_ir.c:(.text+0x76b6cd): undefined reference to `input_event'
-av7110_ir.c:(.text+0x76b7b0): undefined reference to `input_event'
-drivers/built-in.o:av7110_ir.c:(.text+0x76b7ca): more undefined references to `input_event' follow
-drivers/built-in.o: In function `av7110_ir_init':
-(.text+0x76bcdb): undefined reference to `input_allocate_device'
-drivers/built-in.o: In function `av7110_ir_init':
-(.text+0x76bf93): undefined reference to `input_register_device'
-drivers/built-in.o: In function `av7110_ir_init':
-(.text+0x76c073): undefined reference to `input_free_device'
-drivers/built-in.o: In function `av7110_ir_exit':
-(.text+0x76c1db): undefined reference to `input_unregister_device'
-
-
--- 
-~Randy
+Sorry I'm mistake sending this bug, and is assigned to a bad mail.
+https://bugzilla.kernel.org/show_bug.cgi?id=79121
