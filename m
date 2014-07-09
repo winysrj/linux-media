@@ -1,45 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from all.allspectrum.com ([192.254.202.77]:57582 "EHLO
-	all.allspectrum.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753890AbaGSA3y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 20:29:54 -0400
-Received: from cpe-75-83-45-81.socal.res.rr.com ([75.83.45.81]:3608 helo=[192.168.0.22])
-	by all.allspectrum.com with esmtp (Exim 4.80.1)
-	(envelope-from <moses@neonixie.com>)
-	id 1X8ICM-0002M0-2M
-	for linux-media@vger.kernel.org; Fri, 18 Jul 2014 17:08:22 -0700
-Message-ID: <53C9B6FD.8010504@neonixie.com>
-Date: Fri, 18 Jul 2014 17:08:29 -0700
-From: Moses <moses@neonixie.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: modern software with analog (BT787) overlay support? / XAWTV replacement
- ?
-References: <S1751671AbaGRXys/20140718235448Z+394@vger.kernel.org>
-In-Reply-To: <S1751671AbaGRXys/20140718235448Z+394@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mga09.intel.com ([134.134.136.24]:64911 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932511AbaGIP0L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Jul 2014 11:26:11 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Tadeusz Struk <tadeusz.struk@intel.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Helge Deller <deller@gmx.de>,
+	Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>,
+	linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>,
+	qat-linux@intel.com, linux-crypto@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 0/5] fs/seq_file: introduce seq_hex_dump() helper
+Date: Wed,  9 Jul 2014 18:24:25 +0300
+Message-Id: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This introduces a new helper and switches current users to use it.
 
-I need a replacement for an aging box that is using xawtv to display 
-CCTV cameras (from a BT878 card) on a X windows display. Xawtv is 
-capable of hardware overlay directly onto the X display with almost no 
-CPU usage and pretty much real time, it has worked great for years.. but 
-now the box needs modern hardware and software. I have attempted to 
-compile xawtv using more modern versions of linux.. but I think xawtv is 
-just too old to mess with at this point.. so the question is..
+parisc and s390 weren't tested anyhow, the other are compile tested.
 
-Anyone know of any other suitable software that will allow analog video 
-overlay from BT878 chips?
+Andy Shevchenko (5):
+  seq_file: provide an analogue of print_hex_dump()
+  saa7164: convert to seq_hex_dump()
+  crypto: qat - use seq_hex_dump() to dump buffers
+  parisc: use seq_hex_dump() to dump buffers
+  [S390] zcrypt: use seq_hex_dump() to dump buffers
 
-(and hopefully this is the correct forum for this!)
+ .../crypto/qat/qat_common/adf_transport_debug.c    | 16 ++--------
+ drivers/media/pci/saa7164/saa7164-core.c           | 31 +++----------------
+ drivers/parisc/ccio-dma.c                          | 14 ++-------
+ drivers/parisc/sba_iommu.c                         | 11 ++-----
+ drivers/s390/crypto/zcrypt_api.c                   | 10 +------
+ fs/seq_file.c                                      | 35 ++++++++++++++++++++++
+ include/linux/seq_file.h                           |  4 +++
+ 7 files changed, 52 insertions(+), 69 deletions(-)
 
-Thank you
-
-Regards,
--Moses
+-- 
+2.0.1
 
