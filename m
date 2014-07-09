@@ -1,47 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f179.google.com ([209.85.128.179]:43092 "EHLO
-	mail-ve0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753796AbaGHOc6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 10:32:58 -0400
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:54807 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750724AbaGIUkw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jul 2014 16:40:52 -0400
 MIME-Version: 1.0
-In-Reply-To: <1404828488-7649-1-git-send-email-andrey.krieger.utkin@gmail.com>
-References: <1404828488-7649-1-git-send-email-andrey.krieger.utkin@gmail.com>
-Date: Tue, 8 Jul 2014 16:32:57 +0200
-Message-ID: <CAAsK9AFfn45wyQFsOiCAZXZjXfyPLhz3FxyBO5P_q_48s9ce_g@mail.gmail.com>
-Subject: Re: [PATCH] [media] davinci-vpfe: Fix retcode check
-From: Levente Kurusa <lkurusa@redhat.com>
-To: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	OSUOSL Drivers <devel@driverdev.osuosl.org>,
-	Linux Media <linux-media@vger.kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+In-Reply-To: <1404930382.932.143.camel@joe-AO725>
+References: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	<1404919470-26668-5-git-send-email-andriy.shevchenko@linux.intel.com>
+	<1404930382.932.143.camel@joe-AO725>
+Date: Wed, 9 Jul 2014 23:40:51 +0300
+Message-ID: <CAHp75Ve-qhEn7emqqwf_nWSPiw-m-HJy42QapJoDhTeuBsoqZg@mail.gmail.com>
+Subject: Re: [PATCH v1 4/5] parisc: use seq_hex_dump() to dump buffers
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+To: Joe Perches <joe@perches.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Tadeusz Struk <tadeusz.struk@intel.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	prabhakar.csengg@gmail.com, Josh Triplett <josh@joshtriplett.org>,
-	Archana Kumari <archanakumari959@gmail.com>,
-	Lisa Nguyen <lisa@xenapiadmin.com>
+	Helge Deller <deller@gmx.de>,
+	Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>,
+	linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>,
+	qat-linux@intel.com, linux-crypto@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2014-07-08 16:08 GMT+02:00 Andrey Utkin <andrey.krieger.utkin@gmail.com>:
-> Use signed type to check correctly for negative error code. The issue
-> was reported with static analyser:
+In one case indeed it does, in another - no, though it seems it prints
+same data (by meaning) in both cases. I would like driver maintainer
+to say a word what they think about it.
+
+On Wed, Jul 9, 2014 at 9:26 PM, Joe Perches <joe@perches.com> wrote:
+> On Wed, 2014-07-09 at 18:24 +0300, Andy Shevchenko wrote:
+>> Instead of custom approach let's use recently introduced seq_hex_dump() helper.
 >
-> [linux-3.13/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c:270]:
-> (style) A pointer can not be negative so it is either pointless or an
-> error to check if it is.
+> Doesn't this also change the output from
+>    1111111122222222333333334444444455555555666666667777777788888888
+> to
+>    11111111 22222222 33333333 44444444 55555555 66666666 77777777 88888888
 >
-> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=69071
-> Reported-by: David Binderman <dcb314@hotmail.com>
-> Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Hmm, while it is true that get_ipipe_mode returns an int, but
-the consequent call to regw_ip takes an u32 as its second
-argument. Did it cause a build warning for you? (Can't really
-check since I don't have ARM cross compilers close-by)
-If not, then:
 
-Reviewed-by: Levente Kurusa <lkurusa@redhat.com>
 
-Thanks,
-Levente Kurusa
+-- 
+With Best Regards,
+Andy Shevchenko
