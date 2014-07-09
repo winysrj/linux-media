@@ -1,56 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35821 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753478AbaGWGnO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 02:43:14 -0400
-Message-ID: <53CF597C.6050708@iki.fi>
-Date: Wed, 23 Jul 2014 09:43:08 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: kbuild test robot <fengguang.wu@intel.com>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: Re: [linuxtv-media:master 378/499] ERROR: "__udivdi3" [drivers/media/dvb-frontends/rtl2832_sdr.ko]
- undefined!
-References: <53cf9a8e.E95mSmw/U7btaj7k%fengguang.wu@intel.com>
-In-Reply-To: <53cf9a8e.E95mSmw/U7btaj7k%fengguang.wu@intel.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from qmta06.emeryville.ca.mail.comcast.net ([76.96.30.56]:55248 "EHLO
+	qmta06.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751979AbaGIUg0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Jul 2014 16:36:26 -0400
+From: Shuah Khan <shuah.kh@samsung.com>
+To: m.chehab@samsung.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media: em28xx - add error handling for KWORLD dvb_attach failures
+Date: Wed,  9 Jul 2014 14:36:23 -0600
+Message-Id: <1404938183-29535-1-git-send-email-shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
+Add error hanlding when EM2870_BOARD_KWORLD_A340 dvb_attach()
+for fe and tuner fail in em28xx_dvb_init().
 
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+---
+ drivers/media/usb/em28xx/em28xx-dvb.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-On 07/23/2014 02:20 PM, kbuild test robot wrote:
-> tree:   git://linuxtv.org/media_tree.git master
-> head:   eb9da073bd002f2968c84129a5c49625911a3199
-> commit: 77bbb2b049c1c3e935f5bec510bec337d94ae8f8 [378/499] rtl2832_sdr: move from staging to media
-> config: i386-randconfig-ha2-0723 (attached as .config)
->
-> Note: the linuxtv-media/master HEAD eb9da073bd002f2968c84129a5c49625911a3199 builds fine.
->        It only hurts bisectibility.
->
-> All error/warnings:
->
->>> ERROR: "__udivdi3" [drivers/media/dvb-frontends/rtl2832_sdr.ko] undefined!
-
-
-Could you say what I should do for that? Bug is fixed and solution is 
-merged as that patch:
-
-commit a98ccfcf4804beb2651b9f44a4bc5cbb387019ec
-Author: Antti Palosaari <crope@iki.fi>
-Date:   Tue Jul 22 00:18:19 2014 -0300
-
-     [media] rtl2832_sdr: remove plain 64-bit divisions
-
-Do you want Mauro to rebase whole media/master in order to make 
-bisectibility possible in any case?
-
-regards
-Antti
-
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index d381861..8314f51 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1213,9 +1213,17 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 		dvb->fe[0] = dvb_attach(lgdt3305_attach,
+ 					   &em2870_lgdt3304_dev,
+ 					   &dev->i2c_adap[dev->def_i2c_bus]);
+-		if (dvb->fe[0] != NULL)
+-			dvb_attach(tda18271_attach, dvb->fe[0], 0x60,
+-				   &dev->i2c_adap[dev->def_i2c_bus], &kworld_a340_config);
++		if (!dvb->fe[0]) {
++			result = -EINVAL;
++			goto out_free;
++		}
++		if (!dvb_attach(tda18271_attach, dvb->fe[0], 0x60,
++			&dev->i2c_adap[dev->def_i2c_bus],
++			&kworld_a340_config)) {
++				dvb_frontend_detach(dvb->fe[0]);
++				result = -EINVAL;
++				goto out_free;
++		}
+ 		break;
+ 	case EM28174_BOARD_PCTV_290E:
+ 		/* set default GPIO0 for LNA, used if GPIOLIB is undefined */
 -- 
-http://palosaari.fi/
+1.7.10.4
+
