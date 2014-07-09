@@ -1,94 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2lp0238.outbound.protection.outlook.com ([207.46.163.238]:55805
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757632AbaGWJ5Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 05:57:16 -0400
-From: Sonic Zhang <sonic.adi@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>
-CC: <linux-media@vger.kernel.org>,
-	<adi-buildroot-devel@lists.sourceforge.net>,
-	Sonic Zhang <sonic.zhang@analog.com>
-Subject: [PATCH 3/3] v4l2: blackfin: select proper pinctrl state in ppi_set_params if CONFIG_PINCTRL is enabled
-Date: Wed, 23 Jul 2014 17:57:16 +0800
-Message-ID: <1406109436-23922-3-git-send-email-sonic.adi@gmail.com>
-In-Reply-To: <1406109436-23922-1-git-send-email-sonic.adi@gmail.com>
-References: <1406109436-23922-1-git-send-email-sonic.adi@gmail.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52813 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751032AbaGIL0z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Jul 2014 07:26:55 -0400
+Message-ID: <53BD26EE.8030207@xs4all.nl>
+Date: Wed, 09 Jul 2014 13:26:38 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Divneil Wadhawan <divneil@outlook.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: No audio support in struct v4l2_subdev_format
+References: <BAY176-W7B3F24A204E68896226E0A9000@phx.gbl>,<53B65DCA.6010803@xs4all.nl>,<BAY176-W23C9AA5FB70F17EDEB68F8A9000@phx.gbl>,<53B679C2.7030002@xs4all.nl>,<BAY176-W32B9E16B0436D20DF363BEA9000@phx.gbl>,<53B6840A.20102@xs4all.nl>,<BAY176-W264D5BED6FA556ABDE0763A9000@phx.gbl>,<53B7BA57.1010003@xs4all.nl>,<BAY176-W46A88AA74FC1924DEFE69FA90D0@phx.gbl> <BAY176-W4659BEC4FE091329110E3AA90F0@phx.gbl>
+In-Reply-To: <BAY176-W4659BEC4FE091329110E3AA90F0@phx.gbl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sonic Zhang <sonic.zhang@analog.com>
+On 07/09/2014 12:55 PM, Divneil Wadhawan wrote:
+> Hi Hans,
+> 
+> 
+> I agree that it was not a good implementation of using event.
+> 
+> (Please discard the exact code, as it is erroneous in managing ctrl events replace/merge and other ones)
+> 
+> 
+> I restart with the concern.
+> 
+> Here, I have a v4l2 subdev, which can generate events from the time we load it.
+> 
+> We later found some use cases, where we would like the application to get the events too.
+> 
+> 
+> v4l2_event_queue_fh() requires fh. 
+> 
+> I think, there's no way of gaining the access to this fh, except the SUBSCRIBE_EVENT or any calls landing on subdev before this.
+> 
+> The adding and deleting of fh in the list, is well managed by the event ops.
+> 
+> However, adding fh to the list is the tricky part, as I don't want to fill in the link list with the same fh over and over.
 
-Multiple pinctrl states are defined for 8, 16 and 24 data pin groups in PPI peripheral.
-The driver should select correct group before set up further PPI parameters.
+I still don't understand your problem. So the application wants to subscribe to an event,
+it calls VIDIOC_SUBSCRIBE_EVENT and from that point onwards it will receive those events.
 
-Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
----
- drivers/media/platform/blackfin/ppi.c | 17 +++++++++++++++++
- include/media/blackfin/ppi.h          |  1 +
- 2 files changed, 18 insertions(+)
+All the driver does is to call v4l2_event_subscribe (possibly through helper functions
+like v4l2_src_change_event_subscribe).
 
-diff --git a/drivers/media/platform/blackfin/ppi.c b/drivers/media/platform/blackfin/ppi.c
-index 90c4a93..cff63e5 100644
---- a/drivers/media/platform/blackfin/ppi.c
-+++ b/drivers/media/platform/blackfin/ppi.c
-@@ -206,6 +206,20 @@ static int ppi_set_params(struct ppi_if *ppi, struct ppi_params *params)
- 	int dma_config, bytes_per_line;
- 	int hcount, hdelay, samples_per_line;
- 
-+#ifdef CONFIG_PINCTRL
-+	static const char * const pin_state[] = {"8bit", "16bit", "24bit"};
-+	struct pinctrl *pctrl;
-+	struct pinctrl_state *pstate;
-+
-+	if (params->dlen > 24 || params->dlen <= 0)
-+		return -EINVAL;
-+	pctrl = devm_pinctrl_get(ppi->dev);
-+	pstate = pinctrl_lookup_state(pctrl,
-+				      pin_state[(params->dlen + 7) / 8 - 1]);
-+	if (pinctrl_select_state(pctrl, pstate))
-+		return -EINVAL;
-+#endif
-+
- 	bytes_per_line = params->width * params->bpp / 8;
- 	/* convert parameters unit from pixels to samples */
- 	hcount = params->width * params->bpp / params->dlen;
-@@ -316,10 +330,12 @@ struct ppi_if *ppi_create_instance(struct platform_device *pdev,
- 	if (!info || !info->pin_req)
- 		return NULL;
- 
-+#ifndef CONFIG_PINCTRL
- 	if (peripheral_request_list(info->pin_req, KBUILD_MODNAME)) {
- 		dev_err(&pdev->dev, "request peripheral failed\n");
- 		return NULL;
- 	}
-+#endif
- 
- 	ppi = kzalloc(sizeof(*ppi), GFP_KERNEL);
- 	if (!ppi) {
-@@ -329,6 +345,7 @@ struct ppi_if *ppi_create_instance(struct platform_device *pdev,
- 	}
- 	ppi->ops = &ppi_ops;
- 	ppi->info = info;
-+	ppi->dev = &pdev->dev;
- 
- 	pr_info("ppi probe success\n");
- 	return ppi;
-diff --git a/include/media/blackfin/ppi.h b/include/media/blackfin/ppi.h
-index 61a283f..4900bae 100644
---- a/include/media/blackfin/ppi.h
-+++ b/include/media/blackfin/ppi.h
-@@ -83,6 +83,7 @@ struct ppi_info {
- };
- 
- struct ppi_if {
-+	struct device *dev;
- 	unsigned long ppi_control;
- 	const struct ppi_ops *ops;
- 	const struct ppi_info *info;
--- 
-1.8.2.3
+You never have to touch filehandles yourself, that's all done in v4l2-event.c.
 
+When your driver needs to raise the event it will typically call v4l2_event_queue() and
+in rare cases v4l2_event_queue_fh() to send an event to a specific filehandle (primarily
+used by m2m devices which have a per-filehandle state).
+
+If you would like to have an initial event that is issued as soon as a filehandle subscribes
+to an event, then the application has to set the V4L2_EVENT_SUB_FL_SEND_INITIAL flag and
+that event also has to support that flag. It would make sense that v4l2_src_change_event_subscribe()
+is extended to support that flag.
+
+The bottom line is that you never have to touch filehandles or keep track of them.
+
+Are you perhaps trying to receive events from a sub-device in a platform driver?
+If that's the case, then let me know since that is not supported and it should
+really be improved (I have some ideas about that). The only communication between
+a subdev and the bridge driver is via the notify callback in v4l2_device.
+
+Regards,
+
+	Hans
