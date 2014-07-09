@@ -1,59 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58197 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755655AbaGVR1x (ORCPT
+Received: from qmta10.emeryville.ca.mail.comcast.net ([76.96.30.17]:33124 "EHLO
+	qmta10.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750854AbaGIUgX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 13:27:53 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] [media] tuners/Kconfig: fix build when just DTV or SDR is enabled
-Date: Tue, 22 Jul 2014 14:27:44 -0300
-Message-Id: <1406050064-10846-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Wed, 9 Jul 2014 16:36:23 -0400
+From: Shuah Khan <shuah.kh@samsung.com>
+To: m.chehab@samsung.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media: em28xx - remove reset_resume interface
+Date: Wed,  9 Jul 2014 14:36:03 -0600
+Message-Id: <1404938163-27461-1-git-send-email-shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by Kbuildtest:
-	warning: (VIDEO_PVRUSB2 && VIDEO_TLG2300 && VIDEO_USBVISION && VIDEO_GO7007 && VIDEO_AU0828_V4L2 && VIDEO_CX231XX && VIDEO_TM6000 && VIDEO_EM28XX && VIDEO_IVTV && VIDEO_MXB && VIDEO_CX18 && VIDEO_CX23885 && VIDEO_CX88 && VIDEO_BT848 && VIDEO_SAA7134 && VIDEO_SAA7164) selects VIDEO_TUNER which has unmet direct dependencies (MEDIA_SUPPORT && MEDIA_TUNER)
+em28xx uses resume interface as its reset_resume interface.
+If usb device is reset during suspend, reset_resume doesn't
+do the necessary initialization which leads to resume failure.
+Many systems don't maintain do not maintain suspend current to
+the USB host controllers during hibernation. Remove reset_resume
+to allow disconnect to be called followed by device restore
+sequence.
 
-That happens when:
-
-	# CONFIG_MEDIA_ANALOG_TV_SUPPORT is not set
-	CONFIG_MEDIA_DIGITAL_TV_SUPPORT=y
-	# CONFIG_MEDIA_RADIO_SUPPORT is not set
-	# CONFIG_MEDIA_SDR_SUPPORT is not set
-	CONFIG_VIDEO_AU0828_V4L2=y
-	CONFIG_VIDEO_CX231XX=y
-	CONFIG_VIDEO_TM6000=y
-	CONFIG_VIDEO_EM28XX=y
-	CONFIG_VIDEO_TUNER=y
-	CONFIG_MEDIA_SUPPORT=y
-
-With means that we need to enable MEDIA_TUNER also when DTV
-is enabled. While the above config doesn't cover, if we enable
-SDR, the same error can also happen.
-
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
 ---
- drivers/media/tuners/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/em28xx/em28xx-cards.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
-index 906461da1310..51edd101f250 100644
---- a/drivers/media/tuners/Kconfig
-+++ b/drivers/media/tuners/Kconfig
-@@ -1,7 +1,7 @@
- # Analog TV tuners, auto-loaded via tuner.ko
- config MEDIA_TUNER
- 	tristate
--	depends on (MEDIA_ANALOG_TV_SUPPORT || MEDIA_RADIO_SUPPORT) && I2C
-+	depends on (MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || MEDIA_RADIO_SUPPORT || MEDIA_SDR_SUPPORT) && I2C
- 	default y
- 	select MEDIA_TUNER_XC2028 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_XC5000 if MEDIA_SUBDRV_AUTOSELECT
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 15ad470..c53fa77 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3522,7 +3522,6 @@ static struct usb_driver em28xx_usb_driver = {
+ 	.disconnect = em28xx_usb_disconnect,
+ 	.suspend = em28xx_usb_suspend,
+ 	.resume = em28xx_usb_resume,
+-	.reset_resume = em28xx_usb_resume,
+ 	.id_table = em28xx_id_table,
+ };
+ 
 -- 
-1.9.3
+1.7.10.4
 
