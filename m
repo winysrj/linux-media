@@ -1,140 +1,106 @@
-Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <takacsk2004@yahoo.com>) id 1WwYQx-0000hW-DP
-	for linux-dvb@linuxtv.org; Mon, 16 Jun 2014 17:02:56 +0200
-Received: from nm27.bullet.mail.ne1.yahoo.com ([98.138.90.90])
-	by mail.tu-berlin.de (exim-4.72/mailfrontend-5) with esmtps
-	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
-	id 1WwYQv-0003Mz-7N; Mon, 16 Jun 2014 17:02:55 +0200
-References: <mailman.1.1402912801.19751.linux-dvb@linuxtv.org>
-	<539EFE93.1050009@msw.it>
-Message-ID: <1402930970.82399.YahooMailNeo@web120702.mail.ne1.yahoo.com>
-Date: Mon, 16 Jun 2014 08:02:50 -0700
-From: Kalman Takacs <takacsk2004@yahoo.com>
-To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-In-Reply-To: <539EFE93.1050009@msw.it>
-MIME-Version: 1.0
-Subject: Re: [linux-dvb] Usb-dvb Pinnacle PCTV 200e
-Reply-To: linux-media@vger.kernel.org, Kalman Takacs <takacsk2004@yahoo.com>
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1405989266=="
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:22124 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932591AbaGIPYp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Jul 2014 11:24:45 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Tadeusz Struk <tadeusz.struk@intel.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Helge Deller <deller@gmx.de>,
+	Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>,
+	linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>,
+	qat-linux@intel.com, linux-crypto@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 1/5] seq_file: provide an analogue of print_hex_dump()
+Date: Wed,  9 Jul 2014 18:24:26 +0300
+Message-Id: <1404919470-26668-2-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
---===============1405989266==
-Content-Type: multipart/alternative; boundary="-74892456-1393894076-1402930970=:82399"
+The new seq_hex_dump() is a complete analogue of print_hex_dump().
 
----74892456-1393894076-1402930970=:82399
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+We have few users of this functionality already. It allows to reduce their
+codebase.
 
-Check dkms.conf, Makefile and the patch for errors. First apply patch, then=
- "dkms add" and after that "dkms build" and "dkms install".=0A=0A=0A=0AOn M=
-onday, June 16, 2014 4:26 PM, Davide Marchi <danjde@msw.it> wrote:=0A =0A=
-=0A=0Alinux-dvb-request@linuxtv.org ha scritto:=0A> linux-dvb-request@linux=
-tv.org=A0 ha scritto:=0A>> >If drivers are still not in the kernel, you wil=
-l have to build those modules. Here you can find a guide for that:=0A>> >ht=
-tp://ubuntuforums.org/showthread.php?t=3D1301793=0A> Thanks Kalman Takacs,=
-=0AHi Kalman Takacs,=0AI've followed the post steps, but obtain some errors=
- on build process.=0A=0AHere the output, could you give me any suggestion? =
-:-)=0A=0Athanks!=0A=0A=0Asudo dkms build -m pctv200e -v 20080520=0A=0AKerne=
-l preparation unnecessary for this kernel.=A0 Skipping...=0A=0ABuilding mod=
-ule:=0Acleaning build area....=0Amake KERNELRELEASE=3D3.13.0-24-generic -C =
-/lib/modules/3.13.0-24-generic/build M=3D/var/lib/dkms/pctv200e/20080520/bu=
-ild....(bad exit status: 2)=0AERROR (dkms apport): binary package for pctv2=
-00e: 20080520 not found=0AError! Bad return status for module build on kern=
-el: 3.13.0-24-generic (i686)=0AConsult /var/lib/dkms/pctv200e/20080520/buil=
-d/make.log for more information.=0A=0A#cat=A0 /var/lib/dkms/pctv200e/200805=
-20/build/make.log=0A=0ADKMS make.log for pctv200e-20080520 for kernel 3.13.=
-0-24-generic (i686)=0Alun 16 giu 2014, 16.18.36, CEST=0Amake: ingresso nell=
-a directory "/usr/src/linux-headers-3.13.0-24-generic"=0A=A0  LD=A0 =A0 =A0=
- /var/lib/dkms/pctv200e/20080520/build/built-in.o=0A=A0  CC [M]=A0 /var/lib=
-/dkms/pctv200e/20080520/build/pctv200e.o=0Agcc: fatal error: no input files=
-=0Acompilation terminated.=0Amake[1]: *** [/var/lib/dkms/pctv200e/20080520/=
-build/pctv200e.o] Errore 4=0Amake: *** [_module_/var/lib/dkms/pctv200e/2008=
-0520/build] Errore 2=0Amake: uscita dalla directory "/usr/src/linux-headers=
--3.13.0-24-generic"=0A/var/lib/dkms/pctv200e/20080520/build/make.log (END)=
-=0A=0Aciao!=0A=A0 =0A=0A-- =0Afirma=0A=0AcosmogoniA <http://www.cosmogonia.=
-org/>=0Anoprovarenofareononfarenonc'=E8provare=0A=0A_______________________=
-________________________=0Alinux-dvb users mailing list=0AFor V4L/DVB devel=
-opment, please use instead linux-media@vger.kernel.org=0Alinux-dvb@linuxtv.=
-org=0Ahttp://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
----74892456-1393894076-1402930970=:82399
-Content-Type: text/html; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ fs/seq_file.c            | 35 +++++++++++++++++++++++++++++++++++
+ include/linux/seq_file.h |  4 ++++
+ 2 files changed, 39 insertions(+)
 
-<html><body><div style=3D"color:#000; background-color:#fff; font-family:He=
-lveticaNeue, Helvetica Neue, Helvetica, Arial, Lucida Grande, sans-serif;fo=
-nt-size:12pt"><div><span>Check dkms.conf, Makefile and the patch for errors=
-. First apply patch, then "dkms add" and after that "dkms build" and "dkms =
-install".<br></span></div> <div class=3D"qtdSeparateBR"><br><br></div><div =
-style=3D"display: block;" class=3D"yahoo_quoted"> <div style=3D"font-family=
-: HelveticaNeue, Helvetica Neue, Helvetica, Arial, Lucida Grande, sans-seri=
-f; font-size: 12pt;"> <div style=3D"font-family: HelveticaNeue, Helvetica N=
-eue, Helvetica, Arial, Lucida Grande, sans-serif; font-size: 12pt;"> <div d=
-ir=3D"ltr"> <font face=3D"Arial" size=3D"2"> On Monday, June 16, 2014 4:26 =
-PM, Davide Marchi &lt;danjde@msw.it&gt; wrote:<br> </font> </div>  <br><br>=
- <div class=3D"y_msg_container"><a ymailto=3D"mailto:linux-dvb-request@linu=
-xtv.org" href=3D"mailto:linux-dvb-request@linuxtv.org">linux-dvb-request@li=
-nuxtv.org</a> ha
- scritto:<br>&gt; <a ymailto=3D"mailto:linux-dvb-request@linuxtv.org" href=
-=3D"mailto:linux-dvb-request@linuxtv.org">linux-dvb-request@linuxtv.org</a>=
-&nbsp; ha scritto:<br>&gt;&gt; &gt;If drivers are still not in the kernel, =
-you will have to build those modules. Here you can find a guide for that:<b=
-r>&gt;&gt; &gt;<a href=3D"http://ubuntuforums.org/showthread.php?t=3D130179=
-3" target=3D"_blank">http://ubuntuforums.org/showthread.php?t=3D1301793</a>=
-<br>&gt; Thanks Kalman Takacs,<br>Hi Kalman Takacs,<br>I've followed the po=
-st steps, but obtain some errors on build process.<br><br>Here the output, =
-could you give me any suggestion? :-)<br><br>thanks!<br><br><br>sudo dkms b=
-uild -m pctv200e -v 20080520<br><br>Kernel preparation unnecessary for this=
- kernel.&nbsp; Skipping...<br><br>Building module:<br>cleaning build area..=
-..<br>make KERNELRELEASE=3D3.13.0-24-generic -C /lib/modules/3.13.0-24-gene=
-ric/build M=3D/var/lib/dkms/pctv200e/20080520/build....(bad exit status: 2)=
-<br>ERROR
- (dkms apport): binary package for pctv200e: 20080520 not found<br>Error! B=
-ad return status for module build on kernel: 3.13.0-24-generic (i686)<br>Co=
-nsult /var/lib/dkms/pctv200e/20080520/build/make.log for more information.<=
-br><br>#cat&nbsp; /var/lib/dkms/pctv200e/20080520/build/make.log<br><br>DKM=
-S make.log for pctv200e-20080520 for kernel 3.13.0-24-generic (i686)<br>lun=
- 16 giu 2014, 16.18.36, CEST<br>make: ingresso nella directory "/usr/src/li=
-nux-headers-3.13.0-24-generic"<br>&nbsp;  LD&nbsp; &nbsp; &nbsp; /var/lib/d=
-kms/pctv200e/20080520/build/built-in.o<br>&nbsp;  CC [M]&nbsp; /var/lib/dkm=
-s/pctv200e/20080520/build/pctv200e.o<br>gcc: fatal error: no input files<br=
->compilation terminated.<br>make[1]: *** [/var/lib/dkms/pctv200e/20080520/b=
-uild/pctv200e.o] Errore 4<br>make: *** [_module_/var/lib/dkms/pctv200e/2008=
-0520/build] Errore 2<br>make: uscita dalla directory
- "/usr/src/linux-headers-3.13.0-24-generic"<br>/var/lib/dkms/pctv200e/20080=
-520/build/make.log (END)<br><br>ciao!<br>&nbsp; <br><br>-- <br>firma<br><br=
->cosmogoniA &lt;<a href=3D"http://www.cosmogonia.org/" target=3D"_blank">ht=
-tp://www.cosmogonia.org/</a>&gt;<br>noprovarenofareononfarenonc'=E8provare<=
-br><br>_______________________________________________<br>linux-dvb users m=
-ailing list<br>For V4L/DVB development, please use instead <a ymailto=3D"ma=
-ilto:linux-media@vger.kernel.org" href=3D"mailto:linux-media@vger.kernel.or=
-g">linux-media@vger.kernel.org</a><br><a ymailto=3D"mailto:linux-dvb@linuxt=
-v.org" href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br><=
-a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target=
-=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><b=
-r><br></div>  </div> </div>  </div> </div></body></html>
----74892456-1393894076-1402930970=:82399--
+diff --git a/fs/seq_file.c b/fs/seq_file.c
+index 3857b72..fec4a6b 100644
+--- a/fs/seq_file.c
++++ b/fs/seq_file.c
+@@ -12,6 +12,7 @@
+ #include <linux/slab.h>
+ #include <linux/cred.h>
+ #include <linux/mm.h>
++#include <linux/printk.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/page.h>
+@@ -794,6 +795,40 @@ void seq_pad(struct seq_file *m, char c)
+ }
+ EXPORT_SYMBOL(seq_pad);
+ 
++/* Analogue of print_hex_dump() */
++void seq_hex_dump(struct seq_file *m, const char *prefix_str, int prefix_type,
++		  int rowsize, int groupsize, const void *buf, size_t len,
++		  bool ascii)
++{
++	const u8 *ptr = buf;
++	int i, linelen, remaining = len;
++	unsigned char linebuf[32 * 3 + 2 + 32 + 1];
++
++	if (rowsize != 16 && rowsize != 32)
++		rowsize = 16;
++
++	for (i = 0; i < len; i += rowsize) {
++		linelen = min(remaining, rowsize);
++		remaining -= rowsize;
++
++		hex_dump_to_buffer(ptr + i, linelen, rowsize, groupsize,
++				   linebuf, sizeof(linebuf), ascii);
++
++		switch (prefix_type) {
++		case DUMP_PREFIX_ADDRESS:
++			seq_printf(m, "%s%p: %s\n", prefix_str, ptr + i, linebuf);
++			break;
++		case DUMP_PREFIX_OFFSET:
++			seq_printf(m, "%s%.8x: %s\n", prefix_str, i, linebuf);
++			break;
++		default:
++			seq_printf(m, "%s%s\n", prefix_str, linebuf);
++			break;
++		}
++	}
++}
++EXPORT_SYMBOL(seq_hex_dump);
++
+ struct list_head *seq_list_start(struct list_head *head, loff_t pos)
+ {
+ 	struct list_head *lh;
+diff --git a/include/linux/seq_file.h b/include/linux/seq_file.h
+index 52e0097..6a8be4c 100644
+--- a/include/linux/seq_file.h
++++ b/include/linux/seq_file.h
+@@ -107,6 +107,10 @@ int seq_write(struct seq_file *seq, const void *data, size_t len);
+ __printf(2, 3) int seq_printf(struct seq_file *, const char *, ...);
+ __printf(2, 0) int seq_vprintf(struct seq_file *, const char *, va_list args);
+ 
++void seq_hex_dump(struct seq_file *m, const char *prefix_str, int prefix_type,
++		  int rowsize, int groupsize, const void *buf, size_t len,
++		  bool ascii);
++
+ int seq_path(struct seq_file *, const struct path *, const char *);
+ int seq_dentry(struct seq_file *, struct dentry *, const char *);
+ int seq_path_root(struct seq_file *m, const struct path *path,
+-- 
+2.0.1
 
-
---===============1405989266==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1405989266==--
