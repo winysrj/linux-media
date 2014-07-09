@@ -1,58 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41724 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760171AbaGSCis (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 22:38:48 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>, Luis Alves <ljalvs@gmail.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 06/10] si2157: Use name si2157_ops instead of si2157_tuner_ops
-Date: Sat, 19 Jul 2014 05:38:22 +0300
-Message-Id: <1405737506-13186-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1405737506-13186-1-git-send-email-crope@iki.fi>
-References: <1405737506-13186-1-git-send-email-crope@iki.fi>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:50000 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752269AbaGILqH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jul 2014 07:46:07 -0400
+Date: Wed, 9 Jul 2014 13:46:05 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Anil Belur <askb23@gmail.com>
+Cc: m.chehab@samsung.com, dan.carpenter@oracle.com,
+	gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/2] staging: nokia_h4p: nokia_core.c - removed
+ IRQF_DISABLED macro
+Message-ID: <20140709114605.GB22777@amd.pavel.ucw.cz>
+References: <1404885998-10981-1-git-send-email-askb23@gmail.com>
+ <1404885998-10981-2-git-send-email-askb23@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1404885998-10981-2-git-send-email-askb23@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Olli Salonen <olli.salonen@iki.fi>
+On Wed 2014-07-09 11:36:38, Anil Belur wrote:
+> From: Anil Belur <askb23@gmail.com>
+> 
+> - this patch removes the IRQF_DISABLED macro, as this is
+>   deprecated/noop.
+> 
+> Signed-off-by: Anil Belur <askb23@gmail.com>
 
-The struct prototype is defined at the beginning of the code as
-"si2157_ops" but the real struct is called "si2157_tuner_ops".
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
-This is causing the name to be empty on this info msg: si2157 16-0060:
-si2157: found a '' in cold state
+I wonder if it would maek sense to do
 
-[crope@iki.fi: commit msg from Luis email reply]
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
-Cc: Luis Alves <ljalvs@gmail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/si2157.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+./include/linux/interrupt.h:#define IRQF_DISABLED	0
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 329004f..4730f69 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -277,7 +277,7 @@ err:
- 	return ret;
- }
- 
--static const struct dvb_tuner_ops si2157_tuner_ops = {
-+static const struct dvb_tuner_ops si2157_ops = {
- 	.info = {
- 		.name           = "Silicon Labs Si2157/Si2158",
- 		.frequency_min  = 110000000,
-@@ -317,7 +317,7 @@ static int si2157_probe(struct i2c_client *client,
- 		goto err;
- 
- 	fe->tuner_priv = s;
--	memcpy(&fe->ops.tuner_ops, &si2157_tuner_ops,
-+	memcpy(&fe->ops.tuner_ops, &si2157_ops,
- 			sizeof(struct dvb_tuner_ops));
- 
- 	i2c_set_clientdata(client, s);
+to make it extra clear that it is nop now?
+									Pavel
 -- 
-1.9.3
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
