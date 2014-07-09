@@ -1,107 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:38024 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932508AbaGYPI7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 11:08:59 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 05/11] [media] coda: dequeue buffers if start_streaming fails
-Date: Fri, 25 Jul 2014 17:08:31 +0200
-Message-Id: <1406300917-18169-6-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
-References: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
+Received: from [82.129.38.126] ([82.129.38.126]:50618 "EHLO www.n4tv.org.uk"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1756065AbaGITWb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jul 2014 15:22:31 -0400
+Content-Type: text/plain; charset=windows-1252
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Subject: Re: PCTV T292e whole DVBT2 mux/Ultra HD performance question
+From: Andre Newman <linux-media@dinkum.org.uk>
+In-Reply-To: <53BD95A3.2050509@iki.fi>
+Date: Wed, 9 Jul 2014 20:21:57 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <FC52D318-DCC4-47BD-9DF2-174ADCB1BF7E@dinkum.org.uk>
+References: <35906397-E8F4-4229-966F-7ED578441C10@dinkum.org.uk> <53BD95A3.2050509@iki.fi>
+To: Antti Palosaari <crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The core warns if we keep queued buffers around in the error case.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 34 +++++++++++++++++++++++--------
- 1 file changed, 26 insertions(+), 8 deletions(-)
+On 9 Jul 2014, at 20:18, Antti Palosaari <crope@iki.fi> wrote:
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index ab4b4c3..126b967 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1005,6 +1005,7 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 	struct coda_ctx *ctx = vb2_get_drv_priv(q);
- 	struct v4l2_device *v4l2_dev = &ctx->dev->v4l2_dev;
- 	struct coda_q_data *q_data_src, *q_data_dst;
-+	struct vb2_buffer *buf;
- 	u32 dst_fourcc;
- 	int ret = 0;
- 
-@@ -1016,17 +1017,23 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 			coda_fill_bitstream(ctx);
- 			mutex_unlock(&ctx->bitstream_mutex);
- 
--			if (coda_get_bitstream_payload(ctx) < 512)
--				return -EINVAL;
-+			if (coda_get_bitstream_payload(ctx) < 512) {
-+				ret = -EINVAL;
-+				goto err;
-+			}
- 		} else {
--			if (count < 1)
--				return -EINVAL;
-+			if (count < 1) {
-+				ret = -EINVAL;
-+				goto err;
-+			}
- 		}
- 
- 		ctx->streamon_out = 1;
- 	} else {
--		if (count < 1)
--			return -EINVAL;
-+		if (count < 1) {
-+			ret = -EINVAL;
-+			goto err;
-+		}
- 
- 		ctx->streamon_cap = 1;
- 	}
-@@ -1047,7 +1054,8 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 				     q_data_dst->fourcc);
- 	if (!ctx->codec) {
- 		v4l2_err(v4l2_dev, "couldn't tell instance type.\n");
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto err;
- 	}
- 
- 	ret = ctx->ops->start_streaming(ctx);
-@@ -1055,11 +1063,21 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 		if (ret == -EAGAIN)
- 			return 0;
- 		else if (ret < 0)
--			return ret;
-+			goto err;
- 	}
- 
- 	ctx->initialized = 1;
- 	return ret;
-+
-+err:
-+	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-+		while ((buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx)))
-+			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_DEQUEUED);
-+	} else {
-+		while ((buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx)))
-+			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_DEQUEUED);
-+	}
-+	return ret;
- }
- 
- static void coda_stop_streaming(struct vb2_queue *q)
--- 
-2.0.1
+> Moikka
+> 
+> 
+> On 07/09/2014 04:14 PM, Andre Newman wrote:
+>> I’m using a T290e for whole mux DVBT2 capture, using this to record the current BBC World Cup Ultra HD tests, works well. :-)
+>> 
+>> It seems impossible to buy more T290e’s, everyone want to sell me a T292e, I understand there is a driver now, thanks Antti. I read on Antti’s blog that there is a limit on raw TS performance with the T292, that it didn’t work well with QAM256 because of this...
+>> 
+>> I am wondering if this is a hardware limit, or a performance problem that may have been resolved now the driver is a little tiny bit more mature?
+>> 
+>> I am very happy to get a T292e and make some tests, help debug if there is a hope that it can handle 40Mbps in hardware.If there is a hardware limit I’d rather not be stuck with a limited tuner!
+>> 
+>> The mux I need to record is QAM256 at ~40Mbps and the UHD video is ~36Mbps of this.
+>> 
+>> Otherwise what other DVBT2 tuners are there that can capture a raw QAM256 mux at 40Mbps?
+> 
+> You simply confused two different devices. There is no such limit on PCTV 292e as far as I know. It is another DVB-T2 device having RTL2832P bridge having problem with stream bandwidth.
+
+Ok, great news, thanks.
+
+Sorry for the noise… I’ll get one to try tomorrow.
+
+Regards
+
+Andre
+
+
+
+> 
+> regards
+> Antti
+> 
+> 
+> -- 
+> http://palosaari.fi/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
