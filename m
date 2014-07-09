@@ -1,92 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:61456 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750932AbaGDHjs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jul 2014 03:39:48 -0400
-Received: by mail-wi0-f179.google.com with SMTP id cc10so3362058wib.6
-        for <linux-media@vger.kernel.org>; Fri, 04 Jul 2014 00:39:46 -0700 (PDT)
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56460 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755407AbaGIQBa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Jul 2014 12:01:30 -0400
+Date: Wed, 9 Jul 2014 19:01:25 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"hdegoede@redhat.com" <hdegoede@redhat.com>
+Subject: Re: [PATCH 2/2] libv4lcontrol: sync control strings/flags with the
+ kernel
+Message-ID: <20140709160125.GD16460@valkosipuli.retiisi.org.uk>
+References: <53BBD0EF.1050104@xs4all.nl>
 MIME-Version: 1.0
-Date: Fri, 4 Jul 2014 17:39:46 +1000
-Message-ID: <CANxo0uM+ciOi40LrutTcoOSE4aq7CPuXRAUg=L_4V-+4JTrR6A@mail.gmail.com>
-Subject: dvb-t initial scan file update for au-Tamworth
-From: Dominic Gardiner <dominic.gardiner@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=047d7bacc1e4c18b5204fd593ae5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53BBD0EF.1050104@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---047d7bacc1e4c18b5204fd593ae5
-Content-Type: text/plain; charset=UTF-8
+On Tue, Jul 08, 2014 at 01:07:27PM +0200, Hans Verkuil wrote:
+> Hans,
+> 
+> I'd like your opinion on this. I really don't think the (sw) suffix serves
+> any purpose and is just confusing to the end-user.
+> 
+> If you think that it is important that apps/users know that a control is emulated,
+> then I would propose adding a V4L2_CTRL_FLAG_EMULATED and setting it in
+> libv4lcontrol. Similar to the FMT_FLAG_EMULATED.
 
-Please find attached, initial scan file for au-Tamworth
+IMHO it'd be important to know whether something is emulated or not, as
+emulation such as flipping carries often a significant CPU overhead. Format
+conversions are "easy" in this respect since not performing the conversion
+obviously avoids the overhead.
 
-- Updated frequencies for Upper Namoi / Mt.Dowe retune which has now taken place
+I'm not sure if the information that a control is emulated is useful as
+such. For instance, how do you tell which choice of an emulated flipping
+control would avoid the overhead, if the sensor is mounted upside down? In
+this case the "default", "unflipped" configuration actually is implemented
+in software. This looks like another field next to default, min, max and
+step for QUERY_EXT_CTRL to me.
 
-# Australia / NSW / New England / Tamworth / Mt.Soma
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-# SBS
-T 690500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
-# NBN
-T 753500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# Prime
-T 732500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# ABC
-T 711500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# SC10
-T 774500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+Just my 5 euro cents.
 
-# Australia / NSW / New England / Upper Namoi / Mt.Dowe
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-# SBS
-T 529500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
-# NBN
-T 550500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# Prime
-T 543500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# ABC
-T 536500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# SC10
-T 557500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+-- 
+Kind regards,
 
-# Australia / NSW / Western Districts / Central Western Slopes / Mt.
-Cenn Cruaich
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-# SBS
-T 641500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
-# WIN
-T 648500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# Prime
-T 620500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# ABC
-T 226625000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# SC10
-T 641500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-
---047d7bacc1e4c18b5204fd593ae5
-Content-Type: application/octet-stream; name=au-Tamworth
-Content-Disposition: attachment; filename=au-Tamworth
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hx76y73u0
-
-IyBBdXN0cmFsaWEgLyBOU1cgLyBOZXcgRW5nbGFuZCAvIFRhbXdvcnRoIC8gTXQuU29tYQojIFQg
-ZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZh
-bCBoaWVyYXJjaHkKIyBTQlMKVCA2OTA1MDAwMDAgN01IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzgg
-Tk9ORQojIE5CTgpUIDc1MzUwMDAwMCA3TUh6IDMvNCBOT05FIFFBTTY0IDhrIDEvMTYgTk9ORQoj
-IFByaW1lClQgNzMyNTAwMDAwIDdNSHogMy80IE5PTkUgUUFNNjQgOGsgMS8xNiBOT05FCiMgQUJD
-ClQgNzExNTAwMDAwIDdNSHogMy80IE5PTkUgUUFNNjQgOGsgMS8xNiBOT05FCiMgU0MxMApUIDc3
-NDUwMDAwMCA3TUh6IDMvNCBOT05FIFFBTTY0IDhrIDEvMTYgTk9ORQoKIyBBdXN0cmFsaWEgLyBO
-U1cgLyBOZXcgRW5nbGFuZCAvIFVwcGVyIE5hbW9pIC8gTXQuRG93ZQojIFQgZnJlcSBidyBmZWNf
-aGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkK
-IyBTQlMKVCA1Mjk1MDAwMDAgN01IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzggTk9ORQojIE5CTgpU
-IDU1MDUwMDAwMCA3TUh6IDMvNCBOT05FIFFBTTY0IDhrIDEvMTYgTk9ORQojIFByaW1lClQgNTQz
-NTAwMDAwIDdNSHogMy80IE5PTkUgUUFNNjQgOGsgMS8xNiBOT05FCiMgQUJDClQgNTM2NTAwMDAw
-IDdNSHogMy80IE5PTkUgUUFNNjQgOGsgMS8xNiBOT05FCiMgU0MxMApUIDU1NzUwMDAwMCA3TUh6
-IDMvNCBOT05FIFFBTTY0IDhrIDEvMTYgTk9ORQoKIyBBdXN0cmFsaWEgLyBOU1cgLyBXZXN0ZXJu
-IERpc3RyaWN0cyAvIENlbnRyYWwgV2VzdGVybiBTbG9wZXMgLyBNdC4gQ2VubiBDcnVhaWNoCiMg
-VCBmcmVxIGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVy
-dmFsIGhpZXJhcmNoeQojIFNCUwpUIDY0MTUwMDAwMCA3TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEv
-OCBOT05FCiMgV0lOClQgNjQ4NTAwMDAwIDdNSHogMy80IE5PTkUgUUFNNjQgOGsgMS8xNiBOT05F
-CiMgUHJpbWUKVCA2MjA1MDAwMDAgN01IeiAzLzQgTk9ORSBRQU02NCA4ayAxLzE2IE5PTkUKIyBB
-QkMKVCAyMjY2MjUwMDAgN01IeiAzLzQgTk9ORSBRQU02NCA4ayAxLzE2IE5PTkUKIyBTQzEwClQg
-NjQxNTAwMDAwIDdNSHogMy80IE5PTkUgUUFNNjQgOGsgMS8xNiBOT05FCg==
---047d7bacc1e4c18b5204fd593ae5--
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
