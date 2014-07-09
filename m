@@ -1,42 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay012.isp.belgacom.be ([195.238.6.179]:14493 "EHLO
-	mailrelay012.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751216AbaGGSx1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jul 2014 14:53:27 -0400
-From: Fabian Frederick <fabf@skynet.be>
-To: linux-kernel@vger.kernel.org
-Cc: Fabian Frederick <fabf@skynet.be>,
+Received: from mga02.intel.com ([134.134.136.20]:36855 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964871AbaGIP2T (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Jul 2014 11:28:19 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Tadeusz Struk <tadeusz.struk@intel.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [RFC 1/1] em28xx: fix configuration warning
-Date: Mon,  7 Jul 2014 20:51:55 +0200
-Message-Id: <1404759115-11029-1-git-send-email-fabf@skynet.be>
+	Helge Deller <deller@gmx.de>,
+	Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>,
+	linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>,
+	qat-linux@intel.com, linux-crypto@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 3/5] crypto: qat - use seq_hex_dump() to dump buffers
+Date: Wed,  9 Jul 2014 18:24:28 +0300
+Message-Id: <1404919470-26668-4-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch tries to solve a problem detected with random configuration.
-warning: (VIDEO_EM28XX_V4L2) selects VIDEO_MT9V011 which has unmet direct dependencies (MEDIA_SUPPORT && I2C && VIDEO_V4L2 && MEDIA_CAMERA_SUPPORT)
+Instead of custom approach let's use recently introduced seq_hex_dump() helper.
 
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+In this case it slightly changes the output, namely the four tetrads will be
+output on one line.
+
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/media/usb/em28xx/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/crypto/qat/qat_common/adf_transport_debug.c | 16 ++--------------
+ 1 file changed, 2 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/Kconfig b/drivers/media/usb/em28xx/Kconfig
-index f5d7198..d42e1de 100644
---- a/drivers/media/usb/em28xx/Kconfig
-+++ b/drivers/media/usb/em28xx/Kconfig
-@@ -7,6 +7,7 @@ config VIDEO_EM28XX
- config VIDEO_EM28XX_V4L2
- 	tristate "Empia EM28xx analog TV, video capture and/or webcam support"
- 	depends on VIDEO_EM28XX
-+	depends on MEDIA_CAMERA_SUPPORT
- 	select VIDEOBUF2_VMALLOC
- 	select VIDEO_SAA711X if MEDIA_SUBDRV_AUTOSELECT
- 	select VIDEO_TVP5150 if MEDIA_SUBDRV_AUTOSELECT
+diff --git a/drivers/crypto/qat/qat_common/adf_transport_debug.c b/drivers/crypto/qat/qat_common/adf_transport_debug.c
+index 6b69745..8b103cf 100644
+--- a/drivers/crypto/qat/qat_common/adf_transport_debug.c
++++ b/drivers/crypto/qat/qat_common/adf_transport_debug.c
+@@ -86,9 +86,7 @@ static int adf_ring_show(struct seq_file *sfile, void *v)
+ {
+ 	struct adf_etr_ring_data *ring = sfile->private;
+ 	struct adf_etr_bank_data *bank = ring->bank;
+-	uint32_t *msg = v;
+ 	void __iomem *csr = ring->bank->csr_addr;
+-	int i, x;
+ 
+ 	if (v == SEQ_START_TOKEN) {
+ 		int head, tail, empty;
+@@ -111,18 +109,8 @@ static int adf_ring_show(struct seq_file *sfile, void *v)
+ 		seq_puts(sfile, "----------- Ring data ------------\n");
+ 		return 0;
+ 	}
+-	seq_printf(sfile, "%p:", msg);
+-	x = 0;
+-	i = 0;
+-	for (; i < (ADF_MSG_SIZE_TO_BYTES(ring->msg_size) >> 2); i++) {
+-		seq_printf(sfile, " %08X", *(msg + i));
+-		if ((ADF_MSG_SIZE_TO_BYTES(ring->msg_size) >> 2) != i + 1 &&
+-		    (++x == 8)) {
+-			seq_printf(sfile, "\n%p:", msg + i + 1);
+-			x = 0;
+-		}
+-	}
+-	seq_puts(sfile, "\n");
++	seq_hex_dump(sfile, "", DUMP_PREFIX_ADDRESS, 16, 4,
++		     v, ADF_MSG_SIZE_TO_BYTES(ring->msg_size), false);
+ 	return 0;
+ }
+ 
 -- 
-1.8.4.5
+2.0.1
 
