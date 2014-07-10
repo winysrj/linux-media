@@ -1,59 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2596 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752547AbaGQWYj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 18:24:39 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6HMOZ3f029531
-	for <linux-media@vger.kernel.org>; Fri, 18 Jul 2014 00:24:38 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0C1DA2A1FD1
-	for <linux-media@vger.kernel.org>; Fri, 18 Jul 2014 00:24:34 +0200 (CEST)
-Message-ID: <53C84D21.5000505@xs4all.nl>
-Date: Fri, 18 Jul 2014 00:24:33 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49508 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751766AbaGJAaD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jul 2014 20:30:03 -0400
+Date: Wed, 9 Jul 2014 17:34:28 -0700
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Fabian Frederick <fabf@skynet.be>
+Cc: linux-kernel@vger.kernel.org,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] drivers/base/dma-buf.c: replace
+ dma_buf_uninit_debugfs by debugfs_remove_recursive
+Message-ID: <20140710003428.GA22113@kroah.com>
+References: <1403901130-8156-1-git-send-email-fabf@skynet.be>
 MIME-Version: 1.0
-To: linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH for v3.17] DocBook media: fix incorrect note about packed
- RGB and colorspace
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1403901130-8156-1-git-send-email-fabf@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The fact that the pixelformat is using a packed RGB format has nothing
-to do with the colorspace that is being used. Those are very different
-things. The colorspace decides what color a triplet of RGB numbers
-actually map to. E.g. a red color with values (255, 0, 0) is a different
-type of red depending on the colorspace. If the original pixelformat was
-e.g. YUV in colorspace REC709, then after the conversion to RGB the
-colorspace is still REC709. Unless the hardware actually converted the
-colorspace as well from REC709 to sRGB, but that rarely if ever happens.
+On Fri, Jun 27, 2014 at 10:32:10PM +0200, Fabian Frederick wrote:
+> null test before debugfs_remove_recursive is not needed so one line function
+> dma_buf_uninit_debugfs can be removed.
+> 
+> This patch calls debugfs_remove_recursive under CONFIG_DEBUG_FS
+> 
+> Cc: Sumit Semwal <sumit.semwal@linaro.org>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: linux-media@vger.kernel.org
+> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+> ---
+> 
+> This is untested.
+> 
+>  drivers/base/dma-buf.c | 13 +++----------
+>  1 file changed, 3 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+> index 840c7fa..184c0cb 100644
+> --- a/drivers/base/dma-buf.c
+> +++ b/drivers/base/dma-buf.c
+> @@ -701,12 +701,6 @@ static int dma_buf_init_debugfs(void)
+>  	return err;
+>  }
+>  
+> -static void dma_buf_uninit_debugfs(void)
+> -{
+> -	if (dma_buf_debugfs_dir)
+> -		debugfs_remove_recursive(dma_buf_debugfs_dir);
+> -}
+> -
+>  int dma_buf_debugfs_create_file(const char *name,
+>  				int (*write)(struct seq_file *))
+>  {
+> @@ -722,9 +716,6 @@ static inline int dma_buf_init_debugfs(void)
+>  {
+>  	return 0;
+>  }
+> -static inline void dma_buf_uninit_debugfs(void)
+> -{
+> -}
+>  #endif
+>  
+>  static int __init dma_buf_init(void)
+> @@ -738,6 +729,8 @@ subsys_initcall(dma_buf_init);
+>  
+>  static void __exit dma_buf_deinit(void)
+>  {
+> -	dma_buf_uninit_debugfs();
+> +#ifdef CONFIG_DEBUG_FS
+> +	debugfs_remove_recursive(dma_buf_debugfs_dir);
+> +#endif
 
-Remove this incorrect comment.
+That ifdef should not be needed at all, right?  No ifdefs should be
+needed for debugfs code, if it is written correctly :)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml | 3 ---
- 1 file changed, 3 deletions(-)
+thanks,
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-index 5f1602f..2aae8e9 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-@@ -15,9 +15,6 @@ typical PC graphics frame buffers. They occupy 8, 16, 24 or 32 bits
- per pixel. These are all packed-pixel formats, meaning all the data
- for a pixel lie next to each other in memory.</para>
- 
--    <para>When one of these formats is used, drivers shall report the
--colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
--
-     <table pgwide="1" frame="none" id="rgb-formats">
-       <title>Packed RGB Image Formats</title>
-       <tgroup cols="37" align="center">
--- 
-2.0.0
-
+greg k-h
