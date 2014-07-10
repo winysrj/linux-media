@@ -1,99 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:57768 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752366AbaGGQc6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jul 2014 12:32:58 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:36744 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751299AbaGJLSQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jul 2014 07:18:16 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH 3/9] s5p-jpeg: Adjust jpeg_bound_align_image to Exynos3250 needs
-Date: Mon, 07 Jul 2014 18:32:04 +0200
-Message-id: <1404750730-22996-4-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1404750730-22996-1-git-send-email-j.anaszewski@samsung.com>
-References: <1404750730-22996-1-git-send-email-j.anaszewski@samsung.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/2] m88ds3103: fix SNR reporting on 32-bit arch
+Date: Thu, 10 Jul 2014 14:17:58 +0300
+Message-Id: <1404991079-3027-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The jpeg_bound_align_image function needs to know the context
-in which it is called, as it needs to align image dimensions in
-a slight different manner for Exynos3250, which crops pixels for
-specific values in case the format is RGB.
+There was 32-bit calculation overflow. Use div_u64.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   25 ++++++++++++++++++++-----
- 1 file changed, 20 insertions(+), 5 deletions(-)
+ drivers/media/dvb-frontends/m88ds3103.c      | 4 ++--
+ drivers/media/dvb-frontends/m88ds3103_priv.h | 1 +
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index df3aaa9..0854f37 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1133,7 +1133,8 @@ static struct s5p_jpeg_fmt *s5p_jpeg_find_format(struct s5p_jpeg_ctx *ctx,
- 	return NULL;
- }
+diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+index 2ef8ce1..4176edf 100644
+--- a/drivers/media/dvb-frontends/m88ds3103.c
++++ b/drivers/media/dvb-frontends/m88ds3103.c
+@@ -879,7 +879,7 @@ static int m88ds3103_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 		/* SNR(X) dB = 10 * ln(X) / ln(10) dB */
+ 		tmp = DIV_ROUND_CLOSEST(tmp, 8 * M88DS3103_SNR_ITERATIONS);
+ 		if (tmp)
+-			*snr = 100ul * intlog2(tmp) / intlog2(10);
++			*snr = div_u64((u64) 100 * intlog2(tmp), intlog2(10));
+ 		else
+ 			*snr = 0;
+ 		break;
+@@ -908,7 +908,7 @@ static int m88ds3103_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 		/* SNR(X) dB = 10 * log10(X) dB */
+ 		if (signal > noise) {
+ 			tmp = signal / noise;
+-			*snr = 100ul * intlog10(tmp) / (1 << 24);
++			*snr = div_u64((u64) 100 * intlog10(tmp), (1 << 24));
+ 		} else {
+ 			*snr = 0;
+ 		}
+diff --git a/drivers/media/dvb-frontends/m88ds3103_priv.h b/drivers/media/dvb-frontends/m88ds3103_priv.h
+index 84c3c06..e73db5c 100644
+--- a/drivers/media/dvb-frontends/m88ds3103_priv.h
++++ b/drivers/media/dvb-frontends/m88ds3103_priv.h
+@@ -22,6 +22,7 @@
+ #include "dvb_math.h"
+ #include <linux/firmware.h>
+ #include <linux/i2c-mux.h>
++#include <linux/math64.h>
  
--static void jpeg_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
-+static void jpeg_bound_align_image(struct s5p_jpeg_ctx *ctx,
-+				   u32 *w, unsigned int wmin, unsigned int wmax,
- 				   unsigned int walign,
- 				   u32 *h, unsigned int hmin, unsigned int hmax,
- 				   unsigned int halign)
-@@ -1145,13 +1146,27 @@ static void jpeg_bound_align_image(u32 *w, unsigned int wmin, unsigned int wmax,
- 
- 	w_step = 1 << walign;
- 	h_step = 1 << halign;
-+
-+	if (ctx->jpeg->variant->version == SJPEG_EXYNOS3250) {
-+		/*
-+		 * Rightmost and bottommost pixels are cropped by the
-+		 * Exynos3250 JPEG IP for RGB formats, for the specific
-+		 * width and height values respectively. This assignment
-+		 * will result in v4l_bound_align_image returning dimensions
-+		 * reduced by 1 for the aforementioned cases.
-+		 */
-+		if (w_step == 4 && ((width & 3) == 1)) {
-+			wmax = width;
-+			hmax = height;
-+		}
-+	}
-+
- 	v4l_bound_align_image(w, wmin, wmax, walign, h, hmin, hmax, halign, 0);
- 
- 	if (*w < width && (*w + w_step) < wmax)
- 		*w += w_step;
- 	if (*h < height && (*h + h_step) < hmax)
- 		*h += h_step;
--
- }
- 
- static int vidioc_try_fmt(struct v4l2_format *f, struct s5p_jpeg_fmt *fmt,
-@@ -1167,12 +1182,12 @@ static int vidioc_try_fmt(struct v4l2_format *f, struct s5p_jpeg_fmt *fmt,
- 	/* V4L2 specification suggests the driver corrects the format struct
- 	 * if any of the dimensions is unsupported */
- 	if (q_type == FMT_TYPE_OUTPUT)
--		jpeg_bound_align_image(&pix->width, S5P_JPEG_MIN_WIDTH,
-+		jpeg_bound_align_image(ctx, &pix->width, S5P_JPEG_MIN_WIDTH,
- 				       S5P_JPEG_MAX_WIDTH, 0,
- 				       &pix->height, S5P_JPEG_MIN_HEIGHT,
- 				       S5P_JPEG_MAX_HEIGHT, 0);
- 	else
--		jpeg_bound_align_image(&pix->width, S5P_JPEG_MIN_WIDTH,
-+		jpeg_bound_align_image(ctx, &pix->width, S5P_JPEG_MIN_WIDTH,
- 				       S5P_JPEG_MAX_WIDTH, fmt->h_align,
- 				       &pix->height, S5P_JPEG_MIN_HEIGHT,
- 				       S5P_JPEG_MAX_HEIGHT, fmt->v_align);
-@@ -1294,7 +1309,7 @@ static int exynos4_jpeg_get_output_buffer_size(struct s5p_jpeg_ctx *ctx,
- 	else
- 		wh_align = 1;
- 
--	jpeg_bound_align_image(&w, S5P_JPEG_MIN_WIDTH,
-+	jpeg_bound_align_image(ctx, &w, S5P_JPEG_MIN_WIDTH,
- 			       S5P_JPEG_MAX_WIDTH, wh_align,
- 			       &h, S5P_JPEG_MIN_HEIGHT,
- 			       S5P_JPEG_MAX_HEIGHT, wh_align);
+ #define M88DS3103_FIRMWARE "dvb-demod-m88ds3103.fw"
+ #define M88DS3103_MCLK_KHZ 96000
 -- 
-1.7.9.5
+1.9.3
 
