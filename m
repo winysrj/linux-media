@@ -1,79 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:53952 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750742AbaGVLsc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 07:48:32 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Mark Rutland <mark.rutland@arm.com>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"andrzej.p@samsung.com" <andrzej.p@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: Re: [PATCH v2 8/9] Documentation: devicetree: Document sclk-jpeg clock for exynos3250 SoC
-Date: Tue, 22 Jul 2014 13:48:25 +0200
-Message-ID: <14970063.d648TVkJj8@wuerfel>
-In-Reply-To: <53CE4E08.2030407@samsung.com>
-References: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com> <20140714095640.GC4980@leverpostej> <53CE4E08.2030407@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kapsi.fi ([217.30.184.167]:40383 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752455AbaGJLNg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jul 2014 07:13:36 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/4] si2168: implement sleep
+Date: Thu, 10 Jul 2014 14:13:12 +0300
+Message-Id: <1404990794-2902-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1404990794-2902-1-git-send-email-crope@iki.fi>
+References: <1404990794-2902-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 22 July 2014 13:42:00 Sylwester Nawrocki wrote:
-> On 14/07/14 11:56, Mark Rutland wrote:
-> >> diff --git a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-> >> > index 937b755..3142745 100644
-> >> > --- a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-> >> > +++ b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
-> >> > @@ -3,9 +3,12 @@ Samsung S5P/EXYNOS SoC series JPEG codec
-> >> >  Required properties:
-> >> >  
-> >> >  - compatible      : should be one of:
-> >> > -            "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg";
-> >> > +            "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg",
-> >> > +            "samsung,exynos3250-jpeg";
-> >> >  - reg             : address and length of the JPEG codec IP register set;
-> >> >  - interrupts      : specifies the JPEG codec IP interrupt;
-> >> > -- clocks  : should contain the JPEG codec IP gate clock specifier, from the
-> >> > +- clocks  : should contain the JPEG codec IP gate clock specifier and
-> >> > +            for the Exynos3250 SoC additionally the SCLK_JPEG entry; from the
-> >> >              common clock bindings;
-> >> > -- clock-names     : should contain "jpeg" entry.
-> >> > +- clock-names     : should contain "jpeg" entry and additionally "sclk-jpeg" entry
-> >> > +            for Exynos3250 SoC
-> >
-> > Please turn this into a list for easier reading, e.g.
-> > 
-> > - clock-names: should contain:
-> >   * "jpeg" for the gate clock.
-> >   * "sclk-jpeg" for the SCLK_JPEG clock (only for Exynos3250).
-> > 
-> > You could also define clocks in terms of clock-names to avoid
-> > redundancy.
-> > 
-> > The SCLK_JPEG name sounds like a global name for the clock. Is there a
-> > name for the input line on the JPEG block this is plugged into?
-> 
-> There is unfortunately no such name for SCLK_JPEG clock in the IP's block
-> documentation. For most of the multimedia IPs clocks are documented
-> only in the clock controller chapter, hence the names may appear global.
-> Probably "gate", "sclk" would be good names, rather than "<IP_NAME>",
-> "<IP_NAME>-sclk". But people kept using the latter convention and now
-> it's spread all over and it's hard to change it.
-> Since now we can't rename "jpeg" and other IPs I'd assume it's best
-> to stay with "jpeg", "sclk-jpeg".
+Implement sleep for power-management.
 
-We just had the exact same discussion about the addition of the sclk for
-the adc in exynos3250 and ended up calling it just "sclk" instead of "sclk-adc"
-there. I think it would be best to do the same here and use "sclk" instead
-of "sclk-jpeg".
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/si2168.c | 19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-	Arnd
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 8637d2e..0d0545e 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -438,13 +438,6 @@ static int si2168_init(struct dvb_frontend *fe)
+ 
+ 	dev_dbg(&s->client->dev, "%s:\n", __func__);
+ 
+-	cmd.args[0] = 0x13;
+-	cmd.wlen = 1;
+-	cmd.rlen = 0;
+-	ret = si2168_cmd_execute(s, &cmd);
+-	if (ret)
+-		goto err;
+-
+ 	cmd.args[0] = 0xc0;
+ 	cmd.args[1] = 0x12;
+ 	cmd.args[2] = 0x00;
+@@ -559,12 +552,24 @@ err:
+ static int si2168_sleep(struct dvb_frontend *fe)
+ {
+ 	struct si2168 *s = fe->demodulator_priv;
++	int ret;
++	struct si2168_cmd cmd;
+ 
+ 	dev_dbg(&s->client->dev, "%s:\n", __func__);
+ 
+ 	s->active = false;
+ 
++	memcpy(cmd.args, "\x13", 1);
++	cmd.wlen = 1;
++	cmd.rlen = 0;
++	ret = si2168_cmd_execute(s, &cmd);
++	if (ret)
++		goto err;
++
+ 	return 0;
++err:
++	dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
++	return ret;
+ }
+ 
+ static int si2168_get_tune_settings(struct dvb_frontend *fe,
+-- 
+1.9.3
+
