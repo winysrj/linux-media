@@ -1,61 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2453 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756151AbaGQJTz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 05:19:55 -0400
-Message-ID: <53C79532.5020900@xs4all.nl>
-Date: Thu, 17 Jul 2014 11:19:46 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Nikhil Devshatwar <nikhil.nd@ti.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] media: vb2: verify data_offset only if nonzero bytesused
-References: <1403516750-22084-1-git-send-email-nikhil.nd@ti.com>
-In-Reply-To: <1403516750-22084-1-git-send-email-nikhil.nd@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mga03.intel.com ([143.182.124.21]:64351 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751420AbaGJJux (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jul 2014 05:50:53 -0400
+Message-ID: <1404985839.5102.97.camel@smile.fi.intel.com>
+Subject: Re: [PATCH v1 1/5] seq_file: provide an analogue of print_hex_dump()
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Marek Vasut <marex@denx.de>
+Cc: Joe Perches <joe@perches.com>,
+	Tadeusz Struk <tadeusz.struk@intel.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Helge Deller <deller@gmx.de>,
+	Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>,
+	linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>,
+	qat-linux@intel.com, linux-crypto@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Thu, 10 Jul 2014 12:50:39 +0300
+In-Reply-To: <201407100958.02218.marex@denx.de>
+References: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <201407092239.30561.marex@denx.de> <1404940868.932.168.camel@joe-AO725>
+	 <201407100958.02218.marex@denx.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nikhil,
-
-First of all, sorry for the delay in answering. I needed some time to really look at
-this.
-
-Anyway, this patch as is is not good enough since it does not handle the case where
-data_offset is > length and bytesused == 0.
-
-However, I think the solution should be done differently. I'll prepare a patch for
-this and CC it to you so you can take a look at it.
-
-Regards,
-
-	Hans
-
-On 06/23/2014 11:45 AM, Nikhil Devshatwar wrote:
-> verify_length would fail if the user space fills up the data_offset field
-> and bytesused is left as zero. Correct this.
+On Thu, 2014-07-10 at 09:58 +0200, Marek Vasut wrote:
+> On Wednesday, July 09, 2014 at 11:21:08 PM, Joe Perches wrote:
+> > On Wed, 2014-07-09 at 22:39 +0200, Marek Vasut wrote:
+> > > The above function looks like almost verbatim copy of print_hex_dump().
+> > > The only difference I can spot is that it's calling seq_printf() instead
+> > > of printk(). Can you not instead generalize print_hex_dump() and based
+> > > on it's invocation, make it call either seq_printf() or printk() ?
+> > 
+> > How do you propose doing that given any seq_<foo> call
+> > requires a struct seq_file * and print_hex_dump needs
+> > a KERN_<LEVEL>.
 > 
-> If bytesused is not populated, it means bytesused is same as length.
-> Checking data offset >= bytesused makes sense only if bytesused is valid.
+> I can imagine a rather nasty way, I can't say I would like it myself tho. The 
+> general idea would be to pull out the entire switch {} statement into a separate 
+> functions , one for printk() and one for seq_printf() cases. Then, have a 
+> generic do_hex_dump() call which would take as an argument a pointer to either 
+> of those functions and a void * to either the seq_file or level . Finally, there 
+> would have to be a wrapper to call the do_hex_dump() with the correct function 
+> pointer and it's associated arg.
 > 
-> Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> Nasty? Yes ... Ineffective? Most likely.
+
+It looks not good idea, yeah.
+
+> > Is there an actual value to it?
 > 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 7c4489c..369a155 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -590,7 +590,7 @@ static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->  			if (b->m.planes[plane].bytesused > length)
->  				return -EINVAL;
->  
-> -			if (b->m.planes[plane].data_offset > 0 &&
-> +			if (b->m.planes[plane].bytesused > 0 &&
->  			    b->m.planes[plane].data_offset >=
->  			    b->m.planes[plane].bytesused)
->  				return -EINVAL;
-> 
+> Reducing the code duplication, but I wonder if there is a smarter solution than 
+> the horrid one above.
+
+I have considered to modify hex_dump_to_buffer() to return how many
+bytes it actually proceed to the buffer. In that case we can directly
+print to m->buf like other seq_<foo> calls do.
+
+But I still have doubts about it. Any opinion?
+
+-- 
+Andy Shevchenko <andriy.shevchenko@intel.com>
+Intel Finland Oy
 
