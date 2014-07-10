@@ -1,89 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f181.google.com ([209.85.220.181]:42912 "EHLO
-	mail-vc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753779AbaGIUOh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jul 2014 16:14:37 -0400
-Received: by mail-vc0-f181.google.com with SMTP id il7so8355099vcb.12
-        for <linux-media@vger.kernel.org>; Wed, 09 Jul 2014 13:14:37 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAFvcAg4c9Z-pt3EquwA98d5dUW20dD20y9VXH=5i8MjHA5iHYQ@mail.gmail.com>
-References: <CAFvcAg4c9Z-pt3EquwA98d5dUW20dD20y9VXH=5i8MjHA5iHYQ@mail.gmail.com>
-Date: Wed, 9 Jul 2014 22:14:37 +0200
-Message-ID: <CAFvcAg49VwGS9CadmeR5AR1q4Q0mNssHeCYAt-saV5mYTNjFAw@mail.gmail.com>
-Subject: Re: DVB-T be-all: tuning failed for 754mhz
-From: Quentin Denis <quentin.denis@gmail.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:63372 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752098AbaGJI6X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jul 2014 04:58:23 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Cc: arun.kk@samsung.com, k.debski@samsung.com, jtp.park@samsung.com,
+	b.zolnierkie@samsung.com, kyungmin.park@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org
+Subject: [PATCH v2 3/3] DT: s5p-mfc: Document exynos3250 SoC related settings
+Date: Thu, 10 Jul 2014 10:58:11 +0200
+Message-id: <1404982691-23472-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have the same issue with w_scan: http://pastebin.com/vCFD2972
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
+Cc: devicetree@vger.kernel.org
+---
+ .../devicetree/bindings/media/s5p-mfc.txt          |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-On Wed, Jul 9, 2014 at 12:28 PM, Quentin Denis <quentin.denis@gmail.com> wrote:
-> Hi all,
->
-> I am running a Terratec DVB Cinergy T stick MKII under openSUSE and cannot find
-> all the channels available in my region (Brussels). I have all the channels
-> from on 482Mhz but none on 754mh, whereas on Windows I receive both.
->
-> How can it be that it does not fully work under linux? Is there an
-> issue with the
-> driver? Neither kaffeine nor 'scan' will find it. The latter outputs a
-> tuning failure:
->
-> quentin@linux-v3k0:~> scan be-All.txt > channels.conf
-> scanning be-All.txt
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> initial transponder 754000000 0 3 9 1 1 3 0
-> initial transponder 482000000 0 1 9 3 1 3 0
-> initial transponder 506000000 0 1 9 3 1 3 0
-> initial transponder 666000000 0 3 9 1 1 3 0
-> initial transponder 834000000 0 3 9 1 1 3 0
->>>> tune to:
-> 754000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
->>>> tune to:
-> 754000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-> (tuning failed)
-> WARNING: >>> tuning failed!!!
->>>> tune to:
-> 482000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-> Network Name 'VRTmux1'
-> 0x0001 0x1010: pmt_pid 0x1010 VRT -- EEN (running)
-> 0x0001 0x1020: pmt_pid 0x1020 VRT -- Canvas (running)
-> 0x0001 0x1030: pmt_pid 0x1030 VRT -- Ketnet op 12 (running)
-> 0x0001 0x1040: pmt_pid 0x1040 VRT -- Radio 1 (running)
-> 0x0001 0x1050: pmt_pid 0x1050 VRT -- Radio 2 (running)
-> 0x0001 0x1060: pmt_pid 0x1060 VRT -- Klara (running)
-> 0x0001 0x1070: pmt_pid 0x1070 VRT -- Studio Brussel (running)
-> 0x0001 0x1080: pmt_pid 0x1080 VRT -- MNM (running)
-> 0x0001 0x1090: pmt_pid 0x1090 VRT -- Klara Continuo (running)
-> 0x0001 0x10a0: pmt_pid 0x10a0 VRT -- Sporza (running)
-> 0x0001 0x10c0: pmt_pid 0x10c0 VRT -- Nieuws+ (running)
-> 0x0001 0x10d0: pmt_pid 0x10d0 VRT -- MNM Hits (running)
->>>> tune to:
-> 506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
->>>> tune to:
-> 506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-> (tuning failed)
-> WARNING: >>> tuning failed!!!
->>>> tune to:
-> 666000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
->>>> tune to:
-> 666000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-> (tuning failed)
-> WARNING: >>> tuning failed!!!
->>>> tune to:
-> 834000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
->>>> tune to:
-> 834000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-> (tuning failed)
-> WARNING: >>> tuning failed!!!
-> dumping lists (12 services)
-> Done.
->
-> Best regards,
-> Quentin
+diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+index 3e3c5f3..ee9604b 100644
+--- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
++++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+@@ -10,16 +10,20 @@ Required properties:
+   - compatible : value should be either one among the following
+ 	(a) "samsung,mfc-v5" for MFC v5 present in Exynos4 SoCs
+ 	(b) "samsung,mfc-v6" for MFC v6 present in Exynos5 SoCs
+-	(c) "samsung,mfc-v7" for MFC v7 present in Exynos5420 SoC
++	(c) "samsung,mfc-v7" for MFC v7 present in Exynos3250 and Exynos5420 SoC
+ 	(d) "samsung,mfc-v8" for MFC v8 present in Exynos5800 SoC
+ 
+   - reg : Physical base address of the IP registers and length of memory
+ 	  mapped region.
+ 
+   - interrupts : MFC interrupt number to the CPU.
+-  - clocks : from common clock binding: handle to mfc clock.
++  - clocks : from common clock binding: handle to mfc clock and for
++	     Exynos3250 SoC special clock gate should be defined
++	     as the second element of the clocks array
++
+   - clock-names : from common clock binding: must contain "mfc",
+-		  corresponding to entry in the clocks property.
++		  corresponding to entry in the clocks property and
++		  additionally "sclk-mfc" entry for Exynos3250 SoC
+ 
+   - samsung,mfc-r : Base address of the first memory bank used by MFC
+ 		    for DMA contiguous memory allocation and its size.
+-- 
+1.7.9.5
+
