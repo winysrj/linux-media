@@ -1,97 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42701 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752205AbaGVQDv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 12:03:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Enrico <ebutera@users.sourceforge.net>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Enric Balletbo Serra <eballetbo@gmail.com>,
-	stefan@herbrechtsmeier.net
-Subject: Re: [PATCH 00/11] OMAP3 ISP BT.656 support
-Date: Tue, 22 Jul 2014 18:04:03 +0200
-Message-ID: <5099401.EbLZaQU31t@avalon>
-In-Reply-To: <CA+2YH7t0rzko=Ssg7Qe8oC_qXUTr=uFzDqBqmPtAAbQ2dAntNA@mail.gmail.com>
-References: <1401133812-8745-1-git-send-email-laurent.pinchart@ideasonboard.com> <CA+2YH7urbO6C-a6UMB+1JKN2z7F0CDmqh0184cCzXHbW1ADfXA@mail.gmail.com> <CA+2YH7t0rzko=Ssg7Qe8oC_qXUTr=uFzDqBqmPtAAbQ2dAntNA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kapsi.fi ([217.30.184.167]:54666 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751021AbaGJLSQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jul 2014 07:18:16 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/2] m88ds3103: implement BER
+Date: Thu, 10 Jul 2014 14:17:59 +0300
+Message-Id: <1404991079-3027-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1404991079-3027-1-git-send-email-crope@iki.fi>
+References: <1404991079-3027-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enrico,
+Implement read_ber for BER estimate.
 
-On Tuesday 22 July 2014 17:52:27 Enrico wrote:
-> On Tue, Jun 24, 2014 at 5:19 PM, Enrico <ebutera@users.berlios.de> wrote:
-> > On Tue, May 27, 2014 at 10:38 AM, Enrico <ebutera@users.berlios.de> wrote:
-> >> On Mon, May 26, 2014 at 9:50 PM, Laurent Pinchart wrote:
-> >>> Hello,
-> >>> 
-> >>> This patch sets implements support for BT.656 and interlaced formats in
-> >>> the OMAP3 ISP driver. Better late than never I suppose, although given
-> >>> how long this has been on my to-do list there's probably no valid
-> >>> excuse.
-> >> 
-> >> Thanks Laurent!
-> >> 
-> >> I hope to have time soon to test it :)
-> > 
-> > Hi Laurent,
-> > 
-> > i wanted to try your patches but i'm having a problem (probably not
-> > caused by your patches).
-> > 
-> > I merged media_tree master and omap3isp branches, applied your patches
-> > and added camera platform data in pdata-quirks, but when loading the
-> > omap3-isp driver i have:
-> > 
-> > omap3isp: clk_set_rate for cam_mclk failed
-> > 
-> > The returned value from clk_set_rate is -22 (EINVAL), but i can't see
-> > any other debug message to track it down. Any ides?
-> > I'm testing it on an igep proton (omap3530 version).
-> 
-> I found out that my previous email was not working anymore, so i
-> didn't read about Stefan patch (ti,set-rate-parent).
-> 
-> With that patch i can setup my pipeline (attached), but i can't make
-> yavta capture:
-> 
-> root@igep00x0:~/field# ./yavta -f UYVY -n4 -s 720x624 -c100 /dev/video2
-> Device /dev/video2 opened.
-> Device `OMAP3 ISP CCDC output' on `media' is a video output (without
-> mplanes) device.
-> Video format set: UYVY (59565955) 720x624 (stride 1440) field none
-> buffer size 898560
-> Video format: UYVY (59565955) 720x624 (stride 1440) field none buffer
-> size 898560
-> 4 buffers requested.
-> length: 898560 offset: 0 timestamp type/source: mono/EoF
-> Buffer 0/0 mapped at address 0xb6ce4000.
-> length: 898560 offset: 901120 timestamp type/source: mono/EoF
-> Buffer 1/0 mapped at address 0xb6c08000.
-> length: 898560 offset: 1802240 timestamp type/source: mono/EoF
-> Buffer 2/0 mapped at address 0xb6b2c000.
-> length: 898560 offset: 2703360 timestamp type/source: mono/EoF
-> Buffer 3/0 mapped at address 0xb6a50000.
-> Unable to start streaming: Invalid argument (22).
-> 4 buffers released.
-> 
-> strace:
-> 
-> ioctl(3, VIDIOC_STREAMON, 0xbef9c75c)   = -1 EINVAL (Invalid argument)
-> 
-> any ideas?
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/m88ds3103.c      | 81 ++++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/m88ds3103_priv.h |  1 +
+ 2 files changed, 82 insertions(+)
 
-You will need to upgrade media-ctl and yavta to versions that support 
-interlaced formats. media-ctl has been moved to v4l-utils 
-(http://git.linuxtv.org/cgit.cgi/v4l-utils.git/) and yavta is hosted at 
-git://git.ideasonboard.org/yavta.git. You want to use the master branch for 
-both trees.
-
+diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+index 4176edf..dfe0c2f 100644
+--- a/drivers/media/dvb-frontends/m88ds3103.c
++++ b/drivers/media/dvb-frontends/m88ds3103.c
+@@ -926,6 +926,86 @@ err:
+ 	return ret;
+ }
+ 
++static int m88ds3103_read_ber(struct dvb_frontend *fe, u32 *ber)
++{
++	struct m88ds3103_priv *priv = fe->demodulator_priv;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int ret;
++	unsigned int utmp;
++	u8 buf[3], u8tmp;
++	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
++
++	switch (c->delivery_system) {
++	case SYS_DVBS:
++		ret = m88ds3103_wr_reg(priv, 0xf9, 0x04);
++		if (ret)
++			goto err;
++
++		ret = m88ds3103_rd_reg(priv, 0xf8, &u8tmp);
++		if (ret)
++			goto err;
++
++		if (!(u8tmp & 0x10)) {
++			u8tmp |= 0x10;
++
++			ret = m88ds3103_rd_regs(priv, 0xf6, buf, 2);
++			if (ret)
++				goto err;
++
++			priv->ber = (buf[1] << 8) | (buf[0] << 0);
++
++			/* restart counters */
++			ret = m88ds3103_wr_reg(priv, 0xf8, u8tmp);
++			if (ret)
++				goto err;
++		}
++		break;
++	case SYS_DVBS2:
++		ret = m88ds3103_rd_regs(priv, 0xd5, buf, 3);
++		if (ret)
++			goto err;
++
++		utmp = (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
++
++		if (utmp > 3000) {
++			ret = m88ds3103_rd_regs(priv, 0xf7, buf, 2);
++			if (ret)
++				goto err;
++
++			priv->ber = (buf[1] << 8) | (buf[0] << 0);
++
++			/* restart counters */
++			ret = m88ds3103_wr_reg(priv, 0xd1, 0x01);
++			if (ret)
++				goto err;
++
++			ret = m88ds3103_wr_reg(priv, 0xf9, 0x01);
++			if (ret)
++				goto err;
++
++			ret = m88ds3103_wr_reg(priv, 0xf9, 0x00);
++			if (ret)
++				goto err;
++
++			ret = m88ds3103_wr_reg(priv, 0xd1, 0x00);
++			if (ret)
++				goto err;
++		}
++		break;
++	default:
++		dev_dbg(&priv->i2c->dev, "%s: invalid delivery_system\n",
++				__func__);
++		ret = -EINVAL;
++		goto err;
++	}
++
++	*ber = priv->ber;
++
++	return 0;
++err:
++	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
++	return ret;
++}
+ 
+ static int m88ds3103_set_tone(struct dvb_frontend *fe,
+ 	fe_sec_tone_mode_t fe_sec_tone_mode)
+@@ -1284,6 +1364,7 @@ static struct dvb_frontend_ops m88ds3103_ops = {
+ 
+ 	.read_status = m88ds3103_read_status,
+ 	.read_snr = m88ds3103_read_snr,
++	.read_ber = m88ds3103_read_ber,
+ 
+ 	.diseqc_send_master_cmd = m88ds3103_diseqc_send_master_cmd,
+ 	.diseqc_send_burst = m88ds3103_diseqc_send_burst,
+diff --git a/drivers/media/dvb-frontends/m88ds3103_priv.h b/drivers/media/dvb-frontends/m88ds3103_priv.h
+index e73db5c..9169fdd 100644
+--- a/drivers/media/dvb-frontends/m88ds3103_priv.h
++++ b/drivers/media/dvb-frontends/m88ds3103_priv.h
+@@ -35,6 +35,7 @@ struct m88ds3103_priv {
+ 	struct dvb_frontend fe;
+ 	fe_delivery_system_t delivery_system;
+ 	fe_status_t fe_status;
++	u32 ber;
+ 	bool warm; /* FW running */
+ 	struct i2c_adapter *i2c_adapter;
+ };
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.3
 
