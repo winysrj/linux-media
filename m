@@ -1,124 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43083 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759500AbaGSAwb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 20:52:31 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from mailout1.samsung.com ([203.254.224.24]:31857 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752055AbaGJJAs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jul 2014 05:00:48 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N8H00ACQNPB2Z40@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 Jul 2014 18:00:47 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 3/3] airspy: fill FMT buffer size
-Date: Sat, 19 Jul 2014 03:52:13 +0300
-Message-Id: <1405731133-12187-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1405731133-12187-1-git-send-email-crope@iki.fi>
-References: <1405731133-12187-1-git-send-email-crope@iki.fi>
+Cc: arun.kk@samsung.com, k.debski@samsung.com, jtp.park@samsung.com,
+	b.zolnierkie@samsung.com, kyungmin.park@samsung.com,
+	sw0312.kim@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v2 1/3] s5p-mfc: Fix selective sclk_mfc init
+Date: Thu, 10 Jul 2014 11:00:39 +0200
+Message-id: <1404982839-23577-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fill FMT buffer size field in order to inform app which will be
-used streaming buffer size. Currently driver doesn't allow buffer
-size value proposed by application.
+fc906b6d "Remove special clock usage in driver" removed
+initialization of MFC special clock, arguing that there's
+no need to do it explicitly, since it's one of MFC gate clock's
+dependencies and gets enabled along with it. However, there's
+no promise of keeping this hierarchy across Exynos SoC
+releases, therefore this approach fails to provide a stable,
+portable solution.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Out of all MFC versions, only v6 doesn't use special clock at all.
+For other versions log a message only in case clk_get fails,
+as not all the devices with the same MFC version require
+initializing the clock explicitly.
+
+Signed-off-by: Mateusz Zalega <m.zalega@samsung.com>
+Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/usb/airspy/airspy.c | 26 +++++++++++++++++++-------
- 1 file changed, 19 insertions(+), 7 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/drivers/media/usb/airspy/airspy.c b/drivers/media/usb/airspy/airspy.c
-index 6cf09ef..b3d5d1a 100644
---- a/drivers/media/usb/airspy/airspy.c
-+++ b/drivers/media/usb/airspy/airspy.c
-@@ -81,13 +81,15 @@ static const struct v4l2_frequency_band bands_rf[] = {
- struct airspy_format {
- 	char	*name;
- 	u32	pixelformat;
-+	u32	buffersize;
- };
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+index 11d5f1d..b6a8be9 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+@@ -21,6 +21,8 @@
+ #include "s5p_mfc_pm.h"
  
- /* format descriptions for capture and preview */
- static struct airspy_format formats[] = {
- 	{
- 		.name		= "Real U12LE",
--		.pixelformat	=  V4L2_SDR_FMT_RU12LE,
-+		.pixelformat	= V4L2_SDR_FMT_RU12LE,
-+		.buffersize	= BULK_BUFFER_SIZE,
- 	},
- };
+ #define MFC_GATE_CLK_NAME	"mfc"
++#define MFC_SCLK_NAME		"sclk-mfc"
++#define MFC_SCLK_RATE		(200 * 1000000)
  
-@@ -136,6 +138,7 @@ struct airspy {
- 	unsigned int f_adc;
- 	unsigned int f_rf;
- 	u32 pixelformat;
-+	u32 buffersize;
+ #define CLK_DEBUG
  
- 	/* Controls */
- 	struct v4l2_ctrl_handler hdl;
-@@ -500,7 +503,7 @@ static int airspy_queue_setup(struct vb2_queue *vq,
- 	if (vq->num_buffers + *nbuffers < 8)
- 		*nbuffers = 8 - vq->num_buffers;
- 	*nplanes = 1;
--	sizes[0] = PAGE_ALIGN(BULK_BUFFER_SIZE);
-+	sizes[0] = PAGE_ALIGN(s->buffersize);
- 
- 	dev_dbg(&s->udev->dev, "%s: nbuffers=%d sizes[0]=%d\n",
- 			__func__, *nbuffers, sizes[0]);
-@@ -636,8 +639,9 @@ static int airspy_g_fmt_sdr_cap(struct file *file, void *priv,
- 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
- 			(char *)&s->pixelformat);
- 
--	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
- 	f->fmt.sdr.pixelformat = s->pixelformat;
-+	f->fmt.sdr.buffersize = s->buffersize;
-+	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
- 
- 	return 0;
- }
-@@ -658,13 +662,17 @@ static int airspy_s_fmt_sdr_cap(struct file *file, void *priv,
- 	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
- 	for (i = 0; i < NUM_FORMATS; i++) {
- 		if (formats[i].pixelformat == f->fmt.sdr.pixelformat) {
--			s->pixelformat = f->fmt.sdr.pixelformat;
-+			s->pixelformat = formats[i].pixelformat;
-+			s->buffersize = formats[i].buffersize;
-+			f->fmt.sdr.buffersize = formats[i].buffersize;
- 			return 0;
- 		}
+@@ -50,6 +52,20 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
+ 		goto err_p_ip_clk;
  	}
  
--	f->fmt.sdr.pixelformat = formats[0].pixelformat;
- 	s->pixelformat = formats[0].pixelformat;
-+	s->buffersize = formats[0].buffersize;
-+	f->fmt.sdr.pixelformat = formats[0].pixelformat;
-+	f->fmt.sdr.buffersize = formats[0].buffersize;
- 
- 	return 0;
- }
-@@ -680,11 +688,14 @@ static int airspy_try_fmt_sdr_cap(struct file *file, void *priv,
- 
- 	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
- 	for (i = 0; i < NUM_FORMATS; i++) {
--		if (formats[i].pixelformat == f->fmt.sdr.pixelformat)
-+		if (formats[i].pixelformat == f->fmt.sdr.pixelformat) {
-+			f->fmt.sdr.buffersize = formats[i].buffersize;
- 			return 0;
++	if (dev->variant->version != MFC_VERSION_V6) {
++		pm->clock = clk_get(&dev->plat_dev->dev, MFC_SCLK_NAME);
++		if (IS_ERR(pm->clock)) {
++			mfc_info("Failed to get MFC special clock control\n");
++		} else {
++			clk_set_rate(pm->clock, MFC_SCLK_RATE);
++			ret = clk_prepare_enable(pm->clock);
++			if (ret) {
++				mfc_err("Failed to enable MFC special clock\n");
++				goto err_s_clk;
++			}
 +		}
- 	}
- 
- 	f->fmt.sdr.pixelformat = formats[0].pixelformat;
-+	f->fmt.sdr.buffersize = formats[0].buffersize;
- 
++	}
++
+ 	atomic_set(&pm->power, 0);
+ #ifdef CONFIG_PM_RUNTIME
+ 	pm->device = &dev->plat_dev->dev;
+@@ -59,6 +75,9 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
+ 	atomic_set(&clk_ref, 0);
+ #endif
  	return 0;
- }
-@@ -1004,7 +1015,8 @@ static int airspy_probe(struct usb_interface *intf,
- 	s->udev = udev;
- 	s->f_adc = bands[0].rangelow;
- 	s->f_rf = bands_rf[0].rangelow;
--	s->pixelformat = V4L2_SDR_FMT_RU12LE;
-+	s->pixelformat = formats[0].pixelformat;
-+	s->buffersize = formats[0].buffersize;
++
++err_s_clk:
++	clk_put(pm->clock);
+ err_p_ip_clk:
+ 	clk_put(pm->clock_gate);
+ err_g_ip_clk:
+@@ -67,6 +86,11 @@ err_g_ip_clk:
  
- 	/* Detect device */
- 	ret = airspy_ctrl_msg(s, CMD_BOARD_ID_READ, 0, 0, &u8tmp, 1);
+ void s5p_mfc_final_pm(struct s5p_mfc_dev *dev)
+ {
++	if (dev->variant->version != MFC_VERSION_V6 &&
++	    pm->clock) {
++		clk_disable_unprepare(pm->clock);
++		clk_put(pm->clock);
++	}
+ 	clk_unprepare(pm->clock_gate);
+ 	clk_put(pm->clock_gate);
+ #ifdef CONFIG_PM_RUNTIME
 -- 
-1.9.3
+1.7.9.5
 
