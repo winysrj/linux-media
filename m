@@ -1,46 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56223 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750699AbaGYJnA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 05:43:00 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/2] Kconfig: rtl2832_sdr must depends on USB
-Date: Fri, 25 Jul 2014 12:42:44 +0300
-Message-Id: <1406281364-19497-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1406281364-19497-1-git-send-email-crope@iki.fi>
-References: <1406281364-19497-1-git-send-email-crope@iki.fi>
+Received: from mail-la0-f52.google.com ([209.85.215.52]:51755 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751417AbaGJMc6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jul 2014 08:32:58 -0400
+From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, isely@pobox.com, dcb314@hotmail.com,
+	Andrey Utkin <andrey.krieger.utkin@gmail.com>
+Subject: [PATCH] media: pvrusb2: make logging code sane
+Date: Thu, 10 Jul 2014 15:32:25 +0300
+Message-Id: <1404995545-4286-1-git-send-email-andrey.krieger.utkin@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes error:
-[next:master 7435/8702] ERROR: "usb_alloc_urb
-[drivers/media/dvb-frontends/rtl2832_sdr.ko] undefined!
+The issue was discovered by static analysis. It turns out that code is
+somewhat insane, being
+if (x) {...} else { if (x) {...} }
 
-rtl2832_sdr driver implements own USB streaming for SDR data.
-Logically that functionality belongs to USB interface driver, but
-currently it is implemented here.
+Edited it to do the only reasonable thing, which is to log the
+information about the failed call. The most descriptive logging commands
+set is taken from original code.
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=79801
+Reported-by: David Binderman <dcb314@hotmail.com>
+Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
 ---
- drivers/media/dvb-frontends/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index 78a95a6..5b8b04c 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -448,7 +448,7 @@ config DVB_RTL2832
- 
- config DVB_RTL2832_SDR
- 	tristate "Realtek RTL2832 SDR"
--	depends on DVB_CORE && I2C && I2C_MUX && VIDEO_V4L2 && MEDIA_SDR_SUPPORT
-+	depends on DVB_CORE && I2C && I2C_MUX && VIDEO_V4L2 && MEDIA_SDR_SUPPORT && USB
- 	select DVB_RTL2832
- 	select VIDEOBUF2_VMALLOC
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+index 7c280f3..1b158f1 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+@@ -951,15 +951,9 @@ static long pvr2_v4l2_ioctl(struct file *file,
+ 	if (ret < 0) {
+ 		if (pvrusb2_debug & PVR2_TRACE_V4LIOCTL) {
+ 			pvr2_trace(PVR2_TRACE_V4LIOCTL,
+-				   "pvr2_v4l2_do_ioctl failure, ret=%ld", ret);
+-		} else {
+-			if (pvrusb2_debug & PVR2_TRACE_V4LIOCTL) {
+-				pvr2_trace(PVR2_TRACE_V4LIOCTL,
+-					   "pvr2_v4l2_do_ioctl failure, ret=%ld"
+-					   " command was:", ret);
+-				v4l_printk_ioctl(pvr2_hdw_get_driver_name(hdw),
+-						cmd);
+-			}
++				   "pvr2_v4l2_do_ioctl failure, ret=%ld"
++				   " command was:", ret);
++			v4l_printk_ioctl(pvr2_hdw_get_driver_name(hdw), cmd);
+ 		}
+ 	} else {
+ 		pvr2_trace(PVR2_TRACE_V4LIOCTL,
 -- 
-http://palosaari.fi/
+1.8.3.2
 
