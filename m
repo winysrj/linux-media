@@ -1,44 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39574 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757308AbaGDRPz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jul 2014 13:15:55 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [[PATCH v2] 02/14] dib8000: Fix ADC OFF settings
-Date: Fri,  4 Jul 2014 14:15:28 -0300
-Message-Id: <1404494140-17777-3-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1404494140-17777-1-git-send-email-m.chehab@samsung.com>
-References: <1404494140-17777-1-git-send-email-m.chehab@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:38460 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752457AbaGJLNg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jul 2014 07:13:36 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 3/4] si2168: set cmd args using memcpy
+Date: Thu, 10 Jul 2014 14:13:13 +0300
+Message-Id: <1404990794-2902-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1404990794-2902-1-git-send-email-crope@iki.fi>
+References: <1404990794-2902-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ADC OFF values are wrong. This causes troubles on detecting
-weak signals.
+Use memcpy for set cmd buffer in order to keep style in line with
+rest of file.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/dvb-frontends/dib8000.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/dvb-frontends/si2168.c | 48 +++++++-----------------------------
+ 1 file changed, 9 insertions(+), 39 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
-index cf837158f822..cd300ac23935 100644
---- a/drivers/media/dvb-frontends/dib8000.c
-+++ b/drivers/media/dvb-frontends/dib8000.c
-@@ -588,8 +588,8 @@ static int dib8000_set_adc_state(struct dib8000_state *state, enum dibx000_adc_s
- 		break;
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 0d0545e..3a40181 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -95,20 +95,17 @@ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
  
- 	case DIBX000_ADC_OFF:	// leave the VBG voltage on
--		reg_907 |= (1 << 14) | (1 << 13) | (1 << 12);
--		reg_908 |= (1 << 5) | (1 << 4) | (1 << 3) | (1 << 2);
-+		reg_907 = (1 << 13) | (1 << 12);
-+		reg_908 = (1 << 6) | (1 << 5) | (1 << 4) | (1 << 3) | (1 << 1);
+ 	switch (c->delivery_system) {
+ 	case SYS_DVBT:
+-		cmd.args[0] = 0xa0;
+-		cmd.args[1] = 0x01;
++		memcpy(cmd.args, "\xa0\x01", 2);
+ 		cmd.wlen = 2;
+ 		cmd.rlen = 13;
  		break;
+ 	case SYS_DVBC_ANNEX_A:
+-		cmd.args[0] = 0x90;
+-		cmd.args[1] = 0x01;
++		memcpy(cmd.args, "\x90\x01", 2);
+ 		cmd.wlen = 2;
+ 		cmd.rlen = 9;
+ 		break;
+ 	case SYS_DVBT2:
+-		cmd.args[0] = 0x50;
+-		cmd.args[1] = 0x01;
++		memcpy(cmd.args, "\x50\x01", 2);
+ 		cmd.wlen = 2;
+ 		cmd.rlen = 14;
+ 		break;
+@@ -412,7 +409,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
  
- 	case DIBX000_VBG_ENABLE:
+-	cmd.args[0] = 0x85;
++	memcpy(cmd.args, "\x85", 1);
+ 	cmd.wlen = 1;
+ 	cmd.rlen = 1;
+ 	ret = si2168_cmd_execute(s, &cmd);
+@@ -438,54 +435,28 @@ static int si2168_init(struct dvb_frontend *fe)
+ 
+ 	dev_dbg(&s->client->dev, "%s:\n", __func__);
+ 
+-	cmd.args[0] = 0xc0;
+-	cmd.args[1] = 0x12;
+-	cmd.args[2] = 0x00;
+-	cmd.args[3] = 0x0c;
+-	cmd.args[4] = 0x00;
+-	cmd.args[5] = 0x0d;
+-	cmd.args[6] = 0x16;
+-	cmd.args[7] = 0x00;
+-	cmd.args[8] = 0x00;
+-	cmd.args[9] = 0x00;
+-	cmd.args[10] = 0x00;
+-	cmd.args[11] = 0x00;
+-	cmd.args[12] = 0x00;
++	memcpy(cmd.args, "\xc0\x12\x00\x0c\x00\x0d\x16\x00\x00\x00\x00\x00\x00", 13);
+ 	cmd.wlen = 13;
+ 	cmd.rlen = 0;
+ 	ret = si2168_cmd_execute(s, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+-	cmd.args[0] = 0xc0;
+-	cmd.args[1] = 0x06;
+-	cmd.args[2] = 0x01;
+-	cmd.args[3] = 0x0f;
+-	cmd.args[4] = 0x00;
+-	cmd.args[5] = 0x20;
+-	cmd.args[6] = 0x20;
+-	cmd.args[7] = 0x01;
++	memcpy(cmd.args, "\xc0\x06\x01\x0f\x00\x20\x20\x01", 8);
+ 	cmd.wlen = 8;
+ 	cmd.rlen = 1;
+ 	ret = si2168_cmd_execute(s, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+-	cmd.args[0] = 0x02;
++	memcpy(cmd.args, "\x02", 1);
+ 	cmd.wlen = 1;
+ 	cmd.rlen = 13;
+ 	ret = si2168_cmd_execute(s, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+-	cmd.args[0] = 0x05;
+-	cmd.args[1] = 0x00;
+-	cmd.args[2] = 0xaa;
+-	cmd.args[3] = 0x4d;
+-	cmd.args[4] = 0x56;
+-	cmd.args[5] = 0x40;
+-	cmd.args[6] = 0x00;
+-	cmd.args[7] = 0x00;
++	memcpy(cmd.args, "\x05\x00\xaa\x4d\x56\x40\x00\x00", 8);
+ 	cmd.wlen = 8;
+ 	cmd.rlen = 1;
+ 	ret = si2168_cmd_execute(s, &cmd);
+@@ -527,8 +498,7 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	release_firmware(fw);
+ 	fw = NULL;
+ 
+-	cmd.args[0] = 0x01;
+-	cmd.args[1] = 0x01;
++	memcpy(cmd.args, "\x01\x01", 2);
+ 	cmd.wlen = 2;
+ 	cmd.rlen = 1;
+ 	ret = si2168_cmd_execute(s, &cmd);
 -- 
 1.9.3
 
