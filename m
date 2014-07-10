@@ -1,57 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:65101 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751698AbaGFSVD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jul 2014 14:21:03 -0400
-Received: by mail-we0-f179.google.com with SMTP id w62so3424801wes.24
-        for <linux-media@vger.kernel.org>; Sun, 06 Jul 2014 11:21:01 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH] libdvbv5: provide crc32 to c++
-Date: Sun,  6 Jul 2014 20:20:30 +0200
-Message-Id: <1404670830-6863-1-git-send-email-neolynx@gmail.com>
+Received: from mail-out.m-online.net ([212.18.0.10]:43984 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751205AbaGJJlZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jul 2014 05:41:25 -0400
+From: Marek Vasut <marex@denx.de>
+To: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH v1 1/5] seq_file: provide an analogue of print_hex_dump()
+Date: Thu, 10 Jul 2014 09:58:02 +0200
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Tadeusz Struk <tadeusz.struk@intel.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Helge Deller <deller@gmx.de>,
+	Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>,
+	linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>,
+	qat-linux@intel.com, linux-crypto@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com> <201407092239.30561.marex@denx.de> <1404940868.932.168.camel@joe-AO725>
+In-Reply-To: <1404940868.932.168.camel@joe-AO725>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201407100958.02218.marex@denx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-allow C++ apps to use crc32
+On Wednesday, July 09, 2014 at 11:21:08 PM, Joe Perches wrote:
+> On Wed, 2014-07-09 at 22:39 +0200, Marek Vasut wrote:
+> > The above function looks like almost verbatim copy of print_hex_dump().
+> > The only difference I can spot is that it's calling seq_printf() instead
+> > of printk(). Can you not instead generalize print_hex_dump() and based
+> > on it's invocation, make it call either seq_printf() or printk() ?
+> 
+> How do you propose doing that given any seq_<foo> call
+> requires a struct seq_file * and print_hex_dump needs
+> a KERN_<LEVEL>.
 
-Signed-off-by: André Roth <neolynx@gmail.com>
----
- lib/include/libdvbv5/crc32.h | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+I can imagine a rather nasty way, I can't say I would like it myself tho. The 
+general idea would be to pull out the entire switch {} statement into a separate 
+functions , one for printk() and one for seq_printf() cases. Then, have a 
+generic do_hex_dump() call which would take as an argument a pointer to either 
+of those functions and a void * to either the seq_file or level . Finally, there 
+would have to be a wrapper to call the do_hex_dump() with the correct function 
+pointer and it's associated arg.
 
-diff --git a/lib/include/libdvbv5/crc32.h b/lib/include/libdvbv5/crc32.h
-index d1968e8..4261bda 100644
---- a/lib/include/libdvbv5/crc32.h
-+++ b/lib/include/libdvbv5/crc32.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (c) 2011-2012 - Mauro Carvalho Chehab
-- * Copyright (c) 2012 - Andre Roth <neolynx@gmail.com>
-+ * Copyright (c) 2012-2014 - Andre Roth <neolynx@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-@@ -25,7 +25,15 @@
- #include <stdint.h>
- #include <unistd.h> /* size_t */
- 
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
- uint32_t crc32(uint8_t *data, size_t datalen, uint32_t crc);
- 
-+#ifdef __cplusplus
-+}
-+#endif
-+
- #endif
- 
--- 
-1.9.1
+Nasty? Yes ... Ineffective? Most likely.
 
+> Is there an actual value to it?
+
+Reducing the code duplication, but I wonder if there is a smarter solution than 
+the horrid one above.
+
+Best regards,
+Marek Vasut
