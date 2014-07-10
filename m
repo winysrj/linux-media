@@ -1,33 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:52397 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751305AbaGaSCs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jul 2014 14:02:48 -0400
-Message-ID: <1406829766.16697.84.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH 16/28] gpu: ipu-v3: Add ipu_stride_to_bytes()
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Thu, 31 Jul 2014 20:02:46 +0200
-In-Reply-To: <1403744755-24944-17-git-send-email-steve_longerbeam@mentor.com>
-References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
-	 <1403744755-24944-17-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:55256 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752447AbaGJLNg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jul 2014 07:13:36 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/4] si2157: implement sleep
+Date: Thu, 10 Jul 2014 14:13:11 +0300
+Message-Id: <1404990794-2902-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, den 25.06.2014, 18:05 -0700 schrieb Steve Longerbeam:
-> Adds ipu_stride_to_bytes(), which converts a pixel stride to bytes,
-> suitable for passing to cpmem.
+Implement sleep for power-management.
 
-This is not IPU specific. You already have the bytesperline information
-from the V4L2 driver or have to calculate it there, and that shouldn't
-be done by calling into IPU core code.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/si2157.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-regards
-Philipp
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index 271a752..3f88e53 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -89,12 +89,23 @@ static int si2157_init(struct dvb_frontend *fe)
+ static int si2157_sleep(struct dvb_frontend *fe)
+ {
+ 	struct si2157 *s = fe->tuner_priv;
++	int ret;
++	struct si2157_cmd cmd;
+ 
+ 	dev_dbg(&s->client->dev, "%s:\n", __func__);
+ 
+ 	s->active = false;
+ 
++	memcpy(cmd.args, "\x13", 1);
++	cmd.len = 1;
++	ret = si2157_cmd_execute(s, &cmd);
++	if (ret)
++		goto err;
++
+ 	return 0;
++err:
++	dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
++	return ret;
+ }
+ 
+ static int si2157_set_params(struct dvb_frontend *fe)
+-- 
+1.9.3
 
