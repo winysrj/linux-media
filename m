@@ -1,87 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51566 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753007AbaGKJhC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 05:37:02 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 21/32] [media] coda: alert userspace about macroblock errors
-Date: Fri, 11 Jul 2014 11:36:32 +0200
-Message-Id: <1405071403-1859-22-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+Received: from dub004-omc4s25.hotmail.com ([157.55.2.100]:59191 "EHLO
+	DUB004-OMC4S25.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751784AbaGJHzb convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jul 2014 03:55:31 -0400
+Message-ID: <DUB123-W287472B410B715719CA9D3ED0E0@phx.gbl>
+From: Lukas Tribus <luky-37@hotmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: Troubleshooting problematic DVB-T reception
+Date: Thu, 10 Jul 2014 09:50:21 +0200
+In-Reply-To: <CAGoCfix6uWem_gXqXH--TisQYmyxjXvwqkz8Ah2m=KVH9O1ifA@mail.gmail.com>
+References: <DUB123-W379FFAE53D93ACCE359F07ED0F0@phx.gbl>,<CAGoCfix6uWem_gXqXH--TisQYmyxjXvwqkz8Ah2m=KVH9O1ifA@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the CODA reports macroblock errors, also set the VB2_BUF_STATE_ERROR flag
-to alert userspace.
+Hi Devin!
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 5d06776..0405a7a 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -243,6 +243,7 @@ struct coda_ctx {
- 	struct coda_aux_buf		internal_frames[CODA_MAX_FRAMEBUFFERS];
- 	u32				frame_types[CODA_MAX_FRAMEBUFFERS];
- 	struct coda_timestamp		frame_timestamps[CODA_MAX_FRAMEBUFFERS];
-+	u32				frame_errors[CODA_MAX_FRAMEBUFFERS];
- 	struct list_head		timestamp_list;
- 	struct coda_aux_buf		workbuf;
- 	int				num_internal_frames;
-@@ -3018,6 +3019,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 	int display_idx;
- 	u32 src_fourcc;
- 	int success;
-+	u32 err_mb;
- 	u32 val;
- 
- 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
-@@ -3087,10 +3089,10 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		/* no cropping */
- 	}
- 
--	val = coda_read(dev, CODA_RET_DEC_PIC_ERR_MB);
--	if (val > 0)
-+	err_mb = coda_read(dev, CODA_RET_DEC_PIC_ERR_MB);
-+	if (err_mb > 0)
- 		v4l2_err(&dev->v4l2_dev,
--			 "errors in %d macroblocks\n", val);
-+			 "errors in %d macroblocks\n", err_mb);
- 
- 	if (dev->devtype->product == CODA_7541) {
- 		val = coda_read(dev, CODA_RET_DEC_PIC_OPTION);
-@@ -3153,6 +3155,8 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 			ctx->frame_types[decoded_idx] = V4L2_BUF_FLAG_PFRAME;
- 		else
- 			ctx->frame_types[decoded_idx] = V4L2_BUF_FLAG_BFRAME;
-+
-+		ctx->frame_errors[decoded_idx] = err_mb;
- 	}
- 
- 	if (display_idx == -1) {
-@@ -3185,8 +3189,8 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 
- 		vb2_set_plane_payload(dst_buf, 0, width * height * 3 / 2);
- 
--		v4l2_m2m_buf_done(dst_buf, success ? VB2_BUF_STATE_DONE :
--						     VB2_BUF_STATE_ERROR);
-+		v4l2_m2m_buf_done(dst_buf, ctx->frame_errors[display_idx] ?
-+				  VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 
- 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
- 			"job finished: decoding frame (%d) (%s)\n",
--- 
-2.0.0
 
+----------------------------------------
+> Date: Wed, 9 Jul 2014 09:21:02 -0400
+> Subject: Re: Troubleshooting problematic DVB-T reception
+> From: dheitmueller@kernellabs.com
+> To: luky-37@hotmail.com
+> CC: linux-media@vger.kernel.org
+>
+>> I am trying to troubleshoot a (non-linux related) DVB-T issue and I basically
+>> want to create statistics about both DVB and MPEG framing, errors, corruption,
+>> missing frames, etc.
+>>
+>> The reason is that I believe there is a problem on the transmitting radio
+>> tower, RF is fine between the tower and me, but the actual payload (MPEG) is
+>> somehow bogus, errored or sporadically misses frames (due to backhaul problems
+>> or whatever).
+>>
+>> If I would be able to create some statistics confirming that I see all the DVB
+>> frames without any errors, but that the actual DVB payload (MPEG) has some
+>> problems, I could convince the tower guys to actually fix the issue, instead
+>> of blaming my antennas.
+>>
+>>
+>> So, can anyone suggest a tool or method to troubleshoot this issue further?
+>>
+>>
+>> tzap output for example confirms not a single BER error and the tuner keeps
+>> full LOCK on the channel while the actual stream is stuttering.
+>
+> I probably wouldn't rely on the BER stats from tzap. Their
+> implementation varies in quality depending on which tuner you have, as
+> well as how they are sampled. Almost all demods will set the TEI bit
+> on the MPEG frame if it's determined that there was a decoding error -
+> I would be much more inclined to look at that.
+>
+> Your best bet is to record the whole mux for a few minutes, then run
+> it through some different tools to see what class of errors you are
+> hitting. Tools such as tsreader or StreamEye will give you a better
+> idea what's going on. Once you know what class of failure you have
+> (e.g. TEI errors, MPEG discontinuities, etc), then you can better
+> isolate where in the chain the failure is being introduced.
+>
+> Having the recording of the mux will also let you analyze in depth the
+> actual nature of the problem, rather than trying to analyze an
+> ever-changing stream in real-time, where signal conditions can change
+> over time.
+
+Thanks for your advice! I agree capturing the whole mux for further analysis
+is the best thing todo.
+
+
+
+Thanks,
+
+Lukas
+
+
+
+
+
+ 		 	   		  
