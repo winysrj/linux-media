@@ -1,66 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44850 "EHLO mail.kapsi.fi"
+Received: from mga03.intel.com ([143.182.124.21]:31725 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752856AbaGQVjn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 17:39:43 -0400
-Message-ID: <53C8429C.5070400@iki.fi>
-Date: Fri, 18 Jul 2014 00:39:40 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Luis Alves <ljalvs@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] si2168: Remove testing for demod presence on probe.
- If the demod is in sleep mode it will fail.
-References: <1405630604-19534-1-git-send-email-ljalvs@gmail.com>
-In-Reply-To: <1405630604-19534-1-git-send-email-ljalvs@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+	id S1751771AbaGJLVK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jul 2014 07:21:10 -0400
+Message-ID: <1404991237.5102.100.camel@smile.fi.intel.com>
+Subject: Re: [PATCH v1 3/5] crypto: qat - use seq_hex_dump() to dump buffers
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Tadeusz Struk <tadeusz.struk@intel.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Helge Deller <deller@gmx.de>,
+	Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>,
+	linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>,
+	qat-linux@intel.com, linux-crypto@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Thu, 10 Jul 2014 14:20:37 +0300
+In-Reply-To: <53BD8A9F.4030409@intel.com>
+References: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <1404919470-26668-4-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <53BD8A9F.4030409@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Looks good! I did some measurements against power meter and chip seems 
-to be low power state by default. After firmware is downloaded and chip 
-is put to sleep, it does not answer that fw status check, until it is 
-woken up. There should not be ~any I/O during I2C probe(), so removing 
-that quite useless check is OK.
+On Wed, 2014-07-09 at 11:31 -0700, Tadeusz Struk wrote:
+> On 07/09/2014 08:24 AM, Andy Shevchenko wrote:
+> 
+> > In this case it slightly changes the output, namely the four tetrads will be
+> > output on one line.
+> > 
+> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> 
+> It's ok, I can still read it.
 
-regards
-Antti
+It seems I miscalculated the tetrads. It should be 8 per line, correct?
+In that case we could easily use 32 bytes per line and thus remove that
+paragraph from commit message.
 
+> Acked-by: Tadeusz Struk <tadeusz.struk@intel.com>
 
+Thanks!
 
-On 07/17/2014 11:56 PM, Luis Alves wrote:
-> Signed-off-by: Luis Alves <ljalvs@gmail.com>
-> ---
->   drivers/media/dvb-frontends/si2168.c | 8 --------
->   1 file changed, 8 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-> index 3fed522..7e45eeab 100644
-> --- a/drivers/media/dvb-frontends/si2168.c
-> +++ b/drivers/media/dvb-frontends/si2168.c
-> @@ -595,7 +595,6 @@ static int si2168_probe(struct i2c_client *client,
->   	struct si2168_config *config = client->dev.platform_data;
->   	struct si2168 *s;
->   	int ret;
-> -	struct si2168_cmd cmd;
->
->   	dev_dbg(&client->dev, "%s:\n", __func__);
->
-> @@ -609,13 +608,6 @@ static int si2168_probe(struct i2c_client *client,
->   	s->client = client;
->   	mutex_init(&s->i2c_mutex);
->
-> -	/* check if the demod is there */
-> -	cmd.wlen = 0;
-> -	cmd.rlen = 1;
-> -	ret = si2168_cmd_execute(s, &cmd);
-> -	if (ret)
-> -		goto err;
-> -
->   	/* create mux i2c adapter for tuner */
->   	s->adapter = i2c_add_mux_adapter(client->adapter, &client->dev, s,
->   			0, 0, 0, si2168_select, si2168_deselect);
->
 
 -- 
-http://palosaari.fi/
+Andy Shevchenko <andriy.shevchenko@intel.com>
+Intel Finland Oy
+
