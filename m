@@ -1,70 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41757 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751185AbaG3X1A (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:49151 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754357AbaGKOEj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jul 2014 19:27:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Durkin <kc7noa@gmail.com>
-Cc: Linux-Media <linux-media@vger.kernel.org>
-Subject: Re: Fresco Logic FL2000
-Date: Thu, 31 Jul 2014 01:27:20 +0200
-Message-ID: <5475683.lx59QSOxgD@avalon>
-In-Reply-To: <CAC8M0Esy+sRt0OGychoTBfgEBznTnwiCpaC0UzZgd9ga-QSWNg@mail.gmail.com>
-References: <CAC8M0Evra8ipDo9Tgasd2AtWWLZQ8M2Ty37i6R3nc7H0-C3_wg@mail.gmail.com> <3072133.WlkirvIpIB@avalon> <CAC8M0Esy+sRt0OGychoTBfgEBznTnwiCpaC0UzZgd9ga-QSWNg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 11 Jul 2014 10:04:39 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: [PATCH/RFC v4 02/21] leds: implement sysfs interface locking mechanism
+Date: Fri, 11 Jul 2014 16:04:05 +0200
+Message-id: <1405087464-13762-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
+Add mechanism for locking LED subsystem sysfs interface.
+This patch prepares ground for addition of LED Flash Class extension.
 
-Sorry for the late reply.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ drivers/leds/led-class.c    |   13 +++++++++++--
+ drivers/leds/led-core.c     |   18 ++++++++++++++++++
+ drivers/leds/led-triggers.c |   11 ++++++++---
+ include/linux/leds.h        |   31 +++++++++++++++++++++++++++++++
+ 4 files changed, 68 insertions(+), 5 deletions(-)
 
-On Tuesday 22 July 2014 11:03:35 Michael Durkin wrote:
-> as sudo su
-> 
-> root@SDR-client:/home/mike# lsusb -v -d 1d5c:2000
-> 
-> Bus 002 Device 003: ID 1d5c:2000
-> Device Descriptor:
->   bLength                18
->   bDescriptorType         1
->   bcdUSB               2.10
->   bDeviceClass          239 Miscellaneous Device
->   bDeviceSubClass         2 ?
->   bDeviceProtocol         1 Interface Association
->   bMaxPacketSize0        64
->   idVendor           0x1d5c
->   idProduct          0x2000
->   bcdDevice            1.00
->   iManufacturer           0
->   iProduct                0
->   iSerial                 0
->   bNumConfigurations      1
-
-[snip]
-
->     Interface Descriptor:
->       bLength                 9
->       bDescriptorType         4
->       bInterfaceNumber        0
->       bAlternateSetting       1
->       bNumEndpoints           2
->       bInterfaceClass        16
->       bInterfaceSubClass      0
->       bInterfaceProtocol      0
-
-That's, as suspected, a USB Audio/Video class device. There's currently no 
-Linux driver for that, and I'm not aware any active project to develop one 
-(there were prototypes developed behind closed doors though, but nothing 
-published as far as I know). Frankly, given how brain-dead the A/V class 
-specification is, I wouldn't hold any hope of getting support for that device 
-any time soon (or ever).
-
+diff --git a/drivers/leds/led-class.c b/drivers/leds/led-class.c
+index aa29198..ea04891 100644
+--- a/drivers/leds/led-class.c
++++ b/drivers/leds/led-class.c
+@@ -45,17 +45,23 @@ static ssize_t brightness_store(struct device *dev,
+ {
+ 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
+ 	unsigned long state;
+-	ssize_t ret = -EINVAL;
++	ssize_t ret;
++
++	mutex_lock(&led_cdev->led_lock);
+ 
+ 	ret = kstrtoul(buf, 10, &state);
+ 	if (ret)
+-		return ret;
++		goto unlock;
+ 
+ 	if (state == LED_OFF)
+ 		led_trigger_remove(led_cdev);
+ 	__led_set_brightness(led_cdev, state);
+ 
+ 	return size;
++	ret = size;
++unlock:
++	mutex_unlock(&led_cdev->led_lock);
++	return ret;
+ }
+ static DEVICE_ATTR_RW(brightness);
+ 
+@@ -219,6 +225,7 @@ int led_classdev_register(struct device *parent, struct led_classdev *led_cdev)
+ #ifdef CONFIG_LEDS_TRIGGERS
+ 	init_rwsem(&led_cdev->trigger_lock);
+ #endif
++	mutex_init(&led_cdev->led_lock);
+ 	/* add to the list of leds */
+ 	down_write(&leds_list_lock);
+ 	list_add_tail(&led_cdev->node, &leds_list);
+@@ -272,6 +279,8 @@ void led_classdev_unregister(struct led_classdev *led_cdev)
+ 	down_write(&leds_list_lock);
+ 	list_del(&led_cdev->node);
+ 	up_write(&leds_list_lock);
++
++	mutex_destroy(&led_cdev->led_lock);
+ }
+ EXPORT_SYMBOL_GPL(led_classdev_unregister);
+ 
+diff --git a/drivers/leds/led-core.c b/drivers/leds/led-core.c
+index 71b40d3..4d7cb31 100644
+--- a/drivers/leds/led-core.c
++++ b/drivers/leds/led-core.c
+@@ -126,3 +126,21 @@ void led_set_brightness(struct led_classdev *led_cdev,
+ 	__led_set_brightness(led_cdev, brightness);
+ }
+ EXPORT_SYMBOL(led_set_brightness);
++
++/* Caller must ensure led_cdev->led_lock held */
++void led_sysfs_lock(struct led_classdev *led_cdev)
++{
++	WARN_ON(!mutex_is_locked(&led_cdev->led_lock));
++
++	led_cdev->flags |= LED_SYSFS_LOCK;
++}
++EXPORT_SYMBOL_GPL(led_sysfs_lock);
++
++/* Caller must ensure led_cdev->led_lock held */
++void led_sysfs_unlock(struct led_classdev *led_cdev)
++{
++	WARN_ON(!mutex_is_locked(&led_cdev->led_lock));
++
++	led_cdev->flags &= ~LED_SYSFS_LOCK;
++}
++EXPORT_SYMBOL_GPL(led_sysfs_unlock);
+diff --git a/drivers/leds/led-triggers.c b/drivers/leds/led-triggers.c
+index c3734f1..0545530 100644
+--- a/drivers/leds/led-triggers.c
++++ b/drivers/leds/led-triggers.c
+@@ -37,6 +37,9 @@ ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
+ 	char trigger_name[TRIG_NAME_MAX];
+ 	struct led_trigger *trig;
+ 	size_t len;
++	int ret = count;
++
++	mutex_lock(&led_cdev->led_lock);
+ 
+ 	trigger_name[sizeof(trigger_name) - 1] = '\0';
+ 	strncpy(trigger_name, buf, sizeof(trigger_name) - 1);
+@@ -47,7 +50,7 @@ ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
+ 
+ 	if (!strcmp(trigger_name, "none")) {
+ 		led_trigger_remove(led_cdev);
+-		return count;
++		goto exit_unlock;
+ 	}
+ 
+ 	down_read(&triggers_list_lock);
+@@ -58,12 +61,14 @@ ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
+ 			up_write(&led_cdev->trigger_lock);
+ 
+ 			up_read(&triggers_list_lock);
+-			return count;
++			goto exit_unlock;
+ 		}
+ 	}
+ 	up_read(&triggers_list_lock);
+ 
+-	return -EINVAL;
++exit_unlock:
++	mutex_unlock(&led_cdev->led_lock);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(led_trigger_store);
+ 
+diff --git a/include/linux/leds.h b/include/linux/leds.h
+index 995f933..da7c6b5 100644
+--- a/include/linux/leds.h
++++ b/include/linux/leds.h
+@@ -13,6 +13,7 @@
+ #define __LINUX_LEDS_H_INCLUDED
+ 
+ #include <linux/list.h>
++#include <linux/mutex.h>
+ #include <linux/spinlock.h>
+ #include <linux/rwsem.h>
+ #include <linux/timer.h>
+@@ -42,6 +43,7 @@ struct led_classdev {
+ #define LED_BLINK_ONESHOT	(1 << 17)
+ #define LED_BLINK_ONESHOT_STOP	(1 << 18)
+ #define LED_BLINK_INVERT	(1 << 19)
++#define LED_SYSFS_LOCK		(1 << 20)
+ 
+ 	/* Set LED brightness level */
+ 	/* Must not sleep, use a workqueue if needed */
+@@ -85,6 +87,9 @@ struct led_classdev {
+ 	/* true if activated - deactivate routine uses it to do cleanup */
+ 	bool			activated;
+ #endif
++
++	/* Ensures consistent access to the LED Flash Class device */
++	struct mutex		led_lock;
+ };
+ 
+ extern int led_classdev_register(struct device *parent,
+@@ -140,6 +145,32 @@ extern void led_blink_set_oneshot(struct led_classdev *led_cdev,
+  */
+ extern void led_set_brightness(struct led_classdev *led_cdev,
+ 			       enum led_brightness brightness);
++/**
++ * led_sysfs_lock - lock LED sysfs interface
++ * @led_cdev: the LED to set
++ *
++ * Lock the LED's sysfs interface
++ */
++extern void led_sysfs_lock(struct led_classdev *led_cdev);
++
++/**
++ * led_sysfs_unlock - unlock LED sysfs interface
++ * @led_cdev: the LED to set
++ *
++ * Unlock the LED's sysfs interface
++ */
++extern void led_sysfs_unlock(struct led_classdev *led_cdev);
++
++/**
++ * led_sysfs_is_locked
++ * @led_cdev: the LED to query
++ *
++ * Returns: true if the sysfs interface of the led is locked
++ */
++static inline bool led_sysfs_is_locked(struct led_classdev *led_cdev)
++{
++	return led_cdev->flags & LED_SYSFS_LOCK;
++}
+ 
+ /*
+  * LED Triggers
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
