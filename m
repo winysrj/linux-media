@@ -1,37 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39927 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756724AbaGNRJX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 13:09:23 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51469 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752231AbaGKJgx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jul 2014 05:36:53 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 15/18] si2168: advertise Si2168 A30 firmware
-Date: Mon, 14 Jul 2014 20:08:56 +0300
-Message-Id: <1405357739-3570-15-git-send-email-crope@iki.fi>
-In-Reply-To: <1405357739-3570-1-git-send-email-crope@iki.fi>
-References: <1405357739-3570-1-git-send-email-crope@iki.fi>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 03/32] [media] coda: fix h.264 quantization parameter range
+Date: Fri, 11 Jul 2014 11:36:14 +0200
+Message-Id: <1405071403-1859-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Driver uses that new firmware too, so advertise it.
+If bitrate is not set, the encoder is running in VBR mode, with the
+I- and P-frame quantization parameters configured from userspace.
+For the quantization parameters, 0 is a valid value.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Tested-by: Olli Salonen <olli.salonen@iki.fi>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/dvb-frontends/si2168.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/platform/coda.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 268fce3..e9c138a 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -653,4 +653,5 @@ module_i2c_driver(si2168_driver);
- MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
- MODULE_DESCRIPTION("Silicon Labs Si2168 DVB-T/T2/C demodulator driver");
- MODULE_LICENSE("GPL");
-+MODULE_FIRMWARE(SI2168_A30_FIRMWARE);
- MODULE_FIRMWARE(SI2168_B40_FIRMWARE);
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 1770fc2..10e1d98 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -2385,9 +2385,9 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 60, 1, 16);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+-		V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP, 1, 51, 1, 25);
++		V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP, 0, 51, 1, 25);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+-		V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP, 1, 51, 1, 25);
++		V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP, 0, 51, 1, 25);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP, 1, 31, 1, 2);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
 -- 
-1.9.3
+2.0.0
 
