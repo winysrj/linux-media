@@ -1,81 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3105 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754382AbaGQVpv (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51468 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752095AbaGKJgx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 17:45:51 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6HLjlke006365
-	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 23:45:49 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id EA32F2A1FD1
-	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 23:45:45 +0200 (CEST)
-Message-ID: <53C84409.8010307@xs4all.nl>
-Date: Thu, 17 Jul 2014 23:45:45 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH REBASED] v4l2-ioctl: clips, clipcount and bitmap should not
- be zeroed.
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Fri, 11 Jul 2014 05:36:53 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 02/32] [media] coda: fix readback of CODA_RET_DEC_SEQ_FRAME_NEED
+Date: Fri, 11 Jul 2014 11:36:13 +0200
+Message-Id: <1405071403-1859-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Otherwise you cannot get the current clip and bitmap information from
-an overlay.
+Previously we'd add one to this value, allocating one additional, superfluous
+internal buffer.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+ drivers/media/platform/coda.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 46f45f0..e620387 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1145,6 +1145,30 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index a7c5ac5..1770fc2 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -1889,7 +1889,7 @@ static int coda_start_decoding(struct coda_ctx *ctx)
+ 	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "%s instance %d now: %dx%d\n",
+ 		 __func__, ctx->idx, width, height);
  
- 	p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
- 
-+	/*
-+	 * fmt can't be cleared for these overlay types due to the 'clips'
-+	 * 'clipcount' and 'bitmap' pointers in struct v4l2_window.
-+	 * Those are provided by the user. So handle these two overlay types
-+	 * first, and then just do a simple memset for the other types.
-+	 */
-+	switch (p->type) {
-+	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY: {
-+		struct v4l2_clip *clips = p->fmt.win.clips;
-+		u32 clipcount = p->fmt.win.clipcount;
-+		void *bitmap = p->fmt.win.bitmap;
-+
-+		memset(&p->fmt, 0, sizeof(p->fmt));
-+		p->fmt.win.clips = clips;
-+		p->fmt.win.clipcount = clipcount;
-+		p->fmt.win.bitmap = bitmap;
-+		break;
-+	}
-+	default:
-+		memset(&p->fmt, 0, sizeof(p->fmt));
-+		break;
-+	}
-+
- 	switch (p->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_g_fmt_vid_cap))
-@@ -2140,7 +2164,7 @@ struct v4l2_ioctl_info {
- static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_QUERYCAP, v4l_querycap, v4l_print_querycap, 0),
- 	IOCTL_INFO_FNC(VIDIOC_ENUM_FMT, v4l_enum_fmt, v4l_print_fmtdesc, INFO_FL_CLEAR(v4l2_fmtdesc, type)),
--	IOCTL_INFO_FNC(VIDIOC_G_FMT, v4l_g_fmt, v4l_print_format, INFO_FL_CLEAR(v4l2_format, type)),
-+	IOCTL_INFO_FNC(VIDIOC_G_FMT, v4l_g_fmt, v4l_print_format, 0),
- 	IOCTL_INFO_FNC(VIDIOC_S_FMT, v4l_s_fmt, v4l_print_format, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_REQBUFS, v4l_reqbufs, v4l_print_requestbuffers, INFO_FL_PRIO | INFO_FL_QUEUE),
- 	IOCTL_INFO_FNC(VIDIOC_QUERYBUF, v4l_querybuf, v4l_print_buffer, INFO_FL_QUEUE | INFO_FL_CLEAR(v4l2_buffer, length)),
+-	ctx->num_internal_frames = coda_read(dev, CODA_RET_DEC_SEQ_FRAME_NEED) + 1;
++	ctx->num_internal_frames = coda_read(dev, CODA_RET_DEC_SEQ_FRAME_NEED);
+ 	if (ctx->num_internal_frames > CODA_MAX_FRAMEBUFFERS) {
+ 		v4l2_err(&dev->v4l2_dev,
+ 			 "not enough framebuffers to decode (%d < %d)\n",
 -- 
-2.0.1
+2.0.0
 
