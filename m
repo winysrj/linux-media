@@ -1,63 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f52.google.com ([209.85.219.52]:43400 "EHLO
-	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751889AbaG1IaS (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:59447 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752861AbaGKOFS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jul 2014 04:30:18 -0400
-Received: by mail-oa0-f52.google.com with SMTP id o6so8204064oag.25
-        for <linux-media@vger.kernel.org>; Mon, 28 Jul 2014 01:30:17 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20140728072043.GW16460@valkosipuli.retiisi.org.uk>
-References: <53D12786.5050906@InUnum.com>
-	<CA+2YH7v8bQG4K2Gz8aB9_BOHwuK_1nGDxU102S7EBnsMGEuwKA@mail.gmail.com>
-	<20140728072043.GW16460@valkosipuli.retiisi.org.uk>
-Date: Mon, 28 Jul 2014 10:30:17 +0200
-Message-ID: <CA+2YH7sDWOP-JLEQLuCEmacSN85C2NZKfU+KoG9KP3ejVUQkWg@mail.gmail.com>
-Subject: Re: omap3isp with DM3730 not working?!
-From: Enrico <ebutera@users.sourceforge.net>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Michael Dietschi <michael.dietschi@inunum.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 11 Jul 2014 10:05:18 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>
+Subject: [PATCH/RFC v4 12/21] DT: Add documentation for LED Class Flash Manger
+Date: Fri, 11 Jul 2014 16:04:15 +0200
+Message-id: <1405087464-13762-13-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 28, 2014 at 9:20 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Enrico and Michael,
->
-> On Thu, Jul 24, 2014 at 05:57:30PM +0200, Enrico wrote:
->> On Thu, Jul 24, 2014 at 5:34 PM, Michael Dietschi
->> <michael.dietschi@inunum.com> wrote:
->> > Hello,
->> >
->> > I have built a Poky image for Gumstix Overo and added support for a TVP5151
->> > module like described here http://www.sleepyrobot.com/?p=253.
->> > It does work well with an Overo board which hosts an OMAP3530 SoC. But when
->> > I try with an Overo hosting a DM3730 it does not work: yavta just seems to
->> > wait forever :(
->> >
->> > I did track it down to the point that IRQ0STATUS_CCDC_VD0_IRQ seems never be
->> > set but always IRQ0STATUS_CCDC_VD1_IRQ
->
-> VD1 takes place in 2/3 of the frame, and VD0 in the beginning of the last
-> line. You could check perhaps if you do get VD0 if you set it to take place
-> on the previous line (i.e. the register value being height - 3; please see
-> ccdc_configure() in ispccdc.c).
->
-> I have to admit I haven't used the parallel interface so perhaps others
-> could have more insightful comments on how to debug this.
->
->> > Can someone please give me a hint?
->>
->> It's strange that you get the vd1_irq because it should not be set by
->> the driver and never trigger...
->
-> Both VD0 and VD1 are used by the omap3isp driver, but in different points of
-> the frame.
+This patch documents LED Class Flash Manager
+related bindings.
 
-Hi Sakari,
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
+---
+ .../bindings/leds/leds-flash-manager.txt           |  165 ++++++++++++++++++++
+ 1 file changed, 165 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/leds/leds-flash-manager.txt
 
-that's true in "normal" mode, but with bt656 patches VD1 is not used.
+diff --git a/Documentation/devicetree/bindings/leds/leds-flash-manager.txt b/Documentation/devicetree/bindings/leds/leds-flash-manager.txt
+new file mode 100644
+index 0000000..c98ee2e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/leds/leds-flash-manager.txt
+@@ -0,0 +1,165 @@
++* LED Flash Manager
++
++Flash manager is a part of LED Flash Class. It maintains
++all the flash led devices which have their external strobe
++signals routed through multiplexing devices.
++The multiplexers are aggregated in the standalone 'flash_muxes'
++node as subnodes which are referenced by the flash led devices.
++
++
++flash_muxes node
++----------------
++
++muxN subnode
++------------
++
++There must be at least one muxN subnode, where N is the identifier
++of the node, present in the flash_muxes node. One muxN node
++represents one multiplexer.
++
++Required properties (mutually exclusive):
++- gpios		: specifies the gpio pins used to set the states
++		  of mux selectors, LSB first
++- mux-async	: phandle to the node of the multiplexing device
++
++
++
++flash led device node
++---------------------
++
++Following subnodes must be added to the LED Flash Class device
++tree node described in Documentation/devicetree/bindings/leds/common.txt.
++
++
++gate-software-strobe subnode
++----------------------------
++
++The node defines configuration of multiplexers that needs
++to be applied to route software strobe signal to the flash
++led device.
++
++Required properties:
++- mux		: phandle to the muxN node defined
++		  in the flash_muxes node
++- mux-line-id	: mux line identifier
++
++Optional subnodes:
++- gate-software-strobe : if there are many multiplexers to configure,
++			 they can be recursively nested.
++
++
++gate-external-strobeN subnode
++-----------------------------
++
++The node defines configuration of multiplexers that needs
++to be applied to route external strobe signal to the flash
++led device. A flash led device can have many external strobe
++signal sources.
++
++Required properties:
++- mux			: phandle to the muxN node defined
++			  in the flash_muxes node
++- mux-line-id		: mux line identifier
++Optional properties:
++- strobe-provider	: phandle to the device providing the
++			  strobe signal. It is expected only
++			  on the first level node. The referenced
++			  node is expected to have 'compatible'
++			  property, as providers are labelled
++			  with it in the LED subsystem
++
++Optional subnodes:
++- gate-external-strobeN	: if there are many multiplexers to configure,
++			  they can be recursively nested.
++
++
++Example:
++
++Following board configuration is assumed in this example:
++
++    ---------- ----------
++    | FLASH1 | | FLASH2 |
++    ---------- ----------
++           \(0)   /(1)
++          ----------
++          |  MUX1  |
++          ----------
++              |
++          ----------
++          |  MUX2  |
++          ----------
++           /(0)   \(1)
++      ----------  --------------------
++      |  MUX3  |  | SOC FLASHEN GPIO |
++      ----------  --------------------
++       /(0)   \(1)
++----------- -----------
++| SENSOR1 | | SENSOR2 |
++----------- -----------
++
++
++dummy_mux: led_mux {
++	compatible = "led-async-mux";
++};
++
++flash_muxes {
++	flash_mux1: mux1 {
++                gpios = <&gpj1 1 0>, <&gpj1 2 0>;
++	};
++
++	flash_mux2: mux2 {
++		mux-async = <&dummy_mux>;
++	};
++
++	flash_mux3: mux3 {
++                gpios = <&gpl1 1 0>, <&gpl1 2 0>;
++	};
++};
++
++max77693-flash {
++	compatible = "maxim,max77693-flash";
++
++	//other device specific properties here
++
++	gate-software-strobe {
++		mux = <&flash_mux1>;
++		mux-line-id = <0>;
++
++		gate-software-strobe {
++			mux = <&flash_mux2>;
++			mux-line-id = <1>;
++		};
++	};
++
++	gate-external-strobe1 {
++		strobe-provider = <&s5c73m3_spi>;
++		mux = <&flash_mux1>;
++		mux-line-id = <0>;
++
++		gate-external-strobe1 {
++			mux = <&flash_mux2>;
++			mux-line-id = <0>;
++
++			gate-external-strobe1 {
++				mux = <&flash_mux3>;
++				mux-line-id = <0>;
++			};
++		};
++	};
++
++	gate-external-strobe2 {
++		strobe-provider = <&s5k6a3>;
++		mux = <&flash_mux1>;
++		mux-line-id = <0>;
++
++		gate-external-strobe2 {
++			mux = <&flash_mux2>;
++			mux-line-id = <0>;
++
++			gate-external-strobe2 {
++				mux = <&flash_mux3>;
++				mux-line-id = <1>;
++			};
++		};
++	};
++};
+-- 
+1.7.9.5
 
-Enrico
