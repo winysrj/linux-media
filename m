@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51723 "EHLO
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51570 "EHLO
 	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751985AbaGKJhL (ORCPT
+	with ESMTP id S1752357AbaGKJhC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 05:37:11 -0400
+	Fri, 11 Jul 2014 05:37:02 -0400
 From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
@@ -12,246 +12,83 @@ Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
 	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
 	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 29/32] [media] coda: export auxiliary buffers via debugfs
-Date: Fri, 11 Jul 2014 11:36:40 +0200
-Message-Id: <1405071403-1859-30-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+Subject: [PATCH v3 00/32]  Initial CODA960 (i.MX6 VPU) support
+Date: Fri, 11 Jul 2014 11:36:11 +0200
+Message-Id: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch exports all auxiliary buffers, including SRAM, as debugfs binary
-blobs for debugging purposes. It shows, for example, that psbuf currently
-doesn't seem to be used at all on CODA7541, and that slicebuf and workbuf
-usage is far from the maximum. It can also be used to validate SRAM size
-allocation.
+Hi,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 64 +++++++++++++++++++++++++++++++++++--------
- 1 file changed, 53 insertions(+), 11 deletions(-)
+this is series adds support for the CODA960 Video Processing
+Unit on i.MX6Q/D/DL/S SoCs to the coda driver.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 5a94354..1c2482a 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -12,6 +12,7 @@
-  */
- 
- #include <linux/clk.h>
-+#include <linux/debugfs.h>
- #include <linux/delay.h>
- #include <linux/firmware.h>
- #include <linux/genalloc.h>
-@@ -129,6 +130,8 @@ struct coda_aux_buf {
- 	void			*vaddr;
- 	dma_addr_t		paddr;
- 	u32			size;
-+	struct debugfs_blob_wrapper blob;
-+	struct dentry		*dentry;
- };
- 
- struct coda_dev {
-@@ -156,6 +159,7 @@ struct coda_dev {
- 	struct vb2_alloc_ctx	*alloc_ctx;
- 	struct list_head	instances;
- 	unsigned long		instance_mask;
-+	struct dentry		*debugfs_root;
- };
- 
- struct coda_params {
-@@ -259,6 +263,7 @@ struct coda_ctx {
- 	u32				frm_dis_flg;
- 	u32				frame_mem_ctrl;
- 	int				display_idx;
-+	struct dentry			*debugfs_entry;
- };
- 
- static const u8 coda_filler_nal[14] = { 0x00, 0x00, 0x00, 0x01, 0x0c, 0xff,
-@@ -1706,7 +1711,8 @@ static void coda_parabuf_write(struct coda_ctx *ctx, int index, u32 value)
- }
- 
- static int coda_alloc_aux_buf(struct coda_dev *dev,
--			      struct coda_aux_buf *buf, size_t size)
-+			      struct coda_aux_buf *buf, size_t size,
-+			      const char *name, struct dentry *parent)
- {
- 	buf->vaddr = dma_alloc_coherent(&dev->plat_dev->dev, size, &buf->paddr,
- 					GFP_KERNEL);
-@@ -1715,13 +1721,23 @@ static int coda_alloc_aux_buf(struct coda_dev *dev,
- 
- 	buf->size = size;
- 
-+	if (name && parent) {
-+		buf->blob.data = buf->vaddr;
-+		buf->blob.size = size;
-+		buf->dentry = debugfs_create_blob(name, 0644, parent, &buf->blob);
-+		if (!buf->dentry)
-+			dev_warn(&dev->plat_dev->dev,
-+				 "failed to create debugfs entry %s\n", name);
-+	}
-+
- 	return 0;
- }
- 
- static inline int coda_alloc_context_buf(struct coda_ctx *ctx,
--					 struct coda_aux_buf *buf, size_t size)
-+					 struct coda_aux_buf *buf, size_t size,
-+					 const char *name)
- {
--	return coda_alloc_aux_buf(ctx->dev, buf, size);
-+	return coda_alloc_aux_buf(ctx->dev, buf, size, name, ctx->debugfs_entry);
- }
- 
- static void coda_free_aux_buf(struct coda_dev *dev,
-@@ -1733,6 +1749,7 @@ static void coda_free_aux_buf(struct coda_dev *dev,
- 		buf->vaddr = NULL;
- 		buf->size = 0;
- 	}
-+	debugfs_remove(buf->dentry);
- }
- 
- static void coda_free_framebuffers(struct coda_ctx *ctx)
-@@ -1765,12 +1782,16 @@ static int coda_alloc_framebuffers(struct coda_ctx *ctx, struct coda_q_data *q_d
- 	/* Allocate frame buffers */
- 	for (i = 0; i < ctx->num_internal_frames; i++) {
- 		size_t size;
-+		char *name;
- 
- 		size = ysize + ysize / 2;
- 		if (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264 &&
- 		    dev->devtype->product != CODA_DX6)
- 			size += ysize / 4;
--		ret = coda_alloc_context_buf(ctx, &ctx->internal_frames[i], size);
-+		name = kasprintf(GFP_KERNEL, "fb%d", i);
-+		ret = coda_alloc_context_buf(ctx, &ctx->internal_frames[i],
-+					     size, name);
-+		kfree(name);
- 		if (ret < 0) {
- 			coda_free_framebuffers(ctx);
- 			return ret;
-@@ -1994,7 +2015,7 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
- 		/* worst case slice size */
- 		size = (DIV_ROUND_UP(q_data->width, 16) *
- 			DIV_ROUND_UP(q_data->height, 16)) * 3200 / 8 + 512;
--		ret = coda_alloc_context_buf(ctx, &ctx->slicebuf, size);
-+		ret = coda_alloc_context_buf(ctx, &ctx->slicebuf, size, "slicebuf");
- 		if (ret < 0) {
- 			v4l2_err(&dev->v4l2_dev, "failed to allocate %d byte slice buffer",
- 				 ctx->slicebuf.size);
-@@ -2003,14 +2024,14 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
- 	}
- 
- 	if (dev->devtype->product == CODA_7541) {
--		ret = coda_alloc_context_buf(ctx, &ctx->psbuf, CODA7_PS_BUF_SIZE);
-+		ret = coda_alloc_context_buf(ctx, &ctx->psbuf, CODA7_PS_BUF_SIZE, "psbuf");
- 		if (ret < 0) {
- 			v4l2_err(&dev->v4l2_dev, "failed to allocate psmem buffer");
- 			goto err;
- 		}
- 	}
- 
--	ret = coda_alloc_context_buf(ctx, &ctx->workbuf, size);
-+	ret = coda_alloc_context_buf(ctx, &ctx->workbuf, size, "workbuf");
- 	if (ret < 0) {
- 		v4l2_err(&dev->v4l2_dev, "failed to allocate %d byte context buffer",
- 			 ctx->workbuf.size);
-@@ -2899,6 +2920,7 @@ static int coda_open(struct file *file)
- {
- 	struct coda_dev *dev = video_drvdata(file);
- 	struct coda_ctx *ctx = NULL;
-+	char *name;
- 	int ret;
- 	int idx;
- 
-@@ -2913,6 +2935,10 @@ static int coda_open(struct file *file)
- 	}
- 	set_bit(idx, &dev->instance_mask);
- 
-+	name = kasprintf(GFP_KERNEL, "context%d", idx);
-+	ctx->debugfs_entry = debugfs_create_dir(name, dev->debugfs_root);
-+	kfree(name);
-+
- 	init_completion(&ctx->completion);
- 	INIT_WORK(&ctx->pic_run_work, coda_pic_run_work);
- 	INIT_WORK(&ctx->seq_end_work, coda_seq_end_work);
-@@ -2964,7 +2990,8 @@ static int coda_open(struct file *file)
- 
- 	ctx->fh.ctrl_handler = &ctx->ctrls;
- 
--	ret = coda_alloc_context_buf(ctx, &ctx->parabuf, CODA_PARA_BUF_SIZE);
-+	ret = coda_alloc_context_buf(ctx, &ctx->parabuf, CODA_PARA_BUF_SIZE,
-+				     "parabuf");
- 	if (ret < 0) {
- 		v4l2_err(&dev->v4l2_dev, "failed to allocate parabuf");
- 		goto err_dma_alloc;
-@@ -3025,6 +3052,8 @@ static int coda_release(struct file *file)
- 	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "Releasing instance %p\n",
- 		 ctx);
- 
-+	debugfs_remove_recursive(ctx->debugfs_entry);
-+
- 	/* If this instance is running, call .job_abort and wait for it to end */
- 	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
- 
-@@ -3556,7 +3585,8 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
- 	}
- 
- 	/* allocate auxiliary per-device code buffer for the BIT processor */
--	ret = coda_alloc_aux_buf(dev, &dev->codebuf, fw->size);
-+	ret = coda_alloc_aux_buf(dev, &dev->codebuf, fw->size, "codebuf",
-+				 dev->debugfs_root);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "failed to allocate code buffer\n");
- 		return;
-@@ -3792,11 +3822,16 @@ static int coda_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
-+	dev->debugfs_root = debugfs_create_dir("coda", NULL);
-+	if (!dev->debugfs_root)
-+		dev_warn(&pdev->dev, "failed to create debugfs root\n");
-+
- 	/* allocate auxiliary per-device buffers for the BIT processor */
- 	switch (dev->devtype->product) {
- 	case CODA_DX6:
- 		ret = coda_alloc_aux_buf(dev, &dev->workbuf,
--					 CODADX6_WORK_BUF_SIZE);
-+					 CODADX6_WORK_BUF_SIZE, "workbuf",
-+					 dev->debugfs_root);
- 		if (ret < 0) {
- 			dev_err(&pdev->dev, "failed to allocate work buffer\n");
- 			v4l2_device_unregister(&dev->v4l2_dev);
-@@ -3812,7 +3847,8 @@ static int coda_probe(struct platform_device *pdev)
- 	}
- 	if (dev->tempbuf.size) {
- 		ret = coda_alloc_aux_buf(dev, &dev->tempbuf,
--					 dev->tempbuf.size);
-+					 dev->tempbuf.size, "tempbuf",
-+					 dev->debugfs_root);
- 		if (ret < 0) {
- 			dev_err(&pdev->dev, "failed to allocate temp buffer\n");
- 			v4l2_device_unregister(&dev->v4l2_dev);
-@@ -3837,6 +3873,11 @@ static int coda_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 	}
- 
-+	dev->iram.blob.data = dev->iram.vaddr;
-+	dev->iram.blob.size = dev->iram.size;
-+	dev->iram.dentry = debugfs_create_blob("iram", 0644, dev->debugfs_root,
-+					       &dev->iram.blob);
-+
- 	dev->workqueue = alloc_workqueue("coda", WQ_UNBOUND | WQ_MEM_RECLAIM, 1);
- 	if (!dev->workqueue) {
- 		dev_err(&pdev->dev, "unable to alloc workqueue\n");
-@@ -3868,6 +3909,7 @@ static int coda_remove(struct platform_device *pdev)
- 	coda_free_aux_buf(dev, &dev->codebuf);
- 	coda_free_aux_buf(dev, &dev->tempbuf);
- 	coda_free_aux_buf(dev, &dev->workbuf);
-+	debugfs_remove_recursive(dev->debugfs_root);
- 	return 0;
- }
- 
+Changes since v2:
+ - Fixed patch 22 "[media] coda: add sequence counter offset"
+   for 16-bit hardware frame counter
+ - Changed variable name in patch 23 "[media] coda: rename
+    prescan_failed to hold and stop stream after timeout"
+ - Added patches 30-32 to store work buffer size, temp buffer
+   size, and IRAM size in the coda_devtype struct.
+
+This series contains a few fixes and preparations, the CODA960
+support patch, a rework of the hardware access serialization
+into a single threaded workqueue, some cleanups to use more
+infrastructure that is available in the meantime, runtime PM
+support, a few h.264 related v4l2 controls and fixes, support
+for hard resets via the i.MX system reset controller, a patch
+that exports internal buffers to debugfs, and a few code cleanups.
+
+regards
+Philipp
+
+Michael Olbrich (2):
+  [media] v4l2-mem2mem: export v4l2_m2m_try_schedule
+  [media] coda: try to schedule a decode run after a stop command
+
+Philipp Zabel (30):
+  [media] coda: fix decoder I/P/B frame detection
+  [media] coda: fix readback of CODA_RET_DEC_SEQ_FRAME_NEED
+  [media] coda: fix h.264 quantization parameter range
+  [media] coda: fix internal framebuffer allocation size
+  [media] coda: simplify IRAM setup
+  [media] coda: Add encoder/decoder support for CODA960
+  [media] coda: remove BUG() in get_q_data
+  [media] coda: add selection API support for h.264 decoder
+  [media] coda: add workqueue to serialize hardware commands
+  [media] coda: Use mem-to-mem ioctl helpers
+  [media] coda: use ctx->fh.m2m_ctx instead of ctx->m2m_ctx
+  [media] coda: Add runtime pm support
+  [media] coda: split firmware version check out of coda_hw_init
+  [media] coda: select GENERIC_ALLOCATOR
+  [media] coda: add h.264 min/max qp controls
+  [media] coda: add h.264 deblocking filter controls
+  [media] coda: add cyclic intra refresh control
+  [media] coda: add decoder timestamp queue
+  [media] coda: alert userspace about macroblock errors
+  [media] coda: add sequence counter offset
+  [media] coda: rename prescan_failed to hold and stop stream after
+    timeout
+  [media] coda: add reset control support
+  [media] coda: add bytesperline to queue data
+  [media] coda: allow odd width, but still round up bytesperline
+  [media] coda: round up internal frames to multiples of macroblock size
+    for h.264
+  [media] coda: increase frame stride to 16 for h.264
+  [media] coda: export auxiliary buffers via debugfs
+  [media] coda: store per-context work buffer size in struct
+    coda_devtype
+  [media] coda: store global temporary buffer size in struct
+    coda_devtype
+  [media] coda: store IRAM size in struct coda_devtype
+
+ drivers/media/platform/Kconfig         |    1 +
+ drivers/media/platform/coda.c          | 1505 ++++++++++++++++++++++----------
+ drivers/media/platform/coda.h          |  115 ++-
+ drivers/media/v4l2-core/v4l2-mem2mem.c |    3 +-
+ include/media/v4l2-mem2mem.h           |    2 +
+ 5 files changed, 1163 insertions(+), 463 deletions(-)
+
 -- 
 2.0.0
 
