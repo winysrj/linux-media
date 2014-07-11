@@ -1,38 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:55429 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755546AbaGDHy7 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51561 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752677AbaGKJhB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jul 2014 03:54:59 -0400
-Message-ID: <53B65DCA.6010803@xs4all.nl>
-Date: Fri, 04 Jul 2014 09:54:50 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Divneil Wadhawan <divneil@outlook.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: No audio support in struct v4l2_subdev_format
-References: <BAY176-W7B3F24A204E68896226E0A9000@phx.gbl>
-In-Reply-To: <BAY176-W7B3F24A204E68896226E0A9000@phx.gbl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Fri, 11 Jul 2014 05:37:01 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Michael Olbrich <m.olbrich@pengutronix.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 19/32] [media] coda: try to schedule a decode run after a stop command
+Date: Fri, 11 Jul 2014 11:36:30 +0200
+Message-Id: <1405071403-1859-20-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/04/2014 08:49 AM, Divneil Wadhawan wrote:
-> Hello,
-> 
-> 
-> There's an HDMIRx subdev I have implemented and I would like the application to read properties of incoming audio.
-> 
-> For the moment, there's no support of it.
-> 
-> Can you share if some work is already done on this but not complete or we do it from scratch?
+From: Michael Olbrich <m.olbrich@pengutronix.de>
 
-To my knowledge nobody has done much if any work on this. Usually the
-audio part is handled by alsa, but it is not clear if support is also
-needed from the V4L2 API. If such support is needed it will most likely
-be in the form of a bunch of new controls.
+In case no further buffers are queued after the stop command, restart
+job scheduling explicitly.
 
-Regards,
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-	Hans
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 2e94d95..8194260 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -909,6 +909,8 @@ static int coda_decoder_cmd(struct file *file, void *fh,
+ 		/* If this context is currently running, update the hardware flag */
+ 		coda_write(dev, ctx->bit_stream_param, CODA_REG_BIT_BIT_STREAM_PARAM);
+ 	}
++	ctx->prescan_failed = false;
++	v4l2_m2m_try_schedule(ctx->fh.m2m_ctx);
+ 
+ 	return 0;
+ }
+-- 
+2.0.0
+
