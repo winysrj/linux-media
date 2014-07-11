@@ -1,76 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f172.google.com ([74.125.82.172]:42603 "EHLO
-	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756009AbaGRQcM (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51567 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753011AbaGKJhC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 12:32:12 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH] media: davinci: vpif: fix array out of bound warnings
-Date: Fri, 18 Jul 2014 17:31:51 +0100
-Message-Id: <1405701111-26983-1-git-send-email-prabhakar.csengg@gmail.com>
+	Fri, 11 Jul 2014 05:37:02 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 22/32] [media] coda: add sequence counter offset
+Date: Fri, 11 Jul 2014 11:36:33 +0200
+Message-Id: <1405071403-1859-23-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes following array out of bound warnings,
+The coda h.264 decoder also counts PIC_RUNs where no frame was decoded but
+a frame was rotated out / marked as ready to be displayed. This causes an
+offset between the incoming encoded frame's sequence number and the decode
+sequence number returned by the coda. This patch introduces a sequence
+counter offset variable to keep track of the difference.
 
-drivers/media/platform/davinci/vpif_display.c: In function 'vpif_remove':
-drivers/media/platform/davinci/vpif_display.c:1389:36: warning: iteration
-1u invokes undefined behavior [-Waggressive-loop-optimizations]
-   vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
-                                    ^
-drivers/media/platform/davinci/vpif_display.c:1385:2: note: containing loop
-  for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
-  ^
-drivers/media/platform/davinci/vpif_capture.c: In function 'vpif_remove':
-drivers/media/platform/davinci/vpif_capture.c:1581:36: warning: iteration
-1u invokes undefined behavior [-Waggressive-loop-optimizations]
-   vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
-                                    ^
-drivers/media/platform/davinci/vpif_capture.c:1577:2: note: containing loop
-  for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
-  ^
-drivers/media/platform/davinci/vpif_capture.c:1580:23: warning: array subscript
-is above array bounds [-Warray-bounds]
-   common = &ch->common[i];
-
-Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/davinci/vpif_capture.c | 2 +-
- drivers/media/platform/davinci/vpif_display.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/coda.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 2f90f0d..3a85238 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -1577,7 +1577,7 @@ static int vpif_remove(struct platform_device *device)
- 	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
- 		/* Get the pointer to the channel object */
- 		ch = vpif_obj.dev[i];
--		common = &ch->common[i];
-+		common = &ch->common[VPIF_VIDEO_INDEX];
- 		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
- 		/* Unregister video device */
- 		video_unregister_device(ch->video_dev);
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 0bd6dcb..6c6bd6b 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -1385,7 +1385,7 @@ static int vpif_remove(struct platform_device *device)
- 	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
- 		/* Get the pointer to the channel object */
- 		ch = vpif_obj.dev[i];
--		common = &ch->common[i];
-+		common = &ch->common[VPIF_VIDEO_INDEX];
- 		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
- 		/* Unregister video device */
- 		video_unregister_device(ch->video_dev);
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 0405a7a..d7404e9 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -222,6 +222,7 @@ struct coda_ctx {
+ 	u32				isequence;
+ 	u32				qsequence;
+ 	u32				osequence;
++	u32				sequence_offset;
+ 	struct coda_q_data		q_data[2];
+ 	enum coda_inst_type		inst_type;
+ 	struct coda_codec		*codec;
+@@ -2623,6 +2624,7 @@ static void coda_stop_streaming(struct vb2_queue *q)
+ 		ctx->streamon_cap = 0;
+ 
+ 		ctx->osequence = 0;
++		ctx->sequence_offset = 0;
+ 	}
+ 
+ 	if (!ctx->streamon_out && !ctx->streamon_cap) {
+@@ -3128,7 +3130,9 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 
+ 	if (decoded_idx == -1) {
+ 		/* no frame was decoded, but we might have a display frame */
+-		if (display_idx < 0 && ctx->display_idx < 0)
++		if (display_idx >= 0 && display_idx < ctx->num_internal_frames)
++			ctx->sequence_offset++;
++		else if (ctx->display_idx < 0)
+ 			ctx->prescan_failed = true;
+ 	} else if (decoded_idx == -2) {
+ 		/* no frame was decoded, we still return the remaining buffers */
+@@ -3140,10 +3144,11 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 				      struct coda_timestamp, list);
+ 		list_del(&ts->list);
+ 		val = coda_read(dev, CODA_RET_DEC_PIC_FRAME_NUM) - 1;
+-		if (val != ts->sequence) {
++		val -= ctx->sequence_offset;
++		if (val != (ts->sequence & 0xffff)) {
+ 			v4l2_err(&dev->v4l2_dev,
+-				 "sequence number mismatch (%d != %d)\n",
+-				 val, ts->sequence);
++				 "sequence number mismatch (%d(%d) != %d)\n",
++				 val, ctx->sequence_offset, ts->sequence);
+ 		}
+ 		ctx->frame_timestamps[decoded_idx] = *ts;
+ 		kfree(ts);
 -- 
-1.9.1
+2.0.0
 
