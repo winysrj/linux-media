@@ -1,79 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-3.cisco.com ([173.38.203.53]:64000 "EHLO
-	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754653AbaG3HGe (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:36941 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753634AbaGKMdY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jul 2014 03:06:34 -0400
-Message-ID: <53D898B5.4010300@cisco.com>
-Date: Wed, 30 Jul 2014 09:03:17 +0200
-From: Hans Verkuil <hansverk@cisco.com>
+	Fri, 11 Jul 2014 08:33:24 -0400
+Date: Fri, 11 Jul 2014 14:33:18 +0200
+From: Robert Schwebel <r.schwebel@pengutronix.de>
+To: 'Fabio Estevam' <fabio.estevam@freescale.com>
+Cc: Kamil Debski <k.debski@samsung.com>,
+	'Nicolas Dufresne' <nicolas.dufresne@collabora.com>,
+	linux-media@vger.kernel.org,
+	'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
+	kernel@pengutronix.de, Guo Shawn-R65073 <r65073@freescale.com>,
+	Estevam Fabio-R49496 <r49496@freescale.com>
+Subject: Re: [PATCH v2 06/29] [media] coda: Add encoder/decoder support for
+ CODA960
+Message-ID: <20140711123318.GB5441@pengutronix.de>
+References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
+ <1403621771-11636-7-git-send-email-p.zabel@pengutronix.de>
+ <1403626611.10756.11.camel@mpb-nicolas>
+ <1404237187.19382.78.camel@paszta.hi.pengutronix.de>
+ <0b3a01cf95fa$b7df2190$279d64b0$%debski@samsung.com>
+ <20140702191642.GM22620@pengutronix.de>
 MIME-Version: 1.0
-To: Joe Perches <joe@perches.com>,
-	Andrew Morton <akpm@linux-foundation.org>
-CC: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-kernel@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 4/6] MAINTAINERS: Update solo6x10 patterns
-References: <cover.1406691397.git.joe@perches.com> <7142cc450c37b75474780f2e4610d5a44a0f757b.1406691397.git.joe@perches.com> <53D8987F.1020304@cisco.com>
-In-Reply-To: <53D8987F.1020304@cisco.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140702191642.GM22620@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Repost, this time with the linux-media ml included.
+Hi Fabio,
 
-On 07/30/2014 09:02 AM, Hans Verkuil wrote:
-> On 07/30/2014 05:38 AM, Joe Perches wrote:
->> commit 28cae868cd24 ("[media] solo6x10: move out of staging into
->> drivers/media/pci") moved the files, update the patterns.
->>
->> Signed-off-by: Joe Perches <joe@perches.com>
->> cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
->> cc: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Jul 02, 2014 at 09:16:42PM +0200, Robert Schwebel wrote:
+> > It would be really nice if the firmware was available in the
+> > linux-firmware repository. Do you think this would be possible?
+> > 
+> > Best wishes,
+> > -- 
+> > Kamil Debski
+> > Samsung R&D Institute Poland
 > 
-> Acked-By: Hans Verkuil <hans.verkuil@cisco.com>
+> I tried to convince Freescale to put the firmware into linux-firmware
+> for 15 months now, but recently got no reply any more.
 > 
-> I'll pull this one in through our linux-media repo.
-> 
-> Thanks,
-> 
-> 	Hans
-> 
->> ---
->>  MAINTAINERS | 11 ++++++-----
->>  1 file changed, 6 insertions(+), 5 deletions(-)
->>
->> diff --git a/MAINTAINERS b/MAINTAINERS
->> index 3960ba8..8ed337c 100644
->> --- a/MAINTAINERS
->> +++ b/MAINTAINERS
->> @@ -8403,6 +8403,12 @@ M:	Chris Boot <bootc@bootc.net>
->>  S:	Maintained
->>  F:	drivers/leds/leds-net48xx.c
->>  
->> +SOFTLOGIC 6x10 MPEG CODEC
->> +M:	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
->> +L:	linux-media@vger.kernel.org
->> +S:	Supported
->> +F:	drivers/media/pci/solo6x10/
->> +
->>  SOFTWARE RAID (Multiple Disks) SUPPORT
->>  M:	Neil Brown <neilb@suse.de>
->>  L:	linux-raid@vger.kernel.org
->> @@ -8666,11 +8672,6 @@ M:	Christopher Harrer <charrer@alacritech.com>
->>  S:	Odd Fixes
->>  F:	drivers/staging/slicoss/
->>  
->> -STAGING - SOFTLOGIC 6x10 MPEG CODEC
->> -M:	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
->> -S:	Supported
->> -F:	drivers/staging/media/solo6x10/
->> -
->>  STAGING - SPEAKUP CONSOLE SPEECH DRIVER
->>  M:	William Hubbs <w.d.hubbs@gmail.com>
->>  M:	Chris Brannon <chris@the-brannons.com>
->>
-> 
+> Fabio, Shawn, could you try to discuss this with the responsible folks
+> inside FSL again? Maybe responsibilities have changed in the meantime
+> and I might have tried to talk to the wrong people.
 
+Any news?
+
+rsc
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
