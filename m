@@ -1,34 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:37439 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753215AbaGHJla (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:34013 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754421AbaGKPUD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jul 2014 05:41:30 -0400
-From: Ian Molton <ian.molton@codethink.co.uk>
+	Fri, 11 Jul 2014 11:20:03 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N8J00EA3ZXDQGA0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 12 Jul 2014 00:20:01 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: linux-kernel@lists.codethink.co.uk, ian.molton@codethink.co.uk,
-	g.liakhovetski@gmx.de, m.chehab@samsung.com,
-	vladimir.barinov@cogentembedded.com, magnus.damm@gmail.com,
-	horms@verge.net.au, linux-sh@vger.kernel.org
-Subject: Resend: [PATCH 0/4] rcar_vin: fix soc_camera WARN_ON() issues.
-Date: Tue,  8 Jul 2014 10:41:10 +0100
-Message-Id: <1404812474-7627-1-git-send-email-ian.molton@codethink.co.uk>
+Cc: s.nawrocki@samsung.com, andrzej.p@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH v2 4/9] s5p-jpeg: fix g_selection op
+Date: Fri, 11 Jul 2014 17:19:45 +0200
+Message-id: <1405091990-28567-5-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
+References: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Resent to include the author and a couple of other interested parties :)
+V4L2_SEL_TGT_COMPOSE_DEFAULT switch case should select whole
+available area of the image and V4L2_SEL_TGT_COMPOSE
+should apply user settings.
 
-This patch series provides fixes that allow the rcar_vin driver to function
-without triggering dozens of warnings from the videobuf2 and soc_camera layers.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-Patches 2/3 should probably be merged into a single, atomic change, although
-patch 2 does not make the existing situation /worse/ in and of itself.
-
-Patch 4 does not change the code logic, but is cleaner and less prone to
-breakage caused by furtutre modification. Also, more consistent with the use of
-vb pointers elsewhere in the driver.
-
-Comments welcome!
-
--Ian
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 0854f37..09b59d3 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1505,21 +1505,23 @@ static int s5p_jpeg_g_selection(struct file *file, void *priv,
+ 	case V4L2_SEL_TGT_CROP:
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 	case V4L2_SEL_TGT_CROP_DEFAULT:
+-	case V4L2_SEL_TGT_COMPOSE:
+ 	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+ 		s->r.width = ctx->out_q.w;
+ 		s->r.height = ctx->out_q.h;
++		s->r.left = 0;
++		s->r.top = 0;
+ 		break;
++	case V4L2_SEL_TGT_COMPOSE:
+ 	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+ 	case V4L2_SEL_TGT_COMPOSE_PADDED:
+-		s->r.width = ctx->cap_q.w;
+-		s->r.height = ctx->cap_q.h;
++		s->r.width = ctx->crop_rect.width;
++		s->r.height =  ctx->crop_rect.height;
++		s->r.left = ctx->crop_rect.left;
++		s->r.top = ctx->crop_rect.top;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	s->r.left = 0;
+-	s->r.top = 0;
+ 	return 0;
+ }
+ 
+-- 
+1.7.9.5
 
