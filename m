@@ -1,39 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43260 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753197AbaGOBJo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 21:09:44 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 10/18] Kconfig: sub-driver auto-select SPI bus
-Date: Tue, 15 Jul 2014 04:09:13 +0300
-Message-Id: <1405386561-30450-10-git-send-email-crope@iki.fi>
-In-Reply-To: <1405386561-30450-1-git-send-email-crope@iki.fi>
-References: <1405386561-30450-1-git-send-email-crope@iki.fi>
+Received: from mailout4.samsung.com ([203.254.224.34]:59423 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753857AbaGKOFI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jul 2014 10:05:08 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: [PATCH/RFC v4 10/21] Documentation: leds: add exemplary asynchronous
+ mux driver
+Date: Fri, 11 Jul 2014 16:04:13 +0200
+Message-id: <1405087464-13762-11-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mirics MSi001 and MSi2500 drivers uses SPI bus. Due to that we need
-auto-select it too.
+Exemplary driver showing usage of the Flash Manager API
+for registering/unregistering asynchronous multiplexers
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 ---
- drivers/media/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+ Documentation/leds/leds-async-mux.c |   65 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
+ create mode 100644 Documentation/leds/leds-async-mux.c
 
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index 3c89fcb..f60bad4 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -182,6 +182,7 @@ config MEDIA_SUBDRV_AUTOSELECT
- 	depends on HAS_IOMEM
- 	select I2C
- 	select I2C_MUX
-+	select SPI
- 	default y
- 	help
- 	  By default, a media driver auto-selects all possible ancillary
+diff --git a/Documentation/leds/leds-async-mux.c b/Documentation/leds/leds-async-mux.c
+new file mode 100644
+index 0000000..ee35d2f
+--- /dev/null
++++ b/Documentation/leds/leds-async-mux.c
+@@ -0,0 +1,65 @@
++/*
++ * Exemplary driver showing usage of the Flash Manager API
++ * for registering/unregistering asynchronous multiplexers.
++ *
++ *	Copyright (C) 2014, Samsung Electronics Co., Ltd.
++ *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ */
++
++#include <linux/platform_device.h>
++#include <linux/module.h>
++#include <linux/led-class-flash.h>
++#include <linux/led-flash-manager.h>
++#include <linux/leds.h>
++#include <linux/of.h>
++
++static int led_async_mux_select_line(u32 line_id, void *mux)
++{
++	pr_info("led_async_mux_select_line line_id: %d\n", line_id);
++	return 0;
++}
++
++struct led_flash_mux_ops mux_ops = {
++	.select_line = led_async_mux_select_line,
++};
++
++static int led_async_mux_probe(struct platform_device *pdev)
++{
++	struct led_flash_mux mux;
++
++	mux.ops = &mux_ops;
++	mux.owner = THIS_MODULE;
++	mux.node = pdev->dev->of_node;
++
++	return led_flash_manager_bind_async_mux(&mux);
++}
++
++static int led_async_mux_remove(struct platform_device *pdev)
++{
++	return led_flash_manager_unbind_async_mux(pdev->dev->of_node);
++}
++
++static struct of_device_id led_async_mux_dt_match[] = {
++	{.compatible = "led-async-mux"},
++	{},
++};
++
++static struct platform_driver led_async_mux_driver = {
++	.probe		= led_async_mux_probe,
++	.remove		= led_async_mux_remove,
++	.driver		= {
++		.name		= "led-async-mux",
++		.owner		= THIS_MODULE,
++		.of_match_table = led_async_mux_dt_match,
++	},
++};
++
++module_platform_driver(led_async_mux_driver);
++
++MODULE_AUTHOR("Jacek Anaszewski <j.anaszewski@samsung.com>");
++MODULE_DESCRIPTION("LED async mux");
++MODULE_LICENSE("GPL");
 -- 
-1.9.3
+1.7.9.5
 
