@@ -1,55 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:53815 "EHLO
+Received: from mailout2.samsung.com ([203.254.224.25]:49142 "EHLO
 	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754447AbaGKPUQ (ORCPT
+	with ESMTP id S1754071AbaGKOEf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 11:20:16 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N8J00159ZXRX650@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Sat, 12 Jul 2014 00:20:15 +0900 (KST)
+	Fri, 11 Jul 2014 10:04:35 -0400
 From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, andrzej.p@samsung.com,
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
 	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>
-Subject: [PATCH v2 9/9] ARM: dts: exynos3250: add JPEG codec device node
-Date: Fri, 11 Jul 2014 17:19:50 +0200
-Message-id: <1405091990-28567-10-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
-References: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: [PATCH/RFC v4 01/21] leds: make brightness type consistent across
+ whole subsystem
+Date: Fri, 11 Jul 2014 16:04:04 +0200
+Message-id: <1405087464-13762-2-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Kukjin Kim <kgene.kim@samsung.com>
----
- arch/arm/boot/dts/exynos3250.dtsi |    9 +++++++++
- 1 file changed, 9 insertions(+)
+Documentations states that brightness units type is enum led_brightness
+and this is the type used by the led API functions. Adjust the type
+of brightness variables in the struct led_classdev accordingly.
 
-diff --git a/arch/arm/boot/dts/exynos3250.dtsi b/arch/arm/boot/dts/exynos3250.dtsi
-index 3e678fa..2f7f923 100644
---- a/arch/arm/boot/dts/exynos3250.dtsi
-+++ b/arch/arm/boot/dts/exynos3250.dtsi
-@@ -206,6 +206,15 @@
- 			interrupts = <0 240 0>;
- 		};
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ include/linux/leds.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/leds.h b/include/linux/leds.h
+index e436864..995f933 100644
+--- a/include/linux/leds.h
++++ b/include/linux/leds.h
+@@ -31,8 +31,8 @@ enum led_brightness {
  
-+		jpeg-codec@11830000 {
-+			compatible = "samsung,exynos3250-jpeg";
-+			reg = <0x11830000 0x1000>;
-+			interrupts = <0 171 0>;
-+			clocks = <&cmu CLK_JPEG>, <&cmu CLK_SCLK_JPEG>;
-+			clock-names = "jpeg", "sclk-jpeg";
-+			samsung,power-domain = <&pd_cam>;
-+		};
-+
- 		mshc_0: mshc@12510000 {
- 			compatible = "samsung,exynos5250-dw-mshc";
- 			reg = <0x12510000 0x1000>;
+ struct led_classdev {
+ 	const char		*name;
+-	int			 brightness;
+-	int			 max_brightness;
++	enum led_brightness	 brightness;
++	enum led_brightness	 max_brightness;
+ 	int			 flags;
+ 
+ 	/* Lower 16 bits reflect status */
 -- 
 1.7.9.5
 
