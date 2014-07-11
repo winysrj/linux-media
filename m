@@ -1,52 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:62224 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751895AbaGZPrp convert rfc822-to-8bit (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:53815 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754447AbaGKPUQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Jul 2014 11:47:45 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
+	Fri, 11 Jul 2014 11:20:16 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9B00J2QT7J7C70@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Sat, 26 Jul 2014 11:47:43 -0400 (EDT)
-Date: Sat, 26 Jul 2014 12:47:39 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Niels Laukens <niels@dest-unreach.be>
-Cc: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] drivers/media/rc/ir-nec-decode : add toggle feature
-Message-id: <20140726124739.6c3e25bb.m.chehab@samsung.com>
-In-reply-to: <53A2D0B5.4050003@dest-unreach.be>
-References: <53A29E5A.9030304@dest-unreach.be>
- <53A29E79.2000304@dest-unreach.be> <20140619090540.GC13952@hardeman.nu>
- <53A2D0B5.4050003@dest-unreach.be>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+ 17 2011)) with ESMTP id <0N8J00159ZXRX650@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 12 Jul 2014 00:20:15 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, andrzej.p@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>
+Subject: [PATCH v2 9/9] ARM: dts: exynos3250: add JPEG codec device node
+Date: Fri, 11 Jul 2014 17:19:50 +0200
+Message-id: <1405091990-28567-10-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
+References: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 19 Jun 2014 13:59:49 +0200
-Niels Laukens <niels@dest-unreach.be> escreveu:
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Kukjin Kim <kgene.kim@samsung.com>
+---
+ arch/arm/boot/dts/exynos3250.dtsi |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-> On 2014-06-19 11:05, David Härdeman wrote:
-> > On Thu, Jun 19, 2014 at 10:25:29AM +0200, Niels Laukens wrote:
-> >> Made the distinction between repeated key presses, and a single long
-> >> press. The NEC-protocol does not have a toggle-bit (cfr RC5/RC6), but
-> >> has specific repeat-codes.
-> > 
-> > Not all NEC remotes use repeat codes. Some just transmit the full code
-> > at fixed intervals...IIRC, Pioneer remotes is (was?) one example... 
-> 
-> A way to cover this, is to make this mechanism optional, and
-> auto-activate as soon as a repeat code is seen. But that will only work
-> reliably with a single (type of) remote per system. Is this a better
-> solution?
+diff --git a/arch/arm/boot/dts/exynos3250.dtsi b/arch/arm/boot/dts/exynos3250.dtsi
+index 3e678fa..2f7f923 100644
+--- a/arch/arm/boot/dts/exynos3250.dtsi
++++ b/arch/arm/boot/dts/exynos3250.dtsi
+@@ -206,6 +206,15 @@
+ 			interrupts = <0 240 0>;
+ 		};
+ 
++		jpeg-codec@11830000 {
++			compatible = "samsung,exynos3250-jpeg";
++			reg = <0x11830000 0x1000>;
++			interrupts = <0 171 0>;
++			clocks = <&cmu CLK_JPEG>, <&cmu CLK_SCLK_JPEG>;
++			clock-names = "jpeg", "sclk-jpeg";
++			samsung,power-domain = <&pd_cam>;
++		};
++
+ 		mshc_0: mshc@12510000 {
+ 			compatible = "samsung,exynos5250-dw-mshc";
+ 			reg = <0x12510000 0x1000>;
+-- 
+1.7.9.5
 
-No, auto-activating is a very bad idea, as it means that any NEC remote,
-if ever pressed in the room, will change the driver behavior. We should be
-able to support both cases: the one with specific repeat codes and the
-ones that don't support, at the same time.
-
-Regards,
-Mauro
