@@ -1,109 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:57825 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751883AbaGGQdg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jul 2014 12:33:36 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51510 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752930AbaGKJg6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jul 2014 05:36:58 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH 7/9] s5p-jpeg: add chroma subsampling adjustment for Exynos3250
-Date: Mon, 07 Jul 2014 18:32:08 +0200
-Message-id: <1404750730-22996-8-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1404750730-22996-1-git-send-email-j.anaszewski@samsung.com>
-References: <1404750730-22996-1-git-send-email-j.anaszewski@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 15/32] [media] coda: add h.264 min/max qp controls
+Date: Fri, 11 Jul 2014 11:36:26 +0200
+Message-Id: <1405071403-1859-16-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Take into account limitations specific to the Exynos3250 SoC,
-regarding setting chroma subsampling control value.
+If the bitrate control is set, the encoder works in CBR mode, dynamically
+changing the quantization parameters to achieve a constant bitrate.
+With the min/max QP controls the quantization parameters can be limited
+to a given range.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   59 +++++++++++++++++----------
- 1 file changed, 38 insertions(+), 21 deletions(-)
+ drivers/media/platform/coda.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 1ef004b..283249d 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1603,36 +1603,53 @@ static int s5p_jpeg_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- 	return 0;
- }
- 
--static int s5p_jpeg_try_ctrl(struct v4l2_ctrl *ctrl)
-+static int s5p_jpeg_adjust_subs_ctrl(struct s5p_jpeg_ctx *ctx, int *ctrl_val)
- {
--	struct s5p_jpeg_ctx *ctx = ctrl_to_ctx(ctrl);
--	unsigned long flags;
--	int ret = 0;
--
--	spin_lock_irqsave(&ctx->jpeg->slock, flags);
--
--	if (ctrl->id == V4L2_CID_JPEG_CHROMA_SUBSAMPLING) {
--		if (ctx->jpeg->variant->version == SJPEG_S5P)
--			goto error_free;
-+	switch (ctx->jpeg->variant->version) {
-+	case SJPEG_S5P:
-+		return 0;
-+	case SJPEG_EXYNOS3250:
-+		/*
-+		 * The exynos3250 device can produce JPEG image only
-+		 * of 4:4:4 subsampling when given RGB32 source image.
-+		 */
-+		if (ctx->out_q.fmt->fourcc == V4L2_PIX_FMT_RGB32)
-+			*ctrl_val = 0;
-+		break;
-+	case SJPEG_EXYNOS4:
- 		/*
- 		 * The exynos4x12 device requires input raw image fourcc
- 		 * to be V4L2_PIX_FMT_GREY if gray jpeg format
- 		 * is to be set.
- 		 */
- 		if (ctx->out_q.fmt->fourcc != V4L2_PIX_FMT_GREY &&
--		    ctrl->val == V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY) {
--			ret = -EINVAL;
--			goto error_free;
--		}
--		/*
--		 * The exynos4x12 device requires resulting jpeg subsampling
--		 * not to be lower than the input raw image subsampling.
--		 */
--		if (ctx->out_q.fmt->subsampling > ctrl->val)
--			ctrl->val = ctx->out_q.fmt->subsampling;
-+		    *ctrl_val == V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY)
-+			return -EINVAL;
-+		break;
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index d47ab63..cb8d49d 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -159,6 +159,8 @@ struct coda_params {
+ 	u8			rot_mode;
+ 	u8			h264_intra_qp;
+ 	u8			h264_inter_qp;
++	u8			h264_min_qp;
++	u8			h264_max_qp;
+ 	u8			mpeg4_intra_qp;
+ 	u8			mpeg4_inter_qp;
+ 	u8			gop_size;
+@@ -2381,7 +2383,16 @@ static int coda_start_encoding(struct coda_ctx *ctx)
+ 		coda_write(dev, (gamma & CODA_GAMMA_MASK) << CODA_GAMMA_OFFSET,
+ 			   CODA_CMD_ENC_SEQ_RC_GAMMA);
  	}
++
++	if (ctx->params.h264_min_qp || ctx->params.h264_max_qp) {
++		coda_write(dev,
++			   ctx->params.h264_min_qp << CODA_QPMIN_OFFSET |
++			   ctx->params.h264_max_qp << CODA_QPMAX_OFFSET,
++			   CODA_CMD_ENC_SEQ_RC_QP_MIN_MAX);
++	}
+ 	if (dev->devtype->product == CODA_960) {
++		if (ctx->params.h264_max_qp)
++			value |= 1 << CODA9_OPTION_RCQPMAX_OFFSET;
+ 		if (CODA_DEFAULT_GAMMA > 0)
+ 			value |= 1 << CODA9_OPTION_GAMMA_OFFSET;
+ 	} else {
+@@ -2391,6 +2402,10 @@ static int coda_start_encoding(struct coda_ctx *ctx)
+ 			else
+ 				value |= 1 << CODA7_OPTION_GAMMA_OFFSET;
+ 		}
++		if (ctx->params.h264_min_qp)
++			value |= 1 << CODA7_OPTION_RCQPMIN_OFFSET;
++		if (ctx->params.h264_max_qp)
++			value |= 1 << CODA7_OPTION_RCQPMAX_OFFSET;
+ 	}
+ 	coda_write(dev, value, CODA_CMD_ENC_SEQ_OPTION);
  
--error_free:
-+	/*
-+	 * The exynos4x12 and exynos3250 devices require resulting
-+	 * jpeg subsampling not to be lower than the input raw image
-+	 * subsampling.
-+	 */
-+	if (ctx->out_q.fmt->subsampling > *ctrl_val)
-+		*ctrl_val = ctx->out_q.fmt->subsampling;
-+
-+	return 0;
-+}
-+
-+static int s5p_jpeg_try_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct s5p_jpeg_ctx *ctx = ctrl_to_ctx(ctrl);
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	spin_lock_irqsave(&ctx->jpeg->slock, flags);
-+
-+	if (ctrl->id == V4L2_CID_JPEG_CHROMA_SUBSAMPLING)
-+		ret = s5p_jpeg_adjust_subs_ctrl(ctx, &ctrl->val);
-+
- 	spin_unlock_irqrestore(&ctx->jpeg->slock, flags);
- 	return ret;
- }
+@@ -2619,6 +2634,12 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP:
+ 		ctx->params.h264_inter_qp = ctrl->val;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP:
++		ctx->params.h264_min_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP:
++		ctx->params.h264_max_qp = ctrl->val;
++		break;
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:
+ 		ctx->params.mpeg4_intra_qp = ctrl->val;
+ 		break;
+@@ -2666,6 +2687,12 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
+ 		V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP, 0, 51, 1, 25);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP, 0, 51, 1, 25);
++	if (ctx->dev->devtype->product != CODA_960) {
++		v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
++			V4L2_CID_MPEG_VIDEO_H264_MIN_QP, 0, 51, 1, 12);
++	}
++	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
++		V4L2_CID_MPEG_VIDEO_H264_MAX_QP, 0, 51, 1, 51);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP, 1, 31, 1, 2);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
 -- 
-1.7.9.5
+2.0.0
 
