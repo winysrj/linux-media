@@ -1,98 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpq1.tb.mail.iss.as9143.net ([212.54.42.164]:54083 "EHLO
-	smtpq1.tb.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751931AbaG3VHI (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:49236 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752861AbaGKOFq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jul 2014 17:07:08 -0400
-Message-ID: <53D95E73.7030707@grumpydevil.homelinux.org>
-Date: Wed, 30 Jul 2014 23:06:59 +0200
-From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Bjoern <lkml@call-home.ch>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Thomas Kaiser <thomas@kaiser-linux.li>
-Subject: Re: ddbridge -- kernel 3.15.6
-References: <53C920FB.1040501@grumpydevil.homelinux.org>	 <53CAAF9D.6000507@kaiser-linux.li> <1406697205.2591.13.camel@bjoern-W35xSTQ-370ST> <53D8EC86.6020701@iki.fi> <53D95B04.2030109@iki.fi>
-In-Reply-To: <53D95B04.2030109@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 11 Jul 2014 10:05:46 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>
+Subject: [PATCH/RFC v4 19/21] of: Add Skyworks Solutions, Inc. vendor prefix
+Date: Fri, 11 Jul 2014 16:04:22 +0200
+Message-id: <1405087464-13762-20-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30-07-14 22:52, Antti Palosaari wrote:
->
->
-> On 07/30/2014 04:00 PM, Antti Palosaari wrote:
->>
->>
->> On 07/30/2014 08:13 AM, Bjoern wrote:
->>>> Hello Rudy
->>>>
->>>> I use a similar card from Digital Devices with Ubuntu 14.04 and
->>>> kernel 3.13.0-32-generic. Support for this card was not build into
->>>> the kernel and I had to compile it myself. I had to use
->>>> media_build_experimental from Mr. Endriss.
->>>>
->>>> http://linuxtv.org/hg/~endriss/media_build_experimental
->>>>
->>>> Your card should be supported with this version.
->>>>
->>>> Regards, Thomas
->>>
->>> Hi Rudy,
->>>
->>> What Thomas writes is absolutely correct...
->>>
->>> This is unfortunately the worst situation I've ever run across in
->>> Linux... There was a kernel driver that worked and was supported by
->>> Digital Devices. Then, from what I read, changes to how the V4L drivers
->>> have to be written was changed - Digital Devices doesn't like that and
->>> they force users to use "experimental" builds which are the "old
->>> style".
->>>
->>> This is total rubbish imo - if this is how it was decided that the
->>> drivers have to be nowadays then adjust them. Why am I paying such a 
->>> lot
->>> of money others right, these DD cards are really not cheap?
->>>
->>> Some attempts have been made by people active here to adapt the drivers
->>> and make them work in newer kernels, but so far no one has succeeded.
->>> Last attempt was in Jan 2014 iirc, since then - silence.
->>>
->>> I wish I could help out, I can code but Linux is well just a bit more
->>> "difficult" I guess ;-)
->>
->> I have one of such device too, but I have been too busy all the time
->> with other drivers...
->>
->> Basically these DTV drivers should be developed in a order, bridge
->> driver first, then demod and tuner - for one single device. After it is
->> committed in tree, you could start adding new devices and drivers. If
->> you try implement too big bunch of things as a once, you will likely
->> fail endless reviews and so.
->>
->> I don't know what is change in development process which causes these
->> problems. What I remember there has been only few big changes in recent
->> years, change from Mercurial to Git and reorganization of
->> directories/files.
->
-> Device I have seems to be:
-> DD Cine S2 V6.5 - Twin Tuner Card DVB-S/S2 (PCI Express Card)
-> DD DuoFlex C/C2/T/T2 Expansion (V3) - Twin Tuner Expansion-modul 
-> DVB-C/T/T2
->
-> I will start looking DVB-S/S2 support at the very first as it is the 
-> bridge needed in any case. I have no experience from PCIe devices...
->
-> regards
-> Antti
->
-When you have patches that can be tested, willing to help test
+Use "skyworks" as the vendor prefix for the
+Skyworks Solutions, Inc.
 
-Cannot promise to test immediate though
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
+---
+ .../devicetree/bindings/vendor-prefixes.txt        |    1 +
+ 1 file changed, 1 insertion(+)
 
-Cheers
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index 5d27e5a..8d0df4e 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -113,6 +113,7 @@ renesas	Renesas Electronics Corporation
+ ricoh	Ricoh Co. Ltd.
+ rockchip	Fuzhou Rockchip Electronics Co., Ltd
+ samsung	Samsung Semiconductor
++skyworks	Skyworks Solutions, Inc.
+ sbs	Smart Battery System
+ schindler	Schindler
+ seagate	Seagate Technology PLC
+-- 
+1.7.9.5
 
-
-Rudy
