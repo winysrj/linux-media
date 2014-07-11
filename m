@@ -1,50 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:38056 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754174AbaGYPJQ (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:45291 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754339AbaGKNyM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 11:09:16 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 03/11] [media] coda: Return the real error on platform_get_irq()
-Date: Fri, 25 Jul 2014 17:08:29 +0200
-Message-Id: <1406300917-18169-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
-References: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 11 Jul 2014 09:54:12 -0400
+Message-id: <53BFEC80.2010307@samsung.com>
+Date: Fri, 11 Jul 2014 15:54:08 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	b.zolnierkie@samsung.com, linux-samsung-soc@vger.kernel.org,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org
+Subject: Re: [PATCH 8/9] Documentation: devicetree: Document sclk-jpeg clock
+ for exynos3250 SoC
+References: <1404750730-22996-1-git-send-email-j.anaszewski@samsung.com>
+ <1404750730-22996-9-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1404750730-22996-9-git-send-email-j.anaszewski@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@freescale.com>
+On 07/07/14 18:32, Jacek Anaszewski wrote:
+> JPEG IP on Exynos3250 SoC requires enabling two clock
+> gates for its operation. This patch documents this
+> requirement.
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Pawel Moll <pawel.moll@arm.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+> Cc: Kumar Gala <galak@codeaurora.org>
+> Cc: devicetree@vger.kernel.org
+> ---
+>  .../bindings/media/exynos-jpeg-codec.txt           |    9 ++++++---
+>  1 file changed, 6 insertions(+), 3 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
+> index 937b755..20cd150 100644
+> --- a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
+> +++ b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
+> @@ -3,9 +3,12 @@ Samsung S5P/EXYNOS SoC series JPEG codec
+>  Required properties:
+>  
+>  - compatible	: should be one of:
+> -		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg";
+> +		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg",
+> +		  "samsung,exynos3250-jpeg";
+>  - reg		: address and length of the JPEG codec IP register set;
+>  - interrupts	: specifies the JPEG codec IP interrupt;
+>  - clocks	: should contain the JPEG codec IP gate clock specifier, from the
+> -		  common clock bindings;
+> -- clock-names	: should contain "jpeg" entry.
+> +		  common clock bindings; for Exynos3250 SoC special clock gate
+> +		  should be defined as the second element of the clocks array
 
-No need to return a 'fake' return value on platform_get_irq() failure.
+Entries in the clocks and clock-names can be in any order, the only
+requirement normally is that they match. I would rephrase this to
+something along the lines of:
 
-Propagate the real error instead.
+ - clocks : should contain the JPEG codec IP gate clock specifier and
+            for the Exynos3250 SoC additionally the SCLK_JPEG entry; from the
+	    common clock bindings;
 
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> +- clock-names	: should contain "jpeg" entry and additionally "sclk-jpeg" entry
+> +		  for Exynos3250 SoC
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 65c7a12..31d0a2f 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1840,7 +1840,7 @@ static int coda_probe(struct platform_device *pdev)
- 		irq = platform_get_irq(pdev, 0);
- 	if (irq < 0) {
- 		dev_err(&pdev->dev, "failed to get irq resource\n");
--		return -ENOENT;
-+		return irq;
- 	}
- 
- 	if (devm_request_threaded_irq(&pdev->dev, irq, NULL, coda_irq_handler,
--- 
-2.0.1
-
+--
+Thanks,
+Sylwester
