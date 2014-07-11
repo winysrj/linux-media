@@ -1,83 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46630 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751517AbaGJOQh (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:64320 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753150AbaGKPTy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jul 2014 10:16:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [PATCH v3.1 3/3] smiapp: Implement the test pattern control
-Date: Thu, 10 Jul 2014 16:16:34 +0200
-Message-ID: <5511635.TPPjsMejby@avalon>
-In-Reply-To: <1401376614-7525-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1401374448-30411-4-git-send-email-sakari.ailus@linux.intel.com> <1401376614-7525-1-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 11 Jul 2014 11:19:54 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N8J00ETAZX4QZ60@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 12 Jul 2014 00:19:52 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, andrzej.p@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v2 0/9] Add support for Exynos3250 SoC to the s5p-jpeg driver
+Date: Fri, 11 Jul 2014 17:19:41 +0200
+Message-id: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This is the second version of the patch series adding support for
+jpeg codec on Exynos3250 SoC to the s5p-jpeg driver (Sylwester -
+thanks for a review). Supported raw formats are: YUYV, YVYU, UYVY,
+VYUY, RGB565, RGB565X, RGB32, NV12, NV21. The support includes also
+scaling and cropping features.
 
-Thank you for the patch.
+=================
+Changes since v1:
+=================
 
-On Thursday 29 May 2014 18:16:54 Sakari Ailus wrote:
-> Add support for the V4L2_CID_TEST_PATTERN control. When the solid colour
-> mode is selected, additional controls become available for setting the
-> solid four solid colour components.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+- added default case to the switch statement in the function
+  exynos3250_jpeg_dec_scaling_ratiofunction
+- removed not supported DT properties
+- improved DT documentation
+- updated Kconfig entry
+- corrected DTS maintainer email in the commit message
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Thanks,
+Jacek Anaszewski
 
-Please see below for a minor comment.
+Jacek Anaszewski (9):
+  s5p-jpeg: Add support for Exynos3250 SoC
+  s5p-jpeg: return error immediately after get_byte fails
+  s5p-jpeg: Adjust jpeg_bound_align_image to Exynos3250 needs
+  s5p-jpeg: fix g_selection op
+  s5p-jpeg: Assure proper crop rectangle initialization
+  s5p-jpeg: Prevent erroneous downscaling for Exynos3250 SoC
+  s5p-jpeg: add chroma subsampling adjustment for Exynos3250
+  Documentation: devicetree: Document sclk-jpeg clock for exynos3250
+    SoC
+  ARM: dts: exynos3250: add JPEG codec device node
 
-> ---
-> since v3:
-> - Remove redundant definition of smiapp_ctrl_ops.
-> 
-> - Initialise min, max and default in control creation time.
-> 
->  drivers/media/i2c/smiapp/smiapp-core.c | 75 +++++++++++++++++++++++++++++--
->  drivers/media/i2c/smiapp/smiapp.h      |  4 ++
->  2 files changed, 75 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c
-> b/drivers/media/i2c/smiapp/smiapp-core.c index 446c82c..4ac7780 100644
-> --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-
-[snip]
-
-> @@ -535,6 +572,19 @@ static int smiapp_init_controls(struct smiapp_sensor
-> *sensor) &sensor->pixel_array->ctrl_handler, &smiapp_ctrl_ops,
->  		V4L2_CID_PIXEL_RATE, 0, 0, 1, 0);
-> 
-> +	v4l2_ctrl_new_std_menu_items(&sensor->pixel_array->ctrl_handler,
-> +				     &smiapp_ctrl_ops, V4L2_CID_TEST_PATTERN,
-> +				     ARRAY_SIZE(smiapp_test_patterns) - 1,
-> +				     0, 0, smiapp_test_patterns);
-> +
-> +	for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++)
-> +		sensor->test_data[i] =
-> +			v4l2_ctrl_new_std(
-> +				&sensor->pixel_array->ctrl_handler,
-> +				&smiapp_ctrl_ops, V4L2_CID_TEST_PATTERN_RED + i,
-> +				0, (1 << sensor->csi_format->width) - 1, 1,
-> +				(1 << sensor->csi_format->width) - 1);
-
-I would have used a local variable assigned to (1 << sensor->csi_format-
->width) - 1 outside of the loop.
-
-> +
->  	if (sensor->pixel_array->ctrl_handler.error) {
->  		dev_err(&client->dev,
->  			"pixel array controls initialization failed (%d)\n",
+ .../bindings/media/exynos-jpeg-codec.txt           |    9 +-
+ arch/arm/boot/dts/exynos3250.dtsi                  |    9 +
+ drivers/media/platform/Kconfig                     |    5 +-
+ drivers/media/platform/s5p-jpeg/Makefile           |    2 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        |  666 ++++++++++++++++++--
+ drivers/media/platform/s5p-jpeg/jpeg-core.h        |   33 +-
+ .../media/platform/s5p-jpeg/jpeg-hw-exynos3250.c   |  489 ++++++++++++++
+ .../media/platform/s5p-jpeg/jpeg-hw-exynos3250.h   |   60 ++
+ drivers/media/platform/s5p-jpeg/jpeg-regs.h        |  247 +++++++-
+ 9 files changed, 1462 insertions(+), 58 deletions(-)
+ create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.c
+ create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-exynos3250.h
 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
