@@ -1,86 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:61541 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933419AbaGUTEn (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51505 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752677AbaGKJg5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 15:04:43 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N920039SSZTNO30@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 21 Jul 2014 15:04:41 -0400 (EDT)
-Date: Mon, 21 Jul 2014 16:04:32 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>,
+	Fri, 11 Jul 2014 05:36:57 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
 	Fabio Estevam <fabio.estevam@freescale.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
 	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Michael Olbrich <m.olbrich@pengutronix.de>
-Subject: Re: [PATCH v3 18/32] [media] v4l2-mem2mem: export v4l2_m2m_try_schedule
-Message-id: <20140721160432.12e34653.m.chehab@samsung.com>
-In-reply-to: <1405071403-1859-19-git-send-email-p.zabel@pengutronix.de>
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 13/32] [media] coda: split firmware version check out of coda_hw_init
+Date: Fri, 11 Jul 2014 11:36:24 +0200
+Message-Id: <1405071403-1859-14-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
 References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
- <1405071403-1859-19-git-send-email-p.zabel@pengutronix.de>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 11 Jul 2014 11:36:29 +0200
-Philipp Zabel <p.zabel@pengutronix.de> escreveu:
+This adds a new function coda_check_firmware that does the firmware
+version checks so that this can be done only once from coda_probe
+instead of every time the runtime pm framework resumes the coda.
 
-> From: Michael Olbrich <m.olbrich@pengutronix.de>
-> 
-> Some drivers might allow to decode remaining frames from an internal ringbuffer
-> after a decoder stop command. Allow those to call v4l2_m2m_try_schedule
-> directly.
-> 
-> Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/v4l2-core/v4l2-mem2mem.c | 3 ++-
->  include/media/v4l2-mem2mem.h           | 2 ++
->  2 files changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> index 178ce96..5f5c175 100644
-> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> @@ -208,7 +208,7 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
->   * An example of the above could be an instance that requires more than one
->   * src/dst buffer per transaction.
->   */
-> -static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
-> +void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
->  {
->  	struct v4l2_m2m_dev *m2m_dev;
->  	unsigned long flags_job, flags_out, flags_cap;
-> @@ -274,6 +274,7 @@ static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
->  
->  	v4l2_m2m_try_run(m2m_dev);
->  }
-> +EXPORT_SYMBOL(v4l2_m2m_try_schedule);
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 42 +++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 37 insertions(+), 5 deletions(-)
 
-Please use EXPORT_SYMBOL_GPL() instead.
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index e4d31b9..d47ab63 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -3197,7 +3197,6 @@ static bool coda_firmware_supported(u32 vernum)
+ 
+ static int coda_hw_init(struct coda_dev *dev)
+ {
+-	u16 product, major, minor, release;
+ 	u32 data;
+ 	u16 *p;
+ 	int i, ret;
+@@ -3278,17 +3277,40 @@ static int coda_hw_init(struct coda_dev *dev)
+ 	coda_write(dev, data, CODA_REG_BIT_CODE_RESET);
+ 	coda_write(dev, CODA_REG_RUN_ENABLE, CODA_REG_BIT_CODE_RUN);
+ 
+-	/* Load firmware */
++	clk_disable_unprepare(dev->clk_ahb);
++	clk_disable_unprepare(dev->clk_per);
++
++	return 0;
++
++err_clk_ahb:
++	clk_disable_unprepare(dev->clk_per);
++err_clk_per:
++	return ret;
++}
++
++static int coda_check_firmware(struct coda_dev *dev)
++{
++	u16 product, major, minor, release;
++	u32 data;
++	int ret;
++
++	ret = clk_prepare_enable(dev->clk_per);
++	if (ret)
++		goto err_clk_per;
++
++	ret = clk_prepare_enable(dev->clk_ahb);
++	if (ret)
++		goto err_clk_ahb;
++
+ 	coda_write(dev, 0, CODA_CMD_FIRMWARE_VERNUM);
+ 	coda_write(dev, CODA_REG_BIT_BUSY_FLAG, CODA_REG_BIT_BUSY);
+ 	coda_write(dev, 0, CODA_REG_BIT_RUN_INDEX);
+ 	coda_write(dev, 0, CODA_REG_BIT_RUN_COD_STD);
+ 	coda_write(dev, CODA_COMMAND_FIRMWARE_GET, CODA_REG_BIT_RUN_COMMAND);
+ 	if (coda_wait_timeout(dev)) {
+-		clk_disable_unprepare(dev->clk_per);
+-		clk_disable_unprepare(dev->clk_ahb);
+ 		v4l2_err(&dev->v4l2_dev, "firmware get command error\n");
+-		return -EIO;
++		ret = -EIO;
++		goto err_run_cmd;
+ 	}
+ 
+ 	if (dev->devtype->product == CODA_960) {
+@@ -3328,6 +3350,8 @@ static int coda_hw_init(struct coda_dev *dev)
+ 
+ 	return 0;
+ 
++err_run_cmd:
++	clk_disable_unprepare(dev->clk_ahb);
+ err_clk_ahb:
+ 	clk_disable_unprepare(dev->clk_per);
+ err_clk_per:
+@@ -3368,6 +3392,10 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
+ 			return;
+ 		}
+ 
++		ret = coda_check_firmware(dev);
++		if (ret < 0)
++			return;
++
+ 		pm_runtime_put_sync(&dev->plat_dev->dev);
+ 	} else {
+ 		/*
+@@ -3379,6 +3407,10 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
+ 			v4l2_err(&dev->v4l2_dev, "HW initialization failed\n");
+ 			return;
+ 		}
++
++		ret = coda_check_firmware(dev);
++		if (ret < 0)
++			return;
+ 	}
+ 
+ 	dev->vfd.fops	= &coda_fops,
+-- 
+2.0.0
 
-Regards,
-Mauro
-
->  
->  /**
->   * v4l2_m2m_cancel_job() - cancel pending jobs for the context
-> diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-> index 12ea5a6..c5f3914 100644
-> --- a/include/media/v4l2-mem2mem.h
-> +++ b/include/media/v4l2-mem2mem.h
-> @@ -95,6 +95,8 @@ void *v4l2_m2m_get_curr_priv(struct v4l2_m2m_dev *m2m_dev);
->  struct vb2_queue *v4l2_m2m_get_vq(struct v4l2_m2m_ctx *m2m_ctx,
->  				       enum v4l2_buf_type type);
->  
-> +void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx);
-> +
->  void v4l2_m2m_job_finish(struct v4l2_m2m_dev *m2m_dev,
->  			 struct v4l2_m2m_ctx *m2m_ctx);
->  
