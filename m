@@ -1,56 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4558 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752755AbaGVHXy (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:53806 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754443AbaGKPUO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 03:23:54 -0400
-Message-ID: <53CE116D.8010404@xs4all.nl>
-Date: Tue, 22 Jul 2014 09:23:25 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: "Monica, Agnes" <Agnes.Monica@analog.com>,
-	"v4l2-library@linuxtv.org" <v4l2-library@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [V4l2-library] FourCC support
-References: <E2B3634EC825DA45A0EB7D5409D69FBE584D03FA@NWD2MBX6.ad.analog.com>
-In-Reply-To: <E2B3634EC825DA45A0EB7D5409D69FBE584D03FA@NWD2MBX6.ad.analog.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Fri, 11 Jul 2014 11:20:14 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, andrzej.p@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org
+Subject: [PATCH v2 8/9] Documentation: devicetree: Document sclk-jpeg clock for
+ exynos3250 SoC
+Date: Fri, 11 Jul 2014 17:19:49 +0200
+Message-id: <1405091990-28567-9-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
+References: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Monica,
+JPEG IP on Exynos3250 SoC requires enabling two clock
+gates for its operation. This patch documents this
+requirement.
 
-The v4l2-library is not the best mailinglist for that so I've added linux-media
-as well, which is more appropriate. I've also added Lars-Peter since he does a
-lot of adv work as well.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
+Cc: devicetree@vger.kernel.org
+---
+ .../bindings/media/exynos-jpeg-codec.txt           |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-The short answer is that those colorspaces are not supported at the moment,
-but that it is not a problem to add them, provided the driver you are
-working on is going to be upstreamed (i.e., we'd like to have users for
-the API elements we add).
-
-One note of interest: there is currently no API mechanism to tell userspace
-if the image data is limited or full range. YCbCr is always assumed to be
-limited range and RGB full range. If you need to signal that, then let me
-know. A flags field has been added to struct v4l2_pix_format in the last
-few days that would allow you to add a 'ALT_RANGE' flag, telling userspace
-that the alternate quantization range is used. This flag doesn't exist yet,
-but it is no problem to add it.
-
-Hope this helps,
-
-	Hans
-
-On 07/22/14 08:18, Monica, Agnes wrote:
-> Hi ,
-> 
-> One of drivers which we are developing supports formats like sYcc ,
-> AdobeRGB and AdobeYCC601 which was added recently in HDMI spec1.4. So
-> can you please tell me how will these formats be supported by fmt.
-> 
-> Regards,
-> 
-> Monica
+diff --git a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
+index 937b755..3142745 100644
+--- a/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
++++ b/Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt
+@@ -3,9 +3,12 @@ Samsung S5P/EXYNOS SoC series JPEG codec
+ Required properties:
+ 
+ - compatible	: should be one of:
+-		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg";
++		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg",
++		  "samsung,exynos3250-jpeg";
+ - reg		: address and length of the JPEG codec IP register set;
+ - interrupts	: specifies the JPEG codec IP interrupt;
+-- clocks	: should contain the JPEG codec IP gate clock specifier, from the
++- clocks	: should contain the JPEG codec IP gate clock specifier and
++		  for the Exynos3250 SoC additionally the SCLK_JPEG entry; from the
+ 		  common clock bindings;
+-- clock-names	: should contain "jpeg" entry.
++- clock-names	: should contain "jpeg" entry and additionally "sclk-jpeg" entry
++		  for Exynos3250 SoC
+-- 
+1.7.9.5
 
