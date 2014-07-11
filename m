@@ -1,111 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:49495 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760181AbaGYVVM (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51628 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752975AbaGKJhF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 17:21:12 -0400
-Message-ID: <53D2CA45.6040001@mentor.com>
-Date: Fri, 25 Jul 2014 14:21:09 -0700
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	<linux-media@vger.kernel.org>
-Subject: Re: [PATCH 00/28] IPUv3 prep for video capture
-References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com> <53C7AF39.20608@xs4all.nl> <53C8359C.1030005@mentor.com> <351532437.crZknhrhTe@avalon>
-In-Reply-To: <351532437.crZknhrhTe@avalon>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+	Fri, 11 Jul 2014 05:37:05 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 32/32] [media] coda: store IRAM size in struct coda_devtype
+Date: Fri, 11 Jul 2014 11:36:43 +0200
+Message-Id: <1405071403-1859-33-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/23/2014 06:17 AM, Laurent Pinchart wrote:
-> Hi Steve,
->
-> On Thursday 17 July 2014 13:44:12 Steve Longerbeam wrote:
->> On 07/17/2014 04:10 AM, Hans Verkuil wrote:
->>> Hi Steve,
->>>
->>> I don't know what your plan is, but when you want to mainline this it is
->>> the gpu subsystem that needs to review it. I noticed it wasn't
->>> cross-posted
->>> to the dri-devel mailinglist.
->> Hi Hans,
->>
->> I'm reworking these patches, I've merged in some of the changes
->> posted by Philip Zabel ("[RFC PATCH 00/26] i.MX5/6 IPUv3 CSI/IC"),
->> specifically I've decided to use their version of ipu-ic.c, and
->> also brought in their video-mux subdev driver. So I'm fine with
->> cancelling this patch set.
->>
->> When/if I post the reworked v4l2 drivers that implement the media
->> entity/device framework I will post the ipu-v3 specific changes
->> to dri-devel as well.
->>
->> The reason I like Philip's version of ipu-ic is that it implements
->> tiling to allow resizing output frames larger than 1024x1024. We
->> (Mentor Graphics) did the same IC tiling, but it was done inside
->> a separate mem2mem driver. By moving the tiling into ipu-ic, it
->> allows >1024x1024 resizing to be part of an imx-ipuv3-ic media
->> entity, and this entity can be part of multiple video pipelines
->> (capture, video output, mem2mem).
->>
->>> I am a bit worried about the amount of v4l2-specific stuff that is going
->>> into drivers/gpu/ipu-v3. Do things like csc and csi really belong there
->>> instead of under drivers/media?
->> The current philosophy of the ipu-v3 driver seems to be that it is a
->> library of IPU register-level primitives, so ipu-csi and ipu-ic follow
->> that model. There will be nothing v4l2-specific in ipu-csi and ipu-ic,
->> although the v4l2 subdev's will be the only clients of ipu-csi and
->> ipu-ic.
+Similarly to workbuf_size and tempbuf_size, store iram_size in the
+coda_devtype structure. This also decreases the IRAM used on i.MX6DL
+to 128 KiB.
 
-Hi Laurent,
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
 
-> I have a bit of trouble following up, due to my lack of knowledge of the 
-> Freescale platforms. It would help if you could explain briefly how the 
-> various IPU modules interact with each other at the hardware and software 
-> level, and what the acronyms stand for (I assume IPU means Image Processing 
-> Unit, CSI means Camera Serial Interface, but I don't know what IC is in this 
-> context).
-
-Yes, IPU and CSI are acronyms as you describe. IC stands for Image
-Converter. The IC carries out scaling, color-space conversion, and
-rotation. The IC has three independent task sub-blocks that can carry
-out those three operations concurrently using some kind of task time-
-sharing mechanism. The three IC tasks are referred to as "pre-processing
-for encode" (PRP ENC), "pre-processing for viewfinder" (PRP VF) and
-"post-processing" (PP). So for example, a video capture pipeline could
-be actively streaming the PRP ENC task while a mem2mem pipeline
-could concurrently be using the PP task.
-
->
-> Are the CSI receivers linked to the graphics IP cores at the hardware level ?]
-
-Yes, the raw frames from the CSI can be directed to either memory, the
-IC, or to a video deinterlacing controller (VDIC).
-
-The IPU contains a custom DMA controller (the IDMAC). There is a set
-of ~64 IDMAC channels that are dedicated to specific video pipelines.
-IDMAC channels can be linked together in hardware (a frame-completion
-signal from a source channel can trigger start of DMA in a sink channel).
-
-Here is one example hardware video pipeline in i.MX6 (there are many
-more). This example is to send raw interlaced frames from the CSI to
-the VDIC, and then the progressive frames to IC PRP VF task for additional
-scaling/CSC/rotation:
-
-CSI0 --> VDIC --> IC PRP VF --- idmac channel 21 ---> memory
-
-
-If you're interested in knowing more about the i.MX6 you can pick
-up Freescale's TRM at:
-
-http://www.freescale.com/webapp/sps/site/prod_summary.jsp?code=i.MX6Q&fpsp=1&tab=Documentation_Tab
-
-The i.MX6 TRM is of poor quality, not good enough for actual register-level
-programming in many areas, especially the IPU chapter. But good enough for
-getting a general overview.
-
-Steve
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 36ad0e8..7e69eda 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -46,9 +46,6 @@
+ 
+ #define CODA_PARA_BUF_SIZE	(10 * 1024)
+ #define CODA_ISRAM_SIZE	(2048 * 2)
+-#define CODADX6_IRAM_SIZE	0xb000
+-#define CODA7_IRAM_SIZE		0x14000
+-#define CODA9_IRAM_SIZE		0x21000
+ 
+ #define CODA7_PS_BUF_SIZE	0x28000
+ #define CODA9_PS_SAVE_SIZE	(512 * 1024)
+@@ -109,6 +106,7 @@ struct coda_devtype {
+ 	unsigned int		num_codecs;
+ 	size_t			workbuf_size;
+ 	size_t			tempbuf_size;
++	size_t			iram_size;
+ };
+ 
+ /* Per-queue, driver-specific private data */
+@@ -3680,6 +3678,7 @@ static const struct coda_devtype coda_devdata[] = {
+ 		.codecs       = codadx6_codecs,
+ 		.num_codecs   = ARRAY_SIZE(codadx6_codecs),
+ 		.workbuf_size = 288 * 1024 + FMO_SLICE_SAVE_BUF_SIZE * 8 * 1024,
++		.iram_size    = 0xb000,
+ 	},
+ 	[CODA_IMX53] = {
+ 		.firmware     = "v4l-coda7541-imx53.bin",
+@@ -3688,6 +3687,7 @@ static const struct coda_devtype coda_devdata[] = {
+ 		.num_codecs   = ARRAY_SIZE(coda7_codecs),
+ 		.workbuf_size = 128 * 1024,
+ 		.tempbuf_size = 304 * 1024,
++		.iram_size    = 0x14000,
+ 	},
+ 	[CODA_IMX6Q] = {
+ 		.firmware     = "v4l-coda960-imx6q.bin",
+@@ -3696,6 +3696,7 @@ static const struct coda_devtype coda_devdata[] = {
+ 		.num_codecs   = ARRAY_SIZE(coda9_codecs),
+ 		.workbuf_size = 80 * 1024,
+ 		.tempbuf_size = 204 * 1024,
++		.iram_size    = 0x21000,
+ 	},
+ 	[CODA_IMX6DL] = {
+ 		.firmware     = "v4l-coda960-imx6dl.bin",
+@@ -3704,6 +3705,7 @@ static const struct coda_devtype coda_devdata[] = {
+ 		.num_codecs   = ARRAY_SIZE(coda9_codecs),
+ 		.workbuf_size = 80 * 1024,
+ 		.tempbuf_size = 204 * 1024,
++		.iram_size    = 0x20000,
+ 	},
+ };
+ 
+@@ -3845,16 +3847,7 @@ static int coda_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	switch (dev->devtype->product) {
+-	case CODA_DX6:
+-		dev->iram.size = CODADX6_IRAM_SIZE;
+-		break;
+-	case CODA_7541:
+-		dev->iram.size = CODA7_IRAM_SIZE;
+-		break;
+-	case CODA_960:
+-		dev->iram.size = CODA9_IRAM_SIZE;
+-	}
++	dev->iram.size = dev->devtype->iram_size;
+ 	dev->iram.vaddr = gen_pool_dma_alloc(dev->iram_pool, dev->iram.size,
+ 					     &dev->iram.paddr);
+ 	if (!dev->iram.vaddr) {
+-- 
+2.0.0
 
