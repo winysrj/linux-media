@@ -1,86 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f43.google.com ([209.85.213.43]:44644 "EHLO
-	mail-yh0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751689AbaGKCZD (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:59406 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753718AbaGKOFF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jul 2014 22:25:03 -0400
-Received: by mail-yh0-f43.google.com with SMTP id a41so206088yho.30
-        for <linux-media@vger.kernel.org>; Thu, 10 Jul 2014 19:25:01 -0700 (PDT)
-Date: Thu, 10 Jul 2014 23:24:02 -0300
-From: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-To: linux-media@vger.kernel.org
-Cc: Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 1/2] solo6x10: expose encoder quantization setting as
- V4L2 control
-Message-ID: <20140710232402.6f0432c4@pirotess.bf.iodev.co.uk>
-In-Reply-To: <1404833013-18627-1-git-send-email-andrey.utkin@corp.bluecherry.net>
-References: <1404833013-18627-1-git-send-email-andrey.utkin@corp.bluecherry.net>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/z62uznoFBiAGXP3Oa1.V1kl"; protocol="application/pgp-signature"
+	Fri, 11 Jul 2014 10:05:05 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: [PATCH/RFC v4 09/21] Documentation: leds: Add description of LED Flash
+ Class extension
+Date: Fri, 11 Jul 2014 16:04:12 +0200
+Message-id: <1405087464-13762-10-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/z62uznoFBiAGXP3Oa1.V1kl
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+The documentation being added contains overall description of the
+LED Flash Class and the related sysfs attributes. There are also
+chapters devoted specifically to the Flash Manager feature.
 
-On Tue,  8 Jul 2014 18:23:32 +0300
-Andrey Utkin <andrey.utkin@corp.bluecherry.net> wrote:
-> solo6*10 boards have configurable quantization parameter which takes
-> values from 0 to 31, inclusively.
->=20
-> This change enables setting it with ioctl VIDIOC_S_CTRL with id
-> V4L2_CID_MPEG_VIDEO_H264_MIN_QP.
->=20
-> Signed-off-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-> ---
->  drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 5 +++++
->  1 file changed, 5 insertions(+)
->=20
-> diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-> b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c index
-> b8ff113..bf6eb06 100644 ---
-> a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c +++
-> b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c @@ -1111,6
-> +1111,9 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl) case
-> V4L2_CID_MPEG_VIDEO_GOP_SIZE: solo_enc->gop =3D ctrl->val;
->  		return 0;
-> +	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP:
-> +		solo_enc->qp =3D ctrl->val;
-> +		return 0;
->  	case V4L2_CID_MOTION_THRESHOLD:
->  		solo_enc->motion_thresh =3D ctrl->val;
->  		if (!solo_enc->motion_global
-> || !solo_enc->motion_enabled) @@ -1260,6 +1263,8 @@ static struct
-> solo_enc_dev *solo_enc_alloc(struct solo_dev *solo_dev,
-> V4L2_CID_SHARPNESS, 0, 15, 1, 0); v4l2_ctrl_new_std(hdl,
-> &solo_ctrl_ops, V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 255, 1,
-> solo_dev->fps);
-> +	v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
-> +			V4L2_CID_MPEG_VIDEO_H264_MIN_QP, 0, 31, 1,
-> SOLO_DEFAULT_QP); v4l2_ctrl_new_custom(hdl,
-> &solo_motion_threshold_ctrl, NULL); v4l2_ctrl_new_custom(hdl,
-> &solo_motion_enable_ctrl, NULL); v4l2_ctrl_new_custom(hdl,
-> &solo_osd_text_ctrl, NULL);
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ Documentation/leds/leds-class-flash.txt |  126 +++++++++++++++++++++++++++++++
+ 1 file changed, 126 insertions(+)
+ create mode 100644 Documentation/leds/leds-class-flash.txt
 
-Signed-off-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+new file mode 100644
+index 0000000..0927804
+--- /dev/null
++++ b/Documentation/leds/leds-class-flash.txt
+@@ -0,0 +1,126 @@
++
++Flash LED handling under Linux
++==============================
++
++Some LED devices support two modes - torch and flash. In order to enable
++support for flash LEDs the CONFIG_LEDS_CLASS_FLASH symbol must be defined
++in the kernel config. A flash LED driver must register in the LED subsystem
++with led_classdev_flash_register to gain flash capabilities.
++
++Following sysfs attributes are exposed for controlling flash led devices:
++
++	- flash_brightness - flash LED brightness in microamperes (RW)
++	- max_flash_brightness - maximum available flash LED brightness (RO)
++	- indicator_brightness - privacy LED brightness in microamperes (RW)
++	- max_indicator_brightness - maximum privacy LED brightness in
++				     microamperes (RO)
++	- flash_timeout - flash strobe duration in microseconds (RW)
++	- max_flash_timeout - maximum available flash strobe duration (RO)
++	- flash_strobe - flash strobe state (RW)
++	- external_strobe - some devices expose dedicated hardware pins for
++			    triggering a flash LED - this attribute allows to
++			    set this mode (RW)
++	- flash_fault - bitmask of flash faults that may have occurred,
++			possible flags are:
++		* 0x01 - flash controller voltage to the flash LED has exceeded
++			 the limit specific to the flash controller
++		* 0x02 - the flash strobe was still on when the timeout set by
++			 the user has expired; not all flash controllers may
++			 set this in all such conditions
++		* 0x04 - the flash controller has overheated
++		* 0x08 - the short circuit protection of the flash controller
++			 has been triggered
++		* 0x10 - current in the LED power supply has exceeded the limit
++			 specific to the flash controller
++		* 0x40 - flash controller voltage to the flash LED has been
++			 below the minimum limit specific to the flash
++		* 0x80 - the input voltage of the flash controller is below
++			 the limit under which strobing the flash at full
++			 current will not be possible. The condition persists
++			 until this flag is no longer set
++		* 0x100 - the temperature of the LED has exceeded its allowed
++			  upper limit
++
++The LED subsystem driver can be controlled also from the level of VideoForLinux2
++subsystem. In order to enable this the CONFIG_V4L2_FLASH_LED_CLASS symbol has to
++be defined in the kernel config. The driver must call v4l2_flash_init function
++to get registered in the V4L2 subsystem. On remove v4l2_flash_release function
++has to be called (see <media/v4l2-flash.h>).
++
++After proper initialization V4L2 Flash sub-device is created. The sub-device
++exposes a number of V4L2 controls. When the V4L2_CID_FLASH_LED_MODE control
++is set to V4L2_FLASH_LED_MODE_TORCH or V4L2_FLASH_LED_MODE_FLASH the
++LED subsystem sysfs interface becomes unavailable. The interface can be unlocked
++by setting the mode back to V4L2_FLASH_LED_MODE_NONE.
++
++
++Flash Manager
++=============
++
++Flash LED devices often provide two ways of strobing the flash: software
++(e.g. by setting a bit in a register) and hardware, by asserting dedicated pin,
++which is usually connected to a camera sensor device. There are also flash led
++devices which support only hardware strobing - in such cases a multiplexer
++device is employed to route the flash strobe signal either from the SoC GPIO or
++from the external strobe signal provider, e.g. camera sensor.
++Use of multiplexers allows also to change the flash-sensor connection
++dynamically if there is more than one flash or external strobe signal provider
++available on the board.
++
++In order to address the aforementioned cases the Flash Manager functionality
++has been introduced. Flash Manager is a part of LED Flash Class. It maintains
++information about flashes, software and external strobe signal providers and
++multiplexers that route strobe signals among them.
++
++To register a LED Flash Class device in the flash manager the device_node
++of a flash device has to be passed as the third argument to the
++led_classdev_flash_register function. The device_node is expected to include one
++gate-software-strobe subnode and at least one gate-external-strobeN subnode.
++Besides that there must defined a flash_muxes node aggregating all the
++multiplexers that can be referenced to by the flash led devices.
++(for mote details see Documentation/devicetree/bindings/leds/
++leds-flash-manager.txt).
++
++Flash manager adds following sysfs attributes to the LED Flash Clash
++device sysfs interface:
++
++	- strobe_provider - id of the external strobe signal provider associated
++                            with the flash led device. It is created only if
++			    there is more than one external strobe signal
++			    provider defined (RW).
++	- strobe_providerN - names of the strobe signal providers available
++			     for the flash led device, where N is the
++			     identifier of a strobe signal provider (RO)
++	- blocking_strobe - informs if enabling either software or external
++			    strobe will block the caller for the expected
++			    time of strobing (1 - true, 0 - false). The call
++			    needs to be blocking if the multiplexers involved
++			    in the strobe signal routing are connected to more
++			    than one flash led device. In such a case flash
++			    manager becomes locked for the expected time of
++			    strobing to prevent reconfigurarion of multiplexers
++			    by the other flash led devices willing to strobe
++			    in the same time (RO).
++
++
++LED Flash Class multiplexers
++============================
++
++Multiplexers are an indispensable part of the Flash Manager. Flash Manager has
++its own led_flash_gpio_mux* helpers for creating, releasing and operating on
++the simple gpio driven multiplexers (the ones whose lines are selected by
++changing the state of its selector pins) and the user doesn't have to bother
++with it.
++
++It is however possible that a more advanced device will be used for routing
++strobe signals. This kind of devices are known to the Flash Manager as
++"asynchronous muxes" and can be registered in runtime with use of
++led_flash_manager_bind_async_mux API and unregistered with
++led_flash_manager_unbind_async_mux. (see Documentation/leds/leds-async-mux.c
++for the exemplary implementation of the async mux driver).
++
++If a LED Flash Class device declares dependency on an async mux, then strobing
++the flash, or setting external strobe, will succeed only wnen the async mux
++has been bound to the Flash Manager. Async mux module, once bound, can be
++removed only after all LED Flash Class devices depending on it are unregistered
++from the Flash Manager.
+-- 
+1.7.9.5
 
---Sig_/z62uznoFBiAGXP3Oa1.V1kl
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQEcBAEBAgAGBQJTv0rCAAoJEBrCLcBAAV+Gcb4H/1xgl5OTx2qHXSR0h/ZGGHrL
-N+2QQVRChAZfHhKck7STKoX86pdqN/YRmOGvrSqQhJ++p2Q6r5AZPwjg4mjYNJOM
-YBKru2QCoAXgOYCPKJ3gRi/EpAKoSbAQwa64hYuTlYF3b8otop3nb7cY6gOm5Y5D
-6s4fGtDH0WF6lXAIN67mou+E8J2Q2VIdE88bNekYjqEMc4EcdrxpejaGnzby+0nf
-Ou3aOyX1NnnL41/IIUfaB3NakGIg7BNNwtkRKACy92btBPx7GL81Zo8zcJzHmZ7D
-rsByiV8SicaKbrd9MjYYyEQb1oFy7RveSekVUnRMbGap5uP4aSPRDEn+UMb1Fak=
-=wUxD
------END PGP SIGNATURE-----
-
---Sig_/z62uznoFBiAGXP3Oa1.V1kl--
