@@ -1,45 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f51.google.com ([74.125.82.51]:50177 "EHLO
-	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752261AbaG2RUi (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51507 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752913AbaGKJg5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jul 2014 13:20:38 -0400
-Received: by mail-wg0-f51.google.com with SMTP id b13so9313282wgh.34
-        for <linux-media@vger.kernel.org>; Tue, 29 Jul 2014 10:20:34 -0700 (PDT)
-Message-ID: <53D7D826.2020703@googlemail.com>
-Date: Tue, 29 Jul 2014 19:21:42 +0200
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx vb2 warnings
-References: <53D283B9.9080204@googlemail.com> <53D66BFD.6020809@xs4all.nl>
-In-Reply-To: <53D66BFD.6020809@xs4all.nl>
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 7bit
+	Fri, 11 Jul 2014 05:36:57 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 14/32] [media] coda: select GENERIC_ALLOCATOR
+Date: Fri, 11 Jul 2014 11:36:25 +0200
+Message-Id: <1405071403-1859-15-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The driver uses the genalloc API, which doesn't have stubs in
+case GENERIC_ALLOCATOR is disabled.
 
-Am 28.07.2014 um 17:27 schrieb Hans Verkuil:
-...
-> OK, I looked at it: the problem is in get_next_buf() and finish_field_prepare_next().
-> In get_next_buf() the driver gets a buffer from the active list and deletes it from
-> that list. In finish_field_prepare_next() that buffer is given back to vb2 via
-> finish_buffer().
->
-> But if you stop streaming and em28xx_stop_streaming() is called, then that buffer that
-> is being processed isn't part of the active list anymore and so it is never given back.
->
-> em28xx_stop_streaming() should give that buffer back as well, and that will keep
-> everything in balance. The easiest solution seems to be to move the list_del() call
-> from get_next_buf() to finish_buffer(). It seemed to work in a quick test, but I
-> haven't looked at vbi support or corner cases. I leave that to you :-)
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-Ok, thank you so far Hans !
-I will see what I can do.
-
-Regards,
-Frank
-
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 8108c69..a204e8d 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -142,6 +142,7 @@ config VIDEO_CODA
+ 	select SRAM
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
++	select GENERIC_ALLOCATOR
+ 	---help---
+ 	   Coda is a range of video codec IPs that supports
+ 	   H.264, MPEG-4, and other video formats.
+-- 
+2.0.0
 
