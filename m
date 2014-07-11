@@ -1,51 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:31725 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751771AbaGJLVK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jul 2014 07:21:10 -0400
-Message-ID: <1404991237.5102.100.camel@smile.fi.intel.com>
-Subject: Re: [PATCH v1 3/5] crypto: qat - use seq_hex_dump() to dump buffers
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Tadeusz Struk <tadeusz.struk@intel.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Helge Deller <deller@gmx.de>,
-	Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>,
-	linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>,
-	qat-linux@intel.com, linux-crypto@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Thu, 10 Jul 2014 14:20:37 +0300
-In-Reply-To: <53BD8A9F.4030409@intel.com>
-References: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1404919470-26668-4-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <53BD8A9F.4030409@intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:34013 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754437AbaGKPUE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jul 2014 11:20:04 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N8J00CHJZXFTOB0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 12 Jul 2014 00:20:03 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, andrzej.p@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH v2 5/9] s5p-jpeg: Assure proper crop rectangle initialization
+Date: Fri, 11 Jul 2014 17:19:46 +0200
+Message-id: <1405091990-28567-6-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
+References: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2014-07-09 at 11:31 -0700, Tadeusz Struk wrote:
-> On 07/09/2014 08:24 AM, Andy Shevchenko wrote:
-> 
-> > In this case it slightly changes the output, namely the four tetrads will be
-> > output on one line.
-> > 
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> 
-> It's ok, I can still read it.
+Assure proper crop_rect initialization in case
+the user space doesn't call S_SELECTION ioctl.
 
-It seems I miscalculated the tetrads. It should be 8 per line, correct?
-In that case we could easily use 32 bytes per line and thus remove that
-paragraph from commit message.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-> Acked-by: Tadeusz Struk <tadeusz.struk@intel.com>
-
-Thanks!
-
-
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 09b59d3..2491ef8 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1367,6 +1367,21 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
+ 					V4L2_CID_JPEG_CHROMA_SUBSAMPLING);
+ 		if (ctrl_subs)
+ 			v4l2_ctrl_s_ctrl(ctrl_subs, q_data->fmt->subsampling);
++		ct->crop_altered = false;
++	}
++
++	/*
++	 * For decoding init crop_rect with capture buffer dimmensions which
++	 * contain aligned dimensions of the input JPEG image and do it only
++	 * if crop rectangle hasn't been altered by the user space e.g. with
++	 * S_SELECTION ioctl. For encoding assign output buffer dimensions.
++	 */
++	if (!ct->crop_altered &&
++	    ((ct->mode == S5P_JPEG_DECODE && f_type == FMT_TYPE_CAPTURE) ||
++	     (ct->mode == S5P_JPEG_ENCODE && f_type == FMT_TYPE_OUTPUT))) {
++		ct->crop_rect.width = pix->width;
++		ct->crop_rect.height = pix->height;
++	}
+ 	}
+ 
+ 	return 0;
 -- 
-Andy Shevchenko <andriy.shevchenko@intel.com>
-Intel Finland Oy
+1.7.9.5
 
