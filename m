@@ -1,121 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58676 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758618AbaGRPKN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 11:10:13 -0400
-Message-ID: <53C938D3.6020404@iki.fi>
-Date: Fri, 18 Jul 2014 18:10:11 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] airspy: AirSpy SDR driver
-References: <1405366031-31937-1-git-send-email-crope@iki.fi> <53C430AC.9030204@xs4all.nl> <53C435A9.8020004@iki.fi> <53C43705.8020207@xs4all.nl> <53C4938A.3000308@iki.fi> <53C4A51F.9000500@xs4all.nl> <53C866F2.9090005@iki.fi> <53C8AAB7.1080305@xs4all.nl> <53C935D9.50202@iki.fi> <53C936D0.40708@xs4all.nl>
-In-Reply-To: <53C936D0.40708@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.samsung.com ([203.254.224.34]:59385 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754709AbaGKOEt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jul 2014 10:04:49 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: [PATCH/RFC v4 05/21] leds: avoid using deprecated DEVICE_ATTR macro
+Date: Fri, 11 Jul 2014 16:04:08 +0200
+Message-id: <1405087464-13762-6-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Make the sysfs attributes definition consistent in the whole file.
+The modification entails change of the function name:
+led_max_brightness_show -> max_brightness_show
 
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ drivers/leds/led-class.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-On 07/18/2014 06:01 PM, Hans Verkuil wrote:
-> On 07/18/2014 04:57 PM, Antti Palosaari wrote:
->>
->>
->> On 07/18/2014 08:03 AM, Hans Verkuil wrote:
->>> On 07/18/2014 02:14 AM, Antti Palosaari wrote:
->>>>
->>>>
->>>> On 07/15/2014 06:50 AM, Hans Verkuil wrote:
->>>>> On 07/15/2014 04:35 AM, Antti Palosaari wrote:
->>>>>> On 07/14/2014 11:01 PM, Hans Verkuil wrote:
->>>>>>> On 07/14/2014 09:55 PM, Antti Palosaari wrote:
->>>>>>>> I actually ran v4l2-compliance and there was problem with ADC band
->>>>>>>> enumeration. v4l2-compliance didn't liked as ADC freq was just 20MHz,
->>>>>>>> both upper and lower limit. Due to that I added even small hack to driver,
->>>>>>>>
->>>>>>>> +		.rangelow   = 20000000,
->>>>>>>> +		.rangehigh  = 20000001, /* FIXME: make v4l2-compliance happy */
->>>>>>>
->>>>>>> Hmm, does the latest v4l2-compliance (direct from the git repo) still fail on
->>>>>>> that? That shouldn't be a problem, and I don't see that here either if I try that
->>>>>>> myself.
->>>>>>>
->>>>>>> If it still fails, can you show me the error message?
->>>>>>
->>>>>> [crope@localhost gr-analog]$ ls -l /usr/local/bin/v4l2-compliance
->>>>>> -rwxr-xr-x. 1 root root 1497964 Jul 14 22:50 /usr/local/bin/v4l2-compliance
->>>>>> [crope@localhost gr-analog]$ /usr/local/bin/v4l2-compliance -S
->>>>>> /dev/swradio0 -s
->>>>>> Driver Info:
->>>>>> 	Driver name   : airspy
->>>>>> 	Card type     : AirSpy SDR
->>>>>> 	Bus info      : usb-0000:00:13.2-2
->>>>>> 	Driver version: 3.15.0
->>>>>> 	Capabilities  : 0x85110000
->>>>>> 		SDR Capture
->>>>>> 		Tuner
->>>>>> 		Read/Write
->>>>>> 		Streaming
->>>>>> 		Device Capabilities
->>>>>> 	Device Caps   : 0x05110000
->>>>>> 		SDR Capture
->>>>>> 		Tuner
->>>>>> 		Read/Write
->>>>>> 		Streaming
->>>>>>
->>>>>> Compliance test for device /dev/swradio0 (not using libv4l2):
->>>>>>
->>>>>> Required ioctls:
->>>>>> 	test VIDIOC_QUERYCAP: OK
->>>>>>
->>>>>> Allow for multiple opens:
->>>>>> 	test second sdr open: OK
->>>>>> 	test VIDIOC_QUERYCAP: OK
->>>>>> 	test VIDIOC_G/S_PRIORITY: OK
->>>>>>
->>>>>> Debug ioctls:
->>>>>> 	test VIDIOC_DBG_G/S_REGISTER: OK
->>>>>> 	test VIDIOC_LOG_STATUS: OK
->>>>>>
->>>>>> Input ioctls:
->>>>>> 		fail: v4l2-test-input-output.cpp(107): rangelow >= rangehigh
->>>>>> 		fail: v4l2-test-input-output.cpp(190): invalid tuner 0
->>>>>> 	test VIDIOC_G/S_TUNER: FAIL
->>>>>> 		fail: v4l2-test-input-output.cpp(290): could get frequency for invalid
->>>>>
->>>>> Try again, it should be fixed now.
->>>>
->>>> Old error has gone, but two new comes:
->>>>
->>>> Compliance test for device /dev/swradio0 (not using libv4l2):
->>>>
->>>> Required ioctls:
->>>> 		fail: v4l2-compliance.cpp(354): !(caps & V4L2_CAP_EXT_PIX_FORMAT)
->>>
->>> That suggests you were not using the very latest media tree.
->>>
->>> But now you'll get a new error: !(dcaps & V4L2_CAP_EXT_PIX_FORMAT)
->>>
->>> That's because of a bug in the kernel that I mailed Laurent about.
->>>
->>> Perhaps I was a bit too hasty in adding that to v4l2-compliance :-)
->>
->> Yes, I am stuck on 3.15-rc6 media/fixes as Mauro did not apply patches
->> needed from fixes to master. Also, master is about always unusable as it
->> is very buggy rc1.
->
-> FYI: master is now rc5.
-
-But it still not contain some critical patches needed for si2168 / 
-si2157 drivers, which development is very active ATM. Those patches are 
-only media/fixes. Every-time I need switch new kernel I need compile 
-whole stuff which took hour or so and reboot machine. For example 
-yesterday I switched ~5 times, so it is not realistic.
-
-regards
-Antti
-
-
+diff --git a/drivers/leds/led-class.c b/drivers/leds/led-class.c
+index 0127783..a96a1a7 100644
+--- a/drivers/leds/led-class.c
++++ b/drivers/leds/led-class.c
+@@ -60,14 +60,14 @@ unlock:
+ }
+ static DEVICE_ATTR_RW(brightness);
+ 
+-static ssize_t led_max_brightness_show(struct device *dev,
++static ssize_t max_brightness_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
+ 
+ 	return sprintf(buf, "%u\n", led_cdev->max_brightness);
+ }
+-static DEVICE_ATTR(max_brightness, 0444, led_max_brightness_show, NULL);
++static DEVICE_ATTR_RO(max_brightness);
+ 
+ #ifdef CONFIG_LEDS_TRIGGERS
+ static DEVICE_ATTR(trigger, 0644, led_trigger_show, led_trigger_store);
 -- 
-http://palosaari.fi/
+1.7.9.5
+
