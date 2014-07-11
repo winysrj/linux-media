@@ -1,61 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:3400 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752546AbaG0Vp0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jul 2014 17:45:26 -0400
-Date: Mon, 28 Jul 2014 05:46:27 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Matthias Schwarzott <zzam@gentoo.org>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: [linuxtv-media:master 491/499]
- drivers/media/usb/cx231xx/cx231xx-dvb.c:736:57: sparse: Using plain integer as NULL pointer
-Message-ID: <53d57333.t2tfrMIjA1X+YD5H%fengguang.wu@intel.com>
+Received: from mail-yh0-f45.google.com ([209.85.213.45]:61896 "EHLO
+	mail-yh0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752016AbaGKCZk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jul 2014 22:25:40 -0400
+Received: by mail-yh0-f45.google.com with SMTP id t59so205505yho.4
+        for <linux-media@vger.kernel.org>; Thu, 10 Jul 2014 19:25:39 -0700 (PDT)
+Date: Thu, 10 Jul 2014 23:24:56 -0300
+From: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+To: linux-media@vger.kernel.org
+Cc: Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 2/2] solo6x10: update GOP size, QP immediately
+Message-ID: <20140710232456.68fbb82b@pirotess.bf.iodev.co.uk>
+In-Reply-To: <1404833013-18627-2-git-send-email-andrey.utkin@corp.bluecherry.net>
+References: <1404833013-18627-1-git-send-email-andrey.utkin@corp.bluecherry.net>
+	<1404833013-18627-2-git-send-email-andrey.utkin@corp.bluecherry.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ boundary="Sig_/Nu2YdZD4VVeULicCTmFM/O5"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   0a12830893e8b111189e9019848ead054b0f85b3
-commit: dd2e7dd20cf482bc2fd989bfbd0354476ae904c2 [491/499] [media] cx231xx: Add digital support for HVR 930c-HD model 1113xx
-reproduce: make C=1 CF=-D__CHECK_ENDIAN__
+--Sig_/Nu2YdZD4VVeULicCTmFM/O5
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
+On Tue,  8 Jul 2014 18:23:33 +0300
+Andrey Utkin <andrey.utkin@corp.bluecherry.net> wrote:
+> Previously, it was needed to reopen device to update GOP size and
+> quantization parameter. Now we update device registers with new values
+> immediately.
+>=20
+> Signed-off-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+> ---
+>  drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+>=20
+> diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+> b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c index
+> bf6eb06..14f933f 100644 ---
+> a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c +++
+> b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c @@ -1110,9
+> +1110,13 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl) ctrl->val);
+>  	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
+>  		solo_enc->gop =3D ctrl->val;
+> +		solo_reg_write(solo_dev,
+> SOLO_VE_CH_GOP(solo_enc->ch), solo_enc->gop);
+> +		solo_reg_write(solo_dev,
+> SOLO_VE_CH_GOP_E(solo_enc->ch), solo_enc->gop); return 0;
+>  	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP:
+>  		solo_enc->qp =3D ctrl->val;
+> +		solo_reg_write(solo_dev,
+> SOLO_VE_CH_QP(solo_enc->ch), solo_enc->qp);
+> +		solo_reg_write(solo_dev,
+> SOLO_VE_CH_QP_E(solo_enc->ch), solo_enc->qp); return 0;
+>  	case V4L2_CID_MOTION_THRESHOLD:
+>  		solo_enc->motion_thresh =3D ctrl->val;
 
-sparse warnings: (new ones prefixed by >>)
+Signed-off-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
 
->> drivers/media/usb/cx231xx/cx231xx-dvb.c:736:57: sparse: Using plain integer as NULL pointer
+--Sig_/Nu2YdZD4VVeULicCTmFM/O5
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
-vim +736 drivers/media/usb/cx231xx/cx231xx-dvb.c
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-   720			break;
-   721	
-   722		case CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx:
-   723	
-   724			dev->dvb->frontend = dvb_attach(si2165_attach,
-   725				&hauppauge_930C_HD_1113xx_si2165_config,
-   726				&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap
-   727				);
-   728	
-   729			if (dev->dvb->frontend == NULL) {
-   730				printk(DRIVER_NAME
-   731				       ": Failed to attach SI2165 front end\n");
-   732				result = -EINVAL;
-   733				goto out_free;
-   734			}
-   735	
- > 736			dev->dvb->frontend->ops.i2c_gate_ctrl = 0;
-   737	
-   738			/* define general-purpose callback pointer */
-   739			dvb->frontend->callback = cx231xx_tuner_callback;
-   740	
-   741			dvb_attach(tda18271_attach, dev->dvb->frontend,
-   742				0x60,
-   743				&dev->i2c_bus[dev->board.tuner_i2c_master].i2c_adap,
-   744				&hcw_tda18271_config);
+iQEcBAEBAgAGBQJTv0r4AAoJEBrCLcBAAV+GM54H/3N4I2yYBX+/g4/gLiC+CiRt
+fQFFCPFzQ4KBgCHatoKzXfVnM6GFw5LUiB/aTjWJctoIZNTdlc+4LbTef1TQvst0
+lALxZtFnDYBg5tExobbq4k5bR26E7RH41Zp1rYEY7pA9LftE8s4uuEsO4q832hUw
+lA8B3dVOVV/5Rzh/sTBsblnbxDxw16+ClmbvJpYkI4MLbfFW2CajJ73JMeFnz1mW
+z2GhZ00WTPvRsV0dN8zj0X37p0qQtEs6/PQOrq+kB+1NpRjt0JIjRMOKOitD+FUW
+umsf/yZLnRkOlMGrcnqytLx4Z4cj+VFvct17Bef0DlD7MRQlAzThmE0Mp+iqEXo=
+=nRiO
+-----END PGP SIGNATURE-----
 
----
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+--Sig_/Nu2YdZD4VVeULicCTmFM/O5--
