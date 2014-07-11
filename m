@@ -1,71 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:32611 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933369AbaGUTBh (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:36644 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755100AbaGKSbW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 15:01:37 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N92009CHSUM7H00@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 21 Jul 2014 15:01:34 -0400 (EDT)
-Date: Mon, 21 Jul 2014 16:01:28 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de
-Subject: Re: [PATCH v3 06/32] [media] coda: Add encoder/decoder support for
- CODA960
-Message-id: <20140721160128.27eb7428.m.chehab@samsung.com>
-In-reply-to: <1405071403-1859-7-git-send-email-p.zabel@pengutronix.de>
-References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
- <1405071403-1859-7-git-send-email-p.zabel@pengutronix.de>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Fri, 11 Jul 2014 14:31:22 -0400
+Message-ID: <53C02D77.4070809@infradead.org>
+Date: Fri, 11 Jul 2014 11:31:19 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
+MIME-Version: 1.0
+To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
+CC: LKML <linux-kernel@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	Holger Waechtler <holger@convergence.de>,
+	Oliver Endriss <o.endriss@gmx.de>
+Subject: Re: linux-next: Tree for Jul 11 (media/pci/ttpci/av7110)
+References: <20140711171844.39fcbb50@canb.auug.org.au>
+In-Reply-To: <20140711171844.39fcbb50@canb.auug.org.au>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 11 Jul 2014 11:36:17 +0200
-Philipp Zabel <p.zabel@pengutronix.de> escreveu:
-
-> This patch adds support for the CODA960 VPU in Freescale i.MX6 SoCs.
+On 07/11/14 00:18, Stephen Rothwell wrote:
+> Hi all,
 > 
-> It enables h.264 and MPEG4 encoding and decoding support. Besides the usual
-> register shifting, the CODA960 gains frame memory control and GDI registers
-> that are set up for linear mapping right now, needs ENC_PIC_SRC_INDEX to be
-> set beyond the number of internal buffers for some reason, and has subsampling
-> buffers that need to be set up. Also, the work buffer size is increased to
-> 80 KiB.
+> Changes since 20140710:
 > 
-> The CODA960 firmware spins if there is not enough input data in the bitstream
-> buffer. To make it continue, buffers need to be copied into the bitstream as
-> soon as they are queued. As the bitstream fifo is written into from two places,
-> it must be protected with a mutex. For that, using a threaded interrupt handler
-> is necessary.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
 
-...
+on x86_64:
 
-> +	[CODA_IMX6Q] = {
-> +		.firmware   = "v4l-coda960-imx6q.bin",
-> +		.product    = CODA_960,
-> +		.codecs     = coda9_codecs,
-> +		.num_codecs = ARRAY_SIZE(coda9_codecs),
-> +	},
-> +	[CODA_IMX6DL] = {
-> +		.firmware   = "v4l-coda960-imx6dl.bin",
-> +		.product    = CODA_960,
-> +		.codecs     = coda9_codecs,
-> +		.num_codecs = ARRAY_SIZE(coda9_codecs),
-> +	},
+CONFIG_DVB_AV7110=y
+CONFIG_INPUT_EVDEV=m
 
-Where are those firmware files available?
+drivers/built-in.o: In function `av7110_emit_keyup':
+av7110_ir.c:(.text+0x76b608): undefined reference to `input_event'
+av7110_ir.c:(.text+0x76b61a): undefined reference to `input_event'
+drivers/built-in.o: In function `av7110_emit_key':
+av7110_ir.c:(.text+0x76b6b4): undefined reference to `input_event'
+av7110_ir.c:(.text+0x76b6cd): undefined reference to `input_event'
+av7110_ir.c:(.text+0x76b7b0): undefined reference to `input_event'
+drivers/built-in.o:av7110_ir.c:(.text+0x76b7ca): more undefined references to `input_event' follow
+drivers/built-in.o: In function `av7110_ir_init':
+(.text+0x76bcdb): undefined reference to `input_allocate_device'
+drivers/built-in.o: In function `av7110_ir_init':
+(.text+0x76bf93): undefined reference to `input_register_device'
+drivers/built-in.o: In function `av7110_ir_init':
+(.text+0x76c073): undefined reference to `input_free_device'
+drivers/built-in.o: In function `av7110_ir_exit':
+(.text+0x76c1db): undefined reference to `input_unregister_device'
 
-Regards,
-Mauro
+
+-- 
+~Randy
