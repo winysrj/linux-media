@@ -1,54 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34517 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752223AbaGHSgC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jul 2014 14:36:02 -0400
-Message-ID: <53BC3A0E.4060505@iki.fi>
-Date: Tue, 08 Jul 2014 21:35:58 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Fabian Frederick <fabf@skynet.be>, linux-kernel@vger.kernel.org
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] dvb-frontends: remove unnecessary break after goto
-References: <1404840181-29822-1-git-send-email-fabf@skynet.be>
-In-Reply-To: <1404840181-29822-1-git-send-email-fabf@skynet.be>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51519 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752942AbaGKJg7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jul 2014 05:36:59 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 17/32] [media] coda: add cyclic intra refresh control
+Date: Fri, 11 Jul 2014 11:36:28 +0200
+Message-Id: <1405071403-1859-18-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka Fabian!
-I have no reason to decline that patch (I will apply it) even it has 
-hardly meaning. But is there now some new tool which warns that kind of 
-issues?
+Allow userspace to enable cyclic intra refresh by setting the number of
+intra macroblocks per frame to a non-zero value.
 
-regards
-Atnti
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-
-On 07/08/2014 08:23 PM, Fabian Frederick wrote:
-> Cc: Antti Palosaari <crope@iki.fi>
-> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Fabian Frederick <fabf@skynet.be>
-> ---
->   drivers/media/dvb-frontends/af9013.c | 1 -
->   1 file changed, 1 deletion(-)
->
-> diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
-> index fb504f1..ecf6388 100644
-> --- a/drivers/media/dvb-frontends/af9013.c
-> +++ b/drivers/media/dvb-frontends/af9013.c
-> @@ -470,7 +470,6 @@ static int af9013_statistics_snr_result(struct dvb_frontend *fe)
->   		break;
->   	default:
->   		goto err;
-> -		break;
->   	}
->
->   	for (i = 0; i < len; i++) {
->
-
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 839aa36..2e94d95 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -167,6 +167,7 @@ struct coda_params {
+ 	u8			mpeg4_intra_qp;
+ 	u8			mpeg4_inter_qp;
+ 	u8			gop_size;
++	int			intra_refresh;
+ 	int			codec_mode;
+ 	int			codec_mode_aux;
+ 	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
+@@ -2381,7 +2382,8 @@ static int coda_start_encoding(struct coda_ctx *ctx)
+ 	coda_write(dev, value, CODA_CMD_ENC_SEQ_RC_PARA);
+ 
+ 	coda_write(dev, 0, CODA_CMD_ENC_SEQ_RC_BUF_SIZE);
+-	coda_write(dev, 0, CODA_CMD_ENC_SEQ_INTRA_REFRESH);
++	coda_write(dev, ctx->params.intra_refresh,
++		   CODA_CMD_ENC_SEQ_INTRA_REFRESH);
+ 
+ 	coda_write(dev, bitstream_buf, CODA_CMD_ENC_SEQ_BB_START);
+ 	coda_write(dev, bitstream_size / 1024, CODA_CMD_ENC_SEQ_BB_SIZE);
+@@ -2680,6 +2682,9 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		break;
+ 	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB:
++		ctx->params.intra_refresh = ctrl->val;
++		break;
+ 	default:
+ 		v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+ 			"Invalid control, id=%d, val=%d\n",
+@@ -2741,6 +2746,8 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
+ 		V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME,
+ 		(1 << V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE),
+ 		V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME);
++	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
++		V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB, 0, 1920 * 1088 / 256, 1, 0);
+ 
+ 	if (ctx->ctrls.error) {
+ 		v4l2_err(&ctx->dev->v4l2_dev, "control initialization error (%d)",
 -- 
-http://palosaari.fi/
+2.0.0
+
