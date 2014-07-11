@@ -1,69 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33553 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751907AbaGPVzU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jul 2014 17:55:20 -0400
-Date: Thu, 17 Jul 2014 00:54:44 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>
-Subject: Re: [PATCH/RFC v4 06/21] leds: add API for setting torch brightness
-Message-ID: <20140716215444.GK16460@valkosipuli.retiisi.org.uk>
-References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
- <1405087464-13762-7-git-send-email-j.anaszewski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <1405087464-13762-7-git-send-email-j.anaszewski@samsung.com>
+Received: from smtp206.alice.it ([82.57.200.102]:3237 "EHLO smtp206.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753215AbaGKM5D (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jul 2014 08:57:03 -0400
+From: Antonio Ospite <ao2@ao2.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ao2@ao2.it>, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] gspca_stv06xx: enable button found on some Quickcam Express variant
+Date: Fri, 11 Jul 2014 14:56:57 +0200
+Message-Id: <1405083417-20615-1-git-send-email-ao2@ao2.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Signed-off-by: Antonio Ospite <ao2@ao2.it>
+---
+ drivers/media/usb/gspca/stv06xx/stv06xx.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Jacek Anaszewski wrote:
-...
-> diff --git a/include/linux/leds.h b/include/linux/leds.h
-> index 1a130cc..9bea9e6 100644
-> --- a/include/linux/leds.h
-> +++ b/include/linux/leds.h
-> @@ -44,11 +44,21 @@ struct led_classdev {
->   #define LED_BLINK_ONESHOT_STOP	(1 << 18)
->   #define LED_BLINK_INVERT	(1 << 19)
->   #define LED_SYSFS_LOCK		(1 << 20)
-> +#define LED_DEV_CAP_TORCH	(1 << 21)
->
->   	/* Set LED brightness level */
->   	/* Must not sleep, use a workqueue if needed */
->   	void		(*brightness_set)(struct led_classdev *led_cdev,
->   					  enum led_brightness brightness);
-> +	/*
-> +	 * Set LED brightness immediately - it is required for flash led
-> +	 * devices as they require setting torch brightness to have immediate
-> +	 * effect. brightness_set op cannot be used for this purpose because
-> +	 * the led drivers schedule a work queue task in it to allow for
-> +	 * being called from led-triggers, i.e. from the timer irq context.
-> +	 */
-
-Do we need to classify actual devices based on this? I think it's rather 
-a different API behaviour between the LED and the V4L2 APIs.
-
-On devices that are slow to control, the behaviour should be asynchronous
-over the LED API and synchronous when accessed through the V4L2 API. How
-about implementing the work queue, as I have suggested, in the framework, so
-that individual drivers don't need to care about this and just implement the
-synchronous variant of this op? A flag could be added to distinguish devices
-that are fast so that the work queue isn't needed.
-
-It'd be nice to avoid individual drivers having to implement multiple ops to
-do the same thing, just for differing user space interfacs.
-
+diff --git a/drivers/media/usb/gspca/stv06xx/stv06xx.c b/drivers/media/usb/gspca/stv06xx/stv06xx.c
+index 49d209b..6ac93d8 100644
+--- a/drivers/media/usb/gspca/stv06xx/stv06xx.c
++++ b/drivers/media/usb/gspca/stv06xx/stv06xx.c
+@@ -505,13 +505,13 @@ static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
+ {
+ 	int ret = -EINVAL;
+ 
+-	if (len == 1 && data[0] == 0x80) {
++	if (len == 1 && (data[0] == 0x80 || data[0] == 0x10)) {
+ 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 1);
+ 		input_sync(gspca_dev->input_dev);
+ 		ret = 0;
+ 	}
+ 
+-	if (len == 1 && data[0] == 0x88) {
++	if (len == 1 && (data[0] == 0x88 || data[0] == 0x11)) {
+ 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
+ 		input_sync(gspca_dev->input_dev);
+ 		ret = 0;
 -- 
-Kind regards,
+2.0.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
