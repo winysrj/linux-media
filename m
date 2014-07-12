@@ -1,57 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54595 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752281AbaG0T1j (ORCPT
+Received: from qmta02.emeryville.ca.mail.comcast.net ([76.96.30.24]:46129 "EHLO
+	qmta02.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752441AbaGLQog (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jul 2014 15:27:39 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 4/6] cx231xx: handle errors at read_eeprom()
-Date: Sun, 27 Jul 2014 16:27:30 -0300
-Message-Id: <1406489252-30636-5-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1406489252-30636-1-git-send-email-m.chehab@samsung.com>
-References: <1406489252-30636-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Sat, 12 Jul 2014 12:44:36 -0400
+From: Shuah Khan <shuah.kh@samsung.com>
+To: m.chehab@samsung.com, dheitmueller@kernellabs.com, olebowle@gmx.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 2/3] media: em28xx-dvb update fe exit flag to indicate device disconnect
+Date: Sat, 12 Jul 2014 10:44:13 -0600
+Message-Id: <f787934645180d1c3a30f6424541d424dc1a3052.1405179280.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1405179280.git.shuah.kh@samsung.com>
+References: <cover.1405179280.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1405179280.git.shuah.kh@samsung.com>
+References: <cover.1405179280.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the following warnings:
-	drivers/media/usb/cx231xx/cx231xx-cards.c: In function 'read_eeprom':
-	drivers/media/usb/cx231xx/cx231xx-cards.c:979:6: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
+Change em28xx_dvb_fini() to set fe exit flag to DVB_FE_DEVICE_REMOVED
+when device is disconnected. em28xx maintains device disconnect status
+in em28xx device. fe drivers will be able to now check the fe exit
+status to avoid accessing the device, from their release interfaces
+when called from disconnect path. This change depends on dvb-core
+change that exports fe exit flag by moving it from fepriv to fe.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-cards.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/media/usb/em28xx/em28xx-dvb.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index f1cf44af96cf..3f0e309a54d8 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -991,13 +991,20 @@ static int read_eeprom(struct cx231xx *dev, u8 *eedata, int len)
- 
- 	/* start reading at offset 0 */
- 	ret = i2c_transfer(&dev->i2c_bus[1].i2c_adap, &msg_write, 1);
-+	if (ret < 0) {
-+		cx231xx_err("Can't read eeprom\n");
-+		return ret;
-+	}
- 
- 	while (len_todo > 0) {
- 		msg_read.len = (len_todo > 64) ? 64 : len_todo;
- 		msg_read.buf = eedata_cur;
- 
- 		ret = i2c_transfer(&dev->i2c_bus[1].i2c_adap, &msg_read, 1);
--
-+		if (ret < 0) {
-+			cx231xx_err("Can't read eeprom\n");
-+			return ret;
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 8d5cb62..5663d62 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1668,10 +1668,14 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+ 	if (dev->disconnected) {
+ 		/* We cannot tell the device to sleep
+ 		 * once it has been unplugged. */
+-		if (dvb->fe[0])
++		if (dvb->fe[0]) {
+ 			prevent_sleep(&dvb->fe[0]->ops);
+-		if (dvb->fe[1])
++			dvb->fe[0]->exit = DVB_FE_DEVICE_REMOVED;
 +		}
- 		eedata_cur += msg_read.len;
- 		len_todo -= msg_read.len;
++		if (dvb->fe[1]) {
+ 			prevent_sleep(&dvb->fe[1]->ops);
++			dvb->fe[1]->exit = DVB_FE_DEVICE_REMOVED;
++		}
  	}
+ 
+ 	em28xx_unregister_dvb(dvb);
 -- 
-1.9.3
+1.7.10.4
 
