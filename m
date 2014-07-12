@@ -1,108 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:57251 "EHLO
-	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753604AbaG2PT4 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:52301 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754696AbaGLAh5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jul 2014 11:19:56 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: linux-wireless@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-ia64@vger.kernel.org,
-	ceph-devel@vger.kernel.org, toralf.foerster@gmx.de, hmh@hmh.eng.br,
-	linux-gpio@vger.kernel.org, reiserfs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	e1000-devel@lists.sourceforge.net, linux-scsi@vger.kernel.org,
-	linux-usb@vger.kernel.org
-Subject: [PATCH 0/9] use correct structure type name in sizeof
-Date: Tue, 29 Jul 2014 17:16:42 +0200
-Message-Id: <1406647011-8543-1-git-send-email-Julia.Lawall@lip6.fr>
+	Fri, 11 Jul 2014 20:37:57 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 3/3] mb86a20s: Fix the code that estimates the measurement interval
+Date: Fri, 11 Jul 2014 21:37:48 -0300
+Message-Id: <1405125468-4748-4-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1405125468-4748-1-git-send-email-m.chehab@samsung.com>
+References: <1405125468-4748-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These patches fix typos in the name of a type referenced in a sizeof
-command.  These problems are not caught by the compiler, because they have
-no impact on execution - the size of a pointer is independent of the size
-of the pointed value.
+Instead of looking at the guard interval field, it was using
+the interval length, with is wrong. Fix it.
 
-The semantic patch that finds these problems is shown below
-(http://coccinelle.lip6.fr/).  This semantic patch distinguishes between
-structures that are defined in C files, and thus are expected to be visible
-in only that file, and structures that are defined in header files, which
-could potential be visible everywhere.  This distinction seems to be
-unnecessary in practice, though.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/mb86a20s.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-<smpl>
-virtual after_start
-
-@initialize:ocaml@
-@@
-
-type fl = C of string | H
-
-let structures = Hashtbl.create 101
-let restarted = ref false
-
-let add_if_not_present _ =
-  if not !restarted
-  then
-    begin
-      restarted := true;
-      let it = new iteration() in
-      it#add_virtual_rule After_start;
-      it#register()
-    end
-
-let hashadd str file =
-  let cell =
-    try Hashtbl.find structures str
-    with Not_found ->
-      let cell = ref [] in
-      Hashtbl.add structures str cell;
-      cell in
-  if not (List.mem file !cell) then cell := file :: !cell
-
-let get_file fl =
-  if Filename.check_suffix fl ".c"
-  then C fl
-  else H
-
-@script:ocaml depends on !after_start@
-@@
-add_if_not_present()
-
-@r depends on !after_start@
-identifier nm;
-position p;
-@@
-
-struct nm@p { ... };
-
-@script:ocaml@
-nm << r.nm;
-p << r.p;
-@@
-
-hashadd nm (get_file (List.hd p).file)
-
-// -------------------------------------------------------------------------
-
-@sz depends on after_start@
-identifier nm;
-position p;
-@@
-
-sizeof(struct nm@p *)
-
-@script:ocaml@
-nm << sz.nm;
-p << sz.p;
-@@
-
-try
-  let allowed = !(Hashtbl.find structures nm) in
-  if List.mem H allowed or List.mem (get_file (List.hd p).file) allowed
-  then ()
-  else print_main nm p
-with Not_found -> print_main nm p
-</smpl>
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index 2de0e59bd243..227a420f7069 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -556,7 +556,7 @@ static u32 isdbt_rate[3][5][4] = {
+ 
+ static void mb86a20s_layer_bitrate(struct dvb_frontend *fe, u32 layer,
+ 				   u32 modulation, u32 forward_error_correction,
+-				   u32 interleaving,
++				   u32 guard_interval,
+ 				   u32 segment)
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+@@ -564,7 +564,7 @@ static void mb86a20s_layer_bitrate(struct dvb_frontend *fe, u32 layer,
+ 	int mod, fec, guard;
+ 
+ 	/*
+-	 * If modulation/fec/interleaving is not detected, the default is
++	 * If modulation/fec/guard is not detected, the default is
+ 	 * to consider the lowest bit rate, to avoid taking too long time
+ 	 * to get BER.
+ 	 */
+@@ -602,7 +602,7 @@ static void mb86a20s_layer_bitrate(struct dvb_frontend *fe, u32 layer,
+ 		break;
+ 	}
+ 
+-	switch (interleaving) {
++	switch (guard_interval) {
+ 	default:
+ 	case GUARD_INTERVAL_1_4:
+ 		guard = 0;
+@@ -693,7 +693,7 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
+ 		c->layer[layer].interleaving = rc;
+ 		mb86a20s_layer_bitrate(fe, layer, c->layer[layer].modulation,
+ 				       c->layer[layer].fec,
+-				       c->layer[layer].interleaving,
++				       c->guard_interval,
+ 				       c->layer[layer].segment_count);
+ 	}
+ 
+-- 
+1.9.3
 
