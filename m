@@ -1,82 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51567 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753011AbaGKJhC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 05:37:02 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 22/32] [media] coda: add sequence counter offset
-Date: Fri, 11 Jul 2014 11:36:33 +0200
-Message-Id: <1405071403-1859-23-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:48880 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752467AbaGLUO1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Jul 2014 16:14:27 -0400
+Message-ID: <53C1971E.3020200@iki.fi>
+Date: Sat, 12 Jul 2014 23:14:22 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Shuah Khan <shuah.kh@samsung.com>, m.chehab@samsung.com
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: em28xx-dvb unregister i2c tuner and demod after
+ fe detach
+References: <1405093525-8745-1-git-send-email-shuah.kh@samsung.com>
+In-Reply-To: <1405093525-8745-1-git-send-email-shuah.kh@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The coda h.264 decoder also counts PIC_RUNs where no frame was decoded but
-a frame was rotated out / marked as ready to be displayed. This causes an
-offset between the incoming encoded frame's sequence number and the decode
-sequence number returned by the coda. This patch introduces a sequence
-counter offset variable to keep track of the difference.
+Moikka Shuah!
+I suspect that patch makes no sense. On DVB there is runtime PM 
+controlled by DVB frontend. It wakes up all FE sub-devices when frontend 
+device is opened and sleeps when closed.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+FE release() is not relevant at all for those sub-devices which are 
+implemented as a proper I2C client. I2C client has own remove() for that.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 0405a7a..d7404e9 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -222,6 +222,7 @@ struct coda_ctx {
- 	u32				isequence;
- 	u32				qsequence;
- 	u32				osequence;
-+	u32				sequence_offset;
- 	struct coda_q_data		q_data[2];
- 	enum coda_inst_type		inst_type;
- 	struct coda_codec		*codec;
-@@ -2623,6 +2624,7 @@ static void coda_stop_streaming(struct vb2_queue *q)
- 		ctx->streamon_cap = 0;
- 
- 		ctx->osequence = 0;
-+		ctx->sequence_offset = 0;
- 	}
- 
- 	if (!ctx->streamon_out && !ctx->streamon_cap) {
-@@ -3128,7 +3130,9 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 
- 	if (decoded_idx == -1) {
- 		/* no frame was decoded, but we might have a display frame */
--		if (display_idx < 0 && ctx->display_idx < 0)
-+		if (display_idx >= 0 && display_idx < ctx->num_internal_frames)
-+			ctx->sequence_offset++;
-+		else if (ctx->display_idx < 0)
- 			ctx->prescan_failed = true;
- 	} else if (decoded_idx == -2) {
- 		/* no frame was decoded, we still return the remaining buffers */
-@@ -3140,10 +3144,11 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 				      struct coda_timestamp, list);
- 		list_del(&ts->list);
- 		val = coda_read(dev, CODA_RET_DEC_PIC_FRAME_NUM) - 1;
--		if (val != ts->sequence) {
-+		val -= ctx->sequence_offset;
-+		if (val != (ts->sequence & 0xffff)) {
- 			v4l2_err(&dev->v4l2_dev,
--				 "sequence number mismatch (%d != %d)\n",
--				 val, ts->sequence);
-+				 "sequence number mismatch (%d(%d) != %d)\n",
-+				 val, ctx->sequence_offset, ts->sequence);
- 		}
- 		ctx->frame_timestamps[decoded_idx] = *ts;
- 		kfree(ts);
+em28xx_dvb_init and em28xx_dvb_fini are counterparts. Those I2C drivers 
+are load on em28xx_dvb_init so logical place for unload is em28xx_dvb_fini.
+
+Is there some real use case you need that change?
+
+regards
+Antti
+
+
+On 07/11/2014 06:45 PM, Shuah Khan wrote:
+> i2c tuner and demod are unregisetred in .fini before fe detach.
+> dvb_unregister_frontend() and dvb_frontend_detach() invoke tuner
+> sleep() and release() interfaces. Change to unregister i2c tuner
+> and demod from em28xx_unregister_dvb() after unregistering dvb
+> and detaching fe.
+>
+> Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+> ---
+>   drivers/media/usb/em28xx/em28xx-dvb.c |   32 +++++++++++++++++---------------
+>   1 file changed, 17 insertions(+), 15 deletions(-)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+> index 8314f51..8d5cb62 100644
+> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+> @@ -1030,6 +1030,8 @@ fail_adapter:
+>
+>   static void em28xx_unregister_dvb(struct em28xx_dvb *dvb)
+>   {
+> +	struct i2c_client *client;
+> +
+>   	dvb_net_release(&dvb->net);
+>   	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_mem);
+>   	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_hw);
+> @@ -1041,6 +1043,21 @@ static void em28xx_unregister_dvb(struct em28xx_dvb *dvb)
+>   	if (dvb->fe[1] && !dvb->dont_attach_fe1)
+>   		dvb_frontend_detach(dvb->fe[1]);
+>   	dvb_frontend_detach(dvb->fe[0]);
+> +
+> +	/* remove I2C tuner */
+> +	client = dvb->i2c_client_tuner;
+> +	if (client) {
+> +		module_put(client->dev.driver->owner);
+> +		i2c_unregister_device(client);
+> +	}
+> +
+> +	/* remove I2C demod */
+> +	client = dvb->i2c_client_demod;
+> +	if (client) {
+> +		module_put(client->dev.driver->owner);
+> +		i2c_unregister_device(client);
+> +	}
+> +
+>   	dvb_unregister_adapter(&dvb->adapter);
+>   }
+>
+> @@ -1628,7 +1645,6 @@ static inline void prevent_sleep(struct dvb_frontend_ops *ops)
+>   static int em28xx_dvb_fini(struct em28xx *dev)
+>   {
+>   	struct em28xx_dvb *dvb;
+> -	struct i2c_client *client;
+>
+>   	if (dev->is_audio_only) {
+>   		/* Shouldn't initialize IR for this interface */
+> @@ -1646,7 +1662,6 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+>   	em28xx_info("Closing DVB extension");
+>
+>   	dvb = dev->dvb;
+> -	client = dvb->i2c_client_tuner;
+>
+>   	em28xx_uninit_usb_xfer(dev, EM28XX_DIGITAL_MODE);
+>
+> @@ -1659,19 +1674,6 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+>   			prevent_sleep(&dvb->fe[1]->ops);
+>   	}
+>
+> -	/* remove I2C tuner */
+> -	if (client) {
+> -		module_put(client->dev.driver->owner);
+> -		i2c_unregister_device(client);
+> -	}
+> -
+> -	/* remove I2C demod */
+> -	client = dvb->i2c_client_demod;
+> -	if (client) {
+> -		module_put(client->dev.driver->owner);
+> -		i2c_unregister_device(client);
+> -	}
+> -
+>   	em28xx_unregister_dvb(dvb);
+>   	kfree(dvb);
+>   	dev->dvb = NULL;
+>
+
 -- 
-2.0.0
-
+http://palosaari.fi/
