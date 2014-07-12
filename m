@@ -1,48 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:35710 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754168AbaGBPwd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jul 2014 11:52:33 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC 7/9] dib8000: Fix the sleep time at the state machine
-Date: Wed,  2 Jul 2014 12:52:21 -0300
-Message-Id: <1404316343-23856-8-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1404316343-23856-1-git-send-email-m.chehab@samsung.com>
-References: <1404316343-23856-1-git-send-email-m.chehab@samsung.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2918 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751232AbaGLCnq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jul 2014 22:43:46 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6C2hfhB038332
+	for <linux-media@vger.kernel.org>; Sat, 12 Jul 2014 04:43:44 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 66B922A1FD0
+	for <linux-media@vger.kernel.org>; Sat, 12 Jul 2014 04:43:28 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140712024328.66B922A1FD0@tschai.lan>
+Date: Sat, 12 Jul 2014 04:43:28 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-msleep() is not too precise: its precision depends on the
-HZ config. As the driver selects precise timings for the
-state machine, change it to usleep_range().
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/dib8000.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
-index f657cb510bd1..d160a1ed92bb 100644
---- a/drivers/media/dvb-frontends/dib8000.c
-+++ b/drivers/media/dvb-frontends/dib8000.c
-@@ -3601,10 +3601,10 @@ static int dib8000_set_frontend(struct dvb_frontend *fe)
- 			else if ((time_slave != FE_CALLBACK_TIME_NEVER) && (time_slave > time))
- 				time = time_slave;
- 		}
--		if (time != FE_CALLBACK_TIME_NEVER)
--			msleep(time / 10);
--		else
-+		if (time == FE_CALLBACK_TIME_NEVER)
- 			break;
-+
-+		usleep_range(time * 100, (time + 10) * 100);
- 		exit_condition = 1;
- 		for (index_frontend = 0; (index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[index_frontend] != NULL); index_frontend++) {
- 			if (dib8000_get_tune_state(state->fe[index_frontend]) != CT_AGC_STOP) {
--- 
-1.9.3
+date:		Sat Jul 12 04:00:21 CEST 2014
+git branch:	test
+git hash:	3c0d394ea7022bb9666d9df97a5776c4bcc3045c
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-14-gf11dd94
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
