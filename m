@@ -1,187 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out1.inet.fi ([62.71.2.198]:59350 "EHLO jenni2.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752642AbaGMNxq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Jul 2014 09:53:46 -0400
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 4/6] si2157: Add support for Si2158 chip
-Date: Sun, 13 Jul 2014 16:52:20 +0300
-Message-Id: <1405259542-32529-5-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1405259542-32529-1-git-send-email-olli.salonen@iki.fi>
-References: <1405259542-32529-1-git-send-email-olli.salonen@iki.fi>
+Received: from qmta10.emeryville.ca.mail.comcast.net ([76.96.30.17]:40633 "EHLO
+	qmta10.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752498AbaGLQoh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Jul 2014 12:44:37 -0400
+From: Shuah Khan <shuah.kh@samsung.com>
+To: m.chehab@samsung.com, dheitmueller@kernellabs.com, olebowle@gmx.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 3/3] media: drx39xyj driver change to check fe exit flag from release
+Date: Sat, 12 Jul 2014 10:44:14 -0600
+Message-Id: <079a2ff6ea88b8918b6144c8c054c6d4bb044347.1405179280.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1405179280.git.shuah.kh@samsung.com>
+References: <cover.1405179280.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1405179280.git.shuah.kh@samsung.com>
+References: <cover.1405179280.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/tuners/si2157.c      | 73 +++++++++++++++++++++++++++++++++++---
- drivers/media/tuners/si2157.h      |  2 +-
- drivers/media/tuners/si2157_priv.h |  5 ++-
- 3 files changed, 73 insertions(+), 7 deletions(-)
+Change drx39xyj_release() to check fe exit flag to detect the
+device disconnect state and avoid accessing the device after
+it has been removed.
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index a92570f9..58c5ef5 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -1,5 +1,5 @@
- /*
-- * Silicon Labs Si2157 silicon tuner driver
-+ * Silicon Labs Si2157/2158 silicon tuner driver
-  *
-  * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
-  *
-@@ -16,6 +16,8 @@
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+---
+ drivers/media/dvb-frontends/drx39xyj/drxj.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index 9482954..54855a9 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -12238,7 +12238,9 @@ static void drx39xxj_release(struct dvb_frontend *fe)
+ 	struct drx39xxj_state *state = fe->demodulator_priv;
+ 	struct drx_demod_instance *demod = state->demod;
  
- #include "si2157_priv.h"
+-	drxj_close(demod);
++	/* if device is removed don't access it */
++	if (fe->exit != DVB_FE_DEVICE_REMOVED)
++		drxj_close(demod);
  
-+static const struct dvb_tuner_ops si2157_ops;
-+
- /* execute firmware command */
- static int si2157_cmd_execute(struct si2157 *s, struct si2157_cmd *cmd)
- {
-@@ -80,8 +82,11 @@ err:
- static int si2157_init(struct dvb_frontend *fe)
- {
- 	struct si2157 *s = fe->tuner_priv;
--	int ret;
-+	int ret, remaining;
- 	struct si2157_cmd cmd;
-+	u8 chip, len = 0;
-+	const struct firmware *fw = NULL;
-+	u8 *fw_file;
- 
- 	dev_dbg(&s->client->dev, "%s:\n", __func__);
- 
-@@ -101,6 +106,64 @@ static int si2157_init(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	chip = cmd.args[2]; /* 57 for Si2157, 58 for Si2158 */
-+
-+	/* Si2158 requires firmware download */
-+	if (chip == 58) {
-+		if (((cmd.args[1] & 0x0f) == 1) && (cmd.args[3] == '2') &&
-+				(cmd.args[4] == '0'))
-+			fw_file = SI2158_A20_FIRMWARE;
-+		else {
-+			dev_err(&s->client->dev,
-+					"%s: no firmware file for Si%d-%c%c defined\n",
-+					KBUILD_MODNAME, chip, cmd.args[3], cmd.args[4]);
-+			ret = -EINVAL;
-+			goto err;
-+		}
-+
-+		/* cold state - try to download firmware */
-+		dev_info(&s->client->dev, "%s: found a '%s' in cold state\n",
-+				KBUILD_MODNAME, si2157_ops.info.name);
-+
-+		/* request the firmware, this will block and timeout */
-+		ret = request_firmware(&fw, fw_file, &s->client->dev);
-+		if (ret) {
-+			dev_err(&s->client->dev, "%s: firmware file '%s' not found\n",
-+					KBUILD_MODNAME, fw_file);
-+			goto err;
-+		}
-+
-+		dev_info(&s->client->dev, "%s: downloading firmware from file '%s'\n",
-+				KBUILD_MODNAME, fw_file);
-+
-+		/* firmware should be n chunks of 17 bytes */
-+		if (fw->size % 17 != 0) {
-+			dev_err(&s->client->dev, "%s: firmware file '%s' is invalid\n",
-+					KBUILD_MODNAME, fw_file);
-+			ret = -EINVAL;
-+			goto err;
-+		}
-+
-+		for (remaining = fw->size; remaining > 0; remaining -= 17) {
-+			memcpy(&len, &fw->data[fw->size - remaining], 1);
-+			memcpy(cmd.args, &fw->data[(fw->size - remaining) + 1],
-+					len);
-+			cmd.wlen = len;
-+			cmd.rlen = 1;
-+			ret = si2157_cmd_execute(s, &cmd);
-+			if (ret) {
-+				dev_err(&s->client->dev,
-+						"%s: firmware download failed=%d\n",
-+						KBUILD_MODNAME, ret);
-+				goto err;
-+			}
-+		}
-+
-+		release_firmware(fw);
-+		fw = NULL;
-+
-+	}
-+
- 	/* reboot the tuner with new firmware? */
- 	memcpy(cmd.args, "\x01\x01", 2);
- 	cmd.wlen = 2;
-@@ -177,7 +240,7 @@ err:
- 
- static const struct dvb_tuner_ops si2157_tuner_ops = {
- 	.info = {
--		.name           = "Silicon Labs Si2157",
-+		.name           = "Silicon Labs Si2157/Si2158",
- 		.frequency_min  = 110000000,
- 		.frequency_max  = 862000000,
- 	},
-@@ -221,7 +284,7 @@ static int si2157_probe(struct i2c_client *client,
- 	i2c_set_clientdata(client, s);
- 
- 	dev_info(&s->client->dev,
--			"%s: Silicon Labs Si2157 successfully attached\n",
-+			"%s: Silicon Labs Si2157/Si2158 successfully attached\n",
- 			KBUILD_MODNAME);
- 	return 0;
- err:
-@@ -263,6 +326,6 @@ static struct i2c_driver si2157_driver = {
- 
- module_i2c_driver(si2157_driver);
- 
--MODULE_DESCRIPTION("Silicon Labs Si2157 silicon tuner driver");
-+MODULE_DESCRIPTION("Silicon Labs Si2157/Si2158 silicon tuner driver");
- MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/tuners/si2157.h b/drivers/media/tuners/si2157.h
-index f469a09..4465c46 100644
---- a/drivers/media/tuners/si2157.h
-+++ b/drivers/media/tuners/si2157.h
-@@ -1,5 +1,5 @@
- /*
-- * Silicon Labs Si2157 silicon tuner driver
-+ * Silicon Labs Si2157/2158 silicon tuner driver
-  *
-  * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
-  *
-diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
-index 6db4c97..db79f3c 100644
---- a/drivers/media/tuners/si2157_priv.h
-+++ b/drivers/media/tuners/si2157_priv.h
-@@ -1,5 +1,5 @@
- /*
-- * Silicon Labs Si2157 silicon tuner driver
-+ * Silicon Labs Si2157/2158 silicon tuner driver
-  *
-  * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
-  *
-@@ -17,6 +17,7 @@
- #ifndef SI2157_PRIV_H
- #define SI2157_PRIV_H
- 
-+#include <linux/firmware.h>
- #include "si2157.h"
- 
- /* state struct */
-@@ -35,4 +36,6 @@ struct si2157_cmd {
- 	unsigned rlen;
- };
- 
-+#define SI2158_A20_FIRMWARE "dvb-tuner-si2158-a20-01.fw"
-+
- #endif
+ 	kfree(demod->my_ext_attr);
+ 	kfree(demod->my_common_attr);
 -- 
-1.9.1
+1.7.10.4
 
