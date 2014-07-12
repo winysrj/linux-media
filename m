@@ -1,133 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38460 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752457AbaGJLNg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jul 2014 07:13:36 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 3/4] si2168: set cmd args using memcpy
-Date: Thu, 10 Jul 2014 14:13:13 +0300
-Message-Id: <1404990794-2902-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1404990794-2902-1-git-send-email-crope@iki.fi>
-References: <1404990794-2902-1-git-send-email-crope@iki.fi>
+Received: from bombadil.infradead.org ([198.137.202.9]:52304 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755354AbaGLAh6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jul 2014 20:37:58 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Reynaldo H. Verdejo Pinochet" <r.verdejo@sisa.samsung.com>,
+	Thiago Santos <ts.santos@sisa.samsung.com>
+Subject: [PATCH 0/3] Fix interval length on ISDB-T doc/driver
+Date: Fri, 11 Jul 2014 21:37:45 -0300
+Message-Id: <1405125468-4748-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use memcpy for set cmd buffer in order to keep style in line with
-rest of file.
+The interleaving ISDB-T representation was utter broken:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c | 48 +++++++-----------------------------
- 1 file changed, 9 insertions(+), 39 deletions(-)
+dib8000 driver were using interleave=3 on some parts, and interleave=4
+on others; net result is that interleaving=4 or 8 were broking there.
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 0d0545e..3a40181 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -95,20 +95,17 @@ static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 
- 	switch (c->delivery_system) {
- 	case SYS_DVBT:
--		cmd.args[0] = 0xa0;
--		cmd.args[1] = 0x01;
-+		memcpy(cmd.args, "\xa0\x01", 2);
- 		cmd.wlen = 2;
- 		cmd.rlen = 13;
- 		break;
- 	case SYS_DVBC_ANNEX_A:
--		cmd.args[0] = 0x90;
--		cmd.args[1] = 0x01;
-+		memcpy(cmd.args, "\x90\x01", 2);
- 		cmd.wlen = 2;
- 		cmd.rlen = 9;
- 		break;
- 	case SYS_DVBT2:
--		cmd.args[0] = 0x50;
--		cmd.args[1] = 0x01;
-+		memcpy(cmd.args, "\x50\x01", 2);
- 		cmd.wlen = 2;
- 		cmd.rlen = 14;
- 		break;
-@@ -412,7 +409,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	cmd.args[0] = 0x85;
-+	memcpy(cmd.args, "\x85", 1);
- 	cmd.wlen = 1;
- 	cmd.rlen = 1;
- 	ret = si2168_cmd_execute(s, &cmd);
-@@ -438,54 +435,28 @@ static int si2168_init(struct dvb_frontend *fe)
- 
- 	dev_dbg(&s->client->dev, "%s:\n", __func__);
- 
--	cmd.args[0] = 0xc0;
--	cmd.args[1] = 0x12;
--	cmd.args[2] = 0x00;
--	cmd.args[3] = 0x0c;
--	cmd.args[4] = 0x00;
--	cmd.args[5] = 0x0d;
--	cmd.args[6] = 0x16;
--	cmd.args[7] = 0x00;
--	cmd.args[8] = 0x00;
--	cmd.args[9] = 0x00;
--	cmd.args[10] = 0x00;
--	cmd.args[11] = 0x00;
--	cmd.args[12] = 0x00;
-+	memcpy(cmd.args, "\xc0\x12\x00\x0c\x00\x0d\x16\x00\x00\x00\x00\x00\x00", 13);
- 	cmd.wlen = 13;
- 	cmd.rlen = 0;
- 	ret = si2168_cmd_execute(s, &cmd);
- 	if (ret)
- 		goto err;
- 
--	cmd.args[0] = 0xc0;
--	cmd.args[1] = 0x06;
--	cmd.args[2] = 0x01;
--	cmd.args[3] = 0x0f;
--	cmd.args[4] = 0x00;
--	cmd.args[5] = 0x20;
--	cmd.args[6] = 0x20;
--	cmd.args[7] = 0x01;
-+	memcpy(cmd.args, "\xc0\x06\x01\x0f\x00\x20\x20\x01", 8);
- 	cmd.wlen = 8;
- 	cmd.rlen = 1;
- 	ret = si2168_cmd_execute(s, &cmd);
- 	if (ret)
- 		goto err;
- 
--	cmd.args[0] = 0x02;
-+	memcpy(cmd.args, "\x02", 1);
- 	cmd.wlen = 1;
- 	cmd.rlen = 13;
- 	ret = si2168_cmd_execute(s, &cmd);
- 	if (ret)
- 		goto err;
- 
--	cmd.args[0] = 0x05;
--	cmd.args[1] = 0x00;
--	cmd.args[2] = 0xaa;
--	cmd.args[3] = 0x4d;
--	cmd.args[4] = 0x56;
--	cmd.args[5] = 0x40;
--	cmd.args[6] = 0x00;
--	cmd.args[7] = 0x00;
-+	memcpy(cmd.args, "\x05\x00\xaa\x4d\x56\x40\x00\x00", 8);
- 	cmd.wlen = 8;
- 	cmd.rlen = 1;
- 	ret = si2168_cmd_execute(s, &cmd);
-@@ -527,8 +498,7 @@ static int si2168_init(struct dvb_frontend *fe)
- 	release_firmware(fw);
- 	fw = NULL;
- 
--	cmd.args[0] = 0x01;
--	cmd.args[1] = 0x01;
-+	memcpy(cmd.args, "\x01\x01", 2);
- 	cmd.wlen = 2;
- 	cmd.rlen = 1;
- 	ret = si2168_cmd_execute(s, &cmd);
+mb86a20s were using guard time as interleaving length.
+
+Other drivers don't implement it.
+
+Userspace (libdvbv5) were expecting a value of 0, 1, 2, 4.
+
+Docbook were confusing.
+
+A previous patch fixed the dib8000 driver. Let's now fix the
+documentation and mb86a20s. This way, this field can be reliable.
+
+Mauro Carvalho Chehab (3):
+  DocBook: Fix ISDB-T Interleaving property
+  mb86a20s: Fix Interleaving
+  mb86a20s: Fix the code that estimates the measurement interval
+
+ Documentation/DocBook/media/dvb/dvbproperty.xml | 44 ++++++++++++++++++++++---
+ drivers/media/dvb-frontends/mb86a20s.c          | 26 +++++----------
+ 2 files changed, 48 insertions(+), 22 deletions(-)
+
 -- 
 1.9.3
 
