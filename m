@@ -1,60 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f41.google.com ([209.85.215.41]:42418 "EHLO
-	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751173AbaGKMxJ (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:52303 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755030AbaGLAh5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 08:53:09 -0400
-Received: by mail-la0-f41.google.com with SMTP id hz20so860163lab.14
-        for <linux-media@vger.kernel.org>; Fri, 11 Jul 2014 05:53:07 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20140711123318.GB5441@pengutronix.de>
-References: <1403621771-11636-1-git-send-email-p.zabel@pengutronix.de>
-	<1403621771-11636-7-git-send-email-p.zabel@pengutronix.de>
-	<1403626611.10756.11.camel@mpb-nicolas>
-	<1404237187.19382.78.camel@paszta.hi.pengutronix.de>
-	<0b3a01cf95fa$b7df2190$279d64b0$%debski@samsung.com>
-	<20140702191642.GM22620@pengutronix.de>
-	<20140711123318.GB5441@pengutronix.de>
-Date: Fri, 11 Jul 2014 09:53:07 -0300
-Message-ID: <CAOMZO5BmEVSDH3n_Hbdj4pPQDEgVAMWnHrFGb3EzAToM4U92nw@mail.gmail.com>
-Subject: Re: [PATCH v2 06/29] [media] coda: Add encoder/decoder support for CODA960
-From: Fabio Estevam <festevam@gmail.com>
-To: Robert Schwebel <r.schwebel@pengutronix.de>
-Cc: Fabio Estevam <fabio.estevam@freescale.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Guo Shawn-R65073 <r65073@freescale.com>,
-	Estevam Fabio-R49496 <r49496@freescale.com>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 11 Jul 2014 20:37:57 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 2/3] mb86a20s: Fix Interleaving
+Date: Fri, 11 Jul 2014 21:37:47 -0300
+Message-Id: <1405125468-4748-3-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1405125468-4748-1-git-send-email-m.chehab@samsung.com>
+References: <1405125468-4748-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robert,
+Interleaving code was wrong at mb86a20s: instead, it was looking
+at the Guard Interval. Fix it.
 
-On Fri, Jul 11, 2014 at 9:33 AM, Robert Schwebel
-<r.schwebel@pengutronix.de> wrote:
-> Hi Fabio,
->
-> On Wed, Jul 02, 2014 at 09:16:42PM +0200, Robert Schwebel wrote:
->> > It would be really nice if the firmware was available in the
->> > linux-firmware repository. Do you think this would be possible?
->> >
->> > Best wishes,
->> > --
->> > Kamil Debski
->> > Samsung R&D Institute Poland
->>
->> I tried to convince Freescale to put the firmware into linux-firmware
->> for 15 months now, but recently got no reply any more.
->>
->> Fabio, Shawn, could you try to discuss this with the responsible folks
->> inside FSL again? Maybe responsibilities have changed in the meantime
->> and I might have tried to talk to the wrong people.
->
-> Any news?
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/mb86a20s.c | 18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
 
-I raised this issue again internally last week. Let's hope we will
-progress this time.
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index 2f458bb188c7..2de0e59bd243 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -459,6 +459,9 @@ static int mb86a20s_get_interleaving(struct mb86a20s_state *state,
+ 				     unsigned layer)
+ {
+ 	int rc;
++	int interleaving[] = {
++		0, 1, 2, 4, 8
++	};
+ 
+ 	static unsigned char reg[] = {
+ 		[0] = 0x88,	/* Layer A */
+@@ -475,20 +478,7 @@ static int mb86a20s_get_interleaving(struct mb86a20s_state *state,
+ 	if (rc < 0)
+ 		return rc;
+ 
+-	switch ((rc >> 4) & 0x07) {
+-	case 1:
+-		return GUARD_INTERVAL_1_4;
+-	case 2:
+-		return GUARD_INTERVAL_1_8;
+-	case 3:
+-		return GUARD_INTERVAL_1_16;
+-	case 4:
+-		return GUARD_INTERVAL_1_32;
+-
+-	default:
+-	case 0:
+-		return GUARD_INTERVAL_AUTO;
+-	}
++	return interleaving[(rc >> 4) & 0x07];
+ }
+ 
+ static int mb86a20s_get_segment_count(struct mb86a20s_state *state,
+-- 
+1.9.3
+
