@@ -1,71 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:49730 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755828AbaGNPoM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 11:44:12 -0400
-Received: by mail-pa0-f45.google.com with SMTP id rd3so5593071pab.32
-        for <linux-media@vger.kernel.org>; Mon, 14 Jul 2014 08:44:11 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, james.hogan@imgtec.com
-Subject: [PATCH 0/4] dvb: Add support for PT3 ISDB-S/T card
-Date: Tue, 15 Jul 2014 00:43:43 +0900
-Message-Id: <1405352627-22677-1-git-send-email-tskd08@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:43035 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754095AbaGMRPF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Jul 2014 13:15:05 -0400
+Message-ID: <53C2BE98.1050606@iki.fi>
+Date: Sun, 13 Jul 2014 20:15:04 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/6] si2157: Set delivery system and bandwidth before
+ tuning
+References: <1405259542-32529-1-git-send-email-olli.salonen@iki.fi> <1405259542-32529-6-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1405259542-32529-6-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+Applied!
+http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=silabs
 
-Hi,
+Antti
 
-This patch series adds support for "PT3" ISDB-S/T receiver cards.
-It contains a PCI bridge driver, a dvb-frontend driver and
-two tuner drivers.
-I know "Bud R" had already posted ones to this mailing list,
-(as in 1400629035-32487-1-git-send-email-knightrider@are.ma ), 
-but it seems that he stopped updating his patch and does not agree
-on splitting the single large patch into smaller, separate ones.
-This series is another version written independently by me.
 
-Akihiro Tsukada (4):
-  mxl301rf: add driver for MaxLinear MxL301RF OFDM tuner
-  qm1d1c0042: add driver for Sharp QM1D1C0042 8PSK tuner
-  tc90522: add driver for Toshiba TC90522 quad demodulator
-  pt3: add support for Earthsoft PT3 ISDB-S/T receiver card
-
- drivers/media/dvb-frontends/Kconfig   |   8 +
- drivers/media/dvb-frontends/Makefile  |   1 +
- drivers/media/dvb-frontends/tc90522.c | 843 ++++++++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/tc90522.h |  63 +++
- drivers/media/pci/Kconfig             |   1 +
- drivers/media/pci/Makefile            |   1 +
- drivers/media/pci/pt3/Kconfig         |  10 +
- drivers/media/pci/pt3/Makefile        |   8 +
- drivers/media/pci/pt3/pt3.c           | 750 ++++++++++++++++++++++++++++++
- drivers/media/pci/pt3/pt3.h           | 179 ++++++++
- drivers/media/pci/pt3/pt3_dma.c       | 225 +++++++++
- drivers/media/pci/pt3/pt3_i2c.c       | 239 ++++++++++
- drivers/media/tuners/Kconfig          |  14 +
- drivers/media/tuners/Makefile         |   2 +
- drivers/media/tuners/mxl301rf.c       | 331 +++++++++++++
- drivers/media/tuners/mxl301rf.h       |  40 ++
- drivers/media/tuners/qm1d1c0042.c     | 417 +++++++++++++++++
- drivers/media/tuners/qm1d1c0042.h     |  51 ++
- 18 files changed, 3183 insertions(+)
- create mode 100644 drivers/media/dvb-frontends/tc90522.c
- create mode 100644 drivers/media/dvb-frontends/tc90522.h
- create mode 100644 drivers/media/pci/pt3/Kconfig
- create mode 100644 drivers/media/pci/pt3/Makefile
- create mode 100644 drivers/media/pci/pt3/pt3.c
- create mode 100644 drivers/media/pci/pt3/pt3.h
- create mode 100644 drivers/media/pci/pt3/pt3_dma.c
- create mode 100644 drivers/media/pci/pt3/pt3_i2c.c
- create mode 100644 drivers/media/tuners/mxl301rf.c
- create mode 100644 drivers/media/tuners/mxl301rf.h
- create mode 100644 drivers/media/tuners/qm1d1c0042.c
- create mode 100644 drivers/media/tuners/qm1d1c0042.h
+On 07/13/2014 04:52 PM, Olli Salonen wrote:
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> ---
+>   drivers/media/tuners/si2157.c | 31 +++++++++++++++++++++++++++++++
+>   1 file changed, 31 insertions(+)
+>
+> diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+> index 58c5ef5..b656f9b 100644
+> --- a/drivers/media/tuners/si2157.c
+> +++ b/drivers/media/tuners/si2157.c
+> @@ -209,6 +209,7 @@ static int si2157_set_params(struct dvb_frontend *fe)
+>   	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>   	int ret;
+>   	struct si2157_cmd cmd;
+> +	u8 bandwidth, delivery_system;
+>
+>   	dev_dbg(&s->client->dev,
+>   			"%s: delivery_system=%d frequency=%u bandwidth_hz=%u\n",
+> @@ -220,6 +221,36 @@ static int si2157_set_params(struct dvb_frontend *fe)
+>   		goto err;
+>   	}
+>
+> +	if (c->bandwidth_hz <= 6000000)
+> +		bandwidth = 0x06;
+> +	else if (c->bandwidth_hz <= 7000000)
+> +		bandwidth = 0x07;
+> +	else if (c->bandwidth_hz <= 8000000)
+> +		bandwidth = 0x08;
+> +	else
+> +		bandwidth = 0x0f;
+> +
+> +	switch (c->delivery_system) {
+> +	case SYS_DVBT:
+> +	case SYS_DVBT2: /* it seems DVB-T and DVB-T2 both are 0x20 here */
+> +			delivery_system = 0x20;
+> +			break;
+> +	case SYS_DVBC_ANNEX_A:
+> +			delivery_system = 0x30;
+> +			break;
+> +	default:
+> +			ret = -EINVAL;
+> +			goto err;
+> +	}
+> +
+> +	memcpy(cmd.args, "\x14\x00\x03\x07\x00\x00", 6);
+> +	cmd.args[4] = delivery_system | bandwidth;
+> +	cmd.wlen = 6;
+> +	cmd.rlen = 1;
+> +	ret = si2157_cmd_execute(s, &cmd);
+> +	if (ret)
+> +		goto err;
+> +
+>   	/* set frequency */
+>   	memcpy(cmd.args, "\x41\x00\x00\x00\x00\x00\x00\x00", 8);
+>   	cmd.args[4] = (c->frequency >>  0) & 0xff;
+>
 
 -- 
-2.0.1
-
+http://palosaari.fi/
