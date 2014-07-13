@@ -1,126 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52118 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:48088 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754909AbaGRT3p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 15:29:45 -0400
+	id S1754064AbaGMROd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Jul 2014 13:14:33 -0400
+Message-ID: <53C2BE77.8090003@iki.fi>
+Date: Sun, 13 Jul 2014 20:14:31 +0300
 From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 2/2] rtl2832_sdr: fill FMT buffer size
-Date: Fri, 18 Jul 2014 22:29:29 +0300
-Message-Id: <1405711769-8463-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1405711769-8463-1-git-send-email-crope@iki.fi>
-References: <1405711769-8463-1-git-send-email-crope@iki.fi>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/6] si2168: Small typo fix (SI2157 -> SI2168)
+References: <1405259542-32529-1-git-send-email-olli.salonen@iki.fi> <1405259542-32529-2-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1405259542-32529-2-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fill FMT buffer size field in order to inform app which will be
-used streaming buffer size. Currently driver doesn't allow buffer
-size value proposed by application.
+Applied!
+http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=silabs
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2832_sdr.c | 27 ++++++++++++++++++++-------
- 1 file changed, 20 insertions(+), 7 deletions(-)
+Antti
 
-diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.c b/drivers/media/dvb-frontends/rtl2832_sdr.c
-index ae52974..b6f68bd 100644
---- a/drivers/media/dvb-frontends/rtl2832_sdr.c
-+++ b/drivers/media/dvb-frontends/rtl2832_sdr.c
-@@ -84,15 +84,18 @@ static const struct v4l2_frequency_band bands_fm[] = {
- struct rtl2832_sdr_format {
- 	char	*name;
- 	u32	pixelformat;
-+	u32	buffersize;
- };
- 
- static struct rtl2832_sdr_format formats[] = {
- 	{
- 		.name		= "Complex U8",
--		.pixelformat	=  V4L2_SDR_FMT_CU8,
-+		.pixelformat	= V4L2_SDR_FMT_CU8,
-+		.buffersize	= BULK_BUFFER_SIZE,
- 	}, {
- 		.name		= "Complex U16LE (emulated)",
- 		.pixelformat	= V4L2_SDR_FMT_CU16LE,
-+		.buffersize	= BULK_BUFFER_SIZE * 2,
- 	},
- };
- 
-@@ -143,6 +146,7 @@ struct rtl2832_sdr_state {
- 
- 	unsigned int f_adc, f_tuner;
- 	u32 pixelformat;
-+	u32 buffersize;
- 	unsigned int num_formats;
- 
- 	/* Controls */
-@@ -626,8 +630,7 @@ static int rtl2832_sdr_queue_setup(struct vb2_queue *vq,
- 	if (vq->num_buffers + *nbuffers < 8)
- 		*nbuffers = 8 - vq->num_buffers;
- 	*nplanes = 1;
--	/* 2 = max 16-bit sample returned */
--	sizes[0] = PAGE_ALIGN(BULK_BUFFER_SIZE * 2);
-+	sizes[0] = PAGE_ALIGN(s->buffersize);
- 	dev_dbg(&s->udev->dev, "%s: nbuffers=%d sizes[0]=%d\n",
- 			__func__, *nbuffers, sizes[0]);
- 	return 0;
-@@ -1216,6 +1219,8 @@ static int rtl2832_sdr_g_fmt_sdr_cap(struct file *file, void *priv,
- 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
- 
- 	f->fmt.sdr.pixelformat = s->pixelformat;
-+	f->fmt.sdr.buffersize = s->buffersize;
-+
- 	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
- 
- 	return 0;
-@@ -1236,13 +1241,17 @@ static int rtl2832_sdr_s_fmt_sdr_cap(struct file *file, void *priv,
- 	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
- 	for (i = 0; i < s->num_formats; i++) {
- 		if (formats[i].pixelformat == f->fmt.sdr.pixelformat) {
--			s->pixelformat = f->fmt.sdr.pixelformat;
-+			s->pixelformat = formats[i].pixelformat;
-+			s->buffersize = formats[i].buffersize;
-+			f->fmt.sdr.buffersize = formats[i].buffersize;
- 			return 0;
- 		}
- 	}
- 
--	f->fmt.sdr.pixelformat = formats[0].pixelformat;
- 	s->pixelformat = formats[0].pixelformat;
-+	s->buffersize = formats[0].buffersize;
-+	f->fmt.sdr.pixelformat = formats[0].pixelformat;
-+	f->fmt.sdr.buffersize = formats[0].buffersize;
- 
- 	return 0;
- }
-@@ -1257,11 +1266,14 @@ static int rtl2832_sdr_try_fmt_sdr_cap(struct file *file, void *priv,
- 
- 	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
- 	for (i = 0; i < s->num_formats; i++) {
--		if (formats[i].pixelformat == f->fmt.sdr.pixelformat)
-+		if (formats[i].pixelformat == f->fmt.sdr.pixelformat) {
-+			f->fmt.sdr.buffersize = formats[i].buffersize;
- 			return 0;
-+		}
- 	}
- 
- 	f->fmt.sdr.pixelformat = formats[0].pixelformat;
-+	f->fmt.sdr.buffersize = formats[0].buffersize;
- 
- 	return 0;
- }
-@@ -1395,7 +1407,8 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 	s->cfg = cfg;
- 	s->f_adc = bands_adc[0].rangelow;
- 	s->f_tuner = bands_fm[0].rangelow;
--	s->pixelformat =  V4L2_SDR_FMT_CU8;
-+	s->pixelformat = formats[0].pixelformat;
-+	s->buffersize = formats[0].buffersize;
- 	s->num_formats = NUM_FORMATS;
- 	if (rtl2832_sdr_emulated_fmt == false)
- 		s->num_formats -= 1;
+
+On 07/13/2014 04:52 PM, Olli Salonen wrote:
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> ---
+>   drivers/media/dvb-frontends/si2168_priv.h | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
+> index 53f7f06..97f9d87 100644
+> --- a/drivers/media/dvb-frontends/si2168_priv.h
+> +++ b/drivers/media/dvb-frontends/si2168_priv.h
+> @@ -36,9 +36,9 @@ struct si2168 {
+>   };
+>
+>   /* firmare command struct */
+> -#define SI2157_ARGLEN      30
+> +#define SI2168_ARGLEN      30
+>   struct si2168_cmd {
+> -	u8 args[SI2157_ARGLEN];
+> +	u8 args[SI2168_ARGLEN];
+>   	unsigned wlen;
+>   	unsigned rlen;
+>   };
+>
+
 -- 
-1.9.3
-
+http://palosaari.fi/
