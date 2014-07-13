@@ -1,101 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43321 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755306AbaGRMbe (ORCPT
+Received: from champagne.papayaltd.net ([82.129.38.126]:35032 "EHLO
+	www.n4tv.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752948AbaGMLNk convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 08:31:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Subject: Re: [PATCH v2 01/23] v4l: Add ARGB and XRGB pixel formats
-Date: Fri, 18 Jul 2014 14:31:42 +0200
-Message-ID: <3481435.vQMt1BxCmT@avalon>
-In-Reply-To: <53C845F0.2010409@xs4all.nl>
-References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1403567669-18539-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <53C845F0.2010409@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sun, 13 Jul 2014 07:13:40 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by www.n4tv.org.uk (Postfix) with ESMTP id 74F50820EF
+	for <linux-media@vger.kernel.org>; Sun, 13 Jul 2014 12:13:35 +0100 (BST)
+Received: from www.n4tv.org.uk ([127.0.0.1])
+	by localhost (ch.dinkum.org.uk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id u3RvTxGN6AEM for <linux-media@vger.kernel.org>;
+	Sun, 13 Jul 2014 12:13:33 +0100 (BST)
+Received: from 145.129.187.81.in-addr.arpa (145.129.187.81.in-addr.arpa [81.187.129.145])
+	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: andre)
+	by www.n4tv.org.uk (Postfix) with ESMTPSA id B0C98820ED
+	for <linux-media@vger.kernel.org>; Sun, 13 Jul 2014 12:13:33 +0100 (BST)
+Content-Type: text/plain; charset=windows-1252
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Subject: Re: PCTV T292e whole DVBT2 mux/Ultra HD performance question
+From: Andre Newman <linux-media@dinkum.org.uk>
+In-Reply-To: <53BD95A3.2050509@iki.fi>
+Date: Sun, 13 Jul 2014 12:13:33 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <D6115C9F-E9B7-4E74-91E4-3F6492218ABD@dinkum.org.uk>
+References: <35906397-E8F4-4229-966F-7ED578441C10@dinkum.org.uk> <53BD95A3.2050509@iki.fi>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-On Thursday 17 July 2014 23:53:52 Hans Verkuil wrote:
-> Hi Laurent,
+On 9 Jul 2014, at 20:18, Antti Palosaari <crope@iki.fi> wrote:
+
+> Moikka
 > 
-> While implementing support for this in v4l-utils I discovered you missed
-> one:
->
-> On 06/24/2014 01:54 AM, Laurent Pinchart wrote:
-> > From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > The existing RGB pixel formats are ill-defined in respect to their alpha
-> > bits and their meaning is driver dependent. Create new standard ARGB and
-> > XRGB variants with clearly defined meanings and make the existing
-> > variants deprecated.
-> > 
-> > The new pixel formats 4CC values have been selected to match the DRM
-> > 4CCs for the same in-memory formats.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> > 
-> >  .../DocBook/media/v4l/pixfmt-packed-rgb.xml        | 415 +++++++++++++++-
-> >  include/uapi/linux/videodev2.h                     |   8 +
-> >  2 files changed, 403 insertions(+), 20 deletions(-)
-> > 
-> > diff --git a/include/uapi/linux/videodev2.h
-> > b/include/uapi/linux/videodev2.h index 168ff50..0125f4d 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -294,7 +294,11 @@ struct v4l2_pix_format {
-> > 
-> >  /* RGB formats */
-> >  #define V4L2_PIX_FMT_RGB332  v4l2_fourcc('R', 'G', 'B', '1') /*  8 
-> >  RGB-3-3-2     */ #define V4L2_PIX_FMT_RGB444  v4l2_fourcc('R', '4', '4',
-> >  '4') /* 16  xxxxrrrr ggggbbbb */> 
-> > +#define V4L2_PIX_FMT_ARGB444 v4l2_fourcc('A', 'R', '1', '2') /* 16 
-> > aaaarrrr ggggbbbb */ +#define V4L2_PIX_FMT_XRGB444 v4l2_fourcc('X', 'R',
-> > '1', '2') /* 16  xxxxrrrr ggggbbbb */> 
-> >  #define V4L2_PIX_FMT_RGB555  v4l2_fourcc('R', 'G', 'B', 'O') /* 16 
-> >  RGB-5-5-5     */> 
-> > +#define V4L2_PIX_FMT_ARGB555 v4l2_fourcc('A', 'R', '1', '5') /* 16 
-> > ARGB-1-5-5-5  */ +#define V4L2_PIX_FMT_XRGB555 v4l2_fourcc('X', 'R', '1',
-> > '5') /* 16  XRGB-1-5-5-5  */> 
-> >  #define V4L2_PIX_FMT_RGB565  v4l2_fourcc('R', 'G', 'B', 'P') /* 16 
-> >  RGB-5-6-5     */ #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B',
-> >  'Q') /* 16  RGB-5-5-5 BE  */
->
-> A+X variants should also be added for this RGB555X pix format.
+> 
+> On 07/09/2014 04:14 PM, Andre Newman wrote:
+>> I’m using a T290e for whole mux DVBT2 capture, using this to record the current BBC World Cup Ultra HD tests, works well. :-)
+>> 
+>> It seems impossible to buy more T290e’s, everyone want to sell me a T292e, I understand there is a driver now, thanks Antti. I read on Antti’s blog that there is a limit on raw TS performance with the T292, that it didn’t work well with QAM256 because of this...
+>> 
+>> I am wondering if this is a hardware limit, or a performance problem that may have been resolved now the driver is a little tiny bit more mature?
+>> 
+>> I am very happy to get a T292e and make some tests, help debug if there is a hope that it can handle 40Mbps in hardware.If there is a hardware limit I’d rather not be stuck with a limited tuner!
+>> 
+>> The mux I need to record is QAM256 at ~40Mbps and the UHD video is ~36Mbps of this.
+>> 
+>> Otherwise what other DVBT2 tuners are there that can capture a raw QAM256 mux at 40Mbps?
+> 
+> You simply confused two different devices. There is no such limit on PCTV 292e as far as I know. It is another DVB-T2 device having RTL2832P bridge having problem with stream bandwidth.
 
-Agreed. The reason I've left it out is that I don't use it in my driver, and 
-we have this policy of only adding FOURCCs for formats actively in use. Would 
-you still like me to add it ?
+And just for the record, as Google seems to find this page first for any mention of the PCTV T292e:
 
-> >  #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16 
-> >  RGB-5-6-5 BE  */> 
-> > @@ -302,7 +306,11 @@ struct v4l2_pix_format {
-> > 
-> >  #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24 
-> >  BGR-8-8-8     */ #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B',
-> >  '3') /* 24  RGB-8-8-8     */ #define V4L2_PIX_FMT_BGR32  
-> >  v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */> 
-> > +#define V4L2_PIX_FMT_ABGR32  v4l2_fourcc('A', 'R', '2', '4') /* 32 
-> > BGRA-8-8-8-8  */ +#define V4L2_PIX_FMT_XBGR32  v4l2_fourcc('X', 'R', '2',
-> > '4') /* 32  BGRX-8-8-8-8  */> 
-> >  #define V4L2_PIX_FMT_RGB32   v4l2_fourcc('R', 'G', 'B', '4') /* 32 
-> >  RGB-8-8-8-8   */> 
-> > +#define V4L2_PIX_FMT_ARGB32  v4l2_fourcc('B', 'A', '2', '4') /* 32 
-> > ARGB-8-8-8-8  */ +#define V4L2_PIX_FMT_XRGB32  v4l2_fourcc('B', 'X', '2',
-> > '4') /* 32  XRGB-8-8-8-8  */> 
-> >  /* Grey formats */
-> >  #define V4L2_PIX_FMT_GREY    v4l2_fourcc('G', 'R', 'E', 'Y') /*  8 
-> >  Greyscale     */
+I have a T292e now and it records a full DVBT2 mux at ~40Mbps with no problem at all. I’m using Ubuntu 14.04 with yesterday's media_build script. 
 
--- 
-Regards,
+Thanks again to Antti and anyone else working on this driver.
 
-Laurent Pinchart
+Andre
+
+
+
+
+> 
+> regards
+> Antti
+> 
+> 
+> -- 
+> http://palosaari.fi/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
