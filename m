@@ -1,100 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:52088 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750987AbaGVOS3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 10:18:29 -0400
-Message-id: <53CE72B1.4080706@samsung.com>
-Date: Tue, 22 Jul 2014 16:18:25 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"andrzej.p@samsung.com" <andrzej.p@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: Re: [PATCH v2 8/9] Documentation: devicetree: Document sclk-jpeg clock
- for exynos3250 SoC
-References: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
- <20140714095640.GC4980@leverpostej> <53CE4E08.2030407@samsung.com>
- <14970063.d648TVkJj8@wuerfel>
-In-reply-to: <14970063.d648TVkJj8@wuerfel>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:42285 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754064AbaGMROX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Jul 2014 13:14:23 -0400
+Message-ID: <53C2BE6D.3080503@iki.fi>
+Date: Sun, 13 Jul 2014 20:14:21 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/6] [0b48:3014] TechnoTrend TVStick CT2-4400
+References: <1405259542-32529-1-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1405259542-32529-1-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22/07/14 13:48, Arnd Bergmann wrote:
->>>>> -- clocks  : should contain the JPEG codec IP gate clock specifier, from the
->>>>> > >> > +- clocks  : should contain the JPEG codec IP gate clock specifier and
->>>>> > >> > +            for the Exynos3250 SoC additionally the SCLK_JPEG entry; from the
->>>>> > >> >              common clock bindings;
->>>>> > >> > -- clock-names     : should contain "jpeg" entry.
->>>>> > >> > +- clock-names     : should contain "jpeg" entry and additionally "sclk-jpeg" entry
->>>>> > >> > +            for Exynos3250 SoC
->>> > >
->>> > > Please turn this into a list for easier reading, e.g.
->>> > > 
->>> > > - clock-names: should contain:
->>> > >   * "jpeg" for the gate clock.
->>> > >   * "sclk-jpeg" for the SCLK_JPEG clock (only for Exynos3250).
->>> > > 
->>> > > You could also define clocks in terms of clock-names to avoid
->>> > > redundancy.
->>> > > 
->>> > > The SCLK_JPEG name sounds like a global name for the clock. Is there a
->>> > > name for the input line on the JPEG block this is plugged into?
->> > 
->> > There is unfortunately no such name for SCLK_JPEG clock in the IP's block
->> > documentation. For most of the multimedia IPs clocks are documented
->> > only in the clock controller chapter, hence the names may appear global.
->> > Probably "gate", "sclk" would be good names, rather than "<IP_NAME>",
->> > "<IP_NAME>-sclk". But people kept using the latter convention and now
->> > it's spread all over and it's hard to change it.
->> > Since now we can't rename "jpeg" and other IPs I'd assume it's best
->> > to stay with "jpeg", "sclk-jpeg".
+Applied!
+http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=silabs
+
+Antti
+
+On 07/13/2014 04:52 PM, Olli Salonen wrote:
+> TechnoTrend TVStick CT2-4400 is a USB 2.0 DVB C/T/T2 tuner with the
+> following components.
 >
-> We just had the exact same discussion about the addition of the sclk for
-> the adc in exynos3250 and ended up calling it just "sclk" instead of "sclk-adc"
-> there. I think it would be best to do the same here and use "sclk" instead
-> of "sclk-jpeg".
-
-All right, then I would rephrase it to:
-
-- clock-names   : should contain:
-  		   - "jpeg" for the common gate clock,
-		   - "sclk" for the special clock (only for Exynos3250).
-- clocks	: should contain the clock specifier and clock ID list
-  		  matching entries in the clock-names property, according
-		  to the common clock bindings.
-
-I went through documentation of these clocks in various SoCs' datasheets:
-exynos4210, exynos4212/4412, exynos3250, exynos5250 and I think for all
-SoCs the "jpeg" clock can be referred as "gating all clocks for the IP".
-That means there is a single bit in a CMU register masking all the clocks
-for the IP, I suppose this includes the control bus (APB) clock and the
-IP functional ("special") clock.
-
-It looks like e.g. exynos4412 also has the SCLK clock, after muxes and
-a divider, so rate can be configured for this clock.  However there is
-no separate gate for SCLK as in case of exynos3250. Thus there is no
-need to to enable/disable the second clock on anything except exynos3250
-currently.
-
-I think ideally sclk should also be defined for SoCs like exynos4x12,
-exynos5250, even if now drivers are not touching sclk. All in all the
-IP functional clock frequency should be normally set to some known value,
-now we rely on the default divider value which results in divider
-ratio = 1.
-It would break backward compatibility though if we now made sclk
-mandatory. I'm inclined to also specify sclk for exynos4x12, just
-not sure if it should be optional or mandatory.
+> USB bridge: Cypress FX2
+> Demodulator: Silicon Labs Si2168-A30
+> Tuner: Silicon Labs Si2158-A20
+>
+> Both the demodulator and the tuner need a firmware. These can be
+> extracted from TT drivers.
+>
+> Download: http://www.tt-downloads.de/bda-treiber_4.2.0.0.zip
+>
+> Extract firmware from file ttTVStick4400_64.sys in the zip (MD5 sum below):
+> 0276023ce027bab05c2e7053033e2182  ttTVStick4400_64.sys
+>
+> dd if=ttTVStick4400_64.sys ibs=1 skip=211216 count=17576 of=dvb-demod-si2168-30-01.fw
+> dd if=ttTVStick4400_64.sys ibs=1 skip=200816 count=3944 of=dvb-tuner-si2158-20-01.fw
+>
+> Olli Salonen (6):
+>    si2168: Small typo fix (SI2157 -> SI2168)
+>    si2168: Add handling for different chip revisions and firmwares
+>    si2157: Move chip initialization to si2157_init
+>    si2157: Add support for Si2158 chip
+>    si2157: Set delivery system and bandwidth before tuning
+>    cxusb: TechnoTrend CT2-4400 USB DVB-T2/C tuner support
+>
+>   drivers/media/dvb-core/dvb-usb-ids.h      |   1 +
+>   drivers/media/dvb-frontends/si2168.c      |  34 +++++-
+>   drivers/media/dvb-frontends/si2168_priv.h |   8 +-
+>   drivers/media/tuners/si2157.c             | 161 +++++++++++++++++++------
+>   drivers/media/tuners/si2157.h             |   2 +-
+>   drivers/media/tuners/si2157_priv.h        |   5 +-
+>   drivers/media/usb/dvb-usb/Kconfig         |   3 +
+>   drivers/media/usb/dvb-usb/cxusb.c         | 191 +++++++++++++++++++++++++++++-
+>   drivers/media/usb/dvb-usb/cxusb.h         |   2 +
+>   9 files changed, 357 insertions(+), 50 deletions(-)
+>
 
 -- 
-Regards,
-Sylwester
+http://palosaari.fi/
