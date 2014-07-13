@@ -1,57 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2390 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933607AbaGQQTo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 12:19:44 -0400
-Message-ID: <53C7F782.7000509@xs4all.nl>
-Date: Thu, 17 Jul 2014 18:19:14 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de
-Subject: Re: [PATCH 07/11] [media] coda: lock capture frame size to output
- frame size when streaming
-References: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de> <1405613112-22442-8-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405613112-22442-8-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mta-out1.inet.fi ([62.71.2.198]:59350 "EHLO jenni2.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752642AbaGMNxE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Jul 2014 09:53:04 -0400
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 2/6] si2168: Add handling for different chip revisions and firmwares
+Date: Sun, 13 Jul 2014 16:52:18 +0300
+Message-Id: <1405259542-32529-3-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1405259542-32529-1-git-send-email-olli.salonen@iki.fi>
+References: <1405259542-32529-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/17/2014 06:05 PM, Philipp Zabel wrote:
-> As soon as the output queue is streaming, let try_fmt on the capture side
-> only allow the frame size that was set on the output side.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/dvb-frontends/si2168.c      | 34 ++++++++++++++++++++++++++-----
+ drivers/media/dvb-frontends/si2168_priv.h |  4 +++-
+ 2 files changed, 32 insertions(+), 6 deletions(-)
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/platform/coda.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> index 3d57986..6b659c8 100644
-> --- a/drivers/media/platform/coda.c
-> +++ b/drivers/media/platform/coda.c
-> @@ -721,6 +721,9 @@ static int coda_try_fmt_vid_cap(struct file *file, void *priv,
->  					f->fmt.pix.pixelformat);
->  		if (!codec)
->  			return -EINVAL;
-> +
-> +		f->fmt.pix.width = q_data_src->width;
-> +		f->fmt.pix.height = q_data_src->height;
->  	} else {
->  		/* Otherwise determine codec by encoded format, if possible */
->  		codec = coda_find_codec(ctx->dev, V4L2_PIX_FMT_YUV420,
-> 
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index bae7771..268fce3 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -333,7 +333,7 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	struct si2168 *s = fe->demodulator_priv;
+ 	int ret, len, remaining;
+ 	const struct firmware *fw = NULL;
+-	u8 *fw_file = SI2168_FIRMWARE;
++	u8 *fw_file;
+ 	const unsigned int i2c_wr_max = 8;
+ 	struct si2168_cmd cmd;
+ 
+@@ -353,6 +353,7 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
++	/* query chip revision */
+ 	memcpy(cmd.args, "\x02", 1);
+ 	cmd.wlen = 1;
+ 	cmd.rlen = 13;
+@@ -360,6 +361,20 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
++	if (((cmd.args[1] & 0x0f) == 2) && (cmd.args[3] == '4') &&
++			(cmd.args[4] == '0'))
++		fw_file = SI2168_B40_FIRMWARE;
++	else if (((cmd.args[1] & 0x0f) == 1) && (cmd.args[3] == '3') &&
++			(cmd.args[4] == '0'))
++		fw_file = SI2168_A30_FIRMWARE;
++	else {
++		dev_err(&s->client->dev,
++				"%s: no firmware file for Si2168-%c%c defined\n",
++				KBUILD_MODNAME, cmd.args[3], cmd.args[4]);
++		ret = -EINVAL;
++		goto err;
++	}
++
+ 	/* cold state - try to download firmware */
+ 	dev_info(&s->client->dev, "%s: found a '%s' in cold state\n",
+ 			KBUILD_MODNAME, si2168_ops.info.name);
+@@ -367,9 +382,18 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	/* request the firmware, this will block and timeout */
+ 	ret = request_firmware(&fw, fw_file, &s->client->dev);
+ 	if (ret) {
+-		dev_err(&s->client->dev, "%s: firmare file '%s' not found\n",
+-				KBUILD_MODNAME, fw_file);
+-		goto err;
++		/* fallback mechanism to handle old name for
++		   SI2168_B40_FIRMWARE */
++		if (((cmd.args[1] & 0x0f) == 2) && (cmd.args[3] == '4') &&
++				(cmd.args[4] == '0')) {
++			fw_file = SI2168_B40_FIRMWARE_FALLBACK;
++			ret = request_firmware(&fw, fw_file, &s->client->dev);
++		}
++		if (ret) {
++			dev_err(&s->client->dev, "%s: firmware file '%s' not found\n",
++					KBUILD_MODNAME, fw_file);
++			goto err;
++		}
+ 	}
+ 
+ 	dev_info(&s->client->dev, "%s: downloading firmware from file '%s'\n",
+@@ -629,4 +653,4 @@ module_i2c_driver(si2168_driver);
+ MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+ MODULE_DESCRIPTION("Silicon Labs Si2168 DVB-T/T2/C demodulator driver");
+ MODULE_LICENSE("GPL");
+-MODULE_FIRMWARE(SI2168_FIRMWARE);
++MODULE_FIRMWARE(SI2168_B40_FIRMWARE);
+diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
+index 97f9d87..bebb68a 100644
+--- a/drivers/media/dvb-frontends/si2168_priv.h
++++ b/drivers/media/dvb-frontends/si2168_priv.h
+@@ -22,7 +22,9 @@
+ #include <linux/firmware.h>
+ #include <linux/i2c-mux.h>
+ 
+-#define SI2168_FIRMWARE "dvb-demod-si2168-02.fw"
++#define SI2168_A30_FIRMWARE "dvb-demod-si2168-a30-01.fw"
++#define SI2168_B40_FIRMWARE "dvb-demod-si2168-b40-01.fw"
++#define SI2168_B40_FIRMWARE_FALLBACK "dvb-demod-si2168-02.fw"
+ 
+ /* state struct */
+ struct si2168 {
+-- 
+1.9.1
 
