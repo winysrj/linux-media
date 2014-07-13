@@ -1,73 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54148 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757287AbaGWIrN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 04:47:13 -0400
-Date: Wed, 23 Jul 2014 11:47:04 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, sylwester.nawrocki@gmail.com
-Subject: Re: Media bus pixel code and pixel format enumeration (was: )
-Message-ID: <20140723084703.GS16460@valkosipuli.retiisi.org.uk>
-References: <alpine.DEB.2.01.1407211419320.18226@pmeerw.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.01.1407211419320.18226@pmeerw.net>
+Received: from mta-out1.inet.fi ([62.71.2.198]:59350 "EHLO jenni2.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752642AbaGMNyC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Jul 2014 09:54:02 -0400
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 5/6] si2157: Set delivery system and bandwidth before tuning
+Date: Sun, 13 Jul 2014 16:52:21 +0300
+Message-Id: <1405259542-32529-6-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1405259542-32529-1-git-send-email-olli.salonen@iki.fi>
+References: <1405259542-32529-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Peter,
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/tuners/si2157.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-On Mon, Jul 21, 2014 at 02:35:39PM +0200, Peter Meerwald wrote:
-> how can I query the supported pixel format(s) of a sensor connected via 
-> media-ctl and exposed via /dev/videoX
-> 
-> there is 
-> VIDIOC_ENUM_FMT (which fails)
-> and
-> VIDIOC_SUBDEV_ENUM_MBUS_CODE (which works, but on a subdev, not on 
-> /dev/videoX)
-> 
-> v4l2_subdev_video_ops has .enum_mbus_fmt (this is SoC camera stuff?)
-> 
-> v4l2_subdev_pad_ops has .enum_mbus_code
-> 
-> 
-> the application just sees /dev/videoX and cannot do VIDIOC_ENUM_FMT
-> what is the logic behind this?
-> shouldn't a compabatibility layer be added turning VIDIOC_ENUM_FMT into 
-> VIDIOC_SUBDEV_ENUM_MBUS_CODE?
-
-The issue has been that enumerating should not change the state of the
-device. Within a single device node things are fine, but in this case the
-media bus pixel code at the other end of the link affects the result of the
-enumeration.
-
-There hasn't been really a solution for this in the past; what has been
-discussed as possible options have been (at least to my recollection) but
-none has been implemented:
-
-1) Use the media bux pixel code from the other end of the link. As there is
-no common file handle to share the state with, the link configuration and
-setting the media bus pixel code are necessary state changes before the
-enumeration can take place, and the two must not be changed during the it.
-This breaks the separation between configuration and enumeration. (There has
-been a patch to the omap3isp driver which essentially did this long time ago
-AFAIR.)
-
-2) Use a reserved field in struct v4l2_fmtdesc to tell the pixel code. This
-way enumeration can stay separate from configuration and is probably easier
-for the user space as well. I vote for this: it's clean, simple and gets the
-job done.
-
-Feel free to submit a patch. :-) I could do this as well but it might take
-some time. Driver support is another matter.
-
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index 58c5ef5..b656f9b 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -209,6 +209,7 @@ static int si2157_set_params(struct dvb_frontend *fe)
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
+ 	struct si2157_cmd cmd;
++	u8 bandwidth, delivery_system;
+ 
+ 	dev_dbg(&s->client->dev,
+ 			"%s: delivery_system=%d frequency=%u bandwidth_hz=%u\n",
+@@ -220,6 +221,36 @@ static int si2157_set_params(struct dvb_frontend *fe)
+ 		goto err;
+ 	}
+ 
++	if (c->bandwidth_hz <= 6000000)
++		bandwidth = 0x06;
++	else if (c->bandwidth_hz <= 7000000)
++		bandwidth = 0x07;
++	else if (c->bandwidth_hz <= 8000000)
++		bandwidth = 0x08;
++	else
++		bandwidth = 0x0f;
++
++	switch (c->delivery_system) {
++	case SYS_DVBT:
++	case SYS_DVBT2: /* it seems DVB-T and DVB-T2 both are 0x20 here */
++			delivery_system = 0x20;
++			break;
++	case SYS_DVBC_ANNEX_A:
++			delivery_system = 0x30;
++			break;
++	default:
++			ret = -EINVAL;
++			goto err;
++	}
++
++	memcpy(cmd.args, "\x14\x00\x03\x07\x00\x00", 6);
++	cmd.args[4] = delivery_system | bandwidth;
++	cmd.wlen = 6;
++	cmd.rlen = 1;
++	ret = si2157_cmd_execute(s, &cmd);
++	if (ret)
++		goto err;
++
+ 	/* set frequency */
+ 	memcpy(cmd.args, "\x41\x00\x00\x00\x00\x00\x00\x00", 8);
+ 	cmd.args[4] = (c->frequency >>  0) & 0xff;
 -- 
-Kind regards,
+1.9.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
