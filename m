@@ -1,87 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.pmeerw.net ([87.118.82.44]:50415 "EHLO pmeerw.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:45820 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757587AbaGWJ6Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 05:58:25 -0400
-Date: Wed, 23 Jul 2014 11:58:24 +0200 (CEST)
-From: Peter Meerwald <pmeerw@pmeerw.net>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, sylwester.nawrocki@gmail.com
-Subject: Re: Media bus pixel code and pixel format enumeration (was: )
-In-Reply-To: <20140723084703.GS16460@valkosipuli.retiisi.org.uk>
-Message-ID: <alpine.DEB.2.01.1407231142420.6322@pmeerw.net>
-References: <alpine.DEB.2.01.1407211419320.18226@pmeerw.net> <20140723084703.GS16460@valkosipuli.retiisi.org.uk>
+	id S1754064AbaGMROm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Jul 2014 13:14:42 -0400
+Message-ID: <53C2BE80.7010409@iki.fi>
+Date: Sun, 13 Jul 2014 20:14:40 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/6] si2168: Add handling for different chip revisions
+ and firmwares
+References: <1405259542-32529-1-git-send-email-olli.salonen@iki.fi> <1405259542-32529-3-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1405259542-32529-3-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sakari,
+Applied!
+http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=silabs
 
-thank you for your reply (and finding a nice subject for this)!
+Antti
 
-> On Mon, Jul 21, 2014 at 02:35:39PM +0200, Peter Meerwald wrote:
-> > how can I query the supported pixel format(s) of a sensor connected via 
-> > media-ctl and exposed via /dev/videoX
-> > 
-> > there is 
-> > VIDIOC_ENUM_FMT (which fails)
-> > and
-> > VIDIOC_SUBDEV_ENUM_MBUS_CODE (which works, but on a subdev, not on 
-> > /dev/videoX)
-> > 
-> > v4l2_subdev_video_ops has .enum_mbus_fmt (this is SoC camera stuff?)
-> > 
-> > v4l2_subdev_pad_ops has .enum_mbus_code
-> > 
-> > 
-> > the application just sees /dev/videoX and cannot do VIDIOC_ENUM_FMT
-> > what is the logic behind this?
-> > shouldn't a compabatibility layer be added turning VIDIOC_ENUM_FMT into 
-> > VIDIOC_SUBDEV_ENUM_MBUS_CODE?
-> 
-> The issue has been that enumerating should not change the state of the
-> device. Within a single device node things are fine, but in this case the
-> media bus pixel code at the other end of the link affects the result of the
-> enumeration.
 
-good to know this has been considered before
- 
-> There hasn't been really a solution for this in the past; what has been
-> discussed as possible options have been (at least to my recollection) but
-> none has been implemented:
-> 
-> 1) Use the media bux pixel code from the other end of the link. As there is
-> no common file handle to share the state with, the link configuration and
-> setting the media bus pixel code are necessary state changes before the
-> enumeration can take place, and the two must not be changed during the it.
-> This breaks the separation between configuration and enumeration. (There has
-> been a patch to the omap3isp driver which essentially did this long time ago
-> AFAIR.)
-> 
-> 2) Use a reserved field in struct v4l2_fmtdesc to tell the pixel code. This
-> way enumeration can stay separate from configuration and is probably easier
-> for the user space as well. I vote for this: it's clean, simple and gets the
-> job done.
-
-I not sure if I fully understand your suggestion
-
-let's assume the following setup: 
-sensor (subdev8) <-> OMAP3 CCDC (subdev2) <-> output (video2)
-
-userspace would query VIDIOC_ENUM_FMT on video2; what is the expected 
-answer? and how would it be obtained?
-
-for me it would be good enough if first configuration via media-ctl is 
-done, and ENUM_FMT video2 would just return at least one FMT that can be 
-set
-
-so configuration would be fixed, I'm not interested in all possible FMTs
-
-regards, p.
+On 07/13/2014 04:52 PM, Olli Salonen wrote:
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> ---
+>   drivers/media/dvb-frontends/si2168.c      | 34 ++++++++++++++++++++++++++-----
+>   drivers/media/dvb-frontends/si2168_priv.h |  4 +++-
+>   2 files changed, 32 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+> index bae7771..268fce3 100644
+> --- a/drivers/media/dvb-frontends/si2168.c
+> +++ b/drivers/media/dvb-frontends/si2168.c
+> @@ -333,7 +333,7 @@ static int si2168_init(struct dvb_frontend *fe)
+>   	struct si2168 *s = fe->demodulator_priv;
+>   	int ret, len, remaining;
+>   	const struct firmware *fw = NULL;
+> -	u8 *fw_file = SI2168_FIRMWARE;
+> +	u8 *fw_file;
+>   	const unsigned int i2c_wr_max = 8;
+>   	struct si2168_cmd cmd;
+>
+> @@ -353,6 +353,7 @@ static int si2168_init(struct dvb_frontend *fe)
+>   	if (ret)
+>   		goto err;
+>
+> +	/* query chip revision */
+>   	memcpy(cmd.args, "\x02", 1);
+>   	cmd.wlen = 1;
+>   	cmd.rlen = 13;
+> @@ -360,6 +361,20 @@ static int si2168_init(struct dvb_frontend *fe)
+>   	if (ret)
+>   		goto err;
+>
+> +	if (((cmd.args[1] & 0x0f) == 2) && (cmd.args[3] == '4') &&
+> +			(cmd.args[4] == '0'))
+> +		fw_file = SI2168_B40_FIRMWARE;
+> +	else if (((cmd.args[1] & 0x0f) == 1) && (cmd.args[3] == '3') &&
+> +			(cmd.args[4] == '0'))
+> +		fw_file = SI2168_A30_FIRMWARE;
+> +	else {
+> +		dev_err(&s->client->dev,
+> +				"%s: no firmware file for Si2168-%c%c defined\n",
+> +				KBUILD_MODNAME, cmd.args[3], cmd.args[4]);
+> +		ret = -EINVAL;
+> +		goto err;
+> +	}
+> +
+>   	/* cold state - try to download firmware */
+>   	dev_info(&s->client->dev, "%s: found a '%s' in cold state\n",
+>   			KBUILD_MODNAME, si2168_ops.info.name);
+> @@ -367,9 +382,18 @@ static int si2168_init(struct dvb_frontend *fe)
+>   	/* request the firmware, this will block and timeout */
+>   	ret = request_firmware(&fw, fw_file, &s->client->dev);
+>   	if (ret) {
+> -		dev_err(&s->client->dev, "%s: firmare file '%s' not found\n",
+> -				KBUILD_MODNAME, fw_file);
+> -		goto err;
+> +		/* fallback mechanism to handle old name for
+> +		   SI2168_B40_FIRMWARE */
+> +		if (((cmd.args[1] & 0x0f) == 2) && (cmd.args[3] == '4') &&
+> +				(cmd.args[4] == '0')) {
+> +			fw_file = SI2168_B40_FIRMWARE_FALLBACK;
+> +			ret = request_firmware(&fw, fw_file, &s->client->dev);
+> +		}
+> +		if (ret) {
+> +			dev_err(&s->client->dev, "%s: firmware file '%s' not found\n",
+> +					KBUILD_MODNAME, fw_file);
+> +			goto err;
+> +		}
+>   	}
+>
+>   	dev_info(&s->client->dev, "%s: downloading firmware from file '%s'\n",
+> @@ -629,4 +653,4 @@ module_i2c_driver(si2168_driver);
+>   MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+>   MODULE_DESCRIPTION("Silicon Labs Si2168 DVB-T/T2/C demodulator driver");
+>   MODULE_LICENSE("GPL");
+> -MODULE_FIRMWARE(SI2168_FIRMWARE);
+> +MODULE_FIRMWARE(SI2168_B40_FIRMWARE);
+> diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
+> index 97f9d87..bebb68a 100644
+> --- a/drivers/media/dvb-frontends/si2168_priv.h
+> +++ b/drivers/media/dvb-frontends/si2168_priv.h
+> @@ -22,7 +22,9 @@
+>   #include <linux/firmware.h>
+>   #include <linux/i2c-mux.h>
+>
+> -#define SI2168_FIRMWARE "dvb-demod-si2168-02.fw"
+> +#define SI2168_A30_FIRMWARE "dvb-demod-si2168-a30-01.fw"
+> +#define SI2168_B40_FIRMWARE "dvb-demod-si2168-b40-01.fw"
+> +#define SI2168_B40_FIRMWARE_FALLBACK "dvb-demod-si2168-02.fw"
+>
+>   /* state struct */
+>   struct si2168 {
+>
 
 -- 
-
-Peter Meerwald
-+43-664-2444418 (mobile)
+http://palosaari.fi/
