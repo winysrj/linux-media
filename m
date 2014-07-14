@@ -1,40 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.inunum.li ([83.169.19.93]:39917 "EHLO
-	lvps83-169-19-93.dedicated.hosteurope.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750945AbaG1H74 (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2554 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754870AbaGNTeR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jul 2014 03:59:56 -0400
-Message-ID: <53D602FF.8070006@InUnum.com>
-Date: Mon, 28 Jul 2014 09:59:59 +0200
-From: Michael Dietschi <michael.dietschi@InUnum.com>
+	Mon, 14 Jul 2014 15:34:17 -0400
+Message-ID: <53C430AC.9030204@xs4all.nl>
+Date: Mon, 14 Jul 2014 21:34:04 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-	Enrico <ebutera@users.sourceforge.net>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: omap3isp with DM3730 not working?!
-References: <53D12786.5050906@InUnum.com> <CA+2YH7v8bQG4K2Gz8aB9_BOHwuK_1nGDxU102S7EBnsMGEuwKA@mail.gmail.com> <20140728072043.GW16460@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20140728072043.GW16460@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] airspy: AirSpy SDR driver
+References: <1405366031-31937-1-git-send-email-crope@iki.fi>
+In-Reply-To: <1405366031-31937-1-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari, Enrico and others,
+On 07/14/2014 09:27 PM, Antti Palosaari wrote:
+> AirSpy SDR driver.
+> 
+> Thanks to Youssef Touil and Benjamin Vernoux for support, help and
+> hardware!
+> http://airspy.com/
+> 
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  drivers/staging/media/Kconfig         |    1 +
+>  drivers/staging/media/Makefile        |    1 +
+>  drivers/staging/media/airspy/Kconfig  |    5 +
+>  drivers/staging/media/airspy/Makefile |    1 +
+>  drivers/staging/media/airspy/airspy.c | 1120 +++++++++++++++++++++++++++++++++
+>  5 files changed, 1128 insertions(+)
+>  create mode 100644 drivers/staging/media/airspy/Kconfig
+>  create mode 100644 drivers/staging/media/airspy/Makefile
+>  create mode 100644 drivers/staging/media/airspy/airspy.c
+> 
 
-first of all I want to thank you for your help but I have to admit that 
-I made a stupid error while struggling with image capturing and the ISP 
-which has led to some false information - I had misconfigured the video 
-source :(
+It's a new driver, so the usual question: can you post the output from the
+latest v4l2-compliance? 'v4l2-compliance -S /dev/swradioX -s'
 
-The corrected facts are:
-     * Capturing does work with Gumstix Overo with a DM3730 and a 
-TVP5151 chip
-     * It does not work with a LogicPD Torpedo DM3730 and a TVP5150AM1 chip
-     * I configured the Torpedo's pinmux exactly like on the Overo
-     * ...but the only interrupt I am getting is "HS_VS_IRQ"
+It looks good, but I always like to see the output of that as a record and
+as a verification that someone actually ran it :-)
 
-Please apologize for the confusion and do not stop helping me...
+Thanks,
 
-Kind regards,
-Michael
+	Hans
