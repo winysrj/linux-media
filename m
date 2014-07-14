@@ -1,58 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:43263 "EHLO smtp.gentoo.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:39927 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756573AbaGVUMh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 16:12:37 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: crope@iki.fi, m.chehab@samsung.com, linux-media@vger.kernel.org
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 4/8] cx231xx: prepare for i2c_client attachment
-Date: Tue, 22 Jul 2014 22:12:14 +0200
-Message-Id: <1406059938-21141-5-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1406059938-21141-1-git-send-email-zzam@gentoo.org>
-References: <1406059938-21141-1-git-send-email-zzam@gentoo.org>
+	id S1756724AbaGNRJX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jul 2014 13:09:23 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 15/18] si2168: advertise Si2168 A30 firmware
+Date: Mon, 14 Jul 2014 20:08:56 +0300
+Message-Id: <1405357739-3570-15-git-send-email-crope@iki.fi>
+In-Reply-To: <1405357739-3570-1-git-send-email-crope@iki.fi>
+References: <1405357739-3570-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is needed to support PCTV QuatroStick 522e which uses a si2157.
-The si2157 driver is written using i2c_client attachment.
+Driver uses that new firmware too, so advertise it.
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Tested-by: Olli Salonen <olli.salonen@iki.fi>
 ---
- drivers/media/usb/cx231xx/cx231xx-dvb.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/dvb-frontends/si2168.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index 4504bc6..5c69be7 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -67,6 +67,7 @@ struct cx231xx_dvb {
- 	struct dmx_frontend fe_hw;
- 	struct dmx_frontend fe_mem;
- 	struct dvb_net net;
-+	struct i2c_client *i2c_client_tuner;
- };
- 
- static struct s5h1432_config dvico_s5h1432_config = {
-@@ -549,11 +550,18 @@ fail_adapter:
- 
- static void unregister_dvb(struct cx231xx_dvb *dvb)
- {
-+	struct i2c_client *client;
- 	dvb_net_release(&dvb->net);
- 	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_mem);
- 	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_hw);
- 	dvb_dmxdev_release(&dvb->dmxdev);
- 	dvb_dmx_release(&dvb->demux);
-+	client = dvb->i2c_client_tuner;
-+	/* remove I2C tuner */
-+	if (client) {
-+		module_put(client->dev.driver->owner);
-+		i2c_unregister_device(client);
-+	}
- 	dvb_unregister_frontend(dvb->frontend);
- 	dvb_frontend_detach(dvb->frontend);
- 	dvb_unregister_adapter(&dvb->adapter);
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 268fce3..e9c138a 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -653,4 +653,5 @@ module_i2c_driver(si2168_driver);
+ MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+ MODULE_DESCRIPTION("Silicon Labs Si2168 DVB-T/T2/C demodulator driver");
+ MODULE_LICENSE("GPL");
++MODULE_FIRMWARE(SI2168_A30_FIRMWARE);
+ MODULE_FIRMWARE(SI2168_B40_FIRMWARE);
 -- 
-2.0.0
+1.9.3
 
