@@ -1,55 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.222.116]:59209 "EHLO
-	kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751790AbaGDDkK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jul 2014 23:40:10 -0400
-From: ayaka <ayaka@soulik.info>
+Received: from mail.kapsi.fi ([217.30.184.167]:58057 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756726AbaGNRJX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jul 2014 13:09:23 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, kyungmin.park@samsung.com,
-	jtp.park@samsung.com, m.chehab@samsung.com,
-	ayaka <ayaka@soulik.info>
-Subject: [PATCH] s5p-mfc: encoder handles buffers freeing
-Date: Fri,  4 Jul 2014 11:39:24 +0800
-Message-Id: <1404445164-13625-1-git-send-email-ayaka@soulik.info>
+Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 16/18] si2157: advertise Si2158 A20 firmware
+Date: Mon, 14 Jul 2014 20:08:57 +0300
+Message-Id: <1405357739-3570-16-git-send-email-crope@iki.fi>
+In-Reply-To: <1405357739-3570-1-git-send-email-crope@iki.fi>
+References: <1405357739-3570-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add handling of buffer freeing reqbufs request to the encoder of
-s5p-mfc.
+Driver uses that firmware. Add it module firmware list.
 
-Signed-off-by: ayaka <ayaka@soulik.info>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Tested-by: Olli Salonen <olli.salonen@iki.fi>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/media/tuners/si2157.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index d26b248..74fb80b 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -1166,6 +1166,11 @@ static int vidioc_reqbufs(struct file *file, void *priv,
- 			mfc_err("error in vb2_reqbufs() for E(D)\n");
- 			return ret;
- 		}
-+		if (reqbufs->count == 0) {
-+			mfc_debug(2, "Freeing buffers\n");
-+			ctx->capture_state = QUEUE_FREE;
-+			return ret;
-+		}
- 		ctx->capture_state = QUEUE_BUFS_REQUESTED;
- 
- 		ret = s5p_mfc_hw_call(ctx->dev->mfc_ops,
-@@ -1200,6 +1205,11 @@ static int vidioc_reqbufs(struct file *file, void *priv,
- 			mfc_err("error in vb2_reqbufs() for E(S)\n");
- 			return ret;
- 		}
-+		if (reqbufs->count == 0) {
-+			mfc_debug(2, "Freeing buffers\n");
-+			ctx->output_state = QUEUE_FREE;
-+			return ret;
-+		}
- 		ctx->output_state = QUEUE_BUFS_REQUESTED;
- 	} else {
- 		mfc_err("invalid buf type\n");
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index b656f9b..3fa1f26 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -360,3 +360,4 @@ module_i2c_driver(si2157_driver);
+ MODULE_DESCRIPTION("Silicon Labs Si2157/Si2158 silicon tuner driver");
+ MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+ MODULE_LICENSE("GPL");
++MODULE_FIRMWARE(SI2158_A20_FIRMWARE);
 -- 
 1.9.3
 
