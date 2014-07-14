@@ -1,62 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:55094 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753829AbaGHNoT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jul 2014 09:44:19 -0400
-Received: by mail-wi0-f181.google.com with SMTP id n3so1020143wiv.14
-        for <linux-media@vger.kernel.org>; Tue, 08 Jul 2014 06:44:18 -0700 (PDT)
-Date: Tue, 8 Jul 2014 15:44:27 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	"open list:GENERIC INCLUDE/A..." <linux-arch@vger.kernel.org>,
-	Thomas Hellstrom <thellstrom@vmware.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"Clark, Rob" <robdclark@gmail.com>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Colin Cross <ccross@google.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 0/9] Updated fence patch series
-Message-ID: <20140708134427.GG17271@phenom.ffwll.local>
-References: <20140701103432.12718.82795.stgit@patser>
- <20140702053758.GA7578@kroah.com>
- <CAKMK7uHZQjQ2m7KE22kTRVs-NtGguHREk24pSJiLbN7EoQLZ=g@mail.gmail.com>
- <20140707173052.GA8693@kroah.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20140707173052.GA8693@kroah.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2654 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755350AbaGNM7n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jul 2014 08:59:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 07/12] v4l2-ioctl: remove pointless INFO_FL_CLEAR.
+Date: Mon, 14 Jul 2014 14:59:07 +0200
+Message-Id: <1405342752-46998-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1405342752-46998-1-git-send-email-hverkuil@xs4all.nl>
+References: <1405342752-46998-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 07, 2014 at 10:30:52AM -0700, Greg KH wrote:
-> On Mon, Jul 07, 2014 at 03:23:17PM +0200, Daniel Vetter wrote:
-> > On Wed, Jul 2, 2014 at 7:37 AM, Greg KH <gregkh@linuxfoundation.org> wrote:
-> > >> Android can expose fences to userspace. It's possible to make the new fence
-> > >> mechanism expose the same fences to userspace by changing sync_fence_create
-> > >> to take a struct fence instead of a struct sync_pt. No other change is needed,
-> > >> because only the fence parts of struct sync_pt are used. But because the
-> > >> userspace fences are a separate problem and I haven't really looked at it yet
-> > >> I feel it should stay in staging, for now.
-> > >
-> > > Ok, that's reasonable.
-> > >
-> > > At first glance, this all looks "sane" to me, any objection from anyone
-> > > if I merge this through my driver-core tree for 3.17?
-> > 
-> > Ack from my side fwiw.
-> 
-> Thanks, I'll queue it up later today.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-btw should we add you as a (co)maintainer for driver/core/dma-buf since
-you seem to want to keep a closer tab on what the insane gfx folks are up
-to in there?
--Daniel
+The edid field is the last field of the struct, so there is nothing to clear.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index ede9b03..45e2ffa 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2098,8 +2098,8 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_QUERYMENU, v4l_querymenu, v4l_print_querymenu, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu, index)),
+ 	IOCTL_INFO_STD(VIDIOC_G_INPUT, vidioc_g_input, v4l_print_u32, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_S_INPUT, v4l_s_input, v4l_print_u32, INFO_FL_PRIO),
+-	IOCTL_INFO_STD(VIDIOC_G_EDID, vidioc_g_edid, v4l_print_edid, INFO_FL_CLEAR(v4l2_edid, edid)),
+-	IOCTL_INFO_STD(VIDIOC_S_EDID, vidioc_s_edid, v4l_print_edid, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_edid, edid)),
++	IOCTL_INFO_STD(VIDIOC_G_EDID, vidioc_g_edid, v4l_print_edid, 0),
++	IOCTL_INFO_STD(VIDIOC_S_EDID, vidioc_s_edid, v4l_print_edid, INFO_FL_PRIO),
+ 	IOCTL_INFO_STD(VIDIOC_G_OUTPUT, vidioc_g_output, v4l_print_u32, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_S_OUTPUT, v4l_s_output, v4l_print_u32, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_ENUMOUTPUT, v4l_enumoutput, v4l_print_enumoutput, INFO_FL_CLEAR(v4l2_output, index)),
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+2.0.1
+
