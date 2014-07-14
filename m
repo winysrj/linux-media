@@ -1,67 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:52165 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753188AbaGYXQf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 19:16:35 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9A00IZNJBM3H00@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Jul 2014 19:16:34 -0400 (EDT)
-Date: Fri, 25 Jul 2014 20:16:31 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 45/49] rc-ir-raw: add various rc_events
-Message-id: <20140725201631.6303ce8b.m.chehab@samsung.com>
-In-reply-to: <20140403233503.27099.89532.stgit@zeus.muc.hardeman.nu>
-References: <20140403232420.27099.94872.stgit@zeus.muc.hardeman.nu>
- <20140403233503.27099.89532.stgit@zeus.muc.hardeman.nu>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from mail.kapsi.fi ([217.30.184.167]:51559 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756728AbaGNRJY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jul 2014 13:09:24 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 17/18] si2168: few firmware download changes
+Date: Mon, 14 Jul 2014 20:08:58 +0300
+Message-Id: <1405357739-3570-17-git-send-email-crope@iki.fi>
+In-Reply-To: <1405357739-3570-1-git-send-email-crope@iki.fi>
+References: <1405357739-3570-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 04 Apr 2014 01:35:03 +0200
-David Härdeman <david@hardeman.nu> escreveu:
+Rework firmware selection logic a little bit.
+Print notice asking user update firmware when old Si2168 B40
+firmware is used.
 
-> Reporting pulse/space events via the /dev/rc/rcX device node is an
-> important step towards having feature parity with LIRC.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Tested-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/dvb-frontends/si2168.c | 41 ++++++++++++++++++++++++------------
+ 1 file changed, 27 insertions(+), 14 deletions(-)
 
-Why to duplicate LIRC?
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index e9c138a..0422925 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -336,6 +336,7 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	u8 *fw_file;
+ 	const unsigned int i2c_wr_max = 8;
+ 	struct si2168_cmd cmd;
++	unsigned int chip_id;
+ 
+ 	dev_dbg(&s->client->dev, "%s:\n", __func__);
+ 
+@@ -361,16 +362,24 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	if (((cmd.args[1] & 0x0f) == 2) && (cmd.args[3] == '4') &&
+-			(cmd.args[4] == '0'))
+-		fw_file = SI2168_B40_FIRMWARE;
+-	else if (((cmd.args[1] & 0x0f) == 1) && (cmd.args[3] == '3') &&
+-			(cmd.args[4] == '0'))
++	chip_id = cmd.args[1] << 24 | cmd.args[2] << 16 | cmd.args[3] << 8 |
++			cmd.args[4] << 0;
++
++	#define SI2168_A30 ('A' << 24 | 68 << 16 | '3' << 8 | '0' << 0)
++	#define SI2168_B40 ('B' << 24 | 68 << 16 | '4' << 8 | '0' << 0)
++
++	switch (chip_id) {
++	case SI2168_A30:
+ 		fw_file = SI2168_A30_FIRMWARE;
+-	else {
++		break;
++	case SI2168_B40:
++		fw_file = SI2168_B40_FIRMWARE;
++		break;
++	default:
+ 		dev_err(&s->client->dev,
+-				"%s: no firmware file for Si2168-%c%c defined\n",
+-				KBUILD_MODNAME, cmd.args[3], cmd.args[4]);
++				"%s: unkown chip version Si21%d-%c%c%c\n",
++				KBUILD_MODNAME, cmd.args[2], cmd.args[1],
++				cmd.args[3], cmd.args[4]);
+ 		ret = -EINVAL;
+ 		goto err;
+ 	}
+@@ -382,15 +391,19 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	/* request the firmware, this will block and timeout */
+ 	ret = request_firmware(&fw, fw_file, &s->client->dev);
+ 	if (ret) {
+-		/* fallback mechanism to handle old name for
+-		   SI2168_B40_FIRMWARE */
+-		if (((cmd.args[1] & 0x0f) == 2) && (cmd.args[3] == '4') &&
+-				(cmd.args[4] == '0')) {
++		/* fallback mechanism to handle old name for Si2168 B40 fw */
++		if (chip_id == SI2168_B40) {
+ 			fw_file = SI2168_B40_FIRMWARE_FALLBACK;
+ 			ret = request_firmware(&fw, fw_file, &s->client->dev);
+ 		}
+-		if (ret) {
+-			dev_err(&s->client->dev, "%s: firmware file '%s' not found\n",
++
++		if (ret == 0) {
++			dev_notice(&s->client->dev,
++					"%s: please install firmware file '%s'\n",
++					KBUILD_MODNAME, SI2168_B40_FIRMWARE);
++		} else {
++			dev_err(&s->client->dev,
++					"%s: firmware file '%s' not found\n",
+ 					KBUILD_MODNAME, fw_file);
+ 			goto err;
+ 		}
+-- 
+1.9.3
 
-> 
-> Signed-off-by: David Härdeman <david@hardeman.nu>
-> ---
->  drivers/media/rc/rc-ir-raw.c |   11 +++++++++++
->  1 file changed, 11 insertions(+)
-> 
-> diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-> index bf5215b..3b68975 100644
-> --- a/drivers/media/rc/rc-ir-raw.c
-> +++ b/drivers/media/rc/rc-ir-raw.c
-> @@ -71,6 +71,17 @@ int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev)
->  	IR_dprintk(2, "sample: (%05dus %s)\n",
->  		   TO_US(ev->duration), TO_STR(ev->pulse));
->  
-> +	if (ev->reset)
-> +		rc_event(dev, RC_IR, RC_IR_RESET, 1);
-> +	else if (ev->carrier_report)
-> +		rc_event(dev, RC_IR, RC_IR_CARRIER, ev->carrier);
-> +	else if (ev->timeout)
-> +		rc_event(dev, RC_IR, RC_IR_STOP, 1);
-> +	else if (ev->pulse)
-> +		rc_event(dev, RC_IR, RC_IR_PULSE, ev->duration);
-> +	else
-> +		rc_event(dev, RC_IR, RC_IR_SPACE, ev->duration);
-> +
->  	if (kfifo_in(&dev->raw->kfifo, ev, 1) != 1)
->  		return -ENOMEM;
->  
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
