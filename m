@@ -1,35 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f50.google.com ([209.85.219.50]:39637 "EHLO
-	mail-oa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751120AbaG1QZB (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4159 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754564AbaGNM7h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jul 2014 12:25:01 -0400
-Received: by mail-oa0-f50.google.com with SMTP id g18so8951868oah.37
-        for <linux-media@vger.kernel.org>; Mon, 28 Jul 2014 09:25:00 -0700 (PDT)
-MIME-Version: 1.0
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Date: Mon, 28 Jul 2014 18:24:45 +0200
-Message-ID: <CAL8zT=jms4ZAvFE3UJ2=+sLXWDsgz528XUEdXBD9HtvOu=56-A@mail.gmail.com>
-Subject: i.MX6 status for IPU/VPU/GPU
+	Mon, 14 Jul 2014 08:59:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, slongerbeam@gmail.com
-Content-Type: text/plain; charset=UTF-8
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 03/12] DocBook media: fix incorrect header reference
+Date: Mon, 14 Jul 2014 14:59:03 +0200
+Message-Id: <1405342752-46998-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1405342752-46998-1-git-send-email-hverkuil@xs4all.nl>
+References: <1405342752-46998-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there !
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-We have a custom board, based on i.MX6 SoC.
-We are currently using Freescale's release of Linux, but this is a
-3.10.17 kernel, and several drivers are lacking (adv7611 for instance)
-or badly written (all the MXC part).
-As we want to have nice things :) we would like to use a mainline
-kernel, or at least a tree which can be mainlined.
+The text referred to videodev.h when videodev2.h was meant. Fixed.
 
-It seems (#v4l told me so) that some people (Steeve :) ?) are working
-on a rewriting of the IPU and all DRM part for i.MX6.
-What is the current status (compared to Freescale's release maybe) ?
-And what can we expect in a near future ? Maybe, how can we help too ?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/pixfmt.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
-JM
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 91dcbc8..a01f8b5 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -248,7 +248,7 @@ has just as many pad bytes after it as the other rows.</para>
+ 
+     <para>In V4L2 each format has an identifier which looks like
+ <constant>PIX_FMT_XXX</constant>, defined in the <link
+-linkend="videodev">videodev.h</link> header file. These identifiers
++linkend="videodev">videodev2.h</link> header file. These identifiers
+ represent <link linkend="v4l2-fourcc">four character (FourCC) codes</link>
+ which are also listed below, however they are not the same as those
+ used in the Windows world.</para>
+-- 
+2.0.1
+
