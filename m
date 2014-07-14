@@ -1,130 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1604 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750742AbaGVC0Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 22:26:25 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6M2QJpC067823
-	for <linux-media@vger.kernel.org>; Tue, 22 Jul 2014 04:26:22 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id B0DF12A0523
-	for <linux-media@vger.kernel.org>; Tue, 22 Jul 2014 04:26:16 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:43823 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756721AbaGNRJW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jul 2014 13:09:22 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140722022616.B0DF12A0523@tschai.lan>
-Date: Tue, 22 Jul 2014 04:26:16 +0200 (CEST)
+Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 10/18] si2168: Add support for chip revision Si2168 A30
+Date: Mon, 14 Jul 2014 20:08:51 +0300
+Message-Id: <1405357739-3570-10-git-send-email-crope@iki.fi>
+In-Reply-To: <1405357739-3570-1-git-send-email-crope@iki.fi>
+References: <1405357739-3570-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Olli Salonen <olli.salonen@iki.fi>
 
-Results of the daily build of media_tree:
+Add handling for different chip revisions and firmwares.
 
-date:		Tue Jul 22 04:00:38 CEST 2014
-git branch:	test
-git hash:	1b303e1a58599e42f858805285f03ccb5a4e18d2
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-16-g1db35d0
-host hardware:	x86_64
-host os:	3.15-5.slh.2-amd64
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/si2168.c      | 34 ++++++++++++++++++++++++++-----
+ drivers/media/dvb-frontends/si2168_priv.h |  4 +++-
+ 2 files changed, 32 insertions(+), 6 deletions(-)
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-rc1-i686: OK
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse: WARNINGS
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index bae7771..268fce3 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -333,7 +333,7 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	struct si2168 *s = fe->demodulator_priv;
+ 	int ret, len, remaining;
+ 	const struct firmware *fw = NULL;
+-	u8 *fw_file = SI2168_FIRMWARE;
++	u8 *fw_file;
+ 	const unsigned int i2c_wr_max = 8;
+ 	struct si2168_cmd cmd;
+ 
+@@ -353,6 +353,7 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
++	/* query chip revision */
+ 	memcpy(cmd.args, "\x02", 1);
+ 	cmd.wlen = 1;
+ 	cmd.rlen = 13;
+@@ -360,6 +361,20 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
++	if (((cmd.args[1] & 0x0f) == 2) && (cmd.args[3] == '4') &&
++			(cmd.args[4] == '0'))
++		fw_file = SI2168_B40_FIRMWARE;
++	else if (((cmd.args[1] & 0x0f) == 1) && (cmd.args[3] == '3') &&
++			(cmd.args[4] == '0'))
++		fw_file = SI2168_A30_FIRMWARE;
++	else {
++		dev_err(&s->client->dev,
++				"%s: no firmware file for Si2168-%c%c defined\n",
++				KBUILD_MODNAME, cmd.args[3], cmd.args[4]);
++		ret = -EINVAL;
++		goto err;
++	}
++
+ 	/* cold state - try to download firmware */
+ 	dev_info(&s->client->dev, "%s: found a '%s' in cold state\n",
+ 			KBUILD_MODNAME, si2168_ops.info.name);
+@@ -367,9 +382,18 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	/* request the firmware, this will block and timeout */
+ 	ret = request_firmware(&fw, fw_file, &s->client->dev);
+ 	if (ret) {
+-		dev_err(&s->client->dev, "%s: firmare file '%s' not found\n",
+-				KBUILD_MODNAME, fw_file);
+-		goto err;
++		/* fallback mechanism to handle old name for
++		   SI2168_B40_FIRMWARE */
++		if (((cmd.args[1] & 0x0f) == 2) && (cmd.args[3] == '4') &&
++				(cmd.args[4] == '0')) {
++			fw_file = SI2168_B40_FIRMWARE_FALLBACK;
++			ret = request_firmware(&fw, fw_file, &s->client->dev);
++		}
++		if (ret) {
++			dev_err(&s->client->dev, "%s: firmware file '%s' not found\n",
++					KBUILD_MODNAME, fw_file);
++			goto err;
++		}
+ 	}
+ 
+ 	dev_info(&s->client->dev, "%s: downloading firmware from file '%s'\n",
+@@ -629,4 +653,4 @@ module_i2c_driver(si2168_driver);
+ MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+ MODULE_DESCRIPTION("Silicon Labs Si2168 DVB-T/T2/C demodulator driver");
+ MODULE_LICENSE("GPL");
+-MODULE_FIRMWARE(SI2168_FIRMWARE);
++MODULE_FIRMWARE(SI2168_B40_FIRMWARE);
+diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
+index 97f9d87..bebb68a 100644
+--- a/drivers/media/dvb-frontends/si2168_priv.h
++++ b/drivers/media/dvb-frontends/si2168_priv.h
+@@ -22,7 +22,9 @@
+ #include <linux/firmware.h>
+ #include <linux/i2c-mux.h>
+ 
+-#define SI2168_FIRMWARE "dvb-demod-si2168-02.fw"
++#define SI2168_A30_FIRMWARE "dvb-demod-si2168-a30-01.fw"
++#define SI2168_B40_FIRMWARE "dvb-demod-si2168-b40-01.fw"
++#define SI2168_B40_FIRMWARE_FALLBACK "dvb-demod-si2168-02.fw"
+ 
+ /* state struct */
+ struct si2168 {
+-- 
+1.9.3
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
