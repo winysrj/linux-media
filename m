@@ -1,78 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0081.hostedemail.com ([216.40.44.81]:38916 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753293AbaGHT5q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jul 2014 15:57:46 -0400
-Message-ID: <1404849460.932.35.camel@joe-AO725>
-Subject: [PATCH] checkpatch: Warn on break after goto or return with same
- tab indentation
-From: Joe Perches <joe@perches.com>
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Fabian Frederick <fabf@skynet.be>
-Cc: Antti Palosaari <crope@iki.fi>, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, Andy Whitcroft <apw@canonical.com>
-Date: Tue, 08 Jul 2014 12:57:40 -0700
-In-Reply-To: <20140709041215.3e1083201f5a400c37b820b0@skynet.be>
-References: <1404840181-29822-1-git-send-email-fabf@skynet.be>
-	 <53BC3A0E.4060505@iki.fi>
-	 <20140709041215.3e1083201f5a400c37b820b0@skynet.be>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:44043 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756306AbaGNRJU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jul 2014 13:09:20 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 02/18] si2168: implement sleep
+Date: Mon, 14 Jul 2014 20:08:43 +0300
+Message-Id: <1405357739-3570-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1405357739-3570-1-git-send-email-crope@iki.fi>
+References: <1405357739-3570-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using break; after a goto or return is unnecessary so
-emit a warning when the break is at the same indent level.
+Implement sleep for power-management.
 
-So this emits a warning on:
-
-	switch (foo) {
-	case 1:
-		goto err;
-		break;
-	}
-
-but not on:
-
-	switch (foo) {
-	case 1:
-		if (bar())
-			goto err;
-		break;
-	}
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-> AFAIK there's still no automatic detection of those cases.
+ drivers/media/dvb-frontends/si2168.c | 19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-There can be now...
-
- scripts/checkpatch.pl | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
-index 496f9ab..fc22f22 100755
---- a/scripts/checkpatch.pl
-+++ b/scripts/checkpatch.pl
-@@ -2439,6 +2439,16 @@ sub process {
- 			}
- 		}
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 2e3cdcf..13cf2a8 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -438,13 +438,6 @@ static int si2168_init(struct dvb_frontend *fe)
  
-+# check indentation of a line with a break;
-+# if the previous line is a goto or return and is indented the same # of tabs
-+		if ($sline =~ /^\+([\t]+)break\s*;\s*$/) {
-+			my $tabs = $1;
-+			if ($prevline =~ /^\+$tabs(?:goto|return)\b/) {
-+				WARN("UNNECESSARY_BREAK",
-+				     "break is not useful after a goto or return\n" . $hereprev);
-+			}
-+		}
+ 	dev_dbg(&s->client->dev, "%s:\n", __func__);
+ 
+-	cmd.args[0] = 0x13;
+-	cmd.wlen = 1;
+-	cmd.rlen = 0;
+-	ret = si2168_cmd_execute(s, &cmd);
+-	if (ret)
+-		goto err;
+-
+ 	cmd.args[0] = 0xc0;
+ 	cmd.args[1] = 0x12;
+ 	cmd.args[2] = 0x00;
+@@ -545,12 +538,24 @@ err:
+ static int si2168_sleep(struct dvb_frontend *fe)
+ {
+ 	struct si2168 *s = fe->demodulator_priv;
++	int ret;
++	struct si2168_cmd cmd;
+ 
+ 	dev_dbg(&s->client->dev, "%s:\n", __func__);
+ 
+ 	s->active = false;
+ 
++	memcpy(cmd.args, "\x13", 1);
++	cmd.wlen = 1;
++	cmd.rlen = 0;
++	ret = si2168_cmd_execute(s, &cmd);
++	if (ret)
++		goto err;
 +
- # discourage the addition of CONFIG_EXPERIMENTAL in #if(def).
- 		if ($line =~ /^\+\s*\#\s*if.*\bCONFIG_EXPERIMENTAL\b/) {
- 			WARN("CONFIG_EXPERIMENTAL",
-
+ 	return 0;
++err:
++	dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
++	return ret;
+ }
+ 
+ static int si2168_get_tune_settings(struct dvb_frontend *fe,
+-- 
+1.9.3
 
