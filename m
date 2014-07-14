@@ -1,97 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54593 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752149AbaG0T1j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jul 2014 15:27:39 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 6/6] cx231xx: return an error if it can't read PCB config
-Date: Sun, 27 Jul 2014 16:27:32 -0300
-Message-Id: <1406489252-30636-7-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1406489252-30636-1-git-send-email-m.chehab@samsung.com>
-References: <1406489252-30636-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail.kapsi.fi ([217.30.184.167]:48612 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756717AbaGNRJV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jul 2014 13:09:21 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 08/18] si2168: receive 4 bytes reply from cmd 0x14
+Date: Mon, 14 Jul 2014 20:08:49 +0300
+Message-Id: <1405357739-3570-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1405357739-3570-1-git-send-email-crope@iki.fi>
+References: <1405357739-3570-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using some random value, return an error if the
-PCB config is not available or doesn't match a know profile
+Command 0x14 returns 4 bytes as a reply. It is used for setting
+key/value pairs to firmware and it returns 4 bytes back including
+old value.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/usb/cx231xx/cx231xx-cards.c   |  6 +++++-
- drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c | 10 +++++++---
- drivers/media/usb/cx231xx/cx231xx-pcb-cfg.h |  2 +-
- 3 files changed, 13 insertions(+), 5 deletions(-)
+ drivers/media/dvb-frontends/si2168.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 338417fee8b6..8039b769f258 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -1144,7 +1144,11 @@ static int cx231xx_init_dev(struct cx231xx *dev, struct usb_device *udev,
- 	dev->cx231xx_gpio_i2c_write = cx231xx_gpio_i2c_write;
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 666d428..bae7771 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -251,21 +251,21 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
  
- 	/* Query cx231xx to find what pcb config it is related to */
--	initialize_cx231xx(dev);
-+	retval = initialize_cx231xx(dev);
-+	if (retval < 0) {
-+		cx231xx_errdev("Failed to read PCB config\n");
-+		return retval;
-+	}
+ 	memcpy(cmd.args, "\x14\x00\x0c\x10\x12\x00", 6);
+ 	cmd.wlen = 6;
+-	cmd.rlen = 1;
++	cmd.rlen = 4;
+ 	ret = si2168_cmd_execute(s, &cmd);
+ 	if (ret)
+ 		goto err;
  
- 	/*To workaround error number=-71 on EP0 for VideoGrabber,
- 		 need set alt here.*/
-diff --git a/drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c b/drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c
-index 2a34ceee4802..3052c4c20229 100644
---- a/drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c
-@@ -654,8 +654,9 @@ static struct pcb_config cx231xx_Scenario[] = {
+ 	memcpy(cmd.args, "\x14\x00\x06\x10\x24\x00", 6);
+ 	cmd.wlen = 6;
+-	cmd.rlen = 1;
++	cmd.rlen = 4;
+ 	ret = si2168_cmd_execute(s, &cmd);
+ 	if (ret)
+ 		goto err;
  
- /*****************************************************************/
+ 	memcpy(cmd.args, "\x14\x00\x07\x10\x00\x24", 6);
+ 	cmd.wlen = 6;
+-	cmd.rlen = 1;
++	cmd.rlen = 4;
+ 	ret = si2168_cmd_execute(s, &cmd);
+ 	if (ret)
+ 		goto err;
+@@ -273,42 +273,42 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+ 	memcpy(cmd.args, "\x14\x00\x0a\x10\x00\x00", 6);
+ 	cmd.args[4] = delivery_system | bandwidth;
+ 	cmd.wlen = 6;
+-	cmd.rlen = 1;
++	cmd.rlen = 4;
+ 	ret = si2168_cmd_execute(s, &cmd);
+ 	if (ret)
+ 		goto err;
  
--u32 initialize_cx231xx(struct cx231xx *dev)
-+int initialize_cx231xx(struct cx231xx *dev)
- {
-+	int retval;
- 	u32 config_info = 0;
- 	struct pcb_config *p_pcb_info;
- 	u8 usb_speed = 1;	/* from register,1--HS, 0--FS  */
-@@ -670,7 +671,10 @@ u32 initialize_cx231xx(struct cx231xx *dev)
+ 	memcpy(cmd.args, "\x14\x00\x0f\x10\x10\x00", 6);
+ 	cmd.wlen = 6;
+-	cmd.rlen = 1;
++	cmd.rlen = 4;
+ 	ret = si2168_cmd_execute(s, &cmd);
+ 	if (ret)
+ 		goto err;
  
- 	/* read board config register to find out which
- 	pcb config it is related to */
--	cx231xx_read_ctrl_reg(dev, VRT_GET_REGISTER, BOARD_CFG_STAT, data, 4);
-+	retval = cx231xx_read_ctrl_reg(dev, VRT_GET_REGISTER, BOARD_CFG_STAT,
-+				       data, 4);
-+	if (retval < 0)
-+		return retval;
+ 	memcpy(cmd.args, "\x14\x00\x01\x10\x16\x00", 6);
+ 	cmd.wlen = 6;
+-	cmd.rlen = 1;
++	cmd.rlen = 4;
+ 	ret = si2168_cmd_execute(s, &cmd);
+ 	if (ret)
+ 		goto err;
  
- 	config_info = le32_to_cpu(*((__le32 *)data));
- 	usb_speed = (u8) (config_info & 0x1);
-@@ -767,7 +771,7 @@ u32 initialize_cx231xx(struct cx231xx *dev)
- 			cx231xx_info("bad senario!!!!!\n");
- 			cx231xx_info("config_info=%x\n",
- 				     (config_info & SELFPOWER_MASK));
--			return 1;
-+			return -ENODEV;
- 		}
- 	}
+ 	memcpy(cmd.args, "\x14\x00\x09\x10\xe3\x18", 6);
+ 	cmd.wlen = 6;
+-	cmd.rlen = 1;
++	cmd.rlen = 4;
+ 	ret = si2168_cmd_execute(s, &cmd);
+ 	if (ret)
+ 		goto err;
  
-diff --git a/drivers/media/usb/cx231xx/cx231xx-pcb-cfg.h b/drivers/media/usb/cx231xx/cx231xx-pcb-cfg.h
-index b3c6190e0c69..4511dc5d199c 100644
---- a/drivers/media/usb/cx231xx/cx231xx-pcb-cfg.h
-+++ b/drivers/media/usb/cx231xx/cx231xx-pcb-cfg.h
-@@ -221,6 +221,6 @@ enum INDEX_PCB_CONFIG{
- /***************************************************************************/
- struct cx231xx;
+ 	memcpy(cmd.args, "\x14\x00\x08\x10\xd7\x15", 6);
+ 	cmd.wlen = 6;
+-	cmd.rlen = 1;
++	cmd.rlen = 4;
+ 	ret = si2168_cmd_execute(s, &cmd);
+ 	if (ret)
+ 		goto err;
  
--u32 initialize_cx231xx(struct cx231xx *p_dev);
-+int initialize_cx231xx(struct cx231xx *p_dev);
- 
- #endif
+ 	memcpy(cmd.args, "\x14\x00\x01\x12\x00\x00", 6);
+ 	cmd.wlen = 6;
+-	cmd.rlen = 1;
++	cmd.rlen = 4;
+ 	ret = si2168_cmd_execute(s, &cmd);
+ 	if (ret)
+ 		goto err;
 -- 
 1.9.3
 
