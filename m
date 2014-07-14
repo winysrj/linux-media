@@ -1,44 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:56591 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758856AbaGYHau (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:36096 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752967AbaGNJ3U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 03:30:50 -0400
-Message-ID: <53D207A5.5090309@codethink.co.uk>
-Date: Fri, 25 Jul 2014 08:30:45 +0100
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	magnus.damm@opensource.se, horms@verge.net.au,
-	linux-kernel@lists.codethink.co.uk
-Subject: Re: [PATCH v6 3/6] rcar_vin: add devicetree support
-References: <1404599185-12353-1-git-send-email-ben.dooks@codethink.co.uk> <1404599185-12353-4-git-send-email-ben.dooks@codethink.co.uk> <Pine.LNX.4.64.1407230944550.30243@axis700.grange> <Pine.LNX.4.64.1407232022050.1526@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1407232022050.1526@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Mon, 14 Jul 2014 05:29:20 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N8P00CO03OSSC20@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 14 Jul 2014 10:29:16 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'panpan liu' <panpan1.liu@samsung.com>, kyungmin.park@samsung.com,
+	jtp.park@samsung.com, mchehab@redhat.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <1405322547-3216-1-git-send-email-panpan1.liu@samsung.com>
+In-reply-to: <1405322547-3216-1-git-send-email-panpan1.liu@samsung.com>
+Subject: RE: [PATCH] s5p-mfc: limit the size of the CPB
+Date: Mon, 14 Jul 2014 11:29:16 +0200
+Message-id: <122f01cf9f46$15d03f10$4170bd30$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23/07/14 19:23, Guennadi Liakhovetski wrote:
-> Add support for devicetree probe for the rcar-vin
-> driver.
+Hi panpan,
+
+Thank you for your patch, please find my comments inline.
+
+> From: panpan liu [mailto:panpan1.liu@samsung.com]
+> Sent: Monday, July 14, 2014 9:22 AM
 > 
-> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
-> [g.liakhovetski@gmx.de fix a typo, sort headers alphabetically]
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> The register of the CPB limits the size. The max size is 4M, so it is
+> more reasonable.
+> 
+> Signed-off-by: panpan liu <panpan1.liu@samsung.com>
 > ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |    3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)  mode change 100644 =>
+> 100755 drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
 > 
-> Ben, is this version ok?
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> old mode 100644
+> new mode 100755
+> index 0bae907..889cb06
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> @@ -466,7 +466,8 @@ static int vidioc_s_fmt(struct file *file, void
+> *priv, struct v4l2_format *f)
+>  	mfc_debug(2, "The codec number is: %d\n", ctx->codec_mode);
+>  	pix_mp->height = 0;
+>  	pix_mp->width = 0;
+> -	if (pix_mp->plane_fmt[0].sizeimage)
+> +	if (pix_mp->plane_fmt[0].sizeimage &&
+> +			pix_mp->plane_fmt[0].sizeimage <= MAX_CPB_SIZE)
 
->From looking at it, it seems ok.
+The MAX_CPB_SIZE applies only to the v5 version of the MFC. To have this
+dependent on the actual variant used please use:
+...
+struct s5p_mfc_buf_size *buf_size = dev->variant->buf_size;
+...
+if (pix_mp->plane_fmt[0].sizeimage &&
+	pix_mp->plane_fmt[0].sizeimage <= buf_size->cpb)
+...
 
-I have been off work ill for the last couple of days, so have only
-just seen these. I will try and get these reviewed/tests as soon
-as possible.
+>  		ctx->dec_src_buf_size = pix_mp->plane_fmt[0].sizeimage;
+>  	else
+>  		pix_mp->plane_fmt[0].sizeimage = ctx->dec_src_buf_size =
 
-Is there a git branch I could merge with our devel tree?
+Also, in case the desired buffer size is too large the driver should set
+the maximum size allowed and not the default size which is fairly small.
 
+So you should cover three cases:
+- no size set -> set default size
+- size set < max - set the desired size
+- size set > max - set the maximum size allowed
+
+Best wishes, 
 -- 
-Ben Dooks				http://www.codethink.co.uk/
-Senior Engineer				Codethink - Providing Genius
+Kamil Debski
+Samsung R&D Institute Poland
+
