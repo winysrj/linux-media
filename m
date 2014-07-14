@@ -1,114 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4557 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751428AbaG2CXA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jul 2014 22:23:00 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6T2MuB9094555
-	for <linux-media@vger.kernel.org>; Tue, 29 Jul 2014 04:22:58 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id BAEA32A0380
-	for <linux-media@vger.kernel.org>; Tue, 29 Jul 2014 04:22:55 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:58520 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756517AbaGNRJX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jul 2014 13:09:23 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140729022255.BAEA32A0380@tschai.lan>
-Date: Tue, 29 Jul 2014 04:22:55 +0200 (CEST)
+Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 11/18] si2157: Move chip initialization to si2157_init
+Date: Mon, 14 Jul 2014 20:08:52 +0300
+Message-Id: <1405357739-3570-11-git-send-email-crope@iki.fi>
+In-Reply-To: <1405357739-3570-1-git-send-email-crope@iki.fi>
+References: <1405357739-3570-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Olli Salonen <olli.salonen@iki.fi>
 
-Results of the daily build of media_tree:
+Move chip initialization related code from si2157_set_params to
+si2157_init.
 
-date:		Tue Jul 29 04:00:24 CEST 2014
-git branch:	test
-git hash:	488046c237f3b78f91046d45662b318cd2415f64
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-16-g1db35d0
-host hardware:	x86_64
-host os:	3.15-5.slh.2-amd64
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/si2157.c | 71 ++++++++++++++++++-------------------------
+ 1 file changed, 30 insertions(+), 41 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index a4908ee..a92570f9 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -80,12 +80,41 @@ err:
+ static int si2157_init(struct dvb_frontend *fe)
+ {
+ 	struct si2157 *s = fe->tuner_priv;
++	int ret;
++	struct si2157_cmd cmd;
+ 
+ 	dev_dbg(&s->client->dev, "%s:\n", __func__);
+ 
++	/* configure? */
++	memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
++	cmd.wlen = 15;
++	cmd.rlen = 1;
++	ret = si2157_cmd_execute(s, &cmd);
++	if (ret)
++		goto err;
++
++	/* query chip revision */
++	memcpy(cmd.args, "\x02", 1);
++	cmd.wlen = 1;
++	cmd.rlen = 13;
++	ret = si2157_cmd_execute(s, &cmd);
++	if (ret)
++		goto err;
++
++	/* reboot the tuner with new firmware? */
++	memcpy(cmd.args, "\x01\x01", 2);
++	cmd.wlen = 2;
++	cmd.rlen = 1;
++	ret = si2157_cmd_execute(s, &cmd);
++	if (ret)
++		goto err;
++
+ 	s->active = true;
+ 
+ 	return 0;
++err:
++	dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
++	return ret;
+ }
+ 
+ static int si2157_sleep(struct dvb_frontend *fe)
+@@ -128,48 +157,8 @@ static int si2157_set_params(struct dvb_frontend *fe)
+ 		goto err;
+ 	}
+ 
+-	/* configure? */
+-	cmd.args[0] = 0xc0;
+-	cmd.args[1] = 0x00;
+-	cmd.args[2] = 0x0c;
+-	cmd.args[3] = 0x00;
+-	cmd.args[4] = 0x00;
+-	cmd.args[5] = 0x01;
+-	cmd.args[6] = 0x01;
+-	cmd.args[7] = 0x01;
+-	cmd.args[8] = 0x01;
+-	cmd.args[9] = 0x01;
+-	cmd.args[10] = 0x01;
+-	cmd.args[11] = 0x02;
+-	cmd.args[12] = 0x00;
+-	cmd.args[13] = 0x00;
+-	cmd.args[14] = 0x01;
+-	cmd.wlen = 15;
+-	cmd.rlen = 1;
+-	ret = si2157_cmd_execute(s, &cmd);
+-	if (ret)
+-		goto err;
+-
+-	cmd.args[0] = 0x02;
+-	cmd.wlen = 1;
+-	cmd.rlen = 13;
+-	ret = si2157_cmd_execute(s, &cmd);
+-	if (ret)
+-		goto err;
+-
+-	cmd.args[0] = 0x01;
+-	cmd.args[1] = 0x01;
+-	cmd.wlen = 2;
+-	cmd.rlen = 1;
+-	ret = si2157_cmd_execute(s, &cmd);
+-	if (ret)
+-		goto err;
+-
+ 	/* set frequency */
+-	cmd.args[0] = 0x41;
+-	cmd.args[1] = 0x00;
+-	cmd.args[2] = 0x00;
+-	cmd.args[3] = 0x00;
++	memcpy(cmd.args, "\x41\x00\x00\x00\x00\x00\x00\x00", 8);
+ 	cmd.args[4] = (c->frequency >>  0) & 0xff;
+ 	cmd.args[5] = (c->frequency >>  8) & 0xff;
+ 	cmd.args[6] = (c->frequency >> 16) & 0xff;
+-- 
+1.9.3
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
