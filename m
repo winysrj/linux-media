@@ -1,118 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:37465 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753825AbaGHJlg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jul 2014 05:41:36 -0400
-From: Ian Molton <ian.molton@codethink.co.uk>
+Received: from mail.kapsi.fi ([217.30.184.167]:35902 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756310AbaGNRJY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jul 2014 13:09:24 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: linux-kernel@lists.codethink.co.uk, ian.molton@codethink.co.uk,
-	g.liakhovetski@gmx.de, m.chehab@samsung.com,
-	vladimir.barinov@cogentembedded.com, magnus.damm@gmail.com,
-	horms@verge.net.au, linux-sh@vger.kernel.org
-Subject: [PATCH 3/4] media: rcar_vin: Fix race condition terminating stream
-Date: Tue,  8 Jul 2014 10:41:13 +0100
-Message-Id: <1404812474-7627-4-git-send-email-ian.molton@codethink.co.uk>
-In-Reply-To: <1404812474-7627-1-git-send-email-ian.molton@codethink.co.uk>
-References: <1404812474-7627-1-git-send-email-ian.molton@codethink.co.uk>
+Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 18/18] si2157: rework firmware download logic a little bit
+Date: Mon, 14 Jul 2014 20:08:59 +0300
+Message-Id: <1405357739-3570-18-git-send-email-crope@iki.fi>
+In-Reply-To: <1405357739-3570-1-git-send-email-crope@iki.fi>
+References: <1405357739-3570-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes a race condition whereby a frame being captured may generate an
- interrupt between requesting capture to halt and freeing buffers.
+Rework firmware selection / chip detection logic a little bit.
+Add missing release_firmware() to error path.
 
-This condition is exposed by the earlier patch that explicitly calls
-vb2_buffer_done() during stop streaming.
-
-The solution is to wait for capture to finish prior to finalising these buffers.
-
-Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Tested-by: Olli Salonen <olli.salonen@iki.fi>
 ---
- drivers/media/platform/soc_camera/rcar_vin.c | 43 ++++++++++++++++++----------
- 1 file changed, 28 insertions(+), 15 deletions(-)
+ drivers/media/tuners/si2157.c | 108 +++++++++++++++++++++++-------------------
+ 1 file changed, 58 insertions(+), 50 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 06ce705..aeda4e2 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -455,6 +455,29 @@ error:
- 	vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
- }
- 
-+/*
-+ * Wait for capture to stop and all in-flight buffers to be finished with by
-+ * the video hardware. This must be called under &priv->lock
-+ *
-+ */
-+static void rcar_vin_wait_stop_streaming(struct rcar_vin_priv *priv)
-+{
-+	while (priv->state != STOPPED) {
-+
-+		/* issue stop if running */
-+		if (priv->state == RUNNING)
-+			rcar_vin_request_capture_stop(priv);
-+
-+		/* wait until capturing has been stopped */
-+		if (priv->state == STOPPING) {
-+			priv->request_to_stop = true;
-+			spin_unlock_irq(&priv->lock);
-+			wait_for_completion(&priv->capture_stop);
-+			spin_lock_irq(&priv->lock);
-+		}
-+	}
-+}
-+
- static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index 3fa1f26..329004f 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -82,11 +82,11 @@ err:
+ static int si2157_init(struct dvb_frontend *fe)
  {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
-@@ -462,7 +485,6 @@ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
- 	struct rcar_vin_priv *priv = ici->priv;
- 	unsigned int i;
- 	int buf_in_use = 0;
--
- 	spin_lock_irq(&priv->lock);
+ 	struct si2157 *s = fe->tuner_priv;
+-	int ret, remaining;
++	int ret, len, remaining;
+ 	struct si2157_cmd cmd;
+-	u8 chip, len = 0;
+ 	const struct firmware *fw = NULL;
+ 	u8 *fw_file;
++	unsigned int chip_id;
  
- 	/* Is the buffer in use by the VIN hardware? */
-@@ -474,20 +496,8 @@ static void rcar_vin_videobuf_release(struct vb2_buffer *vb)
- 	}
+ 	dev_dbg(&s->client->dev, "%s:\n", __func__);
  
- 	if (buf_in_use) {
--		while (priv->state != STOPPED) {
+@@ -106,64 +106,69 @@ static int si2157_init(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	chip = cmd.args[2]; /* 57 for Si2157, 58 for Si2158 */
++	chip_id = cmd.args[1] << 24 | cmd.args[2] << 16 | cmd.args[3] << 8 |
++			cmd.args[4] << 0;
+ 
+-	/* Si2158 requires firmware download */
+-	if (chip == 58) {
+-		if (((cmd.args[1] & 0x0f) == 1) && (cmd.args[3] == '2') &&
+-				(cmd.args[4] == '0'))
+-			fw_file = SI2158_A20_FIRMWARE;
+-		else {
+-			dev_err(&s->client->dev,
+-					"%s: no firmware file for Si%d-%c%c defined\n",
+-					KBUILD_MODNAME, chip, cmd.args[3], cmd.args[4]);
+-			ret = -EINVAL;
+-			goto err;
+-		}
++	#define SI2158_A20 ('A' << 24 | 58 << 16 | '2' << 8 | '0' << 0)
++	#define SI2157_A30 ('A' << 24 | 57 << 16 | '3' << 8 | '0' << 0)
+ 
+-		/* cold state - try to download firmware */
+-		dev_info(&s->client->dev, "%s: found a '%s' in cold state\n",
+-				KBUILD_MODNAME, si2157_ops.info.name);
++	switch (chip_id) {
++	case SI2158_A20:
++		fw_file = SI2158_A20_FIRMWARE;
++		break;
++	case SI2157_A30:
++		goto skip_fw_download;
++		break;
++	default:
++		dev_err(&s->client->dev,
++				"%s: unkown chip version Si21%d-%c%c%c\n",
++				KBUILD_MODNAME, cmd.args[2], cmd.args[1],
++				cmd.args[3], cmd.args[4]);
++		ret = -EINVAL;
++		goto err;
++	}
+ 
+-		/* request the firmware, this will block and timeout */
+-		ret = request_firmware(&fw, fw_file, &s->client->dev);
+-		if (ret) {
+-			dev_err(&s->client->dev, "%s: firmware file '%s' not found\n",
+-					KBUILD_MODNAME, fw_file);
+-			goto err;
+-		}
++	/* cold state - try to download firmware */
++	dev_info(&s->client->dev, "%s: found a '%s' in cold state\n",
++			KBUILD_MODNAME, si2157_ops.info.name);
+ 
+-		dev_info(&s->client->dev, "%s: downloading firmware from file '%s'\n",
++	/* request the firmware, this will block and timeout */
++	ret = request_firmware(&fw, fw_file, &s->client->dev);
++	if (ret) {
++		dev_err(&s->client->dev, "%s: firmware file '%s' not found\n",
+ 				KBUILD_MODNAME, fw_file);
++		goto err;
++	}
+ 
+-		/* firmware should be n chunks of 17 bytes */
+-		if (fw->size % 17 != 0) {
+-			dev_err(&s->client->dev, "%s: firmware file '%s' is invalid\n",
+-					KBUILD_MODNAME, fw_file);
+-			ret = -EINVAL;
+-			goto err;
+-		}
 -
--			/* issue stop if running */
--			if (priv->state == RUNNING)
--				rcar_vin_request_capture_stop(priv);
--
--			/* wait until capturing has been stopped */
--			if (priv->state == STOPPING) {
--				priv->request_to_stop = true;
--				spin_unlock_irq(&priv->lock);
--				wait_for_completion(&priv->capture_stop);
--				spin_lock_irq(&priv->lock);
+-		for (remaining = fw->size; remaining > 0; remaining -= 17) {
+-			memcpy(&len, &fw->data[fw->size - remaining], 1);
+-			memcpy(cmd.args, &fw->data[(fw->size - remaining) + 1],
+-					len);
+-			cmd.wlen = len;
+-			cmd.rlen = 1;
+-			ret = si2157_cmd_execute(s, &cmd);
+-			if (ret) {
+-				dev_err(&s->client->dev,
+-						"%s: firmware download failed=%d\n",
+-						KBUILD_MODNAME, ret);
+-				goto err;
 -			}
 -		}
-+		rcar_vin_wait_stop_streaming(priv);
-+
- 		/*
- 		 * Capturing has now stopped. The buffer we have been asked
- 		 * to release could be any of the current buffers in use, so
-@@ -517,12 +527,15 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
++	/* firmware should be n chunks of 17 bytes */
++	if (fw->size % 17 != 0) {
++		dev_err(&s->client->dev, "%s: firmware file '%s' is invalid\n",
++				KBUILD_MODNAME, fw_file);
++		ret = -EINVAL;
++		goto err;
++	}
  
- 	spin_lock_irq(&priv->lock);
+-		release_firmware(fw);
+-		fw = NULL;
++	dev_info(&s->client->dev, "%s: downloading firmware from file '%s'\n",
++			KBUILD_MODNAME, fw_file);
  
-+	rcar_vin_wait_stop_streaming(priv);
-+
- 	for (i = 0; i < vq->num_buffers; ++i)
- 		if (vq->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
- 			vb2_buffer_done(vq->bufs[i], VB2_BUF_STATE_ERROR);
++	for (remaining = fw->size; remaining > 0; remaining -= 17) {
++		len = fw->data[fw->size - remaining];
++		memcpy(cmd.args, &fw->data[(fw->size - remaining) + 1], len);
++		cmd.wlen = len;
++		cmd.rlen = 1;
++		ret = si2157_cmd_execute(s, &cmd);
++		if (ret) {
++			dev_err(&s->client->dev,
++					"%s: firmware download failed=%d\n",
++					KBUILD_MODNAME, ret);
++			goto err;
++		}
+ 	}
  
- 	list_for_each_safe(buf_head, tmp, &priv->capture)
- 		list_del_init(buf_head);
++	release_firmware(fw);
++	fw = NULL;
 +
- 	spin_unlock_irq(&priv->lock);
++skip_fw_download:
+ 	/* reboot the tuner with new firmware? */
+ 	memcpy(cmd.args, "\x01\x01", 2);
+ 	cmd.wlen = 2;
+@@ -176,6 +181,9 @@ static int si2157_init(struct dvb_frontend *fe)
+ 
+ 	return 0;
+ err:
++	if (fw)
++		release_firmware(fw);
++
+ 	dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
  }
- 
 -- 
-1.9.1
+1.9.3
 
