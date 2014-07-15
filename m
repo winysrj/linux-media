@@ -1,54 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:37451 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753465AbaGHJlb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jul 2014 05:41:31 -0400
-From: Ian Molton <ian.molton@codethink.co.uk>
+Received: from mail.kapsi.fi ([217.30.184.167]:56028 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754086AbaGOBJn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jul 2014 21:09:43 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: linux-kernel@lists.codethink.co.uk, ian.molton@codethink.co.uk,
-	g.liakhovetski@gmx.de, m.chehab@samsung.com,
-	vladimir.barinov@cogentembedded.com, magnus.damm@gmail.com,
-	horms@verge.net.au, linux-sh@vger.kernel.org
-Subject: [PATCH 2/4] media: rcar_vin: Ensure all in-flight buffers are returned to error state before stopping.
-Date: Tue,  8 Jul 2014 10:41:12 +0100
-Message-Id: <1404812474-7627-3-git-send-email-ian.molton@codethink.co.uk>
-In-Reply-To: <1404812474-7627-1-git-send-email-ian.molton@codethink.co.uk>
-References: <1404812474-7627-1-git-send-email-ian.molton@codethink.co.uk>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 02/18] DocBook: V4L: add V4L2_SDR_FMT_RU12LE - 'RU12'
+Date: Tue, 15 Jul 2014 04:09:05 +0300
+Message-Id: <1405386561-30450-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1405386561-30450-1-git-send-email-crope@iki.fi>
+References: <1405386561-30450-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Videobuf2 complains about buffers that are still marked ACTIVE (in use by the driver) following a call to stop_streaming().
+Document V4L2_SDR_FMT_RU12LE format. It is real unsigned 12-bit
+little endian sample inside 16-bit space. Used by software defined
+radio devices.
 
-This patch returns all active buffers to state ERROR prior to stopping.
-
-Note: this introduces a (non fatal) race condition as the stream is not guaranteed to be stopped at this point.
-
-Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/soc_camera/rcar_vin.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ .../DocBook/media/v4l/pixfmt-sdr-ru12le.xml        | 40 ++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
+ 2 files changed, 41 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-ru12le.xml
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 7154500..06ce705 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -513,8 +513,14 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct rcar_vin_priv *priv = ici->priv;
- 	struct list_head *buf_head, *tmp;
-+	int i;
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-sdr-ru12le.xml b/Documentation/DocBook/media/v4l/pixfmt-sdr-ru12le.xml
+new file mode 100644
+index 0000000..3df076b
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-sdr-ru12le.xml
+@@ -0,0 +1,40 @@
++<refentry id="V4L2-SDR-FMT-RU12LE">
++  <refmeta>
++    <refentrytitle>V4L2_SDR_FMT_RU12LE ('RU12')</refentrytitle>
++    &manvol;
++  </refmeta>
++    <refnamediv>
++      <refname>
++        <constant>V4L2_SDR_FMT_RU12LE</constant>
++      </refname>
++      <refpurpose>Real unsigned 12-bit little endian sample</refpurpose>
++    </refnamediv>
++    <refsect1>
++      <title>Description</title>
++      <para>
++This format contains sequence of real number samples. Each sample is
++represented as a 12 bit unsigned little endian number. Sample is stored
++in 16 bit space with unused high bits padded with 0.
++      </para>
++    <example>
++      <title><constant>V4L2_SDR_FMT_RU12LE</constant> 1 sample</title>
++      <formalpara>
++        <title>Byte Order.</title>
++        <para>Each cell is one byte.
++          <informaltable frame="none">
++            <tgroup cols="3" align="center">
++              <colspec align="left" colwidth="2*" />
++              <tbody valign="top">
++                <row>
++                  <entry>start&nbsp;+&nbsp;0:</entry>
++                  <entry>I'<subscript>0[7:0]</subscript></entry>
++                  <entry>I'<subscript>0[11:8]</subscript></entry>
++                </row>
++              </tbody>
++            </tgroup>
++          </informaltable>
++        </para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 91dcbc8..3e124aa 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -828,6 +828,7 @@ interface only.</para>
  
- 	spin_lock_irq(&priv->lock);
-+
-+	for (i = 0; i < vq->num_buffers; ++i)
-+		if (vq->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
-+			vb2_buffer_done(vq->bufs[i], VB2_BUF_STATE_ERROR);
-+
- 	list_for_each_safe(buf_head, tmp, &priv->capture)
- 		list_del_init(buf_head);
- 	spin_unlock_irq(&priv->lock);
+     &sub-sdr-cu08;
+     &sub-sdr-cu16le;
++    &sub-sdr-ru12le;
+ 
+   </section>
+ 
 -- 
-1.9.1
+1.9.3
 
