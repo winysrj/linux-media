@@ -1,116 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4671 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753826AbaGPCnz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jul 2014 22:43:55 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6G2hpRq019514
-	for <linux-media@vger.kernel.org>; Wed, 16 Jul 2014 04:43:53 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 37DF42A1FD1
-	for <linux-media@vger.kernel.org>; Wed, 16 Jul 2014 04:43:49 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140716024349.37DF42A1FD1@tschai.lan>
-Date: Wed, 16 Jul 2014 04:43:49 +0200 (CEST)
+Received: from comal.ext.ti.com ([198.47.26.152]:54252 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756814AbaGOR5r (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jul 2014 13:57:47 -0400
+From: Felipe Balbi <balbi@ti.com>
+To: <hans.verkuil@cisco.com>, Tony Lindgren <tony@atomide.com>,
+	Benoit Cousson <bcousson@baylibre.com>, <robh+dt@kernel.org>
+CC: <linux@arm.linux.org.uk>,
+	Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
+	Linux ARM Kernel Mailing List
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>, <archit@ti.com>,
+	<detheridge@ti.com>, <sakari.ailus@iki.fi>,
+	<laurent.pinchart@ideasonboard.com>, <devicetree@vger.kernel.org>,
+	Benoit Parrot <bparrot@ti.com>, Felipe Balbi <balbi@ti.com>
+Subject: [RFC/PATCH 2/5] arm: omap: hwmod: add hwmod entries for AM437x VPFE
+Date: Tue, 15 Jul 2014 12:56:49 -0500
+Message-ID: <1405447012-5340-3-git-send-email-balbi@ti.com>
+In-Reply-To: <1405447012-5340-1-git-send-email-balbi@ti.com>
+References: <1405447012-5340-1-git-send-email-balbi@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Benoit Parrot <bparrot@ti.com>
 
-Results of the daily build of media_tree:
+HWMOD entries support for TI Dual Video Processing Front
+End (VPFE) (aka Dual cam) of AM43xx platform.
 
-date:		Wed Jul 16 04:00:16 CEST 2014
-git branch:	test
-git hash:	3c0d394ea7022bb9666d9df97a5776c4bcc3045c
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0-14-gf11dd94
-host hardware:	x86_64
-host os:	3.14-5.slh.5-amd64
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Signed-off-by: Darren Etheridge <detheridge@ti.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 56 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prcm43xx.h             |  3 +-
+ 2 files changed, 58 insertions(+), 1 deletion(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+index fea01aa..bd9067e 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+@@ -483,6 +483,44 @@ static struct omap_hwmod am43xx_dss_rfbi_hwmod = {
+ 	},
+ };
+ 
++static struct omap_hwmod_class_sysconfig am43xx_vpfe_sysc = {
++	.rev_offs       = 0x0,
++	.sysc_offs      = 0x104,
++	.sysc_flags     = SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE,
++	.idlemodes      = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++				MSTANDBY_FORCE | MSTANDBY_SMART | MSTANDBY_NO),
++	.sysc_fields    = &omap_hwmod_sysc_type2,
++};
++
++static struct omap_hwmod_class am43xx_vpfe_hwmod_class = {
++	.name           = "vpfe",
++	.sysc           = &am43xx_vpfe_sysc,
++};
++
++static struct omap_hwmod am43xx_vpfe0_hwmod = {
++	.name           = "vpfe0",
++	.class          = &am43xx_vpfe_hwmod_class,
++	.clkdm_name     = "l3s_clkdm",
++	.prcm           = {
++		.omap4  = {
++			.modulemode     = MODULEMODE_SWCTRL,
++			.clkctrl_offs   = AM43XX_CM_PER_VPFE0_CLKCTRL_OFFSET,
++		},
++	},
++};
++
++static struct omap_hwmod am43xx_vpfe1_hwmod = {
++	.name           = "vpfe1",
++	.class          = &am43xx_vpfe_hwmod_class,
++	.clkdm_name     = "l3s_clkdm",
++	.prcm           = {
++		.omap4  = {
++			.modulemode     = MODULEMODE_SWCTRL,
++			.clkctrl_offs   = AM43XX_CM_PER_VPFE1_CLKCTRL_OFFSET,
++		},
++	},
++};
++
+ /* Interfaces */
+ static struct omap_hwmod_ocp_if am43xx_l3_main__l4_hs = {
+ 	.master		= &am33xx_l3_main_hwmod,
+@@ -750,6 +788,22 @@ static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_rfbi = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++static struct omap_hwmod_ocp_if am43xx_l3__vpfe0 = {
++	.master         = &am33xx_l3_main_hwmod,
++	.slave          = &am43xx_vpfe0_hwmod,
++	.clk            = "l3_gclk",
++	.flags          = OCPIF_SWSUP_IDLE,
++	.user           = OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l3__vpfe1 = {
++	.master         = &am33xx_l3_main_hwmod,
++	.slave          = &am43xx_vpfe1_hwmod,
++	.clk            = "l3_gclk",
++	.flags          = OCPIF_SWSUP_IDLE,
++	.user           = OCP_USER_MPU,
++};
++
+ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l4_wkup__synctimer,
+ 	&am43xx_l4_ls__timer8,
+@@ -848,6 +902,8 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am43xx_l4_ls__dss,
+ 	&am43xx_l4_ls__dss_dispc,
+ 	&am43xx_l4_ls__dss_rfbi,
++	&am43xx_l3__vpfe0,
++	&am43xx_l3__vpfe1,
+ 	NULL,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
+index ad7b3e9..8aa4c2c 100644
+--- a/arch/arm/mach-omap2/prcm43xx.h
++++ b/arch/arm/mach-omap2/prcm43xx.h
+@@ -143,5 +143,6 @@
+ #define AM43XX_CM_PER_USB_OTG_SS1_CLKCTRL_OFFSET        0x0268
+ #define AM43XX_CM_PER_USBPHYOCP2SCP1_CLKCTRL_OFFSET	0x05C0
+ #define AM43XX_CM_PER_DSS_CLKCTRL_OFFSET		0x0a20
+-
++#define AM43XX_CM_PER_VPFE0_CLKCTRL_OFFSET		0x0068
++#define AM43XX_CM_PER_VPFE1_CLKCTRL_OFFSET		0x0070
+ #endif
+-- 
+2.0.0.390.gcb682f8
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
