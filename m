@@ -1,168 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3113 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932153AbaGUNp5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 09:45:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Eduardo Valentin <edubezval@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/7] si4713: add the missing RDS functionality.
-Date: Mon, 21 Jul 2014 15:45:39 +0200
-Message-Id: <1405950343-26892-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1405950343-26892-1-git-send-email-hverkuil@xs4all.nl>
-References: <1405950343-26892-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp.gentoo.org ([140.211.166.183]:45842 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933304AbaGOTe7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jul 2014 15:34:59 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: crope@iki.fi, linux-media@vger.kernel.org
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH 1/3] cxusb: Prepare for si2157 driver getting more parameters
+Date: Tue, 15 Jul 2014 21:34:34 +0200
+Message-Id: <1405452876-8543-1-git-send-email-zzam@gentoo.org>
+In-Reply-To: <53C58067.8000601@gentoo.org>
+References: <53C58067.8000601@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Modify all users of si2157_config to correctly initialize all not
+listed values to 0.
 
-Not all the RDS features of the si4713 were supported. Add
-the missing bits to fully support the hardware capabilities.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Eduardo Valentin <edubezval@gmail.com>
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 ---
- drivers/media/radio/si4713/si4713.c | 76 ++++++++++++++++++++++++++++++++++++-
- drivers/media/radio/si4713/si4713.h |  9 +++++
- 2 files changed, 84 insertions(+), 1 deletion(-)
+ drivers/media/usb/dvb-usb/cxusb.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-index dbe4726..b576555 100644
---- a/drivers/media/radio/si4713/si4713.c
-+++ b/drivers/media/radio/si4713/si4713.c
-@@ -957,6 +957,41 @@ static int si4713_choose_econtrol_action(struct si4713_device *sdev, u32 id,
- 		*bit = 5;
- 		*mask = 0x1F << 5;
- 		break;
-+	case V4L2_CID_RDS_TX_DYNAMIC_PTY:
-+		*property = SI4713_TX_RDS_PS_MISC;
-+		*bit = 15;
-+		*mask = 1 << 15;
-+		break;
-+	case V4L2_CID_RDS_TX_COMPRESSED:
-+		*property = SI4713_TX_RDS_PS_MISC;
-+		*bit = 14;
-+		*mask = 1 << 14;
-+		break;
-+	case V4L2_CID_RDS_TX_ARTIFICIAL_HEAD:
-+		*property = SI4713_TX_RDS_PS_MISC;
-+		*bit = 13;
-+		*mask = 1 << 13;
-+		break;
-+	case V4L2_CID_RDS_TX_MONO_STEREO:
-+		*property = SI4713_TX_RDS_PS_MISC;
-+		*bit = 12;
-+		*mask = 1 << 12;
-+		break;
-+	case V4L2_CID_RDS_TX_TRAFFIC_PROGRAM:
-+		*property = SI4713_TX_RDS_PS_MISC;
-+		*bit = 10;
-+		*mask = 1 << 10;
-+		break;
-+	case V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT:
-+		*property = SI4713_TX_RDS_PS_MISC;
-+		*bit = 4;
-+		*mask = 1 << 4;
-+		break;
-+	case V4L2_CID_RDS_TX_MUSIC_SPEECH:
-+		*property = SI4713_TX_RDS_PS_MISC;
-+		*bit = 3;
-+		*mask = 1 << 3;
-+		break;
- 	case V4L2_CID_AUDIO_LIMITER_ENABLED:
- 		*property = SI4713_TX_ACOMP_ENABLE;
- 		*bit = 1;
-@@ -1122,6 +1157,17 @@ static int si4713_s_ctrl(struct v4l2_ctrl *ctrl)
- 			}
- 			break;
+diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+index ad20c39..285213c 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.c
++++ b/drivers/media/usb/dvb-usb/cxusb.c
+@@ -1371,6 +1371,7 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
+ 	st->i2c_client_demod = client_demod;
  
-+		case V4L2_CID_RDS_TX_ALT_FREQS_ENABLE:
-+		case V4L2_CID_RDS_TX_ALT_FREQS:
-+			if (sdev->rds_alt_freqs_enable->val) {
-+				val = sdev->rds_alt_freqs->p_new.p_u32[0];
-+				val = val / 100 - 876 + 0xe101;
-+			} else {
-+				val = 0xe0e0;
-+			}
-+			ret = si4713_write_property(sdev, SI4713_TX_RDS_PS_AF, val);
-+			break;
-+
- 		default:
- 			ret = si4713_choose_econtrol_action(sdev, ctrl->id, &bit,
- 					&mask, &property, &mul, &table, &size);
-@@ -1355,6 +1401,17 @@ static const struct v4l2_subdev_ops si4713_subdev_ops = {
- 	.tuner		= &si4713_subdev_tuner_ops,
- };
- 
-+static const struct v4l2_ctrl_config si4713_alt_freqs_ctrl = {
-+	.id = V4L2_CID_RDS_TX_ALT_FREQS,
-+	.type = V4L2_CTRL_TYPE_U32,
-+	.min = 87600,
-+	.max = 107900,
-+	.step = 100,
-+	.def = 87600,
-+	.dims = { 1 },
-+	.elem_size = sizeof(u32),
-+};
-+
- /*
-  * I2C driver interface
-  */
-@@ -1410,6 +1467,23 @@ static int si4713_probe(struct i2c_client *client,
- 			V4L2_CID_RDS_TX_PI, 0, 0xffff, 1, DEFAULT_RDS_PI);
- 	sdev->rds_pty = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
- 			V4L2_CID_RDS_TX_PTY, 0, 31, 1, DEFAULT_RDS_PTY);
-+	sdev->rds_compressed = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_COMPRESSED, 0, 1, 1, 0);
-+	sdev->rds_art_head = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_ARTIFICIAL_HEAD, 0, 1, 1, 0);
-+	sdev->rds_stereo = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_MONO_STEREO, 0, 1, 1, 1);
-+	sdev->rds_tp = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_TRAFFIC_PROGRAM, 0, 1, 1, 0);
-+	sdev->rds_ta = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT, 0, 1, 1, 0);
-+	sdev->rds_ms = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_MUSIC_SPEECH, 0, 1, 1, 1);
-+	sdev->rds_dyn_pty = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_DYNAMIC_PTY, 0, 1, 1, 0);
-+	sdev->rds_alt_freqs_enable = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_ALT_FREQS_ENABLE, 0, 1, 1, 0);
-+	sdev->rds_alt_freqs = v4l2_ctrl_new_custom(hdl, &si4713_alt_freqs_ctrl, NULL);
- 	sdev->rds_deviation = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
- 			V4L2_CID_RDS_TX_DEVIATION, 0, MAX_RDS_DEVIATION,
- 			10, DEFAULT_RDS_DEVIATION);
-@@ -1476,7 +1550,7 @@ static int si4713_probe(struct i2c_client *client,
- 		rval = hdl->error;
- 		goto free_ctrls;
- 	}
--	v4l2_ctrl_cluster(20, &sdev->mute);
-+	v4l2_ctrl_cluster(29, &sdev->mute);
- 	sdev->sd.ctrl_handler = hdl;
- 
- 	if (client->irq) {
-diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
-index 4837cf6..ed700e3 100644
---- a/drivers/media/radio/si4713/si4713.h
-+++ b/drivers/media/radio/si4713/si4713.h
-@@ -211,6 +211,15 @@ struct si4713_device {
- 		struct v4l2_ctrl *rds_pi;
- 		struct v4l2_ctrl *rds_deviation;
- 		struct v4l2_ctrl *rds_pty;
-+		struct v4l2_ctrl *rds_compressed;
-+		struct v4l2_ctrl *rds_art_head;
-+		struct v4l2_ctrl *rds_stereo;
-+		struct v4l2_ctrl *rds_ta;
-+		struct v4l2_ctrl *rds_tp;
-+		struct v4l2_ctrl *rds_ms;
-+		struct v4l2_ctrl *rds_dyn_pty;
-+		struct v4l2_ctrl *rds_alt_freqs_enable;
-+		struct v4l2_ctrl *rds_alt_freqs;
- 		struct v4l2_ctrl *compression_enabled;
- 		struct v4l2_ctrl *compression_threshold;
- 		struct v4l2_ctrl *compression_gain;
+ 	/* attach tuner */
++	memset(&si2157_config, 0, sizeof(si2157_config));
+ 	si2157_config.fe = adap->fe_adap[0].fe;
+ 	memset(&info, 0, sizeof(struct i2c_board_info));
+ 	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
 -- 
-2.0.1
+2.0.0
 
