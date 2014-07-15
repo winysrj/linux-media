@@ -1,52 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:25057 "EHLO mga14.intel.com"
+Received: from smtp.gentoo.org ([140.211.166.183]:36545 "EHLO smtp.gentoo.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750800AbaGVAiq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 20:38:46 -0400
-Date: Tue, 22 Jul 2014 08:39:30 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: [linuxtv-media:master 482/499]
- drivers/staging/media/airspy/airspy.c:1042:10: error: 'V4L2_FL_USE_FH_PRIO' undeclared
-Message-ID: <53cdb2c2.8SHaff7EpSXpKg0O%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	id S1752949AbaGOH7E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jul 2014 03:59:04 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: crope@iki.fi
+Cc: Matthias Schwarzott <zzam@gentoo.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] si2157: Add get_if_frequency callback
+Date: Tue, 15 Jul 2014 09:58:40 +0200
+Message-Id: <1405411120-9569-3-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1405411120-9569-1-git-send-email-zzam@gentoo.org>
+References: <1405411120-9569-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   469d4ec8776091a2846ba89803cf954cf8b3ce65
-commit: 634fe5033951b80ef4b98d8f047cb1083d29170d [482/499] [media] airspy: AirSpy SDR driver
-config: make ARCH=x86_64 allmodconfig
+This is needed for PCTV 522e support.
 
-Note: the linuxtv-media/master HEAD 469d4ec8776091a2846ba89803cf954cf8b3ce65 builds fine.
-      It only hurts bisectibility.
-
-All error/warnings:
-
-   drivers/staging/media/airspy/airspy.c: In function 'airspy_probe':
->> drivers/staging/media/airspy/airspy.c:1042:10: error: 'V4L2_FL_USE_FH_PRIO' undeclared (first use in this function)
-     set_bit(V4L2_FL_USE_FH_PRIO, &s->vdev.flags);
-             ^
-   drivers/staging/media/airspy/airspy.c:1042:10: note: each undeclared identifier is reported only once for each function it appears in
-
-vim +/V4L2_FL_USE_FH_PRIO +1042 drivers/staging/media/airspy/airspy.c
-
-  1036		}
-  1037	
-  1038		/* Init video_device structure */
-  1039		s->vdev = airspy_template;
-  1040		s->vdev.queue = &s->vb_queue;
-  1041		s->vdev.queue->lock = &s->vb_queue_lock;
-> 1042		set_bit(V4L2_FL_USE_FH_PRIO, &s->vdev.flags);
-  1043		video_set_drvdata(&s->vdev, s);
-  1044	
-  1045		/* Register the v4l2_device structure */
-
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 ---
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+ drivers/media/tuners/si2157.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index 4dbd3f1..06153fa 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -279,6 +279,12 @@ err:
+ 	return ret;
+ }
+ 
++static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
++{
++	*frequency = 5000000; /* default value of property 0x0706 */
++	return 0;
++}
++
+ static const struct dvb_tuner_ops si2157_tuner_ops = {
+ 	.info = {
+ 		.name           = "Silicon Labs Si2157/Si2158",
+@@ -289,6 +295,7 @@ static const struct dvb_tuner_ops si2157_tuner_ops = {
+ 	.init = si2157_init,
+ 	.sleep = si2157_sleep,
+ 	.set_params = si2157_set_params,
++	.get_if_frequency = si2157_get_if_frequency,
+ };
+ 
+ static int si2157_probe(struct i2c_client *client,
+-- 
+2.0.0
+
