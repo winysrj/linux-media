@@ -1,110 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39967 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756687AbaGNR3b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 13:29:31 -0400
-Message-ID: <53C41379.6080806@iki.fi>
-Date: Mon, 14 Jul 2014 20:29:29 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:64381 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757905AbaGOVbY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jul 2014 17:31:24 -0400
+Date: Wed, 16 Jul 2014 03:01:17 +0530
+From: Himangi Saraogi <himangi774@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: julia.lawall@lip6.fr
+Subject: [PATCH] dib7000m: Remove unnecessary null test
+Message-ID: <20140715213117.GA28037@himangi-Dell>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: Olli Salonen <olli.salonen@iki.fi>
-Subject: Re: [GIT PULL] si2157, si2168, cxusb, TechnoTrend TVStick CT2-4400
-References: <53C41050.7030404@iki.fi>
-In-Reply-To: <53C41050.7030404@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Minor PULL request update, new tags added.
+This patch removes the null test on ch. ch is initialized at the
+beginning of the function to &demod->dtv_property_cache. Since demod
+is dereferenced prior to the null test, demod must be a valid pointer,
+and &demod->dtv_property_cache cannot be null.
 
-The following changes since commit 3445857b22eafb70a6ac258979e955b116bfd2c6:
+The following Coccinelle script is used for detecting the change:
 
-   [media] hdpvr: fix two audio bugs (2014-07-04 15:13:02 -0300)
+@r@
+expression e,f;
+identifier g,y;
+statement S1,S2;
+@@
 
-are available in the git repository at:
+*e = &f->g
+<+...
+ f->y
+ ...+>
+*if (e != NULL || ...)
+ S1 else S2
 
-   git://linuxtv.org/anttip/media_tree.git silabs
+Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
+Acked-by: Julia Lawall <julia.lawall@lip6.fr>
+---
+ drivers/media/dvb-frontends/dib7000m.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-for you to fetch changes up to b7b4209ece2d051d7dc70b90471091c2e3dfaec5:
-
-   si2157: rework firmware download logic a little bit (2014-07-14 
-20:26:54 +0300)
-
-regards
-Antti
-
-On 07/14/2014 08:16 PM, Antti Palosaari wrote:
-> Olli hacked support for TechnoTrend TVStick CT2-4400.
->
-> http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-TVStick_CT2-4400
->
-> USB ID 0b48:3014.
-> USB interface: Cypress CY7C68013A-56LTXC
-> Demodulator: Silicon Labs Si2168-30
-> Tuner: Silicon Labs Si2158-20
->
-> I have reviewed all the code.
->
-> regards
-> Antti
->
->
-> The following changes since commit
-> 3445857b22eafb70a6ac258979e955b116bfd2c6:
->
->    [media] hdpvr: fix two audio bugs (2014-07-04 15:13:02 -0300)
->
-> are available in the git repository at:
->
->    git://linuxtv.org/anttip/media_tree.git silabs
->
-> for you to fetch changes up to bd97124d726a97297f899d9725add87c873f4fc5:
->
->    si2157: rework firmware download logic a little bit (2014-07-14
-> 20:05:40 +0300)
->
-> ----------------------------------------------------------------
-> Antti Palosaari (12):
->        si2157: implement sleep
->        si2168: implement sleep
->        si2168: set cmd args using memcpy
->        si2168: implement CNR statistic
->        si2157: add read data support for fw cmd func
->        si2168: remove duplicate command
->        si2168: do not set values which are already on default
->        si2168: receive 4 bytes reply from cmd 0x14
->        si2168: advertise Si2168 A30 firmware
->        si2157: advertise Si2158 A20 firmware
->        si2168: few firmware download changes
->        si2157: rework firmware download logic a little bit
->
-> Olli Salonen (6):
->        si2168: Small typo fix (SI2157 -> SI2168)
->        si2168: Add support for chip revision Si2168 A30
->        si2157: Move chip initialization to si2157_init
->        si2157: Add support for Si2158 chip
->        si2157: Set delivery system and bandwidth before tuning
->        cxusb: TechnoTrend CT2-4400 USB DVB-T2/C tuner support
->
->   drivers/media/dvb-core/dvb-usb-ids.h      |   1 +
->   drivers/media/dvb-frontends/si2168.c      | 240
-> ++++++++++++++++++++++++++++++++++++++++++++++---------------------------------------------------------------------------------------
->
->   drivers/media/dvb-frontends/si2168_priv.h |   8 +++--
->   drivers/media/tuners/si2157.c             | 243
-> ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-------------------------------------
->
->   drivers/media/tuners/si2157.h             |   2 +-
->   drivers/media/tuners/si2157_priv.h        |   8 +++--
->   drivers/media/usb/dvb-usb/Kconfig         |   3 ++
->   drivers/media/usb/dvb-usb/cxusb.c         | 191
-> +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
->
->   drivers/media/usb/dvb-usb/cxusb.h         |   2 ++
->   9 files changed, 467 insertions(+), 231 deletions(-)
->
-
+diff --git a/drivers/media/dvb-frontends/dib7000m.c b/drivers/media/dvb-frontends/dib7000m.c
+index 148bf79..dcb9a15 100644
+--- a/drivers/media/dvb-frontends/dib7000m.c
++++ b/drivers/media/dvb-frontends/dib7000m.c
+@@ -1041,10 +1041,7 @@ static int dib7000m_tune(struct dvb_frontend *demod)
+ 	u16 value;
+ 
+ 	// we are already tuned - just resuming from suspend
+-	if (ch != NULL)
+-		dib7000m_set_channel(state, ch, 0);
+-	else
+-		return -EINVAL;
++	dib7000m_set_channel(state, ch, 0);
+ 
+ 	// restart demod
+ 	ret |= dib7000m_write_word(state, 898, 0x4000);
 -- 
-http://palosaari.fi/
+1.9.1
+
