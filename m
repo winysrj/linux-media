@@ -1,90 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2793 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751348AbaGYL4t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 07:56:49 -0400
-Message-ID: <53D245EA.4070803@xs4all.nl>
-Date: Fri, 25 Jul 2014 13:56:26 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:59303 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758493AbaGOLIS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jul 2014 07:08:18 -0400
+Message-ID: <53C50BA0.2000800@iki.fi>
+Date: Tue, 15 Jul 2014 14:08:16 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [ATTN] Please review/check the REVIEWv4 compound control patch
- series
-References: <53999849.1090105@xs4all.nl> <CAPybu_2R9oj7aF1dUOjdGfHfV=LHaTWDp=CGXAZq76qcvJoAvQ@mail.gmail.com> <CAPybu_2fPc5z2KyiMzX-=VNQHavyR5WQHX2JcyPYMbUKmLMYYQ@mail.gmail.com>
-In-Reply-To: <CAPybu_2fPc5z2KyiMzX-=VNQHavyR5WQHX2JcyPYMbUKmLMYYQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
+To: Matthias Schwarzott <zzam@gentoo.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/2] si2157: Add support for spectrum inversion
+References: <1405411120-9569-1-git-send-email-zzam@gentoo.org> <1405411120-9569-2-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1405411120-9569-2-git-send-email-zzam@gentoo.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricardo,
+Moikka Matthias!
+Idea of patch is correct, but I think implementation not. You set FE to 
+si2157_config on variable define, but on that point FE is NULL. FE 
+pointer is populated by demodulator driver, si2168. Right?
 
-On 07/25/14 13:52, Ricardo Ribalda Delgado wrote:
-> Hello Hans
-> 
-> 
-> Guess it is too late, but just so you know. I have successfully uses
-> this patches to implement a dead pixel array list.
-> 
-> Tested-by: Ricardo Ribalda <ricardo.ribalda@gmail.com>
-> Thanked-by: Ricardo Ribalda <ricardo.ribalda@gmail.com>  :)
+And you could split that to 3 patches too, one for prepare em28xx, one 
+for cxusb and last is patch itself.
 
-Nevertheless nice to hear about this!
+regards
+Antti
 
-BTW, are you planning on upstreaming this driver? Or do you need to
-have multi-selection support first? That needs the compound control
-support as well, so at least it's closer to becoming a reality.
 
-Regards,
+On 07/15/2014 10:58 AM, Matthias Schwarzott wrote:
+> This is needed for PCTV 522e support.
+> Modify all users of si2157_config to correctly initialize all not
+> mentioned values to 0.
+>
+> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+> ---
+>   drivers/media/tuners/si2157.c         | 3 +++
+>   drivers/media/tuners/si2157.h         | 5 +++++
+>   drivers/media/tuners/si2157_priv.h    | 1 +
+>   drivers/media/usb/dvb-usb/cxusb.c     | 3 +--
+>   drivers/media/usb/em28xx/em28xx-dvb.c | 5 +++--
+>   5 files changed, 13 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+> index 329004f..4dbd3f1 100644
+> --- a/drivers/media/tuners/si2157.c
+> +++ b/drivers/media/tuners/si2157.c
+> @@ -253,6 +253,8 @@ static int si2157_set_params(struct dvb_frontend *fe)
+>
+>   	memcpy(cmd.args, "\x14\x00\x03\x07\x00\x00", 6);
+>   	cmd.args[4] = delivery_system | bandwidth;
+> +	if (s->inversion)
+> +		cmd.args[5] = 0x01;
+>   	cmd.wlen = 6;
+>   	cmd.rlen = 1;
+>   	ret = si2157_cmd_execute(s, &cmd);
+> @@ -307,6 +309,7 @@ static int si2157_probe(struct i2c_client *client,
+>
+>   	s->client = client;
+>   	s->fe = cfg->fe;
+> +	s->inversion = cfg->inversion;
+>   	mutex_init(&s->i2c_mutex);
+>
+>   	/* check if the tuner is there */
+> diff --git a/drivers/media/tuners/si2157.h b/drivers/media/tuners/si2157.h
+> index 4465c46..6da4d5d 100644
+> --- a/drivers/media/tuners/si2157.h
+> +++ b/drivers/media/tuners/si2157.h
+> @@ -29,6 +29,11 @@ struct si2157_config {
+>   	 * frontend
+>   	 */
+>   	struct dvb_frontend *fe;
+> +
+> +	/*
+> +	 * Spectral Inversion
+> +	 */
+> +	bool inversion;
+>   };
+>
+>   #endif
+> diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
+> index db79f3c..3ddab5e 100644
+> --- a/drivers/media/tuners/si2157_priv.h
+> +++ b/drivers/media/tuners/si2157_priv.h
+> @@ -26,6 +26,7 @@ struct si2157 {
+>   	struct i2c_client *client;
+>   	struct dvb_frontend *fe;
+>   	bool active;
+> +	bool inversion;
+>   };
+>
+>   /* firmare command struct */
+> diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+> index ad20c39..c94a704 100644
+> --- a/drivers/media/usb/dvb-usb/cxusb.c
+> +++ b/drivers/media/usb/dvb-usb/cxusb.c
+> @@ -1337,7 +1337,7 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
+>   	struct i2c_client *client_tuner;
+>   	struct i2c_board_info info;
+>   	struct si2168_config si2168_config;
+> -	struct si2157_config si2157_config;
+> +	struct si2157_config si2157_config = { .fe = adap->fe_adap[0].fe };
+>
+>   	/* reset the tuner */
+>   	if (cxusb_tt_ct2_4400_gpio_tuner(d, 0) < 0) {
+> @@ -1371,7 +1371,6 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
+>   	st->i2c_client_demod = client_demod;
+>
+>   	/* attach tuner */
+> -	si2157_config.fe = adap->fe_adap[0].fe;
+>   	memset(&info, 0, sizeof(struct i2c_board_info));
+>   	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+>   	info.addr = 0x60;
+> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+> index a121ed9..d472dc9 100644
+> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+> @@ -1520,7 +1520,9 @@ static int em28xx_dvb_init(struct em28xx *dev)
+>   			struct i2c_client *client;
+>   			struct i2c_board_info info;
+>   			struct si2168_config si2168_config;
+> -			struct si2157_config si2157_config;
+> +			struct si2157_config si2157_config = {
+> +				.fe = dvb->fe[0]
+> +			};
+>
+>   			/* attach demod */
+>   			si2168_config.i2c_adapter = &adapter;
+> @@ -1545,7 +1547,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
+>   			dvb->i2c_client_demod = client;
+>
+>   			/* attach tuner */
+> -			si2157_config.fe = dvb->fe[0];
+>   			memset(&info, 0, sizeof(struct i2c_board_info));
+>   			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+>   			info.addr = 0x60;
+>
 
-	Hans
-
-> 
-> Thanks!
-> 
-> On Thu, Jul 17, 2014 at 3:56 PM, Ricardo Ribalda Delgado
-> <ricardo.ribalda@gmail.com> wrote:
->> Hello Hans
->>
->> I am planning to test this patchset for dead pixels by the end of this
->> week and the beggining of the next. I am thinking about comparing the
->> performance a list of deadpixels against a list of all pixels with
->> their property (ok pixel, dead pixel, white pixel, slow pixel...)
->>
->> Will write back (hopefully) soon
->>
->> Regards!
->>
->> On Thu, Jun 12, 2014 at 2:08 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> Mauro & anyone else with an interest,
->>>
->>> I'd appreciate it if this patch series was reviewed, in particular
->>> with respect to the handling of multi-dimensional arrays:
->>>
->>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg75929.html
->>>
->>> This patch series incorporates all comments from the REVIEWv3 series
->>> except for two (see the cover letter of the patch series for details),
->>>
->>> If support for arrays with more than 8 dimensions is really needed,
->>> then I would like to know asap so I can implement that in time for
->>> 3.17.
->>>
->>> Regards,
->>>
->>>         Hans
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->>
->> --
->> Ricardo Ribalda
-> 
-> 
-> 
-
+-- 
+http://palosaari.fi/
