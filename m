@@ -1,124 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3884 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761596AbaGRNNG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 09:13:06 -0400
-Message-ID: <53C91D59.7010000@xs4all.nl>
-Date: Fri, 18 Jul 2014 15:12:57 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Subject: Re: [PATCH v2 03/23] v4l: Support extending the v4l2_pix_format structure
-References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <53C83EA0.2010706@xs4all.nl> <53C8AC58.7070101@xs4all.nl> <1521674.bDcZxklUhm@avalon>
-In-Reply-To: <1521674.bDcZxklUhm@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:56273 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754736AbaGOBJn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jul 2014 21:09:43 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 06/18] DocBook: V4L: add V4L2_SDR_FMT_CS14LE - 'CS14'
+Date: Tue, 15 Jul 2014 04:09:09 +0300
+Message-Id: <1405386561-30450-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1405386561-30450-1-git-send-email-crope@iki.fi>
+References: <1405386561-30450-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/18/2014 02:27 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Friday 18 July 2014 07:10:48 Hans Verkuil wrote:
->> On 07/17/2014 11:22 PM, Hans Verkuil wrote:
->>> And another thing that I found while implementing this in v4l2-ctl:
->>>
->>> On 06/24/2014 01:54 AM, Laurent Pinchart wrote:
->>>> The v4l2_pix_format structure has no reserved field. It is embedded in
->>>> the v4l2_framebuffer structure which has no reserved fields either, and
->>>> in the v4l2_format structure which has reserved fields that were not
->>>> previously required to be zeroed out by applications.
->>>>
->>>> To allow extending v4l2_pix_format, inline it in the v4l2_framebuffer
->>>> structure, and use the priv field as a magic value to indicate that the
->>>> application has set all v4l2_pix_format extended fields and zeroed all
->>>> reserved fields following the v4l2_pix_format field in the v4l2_format
->>>> structure.
->>>>
->>>> The availability of this API extension is reported to userspace through
->>>> the new V4L2_CAP_EXT_PIX_FORMAT capability flag. Just checking that the
->>>> priv field is still set to the magic value at [GS]_FMT return wouldn't
->>>> be enough, as older kernels don't zero the priv field on return.
->>>>
->>>> To simplify the internal API towards drivers zero the extended fields
->>>> and set the priv field to the magic value for applications not aware of
->>>> the extensions.
->>>>
->>>> Signed-off-by: Laurent Pinchart
->>>> <laurent.pinchart+renesas@ideasonboard.com>
->>>>
->>>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
->>>> b/drivers/media/v4l2-core/v4l2-ioctl.c index 16bffd8..01b4588 100644
->>>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
->>>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
->>>> @@ -959,13 +959,48 @@ static int check_fmt(struct file *file, enum
->>>> v4l2_buf_type type)
-> 
-> [snip]
-> 
->>>>  static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
->>>>  				struct file *file, void *fh, void *arg)
->>>>  {
->>>>  	struct v4l2_capability *cap = (struct v4l2_capability *)arg;
->>>> +	int ret;
->>>>
->>>>  	cap->version = LINUX_VERSION_CODE;
->>>>
->>>> -	return ops->vidioc_querycap(file, fh, cap);
->>>> +
->>>> +	ret = ops->vidioc_querycap(file, fh, cap);
->>>> +
->>>> +	cap->capabilities |= V4L2_CAP_EXT_PIX_FORMAT;
->>>
->>> It should be ORed to cap->device_caps as well.
->>
->> But only if cap->capabilities sets V4L2_CAP_DEVICE_CAPS.
->>
->> Should we unconditionally add this flag or only if CAP_VIDEO_CAPTURE or
->> CAP_VIDEO_OUTPUT is set?
->>
->> So we could do this:
->>
->> 	if (cap->capabilities & (V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT))
->> 		cap->capabilities |= V4L2_CAP_EXT_PIX_FORMAT;
->> 	if ((cap->capabilities & V4L2_CAP_DEVICE_CAPS) &&
->> 	    (cap->device_caps & (V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT))
->> 		cap->device_caps |= V4L2_CAP_EXT_PIX_FORMAT;
->>
->>
->> I can argue either direction: on the one hand ext_pix_format handling is
->> part of the v4l2 core, so it is valid for all that use it, on the other
->> hand it makes no sense for a non-video device.
->>
->> My preference would be to set it only in combination with video
->> capture/output since it just looks peculiar otherwise.
-> 
-> I have mixed feelings here. As the flag indicates whether a particular feature 
-> is supported by the V4L2 API, wouldn't it make more sense to set it only in 
-> the capabilities field, and unconditionally ? Does setting it conditionally 
-> bring any benefit to kernel space or userspace ? Same question for 
-> device_caps, I don't think it would help applications in a any way (but please 
-> feel free to point me to use cases I might have missed).
+V4L2_SDR_FMT_CS14LE is complex signed 14-bit sample format, used
+for software defined radio devices.
 
-There are two things: should it be set for device_caps as well: absolutely. The
-device_caps field should contain all caps relevant for that device and
-EXT_PIX_FORMAT definitely belongs there.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ .../DocBook/media/v4l/pixfmt-sdr-cs14le.xml        | 47 ++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
+ 2 files changed, 48 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cs14le.xml
 
-Several of the apps in v4l-utils do something like this:
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-sdr-cs14le.xml b/Documentation/DocBook/media/v4l/pixfmt-sdr-cs14le.xml
+new file mode 100644
+index 0000000..e4b494c
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-sdr-cs14le.xml
+@@ -0,0 +1,47 @@
++<refentry id="V4L2-SDR-FMT-CS14LE">
++  <refmeta>
++    <refentrytitle>V4L2_SDR_FMT_CS14LE ('CS14')</refentrytitle>
++    &manvol;
++  </refmeta>
++    <refnamediv>
++      <refname>
++        <constant>V4L2_SDR_FMT_CS14LE</constant>
++      </refname>
++      <refpurpose>Complex signed 14-bit little endian IQ sample</refpurpose>
++    </refnamediv>
++    <refsect1>
++      <title>Description</title>
++      <para>
++This format contains sequence of complex number samples. Each complex number
++consist two parts, called In-phase and Quadrature (IQ). Both I and Q are
++represented as a 14 bit signed little endian number. I value comes first
++and Q value after that. 14 bit value is stored in 16 bit space with unused
++high bits padded with 0.
++      </para>
++    <example>
++      <title><constant>V4L2_SDR_FMT_CS14LE</constant> 1 sample</title>
++      <formalpara>
++        <title>Byte Order.</title>
++        <para>Each cell is one byte.
++          <informaltable frame="none">
++            <tgroup cols="3" align="center">
++              <colspec align="left" colwidth="2*" />
++              <tbody valign="top">
++                <row>
++                  <entry>start&nbsp;+&nbsp;0:</entry>
++                  <entry>I'<subscript>0[7:0]</subscript></entry>
++                  <entry>I'<subscript>0[13:8]</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;2:</entry>
++                  <entry>Q'<subscript>0[7:0]</subscript></entry>
++                  <entry>Q'<subscript>0[13:8]</subscript></entry>
++                </row>
++              </tbody>
++            </tgroup>
++          </informaltable>
++        </para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 3e90ded..df0c95c 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -829,6 +829,7 @@ interface only.</para>
+     &sub-sdr-cu08;
+     &sub-sdr-cu16le;
+     &sub-sdr-cs08;
++    &sub-sdr-cs14le;
+     &sub-sdr-ru12le;
+ 
+   </section>
+-- 
+1.9.3
 
-	__u32 caps = qcap->capabilities;
-	if (caps & V4L2_CAP_DEVICE_CAPS)
-		caps = qcap->device_caps;
-
-And after that I just use caps. It makes life very easy.
-
-Whether V4L2_CAP_EXT_PIX_FORMAT should be set unconditionally: I've got
-mixed feelings as well. So let's leave it as is, I'm OK with that. Just
-add it to device_caps as well...
-
-Regards,
-
-	Hans
