@@ -1,49 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2420 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932171AbaGQK7w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 06:59:52 -0400
-Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6HAxm9H051254
-	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 12:59:51 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id D109C2A1FD1
-	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 12:59:46 +0200 (CEST)
-Message-ID: <53C7ACA2.9020106@xs4all.nl>
-Date: Thu, 17 Jul 2014 12:59:46 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.17] Three trivial davinci patches
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:43187 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753448AbaGOBJn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jul 2014 21:09:43 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 01/18] v4l: uapi: add SDR format RU12LE
+Date: Tue, 15 Jul 2014 04:09:04 +0300
+Message-Id: <1405386561-30450-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 3c0d394ea7022bb9666d9df97a5776c4bcc3045c:
+V4L2_SDR_FMT_RU12LE - Real unsigned 12-bit little endian sample
+inside 16-bit (2 byte). V4L2 FourCC: RU12.
 
-  [media] dib8000: improve the message that reports per-layer locks (2014-07-07 09:59:01 -0300)
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ include/uapi/linux/videodev2.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-are available in the git repository at:
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 168ff50..3cb60f6 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -439,6 +439,7 @@ struct v4l2_pix_format {
+ /* SDR formats - used only for Software Defined Radio devices */
+ #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+ #define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
++#define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
+ 
+ /*
+  *	F O R M A T   E N U M E R A T I O N
+-- 
+1.9.3
 
-  git://linuxtv.org/hverkuil/media_tree.git davinci
-
-for you to fetch changes up to 5588d119ac994cc8929e0fa5d0655811ee02df3a:
-
-  davinci: vpfe: dm365: remove duplicate RSZ_LPF_INT_MASK (2014-07-17 12:58:57 +0200)
-
-----------------------------------------------------------------
-Dan Carpenter (1):
-      davinci: vpfe: dm365: remove duplicate RSZ_LPF_INT_MASK
-
-Lad, Prabhakar (2):
-      staging: media: davinci_vpfe: fix checkpatch warning
-      media: davinci_vpfe: dm365_resizer: fix sparse warning
-
- drivers/staging/media/davinci_vpfe/dm365_ipipe.c    | 2 ++
- drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.h | 1 -
- drivers/staging/media/davinci_vpfe/dm365_resizer.c  | 4 ++--
- 3 files changed, 4 insertions(+), 3 deletions(-)
