@@ -1,64 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37882 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:47088 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751347AbaGWIWn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 04:22:43 -0400
-Message-ID: <53CF70D0.1060907@iki.fi>
-Date: Wed, 23 Jul 2014 11:22:40 +0300
+	id S1754959AbaGOBJp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jul 2014 21:09:45 -0400
 From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] si2168: Fix unknown chip version message
-References: <1406056450-16031-1-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1406056450-16031-1-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 14/18] msi2500: print notice to point SDR API is not 100% stable yet
+Date: Tue, 15 Jul 2014 04:09:17 +0300
+Message-Id: <1405386561-30450-14-git-send-email-crope@iki.fi>
+In-Reply-To: <1405386561-30450-1-git-send-email-crope@iki.fi>
+References: <1405386561-30450-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
-It is single character formatter, not string, => no need to terminate, 
-so that patch is not valid.
+SDR API is very new and surprises may occur. Due to that print
+notice to remind possible users.
 
-regards
-Antti
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/msi2500/msi2500.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-
-On 07/22/2014 10:14 PM, Mauro Carvalho Chehab wrote:
-> At least here with my PCTV 292e, it is printing this error:
->
-> 	si2168 10-0064: si2168: unkown chip version Si21170-
->
-> without a \n at the end. Probably because it is doing something
-> weird or firmware didn't load well. Anyway, better to print it
-> in hex, instead of using %c.
->
-> While here, fix the typo.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->   drivers/media/dvb-frontends/si2168.c | 5 ++---
->   1 file changed, 2 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-> index 41bdbc4d9f6c..842c4a555d01 100644
-> --- a/drivers/media/dvb-frontends/si2168.c
-> +++ b/drivers/media/dvb-frontends/si2168.c
-> @@ -414,9 +414,8 @@ static int si2168_init(struct dvb_frontend *fe)
->   		break;
->   	default:
->   		dev_err(&s->client->dev,
-> -				"%s: unkown chip version Si21%d-%c%c%c\n",
-> -				KBUILD_MODNAME, cmd.args[2], cmd.args[1],
-> -				cmd.args[3], cmd.args[4]);
-> +				"%s: unknown chip version: 0x%04x\n",
-> +				KBUILD_MODNAME, chip_id);
->   		ret = -EINVAL;
->   		goto err;
->   	}
->
-
+diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2500/msi2500.c
+index 6ed121b..a66a07f 100644
+--- a/drivers/media/usb/msi2500/msi2500.c
++++ b/drivers/media/usb/msi2500/msi2500.c
+@@ -1487,6 +1487,9 @@ static int msi3101_probe(struct usb_interface *intf,
+ 	}
+ 	dev_info(&s->udev->dev, "Registered as %s\n",
+ 			video_device_node_name(&s->vdev));
++	dev_notice(&s->udev->dev,
++			"%s: SDR API is still slightly experimental and functionality changes may follow\n",
++			KBUILD_MODNAME);
+ 
+ 	return 0;
+ 
 -- 
-http://palosaari.fi/
+1.9.3
+
