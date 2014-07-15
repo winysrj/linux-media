@@ -1,40 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bay004-omc2s4.hotmail.com ([65.54.190.79]:57555 "EHLO
-	BAY004-OMC2S4.hotmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751072AbaGDGyf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jul 2014 02:54:35 -0400
-Message-ID: <BAY176-W65475E51A776FF2FBA2BBA9000@phx.gbl>
-From: Divneil Wadhawan <divneil@outlook.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: vb2_reqbufs() is not allowing more than VIDEO_MAX_FRAME
-Date: Fri, 4 Jul 2014 12:21:11 +0530
-In-Reply-To: <BAY176-W20DF4182FBC288F24380FCA9350@phx.gbl>
-References: <BAY176-W18F88DAF5A1C8B5194F30DA94E0@phx.gbl>,<536A0709.5090605@xs4all.nl>,<BAY176-W38EDAC885E5441BBA2E0B2A94E0@phx.gbl>,<536A1A45.6080201@xs4all.nl>,<BAY176-W20DF4182FBC288F24380FCA9350@phx.gbl>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail.kapsi.fi ([217.30.184.167]:60104 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753670AbaGOCf5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jul 2014 22:35:57 -0400
+Message-ID: <53C4938A.3000308@iki.fi>
+Date: Tue, 15 Jul 2014 05:35:54 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] airspy: AirSpy SDR driver
+References: <1405366031-31937-1-git-send-email-crope@iki.fi> <53C430AC.9030204@xs4all.nl> <53C435A9.8020004@iki.fi> <53C43705.8020207@xs4all.nl>
+In-Reply-To: <53C43705.8020207@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 07/14/2014 11:01 PM, Hans Verkuil wrote:
+> On 07/14/2014 09:55 PM, Antti Palosaari wrote:
+>> I actually ran v4l2-compliance and there was problem with ADC band
+>> enumeration. v4l2-compliance didn't liked as ADC freq was just 20MHz,
+>> both upper and lower limit. Due to that I added even small hack to driver,
+>>
+>> +		.rangelow   = 20000000,
+>> +		.rangehigh  = 20000001, /* FIXME: make v4l2-compliance happy */
+>
+> Hmm, does the latest v4l2-compliance (direct from the git repo) still fail on
+> that? That shouldn't be a problem, and I don't see that here either if I try that
+> myself.
+>
+> If it still fails, can you show me the error message?
+
+[crope@localhost gr-analog]$ ls -l /usr/local/bin/v4l2-compliance
+-rwxr-xr-x. 1 root root 1497964 Jul 14 22:50 /usr/local/bin/v4l2-compliance
+[crope@localhost gr-analog]$ /usr/local/bin/v4l2-compliance -S 
+/dev/swradio0 -s
+Driver Info:
+	Driver name   : airspy
+	Card type     : AirSpy SDR
+	Bus info      : usb-0000:00:13.2-2
+	Driver version: 3.15.0
+	Capabilities  : 0x85110000
+		SDR Capture
+		Tuner
+		Read/Write
+		Streaming
+		Device Capabilities
+	Device Caps   : 0x05110000
+		SDR Capture
+		Tuner
+		Read/Write
+		Streaming
+
+Compliance test for device /dev/swradio0 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second sdr open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK
+	test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+		fail: v4l2-test-input-output.cpp(107): rangelow >= rangehigh
+		fail: v4l2-test-input-output.cpp(190): invalid tuner 0
+	test VIDIOC_G/S_TUNER: FAIL
+		fail: v4l2-test-input-output.cpp(290): could get frequency for invalid 
+tuner 0
+	test VIDIOC_G/S_FREQUENCY: FAIL
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+	Control ioctls:
+		test VIDIOC_QUERYCTRL/MENU: OK
+		test VIDIOC_G/S_CTRL: OK
+		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 6 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK (Not Supported)
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		test VIDIOC_TRY_FMT: OK
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+	Buffer ioctls:
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK (Not Supported)
+
+Streaming ioctls:
+	test read/write: OK
+	test MMAP: OK
+	test USERPTR: OK
+	test DMABUF: OK
+
+Total: 42, Succeeded: 40, Failed: 2, Warnings: 0
+[crope@localhost gr-analog]$
 
 
-Can you please give some update on this. Is it okay or not?
+regards
+Antti
 
-
-Regards,
-
-Divneil
-
-________________________________
-> From: divneil@outlook.com 
-> To: hverkuil@xs4all.nl; linux-media@vger.kernel.org 
-> Subject: RE: vb2_reqbufs() is not allowing more than VIDEO_MAX_FRAME 
-> Date: Mon, 12 May 2014 17:30:41 +0530 
-> 
-> Hi Hans, 
-> 
-> Please find below the patch. I hope its okay and the way of sending too. 
-> I have only touched filed which were vb2 based in my understanding. 
->  		 	   		  
+-- 
+http://palosaari.fi/
