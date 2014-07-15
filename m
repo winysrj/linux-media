@@ -1,53 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.222.116]:40451 "EHLO
-	kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754176AbaGWQPi (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3129 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755634AbaGODvI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 12:15:38 -0400
-From: ayaka <ayaka@soulik.info>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com, m.chehab@samsung.com,
-	ayaka <ayaka@soulik.info>
-Subject: [PATCH] s5p-mfc: correct the formats info for encoder
-Date: Thu, 24 Jul 2014 00:15:04 +0800
-Message-Id: <1406132104-6430-2-git-send-email-ayaka@soulik.info>
-In-Reply-To: <1406132104-6430-1-git-send-email-ayaka@soulik.info>
-References: <1406132104-6430-1-git-send-email-ayaka@soulik.info>
+	Mon, 14 Jul 2014 23:51:08 -0400
+Message-ID: <53C4A51F.9000500@xs4all.nl>
+Date: Tue, 15 Jul 2014 05:50:55 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] airspy: AirSpy SDR driver
+References: <1405366031-31937-1-git-send-email-crope@iki.fi> <53C430AC.9030204@xs4all.nl> <53C435A9.8020004@iki.fi> <53C43705.8020207@xs4all.nl> <53C4938A.3000308@iki.fi>
+In-Reply-To: <53C4938A.3000308@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The NV12M is supported by all the version of MFC, so it is better
-to use it as default OUTPUT format.
-MFC v5 doesn't support NV21, I have tested it, for the SEC doc
-it is not supported either.
----
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+On 07/15/2014 04:35 AM, Antti Palosaari wrote:
+> On 07/14/2014 11:01 PM, Hans Verkuil wrote:
+>> On 07/14/2014 09:55 PM, Antti Palosaari wrote:
+>>> I actually ran v4l2-compliance and there was problem with ADC band
+>>> enumeration. v4l2-compliance didn't liked as ADC freq was just 20MHz,
+>>> both upper and lower limit. Due to that I added even small hack to driver,
+>>>
+>>> +		.rangelow   = 20000000,
+>>> +		.rangehigh  = 20000001, /* FIXME: make v4l2-compliance happy */
+>>
+>> Hmm, does the latest v4l2-compliance (direct from the git repo) still fail on
+>> that? That shouldn't be a problem, and I don't see that here either if I try that
+>> myself.
+>>
+>> If it still fails, can you show me the error message?
+> 
+> [crope@localhost gr-analog]$ ls -l /usr/local/bin/v4l2-compliance
+> -rwxr-xr-x. 1 root root 1497964 Jul 14 22:50 /usr/local/bin/v4l2-compliance
+> [crope@localhost gr-analog]$ /usr/local/bin/v4l2-compliance -S 
+> /dev/swradio0 -s
+> Driver Info:
+> 	Driver name   : airspy
+> 	Card type     : AirSpy SDR
+> 	Bus info      : usb-0000:00:13.2-2
+> 	Driver version: 3.15.0
+> 	Capabilities  : 0x85110000
+> 		SDR Capture
+> 		Tuner
+> 		Read/Write
+> 		Streaming
+> 		Device Capabilities
+> 	Device Caps   : 0x05110000
+> 		SDR Capture
+> 		Tuner
+> 		Read/Write
+> 		Streaming
+> 
+> Compliance test for device /dev/swradio0 (not using libv4l2):
+> 
+> Required ioctls:
+> 	test VIDIOC_QUERYCAP: OK
+> 
+> Allow for multiple opens:
+> 	test second sdr open: OK
+> 	test VIDIOC_QUERYCAP: OK
+> 	test VIDIOC_G/S_PRIORITY: OK
+> 
+> Debug ioctls:
+> 	test VIDIOC_DBG_G/S_REGISTER: OK
+> 	test VIDIOC_LOG_STATUS: OK
+> 
+> Input ioctls:
+> 		fail: v4l2-test-input-output.cpp(107): rangelow >= rangehigh
+> 		fail: v4l2-test-input-output.cpp(190): invalid tuner 0
+> 	test VIDIOC_G/S_TUNER: FAIL
+> 		fail: v4l2-test-input-output.cpp(290): could get frequency for invalid 
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index d26b248..4ea3796 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -32,7 +32,7 @@
- #include "s5p_mfc_intr.h"
- #include "s5p_mfc_opr.h"
- 
--#define DEF_SRC_FMT_ENC	V4L2_PIX_FMT_NV12MT
-+#define DEF_SRC_FMT_ENC	V4L2_PIX_FMT_NV12M
- #define DEF_DST_FMT_ENC	V4L2_PIX_FMT_H264
- 
- static struct s5p_mfc_fmt formats[] = {
-@@ -67,8 +67,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_NONE,
- 		.type		= MFC_FMT_RAW,
- 		.num_planes	= 2,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
- 	},
- 	{
- 		.name		= "H264 Encoded Stream",
--- 
-1.9.3
+Try again, it should be fixed now.
+
+Regards,
+
+	Hans
+
+> tuner 0
+> 	test VIDIOC_G/S_FREQUENCY: FAIL
+> 	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+> 	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+> 	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+> 	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+> 	Inputs: 0 Audio Inputs: 0 Tuners: 0
+> 
+> Output ioctls:
+> 	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+> 	test VIDIOC_G/S_FREQUENCY: OK
+> 	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+> 	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+> 	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+> 	Outputs: 0 Audio Outputs: 0 Modulators: 0
+> 
+> Input/Output configuration ioctls:
+> 	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+> 	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+> 	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+> 	test VIDIOC_G/S_EDID: OK (Not Supported)
+> 
+> 	Control ioctls:
+> 		test VIDIOC_QUERYCTRL/MENU: OK
+> 		test VIDIOC_G/S_CTRL: OK
+> 		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+> 		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+> 		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+> 		Standard Controls: 6 Private Controls: 0
+> 
+> 	Format ioctls:
+> 		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+> 		test VIDIOC_G/S_PARM: OK (Not Supported)
+> 		test VIDIOC_G_FBUF: OK (Not Supported)
+> 		test VIDIOC_G_FMT: OK
+> 		test VIDIOC_TRY_FMT: OK
+> 		test VIDIOC_S_FMT: OK
+> 		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+> 
+> 	Codec ioctls:
+> 		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+> 		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+> 		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> 
+> 	Buffer ioctls:
+> 		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+> 		test VIDIOC_EXPBUF: OK (Not Supported)
+> 
+> Streaming ioctls:
+> 	test read/write: OK
+> 	test MMAP: OK
+> 	test USERPTR: OK
+> 	test DMABUF: OK
+> 
+> Total: 42, Succeeded: 40, Failed: 2, Warnings: 0
+> [crope@localhost gr-analog]$
+> 
+> 
+> regards
+> Antti
+> 
 
