@@ -1,51 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49995 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752730AbaG2I1s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jul 2014 04:27:48 -0400
-Message-ID: <1406622460.4001.5.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v2 00/11] CODA encoder/decoder device split
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de
-Date: Tue, 29 Jul 2014 10:27:40 +0200
-In-Reply-To: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from mail.kapsi.fi ([217.30.184.167]:40811 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932078AbaGORgy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jul 2014 13:36:54 -0400
+Message-ID: <53C566AE.50103@iki.fi>
+Date: Tue, 15 Jul 2014 20:36:46 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: shuah.kh@samsung.com, m.chehab@samsung.com
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: em28xx-dvb unregister i2c tuner and demod after
+ fe detach
+References: <1405093525-8745-1-git-send-email-shuah.kh@samsung.com> <53C1971E.3020200@iki.fi> <53C564F4.8010002@samsung.com>
+In-Reply-To: <53C564F4.8010002@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Moikka!
 
-Am Freitag, den 18.07.2014, 12:22 +0200 schrieb Philipp Zabel:
-> Hi,
-> 
-> the following patches add a few fixes and cleanups and split the
-> coda video4linux2 device into encoder and decoder.
-> Following the principle of least surprise, this way the format
-> enumeration on the output and capture sides is fixed and does
-> not change depending on whether the given instance is currently
-> configured as encoder or decoder.
+On 07/15/2014 08:29 PM, Shuah Khan wrote:
+> On 07/12/2014 02:14 PM, Antti Palosaari wrote:
+>> Moikka Shuah!
+>> I suspect that patch makes no sense. On DVB there is runtime PM
+>> controlled by DVB frontend. It wakes up all FE sub-devices when frontend
+>> device is opened and sleeps when closed.
+>>
+>> FE release() is not relevant at all for those sub-devices which are
+>> implemented as a proper I2C client. I2C client has own remove() for that.
+>>
+>> em28xx_dvb_init and em28xx_dvb_fini are counterparts. Those I2C drivers
+>> are load on em28xx_dvb_init so logical place for unload is
+>> em28xx_dvb_fini.
+>>
+>> Is there some real use case you need that change?
+>>
+>> regards
+>> Antti
+>>
 >
-> Changes since v1:
->  - Fixed "[media] coda: delay coda_fill_bitstream()", taking into account
->    "[media] v4l: vb2: Fix stream start and buffer completion race".
->  - Added Hans' acks.
+> Hi Antti,
+>
+> The reason I made this change is because dvb_frontend_detach()
+> calls release interfaces for fe as well as tuner. So it made
+> sense to move the remove after that is all done. Are you saying
+> fe and tuner release calls aren't relevant when sub-devices
+> implement a proper i2c client? If that is the case then, and
+> there is no chance for these release calls to be invoked when a
+> proper i2c is present, then my patch isn't needed.
 
-is there still a chance to still get this series merged for v3.17?
-Most of it got acked by Hans right away, and I have received no other
-feedback.
-The split into separate encoder and decoder devices (patch 08/11) is
-necessary for this driver to work with the GStreamer v4l2videodec
-element.
+Yes, that is just case. Proprietary DVB binding model uses attach / 
+release, but I2C binding model has probe / remove. I see no reason use 
+DVB proprietary model, instead drivers should be converted to kernel I2C 
+model.
 
 regards
-Philipp
+Antti
 
+-- 
+http://palosaari.fi/
