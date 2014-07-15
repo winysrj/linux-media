@@ -1,72 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:54655 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751003AbaG1Sc3 (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:24420 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757780AbaGODIJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jul 2014 14:32:29 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id DEB4140BD9
-	for <linux-media@vger.kernel.org>; Mon, 28 Jul 2014 20:32:27 +0200 (CEST)
-Date: Mon, 28 Jul 2014 20:32:27 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL] soc-camera for 3.17
-Message-ID: <Pine.LNX.4.64.1407282030410.32592@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Mon, 14 Jul 2014 23:08:09 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N8Q005OJGPJGS00@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 15 Jul 2014 12:08:07 +0900 (KST)
+From: panpan liu <panpan1.liu@samsung.com>
+To: kyungmin.park@samsung.com, k.debski@samsung.com,
+	jtp.park@samsung.com, mchehab@redhat.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH] s5p-mfc: limit the size of the CPB
+Date: Tue, 15 Jul 2014 11:07:50 +0800
+Message-id: <1405393670-2808-1-git-send-email-panpan1.liu@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The CPB size is limited by the hardware. Add this limit to the s_fmt.
 
-Sorry for a delayed pull-request... A couple of DT documentation patches, 
-I've been recently told, that for such cases, where no new bindings are 
-added, acks from DT-maintainers aren't compulsory.
+Signed-off-by: panpan liu <panpan1.liu@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+ mode change 100644 => 100755 drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
 
-The following changes since commit fe3afdce0da93aad256183bf40ff9c0e86ae8a72:
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+old mode 100644
+new mode 100755
+index 0bae907..70b9458
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -413,7 +413,8 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 	int ret = 0;
+ 	struct s5p_mfc_fmt *fmt;
+ 	struct v4l2_pix_format_mplane *pix_mp;
+-
++	struct s5p_mfc_buf_size *buf_size = dev->variant->buf_size;
++
+ 	mfc_debug_enter();
+ 	ret = vidioc_try_fmt(file, priv, f);
+ 	pix_mp = &f->fmt.pix_mp;
+@@ -466,11 +467,13 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 	mfc_debug(2, "The codec number is: %d\n", ctx->codec_mode);
+ 	pix_mp->height = 0;
+ 	pix_mp->width = 0;
+-	if (pix_mp->plane_fmt[0].sizeimage)
+-		ctx->dec_src_buf_size = pix_mp->plane_fmt[0].sizeimage;
+-	else
++	if (pix_mp->plane_fmt[0].sizeimage == 0)
+ 		pix_mp->plane_fmt[0].sizeimage = ctx->dec_src_buf_size =
+ 								DEF_CPB_SIZE;
++	else if(pix_mp->plane_fmt[0].sizeimage > buf_size->cpb)
++		ctx->dec_src_buf_size = buf_size->cpb;
++	else
++		ctx->dec_src_buf_size = pix_mp->plane_fmt[0].sizeimage;
+ 	pix_mp->plane_fmt[0].bytesperline = 0;
+ 	ctx->state = MFCINST_INIT;
+ out:
+--
+1.7.9.5
 
-  Merge branch 'patchwork' into to_next (2014-07-22 22:12:07 -0300)
-
-are available in the git repository at:
-
-
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.17-1
-
-for you to fetch changes up to 196171191371705756fa69c1c99e97fb3ee1bcf2:
-
-  media: atmel-isi: add primary DT support (2014-07-28 20:25:46 +0200)
-
-----------------------------------------------------------------
-Ben Dooks (2):
-      soc_camera: add support for dt binding soc_camera drivers
-      rcar_vin: add devicetree support
-
-Josh Wu (3):
-      media: atmel-isi: add v4l2 async probe support
-      media: atmel-isi: convert the pdata from pointer to structure
-      media: atmel-isi: add primary DT support
-
-Robert Jarzmik (4):
-      media: mt9m111: add device-tree documentation
-      media: soc_camera: pxa_camera documentation device-tree support
-      media: mt9m111: add device-tree suppport
-      media: pxa_camera device-tree support
-
- .../devicetree/bindings/media/atmel-isi.txt        |  51 ++++++++
- .../devicetree/bindings/media/i2c/mt9m111.txt      |  28 +++++
- .../devicetree/bindings/media/pxa-camera.txt       |  43 +++++++
- .../devicetree/bindings/media/rcar_vin.txt         |  86 ++++++++++++++
- drivers/media/i2c/soc_camera/mt9m111.c             |  12 ++
- drivers/media/platform/soc_camera/atmel-isi.c      |  90 ++++++++++++--
- drivers/media/platform/soc_camera/pxa_camera.c     |  81 ++++++++++++-
- drivers/media/platform/soc_camera/rcar_vin.c       |  72 ++++++++++--
- drivers/media/platform/soc_camera/soc_camera.c     | 129 ++++++++++++++++++++-
- include/media/atmel-isi.h                          |   4 +
- 10 files changed, 574 insertions(+), 22 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/atmel-isi.txt
- create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9m111.txt
- create mode 100644 Documentation/devicetree/bindings/media/pxa-camera.txt
- create mode 100644 Documentation/devicetree/bindings/media/rcar_vin.txt
-
-Thanks
-Guennadi
