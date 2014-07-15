@@ -1,281 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54598 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752391AbaG0T1k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jul 2014 15:27:40 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 5/6] cx231xx: move analog init code to a separate function
-Date: Sun, 27 Jul 2014 16:27:31 -0300
-Message-Id: <1406489252-30636-6-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1406489252-30636-1-git-send-email-m.chehab@samsung.com>
-References: <1406489252-30636-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from comal.ext.ti.com ([198.47.26.152]:54446 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755817AbaGOSCv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jul 2014 14:02:51 -0400
+Date: Tue, 15 Jul 2014 13:02:04 -0500
+From: Felipe Balbi <balbi@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+CC: <hans.verkuil@cisco.com>, Tony Lindgren <tony@atomide.com>,
+	Benoit Cousson <bcousson@baylibre.com>, <robh+dt@kernel.org>,
+	<linux@arm.linux.org.uk>,
+	Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
+	Linux ARM Kernel Mailing List
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>, <archit@ti.com>,
+	<detheridge@ti.com>, <sakari.ailus@iki.fi>,
+	<laurent.pinchart@ideasonboard.com>, <devicetree@vger.kernel.org>
+Subject: Re: [RFC/PATCH 5/5] ARM: dts: am437x-sk-evm: add vpfe support and
+ ov2659 sensor
+Message-ID: <20140715180204.GB5098@saruman.home>
+Reply-To: <balbi@ti.com>
+References: <1405447012-5340-1-git-send-email-balbi@ti.com>
+ <1405447012-5340-6-git-send-email-balbi@ti.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="s2ZSL+KKDSLx8OML"
+Content-Disposition: inline
+In-Reply-To: <1405447012-5340-6-git-send-email-balbi@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That makes easier to understand the code. It would also help
-to add support for having boards with just digital support
-on some latter patch, as allowed by some PCB configs.
+--s2ZSL+KKDSLx8OML
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/cx231xx/cx231xx-cards.c | 220 ++++++++++++++++--------------
- 1 file changed, 114 insertions(+), 106 deletions(-)
+Hi,
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 3f0e309a54d8..338417fee8b6 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -1262,6 +1262,117 @@ static void flush_request_modules(struct cx231xx *dev)
- #define flush_request_modules(dev)
- #endif /* CONFIG_MODULES */
- 
-+static int cx231xx_init_v4l2(struct cx231xx *dev,
-+			     struct usb_device *udev,
-+			     struct usb_interface *interface,
-+			     int isoc_pipe)
-+{
-+	struct usb_interface *uif;
-+	int i, idx;
-+
-+	/* Video Init */
-+
-+	/* compute alternate max packet sizes for video */
-+	idx = dev->current_pcb_config.hs_config_info[0].interface_info.video_index + 1;
-+	if (idx >= dev->max_iad_interface_count) {
-+		cx231xx_errdev("Video PCB interface #%d doesn't exist\n", idx);
-+		return -ENODEV;
-+	}
-+
-+	uif = udev->actconfig->interface[idx];
-+
-+	dev->video_mode.end_point_addr = uif->altsetting[0].endpoint[isoc_pipe].desc.bEndpointAddress;
-+	dev->video_mode.num_alt = uif->num_altsetting;
-+
-+	cx231xx_info("EndPoint Addr 0x%x, Alternate settings: %i\n",
-+		     dev->video_mode.end_point_addr,
-+		     dev->video_mode.num_alt);
-+
-+	dev->video_mode.alt_max_pkt_size = devm_kmalloc_array(&udev->dev, 32, dev->video_mode.num_alt, GFP_KERNEL);
-+	if (dev->video_mode.alt_max_pkt_size == NULL) {
-+		cx231xx_errdev("out of memory!\n");
-+		return -ENOMEM;
-+	}
-+
-+	for (i = 0; i < dev->video_mode.num_alt; i++) {
-+		u16 tmp = le16_to_cpu(uif->altsetting[i].endpoint[isoc_pipe].desc.wMaxPacketSize);
-+		dev->video_mode.alt_max_pkt_size[i] = (tmp & 0x07ff) * (((tmp & 0x1800) >> 11) + 1);
-+		cx231xx_info("Alternate setting %i, max size= %i\n", i,
-+			     dev->video_mode.alt_max_pkt_size[i]);
-+	}
-+
-+	/* VBI Init */
-+
-+	idx = dev->current_pcb_config.hs_config_info[0].interface_info.vanc_index + 1;
-+	if (idx >= dev->max_iad_interface_count) {
-+		cx231xx_errdev("VBI PCB interface #%d doesn't exist\n", idx);
-+		return -ENODEV;
-+	}
-+	uif = udev->actconfig->interface[idx];
-+
-+	dev->vbi_mode.end_point_addr =
-+	    uif->altsetting[0].endpoint[isoc_pipe].desc.
-+			bEndpointAddress;
-+
-+	dev->vbi_mode.num_alt = uif->num_altsetting;
-+	cx231xx_info("EndPoint Addr 0x%x, Alternate settings: %i\n",
-+		     dev->vbi_mode.end_point_addr,
-+		     dev->vbi_mode.num_alt);
-+
-+	/* compute alternate max packet sizes for vbi */
-+	dev->vbi_mode.alt_max_pkt_size = devm_kmalloc_array(&udev->dev, 32, dev->vbi_mode.num_alt, GFP_KERNEL);
-+	if (dev->vbi_mode.alt_max_pkt_size == NULL) {
-+		cx231xx_errdev("out of memory!\n");
-+		return -ENOMEM;
-+	}
-+
-+	for (i = 0; i < dev->vbi_mode.num_alt; i++) {
-+		u16 tmp =
-+		    le16_to_cpu(uif->altsetting[i].endpoint[isoc_pipe].
-+				desc.wMaxPacketSize);
-+		dev->vbi_mode.alt_max_pkt_size[i] =
-+		    (tmp & 0x07ff) * (((tmp & 0x1800) >> 11) + 1);
-+		cx231xx_info("Alternate setting %i, max size= %i\n", i,
-+			     dev->vbi_mode.alt_max_pkt_size[i]);
-+	}
-+
-+	/* Sliced CC VBI init */
-+
-+	/* compute alternate max packet sizes for sliced CC */
-+	idx = dev->current_pcb_config.hs_config_info[0].interface_info.hanc_index + 1;
-+	if (idx >= dev->max_iad_interface_count) {
-+		cx231xx_errdev("Sliced CC PCB interface #%d doesn't exist\n", idx);
-+		return -ENODEV;
-+	}
-+	uif = udev->actconfig->interface[idx];
-+
-+	dev->sliced_cc_mode.end_point_addr =
-+	    uif->altsetting[0].endpoint[isoc_pipe].desc.
-+			bEndpointAddress;
-+
-+	dev->sliced_cc_mode.num_alt = uif->num_altsetting;
-+	cx231xx_info("EndPoint Addr 0x%x, Alternate settings: %i\n",
-+		     dev->sliced_cc_mode.end_point_addr,
-+		     dev->sliced_cc_mode.num_alt);
-+	dev->sliced_cc_mode.alt_max_pkt_size = devm_kmalloc_array(&udev->dev, 32, dev->sliced_cc_mode.num_alt, GFP_KERNEL);
-+
-+	if (dev->sliced_cc_mode.alt_max_pkt_size == NULL) {
-+		cx231xx_errdev("out of memory!\n");
-+		return -ENOMEM;
-+	}
-+
-+	for (i = 0; i < dev->sliced_cc_mode.num_alt; i++) {
-+		u16 tmp = le16_to_cpu(uif->altsetting[i].endpoint[isoc_pipe].
-+				desc.wMaxPacketSize);
-+		dev->sliced_cc_mode.alt_max_pkt_size[i] =
-+		    (tmp & 0x07ff) * (((tmp & 0x1800) >> 11) + 1);
-+		cx231xx_info("Alternate setting %i, max size= %i\n", i,
-+			     dev->sliced_cc_mode.alt_max_pkt_size[i]);
-+	}
-+
-+	return 0;
-+}
-+
- /*
-  * cx231xx_usb_probe()
-  * checks for supported devices
-@@ -1379,124 +1490,21 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
- 	/* save our data pointer in this interface device */
- 	usb_set_intfdata(interface, dev);
- 
--	/*
--	 * AV device initialization - only done at the last interface
--	 */
--
- 	/* Create v4l2 device */
- 	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
- 	if (retval) {
- 		cx231xx_errdev("v4l2_device_register failed\n");
--		retval = -EIO;
- 		goto err_v4l2;
- 	}
-+
- 	/* allocate device struct */
- 	retval = cx231xx_init_dev(dev, udev, nr);
- 	if (retval)
- 		goto err_init;
- 
--	/* compute alternate max packet sizes for video */
--	idx = dev->current_pcb_config.hs_config_info[0].interface_info.video_index + 1;
--	if (idx >= dev->max_iad_interface_count) {
--		cx231xx_errdev("Video PCB interface #%d doesn't exist\n", idx);
--		retval = -ENODEV;
-+	retval = cx231xx_init_v4l2(dev, udev, interface, isoc_pipe);
-+	if (retval)
- 		goto err_init;
--	}
--	uif = udev->actconfig->interface[idx];
--
--	dev->video_mode.end_point_addr = uif->altsetting[0].
--			endpoint[isoc_pipe].desc.bEndpointAddress;
--
--	dev->video_mode.num_alt = uif->num_altsetting;
--	cx231xx_info("EndPoint Addr 0x%x, Alternate settings: %i\n",
--		     dev->video_mode.end_point_addr,
--		     dev->video_mode.num_alt);
--
--	dev->video_mode.alt_max_pkt_size = devm_kmalloc_array(&udev->dev, 32, dev->video_mode.num_alt, GFP_KERNEL);
--	if (dev->video_mode.alt_max_pkt_size == NULL) {
--		cx231xx_errdev("out of memory!\n");
--		retval = -ENOMEM;
--		goto err_video_alt;
--	}
--
--	for (i = 0; i < dev->video_mode.num_alt; i++) {
--		u16 tmp = le16_to_cpu(uif->altsetting[i].endpoint[isoc_pipe].
--				desc.wMaxPacketSize);
--		dev->video_mode.alt_max_pkt_size[i] =
--		    (tmp & 0x07ff) * (((tmp & 0x1800) >> 11) + 1);
--		cx231xx_info("Alternate setting %i, max size= %i\n", i,
--			     dev->video_mode.alt_max_pkt_size[i]);
--	}
--
--	/* compute alternate max packet sizes for vbi */
--
--	idx = dev->current_pcb_config.hs_config_info[0].interface_info.vanc_index + 1;
--	if (idx >= dev->max_iad_interface_count) {
--		cx231xx_errdev("VBI PCB interface #%d doesn't exist\n", idx);
--		retval = -ENODEV;
--		goto err_video_alt;
--	}
--	uif = udev->actconfig->interface[idx];
--
--	dev->vbi_mode.end_point_addr =
--	    uif->altsetting[0].endpoint[isoc_pipe].desc.
--			bEndpointAddress;
--
--	dev->vbi_mode.num_alt = uif->num_altsetting;
--	cx231xx_info("EndPoint Addr 0x%x, Alternate settings: %i\n",
--		     dev->vbi_mode.end_point_addr,
--		     dev->vbi_mode.num_alt);
--
--	dev->vbi_mode.alt_max_pkt_size = devm_kmalloc_array(&udev->dev, 32, dev->vbi_mode.num_alt, GFP_KERNEL);
--	if (dev->vbi_mode.alt_max_pkt_size == NULL) {
--		cx231xx_errdev("out of memory!\n");
--		retval = -ENOMEM;
--		goto err_video_alt;
--	}
--
--	for (i = 0; i < dev->vbi_mode.num_alt; i++) {
--		u16 tmp =
--		    le16_to_cpu(uif->altsetting[i].endpoint[isoc_pipe].
--				desc.wMaxPacketSize);
--		dev->vbi_mode.alt_max_pkt_size[i] =
--		    (tmp & 0x07ff) * (((tmp & 0x1800) >> 11) + 1);
--		cx231xx_info("Alternate setting %i, max size= %i\n", i,
--			     dev->vbi_mode.alt_max_pkt_size[i]);
--	}
--
--	/* compute alternate max packet sizes for sliced CC */
--	idx = dev->current_pcb_config.hs_config_info[0].interface_info.hanc_index + 1;
--	if (idx >= dev->max_iad_interface_count) {
--		cx231xx_errdev("Sliced CC PCB interface #%d doesn't exist\n", idx);
--		retval = -ENODEV;
--		goto err_video_alt;
--	}
--	uif = udev->actconfig->interface[idx];
--
--	dev->sliced_cc_mode.end_point_addr =
--	    uif->altsetting[0].endpoint[isoc_pipe].desc.
--			bEndpointAddress;
--
--	dev->sliced_cc_mode.num_alt = uif->num_altsetting;
--	cx231xx_info("EndPoint Addr 0x%x, Alternate settings: %i\n",
--		     dev->sliced_cc_mode.end_point_addr,
--		     dev->sliced_cc_mode.num_alt);
--	dev->sliced_cc_mode.alt_max_pkt_size = devm_kmalloc_array(&udev->dev, 32, dev->sliced_cc_mode.num_alt, GFP_KERNEL);
--
--	if (dev->sliced_cc_mode.alt_max_pkt_size == NULL) {
--		cx231xx_errdev("out of memory!\n");
--		retval = -ENOMEM;
--		goto err_video_alt;
--	}
--
--	for (i = 0; i < dev->sliced_cc_mode.num_alt; i++) {
--		u16 tmp = le16_to_cpu(uif->altsetting[i].endpoint[isoc_pipe].
--				desc.wMaxPacketSize);
--		dev->sliced_cc_mode.alt_max_pkt_size[i] =
--		    (tmp & 0x07ff) * (((tmp & 0x1800) >> 11) + 1);
--		cx231xx_info("Alternate setting %i, max size= %i\n", i,
--			     dev->sliced_cc_mode.alt_max_pkt_size[i]);
--	}
- 
- 	if (dev->current_pcb_config.ts1_source != 0xff) {
- 		/* compute alternate max packet sizes for TS1 */
--- 
-1.9.3
+On Tue, Jul 15, 2014 at 12:56:52PM -0500, Felipe Balbi wrote:
+> From: Darren Etheridge <detheridge@ti.com>
+>=20
+> Adding necessary dts nodes to enable vpfe and ov2659 sensor on the correc=
+t i2c
 
+clearly this doesn't add ov2659 sensor support because we can't release
+the driver for it. I'll fix the patch subject and commit log locally.
+
+--=20
+balbi
+
+--s2ZSL+KKDSLx8OML
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTxWycAAoJEIaOsuA1yqREKS0QAIhBMunn466IygPdJGKyabKw
+OOPcUH5CYwX6LZIpEbYJSZOuOTpTvjroeElK0C+7/Z/czGNCv6ctGmzLzrk+/ixo
+tZJ8wkYHfUE+MIv9jo0A8Z8+8nINloCz/j0+E9F2ULSt+PGBiXIb0gTAVjgJhne+
+eWD+CISm7KPF98mBHoERsco/hfmSoB3U2R1V4BL5wsQkdtccaXCa09TsKV2F2EnA
+ZWDKXPEILE0r+zrIl5PJOyTVfhFAmM7JvOY3ThiLU7xjS3RMLM6W0OCYLCaYblAT
+QEtdQ3qZuisPB6kuFrZSIzhcC9vtOtybzzN//bOBKfz5AxWo19HlEFjDd7D0/PxZ
+PeLRWXR/T9IEgRbfWov4pIDwvCqzDI7gWMGWixQgJqC7ZgQuvSiM+CRDj/rJZhRI
+kcgi5xwEJWDu7gd5iLYfautM2zhl0vn9nTULmHLQtWdHyYGXef58EkaBWfAJM4lT
+QIPOfu5BugbfAgPZiDgIgG2d/fimlJb3r1/GuNBsy35UDvUzG7UHxVafUd2rnaE8
+pfF7zVIE5gCKjE33XlPkMZGE/bKJe3hc90AVwjt6hpjZIRoetYF4Cx8HczJ8OE8B
+LmFAjsGmodpq4IJ6BQbZeU3Xi+EJw42vSFhaO3iPQsLrLsILEa5dIOlqfcy7AIks
+hIEl/jC62g49I7iEh9fm
+=gaRx
+-----END PGP SIGNATURE-----
+
+--s2ZSL+KKDSLx8OML--
