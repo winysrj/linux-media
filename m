@@ -1,42 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:64193 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932693AbaGWTYj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 15:24:39 -0400
-Received: by mail-wi0-f181.google.com with SMTP id bs8so2738269wib.14
-        for <linux-media@vger.kernel.org>; Wed, 23 Jul 2014 12:24:36 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60143 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756551AbaGOR5n (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jul 2014 13:57:43 -0400
+From: Felipe Balbi <balbi@ti.com>
+To: <hans.verkuil@cisco.com>, Tony Lindgren <tony@atomide.com>,
+	Benoit Cousson <bcousson@baylibre.com>, <robh+dt@kernel.org>
+CC: <linux@arm.linux.org.uk>,
+	Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
+	Linux ARM Kernel Mailing List
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>, <archit@ti.com>,
+	<detheridge@ti.com>, <sakari.ailus@iki.fi>,
+	<laurent.pinchart@ideasonboard.com>, <devicetree@vger.kernel.org>,
+	Felipe Balbi <balbi@ti.com>
+Subject: [RFC/PATCH 0/5] Add Video Processing Front End Support
+Date: Tue, 15 Jul 2014 12:56:47 -0500
+Message-ID: <1405447012-5340-1-git-send-email-balbi@ti.com>
 MIME-Version: 1.0
-Date: Wed, 23 Jul 2014 22:24:36 +0300
-Message-ID: <CAAZRmGw8W2sLTqQ7cgpB-1Y+DrkHy9d83VrJ_ciQEY5K3H-EFw@mail.gmail.com>
-Subject: cxusb: How to add CI support?
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
+Hi all,
 
-I'm in need of advice when it comes to the implementation of the
-drivers. I recently added support for TechnoTrend CT2-4400 DVB-T2
-tuner into the dvb-usb-cxusb module. Now I have gotten another
-TechnoTrend device CT2-4650 and it seems this is more or less the same
-device as CT2-4400 but with an added CI slot. The CI is realized using
-a CIMaX SP2HF chip.
+the following patches add suport for AM43xx's Video Processing
+Front End (VPFE). Full documentation is available at [1] chapter 14.
 
-There seems to be support already for the said CIMaX chip, but only in
-combination with cx23885 (drivers/media/pci/cx23885/
-cimax2.c). This cannot be reused directly in my case. When I look at
-the other dvb-usb devices that have CI slot the support for CI has
-been implemented directly in the code of the USB device (for example,
-pctv452e or az6027).
+This driver has been tested with linux-next from yesterday, plus my
+(already queued) am437x starter kit patches, plus these patches, plus
+the sensor driver which, saddly enough, we're not allowed to release :-(
 
-Of course, an easy way to do it is to reuse a lot of code from the
-existing cimax2 and add it in the cxusb. However, I'm not sure if
-that's an ok approach. As I'm relatively new to linux kernel coding,
-I'd like to ask your recommendation for implementing the CI support
-here before the endeavour. Thanks!
+This driver has almost full v4l2-compliance with only 2 failures (I'll
+take hints on how to properly fix them) as below:
 
-Cheers,
--olli
+		fail: v4l2-compliance.cpp(419): !doioctl(node2,
+			VIDIOC_S_PRIORITY, &prio)
+	test VIDIOC_G/S_PRIORITY: FAIL
+
+		fail: v4l2-test-formats.cpp(319): pixelformat !=
+				V4L2_PIX_FMT_JPEG && colorspace ==
+				V4L2_COLORSPACE_JPEG
+		fail: v4l2-test-formats.cpp(418):
+				testColorspace(pix.pixelformat, pix.colorspace)
+	test VIDIOC_G_FMT: FAIL
+
+I have also tested with gst-launch using fbdevsink and I can see my
+ugly mug just fine.
+
+Please give this a thorough review and let me know of any problems
+which need to be sorted out and I'll try to help out as time allows.
+
+cheers
+
+[1] http://www.ti.com/lit/pdf/spruhl7
+
+Benoit Parrot (4):
+  Media: platform: Add ti-vpfe driver for AM437x device
+  arm: omap: hwmod: add hwmod entries for AM437x VPFE
+  arm: boot: dts: am4372: add vpfe DTS entries
+  arm: dts: am43x-epos: Add VPFE DTS entries
+
+Darren Etheridge (1):
+  ARM: dts: am437x-sk-evm: add vpfe support and ov2659 sensor
+
+ arch/arm/boot/dts/am4372.dtsi                     |   16 +
+ arch/arm/boot/dts/am437x-sk-evm.dts               |   63 +
+ arch/arm/boot/dts/am43x-epos-evm.dts              |   54 +
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c        |   56 +
+ arch/arm/mach-omap2/prcm43xx.h                    |    3 +-
+ drivers/media/platform/Kconfig                    |    1 +
+ drivers/media/platform/Makefile                   |    2 +
+ drivers/media/platform/ti-vpfe/Kconfig            |   12 +
+ drivers/media/platform/ti-vpfe/Makefile           |    2 +
+ drivers/media/platform/ti-vpfe/am437x_isif.c      | 1053 +++++++++
+ drivers/media/platform/ti-vpfe/am437x_isif.h      |  355 +++
+ drivers/media/platform/ti-vpfe/am437x_isif_regs.h |  144 ++
+ drivers/media/platform/ti-vpfe/vpfe_capture.c     | 2478 +++++++++++++++++++++
+ drivers/media/platform/ti-vpfe/vpfe_capture.h     |  263 +++
+ 14 files changed, 4501 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/platform/ti-vpfe/Kconfig
+ create mode 100644 drivers/media/platform/ti-vpfe/Makefile
+ create mode 100644 drivers/media/platform/ti-vpfe/am437x_isif.c
+ create mode 100644 drivers/media/platform/ti-vpfe/am437x_isif.h
+ create mode 100644 drivers/media/platform/ti-vpfe/am437x_isif_regs.h
+ create mode 100644 drivers/media/platform/ti-vpfe/vpfe_capture.c
+ create mode 100644 drivers/media/platform/ti-vpfe/vpfe_capture.h
+
+-- 
+2.0.0.390.gcb682f8
+
