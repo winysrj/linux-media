@@ -1,56 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36234 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756075AbaGQL3o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 07:29:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH] tvp5150: Fix device ID kernel log message
-Date: Thu, 17 Jul 2014 13:29:51 +0200
-Message-ID: <1427497.bCxcs01A7z@avalon>
-In-Reply-To: <1401132511-5236-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1401132511-5236-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mga09.intel.com ([134.134.136.24]:48140 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933938AbaGPPf6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Jul 2014 11:35:58 -0400
+Message-ID: <53C69BCF.8030307@iki.fi>
+Date: Wed, 16 Jul 2014 18:35:43 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+CC: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: Re: [PATCH/RFC v4 02/21] leds: implement sysfs interface locking
+ mechanism
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com> <1405087464-13762-3-git-send-email-j.anaszewski@samsung.com>
+In-Reply-To: <1405087464-13762-3-git-send-email-j.anaszewski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Jacek,
 
-Ping ?
+Thank you for the update!
 
-On Monday 26 May 2014 21:28:31 Laurent Pinchart wrote:
-> The driver mistakenly prints the ROM version instead of the device ID to
-> the kernel log when detecting the chip. Fix it.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/i2c/tvp5150.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> index a912125..937e48b 100644
-> --- a/drivers/media/i2c/tvp5150.c
-> +++ b/drivers/media/i2c/tvp5150.c
-> @@ -1148,10 +1148,10 @@ static int tvp5150_probe(struct i2c_client *c,
->  		/* Is TVP5150A */
->  		if (tvp5150_id[2] == 3 || tvp5150_id[3] == 0x21) {
->  			v4l2_info(sd, "tvp%02x%02xa detected.\n",
-> -				  tvp5150_id[2], tvp5150_id[3]);
-> +				  tvp5150_id[0], tvp5150_id[1]);
->  		} else {
->  			v4l2_info(sd, "*** unknown tvp%02x%02x chip detected.\n",
-> -				  tvp5150_id[2], tvp5150_id[3]);
-> +				  tvp5150_id[0], tvp5150_id[1]);
->  			v4l2_info(sd, "*** Rom ver is %d.%d\n",
->  				  tvp5150_id[2], tvp5150_id[3]);
->  		}
+Jacek Anaszewski wrote:
+...
+> diff --git a/drivers/leds/led-core.c b/drivers/leds/led-core.c
+> index 71b40d3..4d7cb31 100644
+> --- a/drivers/leds/led-core.c
+> +++ b/drivers/leds/led-core.c
+> @@ -126,3 +126,21 @@ void led_set_brightness(struct led_classdev *led_cdev,
+>   	__led_set_brightness(led_cdev, brightness);
+>   }
+>   EXPORT_SYMBOL(led_set_brightness);
+> +
+> +/* Caller must ensure led_cdev->led_lock held */
+> +void led_sysfs_lock(struct led_classdev *led_cdev)
+> +{
+> +	WARN_ON(!mutex_is_locked(&led_cdev->led_lock));
+
+How about lockdep_assert_held() instead?
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
