@@ -1,46 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f48.google.com ([209.85.219.48]:62484 "EHLO
-	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751287AbaGYMZL (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33608 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752400AbaGPWAv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 08:25:11 -0400
-Received: by mail-oa0-f48.google.com with SMTP id m1so5417000oag.35
-        for <linux-media@vger.kernel.org>; Fri, 25 Jul 2014 05:25:10 -0700 (PDT)
+	Wed, 16 Jul 2014 18:00:51 -0400
+Date: Thu, 17 Jul 2014 01:00:45 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Grant Likely <grant.likely@linaro.org>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Michal Simek <monstr@monstr.eu>
+Subject: Re: [PATCH/RFC v4 07/21] of: add of_node_ncmp wrapper
+Message-ID: <20140716220045.GL16460@valkosipuli.retiisi.org.uk>
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+ <1405087464-13762-8-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <53D24A74.5060001@xs4all.nl>
-References: <53999849.1090105@xs4all.nl> <CAPybu_2R9oj7aF1dUOjdGfHfV=LHaTWDp=CGXAZq76qcvJoAvQ@mail.gmail.com>
- <CAPybu_2fPc5z2KyiMzX-=VNQHavyR5WQHX2JcyPYMbUKmLMYYQ@mail.gmail.com>
- <53D245EA.4070803@xs4all.nl> <CAPybu_2jZ8qCpoJAe9aaBtnr=r8wzgkMn9onEE1L5C=qybQ4dQ@mail.gmail.com>
- <53D24A74.5060001@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Fri, 25 Jul 2014 14:24:50 +0200
-Message-ID: <CAPybu_1-YVmrSyR4q5JHUj44OgGQK8aWkg3qmn64vYBon_vHwA@mail.gmail.com>
-Subject: Re: [ATTN] Please review/check the REVIEWv4 compound control patch series
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1405087464-13762-8-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans!
+On Fri, Jul 11, 2014 at 04:04:10PM +0200, Jacek Anaszewski wrote:
+> The wrapper for strnicmp is required for checking whether a node has
+> expected prefix.
 
-> I was thinking of just the sensor driver, not the other components.
-> That would provide a proper use-case for both the dead pixel array
-> and multi-selection.
->
-> I assume that the sensor driver is a lot smaller? Does it need fw as well?
->
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-We support multiple sensors. The one that requires dead-pixel
-correction is: FPA-320x256-C
-
-Unfortunately, the chip only outputs the data as an analog output. The
-data is processed by an FPGA. The FPGA requires firmware (the
-bitstream).
-
-I guess most of the code is useless for anybody else, if they don't
-have access to the proper hw.
-
-Thanks
-
-Ricardo
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
