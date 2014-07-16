@@ -1,46 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45263 "EHLO mail.kapsi.fi"
+Received: from mga01.intel.com ([192.55.52.88]:22922 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758681AbaGRBEi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 21:04:38 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] MAINTAINERS: update MSI3101 / MSI2500 driver location
-Date: Fri, 18 Jul 2014 04:04:22 +0300
-Message-Id: <1405645462-25528-1-git-send-email-crope@iki.fi>
+	id S964942AbaGPPrd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Jul 2014 11:47:33 -0400
+Message-ID: <53C69E64.4030801@iki.fi>
+Date: Wed, 16 Jul 2014 18:46:44 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+CC: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: Re: [PATCH/RFC v4 05/21] leds: avoid using deprecated DEVICE_ATTR
+ macro
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com> <1405087464-13762-6-git-send-email-j.anaszewski@samsung.com>
+In-Reply-To: <1405087464-13762-6-git-send-email-j.anaszewski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-MSi3101 driver is moved out of staging and renamed.
+Hi Jacek,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- MAINTAINERS | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Jacek Anaszewski wrote:
+> Make the sysfs attributes definition consistent in the whole file.
+> The modification entails change of the function name:
+> led_max_brightness_show -> max_brightness_show
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index e0bd8b0..b2d6f2e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -5893,7 +5893,7 @@ T:	git git://linuxtv.org/anttip/media_tree.git
- S:	Maintained
- F:	drivers/media/tuners/msi001*
- 
--MSI3101 MEDIA DRIVER
-+MSI2500 MEDIA DRIVER
- M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
- W:	http://linuxtv.org/
-@@ -5901,7 +5901,7 @@ W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
- T:	git git://linuxtv.org/anttip/media_tree.git
- S:	Maintained
--F:	drivers/staging/media/msi3101/sdr-msi3101*
-+F:	drivers/media/usb/msi2500/
- 
- MT9M032 APTINA SENSOR DRIVER
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+I'm not sure whether DEVICE_ATTR() is really deprecated but nevertheless 
+this is cleaner.
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
 -- 
-1.9.3
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
