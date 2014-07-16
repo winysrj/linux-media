@@ -1,211 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:60293 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757927AbaGAK6X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jul 2014 06:58:23 -0400
-Subject: [PATCH v2 7/9] dma-buf: add poll support, v3
-To: gregkh@linuxfoundation.org
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-arch@vger.kernel.org, thellstrom@vmware.com,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
-	thierry.reding@gmail.com, ccross@google.com, daniel@ffwll.ch,
-	sumit.semwal@linaro.org, linux-media@vger.kernel.org
-Date: Tue, 01 Jul 2014 12:57:43 +0200
-Message-ID: <20140701105743.12718.62441.stgit@patser>
-In-Reply-To: <20140701103432.12718.82795.stgit@patser>
-References: <20140701103432.12718.82795.stgit@patser>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33553 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751907AbaGPVzU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Jul 2014 17:55:20 -0400
+Date: Thu, 17 Jul 2014 00:54:44 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-leds@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, b.zolnierkie@samsung.com,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>
+Subject: Re: [PATCH/RFC v4 06/21] leds: add API for setting torch brightness
+Message-ID: <20140716215444.GK16460@valkosipuli.retiisi.org.uk>
+References: <1405087464-13762-1-git-send-email-j.anaszewski@samsung.com>
+ <1405087464-13762-7-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <1405087464-13762-7-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks to Fengguang Wu for spotting a missing static cast.
+Hi Jacek,
 
-v2:
-- Kill unused variable need_shared.
-v3:
-- Clarify the BUG() in dma_buf_release some more. (Rob Clark)
+Jacek Anaszewski wrote:
+...
+> diff --git a/include/linux/leds.h b/include/linux/leds.h
+> index 1a130cc..9bea9e6 100644
+> --- a/include/linux/leds.h
+> +++ b/include/linux/leds.h
+> @@ -44,11 +44,21 @@ struct led_classdev {
+>   #define LED_BLINK_ONESHOT_STOP	(1 << 18)
+>   #define LED_BLINK_INVERT	(1 << 19)
+>   #define LED_SYSFS_LOCK		(1 << 20)
+> +#define LED_DEV_CAP_TORCH	(1 << 21)
+>
+>   	/* Set LED brightness level */
+>   	/* Must not sleep, use a workqueue if needed */
+>   	void		(*brightness_set)(struct led_classdev *led_cdev,
+>   					  enum led_brightness brightness);
+> +	/*
+> +	 * Set LED brightness immediately - it is required for flash led
+> +	 * devices as they require setting torch brightness to have immediate
+> +	 * effect. brightness_set op cannot be used for this purpose because
+> +	 * the led drivers schedule a work queue task in it to allow for
+> +	 * being called from led-triggers, i.e. from the timer irq context.
+> +	 */
 
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
----
- drivers/dma-buf/dma-buf.c |  108 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/dma-buf.h   |   12 +++++
- 2 files changed, 120 insertions(+)
+Do we need to classify actual devices based on this? I think it's rather 
+a different API behaviour between the LED and the V4L2 APIs.
 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index cd40ca22911f..25e8c4165936 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -30,6 +30,7 @@
- #include <linux/export.h>
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
-+#include <linux/poll.h>
- #include <linux/reservation.h>
- 
- static inline int is_dma_buf_file(struct file *);
-@@ -52,6 +53,16 @@ static int dma_buf_release(struct inode *inode, struct file *file)
- 
- 	BUG_ON(dmabuf->vmapping_counter);
- 
-+	/*
-+	 * Any fences that a dma-buf poll can wait on should be signaled
-+	 * before releasing dma-buf. This is the responsibility of each
-+	 * driver that uses the reservation objects.
-+	 *
-+	 * If you hit this BUG() it means someone dropped their ref to the
-+	 * dma-buf while still having pending operation to the buffer.
-+	 */
-+	BUG_ON(dmabuf->cb_shared.active || dmabuf->cb_excl.active);
-+
- 	dmabuf->ops->release(dmabuf);
- 
- 	mutex_lock(&db_list.lock);
-@@ -108,10 +119,103 @@ static loff_t dma_buf_llseek(struct file *file, loff_t offset, int whence)
- 	return base + offset;
- }
- 
-+static void dma_buf_poll_cb(struct fence *fence, struct fence_cb *cb)
-+{
-+	struct dma_buf_poll_cb_t *dcb = (struct dma_buf_poll_cb_t *)cb;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&dcb->poll->lock, flags);
-+	wake_up_locked_poll(dcb->poll, dcb->active);
-+	dcb->active = 0;
-+	spin_unlock_irqrestore(&dcb->poll->lock, flags);
-+}
-+
-+static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
-+{
-+	struct dma_buf *dmabuf;
-+	struct reservation_object *resv;
-+	unsigned long events;
-+
-+	dmabuf = file->private_data;
-+	if (!dmabuf || !dmabuf->resv)
-+		return POLLERR;
-+
-+	resv = dmabuf->resv;
-+
-+	poll_wait(file, &dmabuf->poll, poll);
-+
-+	events = poll_requested_events(poll) & (POLLIN | POLLOUT);
-+	if (!events)
-+		return 0;
-+
-+	ww_mutex_lock(&resv->lock, NULL);
-+
-+	if (resv->fence_excl && (!(events & POLLOUT) ||
-+				 resv->fence_shared_count == 0)) {
-+		struct dma_buf_poll_cb_t *dcb = &dmabuf->cb_excl;
-+		unsigned long pevents = POLLIN;
-+
-+		if (resv->fence_shared_count == 0)
-+			pevents |= POLLOUT;
-+
-+		spin_lock_irq(&dmabuf->poll.lock);
-+		if (dcb->active) {
-+			dcb->active |= pevents;
-+			events &= ~pevents;
-+		} else
-+			dcb->active = pevents;
-+		spin_unlock_irq(&dmabuf->poll.lock);
-+
-+		if (events & pevents) {
-+			if (!fence_add_callback(resv->fence_excl,
-+						&dcb->cb, dma_buf_poll_cb))
-+				events &= ~pevents;
-+			else
-+				/*
-+				 * No callback queued, wake up any additional
-+				 * waiters.
-+				 */
-+				dma_buf_poll_cb(NULL, &dcb->cb);
-+		}
-+	}
-+
-+	if ((events & POLLOUT) && resv->fence_shared_count > 0) {
-+		struct dma_buf_poll_cb_t *dcb = &dmabuf->cb_shared;
-+		int i;
-+
-+		/* Only queue a new callback if no event has fired yet */
-+		spin_lock_irq(&dmabuf->poll.lock);
-+		if (dcb->active)
-+			events &= ~POLLOUT;
-+		else
-+			dcb->active = POLLOUT;
-+		spin_unlock_irq(&dmabuf->poll.lock);
-+
-+		if (!(events & POLLOUT))
-+			goto out;
-+
-+		for (i = 0; i < resv->fence_shared_count; ++i)
-+			if (!fence_add_callback(resv->fence_shared[i],
-+						&dcb->cb, dma_buf_poll_cb)) {
-+				events &= ~POLLOUT;
-+				break;
-+			}
-+
-+		/* No callback queued, wake up any additional waiters. */
-+		if (i == resv->fence_shared_count)
-+			dma_buf_poll_cb(NULL, &dcb->cb);
-+	}
-+
-+out:
-+	ww_mutex_unlock(&resv->lock);
-+	return events;
-+}
-+
- static const struct file_operations dma_buf_fops = {
- 	.release	= dma_buf_release,
- 	.mmap		= dma_buf_mmap_internal,
- 	.llseek		= dma_buf_llseek,
-+	.poll		= dma_buf_poll,
- };
- 
- /*
-@@ -171,6 +275,10 @@ struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
- 	dmabuf->ops = ops;
- 	dmabuf->size = size;
- 	dmabuf->exp_name = exp_name;
-+	init_waitqueue_head(&dmabuf->poll);
-+	dmabuf->cb_excl.poll = dmabuf->cb_shared.poll = &dmabuf->poll;
-+	dmabuf->cb_excl.active = dmabuf->cb_shared.active = 0;
-+
- 	if (!resv) {
- 		resv = (struct reservation_object *)&dmabuf[1];
- 		reservation_object_init(resv);
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index fd7def2e0ae2..694e1fe1c4b4 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -30,6 +30,8 @@
- #include <linux/list.h>
- #include <linux/dma-mapping.h>
- #include <linux/fs.h>
-+#include <linux/fence.h>
-+#include <linux/wait.h>
- 
- struct device;
- struct dma_buf;
-@@ -130,6 +132,16 @@ struct dma_buf {
- 	struct list_head list_node;
- 	void *priv;
- 	struct reservation_object *resv;
-+
-+	/* poll support */
-+	wait_queue_head_t poll;
-+
-+	struct dma_buf_poll_cb_t {
-+		struct fence_cb cb;
-+		wait_queue_head_t *poll;
-+
-+		unsigned long active;
-+	} cb_excl, cb_shared;
- };
- 
- /**
+On devices that are slow to control, the behaviour should be asynchronous
+over the LED API and synchronous when accessed through the V4L2 API. How
+about implementing the work queue, as I have suggested, in the framework, so
+that individual drivers don't need to care about this and just implement the
+synchronous variant of this op? A flag could be added to distinguish devices
+that are fast so that the work queue isn't needed.
 
+It'd be nice to avoid individual drivers having to implement multiple ops to
+do the same thing, just for differing user space interfacs.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
