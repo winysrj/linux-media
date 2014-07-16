@@ -1,66 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f50.google.com ([209.85.219.50]:42868 "EHLO
-	mail-oa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750710AbaGaNPh (ORCPT
+Received: from mail-box05.hrz.tu-darmstadt.de ([130.83.156.247]:60734 "EHLO
+	lnx141.hrz.tu-darmstadt.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751409AbaGPMTm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jul 2014 09:15:37 -0400
-Received: by mail-oa0-f50.google.com with SMTP id g18so1999148oah.9
-        for <linux-media@vger.kernel.org>; Thu, 31 Jul 2014 06:15:34 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <53DA371F.9070907@InUnum.com>
-References: <53D12786.5050906@InUnum.com>
-	<1915586.ZFV4ecW0Zg@avalon>
-	<CA+2YH7vhYuvUbFHyyr699zUdJuYWDtzweOGo0hGDHzT-+oFGjw@mail.gmail.com>
-	<2300187.SbcZEE0rv0@avalon>
-	<53D90786.9090809@InUnum.com>
-	<CA+2YH7vrD_N32KsksU2G37BhLPBMHJDbizrVb_N+=mnHC3oNmQ@mail.gmail.com>
-	<53DA1538.90709@InUnum.com>
-	<CA+2YH7sROaGEtVLBs9N7FdWG5mzPZDtGgOaD2sgea--kqLELQA@mail.gmail.com>
-	<53DA371F.9070907@InUnum.com>
-Date: Thu, 31 Jul 2014 15:15:34 +0200
-Message-ID: <CA+2YH7tpTs_snyqZQQGXCg8b5mAYejyRceJy5QzuaEV2sgD-cQ@mail.gmail.com>
-Subject: Re: omap3isp with DM3730 not working?!
-From: Enrico <ebutera@users.sourceforge.net>
-To: Michael Dietschi <michael.dietschi@inunum.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Wed, 16 Jul 2014 08:19:42 -0400
+Received: from lnx503.hrz.tu-darmstadt.de (lnx503.hrz.tu-darmstadt.de [130.83.156.232])
+	by lnx141.hrz.tu-darmstadt.de (8.14.4/8.13.8) with ESMTP id s6GCIf39031472
+	for <linux-media@vger.kernel.org>; Wed, 16 Jul 2014 14:18:42 +0200
+	(envelope-from johannes.werner@physik.tu-darmstadt.de)
+Received: from exp1.fkp.physik.tu-darmstadt.de (exp1.fkp.physik.tu-darmstadt.de [130.83.32.161])
+	by lnx503.hrz.tu-darmstadt.de (8.14.4/8.14.4/HRZ/PMX) with ESMTP id s6GCEC5T006583
+	for <linux-media@vger.kernel.org>; Wed, 16 Jul 2014 14:14:12 +0200
+	(envelope-from johannes.werner@physik.tu-darmstadt.de)
+Received: from geo053104.klientdrift.uib.no ([129.177.53.104])
+	by exp1.fkp.physik.tu-darmstadt.de with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
+	(Exim 4.80)
+	(envelope-from <johannes.werner@physik.tu-darmstadt.de>)
+	id 1X7NyI-0004oB-Nx
+	for linux-media@vger.kernel.org; Wed, 16 Jul 2014 14:06:06 +0200
+Date: Wed, 16 Jul 2014 14:14:10 +0200
+From: Johannes Werner <johannes.werner@physik.tu-darmstadt.de>
+To: linux-media@vger.kernel.org
+Subject: Siano Rio problems (idVendor=187f, idProduct=0600)
+Message-ID: <20140716141410.53d5fa5d@geo053104.klientdrift.uib.no>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 31, 2014 at 2:31 PM, Michael Dietschi
-<michael.dietschi@inunum.com> wrote:
-> Am 31.07.2014 12:36, schrieb Enrico:
->
->
->>
->> I think you are missing the ccdc sink pad setup, basically you should
->> have something like this:
->>
->> ....
->> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
->>              type V4L2 subdev subtype Unknown flags 0
->>              device node name /dev/v4l-subdev2
->>          pad1: Source
->>                  [fmt:UYVY/720x576 field:interlaced-tb
->>                   crop.bounds:(0,0)/720x288
->>                   crop:(0,0)/720x288]
->>                  -> "OMAP3 ISP CCDC output":0 [ENABLED]
->>                  -> "OMAP3 ISP resizer":0 []
->>
->     pad1: Source
->
->         [fmt:UYVY/720x240 field:alternate
->
->          crop.bounds:(0,0)/720x240
->
->          crop:(0,0)/720x240]
+Dear all,
 
-It seems you are missing this:
+I hope this is the right place to ask for help / clarification
+(linuxtv.org/ suggests it). I saw that Siano does indeed contribute to
+the media drivers in the kernel (so I hope somebody relevant is reading
+this). I have some questions about the Siano Rio chip that I could not
+answer by asking google...
 
-media-ctl --set-format '"OMAP3 ISP CCDC":1 [UYVY 720x480 field:interlaced-tb]'
+First of all, the chip seems to be supported by the kernel (modules
+load), but the firmware isdbt_rio.inp is not distributed by Ubuntu. I
+could find a package at
+http://repo.huayra.conectarigualdad.gob.ar/huayra/pool/non-free/f/firmware-siano-rio/
+and this contains a file with this name. This is the only place I could
+find it on the interwebs.
+Anyway, below is the actual problem (assuming the firmware mentioned
+above is correct). I hope to get some hints on what I could try. I am
+not afraid of building kernels, but haven't done so in a while...
+Should I write a bug report? (where)?
 
-and add --field interlaced-tb to yavta.
+Thanks in advance,
+Jo
 
-Enrico
+
+Description:
+Changes to the siano driver between 3.11 and 3.13 removed TERRESTRIAL
+support for Siano Rio chipset from the driver.
+
+
+Report:
+
+On my Netbook (Ubuntu 14.04, kernel 3.13) inserting the USB stick
+results in
+
+-- dmesg output --
+[] usb 1-1: new high-speed USB device number 5 using ehci-pci
+[] usb 1-1: New USB device found, idVendor=187f,idProduct=0600 
+[] usb 1-1: New USB device strings: Mfr=1,Product=2, SerialNumber=0
+[] usb 1-1: Product: MDTV Receiver
+[] usb 1-1: Manufacturer: MDTV Receiver
+[] DVB: registering new adapter (Siano Rio Digital Receiver)
+[] usb 1-1: DVB: registering adapter 0 frontend 0 (Siano Mobile Digital
+MDTV Receiver)...
+-- end dmesg --
+
+and the modules being loaded.
+
+-- lsmod output
+smsdvb                 18071  0 
+dvb_core              101206  1 smsdvb
+smsusb                 17531  0 
+smsmdtv                48244  2 smsdvb,smsusb
+rc_core                26724  1 smsmdtv
+-- end lsmod --
+
+This looks promising. When trying to scan for station using w_scan
+however:
+
+-- w_scan output --
+w_scan version 20130331 (compiled for DVB API 5.10)
+guessing country 'DE', use -c <country> to override
+using settings for GERMANY
+DVB aerial
+DVB-T Europe
+scan type TERRESTRIAL, channellist 4
+output format vdr-2.0
+output charset 'UTF-8', use -C <charset> to override
+Info: using DVB adapter auto detection.
+	/dev/dvb/adapter0/frontend0 -> "Siano Mobile Digital MDTV
+Receiver" doesnt support TERRESTRIAL -> SEARCH NEXT ONE. main:3228:
+FATAL: ***** NO USEABLE TERRESTRIAL CARD FOUND. ***** Please check
+wether dvb driver is loaded and verify that no dvb application (i.e.
+vdr) is running.
+-- end w_scan --
+
+even though this is a DVB-T receiver stick. Trying it on another machine
+(where I cannot install the firmware) using Ubuntu 12.04.4, kernel 3.11
+w_scan does indeed scan (but cannot find a signal because the firmware
+is not loaded), see below. REMARK: even when not loading a firmware the
+behaviour above (TERRESTRIAL not supported) persists.
+
+-- wscan output on other machine --
+w_scan version 20111203 (compiled for DVB API 5.4)
+WARNING: could not guess your country. Falling back to 'DE'
+guessing country 'DE', use -c <country> to override
+using settings for GERMANY
+DVB aerial
+DVB-T Europe
+frontend_type DVB-T, channellist 4
+output format vdr-1.6
+WARNING: could not guess your codepage. Falling back to 'UTF-8'
+output charset 'UTF-8', use -C <charset> to override
+Info: using DVB adapter auto detection.
+	/dev/dvb/adapter0/frontend0 -> DVB-T "Siano Mobile Digital MDTV
+Receiver": good :-) Using DVB-T frontend
+(adapter /dev/dvb/adapter0/frontend0) -_-_-_-_ Getting frontend
+capabilities-_-_-_-_ Using DVB API 5.a
+frontend 'Siano Mobile Digital MDTV Receiver' supports
+INVERSION_AUTO
+QAM_AUTO
+TRANSMISSION_MODE_AUTO
+GUARD_INTERVAL_AUTO
+HIERARCHY_AUTO
+FEC_AUTO
+FREQ (44.25MHz ... 867.25MHz)
+[...]
+-- end truncated wscan output --
