@@ -1,85 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:60266 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756300AbaGAK6M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jul 2014 06:58:12 -0400
-Subject: [PATCH v2 6/9] reservation: add support for fences to enable
- cross-device synchronisation
-To: gregkh@linuxfoundation.org
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-arch@vger.kernel.org, thellstrom@vmware.com,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
-	thierry.reding@gmail.com, ccross@google.com, daniel@ffwll.ch,
-	sumit.semwal@linaro.org, linux-media@vger.kernel.org
-Date: Tue, 01 Jul 2014 12:57:37 +0200
-Message-ID: <20140701105737.12718.54300.stgit@patser>
-In-Reply-To: <20140701103432.12718.82795.stgit@patser>
-References: <20140701103432.12718.82795.stgit@patser>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:45714 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759202AbaGPN7r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Jul 2014 09:59:47 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N8T008J05JFNU10@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 16 Jul 2014 14:59:39 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'panpan liu' <panpan1.liu@samsung.com>, kyungmin.park@samsung.com,
+	jtp.park@samsung.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <1405475493-3200-1-git-send-email-panpan1.liu@samsung.com>
+In-reply-to: <1405475493-3200-1-git-send-email-panpan1.liu@samsung.com>
+Subject: RE: [PATCH] s5p-mfc: limit the size of the CPB
+Date: Wed, 16 Jul 2014 15:59:44 +0200
+Message-id: <095901cfa0fe$334215a0$99c640e0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Reviewed-by: Rob Clark <robdclark@gmail.com>
----
- include/linux/reservation.h |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+Hi Panpan,
 
-diff --git a/include/linux/reservation.h b/include/linux/reservation.h
-index 813dae960ebd..f3f57460a205 100644
---- a/include/linux/reservation.h
-+++ b/include/linux/reservation.h
-@@ -6,7 +6,7 @@
-  * Copyright (C) 2012 Texas Instruments
-  *
-  * Authors:
-- * Rob Clark <rob.clark@linaro.org>
-+ * Rob Clark <robdclark@gmail.com>
-  * Maarten Lankhorst <maarten.lankhorst@canonical.com>
-  * Thomas Hellstrom <thellstrom-at-vmware-dot-com>
-  *
-@@ -40,22 +40,40 @@
- #define _LINUX_RESERVATION_H
- 
- #include <linux/ww_mutex.h>
-+#include <linux/fence.h>
-+#include <linux/slab.h>
- 
- extern struct ww_class reservation_ww_class;
- 
- struct reservation_object {
- 	struct ww_mutex lock;
-+
-+	struct fence *fence_excl;
-+	struct fence **fence_shared;
-+	u32 fence_shared_count, fence_shared_max;
- };
- 
- static inline void
- reservation_object_init(struct reservation_object *obj)
- {
- 	ww_mutex_init(&obj->lock, &reservation_ww_class);
-+
-+	obj->fence_shared_count = obj->fence_shared_max = 0;
-+	obj->fence_shared = NULL;
-+	obj->fence_excl = NULL;
- }
- 
- static inline void
- reservation_object_fini(struct reservation_object *obj)
- {
-+	int i;
-+
-+	if (obj->fence_excl)
-+		fence_put(obj->fence_excl);
-+	for (i = 0; i < obj->fence_shared_count; ++i)
-+		fence_put(obj->fence_shared[i]);
-+	kfree(obj->fence_shared);
-+
- 	ww_mutex_destroy(&obj->lock);
- }
- 
+I merged your patch to my tree. However, next time please base the patch
+on the newest branch from Mauro. Please mind the whitespaces, I had to
+manually correct them. Also, please add version number to the [PATCH] part
+of subject e.g. [PATCH v10].
+
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
+
+
+> -----Original Message-----
+> From: panpan liu [mailto:panpan1.liu@samsung.com]
+> Sent: Wednesday, July 16, 2014 3:52 AM
+> To: kyungmin.park@samsung.com; k.debski@samsung.com;
+> jtp.park@samsung.com; mchehab@redhat.com
+> Cc: linux-arm-kernel@lists.infradead.org; linux-media@vger.kernel.org
+> Subject: [PATCH] s5p-mfc: limit the size of the CPB
+> 
+> The CPB size is limited by the hardware. Add this limit to the s_fmt.
+> 
+> Signed-off-by: panpan liu <panpan1.liu@samsung.com>
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |    9 ++++++---
+>  1 file changed, 6 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> index 0bae907..0621ed8 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> @@ -413,6 +413,7 @@ static int vidioc_s_fmt(struct file *file, void
+> *priv, struct v4l2_format *f)
+>  	int ret = 0;
+>  	struct s5p_mfc_fmt *fmt;
+>  	struct v4l2_pix_format_mplane *pix_mp;
+> +	struct s5p_mfc_buf_size *buf_size = dev->variant->buf_size;
+> 
+>  	mfc_debug_enter();
+>  	ret = vidioc_try_fmt(file, priv, f);
+> @@ -466,11 +467,13 @@ static int vidioc_s_fmt(struct file *file, void
+> *priv, struct v4l2_format *f)
+>  	mfc_debug(2, "The codec number is: %d\n", ctx->codec_mode);
+>  	pix_mp->height = 0;
+>  	pix_mp->width = 0;
+> -	if (pix_mp->plane_fmt[0].sizeimage)
+> -		ctx->dec_src_buf_size = pix_mp->plane_fmt[0].sizeimage;
+> -	else
+> +	if (pix_mp->plane_fmt[0].sizeimage == 0)
+>  		pix_mp->plane_fmt[0].sizeimage = ctx->dec_src_buf_size =
+>
+DEF_CPB_SIZE;
+> +	else if (pix_mp->plane_fmt[0].sizeimage > buf_size->cpb)
+> +		ctx->dec_src_buf_size = buf_size->cpb;
+> +	else
+> +		ctx->dec_src_buf_size = pix_mp->plane_fmt[0].sizeimage;
+>  	pix_mp->plane_fmt[0].bytesperline = 0;
+>  	ctx->state = MFCINST_INIT;
+>  out:
+> --
+> 1.7.9.5
 
