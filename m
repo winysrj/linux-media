@@ -1,79 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta02.emeryville.ca.mail.comcast.net ([76.96.30.24]:48538 "EHLO
-	qmta02.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934176AbaGXU3c (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36208 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756208AbaGQLYO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jul 2014 16:29:32 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: m.chehab@samsung.com, dheitmueller@kernellabs.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: drx39xyj - use drxj_set_lna_state() and remove duplicate LNA code
-Date: Thu, 24 Jul 2014 14:29:28 -0600
-Message-Id: <1406233768-7976-1-git-send-email-shuah.kh@samsung.com>
+	Thu, 17 Jul 2014 07:24:14 -0400
+Received: from avalon.localnet (unknown [91.178.197.224])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id E74D4359FA
+	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 13:23:06 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.17] Replace V4L2_FIELD_ANY with V4L2_FIELD_NONE in subdev drivers
+Date: Thu, 17 Jul 2014 13:24:17 +0200
+Message-ID: <3263187.shyCyf3hmE@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drx39xxj_set_lna() and drx39xxj_set_frontend() set LNA. Instead of
-duplicating LNA configure code, change to use drxj_set_lna_state()
-which sets LNA to the caller requested state (on or off).
+Hi Mauro,
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
----
+The following changes since commit 3c0d394ea7022bb9666d9df97a5776c4bcc3045c:
 
-This patch depends on previous patch that added drxj_set_lna_state().
-https://lkml.org/lkml/2014/7/24/469
+  [media] dib8000: improve the message that reports per-layer locks 
+(2014-07-07 09:59:01 -0300)
 
- drivers/media/dvb-frontends/drx39xyj/drxj.c |   29 ++-------------------------
- 1 file changed, 2 insertions(+), 27 deletions(-)
+are available in the git repository at:
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 31fee7b..d6d2930 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -12154,13 +12154,7 @@ static int drx39xxj_set_frontend(struct dvb_frontend *fe)
- 		return -EINVAL;
- 	}
- 	/* Just for giggles, let's shut off the LNA again.... */
--	uio_data.uio = DRX_UIO1;
--	uio_data.value = false;
--	result = ctrl_uio_write(demod, &uio_data);
--	if (result != 0) {
--		pr_err("Failed to disable LNA!\n");
--		return 0;
--	}
-+	drxj_set_lna_state(demod, false);
- 
- 	/* After set_frontend, except for strength, stats aren't available */
- 	p->strength.stat[0].scale = FE_SCALE_RELATIVE;
-@@ -12243,26 +12237,7 @@ static int drx39xxj_set_lna(struct dvb_frontend *fe)
- 		}
- 	}
- 
--	/* Turn off the LNA */
--	uio_cfg.uio = DRX_UIO1;
--	uio_cfg.mode = DRX_UIO_MODE_READWRITE;
--	/* Configure user-I/O #3: enable read/write */
--	result = ctrl_set_uio_cfg(demod, &uio_cfg);
--	if (result) {
--		pr_err("Failed to setup LNA GPIO!\n");
--		return result;
--	}
--
--	uio_data.uio = DRX_UIO1;
--	uio_data.value = c->lna;
--	result = ctrl_uio_write(demod, &uio_data);
--	if (result != 0) {
--		pr_err("Failed to %sable LNA!\n",
--		       c->lna ? "en" : "dis");
--		return result;
--	}
--
--	return 0;
-+	return drxj_set_lna_state(demod, c->lna);
- }
- 
- static int drx39xxj_get_tune_settings(struct dvb_frontend *fe,
+  git://linuxtv.org/pinchartl/media.git v4l2/field
+
+for you to fetch changes up to dce4c80f5842f80527c31b8a07e2910b5d489ee6:
+
+  v4l: s3c-camif: Return V4L2_FIELD_NONE from pad-level set format (2014-07-17 
+13:16:51 +0200)
+
+----------------------------------------------------------------
+Laurent Pinchart (6):
+      v4l: noon010p30: Return V4L2_FIELD_NONE from pad-level set format
+      v4l: s5k4ecgx: Return V4L2_FIELD_NONE from pad-level set format
+      v4l: s5k5baf: Return V4L2_FIELD_NONE from pad-level set format
+      v4l: s5k6a3: Return V4L2_FIELD_NONE from pad-level set format
+      v4l: smiapp: Return V4L2_FIELD_NONE from pad-level get/set format
+      v4l: s3c-camif: Return V4L2_FIELD_NONE from pad-level set format
+
+ drivers/media/i2c/noon010pc30.c                  | 1 +
+ drivers/media/i2c/s5k4ecgx.c                     | 1 +
+ drivers/media/i2c/s5k5baf.c                      | 2 ++
+ drivers/media/i2c/s5k6a3.c                       | 1 +
+ drivers/media/i2c/smiapp/smiapp-core.c           | 3 +++
+ drivers/media/platform/s3c-camif/camif-capture.c | 2 ++
+ 6 files changed, 10 insertions(+)
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
