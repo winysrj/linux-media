@@ -1,91 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:45714 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759202AbaGPN7r (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1388 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755723AbaGQIJq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jul 2014 09:59:47 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N8T008J05JFNU10@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 16 Jul 2014 14:59:39 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'panpan liu' <panpan1.liu@samsung.com>, kyungmin.park@samsung.com,
-	jtp.park@samsung.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <1405475493-3200-1-git-send-email-panpan1.liu@samsung.com>
-In-reply-to: <1405475493-3200-1-git-send-email-panpan1.liu@samsung.com>
-Subject: RE: [PATCH] s5p-mfc: limit the size of the CPB
-Date: Wed, 16 Jul 2014 15:59:44 +0200
-Message-id: <095901cfa0fe$334215a0$99c640e0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Thu, 17 Jul 2014 04:09:46 -0400
+Received: from tschai.lan (173-38-208-170.cisco.com [173.38.208.170])
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6H89f1i053695
+	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 10:09:44 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 7D0912A1FD1
+	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 10:09:40 +0200 (CEST)
+Message-ID: <53C784C4.2020904@xs4all.nl>
+Date: Thu, 17 Jul 2014 10:09:40 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.17] A bunch of
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Panpan,
+These are all little fixes for issues I found while working on the vivi
+replacement +  some docbook fixes.
 
-I merged your patch to my tree. However, next time please base the patch
-on the newest branch from Mauro. Please mind the whitespaces, I had to
-manually correct them. Also, please add version number to the [PATCH] part
-of subject e.g. [PATCH v10].
+Usually all for fairly obscure corner cases, but that's what you write a
+test driver for, after all.
 
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+Regards,
 
+	Hans
 
-> -----Original Message-----
-> From: panpan liu [mailto:panpan1.liu@samsung.com]
-> Sent: Wednesday, July 16, 2014 3:52 AM
-> To: kyungmin.park@samsung.com; k.debski@samsung.com;
-> jtp.park@samsung.com; mchehab@redhat.com
-> Cc: linux-arm-kernel@lists.infradead.org; linux-media@vger.kernel.org
-> Subject: [PATCH] s5p-mfc: limit the size of the CPB
-> 
-> The CPB size is limited by the hardware. Add this limit to the s_fmt.
-> 
-> Signed-off-by: panpan liu <panpan1.liu@samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |    9 ++++++---
->  1 file changed, 6 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> index 0bae907..0621ed8 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> @@ -413,6 +413,7 @@ static int vidioc_s_fmt(struct file *file, void
-> *priv, struct v4l2_format *f)
->  	int ret = 0;
->  	struct s5p_mfc_fmt *fmt;
->  	struct v4l2_pix_format_mplane *pix_mp;
-> +	struct s5p_mfc_buf_size *buf_size = dev->variant->buf_size;
-> 
->  	mfc_debug_enter();
->  	ret = vidioc_try_fmt(file, priv, f);
-> @@ -466,11 +467,13 @@ static int vidioc_s_fmt(struct file *file, void
-> *priv, struct v4l2_format *f)
->  	mfc_debug(2, "The codec number is: %d\n", ctx->codec_mode);
->  	pix_mp->height = 0;
->  	pix_mp->width = 0;
-> -	if (pix_mp->plane_fmt[0].sizeimage)
-> -		ctx->dec_src_buf_size = pix_mp->plane_fmt[0].sizeimage;
-> -	else
-> +	if (pix_mp->plane_fmt[0].sizeimage == 0)
->  		pix_mp->plane_fmt[0].sizeimage = ctx->dec_src_buf_size =
->
-DEF_CPB_SIZE;
-> +	else if (pix_mp->plane_fmt[0].sizeimage > buf_size->cpb)
-> +		ctx->dec_src_buf_size = buf_size->cpb;
-> +	else
-> +		ctx->dec_src_buf_size = pix_mp->plane_fmt[0].sizeimage;
->  	pix_mp->plane_fmt[0].bytesperline = 0;
->  	ctx->state = MFCINST_INIT;
->  out:
-> --
-> 1.7.9.5
+The following changes since commit 3c0d394ea7022bb9666d9df97a5776c4bcc3045c:
 
+  [media] dib8000: improve the message that reports per-layer locks (2014-07-07 09:59:01 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git core-fixes
+
+for you to fetch changes up to 2eb86fa0840ac281cc5ca0a63f1339fa00245c7d:
+
+  v4l2-ioctl.c: check vfl_type in ENUM_FMT. (2014-07-14 14:55:47 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (12):
+      DocBook media: fix wrong spacing
+      DocBook media: add missing dqevent src_change field.
+      DocBook media: fix incorrect header reference
+      v4l2-ioctl: call g_selection before calling cropcap
+      v4l2-ioctl: clips, clipcount and bitmap should not be zeroed.
+      v4l2-ioctl: clear reserved field of G/S_SELECTION.
+      v4l2-ioctl: remove pointless INFO_FL_CLEAR.
+      v4l2-dev: don't debug poll unless the debug level > 2
+      videodev2.h: add V4L2_FIELD_HAS_T_OR_B macro
+      v4l2-dev: streamon/off is only a valid ioctl for video, vbi and sdr
+      v4l2-ioctl.c: fix enum_freq_bands handling
+      v4l2-ioctl.c: check vfl_type in ENUM_FMT.
+
+ Documentation/DocBook/media/v4l/pixfmt.xml             |   2 +-
+ Documentation/DocBook/media/v4l/selection-api.xml      |  95 ++++++++++++++++++++++++++++++++-------------------------------
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml     |   6 ++++
+ Documentation/DocBook/media/v4l/vidioc-g-selection.xml |  40 +++++++++++++--------------
+ drivers/media/v4l2-core/v4l2-dev.c                     |   6 ++--
+ drivers/media/v4l2-core/v4l2-ioctl.c                   | 103 +++++++++++++++++++++++++++++++++++++++++++++------------------------
+ include/uapi/linux/videodev2.h                         |   4 +++
+ 7 files changed, 148 insertions(+), 108 deletions(-)
