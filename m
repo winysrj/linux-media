@@ -1,49 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bay004-omc2s10.hotmail.com ([65.54.190.85]:63354 "EHLO
-	BAY004-OMC2S10.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751163AbaGDJav convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jul 2014 05:30:51 -0400
-Message-ID: <BAY176-W23C9AA5FB70F17EDEB68F8A9000@phx.gbl>
-From: Divneil Wadhawan <divneil@outlook.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Divneil Wadhawan <divneil@outlook.com>
-Subject: RE: No audio support in struct v4l2_subdev_format
-Date: Fri, 4 Jul 2014 15:00:50 +0530
-In-Reply-To: <53B65DCA.6010803@xs4all.nl>
-References: <BAY176-W7B3F24A204E68896226E0A9000@phx.gbl>,<53B65DCA.6010803@xs4all.nl>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39235 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934698AbaGQQFT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jul 2014 12:05:19 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 09/11] [media] coda: split format enumeration for encoder end decoder device
+Date: Thu, 17 Jul 2014 18:05:10 +0200
+Message-Id: <1405613112-22442-10-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de>
+References: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Let the decoder capture side and encoder output side only list
+uncompressed formats, and the decoder output and encoder capture
+side only list compressed formats.
 
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 57 +++++++++++++++----------------------------
+ 1 file changed, 19 insertions(+), 38 deletions(-)
 
-> To my knowledge nobody has done much if any work on this. Usually the
-> audio part is handled by alsa, but it is not clear if support is also
-> needed from the V4L2 API.
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 4a159031..e63226b 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -542,8 +542,8 @@ static int coda_querycap(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int enum_fmt(void *priv, struct v4l2_fmtdesc *f,
+-			enum v4l2_buf_type type, int src_fourcc)
++static int coda_enum_fmt(struct file *file, void *priv,
++			 struct v4l2_fmtdesc *f)
+ {
+ 	struct coda_ctx *ctx = fh_to_ctx(priv);
+ 	struct coda_codec *codecs = ctx->dev->devtype->codecs;
+@@ -552,11 +552,19 @@ static int enum_fmt(void *priv, struct v4l2_fmtdesc *f,
+ 	int num_codecs = ctx->dev->devtype->num_codecs;
+ 	int num_formats = ARRAY_SIZE(coda_formats);
+ 	int i, k, num = 0;
++	bool yuv;
++
++	if (ctx->inst_type == CODA_INST_ENCODER)
++		yuv = (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT);
++	else
++		yuv = (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
+ 
+ 	for (i = 0; i < num_formats; i++) {
+-		/* Both uncompressed formats are always supported */
+-		if (coda_format_is_yuv(formats[i].fourcc) &&
+-		    !coda_format_is_yuv(src_fourcc)) {
++		/* Skip either raw or compressed formats */
++		if (yuv != coda_format_is_yuv(formats[i].fourcc))
++			continue;
++		/* All uncompressed formats are always supported */
++		if (yuv) {
+ 			if (num == f->index)
+ 				break;
+ 			++num;
+@@ -564,12 +572,10 @@ static int enum_fmt(void *priv, struct v4l2_fmtdesc *f,
+ 		}
+ 		/* Compressed formats may be supported, check the codec list */
+ 		for (k = 0; k < num_codecs; k++) {
+-			/* if src_fourcc is set, only consider matching codecs */
+-			if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+-			    formats[i].fourcc == codecs[k].dst_fourcc &&
+-			    (!src_fourcc || src_fourcc == codecs[k].src_fourcc))
++			if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE &&
++			    formats[i].fourcc == codecs[k].dst_fourcc)
+ 				break;
+-			if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT &&
++			if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT &&
+ 			    formats[i].fourcc == codecs[k].src_fourcc)
+ 				break;
+ 		}
+@@ -584,7 +590,7 @@ static int enum_fmt(void *priv, struct v4l2_fmtdesc *f,
+ 		fmt = &formats[i];
+ 		strlcpy(f->description, fmt->name, sizeof(f->description));
+ 		f->pixelformat = fmt->fourcc;
+-		if (!coda_format_is_yuv(fmt->fourcc))
++		if (!yuv)
+ 			f->flags |= V4L2_FMT_FLAG_COMPRESSED;
+ 		return 0;
+ 	}
+@@ -593,31 +599,6 @@ static int enum_fmt(void *priv, struct v4l2_fmtdesc *f,
+ 	return -EINVAL;
+ }
+ 
+-static int coda_enum_fmt_vid_cap(struct file *file, void *priv,
+-				 struct v4l2_fmtdesc *f)
+-{
+-	struct coda_ctx *ctx = fh_to_ctx(priv);
+-	struct vb2_queue *src_vq;
+-	struct coda_q_data *q_data_src;
+-
+-	/* If the source format is already fixed, only list matching formats */
+-	src_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+-	if (vb2_is_streaming(src_vq)) {
+-		q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+-
+-		return enum_fmt(priv, f, V4L2_BUF_TYPE_VIDEO_CAPTURE,
+-				q_data_src->fourcc);
+-	}
+-
+-	return enum_fmt(priv, f, V4L2_BUF_TYPE_VIDEO_CAPTURE, 0);
+-}
+-
+-static int coda_enum_fmt_vid_out(struct file *file, void *priv,
+-				 struct v4l2_fmtdesc *f)
+-{
+-	return enum_fmt(priv, f, V4L2_BUF_TYPE_VIDEO_OUTPUT, 0);
+-}
+-
+ static int coda_g_fmt(struct file *file, void *priv,
+ 		      struct v4l2_format *f)
+ {
+@@ -972,12 +953,12 @@ static int coda_subscribe_event(struct v4l2_fh *fh,
+ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
+ 	.vidioc_querycap	= coda_querycap,
+ 
+-	.vidioc_enum_fmt_vid_cap = coda_enum_fmt_vid_cap,
++	.vidioc_enum_fmt_vid_cap = coda_enum_fmt,
+ 	.vidioc_g_fmt_vid_cap	= coda_g_fmt,
+ 	.vidioc_try_fmt_vid_cap	= coda_try_fmt_vid_cap,
+ 	.vidioc_s_fmt_vid_cap	= coda_s_fmt_vid_cap,
+ 
+-	.vidioc_enum_fmt_vid_out = coda_enum_fmt_vid_out,
++	.vidioc_enum_fmt_vid_out = coda_enum_fmt,
+ 	.vidioc_g_fmt_vid_out	= coda_g_fmt,
+ 	.vidioc_try_fmt_vid_out	= coda_try_fmt_vid_out,
+ 	.vidioc_s_fmt_vid_out	= coda_s_fmt_vid_out,
+-- 
+2.0.1
 
-Actually, the application needs to know when to ask the capture device to start capturing.
-
-Let's say, the cable is already plugged in/or plugged out.
-
-So, any events will be missed as the driver state machine starts during boot up and app is not started.
-
-App starts later, registers for (V4L2_EVENT_SOURCE_CHANGE back ported to 3.10) and listens, but will not receive any as they are already generated.
-
-
-So, the application is in a blind spot whether to start capture or not.
-
-If we get the same interface as video it's good. I mean G_FMT with a union for audio as well.
-
-Otherwise, I can go with a proprietary control/ioctl indicating whether audio is valid or not. 
-
-ioctl seems to be an easy choice, because this subdev is not exposing any controls, so, registration with ctrl framework for a single one seems a bit of overload.
-
-
-Regards,
-
-Divneil 		 	   		  
