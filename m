@@ -1,54 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44525 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756490AbaGNRJV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 13:09:21 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 06/18] si2168: remove duplicate command
-Date: Mon, 14 Jul 2014 20:08:47 +0300
-Message-Id: <1405357739-3570-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1405357739-3570-1-git-send-email-crope@iki.fi>
-References: <1405357739-3570-1-git-send-email-crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35904 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756635AbaGQKWm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jul 2014 06:22:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] smiapp: Set sub-device owner
+Date: Thu, 17 Jul 2014 12:22:47 +0200
+Message-ID: <4340191.d162iopR0n@avalon>
+In-Reply-To: <1396017313-3990-3-git-send-email-sakari.ailus@linux.intel.com>
+References: <1396017313-3990-1-git-send-email-sakari.ailus@linux.intel.com> <1396017313-3990-3-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Same command was executed twice, but different value. Remove
-redundant command.
+Hi Sakari,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c | 9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+What happened to this patch ? 1/3 and 3/3 from the same series seem to have 
+been applied, but not 2/3.
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index bfd7525..432703c 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -334,7 +334,7 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	memcpy(cmd.args, "\x14\x00\x01\x10\x00\x00", 6);
-+	memcpy(cmd.args, "\x14\x00\x01\x10\x16\x00", 6);
- 	cmd.wlen = 6;
- 	cmd.rlen = 1;
- 	ret = si2168_cmd_execute(s, &cmd);
-@@ -404,13 +404,6 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	memcpy(cmd.args, "\x14\x00\x01\x10\x16\x00", 6);
--	cmd.wlen = 6;
--	cmd.rlen = 1;
--	ret = si2168_cmd_execute(s, &cmd);
--	if (ret)
--		goto err;
--
- 	memcpy(cmd.args, "\x14\x00\x01\x12\x00\x00", 6);
- 	cmd.wlen = 6;
- 	cmd.rlen = 1;
+On Friday 28 March 2014 16:35:12 Sakari Ailus wrote:
+> The smiapp driver is the owner of the sub-devices exposed by the smiapp
+> driver. This prevents unloading the module whilst it's in use.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/i2c/smiapp/smiapp-core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c
+> b/drivers/media/i2c/smiapp/smiapp-core.c index 69c11ec..5179cf4 100644
+> --- a/drivers/media/i2c/smiapp/smiapp-core.c
+> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+> @@ -2569,7 +2569,7 @@ static int smiapp_registered(struct v4l2_subdev
+> *subdev)
+> 
+>  		this->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+>  		this->sd.internal_ops = &smiapp_internal_ops;
+> -		this->sd.owner = NULL;
+> +		this->sd.owner = THIS_MODULE;
+>  		v4l2_set_subdevdata(&this->sd, client);
+> 
+>  		rval = media_entity_init(&this->sd.entity,
+
 -- 
-1.9.3
+Regards,
+
+Laurent Pinchart
 
