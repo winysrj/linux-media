@@ -1,52 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35973 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755370AbaGQKh1 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39306 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933956AbaGQQFe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 06:37:27 -0400
-Received: from avalon.localnet (unknown [91.178.197.224])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 4EC79359FA
-	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 12:36:23 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Thu, 17 Jul 2014 12:05:34 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.17] mt9v032 sensor patches
-Date: Thu, 17 Jul 2014 12:37:33 +0200
-Message-ID: <1413181.WhPVLKM5Ev@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 01/11] [media] coda: fix CODA7541 hardware reset
+Date: Thu, 17 Jul 2014 18:05:02 +0200
+Message-Id: <1405613112-22442-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de>
+References: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Do not try to read the CODA960 GDI status register on CODA7541.
 
-The following changes since commit 3c0d394ea7022bb9666d9df97a5776c4bcc3045c:
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-  [media] dib8000: improve the message that reports per-layer locks 
-(2014-07-07 09:59:01 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git sensors/next
-
-for you to fetch changes up to 0a7db4ceaa58c01bce53e33928049491fd9215fc:
-
-  mt9v032: use regmap (2014-07-17 12:35:39 +0200)
-
-----------------------------------------------------------------
-Philipp Zabel (5):
-      mt9v032: fix hblank calculation
-      mt9v032: do not clear reserved bits in read mode register
-      mt9v032: add support for mt9v022 and mt9v024
-      mt9v032: register v4l2 asynchronous subdevice
-      mt9v032: use regmap
-
- drivers/media/i2c/Kconfig   |   1 +
- drivers/media/i2c/mt9v032.c | 166 ++++++++++++++++++++++++-------------------
- 2 files changed, 93 insertions(+), 74 deletions(-)
-
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 7e69eda..d5abb7c 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -350,19 +350,22 @@ static int coda_hw_reset(struct coda_ctx *ctx)
+ 
+ 	idx = coda_read(dev, CODA_REG_BIT_RUN_INDEX);
+ 
+-	timeout = jiffies + msecs_to_jiffies(100);
+-	coda_write(dev, 0x11, CODA9_GDI_BUS_CTRL);
+-	while (coda_read(dev, CODA9_GDI_BUS_STATUS) != 0x77) {
+-		if (time_after(jiffies, timeout))
+-			return -ETIME;
+-		cpu_relax();
++	if (dev->devtype->product == CODA_960) {
++		timeout = jiffies + msecs_to_jiffies(100);
++		coda_write(dev, 0x11, CODA9_GDI_BUS_CTRL);
++		while (coda_read(dev, CODA9_GDI_BUS_STATUS) != 0x77) {
++			if (time_after(jiffies, timeout))
++				return -ETIME;
++			cpu_relax();
++		}
+ 	}
+ 
+ 	ret = reset_control_reset(dev->rstc);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	coda_write(dev, 0x00, CODA9_GDI_BUS_CTRL);
++	if (dev->devtype->product == CODA_960)
++		coda_write(dev, 0x00, CODA9_GDI_BUS_CTRL);
+ 	coda_write(dev, CODA_REG_BIT_BUSY_FLAG, CODA_REG_BIT_BUSY);
+ 	coda_write(dev, CODA_REG_RUN_ENABLE, CODA_REG_BIT_CODE_RUN);
+ 	ret = coda_wait_timeout(dev);
 -- 
-Regards,
-
-Laurent Pinchart
+2.0.1
 
