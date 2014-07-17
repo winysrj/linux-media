@@ -1,44 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.pmeerw.net ([87.118.82.44]:41387 "EHLO pmeerw.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932082AbaGUMfo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 08:35:44 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by pmeerw.net (Postfix) with ESMTP id 2823EC50120
-	for <linux-media@vger.kernel.org>; Mon, 21 Jul 2014 14:35:39 +0200 (CEST)
-Date: Mon, 21 Jul 2014 14:35:39 +0200 (CEST)
-From: Peter Meerwald <pmeerw@pmeerw.net>
-To: linux-media@vger.kernel.org
-Message-ID: <alpine.DEB.2.01.1407211419320.18226@pmeerw.net>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-lb0-f176.google.com ([209.85.217.176]:51248 "EHLO
+	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933607AbaGQQ12 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jul 2014 12:27:28 -0400
+From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+To: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-media@vger.kernel.org
+Cc: gregkh@linuxfoundation.org, m.chehab@samsung.com,
+	Andrey Utkin <andrey.krieger.utkin@gmail.com>
+Subject: [PATCH 2/4] drivers/staging/media/davinci_vpfe/dm365_ipipeif.c: fix negativity check
+Date: Thu, 17 Jul 2014 19:27:16 +0300
+Message-Id: <1405614436-4506-1-git-send-email-andrey.krieger.utkin@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+[linux-3.16-rc5/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:210]:
+(style) Checking if unsigned variable 'val' is less than zero.
 
-how can I query the supported pixel format(s) of a sensor connected via 
-media-ctl and exposed via /dev/videoX
+    val = get_oneshot_mode(ipipeif->input);
+    if (val < 0) {
+        pr_err("ipipeif: links setup required");
+        return -EINVAL;
+    }
 
-there is 
-VIDIOC_ENUM_FMT (which fails)
-and
-VIDIOC_SUBDEV_ENUM_MBUS_CODE (which works, but on a subdev, not on 
-/dev/videoX)
+but
 
-v4l2_subdev_video_ops has .enum_mbus_fmt (this is SoC camera stuff?)
+static int get_oneshot_mode(enum ipipeif_input_entity input)
 
-v4l2_subdev_pad_ops has .enum_mbus_code
+Introduced temporary variable for negativity check.
+"val" is afterwards used in a lot of bitwise operations, so changing its type
+to signed is not safe, according to CERT C Secure Coding Standards chapter
+INT13-C: "Use bitwise operators only on unsigned operands"
+https://www.securecoding.cert.org/confluence/display/seccode/INT13-C.+Use+bitwise+operators+only+on+unsigned+operands
 
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=80521
+Reported-by: David Binderman <dcb314@hotmail.com>
+Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+---
+ drivers/staging/media/davinci_vpfe/dm365_ipipeif.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-the application just sees /dev/videoX and cannot do VIDIOC_ENUM_FMT
-what is the logic behind this?
-shouldn't a compabatibility layer be added turning VIDIOC_ENUM_FMT into 
-VIDIOC_SUBDEV_ENUM_MBUS_CODE?
-
-thanks, p.
-
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+index 59540cd..6d4893b 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+@@ -196,6 +196,7 @@ static int ipipeif_hw_setup(struct v4l2_subdev *sd)
+ 	int data_shift;
+ 	int pack_mode;
+ 	int source1;
++	int tmp;
+ 
+ 	ipipeif_base_addr = ipipeif->ipipeif_base_addr;
+ 
+@@ -206,8 +207,8 @@ static int ipipeif_hw_setup(struct v4l2_subdev *sd)
+ 	outformat = &ipipeif->formats[IPIPEIF_PAD_SOURCE];
+ 
+ 	/* Combine all the fields to make CFG1 register of IPIPEIF */
+-	val = get_oneshot_mode(ipipeif->input);
+-	if (val < 0) {
++	tmp = val = get_oneshot_mode(ipipeif->input);
++	if (tmp < 0) {
+ 		pr_err("ipipeif: links setup required");
+ 		return -EINVAL;
+ 	}
 -- 
+1.8.5.5
 
-Peter Meerwald
-+43-664-2444418 (mobile)
