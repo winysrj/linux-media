@@ -1,44 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:55708 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751912AbaGaPTi (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36234 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756075AbaGQL3o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jul 2014 11:19:38 -0400
-Received: by mail-pa0-f42.google.com with SMTP id lf10so3856923pab.1
-        for <linux-media@vger.kernel.org>; Thu, 31 Jul 2014 08:19:38 -0700 (PDT)
-Received: from DFTWBCREAD (wsip-70-167-188-130.sd.sd.cox.net. [70.167.188.130])
-        by mx.google.com with ESMTPSA id pz10sm5842985pbb.33.2014.07.31.08.19.35
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Thu, 31 Jul 2014 08:19:36 -0700 (PDT)
-From: "Chris R" <chrisrfq@gmail.com>
-To: <linux-media@vger.kernel.org>
-Subject: Cross Compiling V4L-DVB Device Drivers for Older (2.6.37) Kernel
-Date: Thu, 31 Jul 2014 08:19:35 -0700
-Message-ID: <018101cfacd2$d77125a0$865370e0$@gmail.com>
+	Thu, 17 Jul 2014 07:29:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH] tvp5150: Fix device ID kernel log message
+Date: Thu, 17 Jul 2014 13:29:51 +0200
+Message-ID: <1427497.bCxcs01A7z@avalon>
+In-Reply-To: <1401132511-5236-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1401132511-5236-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Language: en-us
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm trying to build the V4L-DVB drivers for an embedded system
-(OMAP3530/DM3730) that uses the 2.6.37 kernel.  I'm using the build
-instructions from
-http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-D
-VB_Device_Drivers and am following the more manually intensive approach
-column.
+Hi Mauro,
 
-The first make crashes (make tar DIR=/home/me/mykernel) with missing file
-errors.  It lists about 20 missing files such as include/linux/dma-buf.h and
-include/trace/events/v4l2.h.  It doesn't look like those files show up in
-the kernel source until versions 3.3 and 3.14 respectively.  What is the
-best approach to resolve the missing file errors for my 2.6.37 kernel and
-still have the drivers build and run?
+Ping ?
 
-Thanks,
-Chris
+On Monday 26 May 2014 21:28:31 Laurent Pinchart wrote:
+> The driver mistakenly prints the ROM version instead of the device ID to
+> the kernel log when detecting the chip. Fix it.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/i2c/tvp5150.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index a912125..937e48b 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -1148,10 +1148,10 @@ static int tvp5150_probe(struct i2c_client *c,
+>  		/* Is TVP5150A */
+>  		if (tvp5150_id[2] == 3 || tvp5150_id[3] == 0x21) {
+>  			v4l2_info(sd, "tvp%02x%02xa detected.\n",
+> -				  tvp5150_id[2], tvp5150_id[3]);
+> +				  tvp5150_id[0], tvp5150_id[1]);
+>  		} else {
+>  			v4l2_info(sd, "*** unknown tvp%02x%02x chip detected.\n",
+> -				  tvp5150_id[2], tvp5150_id[3]);
+> +				  tvp5150_id[0], tvp5150_id[1]);
+>  			v4l2_info(sd, "*** Rom ver is %d.%d\n",
+>  				  tvp5150_id[2], tvp5150_id[3]);
+>  		}
 
+-- 
+Regards,
+
+Laurent Pinchart
 
