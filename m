@@ -1,151 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:39078 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751314AbaGZPYg (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2874 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758354AbaGQXOr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Jul 2014 11:24:36 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9B00GTMS4ZDG40@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Sat, 26 Jul 2014 11:24:35 -0400 (EDT)
-Date: Sat, 26 Jul 2014 12:24:31 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: "Marcel J.E. Mol" <marcel@mesa.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] [v4l-utils] keytable: add support for XMP IR protocol
-Message-id: <20140726122431.2401d546.m.chehab@samsung.com>
-In-reply-to: <20140616211711.GA2343@joshua.mesa.nl>
-References: <20140616211711.GA2343@joshua.mesa.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Thu, 17 Jul 2014 19:14:47 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6HNEiHE010863
+	for <linux-media@vger.kernel.org>; Fri, 18 Jul 2014 01:14:46 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 04F042A1FD1
+	for <linux-media@vger.kernel.org>; Fri, 18 Jul 2014 01:14:42 +0200 (CEST)
+Message-ID: <53C858E1.7080003@xs4all.nl>
+Date: Fri, 18 Jul 2014 01:14:41 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: [git:media_tree/master] [media] cx23885: add support for Hauppauge
+ ImpactVCB-e
+References: <E1X7un1-0001b9-KN@www.linuxtv.org>
+In-Reply-To: <E1X7un1-0001b9-KN@www.linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 16 Jun 2014 23:17:11 +0200
-"Marcel J.E. Mol" <marcel@mesa.nl> escreveu:
+Please revert, without the preceding patch (cx23885: fix UNSET/TUNER_ABSENT confusion.)
+this board won't work.
 
-You also missed your Signed-off-by: here. There will be a small conflict
-with this patch, as I added yesterday the missing support for sharp and
-mce-kbd on ir-keytable.
-
-It would be nice if you could rebase it, but if you can't, I'll do it
-anyway after merging your Kernel patch.
+Or merge that patch as well, that's fine too...
 
 Regards,
-Mauro
 
+	Hans
 
+On 07/18/2014 12:57 AM, Mauro Carvalho Chehab wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the 
+> http://git.linuxtv.org/media_tree.git tree:
+> 
+> Subject: [media] cx23885: add support for Hauppauge ImpactVCB-e
+> Author:  Hans Verkuil <hans.verkuil@cisco.com>
+> Date:    Fri Jun 27 11:15:42 2014 -0300
+> 
+> Add support for Hauppauge model 71100: WinTV-ImpactVCB-e
+> (PCIe, Retail, half height)
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> 
+>  drivers/media/pci/cx23885/cx23885-cards.c |   31 ++++++++++++++++++++++++++++-
+>  drivers/media/pci/cx23885/cx23885-video.c |    1 +
+>  drivers/media/pci/cx23885/cx23885.h       |    1 +
+>  3 files changed, 32 insertions(+), 1 deletions(-)
 > 
 > ---
->  utils/keytable/keytable.c | 26 +++++++++++++++++++++++++-
->  1 file changed, 25 insertions(+), 1 deletion(-)
 > 
-> diff --git a/utils/keytable/keytable.c b/utils/keytable/keytable.c
-> index 065ac3b..ba98cd3 100644
-> --- a/utils/keytable/keytable.c
-> +++ b/utils/keytable/keytable.c
-> @@ -86,6 +86,7 @@ enum ir_protocols {
->  	LIRC		= 1 << 5,
->  	SANYO		= 1 << 6,
->  	RC_5_SZ		= 1 << 7,
-> +	XMP		= 1 << 8,
->  	OTHER		= 1 << 31,
+> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=cce11b093f8a7f5e689f250d5b219f69a45e5db3
+> 
+> diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+> index 79f20c8..9723067 100644
+> --- a/drivers/media/pci/cx23885/cx23885-cards.c
+> +++ b/drivers/media/pci/cx23885/cx23885-cards.c
+> @@ -649,7 +649,26 @@ struct cx23885_board cx23885_boards[] = {
+>  				  CX25840_NONE1_CH3,
+>  			.amux   = CX25840_AUDIO6,
+>  		} },
+> -	}
+> +	},
+> +	[CX23885_BOARD_HAUPPAUGE_IMPACTVCBE] = {
+> +		.name		= "Hauppauge ImpactVCB-e",
+> +		.tuner_type	= TUNER_ABSENT,
+> +		.porta		= CX23885_ANALOG_VIDEO,
+> +		.input          = {{
+> +			.type   = CX23885_VMUX_COMPOSITE1,
+> +			.vmux   = CX25840_VIN7_CH3 |
+> +				  CX25840_VIN4_CH2 |
+> +				  CX25840_VIN6_CH1,
+> +			.amux   = CX25840_AUDIO7,
+> +		}, {
+> +			.type   = CX23885_VMUX_SVIDEO,
+> +			.vmux   = CX25840_VIN7_CH3 |
+> +				  CX25840_VIN4_CH2 |
+> +				  CX25840_VIN8_CH1 |
+> +				  CX25840_SVIDEO_ON,
+> +			.amux   = CX25840_AUDIO7,
+> +		} },
+> +	},
 >  };
+>  const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
 >  
-> @@ -110,7 +111,7 @@ static const char doc[] = "\nAllows get/set IR keycode/scancode tables\n"
->  	"  SYSDEV   - the ir class as found at /sys/class/rc\n"
->  	"  TABLE    - a file with a set of scancode=keycode value pairs\n"
->  	"  SCANKEY  - a set of scancode1=keycode1,scancode2=keycode2.. value pairs\n"
-> -	"  PROTOCOL - protocol name (nec, rc-5, rc-6, jvc, sony, sanyo, rc-5-sz, lirc, other) to be enabled\n"
-> +	"  PROTOCOL - protocol name (nec, rc-5, rc-6, jvc, sony, sanyo, rc-5-sz, lirc, xmp, other) to be enabled\n"
->  	"  DELAY    - Delay before repeating a keystroke\n"
->  	"  PERIOD   - Period to repeat a keystroke\n"
->  	"  CFGFILE  - configuration file that associates a driver/table name with a keymap file\n"
-> @@ -234,6 +235,8 @@ static error_t parse_keyfile(char *fname, char **table)
->  							ch_proto |= SANYO;
->  						else if (!strcasecmp(p,"rc-5-sz"))
->  							ch_proto |= RC_5_SZ;
-> +						else if (!strcasecmp(p,"xmp"))
-> +							ch_proto |= XMP;
->  						else if (!strcasecmp(p,"other") || !strcasecmp(p,"unknown"))
->  							ch_proto |= OTHER;
->  						else {
-> @@ -471,6 +474,8 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
->  				ch_proto |= LIRC;
->  			else if (!strcasecmp(p,"rc-5-sz"))
->  				ch_proto |= RC_5_SZ;
-> +			else if (!strcasecmp(p,"xmp"))
-> +				ch_proto |= XMP;
->  			else
->  				goto err_inval;
->  			p = strtok(NULL, ",;");
-> @@ -744,6 +749,8 @@ static enum ir_protocols v1_get_hw_protocols(char *name)
->  			proto |= SANYO;
->  		else if (!strcmp(p, "rc-5-sz"))
->  			proto |= RC_5_SZ;
-> +		else if (!strcmp(p, "xmp"))
-> +			proto |= XMP;
->  		else
->  			proto |= OTHER;
+> @@ -897,6 +916,10 @@ struct cx23885_subid cx23885_subids[] = {
+>  		.subvendor = 0x1461,
+>  		.subdevice = 0xd939,
+>  		.card      = CX23885_BOARD_AVERMEDIA_HC81R,
+> +	}, {
+> +		.subvendor = 0x0070,
+> +		.subdevice = 0x7133,
+> +		.card      = CX23885_BOARD_HAUPPAUGE_IMPACTVCBE,
+>  	},
+>  };
+>  const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
+> @@ -977,6 +1000,9 @@ static void hauppauge_eeprom(struct cx23885_dev *dev, u8 *eeprom_data)
+>  	case 71009:
+>  		/* WinTV-HVR1200 (PCIe, Retail, full height)
+>  		 * DVB-T and basic analog */
+> +	case 71100:
+> +		/* WinTV-ImpactVCB-e (PCIe, Retail, half height)
+> +		 * Basic analog */
+>  	case 71359:
+>  		/* WinTV-HVR1200 (PCIe, OEM, half height)
+>  		 * DVB-T and basic analog */
+> @@ -1701,6 +1727,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1850:
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1290:
+>  	case CX23885_BOARD_HAUPPAUGE_HVR4400:
+> +	case CX23885_BOARD_HAUPPAUGE_IMPACTVCBE:
+>  		if (dev->i2c_bus[0].i2c_rc == 0)
+>  			hauppauge_eeprom(dev, eeprom+0xc0);
+>  		break;
+> @@ -1807,6 +1834,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1200:
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1700:
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1400:
+> +	case CX23885_BOARD_HAUPPAUGE_IMPACTVCBE:
+>  	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
+>  	case CX23885_BOARD_LEADTEK_WINFAST_PXPVR2200:
+>  	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000:
+> @@ -1835,6 +1863,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+>  			break;
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1800:
+> +	case CX23885_BOARD_HAUPPAUGE_IMPACTVCBE:
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1800lp:
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1700:
+>  	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
+> diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+> index e0a5952..71e3ec3 100644
+> --- a/drivers/media/pci/cx23885/cx23885-video.c
+> +++ b/drivers/media/pci/cx23885/cx23885-video.c
+> @@ -507,6 +507,7 @@ static int cx23885_video_mux(struct cx23885_dev *dev, unsigned int input)
+>  	if ((dev->board == CX23885_BOARD_HAUPPAUGE_HVR1800) ||
+>  		(dev->board == CX23885_BOARD_MPX885) ||
+>  		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1250) ||
+> +		(dev->board == CX23885_BOARD_HAUPPAUGE_IMPACTVCBE) ||
+>  		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255) ||
+>  		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255_22111) ||
+>  		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1850) ||
+> diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+> index 0fa4048..6a4b20e 100644
+> --- a/drivers/media/pci/cx23885/cx23885.h
+> +++ b/drivers/media/pci/cx23885/cx23885.h
+> @@ -96,6 +96,7 @@
+>  #define CX23885_BOARD_TBS_6981                 40
+>  #define CX23885_BOARD_TBS_6980                 41
+>  #define CX23885_BOARD_LEADTEK_WINFAST_PXPVR2200 42
+> +#define CX23885_BOARD_HAUPPAUGE_IMPACTVCBE     43
 >  
-> @@ -790,6 +797,9 @@ static int v1_set_hw_protocols(struct rc_device *rc_dev)
->  	if (rc_dev->current & RC_5_SZ)
->  		fprintf(fp, "rc-5-sz ");
->  
-> +	if (rc_dev->current & XMP)
-> +		fprintf(fp, "xmp ");
-> +
->  	if (rc_dev->current & OTHER)
->  		fprintf(fp, "unknown ");
->  
-> @@ -921,6 +931,8 @@ static enum ir_protocols v2_get_protocols(struct rc_device *rc_dev, char *name)
->  			proto = LIRC;
->  		else if (!strcmp(p, "rc-5-sz"))
->  			proto = RC_5_SZ;
-> +		else if (!strcmp(p, "xmp"))
-> +			proto = XMP;
->  		else
->  			proto = OTHER;
->  
-> @@ -977,6 +989,9 @@ static int v2_set_protocols(struct rc_device *rc_dev)
->  	if (rc_dev->current & RC_5_SZ)
->  		fprintf(fp, "+rc-5-sz\n");
->  
-> +	if (rc_dev->current & XMP)
-> +		fprintf(fp, "+xmp\n");
-> +
->  	if (rc_dev->current & OTHER)
->  		fprintf(fp, "+unknown\n");
->  
-> @@ -1006,6 +1021,8 @@ static void show_proto(	enum ir_protocols proto)
->  		fprintf (stderr, "LIRC ");
->  	if (proto & RC_5_SZ)
->  		fprintf (stderr, "RC-5-SZ ");
-> +	if (proto & XMP)
-> +		fprintf (stderr, "XMP ");
->  	if (proto & OTHER)
->  		fprintf (stderr, "other ");
->  }
-> @@ -1128,6 +1145,10 @@ static int get_attribs(struct rc_device *rc_dev, char *sysfs_name)
->  			rc_dev->supported |= SONY;
->  			if (v1_get_sw_enabled_protocol(cur->name))
->  				rc_dev->current |= SONY;
-> +		} else if (strstr(cur->name, "/xmp_decoder")) {
-> +			rc_dev->supported |= XMP;
-> +			if (v1_get_sw_enabled_protocol(cur->name))
-> +				rc_dev->current |= XMP;
->  		}
->  	}
->  
-> @@ -1159,6 +1180,9 @@ static int set_proto(struct rc_device *rc_dev)
->  		if (rc_dev->supported & SONY)
->  			rc += v1_set_sw_enabled_protocol(rc_dev, "/sony_decoder",
->  						      rc_dev->current & SONY);
-> +		if (rc_dev->supported & XMP)
-> +			rc += v1_set_sw_enabled_protocol(rc_dev, "/xmp_decoder",
-> +						      rc_dev->current & XMP);
->  	} else {
->  		rc = v1_set_hw_protocols(rc_dev);
->  	}
+>  #define GPIO_0 0x00000001
+>  #define GPIO_1 0x00000002
+> 
+> _______________________________________________
+> linuxtv-commits mailing list
+> linuxtv-commits@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
+> 
+
