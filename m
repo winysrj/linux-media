@@ -1,77 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:37476 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753833AbaGHJlh (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2746 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932179AbaGQNsr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jul 2014 05:41:37 -0400
-From: Ian Molton <ian.molton@codethink.co.uk>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@lists.codethink.co.uk, ian.molton@codethink.co.uk,
-	g.liakhovetski@gmx.de, m.chehab@samsung.com,
-	vladimir.barinov@cogentembedded.com, magnus.damm@gmail.com,
-	horms@verge.net.au, linux-sh@vger.kernel.org
-Subject: [PATCH 4/4] media: rcar_vin: Clean up rcar_vin_irq
-Date: Tue,  8 Jul 2014 10:41:14 +0100
-Message-Id: <1404812474-7627-5-git-send-email-ian.molton@codethink.co.uk>
-In-Reply-To: <1404812474-7627-1-git-send-email-ian.molton@codethink.co.uk>
-References: <1404812474-7627-1-git-send-email-ian.molton@codethink.co.uk>
+	Thu, 17 Jul 2014 09:48:47 -0400
+Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6HDmiRZ046329
+	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 15:48:46 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 4CC942A1FD1
+	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 15:48:43 +0200 (CEST)
+Message-ID: <53C7D43B.20905@xs4all.nl>
+Date: Thu, 17 Jul 2014 15:48:43 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] v4l2-ctrls: fix compiler warning
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch makes the rcar_vin IRQ handler a little more readable.
+Fixed a compiler warning in v4l_print_query_ext_ctrl() due to the change from
+dims[8] to dims[4].
 
-Removes an else clause, and simplifies the buffer handling.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
-Reviewed-by: William Towle <william.towle@codethink.co.uk>
----
- drivers/media/platform/soc_camera/rcar_vin.c | 24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index aeda4e2..a8d2785 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -554,7 +554,6 @@ static irqreturn_t rcar_vin_irq(int irq, void *data)
- 	struct rcar_vin_priv *priv = data;
- 	u32 int_status;
- 	bool can_run = false, hw_stopped;
--	int slot;
- 	unsigned int handled = 0;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index c38a620..96bc117 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -531,13 +531,12 @@ static void v4l_print_query_ext_ctrl(const void *arg, bool write_only)
  
- 	spin_lock(&priv->lock);
-@@ -573,17 +572,22 @@ static irqreturn_t rcar_vin_irq(int irq, void *data)
- 	hw_stopped = !(ioread32(priv->base + VNMS_REG) & VNMS_CA);
+ 	pr_cont("id=0x%x, type=%d, name=%.*s, min/max=%lld/%lld, "
+ 		"step=%lld, default=%lld, flags=0x%08x, elem_size=%u, elems=%u, "
+-		"nr_of_dims=%u, dims=%u,%u,%u,%u,%u,%u,%u,%u\n",
++		"nr_of_dims=%u, dims=%u,%u,%u,%u\n",
+ 			p->id, p->type, (int)sizeof(p->name), p->name,
+ 			p->minimum, p->maximum,
+ 			p->step, p->default_value, p->flags,
+ 			p->elem_size, p->elems, p->nr_of_dims,
+-			p->dims[0], p->dims[1], p->dims[2], p->dims[3],
+-			p->dims[4], p->dims[5], p->dims[6], p->dims[7]);
++			p->dims[0], p->dims[1], p->dims[2], p->dims[3]);
+ }
  
- 	if (!priv->request_to_stop) {
-+		struct vb2_buffer **q_entry = priv->queue_buf;
-+		struct vb2_buffer *vb;
-+
- 		if (is_continuous_transfer(priv))
--			slot = (ioread32(priv->base + VNMS_REG) &
--				VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
--		else
--			slot = 0;
-+			q_entry += (ioread32(priv->base + VNMS_REG) &
-+					VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
-+
-+		vb = *q_entry;
-+
-+		vb->v4l2_buf.field = priv->field;
-+		vb->v4l2_buf.sequence = priv->sequence++;
-+		do_gettimeofday(&vb->v4l2_buf.timestamp);
-+
-+		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
- 
--		priv->queue_buf[slot]->v4l2_buf.field = priv->field;
--		priv->queue_buf[slot]->v4l2_buf.sequence = priv->sequence++;
--		do_gettimeofday(&priv->queue_buf[slot]->v4l2_buf.timestamp);
--		vb2_buffer_done(priv->queue_buf[slot], VB2_BUF_STATE_DONE);
--		priv->queue_buf[slot] = NULL;
-+		*q_entry = NULL;
- 
- 		if (priv->state != STOPPING)
- 			can_run = rcar_vin_fill_hw_slot(priv);
--- 
-1.9.1
-
+ static void v4l_print_querymenu(const void *arg, bool write_only)
