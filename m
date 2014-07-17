@@ -1,70 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:39201 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932797AbaGWSX7 (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4563 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755380AbaGQQJZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 14:23:59 -0400
+	Thu, 17 Jul 2014 12:09:25 -0400
+Message-ID: <53C7F516.3080005@xs4all.nl>
+Date: Thu, 17 Jul 2014 18:08:54 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20140723145724.3102ae3a.m.chehab@samsung.com>
-References: <53CA9A77.6060409@hauke-m.de> <CAB=NE6WvY1ZnwogYR0YLuiMUOeRvqeEjhhnLHUpeJjteSTwfGA@mail.gmail.com>
- <20140723145724.3102ae3a.m.chehab@samsung.com>
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Date: Wed, 23 Jul 2014 11:23:37 -0700
-Message-ID: <CAB=NE6W3+fRQkxe-TEKVyPSMXWNVr44TNhCwd6g-7nH+83jx=Q@mail.gmail.com>
-Subject: Re: Removal of regulator framework
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Hauke Mehrtens <hauke@hauke-m.de>,
-	"backports@vger.kernel.org" <backports@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH 03/11] [media] coda: remove CAPTURE and OUTPUT caps
+References: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de> <1405613112-22442-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405613112-22442-4-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 23, 2014 at 10:57 AM, Mauro Carvalho Chehab
-<m.chehab@samsung.com> wrote:
-> Em Wed, 23 Jul 2014 10:13:28 -0700
-> "Luis R. Rodriguez" <mcgrof@do-not-panic.com> escreveu:
->
->> On Sat, Jul 19, 2014 at 9:19 AM, Hauke Mehrtens <hauke@hauke-m.de> wrote:
->> > Maintaining the regulator drivers in backports costs some time and I do
->> > not need them. Is anybody using the regulator drivers from backports? I
->> > would like to remove them.
->>
->> That came simply from collateral of backporting media drivers,
->> eventually I started running into device drivers that used the
->> regulator framework. Since we have tons of media drivers perhaps the
->> more sensible thing to do is to white list a set of media divers that
->> people actually care and then we just nuke both regulator and media
->> drivers that no one cares for. For that though I'd like to ask media
->> folks.
->
-> Hi Luis,
->
-> The drivers that currently use regulators are mostly the ones at
-> drivers/media/platform, plus the corresponding I2C drivers for their
-> webcam sensors, under drivers/media/i2c.
->
-> I think that there's one exception though: em28xx. This driver can use
-> some sensor drivers, as it supports a few webcams. This is one of
-> the most used USB media driver, as there are lots of USB supported
-> on it, supporting 4 types of devices on it: analog TV, capture card,
-> digital TV and webcam.
->
-> The webcam part of em28xx is not that relevant, as there are very few
-> models using it. However, currently, it is not possible to just
-> disable webcam support. It shouldn't be hard to make webcam support
-> optional on it, as it has already sub-drivers for V4L2, DVB, ALSA and
-> remote controller. One additional driver for webcam, that could be
-> disabled at the backport tree shouldn't be hard to do. If you want it,
-> patches are welcome.
+On 07/17/2014 06:05 PM, Philipp Zabel wrote:
+> This is a mem2mem driver, pure capture or output modes are not
+> supported.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-Thanks for the details Mauro, are you aware of current or future uses
-of backports for media at this point? Adding media drivers was more of
-an experiment to see how hard or easy it would be to add a new
-unrelated subsystem, we carry it now and as collateral also carry some
-regulator drivers but its not clear the value in terms of users, so
-hence Hauke's question of removal of the regulator drivers. It'd be
-good to limit the drivers we carry to what folks actually use and care
-about.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-  Luis
+Regards,
+
+	Hans
+
+> ---
+>  drivers/media/platform/coda.c | 8 +-------
+>  1 file changed, 1 insertion(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index 10f9278..f52d17c 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -536,13 +536,7 @@ static int coda_querycap(struct file *file, void *priv,
+>  	strlcpy(cap->card, coda_product_name(ctx->dev->devtype->product),
+>  		sizeof(cap->card));
+>  	strlcpy(cap->bus_info, "platform:" CODA_NAME, sizeof(cap->bus_info));
+> -	/*
+> -	 * This is only a mem-to-mem video device. The capture and output
+> -	 * device capability flags are left only for backward compatibility
+> -	 * and are scheduled for removal.
+> -	 */
+> -	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT |
+> -			   V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
+> +	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
+>  	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+>  
+>  	return 0;
+> 
+
