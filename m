@@ -1,111 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:51797 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752580AbaGaUbK (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1263 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752585AbaGQCot (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jul 2014 16:31:10 -0400
-Message-ID: <1406834177.1912.25.camel@palomino.walls.org>
-Subject: Re: [PATCHv1 02/12] vivid.txt: add documentation for the vivid
- driver.
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Date: Thu, 31 Jul 2014 15:16:17 -0400
-In-Reply-To: <1406730195-64365-3-git-send-email-hverkuil@xs4all.nl>
-References: <1406730195-64365-1-git-send-email-hverkuil@xs4all.nl>
-	 <1406730195-64365-3-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 16 Jul 2014 22:44:49 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6H2ij3h028888
+	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 04:44:47 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 00DC22A1FD1
+	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 04:44:44 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20140717024445.00DC22A1FD1@tschai.lan>
+Date: Thu, 17 Jul 2014 04:44:44 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2014-07-30 at 16:23 +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The vivid Virtual Video Test Driver helps testing V4L2 applications
-> and can emulate V4L2 hardware. Add the documentation for this driver
-> first.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  Documentation/video4linux/vivid.txt | 1108 +++++++++++++++++++++++++++++++++++
->  1 file changed, 1108 insertions(+)
->  create mode 100644 Documentation/video4linux/vivid.txt
-> 
-> diff --git a/Documentation/video4linux/vivid.txt b/Documentation/video4linux/vivid.txt
-> new file mode 100644
-> index 0000000..2dc7354
-> --- /dev/null
-> +++ b/Documentation/video4linux/vivid.txt
-> @@ -0,0 +1,1108 @@
-> +vivid: Virtual Video Test Driver
-> +================================
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> +
-> +Section 8: Software Defined Radio Receiver
-> +------------------------------------------
-> +
-> +The SDR receiver has three frequency bands for the ADC tuner:
-> +
-> +	- 300 kHz
-> +	- 900 kHz - 2800 kHz
-> +	- 3200 kHz
-> +
-> +The RF tuner supports 50 MHz - 2000 MHz.
-> +
-> +The generated data contains sinus and cosinus signals.
-> +
+Results of the daily build of media_tree:
 
-In (American) English the names are "sine" and "cosine" for sin(x) and
-cos(x).
+date:		Thu Jul 17 04:00:27 CEST 2014
+git branch:	test
+git hash:	3c0d394ea7022bb9666d9df97a5776c4bcc3045c
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	v0.5.0-14-gf11dd94
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
-Maybe say:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-"The generated data contains the In-phase and Quadrature components of a
-1 kHz tone that has an amplitude of sqrt(2)."
+Detailed results are available here:
 
-FWIW, the signals are the In-phase and Quadrature components of the
-signal A*cos(2*pi*f + phi), where f = 1 kHz, A = sqrt(2), and phi =
--pi/4
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-> +
-> +Section 15: Some Future Improvements
-> +------------------------------------
-> +
-> +Just as a reminder and in no particular order:
-> +
-> +- Add a virtual alsa driver to test audio
-> +- Add virtual sub-devices and media controller support
-> +- Some support for testing compressed video
-> +- Add support to loop raw VBI output to raw VBI input
-> +- Fix sequence/field numbering when looping of video with alternate fields
-> +- Add support for V4L2_CID_BG_COLOR for video outputs
-> +- Add ARGB888 overlay support: better testing of the alpha channel
-> +- Add custom DV timings support
-> +- Add support for V4L2_DV_FL_REDUCED_FPS
-> +- Improve pixel aspect support in the tpg code by passing a real v4l2_fract
-> +- Use per-queue locks and/or per-device locks to improve throughput
-> +- Add support to loop from a specific output to a specific input across
-> +  vivid instances
-> +- Add support for VIDIOC_EXPBUF once support for that has been added to vb2
-> +- The SDR radio should use the same 'frequencies' for stations as the normal
-> +  radio receiver, and give back noise if the frequency doesn't match up with
-> +  a station frequency
-> +- Improve the sinus generation of the SDR radio.
+Full logs are available here:
 
-Maybe a lookup table, containing the first quarter wave of cos() from 0
-to pi/2 in pi/200 steps, and then linear interpolation for cos() of
-angles in between those steps.  You could go with a larger lookup table
-with finer grained steps to reduce the approximation errors.  A lookup
-table with linear interpolation, I would think, requires fewer
-mutliplies and divides than the current Taylor expansion computation.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
 
-> +- Make a thread for the RDS generation, that would help in particular for the
-> +  "Controls" RDS Rx I/O Mode as the read-only RDS controls could be updated
-> +  in real-time.
-
-Regards,
-Andy
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
