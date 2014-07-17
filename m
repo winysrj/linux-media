@@ -1,50 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37872 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760099AbaGSCir (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 22:38:47 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35851 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755374AbaGQKLs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jul 2014 06:11:48 -0400
+Received: from avalon.localnet (unknown [91.178.197.224])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id BA69C359FA
+	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 12:10:43 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Luis Alves <ljalvs@gmail.com>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 01/10] si2168: Set symbol rate for DVB-C
-Date: Sat, 19 Jul 2014 05:38:17 +0300
-Message-Id: <1405737506-13186-1-git-send-email-crope@iki.fi>
+Subject: [GIT PULL FOR v3.17] OMAP4 ISS fixes and enhancements
+Date: Thu, 17 Jul 2014 12:11:54 +0200
+Message-ID: <127783026.6sLjMWfivo@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Luis Alves <ljalvs@gmail.com>
+Hi Mauro,
 
-This patch adds symbol rate setting to the driver.
+The following changes since commit 3c0d394ea7022bb9666d9df97a5776c4bcc3045c:
 
-Signed-off-by: Luis Alves <ljalvs@gmail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+  [media] dib8000: improve the message that reports per-layer locks 
+(2014-07-07 09:59:01 -0300)
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 0422925..7980741 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -278,6 +278,18 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	/* set DVB-C symbol rate */
-+	if (c->delivery_system == SYS_DVBC_ANNEX_A) {
-+		memcpy(cmd.args, "\x14\x00\x02\x11", 4);
-+		cmd.args[4] = (c->symbol_rate / 1000) & 0xff;
-+		cmd.args[5] = ((c->symbol_rate / 1000) >> 8) & 0xff;
-+		cmd.wlen = 6;
-+		cmd.rlen = 4;
-+		ret = si2168_cmd_execute(s, &cmd);
-+		if (ret)
-+			goto err;
-+	}
-+
- 	memcpy(cmd.args, "\x14\x00\x0f\x10\x10\x00", 6);
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git omap4iss/next
+
+for you to fetch changes up to 97c9a001293360b566cb20853df2bd4b772d820f:
+
+  MAINTAINERS: Add the OMAP4 ISS driver (2014-07-17 12:10:07 +0200)
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      v4l: omap4iss: tighten omap4iss dependencies
+
+Laurent Pinchart (7):
+      v4l: vb2: Don't return POLLERR during transient buffer underruns
+      v4l: vb2: Add fatal error condition flag
+      v4l: omap4iss: Don't reinitialize the video qlock at every streamon
+      v4l: omap4iss: Add module debug parameter
+      v4l: omap4iss: Use the devm_* managed allocators
+      v4l: omap4iss: Signal fatal errors to the vb2 queue
+      MAINTAINERS: Add the OMAP4 ISS driver
+
+Vitaly Osipov (1):
+      v4l: omap4iss: Copy paste error in iss_get_clocks
+
+ MAINTAINERS                                |  3 +-
+ drivers/media/v4l2-core/videobuf2-core.c   | 40 ++++++++++++++++--
+ drivers/staging/media/omap4iss/Kconfig     |  2 +-
+ drivers/staging/media/omap4iss/iss.c       | 86 +++--------------------------
+ drivers/staging/media/omap4iss/iss_video.c | 22 +++++-----
+ include/media/videobuf2-core.h             |  3 ++
+ 6 files changed, 64 insertions(+), 92 deletions(-)
+
 -- 
-1.9.3
+Regards,
+
+Laurent Pinchart
 
