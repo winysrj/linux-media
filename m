@@ -1,64 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56194 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761928AbaGRPZO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 11:25:14 -0400
-Message-ID: <53C93C58.80000@iki.fi>
-Date: Fri, 18 Jul 2014 18:25:12 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1769 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934026AbaGQQYc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jul 2014 12:24:32 -0400
+Message-ID: <53C7F8A1.7080709@xs4all.nl>
+Date: Thu, 17 Jul 2014 18:24:01 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org,
-	Luis Alves <ljalvs@gmail.com>
-Subject: Re: [PATCH] si2157: Use name si2157_ops instead of si2157_tuner_ops
- (harmonize with si2168)
-References: <1405662072-26808-1-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1405662072-26808-1-git-send-email-olli.salonen@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH 11/11] [media] coda: mark constant structures as such
+References: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de> <1405613112-22442-12-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405613112-22442-12-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I will apply that, thanks!
+On 07/17/2014 06:05 PM, Philipp Zabel wrote:
+> The format and codec lists and the ops structures are read-only.
+> Mark them as const.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-Could you and also Luis pay attention to commit message in future 
-patches. I have had practically fixed almost every commit message from 
-your patches. Long one liner just like this one is not correct. It 
-should be short subject line and then explained more in the commit 
-message body. I tend ask myself questions "why" and "how" and then write 
-commit message based answers of those questions.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-regards
-Antti
+Regards,
 
-On 07/18/2014 08:41 AM, Olli Salonen wrote:
-> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+	Hans
+
 > ---
->   drivers/media/tuners/si2157.c | 4 ++--
->   1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-> index 329004f..4730f69 100644
-> --- a/drivers/media/tuners/si2157.c
-> +++ b/drivers/media/tuners/si2157.c
-> @@ -277,7 +277,7 @@ err:
->   	return ret;
->   }
->
-> -static const struct dvb_tuner_ops si2157_tuner_ops = {
-> +static const struct dvb_tuner_ops si2157_ops = {
->   	.info = {
->   		.name           = "Silicon Labs Si2157/Si2158",
->   		.frequency_min  = 110000000,
-> @@ -317,7 +317,7 @@ static int si2157_probe(struct i2c_client *client,
->   		goto err;
->
->   	fe->tuner_priv = s;
-> -	memcpy(&fe->ops.tuner_ops, &si2157_tuner_ops,
-> +	memcpy(&fe->ops.tuner_ops, &si2157_ops,
->   			sizeof(struct dvb_tuner_ops));
->
->   	i2c_set_clientdata(client, s);
->
+>  drivers/media/platform/coda.c | 38 +++++++++++++++++++-------------------
+>  1 file changed, 19 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index ed5fa4c..b644f2b 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -102,7 +102,7 @@ struct coda_codec {
+>  struct coda_devtype {
+>  	char			*firmware;
+>  	enum coda_product	product;
+> -	struct coda_codec	*codecs;
+> +	const struct coda_codec	*codecs;
+>  	unsigned int		num_codecs;
+>  	size_t			workbuf_size;
+>  	size_t			tempbuf_size;
+> @@ -225,7 +225,7 @@ struct coda_ctx {
+>  	u32				sequence_offset;
+>  	struct coda_q_data		q_data[2];
+>  	enum coda_inst_type		inst_type;
+> -	struct coda_codec		*codec;
+> +	const struct coda_codec		*codec;
+>  	enum v4l2_colorspace		colorspace;
+>  	struct coda_params		params;
+>  	struct v4l2_ctrl_handler	ctrls;
+> @@ -390,7 +390,7 @@ static struct coda_q_data *get_q_data(struct coda_ctx *ctx,
+>  /*
+>   * Array of all formats supported by any version of Coda:
+>   */
+> -static struct coda_fmt coda_formats[] = {
+> +static const struct coda_fmt coda_formats[] = {
+>  	{
+>  		.name = "YUV 4:2:0 Planar, YCbCr",
+>  		.fourcc = V4L2_PIX_FMT_YUV420,
+> @@ -419,19 +419,19 @@ static struct coda_fmt coda_formats[] = {
+>   *  i.MX6  -> coda960
+>   * Use V4L2_PIX_FMT_YUV420 as placeholder for all supported YUV 4:2:0 variants
+>   */
+> -static struct coda_codec codadx6_codecs[] = {
+> +static const struct coda_codec codadx6_codecs[] = {
+>  	CODA_CODEC(CODADX6_MODE_ENCODE_H264, V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_H264,  720, 576),
+>  	CODA_CODEC(CODADX6_MODE_ENCODE_MP4,  V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_MPEG4, 720, 576),
+>  };
+>  
+> -static struct coda_codec coda7_codecs[] = {
+> +static const struct coda_codec coda7_codecs[] = {
+>  	CODA_CODEC(CODA7_MODE_ENCODE_H264, V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_H264,   1280, 720),
+>  	CODA_CODEC(CODA7_MODE_ENCODE_MP4,  V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_MPEG4,  1280, 720),
+>  	CODA_CODEC(CODA7_MODE_DECODE_H264, V4L2_PIX_FMT_H264,   V4L2_PIX_FMT_YUV420, 1920, 1080),
+>  	CODA_CODEC(CODA7_MODE_DECODE_MP4,  V4L2_PIX_FMT_MPEG4,  V4L2_PIX_FMT_YUV420, 1920, 1080),
+>  };
+>  
+> -static struct coda_codec coda9_codecs[] = {
+> +static const struct coda_codec coda9_codecs[] = {
+>  	CODA_CODEC(CODA9_MODE_ENCODE_H264, V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_H264,   1920, 1080),
+>  	CODA_CODEC(CODA9_MODE_ENCODE_MP4,  V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_MPEG4,  1920, 1080),
+>  	CODA_CODEC(CODA9_MODE_DECODE_H264, V4L2_PIX_FMT_H264,   V4L2_PIX_FMT_YUV420, 1920, 1080),
+> @@ -458,10 +458,10 @@ static u32 coda_format_normalize_yuv(u32 fourcc)
+>  	return coda_format_is_yuv(fourcc) ? V4L2_PIX_FMT_YUV420 : fourcc;
+>  }
+>  
+> -static struct coda_codec *coda_find_codec(struct coda_dev *dev, int src_fourcc,
+> -					  int dst_fourcc)
+> +static const struct coda_codec *coda_find_codec(struct coda_dev *dev,
+> +						int src_fourcc, int dst_fourcc)
+>  {
+> -	struct coda_codec *codecs = dev->devtype->codecs;
+> +	const struct coda_codec *codecs = dev->devtype->codecs;
+>  	int num_codecs = dev->devtype->num_codecs;
+>  	int k;
+>  
+> @@ -483,10 +483,10 @@ static struct coda_codec *coda_find_codec(struct coda_dev *dev, int src_fourcc,
+>  }
+>  
+>  static void coda_get_max_dimensions(struct coda_dev *dev,
+> -				    struct coda_codec *codec,
+> +				    const struct coda_codec *codec,
+>  				    int *max_w, int *max_h)
+>  {
+> -	struct coda_codec *codecs = dev->devtype->codecs;
+> +	const struct coda_codec *codecs = dev->devtype->codecs;
+>  	int num_codecs = dev->devtype->num_codecs;
+>  	unsigned int w, h;
+>  	int k;
+> @@ -546,9 +546,9 @@ static int coda_enum_fmt(struct file *file, void *priv,
+>  			 struct v4l2_fmtdesc *f)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+> -	struct coda_codec *codecs = ctx->dev->devtype->codecs;
+> -	struct coda_fmt *formats = coda_formats;
+> -	struct coda_fmt *fmt;
+> +	const struct coda_codec *codecs = ctx->dev->devtype->codecs;
+> +	const struct coda_fmt *formats = coda_formats;
+> +	const struct coda_fmt *fmt;
+>  	int num_codecs = ctx->dev->devtype->num_codecs;
+>  	int num_formats = ARRAY_SIZE(coda_formats);
+>  	int i, k, num = 0;
+> @@ -621,7 +621,7 @@ static int coda_g_fmt(struct file *file, void *priv,
+>  	return 0;
+>  }
+>  
+> -static int coda_try_fmt(struct coda_ctx *ctx, struct coda_codec *codec,
+> +static int coda_try_fmt(struct coda_ctx *ctx, const struct coda_codec *codec,
+>  			struct v4l2_format *f)
+>  {
+>  	struct coda_dev *dev = ctx->dev;
+> @@ -685,7 +685,7 @@ static int coda_try_fmt_vid_cap(struct file *file, void *priv,
+>  				struct v4l2_format *f)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+> -	struct coda_codec *codec = NULL;
+> +	const struct coda_codec *codec = NULL;
+>  	struct vb2_queue *src_vq;
+>  	int ret;
+>  
+> @@ -733,7 +733,7 @@ static int coda_try_fmt_vid_out(struct file *file, void *priv,
+>  				struct v4l2_format *f)
+>  {
+>  	struct coda_ctx *ctx = fh_to_ctx(priv);
+> -	struct coda_codec *codec;
+> +	const struct coda_codec *codec;
+>  
+>  	/* Determine codec by encoded format, returns NULL if raw or invalid */
+>  	codec = coda_find_codec(ctx->dev, f->fmt.pix.pixelformat,
+> @@ -1531,7 +1531,7 @@ static void coda_unlock(void *m2m_priv)
+>  	mutex_unlock(&pcdev->dev_mutex);
+>  }
+>  
+> -static struct v4l2_m2m_ops coda_m2m_ops = {
+> +static const struct v4l2_m2m_ops coda_m2m_ops = {
+>  	.device_run	= coda_device_run,
+>  	.job_ready	= coda_job_ready,
+>  	.job_abort	= coda_job_abort,
+> @@ -2805,7 +2805,7 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
+>  	return 0;
+>  }
+>  
+> -static struct v4l2_ctrl_ops coda_ctrl_ops = {
+> +static const struct v4l2_ctrl_ops coda_ctrl_ops = {
+>  	.s_ctrl = coda_s_ctrl,
+>  };
+>  
+> 
 
--- 
-http://palosaari.fi/
