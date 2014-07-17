@@ -1,83 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58901 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752012AbaGDJRO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jul 2014 05:17:14 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] af9035: override tuner id when bad value set into eeprom
-Date: Fri,  4 Jul 2014 12:16:39 +0300
-Message-Id: <1404465399-2666-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2596 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752547AbaGQWYj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jul 2014 18:24:39 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6HMOZ3f029531
+	for <linux-media@vger.kernel.org>; Fri, 18 Jul 2014 00:24:38 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0C1DA2A1FD1
+	for <linux-media@vger.kernel.org>; Fri, 18 Jul 2014 00:24:34 +0200 (CEST)
+Message-ID: <53C84D21.5000505@xs4all.nl>
+Date: Fri, 18 Jul 2014 00:24:33 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH for v3.17] DocBook media: fix incorrect note about packed
+ RGB and colorspace
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tuner ID set into EEPROM is wrong in some cases, which causes driver
-to select wrong tuner profile. That leads device non-working. Fix
-issue by overriding known bad tuner IDs with suitable default value.
+The fact that the pixelformat is using a packed RGB format has nothing
+to do with the colorspace that is being used. Those are very different
+things. The colorspace decides what color a triplet of RGB numbers
+actually map to. E.g. a red color with values (255, 0, 0) is a different
+type of red depending on the colorspace. If the original pixelformat was
+e.g. YUV in colorspace REC709, then after the conversion to RGB the
+colorspace is still REC709. Unless the hardware actually converted the
+colorspace as well from REC709 to sRGB, but that rarely if ever happens.
 
-Thanks to MX-NET Telekomunikace s.r.o. for providing non-working
-DTV stick, that I could fix the bug!
+Remove this incorrect comment.
 
-Cc: stable@vger.kernel.org # v3.15+
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/dvb-usb-v2/af9035.c | 40 +++++++++++++++++++++++++++++------
- 1 file changed, 33 insertions(+), 7 deletions(-)
+ Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 021e4d3..7b9b75f 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -704,15 +704,41 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 		if (ret < 0)
- 			goto err;
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+index 5f1602f..2aae8e9 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+@@ -15,9 +15,6 @@ typical PC graphics frame buffers. They occupy 8, 16, 24 or 32 bits
+ per pixel. These are all packed-pixel formats, meaning all the data
+ for a pixel lie next to each other in memory.</para>
  
--		if (tmp == 0x00)
--			dev_dbg(&d->udev->dev,
--					"%s: [%d]tuner not set, using default\n",
--					__func__, i);
--		else
-+		dev_dbg(&d->udev->dev, "%s: [%d]tuner=%02x\n",
-+				__func__, i, tmp);
-+
-+		/* tuner sanity check */
-+		if (state->chip_type == 0x9135) {
-+			if (state->chip_version == 0x02) {
-+				/* IT9135 BX (v2) */
-+				switch (tmp) {
-+				case AF9033_TUNER_IT9135_60:
-+				case AF9033_TUNER_IT9135_61:
-+				case AF9033_TUNER_IT9135_62:
-+					state->af9033_config[i].tuner = tmp;
-+					break;
-+				}
-+			} else {
-+				/* IT9135 AX (v1) */
-+				switch (tmp) {
-+				case AF9033_TUNER_IT9135_38:
-+				case AF9033_TUNER_IT9135_51:
-+				case AF9033_TUNER_IT9135_52:
-+					state->af9033_config[i].tuner = tmp;
-+					break;
-+				}
-+			}
-+		} else {
-+			/* AF9035 */
- 			state->af9033_config[i].tuner = tmp;
-+		}
- 
--		dev_dbg(&d->udev->dev, "%s: [%d]tuner=%02x\n",
--				__func__, i, state->af9033_config[i].tuner);
-+		if (state->af9033_config[i].tuner != tmp) {
-+			dev_info(&d->udev->dev,
-+					"%s: [%d] overriding tuner from %02x to %02x\n",
-+					KBUILD_MODNAME, i, tmp,
-+					state->af9033_config[i].tuner);
-+		}
- 
- 		switch (state->af9033_config[i].tuner) {
- 		case AF9033_TUNER_TUA9001:
+-    <para>When one of these formats is used, drivers shall report the
+-colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+-
+     <table pgwide="1" frame="none" id="rgb-formats">
+       <title>Packed RGB Image Formats</title>
+       <tgroup cols="37" align="center">
 -- 
-1.9.3
+2.0.0
 
