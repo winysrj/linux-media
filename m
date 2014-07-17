@@ -1,44 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta10.emeryville.ca.mail.comcast.net ([76.96.30.17]:33124 "EHLO
-	qmta10.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750854AbaGIUgX (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37684 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932078AbaGQLAl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Jul 2014 16:36:23 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: m.chehab@samsung.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: em28xx - remove reset_resume interface
-Date: Wed,  9 Jul 2014 14:36:03 -0600
-Message-Id: <1404938163-27461-1-git-send-email-shuah.kh@samsung.com>
+	Thu, 17 Jul 2014 07:00:41 -0400
+Date: Thu, 17 Jul 2014 14:00:35 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] smiapp: Set sub-device owner
+Message-ID: <20140717110034.GM16460@valkosipuli.retiisi.org.uk>
+References: <1396017313-3990-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1396017313-3990-3-git-send-email-sakari.ailus@linux.intel.com>
+ <4340191.d162iopR0n@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4340191.d162iopR0n@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-em28xx uses resume interface as its reset_resume interface.
-If usb device is reset during suspend, reset_resume doesn't
-do the necessary initialization which leads to resume failure.
-Many systems don't maintain do not maintain suspend current to
-the USB host controllers during hibernation. Remove reset_resume
-to allow disconnect to be called followed by device restore
-sequence.
+On Thu, Jul 17, 2014 at 12:22:47PM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> What happened to this patch ? 1/3 and 3/3 from the same series seem to have 
+> been applied, but not 2/3.
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c |    1 -
- 1 file changed, 1 deletion(-)
+I think this must have fallen through the cracks when I added a number of
+other patches to the set. Thanks for notifying me.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 15ad470..c53fa77 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -3522,7 +3522,6 @@ static struct usb_driver em28xx_usb_driver = {
- 	.disconnect = em28xx_usb_disconnect,
- 	.suspend = em28xx_usb_suspend,
- 	.resume = em28xx_usb_resume,
--	.reset_resume = em28xx_usb_resume,
- 	.id_table = em28xx_id_table,
- };
- 
 -- 
-1.7.10.4
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
