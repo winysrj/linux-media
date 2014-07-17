@@ -1,106 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4473 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965812AbaGRNPH (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1736 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753551AbaGQLLH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 09:15:07 -0400
-Message-ID: <53C91DD2.7020107@xs4all.nl>
-Date: Fri, 18 Jul 2014 15:14:58 +0200
+	Thu, 17 Jul 2014 07:11:07 -0400
+Message-ID: <53C7AF39.20608@xs4all.nl>
+Date: Thu, 17 Jul 2014 13:10:49 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Subject: Re: [PATCH v2 01/23] v4l: Add ARGB and XRGB pixel formats
-References: <1403567669-18539-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1403567669-18539-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <53C845F0.2010409@xs4all.nl> <3481435.vQMt1BxCmT@avalon>
-In-Reply-To: <3481435.vQMt1BxCmT@avalon>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+	linux-media@vger.kernel.org
+CC: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH 00/28] IPUv3 prep for video capture
+References: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1403744755-24944-1-git-send-email-steve_longerbeam@mentor.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/18/2014 02:31 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Thursday 17 July 2014 23:53:52 Hans Verkuil wrote:
->> Hi Laurent,
->>
->> While implementing support for this in v4l-utils I discovered you missed
->> one:
->>
->> On 06/24/2014 01:54 AM, Laurent Pinchart wrote:
->>> From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>
->>> The existing RGB pixel formats are ill-defined in respect to their alpha
->>> bits and their meaning is driver dependent. Create new standard ARGB and
->>> XRGB variants with clearly defined meanings and make the existing
->>> variants deprecated.
->>>
->>> The new pixel formats 4CC values have been selected to match the DRM
->>> 4CCs for the same in-memory formats.
->>>
->>> Signed-off-by: Laurent Pinchart
->>> <laurent.pinchart+renesas@ideasonboard.com>
->>> ---
->>>
->>>  .../DocBook/media/v4l/pixfmt-packed-rgb.xml        | 415 +++++++++++++++-
->>>  include/uapi/linux/videodev2.h                     |   8 +
->>>  2 files changed, 403 insertions(+), 20 deletions(-)
->>>
->>> diff --git a/include/uapi/linux/videodev2.h
->>> b/include/uapi/linux/videodev2.h index 168ff50..0125f4d 100644
->>> --- a/include/uapi/linux/videodev2.h
->>> +++ b/include/uapi/linux/videodev2.h
->>> @@ -294,7 +294,11 @@ struct v4l2_pix_format {
->>>
->>>  /* RGB formats */
->>>  #define V4L2_PIX_FMT_RGB332  v4l2_fourcc('R', 'G', 'B', '1') /*  8 
->>>  RGB-3-3-2     */ #define V4L2_PIX_FMT_RGB444  v4l2_fourcc('R', '4', '4',
->>>  '4') /* 16  xxxxrrrr ggggbbbb */> 
->>> +#define V4L2_PIX_FMT_ARGB444 v4l2_fourcc('A', 'R', '1', '2') /* 16 
->>> aaaarrrr ggggbbbb */ +#define V4L2_PIX_FMT_XRGB444 v4l2_fourcc('X', 'R',
->>> '1', '2') /* 16  xxxxrrrr ggggbbbb */> 
->>>  #define V4L2_PIX_FMT_RGB555  v4l2_fourcc('R', 'G', 'B', 'O') /* 16 
->>>  RGB-5-5-5     */> 
->>> +#define V4L2_PIX_FMT_ARGB555 v4l2_fourcc('A', 'R', '1', '5') /* 16 
->>> ARGB-1-5-5-5  */ +#define V4L2_PIX_FMT_XRGB555 v4l2_fourcc('X', 'R', '1',
->>> '5') /* 16  XRGB-1-5-5-5  */> 
->>>  #define V4L2_PIX_FMT_RGB565  v4l2_fourcc('R', 'G', 'B', 'P') /* 16 
->>>  RGB-5-6-5     */ #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B',
->>>  'Q') /* 16  RGB-5-5-5 BE  */
->>
->> A+X variants should also be added for this RGB555X pix format.
-> 
-> Agreed. The reason I've left it out is that I don't use it in my driver, and 
-> we have this policy of only adding FOURCCs for formats actively in use. Would 
-> you still like me to add it ?
+Hi Steve,
 
-Yes please, let's not leave the odd one out. It's supported by vivi for
-example, and qv4l2 supports it as well.
+I don't know what your plan is, but when you want to mainline this it is
+the gpu subsystem that needs to review it. I noticed it wasn't cross-posted
+to the dri-devel mailinglist.
+
+I am a bit worried about the amount of v4l2-specific stuff that is going
+into drivers/gpu/ipu-v3. Do things like csc and csi really belong there
+instead of under drivers/media?
+
+Let me know if this was just preliminary code, or if this was intended to
+be the final code. I suspect the former.
 
 Regards,
 
 	Hans
 
+On 06/26/2014 03:05 AM, Steve Longerbeam wrote:
+> Hi Philip, Sascha,
 > 
->>>  #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16 
->>>  RGB-5-6-5 BE  */> 
->>> @@ -302,7 +306,11 @@ struct v4l2_pix_format {
->>>
->>>  #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24 
->>>  BGR-8-8-8     */ #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B',
->>>  '3') /* 24  RGB-8-8-8     */ #define V4L2_PIX_FMT_BGR32  
->>>  v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */> 
->>> +#define V4L2_PIX_FMT_ABGR32  v4l2_fourcc('A', 'R', '2', '4') /* 32 
->>> BGRA-8-8-8-8  */ +#define V4L2_PIX_FMT_XBGR32  v4l2_fourcc('X', 'R', '2',
->>> '4') /* 32  BGRX-8-8-8-8  */> 
->>>  #define V4L2_PIX_FMT_RGB32   v4l2_fourcc('R', 'G', 'B', '4') /* 32 
->>>  RGB-8-8-8-8   */> 
->>> +#define V4L2_PIX_FMT_ARGB32  v4l2_fourcc('B', 'A', '2', '4') /* 32 
->>> ARGB-8-8-8-8  */ +#define V4L2_PIX_FMT_XRGB32  v4l2_fourcc('B', 'X', '2',
->>> '4') /* 32  XRGB-8-8-8-8  */> 
->>>  /* Grey formats */
->>>  #define V4L2_PIX_FMT_GREY    v4l2_fourcc('G', 'R', 'E', 'Y') /*  8 
->>>  Greyscale     */
+> Here is a rebased set of IPU patches that prepares for video capture
+> support. Video capture is not included in this set. I've addressed
+> all your IPU-specific concerns from the previous patch set, the
+> major ones being:
+> 
+> - the IOMUXC control for CSI input selection has been removed. This
+>   should be part of a future CSI media entity driver.
+> 
+> - the ipu-irt unit has been removed. Enabling the IRT module is
+>   folded into ipu-ic unit. The ipu-ic unit is also cleaned up a bit.
+> 
+> - the ipu-csi APIs are consolidated/simplified.
+> 
+> - added CSI and IC base offsets for i.MX51/i.MX53.
+> 
+> 
+> Steve Longerbeam (28):
+>   ARM: dts: imx6qdl: Add ipu aliases
+>   gpu: ipu-v3: Add ipu_get_num()
+>   gpu: ipu-v3: Add functions to set CSI/IC source muxes
+>   gpu: ipu-v3: Rename and add IDMAC channels
+>   gpu: ipu-v3: Add units required for video capture
+>   gpu: ipu-v3: smfc: Move enable/disable to ipu-smfc.c
+>   gpu: ipu-v3: smfc: Convert to per-channel
+>   gpu: ipu-v3: smfc: Add ipu_smfc_set_watermark()
+>   gpu: ipu-v3: Add ipu_mbus_code_to_colorspace()
+>   gpu: ipu-v3: Add rotation mode conversion utilities
+>   gpu: ipu-v3: Add helper function checking if pixfmt is planar
+>   gpu: ipu-v3: Move IDMAC channel names to imx-ipu-v3.h
+>   gpu: ipu-v3: Add ipu_idmac_buffer_is_ready()
+>   gpu: ipu-v3: Add ipu_idmac_clear_buffer()
+>   gpu: ipu-v3: Add __ipu_idmac_reset_current_buffer()
+>   gpu: ipu-v3: Add ipu_stride_to_bytes()
+>   gpu: ipu-v3: Add ipu_idmac_enable_watermark()
+>   gpu: ipu-v3: Add ipu_idmac_lock_enable()
+>   gpu: ipu-v3: Add idmac channel linking support
+>   gpu: ipu-v3: Add ipu-cpmem unit
+>   staging: imx-drm: Convert to new ipu_cpmem API
+>   gpu: ipu-cpmem: Add ipu_cpmem_set_block_mode()
+>   gpu: ipu-cpmem: Add ipu_cpmem_set_axi_id()
+>   gpu: ipu-cpmem: Add ipu_cpmem_set_rotation()
+>   gpu: ipu-cpmem: Add second buffer support to ipu_cpmem_set_image()
+>   gpu: ipu-v3: Add more planar formats support
+>   gpu: ipu-cpmem: Add ipu_cpmem_dump()
+>   gpu: ipu-v3: Add ipu_dump()
+> 
+>  arch/arm/boot/dts/imx6q.dtsi          |    1 +
+>  arch/arm/boot/dts/imx6qdl.dtsi        |    1 +
+>  drivers/gpu/ipu-v3/Makefile           |    3 +-
+>  drivers/gpu/ipu-v3/ipu-common.c       | 1077 +++++++++++++++++++--------------
+>  drivers/gpu/ipu-v3/ipu-cpmem.c        |  817 +++++++++++++++++++++++++
+>  drivers/gpu/ipu-v3/ipu-csi.c          |  701 +++++++++++++++++++++
+>  drivers/gpu/ipu-v3/ipu-ic.c           |  812 +++++++++++++++++++++++++
+>  drivers/gpu/ipu-v3/ipu-prv.h          |  103 +++-
+>  drivers/gpu/ipu-v3/ipu-smfc.c         |  156 ++++-
+>  drivers/staging/imx-drm/ipuv3-plane.c |   16 +-
+>  include/video/imx-ipu-v3.h            |  371 +++++++-----
+>  11 files changed, 3389 insertions(+), 669 deletions(-)
+>  create mode 100644 drivers/gpu/ipu-v3/ipu-cpmem.c
+>  create mode 100644 drivers/gpu/ipu-v3/ipu-csi.c
+>  create mode 100644 drivers/gpu/ipu-v3/ipu-ic.c
 > 
 
