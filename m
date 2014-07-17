@@ -1,100 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51559 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756728AbaGNRJY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 13:09:24 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35973 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755370AbaGQKh1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jul 2014 06:37:27 -0400
+Received: from avalon.localnet (unknown [91.178.197.224])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 4EC79359FA
+	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 12:36:23 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 17/18] si2168: few firmware download changes
-Date: Mon, 14 Jul 2014 20:08:58 +0300
-Message-Id: <1405357739-3570-17-git-send-email-crope@iki.fi>
-In-Reply-To: <1405357739-3570-1-git-send-email-crope@iki.fi>
-References: <1405357739-3570-1-git-send-email-crope@iki.fi>
+Subject: [GIT PULL FOR v3.17] mt9v032 sensor patches
+Date: Thu, 17 Jul 2014 12:37:33 +0200
+Message-ID: <1413181.WhPVLKM5Ev@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rework firmware selection logic a little bit.
-Print notice asking user update firmware when old Si2168 B40
-firmware is used.
+Hi Mauro,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Tested-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c | 41 ++++++++++++++++++++++++------------
- 1 file changed, 27 insertions(+), 14 deletions(-)
+The following changes since commit 3c0d394ea7022bb9666d9df97a5776c4bcc3045c:
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index e9c138a..0422925 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -336,6 +336,7 @@ static int si2168_init(struct dvb_frontend *fe)
- 	u8 *fw_file;
- 	const unsigned int i2c_wr_max = 8;
- 	struct si2168_cmd cmd;
-+	unsigned int chip_id;
- 
- 	dev_dbg(&s->client->dev, "%s:\n", __func__);
- 
-@@ -361,16 +362,24 @@ static int si2168_init(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	if (((cmd.args[1] & 0x0f) == 2) && (cmd.args[3] == '4') &&
--			(cmd.args[4] == '0'))
--		fw_file = SI2168_B40_FIRMWARE;
--	else if (((cmd.args[1] & 0x0f) == 1) && (cmd.args[3] == '3') &&
--			(cmd.args[4] == '0'))
-+	chip_id = cmd.args[1] << 24 | cmd.args[2] << 16 | cmd.args[3] << 8 |
-+			cmd.args[4] << 0;
-+
-+	#define SI2168_A30 ('A' << 24 | 68 << 16 | '3' << 8 | '0' << 0)
-+	#define SI2168_B40 ('B' << 24 | 68 << 16 | '4' << 8 | '0' << 0)
-+
-+	switch (chip_id) {
-+	case SI2168_A30:
- 		fw_file = SI2168_A30_FIRMWARE;
--	else {
-+		break;
-+	case SI2168_B40:
-+		fw_file = SI2168_B40_FIRMWARE;
-+		break;
-+	default:
- 		dev_err(&s->client->dev,
--				"%s: no firmware file for Si2168-%c%c defined\n",
--				KBUILD_MODNAME, cmd.args[3], cmd.args[4]);
-+				"%s: unkown chip version Si21%d-%c%c%c\n",
-+				KBUILD_MODNAME, cmd.args[2], cmd.args[1],
-+				cmd.args[3], cmd.args[4]);
- 		ret = -EINVAL;
- 		goto err;
- 	}
-@@ -382,15 +391,19 @@ static int si2168_init(struct dvb_frontend *fe)
- 	/* request the firmware, this will block and timeout */
- 	ret = request_firmware(&fw, fw_file, &s->client->dev);
- 	if (ret) {
--		/* fallback mechanism to handle old name for
--		   SI2168_B40_FIRMWARE */
--		if (((cmd.args[1] & 0x0f) == 2) && (cmd.args[3] == '4') &&
--				(cmd.args[4] == '0')) {
-+		/* fallback mechanism to handle old name for Si2168 B40 fw */
-+		if (chip_id == SI2168_B40) {
- 			fw_file = SI2168_B40_FIRMWARE_FALLBACK;
- 			ret = request_firmware(&fw, fw_file, &s->client->dev);
- 		}
--		if (ret) {
--			dev_err(&s->client->dev, "%s: firmware file '%s' not found\n",
-+
-+		if (ret == 0) {
-+			dev_notice(&s->client->dev,
-+					"%s: please install firmware file '%s'\n",
-+					KBUILD_MODNAME, SI2168_B40_FIRMWARE);
-+		} else {
-+			dev_err(&s->client->dev,
-+					"%s: firmware file '%s' not found\n",
- 					KBUILD_MODNAME, fw_file);
- 			goto err;
- 		}
+  [media] dib8000: improve the message that reports per-layer locks 
+(2014-07-07 09:59:01 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git sensors/next
+
+for you to fetch changes up to 0a7db4ceaa58c01bce53e33928049491fd9215fc:
+
+  mt9v032: use regmap (2014-07-17 12:35:39 +0200)
+
+----------------------------------------------------------------
+Philipp Zabel (5):
+      mt9v032: fix hblank calculation
+      mt9v032: do not clear reserved bits in read mode register
+      mt9v032: add support for mt9v022 and mt9v024
+      mt9v032: register v4l2 asynchronous subdevice
+      mt9v032: use regmap
+
+ drivers/media/i2c/Kconfig   |   1 +
+ drivers/media/i2c/mt9v032.c | 166 ++++++++++++++++++++++++-------------------
+ 2 files changed, 93 insertions(+), 74 deletions(-)
+
 -- 
-1.9.3
+Regards,
+
+Laurent Pinchart
 
