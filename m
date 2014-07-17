@@ -1,54 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4142 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758605AbaGYJQU (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3196 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753480AbaGQTyx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 05:16:20 -0400
-Message-ID: <53D22046.2000903@xs4all.nl>
-Date: Fri, 25 Jul 2014 11:15:50 +0200
+	Thu, 17 Jul 2014 15:54:53 -0400
+Message-ID: <53C82A05.4050202@xs4all.nl>
+Date: Thu, 17 Jul 2014 21:54:45 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Pawel Osciak <pawel@osciak.com>
-Subject: Re: [PATCH] vb2: fix multiplanar read() with non-zero data_offset
-References: <53D21ED1.1040003@xs4all.nl>
-In-Reply-To: <53D21ED1.1040003@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: davinci compiler warnings
+References: <53C826DD.1050903@xs4all.nl> <CA+V-a8sAb4sO1-_R2mpcWYVMohwe1RsapWv+qMZn=B+zrySaYQ@mail.gmail.com>
+In-Reply-To: <CA+V-a8sAb4sO1-_R2mpcWYVMohwe1RsapWv+qMZn=B+zrySaYQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/25/14 11:09, Hans Verkuil wrote:
-> If this is a multiplanar buf_type and the plane we want to read has a
-> non-zero data_offset, then that data_offset was not taken into account.
+On 07/17/2014 09:49 PM, Prabhakar Lad wrote:
+> Hi Hans
 > 
-> Note that read() or write() for formats with more than one plane is currently
-> not allowed, hence the use of 'planes[0]' since this is only relevant for a
-> single-plane format.
+> On Thu, Jul 17, 2014 at 8:41 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Prabhakar,
+>>
+>> Can you take a look at these new warnings? I've just upgraded my compiler for
+>> the daily build to 4.9.1, so that's probably why they weren't seen before.
+>>
+> Ok will look at it. BTW are these errors from the media/master branch or
+> from your tree ?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Forgot, sorry.
+media/master
 
 > 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index c359006..0e3d927 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -2959,6 +2959,12 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
->  		buf->queued = 0;
->  		buf->size = read ? vb2_get_plane_payload(q->bufs[index], 0)
->  				 : vb2_plane_size(q->bufs[index], 0);
-> +		/* Compensate for data_offset on read in the multiplanar case. */
-> +		if (is_multiplanar && read &&
-> +		    fileio->b.m.planes[0].data_offset < buf->size) {
-> +			buf->pos = fileio->b.m.planes[0].data_offset;
-> +			buf->size -= buf->pos;
-> +		}
->  	} else {
->  		buf = &fileio->bufs[index];
->  	}
+> Thanks,
+> --Prabhakar Lad
+> 
+>> Regards,
+>>
+>>         Hans
+>>
+>> /home/hans/work/build/media-git/drivers/media/platform/davinci/vpif_display.c: In function 'vpif_remove':
+>> /home/hans/work/build/media-git/drivers/media/platform/davinci/vpif_display.c:1389:36: warning: iteration 1u invokes undefined behavior [-Waggressive-loop-optimizations]
+>>    vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+>>                                     ^
+>> /home/hans/work/build/media-git/drivers/media/platform/davinci/vpif_display.c:1385:2: note: containing loop
+>>   for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
+>>   ^
+>> /home/hans/work/build/media-git/drivers/media/platform/davinci/vpif_capture.c: In function 'vpif_remove':
+>> /home/hans/work/build/media-git/drivers/media/platform/davinci/vpif_capture.c:1581:36: warning: iteration 1u invokes undefined behavior [-Waggressive-loop-optimizations]
+>>    vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+>>                                     ^
+>> /home/hans/work/build/media-git/drivers/media/platform/davinci/vpif_capture.c:1577:2: note: containing loop
+>>   for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
+>>   ^
+>> /home/hans/work/build/media-git/drivers/media/platform/davinci/vpif_capture.c:1580:23: warning: array subscript is above array bounds [-Warray-bounds]
+>>    common = &ch->common[i];
+>>                        ^
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
