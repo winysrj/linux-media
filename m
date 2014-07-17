@@ -1,47 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta10.emeryville.ca.mail.comcast.net ([76.96.30.17]:40633 "EHLO
-	qmta10.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752498AbaGLQoh (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1685 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932179AbaGQNsC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Jul 2014 12:44:37 -0400
-From: Shuah Khan <shuah.kh@samsung.com>
-To: m.chehab@samsung.com, dheitmueller@kernellabs.com, olebowle@gmx.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 3/3] media: drx39xyj driver change to check fe exit flag from release
-Date: Sat, 12 Jul 2014 10:44:14 -0600
-Message-Id: <079a2ff6ea88b8918b6144c8c054c6d4bb044347.1405179280.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1405179280.git.shuah.kh@samsung.com>
-References: <cover.1405179280.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1405179280.git.shuah.kh@samsung.com>
-References: <cover.1405179280.git.shuah.kh@samsung.com>
+	Thu, 17 Jul 2014 09:48:02 -0400
+Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6HDlwfq045713
+	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 15:48:00 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 11A192A1FD1
+	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 15:47:56 +0200 (CEST)
+Message-ID: <53C7D40C.7050406@xs4all.nl>
+Date: Thu, 17 Jul 2014 15:47:56 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/2] DocBook improvement for U8 and U16 control types
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change drx39xyj_release() to check fe exit flag to detect the
-device disconnect state and avoid accessing the device after
-it has been removed.
+Removed the "This type is only used-in array controls." sentence in DocBook
+which was thought to only confuse.
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
----
- drivers/media/dvb-frontends/drx39xyj/drxj.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 9482954..54855a9 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -12238,7 +12238,9 @@ static void drx39xxj_release(struct dvb_frontend *fe)
- 	struct drx39xxj_state *state = fe->demodulator_priv;
- 	struct drx_demod_instance *demod = state->demod;
- 
--	drxj_close(demod);
-+	/* if device is removed don't access it */
-+	if (fe->exit != DVB_FE_DEVICE_REMOVED)
-+		drxj_close(demod);
- 
- 	kfree(demod->my_ext_attr);
- 	kfree(demod->my_common_attr);
--- 
-1.7.10.4
-
+diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+index d9a3f23..62163d9 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+@@ -518,8 +518,8 @@ Older drivers which do not support this feature return an
+ 	    <entry>any</entry>
+ 	    <entry>An unsigned 8-bit valued control ranging from minimum to
+ maximum inclusive. The step value indicates the increment between
+-values which are actually different on the hardware. This type is only used
+-in array controls.</entry>
++values which are actually different on the hardware.
++</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_CTRL_TYPE_U16</constant></entry>
+@@ -528,8 +528,8 @@ in array controls.</entry>
+ 	    <entry>any</entry>
+ 	    <entry>An unsigned 16-bit valued control ranging from minimum to
+ maximum inclusive. The step value indicates the increment between
+-values which are actually different on the hardware. This type is only used
+-in array controls.</entry>
++values which are actually different on the hardware.
++</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
