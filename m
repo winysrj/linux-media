@@ -1,227 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:51577 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933466AbaGVWzN (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1668 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754849AbaGQJfK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 18:55:13 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9400BAPYBZ7LB0@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Jul 2014 18:55:11 -0400 (EDT)
-Date: Tue, 22 Jul 2014 19:55:06 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Christoph Pfister <christophpfister@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: [Kaffeine PATCH] Be sure to select the delivery system
-Message-id: <20140722195506.76d8096c.m.chehab@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Thu, 17 Jul 2014 05:35:10 -0400
+Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6H9Z7AG071703
+	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 11:35:09 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0D2752A1FD1
+	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 11:35:06 +0200 (CEST)
+Message-ID: <53C798C9.8030609@xs4all.nl>
+Date: Thu, 17 Jul 2014 11:35:05 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.17] Assorted patches
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Christoph,
+Mostly little cleanups and adding a new card to cx23885.
 
-I know you don't have any time for Kaffeine anymore. Still, it is a very
-nice application, with helps me to test some stuff.
+	Hans
 
-However, its DVB support is too outdated, and doesn't work fine with devices
-with multiple delivery systems, as it doesn't have support yet for 
-DTV_ENUM_DELSYS and DTV_DELIVERY_SYSTEM properties.
+The following changes since commit 3c0d394ea7022bb9666d9df97a5776c4bcc3045c:
 
-The enclosed patch should fix it. Could you please commit it at the master
-repository?
+  [media] dib8000: improve the message that reports per-layer locks (2014-07-07 09:59:01 -0300)
 
-With that, devices like PCTV 292e that supports both DVB-C and DVB-T will
-open a dialog box that will allow configuring channels for both DVB-C and
-DVB-T. It will also change to the proper standard at tuner setting.
+are available in the git repository at:
 
-I might eventually produce other patches for it if I have some time, in order
-to make it support ISDB-T and DVB-T2, likely via libdvbv5.
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.17b
 
-Anyway, this one is an interesting to have, as it avoids the need of calling
-an external program to switch between DVB-C and DVB-T on devices that support
-both.
+for you to fetch changes up to 46c9074bfa73aaf1dfce77d078fcf636652d4e99:
 
-Regards,
-Mauro
+  zoran: remove duplicate ZR050_MO_COMP define (2014-07-17 10:49:11 +0200)
 
-PS.: I created a clone of the Kaffeine tree at:
-	http://git.linuxtv.org/cgit.cgi/mchehab/kaffeine.git
-with the patch below, for those that want to test it.
+----------------------------------------------------------------
+Andreas Weber (1):
+      DocBook media: fix number of bits filled with zeros for
 
-Regards,
-Mauro
+Andrey Utkin (3):
+      solo6x10: expose encoder quantization setting as V4L2 control
+      solo6x10: update GOP size, QP immediately
+      media: pvrusb2: make logging code sane
 
----
+Anil Belur (1):
+      staging: media: bcm2048: radio-bcm2048.c - removed IRQF_DISABLED macro
 
-Subject: [PATCH] Be sure to select the delivery system
+Dan Carpenter (1):
+      zoran: remove duplicate ZR050_MO_COMP define
 
-Some devices support multiple delivery systems. Enumerate and
-select the right delivery system when needed.
+Geert Uytterhoeven (1):
+      staging/solo6x10: SOLO6X10 should select BITREVERSE
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Hans Verkuil (3):
+      cx23885: fix UNSET/TUNER_ABSENT confusion.
+      cx23885: add support for Hauppauge ImpactVCB-e
+      hdpvr: fix reported HDTV colorspace
 
-diff --git a/src/dvb/dvbdevice_linux.cpp b/src/dvb/dvbdevice_linux.cpp
-index 98da579..eee067c 100644
---- a/src/dvb/dvbdevice_linux.cpp
-+++ b/src/dvb/dvbdevice_linux.cpp
-@@ -63,6 +63,41 @@ void DvbLinuxDevice::startDevice(const QString &deviceId_)
- 		return;
- 	}
- 
-+	struct dtv_properties props;
-+	struct dtv_property dvb_prop;
-+
-+	dvb_prop.cmd = DTV_ENUM_DELSYS;
-+	props.num = 1;
-+	props.props = &dvb_prop;
-+
-+	transmissionTypes = 0;
-+
-+	if (!ioctl(fd, FE_GET_PROPERTY, &props)) {
-+		HasDelSys = true;
-+
-+		for (unsigned i = 0; i < dvb_prop.u.buffer.len; i++) {
-+			switch (dvb_prop.u.buffer.data[i]) {
-+			case SYS_DVBS:
-+				transmissionTypes |= DvbS;
-+				break;
-+			case SYS_DVBS2:
-+				transmissionTypes |= DvbS2;
-+				break;
-+			case SYS_DVBT:
-+				transmissionTypes |= DvbT;
-+				break;
-+			case SYS_DVBC_ANNEX_A:
-+				transmissionTypes |= DvbC;
-+				break;
-+			case SYS_ATSC:
-+				transmissionTypes |= Atsc;
-+				break;
-+			}
-+		}
-+	} else {
-+		HasDelSys = false;
-+	}
-+
- 	dvb_frontend_info frontend_info;
- 	memset(&frontend_info, 0, sizeof(frontend_info));
- 
-@@ -77,31 +112,33 @@ void DvbLinuxDevice::startDevice(const QString &deviceId_)
- 	deviceId = deviceId_;
- 	frontendName = QString::fromUtf8(frontend_info.name);
- 
--	switch (frontend_info.type) {
--	case FE_QAM:
--		transmissionTypes = DvbC;
--		break;
--	case FE_QPSK:
--		transmissionTypes = DvbS;
--
--		if (((frontend_info.caps & FE_CAN_2G_MODULATION) != 0) ||
--		    (strcmp(frontend_info.name, "Conexant CX24116/CX24118") == 0) ||
--		    (strcmp(frontend_info.name, "Genpix 8psk-to-USB2 DVB-S") == 0) ||
--		    (strcmp(frontend_info.name, "STB0899 Multistandard") == 0)) {
--			transmissionTypes |= DvbS2;
--		}
-+	if (!transmissionTypes) {
-+		switch (frontend_info.type) {
-+		case FE_QAM:
-+			transmissionTypes = DvbC;
-+			break;
-+		case FE_QPSK:
-+			transmissionTypes = DvbS;
-+
-+			if (((frontend_info.caps & FE_CAN_2G_MODULATION) != 0) ||
-+			    (strcmp(frontend_info.name, "Conexant CX24116/CX24118") == 0) ||
-+			    (strcmp(frontend_info.name, "Genpix 8psk-to-USB2 DVB-S") == 0) ||
-+			    (strcmp(frontend_info.name, "STB0899 Multistandard") == 0)) {
-+				transmissionTypes |= DvbS2;
-+			}
- 
--		break;
--	case FE_OFDM:
--		transmissionTypes = DvbT;
--		break;
--	case FE_ATSC:
--		transmissionTypes = Atsc;
--		break;
--	default:
--		Log("DvbLinuxDevice::startDevice: unknown type") << frontend_info.type <<
--			QLatin1String("for frontend") << frontendPath;
--		return;
-+			break;
-+		case FE_OFDM:
-+			transmissionTypes = DvbT;
-+			break;
-+		case FE_ATSC:
-+			transmissionTypes = Atsc;
-+			break;
-+		default:
-+			Log("DvbLinuxDevice::startDevice: unknown type") << frontend_info.type <<
-+				QLatin1String("for frontend") << frontendPath;
-+			return;
-+		}
- 	}
- 
- 	capabilities = 0;
-@@ -420,6 +457,45 @@ bool DvbLinuxDevice::tune(const DvbTransponder &transponder)
- 	stopDvr();
- 	dvb_frontend_parameters params;
- 
-+	if (HasDelSys) {
-+		struct dtv_properties props;
-+		struct dtv_property dvb_prop[1];
-+		unsigned delsys;
-+
-+		switch (transponder.getTransmissionType()) {
-+		case DvbTransponderBase::DvbS:
-+			delsys = SYS_DVBS;
-+			break;
-+		case DvbTransponderBase::DvbS2:
-+			delsys = SYS_DVBS2;
-+			break;
-+		case DvbTransponderBase::DvbC:
-+			delsys = SYS_DVBC_ANNEX_A;
-+			break;
-+		case DvbTransponderBase::DvbT:
-+			delsys = SYS_DVBT;
-+			break;
-+		case DvbTransponderBase::Atsc:
-+			delsys = SYS_ATSC;
-+			break;
-+		default:
-+			Log("DvbLinuxDevice::tune: unknown transmission type") <<
-+				transponder.getTransmissionType();
-+			return false;
-+		}
-+
-+		dvb_prop[0].cmd = DTV_DELIVERY_SYSTEM;
-+		dvb_prop[0].u.data = delsys;
-+		props.num = 1;
-+		props.props = dvb_prop;
-+		if (ioctl(frontendFd, FE_SET_PROPERTY, &props) < 0) {
-+			Log("DvbLinuxDevice::tune: couldn't switch delivery system to") <<
-+				transponder.getTransmissionType();
-+			return false;
-+		}
-+	}
-+
-+
- 	switch (transponder.getTransmissionType()) {
- 	case DvbTransponderBase::DvbC: {
- 		const DvbCTransponder *dvbCTransponder = transponder.as<DvbCTransponder>();
-diff --git a/src/dvb/dvbdevice_linux.h b/src/dvb/dvbdevice_linux.h
-index a65e6ec..e5e4f13 100644
---- a/src/dvb/dvbdevice_linux.h
-+++ b/src/dvb/dvbdevice_linux.h
-@@ -73,6 +73,7 @@ private:
- 	void stopDvr();
- 	void run();
- 
-+	bool HasDelSys;
- 	bool ready;
- 	QString deviceId;
- 	QString frontendName;
+Himangi Saraogi (1):
+      saa7164-dvb: Remove unnecessary null test
+
+Luke Hart (1):
+      radio-bcm2048.c: Fix some checkpatch.pl errors
+
+ Documentation/DocBook/media/v4l/pixfmt-srggb12.xml |  2 +-
+ drivers/media/pci/cx23885/cx23885-417.c            |  8 ++++----
+ drivers/media/pci/cx23885/cx23885-cards.c          | 31 ++++++++++++++++++++++++++++++-
+ drivers/media/pci/cx23885/cx23885-video.c          | 11 ++++++-----
+ drivers/media/pci/cx23885/cx23885.h                |  1 +
+ drivers/media/pci/saa7164/saa7164-dvb.c            | 32 ++++++++++++++------------------
+ drivers/media/pci/zoran/zr36050.h                  |  1 -
+ drivers/media/usb/hdpvr/hdpvr-video.c              |  2 +-
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c           | 12 +++---------
+ drivers/staging/media/bcm2048/radio-bcm2048.c      | 22 +++++++++++-----------
+ drivers/staging/media/solo6x10/Kconfig             |  1 +
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c |  9 +++++++++
+ 12 files changed, 81 insertions(+), 51 deletions(-)
