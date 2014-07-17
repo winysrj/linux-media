@@ -1,69 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:35209 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761589AbaGRKXQ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38147 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754868AbaGQLx4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 06:23:16 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Michael Olbrich <m.olbrich@pengutronix.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 06/11] [media] coda: delay coda_fill_bitstream()
-Date: Fri, 18 Jul 2014 12:22:40 +0200
-Message-Id: <1405678965-10473-7-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
+	Thu, 17 Jul 2014 07:53:56 -0400
+Date: Thu, 17 Jul 2014 14:53:49 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] media: Set entity->links NULL in cleanup
+Message-ID: <20140717115349.GN16460@valkosipuli.retiisi.org.uk>
+References: <1401197269-18773-1-git-send-email-sakari.ailus@linux.intel.com>
+ <3533594.Ac4LJj8QGP@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3533594.Ac4LJj8QGP@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michael Olbrich <m.olbrich@pengutronix.de>
+Hi Laurent,
 
-coda_fill_bitstream() calls v4l2_m2m_buf_done() which is no longer allowed
-before streaming was started.
-Delay coda_fill_bitstream() until coda_start_streaming() and explicitly set
-'start_streaming_called' before calling coda_fill_bitstream()
+On Thu, Jul 17, 2014 at 01:43:09PM +0200, Laurent Pinchart wrote:
+> On Tuesday 27 May 2014 16:27:49 Sakari Ailus wrote:
+> > Calling media_entity_cleanup() on a cleaned-up entity would result into
+> > double free of the entity->links pointer and likely memory corruption as
+> > well.
+> 
+> My first question is, why would anyone do that ? :-)
 
-Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v1:
- - Don't set vb2_queue start_streaming_called anymore, it is now set by
-   the core before coda_start_streaming is called.
----
- drivers/media/platform/coda.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+Because it makes error handling easier. Many cleanup functions work this
+way, but not media_entity_cleanup().
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 141ec29..924ad58 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1682,7 +1682,8 @@ static void coda_buf_queue(struct vb2_buffer *vb)
- 		}
- 		mutex_lock(&ctx->bitstream_mutex);
- 		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
--		coda_fill_bitstream(ctx);
-+		if (vb2_is_streaming(vb->vb2_queue))
-+			coda_fill_bitstream(ctx);
- 		mutex_unlock(&ctx->bitstream_mutex);
- 	} else {
- 		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
-@@ -2272,6 +2273,11 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
- 	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
- 		if (q_data_src->fourcc == V4L2_PIX_FMT_H264) {
-+			/* copy the buffers that where queued before streamon */
-+			mutex_lock(&ctx->bitstream_mutex);
-+			coda_fill_bitstream(ctx);
-+			mutex_unlock(&ctx->bitstream_mutex);
-+
- 			if (coda_get_bitstream_payload(ctx) < 512)
- 				return -EINVAL;
- 		} else {
 -- 
-2.0.1
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
