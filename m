@@ -1,76 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([75.149.91.89]:54507 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751417AbaGJMgv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jul 2014 08:36:51 -0400
-Date: Thu, 10 Jul 2014 07:36:50 -0500 (CDT)
-From: isely@isely.net
-To: Andrey Utkin <andrey.krieger.utkin@gmail.com>
-cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	m.chehab@samsung.com, dcb314@hotmail.com
-Subject: Re: [PATCH] media: pvrusb2: make logging code sane
-In-Reply-To: <1404995545-4286-1-git-send-email-andrey.krieger.utkin@gmail.com>
-Message-ID: <alpine.DEB.2.02.1407100735110.19815@ivanova.isely.net>
-References: <1404995545-4286-1-git-send-email-andrey.krieger.utkin@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36486 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932102AbaGQMTV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jul 2014 08:19:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] media:platform: OMAP3 camera support needs VIDEOBUF2_DMA_CONTIG
+Date: Thu, 17 Jul 2014 14:19:27 +0200
+Message-ID: <3044366.fg7nMOhZ3L@avalon>
+In-Reply-To: <1404460307-6434-1-git-send-email-pmeerw@pmeerw.net>
+References: <1404460307-6434-1-git-send-email-pmeerw@pmeerw.net>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Peter,
 
-Nice.  I wonder if a previous merge mechanically resulted in this.  I 
-can't imagine deliberately writing code like that.
+Thank you for the patch.
 
-  -Mike
-
-
-Acked-by: Mike Isely <isely@pobox.com>
-
-On Thu, 10 Jul 2014, Andrey Utkin wrote:
-
-> The issue was discovered by static analysis. It turns out that code is
-> somewhat insane, being
-> if (x) {...} else { if (x) {...} }
+On Friday 04 July 2014 09:51:47 Peter Meerwald wrote:
+> drivers/built-in.o: In function `isp_video_open':
+> /src/linux/drivers/media/platform/omap3isp/ispvideo.c:1253: undefined
+> reference to `vb2_dma_contig_memops' drivers/built-in.o: In function
+> `omap3isp_video_init':
+> /src/linux/drivers/media/platform/omap3isp/ispvideo.c:1344: undefined
+> reference to `vb2_dma_contig_init_ctx'
+> /src/linux/drivers/media/platform/omap3isp/ispvideo.c:1350: undefined
+> reference to `vb2_dma_contig_cleanup_ctx' drivers/built-in.o: In function
+> `omap3isp_video_cleanup':
+> /src/linux/drivers/media/platform/omap3isp/ispvideo.c:1381: undefined
+> reference to `vb2_dma_contig_cleanup_ctx' make: *** [vmlinux] Error 1
 > 
-> Edited it to do the only reasonable thing, which is to log the
-> information about the failed call. The most descriptive logging commands
-> set is taken from original code.
-> 
-> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=79801
-> Reported-by: David Binderman <dcb314@hotmail.com>
-> Signed-off-by: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+> Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and applied to my tree, with the "select VIDEOBUF2_DMA_CONTIG" and "select 
+OMAP_IOMMU" lines swapped below to keep them alphabetically sorted.
+
 > ---
->  drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 12 +++---------
->  1 file changed, 3 insertions(+), 9 deletions(-)
 > 
-> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-> index 7c280f3..1b158f1 100644
-> --- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-> +++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-> @@ -951,15 +951,9 @@ static long pvr2_v4l2_ioctl(struct file *file,
->  	if (ret < 0) {
->  		if (pvrusb2_debug & PVR2_TRACE_V4LIOCTL) {
->  			pvr2_trace(PVR2_TRACE_V4LIOCTL,
-> -				   "pvr2_v4l2_do_ioctl failure, ret=%ld", ret);
-> -		} else {
-> -			if (pvrusb2_debug & PVR2_TRACE_V4LIOCTL) {
-> -				pvr2_trace(PVR2_TRACE_V4LIOCTL,
-> -					   "pvr2_v4l2_do_ioctl failure, ret=%ld"
-> -					   " command was:", ret);
-> -				v4l_printk_ioctl(pvr2_hdw_get_driver_name(hdw),
-> -						cmd);
-> -			}
-> +				   "pvr2_v4l2_do_ioctl failure, ret=%ld"
-> +				   " command was:", ret);
-> +			v4l_printk_ioctl(pvr2_hdw_get_driver_name(hdw), cmd);
->  		}
->  	} else {
->  		pvr2_trace(PVR2_TRACE_V4LIOCTL,
+> not sure if this is the right way to fix, at least my kernel compiles
 > 
+>  drivers/media/platform/Kconfig | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index 8108c69..e1ff228 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -95,6 +95,7 @@ config VIDEO_OMAP3
+>  	tristate "OMAP 3 Camera support"
+>  	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
+>  	select ARM_DMA_USE_IOMMU
+> +	select VIDEOBUF2_DMA_CONTIG
+>  	select OMAP_IOMMU
+>  	---help---
+>  	  Driver for an OMAP 3 camera controller.
 
 -- 
+Regards,
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+Laurent Pinchart
+
