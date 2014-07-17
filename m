@@ -1,64 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:64381 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757905AbaGOVbY (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39236 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934697AbaGQQFT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jul 2014 17:31:24 -0400
-Date: Wed, 16 Jul 2014 03:01:17 +0530
-From: Himangi Saraogi <himangi774@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: julia.lawall@lip6.fr
-Subject: [PATCH] dib7000m: Remove unnecessary null test
-Message-ID: <20140715213117.GA28037@himangi-Dell>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Thu, 17 Jul 2014 12:05:19 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 10/11] [media] coda: default to h.264 decoder on invalid formats
+Date: Thu, 17 Jul 2014 18:05:11 +0200
+Message-Id: <1405613112-22442-11-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de>
+References: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch removes the null test on ch. ch is initialized at the
-beginning of the function to &demod->dtv_property_cache. Since demod
-is dereferenced prior to the null test, demod must be a valid pointer,
-and &demod->dtv_property_cache cannot be null.
+If the user provides an invalid format, let the decoder device
+default to h.264.
 
-The following Coccinelle script is used for detecting the change:
-
-@r@
-expression e,f;
-identifier g,y;
-statement S1,S2;
-@@
-
-*e = &f->g
-<+...
- f->y
- ...+>
-*if (e != NULL || ...)
- S1 else S2
-
-Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
-Acked-by: Julia Lawall <julia.lawall@lip6.fr>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/dvb-frontends/dib7000m.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/media/platform/coda.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/dib7000m.c b/drivers/media/dvb-frontends/dib7000m.c
-index 148bf79..dcb9a15 100644
---- a/drivers/media/dvb-frontends/dib7000m.c
-+++ b/drivers/media/dvb-frontends/dib7000m.c
-@@ -1041,10 +1041,7 @@ static int dib7000m_tune(struct dvb_frontend *demod)
- 	u16 value;
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index e63226b..ed5fa4c 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -685,7 +685,7 @@ static int coda_try_fmt_vid_cap(struct file *file, void *priv,
+ 				struct v4l2_format *f)
+ {
+ 	struct coda_ctx *ctx = fh_to_ctx(priv);
+-	struct coda_codec *codec;
++	struct coda_codec *codec = NULL;
+ 	struct vb2_queue *src_vq;
+ 	int ret;
  
- 	// we are already tuned - just resuming from suspend
--	if (ch != NULL)
--		dib7000m_set_channel(state, ch, 0);
--	else
--		return -EINVAL;
-+	dib7000m_set_channel(state, ch, 0);
+@@ -738,6 +738,12 @@ static int coda_try_fmt_vid_out(struct file *file, void *priv,
+ 	/* Determine codec by encoded format, returns NULL if raw or invalid */
+ 	codec = coda_find_codec(ctx->dev, f->fmt.pix.pixelformat,
+ 				V4L2_PIX_FMT_YUV420);
++	if (!codec && ctx->inst_type == CODA_INST_DECODER) {
++		codec = coda_find_codec(ctx->dev, V4L2_PIX_FMT_H264,
++					V4L2_PIX_FMT_YUV420);
++		if (!codec)
++			return -EINVAL;
++	}
  
- 	// restart demod
- 	ret |= dib7000m_write_word(state, 898, 0x4000);
+ 	if (!f->fmt.pix.colorspace)
+ 		f->fmt.pix.colorspace = V4L2_COLORSPACE_REC709;
 -- 
-1.9.1
+2.0.1
 
