@@ -1,45 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:64911 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932511AbaGIP0L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Jul 2014 11:26:11 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Tadeusz Struk <tadeusz.struk@intel.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Helge Deller <deller@gmx.de>,
-	Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>,
-	linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>,
-	qat-linux@intel.com, linux-crypto@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 0/5] fs/seq_file: introduce seq_hex_dump() helper
-Date: Wed,  9 Jul 2014 18:24:25 +0300
-Message-Id: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:43383 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752570AbaGQTiO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jul 2014 15:38:14 -0400
+Received: by mail-wi0-f179.google.com with SMTP id f8so3393003wiw.12
+        for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 12:38:13 -0700 (PDT)
+From: Luis Alves <ljalvs@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: crope@iki.fi, Luis Alves <ljalvs@gmail.com>
+Subject: [PATCH 1/1] si2168: Fix i2c_add_mux_adapter return value in probe function. In case it failed the return value was always 0.
+Date: Thu, 17 Jul 2014 20:38:08 +0100
+Message-Id: <1405625888-9056-1-git-send-email-ljalvs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This introduces a new helper and switches current users to use it.
+Signed-off-by: Luis Alves <ljalvs@gmail.com>
+---
+ drivers/media/dvb-frontends/si2168.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-parisc and s390 weren't tested anyhow, the other are compile tested.
-
-Andy Shevchenko (5):
-  seq_file: provide an analogue of print_hex_dump()
-  saa7164: convert to seq_hex_dump()
-  crypto: qat - use seq_hex_dump() to dump buffers
-  parisc: use seq_hex_dump() to dump buffers
-  [S390] zcrypt: use seq_hex_dump() to dump buffers
-
- .../crypto/qat/qat_common/adf_transport_debug.c    | 16 ++--------
- drivers/media/pci/saa7164/saa7164-core.c           | 31 +++----------------
- drivers/parisc/ccio-dma.c                          | 14 ++-------
- drivers/parisc/sba_iommu.c                         | 11 ++-----
- drivers/s390/crypto/zcrypt_api.c                   | 10 +------
- fs/seq_file.c                                      | 35 ++++++++++++++++++++++
- include/linux/seq_file.h                           |  4 +++
- 7 files changed, 52 insertions(+), 69 deletions(-)
-
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 7980741..3fed522 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -619,8 +619,10 @@ static int si2168_probe(struct i2c_client *client,
+ 	/* create mux i2c adapter for tuner */
+ 	s->adapter = i2c_add_mux_adapter(client->adapter, &client->dev, s,
+ 			0, 0, 0, si2168_select, si2168_deselect);
+-	if (s->adapter == NULL)
++	if (s->adapter == NULL) {
++		ret = -ENODEV;
+ 		goto err;
++	}
+ 
+ 	/* create dvb_frontend */
+ 	memcpy(&s->fe.ops, &si2168_ops, sizeof(struct dvb_frontend_ops));
 -- 
-2.0.1
+1.9.1
 
