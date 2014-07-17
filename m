@@ -1,96 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:35066 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755936AbaGVRDK (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4265 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965395AbaGQQSB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 13:03:10 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N9400CANI18A940@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Jul 2014 13:03:08 -0400 (EDT)
-Date: Tue, 22 Jul 2014 14:03:04 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Luis Alves <ljalvs@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH] si2157: Fix DVB-C bandwidth.
-Message-id: <20140722140304.79ba1bcd.m.chehab@samsung.com>
-In-reply-to: <CAGj5WxBiioMVJTgX9zKqMsFTmL3Cjnb3pVkLc6eaCGJHsFf0Zw@mail.gmail.com>
-References: <1406027388-10336-1-git-send-email-ljalvs@gmail.com>
- <20140722131059.4ad26777.m.chehab@samsung.com>
- <CAGj5WxBiioMVJTgX9zKqMsFTmL3Cjnb3pVkLc6eaCGJHsFf0Zw@mail.gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Thu, 17 Jul 2014 12:18:01 -0400
+Message-ID: <53C7F72B.6080908@xs4all.nl>
+Date: Thu, 17 Jul 2014 18:17:47 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Michael Olbrich <m.olbrich@pengutronix.de>
+Subject: Re: [PATCH 06/11] [media] coda: delay coda_fill_bitstream()
+References: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de> <1405613112-22442-7-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405613112-22442-7-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 22 Jul 2014 17:28:07 +0100
-Luis Alves <ljalvs@gmail.com> escreveu:
-
-> That's right,
-> A few days ago I also checked that with Antti. I've also had made some
-> debugging and DVB core is in fact passing the correct bandwidth to the
-> driver.
+On 07/17/2014 06:05 PM, Philipp Zabel wrote:
+> From: Michael Olbrich <m.olbrich@pengutronix.de>
 > 
-> But the true is that it doesn't work...
-> The sample I have is a dvb-c mux using QAM128 @ 6 Mbaud (which results
-> in 7MHz bw) using 7MHz filter value will make the TS stream
-> unwatchable (lots of continuity errors).
+> coda_fill_bitstream() calls v4l2_m2m_buf_done() which is no longer allowed
+> before streaming was started.
+> Delay coda_fill_bitstream() until coda_start_streaming() and explicitly set
+> 'start_streaming_called' before calling coda_fill_bitstream()
 > 
-> Can this be a hardware fault?
-> All closed source drivers I've seen are hardcoding this value to 8MHz
-> when working in dvb-c (easily seen on i2c sniffs).
+> Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/media/platform/coda.c | 12 +++++++++++-
+>  1 file changed, 11 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index 141ec29..3d57986 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -1682,7 +1682,8 @@ static void coda_buf_queue(struct vb2_buffer *vb)
+>  		}
+>  		mutex_lock(&ctx->bitstream_mutex);
+>  		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
+> -		coda_fill_bitstream(ctx);
+> +		if (vb2_is_streaming(vb->vb2_queue))
+> +			coda_fill_bitstream(ctx);
+>  		mutex_unlock(&ctx->bitstream_mutex);
+>  	} else {
+>  		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
+> @@ -2272,6 +2273,15 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+>  	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+>  	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+>  		if (q_data_src->fourcc == V4L2_PIX_FMT_H264) {
+> +			struct vb2_queue *vq;
+> +			/* start_streaming_called must be set, for v4l2_m2m_buf_done() */
+> +			vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+> +			vq->start_streaming_called = 1;
 
-Could be. Well, here, the DVB-C channel operators use 6MHz-spaced channels,
-with symbol rate equal to 5,217 Kbaud. I'll see if I can test it latter
-this week with a PCTV 292e.
+Why set start_streaming_called to 1? It is set before calling start_streaming.
+This is a recent change in videobuf2-core.c though.
+
+BTW, you should test with CONFIG_VIDEO_ADV_DEBUG on and force start_streaming
+errors to check whether vb2_buffer_done(buf, VB2_BUF_STATE_DEQUEUED) is called
+for the queued buffers in case of start_streaming failure.
+
+With that config option vb2 will complain about unbalanced vb2 operations.
+
+I strongly suspect this code does not play well with this.
+
+BTW, isn't it time to split up the coda driver? Over 3000 lines...
 
 Regards,
-Mauro
+
+	Hans
+
+> +			/* copy the buffers that where queued before streamon */
+> +			mutex_lock(&ctx->bitstream_mutex);
+> +			coda_fill_bitstream(ctx);
+> +			mutex_unlock(&ctx->bitstream_mutex);
+> +
+>  			if (coda_get_bitstream_payload(ctx) < 512)
+>  				return -EINVAL;
+>  		} else {
 > 
-> 
-> On Tue, Jul 22, 2014 at 5:10 PM, Mauro Carvalho Chehab
-> <m.chehab@samsung.com> wrote:
-> > Em Tue, 22 Jul 2014 12:09:48 +0100
-> > Luis Alves <ljalvs@gmail.com> escreveu:
-> >
-> >> This patch fixes DVB-C reception.
-> >> Without setting the bandwidth to 8MHz the received stream gets corrupted.
-> >>
-> >> Regards,
-> >> Luis
-> >>
-> >> Signed-off-by: Luis Alves <ljalvs@gmail.com>
-> >> ---
-> >>  drivers/media/tuners/si2157.c | 1 +
-> >>  1 file changed, 1 insertion(+)
-> >>
-> >> diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-> >> index 6c53edb..e2de428 100644
-> >> --- a/drivers/media/tuners/si2157.c
-> >> +++ b/drivers/media/tuners/si2157.c
-> >> @@ -245,6 +245,7 @@ static int si2157_set_params(struct dvb_frontend *fe)
-> >>                       break;
-> >>       case SYS_DVBC_ANNEX_A:
-> >>                       delivery_system = 0x30;
-> >> +                     bandwidth = 0x08;
-> >
-> > Hmm... this patch looks wrong, as it will break DVB-C support where
-> > the bandwidth is lower than 6MHz.
-> >
-> > The DVB core sets c->bandwidth_hz for DVB-C based on the rolloff and
-> > the symbol rate. If this is not working for you, then something else
-> > is likely wrong.
-> >
-> > I suggest you to add a printk() there to show what's the value set
-> > at c->bandwidth_hz and what's the symbol rate that you're using.
-> >
-> > On DVB-C, the rolloff is fixed (1.15 for annex A and 1.13 for Annex C).
-> > Not sure if DVB-C2 allows selecting a different rolloff factor, nor
-> > if si2157 works with DVB-C2.
-> >
-> >>                       break;
-> >>       default:
-> >>                       ret = -EINVAL;
+
