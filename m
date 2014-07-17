@@ -1,37 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:62197 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935021AbaGYRsG (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2668 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753279AbaGQHh2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 13:48:06 -0400
-Received: by mail-wi0-f170.google.com with SMTP id f8so1472014wiw.3
-        for <linux-media@vger.kernel.org>; Fri, 25 Jul 2014 10:48:05 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 0/4] some em28xx-v4l cleanup patches
-Date: Fri, 25 Jul 2014 19:48:54 +0200
-Message-Id: <1406310538-5001-1-git-send-email-fschaefer.oss@googlemail.com>
+	Thu, 17 Jul 2014 03:37:28 -0400
+Message-ID: <53C77D1E.3000901@xs4all.nl>
+Date: Thu, 17 Jul 2014 09:37:02 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Ben Dooks <ben.dooks@codethink.co.uk>, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org
+CC: magnus.damm@opensource.se, horms@verge.net.au,
+	g.liakhovetski@gmx.de, linux-kernel@lists.codethink.co.uk,
+	Ian Molton <ian.molton@codethink.co.uk>
+Subject: Re: [PATCH 1/6] adv7180: Remove duplicate unregister call
+References: <1404599185-12353-1-git-send-email-ben.dooks@codethink.co.uk> <1404599185-12353-2-git-send-email-ben.dooks@codethink.co.uk>
+In-Reply-To: <1404599185-12353-2-git-send-email-ben.dooks@codethink.co.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series consists of 4 cleanup patches for the em28xx-v4l module.
+On 07/06/2014 12:26 AM, Ben Dooks wrote:
+> From: Ian Molton <ian.molton@codethink.co.uk>
+> 
+> This driver moved over to v4l2_async_unregister_subdev()
+> but still retained a call to v4l2_unregister_subdev(). Remove.
+> 
+> Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
 
-Frank Schäfer (4):
-  em28xx-v4l: simplify some pointers in em28xx_init_camera()
-  em28xx-v4l: get rid of struct em28xx_fh
-  em28xx-v4l: simplify em28xx_v4l2_open() by using v4l2_fh_open()
-  em28xx-v4l: get rid of field "users" in struct em28xx_v4l2
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
- drivers/media/usb/em28xx/em28xx-camera.c |   4 +-
- drivers/media/usb/em28xx/em28xx-video.c  | 113 ++++++++++++-------------------
- drivers/media/usb/em28xx/em28xx.h        |   8 ---
- 3 files changed, 47 insertions(+), 78 deletions(-)
+Thanks,
 
--- 
-1.8.4.5
+	Hans
+
+> ---
+>  drivers/media/i2c/adv7180.c | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+> index ac1cdbe..821178d 100644
+> --- a/drivers/media/i2c/adv7180.c
+> +++ b/drivers/media/i2c/adv7180.c
+> @@ -663,7 +663,6 @@ static int adv7180_remove(struct i2c_client *client)
+>  	if (state->irq > 0)
+>  		free_irq(client->irq, state);
+>  
+> -	v4l2_device_unregister_subdev(sd);
+>  	adv7180_exit_controls(state);
+>  	mutex_destroy(&state->mutex);
+>  	return 0;
+> 
 
