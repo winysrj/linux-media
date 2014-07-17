@@ -1,49 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57740 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755327AbaGSCQA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jul 2014 22:16:00 -0400
-Message-ID: <53C9D4DE.3030308@iki.fi>
-Date: Sat, 19 Jul 2014 05:15:58 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36378 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932141AbaGQL4v convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jul 2014 07:56:51 -0400
+Received: from avalon.localnet (unknown [91.178.197.224])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 95F16359FB
+	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 13:55:47 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.17] MC and V4L2 core fixes
+Date: Thu, 17 Jul 2014 13:56:58 +0200
+Message-ID: <6926072.lWPNHLIZK6@avalon>
 MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] cxusb: Prepare for si2157 driver getting more parameters
-References: <53C58067.8000601@gentoo.org> <1405452876-8543-1-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1405452876-8543-1-git-send-email-zzam@gentoo.org>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch applied.
+Hi Mauro,
 
-http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=silabs
+The following changes since commit 3c0d394ea7022bb9666d9df97a5776c4bcc3045c:
 
-Antti
+  [media] dib8000: improve the message that reports per-layer locks 
+(2014-07-07 09:59:01 -0300)
 
-On 07/15/2014 10:34 PM, Matthias Schwarzott wrote:
-> Modify all users of si2157_config to correctly initialize all not
-> listed values to 0.
->
-> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-> ---
->   drivers/media/usb/dvb-usb/cxusb.c | 1 +
->   1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-> index ad20c39..285213c 100644
-> --- a/drivers/media/usb/dvb-usb/cxusb.c
-> +++ b/drivers/media/usb/dvb-usb/cxusb.c
-> @@ -1371,6 +1371,7 @@ static int cxusb_tt_ct2_4400_attach(struct dvb_usb_adapter *adap)
->   	st->i2c_client_demod = client_demod;
->
->   	/* attach tuner */
-> +	memset(&si2157_config, 0, sizeof(si2157_config));
->   	si2157_config.fe = adap->fe_adap[0].fe;
->   	memset(&info, 0, sizeof(struct i2c_board_info));
->   	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
->
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git v4l2/core
+
+for you to fetch changes up to 65ab45056f77770f777bf0e98c4060c74e91c624:
+
+  media-device: Remove duplicated memset() in media_enum_entities() 
+(2014-07-17 13:56:08 +0200)
+
+----------------------------------------------------------------
+Sakari Ailus (1):
+      v4l: subdev: Unify argument validation across IOCTLs
+
+Salva Peiró (1):
+      media-device: Remove duplicated memset() in media_enum_entities()
+
+ drivers/media/media-device.c          |   2 -
+ drivers/media/v4l2-core/v4l2-subdev.c | 120 +++++++++++++++++++++------------
+ 2 files changed, 74 insertions(+), 48 deletions(-)
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
