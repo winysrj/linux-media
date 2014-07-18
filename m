@@ -1,130 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4028 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753184AbaGRCqD (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4631 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932868AbaGRFVb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 22:46:03 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6I2jx2w067032
-	for <linux-media@vger.kernel.org>; Fri, 18 Jul 2014 04:46:01 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6A6612A1FD1
-	for <linux-media@vger.kernel.org>; Fri, 18 Jul 2014 04:45:57 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ABI WARNING
-Message-Id: <20140718024557.6A6612A1FD1@tschai.lan>
-Date: Fri, 18 Jul 2014 04:45:57 +0200 (CEST)
+	Fri, 18 Jul 2014 01:21:31 -0400
+Message-ID: <53C8AEC6.4040209@xs4all.nl>
+Date: Fri, 18 Jul 2014 07:21:10 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org, it@sca-uk.com, =stoth@kernellabs.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/2] cx23885: fix UNSET/TUNER_ABSENT confusion.
+References: <1403878542-1230-1-git-send-email-hverkuil@xs4all.nl> <1403878542-1230-2-git-send-email-hverkuil@xs4all.nl> <20140717194556.5b6e8636.m.chehab@samsung.com> <53C8546D.6000809@xs4all.nl>
+In-Reply-To: <53C8546D.6000809@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 07/18/2014 12:55 AM, Hans Verkuil wrote:
+> On 07/18/2014 12:45 AM, Mauro Carvalho Chehab wrote:
+>> Em Fri, 27 Jun 2014 16:15:41 +0200
+>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>
+>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>
+>>> Sometimes dev->tuner_type is compared to UNSET, sometimes to TUNER_ABSENT,
+>>> but these defines have different values.
+>>>
+>>> Standardize to TUNER_ABSENT.
+>>
+>> That patch looks wrong. UNSET has value -1, while TUNER_ABSENT has value 4.
+> 
+> Well, yes. That's the whole problem. Both values were used to indicate an
+> absent tuner, and the 'if's to test whether a tuner was there also checked
+> against different values. I standardized here to TUNER_ABSENT, which is what
+> tveeprom uses as well (not that this driver looks uses that information from
+> tveeprom).
+> 
+> Without this change you cannot correctly model a board without a tuner like
+> the one that I'm adding since the logic is all over the place in this driver.
+> 
+> tuner_type should either be a proper tuner or TUNER_ABSENT, but never UNSET.
+> 
+> That's what this patch changes.
 
-Results of the daily build of media_tree:
+Note that in cx23885-cards.c all boards without a tuner set tuner_type to
+TUNER_ABSENT. So it makes no sense for the code elsewhere to check against
+UNSET. UNSET is never set for tuner_type.
 
-date:		Fri Jul 18 04:00:17 CEST 2014
-git branch:	test
-git hash:	0ca1ba2aac5f6b26672099b13040c5b40db93486
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-16-g1db35d0
-host hardware:	x86_64
-host os:	3.14-5.slh.5-amd64
+As an aside: some of the board definition leave tuner_type at 0 when I
+think it should be TUNER_ABSENT as well (or an actual proper tuner). It's
+unclear what happens then, but clearly this patch won't change those boards
+(e.g. CX23885_BOARD_MPX885 is one of them).
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16-rc1-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse: WARNINGS
+Regards,
 
-Detailed results are available here:
+	Hans
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>> The only way that this patch won't be causing regressions is if none
+>> was used, with is not the case, IMHO.
+>>
+>> A patch removing either one would be a way more complex, and should likely
+>> touch on other cx23885 files:
+>>
+>> $ git grep -e UNSET --or -e TUNER_ABSENT -l drivers/media/pci/cx23885/ 
+>> drivers/media/pci/cx23885/cx23885-417.c
+>> drivers/media/pci/cx23885/cx23885-cards.c
+>> drivers/media/pci/cx23885/cx23885-core.c
+>> drivers/media/pci/cx23885/cx23885-video.c
+>> drivers/media/pci/cx23885/cx23885.h
+>>
+>> and also on tveeprom.
+>>
+>> However, touching at tveeprom would require touching also on all
+>> other drivers that support Hauppauge devices.
+>>
+>> Regards,
+>> Mauro
+>>
+>>>
+>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>> ---
+>>>  drivers/media/pci/cx23885/cx23885-417.c   |  8 ++++----
+>>>  drivers/media/pci/cx23885/cx23885-video.c | 10 +++++-----
+>>>  2 files changed, 9 insertions(+), 9 deletions(-)
+>>>
+>>> diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
+>>> index 95666ee..bf89fc8 100644
+>>> --- a/drivers/media/pci/cx23885/cx23885-417.c
+>>> +++ b/drivers/media/pci/cx23885/cx23885-417.c
+>>> @@ -1266,7 +1266,7 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+>>>  	struct cx23885_fh  *fh  = file->private_data;
+>>>  	struct cx23885_dev *dev = fh->dev;
+>>>  
+>>> -	if (UNSET == dev->tuner_type)
+>>> +	if (dev->tuner_type == TUNER_ABSENT)
+>>>  		return -EINVAL;
+>>>  	if (0 != t->index)
+>>>  		return -EINVAL;
+>>> @@ -1284,7 +1284,7 @@ static int vidioc_s_tuner(struct file *file, void *priv,
+>>>  	struct cx23885_fh  *fh  = file->private_data;
+>>>  	struct cx23885_dev *dev = fh->dev;
+>>>  
+>>> -	if (UNSET == dev->tuner_type)
+>>> +	if (dev->tuner_type == TUNER_ABSENT)
+>>>  		return -EINVAL;
+>>>  
+>>>  	/* Update the A/V core */
+>>> @@ -1299,7 +1299,7 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+>>>  	struct cx23885_fh  *fh  = file->private_data;
+>>>  	struct cx23885_dev *dev = fh->dev;
+>>>  
+>>> -	if (UNSET == dev->tuner_type)
+>>> +	if (dev->tuner_type == TUNER_ABSENT)
+>>>  		return -EINVAL;
+>>>  	f->type = V4L2_TUNER_ANALOG_TV;
+>>>  	f->frequency = dev->freq;
+>>> @@ -1347,7 +1347,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+>>>  		V4L2_CAP_READWRITE     |
+>>>  		V4L2_CAP_STREAMING     |
+>>>  		0;
+>>> -	if (UNSET != dev->tuner_type)
+>>> +	if (dev->tuner_type != TUNER_ABSENT)
+>>>  		cap->capabilities |= V4L2_CAP_TUNER;
+>>>  
+>>>  	return 0;
+>>> diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+>>> index e0a5952..2a890e9 100644
+>>> --- a/drivers/media/pci/cx23885/cx23885-video.c
+>>> +++ b/drivers/media/pci/cx23885/cx23885-video.c
+>>> @@ -1156,7 +1156,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+>>>  		V4L2_CAP_READWRITE     |
+>>>  		V4L2_CAP_STREAMING     |
+>>>  		V4L2_CAP_VBI_CAPTURE;
+>>> -	if (UNSET != dev->tuner_type)
+>>> +	if (dev->tuner_type != TUNER_ABSENT)
+>>>  		cap->capabilities |= V4L2_CAP_TUNER;
+>>>  	return 0;
+>>>  }
+>>> @@ -1474,7 +1474,7 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+>>>  {
+>>>  	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
+>>>  
+>>> -	if (unlikely(UNSET == dev->tuner_type))
+>>> +	if (dev->tuner_type == TUNER_ABSENT)
+>>>  		return -EINVAL;
+>>>  	if (0 != t->index)
+>>>  		return -EINVAL;
+>>> @@ -1490,7 +1490,7 @@ static int vidioc_s_tuner(struct file *file, void *priv,
+>>>  {
+>>>  	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
+>>>  
+>>> -	if (UNSET == dev->tuner_type)
+>>> +	if (dev->tuner_type == TUNER_ABSENT)
+>>>  		return -EINVAL;
+>>>  	if (0 != t->index)
+>>>  		return -EINVAL;
+>>> @@ -1506,7 +1506,7 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+>>>  	struct cx23885_fh *fh = priv;
+>>>  	struct cx23885_dev *dev = fh->dev;
+>>>  
+>>> -	if (unlikely(UNSET == dev->tuner_type))
+>>> +	if (dev->tuner_type == TUNER_ABSENT)
+>>>  		return -EINVAL;
+>>>  
+>>>  	/* f->type = fh->radio ? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV; */
+>>> @@ -1522,7 +1522,7 @@ static int cx23885_set_freq(struct cx23885_dev *dev, const struct v4l2_frequency
+>>>  {
+>>>  	struct v4l2_control ctrl;
+>>>  
+>>> -	if (unlikely(UNSET == dev->tuner_type))
+>>> +	if (dev->tuner_type == TUNER_ABSENT)
+>>>  		return -EINVAL;
+>>>  	if (unlikely(f->tuner != 0))
+>>>  		return -EINVAL;
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
