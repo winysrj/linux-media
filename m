@@ -1,73 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44554 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751982AbaGVBFJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 21:05:09 -0400
-Message-ID: <53CDB8C1.8000203@iki.fi>
-Date: Tue, 22 Jul 2014 04:05:05 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43126 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759501AbaGRLw6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 07:52:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [linuxtv-media:master 447/499] drivers/media/common/saa7146/saa7146_fops.c:536:13: sparse: incorrect type in assignment (different base types)
+Date: Fri, 18 Jul 2014 13:53:07 +0200
+Message-ID: <2344820.NCMmLgcQJ6@avalon>
+In-Reply-To: <53c862c4.axXMxgoD8CYYkiCj%fengguang.wu@intel.com>
+References: <53c862c4.axXMxgoD8CYYkiCj%fengguang.wu@intel.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [GIT PULL] SDR stuff
-References: <53C874F8.3020300@iki.fi> <20140721205005.28e2e784.m.chehab@samsung.com> <53CDAB73.8050108@iki.fi> <20140721215140.35935811.m.chehab@samsung.com>
-In-Reply-To: <20140721215140.35935811.m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/22/2014 03:51 AM, Mauro Carvalho Chehab wrote:
-> Em Tue, 22 Jul 2014 03:08:19 +0300
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> So what. Those were mostly WARNING only and all but long lines were some
->> new checks added to checkpatch recently. chekcpatch gets all the time
->> new and new checks, these were added after I have made that driver. I
->> will surely clean those later when I do some new changes to driver and
->> my checkpatch updates.
->
-> Antti,
->
-> I think you didn't read my comments in the middle of the checkpatch stuff.
-> Please read my email again. I'm not requiring you to fix the newer checkpatch
-> warning (Missing a blank line after declarations), and not even about the
-> 80-cols warning. The thing is that there are two issues there:
->
-> 1) you're adding API bits at msi2500 driver, instead of moving them
->     to videodev2.h (or reusing the fourcc types you already added there);
+On Friday 18 July 2014 07:56:52 kbuild test robot wrote:
+> tree:   git://linuxtv.org/media_tree.git master
+> head:   0ca1ba2aac5f6b26672099b13040c5b40db93486
+> commit: d52e23813672c3c72f92e7b39c7408d4b9a40a96 [447/499] [media] v4l:
+> Support extending the v4l2_pix_format structure reproduce: make C=1
+> CF=-D__CHECK_ENDIAN__
+> 
+> 
+> sparse warnings: (new ones prefixed by >>)
+> 
+> >> drivers/media/common/saa7146/saa7146_fops.c:536:13: sparse: incorrect
+> >> type in assignment (different base types)
+>    drivers/media/common/saa7146/saa7146_fops.c:536:13:    expected struct
+> v4l2_pix_format *fmt drivers/media/common/saa7146/saa7146_fops.c:536:13:   
+> got struct <noident> *<noident>
+> drivers/media/common/saa7146/saa7146_fops.c: In function 'saa7146_vv_init':
+> drivers/media/common/saa7146/saa7146_fops.c:536:6: warning: assignment from
+> incompatible pointer type [enabled by default] fmt = &vv->ov_fb.fmt;
+>          ^
 
-If you look inside driver code, you will see those defines are not used 
-- but commented out. It is simply dead definition compiler optimizes 
-away. It is code I used on my tests, but finally decided to comment out 
-to leave some time add those later to API. I later moved 2 of those to 
-API, that is done in same patch serie.
+I'll send a patch to fix that.
 
-No issue here.
-
-> 2) you're handling jiffies wrong inside the driver.
->
-> As you may know, adding a driver at staging is easier than at the main
-> tree, as we don't care much about checkpatch issues (and not even about
-> some more serious issues). However, when moving stuff out of staging,
-> we review the entire driver again, to be sure that it is ok.
-
-That jiffie check is also rather new and didn't exists time drive was 
-done. Jiffie is used to calculate debug sample rate. There is multiple 
-times very similar code piece, which could be optimized to one. My plan 
-merge all those ~5 functions to one and use jiffies using macros as 
-checkpatch now likes. I don't see meaningful fix it now as you are going 
-to rewrite that stuff in near future in any case.
-
-
-Silencing all those checkpatch things is not very hard job though. If 
-you merge that stuff to media/master I can do it right away (I am 
-running older kernel and older checkpatch currently).
-
-
-regards
-Antti
+> vim +536 drivers/media/common/saa7146/saa7146_fops.c
+> 
+> ^1da177e4 drivers/media/common/saa7146_fops.c Linus Torvalds       
+> 2005-04-16  520  	   configuration data) */ ^1da177e4
+> drivers/media/common/saa7146_fops.c Linus Torvalds        2005-04-16  521 
+> 	dev->ext_vv_data = ext_vv; afd1a0c9a drivers/media/common/saa7146_fops.c
+> Mauro Carvalho Chehab 2005-12-12  522 afd1a0c9a
+> drivers/media/common/saa7146_fops.c Mauro Carvalho Chehab 2005-12-12  523 
+> 	vv->d_clipping.cpu_addr = pci_alloc_consistent(dev->pci,
+> SAA7146_CLIPPING_MEM, &vv->d_clipping.dma_handle); ^1da177e4
+> drivers/media/common/saa7146_fops.c Linus Torvalds        2005-04-16  524 
+> 	if( NULL == vv->d_clipping.cpu_addr ) { 44d0b80e5
+> drivers/media/common/saa7146_fops.c Joe Perches           2011-08-21  525 
+> 		ERR("out of memory. aborting.\n"); ^1da177e4
+> drivers/media/common/saa7146_fops.c Linus Torvalds        2005-04-16  526 
+> 		kfree(vv); 6e65ca942 drivers/media/common/saa7146_fops.c Hans Verkuil    
+>      2012-04-29  527  		v4l2_ctrl_handler_free(hdl); ^1da177e4
+> drivers/media/common/saa7146_fops.c Linus Torvalds        2005-04-16  528 
+> 		return -1; ^1da177e4 drivers/media/common/saa7146_fops.c Linus 
+Torvalds  
+>      2005-04-16  529  	} ^1da177e4 drivers/media/common/saa7146_fops.c
+> Linus Torvalds        2005-04-16  530  	memset(vv->d_clipping.cpu_addr,
+> 0x0, SAA7146_CLIPPING_MEM); ^1da177e4 drivers/media/common/saa7146_fops.c
+> Linus Torvalds        2005-04-16  531 ^1da177e4
+> drivers/media/common/saa7146_fops.c Linus Torvalds        2005-04-16  532 
+> 	saa7146_video_uops.init(dev,vv); 5b0fa4fff
+> drivers/media/common/saa7146_fops.c Oliver Endriss        2006-01-09  533 
+> 	if (dev->ext_vv_data->capabilities & V4L2_CAP_VBI_CAPTURE) 5b0fa4fff
+> drivers/media/common/saa7146_fops.c Oliver Endriss        2006-01-09  534 
+> 		saa7146_vbi_uops.init(dev,vv); afd1a0c9a
+> drivers/media/common/saa7146_fops.c Mauro Carvalho Chehab 2005-12-12  535
+> 5da545ad0 drivers/media/common/saa7146_fops.c Hans Verkuil         
+> 2012-05-01 @536  	fmt = &vv->ov_fb.fmt; 5da545ad0
+> drivers/media/common/saa7146_fops.c Hans Verkuil          2012-05-01  537 
+> 	fmt->width = vv->standard->h_max_out; 5da545ad0
+> drivers/media/common/saa7146_fops.c Hans Verkuil          2012-05-01  538 
+> 	fmt->height = vv->standard->v_max_out; 5da545ad0
+> drivers/media/common/saa7146_fops.c Hans Verkuil          2012-05-01  539 
+> 	fmt->pixelformat = V4L2_PIX_FMT_RGB565; 5da545ad0
+> drivers/media/common/saa7146_fops.c Hans Verkuil          2012-05-01  540 
+> 	fmt->bytesperline = 2 * fmt->width; 5da545ad0
+> drivers/media/common/saa7146_fops.c Hans Verkuil          2012-05-01  541 
+> 	fmt->sizeimage = fmt->bytesperline * fmt->height; 5da545ad0
+> drivers/media/common/saa7146_fops.c Hans Verkuil          2012-05-01  542 
+> 	fmt->colorspace = V4L2_COLORSPACE_SRGB; fd74d6eb4
+> drivers/media/common/saa7146_fops.c Hans Verkuil          2012-05-01  543
+> fd74d6eb4 drivers/media/common/saa7146_fops.c Hans Verkuil         
+> 2012-05-01  544  	fmt = &vv->video_fmt;
+> :::::: The code at line 536 was first introduced by commit
+> :::::: 5da545ad08a3c6ea71d3ba074adc7582e7e9a024 [media] saa7146: move
+> :::::: overlay information from saa7146_fh into saa7146_vv
+> :::::: 
+> :::::: TO: Hans Verkuil <hans.verkuil@cisco.com>
+> :::::: CC: Mauro Carvalho Chehab <mchehab@redhat.com>
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
