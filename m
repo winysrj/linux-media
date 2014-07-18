@@ -1,62 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:34013 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754437AbaGKPUE (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46520 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1761005AbaGRJYg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 11:20:04 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N8J00CHJZXFTOB0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Sat, 12 Jul 2014 00:20:03 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, andrzej.p@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH v2 5/9] s5p-jpeg: Assure proper crop rectangle initialization
-Date: Fri, 11 Jul 2014 17:19:46 +0200
-Message-id: <1405091990-28567-6-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
-References: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
+	Fri, 18 Jul 2014 05:24:36 -0400
+Date: Fri, 18 Jul 2014 12:24:02 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] v4l2-ctrls: fix compiler warning
+Message-ID: <20140718092402.GP16460@valkosipuli.retiisi.org.uk>
+References: <53C7D43B.20905@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53C7D43B.20905@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Assure proper crop_rect initialization in case
-the user space doesn't call S_SELECTION ioctl.
+On Thu, Jul 17, 2014 at 03:48:43PM +0200, Hans Verkuil wrote:
+> Fixed a compiler warning in v4l_print_query_ext_ctrl() due to the change from
+> dims[8] to dims[4].
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+For both:
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 09b59d3..2491ef8 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1367,6 +1367,21 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
- 					V4L2_CID_JPEG_CHROMA_SUBSAMPLING);
- 		if (ctrl_subs)
- 			v4l2_ctrl_s_ctrl(ctrl_subs, q_data->fmt->subsampling);
-+		ct->crop_altered = false;
-+	}
-+
-+	/*
-+	 * For decoding init crop_rect with capture buffer dimmensions which
-+	 * contain aligned dimensions of the input JPEG image and do it only
-+	 * if crop rectangle hasn't been altered by the user space e.g. with
-+	 * S_SELECTION ioctl. For encoding assign output buffer dimensions.
-+	 */
-+	if (!ct->crop_altered &&
-+	    ((ct->mode == S5P_JPEG_DECODE && f_type == FMT_TYPE_CAPTURE) ||
-+	     (ct->mode == S5P_JPEG_ENCODE && f_type == FMT_TYPE_OUTPUT))) {
-+		ct->crop_rect.width = pix->width;
-+		ct->crop_rect.height = pix->height;
-+	}
- 	}
- 
- 	return 0;
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
 -- 
-1.7.9.5
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
