@@ -1,86 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:36855 "EHLO mga02.intel.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:57423 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932604AbaGIP2S (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Jul 2014 11:28:18 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Tadeusz Struk <tadeusz.struk@intel.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Helge Deller <deller@gmx.de>,
-	Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>,
-	linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>,
-	qat-linux@intel.com, linux-crypto@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 4/5] parisc: use seq_hex_dump() to dump buffers
-Date: Wed,  9 Jul 2014 18:24:29 +0300
-Message-Id: <1404919470-26668-5-git-send-email-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	id S1752051AbaGRAOo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jul 2014 20:14:44 -0400
+Message-ID: <53C866F2.9090005@iki.fi>
+Date: Fri, 18 Jul 2014 03:14:42 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] airspy: AirSpy SDR driver
+References: <1405366031-31937-1-git-send-email-crope@iki.fi> <53C430AC.9030204@xs4all.nl> <53C435A9.8020004@iki.fi> <53C43705.8020207@xs4all.nl> <53C4938A.3000308@iki.fi> <53C4A51F.9000500@xs4all.nl>
+In-Reply-To: <53C4A51F.9000500@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of custom approach let's use recently introduced seq_hex_dump() helper.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/parisc/ccio-dma.c  | 14 +++-----------
- drivers/parisc/sba_iommu.c | 11 +++--------
- 2 files changed, 6 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/parisc/ccio-dma.c b/drivers/parisc/ccio-dma.c
-index 8b490d7..9d353d2 100644
---- a/drivers/parisc/ccio-dma.c
-+++ b/drivers/parisc/ccio-dma.c
-@@ -1101,20 +1101,12 @@ static const struct file_operations ccio_proc_info_fops = {
- 
- static int ccio_proc_bitmap_info(struct seq_file *m, void *p)
- {
--	int len = 0;
- 	struct ioc *ioc = ioc_list;
- 
- 	while (ioc != NULL) {
--		u32 *res_ptr = (u32 *)ioc->res_map;
--		int j;
--
--		for (j = 0; j < (ioc->res_size / sizeof(u32)); j++) {
--			if ((j & 7) == 0)
--				len += seq_puts(m, "\n   ");
--			len += seq_printf(m, "%08x", *res_ptr);
--			res_ptr++;
--		}
--		len += seq_puts(m, "\n\n");
-+		seq_hex_dump(m, "   ", DUMP_PREFIX_NONE, 32, 4, ioc->res_map,
-+			     ioc->res_size, false);
-+		seq_putc(m, '\n');
- 		ioc = ioc->next;
- 		break; /* XXX - remove me */
- 	}
-diff --git a/drivers/parisc/sba_iommu.c b/drivers/parisc/sba_iommu.c
-index 1ff1b67..fbc4db9 100644
---- a/drivers/parisc/sba_iommu.c
-+++ b/drivers/parisc/sba_iommu.c
-@@ -1857,15 +1857,10 @@ sba_proc_bitmap_info(struct seq_file *m, void *p)
- {
- 	struct sba_device *sba_dev = sba_list;
- 	struct ioc *ioc = &sba_dev->ioc[0];	/* FIXME: Multi-IOC support! */
--	unsigned int *res_ptr = (unsigned int *)ioc->res_map;
--	int i, len = 0;
- 
--	for (i = 0; i < (ioc->res_size/sizeof(unsigned int)); ++i, ++res_ptr) {
--		if ((i & 7) == 0)
--			len += seq_printf(m, "\n   ");
--		len += seq_printf(m, " %08x", *res_ptr);
--	}
--	len += seq_printf(m, "\n");
-+	seq_hex_dump(m, "   ", DUMP_PREFIX_NONE, 32, 4, ioc->res_map,
-+		     ioc->res_size, false);
-+	seq_printf(m, "\n");
- 
- 	return 0;
- }
+On 07/15/2014 06:50 AM, Hans Verkuil wrote:
+> On 07/15/2014 04:35 AM, Antti Palosaari wrote:
+>> On 07/14/2014 11:01 PM, Hans Verkuil wrote:
+>>> On 07/14/2014 09:55 PM, Antti Palosaari wrote:
+>>>> I actually ran v4l2-compliance and there was problem with ADC band
+>>>> enumeration. v4l2-compliance didn't liked as ADC freq was just 20MHz,
+>>>> both upper and lower limit. Due to that I added even small hack to driver,
+>>>>
+>>>> +		.rangelow   = 20000000,
+>>>> +		.rangehigh  = 20000001, /* FIXME: make v4l2-compliance happy */
+>>>
+>>> Hmm, does the latest v4l2-compliance (direct from the git repo) still fail on
+>>> that? That shouldn't be a problem, and I don't see that here either if I try that
+>>> myself.
+>>>
+>>> If it still fails, can you show me the error message?
+>>
+>> [crope@localhost gr-analog]$ ls -l /usr/local/bin/v4l2-compliance
+>> -rwxr-xr-x. 1 root root 1497964 Jul 14 22:50 /usr/local/bin/v4l2-compliance
+>> [crope@localhost gr-analog]$ /usr/local/bin/v4l2-compliance -S
+>> /dev/swradio0 -s
+>> Driver Info:
+>> 	Driver name   : airspy
+>> 	Card type     : AirSpy SDR
+>> 	Bus info      : usb-0000:00:13.2-2
+>> 	Driver version: 3.15.0
+>> 	Capabilities  : 0x85110000
+>> 		SDR Capture
+>> 		Tuner
+>> 		Read/Write
+>> 		Streaming
+>> 		Device Capabilities
+>> 	Device Caps   : 0x05110000
+>> 		SDR Capture
+>> 		Tuner
+>> 		Read/Write
+>> 		Streaming
+>>
+>> Compliance test for device /dev/swradio0 (not using libv4l2):
+>>
+>> Required ioctls:
+>> 	test VIDIOC_QUERYCAP: OK
+>>
+>> Allow for multiple opens:
+>> 	test second sdr open: OK
+>> 	test VIDIOC_QUERYCAP: OK
+>> 	test VIDIOC_G/S_PRIORITY: OK
+>>
+>> Debug ioctls:
+>> 	test VIDIOC_DBG_G/S_REGISTER: OK
+>> 	test VIDIOC_LOG_STATUS: OK
+>>
+>> Input ioctls:
+>> 		fail: v4l2-test-input-output.cpp(107): rangelow >= rangehigh
+>> 		fail: v4l2-test-input-output.cpp(190): invalid tuner 0
+>> 	test VIDIOC_G/S_TUNER: FAIL
+>> 		fail: v4l2-test-input-output.cpp(290): could get frequency for invalid
+>
+> Try again, it should be fixed now.
+
+Old error has gone, but two new comes:
+
+Compliance test for device /dev/swradio0 (not using libv4l2):
+
+Required ioctls:
+		fail: v4l2-compliance.cpp(354): !(caps & V4L2_CAP_EXT_PIX_FORMAT)
+	test VIDIOC_QUERYCAP: FAIL
+
+Allow for multiple opens:
+	test second sdr open: OK
+		fail: v4l2-compliance.cpp(354): !(caps & V4L2_CAP_EXT_PIX_FORMAT)
+	test VIDIOC_QUERYCAP: FAIL
+	test VIDIOC_G/S_PRIORITY: OK
+
+regards
+Antti
+
 -- 
-2.0.1
-
+http://palosaari.fi/
