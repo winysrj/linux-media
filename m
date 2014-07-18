@@ -1,43 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56927 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752594AbaGHFx1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jul 2014 01:53:27 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:35223 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761409AbaGRKXY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 06:23:24 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 3/4] tda10071: fix spec inversion reporting
-Date: Tue,  8 Jul 2014 08:53:05 +0300
-Message-Id: <1404798786-28361-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1404798786-28361-1-git-send-email-crope@iki.fi>
-References: <1404798786-28361-1-git-send-email-crope@iki.fi>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 03/11] [media] coda: remove CAPTURE and OUTPUT caps
+Date: Fri, 18 Jul 2014 12:22:37 +0200
+Message-Id: <1405678965-10473-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
+References: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Inversion ON was reported as inversion OFF and vice versa.
+This is a mem2mem driver, pure capture or output modes are not
+supported.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/dvb-frontends/tda10071.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/coda.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
-index 49874e7..d590798 100644
---- a/drivers/media/dvb-frontends/tda10071.c
-+++ b/drivers/media/dvb-frontends/tda10071.c
-@@ -838,10 +838,10 @@ static int tda10071_get_frontend(struct dvb_frontend *fe)
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 10f9278..f52d17c 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -536,13 +536,7 @@ static int coda_querycap(struct file *file, void *priv,
+ 	strlcpy(cap->card, coda_product_name(ctx->dev->devtype->product),
+ 		sizeof(cap->card));
+ 	strlcpy(cap->bus_info, "platform:" CODA_NAME, sizeof(cap->bus_info));
+-	/*
+-	 * This is only a mem-to-mem video device. The capture and output
+-	 * device capability flags are left only for backward compatibility
+-	 * and are scheduled for removal.
+-	 */
+-	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT |
+-			   V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
  
- 	switch ((buf[1] >> 0) & 0x01) {
- 	case 0:
--		c->inversion = INVERSION_OFF;
-+		c->inversion = INVERSION_ON;
- 		break;
- 	case 1:
--		c->inversion = INVERSION_ON;
-+		c->inversion = INVERSION_OFF;
- 		break;
- 	}
- 
+ 	return 0;
 -- 
-1.9.3
+2.0.1
 
