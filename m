@@ -1,35 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f177.google.com ([209.85.220.177]:47117 "EHLO
-	mail-vc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934045AbaGXHQR (ORCPT
+Received: from smtpq2.tb.mail.iss.as9143.net ([212.54.42.165]:36924 "EHLO
+	smtpq2.tb.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755033AbaGRN4I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jul 2014 03:16:17 -0400
-Received: by mail-vc0-f177.google.com with SMTP id hy4so4230421vcb.36
-        for <linux-media@vger.kernel.org>; Thu, 24 Jul 2014 00:16:17 -0700 (PDT)
+	Fri, 18 Jul 2014 09:56:08 -0400
+Received: from [212.54.42.136] (helo=smtp5.tb.mail.iss.as9143.net)
+	by smtpq2.tb.mail.iss.as9143.net with esmtp (Exim 4.76)
+	(envelope-from <rudy@grumpydevil.homelinux.org>)
+	id 1X88DB-0001SM-3I
+	for linux-media@vger.kernel.org; Fri, 18 Jul 2014 15:28:33 +0200
+Received: from 5ed67808.cm-7-7b.dynamic.ziggo.nl ([94.214.120.8] helo=imail.office.romunt.nl)
+	by smtp5.tb.mail.iss.as9143.net with esmtp (Exim 4.76)
+	(envelope-from <rudy@grumpydevil.homelinux.org>)
+	id 1X88DA-0007Lt-Ni
+	for linux-media@vger.kernel.org; Fri, 18 Jul 2014 15:28:33 +0200
+Received: from [192.168.1.15] (cenedra.office.romunt.nl [192.168.1.15])
+	by imail.office.romunt.nl (8.14.4/8.14.4/Debian-4) with ESMTP id s6IDSWFd022721
+	for <linux-media@vger.kernel.org>; Fri, 18 Jul 2014 15:28:32 +0200
+Message-ID: <53C920FB.1040501@grumpydevil.homelinux.org>
+Date: Fri, 18 Jul 2014 15:28:27 +0200
+From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
 MIME-Version: 1.0
-In-Reply-To: <1406109436-23922-3-git-send-email-sonic.adi@gmail.com>
-References: <1406109436-23922-1-git-send-email-sonic.adi@gmail.com>
-	<1406109436-23922-3-git-send-email-sonic.adi@gmail.com>
-Date: Thu, 24 Jul 2014 15:16:16 +0800
-Message-ID: <CAHG8p1BaWtbm7_VQ=4MCoj6aKv-FKkN_AjgqcurvgY8iCM4ANQ@mail.gmail.com>
-Subject: Re: [PATCH 3/3] v4l2: blackfin: select proper pinctrl state in
- ppi_set_params if CONFIG_PINCTRL is enabled
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Sonic Zhang <sonic.adi@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	LMML <linux-media@vger.kernel.org>,
-	adi-buildroot-devel@lists.sourceforge.net,
-	Sonic Zhang <sonic.zhang@analog.com>
-Content-Type: text/plain; charset=UTF-8
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: ddbridge -- kernel 3.15.6
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2014-07-23 17:57 GMT+08:00 Sonic Zhang <sonic.adi@gmail.com>:
-> From: Sonic Zhang <sonic.zhang@analog.com>
->
-> Multiple pinctrl states are defined for 8, 16 and 24 data pin groups in PPI peripheral.
-> The driver should select correct group before set up further PPI parameters.
->
-> Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
+Dears,
 
-Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
+I have a ddbridge device:
+
+03:00.0 Multimedia controller: Device dd01:0003
+         Subsystem: Device dd01:0021
+         Flags: fast devsel, IRQ 17
+         Memory at f0900000 (64-bit, non-prefetchable) [size=64K]
+         Capabilities: [50] Power Management version 3
+         Capabilities: [90] Express Endpoint, MSI 00
+         Capabilities: [100] Vendor Specific Information: ID=0000 Rev=0 
+Len=00c <?>
+         Kernel driver in use: DDBridge
+
+The kernel recognises as seen in dmesg:
+
+[    1.811626] Digital Devices PCIE bridge driver, Copyright (C) 2010-11 
+Digital Devices GmbH
+[    1.813996] pci 0000:01:19.0: enabling device (0000 -> 0002)
+[    1.816033] DDBridge driver detected: Digital Devices PCIe bridge
+[    1.816273] HW 0001000d FW 00010004
+
+But /dev/dvb remains empty, only /dev/ddbridge exists.
+
+Any pointers are much appreciated
+
+Cheers
+
+
+Rudy
