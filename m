@@ -1,86 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52302 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754899AbaGLAh5 (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4028 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753184AbaGRCqD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 20:37:57 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/3] DocBook: Fix ISDB-T Interleaving property
-Date: Fri, 11 Jul 2014 21:37:46 -0300
-Message-Id: <1405125468-4748-2-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1405125468-4748-1-git-send-email-m.chehab@samsung.com>
-References: <1405125468-4748-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Thu, 17 Jul 2014 22:46:03 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6I2jx2w067032
+	for <linux-media@vger.kernel.org>; Fri, 18 Jul 2014 04:46:01 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 6A6612A1FD1
+	for <linux-media@vger.kernel.org>; Fri, 18 Jul 2014 04:45:57 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ABI WARNING
+Message-Id: <20140718024557.6A6612A1FD1@tschai.lan>
+Date: Fri, 18 Jul 2014 04:45:57 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DocBook documentation is incorrect: on ISDB-T, interleaving
-time is always a power of 2. Fix it and provides a table showing
-the actual interleaving length for each mode.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- Documentation/DocBook/media/dvb/dvbproperty.xml | 44 ++++++++++++++++++++++---
- 1 file changed, 40 insertions(+), 4 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index 24c22cabc668..948ddaab592e 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -555,10 +555,46 @@ typedef enum fe_delivery_system {
- 		</section>
- 		<section id="DTV-ISDBT-LAYER-TIME-INTERLEAVING">
- 			<title><constant>DTV_ISDBT_LAYER*_TIME_INTERLEAVING</constant></title>
--			<para>Possible values: 0, 1, 2, 3, -1 (AUTO)</para>
--			<para>Note: The real inter-leaver depth-names depend on the mode (fft-size); the values
--				here are referring to what can be found in the TMCC-structure -
--				independent of the mode.</para>
-+			<para>Valid values: 0, 1, 2, 4, -1 (AUTO)</para>
-+			<para>when DTV_ISDBT_SOUND_BROADCASTING is active, value 8 is also valid.</para>
-+			<para>Note: The real time interleaving length depends on the mode (fft-size). The values
-+				here are referring to what can be found in the TMCC-structure, as shown in the table below.</para>
-+			<informaltable id="isdbt-layer-interleaving-table">
-+				<tgroup cols="4" align="center">
-+					<tbody>
-+						<row>
-+							<entry>DTV_ISDBT_LAYER*_TIME_INTERLEAVING</entry>
-+							<entry>Mode 1 (2K FFT)</entry>
-+							<entry>Mode 2 (4K FFT)</entry>
-+							<entry>Mode 3 (8K FFT)</entry>
-+						</row>
-+						<row>
-+							<entry>0</entry>
-+							<entry>0</entry>
-+							<entry>0</entry>
-+							<entry>0</entry>
-+						</row>
-+						<row>
-+							<entry>1</entry>
-+							<entry>4</entry>
-+							<entry>2</entry>
-+							<entry>1</entry>
-+						</row>
-+						<row>
-+							<entry>2</entry>
-+							<entry>8</entry>
-+							<entry>4</entry>
-+							<entry>2</entry>
-+						</row>
-+						<row>
-+							<entry>4</entry>
-+							<entry>16</entry>
-+							<entry>8</entry>
-+							<entry>4</entry>
-+						</row>
-+					</tbody>
-+				</tgroup>
-+			</informaltable>
- 		</section>
- 		<section id="DTV-ATSCMH-FIC-VER">
- 			<title><constant>DTV_ATSCMH_FIC_VER</constant></title>
--- 
-1.9.3
+date:		Fri Jul 18 04:00:17 CEST 2014
+git branch:	test
+git hash:	0ca1ba2aac5f6b26672099b13040c5b40db93486
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-16-g1db35d0
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16-rc1-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
