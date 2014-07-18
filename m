@@ -1,92 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60143 "EHLO arroyo.ext.ti.com"
+Received: from mta-out1.inet.fi ([62.71.2.198]:46486 "EHLO kirsi1.inet.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756551AbaGOR5n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jul 2014 13:57:43 -0400
-From: Felipe Balbi <balbi@ti.com>
-To: <hans.verkuil@cisco.com>, Tony Lindgren <tony@atomide.com>,
-	Benoit Cousson <bcousson@baylibre.com>, <robh+dt@kernel.org>
-CC: <linux@arm.linux.org.uk>,
-	Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
-	Linux ARM Kernel Mailing List
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>, <archit@ti.com>,
-	<detheridge@ti.com>, <sakari.ailus@iki.fi>,
-	<laurent.pinchart@ideasonboard.com>, <devicetree@vger.kernel.org>,
-	Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 0/5] Add Video Processing Front End Support
-Date: Tue, 15 Jul 2014 12:56:47 -0500
-Message-ID: <1405447012-5340-1-git-send-email-balbi@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	id S1759546AbaGRFro (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 01:47:44 -0400
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH] si2157: Use name si2157_ops instead of si2157_tuner_ops (harmonize with si2168)
+Date: Fri, 18 Jul 2014 08:41:12 +0300
+Message-Id: <1405662072-26808-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/tuners/si2157.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-the following patches add suport for AM43xx's Video Processing
-Front End (VPFE). Full documentation is available at [1] chapter 14.
-
-This driver has been tested with linux-next from yesterday, plus my
-(already queued) am437x starter kit patches, plus these patches, plus
-the sensor driver which, saddly enough, we're not allowed to release :-(
-
-This driver has almost full v4l2-compliance with only 2 failures (I'll
-take hints on how to properly fix them) as below:
-
-		fail: v4l2-compliance.cpp(419): !doioctl(node2,
-			VIDIOC_S_PRIORITY, &prio)
-	test VIDIOC_G/S_PRIORITY: FAIL
-
-		fail: v4l2-test-formats.cpp(319): pixelformat !=
-				V4L2_PIX_FMT_JPEG && colorspace ==
-				V4L2_COLORSPACE_JPEG
-		fail: v4l2-test-formats.cpp(418):
-				testColorspace(pix.pixelformat, pix.colorspace)
-	test VIDIOC_G_FMT: FAIL
-
-I have also tested with gst-launch using fbdevsink and I can see my
-ugly mug just fine.
-
-Please give this a thorough review and let me know of any problems
-which need to be sorted out and I'll try to help out as time allows.
-
-cheers
-
-[1] http://www.ti.com/lit/pdf/spruhl7
-
-Benoit Parrot (4):
-  Media: platform: Add ti-vpfe driver for AM437x device
-  arm: omap: hwmod: add hwmod entries for AM437x VPFE
-  arm: boot: dts: am4372: add vpfe DTS entries
-  arm: dts: am43x-epos: Add VPFE DTS entries
-
-Darren Etheridge (1):
-  ARM: dts: am437x-sk-evm: add vpfe support and ov2659 sensor
-
- arch/arm/boot/dts/am4372.dtsi                     |   16 +
- arch/arm/boot/dts/am437x-sk-evm.dts               |   63 +
- arch/arm/boot/dts/am43x-epos-evm.dts              |   54 +
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c        |   56 +
- arch/arm/mach-omap2/prcm43xx.h                    |    3 +-
- drivers/media/platform/Kconfig                    |    1 +
- drivers/media/platform/Makefile                   |    2 +
- drivers/media/platform/ti-vpfe/Kconfig            |   12 +
- drivers/media/platform/ti-vpfe/Makefile           |    2 +
- drivers/media/platform/ti-vpfe/am437x_isif.c      | 1053 +++++++++
- drivers/media/platform/ti-vpfe/am437x_isif.h      |  355 +++
- drivers/media/platform/ti-vpfe/am437x_isif_regs.h |  144 ++
- drivers/media/platform/ti-vpfe/vpfe_capture.c     | 2478 +++++++++++++++++++++
- drivers/media/platform/ti-vpfe/vpfe_capture.h     |  263 +++
- 14 files changed, 4501 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/platform/ti-vpfe/Kconfig
- create mode 100644 drivers/media/platform/ti-vpfe/Makefile
- create mode 100644 drivers/media/platform/ti-vpfe/am437x_isif.c
- create mode 100644 drivers/media/platform/ti-vpfe/am437x_isif.h
- create mode 100644 drivers/media/platform/ti-vpfe/am437x_isif_regs.h
- create mode 100644 drivers/media/platform/ti-vpfe/vpfe_capture.c
- create mode 100644 drivers/media/platform/ti-vpfe/vpfe_capture.h
-
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index 329004f..4730f69 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -277,7 +277,7 @@ err:
+ 	return ret;
+ }
+ 
+-static const struct dvb_tuner_ops si2157_tuner_ops = {
++static const struct dvb_tuner_ops si2157_ops = {
+ 	.info = {
+ 		.name           = "Silicon Labs Si2157/Si2158",
+ 		.frequency_min  = 110000000,
+@@ -317,7 +317,7 @@ static int si2157_probe(struct i2c_client *client,
+ 		goto err;
+ 
+ 	fe->tuner_priv = s;
+-	memcpy(&fe->ops.tuner_ops, &si2157_tuner_ops,
++	memcpy(&fe->ops.tuner_ops, &si2157_ops,
+ 			sizeof(struct dvb_tuner_ops));
+ 
+ 	i2c_set_clientdata(client, s);
 -- 
-2.0.0.390.gcb682f8
+1.9.1
 
