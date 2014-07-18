@@ -1,44 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [65.54.190.90] ([65.54.190.90]:58911 "EHLO
-	BAY004-OMC2S15.hotmail.com" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1752134AbaGUGDW convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jul 2014 02:03:22 -0400
-Message-ID: <BAY176-W239273C4C2BE239029A106A9F00@phx.gbl>
-From: Divneil Wadhawan <divneil@outlook.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: vb2_reqbufs() is not allowing more than VIDEO_MAX_FRAME
-Date: Mon, 21 Jul 2014 11:33:02 +0530
-In-Reply-To: <53C78FEA.1050600@xs4all.nl>
-References: <BAY176-W18F88DAF5A1C8B5194F30DA94E0@phx.gbl>,<536A0709.5090605@xs4all.nl>,<BAY176-W38EDAC885E5441BBA2E0B2A94E0@phx.gbl>,<536A1A45.6080201@xs4all.nl>
- <BAY176-W960662BE81D5920B94F97A9350@phx.gbl>,<53B65C2E.9040503@xs4all.nl>
- <BAY176-W19A194B095C32CE30B0B8DA90D0@phx.gbl>,<53C78FEA.1050600@xs4all.nl>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46469 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1761144AbaGRJUV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 05:20:21 -0400
+Date: Fri, 18 Jul 2014 12:19:46 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Joe Perches <joe@perches.com>
+Subject: Re: [PATCH] media: Use strlcpy instead of custom code
+Message-ID: <20140718091946.GO16460@valkosipuli.retiisi.org.uk>
+References: <1405598078-9842-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1405598078-9842-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-Hi Hans,
+Hi Laurent,
 
-> This patch is all messed up and doesn't apply.
->
-> Check your mailer settings: it clearly replaced hard tabs by a space.
->
-> Can you repost?
+Thanks for the patch!
 
-I tried to find out if I can change the mailer settings. Seems, that is the problem.
+On Thu, Jul 17, 2014 at 01:54:38PM +0200, Laurent Pinchart wrote:
+> Replace strncpy + manually setting the terminating '\0' with an strlcpy
+> call.
+> 
+> Reported-by: Joe Perches <joe@perches.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-I tried using mutt, but, seems the configuration is missing.
-
-If you have a simple method, on using mutt, I will send it from there, as, mutt is respecting the TAB spaces.
-
-I didn't spend much time with it for time being.
-
-
-Regards,
-
-Divneil 		 	   		  
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
