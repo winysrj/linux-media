@@ -1,86 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:36861 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964870AbaGIP2T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Jul 2014 11:28:19 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Tadeusz Struk <tadeusz.struk@intel.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Helge Deller <deller@gmx.de>,
-	Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>,
-	linux390@de.ibm.com, Alexander Viro <viro@zeniv.linux.org.uk>,
-	qat-linux@intel.com, linux-crypto@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 2/5] saa7164: convert to seq_hex_dump()
-Date: Wed,  9 Jul 2014 18:24:27 +0300
-Message-Id: <1404919470-26668-3-git-send-email-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1404919470-26668-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from smtpq1.tb.mail.iss.as9143.net ([212.54.42.164]:54764 "EHLO
+	smtpq1.tb.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1422908AbaGRPkE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 11:40:04 -0400
+Message-ID: <53C93FCB.6000302@grumpydevil.homelinux.org>
+Date: Fri, 18 Jul 2014 17:39:55 +0200
+From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Ren=E9?= <poisson.rene@neuf.fr>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: ddbridge -- kernel 3.15.6
+References: <53C920FB.1040501@grumpydevil.homelinux.org><6E594BCC1018445BA338AAABB100405C@ci5fish> <53C92FB6.40300@grumpydevil.homelinux.org> <BAE402E8671443828B8815421BDD81CD@ci5fish>
+In-Reply-To: <BAE402E8671443828B8815421BDD81CD@ci5fish>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of custom approach let's use recently added seq_hex_dump() helper.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/media/pci/saa7164/saa7164-core.c | 31 ++++---------------------------
- 1 file changed, 4 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/media/pci/saa7164/saa7164-core.c b/drivers/media/pci/saa7164/saa7164-core.c
-index 1bf0697..6f81584 100644
---- a/drivers/media/pci/saa7164/saa7164-core.c
-+++ b/drivers/media/pci/saa7164/saa7164-core.c
-@@ -1065,7 +1065,6 @@ static int saa7164_proc_show(struct seq_file *m, void *v)
- 	struct saa7164_dev *dev;
- 	struct tmComResBusInfo *b;
- 	struct list_head *list;
--	int i, c;
- 
- 	if (saa7164_devcount == 0)
- 		return 0;
-@@ -1089,35 +1088,13 @@ static int saa7164_proc_show(struct seq_file *m, void *v)
- 
- 		seq_printf(m, " .m_pdwGetReadPos  = 0x%x (0x%08x)\n",
- 			b->m_dwGetWritePos, saa7164_readl(b->m_dwGetWritePos));
--		c = 0;
- 		seq_printf(m, "\n  Set Ring:\n");
--		seq_printf(m, "\n addr  00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f\n");
--		for (i = 0; i < b->m_dwSizeSetRing; i++) {
--			if (c == 0)
--				seq_printf(m, " %04x:", i);
-+		seq_hex_dump(m, " ", DUMP_PREFIX_OFFSET, 16, 1,
-+			     b->m_pdwSetRing, b->m_dwSizeSetRing, false);
- 
--			seq_printf(m, " %02x", *(b->m_pdwSetRing + i));
--
--			if (++c == 16) {
--				seq_printf(m, "\n");
--				c = 0;
--			}
--		}
--
--		c = 0;
- 		seq_printf(m, "\n  Get Ring:\n");
--		seq_printf(m, "\n addr  00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f\n");
--		for (i = 0; i < b->m_dwSizeGetRing; i++) {
--			if (c == 0)
--				seq_printf(m, " %04x:", i);
--
--			seq_printf(m, " %02x", *(b->m_pdwGetRing + i));
--
--			if (++c == 16) {
--				seq_printf(m, "\n");
--				c = 0;
--			}
--		}
-+		seq_hex_dump(m, " ", DUMP_PREFIX_OFFSET, 16, 1,
-+			     b->m_pdwGetRing, b->m_dwSizeGetRing, false);
- 
- 		mutex_unlock(&b->lock);
- 
--- 
-2.0.1
+On 18-07-14 17:01, René wrote:
+> To know which modules shall be detected, we need at least the make and 
+> model of the device.
+> If you can read the references on the chips on the board, it would be 
+> great ...
+I see. What would happen if I build a monolithic kernel with all DVB 
+modules included?
+
+I'll check if i can read the chip references...
 
