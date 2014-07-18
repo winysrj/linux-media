@@ -1,64 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:38000 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760459AbaGYPIv (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4918 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761391AbaGRL6z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 11:08:51 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 09/11] [media] coda: add an intermediate debug level
-Date: Fri, 25 Jul 2014 17:08:35 +0200
-Message-Id: <1406300917-18169-10-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
-References: <1406300917-18169-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 18 Jul 2014 07:58:55 -0400
+Message-ID: <53C90BED.4040805@xs4all.nl>
+Date: Fri, 18 Jul 2014 13:58:37 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [linuxtv-media:master 447/499] drivers/media/common/saa7146/saa7146_fops.c:536:13:
+ sparse: incorrect type in assignment (different base types)
+References: <53c862c4.axXMxgoD8CYYkiCj%fengguang.wu@intel.com> <2344820.NCMmLgcQJ6@avalon>
+In-Reply-To: <2344820.NCMmLgcQJ6@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dumping all register accesses drowns other debugging messages
-in the log. Add a less verbose debug level.
+On 07/18/14 13:53, Laurent Pinchart wrote:
+> On Friday 18 July 2014 07:56:52 kbuild test robot wrote:
+>> tree:   git://linuxtv.org/media_tree.git master
+>> head:   0ca1ba2aac5f6b26672099b13040c5b40db93486
+>> commit: d52e23813672c3c72f92e7b39c7408d4b9a40a96 [447/499] [media] v4l:
+>> Support extending the v4l2_pix_format structure reproduce: make C=1
+>> CF=-D__CHECK_ENDIAN__
+>>
+>>
+>> sparse warnings: (new ones prefixed by >>)
+>>
+>>>> drivers/media/common/saa7146/saa7146_fops.c:536:13: sparse: incorrect
+>>>> type in assignment (different base types)
+>>    drivers/media/common/saa7146/saa7146_fops.c:536:13:    expected struct
+>> v4l2_pix_format *fmt drivers/media/common/saa7146/saa7146_fops.c:536:13:   
+>> got struct <noident> *<noident>
+>> drivers/media/common/saa7146/saa7146_fops.c: In function 'saa7146_vv_init':
+>> drivers/media/common/saa7146/saa7146_fops.c:536:6: warning: assignment from
+>> incompatible pointer type [enabled by default] fmt = &vv->ov_fb.fmt;
+>>          ^
+> 
+> I'll send a patch to fix that.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+I posted a fix for that already:
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index da5dd2f..5a113c5 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -58,7 +58,7 @@
- 
- int coda_debug;
- module_param(coda_debug, int, 0644);
--MODULE_PARM_DESC(coda_debug, "Debug level (0-1)");
-+MODULE_PARM_DESC(coda_debug, "Debug level (0-2)");
- 
- struct coda_fmt {
- 	char *name;
-@@ -67,7 +67,7 @@ struct coda_fmt {
- 
- void coda_write(struct coda_dev *dev, u32 data, u32 reg)
- {
--	v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
-+	v4l2_dbg(2, coda_debug, &dev->v4l2_dev,
- 		 "%s: data=0x%x, reg=0x%x\n", __func__, data, reg);
- 	writel(data, dev->regs_base + reg);
- }
-@@ -76,7 +76,7 @@ unsigned int coda_read(struct coda_dev *dev, u32 reg)
- {
- 	u32 data;
- 	data = readl(dev->regs_base + reg);
--	v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
-+	v4l2_dbg(2, coda_debug, &dev->v4l2_dev,
- 		 "%s: data=0x%x, reg=0x%x\n", __func__, data, reg);
- 	return data;
- }
--- 
-2.0.1
+[PATCH for v3.17] saa7146: fix compile warning
 
+Part of pull request https://patchwork.linuxtv.org/patch/24885/
+
+Regards,
+
+	Hans
