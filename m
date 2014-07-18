@@ -1,49 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:47653 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752577AbaGJI5j (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:35209 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761589AbaGRKXQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jul 2014 04:57:39 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N8H00IKMNK14370@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 Jul 2014 17:57:37 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+	Fri, 18 Jul 2014 06:23:16 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: arun.kk@samsung.com, k.debski@samsung.com, jtp.park@samsung.com,
-	b.zolnierkie@samsung.com, kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v2 0/3] Add support for Exynos3250 SoC to s5p-mfc driver
-Date: Thu, 10 Jul 2014 10:57:26 +0200
-Message-id: <1404982646-23363-1-git-send-email-j.anaszewski@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Michael Olbrich <m.olbrich@pengutronix.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 06/11] [media] coda: delay coda_fill_bitstream()
+Date: Fri, 18 Jul 2014 12:22:40 +0200
+Message-Id: <1405678965-10473-7-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
+References: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is second version of the patch set that adds support for
-MFC codec on Exynos3250 to the s5p-mfc driver
-(Sachin and Arun - thanks for a review).
+From: Michael Olbrich <m.olbrich@pengutronix.de>
 
-=================
+coda_fill_bitstream() calls v4l2_m2m_buf_done() which is no longer allowed
+before streaming was started.
+Delay coda_fill_bitstream() until coda_start_streaming() and explicitly set
+'start_streaming_called' before calling coda_fill_bitstream()
+
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
 Changes since v1:
-=================
-- made SCLK an optional parameter, as not all the devices
-  with the same MFC version require initializing the clock explicitly.
-- adjusted commit message of the patch extending DT documentation
+ - Don't set vb2_queue start_streaming_called anymore, it is now set by
+   the core before coda_start_streaming is called.
+---
+ drivers/media/platform/coda.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-Thanks,
-Jacek Anaszewski
-
-Jacek Anaszewski (3):
-  s5p-mfc: Fix selective sclk_mfc init
-  ARM: dts: exynos3250 add MFC codec device node
-  DT: s5p-mfc: Document exynos3250 SoC related settings
-
- .../devicetree/bindings/media/s5p-mfc.txt          |   10 +++++---
- arch/arm/boot/dts/exynos3250.dtsi                  |   11 +++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_pm.c        |   24 ++++++++++++++++++++
- 3 files changed, 42 insertions(+), 3 deletions(-)
-
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 141ec29..924ad58 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -1682,7 +1682,8 @@ static void coda_buf_queue(struct vb2_buffer *vb)
+ 		}
+ 		mutex_lock(&ctx->bitstream_mutex);
+ 		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
+-		coda_fill_bitstream(ctx);
++		if (vb2_is_streaming(vb->vb2_queue))
++			coda_fill_bitstream(ctx);
+ 		mutex_unlock(&ctx->bitstream_mutex);
+ 	} else {
+ 		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
+@@ -2272,6 +2273,11 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+ 	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+ 		if (q_data_src->fourcc == V4L2_PIX_FMT_H264) {
++			/* copy the buffers that where queued before streamon */
++			mutex_lock(&ctx->bitstream_mutex);
++			coda_fill_bitstream(ctx);
++			mutex_unlock(&ctx->bitstream_mutex);
++
+ 			if (coda_get_bitstream_payload(ctx) < 512)
+ 				return -EINVAL;
+ 		} else {
 -- 
-1.7.9.5
+2.0.1
 
