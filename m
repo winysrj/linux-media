@@ -1,78 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56827 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752534AbaG2Aw7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jul 2014 20:52:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Enrico <ebutera@users.sourceforge.net>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Michael Dietschi <michael.dietschi@inunum.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: omap3isp with DM3730 not working?!
-Date: Tue, 29 Jul 2014 02:53:17 +0200
-Message-ID: <2300187.SbcZEE0rv0@avalon>
-In-Reply-To: <CA+2YH7vhYuvUbFHyyr699zUdJuYWDtzweOGo0hGDHzT-+oFGjw@mail.gmail.com>
-References: <53D12786.5050906@InUnum.com> <1915586.ZFV4ecW0Zg@avalon> <CA+2YH7vhYuvUbFHyyr699zUdJuYWDtzweOGo0hGDHzT-+oFGjw@mail.gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:56194 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761928AbaGRPZO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 11:25:14 -0400
+Message-ID: <53C93C58.80000@iki.fi>
+Date: Fri, 18 Jul 2014 18:25:12 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org,
+	Luis Alves <ljalvs@gmail.com>
+Subject: Re: [PATCH] si2157: Use name si2157_ops instead of si2157_tuner_ops
+ (harmonize with si2168)
+References: <1405662072-26808-1-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1405662072-26808-1-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enrico,
+I will apply that, thanks!
 
-On Monday 28 July 2014 15:18:04 Enrico wrote:
-> On Mon, Jul 28, 2014 at 12:29 PM, Laurent Pinchart wrote:
-> > On Monday 28 July 2014 10:30:17 Enrico wrote:
-> >> On Mon, Jul 28, 2014 at 9:20 AM, Sakari Ailus wrote:
-> >>> On Thu, Jul 24, 2014 at 05:57:30PM +0200, Enrico wrote:
-> >>>> On Thu, Jul 24, 2014 at 5:34 PM, Michael Dietschi wrote:
-> >>>>> Hello,
-> >>>>> 
-> >>>>> I have built a Poky image for Gumstix Overo and added support for a
-> >>>>> TVP5151 module like described here http://www.sleepyrobot.com/?p=253.
-> >>>>> It does work well with an Overo board which hosts an OMAP3530 SoC.
-> >>>>> But when I try with an Overo hosting a DM3730 it does not work: yavta
-> >>>>> just seems to wait forever :(
-> >>>>> 
-> >>>>> I did track it down to the point that IRQ0STATUS_CCDC_VD0_IRQ seems
-> >>>>> never be set but always IRQ0STATUS_CCDC_VD1_IRQ
-> >>> 
-> >>> VD1 takes place in 2/3 of the frame, and VD0 in the beginning of the
-> >>> last line. You could check perhaps if you do get VD0 if you set it to
-> >>> take place on the previous line (i.e. the register value being height -
-> >>> 3; please see ccdc_configure() in ispccdc.c).
-> >>> 
-> >>> I have to admit I haven't used the parallel interface so perhaps others
-> >>> could have more insightful comments on how to debug this.
-> >>> 
-> >>>>> Can someone please give me a hint?
-> >>>> 
-> >>>> It's strange that you get the vd1_irq because it should not be set by
-> >>>> the driver and never trigger...
-> >>> 
-> >>> Both VD0 and VD1 are used by the omap3isp driver, but in different
-> >>> points of the frame.
-> >> 
-> >> Hi Sakari,
-> >> 
-> >> that's true in "normal" mode, but with bt656 patches VD1 is not used.
-> > 
-> > That's not correct, VD1 is used in both modes. In BT.656 mode VD1 is even
-> > used to increment the frame counter in place of the HS_VS interrupt.
-> 
-> ...in your new patches. But sleepyrobot's are the old ones and i bet
-> Michael is using those patches.
+Could you and also Luis pay attention to commit message in future 
+patches. I have had practically fixed almost every commit message from 
+your patches. Long one liner just like this one is not correct. It 
+should be short subject line and then explained more in the commit 
+message body. I tend ask myself questions "why" and "how" and then write 
+commit message based answers of those questions.
 
-You're right. Maybe that's the first problem to be fixed though ;-) Michael, 
-could you try using the "official" (and under development) BT.656 support code 
-for the OMAP3 ISP driver ? I've just pushed the branch to
+regards
+Antti
 
-	git://linuxtv.org/pinchartl/media.git omap3isp/bt656
+On 07/18/2014 08:41 AM, Olli Salonen wrote:
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> ---
+>   drivers/media/tuners/si2157.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+> index 329004f..4730f69 100644
+> --- a/drivers/media/tuners/si2157.c
+> +++ b/drivers/media/tuners/si2157.c
+> @@ -277,7 +277,7 @@ err:
+>   	return ret;
+>   }
+>
+> -static const struct dvb_tuner_ops si2157_tuner_ops = {
+> +static const struct dvb_tuner_ops si2157_ops = {
+>   	.info = {
+>   		.name           = "Silicon Labs Si2157/Si2158",
+>   		.frequency_min  = 110000000,
+> @@ -317,7 +317,7 @@ static int si2157_probe(struct i2c_client *client,
+>   		goto err;
+>
+>   	fe->tuner_priv = s;
+> -	memcpy(&fe->ops.tuner_ops, &si2157_tuner_ops,
+> +	memcpy(&fe->ops.tuner_ops, &si2157_ops,
+>   			sizeof(struct dvb_tuner_ops));
+>
+>   	i2c_set_clientdata(client, s);
+>
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
