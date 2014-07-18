@@ -1,45 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:44796 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752914AbaGYSHr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 14:07:47 -0400
-Received: by mail-wi0-f170.google.com with SMTP id f8so1495496wiw.3
-        for <linux-media@vger.kernel.org>; Fri, 25 Jul 2014 11:07:46 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH] em28xx-v4l: fix disabling ioctl VIDIOC_S_PARM for vbi devices
-Date: Fri, 25 Jul 2014 20:08:30 +0200
-Message-Id: <1406311710-5914-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:46576 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753440AbaGRQ2R (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 12:28:17 -0400
+Message-ID: <53C94B1F.40106@iki.fi>
+Date: Fri, 18 Jul 2014 19:28:15 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/4] airspy: print notice to point SDR API is not 100%
+ stable yet
+References: <1405645513-25616-1-git-send-email-crope@iki.fi> <1405645513-25616-3-git-send-email-crope@iki.fi> <53C8AD58.1000200@xs4all.nl>
+In-Reply-To: <53C8AD58.1000200@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes an old copy+paste bug that has survived all recent code
-changes in this code area.
+Moikka!
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 07/18/2014 08:15 AM, Hans Verkuil wrote:
+> On 07/18/2014 03:05 AM, Antti Palosaari wrote:
+>> Print notice on driver load: "SDR API is still slightly
+>> experimental and functionality changes may follow". It is just
+>> remind possible used SDR API is very new and surprises may occur.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 087ccf9..90dec29 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -2528,7 +2528,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 		v4l2->vbi_dev->queue->lock = &v4l2->vb_vbi_queue_lock;
- 
- 		/* disable inapplicable ioctls */
--		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_S_PARM);
-+		v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_S_PARM);
- 		if (dev->tuner_type == TUNER_ABSENT) {
- 			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_G_TUNER);
- 			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_S_TUNER);
+>
+> On that topic: I would like to see a 'buffersize' or 'samples_per_buffer'
+> field in struct v4l2_sdr_format. That gives applications the opportunity
+> to 1) get the current buffer size and 2) be able to change it if the driver
+> supports that. E.g. for high sampling rates they might want to use larger
+> buffers, for low they might want to select smaller buffers.
+>
+> Right now it is fixed and you won't know the buffer size until you do
+> QUERYBUF. Which is not in sync with what other formats do.
+
+I understand what you mean. If you use mmap or userptr then you would 
+like to really know how much data you will get per buffer, but if you 
+use read then it has no meaning.
+
+I prefer 'buffersize' over 'samples_per_buffer', just because some 
+formats are very complex, packed and compressed, and calculating 
+'buffersize' from 'samples_per_buffer' could be quite complex.
+
+It is also possible report both, but then you should decide how handle 
+situation on S_FMT. Another should be zero and driver uses the one which 
+has value !zero.
+
+
+regards
+Antti
+
 -- 
-1.8.4.5
-
+http://palosaari.fi/
