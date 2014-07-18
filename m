@@ -1,121 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45820 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754064AbaGMROm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Jul 2014 13:14:42 -0400
-Message-ID: <53C2BE80.7010409@iki.fi>
-Date: Sun, 13 Jul 2014 20:14:40 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/6] si2168: Add handling for different chip revisions
- and firmwares
-References: <1405259542-32529-1-git-send-email-olli.salonen@iki.fi> <1405259542-32529-3-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1405259542-32529-3-git-send-email-olli.salonen@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from dd14724.kasserver.com ([85.13.136.38]:49078 "EHLO
+	dd14724.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752245AbaGRIDW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 04:03:22 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.2\))
+Subject: Re: [PATCH] ddbridge: Add IDs for several newer Digital Devices cards
+From: "D. Herrendoerfer" <d.herrendoerfer@herrendoerfer.name>
+In-Reply-To: <53B169A0.5010907@creimer.net>
+Date: Fri, 18 Jul 2014 09:56:27 +0200
+Cc: linux-media@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <0728DA26-FA9B-4C7B-92D3-4E9C7C6C2DDB@herrendoerfer.name>
+References: <53B169A0.5010907@creimer.net>
+To: Christopher Reimer <linux@creimer.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Applied!
-http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=silabs
+ACK, tested ok with CineS2 6.5 and Octopus V3. 
 
-Antti
+D.Herrendoerfer
 
 
-On 07/13/2014 04:52 PM, Olli Salonen wrote:
-> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+On 30 Jun 2014, at 15:44, Christopher Reimer <linux@creimer.net> wrote:
+
+> Hello,
+> 
+> it's the first time I try to contribute here. So please be gracious.
+> 
+> This patch adds the necessary IDs for the following dvb cards:
+> 
+> Digital Devices Octopus Mini
+> Digital Devices Cine S2 V6.5
+> Digital Devices DVBCT V6.1
+> Digital Devices Octopus V3
+> Mystique SaTiX-S2 V3
+> 
+> All these changes are taken from the official driver package by Digital Devices.
+> http://download.digital-devices.de/download/linux/
+> 
+> Signed-off-by: Christopher Reimer <mail@creimer.net>
+> 
 > ---
->   drivers/media/dvb-frontends/si2168.c      | 34 ++++++++++++++++++++++++++-----
->   drivers/media/dvb-frontends/si2168_priv.h |  4 +++-
->   2 files changed, 32 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-> index bae7771..268fce3 100644
-> --- a/drivers/media/dvb-frontends/si2168.c
-> +++ b/drivers/media/dvb-frontends/si2168.c
-> @@ -333,7 +333,7 @@ static int si2168_init(struct dvb_frontend *fe)
->   	struct si2168 *s = fe->demodulator_priv;
->   	int ret, len, remaining;
->   	const struct firmware *fw = NULL;
-> -	u8 *fw_file = SI2168_FIRMWARE;
-> +	u8 *fw_file;
->   	const unsigned int i2c_wr_max = 8;
->   	struct si2168_cmd cmd;
->
-> @@ -353,6 +353,7 @@ static int si2168_init(struct dvb_frontend *fe)
->   	if (ret)
->   		goto err;
->
-> +	/* query chip revision */
->   	memcpy(cmd.args, "\x02", 1);
->   	cmd.wlen = 1;
->   	cmd.rlen = 13;
-> @@ -360,6 +361,20 @@ static int si2168_init(struct dvb_frontend *fe)
->   	if (ret)
->   		goto err;
->
-> +	if (((cmd.args[1] & 0x0f) == 2) && (cmd.args[3] == '4') &&
-> +			(cmd.args[4] == '0'))
-> +		fw_file = SI2168_B40_FIRMWARE;
-> +	else if (((cmd.args[1] & 0x0f) == 1) && (cmd.args[3] == '3') &&
-> +			(cmd.args[4] == '0'))
-> +		fw_file = SI2168_A30_FIRMWARE;
-> +	else {
-> +		dev_err(&s->client->dev,
-> +				"%s: no firmware file for Si2168-%c%c defined\n",
-> +				KBUILD_MODNAME, cmd.args[3], cmd.args[4]);
-> +		ret = -EINVAL;
-> +		goto err;
-> +	}
+> 
+> diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+> index fb52bda..da8f848 100644
+> --- a/drivers/media/pci/ddbridge/ddbridge-core.c
+> +++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+> @@ -1663,11 +1663,40 @@ static struct ddb_info ddb_octopus_le = {
+>     .port_num = 2,
+> };
+> 
+> +static struct ddb_info ddb_octopus_mini = {
+> +    .type     = DDB_OCTOPUS,
+> +    .name     = "Digital Devices Octopus Mini",
+> +    .port_num = 4,
+> +};
 > +
->   	/* cold state - try to download firmware */
->   	dev_info(&s->client->dev, "%s: found a '%s' in cold state\n",
->   			KBUILD_MODNAME, si2168_ops.info.name);
-> @@ -367,9 +382,18 @@ static int si2168_init(struct dvb_frontend *fe)
->   	/* request the firmware, this will block and timeout */
->   	ret = request_firmware(&fw, fw_file, &s->client->dev);
->   	if (ret) {
-> -		dev_err(&s->client->dev, "%s: firmare file '%s' not found\n",
-> -				KBUILD_MODNAME, fw_file);
-> -		goto err;
-> +		/* fallback mechanism to handle old name for
-> +		   SI2168_B40_FIRMWARE */
-> +		if (((cmd.args[1] & 0x0f) == 2) && (cmd.args[3] == '4') &&
-> +				(cmd.args[4] == '0')) {
-> +			fw_file = SI2168_B40_FIRMWARE_FALLBACK;
-> +			ret = request_firmware(&fw, fw_file, &s->client->dev);
-> +		}
-> +		if (ret) {
-> +			dev_err(&s->client->dev, "%s: firmware file '%s' not found\n",
-> +					KBUILD_MODNAME, fw_file);
-> +			goto err;
-> +		}
->   	}
->
->   	dev_info(&s->client->dev, "%s: downloading firmware from file '%s'\n",
-> @@ -629,4 +653,4 @@ module_i2c_driver(si2168_driver);
->   MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
->   MODULE_DESCRIPTION("Silicon Labs Si2168 DVB-T/T2/C demodulator driver");
->   MODULE_LICENSE("GPL");
-> -MODULE_FIRMWARE(SI2168_FIRMWARE);
-> +MODULE_FIRMWARE(SI2168_B40_FIRMWARE);
-> diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-> index 97f9d87..bebb68a 100644
-> --- a/drivers/media/dvb-frontends/si2168_priv.h
-> +++ b/drivers/media/dvb-frontends/si2168_priv.h
-> @@ -22,7 +22,9 @@
->   #include <linux/firmware.h>
->   #include <linux/i2c-mux.h>
->
-> -#define SI2168_FIRMWARE "dvb-demod-si2168-02.fw"
-> +#define SI2168_A30_FIRMWARE "dvb-demod-si2168-a30-01.fw"
-> +#define SI2168_B40_FIRMWARE "dvb-demod-si2168-b40-01.fw"
-> +#define SI2168_B40_FIRMWARE_FALLBACK "dvb-demod-si2168-02.fw"
->
->   /* state struct */
->   struct si2168 {
->
+> static struct ddb_info ddb_v6 = {
+>     .type     = DDB_OCTOPUS,
+>     .name     = "Digital Devices Cine S2 V6 DVB adapter",
+>     .port_num = 3,
+> };
+> +static struct ddb_info ddb_v6_5 = {
+> +    .type     = DDB_OCTOPUS,
+> +    .name     = "Digital Devices Cine S2 V6.5 DVB adapter",
+> +    .port_num = 4,
+> +};
+> +
+> +static struct ddb_info ddb_dvbct = {
+> +    .type     = DDB_OCTOPUS,
+> +    .name     = "Digital Devices DVBCT V6.1 DVB adapter",
+> +    .port_num = 3,
+> +};
+> +
+> +static struct ddb_info ddb_satixS2v3 = {
+> +    .type     = DDB_OCTOPUS,
+> +    .name     = "Mystique SaTiX-S2 V3 DVB adapter",
+> +    .port_num = 3,
+> +};
+> +
+> +static struct ddb_info ddb_octopusv3 = {
+> +    .type     = DDB_OCTOPUS,
+> +    .name     = "Digital Devices Octopus V3 DVB adapter",
+> +    .port_num = 4,
+> +};
+> 
+> #define DDVID 0xdd01 /* Digital Devices Vendor ID */
+> 
+> @@ -1680,8 +1709,12 @@ static const struct pci_device_id ddb_id_tbl[] = {
+>     DDB_ID(DDVID, 0x0002, DDVID, 0x0001, ddb_octopus),
+>     DDB_ID(DDVID, 0x0003, DDVID, 0x0001, ddb_octopus),
+>     DDB_ID(DDVID, 0x0003, DDVID, 0x0002, ddb_octopus_le),
+> -    DDB_ID(DDVID, 0x0003, DDVID, 0x0010, ddb_octopus),
+> +    DDB_ID(DDVID, 0x0003, DDVID, 0x0010, ddb_octopus_mini),
+>     DDB_ID(DDVID, 0x0003, DDVID, 0x0020, ddb_v6),
+> +    DDB_ID(DDVID, 0x0003, DDVID, 0x0021, ddb_v6_5),
+> +    DDB_ID(DDVID, 0x0003, DDVID, 0x0030, ddb_dvbct),
+> +    DDB_ID(DDVID, 0x0003, DDVID, 0xdb03, ddb_satixS2v3),
+> +    DDB_ID(DDVID, 0x0005, DDVID, 0x0004, ddb_octopusv3),
+>     /* in case sub-ids got deleted in flash */
+>     DDB_ID(DDVID, 0x0003, PCI_ANY_ID, PCI_ANY_ID, ddb_none),
+>     {0}
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
--- 
-http://palosaari.fi/
