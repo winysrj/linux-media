@@ -1,67 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:45720 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753719AbaGKOCG (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:39350 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755543AbaGRDQW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 10:02:06 -0400
-Message-id: <53BFEE5A.40306@samsung.com>
-Date: Fri, 11 Jul 2014 16:02:02 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	b.zolnierkie@samsung.com, linux-samsung-soc@vger.kernel.org,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org
-Subject: Re: [PATCH 9/9] ARM: dts: exynos3250: add JPEG codec device node
-References: <1404750730-22996-1-git-send-email-j.anaszewski@samsung.com>
- <1404750730-22996-10-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1404750730-22996-10-git-send-email-j.anaszewski@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Thu, 17 Jul 2014 23:16:22 -0400
+Message-ID: <53C89161.4080405@atmel.com>
+Date: Fri, 18 Jul 2014 11:15:45 +0800
+From: Josh Wu <josh.wu@atmel.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	<m.chehab@samsung.com>, <nicolas.ferre@atmel.com>,
+	<linux-arm-kernel@lists.infradead.org>, <grant.likely@linaro.org>,
+	<galak@codeaurora.org>, <rob@landley.net>, <mark.rutland@arm.com>,
+	<robh+dt@kernel.org>, <ijc+devicetree@hellion.org.uk>,
+	<pawel.moll@arm.com>, <devicetree@vger.kernel.org>,
+	Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: Re: [PATCH v2 3/3] [media] atmel-isi: add primary DT support
+References: <1395744087-5753-1-git-send-email-josh.wu@atmel.com> <Pine.LNX.4.64.1403302313290.12008@axis700.grange> <53392FC9.9070706@atmel.com> <2360323.ktzTJnrmOX@avalon>
+In-Reply-To: <2360323.ktzTJnrmOX@avalon>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/07/14 18:32, Jacek Anaszewski wrote:
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Cc: Pawel Moll <pawel.moll@arm.com>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-> Cc: Kumar Gala <galak@codeaurora.org>
-> Cc: devicetree@vger.kernel.org
-> ---
->  arch/arm/boot/dts/exynos3250.dtsi |   12 ++++++++++++
->  1 file changed, 12 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/exynos3250.dtsi b/arch/arm/boot/dts/exynos3250.dtsi
-> index 3e678fa..351871a 100644
-> --- a/arch/arm/boot/dts/exynos3250.dtsi
-> +++ b/arch/arm/boot/dts/exynos3250.dtsi
-> @@ -206,6 +206,18 @@
->  			interrupts = <0 240 0>;
->  		};
->  
-> +		jpeg-codec@11830000 {
-> +			compatible = "samsung,exynos3250-jpeg";
-> +			reg = <0x11830000 0x1000>;
-> +			interrupts = <0 171 0>;
-> +			clocks = <&cmu CLK_JPEG>, <&cmu CLK_SCLK_JPEG>;
-> +			clock-names = "jpeg", "sclk-jpeg";
-> +			samsung,power-domain = <&pd_cam>;
-> +			assigned-clock-parents = <&cmu CLK_MOUT_CAM_BLK &cmu CLK_DIV_MPLL_PRE>,
-> +						 <&cmu CLK_SCLK_JPEG &cmu>;
-> +			assigned-clock-rates = <&cmu CLK_SCLK_JPEG 150000000>;
+Dear Laurent
 
-There is no support for the assigned-clock-parents/assigned-clock-rates
-in mainline yet unfortunately. I would suggest removing these two properties
-for now. And please send this patch to relevant maintainer, i.e. Kukjin Kim.
+On 7/17/2014 7:00 PM, Laurent Pinchart wrote:
+> Hi Josh,
+>
+> What's the status of this patch set ? Do you plan to rebase and resubmit it ?
 
-> +		};
+Thanks for the reminding.
+yes,  I will rebase it and resubmit the new version for this patch set 
+with the data bus width support.
+Thanks.
 
-Thanks,
-Sylwester
+Best Regards,
+Josh Wu
+>
+> On Monday 31 March 2014 17:05:13 Josh Wu wrote:
+>> Dear Guennadi
+>>
+>> On 3/31/2014 5:20 AM, Guennadi Liakhovetski wrote:
+>>> Hi Josh,
+>>>
+>>> Please correct me if I'm wrong, but I don't see how this is going to work
+>>> without the central part - building asynchronous V4L2 data structures from
+>>> the DT, something that your earlier patch
+>> Here you mean Bryan Wu not me, right?   ;-)
+>> Bryan write the patch "[v2] media: soc-camera: OF cameras" in:
+>> https://patchwork.linuxtv.org/patch/22288/.
+>> And I saw Ben Dooks already sent out his patch to support soc-camera OF
+>> now (https://patchwork.linuxtv.org/patch/23304/) which is simpler than
+>> Bryan's.
+>>
+>>> "media: soc-camera: OF cameras"
+>>> was doing, but which you stopped developing after a discussion with Ben
+>>> (added to Cc).
+>> And yes, atmel-isi dt patch should not work without above SoC-Camera of
+>> support patch.
+>> But as the atmel-isi dt binding document and port node can be finalized.
+>> So I think this patch is ready for the mainline.
+>>
+>> BTW: I will test Ben's patch with atmel-isi.
+
