@@ -1,41 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58801 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:58676 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932289AbaGITTH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Jul 2014 15:19:07 -0400
-Message-ID: <53BD95A3.2050509@iki.fi>
-Date: Wed, 09 Jul 2014 22:18:59 +0300
+	id S1758618AbaGRPKN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 11:10:13 -0400
+Message-ID: <53C938D3.6020404@iki.fi>
+Date: Fri, 18 Jul 2014 18:10:11 +0300
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Andre Newman <linux-media@dinkum.org.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: PCTV T292e whole DVBT2 mux/Ultra HD performance question
-References: <35906397-E8F4-4229-966F-7ED578441C10@dinkum.org.uk>
-In-Reply-To: <35906397-E8F4-4229-966F-7ED578441C10@dinkum.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] airspy: AirSpy SDR driver
+References: <1405366031-31937-1-git-send-email-crope@iki.fi> <53C430AC.9030204@xs4all.nl> <53C435A9.8020004@iki.fi> <53C43705.8020207@xs4all.nl> <53C4938A.3000308@iki.fi> <53C4A51F.9000500@xs4all.nl> <53C866F2.9090005@iki.fi> <53C8AAB7.1080305@xs4all.nl> <53C935D9.50202@iki.fi> <53C936D0.40708@xs4all.nl>
+In-Reply-To: <53C936D0.40708@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka
 
 
-On 07/09/2014 04:14 PM, Andre Newman wrote:
-> I’m using a T290e for whole mux DVBT2 capture, using this to record the current BBC World Cup Ultra HD tests, works well. :-)
+On 07/18/2014 06:01 PM, Hans Verkuil wrote:
+> On 07/18/2014 04:57 PM, Antti Palosaari wrote:
+>>
+>>
+>> On 07/18/2014 08:03 AM, Hans Verkuil wrote:
+>>> On 07/18/2014 02:14 AM, Antti Palosaari wrote:
+>>>>
+>>>>
+>>>> On 07/15/2014 06:50 AM, Hans Verkuil wrote:
+>>>>> On 07/15/2014 04:35 AM, Antti Palosaari wrote:
+>>>>>> On 07/14/2014 11:01 PM, Hans Verkuil wrote:
+>>>>>>> On 07/14/2014 09:55 PM, Antti Palosaari wrote:
+>>>>>>>> I actually ran v4l2-compliance and there was problem with ADC band
+>>>>>>>> enumeration. v4l2-compliance didn't liked as ADC freq was just 20MHz,
+>>>>>>>> both upper and lower limit. Due to that I added even small hack to driver,
+>>>>>>>>
+>>>>>>>> +		.rangelow   = 20000000,
+>>>>>>>> +		.rangehigh  = 20000001, /* FIXME: make v4l2-compliance happy */
+>>>>>>>
+>>>>>>> Hmm, does the latest v4l2-compliance (direct from the git repo) still fail on
+>>>>>>> that? That shouldn't be a problem, and I don't see that here either if I try that
+>>>>>>> myself.
+>>>>>>>
+>>>>>>> If it still fails, can you show me the error message?
+>>>>>>
+>>>>>> [crope@localhost gr-analog]$ ls -l /usr/local/bin/v4l2-compliance
+>>>>>> -rwxr-xr-x. 1 root root 1497964 Jul 14 22:50 /usr/local/bin/v4l2-compliance
+>>>>>> [crope@localhost gr-analog]$ /usr/local/bin/v4l2-compliance -S
+>>>>>> /dev/swradio0 -s
+>>>>>> Driver Info:
+>>>>>> 	Driver name   : airspy
+>>>>>> 	Card type     : AirSpy SDR
+>>>>>> 	Bus info      : usb-0000:00:13.2-2
+>>>>>> 	Driver version: 3.15.0
+>>>>>> 	Capabilities  : 0x85110000
+>>>>>> 		SDR Capture
+>>>>>> 		Tuner
+>>>>>> 		Read/Write
+>>>>>> 		Streaming
+>>>>>> 		Device Capabilities
+>>>>>> 	Device Caps   : 0x05110000
+>>>>>> 		SDR Capture
+>>>>>> 		Tuner
+>>>>>> 		Read/Write
+>>>>>> 		Streaming
+>>>>>>
+>>>>>> Compliance test for device /dev/swradio0 (not using libv4l2):
+>>>>>>
+>>>>>> Required ioctls:
+>>>>>> 	test VIDIOC_QUERYCAP: OK
+>>>>>>
+>>>>>> Allow for multiple opens:
+>>>>>> 	test second sdr open: OK
+>>>>>> 	test VIDIOC_QUERYCAP: OK
+>>>>>> 	test VIDIOC_G/S_PRIORITY: OK
+>>>>>>
+>>>>>> Debug ioctls:
+>>>>>> 	test VIDIOC_DBG_G/S_REGISTER: OK
+>>>>>> 	test VIDIOC_LOG_STATUS: OK
+>>>>>>
+>>>>>> Input ioctls:
+>>>>>> 		fail: v4l2-test-input-output.cpp(107): rangelow >= rangehigh
+>>>>>> 		fail: v4l2-test-input-output.cpp(190): invalid tuner 0
+>>>>>> 	test VIDIOC_G/S_TUNER: FAIL
+>>>>>> 		fail: v4l2-test-input-output.cpp(290): could get frequency for invalid
+>>>>>
+>>>>> Try again, it should be fixed now.
+>>>>
+>>>> Old error has gone, but two new comes:
+>>>>
+>>>> Compliance test for device /dev/swradio0 (not using libv4l2):
+>>>>
+>>>> Required ioctls:
+>>>> 		fail: v4l2-compliance.cpp(354): !(caps & V4L2_CAP_EXT_PIX_FORMAT)
+>>>
+>>> That suggests you were not using the very latest media tree.
+>>>
+>>> But now you'll get a new error: !(dcaps & V4L2_CAP_EXT_PIX_FORMAT)
+>>>
+>>> That's because of a bug in the kernel that I mailed Laurent about.
+>>>
+>>> Perhaps I was a bit too hasty in adding that to v4l2-compliance :-)
+>>
+>> Yes, I am stuck on 3.15-rc6 media/fixes as Mauro did not apply patches
+>> needed from fixes to master. Also, master is about always unusable as it
+>> is very buggy rc1.
 >
-> It seems impossible to buy more T290e’s, everyone want to sell me a T292e, I understand there is a driver now, thanks Antti. I read on Antti’s blog that there is a limit on raw TS performance with the T292, that it didn’t work well with QAM256 because of this...
->
-> I am wondering if this is a hardware limit, or a performance problem that may have been resolved now the driver is a little tiny bit more mature?
->
-> I am very happy to get a T292e and make some tests, help debug if there is a hope that it can handle 40Mbps in hardware.If there is a hardware limit I’d rather not be stuck with a limited tuner!
->
-> The mux I need to record is QAM256 at ~40Mbps and the UHD video is ~36Mbps of this.
->
-> Otherwise what other DVBT2 tuners are there that can capture a raw QAM256 mux at 40Mbps?
+> FYI: master is now rc5.
 
-You simply confused two different devices. There is no such limit on 
-PCTV 292e as far as I know. It is another DVB-T2 device having RTL2832P 
-bridge having problem with stream bandwidth.
+But it still not contain some critical patches needed for si2168 / 
+si2157 drivers, which development is very active ATM. Those patches are 
+only media/fixes. Every-time I need switch new kernel I need compile 
+whole stuff which took hour or so and reboot machine. For example 
+yesterday I switched ~5 times, so it is not realistic.
 
 regards
 Antti
