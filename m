@@ -1,46 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51468 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752095AbaGKJgx (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1324 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750980AbaGRIPa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 05:36:53 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 02/32] [media] coda: fix readback of CODA_RET_DEC_SEQ_FRAME_NEED
-Date: Fri, 11 Jul 2014 11:36:13 +0200
-Message-Id: <1405071403-1859-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 18 Jul 2014 04:15:30 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6I8FRHG084381
+	for <linux-media@vger.kernel.org>; Fri, 18 Jul 2014 10:15:29 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [10.54.92.107] (173-38-208-169.cisco.com [173.38.208.169])
+	by tschai.lan (Postfix) with ESMTPSA id B80CF2A1FD1
+	for <linux-media@vger.kernel.org>; Fri, 18 Jul 2014 10:15:26 +0200 (CEST)
+Message-ID: <53C8D799.2040102@xs4all.nl>
+Date: Fri, 18 Jul 2014 10:15:21 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: linux-media <linux-media@vger.kernel.org>
+Subject: [PATCH for v3.17] v4l2-ctrls: fix corner case in round-to-range code
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Previously we'd add one to this value, allocating one additional, superfluous
-internal buffer.
+If you have a maximum that is at the limit of what the type supports,
+and the step is > 1, then you can get wrap-around errors since the
+code assumes that the maximum that the type supports is
+ctrl->maximum + ctrl->step / 2.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+In practice this is always fine, but in artificially crafted ranges
+you will hit this bug. Since this is core code it should just work.
+
+This bug has always been there but since it doesn't cause problems in
+practice it was never noticed.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/coda.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index a7c5ac5..1770fc2 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1889,7 +1889,7 @@ static int coda_start_decoding(struct coda_ctx *ctx)
- 	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "%s instance %d now: %dx%d\n",
- 		 __func__, ctx->idx, width, height);
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 8552c83..849bee0 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1295,11 +1295,19 @@ static void std_log(const struct v4l2_ctrl *ctrl)
+ 	}
+ }
  
--	ctx->num_internal_frames = coda_read(dev, CODA_RET_DEC_SEQ_FRAME_NEED) + 1;
-+	ctx->num_internal_frames = coda_read(dev, CODA_RET_DEC_SEQ_FRAME_NEED);
- 	if (ctx->num_internal_frames > CODA_MAX_FRAMEBUFFERS) {
- 		v4l2_err(&dev->v4l2_dev,
- 			 "not enough framebuffers to decode (%d < %d)\n",
+-/* Round towards the closest legal value */
++/*
++ * Round towards the closest legal value. Be careful when we are
++ * close to the maximum range of the control type to prevent
++ * wrap-arounds.
++ */
+ #define ROUND_TO_RANGE(val, offset_type, ctrl)			\
+ ({								\
+ 	offset_type offset;					\
+-	val += (ctrl)->step / 2;				\
++	if ((ctrl)->maximum >= 0 &&				\
++	    val >= (ctrl)->maximum - ((ctrl)->step / 2))	\
++		val = (ctrl)->maximum;				\
++	else							\
++		val += (ctrl)->step / 2;			\
+ 	val = clamp_t(typeof(val), val,				\
+ 		      (ctrl)->minimum, (ctrl)->maximum);	\
+ 	offset = (val) - (ctrl)->minimum;			\
+@@ -1325,7 +1333,10 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		 * the u64 divide that needs special care.
+ 		 */
+ 		val = ptr.p_s64[idx];
+-		val += ctrl->step / 2;
++		if (ctrl->maximum >= 0 && val >= ctrl->maximum - ctrl->step / 2)
++			val = ctrl->maximum;
++		else
++			val += ctrl->step / 2;
+ 		val = clamp_t(s64, val, ctrl->minimum, ctrl->maximum);
+ 		offset = val - ctrl->minimum;
+ 		do_div(offset, ctrl->step);
 -- 
 2.0.0
 
