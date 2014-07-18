@@ -1,81 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f170.google.com ([209.85.223.170]:62498 "EHLO
-	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751506AbaG0JhU (ORCPT
+Received: from smtpq5.tb.mail.iss.as9143.net ([212.54.42.168]:45089 "EHLO
+	smtpq5.tb.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S934407AbaGROb1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jul 2014 05:37:20 -0400
-Received: by mail-ie0-f170.google.com with SMTP id rl12so5463635iec.29
-        for <linux-media@vger.kernel.org>; Sun, 27 Jul 2014 02:37:19 -0700 (PDT)
+	Fri, 18 Jul 2014 10:31:27 -0400
+Message-ID: <53C92FB6.40300@grumpydevil.homelinux.org>
+Date: Fri, 18 Jul 2014 16:31:18 +0200
+From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
 MIME-Version: 1.0
-In-Reply-To: <53D4BFC6.5020403@xs4all.nl>
-References: <CA+NJmkcTpf5Xb4Z8gJFriB58Jtf85ay_jnTS-fM34gA1PBf60g@mail.gmail.com>
- <53D4B013.2060404@xs4all.nl> <CA+NJmkcFLn5kVZe=4yUBcjAGp38-qAz_rx8eVapVnriANqZDNg@mail.gmail.com>
- <53D4B7B8.1040901@xs4all.nl> <CA+NJmkcnKxHWcPv-H9r=SQzOJD-DtnRc9voWz9a=BnsrgBv8kQ@mail.gmail.com>
- <53D4BFC6.5020403@xs4all.nl>
-From: Isaac Nickaein <nickaein.i@gmail.com>
-Date: Sun, 27 Jul 2014 14:06:59 +0430
-Message-ID: <CA+NJmkc6o8PwZRDKwBQmS3jR2nPHJtL8a6X9EH7Ua-a5Nf9sww@mail.gmail.com>
-Subject: Re: "error: redefinition of 'altera_init'" during build on Kernel 3.0.36+
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: =?ISO-8859-1?Q?Ren=E9?= <poisson.rene@neuf.fr>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: ddbridge -- kernel 3.15.6
+References: <53C920FB.1040501@grumpydevil.homelinux.org> <6E594BCC1018445BA338AAABB100405C@ci5fish>
+In-Reply-To: <6E594BCC1018445BA338AAABB100405C@ci5fish>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Rene,
 
-I understand. I will get in touch with the maintainer to see how we
-can fix this issue.
+DVB-S2
 
-Thank you so much for the help,
-Isaac
+I would have expected the relevant modules to be loaded after detecting 
+the bridge, and after ddbridge detecting the relevant HW behind. This is 
+apparently not happening, so how to trigger?
+
+Cheers
 
 
-On Sun, Jul 27, 2014 at 1:30 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 07/27/2014 10:42 AM, Isaac Nickaein wrote:
->> On Sun, Jul 27, 2014 at 12:56 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> No. Whoever maintains that repository applied v4l code from some newer
->>> kernel without apparently ever testing it. This is really the responsibility
->>> of maintainer of that repository and is out of our control.
->>>
->>> You need to address your questions to that repository maintainer, we can't
->>> help, I'm afraid.
->>>
+Rudy
+
+On 18-07-14 16:27, René wrote:
+> Hi Rudy,
+>
+> ddbridge is a ... bridge. So it is an interface between PCIe and a 
+> "DVB" device. So missing info is what frontend and demux (at least) 
+> devices type. Is it DVB-C(2)/T(2)/S(2) ?
+>
+> René
+>
+> --------------------------------------------------
+> From: "Rudy Zijlstra" <rudy@grumpydevil.homelinux.org>
+> Sent: Friday, July 18, 2014 3:28 PM
+> To: "Linux Media Mailing List" <linux-media@vger.kernel.org>
+> Subject: ddbridge -- kernel 3.15.6
+>
+>> Dears,
 >>
->> Ah I see. I have some issues with v4l2 on this kernel version and I am
->> trying to upgrade v4l2 to fix that.
+>> I have a ddbridge device:
 >>
->> One last question: Can I remove current v4l codes in kernel, replace
->> them with the V4L2 backport (provided by linuxtv), fix the
->> compatibility issues (hopefully) to get a kernel source with newer
->> v4l2 code?
+>> 03:00.0 Multimedia controller: Device dd01:0003
+>>         Subsystem: Device dd01:0021
+>>         Flags: fast devsel, IRQ 17
+>>         Memory at f0900000 (64-bit, non-prefetchable) [size=64K]
+>>         Capabilities: [50] Power Management version 3
+>>         Capabilities: [90] Express Endpoint, MSI 00
+>>         Capabilities: [100] Vendor Specific Information: ID=0000 
+>> Rev=0 Len=00c <?>
+>>         Kernel driver in use: DDBridge
 >>
->> I am not sure if the v4l2 backport is the same type of code that is
->> present in kernel source at "drivers/media/video",
->> "drivers/media/dvb", etc.
->
-> Yes, you can, but it isn't easy.
->
-> In this repo:
->
-> http://git.linuxtv.org/cgit.cgi/hverkuil/cisco_build.git/tree/?h=cobalt-mainline
->
-> there is a patch-kernel.sh script that can patch a vendor kernel with the v4l
-> code from a fairly recent stable kernel (I think it is good for 3.14, I don't
-> know if it can backport from a 3.15 kernel).
->
-> You need to set the target, orig_source and source paths correctly and then
-> run it.
->
-> You end up with a huge patch that you can apply to your kernel.
->
-> It's probably still not enough since you may have to add compat code from
-> v4l/compat.h to the drivers you want to compile in. It depends on what
-> drivers you want to compile how much work that is.
->
-> I'm not going to give support for this, so you're on your own. The repo
-> owner really should fix his tree.
->
-> Regards,
->
->         Hans
+>> The kernel recognises as seen in dmesg:
+>>
+>> [    1.811626] Digital Devices PCIE bridge driver, Copyright (C) 
+>> 2010-11 Digital Devices GmbH
+>> [    1.813996] pci 0000:01:19.0: enabling device (0000 -> 0002)
+>> [    1.816033] DDBridge driver detected: Digital Devices PCIe bridge
+>> [    1.816273] HW 0001000d FW 00010004
+>>
+>> But /dev/dvb remains empty, only /dev/ddbridge exists.
+>>
+>> Any pointers are much appreciated
+>>
+>> Cheers
+>>
+>>
+>> Rudy
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at http://vger.kernel.org/majordomo-info.html 
+
