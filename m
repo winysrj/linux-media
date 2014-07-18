@@ -1,58 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:61852 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760469AbaGYOV2 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:35233 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761409AbaGRKXc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jul 2014 10:21:28 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+	Fri, 18 Jul 2014 06:23:32 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org, j.anaszewski@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v3 6/9] s5p-jpeg: Assure proper crop rectangle initialization
-Date: Fri, 25 Jul 2014 16:20:50 +0200
-Message-id: <1406298053-30184-7-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1406298053-30184-1-git-send-email-s.nawrocki@samsung.com>
-References: <1406298053-30184-1-git-send-email-s.nawrocki@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 01/11] [media] coda: fix CODA7541 hardware reset
+Date: Fri, 18 Jul 2014 12:22:35 +0200
+Message-Id: <1405678965-10473-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
+References: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Do not try to read the CODA960 GDI status register on CODA7541.
 
-Assure proper crop_rect initialization in case
-the user space doesn't call S_SELECTION ioctl.
-
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/media/platform/coda.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index d11357f..3e3d94d 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1367,6 +1367,21 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
- 					V4L2_CID_JPEG_CHROMA_SUBSAMPLING);
- 		if (ctrl_subs)
- 			v4l2_ctrl_s_ctrl(ctrl_subs, q_data->fmt->subsampling);
-+		ct->crop_altered = false;
-+	}
-+
-+	/*
-+	 * For decoding init crop_rect with capture buffer dimmensions which
-+	 * contain aligned dimensions of the input JPEG image and do it only
-+	 * if crop rectangle hasn't been altered by the user space e.g. with
-+	 * S_SELECTION ioctl. For encoding assign output buffer dimensions.
-+	 */
-+	if (!ct->crop_altered &&
-+	    ((ct->mode == S5P_JPEG_DECODE && f_type == FMT_TYPE_CAPTURE) ||
-+	     (ct->mode == S5P_JPEG_ENCODE && f_type == FMT_TYPE_OUTPUT))) {
-+		ct->crop_rect.width = pix->width;
-+		ct->crop_rect.height = pix->height;
-+	}
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 7e69eda..d5abb7c 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -350,19 +350,22 @@ static int coda_hw_reset(struct coda_ctx *ctx)
+ 
+ 	idx = coda_read(dev, CODA_REG_BIT_RUN_INDEX);
+ 
+-	timeout = jiffies + msecs_to_jiffies(100);
+-	coda_write(dev, 0x11, CODA9_GDI_BUS_CTRL);
+-	while (coda_read(dev, CODA9_GDI_BUS_STATUS) != 0x77) {
+-		if (time_after(jiffies, timeout))
+-			return -ETIME;
+-		cpu_relax();
++	if (dev->devtype->product == CODA_960) {
++		timeout = jiffies + msecs_to_jiffies(100);
++		coda_write(dev, 0x11, CODA9_GDI_BUS_CTRL);
++		while (coda_read(dev, CODA9_GDI_BUS_STATUS) != 0x77) {
++			if (time_after(jiffies, timeout))
++				return -ETIME;
++			cpu_relax();
++		}
  	}
-
- 	return 0;
---
-1.7.9.5
+ 
+ 	ret = reset_control_reset(dev->rstc);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	coda_write(dev, 0x00, CODA9_GDI_BUS_CTRL);
++	if (dev->devtype->product == CODA_960)
++		coda_write(dev, 0x00, CODA9_GDI_BUS_CTRL);
+ 	coda_write(dev, CODA_REG_BIT_BUSY_FLAG, CODA_REG_BIT_BUSY);
+ 	coda_write(dev, CODA_REG_RUN_ENABLE, CODA_REG_BIT_CODE_RUN);
+ 	ret = coda_wait_timeout(dev);
+-- 
+2.0.1
 
