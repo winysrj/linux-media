@@ -1,37 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1248 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751654AbaGSHSp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jul 2014 03:18:45 -0400
-Message-ID: <53CA1BCB.1020308@xs4all.nl>
-Date: Sat, 19 Jul 2014 09:18:35 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:48565 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933281AbaGRKBh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 06:01:37 -0400
+Message-ID: <53C8F07E.9080805@redhat.com>
+Date: Fri, 18 Jul 2014 12:01:34 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>,
+To: Hans Verkuil <hverkuil@xs4all.nl>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: libv4lconvert: fix RGB32 conversion
+Subject: Re: [PATCH] libv4lconvert: add support for new pixelformats
+References: <53C84DDE.4000701@xs4all.nl>
+In-Reply-To: <53C84DDE.4000701@xs4all.nl>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The RGB32 formats start with an alpha byte in memory. So before calling the
-v4lconvert_rgb32_to_rgb24 or v4lconvert_rgb24_to_yuv420 function skip that initial
-alpha byte so the src pointer is aligned with the first color component, since
-that is what those functions expect.
+Hi,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+On 07/18/2014 12:27 AM, Hans Verkuil wrote:
+> Support for alpha-channel aware pixelformats was added. Recognize those formats
+> in libv4lconvert.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-index cea65aa..e4aa54a 100644
---- a/lib/libv4lconvert/libv4lconvert.c
-+++ b/lib/libv4lconvert/libv4lconvert.c
-@@ -1132,6 +1132,7 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
- 			errno = EPIPE;
- 			result = -1;
- 		}
-+		src++;
- 		switch (dest_pix_fmt) {
- 		case V4L2_PIX_FMT_RGB24:
- 			v4lconvert_rgb32_to_rgb24(src, dest, width, height, 0);
+Looks good:
+
+Acked-by: Hans de Goede <hdegoede@redhat.com>
+
+Feel free to push.
+
+Regards,
+
+Hans
+
+> 
+> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+> index 7ee7c19..cea65aa 100644
+> --- a/lib/libv4lconvert/libv4lconvert.c
+> +++ b/lib/libv4lconvert/libv4lconvert.c
+> @@ -86,6 +86,10 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+>  	{ V4L2_PIX_FMT_RGB565,		16,	 4,	 6,	0 },
+>  	{ V4L2_PIX_FMT_BGR32,		32,	 4,	 6,	0 },
+>  	{ V4L2_PIX_FMT_RGB32,		32,	 4,	 6,	0 },
+> +	{ V4L2_PIX_FMT_XBGR32,		32,	 4,	 6,	0 },
+> +	{ V4L2_PIX_FMT_XRGB32,		32,	 4,	 6,	0 },
+> +	{ V4L2_PIX_FMT_ABGR32,		32,	 4,	 6,	0 },
+> +	{ V4L2_PIX_FMT_ARGB32,		32,	 4,	 6,	0 },
+>  	/* yuv 4:2:2 formats */
+>  	{ V4L2_PIX_FMT_YUYV,		16,	 5,	 4,	0 },
+>  	{ V4L2_PIX_FMT_YVYU,		16,	 5,	 4,	0 },
+> @@ -1121,6 +1125,8 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+>  		break;
+>  
+>  	case V4L2_PIX_FMT_RGB32:
+> +	case V4L2_PIX_FMT_XRGB32:
+> +	case V4L2_PIX_FMT_ARGB32:
+>  		if (src_size < (width * height * 4)) {
+>  			V4LCONVERT_ERR("short rgb32 data frame\n");
+>  			errno = EPIPE;
+> @@ -1143,6 +1149,8 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+>  		break;
+>  
+>  	case V4L2_PIX_FMT_BGR32:
+> +	case V4L2_PIX_FMT_XBGR32:
+> +	case V4L2_PIX_FMT_ABGR32:
+>  		if (src_size < (width * height * 4)) {
+>  			V4LCONVERT_ERR("short bgr32 data frame\n");
+>  			errno = EPIPE;
+> 
