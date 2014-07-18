@@ -1,44 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4554 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750760AbaGTUQq (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3955 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750883AbaGRFEF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Jul 2014 16:16:46 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6KKGgrl041741
-	for <linux-media@vger.kernel.org>; Sun, 20 Jul 2014 22:16:44 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 5AAC82A0463
-	for <linux-media@vger.kernel.org>; Sun, 20 Jul 2014 22:16:41 +0200 (CEST)
-Message-ID: <53CC23A9.4020704@xs4all.nl>
-Date: Sun, 20 Jul 2014 22:16:41 +0200
+	Fri, 18 Jul 2014 01:04:05 -0400
+Message-ID: <53C8AAB7.1080305@xs4all.nl>
+Date: Fri, 18 Jul 2014 07:03:51 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] DocBook media typo
-Content-Type: text/plain; charset=utf-8
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] airspy: AirSpy SDR driver
+References: <1405366031-31937-1-git-send-email-crope@iki.fi> <53C430AC.9030204@xs4all.nl> <53C435A9.8020004@iki.fi> <53C43705.8020207@xs4all.nl> <53C4938A.3000308@iki.fi> <53C4A51F.9000500@xs4all.nl> <53C866F2.9090005@iki.fi>
+In-Reply-To: <53C866F2.9090005@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2_CID_BASE_LASTP1 should be V4L2_CID_LASTP1. This has probably been wrong
-since the earliest days of this documentation until I did a copy-and-paste
-and found out that V4L2_CID_BASE_LASTP1 doesn't actually exist :-)
+On 07/18/2014 02:14 AM, Antti Palosaari wrote:
+> 
+> 
+> On 07/15/2014 06:50 AM, Hans Verkuil wrote:
+>> On 07/15/2014 04:35 AM, Antti Palosaari wrote:
+>>> On 07/14/2014 11:01 PM, Hans Verkuil wrote:
+>>>> On 07/14/2014 09:55 PM, Antti Palosaari wrote:
+>>>>> I actually ran v4l2-compliance and there was problem with ADC band
+>>>>> enumeration. v4l2-compliance didn't liked as ADC freq was just 20MHz,
+>>>>> both upper and lower limit. Due to that I added even small hack to driver,
+>>>>>
+>>>>> +		.rangelow   = 20000000,
+>>>>> +		.rangehigh  = 20000001, /* FIXME: make v4l2-compliance happy */
+>>>>
+>>>> Hmm, does the latest v4l2-compliance (direct from the git repo) still fail on
+>>>> that? That shouldn't be a problem, and I don't see that here either if I try that
+>>>> myself.
+>>>>
+>>>> If it still fails, can you show me the error message?
+>>>
+>>> [crope@localhost gr-analog]$ ls -l /usr/local/bin/v4l2-compliance
+>>> -rwxr-xr-x. 1 root root 1497964 Jul 14 22:50 /usr/local/bin/v4l2-compliance
+>>> [crope@localhost gr-analog]$ /usr/local/bin/v4l2-compliance -S
+>>> /dev/swradio0 -s
+>>> Driver Info:
+>>> 	Driver name   : airspy
+>>> 	Card type     : AirSpy SDR
+>>> 	Bus info      : usb-0000:00:13.2-2
+>>> 	Driver version: 3.15.0
+>>> 	Capabilities  : 0x85110000
+>>> 		SDR Capture
+>>> 		Tuner
+>>> 		Read/Write
+>>> 		Streaming
+>>> 		Device Capabilities
+>>> 	Device Caps   : 0x05110000
+>>> 		SDR Capture
+>>> 		Tuner
+>>> 		Read/Write
+>>> 		Streaming
+>>>
+>>> Compliance test for device /dev/swradio0 (not using libv4l2):
+>>>
+>>> Required ioctls:
+>>> 	test VIDIOC_QUERYCAP: OK
+>>>
+>>> Allow for multiple opens:
+>>> 	test second sdr open: OK
+>>> 	test VIDIOC_QUERYCAP: OK
+>>> 	test VIDIOC_G/S_PRIORITY: OK
+>>>
+>>> Debug ioctls:
+>>> 	test VIDIOC_DBG_G/S_REGISTER: OK
+>>> 	test VIDIOC_LOG_STATUS: OK
+>>>
+>>> Input ioctls:
+>>> 		fail: v4l2-test-input-output.cpp(107): rangelow >= rangehigh
+>>> 		fail: v4l2-test-input-output.cpp(190): invalid tuner 0
+>>> 	test VIDIOC_G/S_TUNER: FAIL
+>>> 		fail: v4l2-test-input-output.cpp(290): could get frequency for invalid
+>>
+>> Try again, it should be fixed now.
+> 
+> Old error has gone, but two new comes:
+> 
+> Compliance test for device /dev/swradio0 (not using libv4l2):
+> 
+> Required ioctls:
+> 		fail: v4l2-compliance.cpp(354): !(caps & V4L2_CAP_EXT_PIX_FORMAT)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+That suggests you were not using the very latest media tree.
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-index 62163d9..2bd98fd 100644
---- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-@@ -76,7 +76,7 @@ structure. The driver fills the rest of the structure or returns an
- <constant>VIDIOC_QUERYCTRL</constant> with successive
- <structfield>id</structfield> values starting from
- <constant>V4L2_CID_BASE</constant> up to and exclusive
--<constant>V4L2_CID_BASE_LASTP1</constant>. Drivers may return
-+<constant>V4L2_CID_LASTP1</constant>. Drivers may return
- <errorcode>EINVAL</errorcode> if a control in this range is not
- supported. Further applications can enumerate private controls, which
- are not defined in this specification, by starting at
+But now you'll get a new error: !(dcaps & V4L2_CAP_EXT_PIX_FORMAT)
+
+That's because of a bug in the kernel that I mailed Laurent about.
+
+Perhaps I was a bit too hasty in adding that to v4l2-compliance :-)
+
+Regards,
+
+	Hans
+
+> 	test VIDIOC_QUERYCAP: FAIL
+> 
+> Allow for multiple opens:
+> 	test second sdr open: OK
+> 		fail: v4l2-compliance.cpp(354): !(caps & V4L2_CAP_EXT_PIX_FORMAT)
+> 	test VIDIOC_QUERYCAP: FAIL
+> 	test VIDIOC_G/S_PRIORITY: OK
+> 
+> regards
+> Antti
+> 
+
