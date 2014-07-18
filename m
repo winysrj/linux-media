@@ -1,39 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57204 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758212AbaGRBFW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 21:05:22 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 1/4] airspy: remove v4l2-compliance workaround
-Date: Fri, 18 Jul 2014 04:05:10 +0300
-Message-Id: <1405645513-25616-1-git-send-email-crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43275 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755391AbaGRMWv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 08:22:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [linuxtv-media:master 447/499] drivers/media/common/saa7146/saa7146_fops.c:536:13: sparse: incorrect type in assignment (different base types)
+Date: Fri, 18 Jul 2014 14:22:59 +0200
+Message-ID: <4422409.ePkxGiM47W@avalon>
+In-Reply-To: <53C90BED.4040805@xs4all.nl>
+References: <53c862c4.axXMxgoD8CYYkiCj%fengguang.wu@intel.com> <2344820.NCMmLgcQJ6@avalon> <53C90BED.4040805@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2-compliance is now happy with frequency ranges where both lower
-and upper limit is same.
+On Friday 18 July 2014 13:58:37 Hans Verkuil wrote:
+> On 07/18/14 13:53, Laurent Pinchart wrote:
+> > On Friday 18 July 2014 07:56:52 kbuild test robot wrote:
+> >> tree:   git://linuxtv.org/media_tree.git master
+> >> head:   0ca1ba2aac5f6b26672099b13040c5b40db93486
+> >> commit: d52e23813672c3c72f92e7b39c7408d4b9a40a96 [447/499] [media] v4l:
+> >> Support extending the v4l2_pix_format structure reproduce: make C=1
+> >> CF=-D__CHECK_ENDIAN__
+> >> 
+> >> 
+> >> sparse warnings: (new ones prefixed by >>)
+> >> 
+> >>>> drivers/media/common/saa7146/saa7146_fops.c:536:13: sparse: incorrect
+> >>>> type in assignment (different base types)
+> >>>> 
+> >>    drivers/media/common/saa7146/saa7146_fops.c:536:13:    expected struct
+> >> 
+> >> v4l2_pix_format *fmt drivers/media/common/saa7146/saa7146_fops.c:536:13:
+> >> got struct <noident> *<noident>
+> >> drivers/media/common/saa7146/saa7146_fops.c: In function
+> >> 'saa7146_vv_init':
+> >> drivers/media/common/saa7146/saa7146_fops.c:536:6: warning: assignment
+> >> from
+> >> incompatible pointer type [enabled by default] fmt = &vv->ov_fb.fmt;
+> >> 
+> >>          ^
+> > 
+> > I'll send a patch to fix that.
+> 
+> I posted a fix for that already:
+> 
+> [PATCH for v3.17] saa7146: fix compile warning
+> 
+> Part of pull request https://patchwork.linuxtv.org/patch/24885/
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/airspy/airspy.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thank you. For what it's worth,
 
-diff --git a/drivers/staging/media/airspy/airspy.c b/drivers/staging/media/airspy/airspy.c
-index daecd91..5b3310f 100644
---- a/drivers/staging/media/airspy/airspy.c
-+++ b/drivers/staging/media/airspy/airspy.c
-@@ -62,7 +62,7 @@ static const struct v4l2_frequency_band bands[] = {
- 		.index = 0,
- 		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
- 		.rangelow   = 20000000,
--		.rangehigh  = 20000001, /* FIXME: make v4l2-compliance happy */
-+		.rangehigh  = 20000000,
- 	},
- };
- 
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
 -- 
-1.9.3
+Regards,
+
+Laurent Pinchart
 
