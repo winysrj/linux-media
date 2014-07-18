@@ -1,183 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51482 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752685AbaGKJgz (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:8475 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761312AbaGRLXp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jul 2014 05:36:55 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 08/32] [media] coda: add selection API support for h.264 decoder
-Date: Fri, 11 Jul 2014 11:36:19 +0200
-Message-Id: <1405071403-1859-9-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405071403-1859-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 18 Jul 2014 07:23:45 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N8W00JG8NND4320@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 18 Jul 2014 12:23:37 +0100 (BST)
+Message-id: <53C903C0.6080106@samsung.com>
+Date: Fri, 18 Jul 2014 13:23:44 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Pawel Osciak <pawel@osciak.com>,
+	Nikhil Devshatwar <nikhil.nd@ti.com>
+Subject: Re: [PATCH] vb2: fix bytesused == 0 handling
+References: <53C79D04.6040205@xs4all.nl>
+In-reply-to: <53C79D04.6040205@xs4all.nl>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The h.264 decoder produces capture frames that are a multiple of the macroblock
-size (16 pixels). To inform userspace about invalid pixel data at the edges,
-use the active and padded composing rectangles on the capture queue.
-The cropping information is obtained from the h.264 sequence parameter set.
+Hello,
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 94 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 94 insertions(+)
+On 2014-07-17 11:53, Hans Verkuil wrote:
+> The original report from Nikhil was that if data_offset > 0 and bytesused == 0,
+> then the check in __verify_length() would fail, even though the spec says that
+> if bytes_used == 0, then it will be replaced by the actual length of the
+> buffer.
+>
+> After digging into it a bit more I realized that there were several other
+> things wrong:
+>
+> - in __verify_length() it would use the application-provided length value
+>    for USERPTR and the vb2 core length for other memory models, but it
+>    should have used the application-provided length as well for DMABUF.
+>
+> - in __fill_vb2_buffer() on the other hand it would replace bytesused == 0
+>    by the application-provided length, even for MMAP buffers where the
+>    length is determined by the vb2 core.
+>
+> - in __fill_vb2_buffer() it tries to figure out if all the planes have
+>    bytesused == 0 before it will decide to replace bytesused by length.
+>    However, the spec makes no such provision, and it makes for convoluted
+>    code. So just replace any bytesused == 0 by the proper length.
+>    The idea behind this was that you could use bytesused to signal empty
+>    planes, something that is currently not supported. But that is better
+>    done in the future by using one of the reserved fields in strucy v4l2_plane.
+>
+> This patch fixes all these issues.
+>
+> Regards,
+>
+> 	Hans
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Reported-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+> Cc: Nikhil Devshatwar <nikhil.nd@ti.com>
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 59f16ac..204abb7 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -119,6 +119,7 @@ struct coda_q_data {
- 	unsigned int		height;
- 	unsigned int		sizeimage;
- 	unsigned int		fourcc;
-+	struct v4l2_rect	rect;
- };
- 
- struct coda_aux_buf {
-@@ -735,6 +736,10 @@ static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
- 	q_data->width = f->fmt.pix.width;
- 	q_data->height = f->fmt.pix.height;
- 	q_data->sizeimage = f->fmt.pix.sizeimage;
-+	q_data->rect.left = 0;
-+	q_data->rect.top = 0;
-+	q_data->rect.width = f->fmt.pix.width;
-+	q_data->rect.height = f->fmt.pix.height;
- 
- 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
- 		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
-@@ -871,6 +876,50 @@ static int coda_streamoff(struct file *file, void *priv,
- 	return ret;
- }
- 
-+static int coda_g_selection(struct file *file, void *fh,
-+			    struct v4l2_selection *s)
-+{
-+	struct coda_ctx *ctx = fh_to_ctx(fh);
-+	struct coda_q_data *q_data;
-+	struct v4l2_rect r, *rsel;
-+
-+	q_data = get_q_data(ctx, s->type);
-+	if (!q_data)
-+		return -EINVAL;
-+
-+	r.left = 0;
-+	r.top = 0;
-+	r.width = q_data->width;
-+	r.height = q_data->height;
-+	rsel = &q_data->rect;
-+
-+	switch (s->target) {
-+	case V4L2_SEL_TGT_CROP_DEFAULT:
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+		rsel = &r;
-+		/* fallthrough */
-+	case V4L2_SEL_TGT_CROP:
-+		if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+			return -EINVAL;
-+		break;
-+	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-+	case V4L2_SEL_TGT_COMPOSE_PADDED:
-+		rsel = &r;
-+		/* fallthrough */
-+	case V4L2_SEL_TGT_COMPOSE:
-+	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-+		if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+			return -EINVAL;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	s->r = *rsel;
-+
-+	return 0;
-+}
-+
- static int coda_try_decoder_cmd(struct file *file, void *fh,
- 				struct v4l2_decoder_cmd *dc)
- {
-@@ -949,6 +998,8 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
- 	.vidioc_streamon	= coda_streamon,
- 	.vidioc_streamoff	= coda_streamoff,
- 
-+	.vidioc_g_selection	= coda_g_selection,
-+
- 	.vidioc_try_decoder_cmd	= coda_try_decoder_cmd,
- 	.vidioc_decoder_cmd	= coda_decoder_cmd,
- 
-@@ -1504,6 +1555,10 @@ static void set_default_params(struct coda_ctx *ctx)
- 	ctx->q_data[V4L2_M2M_DST].width = max_w;
- 	ctx->q_data[V4L2_M2M_DST].height = max_h;
- 	ctx->q_data[V4L2_M2M_DST].sizeimage = CODA_MAX_FRAME_SIZE;
-+	ctx->q_data[V4L2_M2M_SRC].rect.width = max_w;
-+	ctx->q_data[V4L2_M2M_SRC].rect.height = max_h;
-+	ctx->q_data[V4L2_M2M_DST].rect.width = max_w;
-+	ctx->q_data[V4L2_M2M_DST].rect.height = max_h;
- 
- 	if (ctx->dev->devtype->product == CODA_960)
- 		coda_set_tiled_map_type(ctx, GDI_LINEAR_FRAME_MAP);
-@@ -2031,6 +2086,21 @@ static int coda_start_decoding(struct coda_ctx *ctx)
- 		return -EINVAL;
- 	}
- 
-+	if (src_fourcc == V4L2_PIX_FMT_H264) {
-+		u32 left_right;
-+		u32 top_bottom;
-+
-+		left_right = coda_read(dev, CODA_RET_DEC_SEQ_CROP_LEFT_RIGHT);
-+		top_bottom = coda_read(dev, CODA_RET_DEC_SEQ_CROP_TOP_BOTTOM);
-+
-+		q_data_dst->rect.left = (left_right >> 10) & 0x3ff;
-+		q_data_dst->rect.top = (top_bottom >> 10) & 0x3ff;
-+		q_data_dst->rect.width = width - q_data_dst->rect.left -
-+					 (left_right & 0x3ff);
-+		q_data_dst->rect.height = height - q_data_dst->rect.top -
-+					  (top_bottom & 0x3ff);
-+	}
-+
- 	ret = coda_alloc_framebuffers(ctx, q_data_dst, src_fourcc);
- 	if (ret < 0)
- 		return ret;
-@@ -2940,6 +3010,30 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 
- 	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
- 
-+	/* frame crop information */
-+	if (src_fourcc == V4L2_PIX_FMT_H264) {
-+		u32 left_right;
-+		u32 top_bottom;
-+
-+		left_right = coda_read(dev, CODA_RET_DEC_PIC_CROP_LEFT_RIGHT);
-+		top_bottom = coda_read(dev, CODA_RET_DEC_PIC_CROP_TOP_BOTTOM);
-+
-+		if (left_right == 0xffffffff && top_bottom == 0xffffffff) {
-+			/* Keep current crop information */
-+		} else {
-+			struct v4l2_rect *rect = &q_data_dst->rect;
-+
-+			rect->left = left_right >> 16 & 0xffff;
-+			rect->top = top_bottom >> 16 & 0xffff;
-+			rect->width = width - rect->left -
-+				      (left_right & 0xffff);
-+			rect->height = height - rect->top -
-+				       (top_bottom & 0xffff);
-+		}
-+	} else {
-+		/* no cropping */
-+	}
-+
- 	val = coda_read(dev, CODA_RET_DEC_PIC_ERR_MB);
- 	if (val > 0)
- 		v4l2_err(&dev->v4l2_dev,
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+
+> ---
+>   drivers/media/v4l2-core/videobuf2-core.c | 78 ++++++++++++++++----------------
+>   1 file changed, 38 insertions(+), 40 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 7c4489c..f255c14 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -576,6 +576,7 @@ static int __verify_planes_array(struct vb2_buffer *vb, const struct v4l2_buffer
+>   static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+>   {
+>   	unsigned int length;
+> +	unsigned int bytesused;
+>   	unsigned int plane;
+>   
+>   	if (!V4L2_TYPE_IS_OUTPUT(b->type))
+> @@ -583,21 +584,24 @@ static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+>   
+>   	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
+>   		for (plane = 0; plane < vb->num_planes; ++plane) {
+> -			length = (b->memory == V4L2_MEMORY_USERPTR)
+> +			length = (b->memory == V4L2_MEMORY_USERPTR ||
+> +				  b->memory == V4L2_MEMORY_DMABUF)
+>   			       ? b->m.planes[plane].length
+>   			       : vb->v4l2_planes[plane].length;
+> +			bytesused = b->m.planes[plane].bytesused
+> +				  ? b->m.planes[plane].bytesused : length;
+>   
+>   			if (b->m.planes[plane].bytesused > length)
+>   				return -EINVAL;
+>   
+>   			if (b->m.planes[plane].data_offset > 0 &&
+> -			    b->m.planes[plane].data_offset >=
+> -			    b->m.planes[plane].bytesused)
+> +			    b->m.planes[plane].data_offset >= bytesused)
+>   				return -EINVAL;
+>   		}
+>   	} else {
+>   		length = (b->memory == V4L2_MEMORY_USERPTR)
+>   		       ? b->length : vb->v4l2_planes[0].length;
+> +		bytesused = b->bytesused ? b->bytesused : length;
+>   
+>   		if (b->bytesused > length)
+>   			return -EINVAL;
+> @@ -1234,35 +1238,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>   	unsigned int plane;
+>   
+>   	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
+> -		/* Fill in driver-provided information for OUTPUT types */
+> -		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+> -			bool bytesused_is_used;
+> -
+> -			/* Check if bytesused == 0 for all planes */
+> -			for (plane = 0; plane < vb->num_planes; ++plane)
+> -				if (b->m.planes[plane].bytesused)
+> -					break;
+> -			bytesused_is_used = plane < vb->num_planes;
+> -
+> -			/*
+> -			 * Will have to go up to b->length when API starts
+> -			 * accepting variable number of planes.
+> -			 *
+> -			 * If bytesused_is_used is false, then fall back to the
+> -			 * full buffer size. In that case userspace clearly
+> -			 * never bothered to set it and it's a safe assumption
+> -			 * that they really meant to use the full plane sizes.
+> -			 */
+> -			for (plane = 0; plane < vb->num_planes; ++plane) {
+> -				struct v4l2_plane *pdst = &v4l2_planes[plane];
+> -				struct v4l2_plane *psrc = &b->m.planes[plane];
+> -
+> -				pdst->bytesused = bytesused_is_used ?
+> -					psrc->bytesused : psrc->length;
+> -				pdst->data_offset = psrc->data_offset;
+> -			}
+> -		}
+> -
+>   		if (b->memory == V4L2_MEMORY_USERPTR) {
+>   			for (plane = 0; plane < vb->num_planes; ++plane) {
+>   				v4l2_planes[plane].m.userptr =
+> @@ -1279,6 +1254,28 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>   					b->m.planes[plane].length;
+>   			}
+>   		}
+> +
+> +		/* Fill in driver-provided information for OUTPUT types */
+> +		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+> +			/*
+> +			 * Will have to go up to b->length when API starts
+> +			 * accepting variable number of planes.
+> +			 *
+> +			 * If bytesused == 0 for the output buffer, then fall
+> +			 * back to the full buffer size. In that case
+> +			 * userspace clearly never bothered to set it and
+> +			 * it's a safe assumption that they really meant to
+> +			 * use the full plane sizes.
+> +			 */
+> +			for (plane = 0; plane < vb->num_planes; ++plane) {
+> +				struct v4l2_plane *pdst = &v4l2_planes[plane];
+> +				struct v4l2_plane *psrc = &b->m.planes[plane];
+> +
+> +				pdst->bytesused = psrc->bytesused ?
+> +					psrc->bytesused : pdst->length;
+> +				pdst->data_offset = psrc->data_offset;
+> +			}
+> +		}
+>   	} else {
+>   		/*
+>   		 * Single-planar buffers do not use planes array,
+> @@ -1286,15 +1283,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>   		 * In videobuf we use our internal V4l2_planes struct for
+>   		 * single-planar buffers as well, for simplicity.
+>   		 *
+> -		 * If bytesused == 0, then fall back to the full buffer size
+> -		 * as that's a sensible default.
+> +		 * If bytesused == 0 for the output buffer, then fall back
+> +		 * to the full buffer size as that's a sensible default.
+>   		 */
+> -		if (V4L2_TYPE_IS_OUTPUT(b->type))
+> -			v4l2_planes[0].bytesused =
+> -				b->bytesused ? b->bytesused : b->length;
+> -		else
+> -			v4l2_planes[0].bytesused = 0;
+> -
+>   		if (b->memory == V4L2_MEMORY_USERPTR) {
+>   			v4l2_planes[0].m.userptr = b->m.userptr;
+>   			v4l2_planes[0].length = b->length;
+> @@ -1304,6 +1295,13 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>   			v4l2_planes[0].m.fd = b->m.fd;
+>   			v4l2_planes[0].length = b->length;
+>   		}
+> +
+> +		if (V4L2_TYPE_IS_OUTPUT(b->type))
+> +			v4l2_planes[0].bytesused = b->bytesused ?
+> +				b->bytesused : v4l2_planes[0].length;
+> +		else
+> +			v4l2_planes[0].bytesused = 0;
+> +
+>   	}
+>   
+>   	/* Zero flags that the vb2 core handles */
+
+Best regards
 -- 
-2.0.0
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
