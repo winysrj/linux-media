@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39279 "EHLO
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:35141 "EHLO
 	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934697AbaGQQF0 (ORCPT
+	with ESMTP id S1761559AbaGRKWw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 12:05:26 -0400
+	Fri, 18 Jul 2014 06:22:52 -0400
 From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
@@ -12,16 +12,17 @@ Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
 	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
 	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 04/11] [media] coda: remove VB2_USERPTR from queue io_modes
-Date: Thu, 17 Jul 2014 18:05:05 +0200
-Message-Id: <1405613112-22442-5-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de>
-References: <1405613112-22442-1-git-send-email-p.zabel@pengutronix.de>
+Subject: [PATCH v2 04/11] [media] coda: remove VB2_USERPTR from queue io_modes
+Date: Fri, 18 Jul 2014 12:22:38 +0200
+Message-Id: <1405678965-10473-5-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
+References: <1405678965-10473-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Disallow USERPTR buffers, videobuf2-dma-contig doesn't support them.
 
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
  drivers/media/platform/coda.c | 4 ++--
