@@ -1,58 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:54962 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751278AbaGFPrQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jul 2014 11:47:16 -0400
-Received: from [192.168.178.21] ([85.177.121.229]) by mail.gmx.com (mrgmx103)
- with ESMTPSA (Nemesis) id 0LjZn2-1WSXxy0Ujg-00beKL for
- <linux-media@vger.kernel.org>; Sun, 06 Jul 2014 17:47:14 +0200
-Message-ID: <53B96F81.2060203@gmx.de>
-Date: Sun, 06 Jul 2014 17:47:13 +0200
-From: =?UTF-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2733 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752943AbaGSNiM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Jul 2014 09:38:12 -0400
+Message-ID: <53CA74B8.2070506@xs4all.nl>
+Date: Sat, 19 Jul 2014 15:38:00 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: drivers/media/pci/saa7134/saa7134-input.c: is variable b really uninitialized
- in line 136 ?
+To: Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: libv4lconvert: fix RGB32 conversion
+References: <53CA1BCB.1020308@xs4all.nl> <53CA668A.8010401@redhat.com>
+In-Reply-To: <53CA668A.8010401@redhat.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-/me wonders if cppcheck is right here :
+On 07/19/2014 02:37 PM, Hans de Goede wrote:
+> Hi,
+> 
+> On 07/19/2014 09:18 AM, Hans Verkuil wrote:
+>> The RGB32 formats start with an alpha byte in memory. So before calling the
+>> v4lconvert_rgb32_to_rgb24 or v4lconvert_rgb24_to_yuv420 function skip that initial
+>> alpha byte so the src pointer is aligned with the first color component, since
+>> that is what those functions expect.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+>> index cea65aa..e4aa54a 100644
+>> --- a/lib/libv4lconvert/libv4lconvert.c
+>> +++ b/lib/libv4lconvert/libv4lconvert.c
+>> @@ -1132,6 +1132,7 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+>>   			errno = EPIPE;
+>>   			result = -1;
+>>   		}
+>> +		src++;
+> 
+> Hmm what about bgr versus rgb, since those are mirrored, maybe the location of
+> the alpha byte is mirrored to, and we should only do the src++ for one of them ?
 
-static int get_key_flydvb_trio(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-{
-        int gpio;
-        int attempt = 0;
-        unsigned char b;
+Uh, that's what I do. Only for the RGB32 pixformats does the src have to be
+increased by one. The BGR32 pixformats have the alpha at the end, so there is
+no need to increment src.
 
-        /* We need this to access GPI Used by the saa_readl macro. */
-        struct saa7134_dev *dev = ir->c->adapter->algo_data;
+Regards,
 
-        if (dev == NULL) {
-                i2cdprintk("get_key_flydvb_trio: "
-                           "ir->c->adapter->algo_data is NULL!\n");
-                return -EIO;
-        }
+	Hans
 
-        /* rising SAA7134_GPIGPRESCAN reads the status */
-        saa_clearb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
-        saa_setb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
-
-        gpio = saa_readl(SAA7134_GPIO_GPSTATUS0 >> 2);
-
-        if (0x40000 & ~gpio)
-                return 0; /* No button press */
-
-        /* No button press - only before first key pressed */
-        if (b == 0xFF)                                                           <--- Uninitialized variable: b
-                return 0;
-
-        /* poll IR chip */
-        /* weak up the IR chip */
-        b = 0;
-
- 
--- 
-Toralf
+> 
+>>   		switch (dest_pix_fmt) {
+>>   		case V4L2_PIX_FMT_RGB24:
+>>   			v4lconvert_rgb32_to_rgb24(src, dest, width, height, 0);
+>>
+> 
+> Regards,
+> 
+> Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
