@@ -1,56 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2077 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750865AbaG0SWU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jul 2014 14:22:20 -0400
-Message-ID: <53D54338.9090707@xs4all.nl>
-Date: Sun, 27 Jul 2014 20:21:44 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Nicolas Dufresne <nicolas.dufresne@collabora.co.uk>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Sascha Hauer <kernel@pengutronix.de>
-Subject: Re: [PATCH 2/3] [media] coda: fix coda_g_selection
-References: <69ab-53d52e80-1-565f8200@126846484>
-In-Reply-To: <69ab-53d52e80-1-565f8200@126846484>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Received: from mail.kapsi.fi ([217.30.184.167]:44529 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760102AbaGSCis (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 22:38:48 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Luis Alves <ljalvs@gmail.com>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 03/10] si2168: Fix i2c_add_mux_adapter return value
+Date: Sat, 19 Jul 2014 05:38:19 +0300
+Message-Id: <1405737506-13186-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1405737506-13186-1-git-send-email-crope@iki.fi>
+References: <1405737506-13186-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/27/2014 06:53 PM, Nicolas Dufresne wrote:
->  
-> Le Samedi 26 Juillet 2014 12:37 EDT, Philipp Zabel <philipp.zabel@gmail.com> a écrit: 
-> 
->> I have tried the GStreamer v4l2videodec element with the coda driver and
->> noticed that GStreamer calls VIDIOC_CROPCAP to obtain the pixel aspect
->> ratio. This always fails with -EINVAL because of this issue. Currently GStreamer
->> throws a warning if the return value is an error other than -ENOTTY.
-> 
-> But for now, this seems like a fair thing to do. We currently assume that if your
-> driver is not implementing CROPCAP, then pixel aspect ratio at output will be
-> unchanged at capture. If there is an error though, it's not good sign, and we report
-> it. If that is wrong, let us know why and how to detect your driver error isn't a an error.
+From: Luis Alves <ljalvs@gmail.com>
 
-If cropcap returns -EINVAL then that means that the current input or output does
-not support cropping (for input) or composing (for output). In that case the
-pixel aspect ratio is undefined and you have no way to get hold of that information,
-which is a bug in the V4L2 API.
+In case of failure the return value was always 0. Return proper
+error code (ENODEV) instead.
 
-In the case of an m2m device you can safely assume that whatever the pixel aspect
-is of the image you give to the m2m device, it will still be the same pixel
-aspect when you get it back. In fact, I would say that if an m2m device returns
-cropcap information, then the pixel aspect ratio information is most likely not
-applicable to the device and will typically be 1:1.
+Signed-off-by: Luis Alves <ljalvs@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/si2168.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Pixel aspect ratio is only relevant if the video comes in or goes out to a physical
-interface (sensor, video receiver/transmitter).
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 767dada..7659764 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -626,8 +626,10 @@ static int si2168_probe(struct i2c_client *client,
+ 	/* create mux i2c adapter for tuner */
+ 	s->adapter = i2c_add_mux_adapter(client->adapter, &client->dev, s,
+ 			0, 0, 0, si2168_select, si2168_deselect);
+-	if (s->adapter == NULL)
++	if (s->adapter == NULL) {
++		ret = -ENODEV;
+ 		goto err;
++	}
+ 
+ 	/* create dvb_frontend */
+ 	memcpy(&s->fe.ops, &si2168_ops, sizeof(struct dvb_frontend_ops));
+-- 
+1.9.3
 
-Regards,
-
-	Hans
