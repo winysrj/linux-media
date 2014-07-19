@@ -1,85 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:11426 "EHLO mga11.intel.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:41724 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757478AbaGWJXN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jul 2014 05:23:13 -0400
-Date: Wed, 23 Jul 2014 17:23:09 +0800
-From: Fengguang Wu <fengguang.wu@intel.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: Re: [linuxtv-media:master 378/499] ERROR: "__udivdi3"
- [drivers/media/dvb-frontends/rtl2832_sdr.ko] undefined!
-Message-ID: <20140723092309.GB4686@localhost>
-References: <53cf9a8e.E95mSmw/U7btaj7k%fengguang.wu@intel.com>
- <53CF597C.6050708@iki.fi>
- <20140723082119.GB315@localhost>
- <53CF7BF4.6060205@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <53CF7BF4.6060205@iki.fi>
+	id S1760171AbaGSCis (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 22:38:48 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>, Luis Alves <ljalvs@gmail.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 06/10] si2157: Use name si2157_ops instead of si2157_tuner_ops
+Date: Sat, 19 Jul 2014 05:38:22 +0300
+Message-Id: <1405737506-13186-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1405737506-13186-1-git-send-email-crope@iki.fi>
+References: <1405737506-13186-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 23, 2014 at 12:10:12PM +0300, Antti Palosaari wrote:
-> Moikka Fengguang
-> OK, lets Mauro decide how to handle that 32-bit(?) build error.
-> 
-> Could you change kbuild test robot clock to current time. It seems to live
-> still in future :)
+From: Olli Salonen <olli.salonen@iki.fi>
 
-It looks like a time zone issue. :)
+The struct prototype is defined at the beginning of the code as
+"si2157_ops" but the real struct is called "si2157_tuner_ops".
 
-Thanks,
-Fengguang
+This is causing the name to be empty on this info msg: si2157 16-0060:
+si2157: found a '' in cold state
 
-> On 07/23/2014 11:21 AM, Fengguang Wu wrote:
-> >Hi Antti,
-> >
-> >This is just a notification. It's up to human to decide the impact and
-> >whether or not to do the rebase (which very much depends on the
-> >publicness of the tree and git committer's work style).
-> >
-> >Thanks,
-> >Fengguang
-> >
-> >On Wed, Jul 23, 2014 at 09:43:08AM +0300, Antti Palosaari wrote:
-> >>Moikka!
-> >>
-> >>
-> >>On 07/23/2014 02:20 PM, kbuild test robot wrote:
-> >>>tree:   git://linuxtv.org/media_tree.git master
-> >>>head:   eb9da073bd002f2968c84129a5c49625911a3199
-> >>>commit: 77bbb2b049c1c3e935f5bec510bec337d94ae8f8 [378/499] rtl2832_sdr: move from staging to media
-> >>>config: i386-randconfig-ha2-0723 (attached as .config)
-> >>>
-> >>>Note: the linuxtv-media/master HEAD eb9da073bd002f2968c84129a5c49625911a3199 builds fine.
-> >>>       It only hurts bisectibility.
-> >>>
-> >>>All error/warnings:
-> >>>
-> >>>>>ERROR: "__udivdi3" [drivers/media/dvb-frontends/rtl2832_sdr.ko] undefined!
-> >>
-> >>
-> >>Could you say what I should do for that? Bug is fixed and solution is merged
-> >>as that patch:
-> >>
-> >>commit a98ccfcf4804beb2651b9f44a4bc5cbb387019ec
-> >>Author: Antti Palosaari <crope@iki.fi>
-> >>Date:   Tue Jul 22 00:18:19 2014 -0300
-> >>
-> >>     [media] rtl2832_sdr: remove plain 64-bit divisions
-> >>
-> >>Do you want Mauro to rebase whole media/master in order to make
-> >>bisectibility possible in any case?
-> >>
-> >>regards
-> >>Antti
-> >>
-> >>--
-> >>http://palosaari.fi/
-> 
-> -- 
-> http://palosaari.fi/
+[crope@iki.fi: commit msg from Luis email reply]
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Cc: Luis Alves <ljalvs@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/si2157.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index 329004f..4730f69 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -277,7 +277,7 @@ err:
+ 	return ret;
+ }
+ 
+-static const struct dvb_tuner_ops si2157_tuner_ops = {
++static const struct dvb_tuner_ops si2157_ops = {
+ 	.info = {
+ 		.name           = "Silicon Labs Si2157/Si2158",
+ 		.frequency_min  = 110000000,
+@@ -317,7 +317,7 @@ static int si2157_probe(struct i2c_client *client,
+ 		goto err;
+ 
+ 	fe->tuner_priv = s;
+-	memcpy(&fe->ops.tuner_ops, &si2157_tuner_ops,
++	memcpy(&fe->ops.tuner_ops, &si2157_ops,
+ 			sizeof(struct dvb_tuner_ops));
+ 
+ 	i2c_set_clientdata(client, s);
+-- 
+1.9.3
+
