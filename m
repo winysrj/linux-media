@@ -1,58 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36208 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756208AbaGQLYO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 07:24:14 -0400
-Received: from avalon.localnet (unknown [91.178.197.224])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id E74D4359FA
-	for <linux-media@vger.kernel.org>; Thu, 17 Jul 2014 13:23:06 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:52690 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760072AbaGSCir (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 22:38:47 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.17] Replace V4L2_FIELD_ANY with V4L2_FIELD_NONE in subdev drivers
-Date: Thu, 17 Jul 2014 13:24:17 +0200
-Message-ID: <3263187.shyCyf3hmE@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 02/10] si2168: improve scanning performance
+Date: Sat, 19 Jul 2014 05:38:18 +0300
+Message-Id: <1405737506-13186-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1405737506-13186-1-git-send-email-crope@iki.fi>
+References: <1405737506-13186-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Olli Salonen <olli.salonen@iki.fi>
 
-The following changes since commit 3c0d394ea7022bb9666d9df97a5776c4bcc3045c:
+Improve scanning performance by setting property 0301 with a value
+from Windows driver.
 
-  [media] dib8000: improve the message that reports per-layer locks 
-(2014-07-07 09:59:01 -0300)
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/si2168.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git v4l2/field
-
-for you to fetch changes up to dce4c80f5842f80527c31b8a07e2910b5d489ee6:
-
-  v4l: s3c-camif: Return V4L2_FIELD_NONE from pad-level set format (2014-07-17 
-13:16:51 +0200)
-
-----------------------------------------------------------------
-Laurent Pinchart (6):
-      v4l: noon010p30: Return V4L2_FIELD_NONE from pad-level set format
-      v4l: s5k4ecgx: Return V4L2_FIELD_NONE from pad-level set format
-      v4l: s5k5baf: Return V4L2_FIELD_NONE from pad-level set format
-      v4l: s5k6a3: Return V4L2_FIELD_NONE from pad-level set format
-      v4l: smiapp: Return V4L2_FIELD_NONE from pad-level get/set format
-      v4l: s3c-camif: Return V4L2_FIELD_NONE from pad-level set format
-
- drivers/media/i2c/noon010pc30.c                  | 1 +
- drivers/media/i2c/s5k4ecgx.c                     | 1 +
- drivers/media/i2c/s5k5baf.c                      | 2 ++
- drivers/media/i2c/s5k6a3.c                       | 1 +
- drivers/media/i2c/smiapp/smiapp-core.c           | 3 +++
- drivers/media/platform/s3c-camif/camif-capture.c | 2 ++
- 6 files changed, 10 insertions(+)
-
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 7980741..767dada 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -325,6 +325,13 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
++	memcpy(cmd.args, "\x14\x00\x01\x03\x0c\x00", 6);
++	cmd.wlen = 6;
++	cmd.rlen = 4;
++	ret = si2168_cmd_execute(s, &cmd);
++	if (ret)
++		goto err;
++
+ 	memcpy(cmd.args, "\x85", 1);
+ 	cmd.wlen = 1;
+ 	cmd.rlen = 1;
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.3
 
