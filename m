@@ -1,94 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36565 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754921AbaGQMe4 (ORCPT
+Received: from all.allspectrum.com ([192.254.202.77]:57582 "EHLO
+	all.allspectrum.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753890AbaGSA3y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jul 2014 08:34:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] [RFC] [media] omap3isp: try to fix dependencies
-Date: Thu, 17 Jul 2014 14:35:02 +0200
-Message-ID: <2725974.cX7okUBUol@avalon>
-In-Reply-To: <46586956.hxqoJOmDbk@wuerfel>
-References: <46586956.hxqoJOmDbk@wuerfel>
+	Fri, 18 Jul 2014 20:29:54 -0400
+Received: from cpe-75-83-45-81.socal.res.rr.com ([75.83.45.81]:3608 helo=[192.168.0.22])
+	by all.allspectrum.com with esmtp (Exim 4.80.1)
+	(envelope-from <moses@neonixie.com>)
+	id 1X8ICM-0002M0-2M
+	for linux-media@vger.kernel.org; Fri, 18 Jul 2014 17:08:22 -0700
+Message-ID: <53C9B6FD.8010504@neonixie.com>
+Date: Fri, 18 Jul 2014 17:08:29 -0700
+From: Moses <moses@neonixie.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+Subject: modern software with analog (BT787) overlay support? / XAWTV replacement
+ ?
+References: <S1751671AbaGRXys/20140718235448Z+394@vger.kernel.org>
+In-Reply-To: <S1751671AbaGRXys/20140718235448Z+394@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+Hello,
 
-Sorry for the late reply.
+I need a replacement for an aging box that is using xawtv to display 
+CCTV cameras (from a BT878 card) on a X windows display. Xawtv is 
+capable of hardware overlay directly onto the X display with almost no 
+CPU usage and pretty much real time, it has worked great for years.. but 
+now the box needs modern hardware and software. I have attempted to 
+compile xawtv using more modern versions of linux.. but I think xawtv is 
+just too old to mess with at this point.. so the question is..
 
-On Friday 13 June 2014 14:02:01 Arnd Bergmann wrote:
-> commit 2a0a5472af5c ("omap3isp: Use the ARM DMA IOMMU-aware operations")
-> brought the omap3isp driver closer to using standard APIs, but also
-> introduced two problems:
-> 
-> a) it selects a particular IOMMU driver for no good reason. This just
->    causes hard to track dependency chains, in my case breaking an
->    experimental patch set that tries to reenable !MMU support on ARM
->    multiplatform kernels. Since the driver doesn't have a dependency
->    on the actual IOMMU implementation (other than sitting on the same
->    SoC), this changes the 'select OMAP_IOMMU' to a generic 'depends on
->    IOMMU_API' that reflects the actual usage.
+Anyone know of any other suitable software that will allow analog video 
+overlay from BT878 chips?
 
-That sounds good to me.
+(and hopefully this is the correct forum for this!)
 
-> b) The driver incorrectly calls into low-level helpers designed to
->    be used by the IOMMU implementation:
->    arm_iommu_{create,attach,release}_mapping.
+Thank you
 
-I agree with you, and that's my plan, but I haven't been able to fix the 
-problem yet. It's somewhere on my (too big) to-do list.
-
-Please note that, while the problem hasn't been introduced by commit 
-2a0a5472af5c, the driver was in an even worse shape before that, as it called 
-in the OMAP IOMMU driver directly.
-
->    I'm not fixing this here, but adding a FIXME and a dependency on
->    ARM_DMA_USE_IOMMU. I believe the correct solution is to move the calls
->    into the omap iommu driver that currently doesn't have them, and change
->    the isp driver to call generic functions.
-
-OMAP_IOMMU doesn't select ARM_DMA_USE_IOMMU :-/ That should be fixed first, 
-otherwise the OMAP3 ISP driver won't be available at all.
-
-> In addition, this also adds the missing 'select VIDEOBUF2_DMA_CONTIG'
-> that is needed since fbac1400bd1 ("[media] omap3isp: Move to videobuf2")
-
-That's already fixed in my tree, so I'll skip that part.
-
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->
-> ----
-> 
-> Hi Laurent,
-> 
-> Could you have a look at this? It's possible I'm missing something
-> important here, but this is what I currently need to get randconfig
-> builds to use the omap3isp driver.
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index 8108c69..15bf61b 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -94,8 +94,9 @@ config VIDEO_M32R_AR_M64278
->  config VIDEO_OMAP3
->  	tristate "OMAP 3 Camera support"
->  	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
-> -	select ARM_DMA_USE_IOMMU
-> -	select OMAP_IOMMU
-> +	depends on ARM_DMA_USE_IOMMU # FIXME: use iommu API instead of low-level
-> ARM calls +	depends on IOMMU_API
-> +	select VIDEOBUF2_DMA_CONTIG
->  	---help---
->  	  Driver for an OMAP 3 camera controller.
-
--- 
 Regards,
-
-Laurent Pinchart
+-Moses
 
