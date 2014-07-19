@@ -1,35 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:8013 "EHLO mga03.intel.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:35734 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751703AbaGVHCT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 03:02:19 -0400
-Date: Tue, 22 Jul 2014 15:02:20 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: [linuxtv-media:master 441/499] ERROR: "__aeabi_uldivmod"
- [drivers/media/dvb-frontends/rtl2832_sdr.ko] undefined!
-Message-ID: <53ce0c7c.HHIfWDSrtQgLcJTo%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	id S1760216AbaGSCis (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 22:38:48 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 08/10] em28xx-dvb: Prepare for si2157 driver getting more parameters
+Date: Sat, 19 Jul 2014 05:38:24 +0300
+Message-Id: <1405737506-13186-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1405737506-13186-1-git-send-email-crope@iki.fi>
+References: <1405737506-13186-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   a733291d6934d0663af9e7d9f2266ab87a2946cd
-commit: 77bbb2b049c1c3e935f5bec510bec337d94ae8f8 [441/499] rtl2832_sdr: move from staging to media
-config: make ARCH=arm allmodconfig
+From: Matthias Schwarzott <zzam@gentoo.org>
 
-Note: the linuxtv-media/master HEAD a733291d6934d0663af9e7d9f2266ab87a2946cd builds fine.
-      It only hurts bisectibility.
+Modify all users of si2157_config to correctly initialize all not
+listed values to 0.
 
-All error/warnings:
-
->> ERROR: "__aeabi_uldivmod" [drivers/media/dvb-frontends/rtl2832_sdr.ko] undefined!
-
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+ drivers/media/usb/em28xx/em28xx-dvb.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index a121ed9..96a0bdb 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1545,6 +1545,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			dvb->i2c_client_demod = client;
+ 
+ 			/* attach tuner */
++			memset(&si2157_config, 0, sizeof(si2157_config));
+ 			si2157_config.fe = dvb->fe[0];
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+ 			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+-- 
+1.9.3
+
