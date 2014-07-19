@@ -1,41 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:34155 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753804AbaGVOzw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jul 2014 10:55:52 -0400
-Message-id: <53CE7B72.2030405@samsung.com>
-Date: Tue, 22 Jul 2014 16:55:46 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mark Rutland <mark.rutland@arm.com>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"andrzej.p@samsung.com" <andrzej.p@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: Re: [PATCH v2 8/9] Documentation: devicetree: Document sclk-jpeg clock
- for exynos3250 SoC
-References: <1405091990-28567-1-git-send-email-j.anaszewski@samsung.com>
- <14970063.d648TVkJj8@wuerfel> <53CE72B1.4080706@samsung.com>
- <7786783.sB22HqBgx3@wuerfel>
-In-reply-to: <7786783.sB22HqBgx3@wuerfel>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:45756 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760244AbaGSCit (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 22:38:49 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 10/10] si2157: Add get_if_frequency callback
+Date: Sat, 19 Jul 2014 05:38:26 +0300
+Message-Id: <1405737506-13186-10-git-send-email-crope@iki.fi>
+In-Reply-To: <1405737506-13186-1-git-send-email-crope@iki.fi>
+References: <1405737506-13186-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22/07/14 16:44, Arnd Bergmann wrote:
-> I'd vote for listing it as an optional clock independent of the compatible
-> string and changing the driver to just use it when it's provided.
+From: Matthias Schwarzott <zzam@gentoo.org>
 
-That sounds good to me, thanks for the suggestion.
+This is needed for PCTV 522e support.
 
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/si2157.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index f619983..6c53edb 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -279,6 +279,12 @@ err:
+ 	return ret;
+ }
+ 
++static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
++{
++	*frequency = 5000000; /* default value of property 0x0706 */
++	return 0;
++}
++
+ static const struct dvb_tuner_ops si2157_ops = {
+ 	.info = {
+ 		.name           = "Silicon Labs Si2157/Si2158",
+@@ -289,6 +295,7 @@ static const struct dvb_tuner_ops si2157_ops = {
+ 	.init = si2157_init,
+ 	.sleep = si2157_sleep,
+ 	.set_params = si2157_set_params,
++	.get_if_frequency = si2157_get_if_frequency,
+ };
+ 
+ static int si2157_probe(struct i2c_client *client,
 -- 
-Regards,
-Sylwester
+1.9.3
+
