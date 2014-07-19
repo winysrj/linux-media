@@ -1,41 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:35715 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755060AbaGBPwd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jul 2014 11:52:33 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC 4/9] dib8000: remove a double call for dib8000_get_symbol_duration()
-Date: Wed,  2 Jul 2014 12:52:18 -0300
-Message-Id: <1404316343-23856-5-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1404316343-23856-1-git-send-email-m.chehab@samsung.com>
-References: <1404316343-23856-1-git-send-email-m.chehab@samsung.com>
+Received: from smtp-gw4.li-life.net ([195.225.200.36]:53873 "EHLO
+	SMTP-GW4.li-life.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755560AbaGSRyn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Jul 2014 13:54:43 -0400
+Message-ID: <53CAAF9D.6000507@kaiser-linux.li>
+Date: Sat, 19 Jul 2014 19:49:17 +0200
+From: Thomas Kaiser <thomas@kaiser-linux.li>
+MIME-Version: 1.0
+To: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: ddbridge -- kernel 3.15.6
+References: <53C920FB.1040501@grumpydevil.homelinux.org>
+In-Reply-To: <53C920FB.1040501@grumpydevil.homelinux.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The symbol duration was already obtained at CT_DEMOD_START.
-No need to do it again at CT_DEMOD_STEP_3.
+On 07/18/2014 03:28 PM, Rudy Zijlstra wrote:
+> Dears,
+>
+> I have a ddbridge device:
+>
+> 03:00.0 Multimedia controller: Device dd01:0003
+>           Subsystem: Device dd01:0021
+>           Flags: fast devsel, IRQ 17
+>           Memory at f0900000 (64-bit, non-prefetchable) [size=64K]
+>           Capabilities: [50] Power Management version 3
+>           Capabilities: [90] Express Endpoint, MSI 00
+>           Capabilities: [100] Vendor Specific Information: ID=0000 Rev=0
+> Len=00c <?>
+>           Kernel driver in use: DDBridge
+>
+> The kernel recognises as seen in dmesg:
+>
+> [    1.811626] Digital Devices PCIE bridge driver, Copyright (C) 2010-11
+> Digital Devices GmbH
+> [    1.813996] pci 0000:01:19.0: enabling device (0000 -> 0002)
+> [    1.816033] DDBridge driver detected: Digital Devices PCIe bridge
+> [    1.816273] HW 0001000d FW 00010004
+>
+> But /dev/dvb remains empty, only /dev/ddbridge exists.
+>
+> Any pointers are much appreciated
+>
+> Cheers
+>
+>
+> Rudy
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/dib8000.c | 1 -
- 1 file changed, 1 deletion(-)
+Hello Rudy
 
-diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
-index 273e7a9d78a2..3de8934a5b3d 100644
---- a/drivers/media/dvb-frontends/dib8000.c
-+++ b/drivers/media/dvb-frontends/dib8000.c
-@@ -3155,7 +3155,6 @@ static int dib8000_tune(struct dvb_frontend *fe)
- 		break;
- 
- 	case CT_DEMOD_STEP_3: /* 33 */
--		state->symbol_duration = dib8000_get_symbol_duration(state);
- 		dib8000_set_isdbt_loop_params(state, LOOP_TUNE_1);
- 		dib8000_set_isdbt_common_channel(state, 0, 0);/* setting the known channel parameters here */
- 		*tune_state = CT_DEMOD_STEP_4;
--- 
-1.9.3
+I use a similar card from Digital Devices with Ubuntu 14.04 and kernel 3.13.0-32-generic. Support for this card was not build into the kernel and I had to compile it myself. I had to use media_build_experimental from Mr. Endriss.
+
+http://linuxtv.org/hg/~endriss/media_build_experimental
+
+Your card should be supported with this version.
+
+Regards, Thomas
+
+
+
 
