@@ -1,125 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63487 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754106AbaGNMbn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jul 2014 08:31:43 -0400
-Message-ID: <53C3CDAC.3010500@redhat.com>
-Date: Mon, 14 Jul 2014 14:31:40 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/2] libv4lcontrol: sync control strings/flags with the
- kernel
-References: <53BBD0EF.1050104@xs4all.nl>
-In-Reply-To: <53BBD0EF.1050104@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2047 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757475AbaGSCqK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jul 2014 22:46:10 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id s6J2k6OG019586
+	for <linux-media@vger.kernel.org>; Sat, 19 Jul 2014 04:46:08 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 5274B2A1FD1
+	for <linux-media@vger.kernel.org>; Sat, 19 Jul 2014 04:46:05 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140719024605.5274B2A1FD1@tschai.lan>
+Date: Sat, 19 Jul 2014 04:46:05 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 07/08/2014 01:07 PM, Hans Verkuil wrote:
-> Hans,
-> 
-> I'd like your opinion on this. I really don't think the (sw) suffix serves
-> any purpose and is just confusing to the end-user.
-> 
-> If you think that it is important that apps/users know that a control is emulated,
-> then I would propose adding a V4L2_CTRL_FLAG_EMULATED and setting it in
-> libv4lcontrol. Similar to the FMT_FLAG_EMULATED.
+Results of the daily build of media_tree:
 
-I agree that if we want to differentiate for programmatic purposes
-(which is what Sakari seems to be talking about) it would be better do so
-with a flag. But lets wait till we get a real use case for that before
-implementing the flag.
+date:		Sat Jul 19 04:00:23 CEST 2014
+git branch:	test
+git hash:	0ca1ba2aac5f6b26672099b13040c5b40db93486
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-16-g1db35d0
+host hardware:	x86_64
+host os:	3.14-5.slh.5-amd64
 
-In the mean time I think syncing up the strings with the kernel is a good
-idea.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16-rc1-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-> The emulated control names and control flags were different from
-> what the kernel uses.  Sync them up.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Detailed results are available here:
 
-Looks good, feel free to push:
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Reviewed by: Hans de Goede <hdegoede@redhat.com>
+Full logs are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-Hans
+The Media Infrastructure API from this daily build is here:
 
-> ---
->  lib/libv4lconvert/control/libv4lcontrol.c | 16 ++++++++--------
->  1 file changed, 8 insertions(+), 8 deletions(-)
-> 
-> diff --git a/lib/libv4lconvert/control/libv4lcontrol.c b/lib/libv4lconvert/control/libv4lcontrol.c
-> index 2fd585d..33bf9ce 100644
-> --- a/lib/libv4lconvert/control/libv4lcontrol.c
-> +++ b/lib/libv4lconvert/control/libv4lcontrol.c
-> @@ -788,7 +788,7 @@ static const struct v4l2_queryctrl fake_controls[V4LCONTROL_COUNT] = {
->  	{
->  		.id = V4L2_CID_AUTO_WHITE_BALANCE,
->  		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> -		.name =  "Whitebalance (software)",
-> +		.name =  "White Balance, Automatic",
->  		.minimum = 0,
->  		.maximum = 1,
->  		.step = 1,
-> @@ -797,7 +797,7 @@ static const struct v4l2_queryctrl fake_controls[V4LCONTROL_COUNT] = {
->  	}, {
->  		.id = V4L2_CID_HFLIP,
->  		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> -		.name =  "Horizontal flip (sw)",
-> +		.name =  "Horizontal Flip",
->  		.minimum = 0,
->  		.maximum = 1,
->  		.step = 1,
-> @@ -806,7 +806,7 @@ static const struct v4l2_queryctrl fake_controls[V4LCONTROL_COUNT] = {
->  	}, {
->  		.id = V4L2_CID_VFLIP,
->  		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> -		.name =  "Vertical flip (sw)",
-> +		.name =  "Vertical Flip",
->  		.minimum = 0,
->  		.maximum = 1,
->  		.step = 1,
-> @@ -815,17 +815,17 @@ static const struct v4l2_queryctrl fake_controls[V4LCONTROL_COUNT] = {
->  	}, {
->  		.id = V4L2_CID_GAMMA,
->  		.type = V4L2_CTRL_TYPE_INTEGER,
-> -		.name =  "Gamma (software)",
-> +		.name =  "Gamma",
->  		.minimum = 500,  /* == 0.5 */
->  		.maximum = 3000, /* == 3.0 */
->  		.step = 1,
->  		.default_value = 1000, /* == 1.0 */
-> -		.flags = 0
-> +		.flags = V4L2_CTRL_FLAG_SLIDER
->  	}, { /* Dummy place holder for V4LCONTROL_AUTO_ENABLE_COUNT */
->  	}, {
->  		.id = V4L2_CID_AUTOGAIN,
->  		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> -		.name =  "Auto Gain (software)",
-> +		.name =  "Gain, Automatic",
->  		.minimum = 0,
->  		.maximum = 1,
->  		.step = 1,
-> @@ -834,12 +834,12 @@ static const struct v4l2_queryctrl fake_controls[V4LCONTROL_COUNT] = {
->  	}, {
->  		.id = V4L2_CTRL_CLASS_USER + 0x2000, /* FIXME */
->  		.type = V4L2_CTRL_TYPE_INTEGER,
-> -		.name =  "Auto Gain target",
-> +		.name =  "Auto Gain Target",
->  		.minimum = 0,
->  		.maximum = 255,
->  		.step = 1,
->  		.default_value = 100,
-> -		.flags = 0
-> +		.flags = V4L2_CTRL_FLAG_SLIDER
->  	},
->  };
->  
-> 
+http://www.xs4all.nl/~hverkuil/spec/media.html
